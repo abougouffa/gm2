@@ -67,6 +67,7 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 * Elementary data types:: Data types supported by GNU Modula-2
 * Extensions::            GNU Modula-2 language extensions.
 * Interface to C::        Interfacing GNU Modula-2 to C
+* h2def::                 Semi-automatic translation of C header files.
 * Assembly language::     Interface to assembly language.
 * Built-ins::             Accessing GNU Modula-2 Built-ins
 @end menu
@@ -218,7 +219,7 @@ SHORTREAL                 float
 CHAR                      char
 @end example
 
-@node Extensions, Interface to C, Elementary data types, Using
+@node Extensions, h2def, Elementary data types, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
@@ -317,7 +318,17 @@ In reality the @samp{-lc} is redundant as libc is always included in the
 linking process. It is shown here to emphasise that the C library or
 object file containing @code{printf} must be present.
 
-@node Assembly language, Built-ins, Interface to C, Using
+@node h2def, Assembly language, Interface to C, Using
+@section Semi-automatic translation of C header files
+
+The tool @samp{h2def} can be used to semi-automatically generate
+@code{DEFINITION MODULE FOR "C"} modules. The tool takes as input a C
+header file and generates as output a corresponding textual definition
+module.  While the tool will not automatically translate complex C
+header files it will generate definition modules for simple header
+files.
+
+@node Assembly language, Built-ins, h2def, Using
 @section Interface to assembly language
 
 The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
