@@ -2939,11 +2939,12 @@ lang_decode_option (argc, argv)
      int argc ATTRIBUTE_UNUSED;
      char **argv ATTRIBUTE_UNUSED;
 {
+  fprintf(stderr, "asked to decode arg = %s\n", argv[0]);
 #if 0
   int i=0;
 
   while (i<argc) {
-    printf("asked to decode arg = %s\n", argv[i]);
+    fprintf(stderr, "asked to decode arg = %s\n", argv[i]);
     i++;
   }
 #endif

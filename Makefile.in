@@ -463,10 +463,10 @@ gm2-libs/%.o: gm2-libs/%.c
 	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -bounds -return -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -v -bounds -return -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o -
 
 
 #

@@ -26,10 +26,12 @@ Boston, MA 02111-1307, USA.  */
 /* #include "gcc-version.h" */
 /* was #ifdef EGCS */
 #if 1
-DEFINE_LANG_NAME ("Modula-2")
+DEFINE_LANG_NAME ("GNU Modula-2")
 #define GM2_OPT(NAME, DESCRIPTION) { NAME , DESCRIPTION }
 #else
 #define GM2_OPT(NAME, DESCRIPTION) NAME
 #endif
-  GM2_OPT("-I", ""),
-  GM2_OPT("-M", ""),
+  GM2_OPT("-I", "specifies a library path (C syntax)"),
+  GM2_OPT("-M", "specifies a library path (space seperated list in quotes)"),
+  GM2_OPT("-bounds", "turns on runtime subrange, array index and indirection via NIL pointer checking"),
+  GM2_OPT("-return", "turns on runtime checking for functions which finish without executing a RETURN statement"),

@@ -29,6 +29,7 @@ Boston, MA 02111-1307, USA.  */
         %{I*} %{g*} %{O*} %{W*} %{w}\
         %{M}\
         %{v:-version} %{pg:-p} %{p} %{q} %{students}\
+        %{bounds} %{return}\
         %{statistics} %{pedantic} %{verbose} %{!v:%{version}}\
         %{f*} %{+e*} %{aux-info*}\
         %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
