@@ -466,7 +466,8 @@ PROCEDURE BuildIntegerConstant (value: INTEGER) : Tree ;
 
 
 (*
-   BuildStringConstant - creates a string constant given a, string, and, length.
+   BuildStringConstant - creates a string constant given a, string,
+                         and, length.
 *)
 
 PROCEDURE BuildStringConstant (string: ADDRESS; length: CARDINAL) : Tree ;

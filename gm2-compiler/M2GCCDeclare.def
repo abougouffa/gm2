@@ -99,8 +99,10 @@ PROCEDURE PoisonSymbols (sym: CARDINAL) ;
 
 (*
    PromoteToString - declare, sym, and then promote it to a string.
-                     Note that if sym is a single character we do *not* record it as a string
-                          but as a char however we always return a string constant.
+                     Note that if sym is a single character we do
+                          *not* record it as a string
+                          but as a char however we always
+                          return a string constant.
 *)
 
 PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;

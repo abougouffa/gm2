@@ -6,7 +6,7 @@ highly likely to create massive core dumps. Patches and development
 volunteers highly welcome! See contributions at the bottom of this
 file.
 
-Please see the gm2.texi file for furthur info
+Please see the gm2.texi file for further info
 
 Getting GNU Modula-2
 ====================
@@ -57,6 +57,12 @@ Installing GNU Modula-2
    cd host-build
    make install
    cd ..
+
+   If you want to install _only_ the Modula-2 compiler (maybe you
+   already have the correct version of GCC installed), `cd' to the
+   `gcc' subdirectory of the build directory (e.g. cd host-build/gcc)
+   and run `make gm2.install'. This installation process does *not* 
+   overwrite existing copies of `libgcc.a' or `specs'.
 
 A simple test
 =============

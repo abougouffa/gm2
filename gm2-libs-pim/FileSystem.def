@@ -34,6 +34,15 @@ TYPE
              name    : String ;
           END ;
 
+   Flag = (
+           read,        (* read access mode *)
+           write,       (* write access mode *)
+           truncate,    (* truncate file when closed *)
+           again        (* reread the last character *)
+          );
+
+   FlagSet = SET OF Flag;
+
    Response = (done, notdone, notsupported, callerror,
                unknownfile, paramerror, toomanyfiles,
                userdeverror) ;

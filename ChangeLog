@@ -1,3 +1,15 @@
+2004-10-12	Diego Rodr=EDguez Rodr=EDguez <dieymir@yahoo.es>
+
+	* gm2/Make-lang.in introduced gm2.install rule so that
+	  GNU Modula-2 can be installed without overwriting an
+	  existing installation of gcc.
+	* gm2/README updated to explain how to only install gm2.
+	
+2004-10-12	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John B. Wallace, Jr
+	  <wallacjb@enter.net>. See testsuite/gm2/pim/run/pass/str6.mod.
+	
 2004-10-07	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by Iztok Kobal,

@@ -640,8 +640,8 @@ END ResolveConstantExpressions ;
 
 
 (*
-   FindSize - given a Modula-2 symbol, sym, return the GCC Tree (constant) representing
-              the storage size in bytes.
+   FindSize - given a Modula-2 symbol, sym, return the GCC Tree
+              (constant) representing the storage size in bytes.
 *)
 
 PROCEDURE FindSize (sym: CARDINAL) : Tree ;
@@ -1787,9 +1787,18 @@ BEGIN
 
          str := 'abcde' but not ch := 'a'
       *)
+      PushIntegerTree(FindSize(op3)) ;
+      PushIntegerTree(FindSize(op1)) ;
+      IF Less(CurrentQuadToken)
+      THEN
+         (* there is room for the extra <nul> character *)
+         t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
+      ELSE
+         t := FindSize(op3)
+      END ;
       ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                                BuildAddr(Mod2Gcc(op3), FALSE),
-                                               FindSize(op3)))
+                                               t))
    ELSE
       IF (SkipType(GetType(op1))=Word) AND Iso AND
          (SkipType(GetType(op3))#SkipType(GetType(op1)))

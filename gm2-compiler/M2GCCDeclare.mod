@@ -538,14 +538,17 @@ END DeclareCharConstant ;
 
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 BEGIN
-   AddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)), GetStringLength(sym)))
+   AddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
+                                      GetStringLength(sym)))
 END DeclareStringConstant ;
 
 
 (*
    PromoteToString - declare, sym, and then promote it to a string.
-                     Note that if sym is a single character we do *not* record it as a string
-                          but as a char however we always return a string constant.
+                     Note that if sym is a single character we do
+                          *not* record it as a string
+                          but as a char however we always
+                          return a string constant.
 *)
 
 PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
@@ -559,7 +562,10 @@ BEGIN
       (* will be a string anyway *)
       RETURN( Tree(Mod2Gcc(sym)) )
    ELSE
-      RETURN( BuildStringConstant(KeyToCharStar(GetString(sym)), GetStringLength(sym)) )
+      RETURN(
+             BuildStringConstant(KeyToCharStar(GetString(sym)),
+                                 GetStringLength(sym))
+            )
    END
 END PromoteToString ;
 

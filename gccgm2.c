@@ -11197,7 +11197,8 @@ build_set_full_complement (void)
 tree mystr;
 
 /*
- *  BuildStringConstant - creates a string constant given a, string, and, length.
+ *  BuildStringConstant - creates a string constant given a, string,
+ *                        and, length.
  */
 
 tree

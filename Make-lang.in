@@ -221,7 +221,6 @@ $(GM2_LIB_DIR_PIM):
 $(GM2_LIB_DIR_ISO):
 	-mkdir -p $(GM2_LIB_DIR_ISO)
 
-gm2.install-normal:
 gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO)
 	-if [ -f $(GM2)$(exeext) ]; then \
 	  if [ -f $(GM2)-cross$(exeext) ]; then \
@@ -300,6 +299,22 @@ gm2.install-info: installdirs
 	else true; fi
 
 gm2.install-man:
+
+gm2.install-normal: gm2.install-common gm2.install-info gm2.install-man
+
+# This target will install GM2 into an existing GCC installation,
+# without overwriting existing files.
+# The semicolon is to prevent the install.sh -> install default rule
+# from doing anything.  Having it run true helps avoid problems and
+# noise from versions of make which don't like to have null commands.
+gm2.install: gm2.install-normal; @true
+
+gm2.install-with-gcc: $(INSTALL_HEADERS) gm2.install $(INSTALL_LIBGCC)
+        for file in $(GCC_PASSES); do \
+          if [ x"$$file" != x"xgcc$(exeext)" ]; then \
+            rm -f $(DESTDIR)$(libsubdir)/$$file; \
+            $(INSTALL_PROGRAM) $$file $(DESTDIR)$(libsubdir)/$$file || exit 1; \          fi; \
+        done; exit 0
 
 gm2.uninstall:
 	-rm -rf $(bindir)/$(GM2_INSTALL_NAME)
@@ -905,33 +920,31 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #
 
 gm2/gm2-libs/gm2-libs-host.h:
-	for i in x $(INTERNAL_CFLAGS) ; do \
-            echo $$i ; \
-            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
-                cd gm2/gm2-libs ; \
-                CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
-                export CC ; \
-                CPP=`echo $(GCC_FOR_TARGET) -E | sed -e "s/^ //"` ; \
-                export CPP ; \
-                $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
-                return ; \
-            fi ; \
-        done ; \
-        cd gm2/gm2-libs ; \
-        $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)'
+	if echo $(INTERNAL_CFLAGS) | grep -e -DCROSS_COMPILE; then \
+            echo "Configuring to build libraries using cross compiler" ; \
+            cd gm2/gm2-libs ; \
+            CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
+            export CC ; \
+            CPP="$(CC) -E" ; \
+            export CPP ; \
+            echo "CC = $(CC)" ; \
+            echo "CPP = $(CPP)" ; \
+            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+        else \
+            echo "Configuring to build libraries using native compiler" ; \
+            cd gm2/gm2-libs ; \
+            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)' ; \
+        fi
 
 gm2/gm2config.h:
 	cd gm2 ; \
-	for i in x $(INTERNAL_CFLAGS) ; do \
-            echo $$i ; \
-            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
-                AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
-                export AR ; \
-                $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
-                return ; \
-            fi ; \
-        done ; \
-        $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)'
+	if echo $(INTERNAL_CFLAGS) | grep -e -DCROSS_COMPILE; then \
+            AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
+            export AR ; \
+            $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+        else \
+            $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
+        fi
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
