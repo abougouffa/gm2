@@ -9491,7 +9491,16 @@ gccgm2_BuildStringConstant (string, length)
      char *string;
      int   length;
 {
-  tree id=build_string(length, string);
+  tree id;
+
+  if (length == 0) {
+    /* we need to emit .string "" in the assembly file, rather than an empty label.
+     * So we tell gcc that the string has length 1 and contains contents (char)0
+     */
+    id=build_string(length+1, string);
+  } else {
+    id=build_string(length, string);
+  }
 
   TREE_TYPE(id) = char_array_type_node;
   mystr = id;
