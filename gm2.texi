@@ -294,10 +294,10 @@ Modula-2 @samp{-M} option can be used. For example:
 -M "libs somedir ."
 @end example
 
-@item -bounds
+@item -Wbounds
 generate code to check the bounds of subranges and array indexes.
 
-@item -return
+@item -Wreturn
 generate code to check that functions always exit with a @samp{RETURN} and do not
 fall out at the end.
 
@@ -308,11 +308,11 @@ The line number and file is always displayed, but sometimes the compiler
 attributes the error to the following line.
 The @samp{-verbose} option is more accurate and more verbose!
 
-@item -statistics
+@item -Wstatistics
 generates quadruple information: number of quadruples generated,
 number of quadruples remaining after optimization.
 
-@item -students
+@item -Wstudents
 checks for novice peculiarities. Note that these warnings are not
 the same as error messages. Hardened users of Modula-2 may wish to ignore this
 option as it checks to see whether a user has declared a variable name
@@ -320,7 +320,7 @@ twice which looks the same and whether a variable looks similar to a keyword.
 (Case difference etc). This is of course quite legal Modula-2 but
 some first year students might find this option useful.
 
-@item -pedantic
+@item -Wpedantic
 forces the compiler to reject nested @samp{WITH}
 statements referencing the same record type.
 Does not allow multiple imports of the same item from a module.

@@ -179,9 +179,9 @@ GCC_PATCHED = toplev.o rtl.o
 
 compiler: ../cc1gm2$(exeext)
 
-paranoid: ../bcc1gm2(exeext)
+paranoid: ../bcc1gm2$(exeext)
 
-../bcc1gm2(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_PARANOID) ../cc1gm2$(exeext)
+../bcc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_PARANOID) ../cc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(GCC_OBJS) $(LIBS)
 
 ../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
@@ -686,10 +686,10 @@ gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.c
 	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
-	../xgm2 -v -bounds -return -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+	../xgm2 -Wbounds -Wreturn -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
-	../xgm2 -bounds -return -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+	../xgm2 -Wbounds -Wreturn -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
@@ -697,5 +697,6 @@ clean: force
 	( cd m2/comp/p2c ; make clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) m2/comp/bin/*
+	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 
 force:
