@@ -77,10 +77,10 @@ ${srcdir}/stamp-h.in: configure.in
 	echo timestamp > ${srcdir}/stamp-h.in
 
 auto-host.h: stamp-h
-stamp-h: auto-host.h.in config.status
+stamp-h: auto-host.h.in # config.status
 	./config.status
 
-Makefile: Makefile.in config.status
+Makefile: Makefile.in # config.status
 	./config.status
 
 config.status: configure

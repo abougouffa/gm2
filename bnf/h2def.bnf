@@ -241,6 +241,18 @@ VAR
    CurrentUserPath,
    SystemPath          : String ;
    DummyNo             : CARDINAL ;
+   watch               : Node ;
+
+
+(*
+   setwatch - 
+
+*)
+
+PROCEDURE setwatch (n: Node) ;
+BEGIN
+   watch := n
+END setwatch ;
 
 
 (*
@@ -276,6 +288,10 @@ PROCEDURE MakeBaseNode (n: Name) : Node ;
 VAR
    t: Node ;
 BEGIN
+   IF Debugging
+   THEN
+      hprintf1('making base node (%s)\n', Mark(InitStringCharStar(KeyToCharStar(n))))
+   END ;
    t := InitNode(ndbase) ;
    t^.base.name := n ;
    RETURN( t )
@@ -457,6 +473,7 @@ PROCEDURE ChainTopTwoIdent ;
 VAR
    n1, n2: Node;
 BEGIN
+   DisplayStack ;
    n1 := Pop() ;
    n2 := Pop() ;
    IF n1^.type=ndident
@@ -1009,7 +1026,10 @@ TYPE
 *)
 
 PROCEDURE GetBaseSet (VAR n: Node; VAR t: baseSet) : BOOLEAN ;
+VAR
+   m: Node ;
 BEGIN
+   m := n ;
    t := {} ;
    WHILE n#NIL DO
       WITH n^ DO
@@ -1042,12 +1062,24 @@ BEGIN
          nddummy:
 
          ELSE
-            RETURN( t#{} )
+            IF t={}
+            THEN
+               n := m ;
+               RETURN( FALSE )
+            ELSE
+               RETURN( TRUE )
+            END
          END
       END ;
       n := n^.chain
    END ;
-   RETURN( TRUE )
+   IF t={}
+   THEN
+      n := m ;
+      RETURN( FALSE )
+   ELSE
+      RETURN( TRUE )
+   END
 END GetBaseSet ;
 
 
@@ -1055,7 +1087,7 @@ END GetBaseSet ;
    PrintBasicType - 
 *)
 
-PROCEDURE PrintBasicType (t: baseSet) ;
+PROCEDURE PrintBasicType (n: Node; t: baseSet) ;
 BEGIN
    IF (t={longp}) OR (t={intp})
    THEN
@@ -1084,6 +1116,16 @@ BEGIN
    ELSIF t={unsignedp, intp, longp}
    THEN
       hprintf0('LONGCARD')
+   ELSIF n#NIL
+   THEN
+      CASE n^.type OF
+
+      ndbase  : hprintf1('%s', Mark(InitStringCharStar(KeyToCharStar(n^.base.name)))) |
+      ndstruct: hprintf1('%s', Mark(InitStringCharStar(KeyToCharStar(n^.str.name))))
+
+      ELSE
+         ErrorArray('dont understand this type')
+      END
    ELSE
       ErrorArray('dont understand this type')
    END
@@ -1097,6 +1139,7 @@ END PrintBasicType ;
 PROCEDURE PrintBaseType (n: Node) ;
 VAR
    t: baseSet ;
+   m: Node ;
 BEGIN
    IF n#NIL
    THEN
@@ -1109,15 +1152,20 @@ BEGIN
                hprintf0('ADDRESS')
             END
          ELSE
+            m := NIL ;
             WHILE n#NIL DO
                IF n^.type=ndptr
                THEN
-                  hprintf0('POINTER TO ')
+                  hprintf0('POINTER TO ') ;
+                  m := n^.chain
                END ;
                n := n^.chain
             END ;
-            PrintBasicType(t)
+            PrintBasicType(m, t)
          END
+      ELSIF (n^.type=ndbase) OR (n^.type=ndstruct)
+      THEN
+         PrintBasicType(n, {})
       ELSIF n^.type=ndvararg
       THEN
          hprintf0('...')
@@ -1279,6 +1327,15 @@ BEGIN
             ArrayOrAddress('ARRAY OF CARDINAL') ;
             RETURN( TRUE )
          END
+      ELSIF (n#NIL) AND (n^.type=ndbase)
+      THEN
+         IF UseArrayInParameters
+         THEN
+            hprintf1('ARRAY OF %s', Mark(InitStringCharStar(n^.base.name)))
+         ELSE
+            hprintf0('ADDRESS')
+         END ;
+         RETURN( TRUE )
       END
    END ;
    RETURN( FALSE )      
@@ -1353,12 +1410,69 @@ END PrintParameters ;
 
 
 (*
+   FindFunc - returns a func node (or NIL) from a list of nodes, n.
+*)
+
+PROCEDURE FindFunc (n: Node) : Node ;
+VAR
+   m: Node ;
+BEGIN
+   WHILE n#NIL DO
+      IF n^.type=ndfunc
+      THEN
+         RETURN( n )
+      END ;
+      n := n^.chain
+   END ;
+   RETURN( NIL )
+END FindFunc ;
+
+
+(*
+   CheckProcedureParameters - checks to see whether we have a
+                              parameter which is a function and manipulates
+                              this into a typedef and a parameter name.
+*)
+
+PROCEDURE CheckProcedureParameters (n: Node) ;
+VAR
+   f, i, t, m: Node ;
+BEGIN
+   IF (n#NIL) AND (n^.type=ndchain)
+   THEN
+      m := n ;
+      REPEAT
+         IF (n^.chain#NIL) AND (n^.chain^.type=ndident)
+         THEN
+            f := FindFunc(n^.chain^.id.type)
+         ELSE
+            f := NIL
+         END ;
+         IF f#NIL
+         THEN
+            i := InitNode(ndident) ;
+            i^.id.name := makekey(string(Sprintf1(Mark(InitString('__gm2param%d')), DummyNo))) ;
+            i^.id.type := MakeBaseNode(n^.chain^.id.name) ;
+            
+            t := InitNode(ndtypedef) ;
+            t^.chain := n^.chain^.id.type ;
+            n^.chain^.id.type := t ;
+            PutItemIntoList(ToDoList, n^.chain) ;
+            n^.chain := i
+         END ;
+         m := m^.nextChain
+      UNTIL m=n
+   END
+END CheckProcedureParameters ;
+
+
+(*
    RemoveOnlyVoidParameter - 
 *)
 
 PROCEDURE RemoveOnlyVoidParameter (VAR n: Node) ;
 BEGIN
-   IF n^.type=ndchain
+   IF (n#NIL) AND (n^.type=ndchain)
    THEN
       IF n^.nextChain=n
       THEN
@@ -1471,7 +1585,8 @@ BEGIN
                                hprintf0('POINTER TO ') ;
                                IF s#{}
                                THEN
-                                  PrintBasicType(s)
+                                  PrintBasicType(NIL, s) ;
+                                  RETURN
                                END
                             END
                          END |
@@ -1527,6 +1642,7 @@ BEGIN
                          THEN
                             hprintf1('%s ', Mark(InitStringCharStar(func.name)))
                          END ;
+                         CheckProcedureParameters(func.list) ;
                          RemoveOnlyVoidParameter(func.list) ;
                          IF HasType(func.type) OR (func.list#NIL)
                          THEN
@@ -1657,6 +1773,7 @@ END IsTypeDef ;
 
 PROCEDURE PrintCNode (n: Node) ;
 BEGIN
+   DisplayStack ;
    IF n#NIL
    THEN
       WITH n^ DO
@@ -1704,9 +1821,13 @@ BEGIN
       END ;
       PrintNode(n, NIL) ;
       WHILE NoOfItemsInList(ToDoList)#0 DO
-         Emit(types) ;
          n := GetItemFromList(ToDoList, 1) ;
          RemoveItemFromList(ToDoList, n) ;
+         IF emitting=procedures
+         THEN
+            hprintf0(';\n')
+         END ;
+         Emit(types) ;
          PrintCNode(n)
       END
    END
@@ -1916,6 +2037,104 @@ BEGIN
    END ;
    RETURN( w )
 END Pop ;
+
+
+(*
+   DisplayNode - 
+*)
+
+PROCEDURE DisplayNode (n: Node) ;
+BEGIN
+   IF n#NIL
+   THEN
+      CASE n^.type OF
+
+      ndchain  :  hprintf0('ndchain\n') |
+      nderror  :  hprintf0('nderror\n') |
+      nddefined:  hprintf0('nddefined\n') |
+      ndor     :  hprintf0('ndor\n') |
+      ndand    :  hprintf0('ndand\n') |
+      ndlor    :  hprintf0('ndlor\n') |
+      ndland   :  hprintf0('ndland\n') |
+      ndlxor   :  hprintf0('ndlxor\n') |
+      ndgre    :  hprintf0('ndgre\n') |
+      ndless   :  hprintf0('ndless\n') |
+      ndgreequ :  hprintf0('ndgreequ\n') |
+      ndlessequ:  hprintf0('ndlessequ\n') |
+      ndequal  :  hprintf0('ndequal\n') |
+      ndnotequal:  hprintf0('ndnotequal\n') |
+      ndarray   :  hprintf0('ndarray\n') |
+      ndcast    :  hprintf0('ndcast\n') |
+      ndplus    :  hprintf0('ndplus\n') |
+      ndminus   :  hprintf0('ndminus\n') |
+      ndmult    :  hprintf0('ndmult\n') |
+      nddiv     :  hprintf0('nddiv\n') |
+      ndmod      :  hprintf0('ndmod\n') |
+      ndshiftleft:  hprintf0('ndshiftleft\n') |
+      ndshiftright:  hprintf0('ndshiftright\n') |
+      ndnot       :  hprintf0('ndnot\n') |
+      nddummy     :  hprintf0('nddummy\n') |
+      ndnegate    :  hprintf0('ndnegate\n') |
+      ndsizeof    :  hprintf0('ndsizeof\n') |
+      ndlnot      :  hprintf0('ndlnot\n') |
+      ndident     :  hprintf1('ndident %s\n', Mark(InitStringCharStar(n^.id.name))) |
+      ndconststr  :  hprintf0('ndconststr\n') |
+      ndconstchar :  hprintf0('ndconstchar\n') |
+      nddecint    :  hprintf0('nddecint\n') |
+      ndoctint:  hprintf0('ndoctint\n') |
+      ndhexint:  hprintf0('ndhexint\n') |
+      ndtypedef:  hprintf0('ndtypedef\n') |
+      ndarraytype:  hprintf0('ndarraytype\n') |
+      ndenum:  hprintf0('ndenum\n') |
+      ndptr:  hprintf0('ndptr\n') |
+      ndbase:  hprintf0('ndbase\n') |
+      ndenumfield:  hprintf0('ndenumfield\n') |
+      ndstructfield:  hprintf0('ndstructfield\n') |
+      ndfunc:  hprintf0('ndfunc\n') |
+      ndstruct:  hprintf0('ndstruct\n') |
+      ndunion:  hprintf0('ndunion\n') |
+      ndvararg:  hprintf0('ndvararg\n')
+
+      ELSE
+         ErrorArray('unknown node')
+      END
+   END
+END DisplayNode ;
+
+
+(*
+   DisplayStack - 
+*)
+
+PROCEDURE DisplayStack ;
+VAR
+   e: ExpStack ;
+BEGIN
+   IF Debugging
+   THEN
+      hprintf0('\nnode stack\n') ;
+      e := expStack ;
+      WHILE e#NIL DO
+         DisplayNode(e^.value) ;
+         e := e^.next
+      END
+   END
+END DisplayStack ;
+
+
+(*
+   SafePop - 
+*)
+
+PROCEDURE SafePop () : Node ;
+BEGIN
+   IF expStack#NIL
+   THEN
+      RETURN( Pop() )
+   ELSE
+      RETURN( NIL )
+   END
+END SafePop ;
 
 
 (*
@@ -2619,14 +2838,15 @@ TypeQualifier := 'const'                                          % Push(InitNod
                | 'volatile'                                       % Push(InitNode(nddummy)) %
                =:
 
-Declarator := Pointer DirectDeclarator                            % ChainTopTwoIdent %
+Declarator := Pointer [ DirectDeclarator                          % ChainTopTwoIdent %
+                                         ]
               | DirectDeclarator =:
 
 DirectDeclarator := DirectDeclaratorBeta { DirectDeclaratorAlpha
                                          }
                   =:
 
-DirectDeclaratorBeta := Ident                                     % VAR n: Node ; %
+DirectDeclaratorBeta := Ident                                     % VAR n, m: Node ; %
                                                                   % n := InitNode(ndident) ;
                                                                     n^.id.name := LastIdent ;
                                                                     n^.id.type := NIL ;
@@ -2634,26 +2854,30 @@ DirectDeclaratorBeta := Ident                                     % VAR n: Node 
                                                                     (* hprintf1('might be type %s\n', Mark(InitStringCharStar(KeyToCharStar(LastIdent)))) *) %
                              | '(' Declarator ')' =:
 
-DirectDeclaratorAlpha :=   '['                                    % VAR n, m: Node ; %
+DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i: Node ; %
                                                                   % n := InitNode(ndarraytype) ;
-                                                                    m := Pop() ;  (* the ident *)
+                                                                    i := Pop() ;  (* the ident *)
                                                                     n^.max := NIL ;
                                                                     Push(n) ;
-                                                                    Push(m) %
+                                                                    Push(i) %
                                [ ConstantExpression               % n^.max := Pop() %
                                                     ]             % ChainTopTwoIdent %
                                                       ']' |
                            '('
-                                                                  % m := Pop() ;
-                                                                    n := InitNode(ndfunc) ;
-                                                                    n^.func.name := NIL ;
-                                                                    n^.func.list := NIL ;
-                                                                    
-                                                                    n^.func.type := Pop() ;
+                                                                  % DisplayStack ;
+                                                                    i := Pop() ;
+                                                                    t := Pop() ;
+                                                                    IF i^.type#ndident
+                                                                    THEN
+                                                                       ErrorArray('internal error: expecting ident')
+                                                                    END %
+                               [ ParameterTypeList                % n := InitNode(ndfunc) ;
+                                                                    n^.func.type := t ;
+                                                                    n^.func.list := Pop() %
+                                                   ]              % Push(InitNode(nddummy)) ;
                                                                     Push(n) ;
-                                                                    Push(m) %
-                               [ ParameterTypeList                % n^.func.list := Pop() %
-                                                   ]
+                                                                    Push(i) ;
+                                                                    ChainTopTwoIdent %
                                                      ')'
                        =:
 
@@ -2673,13 +2897,10 @@ ParameterTypeList := ParameterDeclaration                         % InitChain %
                                                           ) }
                    =:
 
+AbstractDeclarator := DirectDeclarator =:
+
 ParameterDeclaration := DeclarationSpecifiers
-                              [ Ident                             % VAR n: Node ; %
-                                                                  % n := InitNode(ndident) ;
-                                                                    n^.id.name := LastIdent ;
-                                                                    n^.id.type := Pop() ;
-                                                                    Push(n) %
-                                | AbstractDeclarator              % ChainTopTwo %
+                              [ Declarator                        % ChainTopTwoIdent (* was DirectDeclarator *) %
                               ] =:
 
 IdentifierList := Ident                                           % Push(MakeValueNode(ndident, LastIdent)) %
@@ -2689,32 +2910,6 @@ IdentifierList := Ident                                           % Push(MakeVal
 
 TypeName := SpecifierQualifierList [ AbstractDeclarator           % ChainTopTwo %
                                    ] =:
-
-AbstractDeclarator := DirectAbstractDeclarator =:
-
-DirectAbstractDeclarator := '(' AbstractDeclarator ')'
-                            { '['                                 % VAR n, m: Node ; %
-                                                                  % n := InitNode(ndarraytype) ;
-                                                                    Push(n) %
-                                  [ ConstantExpression            % n^.max := Pop() %
-                                                       ] ']' |
-                              '('                                 % m := Pop() ;
-                                                                    n := InitNode(ndfunc) ;
-                                                                    IF m^.type=ndident
-                                                                    THEN
-                                                                       n^.func.type := m^.id.type ;
-                                                                       n^.func.name := m^.id.name
-                                                                    ELSE
-                                                                       n^.func.type := m ;
-                                                                       n^.func.name := NIL
-                                                                    END ;
-                                                                    n^.func.list := NIL %
-                                  [ ParameterTypeList             % n^.func.list := Pop() %
-                                                      ]           % Push(n) %
-                                                        ')' } |
-                             Pointer
-                          =:
-
 
 -- expression rules below
 

@@ -652,7 +652,8 @@ BEGIN
                INC(CurrentTokNo)
             ELSE
                a := clex.GetToken() ;
-               GetToken
+               GetToken ;
+               (* printf0('\n'); clex.CError(string(InitString('current token'))) ; *)
             END
          END
       END
