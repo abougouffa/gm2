@@ -287,6 +287,8 @@ gm2tools: force
 
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux
+	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
 	( cd m2 ; make clean )
+	( cd m2/comp ; make clean )
 
 force:

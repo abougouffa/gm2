@@ -107,10 +107,15 @@ gm2.uninstall:
 # We just have to delete files specific to us.
 
 gm2.mostlyclean:
-	-rm -f gm2/*.o xgm2 cc1gm2
+	-rm -f gm2/*.o xgm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
+	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 gm2.clean:
-	-rm -f gm2/*.o xgm2 cc1gm2
+	-rm -f gm2/*.o xgm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
+	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	( cd gm2/m2 ; make clean )
+	( cd gm2/m2/comp ; make clean )
+	-rm -fr gm2/stage?
+	-rm gm2/include
 
 gm2.distclean:
 	-rm -f gm2/Makefile
