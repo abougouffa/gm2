@@ -244,7 +244,6 @@ and procedures (except @code{HALT}, @code{NEW} and @code{DISPOSE})
 generate in-line code for efficiency.
 
 @example
-
 (*
    NEW - the procedure NEW is replaced by:
          ALLOCATE(p, TSIZE(p^)) ;
@@ -363,6 +362,9 @@ PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
 @c @code{CAP}, @code{ABS}, @code{VAL},
 @c @code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}
 
+@subsection ISO standard procedures and functions
+
+@c complete this as well
 
 @node Extensions, Interface to C, Standard procedures, Using
 @section GNU Modula-2 language extensions
@@ -814,8 +816,59 @@ modules are parsed after the module is parsed; secondly the
 import/export rules might mean that you can see and use a symbol
 before it is declared in a completely different scope.
 
-[To do: Here should be a description of the trees used in
-SymbolTable.mod]
+Here is a brief description of the lists of symbols maintained within
+@code{DefImp} and @code{Module} symbols. It is these lists and actions
+at each pass which manipulate these lists which solve the scoping and
+visability of all symbols.
+
+The @code{DefImp} symbol maintains the: @code{ExportQualified},
+@code{ExportUnQualified}, @code{ExportRequest}, @code{IncludeList},
+@code{ImportTree}, @code{ExportUndeclared},
+@code{NeedToBeImplemented}, @code{LocalSymbols},
+@code{EnumerationScopeList}, @code{Unresolved}, @code{ListOfVars},
+@code{ListOfProcs} and @code{ListOfModules} lists.
+
+The @code{Module} symbol maintains the: @code{LocalSymbols},
+@code{ExportTree}, @code{IncludeList}, @code{ImportTree},
+@code{ExportUndeclared}, @code{EnumerationScopeList},
+@code{Unresolved}, @code{ListOfVars}, @code{ListOfProcs} and
+@code{ListOfModules} lists.
+
+The @code{ListOfVars}, @code{ListOfProcs} and @code{ListOfModules}
+lists are common to both symbols and simply contain a list of
+variables, procedures and inner modules which are declared with this
+definition/implementation or program module.
+
+The @code{LocalSymbols} list present in both @code{DefImp} and
+@code{Module} symbols contains a complete list of symbols visible in
+this modules scope. The symbols in this list may have been imported or
+exported from an inner module.
+
+The @code{EnumerationScope} list is common to both @code{DefImp} and
+@code{Module} symbols and defines all visible enumeration symbols.
+When this module is parsed these the contents of these enumeration
+types are marked as visible. Internally to gm2 these form a pseudo
+scope (rather like a @code{WITH} statement which temporarily
+makes the fields of the record visible).
+
+The @code{ExportUndeclared} list is common to both @code{DefImp} and
+@code{Module} symbols and contains a list of all symbols marked as
+exported but as yet undeclared.
+
+The @code{IncludeList} is common to both @code{DefImp} and
+@code{Module} symbols and contains a list of all modules imported by
+the @code{IMPORT modulename ;} construct.
+
+The @code{ImportTree} is common to both @code{DefImp} and
+@code{Module} symbols and contains a tree of all imported identifiers.
+
+The @code{ExportQualified} and @code{ExportUnQualified} trees
+are only present in the @code{DefImp} symbol. They contain identifiers
+which are marked as @code{EXPORT QUALIFIED} and @code{EXPORT
+UNQUALIFIED} respectively.
+
+The @code{NeedToBeImplemented} list is only present in the @code{DefImp}
+module and contains a list of all unresolved symbols which are exported.
 
 @subsection Pass 1
 
@@ -855,10 +908,9 @@ To do
 @section Scope rules
 
 This section describes my understanding of the Modula-2 scope rules
-with respect to enumerated types.
-If they are incorrect please correct me by email
-<gaius at glam.ac.uk>. They also serve to document the behaviour of gm2
-in these cirumstances.
+with respect to enumerated types.  If they are incorrect please
+correct me by email <gaius at glam.ac.uk>. They also serve to document
+the behaviour of gm2 in these cirumstances.
 
 In gm2 the syntax for a type declaration is defined as:
 
