@@ -1,3 +1,12 @@
+2004-12-22	Gaius Mulley <gaius@glam.ac.uk>
+
+	* more fixes to enable to the Z type to work.
+	* introduced GetM2ZRealType which maps onto the largest
+	  real type tree.
+	* 24 regression test failures out of 2148 on the Opteron LP64
+	  9 fail within ulm libraries (Procedure/Module scope nesting).
+	  15 fail with ISO import/export of enumeration types.
+	
 2004-11-29	Gaius Mulley <gaius@glam.ac.uk>
 
 	* internal changes to ordinal type which now use the Z

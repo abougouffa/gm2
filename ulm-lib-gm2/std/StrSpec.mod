@@ -17,9 +17,17 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StrSpec.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: StrSpec.mod,v 1.3 2004/12/22 12:38:44 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StrSpec.mod,v $
+   Revision 1.3  2004/12/22 12:38:44  gaius
+   * more fixes to enable to the Z type to work.
+   * introduced GetM2ZRealType which maps onto the largest
+     real type tree.
+   * 24 regression test failures out of 2148 on the Opteron LP64
+     9 fail within ulm libraries (Procedure/Module scope nesting).
+     15 fail with ISO import/export of enumeration types.
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -113,6 +121,8 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 	targetLen   : CARDINAL;
 
    BEGIN
+      StrPartCpy ( StoreIt^, target, position, targetLen-position );
+(*
       targetLen := StrLen ( target );
       IF position > targetLen THEN
 	 StrCat ( target, insertion )
@@ -138,6 +148,7 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 	 END;
 	 DEALLOCATE ( StoreIt, SIZE(target) )
       END
+*)
    END StrIns;
 
 

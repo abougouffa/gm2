@@ -710,6 +710,7 @@ static int                    append_m2_digit                             PARAMS
        void                   gccgm2_DetermineSizeOfConstant              PARAMS ((char *str, int base, int *needsLong, int *needsUnsigned));
        int                    gccgm2_Overflow                             PARAMS ((tree t));
        tree                   gccgm2_GetM2ZType                           PARAMS ((void));
+       tree                   gccgm2_GetM2ZRealType                       PARAMS ((void));
 
 /* PROTOTYPES: ADD HERE */
 
@@ -10780,6 +10781,12 @@ tree
 gccgm2_GetM2ZType ()
 {
   return m2_z_type_node;
+}
+
+tree
+gccgm2_GetM2ZRealType ()
+{
+  return long_double_type_node;
 }
 
 tree

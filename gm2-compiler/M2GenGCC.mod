@@ -162,7 +162,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildCap,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
-                   GetWordType, GetM2ZType,
+                   GetWordType, GetM2ZType, GetM2ZRealType,
                    GetBitsPerBitset, GetSizeOfInBits,
                    BuildIntegerConstant,
                    RememberConstant, FoldAndStrip ;
@@ -1924,17 +1924,12 @@ BEGIN
             tv := binop(tl, tr, TRUE) ;
             CheckOverflow(tokenno, tv) ;
 
-            (* double check this code is also safe (see FoldUnary) for same issues *)
             IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
             THEN
                AddModGcc(op1, DeclareKnownConstant(GetM2ZType(), tv))
             ELSE
                AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op1)), tv))
             END ;
-(* was
-            AddModGcc(op1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv)) ;
-*)
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          ELSE
@@ -2874,16 +2869,12 @@ BEGIN
          THEN
             IF CoerceConst=Tree(NIL)
             THEN
-(*  **************** double check this is safe to replace with code below
-               CoerceConst := Tree(Mod2Gcc(GetType(op3))) ;
-               IF CoerceConst=Tree(NIL)
-               THEN
-                  CoerceConst := GetM2ZType()
-               END
-*)
                IF (GetType(op3)=NulSym) OR IsOrdinalType(GetType(op3))
                THEN
                   CoerceConst := GetM2ZType()
+               ELSIF IsRealType(GetType(op3))
+               THEN
+                  CoerceConst := GetM2ZRealType()
                END
             END ;
             PutConst(op1, FindType(op3)) ;
@@ -3319,7 +3310,7 @@ BEGIN
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
       AddModGcc(op1,
-                DeclareKnownConstant(GetIntegerType(),
+                DeclareKnownConstant(GetM2ZType(),
                                      ResolveHigh(quad, op3)))
    ELSE
       t := BuildAssignment(Mod2Gcc(op1),
@@ -3628,19 +3619,16 @@ BEGIN
 *)
                ELSIF IsRealType(SkipType(op2))
                THEN
-                  PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(), TRUE))) ;
+                  PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                                                         TRUE))) ;
                   PopValue(op1)
-(*
-                  PushValue(op1) ;
-                  AddModGcc(op1, PopRealTree())
-*)
                ELSE
-                  PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(), TRUE))) ;
-                  PopValue(op1)
-(*
+                  PushIntegerTree(FoldAndStrip(BuildConvert(tl,
+                                                            PopIntegerTree(),
+                                                            TRUE))) ;
+                  PopValue(op1) ;
                   PushValue(op1) ;
-                  AddModGcc(op1, PopIntegerTree())
-*)
+                  CheckOverflow(tokenno, PopIntegerTree())
                END
             END ;
             RemoveItemFromList(l, op1) ;
