@@ -158,6 +158,7 @@ EXPORT QUALIFIED NulSym,
                  IsSubscript,
                  IsSubrange,
       	       	 IsSet,
+                 IsHiddenType,
                  IsAModula2Type,
                  IsGnuAsmVolatile,
                  IsError,
@@ -1626,6 +1627,13 @@ PROCEDURE IsEnumeration (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsSet (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsHiddenType - returns TRUE if, Sym, is a Type and is also declared as a hidden type.
+*)
+
+PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

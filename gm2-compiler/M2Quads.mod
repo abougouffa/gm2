@@ -899,6 +899,7 @@ END AddQuadInformation ;
 
 PROCEDURE stop ; BEGIN END stop ;
 
+
 (*
    PutQuad - overwrites a quadruple QuadNo with Op, Oper1, Oper2, Oper3
 *)
@@ -922,7 +923,7 @@ END PutQuad ;
 
 
 (*
-   EraseQuad - erases a quadruple QuadNo, the quaduple is still in the list
+   EraseQuad - erases a quadruple QuadNo, the quadruple is still in the list
                but wiped clean.
 *)
 

@@ -46,7 +46,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         MakeConstLit, MakeTemporary,
                         MakeVar, PutVar,
                         MakeSubrange, PutSubrange, IsSubrange,
-                        IsEnumeration, IsSet, IsPointer, IsType, IsUnknown,
+                        IsEnumeration, IsSet, IsPointer, IsType, IsUnknown, IsHiddenType,
                         GetType, GetLowestType, GetDeclared, SkipType,
                         SetCurrentModule,
                         StartScope, EndScope, PseudoScope,
@@ -68,7 +68,7 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinF
 
 TYPE
    Compatability = (expression, assignment) ;
-   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real, set) ;
+   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real, set, opaque) ;
 
 
 (* %%%FORWARD%%%
@@ -568,6 +568,9 @@ BEGIN
    ELSIF IsSet(sym)
    THEN
       RETURN( set )
+   ELSIF IsHiddenType(sym)
+   THEN
+      RETURN( opaque )
    ELSIF IsType(sym)
    THEN
       RETURN( FindMetaType(GetType(sym)) )
@@ -624,10 +627,13 @@ BEGIN
       RETURN( IsCompatible(t1, GetType(t2), kind) )
    ELSIF IsSet(t1)
    THEN
-      RETURN( TRUE ) (* cannot test set compatability at this point --fixme-- *)
+      RETURN( TRUE ) (* cannot test set compatibility at this point --fixme-- *)
    ELSIF IsSet(t2)
    THEN
-      RETURN( TRUE ) (* cannot test set compatability at this point --fixme-- *)
+      RETURN( TRUE ) (* cannot test set compatibility at this point --fixme-- *)
+   ELSIF IsHiddenType(t1) AND IsHiddenType(t2)
+   THEN
+      RETURN( t1=t2 )
    ELSIF IsBaseCompatible(t1, t2, kind)
    THEN
       RETURN( TRUE )
@@ -767,37 +773,38 @@ END IsMathType ;
      assignment compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set
-                  +---------------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T   T
-           Word   |         T     F     T       F    T       T        T    T    F   T
-           Byte   |               T     F       T    F       F        F    F    F   F
-   t1   Address   |                     T       F    F       F        T    F    F   F
-           Char   |                             T    F       F        F    F    F   F
-        Integer   |                                  T       T        F    F    F   F
-       Cardinal   |                                          T        F    F    F   F
-            Ptr   |                                                   T    F    F   F
-           Enum   |                                                        T    F   F
-           Real   |                                                             T   F
-            Set   |                                                                 T
-   
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set Opaque
+                  +----------------------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T    T   T
+           Word   |         T     F     T       F    T       T        T    T    F    T   T
+           Byte   |               T     F       T    F       F        F    F    F    F   F
+   t1   Address   |                     T       F    F       F        T    F    F    F   T
+           Char   |                             T    F       F        F    F    F    F   F
+        Integer   |                                  T       T        F    F    F    F   F
+       Cardinal   |                                          T        F    F    F    F   F
+            Ptr   |                                                   T    F    F    F   F
+           Enum   |                                                        T    F    F   F
+           Real   |                                                             T    F   F
+            Set   |                                                                  T   F
+         Opaque   |                                                                      T
    
      expression compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set
-                  +--------------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T    T
-           Word   |         T     F     F       F    F       F        F    F    F    F
-           Byte   |               T     F       F    F       F        F    F    F    F
-   t1   Address   |                     T       F    F       F        T    F    F    F
-           Char   |                             T    F       F        F    F    F    F
-        Integer   |                                  T       T        F    F    F    F
-       Cardinal   |                                          T        F    F    F    F
-            Ptr   |                                                   T    F    F    F
-           Enum   |                                                        T    F    F
-           Real   |                                                             T    F
-            Set   |                                                                  T
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set Opaque
+                  +----------------------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T    T   T
+           Word   |         T     F     F       F    F       F        F    F    F    F   F
+           Byte   |               T     F       F    F       F        F    F    F    F   F
+   t1   Address   |                     T       F    F       F        T    F    F    F   F
+           Char   |                             T    F       F        F    F    F    F   F
+        Integer   |                                  T       T        F    F    F    F   F
+       Cardinal   |                                          T        F    F    F    F   F
+            Ptr   |                                                   T    F    F    F   F
+           Enum   |                                                        T    F    F   F
+           Real   |                                                             T    F   F
+            Set   |                                                                  T   F
+         Opaque   |                                                                      T
 *)
 
 (*
@@ -808,12 +815,14 @@ PROCEDURE InitCompatibilityMatrices ;
 VAR
    i, j: MetaType ;
 BEGIN
+   (* all false *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
       FOR j := MIN(MetaType) TO MAX(MetaType) DO
          Ass[i, j]  := FALSE ;
          Expr[i, j] := FALSE
       END
    END ;
+   (* now open up compatibility for assignment *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
       Ass[i, i] := TRUE ;      (* identity *)
       Ass[const, i] := TRUE ;  (* all const are compatible *)
@@ -828,6 +837,8 @@ BEGIN
    Ass[intgr, cardinal] := TRUE ; Ass[cardinal, intgr] := TRUE ;
    Ass[word, enum] := TRUE ; Ass[enum, word] := TRUE ;
    Ass[word, set] := TRUE ; Ass[set, word] := TRUE ;
+   Ass[word, opaque] := TRUE ; Ass[opaque, word] := TRUE ;
+   Ass[address, opaque] := TRUE ; Ass[opaque, address] := TRUE ;
 
    (* expression matrix *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
