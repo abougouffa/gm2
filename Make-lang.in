@@ -347,12 +347,14 @@ GM2_LIBS_PARANOID = gm2/gm2-compiler-paranoid/gm2.a \
 gm2.paranoid: stage3/gm2/cc1gm2$(exeext) gm2.verifyparanoid
 
 # start here 1->2
+# we need to ensure that the C compiler and headers are configured correctly
+#
 cc1gm2$(exeext): force
 	if [ "$(host_canonical)" = "$(target)" ] ; then \
-           $(MAKE) stage2/gm2/$@ ; \
+           $(MAKE) stage1_build stage2/gm2/$@ ; \
            cp stage2/gm2/$@ $@ ; \
         else \
-           $(MAKE) stage1/gm2/$@ ; \
+           $(MAKE) stage1_build stage1/gm2/$@ ; \
            cp stage1/gm2/$@ $@ ; \
         fi
 
@@ -692,7 +694,7 @@ gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/m2lex.o: gm2/gm2-compiler/m2lex.c
-	$(GCC_FOR_TARGET) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
 	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
