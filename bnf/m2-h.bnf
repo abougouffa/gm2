@@ -65,7 +65,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildProcedureEnd,
                     BuildAssignment,
       	       	    BuildLineNo,
-                    BuildFunctionCall,
+                    BuildFunctionCall, BuildConstFunctionCall,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
                     BuildBitsetStart, BuildSetEnd,
@@ -653,11 +653,9 @@ MulOperator := "*"                                                         % Pus
                                                                              RecordOp %
             =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString |
-               "(" ConstExpression ")" | ( "NOT" ConstFactor               % BuildNot %
-                                         ) |
-               ConstAttribute
-            =:
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
+               "(" ConstExpression ")" | "NOT" ConstFactor               % BuildNot %
+               | ConstAttribute =:
 
 -- to help satisfy LL1
 
@@ -665,9 +663,11 @@ ConstString :=
                 string
              =:
 
-ConstQualidentOrSet := SimpleSet                                           % BuildBitsetStart %
-                       | Qualident [ SimpleSet ]
-                     =:
+ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
+                                             | ActualParameters            % BuildConstFunctionCall %
+                                                                ]
+                                 |                                         % BuildBitsetStart %
+                                   SimpleSet =:
 
 QualidentOrSet := SimpleSet
                   | Qualident [ SimpleSet ] =:
@@ -795,17 +795,24 @@ SilentConstTerm := SilentConstFactor { SilentMulOperator SilentConstFactor } =:
 
 SilentMulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
 
-SilentConstFactor := SilentConstQualidentOrSet | Number | SilentConstString
-               |
-               "(" SilentConstExpression ")" | "NOT" SilentConstFactor =:
+SilentConstFactor := Number | SilentConstString | SilentConstSetOrQualidentOrFunction |
+                     "(" SilentConstExpression ")" | "NOT" SilentConstFactor
+                     | SilentConstAttribute =:
 
 SilentConstString := string =:
 
-SilentConstQualidentOrSet := SilentSimpleSet | Qualident [ SilentSimpleSet ] =:
+SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+
+SilentConstSetOrQualidentOrFunction := Qualident [ SilentSimpleSet | SilentActualParameters ] |
+                                       SilentSimpleSet =:
 
 SilentSimpleSet := "{"  [ SilentElement { "," SilentElement } ] "}" =:
 
 SilentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
+
+SilentActualParameters := "(" [ SilentExpList ] ")" =:
+
+SilentExpList := SilentConstExpression { "," SilentConstExpression } =:
 
 -- end of the Silent constant rules
 

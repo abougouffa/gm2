@@ -40,7 +40,7 @@ FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertT
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok ;
-FROM NameKey IMPORT NulName ;
+FROM NameKey IMPORT Name, NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
@@ -71,6 +71,7 @@ FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        BuildExportOuterModule,
                        BuildExportInnerModule,
                        CheckExplicitExported,
+                       CheckConstFunction,
 
                        BuildHiddenType,
                        BuildTypeEnd,
@@ -97,6 +98,7 @@ CONST
 
 VAR
    WasNoError: BOOLEAN ;
+   LastIdent : Name ;
 
 
 PROCEDURE ErrorString (s: String) ;
@@ -322,6 +324,7 @@ END CompilationUnit ;
 
 PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
+   LastIdent := currentstring ;
    IF IsAutoPushOn()
    THEN
       PushTF(currentstring, identtok)
@@ -490,7 +493,7 @@ special string               first { < stringtok > } follow { }
 
 BNF
 
--- the following are provided by the module m2lex and also handbuild procedures below
+-- the following are provided by the module m2lex and also hand built procedures below
 -- Ident := Letter { ( Letter | Digit ) } =:
 -- Integer := Digit { Digit } | OctalDigit { OctalDigit } ( " B " | " C " ) |
 --           Digit { HexDigit } " H " =:
@@ -557,7 +560,7 @@ ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString |
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
                "(" ConstExpression ")" | "NOT" ConstFactor |
                ConstAttribute =:
 
@@ -565,7 +568,11 @@ ConstFactor := ConstQualidentOrSet | Number | ConstString |
 
 ConstString := string =:
 
-ConstQualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
+ConstSetOrQualidentOrFunction := SimpleSet | Qualident [ SimpleSet | ConstActualParameters ]  =:
+
+ConstActualParameters :=                                                   % PushT(LastIdent) ;
+                                                                             CheckConstFunction %
+                          "(" [ ExpList ] ")" =:
 
 QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 

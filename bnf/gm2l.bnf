@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2003/04/29 15:27:14 $]
+              : [$Date: 2003/05/08 20:31:39 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -948,14 +948,21 @@ ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString |
-               "(" ConstExpression ")" | "NOT" ConstFactor =:
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
+               "(" ConstExpression ")" | "NOT" ConstFactor |
+               ConstAttribute =:
 
 -- to help satisfy LL1
 
 ConstString := str =:
 
-ConstQualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
+ConstSetOrQualidentOrFunction := SimpleSet | Qualident [ SimpleSet | ConstActualParameters ]  =:
+
+ConstActualParameters :=  "(" [ ConstExpList ] ")" =:
+
+ConstExpList := ConstExpression { "," ConstExpression } =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
 SimpleSet := "{" [ Element { "," Element } ] "}" =:
 

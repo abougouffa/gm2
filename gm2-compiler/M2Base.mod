@@ -59,6 +59,7 @@ FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking ;
 FROM M2System IMPORT Address, Byte, Word, InitSystem ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
+FROM M2Size IMPORT Size, MakeSize ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType,
@@ -275,6 +276,11 @@ BEGIN
    Incl := MakeProcedure(MakeKey('INCL')) ;
    Excl := MakeProcedure(MakeKey('EXCL')) ;
 
+   IF Iso
+   THEN
+      MakeSize  (* SIZE is declared as a standard function in ISO Modula-2 *)
+   END ;
+
    (*
       The procedure HALT is in fact a real procedure which
       is defined in M2RTS. However to remain compatible
@@ -345,6 +351,7 @@ BEGIN
    (* and the base functions *)
 
    Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
+   LengthS := MakeProcedure(MakeKey('LENGTH')) ;   (* Pseudo Base function LENGTH *)
    Abs     := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
    Cap     := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
    Odd     := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
@@ -359,6 +366,16 @@ END InitBaseFunctions ;
 
 
 (*
+   IsISOPseudoBaseFunction - 
+*)
+
+PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( Iso AND ((Sym=LengthS) OR (Sym=Size)) )
+END IsISOPseudoBaseFunction ;
+
+
+(*
    IsPseudoBaseFunction - returns true if Sym is a Base pseudo function.
 *)
 
@@ -367,7 +384,8 @@ BEGIN
    RETURN(
           (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR (Sym=Ord) OR
           (Sym=Chr) OR (Sym=Float) OR (Sym=Trunc) OR (Sym=Min) OR
-          (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap)
+          (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap) OR
+          IsISOPseudoBaseFunction(Sym)
          )
 END IsPseudoBaseFunction ;
 

@@ -40,9 +40,7 @@ DEFINITION MODULE SYSTEM ;
                 in the Modula-2 compiler.
 *)
 
-
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE ;
-
 
 END SYSTEM.

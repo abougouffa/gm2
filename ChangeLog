@@ -1,3 +1,11 @@
+2003-05-08	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented the standard function LENGTH
+	* allowed standard functions to be called from constant expressions
+	* improved cyclic dependancy errors
+	* SIZE is now only exported from SYSTEM if the switch -Wiso is absent
+	  SIZE is declared as a standard procedure if -Wiso is present
+
 2003-05-07	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented ISO BITSET as a standard type which takes effect when -Wiso

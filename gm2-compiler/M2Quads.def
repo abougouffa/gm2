@@ -43,7 +43,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildCaseElse, BuildCaseEnd,
                  BuildCaseRange, BuildCaseEquality,
                  BuildNulParam, BuildProcedureCall,
-                 BuildFunctionCall,
+                 BuildFunctionCall, BuildConstFunctionCall,
                  BuildProcedureStart, BuildProcedureEnd,
                  BuildReturn,
                  BuildBooleanVariable,
@@ -1240,6 +1240,37 @@ PROCEDURE BuildProcedureCall ;
 *)
 
 PROCEDURE BuildFunctionCall ;
+
+
+(*
+   BuildConstFunctionCall - builds a function call and checks that this function can be
+                            called inside a ConstExpression.
+
+                            The Stack:
+
+
+                            Entry                      Exit
+
+                     Ptr ->
+                            +----------------+
+                            | NoOfParam      |
+                            |----------------|
+                            | Param 1        |
+                            |----------------|
+                            | Param 2        |
+                            |----------------|
+                            .                .
+                            .                .
+                            .                .
+                            |----------------|
+                            | Param #        |                        <- Ptr
+                            |----------------|         +------------+
+                            | ProcSym | Type |         | ReturnVar  |
+                            |----------------|         |------------|
+
+*)
+
+PROCEDURE BuildConstFunctionCall ;
 
 
 (*

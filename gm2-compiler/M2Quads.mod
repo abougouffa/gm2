@@ -102,7 +102,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsExpressionCompatible, IsAssignmentCompatible,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    Unbounded, ArrayAddress, ArrayHigh,
-                   High, New, Dispose, Inc, Dec, Incl, Excl,
+                   High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
                    Ord, Chr, Convert, Val, Float, Trunc, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
@@ -110,9 +110,10 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
-                     Adr, Size, TSize, AddAdr, SubAdr, DifAdr, Cast, MakeAdr,
+                     Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, MakeAdr,
                      Address, Byte, Word ;
 
+FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
 
@@ -272,6 +273,7 @@ PROCEDURE BuildHighFromArray ; FORWARD ;
 PROCEDURE BuildHighFromString ; FORWARD ;
 PROCEDURE BuildHighFromUnbounded ; FORWARD ;
 PROCEDURE BuildHighFunction ; FORWARD ;
+PROCEDURE BuildLengthFunction ; FORWARD ;
 PROCEDURE BuildIncProcedure ; FORWARD ;
 PROCEDURE BuildNewProcedure ; FORWARD ;
 PROCEDURE BuildInclProcedure ; FORWARD ;
@@ -4912,6 +4914,56 @@ END BuildFunctionCall ;
 
 
 (*
+   BuildConstFunctionCall - builds a function call and checks that this function can be
+                            called inside a ConstExpression.
+
+                            The Stack:
+
+
+                            Entry                      Exit
+
+                     Ptr ->
+                            +----------------+
+                            | NoOfParam      |
+                            |----------------|
+                            | Param 1        |
+                            |----------------|
+                            | Param 2        |
+                            |----------------|
+                            .                .
+                            .                .
+                            .                .
+                            |----------------|
+                            | Param #        |                        <- Ptr
+                            |----------------|         +------------+
+                            | ProcSym | Type |         | ReturnVar  |
+                            |----------------|         |------------|
+
+*)
+
+PROCEDURE BuildConstFunctionCall ;
+VAR
+   NoOfParam,
+   ProcSym  : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   ProcSym := OperandT(NoOfParam+1) ;
+   PushT(NoOfParam) ;
+   IF (ProcSym=Cap)  OR (ProcSym=Chr)   OR (ProcSym=Float) OR
+      (ProcSym=High)  OR (ProcSym=High)  OR (ProcSym=LengthS) OR (ProcSym=Max) OR 
+      (ProcSym=Min)   OR (ProcSym=Odd)   OR (ProcSym=Ord) OR
+      (ProcSym=Size)  OR (ProcSym=Trunc) OR (ProcSym=Val)
+   THEN
+      BuildFunctionCall
+   ELSE
+      WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL') ;
+      PopN(NoOfParam+2) ;
+      PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
+   END
+END BuildConstFunctionCall ;
+
+
+(*
    BuildTypeCoercion - builds the type coersion.
                        MODULA-2 allows types to be coersed with no runtime
                        penility.
@@ -5073,6 +5125,9 @@ BEGIN
    IF ProcSym=High
    THEN
       BuildHighFunction
+   ELSIF ProcSym=LengthS
+   THEN
+      BuildLengthFunction
    ELSIF ProcSym=Adr
    THEN
       BuildAdrFunction
@@ -5609,6 +5664,72 @@ BEGIN
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
 END BuildHighFromChar ;
+
+
+(*
+   BuildLengthFunction - builds the inline standard function LENGTH.
+
+                         The Stack:
+
+
+                         Entry                      Exit
+
+                  Ptr ->
+                         +----------------+
+                         | NoOfParam      |  
+                         |----------------|
+                         | Param 1        |                        <- Ptr
+                         |----------------|         +------------+
+                         | ProcSym | Type |         | ReturnVar  |
+                         |----------------|         |------------|
+
+*)
+
+PROCEDURE BuildLengthFunction ;
+VAR
+   s        : String ;
+   Type,
+   NoOfParam,
+   Param,
+   ReturnVar: CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   Param := OperandT(1) ;
+   (* Restore stack to origional form *)
+   PushT(NoOfParam) ;
+   Type  := GetType(Param) ;  (* get the type from the symbol, not the stack *)
+   IF NoOfParam#1
+   THEN
+      WriteFormat0('base procedure LENGTH expects 1 parameter')
+   END ;
+   IF NoOfParam>=1
+   THEN
+      IF IsConst(Param) AND (GetType(Param)=Char)
+      THEN
+         PopT(NoOfParam) ;
+         PopN(NoOfParam+1) ;
+         ReturnVar := MakeConstLit(MakeKey('1')) ;
+         PushT(ReturnVar)
+      ELSIF IsConstString(Param)
+      THEN
+         PopT(NoOfParam) ;
+         s := Sprintf1(Mark(InitString("%d")), GetStringLength(OperandT(1))) ;
+         ReturnVar := MakeConstLit(makekey(string(s))) ;
+         s := KillString(s) ;
+         PopN(NoOfParam+1) ;
+         PushT(ReturnVar)
+      ELSE
+         WriteFormat0('base procedure LENGTH expects a string constant or character constant as its parameter') ;
+         PopT(NoOfParam) ;
+         PopN(NoOfParam+1) ;
+         ReturnVar := MakeConstLit(MakeKey('0')) ;
+         PushT(ReturnVar)
+      END
+   ELSE
+      (* NoOfParam is _very_ wrong, we flush all outstanding errors *)
+      FlushErrors
+   END
+END BuildLengthFunction ;
 
 
 (*

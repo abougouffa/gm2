@@ -29,7 +29,6 @@ IMPLEMENTATION MODULE M2System ;
 *)
 
 FROM SymbolTable IMPORT NulSym,
-                        SetCurrentModule,
                         StartScope,
                         EndScope,
       	       	     	MakeConstLit,
@@ -43,6 +42,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutType, PutPointer,
       	       	     	PutSet,
       	       	     	PutSubrange,
+                        PutExportQualified,
                         GetSym,
                         PopValue,
                         PopSize ;
@@ -51,6 +51,7 @@ FROM M2Options IMPORT Iso ;
 FROM NameKey IMPORT MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
+FROM M2Size IMPORT Size, MakeSize ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, Div ;
 FROM M2Error IMPORT InternalError ;
@@ -150,6 +151,7 @@ END InitISOTypes ;
 
 PROCEDURE InitSystem ;
 VAR
+   Previous,
    System     : CARDINAL ;
 BEGIN
    (* create SYSTEM module *)
@@ -160,14 +162,11 @@ BEGIN
    THEN
       InitISOTypes
    ELSE
-      InitPIMTypes
+      InitPIMTypes ;
+      MakeSize     (* SIZE is declared in SYSTEM.def in PIM Modula-2 *)
    END ;
 
    (* And now the predefined pseudo functions *)
-
-   Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
-   PutFunction(Size, Cardinal) ;                  (* Return Type     *)
-                                                  (* Cardinal        *)
 
    Adr := MakeProcedure(MakeKey('ADR')) ;         (* Function        *)
    PutFunction(Adr, Address) ;                    (* Return Type     *)
@@ -276,12 +275,24 @@ END IsISOPseudoSystemFunction ;
 
 
 (*
+   IsPIMPseudoSystemFunction - returns TRUE if Sym is specifically a PIM
+                               system function.
+*)
+
+PROCEDURE IsPIMPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (NOT Iso) AND (Sym=Size) )
+END IsPIMPseudoSystemFunction ;
+
+
+(*
    IsPseudoSystemFunction - returns true if Sym is a SYSTEM pseudo function.
 *)
 
 PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( ((Sym=Adr) OR (Sym=TSize) OR (Sym=Size)) OR
+   RETURN( (Sym=Adr) OR (Sym=TSize) OR
+           IsPIMPseudoSystemFunction(Sym) OR
            IsISOPseudoSystemFunction(Sym) )
 END IsPseudoSystemFunction ;
 

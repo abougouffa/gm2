@@ -32,7 +32,6 @@ EXPORT QUALIFIED
                  Byte,             (* System Type *)
                  Address,          (* System Type *)
                  Adr,              (* System Function *)
-                 Size,             (* System Function *)
                  TSize,            (* System Function *)
                  AddAdr,           (* ISO specific System Function *)
                  SubAdr,           (* ISO specific System Function *)
@@ -54,7 +53,7 @@ VAR
    Word, Byte,
    Address,
 
-   Adr,  Size,
+   Adr,
    TSize,
    AddAdr, SubAdr,
    DifAdr, MakeAdr,

@@ -600,7 +600,7 @@ ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString |
+ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
                "(" ConstExpression ")" | "NOT" ConstFactor |
                ConstAttribute =:
 
@@ -611,10 +611,13 @@ ConstString :=                                                             % Pus
                                                                            % BuildConstTypeFromAssignment ; %
              =:
 
-ConstQualidentOrSet := SimpleSet                                           % BuildConstSetType ; %
-                       | Qualident [ SimpleSet                             % BuildConstSetType ; %
-                                   ]
-                     =:
+ConstSetOrQualidentOrFunction := SimpleSet                                 % BuildConstSetType ; %
+                                 | Qualident [ SimpleSet                   % BuildConstSetType ; %
+                                               | ConstActualParameters ]  =:
+
+ConstActualParameters :=  "(" [ ExpList ] ")" =:
+
+-- to help satisfy LL1
 
 QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 

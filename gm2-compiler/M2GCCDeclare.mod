@@ -36,7 +36,7 @@ FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
-FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat3 ;
+FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat3 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
@@ -271,6 +271,7 @@ END CheckToFinishList ;
 
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN) : BOOLEAN ;
 VAR
+   e            : Error ;
    i, n         : CARDINAL ;
    NoMoreWritten: BOOLEAN ;
    Sym          : CARDINAL ;
@@ -367,9 +368,15 @@ BEGIN
             IF NOT AllDependantsWritten(Sym)
             THEN
                NoMoreWritten := TRUE ;
-               printf2('internal error: circular type dependancy on symbol %a (%d)',
-                       GetSymName(Sym), Sym)  (* could use GetDeclared(Sym) maybe? *)
-            END ;
+               e := NewError(GetDeclared(Sym)) ;
+               IF GetSymName(Sym)=NulSym
+               THEN
+                  (* ErrorFormat0(e, 'circular dependancy found') *)
+               ELSE
+                  ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
+                               GetSymName(Sym))
+               END
+            END
          END ;
          INC(i)
       END ;
@@ -384,14 +391,21 @@ BEGIN
          END ;
          IF NOT AllDependantsWritten(Sym)
          THEN
-            printf0('dependants unresolved\n')
+            e := NewError(GetDeclared(Sym)) ;
+            IF GetSymName(Sym)=NulSym
+            THEN
+               (* ErrorFormat0(e, 'circular dependancy found') *)
+            ELSE
+               ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
+                            GetSymName(Sym))
+            END
          END ;
          INC(i) ;
          NoMoreWritten := TRUE
       END ;
       IF NoMoreWritten
       THEN
-         InternalError('circular dependancies within above types', __FILE__, __LINE__)
+         FlushErrors
       END
    END ;
 

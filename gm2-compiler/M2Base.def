@@ -40,6 +40,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ArrayAddress,          (* users.                  *)
                  ArrayHigh,             (* Implement ARRAY OF Type *)
                  High,                  (* Base function           *)
+                 LengthS,
                  Convert,
                  Cap, Abs, Odd,
                  Chr, Ord, Val,
@@ -87,7 +88,7 @@ VAR
    Real,
    LongReal, ShortReal,
    Unbounded,
-   High,
+   High, LengthS,
    Cap, Abs, Odd,
    Convert, Val,
    Trunc, Float,
