@@ -29,7 +29,6 @@ DEFINITION MODULE M2Configure ;
 EXPORT QUALIFIED PushParametersLeftToRight,
                  UseUnderscoreForC,
                  UseDotForJumpLabels,
-                 DefaultLibraryPath,
                  UsingGCCBackend ;
 
 CONST
@@ -60,13 +59,6 @@ CONST
 
    UseDotForJumpLabels = FALSE ;
 
-
-(*
-   DefaultLibraryPath - defermines the default library path and creates a
-                        constant string.
-*)
-
-   DefaultLibraryPath = ". /usr/lib/m2" ;
 
 (*
    UsingGCCBackend - is the compiler being built with the GCC code generator?

@@ -89,7 +89,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsProfileOn,
                  IsOptimizeOn,
                  IsPseudoQuad,
-                 IsModFile,
+                 IsDefOrModFile,
 
                  DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
                  WriteOperator, BackPatchSubranges,
@@ -266,11 +266,11 @@ PROCEDURE IsPseudoQuad (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsModFile - returns TRUE if QuadNo is a start of Module file
-               directive.
+   IsDefOrModFile - returns TRUE if QuadNo is a start of Module or Def file
+                    directive.
 *)
 
-PROCEDURE IsModFile (QuadNo: CARDINAL) : BOOLEAN ;
+PROCEDURE IsDefOrModFile (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -47,7 +47,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         MakeVar, PutVar,
                         MakeSubrange, PutSubrange, IsSubrange,
                         IsEnumeration, IsSet, IsPointer, IsType, IsUnknown,
-                        GetType, GetLowestType, GetDeclared,
+                        GetType, GetLowestType, GetDeclared, SkipType,
                         SetCurrentModule,
                         StartScope, EndScope, PseudoScope,
                         RequestSym, GetSymName, NulSym,
@@ -63,11 +63,12 @@ FROM M2Size IMPORT Size, MakeSize ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType,
-                   GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongCardType ;
+                   GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongCardType,
+                   GetM2CardinalType ;
 
 TYPE
    Compatability = (expression, assignment) ;
-   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real) ;
+   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real, set) ;
 
 
 (* %%%FORWARD%%%
@@ -82,11 +83,13 @@ PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : BOOLEAN ; FORWA
 
 VAR
    Expr,
-   Ass       : ARRAY MetaType, MetaType OF BOOLEAN ;
+   Ass        : ARRAY MetaType, MetaType OF BOOLEAN ;
    MinChar,
    MaxChar,
+   MinCardinal,
+   MaxCardinal,
    MinInteger,
-   MaxInteger: CARDINAL ;
+   MaxInteger : CARDINAL ;
 
 
 (*
@@ -154,16 +157,21 @@ BEGIN
 
    Zero := MakeConstLit(MakeKey('0')) ;
    MaxCard := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetIntegerType())) ;
-   PopValue(MaxCard) ;
 
+
+(*
+   PushIntegerTree(GetMaxFrom(GetM2CardinalType())) ;
+   PopValue(MaxCard) ;
    Cardinal := MakeSubrange(MakeKey('CARDINAL')) ;
    (*
-      Cardinal = 0..MaxInt   (* subrange of INTEGER *)
+      Cardinal = 0..2^BitsPerWord-1
    *)
-   PutSubrange(Cardinal, Zero, MaxCard, Integer) ;
+   PutSubrange(Cardinal, Zero, MaxCard, NulSym) ;
+*)
+   Cardinal := MakeType(MakeKey('CARDINAL')) ;
+   PutType(Cardinal, NulSym) ;
                                               (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetIntegerType())) ;
+   PushIntegerTree(GetSizeOf(GetM2CardinalType())) ;
    PopSize(Cardinal) ;
 
    LongInt := MakeType(MakeKey('LONGINT')) ;
@@ -231,6 +239,16 @@ BEGIN
    PushIntegerTree(GetMaxFrom(GetIntegerType())) ;
    PopValue(MaxInteger) ;
 
+   (* MinCardinal *)
+   MinCardinal := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMinFrom(GetM2CardinalType())) ;
+   PopValue(MinCardinal) ;
+
+   (* MaxCardinal *)
+   MaxCardinal := MakeTemporary(ImmediateValue) ;
+   PushIntegerTree(GetMaxFrom(GetM2CardinalType())) ;
+   PopValue(MaxCardinal) ;
+
 END InitBaseSimpleTypes ;
 
 
@@ -246,6 +264,10 @@ BEGIN
    THEN
       min := MinInteger ;
       max := MaxInteger
+   ELSIF type=Cardinal
+   THEN
+      min := MinCardinal ;
+      max := MaxCardinal
    ELSIF type=Char
    THEN
       min := MinChar ;
@@ -537,6 +559,9 @@ BEGIN
    ELSIF (sym=Real) OR (sym=LongReal) OR (sym=ShortReal)
    THEN
       RETURN( real )
+   ELSIF IsSet(sym)
+   THEN
+      RETURN( set )
    ELSIF IsType(sym)
    THEN
       RETURN( FindMetaType(GetType(sym)) )
@@ -579,6 +604,8 @@ END IsRealType ;
 
 PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : BOOLEAN ;
 BEGIN
+   t1 := SkipType(t1) ;
+   t2 := SkipType(t2) ;
    IF (t1=NulSym) OR (t2=NulSym)
    THEN
       RETURN( TRUE )
@@ -734,35 +761,37 @@ END IsMathType ;
      assignment compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real
-                  +-----------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T
-           Word   |         T     F     T       F    T       T        T    T    F
-           Byte   |               T     F       T    F       F        F    F    F
-   t1   Address   |                     T       F    F       F        T    F    F
-           Char   |                             T    F       F        F    F    F
-        Integer   |                                  T       T        F    F    F
-       Cardinal   |                                          T        F    F    F
-            Ptr   |                                                   T    F    F
-           Enum   |                                                        T    F
-           Real   |                                                             T   
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set
+                  +---------------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T   T
+           Word   |         T     F     T       F    T       T        T    T    F   T
+           Byte   |               T     F       T    F       F        F    F    F   F
+   t1   Address   |                     T       F    F       F        T    F    F   F
+           Char   |                             T    F       F        F    F    F   F
+        Integer   |                                  T       T        F    F    F   F
+       Cardinal   |                                          T        F    F    F   F
+            Ptr   |                                                   T    F    F   F
+           Enum   |                                                        T    F   F
+           Real   |                                                             T   F
+            Set   |                                                                 T
    
    
      expression compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real
-                  +-----------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T
-           Word   |         T     F     F       F    F       F        F    F    F
-           Byte   |               T     F       F    F       F        F    F    F
-   t1   Address   |                     T       F    F       F        T    F    F
-           Char   |                             T    F       F        F    F    F
-        Integer   |                                  T       T        F    F    F
-       Cardinal   |                                          T        F    F    F
-            Ptr   |                                                   T    F    F
-           Enum   |                                                        T    F
-           Real   |                                                             T
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set
+                  +--------------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T    T
+           Word   |         T     F     F       F    F       F        F    F    F    F
+           Byte   |               T     F       F    F       F        F    F    F    F
+   t1   Address   |                     T       F    F       F        T    F    F    F
+           Char   |                             T    F       F        F    F    F    F
+        Integer   |                                  T       T        F    F    F    F
+       Cardinal   |                                          T        F    F    F    F
+            Ptr   |                                                   T    F    F    F
+           Enum   |                                                        T    F    F
+           Real   |                                                             T    F
+            Set   |                                                                  T
 *)
 
 (*
@@ -792,6 +821,7 @@ BEGIN
    Ass[address, pointer] := TRUE ; Ass[pointer, address] := TRUE ;
    Ass[intgr, cardinal] := TRUE ; Ass[cardinal, intgr] := TRUE ;
    Ass[word, enum] := TRUE ; Ass[enum, word] := TRUE ;
+   Ass[word, set] := TRUE ; Ass[set, word] := TRUE ;
 
    (* expression matrix *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
@@ -802,6 +832,7 @@ BEGIN
 
    Expr[address, pointer] := TRUE ; Expr[pointer, address] := TRUE ;
    Expr[intgr, cardinal] := TRUE ; Expr[cardinal, intgr] := TRUE
+   
 END InitCompatibilityMatrices ;
 
 

@@ -631,7 +631,7 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF Sym=149
+   IF Sym=280
    THEN
       mystop
    END ;
@@ -2065,10 +2065,18 @@ BEGIN
    solved := TRUE ;
    Type := GetType(Sym) ;
  
-   IF (NOT IsSymTypeKnown(Sym, Type)) OR (NOT AllDependantsWritten(Type))
+   IF NOT IsSymTypeKnown(Sym, Type)
    THEN
+      IncludeItemIntoList(ToDoList, Sym) ;
+      IncludeItemIntoList(ToDoList, Type) ;
       solved := FALSE
    END ;
+   IF NOT AllDependantsWritten(Type)
+   THEN
+      IncludeItemIntoList(ToDoList, Type) ;
+      solved := FALSE
+   END ;
+
    i := 1 ;
    REPEAT
       Subscript := GetNth(Sym, i) ;

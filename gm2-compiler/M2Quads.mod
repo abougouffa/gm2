@@ -689,16 +689,16 @@ END IsCodeOn ;
 
 
 (*
-   IsModFile - returns TRUE if QuadNo is a start of Module file
-               directive.
+   IsDefOrModFile - returns TRUE if QuadNo is a start of Module or Def file
+                    directive.
 *)
 
-PROCEDURE IsModFile (QuadNo: CARDINAL) : BOOLEAN ;
+PROCEDURE IsDefOrModFile (QuadNo: CARDINAL) : BOOLEAN ;
 BEGIN
    WITH Quads[QuadNo] DO
-      RETURN( Operator=StartModFileOp )
+      RETURN( (Operator=StartDefFileOp) OR (Operator=StartModFileOp) )
    END
-END IsModFile ;
+END IsDefOrModFile ;
 
 
 (*
@@ -3238,7 +3238,6 @@ BEGIN
          INC(pi)
       END
    ELSE
-      Assert(NOT UsingGCCBackend) ;
       i := 1 ;
       pi := NoOfParam ;   (* stack index referencing stacked parameter, i *)
       WHILE i<=NoOfParam DO
@@ -9112,6 +9111,30 @@ END CheckVariableOrConstant ;
 
 
 (*
+   CheckInCompatible - checks to see that t1 IN t2 is type legal.
+*)
+
+PROCEDURE CheckInCompatible (Op: Name; t1, t2: CARDINAL) : CARDINAL ;
+BEGIN
+   IF Op=InTok
+   THEN
+      t2 := SkipType(t2) ;
+      IF IsSet(t2)
+      THEN
+         RETURN( GetType(t2) )
+      ELSE
+         ErrorStringAt2(Sprintf1(Mark(InitString('expect a set type as the right hand operand to the IN operator, type name is (%s)')),
+                                 Mark(InitStringCharStar(KeyToCharStar(GetSymName(t2))))),
+                        GetTokenNo(), GetDeclared(t2)) ;
+         RETURN( t1 )
+      END
+   ELSE
+      RETURN( t2 )
+   END
+END CheckInCompatible ;
+
+
+(*
    BuildRelOp   - Builds a relative operation from the quad stack.
                   The Stack is expected to contain:
 
@@ -9174,6 +9197,7 @@ BEGIN
       THEN
          CheckAssignmentCompatible(t1, t2)
       ELSE
+         t1 := CheckInCompatible(Op, t2, t1) ;
          CheckExpressionCompatible(t1, t2)
       END ;
 

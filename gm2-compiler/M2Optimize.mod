@@ -115,7 +115,7 @@ BEGIN
    REPEAT
       i := start ;
       Folded := FALSE ;
-      WHILE i<=end DO
+      WHILE (i<=end) AND (i#0) DO
          Right := GetRealQuad(GetNextQuad(i)) ;
          GetQuad(i, Operator, Operand1, Operand2, Operand3) ;
          CASE Operator OF

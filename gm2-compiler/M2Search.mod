@@ -18,9 +18,9 @@ IMPLEMENTATION MODULE M2Search ;
 
 
 FROM SFIO IMPORT Exists ;
-FROM M2Defaults IMPORT GetSearchPath ;
-FROM M2Configure IMPORT DefaultLibraryPath ;
-FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup ;
+
+FROM DynamicStrings IMPORT InitString, InitStringChar,
+                           KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup ;
 
  
 CONST
@@ -138,17 +138,13 @@ END InitSearchPath ;
 
 
 (*
-   Init - initializes the search path to M2PATH if it exists otherwise the default path.
+   Init - initializes the search path.
 *)
 
 PROCEDURE Init ;
 BEGIN
-   InitialPath := GetSearchPath() ;
    UserPath    := InitString('') ;
-   IF InitialPath=NIL
-   THEN
-      InitialPath := InitString(DefaultLibraryPath)
-   END
+   InitialPath := InitStringChar('.')
 END Init ;
 
 

@@ -27,7 +27,7 @@ FROM M2Options IMPORT OptimizeBasicBlock ;
 FROM M2Quads IMPORT Head,
                     IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
-                    IsPseudoQuad, IsModFile,
+                    IsPseudoQuad, IsDefOrModFile,
                     GetNextQuad, GetQuad, QuadOperator,
                     SubQuad ;
 
@@ -144,7 +144,7 @@ END New ;
 
 PROCEDURE ConvertQuads2BasicBlock (Start, End: CARDINAL) ;
 VAR
-   LastQuadMod,
+   LastQuadDefMod,
    LastQuadConditional,
    LastQuadCall,
    LastQuadReturn     : BOOLEAN ;
@@ -178,11 +178,11 @@ BEGIN
    LastQuadConditional := TRUE ;  (* Force Rule (i) *)
    LastQuadCall := FALSE ;
    LastQuadReturn := FALSE ;
-   LastQuadMod := FALSE ;
+   LastQuadDefMod := FALSE ;
    (* Scan all quadruples *)
    WHILE (Quad<=End) AND (Quad#0) DO
       IF LastQuadConditional OR LastQuadCall OR LastQuadReturn OR
-         LastQuadMod OR IsReferenced(Quad)
+         LastQuadDefMod OR IsReferenced(Quad)
       THEN
          (* Rule (ii) *)
          CurrentBB := New() ;                      (* Get a new Basic Block *)
@@ -209,7 +209,7 @@ BEGIN
       LastQuadConditional := IsConditional(Quad) ;
       LastQuadCall := IsCall(Quad) ;
       LastQuadReturn := IsReturn(Quad) ;
-      LastQuadMod := IsModFile(Quad) ;
+      LastQuadDefMod := IsDefOrModFile(Quad) ;
       IF IsUnConditional(Quad)
       THEN
          LastBB := CurrentBB ;

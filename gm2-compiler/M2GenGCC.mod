@@ -366,7 +366,7 @@ BEGIN
       CodeStatement(Start) ;
       Prev := Start ;
       Start := GetNextQuad(Start)
-   UNTIL End=Prev
+   UNTIL (Start>End) OR (Start=0)
 END ConvertQuadsToTree ;
 
 
@@ -383,7 +383,7 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;
-   IF q=414
+   IF q=280
    THEN
       stop
    END ;
@@ -526,6 +526,10 @@ BEGIN
       Last := Next ;
       WHILE (quad<=end) AND (quad#0) DO
          GetQuad(quad, op, op1, op2, op3) ;
+         IF quad=280
+         THEN
+            stop
+         END ;
          tokenno := QuadToTokenNo(quad) ;
 
          CASE op OF

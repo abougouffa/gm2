@@ -23,6 +23,7 @@ FROM gccgm2 IMPORT GetBitsPerWord, GetWordType, GetSizeOf ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree ;
 FROM NameKey IMPORT MakeKey ;
 FROM M2System IMPORT Word ;
+FROM M2Base IMPORT Cardinal ;
 
 FROM SymbolTable IMPORT NulSym,
       	       	     	MakeConstLit,
@@ -57,7 +58,7 @@ BEGIN
 
    Assert(Word#NulSym) ;
    Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
-   PutSubrange(Bitnum, MinBitset, MaxBitset, Word) ;
+   PutSubrange(Bitnum, MinBitset, MaxBitset, Cardinal) ;
    PutSet(Bitset, Bitnum) ;
 
    PushIntegerTree(GetSizeOf(GetWordType())) ;
