@@ -3,7 +3,7 @@
 
 /* Program to scan old-style source files and make prototypes */
 
-#include "config.h"
+#include "p2c-config.h"
 
 int  readline        PARAMS ((char *buf, FILE *inf));
 int  strbeginsword   PARAMS ((char *s1, const char *s2));

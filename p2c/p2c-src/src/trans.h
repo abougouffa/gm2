@@ -17,7 +17,8 @@ along with this program; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 
-#include "config.h"
+#include <stdio.h>
+#include "p2c-config.h"
 
 #ifdef __STDC__
 # define PP(x)  x             /* use true prototypes */
@@ -36,7 +37,6 @@ the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 
 
-#include <stdio.h>
 
 
 /* If the following heuristic fails, compile -DBSD=0 for non-BSD systems,

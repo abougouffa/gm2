@@ -61,7 +61,7 @@ Static void fatal (str1, str2)
 
 void *
 xmalloc (size)
-  unsigned int size;
+  size_t size;
 {
   void *value = (void *) malloc (size);
   if (value == 0)
@@ -72,7 +72,7 @@ xmalloc (size)
 void *
 xrealloc (ptr, size)
   void *ptr;
-  unsigned int size;
+  size_t size;
 {
   void *value = (void *) realloc (ptr, size);
 

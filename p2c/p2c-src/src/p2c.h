@@ -10,7 +10,8 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-#include "config.h"
+
+#include "p2c-config.h"
 #include "system.h"
 
 # define __CAT__(a,b)a##b
