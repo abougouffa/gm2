@@ -64,6 +64,8 @@ Modula-2 compiler and how it integrates with GCC.
 * Done list::         Progression of the GNU Modula-2 project.
 * To do list::        Outstanding issues.
 * Assembly language:: Interface to assembly language.
+* Compiler options::  GNU Modula-2 compiler options.
+* Example usage::     Example compile and link.
 @end menu
 
 @node About, History, Top, Top
@@ -166,22 +168,16 @@ modules containing global variables of all types. Procedure
 prologue/epilogue is created.
 
 @item
-expressions are complete.
-
-@item
-all loop constructs, if then else, case statements.
+all loop constructs, if then else, case statements and expressions.
 
 @item
 nested module initialization.
 
 @item
-pointers, arrays
+pointers, arrays, procedure calls, nested procedures.
 
 @item
 front end @samp{gm2} can now compile and link modules.
-
-@item  
-procedure calls
 
 @item
 the ability to insert gnu asm statements within GNU Modula-2.
@@ -190,15 +186,12 @@ the ability to insert gnu asm statements within GNU Modula-2.
 inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
 
 @item
-nested procedures
+block becomes and complex procedure parameters (unbounded arrays, strings).
 
 @item
 the front end now utilizes GCC tree constants and types and is no
 longer tied to a 32 bit architecture, but reflects the 'configure'
 target machine description.
-
-@item
-complex procedure parameters (unbounded arrays, strings)
 
 @end itemize
 
@@ -218,9 +211,6 @@ What needs to be done:
 @itemize @bullet
 
 @item
-complex procedure parameters (passing records?)
-
-@item
 the modula-2 front end needs to convert the quadruples into
 trees and the convert these trees into gcc trees, rather than
 simply translating each quadruple into a separate gcc tree.
@@ -236,9 +226,6 @@ with -Wall.
 
 @item
 utilize GNU autoconf rather than the makeconfigure script.
-
-@item
-block becomes
 
 @item
 error recovery needs to be implemented,
@@ -263,7 +250,7 @@ testing and fixing bugs
 
 @end itemize
 
-@node Assembly language,, To do list, Top
+@node Assembly language, Compiler options, To do list, Top
 @section Assembly language
 
 The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
@@ -289,6 +276,67 @@ END Example ;
 For a full description of this interface we refer the reader to the GNU C manual.
 
 @xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
+
+@node Compiler options, Example usage, Assembly language, Top
+@section Compiler options
+
+This sections describe the compiler options specific to GNU Modula-2 for
+generic flags details see
+@xref{Invoking GCC, , ,gcc}.
+
+@table @code
+
+@item -M
+to include directories into the search path of the compiler either the
+conventional @samp{-I} option can be applied or alternatively the
+Modula-2 @samp{-M} option can be used. For example:
+@example
+-M "libs somedir ."
+@end example
+
+@item -bounds
+generate code to check the bounds of subranges and array indexes.
+
+@item -return
+generate code to check that functions always exit with a @samp{RETURN} and do not
+fall out at the end.
+
+@item -verbose
+if an error occurs the erroneous text is displayed with an arrow indicating
+the approximate character in error.
+The line number and file is always displayed, but sometimes the compiler
+attributes the error to the following line.
+The @samp{-verbose} option is more accurate and more verbose!
+
+@item -statistics
+generates quadruple information: number of quadruples generated,
+number of quadruples remaining after optimization.
+
+@item -students
+checks for novice peculiarities. Note that these warnings are not
+the same as error messages. Hardened users of Modula-2 may wish to ignore this
+option as it checks to see whether a user has declared a variable name
+twice which looks the same and whether a variable looks similar to a keyword.
+(Case difference etc). This is of course quite legal Modula-2 but
+some first year students might find this option useful.
+
+@item -pedantic
+forces the compiler to reject nested @samp{WITH}
+statements referencing the same record type.
+Does not allow multiple imports of the same item from a module.
+It also checks that: procedure variables are written to before being read;
+variables are not only written to but read from; variables are declared and used.
+If the compiler encounters a variable being read before written it will terminate
+with a message.
+It will check that @samp{FOR} loop indices are not used outside the end of this loop
+without being reset.
+@end table
+
+@node Example usage,, Compiler options, Top
+
+This section describes how to compiler and link a simple hello world program.
+It provides a few examples of using the different options mentioned in
+@xref{Compiler options, , ,gm2}.
 
 @c @printindex cp
 

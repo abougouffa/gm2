@@ -16,7 +16,7 @@ EXPORT QUALIFIED Tree,
                  PushObstacksNochange, PopObstacks,
 
                  BuildBinProcedure, BuildUnaryProcedure,
-                 SetFileNameAndLineNo,
+                 SetFileNameAndLineNo, EmitLineNote,
                  DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
                  GetCharType, GetVoidType, GetCurrentFunction,
@@ -30,7 +30,7 @@ EXPORT QUALIFIED Tree,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                  BuildLongRealConstant, BuildRealConstant,
-                 BuildSubrangeType, BuildArrayIndexType, BuildArrayVariableArrayIndexType,
+                 BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildPointerType, BuildArrayType,
@@ -38,7 +38,7 @@ EXPORT QUALIFIED Tree,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
-                 BuildAssignment, BuildBinaryOperator,
+                 BuildAssignment,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                  BuildConvert,
@@ -50,12 +50,12 @@ EXPORT QUALIFIED Tree,
                  BuildIfIn, BuildIfNotIn,
                  BuildIndirect,
                  DoJump,
-                 BuildProcedureCall, BuildParam, BuildFunctValue,
+                 BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
                  BuildAsm, BuildExpand, DebugTree,
 
                  AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
-                 ConvertConstantAndCheck ;
+                 ConvertConstantAndCheck, ExpandExpressionStatement ;
 
 
 TYPE
@@ -103,9 +103,20 @@ PROCEDURE PopObstacks ;
    SetFileNameAndLineNo - assigns a filename and line number to the GCC
                           global variables. Remember that the string contents
                           addressed by fn must not be overwritten.
+
+                          SetFileNameAndLineNo - should be used when declaring data types,
+                          procedures, variables etc.
 *)
 
 PROCEDURE SetFileNameAndLineNo (fn: ADDRESS; line: CARDINAL) ;
+
+
+(*
+   EmitLineNote - emits line and file information to gcc whilst constructing code.
+                  Should be used when generating code (after a call to SetFileNameAndLineNo).
+*)
+
+PROCEDURE EmitLineNote (fn: ADDRESS; line: CARDINAL) ;
 
 
 (*
@@ -114,7 +125,7 @@ PROCEDURE SetFileNameAndLineNo (fn: ADDRESS; line: CARDINAL) ;
 *)
 
 PROCEDURE DeclareKnownType       (name: ADDRESS; type: Tree) : Tree ;
-PROCEDURE DeclareKnownConstant   (name: ADDRESS; type: Tree; value: Tree) : Tree ;
+PROCEDURE DeclareKnownConstant   (type: Tree  ; value: Tree) : Tree ;
 PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
                                   isexported, isimported, istemporary, isglobal: BOOLEAN;
                                   scope: Tree) : Tree ;
@@ -667,6 +678,14 @@ PROCEDURE BuildProcedureCall (procedure, rettype: Tree) : Tree ;
 
 
 (*
+   BuildIndirectProcedureCall - creates a procedure call from a procedure and
+                                parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildIndirectProcedureCall (procedure, rettype: Tree) : Tree ;
+
+
+(*
    BuildFunctValue - generates code for value := funct(foobar);
 *)
 
@@ -692,6 +711,13 @@ PROCEDURE BuildExpand () : Tree ;
 *)
 
 PROCEDURE DebugTree (t: Tree) ;
+
+
+(*
+   ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
+*)
+
+PROCEDURE ExpandExpressionStatement (t: Tree) ;
 
 
 END gccgm2.

@@ -7077,7 +7077,7 @@ gccgm2_DeclareKnownConstant (type, value)
     decl = build_decl (CONST_DECL, id, type);
 
     DECL_INITIAL (decl) = value;
-    TREE_TYPE (value)   = type;
+    TREE_TYPE (decl)    = type;
     pushdecl (decl);
 
     return( decl );
@@ -8350,14 +8350,14 @@ gccgm2_BuildEnumerator (name, value, type)
      tree value, type;
 {
   tree id = get_identifier (name);
-  tree gccenum = build_enumerator(id, value);
+  tree copy_of_value = copy_node (value);
+  tree gccenum = build_enumerator(id, copy_of_value);
   /* TREE_TYPE(id)   = integer_type_node; */
 
   /* choose value for enum value */
   enumvalues = chainon(gccenum, enumvalues);
   return( value );
 }
-
 
 /*
  *  BuildPointerType - returns a type which is a pointer to, totype.
@@ -8818,6 +8818,10 @@ tree
 gccgm2_BuildAssignment (des, expr)
      tree des, expr;
 {
+  if (TREE_CODE(expr) == FUNCTION_DECL) {
+    expr = build_unary_op(ADDR_EXPR, expr, 0);
+  }
+
   expand_assignment( des, expr, 0, 0 );
   return( des );
 }
@@ -9266,7 +9270,7 @@ gccgm2_BuildParam (param)
     param = build_unary_op(ADDR_EXPR, param, 0);
   }
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
-#if 1
+#if 0
   debug_tree(param_list);
   fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
 #endif

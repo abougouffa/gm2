@@ -101,7 +101,9 @@ static int convert_into_m2path (char *incl)
       }
     }
     newm2path[j] = (char)0;
+#if defined(DEBUGGING)
     printf("M2PATH = %s\n", newm2path);
+#endif
     return( setenv("M2PATH", newm2path, 1) );
   }
   return( FALSE );

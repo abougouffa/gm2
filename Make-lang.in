@@ -35,9 +35,6 @@ gm2spec.o: $(srcdir)/gm2/gm2spec.c
 #
 # taken from g++ and modified for gm2
 #
-# N.B.: This is a copy of the gcc.o rule, with -DLANG_SPECIFIC_DRIVER added.
-# It'd be nice if we could find an easier way to do this---rather than have
-# to track changes to the toplevel gcc Makefile as well.
 # We depend on xgm2.c last, to make it obvious where it came from.
 xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
 	$(CC) $(ALL_CFLAGS) $(INCLUDES) \

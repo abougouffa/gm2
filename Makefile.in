@@ -155,13 +155,13 @@ GM2_LIBS = m2/comp/bin1/libgccgm2.a m2/comp/bin1/libm2.a m2/comp/p2c/home/libp2c
 
 # Remove patched files from language-independent object file list.
 
-GCC_OBJDEPS = ../stamp-objlist c-convert.o toplev.o
+GCC_OBJDEPS = ../stamp-objlist c-convert.o toplev.o rtl.o
 GCC_OBJS = `cat ../stamp-objlist | sed -e 's:  : :g' \
-        -e 's:../toplev.o::g'` c-convert.o toplev.o
+        -e 's:../toplev.o::g' -e 's:../rtl.o::g'` c-convert.o toplev.o rtl.o
 
 # GBE files recompiled with different flags for GM2.
 # Rebuild these with our flags
-GCC_PATCHED = toplev.o
+GCC_PATCHED = toplev.o rtl.o
 
 compiler: ../cc1gm2$(exeext)
 ../cc1gm2$(exeext): $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) gccgm2
@@ -188,22 +188,27 @@ CONVERT_H = $(srcdir)/../convert.h
 gm2.o : gm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/../flags.h
 
 toplev.o : $(srcdir)/../toplev.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
- $(FLAGS_H) $(INPUT_H) \
- ../insn-attr.h $(srcdir)/../xcoffout.h $(srcdir)/../defaults.h \
- $(srcdir)/../output.h
+           $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
+           $(srcdir)/../defaults.h $(srcdir)/../output.h
 	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
 	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../toplev.c | sed 's,^\./,,'`
 
 c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
- $(FLAGS_H) $(INPUT_H) \
- ../insn-attr.h $(srcdir)/../xcoffout.h $(srcdir)/../defaults.h \
- $(srcdir)/../output.h
+              $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
+              $(srcdir)/../defaults.h $(srcdir)/../output.h
 	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
 	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../c-convert.c | sed 's,^\./,,'`
+
+rtl.o : $(srcdir)/../rtl.c $(CONFIG_H) $(srcdir)/../system.h $(RTL_H) \
+        $(srcdir)/../bitmap.h $(srcdir)/../ggc.h $(srcdir)/../toplev.h
+	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
+	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
+	  -DTARGET_NAME=\"$(target_alias)\" \
+	  -c `echo $(srcdir)/../rtl.c | sed 's,^\./,,'`
 
 gccgm2: force
 	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
