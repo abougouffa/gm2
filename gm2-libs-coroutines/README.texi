@@ -1,0 +1,10 @@
+
+This directory contains a PIM SYSTEM containing the PROCESS primitives
+built on top of GNU Pthreads. Currently this is work in progress and the code
+is incomplete and full of bugs. It is not clear to me whether this approach
+makes sense and therefore the status of this directory is just proof of concept.
+
+The justification for this approach is that is provides a SYSTEM compatible with
+Programming in Modula-2 and that higher level executives can be ported onto
+GM2 with little effort. The disadvantage with this approach is that it introduces
+slight inefficiency in that SYSTEM has to manipulate pth scheduling.
