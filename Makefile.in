@@ -516,10 +516,10 @@ gm2-libs/%.o: gm2-libs/%.c
 	$(CC) -c -g -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -v -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -v -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
@@ -875,5 +875,16 @@ clean: force
 	$(RM) -f m2/comp/tools/mkfor m2/comp/tools/mklink
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 	$(RM) -f agm2l agm2lcc agm2lgen agm2lsub
+
+distclean: force
+	-rm -f m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile
+	-rm -f m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile
+	-rm -f m2/comp/Makefile m2/comp/p2c/examples/Makefile
+	-rm -f m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/bnf/Makefile
+	-rm -f m2/comp/autotest/Makefile m2/comp/man/Makefile
+	-rm -f m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile
+	-rm -f m2/comp/autotest/types/Makefile m2/comp/test/Makefile
+	-rm -f m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile
+	-rm -f Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile
 
 force:

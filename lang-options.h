@@ -23,14 +23,8 @@ Boston, MA 02111-1307, USA.  */
 /* This is the contribution to the `lang_options' array in gcc.c for
    gm2.  */
 
-/* #include "gcc-version.h" */
-/* was #ifdef EGCS */
-#if 1
 DEFINE_LANG_NAME ("GNU Modula-2")
 #define GM2_OPT(NAME, DESCRIPTION) { NAME , DESCRIPTION }
-#else
-#define GM2_OPT(NAME, DESCRIPTION) NAME
-#endif
   GM2_OPT("-I", "specifies a library path (C syntax)"),
   GM2_OPT("-M", "specifies a library path (space separated list in quotes)"),
   GM2_OPT("-Wbounds",   "turns on runtime subrange, array index and indirection via NIL pointer checking"),
@@ -40,6 +34,7 @@ DEFINE_LANG_NAME ("GNU Modula-2")
   GM2_OPT("-Wuselist",  "use ordered list of modules when linking"),
   GM2_OPT("-Wmakelist", "created ordered list of modules"),
   GM2_OPT("-Wmodules",  "display list of modules and location"),
+  GM2_OPT("-Wcpp",      "use cpp to preprocess the module"),
   GM2_OPT("-Wq",        "debugging information - dump the list of quadruples"),
   GM2_OPT("-version",   "display the version of the GNU Modula-2 front end"),
   GM2_OPT("-O",         "optimize code"),

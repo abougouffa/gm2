@@ -37,7 +37,7 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 30 October 2000
+@center Last updated 30 November 2000
 @sp 1
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000 Free Software Foundation, Inc.
@@ -157,6 +157,9 @@ providing @samp{gm2} has been told to link the program module this
 option uses the file @file{modulename.lst} for the initialization
 order of modules.
 
+@item -Wnocpp
+do not automatically preprocess the source with cpp.
+
 @end table
 
 @node Example usage, Extensions, Compiler options, Using
@@ -220,6 +223,11 @@ BEGIN
    make(g)
 END colour.
 @end example
+
+The preprocessor is invoked with the @samp{-lang-asm -C}
+options which will preserve comments and all quotations.
+The preprocessor character @samp{#} must be in the first
+column.
 
 @node Interface to C, Assembly language, Extensions, Using
 @section Interfacing GNU Modula-2 to C
@@ -291,7 +299,8 @@ and require no C wrapper implementation. In this case the file @file{libc.a}
 must be in the GNU Modula-2 link path.
 
 This second method is appropriate for linking modula-2 to C libraries, but
-does require that the definition module is kept up to date with the library.
+does require that the definition module is independently kept up to date with
+the library.
 
 @node Assembly language, , Interface to C, Using
 @section Interface to assembly language

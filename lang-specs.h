@@ -1,5 +1,6 @@
 /* Definitions for specs for Modula-2.
    Copyright (C) 1999 Free Software Foundation, Inc.
+   Contributed by Gaius Mulley.
 
 This file is part of GNU Modula-2.
 
@@ -24,10 +25,14 @@ Boston, MA 02111-1307, USA.  */
   {".mod", "@modula-2" },
   {".def", "@modula-2" },
   {"@modula-2",
-      "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguemnts}} \
-           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:cc1gm2 %B %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM}\
-                                             %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
-                                             as %(asm_options) %{!pipe:%g.s} %A }}}}} \
+      "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
+           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:%(trad_capable_cpp) -lang-asm %(cpp_options) -C -o %g.mod \n\
+                                                     cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %g.mod \
+                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
+                                                     as %(asm_options) %{!pipe:%g.s} %A }}} \n\
+                                               %{!Wcpp:cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %B \
+                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
+                                                     as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
            %{Wmakelist:gm2l -o %b.lst %b} \n\
            %{Wmodules:%{!Wuselist:gm2l %{!pipe:-o %g.l} %b|\n\
                                   gm2lsub %{!pipe:%g.l} -o %g.lst \n\

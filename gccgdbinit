@@ -101,7 +101,5 @@ set complaints 20
 # USE_SYSTEM_ABORT is defined, so gdb may complain and bail out.
 b abort
 cd gm2
-run -M "gm2-compiler gm2-libs" -g -Wbounds M2Lexical.mod -o -
-# mark_function_status (only called when we crash..)
-# print *cfun->x_return_label
-# emit_label
+# run -M "gm2-compiler gm2-libs" -g -Wbounds M2Lexical.mod -o -
+run -quiet -dumpbase FifoQueue.mod -g -Wbounds -Wreturn -version /tmp/cciRXtIk.mod

@@ -2990,15 +2990,17 @@ lang_decode_option (argc, argv)
      char **argv ATTRIBUTE_UNUSED;
 {
   if (strcmp(argv[0], "-Wreturn") == 0) {
-    return( TRUE );
+    return( 1 );
   } else if (strcmp(argv[0], "-Wbounds") == 0) {
-    return( TRUE );
+    return( 1 );
   } else if (strcmp(argv[0], "-Wrecovery") == 0) {
-    return( TRUE );
+    return( 1 );
   } else if (strcmp(argv[0], "-Wquiet") == 0) {
-    return( TRUE );
+    return( 1 );
+  } else if (strcmp(argv[0], "-Wcpp") == 0) {
+    return( 1 );
   }
-  return FALSE;
+  return 0;
 }
 
 /* Perform all the initialization steps that are language-specific.  */
