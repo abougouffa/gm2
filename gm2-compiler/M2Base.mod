@@ -53,12 +53,16 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         StartScope, EndScope, PseudoScope,
                         RequestSym, GetSymName, NulSym,
                         PutImported, GetExported,
-                        PopSize, PopValue ;
+                        PopSize, PopValue,
+                        FromModuleGetSym,
+                        IsExportQualified, IsExportUnQualified ;
 
 FROM M2ALU IMPORT PushIntegerTree, PushCard, Equ ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
-FROM M2Options IMPORT BoundsChecking, ReturnChecking, Iso, Pim ;
-FROM M2System IMPORT Address, Byte, Word, InitSystem ;
+FROM M2Options IMPORT BoundsChecking, ReturnChecking,
+                      NilChecking, CaseElseChecking,
+                      Iso, Pim ;
+FROM M2System IMPORT Address, Byte, Word, System, InitSystem ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
@@ -87,6 +91,7 @@ PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FO
 VAR
    Expr,
    Ass        : ARRAY MetaType, MetaType OF Compatible ;
+   m2rts,
    MinLongInt,
    MaxLongInt,
    MinLongCard,
@@ -132,6 +137,23 @@ BEGIN
    EndScope ;
    InitCompatibilityMatrices
 END InitBase ;
+
+
+(*
+   IsNeededAtRunTime - returns TRUE if procedure, sym, is a
+                       runtime procedure. Ie a procedure which is
+                       not a pseudo procedure and which is implemented
+                       in M2RTS or SYSTEM and also exported.
+*)
+
+PROCEDURE IsNeededAtRunTime (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          ((FromModuleGetSym(GetSymName(sym), System)=sym) OR
+           (FromModuleGetSym(GetSymName(sym), m2rts)=sym)) AND
+          (IsExportQualified(sym) OR IsExportUnQualified(sym))
+         )
+END IsNeededAtRunTime ;
 
 
 (*
@@ -363,28 +385,25 @@ BEGIN
       without the need to import it from M2RTS. ie it is
       within the BaseType module scope.
    *)
-   PutImported(
-               GetExported(MakeDefinitionSource(MakeKey('M2RTS')),
-                           MakeKey('HALT'))
-              ) ;
+   m2rts := MakeDefinitionSource(MakeKey('M2RTS')) ;
+   PutImported(GetExported(m2rts, MakeKey('HALT'))) ;
 
    IF BoundsChecking
    THEN
-      PutImported(
-                  GetExported(MakeDefinitionSource(MakeKey('M2RTS')),
-                              MakeKey('SubrangeAssignmentError'))
-                 ) ;
-      PutImported(
-                  GetExported(MakeDefinitionSource(MakeKey('M2RTS')),
-                              MakeKey('ArraySubscriptError'))
-                 )
+      PutImported(GetExported(m2rts, MakeKey('SubrangeAssignmentError'))) ;
+      PutImported(GetExported(m2rts, MakeKey('ArraySubscriptError')))
    END ;
    IF ReturnChecking
    THEN
-      PutImported(
-                  GetExported(MakeDefinitionSource(MakeKey('M2RTS')),
-                              MakeKey('FunctionReturnError'))
-                 )
+      PutImported(GetExported(m2rts, MakeKey('FunctionReturnError')))
+   END ;
+   IF NilChecking
+   THEN
+      PutImported(GetExported(m2rts, MakeKey('NilPointerError')))
+   END ;
+   IF CaseElseChecking
+   THEN
+      PutImported(GetExported(m2rts, MakeKey('CaseElseError')))
    END
 END InitBaseProcedures ;
 

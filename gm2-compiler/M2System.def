@@ -27,12 +27,16 @@ DEFINITION MODULE M2System ;
 *)
 
 EXPORT QUALIFIED 
+                 System,           (* The SYSTEM module symbol     *)
                  Loc,              (* ISO specific System Type *)
+
                  Word,             (* System Type *)
                  Byte,             (* System Type *)
                  Address,          (* System Type *)
+
                  Adr,              (* System Function *)
                  TSize,            (* System Function *)
+
                  AddAdr,           (* ISO specific System Function *)
                  SubAdr,           (* ISO specific System Function *)
                  DifAdr,           (* ISO specific System Function *)
@@ -49,6 +53,7 @@ EXPORT QUALIFIED
 
 
 VAR
+   System,
    Loc,
    Word, Byte,
    Address,

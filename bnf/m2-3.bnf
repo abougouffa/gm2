@@ -87,6 +87,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseOr,
                     BuildCaseElse,
                     BuildCaseEnd,
+                    BuildCaseCheck,
                     BuildCaseStartStatementSequence,
                     BuildCaseEndStatementSequence,
                     BuildCaseList,
@@ -1002,9 +1003,15 @@ CaseStatement :=                                                           % Bui
                  "CASE"
                         Expression                                         % BuildCaseStart %
                                    "OF" Case { "|" Case }
-                 [ "ELSE"                                                  % BuildCaseElse %
-                          StatementSequence ] "END"                        % BuildCaseEnd %
+                 CaseEndStatement
                =:
+
+CaseEndStatement := "END"                                                  % BuildCaseElse %
+                                                                           % BuildCaseCheck %
+                                                                           % BuildCaseEnd %
+                    | "ELSE"                                               % BuildCaseElse %
+                           StatementSequence "END"                         % BuildCaseEnd %
+                 =:
 
 Case := [ CaseLabelList                                                    % BuildCaseStartStatementSequence %
                                                                            % BuildLineNo %

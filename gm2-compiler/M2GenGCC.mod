@@ -28,11 +28,13 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PushSumOfLocalVarSize,
                         PushSumOfParamSize,
                         MakeConstLit,
+                        RequestSym, FromModuleGetSym,
+                        StartScope, EndScope,
                         GetMainModule, GetScope,
                         GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
-                        GetLocalSym,
+                        GetLocalSym, GetVarWritten,
                         NoOfParam, GetScope, GetParent,
                         IsModule, IsType,
                         IsConstString, GetString, GetStringLength,
@@ -61,12 +63,16 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PutConst, PutConstSet,
                         NulSym ;
 
+FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
-FROM M2Options IMPORT DisplayQuadruples, Iso, Pim ;
-FROM M2Printf IMPORT printf0, printf2 ;
+
+FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference,
+                      VerboseUnbounded, Iso, Pim ;
+
+FROM M2Printf IMPORT printf0, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
                    ArrayHigh, ArrayAddress, Cardinal, Char, Integer,
@@ -76,11 +82,13 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
-FROM M2System IMPORT Address, Word ;
+FROM M2System IMPORT Address, Word, System ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
-FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList ;
+
+FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList,
+                  NoOfItemsInList, GetItemFromList ;
 
 FROM M2ALU IMPORT PtrToValue,
                   IsValueTypeReal, IsValueTypeSet,
@@ -91,12 +99,14 @@ FROM M2ALU IMPORT PtrToValue,
                   Gre, Sub, Equ, NotEqu, LessEqu,
                   BuildRange, SetOr, SetAnd, SetNegate,
                   SetSymmetricDifference, SetDifference,
+                  SetShift, SetRotate,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn,
                   GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
-                         DeclareLocalVariables, PromoteToString, CompletelyResolved ;
+                         DeclareLocalVariables, PromoteToString,
+                         CompletelyResolved ;
 
 FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                         GetBuiltinConst,
@@ -112,6 +122,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildAssignment, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                   BuildLogicalDifference,
+                   BuildLogicalShift, BuildLogicalRotate,
                    BuildNegate, BuildAddr, BuildSize, BuildOffset,
                    BuildGoto, DeclareLabel,
                    BuildLessThan, BuildGreaterThan,
@@ -124,6 +136,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildConvert, BuildTrunc, BuildCoerce,
                    BuildBinaryForeachWordDo,
                    BuildUnaryForeachWordDo,
+                   BuildBinarySetDo,
                    BuildExcludeVarConst, BuildIncludeVarConst,
                    BuildExcludeVarVar, BuildIncludeVarVar,
                    BuildIfConstInVar, BuildIfNotConstInVar,
@@ -156,7 +169,7 @@ TYPE
 VAR
    CurrentQuadToken         : CARDINAL ;
    AbsoluteHead             : CARDINAL ;
-   LastLine                 : CARDINAL ;(* The Last Line number emmitted with the *)
+   LastLine                 : CARDINAL ;(* The Last Line number emitted with the  *)
                                         (* generated code.                        *)
    CompilingMainModule      : BOOLEAN ; (* Determines whether the main module     *)
                                         (* quadrules are being processed.         *)
@@ -339,6 +352,9 @@ PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldConvert (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetRotate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetLogicalDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetOr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -424,10 +440,12 @@ BEGIN
    InclOp             : CodeIncl(q, op1, op2, op3) |
    ExclOp             : CodeExcl(q, op1, op2, op3) |
    NegateOp           : CodeNegate(q, op1, op2, op3) |
+   LogicalShiftOp     : CodeSetShift(q, op1, op2, op3) |
+   LogicalRotateOp    : CodeSetRotate(q, op1, op2, op3) |
    LogicalOrOp        : CodeSetOr(q, op1, op2, op3) |
    LogicalAndOp       : CodeSetAnd(q, op1, op2, op3) |
    LogicalXorOp       : CodeSetSymmetricDifference(q, op1, op2, op3) |
-   LogicalDiffOp      : InternalError('logical difference has not been finished yet', __FILE__, __LINE__) |
+   LogicalDiffOp      : CodeSetLogicalDifference(q, op1, op2, op3) |
    IfLessOp           : CodeIfLess(q, op1, op2, op3) |
    IfEquOp            : CodeIfEqu(q, op1, op2, op3) |
    IfNotEquOp         : CodeIfNotEqu(q, op1, op2, op3) |
@@ -766,7 +784,7 @@ END CodeLineNumber ;
                       StartModFileOp  _  _  ModuleSym
 
                       Its function is to reset the source file to another
-                      file, hence all line numbers emmitted with the
+                      file, hence all line numbers emitted with the
                       generated code will be relative to this source file.
 *)
 
@@ -791,7 +809,7 @@ END CodeStartModFile ;
                       StartDefFileOp  _  _  ModuleSym
 
                       Its function is to reset the source file to another
-                      file, hence all line numbers emmitted with the
+                      file, hence all line numbers emitted with the
                       generated code will be relative to this source file.
 *)
 
@@ -810,7 +828,7 @@ END CodeStartDefFile ;
                  EndFileOp  _  _  ModuleSym
 
                  Its function is to reset the source file to another
-                 file, hence all line numbers emmitted with the
+                 file, hence all line numbers emitted with the
                  generated code will be relative to this source file.
 *)
 
@@ -930,19 +948,38 @@ END MakeCopyAndUse ;
 
 
 (*
-   IsUnboundedWrittenTo - returns TRUE if the unbounded parameter might be written to.
-                          Note that we er on the side of caution. If any indirection
-                          occurs during the procedure which is not accounted for then we
-                          must assume the worst and that the user might be writing to the
-                          array.
+   IsUnboundedWrittenTo - returns TRUE if the unbounded parameter
+                          might be written to.
 *)
 
 PROCEDURE IsUnboundedWrittenTo (proc, param: CARDINAL) : BOOLEAN ;
 VAR
-   scope, start, end: CARDINAL ;
+   f     : String ;
+   l     : CARDINAL ;
+   sym   : CARDINAL ;
+   n1, n2: Name ;
 BEGIN
-   GetProcedureQuads(proc, scope, start, end) ;
-   RETURN( TRUE )
+   sym := GetLocalSym(proc, GetSymName(param)) ;
+   IF sym=NulSym
+   THEN
+      InternalError('should find symbol in table', __FILE__, __LINE__)
+   ELSE
+      IF UnboundedByReference
+      THEN
+         IF (NOT GetVarWritten(sym)) AND VerboseUnbounded
+         THEN
+            n1 := GetSymName(sym) ;
+            n2 := GetSymName(proc) ;
+            f := FindFileNameFromToken(GetDeclared(sym), 0) ;
+            l := TokenToLineNo(GetDeclared(sym), 0) ;
+            printf4('%s:%d:non VAR unbounded parameter %a in procedure %a does not need to be copied\n',
+                    f, l, n1, n2)
+         END ;
+         RETURN( GetVarWritten(sym) )
+      ELSE
+         RETURN( TRUE )
+      END
+   END
 END IsUnboundedWrittenTo ;
 
 
@@ -1986,6 +2023,143 @@ PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    CodeBinarySet(BuildLogicalAnd, SetAnd, quad, op1, op2, op3)
 END CodeSetAnd ;
+
+
+(*
+   CodeBinarySetShift - encode a binary set arithmetic operation.
+                        The set maybe larger than a machine word
+                        and the value of one word may effect the
+                        values of another - ie shift and rotate.
+                        Set sizes of a word or less are evaluated
+                        with binop, whereas multiword sets are
+                        evaluated by M2RTS.
+*)
+
+PROCEDURE CodeBinarySetShift (binop: BuildBinProcedure;
+                              doOp : DoProcedure;
+                              var, left, right: Name;
+                              q    : CARDINAL;
+                              op1, op2, op3: CARDINAL) ;
+VAR
+   nBits,
+   leftproc,
+   rightproc,
+   varproc  : Tree ;
+BEGIN
+   (* firstly ensure that constant literals are declared *)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1)
+   THEN
+      IF IsValueSolved(op2) AND IsValueSolved(op3)
+      THEN
+         Assert(MixTypes(FindType(op3),
+                         FindType(op2), CurrentQuadToken)#NulSym) ;
+         PutConst(op1, FindType(op3)) ;
+         PushValue(op2) ;
+         PushValue(op3) ;
+         doOp(CurrentQuadToken) ;
+         PopValue(op1) ;
+         PutConstSet(op1)
+      ELSE
+         ErrorStringAt(InitString('constant expression cannot be evaluated'),
+                       CurrentQuadToken)
+      END
+   ELSE
+      varproc := Mod2Gcc(FromModuleGetSym(var, System)) ;
+      leftproc := Mod2Gcc(FromModuleGetSym(left, System)) ;
+      rightproc := Mod2Gcc(FromModuleGetSym(right, System)) ;
+      PushValue(GetTypeMax(SkipType(GetType(op1)))) ;
+      PushValue(GetTypeMin(SkipType(GetType(op1)))) ;
+      Sub ;
+      PushCard(1) ;
+      Addn ;
+      nBits := PopIntegerTree() ;
+      BuildBinarySetDo(Mod2Gcc(SkipType(GetType(op1))),
+                       Mod2Gcc(op1),
+                       Mod2Gcc(op2),
+                       Mod2Gcc(op3),
+                       binop,
+                       GetMode(op1)=LeftValue,
+                       GetMode(op2)=LeftValue,
+                       GetMode(op3)=LeftValue,
+                       nBits,
+                       Mod2Gcc(Unbounded),
+                       varproc, leftproc, rightproc)
+   END
+END CodeBinarySetShift ;
+
+
+(*
+   FoldSetShift - check whether we can fold a logical shift.
+*)
+
+PROCEDURE FoldSetShift (tokenno: CARDINAL; l: List;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldBinarySet(tokenno, l, SetShift, quad, op1, op2, op3)
+END FoldSetShift ;
+
+
+(*
+   CodeSetShift - encode set arithmetic shift.
+*)
+
+PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   CodeBinarySetShift(BuildLogicalShift, SetShift,
+                      MakeKey('ShiftVal'),
+                      MakeKey('ShiftLeft'),
+                      MakeKey('ShiftRight'),
+                      quad, op1, op2, op3)
+END CodeSetShift ;
+
+
+(*
+   FoldSetRotate - check whether we can fold a logical rotate.
+*)
+
+PROCEDURE FoldSetRotate (tokenno: CARDINAL; l: List;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldBinarySet(tokenno, l, SetRotate, quad, op1, op2, op3)
+END FoldSetRotate ;
+
+
+(*
+   CodeSetRotate - encode set arithmetic rotate.
+*)
+
+PROCEDURE CodeSetRotate (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   (* got to here *)
+   InternalError('not finished yet', __FILE__, __LINE__)
+(*
+   CodeBinarySet(BuildLogicalRotate, SetRotate, quad, op1, op2, op3)
+*)
+END CodeSetRotate ;
+
+
+(*
+   FoldSetLogicalDifference - check whether we can fold a logical difference.
+*)
+
+PROCEDURE FoldSetLogicalDifference (tokenno: CARDINAL; l: List;
+                                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldBinarySet(tokenno, l, SetDifference, quad, op1, op2, op3)
+END FoldSetLogicalDifference ;
+
+
+(*
+   CodeSetLogicalDifference - encode set arithmetic logical difference.
+*)
+
+PROCEDURE CodeSetLogicalDifference (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   CodeBinarySet(BuildLogicalDifference, SetDifference,
+                 quad, op1, op2, op3)
+END CodeSetLogicalDifference ;
 
 
 (*
@@ -3332,7 +3506,8 @@ VAR
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
-      InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
+      InternalError('this should have been folded in the calling procedure',
+                    __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
       settype := SkipType(GetType(op2))
@@ -3404,7 +3579,8 @@ VAR
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
-      InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
+      InternalError('this should have been folded in the calling procedure',
+                    __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
       settype := SkipType(GetType(op2))
@@ -3476,7 +3652,8 @@ VAR
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
-      InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
+      InternalError('this should have been folded in the calling procedure',
+                    __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
       settype := SkipType(GetType(op2))
@@ -3548,7 +3725,8 @@ VAR
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
-      InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
+      InternalError('this should have been folded in the calling procedure',
+                    __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
       settype := SkipType(GetType(op2))
@@ -3622,7 +3800,8 @@ VAR
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
-      InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
+      InternalError('this should have been folded in the calling procedure',
+                    __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
       settype := SkipType(GetType(op2))

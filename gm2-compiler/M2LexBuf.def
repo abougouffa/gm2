@@ -123,7 +123,7 @@ PROCEDURE FindFileNameFromToken (TokenNo: CARDINAL; depth: CARDINAL) : String ;
 
 
 (*
-   GetFileName - assigns, a, to the current file name.
+   GetFileName - returns a String defining the current file.
 *)
 
 PROCEDURE GetFileName () : String ;

@@ -81,6 +81,7 @@ EXPORT QUALIFIED NulSym,
                  GetType, SkipType,
                  GetLowestType,
                  GetSym, GetLocalSym,
+                 FromModuleGetSym,
                  GetNth,
                  GetVarScope,
                  GetSubrange,
@@ -102,6 +103,10 @@ EXPORT QUALIFIED NulSym,
 
                  PutVar,
                  PutVarTypeAndSize,
+                 PutVarPointerCheck,
+                 GetVarPointerCheck,
+                 PutVarWritten,
+                 GetVarWritten,
                  PutConst,
                  PutConstString,
                  PutConstSet,
@@ -711,6 +716,14 @@ PROCEDURE GetLocalSym (Sym: CARDINAL; name: Name) : CARDINAL ;
 
 
 (*
+   FromModuleGetSym - attempts to find a symbol of name, n, in the
+                      module, mod, scope.
+*)
+
+PROCEDURE FromModuleGetSym (n: Name; mod: CARDINAL) : CARDINAL ;
+
+
+(*
    GetNth - returns the n th symbol in the list of father Sym.
             Sym may be a Module, DefImp, Procedure or Record symbol.
 *)
@@ -818,6 +831,39 @@ PROCEDURE PutVar (Sym: CARDINAL; VarType: CARDINAL) ;
 
 PROCEDURE PutVarTypeAndSize (Sym: CARDINAL;
                              VarType: CARDINAL; TypeSize: CARDINAL) ;
+
+
+(*
+   PutVarPointerCheck - marks variable, sym, as requiring (or not
+                        depending upon the, value), a NIL pointer check
+                        when this symbol is dereferenced.
+*)
+
+PROCEDURE PutVarPointerCheck (sym: CARDINAL; value: BOOLEAN) ;
+
+
+(*
+   GetVarPointerCheck - returns TRUE if this symbol is a variable and
+                        has been marked as needing a pointer via NIL check.
+*)
+
+PROCEDURE GetVarPointerCheck (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutVarWritten - marks variable, sym, as being written to (or not
+                   depending upon the, value).
+*)
+
+PROCEDURE PutVarWritten (sym: CARDINAL; value: BOOLEAN) ;
+
+
+(*
+   GetVarWritten - returns TRUE if this symbol is a variable and
+                   has been marked as being written.
+*)
+
+PROCEDURE GetVarWritten (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

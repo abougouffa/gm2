@@ -17,9 +17,34 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: PipeIO.mod,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: PipeIO.mod,v 1.2 2004/05/05 21:34:58 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: PipeIO.mod,v $
+   Revision 1.2  2004/05/05 21:34:58  gaius
+   * added SHIFT and ROTATE into ISO SYSTEM and
+     made the compiler shift and rotate word and multi-word
+     set types. Multi-word set rotate and shifts are implemented
+     by calling ISO SYSTEM runtime procedures. Word sized sets or
+     smaller are implemented inline using shift/rotate instructions.
+     Currently not yet debugged, but mostly complete code.
+
+   * fixed bug report by Paul Whittington <pwhittington@nitrodata.com>
+     (see testsuite/gm2/link/pim/fail/import.mod).
+
+   * updated gm2.texi to reflect new options and changes to the
+     run-time system.
+
+   * introduced -Wunbounded-by-reference option which will make a
+     reference to non VAR unbounded data providing it is not written to
+     within the callee procedure.
+   * introduced -Wverbose-unbounded option which displays names of
+     unbounded parameters which the compiler will implement as
+     references even though they were specified as non VAR parameters.
+
+   * introduced -Wcase, -Wnil runtime checks
+   * introduced -Wcheck-all to enable all runtime flags
+   * updated documentation to refect new options
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -85,7 +110,7 @@ IMPLEMENTATION MODULE PipeIO; (* AFB 6/84 *)
          args[1] := ADR(arg2);
          Copy(cmdbuf, cmd);
          args[2] := ADR(cmdbuf);
-         args[3] := 0;
+         args[3] := ADDRESS(0);
          Exec(arg1, ADR(args));
          Exit(1);
       END;

@@ -39,14 +39,15 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2004/04/05 10:42:31 $]
+   Date       : 3/4/86  [$Date: 2004/05/05 21:34:53 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
  
 FROM ASCII IMPORT nul, tab ;
 FROM Storage IMPORT ALLOCATE ;
-FROM M2LexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize, InsertToken, InsertTokenAndRewind,
+FROM M2LexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize,
+                     InsertToken, InsertTokenAndRewind, GetLineNo, GetFileName,
                      currenttoken, currentstring ;
 FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
@@ -127,6 +128,7 @@ VAR
    MainName       : Name ;
    op             : File ;
    ImportedModules: List ;
+   ExitValue      : INTEGER ;
 
 
 (* %%%FORWARD%%%
@@ -464,8 +466,14 @@ END ErrorArray ;
 *)
 
 PROCEDURE ErrorString (s: String) ;
+VAR
+   f: String ;
+   l: CARDINAL ;
 BEGIN
-   fprintf1(StdErr, "%s\n", s)
+   f := GetFileName() ;
+   l := GetLineNo() ;
+   fprintf3(StdErr, "%s:%d:%s\n", f, l, s) ;
+   ExitValue := 1
 END ErrorString ;
 
 
@@ -496,7 +504,8 @@ BEGIN
    IF Debugging
    THEN
       printf0(' ***\n')
-   END
+   END ;
+   ExitValue := 1
 END SyntaxError ;
 
 
@@ -1551,7 +1560,8 @@ BEGIN
       END
    ELSE
       printf2('Usage: %a [-e extension][-d destination directory][-nolink][-depend][-Wmake-I=searchpath][-I compiler searchpath] [-o outputfile] modulefile [options] [compiler]\n', ProgName, ProgName)
-   END
+   END ;
+   exit(ExitValue)
 END ParseArgs ;
 
 
@@ -1583,6 +1593,7 @@ BEGIN
    DependOnly := FALSE ;
    NoLink := FALSE ;
    op := StdOut ;
+   ExitValue := 0 ;
    ParseArgs
 END Init ;
 

@@ -111,8 +111,24 @@ link.
 generate code to check the bounds of subranges and array indexes.
 
 @item -Wreturn
-generate code to check that functions always exit with a @samp{RETURN} and do not
-fall out at the end.
+generate code to check that functions always exit with a @code{RETURN}
+and do not fall out at the end.
+
+@item -Wnil
+turns on runtime checking to detect accessing data through a
+@code{NIL} value pointer.
+
+@item -Wcase
+turns on runtime checking to check whether a @code{CASE} statement
+requires an @code{ELSE} clause when on was not specified.
+
+@item -Wcheck-all
+turns on all runtime checks. This is the same as invoking
+GNU Modula-2 using the following command line:
+
+@example
+gm2 -Wbounds -Wreturn -Wnil -Wcase
+@end example
 
 @item -v
 display all calls to subsidiary programs, such as the C preprocessor,
@@ -177,6 +193,28 @@ compiling the module which imports the opaque type.
 
 @item -Wsources
 displays the path to the source of each module.
+
+@item -Wunbounded-by-reference
+enable optimization of unbounded parameters by attempting to pass non
+@code{VAR} unbounded parameters by reference.  This optimization
+avoids the implicit copy inside the callee procedure. GNU Modula-2
+will only allow unbounded parameters to be passed by reference if,
+inside the callee procedure, they are not written to, no address is
+calculated on the array and it is not passed as a @code{VAR}
+parameter.  Note that it is possible to write code to break this
+optimization, therefore this option should be used carefully.
+For example it would be possible to take the address of an array, pass
+the address and the array to a procedure, read from the array in
+the procedure and write to the location using the address parameter.
+
+Due to the dangerous nature of this option it is not enabled
+when the -O option is specified.
+
+@item -Wverbose-unbounded
+inform the user which non @code{VAR} unbounded parameters will be
+passed by reference.  This only produces output if the option
+@samp{-Wunbounded-by-reference} is also supplied on the command line.
+
 @end table
 
 @node Example usage, Elementary data types, Compiler options, Using
@@ -347,8 +385,8 @@ PROCEDURE HALT ;
 
 @end example
 
-The following define the standard set of functions which conform with Programming
-in Modula-2 and ISO Modula-2.
+The following define the standard set of functions which conform with
+Programming in Modula-2 and ISO Modula-2.
 
 @example
 
@@ -382,11 +420,77 @@ PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
          is returned unaltered.
 *)
 
+@findex CAP
 PROCEDURE CAP (ch: CHAR) : CHAR ;
 
 @end example
-@c @code{CAP}, @code{ABS}, @code{VAL},
-@c @code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}
+
+@example
+
+(*
+   ABS - returns the positive value of, i.
+*)
+
+@findex ABS
+PROCEDURE ABS (i: <any signed type>) : <any signed type> ;
+
+@end example
+
+@example
+
+(*
+   VAL - converts data, i, of <any simple data type 1> to
+         <any simple data type 2> and returns this value.
+         No range checking is performed during this conversion.
+*)
+
+@findex VAL
+PROCEDURE VAL (i: <any simple data type 1>,
+               <any simple data type 2>) : <any simple data type 2> ;
+
+@end example
+
+@example
+(*
+   CHR - converts a value of a <whole number type> into a CHAR.
+         CHR(x) is shorthand for VAL(CHAR, x).
+*)
+
+@findex CHR
+PROCEDURE CHR (x: <whole number type>) : CHAR ;
+
+@end example
+
+@example
+(*
+   ODD - returns TRUE if the value is not divisible by 2.
+*)
+
+@findex ODD
+PROCEDURE ODD (x: <whole number type>) : BOOLEAN ;
+
+@end example
+
+@example
+(*
+   MIN - returns the lowest legal value of an ordinal type.
+*)
+
+@findex MIN
+PROCEDURE MIN (t: <ordinal type>) : <ordinal type> ;
+
+@end example
+
+@example
+(*
+   MAX - returns the largest legal value of an ordinal type.
+*)
+
+@findex MAX
+PROCEDURE MAX (t: <ordinal type>) : <ordinal type> ;
+
+@end example
+
 
 @subsection ISO specific standard procedures and functions
 
@@ -426,6 +530,42 @@ types, constants, procedures, nested modules or variables
 GNU Modula-2 also allows programmers to interface to @code{C} and
 assembly language.
 
+GNU Modula-2 provides support for the special tokens @code{__LINE__},
+@code{__FILE__}, @code{__FUNCTION__} and @code{__DATE__}. Support for
+these tokens will occur even if the @samp{-Wcpp} option is not
+supplied. A table of these identifiers and their data type and values
+is given below:
+
+@example
+Scope       GNU Modula-2 token      Data type and example value
+
+anywhere    __LINE__                Constant Literal compatible
+                                    with CARDINAL, INTEGER and WORD.
+                                    Example 1234
+
+anywhere    __FILE__                Constant string compatible
+                                    with parameter ARRAY OF CHAR or
+                                    an ARRAY whose SIZE is >= string
+                                    length. Example
+                                    "hello.mod"
+
+procedure   __FUNCTION__            Constant string compatible
+                                    with parameter ARRAY OF CHAR or
+                                    an ARRAY whose SIZE is >= string
+                                    length. Example
+                                    "calc"
+
+module      __FUNCTION__            Example
+                                    "module hello initialization"
+
+anywhere    __DATE__                Constant string compatible
+                                    with parameter ARRAY OF CHAR or
+                                    an ARRAY whose SIZE is >= string
+                                    length. Example
+                                    "Thu Apr 29 10:07:16 BST 2004"
+
+@end example
+
 The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
 command line option. This in turn invokes @samp{cpp} with the
 following arguments @samp{-traditional -lang-asm}.  These options
@@ -442,16 +582,17 @@ FROM SYSTEM IMPORT ADR, SIZE ;
 FROM libc IMPORT exit, printf, malloc ;
 
 PROCEDURE FatalError (a, file: ARRAY OF CHAR;
-                         line: CARDINAL) ;
+                         line: CARDINAL;
+                         func: ARRAY OF CHAR) ;
 VAR
    r: INTEGER ;
 BEGIN
-   r := printf("%s:%d:fatal error, %s\n",
-               ADR(file), line, ADR(a)) ;
+   r := printf("%s:%d:fatal error, %s, in %s\n",
+               ADR(file), line, ADR(a), ADR(func)) ;
    exit(1)
 END FatalError ;
 
-#define ERROR(X)  FatalError(X, __FILE__, __LINE__)
+#define ERROR(X)  FatalError(X, __FILE__, __LINE__, __FUNCTION__)
 
 VAR
    pc: POINTER TO CARDINAL;
@@ -817,7 +958,7 @@ which can be accessed in GNU Modula-2. It also serves to define the parameter
 and return value for each function:
 
 @example
- DEFINITION MODULE Builtins ;
+DEFINITION MODULE Builtins ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -1031,6 +1172,7 @@ The document is still in it's infancy.
 * Overview::                Overview of the structure of GNU Modula-2.
 * Integrating::             How the front end integrates with gcc.
 * Passes::                  What gets processed during each pass.
+* Run time::                Integration of run time modules with the compiler.
 * Scope rules::             Clarification of some the scope rules.
 * Done list::               Progression of the GNU Modula-2 project.
 * To do list::              Outstanding issues.
@@ -1107,7 +1249,7 @@ The M2Base and M2System
 modules contain base types and system types respectively they
 map onto GCC back-end data types.
 
-@node Passes, Scope rules, Integrating, Internals
+@node Passes, Run time, Integrating, Internals
 @section Passes
 
 This section describes the general actions of each pass.  The key to
@@ -1239,13 +1381,39 @@ BEGIN
 END colour.
 @end example
 
-@node Scope rules, Done list, Passes, Internals
+@node Run time, Scope rules, Passes, Internals
+@section Run time
+
+This section describes how the GNU Modula-2 compiler interfaces with
+the run time system.  The modules which must be common to all library
+collections are @code{M2RTS} and @code{SYSTEM}. In the PIM library
+collection an implementation of @code{M2RTS} and @code{SYSTEM} exist;
+likewise in the ISO library and ULM library collection these modules
+also exist.
+
+The @code{M2RTS} module contains many of the base runtime features
+required by the GNU Modula-2 compiler. For example @code{M2RTS}
+contains the exception handling routines which are called if a pointer
+whose value is @code{NIL} is dereferenced or an array index goes out
+of bounds. If the @samp{-Wbounds} options is specified then the GNU
+Modula-2 compiler will call the procedure @code{ArraySubscriptError}
+or @code{SubrangeAssignmentError} when an illegal reference or illegal
+assignment is about to be performed. @code{M2RTS} also contains
+the exception handlers @code{FunctionReturnError},
+@code{NilPointerError} and @code{CaseElseError}.
+
+The @code{M2RTS} module also contains the @code{HALT} and @code{LENGTH}
+procedure. The ISO @code{SYSTEM} module contains a number of
+@code{SHIFT} and @code{ROTATE} procedures which GNU Modula-2 will call
+when wished to shift and rotate multi-word set types.
+
+@node Scope rules, Done list, Run time, Internals
 @section Scope rules
 
 This section describes my understanding of the Modula-2 scope rules
 with respect to enumerated types.  If they are incorrect please
-correct me by email @email{gaius@@glam.ac.uk}. They also serve to document
-the behaviour of GNU Modula-2 in these cirumstances.
+correct me by email @email{gaius@@glam.ac.uk}. They also serve to
+document the behaviour of GNU Modula-2 in these cirumstances.
 
 In GNU Modula-2 the syntax for a type declaration is defined as:
 
@@ -1392,6 +1560,14 @@ then @code{red} is resolved and the module is legal.
 What has been done:
 
 @itemize @bullet
+
+@item
+GM2 now works on the @code{opteron} 64 bit architecture. @code{make
+gm2.paranoid} and @code{make check-gm2} pass.
+
+@item
+GM2 can now be built as a cross compiler to the MinGW platform under
+GNU/Linux i386.
 
 @item
 GM2 now works on the @code{sparc} architecture. @code{make

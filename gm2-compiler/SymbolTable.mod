@@ -56,7 +56,7 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 CONST
    MaxScopes  =    50 ; (* Maximum number of scopes at any one time.         *)
-   MaxSymbols = 30000 ; (* Maximum number of symbols.                        *)
+   MaxSymbols = 100000 ; (* Maximum number of symbols.                        *)
 
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
@@ -314,6 +314,9 @@ TYPE
                Scope         : CARDINAL ;     (* Scope of declaration.       *)
                IsTemp        : BOOLEAN ;      (* Is variable a temporary?    *)
                IsParam       : BOOLEAN ;      (* Is variable a parameter?    *)
+               IsPointerCheck: BOOLEAN ;      (* Is variable used to         *)
+                                              (* dereference a pointer?      *)
+               IsWritten     : BOOLEAN ;      (* Is variable written to?     *)
                At            : Where ;        (* Where was sym declared/used *)
                ReadUsageList : List ;         (* list of var read quads      *)
                WriteUsageList: List ;         (* list of var write quads     *)
@@ -895,6 +898,32 @@ BEGIN
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
    BaseScopePtr := ScopePtr   (* BaseScopePtr points to the top of the BaseModule scope *)
 END Init ;
+
+
+(*
+   FromModuleGetSym - attempts to find a symbol of name, n, in the
+                      module, mod, scope.
+*)
+
+PROCEDURE FromModuleGetSym (n: Name; mod: CARDINAL) : CARDINAL ;
+VAR
+   n1         : Name ;
+   sym        : CARDINAL ;
+   OldScopePtr: CARDINAL ;
+BEGIN
+   OldScopePtr := ScopePtr ;
+   StartScope(mod) ;
+   sym := RequestSym(n) ;
+   EndScope ;
+   IF sym=NulSym
+   THEN
+      n1 := GetSymName(mod) ;
+      WriteFormat2('cannot find procedure %a in module, %a',
+                   n, n1)
+   END ;
+   ScopePtr := OldScopePtr ;
+   RETURN( sym )
+END FromModuleGetSym ;
 
 
 (*
@@ -2304,6 +2333,8 @@ BEGIN
             Scope := GetCurrentScope() ;  (* Procedure or Module ? *)
             IsTemp := FALSE ;
             IsParam := FALSE ;
+            IsPointerCheck := FALSE ;
+            IsWritten := FALSE ;
             InitWhereDeclared(At) ;
             InitWhereFirstUsed(At) ;          (* Where symbol first used.      *)
             InitList(ReadUsageList) ;
@@ -3247,6 +3278,71 @@ BEGIN
       END
    END
 END PutVarTypeAndSize ;
+
+
+(*
+   PutVarPointerCheck - marks variable, sym, as requiring (or not
+                        depending upon the, value), a NIL pointer check
+                        when this symbol is dereferenced.
+*)
+
+PROCEDURE PutVarPointerCheck (sym: CARDINAL; value: BOOLEAN) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      WITH Symbols[sym].Var DO
+         IsPointerCheck := value
+      END
+   END
+END PutVarPointerCheck ;
+
+
+(*
+   GetVarPointerCheck - returns TRUE if this symbol is a variable and
+                        has been marked as needing a pointer via NIL check.
+*)
+
+PROCEDURE GetVarPointerCheck (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      WITH Symbols[sym].Var DO
+         RETURN( IsPointerCheck )
+      END
+   END
+END GetVarPointerCheck ;
+
+
+(*
+   PutVarWritten - marks variable, sym, as being written to (or not
+                   depending upon the, value).
+*)
+
+PROCEDURE PutVarWritten (sym: CARDINAL; value: BOOLEAN) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      WITH Symbols[sym].Var DO
+         IsWritten := value
+      END
+   END
+END PutVarWritten ;
+
+
+(*
+   GetVarWritten - returns TRUE if this symbol is a variable and
+                   has been marked as being written.
+*)
+
+PROCEDURE GetVarWritten (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      WITH Symbols[sym].Var DO
+         RETURN( IsWritten )
+      END
+   END
+END GetVarWritten ;
 
 
 (*

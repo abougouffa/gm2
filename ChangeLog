@@ -1,9 +1,42 @@
+2004-05-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added SHIFT and ROTATE into ISO SYSTEM and
+	  made the compiler shift and rotate word and multi-word
+	  set types. Multi-word set rotate and shifts are implemented
+	  by calling ISO SYSTEM runtime procedures. Word sized sets or
+	  smaller are implemented inline using shift/rotate instructions.
+
+2004-05-05	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug report by Paul Whittington <pwhittington@nitrodata.com>
+          (see testsuite/gm2/link/pim/fail/import.mod).
+
+2004-04-30	Gaius Mulley <gaius@glam.ac.uk>
+
+	* updated gm2.texi to reflect new options and changes to the
+	  run-time system.
+
+2004-04-28	Gaius Mulley <gaius@glam.ac.uk>
+	
+	* introduced -Wunbounded-by-reference option which will make a
+	  reference to non VAR unbounded data providing it is not written to
+	  within the callee procedure.
+        * introduced -Wverbose-unbounded option which displays names of
+	  unbounded parameters which the compiler will implement as
+	  references even though they were specified as non VAR parameters.
+	
+2004-04-27	Gaius Mulley <gaius@glam.ac.uk>
+
+	* introduced -Wcase, -Wnil runtime checks
+	* introduced -Wcheck-all to enable all runtime flags
+	* updated documentation to refect new options
+
 2004-04-19	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added more address regression tests
 	* fixed address arithmetic bugs as reported by Waldek Hebisch
 	* fixed record referencing bug as reported by Waldek Hebisch
-	
+
 2004-04-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* tagged CVS using gm2_0_43
@@ -34,14 +67,13 @@
 	* removed many INTEGER/CARDINAL <-> ADDRESS coersions
 	* fixed compiler to use new modules above (many changes)
 	* have moved away from M2Printf using WORD parameters to ARRAY OF
-	BYTE as this is not 64 bit clean
+	BYTE as this was not 64 bit clean
 	* fixed p2c to handle ARRAY OF BYTE correctly
 	* fixed gm2 to handle ARRAY OF BYTE correctly
 
 2004-04-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed record parameter equivalence bug as reported by Waldek
-	  Hebisch
 	  (see testsuite/gm2/pim/pass/record4.mod)
 
 2004-03-26	Gaius Mulley <gaius@glam.ac.uk>
@@ -240,25 +272,31 @@
 2003-06-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added the LONGCARD data type.
-	* fixed subrange declarations so that they can be prefixed by a qualident.
-	* fixed variant record for ISO syntax (gm2/m2/comp/autotest/gm2/caseiso.mod).
-	* fixed importing of an enumerated element (gm2/m2/comp/autotest/gm2/impm.mod).
+	* fixed subrange declarations so that they can be prefixed
+	  by a qualident.
+	* fixed variant record for ISO syntax
+	  (gm2/m2/comp/autotest/gm2/caseiso.mod).
+	* fixed importing of an enumerated element
+	  (gm2/m2/comp/autotest/gm2/impm.mod).
 
 2003-05-27	Gaius Mulley <gaius@glam.ac.uk>
 	
-	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/realbitscast.mod).
+	* fixed bug reported by Iztok Kobal
+	  (gm2/m2/comp/autotest/gm2/realbitscast.mod).
 	  Fixed cast to copy data.
 	* enabled SIZE to be invoked from constant expressions.
 
 2003-05-20	Gaius Mulley <gaius@glam.ac.uk>
 
-	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/testlength3.mod)
-	  LENGTH is now mapped onto M2RTS.Length if the parameter is not a constant
-	  at compile time.
+	* fixed bug reported by Iztok Kobal
+	  (gm2/m2/comp/autotest/gm2/testlength3.mod)
+	  LENGTH is now mapped onto M2RTS.Length if the parameter is
+	  not a constant at compile time.
 
 2003-05-16	Gaius Mulley <gaius@glam.ac.uk>
 
-	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/longstrimp.mod)
+	* fixed bug reported by Iztok Kobal
+	  (gm2/m2/comp/autotest/gm2/longstrimp.mod)
 	  and also (gm2/m2/comp/autotest/gm2/imp[deghij].mod)
 	
 2003-05-08	Gaius Mulley <gaius@glam.ac.uk>
@@ -271,8 +309,8 @@
 
 2003-05-07	Gaius Mulley <gaius@glam.ac.uk>
 
-	* implemented ISO BITSET as a standard type which takes effect when -Wiso
-	  is present on the command line.
+	* implemented ISO BITSET as a standard type which takes
+	  effect when -Wiso is present on the command line.
 	* backed out garbage collection change to m2.lex
 	* fixed bugs reported by Iztok Kobal
 	  (gm2/m2/comp/autotest/gm2/[testexit.mod, bitset3.mod bits32.mod])
@@ -281,13 +319,15 @@
 
 	* modified Storage and SysStorage modules so that the procedure
 	  DEALLOCATE assigns the pointer to NIL
-	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/bitset2.mod)
+	* fixed bug reported by Iztok Kobal
+	  (gm2/m2/comp/autotest/gm2/bitset2.mod)
 
 2003-05-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed two bugs reported by Iztok Kobal.
 	* fixed bug in M2GCCDeclare.mod (BITSET's subrange was undeclared).
-	* added BITNUM, the subrange from which BITSET is constructed, in SYSTEM.
+	* added BITNUM, the subrange from which BITSET is constructed,
+	  in SYSTEM.
 	* added regression test case for this bug.
 	* also modified c.lex to use xstrdup and not strdup.
 

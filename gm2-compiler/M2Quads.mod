@@ -46,10 +46,13 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutProcedureStartQuad, PutProcedureEndQuad,
                         PutProcedureScopeQuad,
                         PutVar, PutConstSet,
+                        GetVarPointerCheck, PutVarPointerCheck,
+                        PutVarWritten,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
+                        IsVarAParam,
                         UsesVarArgs, UsesOptArg,
                         GetOptArgInit,
                         NoOfElements,
@@ -101,7 +104,7 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
                        SemiColonTok, toktype ;
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
-                   Real, LongReal, ShortReal,
+                   Real, LongReal, ShortReal, Nil,
                    MixTypes,
                    IsAssignmentCompatible, AssignmentRequiresWarning,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
@@ -114,8 +117,8 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
-                     Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, MakeAdr,
-                     Address, Byte, Word ;
+                     Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
+                     MakeAdr, Address, Byte, Word ;
 
 FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
@@ -126,7 +129,9 @@ FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoL
 
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
-FROM M2Options IMPORT BoundsChecking, ReturnChecking, Iso, Pim,
+FROM M2Options IMPORT NilChecking, CaseElseChecking,
+                      BoundsChecking, ReturnChecking,
+                      Iso, Pim,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug,
                       Profiling, Coding, Optimizing ;
@@ -143,14 +148,15 @@ FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
 
 
 CONST
-   MaxQuad        = 50000 ;
-   DebugStack     = FALSE ;
+   MaxQuad        = 100000 ;
+   DebugStack     =  FALSE ;
 
 TYPE
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
    boolFrame =            RECORD
                              TrueExit : CARDINAL ;
                              FalseExit: CARDINAL ;
+                             Unbounded: CARDINAL ;
                              BooleanOp: BOOLEAN ;
                           END ;
 
@@ -209,6 +215,7 @@ VAR
    LogicalDifferenceTok : Name ;      (* Internal _LDIFF token.                  *)
    NoOfDynamic          : CARDINAL ;
    IsAutoOn,                          (* should parser automatically push idents *)
+   MustNotCheckNil,
    MustNotCheckBounds   : BOOLEAN ;
    ForInfo              : ForLoopInfo ;  (* start and end of all FOR loops       *)
    GrowInitialization   : CARDINAL ;  (* upper limit of where the initialized    *)
@@ -241,6 +248,8 @@ PROCEDURE BuildAddAdrFunction ; FORWARD ;
 PROCEDURE BuildSubAdrFunction ; FORWARD ;
 PROCEDURE BuildDifAdrFunction ; FORWARD ;
 PROCEDURE BuildCastFunction ; FORWARD ;
+PROCEDURE BuildShiftFunction ; FORWARD ;
+PROCEDURE BuildRotateFunction ; FORWARD ;
 PROCEDURE BuildMakeAdrFunction ; FORWARD ;
 PROCEDURE CheckVariablesInBlock (BlockSym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
@@ -335,7 +344,10 @@ PROCEDURE WriteQuad (BufferQuad: CARDINAL) ; FORWARD ;
 PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
+PROCEDURE PushTFA (True, False, Array: WORD) ; FORWARD ;
+PROCEDURE EnsureImported (n: Name) : CARDINAL ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -888,6 +900,8 @@ BEGIN
                           CheckAddVariableWrite(Oper3, QuadNo)    (* may also write to a var parameter *)
                        END |
    BaseOp,
+   LogicalShiftOp,
+   LogicalRotateOp,
    LogicalOrOp,
    LogicalAndOp,
    LogicalXorOp,
@@ -997,6 +1011,8 @@ BEGIN
                           END |
 
       BaseOp,
+      LogicalShiftOp,
+      LogicalRotateOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -1173,6 +1189,8 @@ BEGIN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
       BaseOp,
+      LogicalShiftOp,
+      LogicalRotateOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -1646,8 +1664,53 @@ END GetCurrentFunctionName ;
 
 
 (*
-   CheckSubrange - providing that the user has requested -bounds and GetType(Des) is a subrange
-                   then this function emits quadruples to check that Exp lies in this subrange.
+   CheckPointerThroughNil - providing the user has requested -Wnil
+                            then we check that sym is not NIL.
+                            This procedure treats variables as LValues.
+*)
+
+PROCEDURE CheckPointerThroughNil (sym: CARDINAL) ;
+VAR
+   line: CARDINAL ;
+   num : String ;
+   addr: CARDINAL ;
+BEGIN
+   IF (NOT MustNotCheckNil) AND IsVar(sym) AND GetVarPointerCheck(sym)
+   THEN
+      PutVarPointerCheck(sym, FALSE) ;  (* so we can detect this again *)
+      MustNotCheckNil := TRUE ;
+      addr := MakeTemporary(RightValue) ;
+      PutVar(addr, Address) ;
+      GenQuad(ConvertOp, addr, Address, sym) ;
+      (* IF sym=NIL *)
+      GenQuad(IfEquOp, addr, Nil, 0) ;       (* True  Exit *)
+      GenQuad(GotoOp, NulSym, NulSym, 0) ;  (* False Exit *)
+      PushBool(NextQuad-2, NextQuad-1) ;
+      BuildThenIf ;
+      (* THEN *)
+      PushTF(RequestSym(MakeKey('NilPointerError')),
+             GetType(RequestSym(MakeKey('NilPointerError')))) ;
+      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
+      line := GetLineNo() ;
+      num := Sprintf1(Mark(InitString('%d')), line) ;
+      PushT(MakeConstLit(makekey(string(num)))) ;
+      num := KillString(num) ;
+      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
+      PushT(3) ;
+      (* call error function *)
+      BuildProcedureCall ;
+      (* END *)
+      BuildEndIf ;
+      MustNotCheckNil := FALSE
+   END
+END CheckPointerThroughNil ;
+
+
+(*
+   CheckSubrange - providing that the user has requested -Wbounds and
+                   GetType(Des) is a subrange
+                   then this function emits quadruples to check that
+                   Exp lies in this subrange.
 *)
 
 PROCEDURE CheckSubrange (Des, Exp: CARDINAL) ;
@@ -1659,7 +1722,8 @@ VAR
    type     : CARDINAL ;
    old      : BOOLEAN ;
 BEGIN
-   IF BoundsChecking AND (NOT IsConst(Des)) AND (NOT MustNotCheckBounds)
+   IF BoundsChecking AND
+      (NOT IsConst(Des)) AND (NOT MustNotCheckBounds)
    THEN
       old := MustNotCheckBounds ;
       MustNotCheckBounds := TRUE ;  (* stop recursive checking *)
@@ -1908,10 +1972,23 @@ END BuildAssignmentWithoutBounds ;
 
 
 (*
+   MarkArrayWritten - marks, Array, as being written.
+*)
+
+PROCEDURE MarkArrayWritten (Array: CARDINAL) ;
+BEGIN
+   IF (Array#NulSym) AND IsVarAParam(Array)
+   THEN
+      PutVarWritten(Array, TRUE)
+   END
+END MarkArrayWritten ;
+
+
+(*
    MoveWithMode - 
 *)
 
-PROCEDURE MoveWithMode (Des, Exp: CARDINAL) ;
+PROCEDURE MoveWithMode (Des, Exp, Array: CARDINAL) ;
 VAR
    t: CARDINAL ;
 BEGIN
@@ -1924,19 +2001,24 @@ BEGIN
       THEN
          IF GetMode(Exp)=LeftValue
          THEN
+            CheckPointerThroughNil(Exp) ;
             GenQuad(IndrXOp, Des, GetType(Des), Exp)
          ELSE
             GenQuad(BecomesOp, Des, NulSym, Exp)
          END
       ELSIF GetMode(Des)=LeftValue
       THEN
+         MarkArrayWritten(Array) ;
          IF GetMode(Exp)=LeftValue
          THEN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Des)) ;
+            CheckPointerThroughNil(Exp) ;
             GenQuad(IndrXOp, t, GetType(Des), Exp) ;
+            CheckPointerThroughNil(Des) ;
             GenQuad(XIndrOp, Des, GetType(Des), t)
          ELSE
+            CheckPointerThroughNil(Des) ;
             GenQuad(XIndrOp, Des, GetType(Des), Exp)
          END
       ELSE
@@ -2058,6 +2140,7 @@ END BuildBuiltinConst ;
 PROCEDURE BuildAssignment ;
 VAR
    t, f,
+   Array,
    Des, Exp: CARDINAL ;
 BEGIN
    DumpStack ;
@@ -2071,6 +2154,7 @@ BEGIN
       THEN
          GenQuad(BecomesOp, Des, NulSym, True)
       ELSE
+         CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, True)
       END ;
       GenQuad(GotoOp, NulSym, NulSym, NextQuad+2) ;
@@ -2079,15 +2163,17 @@ BEGIN
       THEN
          GenQuad(BecomesOp, Des, NulSym, False)
       ELSE
+         CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, False)
       END
    ELSE
       PopT(Exp) ;
+      Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
       CheckSubrange(Des, Exp) ;
       (* Traditional Assignment *)
-      MoveWithMode(Des, Exp) ;
+      MoveWithMode(Des, Exp, Array) ;
       (*
          Ugly hack - to determine whether an assignment is a CONST
                      string := 'asdkjhasd' ;
@@ -2734,9 +2820,11 @@ BEGIN
       (* index variable is a LeftValue, therefore we must dereference it *)
       tsym := MakeTemporary(RightValue) ;
       PutVar(tsym, GetType(IdSym)) ;
+      CheckPointerThroughNil(IdSym) ;
       GenQuad(IndrXOp, tsym, GetType(IdSym), IdSym) ;
       IncQuad := NextQuad ;
       GenQuad(AddOp, tsym, tsym, BySym) ;
+      CheckPointerThroughNil(IdSym) ;
       GenQuad(XIndrOp, IdSym, GetType(IdSym), tsym)
    ELSE
       IncQuad := NextQuad ;
@@ -3049,6 +3137,34 @@ BEGIN
    BackPatch(t, NextQuad) ;
    PopT(e1)
 END BuildCaseEnd ;
+
+
+(*
+   BuildCaseCheck - builds the case checking code to ensure that
+                    the program does not need an else clause at runtime.
+                    The stack is unaltered.
+*)
+
+PROCEDURE BuildCaseCheck ;
+VAR
+   line: CARDINAL ;
+   num : String ;
+BEGIN
+   IF CaseElseChecking
+   THEN
+      PushTF(RequestSym(MakeKey('CaseElseError')),
+             GetType(RequestSym(MakeKey('CaseElseError')))) ;
+      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
+      line := GetLineNo() ;
+      num := Sprintf1(Mark(InitString('%d')), line) ;
+      PushT(MakeConstLit(makekey(string(num)))) ;
+      num := KillString(num) ;
+      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
+      PushT(3) ;
+      (* call error function *)
+      BuildProcedureCall ;
+   END
+END BuildCaseCheck ;
 
 
 (*
@@ -4035,6 +4151,7 @@ BEGIN
    ELSE
       t := MakeTemporary(RightValue) ;
       PutVar(t, type) ;
+      CheckPointerThroughNil(Sym) ;
       GenQuad(IndrXOp, t, type, Sym) ;
       RETURN( t )
    END
@@ -4256,6 +4373,7 @@ BEGIN
                (* must dereference LeftValue (even if we are passing variable as a vararg) *)
                t := MakeTemporary(RightValue) ;
                PutVar(t, GetType(OperandT(pi))) ;
+               CheckPointerThroughNil(OperandT(pi)) ;
                GenQuad(IndrXOp, t, GetType(OperandT(pi)), OperandT(pi)) ;
                f^.TrueExit := t
             END
@@ -4277,6 +4395,8 @@ BEGIN
          ParamType := GetType(GetType(GetParam(Proc, i))) ;
          IF IsVarParam(Proc, i)
          THEN
+            MarkArrayWritten(OperandT(pi)) ;
+            MarkArrayWritten(OperandA(pi)) ;
             AssignUnboundedVar(OperandT(pi), t, ParamType)
          ELSE
             AssignUnboundedNonVar(OperandT(pi), t, ParamType)
@@ -4291,12 +4411,15 @@ BEGIN
               a procedure, we are NEVER going to actually use, t, other than in a ParamOp
               which ignores the distinction between Left and Right.
          *)
+         MarkArrayWritten(OperandT(pi)) ;
+         MarkArrayWritten(OperandA(pi)) ;
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
       ELSIF (NOT IsVarParam(Proc, i)) AND (GetMode(OperandT(pi))=LeftValue)
       THEN
          (* must dereference LeftValue *)
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(OperandT(pi))) ;
+         CheckPointerThroughNil(OperandT(pi)) ;
          GenQuad(IndrXOp, t, GetType(OperandT(pi)), OperandT(pi)) ;
          f^.TrueExit := t
       END ;
@@ -4875,7 +4998,7 @@ BEGIN
          IF IsPointer(GetType(TempSym)) AND (NoOfParam=1)
          THEN
             (* if the user uses two parameters then we insist that the user coerses *)
-            PushTF(TempSym, Integer)   (* no coorsion for pointers *)
+            PushTF(TempSym, Integer)   (* no coersion for pointers *)
          ELSE
             PushTF(TempSym, GetType(TempSym))
          END ;
@@ -5052,6 +5175,7 @@ BEGIN
    IF NoOfParam=2
    THEN
       VarSym := OperandT(2) ;
+      MarkArrayWritten(OperandA(2)) ;
       OperandSym := OperandT(1) ;
       IF IsVar(VarSym)
       THEN
@@ -5108,6 +5232,7 @@ BEGIN
    IF NoOfParam=2
    THEN
       VarSym := OperandT(2) ;
+      MarkArrayWritten(OperandA(2)) ;
       OperandSym := OperandT(1) ;
       IF IsVar(VarSym)
       THEN
@@ -5481,6 +5606,12 @@ BEGIN
    ELSIF ProcSym=Cast
    THEN
       BuildCastFunction
+   ELSIF ProcSym=Shift
+   THEN
+      BuildShiftFunction
+   ELSIF ProcSym=Rotate
+   THEN
+      BuildRotateFunction
    ELSIF ProcSym=MakeAdr
    THEN
       BuildMakeAdrFunction
@@ -5621,7 +5752,7 @@ END BuildSubAdrFunction ;
 (*
    BuildDifAdrFunction - builds the pseudo procedure call DIFADR.
 
-                         PROCEDURE DIFADR (addr1, addr2: ADDRESS): ADDRESS ;
+                         PROCEDURE DIFADR (addr1, addr2: ADDRESS): INTEGER ;
 
                          Which returns address given by (addr1 - addr2),
                          [ the standard says that it _may_
@@ -5647,7 +5778,7 @@ END BuildSubAdrFunction ;
 
 PROCEDURE BuildDifAdrFunction ;
 VAR
-   ReturnVar,
+   TempVar,
    NoOfParam,
    OperandSym,
    VarSym    : CARDINAL ;
@@ -5664,28 +5795,35 @@ BEGIN
          THEN
             IF IsReallyPointer(OperandSym) OR (GetType(OperandSym)=Address)
             THEN
-               ReturnVar := MakeTemporary(RightValue) ;
-               PutVar(ReturnVar, Address) ;
-               GenQuad(SubOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
-               PushTF(ReturnVar, Address)
+               TempVar := MakeTemporary(RightValue) ;
+               PutVar(TempVar, Address) ;
+               GenQuad(SubOp, TempVar, VarSym, DereferenceLValue(OperandSym)) ;
+               (*
+                  Build macro: CONVERT( INTEGER, TempVar )
+               *)
+               PushTF(Convert, NulSym) ;
+               PushT(Integer) ;
+               PushT(TempVar) ;
+               PushT(2) ;          (* Two parameters *)
+               BuildConvertFunction
             ELSE
                ExpectVariable('the second parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
                               OperandSym) ;
-               PushTF(MakeConstLit(MakeKey('0')), Address)
+               PushTF(MakeConstLit(MakeKey('0')), Integer)
             END
          ELSE
             ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
                            VarSym) ;
-            PushTF(MakeConstLit(MakeKey('0')), Address)
+            PushTF(MakeConstLit(MakeKey('0')), Integer)
          END
       ELSE
          WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
-         PushTF(MakeConstLit(MakeKey('0')), Address)
+         PushTF(MakeConstLit(MakeKey('0')), Integer)
       END
    ELSE
       WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
       PopN(NoOfParam+1) ;
-      PushTF(MakeConstLit(MakeKey('0')), Address)
+      PushTF(MakeConstLit(MakeKey('0')), Integer)
    END
 END BuildDifAdrFunction ;
 
@@ -6409,7 +6547,7 @@ END BuildOrdFunction ;
 (*
    BuildMakeAdrFunction - builds the pseudo procedure call MAKEADDR.
                           This procedure is actually a "macro" for
-                          MAKEADDR(x) --> CONVERT(ADDRESS, CONVERT(WORD, x))
+                          MAKEADDR(x) --> CONVERT(ADDRESS, x)
                           However we cannot push tokens back onto the input stack
                           because the compiler is currently building a function
                           call and expecting a ReturnVar on the stack.
@@ -6451,20 +6589,11 @@ BEGIN
       IF IsVar(Var) OR IsConst(Var)
       THEN
          PopN(NoOfParam+1) ;
-         (*
-            Build macro: Var := CONVERT( WORD, Var )
-         *)
-         PushTF(Convert, NulSym) ;
-         PushT(Word) ;
-         PushT(Var) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction ;
 
          (*
             Build macro: CONVERT( ADDRESS, Var )
          *)
 
-         PopT(Var) ;
          PushTF(Convert, NulSym) ;
          PushT(Address) ;
          PushT(Var) ;
@@ -6477,6 +6606,130 @@ BEGIN
       WriteFormat0('the pseudo procedure MAKEADR only has one parameter in GNU Modula-2')
    END
 END BuildMakeAdrFunction ;
+
+
+(*
+   BuildShiftFunction - builds the pseudo procedure call SHIFT.
+
+                        PROCEDURE SHIFT (val: <any type>;
+                                         num: INTEGER): <any type> ;
+
+                       "Returns a bit sequence obtained from val by
+                        shifting up or down (left or right) by the
+                        absolute value of num, introducing
+                        zeros as necessary.  The direction is down if
+                        the sign of num is negative, otherwise the
+                        direction is up."
+
+                        The Stack:
+
+                        Entry                      Exit
+
+                 Ptr ->
+                        +----------------+
+                        | NoOfParam      |
+                        |----------------|
+                        | Param 1        |
+                        |----------------|
+                        | Param 2        |                        <- Ptr
+                        |----------------|         +------------+
+                        | ProcSym | Type |         | ReturnVar  |
+                        |----------------|         |------------|
+*)
+
+PROCEDURE BuildShiftFunction ;
+VAR
+   ReturnVar,
+   NoOfParam,
+   OperandSym,
+   VarSym    : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      VarSym := OperandT(2) ;
+      OperandSym := OperandT(1) ;
+      PopN(NoOfParam+1) ;
+      IF (GetType(VarSym)#NulSym) AND IsSet(SkipType(GetType(VarSym)))
+      THEN
+         ReturnVar := MakeTemporary(RightValue) ;
+         PutVar(ReturnVar, GetType(VarSym)) ;
+         GenQuad(LogicalShiftOp, ReturnVar, VarSym,
+                 DereferenceLValue(OperandSym)) ;
+         PushTF(ReturnVar, GetType(VarSym))
+      ELSE
+         WriteFormat0('SYSTEM procedure SHIFT expects a constant or variable which has a type of SET as its first parameter') ;
+         PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+      END
+   ELSE
+      WriteFormat0('SYSTEM procedure SHIFT expects 2 parameters') ;
+      PopN(NoOfParam+1) ;
+      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+   END
+END BuildShiftFunction ;
+
+
+(*
+   BuildRotateFunction - builds the pseudo procedure call ROTATE.
+
+                         PROCEDURE ROTATE (val: <any type>;
+                                           num: INTEGER): <any type> ;
+
+                        "Returns a bit sequence obtained from val
+                         by rotating up or down (left or right) by
+                         the absolute value of num.  The direction is
+                         down if the sign of num is negative, otherwise
+                         the direction is up."
+
+                         The Stack:
+
+                         Entry                      Exit
+
+                  Ptr ->
+                         +----------------+
+                         | NoOfParam      |
+                         |----------------|
+                         | Param 1        |
+                         |----------------|
+                         | Param 2        |                        <- Ptr
+                         |----------------|         +------------+
+                         | ProcSym | Type |         | ReturnVar  |
+                         |----------------|         |------------|
+*)
+
+PROCEDURE BuildRotateFunction ;
+VAR
+   proc,
+   ReturnVar,
+   NoOfParam,
+   OperandSym,
+   VarSym    : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      proc := EnsureImported(MakeKey('RotateVal')) ;
+      proc := EnsureImported(MakeKey('RotateLeft')) ;
+      proc := EnsureImported(MakeKey('RotateRight')) ;
+      VarSym := OperandT(2) ;
+      OperandSym := OperandT(1) ;
+      PopN(NoOfParam+1) ;
+      IF (GetType(VarSym)#NulSym) AND IsSet(SkipType(GetType(VarSym)))
+      THEN
+         ReturnVar := MakeTemporary(RightValue) ;
+         PutVar(ReturnVar, GetType(VarSym)) ;
+         GenQuad(LogicalRotateOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
+         PushTF(ReturnVar, GetType(VarSym))
+      ELSE
+         WriteFormat0('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;
+         PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+      END
+   ELSE
+      WriteFormat0('SYSTEM procedure ROTATE expects 2 parameters') ;
+      PopN(NoOfParam+1) ;
+      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
+   END
+END BuildRotateFunction ;
 
 
 (*
@@ -6686,6 +6939,7 @@ BEGIN
          THEN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Var)) ;
+            CheckPointerThroughNil(Var) ;
             GenQuad(IndrXOp, t, GetType(Var), Var) ;
             Var := t
          END ;
@@ -7107,6 +7361,7 @@ END BuildFloatFunction ;
 
 PROCEDURE BuildAdrFunction ;
 VAR
+   Array,
    UnboundedSym,
    Field,
    NoOfParam,
@@ -7124,6 +7379,8 @@ BEGIN
       WriteFormat0('SYSTEM procedure ADR expects a variable as its parameter')
    ELSE
       Type := GetType(OperandT(1)) ;
+      MarkArrayWritten(OperandT(1)) ;
+      MarkArrayWritten(OperandA(1)) ;
       IF IsUnbounded(Type)
       THEN
          (* we will reference the address field of the unbounded structure *)
@@ -7926,6 +8183,7 @@ BEGIN
          t2 := GetType(CurrentProc) ;
          e2 := MakeTemporary(RightValue) ;
          PutVar(e2, t2) ;
+         CheckPointerThroughNil(e1) ;
          GenQuad(IndrXOp, e2, t2, e1) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
       ELSE
@@ -8260,6 +8518,7 @@ BEGIN
    THEN
       Base := MakeTemporary(RightValue) ;
       PutVar(Base, Address) ;           (* has type ADDRESS *)
+      CheckPointerThroughNil(PtrToBase) ;
       GenQuad(IndrXOp, Base, Address, PtrToBase)           (* Base = *PtrToBase *)
    ELSE
       Assert(GetMode(PtrToBase)#ImmediateValue) ;
@@ -8311,7 +8570,7 @@ BEGIN
 
    GenQuad(AddOp, Adr, Base, tk) ;
    PopN(n+1) ;
-   PushTF(Adr, GetType(Type)) ;
+   PushTFA(Adr, GetType(Type), Sym) ;
    DumpStack ;
 END BuildDynamicArray ;
 
@@ -8356,11 +8615,14 @@ BEGIN
 
       IF GetMode(Sym1)=LeftValue
       THEN
+         CheckPointerThroughNil(Sym1) ;
          GenQuad(IndrXOp, Sym2, Address, Sym1)           (* Sym2 := *Sym1 *)
       ELSE
          GenQuad(BecomesOp, Sym2, NulSym, Sym1)         (* Sym2 :=  Sym1 *)
       END ;
 
+      PutVarPointerCheck(Sym2, NilChecking) ;   (* we should check this for *)
+                                                (* pointer via NIL          *)
       PushTF(Sym2, Type2)
    ELSE
       n1 := GetSymName(Sym1) ;
@@ -8890,6 +9152,7 @@ BEGIN
       THEN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(el)) ;
+         CheckPointerThroughNil(el) ;
          GenQuad(IndrXOp, t, GetType(el), el) ;
          el := t
       END ;
@@ -9133,6 +9396,7 @@ BEGIN
          THEN
             t := MakeTemporary(RightValue) ;
             PutVar(t, t1) ;
+            CheckPointerThroughNil(e1) ;
             GenQuad(IndrXOp, t, t1, e1) ;
             e1 := t
          END ;
@@ -9140,6 +9404,7 @@ BEGIN
          THEN
             t := MakeTemporary(RightValue) ;
             PutVar(t, t2) ;
+            CheckPointerThroughNil(e2) ;
             GenQuad(IndrXOp, t, t2, e2) ;
             e2 := t
          END
@@ -9213,6 +9478,7 @@ BEGIN
 
             SymT := MakeTemporary(RightValue) ;
             PutVar(SymT, GetType(Sym)) ;
+            CheckPointerThroughNil(Sym) ;
             GenQuad(IndrXOp, SymT, GetType(Sym), Sym) ;
             Sym := SymT
          END
@@ -9525,6 +9791,7 @@ BEGIN
       THEN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e1)) ;
+         CheckPointerThroughNil(e1) ;
          GenQuad(IndrXOp, t, GetType(e1), e1) ;
          e1 := t
       END ;
@@ -9532,6 +9799,7 @@ BEGIN
       THEN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e2)) ;
+         CheckPointerThroughNil(e2) ;
          GenQuad(IndrXOp, t, GetType(e2), e2) ;
          e2 := t
       END ;
@@ -9624,7 +9892,8 @@ BEGIN
    THEN
       RETURN( LogicalDiffOp )
    ELSE
-      InternalError('binary operation not implemented yet', __FILE__, __LINE__)
+      InternalError('binary operation not implemented yet',
+                    __FILE__, __LINE__)
    END
 END MakeOp ;
 
@@ -9849,6 +10118,8 @@ BEGIN
       IndrXOp,
       XIndrOp,
       BaseOp,
+      LogicalShiftOp,
+      LogicalRotateOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -9897,6 +10168,8 @@ BEGIN
    LogicalAndOp             : printf0('And              ') |
    LogicalXorOp             : printf0('Xor              ') |
    LogicalDiffOp            : printf0('Ldiff            ') |
+   LogicalShiftOp           : printf0('Shift            ') |
+   LogicalRotateOp          : printf0('Rotate           ') |
    BecomesOp                : printf0('Becomes          ') |
    IndrXOp                  : printf0('IndrXOp          ') |
    XIndrOp                  : printf0('XIndrOp          ') |
@@ -10091,6 +10364,22 @@ BEGIN
    f := PeepAddress(BoolStack, pos) ;
    RETURN( f^.BooleanOp )
 END IsBoolean ;
+
+
+(*
+   OperandA - returns possible array symbol associated with the ident
+              operand stored on the boolean stack.
+*)
+
+PROCEDURE OperandA (pos: CARDINAL) : WORD ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   Assert(NOT IsBoolean(pos)) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.Unbounded )
+END OperandA ;
 
 
 (*
@@ -10373,6 +10662,26 @@ END IncDynamicQuads ;
 
 
 (*
+   PushTFA - Push True, False and Array numbers onto the True/False stack.
+             True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFA (True, False, Array: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := Array ;
+      BooleanOp := FALSE
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFA ;
+
+
+(*
    PushTF - Push a True and False numbers onto the True/False stack.
             True and False are assumed to contain Symbols or Ident etc.
 *)
@@ -10385,6 +10694,7 @@ BEGIN
    WITH f^ DO
       TrueExit := True ;
       FalseExit := False ;
+      Unbounded := NulSym ;
       BooleanOp := FALSE
    END ;
    PushAddress(BoolStack, f)
@@ -10422,6 +10732,7 @@ BEGIN
    WITH f^ DO
       TrueExit := True ;
       FalseExit := 0 ;
+      Unbounded := NulSym ;
       BooleanOp := FALSE
    END ;
    PushAddress(BoolStack, f)
@@ -10580,6 +10891,7 @@ BEGIN
    Head := 1 ;
    LastQuadNo := 0 ;
    MustNotCheckBounds := FALSE ;
+   MustNotCheckNil := FALSE ;
    InitQuad := 0 ;
    GrowInitialization := 0 ;
    WITH ForInfo DO

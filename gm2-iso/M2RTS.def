@@ -14,42 +14,22 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
-IMPLEMENTATION MODULE M2RTS ;
-
-
-FROM libc IMPORT abort, exit, write ;
-FROM NumberIO IMPORT CardToStr ;
-FROM StrLib IMPORT StrCopy, StrLen, StrEqual ;
-FROM SYSTEM IMPORT ADDRESS, ADR, BITSET ;
-FROM ASCII IMPORT nl, nul ;
-
-
-CONST
-   MaxProcedures =   20 ;
-   MaxLength     = 4096 ;
-
-
-VAR
-   Ptr      : CARDINAL ;
-   List     : ARRAY [0..MaxProcedures] OF PROC ;
-   ExitValue: INTEGER ;
-   CallExit : BOOLEAN ;
-
+DEFINITION MODULE M2RTS ;
 
 (*
-   Terminate - calls each installed termination procedure in turn.
+   Author     : Gaius Mulley
+   Title      : M2RTS
+   Date       : Mon Apr 26 09:54:33 BST 2004
+   Description: Implements the run time system facilities of Modula-2.
 *)
 
-PROCEDURE Terminate ;
-VAR
-   i: CARDINAL ;
-BEGIN
-   i := 0 ;
-   WHILE i<Ptr DO
-      List[i] ;
-      INC(i)
-   END
-END Terminate ;
+FROM SYSTEM IMPORT BITSET ;
+EXPORT QUALIFIED HALT, Halt,
+                 SubrangeAssignmentError, ArraySubscriptError,
+                 FunctionReturnError, NilPointerError,
+                 CaseElseError,
+                 InstallTerminationProcedure, Terminate,
+                 ExitOnHalt, Length ;
 
 
 (*
@@ -59,56 +39,6 @@ END Terminate ;
 *)
 
 PROCEDURE HALT ;
-BEGIN
-   Terminate ;
-   IF CallExit
-   THEN
-      exit(ExitValue)
-   ELSE
-      abort
-   END
-END HALT ;
-
-
-(*
-   ErrorString - writes a string to stderr.
-*)
-
-PROCEDURE ErrorString (a: ARRAY OF CHAR) ;
-VAR
-   buf: ARRAY [0..MaxLength] OF CHAR ;
-   n  : INTEGER ;
-BEGIN
-   StrCopy(a, buf) ;
-   n := write(2, ADR(buf), StrLen(buf))
-END ErrorString ;
-
-
-(*
-   ErrorMessage - emits an error message to the stderr
-*)
-
-PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
-                        file: ARRAY OF CHAR;
-                        line: CARDINAL;
-                        function: ARRAY OF CHAR) ;
-VAR
-   LineNo: ARRAY [0..10] OF CHAR ;
-BEGIN
-   ErrorString(file) ; ErrorString(':') ;
-   CardToStr(line, 0, LineNo) ;
-   ErrorString(LineNo) ; ErrorString(':') ;
-   IF NOT StrEqual(function, '')
-   THEN
-      ErrorString('in ') ;
-      ErrorString(function) ;
-      ErrorString(' has caused ') ;
-   END ;
-   ErrorString(message) ;
-   LineNo[0] := nl ; LineNo[1] := nul ;
-   ErrorString(LineNo) ;
-   exit(1)
-END ErrorMessage ;
 
 
 (*
@@ -118,10 +48,6 @@ END ErrorMessage ;
 
 PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
                 function: ARRAY OF CHAR; description: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage(description, file, line, function) ;
-   HALT
-END Halt ;
 
 
 (*
@@ -132,9 +58,6 @@ END Halt ;
 PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
                                    line: CARDINAL;
                                    function: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage('variable exceeds subrange', file, line, function)
-END SubrangeAssignmentError ;
 
 
 (*
@@ -145,9 +68,6 @@ END SubrangeAssignmentError ;
 PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
                                line: CARDINAL;
                                function: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage('array index out of bounds', file, line, function)
-END ArraySubscriptError ;
 
 
 (*
@@ -158,9 +78,6 @@ END ArraySubscriptError ;
 PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
                                line: CARDINAL;
                                function: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage('function is attempting to exit without a formal RETURN statement', file, line, function)
-END FunctionReturnError ;
 
 
 (*
@@ -171,9 +88,6 @@ END FunctionReturnError ;
 PROCEDURE NilPointerError (file: ARRAY OF CHAR;
                            line: CARDINAL;
                            function: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage('attempted to dereference a value through a NIL pointer', file, line, function)
-END NilPointerError ;
 
 
 (*
@@ -185,9 +99,6 @@ END NilPointerError ;
 PROCEDURE CaseElseError (file: ARRAY OF CHAR;
                          line: CARDINAL;
                          function: ARRAY OF CHAR) ;
-BEGIN
-   ErrorMessage('needs an ELSE clause to this CASE statement as none of the selection clauses match the expression', file, line, function)
-END CaseElseError ;
 
 
 (*
@@ -195,28 +106,22 @@ END CaseElseError ;
 *)
 
 PROCEDURE ExitOnHalt (e: INTEGER) ;
-BEGIN
-   ExitValue := e ;
-   CallExit := TRUE
-END ExitOnHalt ;
-
+   
 
 (*
    InstallTerminationProcedure - installs a procedure, p, which will
                                  be called when the procedure Terminate
-                                 is invoked.
+                                 is ionvoked.
 *)
 
 PROCEDURE InstallTerminationProcedure (p: PROC) ;
-BEGIN
-   IF Ptr=MaxProcedures
-   THEN
-      ErrorMessage('maximum number of termination procedures have been set', __FILE__, __LINE__, __FUNCTION__)
-   ELSE
-      List[Ptr] := p ;
-      INC(Ptr)
-   END
-END InstallTerminationProcedure ;
+
+
+(*
+   Terminate - calls each installed termination procedure in turn.
+*)
+
+PROCEDURE Terminate ;
 
 
 (*
@@ -226,20 +131,6 @@ END InstallTerminationProcedure ;
 *)
 
 PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
-VAR
-   l, h: CARDINAL ;
-BEGIN
-   l := 0 ;
-   h := HIGH(a) ;
-   WHILE (l<=h) AND (a[l]#nul) DO
-      INC(l)
-   END ;
-   RETURN( l )
-END Length ;
 
 
-BEGIN
-   Ptr := 0 ;
-   ExitValue := 0 ;
-   CallExit := FALSE   (* default by calling abort *)
 END M2RTS.

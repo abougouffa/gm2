@@ -62,7 +62,8 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  IsRealType,
                  MixTypes,
                  TemplateProcedure,
-                 ActivationPointer ;
+                 ActivationPointer,
+                 IsNeededAtRunTime ;
 
 
 (*
@@ -131,6 +132,16 @@ PROCEDURE IsPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsPseudoBaseProcedure (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsNeededAtRunTime - returns TRUE if procedure, sym, is a
+                       runtime procedure. Ie a procedure which is
+                       not a pseudo procedure and which is implemented
+                       in M2RTS or SYSTEM and also exported.
+*)
+
+PROCEDURE IsNeededAtRunTime (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -186,9 +186,32 @@ BEGIN
    THEN
       OptimizeCommonSubExpressions := FALSE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wunbounded-by-reference')
+   THEN
+      UnboundedByReference := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wverbose-unbounded')
+   THEN
+      VerboseUnbounded := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wcheck-all')
+   THEN
+      BoundsChecking := TRUE ;
+      ReturnChecking := TRUE ;
+      NilChecking := TRUE ;
+      CaseElseChecking := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wbounds')
    THEN
       BoundsChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wnil')
+   THEN
+      NilChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wcase')
+   THEN
+      CaseElseChecking := TRUE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wcpp') OR EqualArray(s, '-Wcppbegin')
    THEN
@@ -307,5 +330,7 @@ BEGIN
    CPreProcessor                := FALSE ;
    LineDirectives               := FALSE ;
    ExtendedOpaque               := FALSE ;
+   UnboundedByReference         := FALSE ;
+   VerboseUnbounded             := FALSE ;
    ScanForInitialOptions
 END M2Options.

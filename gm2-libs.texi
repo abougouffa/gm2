@@ -912,7 +912,7 @@ DEFINITION MODULE FormatStrings ;
     Description: provides a pseudo printf capability for GM2.
 *)
 
-FROM SYSTEM IMPORT WORD ;
+FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 
@@ -932,7 +932,7 @@ PROCEDURE Sprintf0 (s: String) : String ;
 *)
 
 @findex Sprintf1
-PROCEDURE Sprintf1 (s: String; w: WORD) : String ;
+PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) : String ;
 
 
 (*
@@ -940,7 +940,7 @@ PROCEDURE Sprintf1 (s: String; w: WORD) : String ;
 *)
 
 @findex Sprintf2
-PROCEDURE Sprintf2 (s: String; w1, w2: WORD) : String ;
+PROCEDURE Sprintf2 (s: String; w1, w2: ARRAY OF BYTE) : String ;
 
 
 (*
@@ -948,7 +948,7 @@ PROCEDURE Sprintf2 (s: String; w1, w2: WORD) : String ;
 *)
 
 @findex Sprintf3
-PROCEDURE Sprintf3 (s: String; w1, w2, w3: WORD) : String ;
+PROCEDURE Sprintf3 (s: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 
 
 (*
@@ -956,7 +956,7 @@ PROCEDURE Sprintf3 (s: String; w1, w2, w3: WORD) : String ;
 *)
 
 @findex Sprintf4
-PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: WORD) : String ;
+PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
 
 
 END FormatStrings.
@@ -1056,7 +1056,7 @@ DEFINITION MODULE M2RTS ;
    Description: Implements the run time system facilities of Modula-2.
 *)
 
-EXPORT QUALIFIED HALT,
+EXPORT QUALIFIED HALT, Halt,
                  SubrangeAssignmentError, ArraySubscriptError,
                  FunctionReturnError,
                  InstallTerminationProcedure, Terminate,
@@ -1064,13 +1064,23 @@ EXPORT QUALIFIED HALT,
 
 
 (*
-   HALT - terminate the current program calling creating a core dump.
-          The procedure Terminate is called before the core dump is
-          created.
+   HALT - terminate the current program.
+          The procedure Terminate is called before the program is
+          stopped.
 *)
 
 @findex HALT
 PROCEDURE HALT ;
+
+
+(*
+   Halt - provides a more user friendly version of HALT, which takes
+          four parameters to aid debugging.
+*)
+
+@findex Halt
+PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
+                function: ARRAY OF CHAR; description: ARRAY OF CHAR) ;
 
 
 (*
@@ -1079,7 +1089,9 @@ PROCEDURE HALT ;
 *)
 
 @findex SubrangeAssignmentError
-PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
+                                   line: CARDINAL;
+                                   function: ARRAY OF CHAR) ;
 
 
 (*
@@ -1088,7 +1100,9 @@ PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
 *)
 
 @findex ArraySubscriptError
-PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 
 
 (*
@@ -1097,7 +1111,9 @@ PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
 *)
 
 @findex FunctionReturnError
-PROCEDURE FunctionReturnError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 
 
 (*
@@ -1846,7 +1862,7 @@ DEFINITION MODULE Storage ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT QUALIFIED ALLOCATE, DEALLOCATE, Available ;
+EXPORT QUALIFIED ALLOCATE, DEALLOCATE, REALLOCATE, Available ;
 
 
 
@@ -1866,6 +1882,18 @@ PROCEDURE ALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
 
 @findex DEALLOCATE
 PROCEDURE DEALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
+
+
+(*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*)
+
+@findex REALLOCATE
+PROCEDURE REALLOCATE (VAR a: ADDRESS; Size: CARDINAL) ;
 
 
 (*
@@ -2240,8 +2268,7 @@ DEFINITION MODULE SysStorage ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-
-EXPORT QUALIFIED ALLOCATE, DEALLOCATE, Available, Init ;
+EXPORT QUALIFIED ALLOCATE, DEALLOCATE, REALLOCATE, Available, Init ;
 
 
 (*
@@ -2260,6 +2287,18 @@ PROCEDURE ALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
 
 @findex DEALLOCATE
 PROCEDURE DEALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
+
+
+(*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*)
+
+@findex REALLOCATE
+PROCEDURE REALLOCATE (VAR a: ADDRESS; Size: CARDINAL) ;
 
 
 (*
@@ -2450,7 +2489,7 @@ EXPORT UNQUALIFIED write, read,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
-                   memcpy, memset, printf ;
+                   memcpy, memset, printf, realloc ;
 
 
 (*
@@ -2524,12 +2563,29 @@ PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
      char *ptr;
 
      free() releases a previously allocated block.  Its argument
-     is a pointer to a block previously allocated by malloc, cal-
-     loc, realloc, malloc, or memalign.
+     is a pointer to a block previously allocated by malloc,
+     calloc, realloc, malloc, or memalign.
 *)
 
 @findex free
 PROCEDURE free (ptr: ADDRESS) ;
+
+
+(*
+     void *realloc(void *ptr, size_t size);
+
+     realloc changes the size of the memory block pointed to
+     by ptr to size bytes. The contents will be  unchanged  to
+     the minimum of the old and new sizes; newly allocated memory
+     will be uninitialized. If ptr is NIL, the call is
+     equivalent  to malloc(size); if size is equal to zero, the
+     call is equivalent to free(ptr). Unless ptr is NIL, it
+     must have been returned by an earlier call to malloc(),
+     realloc.
+*)
+
+@findex realloc
+PROCEDURE realloc (ptr: ADDRESS; size: CARDINAL) : ADDRESS ;
 
 
 (*
@@ -2870,6 +2926,11 @@ This directory contains the ISO definition modules and some corresponding
 implementation modules. Currently this is work in progress and the code
 is incomplete and probably highly buggy.
 
+The following implementation modules are complete:
+
+ChanConsts
+CharClass
+ConvTypes
 @menu
 * gm2-iso/COROUTINES::COROUTINES.def
 * gm2-iso/ChanConsts::ChanConsts.def
@@ -2931,54 +2992,68 @@ DEFINITION MODULE COROUTINES;
 
 IMPORT SYSTEM;
 
+CONST
+   UnassignedPriority = PTH_PRIO_MIN - 1 ;
+
 TYPE
   COROUTINE; (* Values of this type are created dynamically by NEWCOROUTINE
                 and identify the coroutine in subsequent operations *)
-  INTERRUPTSOURCE = <implementation-defined>;
+  INTERRUPTSOURCE;
+  PROTECTION = [UnassignedPriority..PTH_PRIO_MAX]
+
 
 @findex NEWCOROUTINE
-PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS; size: CARDINAL;
-                        VAR cr: COROUTINE[; initProtection: PROTECTION]);
-  (* Creates a new coroutine whose body is given by procBody, and returns the identity
-     of the coroutine in cr.  workspace is a pointer to the work space allocated to
-     the coroutine; size specifies the size of this workspace in terms of SYSTEM.LOC.
-     initProtection is an optional parameter that specifies the initial protection
-     level of the coroutine.
+PROCEDURE NEWCOROUTINE (procBody: PROC;
+                        workspace: SYSTEM.ADDRESS;
+                        size: CARDINAL;
+                        VAR cr: COROUTINE;
+                        [initProtection: PROTECTION = UnassignedPriority]);
+  (* Creates a new coroutine whose body is given by procBody, and
+     returns the identity of the coroutine in cr. workspace is a
+     pointer to the work space allocated to the coroutine; size
+     specifies the size of this workspace in terms of SYSTEM.LOC.
+
+     The optarg, initProtection, may contain a single parameter which
+     specifies the initial protection level of the coroutine.
   *)
 
 @findex TRANSFER
 PROCEDURE TRANSFER (VAR from: COROUTINE; to: COROUTINE);
-  (* Returns the identity of the calling coroutine in from, and transfers control to
-     the coroutine specified by to.
+  (* Returns the identity of the calling coroutine in from, and
+     transfers control to the coroutine specified by to.
   *)
 
 @findex IOTRANSFER
 PROCEDURE IOTRANSFER (VAR from: COROUTINE; to: COROUTINE);
-  (* Returns the identity of the calling coroutine in from and transfers control to
-     the coroutine specified by to.  On occurrence of an interrupt, associated with the
-     caller, control is transferred back to the caller, and the identity of the
-     interrupted coroutine is returned in from.  The calling coroutine must be
-     associated with a source of interrupts.
+  (* Returns the identity of the calling coroutine in from and
+     transfers control to the coroutine specified by to.  On
+     occurrence of an interrupt, associated with the caller, control
+     is transferred back to the caller, and the identity of the
+     interrupted coroutine is returned in from.  The calling coroutine
+     must be associated with a source of interrupts.
   *)
 
 @findex ATTACH
 PROCEDURE ATTACH (source: INTERRUPTSOURCE);
-  (* Associates the specified source of interrupts with the calling coroutine. *)
+  (* Associates the specified source of interrupts with the calling
+     coroutine. *)
 
 @findex DETACH
 PROCEDURE DETACH (source: INTERRUPTSOURCE);
-  (* Dissociates the specified source of interrupts from the calling coroutine. *)
+  (* Dissociates the specified source of interrupts from the calling
+     coroutine. *)
 
 @findex IsATTACHED
 PROCEDURE IsATTACHED (source: INTERRUPTSOURCE): BOOLEAN;
-  (* Returns TRUE if and only if the specified source of interrupts is currently
-     associated with a coroutine; otherwise returns FALSE.
+  (* Returns TRUE if and only if the specified source of interrupts is
+     currently associated with a coroutine; otherwise returns FALSE.
   *)
 
 @findex HANDLER
 PROCEDURE HANDLER (source: INTERRUPTSOURCE): COROUTINE;
-  (* Returns the coroutine, if any, that is associated with the source of interrupts.
-     The result is undefined if IsATTACHED(source) = FALSE.
+  (* Returns the coroutine, if any, that is associated with the source
+     of interrupts. The result is undefined if IsATTACHED(source) =
+     FALSE.
   *)
 
 @findex CURRENT
@@ -2987,7 +3062,8 @@ PROCEDURE CURRENT (): COROUTINE;
 
 @findex LISTEN
 PROCEDURE LISTEN (p: PROTECTION);
-  (* Momentarily changes the protection of the calling coroutine to p. *)
+  (* Momentarily changes the protection of the calling coroutine to
+     p. *)
 
 @findex PROT
 PROCEDURE PROT (): PROTECTION;
@@ -5135,13 +5211,15 @@ END SWholeIO.
 @example
 DEFINITION MODULE SYSTEM;
 
-  (* Gives access to system programming facilities that are probably non portable. *)
+  (* Gives access to system programming facilities that are probably
+     non portable. *)
 
   (* The constants and types define underlying properties of storage *)
 
 EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
                  LOC, BYTE, WORD, BITSET, ADDRESS,
-                 ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE, SHIFT, CAST, TSIZE ;
+                 ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE,
+                 SHIFT, CAST, TSIZE ;
 
 CONST
                   (* <implementation-defined constant> ; *)
@@ -5156,8 +5234,8 @@ CONST
    ====================================================
 
 TYPE
-  LOC; (* A system basic type. Values are the uninterpreted contents of the smallest
-          addressable unit of storage *)
+  LOC; (* A system basic type. Values are the uninterpreted
+          contents of the smallest addressable unit of storage *)
   ADDRESS = POINTER TO LOC;
   WORD = ARRAY [0 .. LOCSPERWORD-1] OF LOC;
 
@@ -5168,28 +5246,30 @@ TYPE
 
 @findex ADDADR
 PROCEDURE ADDADR (addr: ADDRESS; offset: CARDINAL): ADDRESS;
-  (* Returns address given by (addr + offset), or may raise an exception if this
-     address is not valid.
+  (* Returns address given by (addr + offset), or may raise
+     an exception if this address is not valid.
   *)
 
 @findex SUBADR
 PROCEDURE SUBADR (addr: ADDRESS; offset: CARDINAL): ADDRESS;
-  (* Returns address given by (addr - offset), or may raise an exception if this address
-     is not valid.
+  (* Returns address given by (addr - offset), or may raise an
+     exception if this address is not valid.
   *)
 
 @findex DIFADR
 PROCEDURE DIFADR (addr1, addr2: ADDRESS): INTEGER;
-  (* Returns the difference between addresses (addr1 - addr2), or may raise an exception
-     if the arguments are invalid or address space is non-contiguous.
+  (* Returns the difference between addresses (addr1 - addr2),
+     or may raise an exception if the arguments are invalid
+     or address space is non-contiguous.
   *)
 
 @findex MAKEADR
 PROCEDURE MAKEADR (val: <some type>): ADDRESS;
-  (* Returns an address constructed from a list of values whose types are
-     implementation-defined, or may raise an exception if this address is not valid.
+  (* Returns an address constructed from a list of values whose
+     types are implementation-defined, or may raise an
+     exception if this address is not valid.
 
-     In GNU Modula-2 val is promoted to a WORD and then CAST into an ADDRESS.
+     In GNU Modula-2 val is promoted to an ADDRESS.
   *)
 
 @findex ADR
@@ -5197,30 +5277,35 @@ PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
   (* Returns the address of variable v. *)
 
 @findex ROTATE
-PROCEDURE ROTATE (val: <a packedset type>; num: INTEGER): <type of first parameter>;
-  (* Returns a bit sequence obtained from val by rotating up or down (left or right) by
-     the absolute value of num.  The direction is down if the sign of num is negative,
-     otherwise the direction is up.
+PROCEDURE ROTATE (val: <a packedset type>;
+                  num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by rotating up or down
+     (left or right) by the absolute value of num.  The direction is
+     down if the sign of num is negative, otherwise the direction is up.
   *)
 
 @findex SHIFT
-PROCEDURE SHIFT (val: <a packedset type>; num: INTEGER): <type of first parameter>;
-  (* Returns a bit sequence obtained from val by shifting up or down (left or right) by
-     the absolute value of num, introducing zeros as necessary.  The direction is down
-     if the sign of num is negative, otherwise the direction is up.
+PROCEDURE SHIFT (val: <a packedset type>;
+                 num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by shifting up or down
+     (left or right) by the absolute value of num, introducing
+     zeros as necessary.  The direction is down if the sign of
+     num is negative, otherwise the direction is up.
   *)
 
 @findex CAST
 PROCEDURE CAST (<targettype>; val: <anytype>): <targettype>;
-  (* CAST is a type transfer function.  Given the expression denoted by val, it returns
-     a value of the type <targettype>.  An invalid value for the target value or a
+  (* CAST is a type transfer function.  Given the expression
+     denoted by val, it returns a value of the type <targettype>.
+     An invalid value for the target value or a
      physical address alignment problem may raise an exception.
   *)
 
 @findex TSIZE
 PROCEDURE TSIZE (<type>; ... ): CARDINAL;
-  (* Returns the number of LOCS used to store a value of the specified <type>.   The
-     extra parameters, if present, are used to distinguish variants in a variant record.
+  (* Returns the number of LOCS used to store a value of the
+     specified <type>.   The extra parameters, if present,
+     are used to distinguish variants in a variant record.
   *)
 *)
 

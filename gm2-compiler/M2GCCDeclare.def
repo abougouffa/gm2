@@ -22,10 +22,8 @@ DEFINITION MODULE M2GCCDeclare ;
     System     : UNIX (gm2)
     Date       : Sat Jul 17 10:28:43 1999
     Last edit  : Sat Jul 17 10:28:43 1999
-    Description: declares Modula-2 types to GCC, it attempts
-                 to only declare a type once all subcomponents are known.
-                 Basically it is a hybrid of M2EvalSym and M2GDB in the
-                 directory above.
+    Description: declares Modula-2 types to GCC,
+                 only declares a type once all subcomponents are known.
 *)
 
 FROM SYSTEM IMPORT WORD ;

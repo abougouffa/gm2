@@ -47,8 +47,10 @@ EXPORT QUALIFIED Tree,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                  BuildAssignment,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
-                 BuildLSL, BuildLSR,
-                 BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                 BuildLSL, BuildLSR, BuildLogicalShift,
+                 BuildLRL, BuildLRR, BuildLogicalRotate,
+                 BuildLogicalOr, BuildLogicalAnd,
+                 BuildSymmetricDifference, BuildLogicalDifference,
                  BuildConvert, BuildCoerce,
                  BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
                  BuildOffset, BuildTrunc,
@@ -75,6 +77,7 @@ EXPORT QUALIFIED Tree,
                  BuildIfNotIn, BuildIfIn,
                  BuildForeachWordInSetDoIfExpr,
                  BuildIfInRangeGoto, BuildIfNotInRangeGoto,
+                 BuildBinarySetDo,
                  BuildPushFunctionContext, BuildPopFunctionContext,
                  BuildCap,
 
@@ -317,6 +320,22 @@ PROCEDURE BuildIfInRangeGoto (var, low, high: Tree; label: ADDRESS) ;
 *)
 
 PROCEDURE BuildIfNotInRangeGoto (var, low, high: Tree; label: ADDRESS) ;
+
+(*
+   BuildBinarySetDo - if the size of the set is <= TSIZE(WORD) then
+                         op1 := binop(op2, op3)
+                      else
+                         call funcname(op1, op2, op3)
+*)
+
+PROCEDURE BuildBinarySetDo (settype,
+                            op1, op2, op3: Tree;
+                            binop: BuildBinProcedure;
+                            is_op1lvalue,
+                            is_op2lvalue,
+                            is_op3lvalue: BOOLEAN;
+                            nBits, unbounded,
+                            varproc, leftproc, rightproc: Tree) ;
 
 
 (*
@@ -569,6 +588,7 @@ PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
 
 PROCEDURE BuildSetType (name: ADDRESS; type, low, high: Tree) : Tree ;
 
+
 (*
    BuildStartSetConstructor - starts to create a set constant.
                               Remember that type is really a record type.
@@ -719,6 +739,38 @@ PROCEDURE BuildLSR (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
+   BuildLRL - build a rotate tree  ie  (op1 rotated left by op2 bits).
+*)
+
+PROCEDURE BuildLRL (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLRR - build a rotate tree  ie  (op1 rotated right by op2 bits).
+*)
+
+PROCEDURE BuildLRR (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalRotate - builds the ISO Modula-2 ROTATE operator
+                        for a fundamental data type.
+*)
+
+PROCEDURE BuildLogicalRotate (op1, op2: Tree;
+                              needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalShift - builds the ISO Modula-2 SHIFT operator
+                       for a fundamental data type.
+*)
+
+PROCEDURE BuildLogicalShift (op1, op2: Tree;
+                             needconvert: BOOLEAN) : Tree ;
+
+
+(*
    BuildLogicalOr - build and return a logical or tree. ie (op1 || op2)
 *)
 
@@ -777,10 +829,18 @@ PROCEDURE BuildOffset (field: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
-   BuildSymmetricDifference - build and return a logical difference tree. (op1 xor op2)
+   BuildSymmetricDifference - build and return a symmetric difference tree. (op1 xor op2)
 *)
 
 PROCEDURE BuildSymmetricDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalDifference - build and return a logical difference tree.
+                            (op1 and (not op2))
+*)
+
+PROCEDURE BuildLogicalDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

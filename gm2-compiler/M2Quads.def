@@ -40,7 +40,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildCaseList,
                  BuildCaseStart,
                  BuildCaseOr,
-                 BuildCaseElse, BuildCaseEnd,
+                 BuildCaseElse, BuildCaseEnd, BuildCaseCheck,
                  BuildCaseRange, BuildCaseEquality,
                  BuildNulParam, BuildProcedureCall,
                  BuildFunctionCall, BuildConstFunctionCall,
@@ -121,7 +121,7 @@ TYPE
                    GotoOp, EndOp, StartOp,
                    NegateOp, AddOp, SubOp, DivOp, MultOp, ModOp,
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
-                   InclOp, ExclOp,
+                   InclOp, ExclOp, LogicalShiftOp, LogicalRotateOp,
                    UnboundedOp, HighOp,
                    CoerceOp, ConvertOp,
                    StartDefFileOp, StartModFileOp, EndFileOp,
@@ -131,11 +131,6 @@ TYPE
                    InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
                    BuiltinConstOp, StandardFunctionOp) ;
-
-(*
-   note that the shift pseudo operators are not used by M2Quads, but only during
-   the optimization phase: by M2GenDyn486 at present.
-*)
 
 
 VAR
@@ -1175,6 +1170,15 @@ PROCEDURE BuildCaseElse ;
 *)
 
 PROCEDURE BuildCaseEnd ;
+
+
+(*
+   BuildCaseCheck - builds the case checking code to ensure that
+                    the program does not need an else clause at runtime.
+                    The stack is unaltered.
+*)
+
+PROCEDURE BuildCaseCheck ;
 
 
 (*

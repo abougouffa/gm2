@@ -1413,6 +1413,8 @@ BEGIN
    LogicalAndOp,
    LogicalXorOp,
    LogicalDiffOp,
+   LogicalShiftOp,
+   LogicalRotateOp,
    ModOp,
    DivOp             : MakeOpWithMakeNode(q, Start, End, op1, op, op2, op3) |
 
@@ -3038,6 +3040,8 @@ BEGIN
       LogicalAndOp,
       LogicalXorOp,
       LogicalDiffOp,
+      LogicalShiftOp,
+      LogicalRotateOp,
       ModOp,
       DivOp             : PutQuad(q, Op, GetSym(n), GetSymOfChoice(Left), GetSymOfChoice(Right)) ;
                           RemoveAllOlderEntities(n, EntList[1])

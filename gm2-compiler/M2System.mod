@@ -153,8 +153,7 @@ END InitISOTypes ;
 
 PROCEDURE InitSystem ;
 VAR
-   Previous,
-   System     : CARDINAL ;
+   Previous: CARDINAL ;
 BEGIN
    (* create SYSTEM module *)
    System := MakeDefinitionSource(MakeKey('SYSTEM')) ;

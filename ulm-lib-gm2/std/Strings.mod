@@ -17,9 +17,34 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: Strings.mod,v 1.1 2003/12/27 00:16:06 gaius Exp $
+   $Id: Strings.mod,v 1.2 2004/05/05 21:34:58 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Strings.mod,v $
+   Revision 1.2  2004/05/05 21:34:58  gaius
+   * added SHIFT and ROTATE into ISO SYSTEM and
+     made the compiler shift and rotate word and multi-word
+     set types. Multi-word set rotate and shifts are implemented
+     by calling ISO SYSTEM runtime procedures. Word sized sets or
+     smaller are implemented inline using shift/rotate instructions.
+     Currently not yet debugged, but mostly complete code.
+
+   * fixed bug report by Paul Whittington <pwhittington@nitrodata.com>
+     (see testsuite/gm2/link/pim/fail/import.mod).
+
+   * updated gm2.texi to reflect new options and changes to the
+     run-time system.
+
+   * introduced -Wunbounded-by-reference option which will make a
+     reference to non VAR unbounded data providing it is not written to
+     within the callee procedure.
+   * introduced -Wverbose-unbounded option which displays names of
+     unbounded parameters which the compiler will implement as
+     references even though they were specified as non VAR parameters.
+
+   * introduced -Wcase, -Wnil runtime checks
+   * introduced -Wcheck-all to enable all runtime flags
+   * updated documentation to refect new options
+
    Revision 1.1  2003/12/27 00:16:06  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -62,23 +87,23 @@ IMPLEMENTATION MODULE Strings; (* AFB 7/84 *)
       END;
    END StrCat;
 
-   PROCEDURE StrCmp(a, b: ARRAY OF CHAR) : INTEGER;
+   PROCEDURE StrCmp(s1, s2: ARRAY OF CHAR) : INTEGER;
       VAR index: CARDINAL;
           min: CARDINAL;
    BEGIN
-      IF HIGH(a) < HIGH(b) THEN min := HIGH(a) ELSE min := HIGH(b) END;
+      IF HIGH(s1) < HIGH(s2) THEN min := HIGH(s1) ELSE min := HIGH(s2) END;
       FOR index := 0 TO min DO
-         IF a[index] <> b[index] THEN
-            RETURN ORD(a[index]) - ORD(b[index]);
-         ELSIF a[index] = 0C THEN
+         IF s1[index] <> s2[index] THEN
+            RETURN ORD(s1[index]) - ORD(s2[index]);
+         ELSIF s1[index] = 0C THEN
             RETURN 0;
          END;
       END;
-      IF HIGH(a) = HIGH(b) THEN
+      IF HIGH(s1) = HIGH(s2) THEN
          RETURN 0
-      ELSIF (HIGH(a) > min) AND (a[min+1] <> 0C) THEN
+      ELSIF (HIGH(s1) > min) AND (s1[min+1] <> 0C) THEN
          RETURN 1;
-      ELSIF (HIGH(b) > min) AND (b[min+1] <> 0C) THEN
+      ELSIF (HIGH(s2) > min) AND (s2[min+1] <> 0C) THEN
          RETURN -1;
       ELSE
          RETURN 0;

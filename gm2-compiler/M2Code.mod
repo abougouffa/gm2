@@ -337,8 +337,9 @@ END DisplayQuadNumbers ;
 
 
 (*
-   CodeBlock - generates all code for this block and also declares all types and procedures for
-               this block. It will also optimize quadruples within this scope.
+   CodeBlock - generates all code for this block and also declares
+               all types and procedures for this block. It will
+               also optimize quadruples within this scope.
 *)
 
 PROCEDURE CodeBlock (scope: WORD) ;

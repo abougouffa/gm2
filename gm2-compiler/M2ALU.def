@@ -52,7 +52,7 @@ EXPORT QUALIFIED PtrToValue,
                  IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
       	       	 SetOr, SetAnd, SetIn,
                  SetDifference, SetSymmetricDifference,
-                 SetNegate,
+                 SetNegate, SetShift, SetRotate,
 
                  Addn, Multn, Div, Sub, Mod,
                  Equ, NotEqu, Less, Gre, LessEqu, GreEqu,
@@ -571,7 +571,9 @@ PROCEDURE SetAnd (tokenno: CARDINAL) ;
 
 
 (*
-   SetDifference - performs a set difference of the top two sets on the stack.
+   SetDifference - performs a set difference of the top two elements on the stack.
+                   For each member in the set
+                      if member in Op2 and not member in Op1
 
                    The Stack:
 
@@ -580,9 +582,9 @@ PROCEDURE SetAnd (tokenno: CARDINAL) ;
             Ptr ->
                    +------------+
                    | Op1        |                   <- Ptr
-                   |------------|    +------------+
-                   | Op2        |    | Op2 - Op1  |
-                   |------------|    |------------|
+                   |------------|    +-------------------+
+                   | Op2        |    | Op2 and (not Op1) |
+                   |------------|    |-------------------|
 *)
 
 PROCEDURE SetDifference (tokenno: CARDINAL) ;
@@ -616,6 +618,55 @@ PROCEDURE SetSymmetricDifference (tokenno: CARDINAL) ;
 *)
 
 PROCEDURE SetNegate (tokenno: CARDINAL) ;
+
+
+(*
+   SetShift - if op1 is positive
+              then
+                 result := op2 << op1
+              else
+                 result := op2 >> op1
+              fi
+
+
+              The Stack:
+
+                     Entry             Exit
+
+              Ptr ->
+                     +------------+
+                     | Op1        |                   <- Ptr
+                     |------------|    +------------+
+                     | Op2        |    | result     |
+                     |------------|    |------------|
+
+*)
+
+PROCEDURE SetShift (tokenno: CARDINAL) ;
+
+
+(*
+   SetRotate - if op1 is positive
+               then
+                  result := ROTATERIGHT(op2, op1)
+               else
+                  result := ROTATELEFT(op2, op1)
+               fi
+
+
+               The Stack:
+
+                      Entry             Exit
+
+               Ptr ->
+                      +------------+
+                      | Op1        |                   <- Ptr
+                      |------------|    +------------+
+                      | Op2        |    | result     |
+                      |------------|    |------------|
+*)
+
+PROCEDURE SetRotate (tokenno: CARDINAL) ;
 
 
 (*

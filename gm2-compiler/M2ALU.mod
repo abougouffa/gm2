@@ -70,6 +70,12 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
 
 (* %%%FORWARD%%%
 PROCEDURE DupConst (tokenno: CARDINAL; sym: CARDINAL; offset: INTEGER) : CARDINAL ; FORWARD ;
+PROCEDURE DupConstAndAdd (tokenno: CARDINAL;
+                          sym: CARDINAL;
+                          extra: Tree) : CARDINAL ; FORWARD ;
+PROCEDURE DupConstAndAddMod (tokenno: CARDINAL;
+                             sym: CARDINAL; extra: Tree;
+                             l, h: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ; FORWARD ;
 PROCEDURE Push (v: PtrToValue) ; FORWARD ;
 PROCEDURE Pop () : PtrToValue ; FORWARD ;
@@ -1934,6 +1940,48 @@ END DupConst ;
 
 
 (*
+   DupConstAndAdd - duplicates and returns a constant, sym,
+                    but adds the symbol, extra.
+*)
+
+PROCEDURE DupConstAndAdd (tokenno: CARDINAL;
+                          sym: CARDINAL; extra: Tree) : CARDINAL ;
+BEGIN
+   PushValue(sym) ;
+   PushIntegerTree(extra) ;
+   Addn ;
+   RETURN( Val(tokenno, GetType(sym), PopIntegerTree()) )
+END DupConstAndAdd ;
+
+
+(*
+   DupConstAndAddMod - duplicates and returns a constant, sym,
+                       but adds the symbol, extra, and ensures that
+                       the result in within limits: min..max using
+                       modulo arithmetic.
+*)
+
+PROCEDURE DupConstAndAddMod (tokenno: CARDINAL;
+                             sym: CARDINAL; extra: Tree;
+                             l, h: CARDINAL) : CARDINAL ;
+BEGIN
+   (* result := (((sym-l) + extra) MOD (h-l)) + l) *)
+   PushValue(sym) ;
+   PushValue(l) ;
+   Sub ;
+   PushIntegerTree(extra) ;
+   Addn ;
+   PushValue(h) ;
+   PushValue(l) ;
+   Sub ;
+   Mod ;
+   PushValue(l) ;
+   Addn ;
+   RETURN( Val(tokenno, GetType(sym), PopIntegerTree()) )
+END DupConstAndAddMod ;
+
+
+(*
    Remove - removes, v, from list, h.
 *)
 
@@ -2469,9 +2517,9 @@ END SetAnd ;
             Ptr ->
                    +------------+
                    | Op1        |                   <- Ptr
-                   |------------|    +------------+
-                   | Op2        |    | Op2 - Op1  |
-                   |------------|    |------------|
+                   |------------|    +-------------------+
+                   | Op2        |    | Op2 and (not Op1) |
+                   |------------|    |-------------------|
 *)
 
 PROCEDURE SetDifference (tokenno: CARDINAL) ;
@@ -2546,6 +2594,156 @@ BEGIN
       SetAnd(tokenno)
    END
 END SetSymmetricDifference ;
+
+
+(*
+   SetShift - if op1 is positive
+              then
+                 result := op2 << op1
+              else
+                 result := op2 >> op1
+              fi
+
+
+              The Stack:
+
+                     Entry             Exit
+
+              Ptr ->
+                     +------------+
+                     | Op1        |                   <- Ptr
+                     |------------|    +------------+
+                     | Op2        |    | result     |
+                     |------------|    |------------|
+
+*)
+
+PROCEDURE SetShift (tokenno: CARDINAL) ;
+VAR
+   res,
+   Shift,
+   Set    : PtrToValue ;
+   n      : CARDINAL ;
+   r1, r2 : CARDINAL ;
+BEGIN
+   IF NOT IsValueTypeInteger()
+   THEN
+      InternalError('expecting integer type', __FILE__, __LINE__)
+   END ;
+   Shift := Pop() ;
+   IF NOT IsValueTypeSet()
+   THEN
+      InternalError('expecting set type', __FILE__, __LINE__)
+   END ;
+   Set := Pop() ;
+   Eval(tokenno, Set) ;
+   IF NOT Set^.solved
+   THEN
+      InternalError('set has not been resolved', __FILE__, __LINE__)
+   END ;
+   IF Set^.setValue=NIL
+   THEN
+      Push(Set)
+   ELSE
+      res := New() ;
+      res^ := Set^ ;
+      WITH res^ DO
+         setValue := NIL ;
+         n := 1 ;
+         WHILE GetRange(Set^.setValue, n, r1, r2) DO
+            setValue := AddRange(setValue,
+                                 DupConstAndAdd(tokenno, r1, Shift),
+                                 DupConstAndAdd(tokenno, r2, Shift)) ;
+            INC(n)
+         END ;
+         Push(res) ;
+         IF setType#NulSym
+         THEN
+            PushNulSet(setType) ;
+            SetNegate(tokenno) ;
+            SetAnd(tokenno)
+         END
+      END ;
+      Dispose(set)
+   END
+END SetShift ;
+
+
+(*
+   SetRotate - if op1 is positive
+               then
+                  result := ROTATERIGHT(op2, op1)
+               else
+                  result := ROTATELEFT(op2, op1)
+               fi
+
+
+               The Stack:
+
+                      Entry             Exit
+
+               Ptr ->
+                      +------------+
+                      | Op1        |                   <- Ptr
+                      |------------|    +------------+
+                      | Op2        |    | result     |
+                      |------------|    |------------|
+*)
+
+PROCEDURE SetRotate (tokenno: CARDINAL) ;
+VAR
+   res,
+   Rotate,
+   Set    : PtrToValue ;
+   n      : CARDINAL ;
+   l, h,
+   type,
+   r1, r2 : CARDINAL ;
+BEGIN
+   IF NOT IsValueTypeInteger()
+   THEN
+      InternalError('expecting integer type', __FILE__, __LINE__)
+   END ;
+   Rotate := Pop() ;
+   IF NOT IsValueTypeSet()
+   THEN
+      InternalError('expecting set type', __FILE__, __LINE__)
+   END ;
+   Set := Pop() ;
+   Eval(tokenno, Set) ;
+   IF NOT Set^.solved
+   THEN
+      InternalError('set has not been resolved', __FILE__, __LINE__)
+   END ;
+   IF Set^.setValue=NIL
+   THEN
+      Push(Set)
+   ELSE
+      type := Set^.setType ;
+      IF type=NulSym
+      THEN
+         ErrorStringAt(InitString('cannot perform a ROTATE on a generic set'), tokenno) ;
+         Push(Set) ;
+         RETURN
+      END ;
+      l := GetTypeMin(type) ;
+      h := GetTypeMax(type) ;
+      res := New() ;
+      res^ := Set^ ;
+      WITH res^ DO
+         setValue := NIL ;
+         n := 1 ;
+         WHILE GetRange(Set^.setValue, n, r1, r2) DO
+            setValue := AddRange(setValue,
+                                 DupConstAndAddMod(tokenno, r1, Rotate, l, h),
+                                 DupConstAndAddMod(tokenno, r2, Rotate, l, h)) ;
+            INC(n)
+         END
+      END ;
+      Push(res) ;
+      Dispose(set)
+   END
+END SetRotate ;
 
 
 (*

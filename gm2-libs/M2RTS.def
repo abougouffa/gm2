@@ -21,12 +21,13 @@ DEFINITION MODULE M2RTS ;
    Title      : M2RTS
    Date       : Wed Jun 20 15:21:04 BST 1990
    Description: Implements the run time system facilities of Modula-2.
-   Last update: Fri Jul 10 14:53:39 GMT 1998
 *)
 
+FROM SYSTEM IMPORT BITSET ;
 EXPORT QUALIFIED HALT, Halt,
                  SubrangeAssignmentError, ArraySubscriptError,
-                 FunctionReturnError,
+                 FunctionReturnError, NilPointerError,
+                 CaseElseError,
                  InstallTerminationProcedure, Terminate,
                  ExitOnHalt, Length ;
 
@@ -77,6 +78,26 @@ PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
 PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
                                line: CARDINAL;
                                function: ARRAY OF CHAR) ;
+
+
+(*
+   NilPointerError -  part of the runtime checking, called if a
+                      the code is about to dereference NIL.
+*)
+
+PROCEDURE NilPointerError (file: ARRAY OF CHAR;
+                           line: CARDINAL;
+                           function: ARRAY OF CHAR) ;
+
+(*
+   CaseElseError - part of the runtime checking, called if a
+                   CASE statement falls into an ELSE statement
+                   (which was not declared by the programmer).
+*)
+
+PROCEDURE CaseElseError (file: ARRAY OF CHAR;
+                         line: CARDINAL;
+                         function: ARRAY OF CHAR) ;
 
 
 (*

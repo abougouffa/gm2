@@ -75,12 +75,16 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
                         ForeachInnerModuleDo, ForeachImportedDo, ForeachExportedDo ;
 
-FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax, MixTypes,
+FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
+                   GetBaseTypeMinMax, MixTypes,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard,
                    Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh,
-                   IsRealType ;
-FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
+                   IsRealType, IsNeededAtRunTime ;
+
+FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
+                     GetSystemTypeMinMax, Address, Word, Byte, Loc, System ;
+
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
@@ -855,8 +859,11 @@ VAR
    p, i    : CARDINAL ;
 BEGIN
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
-      (IsImported(GetMainModule(), Sym) OR (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
-       IsImported(GetBaseModule(), Sym) OR IsImported(GetModuleWhereDeclared(Sym), Sym))
+      (IsImported(GetMainModule(), Sym) OR
+       (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
+       IsNeededAtRunTime(Sym) OR
+       IsImported(GetBaseModule(), Sym) OR
+       IsImported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
       BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
@@ -907,7 +914,8 @@ BEGIN
    THEN
       ForeachProcedureDo(Sym, DeclareProcedure)
    ELSE
-      InternalError('expecting procedure, module or defimp symbol', __FILE__, __LINE__)
+      InternalError('expecting procedure, module or defimp symbol',
+                    __FILE__, __LINE__)
    END
 END DeclareProcedure ;
 
