@@ -505,7 +505,7 @@ build-compiler-boot: $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
                      $(GM2-COMP-BOOT-C:%.c=gm2-compiler-boot/%.o) \
 	             gm2-compiler-boot/M2Version.o
 
-gm2-compiler-boot:
+gm2-compiler-boot: m2/comp/bin/p2c
 	mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
 	for i in $(GM2-COMP-BOOT-DEFS) $(GM2-COMP-BOOT-MODS) ; do \
            if [ -L $$i ] ; then \
@@ -598,18 +598,7 @@ gm2-compiler:
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
 	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
-	( cd m2 ; export M2PWD="`pwd`" ; make "BINDIR=$$M2PWD/bin" \
-                                              "BINDIR1=$$M2PWD/bin1" \
-                                              "BINDIR2=$$M2PWD/bin2" \
-                                              "BINDIR3=$$M2PWD/bin3" \
-                                              "BINDIR4=$$M2PWD/bin4" clean )
-	( cd m2/comp ; export M2PWD="`pwd`" ; make "BINDIR=$$M2PWD/bin" \
-                                                   "BINDIR1=$$M2PWD/bin1" \
-                                                   "BINDIR2=$$M2PWD/bin2" \
-                                                   "BINDIR3=$$M2PWD/bin3" \
-                                                   "BINDIR4=$$M2PWD/bin4" clean )
 	( cd m2/comp/p2c ; make clean )
-	( cd m2/comp/tools ; make clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) m2/comp/bin/*
 
