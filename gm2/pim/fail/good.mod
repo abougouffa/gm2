@@ -1,0 +1,5 @@
+IMPLEMENTATION MODULE good ;
+
+FROM bad IMPORT foo ;
+
+END good.

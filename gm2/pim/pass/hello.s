@@ -1,0 +1,761 @@
+	.file	"hello.mod"
+	.file 1 "../testsuite/gm2/pim/pass/hello.mod"
+	.section	.debug_abbrev,"",@progbits
+.Ldebug_abbrev0:
+	.section	.debug_info,"",@progbits
+.Ldebug_info0:
+	.section	.debug_line,"",@progbits
+.Ldebug_line0:
+	.text
+.Ltext0:
+	.file 2 "hello.mod"
+	.local	_T8
+	.comm	_T8,8,4
+	.local	_T9
+	.comm	_T9,4,4
+	.local	_T11
+	.comm	_T11,4,4
+	.local	_T12
+	.comm	_T12,4,4
+	.local	_T14
+	.comm	_T14,4,4
+	.section	.rodata
+.LC0:
+	.string	"hello world"
+	.zero	189
+	.text
+.globl _M2_hello_init
+	.type	_M2_hello_init, @function
+_M2_hello_init:
+.LFB3:
+	.loc 1 21 0
+	pushl	%ebp
+.LCFI0:
+	movl	%esp, %ebp
+.LCFI1:
+	subl	$8, %esp
+.LCFI2:
+	.loc 1 22 0
+	movl	$_T8, _T9
+	movl	_T9, %eax
+	movl	%eax, _T11
+	movl	_T11, %eax
+	movl	$.LC0, (%eax)
+	movl	$_T8, _T12
+	movl	_T12, %eax
+	addl	$4, %eax
+	movl	%eax, _T14
+	movl	_T14, %eax
+	movl	$10, (%eax)
+	movl	_T8, %eax
+	movl	_T8+4, %edx
+	movl	%eax, (%esp)
+	movl	%edx, 4(%esp)
+	call	StrIO_WriteString
+	call	StrIO_WriteLn
+	.loc 1 23 0
+	leave
+	ret
+.LFE3:
+	.size	_M2_hello_init, .-_M2_hello_init
+	.section	.debug_frame,"",@progbits
+.Lframe0:
+	.long	.LECIE0-.LSCIE0
+.LSCIE0:
+	.long	0xffffffff
+	.byte	0x1
+	.string	""
+	.uleb128 0x1
+	.sleb128 -4
+	.byte	0x8
+	.byte	0xc
+	.uleb128 0x4
+	.uleb128 0x4
+	.byte	0x88
+	.uleb128 0x1
+	.align 4
+.LECIE0:
+.LSFDE0:
+	.long	.LEFDE0-.LASFDE0
+.LASFDE0:
+	.long	.Lframe0
+	.long	.LFB3
+	.long	.LFE3-.LFB3
+	.byte	0x4
+	.long	.LCFI0-.LFB3
+	.byte	0xe
+	.uleb128 0x8
+	.byte	0x85
+	.uleb128 0x2
+	.byte	0x4
+	.long	.LCFI1-.LCFI0
+	.byte	0xd
+	.uleb128 0x5
+	.align 4
+.LEFDE0:
+	.text
+.Letext0:
+	.section	.debug_info
+	.long	0x2c1
+	.value	0x2
+	.long	.Ldebug_abbrev0
+	.byte	0x4
+	.uleb128 0x1
+	.long	.Ldebug_line0
+	.long	.Letext0
+	.long	.Ltext0
+	.long	.LC26
+	.long	.LC27
+	.long	.LC28
+	.byte	0x1
+	.uleb128 0x2
+	.long	.LC1
+	.byte	0x2
+	.byte	0x1
+	.long	0x30
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x4
+	.byte	0x5
+	.uleb128 0x2
+	.long	.LC2
+	.byte	0x2
+	.byte	0x1
+	.long	0x42
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x1
+	.byte	0x6
+	.uleb128 0x2
+	.long	.LC4
+	.byte	0x2
+	.byte	0x1
+	.long	0x54
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x4
+	.byte	0x7
+	.uleb128 0x2
+	.long	.LC5
+	.byte	0x2
+	.byte	0x1
+	.long	0x66
+	.uleb128 0x3
+	.long	.LC6
+	.byte	0x1
+	.byte	0x8
+	.uleb128 0x2
+	.long	.LC7
+	.byte	0x2
+	.byte	0x1
+	.long	0x78
+	.uleb128 0x3
+	.long	.LC8
+	.byte	0x4
+	.byte	0x7
+	.uleb128 0x2
+	.long	.LC9
+	.byte	0x2
+	.byte	0x1
+	.long	0x8a
+	.uleb128 0x4
+	.byte	0x4
+	.long	0x90
+	.uleb128 0x5
+	.long	0x97
+	.uleb128 0x6
+	.byte	0x0
+	.uleb128 0x2
+	.long	.LC10
+	.byte	0x2
+	.byte	0x1
+	.long	0xa2
+	.uleb128 0x7
+	.byte	0x4
+	.uleb128 0x2
+	.long	.LC11
+	.byte	0x2
+	.byte	0x1
+	.long	0xaf
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x8
+	.byte	0x5
+	.uleb128 0x2
+	.long	.LC12
+	.byte	0x2
+	.byte	0x1
+	.long	0xc1
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x8
+	.byte	0x7
+	.uleb128 0x2
+	.long	.LC13
+	.byte	0x2
+	.byte	0x1
+	.long	0xd3
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x4
+	.byte	0x4
+	.uleb128 0x2
+	.long	.LC14
+	.byte	0x2
+	.byte	0x1
+	.long	0xe5
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0x8
+	.byte	0x4
+	.uleb128 0x2
+	.long	.LC15
+	.byte	0x2
+	.byte	0x1
+	.long	0xf7
+	.uleb128 0x3
+	.long	.LC3
+	.byte	0xc
+	.byte	0x4
+	.uleb128 0x2
+	.long	.LC16
+	.byte	0x2
+	.byte	0x1
+	.long	0x78
+	.uleb128 0x2
+	.long	.LC17
+	.byte	0x2
+	.byte	0x1
+	.long	0x114
+	.uleb128 0x8
+	.long	0x78
+	.uleb128 0x9
+	.long	0x132
+	.long	.LC29
+	.byte	0x4
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xa
+	.long	.LC18
+	.byte	0x0
+	.uleb128 0xa
+	.long	.LC19
+	.byte	0x1
+	.byte	0x0
+	.uleb128 0xb
+	.long	0x157
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0x4
+	.byte	0x4
+	.long	0x15d
+	.uleb128 0x3
+	.long	.LC22
+	.byte	0x1
+	.byte	0x6
+	.uleb128 0xb
+	.long	0x189
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xb
+	.long	0x1ae
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xb
+	.long	0x1d3
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xb
+	.long	0x1f8
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xb
+	.long	0x21d
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x157
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xd
+	.long	0x246
+	.long	.LC30
+	.byte	0x8
+	.byte	0x2
+	.byte	0x1
+	.uleb128 0xc
+	.long	.LC20
+	.byte	0x2
+	.byte	0x1
+	.long	0x97
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x0
+	.uleb128 0xc
+	.long	.LC21
+	.byte	0x2
+	.byte	0x1
+	.long	0x49
+	.byte	0x2
+	.byte	0x23
+	.uleb128 0x4
+	.byte	0x0
+	.uleb128 0xe
+	.byte	0x1
+	.long	.LC31
+	.byte	0x1
+	.byte	0x15
+	.long	0x25c
+	.long	.LFB3
+	.long	.LFE3
+	.byte	0x1
+	.byte	0x55
+	.uleb128 0xf
+	.string	"int"
+	.byte	0x4
+	.byte	0x5
+	.uleb128 0x10
+	.string	"_T8"
+	.byte	0x1
+	.byte	0x16
+	.long	0x21d
+	.byte	0x5
+	.byte	0x3
+	.long	_T8
+	.uleb128 0x10
+	.string	"_T9"
+	.byte	0x1
+	.byte	0x16
+	.long	0x97
+	.byte	0x5
+	.byte	0x3
+	.long	_T9
+	.uleb128 0x11
+	.long	.LC23
+	.byte	0x1
+	.byte	0x16
+	.long	0x296
+	.byte	0x5
+	.byte	0x3
+	.long	_T11
+	.uleb128 0x4
+	.byte	0x4
+	.long	0x97
+	.uleb128 0x11
+	.long	.LC24
+	.byte	0x1
+	.byte	0x16
+	.long	0x97
+	.byte	0x5
+	.byte	0x3
+	.long	_T12
+	.uleb128 0x11
+	.long	.LC25
+	.byte	0x1
+	.byte	0x16
+	.long	0x2be
+	.byte	0x5
+	.byte	0x3
+	.long	_T14
+	.uleb128 0x4
+	.byte	0x4
+	.long	0x49
+	.byte	0x0
+	.section	.debug_abbrev
+	.uleb128 0x1
+	.uleb128 0x11
+	.byte	0x1
+	.uleb128 0x10
+	.uleb128 0x6
+	.uleb128 0x12
+	.uleb128 0x1
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x1b
+	.uleb128 0xe
+	.uleb128 0x25
+	.uleb128 0xe
+	.uleb128 0x13
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x2
+	.uleb128 0x16
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0x24
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3e
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x4
+	.uleb128 0xf
+	.byte	0x0
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x5
+	.uleb128 0x15
+	.byte	0x1
+	.uleb128 0x1
+	.uleb128 0x13
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x6
+	.uleb128 0x18
+	.byte	0x0
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x7
+	.uleb128 0xf
+	.byte	0x0
+	.uleb128 0xb
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x8
+	.uleb128 0x20
+	.byte	0x0
+	.uleb128 0x49
+	.uleb128 0x13
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x9
+	.uleb128 0x4
+	.byte	0x1
+	.uleb128 0x1
+	.uleb128 0x13
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xa
+	.uleb128 0x28
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x1c
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xb
+	.uleb128 0x13
+	.byte	0x1
+	.uleb128 0x1
+	.uleb128 0x13
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xc
+	.uleb128 0xd
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x38
+	.uleb128 0xa
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xd
+	.uleb128 0x13
+	.byte	0x1
+	.uleb128 0x1
+	.uleb128 0x13
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xe
+	.uleb128 0x2e
+	.byte	0x0
+	.uleb128 0x3f
+	.uleb128 0xc
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x11
+	.uleb128 0x1
+	.uleb128 0x12
+	.uleb128 0x1
+	.uleb128 0x40
+	.uleb128 0xa
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0xf
+	.uleb128 0x24
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0x8
+	.uleb128 0xb
+	.uleb128 0xb
+	.uleb128 0x3e
+	.uleb128 0xb
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x10
+	.uleb128 0x34
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0x8
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0xa
+	.byte	0x0
+	.byte	0x0
+	.uleb128 0x11
+	.uleb128 0x34
+	.byte	0x0
+	.uleb128 0x3
+	.uleb128 0xe
+	.uleb128 0x3a
+	.uleb128 0xb
+	.uleb128 0x3b
+	.uleb128 0xb
+	.uleb128 0x49
+	.uleb128 0x13
+	.uleb128 0x2
+	.uleb128 0xa
+	.byte	0x0
+	.byte	0x0
+	.byte	0x0
+	.section	.debug_pubnames,"",@progbits
+	.long	0x21
+	.value	0x2
+	.long	.Ldebug_info0
+	.long	0x2c5
+	.long	0x246
+	.string	"_M2_hello_init"
+	.long	0x0
+	.section	.debug_aranges,"",@progbits
+	.long	0x1c
+	.value	0x2
+	.long	.Ldebug_info0
+	.byte	0x4
+	.byte	0x0
+	.value	0x0
+	.value	0x0
+	.long	.Ltext0
+	.long	.Letext0-.Ltext0
+	.long	0x0
+	.long	0x0
+	.section	.debug_str,"MS",@progbits,1
+.LC30:
+	.string	"_Unbounded"
+.LC13:
+	.string	"SHORTREAL"
+.LC6:
+	.string	"unsigned char"
+.LC3:
+	.string	"__unknown__"
+.LC2:
+	.string	"CHAR"
+.LC9:
+	.string	"PROC"
+.LC5:
+	.string	"BYTE"
+.LC29:
+	.string	"BOOLEAN"
+.LC7:
+	.string	"WORD"
+.LC12:
+	.string	"LONGCARD"
+.LC22:
+	.string	"char"
+.LC19:
+	.string	"TRUE"
+.LC27:
+	.string	"/lancelot/gaius/GM2/gcc-3.3.3/gcc/gm2"
+.LC31:
+	.string	"_M2_hello_init"
+.LC15:
+	.string	"LONGREAL"
+.LC21:
+	.string	"HIGH"
+.LC11:
+	.string	"LONGINT"
+.LC8:
+	.string	"unsigned int"
+.LC23:
+	.string	"_T11"
+.LC10:
+	.string	"ADDRESS"
+.LC25:
+	.string	"_T14"
+.LC28:
+	.string	"GNU Modula-2 3.3.3"
+.LC1:
+	.string	"INTEGER"
+.LC14:
+	.string	"REAL"
+.LC26:
+	.string	"../testsuite/gm2/pim/pass/hello.mod"
+.LC17:
+	.string	"BITSET"
+.LC18:
+	.string	"FALSE"
+.LC20:
+	.string	"address"
+.LC4:
+	.string	"CARDINAL"
+.LC24:
+	.string	"_T12"
+.LC16:
+	.string	"BITNUM"
+	.section	.note.GNU-stack,"",@progbits
+	.ident	"GCC: (GNU) 3.3.3"
