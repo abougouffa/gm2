@@ -24,7 +24,8 @@ EXPORT QUALIFIED Tree,
                  GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
-                 BuiltInMemCopy,
+                 GetBitsPerWord,
+                 BuiltInMemCopy, BuiltInAlloca,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -53,6 +54,7 @@ EXPORT QUALIFIED Tree,
                  BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
                  BuildAsm, BuildExpand, DebugTree,
+                 BuildVariableArrayAndDeclare,
 
                  AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
                  ConvertConstantAndCheck, ExpandExpressionStatement ;
@@ -151,8 +153,15 @@ PROCEDURE GetErrorNode           () : Tree ;
    Builtin functions.
 *)
 
-PROCEDURE BuiltInMemCopy         (dest, src, n: Tree) : Tree ;
-PROCEDURE BuiltInAlloca          (n: Tree)            : Tree ;
+PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
+
+
+(*
+   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+                   of the current function.
+*)
+
+PROCEDURE BuiltInAlloca (n: Tree) : Tree ;
 
 
 (*

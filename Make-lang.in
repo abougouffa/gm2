@@ -53,10 +53,12 @@ xgm2$(exeext): xgm2.o gm2spec.o version.o prefix.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 cc1gm2: $(LIBDEPS) stamp-objlist $(GM2_SRCS)
 	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2
 
-gm2tools:
-	cd gm2; $(MAKE) gm2tools
-
 # Build hooks:
+
+#
+# finish this rule..
+#
+gm2tools:
 
 gm2.all.build: gm2tools
 	for i in $(GM2LINKEXES) ; do \

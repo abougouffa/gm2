@@ -7034,7 +7034,11 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   /* now for the id */
 
   DECL_EXTERNAL (id)      = imported;
-  TREE_STATIC   (id)      = 1;           /* declaration and definition */
+  if (imported) {
+    TREE_STATIC   (id)    = 0;           /* declaration and definition */
+  } else {
+    TREE_STATIC   (id)    = 1;           /* declaration and definition */
+  }
   if (isglobal) {
     TREE_PUBLIC   (id)    = exported;
   }
@@ -8804,7 +8808,8 @@ gccgm2_BuildReturnValueCode (fndecl, value)
 
   } else {
     expand_return( build (MODIFY_EXPR, void_type_node,
-			  DECL_RESULT (fndecl), value) );
+			  DECL_RESULT (fndecl),
+			  gccgm2_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE)) );
   }
 }
 
@@ -9533,6 +9538,11 @@ gccgm2_BuiltInMemCopy (dest, src, n)
 #endif
   return( call );
 }
+
+/*
+ *   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+ *                   of the current function.
+ */
 
 tree
 gccgm2_BuiltInAlloca (n)

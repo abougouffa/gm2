@@ -170,8 +170,11 @@ GCC_OBJS = `cat ../stamp-objlist | sed -e 's:  : :g' \
 GCC_PATCHED = toplev.o rtl.o
 
 compiler: ../cc1gm2$(exeext)
-../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS)
+../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
+
+../acc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_BOOT)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(srcdir)/../configure
 	cd ..; $(SHELL) config.status
@@ -405,6 +408,9 @@ gm2-libs-boot:
            $(LN_S) ../m2/comp/libs/$$i $$i ; \
         done
 
+gm2-libs-boot/%.o: gm2-libs-boot/%.c
+	$(CC) -c -g -O2 -I. -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
+
 gm2-libs-boot/%.o: gm2-libs-boot/%.mod
 	$(PRE) gm2-libs-boot/$*
 	$(P2C) -s gm2-libs-boot/$*.def gm2-libs-boot/$*.md -o gm2-libs-boot/$*.c
@@ -412,7 +418,7 @@ gm2-libs-boot/%.o: gm2-libs-boot/%.mod
           mv gm2-libs-boot/$*.H gm2-libs-boot/$*.h ; \
         fi
 	$(RM) gm2-libs-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $@
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
@@ -426,6 +432,9 @@ gm2-libs-boot/%.h: gm2-libs-boot/%.def
            cp gm2-libs-boot/$*.h gm2-libs-boot/$*.H ; \
         fi
 
+gm2-compiler-boot/%.o: gm2-compiler-boot/%.c
+	$(CC) -c -g -O2 -I./ -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
+
 gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
 	$(PRE) gm2-compiler-boot/$*
 	$(P2C) -s gm2-compiler-boot/$*.def gm2-compiler-boot/$*.md -o gm2-compiler-boot/$*.c
@@ -433,7 +442,7 @@ gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
           mv gm2-compiler-boot/$*.H gm2-compiler-boot/$*.h ; \
         fi
 	$(RM) gm2-compiler-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-compiler-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-compiler-boot/$*.c -o $@
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
@@ -450,12 +459,14 @@ gm2-compiler-boot/%.h: gm2-compiler-boot/%.def
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
+gm2-libs/%.o: gm2-libs/%.c
+	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -g -c -B../ -O2 -Igm2-compiler -Igm2-libs $< -o $*.o
+	../xgm2 -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -g -c -B../ -O2 -Igm2-compiler -Igm2-libs $< -o $*.o
+	../xgm2 -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
@@ -468,33 +479,33 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 gm2-boot: $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../cc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
 
-gm2-libs/libgm2.a: gm2-boot
+gm2-libs/libgm2.a: gm2-boot force
 	$(MAKE) build-libs
-	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=%.o) \
-                    $(GM2-LIBS-C:%.c=%.o)
+	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
+                    $(GM2-LIBS-C:%.c=gm2-libs/%.o)
 
-gm2-compiler/gm2.a: gm2-boot
+gm2-compiler/gm2.a: gm2-boot force
 	$(MAKE) build-compiler
 	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
 	mv mod_init.c gm2-compiler
 	$(CC) -c -g gm2-compiler/mod_init.c -o gm2-compiler/mod_init.o
-	$(AR) cr $@ gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=%.o) \
+	$(AR) cr $@ gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
                     gm2-compiler/M2Version.o
 
-gm2-libs-boot/libgm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor
+gm2-libs-boot/libgm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor force
 	$(MAKE) build-libs-boot
-	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=%.o) \
-                    $(GM2-LIBS-BOOT-C:%.c=%.o)
+	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
+                    $(GM2-LIBS-BOOT-C:%.c=gm2-libs-boot/%.o)
 
-gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor gm2-libs-boot/libgm2.a
+gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor gm2-libs-boot/libgm2.a force
 	$(MAKE) "CFLAGS=$(CFLAGS) -Igm2-libs-boot" build-compiler-boot
 	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
 	mv mod_init.c gm2-compiler-boot
 	$(CC) -c -g gm2-compiler-boot/mod_init.c -o gm2-compiler-boot/mod_init.o
 	$(AR) cr $@ gm2-compiler-boot/mod_init.o \
-                    $(GM2-COMP-BOOT-MODS:%.mod=%.o) \
-                    $(GM2-COMP-BOOT-C:%.c=%.o) \
-                    M2Version.o
+                    $(GM2-COMP-BOOT-MODS:%.mod=gm2-compiler-boot/%.o) \
+                    $(GM2-COMP-BOOT-C:%.c=gm2-compiler-boot/%.o) \
+                    gm2-compiler-boot/M2Version.o
 
 build-libs-boot: $(GM2-LIBS-BOOT-DEFS:%.def=gm2-libs-boot/%.h) \
                  $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
