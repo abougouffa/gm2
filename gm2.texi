@@ -271,8 +271,6 @@ The mechanism of using a C implementation wrapper does add a slight overhead
 but reduces name clashes within a module importing from this module and
 solves the initialization function issue.
 
---fixme-- this next method breaks the linker (use method above).
-
 The alternative method is to use the @code{UNQUALIFIED} keyword
 in the definition module which tells GNU Modula-2 not to prefix the module name
 to identifiers when emiting the assembly language. So if we were linking to
@@ -289,7 +287,11 @@ PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
 END libc.
 @end example
 
-and require no C wrapper implementation.
+and require no C wrapper implementation. In this case the file @file{libc.a}
+must be in the GNU Modula-2 link path.
+
+This second method is appropriate for linking modula-2 to C libraries, but
+does require that the definition module is kept up to date with the library.
 
 @node Assembly language, , Interface to C, Using
 @section Interface to assembly language
