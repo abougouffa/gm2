@@ -30,7 +30,7 @@ IMPLEMENTATION MODULE M2ALU ;
 FROM ASCII IMPORT nul ;
 FROM SYSTEM IMPORT WORD ;
 FROM NameKey IMPORT KeyToCharStar ;
-FROM M2Error IMPORT InternalError, WriteFormat0, ErrorStringAt ;
+FROM M2Error IMPORT InternalError, WriteFormat0, ErrorStringAt, FlushErrors ;
 FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
@@ -3048,7 +3048,8 @@ PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
 BEGIN
    IF TreeOverflow(t)
    THEN
-      ErrorStringAt(InitString('constant overflow error'), tokenno)
+      ErrorStringAt(InitString('constant overflow error'), tokenno) ;
+      FlushErrors
    END
 END CheckOverflow ;
 

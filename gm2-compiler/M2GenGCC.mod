@@ -1779,8 +1779,7 @@ BEGIN
       IF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
          (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
-         t := ConvertConstantAndCheck(DefaultConvertGM2(GetType(op1)),
-                                      t)
+         t := ConvertConstantAndCheck(DefaultConvertGM2(GetType(op1)), t)
       END
    END ;
    RETURN( t )
