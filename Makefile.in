@@ -723,6 +723,9 @@ gm2-compiler-paranoid:
 
 gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
           $(GM2-TOOLS-MOD:%.mod=%.exe)
+	@if [ -x m2m ] ; then \
+            mv m2m gm2m ; \
+         fi
 
 %.exe:
 	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst

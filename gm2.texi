@@ -219,6 +219,13 @@ What needs to be done:
 @itemize @bullet
 
 @item
+rewrite documentation.
+
+@item
+profile compiler and improve compilation speed.
+Compiling @file{P1SyntaxCheck.mod} takes far too long.
+
+@item
 the modula-2 front end needs to convert the quadruples into
 trees and the convert these trees into gcc trees, rather than
 simply translating each quadruple into a separate gcc tree.
