@@ -27,7 +27,7 @@ BEGIN
       alloca, then clearly the compiler cannot inline such a call and thus it will
       be forced into calling this function.
    *)
-   RETURN cbuiltin.__builtin_alloca (i)
+   RETURN cbuiltin.alloca (i)
 END alloca ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_memcpy)) memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
@@ -35,5 +35,129 @@ BEGIN
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sinf)) sinf (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.sinf (x)
+END sinf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sinl)) sinl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.sinl (x)
+END sinl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cosf)) cosf (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.cosf (x)
+END cosf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cosl)) cosl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.cosl (x)
+END cosl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrtf)) sqrtf (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.sqrtf (x)
+END sqrtf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrtl)) sqrtl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.sqrtl (x)
+END sqrtl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_fabsf)) fabsf (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.fabsf (x)
+END fabsf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_fabsl)) fabsl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.fabsl (x)
+END fabsl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.index (s, c)
+END index ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_rindex)) rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.rindex (s, c)
+END rindex ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_memcmp)) memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.memcmp (s1, s2, n)
+END memcmp ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_memset)) memset (s: ADDRESS; c: INTEGER; n: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.memset (s, c, n)
+END memset ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strcat)) strcat (dest, src: ADDRESS) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strcat (dest, src)
+END strcat ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strncat)) strncat (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strncat (dest, src, n)
+END strncat ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strcpy)) strcpy (dest, src: ADDRESS) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strcpy (dest, src)
+END strcpy ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strncpy)) strncpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strncpy (dest, src, n)
+END strncpy ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strcmp)) strcmp (s1, s2: ADDRESS) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.strcmp (s1, s2)
+END strcmp ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strncmp)) strncmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.strncmp (s1, s2, n)
+END strncmp ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strlen)) strlen (s: ADDRESS) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.strlen (s)
+END strlen ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strstr)) strstr (haystack, needle: ADDRESS) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strstr (haystack, needle)
+END strstr ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strpbrk)) strpbrk (s, accept: ADDRESS) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strpbrk (s, accept)
+END strpbrk ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strspn)) strspn (s, accept: ADDRESS) : CARDINAL ;
+BEGIN
+   RETURN cbuiltin.strspn (s, accept)
+END strspn ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strcspn)) strcspn (s, accept: ADDRESS) : CARDINAL ;
+BEGIN
+   RETURN cbuiltin.strcspn (s, accept)
+END strcspn ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strchr)) strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strchr (s, c)
+END strchr ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strrchr)) strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.strrchr (s, c)
+END strrchr ;
 
 END Builtins.

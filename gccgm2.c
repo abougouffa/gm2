@@ -618,6 +618,8 @@ static tree                   get_set_value                               PARAMS
        void                   gccgm2_InitFunctionTypeParameters           PARAMS ((void));
        tree                   gccgm2_GetM2CardinalType                    PARAMS ((void));
 static tree                   get_tree_val                                PARAMS ((tree e));
+static tree                   convert_arguments                           PARAMS ((tree, tree, tree, tree));
+static tree                   default_function_array_conversion           PARAMS ((tree exp));
 
 
 
@@ -9820,7 +9822,7 @@ gccgm2_BuildProcedureCall (procedure, rettype)
     last_function = NULL_TREE;
   } else
     last_function = build (CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
-
+  
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
   return last_function;
 }
@@ -10623,7 +10625,216 @@ expand_tree_builtin (function, params, coerced_params)
   return NULL_TREE;
 }
 
-/* taken from c-typeck.c line 1523 */
+/* the following few functions are taken from c-typeck.c */
+
+/* Perform the default conversion of arrays and functions to pointers.
+   Return the result of converting EXP.  For any other expression, just
+   return EXP.  */
+
+static tree
+default_function_array_conversion (exp)
+     tree exp;
+{
+  /* not needed in Modula-2 */
+  return exp;
+}
+
+/* Convert the argument expressions in the list VALUES
+   to the types in the list TYPELIST.  The result is a list of converted
+   argument expressions.
+
+   If TYPELIST is exhausted, or when an element has NULL as its type,
+   perform the default conversions.
+
+   PARMLIST is the chain of parm decls for the function being called.
+   It may be 0, if that info is not available.
+   It is used only for generating error messages.
+
+   NAME is an IDENTIFIER_NODE or 0.  It is used only for error messages.
+
+   This is also where warnings about wrong number of args are generated.
+
+   Both VALUES and the returned value are chains of TREE_LIST nodes
+   with the elements of the list in the TREE_VALUE slots of those nodes.  */
+
+static tree
+convert_arguments (typelist, values, name, fundecl)
+     tree typelist, values, name, fundecl;
+{
+  tree typetail, valtail;
+  tree result = NULL;
+  int parmnum;
+
+  /* Scan the given expressions and types, producing individual
+     converted arguments and pushing them on RESULT in reverse order.  */
+
+  for (valtail = values, typetail = typelist, parmnum = 0;
+       valtail;
+       valtail = TREE_CHAIN (valtail), parmnum++)
+    {
+      tree type = typetail ? TREE_VALUE (typetail) : 0;
+      tree val = TREE_VALUE (valtail);
+
+      if (type == void_type_node)
+	{
+	  if (name)
+	    error ("too many arguments to function `%s'",
+		   IDENTIFIER_POINTER (name));
+	  else
+	    error ("too many arguments to function");
+	  break;
+	}
+
+      /* Strip NON_LVALUE_EXPRs since we aren't using as an lvalue.  */
+      /* Do not use STRIP_NOPS here!  We do not want an enumerator with value 0
+	 to convert automatically to a pointer.  */
+      if (TREE_CODE (val) == NON_LVALUE_EXPR)
+	val = TREE_OPERAND (val, 0);
+
+      val = default_function_array_conversion (val);
+
+      val = require_complete_type (val);
+
+      if (type != 0)
+	{
+	  /* Formal parm type is specified by a function prototype.  */
+	  tree parmval;
+
+	  if (!COMPLETE_TYPE_P (type))
+	    {
+	      error ("type of formal parameter %d is incomplete", parmnum + 1);
+	      parmval = val;
+	    }
+	  else
+	    {
+#if !defined(GM2)
+	      /* Optionally warn about conversions that
+		 differ from the default conversions.  */
+	      if (warn_conversion || warn_traditional)
+		{
+		  int formal_prec = TYPE_PRECISION (type);
+
+		  if (INTEGRAL_TYPE_P (type)
+		      && TREE_CODE (TREE_TYPE (val)) == REAL_TYPE)
+		    warn_for_assignment ("%s as integer rather than floating due to prototype", (char *) 0, name, parmnum + 1);
+		  if (INTEGRAL_TYPE_P (type)
+		      && TREE_CODE (TREE_TYPE (val)) == COMPLEX_TYPE)
+		    warn_for_assignment ("%s as integer rather than complex due to prototype", (char *) 0, name, parmnum + 1);
+		  else if (TREE_CODE (type) == COMPLEX_TYPE
+			   && TREE_CODE (TREE_TYPE (val)) == REAL_TYPE)
+		    warn_for_assignment ("%s as complex rather than floating due to prototype", (char *) 0, name, parmnum + 1);
+		  else if (TREE_CODE (type) == REAL_TYPE
+			   && INTEGRAL_TYPE_P (TREE_TYPE (val)))
+		    warn_for_assignment ("%s as floating rather than integer due to prototype", (char *) 0, name, parmnum + 1);
+		  else if (TREE_CODE (type) == COMPLEX_TYPE
+			   && INTEGRAL_TYPE_P (TREE_TYPE (val)))
+		    warn_for_assignment ("%s as complex rather than integer due to prototype", (char *) 0, name, parmnum + 1);
+		  else if (TREE_CODE (type) == REAL_TYPE
+			   && TREE_CODE (TREE_TYPE (val)) == COMPLEX_TYPE)
+		    warn_for_assignment ("%s as floating rather than complex due to prototype", (char *) 0, name, parmnum + 1);
+		  /* ??? At some point, messages should be written about
+		     conversions between complex types, but that's too messy
+		     to do now.  */
+		  else if (TREE_CODE (type) == REAL_TYPE
+			   && TREE_CODE (TREE_TYPE (val)) == REAL_TYPE)
+		    {
+		      /* Warn if any argument is passed as `float',
+			 since without a prototype it would be `double'.  */
+		      if (formal_prec == TYPE_PRECISION (float_type_node))
+			warn_for_assignment ("%s as `float' rather than `double' due to prototype", (char *) 0, name, parmnum + 1);
+		    }
+		  /* Detect integer changing in width or signedness.
+		     These warnings are only activated with
+		     -Wconversion, not with -Wtraditional.  */
+		  else if (warn_conversion && INTEGRAL_TYPE_P (type)
+			   && INTEGRAL_TYPE_P (TREE_TYPE (val)))
+		    {
+		      tree would_have_been = default_conversion (val);
+		      tree type1 = TREE_TYPE (would_have_been);
+
+		      if (TREE_CODE (type) == ENUMERAL_TYPE
+			  && (TYPE_MAIN_VARIANT (type)
+			      == TYPE_MAIN_VARIANT (TREE_TYPE (val))))
+			/* No warning if function asks for enum
+			   and the actual arg is that enum type.  */
+			;
+		      else if (formal_prec != TYPE_PRECISION (type1))
+			warn_for_assignment ("%s with different width due to prototype", (char *) 0, name, parmnum + 1);
+		      else if (TREE_UNSIGNED (type) == TREE_UNSIGNED (type1))
+			;
+		      /* Don't complain if the formal parameter type
+			 is an enum, because we can't tell now whether
+			 the value was an enum--even the same enum.  */
+		      else if (TREE_CODE (type) == ENUMERAL_TYPE)
+			;
+		      else if (TREE_CODE (val) == INTEGER_CST
+			       && int_fits_type_p (val, type))
+			/* Change in signedness doesn't matter
+			   if a constant value is unaffected.  */
+			;
+		      /* Likewise for a constant in a NOP_EXPR.  */
+		      else if (TREE_CODE (val) == NOP_EXPR
+			       && TREE_CODE (TREE_OPERAND (val, 0)) == INTEGER_CST
+			       && int_fits_type_p (TREE_OPERAND (val, 0), type))
+			;
+#if 0 /* We never get such tree structure here.  */
+		      else if (TREE_CODE (TREE_TYPE (val)) == ENUMERAL_TYPE
+			       && int_fits_type_p (TYPE_MIN_VALUE (TREE_TYPE (val)), type)
+			       && int_fits_type_p (TYPE_MAX_VALUE (TREE_TYPE (val)), type))
+			/* Change in signedness doesn't matter
+			   if an enum value is unaffected.  */
+			;
+#endif
+		      /* If the value is extended from a narrower
+			 unsigned type, it doesn't matter whether we
+			 pass it as signed or unsigned; the value
+			 certainly is the same either way.  */
+		      else if (TYPE_PRECISION (TREE_TYPE (val)) < TYPE_PRECISION (type)
+			       && TREE_UNSIGNED (TREE_TYPE (val)))
+			;
+		      else if (TREE_UNSIGNED (type))
+			warn_for_assignment ("%s as unsigned due to prototype", (char *) 0, name, parmnum + 1);
+		      else
+			warn_for_assignment ("%s as signed due to prototype", (char *) 0, name, parmnum + 1);
+		    }
+		}
+#endif
+
+	      parmval = convert_for_assignment (type, val, 
+					        (char *) 0, /* arg passing  */
+						fundecl, name, parmnum + 1);
+	      
+	      if (PROMOTE_PROTOTYPES
+		  && INTEGRAL_TYPE_P (type)
+		  && (TYPE_PRECISION (type) < TYPE_PRECISION (integer_type_node)))
+		parmval = default_conversion (parmval);
+	    }
+	  result = tree_cons (NULL_TREE, parmval, result);
+	}
+      else if (TREE_CODE (TREE_TYPE (val)) == REAL_TYPE
+               && (TYPE_PRECISION (TREE_TYPE (val))
+	           < TYPE_PRECISION (double_type_node)))
+	/* Convert `float' to `double'.  */
+	result = tree_cons (NULL_TREE, convert (double_type_node, val), result);
+      else
+	/* Convert `short' and `char' to full-size `int'.  */
+	result = tree_cons (NULL_TREE, default_conversion (val), result);
+
+      if (typetail)
+	typetail = TREE_CHAIN (typetail);
+    }
+
+  if (typetail != 0 && TREE_VALUE (typetail) != void_type_node)
+    {
+      if (name)
+	error ("too few arguments to function `%s'",
+	       IDENTIFIER_POINTER (name));
+      else
+	error ("too few arguments to function");
+    }
+
+  return nreverse (result);
+}
 
 /* Build a function call to function FUNCTION with parameters PARAMS.
    PARAMS is a list--a chain of TREE_LIST nodes--in which the
@@ -10634,8 +10845,8 @@ tree
 build_function_call (function, params)
      tree function, params;
 {
-  register tree fntype, fundecl = 0;
-  register tree coerced_params;
+  tree fntype, fundecl = 0;
+  tree coerced_params;
   tree name = NULL_TREE, assembler_name = NULL_TREE, result;
 
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
@@ -10671,14 +10882,13 @@ build_function_call (function, params)
       return error_mark_node;
     }
 
+#if !defined(GM2)
+  if (fundecl && TREE_THIS_VOLATILE (fundecl))
+    current_function_returns_abnormally = 1;
+#endif
+
   /* fntype now gets the type of function pointed to.  */
   fntype = TREE_TYPE (fntype);
-
-#if NOT_NEEDED_FOR_MODULA
-  /* not needed as the front end will convert any parameters using
-     assignment to temps and will build unbounded arrays using
-     specific operators.
-  */
 
   /* Convert the parameters to the types declared in the
      function prototype, or apply default promotions.  */
@@ -10688,10 +10898,9 @@ build_function_call (function, params)
 
   /* Check for errors in format strings.  */
 
-  if (warn_format && (name || assembler_name))
-    check_function_format (NULL, name, assembler_name, coerced_params);
-#else
-  coerced_params = params;
+#if !defined(GM2)
+  if (warn_format)
+    check_function_format (NULL, TYPE_ATTRIBUTES (fntype), coerced_params);
 #endif
 
   /* Recognize certain built-in functions so we can make tree-codes
@@ -10717,7 +10926,6 @@ build_function_call (function, params)
     return result;
   return require_complete_type (result);
 }
-
 
 /* Push a definition or a declaration of struct, union or enum tag "name".
    "type" should be the type node.
