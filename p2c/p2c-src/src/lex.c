@@ -39,7 +39,7 @@ Static int skipflag;
 Static char modulenotation;
 Static short inputkind;
 Static Strlist *instrlist;
-Static char inbuf[300];
+Static char inbuf[MAX_INBUF];
 Static char *oldinfname, *oldctxname;
 Static Strlist *endnotelist;
 
@@ -974,7 +974,7 @@ void getline()
         case INP_INCFILE:
             inf_lnum++;
 	    inf_ltotal++;
-            if (fgets(inbuf, 300, inf)) {
+            if (fgets(inbuf, MAX_INBUF, inf)) {
                 cp = inbuf + strlen(inbuf);
                 if (*inbuf && cp[-1] == '\n')
                     cp[-1] = 0;
@@ -1753,7 +1753,7 @@ int p2c_only, starparen;
     }
     if (!isalpha(*cp))
         return 0;
-    while ((isalnum(*cp) || *cp == '_') && cp2 < namebuf+300)
+    while ((isalnum(*cp) || *cp == '_') && cp2 < namebuf+MAX_INBUF)
         *cp2++ = toupper(*cp++);
     *cp2 = 0;
     i = numparams;

@@ -5154,6 +5154,8 @@ void p_typedecl()
 	  pd->tp->fbase = mp;
 	  if (!mp->type->pointertype) {
 	    mp->type->pointertype = pd->tp;
+	    if (pd->tp->meaning == NULL)
+	      warning(format_s("Unsatisfied forward reference to type %s [138]", pd->sym->name));
 	    movetoend(pd->tp->meaning);
 	  }
 #if 0

@@ -1213,6 +1213,7 @@ AvoidName         BUFSIZ    NULL    EOF
 AvoidName         stdin     stdout  stderr
 AvoidName         random
 AvoidName         true false assert
+AvoidName         if else
 AvoidName         Anyptr Void Char PP PV
 AvoidName         Signed Const Volatile Register Static Local Inline
 AvoidName         cdecl far near huge

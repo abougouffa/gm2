@@ -4886,7 +4886,7 @@ int usesprintf;
     Expr *ex, *args[2];
     int akind[2];
     Value val, val1, val2;
-    char formatstr[300];
+    char formatstr[MAX_INBUF];
 
     if (debug>2) { fprintf(outf,"makeexpr_concat("); dumpexpr(a); fprintf(outf,", "); dumpexpr(b); fprintf(outf,")\n"); }
     if (!a)
@@ -4993,7 +4993,7 @@ Expr *ex;
 {
     int fidx, i, j, k, len, changed = 0;
     char *cp, *bp;
-    char fmtbuf[300];
+    char fmtbuf[MAX_INBUF];
 
     if (ex->kind != EK_BICALL)
 	return ex;

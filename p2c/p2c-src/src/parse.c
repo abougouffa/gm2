@@ -4346,7 +4346,7 @@ int p_search(fname, ext, need)
 char *fname, *ext;
 int need;
 {
-    char infnbuf[300];
+    char infnbuf[MAX_INBUF];
     FILE *fp;
     Meaning *mod;
     int savesysprog, savecopysource;

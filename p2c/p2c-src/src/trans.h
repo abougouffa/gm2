@@ -123,6 +123,8 @@ extern const char *p2c_home;
 
 #define P2C_VERSION  "1.20"
 
+#define MAX_INBUF 4096
+
 
 /* Types */
 
@@ -1686,7 +1688,7 @@ extern int outf_lnum;
 extern short dontbreaklines;
 
 extern Token curtok;
-extern char curtokbuf[256], curtokcase[256];
+extern char curtokbuf[MAX_INBUF], curtokcase[MAX_INBUF];
 extern char *inbufptr;
 extern int inbufindent;
 extern long curtokint;
