@@ -186,6 +186,9 @@ paranoid: ../bcc1gm2$(exeext)
 
 ../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
+	echo "since cc1gm2 is less reliable than acc1gm2 we will replace it by cc1gm2"
+	echo "this is a development hack and will be fixed asap.."
+	cp ../acc1gm2$(exeext) ../cc1gm2$(exeext)
 
 ../acc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
@@ -732,7 +735,8 @@ clean: force
 	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
 	( cd m2/comp/p2c ; make clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
-	$(RM) m2/comp/bin/*
+	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
+	$(RM) -f m2/comp/bin/*
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 
 force:

@@ -48,6 +48,10 @@ extern const char *find_file PROTO((const char *));
 #define MATH_LIBRARY "-lm"
 #endif
 
+#ifndef DIR_SEPARATOR
+#define DIR_SEPARATOR '/'
+#endif
+
 extern char *xmalloc PROTO((size_t));
 
 #define MAXPATHCHAR    64*1024         /* large enough not to worry */
@@ -58,6 +62,7 @@ int lang_specific_extra_outfiles = 0;
 static int               found_verbose   = FALSE;
 static int               need_to_link    =  TRUE;
 
+/* #define DEBUGGING */
 
 /*
  *  convert_into_m2path - converts an include -Ioption into the equivalent
@@ -71,6 +76,9 @@ static int convert_into_m2path (char *incl)
   int l=0;
   int j=0;
 
+#if defined(DEBUGGING)
+  fprintf(stderr, "entered include = %s\n", incl);
+#endif
   if (incl != NULL) {
     l = strlen(incl);
   }
@@ -130,6 +138,36 @@ remove_args (in_argc, in_argv, i, n)
   *in_argc -= n;
 }
 
+
+/*
+ *  add_default_directories - finally we add the current working directory and
+ *                            the GM2 default library directory to the end of
+ *                            M2PATH.
+ */
+
+void
+add_default_directories (void)
+{
+  char *gm2libs;
+  char  sepstr[2];
+
+  sepstr[0] = DIR_SEPARATOR;
+  sepstr[1] = (char)0;
+  gm2libs   = (char *) alloca( strlen("-I") + strlen(LIBSUBDIR) + sizeof(DIR_SEPARATOR) + strlen("gm2") + 1);
+  strcpy(gm2libs, "-I");
+  strcat(gm2libs, LIBSUBDIR);
+  strcat(gm2libs, sepstr);
+  strcat(gm2libs, "gm2");
+
+#if defined(DEBUGGING)
+  fprintf(stderr, "adding -I. and %s\n", gm2libs);
+#endif
+  if ((convert_into_m2path("-I.")) || (convert_into_m2path(gm2libs))) {
+    /*
+     *   want to say  	error ("out of memory trying to alter environment");
+     */
+  }
+}
 
 /*
  *  lang_specific_driver - is invoked if we are compiling/linking a
@@ -208,6 +246,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     i++;
   }
 #endif
+  add_default_directories();
 }
 
 

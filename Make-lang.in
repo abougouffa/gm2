@@ -43,7 +43,7 @@ xgm2.c: $(srcdir)/gcc.c
 	$(LN) $(srcdir)/gcc.c $@
 
 gm2spec.o: $(srcdir)/gm2/gm2spec.c
-	$(CC) -c $(ALL_CFLAGS) $(INCLUDES) $(srcdir)/gm2/gm2spec.c
+	$(CC) -DLIBSUBDIR=\"$(libsubdir)\" -c $(ALL_CFLAGS) $(INCLUDES) $(srcdir)/gm2/gm2spec.c
 
 #
 # taken from g++ and modified for gm2
@@ -113,13 +113,12 @@ gm2.install-common: installdirs $(GM2_LIB_DIR)
 	      rm -f $(bindir)/$(GM2_CROSS_NAME); \
 	      $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/$(GM2_CROSS_NAME); \
 	      chmod a+x $(bindir)/$(GM2_CROSS_NAME); \
-	    else \
+           else \
 	      rm -f $(bindir)/$(GM2_INSTALL_NAME); \
 	      $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/$(GM2_INSTALL_NAME); \
 	      chmod a+x $(bindir)/$(GM2_INSTALL_NAME); \
-	    fi ; \
-	  fi ; \
-	fi
+           fi ; \
+        fi
 	for i in $(GM2LINKEXES) ; do \
             rm -f $(bindir)/$$i$(exeext); \
             $(INSTALL_PROGRAM) gm2/$$i$(exeext) $(bindir)/$$i$(exeext); \
@@ -156,7 +155,7 @@ gm2.mostlyclean:
 	-rm -f gm2/*.o xgm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
 	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 gm2.clean:
-	-rm -f gm2/*.o xgm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
+	-rm -f gm2/*.o xgm2 acc1gm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
 	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	( cd gm2 ; make clean )
 	-rm -fr gm2/stage?
