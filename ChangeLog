@@ -1,3 +1,15 @@
+2003-11-04	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in procedure type declaration.
+
+2003-11-03	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified ProcedureBlock rule in bnf/m2.bnf, bnf/m2-[23h].bnf
+	  to comply with ISO syntax. The 'BEGIN' statement sequence is
+	  optional.
+	* updated the gm2.texi to include a description about
+	  the -Wextended-opaque option.
+
 2003-10-23	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixes to opaque type (in)compatibility for expression and assignments.
@@ -31,7 +43,7 @@
 	* fixed -Wmakeall option.
 	* fixed CARDINAL type to have range 0..max(unsigned int)
 	  rather than 0..max(integer) as reported by Iztok.
-	* fixed set type incompatability as reported by Iztok.
+	* fixed set type incomparability as reported by Iztok.
 	* fixed README note about make gm2.paranoid as reported by
           Matthias Kurz.
 	* fixed many of the example programs which were broken during

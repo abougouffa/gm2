@@ -21,7 +21,6 @@ DEFINITION MODULE SymbolConversion ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Mon Jul 26 09:49:36 1999
-    Last edit  : Mon Jul 26 09:49:36 1999
     Description: provides a simple mechanism to translate between m2f symbols and gcc symbols.
 *)
 

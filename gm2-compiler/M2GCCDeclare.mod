@@ -631,7 +631,7 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF Sym=100
+   IF Sym=177
    THEN
       mystop
    END ;
@@ -1729,7 +1729,8 @@ BEGIN
          DebugTree(t1) ;
          printf0('problems after completing the type definition (after)\n') ;
          DebugTree(t2)
-      END
+      END ;
+      RemoveItemFromList(ToFinishList, sym)
    END ;
    AddModGcc(sym, t1) ;
    RETURN( t1 )

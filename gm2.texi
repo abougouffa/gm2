@@ -166,6 +166,11 @@ turn on ISO standard features. Currently this enables the ISO
 @code{SYSTEM} module and alters the default library search path so
 that the ISO libraries are searched before the PIM libraries.
 
+@item -Wextended-opaque
+allows opaque types to be implemented as any type. This
+is a GNU Modula-2 extension and it requires that the implementation
+module defining the opaque type is available so that it
+can be resolved when compiling the module which imports the opaque type.
 @end table
 
 @node Example usage, Elementary data types, Compiler options, Using
@@ -407,11 +412,13 @@ made to @code{M2RTS.Length}.
 @node Extensions, Interface to C, Standard procedures, Using
 @section GNU Modula-2 language extensions
 
-This section introduces the GNU Modula-2 language extensions.  The GNU
-Modula-2 compiler allows abstract data types to be @code{any} type,
-not just restricted to a pointer type.
+This section introduces the GNU Modula-2 language extensions.
+The GNU Modula-2 compiler allows abstract data types to be any type,
+not just restricted to a pointer type providing the
+@samp{-Wextended-opaque} option is supplied
+@xref{Compiler options, , ,gm2}.
 
-It also allows declarations in any order, whether they are
+Declarations can be made in any order, whether they are
 types, constants, procedures, nested modules or variables
 (see @xref{Passes, , ,}.)
 

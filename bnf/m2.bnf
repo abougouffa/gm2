@@ -810,7 +810,7 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } "BEGIN" StatementSequence "END" =:
+ProcedureBlock := { Declaration } [ "BEGIN" StatementSequence ] "END" =:
 
 Block := { Declaration } [ "BEGIN" StatementSequence ] "END" =:
 

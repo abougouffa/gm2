@@ -303,8 +303,10 @@ BEGIN
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
-   Assert(CompilingProgramModule()) ;
-   Assert(NOT IsDefImp(ModuleSym)) ;
+   IF (NOT CompilingProgramModule()) OR IsDefImp(ModuleSym)
+   THEN
+      WriteFormat1('module %a has a corresponding DEFINITION MODULE but no IMPLEMENTATION keyword in the main module', name)
+   END ;
    PushT(name)
 END P1StartBuildProgramModule ;
 

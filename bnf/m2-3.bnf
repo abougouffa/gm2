@@ -1096,8 +1096,8 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 -- error messages
 
 ProcedureBlock := { Declaration }                                          % BuildProcedureStart %
-                                  "BEGIN"
-                                          StatementSequence                % BuildLineNo %
+                                  [ "BEGIN"
+                                            StatementSequence ]            % BuildLineNo %
                                                             "END"
                 =:
 
