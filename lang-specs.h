@@ -24,13 +24,17 @@ Boston, MA 02111-1307, USA.  */
   {".mod", "@modula-2" },
   {".def", "@modula-2" },
   {"@modula-2",
-      "%{c:%{!Wmakelist:%{!Wmodules:%{!gm2gcc:cc1gm2 %B %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM}\
+      "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguemnts}} \
+           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:cc1gm2 %B %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM}\
                                              %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                              as %(asm_options) %{!pipe:%g.s} %A }}}}} \
            %{Wmakelist:gm2l -o %b.lst %b} \n\
-           %{Wmodules:gm2l %{!pipe:-o %g.l} %b|\n\
-                      gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                      gm2lcc %{v} -c %g.lst}} \n\
+           %{Wmodules:%{!Wuselist:gm2l %{!pipe:-o %g.l} %b|\n\
+                                  gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                  gm2lcc %{v} -c %g.lst} \n\
+                       %{Wuselist:gm2lcc %{v} -c %b.lst}}} \n\
+      %{!c:%{Wmakelist:%eGNU Modula-2 does not support -Wmakelist without -c}} \
+      %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \
       %{!c:%{!S:%{!gm2gcc:%{!Wuselist:gm2l %{!pipe:-o %g.l} %b|\n\
                                       gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                       gm2lgen %g.lst -o %g.c \n\
