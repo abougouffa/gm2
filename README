@@ -47,7 +47,7 @@ To build gm2 type:
 
    mkdir host-build
    cd host-build
-   ../gcc-version/configure
+   ../gcc-version/configure --enable-languages=c,gm2 --enable-checking
    make
    cd ..
 

@@ -475,7 +475,7 @@ static tree                   finish_build_pointer_type                   PARAMS
 									 	  tree parm_type));
        tree                   gccgm2_BuildParameterDeclaration  	  PARAMS ((char *name, tree type,
 									 	  int isreference));
-       void                   gccgm2_BuildStartFunctionDeclaration 	  PARAMS ((void));
+       void                   gccgm2_BuildStartFunctionDeclaration 	  PARAMS ((int uses_varargs));
        tree                   gccgm2_BuildEndFunctionDeclaration  	  PARAMS ((char *name,
 										   tree returntype,
 										   int isexternal,
@@ -648,7 +648,7 @@ static void                   do_jump_if_bit                              PARAMS
 static tree                   get_set_address_if_var                      PARAMS ((tree, int, int));
 static tree                   get_field_list                              PARAMS ((tree, tree, int));
 static tree                   get_set_value                               PARAMS ((tree, tree, int));
-       void                   gccgm2_InitFunctionTypeParameters           PARAMS ((void));
+       void                   gccgm2_InitFunctionTypeParameters           PARAMS ((int uses_varargs));
        tree                   gccgm2_GetM2CardinalType                    PARAMS ((void));
 static tree                   get_tree_val                                PARAMS ((tree e));
 static tree                   convert_arguments                           PARAMS ((tree, tree, tree, tree));
@@ -8496,9 +8496,12 @@ gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
  */
 
 void
-gccgm2_InitFunctionTypeParameters ()
+gccgm2_InitFunctionTypeParameters (int uses_varargs)
 {
-  param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
+  if (uses_varargs)
+    param_type_list = NULL_TREE;
+  else
+    param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
   param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 }
 
@@ -8600,14 +8603,17 @@ gccgm2_BuildParameterDeclaration (name, type, isreference)
 }
 
 /*
- *  BuildStartFunctionDeclaration - initializes global variables ready for building
- *                                  a function.
+ *  BuildStartFunctionDeclaration - initializes global variables ready
+ *                                  for building a function.
  */
 
 void
-gccgm2_BuildStartFunctionDeclaration ()
+gccgm2_BuildStartFunctionDeclaration (int uses_varargs)
 {
-  param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
+  if (uses_varargs)
+    param_type_list = NULL_TREE;
+  else
+    param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
   param_list = NULL_TREE;   /* ready for when we define a function */
 }
 

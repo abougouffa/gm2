@@ -1,7 +1,15 @@
+2004-04-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.43
+	* The opteron port is finally integrated into CVS
+	* fixed bug in vararg parameter declaration which in turn..
+	* fixed varargs within the opteron port
+	* checked in "work in progress" gm2/gm2-iso/COROUTINES.mod
+
 2004-04-06	Gaius Mulley <gaius@glam.ac.uk>
 
-	* removed M2Stack from gm2-compiler
-	* made bnf/h2def.bnf 64 bit clean
+	* removed gm2-compiler/M2Stack.def gm2-compiler/M2Stack.mod
+	* made bnf/h2def.bnf 64 bit clean, but not fixed any bugs in h2def.
 	
 2004-04-05	Gaius Mulley <gaius@glam.ac.uk>
 
@@ -9,11 +17,11 @@
 	* checked in the opteron port which includes many changes
 	* int/word based types are now separated from pointer based types.
 	* modified p2c to use int for INTEGER and unsigned int for
-	  CARDINAL
+	  CARDINAL rather than int and unsigned long.
 	* added gm2-compiler/M2StackWord and gm2-compiler/M2StackAddress
 	* added gm2-compiler/Indexing to handle arbitary sized arrays of
 	  pointers.
-	* fixed many INTEGER/CARDINAL <-> ADDRESS coersions
+	* removed many INTEGER/CARDINAL <-> ADDRESS coersions
 	* fixed compiler to use new modules above (many changes)
 	* have moved away from M2Printf using WORD parameters to ARRAY OF
 	BYTE as this is not 64 bit clean
