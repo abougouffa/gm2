@@ -129,7 +129,7 @@ TYPE
                    OptimizeOnOp, OptimizeOffOp,
                    InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
-                   BuiltinConstOp) ;
+                   BuiltinConstOp, StandardFunctionOp) ;
 
 (*
    note that the shift pseudo operators are not used by M2Quads, but only during

@@ -28,7 +28,7 @@ EXPORT QUALIFIED HALT,
                  SubrangeAssignmentError, ArraySubscriptError,
                  FunctionReturnError,
                  InstallTerminationProcedure, Terminate,
-                 ExitOnHalt ;
+                 ExitOnHalt, Length ;
 
 
 (*
@@ -85,6 +85,15 @@ PROCEDURE InstallTerminationProcedure (p: PROC) ;
 *)
 
 PROCEDURE Terminate ;
+
+
+(*
+   Length - returns the length of a string, a. This is called whenever
+            the user calls LENGTH and the parameter cannot be calculated
+            at compile time.
+*)
+
+PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
 
 
 END M2RTS.

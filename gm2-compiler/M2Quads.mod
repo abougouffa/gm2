@@ -64,9 +64,11 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutVarTypeAndSize,
                         PushSize, PushValue, PopValue,
                         ForeachFieldEnumerationDo,
+                        GetExported, PutImported, GetSym,
                         NulSym ;
 
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
+FROM M2Batch IMPORT MakeDefinitionSource ;
 
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
@@ -122,7 +124,7 @@ FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoL
 
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
-FROM M2Options IMPORT BoundsChecking, ReturnChecking,
+FROM M2Options IMPORT BoundsChecking, ReturnChecking, Iso,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug,
                       Profiling, Coding, Optimizing ;
@@ -4949,14 +4951,16 @@ BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
    PushT(NoOfParam) ;
-   IF (ProcSym=Cap)  OR (ProcSym=Chr)   OR (ProcSym=Float) OR
-      (ProcSym=High)  OR (ProcSym=High)  OR (ProcSym=LengthS) OR (ProcSym=Max) OR 
-      (ProcSym=Min)   OR (ProcSym=Odd)   OR (ProcSym=Ord) OR
-      (ProcSym=Size)  OR (ProcSym=Trunc) OR (ProcSym=Val)
+   IF (ProcSym#Convert) AND IsPseudoBaseFunction(ProcSym)
    THEN
       BuildFunctionCall
    ELSE
-      WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL') ;
+      IF Iso
+      THEN
+         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+      ELSE
+         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+      END ;
       PopN(NoOfParam+2) ;
       PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
    END
@@ -5667,6 +5671,25 @@ END BuildHighFromChar ;
 
 
 (*
+   EnsureImported - checks to see whether the symbol, n, is already present
+                    and if absent then it imports the symbol from M2RTS.
+*)
+
+PROCEDURE EnsureImported (n: Name) : CARDINAL ;
+VAR
+   ProcSym: CARDINAL ;
+BEGIN
+   ProcSym := GetSym(n) ;
+   IF ProcSym=NulSym
+   THEN
+      PutImported(GetExported(MakeDefinitionSource(MakeKey('M2RTS')), n)) ;
+      ProcSym := GetSym(n)
+   END ;
+   RETURN( ProcSym )
+END EnsureImported ;
+
+
+(*
    BuildLengthFunction - builds the inline standard function LENGTH.
 
                          The Stack:
@@ -5688,6 +5711,7 @@ END BuildHighFromChar ;
 PROCEDURE BuildLengthFunction ;
 VAR
    s        : String ;
+   ProcSym,
    Type,
    NoOfParam,
    Param,
@@ -5719,11 +5743,21 @@ BEGIN
          PopN(NoOfParam+1) ;
          PushT(ReturnVar)
       ELSE
-         WriteFormat0('base procedure LENGTH expects a string constant or character constant as its parameter') ;
-         PopT(NoOfParam) ;
-         PopN(NoOfParam+1) ;
-         ReturnVar := MakeConstLit(MakeKey('0')) ;
-         PushT(ReturnVar)
+         ProcSym := EnsureImported(MakeKey('Length')) ;
+         IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
+         THEN
+            PopT(NoOfParam) ;
+            ReturnVar := MakeTemporary(AreConstant(IsConst(OperandT(1)))) ;
+            PutVar(ReturnVar, Cardinal) ;
+            GenQuad(StandardFunctionOp, ReturnVar, ProcSym, OperandT(1)) ;
+            PopN(NoOfParam+1) ;
+            PushT(ReturnVar)
+         ELSE
+            PopT(NoOfParam) ;
+            PopN(NoOfParam+1) ;
+            PushT(MakeConstLit(MakeKey('0'))) ;
+            WriteFormat0('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths')
+         END
       END
    ELSE
       (* NoOfParam is _very_ wrong, we flush all outstanding errors *)
@@ -9452,7 +9486,12 @@ BEGIN
       OptimizeOnOp,
       OptimizeOffOp     : |
       BuiltinConstOp    : WriteOperand(Operand1) ;
-                          printf1('   %a', Operand3)
+                          printf1('   %a', Operand3) |
+      StandardFunctionOp: WriteOperand(Operand1) ;
+                          printf0('  ') ;
+                          WriteOperand(Operand2) ;
+                          printf0('  ') ;
+                          WriteOperand(Operand3) ;
 
       ELSE
          InternalError('quadruple not recognised', __FILE__, __LINE__)
@@ -9469,61 +9508,62 @@ PROCEDURE WriteOperator (Operator: QuadOperator) ;
 BEGIN
    CASE Operator OF
 
-   LogicalOrOp              : printf0('Or           ') |
-   LogicalAndOp             : printf0('And          ') |
-   LogicalXorOp             : printf0('Xor          ') |
-   LogicalDiffOp            : printf0('Ldiff        ') |
-   BecomesOp                : printf0('Becomes      ') |
-   IndrXOp                  : printf0('IndrXOp      ') |
-   XIndrOp                  : printf0('XIndrOp      ') |
-   BaseOp                   : printf0('Base         ') |
-   ElementSizeOp            : printf0('ElementSize  ') |
-   AddrOp                   : printf0('Addr         ') |
-   SizeOp                   : printf0('Size         ') |
-   OffsetOp                 : printf0('Offset       ') |
-   IfInOp                   : printf0('If IN        ') |
-   IfNotInOp                : printf0('If NOT IN    ') |
-   IfNotEquOp               : printf0('If <>        ') |
-   IfEquOp                  : printf0('If =         ') |
-   IfLessEquOp              : printf0('If <=        ') |
-   IfGreEquOp               : printf0('If >=        ') |
-   IfGreOp                  : printf0('If >         ') |
-   IfLessOp                 : printf0('If <         ') |
-   GotoOp                   : printf0('Goto         ') |
-   DummyOp                  : printf0('Dummy        ') |
-   StartDefFileOp           : printf0('StartDefFile ') |
-   StartModFileOp           : printf0('StartModFile ') |
-   EndFileOp                : printf0('EndFileOp    ') |
-   StartOp                  : printf0('Start        ') |
-   EndOp                    : printf0('End          ') |
-   AddOp                    : printf0('+            ') |
-   SubOp                    : printf0('-            ') |
-   DivOp                    : printf0('DIV          ') |
-   ModOp                    : printf0('MOD          ') |
-   MultOp                   : printf0('*            ') |
-   NegateOp                 : printf0('Negate       ') |
-   InclOp                   : printf0('Incl         ') |
-   ExclOp                   : printf0('Excl         ') |
-   ReturnOp                 : printf0('Return       ') |
-   ReturnValueOp            : printf0('ReturnValue  ') |
-   FunctValueOp             : printf0('FunctValue   ') |
-   CallOp                   : printf0('Call         ') |
-   ParamOp                  : printf0('Param        ') |
-   NewLocalVarOp            : printf0('NewLocalVar  ') |
-   KillLocalVarOp           : printf0('KillLocalVar ') |
-   UnboundedOp              : printf0('Unbounded    ') |
-   CoerceOp                 : printf0('Coerce       ') |
-   ConvertOp                : printf0('Convert      ') |
-   HighOp                   : printf0('High         ') |
-   CodeOnOp                 : printf0('CodeOn       ') |
-   CodeOffOp                : printf0('CodeOff      ') |
-   ProfileOnOp              : printf0('ProfileOn    ') |
-   ProfileOffOp             : printf0('ProfileOff   ') |
-   OptimizeOnOp             : printf0('OptimizeOn   ') |
-   OptimizeOffOp            : printf0('OptimizeOff  ') |
-   InlineOp                 : printf0('Inline       ') |
-   LineNumberOp             : printf0('LineNumber   ') |
-   BuiltinConstOp           : printf0('BuiltinConst ')
+   LogicalOrOp              : printf0('Or               ') |
+   LogicalAndOp             : printf0('And              ') |
+   LogicalXorOp             : printf0('Xor              ') |
+   LogicalDiffOp            : printf0('Ldiff            ') |
+   BecomesOp                : printf0('Becomes          ') |
+   IndrXOp                  : printf0('IndrXOp          ') |
+   XIndrOp                  : printf0('XIndrOp          ') |
+   BaseOp                   : printf0('Base             ') |
+   ElementSizeOp            : printf0('ElementSize      ') |
+   AddrOp                   : printf0('Addr             ') |
+   SizeOp                   : printf0('Size             ') |
+   OffsetOp                 : printf0('Offset           ') |
+   IfInOp                   : printf0('If IN            ') |
+   IfNotInOp                : printf0('If NOT IN        ') |
+   IfNotEquOp               : printf0('If <>            ') |
+   IfEquOp                  : printf0('If =             ') |
+   IfLessEquOp              : printf0('If <=            ') |
+   IfGreEquOp               : printf0('If >=            ') |
+   IfGreOp                  : printf0('If >             ') |
+   IfLessOp                 : printf0('If <             ') |
+   GotoOp                   : printf0('Goto             ') |
+   DummyOp                  : printf0('Dummy            ') |
+   StartDefFileOp           : printf0('StartDefFile     ') |
+   StartModFileOp           : printf0('StartModFile     ') |
+   EndFileOp                : printf0('EndFileOp        ') |
+   StartOp                  : printf0('Start            ') |
+   EndOp                    : printf0('End              ') |
+   AddOp                    : printf0('+                ') |
+   SubOp                    : printf0('-                ') |
+   DivOp                    : printf0('DIV              ') |
+   ModOp                    : printf0('MOD              ') |
+   MultOp                   : printf0('*                ') |
+   NegateOp                 : printf0('Negate           ') |
+   InclOp                   : printf0('Incl             ') |
+   ExclOp                   : printf0('Excl             ') |
+   ReturnOp                 : printf0('Return           ') |
+   ReturnValueOp            : printf0('ReturnValue      ') |
+   FunctValueOp             : printf0('FunctValue       ') |
+   CallOp                   : printf0('Call             ') |
+   ParamOp                  : printf0('Param            ') |
+   NewLocalVarOp            : printf0('NewLocalVar      ') |
+   KillLocalVarOp           : printf0('KillLocalVar     ') |
+   UnboundedOp              : printf0('Unbounded        ') |
+   CoerceOp                 : printf0('Coerce           ') |
+   ConvertOp                : printf0('Convert          ') |
+   HighOp                   : printf0('High             ') |
+   CodeOnOp                 : printf0('CodeOn           ') |
+   CodeOffOp                : printf0('CodeOff          ') |
+   ProfileOnOp              : printf0('ProfileOn        ') |
+   ProfileOffOp             : printf0('ProfileOff       ') |
+   OptimizeOnOp             : printf0('OptimizeOn       ') |
+   OptimizeOffOp            : printf0('OptimizeOff      ') |
+   InlineOp                 : printf0('Inline           ') |
+   LineNumberOp             : printf0('LineNumber       ') |
+   BuiltinConstOp           : printf0('BuiltinConst     ') |
+   StandardFunctionOp       : printf0('StandardFunction ') |
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)

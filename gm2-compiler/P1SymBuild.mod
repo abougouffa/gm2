@@ -24,6 +24,7 @@ FROM M2LexBuf IMPORT GetFileName ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
 FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2Options IMPORT Iso ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok, BuiltinTok ;
@@ -586,13 +587,19 @@ VAR
 BEGIN
    PopT(name) ;
    IF (name=MakeKey('CAP'))  OR (name=MakeKey('CHR'))    OR (name=MakeKey('FLOAT')) OR 
-      (name=MakeKey('HIGH')) OR (name=MakeKey('LENGTH')) OR (name=MakeKey('MAX')) OR 
+      (name=MakeKey('HIGH')) OR (name=MakeKey('MAX')) OR
       (name=MakeKey('MIN'))  OR (name=MakeKey('ODD'))    OR (name=MakeKey('ORD')) OR 
-      (name=MakeKey('SIZE')) OR (name=MakeKey('TRUNC'))  OR (name=MakeKey('VAL'))
+      (name=MakeKey('SIZE')) OR (name=MakeKey('TRUNC'))  OR (name=MakeKey('VAL')) OR
+      ((name=MakeKey('LENGTH')) AND Iso)
    THEN
       (* legal, nothing to do *)
    ELSE
-      WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+      IF Iso
+      THEN
+         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+      ELSE
+         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+      END
    END
 END CheckConstFunction ;
 

@@ -70,8 +70,8 @@ FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
                    ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
 
-FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, NulName ;
-FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
+FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
+FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2System IMPORT Address, Word ;
 FROM M2FileName IMPORT CalculateFileName ;
@@ -295,6 +295,8 @@ PROCEDURE CodeNegate ; FORWARD ;
 PROCEDURE FoldSize (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE CodeSize ; FORWARD ;
 PROCEDURE CodeAddr ; FORWARD ;
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
+PROCEDURE CodeStandardFunction ; FORWARD ;
 PROCEDURE CodeIfLess ; FORWARD ;
 PROCEDURE CodeIfLessEqu ; FORWARD ;
 PROCEDURE CodeIfGre ; FORWARD ;
@@ -335,6 +337,7 @@ PROCEDURE FoldExcl (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldIfIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldIfNotIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
+PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -411,7 +414,7 @@ BEGIN
    LogicalOrOp        : CodeSetOr |
    LogicalAndOp       : CodeSetAnd |
    LogicalXorOp       : CodeSetSymmetricDifference |
-   LogicalDiffOp      : printf0('to be done\') |
+   LogicalDiffOp      : InternalError('logical difference has not been finished yet', __FILE__, __LINE__) |
    IfLessOp           : CodeIfLess |
    IfEquOp            : CodeIfEqu |
    IfNotEquOp         : CodeIfNotEqu |
@@ -434,8 +437,8 @@ BEGIN
    ElementSizeOp      : CodeElementSize |
    ConvertOp          : CodeConvert |
    CoerceOp           : CodeCoerce |
+   StandardFunctionOp : CodeStandardFunction |
 
-   (* And the Compiler Flag Pseudo Quadruples *)
    InlineOp           : CodeInline |
    LineNumberOp       : CodeLineNumber |
    CodeOnOp           : |           (* the following make no sense with gcc *)
@@ -529,6 +532,7 @@ BEGIN
 
          CASE Operator OF
 
+         StandardFunctionOp : FoldStandardFunction(tokenno, quad, l) |
          BuiltinConstOp     : FoldBuiltinConst(tokenno, quad, l) |
          LogicalOrOp        : FoldSetOr(tokenno, quad, l) |
          LogicalAndOp       : FoldSetAnd(tokenno, quad, l) |
@@ -1550,8 +1554,26 @@ END CodeBinarySet ;
 *)
 
 PROCEDURE FoldAdd (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+VAR
+   s            : String ;
+   operator     : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildAdd)
+   GetQuad(quad, operator, op1, op2, op3) ;
+   IF IsConst(op2) AND IsConst(op3) AND IsConst(op3) AND
+      IsConstString(op2) AND IsConstString(op3)
+   THEN
+      (* handle special addition for constant strings *)
+      s := InitStringCharStar(KeyToCharStar(GetString(op2))) ;
+      s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(op3))))) ;
+      PutConstString(op1, makekey(string(s))) ;
+      DeclareConstant(tokenno, op1) ;
+      RemoveItemFromList(l, op1) ;
+      SubQuad(AbsoluteHead, quad) ;
+      s := KillString(s)
+   ELSE
+      FoldBinary(tokenno, quad, l, BuildAdd)
+   END
 END FoldAdd ;
 
 
@@ -1668,6 +1690,99 @@ BEGIN
       SubQuad(AbsoluteHead, quad)
    END
 END FoldBuiltinConst ;
+
+
+(*
+   FoldStandardFunction - attempts to fold a standard function.
+*)
+
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+VAR
+   t            : Tree ;
+   operator     : QuadOperator ;
+   s            : String ;
+   result,
+   op1, op2,
+   op3          : CARDINAL ;
+BEGIN
+   GetQuad(quad, operator, op1, op2, op3) ;
+   DeclareConstant(tokenno, op3) ;
+   IF GetSymName(op2)=MakeKey('Length')
+   THEN
+      IF IsConst(op3) AND GccKnowsAbout(op3)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            IF IsConstString(op3)
+            THEN
+               AddModGcc(op1, FindSize(op3)) ;
+               RemoveItemFromList(l, op1) ;
+               SubQuad(AbsoluteHead, quad)
+            ELSE
+               ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%a)')),
+                                      GetSymName(op3)), QuadToTokenNo(quad))
+            END
+         ELSE
+            (* rewrite the quad to use becomes *)
+            s := Sprintf1(Mark(InitString("%d")), GetStringLength(op3)) ;
+            result := MakeConstLit(makekey(string(s))) ;
+            s := KillString(s) ;
+            DeclareConstant(tokenno, result) ;
+            PutQuad(quad, BecomesOp, op1, NulSym, result)
+         END
+      END
+   ELSE
+      InternalError('only expecting LENGTH as a standard function', __FILE__, __LINE__)
+   END
+END FoldStandardFunction ;
+
+
+(*
+   CodeStandardFunction - 
+*)
+
+PROCEDURE CodeStandardFunction ;
+VAR
+   operator: QuadOperator ;
+   t       : Tree ;
+   op1, op3,
+   op2     : CARDINAL ;
+BEGIN
+   GetQuad(CurrentQuad, operator, op1, op2, op3) ;
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF (op2#NulSym) AND (GetSymName(op2)=MakeKey('Length'))
+   THEN
+      IF IsProcedure(op2)
+      THEN
+         IF IsConstString(op3)
+         THEN
+            InternalError('the LENGTH of a constant string should already be known', __FILE__, __LINE__)
+         ELSIF IsUnbounded(GetType(op3))
+         THEN
+            BuildParam(Mod2Gcc(op3)) ;
+            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            BuildFunctValue(Mod2Gcc(op1))
+         ELSIF GetMode(op3)=RightValue
+         THEN
+            BuildParam(ResolveHigh(CurrentQuad, op3)) ;
+            BuildParam(BuildAddr(Mod2Gcc(op3), FALSE)) ;
+            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            BuildFunctValue(Mod2Gcc(op1))
+         ELSE
+            BuildParam(ResolveHigh(CurrentQuad, op3)) ;
+            BuildParam(Mod2Gcc(op3)) ;
+            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            BuildFunctValue(Mod2Gcc(op1))
+         END
+      ELSE
+         ErrorStringAt(Sprintf0(Mark(InitString('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths'))),
+                       CurrentQuadToken)
+      END
+   ELSE
+      InternalError('only expecting LENGTH as a standard function', __FILE__, __LINE__)
+   END
+END CodeStandardFunction ;
 
 
 (*
@@ -2752,7 +2867,7 @@ END FoldBase ;
 (*
    CodeBase - operand1 is a constant and BaseOp will calculate the offset
               of the virtual start of the array  ie a[0,0,0,0..,0]
-              from the address of the array &a.
+              from the address of the array, a.
 
               operand2 is the type of the array
               operand3 is the array

@@ -88,7 +88,7 @@ BEGIN
    Len := 0 ;
    High := HIGH( a ) ;
    WHILE (Len<=High) AND (a[Len]#nul) DO
-      INC( Len ) ;
+      INC( Len )
    END ;
    RETURN( Len )
 END StrLen ;

@@ -164,6 +164,25 @@ BEGIN
 END InstallTerminationProcedure ;
 
 
+(*
+   Length - returns the length of a string, a. This is called whenever
+            the user calls LENGTH and the parameter cannot be calculated
+            at compile time.
+*)
+
+PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
+VAR
+   l, h: CARDINAL ;
+BEGIN
+   l := 0 ;
+   h := HIGH(a) ;
+   WHILE (l<=h) AND (a[l]#nul) DO
+      INC(l)
+   END ;
+   RETURN( l )
+END Length ;
+
+
 BEGIN
    Ptr := 0 ;
    ExitValue := 0 ;

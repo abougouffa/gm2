@@ -351,7 +351,12 @@ BEGIN
    (* and the base functions *)
 
    Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
-   LengthS := MakeProcedure(MakeKey('LENGTH')) ;   (* Pseudo Base function LENGTH *)
+   IF Iso
+   THEN
+      LengthS := MakeProcedure(MakeKey('LENGTH'))  (* Pseudo Base function LENGTH  *)
+   ELSE
+      LengthS := NulSym
+   END ;
    Abs     := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
    Cap     := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
    Odd     := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
@@ -371,7 +376,7 @@ END InitBaseFunctions ;
 
 PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( Iso AND ((Sym=LengthS) OR (Sym=Size)) )
+   RETURN( Iso AND (Sym#NulSym) AND ((Sym=LengthS) OR (Sym=Size)) )
 END IsISOPseudoBaseFunction ;
 
 
