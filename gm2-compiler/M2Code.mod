@@ -28,7 +28,8 @@ FROM M2Students IMPORT StudentVariableCheck ;
 FROM SymbolTable IMPORT GetMainModule, IsProcedure, ForeachProcedureDo ;
 
 FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
-                    BackPatchSubranges, VariableAnalysis, LoopAnalysis, ForLoopAnalysis ;
+                    BackPatchSubrangesAndOptParam, VariableAnalysis,
+                    LoopAnalysis, ForLoopAnalysis ;
 
 FROM M2Pass IMPORT SetPassToNoPass ;
 FROM M2SubExp IMPORT RemoveCommonSubExpressions ;
@@ -130,7 +131,7 @@ END OptimizationAnalysis ;
 PROCEDURE Code ;
 BEGIN
    SetPassToNoPass ;
-   BackPatchSubranges(Head) ;
+   BackPatchSubrangesAndOptParam(Head) ;
    Total := CountQuads(Head) ;
 
    ForLoopAnalysis ;   (* must be done before any optimization as the index variable increment quad might change *)

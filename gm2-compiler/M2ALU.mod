@@ -52,6 +52,7 @@ IMPORT DynamicStrings ;
 FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    CompareTrees, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
                    GetIntegerOne, GetIntegerZero,
+                   GetWordOne, ToWord,
                    AreConstantsEqual, GetBitsPerWord,
                    BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
@@ -60,6 +61,7 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    RealToTree, RememberConstant,
                    BuildStartSetConstructor, BuildSetConstructorElement,
                    BuildEndSetConstructor,
+                   FoldAndStrip,
                    DebugTree ;
 
 
@@ -594,7 +596,7 @@ BEGIN
    THEN
       t^.setValue := NIL
    ELSE
-      v^.numberValue := RememberConstant(t^.numberValue)
+      v^.numberValue := RememberConstant(FoldAndStrip(t^.numberValue))
    END ;
    Dispose(t)
 END PopInto ;
@@ -647,7 +649,7 @@ BEGIN
    v := New() ;
    WITH v^ DO
       type        := integer ;
-      numberValue := BuildIntegerConstant(ORD(c)) ;
+      numberValue := BuildIntegerConstant(ORD(c)) ;  (* check this for array indexed by char bug gaius *)
       solved      := TRUE
    END ;
    Push(v)
@@ -2001,7 +2003,7 @@ BEGIN
             IF IsValueSolved(op1)
             THEN
                PerformSubBit(tokenno, setValue, op1) ;
-               solved := FALSE ;
+               solved := FALSE
             ELSE
                InternalError('can only subtract a bit from a set when the bit value is known', __FILE__, __LINE__)
             END
@@ -2687,9 +2689,9 @@ BEGIN
    REPEAT
       IF t=Tree(NIL)
       THEN
-         t := BuildLSL(GetIntegerOne(), i, FALSE)
+         t := BuildLSL(GetWordOne(), ToWord(i), FALSE)
       ELSE
-         t := BuildLogicalOr(t, BuildLSL(GetIntegerOne(), i, FALSE), FALSE)
+         t := BuildLogicalOr(t, BuildLSL(GetWordOne(), ToWord(i), FALSE), FALSE)
       END ;
       PushIntegerTree(i) ;
       PushIntegerTree(GetIntegerOne()) ;

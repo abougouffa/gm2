@@ -37,7 +37,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsModule, IsType,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType, IsProcedureNested,
-                        IsVar, IsVarParam,
+                        IsVar, IsVarParam, IsTemporary,
                         IsUnbounded, IsArray, IsSet,
                         IsProcedureVariable,
                         IsUnboundedParam,
@@ -64,13 +64,15 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
 FROM M2Code IMPORT CodeBlock ;
 FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, ErrorStringAt, WarnStringAt ;
-FROM M2Options IMPORT DisplayQuadruples ;
+FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
+FROM M2Options IMPORT DisplayQuadruples, Iso, Pim ;
 FROM M2Printf IMPORT printf0, printf2 ;
 
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
-                   ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
+                   ArrayHigh, ArrayAddress, Cardinal, Char, Integer,
+                   Unbounded, Trunc, CheckAssignmentCompatible ;
 
+FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
@@ -122,16 +124,18 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIfVarInVar, BuildIfNotVarInVar,
                    BuildIfInRangeGoto, BuildIfNotInRangeGoto,
                    BuildForeachWordInSetDoIfExpr,
+                   ConvertConstantAndCheck,
                    AreConstantsEqual, CompareTrees,
                    DoJump,
                    BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
+                   BuildCap,
                    ExpandExpressionStatement,
                    GetPointerType, GetWordType,
                    GetBitsPerWord,
-                   RememberConstant ;
+                   RememberConstant, FoldAndStrip ;
 
 FROM SYSTEM IMPORT WORD ;
 
@@ -258,8 +262,8 @@ Notes
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
-PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
+PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -339,6 +343,8 @@ PROCEDURE FoldIfNotIn (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3:
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -383,7 +389,7 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;
-   IF q=280
+   IF q=10
    THEN
       stop
    END ;
@@ -393,8 +399,8 @@ BEGIN
    StartDefFileOp     : CodeStartDefFile(q, op1, op2, op3) |
    StartModFileOp     : CodeStartModFile(q, op1, op2, op3) |
    EndFileOp          : CodeEndFile(q, op1, op2, op3) |
-   StartOp            : CodeStart(q, op1, op2, op3) |
-   EndOp              : CodeEnd(q, op1, op2, op3) |
+   StartOp            : CodeStart(q, op1, op2, op3, CompilingMainModule) |
+   EndOp              : CodeEnd(q, op1, op2, op3, CompilingMainModule) |
    NewLocalVarOp      : CodeNewLocalVar(q, op1, op2, op3) |
    KillLocalVarOp     : CodeKillLocalVar(q, op1, op2, op3) |
    ReturnOp           : CodeReturn(q, op1, op2, op3) |
@@ -526,10 +532,12 @@ BEGIN
       Last := Next ;
       WHILE (quad<=end) AND (quad#0) DO
          GetQuad(quad, op, op1, op2, op3) ;
-         IF quad=280
+(*
+         IF quad=630
          THEN
             stop
          END ;
+*)
          tokenno := QuadToTokenNo(quad) ;
 
          CASE op OF
@@ -555,6 +563,7 @@ BEGIN
          CoerceOp           : FoldCoerce(tokenno, l, quad, op1, op2, op3) |
          InclOp             : FoldIncl(tokenno, l, quad, op1, op2, op3) |
          ExclOp             : FoldExcl(tokenno, l, quad, op1, op2, op3) |
+         IfLessOp           : FoldIfLess(tokenno, l, quad, op1, op2, op3) |
          IfInOp             : FoldIfIn(tokenno, l, quad, op1, op2, op3) |
          IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3)
 
@@ -820,7 +829,8 @@ END CallInnerInit ;
                current module.
 *)
 
-PROCEDURE CodeStart (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeStart (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                     CompilingMainModule: BOOLEAN) ;
 BEGIN
    IF CompilingMainModule
    THEN
@@ -838,7 +848,8 @@ END CodeStart ;
              current module.
 *)
 
-PROCEDURE CodeEnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                   CompilingMainModule: BOOLEAN) ;
 BEGIN
    IF CompilingMainModule
    THEN
@@ -1148,8 +1159,9 @@ BEGIN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
-         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
-                                GetSymName(op3)), CurrentQuadToken)
+         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%s) as a VAR parameter')),
+                                Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
+                       CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
          (*
@@ -1201,7 +1213,9 @@ VAR
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
-      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%a)')), GetSymName(op3)), CurrentQuadToken)
+      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%s)')),
+                             Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
+                    CurrentQuadToken)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
       t := BuildAssignment(Mod2Gcc(op1),
@@ -1240,7 +1254,9 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(op1)
          THEN
-            ErrorStringAt(Sprintf1(Mark(InitString('constant, %a, should not be reassigned')), GetSymName(op1)), tokenno)
+            ErrorStringAt(Sprintf1(Mark(InitString('constant, %s, should not be reassigned')),
+                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1))))),
+                          tokenno)
          ELSE
             IF IsConstString(op3)
             THEN
@@ -1287,6 +1303,112 @@ END FoldBecomes ;
 
 
 (*
+   DescribeTypeError - 
+*)
+
+PROCEDURE DescribeTypeError (token: CARDINAL;
+                             op1, op2: CARDINAL) ;
+VAR
+   s1, s2: String ;
+BEGIN
+   s1 := NIL ;
+   s2 := NIL ;
+   IF IsTemporary(op1)
+   THEN
+      IF (GetType(op1)#NulSym) AND (GetSymName(GetType(op1))#NulName)
+      THEN
+         s1 := Mark(Sprintf1(Mark(InitString('symbol of type %s')),
+                             InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))))
+      END
+   ELSE
+      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))
+   END ;
+
+   IF IsTemporary(op2)
+   THEN
+      IF (GetType(op2)#NulSym) AND (GetSymName(GetType(op2))#NulName)
+      THEN
+         s2 := Mark(Sprintf1(Mark(InitString('symbol of type %s')),
+                             InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))))
+      END
+   ELSE
+      s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))))
+   END ;
+   IF (s1#NIL) AND (s2#NIL)
+   THEN
+      ErrorStringAt(Sprintf2(Mark(InitString('incompatible set types in assignment, assignment between (%s) and (%s)')),
+                             s1, s2),
+                    token)
+   ELSE
+      ErrorStringAt(InitString('incompatible set types in assignment'),
+                    token)
+   END
+END DescribeTypeError ;
+
+
+(*
+   DefaultConvertGM2 - provides a simple mapping between
+                       from end data types and GCC equivalents.
+                       This is only used to aid assignment of
+                       typed constants.
+*)
+
+PROCEDURE DefaultConvertGM2 (sym: CARDINAL) : Tree ;
+BEGIN
+   sym := SkipType(sym) ;
+   IF (sym=Word) OR (sym=Bitset)
+   THEN
+      (* avoid using ISO WORD type for gcc as ISO WORD is an array *)
+      RETURN( GetWordType() )
+   ELSE
+      RETURN( Mod2Gcc(sym) )
+   END
+END DefaultConvertGM2 ;
+
+
+(*
+   FoldConstBecomes - returns a Tree containing op3.
+                      The tree will have been folded and
+                      type converted if necessary.
+*)
+
+PROCEDURE FoldConstBecomes (op1, op3: CARDINAL) : Tree ;
+VAR
+   t: Tree ;
+BEGIN
+   IF IsConstSet(op3) OR ((SkipType(GetType(op3))#NulSym) AND
+                          IsSet(SkipType(GetType(op3))))
+   THEN
+      (* we have not checked set compatibility in
+         M2Quads.mod:BuildAssignment so we do it here.
+      *)
+(*
+      IF (Iso AND (SkipType(GetType(op1))#SkipType(GetType(op3)))) OR
+         (Pim AND ((SkipType(GetType(op1))#SkipType(GetType(op3))) AND
+                   (SkipType(GetType(op1))#Bitset) AND
+                   (SkipType(GetType(op3))#Bitset)))
+*)
+      IF SkipType(GetType(op1))#SkipType(GetType(op3))
+      THEN
+         DescribeTypeError(CurrentQuadToken, op1, op3) ;
+         RETURN( Mod2Gcc(op1) ) (* we might crash if we execute the BuildAssignment with op3 *)
+      END
+   END ;
+   t := Mod2Gcc(op3) ;
+   IF IsConst(op3)
+   THEN
+      IF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
+         (SkipType(GetType(op3))#SkipType(GetType(op1)))
+      THEN
+         t := ConvertConstantAndCheck(DefaultConvertGM2(GetType(op1)),
+                                      t)
+      END
+   END ;
+   RETURN( t )
+END FoldConstBecomes ;
+
+
+(*
 ------------------------------------------------------------------------------
    := Operator
 ------------------------------------------------------------------------------
@@ -1317,7 +1439,7 @@ BEGIN
                                                BuildAddr(Mod2Gcc(op3), FALSE),
                                                FindSize(op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
+      t := BuildAssignment(Mod2Gcc(op1), FoldConstBecomes(op1, op3))
    END
 END CodeBecomes ;
 
@@ -1620,8 +1742,9 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
-               ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%a)')),
-                                      GetSymName(op3)), QuadToTokenNo(quad))
+               ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%s)')),
+                                      Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
+                             QuadToTokenNo(quad))
             END
          ELSE
             (* rewrite the quad to use becomes *)
@@ -1632,8 +1755,28 @@ BEGIN
             PutQuad(quad, BecomesOp, op1, NulSym, result)
          END
       END
+   ELSIF GetSymName(op2)=MakeKey('CAP')
+   THEN
+      IF IsConst(op3) AND GccKnowsAbout(op3)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            IF (IsConstString(op3) AND (GetStringLength(op3)=1)) OR
+               (GetType(op3)=Char)
+            THEN
+               AddModGcc(op1, BuildCap(Mod2Gcc(op3))) ;
+               RemoveItemFromList(l, op1) ;
+               SubQuad(quad)
+            ELSE
+               ErrorStringAt(Sprintf1(Mark(InitString('parameter to CAP must be a single character (%s)')),
+                                      Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
+                             QuadToTokenNo(quad))
+            END
+         END
+      END
    ELSE
-      InternalError('only expecting LENGTH as a standard function', __FILE__, __LINE__)
+      InternalError('only expecting LENGTH or CAP as a standard function', __FILE__, __LINE__)
    END
 END FoldStandardFunction ;
 
@@ -1675,8 +1818,18 @@ BEGIN
          ErrorStringAt(Sprintf0(Mark(InitString('no procedure Length found for substitution to the standard function LENGTH which is required to calculate non constant string lengths'))),
                        CurrentQuadToken)
       END
+   ELSIF (op2#NulSym) AND (GetSymName(op2)=MakeKey('CAP'))
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('CAP function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         t := BuildAssignment(Mod2Gcc(op1), BuildCap(Mod2Gcc(op3)))
+      END
    ELSE
-      InternalError('only expecting LENGTH as a standard function', __FILE__, __LINE__)
+      InternalError('expecting LENGTH or CAP as a standard function',
+                    __FILE__, __LINE__)
    END
 END CodeStandardFunction ;
 
@@ -1836,6 +1989,35 @@ BEGIN
       END
    END
 END FoldIncl ;
+
+
+(*
+   FoldIfIn - check whether we can fold the IfInOp
+              if op1 in op2 then goto op3
+*)
+
+PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   (* firstly ensure that constant literals are declared *)
+   DeclareConstant(tokenno, op1) ;
+   DeclareConstant(tokenno, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
+   THEN
+      IF IsValueSolved(op1) AND IsValueSolved(op2)
+      THEN
+         (* fine, we can take advantage of this and evaluate the condition *)
+         PushValue(op1) ;
+         PushValue(op2) ;
+         IF Less(tokenno)
+         THEN
+            PutQuad(quad, GotoOp, NulSym, NulSym, op3)
+         ELSE
+            SubQuad(quad)
+         END
+      END
+   END
+END FoldIfLess ;
 
 
 (*
@@ -2805,8 +2987,31 @@ END CodeElementSize ;
 
 PROCEDURE FoldConvert (tokenno: CARDINAL; l: List;
                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+
+VAR
+   tl, tr: Tree ;
 BEGIN
-   FoldBinary(tokenno, l, BuildConvert, quad, op1, op2, op3)
+   (* firstly ensure that constant literals are declared *)
+   DeclareConstant(tokenno, op3) ;
+   IF IsConst(op3)
+   THEN
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3) AND
+         GccKnowsAbout(FindType(op2))
+      THEN
+         (* fine, we can take advantage of this and fold constant *)
+         IF IsConst(op1)
+         THEN
+            PutConst(op1, op2) ;
+            tl := Mod2Gcc(FindType(op2)) ;
+            PushIntegerTree(FoldAndStrip(BuildConvert(tl, Mod2Gcc(op3), TRUE))) ;
+            PopValue(op1) ;
+            PushValue(op1) ;
+            AddModGcc(op1, PopIntegerTree()) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
+         END
+      END
+   END
 END FoldConvert ;
 
 
@@ -2818,8 +3023,29 @@ END FoldConvert ;
 *)
 
 PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t,
+   tl, tr: Tree ;
 BEGIN
-   CodeBinary(BuildConvert, quad, op1, op2, op3)
+   (* firstly ensure that constant literals are declared *)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   tl := CoerceTree(op2) ;
+   tr := CoerceTree(op3) ;
+   IF IsConst(op1)
+   THEN
+      (* fine, we can take advantage of this and fold constant *)
+      PutConst(op1, op2) ;
+      tl := Mod2Gcc(FindType(op2)) ;
+      AddModGcc(op1,
+                BuildConvert(tl, Mod2Gcc(op3), TRUE))
+(*
+      AddModGcc(op1,
+                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
+                                     BuildConvert(tl, Mod2Gcc(op3), TRUE)))
+*)
+   ELSE
+      t := BuildAssignment(Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
+   END
 END CodeConvert ;
 
 
@@ -3651,8 +3877,8 @@ END CodeXIndr ;
 
 
 BEGIN
-   ModuleName := NIL ;
-   FileName   := NIL
+   ModuleName    := NIL ;
+   FileName      := NIL
 END M2GenGCC.
 (*
  * Local variables:

@@ -27,8 +27,8 @@ DEFINITION MODULE M2GenGCC ;
 *)
 
 FROM Lists IMPORT List ;
-(* FROM gccgm2 IMPORT Tree ; *)
-EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions, InitGNUM2 ;
+EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
+                 InitGNUM2 ;
 
 
 (*

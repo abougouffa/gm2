@@ -125,7 +125,7 @@ FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoL
 
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
-FROM M2Options IMPORT BoundsChecking, ReturnChecking, Iso,
+FROM M2Options IMPORT BoundsChecking, ReturnChecking, Iso, Pim,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug,
                       Profiling, Coding, Optimizing ;
@@ -1781,29 +1781,30 @@ END CollectHigh ;
 
 
 (*
-   BackPatchSubranges - runs through all the quadruples and finds SubrangeLow or SubrangeHigh
-                        quadruples and replaces it by an assignment to the Low or High component
-                        of the subrange type.
+   BackPatchSubrangesAndOptParam - runs through all the quadruples and finds SubrangeLow or SubrangeHigh
+                                   quadruples and replaces it by an assignment to the Low or High component
+                                   of the subrange type.
 
-                        Input:
+                                   Input:
+                                   SubrangeLow    op1     op3         (* op3 is a subrange *)
 
-                        SubrangeLow    op1     op3         (* op3 is a subrange *)
+                                   Output:
+                                   Becomes        op1     low
 
-                        Output:
+                                   Input:
+                                   SubrangeHigh   op1     op3         (* op3 is a subrange *)
 
-                        Becomes        op1     low
+                                   Output:
+                                   Becomes        op1     high
 
-                        Input:
+                                   Input:
+                                   OptParam       op1     op2    op3
 
-                        SubrangeHigh   op1     op3         (* op3 is a subrange *)
-
-                        Output:
-
-                        Becomes        op1     high
-
+                                   Output:
+                                   Param          op1     op2    GetOptArgInit(op3)
 *)
 
-PROCEDURE BackPatchSubranges (Head: CARDINAL) ;
+PROCEDURE BackPatchSubrangesAndOptParam (Head: CARDINAL) ;
 BEGIN
    IF Head#0
    THEN
@@ -1814,7 +1815,9 @@ BEGIN
             SubrangeLowOp :  Operand3 := CollectLow(Operand3) ;
                              Operator := BecomesOp |
             SubrangeHighOp:  Operand3 := CollectHigh(Operand3) ;
-                             Operator := BecomesOp
+                             Operator := BecomesOp |
+            OptParamOp    :  Operand3 := GetOptArgInit(Operand3) ;
+                             Operator := ParamOp
 
             ELSE
             END ;
@@ -1822,7 +1825,7 @@ BEGIN
          END
       UNTIL Head=0
    END
-END BackPatchSubranges ;
+END BackPatchSubrangesAndOptParam ;
 
 
 (*
@@ -3234,7 +3237,7 @@ BEGIN
    THEN
       IF (NoOfParameters+1=NoOfParam(Proc)) AND UsesOptArg(Proc)
       THEN
-         GenQuad(ParamOp, NoOfParam(Proc), Proc, GetOptArgInit(Proc))
+         GenQuad(OptParamOp, NoOfParam(Proc), Proc, Proc)
       END ;
       i := NoOfParameters ;
       pi := 1 ;     (* stack index referencing stacked parameter, i *)
@@ -3253,7 +3256,7 @@ BEGIN
       END ;
       IF (NoOfParameters+1=NoOfParam(Proc)) AND UsesOptArg(Proc)
       THEN
-         GenQuad(ParamOp, NoOfParam(Proc), Proc, GetOptArgInit(Proc))
+         GenQuad(OptParamOp, NoOfParam(Proc), Proc, Proc)
       END
    END ;
    GenQuad(CallOp, NulSym, NulSym, ProcSym) ;
@@ -5957,20 +5960,10 @@ END BuildAbsFunction ;
 
 (*
    BuildCapFunction - builds the pseudo procedure call CAP.
+                      We generate a the following quad:
 
-                      CAP(x) --> IF (x>='a') AND (x<='z')
-                                 THEN
-                                    res := CHR(ORD(x)-ORD('a')+ORD('A'))
-                                 ELSE
-                                    res := x
-                                 END ;
-                                 RETURN res
 
-                      However we cannot push tokens back onto the input stack
-                      because the compiler is currently building a function
-                      call and expecting a ReturnVar on the stack.
-                      Hence we manipulate the stack and call
-                      BuildConvertFunction.
+                      StandardFunctionOp  ReturnVal  Cap  Param1
 
                       The Stack:
 
@@ -5979,25 +5972,18 @@ END BuildAbsFunction ;
 
                Ptr ->
                       +----------------+
-                      | NoOfParam      |
+                      | NoOfParam = 1  |
                       |----------------|
                       | Param 1        |
-                      |----------------|
-                      | Param 2        |
-                      |----------------|
-                      .                .
-                      .                .
-                      .                .
-                      |----------------|
-                      | Param #        |
-                      |----------------|
-                      | ProcSym | Type |         Empty
-                      |----------------|
+                      |----------------|         +-------------+
+                      | ProcSym | Type |         | ReturnVal   |
+                      |----------------|         |-------------|
 *)
 
 PROCEDURE BuildCapFunction ;
 VAR
    NoOfParam,
+   ProcSym,
    Res, Var : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -6006,70 +5992,13 @@ BEGIN
       Var := OperandT(1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
+         ProcSym := OperandT(NoOfParam+1) ;
          PopN(NoOfParam+1) ;
 
-         Res := MakeTemporary(RightValue) ;
+         Res := MakeTemporary(AreConstant(IsConst(Var))) ;
          PutVar(Res, Char) ;
-
-         (* compute IF (x>='a') AND (x<='z') *)
-         PushTF(Var, GetType(Var)) ;
-         PushT(GreaterEqualTok) ;
-         PushTF(MakeConstLitString(MakeKey('a')), Char) ;
-         BuildRelOp ;
-         
-         PushT(AndTok) ;
-         RecordOp ;
-
-         PushTF(Var, GetType(Var)) ;
-         PushT(LessEqualTok) ;
-         PushTF(MakeConstLitString(MakeKey('z')), Char) ;
-         BuildRelOp ;
-         
-         BuildBinaryOp ;
-
-         BuildThenIf ;
-
-         (* compute THEN res := CHR(ORD(x)-ORD('a')+ORD('A')) *)
-         PushT(Res) ;
-         PushTF(Chr, NulSym) ;
-
-         PushTF(Ord, NulSym) ;
-         PushT(Var) ;
-         PushT(1) ;
-         BuildOrdFunction ;
-
-         PushT(MinusTok) ;
-         RecordOp ;
-
-         PushTF(Ord, NulSym) ;
-         PushTF(MakeConstLitString(MakeKey('a')), Char) ;
-         PushT(1) ;
-         BuildOrdFunction ;
-
-         BuildBinaryOp ;
-
-         PushT(PlusTok) ;
-         RecordOp ;
-
-         PushTF(Ord, NulSym) ;
-         PushTF(MakeConstLitString(MakeKey('A')), Char) ;
-         PushT(1) ;
-         BuildOrdFunction ;
-
-         BuildBinaryOp ;
-
-         PushT(1) ;
-         BuildChrFunction ;
-
-         BuildAssignment ;
-
-         BuildElse ;
-         PushT(Res) ;
-         PushT(Var) ;
-         BuildAssignment ;
-         BuildEndIf ;
-
-         PushT(Res)
+         GenQuad(StandardFunctionOp, Res, ProcSym, Var) ;
+         PushTF(Res, Char)
       ELSE
          WriteFormat0('argument to CAP must be a variable or constant')
       END
@@ -6389,7 +6318,7 @@ BEGIN
       IF IsUnknown(Type)
       THEN
          WriteFormat1('undeclared type found in CAST (%a)', GetSymName(Type))
-      ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type)) AND
+      ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR IsPointer(Type)) AND
          (IsVar(Var) OR IsConst(Var))
       THEN
          PopN(NoOfParam+1) ;
@@ -6479,7 +6408,7 @@ BEGIN
             Var := t
          END ;
 
-         ReturnVar := MakeTemporary(RightValue) ;
+         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
          PutVar(ReturnVar, Type) ;
          IF (GetType(Var)#Integer) AND (GetType(Var)#Cardinal) AND
             (GetType(Var)#Word) AND (GetType(Var)#Address) AND
@@ -6487,7 +6416,7 @@ BEGIN
             (NOT (IsMathType(Type) AND IsMathType(GetType(Var))))
          THEN
             (* all mathematical type conversions must go through INTEGER *)
-            IntegerVar := MakeTemporary(RightValue) ;
+            IntegerVar := MakeTemporary(AreConstant(IsConst(Var))) ;
             PutVar(IntegerVar, Integer) ;
             GenQuad(ConvertOp, IntegerVar, Integer, Var) ;
             GenQuad(ConvertOp, ReturnVar, Type, IntegerVar)
@@ -8402,22 +8331,23 @@ END BuildNulExpression ;
 
 
 (*
-   BuildBitsetStart - Pushes a Bitset type on the stack.
+   BuildSetStart - Pushes a Bitset type on the stack.
+
                       The Stack:
 
                       Entry             Exit
 
-               Ptr ->                                   <- Ptr
+               Ptr ->                                        <- Ptr
 
-                      Empty             +-------------+
-                                        | Bitset      |
-                                        |-------------|
+                      Empty             +--------------+
+                                        | Bitset       |
+                                        |--------------|
 *)
 
-PROCEDURE BuildBitsetStart ;
+PROCEDURE BuildSetStart ;
 BEGIN
    PushT(Bitset)
-END BuildBitsetStart ;
+END BuildSetStart ;
 
 
 (*
@@ -8466,7 +8396,10 @@ VAR
    NulSet: CARDINAL ;
 BEGIN
    PopT(Type) ;  (* type of set we are building *)
-   IF IsUnknown(Type)
+   IF (Type=NulSym) AND Pim
+   THEN
+      (* allowed generic {} in PIM Modula-2 *)
+   ELSIF IsUnknown(Type)
    THEN
       WriteFormat1('set type %a is undefined', GetSymName(Type)) ;
       Type := Bitset
@@ -8475,10 +8408,10 @@ BEGIN
       WriteFormat1('expecting a set type %a', GetSymName(Type)) ;
       Type := Bitset
    ELSE
-      Type := SkipType(Type)
+      Type := SkipType(Type) ;
+      Assert((Type#NulSym))
    END ;
    NulSet := MakeTemporary(ImmediateValue) ;
-   Assert(Type#NulSym) ;
    PutVar(NulSet, Type) ;
    PutConstSet(NulSet) ;
    IF CompilerDebugging
@@ -9513,6 +9446,7 @@ BEGIN
 
       StartDefFileOp    : printf2('  %4d  %a', Operand1, GetSymName(Operand3)) |
 
+      OptParamOp,
       ParamOp           : printf1('%4d  ', Operand1) ;
                           WriteOperand(Operand2) ;
                           printf0('  ') ;
@@ -9605,6 +9539,7 @@ BEGIN
    FunctValueOp             : printf0('FunctValue       ') |
    CallOp                   : printf0('Call             ') |
    ParamOp                  : printf0('Param            ') |
+   OptParamOp               : printf0('OptParam         ') |
    NewLocalVarOp            : printf0('NewLocalVar      ') |
    KillLocalVarOp           : printf0('KillLocalVar     ') |
    UnboundedOp              : printf0('Unbounded        ') |

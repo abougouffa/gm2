@@ -53,7 +53,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildDesignatorRecord,
                  BuildDesignatorArray,
                  BuildDesignatorPointer,
-      	       	 BuildBitsetStart, BuildSetEnd,
+      	       	 BuildSetStart, BuildSetEnd,
                  BuildEmptySet,
                  BuildInclRange, BuildInclBit,
                  BuildNulExpression,
@@ -92,7 +92,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsDefOrModFile,
 
                  DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
-                 WriteOperator, BackPatchSubranges,
+                 WriteOperator, BackPatchSubrangesAndOptParam,
 
                  GetQuad, GetNextQuad, PutQuad,
                  AddQuad, SubQuad, EraseQuad, GetRealQuad,
@@ -114,7 +114,7 @@ TYPE
                    OffsetOp,
                    IfEquOp, IfLessEquOp, IfGreEquOp, IfGreOp, IfLessOp,
                    IfNotEquOp, IfInOp, IfNotInOp,
-                   CallOp, ParamOp, ReturnOp, ReturnValueOp, FunctValueOp,
+                   CallOp, ParamOp, OptParamOp, ReturnOp, ReturnValueOp, FunctValueOp,
                    NewLocalVarOp, KillLocalVarOp,
                    DummyOp,
                    GotoOp, EndOp, StartOp,
@@ -1492,19 +1492,20 @@ PROCEDURE BuildNulExpression ;
 
 
 (*
-   BuildBitsetStart - Pushes a Bitset type on the stack.
+   BuildSetStart - Pushes a Bitset type on the stack.
+
                       The Stack:
 
                       Entry             Exit
 
-                                                       <- Ptr
+               Ptr ->                                        <- Ptr
 
-                      Empty             +-------------+
-                                        | Bitset      |
-                                        |-------------|
+                      Empty             +--------------+
+                                        | Bitset       |
+                                        |--------------|
 *)
 
-PROCEDURE BuildBitsetStart ;
+PROCEDURE BuildSetStart ;
 
 
 (*
@@ -1952,24 +1953,30 @@ PROCEDURE IncDynamicQuads (Start, End: CARDINAL) ;
 
 
 (*
-   BackPatchSubranges - runs through all the quadruples and finds any conditional
-                        quadruple which has as its second operand a subrange.
-                        It alters:
+   BackPatchSubrangesAndOptParam - runs through all the quadruples and finds SubrangeLow or SubrangeHigh
+                                   quadruples and replaces it by an assignment to the Low or High component
+                                   of the subrange type.
 
-                        Before:
-                        If >   op1   op2    _              (* op2 is a subrange *)
+                                   Input:
+                                   SubrangeLow    op1     op3         (* op3 is a subrange *)
 
-                        After:
-                        If >   op1   high   _
+                                   Output:
+                                   Becomes        op1     low
 
-                        Before:
-                        If <   op1   op2    _              (* op2 is a subrange *)
+                                   Input:
+                                   SubrangeHigh   op1     op3         (* op3 is a subrange *)
 
-                        After:
-                        If <   op1   low    _
+                                   Output:
+                                   Becomes        op1     high
+
+                                   Input:
+                                   OptParam       op1     op2    op3
+
+                                   Output:
+                                   Param          op1     op2    GetOptArgInit(op3)
 *)
 
-PROCEDURE BackPatchSubranges (Head: CARDINAL) ;
+PROCEDURE BackPatchSubrangesAndOptParam (Head: CARDINAL) ;
 
 
 (*

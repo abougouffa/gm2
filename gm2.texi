@@ -158,9 +158,9 @@ option uses the file @file{modulename.lst} for the initialisation
 order of modules.
 
 @item -Wcpp
-do preprocess the source with @samp{cpp -traditional -lang-asm -C} For
-further details about these options see @xref{Invocation, , ,cpp}.  If
-@samp{-Wcpp} is supplied then all definition modules and
+do preprocess the source with @samp{cpp -lang-asm -traditional-cpp}
+For further details about these options see @xref{Invocation, , ,cpp}.
+If @samp{-Wcpp} is supplied then all definition modules and
 implementation modules which are parsed will be preprocessed by
 @samp{cpp}.
 
@@ -198,15 +198,11 @@ BEGIN
 END hello.
 @end example
 
-You should be able to compile it by:
-@samp{gm2 -c -g -I. hello.mod}
-and link via:
-@samp{gm2 -g -I. hello.mod}.
-The result should be an @samp{a.out} file created in your directory.
-Hint, the
-@samp{-v} displays the subprocesses initiated by
-@samp{gm2}.
-This can be useful when trouble shooting.
+You should be able to compile it by: @samp{gm2 -c -g -I. hello.mod}
+and link via: @samp{gm2 -g -I. hello.mod}.  The result should be an
+@samp{a.out} file created in your directory.  @footnote{The @samp{-v}
+displays the subprocesses initiated by @samp{gm2} which can be useful
+when trouble shooting.}
 
 Alternatively it may be compiled by:
 
@@ -231,6 +227,7 @@ GNU Modula-2              GNU C
 INTEGER                   int
 LONGINT                   long int
 CARDINAL                  unsigned int
+LONGCARD                  long unsigned int
 BOOLEAN                   int
 REAL                      double
 LONGREAL                  long double
@@ -302,8 +299,7 @@ PROCEDURE DISPOSE (VAR p:<any pointer type>) ;
 *)
 
 @findex INC
-PROCEDURE INC (VAR v: <any base type>) ;
-PROCEDURE INC (VAR v: <any base type>; a: <any base type>) ;
+PROCEDURE INC (VAR v: <any base type>; [a: <any base type> = 1]) ;
 @end example
 
 @example
@@ -316,8 +312,7 @@ PROCEDURE INC (VAR v: <any base type>; a: <any base type>) ;
 *)
 
 @findex DEC
-PROCEDURE DEC (VAR v: <any base type>) ;
-PROCEDURE DEC (VAR v: <any base type>; a: <any base type>) ;
+PROCEDURE DEC (VAR v: <any base type>; [a: <any base type> = 1]) ;
 @end example
 
 @example
@@ -433,11 +428,11 @@ assembly language.
 
 The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
 command line option. This in turn invokes @samp{cpp} with the
-following arguments @samp{-traditional -lang-asm -C}.  These options
+following arguments @samp{-traditional -lang-asm}.  These options
 preserve comments and all quotations.  @samp{gm2} treats a @samp{#}
 character in the first column as a preprocessor directive.
 
-For example here is a module which calls @code{InternalError}
+For example here is a module which calls @code{FatalError}
 twice via the macro @code{ERROR}.
 
 @example
@@ -473,7 +468,7 @@ END cpp.
 
 GNU Modula-2 allows the last parameter to a procedure or function
 parameter to be optional. For example in the ISO library
-@code{COROUTINES.def} the procedure @code{NEWCOROUTINE} is defined as
+@file{COROUTINES.def} the procedure @code{NEWCOROUTINE} is defined as
 having an optional fifth argument (@code{initProtection}) which, if
 absent, is automatically replaced by @code{NIL}.
 
@@ -585,62 +580,91 @@ module.  While the tool will not automatically translate complex C
 header files it will generate definition modules for simple header
 files.
 
-For example consider the following header file (@code{header.h}):
+For example consider the following excerpt from the
+header file (@file{vga.h}):
 
 @example
-#define MYTYPE void *
+/* blit flags */
+#define HAVE_BITBLIT 1
+#define HAVE_FILLBLIT 2
+#define HAVE_IMAGEBLIT 4
+#define HAVE_HLINELISTBLIT 8
+#define HAVE_BLITWAIT 16
 
-extern MYTYPE h;
+    typedef struct @{
+	int width;
+	int height;
+	int bytesperpixel;
+	int colors;
+	int linewidth;		/* scanline width in bytes */
+	int maxlogicalwidth;	/* maximum logical scanline width */
+	int startaddressrange;	/* changeable bits set */
+	int maxpixels;		/* video memory / bytesperpixel */
+	int haveblit;		/* mask of blit functions available */
+	int flags;		/* other flags */
 
-#define LIMIT  1000
-#define FOOBAR (1+LIMIT)
+	/* Extended fields: */
 
-int *p, ch;
+	int chiptype;		/* Chiptype detected */
+	int memory;		/* videomemory in KB */
+	int linewidth_unit;	/* Use only a multiple of this as parameter for set_logicalwidth and
+				   set_displaystart */
+	char *linear_aperture;	/* points to mmap secondary mem aperture of card (NULL if unavailable) */
+	int aperture_size;	/* size of aperture in KB if size>=videomemory. 0 if unavail */
+	void (*set_aperture_page) (int page);
+	/* if aperture_size<videomemory select a memory page */
+	void *extensions;	/* points to copy of eeprom for mach32 */
+	/* depends from actual driver/chiptype.. etc. */
+    @} vga_modeinfo;
 
-extern MYTYPE func (void (*funcarray)(int, char));
-
-struct mumble @{
-  char *name;
-  void *addr;
-  struct mumble *next;
-  void (*arrayfunc[5])(int, char);
-@} *mylist;
+    extern vga_modeinfo *vga_getmodeinfo(int mode);
+    extern int vga_getdefaultmode(void);
+    extern int vga_getcurrentmode(void);
+    extern int vga_getcurrentchipset(void);
+    extern char *vga_getmodename(int mode);
 @end example
 
-Using the following command line @code{h2def header.h} will generate
+Using the following command line @code{h2def vga.h} will generate
 the module below:
 
 @example
-DEFINITION MODULE FOR "C" header ;
+DEFINITION MODULE FOR "C" vga ;
 
-VAR
-   h: ADDRESS ;
-   
 CONST
-   LIMIT = 1000 ;
-   FOOBAR = (LIMIT) + (1) ;
-     
-VAR
-   p: POINTER TO INTEGER ;
-   ch: INTEGER ;
-   
-PROCEDURE func (funcarray: t1) : ADDRESS;
+     HAVE_BITBLIT =  1 ;
+     HAVE_FILLBLIT =  2 ;
+     HAVE_IMAGEBLIT =  4 ;
+     HAVE_HLINELISTBLIT =  8 ;
+     HAVE_BLITWAIT =  16 ;
 
 TYPE
-   t1 = PROCEDURE (INTEGER, CHAR) ;
+     vga_modeinfo =   RECORD
+                         width: INTEGER ;
+                         height: INTEGER ;
+                         bytesperpixel: INTEGER ;
+                         colors: INTEGER ;
+                         linewidth: INTEGER ;
+                         maxlogicalwidth: INTEGER ;
+                         startaddressrange: INTEGER ;
+                         maxpixels: INTEGER ;
+                         haveblit: INTEGER ;
+                         flags: INTEGER ;
+                         chiptype: INTEGER ;
+                         memory: INTEGER ;
+                         linewidth_unit: INTEGER ;
+                         linear_aperture: POINTER TO CHAR ;
+                         aperture_size: INTEGER ;
+                         set_aperture_page:  PROCEDURE (INTEGER) ;
+                         extensions: ADDRESS ;
+                      END ;
     
-VAR
-   mylist: POINTER TO mumble;
-   
-TYPE
-   mumble = RECORD
-               name: POINTER TO CHAR ;
-               addr: ADDRESS ;
-               next: POINTER TO mumble ;
-               arrayfunc: ARRAY [0.. 5-1] OF PROCEDURE (INTEGER, CHAR) ;
-            END ;
+ PROCEDURE vga_getmodeinfo (mode: INTEGER) : ADDRESS ;
+ PROCEDURE vga_getdefaultmode () : INTEGER ;
+ PROCEDURE vga_getcurrentmode () : INTEGER ;
+ PROCEDURE vga_getcurrentchipset () : INTEGER ;
+ PROCEDURE vga_getmodename (mode: INTEGER) : ADDRESS ;
 
-END header.
+END vga.
 @end example
 
 The main limitation of @code{h2def} is in the preprocessing handling.
@@ -664,6 +688,8 @@ header file called @code{ifdef.h}:
 #if !defined(FOOBAR)
 # define FOOBAR
 # define MAXIMUM 1000
+#else
+# define MAXIMUM 2000
 #endif
 @end example
 
@@ -675,6 +701,8 @@ DEFINITION MODULE FOR "C" ifdef ;
 # if (!(defined(FOOBAR)))
 CONST
    MAXIMUM = 1000 ;
+# else
+   MAXIMUM = 2000 ;
 # endif
      
 END ifdef.
@@ -688,8 +716,8 @@ Normally output for @code{h2def} will require some manual
 intervention. Some header files need more help than others, for
 example the GNU/Linux svga header file @code{vga.h} requires a little
 help whereas the GNU pthread file @code{pthread.h} requires more.
-Nevertheless the effort required is much less than writing the modules
-by hand.
+Nevertheless the effort required is considerably less than writing the
+modules by hand.
 
 The @samp{-e} option will emit an error message if a C syntax error is
 encountered. The @samp{-p} option generate a comment for every
@@ -698,12 +726,14 @@ occurance of an object which cannot be translated into Modula-2.
 @node Assembly language, Built-ins, h2def, Using
 @section Interface to assembly language
 
-The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
-The only alterations are that the keywords asm and volatile are in capitals,
-following the Modula-2 convention.
+The interface for GNU Modula-2 to assembly language is almost
+identical to GNU C.  The only alterations are that the keywords
+@code{asm} and @code{volatile} are in capitals, following the Modula-2
+convention.
 
-A simple, but highly non optimal, example is given below. Here we want to add the
-two @code{CARDINAL}s @code{foo} and @code{bar} together and return the result.
+A simple, but highly non optimal, example is given below. Here we want
+to add the two @code{CARDINAL}s @code{foo} and @code{bar} together and
+return the result.
 
 @example
 PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
@@ -863,7 +893,7 @@ development it might fail to compile with the current version of gcc.
 
 @section Development sources via CVS
 
-To get the latest sources to GM2 type the following:
+To get the latest sources to GNU Modula-2 type the following:
 
 @example
 export CVSROOT=:pserver:anoncvs@@floppsie.comp.glam.ac.uk:/usr/src/cvs
@@ -875,9 +905,9 @@ cvs -z9 checkout GM2
 This will checkout a copy of GNU Modula-2 into one subdirectory:
 @file{gm2}.
 
-This version of GM2 needs to be placed inside the GCC source tree in
-the position gcc-@var{version}/gcc before GNU Modula-2 can be built. Please
-check the GNU Modula-2 homepage
+This version of GNU Modula-2 needs to be placed inside the GCC source
+tree in the position gcc-@var{version}/gcc before GNU Modula-2 can be
+built. Please check the GNU Modula-2 homepage
 @uref{http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/GNUModula-2.html}
 for details about which GCC releases are supported by GNU Modula-2.
 
@@ -892,7 +922,7 @@ mv gm2 gcc-@var{version}/gcc
 
 @section Building GNU Modula-2
 
-To build gm2 type:
+To build GNU Modula-2 type:
 
 @example
 mkdir host-build
@@ -1002,7 +1032,6 @@ The document is still in it's infancy.
 * Integrating::             How the front end integrates with gcc.
 * Passes::                  What gets processed during each pass.
 * Scope rules::             Clarification of some the scope rules.
-* Future::                  A future wish list.
 * Done list::               Progression of the GNU Modula-2 project.
 * To do list::              Outstanding issues.
 @end menu
@@ -1048,6 +1077,9 @@ fixes to the @code{CASE} syntax for 2nd Edition Modula-2.
 fixes to a @code{FOR} loop counting down to zero using a @code{CARDINAL}.
 @item
 introducing an initialization section for each implementation module.
+@item
+various porting improvements and general tidying up so that
+it compiles with the gcc option @code{-Wall}.
 @end itemize
 
 GNU Modula-2 comes with PIM and ISO style libraries. The compiler
@@ -1207,7 +1239,7 @@ BEGIN
 END colour.
 @end example
 
-@node Scope rules, Future, Passes, Internals
+@node Scope rules, Done list, Passes, Internals
 @section Scope rules
 
 This section describes my understanding of the Modula-2 scope rules
@@ -1354,16 +1386,7 @@ END impd.
 
 then @code{red} is resolved and the module is legal.
 
-@node Future, Done list, Scope rules, Internals
-@section A future wish list
-
-In the future it might be sensible to rewrite M2Quads.mod to
-directly call gcc routines, rather than generate quadruples.
-However this is a large alteration and I'd firstly like to
-see GNU Modula-2 working with the method outlined above, which is
-conceptually easier.
-
-@node Done list, To do list, Future, Internals
+@node Done list, To do list, Scope rules, Internals
 @section Done list
 
 What has been done:
@@ -1403,7 +1426,7 @@ cpp can be run on definition and implementation modules.
 will build all dependant modules.
 
 @item
-Compiler will bootstrap itself and three generations of the
+compiler will bootstrap itself and three generations of the
 compiler all produce the same code.
 
 @item
@@ -1452,7 +1475,7 @@ all @samp{Makefile}s are generated via @samp{./configure}
 
 @end itemize
 
-@node To do list, , Done list, Internals
+@node To do list, EBNF, Done list, Internals
 @section To do list
 
 What needs to be done:
@@ -1460,34 +1483,16 @@ What needs to be done:
 @itemize @bullet
 
 @item
-implement ISO library (use FIO.mod as the underlying substructure).
+ISO library implementation needs to be completed
+(use FIO.mod as the underlying substructure).
 
 @item
-implement LONGCARD and include IO functions within FpuIO.
+Easy access to other libraries using @code{-Wlibs=} so that libraries
+can be added into the @file{/usr/.../gcc-lib/gm2/...} structure. ISO
+language complience.
 
 @item
 implement many of the ISO built-in functions and procedures.
-
-@item
-rewrite documentation.
-
-@item
-the modula-2 front end needs to convert the quadruples into
-trees and the convert these trees into gcc trees, rather than
-simply translating each quadruple into a separate gcc tree.
-The later works but better code could be generated by
-building a large tree and passing this tree to gcc.
-One way to implement this is by taking a copy of M2SubExp.mod and
-basing the gcc calls on the tree structure that M2SubExp.mod builds.
-My belief is that this should not take much time to complete and
-should produce better code.
-
-This requires separating the semantic checking routines away from M2Quads.mod.
-Propose a new module M2Tree which contains the functionality of M2Quads/M2SubExp.
-We should be able to remove M2Quads, M2SubExp, M2Optimize, M2GenGCC, M2EvalSym
-once this is complete.
-
-SymbolTable needs to be modified.
 
 @item
 investigate the use of collect2 during link/module initialization.
@@ -1500,11 +1505,18 @@ improve documentation, specifically this document which should
 also include a synopsis of 2nd Edition Modula-2.
 
 @item
+shared library access and generation
+
+@item
+modifying @file{SymbolTable.mod} and @file{M2Quads.mod} to
+make all the data structures dynamic.
+
+@item
 testing and fixing bugs
 
 @end itemize
 
-@node EBNF, Libraries, Internals, Top
+@node EBNF, Libraries, To do list, Top
 @chapter EBNF of GNU Modula-2
 
 This chapter contains the EBNF of GNU Modula-2. This grammer

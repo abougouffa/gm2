@@ -1,3 +1,13 @@
+2003-12-26	Gaius Mulley <gaius@glam.ac.uk>
+
+	* increased the number of regression tests to 1332
+	* gm2 passes 1317 and fails 15
+	* many bug fixes..
+	* improved documentation, gm2.texi.
+	* completed the optional final parameter argument.
+	* reimplemented the CAP standard function so that it
+	  can be used within constant expressions.
+	
 2003-11-27	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed a bug in the handling of the -Wcpp option so that it uses

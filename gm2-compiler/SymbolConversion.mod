@@ -88,7 +88,7 @@ BEGIN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   IF sym=149
+   IF sym=87
    THEN
       mystop2
    END ;

@@ -17,6 +17,7 @@ EXPORT QUALIFIED Tree,
                  DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
                  GetDefaultType, GetCopyOfType,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
+                 GetWordOne, GetWordZero,
                  GetCharType, GetM2CharType, GetVoidType, GetCurrentFunction,
                  GetPointerType, GetM2IntegerType, GetM2CardinalType,
                  GetByteType, GetCardinalType, GetBitsetType, GetBitnumType,
@@ -63,7 +64,7 @@ EXPORT QUALIFIED Tree,
                  BuildAsm, BuildExpand, DebugTree,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
-                 RememberConstant,
+                 RememberConstant, FoldAndStrip,
                  BuildBinaryForeachWordDo,
                  BuildUnaryForeachWordDo,
                  BuildIncludeVarVar, BuildExcludeVarVar,
@@ -72,10 +73,12 @@ EXPORT QUALIFIED Tree,
                  BuildForeachWordInSetDoIfExpr,
                  BuildIfInRangeGoto, BuildIfNotInRangeGoto,
                  BuildPushFunctionContext, BuildPopFunctionContext,
+                 BuildCap,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  AssignBooleanTrueFalse,
-                 ConvertConstantAndCheck, ExpandExpressionStatement,
+                 ConvertConstantAndCheck, ToWord,
+                 ExpandExpressionStatement,
                  InitGlobalContext ;
 
 
@@ -145,6 +148,8 @@ PROCEDURE GetISOWordType         () : Tree ;
 
 PROCEDURE GetIntegerZero         () : Tree ;
 PROCEDURE GetIntegerOne          () : Tree ;
+PROCEDURE GetWordZero            () : Tree ;
+PROCEDURE GetWordOne             () : Tree ;
 PROCEDURE GetCurrentFunction     () : Tree ;
 PROCEDURE GetErrorNode           () : Tree ;
 
@@ -426,6 +431,13 @@ PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
 
 PROCEDURE ConvertConstantAndCheck (type, expr: Tree) : Tree ;
 
+
+(*
+   ToWord - converts an expression (Integer or Ordinal type) into
+            a WORD.
+*)
+
+PROCEDURE ToWord (expr: Tree) : Tree ;
 
 (*
    AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
@@ -952,6 +964,14 @@ PROCEDURE RememberConstant (t: Tree) : Tree ;
 
 
 (*
+   FoldAndStrip - folds a constant expression tree and strips
+                  off any nops.
+*)
+
+PROCEDURE FoldAndStrip (t: Tree) : Tree ;
+
+
+(*
    BuildPushFunctionContext - pushes the current function context.
                               Maps onto push_function_context in ../function.c
 *)
@@ -965,6 +985,14 @@ PROCEDURE BuildPushFunctionContext ;
 *)
 
 PROCEDURE BuildPopFunctionContext ;
+
+
+(*
+   BuildCap - builds the Modula-2 function CAP(t) and returns
+              the result in a gcc Tree.
+*)
+
+PROCEDURE BuildCap (t: Tree) : Tree ;
 
 
 (*

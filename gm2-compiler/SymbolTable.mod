@@ -2994,7 +2994,12 @@ BEGIN
       VarSym              : type := Var.Type |
       ConstLitSym         : type := ConstLit.Type |
       ConstVarSym         : type := ConstVar.Type |
-      ConstStringSym      : type := NulSym |  (* No type for a string *)
+      ConstStringSym      : IF ConstString.Length=1
+                            THEN
+                               type := Char
+                            ELSE
+                               type := NulSym  (* No type for a string *)
+                            END |
       TypeSym             : type := Type.Type |
       RecordFieldSym      : type := RecordField.Type |
       RecordSym           : type := NulSym |  (* No type for a record *)
@@ -7205,6 +7210,10 @@ END PushVarSize ;
 
 PROCEDURE PopValue (Sym: CARDINAL) ;
 BEGIN
+   IF Sym=71
+   THEN
+      stop
+   END ;
    CheckLegal(Sym) ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF

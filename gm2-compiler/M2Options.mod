@@ -152,10 +152,12 @@ BEGIN
    ELSIF EqualArray(s, '-Wiso')
    THEN
       Iso := TRUE ;
+      Pim := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wpim')
    THEN
       Pim := TRUE ;
+      Iso := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wd')
    THEN

@@ -28,7 +28,11 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Options IMPORT GenerateDebugging, GenerateLineDebug, Iso ;
+FROM M2Quads IMPORT DisplayQuadRange ;
+
+FROM M2Options IMPORT DisplayQuadruples,
+                      GenerateDebugging, GenerateLineDebug, Iso ;
+
 FROM NameKey IMPORT Name, MakeKey, NulName, KeyToCharStar, makekey ;
 FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
 FROM M2FileName IMPORT CalculateFileName ;
@@ -54,7 +58,7 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopSize,
                         IsTemporary, IsUnbounded, IsEnumeration, IsVar,
-      	       	     	IsSubrange, IsPointer, IsRecord, IsArray,
+      	       	     	IsSubrange, IsPointer, IsRecord, IsArray, IsFieldEnumeration,
                         IsProcedure, IsProcedureNested, IsModule, IsDefImp,
       	       	     	IsSubscript, IsVarient, IsFieldVarient,
       	       	     	IsType, IsProcType, IsSet, IsConst, IsConstSet,
@@ -71,8 +75,9 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
                         ForeachInnerModuleDo, ForeachImportedDo, ForeachExportedDo ;
 
-FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard, Real, LongReal, ShortReal, Boolean, True, False,
+FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax, MixTypes,
+                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard,
+                   Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
 FROM M2Bitset IMPORT Bitset, Bitnum ;
@@ -566,6 +571,17 @@ BEGIN
    END ;
    IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
    THEN
+      IF IsConstSet(sym) OR IsFieldEnumeration(sym)
+      THEN
+         IF GccKnowsAbout(GetType(sym))
+         THEN
+            IncludeItemIntoList(ToDoConstants, sym)
+         ELSE
+            (* must wait for the type to be declared *)
+            RETURN
+         END
+      END ;
+
       IF IsConstSet(sym)
       THEN
          ResolveConstSet(tokenno, sym)
@@ -631,7 +647,7 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF Sym=177
+   IF Sym=114
    THEN
       mystop
    END ;
@@ -897,6 +913,10 @@ PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
 VAR
    n, m: CARDINAL ;
 BEGIN
+   IF DisplayQuadruples
+   THEN
+      DisplayQuadRange(start, end)
+   END ;
    REPEAT
       n := NoOfItemsInList(ToDoConstants) ;
       WHILE ResolveConstantExpressions(ToDoConstants, start, end) DO
@@ -1826,7 +1846,7 @@ END IsEnumerationDependantsWritten ;
 
 (*
    CheckResolveSubrange - checks to see whether we can resolve the subrange type.
-                          We are able to do this once low, and high are known.
+                          We are able to do this once low, high and the type are known.
 *)
 
 PROCEDURE CheckResolveSubrange (Sym: CARDINAL) ;
@@ -1866,7 +1886,8 @@ BEGIN
          THEN
             WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', GetSymName(Sym)) ;
          ELSE
-            PutSubrange(Sym, low, high, Integer)
+            PutSubrange(Sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(Sym)))
+            (* previously we forced subranges to Integer *)
          END
       END ;
       type := GetType(Sym) ;
@@ -1902,7 +1923,7 @@ BEGIN
    END ;
    CheckResolveSubrange(Sym) ;
    RETURN(
-          GccKnowsAbout(GetType(Sym)) AND
+          ((GetType(Sym)=NulSym) OR GccKnowsAbout(GetType(Sym))) AND
           GccKnowsAbout(low) AND GccKnowsAbout(high)
          )
 END IsSubrangeDependantsWritten ;

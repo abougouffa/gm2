@@ -69,7 +69,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildFunctionCall, BuildConstFunctionCall,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
-                    BuildBitsetStart, BuildSetEnd,
+                    BuildSetStart, BuildSetEnd,
                     BuildLineNo, PushLineNo, BuildSizeCheckStart,
                     BuildBuiltinConst,
                     BuildAssignment,
@@ -359,7 +359,7 @@ END Expect ;
 PROCEDURE CompilationUnit () : BOOLEAN ;
 BEGIN
    WasNoError := TRUE ;
-   FileUnit({eoftok}, {}, {}) ;
+   FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    RETURN( WasNoError )
 END CompilationUnit ;
 
@@ -663,10 +663,10 @@ ConstString :=
 ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
                                              | ActualParameters            % BuildConstFunctionCall %
                                                                 ]
-                                 |                                         % BuildBitsetStart %
+                                 |                                         % BuildSetStart %
                                    SimpleSet =:
 
-QualidentOrSet := SimpleSet                                                % BuildBitsetStart %
+QualidentOrSet := SimpleSet                                                % BuildSetStart %
                   | Qualident [ SimpleSet ] =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
@@ -932,7 +932,7 @@ SetOrDesignatorOrFunction := Qualident                                     % Che
                                 SimpleDes [ ActualParameters               % BuildFunctionCall %
                                                              ]
                               ]                                |
-                                                                           % BuildBitsetStart %
+                                                                           % BuildSetStart %
                                SimpleSet
                            =:
 
@@ -1102,8 +1102,9 @@ ProcedureBlock := { Declaration }                                          % Bui
                                                             "END"
                 =:
 
-Block := { Declaration }                                                   % StartBuildModFile ;
-                                                                             StartBuildInit %
+Block := { Declaration }
+                                                                           % StartBuildModFile %
+                                                                           % StartBuildInit %
                          [ "BEGIN" StatementSequence ] "END"               % EndBuildInit %
        =:
 

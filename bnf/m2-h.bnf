@@ -68,7 +68,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildFunctionCall, BuildConstFunctionCall,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
-                    BuildBitsetStart, BuildSetEnd,
+                    BuildSetStart, BuildSetEnd,
                     BuildLineNo, BuildSizeCheckStart,
                     BuildAssignment,
                     BuildRepeat, BuildUntil,
@@ -357,7 +357,7 @@ END Expect ;
 PROCEDURE CompilationUnit () : BOOLEAN ;
 BEGIN
    WasNoError := TRUE ;
-   FileUnit({eoftok}, {}, {}) ;
+   FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    RETURN( WasNoError )
 END CompilationUnit ;
 
@@ -666,7 +666,7 @@ ConstString :=
 ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
                                              | ActualParameters            % BuildConstFunctionCall %
                                                                 ]
-                                 |                                         % BuildBitsetStart %
+                                 |                                         % BuildSetStart %
                                    SimpleSet =:
 
 QualidentOrSet := SimpleSet

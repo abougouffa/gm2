@@ -311,7 +311,7 @@ END Expect ;
 PROCEDURE CompilationUnit () : BOOLEAN ;
 BEGIN
    WasNoError := TRUE ;
-   FileUnit({eoftok}, {}, {}) ;
+   FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    RETURN( WasNoError )
 END CompilationUnit ;
 
