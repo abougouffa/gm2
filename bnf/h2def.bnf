@@ -1445,7 +1445,10 @@ BEGIN
    THEN
       IF n^.type=ndident
       THEN
-         hprintf1('%s: ', Mark(InitStringCharStar(n^.id.name))) ;
+         IF emitting=procedures
+         THEN
+            hprintf1('%s: ', Mark(InitStringCharStar(n^.id.name))) ;
+         END ;
          IF IsArray(n^.id.type)
          THEN
             (* do nothing *)
@@ -2675,6 +2678,7 @@ BEGIN
                CurrentDirectory := GetDirectory(s) ;
                fprintf1(op, '(* automatically generated for GNU Modula-2 by:\n   h2def %s\n*)\n', args) ;
                fprintf1(op, 'DEFINITION MODULE FOR "C" %s ;\n\n', Mark(BaseName(s))) ;
+               fprintf0(op, 'FROM SYSTEM IMPORT ADDRESS, BYTE ;\n\n') ;
                CompilationUnit ;
                fprintf1(op, '\nEND %s.\n', Mark(BaseName(s)))
             ELSE
