@@ -16,6 +16,7 @@ along with this program; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
 
 
+static void stop () {}
 
 #define PROTO_PARSE_C
 #include "trans.h"
@@ -3202,7 +3203,7 @@ Static Stmt *p_body()
     long saveserial;
 
     if (verbose)
-	fprintf(logf, "%s, %d/%d: Translating %s (in %s)\n",
+	fprintf(logfile, "%s, %d/%d: Translating %s (in %s)\n",
 		infname, inf_lnum, outf_lnum,
 		curctx->name, curctx->ctx->name);
     notephase = 1;
@@ -3558,6 +3559,8 @@ Static void p_function(isfunc, ismodule)
         gettok();
         func->val.i = 0;
         pushctx(func);
+	if (strcmp(func->name, "ConcatContents") == 0)
+	  stop();
         func->type = type = p_funcdecl(&isfunc, 0);
         func->isfunction = isfunc;
 	func->namedfile = isinline;
@@ -4242,7 +4245,6 @@ int isdefn;
 		out_include(codehname, 1);   /* include our definition module */
 	}
     } else {
-      /* stop3(); */
 	if (!*hdrfname) {
 	    sl = strlist_cifind(includefrom, mod->name);
 	    if (sl)
@@ -4356,8 +4358,8 @@ int need;
     if (!fp) {
         if (need)
             perror(infnbuf);
-	if (logf)
-	    fprintf(logf, "(Unable to open search file \"%s\")\n", infnbuf);
+	if (logfile)
+	    fprintf(logfile, "(Unable to open search file \"%s\")\n", infnbuf);
         return 0;
     }
     flushcomments(NULL, -1, -1);
@@ -4405,7 +4407,7 @@ int need;
 		printf("Reading import text for \"%s\"\n", mod->name);
 	}
 	if (verbose)
-	    fprintf(logf, "%s, %d/%d: Reading import text for \"%s\"\n",
+	    fprintf(logfile, "%s, %d/%d: Reading import text for \"%s\"\n",
 		    infname, inf_lnum, outf_lnum, mod->name);
         pushctx(mod);
         gettok();

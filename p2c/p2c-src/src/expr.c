@@ -3385,7 +3385,34 @@ Expr *ex;
     return expr_is_lvalue(ex);
 }
 
+#if 0
+int expr_is_address(ex)
+Expr *ex;
+{
+    Meaning *mp;
 
+    switch (ex->kind) {
+
+    case EK_VAR:
+      mp = (Meaning *)ex->val.i;
+      if (mp->kind == MK_VARPARAM)
+	return 1;
+
+      if ((mp->kind == MK_VAR || mp->kind == MK_PARAM) &&
+	  (mp->type->kind == TK_POINTER ||
+	   mp->type->kind == TK_OPAQUE))
+	return 1;
+      break;
+
+    case EK_ADDR:
+      return 1;
+    
+    default:
+      return 0;
+    }
+    return 0;
+}
+#endif
 
 Expr *checknil(ex)
 Expr *ex;

@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2Bitset ;
 
 
 FROM M2Debug IMPORT Assert ;
-FROM gccgm2 IMPORT GetBitsPerWord, GetWordType, GetSizeOf ;
+FROM gccgm2 IMPORT GetSizeOf, GetWordType, GetBitsPerBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree ;
 FROM NameKey IMPORT MakeKey ;
 FROM M2System IMPORT Word ;
@@ -53,7 +53,7 @@ BEGIN
 
    (* MaxBitset *)
    MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;
-   PushCard(GetBitsPerWord()-1) ;
+   PushCard(GetBitsPerBitset()-1) ;
    PopValue(MaxBitset) ;
 
    Assert(Word#NulSym) ;

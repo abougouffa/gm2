@@ -873,9 +873,10 @@ END BuildVariable ;
 
 PROCEDURE BuildType ;
 VAR
+   n1, n2: Name ;
    Sym,
-   Type: CARDINAL ;
-   name: Name ;
+   Type  : CARDINAL ;
+   name  : Name ;
 BEGIN
    (*
       Two cases
@@ -888,12 +889,15 @@ BEGIN
    PopT(name) ;
    IF Debugging
    THEN
+      n1 := GetSymName(GetCurrentModule()) ;
       printf2('inside module %a declaring type name %a\n',
-              GetSymName(GetCurrentModule()), name) ;
+              n1, name) ;
       IF (NOT IsUnknown(Type))
       THEN
+         n1 := GetSymName(GetScope(Type)) ;
+         n2 := GetSymName(Type) ;
          printf2('type was created inside scope %a as name %a\n',
-                 GetSymName(GetScope(Type)), GetSymName(Type))
+                 n1, n2)
       END
    END ;
    IF name=NulName
@@ -1093,6 +1097,7 @@ END BuildProcedureHeading ;
 
 PROCEDURE BuildFPSection ;
 VAR
+   n         : Name ;
    ProcSym,
    ParamTotal: CARDINAL ;
 BEGIN
@@ -1104,7 +1109,8 @@ BEGIN
    THEN
       IF AreParametersDefinedInDefinition(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteFormat1('cannot declare procedure %a twice in the definition module', GetSymName(ProcSym))
+         n := GetSymName(ProcSym) ;
+         WriteFormat1('cannot declare procedure %a twice in the definition module', n)
       ELSIF AreParametersDefinedInImplementation(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1120,7 +1126,8 @@ BEGIN
    THEN
       IF AreParametersDefinedInImplementation(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteFormat1('cannot declare procedure %a twice in the implementation module', GetSymName(ProcSym))
+         n := GetSymName(ProcSym) ;
+         WriteFormat1('cannot declare procedure %a twice in the implementation module', n)
       ELSIF AreParametersDefinedInDefinition(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1136,7 +1143,8 @@ BEGIN
    THEN
       IF AreProcedureParametersDefined(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteFormat1('procedure %a parameters already declared in program module', GetSymName(ProcSym))
+         n := GetSymName(ProcSym) ;
+         WriteFormat1('procedure %a parameters already declared in program module', n)
       ELSE
          BuildFormalParameterSection ;
          IF ParamTotal=0
@@ -1491,7 +1499,7 @@ VAR
    Second      : CARDINAL ;
    FirstModule,
    SecondModule,
-   s1          : String ;
+   s1, s2, s3  : String ;
 BEGIN
    IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
@@ -1513,27 +1521,32 @@ BEGIN
       FirstModule := InitString('program module') ;
       SecondModule := InitString('definition module')
    END ;
+   s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcedureSym)))) ;
+   s3 := Mark(FirstModule) ;
    s1 := Sprintf4(Mark(InitString('declaration of procedure %s in the %s differs from the %s, problem with parameter number %d')),
-                  Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcedureSym)))),
-                  Mark(FirstModule),
+                  s2, s3,
                   SecondModule,
                   ParameterNo) ;
    IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
-      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')),
-                                     Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetNthParam(ProcedureSym, ParameterNo))))))))
+      s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetNthParam(ProcedureSym, ParameterNo))))) ;
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')), s2)))
    END ;
    IF NOT StrEqual(CurrentState, '')
    THEN
-      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(', %s')), Mark(InitString(CurrentState)))))
+      s2 := Mark(InitString(CurrentState)) ;
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(', %s')), s2)))
    END ;
    IF NOT StrEqual(PreviousState, '')
    THEN
-      s1 := ConCat(s1, Mark(Sprintf2(Mark(InitString(' in the %s %s')), Mark(SecondModule), Mark(InitString(PreviousState)))))
+      s2 := Mark(SecondModule) ;
+      s3 := Mark(InitString(PreviousState)) ;
+      s1 := ConCat(s1, Mark(Sprintf2(Mark(InitString(' in the %s %s')), s2, s3)))
    END ;
    IF Given#NulName
    THEN
-      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')), Mark(InitStringCharStar(KeyToCharStar(Given))))))
+      s2 := Mark(InitStringCharStar(KeyToCharStar(Given))) ;
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')), s2)))
    END ;
    s1 := ConCat(s1, Mark(Sprintf0(Mark(InitString('\n'))))) ;
    ErrorStringAt2(s1, GetTokenNo(), First)
@@ -1578,8 +1591,9 @@ END StartBuildFormalParameters ;
 
 PROCEDURE EndBuildFormalParameters ;
 VAR
-   NoOfPar  : CARDINAL ;
-   ProcSym  : CARDINAL ;
+   n      : Name ;
+   NoOfPar: CARDINAL ;
+   ProcSym: CARDINAL ;
 BEGIN
    PopT(NoOfPar) ;
    PopT(ProcSym) ;
@@ -1587,11 +1601,12 @@ BEGIN
    Assert(IsProcedure(ProcSym)) ;
    IF NoOfParam(ProcSym)#NoOfPar
    THEN
+      n := GetSymName(ProcSym) ;
       IF CompilingDefinitionModule()
       THEN
-         WriteFormat1('procedure (%a) was declared with fewer parameters in the DEFINITION MODULE', GetSymName(ProcSym))
+         WriteFormat1('procedure (%a) was declared with fewer parameters in the DEFINITION MODULE', n)
       ELSE
-         WriteFormat1('procedure (%a) was declared with more parameters in the DEFINITION MODULE', GetSymName(ProcSym))
+         WriteFormat1('procedure (%a) was declared with more parameters in the DEFINITION MODULE', n)
       END
    END ;
    Assert(IsProcedure(OperandT(1)))
@@ -1776,7 +1791,8 @@ END BuildRecord ;
 
 PROCEDURE BuildFieldRecord ;
 VAR
-   name      : Name ;
+   name,
+   n1, n2    : Name ;
    Parent,
    Type,
    NoOfFields,
@@ -1805,9 +1821,12 @@ BEGIN
       ELSE
          IF GetSymName(Parent)=NulName
          THEN
-            WriteFormat1('field %a is already present inside record', OperandT(NoOfFields+1-i))
+            n1 := OperandT(NoOfFields+1-i) ;
+            WriteFormat1('field %a is already present inside record', n1)
          ELSE
-            WriteFormat2('field %a is already present inside record %a', OperandT(NoOfFields+1-i), GetSymName(Parent))
+            n1 := OperandT(NoOfFields+1-i) ;
+            n2 := GetSymName(Parent) ;
+            WriteFormat2('field %a is already present inside record %a', n1, n2)
          END
       END ;
       INC(i)
@@ -2076,6 +2095,7 @@ END EndBuildArray ;
 
 PROCEDURE BuildFieldArray ;
 VAR
+   d         : CARDINAL ;
    s         : String ;
    Subrange,
    Subscript,
@@ -2095,7 +2115,8 @@ BEGIN
       THEN
          WriteFormat0('cannot create an array with 0 elements')
       ELSE
-         s := Sprintf1(Mark(InitString('%d')), NoOfElements(Type)-1) ;
+         d := NoOfElements(Type)-1 ;
+         s := Sprintf1(Mark(InitString('%d')), d) ;
          PutSubrange(Subrange,
                      MakeConstLit(MakeKey('0')), MakeConstLit(makekey(string(s))),
                      Type) ;

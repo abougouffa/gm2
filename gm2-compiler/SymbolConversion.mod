@@ -17,7 +17,8 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE SymbolConversion ;
 
 FROM NameKey IMPORT Name ;
-FROM SymbolKey IMPORT SymbolTree, GetSymKey, PutSymKey, DelSymKey, InitTree, NulKey ;
+
+FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds ;
 FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName ;
 FROM M2ALU IMPORT PushIntegerTree ;
@@ -34,7 +35,7 @@ TYPE
    PtrToInteger = POINTER TO INTEGER ;
 
 VAR
-   mod2gcc       : SymbolTree ;
+   mod2gcc       : Index ;
    PoisonedSymbol: ADDRESS ;   
 
 
@@ -47,24 +48,34 @@ PROCEDURE mystop2 ; BEGIN END mystop2 ;
 
 PROCEDURE Mod2Gcc (sym: CARDINAL) : Tree ;
 VAR
+   n : Name ;
    t : PtrToInteger ;
    tr: Tree ;
 BEGIN
    IF USEPOISON
    THEN
-      t := PtrToInteger(GetSymKey(mod2gcc, Name(sym))) ;
-      IF (t#NIL) AND (t^=GGCPOISON)
+      IF InBounds(mod2gcc, sym)
       THEN
-         InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
+         t := PtrToInteger(GetIndice(mod2gcc, sym)) ;
+         IF (t#NIL) AND (t^=GGCPOISON)
+         THEN
+            InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
+         END
       END
    END ;
-   tr := Tree(GetSymKey(mod2gcc, Name(sym))) ;
-   IF tr=PoisonedSymbol
+   IF InBounds(mod2gcc, sym)
    THEN
-      printf1('name of poisoned symbol was (%a)\n', GetSymName(sym)) ;
-      InternalError('attempting to use a gcc symbol which is no longer in scope', __FILE__, __LINE__)
-   END ;
-   RETURN( tr )
+      tr := Tree(GetIndice(mod2gcc, sym)) ;
+      IF tr=PoisonedSymbol
+      THEN
+         n := GetSymName(sym) ;
+         printf1('name of poisoned symbol was (%a)\n', n) ;
+         InternalError('attempting to use a gcc symbol which is no longer in scope', __FILE__, __LINE__)
+      END ;
+      RETURN( tr )
+   ELSE
+      RETURN( NIL )
+   END
 END Mod2Gcc ;
 
 
@@ -90,16 +101,16 @@ BEGIN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   IF sym=87
-   THEN
-      mystop2
-   END ;
 
    old := Mod2Gcc(sym) ;
    IF old=Tree(NIL)
    THEN
       (* absent - add it *)
-      PutSymKey(mod2gcc, Name(sym), CARDINAL(gcc)) ;
+      PutIndice(mod2gcc, sym, gcc) ;
+      IF GetIndice(mod2gcc, sym)#gcc
+      THEN
+         InternalError('failed to add gcc <-> mod2 symbol', __FILE__, __LINE__)
+      END ;
       gcc := RememberConstant(gcc)
    ELSIF old=gcc
    THEN
@@ -108,12 +119,6 @@ BEGIN
    THEN
       InternalError('replacing a temporary symbol (currently unexpected)', __FILE__, __LINE__)
    ELSE
-(*
-      DelSymKey(mod2gcc, sym) ;
-      PutSymKey(mod2gcc, sym, CARDINAL(gcc)) ;
-      InternalError('should not be replacing a symbol', __FILE__, __LINE__)
-   ELSE
-*)
       InternalError('should not be replacing a symbol', __FILE__, __LINE__)
    END ;
 
@@ -131,7 +136,7 @@ END AddModGcc ;
 
 PROCEDURE GccKnowsAbout (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( GetSymKey(mod2gcc, Name(sym))#NulKey )
+   RETURN( InBounds(mod2gcc, sym) AND (GetIndice(mod2gcc, sym)#NIL) )
 END GccKnowsAbout ;
 
 
@@ -142,7 +147,7 @@ END GccKnowsAbout ;
 PROCEDURE AddTemporaryKnown (sym: CARDINAL) ;
 BEGIN
    (* we add the error node against symbol, sym. We expect it to be retacted later.. *)
-   PutSymKey(mod2gcc, Name(sym), CARDINAL(GetErrorNode()))
+   PutIndice(mod2gcc, sym, GetErrorNode())
 END AddTemporaryKnown ;
 
 
@@ -154,7 +159,7 @@ PROCEDURE RemoveTemporaryKnown (sym: CARDINAL) ;
 BEGIN
    IF Mod2Gcc(sym)=GetErrorNode()
    THEN
-      DelSymKey(mod2gcc, Name(sym))
+      PutIndice(mod2gcc, sym, NIL)
    ELSE
       InternalError('attempting to remove a symbol which is not present in the tree', __FILE__, __LINE__)
    END
@@ -172,8 +177,7 @@ BEGIN
    a := Mod2Gcc(sym) ;
    IF a#NIL
    THEN
-      DelSymKey(mod2gcc, Name(sym)) ;
-      PutSymKey(mod2gcc, Name(sym), CARDINAL(PoisonedSymbol))
+      PutIndice(mod2gcc, sym, PoisonedSymbol)
    END
 END Poison ;
 
@@ -184,7 +188,7 @@ END Poison ;
 
 PROCEDURE Init ;
 BEGIN
-   InitTree(mod2gcc) ;
+   mod2gcc := InitIndex(1) ;
    ALLOCATE(PoisonedSymbol, 1)
 END Init ;
 

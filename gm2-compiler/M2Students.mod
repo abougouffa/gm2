@@ -98,7 +98,7 @@ END CheckForVariableThatLooksLikeKeyword ;
 
 PROCEDURE CheckAsciiName (previous, s1, newblock, s2: CARDINAL) ;
 VAR
-   n1, n2: Name ;
+   n1, n2, n3: Name ;
 BEGIN
    n1 := GetSymName(s1) ;
    n2 := GetSymName(s2) ;
@@ -106,19 +106,23 @@ BEGIN
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
+         n3 := GetSymName(previous) ;
          WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               GetSymName(previous), GetSymName(s1)), GetDeclared(s1)) ;
+                               n3, n1), GetDeclared(s1)) ;
+         n3 := GetSymName(newblock) ;
          WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               GetSymName(newblock), GetSymName(s2)), GetDeclared(s2))
+                               n3, n2), GetDeclared(s2))
       END
    ELSIF IsSameExcludingCase(n1, n2)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
+         n3 := GetSymName(previous) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               GetSymName(previous), GetSymName(s1)), GetDeclared(s1)) ;
+                               n3, n1), GetDeclared(s1)) ;
+         n3 := GetSymName(newblock) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
-                               GetSymName(newblock), GetSymName(s2)), GetDeclared(s2))
+                               n3, n2), GetDeclared(s2))
       END
    END
 END CheckAsciiName ;

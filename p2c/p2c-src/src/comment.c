@@ -286,7 +286,7 @@ long serial;
     else if (outf != stdout)
 	printf("%s:%d: %s\n", infname, inf_lnum, msg);
     if (verbose)
-	fprintf(logf, "%s:%d: %s\n", infname, inf_lnum, msg);
+	fprintf(logfile, "%s:%d: %s\n", infname, inf_lnum, msg);
     if (notephase == 2 || regression)
 	prefix = format_s("\004 p2c: %s:", infname);
     else

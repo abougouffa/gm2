@@ -20,6 +20,7 @@ CmdArgs
 M2Preprocess
 M2Error
 M2Search
+Indexing
 NameKey
 NumberIO
 FpuIO

@@ -31,7 +31,7 @@ FROM M2RTS IMPORT InstallTerminationProcedure, Terminate ;
 FROM FIO IMPORT StdErr, StdOut ;
 FROM M2Printf IMPORT fprintf1 ;
 FROM M2Options IMPORT CppCommandLine, Verbose ;
-FROM NameKey IMPORT MakeKey, KeyToCharStar ;
+FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey ;
 
 
 VAR
@@ -44,7 +44,7 @@ VAR
 
 PROCEDURE OnExitDelete (filename: String) : String ;
 BEGIN
-   IncludeItemIntoList(ListOfFiles, filename) ;
+   IncludeItemIntoList(ListOfFiles, makekey(filename)) ;
    RETURN( filename )
 END OnExitDelete ;
 
@@ -55,10 +55,10 @@ END OnExitDelete ;
 
 PROCEDURE RemoveFile (w: WORD) ;
 VAR
-   s: String ;
+   n: Name ;
 BEGIN
-   s := w ;
-   IF unlink(string(s))#0
+   n := w ;
+   IF unlink(KeyToCharStar(n))#0
    THEN
    END
 END RemoveFile ;

@@ -41,10 +41,21 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
     struct lineInfo *next;
   };
 
-  static int              lineno      =1;   /* a running count of the file line number */
-  static char            *filename    =NULL;
-  static int              commentLevel=0;
-  static struct lineInfo *currentLine=NULL;
+  struct functionInfo {
+    char                *name;         /* function name */
+    int                  module;       /* is it really a module? */
+    struct functionInfo *next;         /* list of nested functions */
+  };
+
+  static int                  lineno      =1;   /* a running count of the file line number */
+  static char                *filename    =NULL;
+  static int                  commentLevel=0;
+  static struct lineInfo     *currentLine=NULL;
+  static struct functionInfo *currentFunction=NULL;
+  static int                  seenFunctionStart=FALSE;
+  static int                  seenEnd=FALSE;
+  static int                  seenModuleStart=FALSE;
+  static int                  isDefinitionModule=FALSE;
 
         void m2lex_M2Error     (const char *);
 static  void pushLine          (void);
@@ -59,6 +70,10 @@ static  void endOfComment      (void);
 static  void handleDate        (void);
 static  void handleLine        (void);
 static  void handleFile        (void);
+static  void handleFunction    (void);
+static  void pushFunction      (char *function, int module);
+static  void popFunction       (void);
+static  void checkFunction     (void);
 	int  m2lex_OpenSource  (char *s);
 	int  m2lex_GetLineNo   (void);
 	void m2lex_CloseSource (void);
@@ -173,12 +188,14 @@ BEGIN                      { updatepos(); M2LexBuf_AddTok(M2Reserved_begintok); 
 BY                         { updatepos(); M2LexBuf_AddTok(M2Reserved_bytok); return; }
 CASE                       { updatepos(); M2LexBuf_AddTok(M2Reserved_casetok); return; }
 CONST                      { updatepos(); M2LexBuf_AddTok(M2Reserved_consttok); return; }
-DEFINITION                 { updatepos(); M2LexBuf_AddTok(M2Reserved_definitiontok); return; }
+DEFINITION                 { updatepos(); isDefinitionModule = TRUE;
+                             M2LexBuf_AddTok(M2Reserved_definitiontok); return; }
 DIV                        { updatepos(); M2LexBuf_AddTok(M2Reserved_divtok); return; }
 DO                         { updatepos(); M2LexBuf_AddTok(M2Reserved_dotok); return; }
 ELSE                       { updatepos(); M2LexBuf_AddTok(M2Reserved_elsetok); return; }
 ELSIF                      { updatepos(); M2LexBuf_AddTok(M2Reserved_elsiftok); return; }
-END                        { updatepos(); M2LexBuf_AddTok(M2Reserved_endtok); return; }
+END                        { updatepos(); seenEnd=TRUE;
+                             M2LexBuf_AddTok(M2Reserved_endtok); return; }
 EXIT                       { updatepos(); M2LexBuf_AddTok(M2Reserved_exittok); return; }
 EXPORT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_exporttok); return; }
 FOR                        { updatepos(); M2LexBuf_AddTok(M2Reserved_fortok); return; }
@@ -189,12 +206,14 @@ IMPORT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_importtok);
 IN                         { updatepos(); M2LexBuf_AddTok(M2Reserved_intok); return; }
 LOOP                       { updatepos(); M2LexBuf_AddTok(M2Reserved_looptok); return; }
 MOD                        { updatepos(); M2LexBuf_AddTok(M2Reserved_modtok); return; }
-MODULE                     { updatepos(); M2LexBuf_AddTok(M2Reserved_moduletok); return; }
+MODULE                     { updatepos(); seenModuleStart=TRUE;
+                             M2LexBuf_AddTok(M2Reserved_moduletok); return; }
 NOT                        { updatepos(); M2LexBuf_AddTok(M2Reserved_nottok); return; }
 OF                         { updatepos(); M2LexBuf_AddTok(M2Reserved_oftok); return; }
 OR                         { updatepos(); M2LexBuf_AddTok(M2Reserved_ortok); return; }
 POINTER                    { updatepos(); M2LexBuf_AddTok(M2Reserved_pointertok); return; }
-PROCEDURE                  { updatepos(); M2LexBuf_AddTok(M2Reserved_proceduretok); return; }
+PROCEDURE                  { updatepos(); seenFunctionStart=TRUE;
+                             M2LexBuf_AddTok(M2Reserved_proceduretok); return; }
 QUALIFIED                  { updatepos(); M2LexBuf_AddTok(M2Reserved_qualifiedtok); return; }
 UNQUALIFIED                { updatepos(); M2LexBuf_AddTok(M2Reserved_unqualifiedtok); return; }
 RECORD                     { updatepos(); M2LexBuf_AddTok(M2Reserved_recordtok); return; }
@@ -213,12 +232,13 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 \_\_DATE\_\_               { updatepos(); handleDate(); return; }
 \_\_LINE\_\_               { updatepos(); handleLine(); return; }
 \_\_FILE\_\_               { updatepos(); handleFile(); return; }
+\_\_FUNCTION\_\_           { updatepos(); handleFunction(); return; }
 \_\_ATTRIBUTE\_\_          { updatepos(); M2LexBuf_AddTok(M2Reserved_attributetok); return; }
 \_\_BUILTIN\_\_            { updatepos(); M2LexBuf_AddTok(M2Reserved_builtintok); return; }
 
 
 (([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
-[a-zA-Z_][a-zA-Z0-9_]*     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_identtok, yytext); return; }
+[a-zA-Z_][a-zA-Z0-9_]*     { checkFunction(); updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_identtok, yytext); return; }
 [0-9]+                     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9]+B                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9]+C                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
@@ -278,6 +298,69 @@ static void handleDate (void)
   strcat(s, sdate);
   strcat(s, "\"");
   M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
+}
+
+/*
+ *  handleFunction - handles the __FUNCTION__ construct by wrapping
+ *                   it in double quotes and putting it into the token
+ *                   buffer as a string.
+ */
+
+static void handleFunction (void)
+{
+  if (currentFunction == NULL)
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, "\"\"");
+  else if (currentFunction->module) {
+    char *s = (char *) alloca(strlen(yytext) +
+			      strlen("\"module  initialization\"") + 1);
+    strcpy(s, "\"module ");
+    strcat(s, currentFunction->name);
+    strcat(s, " initialization\"");
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
+  } else {
+    char *function = currentFunction->name;
+    char *s = (char *)alloca(strlen(function)+2+1);
+    strcpy(s, "\"");
+    strcat(s, function);
+    strcat(s, "\"");
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
+  }
+}
+
+/*
+ *  pushFunction - pushes the function name onto the stack.
+ */
+
+static void pushFunction (char *function, int module)
+{
+  if (currentFunction == NULL) {
+    currentFunction = (struct functionInfo *)xmalloc (sizeof (struct functionInfo));
+    currentFunction->name = xstrdup(function);
+    currentFunction->next = NULL;
+    currentFunction->module = module;
+  } else {
+    struct functionInfo *f = (struct functionInfo *)xmalloc (sizeof (struct functionInfo));
+    f->name = xstrdup(function);
+    f->next = currentFunction;
+    f->module = module;
+    currentFunction = f;
+  }
+}
+
+/*
+ *  popFunction - pops the current function.
+ */
+
+static void popFunction (void)
+{
+  if (currentFunction != NULL && currentFunction->next != NULL) {
+    struct functionInfo *f = currentFunction;
+
+    currentFunction = currentFunction->next;
+    if (f->name != NULL)
+      free(f->name);
+    free(f);
+  }
 }
 
 /*
@@ -356,8 +439,32 @@ static void consumeLine (void)
 
 static void updatepos (void)
 {
+  seenFunctionStart    = FALSE;
+  seenEnd              = FALSE;
+  seenModuleStart      = FALSE;
   currentLine->nextpos = currentLine->tokenpos+yyleng;
   currentLine->toklen  = yyleng;
+}
+
+/*
+ *  checkFunction - checks to see whether we have seen the start
+ *                  or end of a function.
+ */
+
+static void checkFunction (void)
+{
+  if (! isDefinitionModule) {
+    if (seenModuleStart)
+      pushFunction(yytext, 1);
+    if (seenFunctionStart)
+      pushFunction(yytext, 0);
+    if (seenEnd && currentFunction != NULL &&
+	(strcmp(currentFunction->name, yytext) == 0))
+      popFunction();
+  }
+  seenFunctionStart = FALSE;
+  seenEnd           = FALSE;
+  seenModuleStart   = FALSE;
 }
 
 /*
@@ -487,6 +594,14 @@ int m2lex_OpenSource (char *s)
   if (f == NULL)
     return( FALSE );
   else {
+    isDefinitionModule = FALSE;
+    while (currentFunction != NULL) {
+      struct functionInfo *f = currentFunction;
+      currentFunction = f->next;
+      if (f->name != NULL)
+	free(f->name);
+      free(f);
+    }
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
     filename = xstrdup(s);

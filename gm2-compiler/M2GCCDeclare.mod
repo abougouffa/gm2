@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         GetMode,
                         GetScope,
-                        GetNth, GetType,
+                        GetNth, GetType, SkipType,
                         MakeType, PutType, MakeConstLit,
       	       	     	GetSubrange, PutSubrange,
       	       	     	NoOfParam, GetNthParam,
@@ -99,7 +99,7 @@ FROM gccgm2 IMPORT Tree,
                    GetPointerType, GetM2LongIntType, GetM2LongCardType,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
-                   GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
+                   GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerInt, GetBitsPerBitset,
                    GetM2IntegerType, GetM2CardinalType,
                    GetISOLocType, GetISOByteType, GetISOWordType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -210,6 +210,7 @@ END CompletelyResolved ;
 
 PROCEDURE CheckToFinishList (MustBeResolved: BOOLEAN) ;
 VAR
+   n1  : Name ;
    Sym,
    i, n: CARDINAL ;
 BEGIN
@@ -223,7 +224,8 @@ BEGIN
       Sym := GetItemFromList(ToFinishList, i) ;
       IF DebugFinishList
       THEN
-         printf2('%d %a, ', Sym, GetSymName(Sym))
+         n1 := GetSymName(Sym) ;
+         printf2('%d %a, ', Sym, n1)
       END ;
       INC(i)
    END ;
@@ -258,7 +260,8 @@ BEGIN
          Sym := GetItemFromList(ToFinishList, i) ;
          IF DebugFinishList
          THEN
-            printf2('%d %a, ', Sym, GetSymName(Sym))
+            n1 := GetSymName(Sym) ;
+            printf2('%d %a, ', Sym, n1)
          END ;
          INC(i)
       END ;
@@ -279,6 +282,7 @@ END CheckToFinishList ;
 
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN; start, end: CARDINAL) : BOOLEAN ;
 VAR
+   n1           : Name ;
    e            : Error ;
    i, n         : CARDINAL ;
    NoMoreWritten: BOOLEAN ;
@@ -296,7 +300,8 @@ BEGIN
       	 Sym := GetItemFromList(ToDoList, i) ;
          IF DebugFinishList
          THEN
-            printf2('%d %a, ', Sym, GetSymName(Sym))
+            n1 := GetSymName(Sym) ;
+            printf2('%d %a, ', Sym, n1)
          END ;
       	 IF GccKnowsAbout(Sym)
       	 THEN
@@ -358,7 +363,8 @@ BEGIN
          THEN
             IF Debugging
             THEN
-               printf2('// need to solve %d %a ', Sym, GetSymName(Sym))
+               n1 := GetSymName(Sym) ;
+               printf2('// need to solve %d %a ', Sym, n1)
             END ;
             IF IsItemInList(ToFinishList, Sym)
             THEN
@@ -381,8 +387,9 @@ BEGIN
                THEN
                   (* ErrorFormat0(e, 'circular dependancy found') *)
                ELSE
+                  n1 := GetSymName(Sym) ;
                   ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
-                               GetSymName(Sym))
+                               n1)
                END
             END
          END ;
@@ -394,8 +401,9 @@ BEGIN
          Sym := GetItemFromList(ToFinishList, i) ;
          IF Debugging
          THEN
+            n1 := GetSymName(Sym) ;
             printf2('// symbol type (%a) %d has only been partically declared\n',
-                    GetSymName(Sym), Sym)
+                    n1, Sym)
          END ;
          IF NOT AllDependantsWritten(Sym)
          THEN
@@ -404,8 +412,9 @@ BEGIN
             THEN
                (* ErrorFormat0(e, 'circular dependancy found') *)
             ELSE
+               n1 := GetSymName(Sym) ;
                ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
-                            GetSymName(Sym))
+                            n1)
             END
          END ;
          INC(i) ;
@@ -450,11 +459,13 @@ END PrintType ;
 
 PROCEDURE DeclareType (Sym: CARDINAL) : Tree ;
 VAR
-   t: Tree ;
+   n1: Name ;
+   t : Tree ;
 BEGIN
    IF GetType(Sym)=NulSym
    THEN
-      WriteFormat1('base type %a not understood', GetSymName(Sym)) ;
+      n1 := GetSymName(Sym) ;
+      WriteFormat1('base type %a not understood', n1) ;
       InternalError('base type should have been declared', __FILE__, __LINE__)
    ELSE
       IF GetSymName(Sym)=NulName
@@ -536,8 +547,9 @@ END PromoteToString ;
 
 PROCEDURE ResolveConstSet (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
+   n1, n2: Name ;
    type,
-   size: CARDINAL ;
+   size  : CARDINAL ;
 BEGIN
    type := GetType(sym) ;
    (* ensure that all dependants are on the various to do lists *)
@@ -545,13 +557,17 @@ BEGIN
    THEN
       IF Debugging
       THEN
-         printf2('declaring const %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+         n1 := GetSymName(sym) ;
+         n2 := GetSymName(type) ;
+         printf2('declaring const %a = SET OF %a\n', n1, n2)
       END ;
       IF AllDependantsWritten(type) AND CollectSetDependants(tokenno, sym)
       THEN
          IF Debugging
          THEN
-            printf2('dependants are all known for %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+            n1 := GetSymName(sym) ;
+            n2 := GetSymName(type) ;
+            printf2('dependants are all known for %a = SET OF %a\n', n1, n2)
          END
       END
    END
@@ -698,11 +714,13 @@ END AllDependantsWritten ;
 
 PROCEDURE DeclareTypeInfo (Sym: WORD) ;
 VAR
+   n1 : Name ;
    gcc: Tree ;
 BEGIN
    IF Debugging
    THEN
-      printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
+      n1 := GetSymName(Sym) ;
+      printf2('// declaring %d %a\n', Sym, n1)
    END ;
 
    IF Sym=107
@@ -1023,6 +1041,7 @@ END EndDeclareScope ;
 
 PROCEDURE DeclareDefaultType (sym: CARDINAL; name: ARRAY OF CHAR; gcctype: Tree) ;
 VAR
+   n        : Name ;
    t        : Tree ;
    high, low: CARDINAL ;
 BEGIN
@@ -1062,7 +1081,7 @@ BEGIN
    END ;
    IF NOT AllDependantsWritten(sym)
    THEN
-      WriteFormat1('defining a default type (%a) before its dependants are known', MakeKey(name))
+      WriteFormat1('defining a default type (%a) before its dependants are known', n)
    END
 END DeclareDefaultType ;
 
@@ -1355,6 +1374,7 @@ END DeclareVarient ;
 
 PROCEDURE DeclareRecord (Sym: CARDINAL) : Tree ;
 VAR
+   n1          : Name ;
    Field       : CARDINAL ;
    i           : CARDINAL ;
    GccField,
@@ -1381,7 +1401,8 @@ BEGIN
                GccFieldType := DeclareVarient(Field)
             ELSIF IsFieldVarient(Field)
             THEN
-               WriteFormat1('found unexpected field varient name %a\n', GetSymName(Field)) ;
+               n1 := GetSymName(Field) ;
+               WriteFormat1('found unexpected field varient name %a\n', n1) ;
                InternalError('should not get here', __FILE__, __LINE__)
             ELSE
                IF NOT AllDependantsWritten(GetType(Field))
@@ -1455,6 +1476,7 @@ END DeclareUnbounded ;
 
 PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ;
 VAR
+   n1, n2   : Name ;
    i        : CARDINAL ;
    Subscript,
    Subrange : CARDINAL ;
@@ -1475,10 +1497,12 @@ BEGIN
          AddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
          PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
          PopSize(Subscript) ;
-         Subrange := GetType(Subscript) ;
+         Subrange := SkipType(GetType(Subscript)) ;
          IF NOT IsSubrange(Subrange)
          THEN
-            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', GetSymName(Sym), i, GetSymName(Subrange))
+            n1 := GetSymName(Sym) ;
+            n2 := GetSymName(Subrange) ;
+            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', n1, i, n2)
          END ;
          Assert(IsSubrange(Subrange)) ;
          GetSubrange(Subrange, High, Low) ;
@@ -1567,6 +1591,7 @@ END FindMinMaxEnum ;
 
 PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
 VAR
+   n       : Name ;
    min, max: CARDINAL ;
 BEGIN
    IF IsSubrange(type)
@@ -1592,7 +1617,8 @@ BEGIN
       RETURN( min )
    ELSIF GetType(type)=NulSym
    THEN
-      WriteFormat1('unable to obtain the MIN value for type %a', GetSymName(type))
+      n := GetSymName(type) ;
+      WriteFormat1('unable to obtain the MIN value for type %a', n)
    ELSE
       RETURN( GetTypeMin(GetType(type)) )
    END
@@ -1605,6 +1631,7 @@ END GetTypeMin ;
 
 PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
 VAR
+   n       : Name ;
    min, max: CARDINAL ;
 BEGIN
    IF IsSubrange(type)
@@ -1630,7 +1657,8 @@ BEGIN
       RETURN( max )
    ELSIF GetType(type)=NulSym
    THEN
-      WriteFormat1('unable to obtain the MAX value for type %a', GetSymName(type))
+      n := GetSymName(type) ;
+      WriteFormat1('unable to obtain the MAX value for type %a', n)
    ELSE
       RETURN( GetTypeMax(GetType(type)) )
    END
@@ -1653,7 +1681,7 @@ VAR
    FieldList : Tree ;
    bpw       : CARDINAL ;
 BEGIN
-   bpw        := GetBitsPerWord() ;
+   bpw        := GetBitsPerBitset() ;
    PushValue(low) ;
    lowtree    := PopIntegerTree() ;
    PushValue(high) ;
@@ -1723,7 +1751,7 @@ BEGIN
    PushValue(low) ;
    ConvertToInt ;
    Sub ;
-   PushCard(GetBitsPerWord()) ;
+   PushCard(GetBitsPerBitset()) ;
    IF Less(GetDeclared(type))
    THEN
       (* small set *)
@@ -1746,7 +1774,7 @@ VAR
    type,
    high, low: CARDINAL ;
 BEGIN
-   type := GetType(sym) ;
+   type := SkipType(GetType(sym)) ;
    IF IsSubrange(type)
    THEN
       GetSubrange(type, high, low) ;
@@ -1884,6 +1912,7 @@ END IsEnumerationDependantsWritten ;
 
 PROCEDURE CheckResolveSubrange (Sym: CARDINAL) ;
 VAR
+   n                    : Name ;
    size, high, low, type: CARDINAL ;
 BEGIN
    GetSubrange(Sym, high, low) ;
@@ -1903,7 +1932,8 @@ BEGIN
          THEN
             PutSubrange(Sym, low, high, Char)
          ELSE
-            WriteFormat1('cannot have a subrange of a string type %a', GetSymName(Sym)) ;
+            n := GetSymName(Sym) ;
+            WriteFormat1('cannot have a subrange of a string type %a', n)
          END
       ELSIF IsFieldEnumeration(low)
       THEN
@@ -1911,13 +1941,15 @@ BEGIN
          THEN
             PutSubrange(Sym, low, high, GetType(low))
          ELSE
-            WriteFormat1('subrange limits must be of the same type %a', GetSymName(Sym)) ;
+            n := GetSymName(Sym) ;
+            WriteFormat1('subrange limits must be of the same type %a', n)
          END
       ELSIF IsValueSolved(low)
       THEN
          IF GetType(low)=LongReal
          THEN
-            WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', GetSymName(Sym)) ;
+            n := GetSymName(Sym) ;
+            WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', n)
          ELSE
             PutSubrange(Sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(Sym)))
             (* previously we forced subranges to Integer *)
@@ -1969,6 +2001,7 @@ END IsSubrangeDependantsWritten ;
 
 PROCEDURE IsPointerDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 VAR
+   n   : Name ;
    type: CARDINAL ;
 BEGIN
    IF NOT GccKnowsAbout(Sym)
@@ -1978,7 +2011,8 @@ BEGIN
    type := GetType(Sym) ;
    IF Debugging
    THEN
-      printf2('// lets see about %d %a ', Sym, GetSymName(Sym))
+      n := GetSymName(Sym) ;
+      printf2('// lets see about %d %a ', Sym, n)
    END ;
    (* is it partially known but has no name required for forward references *)
    IF IsItemInList(ToFinishList, type) AND (GetSymName(type)=NulName)
@@ -2108,6 +2142,7 @@ END IsVarientDependantsWritten ;
 
 PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 VAR
+   n1, n2   : Name ;
    solved   : BOOLEAN ;
    i        : CARDINAL ;
    Subscript,
@@ -2138,10 +2173,12 @@ BEGIN
       IF Subscript#NulSym
       THEN
          Assert(IsSubscript(Subscript)) ;
-         Subrange := GetType(Subscript) ;
+         Subrange := SkipType(GetType(Subscript)) ;
          IF NOT IsSubrange(Subrange)
          THEN
-            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', GetSymName(Sym), i, GetSymName(Subrange))
+            n1 := GetSymName(Sym) ;
+            n2 := GetSymName(Subrange) ;
+            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', n1, i, n2)
          END ;
          Assert(IsSubrange(Subrange)) ;
          GetSubrange(Subrange, High, Low) ;
@@ -2168,7 +2205,7 @@ VAR
 BEGIN
    Assert(IsSet(sym)) ;
 
-   type := GetType(sym) ;
+   type := SkipType(GetType(sym)) ;
    IF IsSubrange(type)
    THEN
       IF IsSymTypeKnown(sym, type)

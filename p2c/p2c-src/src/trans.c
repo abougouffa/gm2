@@ -371,8 +371,13 @@ Static void postrc()
         else if (which_unix == UNIX_BSD)
             strcpy(memcpyname, "bcopy");
     }
-    sizeof_integer = (sizeof_int >= 32) ? sizeof_int : sizeof_long;
-    integername = (sizeof_int >= 32) ? "int" : "long";
+    if (integer16 == 2) {
+      sizeof_integer = sizeof_int;
+      integername = "int";
+    } else {
+      sizeof_integer = (sizeof_int >= 32) ? sizeof_int : sizeof_long;
+      integername = (sizeof_int >= 32) ? "int" : "long";
+    }
     if (sizeof_integer && sizeof_integer < 32)
         fprintf(stderr, "Warning: long integers have less than 32 bits\n");
     if (sizeof_int >= 32 && sizeof_long > sizeof_int && prototypes == 0)
@@ -556,17 +561,17 @@ Static void openlogfile()
     if (!name)
 	name = format_s("%s.log", codefname);
     saveoldfile(name);
-    logf = fopen(name, "w");
-    if (logf) {
-	fprintf(logf, "\nTranslation of %s to %s by p2c %s\n",
+    logfile = fopen(name, "w");
+    if (logfile) {
+	fprintf(logfile, "\nTranslation of %s to %s by p2c %s\n",
 		infname, codefname, P2C_VERSION);
-	fprintf(logf, "Translated");
+	fprintf(logfile, "Translated");
 	uname = getenv("USER");
 	if (uname)
-	    fprintf(logf, " by %s", uname);
+	    fprintf(logfile, " by %s", uname);
 	time(&starting_time);
-	fprintf(logf, " on %s", ctime(&starting_time));
-	fprintf(logf, "\n\n");
+	fprintf(logfile, " on %s", ctime(&starting_time));
+	fprintf(logfile, "\n\n");
     } else {
 	perror(name);
 	verbose = 0;
@@ -578,18 +583,18 @@ void closelogfile()
 {
     long ending_time;
 
-    if (logf) {
-	fprintf(logf, "\n\n");
+    if (logfile) {
+	fprintf(logfile, "\n\n");
 #if defined(unix) || defined(__unix)
-	fprintf(logf, "Total memory used: %ld bytes.\n", (long)sbrk(0));
+	fprintf(logfile, "Total memory used: %ld bytes.\n", (long)sbrk(0));
 #endif
 	time(&ending_time);
-	fprintf(logf, "Processed %d source lines in %ld:%ld seconds.\n",
+	fprintf(logfile, "Processed %d source lines in %ld:%ld seconds.\n",
 		inf_ltotal,
 		(ending_time - starting_time) / 60,
 		(ending_time - starting_time) % 60);
-	fprintf(logf, "\n\nTranslation completed on %s", ctime(&ending_time));
-	fclose(logf);
+	fprintf(logfile, "\n\nTranslation completed on %s", ctime(&ending_time));
+	fclose(logfile);
     }
 }
 
@@ -851,7 +856,7 @@ char **argv;
         setbuf(codef, NULL);      /* for debugging */
     outf = codef;
     outf_lnum = 1;
-    logf = NULL;
+    logfile = NULL;
     if (verbose)
 	openlogfile();
     setup_complete = 0;

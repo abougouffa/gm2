@@ -17,12 +17,12 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Entity ;
 
 
-FROM SYSTEM IMPORT WORD ;
+FROM SYSTEM IMPORT ADDRESS ;
 FROM SymbolTable IMPORT NulSym, IsConst ;
 FROM M2Constants IMPORT IsSame ;
 FROM M2Error IMPORT InternalError ;
-FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList,
-                  ForeachItemInListDo, GetItemFromList ;
+FROM Indexing IMPORT Index, InitIndex, KillIndex, IncludeIndiceIntoIndex,
+                     ForeachIndiceInIndexDo, GetIndice ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 TYPE
@@ -47,14 +47,14 @@ TYPE
 
 VAR
    NoOfEntities: CARDINAL ;
-   EntityList  : List ;
+   EntityList  : Index ;
 
 
 (*
    DeallocateEntity - 
 *)
 
-PROCEDURE DeallocateEntity (e: WORD) ;
+PROCEDURE DeallocateEntity (e: ADDRESS) ;
 VAR
    p: Entity ;
 BEGIN
@@ -70,9 +70,9 @@ END DeallocateEntity ;
 PROCEDURE InitEntities ;
 BEGIN
    NoOfEntities := 0 ;
-   ForeachItemInListDo(EntityList, DeallocateEntity) ;
-   KillList(EntityList) ;
-   InitList(EntityList)
+   ForeachIndiceInIndexDo(EntityList, DeallocateEntity) ;
+   EntityList := KillIndex(EntityList) ;
+   EntityList := InitIndex(1)
 END InitEntities ;
 
 
@@ -100,7 +100,7 @@ BEGIN
    highest := 0 ;
    latest := NIL ;
    WHILE i>0 DO
-      e := GetItemFromList(EntityList, i) ;
+      e := GetIndice(EntityList, i) ;
       WITH e^ DO
          IF IsSame(TokenNo, Symbol, Sym) AND (IndexNo>=highest) AND (IsLeft=IsLeftValue)
          THEN
@@ -217,10 +217,10 @@ VAR
    i   : CARDINAL ;
    e, f: Entity ;
 BEGIN
-   f := GetItemFromList(EntityList, NoOfEntities) ;  (* last in the list *)
+   f := GetIndice(EntityList, NoOfEntities) ;  (* last in the list *)
    i := 1 ;
    WHILE i<NoOfEntities DO
-      e := GetItemFromList(EntityList, i) ;
+      e := GetIndice(EntityList, i) ;
       IF (e^.Symbol=f^.Symbol) AND (e^.IndexNo=f^.IndexNo) AND
          (e^.IsLeftValue=f^.IsLeftValue)
       THEN
@@ -250,7 +250,7 @@ BEGIN
       THEN
          InternalError('out of memory error', __FILE__, __LINE__)
       END ;
-      IncludeItemIntoList(EntityList, latest) ;
+      IncludeIndiceIntoIndex(EntityList, latest) ;
       WITH latest^ DO
          IsClean     := IsConst(Sym) ;
          IndexNo     := Index ;
@@ -275,7 +275,7 @@ VAR
 BEGIN
    i := GetNoOfEntities() ;
    WHILE i>0 DO
-      e := GetItemFromList(EntityList, i) ;
+      e := GetIndice(EntityList, i) ;
       IF (GetEntitySym(e)=Sym) AND IsLValue(e)
       THEN
          RETURN( TRUE )

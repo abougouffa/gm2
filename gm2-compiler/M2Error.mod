@@ -17,7 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Error ;
 
 FROM ASCII IMPORT nul, nl ;
-FROM NameKey IMPORT KeyToCharStar ;
+FROM NameKey IMPORT Name, KeyToCharStar ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
 FROM FIO IMPORT StdOut, WriteNBytes, Close ;
 FROM StrLib IMPORT StrLen, StrEqual ;
@@ -26,6 +26,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, GetTokenNo ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2RTS IMPORT ExitOnHalt ;
+FROM SYSTEM IMPORT BITSET, ADDRESS ;
 IMPORT StdIO ;
 
 CONST
@@ -49,13 +50,30 @@ VAR
 
 
 (*
+   Cast - casts a := b
+*)
+
+PROCEDURE Cast (VAR a: ARRAY OF BYTE; b: ARRAY OF BYTE) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   IF HIGH(a)=HIGH(b)
+   THEN
+      FOR i := 0 TO HIGH(a) DO
+         a[i] := b[i]
+      END
+   END
+END Cast ;
+
+
+(*
    TranslateNameToString - takes a format specification string, a, and
                            if they consist of of %a then this is translated
                            into a String and %a is replaced by %s.
 *)
 
-PROCEDURE TranslateNameToCharStar (VAR a: ARRAY OF CHAR; n: CARDINAL;
-                                   VAR w1, w2, w3, w4: WORD) ;
+PROCEDURE TranslateNameToCharStar (VAR a: ARRAY OF CHAR;
+                                   n: CARDINAL) : BOOLEAN ;
 VAR
    argno,
    i, h : CARDINAL ;
@@ -66,32 +84,21 @@ BEGIN
    WHILE i<h DO
       IF (a[i]='%') AND (i+1<h)
       THEN
-         IF a[i+1]='a'
+         IF (a[i+1]='a') AND (argno=n)
          THEN
-            (* translate the NameKey into a String *)
             a[i+1] := 's' ;
-            IF argno=1
-            THEN
-               w1 := Mark(InitStringCharStar(KeyToCharStar(w1)))
-            ELSIF argno=2
-            THEN
-               w2 := Mark(InitStringCharStar(KeyToCharStar(w2)))
-            ELSIF argno=3
-            THEN
-               w3 := Mark(InitStringCharStar(KeyToCharStar(w3)))
-            ELSE
-               w4 := Mark(InitStringCharStar(KeyToCharStar(w4)))
-            END
+            RETURN( TRUE )
          END ;
          INC(argno) ;
          IF argno>n
          THEN
             (* all done *)
-            RETURN
+            RETURN( FALSE )
          END
       END ;
       INC(i)
-   END
+   END ;
+   RETURN( FALSE )
 END TranslateNameToCharStar ;
 
 
@@ -146,7 +153,9 @@ BEGIN
    IF NOT InInternal
    THEN
       InInternal := TRUE ;
-      FlushErrors
+      FlushErrors ;
+      OutString(FindFileNameFromToken(GetTokenNo(), 0),
+                TokenToLineNo(GetTokenNo(), 0), Mark(InitString('*** fatal error ***')))
    END ;
    OutString(Mark(InitString(file)), line,
              ConCat(Mark(InitString('*** internal error *** ')), Mark(InitString(a)))) ;
@@ -177,22 +186,77 @@ END WriteFormat0 ;
 
 
 (*
+   DoFormat1 - 
+*)
+
+PROCEDURE DoFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) : String ;
+VAR
+   s: String ;
+   n: Name ;
+BEGIN
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      s := Sprintf1(Mark(InitString(a)), s)
+   ELSE
+      s := Sprintf1(Mark(InitString(a)), w)
+   END ;
+   RETURN( s )
+END DoFormat1 ;
+
+
+(*
    WriteFormat1 - displays the source module and line together
                   with the encapsulated format string.
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE WriteFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 VAR
    e: Error ;
-   n: WORD ;
 BEGIN
-   TranslateNameToCharStar(a, 1, w, n, n, n) ;
    e := NewError(GetTokenNo()) ;
-   WITH e^ DO
-      s := Sprintf1(Mark(InitString(a)), w)
-   END
+   e^.s := DoFormat1(a, w)
 END WriteFormat1 ;
+
+
+(*
+   DoFormat2 - 
+*)
+
+PROCEDURE DoFormat2 (a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) : String ;
+VAR
+   n     : Name ;
+   s,
+   s1, s2: String ;
+   b     : BITSET ;
+BEGIN
+   b := {} ;
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w1) ;
+      s1 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 1)
+   END ;
+   IF TranslateNameToCharStar(a, 2)
+   THEN
+      Cast(n, w2) ;
+      s2 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 2)
+   END ;
+   CASE b OF
+
+   {}   :  s := Sprintf2(Mark(InitString(a)), w1, w2) |
+   {1}  :  s := Sprintf2(Mark(InitString(a)), s1, w2) |
+   {2}  :  s := Sprintf2(Mark(InitString(a)), w1, s2) |
+   {1,2}:  s := Sprintf2(Mark(InitString(a)), s1, s2)
+
+   ELSE
+      HALT
+   END ;
+   RETURN( s )
+END DoFormat2 ;
 
 
 (*
@@ -201,17 +265,56 @@ END WriteFormat1 ;
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat2 (a: ARRAY OF CHAR; w1: WORD; w2: WORD) ;
+PROCEDURE WriteFormat2 (a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
 VAR
    e: Error ;
-   n: WORD ;
 BEGIN
-   TranslateNameToCharStar(a, 2, w1, w2, n, n) ;
    e := NewError(GetTokenNo()) ;
-   WITH e^ DO
-      s := Sprintf2(Mark(InitString(a)), w1, w2)
-   END
+   e^.s := DoFormat2(a, w1, w2)
 END WriteFormat2 ;
+
+
+PROCEDURE DoFormat3 (a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) : String ;
+VAR
+   n            : Name ;
+   s, s1, s2, s3: String ;
+   b            : BITSET ;
+BEGIN
+   b := {} ;
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w1) ;
+      s1 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 1)
+   END ;
+   IF TranslateNameToCharStar(a, 2)
+   THEN
+      Cast(n, w2) ;
+      s2 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 2)
+   END ;
+   IF TranslateNameToCharStar(a, 3)
+   THEN
+      Cast(n, w3) ;
+      s3 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 3)
+   END ;
+   CASE b OF
+   
+   {}     :  s := Sprintf3(Mark(InitString(a)), w1, w2, w3) |
+   {1}    :  s := Sprintf3(Mark(InitString(a)), s1, w2, w3) |
+   {2}    :  s := Sprintf3(Mark(InitString(a)), w1, s2, w3) |
+   {1,2}  :  s := Sprintf3(Mark(InitString(a)), s1, s2, w3) |
+   {3}    :  s := Sprintf3(Mark(InitString(a)), w1, w2, s3) |
+   {1,3}  :  s := Sprintf3(Mark(InitString(a)), s1, w2, s3) |
+   {2,3}  :  s := Sprintf3(Mark(InitString(a)), w1, s2, s3) |
+   {1,2,3}:  s := Sprintf3(Mark(InitString(a)), s1, s2, s3)
+
+   ELSE
+      HALT
+   END ;
+   RETURN( s )
+END DoFormat3 ;
 
 
 (*
@@ -220,16 +323,12 @@ END WriteFormat2 ;
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat3 (a: ARRAY OF CHAR; w1: WORD; w2: WORD; w3: WORD) ;
+PROCEDURE WriteFormat3 (a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) ;
 VAR
    e: Error ;
-   n: WORD ;
 BEGIN
-   TranslateNameToCharStar(a, 2, w1, w2, n, n) ;
    e := NewError(GetTokenNo()) ;
-   WITH e^ DO
-      s := Sprintf3(Mark(InitString(a)), w1, w2, w3)
-   END
+   e^.s := DoFormat3(a, w1, w2, w3)
 END WriteFormat3 ;
 
 
@@ -327,49 +426,50 @@ BEGIN
 END ErrorFormat0 ;
 
 
-PROCEDURE ErrorFormat1 (e: Error; a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE ErrorFormat1 (e: Error; a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   s1: String ;
 BEGIN
-   TranslateNameToCharStar(a, 1, w, n, n, n) ;
+   s1 := DoFormat1(a, w) ;
    WITH e^ DO
       IF s=NIL
       THEN
-         s := Sprintf1(Mark(InitString(a)), w)
+         s := s1
       ELSE
-         s := ConCat(s, Mark(Sprintf1(Mark(InitString(a)), w)))
+         s := ConCat(s, Mark(s1))
       END
    END
 END ErrorFormat1 ;
 
 
-PROCEDURE ErrorFormat2 (e: Error; a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE ErrorFormat2 (e: Error; a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   s1: String ;
 BEGIN
-   TranslateNameToCharStar(a, 2, w1, w2, n, n) ;
+   s1 := DoFormat2(a, w1, w2) ;
    WITH e^ DO
       IF s=NIL
       THEN
-         s := Sprintf2(Mark(InitString(a)), w1, w2)
+         s := s1
       ELSE
-         s := ConCat(s, Mark(Sprintf2(Mark(InitString(a)), w1, w2)))
+         s := ConCat(s, Mark(s1))
       END
    END
 END ErrorFormat2 ;
 
 
-PROCEDURE ErrorFormat3 (e: Error; a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
+PROCEDURE ErrorFormat3 (e: Error; a: ARRAY OF CHAR;
+                        w1, w2, w3: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   s1: String ;
 BEGIN
-   TranslateNameToCharStar(a, 3, w1, w2, w3, n) ;
+   s1 := DoFormat3(a, w1, w2, w3) ;
    WITH e^ DO
       IF s=NIL
       THEN
-         s := Sprintf3(Mark(InitString(a)), w1, w2, w3)
+         s := s1
       ELSE
-         s := ConCat(s, Mark(Sprintf3(Mark(InitString(a)), w1, w2, w3)))
+         s := ConCat(s, Mark(s1))
       END
    END
 END ErrorFormat3 ;
@@ -414,15 +514,17 @@ END Init ;
 PROCEDURE CheckIncludes (token: CARDINAL; depth: CARDINAL) ;
 VAR
    included: String ;
+   lineno  : CARDINAL ;
 BEGIN
    included := FindFileNameFromToken(token, depth+1) ;
    IF included#NIL
    THEN
+      lineno := TokenToLineNo(token, depth+1) ;
       IF depth=0
       THEN
-         printf2('In file included from %s:%d', included, TokenToLineNo(token, depth+1))
+         printf2('In file included from %s:%d', included, lineno)
       ELSE
-         printf2('                 from %s:%d', included, TokenToLineNo(token, depth+1))
+         printf2('                 from %s:%d', included, lineno)
       END ;
       IF FindFileNameFromToken(token, depth+2)=NIL
       THEN

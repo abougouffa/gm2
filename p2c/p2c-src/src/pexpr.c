@@ -33,6 +33,11 @@ Type *target;
     int hassl;
 
     for (;;) {
+        if ((ex == NULL) || (ex->val.type == NULL)) {
+	  warning("fatal error in p2c");
+	  exit(1);
+	}
+
 	if ((ex->val.type->kind == TK_PROCPTR ||
 	     ex->val.type->kind == TK_CPROCPTR) &&
 	    curtok != TOK_ASSIGN &&
@@ -864,7 +869,7 @@ int firstarg, ismacro;
 		break;
         }
 	if (isconf &&   /* conformant array or string */
-	    (!prevarg || prevarg->type != args->type)) {
+	    (!prevarg || prevarg->type != args->type || (modula2))) {
 	    while (tp->kind == TK_ARRAY && tp->structdefd) {
 		if (tp2->kind == TK_SMALLARRAY) {
 		    warning("Trying to pass a small-array for a conformant array [297]");
@@ -873,10 +878,10 @@ int firstarg, ismacro;
 			makeexpr_addr(ex->args[ex->nargs-1]);
 		} else if (tp2->kind == TK_STRING) {
 		    ex->args[fakenum++] =
-			makeexpr_arglong(makeexpr_long(1), integer16 == 0);
+			makeexpr_arglong(makeexpr_long(1), integer16 != 1);
 		    ex->args[fakenum++] =
 			makeexpr_arglong(strmax_func(ex->args[ex->nargs-1]),
-					 integer16 == 0);
+					 integer16 != 1);
 		    break;
 	        } else if (tp2->kind != TK_ARRAY) {
 		  if (isGenericArray(tp)) {
@@ -886,25 +891,29 @@ int firstarg, ismacro;
 								      makeexpr_sizeof(makeexpr_type(tp->basetype->meaning->type), 1)),
 							 makeexpr_long(1));
 		    /* and we need to cast the parameter passed into ARRAY OF BYTE */
-		    ex->args[i] = makeexpr_cast(ex->args[i],
-						makepointertype(tp->basetype->meaning->type));
+		    if (args->kind == MK_VARPARAM /* || expr_is_address(ex->args[i]) */ )
+		      ex->args[i] = makeexpr_cast(ex->args[i],
+						  makepointertype(tp->basetype->meaning->type));
+		    else
+		      ex->args[i] = makeexpr_cast(makeexpr_addr(ex->args[i]),
+						  makepointertype(tp->basetype->meaning->type));
 		  } else
 		    warning("Type mismatch for conformant array [298]");
 		  break;
 		}
 		ex->args[fakenum++] =
 		    makeexpr_arglong(copyexpr(tp2->indextype->smin),
-				     integer16 == 0);
+				     integer16 != 1);
 		ex->args[fakenum++] =
 		    makeexpr_arglong(copyexpr(tp2->indextype->smax),
-				     integer16 == 0);
+				     integer16 != 1);
 		tp = tp->basetype;
 		tp2 = tp2->basetype;
 	    }
 	    if (tp->kind == TK_STRING && tp->structdefd) {
 		ex->args[fakenum] =
 		    makeexpr_arglong(strmax_func(ex->args[ex->nargs-1]),
-				     integer16 == 0);
+				     integer16 != 1);
 	    }
 	}
 	fakenum = -1;

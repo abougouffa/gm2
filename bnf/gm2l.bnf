@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2003/12/26 23:59:45 $]
+              : [$Date: 2004/04/05 10:42:30 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -122,13 +122,14 @@ VAR
    IncludeM2RTS   : BOOLEAN ;   (* do we automatically include M2RTS into the top module? *)
    ImportedModules: List ;      (* current list of imports for the scanned module *)
    pSource        : Source ;    (* current module being parsed *)
+   CommentChar    : CHAR ;
 
 
 (*
    ExamineCompilationUnit - opens the source file to obtain the module name and kind of module.
 *)
 
-PROCEDURE ExamineCompilationUnit (VAR name: ADDRESS; VAR isdefimp: BOOLEAN) ;
+PROCEDURE ExamineCompilationUnit (VAR name: Name; VAR isdefimp: BOOLEAN) ;
 BEGIN
    isdefimp := FALSE ;   (* default to program module *)
    (* stop if we see eof, ';' or '[' *)
@@ -140,7 +141,7 @@ BEGIN
       END ;
       IF currenttoken=identtok
       THEN
-         name := currentstring ;
+         name := makekey(currentstring) ;
          RETURN
       END ;
       GetToken
@@ -491,7 +492,7 @@ END CompilationUnit ;
 
 PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastIdent := currentstring ;
+   LastIdent := makekey(currentstring) ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
 
@@ -670,14 +671,15 @@ VAR
    p: Source ;
    s: String ;
 BEGIN
+   CommentChar := Comment ;
    p := Head ;
    WHILE p#NIL DO
       WITH p^ DO
-         fprintf3(fo, '%c %a %4d\n', WORD(Comment), name, Depth)
+         fprintf3(fo, '%c %a %4d\n', CommentChar, name, Depth)
       END ;
       p := p^.next
    END ;
-   fprintf3(fo, '%c\n%c Initialization order\n%c\n', WORD(Comment), WORD(Comment), WORD(Comment)) ;
+   fprintf3(fo, '%c\n%c Initialization order\n%c\n', CommentChar, CommentChar, CommentChar) ;
    p := Head ;
    WHILE p#NIL DO
       WITH p^ DO
@@ -924,14 +926,14 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-Import :=  "FROM" Ident                                                     % IncludeItemIntoList(ImportedModules, makekey(LastIdent)) %
+Import :=  "FROM" Ident                                                     % IncludeItemIntoList(ImportedModules, LastIdent) %
                  "IMPORT" IdentList ";" |
            "IMPORT" ImportList ";" =:
 
 IdentList := Ident { "," Ident } =:
 
-ImportList := Ident                                                         % IncludeItemIntoList(ImportedModules, makekey(LastIdent)) %
-                    { "," Ident                                             % IncludeItemIntoList(ImportedModules, makekey(LastIdent)) %
+ImportList := Ident                                                         % IncludeItemIntoList(ImportedModules, LastIdent) %
+                    { "," Ident                                             % IncludeItemIntoList(ImportedModules, LastIdent) %
                                 } =:
 
 ConstExpression := SimpleConstExpr [ Relation SimpleConstExpr ] =:

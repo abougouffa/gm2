@@ -37,10 +37,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P1SyntaxCheck ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, ErrorStringAt ;
+FROM M2Error IMPORT ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok ;
-FROM NameKey IMPORT Name, NulName ;
+FROM NameKey IMPORT Name, NulName, makekey ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
@@ -289,7 +289,8 @@ BEGIN
    THEN
       GetToken ;
 (*
-      WriteFormat2('token number %d token was %a', GetTokenNo(), currentstring) ;
+      WriteFormat2('token number %d token was %a',
+                    GetTokenNo(), makekey(currentstring)) ;
       FlushErrors ;
 *)
       IF Pass1
@@ -322,10 +323,10 @@ END CompilationUnit ;
 
 PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastIdent := currentstring ;
+   LastIdent := makekey(currentstring) ;
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, identtok)
+      PushTF(LastIdent, identtok)
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
@@ -340,7 +341,7 @@ PROCEDURE PossiblyExportIdent (stopset0: SetOfStop0; stopset1: SetOfStop1; stops
 VAR
    nothing: CARDINAL ;
 BEGIN
-   PushTF(currentstring, identtok) ;
+   PushTF(makekey(currentstring), identtok) ;
    CheckExplicitExported ;
    IF NOT IsAutoPushOn()
    THEN
@@ -358,7 +359,7 @@ PROCEDURE string (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSto
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, stringtok) ;
+      PushTF(makekey(currentstring), stringtok) ;
       BuildString
    END ;
    Expect(stringtok, stopset0, stopset1, stopset2)
@@ -373,7 +374,7 @@ PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSt
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, integertok) ;
+      PushTF(makekey(currentstring), integertok) ;
       BuildNumber
    END ;
    Expect(integertok, stopset0, stopset1, stopset2)
@@ -388,7 +389,7 @@ PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, realtok) ;
+      PushTF(makekey(currentstring), realtok) ;
       BuildNumber
    END ;
    Expect(realtok, stopset0, stopset1, stopset2)

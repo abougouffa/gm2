@@ -14,19 +14,24 @@
 #endif
 
 
-void Storage_ALLOCATE(void **a, unsigned long Size)
+void Storage_ALLOCATE(void **a, unsigned int Size)
 {
   SysStorage_ALLOCATE(a, Size);
 }
 
 
-void Storage_DEALLOCATE(void **a, unsigned long Size)
+void Storage_DEALLOCATE(void **a, unsigned int Size)
 {
   SysStorage_DEALLOCATE(a, Size);
 }
 
 
-BOOLEAN Storage_Available(unsigned long Size)
+void Storage_REALLOCATE(void **a, unsigned int Size)
+{
+  SysStorage_REALLOCATE(a, Size);
+}
+
+BOOLEAN Storage_Available(unsigned int Size)
 {
   return (SysStorage_Available(Size));
 }

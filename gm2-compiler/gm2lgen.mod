@@ -26,7 +26,10 @@ MODULE gm2lgen ;
 FROM libc IMPORT exit ;
 FROM ASCII IMPORT eof ;
 FROM SArgs IMPORT GetArg ;
-FROM Lists IMPORT List, InitList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
+
+FROM Indexing IMPORT Index, InitIndex, KillIndex, HighIndice, LowIndice,
+                     IncludeIndiceIntoIndex, GetIndice ;
+
 FROM FIO IMPORT File, StdIn, StdOut, StdErr, WriteChar,
                 ReadString, WriteString, EOF, IsNoError, WriteLine, Close ;
 
@@ -52,7 +55,7 @@ VAR
    ExitNeeded,
    ApuFound     : BOOLEAN ;
    MainName     : String ;
-   FunctionList : List ;
+   FunctionList : Index ;
    fi, fo       : File ;
 
 
@@ -151,7 +154,7 @@ END ScanArgs ;
 
 PROCEDURE GenMain ;
 BEGIN
-   InitList(FunctionList) ;
+   FunctionList := InitIndex(1) ;
    ScanArgs ;
    BuildFunctionList ;
    GenExternals(ApuFound) ;
@@ -200,17 +203,19 @@ END GenMain ;
 
 PROCEDURE GenExternals (ApuFound: BOOLEAN) ;
 VAR
-   s   : String ;
-   i, n: CARDINAL ;
+   funcname,
+   s       : String ;
+   i, n    : CARDINAL ;
 BEGIN
-   n := NoOfItemsInList(FunctionList) ;
+   n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO
+      funcname := GetIndice(FunctionList, i) ;
       IF ApuFound
       THEN
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('  .extern __M2_%s_init\n')), GetItemFromList(FunctionList, i)))))
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('  .extern __M2_%s_init\n')), funcname))))
       ELSE
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), GetItemFromList(FunctionList, i)))))
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), funcname))))
       END ;
       INC(i)
    END ;
@@ -233,20 +238,22 @@ END GenExternals ;
 
 PROCEDURE GenInitializationCalls (ApuFound: BOOLEAN) ;
 VAR
-   s   : String ;
-   i, n: CARDINAL ;
+   funcname,
+   s       : String ;
+   i, n    : CARDINAL ;
 BEGIN
-   n := NoOfItemsInList(FunctionList) ;
-   i := 1 ;
+   n := HighIndice(FunctionList) ;
+   i := LowIndice(FunctionList) ;
    WHILE i<=n DO
+      funcname := GetIndice(FunctionList, i) ;
       IF ApuFound
       THEN
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('  load.d.d $__M2_%s_init\n')),
-                                      GetItemFromList(FunctionList, i))))) ;
+                                      funcname)))) ;
          Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  call\n'))))))
       ELSE
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init(argc, argv);\n')),
-                                      GetItemFromList(FunctionList, i)))))
+                                      funcname))))
       END ;
       INC(i)
    END ;
@@ -277,7 +284,7 @@ BEGIN
                     Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1)))) AND
          (NOT EqualArray(s, ''))
       THEN
-         IncludeItemIntoList(FunctionList, s)
+         IncludeIndiceIntoIndex(FunctionList, s)
       END
    UNTIL EOF(fi)
 END BuildFunctionList ;

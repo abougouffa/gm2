@@ -48,7 +48,7 @@ BEGIN
    InitTree(NameTotok) ;
    InitTree(tokToName) ;
 
-   NulTok := NIL ;
+   NulTok := NulName ;
 
    PlusTok := MakeKey('+') ;
    AddKeyword(PlusTok, ORD(plustok)) ;

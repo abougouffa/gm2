@@ -19,5 +19,4 @@ cd ../../../
 # break p_import
 # break stop
 # run -c p2crc -Igm2-libs-boot -Igm2-libiberty -M0 -q -s gm2-compiler/M2Preprocess.def gm2-compiler/M2Preprocess.mod -o -
-break wexpected
 run -c p2crc -Igm2-libs-boot -Igm2-libiberty -M0 -q gm2-libiberty/choosetemp.def -h gm2-libiberty/choosetemp.h -o -

@@ -139,8 +139,9 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildPushFunctionContext, BuildPopFunctionContext,
                    BuildCap,
                    ExpandExpressionStatement,
-                   GetPointerType, GetWordType,
-                   GetBitsPerWord,
+                   GetPointerType, GetPointerZero,
+                   GetWordType,
+                   GetBitsPerBitset,
                    RememberConstant, FoldAndStrip ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -474,6 +475,7 @@ END CodeStatement ;
 
 PROCEDURE DeclareConstantLiterals (l: List) ;
 VAR
+   n1  : Name ;
    i, n: CARDINAL ;
    sym : CARDINAL ;
 BEGIN
@@ -483,7 +485,8 @@ BEGIN
       sym := GetItemFromList(l, i) ;
       IF Debugging
       THEN
-         printf2('trying to declare constant %a <%d>', GetSymName(sym), sym)
+         n1 := GetSymName(sym) ;
+         printf2('trying to declare constant %a <%d>', n1, sym)
       END ;
       IF (sym#NulSym) AND IsConst(sym)
       THEN
@@ -894,8 +897,8 @@ VAR
 BEGIN
    Assert(IsUnbounded(GetType(param))) ;
    ArrayType := GetType(GetType(param)) ;
-
    (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
+
    High      := BuildMult(BuildAdd(
                                    BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
                                                                    BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
@@ -910,13 +913,15 @@ BEGIN
    Addr      := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
                                        BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                        FALSE),
-                              GetIntegerType()) ;
+                              GetPointerType()) ;
 
    Type      := Tree(Mod2Gcc(GetType(param))) ;
    
    NewArray  := BuiltInAlloca(High) ;
    NewArray  := BuiltInMemCopy(NewArray, Addr, High) ;
+
    (* now assign  param.Addr := ADR(NewArray) *)
+
    t         := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
                                                        BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                                        FALSE),
@@ -1201,14 +1206,17 @@ END CheckConvertCoerceParameter ;
 *)
 
 PROCEDURE CodeParam (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   n1: Name ;
 BEGIN
    IF op1>0
    THEN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
+         n1 := GetSymName(op3) ;
          ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
-                                GetSymName(op3)), CurrentQuadToken)
+                                n1), CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
          BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
@@ -1244,12 +1252,14 @@ END CodeFunctValue ;
 
 PROCEDURE CodeAddr (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   t : Tree ;
+   s1: String ;
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
+      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
       ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%s)')),
-                             Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
+                             s1),
                     CurrentQuadToken)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
@@ -1278,7 +1288,8 @@ END CheckStop ;
 
 PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   s1: String ;
+   t : Tree ;
 BEGIN
    DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    IF IsConst(op1) AND IsConst(op3)
@@ -1289,8 +1300,9 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(op1)
          THEN
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1)))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('constant, %s, should not be reassigned')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1))))),
+                                   s1),
                           tokenno)
          ELSE
             IF IsConstString(op3)
@@ -1344,7 +1356,7 @@ END FoldBecomes ;
 PROCEDURE DescribeTypeError (token: CARDINAL;
                              op1, op2: CARDINAL) ;
 VAR
-   s1, s2: String ;
+   s1, s2, s3: String ;
 BEGIN
    s1 := NIL ;
    s2 := NIL ;
@@ -1352,8 +1364,8 @@ BEGIN
    THEN
       IF (GetType(op1)#NulSym) AND (GetSymName(GetType(op1))#NulName)
       THEN
-         s1 := Mark(Sprintf1(Mark(InitString('symbol of type %s')),
-                             InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))))
+         s3 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))) ;
+         s1 := Mark(Sprintf1(Mark(InitString('symbol of type %s')), s3))
       END
    ELSE
       s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))
@@ -1363,8 +1375,8 @@ BEGIN
    THEN
       IF (GetType(op2)#NulSym) AND (GetSymName(GetType(op2))#NulName)
       THEN
-         s2 := Mark(Sprintf1(Mark(InitString('symbol of type %s')),
-                             InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))))
+         s3 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))) ;
+         s2 := Mark(Sprintf1(Mark(InitString('symbol of type %s')), s3))
       END
    ELSE
       s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))))
@@ -1506,7 +1518,7 @@ END CodeBecomes ;
 
 
 (*
-   CoerceTree - coerces a lvalue into an integer
+   CoerceTree - coerces a lvalue into an internal pointer type.
 *)
 
 PROCEDURE CoerceTree (sym: CARDINAL) : Tree ;
@@ -1520,7 +1532,7 @@ BEGIN
    END ;
    IF GetMode(sym)=LeftValue
    THEN
-      t := BuildConvert(GetIntegerType(), t, FALSE)
+      t := BuildConvert(GetPointerType(), t, FALSE)
    END ;
    RETURN( t )
 END CoerceTree ;
@@ -1764,14 +1776,15 @@ END CodeMod ;
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List;
                             quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   t : Tree ;
+   s1: String ;
 BEGIN
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
    THEN
+      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3))))) ;
       ErrorStringAt(Sprintf1(Mark(InitString('unknown built in constant (%s)')),
-                             Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3)))))),
-                    tokenno)
+                             s1), tokenno)
    ELSE
       AddModGcc(op1, t) ;
       RemoveItemFromList(l, op1) ;
@@ -1788,7 +1801,8 @@ PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List;
                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t     : Tree ;
-   s     : String ;
+   s, s1 : String ;
+   d,
    result: CARDINAL ;
 BEGIN
    DeclareConstant(tokenno, op3) ;
@@ -1805,13 +1819,14 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
+               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
                ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%s)')),
-                                      Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
-                             QuadToTokenNo(quad))
+                                      s1), QuadToTokenNo(quad))
             END
          ELSE
             (* rewrite the quad to use becomes *)
-            s := Sprintf1(Mark(InitString("%d")), GetStringLength(op3)) ;
+            d := GetStringLength(op3) ;
+            s := Sprintf1(Mark(InitString("%d")), d) ;
             result := MakeConstLit(makekey(string(s))) ;
             s := KillString(s) ;
             DeclareConstant(tokenno, result) ;
@@ -1832,9 +1847,9 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
+               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
                ErrorStringAt(Sprintf1(Mark(InitString('parameter to CAP must be a single character (%s)')),
-                                      Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
-                             QuadToTokenNo(quad))
+                                      s1), QuadToTokenNo(quad))
             END
          END
       END
@@ -2167,7 +2182,7 @@ VAR
    type, low, high, bpw: CARDINAL ;
    i                   : INTEGER ;
 BEGIN
-   bpw := GetBitsPerWord() ;
+   bpw := GetBitsPerBitset() ;
    GetSetLimits(set, low, high) ;
 
    (* check element is legal *)
@@ -2216,6 +2231,7 @@ END GetFieldNo ;
 
 PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
+   s1     : String ;
    low,
    high   : CARDINAL ;
    offset : Tree ;
@@ -2244,9 +2260,9 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
-                          CurrentQuadToken)
+                                   s1), CurrentQuadToken)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -2288,6 +2304,7 @@ END FoldExcl ;
 
 PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
+   s1      : String ;
    low,
    high    : CARDINAL ;
    offset  : Tree ;
@@ -2311,9 +2328,9 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
-                          CurrentQuadToken)
+                                   s1), CurrentQuadToken)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -2627,7 +2644,7 @@ BEGIN
             END ;
             PutConst(op1, Address) ;
             AddModGcc(op1,
-                      DeclareKnownConstant(GetIntegerType(),
+                      DeclareKnownConstant(GetPointerType(),
                                            t)) ;
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
@@ -2684,7 +2701,7 @@ BEGIN
             END ;
             PutConst(op1, Address) ;
             AddModGcc(op1,
-                      DeclareKnownConstant(GetIntegerType(),
+                      DeclareKnownConstant(GetPointerType(),
                                            t))
          ELSE
             (* ok, use assignment *)
@@ -2720,7 +2737,7 @@ BEGIN
                     QuadToTokenNo(quad))
    END ;
    Subscript := GetNth(Type, 1) ;
-   Subrange := GetType(Subscript) ;
+   Subrange := SkipType(GetType(Subscript)) ;
    GetSubrange(Subrange, High, Low) ;
    IF GccKnowsAbout(High)
    THEN
@@ -2804,20 +2821,21 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    IF IsConstString(op3)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()),
-                           BuildAddr(PromoteToString(CurrentQuadToken, op3), FALSE))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
+                           BuildAddr(PromoteToString(CurrentQuadToken, op3),
+                                     FALSE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
       Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
                                      BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                      FALSE),
-                            GetIntegerType()) ;
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Addr)
+                            GetPointerType()) ;
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)
    ELSIF GetMode(op3)=RightValue
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), BuildAddr(Mod2Gcc(op3), FALSE))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), BuildAddr(Mod2Gcc(op3), FALSE))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Mod2Gcc(op3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    END
 END CodeUnbounded ;
 
@@ -2838,7 +2856,7 @@ BEGIN
       i := 1 ;
       subscript := GetNth(array, i) ;
       WHILE subscript#NulSym DO
-         subrange := GetType(subscript) ;
+         subrange := SkipType(GetType(subscript)) ;
          GetSubrange(subrange, high, low) ;
          IF GccKnowsAbout(low) AND GccKnowsAbout(high)
          THEN
@@ -2871,11 +2889,11 @@ VAR
    Subrange: CARDINAL ;
 BEGIN
    i := 1 ;
-   offset    := GetIntegerZero() ;
+   offset    := GetPointerZero() ;
    Subscript := GetNth(array, i) ;
    WHILE Subscript#NulSym DO
       size     := BuildSize(Mod2Gcc(Subscript), FALSE) ;  (* Size for element i *)
-      Subrange := GetType(Subscript) ;
+      Subrange := SkipType(GetType(Subscript)) ;
       GetSubrange(Subrange, High, Low) ;
       offset   := BuildSub(offset, BuildMult(size, Mod2Gcc(Low), FALSE), FALSE) ;
       INC(i) ;
@@ -2902,7 +2920,7 @@ BEGIN
       IF (NOT GccKnowsAbout(op1)) AND AreSubrangesKnown(op2)
       THEN
          AddModGcc(op1,
-                   DeclareKnownConstant(GetIntegerType(),
+                   DeclareKnownConstant(GetPointerType(),
                                         CalculateBase(op2))) ;
          RemoveItemFromList(l, op1) ;
          SubQuad(quad)
@@ -2933,7 +2951,7 @@ BEGIN
       IF AreSubrangesKnown(op2)
       THEN
          AddModGcc(op1,
-                   DeclareKnownConstant(GetIntegerType(),
+                   DeclareKnownConstant(GetPointerType(),
                                         CalculateBase(op2)))
       ELSE
          InternalError('subranges not yet resolved', __FILE__, __LINE__)
@@ -3795,6 +3813,7 @@ END BuildIfNotVarInConstValue ;
 
 PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
+   s1      : String ;
    low,
    high    : CARDINAL ;
    lowtree,
@@ -3822,8 +3841,9 @@ BEGIN
                               GetMode(op2)=LeftValue, fieldno,
                               string(CreateLabelName(op3)))
          ELSE
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
+                                   s1),
                           CurrentQuadToken)
          END
       ELSIF IsConst(op2)
@@ -3855,6 +3875,7 @@ END CodeIfIn ;
 
 PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
+   s1      : String ;
    operator: QuadOperator ;
    low,
    high    : CARDINAL ;
@@ -3883,8 +3904,9 @@ BEGIN
                                  GetMode(op2)=LeftValue, fieldno,
                                  string(CreateLabelName(op3)))
          ELSE
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))))),
+                                   s1),
                           CurrentQuadToken)
          END
       ELSIF IsConst(op2)
@@ -3962,7 +3984,7 @@ BEGIN
    *)
    IF IsProcType(op2)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Mod2Gcc(op3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    ELSE
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)), Mod2Gcc(op3))
    END

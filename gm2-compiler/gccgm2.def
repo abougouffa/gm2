@@ -19,7 +19,8 @@ EXPORT QUALIFIED Tree,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
                  GetWordOne, GetWordZero,
                  GetCharType, GetM2CharType, GetVoidType, GetCurrentFunction,
-                 GetPointerType, GetM2IntegerType, GetM2CardinalType,
+                 GetPointerType, GetPointerZero, GetPointerOne,
+                 GetM2IntegerType, GetM2CardinalType,
                  GetByteType, GetCardinalType, GetBitsetType, GetBitnumType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongIntType,
@@ -27,7 +28,8 @@ EXPORT QUALIFIED Tree,
                  GetWordType,
                  GetISOLocType, GetISOByteType, GetISOWordType,
                  GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
-                 GetBitsPerWord, GetBitsPerUnit,
+                 GetBitsPerWord, GetBitsPerUnit, GetBitsPerInt,
+                 GetBitsPerBitset,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -152,6 +154,8 @@ PROCEDURE GetIntegerZero         () : Tree ;
 PROCEDURE GetIntegerOne          () : Tree ;
 PROCEDURE GetWordZero            () : Tree ;
 PROCEDURE GetWordOne             () : Tree ;
+PROCEDURE GetPointerZero         () : Tree ;
+PROCEDURE GetPointerOne          () : Tree ;
 PROCEDURE GetCurrentFunction     () : Tree ;
 PROCEDURE GetErrorNode           () : Tree ;
 
@@ -184,6 +188,20 @@ PROCEDURE GetBitsPerWord () : CARDINAL ;
 *)
 
 PROCEDURE GetBitsPerUnit () : CARDINAL ;
+
+
+(*
+   GetBitsPerInt - returns a CARDINAL indicating the number of bits per INTEGER.
+*)
+
+PROCEDURE GetBitsPerInt () : CARDINAL ;
+
+
+(*
+   GetBitsPerBitset - returns a CARDINAL indicating the number of bits per BITSET.
+*)
+
+PROCEDURE GetBitsPerBitset () : CARDINAL ;
 
 
 (*

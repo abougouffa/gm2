@@ -23,7 +23,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
-FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
+FROM NameKey IMPORT NulName, Name, makekey, KeyToCharStar ;
 FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM M2Debug IMPORT Assert ;
@@ -534,7 +534,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NIL, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
       GetToken
    END
 END InsertToken ;
@@ -555,7 +555,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NIL, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
       currenttoken := token
    END
 END InsertTokenAndRewind ;
@@ -812,7 +812,7 @@ PROCEDURE AddTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
-      AddTokToList(t, NIL, 0, m2lex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, NulName, 0, m2lex.GetLineNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -837,9 +837,11 @@ END AddTokCharStar ;
 PROCEDURE AddTokInteger (t: toktype; i: INTEGER) ;
 VAR
    s: String ;
+   l: CARDINAL ;
 BEGIN
-   s := Sprintf1(Mark(InitString('%d')), m2lex.GetLineNo()) ;
-   AddTokToList(t, makekey(string(s)), i, m2lex.GetLineNo(), CurrentSource) ;
+   l := m2lex.GetLineNo() ;
+   s := Sprintf1(Mark(InitString('%d')), l) ;
+   AddTokToList(t, makekey(string(s)), i, l, CurrentSource) ;
    s := KillString(s) ;
    CurrentUsed := TRUE
 END AddTokInteger ;

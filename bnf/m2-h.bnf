@@ -49,7 +49,7 @@ IMPLEMENTATION MODULE PHBuild ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt ;
-FROM NameKey IMPORT NulName, Name ;
+FROM NameKey IMPORT NulName, Name, makekey ;
 FROM M2Reserved IMPORT tokToTok, toktype ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
@@ -370,7 +370,7 @@ PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, identtok)
+      PushTF(makekey(currentstring), identtok)
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
@@ -384,7 +384,7 @@ PROCEDURE string (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSto
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, stringtok) ;
+      PushTF(makekey(currentstring), stringtok) ;
       BuildString
    END ;
    Expect(stringtok, stopset0, stopset1, stopset2)
@@ -399,7 +399,7 @@ PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSt
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, integertok) ;
+      PushTF(makekey(currentstring), integertok) ;
       BuildNumber
    END ;
    Expect(integertok, stopset0, stopset1, stopset2)
@@ -414,7 +414,7 @@ PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, realtok) ;
+      PushTF(makekey(currentstring), realtok) ;
       BuildNumber
    END ;
    Expect(realtok, stopset0, stopset1, stopset2)

@@ -30,7 +30,6 @@ TYPE
 
 VAR
    stderr: FILE ;
-   errno : INTEGER ;
 
 
 PROCEDURE exit (r: INTEGER) ;

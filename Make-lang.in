@@ -377,8 +377,9 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-libs/%s.def -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink
-GM2-VERSION=0.42
-GM2_FLAGS=-Wbounds -Wreturn -gstabs
+GM2-VERSION=0.43
+GM2_O=
+GM2_FLAGS=-Wbounds -Wreturn -gdwarf-2 $(GM2_O)
 
 # Language-specific object files for the gm2 compiler.
 
@@ -392,7 +393,9 @@ GM2_FLAGS=-Wbounds -Wreturn -gstabs
 # much prefered as the executable contains debugging info relating
 # directly to the Modula-2 source.
 
-GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o        # the C implementation module bridging the Modula-2 -> GCC
+                  # the C implementation module bridging the Modula-2 -> GCC
+GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o \
+                    gm2/stor-layout.o
 GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
                     gm2/gm2-libs-boot/libgm2.a \
@@ -474,6 +477,8 @@ gm2/gccgm2.o : $(GM2_DIRS) $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H)
 gm2/gm2builtins.o : $(GM2_DIRS) $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 
+gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+	$(CC) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 #
 #  the following tables define the source files which are translated into C using p2c
@@ -505,7 +510,7 @@ GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      StdIO.c         Storage.c  
 GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def   P3SymBuild.def  M2ALU.def       M2Depth.def     \
                      M2Pass.def      P1SymBuild.def  M2AsmUtil.def   M2EvalSym.def   \
-                     M2Quads.def     M2FileName.def  M2Stack.def     \
+                     M2Quads.def     M2FileName.def  M2StackWord.def M2StackAddress.def \
                      M2Base.def      M2Reserved.def  SymbolKey.def   M2BasicBlock.def\
                      M2Search.def    M2Batch.def     M2System.def    P2SymBuild.def  \
                      M2Code.def      M2Comp.def      m2lex.def       NameKey.def     \
@@ -516,13 +521,13 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def     \
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
                      clex.def        CLexBuf.def     M2Bitset.def    M2Size.def      \
-                     M2Scope.def
+                     M2Scope.def     Indexing.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
-                     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  M2Stack.mod     \
+                     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  M2StackWord.mod \
                      M2Options.mod   M2Pass.mod      M2Batch.mod     M2Quads.mod     \
-                     M2Comp.mod      M2Reserved.mod  M2Configure.mod \
+                     M2Comp.mod      M2Reserved.mod  M2Configure.mod M2StackAddress.mod \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod  P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod   SymbolTable.mod                 gm2lcc.mod      \
@@ -533,9 +538,10 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2ALU.mod       M2System.mod    Lists.mod       \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
-                     M2Size.mod      M2Scope.mod
+                     M2Size.mod      M2Scope.mod     Indexing.mod
 
-GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
+GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Indexing.mod    \
+                     Lists.mod       bnflex.mod
 
 
 #
@@ -572,31 +578,31 @@ GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetem
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
                      M2Pass.def        P1SymBuild.def  M2AsmUtil.def   M2Quads.def     \
-                     M2Stack.def       M2FileName.def  M2Base.def      M2Reserved.def  \
+                     M2StackWord.def   M2FileName.def  M2Base.def      M2Reserved.def  \
                      SymbolKey.def     M2BasicBlock.def M2Search.def   M2Batch.def     \
                      M2System.def      P2SymBuild.def  M2Code.def      M2Comp.def      \
-                     NameKey.def       M2Version.def   M2Error.def     \
+                     NameKey.def       M2Version.def   M2Error.def     M2StackAddress.def \
                      M2Constants.def   M2Students.def  M2Entity.def    M2GenGCC.def    \
                      M2GCCDeclare.def  M2Configure.def SymbolTable.def Lists.def       \
                      P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
-                     M2Bitset.def      M2Size.def      M2Scope.def
+                     M2Bitset.def      M2Size.def      M2Scope.def     Indexing.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
-                     M2Stack.mod       M2Options.mod   M2Pass.mod      M2Batch.mod     \
+                     M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
                      M2Quads.mod       M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
-                                       M2Constants.mod M2Students.mod  M2Entity.mod    \
+                     M2Constants.mod   M2Students.mod  M2Entity.mod    M2StackAddress.mod \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
-                     M2Bitset.mod      M2Size.mod      M2Scope.mod
+                     M2Bitset.mod      M2Size.mod      M2Scope.mod     Indexing.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      gm2m.mod          ppg.mod
@@ -613,12 +619,12 @@ GM2-LIBIBERTY-DEFS = choosetemp.def    pexecute.def
 #
 
 GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
-                     M2Stack.mod                       M2Pass.mod      M2Batch.mod     \
+                     M2StackWord.mod                   M2Pass.mod      M2Batch.mod     \
                      M2Quads.mod       M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
-                     gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
+                     gm2lgen.mod       gm2lsub.mod     M2Error.mod     M2StackAddress.mod \
                                        M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
@@ -658,7 +664,7 @@ BUILD-BOOT-H = $(BUILD-LIBS-BOOT-H) $(BUILD-COMPILER-BOOT-H)
 P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
 
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
-	$(CC) -c -g -O2 -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
+	$(CC) $(GM2_O) -c -g -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs-boot/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs-boot/$*.def $(srcdir)/gm2/gm2-libs-boot/$*.mod -o gm2/gm2-libs-boot/$*.c
@@ -706,7 +712,7 @@ gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(BUILD-BOOT-H)
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/$*.c -o $@
 
 gm2/gm2-compiler-boot/%.o: gm2/gm2-compiler-boot/%.c
-	$(CC) -c -g -O2 -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
+	$(CC) -c -g -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-boot/P1SyntaxCheck.o: $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P1SyntaxCheck.def gm2/gm2-auto/P1SyntaxCheck.mod -o gm2/gm2-auto/P1SyntaxCheck.c
@@ -805,31 +811,31 @@ gm2/gm2-compiler/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/$(SRC_PRE
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/gm2m.o: $(objdir)/gm2/gm2-auto/gm2m.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P1SyntaxCheck.o: $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P2Build.o: $(objdir)/gm2/gm2-auto/P2Build.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P3Build.o: $(objdir)/gm2/gm2-auto/P3Build.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/PHBuild.o: $(objdir)/gm2/gm2-auto/PHBuild.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.mod:
 	cd gm2/gm2-compiler ; ../../$(srcdir)/gm2/tools-src/makeversion $(GM2-VERSION)b
 
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 	./xgm2 $(GM2_FLAGS) -Wiso -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
@@ -1053,7 +1059,7 @@ gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
 #
 
 gm2/gm2-libs-paranoid/%.o: gm2/gm2-libs/%.c
-	$(CC) -c -g -O2 -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@
+	$(CC) -c -g $(GM2_O) -I./ -Igm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1364,11 +1370,11 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
            echo -n "[3]" ; \
            if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s >& gm2/gm2-compiler-verify/1_2.diff ; then \
                echo -n " [stage 1 and stage 2 differ]" ; \
@@ -1393,9 +1399,9 @@ gm2.verifystage12: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
 	@echo "verifying stage1 and stage2 generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
-           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \
            if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s >& gm2/gm2-compiler-verify/1_2.diff ; then \
                echo -n " [stage 1 and stage 2 differ]" ; \

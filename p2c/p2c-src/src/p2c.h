@@ -393,6 +393,7 @@ extern Anyptr __MallocTemp__;
 # endif
 #endif
 
+#if 0
 /* Fix toupper/tolower on Suns and other stupid BSD systems */
 #ifdef toupper
 # undef toupper
@@ -414,7 +415,7 @@ extern Anyptr __MallocTemp__;
 #  define _tolower(c)  tolower(c)
 # endif
 #endif
-
+#endif
 
 #endif    /* P2C_H */
 

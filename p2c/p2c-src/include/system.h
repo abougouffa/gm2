@@ -604,19 +604,9 @@ extern void abort PARAMS ((void));
 #endif
 #endif
 
-/* AIX requires this to be the first thing in the file.  */
-#ifndef __GNUC__
-# if HAVE_ALLOCA_H
-#  include <alloca.h>
-# else
-#  ifdef _AIX
-#pragma alloca
-#  else
-#   ifndef alloca /* predefined by HP cc +Olibcalls */
-char *alloca ();
-#   endif
-#  endif
-# endif
+/* GCC now gives implicit declaration warnings for undeclared builtins.  */
+#if defined(__GNUC__) && defined (__SIZE_TYPE__)
+extern void *alloca (__SIZE_TYPE__);
 #endif
 
 /* Various error reporting routines want to use __FUNCTION__.  */

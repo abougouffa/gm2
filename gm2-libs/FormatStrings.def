@@ -9,7 +9,7 @@ DEFINITION MODULE FormatStrings ;
     Description: provides a pseudo printf capability for GM2.
 *)
 
-FROM SYSTEM IMPORT WORD ;
+FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 
@@ -27,28 +27,28 @@ PROCEDURE Sprintf0 (s: String) : String ;
               entity, w. It only formats the first %s or %d with n.
 *)
 
-PROCEDURE Sprintf1 (s: String; w: WORD) : String ;
+PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) : String ;
 
 
 (*
    Sprintf2 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf2 (s: String; w1, w2: WORD) : String ;
+PROCEDURE Sprintf2 (s: String; w1, w2: ARRAY OF BYTE) : String ;
 
 
 (*
    Sprintf3 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf3 (s: String; w1, w2, w3: WORD) : String ;
+PROCEDURE Sprintf3 (s: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 
 
 (*
    Sprintf4 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: WORD) : String ;
+PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
 
 
 END FormatStrings.

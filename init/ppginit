@@ -11,6 +11,7 @@ Storage
 StrIO
 DynamicStrings
 Assertion
+Indexing
 NameKey
 NumberIO
 PushBackInput

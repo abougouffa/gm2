@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2RTS ;
 
 FROM libc IMPORT abort, exit, write ;
 FROM NumberIO IMPORT CardToStr ;
-FROM StrLib IMPORT StrCopy, StrLen ;
+FROM StrLib IMPORT StrCopy, StrLen, StrEqual ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
 
@@ -53,9 +53,9 @@ END Terminate ;
 
 
 (*
-   HALT - terminate the current program calling creating a core dump.
-          The procedure Terminate is called before the core dump is
-          created.
+   HALT - terminate the current program.
+          The procedure Terminate is called before the program is
+          stopped.
 *)
 
 PROCEDURE HALT ;
@@ -88,13 +88,22 @@ END ErrorString ;
    ErrorMessage - emits an error message to the stderr
 *)
 
-PROCEDURE ErrorMessage (message: ARRAY OF CHAR; file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
+                        file: ARRAY OF CHAR;
+                        line: CARDINAL;
+                        function: ARRAY OF CHAR) ;
 VAR
    LineNo: ARRAY [0..10] OF CHAR ;
 BEGIN
    ErrorString(file) ; ErrorString(':') ;
    CardToStr(line, 0, LineNo) ;
    ErrorString(LineNo) ; ErrorString(':') ;
+   IF NOT StrEqual(function, '')
+   THEN
+      ErrorString('in ') ;
+      ErrorString(function) ;
+      ErrorString(' has caused ') ;
+   END ;
    ErrorString(message) ;
    LineNo[0] := nl ; LineNo[1] := nul ;
    ErrorString(LineNo) ;
@@ -103,13 +112,28 @@ END ErrorMessage ;
 
 
 (*
+   Halt - provides a more user friendly version of HALT, which takes
+          four parameters to aid debugging.
+*)
+
+PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
+                function: ARRAY OF CHAR; description: ARRAY OF CHAR) ;
+BEGIN
+   ErrorMessage(description, file, line, function) ;
+   HALT
+END Halt ;
+
+
+(*
    SubrangeAssignmentError - part of the runtime checking, called if a
                              subrange variable is just about to be assigned an illegal value.
 *)
 
-PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
+                                   line: CARDINAL;
+                                   function: ARRAY OF CHAR) ;
 BEGIN
-   ErrorMessage('variable exceeds subrange', file, line)
+   ErrorMessage('variable exceeds subrange', file, line, function)
 END SubrangeAssignmentError ;
 
 
@@ -118,9 +142,11 @@ END SubrangeAssignmentError ;
                           array indice is out of range.
 *)
 
-PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 BEGIN
-   ErrorMessage('array index out of bounds', file, line)
+   ErrorMessage('array index out of bounds', file, line, function)
 END ArraySubscriptError ;
 
 
@@ -129,9 +155,11 @@ END ArraySubscriptError ;
                           function exits without a RETURN statement.
 *)
 
-PROCEDURE FunctionReturnError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 BEGIN
-   ErrorMessage('function is attempting to exit without a formal RETURN statement', file, line)
+   ErrorMessage('function is attempting to exit without a formal RETURN statement', file, line, function)
 END FunctionReturnError ;
 
 
@@ -156,7 +184,7 @@ PROCEDURE InstallTerminationProcedure (p: PROC) ;
 BEGIN
    IF Ptr=Max
    THEN
-      ErrorMessage('maximum number of termination procedures have been set', __FILE__, __LINE__)
+      ErrorMessage('maximum number of termination procedures have been set', __FILE__, __LINE__, __FUNCTION__)
    ELSE
       List[Ptr] := p ;
       INC(Ptr)

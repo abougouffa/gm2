@@ -23,11 +23,11 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
-FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
+FROM NameKey IMPORT Name, NulName, makekey, KeyToCharStar ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
-FROM NameKey IMPORT makekey ;
-FROM SymbolKey IMPORT SymbolTree, InitTree, DelSymKey, PutSymKey, GetSymKey ;
 FROM Assertion IMPORT Assert ;
+FROM SymbolKey IMPORT NulKey, SymbolTree, InitTree, DelSymKey, PutSymKey, GetSymKey ;
+FROM Indexing IMPORT Index, InitIndex, IsIndiceInIndex, GetIndice, PutIndice ;
 
 CONST
    MaxBucketSize = 100 ;
@@ -84,6 +84,8 @@ VAR
    ListOfTokens     : ListDesc ;
    CurrentTokNo     : CARDINAL ;
    MacroDefinitions : SymbolTree ;
+   MacroIndex       : Index ;
+   DefineNo         : CARDINAL ;
    EnabledMacros    : BOOLEAN ;
 
 
@@ -113,8 +115,23 @@ END EnableMacroSubstitutions ;
 *)
 
 PROCEDURE IsMacroDefined (n: Name) : BOOLEAN ;
+VAR
+   i: CARDINAL ;
+   m: Macro ;
 BEGIN
-   RETURN( GetSymKey(MacroDefinitions, n)#NIL )
+   i := GetSymKey(MacroDefinitions, n) ;
+   IF i=0
+   THEN
+      RETURN( FALSE )
+   ELSE
+      m := GetIndice(MacroIndex, i) ;
+      IF m=NIL
+      THEN
+         RETURN( FALSE )
+      ELSE
+         RETURN( TRUE )
+      END
+   END
 END IsMacroDefined ;
 
 
@@ -126,10 +143,12 @@ END IsMacroDefined ;
 PROCEDURE NoArgs (n: Name) : INTEGER ;
 VAR
    m: Macro ;
+   i: CARDINAL ;
 BEGIN
    IF IsMacroDefined(n)
    THEN
-      m := GetSymKey(MacroDefinitions, n) ;
+      i := GetSymKey(MacroDefinitions, n) ;
+      m := GetIndice(MacroIndex, i) ;
       RETURN( m^.noArgs )
    ELSE
       RETURN( -1 )
@@ -144,6 +163,7 @@ END NoArgs ;
 PROCEDURE DefineMacro (n: Name; t: CARDINAL) ;
 VAR
    m: Macro ;
+   i: CARDINAL ;
 BEGIN
    NEW(m) ;
    WITH m^ DO
@@ -153,7 +173,14 @@ BEGIN
       args := NIL
    END ;
    UnDefineMacro(n) ;
-   PutSymKey(MacroDefinitions, n, m)
+   i := GetSymKey(MacroDefinitions, n) ;
+   IF i=NulKey
+   THEN
+      PutSymKey(MacroDefinitions, n, DefineNo) ;
+      i := DefineNo ;
+      INC(DefineNo)
+   END ;
+   PutIndice(MacroIndex, i, m)
 END DefineMacro ;
 
 
@@ -164,11 +191,13 @@ END DefineMacro ;
 PROCEDURE UnDefineMacro (n: Name) ;
 VAR
    m: Macro ;
+   i: CARDINAL ;
 BEGIN
    IF IsMacroDefined(n)
    THEN
-      m := GetSymKey(MacroDefinitions, n) ;
-      DelSymKey(MacroDefinitions, n) ;
+      i := GetSymKey(MacroDefinitions, n) ;
+      m := GetIndice(MacroIndex, i) ;
+      PutIndice(MacroIndex, i, NIL) ;
       DISPOSE(m)
    END
 END UnDefineMacro ;
@@ -184,10 +213,12 @@ VAR
    m: Macro ;
    t: CARDINAL ;
    b: TokenBucket ;
+   i: CARDINAL ;
 BEGIN
    IF EnabledMacros AND IsMacroDefined(n)
    THEN
-      m := GetSymKey(MacroDefinitions, n) ;
+      i := GetSymKey(MacroDefinitions, n) ;
+      m := GetIndice(MacroIndex, i) ;
       WITH m^ DO
          IF tokno>0
          THEN
@@ -236,7 +267,9 @@ BEGIN
    ListOfTokens.tail := NIL ;
    UseBufferedTokens := FALSE ;
    InitTree(MacroDefinitions) ;
-   EnabledMacros := TRUE
+   EnabledMacros := TRUE ;
+   DefineNo := 1 ;
+   MacroIndex := InitIndex(1)
 END Init ;
 
 
@@ -704,7 +737,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NIL, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
       GetToken
    END
 END InsertToken ;
@@ -725,7 +758,7 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NIL, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
       currenttoken := token
    END
 END InsertTokenAndRewind ;
@@ -956,7 +989,7 @@ PROCEDURE AddTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
-      AddTokToList(t, NIL, 0, clex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, NulName, 0, clex.GetLineNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -986,9 +1019,11 @@ END AddTokCharStar ;
 PROCEDURE AddTokInteger (t: toktype; i: INTEGER) ;
 VAR
    s: String ;
+   lineno: CARDINAL ;
 BEGIN
-   s := Sprintf1(Mark(InitString('%d')), clex.GetLineNo()) ;
-   AddTokToList(t, makekey(string(s)), i, clex.GetLineNo(), CurrentSource) ;
+   lineno := clex.GetLineNo() ;
+   s := Sprintf1(Mark(InitString('%d')), lineno) ;
+   AddTokToList(t, makekey(string(s)), i, lineno, CurrentSource) ;
    s := KillString(s) ;
    CurrentUsed := TRUE
 END AddTokInteger ;

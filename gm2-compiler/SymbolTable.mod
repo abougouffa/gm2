@@ -822,6 +822,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE DeclareSym (name: Name) : CARDINAL ;
 VAR
+   s  : String ;
    Sym: CARDINAL ;
 BEGIN
    IF name=MakeKey('C')
@@ -836,10 +837,13 @@ BEGIN
       Sym := GetSym(name) ;
       IF IsImported(GetCurrentModuleScope(), Sym)
       THEN
-         AlreadyImportedError(Sprintf1(Mark(InitString('symbol (%s) is already present in this scope, check both definition and implementation modules, use a different name or remove the import')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
-                              0)
+         s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
+         AlreadyImportedError(Sprintf1(Mark(InitString('symbol (%s) is already present in this scope, check both definition and implementation modules, use a different name or remove the import')),
+                                       s), name, 0)
       ELSE
-         AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
+         s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
+         AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), s),
+                              name,
                               GetDeclared(GetVisibleSym(name)))
       END ;
       Sym := MakeError(name)
@@ -1024,6 +1028,8 @@ END TransparentScope ;
 *)
 
 PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ;
+VAR
+   n: Name ;
 BEGIN
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
@@ -1032,13 +1038,15 @@ BEGIN
                     THEN
                        PutSymKey(DefImp.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', GetSymName(Sym))
+                       n := GetSymName(Sym) ;
+                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
                     END |
       ModuleSym   : IF GetSymKey(Module.LocalSymbols, GetSymName(Sym))=NulKey
                     THEN
                        PutSymKey(Module.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', GetSymName(Sym))
+                       n := GetSymName(Sym) ;
+                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
                     END
 
       ELSE
@@ -1763,6 +1771,7 @@ END CheckScopeForSym ;
 
 PROCEDURE DisplayScopes ;
 VAR
+   n  : Name ;
    i  : CARDINAL ;
    Sym: CARDINAL ;
 BEGIN
@@ -1773,7 +1782,8 @@ BEGIN
       printf1('Symbol %4d', Sym) ;
       IF Sym#NulSym
       THEN
-         printf1(' : name %a is ', GetSymName(Sym)) ;
+         n := GetSymName(Sym) ;
+         printf1(' : name %a is ', n) ;
          IF NOT TransparentScope(Sym)
          THEN
             printf0('not')
@@ -3397,6 +3407,7 @@ END IsVarient ;
 
 PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name) ;
 VAR
+   s    : String ;
    Field: CARDINAL ;
 BEGIN
    Field := CheckForHiddenType(FieldName) ;
@@ -3426,7 +3437,8 @@ BEGIN
                             INC(NoOfElements) ;
                             IF GetSymKey(LocalSymbols, FieldName)#NulSym
                             THEN
-                               AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(FieldName)))),
+                               s := Mark(InitStringCharStar(KeyToCharStar(FieldName))) ;
+                               AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), s),
                                                     FieldName,
                                                     GetDeclared(GetSymKey(LocalSymbols, FieldName)))
                             ELSE
@@ -3782,6 +3794,7 @@ END RequestSym ;
 PROCEDURE PutImported (Sym: CARDINAL) ;
 VAR
    ModSym: CARDINAL ;
+   n     : Name ;
 BEGIN
    (*
       We have currently imported Sym, now place it into the current module.
@@ -3795,27 +3808,31 @@ BEGIN
                  THEN
                     IF Pedantic
                     THEN
-                       WriteFormat1('symbol (%a) has already been imported', GetSymName(Sym))
+                       n := GetSymName(Sym) ;
+                       WriteFormat1('symbol (%a) has already been imported', n)
                     END
                  ELSIF GetSymKey(Module.ImportTree, GetSymName(Sym))=NulKey
                  THEN
                     PutSymKey(Module.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
-                    WriteFormat1('name clash when trying to import (%a)', GetSymName(Sym))
+                    n := GetSymName(Sym) ;
+                    WriteFormat1('name clash when trying to import (%a)', n)
                  END |
       DefImpSym: IF GetSymKey(DefImp.ImportTree, GetSymName(Sym))=Sym
                  THEN
                     IF Pedantic
                     THEN
-                       WriteFormat1('symbol (%a) has already been imported', GetSymName(Sym))
+                       n := GetSymName(Sym) ;
+                       WriteFormat1('symbol (%a) has already been imported', n)
                     END
                  ELSIF GetSymKey(DefImp.ImportTree, GetSymName(Sym))=NulKey
                  THEN
                     PutSymKey(DefImp.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
-                    WriteFormat1('name clash when trying to import (%a)', GetSymName(Sym))
+                    n := GetSymName(Sym) ;
+                    WriteFormat1('name clash when trying to import (%a)', n)
                  END
 
       ELSE
@@ -3903,6 +3920,7 @@ END PutExported ;
 
 PROCEDURE PutExportQualified (SymName: Name) ;
 VAR
+   n     : Name ;
    Sym,
    ModSym: CARDINAL ;
 BEGIN
@@ -3921,8 +3939,9 @@ BEGIN
                     IF (GetSymKey(ExportQualifiedTree, SymName)#NulKey) AND
                        (GetSymKey(ExportRequest, SymName)=NulKey)
                     THEN
+                       n := GetSymName(ModSym) ;
                        WriteFormat2('identifier (%a) has already been exported from MODULE %a',
-                                    SymName, GetSymName(ModSym))
+                                    SymName, n)
                     ELSIF GetSymKey(ExportRequest, SymName)#NulKey
                     THEN
                        Sym := GetSymKey(ExportRequest, SymName) ;
@@ -3955,6 +3974,7 @@ END PutExportQualified ;
 
 PROCEDURE PutExportUnQualified (SymName: Name) ;
 VAR
+   n     : Name ;
    Sym,
    ModSym: CARDINAL ;
 BEGIN
@@ -3968,8 +3988,9 @@ BEGIN
                     IF (GetSymKey(ExportUnQualifiedTree, SymName)#NulKey) AND
                        (GetSymKey(ExportRequest, SymName)=NulKey)
                     THEN
+                       n := GetSymName(ModSym) ;
                        WriteFormat2('identifier (%a) has already been exported from MODULE %a',
-                                    SymName, GetSymName(ModSym))
+                                    SymName, n)
                     ELSIF GetSymKey(ExportRequest, SymName)#NulKey
                     THEN
                        Sym := GetSymKey(ExportRequest, SymName) ;
@@ -4091,8 +4112,11 @@ END RequestFromDefinition ;
 *)
 
 PROCEDURE DisplaySymbol (sym: WORD) ;
+VAR
+   s: String ;
 BEGIN
-   printf2('   %s (%d)', Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))), sym)
+   s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))) ;
+   printf2('   %s (%d)', s, sym)
 END DisplaySymbol ;
 
 
@@ -4101,33 +4125,38 @@ END DisplaySymbol ;
 *)
 
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
+VAR
+   n: Name ;
 BEGIN
-   printf1('Symbol trees for module: %a\n', GetSymName(ModSym)) ;
+   n := GetSymName(ModSym) ;
+   printf1('Symbol trees for module: %a\n', n) ;
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
-                    printf1('%a  UndefinedTree', GetSymName(ModSym)) ;
+                    n := GetSymName(ModSym) ;
+                    printf1('%a  UndefinedTree', n) ;
                     ForeachNodeDo(Unresolved, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  Local symbols', GetSymName(ModSym)) ;
+                    printf1('%a  Local symbols', n) ;
                     ForeachNodeDo(LocalSymbols, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportRequest', GetSymName(ModSym)) ;
+                    printf1('%a  ExportRequest', n) ;
                     ForeachNodeDo(ExportRequest, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportQualified', GetSymName(ModSym)) ;
+                    printf1('%a  ExportQualified', n) ;
                     ForeachNodeDo(ExportQualifiedTree, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportUnQualified', GetSymName(ModSym)) ;
+                    printf1('%a  ExportUnQualified', n) ;
                     ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; printf0('\n')
                  END |
       ModuleSym: WITH Module DO
-                    printf1('%a  UndefinedTree', GetSymName(ModSym)) ;
+                    n := GetSymName(ModSym) ;
+                    printf1('%a  UndefinedTree', n) ;
                     ForeachNodeDo(Unresolved, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  Local symbols', GetSymName(ModSym)) ;
+                    printf1('%a  Local symbols', n) ;
                     ForeachNodeDo(LocalSymbols, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ImportTree', GetSymName(ModSym)) ;
+                    printf1('%a  ImportTree', n) ;
                     ForeachNodeDo(ImportTree, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportTree', GetSymName(ModSym)) ;
+                    printf1('%a  ExportTree', n) ;
                     ForeachNodeDo(ExportTree, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportUndeclared', GetSymName(ModSym)) ;
+                    printf1('%a  ExportUndeclared', n) ;
                     ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n')
                  END
 
@@ -4392,11 +4421,13 @@ END CheckForUnknownInModule ;
 PROCEDURE UnknownSymbolError (Sym: WORD) ;
 VAR
    e: Error ;
+   n: Name ;
 BEGIN
    IF IsUnknown(Sym)
    THEN
+      n := GetSymName(Sym) ;
       e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-      ErrorFormat1(e, 'unknown symbol (%a) found', GetSymName(Sym))
+      ErrorFormat1(e, 'unknown symbol (%a) found', n)
    END
 END UnknownSymbolError ;
 
@@ -4409,12 +4440,15 @@ END UnknownSymbolError ;
 
 PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
                             a: ARRAY OF CHAR) ;
+VAR
+   n: Name ;
 BEGIN
    IF DoesTreeContainAny(Tree, IsUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
+      n := MakeKey(a) ;
       ErrorFormat2(CurrentError, 'the following unknown symbols in module %a were %a',
-                   name, MakeKey(a)) ;      
+                   name, n) ;
       ForeachNodeDo(Tree, UnknownSymbolError)
    END
 END CheckForUnknowns ;
@@ -4427,9 +4461,11 @@ END CheckForUnknowns ;
 PROCEDURE SymbolError (Sym: WORD) ;
 VAR
    e: Error ;
+   n: Name ;
 BEGIN
+   n := GetSymName(Sym) ;
    e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-   ErrorFormat1(e, 'unknown symbol (%a) found', GetSymName(Sym))
+   ErrorFormat1(e, 'unknown symbol (%a) found', n)
 END SymbolError ;
 
 
@@ -4440,11 +4476,15 @@ END SymbolError ;
 *)
 
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ;
+VAR
+   n1, n2: Name ;
 BEGIN
    IF NOT IsEmptyTree(Tree)
    THEN
+      n1 := GetSymName(MainModule) ;
+      n2 := MakeKey(a) ;
       WriteFormat2('the following symbols are unknown at the end of module %a when %a',
-                   GetSymName(MainModule), MakeKey(a)) ;
+                   n1, n2) ;
       ForeachNodeDo(Tree, SymbolError) ;
    END
 END CheckForSymbols ;
@@ -4561,9 +4601,11 @@ END CheckForUndeclaredExports ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ;
 VAR
    e: Error ;
+   n: Name ;
 BEGIN
    e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-   ErrorFormat1(e, 'undeclared symbol (%a)', GetSymName(Sym))
+   n := GetSymName(Sym) ;
+   ErrorFormat1(e, 'undeclared symbol (%a)', n)
 END UndeclaredSymbolError ;
 
 
@@ -4573,14 +4615,18 @@ END UndeclaredSymbolError ;
 *)
 
 PROCEDURE PutExportUnImplemented (Sym: CARDINAL) ;
+VAR
+   n1, n2: Name ;
 BEGIN
    WITH Symbols[CurrentModule] DO
       CASE SymbolType OF
 
       DefImpSym: IF GetSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym))=Sym
                  THEN
-                    WriteFormat2('symbol (%a) already exported from module (%a)',
-                                 GetSymName(Sym), GetSymName(CurrentModule))
+                    n1 := GetSymName(Sym) ;
+                    n2 := GetSymName(CurrentModule) ;
+                    WriteFormat2('symbol (%a) already exported from module (%a)', n1, n2)
+                    
                  ELSE
                     PutSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym), Sym)
                  END
@@ -4668,14 +4714,18 @@ END CheckForUnImplementedExports ;
 *)
 
 PROCEDURE UnImplementedSymbolError (Sym: WORD) ;
+VAR
+   n: Name ;
 BEGIN
    CurrentError := ChainError(GetFirstUsed(Sym), CurrentError) ;
    IF IsType(Sym)
    THEN
-      ErrorFormat1(CurrentError, 'hidden type is undeclared (%a)', GetSymName(Sym))
+      n := GetSymName(Sym) ;
+      ErrorFormat1(CurrentError, 'hidden type is undeclared (%a)', n)
    ELSIF IsProcedure(Sym)
    THEN
-      ErrorFormat1(CurrentError, 'procedure is undeclared (%a)', GetSymName(Sym))
+      n := GetSymName(Sym) ;
+      ErrorFormat1(CurrentError, 'procedure is undeclared (%a)', n)
    ELSE
       InternalError('expecting Type or Procedure symbols', __FILE__, __LINE__)
    END

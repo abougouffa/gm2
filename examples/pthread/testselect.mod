@@ -24,7 +24,8 @@ FROM pth IMPORT pth_sleep, pth_event_t, pth_t, pth_attr_t, pth_init, pth_attr_ne
 FROM SYSTEM IMPORT ADR, ADDRESS ;
 FROM DynamicStrings IMPORT InitString, string ;
 FROM FormatStrings IMPORT Sprintf0 ;
-FROM libcextra IMPORT exit, fprintf, sleep, errno, stderr ;
+FROM libcextra IMPORT exit, fprintf, sleep, stderr ;
+FROM libcwrap IMPORT errno ;
 FROM Selective IMPORT SetOfFd, Timeval,
                       InitSet, KillSet, InitTime, KillTime,
                       FdZero, FdSet, FdClr, FdIsSet, Select,
@@ -39,7 +40,7 @@ CONST
 
 PROCEDURE die (str: ARRAY OF CHAR) ;
 BEGIN
-   fprintf(stderr, "**die: %s: errno=%d\n", string(InitString(str)), errno) ;
+   fprintf(stderr, "**die: %s: errno=%d\n", string(InitString(str)), errno()) ;
    exit(1)
 END die ;
 
@@ -93,7 +94,7 @@ BEGIN
       FdZero(rfds);
       FdSet(STDIN_FILENO, rfds);
       n := pth_select_ev(STDIN_FILENO+1, rfds, NIL, NIL, NIL, evt);
-      IF (n = -1) AND (errno = EINTR)
+      IF (n = -1) AND (errno() = EINTR)
       THEN
          fprintf(stderr, "main: timeout - repeating\n")
       ELSE

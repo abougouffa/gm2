@@ -43,6 +43,7 @@
 typedef Signed   char schar;
 typedef unsigned char uchar;
 typedef int      BOOLEAN;
+typedef void *   SYSTEM_ADDRESS;
 
 #ifndef TRUE
 # define TRUE    1

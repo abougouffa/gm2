@@ -17,9 +17,13 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: SysBreak.mod,v 1.1 2003/12/27 00:16:07 gaius Exp $
+   $Id: SysBreak.mod,v 1.2 2004/04/05 10:42:46 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: SysBreak.mod,v $
+   Revision 1.2  2004/04/05 10:42:46  gaius
+   made gm2 64 bit clean, essentially this means a clear separation between
+   int/word objects and pointer objects.
+
    Revision 1.1  2003/12/27 00:16:07  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -57,7 +61,7 @@ IMPLEMENTATION MODULE SysBreak;
       VAR oldBreak: ADDRESS;
    BEGIN
       oldBreak := SysLocations.Break;
-      INC(SysLocations.Break, ADDRESS(incr));
+      INC(SysLocations.Break, VAL(ADDRESS, incr));
       IF Break(SysLocations.Break) THEN
 	 RETURN oldBreak;
       ELSE

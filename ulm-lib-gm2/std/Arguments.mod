@@ -17,9 +17,13 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: Arguments.mod,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: Arguments.mod,v 1.2 2004/04/05 10:42:45 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Arguments.mod,v $
+   Revision 1.2  2004/04/05 10:42:45  gaius
+   made gm2 64 bit clean, essentially this means a clear separation between
+   int/word objects and pointer objects.
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -43,6 +47,8 @@ IMPLEMENTATION MODULE Arguments;	(* mh 5/85 *)
    FROM Strings	 IMPORT StrCpy, StrLen;
    FROM StrSpec	 IMPORT StrPartCpy;
    FROM SysExit	 IMPORT Exit;
+
+   IMPORT Args ;
 
    CONST
       maxstrlen = 1024;
@@ -80,10 +86,12 @@ IMPLEMENTATION MODULE Arguments;	(* mh 5/85 *)
    PROCEDURE Usage;					(* EXPORTED *)
       VAR cmdname: String;
    BEGIN
-      ARGV(cmdname,0);
-      ErrWriteString("Usage: ");
-      ErrWriteString(cmdname); ErrWrite(" ");
-      ErrWriteString(infostring); ErrWrite(nl);
+      IF Args.GetArg(cmdname,0)
+      THEN
+         ErrWriteString("Usage: ");
+         ErrWriteString(cmdname); ErrWrite(" ");
+         ErrWriteString(infostring); ErrWrite(nl)
+      END ;
       Exit(1)						(* NO RETURN *)
    END Usage;
 
@@ -94,8 +102,9 @@ IMPLEMENTATION MODULE Arguments;	(* mh 5/85 *)
       END;
       INC(argindex);
       IF argindex <= lastarg THEN
-	 ARGV(argument,argindex);
-	 arglen := StrLen(argument);
+         IF Args.GetArg(argument, argindex) THEN
+            arglen := StrLen(argument)
+         END
       END;
       charindex := 0;
    END NextArg;
@@ -240,7 +249,7 @@ IMPLEMENTATION MODULE Arguments;	(* mh 5/85 *)
    END UngetOpt;
 
 BEGIN
-   lastarg := ARGC()-1;
+   lastarg := Args.Narg()-1;
    argindex := 0;
    NextArg;
    infostring := defaultinfostring;

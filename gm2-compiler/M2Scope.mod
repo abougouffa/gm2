@@ -20,7 +20,8 @@ IMPLEMENTATION MODULE M2Scope ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads ;
 FROM M2Quads IMPORT QuadOperator, Head, GetNextQuad, GetQuad ;
-FROM M2Stack IMPORT Stack, InitStack, KillStack, Pop, Push, Peep ;
+FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
+                        PopWord, PushWord, PeepWord ;
 
 
 TYPE
@@ -145,11 +146,11 @@ VAR
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
    First        : BOOLEAN ;
-   s            : Stack ;
+   s            : StackOfWord ;
 BEGIN
-   s := InitStack() ;
+   s := InitStackWord() ;
    GetProcedureQuads(proc, scope, start, end) ;
-   Push(s, 0) ;
+   PushWord(s, 0) ;
    First := FALSE ;
    i := scope ;
    last := scope ;
@@ -160,21 +161,21 @@ BEGIN
       GetQuad(i, op, op1, op2, op3) ;
       IF op=ProcedureScopeOp
       THEN
-         IF Peep(s, 1)=proc
+         IF PeepWord(s, 1)=proc
          THEN
             nb := AddToRange(nb, First, last) ;
             First := FALSE
          END ;
-         Push(s,  op3)
+         PushWord(s,  op3)
       ELSIF op=ReturnOp
       THEN
-         op3 := Pop(s) ;
-         IF Peep(s, 1)=proc
+         op3 := PopWord(s) ;
+         IF PeepWord(s, 1)=proc
          THEN
             First := TRUE
          END
       ELSE
-         IF Peep(s, 1)=proc
+         IF PeepWord(s, 1)=proc
          THEN
             nb := AddToRange(nb, First, i) ;
             First := FALSE
@@ -194,7 +195,7 @@ BEGIN
          high := end
       END
    END ;
-   s := KillStack(s) ;
+   s := KillStackWord(s) ;
    RETURN( sb )
 END GetProcQuads ;
 

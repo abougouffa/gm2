@@ -16,7 +16,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 IMPLEMENTATION MODULE SysStorage ;
 
-FROM libc IMPORT malloc, free ;
+FROM libc IMPORT malloc, free, realloc ;
 FROM Debug IMPORT Halt ;
 
 
@@ -36,6 +36,29 @@ BEGIN
    free(a) ;
    a := NIL
 END DEALLOCATE ;
+
+
+(*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*)
+
+PROCEDURE REALLOCATE (VAR a: ADDRESS; Size: CARDINAL) ;
+BEGIN
+   IF a=NIL
+   THEN
+      ALLOCATE(a, Size)
+   ELSE
+      a := realloc(a, Size) ;
+      IF a=NIL
+      THEN
+         Halt('out of memory error', __LINE__, __FILE__)
+      END
+   END
+END REALLOCATE ;
 
 
 PROCEDURE Available (Size: CARDINAL) : BOOLEAN;

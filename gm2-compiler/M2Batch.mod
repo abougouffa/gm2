@@ -23,7 +23,9 @@ FROM SymbolTable IMPORT MakeModule, MakeDefImp, NulSym ;
 FROM NameKey IMPORT GetKey, WriteKey ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Error IMPORT InternalError ;
-FROM Lists IMPORT List, InitList, RemoveItemFromList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice, HighIndice, RemoveIndiceFromIndex, IncludeIndiceIntoIndex, InBounds ;
+FROM Lists IMPORT List, InitList, IncludeItemIntoList, RemoveItemFromList,
+                  GetItemFromList, NoOfItemsInList ;
 FROM Storage IMPORT ALLOCATE ;
 FROM DynamicStrings IMPORT String ;
 
@@ -38,7 +40,7 @@ TYPE
                        END ;
 
 VAR
-   DoneQueue,
+   DoneQueue   : Index ;
    PendingQueue: List ;
 
 
@@ -146,12 +148,12 @@ VAR
    m: Module ;
 BEGIN
    Assert(n#0) ;
-   m := GetItemFromList(DoneQueue, n) ;
-   IF m=NIL
+   IF InBounds(DoneQueue, n)
    THEN
-      RETURN( NulSym )
-   ELSE
+      m := GetIndice(DoneQueue, n) ;
       RETURN( m^.SymNo )
+   ELSE
+      RETURN( NulSym )
    END
 END GetModuleNo ;
 
@@ -176,9 +178,9 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := NoOfItemsInList(DoneQueue) ;
+   no := HighIndice(DoneQueue) ;
    WHILE i<=no DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          IF Key=n
          THEN
@@ -197,7 +199,7 @@ VAR
    m: Module ;
 BEGIN
    NEW(m) ;
-   IncludeItemIntoList(DoneQueue, m) ;
+   IncludeIndiceIntoIndex(DoneQueue, m) ;
    WITH m^ DO
       SymNo   := Sym ;
       Key     := n ;
@@ -236,9 +238,9 @@ VAR
    n, i: CARDINAL ;
 BEGIN
    i := 1 ;
-   n := NoOfItemsInList(DoneQueue) ;
+   n := HighIndice(DoneQueue) ;
    WHILE i<=n DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          printf2('Module %a %d\n', Key, i)
       END ;
@@ -258,9 +260,9 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := NoOfItemsInList(DoneQueue) ;
+   no := HighIndice(DoneQueue) ;
    WHILE i<=no DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          IF SymNo=Sym
          THEN
@@ -286,9 +288,9 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := NoOfItemsInList(DoneQueue) ;
+   no := HighIndice(DoneQueue) ;
    WHILE i<=no DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          IF SymNo=Sym
          THEN
@@ -313,9 +315,9 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := NoOfItemsInList(DoneQueue) ;
+   no := HighIndice(DoneQueue) ;
    WHILE i<=no DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          IF SymNo=Sym
          THEN
@@ -341,9 +343,9 @@ VAR
    m    : Module ;
 BEGIN
    i := 1 ;
-   no := NoOfItemsInList(DoneQueue) ;
+   no := HighIndice(DoneQueue) ;
    WHILE i<=no DO
-      m := GetItemFromList(DoneQueue, i) ;
+      m := GetIndice(DoneQueue, i) ;
       WITH m^ DO
          IF SymNo=Sym
          THEN
@@ -359,5 +361,5 @@ END GetModuleFile ;
 
 BEGIN
    InitList(PendingQueue) ;
-   InitList(DoneQueue)
+   DoneQueue := InitIndex(1)
 END M2Batch.

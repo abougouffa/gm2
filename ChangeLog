@@ -1,3 +1,30 @@
+2004-04-5	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed gm2.paranoid and all regression tests for the Opteron port
+
+2004-04-1	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed record parameter equivalence bug as reported by Waldek
+	  (see testsuite/gm2/pim/pass/record4.mod)
+
+2004-03-26	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed array type equivalence bug as reported by Waldek
+	  (see testsuite/gm2/pim/pass/array2.mod)
+	
+2004-03-25	Gaius Mulley <gaius@glam.ac.uk>
+
+	* Implemented __FUNCTION__ keyword which is translated
+	  into a string containing the name of the current visible
+	  function.
+	* Retrofitted a function name into many of the runtime
+	  procedures within M2RTS and added a new
+	  procedure Halt to M2RTS.
+
+2004-03-18	Gaius Mulley <gaius@glam.ac.uk>
+
+	* Implemented MIN and MAX for types LONGINT and LONGCARD
+
 2004-03-17	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 Release 0.42

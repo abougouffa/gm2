@@ -14,6 +14,7 @@ FIO
 SFIO
 SysStorage
 Storage
+Indexing
 NameKey
 NumberIO
 CmdArgs

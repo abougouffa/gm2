@@ -24,7 +24,7 @@ DEFINITION MODULE M2RTS ;
    Last update: Fri Jul 10 14:53:39 GMT 1998
 *)
 
-EXPORT QUALIFIED HALT,
+EXPORT QUALIFIED HALT, Halt,
                  SubrangeAssignmentError, ArraySubscriptError,
                  FunctionReturnError,
                  InstallTerminationProcedure, Terminate,
@@ -32,12 +32,21 @@ EXPORT QUALIFIED HALT,
 
 
 (*
-   HALT - terminate the current program calling creating a core dump.
-          The procedure Terminate is called before the core dump is
-          created.
+   HALT - terminate the current program.
+          The procedure Terminate is called before the program is
+          stopped.
 *)
 
 PROCEDURE HALT ;
+
+
+(*
+   Halt - provides a more user friendly version of HALT, which takes
+          four parameters to aid debugging.
+*)
+
+PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
+                function: ARRAY OF CHAR; description: ARRAY OF CHAR) ;
 
 
 (*
@@ -45,7 +54,9 @@ PROCEDURE HALT ;
                              subrange variable is just about to be assigned an illegal value.
 *)
 
-PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
+                                   line: CARDINAL;
+                                   function: ARRAY OF CHAR) ;
 
 
 (*
@@ -53,7 +64,9 @@ PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
                           array indice is out of range.
 *)
 
-PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 
 
 (*
@@ -61,7 +74,9 @@ PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
                           function exits without a RETURN statement.
 *)
 
-PROCEDURE FunctionReturnError (file: ARRAY OF CHAR; line: CARDINAL) ;
+PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
+                               line: CARDINAL;
+                               function: ARRAY OF CHAR) ;
 
 
 (*

@@ -45,7 +45,7 @@ IMPLEMENTATION MODULE P3Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt, WriteFormat1, WriteFormat2 ;
-FROM NameKey IMPORT NulName, Name ;
+FROM NameKey IMPORT NulName, Name, makekey ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
@@ -373,7 +373,7 @@ PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, identtok)
+      PushTF(makekey(currentstring), identtok)
    END ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
@@ -387,7 +387,7 @@ PROCEDURE string (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSto
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, stringtok) ;
+      PushTF(makekey(currentstring), stringtok) ;
       BuildString
    END ;
    Expect(stringtok, stopset0, stopset1, stopset2)
@@ -402,7 +402,7 @@ PROCEDURE Integer (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfSt
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, integertok) ;
+      PushTF(makekey(currentstring), integertok) ;
       BuildNumber
    END ;
    Expect(integertok, stopset0, stopset1, stopset2)
@@ -417,7 +417,7 @@ PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2
 BEGIN
    IF IsAutoPushOn()
    THEN
-      PushTF(currentstring, realtok) ;
+      PushTF(makekey(currentstring), realtok) ;
       BuildNumber
    END ;
    Expect(realtok, stopset0, stopset1, stopset2)
@@ -852,21 +852,24 @@ Designator := Qualident                                                    % Che
 
 SubDesignator := "."                                                       % VAR Sym, Type,
                                                                                  n        : CARDINAL ;
-                                                                                 name     : Name ; %
+                                                                                 name,
+                                                                                 n1       : Name ; %
                                                                            % PopTF(Sym, Type) ;
                                                                              PushTF(Sym, Type) ;
                                                                              IF Type=NulSym
                                                                              THEN
+                                                                                n1 := GetSymName(Sym) ;
                                                                                 IF IsModuleKnown(GetSymName(Sym))
                                                                                 THEN
                                                                                    WriteFormat2('%a looks like a module which has not been globally imported (eg. suggest that you IMPORT %a ;)',
-                                                                                   GetSymName(Sym), GetSymName(Sym))
+                                                                                   n1, n1)
                                                                                 ELSE
-                                                                                   WriteFormat1('%a is not a record variable', GetSymName(Sym))
+                                                                                   WriteFormat1('%a is not a record variable', n1)
                                                                                 END
                                                                              ELSIF NOT IsRecord(Type)
                                                                              THEN
-                                                                                WriteFormat1('%a is not a record type', GetSymName(Type))
+                                                                                n1 := GetSymName(Type) ;
+                                                                                WriteFormat1('%a is not a record type', n1)
                                                                              END ;
                                                                              StartScope(Type) %
                  Ident
@@ -874,7 +877,8 @@ SubDesignator := "."                                                       % VAR
                                                                              Sym := GetLocalSym(Type, name) ;
                                                                              IF Sym=NulSym
                                                                              THEN
-                                                                                WriteFormat2('field %a does not exist within record %a', name, GetSymName(Type))
+                                                                                n1 := GetSymName(Type) ;
+                                                                                WriteFormat2('field %a does not exist within record %a', name, n1)
                                                                              END ;
                                                                              Type := GetType(Sym) ;
                                                                              PushTF(Sym, Type) ;

@@ -19,10 +19,11 @@ IMPLEMENTATION MODULE M2Printf ;
 
 FROM SFIO IMPORT WriteS ;
 FROM FIO IMPORT StdOut ;
-FROM DynamicStrings IMPORT string, InitString, KillString, InitStringCharStar, Mark ;
+FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM StrLib IMPORT StrLen ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM NameKey IMPORT KeyToCharStar ;
+FROM NameKey IMPORT Name, KeyToCharStar ;
+FROM SYSTEM IMPORT BITSET ;
 
 
 (*
@@ -36,13 +37,32 @@ END IsDigit ;
 
 
 (*
-   TranslateNameToString - takes a format specification string, a, and
-                           if they consist of of %a then this is translated
-                           into a String and %a is replaced by %s.
+   Cast - casts a := b
 *)
 
-PROCEDURE TranslateNameToCharStar (VAR a: ARRAY OF CHAR; n: CARDINAL;
-                                   VAR w1, w2, w3, w4: WORD) ;
+PROCEDURE Cast (VAR a: ARRAY OF BYTE; b: ARRAY OF BYTE) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   IF HIGH(a)=HIGH(b)
+   THEN
+      FOR i := 0 TO HIGH(a) DO
+         a[i] := b[i]
+      END
+   ELSE
+      HALT
+   END
+END Cast ;
+
+
+(*
+   TranslateNameToCharStar - takes a format specification string, a, and
+                             if they consist of of %a then this is translated
+                             into a String and %a is replaced by %s.
+*)
+
+PROCEDURE TranslateNameToCharStar (VAR a: ARRAY OF CHAR;
+                                   n: CARDINAL) : BOOLEAN ;
 VAR
    argno,
    i, h : CARDINAL ;
@@ -51,44 +71,29 @@ BEGIN
    i := 0 ;
    h := StrLen(a) ;
    WHILE i<h DO
-      IF a[i]='%'
+      IF (a[i]='%') AND (i+1<h)
       THEN
-         INC(i) ;
-         WHILE (i<h) AND IsDigit(a[i]) DO
-            INC(i)
-         END ;
-         IF (i<h) AND (a[i]='a')
+         IF (a[i+1]='a') AND (argno=n)
          THEN
-            (* translate the NameKey into a String *)
-            a[i] := 's' ;
-            IF argno=1
-            THEN
-               w1 := Mark(InitStringCharStar(KeyToCharStar(w1)))
-            ELSIF argno=2
-            THEN
-               w2 := Mark(InitStringCharStar(KeyToCharStar(w2)))
-            ELSIF argno=3
-            THEN
-               w3 := Mark(InitStringCharStar(KeyToCharStar(w3)))
-            ELSE
-               w4 := Mark(InitStringCharStar(KeyToCharStar(w4)))
-            END
+            a[i+1] := 's' ;
+            RETURN( TRUE )
          END ;
          INC(argno) ;
          IF argno>n
          THEN
             (* all done *)
-            RETURN
+            RETURN( FALSE )
          END
       END ;
       INC(i)
-   END
+   END ;
+   RETURN( FALSE )
 END TranslateNameToCharStar ;
 
 
 (*
-   fprintf0 - writes out an array to, file, after the escape sequences have been
-              translated.
+   fprintf0 - writes out an array to, file, after the escape sequences
+              have been translated.
 *)
 
 PROCEDURE fprintf0 (file: File; a: ARRAY OF CHAR) ;
@@ -99,51 +104,170 @@ BEGIN
 END fprintf0 ;
 
 
-PROCEDURE fprintf1 (file: File; a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE fprintf1 (file: File; a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   s: String ;
+   n: Name ;
 BEGIN
-   TranslateNameToCharStar(a, 1, w, n, n, n) ;
-   IF KillString(WriteS(file, Sprintf1(InitString(a), w)))=NIL
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      s := Sprintf1(Mark(InitString(a)), s)
+   ELSE
+      s := Sprintf1(Mark(InitString(a)), w)
+   END ;
+   IF KillString(WriteS(file, s))=NIL
    THEN
    END
 END fprintf1 ;
 
 
-PROCEDURE fprintf2 (file: File; a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE fprintf2 (file: File; a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   n     : Name ;
+   s,
+   s1, s2: String ;
+   b     : BITSET ;
 BEGIN
-   TranslateNameToCharStar(a, 2, w1, w2, n, n) ;
-   IF KillString(WriteS(file, Sprintf2(InitString(a), w1, w2)))=NIL
+   b := {} ;
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w1) ;
+      s1 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 1)
+   END ;
+   IF TranslateNameToCharStar(a, 2)
+   THEN
+      Cast(n, w2) ;
+      s2 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 2)
+   END ;
+   CASE b OF
+
+   {}   :  s := Sprintf2(Mark(InitString(a)), w1, w2) |
+   {1}  :  s := Sprintf2(Mark(InitString(a)), s1, w2) |
+   {2}  :  s := Sprintf2(Mark(InitString(a)), w1, s2) |
+   {1,2}:  s := Sprintf2(Mark(InitString(a)), s1, s2)
+
+   ELSE
+      HALT
+   END ;
+   IF KillString(WriteS(file, s))=NIL
    THEN
    END
 END fprintf2 ;
 
 
-PROCEDURE fprintf3 (file: File; a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
+PROCEDURE fprintf3 (file: File; a: ARRAY OF CHAR;
+                    w1, w2, w3: ARRAY OF BYTE) ;
 VAR
-   n: WORD ;
+   n            : Name ;
+   s, s1, s2, s3: String ;
+   b            : BITSET ;
 BEGIN
-   TranslateNameToCharStar(a, 3, w1, w2, w3, n) ;
-   IF KillString(WriteS(file, Sprintf3(InitString(a), w1, w2, w3)))=NIL
+   b := {} ;
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w1) ;
+      s1 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 1)
+   END ;
+   IF TranslateNameToCharStar(a, 2)
+   THEN
+      Cast(n, w2) ;
+      s2 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 2)
+   END ;
+   IF TranslateNameToCharStar(a, 3)
+   THEN
+      Cast(n, w3) ;
+      s3 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 3)
+   END ;
+   CASE b OF
+   
+   {}     :  s := Sprintf3(Mark(InitString(a)), w1, w2, w3) |
+   {1}    :  s := Sprintf3(Mark(InitString(a)), s1, w2, w3) |
+   {2}    :  s := Sprintf3(Mark(InitString(a)), w1, s2, w3) |
+   {1,2}  :  s := Sprintf3(Mark(InitString(a)), s1, s2, w3) |
+   {3}    :  s := Sprintf3(Mark(InitString(a)), w1, w2, s3) |
+   {1,3}  :  s := Sprintf3(Mark(InitString(a)), s1, w2, s3) |
+   {2,3}  :  s := Sprintf3(Mark(InitString(a)), w1, s2, s3) |
+   {1,2,3}:  s := Sprintf3(Mark(InitString(a)), s1, s2, s3)
+
+   ELSE
+      HALT
+   END ;
+   IF KillString(WriteS(file, s))=NIL
    THEN
    END
 END fprintf3 ;
 
 
-PROCEDURE fprintf4 (file: File; a: ARRAY OF CHAR; w1, w2, w3, w4: WORD) ;
+PROCEDURE fprintf4 (file: File; a: ARRAY OF CHAR;
+                    w1, w2, w3, w4: ARRAY OF BYTE) ;
+VAR
+   n                : Name ;
+   s, s1, s2, s3, s4: String ;
+   b                : BITSET ;
 BEGIN
-   TranslateNameToCharStar(a, 4, w1, w2, w3, w4) ;
-   IF KillString(WriteS(file, Sprintf4(InitString(a), w1, w2, w3, w4)))=NIL
+   b := {} ;
+   IF TranslateNameToCharStar(a, 1)
+   THEN
+      Cast(n, w1) ;
+      s1 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 1)
+   END ;
+   IF TranslateNameToCharStar(a, 2)
+   THEN
+      Cast(n, w2) ;
+      s2 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 2)
+   END ;
+   IF TranslateNameToCharStar(a, 3)
+   THEN
+      Cast(n, w3) ;
+      s3 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 3)
+   END ;
+   IF TranslateNameToCharStar(a, 4)
+   THEN
+      Cast(n, w4) ;
+      s4 := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      INCL(b, 4)
+   END ;
+   CASE b OF
+   
+   {}       :  s := Sprintf4(Mark(InitString(a)), w1, w2, w3, w4) |
+   {1}      :  s := Sprintf4(Mark(InitString(a)), s1, w2, w3, w4) |
+   {2}      :  s := Sprintf4(Mark(InitString(a)), w1, s2, w3, w4) |
+   {1,2}    :  s := Sprintf4(Mark(InitString(a)), s1, s2, w3, w4) |
+   {3}      :  s := Sprintf4(Mark(InitString(a)), w1, w2, s3, w4) |
+   {1,3}    :  s := Sprintf4(Mark(InitString(a)), s1, w2, s3, w4) |
+   {2,3}    :  s := Sprintf4(Mark(InitString(a)), w1, s2, s3, w4) |
+   {1,2,3}  :  s := Sprintf4(Mark(InitString(a)), s1, s2, s3, w4) |
+   {4}      :  s := Sprintf4(Mark(InitString(a)), w1, w2, w3, s4) |
+   {1,4}    :  s := Sprintf4(Mark(InitString(a)), s1, w2, w3, s4) |
+   {2,4}    :  s := Sprintf4(Mark(InitString(a)), w1, s2, w3, s4) |
+   {1,2,4}  :  s := Sprintf4(Mark(InitString(a)), s1, s2, w3, s4) |
+   {3,4}    :  s := Sprintf4(Mark(InitString(a)), w1, w2, s3, s4) |
+   {1,3,4}  :  s := Sprintf4(Mark(InitString(a)), s1, w2, s3, s4) |
+   {2,3,4}  :  s := Sprintf4(Mark(InitString(a)), w1, s2, s3, s4) |
+   {1,2,3,4}:  s := Sprintf4(Mark(InitString(a)), s1, s2, s3, s4)
+
+   ELSE
+      HALT
+   END ;
+   IF KillString(WriteS(file, s))=NIL
    THEN
    END
 END fprintf4 ;
 
 
 (*
-   printf0 - writes out an array to, StdOut, after the escape sequences have been
-             translated.
+   printf0 - writes out an array to, StdOut, after the escape
+             sequences have been translated.
 *)
 
 PROCEDURE printf0 (a: ARRAY OF CHAR) ;
@@ -152,25 +276,29 @@ BEGIN
 END printf0 ;
 
 
-PROCEDURE printf1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE printf1 (a: ARRAY OF CHAR;
+                   w: ARRAY OF BYTE) ;
 BEGIN
    fprintf1(StdOut, a, w)
 END printf1 ;
 
 
-PROCEDURE printf2 (a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE printf2 (a: ARRAY OF CHAR;
+                   w1, w2: ARRAY OF BYTE) ;
 BEGIN
    fprintf2(StdOut, a, w1, w2)
 END printf2 ;
 
 
-PROCEDURE printf3 (a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
+PROCEDURE printf3 (a: ARRAY OF CHAR;
+                   w1, w2, w3: ARRAY OF BYTE) ;
 BEGIN
    fprintf3(StdOut, a, w1, w2, w3)
 END printf3 ;
 
 
-PROCEDURE printf4 (a: ARRAY OF CHAR; w1, w2, w3, w4: WORD) ;
+PROCEDURE printf4 (a: ARRAY OF CHAR;
+                   w1, w2, w3, w4: ARRAY OF BYTE) ;
 BEGIN
    fprintf4(StdOut, a, w1, w2, w3, w4)
 END printf4 ;

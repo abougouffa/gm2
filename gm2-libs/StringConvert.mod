@@ -233,7 +233,7 @@ BEGIN
    s := KillString(s) ;
    IF negative
    THEN
-      RETURN( VAL(INTEGER, -Min(-MIN(INTEGER), c)) )
+      RETURN( VAL(INTEGER, -Min(MAX(INTEGER)+1, c)) )
    ELSE
       RETURN( VAL(INTEGER, Min(MAX(INTEGER), c)) )
    END

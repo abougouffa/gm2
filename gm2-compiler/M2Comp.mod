@@ -48,7 +48,7 @@ FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
                         IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule ;
 
 FROM FIO IMPORT StdErr ;
-FROM NameKey IMPORT GetKey, KeyToCharStar, makekey ;
+FROM NameKey IMPORT Name, GetKey, KeyToCharStar, makekey ;
 FROM M2Printf IMPORT fprintf1 ;
 FROM M2Quiet IMPORT qprintf0, qprintf1, qprintf2 ;
 FROM DynamicStrings IMPORT String, InitString, KillString, InitStringCharStar, Dup, Mark, string ;
@@ -185,7 +185,7 @@ VAR
    Sym     : CARDINAL ;
    i       : CARDINAL ;
    ModName,
-   Name,
+   SymName,
    FileName: String ;
 BEGIN
    SetPassToPass1 ;
@@ -195,13 +195,13 @@ BEGIN
    Sym := GetModuleNo(i) ;
    qprintf1('Compiling: %s\n', s) ;
    WHILE Sym#NulSym DO
-      Name := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
+      SymName := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
       IF IsDefImp(Sym)
       THEN
-         FileName := CalculateFileName(Name, Mark(InitString('def'))) ;
+         FileName := CalculateFileName(SymName, Mark(InitString('def'))) ;
          IF FindSourceFile(FileName, FileName)
          THEN
-            qprintf2('   Module %-20s : %s\n', Name, FileName) ;
+            qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
             ModuleType := Definition ;
             IF OpenSource(AssociateDefinition(PreprocessModule(FileName), Sym))
             THEN
@@ -217,7 +217,7 @@ BEGIN
                exit(1)
             END
          ELSE
-            fprintf1(StdErr, 'failed to find definition module %s.def\n', Name) ;
+            fprintf1(StdErr, 'failed to find definition module %s.def\n', SymName) ;
             exit(1)
          END ;
          ModuleType := Implementation
@@ -231,12 +231,12 @@ BEGIN
          THEN
             FileName := Dup(s)
          ELSE
-            FileName := CalculateFileName(Name, Mark(InitString('mod'))) ;
+            FileName := CalculateFileName(SymName, Mark(InitString('mod'))) ;
             IF FindSourceFile(FileName, FileName)
             THEN
             END
          END ;
-         qprintf2('   Module %-20s : %s\n', Name, FileName) ;
+         qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
          IF OpenSource(AssociateModule(PreprocessModule(FileName), Sym))
          THEN
             IF NOT P1SyntaxCheck.CompilationUnit()
@@ -251,7 +251,7 @@ BEGIN
             fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
          END
       END ;
-      Name := KillString(Name) ;
+      SymName := KillString(SymName) ;
       FileName := KillString(FileName) ;
       INC(i) ;
       Sym := GetModuleNo(i)
@@ -267,6 +267,7 @@ END DoPass1 ;
 
 PROCEDURE DoPass2 ;
 VAR
+   name    : Name ;
    Sym     : CARDINAL ;
    i,
    n       : CARDINAL ;
@@ -281,7 +282,8 @@ BEGIN
       THEN
          IF Debugging
          THEN
-            qprintf1('   Module %a\n', GetSymName(Sym))
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
          END ;
          IF OpenSource(FileName)
          THEN
@@ -306,7 +308,8 @@ BEGIN
       THEN
          IF Debugging
          THEN
-            qprintf1('   Module %a\n', GetSymName(Sym))
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
          END ;
          IF OpenSource(FileName)
          THEN

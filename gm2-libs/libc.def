@@ -35,7 +35,7 @@ EXPORT UNQUALIFIED write, read,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
-                   memcpy, memset, printf ;
+                   memcpy, memset, printf, realloc ;
 
 
 (*
@@ -104,11 +104,27 @@ PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
      char *ptr;
 
      free() releases a previously allocated block.  Its argument
-     is a pointer to a block previously allocated by malloc, cal-
-     loc, realloc, malloc, or memalign.
+     is a pointer to a block previously allocated by malloc,
+     calloc, realloc, malloc, or memalign.
 *)
 
 PROCEDURE free (ptr: ADDRESS) ;
+
+
+(*
+     void *realloc(void *ptr, size_t size);
+
+     realloc changes the size of the memory block pointed to
+     by ptr to size bytes. The contents will be  unchanged  to
+     the minimum of the old and new sizes; newly allocated memory
+     will be uninitialized. If ptr is NIL, the call is
+     equivalent  to malloc(size); if size is equal to zero, the
+     call is equivalent to free(ptr). Unless ptr is NIL, it
+     must have been returned by an earlier call to malloc(),
+     realloc.
+*)
+
+PROCEDURE realloc (ptr: ADDRESS; size: CARDINAL) : ADDRESS ;
 
 
 (*

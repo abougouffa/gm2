@@ -31,7 +31,7 @@ BEGIN
 END qprintf0 ;
 
 
-PROCEDURE qprintf1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE qprintf1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 BEGIN
    IF NOT Quiet
    THEN
@@ -40,7 +40,7 @@ BEGIN
 END qprintf1 ;
 
 
-PROCEDURE qprintf2 (a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE qprintf2 (a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
 BEGIN
    IF NOT Quiet
    THEN
@@ -49,7 +49,7 @@ BEGIN
 END qprintf2 ;
 
 
-PROCEDURE qprintf3 (a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
+PROCEDURE qprintf3 (a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) ;
 BEGIN
    IF NOT Quiet
    THEN
@@ -58,7 +58,7 @@ BEGIN
 END qprintf3 ;
 
 
-PROCEDURE qprintf4 (a: ARRAY OF CHAR; w1, w2, w3, w4: WORD) ;
+PROCEDURE qprintf4 (a: ARRAY OF CHAR; w1, w2, w3, w4: ARRAY OF BYTE) ;
 BEGIN
    IF NOT Quiet
    THEN

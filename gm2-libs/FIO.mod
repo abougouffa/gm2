@@ -79,7 +79,7 @@ TYPE
 
 (* %%%FORWARD%%%
 PROCEDURE FormatError (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: WORD) ; FORWARD ;
+PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
 PROCEDURE FlushBuffer (f: File) ; FORWARD ;
 PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ; FORWARD ;
@@ -90,21 +90,6 @@ PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ; FORWARD ;
 
 VAR
    FileInfo: ARRAY [0..MaxNoOfFiles] OF FileDescriptors ;
-
-
-(*
-   WriteString - writes a string to file, f.
-*)
-
-PROCEDURE WriteString (f: File; a: ARRAY OF CHAR) ;
-VAR
-   l: CARDINAL ;
-BEGIN
-   l := StrLen(a) ;
-   IF WriteNBytes(f, l, ADR(a))#l
-   THEN
-   END
-END WriteString ;
 
 
 (*
@@ -121,6 +106,21 @@ BEGIN
       RETURN( -1 )
    END
 END GetUnixFileDescriptor ;
+
+
+(*
+   WriteString - writes a string to file, f.
+*)
+
+PROCEDURE WriteString (f: File; a: ARRAY OF CHAR) ;
+VAR
+   l: CARDINAL ;
+BEGIN
+   l := StrLen(a) ;
+   IF WriteNBytes(f, l, ADR(a))#l
+   THEN
+   END
+END WriteString ;
 
 
 (*
@@ -301,7 +301,7 @@ BEGIN
          END ;
          name.address := strncpy(name.address, fname, flength) ;
          (* and assign nul to the last byte *)
-         p := ADDRESS(CARDINAL(name.address) + flength) ;
+         p := ADDRESS(name.address + flength) ;
          p^ := nul ;
          abspos := 0 ;
          (* now for the buffer *)
@@ -416,7 +416,7 @@ BEGIN
             THEN
                IF close(unixfd)#0
                THEN
-                  FormatError1('failed to close file (%s)\n', WORD(name.address)) ;   (* cast only necessary for p2c *)
+                  FormatError1('failed to close file (%s)\n', name.address) ;
                   state := failed   (* --fixme-- too late to notify user (unless we return a BOOLEAN) *)
                END
             END ;
@@ -482,11 +482,11 @@ BEGIN
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
-                     p := memcpy(ADDRESS(CARDINAL(address)+position), a, n) ;
+                     p := memcpy(ADDRESS(address+position), a, n) ;
                      DEC(left, n) ;      (* remove consumed bytes               *)
                      INC(position, n) ;  (* move onwards n bytes                *)
                                          (* move onwards ready for direct reads *)
-                     a := ADDRESS(CARDINAL(a)+n) ;
+                     a := ADDRESS(a+n) ;
                      DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                          (* read                                *)
                      INC(total, n) ;
@@ -593,11 +593,11 @@ BEGIN
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
-                        p := memcpy(ADDRESS(CARDINAL(address)+position), a, CARDINAL(n)) ;
+                        p := memcpy(ADDRESS(address+position), a, CARDINAL(n)) ;
                         DEC(left, n) ;      (* remove consumed bytes               *)
                         INC(position, n) ;  (* move onwards n bytes                *)
                                             (* move onwards ready for direct reads *)
-                        a := ADDRESS(CARDINAL(a)+n) ;
+                        a := ADDRESS(a+n) ;
                         DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                             (* read                                *)
                         INC(total, n) ;
@@ -673,15 +673,35 @@ END HandleEscape ;
 
 
 (*
+   Cast - casts a := b
+*)
+
+PROCEDURE Cast (VAR a: ARRAY OF BYTE; b: ARRAY OF BYTE) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   IF HIGH(a)=HIGH(b)
+   THEN
+      FOR i := 0 TO HIGH(a) DO
+         a[i] := b[i]
+      END
+   ELSE
+      FormatError('cast failed')
+   END
+END Cast ;
+
+
+(*
    StringFormat1 - converts string, src, into, dest, together with encapsulated
                    entity, w. It only formats the first %s or %d with n.
 *)
 
-PROCEDURE StringFormat1 (VAR dest: ARRAY OF CHAR; src: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE StringFormat1 (VAR dest: ARRAY OF CHAR; src: ARRAY OF CHAR;
+                         w: ARRAY OF BYTE) ;
 VAR
    HighSrc,
    HighDest,
-   i, j    : CARDINAL ;
+   c, i, j : CARDINAL ;
    str     : ARRAY [0..MaxErrorString] OF CHAR ;
    p       : POINTER TO CHAR ;
 BEGIN
@@ -704,7 +724,7 @@ BEGIN
    THEN
       IF src[i+1]='s'
       THEN
-         p := w ;
+         Cast(p, w) ;
          WHILE (j<HighDest) AND (p^#nul) DO
             dest[j] := p^ ;
             INC(j) ;
@@ -719,7 +739,8 @@ BEGIN
       ELSIF src[i+1]='d'
       THEN
          dest[j] := nul ;
-         CardToStr(w, 0, str) ;
+         Cast(c, w) ;
+         CardToStr(c, 0, str) ;
          StrConCat(dest, str, dest) ;
          j := StrLen(dest) ;
          INC(i, 2)
@@ -761,7 +782,7 @@ END FormatError ;
    FormatError1 - fairly generic error procedure.
 *)
 
-PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 VAR
    s: ARRAY [0..MaxErrorString] OF CHAR ;
 BEGIN
@@ -774,7 +795,8 @@ END FormatError1 ;
    FormatError2 - fairly generic error procedure.
 *)
 
-PROCEDURE FormatError2 (a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE FormatError2 (a: ARRAY OF CHAR;
+                        w1, w2: ARRAY OF BYTE) ;
 VAR
    s: ARRAY [0..MaxErrorString] OF CHAR ;
 BEGIN
@@ -801,28 +823,28 @@ BEGIN
             IF (use=openedforwrite) AND (usage=openedforread)
             THEN
                FormatError1('this file (%s) has been opened for reading but is now being written\n',
-                            WORD(name.address)) ;   (* cast only necessary for p2c *)
+                            name.address) ;
                HALT
             ELSIF (use=openedforread) AND (usage=openedforwrite)
             THEN
                FormatError1('this file (%s) has been opened for writing but is now being read\n',
-                            WORD(name.address)) ;   (* cast only necessary for p2c *)
+                            name.address) ;
                HALT
             ELSIF state=connectionfailure
             THEN
                FormatError1('this file (%s) was not successfully opened\n',
-                            WORD(name.address)) ;   (* cast only necessary for p2c *)
+                            name.address) ;
                HALT
             ELSIF towrite#output
             THEN
                IF output
                THEN
                   FormatError1('this file (%s) was opened for writing but is now being read\n',
-                               WORD(name.address)) ;   (* cast only necessary for p2c *)
+                               name.address) ;
                   HALT
                ELSE
                   FormatError1('this file (%s) was opened for reading but is now being written\n',
-                               WORD(name.address)) ;   (* cast only necessary for p2c *)
+                               name.address) ;
                   HALT
                END
             END
@@ -877,7 +899,7 @@ BEGIN
                   INC(left) ;
                   contents^[position] := ch
                ELSE
-                  FormatError1('performing too many UnReadChar calls on file (%s)\n', INTEGER(f))
+                  FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
                END
             END
          END
@@ -1041,11 +1063,11 @@ BEGIN
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
-                        p := memcpy(a, ADDRESS(CARDINAL(address)+position), CARDINAL(n)) ;
+                        p := memcpy(a, ADDRESS(address+position), CARDINAL(n)) ;
                         DEC(left, n) ;      (* remove consumed bytes               *)
                         INC(position, n) ;  (* move onwards n bytes                *)
                                             (* move ready for further writes       *)
-                        a := ADDRESS(CARDINAL(a)+n) ;
+                        a := ADDRESS(a+n) ;
                         DEC(nBytes, n) ;    (* reduce the amount for future writes *)
                         INC(total, n) ;
                         INC(abspos, n)

@@ -84,7 +84,7 @@ Edition 2                       # 2=edition 2 of Modula-2 (also turns off
                                 # non language builtins)
                                 # default is 3 (edition 3 of Modula-2).
 
-Integer16                       # 1=assume Pascal integers are 16 bits
+Integer16 2                     # 1=assume Pascal integers are 16 bits
                                 # 0=assume Pascal integers are 32 bits
 				# 2=use native C "int" for Pascal "integer"
                                 # default=0 for HP/Oregon/VAX, 1 for Turbo/MPW

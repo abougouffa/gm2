@@ -40,7 +40,7 @@ VAR
 BEGIN
    IF i<ArgC
    THEN
-      ppc := ADDRESS(CARDINAL(ArgV) + (i*TSIZE(PtrToChar))) ;
+      ppc := ADDRESS(ArgV + (i*TSIZE(PtrToChar))) ;
       s   := InitStringCharStar(ppc^) ;
 
       RETURN( TRUE )

@@ -300,11 +300,11 @@ void setup_decl()
         stringtypecache[i] = NULL;
 
     tp_integer = makestandardtype(TK_INTEGER, makestandardmeaning(MK_TYPE,
-                     (integer16) ? "LONGINT" : "INTEGER"));
+                     (integer16 == 1) ? "LONGINT" : "INTEGER"));
     tp_integer->smin = makeexpr_long(MININT);             /* "long" */
     tp_integer->smax = makeexpr_long(MAXINT);
 
-    if (sizeof_int >= 32) {
+    if (sizeof_int >= 32 || (integer16 == 2)) {
         tp_int = tp_integer;                              /* "int" */
     } else {
         tp_int = makestandardtype(TK_INTEGER,
@@ -399,11 +399,9 @@ void setup_decl()
     tp_sshort->smin = makeexpr_long(min_sshort);
     tp_sshort->smax = makeexpr_long(max_sshort);
 
-    if (integer16) {
-	if (integer16 != 2) {
-	    mp = makestandardmeaning(MK_TYPE, "SWORD");
-	    mp->type = tp_sshort;
-	}
+    if (integer16 == 1) {
+        mp = makestandardmeaning(MK_TYPE, "SWORD");
+        mp->type = tp_sshort;
     } else {
 	mp = makestandardmeaning(MK_TYPE, "LONGINT");
 	mp->type = tp_integer;
@@ -415,7 +413,16 @@ void setup_decl()
     tp_ushort->smax = makeexpr_long(max_ushort);
 
     mp = makestandardmeaning(MK_TYPE, "CARDINAL");
-    mp->type = (integer16) ? tp_ushort : tp_unsigned;
+    switch (integer16) {
+
+    case 0: { mp->type = tp_unsigned; break; }
+    case 1: { mp->type = tp_ushort; break; }
+    case 2: { mp->type = tp_uint; break; }
+
+    default:
+      warning("integer16 has incorrect value");
+    }
+
     mp = makestandardmeaning(MK_TYPE, "LONGCARD");
     mp->type = tp_unsigned;
 
@@ -560,7 +567,7 @@ void setup_decl()
     mp_maxint = makestandardmeaning(MK_CONST, "MAXINT");
     mp_maxint->type = mp_maxint->val.type = tp_integer;
     mp_maxint->val.i = MAXINT;
-    mp_maxint->name = stralloc((integer16) ? "SHORT_MAX" :
+    mp_maxint->name = stralloc((integer16 == 1) ? "SHORT_MAX" :
                                (sizeof_int >= 32) ? "INT_MAX" : "LONG_MAX");
 
     mp = makestandardmeaning(MK_CONST, "MAXLONGINT");
@@ -571,7 +578,7 @@ void setup_decl()
     mp_minint = makestandardmeaning(MK_CONST, "MININT");
     mp_minint->type = mp_minint->val.type = tp_integer;
     mp_minint->val.i = MININT;
-    mp_minint->name = stralloc((integer16) ? "SHORT_MIN" :
+    mp_minint->name = stralloc((integer16 == 1) ? "SHORT_MIN" :
                                (sizeof_int >= 32) ? "INT_MIN" : "LONG_MIN");
 
     mp = makestandardmeaning(MK_CONST, "MAXCHAR");
@@ -2289,7 +2296,7 @@ int flags;
 
         case TK_INTEGER:
             if (type == tp_uint) {
-                output("unsigned");
+                output("unsigned int");
             } else if (type == tp_sint) {
                 if (useAnyptrMacros == 1)
                     output("Signed int");
@@ -3388,6 +3395,9 @@ Meaning ***confp;
 {
     Type *tp, *tp2;
     Meaning *mp;
+    Meaning *nextparam;
+    Meaning *lastparam;
+    Meaning *t;
     Expr *ex;
     long size, smin, smax, bitsize, fullbitsize;
     int issigned, bpower, hasrange;
@@ -3407,13 +3417,41 @@ Meaning ***confp;
 	}
     } else {
 	if (modula2) {
-	    **confp = mp = addmeaning(findsymbol(format_s(name_ALOW, tname)), MK_PARAM);
+	  lastparam = **confp;
+	  nextparam = (**confp)->xnext;
+	  **confp = mp = addmeaning(findsymbol(format_s(name_ALOW, tname)),
+				    MK_PARAM);
+	  mp->fakeparam = 1;
+	  mp->constqual = 1;
+	  mp->xnext = addmeaning(findsymbol(format_s(name_AHIGH, tname)),
+				 MK_PARAM);
+	  mp->xnext->fakeparam = 1;
+	  mp->xnext->constqual = 1;
+	  /* (*confp) will be assigned to the address of the first real
+	     parameter after we return */
+	  *confp = &mp->xnext->xnext;
+	  tp2 = maketype(TK_SUBR);
+	  tp2->basetype = tp_integer;
+	  mp->type = tp_integer;
+	  mp->xnext->type = mp->type;
+	  tp2->smin = makeexpr_long(0);
+	  tp2->smax = makeexpr_minus(makeexpr_var(mp->xnext),
+				     makeexpr_var(mp));
+	  tp->indextype = tp2;
+	  tp->structdefd = 1;
+	  lastparam->type = tp;
+	  while (nextparam != NULL) {
+	    tname = nextparam->name;
+	    tp = maketype(TK_ARRAY);
+	    t = nextparam->xnext;
+	    lastparam->xnext = mp = addmeaning(findsymbol(format_s(name_ALOW, tname)),
+				    MK_PARAM);
 	    mp->fakeparam = 1;
 	    mp->constqual = 1;
-	    mp->xnext = addmeaning(findsymbol(format_s(name_AHIGH, tname)), MK_PARAM);
+	    mp->xnext = addmeaning(findsymbol(format_s(name_AHIGH, tname)),
+				   MK_PARAM);
 	    mp->xnext->fakeparam = 1;
 	    mp->xnext->constqual = 1;
-	    *confp = &mp->xnext->xnext;
 	    tp2 = maketype(TK_SUBR);
 	    tp2->basetype = tp_integer;
 	    mp->type = tp_integer;
@@ -3423,6 +3461,11 @@ Meaning ***confp;
 				       makeexpr_var(mp));
 	    tp->indextype = tp2;
 	    tp->structdefd = 1;
+	    mp->xnext->xnext = nextparam;
+	    nextparam->type = tp;
+	    nextparam = t;
+	    lastparam = mp->xnext->xnext;
+	  }
 	} else {
 	    wexpecttok(TOK_IDENT);
 	    tp2 = maketype(TK_SUBR);
@@ -4116,9 +4159,9 @@ Type *p_funcdecl(isfunc, istype)
 int *isfunc, istype;
 {
     Meaning *retmp = NULL, *mp, *firstmp, *lastmp, **prevm, **oldprevm;
-    Type *type, *tp;
+    Type *type, *tp, *basetype, *tmp;
     enum meaningkind parkind;
-    int varargflag, anyvarflag, constflag, volatileflag, num = 0;
+    int varargflag, anyvarflag, constflag, volatileflag, was_array, num = 0;
     Symbol *sym;
     Expr *defval;
     Token savetok;
@@ -4135,6 +4178,7 @@ int *isfunc, istype;
         prevm = &type->fbase;
         do {
             gettok();
+	    was_array = 0;
 	    if (curtok == TOK_RPAR)
 		break;
 	    p_mech_spec(1);
@@ -4235,17 +4279,19 @@ int *isfunc, istype;
 			   curtok == TOK_VARYING) {
 		    prevm = oldprevm;
 		    tp = p_conformant_array(firstmp->name, &prevm);
+		    was_array = 1;
+		    basetype = tp->basetype;
 		    *prevm = firstmp;
 		    while (*prevm)
 			prevm = &(*prevm)->xnext;
                 } else {
 		  tp = p_type(firstmp);
 		}
-                if (!varfiles && isfiletype(tp, 0))
-                    parkind = MK_PARAM;
-                if (parkind == MK_VARPARAM)
-                    tp = makepointertype(tp);
+		if (!varfiles && isfiletype(tp, 0))
+		  parkind = MK_PARAM;
             }
+
+#if 0
 	    if (curtok == TOK_ASSIGN) {    /* check for parameter default */
 		gettok();
 		p_mech_spec(0);
@@ -4262,37 +4308,55 @@ int *isfunc, istype;
 		    mp->constdefn = strmax_func(defval);
 		}
 	    }
+#endif
             while (firstmp) {
-                firstmp->type = tp;
-                firstmp->kind = parkind;    /* in case it changed */
-                firstmp->isactive = 1;
-                firstmp->anyvarflag = anyvarflag;
+	      if (! firstmp->fakeparam) {
+		if (was_array) {
+		  /*  in this case the array type is handled inside
+		   *  p_conformant_array, we collect the one associated
+		   *  with firstmp
+		   */
+		  firstmp->type->basetype = basetype;
+		  if (parkind == MK_VARPARAM)
+		    firstmp->type = makepointertype(firstmp->type);
+		} else {
+		  if (parkind == MK_VARPARAM)
+		    firstmp->type = makepointertype(tp);
+		  else
+		    firstmp->type = tp;
+		}
+		tmp = firstmp->type;
+		
+		firstmp->kind = parkind;    /* in case it changed */
+		firstmp->isactive = 1;
+		firstmp->anyvarflag = anyvarflag;
 		firstmp->constqual = constflag;
 		firstmp->volatilequal = volatileflag;
 		if (defval) {
-		    if (firstmp == lastmp)
-			firstmp->constdefn = defval;
-		    else
-			firstmp->constdefn = copyexpr(defval);
+		  if (firstmp == lastmp)
+		    firstmp->constdefn = defval;
+		  else
+		    firstmp->constdefn = copyexpr(defval);
 		}
 		if (parkind == MK_PARAM &&
-                    (tp->kind == TK_STRING ||
-                     tp->kind == TK_ARRAY ||
-                     tp->kind == TK_SET ||
-                     ((tp->kind == TK_RECORD ||
-		       tp->kind == TK_BIGFILE ||
-		       tp->kind == TK_PROCPTR) && copystructs < 2))) {
+		    (tmp->kind == TK_STRING ||
+		     tmp->kind == TK_ARRAY ||
+		     tmp->kind == TK_SET ||
+		     ((tmp->kind == TK_RECORD ||
+		       tmp->kind == TK_BIGFILE ||
+		       tmp->kind == TK_PROCPTR) && copystructs < 2))) {
 		  firstmp->othername = stralloc(format_s(name_COPYPAR,
 							 firstmp->name));
-		  firstmp->rectype = makepointertype(tp);
-                }
-		if (firstmp == lastmp)
-		    break;
-                firstmp = firstmp->xnext;
+		  firstmp->rectype = makepointertype(tmp);
+		}
+	      }
+	      if (firstmp == lastmp)
+		break;
+	      firstmp = firstmp->xnext;
             }
         } while (curtok == TOK_SEMI || curtok == TOK_COMMA);
         if (!wneedtok(TOK_RPAR))
-	    skippasttotoken(TOK_RPAR, TOK_SEMI);
+	  skippasttotoken(TOK_RPAR, TOK_SEMI);
     }
     if (modula2) {
 	if (curtok == TOK_COLON) {

@@ -101,6 +101,7 @@ PROCEDURE CheckFileName (name: Name; ModuleType: ARRAY OF CHAR) ;
 VAR
    ext,
    basename: CARDINAL ;
+   s,
    FileName: String ;
 BEGIN
    FileName := GetFileName() ;
@@ -119,8 +120,9 @@ BEGIN
    THEN
       FileName := KillString(FileName)
    ELSE
+      s := Mark(InitString(ModuleType)) ;
       WriteFormat3('%s module name (%a) is inconsistant with the filename (%s)',
-                   Mark(InitString(ModuleType)), name, FileName)
+                   s, name, FileName)
    END
 END CheckFileName ;
 
@@ -143,7 +145,7 @@ END CheckFileName ;
 
 PROCEDURE P1StartBuildDefinitionModule ;
 VAR
-   name     : Name ;
+   n, name  : Name ;
    language,
    ModuleSym: CARDINAL ;
 BEGIN
@@ -166,7 +168,8 @@ BEGIN
       THEN
          WriteFormat0('currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"')
       ELSE
-         WriteFormat1('unknown definition module language (%a), currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"', GetSymName(language))
+         n := GetSymName(language) ;
+         WriteFormat1('unknown definition module language (%a), currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"', n)
       END
    END ;
    PushT(name)
@@ -227,7 +230,7 @@ END P1EndBuildDefinitionModule ;
 
 PROCEDURE P1StartBuildImplementationModule ;
 VAR
-   name     : Name ;
+   name, n  : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
    PopT(name) ;
@@ -238,7 +241,8 @@ BEGIN
    StartScope(ModuleSym) ;
    IF NOT IsDefImp(ModuleSym)
    THEN
-      WriteFormat1('cannot find corresponding definition module to %a', GetSymName(ModuleSym))
+      n := GetSymName(ModuleSym) ;
+      WriteFormat1('cannot find corresponding definition module to %a', n)
    END ;
    Assert(CompilingImplementationModule()) ;
    PushT(name)
@@ -745,8 +749,9 @@ END StartBuildEnumeration ;
 PROCEDURE EndBuildEnumeration ;
 VAR
    Sym,
-   Type: CARDINAL ;
-   name: Name ;
+   Type  : CARDINAL ;
+   n1, n2,
+   name  : Name ;
 BEGIN
    (*
       Two cases
@@ -760,12 +765,15 @@ BEGIN
 
    IF Debugging
    THEN
+      n1 := GetSymName(GetCurrentModule()) ;
       printf2('inside module %a declaring type name %a\n',
-              GetSymName(GetCurrentModule()), name) ;
+              n1, name) ;
       IF (NOT IsUnknown(Type))
       THEN
+         n1 := GetSymName(GetScope(Type)) ;
+         n2 := GetSymName(Type) ;
          printf2('type was created inside scope %a as name %a\n',
-                 GetSymName(GetScope(Type)), GetSymName(Type))
+                 n1, n2)
       END
    END ;
    IF (name=NulName) OR (GetSymName(Type)=name)

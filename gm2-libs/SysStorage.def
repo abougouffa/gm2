@@ -29,8 +29,7 @@ DEFINITION MODULE SysStorage ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-
-EXPORT QUALIFIED ALLOCATE, DEALLOCATE, Available, Init ;
+EXPORT QUALIFIED ALLOCATE, DEALLOCATE, REALLOCATE, Available, Init ;
 
 
 (*
@@ -47,6 +46,17 @@ PROCEDURE ALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
 *)
 
 PROCEDURE DEALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
+
+
+(*
+   REALLOCATE - attempts to reallocate storage. The address,
+                a, should either be NIL in which case ALLOCATE
+                is called, or alternatively it should have already
+                been initialized by ALLOCATE. The allocated storage
+                is resized accordingly.
+*)
+
+PROCEDURE REALLOCATE (VAR a: ADDRESS; Size: CARDINAL) ;
 
 
 (*

@@ -54,7 +54,7 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    CompareTrees, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
                    GetIntegerOne, GetIntegerZero,
                    GetWordOne, ToWord,
-                   AreConstantsEqual, GetBitsPerWord,
+                   AreConstantsEqual, GetBitsPerBitset,
                    BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
                    BuildLSL, BuildLSR,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
@@ -224,10 +224,6 @@ PROCEDURE Dispose (v: PtrToValue) ;
 BEGIN
    CheckNotAlreadyOnFreeList(v) ;
    CheckNotOnStack(v) ;
-   IF CARDINAL(v)=145152112
-   THEN
-      stop
-   END ;
    IF v^.type=set
    THEN
       DisposeRange(v^.setValue)
@@ -508,7 +504,7 @@ VAR
 BEGIN
    r := NIL ;
    i := 0 ;
-   WHILE (i<GetBitsPerWord()) AND
+   WHILE (i<GetBitsPerBitset()) AND
          (CompareTrees(GetIntegerZero(), t)#0) DO
       IF CompareTrees(GetIntegerOne(),
                       BuildLogicalAnd(t, GetIntegerOne(), FALSE))=0
@@ -1338,6 +1334,7 @@ PROCEDURE Less (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
    result: BOOLEAN ;
+   res   : INTEGER ;
 BEGIN
    v1 := Pop() ;
    v2 := Pop() ;
@@ -1349,7 +1346,14 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := (CompareTrees(v2^.numberValue, v1^.numberValue)=-1)
+      res := CompareTrees(v2^.numberValue, v1^.numberValue) ;
+      IF res=-1
+      THEN
+         result := TRUE
+      ELSE
+         result := FALSE
+      END ;
+      (* result := (CompareTrees(v2^.numberValue, v1^.numberValue)=-1) *)
    END ;
    Dispose(v1) ;
    Dispose(v2) ;
@@ -2609,7 +2613,7 @@ BEGIN
    PushIntegerTree(high) ;
    ConvertToInt ;
    high := PopIntegerTree() ;
-   bpw  := GetBitsPerWord() ;
+   bpw  := GetBitsPerBitset() ;
 
    PushIntegerTree(high) ;
    PushIntegerTree(low) ;
@@ -2671,7 +2675,7 @@ BEGIN
    PushValue(low) ;
    ConvertToInt ;
    Sub ;
-   PushCard(GetBitsPerWord()) ;
+   PushCard(GetBitsPerBitset()) ;
    IF Less(tokenno)
    THEN
       (* small set *)
@@ -2690,6 +2694,7 @@ END ConstructLargeOrSmallSet ;
 
 PROCEDURE ConstructSetConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
 VAR
+   n1, n2   : Name ;
    gccsym   : Tree ;
    baseType,
    high, low: CARDINAL ;
@@ -2702,7 +2707,9 @@ BEGIN
          baseType := GetType(setType) ;
          IF Debugging
          THEN
-            printf2('ConstructSetConstant of type %a and baseType %a\n', GetSymName(setType), GetSymName(baseType))
+            n1 := GetSymName(setType) ;
+            n2 := GetSymName(baseType) ;
+            printf2('ConstructSetConstant of type %a and baseType %a\n', n1, n2)
          END ;
          IF IsSubrange(baseType)
          THEN

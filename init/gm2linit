@@ -18,6 +18,7 @@ StrLib
 NumberIO
 Args
 SArgs
+Indexing
 NameKey
 M2Debug
 M2Printf

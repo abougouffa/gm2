@@ -346,7 +346,7 @@ VAR
    sb: ScopeBlock ;
 BEGIN
    sb := InitScopeBlock(scope) ;
-   IF DisplayQuadruples
+   IF DisplayQuadruples AND FALSE
    THEN
       ForeachScopeBlockDo(sb, DisplayQuadRange)
    END ;
@@ -359,7 +359,7 @@ BEGIN
    IF IsProcedure(scope)
    THEN
       DeclareProcedure(scope) ;
-      IF DisplayQuadruples
+      IF DisplayQuadruples AND FALSE
       THEN
          WriteString('before coding') ; WriteLn ;
          DisplayQuadList(Head)
@@ -367,7 +367,7 @@ BEGIN
       ForeachScopeBlockDo(sb, ConvertQuadsToTree)
    ELSE
       StartDeclareScope(scope) ;
-      IF DisplayQuadruples
+      IF DisplayQuadruples AND FALSE
       THEN
          WriteString('before coding') ; WriteLn ;
          DisplayQuadList(Head)

@@ -56,7 +56,9 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  InitBase,
                  CheckExpressionCompatible,
                  CheckAssignmentCompatible,
-                 IsAssignmentCompatible, IsExpressionCompatible, IsMathType,
+                 IsAssignmentCompatible, IsExpressionCompatible,
+                 AssignmentRequiresWarning,
+                 IsMathType,
                  IsRealType,
                  MixTypes,
                  TemplateProcedure,
@@ -136,6 +138,17 @@ PROCEDURE IsPseudoBaseProcedure (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   AssignmentRequiresWarning - returns TRUE if t1 and t2 can be used during
+                               an assignment, but should generate a warning.
+                               For example in PIM we can assign ADDRESS
+                               and WORD providing they are both the
+                               same size.
+*)
+
+PROCEDURE AssignmentRequiresWarning (t1, t2: CARDINAL) : BOOLEAN ;
 
 
 (*

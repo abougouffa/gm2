@@ -501,7 +501,7 @@ void counterror()
 	    if (outf != stdout)
 		printf("Translation aborted: Too many errors.\n");
 	    if (verbose)
-		fprintf(logf, "Translation aborted: Too many errors.\n");
+		fprintf(logfile, "Translation aborted: Too many errors.\n");
 	    closelogfile();
 	    exit(EXIT_FAILURE);
 	}
@@ -522,9 +522,9 @@ char *msg;
         printf("Translation aborted.\n");
     }
     if (verbose) {
-	fprintf(logf, "%s:%d: %s\n",
+	fprintf(logfile, "%s:%d: %s\n",
 		infname, inf_lnum, msg);
-	fprintf(logf, "Translation aborted.\n");
+	fprintf(logfile, "Translation aborted.\n");
     }
     closelogfile();
     exit(EXIT_FAILURE);
@@ -543,7 +543,7 @@ char *msg;
 {
     if (checkeatnote(msg)) {
 	if (verbose)
-	    fprintf(logf, "%s:%d: Omitted warning: %s\n",
+	    fprintf(logfile, "%s:%d: Omitted warning: %s\n",
 		    infname, inf_lnum, msg);
 	return;
     }
@@ -558,7 +558,7 @@ char *proc, *msg;
 {
     if (checkeatnote(msg)) {
 	if (verbose)
-	    fprintf(logf, "%s, %d: Omitted internal error in %s: %s\n",
+	    fprintf(logfile, "%s, %d: Omitted internal error in %s: %s\n",
 		    infname, inf_lnum, proc, msg);
 	return;
     }
@@ -577,7 +577,7 @@ char *msg;
 {
     if (blockkind == TOK_IMPORT || checkeatnote(msg)) {
 	if (verbose)
-	    fprintf(logf, "%s, %d: Omitted note: %s\n",
+	    fprintf(logfile, "%s, %d: Omitted note: %s\n",
 		    infname, inf_lnum, msg);
 	return;
     }
@@ -593,12 +593,12 @@ char *msg;
 {
     if (blockkind == TOK_IMPORT || checkeatnote(msg)) {
 	if (verbose)
-	    fprintf(logf, "%s, %d: Omitted end-note: %s\n",
+	    fprintf(logfile, "%s, %d: Omitted end-note: %s\n",
 		    infname, inf_lnum, msg);
 	return;
     }
     if (verbose)
-	fprintf(logf, "%s, %d: Recorded end-note: %s\n",
+	fprintf(logfile, "%s, %d: Recorded end-note: %s\n",
 		infname, inf_lnum, msg);
     (void) strlist_add(&endnotelist, msg);
 }
@@ -1247,7 +1247,7 @@ char *fn;
 	  printf("Reading include file \"%s\"\n", fn);
       }
       if (verbose)
-	fprintf(logf, "Reading include file \"%s\"\n", fn);
+	fprintf(logfile, "Reading include file \"%s\"\n", fn);
       if (expandincludes == 0) {
 	push_input_file(fp, fn, 2);
 	curtok = TOK_INCLUDE;
@@ -3186,7 +3186,7 @@ void gettok()
                 } else if (isalpha(ch) || ch == '_') {
 ident:
                     {
-                        register char *cp2;
+		        char *cp2;
                         curtoksym = NULL;
                         cp = curtokbuf;
                         cp2 = curtokcase;
@@ -3208,7 +3208,6 @@ ident:
                     }
 		    if (!strcicmp(curtokbuf, "__FILE__")) {
                       strcpy(curtokbuf, infname);
-		      /* curtokbuf = infname; */
 		      curtokint = strlen(curtokbuf);
 		      curtok = TOK_STRLIT;
 		      return;
@@ -3223,6 +3222,10 @@ ident:
 		      string[24] = (char) 0;
                       strcpy(curtokbuf, string);
 		      curtokint = strlen(curtokbuf);
+		      curtok = TOK_STRLIT;
+		      return;
+                    } else if (!strcicmp(curtokbuf, "__FUNCTION__")) {
+		      strcpy(curtokbuf, "some function");
 		      curtok = TOK_STRLIT;
 		      return;
 		    } else if (*curtokbuf == '%') {

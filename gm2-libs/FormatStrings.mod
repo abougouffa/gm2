@@ -19,6 +19,25 @@ END IsDigit ;
 
 
 (*
+   Cast - casts a := b
+*)
+
+PROCEDURE Cast (VAR a: ARRAY OF BYTE; b: ARRAY OF BYTE) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   IF HIGH(a)=HIGH(b)
+   THEN
+      FOR i := 0 TO HIGH(a) DO
+         a[i] := b[i]
+      END
+   ELSE
+      HALT
+   END
+END Cast ;
+
+
+(*
    HandleEscape - translates \n and \t into their respective ascii codes.
 *)
 
@@ -64,13 +83,14 @@ END HandleEscape ;
                   A new string is returned.
 *)
 
-PROCEDURE FormatString (s: String; w: WORD) : String ;
+PROCEDURE FormatString (s: String; w: ARRAY OF BYTE) : String ;
 VAR
    left   : BOOLEAN ;
+   c,
    width,
    i, j, k: INTEGER ;
    leader,
-   ch     : CHAR ;
+   ch, ch2: CHAR ;
    p      : String ;
 BEGIN
    i := 0 ;
@@ -107,9 +127,11 @@ BEGIN
       THEN
          IF (ch='c')
          THEN
-            p := ConCatChar(InitString(''), VAL(CHAR, w))
+            ch2 := w[0] ;
+            p := ConCatChar(InitString(''), ch2)
          ELSE
-            p := Dup(w)
+            Cast(p, w) ;
+            p := Dup(p)
          END ;
          IF (width>0) AND (Length(p)<width)
          THEN
@@ -128,7 +150,8 @@ BEGIN
          RETURN( ConCat(ConCat(Slice(s, i, k), Mark(p)), Slice(s, j+2, 0)) )
       ELSIF ch='d'
       THEN
-         RETURN( ConCat(ConCat(Slice(s, i, k), IntegerToString(w, width, leader, FALSE, 10, FALSE)),
+         Cast(c, w) ;
+         RETURN( ConCat(ConCat(Slice(s, i, k), IntegerToString(c, width, leader, FALSE, 10, FALSE)),
                         Slice(s, j+2, 0)) )
       ELSE
          RETURN( ConCat(ConCat(Slice(s, i, k), Mark(InitStringChar(ch))), Slice(s, j+1, 0)) )
@@ -155,7 +178,7 @@ END Sprintf0 ;
               entity, w. It only formats the first %s or %d with n.
 *)
 
-PROCEDURE Sprintf1 (s: String; w: WORD) ;
+PROCEDURE Sprintf1 (s: String; w: ARRAY OF BYTE) ;
 BEGIN
    RETURN( FormatString(HandleEscape(s), w) )
 END Sprintf1 ;
@@ -165,7 +188,7 @@ END Sprintf1 ;
    Sprintf2 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf2 (s: String; w1, w2: WORD) : String ;
+PROCEDURE Sprintf2 (s: String; w1, w2: ARRAY OF BYTE) : String ;
 BEGIN
    RETURN( FormatString(FormatString(HandleEscape(s), w1), w2) )
 END Sprintf2 ;
@@ -175,7 +198,7 @@ END Sprintf2 ;
    Sprintf3 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf3 (s: String; w1, w2, w3: WORD) : String ;
+PROCEDURE Sprintf3 (s: String; w1, w2, w3: ARRAY OF BYTE) : String ;
 BEGIN
    RETURN( FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3) )
 END Sprintf3 ;
@@ -185,7 +208,7 @@ END Sprintf3 ;
    Sprintf4 - returns a string, s, which has been formatted.
 *)
 
-PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: WORD) : String ;
+PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: ARRAY OF BYTE) : String ;
 BEGIN
    RETURN( FormatString(FormatString(FormatString(FormatString(HandleEscape(s), w1), w2), w3), w4) )
 END Sprintf4 ;

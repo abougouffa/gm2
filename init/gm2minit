@@ -15,6 +15,7 @@ SFIO
 SysStorage
 Storage
 M2Defaults
+Indexing
 NameKey
 NumberIO
 CmdArgs

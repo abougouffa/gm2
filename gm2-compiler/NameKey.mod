@@ -19,6 +19,7 @@ IMPLEMENTATION MODULE NameKey ;
 
 FROM SYSTEM IMPORT ADR ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, InBounds ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;
 FROM NumberIO IMPORT WriteCard ;
@@ -32,6 +33,7 @@ TYPE
 
    NameNode   = POINTER TO Node ;
    Node       = RECORD
+                   Data : PtrToChar ;
                    Key  : Name ;
                    Left,
                    Right: NameNode ;
@@ -41,10 +43,12 @@ TYPE
 
 VAR
    BinaryTree: NameNode ;
+   KeyIndex  : Index ;
+   LastIndice: CARDINAL ;
 
 
 (* %%%FORWARD%%%
-PROCEDURE FindNodeAndParentInTree (n: Name; VAR child, father: NameNode) : Comparison ; FORWARD ;
+PROCEDURE FindNodeAndParentInTree (n: PtrToChar; VAR child, father: NameNode) : Comparison ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -57,7 +61,7 @@ VAR
    p       : PtrToChar ;
    i, higha: CARDINAL ;
 BEGIN
-   p := PtrToChar(key) ;
+   p := KeyToCharStar(key) ;
    i := 0 ;
    higha := HIGH(a) ;
    WHILE (i<higha) AND (p^#nul) DO
@@ -92,7 +96,7 @@ BEGIN
       REPEAT
          i := 0 ;
          higha := HIGH(a) ;
-         p := PtrToChar(child^.Key) ;
+         p := KeyToCharStar(child^.Key) ;
          WHILE (i<=higha) AND (a[i]#nul) DO
             IF a[i]<p^
             THEN
@@ -127,11 +131,12 @@ END IsKey ;
                If a name is found then the string, n, is deallocated.
 *)
 
-PROCEDURE DoMakeKey (n: Name; higha: CARDINAL) : Name ;
+PROCEDURE DoMakeKey (n: PtrToChar; higha: CARDINAL) : Name ;
 VAR
    result: Comparison ;
    father,
    child : NameNode ;
+   k     : Name ;
 BEGIN
    result := FindNodeAndParentInTree(n, child, father) ;
    IF child=NIL
@@ -148,13 +153,17 @@ BEGIN
       WITH child^ DO
          Right := NIL ;
          Left := NIL ;
-         Key := n
-      END
+         INC(LastIndice) ;
+         Key := LastIndice ;
+         Data := n ;
+         PutIndice(KeyIndex, Key, n)
+      END ;
+      k := LastIndice
    ELSE
       DEALLOCATE(n, higha+1) ;
-      n := child^.Key
+      k := child^.Key
    END ;
-   RETURN( n )
+   RETURN( k )
 END DoMakeKey ;
 
 
@@ -167,8 +176,7 @@ END DoMakeKey ;
 
 PROCEDURE MakeKey (a: ARRAY OF CHAR) : Name ;
 VAR
-   n     : Name ;
-   p     : PtrToChar ;
+   n, p  : PtrToChar ;
    i,
    higha : CARDINAL ;
 BEGIN
@@ -178,7 +186,7 @@ BEGIN
    THEN
       HALT      (* out of memory error *)
    ELSE
-      n := Name(p) ;
+      n := p ;
       i := 0 ;
       WHILE (i<higha) DO
          p^ := a[i] ;
@@ -202,29 +210,34 @@ END MakeKey ;
 
 PROCEDURE makekey (a: ADDRESS) : Name ;
 VAR
-   n     : Name ;
+   n,
    p, pa : PtrToChar ;
    i,
    higha : CARDINAL ;
 BEGIN
-   higha := strlen(a) ;
-   ALLOCATE(p, higha+1) ;
-   IF p=NIL
+   IF a=NIL
    THEN
-      HALT      (* out of memory error *)
+      RETURN( NulName )
    ELSE
-      n  := Name(p) ;
-      pa := a ;
-      i  := 0 ;
-      WHILE (i<higha) DO
-         p^ := pa^ ;
-         INC(i) ;
-         INC(p) ;
-         INC(pa)
-      END ;
-      p^ := nul ;
-
-      RETURN( DoMakeKey(n, higha) )
+      higha := strlen(a) ;
+      ALLOCATE(p, higha+1) ;
+      IF p=NIL
+      THEN
+         HALT      (* out of memory error *)
+      ELSE
+         n  := p ;
+         pa := a ;
+         i  := 0 ;
+         WHILE (i<higha) DO
+            p^ := pa^ ;
+            INC(i) ;
+            INC(p) ;
+            INC(pa)
+         END ;
+         p^ := nul ;
+         
+         RETURN( DoMakeKey(n, higha) )
+      END
    END
 END makekey ;
 
@@ -238,7 +251,7 @@ VAR
    i: CARDINAL ;
    p: PtrToChar ;
 BEGIN
-   p := Key ;
+   p := KeyToCharStar(Key) ;
    i := 0 ;
    WHILE p^#nul DO
       INC(i) ;
@@ -252,13 +265,12 @@ END LengthKey ;
    Compare - return the result of Names[i] with Names[j]
 *)
 
-PROCEDURE Compare (i, j: Name) : Comparison ;
+PROCEDURE Compare (pi: PtrToChar; j: Name) : Comparison ;
 VAR
-   pi, pj: PtrToChar ;
+   pj: PtrToChar ;
    c1, c2: CHAR ;
 BEGIN
-   pi := i ;
-   pj := j ;
+   pj := KeyToCharStar(j) ;
    c1 := pi^ ;
    c2 := pj^ ;
    WHILE (c1#nul) OR (c2#nul) DO
@@ -286,7 +298,7 @@ END Compare ;
                              A comparison is returned to assist adding entries into this tree.
 *)
 
-PROCEDURE FindNodeAndParentInTree (n: Name; VAR child, father: NameNode) : Comparison ;
+PROCEDURE FindNodeAndParentInTree (n: PtrToChar; VAR child, father: NameNode) : Comparison ;
 VAR
    result: Comparison ;
 BEGIN
@@ -329,8 +341,8 @@ BEGIN
    THEN
       RETURN( TRUE )
    ELSE
-      pi := key1 ;
-      pj := key2 ;
+      pi := KeyToCharStar(key1) ;
+      pj := KeyToCharStar(key2) ;
       c1 := pi^ ;
       c2 := pj^ ;
       WHILE (c1#nul) AND (c2#nul) DO
@@ -358,7 +370,12 @@ END IsSameExcludingCase ;
 
 PROCEDURE KeyToCharStar (key: Name) : ADDRESS ;
 BEGIN
-   RETURN( ADDRESS(key) )
+   IF key=NulName
+   THEN
+      RETURN( NIL )
+   ELSE
+      RETURN( GetIndice(KeyIndex, key) )
+   END
 END KeyToCharStar ;
 
 
@@ -366,7 +383,7 @@ PROCEDURE WriteKey (key: Name) ;
 VAR
    s: PtrToChar ;
 BEGIN
-   s := key ;
+   s := KeyToCharStar(key) ;
    WHILE (s#NIL) AND (s^#nul) DO
       Write(s^) ;
       INC(s)
@@ -375,11 +392,8 @@ END WriteKey ;
 
 
 BEGIN
+   LastIndice := 0 ;
+   KeyIndex := InitIndex(1) ;
    NEW(BinaryTree) ;
    BinaryTree^.Left := NIL
 END NameKey.
-(*
- * Local variables:
- *  compile-command: "m2f -quiet -g -verbose -M \". ../gm2-libs\" -o NameKey.o NameKey.mod"
- * End:
- *)

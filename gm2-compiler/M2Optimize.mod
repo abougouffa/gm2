@@ -27,7 +27,7 @@ IMPLEMENTATION MODULE M2Optimize ;
 
 FROM M2Debug IMPORT Assert ;
 
-FROM NameKey IMPORT WriteKey, MakeKey, GetKey ;
+FROM NameKey IMPORT Name, WriteKey, MakeKey, GetKey ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 
@@ -478,12 +478,13 @@ END KnownReach ;
 
 PROCEDURE DeleteUnReachableProcedures ;
 VAR
+   ProcName: Name ;
    n, m,
    Scope,
    Start,
    End,
    Module,
-   Proc  : CARDINAL ;
+   Proc    : CARDINAL ;
 BEGIN
    m := 1 ;
    REPEAT
@@ -498,7 +499,8 @@ BEGIN
             THEN
                (* is reachable - do not delete it *)
             ELSE
-               qprintf1('[%a]\n', GetSymName(Proc)) ;
+               ProcName := GetSymName(Proc) ;
+               qprintf1('[%a]\n', ProcName) ;
 
                GetProcedureQuads(Proc, Scope, Start, End) ;
                IF Start#0

@@ -24,7 +24,7 @@ DEFINITION MODULE M2Error ;
                  and the compiler.
 *)
 
-FROM SYSTEM IMPORT WORD ;
+FROM SYSTEM IMPORT BYTE ;
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED Error,
                  InternalError,
@@ -72,7 +72,7 @@ PROCEDURE WriteFormat0 (a: ARRAY OF CHAR) ;
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE WriteFormat1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 
 
 (*
@@ -81,7 +81,7 @@ PROCEDURE WriteFormat1 (a: ARRAY OF CHAR; w: WORD) ;
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat2 (a: ARRAY OF CHAR; w1, w2: WORD) ;
+PROCEDURE WriteFormat2 (a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
 
 
 (*
@@ -90,7 +90,7 @@ PROCEDURE WriteFormat2 (a: ARRAY OF CHAR; w1, w2: WORD) ;
                   Used for simple error messages tied to the current token.
 *)
 
-PROCEDURE WriteFormat3 (a: ARRAY OF CHAR; w1: WORD; w2: WORD; w3: WORD) ;
+PROCEDURE WriteFormat3 (a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) ;
 
 
 (*
@@ -121,9 +121,9 @@ PROCEDURE ChainError (AtTokenNo: CARDINAL; e: Error) : Error ;
 *)
 
 PROCEDURE ErrorFormat0 (e: Error; a: ARRAY OF CHAR) ;
-PROCEDURE ErrorFormat1 (e: Error; a: ARRAY OF CHAR; w: WORD) ;
-PROCEDURE ErrorFormat2 (e: Error; a: ARRAY OF CHAR; w1, w2: WORD) ;
-PROCEDURE ErrorFormat3 (e: Error; a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
+PROCEDURE ErrorFormat1 (e: Error; a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
+PROCEDURE ErrorFormat2 (e: Error; a: ARRAY OF CHAR; w1, w2: ARRAY OF BYTE) ;
+PROCEDURE ErrorFormat3 (e: Error; a: ARRAY OF CHAR; w1, w2, w3: ARRAY OF BYTE) ;
 PROCEDURE ErrorString  (e: Error; str: String) ;
 
 

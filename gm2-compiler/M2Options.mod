@@ -37,10 +37,13 @@ VAR
 *)
 
 PROCEDURE DisplayVersion ;
+VAR
+   s: String ;
 BEGIN
    printf0('gm2  [') ;
    WriteVersion ;
-   printf1('] [%s]\n', Mark(InitString(__DATE__)))
+   s := Mark(InitString(__DATE__)) ;
+   printf1('] [%s]\n', s)
 END DisplayVersion ;
 
 

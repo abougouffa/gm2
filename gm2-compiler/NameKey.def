@@ -34,11 +34,11 @@ EXPORT QUALIFIED Name, NulName,
 
 
 CONST
-   NulName = NIL ;  (* No legal name.                      *)
-                    (* NulName is not present in the Tree  *)
+   NulName = 0 ;  (* No legal name.                      *)
+                  (* NulName is not present in the Tree  *)
 
 TYPE
-   Name = ADDRESS ;
+   Name = CARDINAL ;
 
 
 (*
