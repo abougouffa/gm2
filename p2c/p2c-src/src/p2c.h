@@ -10,114 +10,10 @@
  * by the licence agreement accompanying p2c itself.
  */
 
+#include "config.h"
+#include "system.h"
 
-#include <stdio.h>
-
-
-
-/* If the following heuristic fails, compile -DBSD=0 for non-BSD systems,
-   or -DBSD=1 for BSD systems. */
-
-#ifdef M_XENIX
-# define BSD 0
-#endif
-
-#ifdef vms
-# define BSD 0
-# ifndef __STDC__
-#  define __STDC__ 1
-# endif
-#endif
-
-#ifdef __TURBOC__
-# define MSDOS 1
-#endif
-
-#ifdef MSDOS
-# define BSD 0
-#endif
-
-#ifdef FILE       /* a #define in BSD, a typedef in SYSV (hp-ux, at least) */
-# ifndef BSD	  /*  (a convenient, but horrible kludge!) */
-#  define BSD 1
-# endif
-#endif
-
-#ifdef BSD
-# if !BSD
-#  undef BSD
-# endif
-#endif
-
-
-#if (defined(__STDC__) && !defined(M_XENIX)) || defined(__TURBOC__)
-# include <stddef.h>
-# include <stdlib.h>
-# define HAS_STDLIB
-# if defined(vms) || defined(__TURBOC__)
-#  define __ID__(a)a
-# endif
-#else
-# ifndef BSD
-#  ifndef __TURBOC__
-#   include <memory.h>
-#  endif
-# endif
-# ifdef hpux
-#  ifdef _INCLUDE__STDC__
-#   include <stddef.h>
-#   include <stdlib.h>
-#  endif
-# endif
-# include <sys/types.h>
-# if !defined(MSDOS) || defined(__TURBOC__)
-#  define __ID__(a)a
-# endif
-#endif
-
-#ifdef __ID__
-# define __CAT__(a,b)__ID__(a)b
-#else
 # define __CAT__(a,b)a##b
-#endif
-
-
-#ifdef BSD
-# include <strings.h>
-# define memcpy(a,b,n) (bcopy(b,a,n),a)
-# define memcmp(a,b,n) bcmp(a,b,n)
-# define strchr(s,c) index(s,c)
-# define strrchr(s,c) rindex(s,c)
-#else
-# include <string.h>
-#endif
-
-#include <ctype.h>
-#include <math.h>
-#include <setjmp.h>
-#include <assert.h>
-
-/* Modula-2 libraries need the following */
-#include <time.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <sys/time.h>
-
-#if !defined(ATTRIBUTE_UNUSED)
-#  if defined(__GCC__)
-#     define ATTRIBUTE_UNUSED __attribute__ unused
-#  else
-#     define ATTRIBUTE_UNUSED
-#  endif
-#endif
-#if !defined(ATTRIBUTE_NORETURN)
-#  if defined(__GCC__)
-#     define ATTRIBUTE_NORETURN __attribute__ noreturn
-#  else
-#     define ATTRIBUTE_NORETURN
-#  endif
-#endif
 
 #ifndef NO_LACK
 #ifdef vms
@@ -134,7 +30,7 @@
 #endif
 #endif
 
-
+#include <setjmp.h>
 typedef struct __p2c_jmp_buf {
     struct __p2c_jmp_buf *next;
     jmp_buf jbuf;
@@ -159,7 +55,6 @@ typedef struct __p2c_jmp_buf {
 # define RECOVER2(x,L)  } else do { L: ;
 # define ENDTRY(x)      } while (0)
 #endif
-
 
 
 #ifdef M_XENIX  /* avoid compiler bug */
@@ -417,12 +312,16 @@ typedef struct {
 /* Memory allocation */
 #ifdef __GCC__
 # define Malloc(n)  (malloc(n) ?: (Anyptr)_OutMem())
+#if 0
 # define ATTRIBUTE_UNUSED __attribute__ unused
+#endif
 # define Inline     inline
 #else
 extern Anyptr __MallocTemp__;
 # define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
+#if 0
 # define ATTRIBUTE_UNUSED
+#endif
 # define Inline
 #endif
 #define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
