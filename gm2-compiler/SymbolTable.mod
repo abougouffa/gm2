@@ -757,6 +757,28 @@ END AlreadyDeclaredError ;
 
 
 (*
+   AlreadyImportedError - generate an error message, a, and two areas of code showing
+                          the places where the symbols was imported and also declared.
+*)
+
+PROCEDURE AlreadyImportedError (s: String; name: Name; OtherOccurance: CARDINAL) ;
+VAR
+   e: Error ;
+BEGIN
+   IF (OtherOccurance=0) OR (OtherOccurance=GetTokenNo())
+   THEN
+      e := NewError(GetTokenNo()) ;
+      ErrorString(e, s)
+   ELSE
+      e := NewError(GetTokenNo()) ;
+      ErrorString(e, s) ;
+      e := ChainError(OtherOccurance, e) ;
+      ErrorFormat1(e, 'and symbol (%a) was also seen here', name)
+   END
+END AlreadyImportedError ;
+
+
+(*
    MakeError - creates an error node.
 *)
 
@@ -806,8 +828,15 @@ BEGIN
       NewSym(Sym)
    ELSIF IsAlreadyDeclaredSym(name)
    THEN
-      AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
-                           GetDeclared(GetVisibleSym(name))) ;
+      Sym := GetSym(name) ;
+      IF IsImported(GetCurrentModuleScope(), Sym)
+      THEN
+         AlreadyImportedError(Sprintf1(Mark(InitString('symbol (%s) is already present in this scope, check both definition and implementation modules, use a different name or remove the import')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
+                              0)
+      ELSE
+         AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
+                              GetDeclared(GetVisibleSym(name)))
+      END ;
       Sym := MakeError(name)
    ELSE
       Sym := FetchUnknownSym(name) ;

@@ -57,7 +57,7 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("use cpp to preprocess the module") },
   { "-Wq",
       N_("debugging information - dump the list of quadruples") },
-  { "-Wverbose",
+  { "-Wsources",
       N_("display the location of module source files as they are compiled") },
   { "-version",
       N_("display the version of the GNU Modula-2 front end") },

@@ -9116,8 +9116,7 @@ tree
 gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
-  tree maxval = build_binary_op(MINUS_EXPR, default_conversion(high), default_conversion(low), 0);
-  return build_index_type (maxval);
+  return build_index_2_type (default_conversion(low), default_conversion(high));
 }
 
 /*

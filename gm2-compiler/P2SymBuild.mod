@@ -48,6 +48,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutConstSet,
                         IsDefImp, IsType,
                         IsSubrange, IsEnumeration, IsConstString,
+                        IsError,
                         GetSym, RequestSym, IsUnknown, RenameSym,
                         GetLocalSym, GetParent, IsRecord,
                         GetFromOuterModule,
@@ -913,8 +914,11 @@ BEGIN
       IF IsUnknown(Type) OR (NOT IsDeclaredIn(GetCurrentScope(), Type))
       THEN
          Sym := MakeType(name) ;
-         PutType(Sym, Type) ;
-         CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
+         IF NOT IsError(Sym)
+         THEN
+            PutType(Sym, Type) ;
+            CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
+         END ;
          PushTF(Sym, name)
       ELSE
          PushTF(Type, name)

@@ -171,6 +171,9 @@ allows opaque types to be implemented as any type. This
 is a GNU Modula-2 extension and it requires that the implementation
 module defining the opaque type is available so that it
 can be resolved when compiling the module which imports the opaque type.
+
+@item -Wsources
+displays the path to the source of each module.
 @end table
 
 @node Example usage, Elementary data types, Compiler options, Using

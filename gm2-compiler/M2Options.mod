@@ -29,7 +29,7 @@ FROM Debug IMPORT Halt ;
 
 VAR
    CppAndArgs : String ;
-   SeenVerbose: BOOLEAN ;
+   SeenSources: BOOLEAN ;
 
 
 (*
@@ -214,14 +214,14 @@ BEGIN
    THEN
       Verbose := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wverbose')
+   ELSIF EqualArray(s, '-Wsources')
    THEN
       Quiet := FALSE ;
-      SeenVerbose := TRUE ;
+      SeenSources := TRUE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-quiet')
    THEN
-      IF NOT SeenVerbose
+      IF NOT SeenSources
       THEN
          Quiet := TRUE    (* Quiet is automatically set by the front end *)
       END ;
@@ -280,7 +280,7 @@ BEGIN
    CppAndArgs                   := InitString('') ;
    Pim                          := TRUE ;
    Iso                          := FALSE ;
-   SeenVerbose                  := FALSE ;
+   SeenSources                  := FALSE ;
    Statistics                   := FALSE ;
    StudentChecking              := FALSE ;
    CompilerDebugging            := FALSE ;
