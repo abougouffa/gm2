@@ -346,6 +346,7 @@ END ResetForNewPass ;
 
 PROCEDURE DisplayToken ;
 BEGIN
+   clex.CError(string(InitString('current token'))) ;
    IF currenttoken=identtok
    THEN
       printf1('currenttoken = %a\n', currentstring)
@@ -384,6 +385,7 @@ BEGIN
       starthashtok         : printf0('start#\n') |
       endhashtok           : printf0('end#\n') |
       definetok            : printf0('define\n') |
+      definedtok           : printf0('defined\n') |
       undeftok             : printf0('undef\n') |
       iftok                : printf0('if\n') |
       elsetok              : printf0('else\n') |
@@ -423,7 +425,8 @@ BEGIN
       uniontok             : printf0('union\n') |
       colontok             : printf0('colon\n') |
       becomestok           : printf0('becomes\n') |
-      volatiletok          : printf0('volatile\n')
+      volatiletok          : printf0('volatile\n') |
+      typetok              : printf0('type\n')
 
       ELSE
          clex.CError(string(InitString('unrecognised token')))
@@ -497,7 +500,7 @@ BEGIN
                END ;
                IF Debugging
                THEN
-                  printf1('# %d ', CurrentTokNo) ;
+                  (* printf1('# %d ', CurrentTokNo) ; *)
                   DisplayToken
                END ;
                INC(CurrentTokNo)

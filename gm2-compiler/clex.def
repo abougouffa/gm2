@@ -27,7 +27,8 @@ DEFINITION MODULE clex ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED GetToken, CError, OpenSource, CloseSource, GetLineNo, ParsingOn ;
+EXPORT QUALIFIED GetToken, CError, OpenSource, CloseSource, GetLineNo,
+                 ParsingOn, SetSearchPath, AddTypeDef ;
 
 
 (*
@@ -74,6 +75,20 @@ PROCEDURE CError (s: ADDRESS) ;
 *)
 
 PROCEDURE ParsingOn (t: BOOLEAN) ;
+
+
+(*
+   SetSearchPath - reassigns the search path to newPath.
+*)
+
+PROCEDURE SetSearchPath (newPath: ADDRESS) ;
+
+
+(*
+   AddTypeDef - adds the string, a, to the list of typedefs.
+*)
+
+PROCEDURE AddTypeDef (a: ADDRESS) ;
 
 
 END clex.

@@ -46,8 +46,8 @@ TYPE
               integertok, hexintegertok, octintegertok,
               identtok, realtok, conststringtok, constchartok, codetok,
               starthashtok, endhashtok, definetok, undeftok, iftok, elsetok,
-              endiftok, ifdeftok, ifndeftok,
-              nottok, includetok, commatok,
+              endiftok, ifdeftok, ifndeftok, includetok,
+              nottok, commatok,
               periodtok,
               gretok, lesstok, ortok, andtok, bartok, ambersandtok,
               shiftlefttok, shiftrighttok, divtok, modtok,
@@ -55,7 +55,7 @@ TYPE
               greequaltok, lessequaltok, plustok, minustok, tildetok,
               externtok, statictok, autotok, registertok,
               voidtok, shorttok, signedtok, uniontok, colontok, becomestok,
-              volatiletok) ;
+              volatiletok, typetok) ;
 
 VAR
    currenttoken  : toktype ;
