@@ -1,3 +1,8 @@
+2003-02-02	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by Iztok Kobal, the gm2-iso/ChanConsts module
+	  failed to compile. Added a regression test to catch this.
+
 2003-02-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* bug fixes in error handling. In particular duplicate symbols

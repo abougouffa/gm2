@@ -128,7 +128,6 @@ static  void handleNewline(int hashSeen, int n);
 <LINE0>endif               { updatepos(); CLexBuf_AddTok(CLexBuf_endiftok); BEGIN INITIAL; return; }
 <LINE0>ifdef               { updatepos(); CLexBuf_AddTok(CLexBuf_ifdeftok); BEGIN INITIAL; return; }
 <LINE0>ifndef              { updatepos(); CLexBuf_AddTok(CLexBuf_ifndeftok); BEGIN INITIAL; return; }
-<LINE0>\!                  { updatepos(); CLexBuf_AddTok(CLexBuf_nottok); BEGIN INITIAL; return; }
 <LINE0>[0-9]+[ \t]*\"      { updatepos(); lineno=atoi(yytext)-1; BEGIN LINE1; }
 <LINE0>\n                  { clex_CError("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE0>[^\n]
@@ -185,7 +184,9 @@ struct                     { updatepos(); CLexBuf_AddTok(CLexBuf_structtok); ret
 "/"                        { updatepos(); CLexBuf_AddTok(CLexBuf_divtok); return; }
 "%"                        { updatepos(); CLexBuf_AddTok(CLexBuf_modtok); return; }
 sizeof                     { updatepos(); CLexBuf_AddTok(CLexBuf_sizeoftok); return; }
+defined                    { updatepos(); CLexBuf_AddTok(CLexBuf_definedtok); return; }
 \^                         { updatepos(); CLexBuf_AddTok(CLexBuf_hattok); return; }
+\!                         { updatepos(); CLexBuf_AddTok(CLexBuf_nottok); return; }
 "=="                       { updatepos(); CLexBuf_AddTok(CLexBuf_equaltok); return; }
 "!="                       { updatepos(); CLexBuf_AddTok(CLexBuf_notequaltok); return; }
 ">="                       { updatepos(); CLexBuf_AddTok(CLexBuf_greequaltok); return; }
@@ -210,6 +211,18 @@ do                         { updatepos(); CLexBuf_AddTok(CLexBuf_codetok); retur
 break                      { updatepos(); CLexBuf_AddTok(CLexBuf_codetok); return; }
 case                       { updatepos(); CLexBuf_AddTok(CLexBuf_codetok); return; }
 switch                     { updatepos(); CLexBuf_AddTok(CLexBuf_codetok); return; }
+extern                     { updatepos(); CLexBuf_AddTok(CLexBuf_externtok); return; }
+static                     { updatepos(); CLexBuf_AddTok(CLexBuf_statictok); return; }
+auto                       { updatepos(); CLexBuf_AddTok(CLexBuf_autotok); return; }
+register                   { updatepos(); CLexBuf_AddTok(CLexBuf_registertok); return; }
+void                       { updatepos(); CLexBuf_AddTok(CLexBuf_voidtok); return; }
+short                      { updatepos(); CLexBuf_AddTok(CLexBuf_shorttok); return; }
+signed                     { updatepos(); CLexBuf_AddTok(CLexBuf_signedtok); return; }
+union                      { updatepos(); CLexBuf_AddTok(CLexBuf_uniontok); return; }
+\:                         { updatepos(); CLexBuf_AddTok(CLexBuf_colontok); return; }
+\=                         { updatepos(); CLexBuf_AddTok(CLexBuf_becomestok); return; }
+volatile                   { updatepos(); CLexBuf_AddTok(CLexBuf_volatiletok); return; }
+
 -?(([0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?) { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_realtok, yytext); return; }
 [a-zA-Z_][a-zA-Z0-9_]*     { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_identtok, yytext); return; }
 0[0-9]+                    { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_octintegertok, yytext); return; }
