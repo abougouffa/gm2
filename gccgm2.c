@@ -3043,13 +3043,8 @@ build_m2_long_int_node (void)
 
   /* Define `LONGINT' */
 
-#if 0
-  /* fails to build in a cross development environment */
-  c = make_signed_node (LONG_LONG_TYPE_SIZE);
+  c = make_signed_type (LONG_LONG_TYPE_SIZE);
   layout_type (c);
-#else
-  c = m2_integer_type_node;
-#endif
 
   return c;
 }
