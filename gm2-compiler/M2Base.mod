@@ -223,31 +223,37 @@ BEGIN
    MinChar := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMinFrom(GetM2CharType())) ;
    PopValue(MinChar) ;
+   PutVar(MinChar, Char) ;
 
    (* MaxChar *)
    MaxChar := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(GetM2CharType())) ;
    PopValue(MaxChar) ;
+   PutVar(MaxChar, Char) ;
 
    (* MinInteger *)
    MinInteger := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMinFrom(GetIntegerType())) ;
    PopValue(MinInteger) ;
+   PutVar(MinInteger, Integer) ;
 
    (* MaxInteger *)
    MaxInteger := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(GetIntegerType())) ;
    PopValue(MaxInteger) ;
+   PutVar(MaxInteger, Integer) ;
 
    (* MinCardinal *)
    MinCardinal := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMinFrom(GetM2CardinalType())) ;
    PopValue(MinCardinal) ;
+   PutVar(MinCardinal, Cardinal) ;
 
    (* MaxCardinal *)
    MaxCardinal := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(GetM2CardinalType())) ;
    PopValue(MaxCardinal) ;
+   PutVar(MaxCardinal, Cardinal) ;
 
 END InitBaseSimpleTypes ;
 

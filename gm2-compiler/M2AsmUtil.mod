@@ -126,8 +126,7 @@ END GetAsmName ;
 
 (*
    GetFullSymName - returns the NameKey for the symbol name (which also
-                    may contain the module name). This is the same as
-                    GetAsmName except that it does not have the leading _
+                    may contain the module name).
 *)
 
 PROCEDURE GetFullSymName (Sym: CARDINAL) : Name ;

@@ -178,7 +178,7 @@ PROCEDURE DoStartDeclaration (sym: CARDINAL; p: StartProcedure) : Tree ;
 BEGIN
    IF NOT GccKnowsAbout(sym)
    THEN
-      AddModGcc(sym, p(KeyToCharStar(GetSymName(sym)))) ;
+      AddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym)))) ;
       IncludeItemIntoList(ToFinishList, sym) ;
       IncludeItemIntoList(ToDoList, sym)
    END ;
@@ -455,7 +455,7 @@ BEGIN
       THEN
          RETURN( Tree(Mod2Gcc(GetType(Sym))) )
       ELSE
-         t := DeclareKnownType(KeyToCharStar(GetSymName(Sym)), Mod2Gcc(GetType(Sym))) ;
+         t := DeclareKnownType(KeyToCharStar(GetFullSymName(Sym)), Mod2Gcc(GetType(Sym))) ;
          RETURN( t )
       END
    END
@@ -631,7 +631,7 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF Sym=280
+   IF Sym=100
    THEN
       mystop
    END ;
@@ -667,7 +667,7 @@ BEGIN
       RETURN( IsSetDependantsWritten(Sym) )
    ELSIF IsType(Sym)
    THEN
-      RETURN( IsTypeDependantsWritten(GetType(Sym)) )
+      RETURN( IsTypeDependantsWritten(Sym) )
    ELSE
       RETURN( TRUE )
    END
@@ -1230,7 +1230,7 @@ PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ;
 VAR
    gccenum: Tree ;
 BEGIN
-   gccenum := BuildStartEnumeration(KeyToCharStar(GetSymName(Sym))) ;
+   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(Sym))) ;
    ForeachFieldEnumerationDo(Sym, DeclareFieldEnumeration) ;
    RETURN( BuildEndEnumeration(gccenum) )
 END DeclareEnumeration ;
@@ -1246,7 +1246,7 @@ VAR
    high, low: CARDINAL ;
 BEGIN
    GetSubrange(sym, high, low) ;
-   gccsym := BuildSubrangeType(KeyToCharStar(GetSymName(sym)),
+   gccsym := BuildSubrangeType(KeyToCharStar(GetFullSymName(sym)),
                                Mod2Gcc(GetType(sym)), Mod2Gcc(low), Mod2Gcc(high)) ;
    RETURN( gccsym )
 END DeclareSubrange ;
@@ -1268,7 +1268,7 @@ VAR
 BEGIN
    i := 1 ;
    FieldList := Tree(NIL) ;
-   RecordType := BuildStartVarientRecord(KeyToCharStar(GetSymName(Sym))) ;
+   RecordType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(Sym))) ;
    (* no need to store the [Sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
    REPEAT
       Field1 := GetNth(Sym, i) ;
@@ -1281,7 +1281,7 @@ BEGIN
       	    IF Field2#NulSym
       	    THEN
                GccFieldType := ForceDeclareType(GetType(Field2)) ;
-               GccField     := BuildFieldRecord(KeyToCharStar(GetSymName(Field2)), GccFieldType) ;
+               GccField     := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field2)), GccFieldType) ;
                FieldList    := ChainOn(FieldList, GccField) ;
                AddModGcc(Field2, GccField) ;
       	       INC(j)
@@ -1319,7 +1319,7 @@ BEGIN
          IF GccKnowsAbout(Field)
          THEN
             GccFieldType := Mod2Gcc(Field) ;
-            GccField     := BuildFieldRecord(KeyToCharStar(GetSymName(Field)), GccFieldType) ;
+            GccField     := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
             AddModGcc(Field, GccField)
          ELSE
             IF IsVarient(Field)
@@ -1338,7 +1338,7 @@ BEGIN
                END ;
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;
-            GccField := BuildFieldRecord(KeyToCharStar(GetSymName(Field)), GccFieldType) ;
+            GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
             AddModGcc(Field, GccField)
          END ;
          FieldList := ChainOn(FieldList, GccField)
@@ -1360,7 +1360,7 @@ BEGIN
    THEN
       RETURN( BuildPointerType(DeclareOrFindKindOfType(GetType(Sym))) )
    ELSE
-      RETURN( DeclareKnownType(KeyToCharStar(GetSymName(Sym)),
+      RETURN( DeclareKnownType(KeyToCharStar(GetFullSymName(Sym)),
                                BuildPointerType(DeclareOrFindKindOfType(GetType(Sym)))) )
    END
 END DeclarePointer ;
@@ -1697,9 +1697,9 @@ BEGIN
    IF IsSubrange(type)
    THEN
       GetSubrange(type, high, low) ;
-      gccsym := DeclareLargeOrSmallSet(sym, GetSymName(sym), GetType(type), low, high)
+      gccsym := DeclareLargeOrSmallSet(sym, GetFullSymName(sym), GetType(type), low, high)
    ELSE
-      gccsym := DeclareLargeOrSmallSet(sym, GetSymName(sym), type, GetTypeMin(type), GetTypeMax(type))
+      gccsym := DeclareLargeOrSmallSet(sym, GetFullSymName(sym), type, GetTypeMin(type), GetTypeMax(type))
    END ;
    RETURN( gccsym )
 END DeclareSet ;
@@ -2225,25 +2225,18 @@ VAR
    type  : CARDINAL ;
    solved: BOOLEAN ;
 BEGIN
+   type := GetType(Sym) ;
    solved := TRUE ;
-   IF Sym#NulSym
+   IF type#NulSym
    THEN
-      (*
-      IF GetSymName(Sym)#NulName
+      IF NOT GccKnowsAbout(type)
       THEN
-      *)
-         IF NOT GccKnowsAbout(Sym)
-         THEN
-            IncludeItemIntoList(ToDoList, Sym) ;
-            solved := FALSE ;
-(*
-         END
-*)
-      END ;
-      type := GetType(Sym) ;
-      IF NOT IsSymTypeKnown(Sym, type)
-      THEN
+         IncludeItemIntoList(ToDoList, type) ;
          solved := FALSE
+      END ;
+      IF NOT IsSymTypeKnown(type, GetType(type))
+      THEN
+         IncludeItemIntoList(ToDoList, GetType(type))
       END
    END ;
    RETURN( solved )

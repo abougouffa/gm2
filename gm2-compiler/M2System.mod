@@ -40,7 +40,7 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	MakeSubrange,
                         PutFunction,
                         PutType, PutPointer,
-      	       	     	PutSet,
+      	       	     	PutSet, PutVar,
       	       	     	PutSubrange,
                         PutExportQualified,
                         GetSym,
@@ -132,11 +132,13 @@ BEGIN
    MaxLoc := MakeConstVar(MakeKey('MaxLoc')) ;
    PushIntegerTree(GetMaxFrom(GetISOLocType())) ;
    PopValue(MaxLoc) ;
+   PutVar(MaxLoc, Loc) ;
 
    (* MinLoc *)
    MinLoc := MakeConstVar(MakeKey('MinLoc')) ;
    PushIntegerTree(GetMinFrom(GetISOLocType())) ;
-   PopValue(MinLoc)
+   PopValue(MinLoc) ;
+   PutVar(MinLoc, Loc) ;
 
 END InitISOTypes ;
 
@@ -201,31 +203,37 @@ BEGIN
    MaxWord := MakeConstVar(MakeKey('MaxWord')) ;
    PushIntegerTree(GetMaxFrom(GetWordType())) ;
    PopValue(MaxWord) ;
+   PutVar(MaxWord, Word) ;
 
    (* MinWord *)
    MinWord := MakeConstVar(MakeKey('MinWord')) ;
    PushIntegerTree(GetMinFrom(GetWordType())) ;
    PopValue(MinWord) ;
+   PutVar(MinWord, Word) ;
 
    (* MaxAddress *)
    MaxAddress := MakeConstVar(MakeKey('MaxAddress')) ;
    PushIntegerTree(GetMaxFrom(GetPointerType())) ;
    PopValue(MaxAddress) ;
+   PutVar(MaxAddress, Address) ;
 
    (* MinAddress *)
    MinAddress := MakeConstVar(MakeKey('MinAddress')) ;
    PushIntegerTree(GetMinFrom(GetPointerType())) ;
    PopValue(MinAddress) ;
+   PutVar(MinAddress, Address) ;
 
    (* MaxByte *)
    MaxByte := MakeConstVar(MakeKey('MaxByte')) ;
    PushIntegerTree(GetMaxFrom(GetByteType())) ;
    PopValue(MaxByte) ;
+   PutVar(MaxByte, Byte) ;
 
    (* MinByte *)
    MinByte := MakeConstVar(MakeKey('MinByte')) ;
    PushIntegerTree(GetMinFrom(GetByteType())) ;
    PopValue(MinByte) ;
+   PutVar(MinByte, Byte) ;
 
    EndScope
 END InitSystem ;

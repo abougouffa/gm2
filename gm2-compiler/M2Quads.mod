@@ -300,7 +300,7 @@ PROCEDURE GetItemPointedTo (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE Init ; FORWARD ;
 PROCEDURE InitQuads ; FORWARD ;
 PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsReallyAPointer (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE IsReallyPointer (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE MakeOp (t: Name) : QuadOperator ; FORWARD ;
 PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE Merge (QuadList1, QuadList2: CARDINAL) : CARDINAL ; FORWARD ;
@@ -3455,24 +3455,14 @@ END CheckProcTypeAndProcedure ;
                      as a pointer or address.
 *)
 
-PROCEDURE IsReallyPointer (sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsReallyPointer (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF IsType(sym)
+   IF IsVar(Sym)
    THEN
-      IF GetType(sym)=NulSym
-      THEN
-         RETURN( FALSE )
-      ELSE
-         RETURN( IsReallyPointer(GetType(sym)) )
-      END
-   ELSE
-      IF IsPointer(sym)
-      THEN
-         RETURN( TRUE )
-      ELSE
-         RETURN( sym=Address )
-      END
-   END
+      Sym := GetType(Sym)
+   END ;
+   Sym := SkipType(Sym) ;
+   RETURN( IsPointer(Sym) OR (Sym=Address) )
 END IsReallyPointer ;
 
 
@@ -4333,27 +4323,6 @@ END BuildPseudoProcedureCall ;
 
 
 (*
-   IsReallyAPointer - returns true if Sym is really a pointer.
-*)
-
-PROCEDURE IsReallyAPointer (Sym: CARDINAL) : BOOLEAN ;
-BEGIN
-   IF Sym=NulSym
-   THEN
-      RETURN( FALSE )
-   ELSIF IsPointer(Sym)
-   THEN
-      RETURN( TRUE )
-   ELSIF IsVar(Sym) OR IsType(Sym)
-   THEN
-      RETURN( IsReallyAPointer(GetType(Sym)) )
-   ELSE
-      RETURN( FALSE )
-   END
-END IsReallyAPointer ;
-
-
-(*
    GetItemPointedTo - returns the symbol type that is being pointed to
                       by Sym.
 *)
@@ -4425,7 +4394,7 @@ BEGIN
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
          PtrSym := OperandT(1) ;
-         IF IsReallyAPointer(PtrSym)
+         IF IsReallyPointer(PtrSym)
          THEN
             (*
                Build macro: ALLOCATE( PtrSym, SIZE(PtrSym^) )
@@ -4512,7 +4481,7 @@ BEGIN
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
          PtrSym := OperandT(1) ;
-         IF IsReallyAPointer(PtrSym)
+         IF IsReallyPointer(PtrSym)
          THEN
             (*
                Build macro: DEALLOCATE( PtrSym, SIZE(PtrSym^) )

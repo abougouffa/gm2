@@ -1,3 +1,11 @@
+2003-09-30	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in ADDADR as reported by Iztok
+	* fixed bug in exported type name clashes as reported by Iztok
+	* fixed bug with multiple type references to a SET
+	* fixed Min`basetype' to contain the type `basetype'
+	* tidied up IsReallyPointer in M2Quads.mod
+
 2003-09-25	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed -Wmakeall option.

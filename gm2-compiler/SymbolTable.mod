@@ -186,6 +186,7 @@ TYPE
                      Type       : CARDINAL ;   (* Index to Simple type symbol *)
                      Size       : PtrToValue ; (* Max No of words ever        *)
                                                (* passed to this type.        *)
+                     Scope      : CARDINAL ;   (* Scope of declaration.       *)
                      At         : Where ;      (* Where was sym declared/used *)
                   END ;
 
@@ -4182,7 +4183,6 @@ PROCEDURE IsExportQualified (Sym: CARDINAL) : BOOLEAN ;
 VAR
    OuterModule: CARDINAL ;
 BEGIN
-   Assert(IsVar(Sym) OR IsProcedure(Sym)) ;
    OuterModule := Sym ;
    REPEAT
       OuterModule := GetScope(OuterModule)
@@ -4191,11 +4191,7 @@ BEGIN
       CASE SymbolType OF
 
       ModuleSym: RETURN( FALSE ) |
-      DefImpSym: RETURN( GetSymKey(
-                                    DefImp.ExportQualifiedTree,
-                                    GetSymName(Sym)
-                                  )=Sym
-                       )
+      DefImpSym: RETURN( GetSymKey(DefImp.ExportQualifiedTree, GetSymName(Sym))=Sym )
 
       ELSE
          InternalError('expecting a DefImp or Module symbol', __FILE__, __LINE__)
@@ -5665,7 +5661,7 @@ BEGIN
             name := SetName ;          (* The name of the set.        *)
             Type := NulSym ;           (* Index to a subrange symbol. *)
             Size := InitValue() ;      (* Size of this set            *)
-            Scope := GetCurrentScope() ;   (* Which scope created it *)
+            Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclared(At)      (* Declared here               *)
          END
       END
@@ -5719,9 +5715,10 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := UnboundedSym ;
       WITH Unbounded DO
-         Type := NulSym ;      (* Index to a simple type.     *)
-         Size := InitValue() ; (* Size in bytes for this sym  *)
-         InitWhereDeclared(At) (* Declared here               *)
+         Type := NulSym ;               (* Index to a simple type.     *)
+         Size := InitValue() ;          (* Size in bytes for this sym  *)
+         Scope := GetCurrentScope() ;   (* Which scope created it *)
+         InitWhereDeclared(At)          (* Declared here               *)
       END
    END ;
    RETURN( Sym )
@@ -5792,7 +5789,8 @@ BEGIN
       TypeSym            : RETURN( Type.Scope ) |
       PointerSym         : RETURN( Pointer.Scope ) |
       RecordSym          : RETURN( Record.Scope ) |
-      SetSym             : RETURN( Set.Scope )
+      SetSym             : RETURN( Set.Scope ) |
+      UnboundedSym       : RETURN( NulSym )
 
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)

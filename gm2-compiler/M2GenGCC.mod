@@ -51,7 +51,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         ForeachImportedDo,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo,
-                        GetType, GetNth, GetNthParam,
+                        GetType, GetNth, GetNthParam, SkipType,
                         GetSubrange, NoOfElements,
                         GetFirstUsed, GetDeclared,
                         GetRegInterface,
@@ -1447,7 +1447,7 @@ BEGIN
                        CurrentQuadToken)
       END
    ELSE
-      BuildBinaryForeachWordDo(Mod2Gcc(GetType(op1)), Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3), binop,
+      BuildBinaryForeachWordDo(Mod2Gcc(SkipType(GetType(op1))), Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3), binop,
                                GetMode(op1)=LeftValue, GetMode(op2)=LeftValue, GetMode(op3)=LeftValue)
    END
 END CodeBinarySet ;
@@ -2999,9 +2999,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3045,8 +3045,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetLess(quad, op1, op2, op3)
    ELSE
@@ -3071,9 +3071,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3117,8 +3117,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetGre(quad, op1, op2, op3)
    ELSE
@@ -3143,9 +3143,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3189,8 +3189,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetLessEqu(quad, op1, op2, op3)
    ELSE
@@ -3215,9 +3215,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3261,8 +3261,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetGreEqu(quad, op1, op2, op3)
    ELSE
@@ -3289,9 +3289,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3333,9 +3333,9 @@ BEGIN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
    ELSIF IsConst(op1)
    THEN
-      settype := GetType(op2)
+      settype := SkipType(GetType(op2))
    ELSE
-      settype := GetType(op1)
+      settype := SkipType(GetType(op1))
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
@@ -3379,8 +3379,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetEqu(quad, op1, op2, op3)
    ELSE
@@ -3409,8 +3409,8 @@ BEGIN
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
-         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(SkipType(GetType(op1)))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(SkipType(GetType(op2))))
    THEN
       CodeIfSetNotEqu(quad, op1, op2, op3)
    ELSE
@@ -3499,7 +3499,7 @@ BEGIN
             PushValue(op1) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildIfConstInVar(Mod2Gcc(GetType(op2)),
+            BuildIfConstInVar(Mod2Gcc(SkipType(GetType(op2))),
                               Mod2Gcc(op2), PopIntegerTree(),
                               GetMode(op2)=LeftValue, fieldno,
                               string(CreateLabelName(op3)))
@@ -3514,14 +3514,14 @@ BEGIN
          PushValue(op2) ;
          BuildIfVarInConstValue(GetValue(CurrentQuadToken), op1, op3)
       ELSE
-         GetSetLimits(GetType(op2), low, high) ;
+         GetSetLimits(SkipType(GetType(op2)), low, high) ;
 
          PushValue(low) ;
          lowtree := PopIntegerTree() ;
          PushValue(high) ;
          hightree := PopIntegerTree() ;
 
-         BuildIfVarInVar(Mod2Gcc(GetType(op2)),
+         BuildIfVarInVar(Mod2Gcc(SkipType(GetType(op2))),
                          Mod2Gcc(op2), Mod2Gcc(op1),
                          GetMode(op2)=LeftValue,
                          lowtree, hightree,
@@ -3554,13 +3554,13 @@ BEGIN
    ELSE
       IF IsConst(op1)
       THEN
-         fieldno := GetFieldNo(CurrentQuadToken, op1, GetType(op2), offset) ;
+         fieldno := GetFieldNo(CurrentQuadToken, op1, SkipType(GetType(op2)), offset) ;
          IF fieldno>=0
          THEN
             PushValue(op1) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildIfNotConstInVar(Mod2Gcc(GetType(op2)),
+            BuildIfNotConstInVar(Mod2Gcc(SkipType(GetType(op2))),
                                  Mod2Gcc(op2), PopIntegerTree(),
                                  GetMode(op2)=LeftValue, fieldno,
                                  string(CreateLabelName(op3)))
@@ -3575,14 +3575,14 @@ BEGIN
          PushValue(op2) ;
          BuildIfNotVarInConstValue(quad, GetValue(CurrentQuadToken), op1, op3)
       ELSE
-         GetSetLimits(GetType(op2), low, high) ;
+         GetSetLimits(SkipType(GetType(op2)), low, high) ;
 
          PushValue(low) ;
          lowtree := PopIntegerTree() ;
          PushValue(high) ;
          hightree := PopIntegerTree() ;
 
-         BuildIfNotVarInVar(Mod2Gcc(GetType(op2)),
+         BuildIfNotVarInVar(Mod2Gcc(SkipType(GetType(op2))),
                             Mod2Gcc(op2), Mod2Gcc(op1),
                             GetMode(op2)=LeftValue,
                             lowtree, hightree,
