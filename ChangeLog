@@ -1,3 +1,9 @@
+2003-05-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* backed out garbage collection change to m2.lex
+	* fixed bugs reported by Iztok Kobal
+	  (gm2/m2/comp/autotest/gm2/[testexit.mod, bitset3.mod bits32.mod])
+
 2003-05-06	Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified Storage and SysStorage modules so that the procedure

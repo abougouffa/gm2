@@ -2977,7 +2977,7 @@ PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
 BEGIN
    IF IsType(Sym)
    THEN
-      RETURN( GetType(Sym) )
+      RETURN( SkipType(GetType(Sym)) )
    ELSE
       RETURN( Sym )
    END

@@ -2324,10 +2324,10 @@ PROCEDURE BuildExit ;
 BEGIN
    IF IsEmpty(ExitStack)
    THEN
+      WriteFormat0('EXIT - only allowed in LOOP, WHILE, REPEAT, FOR statements')
+   ELSE
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
       PushExit(Merge(PopExit(), NextQuad-1))
-   ELSE
-      WriteFormat0('EXIT - only allowed in LOOP, WHILE, REPEAT, FOR statements')
    END
 END BuildExit ;
 

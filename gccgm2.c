@@ -1547,7 +1547,6 @@ mark_binding_level (arg)
       ggc_mark_tree (level->this_block);
       ggc_mark_tree (level->constants);
     }
-  m2lex_GGCMark();
 }
 
 #if defined(TRACE_DEBUG_GGC)
@@ -3054,7 +3053,6 @@ static
 tree
 build_m2_iso_loc_node (void)
 {
-#if 1
   tree c;
 
   /* Define `LOC' as specified in ISO m2 */
@@ -3067,9 +3065,6 @@ build_m2_iso_loc_node (void)
   TREE_UNSIGNED (c) = 1;
 
   return c;
-#else
-  return gccgm2_GetByteType ();
-#endif
 }
 
 static

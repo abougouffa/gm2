@@ -24,11 +24,6 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #if defined(GM2USEGGC)
 #  include "ggc.h"
-#  define xfree(X) do { } while (0);
-#else
-#  define xmalloc  malloc
-#  define xfree    free
-#  define xstrdup  strdup
 #endif
 
   /*
@@ -64,7 +59,6 @@ static  void endOfComment      (void);
 static  void handleDate        (void);
 static  void handleLine        (void);
 static  void handleFile        (void);
-        void m2lex_GGCMark     (void);
 	int  m2lex_OpenSource  (char *s);
 	int  m2lex_GetLineNo   (void);
 	void m2lex_CloseSource (void);
@@ -432,28 +426,11 @@ static void popLine (void)
     struct lineInfo *l = currentLine;
 
     if (currentLine->linebuf != NULL)
-      xfree(currentLine->linebuf);
+      free(currentLine->linebuf);
     currentLine = l->next;
-    xfree(l);
+    free(l);
   }
 }
-
-#if defined(GM2USEGGC)
-/*
- *  GGCMark - marks the dynamic data structures as being in use.
- */
-
-void m2lex_GGCMark (void)
-{
-  struct lineInfo *l = currentLine;
-
-  return;
-  while (l != NULL) {
-    ggc_mark (l);
-    l = l->next;
-  }
-}
-#endif
 
 /*
  *  resetpos - resets the position of the next token to the start of the line.
