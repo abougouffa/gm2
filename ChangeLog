@@ -1,3 +1,13 @@
+2001-08-01	Gaius Mulley <gaius@glam.ac.uk>
+
+	* brought gm2 up to date with gcc-3.0
+	* fixed opaque handling in the new parser
+	* now using new parser by default
+	* rewritten NameKey.mod, removing any static limits on array
+	sizes by using dynamic data structures throughout.
+	* improved p2c so that it handles opaque types properly.
+	* modified Lists.def, SymbolKey.def to use opaque types.
+	
 2001-03-09	Gaius Mulley <gaius@glam.ac.uk>
 	
 	* fixed bug in FpuIO.mod which failed to issue a '-' when emitting
