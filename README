@@ -44,11 +44,19 @@ Building GNU Modula-2
 =====================
 
 To build gm2 type:
-   cd gcc-version ; ./configure ; make
+
+   mkdir host-build
+   cd host-build
+   ../gcc-version/configure
+   make
+   cd ..
 
 Installing GNU Modula-2
 
-   cd gcc-version/gcc ; make install
+   su
+   cd host-build
+   make install
+   cd ..
 
 A simple test
 =============

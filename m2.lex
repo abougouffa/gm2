@@ -157,6 +157,7 @@ static  void handleFile   (void);
 \:                         { updatepos(); M2LexBuf_AddTok(M2Reserved_colontok); return; }
 \"                         { updatepos(); M2LexBuf_AddTok(M2Reserved_doublequotestok); return; }
 \|                         { updatepos(); M2LexBuf_AddTok(M2Reserved_bartok); return; }
+\~                         { updatepos(); M2LexBuf_AddTok(M2Reserved_nottok); return; }
 AND                        { updatepos(); M2LexBuf_AddTok(M2Reserved_andtok); return; }
 ARRAY                      { updatepos(); M2LexBuf_AddTok(M2Reserved_arraytok); return; }
 BEGIN                      { updatepos(); M2LexBuf_AddTok(M2Reserved_begintok); return; }

@@ -10004,6 +10004,26 @@ gccgm2_DetermineSign (e)
   return tree_int_cst_sgn(e);
 }
 
+static
+tree
+get_tree_val (e)
+     tree e;
+{
+  switch (TREE_CODE (e)) {
+
+  case CONST_DECL:
+    return DECL_INITIAL (e);
+    break;
+  case INTEGER_CST:
+  case REAL_CST:
+    return e;
+
+  default:
+    error ("not expecting this type when evaluating constant");
+    return ERROR_MARK;
+  }
+}  
+
 /*
  *  CompareTrees - returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
  */
@@ -10011,7 +10031,7 @@ gccgm2_DetermineSign (e)
 int gccgm2_CompareTrees (e1, e2)
      tree e1, e2;
 {
-  return tree_int_cst_compare(e1, e2);
+  return tree_int_cst_compare (get_tree_val (e1), get_tree_val (e2));
 }
 
 /*
