@@ -1,7 +1,7 @@
 Warning
 =======
 
-This code is currently in development, it is very incomplete &
+This code is currently in development, it is not yet complete &
 highly likely to create massive core dumps. Patches and
 development volunteers highly welcome! See contributions at
 the bottom of this file.
@@ -27,8 +27,7 @@ To get the latest sources to GM2 type the following:
 (note the capital GM2 in the checkout, GM2 is the project module within cvs).
 This will checkout a copy of GNU Modula-2 into one subdirectory: gm2
 
-This (very development, very buggy, highly unstable)
-version of GM2 needs to be placed inside an GCC directory tree in
+This version of GM2 needs to be placed inside an GCC directory tree in
 the position gcc-version/gcc before GNU Modula-2 can be built.
 
 Assuming that both GCC and gm2 are at the same directory level, type:
