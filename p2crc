@@ -612,7 +612,7 @@ UnsignedComment   UNSIGNED      # Type annotation: type uc = {UNSIGNED} char;
 
 # STYLISTIC OPTIONS
 
-ExtraParens                     # 1=use many parentheses for readability,
+ExtraParens 1                   # 1=use many parentheses for readability,
                                 # 2=use even more parentheses,
                                 # 0=use minimal parens,
                                 # default=use nice parens
@@ -758,7 +758,7 @@ CharConsts			# 1 or default=const a='X' => #define a 'X'
 				# 0=const a='X' => #define a "X"
 				# (either always works---aesthetic only)
 
-UseConsts                       # 1=use "const" keyword in C
+UseConsts 1                     # 1=use "const" keyword in C
 				# 2=use "Const" form even if UseAnyptrMacros=0
                                 # 0=do not use "const" declarations
                                 # default=1 if AnsiC=1 or C++=1

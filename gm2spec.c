@@ -19,13 +19,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include "config.h"
-#include "gansidecl.h"
-#include "intl.h"
-
-#include <sys/types.h>
-#include <stdio.h>
-#include <ctype.h>
-#include "gcc.h"
+#include "system.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -53,15 +47,14 @@ extern const char *find_file PARAMS ((const char *));
 #define DIR_SEPARATOR '/'
 #endif
 
-extern char *xmalloc PARAMS ((size_t));
 
 #define MAXPATHCHAR    64*1024         /* large enough not to worry */
 
 int lang_specific_extra_outfiles = 0;
 
 
-static int               found_verbose   = FALSE;
-static int               need_to_link    =  TRUE;
+static int               found_verbose   = false;
+static int               need_to_link    =  true;
 
 /* #define DEBUGGING */
 
@@ -115,7 +108,7 @@ static int convert_into_m2path (const char *incl)
 #endif
     return( setenv("M2PATH", newm2path, 1) );
   }
-  return( FALSE );
+  return( false );
 }
 
 /*
@@ -227,10 +220,10 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
       }
       remove_args(in_argc, in_argv, i, 1);
     } else if (strcmp((*in_argv)[i], "-v") == 0) {
-      found_verbose = TRUE;
+      found_verbose = true;
       i++;
     } else if (strcmp((*in_argv)[i], "-c") == 0) {
-      need_to_link = FALSE;
+      need_to_link = false;
       i++;
     } else {
       i++;
