@@ -78,7 +78,8 @@ EXPORT QUALIFIED Tree,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  AssignBooleanTrueFalse,
-                 ConvertConstantAndCheck, ToWord,
+                 ConvertConstantAndCheck,
+                 ToWord,
                  ExpandExpressionStatement,
                  InitGlobalContext ;
 
@@ -423,6 +424,7 @@ PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
 
 PROCEDURE BuildRealConstant     (value: LONGREAL) : Tree ;
 PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
+
 
 (*
    ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )

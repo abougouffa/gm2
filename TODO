@@ -1,2 +1,12 @@
-
+*  complete opteron port
+*  complete cross compile mingw port
+*  complete cygwin port
+*  complete apple MacOS port
 *  complete coroutines (gm2-libs-coroutines)
+*  finish ISO libraries
+*  finish ISO language support
+*  finish optimizer support (-O)
+*  write execution based regression tests
+*  back port gm2 to previous releases of gcc
+*  introduce shared library support
+*  fix bugs in h2def

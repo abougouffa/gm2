@@ -373,7 +373,7 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-libs/%s.def -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink
-GM2-VERSION=0.40
+GM2-VERSION=0.41
 GM2_FLAGS=-Wbounds -Wreturn -gstabs
 
 # Language-specific object files for the gm2 compiler.

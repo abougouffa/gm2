@@ -1394,9 +1394,14 @@ What has been done:
 @itemize @bullet
 
 @item
+GM2 now works on the @code{sparc} architecture. @code{make
+gm2.paranoid} and @code{make check-gm2} pass.
+
+@item
 converted the regression test suite into the GNU dejagnu format.
 In turn this can be grafted onto the GCC testsuite and can be
-invoked as @code{make check-gm2}.
+invoked as @code{make check-gm2}. GM2 should now pass all
+regression tests.
 
 @item
 provided access to a few compiler built-in constants

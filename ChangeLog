@@ -1,3 +1,12 @@
+2004-02-13	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.41
+	* native sparc port passes make gm2.paranoid and make check-gm2
+	* native i386  port passes make gm2.paranoid and make check-gm2
+	* fixed bug in M2GenGCC.mod, coerced constant set parameter
+	  values to correct set type.
+	* fixed bug in M2GenGCC.mod when assigning constant to an ISO WORD
+
 2004-02-10	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug in gccgm2.c CompareTrees should be tested for <= 0

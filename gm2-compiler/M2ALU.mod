@@ -700,7 +700,7 @@ BEGIN
    v := New() ;
    WITH v^ DO
       type        := integer ;
-      numberValue := BuildIntegerConstant(ORD(c)) ;  (* check this for array indexed by char bug gaius *)
+      numberValue := BuildIntegerConstant(ORD(c)) ;
       solved      := TRUE
    END ;
    Push(v)

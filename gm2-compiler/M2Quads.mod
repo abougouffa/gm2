@@ -7804,8 +7804,8 @@ BEGIN
    i := 1 ;
    pi := n ;
    WHILE i<=n DO
-      (* Again ti has no type since constant *)
       ti := MakeTemporary(ImmediateValue) ;
+      PutVar(ti, Cardinal) ;
       GenQuad(ElementSizeOp, ti, Type, i) ;
       OpI := OperandT(pi) ;
 

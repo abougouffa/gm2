@@ -8910,7 +8910,10 @@ gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
 
   layout_type (subrangeType);
   settype = build_set_type (build_tree_list (subrangeType, convert_type_to_range (subrangeType)), 0);
-  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (BITS_PER_WORD)) <= 0)
+  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (BITS_PER_WORD)) > 0)
+    error("internal error: not expecting an internal set type to have more bits than a machine word");
+  
+  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (BITS_PER_WORD)) == 0)
     TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
   else
     TYPE_MAX_VALUE (settype) = gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
@@ -9363,9 +9366,9 @@ tree
 gccgm2_BuildAssignment (des, expr)
      tree des, expr;
 {
-  if (TREE_CODE(expr) == FUNCTION_DECL)
+  if (TREE_CODE (expr) == FUNCTION_DECL)
     expr = build_unary_op (ADDR_EXPR, expr, 0);
-
+  
   expand_assignment (des, expr, 0, 0);
   return des;
 }
@@ -10795,7 +10798,7 @@ tree
 convertToPtr (t)
      tree t;
 {
-  if (TREE_CODE(TREE_TYPE(t)) == POINTER_TYPE)
+  if (TREE_CODE (TREE_TYPE (t)) == POINTER_TYPE)
     return t;
   else
     return gccgm2_BuildConvert (ptr_type_node, t);
@@ -11319,7 +11322,7 @@ void
 gccgm2_BuildCallInnerInit (fndecl)
      tree fndecl;
 {
-  expand_expr_stmt( build_function_call (fndecl, NULL_TREE));
+  expand_expr_stmt (build_function_call (fndecl, NULL_TREE));
 }
 
 

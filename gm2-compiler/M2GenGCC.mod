@@ -356,8 +356,7 @@ PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
 
 
 (*
-   InitGNUM2 - initializes the GCC SymbolTable with Modula-2 base types.
-               Also initialize the start of quadruples.
+   InitGNUM2 - initialize the start of quadruples.
 *)
 
 PROCEDURE InitGNUM2 (Head: CARDINAL) ;
@@ -1155,6 +1154,38 @@ END CodeIndirectCall ;
 
 
 (*
+   CheckConvertCoerceParameter - 
+*)
+
+PROCEDURE CheckConvertCoerceParameter (op1, op2, op3: CARDINAL) : Tree ;
+VAR
+   OperandType,
+   ParamType  : CARDINAL ;
+BEGIN
+   IF GetNthParam(op2, op1)=NulSym
+   THEN
+      (* for example vararg will report NulSym *)
+      RETURN( Mod2Gcc(op3) )
+   ELSE
+      OperandType := SkipType(GetType(op3)) ;
+      ParamType := SkipType(GetType(GetNthParam(op2, op1)))
+   END ;
+   IF IsConst(op3) AND IsRealType(OperandType) AND
+      IsRealType(ParamType) AND (ParamType#OperandType)
+   THEN
+      RETURN( BuildConvert(Mod2Gcc(ParamType),
+                           Mod2Gcc(op3), FALSE) )
+   ELSIF (OperandType#NulSym) AND IsSet(OperandType)
+   THEN
+      RETURN( DeclareKnownConstant(Mod2Gcc(ParamType),
+                                   Mod2Gcc(op3)) )
+   ELSE
+      RETURN( Mod2Gcc(op3) )
+   END
+END CheckConvertCoerceParameter ;
+
+
+(*
    CodeParam - builds a parameter list.
 
                NOTE that we almost can treat VAR and NON VAR parameters the same, expect for
@@ -1176,24 +1207,11 @@ BEGIN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
-         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%s) as a VAR parameter')),
-                                Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3))))),
-                       CurrentQuadToken)
+         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
+                                GetSymName(op3)), CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
-         (*
-            ignore LeftAddr and RightAddr, but must be careful about size of op3.
-            SIZE(op3) will normally be TSIZE(ADDRESS) but NOT when it is unbounded
-         *)
-         IF IsConst(op3) AND IsRealType(GetType(op3)) AND
-            IsRealType(GetType(GetNthParam(op2, op1))) AND
-            (GetType(GetNthParam(op2, op1))#GetType(op3))
-         THEN
-            BuildParam(BuildConvert(Mod2Gcc(GetType(GetNthParam(op2, op1))),
-                                    Mod2Gcc(op3), FALSE))
-         ELSE
-            BuildParam(Mod2Gcc(op3))
-         END
+         BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
       END
    END
 END CodeParam ;
@@ -1373,9 +1391,8 @@ END DescribeTypeError ;
 PROCEDURE DefaultConvertGM2 (sym: CARDINAL) : Tree ;
 BEGIN
    sym := SkipType(sym) ;
-   IF (sym=Word) OR (sym=Bitset)
+   IF sym=Bitset
    THEN
-      (* avoid using ISO WORD type for gcc as ISO WORD is an array *)
       RETURN( GetWordType() )
    ELSE
       RETURN( Mod2Gcc(sym) )
@@ -1474,8 +1491,16 @@ BEGIN
                                                BuildAddr(Mod2Gcc(op3), FALSE),
                                                FindSize(op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1),
-                           FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+      IF (SkipType(GetType(op1))=Word) AND Iso AND
+         (SkipType(GetType(op3))#SkipType(GetType(op1)))
+      THEN
+         t := BuildAssignment(BuildIndirect(BuildAddr(Mod2Gcc(op1), FALSE),
+                                            GetWordType()),
+                              BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE))
+      ELSE
+         t := BuildAssignment(Mod2Gcc(op1),
+                              FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+      END
    END
 END CodeBecomes ;
 
@@ -3054,7 +3079,6 @@ BEGIN
             ELSE
                IF IsSet(SkipType(op2))
                THEN
-                  (* testing gaius *)
                   PushSetTree(tokenno,
                               FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
                                                         TRUE)), SkipType(op2)) ;
@@ -3112,11 +3136,6 @@ BEGIN
       tl := Mod2Gcc(SkipType(op2)) ;
       AddModGcc(op1,
                 BuildConvert(tl, Mod2Gcc(op3), TRUE))
-(*
-      AddModGcc(op1,
-                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                     BuildConvert(tl, Mod2Gcc(op3), TRUE)))
-*)
    ELSE
       t := BuildAssignment(Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
    END
