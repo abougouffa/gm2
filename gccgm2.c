@@ -382,6 +382,21 @@ gccgm2_SetFileNameAndLineNo (fn, line)
   lineno         = line;
 }
 
+
+/*
+ *  EmitLineNote - emits line and file information to gcc whilst constructing code.
+ *                 Should be used when generating code (after a call to SetFileNameAndLineNo).
+ */
+
+void
+gccgm2_EmitLineNote (fn, line)
+     char *fn;
+     int   line;
+{
+  emit_line_note(fn, line);
+}
+
+
 #if 0
 /* Here are the three functions needed to compile our language and the
    variables they use.  */
@@ -7040,12 +7055,21 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
 }
 
 
+/*
+ *  DeclareKnownConstant - given a constant, value, of, type, create a constant in the GCC
+ *                         symbol table. Note that the name of the constant is not used
+ *                         as _all_ constants are declared in the global scope. The front end
+ *                         deals with scoping rules - here we declare all constants with no names
+ *                         in the global scope. This allows M2SubExp and constant folding routines
+ *                         the liberty of operating with quadruples which all assume constants can
+ *                         always be referenced.
+ */
+
 tree
-gccgm2_DeclareKnownConstant (name, type, value)
-     char *name;
+gccgm2_DeclareKnownConstant (type, value)
      tree type, value;
 {
-    tree id = get_identifier (name);
+    tree id = make_node (IDENTIFIER_NODE);  /* ignore the name of the constant */
     tree decl;
 
     layout_type (type);
@@ -7056,9 +7080,6 @@ gccgm2_DeclareKnownConstant (name, type, value)
     TREE_TYPE (value)   = type;
     pushdecl (decl);
 
-#if 0
-    return saveable_tree_cons (decl, value, NULL_TREE);
-#endif
     return( decl );
 }
 
@@ -8400,7 +8421,7 @@ tree
 gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
-  tree maxval = build_binary_op(MINUS_EXPR, high, low, 0);
+  tree maxval = build_binary_op(MINUS_EXPR, default_conversion(high), default_conversion(low), 0);
   return( build_index_type(maxval) );
 }
 
@@ -8468,7 +8489,7 @@ gccgm2_BuildEndFunctionType (value)
   if (value == NULL_TREE) {
     value = void_type_node;
   }
-  return( build_function_type (value, param_type_list) );
+  return( build_pointer_type(build_function_type (value, param_type_list)) );
 }
 
 
@@ -8778,11 +8799,12 @@ gccgm2_BuildReturnValueCode (fndecl, value)
      tree fndecl, value;
 {
   if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE) {
-    expand_return (build (MODIFY_EXPR, void_type_node,
-			  DECL_RESULT (fndecl), build1 (CONVERT_EXPR, ptr_type_node, value)));
+    expand_return( build (MODIFY_EXPR, void_type_node,
+			  DECL_RESULT (fndecl), build1 (CONVERT_EXPR, ptr_type_node, value)) );
+
   } else {
-    expand_return (build (MODIFY_EXPR, void_type_node,
-			  DECL_RESULT (fndecl), value));
+    expand_return( build (MODIFY_EXPR, void_type_node,
+			  DECL_RESULT (fndecl), value) );
   }
 }
 
@@ -9244,7 +9266,7 @@ gccgm2_BuildParam (param)
     param = build_unary_op(ADDR_EXPR, param, 0);
   }
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
-#if 0
+#if 1
   debug_tree(param_list);
   fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
 #endif
@@ -9283,6 +9305,44 @@ gccgm2_BuildProcedureCall (procedure, rettype)
     last_function   = NULL_TREE;
   } else {
     last_function   = build(CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
+  }
+
+  param_list = NULL_TREE;   /* ready for the next time we call a procedure */
+  return( last_function );
+}
+
+/*
+ *  BuildIndirectProcedureCall - creates a procedure call from a procedure and
+ *                               parameter list and the return type, rettype.
+ */
+
+tree
+gccgm2_BuildIndirectProcedureCall (procedure, rettype)
+     tree procedure, rettype;
+{
+  tree functype = TREE_TYPE(procedure);
+  tree call;
+
+  TREE_USED(procedure) = TRUE;
+
+  if (rettype == NULL_TREE) {
+    rettype = void_type_node;
+    call = build(CALL_EXPR, rettype, procedure, param_list, NULL_TREE);
+    TREE_USED(call)         = TRUE;
+    TREE_SIDE_EFFECTS(call) = TRUE ;
+
+#if 0
+    fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
+    debug_tree(param_list);
+#endif
+#if defined(DEBUG_PROCEDURE_CALLS)
+    fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
+    debug_tree(call);
+#endif
+    expand_expr_stmt(call);
+    last_function   = NULL_TREE;
+  } else {
+    last_function   = build(CALL_EXPR, rettype, procedure, param_list, NULL_TREE);
   }
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
@@ -10848,6 +10908,19 @@ build_enumerator (name, value)
 
   return saveable_tree_cons (decl, value, NULL_TREE);
 }
+
+
+/*
+ *  ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
+ */
+
+void
+gccgm2_ExpandExpressionStatement (t)
+     tree t;
+{
+  expand_expr_stmt(t);
+}
+
 
 /*
  * Local variables:
