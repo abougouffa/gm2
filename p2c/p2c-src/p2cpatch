@@ -1,0 +1,599 @@
+#
+# here are the modifications made to a vanilla p2c-1.20 to make it translate
+# 2nd Edition Modula-2. Apply via:
+#
+# also alter line 3170 in lex.c to:
+#                                 curtokint = -2147483647;
+# and not:
+#                                 curtokint = -2147483648;
+# which is too small for GCC
+#
+# gzip -dc p2c-1.20.tar.gz | tar xf -
+# cd p2c-1.20
+# patch -p1 < "thisfile"
+#
+---- cut here ---- cut here ---- cut here ---- cut here ---- cut here ---- cut here ---- cut here 
+diff -aruN p2c-orig/src/decl.c p2c/src/decl.c
+--- p2c-orig/src/decl.c	Wed Apr 24 21:30:43 1991
++++ p2c/src/decl.c	Wed Jul 26 11:52:21 2000
+@@ -22,7 +22,7 @@
+ 
+ 
+ 
+-#define MAXIMPORTS 100
++#define MAXIMPORTS 600
+ 
+ 
+ 
+@@ -350,9 +350,11 @@
+     tp_boolean->smin = makeexpr_long(0);                  /* "boolean" */
+     tp_boolean->smax = makeexpr_long(1);
+ 
+-    sym = findsymbol("Boolean");
+-    sym->flags |= SSYNONYM;
+-    strlist_append(&sym->symbolnames, "===")->value = (long)tp_boolean->meaning->sym;
++    if (! modula2) {
++      sym = findsymbol("Boolean");
++      sym->flags |= SSYNONYM;
++      strlist_append(&sym->symbolnames, "===")->value = (long)tp_boolean->meaning->sym;
++    }
+ 
+     tp_real = makestandardtype(TK_REAL, makestandardmeaning(MK_TYPE, "REAL"));
+                                                           /* "float" or "double" */
+@@ -3783,6 +3785,7 @@
+ 
+         case TOK_PROCEDURE:
+ 	case TOK_FUNCTION:
++        case TOK_PROC:
+ 	    isfunc = (curtok == TOK_FUNCTION);
+             gettok();
+ 	    if (curtok != TOK_LPAR && !isfunc && hasstaticlinks == 1) {
+diff -aruN p2c-orig/src/funcs.c p2c/src/funcs.c
+--- p2c-orig/src/funcs.c	Wed Apr 24 21:30:47 1991
++++ p2c/src/funcs.c	Wed Jul 26 10:38:29 2000
+@@ -1770,7 +1770,10 @@
+                                            makeexpr_arglong(ex, 0)));
+ }
+ 
+-
++Static Stmt *proc_halt()
++{
++    return makestmt_call(makeexpr_bicall_0(name_HALT, tp_int));
++}
+ 
+ Static Stmt *proc_excl()
+ {
+@@ -5153,6 +5156,34 @@
+ 
+ void decl_builtins()
+ {
++  if (modula2 && (edition == 2)) {
++    makespecialfunc( "ABS",           func_abs);
++    makespecialfunc( "ADR",           func_addr);
++    makespecialfunc( "CHR",           func_chr);         
++    makespecialfunc( "HIGH",          func_high);
++    makespecialfunc( "ORD",           func_ord);
++    makespecialfunc( "SIZE",          func_sizeof);
++    mp_val_modula =
++      makespecialfunc( "VAL",	      func_val_modula);
++    makespecialfunc( "TSIZE",         func_sizeof);
++    makestandardfunc("ODD",           func_odd);         
++    
++    makespecialfunc( "FLOAT",	      func_float);
++    makespecialfunc( "HIGH",          func_high);
++    makespecialfunc( "LSL",	      func_lsl);
++    makespecialfunc( "LSR",	      func_lsr);
++    makestandardfunc("CAP",           func_upcase);
++    makestandardfunc("ODD",           func_odd);         
++    makestandardfunc("TRUNC",         func_trunc);       
++    
++    makespecialproc( "DISPOSE",       proc_dispose);
++    makespecialproc( "EXCL",          proc_excl);
++    makespecialproc( "INC",           proc_inc);
++    makespecialproc( "DEC",           proc_dec);
++    makespecialproc( "INCL",          proc_incl);
++    makespecialproc( "NEW",           proc_new);
++    makespecialproc( "HALT",          proc_halt);
++  } else {
+     makespecialfunc( "ABS",           func_abs);
+     makespecialfunc( "ADDR",          func_addr);
+     if (!modula2)
+@@ -5394,6 +5425,7 @@
+     makespecialproc( "WriteLn",       proc_writeln);
+     makespecialproc( "WriteReal",     proc_writereal);
+     makespecialproc( "WriteString",   proc_write);
++  }
+ }
+ 
+ 
+diff -aruN p2c-orig/src/lex.c p2c/src/lex.c
+--- p2c-orig/src/lex.c	Wed Apr 24 21:30:40 1991
++++ p2c/src/lex.c	Wed Jul 26 11:56:50 2000
+@@ -16,6 +16,7 @@
+ the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
+ 
+ 
++#include <time.h>
+ 
+ #define PROTO_LEX_C
+ #include "trans.h"
+@@ -263,6 +264,10 @@
+     Pkeyword("PACKED", TOK_PACKED);
+     Pkeywordposs("POINTER", TOK_POINTER);
+     Pkeyword("PROCEDURE", TOK_PROCEDURE);
++    if (modula2) {
++      Pkeyword("PROC", TOK_PROC);
++      Pkeywordposs("UNQUALIFIED", TOK_UNQUALIFIED);   /* really an extension to Modula-2 */
++    }
+     Pkeyword("PROGRAM", TOK_PROGRAM);
+     Pkeywordposs("QUALIFIED", TOK_QUALIFIED);
+     Pkeyword("RECORD", TOK_RECORD);
+@@ -2157,6 +2162,8 @@
+         switch (ch) {
+ 
+             case '}':
++		if (modula2)
++		    break ;
+                 if ((!starparen || nestedcomments == 0) &&
+ 		    starparen != 2 &&
+                     --nestcount <= 0) {
+@@ -2171,6 +2178,8 @@
+                 break;
+ 
+             case '{':
++		if (modula2)
++		    break ;
+                 if (nestedcomments == 1 && starparen != 2)
+                     nestcount++;
+                 break;
+@@ -3193,7 +3202,26 @@
+ 			if (pascalsignif > 0)
+ 			    curtokbuf[pascalsignif] = 0;
+                     }
+-		    if (*curtokbuf == '%') {
++		    if (!strcicmp(curtokbuf, "__FILE__")) {
++                      strcpy(curtokbuf, infname);
++		      /* curtokbuf = infname; */
++		      curtokint = strlen(curtokbuf);
++		      curtok = TOK_STRLIT;
++		      return;
++		    } else if (!strcicmp(curtokbuf, "__LINE__")) {
++		      curtok = TOK_INTLIT;
++		      curtokint = inf_lnum;
++		      return;
++                    } else if (!strcicmp(curtokbuf, "__DATE__")) {
++		      time_t  clock  = time((long *)0);
++		      char   *string = ctime(&clock);
++
++		      string[24] = (char) 0;
++                      strcpy(curtokbuf, string);
++		      curtokint = strlen(curtokbuf);
++		      curtok = TOK_STRLIT;
++		      return;
++		    } else if (*curtokbuf == '%') {
+ 			if (!strcicmp(curtokbuf, "%INCLUDE")) {
+ 			    char *cp2 = inbufptr;
+ 			    while (isspace(*cp2)) cp2++;
+diff -aruN p2c-orig/src/p2c.man p2c/src/p2c.man
+--- p2c-orig/src/p2c.man	Wed Apr 24 21:30:34 1991
++++ p2c/src/p2c.man	Wed Jul 26 10:03:07 2000
+@@ -191,6 +191,9 @@
+ configuration file must include those parameters instead.  This
+ also suppresses the file named by the P2CRC environment variable.
+ .TP
++.B \-version
++Display the p2c version and usage.
++.TP
+ .BI \-H "\ homedir"
+ Use
+ .I homedir
+diff -aruN p2c-orig/src/parse.c p2c/src/parse.c
+--- p2c-orig/src/parse.c	Wed Apr 24 21:30:42 1991
++++ p2c/src/parse.c	Wed Jul 26 12:15:08 2000
+@@ -398,6 +398,7 @@
+ #define SF_SAVESER 0x2
+ #define SF_FIRST   0x4
+ #define SF_IF	   0x8
++#define SF_CASE    0x10
+ 
+ Static Stmt *p_stmt(slist, sflags)
+ Stmt *slist;
+@@ -478,6 +479,9 @@
+ 	    }
+ 	    if (curtok == TOK_VBAR)
+ 		break;
++	    if (modula2 && (sflags & SF_CASE)) {
++		break;
++	    }
+             if (!wneedtok(TOK_END))
+ 		skippasttoken(TOK_END);
+             break;
+@@ -556,14 +560,14 @@
+                 if (toobig) {
+                     free_stmt(*spp3);
+                     spp2 = spp3;
+-                    *defsphook = makestmt_if(range, p_stmt(NULL, SF_SAVESER),
++                    *defsphook = makestmt_if(range, p_stmt(NULL, SF_CASE | SF_SAVESER),
+ 					     NULL);
+                     if (defsphook != &defsp && elseif != 0)
+                         (*defsphook)->exp2 = makeexpr_long(1);
+                     defsphook = &((*defsphook)->stm2);
+                 } else {
+                     freeexpr(range);
+-                    sp->stm1 = p_stmt(NULL, SF_SAVESER);
++                    sp->stm1 = p_stmt(NULL, SF_CASE | SF_SAVESER);
+                 }
+ 		i = 0;
+ 		checkkeyword(TOK_OTHERWISE);
+@@ -599,7 +603,7 @@
+ 			                    CMT_POST, -1);   */
+ 		i = SF_FIRST;
+ 		while (curtok != TOK_END) {
+-                    *spp2 = p_stmt(NULL, i);
++                    *spp2 = p_stmt(NULL, SF_CASE | i);
+                     while (*spp2)
+                         spp2 = &((*spp2)->next);
+ 		    i = 0;
+@@ -693,6 +697,25 @@
+                     swexpr = ep;
+                     tvar = makestmttempvar(tp_integer, name_TEMP);
+                     ep = makeexpr_var(tvar);
++		  } else if ((tp == tp_unsigned) && (expr_is_neg(forstep))) {
++		    /*
++		       this modification prevents for indices from
++		       being CARDINAL when we have a negative step value.
++
++		       Reason:  FOR i := 10 TO 0 BY -1 DO
++		       when i is a CARDINAL the C translation is:
++
++		       unsigned long i;
++
++                       for (i=10; i>=0; i--) {
++		       }
++
++		       which the C compiler will legitimately translate
++                       into an infinite loop!
++		     */
++                    swexpr = ep;
++                    tvar = makestmttempvar(tp_integer, name_TEMP);
++                    ep = makeexpr_var(tvar);
+                 } else if (tp == tp_integer &&
+ 			   (checkconst(sp->exp2, LONG_MAX) ||
+ 			    (sp->exp2->kind == EK_VAR &&
+@@ -948,8 +971,12 @@
+                 curtok = TOK_WITH;
+                 sp2 = p_stmt(NULL, sflags & SF_FIRST);
+             } else {
+-                wneedtok(TOK_DO);
+-                sp2 = p_stmt(NULL, sflags & SF_FIRST);
++	      if ((modula2) && (curtok == TOK_DO)) {
++		curtok = TOK_BEGIN;
++	      } else {
++		wneedtok(TOK_DO);
++	      }
++	      sp2 = p_stmt(NULL, sflags & SF_FIRST);
+             }
+             withlevel--;
+             if (mp) {    /* if "with p^" for constant p, don't need temp ptr */
+@@ -3242,11 +3269,13 @@
+         }
+         thereturn = NULL;
+     } else if (curctx->kind == MK_MODULE && curctx->anyvarflag) {
+-        addstmt(SK_ASSIGN);
+-        sp->exp1 = makeexpr_bicall_1("exit", tp_void,
+-				     makeexpr_name("EXIT_SUCCESS",
+-						   tp_integer));
+-        thereturn = NULL;
++        if (edition != 2) {
++	  addstmt(SK_ASSIGN);
++	  sp->exp1 = makeexpr_bicall_1("exit", tp_void,
++				       makeexpr_name("EXIT_SUCCESS",
++						     tp_integer));
++	  thereturn = NULL;
++	}
+     }
+     if (debug>2) { fprintf(outf, "calling fixblock/usecommas on:\n"); dumpstmt(spbase, 5); }
+     curserial = saveserial;
+@@ -3855,8 +3884,10 @@
+ 		    do {
+ 			gettok();
+ 			checkkeyword(TOK_QUALIFIED);
+-			if (curtok == TOK_QUALIFIED)
++			if (curtok == TOK_QUALIFIED) {
+ 			    gettok();
++			    consumeExportList();
++			}
+ 			wneedtok(TOK_IDENT);
+ 		    } while (curtok == TOK_COMMA);
+ 		    if (!wneedtok(TOK_SEMI))
+@@ -3926,6 +3957,34 @@
+     skipping_module--;
+ }
+ 
++/*
++ *  generateInit - generates the initialization code for a module.
++ */
++
++Static void generateInit (mod)
++Meaning *mod;
++{
++    Strlist *sl;
++
++    strlist_mix(&mod->comments, curcomments);
++    curcomments = NULL;
++    if (ansiC != 0)
++	    output("void ");
++    output(format_s(name_UNITINIT, mod->name));
++    if (void_args)
++	    output("(void)\n");
++    else
++	    output("()\n");
++    output("{\n");
++    output("}\n");
++    outcontext = mod;
++
++    /* The following must come after out_block! */
++    sl = strlist_append(&initialcalls,
++			format_s("%s()",
++				 format_s(name_UNITINIT, mod->name)));
++    sl->value = 1;
++}
+ 
+ 
+ Static void p_moduleinit(mod)
+@@ -3958,8 +4017,15 @@
+ 			    format_s("%s()",
+ 				     format_s(name_UNITINIT, mod->name)));
+ 	sl->value = 1;
+-    } else
++    } else {
+ 	wneedtok(TOK_END);
++	if (modula2 && (edition == 2)) {
++	  /* make p2c generate an initialization body even if the
++	     implementation module does not require it.
++	     */
++	  generateInit(mod);
++	}
++    }
+ }
+ 
+ 
+@@ -3991,6 +4057,27 @@
+ 
+ 
+ 
++/*
++ * consumeExportList - consumes the EXPORT QUALIFIED ident, ident ... ;
++ *                     list.
++ */
++
++Static void consumeExportList ()
++{
++    if ((curtok == TOK_QUALIFIED) || (curtok == TOK_UNQUALIFIED)) {
++        gettok();
++    }
++    do {
++	gettok();
++	checkkeyword(TOK_QUALIFIED);
++	if ((curtok == TOK_QUALIFIED) || (curtok == TOK_UNQUALIFIED))
++	    gettok();
++	wneedtok(TOK_IDENT);
++    } while (curtok == TOK_COMMA);
++    if (!wneedtok(TOK_SEMI))
++	skippasttoken(TOK_SEMI);
++}
++
+ Static int p_module(ignoreit, isdefn)
+ int ignoreit;
+ int isdefn;    /* Modula-2: 0=local module, 1=DEFINITION, 2=IMPLEMENTATION */
+@@ -4028,8 +4115,10 @@
+         while (curtok == TOK_IMPORT || curtok == TOK_FROM)
+             p_import(1);
+ 	checkmodulewords();
+-	if (curtok == TOK_EXPORT)
++	if (curtok == TOK_EXPORT) {
+ 	    gettok();
++	    consumeExportList();
++	}
+         strlist_empty(&curcomments);
+         p_block(TOK_IMPORT);
+         setup_module(mod->sym->name, 0);
+@@ -4047,7 +4136,16 @@
+         return 0;
+     }
+     found_module = 1;
+-    if (isdefn != 2) {
++    if (isdefn == 2) {
++	if (modula2) {
++		char codehname[256] ;
++
++		output(format_s("#define %s\n", format_s(name_GSYMBOL, mod->sym->name)));
++		strcpy(codehname, mod->sym->name) ;
++		strcat(codehname, ".h");
++		out_include(codehname, 1);   /* include our definition module */
++	}
++    } else {
+ 	if (!*hdrfname) {
+ 	    sl = strlist_cifind(includefrom, mod->name);
+ 	    if (sl)
+@@ -4085,8 +4183,10 @@
+ 	while (curtok == TOK_IMPORT || curtok == TOK_FROM)
+ 	    p_import(0);
+ 	checkmodulewords();
+-	if (curtok == TOK_EXPORT)
++	if (curtok == TOK_EXPORT) {
+ 	    gettok();
++	    consumeExportList();
++	}
+ 	checkmodulewords();
+ 	while (curtok == TOK_IMPORT || curtok == TOK_FROM)
+ 	    p_import(0);
+@@ -4207,8 +4307,10 @@
+         while (curtok == TOK_IMPORT || curtok == TOK_FROM)
+             p_import(1);
+ 	checkmodulewords();
+-	if (curtok == TOK_EXPORT)
++	if (curtok == TOK_EXPORT) {
+ 	    gettok();
++	    consumeExportList();
++	}
+         strlist_empty(&curcomments);
+         p_block(TOK_IMPORT);
+         setup_module(mod->sym->name, 0);
+@@ -4336,12 +4438,26 @@
+ 		sp = p_body();
+ 		strlist_mix(&prog->comments, curcomments);
+ 		curcomments = NULL;
+-		if (fullprototyping > 0) {
++		if (modula2) {
++		  if (ansiC) {
++		    output("void ");
++		    output(format_s(name_UNITINIT, prog->name));
++		    output(format_s("(int argc, %s *argv[])", charname));
++		  } else {
++		    output(format_s(name_UNITINIT, prog->name));
++		    output("(argc, argv)");
++		    singleindent(argindent);
++		    output("int argc;\n");
++		    singleindent(argindent);
++		    output(format_s("%s *argv[];\n", charname));
++		  }
++		} else {
++		  if (fullprototyping > 0) {
+ 		    output(format_sss("main%s(int argc,%s%s *argv[])",
+ 				      spacefuncs ? " " : "",
+ 				      spacecommas ? " " : "",
+ 				      charname));
+-		} else {
++		  } else {
+ 		    output("main");
+ 		    if (spacefuncs)
+ 			output(" ");
+@@ -4353,6 +4469,7 @@
+ 		    output("int argc;\n");
+ 		    singleindent(argindent);
+ 		    output(format_s("%s *argv[];\n", charname));
++		  }
+ 		}
+ 		outcontext = prog;
+ 		out_block(sp, BR_FUNCTION, 10000);
+diff -aruN p2c-orig/src/sys.p2crc p2c/src/sys.p2crc
+--- p2c-orig/src/sys.p2crc	Wed Apr 24 21:30:36 1991
++++ p2c/src/sys.p2crc	Wed Jul 26 12:36:02 2000
+@@ -81,6 +81,10 @@
+ 				# 0=Use Pascal block structure (IF-BEGIN-END)
+ 				# default=1 if Language=MODULA, 0 for others
+ 
++Edition                         # 2=edition 2 of Modula-2 (also turns off
++                                # non language builtins)
++                                # default is 3 (edition 3 of Modula-2).
++
+ Integer16                       # 1=assume Pascal integers are 16 bits
+                                 # 0=assume Pascal integers are 32 bits
+ 				# 2=use native C "int" for Pascal "integer"
+@@ -1368,6 +1372,8 @@
+ MainName          PASCAL_MAIN   # Name of program setup function
+ 
+ EscapeName        _Escape       # Name of error-generation function
++
++HaltName          _M2RTS_HALT   # Name of HALT function
+ 
+ EscIOName         _EscIO        # Name of I/O-error-generation function
+ 
+diff -aruN p2c-orig/src/trans.c p2c/src/trans.c
+--- p2c-orig/src/trans.c	Wed Apr 24 21:30:37 1991
++++ p2c/src/trans.c	Wed Jul 26 11:27:18 2000
+@@ -88,6 +88,11 @@
+ Strlist *addmacros;
+ 
+ 
++Static void showversion()
++{
++   fprintf(stderr, "p2c version %s\n", P2C_VERSION);
++}
++
+ 
+ Static void initrc()
+ {
+@@ -643,6 +648,10 @@
+     }
+     init_stuff();
+     i = 0;
++    while (i < argc && strcmp(argv[i], "-version")) i++;
++    if (i < argc)
++        showversion();
++    i = 0;
+     while (i < argc && strcmp(argv[i], "-i")) i++;
+     if (i < argc)
+ 	showinitfile();
+@@ -726,6 +735,7 @@
+                 /* already done above */
+             } else if (!strcmp(*argv, "-H")) {
+                 /* already done above */
++	      argc--; argv++; /* move over the parameter to -H */
+ 	    } else if (argv[0][1] == 'I') {
+ 		if (strlen(*argv) == 2 && argc > 1) {
+ 		    strlist_append(&importdirs, ++*argv);
+diff -aruN p2c-orig/src/trans.h p2c/src/trans.h
+--- p2c-orig/src/trans.h	Wed Apr 24 21:30:53 1991
++++ p2c/src/trans.h	Wed Jul 26 12:16:48 2000
+@@ -199,7 +199,8 @@
+ 
+     /* Modula-2 tokens */
+     TOK_BY, TOK_DEFINITION, TOK_ELSIF, TOK_FROM, TOK_LOOP,
+-    TOK_POINTER, TOK_QUALIFIED, TOK_RETURN,
++    TOK_POINTER, TOK_QUALIFIED, TOK_UNQUALIFIED, TOK_RETURN,
++    TOK_PROC,
+ 
+     /* UCSD Pascal tokens */
+     TOK_SEGMENT,
+@@ -1007,7 +1008,7 @@
+ extern short hpux_lang, integer16, doublereals, pascalenumsize;
+ extern short needsignedbyte, unsignedchar, importall;
+ extern short nestedcomments, pascalsignif, pascalcasesens;
+-extern short dollar_idents, ignorenonalpha, modula2;
++extern short dollar_idents, ignorenonalpha, modula2, edition;
+ extern short ansiC, cplus, signedchars, signedfield, signedshift;
+ extern short hassignedchar, voidstar, symcase, ucconsts, csignif;
+ extern short copystructs, usevextern, implementationmodules;
+@@ -1147,6 +1148,7 @@
+ extern char name_SETBITS[40], name_UCHAR[40], name_SCHAR[40];
+ extern char name_BOOLEAN[40], name_TRUE[40], name_FALSE[40], name_NULL[40];
+ extern char name_ESCAPECODE[40], name_IORESULT[40];
++extern char name_HALT[40];
+ extern char name_ARGC[40], name_ARGV[40];
+ extern char name_ESCAPE[40], name_ESCIO[40], name_CHKIO[40], name_SETIO[40];
+ extern char name_OUTMEM[40], name_CASECHECK[40], name_NILCHECK[40];
+@@ -1177,6 +1179,7 @@
+ /* INPUT LANGUAGE */
+     'U', 'T', "LANGUAGE",        (anyptr)  language,         40,
+     'S', 'V', "MODULA2",         (anyptr) &modula2,          -1,
++    'S', 'V', "EDITION",         (anyptr) &edition,           3,
+     'S', 'T', "INTEGER16",       (anyptr) &integer16,        -1,
+     'S', 'T', "DOUBLEREALS",     (anyptr) &doublereals,      -1,
+     'S', 'V', "UNSIGNEDCHAR",    (anyptr) &unsignedchar,     -1,
+@@ -1534,6 +1537,7 @@
+     'C', 'V', "ARGVNAME",        (anyptr)  name_ARGV,        40,
+     'C', 'V', "MAINNAME",        (anyptr)  name_MAIN,        40,
+     'C', 'V', "ESCAPENAME",      (anyptr)  name_ESCAPE,      40,
++    'C', 'V', "HALTNAME",        (anyptr)  name_HALT,        40,
+     'C', 'V', "ESCIONAME",       (anyptr)  name_ESCIO,       40,
+     'C', 'V', "CHECKIONAME",     (anyptr)  name_CHKIO,       40,
+     'C', 'V', "SETIONAME",       (anyptr)  name_SETIO,       40,
+diff -aruN p2c-orig/src/p2c.h p2c/src/p2c.h
+--- p2c-orig/src/p2c.h	Wed Apr 24 21:30:51 1991
++++ p2c/src/p2c.h	Thu Jul 27 19:36:27 2000
+@@ -238,12 +238,7 @@
+ 
+ typedef Signed   char schar;
+ typedef unsigned char uchar;
+-typedef unsigned char boolean;
+-
+-#ifndef true
+-# define true    1
+-# define false   0
+-#endif
++typedef int      BOOLEAN;
+ 
+ #ifndef TRUE
+ # define TRUE    1
