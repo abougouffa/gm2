@@ -6,8 +6,8 @@
 	* fixed set type incompatability as reported by Iztok.
 	* fixed README note about make gm2.paranoid as reported by
           Matthias Kurz.
-	* fixed many of the example programs which broken during migration
-	  to gcc-3.3.1.
+	* fixed many of the example programs which were broken during
+	  the migration to gcc-3.3.1.
 	* fixed lang-specs.h to invoke new cpp.
 	* removed the M2PATH environment variable usage.
 	* added more modules to make gm2.paranoid.
