@@ -67,7 +67,9 @@ FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, ErrorStringAt, Wa
 FROM M2Options IMPORT DisplayQuadruples ;
 FROM M2Printf IMPORT printf0, printf2 ;
 
-FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
+FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
+                   ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
+
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, NulName ;
 FROM Strings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
@@ -1207,14 +1209,23 @@ BEGIN
       IF (operand1<=NoOfParam(operand2)) AND
          IsVarParam(operand2, operand1) AND IsConst(operand3)
       THEN
-         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')), GetSymName(operand3)), CurrentQuadToken)
+         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
+                                GetSymName(operand3)), CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, operand3) ;
          (*
             ignore LeftAddr and RightAddr, but must be careful about size of Operand3.
             SIZE(operand3) will normally be TSIZE(ADDRESS) but NOT when it is unbounded
          *)
-         BuildParam(Mod2Gcc(operand3))
+         IF IsConst(operand3) AND IsRealType(GetType(operand3)) AND
+            IsRealType(GetType(GetNthParam(operand2, operand1))) AND
+            (GetType(GetNthParam(operand2, operand1))#GetType(operand3))
+         THEN
+            BuildParam(BuildConvert(Mod2Gcc(GetType(GetNthParam(operand2, operand1))),
+                                    Mod2Gcc(operand3), FALSE))
+         ELSE
+            BuildParam(Mod2Gcc(operand3))
+         END
       END
    END
 END CodeParam ;

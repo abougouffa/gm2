@@ -62,6 +62,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  CheckExpressionCompatible,
                  CheckAssignmentCompatible,
                  IsAssignmentCompatible, IsExpressionCompatible, IsMathType,
+                 IsRealType,
                  MixTypes,
                  TemplateProcedure,
                  ActivationPointer ;
@@ -193,6 +194,13 @@ PROCEDURE MixTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsRealType - returns TRUE if, t, is a real type.
+*)
+
+PROCEDURE IsRealType (t: CARDINAL) : BOOLEAN ;
 
 
 END M2Base.
