@@ -10,16 +10,21 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-/* swapped top two around */
-#include "auto-host.h"
-#include "ansidecl.h"
-#include "p2c-src/src/p2c-config.h"
-#include "system.h"
+#if defined(BUILD_GM2_LIBS)
+#   include "gm2-libs-host.h"
+#   include "ansidecl.h"
+#else
+#   include "auto-host.h"
+#   include "ansidecl.h"
+#   include "p2c-src/src/p2c-config.h"
+#endif
+
+#   include "system.h"
 
 #  define Signed    signed
-#  define Void       void      /* Void f() = procedure */
+#  define Void      void      /* Void f() = procedure */
 #  define Const     const
-#  define Volatile   volatile
+#  define Volatile  volatile
 
 #  define PP(x)     x         /* function prototype */
 #  define PV()      (void)    /* null function prototype */
