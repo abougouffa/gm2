@@ -861,13 +861,13 @@ stage1/gm2/gm2m$(exeext): gm2/p2c/p2c-src/home/libp2c.a \
               gm2/gm2-compiler-boot/gm2m_init.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS)
 
-stage2/gm2/gm2l$(exeext): $(GM2_LIBS) gm2/gm2-compiler/gm2l.o
+stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
 	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
-               -g -B./stage1/gm2/ -B./ $(srcdir)/gm2/gm2-auto/gm2l.mod
+               -g -B./stage1/gm2/ -B./ gm2/gm2-auto/gm2l.mod
 	./xgm2 -v -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2/ -B./ -o $@ \
-               -Wuselist $(srcdir)/gm2/gm2-auto/gm2l.mod $(LIBS)
+               -Wuselist gm2/gm2-auto/gm2l.mod $(LIBS)
 
 stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lcc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lccinit > gm2lcc.lst
