@@ -1,0 +1,59 @@
+DEFINITION MODULE FOR "C" vga ;
+
+(*
+    Title      : vga
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Description: Provides a Modula-2 interface to the GNU/Linux libvga C user library.
+*)
+
+EXPORT UNQUALIFIED GraphicsMode,
+                   vga_setmode, vga_hasmode,
+                   vga_clear, vga_flip,
+                   vga_getxdim, vga_getydim,
+                   vga_screenon, vga_screenoff,
+                   vga_readpixel, vga_drawpixel, vga_drawline, vga_setcolor,
+                   vga_getch ;
+
+TYPE
+   GraphicsMode = (Text,
+                   G320x200x16, 
+                   G640x200x16,
+                   G640x350x16,
+                   G640x480x16,
+                   G320x200x256,
+                   G320x240x256,
+                   G320x400x256,
+                   G360x480x256,
+                   G640x480x2,
+                   G640x480x256,
+                   G800x600x256,
+                   G1024x768x256,
+                   G640x480x32K,
+                   G640x480x64K,
+                   G800x600x32K,
+                   G800x600x64K,
+                   G1024x768x32K,
+                   G1024x768x64K,
+                   G640x480x16M,
+                   G800x600x16M,
+                   G1024x768x16M,
+                   G320x200x32K,
+                   G320x200x64K,
+                   G320x200x16M) ;
+
+PROCEDURE vga_setmode (m: GraphicsMode) ;
+PROCEDURE vga_hasmode (m: GraphicsMode) : BOOLEAN ;
+PROCEDURE vga_clear ;
+PROCEDURE vga_flip ;
+PROCEDURE vga_getxdim () : CARDINAL ;
+PROCEDURE vga_getydim () : CARDINAL ;
+PROCEDURE vga_screenon ;
+PROCEDURE vga_screenoff ;
+PROCEDURE vga_readpixel (x, y: CARDINAL) : CARDINAL ;
+PROCEDURE vga_drawpixel (x, y: CARDINAL) ;
+PROCEDURE vga_drawline (x1, y1, x2, y2: CARDINAL) ;
+PROCEDURE vga_setcolor (colour: CARDINAL) ;
+PROCEDURE vga_getch () : CHAR ;
+
+END vga.

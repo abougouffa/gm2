@@ -1,0 +1,30 @@
+DEFINITION MODULE DisplayBuffer ;
+
+(*
+   Title      : DisplayBuffer
+   Author     : Gaius Mulley
+   Date       : 17/7/92
+   LastEdit   : 17/7/92
+   System     : LOGITECH MODULA-2/86
+   Description: Provides a double buffer for graphic objects
+*)
+
+EXPORT QUALIFIED FlipBuffer, AddLine ;
+
+
+(*
+   FlipBuffer - flips the screen onto the other buffer.
+*)
+
+PROCEDURE FlipBuffer ;
+
+
+(*
+   AddLine - adds the line, x1, y1, x2, y2 into the line buffer.
+             This line is displayed in the colour, Colour.
+*)
+
+PROCEDURE AddLine (x1, y1, x2, y2: CARDINAL; Colour: CARDINAL) ;
+
+
+END DisplayBuffer.

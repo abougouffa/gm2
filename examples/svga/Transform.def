@@ -1,0 +1,48 @@
+DEFINITION MODULE Transform ;
+
+(*
+   Title      : Transform
+   Author     : Gaius Mulley
+   Date       : 17/7/92
+   LastEdit   : 17/7/92
+   System     : LOGITECH MODULA-2/86
+   Description: Provides a 2 D transformation package using 3 D matrixes.
+*)
+
+FROM Matrix3D IMPORT Matrix ;
+EXPORT QUALIFIED Reflect, Rotate, Scale, Translate ;
+
+
+(*
+   Reflect - returns a Matrix representing the reflect
+             transformation in line: y = mx + c.
+*)
+
+PROCEDURE Reflect (m, x, c: REAL) : Matrix ;
+
+
+(*
+   Rotate - returns a Matrix representing the rotate
+            transformation about 0, 0 with r Radians.
+*)
+
+PROCEDURE Rotate (r: REAL) : Matrix ;
+
+
+(*
+   Scale - returns a Matrix representing the scale
+           transformation by x, y.
+*)
+
+PROCEDURE Scale (x, y: REAL) : Matrix ;
+
+
+(*
+   Translate - returns a Matrix representing the translate
+               transformation by x, y.
+*)
+
+PROCEDURE Translate (x, y: REAL) : Matrix ;
+
+
+END Transform.

@@ -1,0 +1,74 @@
+DEFINITION MODULE Matrix3D ;
+
+(*
+   Title      : Matrix3D
+   Author     : Gaius Mulley
+   Date       : 17/7/92
+   LastEdit   : 17/7/92
+   System     : LOGITECH MODULA-2/86
+   Description: Provides a 3 D Matrix package.
+*)
+
+EXPORT QUALIFIED Matrix, MatrixValue, Init, Kill, Del,
+                 Mult, Add, Set, Get ;
+
+CONST
+   MaxDimension = 3 ;
+
+TYPE
+   Matrix ;
+   MatrixValue = ARRAY [1..MaxDimension], [1..MaxDimension] OF REAL ;
+
+(*
+   Init - creates a matrix and returns the matrix object.
+*)
+
+PROCEDURE Init () : Matrix ;
+
+
+(*
+   Kill - marks the matrix given to be deleted. This matrix is
+          returned and the next time it is used it will be
+          deleted.
+*)
+
+PROCEDURE Kill (m: Matrix) : Matrix ;
+
+
+(*
+   Del - deletes the matrix given whether or not it has been
+         marked as killed.
+*)
+
+PROCEDURE Del (m: Matrix) ;
+
+
+(*
+   Set - sets the elements of a Matrix with the values.
+*)
+
+PROCEDURE Set (m: Matrix; v: MatrixValue) : Matrix ;
+
+
+(*
+   Get - gets the elements of a Matrix into value MatrixValues.
+*)
+
+PROCEDURE Get (m: Matrix; VAR v: MatrixValue) : Matrix ;
+
+
+(*
+   Add - adds m1 and m2 together and returns the result.
+*)
+
+PROCEDURE Add (m1, m2: Matrix) : Matrix ;
+
+
+(*
+   Mult - multiplies m1 and m2 together and returns the result.
+*)
+
+PROCEDURE Mult (m1, m2: Matrix) : Matrix ;
+
+
+END Matrix3D.
