@@ -27,7 +27,8 @@ FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   IsSolved ;
 FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
-                    WriteFormat0, WriteFormat1, WriteFormat2, ErrorString ;
+                    WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
+                    ErrorAbort0 ;
 
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM Strings IMPORT String, string, InitString, InitStringCharStar, Mark, KillString ;
@@ -55,8 +56,7 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 CONST
    MaxScopes  =    50 ; (* Maximum number of scopes at any one time.         *)
-   MaxSymbols = 30000 ; (* Maximum number of symbols required for            *)
-                        (* compilation.                                      *)
+   MaxSymbols = 30000 ; (* Maximum number of symbols.                        *)
 
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
@@ -69,12 +69,18 @@ TYPE
                  UndefinedSym, TypeSym,
                  RecordFieldSym, VarientFieldSym, EnumerationFieldSym,
                  DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
-                 SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym) ;
+                 SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
+                 ErrorSym) ;
 
    Where = RECORD
               Declared,
               FirstUsed: CARDINAL ;
            END ;
+
+   SymError     = RECORD
+                     name      : Name ;
+                     At        : Where ;      (* Where was sym declared/used *)
+                  END ;
 
    SymUndefined = RECORD
                      name      : Name ;       (* Index into name array, name *)
@@ -522,6 +528,7 @@ TYPE
                ConstStringSym      : ConstString      : SymConstString |
                VarParamSym         : VarParam         : SymVarParam |
                ParamSym            : Param            : SymParam |
+               ErrorSym            : Error            : SymError |
                UndefinedSym        : Undefined        : SymUndefined |
                TypeSym             : Type             : SymType |
                PointerSym          : Pointer          : SymPointer |
@@ -623,6 +630,7 @@ PROCEDURE GetScopeSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE Init ; FORWARD ;
 PROCEDURE InitSymTable ; FORWARD ;
+PROCEDURE GetVisibleSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ; FORWARD ;
 PROCEDURE IsNthParamVar (Head: List; n: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE NewSym (VAR Sym: CARDINAL) ; FORWARD ;
@@ -739,6 +747,36 @@ END AlreadyDeclaredError ;
 
 
 (*
+   MakeError - creates an error node.
+*)
+
+PROCEDURE MakeError (name: Name) : CARDINAL ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   NewSym(Sym) ;
+   WITH Symbols[Sym] DO
+      SymbolType := ErrorSym ;
+      Error.name := name ;
+      InitWhereDeclared(Error.At) ;
+      InitWhereFirstUsed(Error.At)
+   END ;
+   RETURN( Sym )
+END MakeError ;
+
+
+(*
+   IsError - returns TRUE if the symbol is an error symbol.
+*)
+
+PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   RETURN( Symbols[Sym].SymbolType=ErrorSym )
+END IsError ;
+
+
+(*
    DeclareSym - returns a symbol which was either in the unknown tree or
                 a New symbol, since name is about to be declared.
 *)
@@ -753,7 +791,8 @@ BEGIN
    ELSIF IsAlreadyDeclaredSym(name)
    THEN
       AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
-                           GetDeclared(GetLocalSym(ScopeCallFrame[ScopePtr].Main, name)))
+                           GetDeclared(GetVisibleSym(name))) ;
+      Sym := MakeError(name)
    ELSE
       Sym := FetchUnknownSym(name) ;
       IF Sym=NulSym
@@ -1733,15 +1772,62 @@ END GetModuleScopeId ;
 
 
 (*
+   GetVisibleSym - 
+*)
+
+PROCEDURE GetVisibleSym (name: Name) : CARDINAL ;
+VAR
+   Sym,
+   i  : CARDINAL ;
+BEGIN
+   i := ScopePtr ;
+   WHILE i>=1 DO
+      WITH ScopeCallFrame[i] DO
+         IF Search=Main
+         THEN
+            RETURN( GetLocalSym(Main, name) )
+         ELSE
+            IF IsEnumeration(Search)
+            THEN
+               Sym := GetLocalSym(Search, name) ;
+               IF Sym#NulSym
+               THEN
+                  RETURN( Sym )
+               END
+            END
+         END
+      END ;
+      DEC(i)
+   END ;
+   RETURN( NulSym )
+END GetVisibleSym ;
+
+
+(*
    IsAlreadyDeclaredSym - returns true if Sym has already been declared
                           in the current main scope.
 *)
 
 PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ;
+VAR
+   i: CARDINAL ;
 BEGIN
-   WITH ScopeCallFrame[ScopePtr] DO
-      RETURN( GetLocalSym(ScopeCallFrame[ScopePtr].Main, name)#NulSym )
-   END
+   i := ScopePtr ;
+   WHILE i>=1 DO
+      WITH ScopeCallFrame[i] DO
+         IF Search=Main
+         THEN
+            RETURN( GetLocalSym(Main, name)#NulSym )
+         ELSE
+            IF IsEnumeration(Search) AND (GetLocalSym(Search, name)#NulSym)
+            THEN
+               RETURN( TRUE )
+            END
+         END
+      END ;
+      DEC(i)
+   END ;
+   RETURN( FALSE )
 END IsAlreadyDeclaredSym ;
 
 
@@ -1857,70 +1943,73 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(ModuleName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := ModuleSym ;
-      WITH Module DO
-         name := ModuleName ;               (* Index into name array, name   *)
-                                            (* of record field.              *)
-         Size := InitValue() ;              (* Runtime size of symbol.       *)
-         Offset := InitValue() ;            (* Offset at runtime of symbol   *)
-         InitTree(LocalSymbols) ;           (* The LocalSymbols hold all the *)
-                                            (* variables declared local to   *)
-                                            (* the block. It contains the    *)
-                                            (* FROM _ IMPORT x, y, x ;       *)
-                                            (* IMPORT A ;                    *)
-                                            (*    and also                   *)
-                                            (* MODULE WeAreHere ;            *)
-                                            (*    x y z visiable by localsym *)
-                                            (*    MODULE Inner ;             *)
-                                            (*       EXPORT x, y, z ;        *)
-                                            (*    END Inner ;                *)
-                                            (* END WeAreHere.                *)
-         InitTree(ExportTree) ;             (* Holds all the exported        *)
-                                            (* identifiers.                  *)
-                                            (* This tree may be              *)
-                                            (* deleted at the end of Pass 1. *)
-         InitTree(ImportTree) ;             (* Contains all IMPORTed         *)
-                                            (* identifiers.                  *)
-         InitList(IncludeList) ;            (* Contains all included symbols *)
-                                            (* which are included by         *)
-                                            (* IMPORT modulename ;           *)
-                                            (* modulename.Symbol             *)
-         InitTree(ExportUndeclared) ;       (* ExportUndeclared contains all *)
-                                            (* the identifiers which were    *)
-                                            (* exported but have not yet     *)
-                                            (* been declared.                *)
-         InitList(EnumerationScopeList) ;   (* Enumeration scope list which  *)
-                                            (* contains a list of all        *)
-                                            (* enumerations which are        *)
-                                            (* visable within this scope.    *)
-         Priority := NulSym ;               (* Priority of the module. This  *)
-                                            (* is an index to a constant.    *)
-         InitTree(Unresolved) ;             (* All symbols currently         *)
-                                            (* unresolved in this module.    *)
-         StartQuad := 0 ;                   (* Signify the initialization    *)
-                                            (* code.                         *)
-         EndQuad := 0 ;                     (* EndQuad should point to a     *)
-                                            (* goto quad.                    *)
-         InitList(ListOfVars) ;             (* List of variables in this     *)
-                                            (* scope.                        *)
-         InitList(ListOfProcs) ;            (* List of all procedures        *)
-                                            (* declared within this module.  *)
-         InitList(ListOfModules) ;          (* List of all inner modules.    *)
-         InitWhereDeclared(At) ;            (* Where symbol declared.        *)
-         InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
-         IF ScopeCallFrame[ScopePtr].Main=GetBaseModule()
-         THEN
-            Father := NulSym
-         ELSE
-            Father := ScopeCallFrame[ScopePtr].Main ;
-            AddModuleToParent(Sym, Father)
-         END
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := ModuleSym ;
+         WITH Module DO
+            name := ModuleName ;               (* Index into name array, name   *)
+                                               (* of record field.              *)
+            Size := InitValue() ;              (* Runtime size of symbol.       *)
+            Offset := InitValue() ;            (* Offset at runtime of symbol   *)
+            InitTree(LocalSymbols) ;           (* The LocalSymbols hold all the *)
+                                               (* variables declared local to   *)
+                                               (* the block. It contains the    *)
+                                               (* FROM _ IMPORT x, y, x ;       *)
+                                               (* IMPORT A ;                    *)
+                                               (*    and also                   *)
+                                               (* MODULE WeAreHere ;            *)
+                                               (*    x y z visiable by localsym *)
+                                               (*    MODULE Inner ;             *)
+                                               (*       EXPORT x, y, z ;        *)
+                                               (*    END Inner ;                *)
+                                               (* END WeAreHere.                *)
+            InitTree(ExportTree) ;             (* Holds all the exported        *)
+                                               (* identifiers.                  *)
+                                               (* This tree may be              *)
+                                               (* deleted at the end of Pass 1. *)
+            InitTree(ImportTree) ;             (* Contains all IMPORTed         *)
+                                               (* identifiers.                  *)
+            InitList(IncludeList) ;            (* Contains all included symbols *)
+                                               (* which are included by         *)
+                                               (* IMPORT modulename ;           *)
+                                               (* modulename.Symbol             *)
+            InitTree(ExportUndeclared) ;       (* ExportUndeclared contains all *)
+                                               (* the identifiers which were    *)
+                                               (* exported but have not yet     *)
+                                               (* been declared.                *)
+            InitList(EnumerationScopeList) ;   (* Enumeration scope list which  *)
+                                               (* contains a list of all        *)
+                                               (* enumerations which are        *)
+                                               (* visable within this scope.    *)
+            Priority := NulSym ;               (* Priority of the module. This  *)
+                                               (* is an index to a constant.    *)
+            InitTree(Unresolved) ;             (* All symbols currently         *)
+                                               (* unresolved in this module.    *)
+            StartQuad := 0 ;                   (* Signify the initialization    *)
+                                               (* code.                         *)
+            EndQuad := 0 ;                     (* EndQuad should point to a     *)
+                                               (* goto quad.                    *)
+            InitList(ListOfVars) ;             (* List of variables in this     *)
+                                               (* scope.                        *)
+            InitList(ListOfProcs) ;            (* List of all procedures        *)
+                                               (* declared within this module.  *)
+            InitList(ListOfModules) ;          (* List of all inner modules.    *)
+            InitWhereDeclared(At) ;            (* Where symbol declared.        *)
+            InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
+            IF ScopeCallFrame[ScopePtr].Main=GetBaseModule()
+            THEN
+               Father := NulSym
+            ELSE
+               Father := ScopeCallFrame[ScopePtr].Main ;
+               AddModuleToParent(Sym, Father)
+            END
+         END ;
       END ;
+      PutSymKey(ModuleTree, ModuleName, Sym) ;
+      (* Now add module to the outer level scope *)
+      AddSymToScope(Sym, ModuleName)
    END ;
-   PutSymKey(ModuleTree, ModuleName, Sym) ;
-   (* Now add module to the outer level scope *)
-   AddSymToScope(Sym, ModuleName) ;
    RETURN( Sym )
 END MakeInnerModule ;
 
@@ -2038,56 +2127,59 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(ProcedureName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := ProcedureSym ;
-      WITH Procedure DO
-         name := ProcedureName ;
-         InitList(ListOfParam) ;      (* Contains a list of all the    *)
-                                      (* parameters in this procedure. *)
-         ParamDefined := FALSE ;      (* Have the parameters been      *)
-                                      (* defined yet?                  *)
-         DefinedInDef := FALSE ;      (* Were the parameters defined   *)
-                                      (* in the Definition module?     *)
-                                      (* Note that this depends on     *)
-                                      (* whether the compiler has read *)
-                                      (* the .def or .mod first.       *)
-                                      (* The second occurence is       *)
-                                      (* compared to the first.        *)
-         DefinedInImp := FALSE ;      (* Were the parameters defined   *)
-                                      (* in the Implementation module? *)
-                                      (* Note that this depends on     *)
-                                      (* whether the compiler has read *)
-                                      (* the .def or .mod first.       *)
-                                      (* The second occurence is       *)
-                                      (* compared to the first.        *)
-         HasVarArgs := FALSE ;        (* Does the procedure use ... ?  *)
-         IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
-         BuiltinName := NulName ;     (* name of equivalent builtin    *)
-         Father := GetCurrentScope() ;
-                                      (* Father scope of procedure.    *)
-         StartQuad := 0 ;             (* Index into list of quads.     *)
-         EndQuad := 0 ;
-         Reachable := FALSE ;         (* Procedure not known to        *)
-                                      (* reachable.                    *)
-         ReturnType := NulSym ;       (* Not a function yet!           *)
-         Offset := 0 ;                (* Location of procedure.        *)
-         InitTree(LocalSymbols) ;
-         InitList(EnumerationScopeList) ;
-                                      (* Enumeration scope list which  *)
-                                      (* contains a list of all        *)
-                                      (* enumerations which are        *)
-                                      (* visable within this scope.    *)
-         InitList(ListOfVars) ;       (* List of variables in this     *)
-                                      (* scope.                        *)
-         Size := InitValue() ;        (* Activation record size.       *)
-         TotalParamSize
-                    := InitValue() ;  (* size of all parameters.       *)
-         InitWhereDeclared(At) ;      (* Where symbol declared.        *)
-      END
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := ProcedureSym ;
+         WITH Procedure DO
+            name := ProcedureName ;
+            InitList(ListOfParam) ;      (* Contains a list of all the    *)
+                                         (* parameters in this procedure. *)
+            ParamDefined := FALSE ;      (* Have the parameters been      *)
+                                         (* defined yet?                  *)
+            DefinedInDef := FALSE ;      (* Were the parameters defined   *)
+                                         (* in the Definition module?     *)
+                                         (* Note that this depends on     *)
+                                         (* whether the compiler has read *)
+                                         (* the .def or .mod first.       *)
+                                         (* The second occurence is       *)
+                                         (* compared to the first.        *)
+            DefinedInImp := FALSE ;      (* Were the parameters defined   *)
+                                         (* in the Implementation module? *)
+                                         (* Note that this depends on     *)
+                                         (* whether the compiler has read *)
+                                         (* the .def or .mod first.       *)
+                                         (* The second occurence is       *)
+                                         (* compared to the first.        *)
+            HasVarArgs := FALSE ;        (* Does the procedure use ... ?  *)
+            IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
+            BuiltinName := NulName ;     (* name of equivalent builtin    *)
+            Father := GetCurrentScope() ;
+                                         (* Father scope of procedure.    *)
+            StartQuad := 0 ;             (* Index into list of quads.     *)
+            EndQuad := 0 ;
+            Reachable := FALSE ;         (* Procedure not known to        *)
+                                         (* reachable.                    *)
+            ReturnType := NulSym ;       (* Not a function yet!           *)
+            Offset := 0 ;                (* Location of procedure.        *)
+            InitTree(LocalSymbols) ;
+            InitList(EnumerationScopeList) ;
+                                         (* Enumeration scope list which  *)
+                                         (* contains a list of all        *)
+                                         (* enumerations which are        *)
+                                         (* visable within this scope.    *)
+            InitList(ListOfVars) ;       (* List of variables in this     *)
+                                         (* scope.                        *)
+            Size := InitValue() ;        (* Activation record size.       *)
+            TotalParamSize
+                       := InitValue() ;  (* size of all parameters.       *)
+            InitWhereDeclared(At) ;      (* Where symbol declared.        *)
+         END
+      END ;
+      (* Now add this procedure to the symbol table of the current scope *)
+      AddSymToScope(Sym, ProcedureName) ;
+      AddProcedureToList(CurrentModule, Sym)
    END ;
-   (* Now add this procedure to the symbol table of the current scope *)
-   AddSymToScope(Sym, ProcedureName) ;
-   AddProcedureToList(CurrentModule, Sym) ;
    RETURN( Sym )
 END MakeProcedure ;
 
@@ -2146,26 +2238,29 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(VarName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := VarSym ;
-      WITH Var DO
-         name := VarName ;
-         Size := InitValue() ;
-         Offset := InitValue() ;
-         AddrMode := RightValue ;
-         Father := ScopeCallFrame[ScopePtr].Main ;  (* Procedure or Module ? *)
-         IsTemp := FALSE ;
-         IsParam := FALSE ;
-         InitWhereDeclared(At) ;
-         InitWhereFirstUsed(At) ;          (* Where symbol first used.      *)
-         InitList(ReadUsageList) ;
-         InitList(WriteUsageList)
-      END
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := VarSym ;
+         WITH Var DO
+            name := VarName ;
+            Size := InitValue() ;
+            Offset := InitValue() ;
+            AddrMode := RightValue ;
+            Father := ScopeCallFrame[ScopePtr].Main ;  (* Procedure or Module ? *)
+            IsTemp := FALSE ;
+            IsParam := FALSE ;
+            InitWhereDeclared(At) ;
+            InitWhereFirstUsed(At) ;          (* Where symbol first used.      *)
+            InitList(ReadUsageList) ;
+            InitList(WriteUsageList)
+         END
+      END ;
+      (* Add Var to Procedure or Module variable list *)
+      AddVarToList(Sym) ;
+      (* Now add this Var to the symbol table of the current scope *)
+      AddSymToScope(Sym, VarName)
    END ;
-   (* Add Var to Procedure or Module variable list *)
-   AddVarToList(Sym) ;
-   (* Now add this Var to the symbol table of the current scope *)
-   AddSymToScope(Sym, VarName) ;
    RETURN( Sym )
 END MakeVar ;
 
@@ -2182,18 +2277,24 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(RecordName) ;
-      (* Now add this Record to the symbol table of the current scope *)
-      AddSymToScope(Sym, RecordName) ;
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this Record to the symbol table of the current scope *)
+         AddSymToScope(Sym, RecordName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := RecordSym ;
-      WITH Record DO
-         name := RecordName ;
-         InitTree(LocalSymbols) ;
-         Size := InitValue() ;
-         InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
-         Parent := NulSym ;
-         InitWhereDeclared(At)
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := RecordSym ;
+         WITH Record DO
+            name := RecordName ;
+            InitTree(LocalSymbols) ;
+            Size := InitValue() ;
+            InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
+            Parent := NulSym ;
+            InitWhereDeclared(At)
+         END
       END
    END ;
    RETURN( Sym )
@@ -2268,23 +2369,29 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(EnumerationName) ;
-      Symbols[Sym].SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
-      (* Now add this type to the symbol table of the current scope *)
-      AddSymToScope(Sym, EnumerationName) ;
-   END ;
-   WITH Symbols[Sym] DO
-      SymbolType := EnumerationSym ;
-      WITH Enumeration DO
-         name := EnumerationName ;      (* Name of enumeration.   *)
-         NoOfElements := 0 ;            (* No of elements in the  *)
-                                        (* enumeration type.      *)
-         Size := InitValue() ;          (* Size at runtime of sym *)
-         InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
-         Parent := GetCurrentScope() ;  (* Which scope created it *)
-         InitWhereDeclared(At)          (* Declared here          *)
+      IF NOT IsError(Sym)
+      THEN
+         Symbols[Sym].SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
+         (* Now add this type to the symbol table of the current scope *)
+         AddSymToScope(Sym, EnumerationName)
       END
    END ;
-   CheckIfEnumerationExported(Sym, ScopePtr) ;
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := EnumerationSym ;
+         WITH Enumeration DO
+            name := EnumerationName ;      (* Name of enumeration.   *)
+            NoOfElements := 0 ;            (* No of elements in the  *)
+                                           (* enumeration type.      *)
+            Size := InitValue() ;          (* Size at runtime of sym *)
+            InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
+            Parent := GetCurrentScope() ;  (* Which scope created it *)
+            InitWhereDeclared(At)          (* Declared here          *)
+         END
+      END ;
+      CheckIfEnumerationExported(Sym, ScopePtr)
+   END ;
    RETURN( Sym )
 END MakeEnumeration ;
 
@@ -2301,17 +2408,23 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(TypeName) ;
-      (* Now add this type to the symbol table of the current scope *)
-      AddSymToScope(Sym, TypeName) ;
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this type to the symbol table of the current scope *)
+         AddSymToScope(Sym, TypeName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := TypeSym ;
-      WITH Type DO
-         name := TypeName ;    (* Index into name array, name *)
-                               (* of type.                    *)
-         Type := NulSym ;      (* Index to a type symbol.     *)
-         Size := InitValue() ; (* Runtime size of symbol.     *)
-         InitWhereDeclared(At) (* Declared here               *)
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := TypeSym ;
+         WITH Type DO
+            name := TypeName ;    (* Index into name array, name *)
+                                  (* of type.                    *)
+            Type := NulSym ;      (* Index to a type symbol.     *)
+            Size := InitValue() ; (* Runtime size of symbol.     *)
+            InitWhereDeclared(At) (* Declared here               *)
+         END
       END
    END ;
    RETURN( Sym )
@@ -2332,20 +2445,23 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(TypeName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := TypeSym ;
-      WITH Type DO
-         name := TypeName ;    (* Index into name array, name *)
-                               (* of type.                    *)
-         Type := NulSym ;      (* Index to a type symbol.     *)
-         Size := InitValue() ; (* Runtime size of symbol.     *)
-         InitWhereDeclared(At) (* Declared here               *)
-      END
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := TypeSym ;
+         WITH Type DO
+            name := TypeName ;    (* Index into name array, name *)
+                                  (* of type.                    *)
+            Type := NulSym ;      (* Index to a type symbol.     *)
+            Size := InitValue() ; (* Runtime size of symbol.     *)
+            InitWhereDeclared(At) (* Declared here               *)
+         END
+      END ;
+      PutExportUnImplemented(Sym) ;
+      PutHiddenTypeDeclared ;
+      (* Now add this type to the symbol table of the current scope *)
+      AddSymToScope(Sym, TypeName)
    END ;
-   PutExportUnImplemented(Sym) ;
-   PutHiddenTypeDeclared ;
-   (* Now add this type to the symbol table of the current scope *)
-   AddSymToScope(Sym, TypeName) ;
    RETURN( Sym )
 END MakeHiddenType ;
 
@@ -2400,18 +2516,21 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(ConstVarName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := ConstVarSym ;
-      WITH ConstVar DO
-         name  := ConstVarName ;
-         Value := InitValue() ;
-         Type  := NulSym ;
-         IsSet := FALSE ;
-         InitWhereDeclared(At)
-      END
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := ConstVarSym ;
+         WITH ConstVar DO
+            name  := ConstVarName ;
+            Value := InitValue() ;
+            Type  := NulSym ;
+            IsSet := FALSE ;
+            InitWhereDeclared(At)
+         END
+      END ;
+      (* Now add this constant to the symbol table of the current scope *)
+      AddSymToScope(Sym, ConstVarName)
    END ;
-   (* Now add this constant to the symbol table of the current scope *)
-   AddSymToScope(Sym, ConstVarName) ;
    RETURN( Sym )
 END MakeConstVar ;
 
@@ -2663,27 +2782,33 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(SubrangeName) ;
-      (* Now add this type to the symbol table of the current scope *)
-      AddSymToScope(Sym, SubrangeName) ;
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this type to the symbol table of the current scope *)
+         AddSymToScope(Sym, SubrangeName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := SubrangeSym ;
-      WITH Subrange DO
-         name := SubrangeName ;
-         Low := NulSym ;             (* Index to a symbol determining *)
-                                     (* the lower bound of subrange.  *)
-                                     (* Points to a constant -        *)
-                                     (* possibly created by           *)
-                                     (* ConstExpression.              *)
-         High := NulSym ;            (* Index to a symbol determining *)
-                                     (* the lower bound of subrange.  *)
-                                     (* Points to a constant -        *)
-                                     (* possibly created by           *)
-                                     (* ConstExpression.              *)
-         Type := NulSym ;            (* Index to a type. Determines   *)
-                                     (* the type of subrange.         *)
-         Size := InitValue() ;       (* Size determines the type size *)
-         InitWhereDeclared(At)       (* Declared here                 *)
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := SubrangeSym ;
+         WITH Subrange DO
+            name := SubrangeName ;
+            Low := NulSym ;             (* Index to a symbol determining *)
+                                        (* the lower bound of subrange.  *)
+                                        (* Points to a constant -        *)
+                                        (* possibly created by           *)
+                                        (* ConstExpression.              *)
+            High := NulSym ;            (* Index to a symbol determining *)
+                                        (* the lower bound of subrange.  *)
+                                        (* Points to a constant -        *)
+                                        (* possibly created by           *)
+                                        (* ConstExpression.              *)
+            Type := NulSym ;            (* Index to a type. Determines   *)
+                                        (* the type of subrange.         *)
+            Size := InitValue() ;       (* Size determines the type size *)
+            InitWhereDeclared(At)       (* Declared here                 *)
+         END
       END
    END ;
    RETURN( Sym )
@@ -2702,19 +2827,25 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(ArrayName) ;
-      (* Now add this array to the symbol table of the current scope *)
-      AddSymToScope(Sym, ArrayName) ;
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this array to the symbol table of the current scope *)
+         AddSymToScope(Sym, ArrayName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := ArraySym ;
-      WITH Array DO
-         name := ArrayName ;
-         InitList(ListOfSubs) ;  (* Contains a list of the array        *)
-                                 (* subscripts.                         *)
-         Size := InitValue() ;   (* Size of array.                      *)
-         Offset := InitValue() ; (* Offset of array.                    *)
-         Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
-         InitWhereDeclared(At)   (* Declared here                       *)
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := ArraySym ;
+         WITH Array DO
+            name := ArrayName ;
+            InitList(ListOfSubs) ;  (* Contains a list of the array        *)
+                                    (* subscripts.                         *)
+            Size := InitValue() ;   (* Size of array.                      *)
+            Offset := InitValue() ; (* Offset of array.                    *)
+            Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
+            InitWhereDeclared(At)   (* Declared here                       *)
+         END
       END
    END ;
    RETURN( Sym )
@@ -3172,37 +3303,40 @@ BEGIN
    Field := CheckForHiddenType(FieldName) ;
    IF Field=NulSym
    THEN
-      Field := DeclareSym(FieldName) ;
+      Field := DeclareSym(FieldName)
    END ;
-   WITH Symbols[Field] DO
-      SymbolType := EnumerationFieldSym ;
-      WITH EnumerationField DO
-         name := FieldName ;  (* Index into name array, name *)
-                              (* of type.                    *)
-         PushCard(Symbols[Sym].Enumeration.NoOfElements) ;
-         Value := InitValue() ;
-         PopInto(Value) ;
-         Type := Sym ;
-         InitWhereDeclared(At)  (* Declared here *)
-      END
-   END ;
-   WITH Symbols[Sym] DO
-      CASE SymbolType OF
+   IF NOT IsError(Field)
+   THEN
+      WITH Symbols[Field] DO
+         SymbolType := EnumerationFieldSym ;
+         WITH EnumerationField DO
+            name := FieldName ;  (* Index into name array, name *)
+                                 (* of type.                    *)
+            PushCard(Symbols[Sym].Enumeration.NoOfElements) ;
+            Value := InitValue() ;
+            PopInto(Value) ;
+            Type := Sym ;
+            InitWhereDeclared(At)  (* Declared here *)
+         END
+      END ;
+      WITH Symbols[Sym] DO
+         CASE SymbolType OF
 
-      EnumerationSym: WITH Enumeration DO
-                         INC(NoOfElements) ;
-                         IF GetSymKey(LocalSymbols, FieldName)#NulSym
-                         THEN
-                            AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(FieldName)))),
-                                                 FieldName,
-                                                 GetDeclared(GetSymKey(LocalSymbols, FieldName)))
-                         ELSE
-                            PutSymKey(LocalSymbols, FieldName, Field)
+         EnumerationSym: WITH Enumeration DO
+                            INC(NoOfElements) ;
+                            IF GetSymKey(LocalSymbols, FieldName)#NulSym
+                            THEN
+                               AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(FieldName)))),
+                                                    FieldName,
+                                                    GetDeclared(GetSymKey(LocalSymbols, FieldName)))
+                            ELSE
+                               PutSymKey(LocalSymbols, FieldName, Field)
+                            END
                          END
-                      END
 
-      ELSE
-         InternalError('expecting Sym=Enumeration', __FILE__, __LINE__)
+         ELSE
+            InternalError('expecting Sym=Enumeration', __FILE__, __LINE__)
+         END
       END
    END
 END PutFieldEnumeration ;
@@ -3217,7 +3351,8 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      TypeSym: Type.Type := TypeSymbol
+      ErrorSym: |
+      TypeSym : Type.Type := TypeSymbol
 
       ELSE
          InternalError('expecting a Type symbol', __FILE__, __LINE__)
@@ -3278,6 +3413,7 @@ BEGIN
       WITH Symbols[Sym] DO
          CASE SymbolType OF
 
+         ErrorSym            : n := Error.name |
          DefImpSym           : n := DefImp.name |
          ModuleSym           : n := Module.name |
          TypeSym             : n := Type.name |
@@ -3313,7 +3449,7 @@ END GetSymName ;
 
 
 (*
-   MakeTemporary - Makes a new temporary variable at the heighest real scope.
+   MakeTemporary - Makes a new temporary variable at the highest real scope.
                    The addressing mode of the temporary is set to NoValue.
 *)
 
@@ -3358,6 +3494,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       VarSym : (* IF Var.AddrMode#NoValue
                THEN
                   WriteError('Warning altering ModeOfAddr') ; HALT
@@ -3380,6 +3517,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym           : ErrorAbort0('') |
       VarSym             : RETURN( Var.AddrMode ) |
       ConstLitSym        : RETURN( ImmediateValue ) |
       ConstVarSym        : RETURN( ImmediateValue ) |
@@ -3420,6 +3558,7 @@ BEGIN
       WITH Symbols[Sym] DO
          CASE SymbolType OF
 
+         ErrorSym            : ErrorAbort0('') |
          TypeSym             : Type.name      := SymName |
          VarSym              : Var.name       := SymName |
          ConstLitSym         : ConstLit.name  := SymName |
@@ -4767,6 +4906,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ProcedureSym: Procedure.ReturnType := TypeSym |
       ProcTypeSym : ProcType.ReturnType := TypeSym
 
@@ -4810,7 +4950,8 @@ BEGIN
       WITH Symbols[VariableSym] DO
          CASE SymbolType OF
 
-         VarSym : Var.IsParam := TRUE        (* Variable is really a parameter *)
+         ErrorSym: RETURN( FALSE ) |
+         VarSym  : Var.IsParam := TRUE        (* Variable is really a parameter *)
 
          ELSE
             InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -4883,6 +5024,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ProcedureSym: PutItemIntoList(Procedure.ListOfParam, ParSym) |
       ProcTypeSym : PutItemIntoList(ProcType.ListOfParam, ParSym)
 
@@ -4906,8 +5048,9 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : |
       ProcedureSym: IsVar := IsNthParamVar(Procedure.ListOfParam, ParamNo) |
-      ProcTypeSym:  IsVar := IsNthParamVar(ProcType.ListOfParam, ParamNo)
+      ProcTypeSym : IsVar := IsNthParamVar(ProcType.ListOfParam, ParamNo)
 
       ELSE
          InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
@@ -4934,6 +5077,7 @@ BEGIN
       WITH Symbols[p] DO
          CASE SymbolType OF
 
+         ErrorSym   : RETURN( FALSE ) |
          VarParamSym: RETURN( TRUE ) |
          ParamSym   : RETURN( FALSE )
 
@@ -4957,6 +5101,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : n := 0 |
       ProcedureSym: n := NoOfItemsInList(Procedure.ListOfParam) |
       ProcTypeSym : n := NoOfItemsInList(ProcType.ListOfParam)
 
@@ -4980,6 +5125,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ProcedureSym: Procedure.HasVarArgs := TRUE |
       ProcTypeSym : ProcType.HasVarArgs := TRUE
 
@@ -5002,6 +5148,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : RETURN( FALSE ) |
       ProcedureSym: RETURN( Procedure.HasVarArgs ) |
       ProcTypeSym : RETURN( ProcType.HasVarArgs )
 
@@ -5025,6 +5172,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : n := 0 |
       ProcedureSym: n := NoOfItemsInList(Procedure.ListOfVars)
  
       ELSE
@@ -5093,6 +5241,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : |
       ProcedureSym: Assert(NOT Procedure.ParamDefined) ;
                     Procedure.ParamDefined := TRUE
 
@@ -5114,6 +5263,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : RETURN( FALSE ) |
       ProcedureSym: RETURN( Procedure.ParamDefined )
 
       ELSE
@@ -5135,6 +5285,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : |
       ProcedureSym: Assert(NOT Procedure.DefinedInDef) ;
                     Procedure.DefinedInDef := TRUE
 
@@ -5157,6 +5308,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : RETURN( FALSE ) |
       ProcedureSym: RETURN( Procedure.DefinedInDef )
 
       ELSE
@@ -5178,6 +5330,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : |
       ProcedureSym: Assert(NOT Procedure.DefinedInImp) ;
                     Procedure.DefinedInImp := TRUE
 
@@ -5200,6 +5353,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym    : RETURN( FALSE ) |
       ProcedureSym: RETURN( Procedure.DefinedInImp )
 
       ELSE
@@ -5221,19 +5375,25 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(PointerName) ;
-      (* Now add this pointer to the symbol table of the current scope *)
-      AddSymToScope(Sym, PointerName)
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this pointer to the symbol table of the current scope *)
+         AddSymToScope(Sym, PointerName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := PointerSym ;
-      CASE SymbolType OF
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := PointerSym ;
+         CASE SymbolType OF
 
-      PointerSym: Pointer.Type := NulSym ;
-                  Pointer.name := PointerName ;
-                  Pointer.Size := InitValue()
+         PointerSym: Pointer.Type := NulSym ;
+                     Pointer.name := PointerName ;
+                     Pointer.Size := InitValue()
 
-      ELSE
-         InternalError('expecting a Pointer symbol', __FILE__, __LINE__)
+         ELSE
+            InternalError('expecting a Pointer symbol', __FILE__, __LINE__)
+         END
       END
    END ;
    RETURN( Sym )
@@ -5249,6 +5409,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym  : |
       PointerSym: Pointer.Type := PointerType
 
       ELSE
@@ -5323,7 +5484,8 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: RETURN( Var.Father )
+      ErrorSym: RETURN( NulSym ) |
+      VarSym  : RETURN( Var.Father )
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -5345,10 +5507,11 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      ArraySym:       n := NoOfItemsInList(Array.ListOfSubs) |
-      UnboundedSym:   n := 1 |   (* Standard language limitation *)
+      ErrorSym      : n := 0 |
+      ArraySym      : n := NoOfItemsInList(Array.ListOfSubs) |
+      UnboundedSym  : n := 1 |   (* Standard language limitation *)
       EnumerationSym: n := Symbols[Sym].Enumeration.NoOfElements |
-      InterfaceSym:   n := NoOfItemsInList(Interface.ObjectList)
+      InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
 
       ELSE
          InternalError('expecting an Array or UnBounded symbol', __FILE__, __LINE__)
@@ -5368,6 +5531,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ArraySym: PutItemIntoList(Array.ListOfSubs, SubrangeSymbol)
 
       ELSE
@@ -5417,6 +5581,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       SubscriptSym: Subscript.Type := SimpleType ;
 
       ELSE
@@ -5438,16 +5603,22 @@ BEGIN
    IF Sym=NulSym
    THEN
       Sym := DeclareSym(SetName) ;
-      (* Now add this set to the symbol table of the current scope *)
-      AddSymToScope(Sym, SetName) ;
+      IF NOT IsError(Sym)
+      THEN
+         (* Now add this set to the symbol table of the current scope *)
+         AddSymToScope(Sym, SetName)
+      END
    END ;
-   WITH Symbols[Sym] DO
-      SymbolType := SetSym ;
-      WITH Set DO
-      	 name := SetName ;      (* The name of the set.        *)
-         Type := NulSym ;       (* Index to a subrange symbol. *)
-         Size := InitValue() ;  (* Size of this set            *)
-         InitWhereDeclared(At)  (* Declared here               *)
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := SetSym ;
+         WITH Set DO
+            name := SetName ;      (* The name of the set.        *)
+            Type := NulSym ;       (* Index to a subrange symbol. *)
+            Size := InitValue() ;  (* Size of this set            *)
+            InitWhereDeclared(At)  (* Declared here               *)
+         END
       END
    END ;
    RETURN( Sym )
@@ -5463,6 +5634,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       SetSym: WITH Set DO
       	         Type := SimpleType    (* Index to a subrange symbol  *)
       	       	     	      	       (* or an enumeration type.     *)
@@ -5516,6 +5688,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       UnboundedSym: Unbounded.Type := SimpleType ;
 
       ELSE
@@ -5534,6 +5707,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ArraySym: WITH Array DO
                    Type := TypeSymbol (* The Array Type. ARRAY OF Type.      *)
                 END
@@ -5553,6 +5727,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym           : ErrorAbort0('') |
       ModuleSym          : RETURN( Module.Father ) |
       VarSym             : RETURN( Var.Father ) |
       ProcedureSym       : RETURN( Procedure.Father ) |
@@ -5589,22 +5764,25 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := DeclareSym(ProcTypeName) ;
-   WITH Symbols[Sym] DO
-      SymbolType := ProcTypeSym ;
-      CASE SymbolType OF
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := ProcTypeSym ;
+         CASE SymbolType OF
 
-      ProcTypeSym: ProcType.ReturnType := NulSym ;
-                   ProcType.name := ProcTypeName ;
-                   InitList(ProcType.ListOfParam) ;
-                   ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
-                   ProcType.Father := GetCurrentScope() ;
-                                                    (* Father scope of procedure.    *)
-                   ProcType.Size := InitValue() ;
-                   ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
-                   InitWhereDeclared(ProcType.At)  (* Declared here *)
+         ProcTypeSym: ProcType.ReturnType := NulSym ;
+                      ProcType.name := ProcTypeName ;
+                      InitList(ProcType.ListOfParam) ;
+                      ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
+                      ProcType.Father := GetCurrentScope() ;
+                                                       (* Father scope of procedure.    *)
+                      ProcType.Size := InitValue() ;
+                      ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
+                      InitWhereDeclared(ProcType.At)  (* Declared here *)
 
-      ELSE
-         InternalError('expecting ProcType symbol', __FILE__, __LINE__)
+         ELSE
+            InternalError('expecting ProcType symbol', __FILE__, __LINE__)
+         END
       END
    END ;
    (* Now add this ProcType to the symbol table of the current scope *)
@@ -5665,6 +5843,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym: |
       ProcedureSym: Procedure.Reachable := TRUE
 
       ELSE
@@ -6067,6 +6246,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym           : RETURN( Error.At.Declared ) |
       VarientSym         : RETURN( Varient.At.Declared ) |
       RecordSym          : RETURN( Record.At.Declared ) |
       SubrangeSym        : RETURN( Subrange.At.Declared ) |
@@ -6108,6 +6288,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      ErrorSym           : RETURN( Error.At.FirstUsed ) |
       UndefinedSym       : RETURN( Undefined.At.FirstUsed ) |
       VarientSym         : RETURN( Varient.At.FirstUsed ) |
       RecordSym          : RETURN( Record.At.FirstUsed ) |

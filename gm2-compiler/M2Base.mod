@@ -64,7 +64,7 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinF
 
 TYPE
    Compatability = (expression, assignment) ;
-   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum) ;
+   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real) ;
 
 
 (* %%%FORWARD%%%
@@ -404,7 +404,7 @@ BEGIN
       THEN
          ErrorFormat0(e, 'a type must be declared or imported')
       ELSE
-         ErrorFormat0(e, 'type incompatability, hint the types should be converted or coersed')
+         ErrorFormat0(e, 'type incompatibility, hint the types should be converted or coerced')
       END ;
 
       e := ChainError(GetTokenNo(), e) ;
@@ -451,7 +451,7 @@ END CheckExpressionCompatible ;
 
 PROCEDURE CheckAssignmentCompatible (t1, t2: CARDINAL) ;
 BEGIN
-   IF t1#t1
+   IF t1#t2
    THEN
       CheckCompatible(t1, t2, assignment)
    END
@@ -491,6 +491,9 @@ BEGIN
    ELSIF IsEnumeration(sym)
    THEN
       RETURN( enum )
+   ELSIF (sym=Real) OR (sym=LongReal) OR (sym=ShortReal)
+   THEN
+      RETURN( real )
    ELSIF IsType(sym)
    THEN
       RETURN( FindMetaType(GetType(sym)) )
@@ -688,34 +691,35 @@ END IsMathType ;
      assignment compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum
-                  +------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T
-           Word   |         T     F     T       F    T       T        T    T
-           Byte   |               T     F       T    F       F        F    F
-   t1   Address   |                     T       F    F       F        T    F
-           Char   |                             T    F       F        F    F
-        Integer   |                                  T       T        F    F
-       Cardinal   |                                          T        F    F
-            Ptr   |                                                   T    F
-           Enum   |                                                        T
-   
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real
+                  +-----------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T
+           Word   |         T     F     T       F    T       T        T    T    F
+           Byte   |               T     F       T    F       F        F    F    F
+   t1   Address   |                     T       F    F       F        T    F    F
+           Char   |                             T    F       F        F    F    F
+        Integer   |                                  T       T        F    F    F
+       Cardinal   |                                          T        F    F    F
+            Ptr   |                                                   T    F    F
+           Enum   |                                                        T    F
+           Real   |                                                             T   
    
    
      expression compatible matrix
                                              t2
    
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum
-                  +------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T
-           Word   |         T     F     F       F    F       F        F    F
-           Byte   |               T     F       F    F       F        F    F
-   t1   Address   |                     T       F    F       F        T    F
-           Char   |                             T    F       F        F    F
-        Integer   |                                  T       T        F    F
-       Cardinal   |                                          T        F    F
-            Ptr   |                                                   T    F
-           Enum   |                                                        T
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real
+                  +-----------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T    T
+           Word   |         T     F     F       F    F       F        F    F    F
+           Byte   |               T     F       F    F       F        F    F    F
+   t1   Address   |                     T       F    F       F        T    F    F
+           Char   |                             T    F       F        F    F    F
+        Integer   |                                  T       T        F    F    F
+       Cardinal   |                                          T        F    F    F
+            Ptr   |                                                   T    F    F
+           Enum   |                                                        T    F
+           Real   |                                                             T
 *)
 
 (*

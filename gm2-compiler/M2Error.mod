@@ -20,7 +20,7 @@ FROM ASCII IMPORT nul, nl ;
 FROM NameKey IMPORT KeyToCharStar ;
 FROM Strings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
 FROM FIO IMPORT StdOut, WriteNBytes, Close ;
-FROM StrLib IMPORT StrLen ;
+FROM StrLib IMPORT StrLen, StrEqual ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, GetTokenNo ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
@@ -606,6 +606,29 @@ BEGIN
    e := NewWarning(tok) ;
    ErrorString(e, s) ;
 END WarnStringAt ;
+
+
+(*
+   ErrorAbort0 - aborts compiling, it flushes all warnings and errors before aborting.
+*)
+
+PROCEDURE ErrorAbort0 (a: ARRAY OF CHAR) ;
+BEGIN
+   FlushWarnings ;
+   IF NOT StrEqual(a, '')
+   THEN
+      WriteFormat0(a)
+   END ;
+   IF NOT FlushAll(head, TRUE)
+   THEN
+      WriteFormat0('unidentified error') ;
+      IF FlushAll(head, TRUE)
+      THEN
+      END
+   END ;
+   ExitOnHalt(1) ;
+   HALT
+END ErrorAbort0 ;
 
 
 BEGIN

@@ -64,6 +64,7 @@ EXPORT QUALIFIED NulSym,
                  MakeProcType,
                  MakeGnuAsm,
                  MakeRegInterface,
+                 MakeError,
 
                  ForeachModuleDo,
                  ForeachInnerModuleDo,
@@ -158,6 +159,7 @@ EXPORT QUALIFIED NulSym,
       	       	 IsSet,
                  IsAModula2Type,
                  IsGnuAsmVolatile,
+                 IsError,
 
                  IsProcedureReachable,
                  IsProcedureVariable,
@@ -1939,6 +1941,20 @@ PROCEDURE PopOffset (Sym: CARDINAL) ;
 *)
 
 PROCEDURE PopSumOfParamSize (Sym: CARDINAL) ;
+
+
+(*
+   MakeError - creates an error node.
+*)
+
+PROCEDURE MakeError (name: Name) : CARDINAL ;
+
+
+(*
+   IsError - returns TRUE if the symbol is an error symbol.
+*)
+
+PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
 
 
 END SymbolTable.

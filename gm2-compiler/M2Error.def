@@ -34,7 +34,8 @@ EXPORT QUALIFIED Error,
                  NewWarning,
                  FlushErrors, FlushWarnings, ChainError,
                  ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
-                 WarnStringAt, WarnStringAt2, WarnStringsAt2 ;
+                 WarnStringAt, WarnStringAt2, WarnStringsAt2,
+                 ErrorAbort0 ;
 
 TYPE
    Error ;
@@ -159,6 +160,13 @@ PROCEDURE FlushErrors ;
 *)
 
 PROCEDURE FlushWarnings ;
+
+
+(*
+   ErrorAbort0 - aborts compiling, it flushes all warnings and errors before aborting.
+*)
+
+PROCEDURE ErrorAbort0 (a: ARRAY OF CHAR) ;
 
 
 END M2Error.

@@ -20,9 +20,9 @@ DEFINITION MODULE M2Reserved ;
    Author     : Gaius Mulley
    Title      : M2Reserved
    Date       : 15/5/87
-   Description: Implements a procedure to determine if a symbol is a
-                Modula-2 reserved word.
-   Last update: 15/5/87
+   Description: implements a procedure to determine if a symbol is a
+                Modula-2 reserved word and provides conversion between
+                toktype and the equivalent stringed, Name.
 *)
 
 FROM NameKey IMPORT Name ;
