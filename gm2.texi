@@ -234,9 +234,49 @@ The @code{VAR} equivalent unbounded array parameters need no copy,
 but still use the @code{struct} representation.
 
 The recommended method of interfacing GNU Modula-2 to C is by using
-a dummy definition module. For example suppose we wish to utilize the
+a dummy definition module and writing a C wrapper implementation module.
+For example suppose we wish to utilize the
 @code{read} function within libc. In this case we might write a
 definition module as shown below:
+
+@example
+DEFINITION MODULE libc ;
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT QUALIFIED read ;
+
+PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+
+END libc.
+@end example
+
+The C implementation module might look similar to this:
+
+@example
+int libc_read(int d, void *buf, int nbytes)
+@{
+  return( read(d, buf, nbytes) );
+@}
+
+void _M2_libc_init (void)
+@{
+@}
+@end example
+
+Notice the last function is currently required as all modules have
+an initialization section. In the C wrapper implemenation we provide
+this function to satisfy the linking mechanism.
+
+The mechanism of using a C implementation wrapper does add a slight overhead
+but reduces name clashes within a module importing from this module and
+solves the initialization function issue.
+
+--fixme-- this next method breaks the linker (use method above).
+
+The alternative method is to use the @code{UNQUALIFIED} keyword
+in the definition module which tells GNU Modula-2 not to prefix the module name
+to identifiers when emiting the assembly language. So if we were linking to
+libc again we would write our definition module as:
 
 @example
 DEFINITION MODULE libc ;
@@ -249,8 +289,7 @@ PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
 END libc.
 @end example
 
-The @code{UNQUALIFIED} keyword tells GNU Modula-2 not to prefix the module name
-to this identifier when emiting the assembly language.
+and require no C wrapper implementation.
 
 @node Assembly language, , Interface to C, Using
 @section Interface to assembly language
@@ -420,6 +459,12 @@ gcc and most of this work is localized in the following files:
 What needs to be done:
 
 @itemize @bullet
+
+@item
+fix the implications of UNQUALIFIED within the linking mechanism
+
+@item
+modify all makefiles to make them comply with GNU standards.
 
 @item
 rewrite documentation.
