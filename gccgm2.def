@@ -287,7 +287,8 @@ PROCEDURE BuildStartFunctionDeclaration ;
                                  The arguments have been created by BuildParameterDeclaration.
 *)
 
-PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS; returntype: Tree) : Tree ;
+PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
+                                       returntype: Tree; isexternal: BOOLEAN) : Tree ;
 
 
 (*

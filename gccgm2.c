@@ -8315,9 +8315,10 @@ gccgm2_BuildStartFunctionDeclaration ()
  */
 
 tree
-gccgm2_BuildEndFunctionDeclaration (name, returntype)
+gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
      char *name;
      tree  returntype;
+     int   isexternal;
 {
   tree fntype;
   tree fndecl;
@@ -8333,7 +8334,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
   fntype = build_function_type (returntype, param_type_list);
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
 
-  DECL_EXTERNAL (fndecl)    = 0;
+  DECL_EXTERNAL (fndecl)    = isexternal;
   TREE_PUBLIC (fndecl)      = 1;
   TREE_STATIC (fndecl)      = 1;
   DECL_ARGUMENTS (fndecl)   = param_list;
@@ -8935,7 +8936,7 @@ tree
 gccgm2_BuildProcedureCall (procedure, rettype)
      tree procedure, rettype;
 {
-  tree functype = TREE_TYPE(procedure);   /* was: was_fntype  gaius got to here */
+  tree functype = TREE_TYPE(procedure);
   tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), procedure);
   tree call;
 

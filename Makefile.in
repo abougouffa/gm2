@@ -259,6 +259,9 @@ gm2tools: force
                "CFLAGS=-g" \
                stage1.gcctools )
 
+gm2test: force
+	../cc1gm2 -O -q -M "m2/comp/autotest/gcc m2/comp/libs" -c -version -g -o - gcd
+
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux
 	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
