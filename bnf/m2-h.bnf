@@ -962,7 +962,7 @@ RepeatStatement := "REPEAT"
 
 ForStatement := "FOR"
                       Ident ":=" Expression "TO" Expression
-                ( "BY" ConstExpression |                                   % (* epsilon *) %
+                ( "BY" SilentConstExpression |                             % (* epsilon *) %
                 ) "DO"
                 StatementSequence "END"
               =:
@@ -1043,7 +1043,7 @@ ModuleDeclaration := "MODULE"                                              % Pus
                                                                            % PopAuto ; PopAuto ; PopAuto %
                      =:
 
-Priority := "[" ConstExpression "]" =:
+Priority := "[" SilentConstExpression "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
