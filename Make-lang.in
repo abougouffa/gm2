@@ -335,7 +335,7 @@ GM2_FLAGS=-Wbounds -Wreturn -gstabs
 # much prefered as the executable contains debugging info relating
 # directly to the Modula-2 source.
 
-GM2_OBJS          = gm2/gccgm2.o gm2/gm2-lang.o                          # the C implementation module bridging the Modula-2 -> GCC
+GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o        # the C implementation module bridging the Modula-2 -> GCC
 GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a gm2/gm2-libs-boot/libgm2.a \
                     gm2/p2c/p2c-src/home/libp2c.a                        # the translated Modula-2 -> C front end
@@ -408,6 +408,7 @@ stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) $(BACKE
 # Compiling object files from source files.
 
 gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H)
 
 
@@ -758,6 +759,7 @@ BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/%.h) \
 BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/%.h) \
                       $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/%.h) \
 	              gm2/gm2-compiler-boot/gccgm2.h \
+	              gm2/gm2-compiler-boot/gm2builtins.h \
                       $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                       $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                       gm2/gm2-compiler-boot/m2lex.o \
@@ -1123,7 +1125,7 @@ gm2.maintainer-clean: force
 	-rm -f $(srcdir)/gm2/gm2-auto/*
 
 GM2DISTFILES = CVS ChangeLog gm2/Make-lang.in README bnf config-lang.in \
-            el gccgdbinit gccgm2.c gccgm2.def gm2-auto gm2-compiler gm2-compiler-boot \
+            el gccgdbinit gccgm2.c gm2builtins.c gm2-auto gm2-compiler gm2-compiler-boot \
             gm2-gccinit gm2-libs gm2-libs-boot gm2-libs-ch gm2.texi gm2spec.c \
             lang-options.h lang-specs.h loc.p2crc m2 m2.lex m2f-src p2c p2crc \
             tools-src gm2-libiberty
