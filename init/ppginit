@@ -12,7 +12,6 @@ StrIO
 DynamicStrings
 NameKey
 NumberIO
-Math
 PushBackInput
 SymbolKey
 UnixArgs

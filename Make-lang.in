@@ -456,7 +456,7 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
                      Assertion.def   NumberIO.def    Break.def       SYSTEM.def      \
                      CmdArgs.def     Scan.def        DebugPMD.def    StrCase.def     \
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
-                     UnixArgs.def    wrapc.def       Math.def        Environment.def \
+                     UnixArgs.def    wrapc.def                       Environment.def \
                      FpuIO.def       Debug.def       SysStorage.def  DynamicStrings.def \
                      SFIO.def        SArgs.def       StdIO.def       \
                      FormatStrings.def PushBackInput.def Storage.def SEnvironment.def\
@@ -465,7 +465,7 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
                      DebugPMD.mod    StrCase.mod     FIO.mod         StrIO.mod       \
-                     TimeString.mod  StrLib.mod      Math.mod        Environment.mod \
+                     TimeString.mod  StrLib.mod                      Environment.mod \
                      FpuIO.mod       Debug.mod       SysStorage.mod  DynamicStrings.mod     \
                      SFIO.mod        M2RTS.mod       SArgs.mod                       \
                      FormatStrings.mod PushBackInput.mod SEnvironment.mod            \
@@ -519,7 +519,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      Assertion.def     NumberIO.def    Break.def       SYSTEM.def      \
                      CmdArgs.def       Scan.def        DebugPMD.def    StrCase.def     \
                      FIO.def           StrIO.def       StrLib.def      TimeString.def  \
-                     UnixArgs.def      wrapc.def       Math.def        Environment.def \
+                     UnixArgs.def      wrapc.def                       Environment.def \
                      FpuIO.def         Debug.def       SysStorage.def  \
                      Storage.def       StdIO.def       libc.def        SEnvironment.def\
                      DynamicStrings.def                SFIO.def        SArgs.def \
@@ -530,7 +530,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
                      CmdArgs.mod       Scan.mod        DebugPMD.mod    StrCase.mod     \
                      FIO.mod           StrIO.mod       StrLib.mod      TimeString.mod  \
-                                                       Math.mod        Environment.mod \
+                                                                       Environment.mod \
                      FpuIO.mod         Debug.mod       SysStorage.mod  \
                      Storage.mod       StdIO.mod                       SEnvironment.mod\
                      DynamicStrings.mod                SFIO.mod        SArgs.mod \

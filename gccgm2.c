@@ -124,6 +124,7 @@ enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
 
 tree proc_type_node;
 tree bitset_type_node;
+tree bitnum_type_node;
 tree m2_char_type_node;
 tree m2_integer_type_node;
 tree m2_cardinal_type_node;
@@ -447,6 +448,7 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildPointerType 	       	 	  PARAMS ((tree totype));
        tree                   gccgm2_BuildArrayType 	       	 	  PARAMS ((tree elementtype, tree indextype));
        tree                   build_set_type                              PARAMS ((tree members, int allow_void));
+       tree                   gccgm2_BuildSetTypeFromSubrange             PARAMS ((char *, tree, tree, tree));
        tree                   gccgm2_BuildSetType 	       	 	  PARAMS ((char *name, tree type, tree lowval,
 									 	  tree highval));
        tree                   gccgm2_BuildSubrangeType 	       	 	  PARAMS ((char *name, tree type, tree lowval,
@@ -519,6 +521,7 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_GetVoidType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetPointerType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetBitsetType 	       	 	  PARAMS ((void));
+       tree                   gccgm2_GetBitnumType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetRealType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetLongRealType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetLongIntType 	       	 	  PARAMS ((void));
@@ -8557,35 +8560,40 @@ convert_type_to_range (type)
 }
 
 /*
- *  build_bitset_type - builds the type BITSET which is exported from SYSTEM
+ *  build_bitset_type - builds the type BITSET which is exported from SYSTEM.
+ *                      It also builds BITNUM (the subrange from which BITSET is created).
  */
 
 static
 tree
 build_bitset_type (void)
 {
-  return gccgm2_BuildSetType (NULL, gccgm2_GetCardinalType(),
-			      gccgm2_BuildIntegerConstant (0),
-			      gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerWord()-1));
+  bitnum_type_node = build_range_type (skip_type_decl (gccgm2_GetCardinalType()),
+				       gccgm2_BuildIntegerConstant (0),
+				       gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerWord()-1));
+  return gccgm2_BuildSetTypeFromSubrange (NULL, bitnum_type_node,
+					  gccgm2_BuildIntegerConstant (0),
+					  gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerWord()-1));
 }
 
 /*
- *  BuildSetType - creates a SET OF [lowval..highval]
+ *  BuildSetTypeFromSubrange - constructs a set type from a subrangeType.
  */
 
 tree
-gccgm2_BuildSetType (name, type, lowval, highval)
+gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
      char *name;
-     tree type, lowval, highval;
+     tree subrangeType;
+     tree lowval;
+     tree highval;
 {
-  tree range      = build_range_type (skip_type_decl (type), lowval, highval);
   tree noelements = gccgm2_BuildAdd (gccgm2_BuildSub (highval, lowval, FALSE),
 				     integer_one_node,
 				     FALSE);
   tree settype;
 
-  layout_type (range);
-  settype = build_set_type (build_tree_list (range, convert_type_to_range (range)), 0);
+  layout_type (subrangeType);
+  settype = build_set_type (build_tree_list (subrangeType, convert_type_to_range (subrangeType)), 0);
   if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (BITS_PER_WORD)) == 0)
     TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
   else
@@ -8603,6 +8611,20 @@ gccgm2_BuildSetType (name, type, lowval, highval)
     layout_type (skip_type_decl (settype));
     return settype;
   }
+}
+
+/*
+ *  BuildSetType - creates a SET OF [lowval..highval]
+ */
+
+tree
+gccgm2_BuildSetType (name, type, lowval, highval)
+     char *name;
+     tree type, lowval, highval;
+{
+  tree range = build_range_type (skip_type_decl (type), lowval, highval);
+
+  return gccgm2_BuildSetTypeFromSubrange (name, range, lowval, highval);
 }
 
 /*
@@ -10056,6 +10078,12 @@ tree
 gccgm2_GetBitsetType ()
 {
   return bitset_type_node;
+}
+
+tree
+gccgm2_GetBitnumType ()
+{
+  return bitnum_type_node;
 }
 
 tree

@@ -103,6 +103,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    Unbounded, ArrayAddress, ArrayHigh,
                    High, New, Dispose, Inc, Dec, Incl, Excl,
+                   Cap, Abs, Odd,
                    Ord, Chr, Convert, Val, Float, Trunc, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    IsMathType,
@@ -259,6 +260,9 @@ PROCEDURE BuildAccessWithField ; FORWARD ;
 PROCEDURE BuildAdrFunction ; FORWARD ;
 PROCEDURE BuildChrFunction ; FORWARD ;
 PROCEDURE BuildConvertFunction ; FORWARD ;
+PROCEDURE BuildOddFunction ; FORWARD ;
+PROCEDURE BuildAbsFunction ; FORWARD ;
+PROCEDURE BuildCapFunction ; FORWARD ;
 PROCEDURE BuildDecProcedure ; FORWARD ;
 PROCEDURE BuildDisposeProcedure ; FORWARD ;
 PROCEDURE BuildDynamicArray ; FORWARD ;
@@ -5080,6 +5084,15 @@ BEGIN
    ELSIF ProcSym=Convert
    THEN
       BuildConvertFunction
+   ELSIF ProcSym=Odd
+   THEN
+      BuildOddFunction
+   ELSIF ProcSym=Abs
+   THEN
+      BuildAbsFunction
+   ELSIF ProcSym=Cap
+   THEN
+      BuildCapFunction
    ELSIF ProcSym=Val
    THEN
       BuildValFunction
@@ -5595,6 +5608,286 @@ BEGIN
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
 END BuildHighFromChar ;
+
+
+(*
+   BuildOddFunction - builds the pseudo procedure call ODD.
+                      This procedure is actually a "macro" for
+                      ORD(x) --> VAL(BOOLEAN, x MOD 2)
+                      However we cannot push tokens back onto the input stack
+                      because the compiler is currently building a function
+                      call and expecting a ReturnVar on the stack.
+                      Hence we manipulate the stack and call
+                      BuildConvertFunction.
+
+                      The Stack:
+
+
+                      Entry                      Exit
+
+               Ptr ->
+                      +----------------+
+                      | NoOfParam      |
+                      |----------------|
+                      | Param 1        |
+                      |----------------|
+                      | Param 2        |
+                      |----------------|
+                      .                .
+                      .                .
+                      .                .
+                      |----------------|
+                      | Param #        |
+                      |----------------|
+                      | ProcSym | Type |         Empty
+                      |----------------|
+*)
+
+PROCEDURE BuildOddFunction ;
+VAR
+   NoOfParam,
+   Var      : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: VAL(BOOLEAN, (x MOD 2))
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Boolean) ;
+
+         (* compute (x MOD 2) *)
+         PushT(Var) ;
+         PushT(ModTok) ;
+         PushT(MakeConstLit(MakeKey('2'))) ;
+         BuildBinaryOp ;
+         PopT(Var) ;
+         PutVar(Var, Integer) ;
+         PushTF(Var, Integer) ;
+
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
+      ELSE
+         WriteFormat0('argument to ODD must be a variable or constant')
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure ODD only has one parameter')
+   END
+END BuildOddFunction ;
+
+
+(*
+   BuildAbsFunction - builds the pseudo procedure call ABS.
+
+                      ABS(x) --> IF x<0
+                                 THEN
+                                    RETURN -x
+                                 ELSE
+                                    RETURN x
+                                 END
+
+                      However we cannot push tokens back onto the input stack
+                      because the compiler is currently building a function
+                      call and expecting a ReturnVar on the stack.
+                      Hence we manipulate the stack and call
+                      BuildConvertFunction.
+
+                      The Stack:
+
+
+                      Entry                      Exit
+
+               Ptr ->
+                      +----------------+
+                      | NoOfParam      |
+                      |----------------|
+                      | Param 1        |
+                      |----------------|
+                      | Param 2        |
+                      |----------------|
+                      .                .
+                      .                .
+                      .                .
+                      |----------------|
+                      | Param #        |
+                      |----------------|
+                      | ProcSym | Type |         Empty
+                      |----------------|
+*)
+
+PROCEDURE BuildAbsFunction ;
+VAR
+   NoOfParam,
+   Res, Var : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         PopN(NoOfParam+1) ;
+
+         Res := MakeTemporary(RightValue) ;
+         PutVar(Res, GetType(Var)) ;
+
+         (* compute IF x<0 *)
+         PushT(Var) ;
+         PushT(LessTok) ;
+         PushT(MakeConstLit(MakeKey('0'))) ;
+         BuildRelOp ;
+
+         BuildThenIf ;
+         PushT(Res) ;
+         PushT(MinusTok) ;
+         PushT(Var) ;
+         BuildUnaryOp ;
+         BuildAssignment ;
+         
+         BuildElse ;
+         PushT(Res) ;
+         PushT(Var) ;
+         BuildAssignment ;
+         BuildEndIf ;
+
+         PushT(Res)
+      ELSE
+         WriteFormat0('argument to ABS must be a variable or constant')
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure ABS only has one parameter')
+   END
+END BuildAbsFunction ;
+
+
+(*
+   BuildCapFunction - builds the pseudo procedure call CAP.
+
+                      CAP(x) --> IF (x>='a') AND (x<='z')
+                                 THEN
+                                    res := CHR(ORD(x)-ORD('a')+ORD('A'))
+                                 ELSE
+                                    res := x
+                                 END ;
+                                 RETURN res
+
+                      However we cannot push tokens back onto the input stack
+                      because the compiler is currently building a function
+                      call and expecting a ReturnVar on the stack.
+                      Hence we manipulate the stack and call
+                      BuildConvertFunction.
+
+                      The Stack:
+
+
+                      Entry                      Exit
+
+               Ptr ->
+                      +----------------+
+                      | NoOfParam      |
+                      |----------------|
+                      | Param 1        |
+                      |----------------|
+                      | Param 2        |
+                      |----------------|
+                      .                .
+                      .                .
+                      .                .
+                      |----------------|
+                      | Param #        |
+                      |----------------|
+                      | ProcSym | Type |         Empty
+                      |----------------|
+*)
+
+PROCEDURE BuildCapFunction ;
+VAR
+   NoOfParam,
+   Res, Var : CARDINAL ;
+BEGIN
+   DisplayStack ;    (* Debugging info *)
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         PopN(NoOfParam+1) ;
+
+         Res := MakeTemporary(RightValue) ;
+         PutVar(Res, Char) ;
+
+         (* compute IF (x>='a') AND (x<='z') *)
+         PushT(Var) ;
+         PushT(GreaterEqualTok) ;
+         PushT(MakeConstLitString(MakeKey('a'))) ;
+         BuildRelOp ;
+         
+         PushT(AndTok) ;
+         RecordOp ;
+
+         PushT(Var) ;
+         PushT(LessEqualTok) ;
+         PushT(MakeConstLitString(MakeKey('z'))) ;
+         BuildRelOp ;
+         
+         BuildBinaryOp ;
+
+         BuildThenIf ;
+
+         (* compute THEN res := CHR(ORD(x)-ORD('a')+ORD('A')) *)
+         PushT(Res) ;
+         PushTF(Chr, NulSym) ;
+
+         PushTF(Ord, NulSym) ;
+         PushT(Var) ;
+         PushT(1) ;
+         BuildOrdFunction ;
+
+         PushT(MinusTok) ;
+         RecordOp ;
+
+         PushTF(Ord, NulSym) ;
+         PushT(MakeConstLitString(MakeKey('a'))) ;
+         PushT(1) ;
+         BuildOrdFunction ;
+
+         BuildBinaryOp ;
+
+         PushT(PlusTok) ;
+         RecordOp ;
+
+         PushTF(Ord, NulSym) ;
+         PushT(MakeConstLitString(MakeKey('A'))) ;
+         PushT(1) ;
+         BuildOrdFunction ;
+
+         BuildBinaryOp ;
+
+         PushT(1) ;
+         BuildChrFunction ;
+
+         BuildAssignment ;
+
+         BuildElse ;
+         PushT(Res) ;
+         PushT(Var) ;
+         BuildAssignment ;
+         BuildEndIf ;
+
+         PushT(Res)
+      ELSE
+         WriteFormat0('argument to CAP must be a variable or constant')
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure CAP only has one parameter')
+   END
+END BuildCapFunction ;
 
 
 (*

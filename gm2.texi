@@ -66,7 +66,8 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 * History::               How GNU Modula-2 came about.
 * Compiler options::      GNU Modula-2 compiler options.
 * Example usage::         Example compile and link.
-* Elementary data types:: Data types supported by GNU Modula-2
+* Elementary data types:: Data types supported by GNU Modula-2.
+* Standard procedures::   Permanently accessible base procedures.
 * Extensions::            GNU Modula-2 language extensions.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
@@ -200,7 +201,7 @@ Alternatively it may be compiled by:
 
 @samp{gm2 -g -I. -Wmakeall hello.mod}
 
-@node Elementary data types, Extensions, Example usage, Using
+@node Elementary data types, Standard procedures, Example usage, Using
 @section Elementary data types
 
 This section describes the elementary data types supported by GNU
@@ -226,7 +227,116 @@ SHORTREAL                 float
 CHAR                      char
 @end example
 
-@node Extensions, Interface to C, Elementary data types, Using
+@node Standard procedures, Extensions, Elementary data types, Using
+@section Permanently accessible base procedures.
+
+This section describes the procedures and functions which are
+always visible.
+
+@subsection PIM standard procedures and functions
+
+The following procedures are implemented and conform with Programming
+in Modula-2: @code{NEW}, @code{DISPOSE}, @code{INC}, @code{DEC},
+@code{INCL}, @code{EXCL} and @code{HALT}.  The standard functions are:
+@code{HIGH}, @code{CAP}, @code{ABS}, @code{ODD}, @code{VAL},
+@code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}. All these functions
+and procedures (except @code{HALT}, @code{NEW} and @code{DISPOSE}
+generate in-line code for efficiency.
+
+@example
+
+(*
+   NEW - the procedure NEW is replaced by:
+         ALLOCATE(p, TSIZE(p^)) ;
+         The user is expected to import the procedure ALLOCATE
+         (normally found in the module, Storage.)
+
+         In:  a variable p: of any pointer type.
+         Out: variable, p, is set to some allocated memory
+              which is large enough to hold all the contents of p^.
+*)
+
+@findex NEW
+PROCEDURE NEW (VAR p:<any pointer type>) ;
+@end example
+
+@example
+(*
+   DISPOSE - the procedure DISPOSE is replaced by:
+             DEALLOCATE(p, TSIZE(p^)) ;
+             The user is expected to import the procedure DEALLOCATE
+             (normally found in the module, Storage.)
+
+             In:  a variable p: of any pointer type which has been
+                  initialized by a call to NEW.
+             Out: the area of memory
+                  holding p^ is returned to the system.
+                  Note that the underlying procedure DEALLOCATE
+                  procedure in module Storage will assign p to NIL.
+
+(* fix this NIL assignment gaius *)
+*)
+
+@findex DISPOSE
+PROCEDURE DISPOSE (VAR p:<any pointer type>) ;
+
+@end example
+
+@example
+(*
+   INC - can take one or two parameters. If suppied with one
+         parameter it adds 1 to the variable, v.
+         If two parameters are supplied then the value, a, is
+         added to, v.
+*)
+
+@findex INC
+PROCEDURE INC (VAR v: <any base type>) ;
+PROCEDURE INC (VAR v: <any base type>; a: <any base type>) ;
+@end example
+
+@example
+(*
+   DEC - can take one or two parameters. If suppied with one
+         parameter it subtracts 1 from the variable, v.
+         If two parameters are supplied then the value, a, is
+         subtracted from, v.
+*)
+
+@findex DEC
+PROCEDURE DEC (VAR v: <any base type>) ;
+PROCEDURE DEC (VAR v: <any base type>; a: <any base type>) ;
+@end example
+
+@example
+(*
+   INCL - includes bit element, e, to a set type, s.
+*)
+
+@findex INCL
+PROCEDURE INCL (VAR s: <any set type>; e: <element of set type s>) ;
+@end example
+
+@example
+(*
+   EXCL - excludes bit element, e, from a set type, s.
+*)
+
+@findex EXCL
+PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
+@end example
+
+@example
+(*
+   HALT - will call the HALT procedure inside the module M2RTS.
+          Users can replace M2RTS.
+*)
+
+@findex HALT
+PROCEDURE HALT ;
+@end example
+
+@node Extensions, Interface to C, Standard procedures, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.

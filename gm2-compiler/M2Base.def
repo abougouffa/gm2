@@ -41,19 +41,13 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ArrayHigh,             (* Implement ARRAY OF Type *)
                  High,                  (* Base function           *)
                  Convert,
-                 Chr,
-                 Ord,
-                 Val,
-                 Trunc,
-                 Float,
-                 Min,
-                 Max,
-                 New,                   (* Base procedures         *)
-                 Dispose,
-                 Inc,
-                 Dec,
-                 Incl,
-                 Excl,
+                 Cap, Abs, Odd,
+                 Chr, Ord, Val,
+                 Trunc, Float,
+                 Min, Max,
+                 New, Dispose,          (* Base procedures         *)
+                 Inc, Dec,
+                 Incl, Excl,
                  IsPseudoBaseFunction,  (* Manipulation procedures *)
                  IsPseudoBaseProcedure, (* Manipulation procedures *)
                  IsBaseType,
@@ -94,6 +88,7 @@ VAR
    LongReal, ShortReal,
    Unbounded,
    High,
+   Cap, Abs, Odd,
    Convert, Val,
    Trunc, Float,
    Chr, Ord,

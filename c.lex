@@ -187,7 +187,7 @@ static  int  isTypeDef    (char *a);
                               currentLine->actualline = 0;
 			      currentLine->lex_buffer = YY_CURRENT_BUFFER;
 			      if (strlen (yytext)>1) {
-				char *fileName   = strdup (yytext+1);
+				char *fileName   = xstrdup (yytext+1);
 				int   localFirst = (fileName[strlen(fileName)-1] == '"');
 				char *actualPath;
 
@@ -509,7 +509,7 @@ static void pushLine (void)
       l->linebuf  = NULL;
       l->linelen  = 0;
     } else {
-      l->linebuf    = (char *)xstrdup(currentLine->linebuf);
+      l->linebuf    = (char *)xstrdup (currentLine->linebuf);
       l->linelen    = strlen(l->linebuf)+1;
     }
     l->tokenpos   = currentLine->tokenpos;
@@ -587,7 +587,7 @@ int clex_OpenSource (char *s)
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
     initLine();
-    currentLine->filename = xstrdup(s);
+    currentLine->filename = xstrdup (s);
     return TRUE;
   }
 }
@@ -612,7 +612,7 @@ void clex_SetSearchPath (char *newPath)
 {
   if (searchPath != NULL)
     free(searchPath);
-  searchPath = strdup(newPath);
+  searchPath = xstrdup (newPath);
 }
 
 /*
@@ -685,7 +685,7 @@ static void addTypeDef (char *a)
   struct typeDef *t = (struct typeDef*)xmalloc (sizeof (struct typeDef));
 
   t->next = listOfTypes;
-  t->name = strdup (a);
+  t->name = xstrdup (a);
   listOfTypes = t;
 }
 

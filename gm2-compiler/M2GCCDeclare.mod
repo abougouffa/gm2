@@ -74,7 +74,7 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh ;
-FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte, Loc ;
+FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Bitnum, Byte, Loc ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 
@@ -91,7 +91,7 @@ FROM gccgm2 IMPORT Tree,
                    GetPointerType, GetM2LongIntType,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
-                   GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
+                   GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
                    GetM2IntegerType, GetM2CardinalType,
                    GetISOLocType, GetISOByteType, GetISOWordType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -667,7 +667,7 @@ BEGIN
       printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
    END ;
 
-   IF Sym=101
+   IF Sym=99
    THEN
       mystop
    END ;
@@ -913,6 +913,11 @@ BEGIN
    THEN
       IF IsSubrange(GetType(sym))
       THEN
+         IF NOT GccKnowsAbout(GetType(sym))
+         THEN
+            (* only true for internal types of course *)
+            InternalError('subrange type within the set type must be declared before the set type', __FILE__, __LINE__)
+         END ;
          GetSubrange(GetType(sym), high, low) ;
          DeclareConstant(GetDeclared(sym), high) ;
          DeclareConstant(GetDeclared(sym), low)
@@ -973,6 +978,7 @@ BEGIN
       DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
       DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
       DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
+      DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
       DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
       DeclareBoolean
    END

@@ -333,7 +333,11 @@ BEGIN
    EndScope ;
 
    (* and the base functions *)
-   Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Pseudo Base function CONVERT *)
+
+   Convert := MakeProcedure(MakeKey('CONVERT')) ;  (* Internal function CONVERT    *)
+   Abs     := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
+   Cap     := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
+   Odd     := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
    Val     := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
    Ord     := MakeProcedure(MakeKey('ORD')) ;      (* Pseudo Base function ORD     *)
    Chr     := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
@@ -353,7 +357,7 @@ BEGIN
    RETURN(
           (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR (Sym=Ord) OR
           (Sym=Chr) OR (Sym=Float) OR (Sym=Trunc) OR (Sym=Min) OR
-          (Sym=Max)
+          (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap)
          )
 END IsPseudoBaseFunction ;
 

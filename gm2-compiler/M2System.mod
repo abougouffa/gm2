@@ -70,8 +70,6 @@ VAR
 *)
 
 PROCEDURE InitPIMTypes ;
-VAR
-   BitsetRange: CARDINAL ;
 BEGIN
    Loc := NulSym ;
 
@@ -104,9 +102,9 @@ BEGIN
    PushCard(GetBitsPerWord()-1) ;
    PopValue(MaxBitset) ;
 
-   BitsetRange := MakeSubrange(NulName) ;
-   PutSubrange( BitsetRange, MinBitset, MaxBitset, Word) ;
-   PutSet(Bitset, BitsetRange) ;
+   Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
+   PutSubrange(Bitnum, MinBitset, MaxBitset, Word) ;
+   PutSet(Bitset, Bitnum) ;
 
    PushIntegerTree(GetSizeOf(GetWordType())) ;
    PopSize(Bitset)
@@ -119,8 +117,6 @@ END InitPIMTypes ;
 *)
 
 PROCEDURE InitISOTypes ;
-VAR
-   BitsetRange: CARDINAL ;
 BEGIN
    Loc := MakeType(MakeKey('LOC')) ;
    PutType(Loc, NulSym) ;                     (* Base Type       *)
@@ -154,9 +150,9 @@ BEGIN
    PushCard(GetBitsPerWord()-1) ;
    PopValue(MaxBitset) ;
 
-   BitsetRange := MakeSubrange(NulName (* MakeKey('BITNUM') *)) ;
-   PutSubrange(BitsetRange, MinBitset, MaxBitset, Word) ;
-   PutSet(Bitset, BitsetRange) ;
+   Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
+   PutSubrange(Bitnum, MinBitset, MaxBitset, Word) ;
+   PutSet(Bitset, Bitnum) ;
 
    PushIntegerTree(GetSizeOf(GetWordType())) ;
    PopSize(Bitset) ;

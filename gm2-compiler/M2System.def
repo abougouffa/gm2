@@ -32,6 +32,7 @@ EXPORT QUALIFIED
                  Byte,             (* System Type *)
                  Address,          (* System Type *)
       	       	 Bitset,           (* System Type *)
+                 Bitnum,           (* System Type *)
                  Adr,              (* System Function *)
                  Size,             (* System Function *)
                  TSize,            (* System Function *)
@@ -53,7 +54,7 @@ EXPORT QUALIFIED
 VAR
    Loc,
    Word, Byte,
-   Bitset,
+   Bitset, Bitnum,
    Address,
 
    Adr,  Size,
