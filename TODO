@@ -7,3 +7,6 @@
 *  back port gm2 to previous releases of gcc
 *  introduce shared library support
 *  fix bugs in h2def
+*  implement module priorities
+*  fix bugs in compiler exhibited by ulm standard libraries
+*  fix bug in varient record found in SysVec.mod
