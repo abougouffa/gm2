@@ -5,7 +5,7 @@ DEFINITION MODULE gccgm2 ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Sat Jul 24 15:47:03 1999
-    Last edit  : Sat Jul 24 15:47:03 1999
+    Last edit  : Tue Jul 11 2000
     Description: provides a Modula-2 interface to the C file gm2.c
 *)
 
@@ -18,11 +18,13 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  GetCharType, GetVoidType, GetCurrentFunction,
                  GetPointerType,
                  GetUnsignedCharType, GetUnsignedIntegerType, GetUnsignedType,
-                 GetLongIntType, GetRealType, GetLongRealType,
+                 GetLongIntType, GetRealType, GetLongRealType, GetProcType,
+                 GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
+                 BuildLongRealConstant, BuildRealConstant,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
@@ -34,7 +36,8 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildAssignment, BuildBinaryOperator,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
-                 BuildAddr, BuildNegate, BuildSize,
+                 BuildConvert,
+                 BuildAddr, BuildNegate, BuildSize, BuildOffset,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
                  BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -45,7 +48,9 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
                  BuildAsm,
-                 AssignBooleanTrueFalse ;
+
+                 AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
+                 ConvertConstantAndCheck ;
 
 
 TYPE
@@ -86,6 +91,56 @@ PROCEDURE GetCurrentFunction     () : Tree ;
 PROCEDURE GetRealType            () : Tree ;
 PROCEDURE GetLongRealType        () : Tree ;
 PROCEDURE GetLongIntType         () : Tree ;
+PROCEDURE GetWordType            () : Tree ;
+PROCEDURE GetProcType            () : Tree ;
+
+(*
+   GetMinFrom - given a, type, return a constant representing the minimum
+                legal value.
+*)
+
+PROCEDURE GetMinFrom (type: Tree) : Tree ;
+
+
+(*
+   GetMaxFrom - given a, type, return a constant representing the maximum
+                legal value.
+*)
+
+PROCEDURE GetMaxFrom (type: Tree) : Tree ;
+
+
+(*
+   GetBitsPerWord - returns a CARDINAL indicating the number of bits per word.
+*)
+
+PROCEDURE GetBitsPerWord () : CARDINAL ;
+
+
+(*
+   GetSizeOf - returns a TREE containing the sizeof(type).
+*)
+
+PROCEDURE GetSizeOf (type: Tree) : Tree ;
+
+
+(*
+   AreConstantsEqual - maps onto tree.c (tree_int_cst_equal). It returns
+                       TRUE if the value of e1 is the same as e2.
+*)
+
+PROCEDURE AreConstantsEqual (e1, e2: Tree) : BOOLEAN ;
+
+
+(*
+   DetermineSign - returns -1 if e<0
+                            0 if e==0
+                            1 if e>0
+ 
+                   an unsigned constant will never return -1
+*)
+
+PROCEDURE DetermineSign (e: Tree) : INTEGER ;
 
 
 (*
@@ -170,6 +225,22 @@ PROCEDURE BuildStringConstant (string: ADDRESS; length: CARDINAL) : Tree ;
 *)
 
 PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
+
+
+(*
+    floating point constant creation
+*)
+
+PROCEDURE BuildRealConstant     (value: LONGREAL) : Tree ;
+PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
+
+(*
+   ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )
+                             Only to be used for a constant expr,
+                             overflow checking is performed. 
+*)
+
+PROCEDURE ConvertConstantAndCheck (type, expr: Tree) : Tree ;
 
 
 (*
@@ -413,10 +484,27 @@ PROCEDURE BuildAddr (op1: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
+   BuildOffset - builds an expression containing the number of bytes the field
+                 is offset from the start of the record structure.
+                 The expression is returned.
+*)
+
+PROCEDURE BuildOffset (field: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
    BuildSymmetricDifference - build and return a logical difference tree. (op1 xor op2)
 *)
 
 PROCEDURE BuildSymmetricDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildConvert - build and return tree VAL(op1, op2)
+                  where op1 is the type to which op2 is to be converted.
+*)
+
+PROCEDURE BuildConvert (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

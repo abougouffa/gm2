@@ -1,4 +1,22 @@
 /*
+This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Modula-2 is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Modula-2; see the file COPYING.  If not, write to
+the Free Software Foundation, 59 Temple Place - Suite 330,
+Boston, MA 02111-1307, USA.  */
+
+/*
  *
  * IMPLEMENTATION MODULE gccgm2
  *     (* thus all external functions will be prefixed by gccgm2_
@@ -42,12 +60,11 @@ enum decl_context
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
 	    A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
 	    A_UNUSED, A_FORMAT, A_FORMAT_ARG, A_WEAK, A_ALIAS};
-#if 0
-static void declare_hidden_char_array	PROTO((char *, char *));
-#endif
+
 static void add_attribute		PROTO((enum attrs, char *,
 					       int, int, int));
 static void init_attributes		PROTO((void));
+       tree gccgm2_BuildIntegerConstant PROTO((int value));
 
 
 /*
@@ -102,15 +119,16 @@ static void init_attributes		PROTO((void));
  ((code) == INTEGER_TYPE || (code) == CHAR_TYPE || \
   (code) == BOOLEAN_TYPE || (code) == ENUMERAL_TYPE)
 
+tree proc_type_node;
 
 /* Global Variables for the various types and nodes we create.  */ 
 
-#if (GCC_VERSION <= 2007)
+#if 0 /* (GCC_VERSION <= 2007) */
 /* we must keep the C base types as the GCC depends on them */
 
 tree error_mark_node;
 tree integer_type_node;              /* INTEGER  */
-tree void_type_node;                 /* PROC ?   */
+tree void_type_node;                 /* VOID     */
 tree char_type_node;                 /* CHAR     */
 tree ptr_type_node;                  /* ADDRESS  */
 tree unsigned_char_type_node;        /* BYTE     */
@@ -332,7 +350,7 @@ gccgm2_SetFileNameAndLineNo (fn, line)
   lineno         = line;
 }
 
-
+#if 0
 /* Here are the three functions needed to compile our language and the
    variables they use.  */
 
@@ -473,7 +491,7 @@ build_function (fndecl, exp)
   permanent_allocation (1);
 }
 #endif
-
+#endif
 
 /* Routines Expected by gcc:  */
 
@@ -2649,17 +2667,18 @@ init_decl_processing ()
   error_mark_node = make_node (ERROR_MARK);
   TREE_TYPE (error_mark_node) = error_mark_node;
 
-  /* PROC ? */
+  /* VOID */
   void_type_node = make_node (VOID_TYPE);
   layout_type (void_type_node);
   TYPE_ALIGN (void_type_node) = BITS_PER_UNIT;
 
+  /* PROC */
+  proc_type_node = build_pointer_type(build_function_type (void_type_node, NULL_TREE));
+  layout_type (proc_type_node);
+  TYPE_ALIGN (proc_type_node) = BITS_PER_UNIT;
+
   /* ADDRESS */
   ptr_type_node = build_pointer_type (void_type_node);
-#if 0
-  pushdecl (build_decl (TYPE_DECL, get_identifier ("ADDRESS"),
-			ptr_type_node));
-#endif
 
   /* BYTE */
   unsigned_char_type_node = make_unsigned_type(CHAR_TYPE_SIZE);
@@ -6101,30 +6120,22 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
   switch (code)
     {
     case PLUS_EXPR:
-#if NOT_NEEDED_FOR_MODULA_2
       /* Handle the pointer + int case.  */
-      if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
-	return pointer_int_sum (PLUS_EXPR, op0, op1);
-      else if (code1 == POINTER_TYPE && code0 == INTEGER_TYPE)
-	return pointer_int_sum (PLUS_EXPR, op1, op0);
-      else
-#endif
-	common = 1;
+      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
+	  (code1 == POINTER_TYPE && code0 == INTEGER_TYPE)) {
+	result_type = integer_type_node;
+      } else if ((code0 == POINTER_TYPE) && (code1 == POINTER_TYPE)) {
+	result_type = integer_type_node;
+      }
+      common = 1;
       break;
 
     case MINUS_EXPR:
-#if NOT_NEEDED_FOR_MODULA_2
-      /* Subtraction of two similar pointers.
-	 We must subtract them as integers, then divide by object size.  */
-      if (code0 == POINTER_TYPE && code1 == POINTER_TYPE
-	  && comp_target_types (type0, type1))
-	return pointer_diff (op0, op1);
-      /* Handle pointer minus int.  Just like pointer plus int.  */
-      else if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
-	return pointer_int_sum (MINUS_EXPR, op0, op1);
-      else
-#endif
-	common = 1;
+      /* Handle the pointer + int case.  */
+      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
+	  (code1 == POINTER_TYPE && code0 == INTEGER_TYPE))
+	result_type = integer_type_node;
+      common = 1;
       break;
 
     case MULT_EXPR:
@@ -6714,6 +6725,14 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
 
   if (!result_type)
     {
+#if 1
+      fprintf(stderr, "\noperand 1\n"); fflush(stderr);
+      debug_tree(orig_op0);
+      fprintf(stderr, "\noperand 2\n"); fflush(stderr);
+      debug_tree(orig_op1);
+      fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
+#endif
+
       binary_op_error (code);
       return error_mark_node;
     }
@@ -6770,6 +6789,37 @@ gccgm2_DeclareKnownType (name, type)
     finish_decl (decl, NULL_TREE, NULL_TREE);
 
     return( cp );
+}
+
+/*
+ *  GetMinFrom - given a, type, return a constant representing the minimum
+ *               legal value.
+ */
+
+tree
+gccgm2_GetMinFrom (type)
+     tree type;
+{
+  return( TYPE_MIN_VALUE(type) );
+}
+
+/*
+ *  GetMaxFrom - given a, type, return a constant representing the maximum
+ *               legal value.
+ */
+
+tree
+gccgm2_GetMaxFrom (type)
+     tree type;
+{
+  return( TYPE_MAX_VALUE(type) );
+}
+
+
+int
+gccgm2_GetBitsPerWord ()
+{
+  return( BITS_PER_WORD );
 }
 
 void
@@ -6831,7 +6881,10 @@ tree
 gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglobal, scope)
      char *name;
      tree type;
-     int  exported, imported, istemporary, isglobal;
+     int  exported;
+     int  imported;
+     int  istemporary ATTRIBUTE_UNUSED;
+     int  isglobal;
      tree scope;
 {
   tree id;
@@ -8665,6 +8718,20 @@ gccgm2_BuildLSL (op1, op2, needconvert)
 
 
 /*
+ *  BuildConvert - build and return tree VAL(op1, op2)
+ *                 where op1 is the type to which op2 is to be converted.
+ */
+
+tree
+gccgm2_BuildConvert (op1, op2, needconvert)
+     tree op1, op2;
+     int  needconvert ATTRIBUTE_UNUSED;
+{
+  return( convert_and_check(op1, op2) );
+}
+
+
+/*
  *  BuildNegate - builds a negate expression and returns the tree.
  */
 
@@ -8678,11 +8745,11 @@ gccgm2_BuildNegate (op1, needconvert)
 
 
 /*
- *  gm2_sizeof - taken from c-typeck.c (c_sizeof).
+ *  gccgm2_GetSizeOf - taken from c-typeck.c (c_sizeof).
  */
 
 tree
-gm2_sizeof (type)
+gccgm2_GetSizeOf (type)
      tree type;
 {
   enum tree_code code = TREE_CODE (type);
@@ -8726,9 +8793,9 @@ gm2_sizeof (type)
 tree
 gccgm2_BuildSize (op1, needconvert)
      tree op1;
-     int  needconvert;
+     int  needconvert ATTRIBUTE_UNUSED;
 {
-  return( gm2_sizeof(op1) );
+  return( gccgm2_GetSizeOf(op1) );
 }
 
 
@@ -8741,7 +8808,22 @@ gccgm2_BuildAddr (op1, needconvert)
      tree op1;
      int  needconvert;
 {
-  return( build_unary_op (ADDR_EXPR, op1, needconvert) );
+  return( convert (integer_type_node, build_unary_op (ADDR_EXPR, op1, needconvert)) );
+}
+
+
+/*
+ *  BuildOffset - builds an expression containing the number of bytes the field
+ *                is offset from the start of the record structure.
+ *                The expression is returned.
+ */
+
+tree
+gccgm2_BuildOffset (field, needconvert)
+     tree field;
+     int  needconvert ATTRIBUTE_UNUSED;
+{
+  return( gccgm2_BuildDiv(DECL_FIELD_BITPOS (field), gccgm2_BuildIntegerConstant(BITS_PER_UNIT), FALSE) );
 }
 
 
@@ -9161,6 +9243,44 @@ gccgm2_GetUnsignedIntegerType ()
   return( long_unsigned_type_node );
 }
 
+tree
+gccgm2_GetWordType ()
+{
+  return( long_unsigned_type_node );
+}
+
+tree
+gccgm2_GetProcType ()
+{
+  return( proc_type_node );
+}
+
+/*
+ *  AreConstantsEqual - maps onto tree.c (tree_int_cst_equal). It returns
+ *                      TRUE if the value of e1 is the same as e2.
+ */
+
+int
+gccgm2_AreConstantsEqual (e1, e2)
+  tree e1, e2;
+{
+  return( tree_int_cst_equal(e1, e2) != 0 );
+}
+
+/*
+ *  DetermineSign - returns -1 if e<0
+ *                           0 if e==0
+ *                           1 if e>0
+ *
+ *                  an unsigned constant will never return -1
+ */
+
+int
+gccgm2_DetermineSign (e)
+     tree e;
+{
+  return( tree_int_cst_sgn(e) );
+}
 
 tree
 gccgm2_BuildIntegerConstant (int value)
@@ -9179,7 +9299,6 @@ gccgm2_BuildIntegerConstant (int value)
       return( id );
   }
 }
-
 
 /*
  *  BuildStringConstant - creates a string constant given a, string, and, length.
@@ -9219,6 +9338,33 @@ gccgm2_BuildCharConstant (string)
 		      -1);
   TREE_TYPE (id) = integer_type_node;
   return( id );
+}
+
+tree
+gccgm2_BuildRealConstant (value)
+     REAL_VALUE_TYPE value;
+{
+  return( build_real(gccgm2_GetRealType(), value) );
+}
+
+tree
+gccgm2_BuildLongRealConstant (value)
+     REAL_VALUE_TYPE value;
+{
+  return( build_real(gccgm2_GetLongRealType(), value) );
+}
+
+/*
+ *  ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )
+ *                            Only to be used for a constant expr,
+ *                            overflow checking is performed. 
+ */
+
+tree
+gccgm2_ConvertConstantAndCheck (type, expr)
+     tree type, expr;
+{
+  return( convert_and_check(type, expr) );
 }
 
 /*
@@ -9786,7 +9932,7 @@ tree
 gccgm2_ChainOn (t1, t2)
      tree t1, t2;
 {
-#if 0
+#if 1
   return( chainon(t1, t2) );
 #else
   fprintf(stderr, "tree t1\n");
@@ -10459,6 +10605,6 @@ build_enumerator (name, value)
 
 /*
  * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -Wtraditional     -I. -I.. -I. -I./.. -I./../config -I./../../include gm2.c"
+ *  compile-command: "gcc -c  -DIN_GCC    -g -Wall -Wtraditional     -I. -I.. -I. -I./.. -I./../config -I./../../include gm2.c"
  * End:
  */

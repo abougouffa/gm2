@@ -166,7 +166,7 @@ modules containing global variables of all types. Procedure
 prologue/epilogue is created.
 
 @item
-simple expressions are nearly complete.
+simple expressions are complete.
 
 @item
 all loop constructs, if then else, case stuff has been done.
@@ -185,6 +185,12 @@ basic procedure calls
 
 @item
 the ability to insert gnu asm statements within GNU Modula-2.
+
+@item
+inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
+
+@item
+nested procedures
 
 @end itemize
 
@@ -205,7 +211,16 @@ What needs to be done:
 
 @item
 complex procedure parameters (unbounded arrays, strings)
-and nested procedures
+
+@item
+the modula-2 front end needs to convert the quadruples into
+trees and the convert these trees into gcc trees, rather than
+simply translating each quadruple into a separate gcc tree.
+The later works but produces very bad code.
+The way to solve this is by taking a copy of M2SubExp.mod and
+basing the gcc calls on the tree structure that M2SubExp.mod builds.
+My belief is that this should not take much time to complete and
+should produce much better code.
 
 @item
 migrate from p2c-1.20 to p2c-1.22 taking Modula-2 p2c-1.20
@@ -221,13 +236,12 @@ block becomes
 @item
 error recovery needs to be implemented,
 during pass 1 (first and follow sets etc). One of those
-to do's which was never done..
+to do's which was never done.. use the ppg tool.
+See @samp{ gm2/m2/comp/gm2s/gcc/asm.bnf } for an example
+of how this could be done.
 
 @item
 unbounded arrays
-
-@item
-inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
 
 @item
 making the front end non 32 bit dependant
@@ -242,6 +256,9 @@ Coroutines - as mentioned by readers of comp.lang.modula2.
 
 @item
 improve documentation
+
+@item
+testing and fixing bugs
 
 @end itemize
 
