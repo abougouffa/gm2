@@ -1,0 +1,78 @@
+#!/bin/sh
+
+#
+#  createUlmSys - creates the Sys.def and SYSTEM.c files for the ulm
+#                 libraries. The stategy is to provide access to the
+#                 low level libc system call wrappers. We don't attempt
+#                 to support all system calls, as the priority
+#                 is portability.
+#
+#          system call     prototype
+CALL_LIST=(access          ipi
+           brk             ip
+           close           ii
+           creat           ipi
+           dup             ii
+           execve          ippp
+           exit            ii
+           fcntl           iiip
+           fstat           iip
+           END             END)
+
+#           getdents getgid getpid gettimeofday getuid
+#           ioctl kill link lseek open pause pipe read setitimer
+#           setgid setuid stat times unlink wait write
+
+#
+#  
+#
+
+function createSystem () {
+   count=0
+   callno=0
+   while [ "${CALL_LIST[$count]}" != "END" ] ; do
+      defined=\"^#define HAVE_`echo ${CALL_LIST[$count]} | \
+               tr '[:lower:]' '[:upper:]'` 1\"
+      if grep $defined gm2-libs/gm2-libs-host.h >& /dev/null ; then
+	  echo "#define CALL_${CALL_LIST[$count]} $callno"
+	  callno=`expr $callno + 1`
+      fi
+      count=`expr $count + 1`
+      count=`expr $count + 1`
+   done
+   cat << EOFEOF
+
+static int (*syscalls[$callno])();
+
+_M2_SYSTEM_init ()
+{
+   initialized = 1;
+EOFEOF
+   count=0
+   callno=0
+   while [ "${CALL_LIST[$count]}" != "END" ] ; do
+      defined=\"^#define HAVE_`echo ${CALL_LIST[$count]} | \
+               tr '[:lower:]' '[:upper:]'` 1\"
+      if grep $defined gm2-libs/gm2-libs-host.h  ; then
+	  echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)${CALL_LIST[$count]};"
+	  callno=`expr $callno + 1`
+      fi
+      count=`expr $count + 1`
+      count=`expr $count + 1`
+   done
+   echo "}"
+}
+
+function createSysDef () {
+   count=0
+   callno=0
+   echo "CONST"
+   while [ "${CALL_LIST[$count]}" != "END" ] ; do
+      echo "   ${CALL_LIST[$count]} = $callno ;"
+      count=`expr $count + 1`
+      count=`expr $count + 1`
+      callno=`expr $callno + 1`
+   done
+}
+
+createSystem

@@ -24,7 +24,7 @@ DEFINITION MODULE FOR "C" SYSTEM ;
     Date       : Sat Nov  2 18:46:53 2002
     Revision   : $Version$ 
     Description: provides a SYSTEM module for GNU Modula-2 so that the
-                 Mocka libraries can be built.
+                 ULM libraries can be built.
 *)
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
