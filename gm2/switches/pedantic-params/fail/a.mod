@@ -1,0 +1,7 @@
+IMPLEMENTATION MODULE a ;
+
+PROCEDURE foo (z, y, x: CARDINAL; j, i: INTEGER) ;
+BEGIN
+END foo ;
+
+END a.

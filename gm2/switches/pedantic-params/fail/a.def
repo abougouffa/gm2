@@ -1,0 +1,7 @@
+DEFINITION MODULE a ;
+
+EXPORT QUALIFIED foo ;
+
+PROCEDURE foo (x, y, z: CARDINAL; i, j: INTEGER) ;
+
+END a.
