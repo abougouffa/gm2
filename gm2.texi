@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 9 January 2003
+@center Last updated 31 March 2003
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -84,7 +84,7 @@ Although it does include minor extensions.
 
 The libraries are currently a mixture of ISO Modula-2 and
 'Programming in Modula-2'. It is our aim to extend the
-GNU Modula-2 to include PIM3 and PIM4 compatability.
+GNU Modula-2 to include PIM3 and PIM4 compatibility.
 
 @node Compiler options, Example usage, About, Using
 @section Compiler options
@@ -96,7 +96,7 @@ generic flags details see
 @table @code
 
 @item -Wmakeall
-generate a temporary makefile and build all dependant modules and
+generate a temporary makefile and build all dependent modules and
 link.
 
 @item -Wbounds
@@ -107,7 +107,7 @@ generate code to check that functions always exit with a @samp{RETURN} and do no
 fall out at the end.
 
 @item -v
-display all calls to subsiduary programs, such as the C preprocessor,
+display all calls to subsidiary programs, such as the C preprocessor,
 the gm2 linker and compiler.
 
 @item -Wstatistics
@@ -120,7 +120,7 @@ new users of Modula-2 in that it checks for situations which
 might cause confusion and thus mistakes.
 It checks whether variables of the same name are declared in
 different scopes and whether variables look like keywords.
-Experienced users might find this option too agressive.
+Experienced users might find this option too aggressive.
 
 @item -Wpedantic
 forces the compiler to reject nested @samp{WITH}
@@ -138,9 +138,9 @@ this option is only applicable when linking a program module.
 The compiler will generate a @file{modulename.lst} file which contains
 a list indicating the initialization order of all modules which are to be
 linked. The actual link does not occur.
-The gm2 linker scans all @code{IMPORT}s, generates a list of dependancies
+The gm2 linker scans all @code{IMPORT}s, generates a list of dependencies
 and produces an ordered list for initialization. It will probably get the
-order wrong if your project has cyclic dependancies, but
+order wrong if your project has cyclic dependencies, but
 the @file{.lst} file is plain text and can be modified if required.
 Once the @file{.lst} file is created it can be used by the compiler
 to link your project via the @samp{-Wuselist} option.
@@ -272,7 +272,7 @@ The @code{VAR} equivalent unbounded array parameters need no copy,
 but still use the @code{struct} representation.
 
 The recommended method of interfacing GNU Modula-2 to C is by telling
-the definition module that the implmentation is in the C language.
+the definition module that the implementation is in the C language.
 This is achieved by using the tokens @code{DEFINITION MODULE FOR "C"}.
 Here is an example which can be found in the source tree
 @file{gcc-version/gcc/gm2/examples/callingC/libprintf.def}
@@ -315,7 +315,7 @@ and it can be compiled by:
 @samp{gm2 -Wmakeall -g -I. hello.mod -lc}
 
 In reality the @samp{-lc} is redundant as libc is always included in the
-linking process. It is shown here to emphasise that the C library or
+linking process. It is shown here to emphasize that the C library or
 object file containing @code{printf} must be present.
 
 @node h2def, Assembly language, Interface to C, Using
@@ -327,6 +327,110 @@ header file and generates as output a corresponding textual definition
 module.  While the tool will not automatically translate complex C
 header files it will generate definition modules for simple header
 files.
+
+For example consider the following header file (@code{header.h}):
+
+@example
+#define MYTYPE void *
+
+extern MYTYPE h;
+
+#define LIMIT  1000
+#define FOOBAR (1+MAXIMUM)
+
+int *p, ch;
+
+extern MYTYPE func (void (*funcarray)(int, char));
+
+struct mumble {
+  char *name;
+  void *addr;
+  struct mumble *next;
+  void (*arrayfunc[5])(int, char);
+} *mylist;
+@end example
+
+Using the following command line @code{h2def header.h} will generate
+the module below:
+
+@example
+DEFINITION MODULE FOR "C" header ;
+
+VAR
+   h: ADDRESS ;
+   
+CONST
+   LIMIT = 1000 ;
+   FOOBAR = (MAXIMUM) + ( 1) ;
+     
+VAR
+   p: POINTER TO INTEGER ;
+   ch: INTEGER ;
+   
+PROCEDURE func (__gm2param0: funcarray) : ADDRESS;
+
+TYPE
+   funcarray = PROCEDURE (INTEGER, CHAR) ;
+    
+VAR
+   mylist: POINTER TO mumble; (* var *);
+   
+TYPE
+   mumble = RECORD
+               name: POINTER TO CHAR ;
+               addr: ADDRESS ;
+               next: POINTER TO mumble ;
+               arrayfunc: ARRAY [0.. 5-1] OF PROCEDURE (INTEGER, CHAR) ;
+            END ;
+    
+END header.
+@end example
+
+The main limitation of @code{h2def} is in the preprocessing handling.
+It does not understand the C preprocessor token constructor directives
+@code{#} and @code{##}.
+
+Support for the @code{#define} mechanism is limited. Initially the
+macro is parsed to check whether it is a constant expression.  If it
+fails it is reassigned as a macro definition.  A macro which contains
+C statement code cannot be translated into a definition module. These
+macros and all dependents are poisoned and are not translated.
+
+The @samp{-I} option to @code{h2def} allows include directories to be
+specified and the @samp{-C} option states that a macro definition must
+be computed at compile time.  For example consider the following
+header file:
+
+@example
+#if !defined(FOOBAR)
+# define FOOBAR
+# define MAXIMUM 1000
+#endif
+@end example
+
+which if processed by @code{h2def -CFOOBAR} yields the following code:
+
+@example
+DEFINITION MODULE FOR "C" ifdef ;
+
+# if (!(defined(FOOBAR)))
+CONST
+   MAXIMUM = 1000 ;
+# endif
+     
+END ifdef.
+@end example
+
+The @samp{-a} option provides a method whereby the C parameter
+construct @code{sometype *foo} is translated in Modula-2 as
+@code{foo: ARRAY OF sometype}.
+
+Normally output for @code{h2def} will require some manual
+intervention. Some header files need more help than others, for
+example the GNU/Linux svga header file @code{vga.h} requires a little
+help whereas the GNU pthread file @code{pthread.h} requires more.
+Nevertheless the effort required is much less than writing the modules
+by hand.
 
 @node Assembly language, Built-ins, h2def, Using
 @section Interface to assembly language
@@ -511,7 +615,7 @@ tree as are a number of other tools necessary for bootstrapping.
 
 The M2Base and M2System
 modules contain base types and system types respectively they
-map onto GCC backend data types.
+map onto GCC back-end data types.
 
 @node Building and installing, Future, Integrating, Internals
 @section Building

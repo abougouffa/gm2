@@ -43,7 +43,6 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
     struct typeDef *next;
   };
 
-  static int              commentLevel=0;
   static struct lineInfo *currentLine =NULL;
   static int              hash        =FALSE;
   static int              parsingOn   =TRUE;
@@ -53,22 +52,25 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   static struct typeDef  *listOfTypes =NULL;
 
 
+        void clex_ParsingOn (int t);
+	char *clex_GetToken (void);
+	void clex_CloseSource (void);
+	int clex_OpenSource (char *s);
+	int clex_GetLineNo (void);
+	void clex_SetSearchPath (char *newPath);
+	void clex_AddTypeDef (char *a);
         void clex_CError (const char *);
 static  void pushLine     (void);
 static  void popLine      (void);
-static  void finishedLine (void);
 static  void resetpos     (void);
 static  void consumeLine  (int n);
 static  void updatepos    (void);
 static  void skippos      (void);
-static  void skipline     (void);
-static  void poperrorskip (const char *);
 static  void checkEndHash (void);
 static  void handleNewline(int hashSeen, int n);
 static  int  handleEof    (void);
 static  char *findFile    (char *, int);
 static  int  isTypeDef    (char *a);
-
 
 #if !defined(TRUE)
 #    define TRUE  (1==1)
@@ -400,6 +402,7 @@ void clex_CError (const char *s)
   }
 }
 
+#if 0
 static void poperrorskip (const char *s)
 {
   int nextpos =currentLine->nextpos;
@@ -412,6 +415,17 @@ static void poperrorskip (const char *s)
     currentLine->tokenpos = tokenpos;
   }
 }
+
+/*
+ *  skipline - skips over this line.
+ */
+
+static void skipline (void)
+{
+  currentLine->nextpos  = currentLine->linelen;
+  currentLine->tokenpos = currentLine->linelen;
+}
+#endif
 
 /*
  *  consumeLine - reads a line into a buffer, it then pushes back the whole
@@ -448,16 +462,6 @@ static void updatepos (void)
 {
   currentLine->nextpos = currentLine->tokenpos+yyleng;
   currentLine->toklen  = yyleng;
-}
-
-/*
- *  skipline - skips over this line.
- */
-
-static void skipline (void)
-{
-  currentLine->nextpos  = currentLine->linelen;
-  currentLine->tokenpos = currentLine->linelen;
 }
 
 /*
