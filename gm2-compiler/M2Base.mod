@@ -840,10 +840,22 @@ BEGIN
    ELSIF IsSubrange(t2)
    THEN
       RETURN( MixTypes(t1, GetType(t2), NearTok) )
+   ELSIF ((t1=Integer) AND (t2=LongCard)) OR
+         ((t2=Integer) AND (t1=LongCard))
+   THEN
+      RETURN( LongCard )
+   ELSIF ((t1=Cardinal) AND (t2=LongInt)) OR
+         ((t2=Cardinal) AND (t1=LongInt))
+   THEN
+      RETURN( LongInt )
    ELSIF ((t1=Integer) AND (t2=LongInt)) OR
          ((t2=Integer) AND (t1=LongInt))
    THEN
       RETURN( LongInt )
+   ELSIF ((t1=Cardinal) AND (t2=LongCard)) OR
+         ((t2=Cardinal) AND (t1=LongCard))
+   THEN
+      RETURN( LongCard )
    ELSIF ((t1=Real) AND (t2=LongReal)) OR
          ((t2=Real) AND (t1=LongReal))
    THEN
