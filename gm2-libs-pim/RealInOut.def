@@ -8,8 +8,28 @@ DEFINITION MODULE RealInOut ;
     Description: provides a compatible RealInOut PIM 234 module.
 *)
 
-EXPORT QUALIFIED ReadReal ;
+EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct, Done ;
+
+VAR
+   Done: BOOLEAN ;
+
 
 PROCEDURE ReadReal (VAR x: REAL) ;
+
+
+(*
+   WriteReal - writes a real to the terminal. The real number
+               is right justified and, n, is the minimum field
+               width.
+*)
+
+PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
+
+
+(*
+   WriteRealOct - writes the real to terminal in octal words.
+*)
+
+PROCEDURE WriteRealOct (x: REAL) ;
 
 END RealInOut.

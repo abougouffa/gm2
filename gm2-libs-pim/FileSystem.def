@@ -6,10 +6,13 @@ DEFINITION MODULE FileSystem ;
     Date       : Wed Aug 11 11:04:24 2004
     Revision   : $Version$ 
     Description: provides GNU Modula-2 with a PIM [234] FileSystem
-                 compatible module.
+                 compatible module. Use this module sparingly,
+                 FIO or the ISO file modules have a much cleaner
+                 interface.
 *)
 
 IMPORT FIO ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED File, Response, Flag, FlagSet,
 
                  Create, Close, Lookup, Rename, Delete,
@@ -28,6 +31,7 @@ TYPE
              fio     : FIO.File ;
              highpos,
              lowpos  : CARDINAL ;
+             name    : String ;
           END ;
 
    Response = (done, notdone, notsupported, callerror,
@@ -62,6 +66,176 @@ PROCEDURE Close (f: File) ;
 *)
 
 PROCEDURE Lookup (VAR f: File; filename: ARRAY OF CHAR; newFile: BOOLEAN) ;
+
+
+(*
+   Rename - rename a file.
+            f.res is set appropriately.
+*)
+
+PROCEDURE Rename (VAR f: File; newname: ARRAY OF CHAR) ;
+
+
+(*
+   Delete - deletes a file, name, and sets the f.res field.
+            f.res is set appropriately.
+*)
+
+PROCEDURE Delete (name: ARRAY OF CHAR; VAR f: File) ;
+
+
+(*
+   ReadWord - reads a WORD, w, from file, f.
+              f.res is set appropriately.
+*)
+
+PROCEDURE ReadWord (VAR f: File; VAR w: WORD) ;
+
+
+(*
+   WriteWord - writes one word to a file, f.
+               f.res is set appropriately.
+*)
+
+PROCEDURE WriteWord (VAR f: File; w: WORD) ;
+
+
+(*
+   ReadChar - reads one character from a file, f.
+*)
+
+PROCEDURE ReadChar (VAR f: File; VAR ch: CHAR) ;
+
+
+(*
+   WriteChar - writes a character, ch, to a file, f.
+               f.res is set appropriately.
+*)
+
+PROCEDURE WriteChar (VAR f: File; ch: CHAR) ;
+
+
+(*
+   ReadByte - reads a BYTE, b, from file, f.
+              f.res is set appropriately.
+*)
+
+PROCEDURE ReadByte (VAR f: File; VAR b: BYTE) ;
+
+
+(*
+   WriteByte - writes one BYTE, b, to a file, f.
+               f.res is set appropriately.
+*)
+
+PROCEDURE WriteByte (VAR f: File; b: BYTE) ;
+
+
+(*
+   ReadNBytes - reads a sequence of bytes from a file, f.
+*)
+
+PROCEDURE ReadNBytes (VAR f: File; a: ADDRESS; amount: CARDINAL;
+                      VAR actuallyRead: CARDINAL) ;
+
+
+(*
+   WriteNBytes - writes a sequence of bytes to file, f.
+*)
+
+PROCEDURE WriteNBytes (VAR f: File; a: ADDRESS; amount: CARDINAL;
+                       VAR actuallyWritten: CARDINAL) ;
+
+
+(*
+   Again - returns the last character read to the internal buffer
+           so that it can be read again.
+*)
+
+PROCEDURE Again (VAR f: File) ;
+
+
+(*
+   SetRead - puts the file, f, into the read state.
+             The file position is unchanged.
+*)
+
+PROCEDURE SetRead (VAR f: File) ;
+
+
+(*
+   SetWrite - puts the file, f, into the write state.
+              The file position is unchanged.
+*)
+
+PROCEDURE SetWrite (VAR f: File) ;
+
+
+(*
+   SetModify - puts the file, f, into the modify state.
+               The file position is unchanged but the file can be
+               read and written.
+*)
+
+PROCEDURE SetModify (VAR f: File) ;
+
+
+(*
+   SetOpen - places a file, f, into the open state. The file may
+             have been in the read/write/modify state before and
+             in which case the previous buffer contents are flushed
+             and the file state is reset to open. The position is
+             unaltered.
+*)
+
+PROCEDURE SetOpen (VAR f: File) ;
+
+
+(*
+   Reset - places a file, f, into the open state and reset the
+           position to the start of the file.
+*)
+
+PROCEDURE Reset (VAR f: File) ;
+
+
+(*
+   SetPos - lseek to a position within a file.
+*)
+
+PROCEDURE SetPos (VAR f: File; high, low: CARDINAL) ;
+
+
+(*
+   GetPos - return the position within a file.
+*)
+
+PROCEDURE GetPos (VAR f: File; VAR high, low: CARDINAL) ;
+
+
+(*
+   Length - returns the length of file, in, high, and, low.
+*)
+
+PROCEDURE Length (VAR f: File; VAR high, low: CARDINAL) ;
+
+
+(*
+   Doio - effectively flushes a file in write mode, rereads the
+          current buffer from disk if in read mode and writes
+          and rereads the buffer if in modify mode.
+*)
+
+PROCECURE Doio (VAR f: File) ;
+
+
+(*
+   FileNameChar - checks to see whether the character, ch, is
+                  legal in a filename. nul is returned if the
+                  character was illegal.
+*)
+
+PROCEDURE FileNameChar (ch: CHAR) ;
 
 
 END FileSystem.

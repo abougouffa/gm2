@@ -19,6 +19,7 @@ IMPLEMENTATION MODULE RealInOut ;
 
 FROM DynamicStrings IMPORT String, InitString, KillString ;
 FROM StringConvert IMPORT StringToLongreal, LongrealToString ;
+FROM SYSTEM IMPORT ADR, BYTE ;
 IMPORT InOut ;
 
 
@@ -45,8 +46,28 @@ PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(x, n, n)))
+   s := KillString(InOut.WriteS(LongrealToString(x, n, n))) ;
+   Done := TRUE
 END WriteReal ;
+
+
+(*
+   WriteRealOct - writes the real to terminal in octal words.
+*)
+
+PROCEDURE WriteRealOct (x: REAL) ;
+VAR
+   p: POINTER TO BYTE ;
+   i: CARDINAL ;
+BEGIN
+   p := ADR(x) ;
+   i := 0 ;
+   WHILE i<SIZE(x) DO
+      InOut.WriteOct(VAL(CARDINAL, p^), 3) ;
+      INC(p) ;
+      INC(i)
+   END
+END WriteRealOct ;
 
 
 END RealInOut.

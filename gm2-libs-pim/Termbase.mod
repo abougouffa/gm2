@@ -188,6 +188,8 @@ END Write ;
 *)
 
 PROCEDURE Init ;
+VAR
+   Done: BOOLEAN ;
 BEGIN
    rStack := NIL ;
    wStack := NIL ;
