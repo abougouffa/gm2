@@ -23,7 +23,7 @@ PROCEDURE __BUILTIN__ sin (x: LONGREAL): LONGREAL;
 PROCEDURE __BUILTIN__ cos (x: LONGREAL): LONGREAL;
   (* Returns the cosine of x *)
 
-PROCEDURE __BUILTIN__ tan (x: LONGREAL): LONGREAL;
+PROCEDURE tan (x: LONGREAL): LONGREAL;
   (* Returns the tangent of x *)
 
 PROCEDURE arcsin (x: LONGREAL): LONGREAL;

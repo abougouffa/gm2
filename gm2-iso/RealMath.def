@@ -23,7 +23,7 @@ PROCEDURE __BUILTIN__ sin (x: REAL): REAL;
 PROCEDURE __BUILTIN__ cos (x: REAL): REAL;
   (* Returns the cosine of x *)
 
-PROCEDURE __BUILTIN__ tan (x: REAL): REAL;
+PROCEDURE tan (x: REAL): REAL;
   (* Returns the tangent of x *)
 
 PROCEDURE arcsin (x: REAL): REAL;
