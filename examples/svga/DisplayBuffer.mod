@@ -1,12 +1,31 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE DisplayBuffer ;
 
 FROM StdIO IMPORT Read ;
 FROM StrIO IMPORT WriteString, WriteLn ;
+FROM NumberIO IMPORT WriteCard ;
 FROM vga IMPORT vga_drawline, vga_setcolor ;
+FROM Selective IMPORT SetOfFd, Timeval, InitTime, KillTime, InitSet, KillSet, FdZero, Select ;
 
 
 CONST
    MaxLine = 100 ;
+   Debugging = FALSE ;
 
 TYPE
    Line = RECORD
@@ -21,6 +40,26 @@ VAR
 
 
 (*
+   Delay - delays 1/20 of a second
+*)
+
+PROCEDURE Delay ;
+VAR
+   t: Timeval ;
+   s: SetOfFd ;
+BEGIN
+   t := InitTime(0, 50) ;
+   s := InitSet() ;
+   FdZero(s) ;
+   IF Select(0, s, s, s, t)=0
+   THEN
+   END ;
+   s := KillSet(s) ;
+   t := KillTime(t)
+END Delay ;
+
+
+(*
    FlipBuffer - flips the screen onto the other buffer.
 *)
 
@@ -30,7 +69,8 @@ VAR
 BEGIN
    EraseBuffer ;
    CurrentBuffer := 1-CurrentBuffer ;
-   ShowBuffer
+   ShowBuffer ;
+   Delay
 END FlipBuffer ;
 
 
@@ -71,8 +111,17 @@ BEGIN
    i := Top[CurrentBuffer] ;
    WHILE i>0 DO
       WITH DisplayList[CurrentBuffer][i] DO
-         vga_setcolor(0) ;
-         vga_drawline(x1, y1, x2, y2)
+         IF Debugging
+         THEN
+            WriteString('erasing ') ;
+            WriteCard(x1, 4) ;
+            WriteCard(y1, 4) ;
+            WriteCard(x2, 4) ;
+            WriteCard(y2, 4) ; WriteLn
+         ELSE
+            vga_setcolor(0) ;
+            vga_drawline(x1, y1, x2, y2)
+         END
       END ;
       DEC(i)
    END ;
@@ -91,8 +140,17 @@ BEGIN
    i := Top[CurrentBuffer] ;
    WHILE i>0 DO
       WITH DisplayList[CurrentBuffer][i] DO
-         vga_setcolor(Colour) ;
-         vga_drawline(x1, y1, x2, y2)
+         IF Debugging
+         THEN
+            WriteString('drawing ') ;
+            WriteCard(x1, 4) ;
+            WriteCard(y1, 4) ;
+            WriteCard(x2, 4) ;
+            WriteCard(y2, 4) ; WriteLn
+         ELSE
+            vga_setcolor(Colour) ;
+            vga_drawline(x1, y1, x2, y2)
+         END
       END ;
       DEC(i)
    END

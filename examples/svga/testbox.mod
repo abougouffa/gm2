@@ -1,6 +1,22 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 MODULE testbox ;
 
-FROM vga IMPORT GraphicsMode, vga_setmode, vga_hasmode, vga_getch ;
+FROM vga IMPORT GraphicsMode, vga_init, vga_setmode, vga_hasmode, vga_getch ;
 FROM Matrix3D IMPORT Init, Set, Get, Add, Mult, Kill, Del,
                      Matrix, MatrixValue ;
 FROM Transform IMPORT Translate, Rotate, Scale ;
@@ -8,11 +24,12 @@ FROM DisplayBuffer IMPORT FlipBuffer, AddLine ;
 FROM StdIO IMPORT Read ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
+FROM RealMath IMPORT pi ;
 
 
 CONST
    Colour = 15 ;
-   pi     = 3.1415927 ;
+   Debugging = FALSE ;
 
 VAR
    x, y            : INTEGER ;
@@ -66,22 +83,18 @@ VAR
 BEGIN
    Gate ;
    OldTransform := CurrentTransform ;
-(*
    CurrentTransform := Mult( 
                              Kill( Translate( 0.0, -2.0 ) ),
                              CurrentTransform ) ;
-
    Box ;
    Del( CurrentTransform ) ;
    CurrentTransform := Mult( 
                              Kill( Translate( 0.0, 2.0 ) ),
                              OldTransform ) ;
    Box ;
-
    CurrentTransform := Mult( 
                              Kill( Mult( Kill( Rotate(pi) ), Kill( Translate( 10.0, 0.0 ) ) ) ),
                              OldTransform ) ;
-*)
    Box ;
    Del( CurrentTransform ) ;
    CurrentTransform := OldTransform
@@ -150,14 +163,17 @@ VAR
    Movement: Matrix ;
    Count   : CARDINAL ;
 BEGIN
-   IF vga_hasmode(G640x480x16)
+   IF NOT Debugging
    THEN
-      vga_setmode(G640x480x16)
-   ELSE
-      WriteString('vga does not know about 640x480 ? ') ; WriteLn ;
-      vga_setmode(G320x200x256)
+      vga_init ;
+      IF vga_hasmode(G640x480x2)
+      THEN
+         vga_setmode(G640x480x2)
+      ELSE
+         WriteString('vga does not know about 640x480 ? ') ; WriteLn ;
+         vga_setmode(G320x200x256)
+      END
    END ;
-
    SetupViewingTransform ;
    CurrentTransform := Mult( Kill( Scale( 3.0, 3.0 ) ),
                              Kill( Translate(50.0, 50.0) ) ) ;
@@ -217,13 +233,13 @@ BEGIN
             Read(ch)
          END ;
          INC(Count)
-      UNTIL (ch='q') OR (Count=3600) ;
+      UNTIL (ch='q') OR (Count=600) ;
       Count := 0 ;
       Del(Movement) ;
-      Movement := Translate( -1.0, -1.0 ) ;
+      Movement := Translate( .75, .5 ) ;
       Del(Rotation) ;
-      Rotation := Rotate(0.0) ;
-(*
+      Rotation := Rotate(0.002) ;
+(* *)
       REPEAT
          InverterGate ;
          (* InverterBox ; *)
@@ -237,10 +253,13 @@ BEGIN
             Read(ch)
          END ;
          INC(Count)
-      UNTIL (ch='q') OR (Count=150) ;
+      UNTIL (ch='q') OR (Count=300) ;
       Del(Movement) ;
       Del(Rotation) ;
-*)
-   ; vga_setmode(Text) ;
-   ch := vga_getch()
+(* *)
+   IF NOT Debugging
+   THEN
+      (* ch := vga_getch() ; *)
+      vga_setmode(Text)
+   END
 END testbox.
