@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2Printf ;
 
 FROM SFIO IMPORT WriteS ;
 FROM FIO IMPORT StdOut ;
-FROM Strings IMPORT string, InitString, KillString, InitStringCharStar, Mark ;
+FROM DynamicStrings IMPORT string, InitString, KillString, InitStringCharStar, Mark ;
 FROM StrLib IMPORT StrLen ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 FROM NameKey IMPORT KeyToCharStar ;

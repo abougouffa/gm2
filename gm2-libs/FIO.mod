@@ -33,7 +33,7 @@ FROM StrLib IMPORT StrLen, StrConCat, StrCopy ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
 FROM libc IMPORT exit, open, creat, read, write, close, lseek, strncpy, memcpy ;
-FROM Strings IMPORT Length, string ;
+FROM DynamicStrings IMPORT Length, string ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 
 CONST
@@ -300,7 +300,7 @@ BEGIN
             state := outofmemory ;
             RETURN( f )
          END ;
-         strncpy(name.address, fname, flength) ;
+         name.address := strncpy(name.address, fname, flength) ;
          (* and assign nul to the last byte *)
          p := ADDRESS(CARDINAL(name.address) + flength) ;
          p^ := nul ;
@@ -483,7 +483,7 @@ BEGIN
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
-                     memcpy(ADDRESS(CARDINAL(address)+position), a, n) ;
+                     p := memcpy(ADDRESS(CARDINAL(address)+position), a, n) ;
                      DEC(left, n) ;      (* remove consumed bytes               *)
                      INC(position, n) ;  (* move onwards n bytes                *)
                                          (* move onwards ready for direct reads *)
@@ -594,7 +594,7 @@ BEGIN
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
-                        memcpy(ADDRESS(CARDINAL(address)+position), a, CARDINAL(n)) ;
+                        p := memcpy(ADDRESS(CARDINAL(address)+position), a, CARDINAL(n)) ;
                         DEC(left, n) ;      (* remove consumed bytes               *)
                         INC(position, n) ;  (* move onwards n bytes                *)
                                             (* move onwards ready for direct reads *)
@@ -1042,7 +1042,7 @@ BEGIN
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
-                        memcpy(a, ADDRESS(CARDINAL(address)+position), CARDINAL(n)) ;
+                        p := memcpy(a, ADDRESS(CARDINAL(address)+position), CARDINAL(n)) ;
                         DEC(left, n) ;      (* remove consumed bytes               *)
                         INC(position, n) ;  (* move onwards n bytes                *)
                                             (* move ready for further writes       *)

@@ -14,11 +14,10 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
-DEFINITION MODULE libc ;
+DEFINITION MODULE FOR "C" libc ;
 
 (*
    Author     : Gaius Mulley
-   Author     : Keith Verheyden (Mods to include extra system calls for compiler server)
    Title      : libc
    Date       : Wed Jun  6 11:49:37 BST 1990
    Description: Provides an interface to the C library functions.
@@ -26,17 +25,17 @@ DEFINITION MODULE libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT QUALIFIED write, read,
-                 system, abort,
-                 malloc, free,
-                 exit, isatty,
-                 getenv, getpid,
-                 dup, close, open, lseek,
-                 readv, writev,
-                 perror, creat,
-                 environ, setenv, getcwd, chown, strlen, strcpy, strncpy,
-                 unlink,
-                 memcpy, memset ;
+EXPORT UNQUALIFIED write, read,
+                   system, abort,
+                   malloc, free,
+                   exit, isatty,
+                   getenv, getpid,
+                   dup, close, open, lseek,
+                   readv, writev,
+                   perror, creat,
+                   getcwd, chown, strlen, strcpy, strncpy,
+                   unlink,
+                   memcpy, memset, printf ;
 
 
 (*
@@ -60,7 +59,7 @@ PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
 
 
 (*
-     system(string)
+     int system(string)
      char *string;
 *)
 
@@ -81,22 +80,6 @@ PROCEDURE system (a: ADDRESS) : INTEGER ;
 *)
 
 PROCEDURE abort ;
-
-
-(*
-   malloc and free.
-
-DESCRIPTION
-     These routines provide a general-purpose memory allocation
-     package.  They maintain a table of free blocks for efficient
-     allocation and coalescing of free storage.  When there is no
-     suitable space already free, the allocation routines call
-     sbrk() (see brk(2)) to get more memory from the system.
- 
-     Each of the allocation routines returns a pointer to space
-     suitably aligned for storage of any type of object. Each
-     returns a NULL pointer if the request cannot be completed.
-*)
 
 
 (*
@@ -129,10 +112,10 @@ PROCEDURE free (ptr: ADDRESS) ;
 
 
 (*
-   isatty - returns true if the default input channel is the keyboard.
+   isatty - does this descriptor refer to a terminal.
 *)
 
-PROCEDURE isatty () : BOOLEAN ;
+PROCEDURE isatty (fd: INTEGER) : INTEGER ;
 
 
 (*
@@ -217,27 +200,6 @@ PROCEDURE writev (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
 
 
 (*
-   environ - returns the libc variable environ.
-*)
-
-PROCEDURE environ () : ADDRESS ;
-
-
-(*
-   setenv - adds the variable name to the environment with the
-            value value, if name does not already exist.
-            If name does exist in the environment, then its
-            value is changed to value if overwrite is non-zero;
-            if overwrite is zero, then the value of name is not changed.
-
-            The setenv function returns zero on success, or -1 if
-            there was insufficient space in the environment.
-*)
-
-PROCEDURE setenv (name, value: ADDRESS; overwrite: INTEGER) : INTEGER ;
-
-
-(*
    getcwd - copies the absolute pathname of  the
             current  working directory to the array pointed to by buf,
             which is of length size.
@@ -277,16 +239,18 @@ PROCEDURE strlen (a: ADDRESS) : INTEGER ;
 
 (*
    strcpy - copies string, src, into, dest.
+            It returns dest.
 *)
 
-PROCEDURE strcpy (dest, src: ADDRESS) ;
+PROCEDURE strcpy (dest, src: ADDRESS) : ADDRESS ;
 
 
 (*
    strncpy - copies string, src, into, dest, copying at most, n, bytes.
+             It returns dest.
 *)
 
-PROCEDURE strncpy (dest, src: ADDRESS; n: CARDINAL) ;
+PROCEDURE strncpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
 
 
 (*
@@ -304,9 +268,10 @@ PROCEDURE unlink (file: ADDRESS) : INTEGER ;
    #include <string.h>
 
    void *memcpy(void *dest, const void *src, size_t n);
+   It returns dest.
 *)
 
-PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) ;
+PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) : ADDRESS ;
 
 
 (*
@@ -319,7 +284,14 @@ PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) ;
    void *memset(void *s, int c, size_t n);
 *)
 
-PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) ;
+PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
+
+
+(*
+   int printf(const char *format, ...);
+*)
+
+PROCEDURE printf (format: ARRAY OF CHAR; ...) : INTEGER ;
 
 
 END libc.

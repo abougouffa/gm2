@@ -51,7 +51,7 @@ FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertT
 FROM M2Error IMPORT ErrorStringAt ;
 FROM NameKey IMPORT NulName, Name ;
 FROM M2Reserved IMPORT tokToTok, toktype ;
-FROM Strings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;

@@ -261,8 +261,8 @@ Static void makePascalwords()
     Pkeyword("PROCEDURE", TOK_PROCEDURE);
     if (modula2) {
       Pkeyword("PROC", TOK_PROC);
+      Pkeyword("...", TOK_VARARG);
       Pkeywordposs("UNQUALIFIED", TOK_UNQUALIFIED);   /* really an extension to Modula-2 */
-      Pkeyword("C", TOK_C);
     }
     Pkeyword("PROGRAM", TOK_PROGRAM);
     Pkeywordposs("QUALIFIED", TOK_QUALIFIED);
@@ -2929,6 +2929,10 @@ void gettok()
                 if (*inbufptr == '.') {
                     curtok = TOK_DOTS;
                     inbufptr++;
+		    if (*inbufptr == '.') {
+		      curtok = TOK_VARARG;
+		      inbufptr++;
+		    }
                 } else if (*inbufptr == ')') {
                     curtok = TOK_RBR;
                     inbufptr++;

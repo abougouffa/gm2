@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE SArgs ;
 
 FROM SYSTEM IMPORT TSIZE, ADDRESS ;
 FROM UnixArgs IMPORT ArgC, ArgV ;
-FROM Strings IMPORT InitStringCharStar ;
+FROM DynamicStrings IMPORT InitStringCharStar ;
 
 
 TYPE

@@ -1,3 +1,19 @@
+2003-04-29	Gaius Mulley <gaius@glam.ac.uk>
+
+	* examples/pthreads cleaned up
+	* introduced ISO SYSTEM. Limitations, TSIZE only takes one parameter,
+	  and SHIFT, ROTATE are not implemented yet.
+	* renamed gm2-libs/Strings to gm2-libs/DynamicStrings to avoid name
+	  clash with gm2-iso/Strings
+	* p2c modified to understand DEFINITION MODULE FOR "C"
+	* gm2-libs/libc.def modified to use DEFINITION MODULE FOR "C"
+	* gm2-iso/libc.def removed
+	* linking references to libc (in gm2/init/*init) removed
+	* gm2/tools-src/def2texi finished
+	* gm2/gm2-libs.texi built via gm2/tools-src/def2texi
+	* gm2/gm2.texi now contains library definition modules and index.
+	* added -Wiso switch to gm2 driver
+
 2003-04-12	Gaius Mulley <gaius@glam.ac.uk>
 
 	* first cut of h2def released

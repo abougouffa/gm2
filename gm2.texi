@@ -52,8 +52,10 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @end ifinfo
 
 @menu
-* Using::            Using GNU Modula-2
-* Internals::        GNU Modula-2 internals
+* Using::            Using GNU Modula-2.
+* Internals::        GNU Modula-2 internals.
+* Libraries::        PIM and ISO library definitions.
+* Function Index::   Index for all library functions.
 @end menu
 
 @node Using, Internals, Top, Top
@@ -66,10 +68,10 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 * Example usage::         Example compile and link.
 * Elementary data types:: Data types supported by GNU Modula-2
 * Extensions::            GNU Modula-2 language extensions.
-* Interface to C::        Interfacing GNU Modula-2 to C
+* Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
 * Assembly language::     Interface to assembly language.
-* Built-ins::             Accessing GNU Modula-2 Built-ins
+* Built-ins::             Accessing GNU Modula-2 Built-ins.
 @end menu
 
 @node About, Compiler options, , Using
@@ -157,6 +159,11 @@ For further details about these options see
 @xref{Invocation, , ,cpp}.
 If @samp{-Wcpp} is supplied then all definition modules and implementation
 modules which are parsed will be preprocessed by @samp{cpp}.
+
+@item -Wiso
+turn on ISO standard features. Currently this enables the ISO @code{SYSTEM}
+module and alters the default library search path so that the ISO libraries
+are searched before the PIM libraries.
 
 @end table
 
@@ -472,8 +479,8 @@ This section describes the built-in constants and functions defined in
 GNU Modula-2.  The following compiler constants can be accessed using
 the @code{__ATTRIBUTE__} @code{__BUILTIN__} keywords. These are not
 part of the Modula-2 language and they may differ depending upon the
-target architecture but they provide a method whereby different
-libraries can interface to the underlying architecture.
+target architecture but they provide a method whereby common
+libraries can interface to a different underlying architecture.
 
 The built-in constants are: @code{BITS_PER_UNIT}, @code{BITS_PER_WORD},
 @code{BITS_PER_CHAR} and @code{UNITS_PER_WORD}. They are integrated into
@@ -495,22 +502,22 @@ CONST
    LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
 @end example
 
-To access built-in functions in GNU Modula-2 the user needs to
-import the relevant function. Built-in functions are declared in
-definition modules by using the @code{__BUILTIN__} keyword. Here is
-a section of the ISO library @code{LongMath.def} which exploits this
-feature:
+Built-in functions are transparent to the end user. All built-in
+functions are declared in @code{DEFINITION MODULE}s and are imported
+as and when required.  Built-in functions are declared in definition
+modules by using the @code{__BUILTIN__} keyword. Here is a section of
+the ISO library @code{LongMath.def} which demonstrates this feature.
 
 @example
 PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
   (* Returns the square root of x *)
 @end example
 
-which indicates that the function @code{sqrt} will be
-implemented using the gcc built-in maths library. If gcc cannot utilize
-the built-in function (for example if the programmer requested the address
-of @code{sqrt}) then code is generated to call the alternative
-function implemented in the @code{IMPLEMENTATION} @code{MODULE}.
+This indicates that the function @code{sqrt} will be implemented using
+the gcc built-in maths library. If gcc cannot utilise the built-in
+function (for example if the programmer requested the address of
+@code{sqrt}) then code is generated to call the alternative function
+implemented in the @code{IMPLEMENTATION} @code{MODULE}.
 
 Sometimes a function exported from the @code{DEFINITION} @code{MODULE}
 will have a different name from the built-in function within gcc. In such
@@ -580,7 +587,7 @@ The built-in mechanism will be applied to these generic
 libraries where appropriate. Note for the mathematical routines to
 be inlined you need to specify the @samp{-ffast-math -O} options.
 
-@node Internals, , Using, Top
+@node Internals, Libraries, Using, Top
 @chapter GNU Modula-2 Internals
 
 This document is a small step in the long journey of documenting the GNU
@@ -808,7 +815,19 @@ testing and fixing bugs
 
 @end itemize
 
+@node Libraries, Function Index, Internals, Top
+@chapter PIM and ISO library definitions
+
+This chapter contains PIM and ISO libraries. The ISO libraries are currently
+work in progress, many are incomplete and even more have no implementation
+module. The PIM libraries are very mature as the compiler uses them extensively.
+
+@include gm2-libs.texi
+
+@node Function Index, , Libraries, Top
+
 @c @printindex cp
+@printindex fn
 
 @summarycontents
 @contents

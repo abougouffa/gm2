@@ -10,7 +10,7 @@ DEFINITION MODULE FormatStrings ;
 *)
 
 FROM SYSTEM IMPORT WORD ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 
 

@@ -25,7 +25,7 @@ DEFINITION MODULE M2Batch ;
                 GetSource collects the next module to be compiled.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED MakeDefinitionSource,
                  MakeImplementationSource,

@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2002/12/20 09:45:13 $]
+              : [$Date: 2003/04/29 15:27:14 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -78,8 +78,8 @@ FROM M2Preprocess IMPORT PreprocessModule ;
 IMPORT m2lex ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Options IMPORT ScanCppArgs ;
-FROM Strings IMPORT String, InitString, KillString, Slice, InitStringCharStar,
-                    Mark, EqualArray, string, ConCat, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, Slice, InitStringCharStar,
+                           Mark, EqualArray, string, ConCat, ConCatChar ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
 
 

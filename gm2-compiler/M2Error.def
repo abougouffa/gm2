@@ -25,7 +25,7 @@ DEFINITION MODULE M2Error ;
 *)
 
 FROM SYSTEM IMPORT WORD ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED Error,
                  InternalError,
                  WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3,

@@ -27,6 +27,10 @@ DEFINE_LANG_NAME ("Modula-2")
 
   { "-I",
       N_("specifies a library path (C syntax)") },
+  { "-Wiso",
+      N_("use ISO dialect of Modula-2 (currently just defines SYSTEM.def)") },
+  { "-Wpim",
+      N_("use PIM [234] dialect of Modula-2 (currently just defines SYSTEM.def)") },
   { "-Wbounds",
       N_("turns on runtime subrange, array index and indirection via NIL pointer checking") },
   { "-Wreturn",

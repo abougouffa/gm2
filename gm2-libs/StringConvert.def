@@ -22,12 +22,12 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2002/04/15 16:26:51 $ 
+    Last edit  : $Date: 2003/04/29 15:27:24 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IntegerToString, CardinalToString, StringToInteger,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,

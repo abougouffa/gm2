@@ -1,7 +1,7 @@
 IMPLEMENTATION MODULE FormatStrings ;
 
-FROM Strings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, char,
-                    Assign, Length, Mult, Dup, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, char,
+                           Assign, Length, Mult, Dup, ConCatChar ;
 
 FROM StringConvert IMPORT IntegerToString ;
 FROM ASCII IMPORT nul, nl, tab ;

@@ -4,13 +4,22 @@ DEFINITION MODULE SYSTEM;
 
   (* The constants and types define underlying properties of storage *)
 
+EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
+                 LOC, BYTE, WORD, BITSET, ADDRESS,
+                 ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE, SHIFT, CAST, TSIZE ;
+
 CONST
                   (* <implementation-defined constant> ; *)
   BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
                   (* <implementation-defined constant> ; *)
   LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+                  (* <implementation-defined constant> ; *)
+  LOCSPERBYTE = 8 DIV BITSPERLOC ;
 
 (*
+   all the objects below are declared internally to gm2
+   ====================================================
+
 TYPE
   LOC; (* A system basic type. Values are the uninterpreted contents of the smallest
           addressable unit of storage *)
@@ -18,9 +27,6 @@ TYPE
   WORD = ARRAY [0 .. LOCSPERWORD-1] OF LOC;
 
   (* BYTE and LOCSPERBYTE are provided if appropriate for machine *)
-CONST
-  (* <implementation-defined constant> ; *)
-  LOCSPERBYTE = 8 DIV BITS_PER_LOC ;
 
 TYPE
   BYTE = ARRAY [0 .. LOCSPERBYTE-1] OF LOC;
@@ -40,9 +46,11 @@ PROCEDURE DIFADR (addr1, addr2: ADDRESS): INTEGER;
      if the arguments are invalid or address space is non-contiguous.
   *)
 
-PROCEDURE MAKEADR (val: <some type>; ... ): ADDRESS;
+PROCEDURE MAKEADR (val: <some type>): ADDRESS;
   (* Returns an address constructed from a list of values whose types are
      implementation-defined, or may raise an exception if this address is not valid.
+
+     In GNU Modula-2 val is promoted to a WORD and then CAST into an ADDRESS.
   *)
 
 PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
@@ -70,6 +78,6 @@ PROCEDURE TSIZE (<type>; ... ): CARDINAL;
   (* Returns the number of LOCS used to store a value of the specified <type>.   The
      extra parameters, if present, are used to distinguish variants in a variant record.
   *)
-
 *)
+
 END SYSTEM.

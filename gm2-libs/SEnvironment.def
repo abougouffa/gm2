@@ -21,12 +21,12 @@ DEFINITION MODULE SEnvironment ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Aug  7 19:17:15 2001
-    Last edit  : $Date: 2002/04/15 16:26:51 $ 
+    Last edit  : $Date: 2003/04/29 15:27:24 $ 
     Revision   : $Version$ 
     Description: provides access to the environment settings of a process.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED GetEnvironment ;
 
 

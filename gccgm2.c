@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
  *
  *  Gaius Mulley (gaius@glam.ac.uk) constructed this file.
  *  It was built by borrowing code from the gcc c-*.c files
@@ -131,6 +131,10 @@ tree m2_short_real_type_node;
 tree m2_real_type_node;
 tree m2_long_real_type_node;
 tree m2_long_int_type_node;
+tree m2_iso_loc_type_node;
+tree m2_iso_byte_type_node;
+tree m2_iso_word_type_node;
+
 
 
 /* Global Variables for the various types and nodes we create.  */ 
@@ -421,6 +425,7 @@ static tree                   convert_for_assignment 	       	 	  PARAMS ((tree 
        tree                   gccgm2_GetMinFrom 		       	  PARAMS ((tree type));
        tree                   gccgm2_GetMaxFrom 		       	  PARAMS ((tree type));
        int                    gccgm2_GetBitsPerWord 	       	 	  PARAMS ((void));
+       int                    gccgm2_GetBitsPerUnit 	       	 	  PARAMS ((void));
        void                   trythis        		       	 	  PARAMS ((void));
        tree                   gccgm2_DeclareKnownConstant       	  PARAMS ((tree type, tree value));
        int                    complete_array_type 	       	 	  PARAMS ((tree type, tree initial_value,
@@ -510,6 +515,7 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_GetCardinalType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetCharType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetByteType 	       	 	  PARAMS ((void));
+       tree                   gccgm2_GetLocType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetVoidType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetPointerType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetBitsetType 	       	 	  PARAMS ((void));
@@ -577,6 +583,9 @@ static tree                   build_m2_short_real_node                    PARAMS
 static tree                   build_m2_real_node                          PARAMS ((void));
 static tree                   build_m2_long_real_node                     PARAMS ((void));
 static tree                   build_m2_long_int_node                      PARAMS ((void));
+static tree                   build_m2_iso_loc_node                       PARAMS ((void));
+static tree                   build_m2_iso_byte_node                      PARAMS ((void));
+static tree                   build_m2_iso_word_node                      PARAMS ((void));
        tree                   convert_type_to_range                       PARAMS ((tree type));
        tree                   gccgm2_GetDefaultType                       PARAMS ((char *name, tree type));
        void                   gccgm2_BuildStartSetConstructor             PARAMS ((tree type));
@@ -588,6 +597,9 @@ static tree                   build_m2_long_int_node                      PARAMS
        tree                   gccgm2_GetM2RealType                        PARAMS ((void));
        tree                   gccgm2_GetM2LongRealType                    PARAMS ((void));
        tree                   gccgm2_GetM2LongIntType                     PARAMS ((void));
+       tree                   gccgm2_GetISOWordType                       PARAMS ((void));
+       tree                   gccgm2_GetISOByteType                       PARAMS ((void));
+       tree                   gccgm2_GetISOLocType                        PARAMS ((void));
 
        int                    gccgm2_CompareTrees                         PARAMS ((tree e1, tree e2));
 static int                    is_type                                     PARAMS ((tree type));
@@ -2886,6 +2898,9 @@ init_m2_builtins ()
   m2_real_type_node = build_m2_real_node ();
   m2_long_real_type_node = build_m2_long_real_node ();
   m2_long_int_type_node = build_m2_long_int_node ();
+  m2_iso_loc_type_node = build_m2_iso_loc_node ();
+  m2_iso_byte_type_node = build_m2_iso_byte_node ();
+  m2_iso_word_type_node = build_m2_iso_word_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -3030,6 +3045,73 @@ build_m2_long_int_node (void)
 
   return c;
 }
+
+static
+tree
+build_m2_iso_loc_node (void)
+{
+#if 1
+  tree c;
+
+  /* Define `LOC' as specified in ISO m2 */
+  
+  c = make_node (INTEGER_TYPE);
+  TYPE_PRECISION (c) = BITS_PER_UNIT;
+  TYPE_SIZE (c) = 0;
+
+  fixup_unsigned_type (c);
+  TREE_UNSIGNED (c) = 1;
+
+  return c;
+#else
+  return gccgm2_GetByteType ();
+#endif
+}
+
+static
+tree
+build_m2_iso_byte_node (void)
+{
+  tree c;
+
+  /*
+   * Define `BYTE' as specified in ISO m2
+   *
+   * BYTE = ARRAY [0..SizeOfByte / SizeOfLoc] OF LOC ;
+   */
+
+  if (BITS_PER_UNIT == 8)
+    c = gccgm2_GetISOLocType ();
+  else
+    c = gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
+			       gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							   gccgm2_BuildIntegerConstant (BITS_PER_UNIT/8)));
+  return c;
+}
+
+static
+tree
+build_m2_iso_word_node (void)
+{
+  tree c;
+
+  /*
+   * Define `WORD' as specified in ISO m2
+   *
+   * WORD = ARRAY [0..SizeOfWord / SizeOfLoc] OF LOC ;
+   */
+
+  if (BITS_PER_WORD == BITS_PER_UNIT)
+    c = gccgm2_GetISOLocType ();
+  else
+    c = gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
+			       gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
+							   (gccgm2_BuildSub (gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT),
+									     integer_one_node,
+									     FALSE))));
+  return c;
+}
+
 
 /* Create the predefined scalar types such as `integer_type_node' needed 
    in the gcc back-end and initialize the global binding level.  */
@@ -7177,13 +7259,19 @@ tree
 gccgm2_GetMaxFrom (type)
      tree type;
 {
-  return TYPE_MAX_VALUE( skip_type_decl (type));
+  return TYPE_MAX_VALUE (skip_type_decl (type));
 }
 
 int
 gccgm2_GetBitsPerWord ()
 {
   return BITS_PER_WORD;
+}
+
+int
+gccgm2_GetBitsPerUnit ()
+{
+  return BITS_PER_UNIT;
 }
 
 #if defined(DEBUGGING)
@@ -9992,6 +10080,24 @@ tree
 gccgm2_GetWordType ()
 {
   return unsigned_type_node;
+}
+
+tree
+gccgm2_GetISOLocType ()
+{
+  return m2_iso_loc_type_node;
+}
+
+tree
+gccgm2_GetISOByteType ()
+{
+  return m2_iso_byte_type_node;
+}
+
+tree
+gccgm2_GetISOWordType ()
+{
+  return m2_iso_word_type_node;
 }
 
 tree

@@ -1,6 +1,5 @@
 M2RTS
-libc
-Strings
+DynamicStrings
 Debug
 Environment
 SEnvironment

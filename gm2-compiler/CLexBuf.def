@@ -27,7 +27,7 @@ DEFINITION MODULE CLexBuf ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED toktype,
                  IsMacroDefined, NoArgs, DefineMacro, UnDefineMacro,

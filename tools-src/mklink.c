@@ -5,9 +5,26 @@
  * Date       : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.1 2002/04/17 14:03:44 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.2 2003/04/29 15:27:28 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.2  2003/04/29 15:27:28  gaius
+ * many changes made which relate to the introduction of ISO SYSTEM:
+ *
+ * * examples/pthreads cleaned up
+ * * introduced ISO SYSTEM. Limitations, TSIZE only takes one parameter,
+ *   and SHIFT, ROTATE are not implemented yet.
+ * * renamed gm2-libs/Strings to gm2-libs/DynamicStrings to avoid name
+ *   clash with gm2-iso/Strings
+ * * p2c modified to understand DEFINITION MODULE FOR "C"
+ * * gm2-libs/libc.def modified to use DEFINITION MODULE FOR "C"
+ * * gm2-iso/libc.def removed
+ * * linking references to libc (in gm2/init/*init) removed
+ * * gm2/tools-src/def2texi finished
+ * * gm2/gm2-libs.texi built via gm2/tools-src/def2texi
+ * * gm2/gm2.texi now contains library definition modules and index.
+ * * added -Wiso switch to gm2 driver
+ *
  * Revision 1.1  2002/04/17 14:03:44  gaius
  * added build files
  *
@@ -300,7 +317,6 @@ static void ParseFileStartup (void)
       printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
       p = p->next;
     }
-    printf("extern void libc_exit (int);\n");
 
     p = head;
     printf("\n\nint %s(int argc, char *argv[])\n", NameOfMain);
@@ -310,7 +326,7 @@ static void ParseFileStartup (void)
       p = p->next;
     }
     if (ExitNeeded) {
-      printf("   libc_exit(0);\n");
+      printf("   exit(0);\n");
     }
     printf("   return(0);\n");
     printf("\n}\n");

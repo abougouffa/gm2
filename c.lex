@@ -646,7 +646,7 @@ static char *findFile (char *fileName, int localFirst)
     char *end = index (start, ':');
     
     if (end == NULL) {
-      char *try = (char *)malloc (strlen(start) + 2 + strlen (fileName));
+      char *try = (char *)xmalloc (strlen(start) + 2 + strlen (fileName));
       strcpy (try, start);
       strcat(try, "/");
       strcat(try, fileName);
@@ -657,7 +657,7 @@ static char *findFile (char *fileName, int localFirst)
       start = NULL;
     }
     else {
-      char *try = (char *)malloc (end-start + 2 + strlen (fileName));
+      char *try = (char *)xmalloc (end-start + 2 + strlen (fileName));
       strncpy (try, start, end-start);
       try[end-start] = (char)0;
       strcat(try, "/");

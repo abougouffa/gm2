@@ -60,8 +60,8 @@ FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList,
                   IsItemInList, RemoveItemFromList, KillList, DuplicateList, PutItemIntoList ;
 
-FROM Strings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark,
-                    string, Dup, Equal, Slice, char, ConCatChar, ConCat, Index, RIndex, Mult, InitStringChar ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark,
+                           string, Dup, Equal, Slice, char, ConCatChar, ConCat, Index, RIndex, Mult, InitStringChar ;
 
 FROM StringConvert IMPORT hstoi ;
 FROM StrLib IMPORT StrLen ;

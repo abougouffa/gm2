@@ -24,7 +24,7 @@ DEFINITION MODULE M2AsmUtil ;
                 to their equalalent representation in ASM format.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED WriteAsmName, WriteName, GetAsmName, GetFullSymName,
                  UnderScoreString, DotifyLabel, GetModuleInitName,

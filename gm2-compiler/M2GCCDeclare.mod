@@ -28,12 +28,12 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Options IMPORT GenerateDebugging, GenerateLineDebug ;
+FROM M2Options IMPORT GenerateDebugging, GenerateLineDebug, Iso ;
 FROM NameKey IMPORT Name, MakeKey, NulName, KeyToCharStar, makekey ;
 FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
-FROM Strings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
+FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat3 ;
@@ -74,7 +74,7 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh ;
-FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte ;
+FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte, Loc ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 
@@ -93,6 +93,7 @@ FROM gccgm2 IMPORT Tree,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
                    GetM2IntegerType, GetM2CardinalType,
+                   GetISOLocType, GetISOByteType, GetISOWordType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
@@ -955,9 +956,18 @@ BEGIN
       DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
       DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
       DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
-      DeclareDefaultType(Word     , "WORD"     , GetWordType()) ;
+
+      IF Iso
+      THEN
+         DeclareDefaultType(Loc   , "LOC"      , GetISOLocType()) ;
+         DeclareDefaultType(Byte  , "BYTE"     , GetISOByteType()) ;
+         DeclareDefaultType(Word  , "WORD"     , GetISOWordType())
+      ELSE
+         DeclareDefaultType(Byte  , "BYTE"     , GetByteType()) ;
+         DeclareDefaultType(Word  , "WORD"     , GetWordType())
+      END ;
+
       DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
-      DeclareDefaultType(Byte     , "BYTE"     , GetByteType()) ;
       DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
       DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
       DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;

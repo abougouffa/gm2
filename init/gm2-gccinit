@@ -1,10 +1,9 @@
-libc
 Debug
 Math
 M2Defaults
 Environment
 M2RTS
-Strings
+DynamicStrings
 FormatStrings
 FIO
 SFIO

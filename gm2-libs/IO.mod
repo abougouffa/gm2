@@ -21,7 +21,7 @@ FROM StrLib IMPORT StrCopy ;
 FROM SYSTEM IMPORT ADR, SIZE ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM libc IMPORT read, write, system, isatty ;
-FROM FIO IMPORT StdIn, StdOut, StdErr, WriteChar, ReadChar ;
+FROM FIO IMPORT StdIn, StdOut, StdErr, WriteChar, ReadChar, GetUnixFileDescriptor ;
 FROM ASCII IMPORT cr, eof, nl;
 
 
@@ -69,11 +69,12 @@ VAR
    Command: ARRAY [0..30] OF CHAR ;
    res    : INTEGER ;
 BEGIN
-   IF isatty()
+   IF isatty(GetUnixFileDescriptor(StdIn))=1
    THEN
       IsInRawMode := TRUE ;
       StrCopy("stty raw -echo", Command) ;
-      res := system(ADR(Command))
+      res := system(ADR(Command)) ;
+      InstallTerminationProcedure(IOInBufferedMode)
    END
 END IOInRawMode ;
 
@@ -85,6 +86,7 @@ VAR
 BEGIN
    IF IsInRawMode
    THEN
+      IsInRawMode := FALSE ;
       StrCopy("stty sane", Command) ;
       res := system(ADR(Command))
    END
@@ -93,6 +95,5 @@ END IOInBufferedMode ;
 
 BEGIN
    IsInRawMode := FALSE ;
-   Eof := FALSE ;
-   InstallTerminationProcedure(IOInBufferedMode)
+   Eof := FALSE
 END IO.

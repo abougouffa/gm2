@@ -20,8 +20,8 @@ IMPLEMENTATION MODULE M2Preprocess ;
 
 FROM SYSTEM IMPORT WORD ;
 
-FROM Strings IMPORT string, InitString, Mark, KillString, EqualArray, InitStringCharStar,
-                    Dup, ConCat, ConCatChar, RIndex, Slice ;
+FROM DynamicStrings IMPORT string, InitString, Mark, KillString, EqualArray, InitStringCharStar,
+                           Dup, ConCat, ConCatChar, RIndex, Slice ;
 
 FROM choosetemp IMPORT make_temp_file ;
 FROM pexecute IMPORT pexecute ;

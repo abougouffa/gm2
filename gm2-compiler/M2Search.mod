@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE M2Search ;
 FROM SFIO IMPORT Exists ;
 FROM M2Defaults IMPORT GetSearchPath ;
 FROM M2Configure IMPORT DefaultLibraryPath ;
-FROM Strings IMPORT InitString, KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup ;
+FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup ;
 
  
 CONST

@@ -18,7 +18,7 @@ IMPLEMENTATION MODULE M2Error ;
 
 FROM ASCII IMPORT nul, nl ;
 FROM NameKey IMPORT KeyToCharStar ;
-FROM Strings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
 FROM FIO IMPORT StdOut, WriteNBytes, Close ;
 FROM StrLib IMPORT StrLen, StrEqual ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;

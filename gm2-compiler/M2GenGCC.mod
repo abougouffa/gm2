@@ -71,7 +71,7 @@ FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
                    ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
 
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, NulName ;
-FROM Strings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
+FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2System IMPORT Address, Word ;
 FROM M2FileName IMPORT CalculateFileName ;

@@ -26,7 +26,7 @@ DEFINITION MODULE M2Defaults;
                  search path and command line options.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED GetSearchPath, GetOptions ;
 
 

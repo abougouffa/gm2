@@ -22,12 +22,12 @@ DEFINITION MODULE M2Preprocess ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Thu Dec  6 17:59:57 2001
-    Last edit  : $Date: 2002/04/15 16:28:46 $ 
+    Last edit  : $Date: 2003/04/29 15:27:19 $ 
     Revision   : $Version$ 
     Description: provides a mechanism to invoke the C preprocessor.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED PreprocessModule ;
 
 

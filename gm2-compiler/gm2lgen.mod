@@ -30,7 +30,7 @@ FROM Lists IMPORT List, InitList, IncludeItemIntoList, GetItemFromList, NoOfItem
 FROM FIO IMPORT File, StdIn, StdOut, StdErr, WriteChar,
                 ReadString, WriteString, EOF, IsNoError, WriteLine, Close ;
 
-FROM Strings IMPORT String, InitString, KillString, ConCat, RemoveWhitePrefix,
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, RemoveWhitePrefix,
                     EqualArray, Mark, Assign, Fin, InitStringChar, Length, Slice, Equal ;
 
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2 ;
@@ -185,7 +185,7 @@ BEGIN
       END ;
       IF ExitNeeded
       THEN
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   libc_exit(0);\n'))))))
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit(0);\n'))))))
       END ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return(0);\n')))))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))

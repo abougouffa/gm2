@@ -19,13 +19,13 @@ DEFINITION MODULE M2FileName ;
 (*
    Author     : Gaius Mulley
    Title      : M2FileName
-   Date       : 3/4/86  [$Date: 2002/04/15 16:26:50 $]
+   Date       : 3/4/86  [$Date: 2003/04/29 15:27:19 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Provides a procedure to calculate a system file name.
-   Version    : $Revision: 1.2 $
+   Version    : $Revision: 1.3 $
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED CalculateFileName, CalculateStemName, ExtractExtension ;
 
 

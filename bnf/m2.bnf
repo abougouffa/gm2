@@ -43,7 +43,7 @@ FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, Qualifie
 FROM NameKey IMPORT NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
-FROM Strings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Printf IMPORT printf0 ;
 

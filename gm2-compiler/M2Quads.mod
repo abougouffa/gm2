@@ -22,8 +22,8 @@ FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM NameKey IMPORT Name, NulName, MakeKey, GetKey, makekey, KeyToCharStar ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 
-FROM Strings IMPORT String, string, InitString, KillString, 
-                    ConCat, InitStringCharStar, Dup, Mark ;
+FROM DynamicStrings IMPORT String, string, InitString, KillString, 
+                           ConCat, InitStringCharStar, Dup, Mark ;
 
 FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         MakeTemporary, MakeConstLit, MakeConstLitString,
@@ -109,7 +109,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
-                     Adr, Size, TSize,
+                     Adr, Size, TSize, AddAdr, SubAdr, DifAdr, Cast, MakeAdr,
                      Address, Bitset, Byte, Word ;
 
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
@@ -223,6 +223,11 @@ PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE CheckForIndex (Start, End, Omit: CARDINAL; IndexSym: CARDINAL) ; FORWARD ;
 PROCEDURE BuildMaxFunction ; FORWARD ;
 PROCEDURE BuildMinFunction ; FORWARD ;
+PROCEDURE BuildAddAdrFunction ; FORWARD ;
+PROCEDURE BuildSubAdrFunction ; FORWARD ;
+PROCEDURE BuildDifAdrFunction ; FORWARD ;
+PROCEDURE BuildCastFunction ; FORWARD ;
+PROCEDURE BuildMakeAdrFunction ; FORWARD ;
 PROCEDURE CheckVariablesInBlock (BlockSym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
@@ -5096,10 +5101,225 @@ BEGIN
    ELSIF ProcSym=Max
    THEN
       BuildMaxFunction
+   ELSIF ProcSym=AddAdr
+   THEN
+      BuildAddAdrFunction
+   ELSIF ProcSym=SubAdr
+   THEN
+      BuildSubAdrFunction
+   ELSIF ProcSym=DifAdr
+   THEN
+      BuildDifAdrFunction
+   ELSIF ProcSym=Cast
+   THEN
+      BuildCastFunction
+   ELSIF ProcSym=MakeAdr
+   THEN
+      BuildMakeAdrFunction
    ELSE
-      InternalError('pseudo Function not implemented yet', __FILE__, __LINE__)
+      InternalError('pseudo function not implemented yet', __FILE__, __LINE__)
    END
 END BuildPseudoFunctionCall ;
+
+
+(*
+   BuildAddAdrFunction - builds the pseudo procedure call ADDADR.
+
+                         PROCEDURE ADDADR (addr: ADDRESS; offset: CARDINAL): ADDRESS ;
+
+                         Which returns address given by (addr + offset),
+                         [ the standard says that it _may_
+                           "raise an exception if this address is not valid."
+                           currently we do not generate any exception code ]
+
+                         The Stack:
+
+                         Entry                      Exit
+
+                  Ptr ->
+                         +----------------+
+                         | NoOfParam      |
+                         |----------------|
+                         | Param 1        |
+                         |----------------|
+                         | Param 2        |                        <- Ptr
+                         |----------------|         +------------+
+                         | ProcSym | Type |         | ReturnVar  |
+                         |----------------|         |------------|
+*)
+
+PROCEDURE BuildAddAdrFunction ;
+VAR
+   ReturnVar,
+   NoOfParam,
+   OperandSym,
+   VarSym    : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      VarSym := OperandT(2) ;
+      OperandSym := OperandT(1) ;
+      PopN(NoOfParam+1) ;
+      IF IsVar(VarSym)
+      THEN
+         IF IsReallyPointer(VarSym) OR (GetType(VarSym)=Address)
+         THEN
+            ReturnVar := MakeTemporary(RightValue) ;
+            PutVar(ReturnVar, Address) ;
+            GenQuad(AddOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
+            PushTF(ReturnVar, Address)
+         ELSE
+            ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
+                           VarSym) ;
+            PushTF(MakeConstLit(MakeKey('0')), Address)
+         END
+      ELSE
+         WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         PushTF(MakeConstLit(MakeKey('0')), Address)
+      END
+   ELSE
+      WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
+      PopN(NoOfParam+1) ;
+      PushTF(MakeConstLit(MakeKey('0')), Address)
+   END
+END BuildAddAdrFunction ;
+
+
+(*
+   BuildSubAdrFunction - builds the pseudo procedure call ADDADR.
+
+                         PROCEDURE SUBADR (addr: ADDRESS; offset: CARDINAL): ADDRESS ;
+
+                         Which returns address given by (addr - offset),
+                         [ the standard says that it _may_
+                           "raise an exception if this address is not valid."
+                           currently we do not generate any exception code ]
+
+                         The Stack:
+
+                         Entry                      Exit
+
+                  Ptr ->
+                         +----------------+
+                         | NoOfParam      |
+                         |----------------|
+                         | Param 1        |
+                         |----------------|
+                         | Param 2        |                        <- Ptr
+                         |----------------|         +------------+
+                         | ProcSym | Type |         | ReturnVar  |
+                         |----------------|         |------------|
+*)
+
+PROCEDURE BuildSubAdrFunction ;
+VAR
+   ReturnVar,
+   NoOfParam,
+   OperandSym,
+   VarSym    : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      VarSym := OperandT(2) ;
+      OperandSym := OperandT(1) ;
+      PopN(NoOfParam+1) ;
+      IF IsVar(VarSym)
+      THEN
+         IF IsReallyPointer(VarSym) OR (GetType(VarSym)=Address)
+         THEN
+            ReturnVar := MakeTemporary(RightValue) ;
+            PutVar(ReturnVar, Address) ;
+            GenQuad(SubOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
+            PushTF(ReturnVar, Address)
+         ELSE
+            ExpectVariable('the first parameter to SUBADR must be a variable of type ADDRESS or a POINTER',
+                           VarSym) ;
+            PushTF(MakeConstLit(MakeKey('0')), Address)
+         END
+      ELSE
+         WriteFormat0('SYSTEM procedure SUBADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         PushTF(MakeConstLit(MakeKey('0')), Address)
+      END
+   ELSE
+      WriteFormat0('SYSTEM procedure SUBADR expects 2 parameters') ;
+      PopN(NoOfParam+1) ;
+      PushTF(MakeConstLit(MakeKey('0')), Address)
+   END
+END BuildSubAdrFunction ;
+
+
+(*
+   BuildDifAdrFunction - builds the pseudo procedure call DIFADR.
+
+                         PROCEDURE DIFADR (addr1, addr2: ADDRESS): ADDRESS ;
+
+                         Which returns address given by (addr1 - addr2),
+                         [ the standard says that it _may_
+                           "raise an exception if this address is invalid or
+                            address space is non-contiguous."
+                           currently we do not generate any exception code ]
+
+                         The Stack:
+
+                         Entry                      Exit
+
+                  Ptr ->
+                         +----------------+
+                         | NoOfParam      |
+                         |----------------|
+                         | Param 1        |
+                         |----------------|
+                         | Param 2        |                        <- Ptr
+                         |----------------|         +------------+
+                         | ProcSym | Type |         | ReturnVar  |
+                         |----------------|         |------------|
+*)
+
+PROCEDURE BuildDifAdrFunction ;
+VAR
+   ReturnVar,
+   NoOfParam,
+   OperandSym,
+   VarSym    : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      VarSym := OperandT(2) ;
+      OperandSym := OperandT(1) ;
+      PopN(NoOfParam+1) ;
+      IF IsVar(VarSym)
+      THEN
+         IF IsReallyPointer(VarSym) OR (GetType(VarSym)=Address)
+         THEN
+            IF IsReallyPointer(OperandSym) OR (GetType(OperandSym)=Address)
+            THEN
+               ReturnVar := MakeTemporary(RightValue) ;
+               PutVar(ReturnVar, Address) ;
+               GenQuad(SubOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
+               PushTF(ReturnVar, Address)
+            ELSE
+               ExpectVariable('the second parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
+                              OperandSym) ;
+               PushTF(MakeConstLit(MakeKey('0')), Address)
+            END
+         ELSE
+            ExpectVariable('the first parameter to ADDADR must be a variable of type ADDRESS or a POINTER',
+                           VarSym) ;
+            PushTF(MakeConstLit(MakeKey('0')), Address)
+         END
+      ELSE
+         WriteFormat0('SYSTEM procedure ADDADR expects a variable which has a type of ADDRESS or is a POINTER as its first parameter') ;
+         PushTF(MakeConstLit(MakeKey('0')), Address)
+      END
+   ELSE
+      WriteFormat0('SYSTEM procedure ADDADR expects 2 parameters') ;
+      PopN(NoOfParam+1) ;
+      PushTF(MakeConstLit(MakeKey('0')), Address)
+   END
+END BuildDifAdrFunction ;
 
 
 (*
@@ -5413,32 +5633,25 @@ END BuildHighFromChar ;
 PROCEDURE BuildChrFunction ;
 VAR
    NoOfParam,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      ProcSym := RequestSym(MakeKey('CONVERT')) ;
-      IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
       THEN
-         Var := OperandT(1) ;
-         IF IsVar(Var) OR IsConst(Var)
-         THEN
-            PopN(NoOfParam+1) ;
-            (*
-               Build macro: CONVERT( CHAR, Var )
-            *)
-            PushTF(ProcSym, NulSym) ;
-            PushT(Char) ;
-            PushT(Var) ;
-            PushT(2) ;          (* Two parameters *)
-            BuildConvertFunction
-         ELSE
-            WriteFormat0('argument to CHR must be a variable or constant')
-         END
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: CONVERT( CHAR, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Char) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
       ELSE
-         WriteFormat0('CONVERT procedure not found for CHR substitution')
+         WriteFormat0('argument to CHR must be a variable or constant')
       END
    ELSE
       WriteFormat0('the pseudo procedure CHR only has one parameter')
@@ -5482,37 +5695,103 @@ END BuildChrFunction ;
 PROCEDURE BuildOrdFunction ;
 VAR
    NoOfParam,
-   Var,
-   ProcSym  : CARDINAL ;
+   Var      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      ProcSym := RequestSym(MakeKey('CONVERT')) ;
-      IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
       THEN
-         Var := OperandT(1) ;
-         IF IsVar(Var) OR IsConst(Var)
-         THEN
-            PopN(NoOfParam+1) ;
-            (*
-               Build macro: CONVERT( CARDINAL, Var )
-            *)
-            PushTF(ProcSym, NulSym) ;
-            PushT(Cardinal) ;
-            PushT(Var) ;
-            PushT(2) ;          (* Two parameters *)
-            BuildConvertFunction
-         ELSE
-            WriteFormat0('argument to ORD must be a variable or constant')
-         END
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: CONVERT( CARDINAL, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Cardinal) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
       ELSE
-         WriteFormat0('CONVERT procedure not found for ORD substitution')
+         WriteFormat0('argument to ORD must be a variable or constant')
       END
    ELSE
       WriteFormat0('the pseudo procedure ORD only has one parameter')
    END
 END BuildOrdFunction ;
+
+
+(*
+   BuildMakeAdrFunction - builds the pseudo procedure call MAKEADDR.
+                          This procedure is actually a "macro" for
+                          MAKEADDR(x) --> CONVERT(ADDRESS, CONVERT(WORD, x))
+                          However we cannot push tokens back onto the input stack
+                          because the compiler is currently building a function
+                          call and expecting a ReturnVar on the stack.
+                          Hence we manipulate the stack and call
+                          BuildConvertFunction.
+
+                          The Stack:
+
+
+                          Entry                      Exit
+
+                   Ptr ->
+                          +----------------+
+                          | NoOfParam      |
+                          |----------------|
+                          | Param 1        |
+                          |----------------|
+                          | Param 2        |
+                          |----------------|
+                          .                .
+                          .                .
+                          .                .
+                          |----------------|
+                          | Param #        |
+                          |----------------|
+                          | ProcSym | Type |         Empty
+                          |----------------|
+*)
+
+PROCEDURE BuildMakeAdrFunction ;
+VAR
+   NoOfParam,
+   Var      : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: Var := CONVERT( WORD, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Word) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction ;
+
+         (*
+            Build macro: CONVERT( ADDRESS, Var )
+         *)
+
+         PopT(Var) ;
+         PushTF(Convert, NulSym) ;
+         PushT(Address) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
+      ELSE
+         WriteFormat0('argument to MAKEADR must be a variable or constant')
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure MAKEADR only has one parameter in GNU Modula-2')
+   END
+END BuildMakeAdrFunction ;
 
 
 (*
@@ -5551,42 +5830,102 @@ END BuildOrdFunction ;
 PROCEDURE BuildValFunction ;
 VAR
    NoOfParam,
-   Var, Type,
-   ProcSym  : CARDINAL ;
+   Var, Type: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      ProcSym := RequestSym(MakeKey('CONVERT')) ;
-      IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
+      Type := OperandT(2) ;
+      Var := OperandT(1) ;
+      IF IsUnknown(Type)
       THEN
-         Type := OperandT(2) ;
-         Var := OperandT(1) ;
-         IF IsUnknown(Type)
-         THEN
-            WriteFormat1('undeclared type found in VAL (%a)', GetSymName(Type))
-         ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type)) AND
-               (IsVar(Var) OR IsConst(Var))
-         THEN
-            PopN(NoOfParam+1) ;
-            (*
-               Build macro: CONVERT( Type, Var )
-            *)
-            PushTF(ProcSym, NulSym) ;
-            PushT(Type) ;
-            PushT(Var) ;
-            PushT(2) ;          (* Two parameters *)
-            BuildConvertFunction
-         ELSE
-            WriteFormat0('arguments to VAL must be (Type, Variable or Constant)')
-         END
+         WriteFormat1('undeclared type found in VAL (%a)', GetSymName(Type))
+      ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type)) AND
+         (IsVar(Var) OR IsConst(Var))
+      THEN
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: CONVERT( Type, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Type) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
       ELSE
-         WriteFormat0('CONVERT procedure not found for VAL substitution')
+         WriteFormat0('arguments to VAL must be (Type, Variable or Constant)')
       END
    ELSE
       WriteFormat0('the pseudo procedure VAL has 2 parameters, a Type and Variable')
    END
 END BuildValFunction ;
+
+
+(*
+   BuildCastFunction - builds the pseudo procedure call CAST.
+                       This procedure is actually a "macro" for
+                       CAST(Type, x) --> CONVERT(Type, x)
+                       However we cannot push tokens back onto the input stack
+                       because the compiler is currently building a function
+                       call and expecting a ReturnVar on the stack.
+                       Hence we manipulate the stack and call
+                       BuildConvertFunction.
+
+                       The Stack:
+
+
+                       Entry                      Exit
+
+                Ptr ->
+                       +----------------+
+                       | NoOfParam      |
+                       |----------------|
+                       | Param 1        |
+                       |----------------|
+                       | Param 2        |
+                       |----------------|
+                       .                .
+                       .                .
+                       .                .
+                       |----------------|
+                       | Param #        |
+                       |----------------|
+                       | ProcSym | Type |         Empty
+                       |----------------|
+*)
+
+PROCEDURE BuildCastFunction ;
+VAR
+   NoOfParam,
+   Var, Type: CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      Type := OperandT(2) ;
+      Var := OperandT(1) ;
+      IF IsUnknown(Type)
+      THEN
+         WriteFormat1('undeclared type found in CAST (%a)', GetSymName(Type))
+      ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type)) AND
+         (IsVar(Var) OR IsConst(Var))
+      THEN
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: CONVERT( Type, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Type) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
+      ELSE
+         WriteFormat0('arguments to CAST must be (Type, Variable or Constant)')
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure CAST has 2 parameters, a Type and Variable')
+   END
+END BuildCastFunction ;
 
 
 (*

@@ -10,7 +10,7 @@ DEFINITION MODULE M2LexBuf ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Reserved IMPORT toktype ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
                  GetTokenNo, TokenToLineNo, FindFileNameFromToken, GetFileName,

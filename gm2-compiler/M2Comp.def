@@ -24,7 +24,7 @@ DEFINITION MODULE M2Comp ;
                 referenced in the Modula-2 compiler.
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED CompilingDefinitionModule,
                  CompilingImplementationModule,
                  CompilingProgramModule,

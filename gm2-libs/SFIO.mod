@@ -18,7 +18,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE SFIO ;
 
 FROM ASCII IMPORT nul ;
-FROM Strings IMPORT string, Length, InitString, ConCatChar ;
+FROM DynamicStrings IMPORT string, Length, InitString, ConCatChar ;
 FROM FIO IMPORT exists, openToRead, openToWrite, openForRandom, WriteNBytes, ReadChar,
                 EOLN, EOF, IsNoError ;
 

@@ -28,8 +28,6 @@ IMPLEMENTATION MODULE M2System ;
                  We also need to tell the compiler the size of the data types.
 *)
 
-FROM NameKey IMPORT MakeKey, NulName ;
-
 FROM SymbolTable IMPORT NulSym,
                         SetCurrentModule,
                         StartScope,
@@ -49,53 +47,52 @@ FROM SymbolTable IMPORT NulSym,
                         PopValue,
                         PopSize ;
 
+FROM M2Options IMPORT Iso ;
+FROM NameKey IMPORT MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
-FROM M2ALU IMPORT PushCard, PushIntegerTree ;
+FROM M2ALU IMPORT PushCard, PushIntegerTree, Div ;
 FROM M2Error IMPORT InternalError ;
-FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom, GetWordType, GetPointerType,
-                   GetBitsPerWord, GetSizeOf, BuildSize ;
+FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom,
+                   GetWordType, GetPointerType, GetByteType, GetISOLocType,
+                   GetBitsPerWord, GetBitsPerUnit, GetSizeOf, BuildSize ;
 
 VAR
    MinWord   , MaxWord,
    MinAddress, MaxAddress,
+   MinLoc    , MaxLoc,
    MinByte   , MaxByte,
    MinBitset , MaxBitset : CARDINAL ;
 
 
 (*
-   InitSystem - creates the system dependant types and procedures.
-                Note that they are not exported here, but they are
-                exported in the textual module: SYSTEM.def.
-                We build our system types from those given in the gcc
-                backend. Essentially we perform double book keeping.
+   InitPIMTypes - 
 *)
 
-PROCEDURE InitSystem ;
+PROCEDURE InitPIMTypes ;
 VAR
-   System     : CARDINAL ;
    BitsetRange: CARDINAL ;
 BEGIN
-   (* create SYSTEM module *)
-   System := MakeDefinitionSource(MakeKey('SYSTEM')) ;
-   StartScope(System) ;
+   Loc := NulSym ;
 
    Word := MakeType(MakeKey('WORD')) ;
    PutType(Word, NulSym) ;                    (* Base Type       *)
    PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
    PopSize(Word) ;
 
-   (* ADDRESS = POINTER TO WORD *)
-
-   Address := MakePointer(MakeKey('ADDRESS')) ;
-   PutPointer(Address, Word) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetPointerType())) ;
-   PopSize(Address) ;
-
    Byte := MakeType(MakeKey('BYTE')) ;
    PutType(Byte, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetPointerType())) ;
+   PushCard(GetBitsPerUnit()) ;
+   PushCard(8) ;
+   Div ;
    PopSize(Byte) ;
+
+   (* ADDRESS = POINTER TO BYTE *)
+
+   Address := MakePointer(MakeKey('ADDRESS')) ;
+   PutPointer(Address, Byte) ;                (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetPointerType())) ;
+   PopSize(Address) ;
 
    Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
 
@@ -112,21 +109,128 @@ BEGIN
    PutSet(Bitset, BitsetRange) ;
 
    PushIntegerTree(GetSizeOf(GetWordType())) ;
+   PopSize(Bitset)
+
+END InitPIMTypes ;
+
+
+(*
+   InitISOTypes - 
+*)
+
+PROCEDURE InitISOTypes ;
+VAR
+   BitsetRange: CARDINAL ;
+BEGIN
+   Loc := MakeType(MakeKey('LOC')) ;
+   PutType(Loc, NulSym) ;                     (* Base Type       *)
+   PushCard(1) ;
+   PopSize(Loc) ;
+
+   Address := MakePointer(MakeKey('ADDRESS')) ;
+   PutPointer(Address, Loc) ;                 (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetPointerType())) ;
+   PopSize(Address) ;
+
+   Byte := MakeType(MakeKey('BYTE')) ;
+   PutType(Byte, NulSym) ;                    (* Base Type       *)
+   PushCard(GetBitsPerUnit()) ;
+   PushCard(8) ;
+   Div ;
+   PopSize(Byte) ;
+
+   Word := MakeType(MakeKey('WORD')) ;
+   PutType(Word, NulSym) ;                    (* Base Type       *)
+   PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
+   PopSize(Word) ;
+
+   Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
+
+   (* MinBitset *)
+   MinBitset := MakeConstLit(MakeKey('0')) ;
+
+   (* MaxBitset *)
+   MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;
+   PushCard(GetBitsPerWord()-1) ;
+   PopValue(MaxBitset) ;
+
+   BitsetRange := MakeSubrange(NulName (* MakeKey('BITNUM') *)) ;
+   PutSubrange(BitsetRange, MinBitset, MaxBitset, Word) ;
+   PutSet(Bitset, BitsetRange) ;
+
+   PushIntegerTree(GetSizeOf(GetWordType())) ;
    PopSize(Bitset) ;
+
+   (* MaxLoc *)
+   MaxLoc := MakeConstVar(MakeKey('MaxLoc')) ;
+   PushIntegerTree(GetMaxFrom(GetISOLocType())) ;
+   PopValue(MaxLoc) ;
+
+   (* MinByte *)
+   MinLoc := MakeConstVar(MakeKey('MinLoc')) ;
+   PushIntegerTree(GetMinFrom(GetISOLocType())) ;
+   PopValue(MinLoc)
+
+END InitISOTypes ;
+
+
+(*
+   InitSystem - creates the system dependant types and procedures.
+                Note that they are not exported here, but they are
+                exported in the textual module: SYSTEM.def.
+                We build our system types from those given in the gcc
+                backend. Essentially we perform double book keeping.
+*)
+
+PROCEDURE InitSystem ;
+VAR
+   System     : CARDINAL ;
+BEGIN
+   (* create SYSTEM module *)
+   System := MakeDefinitionSource(MakeKey('SYSTEM')) ;
+   StartScope(System) ;
+
+   IF Iso
+   THEN
+      InitISOTypes
+   ELSE
+      InitPIMTypes
+   END ;
 
    (* And now the predefined pseudo functions *)
 
-   Size := MakeProcedure(MakeKey('SIZE')) ;   (* Function        *)
-   PutFunction(Size, Cardinal) ;              (* Return Type     *)
-                                              (* Cardinal        *)
+   Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
+   PutFunction(Size, Cardinal) ;                  (* Return Type     *)
+                                                  (* Cardinal        *)
 
-   Adr := MakeProcedure(MakeKey('ADR')) ;     (* Function        *)
-   PutFunction(Adr, Address) ;                (* Return Type     *)
-                                              (* Address         *)
+   Adr := MakeProcedure(MakeKey('ADR')) ;         (* Function        *)
+   PutFunction(Adr, Address) ;                    (* Return Type     *)
+                                                  (* Address         *)
 
-   TSize := MakeProcedure(MakeKey('TSIZE')) ; (* Function        *)
-   PutFunction(TSize, Cardinal) ;             (* Return Type     *)
-                                              (* Cardinal        *)
+   TSize := MakeProcedure(MakeKey('TSIZE')) ;     (* Function        *)
+   PutFunction(TSize, Cardinal) ;                 (* Return Type     *)
+                                                  (* Cardinal        *)
+
+   (* and the ISO specific predefined pseudo functions *)
+
+   AddAdr := MakeProcedure(MakeKey('ADDADR')) ;   (* Function        *)
+   PutFunction(AddAdr, Address) ;                 (* Return Type     *)
+
+   SubAdr := MakeProcedure(MakeKey('SUBADR')) ;   (* Function        *)
+   PutFunction(SubAdr, Address) ;                 (* Return Type     *)
+
+   DifAdr := MakeProcedure(MakeKey('DIFADR')) ;   (* Function        *)
+   PutFunction(DifAdr, Address) ;                 (* Return Type     *)
+
+   MakeAdr := MakeProcedure(MakeKey('MAKEADR')) ; (* Function        *)
+   PutFunction(MakeAdr, Address) ;                (* Return Type     *)
+
+   (* the return value for ROTATE, SHIFT and CAST is actually the
+      same as the first parameter, this is faked in M2Quads *)
+
+   Rotate := MakeProcedure(MakeKey('ROTATE')) ;   (* Function        *)
+   Shift := MakeProcedure(MakeKey('SHIFT')) ;     (* Function        *)
+   Cast := MakeProcedure(MakeKey('CAST')) ;       (* Function        *)
 
    (* MaxWord *)
    MaxWord := MakeConstVar(MakeKey('MaxWord')) ;
@@ -150,12 +254,12 @@ BEGIN
 
    (* MaxByte *)
    MaxByte := MakeConstVar(MakeKey('MaxByte')) ;
-   PushIntegerTree(GetMaxFrom(GetPointerType())) ;
-   PopValue(MaxAddress) ;
+   PushIntegerTree(GetMaxFrom(GetByteType())) ;
+   PopValue(MaxByte) ;
 
    (* MinByte *)
    MinByte := MakeConstVar(MakeKey('MinByte')) ;
-   PushIntegerTree(GetMinFrom(GetPointerType())) ;
+   PushIntegerTree(GetMinFrom(GetByteType())) ;
    PopValue(MinByte) ;
 
    EndScope
@@ -184,10 +288,26 @@ BEGIN
    THEN
       min := MinBitset ;
       max := MaxBitset
+   ELSIF (type=Loc) AND Iso
+   THEN
+      min := MinLoc ;
+      max := MaxLoc
    ELSE
       InternalError('system does not know about this type', __FILE__, __LINE__)
    END
 END GetSystemTypeMinMax ;
+
+
+(*
+   IsISOPseudoSystemFunction - 
+*)
+
+PROCEDURE IsISOPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( Iso AND ((Sym=AddAdr) OR (Sym=SubAdr) OR (Sym=DifAdr) OR
+                    (Sym=MakeAdr) OR (Sym=Rotate) OR (Sym=Shift) OR
+                    (Sym=Cast)) )
+END IsISOPseudoSystemFunction ;
 
 
 (*
@@ -196,7 +316,8 @@ END GetSystemTypeMinMax ;
 
 PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (Sym=Adr) OR (Sym=TSize) OR (Sym=Size) )
+   RETURN( ((Sym=Adr) OR (Sym=TSize) OR (Sym=Size)) OR
+           IsISOPseudoSystemFunction(Sym) )
 END IsPseudoSystemFunction ;
 
 
@@ -209,7 +330,8 @@ PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (Sym=Word)    OR (Sym=Byte) OR
-          (Sym=Address) OR (Sym=Bitset)
+          (Sym=Address) OR (Sym=Bitset) OR
+          ((Sym=Loc) AND Iso)
          )
 END IsSystemType ;
 

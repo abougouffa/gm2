@@ -39,7 +39,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2003/01/20 22:17:24 $]
+   Date       : 3/4/86  [$Date: 2003/04/29 15:27:14 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -58,7 +58,7 @@ FROM M2Defaults IMPORT GetSearchPath, GetOptions ;
 FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
 FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList, IsItemInList, RemoveItemFromList, KillList, DuplicateList ;
-FROM Strings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark, string, Dup, Equal, Slice, char, ConCatChar, ConCat ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark, string, Dup, Equal, Slice, char, ConCatChar, ConCat ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
 FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;

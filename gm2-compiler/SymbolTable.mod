@@ -31,7 +31,7 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorAbort0 ;
 
 FROM M2LexBuf IMPORT GetTokenNo ;
-FROM Strings IMPORT String, string, InitString, InitStringCharStar, Mark, KillString ;
+FROM DynamicStrings IMPORT String, string, InitString, InitStringCharStar, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
 
@@ -641,7 +641,6 @@ PROCEDURE PushParamSize (Sym: CARDINAL; ParamNo: CARDINAL) ;   FORWARD ;
 PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PutExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PutHiddenTypeDeclared ; FORWARD ;
-PROCEDURE PutTypeSize (Sym: CARDINAL; SizeBytes, SizeBits: CARDINAL) ; FORWARD ;
 PROCEDURE PutVarTypeAndSize (Sym: CARDINAL; VarType: CARDINAL; TypeSize: CARDINAL) ; FORWARD ;
 PROCEDURE RemoveExportUnImplemented (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE RemoveExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;

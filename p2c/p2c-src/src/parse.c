@@ -3554,19 +3554,8 @@ Static void p_function(isfunc, ismodule)
         pushctx(func);
         type = func->type;
     } else {
-#if 0
-        if (strcmp((char *)curtoksym->name, "GetLineNo") == 0)
-	  stop();
-#endif
         func = addmeaning(curtoksym, MK_FUNCTION);
         gettok();
-#if 0
-	if (strcmp(func->name, "GetLineNo") == 0)
-	  stop();
-	if (strcmp(func->name, "M2LexBuf_GetLineNo") == 0)
-	  stop();
-#endif
-
         func->val.i = 0;
         pushctx(func);
         func->type = type = p_funcdecl(&isfunc, 0);
@@ -3782,15 +3771,16 @@ int inheader;
                 name = (sl) ? (char *)sl->value :
 		    format_ss(*headerfnfmt2 ? headerfnfmt2 : headerfnfmt,
 			      infname, curtokmeaning->name);
-                if (name && !strlist_find(includedfiles, name)) {
+		if ( !(sym->mbase && sym->mbase->language_C))
+		  if (name && !strlist_find(includedfiles, name)) {
                     strlist_insert(&includedfiles, name);
                     if (*name_HSYMBOL)
-                        output(format_s("#ifndef %s\n", format_s(name_HSYMBOL, sym->name)));
+		      output(format_s("#ifndef %s\n", format_s(name_HSYMBOL, sym->name)));
 		    out_include(name, quoteincludes);
                     if (*name_HSYMBOL)
-                        output("#endif\n");
+		      output("#endif\n");
                     outsection(minorspace);
-                }
+		  }
             }
 	    if (inheader != 2)
 	      import_ctx(curtokmeaning);
@@ -4177,14 +4167,17 @@ int isdefn;
     Strlist *sl;
     int kind;
     char *cp;
-    int is_c=0;
+    int in_c=0;
 
     checkmodulewords();
     wneedtok(TOK_MODULE);
     if (isdefn == 1 && curtok == TOK_FOR) {
       gettok();
-      wneedtok(TOK_C);
-      is_c = 1;
+      /* only know about C at the moment */
+      if (curtok == TOK_STRLIT && !strcmp(curtokbuf, "C")) {
+	gettok();
+	in_c = 1;
+      }
     }
     wexpecttok(TOK_IDENT);
     if (curtokmeaning && curtokmeaning->kind == MK_MODULE && isdefn == 2) {
@@ -4197,7 +4190,7 @@ int isdefn;
 	mod = addmeaning(curtoksym, MK_MODULE);
     }
     mod->anyvarflag = 0;
-    mod->language_C = is_c;
+    mod->language_C = in_c;
     pushctx(mod);
     gettok();
     skipunitheader();
@@ -4391,8 +4384,10 @@ int need;
 	if (curtok == TOK_FOR) {
 	  gettok();
 	  /* only know about C at the moment */
-	  wneedtok(TOK_C);
-	  in_c = 1;
+	  if (curtok == TOK_STRLIT && !strcmp(curtokbuf, "C")) {
+	    gettok();
+	    in_c = 1;
+	  }
 	}
         if (!wexpecttok(TOK_IDENT))
 	    break;

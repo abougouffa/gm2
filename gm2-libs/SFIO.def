@@ -22,12 +22,12 @@ DEFINITION MODULE SFIO ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Aug  3 16:55:18 2001
-    Last edit  : $Date: 2002/04/15 16:26:51 $ 
+    Last edit  : $Date: 2003/04/29 15:27:24 $ 
     Revision   : $Version$ 
     Description: provides a String interface to the opening routines of FIO
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 FROM FIO IMPORT File ;
 
 EXPORT QUALIFIED OpenToRead, OpenToWrite, OpenForRandom, Exists, WriteS, ReadS ;

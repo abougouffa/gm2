@@ -26,7 +26,7 @@ IMPLEMENTATION MODULE M2Base ;
                  base types and range of values from the gcc backend.
 *)
 
-FROM Strings IMPORT InitString, String, Mark, InitStringCharStar ;
+FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
 

@@ -1,6 +1,5 @@
-libc
 Debug
-Strings
+DynamicStrings
 FormatStrings
 StringConvert
 Math

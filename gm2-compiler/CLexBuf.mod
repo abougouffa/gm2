@@ -21,7 +21,7 @@ IMPORT clex ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM Strings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
+FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;

@@ -24,7 +24,7 @@ FROM SymbolTable IMPORT MakeConstLit, PushValue, IsConst, GetType, IsValueSolved
 FROM M2ALU IMPORT IsValueTypeSet, GetSetValueType ;
 FROM NameKey IMPORT MakeKey, makekey ;
 FROM NumberIO IMPORT CardToStr ;
-FROM Strings IMPORT String, string, InitString, KillString, Mark ;
+FROM DynamicStrings IMPORT String, string, InitString, KillString, Mark ;
 FROM FormatStrings IMPORT Sprintf1 ;
 
 VAR

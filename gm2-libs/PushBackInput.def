@@ -28,7 +28,7 @@ DEFINITION MODULE PushBackInput ;
 *)
 
 FROM FIO IMPORT File ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED Open, PutCh, GetCh, Error, WarnError, WarnString, Close, SetDebug, GetExitStatus,
                  PutString, GetColumnPosition, GetCurrentLine ;

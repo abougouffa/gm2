@@ -22,7 +22,7 @@ FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetFileName ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
-FROM Strings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
+FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
 FROM M2Printf IMPORT printf1 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,

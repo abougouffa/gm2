@@ -19,15 +19,16 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2002/04/28 11:36:17 $]
+   Date       : 27/5/87  [$Date: 2003/04/29 15:27:19 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.3 $
+   Version    : $Revision: 1.4 $
 *)
 
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IsAnOption, ParseOptions, ScanCppArgs,
 
+                 Iso, Pim,
                  Pedantic, Verbose, Statistics,
                  Profiling, Coding, Optimizing,
                  OptimizeBasicBlock, OptimizeUncalledProcedures,
@@ -41,6 +42,8 @@ EXPORT QUALIFIED IsAnOption, ParseOptions, ScanCppArgs,
 
 
 VAR
+   Iso,                          (* -Wiso use ISO SYSTEM.def                 *)
+   Pim,                          (* -Wpim use PIM [234] SYSTEM.def           *)
    CompilerDebugging,            (* -d internal debugging messages           *)
    GenerateDebugging,            (* -g option to generate info for gdb/dbx   *)
    GenerateLineDebug,            (* -gline to generate line debugging.       *)

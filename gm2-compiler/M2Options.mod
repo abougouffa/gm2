@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2Options ;
 
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
-FROM Strings IMPORT String, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
+FROM DynamicStrings IMPORT String, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
 FROM M2Search IMPORT PrependSearchPath ;
 FROM M2Version IMPORT WriteVersion ;
 FROM M2Printf IMPORT printf0, printf1 ;
@@ -145,6 +145,14 @@ BEGIN
    THEN
       GenerateDebugging := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wiso')
+   THEN
+      Iso := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wpim')
+   THEN
+      Pim := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wd')
    THEN
       CompilerDebugging := TRUE ;
@@ -240,6 +248,8 @@ END CppCommandLine ;
 
 BEGIN
    CppAndArgs                   := InitString('') ;
+   Pim                          := TRUE ;
+   Iso                          := FALSE ;
    Statistics                   := FALSE ;
    StudentChecking              := FALSE ;
    CompilerDebugging            := FALSE ;

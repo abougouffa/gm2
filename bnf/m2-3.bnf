@@ -46,7 +46,7 @@ IMPLEMENTATION MODULE P3Build ;
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt, WriteFormat1, WriteFormat2 ;
 FROM NameKey IMPORT NulName, Name ;
-FROM Strings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;

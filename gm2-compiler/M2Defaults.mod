@@ -16,7 +16,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Defaults;
 
-FROM Strings IMPORT InitString, KillString ;
+FROM DynamicStrings IMPORT InitString, KillString ;
 FROM SEnvironment IMPORT GetEnvironment ;
 
 

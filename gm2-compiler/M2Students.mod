@@ -23,7 +23,7 @@ FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, mak
 FROM M2Error IMPORT WarnStringAt ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
-FROM Strings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM ASCII IMPORT nul ;

@@ -22,8 +22,10 @@ EXPORT QUALIFIED Tree,
                  GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongIntType,
-                 GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
-                 GetBitsPerWord,
+                 GetWordType,
+                 GetISOLocType, GetISOByteType, GetISOWordType,
+                 GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
+                 GetBitsPerWord, GetBitsPerUnit,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -132,6 +134,9 @@ PROCEDURE GetM2LongRealType      () : Tree ;
 PROCEDURE GetM2LongIntType       () : Tree ;
 PROCEDURE GetWordType            () : Tree ;
 PROCEDURE GetProcType            () : Tree ;
+PROCEDURE GetISOLocType          () : Tree ;
+PROCEDURE GetISOByteType         () : Tree ;
+PROCEDURE GetISOWordType         () : Tree ;
 
 PROCEDURE GetIntegerZero         () : Tree ;
 PROCEDURE GetIntegerOne          () : Tree ;
@@ -160,6 +165,13 @@ PROCEDURE GetMaxFrom (type: Tree) : Tree ;
 *)
 
 PROCEDURE GetBitsPerWord () : CARDINAL ;
+
+
+(*
+   GetBitsPerUnit - returns a CARDINAL indicating the number of bits per unit.
+*)
+
+PROCEDURE GetBitsPerUnit () : CARDINAL ;
 
 
 (*

@@ -1013,7 +1013,7 @@ enum meaningkind kind, namekind;
         symfmt = exportsymbol;
     wasaliased = 0;
     if (*externalias && !my_strchr(externalias, '%')) {
-        register int i;
+        int i;
         name = format_s("%s", externalias);
         i = numparams;
         while (--i >= 0 && strcmp(rctable[i].name, "ALIAS")) ;
@@ -1101,8 +1101,9 @@ enum meaningkind kind, namekind;
 		    *cp2 = '_';
 	}
         sym2 = findsymbol(findaltname(cp, altnum));
-    } while (!issafename(sym2, isglobal, isdefine) &&
-	     namekind != MK_MODULE && !wasaliased);
+    } while ((!issafename(sym2, isglobal, isdefine) &&
+	      namekind != MK_MODULE && !wasaliased) &&
+	     (! (mp->ctx && mp->ctx->language_C)));
     mp->name = stralloc(sym2->name);
     if (sym2->flags & WARNNAME)
         note(format_s("A symbol named %s was defined [100]", mp->name));
@@ -4117,12 +4118,13 @@ int *isfunc, istype;
     Meaning *retmp = NULL, *mp, *firstmp, *lastmp, **prevm, **oldprevm;
     Type *type, *tp;
     enum meaningkind parkind;
-    int anyvarflag, constflag, volatileflag, num = 0;
+    int varargflag, anyvarflag, constflag, volatileflag, num = 0;
     Symbol *sym;
     Expr *defval;
     Token savetok;
     Strlist *l1;
 
+    varargflag = 0;
     if (*isfunc || modula2) {
         sym = findsymbol(format_s(name_RETV, curctx->name));
         retmp = addmeaning(sym, MK_VAR);
@@ -4152,30 +4154,35 @@ int *isfunc, istype;
 		curtok = savetok;   /* rearrange tokens to a proc ptr type! */
 		firstmp->type = p_type(firstmp);
 		continue;
+	    } else if (modula2 && curtok == TOK_VARARG) {
+	        varargflag = 1;
+		gettok();
+		continue;
             } else {
                 parkind = MK_PARAM;
                 anyvarflag = 0;
             }
 	    oldprevm = prevm;
-	    if (modula2 && istype) {
-		firstmp = addmeaning(findsymbol(format_d("_A%d", ++num)), parkind);
+
+	    if (modula2 && (istype)) {
+	      firstmp = addmeaning(findsymbol(format_d("_A%d", ++num)), parkind);
 	    } else {
-		wexpecttok(TOK_IDENT);
-		firstmp = addmeaning(curtoksym, parkind);
-		gettok();
+	      wexpecttok(TOK_IDENT);
+	      firstmp = addmeaning(curtoksym, parkind);
+	      gettok();
 	    }
-            *prevm = firstmp;
-            prevm = &firstmp->xnext;
-            firstmp->isactive = 0;   /* nit-picking Turbo compatibility */
+	    *prevm = firstmp;
+	    prevm = &firstmp->xnext;
+	    firstmp->isactive = 0;   /* nit-picking Turbo compatibility */
 	    lastmp = firstmp;
-            while (curtok == TOK_COMMA) {
-                gettok();
-                if (wexpecttok(TOK_IDENT)) {
-		    *prevm = lastmp = addmeaning(curtoksym, parkind);
-		    prevm = &lastmp->xnext;
-		    lastmp->isactive = 0;
-		}
-                gettok();
+	    while (curtok == TOK_COMMA) {
+	      gettok();
+	      if (wexpecttok(TOK_IDENT)) {
+		*prevm = lastmp = addmeaning(curtoksym, parkind);
+		prevm = &lastmp->xnext;
+		lastmp->isactive = 0;
+	      }
+	      gettok();
             }
 	    constflag = volatileflag = 0;
 	    defval = NULL;
@@ -4233,12 +4240,6 @@ int *isfunc, istype;
 			prevm = &(*prevm)->xnext;
                 } else {
 		  tp = p_type(firstmp);
-#if 0
-		  if (tp->kind == TK_OPAQUE) {
-		    tp->opaque = firstmp;
-		    firstmp->type = tp;
-		  }
-#endif
 		}
                 if (!varfiles && isfiletype(tp, 0))
                     parkind = MK_PARAM;

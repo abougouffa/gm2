@@ -24,7 +24,7 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr, GetMode, GetSymName, IsVar, IsTempor
 
 FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
 FROM M2Error IMPORT InternalError, ErrorStringAt ;
-FROM Strings IMPORT InitString ;
+FROM DynamicStrings IMPORT InitString ;
 
 FROM M2Constants IMPORT IsZero, IsOne, IsTwo, IsSame, MakeNewConstFromValue ;
 FROM M2ALU IMPORT Addn, Multn, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;

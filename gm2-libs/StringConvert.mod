@@ -18,9 +18,9 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE StringConvert ;
 
 
-FROM Strings IMPORT String, InitString, InitStringChar, Mark, ConCat,
-                    Slice, Index, char, Assign, Length, Mult,
-                    RemoveWhitePrefix, KillString ;
+FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
+                           Slice, Index, char, Assign, Length, Mult,
+                           RemoveWhitePrefix, KillString ;
 
 
 (*

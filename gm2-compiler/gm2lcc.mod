@@ -34,7 +34,7 @@ FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, IsNoError, EOF, WriteString,
 FROM SFIO IMPORT OpenToRead, WriteS, ReadS ;
 FROM ASCII IMPORT nul ;
 FROM M2FileName IMPORT ExtractExtension ;
-FROM Strings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, string, Mark, InitStringChar, Dup, Mult, Assign ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, string, Mark, InitStringChar, Dup, Mult, Assign ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 

@@ -18,7 +18,7 @@ IMPLEMENTATION MODULE PushBackInput ;
 
 
 FROM FIO IMPORT ReadChar, IsNoError, EOF, OpenToRead, WriteChar, StdErr ;
-FROM Strings IMPORT string ;
+FROM DynamicStrings IMPORT string ;
 FROM ASCII IMPORT nul, cr, lf ;
 FROM Debug IMPORT Halt ;
 FROM StrLib IMPORT StrCopy, StrLen ;

@@ -25,7 +25,7 @@ FROM M2Printf IMPORT printf2 ;
 FROM M2Error IMPORT InternalError ;
 FROM Lists IMPORT List, InitList, RemoveItemFromList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
 FROM Storage IMPORT ALLOCATE ;
-FROM Strings IMPORT String ;
+FROM DynamicStrings IMPORT String ;
 
 
 TYPE

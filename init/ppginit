@@ -3,14 +3,13 @@
 # 
 M2RTS
 StrLib
-libc
 IO
 StdIO
 Debug
 SysStorage
 Storage
 StrIO
-Strings
+DynamicStrings
 NameKey
 NumberIO
 Math

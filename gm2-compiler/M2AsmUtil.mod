@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2AsmUtil ;
 
 FROM SFIO IMPORT WriteS ;
 FROM FIO IMPORT StdOut ;
-FROM Strings IMPORT String, string, ConCat, KillString, InitString, Mark, InitStringCharStar, ConCatChar ;
+FROM DynamicStrings IMPORT String, string, ConCat, KillString, InitString, Mark, InitStringCharStar, ConCatChar ;
 FROM StdIO IMPORT Write ;
 FROM StrIO IMPORT WriteString ;
 FROM NameKey IMPORT WriteKey, GetKey, MakeKey, makekey, KeyToCharStar ;

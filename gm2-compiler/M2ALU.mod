@@ -39,7 +39,7 @@ FROM M2System IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Base IMPORT MixTypes ;
-FROM Strings IMPORT InitString ;
+FROM DynamicStrings IMPORT InitString ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
@@ -47,7 +47,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
                         GetSubrange, GetSymName,
                         ModeOfAddr ;
 
-IMPORT Strings ;
+IMPORT DynamicStrings ;
 
 FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    CompareTrees, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
@@ -658,9 +658,9 @@ END PushChar ;
    IsReal - returns TRUE if a is a REAL number.
 *)
 
-PROCEDURE IsReal (a: Strings.String) : BOOLEAN ;
+PROCEDURE IsReal (a: DynamicStrings.String) : BOOLEAN ;
 BEGIN
-   RETURN( Strings.Index(a, '.', 0)#-1 )
+   RETURN( DynamicStrings.Index(a, '.', 0)#-1 )
 END IsReal ;
 
 
@@ -672,27 +672,27 @@ END IsReal ;
 PROCEDURE PushString (s: Name) ;
 VAR
    ch    : CHAR ;
-   a, b  : Strings.String ;
+   a, b  : DynamicStrings.String ;
    length: CARDINAL ;
 BEGIN
-   a := Strings.InitStringCharStar(KeyToCharStar(s)) ;
+   a := DynamicStrings.InitStringCharStar(KeyToCharStar(s)) ;
    b := NIL ;
-   length := Strings.Length(a) ;
+   length := DynamicStrings.Length(a) ;
    IF length>0
    THEN
       DEC(length) ;
-      ch := Strings.char(a, length) ;
+      ch := DynamicStrings.char(a, length) ;
       CASE ch OF
 
       'H': (* hexadecimal *)
-           b := Strings.Slice(a, 0, -1) ;
+           b := DynamicStrings.Slice(a, 0, -1) ;
            PushInt(hstoi(b)) |
       'A': (* binary *)
-           b := Strings.Slice(a, 0, -1) ;
+           b := DynamicStrings.Slice(a, 0, -1) ;
            PushInt(bstoi(b)) |
       'C',
       'B': (* octal *)
-           b := Strings.Slice(a, 0, -1) ;
+           b := DynamicStrings.Slice(a, 0, -1) ;
            PushInt(ostoi(b))
 
       ELSE
@@ -706,8 +706,8 @@ BEGIN
    ELSE
       InternalError('expecting constant literal', __FILE__, __LINE__)
    END ;
-   a := Strings.KillString(a) ;
-   b := Strings.KillString(b)
+   a := DynamicStrings.KillString(a) ;
+   b := DynamicStrings.KillString(b)
 END PushString ;
 
 

@@ -18,7 +18,7 @@ IMPLEMENTATION MODULE M2FileName ;
 
 
 FROM ASCII IMPORT nul ;
-FROM Strings IMPORT InitString, Mark, Slice, Dup, ConCatChar, ConCat, Length, Equal, Index ;
+FROM DynamicStrings IMPORT InitString, Mark, Slice, Dup, ConCatChar, ConCat, Length, Equal, Index ;
 
 
 CONST

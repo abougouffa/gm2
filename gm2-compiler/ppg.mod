@@ -26,7 +26,7 @@ FROM NameKey IMPORT Name, MakeKey, WriteKey, LengthKey, GetKey, NulName ;
 FROM NumberIO IMPORT CardToStr, WriteCard ;
 FROM SymbolKey IMPORT InitTree, SymbolTree, PutSymKey, GetSymKey, ForeachNodeDo, NulKey ;
 FROM Lists IMPORT InitList, IsItemInList, IncludeItemIntoList, RemoveItemFromList, KillList, List ;
-FROM Strings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar ;
 FROM ASCII IMPORT nul, lf, tab ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;

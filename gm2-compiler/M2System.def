@@ -21,21 +21,13 @@ DEFINITION MODULE M2System ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Tue Jul 11 08:39:17 2000
-    Last edit  : Tue Jul 11 08:39:17 2000
     Description: Implements the base types of the module SYSTEM
                  for the GNU Modula-2 compiler. Note that the base types
                  are mapped onto their equivalents in the gcc backend.
-                 It would be possible to produce a generic M2System.def
-                 for both m2f and GNU Modula-2 but I think it much safer
-                 to have different definition modules as this module does
-                 not export AddressSize, ByteSize etc. This is as it should
-                 be since the front end of GNU Modula-2 should not generate
-                 intemediate code based on these values. At least by using
-                 different definition modules we see any breach of this rule
-                 at compile time rather than a runtime bug.
 *)
 
 EXPORT QUALIFIED 
+                 Loc,              (* ISO specific System Type *)
                  Word,             (* System Type *)
                  Byte,             (* System Type *)
                  Address,          (* System Type *)
@@ -43,6 +35,13 @@ EXPORT QUALIFIED
                  Adr,              (* System Function *)
                  Size,             (* System Function *)
                  TSize,            (* System Function *)
+                 AddAdr,           (* ISO specific System Function *)
+                 SubAdr,           (* ISO specific System Function *)
+                 DifAdr,           (* ISO specific System Function *)
+                 MakeAdr,          (* ISO specific System Function *)
+                 Rotate,           (* ISO specific System Function *)
+                 Shift,            (* ISO specific System Function *)
+                 Cast,             (* ISO specific System Function *)
 
                  GetSystemTypeMinMax,
                  IsPseudoSystemFunction,
@@ -52,12 +51,17 @@ EXPORT QUALIFIED
 
 
 VAR
+   Loc,
    Word, Byte,
    Bitset,
    Address,
 
    Adr,  Size,
-   TSize     : CARDINAL ;
+   TSize,
+   AddAdr, SubAdr,
+   DifAdr, MakeAdr,
+   Rotate, Shift,
+   Cast            : CARDINAL ;
 
 
 (*

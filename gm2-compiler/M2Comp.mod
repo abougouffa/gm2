@@ -51,7 +51,7 @@ FROM FIO IMPORT StdErr ;
 FROM NameKey IMPORT GetKey, KeyToCharStar, makekey ;
 FROM M2Printf IMPORT fprintf1 ;
 FROM M2Quiet IMPORT qprintf0, qprintf1, qprintf2 ;
-FROM Strings IMPORT String, InitString, KillString, InitStringCharStar, Dup, Mark, string ;
+FROM DynamicStrings IMPORT String, InitString, KillString, InitStringCharStar, Dup, Mark, string ;
 
 CONST
    Debugging = FALSE ;

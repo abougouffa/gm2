@@ -52,7 +52,7 @@ int lang_specific_extra_outfiles = 0;
 
 #undef DEBUGGING
 
-void add_default_directories (int incl, char ***in_argv);
+void add_default_directories (int incl, char ***in_argv, int is_pim);
 void insert_arg (int  incl, int *in_argc, char ***in_argv);
 void lang_specific_driver (int *in_argc, char ***in_argv,
 			   int *in_added_libraries ATTRIBUTE_UNUSED);
@@ -66,29 +66,48 @@ int  lang_specific_pre_link (void);
  */
 
 void
-add_default_directories (incl, in_argv)
+add_default_directories (incl, in_argv, is_pim)
      int incl;
      char ***in_argv;
+     int is_pim;
 {
   char *gm2libs;
   char  sepstr[2];
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
+
   if ((*in_argv)[incl] == NULL) {
     gm2libs = (char *) alloca(strlen("-I") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("pim") + 1 +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("iso") + 1);
     strcpy(gm2libs, "-I");
   }
   else {
     gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("pim") + 1 +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("iso") + 1);
     strcpy(gm2libs, (*in_argv)[incl]);
     strcat(gm2libs, ":");
   }
   strcat(gm2libs, LIBSUBDIR);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
+  strcat(gm2libs, sepstr);
+  if (is_pim)
+    strcat(gm2libs, "pim");
+  else
+    strcat(gm2libs, "iso");
+
+  strcat(gm2libs, ":");
+  strcat(gm2libs, LIBSUBDIR);
+  strcat(gm2libs, sepstr);
+  strcat(gm2libs, "gm2");
+  strcat(gm2libs, sepstr);
+  if (is_pim)
+    strcat(gm2libs, "iso");
+  else
+    strcat(gm2libs, "pim");
 
 #if defined(DEBUGGING)
   fprintf(stderr, "adding -I. and %s\n", gm2libs);
@@ -139,6 +158,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 {
   int i=1;
   int incl=-1;
+  int is_pim=1;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -152,6 +172,8 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
       incl = i;
+    if (strncmp((*in_argv)[i], "-Wiso", 5) == 0)
+      is_pim = 0;
     i++;
   }
 #if defined(DEBUGGING)
@@ -165,7 +187,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     incl = 1;
     insert_arg(incl, in_argc, in_argv);
   }
-  add_default_directories(incl, in_argv);
+  add_default_directories(incl, in_argv, is_pim);
 }
 
 /*

@@ -186,7 +186,7 @@ typedef enum E_token {
     /* Modula-2 tokens */
     TOK_BY, TOK_DEFINITION, TOK_ELSIF, TOK_FROM, TOK_LOOP,
     TOK_POINTER, TOK_QUALIFIED, TOK_UNQUALIFIED, TOK_RETURN,
-    TOK_PROC, TOK_C,
+    TOK_PROC, TOK_VARARG,
 
     /* UCSD Pascal tokens */
     TOK_SEGMENT,
@@ -230,7 +230,7 @@ const char *toknames[(int)TOK_LAST] = { "",
     "a '**'",
 
     "BY", "DEFINITION", "ELSIF", "FROM", "LOOP",
-    "POINTER", "QUALIFIED", "RETURN", "PROC", "C",
+    "POINTER", "QUALIFIED", "RETURN", "PROC", "...",
 
     "SEGMENT"
 } ;
@@ -310,7 +310,7 @@ typedef struct S_symbol {
  *    mp->cbase => First meaning in module's context.
  *    mp->language   = 0   if modula2/pascal
  *    mp->language_C = 1   if C (ie interfacing to a C implementation module via
- *                         a DEFINITION FOR C foobar ; definition module).
+ *                         a DEFINITION FOR "C" foobar ; definition module).
  *
  * MK_CONST:  Pascal CONST.
  *    mp->type => Type of constant, same as mp->constdefn->type & mp->val.type.
