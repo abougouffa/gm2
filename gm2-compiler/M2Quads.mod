@@ -1528,6 +1528,7 @@ BEGIN
    Assert(GetSymName(ModuleSym)=name) ;
    PutModuleStartQuad(ModuleSym, NextQuad) ;
    GenQuad(StartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
+   PushWord(ReturnStack, 0) ;
    PushT(name)
 END StartBuildInit ;
  
@@ -1540,6 +1541,7 @@ PROCEDURE EndBuildInit ;
 BEGIN
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
+   BackPatch(PopWord(ReturnStack), NextQuad) ;
    GenQuad(EndOp, GetPreviousTokenLineNo(), GetFileModule(),
            GetCurrentModule())
 END EndBuildInit ;
@@ -1564,7 +1566,8 @@ END BuildModuleStart ;
 PROCEDURE StartBuildInnerInit ;
 BEGIN
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
-   GenQuad(StartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
+   GenQuad(StartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
+   PushWord(ReturnStack, 0)
 END StartBuildInnerInit ;
  
  
@@ -1576,6 +1579,7 @@ PROCEDURE EndBuildInnerInit ;
 BEGIN
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
+   BackPatch(PopWord(ReturnStack), NextQuad) ;
    GenQuad(EndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
 END EndBuildInnerInit ;
 

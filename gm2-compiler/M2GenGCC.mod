@@ -1931,8 +1931,14 @@ BEGIN
                        CurrentQuadToken)
       END
    ELSE
-      BuildBinaryForeachWordDo(Mod2Gcc(SkipType(GetType(op1))), Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3), binop,
-                               GetMode(op1)=LeftValue, GetMode(op2)=LeftValue, GetMode(op3)=LeftValue)
+      BuildBinaryForeachWordDo(Mod2Gcc(SkipType(GetType(op1))),
+                               Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3), binop,
+                               GetMode(op1)=LeftValue,
+                               GetMode(op2)=LeftValue,
+                               GetMode(op3)=LeftValue,
+                               IsConst(op1),
+                               IsConst(op2),
+                               IsConst(op3))
    END
 END CodeBinarySet ;
 
@@ -2466,7 +2472,8 @@ BEGIN
       END
    ELSE
       BuildUnaryForeachWordDo(Mod2Gcc(GetType(op1)), Mod2Gcc(op1), Mod2Gcc(op3), unop,
-                              GetMode(op1)=LeftValue, GetMode(op3)=LeftValue)
+                              GetMode(op1)=LeftValue, GetMode(op3)=LeftValue,
+                              IsConst(op1), IsConst(op2))
    END
 END CodeUnarySet ;
 

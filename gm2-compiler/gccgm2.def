@@ -240,19 +240,26 @@ PROCEDURE GetSizeOfInBits (type: Tree) : CARDINAL ;
 
 PROCEDURE BuildBinaryForeachWordDo (type, op1, op2, op3: Tree;
                                     binop: BuildBinProcedure;
-                                    is_op1lvalue, is_op2lvalue, is_op3lvalue: BOOLEAN) ;
+                                    is_op1lvalue,
+                                    is_op2lvalue,
+                                    is_op3lvalue,
+                                    is_op1_const,
+                                    is_op2_const,
+                                    is_op3_const: BOOLEAN) ;
 
 
 (*
-   BuildUnaryForeachWordDo - provides the large set operators. Each word (or less)
+   BuildUnaryForeachWordDo - provides the large set operators.
+                             Each word (or less)
                              of the set can be calculated by unop.
-                             This procedure runs along each word of the large set
-                             invoking the unop.
+                             This procedure runs along each word of
+                             the large set invoking the unop.
 *)
 
 PROCEDURE BuildUnaryForeachWordDo (type, op1, op2: Tree;
                                    unop: BuildUnaryProcedure;
-                                   is_op1lvalue, is_op2lvalue: BOOLEAN) ;
+                                   is_op1lvalue, is_op2lvalue: BOOLEAN;
+                                   is_op1_const, is_op2_const: BOOLEAN) ;
 
 
 (*

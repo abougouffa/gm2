@@ -1,3 +1,12 @@
+2004-10-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by Iztok Kobal,
+	  GNU Modula-2 now allows a RETURN statement in the
+	  initialization section of the module.
+	* fixed another bug reported by Iztok Kobal,
+	  binary and unary large set operators failed when
+	  handling constant set values.
+	
 2004-09-20	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed varient record bug as reported by John B. Wallace, Jr

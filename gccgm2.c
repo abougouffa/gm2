@@ -649,8 +649,8 @@ static tree                   build_m2_iso_word_node                      PARAMS
 
        int                    gccgm2_CompareTrees                         PARAMS ((tree e1, tree e2));
 static int                    is_type                                     PARAMS ((tree type));
-       void                   gccgm2_BuildBinaryForeachWordDo             PARAMS ((tree, tree, tree, tree, tree (*binop)(tree, tree, int), int, int, int));
-       void                   gccgm2_BuildUnaryForeachWordDo              PARAMS ((tree, tree, tree, tree (*unop)(tree, int), int, int));
+       void                   gccgm2_BuildBinaryForeachWordDo             PARAMS ((tree, tree, tree, tree, tree (*binop)(tree, tree, int), int, int, int, int, int, int));
+       void                   gccgm2_BuildUnaryForeachWordDo              PARAMS ((tree, tree, tree, tree (*unop)(tree, int), int, int, int, int));
 static tree                   get_rvalue                                  PARAMS ((tree, tree, int));
 static tree                   get_set_address                             PARAMS ((tree, int));
 static tree                   get_set_field_lhs                           PARAMS ((tree, tree));
@@ -10257,7 +10257,8 @@ gccgm2_BuildIfNotVarEquVar (type, op1, op2, is_op1lvalue, is_op2lvalue, label)
 #endif
 
 /*
- *  get_set_address_if_var - returns the address of, op, providing it is not a constant.
+ *  get_set_address_if_var - returns the address of, op, providing
+ *                           it is not a constant.
  *                           NULL is returned if, op, is a constant.
  */
 
@@ -10274,11 +10275,12 @@ get_set_address_if_var (op, is_lvalue, is_const)
 }
 
 /*
- *  get_field_list - returns the field list for, op. The struct field list of the type
- *                   is returned if, op, is a variable. This allows the calling function
- *                   to dereference the field using a pointer to the variable.
- *                   Alternatively if, op, is a constant then the first member of the constant
- *                   structure is returned.
+ *  get_field_list - returns the field list for, op. The struct field
+ *                   list of the type is returned if, op, is a variable.
+ *                   This allows the calling function to dereference
+ *                   the field using a pointer to the variable.
+ *                   Alternatively if, op, is a constant then the first
+ *                   member of the constant structure is returned.
  */
 
 static
@@ -10912,18 +10914,20 @@ get_set_field_rhs (p, field)
 }
 
 /*
- *  BuildBinaryForeachWordDo - provides the large set operators. Each word (or less)
- *                             of the set can be calculated by binop.
- *                             This procedure runs along each word of the large set
- *                             invoking the binop.
+ *  BuildBinaryForeachWordDo - provides the large set operators. Each word
+ *                             (or less) of the set can be calculated by binop.
+ *                             This procedure runs along each word of the
+ *                             large set invoking the binop.
  */
 
 void
 gccgm2_BuildBinaryForeachWordDo (type, op1, op2, op3, binop,
-				 is_op1lvalue, is_op2lvalue, is_op3lvalue)
+				 is_op1lvalue, is_op2lvalue, is_op3lvalue,
+				 is_op1const, is_op2const, is_op3const)
      tree  type, op1, op2, op3;
      tree  (*binop)(tree, tree, int);
      int   is_op1lvalue, is_op2lvalue, is_op3lvalue;
+     int   is_op1const, is_op2const, is_op3const;
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10935,32 +10939,45 @@ gccgm2_BuildBinaryForeachWordDo (type, op1, op2, op3, binop,
   else {
     /* large set size > TSIZE(WORD) */
 
-    tree p1        = get_set_address (op1, is_op1lvalue);
-    tree p2        = get_set_address (op2, is_op2lvalue);
-    tree p3        = get_set_address (op3, is_op3lvalue);
-    tree fieldlist = TYPE_FIELDS (type);
-    tree field;
+    tree p1         = get_set_address (op1, is_op1lvalue);
+    tree p2         = get_set_address_if_var (op2, is_op2lvalue, is_op2const);
+    tree p3         = get_set_address_if_var (op3, is_op3lvalue, is_op3const);
+    tree field1     = get_field_list (type, op1, is_op1const);
+    tree field2     = get_field_list (type, op2, is_op2const);
+    tree field3     = get_field_list (type, op3, is_op3const);
 
-    for (field = fieldlist; field != NULL; field = TREE_CHAIN (field))
-      gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
-			      (*binop) (get_set_field_rhs (p2, field),
-					get_set_field_rhs (p3, field), FALSE));
+    if (is_op1const)
+      error("internal error: not expecting operand1 to be a constant set");
+
+    while (field1 != NULL && field2 != NULL && field3 != NULL) {
+      gccgm2_BuildAssignment (get_set_field_rhs (p1, field1),
+			      (*binop) (get_set_value (p2, field2,
+						       is_op2const),
+					get_set_value (p3, field3,
+						       is_op3const), FALSE));
+      field1 = TREE_CHAIN (field1);
+      field2 = TREE_CHAIN (field2);
+      field3 = TREE_CHAIN (field3);
+    }
   }
 }
 
 /*
- *  BuildUnaryForeachWordDo - provides the large set operators. Each word (or less)
- *                            of the set can be calculated by unop.
- *                            This procedure runs along each word of the large set
- *                            invoking the unop.
+ *  BuildUnaryForeachWordDo - provides the large set operators.
+ *                            Each word (or less) of the set can be
+ *                            calculated by unop.
+ *                            This procedure runs along each word
+ *                            of the large set invoking the unop.
  */
 
 void
 gccgm2_BuildUnaryForeachWordDo (type, op1, op2, unop,
-				is_op1lvalue, is_op2lvalue)
+				is_op1lvalue, is_op2lvalue,
+				is_op1const, is_op2const)
      tree  type, op1, op2;
      tree  (*unop)(tree, int);
      int   is_op1lvalue, is_op2lvalue;
+     int   is_op1const, is_op2const;
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10972,13 +10989,21 @@ gccgm2_BuildUnaryForeachWordDo (type, op1, op2, unop,
     /* large set size > TSIZE(WORD) */
 
     tree p1        = get_set_address (op1, is_op1lvalue);
-    tree p2        = get_set_address (op2, is_op2lvalue);
-    tree fieldlist = TYPE_FIELDS (type);
-    tree field;
+    tree p2        = get_set_address_if_var (op2, is_op2lvalue, is_op2const);
+    tree field1    = get_field_list (type, op1, is_op1const);
+    tree field2    = get_field_list (type, op2, is_op2const);
 
-    for (field = fieldlist; field != NULL; field = TREE_CHAIN (field))
-      gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
-			      (*unop) (get_set_field_rhs (p2, field), FALSE));
+    if (is_op1const)
+      error("internal error: not expecting operand1 to be a constant set");
+
+    while (field1 != NULL && field2 != NULL) {
+      gccgm2_BuildAssignment (get_set_field_rhs (p1, field1),
+			      (*unop) (get_set_value (p2, field2,
+						      is_op2const),
+				       FALSE));
+      field1 = TREE_CHAIN (field1);
+      field2 = TREE_CHAIN (field2);
+    }
   }
 }
 

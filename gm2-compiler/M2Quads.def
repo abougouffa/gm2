@@ -481,49 +481,6 @@ PROCEDURE EndBuildFile ;
 
 
 (*
-   StartBuildModuleSuit - Starts the initialization order of modules.
-
-                          Entry                   Exit
-                          =====                   ====
-
-
-                                                                  <- Ptr
-                          Empty                   +------------+
-                                                  | q          |
-                                                  |------------|
-
-
-                          Quadruples Produced
-
-                          q     GotoOp  _  _  0
-
-PROCEDURE StartBuildModuleSuit ;
-
-
-   EndBuildModuleSuit - End the initialization order of modules.
-
-                        Entry                   Exit
-                        =====                   ====
-
-
-                 Ptr ->                         Empty
-                        +------------+
-                        | q1         |
-                        |------------|
-
-
-                        BackPatch q1 to point to q2
-
-                        Quadruples Produced
-
-                        q2    EndOp
-
-
-PROCEDURE EndBuildModuleSuit ;
-*)
-
-
-(*
    StartBuildInit - Builds the start initialisation code of a module.
 *)
 
