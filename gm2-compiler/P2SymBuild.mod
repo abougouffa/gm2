@@ -27,6 +27,7 @@ FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, 
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
+FROM M2Options IMPORT PedanticParamNames ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -1385,7 +1386,7 @@ BEGIN
                           NulName, ParamTotal+i, ProcSym)
          END ;
          ParamI := GetParam(ProcSym, ParamTotal+i) ;
-         IF GetSymName(ParamI)#OperandT(pi)
+         IF (GetSymName(ParamI)#OperandT(pi)) AND PedanticParamNames
          THEN
             (* different parameter names *)
             FailParameter('',
@@ -1399,7 +1400,7 @@ BEGIN
          ELSE
             ParamIType := GetType(ParamI)
          END ;
-         IF ParamIType#TypeSym
+         IF (ParamIType#TypeSym) AND PedanticParamNames
          THEN
             (* different parameter types *)
             FailParameter('',

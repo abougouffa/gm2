@@ -19,10 +19,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2004/08/31 20:19:48 $]
+   Date       : 27/5/87  [$Date: 2004/10/19 19:43:28 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.8 $
+   Version    : $Revision: 1.9 $
 *)
 
 FROM DynamicStrings IMPORT String ;
@@ -37,6 +37,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
                  StudentChecking,
                  BoundsChecking, ReturnChecking, NilChecking, CaseElseChecking,
                  Quiet, LineDirectives, CPreProcessor, ExtendedOpaque,
+                 PedanticParamNames,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
                  CppCommandLine ;
@@ -51,6 +52,7 @@ VAR
    GenerateLineDebug,            (* -gline to generate line debugging.       *)
    Verbose,                      (* -verbose produce verbose error messages. *)
    Pedantic,                     (* -pedantic be pedantic on error checking. *)
+   PedanticParamNames,           (* -Wpedantic-param-names                   *)
    Statistics,                   (* -statistics information about code       *)
    StudentChecking,              (* -students checks for common student errs *)
    DisplayQuadruples,            (* -q option will display quadruples.       *)

@@ -1309,6 +1309,21 @@ END CheckConvertCoerceParameter ;
 
 
 (*
+   CheckConstant - checks to see whether we should declare the constant.
+*)
+
+PROCEDURE CheckConstant (des, expr: CARDINAL) : Tree ;
+BEGIN
+   IF NOT IsProcedure(expr)
+   THEN
+      RETURN( DeclareKnownConstant(Mod2Gcc(GetType(expr)), Mod2Gcc(des)) )
+   ELSE
+      RETURN( Mod2Gcc(expr) )
+   END
+END CheckConstant ;
+
+
+(*
    CodeMakeAdr - code the function MAKEADR.
 *)
 
@@ -1453,8 +1468,7 @@ BEGIN
                        QuadToTokenNo(q))
       END ;
       PutConst(r, Address) ;
-      AddModGcc(r,
-                DeclareKnownConstant(Mod2Gcc(Address), val)) ;
+      AddModGcc(r, DeclareKnownConstant(Mod2Gcc(Address), val)) ;
       RemoveItemFromList(l, r) ;
       SubQuad(n)
    END
@@ -1775,9 +1789,7 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
-      AddModGcc(op1,
-                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                     Mod2Gcc(op3)))
+      AddModGcc(op1, CheckConstant(op1, op3))
    ELSIF IsConstString(op3) AND (GetType(op1)#Char)
    THEN
       (* handle string assignments:
@@ -1928,13 +1940,7 @@ BEGIN
          PushValue(op3) ;
          doOp(CurrentQuadToken) ;
          PopValue(op1) ;
-         (* PushValue(op1) ; *)
          PutConstSet(op1) ;
-         (*
-          AddModGcc(op1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                        PopSetTree(CurrentQuadToken)))
-         *)
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'),
                        CurrentQuadToken)
@@ -3625,9 +3631,7 @@ BEGIN
       THEN
          IF IsConst(op1)
          THEN
-            AddModGcc(op1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(op1)),
-                                           Mod2Gcc(op3)))
+            AddModGcc(op1, CheckConstant(op1, op3))
          ELSE
             t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
          END

@@ -47,6 +47,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("extra compile time semantic checking, typically tries to catch bad style") },
   { "-Wpedantic",
       N_("compiler checks nested WITH statements (referencing same type) and multiple identical imports") },
+  { "-Wpedantic-param-names",
+      N_("compiler checks to force definition module procedure parameter names with their implementation module counterpart") },
   { "-Wextended-opaque",
       N_("allows opaque types to be implemented as any type (a GNU Modula-2 extension)") },
   { "-Wverbose-unbounded",

@@ -201,6 +201,10 @@ BEGIN
    THEN
       VerboseUnbounded := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wpedantic-param-names')
+   THEN
+      PedanticParamNames := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wcheck-all')
    THEN
       BoundsChecking := TRUE ;
@@ -340,5 +344,6 @@ BEGIN
    ExtendedOpaque               := FALSE ;
    UnboundedByReference         := FALSE ;
    VerboseUnbounded             := FALSE ;
+   PedanticParamNames           := FALSE ;
    ScanForInitialOptions
 END M2Options.

@@ -1,3 +1,18 @@
+2004-10-19	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added -Wpedantic-param-names option to check that
+	  parameters to procedures declared in definition modules
+	  have identical names to their implementation module
+	  procedure counterparts.
+	* fixed bug report by Iztok Kobal. The compiler would
+	  crash when a constant was assigned to a procedure.
+
+2004-10-18	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified gm2/lang-specs.h to make the front end run
+	  with only the -S option. No longer requires -S -c.
+	  Bug reported by john o goyo <jgoyo@ca.inter.net>.
+
 2004-10-12	Diego Rodr=EDguez Rodr=EDguez <dieymir@yahoo.es>
 
 	* gm2/Make-lang.in introduced gm2.install rule so that

@@ -159,6 +159,13 @@ encounters a variable being read before written it will terminate with
 a message.  It will check that @samp{FOR} loop indices are not used
 outside the end of this loop without being reset.
 
+@item -Wpedantic-param-names
+procedure parameter names are checked in the definition module 
+against their implementation module counterpart. This is not
+necessary in ISO or PIM versions of Modula-2, but it can be
+extremely useful, as long as code is intentionally
+written in this way.
+
 @item -Wmakelist
 this option is only applicable when linking a program module.  The
 compiler will generate a @file{modulename.lst} file which contains a
@@ -1647,7 +1654,7 @@ document the behaviour of GNU Modula-2 in these cirumstances.
 In GNU Modula-2 the syntax for a type declaration is defined as:
 
 @example
-TypeDeclaration := Ident "=" Type =:							   
+TypeDeclaration := Ident "=" Type =:
 
 Type :=  SimpleType | ArrayType
           | RecordType          
@@ -1656,7 +1663,8 @@ Type :=  SimpleType | ArrayType
           | ProcedureType
       =:								   
 									   
-SimpleType := Qualident | Enumeration | SubrangeType =:								   
+SimpleType := Qualident | Enumeration | SubrangeType =:
+
 @end example
 
 If the @code{TypeDeclaration} rule is satisfied by
