@@ -179,85 +179,85 @@ BEGIN
    CurrentTransform := Mult( Kill( Scale( 3.0, 3.0 ) ),
                              Kill( Translate(50.0, 50.0) ) ) ;
 
-      Rotation := Rotate(0.02) ;
-      Movement := Translate( 1.0, 1.0 ) ;
-      Count := 0 ;
-      ch := 'c' ;
-      REPEAT
-         InverterGate ;
-         (* InverterBox ; *)
-         FlipBuffer ;
-         CurrentTransform := Mult(
-                                   Kill( Mult( Rotation,
-                                               Kill( CurrentTransform ) ) ),
-                                   Movement ) ;
-         IF ch#'c'
-         THEN
-            Read(ch)
-         END ;
-         INC(Count)
-      UNTIL (ch='q') OR (Count=160) ;
-      Count := 0 ;
-      Del(Movement) ;
-      Movement := Translate( -1.0, -1.0 ) ;
-      Del(Rotation) ;
-      Rotation := Rotate(-0.01) ;
-      REPEAT
-         InverterGate ;
-         (* InverterBox ; *)
-         FlipBuffer ;
-         CurrentTransform := Mult(
-                                   Kill( Mult( Rotation,
-                                               Kill( CurrentTransform ) ) ),
-                                   Movement ) ;
-         IF ch#'c'
-         THEN
-            Read(ch)
-         END ;
-         INC(Count)
-      UNTIL (ch='q') OR (Count=100) ;
-      Count := 0 ;
-      Del(Movement) ;
-      Movement := Translate( 0.0, 0.0 ) ;
-      Del(Rotation) ;
-      Rotation := Rotate(-0.01) ;
-      REPEAT
-         InverterGate ;
-         (* InverterBox ; *)
-         FlipBuffer ;
-         CurrentTransform := Mult(
-                                   Kill( Mult( Rotation,
-                                               Kill( CurrentTransform ) ) ),
-                                   Movement ) ;
-         IF ch#'c'
-         THEN
-            Read(ch)
-         END ;
-         INC(Count)
-      UNTIL (ch='q') OR (Count=600) ;
-      Count := 0 ;
-      Del(Movement) ;
-      Movement := Translate( .65, .3 ) ;
-      Del(Rotation) ;
-      Rotation := Rotate(0.002) ;
-(* *)
-      REPEAT
-         InverterGate ;
-         (* InverterBox ; *)
-         FlipBuffer ;
-         CurrentTransform := Mult(
-                                   Kill( Mult( Rotation,
-                                               Kill( CurrentTransform ) ) ),
-                                   Movement ) ;
-         IF ch#'c'
-         THEN
-            Read(ch)
-         END ;
-         INC(Count)
-      UNTIL (ch='q') OR (Count=300) ;
-      Del(Movement) ;
-      Del(Rotation) ;
-(* *)
+   Rotation := Rotate(0.02) ;
+   Movement := Translate( 1.0, 1.0 ) ;
+   Count := 0 ;
+   ch := 'c' ;
+   REPEAT
+      InverterGate ;
+      (* InverterBox ; *)
+      FlipBuffer ;
+      CurrentTransform := Mult(
+                               Kill( Mult( Rotation,
+                                           Kill( CurrentTransform ) ) ),
+                               Movement ) ;
+      IF ch#'c'
+      THEN
+         Read(ch)
+      END ;
+      INC(Count)
+   UNTIL (ch='q') OR (Count=160) ;
+   Count := 0 ;
+   Del(Movement) ;
+   Movement := Translate( -1.0, -1.0 ) ;
+   Del(Rotation) ;
+   Rotation := Rotate(-0.01) ;
+   REPEAT
+      InverterGate ;
+      (* InverterBox ; *)
+      FlipBuffer ;
+      CurrentTransform := Mult(
+                               Kill( Mult( Rotation,
+                                           Kill( CurrentTransform ) ) ),
+                               Movement ) ;
+      IF ch#'c'
+      THEN
+         Read(ch)
+      END ;
+      INC(Count)
+   UNTIL (ch='q') OR (Count=100) ;
+   Count := 0 ;
+   Del(Movement) ;
+   Movement := Translate( 0.0, 0.0 ) ;
+   Del(Rotation) ;
+   Rotation := Rotate(-0.01) ;
+   REPEAT
+      InverterGate ;
+      (* InverterBox ; *)
+      FlipBuffer ;
+      CurrentTransform := Mult(
+                               Kill( Mult( Rotation,
+                                           Kill( CurrentTransform ) ) ),
+                               Movement ) ;
+      IF ch#'c'
+      THEN
+         Read(ch)
+      END ;
+      INC(Count)
+   UNTIL (ch='q') OR (Count=600) ;
+   Count := 0 ;
+   Del(Movement) ;
+   Movement := Translate( .65, .3 ) ;
+   Del(Rotation) ;
+   Rotation := Rotate(0.002) ;
+
+   REPEAT
+      InverterGate ;
+      (* InverterBox ; *)
+      FlipBuffer ;
+      CurrentTransform := Mult(
+                               Kill( Mult( Rotation,
+                                           Kill( CurrentTransform ) ) ),
+                               Movement ) ;
+      IF ch#'c'
+      THEN
+         Read(ch)
+      END ;
+      INC(Count)
+   UNTIL (ch='q') OR (Count=300) ;
+   Del(Movement) ;
+   Del(Rotation) ;
+
    IF NOT Debugging
    THEN
       (* ch := vga_getch() ; *)
