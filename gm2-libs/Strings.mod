@@ -265,24 +265,26 @@ END MarkInvalid ;
 
 PROCEDURE ConcatContentsAddress (VAR c: Contents; a: ADDRESS; h: CARDINAL) ;
 VAR
-   p: POINTER TO CHAR ;
-   i: CARDINAL ;
+   p   : POINTER TO CHAR ;
+   i, j: CARDINAL ;
 BEGIN
+   j := 0 ;
    i := c.len ;
    p := a ;
-   WHILE (i<h) AND (i<MaxBuf) DO
+   WHILE (j<h) AND (i<MaxBuf) DO
       c.buf[i] := p^ ;
       INC(i) ;
+      INC(j) ;
       INC(p)
    END ;
-   IF i<h
+   IF j<h
    THEN
       c.len := MaxBuf ;
       NEW(c.next) ;
       WITH c.next^ DO
          head         := NIL ;
          contents.len := 0 ;
-         ConcatContentsAddress(contents, p, h-MaxBuf)
+         ConcatContentsAddress(contents, p, h-j)
       END
    ELSE
       c.len := i
@@ -347,6 +349,8 @@ BEGIN
       s := CheckPoisoned(s)
    END ;
    IF (s#NIL) AND (s^.head^.state=inuse)
+# we need to ensure that the C compiler and headers are configured correctly
+#
    THEN
       s^.head^.state := marked
    END ;
