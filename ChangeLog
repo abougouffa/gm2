@@ -1,3 +1,10 @@
+2004-02-10	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in gccgm2.c CompareTrees should be tested for <= 0
+	  when testing for small set sizes.
+	* fixed Make-lang.in so that we only link gm2-compiler-boot/clex.o
+	  during stage1. This build error showed up during cross building.
+	
 2004-02-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug as demonstrated in

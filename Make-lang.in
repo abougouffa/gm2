@@ -1200,13 +1200,12 @@ stage1/gm2/h2def$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/gm2-libs-boot/libgm2.a \
      gm2/gm2-compiler-boot/clex.o gm2/gm2-compiler-boot/CLexBuf.o \
      gm2/gm2-compiler-boot/h2def.o \
-     gm2/gm2-compiler/clex.o \
      $(GM2_LIBS_BOOT)
 	$(M2LINK) -s -exit $(srcdir)/gm2/init/h2definit
 	mv mod_init.c gm2/gm2-compiler-boot/h2def_init.c
 	$(CC) -c -g gm2/gm2-compiler-boot/h2def_init.c -o gm2/gm2-compiler-boot/h2def_init.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
-              gm2/gm2-compiler/clex.o \
+              gm2/gm2-compiler-boot/clex.o \
               gm2/gm2-compiler-boot/CLexBuf.o \
               gm2/gm2-compiler-boot/h2def_init.o \
               gm2/gm2-compiler-boot/h2def.o $(GM2_LIBS_BOOT) $(LIBS)
