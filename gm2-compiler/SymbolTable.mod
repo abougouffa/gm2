@@ -625,7 +625,8 @@ VAR
                                  (* Base pseudo modeule declaration.   *)
    TemporaryNo   : CARDINAL ;    (* The next temporary number.         *)
    CurrentError  : Error ;       (* Current error chain.               *)
-
+   AddressTypes  : List ;        (* A list of type symbols which must  *)
+                                 (* be declared as ADDRESS or pointer  *)
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
@@ -944,7 +945,8 @@ BEGIN
    TemporaryNo   := 0 ;
    InitBase(BaseModule) ;
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
-   BaseScopePtr := ScopePtr   (* BaseScopePtr points to the top of the BaseModule scope *)
+   BaseScopePtr := ScopePtr ; (* BaseScopePtr points to the top of the BaseModule scope *)
+   InitList(AddressTypes)
 END Init ;
 
 
@@ -2670,6 +2672,10 @@ BEGIN
             ELSE
                Type := Address
             END ;
+            IF NOT ExtendedOpaque
+            THEN
+               IncludeItemIntoList(AddressTypes, Sym)
+            END ;
             Size   := InitValue() ; (* Runtime size of symbol.     *)
             InitWhereDeclared(At)   (* Declared here               *)
          END
@@ -3200,11 +3206,14 @@ END GetType ;
    SkipType - if sym is a TYPE foo = bar
               then call SkipType(bar)
               else return sym
+
+              it does not skip over hidden types.
 *)
 
 PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
 BEGIN
-   IF (Sym#NulSym) AND IsType(Sym) AND (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
+   IF (Sym#NulSym) AND IsType(Sym) AND
+      (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
    THEN
       RETURN( SkipType(GetType(Sym)) )
    ELSE
@@ -3944,7 +3953,7 @@ END CheckLegal ;
                         Otherwise NulSym is returned.
                         CheckForHiddenType is called before any type is
                         created, therefore the compiler allows hidden
-                        types to be implemented using any type schema.
+                        types to be implemented using any type.
 *)
 
 PROCEDURE CheckForHiddenType (TypeName: Name) : CARDINAL ;
@@ -3967,6 +3976,87 @@ BEGIN
    END ;
    RETURN( Sym )
 END CheckForHiddenType ;
+
+
+(*
+   IsReallyPointer - returns TRUE is sym is a pointer, address or a
+                     type declared as a pointer or address.
+*)
+
+PROCEDURE IsReallyPointer (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsVar(Sym)
+   THEN
+      Sym := GetType(Sym)
+   END ;
+   Sym := SkipType(Sym) ;
+   RETURN( IsPointer(Sym) OR (Sym=Address) )
+END IsReallyPointer ;
+
+
+(*
+   SkipHiddenType - if sym is a TYPE foo = bar
+                    then call SkipType(bar)
+                    else return sym
+
+                    it does skip over hidden type.
+*)
+
+PROCEDURE SkipHiddenType (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF (Sym#NulSym) AND IsType(Sym) AND (GetType(Sym)#NulSym)
+   THEN
+      RETURN( SkipType(GetType(Sym)) )
+   ELSE
+      RETURN( Sym )
+   END
+END SkipHiddenType ;
+
+
+(*
+   IsHiddenReallyPointer - returns TRUE is sym is a pointer, address or a
+                           type declared as a pointer or address.
+*)
+
+PROCEDURE IsHiddenReallyPointer (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsVar(Sym)
+   THEN
+      Sym := GetType(Sym)
+   END ;
+   Sym := SkipHiddenType(Sym) ;
+   RETURN( IsPointer(Sym) OR (Sym=Address) )
+END IsHiddenReallyPointer ;
+
+
+(*
+   CheckHiddenTypeAreAddress - checks to see that any hidden types
+                               which we have declared are actually
+                               of type ADDRESS or map onto a POINTER type.
+*)
+
+PROCEDURE CheckHiddenTypeAreAddress ;
+VAR
+   name: Name ;
+   e   : Error ;
+   sym,
+   i, n: CARDINAL ;
+BEGIN
+   i := 1 ;
+   n := NoOfItemsInList(AddressTypes) ;
+   WHILE i<=n DO
+      sym := GetItemFromList(AddressTypes, i) ;
+      IF NOT IsHiddenReallyPointer(sym)
+      THEN
+         name := GetSymName(sym) ;
+         e := NewError(GetDeclared(sym)) ;
+         ErrorFormat1(e, 'opaque type (%a) should be equivalent to a POINTER or an ADDRESS', name) ;
+         e := NewError(GetDeclared(sym)) ;
+         ErrorFormat0(e, 'if you really need a non POINTER type use the -Wextended-opaque switch')
+      END ;
+      INC(i)
+   END
+END CheckHiddenTypeAreAddress ;
 
 
 (*
@@ -5422,6 +5512,44 @@ END PutFunction ;
 
 
 (*
+   MakeVariableForParam - 
+*)
+
+PROCEDURE MakeVariableForParam (ParamName: Name;
+                                ProcSym  : CARDINAL ;
+                                no       : CARDINAL) : CARDINAL ;
+VAR
+   VariableSym: CARDINAL ;
+BEGIN
+   VariableSym := MakeVar(ParamName) ;
+   WITH Symbols[VariableSym] DO
+      CASE SymbolType OF
+
+      ErrorSym: RETURN( NulSym ) |
+      VarSym  : Var.IsParam := TRUE     (* Variable is really a parameter *)
+
+      ELSE
+         InternalError('expecting a Var symbol', __FILE__, __LINE__)
+      END
+   END ;
+   (* Note that the parameter is now treated as a local variable *)
+   PutVar(VariableSym, GetType(GetNthParam(ProcSym, no))) ;
+   (*
+      Normal VAR parameters have LeftValue,
+      however Unbounded VAR parameters have RightValue.
+      Non VAR parameters always have RightValue.
+   *)
+   IF IsVarParam(ProcSym, no) AND (NOT IsUnbounded(GetType(VariableSym)))
+   THEN
+      PutMode(VariableSym, LeftValue)
+   ELSE
+      PutMode(VariableSym, RightValue)
+   END ;
+   RETURN( VariableSym )
+END MakeVariableForParam ;
+
+
+(*
    PutParam - Places a Non VAR parameter ParamName with type ParamType into
               procedure Sym. The parameter number is ParamNo.
               If the procedure Sym already has this parameter then
@@ -5450,23 +5578,16 @@ BEGIN
          END
       END ;
       AddParameter(Sym, ParSym) ;
-      VariableSym := MakeVar(ParamName) ;
-      WITH Symbols[VariableSym] DO
-         CASE SymbolType OF
-
-         ErrorSym: RETURN( FALSE ) |
-         VarSym  : Var.IsParam := TRUE        (* Variable is really a parameter *)
-
-         ELSE
-            InternalError('expecting a Var symbol', __FILE__, __LINE__)
+      IF ParamName#NulSym
+      THEN
+         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
+         IF VariableSym=NulSym
+         THEN
+            RETURN( FALSE )
          END
-      END ;
-
-      (* Note that the parameter is now treated as a local variable *)
-      PutVar(VariableSym, ParamType) ;
-      PutMode(VariableSym, RightValue) ;
-      RETURN( TRUE )
-   END
+      END
+   END ;
+   RETURN( TRUE )
 END PutParam ;
 
 
@@ -5487,8 +5608,8 @@ VAR
 BEGIN
    IF ParamNo<=NoOfParam(Sym)
    THEN
-      (* Check the parameter *)
-      (* RETURN ...          *)
+      InternalError('why are we trying to put parameters again',
+                    __FILE__, __LINE__)
    ELSE
       (* Add a new parameter *)
       NewSym(ParSym) ;
@@ -5501,22 +5622,65 @@ BEGIN
          END
       END ;
       AddParameter(Sym, ParSym) ;
-      VariableSym := MakeVar(ParamName) ;
-      (* Note that the parameter is now treated as a local variable *)
-      PutVar(VariableSym, ParamType) ;
-      (*
-         Normal VAR parameters have LeftValue,
-         however Unbounded parameters have RightValue.
-      *)
-      IF IsUnbounded(ParamType)
+      IF ParamName#NulSym
       THEN
-         PutMode(VariableSym, RightValue)
-      ELSE
-         PutMode(VariableSym, LeftValue)
+         VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
+         IF VariableSym=NulSym
+         THEN
+            RETURN( FALSE )
+         END
       END ;
       RETURN( TRUE )
    END
 END PutVarParam ;
+
+
+(*
+   PutParamName - assigns a name, name, to paramater, no, of procedure,
+                  ProcSym.
+*)
+
+PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
+VAR
+   VariableSym,
+   ParSym     : CARDINAL ;
+BEGIN
+   WITH Symbols[ProcSym] DO
+      CASE SymbolType OF
+
+      ErrorSym    : RETURN |
+      ProcedureSym: ParSym := GetItemFromList(Procedure.ListOfParam, no) |
+      ProcTypeSym : ParSym := GetItemFromList(ProcType.ListOfParam, no)
+
+      ELSE
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+      END
+   END ;
+   WITH Symbols[ParSym] DO
+      CASE SymbolType OF
+
+      ParamSym:    IF Param.name=NulName
+                   THEN
+                      Param.name := name ;
+                      VariableSym := MakeVariableForParam(name, ProcSym, no)
+                   ELSE
+                      InternalError('name of parameter has already been assigned',
+                                    __FILE__, __LINE__)
+                   END |
+      VarParamSym: IF VarParam.name=NulName
+                   THEN
+                      VarParam.name := name ;
+                      VariableSym := MakeVariableForParam(name, ProcSym, no)
+                   ELSE
+                      InternalError('name of parameter has already been assigned',
+                                    __FILE__, __LINE__)
+                   END |
+
+      ELSE
+         InternalError('expecting a VarParam or Param symbol', __FILE__, __LINE__)
+      END
+   END
+END PutParamName ;
 
 
 (*

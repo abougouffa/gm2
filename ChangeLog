@@ -1,3 +1,14 @@
+2004-10-26	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed -Wpedantic-param-names option.
+	* added runtime tests and also parameter switch tests
+	* added testsuite/gm2/switches/pedantic-params
+	* added testsuite/gm2/pim/run and a number of old m2f tests
+	* made compiler check to see that opaque types are really
+	  equivalent to a pointer type if -Wextended-opaque is absent.
+	* added testsuite/gm2/switches/extended-opaque/{pass,fail}
+	  to stress this check.
+
 2004-10-19	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added -Wpedantic-param-names option to check that

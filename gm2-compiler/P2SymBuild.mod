@@ -27,7 +27,7 @@ FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, 
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
-FROM M2Options IMPORT PedanticParamNames ;
+FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -40,7 +40,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetCurrentScope, GetScope,
                         IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
-                        GetCurrentModule,
+                        GetCurrentModule, GetMainModule,
                         MakeConstLit,
                         MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
@@ -78,6 +78,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeConstVar,
                         MakeUnbounded, PutUnbounded,
                         NoOfParam,
+                        PutParamName,
                         GetParam,
                         AreParametersDefinedInDefinition,
                         AreParametersDefinedInImplementation,
@@ -87,6 +88,7 @@ FROM SymbolTable IMPORT NulSym,
                         ProcedureParametersDefined,
                         CheckForUnImplementedExports,
                         CheckForUndeclaredExports,
+                        IsHiddenTypeDeclared,
                         IsUnboundedParam,
                         IsVarParam,
                         PutUseVarArgs,
@@ -1243,6 +1245,7 @@ END BuildFormalVarArgs ;
 
 PROCEDURE BuildFormalParameterSection ;
 VAR
+   ParamName,
    Var,
    Array     : Name ;
    ParamTotal,
@@ -1273,16 +1276,25 @@ BEGIN
    WriteString(' adding No. of identifiers:') ; WriteCard(NoOfIds, 4) ; WriteLn ;
 *)
    WHILE i<=NoOfIds DO
+      IF CompilingDefinitionModule() AND (NOT PedanticParamNames) AND
+         (* we will see the parameters in the implementation module *)
+         ((GetMainModule()=GetCurrentModule()) OR
+          (IsHiddenTypeDeclared(GetCurrentModule()) AND ExtendedOpaque))
+      THEN
+         ParamName := NulName
+      ELSE
+         ParamName := OperandT(NoOfIds+1-i)
+      END ;
       IF Var=VarTok
       THEN
-         (* VAR pamarater *)
-         IF NOT PutVarParam(ProcSym, ParamTotal+i, OperandT(NoOfIds+1-i), TypeSym)
+         (* VAR parameter *)
+         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym)
          THEN
             InternalError('problems adding a VarParameter - wrong param #?', __FILE__, __LINE__)
          END
       ELSE
          (* Non VAR parameter *)
-         IF NOT PutParam(ProcSym, ParamTotal+i, OperandT(NoOfIds+1-i), TypeSym)
+         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym)
          THEN
             InternalError('problems adding a Parameter - wrong param #?', __FILE__, __LINE__)
          END
@@ -1386,12 +1398,20 @@ BEGIN
                           NulName, ParamTotal+i, ProcSym)
          END ;
          ParamI := GetParam(ProcSym, ParamTotal+i) ;
-         IF (GetSymName(ParamI)#OperandT(pi)) AND PedanticParamNames
+         IF PedanticParamNames
          THEN
-            (* different parameter names *)
-            FailParameter('',
-                          'the parameter has been declared with a different name',
-                          OperandT(pi), ParamTotal+i, ProcSym)
+            IF GetSymName(ParamI)#OperandT(pi)
+            THEN
+               (* different parameter names *)
+               FailParameter('',
+                             'the parameter has been declared with a different name',
+                             OperandT(pi), ParamTotal+i, ProcSym)
+            END
+         ELSE
+            IF GetSymName(ParamI)=NulName
+            THEN
+               PutParamName(ProcSym, ParamTotal+i, OperandT(pi))
+            END
          END ;
          IF Unbounded
          THEN
@@ -1400,7 +1420,7 @@ BEGIN
          ELSE
             ParamIType := GetType(ParamI)
          END ;
-         IF (ParamIType#TypeSym) AND PedanticParamNames
+         IF ParamIType#TypeSym
          THEN
             (* different parameter types *)
             FailParameter('',

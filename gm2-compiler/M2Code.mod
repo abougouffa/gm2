@@ -28,6 +28,7 @@ FROM M2Students IMPORT StudentVariableCheck ;
 
 FROM SymbolTable IMPORT GetMainModule, IsProcedure,
                         IsModuleWithinProcedure,
+                        CheckHiddenTypeAreAddress,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo, GetSymName ;
 
@@ -141,6 +142,7 @@ END OptimizationAnalysis ;
 
 PROCEDURE Code ;
 BEGIN
+   CheckHiddenTypeAreAddress ;
    SetPassToNoPass ;
    BackPatchSubrangesAndOptParam(Head) ;
    Total := CountQuads(Head) ;
