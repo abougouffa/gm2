@@ -20,18 +20,14 @@ IMPLEMENTATION MODULE Assertion ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 
 (*
-   Assert - tests the boolean Condition, if it fails then the module
-            suit if HALTed.
-            Assert is used for testing critical premises - a debugging
-            aid that should be left in for the complete life of
-            a package??
+   Assert - tests the boolean Condition, if it fails then HALT is called.
 *)
 
 PROCEDURE Assert (Condition: BOOLEAN) ;
 BEGIN
    IF NOT Condition
    THEN
-      WriteString('Assert failed - HALTing system for PMD') ; WriteLn ;
+      WriteString('assert failed - HALTing system') ; WriteLn ;
       HALT
    END
 END Assert ;

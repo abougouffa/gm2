@@ -91,7 +91,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsPseudoQuad,
                  IsModFile,
 
-                 DisplayQuadList, DisplayQuad, DumpStack,
+                 DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
                  WriteOperator, BackPatchSubranges,
 
                  GetQuad, GetNextQuad, PutQuad,
@@ -173,11 +173,10 @@ PROCEDURE Opposite (Operator: QuadOperator) : QuadOperator ;
 
 
 (*
-   IsReferenced - returns true if QuadNo is referenced inside the Quad list
-                  determined by Head.
+   IsReferenced - returns true if QuadNo is referenced by another quadruple.
 *)
 
-PROCEDURE IsReferenced (Head, QuadNo: CARDINAL) : BOOLEAN ;
+PROCEDURE IsReferenced (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -282,6 +281,13 @@ PROCEDURE DisplayQuadList (Head: CARDINAL) ;
 
 
 (*
+   DisplayQuadRange - displays all quads in list range, start..end.
+*)
+
+PROCEDURE DisplayQuadRange (start, end: CARDINAL) ;
+
+
+(*
    DisplayQuad - displays a quadruple, QuadNo.
 *)
 
@@ -376,10 +382,10 @@ PROCEDURE AddQuad (VAR Left, Right: CARDINAL;
                    Oper1, Oper2, Oper3: CARDINAL) : CARDINAL ;
 
 (*
-   SubQuad - subtracts a quadruple QuadNo from a list Head.
+   SubQuad - removes quadruple QuadNo.
 *)
 
-PROCEDURE SubQuad (VAR Head: CARDINAL; QuadNo: CARDINAL) ;
+PROCEDURE SubQuad (QuadNo: CARDINAL) ;
 
 
 (*
@@ -1896,7 +1902,7 @@ PROCEDURE VariableAnalysis (Start, End: CARDINAL) ;
    LoopAnalysis - checks whether an infinite loop exists.
 *)
 
-PROCEDURE LoopAnalysis ;
+PROCEDURE LoopAnalysis (Current, End: CARDINAL) ;
 
 
 (*

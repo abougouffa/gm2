@@ -61,7 +61,7 @@ GM2_LINK_TOOLS_BOOT = stage1/gm2/gm2lcc$(exeext) stage1/gm2/gm2l$(exeext) \
 GCC_TOOLS_FOR_GM2 = \
             $(GCC_PASSES) $(GCC_PARTS) \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
-            stage1/gm2/cpp0$(exeext)
+            stage1/gm2/cpp$(exeext)
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeex) cc1gm2$(exeext) \
@@ -69,7 +69,7 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeex) cc1gm2$(exeext) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  build-libs build-libs-iso
 
-.PHONY: gm2 m2 modula-2 modula2
+.PHONY: gm2 m2 modula-2 modula2 GM2 M2 Modula-2 Modula2 MODULA-2 MODULA2
 
 gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 	(SHLIB_LINK='$(SHLIB_LINK)' \
@@ -112,6 +112,8 @@ check_cross: stage1/gm2 force
                 cp -pr /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2/* stage1/gm2 ; \
             fi \
         done
+
+gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h : s-gtype; @true
 
 # Build hooks:
 
@@ -354,7 +356,7 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-libs/%s.def -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink
-GM2-VERSION=0.33
+GM2-VERSION=0.40
 GM2_FLAGS=-Wbounds -Wreturn -gstabs
 
 # Language-specific object files for the gm2 compiler.
@@ -442,9 +444,9 @@ stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) $(BACKE
 
 # Compiling object files from source files.
 
-gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
 gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
-gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H)
+gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 
 
 #
@@ -487,7 +489,8 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Configure.def SymbolTable.def Lists.def       SymbolConversion.def \
                      P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def     \
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
-                     clex.def        CLexBuf.def     M2Bitset.def    M2Size.def
+                     clex.def        CLexBuf.def     M2Bitset.def    M2Size.def      \
+                     M2Scope.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -504,7 +507,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2ALU.mod       M2System.mod    Lists.mod       \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
-                     M2Size.mod
+                     M2Size.mod      M2Scope.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
@@ -552,7 +555,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
-                     M2Bitset.def      M2Size.def
+                     M2Bitset.def      M2Size.def      M2Scope.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2Stack.mod       M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -567,7 +570,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
-                     M2Bitset.mod      M2Size.mod
+                     M2Bitset.mod      M2Size.mod      M2Scope.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      gm2m.mod          ppg.mod
@@ -1061,7 +1064,7 @@ stage1/gm2/gcc$(exeext): xgcc$(exeext)
 stage1/gm2/cc1$(exeext): cc1$(exeext)
 	cp -p $< $@
 
-stage1/gm2/cpp0$(exeext): cpp0$(exeext)
+stage1/gm2/cpp$(exeext): cpp$(exeext)
 	cp -p $< $@
 
 stage1/gm2/gm2l$(exeext): gm2/p2c/p2c-src/src/libp2c.a \

@@ -22,7 +22,8 @@ FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved ;
 FROM M2ALU IMPORT PushIntegerTree ;
 FROM gccgm2 IMPORT GetErrorNode, RememberConstant ;
-FROM SYSTEM IMPORT WORD ;
+FROM Storage IMPORT ALLOCATE ;
+FROM SYSTEM IMPORT ADDRESS ;
 
 CONST
    USEPOISON = TRUE ;
@@ -32,7 +33,8 @@ TYPE
    PtrToInteger = POINTER TO INTEGER ;
 
 VAR
-   mod2gcc: SymbolTree ;
+   mod2gcc       : SymbolTree ;
+   PoisonedSymbol: ADDRESS ;   
 
 
 PROCEDURE mystop2 ; BEGIN END mystop2 ;
@@ -44,7 +46,8 @@ PROCEDURE mystop2 ; BEGIN END mystop2 ;
 
 PROCEDURE Mod2Gcc (sym: CARDINAL) : Tree ;
 VAR
-   t: PtrToInteger ;
+   t : PtrToInteger ;
+   tr: Tree ;
 BEGIN
    IF USEPOISON
    THEN
@@ -54,7 +57,12 @@ BEGIN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   RETURN( Tree(GetSymKey(mod2gcc, Name(sym))) )
+   tr := Tree(GetSymKey(mod2gcc, Name(sym))) ;
+   IF tr=PoisonedSymbol
+   THEN
+      InternalError('attempting to use a gcc symbol which is no longer in scope', __FILE__, __LINE__)
+   END ;
+   RETURN( tr )
 END Mod2Gcc ;
 
 
@@ -80,7 +88,7 @@ BEGIN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   IF sym=248
+   IF sym=149
    THEN
       mystop2
    END ;
@@ -152,12 +160,30 @@ END RemoveTemporaryKnown ;
 
 
 (*
+   Poison - poisons a symbol.
+*)
+
+PROCEDURE Poison (sym: WORD) ;
+VAR
+   a: ADDRESS ;
+BEGIN
+   a := Mod2Gcc(sym) ;
+   IF a#NIL
+   THEN
+      DelSymKey(mod2gcc, Name(sym)) ;
+      PutSymKey(mod2gcc, Name(sym), CARDINAL(PoisonedSymbol))
+   END
+END Poison ;
+
+
+(*
    Init - create both binary trees.
 *)
 
 PROCEDURE Init ;
 BEGIN
-   InitTree(mod2gcc)
+   InitTree(mod2gcc) ;
+   ALLOCATE(PoisonedSymbol, 1)
 END Init ;
 
 

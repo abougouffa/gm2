@@ -27,6 +27,7 @@ FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM NameKey IMPORT makekey ;
 FROM SymbolKey IMPORT SymbolTree, InitTree, DelSymKey, PutSymKey, GetSymKey ;
+FROM Assertion IMPORT Assert ;
 
 CONST
    MaxBucketSize = 100 ;
@@ -884,6 +885,7 @@ BEGIN
       ListOfTokens.tail^.len := 0
    ELSIF ListOfTokens.tail^.len=MaxBucketSize
    THEN
+      Assert(ListOfTokens.tail^.next=NIL) ;
       NEW(ListOfTokens.tail^.next) ;
       IF ListOfTokens.tail^.next=NIL
       THEN
@@ -895,6 +897,7 @@ BEGIN
       INC(ListOfTokens.LastBucketOffset, MaxBucketSize)
    END ;
    WITH ListOfTokens.tail^ DO
+      next := NIL ;
       WITH buf[len] DO
          token := t ;
          str   := n ;

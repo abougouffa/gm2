@@ -234,6 +234,9 @@ TYPE
                                               (* visable within this scope.    *)
                  ListOfVars    : List ;       (* List of variables in this     *)
                                               (* scope.                        *)
+                 ListOfProcs   : List ;       (* List of all procedures        *)
+                                              (* declared within this          *)
+                                              (* procedure.                    *)
                  Size          : PtrToValue ; (* Activation record size.       *)
                  TotalParamSize: PtrToValue ; (* size of all parameters.       *)
                  Scope         : CARDINAL ;   (* Scope of declaration.         *)
@@ -2167,6 +2170,9 @@ BEGIN
                                          (* visable within this scope.    *)
             InitList(ListOfVars) ;       (* List of variables in this     *)
                                          (* scope.                        *)
+            InitList(ListOfProcs) ;      (* List of all procedures        *)
+                                         (* declared within this          *)
+                                         (* procedure.                    *)
             Size := InitValue() ;        (* Activation record size.       *)
             TotalParamSize
                        := InitValue() ;  (* size of all parameters.       *)
@@ -2175,7 +2181,7 @@ BEGIN
       END ;
       (* Now add this procedure to the symbol table of the current scope *)
       AddSymToScope(Sym, ProcedureName) ;
-      AddProcedureToList(CurrentModule, Sym)
+      AddProcedureToList(GetCurrentScope(), Sym)
    END ;
    RETURN( Sym )
 END MakeProcedure ;
@@ -2191,11 +2197,12 @@ BEGIN
    WITH Symbols[Mod] DO
       CASE SymbolType OF
 
-      DefImpSym: PutItemIntoList(DefImp.ListOfProcs, Proc) |
-      ModuleSym: PutItemIntoList(Module.ListOfProcs, Proc)
+      DefImpSym   : PutItemIntoList(DefImp.ListOfProcs, Proc) |
+      ModuleSym   : PutItemIntoList(Module.ListOfProcs, Proc) |
+      ProcedureSym: PutItemIntoList(Procedure.ListOfProcs, Proc)
 
       ELSE
-         InternalError('expecting ModuleSym or DefImpSym symbol', __FILE__, __LINE__)
+         InternalError('expecting ModuleSym, DefImpSym or ProcedureSym symbol', __FILE__, __LINE__)
       END
    END
 END AddProcedureToList ;
@@ -6401,8 +6408,9 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      DefImpSym: ForeachItemInListDo( DefImp.ListOfProcs, P) |
-      ModuleSym: ForeachItemInListDo( Module.ListOfProcs, P)
+      DefImpSym   : ForeachItemInListDo( DefImp.ListOfProcs, P) |
+      ModuleSym   : ForeachItemInListDo( Module.ListOfProcs, P) |
+      ProcedureSym: ForeachItemInListDo( Procedure.ListOfProcs, P)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)

@@ -4,6 +4,7 @@ M2Defaults
 Environment
 M2RTS
 DynamicStrings
+Assertion
 FormatStrings
 FIO
 SFIO

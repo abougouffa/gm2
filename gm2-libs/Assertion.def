@@ -20,21 +20,15 @@ DEFINITION MODULE Assertion ;
    Title      : Assertion
    Author     : Gaius Mulley
    Date       : 20/8/88
-   LastEdit   : 20/8/88
    System     : UNIX (GNU Modula-2)
-   Description: Provides a procedure assert which is used as a debugging
-                aid.
+   Description: Provides an assert procedure.
 *)
 
 EXPORT QUALIFIED Assert ;
 
 
 (*
-   Assert - tests the boolean Condition, if it fails then the module
-            suit if HALTed.
-            Assert is used for testing critical premises - a debugging
-            aid that should be left in for the complete life of
-            a package??
+   Assert - tests the boolean Condition, if it fails then HALT is called.
 *)
 
 PROCEDURE Assert (Condition: BOOLEAN) ;

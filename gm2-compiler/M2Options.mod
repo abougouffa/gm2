@@ -96,6 +96,9 @@ BEGIN
             ELSIF EqualArray(s, '-version')
             THEN
                DisplayVersion
+            ELSIF IsAnOptionAndArg(s)
+            THEN
+               INC(i)
             ELSIF NOT IsAnOption(s)
             THEN
                (*
@@ -234,6 +237,20 @@ BEGIN
    END ;
    RETURN( Legal )
 END IsAnOption ;
+
+
+(*
+   IsAnOptionAndArg - returns TRUE if argument, s, implies that the next argument
+                      is associated with this argument.
+*)
+
+PROCEDURE IsAnOptionAndArg (s: String) : BOOLEAN ;
+BEGIN
+   RETURN(
+          EqualArray(s, '-auxbase-strip') OR
+          EqualArray(s, '-auxbase')
+         )
+END IsAnOptionAndArg ;
 
 
 (*

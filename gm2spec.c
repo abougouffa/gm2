@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "config.h"
 #include "system.h"
+#include "gcc.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -54,8 +55,6 @@ int lang_specific_extra_outfiles = 0;
 
 void add_default_directories (int incl, char ***in_argv, int is_pim);
 void insert_arg (int  incl, int *in_argc, char ***in_argv);
-void lang_specific_driver (int *in_argc, char ***in_argv,
-			   int *in_added_libraries ATTRIBUTE_UNUSED);
 int  lang_specific_pre_link (void);
 
 
@@ -153,7 +152,7 @@ insert_arg (incl, in_argc, in_argv)
 void
 lang_specific_driver (in_argc, in_argv, in_added_libraries)
      int *in_argc;
-     char ***in_argv;
+     const char *const **in_argv;
      int *in_added_libraries ATTRIBUTE_UNUSED;
 {
   int i=1;
@@ -199,3 +198,9 @@ lang_specific_pre_link ()
 {
   return 0;
 }
+
+/* Table of language-specific spec functions.  */ 
+const struct spec_function lang_specific_spec_functions[] =
+{
+  { 0, 0 }
+};

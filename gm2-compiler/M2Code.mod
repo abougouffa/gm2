@@ -17,6 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Code ;
 
 
+FROM SYSTEM IMPORT WORD ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 
@@ -24,24 +25,49 @@ FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
                       (* OptimizeDynamic, *) OptimizeCommonSubExpressions, StudentChecking ;
 
 FROM M2Students IMPORT StudentVariableCheck ;
+FROM SymbolTable IMPORT GetMainModule, IsProcedure, ForeachProcedureDo ;
 
-FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList,
+FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubranges, VariableAnalysis, LoopAnalysis, ForLoopAnalysis ;
 
 FROM M2Pass IMPORT SetPassToNoPass ;
 FROM M2SubExp IMPORT RemoveCommonSubExpressions ;
 
-FROM M2BasicBlock IMPORT GenBasicBlocks, DestroyBasicBlocks,
-                         GenBasicBlockCode, ForeachBasicBlockDo ;
+FROM M2BasicBlock IMPORT BasicBlock,
+                         InitBasicBlocks, InitBasicBlocksFromRange, KillBasicBlocks,
+                         ForeachBasicBlockDo ;
 
 FROM M2Optimize IMPORT FoldBranches, RemoveProcedures ;
-FROM M2GenGCC IMPORT InitGNUM2 ;
-FROM M2GCCDeclare IMPORT FoldConstants ;
+FROM M2GenGCC IMPORT InitGNUM2, ConvertQuadsToTree ;
+FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope, DeclareProcedure, InitDeclarations ;
+FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
+FROM gccgm2 IMPORT InitGlobalContext ;
 
 
 CONST
    MaxOptimTimes = 10 ;   (* upper limit of no of times we run through all optimization *)
    Debugging     = TRUE ;
+
+
+VAR
+   Total,
+   Count,
+   OptimTimes,
+   DeltaProc,
+   Proc,
+   DeltaConst,
+   Const,
+   DeltaJump,
+   Jump,
+   DeltaBasicB,
+   BasicB,
+   DeltaCse,
+   Cse        : CARDINAL ;
+
+(* %%%FORWARD%%%
+PROCEDURE CodeBlock (scope: CARDINAL) ; FORWARD ;
+   %%%FORWARD%%% *)
+
 
 (*
    Percent - calculates the percentage from numerator and divisor
@@ -61,150 +87,15 @@ END Percent ;
 
 
 (*
-   Code - calls procedures to generates the assembly language from
-          the quadruples. All quadruple optimization is performed
-          via this call.
+   OptimizationAnalysis - displays some simple front end optimization statistics.
 *)
 
-PROCEDURE Code ;
-VAR
-   OptimTimes,
-   DeltaProc,
-   Proc,
-   DeltaConst,
-   Const,
-   DeltaJump,
-   Jump,
-   DeltaBasicB,
-   BasicB,
-   DeltaCse,
-   Cse,
-   Total,
-   Count      : CARDINAL ;
+PROCEDURE OptimizationAnalysis ;
 BEGIN
-   SetPassToNoPass ;
-   BackPatchSubranges(Head) ;
-   Proc := 0 ;
-   Const := 0 ;
-   Jump := 0 ;
-   BasicB := 0 ;
-   Cse  := 0 ;         (* optional optimizations *)
-   OptimTimes := 0 ;   (* how many times have we tried to optimize *)
-   DeltaProc := 0 ;    (* optional so we set this to zero *)
-   DeltaCse := 0 ;     (* optional so we set this to zero *)
-
-   Total := CountQuads(Head) ;
-   Count := Total ;
-
-   ForLoopAnalysis ;   (* must be done before any optimization as the index variable increment quad might change *)
-
-   IF DisplayQuadruples
-   THEN
-      WriteString('before any optimization') ; WriteLn ;
-      DisplayQuadList(Head)
-   END ;
-
-   InitGNUM2(Head) ;
-
-   REPEAT
-      INC(OptimTimes) ;
-      FoldConstants ;
-      DeltaConst := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
-
-      GenBasicBlocks(Head) ;
-      DestroyBasicBlocks ;
-
-      IF Debugging AND DisplayQuadruples
-      THEN
-         WriteString('start of basic block decomposition for the ') ; WriteCard(OptimTimes, 0) ;
-         WriteString(' time') ; WriteLn ;
-         DisplayQuadList(Head)
-      END ;
-
-      DeltaBasicB := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
-
-      FoldBranches(Head) ;
-      DeltaJump := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
-
-      IF Debugging AND DisplayQuadruples
-      THEN
-         WriteString('after folding branches') ; WriteLn ;
-         DisplayQuadList(Head)
-      END ;
-
-      GenBasicBlocks(Head) ;
-      INC(DeltaBasicB, Count - CountQuads(Head)) ;
-      Count := CountQuads(Head) ;
-
-      IF Debugging AND DisplayQuadruples
-      THEN
-         WriteString('after second basic block decomposition for the ') ; WriteCard(OptimTimes, 0) ;
-         WriteString(' time') ; WriteLn ;
-         DisplayQuadList(Head)
-      END ;
-
-      IF OptimizeUncalledProcedures
-      THEN
-         DestroyBasicBlocks ;
-         RemoveProcedures(Head) ;
-         GenBasicBlocks(Head) ;
-
-         DeltaProc := Count - CountQuads(Head) ;
-         Count := CountQuads(Head) ;
-         IF Debugging AND DisplayQuadruples
-         THEN
-            WriteString('after uncalled procedure optimization') ; WriteLn ;
-            DisplayQuadList(Head)
-         END
-      END ;
-
-      IF OptimTimes=1
-      THEN
-         ForeachBasicBlockDo(VariableAnalysis)
-      END ;
-      IF OptimizeCommonSubExpressions
-      THEN
-         ForeachBasicBlockDo(RemoveCommonSubExpressions) ;
-
-         DestroyBasicBlocks ;
-         GenBasicBlocks(Head) ;
-         IF Debugging AND DisplayQuadruples
-         THEN
-            WriteString('after removing common sub expressions') ; WriteLn ;
-            DisplayQuadList(Head)
-         END ;
-
-         DeltaCse := Count - CountQuads(Head) ;
-         Count := CountQuads(Head) ;
-
-         FoldConstants ;       (* now attempt to fold more constants *)
-         INC(DeltaConst, Count-CountQuads(Head)) ;
-         Count := CountQuads(Head)
-      END ;
-      (* now total the optimization components *)
-      INC(Proc, DeltaProc) ;
-      INC(Const, DeltaConst) ;
-      INC(Jump, DeltaJump) ;
-      INC(BasicB, DeltaBasicB) ;
-      INC(Cse, DeltaCse)
-   UNTIL (OptimTimes=MaxOptimTimes) OR
-         ((DeltaProc=0) AND (DeltaConst=0) AND (DeltaJump=0) AND (DeltaBasicB=0) AND (DeltaCse=0)) ;
-
-   IF Debugging AND DisplayQuadruples
-   THEN
-      WriteString('after all optimization') ; WriteLn ;
-      DisplayQuadList(Head)
-   END ;
-   LoopAnalysis ;
    IF Statistics
    THEN
-      IF (DeltaProc#0) OR (DeltaConst#0) OR (DeltaJump#0) OR (DeltaBasicB#0) OR (DeltaCse#0)
-      THEN
-         WriteString('Optimization finished - although more reduction may be possible') ; WriteLn
-      END ;
+      Count := CountQuads(Head) ;
+
       WriteString('Initial Number of Quadruples:') ; WriteCard(Total, 5) ;
       Percent(Total, Total) ; WriteLn ;
       WriteString('Constant folding achieved   :') ; WriteCard(Const, 5) ;
@@ -223,18 +114,249 @@ BEGIN
       WriteString('Resultant number of quads   :') ; WriteCard(Count, 5) ;
       Percent(Count, Total) ; WriteLn
    END ;
-   (* now is a suitable time to check for student errors as we know all the symbols must be resolved *)
-   IF StudentChecking
-   THEN
-      StudentVariableCheck      
-   END ;
    IF DisplayQuadruples
    THEN
       WriteString('after all front end optimization') ; WriteLn ;
       DisplayQuadList(Head)
+   END
+END OptimizationAnalysis ;
+
+
+(*
+   Code - calls procedures to generates trees from the quadruples.
+          All front end quadruple optimization is performed via this call.
+*)
+
+PROCEDURE Code ;
+BEGIN
+   SetPassToNoPass ;
+   BackPatchSubranges(Head) ;
+   Total := CountQuads(Head) ;
+
+   ForLoopAnalysis ;   (* must be done before any optimization as the index variable increment quad might change *)
+
+   IF DisplayQuadruples
+   THEN
+      WriteString('before any optimization') ; WriteLn ;
+      DisplayQuadList(Head)
    END ;
-   GenBasicBlockCode(Head)
+
+   (* now is a suitable time to check for student errors as we know all the front end symbols must be resolved *)
+   IF StudentChecking
+   THEN
+      StudentVariableCheck      
+   END ;
+
+   InitGNUM2(Head) ;
+   InitGlobalContext ;
+   InitDeclarations ;
+
+   CodeBlock(GetMainModule()) ;
+
+   OptimizationAnalysis
 END Code ;
 
 
+(*
+   InitialDeclareAndCodeBlock - declares all objects within scope, 
+*)
+
+PROCEDURE InitialDeclareAndOptimize (start, end: CARDINAL) ;
+VAR
+   bb: BasicBlock ;
+BEGIN
+   Count := CountQuads(Head) ;
+   bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+   BasicB := Count - CountQuads(Head) ;
+   Count := CountQuads(Head) ;
+
+   FoldBranches(start, end) ;
+   Jump := Count - CountQuads(Head) ;
+   Count := CountQuads(Head) ;
+
+   IF OptimizeUncalledProcedures
+   THEN
+      RemoveProcedures ;
+      bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+
+      Proc := Count - CountQuads(Head) ;
+      Count := CountQuads(Head)
+   END
+END InitialDeclareAndOptimize ;
+
+
+(*
+   DeclareAndCodeBlock - declares all objects within scope, 
+*)
+
+PROCEDURE SecondDeclareAndOptimize (start, end: CARDINAL) ;
+VAR
+   bb: BasicBlock ;
+BEGIN
+   REPEAT
+      FoldConstants(start, end) ;
+      DeltaConst := Count - CountQuads(Head) ;
+      Count := CountQuads(Head) ;
+
+      bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+
+      DeltaBasicB := Count - CountQuads(Head) ;
+      Count := CountQuads(Head) ;
+
+      bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+      FoldBranches(start, end) ;
+      DeltaJump := Count - CountQuads(Head) ;
+      Count := CountQuads(Head) ;
+
+      bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+      INC(DeltaBasicB, Count - CountQuads(Head)) ;
+      Count := CountQuads(Head) ;
+
+      IF OptimizeUncalledProcedures
+      THEN
+         bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+         RemoveProcedures ;
+
+         DeltaProc := Count - CountQuads(Head) ;
+         Count := CountQuads(Head)
+      END ;
+
+      IF FALSE AND OptimizeCommonSubExpressions
+      THEN
+         bb := InitBasicBlocksFromRange(start, end) ;
+         ForeachBasicBlockDo(bb, RemoveCommonSubExpressions) ;
+         bb := KillBasicBlocks(bb) ;
+
+         bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
+
+         DeltaCse := Count - CountQuads(Head) ;
+         Count := CountQuads(Head) ;
+
+         FoldConstants(start, end) ;       (* now attempt to fold more constants *)
+         INC(DeltaConst, Count-CountQuads(Head)) ;
+         Count := CountQuads(Head)
+      END ;
+      (* now total the optimization components *)
+      INC(Proc, DeltaProc) ;
+      INC(Const, DeltaConst) ;
+      INC(Jump, DeltaJump) ;
+      INC(BasicB, DeltaBasicB) ;
+      INC(Cse, DeltaCse)
+   UNTIL (OptimTimes>=MaxOptimTimes) OR
+         ((DeltaProc=0) AND (DeltaConst=0) AND (DeltaJump=0) AND (DeltaBasicB=0) AND (DeltaCse=0)) ;
+
+   IF (DeltaProc#0) OR (DeltaConst#0) OR (DeltaJump#0) OR (DeltaBasicB#0) OR (DeltaCse#0)
+   THEN
+      WriteString('optimization finished although more reduction may be possible (increase MaxOptimTimes)') ; WriteLn
+   END
+END SecondDeclareAndOptimize ;
+
+
+(*
+   InitOptimizeVariables - 
+*)
+
+PROCEDURE InitOptimizeVariables ;
+BEGIN
+   Count       := CountQuads(Head) ;
+   OptimTimes  := 0 ;
+   DeltaProc   := 0 ;
+   DeltaConst  := 0 ;
+   DeltaJump   := 0 ;
+   DeltaBasicB := 0 ;
+   DeltaCse    := 0
+END InitOptimizeVariables ;
+
+
+(*
+   Init - 
+*)
+
+PROCEDURE Init ;
+BEGIN
+   Proc   := 0 ;
+   Const  := 0 ;
+   Jump   := 0 ;
+   BasicB := 0 ;
+   Cse    := 0
+END Init ;
+
+
+(*
+   BasicBlockVariableAnalysis - 
+*)
+
+PROCEDURE BasicBlockVariableAnalysis (start, end: CARDINAL) ;
+VAR
+   bb: BasicBlock ;
+BEGIN
+   bb := InitBasicBlocksFromRange(start, end) ;
+   ForeachBasicBlockDo(bb, VariableAnalysis) ;
+   bb := KillBasicBlocks(bb)
+END BasicBlockVariableAnalysis ;
+
+
+(*
+   OptimizeScopeBlock - 
+*)
+
+PROCEDURE OptimizeScopeBlock (sb: ScopeBlock) ;
+VAR
+   OptimTimes,
+   Previous,
+   Current   : CARDINAL ;
+BEGIN
+   InitOptimizeVariables ;
+   OptimTimes := 1 ;
+   Current := CountQuads(Head) ;
+   ForeachScopeBlockDo(sb, InitialDeclareAndOptimize) ;
+   ForeachScopeBlockDo(sb, BasicBlockVariableAnalysis) ;
+   REPEAT
+      ForeachScopeBlockDo(sb, SecondDeclareAndOptimize) ;
+      Previous := Current ;
+      Current := CountQuads(Head) ;
+      INC(OptimTimes)
+   UNTIL (OptimTimes=MaxOptimTimes) OR (Current=Previous) ;
+   ForeachScopeBlockDo(sb, LoopAnalysis)
+END OptimizeScopeBlock ;
+
+
+(*
+   CodeBlock - generates all code for this block and also declares all types and procedures for
+               this block. It will also optimize quadruples within this scope.
+*)
+
+PROCEDURE CodeBlock (scope: WORD) ;
+VAR
+   sb: ScopeBlock ;
+BEGIN
+   sb := InitScopeBlock(scope) ;
+   IF DisplayQuadruples
+   THEN
+      ForeachScopeBlockDo(sb, DisplayQuadRange)
+   END ;
+   OptimizeScopeBlock(sb) ;
+   IF IsProcedure(scope)
+   THEN
+      DeclareProcedure(scope) ;
+      IF DisplayQuadruples
+      THEN
+         ForeachScopeBlockDo(sb, DisplayQuadRange)
+      END ;
+      ForeachScopeBlockDo(sb, ConvertQuadsToTree)
+   ELSE
+      StartDeclareScope(scope) ;
+      IF DisplayQuadruples
+      THEN
+         ForeachScopeBlockDo(sb, DisplayQuadRange)
+      END ;
+      ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
+      ForeachProcedureDo(scope, CodeBlock)
+   END ;
+   sb := KillScopeBlock(sb)
+END CodeBlock ;
+
+
+BEGIN
+   Init
 END M2Code.

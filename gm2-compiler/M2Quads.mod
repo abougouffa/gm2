@@ -408,11 +408,10 @@ END Opposite ;
 
 
 (*
-   IsReferenced - returns true if QuadNo is referenced inside the Quad list
-                  determined by Head.
+   IsReferenced - returns true if QuadNo is referenced by another quadruple.
 *)
 
-PROCEDURE IsReferenced (Head: CARDINAL; QuadNo: CARDINAL) : BOOLEAN ;
+PROCEDURE IsReferenced (QuadNo: CARDINAL) : BOOLEAN ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -1106,7 +1105,7 @@ END AddQuad ;
    SubQuad - subtracts a quadruple QuadNo from a list Head.
 *)
 
-PROCEDURE SubQuad (VAR Head: CARDINAL; QuadNo: CARDINAL) ;
+PROCEDURE SubQuad (QuadNo: CARDINAL) ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -4786,7 +4785,7 @@ BEGIN
       OperandSym := OperandT(1) ;
       IF IsVar(VarSym)
       THEN
-         IF IsSet(GetType(VarSym))
+         IF IsSet(SkipType(GetType(VarSym)))
          THEN
             GenQuad(InclOp, VarSym, NulSym, DereferenceLValue(OperandSym))
          ELSE
@@ -4842,7 +4841,7 @@ BEGIN
       OperandSym := OperandT(1) ;
       IF IsVar(VarSym)
       THEN
-         IF IsSet(GetType(VarSym))
+         IF IsSet(SkipType(GetType(VarSym)))
          THEN
             GenQuad(ExclOp, VarSym, NulSym, DereferenceLValue(OperandSym))
          ELSE
@@ -6557,9 +6556,9 @@ BEGIN
       PutVar(min, type) ;
       GenQuad(SubrangeLowOp, min, NulSym, type) ;
       RETURN( min )
-   ELSIF IsSet(type)
+   ELSIF IsSet(SkipType(type))
    THEN
-      RETURN( GetTypeMin(GetType(type)) )
+      RETURN( GetTypeMin(GetType(SkipType(type))) )
    ELSIF IsEnumeration(type)
    THEN
       MinEnumerationField := NulSym ;
@@ -6597,9 +6596,9 @@ BEGIN
       PutVar(max, type) ;
       GenQuad(SubrangeHighOp, max, NulSym, type) ;
       RETURN( max )
-   ELSIF IsSet(type)
+   ELSIF IsSet(SkipType(type))
    THEN
-      RETURN( GetTypeMax(GetType(type)) )
+      RETURN( GetTypeMax(GetType(SkipType(type))) )
    ELSIF IsEnumeration(type)
    THEN
       MinEnumerationField := NulSym ;
@@ -7387,16 +7386,14 @@ END IsInfiniteLoop ;
    LoopAnalysis - checks whether an infinite loop exists.
 *)
 
-PROCEDURE LoopAnalysis ;
+PROCEDURE LoopAnalysis (Current, End: CARDINAL) ;
 VAR
-   Current      : CARDINAL ;
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
 BEGIN
    IF Pedantic
    THEN
-      Current := Head ;
-      WHILE Current#0 DO
+      WHILE Current<=End DO
          GetQuad(Current, op, op1, op2, op3) ;
          IF (op=GotoOp) OR IsConditional(Current)
          THEN
@@ -8574,10 +8571,6 @@ VAR
 BEGIN
    PopT(el) ;
    PopT(value) ;
-   IF value=5504
-   THEN
-      stop
-   END ;
    IF IsConst(el)
    THEN
       PushValue(value) ;  (* onto ALU stack *)
@@ -8661,9 +8654,14 @@ END RecordOp ;
 
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ;
 BEGIN
+   IF (t1=179) OR (t2=179)
+   THEN
+      stop
+   END ;
+
    IF (Tok=PlusTok) OR (Tok=TimesTok) OR (Tok=DivTok) OR (Tok=MinusTok)
    THEN
-      IF ((t2#NulSym) AND IsSet(t2)) OR (IsConst(e2) AND IsConstSet(e2))
+      IF ((t2#NulSym) AND IsSet(SkipType(t2))) OR (IsConst(e2) AND IsConstSet(e2))
       THEN
          IF Tok=PlusTok
          THEN
@@ -8893,7 +8891,7 @@ BEGIN
 
       IF NOT IsConst(Sym)
       THEN
-         IF (type#NulSym) AND IsSet(type)
+         IF (type#NulSym) AND IsSet(SkipType(type))
          THEN
             (* do not dereference set variables *)
          ELSIF GetMode(Sym)=LeftValue
@@ -9328,6 +9326,20 @@ BEGIN
       Head := Quads[Head].Next
    END
 END DisplayQuadList ;
+
+
+(*
+   DisplayQuadRange - displays all quads in list range, start..end.
+*)
+
+PROCEDURE DisplayQuadRange (start, end: CARDINAL) ;
+BEGIN
+   printf0('Quadruples:\n') ;
+   WHILE (start<=end) AND (start#0) DO
+      DisplayQuad(start) ;
+      start := Quads[start].Next
+   END
+END DisplayQuadRange ;
 
 
 (*

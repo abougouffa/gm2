@@ -76,8 +76,9 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMa
                    ArrayAddress, ArrayHigh ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
 FROM M2Bitset IMPORT Bitset, Bitnum ;
-FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
+FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
+FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 
 FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
@@ -111,6 +112,7 @@ FROM gccgm2 IMPORT Tree,
                    AssignBooleanTrueFalse, BuildSize ;
 
 (* %%%FORWARD%%%
+PROCEDURE DeclareFileName ; FORWARD ;
 PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareImportedVariables (Sym: WORD) ; FORWARD ;
 PROCEDURE DeclareSet (sym: CARDINAL) : Tree ; FORWARD ;
@@ -269,7 +271,7 @@ END CheckToFinishList ;
                             have been written.
 *)
 
-PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN) : BOOLEAN ;
+PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN; start, end: CARDINAL) : BOOLEAN ;
 VAR
    e            : Error ;
    i, n         : CARDINAL ;
@@ -364,7 +366,7 @@ BEGIN
                   printf0('not declared at all\n')
                END
             END ;
-            FoldConstants ;
+            FoldConstants(start, end) ;
             IF NOT AllDependantsWritten(Sym)
             THEN
                NoMoreWritten := TRUE ;
@@ -629,6 +631,10 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
+   IF Sym=149
+   THEN
+      mystop
+   END ;
    IF GccKnowsAbout(Sym) AND (NOT IsItemInList(ToFinishList, Sym))
    THEN
       RETURN( TRUE )
@@ -713,12 +719,50 @@ END DeclareTypeInfo ;
 
 
 (*
+   DeclareUnboundedProcedureParameters - 
+*)
+
+PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ;
+VAR
+   son,
+   type,
+   p, i: CARDINAL ;
+BEGIN
+   IF IsProcedure(Sym)
+   THEN
+      p := NoOfParam(Sym) ;
+      i := p ;
+      WHILE i>0 DO
+         IF IsUnboundedParam(Sym, i)
+         THEN
+            son := GetNth(Sym, i) ;
+            type := GetType(son) ;
+            DeclareTypeInfo(type) ;
+            IF (NOT GccKnowsAbout(type)) AND AllDependantsWritten(type)
+      	    THEN
+               AddModGcc(type, DeclareOrFindKindOfType(type)) ;
+               RemoveItemFromList(ToFinishList, type) ;
+               IncludeItemIntoList(DefinedList, type)
+            END
+         ELSE
+            son := GetNth(Sym, i) ;
+            type := GetType(son) ;
+            DeclareTypeInfo(type)
+         END ;
+         DEC(i)
+      END
+   END
+END DeclareUnboundedProcedureParameters ;
+
+
+(*
    DeclareTypesInProcedure - declare all types in procedure, Sym, to GCC.
 *)
 
 PROCEDURE DeclareTypesInProcedure (Sym: WORD) ;
 BEGIN
-   ForeachLocalSymDo(Sym, DeclareTypeInfo)
+   ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
+   ForeachLocalSymDo(Sym, DeclareUnboundedProcedureParameters)
 END DeclareTypesInProcedure ;
 
 
@@ -729,7 +773,7 @@ END DeclareTypesInProcedure ;
 PROCEDURE DeclareTypesInModule (Sym: WORD) ;
 BEGIN
    ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
-   ForeachProcedureDo(Sym, DeclareTypesInProcedure) ;
+   ForeachLocalSymDo(Sym, DeclareUnboundedProcedureParameters) ;
    ForeachInnerModuleDo(Sym, DeclareTypesInModule)
 END DeclareTypesInModule ;
 
@@ -779,11 +823,6 @@ BEGIN
       (IsImported(GetMainModule(), Sym) OR (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
        IsImported(GetBaseModule(), Sym) OR IsImported(GetModuleWhereDeclared(Sym), Sym))
    THEN
-      IF IsProcedureNested(Sym) AND (NOT GccKnowsAbout(GetScope(Sym)))
-      THEN
-         DeclareProcedureToGcc(GetScope(Sym))
-      END ;
-
       Assert(PushParametersLeftToRight) ;
       BuildStartFunctionDeclaration ;
       p := NoOfParam(Sym) ;
@@ -808,10 +847,12 @@ BEGIN
       IF GetType(Sym)=NulSym
       THEN
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    NIL, IsImported(GetMainModule(), Sym)))
+                                                    NIL, IsImported(GetMainModule(), Sym),
+                                                    IsProcedureNested(Sym)))
       ELSE
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    Mod2Gcc(GetType(Sym)), IsImported(GetMainModule(), Sym)))
+                                                    Mod2Gcc(GetType(Sym)), IsImported(GetMainModule(), Sym),
+                                                    IsProcedureNested(Sym)))
       END
    END
 END DeclareProcedureToGcc ;
@@ -840,66 +881,87 @@ END DeclareProcedure ;
    FoldConstants - a wrapper for ResolveConstantExpressions.
 *)
 
-PROCEDURE FoldConstants ;
+PROCEDURE FoldConstants (start, end: CARDINAL) ;
 BEGIN
-   IF ResolveConstantExpressions(ToDoConstants)
+   IF ResolveConstantExpressions(ToDoConstants, start, end)
    THEN
    END
 END FoldConstants ;
 
 
 (*
-   StartDeclareMainModule - declares types, variables associated with main module.
+   DeclareTypesAndConstantsInRange - 
 *)
 
-PROCEDURE StartDeclareMainModule ;
+PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
 VAR
-   ModuleName,
-   FileName  : String ;
-   n, m      : CARDINAL ;
+   n, m: CARDINAL ;
 BEGIN
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
-
-   SetFileNameAndLineNo(string(FileName), 1) ;
-   DeclareDefaultTypes ;
-   ForeachModuleDo(DeclareTypesInModule) ;
    REPEAT
       n := NoOfItemsInList(ToDoConstants) ;
-      WHILE ResolveConstantExpressions(ToDoConstants) DO
+      WHILE ResolveConstantExpressions(ToDoConstants, start, end) DO
       END ;
       m := NoOfItemsInList(ToDoConstants) ;
       (* we need to evaluate some constant expressions to resolve these types *)
-      IF DeclaredOutstandingTypes(FALSE)
+      IF DeclaredOutstandingTypes(FALSE, start, end)
       THEN
       END ;
-   UNTIL (NOT ResolveConstantExpressions(ToDoConstants)) AND (n=NoOfItemsInList(ToDoConstants)) AND
+   UNTIL (NOT ResolveConstantExpressions(ToDoConstants, start, end)) AND (n=NoOfItemsInList(ToDoConstants)) AND
          (m=NoOfItemsInList(ToDoConstants));
-   IF DeclaredOutstandingTypes(TRUE)
+   IF DeclaredOutstandingTypes(TRUE, start, end)
    THEN
-   END ;
-   ForeachModuleDo(DeclareProcedure) ;
-
-   (* now that all types have been resolved it is safe to declare variables *)
-   DeclareGlobalVariables(GetMainModule()) ;
-   ForeachImportedDo(GetMainModule(), DeclareImportedVariables) ;
-   (* now it is safe to declare all procedures *)
-   ForeachProcedureDo(GetMainModule(), DeclareProcedure) ;
-   ForeachInnerModuleDo(GetMainModule(), DeclareProcedure) ;
-   BuildStartMainModule ;
-   ModuleName := KillString(ModuleName) ;
-   FileName   := KillString(FileName)
-END StartDeclareMainModule ;
+   END
+END DeclareTypesAndConstantsInRange ;
 
 
 (*
-   EndDeclareMainModule - removes the scope associated with main module.
+   DeclareTypesAndConstants - 
 *)
 
-PROCEDURE EndDeclareMainModule ;
+PROCEDURE DeclareTypesAndConstants (scope: CARDINAL) ;
+VAR
+   sb: ScopeBlock ;
 BEGIN
-   BuildEndMainModule
-END EndDeclareMainModule ;
+   sb := InitScopeBlock(scope) ;
+   ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
+   sb := KillScopeBlock(sb)
+END DeclareTypesAndConstants ;
+
+
+(*
+   StartDeclareScope - declares types, variables associated with this scope.
+*)
+
+PROCEDURE StartDeclareScope (scope: CARDINAL) ;
+BEGIN
+   IF IsProcedure(scope)
+   THEN
+      DeclareTypesInProcedure(scope) ;
+      DeclareTypesAndConstants(scope) ;
+      DeclareLocalVariables(scope) ;
+      ForeachProcedureDo(scope, DeclareProcedure)
+   ELSE
+      ForeachModuleDo(DeclareTypesInModule) ;
+      DeclareTypesAndConstants(scope) ;
+      ForeachModuleDo(DeclareProcedure) ;
+      (* now that all types have been resolved it is safe to declare variables *)
+      DeclareGlobalVariables(scope) ;
+      ForeachImportedDo(scope, DeclareImportedVariables) ;
+      (* now it is safe to declare all procedures *)
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      ForeachInnerModuleDo(scope, DeclareProcedure)
+   END
+END StartDeclareScope ;
+
+
+(*
+   EndDeclareScope -
+*)
+
+PROCEDURE EndDeclareScope ;
+BEGIN
+   (* no need to do anything *)
+END EndDeclareScope ;
 
 
 (*
@@ -964,6 +1026,23 @@ END DeclareBoolean ;
 
 
 (*
+   DeclareFileName - declares the filename to the back end.
+*)
+
+PROCEDURE DeclareFileName ;
+VAR
+   ModuleName,
+   FileName  : String ;
+BEGIN
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
+   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
+   SetFileNameAndLineNo(string(FileName), 1) ;
+   ModuleName := KillString(ModuleName) ;
+   FileName   := KillString(FileName)
+END DeclareFileName ;
+
+
+(*
    DeclareDefaultTypes - makes default types known to GCC
 *)
 
@@ -996,7 +1075,7 @@ BEGIN
       DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
       DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
       DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
-      DeclareBoolean
+      DeclareBoolean ;
    END
 END DeclareDefaultTypes ;
 
@@ -1095,7 +1174,6 @@ PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
 VAR
    i, Var: CARDINAL ;
 BEGIN
-   DeclareTypesInProcedure(Sym) ;
    CheckToFinishList(TRUE) ;
    i := NoOfParam(Sym)+1 ;
    Var := GetNth(Sym, i) ;
@@ -1987,7 +2065,7 @@ BEGIN
    solved := TRUE ;
    Type := GetType(Sym) ;
  
-   IF (NOT IsSymTypeKnown(Sym, Type)) AND (NOT AllDependantsWritten(Type))
+   IF (NOT IsSymTypeKnown(Sym, Type)) OR (NOT AllDependantsWritten(Type))
    THEN
       solved := FALSE
    END ;
@@ -2162,6 +2240,31 @@ BEGIN
    END ;
    RETURN( solved )
 END IsTypeDependantsWritten ;
+
+
+(*
+   PoisonSymbols - poisons all gcc symbols from procedure, sym.
+                   A debugging aid.
+*)
+
+PROCEDURE PoisonSymbols (sym: CARDINAL) ;
+BEGIN
+   IF IsProcedure(sym)
+   THEN
+      ForeachLocalSymDo(sym, Poison)
+   END
+END PoisonSymbols ;
+
+
+(*
+   InitDeclarations - initializes default types and the source filename.
+*)
+
+PROCEDURE InitDeclarations ;
+BEGIN
+   DeclareFileName ;
+   DeclareDefaultTypes
+END InitDeclarations ;
 
 
 BEGIN

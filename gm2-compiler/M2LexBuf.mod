@@ -740,6 +740,7 @@ BEGIN
       ListOfTokens.tail^.len := 0
    ELSIF ListOfTokens.tail^.len=MaxBucketSize
    THEN
+      Assert(ListOfTokens.tail^.next=NIL) ;
       NEW(ListOfTokens.tail^.next) ;
       IF ListOfTokens.tail^.next=NIL
       THEN
@@ -751,6 +752,7 @@ BEGIN
       INC(ListOfTokens.LastBucketOffset, MaxBucketSize)
    END ;
    WITH ListOfTokens.tail^ DO
+      next := NIL ;
       WITH buf[len] DO
          token := t ;
          str   := n ;

@@ -34,16 +34,15 @@ EXPORT QUALIFIED FoldBranches, RemoveProcedures ;
    FoldBranches - folds unneccessary branches in the list of quadruples.
 *)
 
-PROCEDURE FoldBranches (VAR Head: CARDINAL) ;
+PROCEDURE FoldBranches (start, end: CARDINAL) ;
 
 
 (*
    RemoveProcedures - removes any procedures that are never referenced
-                      by the quadruples. If any reduction of quadruples
-                      has occurred then true is returned.
+                      by the quadruples.
 *)
 
-PROCEDURE RemoveProcedures (VAR Head: CARDINAL) ;
+PROCEDURE RemoveProcedures ;
 
 
 END M2Optimize.

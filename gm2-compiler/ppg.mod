@@ -1049,6 +1049,7 @@ BEGIN
          p := Add(p, GetChar(), i)
       END
    END ;
+   p := Add(p, nul, i) ;
    WITH CurrentFactor^ DO
       type := m2 ;
       code := NewCodeDesc() ;
@@ -1234,6 +1235,7 @@ BEGIN
          p := Add(p, GetChar(), i)
       END
    END ;
+   p := Add(p, nul, i) ;
    WITH CurrentFactor^ DO
       type := m2 ;
       code := NewCodeDesc() ;

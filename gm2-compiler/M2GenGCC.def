@@ -40,11 +40,11 @@ PROCEDURE InitGNUM2 (Head: CARDINAL) ;
 
 
 (*
-   ConvertQuadsToTree - runs through the quadruple list and converts it into
+   ConvertQuadsToTree - runs through the quadruple list, Start..End, and converts it into
                         the GCC tree structure.
 *)
 
-PROCEDURE ConvertQuadsToTree (Head: CARDINAL) ;
+PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 
 
 (*
@@ -52,7 +52,7 @@ PROCEDURE ConvertQuadsToTree (Head: CARDINAL) ;
                                 It returns TRUE if one or more constants were folded.
 *)
 
-PROCEDURE ResolveConstantExpressions (l: List) : BOOLEAN ;
+PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
 
 
 END M2GenGCC.

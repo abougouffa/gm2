@@ -19,14 +19,14 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2003/04/29 15:27:20 $]
+   Date       : 1987  [$Date: 2003/09/19 22:10:06 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.3 $
+   Version    : $Revision: 1.4 $
 *)
 
-FROM M2Options IMPORT IsAnOption, ParseOptions ;
+FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
 FROM M2Comp IMPORT Compile ;
 FROM SArgs IMPORT GetArg, Narg ;
 FROM DynamicStrings IMPORT String, InitString, string, KillString, EqualArray ;
@@ -49,13 +49,17 @@ BEGIN
    n := 1 ;
    module := NIL ;
    WHILE GetArg(s, n) AND
-         (IsAnOption(s) OR EqualArray(s, '-M') OR EqualArray(s, '-o') OR
+         (IsAnOption(s) OR IsAnOptionAndArg(s) OR
+          EqualArray(s, '-M') OR EqualArray(s, '-o') OR
           EqualArray(s, '-dumpbase') OR EqualArray(s, '-version'))
    DO
       IF EqualArray(s, '-M') OR EqualArray(s, '-o')
       THEN
          INC(n)
       ELSIF EqualArray(s, '-dumpbase') AND GetArg(module, n+1)
+      THEN
+         INC(n)
+      ELSIF IsAnOptionAndArg(s)
       THEN
          INC(n)
       ELSIF EqualArray(s, '-version')
@@ -74,7 +78,7 @@ BEGIN
       s := KillString(s) ;
       INC(n)
    END ;
-   IF GetArg(s, n) AND (NOT IsAnOption(s))
+   IF GetArg(s, n) AND (NOT IsAnOption(s)) AND (NOT IsAnOptionAndArg(s))
    THEN
       Compile(s)
    END ;

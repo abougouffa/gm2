@@ -19,69 +19,56 @@ DEFINITION MODULE M2BasicBlock ;
 (*
    Title      : M2BasicBlock
    Author     : Gaius Mulley
-   Date       : 28/10/87
-   LastEdit   : 28/10/87
-   System     : UNIX (GNU Modula-2)
-   Description: Converts a list of quadruples into a list of Basic Blocks,
-                each basic block is then coded in the appropriate target
-                processor assembly language.
+   Date       : 20/8/2003
+   System     : GNU Modula-2
+   Description: Converts a scope block into a list of basic blocks.
+                The basic blocks are either converted back into quadruples
+                or alternatively translated into GCC trees.
 *)
 
-EXPORT QUALIFIED GenBasicBlocks, DestroyBasicBlocks,
-                 GenBasicBlockCode, ForeachBasicBlockDo ;
+FROM M2Scope IMPORT ScopeBlock ;
+EXPORT QUALIFIED BasicBlock, BasicBlockProc,
+                 InitBasicBlocks, InitBasicBlocksFromRange, KillBasicBlocks,
+                 ForeachBasicBlockDo ;
 
 
 TYPE
+   BasicBlock ;
    BasicBlockProc = PROCEDURE (CARDINAL, CARDINAL) ;
 
 
 (*
-   GenBasicBlocks - Converts a list of quadruples, Head, to a list of Basic
-                    Blocks, each Basic Block is then passed on to the
-                    specific target code generation phase.
-
-                    Analageous with a protocol:
-
-                    +------------------------------------------------+
-                    |     Generate Quadruples from Source            |
-                    +------------------------------------------------+
-                         |
-                         v
-                    +------------------------------------------------+
-                    | Convert List of Quadruples to Basic Blocks     |
-                    +------------------------------------------------+
-                         |            |
-                         v            v
-                    +-----------+
-                    |  Code     |    ....
-                    +-----------+
+   InitBasicBlocks - converts a list of quadruples as defined by
+                     scope blocks into a set of basic blocks.
+                     All quadruples within this list which are not
+                     reachable are removed.
 *)
 
-PROCEDURE GenBasicBlocks (VAR Head: CARDINAL) ;
-
+PROCEDURE InitBasicBlocks (sb: ScopeBlock) : BasicBlock ;
 
 
 (*
-   DestroyBasicBlocks - destroys the list of Basic Blocks - so that
-                        the quadruples can be furthur optimized.
+   InitBasicBlocksFromRange - converts a list of quadruples as defined by
+                              start..end.
+                              All quadruples within this list which are not
+                              reachable are removed.
 *)
 
-PROCEDURE DestroyBasicBlocks ;
+PROCEDURE InitBasicBlocksFromRange (start, end: CARDINAL) : BasicBlock ;
 
 
 (*
-   GenBasicBlockCode - converts the Quadruples within Basic Blocks into
-                       Code.
+   KillBasicBlocks - destroys the list of Basic Blocks.
 *)
 
-PROCEDURE GenBasicBlockCode (Head: CARDINAL) ;
+PROCEDURE KillBasicBlocks (bb: BasicBlock) : BasicBlock ;
 
 
 (*
    ForeachBasicBlockDo - for each basic block call procedure, p.
 *)
 
-PROCEDURE ForeachBasicBlockDo (p: BasicBlockProc) ;
+PROCEDURE ForeachBasicBlockDo (bb: BasicBlock; p: BasicBlockProc) ;
 
 
 END M2BasicBlock.

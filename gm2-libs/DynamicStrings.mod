@@ -19,6 +19,7 @@ IMPLEMENTATION MODULE DynamicStrings ;
 FROM libc IMPORT strlen ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM Assertion IMPORT Assert ;
 FROM SYSTEM IMPORT ADR ;
 FROM ASCII IMPORT nul, tab ;
 
@@ -282,12 +283,14 @@ BEGIN
       c.len := MaxBuf ;
       NEW(c.next) ;
       WITH c.next^ DO
-         head         := NIL ;
-         contents.len := 0 ;
+         head          := NIL ;
+         contents.len  := 0 ;
+         contents.next := NIL ;
          ConcatContentsAddress(contents, p, h-j)
       END
    ELSE
-      c.len := i
+      c.len := i ;
+      c.next := NIL
    END
 END ConcatContentsAddress ;
 
@@ -526,7 +529,16 @@ BEGIN
    THEN
       WHILE (a#NIL) AND (b#NIL) DO
          i := 0 ;
+         Assert(a^.contents.len=b^.contents.len) ;
          WHILE i<a^.contents.len DO
+            IF a^.contents.buf[i]#a^.contents.buf[i]
+            THEN
+               HALT
+            END ;
+            IF b^.contents.buf[i]#b^.contents.buf[i]
+            THEN
+               HALT
+            END ;
             IF a^.contents.buf[i]#b^.contents.buf[i]
             THEN
                RETURN( FALSE )
@@ -640,6 +652,9 @@ BEGIN
    IF high<=0
    THEN
       high := Length(s)+high
+   ELSE
+      (* make sure high is <= Length(s) *)
+      high := Min(Length(s), high)
    END ;
    d := InitString('') ;
    o := 0 ;

@@ -28,9 +28,12 @@ DEFINITION MODULE M2GCCDeclare ;
                  directory above.
 *)
 
+FROM SYSTEM IMPORT WORD ;
 FROM gccgm2 IMPORT Tree ;
-EXPORT QUALIFIED FoldConstants, StartDeclareMainModule, EndDeclareMainModule,
+EXPORT QUALIFIED FoldConstants,
                  DeclareConstant, DeclareLocalVariables, PromoteToString,
+                 InitDeclarations, StartDeclareScope, EndDeclareScope,
+                 DeclareProcedure, PoisonSymbols,
                  CompletelyResolved,
                  GetTypeMin, GetTypeMax ;
 
@@ -39,21 +42,21 @@ EXPORT QUALIFIED FoldConstants, StartDeclareMainModule, EndDeclareMainModule,
    FoldConstants - a wrapper for ResolveConstantExpressions.
 *)
 
-PROCEDURE FoldConstants ;
+PROCEDURE FoldConstants (start, end: CARDINAL) ;
 
 
 (*
-   StartDeclareMainModule - declares types, variables associated with main module.
+   StartDeclareScope - declares types, variables associated with this scope.
 *)
 
-PROCEDURE StartDeclareMainModule ;
+PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 
 
 (*
-   EndDeclareMainModule - removes the scope associated with main module.
+   EndDeclareScope - 
 *)
 
-PROCEDURE EndDeclareMainModule ;
+PROCEDURE EndDeclareScope ;
 
 
 (*
@@ -69,6 +72,22 @@ PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 *)
 
 PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
+
+
+(*
+   DeclareProcedure - declares procedure, sym, or all procedures inside
+                      module sym.
+*)
+
+PROCEDURE DeclareProcedure (Sym: WORD) ;
+
+
+(*
+   PoisonSymbols - poisons all gcc symbols from procedure, sym.
+                   A debugging aid.
+*)
+
+PROCEDURE PoisonSymbols (sym: CARDINAL) ;
 
 
 (*
@@ -100,6 +119,13 @@ PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitDeclarations - initializes default types and the source filename.
+*)
+
+PROCEDURE InitDeclarations ;
 
 
 END M2GCCDeclare.

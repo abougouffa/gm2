@@ -1,3 +1,31 @@
+2003-09-19	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 release 0.40
+	* brought GM2 up to date with gcc-3.3.1
+	* introduced new files gm2-common.h, gm2-common.c,
+	  gm2-lang.h, gm2-tree.h to reflect the new garbage collection
+	  mechanism.
+	* major changes to gccgm2.c to reflect migration from gcc-3.2 to
+	  gcc-3.3.1
+	* introduced gm2-compiler/M2Scope.def, gm2-compiler/M2Scope.mod
+	  to manage the quadruples which represent a particular scope
+	* major recoding of M2Code and the order that quadruples are coded
+	  into GCC trees. This in turn fixes a very serious nested
+	  procedure bug. (gm2/m2/comp/autotest/gm2/localproc.mod and
+	  convert.mod).
+	* changes to M2GCCDeclare.mod, M2GenGCC.mod, M2BasicBlock.mod
+	  to allow quadruples to be translated via outer scope to inner
+	  scope ordering.
+	* M2Code.mod is much cleaner.
+	* fixed a number of uninitialised variable errors and bad pointer
+	  errors. All caught by the extremely useful x86 utility valgrind.
+	  In turn this fixes a Redhat 9.0 build problem.
+	* fixed bugs in DynamicStrings.mod, ppg.mod, SEnvironment.mod
+	* introduced the debian package files (gm2/debian) so that .deb
+	  package (gm2) can be built.
+	* fixes to gm2 so that it can compile the University of Ulm's
+	  system modules.
+
 2003-06-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added the LONGCARD data type.

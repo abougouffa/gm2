@@ -137,9 +137,6 @@ extern tree                   convertToPtr   		       	 	  PARAMS ((tree t));
 extern tree                   gccgm2_BuildIntegerConstant                 PARAMS ((int value));
 
 /* locally defined functions */
-       tree                   builtin_function                  	  PARAMS ((const char *name, tree type, int function_void,
-									 	  enum built_in_class class,
-									 	  const char *library_void));
 static tree                   DoBuiltinAlloca                             PARAMS ((tree params));
 static tree                   DoBuiltinMemCopy                            PARAMS ((tree params));
        tree                   gm2builtins_BuildBuiltinTree                PARAMS ((char *name));
@@ -165,28 +162,29 @@ static void                   create_function_prototype                   PARAMS
    the name to be called if we can't opencode the function.  */
 
 tree
-builtin_function (name, type, function_code, class, library_name)
+builtin_function (name, type, function_code, class, library_name, attrs)
      const char *name;
      tree type;
      int function_code;
      enum built_in_class class;
      const char *library_name;
+     tree attrs ATTRIBUTE_UNUSED;
 {
   tree decl = build_decl (FUNCTION_DECL, get_identifier (name), type);
+
   DECL_EXTERNAL (decl) = 1;
   TREE_PUBLIC (decl) = 1;
-
   if (library_name)
     SET_DECL_ASSEMBLER_NAME (decl, get_identifier (library_name));
-  make_decl_rtl (decl, NULL);
+
   pushdecl (decl);
   DECL_BUILT_IN_CLASS (decl) = class;
   DECL_FUNCTION_CODE (decl) = function_code;
 
-  /* Warn if a function in the namespace for users
-     is used without an occasion to consider it declared.  */
-  if (name[0] != '_' || name[1] != '_')
-    C_DECL_ANTICIPATED (decl) = 1;
+#if 0
+  if (attrs)
+    decl_attributes (&decl, attrs, ATTR_FLAG_BUILT_IN);
+#endif
 
   return decl;
 }
@@ -424,7 +422,7 @@ create_function_prototype (fe)
   default:
     ERROR("enum has no case");
   }
-  fe->function_node = builtin_function (fe->name, ftype, fe->function_code, fe->class, fe->library_name);
+  fe->function_node = builtin_function (fe->name, ftype, fe->function_code, fe->class, fe->library_name, NULL);
 }
 
 static tree

@@ -26,7 +26,8 @@ DEFINITION MODULE SymbolConversion ;
 *)
 
 FROM gccgm2 IMPORT Tree ;
-EXPORT QUALIFIED Mod2Gcc, AddModGcc, GccKnowsAbout, AddTemporaryKnown, RemoveTemporaryKnown ;
+FROM SYSTEM IMPORT WORD ;
+EXPORT QUALIFIED Mod2Gcc, AddModGcc, GccKnowsAbout, AddTemporaryKnown, RemoveTemporaryKnown, Poison ;
 
 
 (*
@@ -62,6 +63,13 @@ PROCEDURE AddTemporaryKnown (sym: CARDINAL) ;
 *)
 
 PROCEDURE RemoveTemporaryKnown (sym: CARDINAL) ;
+
+
+(*
+   Poison - poisons a symbol.
+*)
+
+PROCEDURE Poison (sym: WORD) ;
 
 
 END SymbolConversion.

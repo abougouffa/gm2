@@ -24,17 +24,18 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr, GetMode, GetSymName, IsVar, IsTempor
 
 FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
 FROM M2Error IMPORT InternalError, ErrorStringAt ;
-FROM DynamicStrings IMPORT InitString ;
+FROM DynamicStrings IMPORT String, InitString ;
+FROM StringConvert IMPORT stoi ;
 
 FROM M2Constants IMPORT IsZero, IsOne, IsTwo, IsSame, MakeNewConstFromValue ;
 FROM M2ALU IMPORT Addn, Multn, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;
-FROM M2Quads IMPORT QuadOperator, GetQuad, SubQuad, PutQuad, EraseQuad, GetNextQuad, DisplayQuad, Head,
+FROM M2Quads IMPORT QuadOperator, GetQuad, SubQuad, PutQuad, EraseQuad, GetNextQuad, DisplayQuad,
                     WriteOperator, IsOptimizeOn, QuadToTokenNo ;
 
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;
 FROM NumberIO IMPORT WriteCard, StrToCard, CardToStr ;
-FROM Environment IMPORT GetEnvironment ;
+FROM SEnvironment IMPORT GetEnvironment ;
 FROM StrLib IMPORT StrConCat ;
 
 FROM M2Entity IMPORT Entity, InitEntities, HasLValue,
@@ -1277,14 +1278,43 @@ END MakeAdd ;
 
 
 (*
-   MakeBase - now handled within M2Optimize.
+   MakeBase - makes a node in the forest which contains the BaseOp
 *)
 
 PROCEDURE MakeBase (q, Start, End: CARDINAL;
                     op1, op2, op3: CARDINAL) ;
 BEGIN
-   InternalError('expecting BaseOp to have been optimized away', __FILE__, __LINE__)
+   (* if we reach here it is because the array type has not yet been
+      declared to GCC, thus we cannot optimize any further expressions
+      based on this result. We therefore flush the current forest
+      and let GCC handle these subexpressions once we have declared
+      the array type.
+   *)
+   EraseQuad(q) ;
+   PutQuad(q, BaseOp, op1, op2, op3) ;
+   SaveQuad(q) ;
+   Flush(Start, PreviousQuad(q, Start))
 END MakeBase ;
+
+
+(*
+   MakeElementSize - makes a node in the forest which contains the BaseOp
+*)
+
+PROCEDURE MakeElementSize (q, Start, End: CARDINAL;
+                           op1, op2, op3: CARDINAL) ;
+BEGIN
+   (* if we reach here it is because the array type has not yet been
+      declared to GCC, thus we cannot optimize any further expressions
+      based on this result. We therefore flush the current forest
+      and let GCC handle these subexpressions once we have declared
+      the array type.
+   *)
+   EraseQuad(q) ;
+   PutQuad(q, ElementSizeOp, op1, op2, op3) ;
+   SaveQuad(q) ;
+   Flush(Start, PreviousQuad(q, Start))
+END MakeElementSize ;
 
 
 (*
@@ -1343,7 +1373,7 @@ BEGIN
    AddrOp            : MakeAddr(q, Start, End, op1, op3) |
    UnboundedOp       : MakeUnbounded(q, Start, End, op1, op3) |
 
-   ElementSizeOp     : InternalError('this should have been optimized away during constant folding', __FILE__, __LINE__) |
+   ElementSizeOp     : MakeElementSize(q, Start, End, op1, op2, op3) |
 
    IfInOp,
    IfNotInOp,
@@ -2960,7 +2990,7 @@ BEGIN
             THEN
                WriteString(', ') ; WriteCard(QuadNo, 0)
             END ;
-            SubQuad(Head, QuadNo)
+            SubQuad(QuadNo)
          END
       END ;
       INC(FreeList)
@@ -2992,8 +3022,8 @@ BEGIN
       AddrOp,
       UnboundedOp       : PutQuad(q, Op, GetSym(n), NulSym, GetSymOfChoice(Right)) ;
                           RemoveAllOlderEntities(n, EntList[1]) |
-
-      ElementSizeOp     : InternalError('this should have been optimized away during constant folding', __FILE__, __LINE__) |
+      ElementSizeOp     : PutQuad(q, Op, GetSym(n), GetSymOfChoice(Left), Right) ;
+                          RemoveAllOlderEntities(n, EntList[1]) |
 
       ParamOp           : InternalError('unsure what to do here', __FILE__, __LINE__) |
 
@@ -3165,15 +3195,15 @@ END RemoveCommonSubExpressions ;
 
 PROCEDURE Init ;
 VAR
-   a: ARRAY [0..10] OF CHAR ;
+   s: String ;
 BEGIN
-   IF GetEnvironment('OVERRIDE', a)
+   IF GetEnvironment(InitString('OVERRIDE'), s)
    THEN
-      StrToCard(a, OverrideRange)
+      OverrideRange := stoi(s)
    ELSE
       OverrideRange := 0
    END ;
-   Debugging := GetEnvironment('DEBUGCSE', a)
+   Debugging := GetEnvironment(InitString('DEBUGCSE'), s)
 END Init ;
 
 

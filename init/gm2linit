@@ -1,6 +1,7 @@
 m2lex
 M2RTS
 DynamicStrings
+Assertion
 Debug
 Environment
 SEnvironment

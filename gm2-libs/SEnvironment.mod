@@ -29,13 +29,20 @@ PROCEDURE GetEnvironment (env: String; VAR s: String) : BOOLEAN ;
 VAR
    Addr: POINTER TO CHAR ;
 BEGIN
-   IF string(env)=NIL
+   IF env=NIL
    THEN
       s := NIL ;
       RETURN( FALSE )
    ELSE
-      s := InitStringCharStar(getenv(string(env))) ;
-      RETURN( TRUE )
+      Addr := getenv(string(env)) ;
+      IF Addr=NIL
+      THEN
+         s := NIL ;
+         RETURN( FALSE )
+      ELSE
+         s := InitStringCharStar(Addr) ;
+         RETURN( TRUE )
+      END
    END
 END GetEnvironment ;
 

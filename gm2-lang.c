@@ -22,40 +22,94 @@ Boston, MA 02111-1307, USA.  */
 #include "config.h"
 #include "system.h"
 #include "tree.h"
-#include "c-common.h"
-#include "c-tree.h"
 #include "toplev.h"
 #include "langhooks.h"
 #include "langhooks-def.h"
+#include "ggc.h"
+#include "c-common.h"
+
+#define EXTERN extern
+#include "gm2-common.h"
+#undef EXTERN
+#define EXTERN
+#include "gm2-lang.h"
 
 static HOST_WIDE_INT gm2_get_alias_set PARAMS ((tree));
 
-extern const char *gm2_init		PARAMS ((const char *));
-extern void gm2_init_options		PARAMS ((void));
-extern int gm2_decode_option		PARAMS ((int, char **));
-static HOST_WIDE_INT gm2_get_alias_set	PARAMS ((tree));
-extern void gm2_print_decl		PARAMS ((FILE *, tree, int));
-extern void gm2_print_type		PARAMS ((FILE *, tree, int));
-extern void gm2_init_decl_processing	PARAMS ((void));
 
 /* Structure giving our language-specific hooks.  */
 
+struct language_function GTY(())
+{
+  int unused;
+};
+
 #undef  LANG_HOOKS_NAME
-#define LANG_HOOKS_NAME			"GNU Modula-2"
+#define LANG_HOOKS_NAME			   "GNU Modula-2"
 #undef  LANG_HOOKS_INIT
-#define LANG_HOOKS_INIT			gm2_init
-#if 0
-#undef  LANG_HOOKS_INIT_OPTIONS
-#define LANG_HOOKS_INIT_OPTIONS		gm2_init_options
-#endif
+#define LANG_HOOKS_INIT			   gm2_init
 #undef  LANG_HOOKS_DECODE_OPTION
-#define LANG_HOOKS_DECODE_OPTION	gm2_decode_option
+#define LANG_HOOKS_DECODE_OPTION	   gm2_decode_option
 #undef LANG_HOOKS_HONOR_READONLY
-#define LANG_HOOKS_HONOR_READONLY	1
+#define LANG_HOOKS_HONOR_READONLY	   1
 #undef LANG_HOOKS_GET_ALIAS_SET
-#define LANG_HOOKS_GET_ALIAS_SET	gm2_get_alias_set
+#define LANG_HOOKS_GET_ALIAS_SET	   gm2_get_alias_set
+
+#undef LANG_HOOKS_MARK_ADDRESSABLE
+#define LANG_HOOKS_MARK_ADDRESSABLE        gm2_mark_addressable
+#undef LANG_HOOKS_TRUTHVALUE_CONVERSION
+#define LANG_HOOKS_TRUTHVALUE_CONVERSION   gm2_truthvalue_conversion
+#undef LANG_HOOKS_TYPE_FOR_MODE
+#define LANG_HOOKS_TYPE_FOR_MODE           gm2_type_for_mode
+#undef LANG_HOOKS_TYPE_FOR_SIZE
+#define LANG_HOOKS_TYPE_FOR_SIZE           gm2_type_for_size
+#undef LANG_HOOKS_SIGNED_TYPE
+#define LANG_HOOKS_SIGNED_TYPE             gm2_signed_type
+#undef LANG_HOOKS_UNSIGNED_TYPE
+#define LANG_HOOKS_UNSIGNED_TYPE           gm2_unsigned_type
+#undef LANG_HOOKS_SIGNED_OR_UNSIGNED_TYPE
+#define LANG_HOOKS_SIGNED_OR_UNSIGNED_TYPE gm2_signed_or_unsigned_type
+#undef LANG_HOOKS_EXPAND_EXPR
+#define LANG_HOOKS_EXPAND_EXPR             gm2_expand_expr
+#undef LANG_HOOKS_PARSE_FILE
+#define LANG_HOOKS_PARSE_FILE              gm2_parse_file
 
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
+
+/* Tree code classes.  */
+
+#define DEFTREECODE(SYM, NAME, TYPE, LENGTH) TYPE,
+
+const char tree_code_type[] = {
+#include "tree.def"
+  'x',
+#include "c-common.def"
+};
+#undef DEFTREECODE
+
+/* Table indexed by tree code giving number of expression
+   operands beyond the fixed part of the node structure.
+   Not used for types or decls.  */
+
+#define DEFTREECODE(SYM, NAME, TYPE, LENGTH) LENGTH,
+
+const unsigned char tree_code_length[] = {
+#include "tree.def"
+  0,
+#include "c-common.def"
+};
+#undef DEFTREECODE
+
+/* Names of tree components.
+   Used for printing out the tree and error messages.  */
+#define DEFTREECODE(SYM, NAME, TYPE, LEN) NAME,
+
+const char *const tree_code_name[] = {
+#include "tree.def"
+  "@@dummy",
+#include "c-common.def"
+};
+#undef DEFTREECODE
 
 /* Return the typed-based alias set for T, which may be an expression
    or a type.  Return -1 if we don't do anything special.  */
@@ -66,3 +120,19 @@ gm2_get_alias_set (t)
 {
   return -1;
 }
+
+void
+objc_check_decl (decl)
+     tree decl ATTRIBUTE_UNUSED;
+{
+}
+
+int
+objc_comptypes (lhs, rhs, reflexive)
+     tree lhs ATTRIBUTE_UNUSED;
+     tree rhs ATTRIBUTE_UNUSED;
+     int reflexive ATTRIBUTE_UNUSED;
+{
+  return -1;
+}
+

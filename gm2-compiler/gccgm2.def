@@ -71,10 +71,12 @@ EXPORT QUALIFIED Tree,
                  BuildIfNotIn, BuildIfIn,
                  BuildForeachWordInSetDoIfExpr,
                  BuildIfInRangeGoto, BuildIfNotInRangeGoto,
+                 BuildPushFunctionContext, BuildPopFunctionContext,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  AssignBooleanTrueFalse,
-                 ConvertConstantAndCheck, ExpandExpressionStatement ;
+                 ConvertConstantAndCheck, ExpandExpressionStatement,
+                 InitGlobalContext ;
 
 
 TYPE
@@ -602,14 +604,15 @@ PROCEDURE BuildStartFunctionDeclaration ;
 *)
 
 PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
-                                       returntype: Tree; isexternal: BOOLEAN) : Tree ;
+                                       returntype: Tree;
+                                       isexternal, isnested: BOOLEAN) : Tree ;
 
 
 (*
    BuildStartFunctionCode - generate function entry code.
 *)
 
-PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN) ;
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported, isnested: BOOLEAN) ;
 
 
 (*
@@ -946,6 +949,29 @@ PROCEDURE ExpandExpressionStatement (t: Tree) ;
 *)
 
 PROCEDURE RememberConstant (t: Tree) : Tree ;
+
+
+(*
+   BuildPushFunctionContext - pushes the current function context.
+                              Maps onto push_function_context in ../function.c
+*)
+
+PROCEDURE BuildPushFunctionContext ;
+
+
+(*
+   BuildPopFunctionContext - pops the current function context.
+                             Maps onto pop_function_context in ../function.c
+*)
+
+PROCEDURE BuildPopFunctionContext ;
+
+
+(*
+   InitGlobalContext - initializes a dummy function for the global scope.
+*)
+
+PROCEDURE InitGlobalContext ;
 
 
 END gccgm2.

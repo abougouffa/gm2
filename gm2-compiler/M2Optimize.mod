@@ -47,7 +47,7 @@ FROM SymbolTable IMPORT GetSymName,
                         IsExportQualified, IsExportUnQualified,
                         NulSym ;
 
-FROM M2Quads IMPORT QuadOperator, GetQuad, GetNextQuad, PutQuad, SubQuad,
+FROM M2Quads IMPORT QuadOperator, Head, GetQuad, GetNextQuad, PutQuad, SubQuad,
                     Opposite, IsReferenced, GetRealQuad, QuadToTokenNo ;
 
 
@@ -57,23 +57,21 @@ CONST
 
 (* %%%FORWARD%%%
 PROCEDURE FoldMultipleGoto (QuadNo: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE ReduceBranch (VAR Head: CARDINAL;
-                        Operator: QuadOperator;
+PROCEDURE ReduceBranch (Operator: QuadOperator;
                         CurrentQuad,
                         CurrentOperand1, CurrentOperand2,
                         CurrentOperand3: CARDINAL;
                         VAR NextQuad: CARDINAL;
                         Folded: BOOLEAN) : BOOLEAN ; FORWARD ;
-PROCEDURE IsBasicBlock (Head, From, To: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE ReduceGoto (VAR Head: CARDINAL;
-                      CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
+PROCEDURE IsBasicBlock (From, To: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE ReduceGoto (CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
                       Folded: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE KnownReachableInitCode(Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE MakeExportedProceduresReachable ; FORWARD ;
 PROCEDURE KnownReachable (Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE KnownReach (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE Delete (VAR Head: CARDINAL; Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE DeleteUnReachableProcedures (VAR Head: CARDINAL) ; FORWARD ;
+PROCEDURE Delete (Start, End: CARDINAL) ; FORWARD ;
+PROCEDURE DeleteUnReachableProcedures ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -104,7 +102,7 @@ PROCEDURE DeleteUnReachableProcedures (VAR Head: CARDINAL) ; FORWARD ;
                       target of any other quad.
 *)
 
-PROCEDURE FoldBranches (VAR Head: CARDINAL) ;
+PROCEDURE FoldBranches (start, end: CARDINAL) ;
 VAR
    Folded     : BOOLEAN ;
    i,
@@ -115,19 +113,19 @@ VAR
    Operand3   : CARDINAL ;
 BEGIN
    REPEAT
-      i := Head ;
+      i := start ;
       Folded := FALSE ;
-      WHILE i#0 DO
+      WHILE i<=end DO
          Right := GetRealQuad(GetNextQuad(i)) ;
          GetQuad(i, Operator, Operand1, Operand2, Operand3) ;
          CASE Operator OF
 
-         GotoOp             : Folded := ReduceGoto(Head, i, Operand3,
+         GotoOp             : Folded := ReduceGoto(i, Operand3,
                                                    Right, Folded) |
          IfInOp, IfNotInOp,
          IfNotEquOp, IfEquOp,
          IfLessEquOp, IfGreEquOp,
-         IfGreOp, IfLessOp  : Folded := ReduceBranch(Head, Operator, i,
+         IfGreOp, IfLessOp  : Folded := ReduceBranch(Operator, i,
                                                      Operand1, Operand2, Operand3,
                                                      Right, Folded)
 
@@ -155,8 +153,7 @@ END FoldBranches ;
 
 *)
 
-PROCEDURE ReduceBranch (VAR Head: CARDINAL;
-                        Operator: QuadOperator;
+PROCEDURE ReduceBranch (Operator: QuadOperator;
                         CurrentQuad,
                         CurrentOperand1, CurrentOperand2,
                         CurrentOperand3: CARDINAL;
@@ -179,7 +176,7 @@ BEGIN
       IF (GetNextQuad(CurrentQuad)=CurrentOperand3) OR
          (GetRealQuad(GetNextQuad(CurrentQuad))=CurrentOperand3)
       THEN
-         SubQuad(Head, CurrentQuad) ;
+         SubQuad(CurrentQuad) ;
          Folded := TRUE
       ELSE
          From := GetNextQuad(CurrentQuad) ;  (* start after CurrentQuad *)
@@ -189,10 +186,10 @@ BEGIN
          NextPlusOne := GetRealQuad(GetNextQuad(NextQuad)) ;
          GetQuad(NextQuad, OpNext, Op1Next, Op2Next, Op3Next) ;
          IF (OpNext=GotoOp) AND (NextPlusOne=CurrentOperand3) AND
-            IsBasicBlock(Head, From, To)
+            IsBasicBlock(From, To)
          THEN
             (*       Op3Next := GetRealQuad(Op3Next) ; *)
-            SubQuad(Head, NextQuad) ;
+            SubQuad(NextQuad) ;
             PutQuad(CurrentQuad, Opposite(Operator),
                     CurrentOperand1, CurrentOperand2, Op3Next) ;
             NextQuad := NextPlusOne ;
@@ -215,10 +212,10 @@ END ReduceBranch ;
                   From..To.
 *)
 
-PROCEDURE IsBasicBlock (Head, From, To: CARDINAL) : BOOLEAN ;
+PROCEDURE IsBasicBlock (From, To: CARDINAL) : BOOLEAN ;
 BEGIN
    WHILE From#To DO
-      IF IsReferenced(Head, From)
+      IF IsReferenced(From)
       THEN
          RETURN( FALSE )
       ELSE
@@ -243,15 +240,14 @@ END IsBasicBlock ;
 
 *)
 
-PROCEDURE ReduceGoto (VAR Head: CARDINAL;
-                      CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
+PROCEDURE ReduceGoto (CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
                       Folded: BOOLEAN) : BOOLEAN ;
 BEGIN
    CurrentOperand3 := GetRealQuad(CurrentOperand3) ;
    (* IF next quad is a GotoOp *)
    IF CurrentOperand3=NextQuad
    THEN
-      SubQuad(Head, CurrentQuad) ;
+      SubQuad(CurrentQuad) ;
       Folded := TRUE
    ELSE
       (* Does Goto point to another Goto ? *)
@@ -300,15 +296,14 @@ END FoldMultipleGoto ;
 
 (*
    RemoveProcedures - removes any procedures that are never referenced
-                      by the quadruples. If any reduction of quadruples
-                      has occurred then true is returned.
+                      by the quadruples.
 *)
 
-PROCEDURE RemoveProcedures (VAR Head: CARDINAL) ;
+PROCEDURE RemoveProcedures ;
 VAR
-   n,
    Start,
-   End,
+   End   : CARDINAL ;
+   n,
    Module: CARDINAL ;
 BEGIN
    (* DisplayReachable ; *)
@@ -336,7 +331,7 @@ BEGIN
       END
    UNTIL Module=NulSym ;
    MakeExportedProceduresReachable ;
-   DeleteUnReachableProcedures(Head)
+   DeleteUnReachableProcedures
 END RemoveProcedures ;
 
 
@@ -478,7 +473,7 @@ END KnownReach ;
    DeleteUnReachableProcedures - Deletes all procedures that are unreachable.
 *)
 
-PROCEDURE DeleteUnReachableProcedures (VAR Head: CARDINAL) ;
+PROCEDURE DeleteUnReachableProcedures ;
 VAR
    n, m,
    Start,
@@ -504,7 +499,7 @@ BEGIN
                GetProcedureQuads(Proc, Start, End) ;
                IF Start#0
                THEN
-                  Delete(Head, Start, End) ;
+                  Delete(Start, End) ;
                   (* No Longer any Quads for this Procedure *)
                   PutProcedureStartQuad(Proc, 0) ;
                   PutProcedureEndQuad(Proc, 0)
@@ -524,7 +519,7 @@ END DeleteUnReachableProcedures ;
             or the end of the procedure.
 *)
 
-PROCEDURE Delete (VAR Head: CARDINAL; Start, End: CARDINAL) ;
+PROCEDURE Delete (Start, End: CARDINAL) ;
 VAR
    Last,
    i   : CARDINAL ;
@@ -544,13 +539,13 @@ BEGIN
       THEN
          (* Found end of procedure therefore just delete and exit *)
          (* WriteString('Deleting') ; WriteCard(Start, 6) ; WriteLn ; *)
-         SubQuad(Head, Start) ;
+         SubQuad(Start) ;
          Start := Last
       ELSE
          (* Following the list of quadruples to the End *)
          i := GetNextQuad(Start) ;
          (* WriteString('Deleting') ; WriteCard(Start, 6) ; WriteLn ; *)
-         SubQuad(Head, Start) ;
+         SubQuad(Start) ;
          Start := i
       END
    END

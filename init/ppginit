@@ -10,6 +10,7 @@ SysStorage
 Storage
 StrIO
 DynamicStrings
+Assertion
 NameKey
 NumberIO
 PushBackInput

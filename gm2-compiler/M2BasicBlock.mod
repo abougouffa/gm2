@@ -24,134 +24,115 @@ FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Options IMPORT OptimizeBasicBlock ;
 
-FROM M2Quads IMPORT IsReferenced, IsConditional, IsUnConditional, IsCall,
+FROM M2Quads IMPORT Head,
+                    IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
                     IsPseudoQuad, IsModFile,
                     GetNextQuad, GetQuad, QuadOperator,
                     SubQuad ;
 
+FROM M2Scope IMPORT ScopeBlock, ForeachScopeBlockDo ;
 FROM M2GenGCC IMPORT ConvertQuadsToTree ;
 
 
 TYPE
-   PtrToBasicBlock = POINTER TO BasicBlock ;
-   BasicBlock      = RECORD
+   BasicBlock = POINTER TO basicBlock ;
+   basicBlock      = RECORD
                         StartQuad  : CARDINAL ;  (* First Quad in Basic Block *)
                         EndQuad    : CARDINAL ;  (* End Quad in Basic Block   *)
-                        CPUCycles  : CARDINAL ;  (* Number of CPU cycles the  *)
-                                                 (* Basic Block requires for  *)
-                                                 (* execution.                *)
-                        InsideProc : BOOLEAN ;   (* is this BB inside a proc? *)
-                                                 (* Next Basic Block in list  *)
-                        Right      : PtrToBasicBlock ;
+                        Right      : BasicBlock ;
                                                  (* Last Basic Block in list  *)
-                        Left       : PtrToBasicBlock ;
+                        Left       : BasicBlock ;
                      END ;
 
 VAR
-   HeadOfBB    : PtrToBasicBlock ;   (* First in the list of Basic Blocks *)
-   FreeBB      : PtrToBasicBlock ;   (* Free list of Basic Blocks         *)
+   FreeList        : BasicBlock ;   (* Free list of Basic Blocks         *)
+   HeadOfBasicBlock: BasicBlock ;
 
 
 (* %%%FORWARD%%%
-PROCEDURE Add (VAR Head: PtrToBasicBlock;
-               b : PtrToBasicBlock) ; FORWARD ;
-PROCEDURE CodeBB (Head: CARDINAL; Inside: BOOLEAN) ; FORWARD ;
-PROCEDURE ConvertQuads2BasicBlock (VAR Head: CARDINAL) ; FORWARD ;
-PROCEDURE DisplayBasicBlocks ; FORWARD ;
-PROCEDURE DisplayBlock (b: PtrToBasicBlock) ; FORWARD ;
-PROCEDURE EndBB (b: PtrToBasicBlock; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE InitializeBasicBlock ; FORWARD ;
-PROCEDURE InsideProcedure (VAR CurrentlyInside: BOOLEAN;
-                           b: PtrToBasicBlock) : BOOLEAN ; FORWARD ;
-PROCEDURE StartBB (b: PtrToBasicBlock; Quad: CARDINAL; In: BOOLEAN) ; FORWARD ;
-PROCEDURE Sub (VAR Head: PtrToBasicBlock;
-               b: PtrToBasicBlock) ; FORWARD ;
+PROCEDURE Add (VAR Head: BasicBlock;
+               b : BasicBlock) ; FORWARD ;
+PROCEDURE ConvertQuads2BasicBlock (Start, End: CARDINAL) ; FORWARD ;
+PROCEDURE DisplayBasicBlocks (bb: BasicBlock) ; FORWARD ;
+PROCEDURE DisplayBlock (b: BasicBlock) ; FORWARD ;
+PROCEDURE EndBB (b: BasicBlock; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE StartBB (b: BasicBlock; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE Sub (VAR Head: BasicBlock;
+               b: BasicBlock) ; FORWARD ;
    %%%FORWARD%%% *)
 
+
 (*
-   BasicBlock - Converts a list of quadruples, Head, to a list of Basic
-                Blocks, each Basic Block is then passed on to the
-                specific target code generation phase.
-
-                Analageous with a protocol:
-
-                +------------------------------------------------+
-                |     Generate Quadruples from Source            |
-                +------------------------------------------------+
-                     |
-                     v
-                +------------------------------------------------+
-                | Convert List of Quadruples to Basic Blocks     |
-                +------------------------------------------------+
-                     |            |
-                     v            v
-                +-----------+
-                |  Code     |    ....
-                +-----------+
+   InitBasicBlocks - converts a list of quadruples as defined by
+                     scope blocks into a set of basic blocks.
+                     All quadruples within this list which are not
+                     reachable are removed.
 *)
 
-PROCEDURE GenBasicBlocks (VAR Head: CARDINAL) ;
+PROCEDURE InitBasicBlocks (sb: ScopeBlock) : BasicBlock ;
 BEGIN
-   InitializeBasicBlock ;
-   ConvertQuads2BasicBlock(Head) ;
-   (* DisplayBasicBlocks *)
-END GenBasicBlocks ;
+   HeadOfBasicBlock := NIL ;
+   ForeachScopeBlockDo(sb, ConvertQuads2BasicBlock) ;
+   RETURN( HeadOfBasicBlock )
+END InitBasicBlocks ;
 
 
 (*
-   DestroyBasicBlocks - destroys the list of Basic Blocks - so that
-                        the quadruples can be furthur optimized.
+   InitBasicBlocksFromRange - converts a list of quadruples as defined by
+                              start..end.
+                              All quadruples within this list which are not
+                              reachable are removed.
 *)
 
-PROCEDURE DestroyBasicBlocks ;
+PROCEDURE InitBasicBlocksFromRange (start, end: CARDINAL) : BasicBlock ;
+BEGIN
+   HeadOfBasicBlock := NIL ;
+   ConvertQuads2BasicBlock(start, end) ;
+   RETURN( HeadOfBasicBlock )
+END InitBasicBlocksFromRange ;
+
+
+(*
+   KillBasicBlocks - destroys the list of Basic Blocks.
+*)
+
+PROCEDURE KillBasicBlocks (bb: BasicBlock) : BasicBlock ;
 VAR
-   b, c: PtrToBasicBlock ;
+   b, c: BasicBlock ;
 BEGIN
-   b := HeadOfBB ;
-   IF b#NIL
+   IF bb#NIL
    THEN
+      b := bb ;
       REPEAT
-         c := b^.Right ;
-         b^.Right := FreeBB ;
-         FreeBB := b ;
-         b := c
-      UNTIL b=HeadOfBB
+         c := bb^.Right ;
+         bb^.Right := FreeList ;
+         FreeList := bb ;
+         bb := c
+      UNTIL bb=b
    END ;
-   HeadOfBB := NIL
-END DestroyBasicBlocks ;
+   RETURN( NIL )
+END KillBasicBlocks ;
 
 
 (*
    New - returns a basic block.
 *)
 
-PROCEDURE New () : PtrToBasicBlock ;
+PROCEDURE New () : BasicBlock ;
 VAR
-   b: PtrToBasicBlock ;
+   b: BasicBlock ;
 BEGIN
-   IF FreeBB=NIL
+   IF FreeList=NIL
    THEN
       NEW(b)
    ELSE
-      b := FreeBB ;
-      FreeBB := FreeBB^.Right
+      b := FreeList ;
+      FreeList := FreeList^.Right
    END ;
    Assert(b#NIL) ;
    RETURN( b )
 END New ;
-
-
-(*
-   GenBasicBlockCode - converts the Quadruples within Basic Blocks into
-                       Code.
-*)
-
-PROCEDURE GenBasicBlockCode (Head: CARDINAL) ;
-BEGIN
-   SetPassToCodeGeneration ;
-   ConvertQuadsToTree(Head)
-END GenBasicBlockCode ;
 
 
 (*
@@ -161,17 +142,16 @@ END GenBasicBlockCode ;
                              which has only has one entry and exit point.
 *)
 
-PROCEDURE ConvertQuads2BasicBlock (VAR Head: CARDINAL) ;
+PROCEDURE ConvertQuads2BasicBlock (Start, End: CARDINAL) ;
 VAR
    LastQuadMod,
    LastQuadConditional,
    LastQuadCall,
-   CurrentlyInside,
    LastQuadReturn     : BOOLEAN ;
    Quad               : CARDINAL ;
-   b                  : PtrToBasicBlock ;
-   CurrentBB          : PtrToBasicBlock ;
-   LastBB             : PtrToBasicBlock ;
+   b                  : BasicBlock ;
+   CurrentBB          : BasicBlock ;
+   LastBB             : BasicBlock ;
 BEGIN
    (*
       Algorithm to perform Basic Block:
@@ -194,41 +174,25 @@ BEGIN
       since they will never be executed.
    *)
    LastBB := NIL ;
-   Quad := Head ;
+   Quad := Start ;
    LastQuadConditional := TRUE ;  (* Force Rule (i) *)
    LastQuadCall := FALSE ;
    LastQuadReturn := FALSE ;
    LastQuadMod := FALSE ;
-   CurrentlyInside := FALSE ;
    (* Scan all quadruples *)
-   WHILE Quad#0 DO
+   WHILE (Quad<=End) AND (Quad#0) DO
       IF LastQuadConditional OR LastQuadCall OR LastQuadReturn OR
-         LastQuadMod OR IsReferenced(Head, Quad)
+         LastQuadMod OR IsReferenced(Quad)
       THEN
          (* Rule (ii) *)
-         IF IsNewLocalVar(Quad)
-         THEN
-            (* start of a procedure *)
-            CurrentlyInside := TRUE
-         END ;
          CurrentBB := New() ;                      (* Get a new Basic Block *)
                                   (* At least one quad in this Basic Block  *)
-         StartBB(CurrentBB, Quad, CurrentlyInside) ;
-         EndBB(CurrentBB, Quad) ;
-         IF IsKillLocalVar(Quad)
-         THEN
-            (* end of procedure *)
-            CurrentlyInside := FALSE
-         END
+         StartBB(CurrentBB, Quad) ;
+         EndBB(CurrentBB, Quad)
       ELSIF CurrentBB#NIL
       THEN
          (* We have a Basic Block - therefore add quad to this Block  *)
-         EndBB(CurrentBB, Quad) ;
-         IF IsKillLocalVar(Quad)
-         THEN
-            (* end of procedure *)
-            CurrentlyInside := FALSE
-         END
+         EndBB(CurrentBB, Quad)
       ELSIF IsPseudoQuad(Quad)
       THEN
          (* Add Quad to the Last BB since Pseudo Quads - compiler directives *)
@@ -237,15 +201,10 @@ BEGIN
       ELSIF IsReturn(Quad) OR IsKillLocalVar(Quad)
       THEN
          (* we must leave the ReturnOp alone as it indictes end of procedure *)
-         EndBB(LastBB, Quad) ;
-         IF IsKillLocalVar(Quad)
-         THEN
-            (* end of procedure *)
-            CurrentlyInside := FALSE
-         END
+         EndBB(LastBB, Quad)
       ELSE
-         (* Chuck this Quad since it will never be reached by the processor *)
-         SubQuad(Head, Quad)
+         (* remove this Quad since it will never be reached *)
+         SubQuad(Quad)
       END ;
       LastQuadConditional := IsConditional(Quad) ;
       LastQuadCall := IsCall(Quad) ;
@@ -265,19 +224,19 @@ END ConvertQuads2BasicBlock ;
    ForeachBasicBlockDo - for each basic block call procedure, p.
 *)
 
-PROCEDURE ForeachBasicBlockDo (p: BasicBlockProc) ;
+PROCEDURE ForeachBasicBlockDo (bb: BasicBlock; p: BasicBlockProc) ;
 VAR
-   b: PtrToBasicBlock ;
+   b: BasicBlock ;
 BEGIN
-   IF HeadOfBB#NIL
+   IF bb#NIL
    THEN
-      b := HeadOfBB ;
+      b := bb ;
       REPEAT
          WITH b^ DO
             p(StartQuad, EndQuad)
          END ;
          b := b^.Right
-      UNTIL HeadOfBB=b
+      UNTIL b=bb
    END
 END ForeachBasicBlockDo ;
 
@@ -287,15 +246,13 @@ END ForeachBasicBlockDo ;
              The Basic Block is then added to the end of Basic Block list.
 *)
 
-PROCEDURE StartBB (b: PtrToBasicBlock; Quad: CARDINAL; In: BOOLEAN) ;
+PROCEDURE StartBB (b: BasicBlock; Quad: CARDINAL) ;
 BEGIN
    WITH b^ DO
       StartQuad := Quad ;
-      EndQuad := Quad ;
-      CPUCycles := 0 ;
-      InsideProc := In
+      EndQuad := Quad
    END ;
-   Add(HeadOfBB, b)   (* Add b to the end of the Basic Block list *)
+   Add(HeadOfBasicBlock, b)   (* Add b to the end of the Basic Block list *)
 END StartBB ;
 
 
@@ -303,11 +260,9 @@ END StartBB ;
    EndBB - Fills a Basic Block, b, with an end quad Quad.
 *)
 
-PROCEDURE EndBB (b: PtrToBasicBlock; Quad: CARDINAL) ;
+PROCEDURE EndBB (b: BasicBlock; Quad: CARDINAL) ;
 BEGIN
-   WITH b^ DO
-      EndQuad := Quad ;
-   END
+   b^.EndQuad := Quad
 END EndBB ;
 
 
@@ -315,8 +270,8 @@ END EndBB ;
    Add adds a specified element to the end of a queue.
 *)
  
-PROCEDURE Add (VAR Head: PtrToBasicBlock;
-               b : PtrToBasicBlock) ;
+PROCEDURE Add (VAR Head: BasicBlock;
+               b : BasicBlock) ;
 BEGIN
    IF Head=NIL
    THEN
@@ -336,8 +291,8 @@ END Add ;
    Sub deletes an element from the specified queue.
 *)
  
-PROCEDURE Sub (VAR Head: PtrToBasicBlock;
-               b: PtrToBasicBlock) ;
+PROCEDURE Sub (VAR Head: BasicBlock;
+               b: BasicBlock) ;
 BEGIN
    IF (b^.Right=Head) AND (b=Head)
    THEN
@@ -353,62 +308,35 @@ BEGIN
 END Sub ;
 
 
-PROCEDURE InitializeBasicBlock ;
-BEGIN
-   IF HeadOfBB#NIL
-   THEN
-      DestroyBasicBlocks
-   END ;
-   HeadOfBB := NIL
-END InitializeBasicBlock ;
-
-
 (*
    DisplayBasicBlocks - displays the basic block data structure.
 *)
 
-PROCEDURE DisplayBasicBlocks ;
+PROCEDURE DisplayBasicBlocks (bb: BasicBlock) ;
 VAR
-   b: PtrToBasicBlock ;
+   b: BasicBlock ;
 BEGIN
-   b := HeadOfBB ;
-   WriteString('quadruples outside procedures') ; WriteLn ;
+   b := bb ;
+   WriteString('quadruples') ; WriteLn ;
    IF b#NIL
    THEN
       REPEAT
-         IF NOT b^.InsideProc
-         THEN
-            DisplayBlock(b)
-         END ;
+         DisplayBlock(b) ;
          b := b^.Right
-      UNTIL b=HeadOfBB
-   END ;
-   b := HeadOfBB ;
-   WriteString('quadruples inside procedures') ; WriteLn ;
-   IF b#NIL
-   THEN
-      REPEAT
-         IF b^.InsideProc
-         THEN
-            DisplayBlock(b)
-         END ;
-         b := b^.Right
-      UNTIL b=HeadOfBB
+      UNTIL b=bb
    END
 END DisplayBasicBlocks ;
 
 
-PROCEDURE DisplayBlock (b: PtrToBasicBlock) ;
+PROCEDURE DisplayBlock (b: BasicBlock) ;
 BEGIN
    WITH b^ DO
       WriteString(' start ') ; WriteCard(StartQuad, 6) ;
       WriteString(' end   ') ; WriteCard(EndQuad, 6) ;
-      WriteString(' cycles') ; WriteCard(CPUCycles, 6) ; WriteLn
    END
 END DisplayBlock ;
 
 
 BEGIN
-   FreeBB := NIL ;
-   HeadOfBB := NIL
+   FreeList := NIL
 END M2BasicBlock.

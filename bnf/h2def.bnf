@@ -320,6 +320,7 @@ END MakeUniqueTypeName ;
 PROCEDURE InitNode (t: nodeType) : Node ;
 VAR
    n: Node ;
+   a: ADDRESS ;
 BEGIN
    IF FreeList=NIL
    THEN
@@ -328,7 +329,7 @@ BEGIN
       n := FreeList ;
       FreeList := FreeList^.chain
    END ;
-   memset(n, 0, TSIZE(n^)) ;
+   a := memset(n, 0, TSIZE(n^)) ;
    WITH n^ DO
       type := t ;
       chain := NIL ;

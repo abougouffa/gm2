@@ -61,7 +61,8 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PutConst, PutConstSet,
                         NulSym ;
 
-FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax ;
+FROM M2Code IMPORT CodeBlock ;
+FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, ErrorStringAt, WarnStringAt ;
 FROM M2Options IMPORT DisplayQuadruples ;
@@ -85,7 +86,8 @@ FROM M2ALU IMPORT PtrToValue,
                   BuildRange, SetOr, SetAnd, SetNegate, SetSymmetricDifference, SetDifference,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn, GetRange, GetValue ;
 
-FROM M2GCCDeclare IMPORT StartDeclareMainModule, EndDeclareMainModule, DeclareConstant,
+FROM M2GCCDeclare IMPORT DeclareConstant,
+                         StartDeclareScope, EndDeclareScope,
                          DeclareLocalVariables, PromoteToString, CompletelyResolved ;
 
 FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
@@ -125,6 +127,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
+                   BuildPushFunctionContext, BuildPopFunctionContext,
                    ExpandExpressionStatement,
                    GetPointerType, GetWordType,
                    GetBitsPerWord,
@@ -140,9 +143,6 @@ TYPE
    DoUnaryProcedure = PROCEDURE (CARDINAL) ;
 
 VAR
-   CurrentProcedure,
-   PreviousScope            : CARDINAL ;(* the current procedure being compiled   *)
-   CurrentQuad              : CARDINAL ;
    CurrentQuadToken         : CARDINAL ;
    AbsoluteHead             : CARDINAL ;
    LastLine                 : CARDINAL ;(* The Last Line number emmitted with the *)
@@ -258,86 +258,87 @@ Notes
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
-PROCEDURE CodeStart ; FORWARD ;
-PROCEDURE CodeEnd ; FORWARD ;
-PROCEDURE CodeStartModFile ; FORWARD ;
-PROCEDURE CodeStartDefFile ; FORWARD ;
-PROCEDURE CodeEndFile ; FORWARD ;
-PROCEDURE CodeStatement ; FORWARD ;
-PROCEDURE CodeLineNumber ; FORWARD ;
-PROCEDURE CodeNewLocalVar ; FORWARD ;
-PROCEDURE CodeKillLocalVar ; FORWARD ;
-PROCEDURE CodeReturnValue ; FORWARD ;
-PROCEDURE CodeReturn ; FORWARD ;
-PROCEDURE FoldBecomes (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeBecomes ; FORWARD ;
-PROCEDURE FoldAdd (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeAdd ; FORWARD ;
-PROCEDURE FoldSub (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeSub ; FORWARD ;
-PROCEDURE FoldMult (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeMult ; FORWARD ;
-PROCEDURE FoldDiv (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeDiv ; FORWARD ;
-PROCEDURE FoldMod (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeMod ; FORWARD ;
-PROCEDURE FoldBitRange (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldBit (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeBit ; FORWARD ;
-PROCEDURE CodeGoto ; FORWARD ;
+PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeStatement (q: CARDINAL) ; FORWARD ;
+PROCEDURE CodeLineNumber (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
+PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDINAL); FORWARD ;
+PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL); FORWARD ;
+PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldAdd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeAdd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldSub (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldMult (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldDiv (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeDiv (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldMod (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeMod (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldBitRange (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBit (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeBit (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeGoto (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CheckReferenced (q: CARDINAL; op: QuadOperator) ; FORWARD ;
-PROCEDURE FoldSetOr (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldSetAnd (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeSymmetricDifference ; FORWARD ;
-PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldNegate (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeNegate ; FORWARD ;
-PROCEDURE FoldSize (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeSize ; FORWARD ;
-PROCEDURE CodeAddr ; FORWARD ;
-PROCEDURE FoldStandardFunction (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeStandardFunction ; FORWARD ;
-PROCEDURE CodeIfLess ; FORWARD ;
-PROCEDURE CodeIfLessEqu ; FORWARD ;
-PROCEDURE CodeIfGre ; FORWARD ;
-PROCEDURE CodeIfGreEqu ; FORWARD ;
-PROCEDURE CodeIfEqu ; FORWARD ;
-PROCEDURE CodeIfNotEqu ; FORWARD ;
-PROCEDURE CodeIfNotIn ; FORWARD ;
-PROCEDURE CodeIfIn ; FORWARD ;
-PROCEDURE CodeIndrX ; FORWARD ;
-PROCEDURE CodeXIndr ; FORWARD ;
-PROCEDURE CodeCall ; FORWARD ;
-PROCEDURE CodeDirectCall ; FORWARD ;
-PROCEDURE CodeIndirectCall ; FORWARD ;
-PROCEDURE CodeParam ; FORWARD ;
-PROCEDURE CodeFunctValue ; FORWARD ;
-PROCEDURE CodeInline ; FORWARD ;
-PROCEDURE CodeOffset ; FORWARD ;
-PROCEDURE FoldOffset (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeHigh ; FORWARD ;
-PROCEDURE FoldHigh (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeUnbounded ; FORWARD ;
-PROCEDURE FoldBase (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeBase ; FORWARD ;
-PROCEDURE FoldElementSize (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeElementSize ; FORWARD ;
-PROCEDURE FoldCoerce (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeCoerce ; FORWARD ;
-PROCEDURE FoldConvert (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE CodeConvert ; FORWARD ;
-PROCEDURE CodeMath ; FORWARD ;
-PROCEDURE CodeSetOr ; FORWARD ;
-PROCEDURE CodeSetAnd ; FORWARD ;
-PROCEDURE CodeSetSymmetricDifference ; FORWARD ;
-PROCEDURE CodeIncl ; FORWARD ;
-PROCEDURE CodeExcl ; FORWARD ;
-PROCEDURE FoldIncl (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldExcl (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldIfIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldIfNotIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
-PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
+PROCEDURE FoldSetOr (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSetAnd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldNegate (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeNegate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfLess (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfGre (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIndrX (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeXIndr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeDirectCall (procedure: CARDINAL); FORWARD ;
+PROCEDURE CodeIndirectCall (ProcVar: CARDINAL); FORWARD ;
+PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeFunctValue (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeInline (quad: CARDINAL; op1, op2, GnuAsm: CARDINAL); FORWARD ;
+PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldOffset (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldHigh (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldBase (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeBase (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldConvert (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetOr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeSetSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldIncl (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldExcl (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIfIn (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIfNotIn (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -349,8 +350,6 @@ PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE InitGNUM2 (Head: CARDINAL) ;
 BEGIN
    AbsoluteHead := Head ;
-   CurrentQuad  := Head ;
-   StartDeclareMainModule
 END InitGNUM2 ;
 
 
@@ -359,11 +358,15 @@ END InitGNUM2 ;
                         the GCC tree structure.
 *)
 
-PROCEDURE ConvertQuadsToTree (Head: CARDINAL) ;
+PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
+VAR
+   Prev: CARDINAL ;
 BEGIN
    REPEAT
-      CodeStatement
-   UNTIL CurrentQuad=0
+      CodeStatement(Start) ;
+      Prev := Start ;
+      Start := GetNextQuad(Start)
+   UNTIL End=Prev
 END ConvertQuadsToTree ;
 
 
@@ -372,75 +375,71 @@ END ConvertQuadsToTree ;
                    quadruple.
 *)
 
-PROCEDURE CodeStatement ;
+PROCEDURE CodeStatement (q: CARDINAL) ;
 VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+   op           : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
 BEGIN
-   (* WriteString('// Quad') ; WriteCard(CurrentQuad, 6) ; WriteLn ; *)
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
-   CurrentQuadToken := QuadToTokenNo(CurrentQuad) ;
-   CheckReferenced(CurrentQuad, Operator) ;
-   CheckStop(CurrentQuad) ;
-   IF CurrentQuad=414
+   GetQuad(q, op, op1, op2, op3) ;
+   CurrentQuadToken := QuadToTokenNo(q) ;
+   CheckReferenced(q, op) ;
+   IF q=414
    THEN
       stop
    END ;
 
-   CASE Operator OF
+   CASE op OF
 
-   StartDefFileOp     : CodeStartDefFile |
-   StartModFileOp     : CodeStartModFile |
-   EndFileOp          : CodeEndFile |
-   StartOp            : CodeStart |
-   EndOp              : CodeEnd |
-   NewLocalVarOp      : CodeNewLocalVar |
-   KillLocalVarOp     : CodeKillLocalVar |
-   ReturnOp           : CodeReturn |
-   ReturnValueOp      : CodeReturnValue |
+   StartDefFileOp     : CodeStartDefFile(q, op1, op2, op3) |
+   StartModFileOp     : CodeStartModFile(q, op1, op2, op3) |
+   EndFileOp          : CodeEndFile(q, op1, op2, op3) |
+   StartOp            : CodeStart(q, op1, op2, op3) |
+   EndOp              : CodeEnd(q, op1, op2, op3) |
+   NewLocalVarOp      : CodeNewLocalVar(q, op1, op2, op3) |
+   KillLocalVarOp     : CodeKillLocalVar(q, op1, op2, op3) |
+   ReturnOp           : CodeReturn(q, op1, op2, op3) |
+   ReturnValueOp      : CodeReturnValue(q, op1, op2, op3) |
    DummyOp            : |
-   BecomesOp          : CodeBecomes |
-   AddOp              : CodeAdd |
-   SubOp              : CodeSub |
-   MultOp             : CodeMult |
-   DivOp              : CodeDiv |
-   ModOp              : CodeMod |
-   GotoOp             : CodeGoto |
-   InclOp             : CodeIncl |
-   ExclOp             : CodeExcl |
-   NegateOp           : CodeNegate |
-   LogicalOrOp        : CodeSetOr |
-   LogicalAndOp       : CodeSetAnd |
-   LogicalXorOp       : CodeSetSymmetricDifference |
+   BecomesOp          : CodeBecomes(q, op1, op2, op3) |
+   AddOp              : CodeAdd(q, op1, op2, op3) |
+   SubOp              : CodeSub(q, op1, op2, op3) |
+   MultOp             : CodeMult(q, op1, op2, op3) |
+   DivOp              : CodeDiv(q, op1, op2, op3) |
+   ModOp              : CodeMod(q, op1, op2, op3) |
+   GotoOp             : CodeGoto(q, op1, op2, op3) |
+   InclOp             : CodeIncl(q, op1, op2, op3) |
+   ExclOp             : CodeExcl(q, op1, op2, op3) |
+   NegateOp           : CodeNegate(q, op1, op2, op3) |
+   LogicalOrOp        : CodeSetOr(q, op1, op2, op3) |
+   LogicalAndOp       : CodeSetAnd(q, op1, op2, op3) |
+   LogicalXorOp       : CodeSetSymmetricDifference(q, op1, op2, op3) |
    LogicalDiffOp      : InternalError('logical difference has not been finished yet', __FILE__, __LINE__) |
-   IfLessOp           : CodeIfLess |
-   IfEquOp            : CodeIfEqu |
-   IfNotEquOp         : CodeIfNotEqu |
-   IfGreEquOp         : CodeIfGreEqu |
-   IfLessEquOp        : CodeIfLessEqu |
-   IfGreOp            : CodeIfGre |
-   IfInOp             : CodeIfIn |
-   IfNotInOp          : CodeIfNotIn |
-   IndrXOp            : CodeIndrX |
-   XIndrOp            : CodeXIndr |
-   CallOp             : CodeCall |
-   ParamOp            : CodeParam |
-   FunctValueOp       : CodeFunctValue |
-   AddrOp             : CodeAddr |
-   SizeOp             : CodeSize |
-   UnboundedOp        : CodeUnbounded |
-   OffsetOp           : CodeOffset |
-   HighOp             : CodeHigh |
-   BaseOp             : CodeBase |
-   ElementSizeOp      : CodeElementSize |
-   ConvertOp          : CodeConvert |
-   CoerceOp           : CodeCoerce |
-   StandardFunctionOp : CodeStandardFunction |
+   IfLessOp           : CodeIfLess(q, op1, op2, op3) |
+   IfEquOp            : CodeIfEqu(q, op1, op2, op3) |
+   IfNotEquOp         : CodeIfNotEqu(q, op1, op2, op3) |
+   IfGreEquOp         : CodeIfGreEqu(q, op1, op2, op3) |
+   IfLessEquOp        : CodeIfLessEqu(q, op1, op2, op3) |
+   IfGreOp            : CodeIfGre(q, op1, op2, op3) |
+   IfInOp             : CodeIfIn(q, op1, op2, op3) |
+   IfNotInOp          : CodeIfNotIn(q, op1, op2, op3) |
+   IndrXOp            : CodeIndrX(q, op1, op2, op3) |
+   XIndrOp            : CodeXIndr(q, op1, op2, op3) |
+   CallOp             : CodeCall(q, op1, op2, op3) |
+   ParamOp            : CodeParam(q, op1, op2, op3) |
+   FunctValueOp       : CodeFunctValue(q, op1, op2, op3) |
+   AddrOp             : CodeAddr(q, op1, op2, op3) |
+   SizeOp             : CodeSize(q, op1, op2, op3) |
+   UnboundedOp        : CodeUnbounded(q, op1, op2, op3) |
+   OffsetOp           : CodeOffset(q, op1, op2, op3) |
+   HighOp             : CodeHigh(q, op1, op2, op3) |
+   BaseOp             : CodeBase(q, op1, op2, op3) |
+   ElementSizeOp      : CodeElementSize(q, op1, op2, op3) |
+   ConvertOp          : CodeConvert(q, op1, op2, op3) |
+   CoerceOp           : CodeCoerce(q, op1, op2, op3) |
+   StandardFunctionOp : CodeStandardFunction(q, op1, op2, op3) |
 
-   InlineOp           : CodeInline |
-   LineNumberOp       : CodeLineNumber |
+   InlineOp           : CodeInline(q, op1, op2, op3) |
+   LineNumberOp       : CodeLineNumber(q, op1, op2, op3) |
    CodeOnOp           : |           (* the following make no sense with gcc *)
    CodeOffOp          : |
    ProfileOnOp        : |
@@ -449,11 +448,10 @@ BEGIN
    OptimizeOffOp      :
 
    ELSE
-      WriteFormat1('quadruple %d not yet implemented', CurrentQuad) ;
+      WriteFormat1('quadruple %d not yet implemented', q) ;
       InternalError('quadruple not implemented yet', __FILE__, __LINE__)
    END ;
-   LastOperator := Operator ;
-   CurrentQuad := GetNextQuad(CurrentQuad)
+   LastOperator := op
 END CodeStatement ;
 
 
@@ -508,53 +506,53 @@ END DeclareConstantLiterals ;
                                 It returns TRUE if one or more constants were folded.
 *)
 
-PROCEDURE ResolveConstantExpressions (l: List) : BOOLEAN ;
+PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
 VAR
-   tokenno : CARDINAL ;
-   quad    : CARDINAL ;
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+   tokenno: CARDINAL ;
+   quad   : CARDINAL ;
+   op     : QuadOperator ;
+   op1,
+   op2,
+   op3    : CARDINAL ;
    Orig,
    Next,
-   Last    : CARDINAL ;
+   Last   : CARDINAL ;
 BEGIN
    DeclareConstantLiterals(l) ;
    Orig := NoOfItemsInList(l) ;
    Next := Orig ;
    REPEAT
-      quad := AbsoluteHead ;
+      quad := start ;
       Last := Next ;
-      WHILE quad#0 DO
-         GetQuad(quad, Operator, Operand1, Operand2, Operand3) ;
+      WHILE (quad<=end) AND (quad#0) DO
+         GetQuad(quad, op, op1, op2, op3) ;
          tokenno := QuadToTokenNo(quad) ;
 
-         CASE Operator OF
+         CASE op OF
 
-         StandardFunctionOp : FoldStandardFunction(tokenno, quad, l) |
-         BuiltinConstOp     : FoldBuiltinConst(tokenno, quad, l) |
-         LogicalOrOp        : FoldSetOr(tokenno, quad, l) |
-         LogicalAndOp       : FoldSetAnd(tokenno, quad, l) |
-         LogicalXorOp       : FoldSymmetricDifference(tokenno, quad, l) |
-         BecomesOp          : FoldBecomes(tokenno, quad, l) |
-         AddOp              : FoldAdd(tokenno, quad, l) |
-         SubOp              : FoldSub(tokenno, quad, l) |
-         MultOp             : FoldMult(tokenno, quad, l) |
-         DivOp              : FoldDiv(tokenno, quad, l) |
-         ModOp              : FoldMod(tokenno, quad, l) |
-         NegateOp           : FoldNegate(tokenno, quad, l) |
-         SizeOp             : FoldSize(tokenno, quad, l) |
-         OffsetOp           : FoldOffset(tokenno, quad, l) |
-         HighOp             : FoldHigh(tokenno, quad, l) |
-         BaseOp             : FoldBase(tokenno, quad, l) |
-         ElementSizeOp      : FoldElementSize(tokenno, quad, l) |
-         ConvertOp          : FoldConvert(tokenno, quad, l) |
-         CoerceOp           : FoldCoerce(tokenno, quad, l) |
-         InclOp             : FoldIncl(tokenno, quad, l) |
-         ExclOp             : FoldExcl(tokenno, quad, l) |
-         IfInOp             : FoldIfIn(tokenno, quad, l) |
-         IfNotInOp          : FoldIfNotIn(tokenno, quad, l)
+         StandardFunctionOp : FoldStandardFunction(tokenno, l, quad, op1, op2, op3) |
+         BuiltinConstOp     : FoldBuiltinConst(tokenno, l, quad, op1, op2, op3) |
+         LogicalOrOp        : FoldSetOr(tokenno, l, quad, op1, op2, op3) |
+         LogicalAndOp       : FoldSetAnd(tokenno, l, quad, op1, op2, op3) |
+         LogicalXorOp       : FoldSymmetricDifference(tokenno, l, quad, op1, op2, op3) |
+         BecomesOp          : FoldBecomes(tokenno, l, quad, op1, op2, op3) |
+         AddOp              : FoldAdd(tokenno, l, quad, op1, op2, op3) |
+         SubOp              : FoldSub(tokenno, l, quad, op1, op2, op3) |
+         MultOp             : FoldMult(tokenno, l, quad, op1, op2, op3) |
+         DivOp              : FoldDiv(tokenno, l, quad, op1, op2, op3) |
+         ModOp              : FoldMod(tokenno, l, quad, op1, op2, op3) |
+         NegateOp           : FoldNegate(tokenno, l, quad, op1, op2, op3) |
+         SizeOp             : FoldSize(tokenno, l, quad, op1, op2, op3) |
+         OffsetOp           : FoldOffset(tokenno, l, quad, op1, op2, op3) |
+         HighOp             : FoldHigh(tokenno, l, quad, op1, op2, op3) |
+         BaseOp             : FoldBase(tokenno, l, quad, op1, op2, op3) |
+         ElementSizeOp      : FoldElementSize(tokenno, l, quad, op1, op2, op3) |
+         ConvertOp          : FoldConvert(tokenno, l, quad, op1, op2, op3) |
+         CoerceOp           : FoldCoerce(tokenno, l, quad, op1, op2, op3) |
+         InclOp             : FoldIncl(tokenno, l, quad, op1, op2, op3) |
+         ExclOp             : FoldExcl(tokenno, l, quad, op1, op2, op3) |
+         IfInOp             : FoldIfIn(tokenno, l, quad, op1, op2, op3) |
+         IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
@@ -695,13 +693,9 @@ END BuildTrashTreeFromInterface ;
                 The inline asm statement, Sym, is written to standard output.
 *)
 
-PROCEDURE CodeInline ;
+PROCEDURE CodeInline (q: CARDINAL; op1, op2, GnuAsm: CARDINAL) ;
 VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   string,
-   GnuAsm  : CARDINAL ;
+   string  : CARDINAL ;
    inputs,
    outputs,
    trash   : Tree ;
@@ -712,7 +706,6 @@ BEGIN
       can handle the register dependency providing the user
       specifies VOLATILE and input/output/trash sets correctly.
    *)
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, GnuAsm) ;
    inputs  := BuildTreeFromInterface(GetGnuAsmInput(GnuAsm)) ;
    outputs := BuildTreeFromInterface(GetGnuAsmOutput(GnuAsm)) ;
    trash   := BuildTrashTreeFromInterface(GetGnuAsmTrash(GnuAsm)) ;
@@ -731,20 +724,14 @@ END CodeInline ;
                     runtime debugging information.
 *)
 
-PROCEDURE CodeLineNumber ;
-VAR
-   Operator  : QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3  : CARDINAL ;
+PROCEDURE CodeLineNumber (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    IF LastOperator#LineNumberOp
    THEN
       FileName := KillString(FileName) ;
-      FileName := InitStringCharStar(KeyToCharStar(Name(Operand1))) ;
-      SetFileNameAndLineNo(string(FileName), Operand3) ;
-      EmitLineNote(string(FileName), Operand3)
+      FileName := InitStringCharStar(KeyToCharStar(Name(op1))) ;
+      SetFileNameAndLineNo(string(FileName), op3) ;
+      EmitLineNote(string(FileName), op3)
    END
 END CodeLineNumber ;
 
@@ -760,22 +747,16 @@ END CodeLineNumber ;
                       generated code will be relative to this source file.
 *)
 
-PROCEDURE CodeStartModFile ;
-VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    LastLine := 1 ;
-   CompilingMainModule := GetMainModule()=Operand3 ;
+   CompilingMainModule := GetMainModule()=op3 ;
    ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
    IF CompilingMainModule
    THEN
-      SetFileNameAndLineNo(KeyToCharStar(Name(Operand2)), Operand1) ;
-      EmitLineNote(KeyToCharStar(Name(Operand2)), Operand1)
+      SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
+      EmitLineNote(KeyToCharStar(Name(op2)), op1)
    END
 END CodeStartModFile ;
 
@@ -791,18 +772,12 @@ END CodeStartModFile ;
                       generated code will be relative to this source file.
 *)
 
-PROCEDURE CodeStartDefFile ;
-VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    LastLine := 1 ;
    CompilingMainModule := FALSE ;
    ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3)))
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3)))
 END CodeStartDefFile ;
 
 
@@ -816,11 +791,12 @@ END CodeStartDefFile ;
                  generated code will be relative to this source file.
 *)
 
-PROCEDURE CodeEndFile ;
+PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF CompilingMainModule
    THEN
-      EndDeclareMainModule
+      (* do we need an equivalent ? Gaius *)
+      (* EndDeclareMainModule *)
    END
 END CodeEndFile ;
 
@@ -840,12 +816,8 @@ END CallInnerInit ;
                current module.
 *)
 
-PROCEDURE CodeStart ;
-VAR
-   op           : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE CodeStart (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, op, op1, op2, op3) ;
    IF CompilingMainModule
    THEN
       SetFileNameAndLineNo(string(FileName), op1) ;
@@ -862,14 +834,10 @@ END CodeStart ;
              current module.
 *)
 
-PROCEDURE CodeEnd ;
-VAR
-   op           : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE CodeEnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF CompilingMainModule
    THEN
-      GetQuad(CurrentQuad, op, op1, op2, op3) ;
       SetFileNameAndLineNo(string(FileName), op1) ;
       EmitLineNote(string(FileName), op1) ;
       BuildEnd(CurrentModuleInitFunction)
@@ -1000,20 +968,18 @@ END SaveNonVarUnboundedParameters ;
                      local variables.
 *)
 
-PROCEDURE CodeNewLocalVar ;
-VAR
-   Operator: QuadOperator ;
-   Operand1: CARDINAL ;
+PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, PreviousScope, CurrentProcedure) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-   SetFileNameAndLineNo(string(FileName), Operand1) ;
-   BuildStartFunctionCode(Mod2Gcc(CurrentProcedure), IsExported(GetMainModule(), CurrentProcedure)) ;
-   DeclareLocalVariables(CurrentProcedure) ;
+   SetFileNameAndLineNo(string(FileName), LineNo) ;
+   BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
+                          IsExported(GetMainModule(), CurrentProcedure),
+                          IsProcedureNested(CurrentProcedure)) ;
+   StartDeclareScope(CurrentProcedure) ;
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(CurrentProcedure) ;
-   EmitLineNote(string(FileName), Operand1)
+   EmitLineNote(string(FileName), LineNo)
 END CodeNewLocalVar ;
 
 
@@ -1021,18 +987,14 @@ END CodeNewLocalVar ;
    CodeKillLocalVar - removes local variables and returns to previous scope.
 *)
 
-PROCEDURE CodeKillLocalVar ;
-VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2: CARDINAL ;
+PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, CurrentProcedure) ;
-   SetFileNameAndLineNo(string(FileName), Operand1) ;
+   BuildPushFunctionContext ;
+   ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
+   BuildPopFunctionContext ;
+   SetFileNameAndLineNo(string(FileName), LineNo) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure)) ;
-
-   CurrentProcedure := NulSym ;
-   PreviousScope    := NulSym
+   PoisonSymbols(CurrentProcedure)
 END CodeKillLocalVar ;
 
 
@@ -1040,7 +1002,7 @@ END CodeKillLocalVar ;
    CodeReturn - does nothing, as the return is done by KillLocalVar.
 *)
 
-PROCEDURE CodeReturn ;
+PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
 END CodeReturn ;
 
@@ -1050,16 +1012,10 @@ END CodeReturn ;
                      allocated by the function call.
 *)
 
-PROCEDURE CodeReturnValue ;
-VAR
-   Operator   : QuadOperator ;
-   Result,
-   Operand2,
-   Procedure  : CARDINAL ;
+PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Result, Operand2, Procedure) ;
-   DeclareConstant(CurrentQuadToken, Result) ;  (* checks to see whether it is a constant and declares it *)
-   BuildReturnValueCode(Mod2Gcc(Procedure), Mod2Gcc(Result))
+   DeclareConstant(CurrentQuadToken, res) ;  (* checks to see whether it is a constant and declares it *)
+   BuildReturnValueCode(Mod2Gcc(Procedure), Mod2Gcc(res))
 END CodeReturnValue ;
 
 
@@ -1068,24 +1024,18 @@ END CodeReturnValue ;
               or an indirect procedure call.
 *)
 
-PROCEDURE CodeCall ;
-VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+PROCEDURE CodeCall (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    (*
-      Operator : CallOp
-      Operand3 : Procedure
+      op  : CallOp
+      op3 : Procedure
    *)
-   IF IsProcedure(Operand3)
+   IF IsProcedure(op3)
    THEN
-      CodeDirectCall
-   ELSIF IsProcType(GetType(Operand3))
+      CodeDirectCall(op3)
+   ELSIF IsProcType(GetType(op3))
    THEN
-      CodeIndirectCall
+      CodeIndirectCall(op3)
    ELSE
       InternalError('Expecting Procedure or ProcType', __FILE__, __LINE__)
    END
@@ -1125,25 +1075,19 @@ END UseBuiltin ;
    CodeDirectCall - saves all volitiles and jumps to a subroutine.
 *)
 
-PROCEDURE CodeDirectCall ;
+PROCEDURE CodeDirectCall (procedure: CARDINAL) ;
 VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
-   tree    : Tree ;
+   tree: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
-
-   IF IsProcedureBuiltin(Operand3) AND CanUseBuiltin(Operand3)
+   IF IsProcedureBuiltin(procedure) AND CanUseBuiltin(procedure)
    THEN
-      tree := UseBuiltin(Operand3)
+      tree := UseBuiltin(procedure)
    ELSE
-      IF GetType(Operand3)=NulSym
+      IF GetType(procedure)=NulSym
       THEN
-         tree := BuildProcedureCall(Mod2Gcc(Operand3), NIL)
+         tree := BuildProcedureCall(Mod2Gcc(procedure), NIL)
       ELSE
-         tree := BuildProcedureCall(Mod2Gcc(Operand3), Mod2Gcc(GetType(Operand3)))
+         tree := BuildProcedureCall(Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
       END
    END
 END CodeDirectCall ;
@@ -1153,19 +1097,13 @@ END CodeDirectCall ;
    CodeIndirectCall - saves all volitiles and jumps to a subroutine.
 *)
 
-PROCEDURE CodeIndirectCall ;
+PROCEDURE CodeIndirectCall (ProcVar: CARDINAL) ;
 VAR
-   operator  : QuadOperator ;
-   operand1,
-   operand2,
-   operand3  : CARDINAL ;
    tree,
    ReturnType: Tree ;
    proc      : CARDINAL ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-
-   proc := GetType(operand3) ;
+   proc := GetType(ProcVar) ;
    IF GetType(proc)=NulSym
    THEN
       ReturnType := Tree(NIL)
@@ -1175,12 +1113,12 @@ BEGIN
 
    (* now we dereference the lvalue if necessary *)
 
-   IF GetMode(operand3)=LeftValue
+   IF GetMode(ProcVar)=LeftValue
    THEN
-      tree := BuildIndirectProcedureCall(BuildIndirect(Mod2Gcc(operand3), Mod2Gcc(proc)),
+      tree := BuildIndirectProcedureCall(BuildIndirect(Mod2Gcc(ProcVar), Mod2Gcc(proc)),
                                          ReturnType)
    ELSE
-      tree := BuildIndirectProcedureCall(Mod2Gcc(operand3), ReturnType)
+      tree := BuildIndirectProcedureCall(Mod2Gcc(ProcVar), ReturnType)
    END
 END CodeIndirectCall ;
 
@@ -1200,35 +1138,29 @@ END CodeIndirectCall ;
                NOTE that we CAN ignore ModeOfAddr though
 *)
 
-PROCEDURE CodeParam ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeParam (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   IF operand1>0
+   IF op1>0
    THEN
-      IF (operand1<=NoOfParam(operand2)) AND
-         IsVarParam(operand2, operand1) AND IsConst(operand3)
+      IF (op1<=NoOfParam(op2)) AND
+         IsVarParam(op2, op1) AND IsConst(op3)
       THEN
          ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
-                                GetSymName(operand3)), CurrentQuadToken)
+                                GetSymName(op3)), CurrentQuadToken)
       ELSE
-         DeclareConstant(CurrentQuadToken, operand3) ;
+         DeclareConstant(CurrentQuadToken, op3) ;
          (*
-            ignore LeftAddr and RightAddr, but must be careful about size of Operand3.
-            SIZE(operand3) will normally be TSIZE(ADDRESS) but NOT when it is unbounded
+            ignore LeftAddr and RightAddr, but must be careful about size of op3.
+            SIZE(op3) will normally be TSIZE(ADDRESS) but NOT when it is unbounded
          *)
-         IF IsConst(operand3) AND IsRealType(GetType(operand3)) AND
-            IsRealType(GetType(GetNthParam(operand2, operand1))) AND
-            (GetType(GetNthParam(operand2, operand1))#GetType(operand3))
+         IF IsConst(op3) AND IsRealType(GetType(op3)) AND
+            IsRealType(GetType(GetNthParam(op2, op1))) AND
+            (GetType(GetNthParam(op2, op1))#GetType(op3))
          THEN
-            BuildParam(BuildConvert(Mod2Gcc(GetType(GetNthParam(operand2, operand1))),
-                                    Mod2Gcc(operand3), FALSE))
+            BuildParam(BuildConvert(Mod2Gcc(GetType(GetNthParam(op2, op1))),
+                                    Mod2Gcc(op3), FALSE))
          ELSE
-            BuildParam(Mod2Gcc(operand3))
+            BuildParam(Mod2Gcc(op3))
          END
       END
    END
@@ -1240,21 +1172,14 @@ END CodeParam ;
                     into a variable.
 *)
 
-PROCEDURE CodeFunctValue ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeFunctValue (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-
    (*
       operator : FunctValueOp
-      operand1 : The Returned Variable
-      operand2 : The Function Returning this Variable
+      op1 : The Returned Variable
+      op2 : The Function Returning this Variable
    *)
-   BuildFunctValue(Mod2Gcc(operand1))
+   BuildFunctValue(Mod2Gcc(op1))
 END CodeFunctValue ;
 
 
@@ -1267,22 +1192,17 @@ END CodeFunctValue ;
    Sym1<X>   Addr   Sym2<X>     meaning     Mem[Sym1<I>] := Sym2<I>
 *)
 
-PROCEDURE CodeAddr ;
+PROCEDURE CodeAddr (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   IF IsConst(operand3) AND (NOT IsConstString(operand3))
+   IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
-      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%a)')), GetSymName(operand3)), CurrentQuadToken)
+      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%a)')), GetSymName(op3)), CurrentQuadToken)
    ELSE
-      DeclareConstant(CurrentQuadToken, operand3) ;  (* we might be asked to find the address of a constant string *)
-      t := BuildAssignment(Mod2Gcc(operand1),
-                           BuildAddr(Mod2Gcc(operand3), FALSE))
+      DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
+      t := BuildAssignment(Mod2Gcc(op1),
+                           BuildAddr(Mod2Gcc(op3), FALSE))
    END
 END CodeAddr ;
 
@@ -1304,62 +1224,57 @@ END CheckStop ;
    Sym1<I> := Sym3<I>           := produces a constant
 *)
 
-PROCEDURE FoldBecomes (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(tokenno, operand3) ;  (* checks to see whether it is a constant literal and declares it *)
-   IF IsConst(operand1) AND IsConst(operand3)
+   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF IsConst(op1) AND IsConst(op3)
    THEN
-      (* constant folding taking place, but have we resolved operand3 yet? *)
-      IF GccKnowsAbout(operand3)
+      (* constant folding taking place, but have we resolved op3 yet? *)
+      IF GccKnowsAbout(op3)
       THEN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
-         IF GccKnowsAbout(operand1)
+         IF GccKnowsAbout(op1)
          THEN
-            ErrorStringAt(Sprintf1(Mark(InitString('constant, %a, should not be reassigned')), GetSymName(operand1)), tokenno)
+            ErrorStringAt(Sprintf1(Mark(InitString('constant, %a, should not be reassigned')), GetSymName(op1)), tokenno)
          ELSE
-            IF IsConstString(operand3)
+            IF IsConstString(op3)
             THEN
-               PutConstString(operand1, GetString(operand3)) ;
-            ELSIF GetType(operand1)=NulSym
+               PutConstString(op1, GetString(op3)) ;
+            ELSIF GetType(op1)=NulSym
             THEN
-               Assert(GetType(operand3)#NulSym) ;
-               PutConst(operand1, GetType(operand3))
+               Assert(GetType(op3)#NulSym) ;
+               PutConst(op1, GetType(op3))
             END ;
-            IF GetType(operand3)=NulSym
+            IF GetType(op3)=NulSym
             THEN
-               AddModGcc(operand1, Mod2Gcc(operand3))
+               AddModGcc(op1, Mod2Gcc(op3))
             ELSE
-               IF IsValueSolved(operand3)
+               IF IsValueSolved(op3)
                THEN
-                  PushValue(operand3) ;
+                  PushValue(op3) ;
                   IF IsValueTypeReal()
                   THEN
-                     AddModGcc(operand1, PopRealTree())
+                     AddModGcc(op1, PopRealTree())
                   ELSIF IsValueTypeSet()
                   THEN
-                     PopValue(operand1) ;
-                     PushValue(operand1) ;
-                     PutConstSet(operand1) ;
-                     AddModGcc(operand1, PopSetTree(tokenno))
+                     PopValue(op1) ;
+                     PushValue(op1) ;
+                     PutConstSet(op1) ;
+                     AddModGcc(op1, PopSetTree(tokenno))
                   ELSE
-                     AddModGcc(operand1, PopIntegerTree())
+                     AddModGcc(op1, PopIntegerTree())
                   END
                ELSE
-                  AddModGcc(operand1,
-                            DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
-                                                 Mod2Gcc(operand3)))
+                  AddModGcc(op1,
+                            DeclareKnownConstant(Mod2Gcc(GetType(op3)),
+                                                 Mod2Gcc(op3)))
                END
             END ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad) ;
-            t := RememberConstant(Mod2Gcc(operand1))
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad) ;
+            t := RememberConstant(Mod2Gcc(op1))
          END
       ELSE
          (* not to worry, we must wait until op3 is known *)
@@ -1376,22 +1291,17 @@ END FoldBecomes ;
    Sym1<O> := Sym3<O>           := has the effect Mem[Sym1<I>] := Mem[Sym3<I>]
 *)
 
-PROCEDURE CodeBecomes ;
+PROCEDURE CodeBecomes (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand3) ;  (* checks to see whether it is a constant and declares it *)
-   IF IsConst(operand1) AND (NOT GccKnowsAbout(operand1))
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
-      AddModGcc(operand1,
-                DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
-                                     Mod2Gcc(operand3)))
-   ELSIF IsConstString(operand3) AND (GetType(operand1)#Char)
+      AddModGcc(op1,
+                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
+                                     Mod2Gcc(op3)))
+   ELSIF IsConstString(op3) AND (GetType(op1)#Char)
    THEN
       (* handle string assignments:
          VAR
@@ -1400,11 +1310,11 @@ BEGIN
 
          str := 'abcde' but not ch := 'a'
       *)
-      ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(operand1), FALSE),
-                                               BuildAddr(Mod2Gcc(operand3), FALSE),
-                                               FindSize(operand3)))
+      ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                               BuildAddr(Mod2Gcc(op3), FALSE),
+                                               FindSize(op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
+      t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
    END
 END CodeBecomes ;
 
@@ -1434,34 +1344,30 @@ END CoerceTree ;
    FoldBinary - check whether we can fold the binop operation.
 *)
 
-PROCEDURE FoldBinary (tokenno: CARDINAL; quad: CARDINAL; l: List; binop: BuildBinProcedure) ;
+PROCEDURE FoldBinary (tokenno: CARDINAL; l: List; binop: BuildBinProcedure;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   tl, tr  : Tree ;
+   tl, tr: Tree ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, operand3) ;
-   DeclareConstant(tokenno, operand2) ;
-   IF IsConst(operand2) AND IsConst(operand3)
+   DeclareConstant(tokenno, op3) ;
+   DeclareConstant(tokenno, op2) ;
+   IF IsConst(op2) AND IsConst(op3)
    THEN
-      IF GccKnowsAbout(operand2) AND GccKnowsAbout(operand3)
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
-            Assert(MixTypes(FindType(operand3), FindType(operand2), tokenno)#NulSym) ;
-            PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), tokenno)) ;
-            tl := CoerceTree(operand2) ;
-            tr := CoerceTree(operand3) ;
-            AddModGcc(operand1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+            Assert(MixTypes(FindType(op3), FindType(op2), tokenno)#NulSym) ;
+            PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
+            tl := CoerceTree(op2) ;
+            tr := CoerceTree(op3) ;
+            AddModGcc(op1,
+                      DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                            binop(tl, tr, TRUE))) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment, however, we will
                not do this here but in CodeBinary
@@ -1476,32 +1382,29 @@ END FoldBinary ;
    CodeBinary - encode a binary arithmetic operation.
 *)
 
-PROCEDURE CodeBinary (binop: BuildBinProcedure) ;
+PROCEDURE CodeBinary (binop: BuildBinProcedure;
+                      q: CARDINAL;
+                      op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
    t,
-   tl, tr  : Tree ;
+   tl, tr: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   tl := CoerceTree(operand2) ;
-   tr := CoerceTree(operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   tl := CoerceTree(op2) ;
+   tr := CoerceTree(op3) ;
+   IF IsConst(op1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
-      Assert(MixTypes(FindType(operand3), FindType(operand2), CurrentQuadToken)#NulSym) ;
+      Assert(MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)#NulSym) ;
 
-      PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), CurrentQuadToken)) ;
-      AddModGcc(operand1,
-                DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+      PutConst(op1, MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)) ;
+      AddModGcc(op1,
+                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                      binop(tl, tr, TRUE)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1), binop(tl, tr, TRUE))
+      t := BuildAssignment(Mod2Gcc(op1), binop(tl, tr, TRUE))
    END
 END CodeBinary ;
 
@@ -1511,40 +1414,37 @@ END CodeBinary ;
                    Set operands may be longer than a word.
 *)
 
-PROCEDURE CodeBinarySet (binop: BuildBinProcedure; doOp: DoProcedure) ;
+PROCEDURE CodeBinarySet (binop: BuildBinProcedure; doOp: DoProcedure;
+                         q: CARDINAL;
+                         op1, op2, op3: CARDINAL) ;
 VAR
-   t       : CARDINAL ;
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   t: CARDINAL ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1)
    THEN
-      IF IsValueSolved(operand2) AND IsValueSolved(operand3)
+      IF IsValueSolved(op2) AND IsValueSolved(op3)
       THEN
-         Assert(MixTypes(FindType(operand3), FindType(operand2), CurrentQuadToken)#NulSym) ;
-         PutConst(operand1, FindType(operand3)) ;
-         PushValue(operand2) ;
-         PushValue(operand3) ;
+         Assert(MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)#NulSym) ;
+         PutConst(op1, FindType(op3)) ;
+         PushValue(op2) ;
+         PushValue(op3) ;
          doOp(CurrentQuadToken) ;
-         PopValue(operand1) ;
-         PushValue(operand1) ;
-         PutConstSet(operand1) ;
-         AddModGcc(operand1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+         PopValue(op1) ;
+         PushValue(op1) ;
+         PutConstSet(op1) ;
+         AddModGcc(op1,
+                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(CurrentQuadToken))) ;
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'),
                        CurrentQuadToken)
       END
    ELSE
-      BuildBinaryForeachWordDo(Mod2Gcc(GetType(operand1)), Mod2Gcc(operand1), Mod2Gcc(operand2), Mod2Gcc(operand3), binop,
-                               GetMode(operand1)=LeftValue, GetMode(operand2)=LeftValue, GetMode(operand3)=LeftValue)
+      BuildBinaryForeachWordDo(Mod2Gcc(GetType(op1)), Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3), binop,
+                               GetMode(op1)=LeftValue, GetMode(op2)=LeftValue, GetMode(op3)=LeftValue)
    END
 END CodeBinarySet ;
 
@@ -1553,13 +1453,11 @@ END CodeBinarySet ;
    FoldAdd - check addition for constant folding.
 *)
 
-PROCEDURE FoldAdd (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldAdd (tokenno: CARDINAL; l: List;
+                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s            : String ;
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+   s: String ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    IF IsConst(op2) AND IsConst(op3) AND IsConst(op3) AND
       IsConstString(op2) AND IsConstString(op3)
    THEN
@@ -1569,21 +1467,21 @@ BEGIN
       PutConstString(op1, makekey(string(s))) ;
       DeclareConstant(tokenno, op1) ;
       RemoveItemFromList(l, op1) ;
-      SubQuad(AbsoluteHead, quad) ;
+      SubQuad(quad) ;
       s := KillString(s)
    ELSE
-      FoldBinary(tokenno, quad, l, BuildAdd)
+      FoldBinary(tokenno, l, BuildAdd, quad, op1, op2, op3)
    END
 END FoldAdd ;
 
 
 (*
-   CodeAdd - encode subtraction.
+   CodeAdd - encode addition.
 *)
 
-PROCEDURE CodeAdd ;
+PROCEDURE CodeAdd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildAdd)
+   CodeBinary(BuildAdd, quad, op1, op2, op3)
 END CodeAdd ;
 
 
@@ -1591,9 +1489,10 @@ END CodeAdd ;
    FoldSub - check subtraction for constant folding.
 *)
 
-PROCEDURE FoldSub (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldSub (tokenno: CARDINAL; l: List;
+                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildSub)
+   FoldBinary(tokenno, l, BuildSub, quad, op1, op2, op3)
 END FoldSub ;
 
 
@@ -1601,9 +1500,9 @@ END FoldSub ;
    CodeSub - encode subtraction.
 *)
 
-PROCEDURE CodeSub ;
+PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildSub)
+   CodeBinary(BuildSub, quad, op1, op2, op3)
 END CodeSub ;
 
 
@@ -1611,9 +1510,10 @@ END CodeSub ;
    FoldMult - check multiplication for constant folding.
 *)
 
-PROCEDURE FoldMult (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldMult (tokenno: CARDINAL; l: List;
+                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildMult)
+   FoldBinary(tokenno, l, BuildMult, quad, op1, op2, op3)
 END FoldMult ;
 
 
@@ -1621,9 +1521,9 @@ END FoldMult ;
    CodeMult - encode multiplication.
 *)
 
-PROCEDURE CodeMult ;
+PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildMult)
+   CodeBinary(BuildMult, quad, op1, op2, op3)
 END CodeMult ;
 
 
@@ -1631,9 +1531,10 @@ END CodeMult ;
    FoldDiv - check division for constant folding.
 *)
 
-PROCEDURE FoldDiv (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldDiv (tokenno: CARDINAL; l: List;
+                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildDiv)
+   FoldBinary(tokenno, l, BuildDiv, quad, op1, op2, op3)
 END FoldDiv ;
 
 
@@ -1641,9 +1542,9 @@ END FoldDiv ;
    CodeDiv - encode multiplication.
 *)
 
-PROCEDURE CodeDiv ;
+PROCEDURE CodeDiv (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildDiv)
+   CodeBinary(BuildDiv, quad, op1, op2, op3)
 END CodeDiv ;
 
 
@@ -1651,9 +1552,10 @@ END CodeDiv ;
    FoldMod - check modulus for constant folding.
 *)
 
-PROCEDURE FoldMod (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldMod (tokenno: CARDINAL; l: List;
+                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildMod)
+   FoldBinary(tokenno, l, BuildMod, quad, op1, op2, op3)
 END FoldMod ;
 
 
@@ -1661,9 +1563,9 @@ END FoldMod ;
    CodeMod - encode modulus.
 *)
 
-PROCEDURE CodeMod ;
+PROCEDURE CodeMod (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildMod)
+   CodeBinary(BuildMod, quad, op1, op2, op3)
 END CodeMod ;
 
 
@@ -1671,13 +1573,11 @@ END CodeMod ;
    FoldBuiltinConst - 
 *)
 
-PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List;
+                            quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t            : Tree ;
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+   t: Tree ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
    THEN
@@ -1687,7 +1587,7 @@ BEGIN
    ELSE
       AddModGcc(op1, t) ;
       RemoveItemFromList(l, op1) ;
-      SubQuad(AbsoluteHead, quad)
+      SubQuad(quad)
    END
 END FoldBuiltinConst ;
 
@@ -1696,16 +1596,13 @@ END FoldBuiltinConst ;
    FoldStandardFunction - attempts to fold a standard function.
 *)
 
-PROCEDURE FoldStandardFunction (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List;
+                                quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t            : Tree ;
-   operator     : QuadOperator ;
-   s            : String ;
-   result,
-   op1, op2,
-   op3          : CARDINAL ;
+   t     : Tree ;
+   s     : String ;
+   result: CARDINAL ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    DeclareConstant(tokenno, op3) ;
    IF GetSymName(op2)=MakeKey('Length')
    THEN
@@ -1718,7 +1615,7 @@ BEGIN
             THEN
                AddModGcc(op1, FindSize(op3)) ;
                RemoveItemFromList(l, op1) ;
-               SubQuad(AbsoluteHead, quad)
+               SubQuad(quad)
             ELSE
                ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%a)')),
                                       GetSymName(op3)), QuadToTokenNo(quad))
@@ -1742,14 +1639,10 @@ END FoldStandardFunction ;
    CodeStandardFunction - 
 *)
 
-PROCEDURE CodeStandardFunction ;
+PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   t       : Tree ;
-   op1, op3,
-   op2     : CARDINAL ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, op1, op2, op3) ;
    DeclareConstant(CurrentQuadToken, op3) ;
    IF (op2#NulSym) AND (GetSymName(op2)=MakeKey('Length'))
    THEN
@@ -1765,12 +1658,12 @@ BEGIN
             BuildFunctValue(Mod2Gcc(op1))
          ELSIF GetMode(op3)=RightValue
          THEN
-            BuildParam(ResolveHigh(CurrentQuad, op3)) ;
+            BuildParam(ResolveHigh(quad, op3)) ;
             BuildParam(BuildAddr(Mod2Gcc(op3), FALSE)) ;
             t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
          ELSE
-            BuildParam(ResolveHigh(CurrentQuad, op3)) ;
+            BuildParam(ResolveHigh(quad, op3)) ;
             BuildParam(Mod2Gcc(op3)) ;
             t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
@@ -1789,36 +1682,31 @@ END CodeStandardFunction ;
    FoldBinarySet - attempts to fold set arithmetic it removes the quad if successful.
 *)
 
-PROCEDURE FoldBinarySet (tokenno: CARDINAL; quad: CARDINAL; l: List; op: DoProcedure) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldBinarySet (tokenno: CARDINAL; l: List; op: DoProcedure;
+                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly try and ensure that constants are declared *)
-   DeclareConstant(tokenno, operand2) ;
-   DeclareConstant(tokenno, operand3) ;
-   IF IsConst(operand2) AND IsConstSet(operand2) AND
-      IsConst(operand3) AND IsConstSet(operand3) AND
-      IsConst(operand1)
+   DeclareConstant(tokenno, op2) ;
+   DeclareConstant(tokenno, op3) ;
+   IF IsConst(op2) AND IsConstSet(op2) AND
+      IsConst(op3) AND IsConstSet(op3) AND
+      IsConst(op1)
    THEN
-      IF IsValueSolved(operand2) AND IsValueSolved(operand3)
+      IF IsValueSolved(op2) AND IsValueSolved(op3)
       THEN
-         Assert(MixTypes(FindType(operand3), FindType(operand2), tokenno)#NulSym) ;
-         PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), tokenno)) ;
-         PushValue(operand2) ;
-         PushValue(operand3) ;
+         Assert(MixTypes(FindType(op3), FindType(op2), tokenno)#NulSym) ;
+         PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
+         PushValue(op2) ;
+         PushValue(op3) ;
          op(tokenno) ;
-         PopValue(operand1) ;
-         PushValue(operand1) ;
-         PutConstSet(operand1) ;
-         AddModGcc(operand1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+         PopValue(op1) ;
+         PushValue(op1) ;
+         PutConstSet(op1) ;
+         AddModGcc(op1,
+                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(tokenno))) ;
-         RemoveItemFromList(l, operand1) ;
-         SubQuad(AbsoluteHead, quad)
+         RemoveItemFromList(l, op1) ;
+         SubQuad(quad)
       END
    END
 END FoldBinarySet ;
@@ -1828,9 +1716,10 @@ END FoldBinarySet ;
    FoldSetOr - check whether we can fold a set arithmetic or.
 *)
 
-PROCEDURE FoldSetOr (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldSetOr (tokenno: CARDINAL; l: List;
+                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, quad, l, SetOr)
+   FoldBinarySet(tokenno, l, SetOr, quad, op1, op2, op3)
 END FoldSetOr ;
 
 
@@ -1838,9 +1727,9 @@ END FoldSetOr ;
    CodeSetOr - encode set arithmetic or.
 *)
 
-PROCEDURE CodeSetOr ;
+PROCEDURE CodeSetOr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinarySet(BuildLogicalOr, SetOr)
+   CodeBinarySet(BuildLogicalOr, SetOr, quad, op1, op2, op3)
 END CodeSetOr ;
 
 
@@ -1848,9 +1737,10 @@ END CodeSetOr ;
    FoldSetAnd - check whether we can fold a logical and.
 *)
 
-PROCEDURE FoldSetAnd (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldSetAnd (tokenno: CARDINAL; l: List;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, quad, l, SetAnd)
+   FoldBinarySet(tokenno, l, SetAnd, quad, op1, op2, op3)
 END FoldSetAnd ;
 
 
@@ -1858,9 +1748,9 @@ END FoldSetAnd ;
    CodeSetAnd - encode set arithmetic and.
 *)
 
-PROCEDURE CodeSetAnd ;
+PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinarySet(BuildLogicalAnd, SetAnd)
+   CodeBinarySet(BuildLogicalAnd, SetAnd, quad, op1, op2, op3)
 END CodeSetAnd ;
 
 
@@ -1868,9 +1758,10 @@ END CodeSetAnd ;
    FoldSymmetricDifference - check whether we can fold a logical difference.
 *)
 
-PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; l: List;
+                                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, quad, l, SetSymmetricDifference)
+   FoldBinarySet(tokenno, l, SetSymmetricDifference, quad, op1, op2, op3)
 END FoldSymmetricDifference ;
 
 
@@ -1878,9 +1769,10 @@ END FoldSymmetricDifference ;
    CodeSetSymmetricDifference - code set difference.
 *)
 
-PROCEDURE CodeSetSymmetricDifference ;
+PROCEDURE CodeSetSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinarySet(BuildSymmetricDifference, SetSymmetricDifference)
+   CodeBinarySet(BuildSymmetricDifference, SetSymmetricDifference,
+                 quad, op1, op2, op3)
 END CodeSetSymmetricDifference ;
 
 
@@ -1889,36 +1781,31 @@ END CodeSetSymmetricDifference ;
                   Set operands may be longer than a word.
 *)
 
-PROCEDURE CodeUnarySet (unop: BuildUnaryProcedure; doOp: DoUnaryProcedure) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeUnarySet (unop: BuildUnaryProcedure; doOp: DoUnaryProcedure;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConst(op1)
    THEN
-      IF IsValueSolved(operand3)
+      IF IsValueSolved(op3)
       THEN
-         Assert(FindType(operand3)#NulSym) ;
-         PutConst(operand1, FindType(operand3)) ;
-         PushValue(operand3) ;
+         Assert(FindType(op3)#NulSym) ;
+         PutConst(op1, FindType(op3)) ;
+         PushValue(op3) ;
          doOp(CurrentQuadToken) ;
-         PopValue(operand1) ;
-         PushValue(operand1) ;
-         PutConstSet(operand1) ;
-         AddModGcc(operand1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+         PopValue(op1) ;
+         PushValue(op1) ;
+         PutConstSet(op1) ;
+         AddModGcc(op1,
+                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(CurrentQuadToken)))
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'), CurrentQuadToken)
       END
    ELSE
-      BuildUnaryForeachWordDo(Mod2Gcc(GetType(operand1)), Mod2Gcc(operand1), Mod2Gcc(operand3), unop,
-                              GetMode(operand1)=LeftValue, GetMode(operand3)=LeftValue)
+      BuildUnaryForeachWordDo(Mod2Gcc(GetType(op1)), Mod2Gcc(op1), Mod2Gcc(op3), unop,
+                              GetMode(op1)=LeftValue, GetMode(op3)=LeftValue)
    END
 END CodeUnarySet ;
 
@@ -1928,12 +1815,9 @@ END CodeUnarySet ;
               op1 := op1 + (1 << op3)
 *)
 
-PROCEDURE FoldIncl (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE FoldIncl (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(tokenno, op3) ;
    IF IsConst(op1) AND IsConst(op3)
@@ -1945,7 +1829,7 @@ BEGIN
          AddBit(op3) ;
          AddModGcc(op1, PopSetTree(tokenno)) ;
          RemoveItemFromList(l, op1) ;
-         SubQuad(AbsoluteHead, quad)
+         SubQuad(quad)
       END
    END
 END FoldIncl ;
@@ -1956,12 +1840,9 @@ END FoldIncl ;
               if op1 in op2 then goto op3
 *)
 
-PROCEDURE FoldIfIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE FoldIfIn (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(tokenno, op1) ;
    DeclareConstant(tokenno, op2) ;
@@ -1975,7 +1856,7 @@ BEGIN
          THEN
             PutQuad(quad, GotoOp, NulSym, NulSym, op3)
          ELSE
-            SubQuad(AbsoluteHead, quad)
+            SubQuad(quad)
          END
       END
    END
@@ -1987,12 +1868,9 @@ END FoldIfIn ;
                  if not (op1 in op2) then goto op3
 *)
 
-PROCEDURE FoldIfNotIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE FoldIfNotIn (tokenno: CARDINAL; l: List;
+                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(tokenno, op1) ;
    DeclareConstant(tokenno, op2) ;
@@ -2006,7 +1884,7 @@ BEGIN
          THEN
             PutQuad(quad, GotoOp, NulSym, NulSym, op3)
          ELSE
-            SubQuad(AbsoluteHead, quad)
+            SubQuad(quad)
          END
       END
    END
@@ -2088,49 +1966,44 @@ END GetFieldNo ;
               op1 := op1 + (1 << op3)
 *)
 
-PROCEDURE CodeIncl ;
+PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
    low,
-   high,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   offset  : Tree ;
-   fieldno : INTEGER ;
+   high   : CARDINAL ;
+   offset : Tree ;
+   fieldno: INTEGER ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConst(op1)
    THEN
-      IF IsConst(operand3)
+      IF IsConst(op3)
       THEN
          InternalError('this quadruple should have been removed by FoldIncl', __FILE__, __LINE__)
       ELSE
          InternalError('should not get to here (why are we generating <incl const, var> ?)', __FILE__, __LINE__)
       END
    ELSE
-      IF IsConst(operand3)
+      IF IsConst(op3)
       THEN
-         fieldno := GetFieldNo(CurrentQuadToken, operand3, GetType(operand1), offset) ;
+         fieldno := GetFieldNo(CurrentQuadToken, op3, GetType(op1), offset) ;
          IF fieldno>=0
          THEN
-            PushValue(operand3) ;
+            PushValue(op3) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildIncludeVarConst(Mod2Gcc(GetType(operand1)),
-                                 Mod2Gcc(operand1), PopIntegerTree(),
-                                 GetMode(operand1)=LeftValue, fieldno)
+            BuildIncludeVarConst(Mod2Gcc(GetType(op1)),
+                                 Mod2Gcc(op1), PopIntegerTree(),
+                                 GetMode(op1)=LeftValue, fieldno)
          ELSE
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(operand1)))))),
+                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
                           CurrentQuadToken)
          END
       ELSE
-         GetSetLimits(GetType(operand1), low, high) ;
-         BuildIncludeVarVar(Mod2Gcc(GetType(operand1)),
-                            Mod2Gcc(operand1), Mod2Gcc(operand3), GetMode(operand1)=LeftValue, Mod2Gcc(low))
+         GetSetLimits(GetType(op1), low, high) ;
+         BuildIncludeVarVar(Mod2Gcc(GetType(op1)),
+                            Mod2Gcc(op1), Mod2Gcc(op3), GetMode(op1)=LeftValue, Mod2Gcc(low))
       END
    END
 END CodeIncl ;
@@ -2141,12 +2014,9 @@ END CodeIncl ;
               op1 := op1 - (1 << op3)
 *)
 
-PROCEDURE FoldExcl (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator     : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+PROCEDURE FoldExcl (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, op1, op2, op3) ;
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(tokenno, op3) ;
    IF IsConst(op1) AND IsConst(op3)
@@ -2157,7 +2027,7 @@ BEGIN
          SubBit(tokenno, op3) ;
          AddModGcc(op1, PopSetTree(tokenno)) ;
          RemoveItemFromList(l, op1) ;
-         SubQuad(AbsoluteHead, quad)
+         SubQuad(quad)
       END
    END
 END FoldExcl ;
@@ -2168,44 +2038,39 @@ END FoldExcl ;
                 op1 := op1 - (1 << op3)
 *)
 
-PROCEDURE CodeExcl ;
+PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
    low,
-   high,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   high    : CARDINAL ;
    offset  : Tree ;
    fieldno : INTEGER ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConst(op1)
    THEN
       InternalError('should not get to here (if we do we should consider calling FoldInclOp)', __FILE__, __LINE__)
    ELSE
-      IF IsConst(operand3)
+      IF IsConst(op3)
       THEN
-         fieldno := GetFieldNo(CurrentQuadToken, operand3, GetType(operand1), offset) ;
+         fieldno := GetFieldNo(CurrentQuadToken, op3, GetType(op1), offset) ;
          IF fieldno>=0
          THEN
-            PushValue(operand3) ;
+            PushValue(op3) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildExcludeVarConst(Mod2Gcc(GetType(operand1)),
-                                 Mod2Gcc(operand1), PopIntegerTree(),
-                                 GetMode(operand1)=LeftValue, fieldno)
+            BuildExcludeVarConst(Mod2Gcc(GetType(op1)),
+                                 Mod2Gcc(op1), PopIntegerTree(),
+                                 GetMode(op1)=LeftValue, fieldno)
          ELSE
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(operand1)))))),
+                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
                           CurrentQuadToken)
          END
       ELSE
-         GetSetLimits(GetType(operand1), low, high) ;
-         BuildExcludeVarVar(Mod2Gcc(GetType(operand1)),
-                            Mod2Gcc(operand1), Mod2Gcc(operand3), GetMode(operand1)=LeftValue, Mod2Gcc(low))
+         GetSetLimits(GetType(op1), low, high) ;
+         BuildExcludeVarVar(Mod2Gcc(GetType(op1)),
+                            Mod2Gcc(op1), Mod2Gcc(op3), GetMode(op1)=LeftValue, Mod2Gcc(low))
       END
    END
 END CodeExcl ;
@@ -2215,37 +2080,33 @@ END CodeExcl ;
    FoldUnary - check whether we can fold the unop operation.
 *)
 
-PROCEDURE FoldUnary (tokenno: CARDINAL; quad: CARDINAL; l: List; unop: BuildUnaryProcedure; CoerceConst: Tree) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldUnary (tokenno: CARDINAL; l: List;
+                     unop: BuildUnaryProcedure; CoerceConst: Tree;
+                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, operand3) ;
-   IF IsConst(operand3)
+   DeclareConstant(tokenno, op3) ;
+   IF IsConst(op3)
    THEN
-      IF GccKnowsAbout(operand3)
+      IF GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
             IF CoerceConst=Tree(NIL)
             THEN
-               CoerceConst := Tree(Mod2Gcc(GetType(operand3))) ;
+               CoerceConst := Tree(Mod2Gcc(GetType(op3))) ;
                IF CoerceConst=Tree(NIL)
                THEN
                   CoerceConst := GetIntegerType()
                END
             END ;
-            PutConst(operand1, FindType(operand3)) ;
-            AddModGcc(operand1,
+            PutConst(op1, FindType(op3)) ;
+            AddModGcc(op1,
                       DeclareKnownConstant(CoerceConst,
-                                           unop(CoerceTree(operand3), FALSE))) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+                                           unop(CoerceTree(op3), FALSE))) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment, however, we will
                not do this here but in CodeUnary
@@ -2260,32 +2121,27 @@ END FoldUnary ;
    FoldUnarySet - check whether we can fold the doOp operation.
 *)
 
-PROCEDURE FoldUnarySet (tokenno: CARDINAL; quad: CARDINAL; l: List; doOp: DoUnaryProcedure) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldUnarySet (tokenno: CARDINAL; l: List; doOp: DoUnaryProcedure;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly try and ensure that constants are declared *)
-   DeclareConstant(tokenno, operand3) ;
-   IF IsConst(operand3) AND IsConstSet(operand3) AND
-      IsConst(operand1)
+   DeclareConstant(tokenno, op3) ;
+   IF IsConst(op3) AND IsConstSet(op3) AND
+      IsConst(op1)
    THEN
-      IF IsValueSolved(operand3) AND (GetType(operand3)#NulSym)
+      IF IsValueSolved(op3) AND (GetType(op3)#NulSym)
       THEN
-         PutConst(operand1, FindType(operand3)) ;
-         PushValue(operand3) ;
+         PutConst(op1, FindType(op3)) ;
+         PushValue(op3) ;
          doOp(tokenno) ;
-         PopValue(operand1) ;
-         PushValue(operand1) ;
-         PutConstSet(operand1) ;
-         AddModGcc(operand1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
+         PopValue(op1) ;
+         PushValue(op1) ;
+         PutConstSet(op1) ;
+         AddModGcc(op1,
+                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(QuadToTokenNo(quad)))) ;
-         RemoveItemFromList(l, operand1) ;
-         SubQuad(AbsoluteHead, quad)
+         RemoveItemFromList(l, op1) ;
+         SubQuad(quad)
       END
    END
 END FoldUnarySet ;
@@ -2295,31 +2151,27 @@ END FoldUnarySet ;
    CodeUnary - encode a unary arithmetic operation.
 *)
 
-PROCEDURE CodeUnary (unop: BuildUnaryProcedure; CoerceConst: Tree) ;
+PROCEDURE CodeUnary (unop: BuildUnaryProcedure; CoerceConst: Tree;
+                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConst(op1)
    THEN
       IF CoerceConst=Tree(NIL)
       THEN
-         CoerceConst := Tree(Mod2Gcc(GetType(operand3)))
+         CoerceConst := Tree(Mod2Gcc(GetType(op3)))
       END ;
       (* still have a constant which was not resolved, pass it to gcc *)
-      PutConst(operand1, FindType(operand3)) ;
-      AddModGcc(operand1,
+      PutConst(op1, FindType(op3)) ;
+      AddModGcc(op1,
                 DeclareKnownConstant(CoerceConst,
-                                     unop(CoerceTree(operand3), FALSE)))
+                                     unop(CoerceTree(op3), FALSE)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1),
-                           unop(CoerceTree(operand3), FALSE))
+      t := BuildAssignment(Mod2Gcc(op1),
+                           unop(CoerceTree(op3), FALSE))
    END
 END CodeUnary ;
 
@@ -2328,19 +2180,14 @@ END CodeUnary ;
    FoldNegate - check unary negate for constant folding.
 *)
 
-PROCEDURE FoldNegate (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldNegate (tokenno: CARDINAL; l: List;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   IF IsConstSet(operand3)
+   IF IsConstSet(op3)
    THEN
-      FoldUnarySet(tokenno, quad, l, SetNegate)
+      FoldUnarySet(tokenno, l, SetNegate, quad, op1, op2, op3)
    ELSE
-      FoldUnary(tokenno, quad, l, BuildNegate, NIL)
+      FoldUnary(tokenno, l, BuildNegate, NIL, quad, op1, op2, op3)
    END
 END FoldNegate ;
 
@@ -2349,19 +2196,13 @@ END FoldNegate ;
    CodeNegate - encode unary negate.
 *)
 
-PROCEDURE CodeNegate ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeNegate (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   IF IsConstSet(operand3) OR IsSet(GetType(operand3))
+   IF IsConstSet(op3) OR IsSet(GetType(op3))
    THEN
-      CodeUnarySet(BuildSetNegate, SetNegate)
+      CodeUnarySet(BuildSetNegate, SetNegate, quad, op1, op2, op3)
    ELSE
-      CodeUnary(BuildNegate, NIL)
+      CodeUnary(BuildNegate, NIL, quad, op1, op2, op3)
    END
 END CodeNegate ;
 
@@ -2370,23 +2211,19 @@ END CodeNegate ;
    FoldSize - check unary SIZE for constant folding.
 *)
 
-PROCEDURE FoldSize (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldSize (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   IF IsConst(operand1) AND CompletelyResolved(operand3)
+   IF IsConst(op1) AND CompletelyResolved(op3)
    THEN
-      t := BuildSize(Mod2Gcc(operand3), FALSE) ;
+      t := BuildSize(Mod2Gcc(op3), FALSE) ;
       PushIntegerTree(t) ;
-      PopValue(operand1) ;
-      PutConst(operand1, Cardinal) ;
-      RemoveItemFromList(l, operand1) ;
-      SubQuad(AbsoluteHead, quad) ;
+      PopValue(op1) ;
+      PutConst(op1, Cardinal) ;
+      RemoveItemFromList(l, op1) ;
+      SubQuad(quad) ;
       t := RememberConstant(t)
    END
 END FoldSize ;
@@ -2396,26 +2233,21 @@ END FoldSize ;
    CodeSize - encode the inbuilt SIZE function.
 *)
 
-PROCEDURE CodeSize ;
+PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   PushIntegerTree(BuildSize(Mod2Gcc(operand3), FALSE)) ;
-   IF IsConst(operand1)
+   PushIntegerTree(BuildSize(Mod2Gcc(op3), FALSE)) ;
+   IF IsConst(op1)
    THEN
-      PopValue(operand1) ;
-      PutConst(operand1, Cardinal) ;
-      PushValue(operand1) ;
-      AddModGcc(operand1,
+      PopValue(op1) ;
+      PutConst(op1, Cardinal) ;
+      PushValue(op1) ;
+      AddModGcc(op1,
                 DeclareKnownConstant(GetIntegerType(),
                                      PopIntegerTree()))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1), PopIntegerTree())
+      t := BuildAssignment(Mod2Gcc(op1), PopIntegerTree())
    END
 END CodeSize ;
 
@@ -2510,51 +2342,47 @@ END DetermineFieldOf ;
                 a few parameters to the gcc backend.
 *)
 
-PROCEDURE FoldOffset (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldOffset (tokenno: CARDINAL; l: List;
+                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   field,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   field: CARDINAL ;
+   t    : Tree ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, operand3) ;
-   IF IsRecordField(operand3) OR IsFieldVarient(operand3)
+   DeclareConstant(tokenno, op3) ;
+   IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(operand3)
+      IF GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
-            field := DetermineFieldOf(operand3) ;
+            field := DetermineFieldOf(op3) ;
             IF field=NulSym
             THEN
-               t := BuildOffset(Mod2Gcc(operand3), FALSE)
+               t := BuildOffset(Mod2Gcc(op3), FALSE)
             ELSE
                (*
-                  we must also add the position of operand3 father as BuildOffset
-                  gives us the relative position of operand3 to its father. We need
+                  we must also add the position of op3 father as BuildOffset
+                  gives us the relative position of op3 to its father. We need
                   to add fathers position to this in order to get correct overall offset.
-                  [The operand3 father is akin to an invisible record]
+                  [The op3 father is akin to an invisible record]
                *)
-               t := BuildAdd(BuildOffset(Mod2Gcc(operand3), FALSE),
+               t := BuildAdd(BuildOffset(Mod2Gcc(op3), FALSE),
                              BuildOffset(Mod2Gcc(field), FALSE),
                              FALSE)
             END ;
-            IF NOT IsValueSolved(operand1)
+            IF NOT IsValueSolved(op1)
             THEN
                PushIntegerTree(t) ;
-               PopValue(operand1)
+               PopValue(op1)
             END ;
-            PutConst(operand1, Address) ;
-            AddModGcc(operand1,
+            PutConst(op1, Address) ;
+            AddModGcc(op1,
                       DeclareKnownConstant(GetIntegerType(),
                                            t)) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment, however, we will
                not do this here but in CodeOffset
@@ -2568,56 +2396,51 @@ END FoldOffset ;
 (*
    CodeOffset - encode an OffsetOp quadruple. Very similar to CodeUnary, except that
                 we need to hard code a few parameters to the gcc backend.
-                operand1 is set to contain the offset (in bytes) of field operand3
+                op1 is set to contain the offset (in bytes) of field op3
                 from its parent record.
 *)
 
-PROCEDURE CodeOffset ;
+PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   field,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   field: CARDINAL ;
+   t    : Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsRecordField(operand3) OR IsFieldVarient(operand3)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(operand3)
+      IF GccKnowsAbout(op3)
       THEN
-         field := DetermineFieldOf(operand3) ;
+         field := DetermineFieldOf(op3) ;
          IF field=NulSym
          THEN
-            t := BuildOffset(Mod2Gcc(operand3), FALSE)
+            t := BuildOffset(Mod2Gcc(op3), FALSE)
          ELSE
             (*
-               we must also add the position of operand3 father as BuildOffset
-               gives us the relative position of operand3 to its father. We need
+               we must also add the position of op3 father as BuildOffset
+               gives us the relative position of op3 to its father. We need
                to add fathers position to this in order to get correct overall offset.
-               [The operand3 father is akin to an invisible record]
+               [The op3 father is akin to an invisible record]
              *)
-            t := BuildAdd(BuildOffset(Mod2Gcc(operand3), FALSE),
+            t := BuildAdd(BuildOffset(Mod2Gcc(op3), FALSE),
                           BuildOffset(Mod2Gcc(field), FALSE),
                           FALSE)
          END ;
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
             (* fine, we can take advantage of this and fold constants *)
-            IF NOT IsValueSolved(operand1)
+            IF NOT IsValueSolved(op1)
             THEN
                PushIntegerTree(t) ;
-               PopValue(operand1)
+               PopValue(op1)
             END ;
-            PutConst(operand1, Address) ;
-            AddModGcc(operand1,
+            PutConst(op1, Address) ;
+            AddModGcc(op1,
                       DeclareKnownConstant(GetIntegerType(),
                                            t))
          ELSE
             (* ok, use assignment *)
-            t := BuildAssignment(Mod2Gcc(operand1), t)
+            t := BuildAssignment(Mod2Gcc(op1), t)
          END
       ELSE
          InternalError('symbol type should have been declared by now..', __FILE__, __LINE__)
@@ -2662,36 +2485,32 @@ END ResolveHigh ;
 
 (*
    FoldHigh - if the array is not dynamic then we should be able to
-              remove the HighOp quadruple and assign Operand1 with
-              the known compile time HIGH(Operand3).
+              remove the HighOp quadruple and assign op1 with
+              the known compile time HIGH(op3).
 *)
 
-PROCEDURE FoldHigh (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldHigh (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t       : Tree ;
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3,
    high,
    low,
    type    : CARDINAL ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, operand3) ;
-   t := ResolveHigh(quad, operand3) ;
-   IF GccKnowsAbout(operand3)
+   DeclareConstant(tokenno, op3) ;
+   t := ResolveHigh(quad, op3) ;
+   IF GccKnowsAbout(op3)
    THEN
       (* fine, we can take advantage of this and fold constants *)
-      IF IsConst(operand1) AND (t#Tree(NIL))
+      IF IsConst(op1) AND (t#Tree(NIL))
       THEN
-         PutConst(operand1, Cardinal) ;
-         AddModGcc(operand1,
+         PutConst(op1, Cardinal) ;
+         AddModGcc(op1,
                    DeclareKnownConstant(GetIntegerType(),
                                         t)) ;
-         RemoveItemFromList(l, operand1) ;
-         SubQuad(AbsoluteHead, quad)
+         RemoveItemFromList(l, op1) ;
+         SubQuad(quad)
       ELSE
          (* we can still fold the expression, but not the assignment, however, we will
             not do this here but in CodeHigh
@@ -2705,26 +2524,21 @@ END FoldHigh ;
    CodeHigh - encode a unary arithmetic operation.
 *)
 
-PROCEDURE CodeHigh ;
+PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConst(operand1)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConst(op1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
-      AddModGcc(operand1,
+      AddModGcc(op1,
                 DeclareKnownConstant(GetIntegerType(),
-                                     ResolveHigh(CurrentQuad, operand3)))
+                                     ResolveHigh(quad, op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1),
-                           ResolveHigh(CurrentQuad, operand3))
+      t := BuildAssignment(Mod2Gcc(op1),
+                           ResolveHigh(quad, op3))
    END
 END CodeHigh ;
 
@@ -2734,34 +2548,28 @@ END CodeHigh ;
                    places the address of op3 into *op1
 *)
 
-PROCEDURE CodeUnbounded ;
+PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
    Addr,
-   t       : Tree ;
+   t   : Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-
-   DeclareConstant(CurrentQuadToken, operand3) ;
-   IF IsConstString(operand3)
+   DeclareConstant(CurrentQuadToken, op3) ;
+   IF IsConstString(op3)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()),
-                           BuildAddr(PromoteToString(CurrentQuadToken, operand3), FALSE))
-   ELSIF IsUnbounded(GetType(operand3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()),
+                           BuildAddr(PromoteToString(CurrentQuadToken, op3), FALSE))
+   ELSIF IsUnbounded(GetType(op3))
    THEN
-      Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(operand3), FALSE),
+      Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
                                      BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                      FALSE),
                             GetIntegerType()) ;
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), Addr)
-   ELSIF GetMode(operand3)=RightValue
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Addr)
+   ELSIF GetMode(op3)=RightValue
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), BuildAddr(Mod2Gcc(operand3), FALSE))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), BuildAddr(Mod2Gcc(op3), FALSE))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), Mod2Gcc(operand3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Mod2Gcc(op3))
    END
 END CodeUnbounded ;
 
@@ -2830,31 +2638,26 @@ END CalculateBase ;
 
 
 (*
-   FoldBase - operand1 is a constant and BaseOp will calculate the offset
+   FoldBase - op1 is a constant and BaseOp will calculate the offset
               of the virtual start of the array  ie a[0,0,0,0..,0]
               from the address of the array &a.
 
-              operand2 is the type of the array
-              operand3 is the array
+              op2 is the type of the array
+              op3 is the array
 *)
 
-PROCEDURE FoldBase (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldBase (tokenno: CARDINAL; l: List;
+                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   IF IsConst(operand1)
+   IF IsConst(op1)
    THEN
-      IF (NOT GccKnowsAbout(operand1)) AND AreSubrangesKnown(operand2)
+      IF (NOT GccKnowsAbout(op1)) AND AreSubrangesKnown(op2)
       THEN
-         AddModGcc(operand1,
+         AddModGcc(op1,
                    DeclareKnownConstant(GetIntegerType(),
-                                        CalculateBase(operand2))) ;
-         RemoveItemFromList(l, operand1) ;
-         SubQuad(AbsoluteHead, quad)
+                                        CalculateBase(op2))) ;
+         RemoveItemFromList(l, op1) ;
+         SubQuad(quad)
       ELSE
          (* we can still fold the expression, but not the assignment, however, we will
             not do this here but in CodeBase
@@ -2865,63 +2668,58 @@ END FoldBase ;
 
 
 (*
-   CodeBase - operand1 is a constant and BaseOp will calculate the offset
+   CodeBase - op1 is a constant and BaseOp will calculate the offset
               of the virtual start of the array  ie a[0,0,0,0..,0]
               from the address of the array, a.
 
-              operand2 is the type of the array
-              operand3 is the array
+              op2 is the type of the array
+              op3 is the array
 *)
 
-PROCEDURE CodeBase ;
+PROCEDURE CodeBase (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t       : Tree ;
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   IF IsConst(operand1)
+   IF IsConst(op1)
    THEN
-      IF AreSubrangesKnown(operand2)
+      IF AreSubrangesKnown(op2)
       THEN
-         AddModGcc(operand1,
+         AddModGcc(op1,
                    DeclareKnownConstant(GetIntegerType(),
-                                        CalculateBase(operand2)))
+                                        CalculateBase(op2)))
       ELSE
          InternalError('subranges not yet resolved', __FILE__, __LINE__)
       END
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1), CalculateBase(operand2))
+      t := BuildAssignment(Mod2Gcc(op1), CalculateBase(op2))
    END
 END CodeBase ;
 
 
 (*
    FoldElementSizeForArray - attempts to calculate the Subscript
-                             multiplier for the index Operand3.
+                             multiplier for the index op3.
 *)
 
 PROCEDURE FoldElementSizeForArray (quad: CARDINAL; l: List;
-                                   operand1, type, operand3: CARDINAL) ;
+                                   op1, type, op3: CARDINAL) ;
 VAR
    Subscript: CARDINAL ;
 BEGIN
-   IF IsConst(operand1) AND (NOT GccKnowsAbout(operand1))
+   IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
-      IF NoOfElements(type)>=operand3
+      IF NoOfElements(type)>=op3
       THEN
-         Subscript := GetNth(type, operand3) ;
+         Subscript := GetNth(type, op3) ;
          IF IsSizeSolved(Subscript)
          THEN
-            PutConst(operand1, Integer) ;
+            PutConst(op1, Integer) ;
             PushSize(Subscript) ;
-            AddModGcc(operand1,
+            AddModGcc(op1,
                       DeclareKnownConstant(GetIntegerType(),
                                            PopIntegerTree())) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          END
       END
    END
@@ -2936,28 +2734,28 @@ END FoldElementSizeForArray ;
 *)
 
 PROCEDURE FoldElementSizeForUnbounded (quad: CARDINAL; l: List;
-                                       operand1, ArrayType, operand3: CARDINAL) ;
+                                       op1, ArrayType, op3: CARDINAL) ;
 VAR
    Type: CARDINAL ;
 BEGIN
-   IF IsConst(operand1)
+   IF IsConst(op1)
    THEN
-      IF GccKnowsAbout(operand1)
+      IF GccKnowsAbout(op1)
       THEN
          InternalError('cannot assign a value twice to a constant', __FILE__, __LINE__)
       ELSE
          Assert(IsUnbounded(ArrayType)) ;
-         Assert(operand3=1) ;
-         Assert(NoOfElements(ArrayType)=operand3) ;
+         Assert(op3=1) ;
+         Assert(NoOfElements(ArrayType)=op3) ;
          Type := GetType(ArrayType) ;
          IF GccKnowsAbout(Type)
          THEN
-            PutConst(operand1, Cardinal) ;
-            AddModGcc(operand1,
+            PutConst(op1, Cardinal) ;
+            AddModGcc(op1,
                       DeclareKnownConstant(GetIntegerType(),
                                            FindSize(Type))) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          END
       END
    END
@@ -2970,22 +2768,17 @@ END FoldElementSizeForUnbounded ;
                      multiplier to be multiplied by this element index.
 *)
 
-PROCEDURE FoldElementSize (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List;
+                           quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   IF IsUnbounded(operand2)
+   IF IsUnbounded(op2)
    THEN
-      FoldElementSizeForUnbounded(quad, l, operand1, operand2, operand3)
-   ELSIF IsArray(operand2)
+      FoldElementSizeForUnbounded(quad, l, op1, op2, op3)
+   ELSIF IsArray(op2)
    THEN
-      FoldElementSizeForArray(quad, l, operand1, operand2, operand3)
+      FoldElementSizeForArray(quad, l, op1, op2, op3)
    ELSE
-      InternalError('Expecting UnboundedSym or ArraySym', __FILE__, __LINE__)
+      InternalError('expecting UnboundedSym or ArraySym', __FILE__, __LINE__)
    END
 END FoldElementSize ;
 
@@ -2994,97 +2787,93 @@ END FoldElementSize ;
 
 *)
 
-PROCEDURE CodeElementSize ;
+PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    InternalError('strange - expected ElementSizeOp to be folded via constant evaluation', __FILE__, __LINE__)
 END CodeElementSize ;
 
 
 (*
-   FoldConvert - attempts to fold operand3 to type operand2 placing the result into
-                 operand1, providing that operand1 and operand3 are constants.
+   FoldConvert - attempts to fold op3 to type op2 placing the result into
+                 op1, providing that op1 and op3 are constants.
                  Convert will, if need be, alter the machine representation
-                 of Operand3 to comply with TYPE Operand2.
+                 of op3 to comply with TYPE op2.
 *)
 
-PROCEDURE FoldConvert (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+PROCEDURE FoldConvert (tokenno: CARDINAL; l: List;
+                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, quad, l, BuildConvert)
+   FoldBinary(tokenno, l, BuildConvert, quad, op1, op2, op3)
 END FoldConvert ;
 
 
 (*
-   CodeConvert - Converts Operand3 to type Operand2 placing the result into
-                 Operand1.
+   CodeConvert - Converts op3 to type op2 placing the result into
+                 op1.
                  Convert will, if need be, alter the machine representation
-                 of Operand3 to comply with TYPE Operand2.
+                 of op3 to comply with TYPE op2.
 *)
 
-PROCEDURE CodeConvert ;
+PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildConvert)
+   CodeBinary(BuildConvert, quad, op1, op2, op3)
 END CodeConvert ;
 
 
 (*
-   CodeCoerce - Coerce operand3 to type operand2 placing the result into
-                operand1.
+   CodeCoerce - Coerce op3 to type op2 placing the result into
+                op1.
                 Coerce will NOT alter the machine representation
-                of operand3 to comply with TYPE Operand2.
+                of op3 to comply with TYPE op2.
                 Therefore it _insists_ that under all circumstances that the
-                type sizes of Operand1 and Operand3 are the same.
+                type sizes of op1 and op3 are the same.
                 CONVERT will perform machine manipulation to change variable
                 types, coerce does no such thing.
 *)
 
-PROCEDURE CodeCoerce ;
+PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t       : Tree ;
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand3) ;  (* checks to see whether it is a constant literal and declares it *)
-   IF IsProcedure(operand3)
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF IsProcedure(op3)
    THEN
-      IF AreConstantsEqual(FindSize(operand1), FindSize(Word))
+      IF AreConstantsEqual(FindSize(op1), FindSize(Word))
       THEN
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
-            AddModGcc(operand1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(operand1)),
-                                           Mod2Gcc(operand3)))
+            AddModGcc(op1,
+                      DeclareKnownConstant(Mod2Gcc(GetType(op1)),
+                                           Mod2Gcc(op3)))
          ELSE
-            t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
+            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
          ErrorStringAt(InitString('procedure address can only be stored in a word size operand'),
                        CurrentQuadToken)
       END
-   ELSIF IsConst(operand3) OR AreConstantsEqual(FindSize(operand1), FindSize(operand3))
+   ELSIF IsConst(op3) OR AreConstantsEqual(FindSize(op1), FindSize(op3))
    THEN
-      IF IsConst(operand1)
+      IF IsConst(op1)
       THEN
-         AddModGcc(operand1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(operand1)),
-                                        Mod2Gcc(operand3)))
+         AddModGcc(op1,
+                   DeclareKnownConstant(Mod2Gcc(GetType(op1)),
+                                        Mod2Gcc(op3)))
       ELSE
-         Assert(GccKnowsAbout(operand2)) ;
-         IF IsConst(operand3)
+         Assert(GccKnowsAbout(op2)) ;
+         IF IsConst(op3)
          THEN
-            t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
+            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
          ELSE
-            (* does not work t := BuildCoerce(Mod2Gcc(operand1), Mod2Gcc(operand2), Mod2Gcc(operand3)) *)
-            ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(operand1), FALSE),
-                                                     BuildAddr(Mod2Gcc(operand3), FALSE),
-                                                     FindSize(operand2)))
+            (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
+            ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                                     BuildAddr(Mod2Gcc(op3), FALSE),
+                                                     FindSize(op2)))
          END
       END
    ELSE
       ErrorStringAt(InitString('can only CAST objects of the same size'),
-                    QuadToTokenNo(CurrentQuad))
+                    QuadToTokenNo(quad))
    END
 END CodeCoerce ;
 
@@ -3093,41 +2882,36 @@ END CodeCoerce ;
    FoldCoerce -
 *)
 
-PROCEDURE FoldCoerce (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List;
+                      quad, op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(quad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(tokenno, operand3) ;  (* checks to see whether it is a constant literal and declares it *)
-   IF GccKnowsAbout(operand2) AND GccKnowsAbout(operand3)
+   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
    THEN
-      IF IsProcedure(operand3)
+      IF IsProcedure(op3)
       THEN
-         IF AreConstantsEqual(FindSize(operand1), FindSize(Address))
+         IF AreConstantsEqual(FindSize(op1), FindSize(Address))
          THEN
-            IF IsConst(operand1)
+            IF IsConst(op1)
             THEN
-               AddModGcc(operand1,
-                         DeclareKnownConstant(Mod2Gcc(GetType(operand1)),
-                                              Mod2Gcc(operand3))) ;
-               RemoveItemFromList(l, operand1) ;
-               SubQuad(AbsoluteHead, quad)
+               AddModGcc(op1,
+                         DeclareKnownConstant(Mod2Gcc(GetType(op1)),
+                                              Mod2Gcc(op3))) ;
+               RemoveItemFromList(l, op1) ;
+               SubQuad(quad)
             END
          ELSE
             ErrorStringAt(InitString('procedure address can only be stored in a word size operand'), QuadToTokenNo(quad))
          END
-      ELSIF IsConst(operand3)
+      ELSIF IsConst(op3)
       THEN
-         IF IsConst(operand1)
+         IF IsConst(op1)
          THEN
-            AddModGcc(operand1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(operand1)),
-                                           Mod2Gcc(operand3))) ;
-            RemoveItemFromList(l, operand1) ;
-            SubQuad(AbsoluteHead, quad)
+            AddModGcc(op1,
+                      DeclareKnownConstant(Mod2Gcc(GetType(op1)),
+                                           Mod2Gcc(op3))) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
          END
       END
    END
@@ -3145,19 +2929,14 @@ END FoldCoerce ;
               Op3    parameter
 *)
 
-PROCEDURE CodeMath ;
+PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand3) ;  (* checks to see whether it is a constant literal and declares it *)
-   IF operand1=Trunc
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF op1=Trunc
    THEN
-      t := BuildAssignment(Mod2Gcc(operand2), BuildTrunc(Mod2Gcc(operand3)))
+      t := BuildAssignment(Mod2Gcc(op2), BuildTrunc(Mod2Gcc(op3)))
    ELSE
       InternalError('unknown math operator', __FILE__, __LINE__)
    END ;
@@ -3179,15 +2958,9 @@ END CreateLabelName ;
    CodeGoto - creates a jump to a labeled quadruple.
 *)
 
-PROCEDURE CodeGoto ;
-VAR
-   operator : QuadOperator ;
-   operand1,
-   operand2,
-   operand3 : CARDINAL ;
+PROCEDURE CodeGoto (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   BuildGoto(string(CreateLabelName(operand3)))
+   BuildGoto(string(CreateLabelName(op3)))
 END CodeGoto ;
 
 
@@ -3200,7 +2973,7 @@ VAR
    t: Tree ;
 BEGIN
    (* we do not create labels for procedure entries *)
-   IF (op#NewLocalVarOp) AND IsReferenced(AbsoluteHead, q)
+   IF (op#NewLocalVarOp) AND IsReferenced(q)
    THEN
       t := DeclareLabel(string(CreateLabelName(q)))
    END
@@ -3211,39 +2984,39 @@ END CheckReferenced ;
    CodeIfSetLess - 
 *)
 
-PROCEDURE CodeIfSetLess (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetLess (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildIsNotSuperset(BuildConvert(GetWordType(), Mod2Gcc(operand1), FALSE),
-                                BuildConvert(GetWordType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildIsNotSuperset(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                                BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildIsSuperset,
                                     falselabel) ;
 
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetLess ;
@@ -3253,34 +3026,28 @@ END CodeIfSetLess ;
    CodeIfLess - codes the quadruple if op1 < op2 then goto op3
 *)
 
-PROCEDURE CodeIfLess ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfLess (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF Less(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetLess(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetLess(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildLessThan(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildLessThan(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLess ;
 
@@ -3289,39 +3056,39 @@ END CodeIfLess ;
    CodeIfSetGre - 
 *)
 
-PROCEDURE CodeIfSetGre (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetGre (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildIsNotSubset(BuildConvert(GetWordType(), Mod2Gcc(operand1), FALSE),
-                              BuildConvert(GetWordType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildIsNotSubset(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                              BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildIsSubset,
                                     falselabel) ;
 
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetGre ;
@@ -3331,34 +3098,28 @@ END CodeIfSetGre ;
    CodeIfGre - codes the quadruple if op1 > op2 then goto op3
 *)
 
-PROCEDURE CodeIfGre ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfGre (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF Gre(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetGre(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetGre(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildGreaterThan(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildGreaterThan(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGre ;
 
@@ -3367,39 +3128,39 @@ END CodeIfGre ;
    CodeIfSetLessEqu - 
 *)
 
-PROCEDURE CodeIfSetLessEqu (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildIsSubset(BuildConvert(GetWordType(), Mod2Gcc(operand1), FALSE),
-                           BuildConvert(GetWordType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildIsSubset(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                           BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildIsNotSubset,
                                     falselabel) ;
 
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetLessEqu ;
@@ -3409,35 +3170,28 @@ END CodeIfSetLessEqu ;
    CodeIfLessEqu - codes the quadruple if op1 <= op2 then goto op3
 *)
 
-PROCEDURE CodeIfLessEqu ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF LessEqu(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetLessEqu(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetLessEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildLessThanOrEqual(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildLessThanOrEqual(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLessEqu ;
 
@@ -3446,39 +3200,39 @@ END CodeIfLessEqu ;
    CodeIfSetGreEqu - 
 *)
 
-PROCEDURE CodeIfSetGreEqu (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildIsSuperset(BuildConvert(GetWordType(), Mod2Gcc(operand1), FALSE),
-                             BuildConvert(GetWordType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildIsSuperset(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                             BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildIsNotSuperset,
                                     falselabel) ;
 
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetGreEqu ;
@@ -3488,121 +3242,115 @@ END CodeIfSetGreEqu ;
    CodeIfGreEqu - codes the quadruple if op1 >= op2 then goto op3
 *)
 
-PROCEDURE CodeIfGreEqu ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF GreEqu(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetGreEqu(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetGreEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildGreaterThanOrEqual(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildGreaterThanOrEqual(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGreEqu ;
 
 
 (*
-   CodeIfSetEqu - codes if operand1 = operand2 then goto operand3
-                  Note that if operand1 and operand2 are not both constants
+   CodeIfSetEqu - codes if op1 = op2 then goto op3
+                  Note that if op1 and op2 are not both constants
                   since this will have been evaluated in CodeIfEqu.
 *)
 
-PROCEDURE CodeIfSetEqu (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildEqualTo(BuildConvert(GetIntegerType(), Mod2Gcc(operand1), FALSE),
-                          BuildConvert(GetIntegerType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildEqualTo(BuildConvert(GetIntegerType(), Mod2Gcc(op1), FALSE),
+                          BuildConvert(GetIntegerType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
       
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildNotEqualTo,
                                     falselabel) ;
 
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetEqu ;
 
 
 (*
-   CodeIfSetNotEqu - codes if operand1 # operand2 then goto operand3
-                     Note that if operand1 and operand2 are not both constants
+   CodeIfSetNotEqu - codes if op1 # op2 then goto op3
+                     Note that if op1 and op2 are not both constants
                      since this will have been evaluated in CodeIfNotEqu.
 *)
 
-PROCEDURE CodeIfSetNotEqu (quad: CARDINAL; operand1, operand2, operand3: CARDINAL) ;
+PROCEDURE CodeIfSetNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
-   IF IsConst(operand1) AND IsConst(operand2)
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('this should have been folded in the calling procedure', __FILE__, __LINE__)
-   ELSIF IsConst(operand1)
+   ELSIF IsConst(op1)
    THEN
-      settype := GetType(operand2)
+      settype := GetType(op2)
    ELSE
-      settype := GetType(operand1)
+      settype := GetType(op1)
    END ;
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildNotEqualTo(BuildConvert(GetWordType(), Mod2Gcc(operand1), FALSE),
-                             BuildConvert(GetWordType(), Mod2Gcc(operand2), FALSE)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildNotEqualTo(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                             BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
+             NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
-                                    Mod2Gcc(operand1), Mod2Gcc(operand2),
-                                    GetMode(operand1)=LeftValue,
-                                    GetMode(operand2)=LeftValue,
-                                    IsConst(operand1), IsConst(operand2),
+                                    Mod2Gcc(op1), Mod2Gcc(op2),
+                                    GetMode(op1)=LeftValue,
+                                    GetMode(op2)=LeftValue,
+                                    IsConst(op1), IsConst(op2),
                                     BuildEqualTo,
                                     falselabel) ;
       
-      BuildGoto(string(CreateLabelName(operand3))) ;
+      BuildGoto(string(CreateLabelName(op3))) ;
       t := DeclareLabel(falselabel)
    END
 END CodeIfSetNotEqu ;
@@ -3612,34 +3360,28 @@ END CodeIfSetNotEqu ;
    CodeIfEqu - codes the quadruple if op1 = op2 then goto op3
 *)
 
-PROCEDURE CodeIfEqu ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF Equ(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetEqu(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildEqualTo(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildEqualTo(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfEqu ;
 
@@ -3648,34 +3390,28 @@ END CodeIfEqu ;
    CodeIfNotEqu - codes the quadruple if op1 # op2 then goto op3
 *)
 
-PROCEDURE CodeIfNotEqu ;
-VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+PROCEDURE CodeIfNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
-      PushValue(operand1) ;
-      PushValue(operand2) ;
+      PushValue(op1) ;
+      PushValue(op2) ;
       IF NotEqu(CurrentQuadToken)
       THEN
-         BuildGoto(string(CreateLabelName(operand3)))
+         BuildGoto(string(CreateLabelName(op3)))
       ELSE
          (* fall through *)
       END
-   ELSIF IsConstSet(operand1) OR (IsVar(operand1) AND IsSet(GetType(operand1))) OR
-         IsConstSet(operand2) OR (IsVar(operand2) AND IsSet(GetType(operand2)))
+   ELSIF IsConstSet(op1) OR (IsVar(op1) AND IsSet(GetType(op1))) OR
+         IsConstSet(op2) OR (IsVar(op2) AND IsSet(GetType(op2)))
    THEN
-      CodeIfSetNotEqu(CurrentQuad, operand1, operand2, operand3)
+      CodeIfSetNotEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildNotEqualTo(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-             NIL, string(CreateLabelName(operand3)))
+      DoJump(BuildNotEqualTo(Mod2Gcc(op1), Mod2Gcc(op2)),
+             NIL, string(CreateLabelName(op3)))
    END
 END CodeIfNotEqu ;
 
@@ -3702,7 +3438,7 @@ END BuildIfVarInConstValue ;
    BuildIfNotVarInConstValue - if not (var in constsetvalue) then goto trueexit
 *)
 
-PROCEDURE BuildIfNotVarInConstValue (constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
+PROCEDURE BuildIfNotVarInConstValue (quad: CARDINAL; constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
 VAR
    t           : Tree ;
    low, high, n: CARDINAL ;
@@ -3720,7 +3456,7 @@ BEGIN
       BuildIfNotInRangeGoto(Mod2Gcc(var), Mod2Gcc(low), Mod2Gcc(high), truelabel) ;
    ELSE
       n := 1 ;
-      falselabel := string(Sprintf1(Mark(InitString('.Lset%d')), CurrentQuad)) ;
+      falselabel := string(Sprintf1(Mark(InitString('.Lset%d')), quad)) ;
       WHILE GetRange(constsetvalue, n, low, high) DO
          BuildIfInRangeGoto(Mod2Gcc(var), Mod2Gcc(low), Mod2Gcc(high), falselabel) ;
          INC(n)
@@ -3735,62 +3471,57 @@ END BuildIfNotVarInConstValue ;
    CodeIfIn - code the quadruple: if op1 in op2 then goto op3
 *)
 
-PROCEDURE CodeIfIn ;
+PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
    low,
-   high,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   high    : CARDINAL ;
    lowtree,
    hightree,
    offset  : Tree ;
    fieldno : INTEGER ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('should not get to here (if we do we should consider calling FoldIfIn)', __FILE__, __LINE__)
    ELSE
-      IF IsConst(operand1)
+      IF IsConst(op1)
       THEN
-         fieldno := GetFieldNo(CurrentQuadToken, operand1, GetType(operand2), offset) ;
+         fieldno := GetFieldNo(CurrentQuadToken, op1, GetType(op2), offset) ;
          IF fieldno>=0
          THEN
-            PushValue(operand1) ;
+            PushValue(op1) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildIfConstInVar(Mod2Gcc(GetType(operand2)),
-                              Mod2Gcc(operand2), PopIntegerTree(),
-                              GetMode(operand2)=LeftValue, fieldno,
-                              string(CreateLabelName(operand3)))
+            BuildIfConstInVar(Mod2Gcc(GetType(op2)),
+                              Mod2Gcc(op2), PopIntegerTree(),
+                              GetMode(op2)=LeftValue, fieldno,
+                              string(CreateLabelName(op3)))
          ELSE
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(operand1)))))),
+                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1)))))),
                           CurrentQuadToken)
          END
-      ELSIF IsConst(operand2)
+      ELSIF IsConst(op2)
       THEN
          (* builds a cascaded list of if statements *)
-         PushValue(operand2) ;
-         BuildIfVarInConstValue(GetValue(CurrentQuadToken), operand1, operand3)
+         PushValue(op2) ;
+         BuildIfVarInConstValue(GetValue(CurrentQuadToken), op1, op3)
       ELSE
-         GetSetLimits(GetType(operand2), low, high) ;
+         GetSetLimits(GetType(op2), low, high) ;
 
          PushValue(low) ;
          lowtree := PopIntegerTree() ;
          PushValue(high) ;
          hightree := PopIntegerTree() ;
 
-         BuildIfVarInVar(Mod2Gcc(GetType(operand2)),
-                         Mod2Gcc(operand2), Mod2Gcc(operand1),
-                         GetMode(operand2)=LeftValue,
+         BuildIfVarInVar(Mod2Gcc(GetType(op2)),
+                         Mod2Gcc(op2), Mod2Gcc(op1),
+                         GetMode(op2)=LeftValue,
                          lowtree, hightree,
-                         string(CreateLabelName(operand3)))
+                         string(CreateLabelName(op3)))
       END
    END
 END CodeIfIn ;
@@ -3800,62 +3531,58 @@ END CodeIfIn ;
    CodeIfNotIn - code the quadruple: if not (op1 in op2) then goto op3
 *)
 
-PROCEDURE CodeIfNotIn ;
+PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    operator: QuadOperator ;
    low,
-   high,
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
+   high    : CARDINAL ;
    lowtree,
    hightree,
    offset  : Tree ;
    fieldno : INTEGER ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, operand1) ;
-   DeclareConstant(CurrentQuadToken, operand2) ;
-   IF IsConst(operand1) AND IsConst(operand2)
+   DeclareConstant(CurrentQuadToken, op1) ;
+   DeclareConstant(CurrentQuadToken, op2) ;
+   IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('should not get to here (if we do we should consider calling FoldIfIn)', __FILE__, __LINE__)
    ELSE
-      IF IsConst(operand1)
+      IF IsConst(op1)
       THEN
-         fieldno := GetFieldNo(CurrentQuadToken, operand1, GetType(operand2), offset) ;
+         fieldno := GetFieldNo(CurrentQuadToken, op1, GetType(op2), offset) ;
          IF fieldno>=0
          THEN
-            PushValue(operand1) ;
+            PushValue(op1) ;
             PushIntegerTree(offset) ;
             Sub ;
-            BuildIfNotConstInVar(Mod2Gcc(GetType(operand2)),
-                                 Mod2Gcc(operand2), PopIntegerTree(),
-                                 GetMode(operand2)=LeftValue, fieldno,
-                                 string(CreateLabelName(operand3)))
+            BuildIfNotConstInVar(Mod2Gcc(GetType(op2)),
+                                 Mod2Gcc(op2), PopIntegerTree(),
+                                 GetMode(op2)=LeftValue, fieldno,
+                                 string(CreateLabelName(op3)))
          ELSE
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(operand2)))))),
+                                   Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2)))))),
                           CurrentQuadToken)
          END
-      ELSIF IsConst(operand2)
+      ELSIF IsConst(op2)
       THEN
          (* builds a cascaded list of if statements *)
-         PushValue(operand2) ;
-         BuildIfNotVarInConstValue(GetValue(CurrentQuadToken), operand1, operand3)
+         PushValue(op2) ;
+         BuildIfNotVarInConstValue(quad, GetValue(CurrentQuadToken), op1, op3)
       ELSE
-         GetSetLimits(GetType(operand2), low, high) ;
+         GetSetLimits(GetType(op2), low, high) ;
 
          PushValue(low) ;
          lowtree := PopIntegerTree() ;
          PushValue(high) ;
          hightree := PopIntegerTree() ;
 
-         BuildIfNotVarInVar(Mod2Gcc(GetType(operand2)),
-                            Mod2Gcc(operand2), Mod2Gcc(operand1),
-                            GetMode(operand2)=LeftValue,
+         BuildIfNotVarInVar(Mod2Gcc(GetType(op2)),
+                            Mod2Gcc(op2), Mod2Gcc(op1),
+                            GetMode(op2)=LeftValue,
                             lowtree, hightree,
-                            string(CreateLabelName(operand3)))
+                            string(CreateLabelName(op3)))
       END
    END
 END CodeIfNotIn ;
@@ -3868,30 +3595,25 @@ END CodeIfNotIn ;
    Sym1<X>   IndrX   Sym2<I>     Meaning     Mem[Sym1<I>] := Mem[constant]
    Sym1<X>   IndrX   Sym2<X>     Meaning     Mem[Sym1<I>] := Mem[Mem[Sym3<I>]]
 
-   (Operand2 is the type of the data being indirectly copied)
+   (op2 is the type of the data being indirectly copied)
 *)
 
-PROCEDURE CodeIndrX ;
+PROCEDURE CodeIndrX (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (*
       Follow the Quadruple rules:
    *)
-   DeclareConstant(CurrentQuadToken, operand3) ;  (* checks to see whether it is a constant and declares it *)
-   IF IsConstString(operand3)
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   IF IsConstString(op3)
    THEN
       InternalError('not expecting to index through a constant string', __FILE__, __LINE__)
    ELSE
       (*
-         Mem[operand1] := Mem[Mem[operand3]]
+         Mem[op1] := Mem[Mem[op3]]
       *)
-      t := BuildAssignment(Mod2Gcc(operand1), BuildIndirect(Mod2Gcc(operand3), Mod2Gcc(operand2)))
+      t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
    END
 END CodeIndrX ;
 
@@ -3903,29 +3625,24 @@ END CodeIndrX ;
    Sym1<I>   XIndr   Sym2<X>     Meaning     Mem[constant]     := Mem[Sym3<I>]
    Sym1<X>   XIndr   Sym2<X>     Meaning     Mem[Mem[Sym1<I>]] := Mem[Sym3<I>]
 
-   (Operand2 is the type of the data being indirectly copied)
+   (op2 is the type of the data being indirectly copied)
 *)
 
-PROCEDURE CodeXIndr ;
+PROCEDURE CodeXIndr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   operator: QuadOperator ;
-   operand1,
-   operand2,
-   operand3: CARDINAL ;
-   t       : Tree ;
+   t: Tree ;
 BEGIN
-   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   DeclareConstant(CurrentQuadToken, operand3) ;
+   DeclareConstant(CurrentQuadToken, op3) ;
    (*
       Follow the Quadruple rule:
 
       Mem[Mem[Op1]] := Mem[Op3]
    *)
-   IF IsProcType(operand2)
+   IF IsProcType(op2)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), Mod2Gcc(operand3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetIntegerType()), Mod2Gcc(op3))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), Mod2Gcc(operand2)), Mod2Gcc(operand3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)), Mod2Gcc(op3))
    END
 END CodeXIndr ;
 
