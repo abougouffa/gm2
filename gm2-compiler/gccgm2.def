@@ -90,6 +90,7 @@ EXPORT QUALIFIED Tree,
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  AssignBooleanTrueFalse,
                  ConvertConstantAndCheck,
+                 DetermineSizeOfConstant,
                  ToWord,
                  ExpandExpressionStatement,
                  InitGlobalContext, GarbageCollect ;
@@ -504,6 +505,14 @@ PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
 
 PROCEDURE ConvertConstantAndCheck (type, expr: Tree) : Tree ;
 
+
+(*
+   DetermineSizeOfConstant - given, str, and, base, fill in
+                             needsLong and needsUnsigned appropriately.
+*)
+
+PROCEDURE DetermineSizeOfConstant (str: ADDRESS; base: INTEGER;
+                                   VAR needsLong, needsUnsigned: INTEGER) ;
 
 (*
    ToWord - converts an expression (Integer or Ordinal type) into

@@ -16,22 +16,21 @@ perform IO at some point (or wait for a timer interrupt) or call
 @code{SYSTEM.TurnInterrupts}. But nevertheless a @code{LOOP}
 @code{END} will starve all other processes. However the great
 advantage is that GNU Modula-2 can offer users the ability to use
-@code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space
-and on a multi-user operating system across many platforms.
+@code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space,
+on a multi-user operating system and across a range of platforms.
 
 The GNU Modula-2 @code{SYSTEM} works by utilizing the user context
 switching mechanism provided by GNU Pthreads. @code{NEWPROCESS}
 creates a new context, @code{TRANSFER} switches
 contexts. @code{IOTRANSFER} is more complex. There is a support module
-@code{SysVec} which provides pseudo interrupt vectors. These can
-either be created from input/output file descriptors and also timer
-events @code{timeval}. This vector is then passed to @code{IOTRANSFER}
-which keeps track of which file descriptors and timevals are
-active. When a call to @code{TurnInterrupts} or @code{LISTEN} is made
-the sub system calls @code{pth_select} and tests for any ready file
-descriptor or timeout. A ready file descriptor or timeout will
-ultimately cause the backwards @code{TRANSFER} inside
-@code{IOTRANSFER} to take effect.
+@code{SysVec} which provides pseudo interrupt vectors. These can be
+created from input/output file descriptors or timer events
+@code{timeval}. This vector is then passed to @code{IOTRANSFER} which
+keeps track of which file descriptors and timevals are active. When a
+call to @code{TurnInterrupts} or @code{LISTEN} is made the sub system
+calls @code{pth_select} and tests for any ready file descriptor or
+timeout. A ready file descriptor or timeout will ultimately cause the
+backwards @code{TRANSFER} inside @code{IOTRANSFER} to take effect.
 
 See the @file{gm2/examples/executive} directory for an executive and
 timerhandler module which provide higher level process creation,

@@ -3,11 +3,10 @@
 *  finish ISO libraries
 *  finish ISO language support
 *  finish optimizer support (-O)
-*  write execution based regression tests
 *  back port gm2 to previous releases of gcc
 *  introduce shared library support
 *  fix bugs in h2def
-*  implement module priorities
+*  implement module priorities using System.TurnInterrupts maybe
 *  fix bugs in compiler exhibited by ulm standard libraries
 *  fix bug in varient record found in SysVec.mod
 *  fix bug (no export qualified leads to unqualified assembler names)

@@ -7,12 +7,12 @@ Here is an outline of the module layering:
 
 @example
 
-InOut  RealInOut  LongIO     FileSystem
-    \     |     /               |
-       Terminal                 |
-------------------------------------------------------
-          |                     |
-       Termbase                FIO (basic)
+InOut  RealInOut  LongIO
+    \     |     /
+       Terminal
+------------------------
+          |
+       Termbase
        /      \
 Keyboard      Display
 

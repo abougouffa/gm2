@@ -1,3 +1,20 @@
+2004-11-12	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+	  concerning negating a LONGINT constant
+	  (see testsuite/gm2/pim/run/TestLong[34].mod).
+	* updated gm2/TODO list
+	* gm2/gccgm2.c added functions to determine the size necessary
+	  for a Modula-2 constant.
+	* gm2/gm2.texi modified documentation to reflect the ISO rules
+	  concerning importing enumerated types.
+	* gm2/gm2-compiler/SymbolTable.mod fixed possible buffer overflow
+	  and integrated MakeConstLit with the changes to gccgm2.c.
+	* minor modifications made to gm2/gm2-libs-pim/README.texi
+	* moved a number of regression tests into pass/fail directories
+	  to reflect the expected ISO enumeration behaviour. Note
+	  that many of these now fail.
+
 2004-11-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>

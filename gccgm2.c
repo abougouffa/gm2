@@ -698,6 +698,9 @@ static tree                   build_set_full_complement                   PARAMS
        tree                   gccgm2_BuildConstLiteralNumber              PARAMS ((const char *str, unsigned int base));
 static int                    interpret_integer                           PARAMS ((const char *str, unsigned int base, unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high));
 static int                    append_digit                                PARAMS ((unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high, unsigned int digit, unsigned int base));
+static int                    interpret_m2_integer                        PARAMS ((const char *str, unsigned int base, unsigned int *low, int *high));
+static int                    append_m2_digit                             PARAMS ((unsigned int *low, int *high, unsigned int digit, unsigned int base));
+       void                   gccgm2_DetermineSizeOfConstant              PARAMS ((char *str, int base, int *needsLong, int *needsUnsigned));
 
 
 #if defined(TRACE_DEBUG_GGC)
@@ -11180,6 +11183,27 @@ gccgm2_BuildIntegerConstant (int value)
 }
 
 /*
+ *  DetermineSizeOfConstant - given, str, and, base, fill in
+ *                            needsLong and needsUnsigned appropriately.
+ */
+
+void
+gccgm2_DetermineSizeOfConstant (str, base, needsLong, needsUnsigned)
+     char *str;
+     int base;
+     int *needsLong;
+     int *needsUnsigned;
+{
+  int low;
+  int high;
+  int overflow;
+
+  overflow = interpret_m2_integer (str, base, &low, &high);
+  *needsLong = (high != 0);
+  *needsUnsigned = ((low < 0) || (high < 0));
+}
+
+/*
  *  BuildConstLiteralNumber - returns a GCC TREE built from the string, str.
  *                            It assumes that, str, represents a legal
  *                            number in Modula-2. It always returns a
@@ -11194,15 +11218,26 @@ gccgm2_BuildConstLiteralNumber (str, base)
   tree value;
   unsigned HOST_WIDE_INT low;
   HOST_WIDE_INT high;
+  int needLong, needUnsigned;
   int overflow;
 
   overflow = interpret_integer (str, base,
 				&low, (HOST_WIDE_INT *) &high);
   value = build_int_2_wide (low, high);
-#if 1
-  if (high < 0)
+
+  gccgm2_DetermineSizeOfConstant (str, base, &needLong, &needUnsigned);
+  
+  if (needUnsigned)
     TREE_UNSIGNED (value) = TRUE;
-#endif
+
+  if (needUnsigned && needLong)
+    TREE_TYPE (value) = gccgm2_GetM2LongCardType ();
+  else if (needLong)
+    TREE_TYPE (value) = gccgm2_GetLongIntType ();
+  else if (needUnsigned)
+    TREE_TYPE (value) = gccgm2_GetCardinalType ();
+  else
+    TREE_TYPE (value) = gccgm2_GetIntegerType ();
 
   return value;
 }
@@ -11286,7 +11321,129 @@ append_digit (low, high, digit, base)
   case 2:  shift = 1; break;
   case 8:  shift = 3; break;
   case 10: shift = 3; break;
-  case 16:  shift = 4; break;
+  case 16: shift = 4; break;
+
+  default:
+    shift = 3;
+    error("internal error: not expecting this base value for a constant");
+  }
+
+  /* Multiply by 2, 8 or 16.  Catching this overflow here means we don't
+     need to worry about add_high overflowing.  */
+  if (((*high) >> (INT_TYPE_SIZE - shift)) == 0)
+    overflow = FALSE;
+  else
+    overflow = TRUE;
+
+  res_high = *high << shift;
+  res_low = *low << shift;
+  res_high |= (*low) >> (INT_TYPE_SIZE - shift);
+
+  if (base == 10)
+    {
+      add_low = (*low) << 1;
+      add_high = ((*high) << 1) + ((*low) >> (INT_TYPE_SIZE - 1));
+    }
+  else
+    add_high = add_low = 0;
+
+  if (add_low + digit < add_low)
+    add_high++;
+  add_low += digit;
+    
+  if (res_low + add_low < res_low)
+    add_high++;
+  if (res_high + add_high < res_high)
+    overflow = TRUE;
+
+  *low = res_low + add_low;
+  *high = res_high + add_high;
+
+  return overflow;
+}
+
+/*
+ * interpret_m2_integer - converts an integer constant into two integer
+ *                        constants. Heavily borrowed from gcc/cppexp.c.
+ *                        Note that this is a copy of the above code
+ *                        except that it uses `int' rather than
+ *                        HOST_WIDE_INT to allow gm2 to determine
+ *                        what Modula-2 base type to use for this
+ *                        constant.
+ */
+
+static int
+interpret_m2_integer (str, base, low, high)
+     const char *str;
+     unsigned int base;
+     unsigned int *low;
+     int *high;
+{
+  const unsigned char *p, *end;
+  int overflow = FALSE;
+  int len;
+
+  *low = 0;
+  *high = 0;
+  p = str;
+  len = strlen(str);
+  end = p + len;
+
+  /* Common case of a single digit.  */
+  if (len == 1)
+    *low = p[0] - '0';
+  else
+    {
+      unsigned int c = 0;
+
+      /* We can add a digit to numbers strictly less than this without
+	 needing the precision and slowness of double integers.  */
+
+      unsigned int max = ~(unsigned int) 0;
+      max = (max - base + 1) / base + 1;
+
+      for (; p < end; p++)
+	{
+	  c = *p;
+
+	  if (ISDIGIT (c) || (base == 16 && ISXDIGIT (c)))
+	    c = hex_value (c);
+	  else
+	    return overflow;
+
+	  /* Strict inequality for when max is set to zero.  */
+	  if (*low < max)
+	    *low = (*low) * base + c;
+	  else
+	    {
+	      overflow = append_m2_digit (low, high, c, base);
+	      max = 0;  /* from now on we always use append_digit */
+	    }
+	}
+    }
+  return overflow;
+}
+
+/* Append DIGIT to NUM, a number of PRECISION bits being read in base
+   BASE.  */
+static int
+append_m2_digit (low, high, digit, base)
+     unsigned int *low;
+     int *high;
+     unsigned int digit;
+     unsigned int base;
+{
+  unsigned int shift;
+  int overflow;
+  int add_high, res_high;
+  unsigned int add_low, res_low;
+
+  switch (base) {
+
+  case 2:  shift = 1; break;
+  case 8:  shift = 3; break;
+  case 10: shift = 3; break;
+  case 16: shift = 4; break;
 
   default:
     shift = 3;

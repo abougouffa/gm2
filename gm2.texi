@@ -128,11 +128,8 @@ requires an @code{ELSE} clause when on was not specified.
 
 @item -Wcheck-all
 turns on all runtime checks. This is the same as invoking
-GNU Modula-2 using the following command line:
-
-@example
-gm2 -Wbounds -Wreturn -Wnil -Wcase
-@end example
+GNU Modula-2 using the command options
+@code{-Wbounds} @code{-Wreturn} @code{-Wnil} @code{-Wcase}.
 
 @item -v
 display all calls to subsidiary programs, such as the C preprocessor,
@@ -185,7 +182,7 @@ option uses the file @file{modulename.lst} for the initialisation
 order of modules.
 
 @item -Wcpp
-do preprocess the source with @samp{cpp -lang-asm -traditional-cpp}
+preprocess the source with @samp{cpp -lang-asm -traditional-cpp}
 For further details about these options see @xref{Invocation, , ,cpp}.
 If @samp{-Wcpp} is supplied then all definition modules and
 implementation modules which are parsed will be preprocessed by
@@ -1325,7 +1322,7 @@ cd gcc-@var{version}/gcc/gm2/examples/hello
 make
 @end example
 
-which should result in creating an @file{a.out} for the infamous hello
+which will create an @file{a.out} for the infamous hello
 world example.
 
 @section Stress testing GM2
@@ -1528,15 +1525,14 @@ The @code{LocalSymbols} list (common to both symbols) contains a
 complete list of symbols visible in this modules scope. The symbols in
 this list may have been imported or exported from an inner module.
 
-The @code{EnumerationScope} list (common to both symbols)
-defines all visible enumeration symbols.
-When this module is parsed these the contents of these enumeration
-types are marked as visible. Internally to GNU Modula-2 these form a
-pseudo scope (rather like a @code{WITH} statement which temporarily
-makes the fields of the record visible).
+The @code{EnumerationScope} list (common to both symbols) defines all
+visible enumeration symbols.  When this module is parsed the contents
+of these enumeration types are marked as visible. Internally to GNU
+Modula-2 these form a pseudo scope (rather like a @code{WITH}
+statement which temporarily makes the fields of the record visible).
 
 The @code{ExportUndeclared} list (common to both symbols) contains a
-list of all symbols marked as exported but as yet undeclared.
+list of all symbols marked as exported but are as yet undeclared.
 
 The @code{IncludeList} is (common to both symbols) contains a list of
 all modules imported by the @code{IMPORT modulename ;} construct.
@@ -1563,7 +1559,7 @@ placed into the export list and marked as qualified or unqualified.
 
 Inner module symbols are also created and their import and export
 lists are also processed. An import list will result in a symbol being
-fetched (or created if it does not exit) from the outer scope and
+fetched (or created if it does not exist) from the outer scope and
 placed into the scope of the inner module. An export list results in
 each symbol being fetched or created in the current inner scope and
 added to the outer scope. If the symbol has not yet been declared then
@@ -1641,7 +1637,7 @@ the exception handlers @code{FunctionReturnError},
 The @code{M2RTS} module also contains the @code{HALT} and @code{LENGTH}
 procedure. The ISO @code{SYSTEM} module contains a number of
 @code{SHIFT} and @code{ROTATE} procedures which GNU Modula-2 will call
-when wished to shift and rotate multi-word set types.
+when wishing to shift and rotate multi-word set types.
 
 @node Scope rules, Done list, Run time, Internals
 @section Scope rules
@@ -1730,55 +1726,74 @@ equivalent to the type @code{C} in module @code{impc}. Module
 and at that point the enumeration values @code{red, blue, green}
 (declared in module @code{impc}) are also visible.
 
-At the time of writing I cannot find clarification on this issue in
-the PIM-[234] books.  However according to the Interim Version of 4th
-Working Draft Modula-2 Standard in sections 6.1.6.4. and 6.1.6.5. The
-annotation states that:
+The ISO Standand (p.41) in section 6.1.8 Import Lists states:
 
-``The set of identifiers that are explicitly imported must not be
-redeclared in the block that imports those identifiers. The implicitly
-imported identifiers are given by the closures of all the explicitly
-imported identifiers.''
+``Following the module heading, a module may have a sequence of import
+lists. An import list includes a list of the identifiers that are to
+be explicitly imported into the module. Explicit import of an
+enumeration type identifier implicitly imports the enumeration
+constant identifiers of the enumeration type.
 
-and closure is defined as:
+Imported identifiers are introduced into the module, thus extending
+their scope, but they have a defining occurrence that appears elsewhere.
 
-``The closure of an identifier defines the set of identifiers that is
-implicitly imported or exported if that identifier is imported or
-exported.''
+Every kind of module may include a sequence of import lists, whether it
+is a program module, a definition module, an implementation module or
+a local module. In the case of any other kind of module, the imported
+identifiers may be used in the block of the module.''
 
-``The closure of an identifier shall be a set consisting of that
-identifier, together with the closure of the type if that identifier
-is associated with a type.''
+These statements confirm that the previous example is legal. But it
+prompts the question, what about implicit imports othersise known
+as qualified references.
 
-``The closure of an identifier is a singleton set containing that
-identifier, for an identifier denoting an enumerated type the closure
-set includes the enumerated constants of the type as well as the
-identifier denoting the type itself.''
+In section 6.10 Implicit Import and Export of the ISO Modula-2 standard
+it says:
 
-``Thus an identifier denoting with an enumerated type is imported
-(exported), then the occurance of that identifier in that import list
-(export list) is an abbreviation for the occurrence of that
-identifier, together with all of the identifiers associated with the
-constant values of the enumerated type.''
+``The set of identifiers that is imported or exported if an identifier
+is explicitly imported or exported is called the (import and export)
+closure of that identifier. Normally, the closure includes only the
+explicitly imported or exported identifier. However, in the case
+of the explicit import or export of an identifier of an enumeration
+type, the closure also includes the identifiers of the values of that
+type.
 
-Which seems to imply that the following module should not compile:
+Implicit export applies to the identifiers that are exported (qualified)
+from separate modules, by virtue of their being the subject of a
+definition module, as well as to export from a local module that
+uses an export list.''
+
+Clearly this means that the following is legal:
 
 @example
 MODULE impd ;
+
+IMPORT impc ;
+
+VAR
+   a: impc.C ;
+BEGIN
+   a := impc.red
+END impd.
+@end example
+
+It also means that the following code is legal:
+
+@example
+MODULE impe ;
 
 IMPORT impb ;
 
 VAR
    a: impb.C ;
 BEGIN
-   a := impb.red  (* red should not be resolved *)
-END impd.
+   a := impb.red
+END impe.
 @end example
 
-Whereas if the module were altered to:
+And also this code is legal:
 
 @example
-MODULE impd ;
+MODULE impf ;
 
 FROM impb IMPORT C ;
 
@@ -1786,10 +1801,66 @@ VAR
    a: C ;
 BEGIN
    a := red
-END impd.
+END impf.
 @end example
 
-then @code{red} is resolved and the module is legal.
+And also that this code is legal:
+
+@example
+DEFINITION MODULE impg ;
+
+IMPORT impc;
+
+TYPE
+   C = impc.C ;
+
+END impg.
+@end example
+
+@example
+IMPLEMENTATION MODULE impg ;
+
+VAR
+   t: C ;
+BEGIN
+   t := red
+END impg.
+@end example
+
+Furthermore the following code is also legal as the new type, @code{C}
+is declared and exported. Once exported all its enumerated fields
+are also exported.
+
+@example
+DEFINITION MODULE imph;
+
+IMPORT impc;
+TYPE
+   C = impc.C;
+
+END imph.
+@end example
+
+Here we see that the current scope is populated with the enumeration
+fields @code{red, blue, green} and also it is possible to reference
+these values via a qualified identifier.
+
+@example
+IMPLEMENTATION MODULE imph;
+
+IMPORT impc;
+
+VAR
+   a: C ;
+   b: impc.C ;
+BEGIN
+   a := impc.red ;
+   b := red ;
+   a := b ;
+   b := a
+END imph.
+@end example
+
 
 @node Done list, To do list, Scope rules, Internals
 @section Done list
@@ -1799,10 +1870,11 @@ What has been done:
 @itemize @bullet
 
 @item
-Coroutines have been implemented. The SYSTEM module in PIM-[234] now
-includes TRANSFER, IOTRANSFER and NEWPROCESS. This module is available
-in the directory @file{gm2/gm2-libs-coroutines}.  Users of this module
-also have to link with GNU Pthreads @code{-lpth}.
+Coroutines have been implemented. The @code{SYSTEM} module in
+PIM-[234] now includes @code{TRANSFER}, @code{IOTRANSFER} and
+@code{NEWPROCESS}. This module is available in the directory
+@file{gm2/gm2-libs-coroutines}.  Users of this module also have to
+link with GNU Pthreads @code{-lpth}.
 
 @item
 GM2 now works on the @code{opteron} 64 bit architecture. @code{make
@@ -1874,7 +1946,7 @@ front end @samp{gm2} can now compile and link modules.
 the ability to insert gnu asm statements within GNU Modula-2.
 
 @item
-inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
+inbuilt functions, @code{SIZE}, @code{ADR}, @code{TSIZE}, @code{HIGH} etc
 
 @item
 block becomes and complex procedure parameters (unbounded arrays, strings).

@@ -81,6 +81,7 @@ PROCEDURE InitStringChar (ch: CHAR) : String ;
 
 PROCEDURE Mark (s: String) : String ;
 
+
 (*
    Length - returns the length of the String, s.
 *)

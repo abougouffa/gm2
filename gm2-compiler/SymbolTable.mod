@@ -31,9 +31,12 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorAbort0 ;
 
 FROM M2LexBuf IMPORT GetTokenNo ;
-FROM DynamicStrings IMPORT String, string, InitString, InitStringCharStar, Mark, KillString ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
+
+FROM DynamicStrings IMPORT String, string, InitString,
+                           InitStringCharStar, Mark, KillString, Length,
+                           Index, char ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, PutItemIntoList,
                   IsItemInList, IncludeItemIntoList, NoOfItemsInList,
@@ -46,9 +49,11 @@ FROM SymbolKey IMPORT NulKey, SymbolTree,
                       GetSymKey, PutSymKey, DelSymKey, IsEmptyTree,
                       DoesTreeContainAny, ForeachNodeDo ;
 
-FROM M2Base IMPORT InitBase, Char, Integer, LongReal ;
+FROM M2Base IMPORT InitBase, Char, Integer, LongReal,
+                   Cardinal, LongInt, LongCard ;
 
 FROM M2System IMPORT Address ;
+FROM gccgm2 IMPORT DetermineSizeOfConstant ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule ;
@@ -3242,32 +3247,53 @@ END IsHiddenType ;
 
 (*
    GetConstLitType - returns the type of the constant, Sym.
-                     All constants have type NulSym except CHARACTER constants
-                     ie 00C 012C etc and floating point constants which have type LONGREAL.
+                     All floating point constants have type LONGREAL.
+                     Character constants are type CHAR.
+                     Integer values are INTEGER, LONGINT or LONGCARD
+                     depending upon their value.
 *)
 
 PROCEDURE GetConstLitType (Sym: CARDINAL) : CARDINAL ;
-CONST
-   Max = 4096 ;
 VAR
-   a   : ARRAY [0..Max] OF CHAR ;
-   i,
-   High: CARDINAL ;
+   s            : String ;
+   i, High      : CARDINAL ;
+   needsLong,
+   needsUnsigned: INTEGER ;
 BEGIN
-   GetKey(GetSymName(Sym), a) ;
-   High := LengthKey(GetSymName(Sym)) ;
-   IF a[High-1]='C'
+   s := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
+   IF char(s, -1)='C'
    THEN
+      s := KillString(s) ;
       RETURN( Char )
    ELSE
-      i := 0 ;
-      WHILE i<High DO
-         IF (a[i]='.') OR (a[i]='+')
-         THEN
-            RETURN( LongReal )
-         ELSE
-            INC(i)
-         END
+      IF Index(s, '.', 0)#-1   (* found a '.' in our constant *)
+      THEN
+         s := KillString(s) ;
+         RETURN( LongReal )
+      END ;
+      CASE char(s, -1) OF
+
+      'H':  DetermineSizeOfConstant(string(s), 16,
+                                    needsLong, needsUnsigned) |
+      'B':  DetermineSizeOfConstant(string(s), 8,
+                                    needsLong, needsUnsigned) |
+      'A':  DetermineSizeOfConstant(string(s), 2,
+                                    needsLong, needsUnsigned)
+
+      ELSE
+         DetermineSizeOfConstant(string(s), 10,
+                                 needsLong, needsUnsigned)
+      END ;
+      s := KillString(s) ;
+      IF (needsLong=1) AND (needsUnsigned=1)
+      THEN
+         RETURN( LongCard )
+      ELSIF (needsLong=1) AND (needsUnsigned=0)
+      THEN
+         RETURN( LongInt )
+      ELSIF (needsLong=0) AND (needsUnsigned=1)
+      THEN
+         RETURN( Cardinal )
       END ;
       RETURN( Integer )
    END
