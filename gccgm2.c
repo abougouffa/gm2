@@ -2939,16 +2939,17 @@ lang_decode_option (argc, argv)
      int argc ATTRIBUTE_UNUSED;
      char **argv ATTRIBUTE_UNUSED;
 {
-  fprintf(stderr, "asked to decode arg = %s\n", argv[0]);
 #if 0
-  int i=0;
-
-  while (i<argc) {
-    fprintf(stderr, "asked to decode arg = %s\n", argv[i]);
-    i++;
-  }
+  fprintf(stderr, "asked to decode arg = %s\n", argv[0]);
 #endif
-  return 0;
+  if (strcmp(argv[0], "-Wreturn") == 0) {
+    return( TRUE );
+  } else if (strcmp(argv[0], "-Wbounds") == 0) {
+    return( TRUE );
+  } else if (strcmp(argv[0], "-Wquiet") == 0) {
+    return( TRUE );
+  }
+  return FALSE;
 }
 
 /* Perform all the initialization steps that are language-specific.  */
@@ -4135,7 +4136,7 @@ default_conversion (exp)
 	return convert (unsigned_type_node, exp);
       return convert (integer_type_node, exp);
     }
-#if NOT_NEEDED_FOR_M2
+#if 0
   if (flag_traditional && !flag_allow_single_precision
       && TYPE_MAIN_VARIANT (type) == float_type_node)
     return convert (double_type_node, exp);
@@ -4145,24 +4146,14 @@ default_conversion (exp)
       error ("void value not ignored as it ought to be");
       return error_mark_node;
     }
-#ifdef GPC
-  /* @@@ Note: Now that the reference type works in this gcc version,
-     maybe I should re-implement var parameter code once more. */
-
-  /* Get rid of var parameter REFERENCE_TYPE */
-  if (code == REFERENCE_TYPE)
-    return convert (build_pointer_type (TREE_TYPE (type)), exp);
-
-  /* No array and function conversion in GPC.
-   */
-  if (code == ARRAY_TYPE || code == FUNCTION_TYPE)
-    return exp;
-#else /* not GPC */
   if (code == FUNCTION_TYPE)
     {
       return build_unary_op (ADDR_EXPR, exp, 0);
     }
-#endif /* not GPC */
+  /* Get rid of var parameter REFERENCE_TYPE */
+  if (code == REFERENCE_TYPE)
+    return convert (build_pointer_type (TREE_TYPE (type)), exp);
+
   if (code == ARRAY_TYPE)
     {
       register tree adr;
@@ -8927,6 +8918,17 @@ gccgm2_BuildConvert (op1, op2, needconvert)
 
 
 /*
+ *  BuildTrunc - returns an integer expression from a REAL or LONGREAL op1.
+ */
+
+tree
+gccgm2_BuildTrunc (op1)
+     tree op1;
+{
+  return( convert_to_integer(gccgm2_GetIntegerType(), op1) );
+}
+
+/*
  *  BuildNegate - builds a negate expression and returns the tree.
  */
 
@@ -9360,14 +9362,14 @@ gccgm2_BuildIndirectProcedureCall (procedure, rettype)
 }
 
 /*
- *  BuildFunctValue - generates code for value := funct(foobar);
+ *  BuildFunctValue - generates code for value := last_function(foobar);
  */
 
 void
 gccgm2_BuildFunctValue (value)
      tree value;
 {
-  tree assign = build(MODIFY_EXPR, void_type_node, value, last_function);
+  tree assign = build_modify_expr(value, NOP_EXPR, last_function);
 
   TREE_SIDE_EFFECTS(assign) = TRUE;
   TREE_USED(assign) = TRUE;

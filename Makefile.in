@@ -155,9 +155,17 @@ INCLUDES = -I. -I.. -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../config -I$(srcdir)
 
 # Language-specific object files for the gm2 compiler.
 
-GM2_OBJS = gccgm2.o
-GM2_LIBS = gm2-compiler/gm2.a gm2-libs/libgm2.a     # the Modula-2 front end
-GM2_LIBS_BOOT = gm2-compiler-boot/gm2.a gm2-libs-boot/libgm2.a m2/comp/p2c/home/libp2c.a
+# rationale:
+#
+# here are the two identical compiler front ends. The reason for two is that it is easier to debug the compiler
+# in the original Modula-2 source rather than the p2c translated C.
+
+GM2_OBJS          = gccgm2.o                                         # the C implementation module bridging the Modula-2 -> GCC
+GM2_LIBS          = gm2-compiler/gm2.a gm2-libs/libgm2.a             # the final Modula-2 front end
+GM2_LIBS_BOOT     = gm2-compiler-boot/gm2.a gm2-libs-boot/libgm2.a \
+                    m2/comp/p2c/home/libp2c.a                        # the translated Modula-2 -> C front end
+GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
+                    gm2-libs-paranoid/libgm2.a                       # build it again using GM2_LIBS
 
 # Remove patched files from language-independent object file list.
 
@@ -170,6 +178,12 @@ GCC_OBJS = `cat ../stamp-objlist | sed -e 's:  : :g' \
 GCC_PATCHED = toplev.o rtl.o
 
 compiler: ../cc1gm2$(exeext)
+
+paranoid: ../bcc1gm2(exeext)
+
+../bcc1gm2(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_PARANOID) ../cc1gm2$(exeext)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(GCC_OBJS) $(LIBS)
+
 ../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
 
@@ -432,9 +446,6 @@ gm2-libs-boot/%.h: gm2-libs-boot/%.def
            cp gm2-libs-boot/$*.h gm2-libs-boot/$*.H ; \
         fi
 
-gm2-compiler-boot/%.o: gm2-compiler-boot/%.c
-	$(CC) -c -g -O2 -I./ -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
-
 gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
 	$(PRE) gm2-compiler-boot/$*
 	$(P2C) -s gm2-compiler-boot/$*.def gm2-compiler-boot/$*.md -o gm2-compiler-boot/$*.c
@@ -443,6 +454,9 @@ gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
         fi
 	$(RM) gm2-compiler-boot/$*.md
 	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-compiler-boot/$*.c -o $@
+
+gm2-compiler-boot/%.o: gm2-compiler-boot/%.c
+	$(CC) -c -g -O2 -I./ -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
@@ -463,10 +477,10 @@ gm2-libs/%.o: gm2-libs/%.c
 	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -bounds -return -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -Wbounds -Wreturn -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -v -bounds -return -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o -
+	../xgm2 -Wbounds -Wreturn -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
@@ -477,7 +491,7 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 #
 
 gm2-boot: $(GM2_LIBS_BOOT)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../cc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
 
 gm2-libs/libgm2.a: gm2-boot force
 	$(MAKE) build-libs
@@ -605,6 +619,77 @@ gm2-compiler:
 	done ; \
         $(LN_S) ../gccgm2.def ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)b
+
+#
+#  now for rules which build the paranoid version of gm2
+#
+
+gm2-libs-paranoid/libgm2.a: force
+	$(MAKE) build-libs-paranoid
+	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
+                    $(GM2-LIBS-C:%.c=gm2-libs/%.o)
+
+gm2-compiler-paranoid/gm2.a: force
+	$(MAKE) build-compiler-paranoid
+	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
+	mv mod_init.c gm2-compiler-paranoid
+	$(CC) -c -g gm2-compiler-paranoid/mod_init.c -o gm2-compiler-paranoid/mod_init.o
+	$(AR) cr $@ gm2-compiler-paranoid/mod_init.o $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
+                    gm2-compiler-paranoid/M2Version.o
+
+build-libs-paranoid: gm2-libs-paranoid $(GM2-LIBS-MODS:%.mod=gm2-libs-paranoid/%.o) \
+            $(GM2-LIBS-C:%.c=gm2-libs-paranoid/%.o)
+
+build-compiler-paranoid: gm2-compiler-paranoid $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
+                gm2-compiler-paranoid/M2Version.o
+
+gm2-libs-paranoid:
+	mkdir gm2-libs-paranoid ; cd gm2-libs-paranoid ; \
+	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
+	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
+	done ; \
+	for i in $(GM2-LIBS-C) $(GM2-LIBS-H) ; do \
+	   $(LN_S) ../m2/comp/libs/CH/$$i $$i ; \
+	done ; \
+	$(RM) SYSTEM.def ; \
+	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
+
+gm2-compiler-paranoid:
+	mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
+	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
+           if [ -L $$i ] ; then \
+              echo "$$i already present" ; \
+              exit 1 ; \
+           fi ; \
+           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
+              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
+           else \
+              if [ -f ../m2/comp/gm2s/$$i ] ; then \
+                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
+              else \
+                 if [ -f ../$$i ] ; then \
+                    $(LN_S) ../$$i $$i ; \
+                 else \
+                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
+                    exit 1 ; \
+                 fi ; \
+              fi ; \
+           fi ; \
+	done ; \
+        $(LN_S) ../gccgm2.def ; \
+	../m2/comp/tools/makeversion $(GM2-VERSION)c
+
+#
+#  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories
+#
+gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.c
+	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
+
+gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
+	../xgm2 -v -bounds -return -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+
+gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
+	../xgm2 -bounds -return -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~

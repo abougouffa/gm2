@@ -43,7 +43,7 @@ EXPORT QUALIFIED Tree,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                  BuildConvert,
-                 BuildAddr, BuildNegate, BuildSize, BuildOffset,
+                 BuildAddr, BuildNegate, BuildSize, BuildOffset, BuildTrunc,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
                  BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -553,6 +553,13 @@ PROCEDURE BuildNegate (op1: Tree; needconvert: BOOLEAN) : Tree ;
 *)
 
 PROCEDURE BuildSize (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildTrunc - returns an integer expression from a REAL or LONGREAL op1.
+*)
+
+PROCEDURE BuildTrunc (op1: Tree) : Tree ;
 
 
 (*

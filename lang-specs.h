@@ -26,11 +26,12 @@ Boston, MA 02111-1307, USA.  */
   {"@modula-2",
      { "%{c:%{!gm2gcc:cc1gm2 %1 %2\
         %{!Q:-quiet} %{d*} %{m*} %{a}\
-        %{I*} %{g*} %{O*} %{W*} %{w}\
+        %{I*} %{g*} %{O*} %{w}\
         %{M}\
-        %{v:-version} %{pg:-p} %{p} %{q} %{students}\
-        %{bounds} %{return}\
-        %{statistics} %{pedantic} %{verbose} %{!v:%{version}}\
+        %{v:-version} %{pg:-p} %{p} %{q}\
+        %{Wstudents}\
+        %{Wbounds} %{Wreturn} %{Wpedantic} %{Wstatistics}\
+        %{!v:%{version}}\
         %{f*} %{+e*} %{aux-info*}\
         %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
         %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\

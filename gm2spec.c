@@ -193,6 +193,10 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     } else if (strcmp((*in_argv)[i], "-c") == 0) {
       need_to_link = FALSE;
       i++;
+#if 0
+    } else if (strcmp((*in_argv)[i], "-bounds") == 0) {
+      remove_args(in_argc, in_argv, i, 1);
+#endif
     } else {
       i++;
     }
