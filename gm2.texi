@@ -805,9 +805,51 @@ cd ..
 @node Passes, Scope rules, Building and installing, Internals
 @section Passes
 
-This section describes the general actions of each pass.
+This section describes the general actions of each pass.  The key to
+building up the symbol table correctly is to ensure that the symbols
+are only created in the scope where they were declared.  This may seem
+obvious (and easy) but it is complicated by two issues: firstly gm2
+does not generate @code{.sym} files and so all imported definition
+modules are parsed after the module is parsed; secondly the
+import/export rules might mean that you can see and use a symbol
+before it is declared in a completely different scope.
+
+[To do: Here should be a description of the trees used in
+SymbolTable.mod]
 
 @subsection Pass 1
+
+During pass 1 each @code{DefImp} and @code{Module} symbol is
+created. These are also placed into a list of outstanding sources to
+be parsed.  The import and export lists are recorded and each object
+imported is created in the module from whence it is exported and added
+into the imported list of the current module. Any exported objects are
+placed into the export list and marked as qualified or unqualified.
+
+Inner module symbols are also created and their import and export
+lists are also processed. An import list will result in a symbol being
+fetched (or created if it does not exit) from the outer scope and
+placed into the scope of the inner module. An export list results in
+each symbol being fetched or created in the current inner scope and
+added to the outer scope. If the symbol has not yet been declared then
+it is added to the current modules @code{ExportUndeclared} list.
+
+Procedure symbols are created (the parameters are parsed but no more
+symbols are created). Enumerated types are created, hidden types in
+the definition modules are marked as such. All the rest of the Modula-2
+syntax is parsed but no symbols are created.
+
+@subsection Pass 2
+
+To do
+
+@Subsection Pass 3
+
+To do
+
+@Subsection Pass H
+
+To do
 
 @node Scope rules, Future, Passes, Internals
 @section Scope rules
