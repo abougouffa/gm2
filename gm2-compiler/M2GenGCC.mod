@@ -2473,7 +2473,7 @@ BEGIN
    ELSE
       BuildUnaryForeachWordDo(Mod2Gcc(GetType(op1)), Mod2Gcc(op1), Mod2Gcc(op3), unop,
                               GetMode(op1)=LeftValue, GetMode(op3)=LeftValue,
-                              IsConst(op1), IsConst(op2))
+                              IsConst(op1), IsConst(op3))
    END
 END CodeUnarySet ;
 
