@@ -26,13 +26,13 @@ VAR
    l: LargeSet ;
    s: SmallSet ;
 BEGIN
-   l := {} ;
-   s := {} ;
-   IF l={}
+   l := LargeSet{} ;
+   s := SmallSet{} ;
+   IF l=LargeSet{}
    THEN
    
    END ;
-   IF s={}
+   IF s=SmallSet{}
    THEN
       
    END

@@ -28,8 +28,8 @@ VAR
    p : POINTER TO CARDINAL ;
 BEGIN
    ch := 'z' ;
-   s := {} ;
-   s := {'A'} ;
+   s := smallchar{} ;
+   s := smallchar{'A'} ;
    p := ADR(s) ;
    p^ := 1 ;
    p^ := 3 ;

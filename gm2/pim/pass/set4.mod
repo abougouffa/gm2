@@ -7,7 +7,7 @@ TYPE
 VAR
    s: ColourSet ;
 BEGIN
-   s := {red, green} ;
-   s := {red, blue} ;
-   s := {red, blue, green}
+   s := ColourSet{red, green} ;
+   s := ColourSet{red, blue} ;
+   s := ColourSet{red, blue, green}
 END set4.

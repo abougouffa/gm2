@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,16 +15,20 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE set7 ;
+MODULE testfloat ;
 
-
-TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
-
+PROCEDURE local ;
 VAR
-   s: myset ;
+   f: REAL ;
+   i: CARDINAL ;
 BEGIN
-   s := myset{} ;
-   INCL(s, blue)
-END set7.
+   i := 1 ;
+   f := 10.0 ;
+   WHILE f/10.0>=FLOAT(i) DO
+      INC(i)
+   END
+END local ;
+
+BEGIN
+   local
+END testfloat.

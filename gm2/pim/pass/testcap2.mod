@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,16 +15,22 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE set7 ;
+MODULE testcap2 ;
 
+FROM libc IMPORT exit ;
 
-TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
+CONST
+   A = CAP(VAL(CHAR, 65)) ;
+
+PROCEDURE nothing ;
+BEGIN
+END nothing ;
 
 VAR
-   s: myset ;
+   c: CARDINAL ;
+   i: INTEGER ;
+   ch: CHAR ;
 BEGIN
-   s := myset{} ;
-   INCL(s, blue)
-END set7.
+   ch := CAP(VAL(CHAR, ch)) ;
+   ch := CAP(A)
+END testcap2.

@@ -27,13 +27,13 @@ VAR
    l: large ;
    s: small ;
 BEGIN
-   s := {1, 3, 5, 7, 9} ;
+   s := small{1, 3, 5, 7, 9} ;
    l.e[0] := s ;
    l.e[1] := s ;
-   l.e[2] := {0, 2, 4} ;
+   l.e[2] := small{0, 2, 4} ;
    l.e[3] := s ;
    l.e[4] := s ;
-   l.e[5] := {6, 8, 10} ;
+   l.e[5] := small{6, 8, 10} ;
    l.e[6] := s ;
    l.e[7] := s
 END multiset.

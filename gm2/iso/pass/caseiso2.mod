@@ -1,6 +1,6 @@
 MODULE caseiso2 ;
 
-FROM SYSTEM IMPORT SIZE ;
+(* remember SIZE is a standard and pervasive function in ISO *)
 FROM libc IMPORT exit ;
 
 VAR

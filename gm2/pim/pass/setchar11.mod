@@ -17,9 +17,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 MODULE setchar11 ;
 
-
+TYPE
+   soc = SET OF ['a'..'z'] ;
 VAR
-   s: SET OF ['a'..'z'] ;
+   s: soc ;
 BEGIN
-   s := {} ;
+   s := soc{} ;
 END setchar11.

@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,16 +15,31 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE set7 ;
+MODULE testfloat4 ;
 
+(*
+   ToThePower10 - returns a LONGREAL containing the value of v * 10^power.
+*)
 
-TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
+PROCEDURE ToThePower10 (v: LONGREAL; power: CARDINAL) : LONGREAL;
+VAR 
+   i: CARDINAL;
+BEGIN
+   i := 0 ;
+   WHILE i<power DO
+      v := v * 10.0 ;
+      INC(i)
+   END ;
+   RETURN( VAL(LONGREAL, v) )
+END ToThePower10 ;
 
 VAR
-   s: myset ;
+   x: LONGREAL ;
+   NonTruncedDigits: CARDINAL ;
+   i               : CARDINAL ;
 BEGIN
-   s := myset{} ;
-   INCL(s, blue)
-END set7.
+   i := 99999 ;
+   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOAT(i) DO
+      INC(NonTruncedDigits)
+   END
+END testfloat4.

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+for i in * ; do
+   cvs add $i
+   if [ -d $i ] ; then
+      ( cd $i ; ../$0 ; cd .. )
+   fi
+done
+

@@ -17,8 +17,8 @@ END first ;
 VAR
    s: ColourSet ;
 BEGIN
-   s := {red, green} ;
+   s := ColourSet{red, green} ;
    first(s) ;
-   s := {red, blue} ;
-   s := {red, blue, green}
+   s := ColourSet{red, blue} ;
+   s := ColourSet{red, blue, green}
 END set6.

@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,14 +15,10 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE longcard ;
-
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM FpuIO IMPORT WriteLongCard ;
+MODULE convert2 ;
 
 VAR
-   l: LONGCARD ;
+   a: ARRAY [ORD('A')..ORD('Z')] OF CHAR ;
 BEGIN
-   l := 123; (* 456789012 ; *)
-   WriteString('value = ') ; WriteLongCard(l, 20) ; WriteLn
-END longcard.
+   a[ORD('A')] := 'A'
+END convert2.

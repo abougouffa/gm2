@@ -1,0 +1,7 @@
+MODULE redef ;
+
+VAR
+   INTEGER: BOOLEAN ;
+BEGIN
+   INTEGER := TRUE
+END redef.

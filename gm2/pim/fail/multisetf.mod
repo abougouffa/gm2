@@ -15,16 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE set7 ;
-
+MODULE multisetf ;
 
 TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
+   small = SET OF [0..31] ;
+   large = RECORD
+              e: ARRAY [0..7] OF small
+           END ;
 
 VAR
-   s: myset ;
+   l: large ;
+   s: small ;
 BEGIN
-   s := myset{} ;
-   INCL(s, blue)
-END set7.
+   s := {1, 3, 5, 7, 9} ;
+   l.e[0] := s ;
+   l.e[1] := s ;
+   l.e[2] := {0, 2, 4} ;
+   l.e[3] := s ;
+   l.e[4] := s ;
+   l.e[5] := {6, 8, 10} ;
+   l.e[6] := s ;
+   l.e[7] := s
+END multisetf.

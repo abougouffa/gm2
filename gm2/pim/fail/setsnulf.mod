@@ -15,16 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE set7 ;
+MODULE setsnulf ;
 
 
 TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
+   LargeSet = SET OF [0..255] ;
+   SmallSet = SET OF [0..127] ;
 
 VAR
-   s: myset ;
+   l: LargeSet ;
+   s: SmallSet ;
 BEGIN
-   s := myset{} ;
-   INCL(s, blue)
-END set7.
+   l := {} ;
+   s := {} ;
+   IF l={}
+   THEN
+   
+   END ;
+   IF s={}
+   THEN
+      
+   END
+END setsnulf.
