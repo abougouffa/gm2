@@ -89,7 +89,7 @@ EXPORT QUALIFIED Tree,
                  ConvertConstantAndCheck,
                  ToWord,
                  ExpandExpressionStatement,
-                 InitGlobalContext ;
+                 InitGlobalContext, GarbageCollect ;
 
 
 TYPE
@@ -1107,6 +1107,13 @@ PROCEDURE BuildCap (t: Tree) : Tree ;
 *)
 
 PROCEDURE InitGlobalContext ;
+
+
+(*
+   GarbageCollect - force gcc to garbage collect.
+*)
+
+PROCEDURE GarbageCollect ;
 
 
 END gccgm2.

@@ -1,0 +1,122 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE SysVec ;
+
+(*
+    Title      : SysVec
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sun Aug 22 20:49:56 2004
+    Revision   : $Version$ 
+    Description: provides SYSTEM with the pseudo interrupt vector
+                 manipulation routines. This module interface was
+                 designed to allow SYSTEM to have the same interface
+                 as PIM [234] and Logitech 3.0. It would have been
+                 easier to include this functionality into SYSTEM
+                 at the expense of stricter compatibility.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT QUALIFIED InitInputVector, InitOutputVector, InitTimeVector,
+                 AttachVector,
+                 ReArmTimeVector, GetTimeVector,
+                 Listen, IncludeVector, ExcludeVector, DespatchVector ;
+
+TYPE
+   DespatchVector = PROCEDURE (CARDINAL, ADDRESS) ;
+
+
+(*
+   InitInputVector - returns an interrupt vector which is associated
+                     with the file descriptor, fd.
+*)
+
+PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
+
+
+(*
+   InitOutputVector - returns an interrupt vector which is associated
+                      with the file descriptor, fd.
+*)
+
+PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
+
+
+(*
+   InitTimeVector - returns an interrupt vector associated with
+                    the relative time.
+*)
+
+PROCEDURE InitTimeVector (micro, secs: CARDINAL) : CARDINAL ;
+
+
+(*
+   ReArmTimeVector - reprimes the vector, vec, to deliver an interrupt
+                     at the new relative time.
+*)
+
+PROCEDURE ReArmTimeVector (vec: CARDINAL; micro, secs: CARDINAL) ;
+
+
+(*
+   GetTimeVector - assigns, micro, and, secs, with the remaining
+                   time before this interrupt will expire.
+                   This value is only updated when a Listen
+                   occurs.
+*)
+
+PROCEDURE GetTimeVector (vec: CARDINAL; VAR micro, secs: CARDINAL) ;
+
+
+(*
+   AttachVector - adds the pointer, p, to be associated with the interrupt
+                  vector. It returns the previous value attached to this
+                  vector.
+*)
+
+PROCEDURE AttachVector (vec: CARDINAL; p: ADDRESS) : ADDRESS ;
+
+
+(*
+   IncludeVector - includes, vec, into the despatcher list of
+                   possible interrupt causes.
+*)
+
+PROCEDURE IncludeVector (vec: CARDINAL) ;
+
+
+(*
+   ExcludeVector - excludes, vec, from the despatcher list of
+                   possible interrupt causes.
+*)
+
+PROCEDURE ExcludeVector (vec: CARDINAL) ;
+
+
+(*
+   Listen - will either block indefinitely (until an interrupt)
+            or alteratively will test to see whether any interrupts
+            are pending.
+            If a pending interrupt was found then, call, is called
+            and then this procedure returns.
+*)
+
+PROCEDURE Listen (untilInterrupt: BOOLEAN; call: DespatchVector) ;
+
+
+END SysVec.

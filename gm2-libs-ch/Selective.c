@@ -46,6 +46,13 @@ struct timeval *Selective_InitTime (long sec, long usec)
   return t;
 }
 
+void Selective_GetTime (struct timeval *t,
+			long *sec, long *usec)
+{
+  *sec = t->tv_sec;
+  *usec = t->tv_usec;
+}
+
 /*
    PROCEDURE KillTime (t: Timeval) : Timeval ;
 */
@@ -126,6 +133,11 @@ void *Selective_InitTime (long sec, long usec)
 void *Selective_KillTime (void *t)
 {
   return NULL;
+}
+
+void Selective_GetTime (struct timeval *t,
+			long *sec, long *usec)
+{
 }
 
 fd_set *Selective_InitSet (void)

@@ -123,7 +123,9 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
 
 FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
-FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
+
+FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit,
+                  IsGenericNulSet, IsValueAndTreeKnown ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
                   IsItemInList, KillList, IncludeItemIntoList ;
@@ -2186,6 +2188,11 @@ BEGIN
       END
    ELSE
       PopT(Exp) ;
+      IF Exp=NulSym
+      THEN
+         WriteFormat0('unknown expression found during assignment') ;
+         FlushErrors
+      END ;
       Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
@@ -5009,20 +5016,19 @@ BEGIN
          THEN
             OperandSym := OperandT(1)
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'))
+            OperandSym := MakeConstLit(MakeKey('1')) ;
+            PushT(GetType(VarSym)) ;
+            PushT(OperandSym) ;
+            PushT(1) ;
+            BuildTypeCoercion ;
+            PopT(OperandSym)
          END ;
 
          PushT(TempSym) ;
          PushT(VarSym) ;
          BuildAssignmentWithoutBounds ;
 
-         IF IsPointer(GetType(TempSym)) AND (NoOfParam=1)
-         THEN
-            (* if the user uses two parameters then we insist that the user coerses *)
-            PushTF(TempSym, Integer)   (* no coersion for pointers *)
-         ELSE
-            PushTF(TempSym, GetType(TempSym))
-         END ;
+         PushTF(TempSym, GetType(TempSym)) ;
 
          PushT(PlusTok) ;
          PushTF(OperandSym, GetType(OperandSym)) ;
@@ -5095,7 +5101,12 @@ BEGIN
          THEN
             OperandSym := OperandT(1)
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1'))
+            OperandSym := MakeConstLit(MakeKey('1')) ;
+            PushT(GetType(VarSym)) ;
+            PushT(OperandSym) ;
+            PushT(1) ;
+            BuildTypeCoercion ;
+            PopT(OperandSym)
          END ;
 
          PushT(TempSym) ;
@@ -5103,13 +5114,7 @@ BEGIN
          BuildAssignmentWithoutBounds ;
          DumpStack ;
 
-         IF IsPointer(GetType(TempSym)) AND (NoOfParam=1)
-         THEN
-            (* if the user uses two parameters then we insist that the user coerses *)
-            PushTF(TempSym, Integer)   (* no coorsion for pointers *)
-         ELSE
-            PushTF(TempSym, GetType(TempSym))
-         END ;
+         PushTF(TempSym, GetType(TempSym)) ;
          DumpStack ;
 
          PushT(MinusTok) ;
@@ -7006,6 +7011,31 @@ BEGIN
 END BuildConvertFunction ;
 
 
+(*
+   CheckBaseTypeValue - checks to see whether the value, min, really exists.
+*)
+
+PROCEDURE CheckBaseTypeValue (type: CARDINAL;
+                              min: CARDINAL;
+                              n: ARRAY OF CHAR) : CARDINAL ;
+VAR
+   n1, n2: Name ;
+BEGIN
+   IF (type=Real) OR (type=LongReal) OR (type=ShortReal)
+   THEN
+      PushValue(min) ;
+      IF NOT IsValueAndTreeKnown()
+      THEN
+         n1 := MakeKey(n) ;
+         n2 := GetSymName(type) ;
+         WriteFormat2('%a(%a) cannot be calculated at compile time for the target architecture', n1, n2) ;
+         RETURN( MakeConstLit(MakeKey('1.0')) )
+      END
+   END ;
+   RETURN( min )
+END CheckBaseTypeValue ;
+
+
 VAR
    MaxEnumerationField,
    MinEnumerationField: CARDINAL ;
@@ -7071,6 +7101,7 @@ BEGIN
    ELSIF IsBaseType(type)
    THEN
       GetBaseTypeMinMax(type, min, max) ;
+      min := CheckBaseTypeValue(type, min, 'MIN') ;
       RETURN( min )
    ELSIF IsSystemType(type)
    THEN
@@ -7113,6 +7144,7 @@ BEGIN
    ELSIF IsBaseType(type)
    THEN
       GetBaseTypeMinMax(type, min, max) ;
+      max := CheckBaseTypeValue(type, max, 'MAX') ;
       RETURN( max )
    ELSIF IsSystemType(type)
    THEN
@@ -10148,7 +10180,7 @@ BEGIN
 
       ModuleScopeOp,
       StartModFileOp    : n1 := GetSymName(Operand3) ;
-                          printf3('%a:%d  %a', Operand2, Operand1, n1) |
+                          printf4('%a:%d  %a(%d)', Operand2, Operand1, n1, Operand3) |
 
       StartDefFileOp    : n1 := GetSymName(Operand3) ;
                           printf2('  %4d  %a', Operand1, n1) |

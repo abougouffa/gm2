@@ -94,10 +94,13 @@ CONST
    Pass1     = TRUE ;
    Pass2     = FALSE ;          (* permanently disabled for the time being *)
    Pass3     = FALSE ;          (* permanently disabled for the time being *)
+   MaxInsert = 10 ;             (* allow 10 tokens to be inserted before   *)
+                                (* giving up.                              *)
 
 VAR
-   WasNoError: BOOLEAN ;
-   LastIdent : Name ;
+   WasNoError : BOOLEAN ;
+   LastIdent  : Name ;
+   InsertCount: CARDINAL ;
 
 
 PROCEDURE ErrorString (s: String) ;
@@ -200,7 +203,9 @@ END WarnMissingToken ;
 PROCEDURE MissingToken (t: toktype) ;
 BEGIN
    WarnMissingToken(t) ;
-   IF (t#identtok) AND (t#integertok) AND (t#realtok) AND (t#stringtok)
+   INC(InsertCount) ;
+   IF (InsertCount<MaxInsert) AND
+      ((t#identtok) AND (t#integertok) AND (t#realtok) AND (t#stringtok))
    THEN
       IF Debugging
       THEN
@@ -313,6 +318,7 @@ END Expect ;
 PROCEDURE CompilationUnit () : BOOLEAN ;
 BEGIN
    WasNoError := TRUE ;
+   InsertCount := 0 ;
    FileUnit(SetOfStop0{eoftok}, SetOfStop1{}, SetOfStop2{}) ;
    RETURN( WasNoError )
 END CompilationUnit ;

@@ -29,6 +29,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED SetOfFd, Timeval,
                  InitSet, KillSet, InitTime, KillTime,
+                 GetTime,
                  FdZero, FdSet, FdClr, FdIsSet, Select,
                  MaxFdsPlusOne, WriteCharRaw, ReadCharRaw ;
 
@@ -43,6 +44,7 @@ PROCEDURE Select (nooffds: CARDINAL;
 
 PROCEDURE InitTime (sec, usec: CARDINAL) : Timeval ;
 PROCEDURE KillTime (t: Timeval) : Timeval ;
+PROCEDURE GetTime (t: Timeval; VAR sec, usec: CARDINAL) ;
 PROCEDURE InitSet () : SetOfFd ;
 PROCEDURE KillSet (s: SetOfFd) : SetOfFd ;
 PROCEDURE FdZero (s: SetOfFd) ;

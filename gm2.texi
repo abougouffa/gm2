@@ -37,9 +37,11 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 27 November 2003
+@center Last updated 26 August 2004
 @sp 10
+@c
 @c @center @image{gm2/images/gnu,,1.5in}
+@c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @end titlepage
@@ -1766,6 +1768,12 @@ What has been done:
 @itemize @bullet
 
 @item
+Coroutines have been implemented. The SYSTEM module in PIM-[234] now
+includes TRANSFER, IOTRANSFER and NEWPROCESS. This module is available
+in the directory @file{gm2/gm2-libs-coroutines}.  Users of this module
+also have to link with GNU Pthreads @code{-lpth}.
+
+@item
 GM2 now works on the @code{opteron} 64 bit architecture. @code{make
 gm2.paranoid} and @code{make check-gm2} pass.
 
@@ -1883,9 +1891,6 @@ implement many of the ISO built-in functions and procedures.
 investigate the use of collect2 during link/module initialization.
 
 @item
-Coroutines - as mentioned by readers of comp.lang.modula2.
-
-@item
 improve documentation, specifically this document which should
 also include a synopsis of 2nd Edition Modula-2.
 
@@ -1919,9 +1924,14 @@ phase.
 @node Libraries, Function Index, EBNF, Top
 @chapter PIM and ISO library definitions
 
-This chapter contains PIM and ISO libraries. The ISO libraries are currently
-work in progress, many are incomplete and even more have no implementation
-module. The PIM libraries are very mature as the compiler uses them extensively.
+This chapter contains M2F, ULM, PIM and ISO libraries. The ISO
+libraries are currently work in progress, many are incomplete and even
+more have no implementation module. The M2F libraries are very mature
+as the compiler uses them extensively. Permission has been kindly
+granted by the authors of the ULM libraries to include them with GNU
+Modula-2. These libraries (under the GNU GPL) were written at the
+University of Ulm and were originally shipped with the ULM sparc
+Modula-2 compiler.
 
 @include gm2-libs.texi
 

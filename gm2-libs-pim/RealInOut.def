@@ -1,0 +1,15 @@
+DEFINITION MODULE RealInOut ;
+
+(*
+    Title      : RealInOut
+    System     : GNU Modula-2
+    Date       : Fri Aug  6 10:50:30 2004
+    Revision   : $Version$ 
+    Description: provides a compatible RealInOut PIM 234 module.
+*)
+
+EXPORT QUALIFIED ReadReal ;
+
+PROCEDURE ReadReal (VAR x: REAL) ;
+
+END RealInOut.

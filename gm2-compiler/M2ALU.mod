@@ -2992,6 +2992,50 @@ END BuildBitset ;
 
 
 (*
+   IsValueAndTreeKnown - returns TRUE if the value is known and the gcc tree
+                         is defined.
+
+                         The Stack:
+
+                                Entry             Exit
+
+                         Ptr ->
+                                +------------+
+                                | Op1        |                   <- Ptr
+                                |------------|    +------------+
+*)
+
+PROCEDURE IsValueAndTreeKnown () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   IF v#NIL
+   THEN
+      WITH v^ DO
+         IF solved
+         THEN
+            CASE type OF
+
+            integer, real:  IF numberValue=NIL
+                            THEN
+                               Dispose(v) ;
+                               RETURN( FALSE )
+                            END
+            ELSE
+            END
+         ELSE
+            Dispose(v) ;
+            RETURN( FALSE )
+         END
+      END ;
+      Dispose(v)
+   END ;
+   RETURN( TRUE )
+END IsValueAndTreeKnown ;
+
+
+(*
    Init - initialises the stack and the free list.
 *)
 

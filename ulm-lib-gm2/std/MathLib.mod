@@ -54,9 +54,23 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.mod,v 1.3 2004/07/02 16:58:59 gaius Exp $
+   $Id: MathLib.mod,v 1.4 2004/08/26 19:08:07 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.mod,v $
+   Revision 1.4  2004/08/26 19:08:07  gaius
+   * implemented type PROCESS for SYSTEM in the pim library
+     directory (gm2/gm2-libs-coroutines).
+   * SYSTEM implements NEWPROCESS, TRANSFER, IOTRANSFER.
+     This is achieved by using the GNU pthread library context
+     mechanism.
+   * provided an Executive and TimerHandler module in
+     (gm2/examples/executive).
+   * many bug fixes and regression tests show that 3 ulm standard
+     library modules fail.
+   * implemented MAX(REAL), MIN(REAL) and also provided access to
+     three more gcc builtin functions: huge_val, huge_vall, huge_valf
+   * started work on a Logitech 3.0 compatible library.
+
    Revision 1.3  2004/07/02 16:58:59  gaius
    moved modules which require the PROCESS type into another directory
 
@@ -85,7 +99,8 @@ IMPLEMENTATION MODULE MathLib;
 
    (* implementation for the SPARCv8 platform *)
 
-   FROM SYSTEM IMPORT SQRT;
+   FROM SYSTEM IMPORT BITSET;
+   IMPORT Builtins ;
 
    TYPE
       Error = (
@@ -113,6 +128,7 @@ IMPLEMENTATION MODULE MathLib;
 
    MODULE IEEE754Conversions;
 
+      IMPORT BITSET ;
       EXPORT IEEE754, IEEE754Real2ExpMan, IEEE754ExpMan2Real;
 
       TYPE
@@ -1128,6 +1144,7 @@ IMPLEMENTATION MODULE MathLib;
 
    MODULE SinCos;
 
+      IMPORT Builtins ;
       IMPORT Rem, CopySign, Finite, half;
       EXPORT sin, cos;
 
@@ -1306,14 +1323,14 @@ IMPLEMENTATION MODULE MathLib;
 
    PROCEDURE sqrt(x: REAL) : REAL;
    BEGIN
-      RETURN SQRT(x)
+      RETURN Builtins.sqrt(x)
    END sqrt;
 
 BEGIN
    hugeVal := MAX(REAL);
    hugeVal := hugeVal * 2.0; (* now +infinity on IEEE 754 machines *)
    half := 1.0 / 2.0;
-   nan := ABS(SQRT(-1.0));
+   nan := ABS(Builtins.sqrt(-1.0));
    IF ~IsInf(hugeVal) THEN HALT END;
    IF ~IsNaN(nan) THEN HALT END;
 END MathLib.

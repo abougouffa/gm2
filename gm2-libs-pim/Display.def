@@ -1,0 +1,22 @@
+DEFINITION MODULE Display ;
+
+(*
+    Title      : Display
+    System     : GNU Modula-2
+    Date       : Sat Aug  7 17:19:31 2004
+    Revision   : $Version$ 
+    Description: provides a Logitech 3.0 compatible Display module.
+*)
+
+EXPORT QUALIFIED Write ;
+
+(*
+   Write - display a character to the stdout.
+           ASCII.EOL moves to the beginning of the next line.
+           ASCII.del erases the character to the left of the cursor.
+*)
+
+PROCEDURE Write (ch: CHAR) ;
+
+
+END Display.

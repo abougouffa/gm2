@@ -57,7 +57,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         FromModuleGetSym,
                         IsExportQualified, IsExportUnQualified ;
 
-FROM M2ALU IMPORT PushIntegerTree, PushCard, Equ ;
+FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
@@ -75,7 +75,9 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType,
 
 TYPE
    Compatability = (expression, assignment) ;
-   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum, real, set, opaque) ;
+   MetaType      = (const, word, byte, address, chr, intgr,
+                    cardinal, pointer, enum, real, set, opaque,
+                    unknown) ;
    Compatible    = (yes, no, warning) ;
 
 (* %%%FORWARD%%%
@@ -92,6 +94,12 @@ VAR
    Expr,
    Ass        : ARRAY MetaType, MetaType OF Compatible ;
    m2rts,
+   MinReal,
+   MaxReal,
+   MinShortReal,
+   MaxShortReal,
+   MinLongReal,
+   MaxLongReal,
    MinLongInt,
    MaxLongInt,
    MinLongCard,
@@ -187,16 +195,6 @@ BEGIN
    Zero := MakeConstLit(MakeKey('0')) ;
    MaxCard := MakeTemporary(ImmediateValue) ;
 
-
-(*
-   PushIntegerTree(GetMaxFrom(GetM2CardinalType())) ;
-   PopValue(MaxCard) ;
-   Cardinal := MakeSubrange(MakeKey('CARDINAL')) ;
-   (*
-      Cardinal = 0..2^BitsPerWord-1
-   *)
-   PutSubrange(Cardinal, Zero, MaxCard, NulSym) ;
-*)
    Cardinal := MakeType(MakeKey('CARDINAL')) ;
    PutType(Cardinal, NulSym) ;
                                               (* Base Type       *)
@@ -306,15 +304,52 @@ BEGIN
    MaxLongCard := MakeTemporary(ImmediateValue) ;
    PushIntegerTree(GetMaxFrom(GetM2LongCardType())) ;
    PopValue(MaxLongCard) ;
-   PutVar(MaxLongCard, LongCard)
+   PutVar(MaxLongCard, LongCard) ;
+
+   (* MinReal *)
+   MinReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMinFrom(GetM2RealType())) ;
+   PopValue(MinReal) ;
+   PutVar(MinReal, Real) ;
+
+   (* MaxReal *)
+   MaxReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMaxFrom(GetM2RealType())) ;
+   PopValue(MaxReal) ;
+   PutVar(MaxReal, Real) ;
+
+   (* MinShortReal *)
+   MinShortReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMinFrom(GetM2ShortRealType())) ;
+   PopValue(MinShortReal) ;
+   PutVar(MinShortReal, ShortReal) ;
+
+   (* MaxShortReal *)
+   MaxShortReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMaxFrom(GetM2ShortRealType())) ;
+   PopValue(MaxShortReal) ;
+   PutVar(MaxShortReal, ShortReal) ;
+
+   (* MinLongReal *)
+   MinLongReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMinFrom(GetM2LongRealType())) ;
+   PopValue(MinLongReal) ;
+   PutVar(MinLongReal, LongReal) ;
+
+   (* MaxLongReal *)
+   MaxLongReal := MakeTemporary(ImmediateValue) ;
+   PushRealTree(GetMaxFrom(GetM2LongRealType())) ;
+   PopValue(MaxLongReal) ;
+   PutVar(MaxLongReal, LongReal)
 
 END InitBaseSimpleTypes ;
 
 
 (*
-   GetBaseTypeMinMax - returns the minimum and maximum values for a given system type.
-                       This procedure should only be called if the type is NOT a subrange
-                       and NOT an enumeration.
+   GetBaseTypeMinMax - returns the minimum and maximum values for a
+                       given system type. This procedure should only
+                       be called if the type is NOT a subrange and NOT
+                       an enumeration.
 *)
 
 PROCEDURE GetBaseTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
@@ -344,6 +379,18 @@ BEGIN
    THEN
       min := MinLongCard ;
       max := MaxLongCard
+   ELSIF (type=Real)
+   THEN
+      min := MinReal ;
+      max := MaxReal
+   ELSIF (type=ShortReal)
+   THEN
+      min := MinShortReal ;
+      max := MaxShortReal
+   ELSIF (type=LongReal)
+   THEN
+      min := MinLongReal ;
+      max := MaxLongReal
    ELSE
       n := GetSymName(type) ;
       WriteFormat1('unable to find MIN or MAX for the base type %a', n)
@@ -653,7 +700,7 @@ BEGIN
    THEN
       RETURN( FindMetaType(GetType(sym)) )
    ELSE
-      InternalError('unexpected base type', __FILE__, __LINE__)
+      RETURN( unknown )
    END
 END FindMetaType ;
 
@@ -664,15 +711,24 @@ END FindMetaType ;
 
 PROCEDURE IsBaseCompatible (t1, t2: CARDINAL;
                             kind: Compatability) : Compatible ;
+VAR
+   mt1, mt2: MetaType ;
 BEGIN
    IF (kind=assignment) AND (t1=t2)
    THEN
       RETURN( yes )
    ELSE
+      mt1 := FindMetaType(t1) ;
+      mt2 := FindMetaType(t2) ;
+      IF (mt1=unknown) OR (mt2=unknown)
+      THEN
+         RETURN( FALSE )
+      END ;
+         
       CASE kind OF
 
-      expression: RETURN( Expr[FindMetaType(t1), FindMetaType(t2)] ) |
-      assignment: RETURN( Ass [FindMetaType(t1), FindMetaType(t2)] )
+      expression: RETURN( Expr[mt1, mt2] ) |
+      assignment: RETURN( Ass [mt1, mt2] )
 
       ELSE
          InternalError('unexpected Compatibility', __FILE__, __LINE__)

@@ -22,7 +22,7 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2003/04/29 15:27:24 $ 
+    Last edit  : $Date: 2004/08/26 19:07:53 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
@@ -31,17 +31,19 @@ FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IntegerToString, CardinalToString, StringToInteger,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
-                 StringToLongreal, stor, stolr ;
+                 StringToLongreal, LongrealToString, stor, stolr ;
 
 
 (*
-   IntegerToString - converts INTEGER, i, into a String. The field with can be specified
-                     if non zero. Leading characters are defined by padding and this
-                     function will prepend a + if sign is set to TRUE.
-                     The base allows the caller to generate binary, octal, decimal, hexidecimal
-                     numbers. The value of lower is only used when hexidecimal numbers are
-                     generated and if TRUE then digits abcdef are used, and if FALSE then ABCDEF
-                     are used.
+   IntegerToString - converts INTEGER, i, into a String. The field with
+                     can be specified if non zero. Leading characters
+                     are defined by padding and this function will
+                     prepend a + if sign is set to TRUE.
+                     The base allows the caller to generate binary,
+                     octal, decimal, hexidecimal numbers.
+                     The value of lower is only used when hexidecimal
+                     numbers are generated and if TRUE then digits
+                     abcdef are used, and if FALSE then ABCDEF are used.
 *)
 
 PROCEDURE IntegerToString (i: INTEGER; width: CARDINAL; padding: CHAR; sign: BOOLEAN;
@@ -49,12 +51,14 @@ PROCEDURE IntegerToString (i: INTEGER; width: CARDINAL; padding: CHAR; sign: BOO
 
 
 (*
-   CardinalToString - converts CARDINAL, c, into a String. The field with can be specified
-                      if non zero. Leading characters are defined by padding.
-                      The base allows the caller to generate binary, octal, decimal, hexidecimal
-                      numbers. The value of lower is only used when hexidecimal numbers are
-                      generated and if TRUE then digits abcdef are used, and if FALSE then ABCDEF
-                      are used.
+   CardinalToString - converts CARDINAL, c, into a String. The field
+                      width can be specified if non zero. Leading
+                      characters are defined by padding.
+                      The base allows the caller to generate binary,
+                      octal, decimal, hexidecimal numbers.
+                      The value of lower is only used when hexidecimal
+                      numbers are generated and if TRUE then digits
+                      abcdef are used, and if FALSE then ABCDEF are used.
 *)
 
 PROCEDURE CardinalToString (c: CARDINAL; width: CARDINAL; padding: CHAR;
@@ -143,10 +147,20 @@ PROCEDURE bstoc (s: String) : CARDINAL ;
 
 
 (*
-   StringToLongreal - returns a LONGREAL and sets found to TRUE if a legal number is seen.
+   StringToLongreal - returns a LONGREAL and sets found to TRUE
+                      if a legal number is seen.
 *)
 
 PROCEDURE StringToLongreal (s: String; VAR found: BOOLEAN) : LONGREAL ;
+
+
+(*
+   LongrealToString - converts a LONGREAL number, Real, which has,
+                      TotalWidth, and FractionWidth into a string.
+*)
+
+PROCEDURE LongrealToString (x: LONGREAL;
+                            TotalWidth, FractionWidth: CARDINAL) : String ;
 
 
 (*

@@ -1,0 +1,28 @@
+These modules are provided to enable legacy Modula-2 applications to
+build with GNU Modula-2. It is advised that these module should not
+be used for new projects, maybe the ISO libraries or the native
+compiler PIM libraries (FIO) should be used instead.
+
+Here is an outline of the module layering:
+
+@example
+
+InOut  RealInOut  LongIO     FileSystem
+    \     |     /               |
+       Terminal                 |
+------------------------------------------------------
+          |                     |
+       Termbase                FIO (basic)
+       /      \
+Keyboard      Display
+
+@end example
+
+Above the line are user level PIM [234] and Logitech 3.0 compatible
+modules.  Below the line Logitech 3.0 advised that these modules
+should be considered part of the runtime system. The libraries do
+not provide all the features found in the Logitech libraries as
+a number of these features were MS-DOS related. Essentially the
+basic input/output, file system, string manipulation and conversion
+routines are provided. Access to DOSCALL, graphics, time and date
+are not as these were constrained by the limitations of MS-DOS.

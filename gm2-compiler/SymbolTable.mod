@@ -629,6 +629,7 @@ VAR
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
+PROCEDURE ResolveImport (o: WORD) ; FORWARD ;
 PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE PushConstString (Sym: CARDINAL) ; FORWARD ;

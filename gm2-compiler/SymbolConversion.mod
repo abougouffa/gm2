@@ -24,7 +24,7 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds,
 FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName ;
 FROM M2ALU IMPORT PushIntegerTree ;
-FROM gccgm2 IMPORT GetErrorNode, RememberConstant ;
+FROM gccgm2 IMPORT GetErrorNode, RememberConstant, GarbageCollect ;
 FROM M2Printf IMPORT printf1 ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADDRESS ;

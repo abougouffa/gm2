@@ -678,10 +678,6 @@ END IsSymTypeKnown ;
 
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF Sym=114
-   THEN
-      mystop
-   END ;
    IF GccKnowsAbout(Sym) AND (NOT IsItemInList(ToFinishList, Sym))
    THEN
       RETURN( TRUE )
@@ -738,11 +734,6 @@ BEGIN
       printf2('// declaring %d %a\n', Sym, n1)
    END ;
 
-   IF Sym=107
-   THEN
-      mystop
-   END ;
-
    IF IsVarient(Sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
@@ -758,7 +749,6 @@ BEGIN
          gcc := DeclareOrFindKindOfType(Sym) ;
          IF gcc=Tree(NIL)
          THEN
-            mystop ;
             gcc := DeclareOrFindKindOfType(Sym)
          END ;
          RemoveItemFromList(ToDoList, Sym) ;
@@ -837,7 +827,7 @@ VAR
    s: CARDINAL ;
 BEGIN
    s := GetScope(Sym) ;
-   IF (s=NulSym) OR IsDefImp(s) OR IsModule(s)
+   IF (s=NulSym) OR IsDefImp(s) OR (IsModule(s) AND (GetScope(s)=NulSym))
    THEN
       RETURN( s )
    ELSE
@@ -860,6 +850,23 @@ END IsPseudoProcFunc ;
 
 
 (*
+   IsProcedureGccNested - returns TRUE if procedure, sym, will be considered
+                          as nested by GCC.
+                          This will occur if either its outer defining scope
+                          is a procedure or is a module which is inside a
+                          procedure.
+*)
+
+PROCEDURE IsProcedureGccNested (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          IsProcedureNested(sym) OR
+          (IsModule(GetScope(sym)) AND IsModuleWithinProcedure(GetScope(sym)))
+         )
+END IsProcedureGccNested ;
+
+
+(*
    DeclareProcedureToGcc - traverses all parameters and interfaces to gm2gcc.
 *)
 
@@ -869,6 +876,11 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
+   IF Sym=131
+   THEN
+      mystop
+   END ;
+
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsImported(GetMainModule(), Sym) OR
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
@@ -902,11 +914,11 @@ BEGIN
       THEN
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
                                                     NIL, IsImported(GetMainModule(), Sym),
-                                                    IsProcedureNested(Sym)))
+                                                    IsProcedureGccNested(Sym)))
       ELSE
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
                                                     Mod2Gcc(GetType(Sym)), IsImported(GetMainModule(), Sym),
-                                                    IsProcedureNested(Sym)))
+                                                    IsProcedureGccNested(Sym)))
       END
    END
 END DeclareProcedureToGcc ;
@@ -1019,13 +1031,39 @@ END AssertAllTypesDeclared ;
 
 
 (*
+   DeclareModuleInit - declared the initialization `function' within
+                       a module.
+*)
+
+PROCEDURE DeclareModuleInit (sym: WORD) ;
+VAR
+   t: Tree ;
+BEGIN
+   IF IsModuleWithinProcedure(sym)
+   THEN
+      BuildStartFunctionDeclaration(FALSE) ;
+      t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(sym)),
+                                       NIL, FALSE, TRUE) ;
+      AddModGcc(sym, t)
+   END
+END DeclareModuleInit ;
+
+
+(*
    StartDeclareScope - declares types, variables associated with this scope.
 *)
 
 PROCEDURE StartDeclareScope (scope: CARDINAL) ;
+VAR
+   n: Name ;
 BEGIN
+(*
+   n := GetSymName(scope) ;
+   printf1('before declaring block %a\n', n) ;
+*)
    IF IsProcedure(scope)
    THEN
+      DeclareProcedure(scope) ;
       DeclareTypesInProcedure(scope) ;
       DeclareTypesAndConstants(scope) ;
       ForeachInnerModuleDo(scope, DeclareTypeInfo) ;
@@ -1033,10 +1071,15 @@ BEGIN
       AssertAllTypesDeclared(scope) ;
       DeclareLocalVariables(scope) ;
       ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
-      ForeachProcedureDo(scope, DeclareProcedure)
-   ELSIF IsModuleWithinProcedure(scope)
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
+   ELSIF scope#GetMainModule()
    THEN
-      (* do nothing, modules within procedures are declared elsewhere *)
+      DeclareTypesAndConstants(scope) ;
+      AssertAllTypesDeclared(scope) ;
+      ForeachProcedureDo(scope, DeclareProcedure) ;
+      DeclareModuleInit(scope) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSE
       ForeachModuleDo(DeclareTypesInModule) ;
       DeclareTypesAndConstants(scope) ;
@@ -1050,7 +1093,8 @@ BEGIN
       ForeachImportedDo(scope, DeclareImportedVariables) ;
       (* now it is safe to declare all procedures *)
       ForeachProcedureDo(scope, DeclareProcedure) ;
-      ForeachInnerModuleDo(scope, DeclareProcedure)
+      ForeachInnerModuleDo(scope, DeclareProcedure) ;
+      ForeachInnerModuleDo(scope, StartDeclareScope)
    END
 END StartDeclareScope ;
 
@@ -1503,8 +1547,7 @@ BEGIN
             ELSE
                IF NOT AllDependantsWritten(GetType(Field))
                THEN
-                  mystop ;
-                  Assert(AllDependantsWritten(GetType(Field))) ;
+                  Assert(AllDependantsWritten(GetType(Field)))
                END ;
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;

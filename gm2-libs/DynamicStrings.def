@@ -217,9 +217,17 @@ PROCEDURE ToLower (s: String) : String ;
 
 (*
    char - returns the character, ch, at position, i, in String, s.
+          As Slice the index can be negative so:
+
+          char(s, 0) will return the first character
+          char(s, 1) will return the second character
+          char(s, -1) will return the last character
+          char(s, -2) will return the penultimate character
+
+          a nul character is returned if the index is out of range.
 *)
 
-PROCEDURE char (s: String; i: CARDINAL) : CHAR ;
+PROCEDURE char (s: String; i: INTEGER) : CHAR ;
 
 
 (*

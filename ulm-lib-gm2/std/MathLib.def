@@ -17,9 +17,23 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.def,v 1.2 2004/06/29 08:51:41 gaius Exp $
+   $Id: MathLib.def,v 1.3 2004/08/26 19:08:07 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.def,v $
+   Revision 1.3  2004/08/26 19:08:07  gaius
+   * implemented type PROCESS for SYSTEM in the pim library
+     directory (gm2/gm2-libs-coroutines).
+   * SYSTEM implements NEWPROCESS, TRANSFER, IOTRANSFER.
+     This is achieved by using the GNU pthread library context
+     mechanism.
+   * provided an Executive and TimerHandler module in
+     (gm2/examples/executive).
+   * many bug fixes and regression tests show that 3 ulm standard
+     library modules fail.
+   * implemented MAX(REAL), MIN(REAL) and also provided access to
+     three more gcc builtin functions: huge_val, huge_vall, huge_valf
+   * started work on a Logitech 3.0 compatible library.
+
    Revision 1.2  2004/06/29 08:51:41  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -43,16 +57,16 @@
 
 DEFINITION MODULE MathLib;
 
-   PROCEDURE arctan(arg: REAL) : REAL;
+   PROCEDURE arctan(x: REAL) : REAL;
 
-   PROCEDURE exp(arg: REAL) : REAL;
+   PROCEDURE exp(x: REAL) : REAL;
 
-   PROCEDURE ln(arg: REAL) : REAL;
+   PROCEDURE ln(x: REAL) : REAL;
 
-   PROCEDURE sin(arg: REAL) : REAL;
+   PROCEDURE sin(x: REAL) : REAL;
 
-   PROCEDURE cos(arg: REAL) : REAL;
+   PROCEDURE cos(x: REAL) : REAL;
 
-   PROCEDURE sqrt(arg: REAL) : REAL;
+   PROCEDURE sqrt(x: REAL) : REAL;
 
 END MathLib.

@@ -787,11 +787,15 @@ END RIndex ;
    char - returns the character, ch, at position, i, in String, s.
 *)
 
-PROCEDURE char (s: String; i: CARDINAL) : CHAR ;
+PROCEDURE char (s: String; i: INTEGER) : CHAR ;
 BEGIN
    IF PoisonOn
    THEN
       s := CheckPoisoned(s)
+   END ;
+   IF i<0
+   THEN
+      i := Length(s)+i
    END ;
    WHILE (s#NIL) AND (i>s^.contents.len) DO
       DEC(i, s^.contents.len) ;

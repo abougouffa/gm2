@@ -1,0 +1,87 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE Terminal ;
+
+(*
+    Title      : Terminal
+    System     : GNU Modula-2
+    Date       : Fri Aug  6 20:13:17 2004
+    Revision   : $Version$ 
+    Description: provides a Logitech 3.0 compatible and PIM [234] compatible
+                 Terminal module. It provides simple terminal input output
+                 routines which all utilize the TermBase module.
+*)
+
+EXPORT QUALIFIED Read, KeyPressed, ReadAgain, ReadString, Write,
+                 WriteString, WriteLn ;
+
+
+(*
+   Read - reads a single character.
+*)
+
+PROCEDURE Read (VAR ch: CHAR) ;
+
+
+(*
+   KeyPressed - returns TRUE if a character can be read without blocking
+                the caller.
+*)
+
+PROCEDURE KeyPressed () : BOOLEAN ;
+
+
+(*
+   ReadString - reads a sequence of characters.
+                Tabs are expanded into 8 spaces and <cr> or <lf> terminates
+                the string.
+*)
+
+PROCEDURE ReadString (VAR s: ARRAY OF CHAR) ;
+
+
+(*
+   ReadAgain - makes the last character readable again.
+*)
+
+PROCEDURE ReadAgain ;
+
+
+(*
+   Write - writes a single character to the Termbase module.
+*)
+
+PROCEDURE Write (ch: CHAR) ;
+
+
+(*
+   WriteString - writes out a string which is terminated by a <nul>
+                 character or the end of string HIGH(s).
+*)
+
+PROCEDURE WriteString (s: ARRAY OF CHAR) ;
+
+
+(*
+   WriteLn - writes a lf character.
+*)
+
+PROCEDURE WriteLn ;
+
+
+END Terminal.

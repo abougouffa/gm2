@@ -57,8 +57,9 @@ EXPORT QUALIFIED PtrToValue,
                  Addn, Multn, Div, Sub, Mod,
                  Equ, NotEqu, Less, Gre, LessEqu, GreEqu,
                  GetValue, GetRange,  ConstructSetConstant, BuildRange,
-                 CollectSetDependants ;
+                 CollectSetDependants,
 
+                 IsValueAndTreeKnown ;
 
 TYPE
    PtrToValue ;
@@ -706,6 +707,23 @@ PROCEDURE BuildRange (tokenno: CARDINAL; e1, e2: Tree) : Tree ;
 *)
 
 PROCEDURE CollectSetDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsValueAndTreeKnown - returns TRUE if the value is known and the gcc tree
+                         is defined.
+
+                         The Stack:
+
+                                Entry             Exit
+
+                         Ptr ->
+                                +------------+
+                                | Op1        |                   <- Ptr
+                                |------------|    +------------+
+*)
+
+PROCEDURE IsValueAndTreeKnown () : BOOLEAN ;
 
 
 END M2ALU.

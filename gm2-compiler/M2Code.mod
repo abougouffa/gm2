@@ -163,6 +163,8 @@ BEGIN
    InitGlobalContext ;
    InitDeclarations ;
 
+   
+   StartDeclareScope(GetMainModule()) ;
    CodeBlock(GetMainModule()) ;
 
    OptimizationAnalysis
@@ -347,6 +349,16 @@ END DisplayQuadNumbers ;
 
 
 (*
+   CodeProceduresWithinBlock - codes the procedures within the module scope.
+*)
+
+PROCEDURE CodeProceduresWithinBlock (scope: CARDINAL) ;
+BEGIN
+   ForeachProcedureDo(scope, CodeBlock)
+END CodeProceduresWithinBlock ;
+
+
+(*
    CodeBlock - generates all code for this block and also declares
                all types and procedures for this block. It will
                also optimize quadruples within this scope.
@@ -357,11 +369,15 @@ VAR
    sb: ScopeBlock ;
    n : Name ;
 BEGIN
+(*
+   n := GetSymName(scope) ;
+   printf1('before coding block %a\n', n) ;
+*)
    sb := InitScopeBlock(scope) ;
    OptimizeScopeBlock(sb) ;
    IF IsProcedure(scope)
    THEN
-      DeclareProcedure(scope) ;
+      (* DeclareProcedure(scope) ; ************************* *)
       IF DisplayQuadruples
       THEN
          n := GetSymName(scope) ;
@@ -380,9 +396,10 @@ BEGIN
          printf0('===============\n')
       END ;
       ForeachInnerModuleDo(scope, CodeBlock) ;
-      ForeachScopeBlockDo(sb, ConvertQuadsToTree)
+      ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
+      ForeachProcedureDo(scope, CodeBlock)
    ELSE
-      StartDeclareScope(scope) ;
+      (* StartDeclareScope(scope) ; **************************** *)
       IF DisplayQuadruples
       THEN
          n := GetSymName(scope) ;
@@ -391,7 +408,8 @@ BEGIN
          printf0('===============\n')
       END ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
-      ForeachProcedureDo(scope, CodeBlock)
+      ForeachProcedureDo(scope, CodeBlock) ;
+      ForeachInnerModuleDo(scope, CodeProceduresWithinBlock)
    END ;
    sb := KillScopeBlock(sb)
 END CodeBlock ;

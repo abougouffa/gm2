@@ -911,16 +911,12 @@ BEGIN
       SetFileNameAndLineNo(string(FileName), op1) ;
       IF IsModuleWithinProcedure(op3)
       THEN
-         BuildStartFunctionDeclaration(FALSE) ;
-         CurrentModuleInitFunction :=
-         BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(op3)),
-                                     NIL, FALSE, TRUE) ;
-         BuildStartFunctionCode(CurrentModuleInitFunction,
-                                FALSE)
+         CurrentModuleInitFunction := Mod2Gcc(op3) ;
+         BuildStartFunctionCode(CurrentModuleInitFunction, FALSE)
       ELSE
-         CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3)
+         CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3) ;
+         AddModGcc(op3, CurrentModuleInitFunction)
       END ;
-      AddModGcc(op3, CurrentModuleInitFunction) ;
       EmitLineNote(string(FileName), op1) ;
       ForeachInnerModuleDo(op3, CallInnerInit)
    END

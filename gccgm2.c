@@ -1,8 +1,8 @@
 /* Copyright (C) 2000, 2001, 2002, 2003, 2004
  * Free Software Foundation, Inc.
  *
- *  Gaius Mulley (gaius@glam.ac.uk) constructed this file.
- *  It was built by borrowing code from the gcc c-*.c files
+ *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
+ *  It was built by borrowing code from the gcc-.../gcc/c-*.c files
  *  and its function is to provide an interface between the
  *  Modula-2 source and C back end.
  */
@@ -131,21 +131,21 @@ enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
  ((code) == INTEGER_TYPE || (code) == CHAR_TYPE || \
   (code) == BOOLEAN_TYPE || (code) == ENUMERAL_TYPE)
 
-tree proc_type_node;
-tree bitset_type_node;
-tree bitnum_type_node;
-tree m2_char_type_node;
-tree m2_integer_type_node;
-tree m2_cardinal_type_node;
-tree m2_short_real_type_node;
-tree m2_real_type_node;
-tree m2_long_real_type_node;
-tree m2_long_int_type_node;
-tree m2_long_card_type_node;
-tree m2_iso_loc_type_node;
-tree m2_iso_byte_type_node;
-tree m2_iso_word_type_node;
-tree set_full_complement;
+static GTY(()) tree proc_type_node;
+static GTY(()) tree bitset_type_node;
+static GTY(()) tree bitnum_type_node;
+static GTY(()) tree m2_char_type_node;
+static GTY(()) tree m2_integer_type_node;
+static GTY(()) tree m2_cardinal_type_node;
+static GTY(()) tree m2_short_real_type_node;
+static GTY(()) tree m2_real_type_node;
+static GTY(()) tree m2_long_real_type_node;
+static GTY(()) tree m2_long_int_type_node;
+static GTY(()) tree m2_long_card_type_node;
+static GTY(()) tree m2_iso_loc_type_node;
+static GTY(()) tree m2_iso_byte_type_node;
+static GTY(()) tree m2_iso_word_type_node;
+static GTY(()) tree set_full_complement;
 
 
 
@@ -241,7 +241,7 @@ tree set_full_complement;
 
 */
 
-tree c_global_trees[CTI_MAX];
+static GTY(()) tree c_global_trees[CTI_MAX];
 
 extern tree current_function_decl;
 
@@ -252,22 +252,22 @@ extern tree current_function_decl;
    occur in an enum value expression and we don't use these variables in
    that case.  */
 
-static tree enum_next_value;
+static GTY(()) tree enum_next_value;
 
 /* Nonzero means that there was overflow computing enum_next_value.  */
 
 static int enum_overflow;
 
 /* Used in build_enumerator() */
-tree current_enum_type;
+static GTY(()) tree current_enum_type;
 
 /* Used in BuildEnumerator */
-tree enumvalues=NULL_TREE;
+static GTY(()) tree enumvalues=NULL_TREE;
 
 /* Used in BuildStartFunctionType */
-tree param_type_list;
-tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
-tree last_function=NULL_TREE;
+GTY(()) tree param_type_list;
+GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
+GTY(()) tree last_function=NULL_TREE;
 static int label_count = 0;
 
 /* A list (chain of TREE_LIST nodes) of all LABEL_DECLs in the function
@@ -284,9 +284,9 @@ static GTY(()) tree shadowed_labels;
  * (constant set creation)
  */
 
-static tree constructor_type = NULL_TREE;
-static tree constructor_fields = NULL_TREE;
-static tree constructor_element_list = NULL_TREE;
+static GTY(()) tree constructor_type = NULL_TREE;
+static GTY(()) tree constructor_fields = NULL_TREE;
+static GTY(()) tree constructor_element_list = NULL_TREE;
 
 static tree qualify_type                PARAMS ((tree, tree));
 static tree build_c_type_variant        PARAMS ((tree, int, int));
@@ -347,8 +347,11 @@ extern char **save_argv;
 
 static int insideCppArgs = 0;
 
-extern void gccgm2front PARAMS((int argc, char *argv[]));
-extern void gm2builtins_init PARAMS((void));
+extern void gccgm2front                     PARAMS((int argc, char *argv[]));
+extern void gm2builtins_init                PARAMS((void));
+extern tree gm2builtins_BuiltInHugeVal      PARAMS((void));
+extern tree gm2builtins_BuiltInHugeValShort PARAMS((void));
+extern tree gm2builtins_BuiltInHugeValLong  PARAMS((void));
 
 /* Global Variables Expected by gcc: */
 
@@ -549,6 +552,7 @@ static char *                 createUniqueLabel                           PARAMS
        tree                   gccgm2_GetBitnumType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetRealType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetLongRealType 	       	 	  PARAMS ((void));
+       tree                   gccgm2_GetShortRealType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetLongIntType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetWordType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetProcType 	       	 	  PARAMS ((void));
@@ -681,6 +685,7 @@ static bool                   flexible_array_type_p                       PARAMS
        tree                   c_type_promotes_to                          PARAMS ((tree));
        int                    objc_comptypes                              PARAMS ((tree, tree, int));
 static tree                   build_set_full_complement                   PARAMS ((void));
+       void                   gccgm2_GarbageCollect                       PARAMS ((void));
 
 
 
@@ -6973,6 +6978,16 @@ tree
 gccgm2_GetMinFrom (type)
      tree type;
 {
+  if (type == m2_real_type_node || type == gccgm2_GetRealType())
+    return fold (gccgm2_BuildNegate (fold (gm2builtins_BuiltInHugeVal ()),
+				     FALSE));
+  if (type == m2_long_real_type_node || type == gccgm2_GetLongRealType())
+    return fold (gccgm2_BuildNegate (fold (gm2builtins_BuiltInHugeValLong ()),
+				     FALSE));
+  if (type == m2_short_real_type_node || type == gccgm2_GetShortRealType())
+    return fold (gccgm2_BuildNegate (fold (gm2builtins_BuiltInHugeValShort ()),
+				     FALSE));
+
   return TYPE_MIN_VALUE (skip_type_decl (type));
 }
 
@@ -6985,6 +7000,13 @@ tree
 gccgm2_GetMaxFrom (type)
      tree type;
 {
+  if (type == m2_real_type_node || type == gccgm2_GetRealType ())
+    return fold (gm2builtins_BuiltInHugeVal ());
+  if (type == m2_long_real_type_node || type == gccgm2_GetLongRealType())
+    return fold (gm2builtins_BuiltInHugeValLong ());
+  if (type == m2_short_real_type_node || type == gccgm2_GetShortRealType())
+    return fold (gm2builtins_BuiltInHugeValShort ());
+
   return TYPE_MAX_VALUE (skip_type_decl (type));
 }
 
@@ -7082,6 +7104,9 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   tree id;
   tree decl;
 
+  if (strcmp(name, "Lex_ParseFunction_Functions_val") == 0)
+    stop();
+
   ASSERT(is_type(type), type);
 
   id   = get_identifier (name);
@@ -7094,7 +7119,8 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   if (isglobal && (scope == NULL_TREE)) {
     TREE_PUBLIC   (decl)  = exported;
     TREE_STATIC   (decl)  = isglobal;           /* declaration and definition */
-  } else
+  } 
+  else
     TREE_PUBLIC   (decl)  = 1;
 
   DECL_CONTEXT  (decl)    = scope;
@@ -8671,7 +8697,6 @@ gccgm2_BuildStartFunctionDeclaration (int uses_varargs)
 tree gm2_debugging_func;
 
 /*
- *
  *  BuildEndFunctionDeclaration - build a function which will return a value of returntype.
  *                                The arguments have been created by BuildParameterDeclaration.
  */
@@ -8772,6 +8797,7 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   /* open a new nesting level */
   pushlevel (0);   /* outer nesting level contains parameters and inner contains local variables */
   expand_start_bindings (0);
+  // printf("starting scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
 /*
@@ -8794,6 +8820,7 @@ gccgm2_BuildEndFunctionCode (fndecl)
 
   rest_of_compilation (fndecl);
   current_function_decl = NULL;
+  // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
 /*
@@ -10553,6 +10580,12 @@ tree
 gccgm2_GetLongRealType ()
 {
   return long_double_type_node;
+}
+
+tree
+gccgm2_GetShortRealType ()
+{
+  return float_type_node;
 }
 
 tree
@@ -12508,6 +12541,16 @@ void gccgm2_InitGlobalContext (void)
 {
   if (cfun == 0)
     init_dummy_function_start ();
+}
+
+/*
+ *  GarbageCollect - force gcc to garbage collect.
+ */
+
+void
+gccgm2_GarbageCollect (void)
+{
+  ggc_collect();
 }
 
 #include "gt-gm2-gm2-lang.h"

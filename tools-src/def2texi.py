@@ -5,10 +5,19 @@ import os
 import glob
 import string
 
-libraryClassifications = [['gm2-libs','PIM Compatible',
-                           'Basic PIM Compatible and additional libraries'],
+libraryClassifications = [['gm2-libs','Base libraries',
+                           'Basic M2F compatible libraries'],
+                          ['gm2-libs-pim','PIM and Logitech 3.0 Compatible',
+                           'PIM and Logitech 3.0 compatible libraries'],
+                          ['gm2-libs-coroutines','PIM coroutine support',
+                           'PIM and Logitech 3.0 compatible process support'],
                           ['gm2-iso','M2 ISO Libraries',
-                           'ISO defined libraries']]
+                           'ISO defined libraries'],
+                          ['ulm-lib-gm2/sys','ULM System Libraries',
+                           'ULM System libraries'],
+                          ['ulm-lib-gm2/std','ULM Standard Libraries',
+                           'ULM Standard libraries']]
+
 
 #
 #  at present the following are too incomplete to include:
@@ -102,7 +111,8 @@ def removeFields (file, line):
         elif (string.find(line, "SYSTEM") != -1) and (string.find(line, ":") != -1) and (string.find(line, "Description:") == -1):
             line = file.readline()
         else:
-            print string.rstrip(line)
+	    print string.replace(string.replace(string.rstrip(line),
+                                            "{", "@{"), "}", "@}")
             line = file.readline()
     print string.rstrip(line)
 
@@ -145,7 +155,8 @@ def parseDefinition (dir, file):
     print string.rstrip(line)
     line = f.readline()
     if len(string.rstrip(line)) == 0:
-        print string.rstrip(line)
+        print string.replace(string.replace(string.rstrip(line),
+                                            "{", "@{"), "}", "@}")
         line = f.readline()
         if (string.find(line, "(*") != -1):
             removeFields(f, line)

@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE StringConvert ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
                            Slice, Index, char, Assign, Length, Mult,
-                           RemoveWhitePrefix, KillString ;
+                           RemoveWhitePrefix, ConCatChar, KillString ;
 
 
 (*
@@ -399,14 +399,22 @@ END bstoc ;
    ToThePower10 - returns a LONGREAL containing the value of v * 10^power.
 *)
 
-PROCEDURE ToThePower10 (v: LONGREAL; power: CARDINAL) : LONGREAL;
+PROCEDURE ToThePower10 (v: LONGREAL; power: INTEGER) : LONGREAL;
 VAR 
-   i: CARDINAL;
+   i: INTEGER ;
 BEGIN
    i := 0 ;
-   WHILE i<power DO
-      v := v * 10.0 ;
-      INC(i)
+   IF power>0
+   THEN
+      WHILE i<power DO
+         v := v * 10.0 ;
+         INC(i)
+      END
+   ELSE
+      WHILE i>power DO
+         v := v / 10.0 ;
+         DEC(i)
+      END
    END ;
    RETURN( VAL(REAL, v) )
 END ToThePower10 ;
@@ -433,30 +441,26 @@ BEGIN
 END DetermineSafeTruncation ;
 
 
-(*******************
 (*
-   LongrealToString - converts a LONGREAL number, Real, which has, TotalWidth, and
-                      FractionWidth into a string.
+   LongrealToString - converts a LONGREAL number, Real, which has,
+                      TotalWidth, and FractionWidth into a string.
 *)
 
-PROCEDURE LongRealToStr (x: LONGREAL; TotalWidth, FractionWidth: CARDINAL) : String ;
+PROCEDURE LongrealToString (x: LONGREAL;
+                            TotalWidth, FractionWidth: CARDINAL) : String ;
 VAR
    TruncedX        : INTEGER;
    NonTruncedDigits: CARDINAL ;
 
-   i,
-   aIndex,
-   BufIndex        : CARDINAL ;
-   Buffer          : ARRAY [0..MaxDigits] OF CHAR;
+   s, Result       : String ;
    IsNegative      : BOOLEAN;
    IntegerWidth    : CARDINAL ;
    SignWidth       : CARDINAL ;
 
    LogPower        : CARDINAL ;
    MaxPower        : LONGREAL ;
-   High            : CARDINAL ;
 BEGIN
-   High     := HIGH(a) ;
+   Result   := InitString('') ;
    LogPower := DetermineSafeTruncation() ;
    MaxPower := ToThePower10(1.0, LogPower) ;
 
@@ -470,7 +474,6 @@ BEGIN
       IsNegative := FALSE
    END ;
 
-   BufIndex := 0 ;
    REPEAT
       (* keep dividing x by 10.0 until we can safely use the TRUNC operator *)
       NonTruncedDigits := 0 ;
@@ -487,7 +490,8 @@ BEGIN
       TruncedX := TRUNC(x) ;
       x := x - VAL(LONGREAL, TruncedX) ;
 
-      INC(BufIndex, IntegerToStr(TruncedX, Buffer, BufIndex)) ;
+      Result := ConCat(Result, Mark(IntegerToString(TruncedX, 0, ' ',
+                                                    FALSE, 10, FALSE))) ;
       IF NonTruncedDigits>0
       THEN
          (* now restore x to its original magnitude *)
@@ -495,60 +499,44 @@ BEGIN
       END
    UNTIL NonTruncedDigits = 0 ;
 
-   IntegerWidth := Max(INTEGER(BufIndex), INTEGER(TotalWidth)-INTEGER(FractionWidth)) ;
-
-   (* add leading spaces *)
-   aIndex := 0 ;
-   WHILE aIndex<IntegerWidth-BufIndex-SignWidth DO
-      Add(a, High, aIndex, ' ') ;
-      INC(aIndex)
-   END ;
+   IntegerWidth := Max(Length(Result),
+                       INTEGER(TotalWidth)-INTEGER(FractionWidth)) ;
 
    (* now add the sign *)
    IF IsNegative
    THEN
-      Add(a, High, aIndex, '-') ;
-      INC(aIndex)
+      Result := ConCat(InitString('-'), Mark(Result))
    END ;
 
-   (* now add integer component of x *)
-   i := 0 ;
-   WHILE i<BufIndex DO
-      Add(a, High, aIndex, Buffer[i]) ;
-      INC(i) ;
-      INC(aIndex)
+   (* and add leading spaces *)
+   IF IntegerWidth-Length(Result)>0
+   THEN
+      Result := ConCat(Mult(InitString(' '),
+                            IntegerWidth-Length(Result)),
+                       Mark(Result))
    END ;
 
    IF IntegerWidth<TotalWidth
    THEN
-      Add(a, High, aIndex, '.') ;
-      INC(aIndex) ;
-      WHILE aIndex<=TotalWidth DO
+      Result := ConCatChar(Result, '.') ;
+      WHILE Length(Result)<=TotalWidth DO
          x := x * MaxPower ;
          TruncedX := TRUNC(x) ;
          x := x - VAL(LONGREAL, TruncedX) ;
 
-         BufIndex := IntegerToStr(TruncedX, Buffer, 0) ;
+         s := IntegerToString(TruncedX, 0, ' ', FALSE, 10, FALSE) ;
 
          (* add leading zero's *)
-         i := BufIndex ;
-         WHILE (i<LogPower) AND (aIndex<High) DO
-            Add(a, High, aIndex, '0') ;
-            INC(aIndex) ;
-            INC(i)
+         IF Length(s)<LogPower
+         THEN
+            s := Mult(InitString('0'), LogPower-Length(s)) ;
          END ;
-         (* and add contents of the buffer *)
-         i := 0 ;
-         REPEAT
-            Add(a, High, aIndex, Buffer[i]) ;
-            INC(i) ;
-            INC(aIndex)
-         UNTIL i=BufIndex
+         Result := ConCat(Result, Mark(s))
       END
    END ;
-   Add(a, High, aIndex, nul)
-END LongRealToStr ;
-**********************)
+   RETURN( Result )
+END LongrealToString ;
+
 
 (*
    StringToLongreal - returns a LONGREAL and sets found to TRUE if a legal number is seen.
@@ -561,6 +549,7 @@ VAR
    x,
    Fraction,
    Exponent: LONGREAL ;
+   exponent: INTEGER ;
 BEGIN
    s := RemoveWhitePrefix(s) ;   (* new string is created *)
    l := Length(s) ;
@@ -599,6 +588,16 @@ BEGIN
          END ;
          (* and combine both components *)
          x := x+Fraction
+      END ;
+      IF (char(s, i)='E') OR (char(s, i)='e')
+      THEN
+         INC(i) ;
+         s := Slice(Mark(s), i, -1) ;
+         exponent := StringToInteger(s, 10, found) ;
+         IF found
+         THEN
+            x := ToThePower10(x, exponent)
+         END
       END
    END ;
    s := KillString(s) ;

@@ -49,6 +49,10 @@
 struct sockaddr;
 typedef void *sigset_t;
 
+    /* the user-space context structure */
+typedef struct pth_uctx_st *pth_uctx_t;
+struct pth_uctx_st;
+
     /* fallbacks for essential typedefs */
 typedef int pid_t;
 /* typedef unsigned int size_t; */
@@ -334,6 +338,14 @@ extern int            pth_cond_await(pth_cond_t *, pth_mutex_t *, pth_event_t);
 extern int            pth_cond_notify(pth_cond_t *, int);
 extern int            pth_barrier_init(pth_barrier_t *, int);
 extern int            pth_barrier_reach(pth_barrier_t *);
+
+    /* user-space context functions */
+extern int            pth_uctx_create(pth_uctx_t *);
+extern int            pth_uctx_make(pth_uctx_t, char *, size_t, const sigset_t *, void (*)(void *), void *, pth_uctx_t);
+extern int            pth_uctx_save(pth_uctx_t);
+extern int            pth_uctx_restore(pth_uctx_t);
+extern int            pth_uctx_switch(pth_uctx_t, pth_uctx_t);
+extern int            pth_uctx_destroy(pth_uctx_t);
 
     /* extension functions */
 extern Sfdisc_t      *pth_sfiodisc(void);

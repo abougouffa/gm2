@@ -1,0 +1,170 @@
+DEFINITION MODULE InOut ;
+
+(*
+    Title      : InOut
+    System     : GNU Modula-2
+    Date       : Thu Aug  5 14:35:58 2004
+    Revision   : $Version$ 
+    Description: provides a compatible PIM [234] InOut module.
+*)
+
+IMPORT ASCII ;
+FROM DynamicStrings IMPORT String ;
+EXPORT QUALIFIED EOL, Done, termCH, OpenInput, CloseInput, CloseOutput,
+                 Read, ReadString, ReadInt, ReadCard,
+                 Write, WriteLn, WriteString, WriteInt, WriteCard,
+                 WriteOct, WriteHex,
+                 ReadS, WriteS ;
+
+CONST
+   EOL = ASCII.EOL ;
+
+VAR
+   Done  : BOOLEAN ;
+   termCH: CHAR ;
+
+
+(*
+   OpenInput - reads a string from stdin as the filename for reading.
+               If the filename ends with `.' then it appends the defext
+               extension. The global variable Done is set if all
+               was successful.
+*)
+
+PROCEDURE OpenInput (defext: ARRAY OF CHAR) ;
+
+
+(*
+   CloseInput - closes an opened input file and returns input back to
+                StdIn.
+*)
+
+PROCEDURE CloseInput ;
+
+
+(*
+   OpenOutput - reads a string from stdin as the filename for writing.
+                If the filename ends with `.' then it appends the defext
+                extension. The global variable Done is set if all
+                was successful.
+*)
+
+PROCEDURE OpenOutput (defext: ARRAY OF CHAR) ;
+
+
+(*
+   CloseOutput - closes an opened output file and returns output back to
+                 StdOut.
+*)
+
+PROCEDURE CloseOutput ;
+
+
+(*
+   Read - reads a single character from the current input file.
+          Done is set to FALSE if end of file is reached or an
+          error occurs.
+*)
+
+PROCEDURE Read (VAR ch: CHAR) ;
+
+
+(*
+   ReadString - reads a sequence of characters. Leading white space
+                is ignored and the string is terminated with a character
+                <= ' '
+*)
+
+PROCEDURE ReadString (VAR s: ARRAY OF CHAR) ;
+
+
+(*
+   WriteString - writes a string to the output file.
+*)
+
+PROCEDURE WriteString (s: ARRAY OF CHAR) ;
+
+
+(*
+   Write - writes out a single character, ch, to the current output file.
+*)
+
+PROCEDURE Write (ch: CHAR) ;
+
+
+(*
+   WriteLn - writes a newline to the output file.
+*)
+
+PROCEDURE WriteLn ;
+
+
+(*
+   ReadInt - reads a string and converts it into an INTEGER, x.
+             Done is set if an INTEGER is read.
+*)
+
+PROCEDURE ReadInt (VAR x: INTEGER) ;
+
+
+(*
+   ReadInt - reads a string and converts it into an INTEGER, x.
+             Done is set if an INTEGER is read.
+*)
+
+PROCEDURE ReadCard (VAR x: CARDINAL) ;
+
+
+(*
+   WriteCard - writes the CARDINAL, x, to the output file. It ensures
+               that the number occupies, n, characters. Leading spaces
+               are added if required.
+*)
+
+PROCEDURE WriteCard (x, n: CARDINAL) ;
+
+
+(*
+   WriteInt - writes the INTEGER, x, to the output file. It ensures
+              that the number occupies, n, characters. Leading spaces
+              are added if required.
+*)
+
+PROCEDURE WriteInt (x: INTEGER; n: CARDINAL) ;
+
+
+(*
+   WriteOct - writes the CARDINAL, x, to the output file in octal.
+              It ensures that the number occupies, n, characters.
+              Leading spaces are added if required.
+*)
+
+PROCEDURE WriteOct (x, n: CARDINAL) ;
+
+
+(*
+   WriteHex - writes the CARDINAL, x, to the output file in hexadecimal.
+              It ensures that the number occupies, n, characters.
+              Leading spaces are added if required.
+*)
+
+PROCEDURE WriteHex (x, n: CARDINAL) ;
+
+
+(*
+   ReadS - returns a string which has is a sequence of characters.
+           The string is terminated with a character <= ' '
+*)
+
+PROCEDURE ReadS () : String ;
+
+
+(*
+   WriteS - writes a String to the output device.
+            It returns the string, s.
+*)
+
+PROCEDURE WriteS (s: String) : String ;
+
+
+END InOut.

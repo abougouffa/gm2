@@ -1,0 +1,14 @@
+these two examples show that an executive and simple application code
+can be built on top of the SYSTEM process primitives NEWPROCESS,
+TRANSFER and IOTRANSFER. The Executive and TimerHandler have been
+used in a stand alone microkernel for many years and have had
+only minor alterations to make them work with the GNU/Linux SYSTEM.
+
+The alterations were confined to:
+
+  (*)  creating the clock interrupt vector (TimerHandler).
+  (*)  using ListenLoop in Executive rather than LISTEN.
+       LISTEN would work, but would be unkind to the
+       underlying operating system. ListenLoop yields
+       processor time back to the underlying OS via a
+       blocking `pth_select'.

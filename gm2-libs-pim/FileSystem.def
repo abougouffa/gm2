@@ -1,0 +1,67 @@
+DEFINITION MODULE FileSystem ;
+
+(*
+    Title      : FileSystem
+    System     : GNU Modula-2
+    Date       : Wed Aug 11 11:04:24 2004
+    Revision   : $Version$ 
+    Description: provides GNU Modula-2 with a PIM [234] FileSystem
+                 compatible module.
+*)
+
+IMPORT FIO ;
+EXPORT QUALIFIED File, Response, Flag, FlagSet,
+
+                 Create, Close, Lookup, Rename, Delete,
+                 SetRead, SetWrite, SetModify, SetOpen,
+                 Doio, SetPos, GetPos, Length,
+
+                 ReadWord, ReadChar, ReadByte, ReadNBytes,
+                 WriteWord, WriteChar, WriteByte, WriteNBytes ;
+
+TYPE
+   File = RECORD
+             res     : Response ;
+             flags   : FlagSet ;
+             eof     : BOOLEAN ;
+             lastRead: WORD ;
+             fio     : FIO.File ;
+             highpos,
+             lowpos  : CARDINAL ;
+          END ;
+
+   Response = (done, notdone, notsupported, callerror,
+               unknownfile, paramerror, toomanyfiles,
+               userdeverror) ;
+
+   Command = (create, close, lookup, rename, delete,
+              setread, setwrite, setmodify, setopen,
+              doio, setpos, getpos, length) ;
+
+(*
+   Create - creates a temporary file. To make the file perminant
+            the file must be renamed.
+*)
+
+PROCEDURE Create (VAR f: File) ;
+
+
+(*
+   Close - closes an open file.
+*)
+
+PROCEDURE Close (f: File) ;
+
+
+(*
+   Lookup - looks for a file, filename. If the file is found
+            then, f, is opened. If it is not found and, newFile,
+            is TRUE then a new file is created and attached to, f.
+            If, newFile, is FALSE and no file was found then f.res
+            is set to notdone.
+*)
+
+PROCEDURE Lookup (VAR f: File; filename: ARRAY OF CHAR; newFile: BOOLEAN) ;
+
+
+END FileSystem.

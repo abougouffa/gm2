@@ -1,10 +1,7 @@
 (* automatically generated for GNU Modula-2 by:
    h2def -I../../m2/comp/autotest/gm2 modified_pth.h 
-
-   and modified by hand
 *)
 DEFINITION MODULE FOR "C" pth ;
-
 
 FROM SYSTEM IMPORT ADDRESS, BITSET ;
 
@@ -15,15 +12,27 @@ CONST
      
 TYPE
      fd_set =  ADDRESS ;
+     __time_t =   INTEGER ;
+     __useconds_t =   CARDINAL ;
+     __suseconds_t =   INTEGER ;
      size_t =   CARDINAL ;
+    timeval = RECORD
+                 tv_sec : __time_t ;
+                 tv_usec: __suseconds_t ;
+              END ;
     
+    sockaddr = RECORD
+               END ;
      sigset_t =  ADDRESS ;
+     pth_uctx_t =  POINTER TO   pth_uctx_st ;
+    pth_uctx_st = RECORD
+                  END ;
      pid_t =   INTEGER ;
      ssize_t =   CARDINAL ;
      socklen_t =   CARDINAL ;
      off_t =   INTEGER ;
      sig_atomic_t =   INTEGER ;
-     nfds_t =   CARDINAL ;
+     nfds_t =   LONGCARD ;
     
 CONST
      PTH_KEY_MAX =  256 ;
@@ -33,11 +42,7 @@ CONST
      PTH_SYSCALL_SOFT =  0 ;
      
 TYPE
-     pth_time_t =  RECORD
-                      tv_sec: INTEGER ;
-                      tv_usec: INTEGER ;
-                   END ;
-
+     pth_time_t =  ADDRESS ;
      pth_t =  ADDRESS ;
      pth_state_t =   pth_state_en ;
      pth_state_en =  ( PTH_STATE_SCHEDULER, PTH_STATE_NEW, PTH_STATE_READY, PTH_STATE_WAITING, PTH_STATE_DEAD) ;
@@ -66,6 +71,7 @@ CONST
      PTH_ATTR_EVENTS = 12 ;
      PTH_ATTR_BOUND = 13 ;
      PTH_ATTR_DEFAULT =  0 ;
+     
 
 
     (* event subject classes *)
@@ -190,7 +196,7 @@ CONST
      
 TYPE
      Sfdisc_t =  ADDRESS ;
-
+    
  PROCEDURE pth_init () : INTEGER ;
  PROCEDURE pth_kill () : INTEGER ;
  PROCEDURE pth_ctrl (p1: CARDINAL; ...) : INTEGER ;
@@ -206,7 +212,7 @@ TYPE
 TYPE
      t1 =    PROCEDURE (ADDRESS) : ADDRESS ;
     
- PROCEDURE pth_once (p2: ADDRESS; p1: t2; p3: ADDRESS) : INTEGER;
+PROCEDURE pth_once (p2: ADDRESS; p1: t2; p3: ADDRESS) : INTEGER;
 
 TYPE
      t2 =    PROCEDURE (ADDRESS) ;
@@ -256,12 +262,9 @@ TYPE
      t4 =    PROCEDURE (ADDRESS) ;
     
  PROCEDURE pth_cleanup_pop (p1: INTEGER) : INTEGER ;
- PROCEDURE pth_atfork_push (p1: t5; p2: t6; p3: t7; p4: ADDRESS) : INTEGER;
 
 TYPE
      t5 =    PROCEDURE (ADDRESS);
-     t6 =    PROCEDURE (ADDRESS);
-     t7 =    PROCEDURE (ADDRESS) ;
     
  PROCEDURE pth_atfork_pop () : INTEGER ;
  PROCEDURE pth_fork () : pid_t ;
@@ -276,6 +279,16 @@ TYPE
  PROCEDURE pth_cond_notify (p1: ADDRESS; p2: INTEGER) : INTEGER ;
  PROCEDURE pth_barrier_init (p1: ADDRESS; p2: INTEGER) : INTEGER ;
  PROCEDURE pth_barrier_reach (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_uctx_create (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_uctx_make (p2: pth_uctx_t; p3: ADDRESS; p4: size_t; p5: ADDRESS; p1: t8; p6: ADDRESS; p7: pth_uctx_t) : INTEGER;
+
+TYPE
+     t8 =    PROCEDURE (ADDRESS) ;
+    
+ PROCEDURE pth_uctx_save (p1: pth_uctx_t) : INTEGER ;
+ PROCEDURE pth_uctx_restore (p1: pth_uctx_t) : INTEGER ;
+ PROCEDURE pth_uctx_switch (p1: pth_uctx_t; p2: pth_uctx_t) : INTEGER ;
+ PROCEDURE pth_uctx_destroy (p1: pth_uctx_t) : INTEGER ;
  PROCEDURE pth_sfiodisc () : ADDRESS ;
  PROCEDURE pth_sigwait_ev (p1: ADDRESS; p2: ADDRESS; p3: pth_event_t) : INTEGER ;
  PROCEDURE pth_connect_ev (p1: INTEGER; p2: ADDRESS; p3: socklen_t; p4: pth_event_t) : INTEGER ;

@@ -1,3 +1,18 @@
+2004-08-26	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented type PROCESS for SYSTEM in the pim library
+	  directory (gm2/gm2-libs-coroutines).
+	* SYSTEM implements NEWPROCESS, TRANSFER, IOTRANSFER.
+	  This is achieved by using the GNU pthread library context
+	  mechanism.
+	* provided an Executive and TimerHandler module in
+	  (gm2/examples/executive).
+	* many bug fixes and regression tests show that 3 ulm standard
+          library modules fail.
+	* implemented MAX(REAL), MIN(REAL) and also provided access to
+	  three more gcc builtin functions: huge_val, huge_vall, huge_valf
+	* started work on a Logitech 3.0 compatible library.
+	
 2004-07-06	Gaius Mulley <gaius@glam.ac.uk>
 
 	* improved error handling of unknown objects in EXPORT lists.

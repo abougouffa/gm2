@@ -54,6 +54,9 @@ extern tree param_list;     /* declared in gccgm2.c */
 typedef enum {
   BT_FN_PTR_SIZE,
   BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE,
+  BT_FN_FLOAT,
+  BT_FN_DOUBLE,
+  BT_FN_LONG_DOUBLE,
   BT_FN_FLOAT_FLOAT,
   BT_FN_DOUBLE_DOUBLE,
   BT_FN_LONG_DOUBLE_LONG_DOUBLE,
@@ -81,8 +84,8 @@ struct builtin_function_entry {
 };
 
 /*
- *  entries are added by examining gcc/builtins.def and copying those functions which can be
- *  applied to Modula-2
+ *  entries are added by examining gcc/builtins.def and copying those
+ *  functions which can be applied to Modula-2
  */
 
 static struct builtin_function_entry list_of_builtins[] = {
@@ -100,6 +103,15 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_fabsf",   BT_FN_FLOAT_FLOAT, BUILT_IN_FABSF, BUILT_IN_NORMAL, "fabsf", NULL, NULL},
 { "__builtin_fabs",    BT_FN_DOUBLE_DOUBLE, BUILT_IN_FABS, BUILT_IN_NORMAL, "fabs", NULL, NULL},
 { "__builtin_fabsl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_FABSL, BUILT_IN_NORMAL, "fabsl", NULL, NULL},
+
+
+
+{ "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
+{ "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
+{ "__builtin_huge_vall",  BT_FN_LONG_DOUBLE, BUILT_IN_HUGE_VALL, BUILT_IN_NORMAL, "hughe_vall", NULL, NULL},
+
+
+
 { "__builtin_index",   BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
 { "__builtin_rindex",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_RINDEX, BUILT_IN_NORMAL, "rindex", NULL, NULL},
 { "__builtin_memcmp",  BT_FN_INT_CONST_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCMP, BUILT_IN_NORMAL, "memcmp", NULL, NULL},
@@ -127,8 +139,10 @@ static struct builtin_function_entry list_of_builtins[] = {
 static tree sizetype_endlink;
 static tree endlink, math_endlink, int_endlink;
 static tree ptr_endlink, const_ptr_endlink;
+static tree double_ftype_void, float_ftype_void, ldouble_ftype_void;
 static tree float_ftype_float, double_ftype_double, ldouble_ftype_ldouble;
 static tree gm2_alloca_node, gm2_memcpy_node;
+static tree gm2_huge_valf_node, gm2_huge_val_node, gm2_huge_vall_node;
 
 
 /* prototypes go here */
@@ -146,6 +160,7 @@ static tree                   DoBuiltinMemCopy                            PARAMS
        tree                   gm2builtins_BuildBuiltinTree                PARAMS ((char *name));
        tree                   gm2builtins_BuiltInMemCopy                  PARAMS ((tree, tree, tree));
        tree                   gm2builtins_BuiltInAlloca                   PARAMS ((tree));
+       tree                   gm2builtins_BuiltInHugeVal                  PARAMS ((void));
 static void                   create_function_prototype                   PARAMS ((struct builtin_function_entry *fe));
        void                   gm2builtins_init                            PARAMS ((void));
 
@@ -249,8 +264,8 @@ gm2builtins_BuiltInMemCopy (dest, src, n)
 }
 
 /*
- *  BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
- *                  of the current function.
+ *  BuiltInAlloca - given an expression, n, allocate, n, bytes on
+ *                  the stack for the life of the current function.
  */
 
 tree
@@ -331,6 +346,33 @@ DoBuiltinAlloca (params)
   return call;
 }
 
+tree
+gm2builtins_BuiltInHugeVal (void)
+{
+  tree functype = TREE_TYPE (gm2_huge_val_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_huge_val_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, NULL_TREE, NULL_TREE);
+  return call;
+}
+
+tree
+gm2builtins_BuiltInHugeValShort (void)
+{
+  tree functype = TREE_TYPE (gm2_huge_valf_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_huge_valf_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, NULL_TREE, NULL_TREE);
+  return call;
+}
+
+tree
+gm2builtins_BuiltInHugeValLong (void)
+{
+  tree functype = TREE_TYPE (gm2_huge_vall_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_huge_vall_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, NULL_TREE, NULL_TREE);
+  return call;
+}
+
 static void
 create_function_prototype (fe)
      struct builtin_function_entry *fe;
@@ -351,6 +393,18 @@ create_function_prototype (fe)
 					    tree_cons (NULL_TREE, const_ptr_type_node,
 						       sizetype_endlink)));
     fe->return_node = ptr_type_node;
+    break;
+  case BT_FN_FLOAT:
+    ftype = float_ftype_void;
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE:
+    ftype = double_ftype_void;
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE:
+    ftype = ldouble_ftype_void;
+    fe->return_node = long_double_type_node;
     break;
   case BT_FN_FLOAT_FLOAT:
     ftype = float_ftype_float;
@@ -450,6 +504,11 @@ gm2builtins_init ()
   ptr_endlink =  tree_cons (NULL_TREE, ptr_type_node, NULL_TREE);
   const_ptr_endlink =  tree_cons (NULL_TREE, const_ptr_type_node, NULL_TREE);
 
+  float_ftype_void = build_function_type (float_type_node, math_endlink);
+  double_ftype_void = build_function_type (double_type_node, math_endlink);
+  ldouble_ftype_void = build_function_type (long_double_type_node,
+					    math_endlink);
+
   float_ftype_float
     = build_function_type (float_type_node,
  			   tree_cons (NULL_TREE, float_type_node, math_endlink));
@@ -468,4 +527,7 @@ gm2builtins_init ()
 
   gm2_alloca_node = find_builtin_tree ("__builtin_alloca");
   gm2_memcpy_node = find_builtin_tree ("__builtin_memcpy");
+  gm2_huge_valf_node = find_builtin_tree ("__builtin_huge_valf");
+  gm2_huge_val_node = find_builtin_tree ("__builtin_huge_val");
+  gm2_huge_vall_node = find_builtin_tree ("__builtin_huge_vall");
 }
