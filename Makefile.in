@@ -361,9 +361,9 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-GM2-COMP-BOOT-C    = M2Search.c M2Alias.c P1SyntaxCheck.c P3Type.c P2Build.c         \
+GM2-COMP-BOOT-C    = M2Search.c      P1SyntaxCheck.c P3Type.c P2Build.c         \
                      P3Build.c PHBuild.c
-GM2-COMP-BOOT-H    = M2Alias.h
+GM2-COMP-BOOT-H    = 
 
 #
 #  the following tables define the source files used to build gm2 using only Modula-2
@@ -406,8 +406,8 @@ GM2-COMP-DEFS      = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
                      SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     M2Alias.def     P1SyntaxCheck.def bnflex.def    P2Build.def     \
-                     P3Build.def     PHBuild.def
+                     P1SyntaxCheck.def bnflex.def    P2Build.def     P3Build.def     \
+                     PHBuild.def
 
 GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -424,9 +424,8 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod \
-                     bnflex.mod      ppg.mod         P2Build.mod     P3Build.mod     \
-                     PHBuild.mod
+                     M2Search.mod    P3Type.mod      P1SyntaxCheck.mod bnflex.mod    \
+                     ppg.mod         P2Build.mod     P3Build.mod     PHBuild.mod
 
 GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      m2m.mod         ppg.mod
