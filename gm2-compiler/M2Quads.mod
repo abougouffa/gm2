@@ -7808,30 +7808,24 @@ BEGIN
       ti := MakeTemporary(ImmediateValue) ;
       GenQuad(ElementSizeOp, ti, Type, i) ;
       OpI := OperandT(pi) ;
-      IF IsConst(OpI)
-      THEN
-         (* tj has no type since constant *)
-         tj := MakeTemporary(ImmediateValue) ;
-         tk := MakeTemporary(ImmediateValue)
-      ELSE
-         (* tj has Cardinal type since we have multiplied array indices *)
-         (* The problem is that OperandT(pi) might be a CHAR (or any    *)
-         (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
 
-         IF GetType(OpI)#Cardinal
-         THEN
-            PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
-            PushT(Cardinal) ;
-            PushT(OpI) ;
-            PushT(2) ;          (* Two parameters *)
-            BuildConvertFunction ;
-            PopT(OpI)
-         END ;
-         tj := MakeTemporary(RightValue) ;
-         PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-         tk := MakeTemporary(RightValue) ;
-         PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo()))
+      (* tj has Cardinal type since we have multiplied array indices *)
+      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
+      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
+
+      IF GetType(OpI)#Cardinal
+      THEN
+         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
+         PushT(Cardinal) ;
+         PushT(OpI) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction ;
+         PopT(OpI)
       END ;
+      tj := MakeTemporary(RightValue) ;
+      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
+      tk := MakeTemporary(RightValue) ;
+      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
       CheckSubrange(GetNth(Type, i), OpI) ;
 
       PushT(tj) ;
@@ -7955,17 +7949,6 @@ BEGIN
    ELSE
       (* tj has Cardinal type since we have multiplied array indices *)
       tj := MakeTemporary(RightValue) ;
-      (* was:
-         PutVar(tj, MixTypes(GetType(ti), GetType(OperandT(1), GetTokenNo()))) ;
-         we replace it by: (below). Because we know tj must be a CARDINAL.
-         Also mixing types works fine when both are not constants since
-         if they are constants then tj is set to NulSym, causing M2EvalSym
-         to get upset.
-
-         Although if the index variable is # TSIZE(Cardinal) then BecomesOp
-         will rightly complain. Hence we must coerse to a TSIZE(Cardinal) -
-         we havent solved type sizes yet so we can only compare against types.
-      *)
       IF GetType(idx)#Cardinal
       THEN
          PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;

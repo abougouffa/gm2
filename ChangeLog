@@ -1,5 +1,12 @@
 2004-02-05	Gaius Mulley <gaius@glam.ac.uk>
 
+	* fixed bug as demonstrated in
+          testsuite/gm2/pim/pass/subrange4.mod
+	* all regression tests now pass on the *86 platform
+	  under Debian Woody.
+	
+2004-02-05	Gaius Mulley <gaius@glam.ac.uk>
+
 	* fixed more constant subrange bugs.
 	* added new quad to delimit the start of declaration
 	  scope of a procedure.
