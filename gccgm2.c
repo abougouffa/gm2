@@ -21,7 +21,7 @@ Boston, MA 02111-1307, USA.  */
  * IMPLEMENTATION MODULE gccgm2
  *     (* thus all external functions will be prefixed by gccgm2_
  *        which will allow us to construct a DEFINITION MODULE
- *        so that m2f can interface to gcc.
+ *        so that the Modula-2 source code front end can interface to gcc.
  *      *)
  *      
  */

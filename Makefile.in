@@ -179,16 +179,16 @@ GCC_PATCHED = toplev.o rtl.o
 
 compiler: ../cc1gm2$(exeext)
 
-paranoid: ../bcc1gm2$(exeext)
+paranoid: ../bcc1gm2$(exeext) $(GM2_LIBS_PARANOID) verifyparanoid
 
 ../bcc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_PARANOID) ../cc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(GCC_OBJS) $(LIBS)
 
 ../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
-	echo "since cc1gm2 is less reliable than acc1gm2 we will replace it by cc1gm2"
-	echo "this is a development hack and will be fixed asap.."
-	cp ../acc1gm2$(exeext) ../cc1gm2$(exeext)
+#	echo "since cc1gm2 is less reliable than acc1gm2 we will replace it by cc1gm2"
+#	echo "this is a development hack and will be fixed asap.."
+#	cp ../acc1gm2$(exeext) ../cc1gm2$(exeext)
 
 ../acc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
@@ -477,13 +477,13 @@ gm2-compiler-boot/%.h: gm2-compiler-boot/%.def
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
 gm2-libs/%.o: gm2-libs/%.c
-	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
+	$(CC) -c -g -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -O2 -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
@@ -632,7 +632,7 @@ gm2-libs-paranoid/libgm2.a: force
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
                     $(GM2-LIBS-C:%.c=gm2-libs/%.o)
 
-gm2-compiler-paranoid/gm2.a: force
+gm2-compiler-paranoid/gm2.a: gm2-libs-paranoid/libgm2.a force
 	$(MAKE) build-compiler-paranoid
 	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
 	mv mod_init.c gm2-compiler-paranoid
@@ -730,12 +730,78 @@ gm2lsub: m2/comp/p2c/home/libp2c.a force
 	$(SHELL) linkcommand
 	mv a.out $@
 
+#
+# verifyparanoid - diffs the output of all three compilers with the compiler source code
+#
+verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
+	@echo "verifying the three generations of GNU Modula-2 compilers - it may be take some time.."
+	@cd gm2-compiler-verify ; \
+        for i in one.mod *.mod ; do \
+           echo -n "$$i" ; \
+           ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../a -I. $$i -o 1.s ; \
+           ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../  -I. $$i -o 2.s ; \
+           ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../b -I. $$i -o 3.s ; \
+           if ! diff 1.s 2.s >& 1_2.diff ; then \
+               echo -n " [stage 1 and stage 2 differ]" ; \
+               cp 1.s t.s | as -ahl t.s > $$i.1.lst ; \
+               cp 2.s t.s | as -ahl t.s > $$i.2.lst ; \
+           fi ; \
+           if ! diff 2.s 3.s >& 2_3.diff ; then \
+               echo -n " [stage 2 and stage 3 differ]" ; \
+               cp 2.s t.s | as -ahl t.s > $$i.2.lst ; \
+               cp 3.s t.s | as -ahl t.s > $$i.3.lst ; \
+           fi ; \
+           echo " " ; \
+        done ; \
+	$(RM) -f 1.s 2.s 3.s 2_3.diff 1_2.diff
+
+
+#
+#  keep all the links in a single directory as we are not building a compiler
+#  also we omit M2Options.mod as this has the __DATE__ which will cause a diff
+#  failure
+#	
+gm2-compiler-verify:
+	mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
+	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
+	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
+	done ; \
+	for i in $(GM2-LIBS-C) $(GM2-LIBS-H) ; do \
+	   $(LN_S) ../m2/comp/libs/CH/$$i $$i ; \
+	done ; \
+	$(RM) SYSTEM.def ; \
+	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def ; \
+	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
+           if [ -L $$i ] ; then \
+              echo "$$i already present" ; \
+              exit 1 ; \
+           fi ; \
+           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
+              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
+           else \
+              if [ -f ../m2/comp/gm2s/$$i ] ; then \
+                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
+              else \
+                 if [ -f ../$$i ] ; then \
+                    $(LN_S) ../$$i $$i ; \
+                 else \
+                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
+                    exit 1 ; \
+                 fi ; \
+              fi ; \
+           fi ; \
+	done ; \
+	../m2/comp/tools/makeversion $(GM2-VERSION)c ; \
+	$(RM) -f M2Options.mod ; \
+        $(LN_S) ../gccgm2.def
+
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
 	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
 	( cd m2/comp/p2c ; make clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
+	$(RM) -rf gm2-compiler-verify
 	$(RM) -f m2/comp/bin/*
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 
