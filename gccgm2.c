@@ -69,13 +69,6 @@ enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
             A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
             A_UNUSED, A_FORMAT, A_FORMAT_ARG, A_WEAK, A_ALIAS};
 
-static void add_attribute               PARAMS ((enum attrs, char *,
-                                               int, int, int));
-static void init_attributes             PARAMS ((void));
-       tree gccgm2_BuildIntegerConstant PARAMS ((int value));
-       tree gccgm2_GetIntegerType       PARAMS ((void));
-       tree gccgm2_BuildConvert         PARAMS ((tree, tree));
-
 
 /*
  *  and define some type sizes
@@ -316,22 +309,245 @@ extern void gccgm2front PARAMS((int argc, char *argv[]));
 
 const char * const language_string = "Modula-2";
 int flag_traditional=FALSE;     /* Used by dwarfout.c.  */
-int ggc_p=FALSE;                 /* yes we should garbage collect */
+int ggc_p=FALSE;                /* at present we do not garbage collect */
 
 
 /* function prototypes */
 
-       void                  gccgm2_EndTemporaryAllocation     PARAMS ((void));
-       void                  gccgm2_ResumeTemporaryAllocation  PARAMS ((void));
-       void                  gccgm2_PushObstacksNochange       PARAMS ((void));
-       void                  gccgm2_PopObstacks                PARAMS ((void));
-       void                  gccgm2_SetFileNameAndLineNo       PARAMS ((char *fn, int line));
-       void                  gccgm2_EmitLineNote               PARAMS ((char *fn, int line));
-       tree                  shadow_label                      PARAMS ((tree name));
-static int                   redeclaration_error_message       PARAMS ((tree newdecl, tree olddecl));
-static struct binding_level *make_binding_level                PARAMS ((void));
-static void                  clear_limbo_values                PARAMS ((tree block));
-static int                   duplicate_decls                   PARAMS ((tree newdecl, tree olddecl, int different_binding_level));
+       void                   gccgm2_EndTemporaryAllocation              PARAMS ((void));
+       void                   gccgm2_ResumeTemporaryAllocation  	 PARAMS ((void));
+       void                   gccgm2_PushObstacksNochange       	 PARAMS ((void));
+       void                   gccgm2_PopObstacks                	 PARAMS ((void));
+       void                   gccgm2_SetFileNameAndLineNo       	 PARAMS ((char *fn, int line));
+       void                   gccgm2_EmitLineNote               	 PARAMS ((char *fn, int line));
+       tree                   type_for_size                     	 PARAMS ((unsigned precision, int unsignedp));
+       tree                   type_for_mode                     	 PARAMS ((enum machine_mode mode, int unsignedp));
+       tree                   unsigned_type                     	 PARAMS ((tree type_node));
+       tree                   signed_type                       	 PARAMS ((tree type_node));
+       tree                   signed_or_unsigned_type           	 PARAMS ((int unsignedp, tree type));
+static struct binding_level  *make_binding_level                	 PARAMS ((void));
+       int                    global_bindings_p                 	 PARAMS ((void));
+       tree                   getdecls                          	 PARAMS ((void));
+       int                    kept_level_p                      	 PARAMS ((void));
+       int                    in_parm_level_p                   	 PARAMS ((void));
+       void                   pushlevel                         	 PARAMS ((int tag_transparent));
+static void                   clear_limbo_values                	 PARAMS ((tree block));
+       tree                   shadow_label                      	 PARAMS ((tree name));
+       tree                   define_label                      	 PARAMS ((const char *filename, int line, tree name));
+       tree                   poplevel                          	 PARAMS ((int keep, int reverse, int functionbody));
+       void                   delete_block                      	 PARAMS ((tree block));
+       void                   insert_block                      	 PARAMS ((tree block));
+       void                   set_block                         	 PARAMS ((tree block));
+       tree                   lookup_name                       	 PARAMS ((tree name));
+       tree                   lookup_name_current_level         	 PARAMS ((tree name));
+static int                    redeclaration_error_message       	 PARAMS ((tree newdecl, tree olddecl));
+static int                    duplicate_decls                   	 PARAMS ((tree newdecl, tree olddecl,
+										  int different_binding_level));
+       tree                   pushdecl                          	 PARAMS ((tree x));
+       tree                   pushdecl_top_level                	 PARAMS ((tree x));
+       void                   lang_mark_tree                    	 PARAMS ((tree t));
+       void                   init_gm2_expand                   	 PARAMS ((void));
+       tree                   builtin_function                  	 PARAMS ((const char *name, tree type, int function_void,
+										  enum built_in_class class,
+										  const char *library_void));
+       void                   init_m2_builtins                  	 PARAMS ((void));
+       void                   init_decl_processing              	 PARAMS ((void));
+       void                   lang_init                         	 PARAMS ((void));
+       void                   lang_finish                       	 PARAMS ((void));
+       const char            *init_parse                        	 PARAMS ((const char *filename));
+       void                   finish_parse                      	 PARAMS ((void));
+       const char            *lang_identify                     	 PARAMS ((void));
+       tree                   truthvalue_conversion             	 PARAMS ((tree expr));
+       void                   print_lang_statistics             	 PARAMS ((void));
+       void                   lang_init_options                 	 PARAMS ((void));
+       void                   init_lex                          	 PARAMS ((void));
+       void                   yyerror                           	 PARAMS ((char *str));
+       int                    yyparse                          	         PARAMS ((void));
+static int                    spelling_length                   	 PARAMS ((void));
+static char                  *print_spelling                    	 PARAMS ((char *buffer));
+static char                  *get_spelling                      	 PARAMS ((char *errtype));
+static tree                   build_c_type_variant              	 PARAMS ((tree type, int constp, int volatilep));
+static tree                   qualify_type                      	 PARAMS ((tree type, tree like));
+       tree                   common_type                       	 PARAMS ((tree t1, tree t2));
+       tree                   base_type            		       	 PARAMS ((tree type));
+       int                    comptypes      	        	       	 PARAMS ((tree type1, tree type2));
+static void                   pedantic_lvalue_warning 	         	 PARAMS ((enum tree_code code));
+       void                   readonly_warning 		        	 PARAMS ((tree arg, const char *string));
+       int                    mark_addressable 		        	 PARAMS ((tree exp));
+       int                   is_string_type 		        	 PARAMS ((tree string, int warn));
+static rtx                    gm2_expand_expr                            PARAMS ((tree exp, rtx target, enum machine_mode,
+										  enum expand_modifier));
+       int                   lvalue_p                		       	 PARAMS ((tree ref));
+       int                   lvalue_or_else 		        	 PARAMS ((tree ref, const char *string));
+static tree                  unary_complex_lvalue 	        	 PARAMS ((enum tree_code code, tree arg));
+       tree                   default_conversion 	        	 PARAMS ((tree exp));
+static int                   comp_target_types 		        	 PARAMS ((tree ttl, tree ttr));
+       tree                   convert_set    		        	 PARAMS ((tree type, tree expr));
+       tree                   convert        		        	 PARAMS ((tree type, tree expr));
+static void                   warn_for_assignment 	       	         PARAMS ((char *msg, char *opname, tree function,
+										  int        argnum));
+       void                   constant_expression_warning       	 PARAMS ((tree value));
+       void                   overflow_warning 		         	 PARAMS ((tree value));
+       void                   unsigned_conversion_warning       	 PARAMS ((tree result, tree operand));
+       tree                   convert_and_check 		       	 PARAMS ((tree type, tree expr));
+       tree                   build_conditional_expr 	         	 PARAMS ((tree ifexp, tree op1, tree op2));
+       tree                   c_size_in_bytes 		        	 PARAMS ((tree type));
+       tree                   shorten_compare 		        	 PARAMS ((tree *op0_ptr, tree *op1,
+										  tree *restype_ptr,
+										  enum tree_code *rescode_ptr));
+       tree                   require_complete_type 	       	 	 PARAMS ((tree value));
+static tree                   convert_for_assignment 	       	 	 PARAMS ((tree type, tree rhs, char *errtype,
+										  tree fundecl, tree funname,
+										  int parmnum));
+       tree                   build_modify_expr 		       	 PARAMS ((tree lhs, enum tree_code modifycode,
+										  tree rhs));
+       tree                   c_build_qualified_type 	       	 	 PARAMS ((tree type, int type_quals));
+       tree                   build_unary_op 		       	 	 PARAMS ((enum tree_code code, tree xarg, int noconvert));
+       void                   binary_op_error 		       	 	 PARAMS ((enum tree_code code));
+       tree                   build_binary_op 		       	 	 PARAMS ((enum tree_code code, tree orig_op0,
+										  tree orig_op1, int convert_p));
+       tree                   gccgm2_DeclareKnownType 	       	 	 PARAMS ((char *name, tree type));
+       tree                   skip_type_decl 		       	 	 PARAMS ((tree type));
+       tree                   gccgm2_DeclareKnownVariable                PARAMS ((char *, tree, int, int, int, int, tree));
+
+       tree                   gccgm2_GetMinFrom 		       	 PARAMS ((tree type));
+       tree                   gccgm2_GetMaxFrom 		       	 PARAMS ((tree type));
+       int                    gccgm2_GetBitsPerWord 	       	 	 PARAMS ((void));
+       void                   trythis        		       	 	 PARAMS ((void));
+       tree                   gccgm2_DeclareKnownConstant       	 PARAMS ((tree type, tree value));
+       tree                   start_decl     		       	 	 PARAMS ((tree declarator, tree declspecs,
+										  int        initialized, tree attributes,
+										  tree prefix_attributes));
+       int                    complete_array_type 	       	 	 PARAMS ((tree type, tree initial_value,
+										  int do_default));
+       void                   finish_decl    		       	 	 PARAMS ((tree decl, tree init, tree asmspec_tree));
+static void                   add_attribute  		       	 	 PARAMS ((enum attrs id, char *string, int min_len,
+										  int max_len, int decl_req));
+static void                   init_attributes 		       	 	 PARAMS ((void));
+       void                   decl_attributes 		       	 	 PARAMS ((tree node, tree attributes,
+										  tree prefix_attributes));
+       void                   split_specs_attrs 		 	 PARAMS ((tree specs_attrs, tree *declspecs,
+										  tree *prefix_attributes));
+       tree                   lookup_label   		       	 	 PARAMS ((tree id));
+       tree                   gccgm2_BuildStartEnumeration      	 PARAMS ((char *name));
+       tree                   gccgm2_BuildEndEnumeration        	 PARAMS ((tree enumtype));
+       tree                   gccgm2_BuildEnumerator 	       	 	 PARAMS ((char *name, tree value));
+       tree                   gccgm2_BuildPointerType 	       	 	 PARAMS ((tree totype));
+       tree                   gccgm2_BuildArrayType 	       	 	 PARAMS ((tree elementtype, tree indextype));
+       tree                   build_set_type 		       	 	 PARAMS ((tree range, tree type));
+       tree                   gccgm2_BuildSetType 	       	 	 PARAMS ((char *name, tree type, tree lowval,
+										  tree highval));
+       tree                   gccgm2_BuildSubrangeType 	       	 	 PARAMS ((char *name, tree type, tree lowval,
+										  tree highval));
+       tree                   gccgm2_BuildArrayIndexType        	 PARAMS ((tree low, tree high));
+       tree                   gccgm2_BuildVariableArrayAndDeclare        PARAMS ((tree elementtype,
+										  tree high, char *name,
+										  tree scope));
+       void                   gccgm2_BuildStartFunctionType     	 PARAMS ((void));
+       tree                   gccgm2_BuildEndFunctionType       	 PARAMS ((tree type));
+       tree                   gccgm2_BuildParameterDeclaration  	 PARAMS ((char *name, tree type,
+										  int isreference));
+       tree                   completeParameterDeclaration      	 PARAMS ((char *name, tree actual_type,
+										  tree parm_type));
+       tree                   gccgm2_BuildParameterDeclaration  	 PARAMS ((char *name, tree type,
+										  int isreference));
+       void                   gccgm2_BuildStartFunctionDeclaration 	 PARAMS ((void));
+       tree                   gccgm2_BuildEndFunctionDeclaration  	 PARAMS ((char *name,
+										  tree returntype,
+										  int isexternal));
+       void                   gccgm2_BuildStartFunctionCode     	 PARAMS ((tree fndecl, int isexported));
+       void                   gccgm2_BuildEndFunctionCode       	 PARAMS ((tree fndecl));
+       void                   iterative_factorial 	       	 	 PARAMS ((void));
+       void                   gccgm2_BuildReturnValueCode       	 PARAMS ((tree fndecl, tree value));
+       tree                   gccgm2_BuildAssignment 	       	 	 PARAMS ((tree des, tree expr));
+       tree                   gccgm2_BuildAdd 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildSub 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildMult 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildDiv 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildMod 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildLSL 		       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildConvert 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildTrunc 		       	 PARAMS ((tree op1));
+       tree                   gccgm2_BuildNegate 	       	 	 PARAMS ((tree op1, int needconvert));
+       tree                   gccgm2_GetSizeOf 		       	 	 PARAMS ((tree type));
+       tree                   gccgm2_BuildAddr 		       	 	 PARAMS ((tree op1, int needconvert));
+       tree                   gccgm2_BuildLogicalOr 	       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildLogicalAnd 	       	 	 PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildSymmetricDifference   	 PARAMS ((tree op1, tree op2,
+										  int needconvert));
+       tree                   create_label_from_name 	       	 	 PARAMS ((char *name));
+       tree                   gccgm2_DeclareLabel 	       	 	 PARAMS ((char *name));
+       tree                   gccgm2_BuildLessThan 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildGreaterThan 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildLessThanOrEqual       	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildGreaterThanOrEqual    	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildEqualTo 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildNotEqualTo 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIfIn 		       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIfNotIn 	       	 	 PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIndirect 	       	 	 PARAMS ((tree target, tree type));
+       void                   gccgm2_DoJump  		       	 	 PARAMS ((tree exp, char *falselabel, char *truelabel));
+       void                   gccgm2_BuildParam 		       	 PARAMS ((tree param));
+       tree                   gccgm2_BuildProcedureCall 	       	 PARAMS ((tree procedure, tree rettype));
+       tree                   gccgm2_BuildIndirectProcedureCall 	 PARAMS ((tree procedure, tree rettype));
+       void                   gccgm2_BuildFunctValue 	       	 	 PARAMS ((tree value));
+       void                   gccgm2_BuildAsm 		       	 	 PARAMS ((tree instr, int IsVolatile, tree inputs,
+										  tree outputs, tree trash));
+       void                   gccgm2_AssignBooleanTrueFalse     	 PARAMS ((tree booleanid, tree trueid, tree falseid));
+       tree                   gccgm2_GetIntegerType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetCharType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetByteType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetVoidType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetPointerType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetCardinalType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetBitsetType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetRealType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetLongRealType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetLongIntType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetWordType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetProcType 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetIntegerZero 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetIntegerOne 	       	 	 PARAMS ((void));
+       tree                   gccgm2_GetCurrentFunction 	       	 PARAMS ((void));
+       tree                   gccgm2_GetErrorNode 	       	 	 PARAMS ((void));
+       tree                   convertToPtr   		       	 	 PARAMS ((tree t));
+       tree                   gccgm2_BuiltInMemCopy 	       	 	 PARAMS ((tree dest, tree src, tree n));
+       tree                   gccgm2_BuiltInAlloca 	       	 	 PARAMS ((tree n));
+       int                   gccgm2_AreConstantsEqual 	       	 	 PARAMS ((tree e1, tree e2));
+       int                   gccgm2_DetermineSign 	       	 	 PARAMS ((tree e));
+       tree                   gccgm2_BuildStringConstant        	 PARAMS ((char *string, int length));
+       tree                   gccgm2_BuildCharConstant 	       	 	 PARAMS ((char *string));
+       tree                   gccgm2_ConvertConstantAndCheck    	 PARAMS ((tree type, tree expr));
+       tree                   gccgm2_RealToTree 		       	 PARAMS ((char *name));
+       tree                   gccgm2_BuildStart 		       	 PARAMS ((char *name, int inner_module));
+       void                   gccgm2_BuildEnd 		       	 	 PARAMS ((tree fndecl));
+       void                   gccgm2_BuildCallInnerInit 	       	 PARAMS ((tree fndecl));
+       void                   gccgm2_BuildStartMainModule       	 PARAMS ((void));
+       void                   gccgm2_BuildEndMainModule 	       	 PARAMS ((void));
+       void                   gccgm2_DebugTree 		       	 	 PARAMS ((tree t));
+       tree                   build_function_call 	       	 	 PARAMS ((tree function, tree params));
+       tree                   start_enum     		       	 	 PARAMS ((tree name));
+       void                   pushtag        		       	 	 PARAMS ((tree name, tree type));
+       tree                   start_struct   		       	 	 PARAMS ((enum tree_code code, tree name));
+       tree                   gccgm2_BuildStartRecord 	       	 	 PARAMS ((char *name));
+       tree                   gccgm2_BuildStartVarientRecord    	 PARAMS ((char *name));
+static void                   layout_array_type 		       	 PARAMS ((tree t));
+       tree                   gccgm2_BuildFieldRecord 	       	 	 PARAMS ((char *name, tree type));
+       tree                   gccgm2_ChainOn 		       	 	 PARAMS ((tree t1, tree t2));
+       tree                   gccgm2_ChainOnParamValue 	       	 	 PARAMS ((tree list, tree parm, tree value));
+       tree                   gccgm2_AddStringToTreeList        	 PARAMS ((tree list, tree string));
+       tree                   gccgm2_BuildEndRecord 	       	 	 PARAMS ((tree t, tree fieldlist));
+       tree                   start_enum     		       	 	 PARAMS ((tree name));
+       unsigned int           min_precision          		       	 PARAMS ((tree value, int unsignedp));
+       tree                   build_enumerator 		       	 	 PARAMS ((tree name, tree value));
+       void                   gccgm2_ExpandExpressionStatement  	 PARAMS ((tree t));
+       int                    is_of_string_type                          PARAMS ((tree type, int warn));
+static int                    default_valid_lang_attribute               PARAMS ((tree attr_name, tree attr_args,
+										  tree decl, tree type));
+       tree                   gccgm2_BuildSize                           PARAMS ((tree op1, int  needconvert));
+       tree                   gccgm2_BuildOffset                         PARAMS ((tree field, int needconvert));
+       tree                   gccgm2_BuildIntegerConstant                PARAMS ((int value));
+       void                   gccgm2_BuildGoto                           PARAMS ((char *name));
 
 /* end of prototypes */
 
@@ -462,6 +678,7 @@ unsigned_type (type_node)
 }
 
 /* Return the signed version of a TYPE_NODE, a scalar type.  */
+
 
 tree
 signed_type (type_node)
@@ -2327,6 +2544,7 @@ lang_print_xnode (file, node, indent)
 {
 }
 
+#if 0
 /* Mark ARG for GC.  */
 void
 lang_mark_false_label_stack (arg)
@@ -2336,6 +2554,7 @@ lang_mark_false_label_stack (arg)
   if (arg != NULL)
     abort();
 }
+#endif
 
 /* Mark the language specific bits in T for GC.  */
 void
@@ -3609,7 +3828,7 @@ is_string_type (string, warn)
 
 /* Return either DECL or its known constant value (if it has one).  */
 
-static tree
+tree
 decl_constant_value (decl)
      tree decl;
 {
@@ -4856,6 +5075,7 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 #if 0
 /* Return a tree for the sum or difference (RESULTCODE says which)
    of pointer PTROP and integer INTOP.  */
+
 
 static tree
 pointer_int_sum (resultcode, ptrop, intop)
@@ -8042,6 +8262,7 @@ split_specs_attrs (specs_attrs, declspecs, prefix_attributes)
    Create one if none exists so far for the current function.
    This function is called for both label definitions and label references.  */
 
+
 tree
 lookup_label (id)
      tree id;
@@ -8206,6 +8427,7 @@ gccgm2_BuildSetType (name, type, lowval, highval)
 /*
  *  BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
  */
+
 
 tree
 gccgm2_BuildSubrangeType (name, type, lowval, highval)
@@ -10775,6 +10997,6 @@ gccgm2_ExpandExpressionStatement (t)
 
 /*
  * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wtraditional -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2    -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
+ *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2    -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
  * End:
  */
