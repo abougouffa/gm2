@@ -10,8 +10,10 @@
  * by the licence agreement accompanying p2c itself.
  */
 
+typedef void *Anyptr;
+
 /* Memory allocation, we define malloc before we poison it with the gcc includes below */
-#ifdef __GCC__
+#ifdef __GNUC__
 # define Malloc(n)  (malloc(n) ?: (Anyptr)_OutMem())
 #else
 extern Anyptr __MallocTemp__;
@@ -34,7 +36,6 @@ extern Anyptr __MallocTemp__;
 
 #  define PP(x)     x         /* function prototype */
 #  define PV()      (void)    /* null function prototype */
-typedef void *Anyptr;
 
 #define Register    register  /* Register variables */
 #define Char        char      /* Characters (not bytes) */
