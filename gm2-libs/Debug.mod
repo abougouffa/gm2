@@ -31,8 +31,7 @@ PROCEDURE WriteLn ; FORWARD ;
    Halt - writes a message in the format:
           Module:Line:Message
 
-          to the debugging device. (Scn.Write).
-          It then terminates by looping forever.
+          It then terminates by calling HALT.
 *)
 
 PROCEDURE Halt (Message: ARRAY OF CHAR;
@@ -50,7 +49,7 @@ BEGIN
    DebugString(':') ;
    DebugString(Message) ;
    DebugString('\n') ;
-   exit(1)
+   HALT
 END Halt ;
 
 

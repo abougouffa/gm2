@@ -35,7 +35,7 @@ EXPORT QUALIFIED toktype,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
                  AddTok, AddTokCharStar, AddTokInteger,
-                 SetFile, PushFile, PopFile ;
+                 SetFile, PushFile, PopFile, FlushTokens ;
 
 TYPE
    toktype = (eoftok, startok, arrowtok, structtok, lsbratok, rsbratok,
@@ -209,6 +209,13 @@ PROCEDURE PushFile (filename: ADDRESS) ;
 *)
 
 PROCEDURE PopFile (filename: ADDRESS) ;
+
+
+(*
+   FlushTokens - removes the last token.
+*)
+
+PROCEDURE FlushTokens ;
 
 
 END CLexBuf.

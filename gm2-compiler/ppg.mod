@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -53,6 +53,8 @@ TYPE
 
    m2condition = (m2none, m2if, m2elsif, m2while) ;
 
+   TraverseResult = (unknown, true, false) ;
+
    ProductionDesc = POINTER TO productiondesc ;
 
    IdentDesc      = POINTER TO identdesc ;   (* forward fodder for p2c *)
@@ -74,14 +76,20 @@ TYPE
                                   END
                                END ;
 
+(* note that epsilon refers to whether we can satisfy this component part
+   of a sentance without consuming a token. Reachend indicates we can get
+   to the end of the sentance without consuming a token.
+
+   For expression, statement, productions, terms: the epsilon value should
+   equal the reachend value but for factors the two may differ.
+*)
+
    FollowDesc     = POINTER TO followdesc ;
    followdesc     =            RECORD
                                   calcfollow  : BOOLEAN ;          (* have we solved the follow set yet? *)
                                   follow      : SetDesc ;          (* the follow set *)
-                                  calcreachend,                    (* have we calculated the value reachend yet? *)
-                                  reachend,                        (* can we see the end of the sentance (due to multiple epsilons) *)
-                                  calcepsilon,                     (* have we calculated the value epsilon yet? *)
-                                  epsilon     : BOOLEAN ;          (* potentially no token may be consumed *)
+                                  reachend    : TraverseResult ;   (* can we see the end of the sentance (due to multiple epsilons) *)
+                                  epsilon     : TraverseResult ;   (* potentially no token may be consumed within this component of the sentance *)
                                   line        : CARDINAL ;
                     END ;
 
@@ -244,13 +252,13 @@ PROCEDURE CalcEpsilonTerm (t: TermDesc) ; FORWARD ;
 PROCEDURE CalcEpsilonExpression (e: ExpressionDesc) ; FORWARD ;
 PROCEDURE CalcEpsilonStatement (s: StatementDesc) ; FORWARD ;
 PROCEDURE CalcEpsilonProduction (p: ProductionDesc) ; FORWARD ;
-PROCEDURE CalcReachEndFactor (f: FactorDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE CalcReachEndTerm (t: TermDesc) : BOOLEAN ; FORWARD ;
-PROCEDURE CalcReachEndExpression (e: ExpressionDesc) : BOOLEAN ; FORWARD ;
+PROCEDURE CalcReachEndFactor (f: FactorDesc) : TraverseResult ; FORWARD ;
+PROCEDURE CalcReachEndTerm (t: TermDesc) : TraverseResult ; FORWARD ;
+PROCEDURE CalcReachEndExpression (e: ExpressionDesc) ; FORWARD ;
 PROCEDURE CalcReachEndStatement (s: StatementDesc) : BOOLEAN ; FORWARD ;
 PROCEDURE CalculateReachEndProduction (p: ProductionDesc) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
-PROCEDURE CalcReachEndProduction (p: ProductionDesc) : BOOLEAN ; FORWARD ;
+PROCEDURE CalcReachEndProduction (p: ProductionDesc) ; FORWARD ;
 PROCEDURE EmptyFactor (f: FactorDesc) : BOOLEAN ; FORWARD ;
 PROCEDURE EmptyTerm (t: TermDesc) : BOOLEAN ; FORWARD ;
 PROCEDURE EmptyExpression (e: ExpressionDesc) : BOOLEAN ; FORWARD ;
@@ -284,6 +292,7 @@ PROCEDURE Init ; FORWARD ;
 
 VAR
    LastLineNo         : CARDINAL ;
+   Finished,
    SuppressFileLineTag,
    EmitCode,
    Debugging,
@@ -323,8 +332,6 @@ VAR
    LargestValue       : CARDINAL ;   (* the number of tokens we are using.         *)
    InitialElement     : BOOLEAN ;    (* used to determine whether we are writing   *)
                                      (* the first element of a case statement.     *)
-   list               : List ;       (* keep a list of all idents to detect        *)
-                                     (* recursion.                                 *)
 
 (* % declaration *)
 
@@ -414,25 +421,21 @@ BEGIN
                WriteString('followset defined as:') ;
                EmitSet(follow, 0, 0)
             END ;
-            IF calcreachend
-            THEN
-               IF reachend
-               THEN
-                  WriteString(' can reach end')
-               ELSE
-                  WriteString(' cannot reach end')
-               END
+            CASE reachend OF
+
+            true :   WriteString(' [E]') |
+            false:   WriteString(' [C]') |
+            unknown: WriteString(' [U]')
+
             ELSE
-               WriteString(' unknown reachend')
             END ;
-            IF calcepsilon
-            THEN
-               IF epsilon
-               THEN
-                  WriteString(' epsilon present')
-               END
+            CASE epsilon OF
+
+            true   : WriteString(' [e]') |
+            false  : |
+            unknown: WriteString(' [u]')
+
             ELSE
-               WriteString(' unknown epsilon value')
             END
          END
       END ;
@@ -452,121 +455,77 @@ BEGIN
    NEW(f) ;
    WITH f^ DO
       follow       := NIL ;
-      reachend     := FALSE ;
-      epsilon      := FALSE ;
-      calcepsilon  := FALSE ;
-      calcreachend := FALSE ;
+      reachend     := unknown ;
+      epsilon      := unknown ;
    END ;
    RETURN( f )
 END NewFollow ;
 
 
 (*
-   AssignEpsilon - assigns the epsilon value and sets the calcepsilon to TRUE.
+   AssignEpsilon - assigns the epsilon value and sets the epsilon to value,
+                   providing condition is TRUE.
 *)
 
-PROCEDURE AssignEpsilon (f: FollowDesc; value: BOOLEAN) ;
+PROCEDURE AssignEpsilon (condition: BOOLEAN; f: FollowDesc; value: TraverseResult) ;
 BEGIN
    WITH f^ DO
-      IF calcepsilon
+      IF condition AND (value#unknown) AND (epsilon=unknown)
       THEN
-         Halt('why are we reassigning this epsilon value', __LINE__, __FILE__)
-      END ;
-      epsilon := value ;
-      calcepsilon := TRUE
+         epsilon := value ;
+         Finished := FALSE
+      END
    END
 END AssignEpsilon ;
 
 
 (*
-   Epsilon - returns the value of epsilon
+   GetEpsilon - returns the value of epsilon
 *)
 
-PROCEDURE Epsilon (f: FollowDesc) : BOOLEAN ;
+PROCEDURE GetEpsilon (f: FollowDesc) : TraverseResult ;
 BEGIN
    IF f=NIL
    THEN
       Halt('why is the follow info NIL?', __LINE__, __FILE__)
    ELSE
+      RETURN( f^.epsilon )
+   END
+END GetEpsilon ;
+
+
+(*
+   AssignReachEnd - assigns the reachend value providing that, condition, is TRUE.
+*)
+
+PROCEDURE AssignReachEnd (condition: BOOLEAN; f: FollowDesc; value: TraverseResult) ;
+BEGIN
+   IF condition
+   THEN
       WITH f^ DO
-         IF calcepsilon
+         IF (reachend=unknown) AND (value#unknown)
          THEN
-            RETURN( epsilon )
-         ELSE
-            Halt('not calculated epsilon yet..', __LINE__, __FILE__)
+            reachend := value ;
+            Finished := FALSE
          END
       END
-   END
-END Epsilon ;
-
-
-(*
-   EpsilonKnown - returns TRUE if the value of epsilon is been set.
-*)
-
-PROCEDURE EpsilonKnown (f: FollowDesc) : BOOLEAN ;
-BEGIN
-   IF f=NIL
-   THEN
-      Halt('why is the follow info NIL?', __LINE__, __FILE__)
-   ELSE
-      RETURN( f^.calcepsilon )
-   END
-END EpsilonKnown ;
-
-
-(*
-   AssignReachEnd - assigns the reachend value.
-*)
-
-PROCEDURE AssignReachEnd (f: FollowDesc; value: BOOLEAN) ;
-BEGIN
-   WITH f^ DO
-      IF calcreachend
-      THEN
-         Halt('why are we reassigning reachend', __LINE__, __FILE__)
-      END ;
-      reachend := value ;
-      calcreachend := TRUE
    END
 END AssignReachEnd ;
 
 
 (*
-   ReachEnd - returns the value of reachend
+   GetReachEnd - returns the value of reachend
 *)
 
-PROCEDURE ReachEnd (f: FollowDesc) : BOOLEAN ;
+PROCEDURE GetReachEnd (f: FollowDesc) : TraverseResult ;
 BEGIN
    IF f=NIL
    THEN
       Halt('why is the follow info NIL?', __LINE__, __FILE__)
    ELSE
-      WITH f^ DO
-         IF calcreachend
-         THEN
-            RETURN( reachend )
-         ELSE
-            Halt('not calculated reachend yet..', __LINE__, __FILE__)
-         END
-      END
+      RETURN( f^.reachend )
    END
-END ReachEnd ;
-
-
-(*
-   ReachEndKnown - returns TRUE if the value of reachend has been set.
-*)
-
-PROCEDURE ReachEndKnown (f: FollowDesc) : BOOLEAN ;
-BEGIN
-   IF f=NIL
-   THEN
-      Halt('why is the follow info NIL?', __LINE__, __FILE__)
-   ELSE
-      RETURN( f^.calcreachend )
-   END
-END ReachEndKnown ;
+END GetReachEnd ;
 
 
 (*
@@ -1496,22 +1455,25 @@ BEGIN
    THEN
       p                           := NewProduction() ;
       p^.statement                := NewStatement() ;
+      p^.statement^.followinfo^.calcfollow := TRUE ;
+      p^.statement^.followinfo^.epsilon    := false ;
+      p^.statement^.followinfo^.reachend   := false ;
       p^.statement^.ident         := CurrentIdent ;
       p^.statement^.expr          := NIL ;
       p^.firstsolved              := TRUE ;
       p^.followinfo^.calcfollow   := TRUE ;
-      p^.followinfo^.calcepsilon  := TRUE ;
-      p^.followinfo^.epsilon      := FALSE ;
-      p^.followinfo^.calcreachend := TRUE ;
-      p^.followinfo^.reachend     := FALSE ;
+      p^.followinfo^.epsilon      := false ;
+      p^.followinfo^.reachend     := false ;
       IF First()
       THEN
          IF Follow()
          THEN
             IF SymIs(epsilontok)
             THEN
-               p^.followinfo^.epsilon  := TRUE ;
-               p^.followinfo^.reachend := TRUE
+               p^.statement^.followinfo^.epsilon  := true ;  (* these are not used - but they are displayed when debugging *)
+               p^.statement^.followinfo^.reachend := true ;
+               p^.followinfo^.epsilon  := true ;
+               p^.followinfo^.reachend := true
             END ;
             RETURN( TRUE )
          ELSE
@@ -2219,6 +2181,19 @@ END ForeachRuleDo ;
 
 
 (*
+   WhileNotCompleteDo - 
+*)
+
+PROCEDURE WhileNotCompleteDo (p: DoProcedure) ;
+BEGIN
+   REPEAT
+      Finished := TRUE ;
+      ForeachRuleDo(p) ;
+   UNTIL Finished
+END WhileNotCompleteDo ;
+
+
+(*
    NewLine - generate a newline and indent.
 *)
 
@@ -2469,11 +2444,13 @@ BEGIN
          NewLine(3) ;
          PrettyFollow('<p:', ':p>', p^.followinfo) ;
          NewLine(3) ;
-         IF ReachEnd(p^.followinfo)
-         THEN
-            WriteString('reachend')
+         CASE GetReachEnd(p^.followinfo) OF
+
+         true   :  WriteString('reachend') |
+         false  :  WriteString('cannot reachend') |
+         unknown:  WriteString('unknown...')
+
          ELSE
-            WriteString('cannot reachend')
          END ;
          NewLine(0)
       END ;
@@ -3818,7 +3795,8 @@ BEGIN
          string := s ;
          next   := to ;
       END ;
-      to := d
+      to := d ;
+      Finished := FALSE
    END
 END AddSet ;
 
@@ -3857,21 +3835,15 @@ BEGIN
       WITH f^ DO
          CASE type OF
 
-         id  :  IF (ident^.definition=from) AND (from#NIL)
+         id  :  IF ident^.definition=NIL
                 THEN
-                   WarnError1("cannot resolve first because of cyclic dependancy with rule '%s'", ident^.name) ;
-                   WasNoError := FALSE
-                ELSE
-                   IF ident^.definition=NIL
-                   THEN
-                      WarnError1("no rule found for an 'ident' called '%s'", ident^.name) ;
-                      HALT
-                   END ;
-                   CalcFirstProduction(ident^.definition, from, to) ;
-                   IF NOT ReachEnd(ident^.definition^.followinfo)
-                   THEN
-                      RETURN
-                   END
+                   WarnError1("no rule found for an 'ident' called '%s'", ident^.name) ;
+                   HALT
+                END ;
+                OrSet(to, ident^.definition^.first) ;
+                IF GetReachEnd(ident^.definition^.followinfo)=false
+                THEN
+                   RETURN
                 END |
          lit :  IF GetSymKey(Aliases, string)=NulKey
                 THEN
@@ -3971,15 +3943,20 @@ END CalcFirstProduction ;
 PROCEDURE WorkOutFollowFactor (f: FactorDesc; VAR followset: SetDesc; after: SetDesc) ;
 VAR
    foundepsilon,
-   canreachend : BOOLEAN ;
+   canreachend : TraverseResult ;
 BEGIN
-   foundepsilon := TRUE ;
-   canreachend  := TRUE ;
-   WHILE (f#NIL) AND foundepsilon DO
+   foundepsilon := true ;
+   canreachend  := true ;
+   WHILE (f#NIL) AND (foundepsilon=true) DO
       WITH f^ DO
          CASE type OF
 
-         id  :  CalcFirstProduction(ident^.definition, NIL, followset) |
+         id  :  IF ident^.definition=NIL
+                THEN
+                   WarnError1("no rule found for an 'ident' called '%s'", ident^.name) ;
+                   HALT
+                END ;
+                OrSet(followset, ident^.definition^.first) |
          lit :  AddSet(followset, GetSymKey(Aliases, string)) |
          sub :  WorkOutFollowExpression(expr, followset, NIL) |
          opt :  WorkOutFollowExpression(expr, followset, NIL) |
@@ -3989,17 +3966,17 @@ BEGIN
          ELSE
          END
       END ;
-      IF NOT EpsilonKnown(f^.followinfo)
+      IF GetEpsilon(f^.followinfo)=unknown
       THEN
          WarnError('internal error: epsilon unknown') ;
          PrettyCommentFactor(f, 3) ;
          WasNoError := FALSE
       END ;
-      foundepsilon := Epsilon(f^.followinfo) ;
-      canreachend := ReachEnd(f^.followinfo) ;  (* only goes from FALSE -> TRUE (after once through loop) *)
+      foundepsilon := GetEpsilon(f^.followinfo) ;
+      canreachend := GetReachEnd(f^.followinfo) ;  (* only goes from FALSE -> TRUE *)
       f := f^.next
    END ;
-   IF canreachend
+   IF canreachend=true
    THEN
       OrSet(followset, after)
    END
@@ -4054,43 +4031,39 @@ END CollectFollow ;
 *)
 
 PROCEDURE CalcFollowFactor (f: FactorDesc; after: SetDesc) ;
-VAR
-   followset: SetDesc ;
 BEGIN
    WHILE f#NIL DO
       WITH f^ DO
-         followset := NIL ;
          CASE type OF
 
-         id  :  WorkOutFollowFactor(next, followset, after) |
-         lit :  WorkOutFollowFactor(next, followset, after) |
+         id  :  WorkOutFollowFactor(next, followinfo^.follow, after) |
+         lit :  WorkOutFollowFactor(next, followinfo^.follow, after) |
          opt ,
-         sub :  CalcFirstFactor(next, NIL, followset) ;
-                IF (next=NIL) OR ReachEnd(next^.followinfo)
+         sub :  CalcFirstFactor(next, NIL, followinfo^.follow) ;
+                IF (next=NIL) OR (GetReachEnd(next^.followinfo)=true)
                 THEN
-                   OrSet(followset, after) ;
-                   CalcFollowExpression(expr, followset)
+                   OrSet(followinfo^.follow, after) ;
+                   CalcFollowExpression(expr, followinfo^.follow)
                 ELSE
-                   CalcFollowExpression(expr, followset)
+                   CalcFollowExpression(expr, followinfo^.follow)
                 END |
-         mult:  CalcFirstFactor(f, NIL, followset) ;
+         mult:  CalcFirstFactor(f, NIL, followinfo^.follow) ;
                 (* include first as we may repeat this sentance *)
                 IF Debugging
                 THEN
                    WriteLn ;
-                   WriteString('found mult: and first is: ') ; EmitSet(followset, 0, 0) ; WriteLn
+                   WriteString('found mult: and first is: ') ; EmitSet(followinfo^.follow, 0, 0) ; WriteLn
                 END ;
-                IF (next=NIL) OR ReachEnd(next^.followinfo)
+                IF (next=NIL) OR (GetReachEnd(next^.followinfo)=true)
                 THEN
-                   OrSet(followset, after) ;
-                   CalcFollowExpression(expr, followset)
+                   OrSet(followinfo^.follow, after) ;
+                   CalcFollowExpression(expr, followinfo^.follow)
                 ELSE
-                   CalcFollowExpression(expr, followset)
+                   CalcFollowExpression(expr, followinfo^.follow)
                 END
 
          ELSE
-         END ;
-         AssignFollow(followinfo, followset)
+         END
       END ;
       f := f^.next
    END
@@ -4170,14 +4143,16 @@ BEGIN
       WITH f^ DO
          CASE type OF
 
-         id  :  AssignEpsilon(followinfo, EmptyProduction(ident^.definition)) |
-         lit :  AssignEpsilon(followinfo, FALSE) |
-         sub :  AssignEpsilon(followinfo, EmptyExpression(expr)) ;
-                CalcEpsilonExpression(expr) |
-         m2  :  AssignEpsilon(followinfo, TRUE) |
+         id  :  AssignEpsilon(GetEpsilon(ident^.definition^.followinfo)#unknown,
+                              followinfo, GetEpsilon(ident^.definition^.followinfo)) |
+         lit :  AssignEpsilon(TRUE, followinfo, false) |
+         sub :  CalcEpsilonExpression(expr) ;
+                AssignEpsilon(GetEpsilon(expr^.followinfo)#unknown,
+                              followinfo, GetEpsilon(expr^.followinfo)) |
+         m2  :  AssignEpsilon(TRUE, followinfo, true) |
          opt ,
-         mult:  AssignEpsilon(followinfo, TRUE) ;
-                CalcEpsilonExpression(expr)
+         mult:  CalcEpsilonExpression(expr) ;
+                AssignEpsilon(TRUE, followinfo, true)
 
          ELSE
          END
@@ -4197,8 +4172,18 @@ BEGIN
    THEN
       WHILE t#NIL DO
          WITH t^ DO
-            AssignEpsilon(followinfo, EmptyFactor(factor)) ;
-            CalcEpsilonFactor(factor) ;   (*  { '|' Term } *)
+            IF factor#NIL
+            THEN
+               CASE GetReachEnd(factor^.followinfo) OF
+
+               true :  AssignEpsilon(TRUE, followinfo, true) |
+               false:  AssignEpsilon(TRUE, followinfo, false) |
+               unknown:
+
+               ELSE
+               END
+            END ;
+            CalcEpsilonFactor(factor)    (*  { '|' Term } *)
          END ;
          t := t^.next
       END
@@ -4211,12 +4196,38 @@ END CalcEpsilonTerm ;
 *)
 
 PROCEDURE CalcEpsilonExpression (e: ExpressionDesc) ;
+VAR
+   t     : TermDesc ;
+   result: TraverseResult ;
 BEGIN
    IF e#NIL
    THEN
-      WITH e^ DO
-         AssignEpsilon(followinfo, EmptyTerm(term)) ;
-         CalcEpsilonTerm(term)
+      CalcEpsilonTerm(e^.term) ;
+      IF GetEpsilon(e^.followinfo)=unknown
+      THEN
+         result := unknown ;
+         WITH e^ DO
+            t := term ;
+            WHILE t#NIL DO
+               IF GetEpsilon(t^.followinfo)#unknown
+               THEN
+                  stop
+               END ;
+               CASE GetEpsilon(t^.followinfo) OF
+
+               unknown: |
+               true   : result := true |
+               false  : IF result#true
+                        THEN
+                           result := false
+                        END
+
+               ELSE
+               END ;
+               t := t^.next
+            END
+         END ;
+         AssignEpsilon(result#unknown, e^.followinfo, result)
       END
    END
 END CalcEpsilonExpression ;
@@ -4231,7 +4242,11 @@ BEGIN
    IF s#NIL
    THEN
       WITH s^ DO
-         AssignEpsilon(followinfo, EmptyExpression(expr)) ;
+         IF expr#NIL
+         THEN
+            AssignEpsilon(GetEpsilon(expr^.followinfo)#unknown,
+                          followinfo, GetEpsilon(expr^.followinfo))
+         END ;
          CalcEpsilonExpression(expr)
       END
    END
@@ -4246,18 +4261,24 @@ PROCEDURE CalcEpsilonProduction (p: ProductionDesc) ;
 BEGIN
    IF p#NIL
    THEN
+(*
+      IF p^.statement^.ident^.name=MakeKey('DefinitionModule')
+      THEN
+         stop
+      END ;
+*)
+
+      IF Debugging
+      THEN
+         WriteKey(p^.statement^.ident^.name) ;
+         WriteString('  calculating epsilon') ;
+         WriteLn
+      END ;
+
       WITH p^ DO
-         IF NOT EpsilonKnown(p^.followinfo)
-         THEN
-            IF Debugging
-            THEN
-               WriteKey(p^.statement^.ident^.name) ;
-               WriteString('  calculating epsilon') ;
-               WriteLn
-            END ;
-            AssignEpsilon(followinfo, EmptyStatement(statement)) ;
-            CalcEpsilonStatement(statement)
-         END
+         AssignEpsilon(GetEpsilon(statement^.followinfo)#unknown,
+                       followinfo, GetEpsilon(statement^.followinfo)) ;
+         CalcEpsilonStatement(statement)
       END
    END
 END CalcEpsilonProduction ;
@@ -4267,54 +4288,54 @@ END CalcEpsilonProduction ;
    CalcReachEndFactor - 
 *)
 
-PROCEDURE CalcReachEndFactor (f: FactorDesc) : BOOLEAN ;
+PROCEDURE CalcReachEndFactor (f: FactorDesc) : TraverseResult ;
 VAR
-   canreachend: BOOLEAN ;
+   canreachend,
+   result     : TraverseResult ;
 BEGIN
    IF f=NIL
    THEN
-      RETURN( TRUE )   (* we have reached the end of this factor list *)
+      RETURN( true )   (* we have reached the end of this factor list *)
    ELSE
       WITH f^ DO
-         (* we need to resolve all factors even if we can short cut the answer to this list of factors *)
-         canreachend := CalcReachEndFactor(next) ;
+         (* we need to traverse all factors even if we can short cut the answer to this list of factors *)
+         result := CalcReachEndFactor(next) ;
          CASE type OF
 
          id  :  IF ident^.definition=NIL
                 THEN
                    WarnError1('definition for %s is absent (assuming epsilon is false for this production)', ident^.name) ;
-                   canreachend := FALSE
-                ELSE
-                   IF Debugging
-                   THEN
-                      WriteString('calculating ') ; WriteKey(ident^.name) ; WriteLn ;
-                   END ;
-                   canreachend := canreachend AND CalcReachEndProduction(ident^.definition)
-                END |
-         lit :  canreachend := FALSE |
-         sub :  IF expr#NIL
+                   result := false
+                ELSIF result#false
                 THEN
-                   canreachend := CalcReachEndExpression(expr) AND canreachend
+                   CASE GetReachEnd(ident^.definition^.followinfo) OF
+
+                   false  :  result := false |
+                   true   :  |
+                   unknown:  result := unknown
+
+                   ELSE
+                   END
+                END |
+         lit :  result := false |
+         sub :  CalcReachEndExpression(expr) ;
+                IF (expr#NIL) AND (result=true)
+                THEN
+                   result := GetReachEnd(expr^.followinfo)
                 END |
          mult,
-         opt :  IF (expr#NIL) AND CalcReachEndExpression(expr)
+         opt :  IF expr#NIL
                 THEN
+                   (* not interested in the result as expression is optional *)
+                   CalcReachEndExpression(expr)
                 END |
          m2  :
 
          ELSE
          END ;
-         IF ReachEndKnown(followinfo)
-         THEN
-            IF ReachEnd(followinfo)#canreachend
-            THEN
-               Halt('inconsistant reach end calculated', __LINE__, __FILE__)
-            END
-         ELSE
-            AssignReachEnd(followinfo, canreachend)
-         END
+         AssignReachEnd(result#unknown, followinfo, result)
       END ;
-      RETURN( canreachend )
+      RETURN( result )
    END
 END CalcReachEndFactor ;
 
@@ -4323,22 +4344,28 @@ END CalcReachEndFactor ;
    CalcReachEndTerm -
 *)
 
-PROCEDURE CalcReachEndTerm (t: TermDesc) : BOOLEAN ;
+PROCEDURE CalcReachEndTerm (t: TermDesc) : TraverseResult ;
 VAR
-   canreachend: BOOLEAN ;
+   canreachend,
+   result     : TraverseResult ;
 BEGIN
    IF t#NIL
    THEN
-      canreachend := FALSE ;
+      canreachend := false ;
       WHILE t#NIL DO
          WITH t^ DO
-            IF NOT ReachEndKnown(followinfo)
-            THEN
-               AssignReachEnd(followinfo, CalcReachEndFactor(factor))
-            END ;
-            IF ReachEnd(followinfo)
-            THEN
-               canreachend := TRUE
+            result := CalcReachEndFactor(factor) ;
+            AssignReachEnd(result#unknown, followinfo, result) ;
+            CASE result OF
+
+            true   :  canreachend := true |
+            false  :  |
+            unknown:  IF canreachend=false
+                      THEN
+                         canreachend := unknown
+                      END
+
+            ELSE
             END
          END ;
          t := t^.next    (*  { '|' Term } *)
@@ -4352,19 +4379,17 @@ END CalcReachEndTerm ;
    CalcReachEndExpression - 
 *)
 
-PROCEDURE CalcReachEndExpression (e: ExpressionDesc) : BOOLEAN ;
+PROCEDURE CalcReachEndExpression (e: ExpressionDesc) ;
+VAR
+   result: TraverseResult ;
 BEGIN
    IF e=NIL
    THEN
       (* no expression, thus reached the end of this sentance *)
-      RETURN( TRUE )
    ELSE
       WITH e^ DO
-         IF NOT ReachEndKnown(followinfo)
-         THEN
-            AssignReachEnd(followinfo, CalcReachEndTerm(term))
-         END ;
-         RETURN( ReachEnd(followinfo) )
+         result := CalcReachEndTerm(term) ;
+         AssignReachEnd(result#unknown, followinfo, result)
       END
    END
 END CalcReachEndExpression ;
@@ -4374,34 +4399,21 @@ END CalcReachEndExpression ;
    CalcReachEndStatement - 
 *)
 
-PROCEDURE CalcReachEndStatement (s: StatementDesc) : BOOLEAN ;
+PROCEDURE CalcReachEndStatement (s: StatementDesc) ;
 BEGIN
    IF s#NIL
    THEN
       WITH s^ DO
-         IF NOT ReachEndKnown(followinfo)
+         IF expr#NIL
          THEN
-            AssignReachEnd(followinfo, CalcReachEndExpression(expr))
-         END ;
-         RETURN( ReachEnd(followinfo) )
+            CalcReachEndExpression(expr) ;
+            AssignReachEnd(GetReachEnd(expr^.followinfo)#unknown,
+                           followinfo, GetReachEnd(expr^.followinfo))
+         END
       END
-   END ;
-   Halt('why is this statement NIL?', __LINE__, __FILE__)
+   END
 END CalcReachEndStatement ;
 
-
-(*
-   CalculateReachEndProduction - 
-*)
-
-PROCEDURE CalculateReachEndProduction (p: ProductionDesc) ;
-VAR
-   result: BOOLEAN ;
-BEGIN
-   InitList(list) ;
-   result := CalcReachEndProduction(p) ;
-   KillList(list)
-END CalculateReachEndProduction ;
 
 PROCEDURE stop ; BEGIN END stop ;
 
@@ -4409,18 +4421,19 @@ PROCEDURE stop ; BEGIN END stop ;
    CalcReachEndProduction -
 *)
 
-PROCEDURE CalcReachEndProduction (p: ProductionDesc) : BOOLEAN ;
+PROCEDURE CalcReachEndProduction (p: ProductionDesc) ;
 BEGIN
    IF p#NIL
    THEN
       WITH p^ DO
-         IF ReachEndKnown(followinfo)
+         CalcReachEndStatement(statement) ;
+         IF GetReachEnd(followinfo)#unknown
          THEN
             IF Debugging
             THEN
                WriteString('already calculated reach end for: ') ;
                WriteKey(p^.statement^.ident^.name) ; WriteString(' its value is ') ;
-               IF ReachEnd(followinfo)
+               IF GetReachEnd(followinfo)=true
                THEN
                   WriteString('reachable')
                ELSE
@@ -4428,35 +4441,10 @@ BEGIN
                END ;
                WriteLn
             END
-         ELSE
-            IF IsItemInList(list, p^.statement^.ident^.name)
-            THEN
-               IF Debugging
-               THEN
-                  stop ;
-                  WriteString('found recursive productions, therefore the reach end value is TRUE in ') ;
-                  WriteKey(p^.statement^.ident^.name) ; WriteLn
-               END ;
-               RETURN( TRUE )
-            END ;
-            IncludeItemIntoList(list, p^.statement^.ident^.name) ;
-            IF Debugging
-            THEN
-               WriteKey(p^.statement^.ident^.name) ;
-               WriteString('  calculating reach end') ;
-               WriteLn ;
-            END ;
-            AssignReachEnd(followinfo, CalcReachEndStatement(statement)) ;
-            IF Debugging
-            THEN
-               PrettyCommentProduction(p)
-            END ;
-            RemoveItemFromList(list, p^.statement^.ident^.name)
          END ;
-         RETURN( ReachEnd(followinfo) )
+         AssignReachEnd(GetReachEnd(statement^.followinfo)#unknown, followinfo, GetReachEnd(statement^.followinfo)) ;
       END
-   END ;
-   Halt('why is this production NIL?', __LINE__, __FILE__)
+   END
 END CalcReachEndProduction ;
 
 
@@ -5171,6 +5159,33 @@ END TestForLALR1 ;
 
 
 (*
+   DoEpsilon - runs the epsilon interrelated rules
+*)
+
+PROCEDURE DoEpsilon (p: ProductionDesc) ;
+BEGIN
+   CalcEpsilonProduction(p) ;
+   CalcReachEndProduction(p)
+END DoEpsilon ;
+
+
+(*
+   CheckComplete - checks that production, p, is complete.
+*)
+
+PROCEDURE CheckComplete (p: ProductionDesc) ;
+BEGIN
+   IF GetReachEnd(p^.followinfo)=unknown
+   THEN
+      PrettyCommentProduction(p) ;
+      WarnError1('cannot determine epsilon, probably a left recursive rule in %s and associated rules (hint rewrite using ebnf and eliminate left recursion)',
+                 p^.statement^.ident^.name) ;
+      WasNoError := FALSE
+   END
+END CheckComplete ;
+
+
+(*
    PostProcessRules - backpatch the ident to rule definitions and emit comments and code.
 *)
 
@@ -5181,17 +5196,17 @@ BEGIN
    THEN
       HALT
    END ;
-   ForeachRuleDo(CalcEpsilonProduction) ;
+   WhileNotCompleteDo(DoEpsilon) ;
    IF NOT WasNoError
    THEN
       HALT
    END ;
-   ForeachRuleDo(CalculateReachEndProduction) ;
+   ForeachRuleDo(CheckComplete) ;
    IF NOT WasNoError
    THEN
       HALT
    END ;
-   ForeachRuleDo(CalculateFirstAndFollow) ;
+   WhileNotCompleteDo(CalculateFirstAndFollow) ;
    IF NOT WasNoError
    THEN
       HALT
@@ -5306,6 +5321,6 @@ BEGIN
 END ppg.
 (*
  * Local variables:
- *  compile-command: "../bin2/m2f -bounds -return -quiet -g -verbose -M \"../libs ../gm2s\" ppg.mod"
+ *  compile-command: "gm2 -I../gm2-libs:. -Wbounds -Wreturn -c -g ppg.mod"
  * End:
  *)

@@ -88,15 +88,20 @@ Special    := Ident
               % VAR p: ProductionDesc ; %
               %     p                           := NewProduction() ;
                     p^.statement                := NewStatement() ;
+                    p^.statement^.followinfo^.calcfollow := TRUE ;
+                    p^.statement^.followinfo^.epsilon    := false ;
+                    p^.statement^.followinfo^.reachend   := false ;
                     p^.statement^.ident         := CurrentIdent ;
                     p^.statement^.expr          := NIL ;
                     p^.firstsolved              := TRUE ;
                     p^.followinfo^.calcfollow   := TRUE ;
-                    p^.followinfo^.calcepsilon  := TRUE ;
-                    p^.followinfo^.epsilon      := FALSE ;
-                    p^.followinfo^.calcreachend := TRUE ;
-                    p^.followinfo^.reachend     := FALSE ; %
-              First Follow [ "epsilon" % p^.followinfo^.epsilon := TRUE ; % ] =:
+                    p^.followinfo^.epsilon      := false ;
+                    p^.followinfo^.reachend     := false %
+              First Follow [ "epsilon" % p^.statement^.followinfo^.epsilon  := true ;  (* these are not used - but they are displayed when debugging *)
+                                         p^.statement^.followinfo^.reachend := true ;
+                                         p^.followinfo^.epsilon  := true ;
+                                         p^.followinfo^.reachend := true
+                                       % ] =:
 
 Factor     := "%" Modula2Code "%" |
               Ident % WITH CurrentFactor^ DO

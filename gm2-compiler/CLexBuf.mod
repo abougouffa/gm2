@@ -412,7 +412,18 @@ BEGIN
       lessequaltok         : printf0('lessequal\n') |
       plustok              : printf0('plus\n') |
       minustok             : printf0('minus\n') |
-      tildetok             : printf0('tilde\n')
+      tildetok             : printf0('tilde\n') |
+      externtok            : printf0('extern\n') |
+      statictok            : printf0('static\n') |
+      autotok              : printf0('auto\n') |
+      registertok          : printf0('register\n') |
+      voidtok              : printf0('void\n') |
+      shorttok             : printf0('short\n') |
+      signedtok            : printf0('signed\n') |
+      uniontok             : printf0('union\n') |
+      colontok             : printf0('colon\n') |
+      becomestok           : printf0('becomes\n') |
+      volatiletok          : printf0('volatile\n')
 
       ELSE
          clex.CError(string(InitString('unrecognised token')))
@@ -460,27 +471,54 @@ BEGIN
             HALT
          END
       END ;
-      WITH ListOfTokens.tail^ DO
-         IF CurrentTokNo-ListOfTokens.LastBucketOffset<len
-         THEN
-            WITH buf[CurrentTokNo-ListOfTokens.LastBucketOffset] DO
-               currenttoken   := token ;
-               currentstring  := KeyToCharStar(str) ;
-               currentinteger := int
-            END ;
+
+      IF ListOfTokens.LastBucketOffset>CurrentTokNo
+      THEN
+         t := CurrentTokNo ;
+         b := FindTokenBucket(t) ;
+         WITH b^.buf[t] DO
+            currenttoken   := token ;
+            currentstring  := KeyToCharStar(str) ;
+            currentinteger := int ;
             IF Debugging
             THEN
-               printf1('# %d ', CurrentTokNo) ;
-               DisplayToken
-            END ;
-            INC(CurrentTokNo)
-         ELSE
-            a := clex.GetToken() ;
-            GetToken
+               l := line
+            END
+         END ;
+         INC(CurrentTokNo)
+      ELSE
+         WITH ListOfTokens.tail^ DO
+            IF CurrentTokNo-ListOfTokens.LastBucketOffset<len
+            THEN
+               WITH buf[CurrentTokNo-ListOfTokens.LastBucketOffset] DO
+                  currenttoken   := token ;
+                  currentstring  := KeyToCharStar(str) ;
+                  currentinteger := int
+               END ;
+               IF Debugging
+               THEN
+                  printf1('# %d ', CurrentTokNo) ;
+                  DisplayToken
+               END ;
+               INC(CurrentTokNo)
+            ELSE
+               a := clex.GetToken() ;
+               GetToken
+            END
          END
       END
    END
 END GetToken ;
+
+
+(*
+   FlushTokens - removes the last token.
+*)
+
+PROCEDURE FlushTokens ;
+BEGIN
+   INC(CurrentTokNo)
+END FlushTokens ;
 
 
 (*
