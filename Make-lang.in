@@ -369,17 +369,13 @@ GM2_FLAGS=-Wbounds -Wreturn -gstabs
 # much prefered as the executable contains debugging info relating
 # directly to the Modula-2 source.
 
-GM2_OBJS            = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o   # the C implementation module bridging the Modula-2 -> GCC
-GM2_LIBS            = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a    # the final Modula-2 front end
-GM2_LIBS_BOOT       = gm2/gm2-compiler-boot/gm2.a \
-                      gm2/gm2-libs-boot/libgm2.a \
-                      gm2/p2c/p2c-src/src/libp2c.a                    # the translated Modula-2 -> C front end
-GM2_LIBS_PARANOID   = gm2/gm2-compiler-paranoid/gm2.a \
-                      gm2/gm2-libs-paranoid/libgm2.a                       # build it again using GM2_LIBS
-
-M2LEXGGC_PARANOID   = gm2/gm2-compiler-paranoid/m2lex-ggc.o
-M2LEXGGC            = gm2/gm2-compiler/m2lex-ggc.o
-M2LEXGGC_BOOT       = gm2/gm2-compiler-boot/m2lex-ggc.o
+GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o        # the C implementation module bridging the Modula-2 -> GCC
+GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
+GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
+                    gm2/gm2-libs-boot/libgm2.a \
+                    gm2/p2c/p2c-src/src/libp2c.a                    # the translated Modula-2 -> C front end
+GM2_LIBS_PARANOID = gm2/gm2-compiler-paranoid/gm2.a \
+                    gm2/gm2-libs-paranoid/libgm2.a                       # build it again using GM2_LIBS
 
 # Remove patched files from language-independent object file list.
 
@@ -435,14 +431,14 @@ gm2lsub$(exeext): force
 
 # end here
 
-stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS) $(M2LEXGGC_PARANOID)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS) $(M2LEXGGC_PARANOID)
+stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS)
 
-stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS) $(M2LEXGGC)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS) $(M2LEXGGC)
+stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
 
-stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS) $(M2LEXGGC_BOOT)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS) $(M2LEXGGC_BOOT)
+stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 # Compiling object files from source files.
 
@@ -702,17 +698,14 @@ gm2/gm2-compiler-boot/gm2lsub.o: $(srcdir)/gm2/gm2-compiler/gm2lsub.mod
 gm2/gm2-compiler-boot/%.h: $(srcdir)/gm2/gm2-compiler/%.def
 	$(P2C) $(srcdir)/gm2/gm2-compiler/$*.def -h gm2/gm2-compiler-boot/$*.h
 
-gm2/gm2-compiler-boot/m2lex-noggc.o: gm2/gm2-compiler/m2lex.c
+gm2/gm2-compiler-boot/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
-
-gm2/gm2-compiler-boot/m2lex-ggc.o: gm2/gm2-compiler/m2lex.c
-	$(CC) -c -DGM2USEGGC $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler-boot/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/CLexBuf.h
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/m2lex.c: $(srcdir)/gm2/m2.lex
-	flex -t $< > $@
+	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
 
 gm2/gm2-compiler/clex.c: $(srcdir)/gm2/c.lex
 	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
@@ -751,11 +744,8 @@ gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-compiler/m2lex-noggc.o: gm2/gm2-compiler/m2lex.c
+gm2/gm2-compiler/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
-
-gm2/gm2-compiler/m2lex-ggc.o: gm2/gm2-compiler/m2lex.c
-	$(GCC_FOR_TARGET) -c -DGM2USEGGC $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/CLexBuf.h gm2/gm2-compiler-boot/clex.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
@@ -802,8 +792,7 @@ build-libs: $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
 build-compiler: $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                 $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o) \
                 gm2/gm2-compiler/M2Version.o \
-                gm2/gm2-compiler/m2lex-noggc.o \
-                gm2/gm2-compiler/m2lex-ggc.o
+                gm2/gm2-compiler/m2lex.o
 
 gm2/gm2-libs/libgm2.a: build-libs
 	$(AR_FOR_TARGET) cr $@ $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
@@ -817,7 +806,8 @@ gm2/gm2-compiler/gm2.a: build-compiler
 	$(GCC_FOR_TARGET) -c -g gm2/gm2-compiler/mod_init.c -o gm2/gm2-compiler/mod_init.o
 	$(AR_FOR_TARGET) cr $@ gm2/gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                     gm2/gm2-compiler/M2Version.o \
-                    $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
+                    $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o) \
+                    gm2/gm2-compiler/m2lex.o
 	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
@@ -832,8 +822,7 @@ BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/%.h) \
 	              gm2/gm2-compiler-boot/gm2builtins.h \
                       $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                       $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
-                      gm2/gm2-compiler-boot/m2lex-noggc.o \
-                      gm2/gm2-compiler-boot/m2lex-ggc.o \
+                      gm2/gm2-compiler-boot/m2lex.o \
                       gm2/gm2-compiler-boot/M2Version.o
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c $(BUILD-LIBS-BOOT)
@@ -847,7 +836,8 @@ gm2/gm2-compiler-boot/gm2.a: gm2/boot-bin/p2c gm2/boot-bin/mklink \
 	../$(M2LINK) -s -exit -main gccgm2front ../$(srcdir)/gm2/init/gm2-gccinit ; \
 	mv mod_init.c gm2-compiler-boot
 	$(CC) -c -g gm2/gm2-compiler-boot/mod_init.c -o gm2/gm2-compiler-boot/mod_init.o
-	$(AR) cr $@ gm2/gm2-compiler-boot/mod_init.o \
+	$(AR) cr $@ gm2/gm2-compiler-boot/m2lex.o \
+                    gm2/gm2-compiler-boot/mod_init.o \
                     $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     gm2/gm2-compiler-boot/M2Version.o
@@ -1018,8 +1008,8 @@ gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2
 gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/choosetemp.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
-gm2/gm2-compiler-paranoid/m2lex-ggc.o: gm2/gm2-compiler/m2lex.c
-	$(CC) -c -DGM2USEGGC $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+gm2/gm2-compiler-paranoid/m2lex.o: gm2/gm2-compiler/m2lex.c
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 #
 #  now for rules which build the paranoid version of gm2
@@ -1034,11 +1024,13 @@ gm2/gm2-libs-paranoid/libgm2.a: $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o)
 gm2/gm2-compiler-paranoid/gm2.a: gm2/gm2-compiler-paranoid/mod_init.o \
                              $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
                              $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
-                             gm2/gm2-compiler-paranoid/M2Version.o
+                             gm2/gm2-compiler-paranoid/M2Version.o \
+                             gm2/gm2-compiler-paranoid/m2lex.o
 	$(AR) cr $@ gm2/gm2-compiler-paranoid/mod_init.o \
                     $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
-                    gm2/gm2-compiler-paranoid/M2Version.o
+                    gm2/gm2-compiler-paranoid/M2Version.o \
+                    gm2/gm2-compiler-paranoid/m2lex.o
 	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2/gm2-compiler-paranoid/mod_init.o: $(srcdir)/gm2/init/gm2-gccinit
@@ -1076,7 +1068,6 @@ stage1/gm2/gm2l$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
 	mv mod_init.c gm2/gm2-compiler-boot/gm2l_init.c
 	$(CC) -c -g gm2/gm2-compiler-boot/gm2l_init.c -o gm2/gm2-compiler-boot/gm2l_init.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
-              gm2/gm2-compiler-boot/m2lex-noggc.o \
               gm2/gm2-compiler-boot/gm2l_init.o \
               gm2/gm2-compiler-boot/gm2l.o $(GM2_LIBS_BOOT) $(LIBS)
 
@@ -1120,7 +1111,6 @@ stage1/gm2/gm2m$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
 	mv mod_init.c gm2/gm2-compiler-boot/gm2m_init.c
 	$(CC) -c -g gm2/gm2-compiler-boot/gm2m_init.c -o gm2/gm2-compiler-boot/gm2m_init.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
-              gm2/gm2-compiler-boot/m2lex-noggc.o \
               gm2/gm2-compiler-boot/gm2m_init.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS)
 
@@ -1130,8 +1120,7 @@ stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
                -g -B./stage1/gm2/ -B./ gm2/gm2-auto/gm2l.mod
 	./xgm2 -v -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2/ -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/gm2l.mod $(LIBS) \
-                gm2/gm2-compiler/m2lex-noggc.o
+               -Wuselist gm2/gm2-auto/gm2l.mod $(LIBS)
 
 stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lcc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lccinit > gm2lcc.lst
@@ -1163,8 +1152,7 @@ stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/gm2m.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
-                gm2/gm2-compiler/m2lex-noggc.o
+               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS)
 
 stage1/gm2/h2def$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink gm2/boot-bin/p2c \
