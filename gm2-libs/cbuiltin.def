@@ -31,6 +31,7 @@ DEFINITION MODULE FOR "C" cbuiltin ;
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,
                    sinf, sinl, cosf, cosl, sqrtf, sqrtl, fabsf, fabsl,
+                   sin, cos, sqrt, fabs,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
@@ -38,13 +39,17 @@ EXPORT UNQUALIFIED alloca, memcpy,
 
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
 PROCEDURE memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
-PROCEDURE sinf (x: REAL) : REAL ;
+PROCEDURE sinf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE sin (x: REAL) : REAL ;
 PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
-PROCEDURE cosf (x: REAL) : REAL ;
+PROCEDURE cosf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE cos (x: REAL) : REAL ;
 PROCEDURE cosl (x: LONGREAL) : LONGREAL ;
-PROCEDURE sqrtf (x: REAL) : REAL ;
+PROCEDURE sqrtf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE sqrt (x: REAL) : REAL ;
 PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;
-PROCEDURE fabsf (x: REAL) : REAL ;
+PROCEDURE fabsf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE fabs (x: REAL) : REAL ;
 PROCEDURE fabsl (x: LONGREAL) : LONGREAL ;
 PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
