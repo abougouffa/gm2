@@ -2648,7 +2648,7 @@ gm2_expand_expr (exp, target, tmode, modifier)
   switch (TREE_CODE (exp))
     {
     case ERROR_MARK:
-      return( error_mark_node );
+      return( NULL_RTX );
       break;
 
     case IDENTIFIER_NODE:
@@ -8345,9 +8345,9 @@ gccgm2_BuildEndEnumeration (enumtype)
 }
 
 tree
-gccgm2_BuildEnumerator (name, value, type)
+gccgm2_BuildEnumerator (name, value)
      char *name;
-     tree value, type;
+     tree value;
 {
   tree id = get_identifier (name);
   tree copy_of_value = copy_node (value);
@@ -9324,7 +9324,6 @@ tree
 gccgm2_BuildIndirectProcedureCall (procedure, rettype)
      tree procedure, rettype;
 {
-  tree functype = TREE_TYPE(procedure);
   tree call;
 
   TREE_USED(procedure) = TRUE;
@@ -10478,7 +10477,7 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
 	}
       else if (TREE_TYPE (x) != error_mark_node)
 	{
-	  int min_align = (DECL_PACKED (x) ? BITS_PER_UNIT
+	  unsigned int min_align = (DECL_PACKED (x) ? BITS_PER_UNIT
 			   : TYPE_ALIGN (TREE_TYPE (x)));
 	  /* Non-bit-fields are aligned for their type, except packed
 	     fields which require only BITS_PER_UNIT alignment.  */
