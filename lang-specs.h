@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 
   {".mod", {"@modula-2"}},
   {"@modula-2",
-   "cc1gm2 %1 %2\
+     "%{c:cc1gm2 %1 %2\
        %{!Q:-quiet} %{d*} %{m*} %{a}\
        %{I*} %{g*} %{O*} %{W*} %{w}\
        %{M}\
@@ -35,4 +35,28 @@ Boston, MA 02111-1307, USA.  */
        %b|\n\
    %{!S:as %a %Y\
        %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
-       %{!pipe:%g.s} %A\n }"},
+       %{!pipe:%g.s} %A\n }}\
+   %{!c:%{!S: ld %l %X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} \
+			%{r} %{s} %{t} %{u*} %{x} %{z} %{Z}\
+			%{!A:%{!nostdlib:%{!nostartfiles:%S}}}\
+			%{static:} %{L*} %o\
+			%{!nostdlib:%{!nodefaultlibs:%G %L %G}}\
+			%{!A:%{!nostdlib:%{!nostartfiles:%E}}}\
+			%{T*}\
+			\n }}"},
+    /*
+     * the above works fine as C compiler linker
+     * below is broken but it is my start to linking
+
+   %{!c:%{!S:\
+       %x{mod_init.o} %x{foo.a} \
+       gm2l %{M*} %i %{|!pipe: > %d%w%u.mods} \n\
+       gm2lsub %{!pipe: < %U.mods} > %d%w%u.init \n\
+       gm2lgen < %U.init > mod_init.c \n\
+       gcc -g -c mod_init.c \n\
+       gm2lcc -g < %U.init > %d%w%u.link \n\
+       /bin/sh %U.link \n }}"},
+
+
+    *
+    */

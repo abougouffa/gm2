@@ -48,6 +48,50 @@ extern char *xmalloc PROTO((size_t));
 #define MAXPATHCHAR    16*1024         /* large enough not to worry */
 
 
+/*
+ *  convert_into_m2path - converts an include -Ioption into the equivalent
+ *                        Modula-2 M2PATH space delimitered path.
+ */
+
+static int convert_into_m2path (char *incl)
+{
+  char *m2path=getenv("M2PATH");
+
+  if (m2path != NULL) {
+    char *newm2path=(char *)malloc(strlen(m2path)+1+strlen(incl));
+
+    if (newm2path != NULL) {
+      int i=2;  /* skip -I */
+      int l=strlen(incl);
+      int j=strlen(m2path);
+
+      strcpy(newm2path, m2path);
+      if (l>0) {
+	newm2path[j] = ' ';
+	j++;
+	while (i<l) {
+	  if (incl[i] == ':') {
+	    newm2path[j] = ' ';
+	  } else {
+	    newm2path[j] = incl[i];
+	  }
+	  j++;
+	  i++;
+	}
+      }
+      newm2path[j] = (char)0;
+      printf("m2path = %s\n", newm2path);
+      return( setenv("M2PATH", newm2path, 1) );
+    }
+  }
+  return( FALSE );
+}
+
+
+/*
+ *  remove_args - removes args: i..i+n-1 from in_argc, in_argv
+ */
+
 static void
 remove_args (in_argc, in_argv, i, n)
      int *in_argc;
@@ -56,13 +100,11 @@ remove_args (in_argc, in_argv, i, n)
      int n;
 {
   int j=i+n;
-  int m=n;
 
-  while ((m>0) && (j<=*in_argc)) {
+  while (j<=*in_argc) {
     (*in_argv)[i] = (*in_argv)[j];
     i++;
     j++;
-    m--;
   }
   *in_argc -= n;
 }
@@ -75,6 +117,13 @@ lang_specific_driver (fn, in_argc, in_argv)
      char ***in_argv;
 {
   int i=1;
+
+  i=1;
+  while (i<*in_argc) {
+    printf("lang specific driver %s\n", (*in_argv)[i]);
+    i++;
+  }
+  i=1;
 
   /*
    *  we need to remove the -M "thispath thatpath . whateverpath"
@@ -95,6 +144,11 @@ lang_specific_driver (fn, in_argc, in_argv)
 	(*fn) ("path argument to -M flag is missing");
 	i++;
       }
+    } else if (strncmp((*in_argv)[i], "-I", 2) == 0) {
+      if (convert_into_m2path((*in_argv)[i])) {
+	(*fn) ("out of memory trying to alter environment");
+      }
+      remove_args(in_argc, in_argv, i, 1);
     } else {
       i++;
     }
