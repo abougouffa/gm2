@@ -51,8 +51,6 @@ FROM CLexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize, InsertToken
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
                      fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1 ;
-FROM M2FileName IMPORT CalculateFileName, CalculateStemName ;
-FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath ;
 FROM SArgs IMPORT Narg, GetArg ;
 FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
 FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
@@ -63,13 +61,13 @@ FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemF
 FROM Strings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark,
                     string, Dup, Equal, Slice, char, ConCatChar, ConCat, Index, RIndex, Mult, InitStringChar ;
 
-FROM FormatStrings IMPORT Sprintf0 ;
+FROM StringConvert IMPORT hstoi ;
 FROM StrLib IMPORT StrLen ;
 FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Options IMPORT ScanCppArgs ;
-FROM libc IMPORT exit ;
-FROM SYSTEM IMPORT ADDRESS, WORD ;
+FROM libc IMPORT exit, memset ;
+FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE ;
 IMPORT clex ;
 
 TYPE
@@ -239,6 +237,9 @@ VAR
    emitting            : EmitType ;
    CurColumn,
    Indent              : CARDINAL ;
+   CurrentUserPath,
+   SystemPath          : String ;
+   DummyNo             : CARDINAL ;
 
 
 (*
@@ -256,6 +257,7 @@ BEGIN
       n := FreeList ;
       FreeList := FreeList^.chain
    END ;
+   memset(n, 0, TSIZE(n^)) ;
    WITH n^ DO
       type := t ;
       chain := NIL ;
@@ -779,9 +781,9 @@ BEGIN
       c := MarkCompile(c) ;
       IF (s=poisoned) AND DisplayPoison
       THEN
-         hprintf0('(* #if was poisoned *)\n')
+         printf0('\n(* #if was poisoned *)\n')
       END ;
-      hprintf0('# if ') ; CppPrintNode(n) ; hprintf0('\n')
+      printf0('\n# if ') ; CppPrintNode(n) ; hprintf0('\n')
    END ;
    PushCpp(c)
 END BuildIf ;
@@ -801,10 +803,11 @@ BEGIN
       c := MarkCompile(c) ;
       IF b
       THEN
-         hprintf1('# ifdef %s\n', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
+         printf1('\n# ifdef %s', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
       ELSE
-         hprintf1('# ifndef %s\n', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
-      END
+         printf1('\n# ifndef %s', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
+      END ;
+      hprintf0('\n')
    ELSE
       IF b
       THEN
@@ -839,7 +842,7 @@ BEGIN
    ELSE
       IF CompileTime(cppStack)
       THEN
-         hprintf0('# else\n')
+         printf0('\n# else') ; hprintf0('\n')
       ELSIF HaveDoneTrue(cppStack)
       THEN
          clex.ParsingOn(FALSE)
@@ -863,7 +866,7 @@ BEGIN
    ELSE
       IF CompileTime(cppStack)
       THEN
-         hprintf0('# endif\n')
+         printf0('\n# endif') ; hprintf0('\n')
       END ;
       clex.ParsingOn(TRUE) ;
       KillCpp(PopCpp())
@@ -879,7 +882,8 @@ PROCEDURE BuildUndef ;
 BEGIN
    IF (cppStack#NIL) AND CompileTime(cppStack)
    THEN
-      hprintf1('# undef %s\n', Mark(InitStringCharStar(LastIdent)))
+      printf1('\n# undef %s', Mark(InitStringCharStar(LastIdent))) ;
+      hprintf0('\n')
    ELSE
       RemoveItemFromList(DefinedList, LastIdent)
    END
@@ -1033,6 +1037,7 @@ BEGIN
                      INCL(t, voidp)
                   END |
 
+         ndtypedef,
          nddummy:
 
          ELSE
@@ -1043,6 +1048,45 @@ BEGIN
    END ;
    RETURN( TRUE )
 END GetBaseSet ;
+
+
+(*
+   PrintBasicType - 
+*)
+
+PROCEDURE PrintBasicType (t: baseSet) ;
+BEGIN
+   IF (t={longp}) OR (t={intp})
+   THEN
+      hprintf0('INTEGER')
+   ELSIF t={intp, longp}
+   THEN
+      hprintf0('LONGINT')
+   ELSIF t={charp}
+   THEN
+      hprintf0('CHAR')
+   ELSIF t={charp, unsignedp}
+   THEN
+      hprintf0('BYTE')
+   ELSIF t={floatp}
+   THEN
+      hprintf0('SHORTREAL')
+   ELSIF t={doublep}
+   THEN
+      hprintf0('REAL')
+   ELSIF t={longp, doublep}
+   THEN
+      hprintf0('LONGREAL')
+   ELSIF (t={unsignedp, intp}) OR (t={unsignedp})
+   THEN
+      hprintf0('CARDINAL')
+   ELSIF t={unsignedp, intp, longp}
+   THEN
+      hprintf0('LONGCARD')
+   ELSE
+      ErrorArray('dont understand this type')
+   END
+END PrintBasicType ;
 
 
 (*
@@ -1071,37 +1115,11 @@ BEGIN
                END ;
                n := n^.chain
             END ;
-            IF (t={longp}) OR (t={intp})
-            THEN
-               hprintf0('INTEGER')
-            ELSIF t={intp, longp}
-            THEN
-               hprintf0('LONGINT')
-            ELSIF t={charp}
-            THEN
-               hprintf0('CHAR')
-            ELSIF t={charp, unsignedp}
-            THEN
-               hprintf0('BYTE')
-            ELSIF t={floatp}
-            THEN
-               hprintf0('SHORTREAL')
-            ELSIF t={doublep}
-            THEN
-               hprintf0('REAL')
-            ELSIF t={longp, doublep}
-            THEN
-               hprintf0('LONGREAL')
-            ELSIF t={unsignedp, intp}
-            THEN
-               hprintf0('CARDINAL')
-            ELSIF t={unsignedp, intp, longp}
-            THEN
-               hprintf0('LONGCARD')
-            ELSE
-               ErrorArray('dont understand this type')
-            END
+            PrintBasicType(t)
          END
+      ELSIF n^.type=ndvararg
+      THEN
+         hprintf0('...')
       END
    END
 END PrintBaseType ;
@@ -1267,6 +1285,22 @@ END IsArray ;
 
 
 (*
+   IsVoid - returns TRUE if node, n, contains, void only.
+*)
+
+PROCEDURE IsVoid (n: Node) : BOOLEAN ;
+BEGIN
+   n := SkipDummy(n) ;
+   IF (n^.type=ndbase) AND (n^.base.name=MakeKey('void')) AND (n^.chain=NIL)
+   THEN
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsVoid ;
+
+
+(*
    PrintParameter - 
 *)
 
@@ -1284,6 +1318,12 @@ BEGIN
             PrintSimpleType(n^.id.type)
          END
       ELSE
+         n := SkipDummy(n) ;
+         IF (emitting=procedures) AND (n#NIL) AND (n^.type#ndvararg)
+         THEN
+            hprintf1('__gm2param%d: ', DummyNo) ;
+            INC(DummyNo)
+         END ;
          IF IsArray(n)
          THEN
             (* do nothing *)
@@ -1303,6 +1343,7 @@ PROCEDURE PrintParameters (n, t: Node) ;
 BEGIN
    IF emitting=procedures
    THEN
+      DummyNo := 1 ;
       PrintChain(n, t, PrintParameter, '; ')
    ELSE
       PrintChain(n, t, PrintParameter, ', ')
@@ -1311,10 +1352,32 @@ END PrintParameters ;
 
 
 (*
+   RemoveOnlyVoidParameter - 
+*)
+
+PROCEDURE RemoveOnlyVoidParameter (VAR n: Node) ;
+BEGIN
+   IF n^.type=ndchain
+   THEN
+      IF n^.nextChain=n
+      THEN
+         n^.chain := SkipDummy(n^.chain) ;
+         IF IsVoid(n^.chain)
+         THEN
+            n := NIL
+         END
+      END
+   END
+END RemoveOnlyVoidParameter ;
+
+
+(*
    PrintNode - 
 *)
 
 PROCEDURE PrintNode (n, t: Node) ;
+VAR
+   s, s2: baseSet ;
 BEGIN
    IF n=NIL
    THEN
@@ -1359,11 +1422,17 @@ BEGIN
          ndhexint     :  hprintf1('%s', Mark(InitStringCharStar(value))) |
          ndident      :  IF id.type=NIL
                          THEN
-                            hprintf1('%s:>', Mark(InitStringCharStar(id.name)))
+                            IF emitting=consts
+                            THEN
+                               hprintf1('%s', Mark(InitStringCharStar(id.name)))
+                            ELSE
+                               hprintf1('%s:', Mark(InitStringCharStar(id.name)))
+                            END
                          ELSE
-                            IF id.type^.type=ndtypedef
+                            IF IsTypeDef(id.type)
                             THEN
                                Emit(types) ;
+                               clex.AddTypeDef(KeyToCharStar(id.name)) ;
                                hprintf1('%s = ', Mark(InitStringCharStar(id.name)))
                             ELSE
                                hprintf1('%s:', Mark(InitStringCharStar(id.name)))
@@ -1386,7 +1455,24 @@ BEGIN
                          THEN
                             (* hprintf0('silent PTR TO') *)
                          ELSE
-                            hprintf0('POINTER TO')
+                            IF GetBaseSet(t, s)
+                            THEN
+                            END ;
+                            IF GetBaseSet(n^.chain, s2)
+                            THEN
+                            END ;
+                            s := s+s2 ;
+                            IF s={voidp}
+                            THEN
+                               hprintf0('ADDRESS') ;
+                               RETURN
+                            ELSE
+                               hprintf0('POINTER TO ') ;
+                               IF s#{}
+                               THEN
+                                  PrintBasicType(s)
+                               END
+                            END
                          END |
          ndenum       :  IF en.name#NIL
                          THEN
@@ -1397,20 +1483,12 @@ BEGIN
                          hprintf0(') ;') |
          ndstruct     :  IF str.name#NIL
                          THEN
-                            IF IsItemInList(DoneList, n)
+                            hprintf1('%s', Mark(InitStringCharStar(str.name))) ;
+                            IF emitting=vars
                             THEN
-                               hprintf1('%s = ', Mark(InitStringCharStar(str.name))) ;
-                               Indent := PushIndent(CurColumn+4) ;
-                               Indent := PushIndent(CurColumn+4) ;
-                               hprintf0('RECORD\n') ;
-                               PrintNode(str.list, t) ;
-                               hprintf0('END') ;
-                               PopIndent
-                            ELSE
-                               hprintf1('%s ;\n', Mark(InitStringCharStar(str.name))) ;
-                               PutItemIntoList(ToDoList, n) ;
-                               PutItemIntoList(DoneList, n)
-                            END
+                               hprintf0('; (* var *)')
+                            END ;
+                            PutItemIntoList(ToDoList, n)
                          ELSE
                             Indent := PushIndent(CurColumn+4) ;
                             Indent := PushIndent(CurColumn+4) ;
@@ -1434,6 +1512,7 @@ BEGIN
                          THEN
                             hprintf1('%s ', Mark(InitStringCharStar(func.name)))
                          END ;
+                         RemoveOnlyVoidParameter(func.list) ;
                          IF HasType(func.type) OR (func.list#NIL)
                          THEN
                             hprintf0('(') ; PrintParameters(func.list, NIL) ; hprintf0(')') ;
@@ -1540,6 +1619,24 @@ END writes ;
 
 
 (*
+   IsTypeDef - 
+*)
+
+PROCEDURE IsTypeDef (n: Node) : BOOLEAN ;
+BEGIN
+   WHILE n#NIL DO
+      IF n^.type=ndtypedef
+      THEN
+         RETURN( TRUE )
+      ELSE
+         n := n^.chain
+      END
+   END ;
+   RETURN( FALSE )
+END IsTypeDef ;
+
+
+(*
    PrintCNode - 
 *)
 
@@ -1550,12 +1647,23 @@ BEGIN
       WITH n^ DO
          CASE type OF
 
-         ndstruct:  Emit(types) ;
-                    IF n^.str.name#NIL
+         ndstruct:  IF n^.str.name#NIL
                     THEN
-                       PutItemIntoList(DoneList, n)
-                    END |
-         ndident :  IF id.type^.type=ndtypedef
+                       IF NOT IsItemInList(DoneList, n^.str.name)
+                       THEN
+                          PutItemIntoList(DoneList, n^.str.name) ;
+                          Emit(types) ;
+                          hprintf1('%s = ', Mark(InitStringCharStar(str.name))) ;
+                          Indent := PushIndent(CurColumn+4) ;
+                          Indent := PushIndent(CurColumn+4) ;
+                          hprintf0('RECORD\n') ;
+                          PrintNode(str.list, NIL) ;
+                          hprintf0('END') ;
+                          PopIndent ;
+                       END ;
+                    END ;
+                    RETURN |
+         ndident :  IF IsTypeDef(id.type)
                     THEN
                        Emit(types)
                     ELSE
@@ -1730,7 +1838,8 @@ BEGIN
             ErrorArray('internal error: unknown node type')
          END
       END
-   END
+   END ;
+   RETURN( poisoned )
 END EvaluateNode ;
 
 
@@ -1969,6 +2078,17 @@ END Ident ;
 
 
 (*
+   TypeDefName - is an ident which has already been defined as a type.
+*)
+
+PROCEDURE TypeDefName (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+BEGIN
+   LastIdent := currentstring ;
+   Expect(typetok, stopset0, stopset1, stopset2)
+END TypeDefName ;
+
+
+(*
    strconstant -
 *)
 
@@ -2018,7 +2138,7 @@ END OctalInteger ;
 
 PROCEDURE HexInteger (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastInt := currentstring ;
+   LastInt := makekey(string(Sprintf1(Mark(InitString('%d')), hstoi(Slice(InitStringCharStar(currentstring), 2, 0))))) ;
    Expect(hexintegertok, stopset0, stopset1, stopset2)
 END HexInteger ;
 
@@ -2141,7 +2261,8 @@ BEGIN
          args := ConCat(args, Mark(ConCatChar(Dup(s), ' '))) ;
          IF EqualArray(Slice(s, 0, 2), '-I')
          THEN
-            PrependSearchPath(Slice(s, 2, 0))
+            CurrentUserPath := ConCat(ConCatChar(CurrentUserPath, ':'), Slice(s, 2, 0)) ;
+            clex.SetSearchPath(string(ConCat(ConCatChar(CurrentUserPath, ':'), SystemPath)))
          ELSIF EqualArray(s, '-o')
          THEN
             INC(CurrentArg) ;
@@ -2199,6 +2320,9 @@ END ParseArgs ;
 
 PROCEDURE Init ;
 BEGIN
+   CurrentUserPath := InitString('') ;
+   SystemPath := InitString('/usr/include') ;
+   clex.SetSearchPath(string(SystemPath)) ;
    UseArrayInParameters := FALSE ;
    DisplayErrors := FALSE ;
    DisplayPoison := FALSE ;
@@ -2270,8 +2394,8 @@ token   'else'            elsetok
 token   'endif'           endiftok
 token   'ifdef'           ifdeftok
 token   'ifndef'          ifndeftok
-token   '!'               nottok
 token   'include'         includetok
+token   '!'               nottok
 token   ','               commatok
 token   '.'               periodtok
 token   '>'               gretok
@@ -2305,8 +2429,10 @@ token   'union'           uniontok
 token   ':'               colontok
 token   '='               becomestok
 token   'volatile'        volatiletok
+token   'defined type'    typetok
 
 special Ident             first { < identtok > } follow { }
+special TypeDefName       first { < typetok > } follow { }
 special DecimalInteger    first { < integertok > } follow { }
 special OctalInteger      first { < octintegertok > } follow { }
 special HexInteger        first { < hexintegertok > } follow { }
@@ -2321,7 +2447,7 @@ FileUnit := { CppLine | TranslationUnit } =:
 
 CppLine := 'start#'                                               % inCpp := TRUE %
            ( define | undef | if | ifdef | ifndef |
-             else | endif | include ) 'end#'                      % inCpp := FALSE %
+             else | endif | "include" ) 'end#'                    % inCpp := FALSE %
         =:
 
 define := 'define'                                                % PoisonNode := FALSE %
@@ -2341,9 +2467,6 @@ else := 'else'                                                    % BuildElse %
        =:
 endif := 'endif'                                                  % BuildEndIf %
        =:
-
-include := 'include' '<' IncludedFileName '>'
-         =:
 
 TranslationUnit := { ExternalDeclaration }
                  =:
@@ -2388,10 +2511,9 @@ TypeSpecifier :=
         | "unsigned"                                              % Push(MakeBaseNode(MakeKey('unsigned'))) %
         | StructOrUnionSpecifier
         | EnumSpecifier
+        | TypeDefName                                             % Push(MakeBaseNode(LastIdent)) %
                =:
 
--- removed         | TypeDefName from TypeSpecifier
--- TypeDefName := Ident =:
 
 StructOrUnionSpecifier := StructOrUnion Specifier
                         =:
@@ -2603,7 +2725,9 @@ EqualityExpression := RelationalExpression
                                                                   % Push(MakeBinaryNode(nd, l, Pop())) %
                       } =:
 
-EqualityOperator := '==' | '!=' =:
+EqualityOperator := '=='                                          % Push(ndequal) %
+                 | '!='                                           % Push(ndnotequal) %
+                  =:
 
 RelationalExpression := ShiftExpression
                         { RelationalOperator ShiftExpression      % VAR l: Node ; nd: nodeType ; %
@@ -2652,9 +2776,11 @@ MultOperator := '*'                                               % Push(ndmult)
               | '%'                                               % Push(ndmod) %
               =:
 
-CastExpression := '(' TypeName ')' UnaryExpression                % VAR n: Node ; %
+CastExpression := '('
+                     ( TypeName ')' UnaryExpression               % VAR n: Node ; %
                                                                   % n := Pop() ;
                                                                     Push(MakeBinaryNode(ndcast, Pop(), n)) %
+                       | ConstExpression ')' )
                 | UnaryExpression
                 =:
 
@@ -2668,7 +2794,9 @@ UnaryExpression := PostfixExpression |
                    | DefinedExpression
                    =:
 
-DefinedExpression := 'defined' '(' Ident ')'                      % Push(MakeCppNode(nddefined, LastIdent)) %
+DefinedExpression :=  'defined' ( '(' Ident ')'                   % Push(MakeCppNode(nddefined, LastIdent)) %
+                                | Ident                           % Push(MakeCppNode(nddefined, LastIdent)) %
+                                )
                    =:
 
 SizeofExpression := 'sizeof' UnaryExpOrTypeName                   % Push(MakeUnaryNode(ndsizeof, Pop())) %
@@ -2700,7 +2828,5 @@ IntegerConstant := DecimalInteger                                 % Push(MakeVal
                  =:
 
 EnumerationConstant := Ident =:
-
-IncludedFileName := { Ident | '/' | '.' } =:
 
 FNB
