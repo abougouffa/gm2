@@ -1,3 +1,10 @@
+2004-06-22	Gaius Mulley <gaius@glam.ac.uk>
+
+	* allowed LONGCARD compatibility with INTEGER
+	* allowed LONGINT compatibility with CARDINAL
+	* allowed LONGCARD compatibility with CARDINAL
+	* allowed LONGINT compatibility with INTEGER
+
 2004-06-21	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug in constant set declaration
