@@ -65,6 +65,7 @@ static void add_attribute		PROTO((enum attrs, char *,
 					       int, int, int));
 static void init_attributes		PROTO((void));
        tree gccgm2_BuildIntegerConstant PROTO((int value));
+       tree gccgm2_GetIntegerType       PROTO((void));
 
 
 /*
@@ -120,6 +121,9 @@ static void init_attributes		PROTO((void));
   (code) == BOOLEAN_TYPE || (code) == ENUMERAL_TYPE)
 
 tree proc_type_node;
+tree gm2_memcpy_node;
+tree gm2_alloca_node;
+
 
 /* Global Variables for the various types and nodes we create.  */ 
 
@@ -699,14 +703,6 @@ static int keep_next_level_flag;
 
 static int keep_next_if_subblocks;
   
-/* The chain of outer levels of label scopes.
-   This uses the same data structure used for binding levels,
-   but it works differently: each link in the chain records
-   saved values of named_labels and shadowed_labels for
-   a label binding level outside the current one.  */
-
-static struct binding_level *label_level_chain;
-
 /* Create a new `struct binding_level'.  */
 
 static
@@ -2626,6 +2622,71 @@ init_gm2_expand ()
 #endif
 }
 
+/* Return a definition for a builtin function named NAME and whose data type
+   is TYPE.  TYPE should be a function type with argument types.
+   FUNCTION_CODE tells later passes how to compile calls to this function.
+   See tree.h for its possible values.
+
+   If LIBRARY_NAME is nonzero, use that for DECL_ASSEMBLER_NAME,
+   the name to be called if we can't opencode the function.  */
+
+tree
+builtin_function (name, type, function_code, class, library_name)
+     const char *name;
+     tree type;
+     int function_code;
+     enum built_in_class class;
+     const char *library_name;
+{
+  tree decl = build_decl (FUNCTION_DECL, get_identifier (name), type);
+  DECL_EXTERNAL (decl) = 1;
+  TREE_PUBLIC (decl) = 1;
+
+  if (library_name)
+    DECL_ASSEMBLER_NAME (decl) = get_identifier (library_name);
+  make_decl_rtl (decl, NULL_PTR, 1);
+  pushdecl (decl);
+  DECL_BUILT_IN_CLASS (decl) = class;
+  DECL_FUNCTION_CODE (decl) = function_code;
+
+  /* Warn if a function in the namespace for users
+     is used without an occasion to consider it declared.  */
+  if (name[0] != '_' || name[1] != '_')
+    C_DECL_ANTICIPATED (decl) = 1;
+
+  return decl;
+}
+
+/* init_m2_builtins - build tree nodes and builtin functions for GNU Modula-2
+ */
+
+void
+init_m2_builtins ()
+{
+  tree memcpy_ftype;
+  tree alloca_ftype;
+  tree sizetype_endlink;
+  tree endlink;
+
+  endlink = void_list_node;
+  sizetype_endlink = tree_cons (NULL_TREE, sizetype, endlink);
+  /* Prototype for memcpy.  */
+  memcpy_ftype
+    = build_function_type (ptr_type_node,
+			   tree_cons (NULL_TREE, ptr_type_node,
+				      tree_cons (NULL_TREE, const_ptr_type_node,
+						 sizetype_endlink)));
+
+  /* Currently under experimentation.  */
+  gm2_memcpy_node = builtin_function ("__builtin_memcpy", memcpy_ftype, BUILT_IN_MEMCPY,
+				      BUILT_IN_NORMAL, "memcpy");
+
+  alloca_ftype     = build_function_type (ptr_type_node, sizetype_endlink);
+
+  gm2_alloca_node  = builtin_function ("__builtin_alloca", alloca_ftype,
+				       BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca");
+}
+
 /* Create the predefined scalar types such as `integer_type_node' needed 
    in the gcc back-end and initialize the global binding level.  */
 
@@ -2645,9 +2706,9 @@ init_decl_processing ()
 
   current_function_decl = NULL;
   current_binding_level = NULL_BINDING_LEVEL;
-  free_binding_level = NULL_BINDING_LEVEL;
+  free_binding_level    = NULL_BINDING_LEVEL;
   pushlevel (0);	/* make the binding_level structure for global names */
-  global_binding_level = current_binding_level;
+  global_binding_level  = current_binding_level;
 
   /* Define `int' and `char' first so that dbx will output them first.  */
 
@@ -2803,6 +2864,8 @@ init_decl_processing ()
   char_array_type_node
     = build_array_type (char_type_node, array_domain_type);
 
+  init_m2_builtins();
+
   init_gm2_expand ();
 }
 
@@ -2840,7 +2903,6 @@ char *
 init_parse (filename)
      char *filename;
 {
-  printf("main call to gm2\n");
   /* The structure `tree_identifier' is the GCC tree data structure that holds
      IDENTIFIER_NODE nodes. We need to call `set_identifier_size' to tell GCC
      that we have not added any language specific fields to IDENTIFIER_NODE
@@ -8290,6 +8352,43 @@ gccgm2_BuildArrayIndexType (low, high)
 
 
 /*
+ *  BuildVariableArrayAndDeclare - creates a variable length array.
+ *                                 high is the maximum legal elements (which is a runtime variable).
+ *                                 This creates and array index, array type and local variable.
+ */
+
+tree
+gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
+     tree elementtype, high;
+     char *name;
+     tree scope;
+{
+  tree indextype = build_index_type(variable_size(high));
+  tree arraytype = build_array_type (elementtype, indextype);
+  tree id        = get_identifier(name);
+  tree decl;
+
+  C_TYPE_VARIABLE_SIZE (arraytype) = TRUE;
+  decl = build_decl (VAR_DECL, id, arraytype);
+
+  DECL_SOURCE_LINE(decl)  = lineno;
+  DECL_EXTERNAL   (decl)  = FALSE;
+  TREE_PUBLIC     (decl)  = 1;
+  DECL_CONTEXT    (decl)  = scope;
+  TREE_USED       (arraytype)  = 1;
+  TREE_USED       (decl)  = 1;
+
+  C_DECL_VARIABLE_SIZE (decl) = TRUE;
+  pushdecl(decl);
+  expand_decl(decl);
+  layout_decl (decl, 0);
+#if 0
+  rest_of_decl_compilation (decl, 0, 1, 0);
+#endif
+  return( decl );
+}
+
+/*
  *  BuildStartFunctionType - initializes global variables ready for building
  *                           a function.
  */
@@ -8823,7 +8922,9 @@ gccgm2_BuildOffset (field, needconvert)
      tree field;
      int  needconvert ATTRIBUTE_UNUSED;
 {
-  return( gccgm2_BuildDiv(DECL_FIELD_BITPOS (field), gccgm2_BuildIntegerConstant(BITS_PER_UNIT), FALSE) );
+  return( gccgm2_BuildConvert(gccgm2_GetIntegerType(),
+			      gccgm2_BuildDiv(DECL_FIELD_BITPOS (field), gccgm2_BuildIntegerConstant(BITS_PER_UNIT), FALSE),
+			      FALSE) );
 }
 
 
@@ -9256,6 +9357,59 @@ gccgm2_GetProcType ()
 }
 
 /*
+ *  convertToPtr - if the type of tree, t, is not a ptr_type_node then convert it.
+ */
+
+tree
+convertToPtr (t)
+     tree t;
+{
+  if (TREE_CODE(TREE_TYPE(t)) == POINTER_TYPE) {
+    return( t );
+  } else {
+    return( gccgm2_BuildConvert(ptr_type_node, t, FALSE) );
+  }
+}
+
+tree
+gccgm2_BuiltInMemCopy (dest, src, n)
+     tree dest, src, n;
+{
+  tree params   = chainon(chainon(build_tree_list(NULL_TREE, convertToPtr(dest)),
+				  build_tree_list(NULL_TREE, convertToPtr(src))),
+			  build_tree_list(NULL_TREE, n));
+  tree functype = TREE_TYPE(gm2_memcpy_node);
+  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), gm2_memcpy_node);
+  tree call     = build(CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
+
+  TREE_USED(call)         = TRUE;
+  TREE_SIDE_EFFECTS(call) = TRUE ;
+
+#if 0
+  fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
+  debug_tree(params);
+  fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
+  debug_tree(call);
+#endif
+  return( call );
+}
+
+tree
+gccgm2_BuiltInAlloca (n)
+     tree n;
+{
+  tree params   = listify(n);
+  tree functype = TREE_TYPE(gm2_alloca_node);
+  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), gm2_alloca_node);
+  tree call     = build(CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
+
+  TREE_USED(call)         = TRUE;
+  TREE_SIDE_EFFECTS(call) = TRUE ;
+
+  return( call );
+}
+
+/*
  *  AreConstantsEqual - maps onto tree.c (tree_int_cst_equal). It returns
  *                      TRUE if the value of e1 is the same as e2.
  */
@@ -9459,10 +9613,7 @@ gccgm2_BuildCallInnerInit (fndecl)
 void
 gccgm2_BuildStartMainModule ()
 {
-#if 0
-  current_function_decl = NULL_TREE;
-  expand_start_bindings (2);
-#endif
+  /* nothing to do here */
 }
 
 
@@ -9474,12 +9625,27 @@ gccgm2_BuildStartMainModule ()
 void
 gccgm2_BuildEndMainModule ()
 {
-#if 0
-  current_function_decl = NULL_TREE;
-  expand_end_bindings(NULL_TREE, 1, 1);
-#endif
+  /* nothing to do here */
 }
 
+
+tree
+gccgm2_BuildExpand ()
+{
+  return( gccgm2_DeclareKnownVariable("gaius", gccgm2_GetIntegerType(), 0, 0, 0, 0, current_function_decl) );
+}
+
+
+/*
+ *  DebugTree - display the tree, t.
+ */
+
+void
+gccgm2_DebugTree (t)
+     tree t;
+{
+  debug_tree(t);
+}
 
 /* taken from c-typeck.c line 1534 */
 

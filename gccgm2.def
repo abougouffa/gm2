@@ -20,12 +20,13 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  GetUnsignedCharType, GetUnsignedIntegerType, GetUnsignedType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf,
+                 BuiltInMemCopy,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                  BuildLongRealConstant, BuildRealConstant,
-                 BuildSubrangeType, BuildArrayIndexType,
+                 BuildSubrangeType, BuildArrayIndexType, BuildArrayVariableArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildPointerType, BuildArrayType,
@@ -47,7 +48,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  DoJump,
                  BuildProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
-                 BuildAsm,
+                 BuildAsm, BuildExpand, DebugTree,
 
                  AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
                  ConvertConstantAndCheck ;
@@ -93,6 +94,14 @@ PROCEDURE GetLongRealType        () : Tree ;
 PROCEDURE GetLongIntType         () : Tree ;
 PROCEDURE GetWordType            () : Tree ;
 PROCEDURE GetProcType            () : Tree ;
+
+(*
+   Builtin functions.
+*)
+
+PROCEDURE BuiltInMemCopy         (dest, src, n: Tree) : Tree ;
+PROCEDURE BuiltInAlloca          (n: Tree)            : Tree ;
+
 
 (*
    GetMinFrom - given a, type, return a constant representing the minimum
@@ -265,6 +274,15 @@ PROCEDURE BuildSubrangeType (name: ADDRESS;
 *)
 
 PROCEDURE BuildArrayIndexType (low, high: Tree) : Tree ;
+
+
+(*
+   BuildVariableArrayAndDeclare - creates a variable length array.
+                                  high is the maximum legal elements (which is a runtime variable).
+                                  This creates and array index, array type and local variable.
+*)
+
+PROCEDURE BuildVariableArrayAndDeclare (elementtype, high: Tree; name: ADDRESS; scope: Tree) : Tree ;
 
 
 (*
@@ -619,6 +637,20 @@ PROCEDURE BuildFunctValue (value: Tree) ;
 *)
 
 PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tree) ;
+
+
+(*
+   BuildExpand - a test procedure.
+*)
+
+PROCEDURE BuildExpand () : Tree ;
+
+
+(*
+   DebugTree - display the tree, t.
+*)
+
+PROCEDURE DebugTree (t: Tree) ;
 
 
 END gccgm2.

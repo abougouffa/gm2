@@ -70,17 +70,26 @@ Modula-2 compiler and how it integrates with GCC.
 @section About
 
 This file contains design notes accompanying the Modula-2
-front end to gcc.
+front end to gcc. The GNU Modula-2 compiler is based on
+the language as defined in 'Programming in Modula-2'
+2nd Edition, Springer Verlag, 1982, 1983 by Niklaus Wirth.
+(PIM2).
+Although it does include minor extensions.
+
+The libraries are currently a mixture of ISO Modula-2 and
+'Programming in Modula-2'. It is our aim to extend the
+GNU Modula-2 to include PIM3 and PIM4 command line switches
+to include later language alterations.
 
 @node History, Integrating, About, Top
 @section History
 
 The Modula-2 compiler sources have come from the m2f compiler which
-runs under Linux. The original m2f compiler was written in Modula-2
+runs under GNU/Linux. The original m2f compiler was written in Modula-2
 and was bootstrapped via a "hacked" version of p2c 1.20. The m2f
 compiler was a recursive descent which generated quadruples as
 intermediate code. It also used C style calling convention wherever
-possible. It utilized a C structure for dynamic arrays.
+possible and utilized a C structure for dynamic arrays.
 
 @node Integrating, Practicalities, History, Top
 @section Integrating m2f with gcc
@@ -192,6 +201,11 @@ inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
 @item
 nested procedures
 
+@item
+the front end now utilizes GCC tree constants and types and is no
+longer tied to a 32 bit architecture, but reflects the 'configure'
+target machine description.
+
 @end itemize
 
 Nearly all the to do work is concerned with interfacing m2f with
@@ -223,9 +237,8 @@ My belief is that this should not take much time to complete and
 should produce much better code.
 
 @item
-migrate from p2c-1.20 to p2c-1.22 taking Modula-2 p2c-1.20
-modifications. Hopefully this will fix all C compiler
-warnings when gcc compiles with -Wall.
+Fix all C compiler warnings when gcc compiles the p2c generated C
+with -Wall.
 
 @item
 utilize GNU autoconf rather than the makeconfigure script.
@@ -242,10 +255,6 @@ of how this could be done.
 
 @item
 unbounded arrays
-
-@item
-making the front end non 32 bit dependant
-(@samp{ gm2/m2/comp/gm2s/M2Base.mod }should utilize gcc base types)
 
 @item
 integrate the small testsuite (gm2/m2/comp/autotest)
