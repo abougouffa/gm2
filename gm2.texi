@@ -450,8 +450,6 @@ PROCEDURE __BUILTIN__ strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE __BUILTIN__ strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 
 END Builtins.
-
-END Builtins.
 @end example
 
 Although this module exists and will result in the generation of
