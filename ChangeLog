@@ -1,8 +1,26 @@
-2004-04-5	Gaius Mulley <gaius@glam.ac.uk>
+2004-04-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* removed M2Stack from gm2-compiler
+	* made bnf/h2def.bnf 64 bit clean
+	
+2004-04-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed gm2.paranoid and all regression tests for the Opteron port
+	* checked in the opteron port which includes many changes
+	* int/word based types are now separated from pointer based types.
+	* modified p2c to use int for INTEGER and unsigned int for
+	  CARDINAL
+	* added gm2-compiler/M2StackWord and gm2-compiler/M2StackAddress
+	* added gm2-compiler/Indexing to handle arbitary sized arrays of
+	  pointers.
+	* fixed many INTEGER/CARDINAL <-> ADDRESS coersions
+	* fixed compiler to use new modules above (many changes)
+	* have moved away from M2Printf using WORD parameters to ARRAY OF
+	BYTE as this is not 64 bit clean
+	* fixed p2c to handle ARRAY OF BYTE correctly
+	* fixed gm2 to handle ARRAY OF BYTE correctly
 
-2004-04-1	Gaius Mulley <gaius@glam.ac.uk>
+2004-04-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed record parameter equivalence bug as reported by Waldek
 	  (see testsuite/gm2/pim/pass/record4.mod)

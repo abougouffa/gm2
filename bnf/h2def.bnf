@@ -60,6 +60,8 @@ FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList,
                   IsItemInList, RemoveItemFromList, KillList, DuplicateList, PutItemIntoList ;
 
+FROM Indexing IMPORT Index, InitIndex, KillIndex, GetIndice, IncludeIndiceInIndex, RemoveIndiceFromIndex, HighIndex ;
+
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark,
                            string, Dup, Equal, Slice, char, ConCatChar, ConCat, Index, RIndex, Mult, InitStringChar ;
 
@@ -69,7 +71,7 @@ FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Options IMPORT ScanCppArgs ;
 FROM libc IMPORT exit, memset ;
-FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE ;
+FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE, BYTE ;
 IMPORT clex ;
 
 TYPE
@@ -151,8 +153,9 @@ TYPE
 
    ExpStack = POINTER TO expstack ;
    expstack =            RECORD
-                            next :  ExpStack ;
-                            value:  WORD ;
+                            next : ExpStack ;
+                            value: ARRAY [0..TSIZE(ADDRESS)] OF BYTE ;
+                            high : CARDINAL ;
                          END ;
 
    IndentStack = POINTER TO indentstack ;   (* these intemediate types help p2c *)
@@ -219,15 +222,14 @@ VAR
    LastInt,
    LastStr,
    LastChar,
-   LastIdent           : ADDRESS ;
+   LastIdent           : Name ;
    op                  : File ;
    inCpp               : BOOLEAN ;
    CurrentDirectory    : String ;
-   DoneList,
-   ToDoList,
-   CompileTimeList,
    ConstList,
-   PoisonedList        : List ;
+   CompileTimeList     : List ;
+   DoneList,
+   ToDoList            : Index ;
    freeExp,
    expStack            : ExpStack ;
    freeIndent,
@@ -263,9 +265,11 @@ PROCEDURE PopIndent ; FORWARD ;
 PROCEDURE PrintNode (n, t: Node) ; FORWARD ;
 PROCEDURE Emit (e: EmitType) ; FORWARD ;
 PROCEDURE hprintf0 (a: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE hprintf1 (a: ARRAY OF CHAR; w: WORD) ; FORWARD ;
-PROCEDURE Pop () : WORD ; FORWARD ;
-PROCEDURE Push (w: WORD) ; FORWARD ;
+PROCEDURE hprintf1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
+PROCEDURE Pop (VAR w: ARRAY OF BYTE) ; FORWARD ;
+PROCEDURE Push (w: ARRAY OF BYTE) ; FORWARD ;
+PROCEDURE PushNode (n: Node) ; FORWARD ;
+PROCEDURE PushType (t: nodeType) ; FORWARD ;
 PROCEDURE IsPoisoned (n: Node) : BOOLEAN ; FORWARD ;
 PROCEDURE ErrorArray (a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE ErrorString (s: String) ; FORWARD ;
@@ -273,6 +277,7 @@ PROCEDURE DisplayStack ; FORWARD ;
 PROCEDURE Poison (n: Node) : Node ; FORWARD ;
 PROCEDURE EvaluateNode (n: Node) : nodeStatus ; FORWARD ;
 PROCEDURE CppPrintNode (n: Node) ; FORWARD ;
+PROCEDURE Cast (VAR to: ARRAY OF BYTE; from: ARRAY OF BYTE) ; FORWARD ;
    %%%FORWARD%%% *)
 
 (*
@@ -346,10 +351,12 @@ END InitNode ;
 PROCEDURE MakeBaseNode (n: Name) : Node ;
 VAR
    t: Node ;
+   s: String ;
 BEGIN
    IF Debugging
    THEN
-      hprintf1('making base node (%s)\n', Mark(InitStringCharStar(KeyToCharStar(n))))
+      s := Mark(InitStringCharStar(KeyToCharStar(n))) ;
+      hprintf1('making base node (%s)\n', s)
    END ;
    t := InitNode(ndbase) ;
    t^.base.name := n ;
@@ -366,7 +373,7 @@ VAR
    n: Node ;
 BEGIN
    n := InitNode(ndchain) ;
-   n^.chain := Pop() ;
+   Pop(n^.chain) ;
    n^.nextChain := n ;
    Push(n)
 END InitChain ;
@@ -387,8 +394,8 @@ BEGIN
       DisplayStack
    END ;
    InitChain ;
-   n1 := Pop() ;
-   n2 := Pop() ;
+   Pop(n1) ;
+   Pop(n2) ;
    IF n2^.type#ndchain
    THEN
       DisplayStack ;
@@ -521,8 +528,8 @@ PROCEDURE ChainTopTwo ;
 VAR
    t, n1, n2: Node;
 BEGIN
-   n1 := Pop() ;
-   n2 := Pop() ;
+   Pop(n1) ;
+   Pop(n2) ;
    t := n2 ;
    WHILE t^.chain#NIL DO
       t := t^.chain
@@ -548,8 +555,8 @@ BEGIN
       hprintf0('chaining top two stack elements\n')
    END ;
    DisplayStack ;
-   n1 := Pop() ;
-   n2 := Pop() ;
+   Pop(n1) ;
+   Pop(n2) ;
    IF n1^.type=ndident
    THEN
       IF n1^.id.type#NIL
@@ -557,7 +564,7 @@ BEGIN
          Push(n1^.id.type) ;
          Push(n2) ;
          ChainTopTwo ;
-         n1^.id.type := Pop() ;
+         Pop(n1^.id.type) ;
          Push(n1)
       ELSIF n2^.type=ndfunc
       THEN
@@ -577,7 +584,7 @@ BEGIN
          Push(n1^.func.type) ;
          Push(n2) ;
          ChainTopTwo ;
-         n2 := Pop()
+         Pop(n2)
       END ;
       Push(n1)
    ELSE
@@ -597,8 +604,8 @@ PROCEDURE FlipTwoChain ;
 VAR
    n1, n2: Node;
 BEGIN
-   n1 := Pop() ;
-   n2 := Pop() ;
+   Pop(n1) ;
+   Pop(n2) ;
    IF n1^.chain#NIL
    THEN
       ErrorArray('internal error: node should not be on a chain')
@@ -860,7 +867,7 @@ VAR
    c: cppIfElseEnd ;
    s: nodeStatus ;
 BEGIN
-   n := Pop() ;
+   Pop(n) ;
    s := EvaluateNode(n) ;
    c := InitCpp() ;
    IF s=true
@@ -889,6 +896,7 @@ END BuildIf ;
 PROCEDURE BuildIfDef (b: BOOLEAN) ;
 VAR
    c: cppIfElseEnd ;
+   s: String ;
 BEGIN
    c := InitCpp() ;
    IF IsItemInList(CompileTimeList, LastIdent)
@@ -896,9 +904,11 @@ BEGIN
       c := MarkCompile(c) ;
       IF b
       THEN
-         printf1('\n# ifdef %s', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
+         s := Mark(InitStringCharStar(KeyToCharStar(LastIdent))) ;
+         printf1('\n# ifdef %s', s)
       ELSE
-         printf1('\n# ifndef %s', Mark(InitStringCharStar(KeyToCharStar(LastIdent))))
+         s := Mark(InitStringCharStar(KeyToCharStar(LastIdent))) ;
+         printf1('\n# ifndef %s', s)
       END ;
       hprintf0('\n')
    ELSE
@@ -972,10 +982,13 @@ END BuildEndIf ;
 *)
 
 PROCEDURE BuildUndef ;
+VAR
+   s: String ;
 BEGIN
    IF (cppStack#NIL) AND CompileTime(cppStack)
    THEN
-      printf1('\n# undef %s', Mark(InitStringCharStar(LastIdent))) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(LastIdent))) ;
+      printf1('\n# undef %s', s) ;
       hprintf0('\n')
    ELSE
       UnDefineMacro(LastIdent)
@@ -988,16 +1001,20 @@ END BuildUndef ;
 *)
 
 PROCEDURE BuildConst (name: ADDRESS; n: Node) ;
+VAR
+   s: String ;
 BEGIN
    IF IsPoisoned(n)
    THEN
       IF DisplayPoison
       THEN
-         hprintf1('(* constant %s was poisoned *)\n', Mark(InitStringCharStar(name)))
+         s := Mark(InitStringCharStar(name)) ;
+         hprintf1('(* constant %s was poisoned *)\n', s)
       END
    ELSE
       Emit(consts) ;
-      hprintf1('%s = ', Mark(InitStringCharStar(name))) ;
+      s := Mark(InitStringCharStar(name)) ;
+      hprintf1('%s = ', s) ;
       PrintNode(n, NIL) ; hprintf0(' ;\n')
    END
 END BuildConst ;
@@ -1049,7 +1066,7 @@ BEGIN
 END hprintf0 ;
 
 
-PROCEDURE hprintf1 (a: ARRAY OF CHAR; w: WORD) ;
+PROCEDURE hprintf1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ;
 BEGIN
    IF KillString(writes(Sprintf1(InitString(a), w)))=NIL
    THEN
@@ -1163,6 +1180,8 @@ END GetBaseSet ;
 *)
 
 PROCEDURE PrintBasicType (n: Node; t: baseSet) ;
+VAR
+   s: String ;
 BEGIN
    IF (t={longp}) OR (t={intp})
    THEN
@@ -1195,8 +1214,8 @@ BEGIN
    THEN
       CASE n^.type OF
 
-      ndbase  : hprintf1('%s', Mark(InitStringCharStar(KeyToCharStar(n^.base.name)))) |
-      ndstruct: hprintf1('%s', Mark(InitStringCharStar(KeyToCharStar(n^.str.name))))
+      ndbase  : s := Mark(InitStringCharStar(KeyToCharStar(n^.base.name))) ; hprintf1('%s', s) |
+      ndstruct: s := Mark(InitStringCharStar(KeyToCharStar(n^.str.name))) ; hprintf1('%s', s)
 
       ELSE
          ErrorArray('dont understand this type')
@@ -1379,6 +1398,7 @@ END IsSinglePointer ;
 PROCEDURE IsArray (n: Node) : BOOLEAN ;
 VAR
    t: baseSet ;
+   s: String ;
 BEGIN
    IF IsSinglePointer(n)
    THEN
@@ -1409,7 +1429,8 @@ BEGIN
       THEN
          IF UseArrayInParameters
          THEN
-            hprintf1('ARRAY OF %s', Mark(InitStringCharStar(n^.base.name)))
+            s := Mark(InitStringCharStar(KeyToCharStar(n^.base.name))) ;
+            hprintf1('ARRAY OF %s', s)
          ELSE
             hprintf0('ADDRESS')
          END ;
@@ -1441,6 +1462,8 @@ END IsVoid ;
 *)
 
 PROCEDURE PrintParameter (n, t: Node) ;
+VAR
+   s: String ;
 BEGIN
    IF n#NIL
    THEN
@@ -1448,7 +1471,8 @@ BEGIN
       THEN
          IF emitting=procedures
          THEN
-            hprintf1('%s: ', Mark(InitStringCharStar(n^.id.name))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(n^.id.name))) ;
+            hprintf1('%s: ', s)
          END ;
          IF IsArray(n^.id.type)
          THEN
@@ -1460,7 +1484,8 @@ BEGIN
          n := SkipDummy(n) ;
          IF (emitting=procedures) AND (n#NIL) AND (n^.type#ndvararg)
          THEN
-            hprintf1('%s', InitStringCharStar(MakeUniqueParamName()))
+            s := InitStringCharStar(KeyToCharStar(MakeUniqueParamName())) ;
+            hprintf1('%s', s)
          END ;
          IF IsArray(n)
          THEN
@@ -1551,11 +1576,7 @@ BEGIN
             j^.id.name := i^.id.type^.base.name ;    (* name of the type *)
             j^.id.type := t ;
             t^.chain := m^.chain^.id.type ;
-(*
-            m^.chain^.id.type := t ;
-            PutItemIntoList(ToDoList, m^.chain) ;
-*)
-            PutItemIntoList(ToDoList, j) ;
+            IncludeIndiceIntoIndex(ToDoList, j) ;
             m^.chain := i
          END ;
          m := m^.nextChain
@@ -1590,6 +1611,8 @@ END RemoveOnlyVoidParameter ;
 
 PROCEDURE PrintNode (n, t: Node) ;
 VAR
+   v    : Name ;
+   Str  : String ;
    s, s2: baseSet ;
 BEGIN
    IF n=NIL
@@ -1605,7 +1628,7 @@ BEGIN
 
          ndchain     : PrintChain(n, t, PrintNode, ';\n') ; RETURN |
          nderror     : hprintf0('error node') |
-         nddefined   : hprintf1('defined(%s)', Mark(InitStringCharStar(cpp.macro))) |
+         nddefined   : Str := Mark(InitStringCharStar(KeyToCharStar(cpp.macro))) ; hprintf1('defined(%s)', Str) |
          ndcast      : hprintf0('VAL(') ; PrintNode(bin.left, t) ; hprintf0(', ') ; PrintNode(bin.right, t) ; hprintf0(')') |
          ndgre       : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') > (') ; PrintNode(bin.right, t) ; hprintf0(')') |
          ndless      : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') < (') ; PrintNode(bin.right, t) ; hprintf0(')') |
@@ -1632,23 +1655,28 @@ BEGIN
          ndconstchar,
          nddecint,
          ndoctint,
-         ndhexint     :  hprintf1('%s', Mark(InitStringCharStar(value))) |
+         ndhexint     :  Cast(v, value) ; Str := Mark(InitStringCharStar(KeyToCharStar(v))) ;
+                         hprintf1('%s', Str) |
          ndident      :  IF id.type=NIL
                          THEN
                             IF (emitting=consts) OR IsItemInList(ConstList, id.name)
                             THEN
-                               hprintf1('%s', Mark(InitStringCharStar(id.name)))
+                               Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
+                               hprintf1('%s', Str)
                             ELSE
-                               hprintf1('%s:', Mark(InitStringCharStar(id.name)))
+                               Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
+                               hprintf1('%s:', Str)
                             END
                          ELSE
                             IF IsTypeDef(id.type)
                             THEN
                                Emit(types) ;
                                clex.AddTypeDef(KeyToCharStar(id.name)) ;
-                               hprintf1('%s = ', Mark(InitStringCharStar(id.name)))
+                               Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
+                               hprintf1('%s = ', Str)
                             ELSE
-                               hprintf1('%s:', Mark(InitStringCharStar(id.name)))
+                               Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
+                               hprintf1('%s:', Str)
                             END ;
                             PrintNode(id.type, t) ;
                             IF chain=NIL
@@ -1692,20 +1720,21 @@ BEGIN
                          THEN
                             hprintf0(':')
                          END ; *)
-                         IF en.name=NIL
+                         IF en.name=NulName
                          THEN
                             hprintf0('(') ;
                             PrintNode(en.list, t) ;
                             hprintf0(')')
                          ELSE
-                            hprintf1('%s', Mark(InitStringCharStar(en.name))) ;
+                            Str := Mark(InitStringCharStar(KeyToCharStar(en.name))) ;
+                            hprintf1('%s', Str) ;
                             IF en.list#NIL
                             THEN
                                hprintf0(' ;\n')
                             END ;
-                            PutItemIntoList(ToDoList, n)
+                            IncludeIndiceIntoIndex(ToDoList, n)
                          END |
-         ndstruct     :  IF str.name=NIL
+         ndstruct     :  IF str.name=NulName
                          THEN
                             Indent := PushIndent(CurColumn+4) ;
                             Indent := PushIndent(CurColumn+4) ;
@@ -1719,14 +1748,15 @@ BEGIN
                             hprintf0('END') ;
                             PopIndent
                          ELSE
-                            hprintf1('%s', Mark(InitStringCharStar(str.name))) ;
+                            Str := Mark(InitStringCharStar(KeyToCharStar(str.name))) ;
+                            hprintf1('%s', Str) ;
                             IF emitting=vars
                             THEN
                                hprintf0('; (* var *)')
                             END ;
                             IF str.list#NIL
                             THEN
-                               PutItemIntoList(ToDoList, n)
+                               IncludeIndiceIntoIndex(ToDoList, n)
                             END
                          END |
          ndstructfield:  PrintNode(esf.decl, esf.type) ; (* hprintf0('<:') ; PrintNode(esf.type, t) ; *)
@@ -1735,7 +1765,7 @@ BEGIN
                             PopIndent
                          END ;
                          hprintf0(' ;\n') |
-         ndenumfield  :  hprintf1('%s', Mark(InitStringCharStar(ef.name))) ;
+         ndenumfield  :  Str := Mark(InitStringCharStar(KeyToCharStar(ef.name))) ; hprintf1('%s', Str);
                          IF chain#NIL
                          THEN
                             hprintf0(',')
@@ -1744,9 +1774,10 @@ BEGIN
          ndunion      :  uni: unionNode |
 *)
          ndfunc       :  hprintf0('PROCEDURE ') ;
-                         IF func.name#NIL
+                         IF func.name#NulName
                          THEN
-                            hprintf1('%s ', Mark(InitStringCharStar(func.name)))
+                            Str := Mark(InitStringCharStar(KeyToCharStar(func.name))) ;
+                            hprintf1('%s ', Str)
                          END ;
                          CheckProcedureParameters(func.list) ;
                          RemoveOnlyVoidParameter(func.list) ;
@@ -1760,7 +1791,7 @@ BEGIN
                             END
                          END ;
                          RETURN |
-         ndbase       :  PrintBaseType(n) ; RETURN (* hprintf1('%s', Mark(InitStringCharStar(base.name))) *) |
+         ndbase       :  PrintBaseType(n) ; RETURN (* hprintf1('%s', Mark(InitStringCharStar(KeyToCharStar(base.name)))) *) |
          ndvararg     :  hprintf0(', ...')
 
 
@@ -1884,8 +1915,9 @@ END IsTypeDef ;
 
 PROCEDURE PrintCNode (n: Node) ;
 VAR
-   c: Node ;
-   i: CARDINAL ;
+   Str: String ;
+   c  : Node ;
+   i  : CARDINAL ;
 BEGIN
    DisplayStack ;
    IF n#NIL
@@ -1893,13 +1925,14 @@ BEGIN
       WITH n^ DO
          CASE type OF
 
-         ndstruct:  IF n^.str.name#NIL
+         ndstruct:  IF n^.str.name#NulName
                     THEN
                        IF NOT IsItemInList(DoneList, n^.str.name)
                        THEN
-                          PutItemIntoList(DoneList, n^.str.name) ;
+                          IncludeItemIntoList(DoneList, n^.str.name) ;
                           Emit(types) ;
-                          hprintf1('%s = ', Mark(InitStringCharStar(str.name))) ;
+                          Str := Mark(InitStringCharStar(KeyToCharStar(str.name))) ;
+                          hprintf1('%s = ', Str) ;
                           Indent := PushIndent(CurColumn+4) ;
                           Indent := PushIndent(CurColumn+4) ;
                           hprintf0('RECORD\n') ;
@@ -1914,7 +1947,7 @@ BEGIN
                        END ;
                     END ;
                     RETURN |
-         ndenum:    IF n^.en.name=NIL
+         ndenum:    IF n^.en.name=NulName
                     THEN
                        Emit(consts) ;
                        i := 0 ;
@@ -1926,7 +1959,8 @@ BEGIN
                              THEN
                                 hprintf0(' ;\n')
                              END ;
-                             hprintf1('%s = ', Mark(InitStringCharStar(KeyToCharStar(c^.ef.name)))) ;
+                             Str := Mark(InitStringCharStar(KeyToCharStar(c^.ef.name))) ;
+                             hprintf1('%s = ', Str) ;
                              hprintf1('%d', i) ;
                              INC(i)
                           END ;
@@ -1935,9 +1969,10 @@ BEGIN
                     ELSE
                        IF NOT IsItemInList(DoneList, n^.en.name)
                        THEN
-                          PutItemIntoList(DoneList, n^.en.name) ;
+                          IncludeItemIntoList(DoneList, n^.en.name) ;
                           Emit(types) ;
-                          hprintf1('%s = ', Mark(InitStringCharStar(en.name))) ;
+                          Str := Mark(InitStringCharStar(KeyToCharStar(en.name))) ;
+                          hprintf1('%s = ', Str) ;
                           hprintf0(' (') ;
                           PrintNode(en.list, NIL) ;
                           hprintf0(')')
@@ -1956,9 +1991,9 @@ BEGIN
          END
       END ;
       PrintNode(n, NIL) ;
-      WHILE NoOfItemsInList(ToDoList)#0 DO
-         n := GetItemFromList(ToDoList, 1) ;
-         RemoveItemFromList(ToDoList, n) ;
+      WHILE HighIndice(ToDoList)#0 DO
+         n := GetIndice(ToDoList, 1) ;
+         RemoveIndiceFromIndex(ToDoList, n) ;
          hprintf0(';\n') ;
          Emit(types) ;
          PrintCNode(n)
@@ -1972,6 +2007,9 @@ END PrintCNode ;
 *)
 
 PROCEDURE CppPrintNode (n: Node) ;
+VAR
+   Str: String ;
+   v  : Name ;
 BEGIN
    IF n#NIL
    THEN
@@ -1979,7 +2017,7 @@ BEGIN
          CASE type OF
 
          nderror     : hprintf0('error node') |
-         nddefined   : hprintf1('defined(%s)', Mark(InitStringCharStar(cpp.macro))) |
+         nddefined   : Str := Mark(InitStringCharStar(KeyToCharStar(cpp.macro))) ; hprintf1('defined(%s)', Str) |
          ndcast      : hprintf0('(') ; CppPrintNode(bin.left) ; hprintf0(') (') ; CppPrintNode(bin.right) ; hprintf0(')') |
          ndgre       : hprintf0('(') ; CppPrintNode(bin.left) ; hprintf0(') > (') ; CppPrintNode(bin.right) ; hprintf0(')') |
          ndless      : hprintf0('(') ; CppPrintNode(bin.left) ; hprintf0(') < (') ; CppPrintNode(bin.right) ; hprintf0(')') |
@@ -2006,8 +2044,10 @@ BEGIN
          ndconstchar,
          nddecint,
          ndoctint,
-         ndhexint    : hprintf1('%s', Mark(InitStringCharStar(value))) |
-         ndident     : hprintf1('%s', Mark(InitStringCharStar(id.name)))
+         ndhexint    : Cast(v, value) ; Str := Mark(InitStringCharStar(KeyToCharStar(v))) ;
+                       hprintf1('%s', Str) |
+         ndident     : Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
+                       hprintf1('%s', Str)
 
          ELSE
             ErrorArray('internal error: unknown node type')
@@ -2126,16 +2166,29 @@ END EvaluateNode ;
 
 
 (*
+   Cast - 
+*)
+
+PROCEDURE Cast (VAR to: ARRAY OF BYTE; from: ARRAY OF BYTE) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 0 ;
+   WHILE (i<HIGH(to)) AND (i<HIGH(from)) DO
+      to[i] := from[i] ;
+      INC(i)
+   END
+END Cast ;
+
+
+(*
    Push - 
 *)
 
-PROCEDURE Push (w: WORD) ;
+PROCEDURE Push (w: ARRAY OF BYTE) ;
 VAR
    e: ExpStack ;
-   n: Node ;
 BEGIN
-   n := w ;
-
    IF freeExp=NIL
    THEN
       NEW(e)
@@ -2145,7 +2198,8 @@ BEGIN
    END ;
    WITH e^ DO
       next := expStack ;
-      value := w ;
+      Cast(value, w) ;
+      high := HIGH(w)
    END ;
    expStack := e
 END Push ;
@@ -2155,24 +2209,41 @@ END Push ;
    Pop - 
 *)
 
-PROCEDURE Pop () : WORD ;
+PROCEDURE Pop (VAR w: ARRAY OF BYTE) ;
 VAR
    e: ExpStack ;
-   w: WORD ;
 BEGIN
    IF expStack=NIL
    THEN
       ErrorArray('internal error: stack underflow') ;
-      w := 0
    ELSE
       e := expStack ;
-      w := expStack^.value ;
+      IF HIGH(w)#e^.high
+      THEN
+         ErrorArray('internal error: mismatch between push and pop')
+      END ;
+      Cast(w, expStack^.value) ;
       expStack := expStack^.next ;
       e^.next := freeExp ;
       freeExp := e
-   END ;
-   RETURN( w )
+   END
 END Pop ;
+
+
+(*
+   PushNode - pushes node object onto the stack.
+*)
+
+PROCEDURE PushNode (n: Node) ;
+BEGIN
+   Push(n)
+END PushNode ;
+
+
+PROCEDURE PushType (t: nodeType) ;
+BEGIN
+   Push(t)
+END PushType ;
 
 
 (*
@@ -2180,6 +2251,8 @@ END Pop ;
 *)
 
 PROCEDURE DisplayNode (n: Node) ;
+VAR
+   Str: String ;
 BEGIN
    IF n#NIL
    THEN
@@ -2213,7 +2286,8 @@ BEGIN
       ndnegate    :  hprintf0('ndnegate\n') |
       ndsizeof    :  hprintf0('ndsizeof\n') |
       ndlnot      :  hprintf0('ndlnot\n') |
-      ndident     :  hprintf1('ndident %s\n', Mark(InitStringCharStar(n^.id.name))) |
+      ndident     :  Str := Mark(InitStringCharStar(KeyToCharStar(n^.id.name))) ;
+                     hprintf1('ndident %s\n', Str) |
       ndconststr  :  hprintf0('ndconststr\n') |
       ndconstchar :  hprintf0('ndconstchar\n') |
       nddecint    :  hprintf0('nddecint\n') |
@@ -2223,7 +2297,8 @@ BEGIN
       ndarraytype:  hprintf0('ndarraytype\n') |
       ndenum:  hprintf0('ndenum\n') |
       ndptr:  hprintf0('ndptr\n') |
-      ndbase:  hprintf1('ndbase %s\n', Mark(InitStringCharStar(n^.base.name))) |
+      ndbase: Str := Mark(InitStringCharStar(KeyToCharStar(n^.base.name))) ;
+              hprintf1('ndbase %s\n', Str) |
       ndenumfield:  hprintf0('ndenumfield\n') |
       ndstructfield:  hprintf0('ndstructfield\n') |
       ndfunc:  hprintf0('ndfunc\n') |
@@ -2245,13 +2320,15 @@ END DisplayNode ;
 PROCEDURE DisplayStack ;
 VAR
    e: ExpStack ;
+   n: Node ;
 BEGIN
    IF Debugging
    THEN
       hprintf0('\nnode stack\n') ;
       e := expStack ;
       WHILE e#NIL DO
-         DisplayNode(e^.value) ;
+         Cast(n, e^.value) ;
+         DisplayNode(n) ;
          e := e^.next
       END
    END
@@ -2263,10 +2340,13 @@ END DisplayStack ;
 *)
 
 PROCEDURE SafePop () : Node ;
+VAR
+   n: Node ;
 BEGIN
    IF expStack#NIL
    THEN
-      RETURN( Pop() )
+      Pop(n) ;
+      RETURN( n )
    ELSE
       RETURN( NIL )
    END
@@ -2285,7 +2365,7 @@ BEGIN
    ndenum      :  n^.en.name := m |
    ndenumfield :  n^.ef.name := m |
    ndstruct    :  n^.str.name := m |
-   ndunion     :  n^.uni.name := n |
+   ndunion     :  n^.uni.name := m |
    ndfunc      :  n^.func.name := m |
    ndbase      :  n^.base.name := m
 
@@ -2455,7 +2535,7 @@ END CompilationUnit ;
 
 PROCEDURE Ident (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastIdent := currentstring ;
+   LastIdent := makekey(currentstring) ;
    Expect(identtok, stopset0, stopset1, stopset2)
 END Ident ;
 
@@ -2466,7 +2546,7 @@ END Ident ;
 
 PROCEDURE TypeDefName (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastIdent := currentstring ;
+   LastIdent := makekey(currentstring) ;
    Expect(typetok, stopset0, stopset1, stopset2)
 END TypeDefName ;
 
@@ -2477,7 +2557,7 @@ END TypeDefName ;
 
 PROCEDURE strconstant (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastStr := currentstring ;
+   LastStr := makekey(currentstring) ;
    Expect(conststringtok, stopset0, stopset1, stopset2)
 END strconstant ;
 
@@ -2488,7 +2568,7 @@ END strconstant ;
 
 PROCEDURE charconstant (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastChar := currentstring ;
+   LastChar := makekey(currentstring) ;
    Expect(constchartok, stopset0, stopset1, stopset2)
 END charconstant ;
 
@@ -2499,7 +2579,7 @@ END charconstant ;
 
 PROCEDURE DecimalInteger (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastInt := currentstring ;
+   LastInt := makekey(currentstring) ;
    Expect(integertok, stopset0, stopset1, stopset2)
 END DecimalInteger ;
 
@@ -2510,7 +2590,7 @@ END DecimalInteger ;
 
 PROCEDURE OctalInteger (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastInt := currentstring ;
+   LastInt := makekey(currentstring) ;
    Expect(octintegertok, stopset0, stopset1, stopset2)
 END OctalInteger ;
 
@@ -2520,8 +2600,11 @@ END OctalInteger ;
 *)
 
 PROCEDURE HexInteger (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+VAR
+   i: INTEGER ;
 BEGIN
-   LastInt := makekey(string(Sprintf1(Mark(InitString('%d')), hstoi(Slice(InitStringCharStar(currentstring), 2, 0))))) ;
+   i := hstoi(Slice(InitStringCharStar(currentstring), 2, 0)) ;
+   LastInt := makekey(string(Sprintf1(Mark(InitString('%d')), i))) ;
    Expect(hexintegertok, stopset0, stopset1, stopset2)
 END HexInteger ;
 
@@ -2532,7 +2615,7 @@ END HexInteger ;
 
 PROCEDURE Real (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   LastReal := currentstring ;
+   LastReal := makekey(currentstring) ;
    Expect(realtok, stopset0, stopset1, stopset2)
 END Real ;
 
@@ -2623,7 +2706,7 @@ PROCEDURE ParseArgs ;
 VAR
    CurrentArg: CARDINAL ;
    args,
-   s,
+   s, s2,
    OutputFile: String ;
 BEGIN
    op := StdOut ;
@@ -2678,10 +2761,12 @@ BEGIN
             THEN
                CurrentDirectory := GetDirectory(s) ;
                fprintf1(op, '(* automatically generated for GNU Modula-2 by:\n   h2def %s\n*)\n', args) ;
-               fprintf1(op, 'DEFINITION MODULE FOR "C" %s ;\n\n', Mark(BaseName(s))) ;
+               s2 := Mark(BaseName(s)) ;
+               fprintf1(op, 'DEFINITION MODULE FOR "C" %s ;\n\n', s2) ;
                fprintf0(op, 'FROM SYSTEM IMPORT ADDRESS, BYTE ;\n\n') ;
                CompilationUnit ;
-               fprintf1(op, '\nEND %s.\n', Mark(BaseName(s)))
+               s2 := Mark(BaseName(s)) ;
+               fprintf1(op, '\nEND %s.\n', s2)
             ELSE
                fprintf1(StdErr, 'h2def: cannot find %s\n', s)
             END
@@ -2718,11 +2803,10 @@ BEGIN
    freeIndent := NIL ;
    indentStack := NIL ;
    Debugging := FALSE ;
-   InitList(PoisonedList) ;
    InitList(CompileTimeList) ;
-   InitList(ToDoList) ;
    InitList(DoneList) ;
-   InitList(ConstList) ;
+   ToDoList := InitIndex(1) ;
+   ConstList := InitIndex(1) ;
    Indent := 0 ;
    CurColumn := 0 ;
    ParamName := InitString('p') ;
@@ -2837,7 +2921,7 @@ define := 'define'                                                % VAR t: CARDI
                                                                   % PoisonNode := FALSE %
                                                                   % EnableMacroSubstitutions(FALSE) %
               Ident                                               % t := GetTokenNo() %
-                                                                  % IncludeItemIntoList(ConstList, makekey(LastIdent)) %
+                                                                  % IncludeItemIntoList(ConstList, LastIdent) %
                                                                   % IF currenttoken=endhashtok
                                                                     THEN
                                                                        t := 0
@@ -2869,15 +2953,15 @@ TranslationUnit := { ExternalDeclaration }
 
 ExternalDeclaration := DeclarationSpecifiers                      % VAR n: Node ; %
                                                                   % DummyNo := 1 ;
-                                                                    n := Pop() ;
+                                                                    Pop(n) ;
                                                                     Push(n) %
                                                                     
                            ( Declarator                           % ChainTopTwoIdent ;
-                                                                    PrintCNode(Pop()) ; hprintf0(' ;\n') %
+                                                                    Pop(n) ; PrintCNode(n) ; hprintf0(' ;\n') %
                                         { ','                     % Push(n) %
                                               Declarator          % ChainTopTwoIdent ;
-                                                                    PrintCNode(Pop()) ; hprintf0(' ;\n') %
-                                                         } |      % PrintCNode(Pop()) ; hprintf0(' ;\n') %
+                                                                    Pop(n) ; PrintCNode(n) ; hprintf0(' ;\n') %
+                                                         } |      % Pop(n) ; PrintCNode(n) ; hprintf0(' ;\n') %
                            )
                        ';' =:
 
@@ -2890,45 +2974,45 @@ DeclarationSpecifiers :=
 DeclarationSpecifier := StorageClassSpecifier | TypeSpecifier | TypeQualifier =:
 
 StorageClassSpecifier :=
-	  "typedef"                                               % Push(InitNode(ndtypedef)) %
-	| "extern"                                                % Push(InitNode(nddummy)) %
-	| "static"                                                % Push(MakeBaseNode(MakeKey('static'))) %
-	| "auto"                                                  % Push(InitNode(nddummy)) %
-	| "register"                                              % Push(InitNode(nddummy)) %
+	  "typedef"                                               % PushNode(InitNode(ndtypedef)) %
+	| "extern"                                                % PushNode(InitNode(nddummy)) %
+	| "static"                                                % PushNode(MakeBaseNode(MakeKey('static'))) %
+	| "auto"                                                  % PushNode(InitNode(nddummy)) %
+	| "register"                                              % PushNode(InitNode(nddummy)) %
                        =:
 
 TypeSpecifier :=
-          "void"                                                  % Push(MakeBaseNode(MakeKey('void'))) %
-        | "char"                                                  % Push(MakeBaseNode(MakeKey('char'))) %
-        | "short"                                                 % Push(MakeBaseNode(MakeKey('short'))) %
-        | "int"                                                   % Push(MakeBaseNode(MakeKey('int'))) %
-        | "long"                                                  % Push(MakeBaseNode(MakeKey('long'))) %
-        | "float"                                                 % Push(MakeBaseNode(MakeKey('float'))) %
-        | "double"                                                % Push(MakeBaseNode(MakeKey('double'))) %
-        | "signed"                                                % Push(MakeBaseNode(MakeKey('signed'))) %
-        | "unsigned"                                              % Push(MakeBaseNode(MakeKey('unsigned'))) %
+          "void"                                                  % PushNode(MakeBaseNode(MakeKey('void'))) %
+        | "char"                                                  % PushNode(MakeBaseNode(MakeKey('char'))) %
+        | "short"                                                 % PushNode(MakeBaseNode(MakeKey('short'))) %
+        | "int"                                                   % PushNode(MakeBaseNode(MakeKey('int'))) %
+        | "long"                                                  % PushNode(MakeBaseNode(MakeKey('long'))) %
+        | "float"                                                 % PushNode(MakeBaseNode(MakeKey('float'))) %
+        | "double"                                                % PushNode(MakeBaseNode(MakeKey('double'))) %
+        | "signed"                                                % PushNode(MakeBaseNode(MakeKey('signed'))) %
+        | "unsigned"                                              % PushNode(MakeBaseNode(MakeKey('unsigned'))) %
         | StructOrUnionSpecifier
         | EnumSpecifier
-        | TypeDefName                                             % Push(MakeBaseNode(LastIdent)) %
+        | TypeDefName                                             % PushNode(MakeBaseNode(LastIdent)) %
                =:
 
 
 StructOrUnionSpecifier := StructOrUnion Specifier
                         =:
 
-Specifier := Ident                                                % VAR n1, n2: Node ; %
-                                                                  % n1 := Pop() ;
+Specifier := Ident                                                % VAR n1, n2, n3: Node ; %
+                                                                  % Pop(n1) ;
                                                                     AddName(n1, LastIdent) ;
                                                                     Push(n1) %
-                   [ '{' StructDeclarationList '}'                % AddNodeToList(n1, Pop()) %
+                   [ '{' StructDeclarationList '}'                % Pop(n3) ; AddNodeToList(n1, n3) %
                    ]
-             | '{' StructDeclarationList '}'                      % n2 := Pop() ; n1 := Pop() ;
+             | '{' StructDeclarationList '}'                      % Pop(n2) ; Pop(n1) ;
                                                                     AddNodeToList(n1, n2) ;
                                                                     Push(n1) %
            =:
 
-StructOrUnion := "struct"                                         % Push(InitNode(ndstruct)) %
-                 | "union"                                        % Push(InitNode(ndunion)) %
+StructOrUnion := "struct"                                         % PushNode(InitNode(ndstruct)) %
+                 | "union"                                        % PushNode(InitNode(ndunion)) %
                =:
 
 StructDeclarationList := StructDeclaration { StructDeclaration    % ChainTopTwo %
@@ -2937,8 +3021,8 @@ StructDeclarationList := StructDeclaration { StructDeclaration    % ChainTopTwo 
 StructDeclaration := SpecifierQualifierList
                      StructDeclaratorList                         % VAR n: Node ; %
                                                                   % n := InitNode(ndstructfield) ;
-                                                                    n^.esf.decl := Pop() ;
-                                                                    n^.esf.type := Pop() ;
+                                                                    Pop(n^.esf.decl) ;
+                                                                    Pop(n^.esf.type) ;
                                                                     Push(n) %
                      ';'
                    =:
@@ -2956,22 +3040,24 @@ StructDeclaratorList := StructDeclarator                          % InitChain %
                                          } =:
 
 StructDeclarator :=
-                    ':' ConstantExpression                        % VAR n: Node ; %
-                                                                  % n := Pop() ;
-                                                                    Push(Poison(Pop())) %
-                    | Declarator [ ':' ConstantExpression         % n := Pop() ;
-                                                                    Push(Poison(Pop())) %
+                    ':' ConstantExpression                        % VAR n, n2: Node ; %
+                                                                  % Pop(n) ;
+                                                                    Pop(n2) ;
+                                                                    PushNode(Poison(n2)) %
+                    | Declarator [ ':' ConstantExpression         % Pop(n) ;
+                                                                    Pop(n2) ;
+                                                                    PushNode(Poison(n2)) %
                                  ]
                   =:
 
-EnumSpecifier := 'enum'                                           % Push(InitNode(ndenum)) %
-                        ( Ident                                   % VAR n: Node ; %
-                                                                  % n := Pop() ; n^.en.name := LastIdent ;
+EnumSpecifier := 'enum'                                           % PushNode(InitNode(ndenum)) %
+                        ( Ident                                   % VAR n, n2: Node ; %
+                                                                  % Pop(n) ; n^.en.name := LastIdent ;
                                                                     Push(n) %
-                                [ '{' EnumeratorList              % AddNodeToList(n, Pop()) %
+                                [ '{' EnumeratorList              % Pop(n2) ; AddNodeToList(n, n2) %
                                   '}' ] |
-                        '{'                                       % n := Pop() ; Push(n) %
-                            EnumeratorList                        % AddNodeToList(n, Pop()) %
+                        '{'                                       % Pop(n) ; Push(n) %
+                            EnumeratorList                        % Pop(n2) ; AddNodeToList(n, n2) %
                         '}' ) =:
 
 EnumeratorList := Enumerator
@@ -2979,16 +3065,16 @@ EnumeratorList := Enumerator
                              } =:
 
 Enumerator := Ident                                               % VAR n: Node ; %
-                                                                  % Push(InitNode(ndenumfield)) %
-                                                                  % n := Pop() ;
+                                                                  % PushNode(InitNode(ndenumfield)) %
+                                                                  % Pop(n) ;
                                                                     n^.ef.name := LastIdent ;
                                                                     Push(n) %
                     [ '='                                         % n := Poison(n) %
-                          ConstantExpression                      % n := Pop() %
+                          ConstantExpression                      % Pop(n) %
                     ] =:
 
-TypeQualifier := 'const'                                          % Push(InitNode(nddummy)) %
-               | 'volatile'                                       % Push(InitNode(nddummy)) %
+TypeQualifier := 'const'                                          % PushNode(InitNode(nddummy)) %
+               | 'volatile'                                       % PushNode(InitNode(nddummy)) %
                =:
 
 Declarator := Pointer [ DirectDeclarator                          % ChainTopTwoIdent %
@@ -3009,15 +3095,15 @@ DirectDeclaratorBeta := Ident                                     % VAR n, m: No
 
 DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i: Node ; %
                                                                   % n := InitNode(ndarraytype) ;
-                                                                    i := Pop() ;  (* the ident *)
+                                                                    Pop(i) ;  (* the ident *)
                                                                     n^.max := NIL ;
                                                                     Push(n) ;
                                                                     Push(i) %
-                               [ ConstantExpression               % n^.max := Pop() %
+                               [ ConstantExpression               % Pop(n^.max) %
                                                     ]             % ChainTopTwoIdent %
                                                       ']' |
                            '('
-                                                                  % i := Pop() ;
+                                                                  % Pop(i) ;
                                                                     IF i^.type#ndident
                                                                     THEN
                                                                        t := i ;
@@ -3025,12 +3111,12 @@ DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i:
                                                                        i^.id.name := MakeUniqueParamName() ;
                                                                        i^.id.type := t
                                                                     END ;
-                                                                    t := Pop() %
+                                                                    Pop(t) %
                                [ ParameterTypeList                % DisplayStack ;
                                                                     n := InitNode(ndfunc) ;
                                                                     n^.func.type := t ;
-                                                                    n^.func.list := Pop() %
-                                                   ]              % Push(InitNode(nddummy)) ;
+                                                                    Pop(n^.func.list) %
+                                                   ]              % PushNode(InitNode(nddummy)) ;
                                                                     Push(n) ;
                                                                     Push(i) ;
                                                                     DisplayStack ;
@@ -3038,8 +3124,8 @@ DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i:
                                                      ')'
                        =:
 
-Pointer := '*'                                                    % Push(InitNode(ndptr)) %
-               { '*'                                              % Push(InitNode(ndptr)) ;
+Pointer := '*'                                                    % PushNode(InitNode(ndptr)) %
+               { '*'                                              % PushNode(InitNode(ndptr)) ;
                                                                     ChainTopTwo %
                      | TypeQualifier                              % ChainTopTwo %
                } =:
@@ -3049,7 +3135,7 @@ TypeQualifierList := TypeQualifier { TypeQualifier                % ChainTopTwo 
 
 ParameterTypeList := ParameterDeclaration                         % InitChain %
                      { ',' ( ParameterDeclaration                 % ChainOn %
-                                                  | '...'         % Push(InitNode(ndvararg)) ;
+                                                  | '...'         % PushNode(InitNode(ndvararg)) ;
                                                                     ChainOn %
                                                           ) }
                    =:
@@ -3060,8 +3146,8 @@ ParameterDeclaration := DeclarationSpecifiers                     % stop %
                               [ Declarator                        % ChainTopTwoIdent (* was DirectDeclarator *) %
                               ] =:
 
-IdentifierList := Ident                                           % Push(MakeValueNode(ndident, LastIdent)) %
-                        { ',' Ident                               % Push(MakeValueNode(ndident, LastIdent)) ;
+IdentifierList := Ident                                           % PushNode(MakeValueNode(ndident, LastIdent)) %
+                        { ',' Ident                               % PushNode(MakeValueNode(ndident, LastIdent)) ;
                                                                     ChainTopTwo %
                         } =:
 
@@ -3075,9 +3161,9 @@ ConstantExpression := ConstExpression =:
 DefinedConstExpression :=                                         % VAR constName: ADDRESS ;
                                                                         t        : CARDINAL ;
                                                                         n        : Node ; %
-                                                                  % constName := LastIdent ;
+                                                                  % constName := KeyToCharStar(LastIdent) ;
                                                                     t := GetTokenNo() %
-                          ConstExpression                         % n := Pop() ;
+                          ConstExpression                         % Pop(n) ;
                                                                     IF IsPoisoned(n)
                                                                     THEN
                                                                        DefineMacro(makekey(constName), t)
@@ -3088,133 +3174,136 @@ DefinedConstExpression :=                                         % VAR constNam
 
 ConstExpression := LogicalOrExpression =: 
 
-LogicalOrExpression := LogicalAndExpression
-                       { '||' LogicalAndExpression                % Push(MakeBinaryNode(ndor, Pop(), Pop())) %
+LogicalOrExpression :=                                            % VAR n1, n2: Node ; %
+                       LogicalAndExpression
+                       { '||' LogicalAndExpression                % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndor, n1, n2)) %
                        } =:
 
-LogicalAndExpression := InclusiveOrExpression
-                        { '&&' InclusiveOrExpression              % Push(MakeBinaryNode(ndand, Pop(), Pop())) %
+LogicalAndExpression := InclusiveOrExpression                     % VAR n1, n2: Node ; %
+                        { '&&' InclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndand, n1, n2)) %
                         } =:
 
-InclusiveOrExpression := ExclusiveOrExpression
-                         { '|' ExclusiveOrExpression              % Push(MakeBinaryNode(ndlor, Pop(), Pop())) %
+InclusiveOrExpression := ExclusiveOrExpression                    % VAR n1, n2: Node ; %
+                         { '|' ExclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlor, n1, n2)) %
                          } =:
 
-ExclusiveOrExpression := AndExpression
-                         { '^' AndExpression                      % Push(MakeBinaryNode(ndlxor, Pop(), Pop())) %
+ExclusiveOrExpression := AndExpression                            % VAR n1, n2: Node ; %
+                         { '^' AndExpression                      % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlxor, n1, n2)) %
                          } =:
 
-AndExpression := EqualityExpression
-                 { '&' EqualityExpression                         % Push(MakeBinaryNode(ndland, Pop(), Pop())) %
+AndExpression := EqualityExpression                               % VAR n1, n2: Node ; %
+                 { '&' EqualityExpression                         % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndland, n1, n2)) %
                  } =:
 
 EqualityExpression := RelationalExpression
-                      { EqualityOperator RelationalExpression     % VAR l: Node ; nd: nodeType ; %
-                                                                  % l := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeBinaryNode(nd, l, Pop())) %
+                      { EqualityOperator RelationalExpression     % VAR l, m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(l) ; Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
                       } =:
 
-EqualityOperator := '=='                                          % Push(ndequal) %
-                 | '!='                                           % Push(ndnotequal) %
+EqualityOperator := '=='                                          % PushType(ndequal) %
+                 | '!='                                           % PushType(ndnotequal) %
                   =:
 
 RelationalExpression := ShiftExpression
-                        { RelationalOperator ShiftExpression      % VAR l: Node ; nd: nodeType ; %
-                                                                  % l := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeBinaryNode(nd, l, Pop())) %
+                        { RelationalOperator ShiftExpression      % VAR l, m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(l) ; Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
                         } =:
 
-RelationalOperator := '>'                                         % Push(ndgre) %
-                      | '<'                                       % Push(ndless) %
-                      | '>='                                      % Push(ndgreequ) %
-                      | '<='                                      % Push(ndlessequ) %
+RelationalOperator := '>'                                         % PushType(ndgre) %
+                      | '<'                                       % PushType(ndless) %
+                      | '>='                                      % PushType(ndgreequ) %
+                      | '<='                                      % PushType(ndlessequ) %
                    =:
 
 ShiftExpression := AdditiveExpression
-                   { ShiftOperator AdditiveExpression             % VAR l: Node ; nd: nodeType ; %
-                                                                  % l := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeBinaryNode(nd, l, Pop())) %
+                   { ShiftOperator AdditiveExpression             % VAR l, m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(l) ; Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
                    } =:
 
-ShiftOperator := '<<'                                             % Push(ndshiftleft) %
-                 | '>>'                                           % Push(ndshiftright) %
+ShiftOperator := '<<'                                             % PushType(ndshiftleft) %
+                 | '>>'                                           % PushType(ndshiftright) %
                =:
 
 AdditiveExpression := MultiplicativeExpression
-                      { AddOperator MultiplicativeExpression      % VAR l: Node ; nd: nodeType ; %
-                                                                  % l := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeBinaryNode(nd, l, Pop())) %
+                      { AddOperator MultiplicativeExpression      % VAR l, m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(l) ; Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
                       } =:
 
-AddOperator := '+'                                                % Push(ndplus) %
-             | '-'                                                % Push(ndminus) %
+AddOperator := '+'                                                % PushType(ndplus) %
+             | '-'                                                % PushType(ndminus) %
              =:
 
 MultiplicativeExpression := CastExpression
-                            { MultOperator CastExpression         % VAR l: Node ; nd: nodeType ; %
-                                                                  % l := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeBinaryNode(nd, l, Pop())) %
+                            { MultOperator CastExpression         % VAR l, m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(l) ; Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
                             } =:
 
-MultOperator := '*'                                               % Push(ndmult) %
-              | '/'                                               % Push(nddiv) %
-              | '%'                                               % Push(ndmod) %
+MultOperator := '*'                                               % PushType(ndmult) %
+              | '/'                                               % PushType(nddiv) %
+              | '%'                                               % PushType(ndmod) %
               =:
 
 CastExpression := '('
-                     ( TypeName ')' UnaryExpression               % VAR n: Node ; %
-                                                                  % n := Pop() ;
-                                                                    Push(MakeBinaryNode(ndcast, Pop(), n)) %
+                     ( TypeName ')' UnaryExpression               % VAR n, m: Node ; %
+                                                                  % Pop(n) ; Pop(m) ;
+                                                                    PushNode(MakeBinaryNode(ndcast, m, n)) %
                        | ConstExpression ')' )
                 | UnaryExpression
                 =:
 
 UnaryExpression := PostfixExpression |
                    UnaryOperator CastExpression                   % VAR nd: nodeType ;
-                                                                         n: Node ; %
-                                                                  % n := Pop() ;
-                                                                    nd := VAL(nodeType, Pop()) %
-                                                                  % Push(MakeUnaryNode(nd, n)) %
+                                                                         n, m: Node ; %
+                                                                  % Pop(n) ;
+                                                                    Pop(m) ;
+                                                                    nd := VAL(nodeType, m) %
+                                                                  % PushNode(MakeUnaryNode(nd, n)) %
                    | SizeofExpression
                    | DefinedExpression
                    =:
 
-DefinedExpression :=  'defined' ( '(' Ident ')'                   % Push(MakeCppNode(nddefined, LastIdent)) %
-                                | Ident                           % Push(MakeCppNode(nddefined, LastIdent)) %
+DefinedExpression :=  'defined' ( '(' Ident ')'                   % PushNode(MakeCppNode(nddefined, LastIdent)) %
+                                | Ident                           % PushNode(MakeCppNode(nddefined, LastIdent)) %
                                 )
                    =:
 
-SizeofExpression := 'sizeof' UnaryExpOrTypeName                   % Push(MakeUnaryNode(ndsizeof, Pop())) %
+SizeofExpression := 'sizeof' UnaryExpOrTypeName                   % VAR n: Node ; %
+                                                                  % Pop(n) ; PushNode(MakeUnaryNode(ndsizeof, n)) %
                   =:
 
 UnaryExpOrTypeName := UnaryExpression | '(' TypeName ')' =:
 
-UnaryOperator := '+'                                              % Push(nddummy) %
-                 | '-'                                            % Push(ndnegate) %
-                 | '~'                                            % Push(ndlnot) %
-                 | '!'                                            % Push(ndnot) %
+UnaryOperator := '+'                                              % PushType(nddummy) %
+                 | '-'                                            % PushType(ndnegate) %
+                 | '~'                                            % PushType(ndlnot) %
+                 | '!'                                            % PushType(ndnot) %
                =:
 
 PostfixExpression := PrimaryExpression
-                     { '[' ConstExpression ']'                    % VAR n: Node ; %
-                                                                  % n := Pop() ;
-                                                                    Push(MakeBinaryNode(ndarray, Pop(), n)) %
+                     { '[' ConstExpression ']'                    % VAR n, m: Node ; %
+                                                                  % Pop(n) ; Pop(m) ;
+                                                                    PushNode(MakeBinaryNode(ndarray, m, n)) %
                      } =:
 
-PrimaryExpression := Ident                                        % Push(MakeValueNode(ndident, LastIdent)) %
+PrimaryExpression := Ident                                        % PushNode(MakeValueNode(ndident, LastIdent)) %
                    | IntegerConstant
-                   | charconstant                                 % Push(MakeValueNode(ndconstchar, LastChar)) %
-                   | strconstant                                  % Push(MakeValueNode(ndconststr, LastStr)) %
+                   | charconstant                                 % PushNode(MakeValueNode(ndconstchar, LastChar)) %
+                   | strconstant                                  % PushNode(MakeValueNode(ndconststr, LastStr)) %
                    =:
 
-IntegerConstant := DecimalInteger                                 % Push(MakeValueNode(nddecint, LastInt)) %
-                 | OctalInteger                                   % Push(MakeValueNode(ndoctint, LastInt)) %
-                 | HexInteger                                     % Push(MakeValueNode(ndhexint, LastInt)) %
+IntegerConstant := DecimalInteger                                 % PushNode(MakeValueNode(nddecint, LastInt)) %
+                 | OctalInteger                                   % PushNode(MakeValueNode(ndoctint, LastInt)) %
+                 | HexInteger                                     % PushNode(MakeValueNode(ndhexint, LastInt)) %
                  =:
 
 EnumerationConstant := Ident =:
