@@ -1,5 +1,15 @@
 2002-04-15	Gaius Mulley <gaius@glam.ac.uk>
 
+	* implemented DEFINITION MODULE FOR "C"
+	* implemented -Wmakeall
+	* implemented varargs in "C" modules
+	* added gm2/examples directory
+	* updated documentation
+	* gm2m and gm2l are now built from ebnf descriptions
+	  by ppg
+
+2002-04-15	Gaius Mulley <gaius@glam.ac.uk>
+
 	* GM2 Release 0.21
 	* brought gm2 up to date with gcc-3.0.4
 	* make paranoid works on Debian GNU/Linux (Athlon)
