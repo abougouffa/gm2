@@ -1,8 +1,5 @@
-*  complete opteron port
-*  complete cross compile mingw port
 *  complete cygwin port
 *  complete apple MacOS port
-*  complete coroutines (gm2-libs-coroutines)
 *  finish ISO libraries
 *  finish ISO language support
 *  finish optimizer support (-O)
