@@ -321,8 +321,17 @@ int ggc_p=FALSE;                 /* yes we should garbage collect */
 
 /* function prototypes */
 
-void  gccgm2_EndTemporaryAllocation     PARAMS ((void));
-void  gccgm2_ResumeTemporaryAllocation  PARAMS ((void));
+       void                  gccgm2_EndTemporaryAllocation     PARAMS ((void));
+       void                  gccgm2_ResumeTemporaryAllocation  PARAMS ((void));
+       void                  gccgm2_PushObstacksNochange       PARAMS ((void));
+       void                  gccgm2_PopObstacks                PARAMS ((void));
+       void                  gccgm2_SetFileNameAndLineNo       PARAMS ((char *fn, int line));
+       void                  gccgm2_EmitLineNote               PARAMS ((char *fn, int line));
+       tree                  shadow_label                      PARAMS ((tree name));
+static int                   redeclaration_error_message       PARAMS ((tree newdecl, tree olddecl));
+static struct binding_level *make_binding_level                PARAMS ((void));
+static void                  clear_limbo_values                PARAMS ((tree block));
+static int                   duplicate_decls                   PARAMS ((tree newdecl, tree olddecl, int different_binding_level));
 
 /* end of prototypes */
 
@@ -1863,8 +1872,8 @@ pushdecl (x)
   /* A local extern declaration for a function doesn't constitute nesting.
      A local auto declaration does, since it's a forward decl
      for a nested function coming later.  */
-  if (TREE_CODE (x) == FUNCTION_DECL && DECL_INITIAL (x) == 0
-      && DECL_EXTERNAL (x))
+  if ((TREE_CODE (x) == FUNCTION_DECL || TREE_CODE (x) == VAR_DECL)
+      && DECL_INITIAL (x) == 0 && DECL_EXTERNAL (x))
     DECL_CONTEXT (x) = 0;
 
   if (warn_nested_externs && DECL_EXTERNAL (x) && b != global_binding_level
@@ -2176,7 +2185,8 @@ pushdecl (x)
                       DECL_ARGUMENTS (x) = DECL_ARGUMENTS (oldglobal);
                       DECL_RESULT (x) = DECL_RESULT (oldglobal);
                       TREE_ASM_WRITTEN (x) = TREE_ASM_WRITTEN (oldglobal);
-                      DECL_ABSTRACT_ORIGIN (x) = DECL_ORIGIN (oldglobal);
+                      DECL_ABSTRACT_ORIGIN (x)
+			= DECL_ABSTRACT_ORIGIN (oldglobal);
                     }
                   /* Inner extern decl is built-in if global one is.  */
                   if (DECL_BUILT_IN (oldglobal))
@@ -2250,7 +2260,7 @@ pushdecl (x)
                    /* No shadow warnings for vars made for inlining.  */
                    && ! DECL_FROM_INLINE (x))
             {
-              char *id = IDENTIFIER_POINTER (name);
+              const char *id = IDENTIFIER_POINTER (name);
 
               if (TREE_CODE (x) == PARM_DECL
                   && current_binding_level->level_chain->parm_flag)
