@@ -19,11 +19,11 @@
 
 # Extra flags to pass to recursive makes.
 GM2_FLAGS_TO_PASS = \
-	"GM2_FOR_BUILD=$(GM2_FOR_BUILD)" \
+	"GM2_FOR_BUILD=$(GM2_FOR_BUILD) -DEGCS" \
 	"GM2FLAGS=$(GM2FLAGS)" \
 	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)"
 
-GM2_SRCS = $(srcdir)/gm2/parse.y $(srcdir)/gm2/gm2.c
+GM2_SRCS = $(srcdir)/gm2/gm2.c
 
 xgm2.c: $(srcdir)/gcc.c
 	-rm -f $@
@@ -47,31 +47,55 @@ xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
 
 # Create the compiler driver for gm2.
 
-gm2: xgm2$(exeext) cc1gm2
+gm2:  xgm2$(exeext) cc1gm2 gm2.all.build
 
-xgm2$(exeext): xgm2.o gm2spec.o version.o choose-temp.o pexecute.o prefix.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
+xgm2$(exeext): xgm2.o gm2spec.o version.o prefix.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ xgm2.o gm2spec.o prefix.o \
-	  version.o choose-temp.o pexecute.o $(EXTRA_GCC_OBJS) $(LIBS)
+	  version.o $(EXTRA_GCC_OBJS) $(LIBS)
 
 cc1gm2: $(LIBDEPS) stamp-objlist $(GM2_SRCS)
 	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2
 
+gm2tools:
+	cd gm2; $(MAKE) gm2tools
 
 # Build hooks:
 
-gm2.all.build:
+gm2.all.build: gm2tools
+	for i in $(GM2LINKEXES) ; do \
+            rm -f x$$i$(exeext); \
+            cp gm2/m2/comp/bin1/$$i$(exeext) x$$i$(exeext); \
+            chmod a+x x$$i$(exeext); \
+        done
+
 gm2.all.cross: 
 gm2.start.encap:
 gm2.rest.encap:
-gm2.info:
-gm2.dvi:
+gm2.info: gm2/gm2.info
 
+gm2.dvi:
+	$(TEXI2DVI)  gm2/gm2.texi
+
+gm2/gm2.info:
+	$(MAKEINFO) -o gm2/gm2.info gm2/gm2.texi
 
 # Install hooks:
 # cc1gm2 is installed elsewhere as part of $(COMPILERS).
 
+GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub
+
 gm2.install-normal:
-gm2.install-common:
+gm2.install-common: installdirs
+	for i in $(GM2LINKEXES) ; do \
+            rm -f $(bindir)/$$i$(exeext); \
+            $(INSTALL_PROGRAM) gm2/m2/comp/bin1/$$i$(exeext) $(bindir)/$$i$(exeext); \
+            chmod a+x $(bindir)/$$i$(exeext); \
+        done
+	rm -f $(bindir)/gm2$(exeext); \
+        $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/gm2$(exeext); \
+        chmod a+x $(bindir)/gm2$(exeext)
+
+
 gm2.install-info:
 gm2.install-man:
 

@@ -18,13 +18,16 @@ along with GNU Modula-2; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
+#define LINK_COMMAND_SPEC ""
+
 /* This is the contribution to the `lang_options' array in gcc.c for
    gm2.  */
 
 /* #include "gcc-version.h" */
-#ifdef EGCS
+/* was #ifdef EGCS */
+#if 1
 DEFINE_LANG_NAME ("Modula-2")
-#define GM2_OPT(NAME, DESCRIPTION) { NAME, DESCRIPTION }
+#define GM2_OPT(NAME, DESCRIPTION) { NAME , DESCRIPTION }
 #else
 #define GM2_OPT(NAME, DESCRIPTION) NAME
 #endif

@@ -247,7 +247,7 @@ PROCEDURE BuildEndFunctionType (value: Tree) : Tree ;
 
 (*
    BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
-                               It appends this paameter to the internal param_type_list.
+                               It appends this parameter to the internal param_type_list.
                                If name is nul then we assume we are creating a function
                                type declaration and we ignore names.
 *)

@@ -23,6 +23,8 @@ Boston, MA 02111-1307, USA.  */
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <ctype.h>
+#include "gcc.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -31,6 +33,9 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif
+
+extern const char *find_file PROTO((const char *));
+/* #include "gcc.h" */
 
 /* This bit is set if we saw a `-xfoo' language specification.  */
 #define LANGSPEC	(1<<1)
@@ -45,7 +50,13 @@ Boston, MA 02111-1307, USA.  */
 
 extern char *xmalloc PROTO((size_t));
 
-#define MAXPATHCHAR    16*1024         /* large enough not to worry */
+#define MAXPATHCHAR    64*1024         /* large enough not to worry */
+
+int lang_specific_extra_outfiles = 0;
+
+
+static int               found_verbose   = FALSE;
+static int               need_to_link    =  TRUE;
 
 
 /*
@@ -58,7 +69,7 @@ static int convert_into_m2path (char *incl)
   char *m2path=getenv("M2PATH");
 
   if (m2path != NULL) {
-    char *newm2path=(char *)malloc(strlen(m2path)+1+strlen(incl));
+    char *newm2path=(char *)xmalloc(strlen(m2path)+1+strlen(incl));
 
     if (newm2path != NULL) {
       int i=2;  /* skip -I */
@@ -80,13 +91,11 @@ static int convert_into_m2path (char *incl)
 	}
       }
       newm2path[j] = (char)0;
-      printf("m2path = %s\n", newm2path);
       return( setenv("M2PATH", newm2path, 1) );
     }
   }
   return( FALSE );
 }
-
 
 /*
  *  remove_args - removes args: i..i+n-1 from in_argc, in_argv
@@ -110,11 +119,18 @@ remove_args (in_argc, in_argv, i, n)
 }
 
 
+/*
+ *  lang_specific_driver - is invoked if we are compiling/linking a
+ *                         Modula-2 file. It checks for module paths
+ *                         and linking requirements which are language
+ *                         specific.
+ */
+
 void
-lang_specific_driver (fn, in_argc, in_argv)
-     void (*fn)();
+lang_specific_driver (in_argc, in_argv, in_added_libraries)
      int *in_argc;
      char ***in_argv;
+     int *in_added_libraries ATTRIBUTE_UNUSED;
 {
   int i=1;
 
@@ -137,230 +153,47 @@ lang_specific_driver (fn, in_argc, in_argv)
       /* found the offending path option, remove it */
       if (i+1<*in_argc) {
 	if (setenv("M2PATH", (*in_argv)[i+1], 1)) {
-	  (*fn) ("out of memory trying to alter environment");
+	  /*
+	   *  want to say  error ("out of memory trying to alter environment");
+	   */
+	  return;
 	}
 	remove_args(in_argc, in_argv, i, 2);
       } else {
-	(*fn) ("path argument to -M flag is missing");
+	return;
+	/*
+	 *  want to say  error ("path argument to -M flag is missing");
+	 */
 	i++;
       }
     } else if (strncmp((*in_argv)[i], "-I", 2) == 0) {
       if (convert_into_m2path((*in_argv)[i])) {
-	(*fn) ("out of memory trying to alter environment");
+	return;
+	/*
+	 *   want to say  	error ("out of memory trying to alter environment");
+	 */
       }
       remove_args(in_argc, in_argv, i, 1);
+    } else if (strcmp((*in_argv)[i], "-v") == 0) {
+      found_verbose = TRUE;
+      i++;
+    } else if (strcmp((*in_argv)[i], "-c") == 0) {
+      need_to_link = FALSE;
+      i++;
     } else {
       i++;
     }
   }
-
-  i=1;
-  while (i<*in_argc) {
-    printf("lang specific driver %s\n", (*in_argv)[i]);
-    i++;
-  }
+}
 
 
-#if 0
-  int i, j;
+/*
+ *  lang_specific_pre_link - the aim of this function is to generate the
+ *                           module_gm2.a library (consisting of all dependant modules).
+ */
 
-  /* If non-zero, the user gave us the `-v' flag.  */ 
-  int saw_verbose_flag = 0;
-
-  /* This will be 0 if we encounter a situation where we should not
-     link in libstdc++.  */
-  int library = 1;
-
-  /* The number of arguments being added to what's in argv, other than
-     libraries.  We use this to track the number of times we've inserted
-     -xc++/-xnone.  */
-  int added = 2;
-
-  /* Used to track options that take arguments, so we don't go wrapping
-     those with -xc++/-xnone.  */
-  char *quote = NULL;
-
-  /* The new argument list will be contained in this.  */
-  char **arglist;
-
-  /* Non-zero if we saw a `-xfoo' language specification on the
-     command line.  Used to avoid adding our own -xc++ if the user
-     already gave a language for the file.  */
-  int saw_speclang = 0;
-
-  /* "-lm" or "-lmath" if it appears on the command line.  */
-  char *saw_math = 0;
-
-  /* "-lc" if it appears on the command line.  */
-  char *saw_libc = 0;
-
-  /* An array used to flag each argument that needs a bit set for
-     LANGSPEC, MATHLIB, or WITHLIBC.  */
-  int *args;
-
-  /* By default, we throw on the math library.  */
-  int need_math = 1;
-
-  /* The total number of arguments with the new stuff.  */
-  int argc;
-
-  /* The argument list.  */
-  char **argv;
-
-  /* The total number of arguments with the new stuff.  */
-  int num_args = 1;
-
-  argc = *in_argc;
-  argv = *in_argv;
-
-
-  args = (int *) xmalloc (argc * sizeof (int));
-  bzero ((char *) args, argc * sizeof (int));
-
-  for (i = 1; i < argc; i++)
-    {
-      /* If the previous option took an argument, we swallow it here.  */
-      if (quote)
-	{
-	  quote = NULL;
-	  continue;
-	}
-
-      /* We don't do this anymore, since we don't get them with minus
-	 signs on them.  */
-      if (argv[i][0] == '\0' || argv[i][1] == '\0')
-	continue;
-
-      if (argv[i][0] == '-')
-	{
-	  if (library != 0 && (strcmp (argv[i], "-nostdlib") == 0
-			       || strcmp (argv[i], "-nodefaultlibs") == 0))
-	    {
-	      library = 0;
-	    }
-	  else if (strcmp (argv[i], "-lm") == 0
-		   || strcmp (argv[i], "-lmath") == 0
-#ifdef ALT_LIBM
-		   || strcmp (argv[i], ALT_LIBM) == 0
-#endif
-		  )
-	    {
-	      args[i] |= MATHLIB;
-	      need_math = 0;
-	    }
-	  else if (strcmp (argv[i], "-lc") == 0)
-	    args[i] |= WITHLIBC;
-	  else if (strcmp (argv[i], "-v") == 0)
-	    {
-	      saw_verbose_flag = 1;
-	      if (argc == 2)
-		{
-		  /* If they only gave us `-v', don't try to link
-		     in libg++.  */ 
-		  library = 0;
-		}
-	    }
-	  else if (strncmp (argv[i], "-x", 2) == 0)
-	    saw_speclang = 1;
-	  else if (((argv[i][2] == '\0'
-		     && (char *)strchr ("bBVDUoeTuIYmLiA", argv[i][1]) != NULL)
-		    || strcmp (argv[i], "-Tdata") == 0))
-	    quote = argv[i];
-	  else if (library != 0 && ((argv[i][2] == '\0'
-		     && (char *) strchr ("cSEM", argv[i][1]) != NULL)
-		    || strcmp (argv[i], "-MM") == 0))
-	    {
-	      /* Don't specify libraries if we won't link, since that would
-		 cause a warning.  */
-	      library = 0;
-	      added -= 2;
-	    }
-	  else
-	    /* Pass other options through.  */
-	    continue;
-	}
-      else
-	{
-	  int len; 
-
-	  if (saw_speclang)
-	    {
-	      saw_speclang = 0;
-	      continue;
-	    }
-
-	  /* If the filename ends in .c or .i, put options around it.
-	     But not if a specified -x option is currently active.  */
-	  len = strlen (argv[i]);
-	  if (len > 2
-	      && (argv[i][len - 1] == 'c' || argv[i][len - 1] == 'i')
-	      && argv[i][len - 2] == '.')
-	    {
-	      args[i] |= LANGSPEC;
-	      added += 2;
-	    }
-	}
-    }
-
-  if (quote)
-    (*fn) ("argument to `%s' missing\n", quote);
-
-  /* If we know we don't have to do anything, bail now.  */
-  if (! added && ! library)
-    {
-      free (args);
-      return;
-    }
-
-  num_args = argc + added + need_math;
-  arglist = (char **) xmalloc (num_args * sizeof (char *));
-
-  /* NOTE: We start at 1 now, not 0.  */
-  for (i = 0, j = 0; i < argc; i++, j++)
-    {
-      arglist[j] = argv[i];
-
-      /* Make sure -lstdc++ is before the math library, since libstdc++
-	 itself uses those math routines.  */
-      if (!saw_math && (args[i] & MATHLIB) && library)
-	{
-	  --j;
-	  saw_math = argv[i];
-	}
-
-      if (!saw_libc && (args[i] & WITHLIBC) && library)
-	{
-	  --j;
-	  saw_libc = argv[i];
-	}
-
-      /* Wrap foo.c and foo.i files in a language specification to
-	 force the gcc compiler driver to run cc1plus on them.  */
-      if (args[i] & LANGSPEC)
-	{
-	  int len = strlen (argv[i]);
-	  if (argv[i][len - 1] == 'i')
-	    arglist[j++] = "-xc++-cpp-output";
-	  else
-	    arglist[j++] = "-xc++";
-	  arglist[j++] = argv[i];
-	  arglist[j] = "-xnone";
-	}
-  }
-
-  /* Add `-lstdc++' if we haven't already done so.  */
-  if (library)
-    arglist[j++] = "-lstdc++";
-  if (saw_math)
-    arglist[j++] = saw_math;
-  else if (library)
-    arglist[j++] = MATH_LIBRARY;
-  if (saw_libc)
-    arglist[j++] = saw_libc;
-
-  arglist[j] = NULL;
-
-  *in_argc = j;
-  *in_argv = arglist;
-#endif
+int
+lang_specific_pre_link ()
+{
+  return( 0 );
 }

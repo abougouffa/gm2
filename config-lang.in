@@ -8,10 +8,8 @@
 
 language="gm2"
 
-compilers="cc1gm2"
+compilers="cc1gm2\$(exeext)"
 
-stagestuff="cc1gm2"
+stagestuff="xgm2\$(exeext)"
 
-diff_excludes="-x parse.c"
-
-
+outputs=gm2/Makefile

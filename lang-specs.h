@@ -21,42 +21,30 @@ Boston, MA 02111-1307, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-  {".mod", {"@modula-2"}},
+  {".mod", { "@modula-2" } },
+  {".def", { "@modula-2" } },
   {"@modula-2",
-     "%{c:cc1gm2 %1 %2\
-       %{!Q:-quiet} %{d*} %{m*} %{a}\
-       %{I*} %{g*} %{O*} %{W*} %{w}\
-       %{M}\
-       %{v:-version} %{pg:-p} %{p} %{q} %{students}\
-       %{statistics} %{pedantic} %{verbose} %{!v:%{version}}\
-       %{f*} %{+e*} %{aux-info*}\
-       %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
-       %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\
-       %b|\n\
-   %{!S:as %a %Y\
-       %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
-       %{!pipe:%g.s} %A\n }}\
-   %{!c:%{!S: ld %l %X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} \
-			%{r} %{s} %{t} %{u*} %{x} %{z} %{Z}\
-			%{!A:%{!nostdlib:%{!nostartfiles:%S}}}\
-			%{static:} %{L*} %o\
-			%{!nostdlib:%{!nodefaultlibs:%G %L %G}}\
-			%{!A:%{!nostdlib:%{!nostartfiles:%E}}}\
-			%{T*}\
-			\n }}"},
-    /*
-     * the above works fine as C compiler linker
-     * below is broken but it is my start to linking
+     { "%{c:%{!gm2gcc:cc1gm2 %1 %2\
+        %{!Q:-quiet} %{d*} %{m*} %{a}\
+        %{I*} %{g*} %{O*} %{W*} %{w}\
+        %{M}\
+        %{v:-version} %{pg:-p} %{p} %{q} %{students}\
+        %{statistics} %{pedantic} %{verbose} %{!v:%{version}}\
+        %{f*} %{+e*} %{aux-info*}\
+        %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
+        %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\
+        %b|\n\
+    %{!S:as %a %Y\
+        %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
+        %{!pipe:%g.s} %A\n }}}\
+    %{!c:%{!S:%{!gm2gcc:gm2l %{!pipe:-o %g.l} %b|\n\
+                 gm2lsub %{!pipe:%g.l} -o %g.list \n\
+                 gm2lgen %g.list -o %g.c \n\
+                 gcc -g -c -o %d%w%g%O %g.c \n\
+                 rm -f %w%d%g.a \n\
+                 gm2lcc %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.list \n\
+    }}}"}},
 
-   %{!c:%{!S:\
-       %x{mod_init.o} %x{foo.a} \
-       gm2l %{M*} %i %{|!pipe: > %d%w%u.mods} \n\
-       gm2lsub %{!pipe: < %U.mods} > %d%w%u.init \n\
-       gm2lgen < %U.init > mod_init.c \n\
-       gcc -g -c mod_init.c \n\
-       gm2lcc -g < %U.init > %d%w%u.link \n\
-       /bin/sh %U.link \n }}"},
+    /* #define LINK_COMMAND_SPEC "" */
 
-
-    *
-    */
+    /*                 gcc %{B*} %{v} %b%O %b.gm2.a\n }}}"}}, */

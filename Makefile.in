@@ -17,8 +17,6 @@
 # Variables that exist for you to override.
 # See below for how to change them for certain systems.
 
-ALLOCA =
-
 # Various ways of specifying flags for compilations:  
 # CFLAGS is for the user to override to, e.g., do a bootstrap with -O2.
 # BOOT_CFLAGS is the value of CFLAGS to pass
@@ -34,7 +32,7 @@ T_CFLAGS =
 X_CPPFLAGS =
 T_CPPFLAGS =
 
-CC = cc
+CC = @CC@
 BISON = bison
 BISONFLAGS =
 LEX = flex
@@ -50,34 +48,41 @@ TEXI2DVI = texi2dvi
 # to compile all the gen* files first by hand to avoid erroneous results.
 P =
 
-# This is used in the definition of SUBDIR_USE_ALLOCA.
-# ??? Perhaps it would be better if it just looked for *gcc*.
-OLDCC = cc
-
 # This is used instead of ALL_CFLAGS when compiling with GCC_FOR_TARGET.
 # It omits XCFLAGS, and specifies -B./.
 # It also specifies -B$(tooldir)/ to find as and ld for a cross compiler.
-GCC_CFLAGS=$(INTERNAL_CFLAGS) $(X_CFLAGS) $(T_CFLAGS) $(CFLAGS)
+GCC_CFLAGS=$(INTERNAL_CFLAGS) $(X_CFLAGS) $(T_CFLAGS) $(CFLAGS) $(XCFLAGS) \
+	-DHAVE_CONFIG_H
+
 
 # Tools to use when building a cross-compiler.
 # These are used because `configure' appends `cross-make'
 # to the makefile when making a cross-compiler.
 
-target= ... `configure' substitutes actual target name here.
-xmake_file= ... `configure' substitutes actual x- file name here.
-tmake_file= ... `configure' substitutes actual t- file name here.
+# We don't use cross-make.  Instead we use the tools
+# from the build tree, if they are available.
+# program_transform_name and objdir are set by configure.in.
+program_transform_name =
+objdir = .
+
+target=@target@
+xmake_file=@dep_host_xmake_file@
+tmake_file=@dep_tmake_file@
 #version=`sed -e 's/.*\"\([^ \"]*\)[ \"].*/\1/' < $(srcdir)/version.c`
 #mainversion=`sed -e 's/.*\"\([0-9]*\.[0-9]*\).*/\1/' < $(srcdir)/version.c`
 
 # Directory where sources are, from where we are.
-srcdir = .
+srcdir = @srcdir@
+VPATH = @srcdir@
 
 # Additional system libraries to link with.
 CLIB=
 
-# Change this to a null string if obstacks are installed in the
-# system library.
-OBSTACK=obstack.o
+# Top build directory, relative to here.
+top_builddir = ..
+
+# Internationalization library.
+INTLLIBS = @INTLLIBS@
 
 # Choose the real default target.
 ALL=all
@@ -93,48 +98,53 @@ all: all.indirect
 
 # sed inserts variable overrides after the following line.
 ####target overrides
+@target_overrides@
 ####host overrides
+@host_overrides@
 ####cross overrides
+@cross_defines@
+@cross_overrides@
 ####build overrides
-
-
+@build_overrides@
+#
 # Now figure out from those variables how to compile and link.
 
-all.indirect: Makefile ../cc1gm2
+all.indirect: Makefile ../cc1gm2$(exeext)
 
 # IN_GCC tells obstack.h that we are using gcc's <stddef.h> file.
-INTERNAL_CFLAGS = $(CROSS) -DIN_GCC -DUSE_CPPLIB -DGM2
+INTERNAL_CFLAGS = $(CROSS) -DIN_GCC @extra_c_flags@
 
 # This is the variable actually used when we compile.
-ALL_CFLAGS = $(INTERNAL_CFLAGS) $(X_CFLAGS) $(T_CFLAGS) $(CFLAGS) $(XCFLAGS)
+ALL_CFLAGS = $(INTERNAL_CFLAGS) $(X_CFLAGS) $(T_CFLAGS) $(CFLAGS) $(XCFLAGS) -W -Wall -DGM2
 
 # Likewise.
 ALL_CPPFLAGS = $(CPPFLAGS) $(X_CPPFLAGS) $(T_CPPFLAGS)
 
-# Even if ALLOCA is set, don't use it if compiling with GCC.
-
-SUBDIR_OBSTACK = `if [ x$(OBSTACK) != x ]; then echo ../$(OBSTACK); else true; fi`
-SUBDIR_USE_ALLOCA = `case "${CC}" in "${OLDCC}") if [ x$(ALLOCA) != x ]; then echo ../$(ALLOCA); else true; fi ;; esac`
-SUBDIR_MALLOC = `if [ x$(MALLOC) != x ]; then echo ../$(MALLOC); else true; fi`
+# This is where we get libiberty.a from.
+LIBIBERTY = ../../libiberty/libiberty.a
 
 # How to link with both our special library facilities
 # and the system's installed libraries.
-LIBS = $(SUBDIR_OBSTACK) $(SUBDIR_USE_ALLOCA) $(SUBDIR_MALLOC) $(CLIB)
+LIBS = $(INTLLIBS) $(LIBIBERTY) $(CLIB)
+LIBDEPS = $(INTLLIBS) $(LIBIBERTY)
 
 # Specify the directories to be searched for header files.
 # Both . and srcdir are used, in that order,
 # so that tm.h and config.h will be found in the compilation
 # subdirectory rather than in the source directory.
-INCLUDES = -I. -I.. -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../config
+INCLUDES = -I. -I.. -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../config -I$(srcdir)/../../include
 
 # Always use -I$(srcdir)/config when compiling.
 .c.o:
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $<
 
+# The only suffixes we want for implicit rules are .c and .o.
+.SUFFIXES:
+.SUFFIXES: .c .o
+
 # This tells GNU make version 3 not to export all the variables
 # defined in this file into the environment.
 .NOEXPORT:
-
 
 # Lists of files for various purposes.
 
@@ -153,33 +163,20 @@ GCC_OBJS = `cat ../stamp-objlist | sed -e 's:  : :g' \
 # Rebuild these with our flags
 GCC_PATCHED = toplev.o
 
-compiler: ../cc1gm2
-../cc1gm2: $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) gccgm2
-	echo $(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../cc1gm2 \
-	      $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../cc1gm2 \
-	      $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
+compiler: ../cc1gm2$(exeext)
+../cc1gm2$(exeext): $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) gccgm2
+	echo $(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(srcdir)/../configure
 	cd ..; $(SHELL) config.status
 
-native: config.status ../cc1gm2
+native: config.status ../cc1gm2$(exeext)
 
 # Compiling object files from source files.
 
 # Note that dependencies on obstack.h are not written
 # because that file is not part of GCC.
-
-TREE_H = $(srcdir)/../tree.h $(srcdir)/../real.h $(srcdir)/../tree.def \
-	$(srcdir)/../machmode.h $(srcdir)/../machmode.def
-
-parse.o : parse.c $(CONFIG_H) $(TREE_H)
-
-$(srcdir)/parse.c: $(srcdir)/parse.y
-	cd $(srcdir); $(BISON) $(BISONFLAGS) -o parse.c parse.y
-
-gm2.o : gm2.c $(CONFIG_H) $(TREE_H) ../flags.h
-
 
 RTL_H = $(srcdir)/../rtl.h $(srcdir)/../rtl.def \
 	$(srcdir)/../machmode.h $(srcdir)/../machmode.def
@@ -189,6 +186,7 @@ FLAGS_H = $(srcdir)/../flags.h
 INPUT_H = $(srcdir)/../input.h
 CONVERT_H = $(srcdir)/../convert.h
 
+gm2.o : gm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/../flags.h
 
 toplev.o : $(srcdir)/../toplev.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
  $(FLAGS_H) $(INPUT_H) \
@@ -234,8 +232,35 @@ gccgm2: force
                "M2LINK=$$M2PWD/bin/mklink" \
                stage1.gcc )
 
+gm2tools: force
+	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+          make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
+	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+          make \
+               "PUSH=LEFTTORIGHT" \
+               "DEBUG=-g" \
+               "BINDIR=$$M2PWD/bin" \
+               "BINDIR1=$$M2PWD/bin1" \
+               "INCFILE=$$M2PWD/tools/incfile" \
+               "MAKEVERSION=$$M2PWD/tools/makeversion" \
+               "MAKECONFIGURE=$$M2PWD/tools/makeconfigure" \
+               "STAGEFILE=$$M2PWD/.stage" \
+               "MAJORFILE=$$M2PWD/.major" \
+               "MINORFILE=$$M2PWD/.minor" \
+               "ARCHIVEFILE=$$M2PWD/.archive" \
+               "AR=ar" \
+               "COPY=cp" \
+               "LN=ln -s" \
+               "MV=mv" \
+               "P2C=$$M2PWD/bin/p2c" \
+               "P2CDIR=$$M2PWD/p2c/home" \
+               "PRE=$$M2PWD/bin/mkfor" \
+               "M2LINK=$$M2PWD/bin/mklink" \
+               "CFLAGS=-g" \
+               stage1.gcctools )
+
 clean: force
-	$(RM) *.o
+	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux
 	( cd m2 ; make clean )
 
 force:

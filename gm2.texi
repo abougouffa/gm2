@@ -1,0 +1,237 @@
+\input texinfo 
+@c -*-texinfo-*-
+
+@code{makeinfo}
+@code{texinfo-format-buffer}
+
+@c
+@c Design notes and documentation about GNU Modula-2
+@c
+@c
+@c part 1 header
+@c
+
+@setfilename gm2.info
+@settitle The GNU Modula-2 front end to GCC
+
+@c
+@c Part 2: Summary Description and Copyright
+@c
+
+@ifinfo
+This is a short example of a complete Texinfo file.
+
+Copyright @copyright{} 2000 Free Software Foundation, Inc.
+@end ifinfo
+
+@c Part 3: Titlepage and Copyright
+@c The titlepage segment does not appear in the Info file. 
+@titlepage
+@sp 10
+@comment The title is printed in a large font.
+@center @titlefont{The GNU Modula-2 front end to GCC}
+
+@c The following two commands start the copyright page.
+@page
+@setchapternewpage odd
+@sp 2
+@center Gaius Mulley
+@sp 3
+@center Last updated 21 Jan 2000
+@sp 1
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2000 Free Software Foundation, Inc.
+@end titlepage
+
+@c Part 4: `Top' Node and Master Menu
+
+@ifinfo
+@node Top, About, (dir), (dir)
+@top Introduction
+@end ifinfo
+
+@chapter GNU Modula-2 Internals
+
+This document is a small step in the long journey of documenting the GNU
+Modula-2 compiler and how it integrates with GCC.
+
+@menu
+* About::           What this document explains.
+* History::         How GNU Modula-2 came about.
+* Integrating::     How m2f is integrated with gcc.
+* Practicalities::  Overview of how m2f is built.
+* Future::          A future wish list.
+* To do list::      Outstanding issues.
+@end menu
+
+@node About, History, Top, Top
+@section About
+
+This file contains design notes accompanying the Modula-2
+front end to gcc.
+
+@node History, Integrating, About, Top
+@section History
+
+The Modula-2 compiler sources have come from the m2f compiler which
+runs under Linux. The original m2f compiler was written in Modula-2
+and was bootstrapped via a "hacked" version of p2c 1.20. The m2f
+compiler was a recursive descent which generated quadruples as
+intermediate code. It also used C style calling convention wherever
+possible. It utilized a C structure for dynamic arrays.
+
+@node Integrating, Practicalities, History, Top
+@section Integrating m2f with gcc
+
+An expedient method for combining the m2f front end onto the gcc
+back end is to make m2f generate the quadruple intermediate code.
+At this point *no* computation of storage space has occurred,
+no calculation of runtime addresses has occurred either.
+Also no optimization has taken place.
+
+Now the quadruples could be converted into the tree structure
+gcc demands and the symbol table converted into gcc equivalent.
+Not efficient with respect to compilation speed, but it saves a
+major rewrite of m2f. It should also preserve the independence
+between the target machine and front end m2f. Hopefully there
+should be no detrimental effect on the quality of generated code.
+
+We need to convert the quadruples into tree structure and also
+declare variables, functions, modules, types seemingly at the
+same time. The m2f native code generators all took the quadruples
+and sequentially generated code. The GCC integration needs more
+thought as it must only declare items who have had their children
+already written out by GCC. Unless we generate prototypes for
+all functions as a matter of course. I believe that the following
+will work when integrating M2F with GCC:
+
+@itemize @bullet
+@item
+follow the M2GDB dependancy code to ensure that all TYPEs
+are declared and written to the assembly fule *without*
+need for forward references.
+
+@item
+At this point all of the types *seen* will be declared and
+written out in '.stabs'
+
+@item
+then we can trawl though the quadruple list happily declaring
+functions and generating code in the knowledge that all types
+global variables have already been declared.
+@end itemize
+
+@node Practicalities, Future, Integrating, Top
+@section Practicalities
+
+For the moment the directory gm2/m2 will contain the Modula-2
+source code for front end m2f. The m2f compiler will be built
+during stage1, stage2, stage3 in line with gcc. We introduce
+a stage0 which will build the "hacked" p2c-1.20 which translates
+the Modula-2 code into C during stage1. At a later stage we
+can dispense with the "hacked" p2c-1.20 and ship C/M2 source
+code maybe? Anyhow, currently that is a long way off and since
+major development will take place the p2c-1.20 will remain.
+
+In essence m2f will be given a new code generator namely "gcc".
+This new code generator performs the quadruples to tree conversion
+and symbol table to gcc symbol table conversion. This code will
+be a mixture of Modula-2 and C.
+
+@node Future, To do list, Practicalities, Top
+@section Future
+
+In the future it might be sensible to rewrite M2Quads.mod to
+directly call gcc routines, rather than generate quadruples.
+However this is a large alteration and I'd firstly like to
+see gm2 working with the method outlined above, which is
+conceptually easier.
+
+@node To do list,, Future, Top
+@section To do list
+
+What has been done:
+
+@itemize @bullet
+@item
+the sources to m2f and gcc compile and link to produce cc1gm2.
+The front end works and compiles all legal Modula-2 into
+intemediate code.
+
+@item
+the back end will generate code and assembly declarations for
+modules containing global variables of all types. Procedure
+prologue/epilogue is created, but no procedures can be called yet!
+
+@item
+simple expressions are pretty complete.
+
+@item
+all loop constructs, if then else, case stuff has been done.
+
+@item
+nested module initialization
+
+@item
+pointers
+
+@item
+front end @samp{gcc} can now compile and link modules.
+
+@end itemize
+
+Nearly all the to do work is concerned with interfacing m2f with
+gcc and most of this work is localized in the following files:
+
+@example
+gm2/gm2.c
+gm2/gccgm2.def
+gm2/m2/comp/gm2s/gcc/M2GenGCC.mod
+gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod
+@end example
+
+What needs to be done:
+
+@itemize @bullet
+
+@item  
+procedure calls
+
+@item
+identifier declaration is wrong (it treats temporaries as real variables).
+
+@item
+block becomes
+
+@item
+error recovery needs to be implemented,
+during pass 1 (first and follow sets etc). One of those
+to do's which was never done..
+
+@item
+unbounded arrays
+
+@item
+inbuilt functions, SIZE, ADR, TSIZE, HIGH etc
+
+@item
+making the front end non 32 bit dependant
+(@samp{ gm2/m2/comp/gm2s/M2Base.mod }should utilize gcc base types)
+
+@item
+integrate the small testsuite (gm2/m2/comp/autotest)
+into dejagnu ?? and improve
+
+@item
+Coroutines - as mentioned by readers of comp.lang.modula2.
+
+@item
+improve documentation
+
+@end itemize
+
+@c @printindex cp
+
+@summarycontents
+@contents
+@bye
