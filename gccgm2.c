@@ -2637,6 +2637,7 @@ gm2_expand_expr (exp, target, tmode, modifier)
       break;
 
     case IDENTIFIER_NODE:
+    case TREE_LIST:
       if (exp == boolean_false_node) {
 	return( const0_rtx );
       } else if (exp == boolean_true_node) {
@@ -8323,14 +8324,17 @@ gccgm2_BuildEndEnumeration (enumtype)
 }
 
 tree
-gccgm2_BuildEnumerator (name, value)
+gccgm2_BuildEnumerator (name, value, type)
      char *name;
-     tree value;
+     tree value, type;
 {
   tree id = get_identifier (name);
-  enumvalues = chainon(build_enumerator(id, value),  /* choose value for enum value */
-		       enumvalues);
-  return( id );
+  tree gccenum = build_enumerator(id, value);
+  /* TREE_TYPE(id)   = integer_type_node; */
+
+  /* choose value for enum value */
+  enumvalues = chainon(gccenum, enumvalues);
+  return( value );
 }
 
 
@@ -8924,6 +8928,9 @@ gccgm2_GetSizeOf (type)
       return size_int (1);
     }
   if (code == VAR_DECL)
+    return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
+
+  if (code == PARM_DECL)
     return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
 
   if (code == ERROR_MARK)

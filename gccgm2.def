@@ -253,7 +253,7 @@ PROCEDURE BuildEndEnumeration (enumtype: Tree) : Tree ;
                      and returns the enumerator.
 *)
 
-PROCEDURE BuildEnumerator (name: ADDRESS; value: Tree) : Tree ;
+PROCEDURE BuildEnumerator (name: ADDRESS; value: Tree; type: Tree) : Tree ;
 
 
 (*
