@@ -1,0 +1,72 @@
+About
+
+This file contains design notes accompanying the Modula-2
+front end to gcc.
+
+History
+
+The Modula-2 compiler sources have come from the m2f compiler which
+runs under Linux. The original m2f compiler was written in Modula-2
+and was bootstrapped via a "hacked" version of p2c 1.20. The m2f
+compiler was a recursive descent which generated quadruples as
+intermediate code. It also used C style calling convention wherever
+possible. It utilized a C structure for dynamic arrays.
+
+Integrating m2f with gcc
+
+An expedient method for combining the m2f front end onto the gcc
+back end is to make m2f generate the quadruple intermediate code.
+At this point *no* computation of storage space has occurred,
+no calculation of runtime addresses has occurred either.
+Also no optimization has taken place.
+
+Now the quadruples could be converted into the tree structure
+gcc demands and the symbol table converted into gcc equivalent.
+Not efficient with respect to compilation speed, but it saves a
+major rewrite of m2f. It should also preserve the independence
+between the target machine and front end m2f. Hopefully there
+should be no detrimental effect on the quality of generated code.
+
+We need to convert the quadruples into tree structure and also
+declare variables, functions, modules, types seemingly at the
+same time. The m2f native code generators all took the quadruples
+and sequentially generated code. The GCC integration needs more
+thought as it must only declare items who have had their children
+already written out by GCC. Unless we generate prototypes for
+all functions as a matter of course. I believe that the following
+will work when integrating M2F with GCC:
+
+ - follow the M2GDB dependancy code to ensure that all TYPEs
+   are declared and written to the assembly fule *without*
+   need for forward references.
+
+   At this point all of the types *seen* will be declared and
+   written out in '.stabs'
+
+ - then we can trawl though the quadruple list happily declaring
+   functions and generating code in the knowledge that all types
+   global variables have already been declared.
+
+Practicalities
+
+For the moment the directory gm2/m2 will contain the Modula-2
+source code for front end m2f. The m2f compiler will be built
+during stage1, stage2, stage3 in line with gcc. We introduce
+a stage0 which will build the "hacked" p2c-1.20 which translates
+the Modula-2 code into C during stage1. At a later stage we
+can dispense with the "hacked" p2c-1.20 and ship C/M2 source
+code maybe? Anyhow, currently that is a long way off and since
+major development will take place the p2c-1.20 will remain.
+
+In essence m2f will be given a new code generator namely "gcc".
+This new code generator performs the quadruples to tree conversion
+and symbol table to gcc symbol table conversion. This code will
+be a mixture of Modula-2 and C.
+
+Future
+
+In the future it might be sensible to rewrite M2Quads.mod to
+directly call gcc routines, rather than generate quadruples.
+However this is a large alteration and I'd firstly like to
+see gm2 working with the method outlined above, which is
+conceptually easier.

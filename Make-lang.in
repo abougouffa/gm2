@@ -1,0 +1,120 @@
+# Each language makefile fragment must provide the following targets:
+#
+# foo.all.build, foo.all.cross, foo.start.encap, foo.rest.encap,
+# foo.info, foo.dvi,
+# foo.install-normal, foo.install-common, foo.install-info, foo.install-man,
+# foo.uninstall, foo.distdir,
+# foo.mostlyclean, foo.clean, foo.distclean, foo.extraclean, foo.realclean,
+# foo.stage1, foo.stage2, foo.stage3, foo.stage4
+#
+# where `foo' is the name of the language.
+#
+# It should also provide rules for:
+#
+# - making any compiler driver (eg: g++)
+# - the compiler proper (eg: cc1plus)
+# - define the names for selecting the language in LANGUAGES.
+
+
+
+# Extra flags to pass to recursive makes.
+GM2_FLAGS_TO_PASS = \
+	"GM2_FOR_BUILD=$(GM2_FOR_BUILD)" \
+	"GM2FLAGS=$(GM2FLAGS)" \
+	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)"
+
+GM2_SRCS = $(srcdir)/gm2/parse.y $(srcdir)/gm2/gm2.c
+
+xgm2.c: $(srcdir)/gcc.c
+	-rm -f $@
+	$(LN) $(srcdir)/gcc.c $@
+
+gm2spec.o: $(srcdir)/gm2/gm2spec.c
+	$(CC) -c $(ALL_CFLAGS) $(INCLUDES) $(srcdir)/gm2/gm2spec.c
+
+#
+# taken from g++ and modified for gm2
+#
+# N.B.: This is a copy of the gcc.o rule, with -DLANG_SPECIFIC_DRIVER added.
+# It'd be nice if we could find an easier way to do this---rather than have
+# to track changes to the toplevel gcc Makefile as well.
+# We depend on xgm2.c last, to make it obvious where it came from.
+xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
+	$(CC) $(ALL_CFLAGS) $(INCLUDES) \
+	$(DRIVER_DEFINES) \
+	-DLANG_SPECIFIC_DRIVER \
+        -c xgm2.c
+
+# Create the compiler driver for gm2.
+
+gm2: xgm2$(exeext) cc1gm2
+
+xgm2$(exeext): xgm2.o gm2spec.o version.o choose-temp.o pexecute.o prefix.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ xgm2.o gm2spec.o prefix.o \
+	  version.o choose-temp.o pexecute.o $(EXTRA_GCC_OBJS) $(LIBS)
+
+cc1gm2: $(LIBDEPS) stamp-objlist $(GM2_SRCS)
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2
+
+
+# Build hooks:
+
+gm2.all.build:
+gm2.all.cross: 
+gm2.start.encap:
+gm2.rest.encap:
+gm2.info:
+gm2.dvi:
+
+
+# Install hooks:
+# cc1gm2 is installed elsewhere as part of $(COMPILERS).
+
+gm2.install-normal:
+gm2.install-common:
+gm2.install-info:
+gm2.install-man:
+
+gm2.uninstall:
+
+
+# Clean hooks:
+# A lot of the ancillary files are deleted by the main makefile.
+# We just have to delete files specific to us.
+
+gm2.mostlyclean:
+	-rm -f gm2/*.o xgm2 cc1gm2
+gm2.clean:
+	-rm -f gm2/*.o xgm2 cc1gm2
+	( cd gm2/m2 ; make clean )
+
+gm2.distclean:
+	-rm -f gm2/Makefile
+gm2.extraclean:
+gm2.realclean:
+	-rm -f gm2/parse.c
+
+
+# Stage hooks:
+# The main makefile has already created stage?/gm2
+
+gm2.stage1:
+	-mv gm2/*.o stage1/gm2
+gm2.stage2:
+	-mv gm2/*.o stage2/gm2
+gm2.stage3:
+	-mv gm2/*.o stage3/gm2
+gm2.stage4:
+	-mv gm2/*.o stage4/gm2
+
+
+# Maintenance hooks:
+
+# This target creates the files that can be rebuilt, but go in the
+# distribution anyway.  It then copies the files to the distdir directory.
+gm2.distdir:
+	mkdir tmp/gm2
+	cd gm2; \
+	for file in *[0-9a-zA-Z+]; do \
+	  ln $$file ../tmp/gm2 >/dev/null 2>&1 || cp $$file ../tmp/gm2; \
+	done

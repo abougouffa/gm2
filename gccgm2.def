@@ -1,0 +1,457 @@
+DEFINITION MODULE gccgm2 ;
+
+(*
+    Title      : gccgm2
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Sat Jul 24 15:47:03 1999
+    Last edit  : Sat Jul 24 15:47:03 1999
+    Description: provides a Modula-2 interface to the C file gm2.c
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
+                 SetFileNameAndLineNo,
+                 DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
+                 GetIntegerOne, GetIntegerType, GetIntegerZero,
+                 GetCharType, GetVoidType, GetCurrentFunction,
+                 GetPointerType,
+                 GetUnsignedCharType, GetUnsignedIntegerType, GetUnsignedType,
+                 GetLongIntType, GetRealType, GetLongRealType,
+
+                 BuildStart, BuildEnd, BuildCallInnerInit,
+                 BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
+                 BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
+                 BuildSubrangeType, BuildArrayIndexType,
+                 BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
+                 BuildFieldRecord, ChainOn,
+                 BuildPointerType, BuildArrayType,
+                 BuildStartFunctionType, BuildEndFunctionType,
+                 BuildParameterDeclaration,
+                 BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
+                 BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
+                 BuildAssignment, BuildBinaryOperator,
+                 BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                 BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                 BuildGoto, DeclareLabel,
+                 BuildLessThan, BuildGreaterThan,
+                 BuildLessThanOrEqual, BuildGreaterThanOrEqual,
+                 BuildEqualTo, BuildNotEqualTo,
+                 BuildIfIn, BuildIfNotIn,
+                 BuildIndirect,
+                 DoJump,
+                 AssignBooleanTrueFalse ;
+
+
+TYPE
+   Tree                = ADDRESS ;
+   BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
+   BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
+
+
+(*
+   SetFileNameAndLineNo - assigns a filename and line number to the GCC
+                          global variables. Remember that the string contents
+                          addressed by fn must not be overwritten.
+*)
+
+PROCEDURE SetFileNameAndLineNo (fn: ADDRESS; line: CARDINAL) ;
+
+
+(*
+   The following functions allow access to some global variables,
+   which are used in the declaration of base types.
+*)
+
+PROCEDURE DeclareKnownType       (name: ADDRESS; type: Tree) : Tree ;
+PROCEDURE DeclareKnownConstant   (name: ADDRESS; type: Tree; value: Tree) : Tree ;
+PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
+                                  isexported, isimported, istemporary, isglobal: BOOLEAN) : Tree ;
+PROCEDURE GetIntegerType         () : Tree ;
+PROCEDURE GetCharType            () : Tree ;
+PROCEDURE GetUnsignedIntegerType () : Tree ;
+PROCEDURE GetUnsignedCharType    () : Tree ;
+PROCEDURE GetUnsignedType        () : Tree ;
+PROCEDURE GetVoidType            () : Tree ;
+PROCEDURE GetPointerType         () : Tree ;
+PROCEDURE GetIntegerZero         () : Tree ;
+PROCEDURE GetIntegerOne          () : Tree ;
+PROCEDURE GetCurrentFunction     () : Tree ;
+PROCEDURE GetRealType            () : Tree ;
+PROCEDURE GetLongRealType        () : Tree ;
+PROCEDURE GetLongIntType         () : Tree ;
+
+
+(*
+   BuildStart - builds the module prologue. We tell gcc whether
+                it is an inner module or not, which determines whether the
+                initialization code is exported (not inner).
+*)
+
+PROCEDURE BuildStart (name: ADDRESS; inner: BOOLEAN) : Tree ;
+
+
+(*
+   BuildStart - ends the module prologue.
+*)
+
+PROCEDURE BuildEnd (t: Tree) ;
+
+
+(*
+   BuildCallInnerInit - builds a call to a function, funct. This function
+                        has no return type and no parameters.
+*)
+
+PROCEDURE BuildCallInnerInit (funct: Tree) ;
+
+
+(*
+   BuildStartEnumeration - create an enumerated type in gcc.
+*)
+
+PROCEDURE BuildStartEnumeration (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildEndEnumeration - finish building an enumerated type in gcc.
+                         The finished enumtype is returned.
+*)
+
+PROCEDURE BuildEndEnumeration (enumtype: Tree) : Tree ;
+
+
+(*
+   BuildEnumerator - builds an enumerator in the current enumerated type
+                     and returns the enumerator.
+*)
+
+PROCEDURE BuildEnumerator (name: ADDRESS; value: Tree) : Tree ;
+
+
+(*
+   BuildIntegerConstant - creates an integer constant and returns it.
+*)
+
+PROCEDURE BuildIntegerConstant (value: INTEGER) : Tree ;
+
+
+(*
+   BuildStringConstant - creates a string constant given a, string, and, length.
+*)
+
+PROCEDURE BuildStringConstant (string: ADDRESS; length: CARDINAL) : Tree ;
+
+
+(*
+   BuildCharConstant - creates a character constant given a, string.
+*)
+
+PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
+
+
+(*
+   AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
+                            This allows gm2 to declare boolean as an enumerated type.
+*)
+
+PROCEDURE AssignBooleanTrueFalse (booleanid, trueid, falseid: Tree) ;
+
+
+(*
+   BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
+*)
+
+PROCEDURE BuildSubrangeType (name: ADDRESS;
+                             type, lowval, highval: Tree) : Tree ;
+
+
+(*
+   BuildArrayIndexType - creates an integer index which accesses an array.
+                         low and high are the min, max elements of the array.
+*)
+
+PROCEDURE BuildArrayIndexType (low, high: Tree) : Tree ;
+
+
+(*
+   BuildStartRecord - creates a record with, name.
+*)
+
+PROCEDURE BuildStartRecord (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildEndRecord - finishes constructing a varient record or a record.
+                    t should be the return value from BuildStartRecord and
+                    fieldlist is created from BuildFieldRecord.
+*)
+
+PROCEDURE BuildEndRecord (t: Tree; fieldlist: Tree) : Tree ;
+
+
+(*
+   BuildStartVarientRecord - creates a varient record with, name.
+                             Note that this is finished by calling BuildEndRecord.
+*)
+
+PROCEDURE BuildStartVarientRecord (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildFieldRecord - builds a record field given a, name, (which maybe NIL) and
+                      a type. It returns a new field. This field maybe chained on
+                      to other field to build a fieldlist.
+*)
+
+PROCEDURE BuildFieldRecord (name: ADDRESS; type: Tree) : Tree ;
+
+
+(*
+   ChainOn - builds a list of t1, t2 and returns the new list.
+*)
+
+PROCEDURE ChainOn (t1, t2: Tree) : Tree ;
+
+
+(*
+   BuildPointerType - returns a new type which is declared as a pointer to totype.
+*)
+
+PROCEDURE BuildPointerType (totype: Tree) : Tree ;
+
+
+(*
+   BuildArrayType - creates an array which is indexed by IndexType and
+                    contains elements, ElementType.
+*)
+
+PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
+
+
+(*
+   BuildStartFunctionType - starts the building of a function type.
+*)
+
+PROCEDURE BuildStartFunctionType ;
+
+
+(*
+   BuildEndFunctionType - build a function type which would return a, value.
+                          The arguments have been created by BuildParameterDeclaration.
+*)
+
+PROCEDURE BuildEndFunctionType (value: Tree) : Tree ;
+
+
+(*
+   BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
+                               It appends this paameter to the internal param_type_list.
+                               If name is nul then we assume we are creating a function
+                               type declaration and we ignore names.
+*)
+
+PROCEDURE BuildParameterDeclaration (name: ADDRESS; type: Tree; isreference: BOOLEAN) : Tree ;
+
+
+(*
+   BuildStartFunctionDeclaration - initializes global variables ready for building
+                                   a function declaration.
+*)
+
+PROCEDURE BuildStartFunctionDeclaration ;
+
+
+(*
+   BuildEndFunctionDeclaration - build a function which will return a value of returntype.
+                                 The arguments have been created by BuildParameterDeclaration.
+*)
+
+PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS; returntype: Tree) : Tree ;
+
+
+(*
+   BuildStartFunctionCode - generate function entry code.
+*)
+
+PROCEDURE BuildStartFunctionCode (fndecl: Tree) ;
+
+
+(*
+   BuildEndFunctionCode - generates the function epilogue.
+*)
+
+PROCEDURE BuildEndFunctionCode (fndecl: Tree) ;
+
+
+(*
+   BuildReturnValueCode - generates the code associated with: RETURN( value )
+*)
+
+PROCEDURE BuildReturnValueCode (fndecl, value: Tree) ;
+
+
+(*
+   BuildAssignment - generates code for, des := expr and returns, des.
+*)
+
+PROCEDURE BuildAssignment (des, expr: Tree) : Tree ;
+
+
+(*
+   BuildAdd - build an addition tree.
+*)
+
+PROCEDURE BuildAdd (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildSub - build a subtraction tree.
+*)
+
+PROCEDURE BuildSub (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildMult - build a multiplication tree.
+*)
+
+PROCEDURE BuildMult (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildDiv - build a division tree.
+*)
+
+PROCEDURE BuildDiv (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildMod - build a modulus tree.
+*)
+
+PROCEDURE BuildMod (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLSL - build a << tree  ie  (op1 << op2).
+*)
+
+PROCEDURE BuildLSL (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalOr - build and return a logical or tree. ie (op1 || op2)
+*)
+
+PROCEDURE BuildLogicalOr (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalAnd - build and return a logical and tree. ie (op1 && op2)
+*)
+
+PROCEDURE BuildLogicalAnd (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildNegate - builds a negate expression and returns the tree.
+*)
+
+PROCEDURE BuildNegate (op1: Tree) : Tree ;
+
+
+(*
+   BuildSymmetricDifference - build and return a logical difference tree. (op1 xor op2)
+*)
+
+PROCEDURE BuildSymmetricDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildGoto - builds a goto operation.
+*)
+
+PROCEDURE BuildGoto (name: ADDRESS) ;
+
+
+(*
+   DeclareLabel - create a label, name, and return the tree.
+*)
+
+PROCEDURE DeclareLabel (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildLessThan - return a tree which computes <
+*)
+
+PROCEDURE BuildLessThan (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildGreaterThan - return a tree which computes >
+*)
+
+PROCEDURE BuildGreaterThan (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildLessThanOrEqual - return a tree which computes <=
+*)
+
+PROCEDURE BuildLessThanOrEqual (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildGreaterThanOrEqual - return a tree which computes >=
+*)
+
+PROCEDURE BuildGreaterThanOrEqual (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildEqualTo - return a tree which computes =
+*)
+
+PROCEDURE BuildEqualTo (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildNotEqualTo - return a tree which computes #
+*)
+
+PROCEDURE BuildNotEqualTo (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIfIn - return a tree which computes ((op1 & op2) # 0)
+*)
+
+PROCEDURE BuildIfIn (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIfNotIn - return a tree which computes ((op1 & op2) = 0)
+*)
+
+PROCEDURE BuildIfNotIn (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIndirect - build: ( *target) given that the object to be copied is of, type.
+*)
+
+PROCEDURE BuildIndirect (target, type: Tree) : Tree ;
+
+
+(*
+   DoJump - jump to the appropriate label depending whether
+            result of the expression is TRUE or FALSE.
+*)
+
+PROCEDURE DoJump (exp: Tree; falselabel, truelabel: ADDRESS) ;
+
+
+END gccgm2.

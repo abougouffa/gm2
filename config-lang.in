@@ -1,0 +1,17 @@
+# Configure looks for the existence of this file to auto-config each language.
+# We define several parameters used by configure:
+#
+# language	- name of language as it would appear in $(LANGUAGES)
+# compilers	- value to add to $(COMPILERS)
+# stagestuff	- files to add to $(STAGESTUFF)
+# diff_excludes	- files to ignore when building diffs between two versions.
+
+language="gm2"
+
+compilers="cc1gm2"
+
+stagestuff="cc1gm2"
+
+diff_excludes="-x parse.c"
+
+
