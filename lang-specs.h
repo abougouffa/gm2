@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
         %{f*} %{+e*} %{aux-info*}\
         %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
         %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\
-        %b|\n\
+        %b.mod|\n\
     %{!S:as %a %Y\
         %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
         %{!pipe:%g.s} %A\n }}}\

@@ -398,150 +398,6 @@ gccgm2_EmitLineNote (fn, line)
   emit_line_note(fn, line);
 }
 
-
-#if 0
-/* Here are the three functions needed to compile our language and the
-   variables they use.  */
-
-/* Number of arguments to the current function and the decls for the args.  */
-static int num_args;
-static tree *arg_decls;
-
-/* Make a FUNCTION_DECL for a function whose single-character name is
-   NAME, that has NARGS integer operands, and returns integer.  */
-
-tree
-build_function_decl (name, nargs)
-     char name;
-     int nargs;
-{
-  tree param_list = NULL_TREE;
-  tree param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
-  tree parm_decl;
-  tree fntype;
-  tree fndecl;
-  char *p;
-  int i;
-
-  /* Allocate space for our PARM_DECLS and create them.  */
-
-  num_args = nargs;
-  arg_decls = (tree *) xmalloc (nargs * sizeof (tree));
-  for (i = nargs - 1; i >= 0; i--)
-    {
-      p = xmalloc (2);
-      p[0] = 'a' + i;
-      p[1] = '\0';
-      parm_decl = build_decl (PARM_DECL, get_identifier (p),
-			      integer_type_node);
-      DECL_ARG_TYPE (parm_decl) = integer_type_node;
-      arg_decls[i] = parm_decl;
-      param_list = chainon (parm_decl, param_list);
-      param_type_list = tree_cons (NULL_TREE, integer_type_node,
-				   param_type_list);
-    }
-
-  /* The function type depends on the return type and type of args.  */
-  fntype = build_function_type (integer_type_node, param_type_list);
-
-  /* Now make the function decl.  */
-  p = xmalloc (2);
-  p[0] = name;
-  p[1] = '\0';
-
-  fndecl = build_decl (FUNCTION_DECL, get_identifier (p), fntype);
-  DECL_EXTERNAL (fndecl) = 0;
-  TREE_PUBLIC (fndecl) = 1;
-  TREE_STATIC (fndecl) = 1;
-  DECL_ARGUMENTS (fndecl) = param_list;
-  DECL_RESULT (fndecl)
-    = build_decl (RESULT_DECL, NULL_TREE, integer_type_node);
-  DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
-
-  rest_of_decl_compilation (fndecl, NULL_PTR, 1, 0);
-  param_list = NULL_TREE;   /* ready for the next time we call/define a function */
-  return fndecl;
-}
-
-/* Get the PARM_DECL for the Nth operand.  */
-
-#if 0
-tree
-get_arg_decl (n)
-     int n;
-{
-  if (n >= num_args)
-    {
-      fprintf (stderr, "arg number too high\n");
-      n = 0;
-    }
-
-  return arg_decls[n];
-}
-
-/* Generate code for FNDECL that returns EXP.  */
-
-void
-build_function (fndecl, exp)
-     tree fndecl;
-     tree exp;
-{
-  tree param_decl, next_param;
-
-  /* Set line number information; everything is line 1 for us.  */
-  DECL_SOURCE_FILE (fndecl) = input_filename;
-  DECL_SOURCE_LINE (fndecl) = lineno;
-
-  /* Announce we are compiling this function.  */
-  announce_function (fndecl);
-
-  /* Set up to compile the function and enter it.  */
-  current_function_decl = fndecl;
-  DECL_INITIAL (fndecl) = error_mark_node;
-
-  temporary_allocation ();
-  pushlevel (0);
-  make_function_rtl (fndecl);
-
-  /* Push all the PARM_DECL nodes onto the current scope (i.e. the scope of the
-     subprogram body) so that they can be recognized as local variables in the
-     subprogram.   */
-
-  for (param_decl = nreverse (DECL_ARGUMENTS (fndecl));
-       param_decl; param_decl = next_param)
-    {
-      next_param = TREE_CHAIN (param_decl);
-      TREE_CHAIN (param_decl) = NULL;
-      pushdecl (param_decl);
-    }
-
-  /* Store back the PARM_DECL nodes. They appear in the right order. */
-  DECL_ARGUMENTS (fndecl) = getdecls ();
-
-  init_function_start (fndecl, input_filename, 1);
-  expand_function_start (fndecl, 0);
-  expand_start_bindings (0);
-
-  /* The only thing in this function is a single return statement, which
-     we now generate.  Note that EXP will have been allocated in
-     permanent_obstack.  To do this properly, we need to enter the function 
-     ontext before parsing the expression, but then error recovery is more
-     complex, so we don't do that here.  */
-
-  expand_return (build (MODIFY_EXPR, void_type_node,
-			DECL_RESULT (fndecl), exp));
-
-  /* Now get back out of the function and compile it.  */
-  expand_end_bindings (NULL_TREE, 1, 0);
-  poplevel (1, 0, 1);
-  expand_function_end (fndecl, 1, 0);
-  rest_of_compilation (fndecl);
-  current_function_decl = 0;
-  permanent_allocation (1);
-}
-#endif
-#endif
-
 /* Routines Expected by gcc:  */
 
 /* These are used to build types for various sizes.  The code below
@@ -6889,24 +6745,24 @@ gccgm2_DeclareKnownType (name, type)
      char *name;
      tree type;
 {
-    tree cp = build_type_copy (type);
-    tree id = get_identifier  (name);
-    tree decl;
+  tree cp = build_type_copy (type);
+  tree id = get_identifier  (name);
+  tree decl;
 
-    TYPE_NAME(cp) = id;
-    TREE_TYPE(id) = cp;
-    decl = build_decl (TYPE_DECL, id, cp);
-    DECL_COMMON (decl) = 1;
+  TYPE_NAME(cp) = id;
+  TREE_TYPE(id) = cp;
+  decl = build_decl (TYPE_DECL, id, cp);
+  DECL_COMMON (decl) = 1;
 
-    layout_type (type);
-    layout_type (cp);
+  layout_type (type);
+  layout_type (cp);
 
-    /* The corresponding pop_obstacks is in finish_decl.  */
-    push_obstacks_nochange ();
-    pushdecl (decl);
-    finish_decl (decl, NULL_TREE, NULL_TREE);
+  /* The corresponding pop_obstacks is in finish_decl.  */
+  push_obstacks_nochange ();
+  pushdecl (decl);
+  finish_decl (decl, NULL_TREE, NULL_TREE);
 
-    return( cp );
+  return( cp );
 }
 
 /*
@@ -8350,7 +8206,6 @@ gccgm2_BuildEnumerator (name, value)
   tree id = get_identifier (name);
   tree copy_of_value = copy_node (value);
   tree gccenum = build_enumerator(id, copy_of_value);
-  /* TREE_TYPE(id)   = integer_type_node; */
 
   /* choose value for enum value */
   enumvalues = chainon(gccenum, enumvalues);
@@ -8497,7 +8352,7 @@ gccgm2_BuildEndFunctionType (value)
  *                              If name is nul then we assume we are creating a function
  *                              type declaration and we ignore names.
  */
-
+#if 1
 tree
 gccgm2_BuildParameterDeclaration (name, type, isreference)
      char *name;
@@ -8527,7 +8382,49 @@ gccgm2_BuildParameterDeclaration (name, type, isreference)
     return( type );
   }
 }
+#else
 
+tree
+completeParameterDeclaration (name, actual_type, parm_type)
+     char *name;
+     tree actual_type;
+     tree parm_type;
+{
+  tree parm_decl;
+
+  if ((name != NULL) && (strcmp(name, "") != 0)) {
+    /* creating a function with parameters */
+    parm_decl = build_decl (PARM_DECL, get_identifier (name), parm_type);
+    DECL_ARG_TYPE (parm_decl) = actual_type;
+    param_list = chainon (parm_decl, param_list);
+    layout_type (parm_decl);  /* testing (gaius) */
+    layout_type (parm_type);  /* testing (gaius) */
+#if 0
+    printf("making parameter %s known to gcc\n", name);
+#endif
+    param_type_list = tree_cons (NULL_TREE, parm_type, param_type_list);
+    return( parm_decl );
+  } else {
+    param_type_list = tree_cons (NULL_TREE, parm_type, param_type_list);
+    return( parm_type );
+  }
+}
+
+
+tree
+gccgm2_BuildParameterDeclaration (name, type, isreference)
+     char *name;
+     tree  type;
+     int   isreference;
+{
+  layout_type (type);
+  if (isreference) {
+    return( completeParameterDeclaration( name, type, build_reference_type (type)));
+  } else {
+    return( completeParameterDeclaration( name, type, type));
+  }
+}
+#endif
 
 /*
  *  BuildStartFunctionDeclaration - initializes global variables ready for building
@@ -8673,7 +8570,7 @@ gccgm2_BuildEndFunctionCode (fndecl)
 }
 
 
-#if 1
+#if 0
 void
 iterative_factorial()
 {
@@ -10955,6 +10852,6 @@ gccgm2_ExpandExpressionStatement (t)
 
 /*
  * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -Wall -Wtraditional     -I. -I.. -I. -I./.. -I./../config -I./../../include gm2.c"
+ *  compile-command: "gcc -c -DIN_GCC -g -Wall -Wtraditional -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
  * End:
  */
