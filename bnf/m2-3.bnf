@@ -1108,6 +1108,7 @@ Import :=  "FROM" Ident "IMPORT" IdentList ";" |
             IdentList ";" =:
 
 DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
+                    [ "FOR" string ]
                     Ident                                                  % StartBuildDefFile ;
                                                                              P3StartBuildDefModule ;
                                                                              PushAutoOff %

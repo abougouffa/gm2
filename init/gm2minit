@@ -31,6 +31,8 @@ Lists
 M2Debug
 M2Error
 M2Options
+M2Preprocess
+choosetemp
 M2Version
 M2FileName
 M2LexBuf

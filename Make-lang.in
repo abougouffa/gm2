@@ -58,24 +58,24 @@ xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
 
 # Create the compiler driver for gm2.
 
-gm2:  xgm2$(exeext) cc1gm2 gm2.all.build
+gm2:  xgm2$(exeext) xcc1gm2 gm2.all.build
 
 xgm2$(exeext): xgm2.o gm2spec.o version.o prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ xgm2.o gm2spec.o prefix.o \
 	  version.o intl.o $(EXTRA_GCC_OBJS) $(LIBS)
 
-cc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2$(exeext)
+xcc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../xcc1gm2$(exeext)
 
 # Build hooks:
 
 gm2.all.build: $(GCC_PASSES) $(GCC_PARTS)
 	cd gm2 ; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2support
-	for i in $(GM2LINKEXES) ; do \
+	for i in $(GM2EXES) ; do \
             rm -f $$i$(exeext); \
             if [ -x gm2/$$i$(exeext) ] ; then \
-               cp gm2/$$i$(exeext) $$i$(exeext); \
-               chmod a+x $$i$(exeext); \
+               cp gm2/$$i$(exeext) x$$i$(exeext); \
+               chmod a+x x$$i$(exeext); \
             fi ; \
         done
 
@@ -96,14 +96,14 @@ gm2/images/gnu.eps: gm2/images/gnupng
 # Install hooks:
 # cc1gm2 is installed elsewhere as part of $(COMPILERS).
 
-GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub gm2m
+GM2EXES = gm2lcc gm2l gm2lgen gm2lsub gm2m cc1gm2
 
 $(GM2_LIB_DIR): force
 	-if [ ! -d $(GM2_LIB_DIR) ] ; then mkdir $(GM2_LIB_DIR) ; fi
 
 gm2.install-normal:
 gm2.install-common: installdirs $(GM2_LIB_DIR)
-	-if [ -f cc1gm2$(exeext) ] ; then \
+	-if [ -f xcc1gm2$(exeext) ] ; then \
            if [ -f gcc-cross$(exeext) ]; then \
 	      rm -f $(bindir)/$(GM2_CROSS_NAME); \
 	      $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/$(GM2_CROSS_NAME); \
@@ -114,9 +114,9 @@ gm2.install-common: installdirs $(GM2_LIB_DIR)
 	      chmod a+x $(bindir)/$(GM2_INSTALL_NAME); \
            fi ; \
         fi
-	for i in $(GM2LINKEXES) ; do \
+	for i in $(GM2EXES) ; do \
             rm -f $(bindir)/$$i$(exeext); \
-            $(INSTALL_PROGRAM) gm2/$$i$(exeext) $(bindir)/$$i$(exeext); \
+            $(INSTALL_PROGRAM) x$$i$(exeext) $(bindir)/$$i$(exeext); \
             chmod a+x $(bindir)/$$i$(exeext); \
         done
 	for i in gm2/gm2-libs/* ; do \
@@ -147,10 +147,10 @@ gm2.uninstall:
 # We just have to delete files specific to us.
 
 gm2.mostlyclean:
-	-rm -f gm2/*.o xgm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
+	-rm -f gm2/*.o xgm2 xcc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
 	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 gm2.clean:
-	-rm -f gm2/*.o xgm2 acc1gm2 cc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
+	-rm -f gm2/*.o xgm2 acc1gm2 xcc1gm2 xgm2lcc xgm2lgen xgm2lsub xgm2l
 	-rm -f  gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	( cd gm2 ; $(MAKE) clean )
 	-rm -fr gm2/stage?

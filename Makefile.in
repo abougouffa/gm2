@@ -139,7 +139,7 @@ all: all.indirect
 #
 # Now figure out from those variables how to compile and link.
 
-all.indirect: Makefile ../cc1gm2$(exeext) gm2support
+all.indirect: Makefile ../xcc1gm2$(exeext) gm2support
 
 # IN_GCC tells obstack.h that we are using gcc's <stddef.h> file.
 INTERNAL_CFLAGS = $(CROSS) -DIN_GCC @extra_c_flags@
@@ -197,14 +197,14 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 
 BACKEND = ../toplev.o ../libbackend.a
 
-compiler: ../cc1gm2$(exeext) gm2support
+compiler: ../xcc1gm2$(exeext) gm2support
 
 paranoid: ../bcc1gm2$(exeext) verifyparanoid
 
-../bcc1gm2$(exeext): ../cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
+../bcc1gm2$(exeext): ../xcc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS)
 
-../cc1gm2$(exeext): ../acc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
+../xcc1gm2$(exeext): ../acc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
 
 ../acc1gm2$(exeext): $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS)
@@ -213,7 +213,7 @@ paranoid: ../bcc1gm2$(exeext) verifyparanoid
 Makefile: $(srcdir)/Makefile.in $(srcdir)/../configure
 	cd ..; $(SHELL) config.status
 
-native: config.status ../cc1gm2$(exeext)
+native: config.status ../xcc1gm2$(exeext)
 
 # Compiling object files from source files.
 
@@ -294,7 +294,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod  P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
-                     SymbolKey.mod   SymbolTable.mod gm2l.mod        gm2lcc.mod      \
+                     SymbolKey.mod   SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod     gm2lsub.mod     M2Error.mod     M2Math.mod      \
                      M2SubExp.mod    M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod M2Code.mod     M2GenGCC.mod    M2GCCDeclare.mod \
@@ -310,7 +310,7 @@ GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 #  the following tables define the source files used to build gm2 using only Modula-2
 #  sources (except for interfacing to libc and gcc).
 #
-#  It is these files which are the source to ../cc1gm2$(exeext) at the end of stage1
+#  It is these files which are the source to ../xcc1gm2$(exeext) at the end of stage1
 #
 
 GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def       \
@@ -355,8 +355,8 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Quads.mod       M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
-                     SymbolKey.mod     SymbolTable.mod gm2l.mod        gm2lcc.mod      \
-                     gm2lgen.mod       gm2lsub.mod     gm2m.mod        M2Error.mod     \
+                     SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
+                     gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
                      M2Math.mod        M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
@@ -364,10 +364,11 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod
 
-GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
-                     gm2m.mod        ppg.mod
+GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
+                     gm2m.mod          ppg.mod
 
-GM2-AUTO-MODS      = P2Build.mod     P3Build.mod     PHBuild.mod     P1SyntaxCheck.mod 
+GM2-AUTO-MODS      = P2Build.mod       P3Build.mod     PHBuild.mod     P1SyntaxCheck.mod \
+                     gm2l.mod          gm2m.mod
 
 GM2-LIBIBERTY-DEFS = choosetemp.def  pexecute.def
 
@@ -496,7 +497,7 @@ gm2-compiler/%.o: gm2-auto/%.mod
 
 
 #
-#  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
+#  we build the xcc1gm2$(exeext) from the boot stage and then proceed to build it again using
 #  itself. (Not really stage1/stage2 as gcc knows it - as we're attempting to bootstrap
 #  from p2c into gm2. The sooner we can debug Modula-2 source from gdb the better :-)
 #
@@ -697,38 +698,38 @@ agm2lsub: p2c/p2c-src/home/libp2c.a boot-bin/mklink boot-bin/p2c \
 
 gm2l: $(GM2_LIBS) gm2-compiler/gm2l.o
 	grep -v mod_init init/$(basename $@)init > $(basename $@).lst
-	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ \
-                -Wuselist gm2-compiler/$(basename $@).mod
-	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) \
-                -Wuselist gm2-compiler/$(basename $@).mod $(LIBS)
+	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x \
+                -Wuselist gm2-auto/$(basename $@).mod
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x -o $(basename $@) \
+                -Wuselist gm2-auto/$(basename $@).mod $(LIBS)
 
 gm2lcc: $(GM2_LIBS) gm2-compiler/gm2lcc.o
 	grep -v mod_init init/$(basename $@)init > $(basename $@).lst
-	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ \
+	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x \
                 -Wuselist gm2-compiler/$(basename $@).mod
-	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) \
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x -o $(basename $@) \
                 -Wuselist gm2-compiler/$(basename $@).mod $(LIBS)
 
 gm2lgen: $(GM2_LIBS) gm2-compiler/gm2lgen.o
 	grep -v mod_init init/$(basename $@)init > $(basename $@).lst
-	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ \
+	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x \
                 -Wuselist gm2-compiler/$(basename $@).mod
-	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) \
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x -o $(basename $@) \
                 -Wuselist gm2-compiler/$(basename $@).mod $(LIBS)
 
 gm2lsub: $(GM2_LIBS) gm2-compiler/gm2lsub.o
 	grep -v mod_init init/$(basename $@)init > $(basename $@).lst
 	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ \
                 -Wuselist gm2-compiler/$(basename $@).mod
-	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) \
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x -o $(basename $@) \
                 -Wuselist gm2-compiler/$(basename $@).mod $(LIBS)
 
 gm2m: $(GM2_LIBS) gm2-compiler/gm2m.o
 	grep -v mod_init init/$(basename $@)init > $(basename $@).lst
-	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ \
-                -Wuselist gm2-compiler/$(basename $@).mod
-	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) \
-                -Wuselist gm2-compiler/$(basename $@).mod $(LIBS)
+	../xgm2 -Wmodules -c -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x \
+                -Wuselist gm2-auto/$(basename $@).mod
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./a -B../ -B../x -o $(basename $@) \
+                -Wuselist gm2-auto/$(basename $@).mod $(LIBS)
 
 ppg: p2c/p2c-src/home/libp2c.a boot-bin/mklink boot-bin/p2c \
      gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2-compiler-boot/%.o) \
@@ -815,10 +816,18 @@ gm2-auto/PHBuild.mod: bnf/m2-h.bnf
 	$(MAKE) pge
 	./pge $< > $@
 
+gm2-auto/gm2l.mod: bnf/gm2l.bnf
+	$(MAKE) pge
+	./pge $< > $@
+
+gm2-auto/gm2m.mod: bnf/gm2m.bnf
+	$(MAKE) pge
+	./pge $< > $@
+
 #
 # verifyparanoid - diffs the output of all three compilers with the compiler source code
 #
-verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
+verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../xcc1gm2$(exeext) gm2-compiler-verify force
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)cd gm2-compiler-verify ; \
         for i in $(GM2-VERIFY-MODS) ; do \
@@ -846,7 +855,7 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
 # verifycompiler - diffs the output of the last two compilers using the compiler source code
 #                  as the test.
 #
-verifycompiler: ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
+verifycompiler: ../bcc1gm2$(exeext) ../xcc1gm2$(exeext) gm2-compiler-verify force
 	@echo "verifying the last two generations of GNU Modula-2 compilers.."
 	$(QUIAT)cd gm2-compiler-verify ; \
         for i in *.mod ; do \
@@ -875,12 +884,13 @@ clean: force
 	-rm -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
 	-rm -f -r boot-bin p2c/p2c-src/home
 	-rm -f boot-bin/mklink
-	-rm -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
+	-rm -f ../xcc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 	-rm -f agm2l agm2lcc agm2lgen agm2lsub pg-e pge
 	-rm -f gm2-auto/*.c gm2-auto/*~ gm2-auto/pginit
 	-rm -f gm2-libiberty/*.h gm2-libiberty/*~
 	-rm -f gm2-auto/pg.o
 	-rm -f gm2.cp gm2.fn gm2.pg gm2.toc gm2.tp gm2.vr gm2.ky
+	-rm -f gm2-compiler/M2Version.mod
 
 distclean: clean force
 	-rm -f m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile

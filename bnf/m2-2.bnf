@@ -907,6 +907,7 @@ Import :=  "FROM" Ident "IMPORT" IdentList ";" |
             IdentList ";" =:
 
 DefinitionModule := "DEFINITION" "MODULE"
+                    [ "FOR" string ]
                     Ident                                                  % P2StartBuildDefModule %
                     ";"
                     { Import                                               % BuildImportOuterModule %

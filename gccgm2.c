@@ -303,6 +303,8 @@ int flag_allow_single_precision = 0;
 extern int save_argc ;
 extern char **save_argv;
 
+static int insideCppArgs = 0;
+
 extern void gccgm2front PARAMS((int argc, char *argv[]));
 
 /* Global Variables Expected by gcc: */
@@ -588,9 +590,11 @@ gccgm2_SetFileNameAndLineNo (fn, line)
      char *fn;
      int   line;
 {
-  /* remember that both these variables are actually external to this file */
-  input_filename = ggc_strdup(fn);
-  lineno         = line;
+  if (cfun && fn) {
+    /* remember that both these variables are actually external to this file */
+    input_filename = ggc_strdup(fn);
+    lineno         = line;
+  }
 }
 
 
@@ -604,7 +608,8 @@ gccgm2_EmitLineNote (fn, line)
      char *fn;
      int   line;
 {
-  emit_line_note(ggc_strdup(fn), line);
+  if (cfun && fn)
+    emit_line_note(ggc_strdup(fn), line);
 }
 
 /* Routines Expected by gcc:  */
@@ -3032,22 +3037,38 @@ global_constant (t)
 
 static int
 gm2_decode_option (argc, argv)
-     int argc ATTRIBUTE_UNUSED;
-     char **argv;
+     int argc;
+     char **argv ATTRIBUTE_UNUSED;
 {
   if (argc == 0)
     return 0;
 
-  if (strcmp(argv[0], "-Wreturn") == 0) {
-    return( 1 );
+  if (insideCppArgs) {
+    if (argv[0][0] == '-') {
+      if (strcmp(argv[0], "-Wcppend") == 0)
+	insideCppArgs = 0;
+      return 1;
+    } else
+      return 0;
+  } else if (strcmp(argv[0], "-Wreturn") == 0) {
+    return 1;
   } else if (strcmp(argv[0], "-Wbounds") == 0) {
-    return( 1 );
+    return 1;
   } else if (strcmp(argv[0], "-Wrecovery") == 0) {
-    return( 1 );
+    return 1;
   } else if (strcmp(argv[0], "-Wquiet") == 0) {
-    return( 1 );
+    return 1;
   } else if (strcmp(argv[0], "-Wcpp") == 0) {
-    return( 1 );
+    return 1;
+  } else if (strcmp(argv[0], "-Wcppbegin") == 0) {
+    insideCppArgs = 1;
+    return 1;
+  } else if (strcmp(argv[0], "-Wmakeall") == 0) {
+    return 1;
+  } else if (strcmp(argv[0], "-Wmakeall0") == 0) {
+    return 1;
+  } else if (strncmp(argv[0], "-Wmake-I=", 9) == 0) {
+    return 1;
   }
   return 0;
 }
