@@ -16,6 +16,13 @@
 # - define the names for selecting the language in LANGUAGES.
 
 
+# Actual names to use when installing a native compiler.
+# (Cygnus configure overrides these when using -program-transform-name).
+GM2_INSTALL_NAME = gm2
+
+# Actual names to use when installing a cross-compiler.
+# (Cygnus configure overrides these when using -program-transform-name).
+GM2_CROSS_NAME = $(target_alias)-gm2
 
 # Extra flags to pass to recursive makes.
 GM2_FLAGS_TO_PASS = \
@@ -92,21 +99,42 @@ GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub
 
 gm2.install-normal:
 gm2.install-common: installdirs
+	-if [ -f cc1gm2$(exeext) ] ; then \
+           if [ -f gcc-cross$(exeext) ]; then \
+	      rm -f $(bindir)/$(GM2_CROSS_NAME); \
+	      $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/$(GM2_CROSS_NAME); \
+	      chmod a+x $(bindir)/$(GM2_CROSS_NAME); \
+	    else \
+	      rm -f $(bindir)/$(GM2_INSTALL_NAME); \
+	      $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/$(GM2_INSTALL_NAME); \
+	      chmod a+x $(bindir)/$(GM2_INSTALL_NAME); \
+	    fi ; \
+	  fi ; \
+	fi
 	for i in $(GM2LINKEXES) ; do \
             rm -f $(bindir)/$$i$(exeext); \
             $(INSTALL_PROGRAM) gm2/$$i$(exeext) $(bindir)/$$i$(exeext); \
             chmod a+x $(bindir)/$$i$(exeext); \
         done
-	rm -f $(bindir)/gm2$(exeext); \
-        $(INSTALL_PROGRAM) xgm2$(exeext) $(bindir)/gm2$(exeext); \
-        chmod a+x $(bindir)/gm2$(exeext)
 
 
+# Don't delete $(infodir)/gm2.info* unless there's actually new
+# docs to install (in case LANGUAGES didn't contain gm2 earlier).
 gm2.install-info:
+	-for i in gm2/gm2.info*; do \
+	  rm -f $(infodir)/gm2.info*; \
+	  realfile=`echo $$i | sed -e 's|.*/\([^/]*\)$$|\1|'`; \
+	  $(INSTALL_DATA) $$i $(infodir)/$$realfile; \
+	done
+
 gm2.install-man:
 
 gm2.uninstall:
-
+	-rm -rf $(bindir)/$(GM2_INSTALL_NAME)
+	-rm -rf $(bindir)/$(GM2_CROSS_NAME)
+	-for i in $(GM2LINKEXES) ; do \
+            rm -f $(bindir)/$$i$(exeext); \
+        done
 
 # Clean hooks:
 # A lot of the ancillary files are deleted by the main makefile.

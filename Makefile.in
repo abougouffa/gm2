@@ -691,6 +691,42 @@ gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
 gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
 	../xgm2 -Wbounds -Wreturn -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
+#
+#  and now the linkage tools
+#
+
+gm2lcc: m2/comp/p2c/home/libp2c.a force
+	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
+gm2l: m2/comp/p2c/home/libp2c.a force
+	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
+gm2lgen: m2/comp/p2c/home/libp2c.a force
+	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
+gm2lsub: m2/comp/p2c/home/libp2c.a force
+	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
 	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
