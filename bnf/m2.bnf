@@ -506,7 +506,7 @@ token   'real number'     realtok
 token   'string'          stringtok
 
 special PossiblyExportIdent  first { < identtok > } follow { }
-     '@i{is a builtin that automatically exports an identifier}'
+     '@i{is a builtin which automatically exports an identifier}'
 special Ident                first { < identtok > } follow { }
      '@i{is a builtin and checks for an identifier}'
 special IdentScope           first { < identtok > } follow { }
