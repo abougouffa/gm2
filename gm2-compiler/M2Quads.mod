@@ -6319,6 +6319,7 @@ PROCEDURE BuildProcedureStart ;
 VAR
    ProcSym: CARDINAL ;
 BEGIN
+   BuildLineNo ;
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureStartQuad(ProcSym, NextQuad) ;

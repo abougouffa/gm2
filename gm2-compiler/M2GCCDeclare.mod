@@ -1266,8 +1266,14 @@ BEGIN
                                              Mod2Gcc(Cardinal))) ;
       RETURN( BuildEndRecord(RecordType, FieldList) )
    ELSE
-      RETURN( Mod2Gcc(Unbounded) )
-   END ;
+      (* was RETURN( Mod2Gcc(Unbounded) ) *)
+      RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
+      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayAddress),
+                                             BuildPointerType(Mod2Gcc(GetType(Sym)))),
+                            BuildFieldRecord(KeyToCharStar(ArrayHigh),
+                                             Mod2Gcc(Cardinal))) ;
+      RETURN( BuildEndRecord(RecordType, FieldList) )
+   END
 END DeclareUnbounded ;
 
 
@@ -2066,6 +2072,10 @@ BEGIN
       END
    ELSE
       IF NOT IsSymTypeKnown(Sym, Unbounded)
+      THEN
+         solved := FALSE
+      END ;
+      IF NOT IsSymTypeKnown(Sym, GetType(Sym))
       THEN
          solved := FALSE
       END

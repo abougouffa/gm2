@@ -663,11 +663,10 @@ gccgm2_SetFileNameAndLineNo (fn, line)
      char *fn;
      int   line;
 {
-  if (cfun && fn) {
-    /* remember that both these variables are actually external to this file */
+  /* remember that both these variables are actually external to this file */
+  lineno = line;
+  if (cfun && fn)
     input_filename = ggc_strdup(fn);
-    lineno         = line;
-  }
 }
 
 
@@ -11710,14 +11709,14 @@ build_enumerator (name, value)
 }
 
 /*
- *  ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
+ *  ExpandExpressionStatement - maps onto expand_expr_stmt_value in stmt.c
  */
 
 void
 gccgm2_ExpandExpressionStatement (t)
      tree t;
 {
-  expand_expr_stmt (t);
+  expand_expr_stmt_value (t, 1, 1);
 }
 
 /*
