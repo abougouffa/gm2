@@ -1,0 +1,67 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Comp ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2Comp
+   Date       : 29/5/87
+   Description: Continually calls the compiler for every source file
+                referenced in the Modula-2 compiler.
+*)
+
+FROM Strings IMPORT String ;
+EXPORT QUALIFIED CompilingDefinitionModule,
+                 CompilingImplementationModule,
+                 CompilingProgramModule,
+                 Compile ;
+
+
+(*
+   Compile - continually call the main compilation procedure for every
+             source file that is referenced.
+             The module to be compiled is Sym.
+*)
+
+PROCEDURE Compile (Sym: CARDINAL; FullPath: String) ;
+
+
+(*
+   CompilingDefinitionModule - returns true if the current module being
+                               compiled is a definition module.
+*)
+
+PROCEDURE CompilingDefinitionModule() : BOOLEAN ;
+
+
+(*
+   CompilingImplementationModule - returns true if the current module being
+                                   compiled is an implementation module.
+*)
+
+PROCEDURE CompilingImplementationModule() : BOOLEAN ;
+
+
+(*
+   CompilingProgramModule - returns true if the current module being
+                            compiled is a program module.
+*)
+
+PROCEDURE CompilingProgramModule() : BOOLEAN ;
+
+
+END M2Comp.

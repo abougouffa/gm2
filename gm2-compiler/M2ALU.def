@@ -1,0 +1,537 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2ALU ;
+
+(*
+    Title      : M2ALU.def
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Tue Jul 11 09:14:28 2000
+    Last edit  : Tue Jul 11 09:14:28 2000
+    Description: Handles all values in the Modula-2 compiler and all
+                 manipulations of values. All values are mapped onto
+                 gcc trees.
+*)
+
+FROM gccgm2 IMPORT Tree ;
+
+EXPORT QUALIFIED PtrToValue,
+                 InitValue,
+                 PopInto, PushFrom,
+                 PushIntegerTree, PopIntegerTree,
+                 PushRealTree, PopRealTree,
+                 PushCard, PopCard,
+                 PushInt, PopInt,
+                 PushChar, PopChar,
+                 PushString,
+                 CoerseLongRealToCard,
+                 ConvertRealToInt,
+
+                 IsSolved,
+
+      	       	 SetOr, SetAnd, SetIn, Bit, BitRange,
+                 SetDifference, SetSymmetricDifference,
+                 Add, Mult, Div, Sub, Mod,
+                 Equ, NotEqu, Less, Gre, LessEqu, GreEqu ;
+
+
+TYPE
+   (* we would really like these to be written as abstract data types, but p2c cannot
+      handle them yet. *)
+
+   (* only PtrToValue as an abstract data type is exported *)
+   PtrToValue = POINTER TO cell ;
+   cell       = RECORD
+                   Type  : (integer, real) ;
+                   Value : Tree ;
+                   Next  : PtrToValue ;
+                   Solved: BOOLEAN ;
+                END ;
+
+
+(*
+   InitValue - initializes and returns a value container.
+*)
+
+PROCEDURE InitValue () : PtrToValue ;
+
+
+(*
+   PushIntegerTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushIntegerTree (t: Tree) ;
+
+
+(*
+   PopIntegerTree - pops a gcc tree value from the ALU stack.
+*)
+
+PROCEDURE PopIntegerTree () : Tree ;
+
+
+(*
+   PushRealTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushRealTree (t: Tree) ;
+
+
+(*
+   PopRealTree - pops a gcc tree value from the ALU stack.
+*)
+
+PROCEDURE PopRealTree () : Tree ;
+
+
+(*
+   PushFrom - pushes a copy of the contents of, v, onto stack.
+*)
+
+PROCEDURE PushFrom (v: PtrToValue) ;
+
+
+(*
+   PopInto - pops the top element from the stack and places it into, v.
+*)
+
+PROCEDURE PopInto (v: PtrToValue) ;
+
+
+(*
+   PushCard - pushes a cardinal onto the stack.
+*)
+
+PROCEDURE PushCard (c: CARDINAL) ;
+
+
+(*
+   PopCard - attempts to return the top element from the stack as
+             a cardinal.
+             If the top element is negative then an error messsage
+             is emitted.
+*)
+
+PROCEDURE PopCard () : CARDINAL ;
+
+
+(*
+   PushInt - pushes a cardinal onto the stack.
+*)
+
+PROCEDURE PushInt (i: INTEGER) ;
+
+
+(*
+   PopInt - attempts to return the top element from the stack as
+            an integer.
+*)
+
+PROCEDURE PopInt () : INTEGER ;
+
+
+(*
+   PushChar - pushes a char onto the stack.
+*)
+
+PROCEDURE PushChar (c: CHAR) ;
+
+
+(*
+   PopChar - attempts to return the top element from the stack as
+             a char.
+*)
+
+PROCEDURE PopChar () : CHAR ;
+
+
+(*
+   PushString - pushes the numerical human readable value of the string
+                onto the stack.
+*)
+
+PROCEDURE PushString (s: CARDINAL) ;
+
+
+(*
+   CoerseLongRealToCard - performs a coersion between a REAL to a CARDINAL
+*)
+
+PROCEDURE CoerseLongRealToCard ;
+
+
+(*
+   ConvertRealToInt - converts a REAL into an INTEGER
+*)
+
+PROCEDURE ConvertRealToInt ;
+
+
+(*
+   IsSolved - returns true if the memory cell indicated by v
+              has a set value.
+*)
+
+PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
+
+
+(*
+   Add - adds the top two elements on the stack.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |                   <- Ptr
+         |------------|    +------------+
+         | Op2        |    | Op2 + Op1  |
+         |------------|    |------------|
+*)
+
+PROCEDURE Add ;
+
+
+(*
+   Sub - subtracts the top two elements on the stack.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |                   <- Ptr
+         |------------|    +------------+
+         | Op2        |    | Op2 - Op1  |
+         |------------|    |------------|
+*)
+
+PROCEDURE Sub ;
+
+
+(*
+   Mult - multiplies the top two elements on the stack.
+
+          The Stack:
+
+          Entry             Exit
+
+   Ptr ->
+          +------------+
+          | Op1        |                   <- Ptr
+          |------------|    +------------+
+          | Op2        |    | Op2 * Op1  |
+          |------------|    |------------|
+*)
+
+PROCEDURE Mult ;
+
+
+(*
+   Div - divides the top two elements on the stack.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |                     <- Ptr
+         |------------|    +--------------+
+         | Op2        |    | Op2 DIV Op1  |
+         |------------|    |--------------|
+*)
+
+PROCEDURE Div ;
+
+
+(*
+   Mod - modulus of the top two elements on the stack.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |                     <- Ptr
+         |------------|    +--------------+
+         | Op2        |    | Op2 MOD Op1  |
+         |------------|    |--------------|
+*)
+
+PROCEDURE Mod ;
+
+
+(*
+   Equ - returns true if the top two elements on the stack
+         are identical.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |
+         |------------|
+         | Op2        |
+         |------------|    Empty
+
+         RETURN( Op2 = Op1 )
+*)
+
+PROCEDURE Equ () : BOOLEAN ;
+
+
+(*
+   NotEqu - returns true if the top two elements on the stack
+            are not identical.
+
+            The Stack:
+
+            Entry             Exit
+
+     Ptr ->
+            +------------+
+            | Op1        |
+            |------------|
+            | Op2        |
+            |------------|    Empty
+
+            RETURN( Op2 # Op1 )
+*)
+
+PROCEDURE NotEqu () : BOOLEAN ;
+
+
+(*
+   Less - returns true if Op2 > Op1
+          are not identical.
+
+          The Stack:
+
+          Entry             Exit
+
+   Ptr ->
+          +------------+
+          | Op1        |
+          |------------|
+          | Op2        |
+          |------------|    Empty
+
+          RETURN( Op2 < Op1 )
+*)
+
+PROCEDURE Less () : BOOLEAN ;
+
+
+(*
+   Gre - returns true if Op2 > Op1
+         are not identical.
+
+         The Stack:
+
+         Entry             Exit
+
+  Ptr ->
+         +------------+
+         | Op1        |
+         |------------|
+         | Op2        |
+         |------------|    Empty
+
+         RETURN( Op2 > Op1 )
+*)
+
+PROCEDURE Gre () : BOOLEAN ;
+
+
+(*
+   LessEqu - returns true if Op2<Op1
+             are not identical.
+
+            The Stack:
+
+            Entry             Exit
+
+     Ptr ->
+            +------------+
+            | Op1        |
+            |------------|
+            | Op2        |
+            |------------|    Empty
+
+            RETURN( Op2 <= Op1 )
+*)
+
+PROCEDURE LessEqu () : BOOLEAN ;
+
+
+(*
+   GreEqu - returns true if Op2 >= Op1
+            are not identical.
+
+            The Stack:
+
+            Entry             Exit
+
+     Ptr ->
+            +------------+
+            | Op1        |
+            |------------|
+            | Op2        |
+            |------------|    Empty
+
+            RETURN( Op2 >= Op1 )
+*)
+
+PROCEDURE GreEqu () : BOOLEAN ;
+
+
+(*
+   Bit -  performs 1 shifted right by the value of the number on the stack.
+
+                 The Stack:
+
+                 Entry             Exit
+
+          Ptr ->                                 <- Ptr
+
+                 +------------+    +------------+
+                 | Op1        |    | 1 << Op1   |
+                 |------------|    |------------|
+
+*)
+
+PROCEDURE Bit ;
+
+
+(*
+   BitRange -  evaluates the mask defined by Op1..Op2
+
+                    The Stack:
+
+                    Entry             Exit
+
+               Ptr ->
+                      +------------+
+                      | Op1        |                   <- Ptr
+                      |------------|    +------------+
+                      | Op2        |    | Op1..Op2   |
+                      |------------|    |------------|
+*)
+
+PROCEDURE BitRange ;
+
+
+(*
+   SetIn - returns true if the Op2 IN Op1
+
+           The Stack:
+
+           Entry             Exit
+
+    Ptr ->
+           +------------+
+           | Op1        |
+           |------------|
+           | Op2        |
+           |------------|    Empty
+
+           RETURN( Op2 IN Op1 )
+*)
+
+PROCEDURE SetIn () : BOOLEAN ;
+
+
+(*
+   SetOr -  performs an inclusive OR of the top two elements on the stack.
+
+            The Stack:
+
+            Entry             Exit
+
+     Ptr ->
+            +------------+
+            | Op1        |                   <- Ptr
+            |------------|    +------------+
+            | Op2        |    | Op2 + Op1  |
+            |------------|    |------------|
+
+*)
+
+PROCEDURE SetOr ;
+
+
+(*
+   SetAnd - performs a set AND the top two elements on the stack.
+
+            The Stack:
+
+            Entry             Exit
+
+     Ptr ->
+            +------------+
+            | Op1        |                   <- Ptr
+            |------------|    +------------+
+            | Op2        |    | Op2 * Op1  |
+            |------------|    |------------|
+*)
+
+PROCEDURE SetAnd ;
+
+
+(*
+   SetDifference - performs a set difference of the top two elements on the stack.
+
+                   The Stack:
+
+                   Entry             Exit
+
+            Ptr ->
+                   +------------+
+                   | Op1        |                   <- Ptr
+                   |------------|    +------------+
+                   | Op2        |    | Op2 - Op1  |
+                   |------------|    |------------|
+*)
+
+PROCEDURE SetDifference ;
+
+
+(*
+   SetSymmetricDifference - performs a set difference of the top two elements on the stack.
+
+                            The Stack:
+
+                            Entry             Exit
+
+                     Ptr ->
+                            +------------+
+                            | Op1        |                   <- Ptr
+                            |------------|    +------------+
+                            | Op2        |    | Op2 - Op1  |
+                            |------------|    |------------|
+*)
+
+PROCEDURE SetSymmetricDifference ;
+
+ 
+END M2ALU.

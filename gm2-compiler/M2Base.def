@@ -1,0 +1,176 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Base ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2Base
+   Date       : 22/5/87
+   Description: Implements the default Base Types and Base
+                procedures in the Modula-2 compiler.
+*)
+
+EXPORT QUALIFIED Nil,                   (* Base constants          *)
+                 Cardinal,              (* Base types              *)
+                 Integer,
+                 Boolean,
+                 True, False,
+                 Char,
+                 Proc,
+                 LongInt,
+                 Real,
+                 LongReal,
+                 Unbounded,             (* Not directly used by    *)
+                 ArrayAddress,          (* users.                  *)
+                 ArrayHigh,             (* Implement ARRAY OF Type *)
+                 High,                  (* Base function           *)
+                 Convert,
+                 Chr,
+                 Ord,
+                 Val,
+                 Trunc,
+                 Float,
+                 Min,
+                 Max,
+                 New,                   (* Base procedures         *)
+                 Dispose,
+                 Inc,
+                 Dec,
+                 Incl,
+                 Excl,
+                 IsPseudoBaseFunction,  (* Manipulation procedures *)
+                 IsPseudoBaseProcedure, (* Manipulation procedures *)
+                 IsBaseType,
+                 GetBaseTypeMinMax,
+                 InitBase,
+                 CheckCompatibleTypes,
+                 IsCompatible, IsMathType,
+                 MixTypes,
+                 TemplateProcedure,
+                 ActivationPointer ;
+
+
+(*
+   _Unbounded is a pseudo type and should not be directly used
+    by user programs, the M2 compiler uses it when coearsing
+    ARRAY OF TYPE to an _Unbounded record which provides an
+    eligant implementation.
+
+   _Unbounded = RECORD
+                   _ArrayAddress: ADDRESS ;
+                   _ArrayHigh   : CARDINAL ;
+                END ;
+*)
+
+
+VAR
+   TemplateProcedure,
+   ActivationPointer,
+
+   Unbounded,
+   ArrayAddress, ArrayHigh,
+
+   Nil,
+   Cardinal, Integer,
+   Boolean, True, False,
+   Char, Proc,
+   LongInt,
+   Real, LongReal,
+   High,
+   Convert, Val,
+   Trunc, Float,
+   Chr, Ord,
+   Min, Max,
+   New, Dispose,
+   Inc, Dec,
+   Incl, Excl             : CARDINAL ;
+
+
+(*
+   InitBase - initializes the base types and functions
+              used in the Modula-2 compiler.
+*)
+
+PROCEDURE InitBase (VAR Sym: CARDINAL) ;
+
+
+(*
+   GetBaseTypeMinMax - returns the minimum and maximum values for a given system type.
+                       This procedure should only be called if the type is NOT a subrange
+                       and NOT an enumeration.
+*)
+
+PROCEDURE GetBaseTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
+
+
+(*
+   IsPseudoBaseFunction - returns true if Sym is a Base function.
+*)
+
+PROCEDURE IsPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsPseudoBaseProcedure - returns true if Sym is a Base procedure.
+*)
+
+PROCEDURE IsPseudoBaseProcedure (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsBaseType - returns TRUE if Sym is a Base type.
+*)
+
+PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsCompatible - returns true if the types, t1, and, t2, are compatible.
+*)
+
+PROCEDURE IsCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+
+
+(*
+   CheckCompatibleTypes - returns if t1 and t2 are compatible types for
+                          +, -, *, DIV, >, <, =, etc.
+                          If t1 and t2 are not compatible then an error
+                          message is displayed.
+*)
+
+PROCEDURE CheckCompatibleTypes (t1, t2: CARDINAL) ;
+
+
+(*
+   MixTypes - returns the type symbol that corresponds to the types t1 and t2.
+              NearTok is used to identify the source position if a type
+              incompatability occurs.
+*)
+
+PROCEDURE MixTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsMathType - returns TRUE if the type is a mathematical type.
+                A mathematical type has a range larger than INTEGER.
+                (Typically REAL/LONGREAL/LONGINT)
+*)
+
+PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
+
+
+END M2Base.

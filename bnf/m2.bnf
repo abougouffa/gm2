@@ -36,10 +36,9 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P1SyntaxCheck ;
 
-FROM M2Atom IMPORT IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind ;
 FROM M2Error IMPORT WriteFormat0 ;
-FROM M2Quads IMPORT PushT, PushTF ;
+FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok ;
 FROM NameKey IMPORT NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
@@ -792,107 +791,16 @@ Definition := "CONST" { ConstantDeclaration ";" } |
               "VAR" { VariableDeclaration ";" } |
               ProcedureHeading ";" =:
 
-AsmStatement :=                                                            % VAR CurrentAsm: CARDINAL ; %
-                'ASM'                                                      % IF Pass3
-                                                                             THEN
-                                                                                PushAutoOn ;
-                                                                                PushT(MakeGnuAsm())
-                                                                             END
-                                                                           %
-                [ 'VOLATILE'                                               % IF Pass3
-                                                                             THEN
-                                                                                PopT(CurrentAsm) ;
-                                                                                PutGnuAsmVolatile(CurrentAsm) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
-                                                                           %
-                ] '(' AsmOperands                                          % IF Pass3
-                                                                             THEN
-                                                                                BuildInline ;
-                                                                                PopAuto
-                                                                             END
-                                                                           %
-                  ')' =:
+AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
-AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash, string: CARDINAL ;
-                                                                           %
-               String                                                      % IF Pass3
-                                                                             THEN
-                                                                                PopT(string) ;
-                                                                                PopT(CurrentAsm) ;
-                                                                                (* adds the name/instruction for this asm *)
-                                                                                PutGnuAsm(CurrentAsm, string) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
-                                                                           %
-               [ ':' AsmList                                               % IF Pass3
-                                                                             THEN
-                                                                                PopT(outputs) ;
-                                                                                PopT(CurrentAsm) ;
-                                                                                PutGnuAsmOutput(CurrentAsm, outputs) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
-                                                                           %
-                  [ ':' AsmList                                            % IF Pass3
-                                                                             THEN
-                                                                                PopT(inputs) ;
-                                                                                PopT(CurrentAsm) ;
-                                                                                PutGnuAsmInput(CurrentAsm, inputs) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
-                                                                           %
-                     [ ':' TrashList                                       % IF Pass3
-                                                                             THEN
-                                                                                PopT(trash) ;
-                                                                                PopT(CurrentAsm) ;
-                                                                                PutGnuAsmTrash(CurrentAsm, trash) ;
-                                                                                PushT(CurrentAsm)
-                                                                             END
-                                                                           %
-                        ] ] ]
-            =:
+AsmOperands  := String [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
+             =:
 
-AsmList     :=                                                             % IF Pass3
-                                                                             THEN
-                                                                                PushT(NulSym)
-                                                                             END
-                                                                           %
-               [ AsmElement ] { ',' AsmElement } =:
+AsmList      := [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement :=                                                              % VAR str, expr, CurrentInterface: CARDINAL ; %
-              String '(' Expression                                        % IF Pass3
-                                                                             THEN
-                                                                                PopT(expr) ;
-                                                                                PopT(str) ;
-                                                                                PopT(CurrentInterface) ;
-                                                                                IF CurrentInterface=NulSym
-                                                                                THEN
-                                                                                   CurrentInterface := MakeRegInterface()
-                                                                                END ;
-                                                                                PutRegInterface(CurrentInterface, str, expr) ;
-                                                                                PushT(CurrentInterface)
-                                                                             END
-                                                                           %
-                      ')'
-           =:
+AsmElement   := String '(' Expression ')'
+             =:
 
-TrashList :=                                                               % VAR CurrentInterface, str: CARDINAL ; %
-             [ String                                                      % IF Pass3
-                                                                             THEN
-                                                                                PopT(str) ;
-                                                                                CurrentInterface := MakeRegInterface() ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
-                                                                                PushT(CurrentInterface)
-                                                                             END
-                                                                           %
-             ] { ',' String                                                % IF Pass3
-                                                                             THEN
-                                                                                PopT(str) ;
-                                                                                PopT(CurrentInterface) ;
-                                                                                PutRegInterface(CurrentInterface, str, NulSym) ;
-                                                                                PushT(CurrentInterface)
-                                                                             END
-                                                                           %
-                } =:
+TrashList    := [ String ] { ',' String } =:
 
 FNB

@@ -1,0 +1,90 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+DEFINITION MODULE M2RTS ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2RTS
+   Date       : Wed Jun 20 15:21:04 BST 1990
+   Description: Implements the run time system facilities of Modula-2.
+   Last update: Fri Jul 10 14:53:39 GMT 1998
+*)
+
+EXPORT QUALIFIED HALT,
+                 SubrangeAssignmentError, ArraySubscriptError,
+                 FunctionReturnError,
+                 InstallTerminationProcedure, Terminate,
+                 ExitOnHalt ;
+
+
+(*
+   HALT - terminate the current program calling creating a core dump.
+          The procedure Terminate is called before the core dump is
+          created.
+*)
+
+PROCEDURE HALT ;
+
+
+(*
+   SubrangeAssignmentError - part of the runtime checking, called if a
+                             subrange variable is just about to be assigned an illegal value.
+*)
+
+PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR; line: CARDINAL) ;
+
+
+(*
+   ArraySubscriptError -  part of the runtime checking, called if an
+                          array indice is out of range.
+*)
+
+PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR; line: CARDINAL) ;
+
+
+(*
+   FunctionReturnError -  part of the runtime checking, called if a
+                          function exits without a RETURN statement.
+*)
+
+PROCEDURE FunctionReturnError (file: ARRAY OF CHAR; line: CARDINAL) ;
+
+
+(*
+   ExitOnHalt - if HALT is executed then call exit with the exit code, e.
+*)
+
+PROCEDURE ExitOnHalt (e: INTEGER) ;
+   
+
+(*
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure Terminate
+                                 is ionvoked.
+*)
+
+PROCEDURE InstallTerminationProcedure (p: PROC) ;
+
+
+(*
+   Terminate - calls each installed termination procedure in turn.
+*)
+
+PROCEDURE Terminate ;
+
+
+END M2RTS.

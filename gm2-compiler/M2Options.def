@@ -1,0 +1,94 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Options ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2Options
+   Date       : 27/5/87  [$Date: 2001/10/31 09:08:31 $]
+   SYSTEM     : UNIX (GNU Modula-2)
+   Description: Initializes the user options in the Modula-2 compiler.
+   Version    : $Revision: 1.1 $
+*)
+
+FROM Strings IMPORT String ;
+EXPORT QUALIFIED IsAnOption, DisplayOptions, ParseOptions,
+
+                 Pedantic, Verbose, Statistics,
+                 Profiling, Coding, Optimizing,
+                 OptimizeBasicBlock, OptimizeUncalledProcedures,
+                 OptimizeCommonSubExpressions,
+                 StudentChecking,
+                 BoundsChecking, ReturnChecking,
+                 Quiet, LineDirectives,
+      	       	 DisplayQuadruples,
+                 CompilerDebugging, GenerateDebugging, GenerateLineDebug ;
+
+
+VAR
+   CompilerDebugging,            (* -d internal debugging messages           *)
+   GenerateDebugging,            (* -g option to generate info for gdb/dbx   *)
+   GenerateLineDebug,            (* -gline to generate line debugging.       *)
+   Verbose,                      (* -verbose produce verbose error messages. *)
+   Pedantic,                     (* -pedantic be pedantic on error checking. *)
+   Statistics,                   (* -statistics information about code       *)
+   StudentChecking,              (* -students checks for common student errs *)
+   DisplayQuadruples,            (* -q option will display quadruples.       *)
+   OptimizeUncalledProcedures,   (* -Ouncalled removes uncalled procedures   *)
+   OptimizeBasicBlock,           (* -Obb create basic blocks and optimize.   *)
+   OptimizeCommonSubExpressions, (* -Ocse optimize common subexpressions     *)
+   BoundsChecking,               (* -bounds makes compiler generate runtime  *)
+                                 (* checks. Subranges and array bounds.      *)
+   ReturnChecking,               (* -return checks that functions always     *)
+                                 (* exit with a RETURN statement.            *)
+   Quiet,                        (* -quiet option specified.                 *)
+   Recovery1,                    (* -recovery1 option specified?             *)
+   Recovery2,                    (* -recovery2 option specified?             *)
+   Recovery3,                    (* -recovery3 option specified?             *)
+   Alignment,                    (* should parameters and data be aligned?   *)
+   LineDirectives,               (* should compiler understand preprocessor  *)
+                                 (* # linenumber "filename" markers?         *)
+   Optimizing,
+   Coding,
+   Profiling         : BOOLEAN ;
+
+
+(*
+   IsAnOption - Returns true if a legal option was specified in, s.
+                If legal then the appropriate flag was set.
+*)
+
+PROCEDURE IsAnOption (s: String) : BOOLEAN ;
+
+
+(*
+   DisplayOptions - displays a string of legal options and a brief
+                    explanation about each option.
+*)
+
+PROCEDURE DisplayOptions ;
+
+
+(*
+   ParseOptions - parses the options and sets the option flags
+                  accordingly.
+*)
+
+PROCEDURE ParseOptions ;
+
+
+END M2Options.

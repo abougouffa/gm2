@@ -1,0 +1,728 @@
+DEFINITION MODULE gccgm2 ;
+
+(*
+    Title      : gccgm2
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Sat Jul 24 15:47:03 1999
+    Last edit  : Tue Jul 11 2000
+    Description: provides a Modula-2 interface to the C file gm2.c
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+EXPORT QUALIFIED Tree,
+
+                 BuildBinProcedure, BuildUnaryProcedure,
+                 SetFileNameAndLineNo, EmitLineNote,
+                 DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
+                 GetIntegerOne, GetIntegerType, GetIntegerZero,
+                 GetCharType, GetVoidType, GetCurrentFunction,
+                 GetPointerType,
+                 GetByteType, GetCardinalType, GetBitsetType,
+                 GetLongIntType, GetRealType, GetLongRealType, GetProcType,
+                 GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
+                 GetBitsPerWord,
+                 BuiltInMemCopy, BuiltInAlloca,
+
+                 BuildStart, BuildEnd, BuildCallInnerInit,
+                 BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
+                 BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
+                 BuildSubrangeType, BuildArrayIndexType,
+                 BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
+                 BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
+                 BuildPointerType, BuildArrayType, BuildSetType,
+                 BuildStartFunctionType, BuildEndFunctionType,
+                 BuildParameterDeclaration,
+                 BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
+                 BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
+                 BuildAssignment,
+                 BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                 BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                 BuildConvert,
+                 BuildAddr, BuildNegate, BuildSize, BuildOffset, BuildTrunc,
+                 BuildGoto, DeclareLabel,
+                 BuildLessThan, BuildGreaterThan,
+                 BuildLessThanOrEqual, BuildGreaterThanOrEqual,
+                 BuildEqualTo, BuildNotEqualTo,
+                 BuildIfIn, BuildIfNotIn,
+                 BuildIndirect,
+                 DoJump,
+                 BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
+                 BuildStartMainModule, BuildEndMainModule,
+                 BuildAsm, BuildExpand, DebugTree,
+                 BuildVariableArrayAndDeclare,
+                 RealToTree,
+                 RememberConstant,
+
+                 AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
+                 ConvertConstantAndCheck, ExpandExpressionStatement ;
+
+
+TYPE
+   Tree                = ADDRESS ;
+   BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
+   BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
+
+
+(*
+   SetFileNameAndLineNo - assigns a filename and line number to the GCC
+                          global variables. Remember that the string contents
+                          addressed by fn must not be overwritten.
+
+                          SetFileNameAndLineNo - should be used when declaring data types,
+                          procedures, variables etc.
+*)
+
+PROCEDURE SetFileNameAndLineNo (fn: ADDRESS; line: CARDINAL) ;
+
+
+(*
+   EmitLineNote - emits line and file information to gcc whilst constructing code.
+                  Should be used when generating code (after a call to SetFileNameAndLineNo).
+*)
+
+PROCEDURE EmitLineNote (fn: ADDRESS; line: CARDINAL) ;
+
+
+(*
+   The following functions allow access to some global variables,
+   which are used in the declaration of base types.
+*)
+
+PROCEDURE DeclareKnownType       (name: ADDRESS; type: Tree) : Tree ;
+PROCEDURE DeclareKnownConstant   (type: Tree  ; value: Tree) : Tree ;
+PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
+                                  isexported, isimported, istemporary, isglobal: BOOLEAN;
+                                  scope: Tree) : Tree ;
+PROCEDURE GetIntegerType         () : Tree ;
+PROCEDURE GetCharType            () : Tree ;
+PROCEDURE GetByteType            () : Tree ;
+PROCEDURE GetVoidType            () : Tree ;
+PROCEDURE GetPointerType         () : Tree ;
+PROCEDURE GetCardinalType        () : Tree ;
+PROCEDURE GetBitsetType          () : Tree ;
+PROCEDURE GetRealType            () : Tree ;
+PROCEDURE GetLongRealType        () : Tree ;
+PROCEDURE GetLongIntType         () : Tree ;
+PROCEDURE GetWordType            () : Tree ;
+PROCEDURE GetProcType            () : Tree ;
+
+PROCEDURE GetIntegerZero         () : Tree ;
+PROCEDURE GetIntegerOne          () : Tree ;
+PROCEDURE GetCurrentFunction     () : Tree ;
+PROCEDURE GetErrorNode           () : Tree ;
+
+(*
+   Builtin functions.
+*)
+
+PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
+
+
+(*
+   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+                   of the current function.
+*)
+
+PROCEDURE BuiltInAlloca (n: Tree) : Tree ;
+
+
+(*
+   GetMinFrom - given a, type, return a constant representing the minimum
+                legal value.
+*)
+
+PROCEDURE GetMinFrom (type: Tree) : Tree ;
+
+
+(*
+   GetMaxFrom - given a, type, return a constant representing the maximum
+                legal value.
+*)
+
+PROCEDURE GetMaxFrom (type: Tree) : Tree ;
+
+
+(*
+   GetBitsPerWord - returns a CARDINAL indicating the number of bits per word.
+*)
+
+PROCEDURE GetBitsPerWord () : CARDINAL ;
+
+
+(*
+   GetSizeOf - returns a TREE containing the sizeof(type).
+*)
+
+PROCEDURE GetSizeOf (type: Tree) : Tree ;
+
+
+(*
+   AreConstantsEqual - maps onto tree.c (tree_int_cst_equal). It returns
+                       TRUE if the value of e1 is the same as e2.
+*)
+
+PROCEDURE AreConstantsEqual (e1, e2: Tree) : BOOLEAN ;
+
+
+(*
+   DetermineSign - returns -1 if e<0
+                            0 if e==0
+                            1 if e>0
+ 
+                   an unsigned constant will never return -1
+*)
+
+PROCEDURE DetermineSign (e: Tree) : INTEGER ;
+
+
+(*
+   RealToTree - convert a real number into a Tree.
+*)
+
+PROCEDURE RealToTree (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildStart - builds the module prologue. We tell gcc whether
+                it is an inner module or not, which determines whether the
+                initialization code is exported (not inner).
+*)
+
+PROCEDURE BuildStart (name: ADDRESS; inner: BOOLEAN) : Tree ;
+
+
+(*
+   BuildStart - ends the module prologue.
+*)
+
+PROCEDURE BuildEnd (t: Tree) ;
+
+
+(*
+   BuildCallInnerInit - builds a call to a function, funct. This function
+                        has no return type and no parameters.
+*)
+
+PROCEDURE BuildCallInnerInit (funct: Tree) ;
+
+
+(*
+   BuildStartMainModule - creates the global scope and expands all global
+                          variables ready for main module compilation.
+*)
+
+PROCEDURE BuildStartMainModule ;
+
+
+(*
+   BuildEndMainModule - tidies up the end of the main module. It moves
+                        back to global scope.
+*)
+
+PROCEDURE BuildEndMainModule ;
+
+
+(*
+   BuildStartEnumeration - create an enumerated type in gcc.
+*)
+
+PROCEDURE BuildStartEnumeration (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildEndEnumeration - finish building an enumerated type in gcc.
+                         The finished enumtype is returned.
+*)
+
+PROCEDURE BuildEndEnumeration (enumtype: Tree) : Tree ;
+
+
+(*
+   BuildEnumerator - builds an enumerator in the current enumerated type
+                     and returns the enumerator.
+*)
+
+PROCEDURE BuildEnumerator (name: ADDRESS; value: Tree) : Tree ;
+
+
+(*
+   BuildIntegerConstant - creates an integer constant and returns it.
+*)
+
+PROCEDURE BuildIntegerConstant (value: INTEGER) : Tree ;
+
+
+(*
+   BuildStringConstant - creates a string constant given a, string, and, length.
+*)
+
+PROCEDURE BuildStringConstant (string: ADDRESS; length: CARDINAL) : Tree ;
+
+
+(*
+   BuildCharConstant - creates a character constant given a, string.
+*)
+
+PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
+
+
+(*
+    floating point constant creation
+*)
+
+PROCEDURE BuildRealConstant     (value: LONGREAL) : Tree ;
+PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
+
+(*
+   ConvertConstantAndCheck - in Modula-2 sementics: return( VAL(type, expr) )
+                             Only to be used for a constant expr,
+                             overflow checking is performed. 
+*)
+
+PROCEDURE ConvertConstantAndCheck (type, expr: Tree) : Tree ;
+
+
+(*
+   AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
+                            This allows gm2 to declare boolean as an enumerated type.
+*)
+
+PROCEDURE AssignBooleanTrueFalse (booleanid, trueid, falseid: Tree) ;
+
+
+(*
+   BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
+*)
+
+PROCEDURE BuildSubrangeType (name: ADDRESS;
+                             type, lowval, highval: Tree) : Tree ;
+
+
+(*
+   BuildArrayIndexType - creates an integer index which accesses an array.
+                         low and high are the min, max elements of the array.
+*)
+
+PROCEDURE BuildArrayIndexType (low, high: Tree) : Tree ;
+
+
+(*
+   BuildVariableArrayAndDeclare - creates a variable length array.
+                                  high is the maximum legal elements (which is a runtime variable).
+                                  This creates and array index, array type and local variable.
+*)
+
+PROCEDURE BuildVariableArrayAndDeclare (elementtype, high: Tree; name: ADDRESS; scope: Tree) : Tree ;
+
+
+(*
+   BuildStartRecord - creates a record with, name.
+*)
+
+PROCEDURE BuildStartRecord (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildEndRecord - finishes constructing a varient record or a record.
+                    t should be the return value from BuildStartRecord and
+                    fieldlist is created from BuildFieldRecord.
+*)
+
+PROCEDURE BuildEndRecord (t: Tree; fieldlist: Tree) : Tree ;
+
+
+(*
+   BuildStartVarientRecord - creates a varient record with, name.
+                             Note that this is finished by calling BuildEndRecord.
+*)
+
+PROCEDURE BuildStartVarientRecord (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildFieldRecord - builds a record field given a, name, (which maybe NIL) and
+                      a type. It returns a new field. This field maybe chained on
+                      to other field to build a fieldlist.
+*)
+
+PROCEDURE BuildFieldRecord (name: ADDRESS; type: Tree) : Tree ;
+
+
+(*
+   ChainOn - builds a list of t1, t2 and returns the new list.
+*)
+
+PROCEDURE ChainOn (t1, t2: Tree) : Tree ;
+
+
+(*
+   ChainOnParamValue - adds a list node {parm, value} into the tree list.
+*)
+
+PROCEDURE ChainOnParamValue (list, parm, value: Tree) : Tree ;
+
+
+(*
+   AddStringToTreeList - adds, string, to list.
+*)
+
+PROCEDURE AddStringToTreeList (list, string: Tree) : Tree ;
+
+
+(*
+   BuildPointerType - returns a new type which is declared as a pointer to totype.
+*)
+
+PROCEDURE BuildPointerType (totype: Tree) : Tree ;
+
+
+(*
+   BuildArrayType - creates an array which is indexed by IndexType and
+                    contains elements, ElementType.
+*)
+
+PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
+
+
+(*
+   BuildSetType - creates a SET OF [low..high] where low and high
+                  both have type, type.
+*)
+
+PROCEDURE BuildSetType (name: ADDRESS; type, low, high: Tree) : Tree ;
+
+(*
+   BuildStartFunctionType - starts the building of a function type.
+*)
+
+PROCEDURE BuildStartFunctionType ;
+
+
+(*
+   BuildEndFunctionType - build a function type which would return a, value.
+                          The arguments have been created by BuildParameterDeclaration.
+*)
+
+PROCEDURE BuildEndFunctionType (value: Tree) : Tree ;
+
+
+(*
+   BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
+                               It appends this parameter to the internal param_type_list.
+                               If name is nul then we assume we are creating a function
+                               type declaration and we ignore names.
+*)
+
+PROCEDURE BuildParameterDeclaration (name: ADDRESS; type: Tree; isreference: BOOLEAN) : Tree ;
+
+
+(*
+   BuildStartFunctionDeclaration - initializes global variables ready for building
+                                   a function declaration.
+*)
+
+PROCEDURE BuildStartFunctionDeclaration ;
+
+
+(*
+   BuildEndFunctionDeclaration - build a function which will return a value of returntype.
+                                 The arguments have been created by BuildParameterDeclaration.
+*)
+
+PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
+                                       returntype: Tree; isexternal: BOOLEAN) : Tree ;
+
+
+(*
+   BuildStartFunctionCode - generate function entry code.
+*)
+
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN) ;
+
+
+(*
+   BuildEndFunctionCode - generates the function epilogue.
+*)
+
+PROCEDURE BuildEndFunctionCode (fndecl: Tree) ;
+
+
+(*
+   BuildReturnValueCode - generates the code associated with: RETURN( value )
+*)
+
+PROCEDURE BuildReturnValueCode (fndecl, value: Tree) ;
+
+
+(*
+   BuildAssignment - generates code for, des := expr and returns, des.
+*)
+
+PROCEDURE BuildAssignment (des, expr: Tree) : Tree ;
+
+
+(*
+   BuildAdd - build an addition tree.
+*)
+
+PROCEDURE BuildAdd (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildSub - build a subtraction tree.
+*)
+
+PROCEDURE BuildSub (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildMult - build a multiplication tree.
+*)
+
+PROCEDURE BuildMult (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildDiv - build a division tree.
+*)
+
+PROCEDURE BuildDiv (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildMod - build a modulus tree.
+*)
+
+PROCEDURE BuildMod (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLSL - build a << tree  ie  (op1 << op2).
+*)
+
+PROCEDURE BuildLSL (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalOr - build and return a logical or tree. ie (op1 || op2)
+*)
+
+PROCEDURE BuildLogicalOr (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalAnd - build and return a logical and tree. ie (op1 && op2)
+*)
+
+PROCEDURE BuildLogicalAnd (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildNegate - builds a negate expression and returns the tree.
+*)
+
+PROCEDURE BuildNegate (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildSize - builds a SIZE function expression and returns the tree.
+*)
+
+PROCEDURE BuildSize (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildTrunc - returns an integer expression from a REAL or LONGREAL op1.
+*)
+
+PROCEDURE BuildTrunc (op1: Tree) : Tree ;
+
+
+(*
+   BuildAddr - builds an expression which calculates the address of op1 and returns the tree.
+*)
+
+PROCEDURE BuildAddr (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildOffset - builds an expression containing the number of bytes the field
+                 is offset from the start of the record structure.
+                 The expression is returned.
+*)
+
+PROCEDURE BuildOffset (field: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildSymmetricDifference - build and return a logical difference tree. (op1 xor op2)
+*)
+
+PROCEDURE BuildSymmetricDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildConvert - build and return tree VAL(op1, op2)
+                  where op1 is the type to which op2 is to be converted.
+*)
+
+PROCEDURE BuildConvert (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildGoto - builds a goto operation.
+*)
+
+PROCEDURE BuildGoto (name: ADDRESS) ;
+
+
+(*
+   DeclareLabel - create a label, name, and return the tree.
+*)
+
+PROCEDURE DeclareLabel (name: ADDRESS) : Tree ;
+
+
+(*
+   BuildLessThan - return a tree which computes <
+*)
+
+PROCEDURE BuildLessThan (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildGreaterThan - return a tree which computes >
+*)
+
+PROCEDURE BuildGreaterThan (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildLessThanOrEqual - return a tree which computes <=
+*)
+
+PROCEDURE BuildLessThanOrEqual (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildGreaterThanOrEqual - return a tree which computes >=
+*)
+
+PROCEDURE BuildGreaterThanOrEqual (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildEqualTo - return a tree which computes =
+*)
+
+PROCEDURE BuildEqualTo (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildNotEqualTo - return a tree which computes #
+*)
+
+PROCEDURE BuildNotEqualTo (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIfIn - return a tree which computes ((op1 & op2) # 0)
+*)
+
+PROCEDURE BuildIfIn (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIfNotIn - return a tree which computes ((op1 & op2) = 0)
+*)
+
+PROCEDURE BuildIfNotIn (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIndirect - build: ( *target) given that the object to be copied is of, type.
+*)
+
+PROCEDURE BuildIndirect (target, type: Tree) : Tree ;
+
+
+(*
+   DoJump - jump to the appropriate label depending whether
+            result of the expression is TRUE or FALSE.
+*)
+
+PROCEDURE DoJump (exp: Tree; falselabel, truelabel: ADDRESS) ;
+
+
+(*
+   BuildParam - build a list of parameters, ready for a subsequent procedure call.
+*)
+
+PROCEDURE BuildParam (param: Tree) ;
+
+
+(*
+   BuildProcedureCall - creates a procedure call from a procedure and
+                        parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildProcedureCall (procedure, rettype: Tree) : Tree ;
+
+
+(*
+   BuildIndirectProcedureCall - creates a procedure call from a procedure and
+                                parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildIndirectProcedureCall (procedure, rettype: Tree) : Tree ;
+
+
+(*
+   BuildFunctValue - generates code for value := funct(foobar);
+*)
+
+PROCEDURE BuildFunctValue (value: Tree) ;
+
+
+(*
+   BuildAsm - generates an inline assembler instruction.
+*)
+
+PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tree) ;
+
+
+(*
+   BuildExpand - a test procedure.
+*)
+
+PROCEDURE BuildExpand () : Tree ;
+
+
+(*
+   DebugTree - display the tree, t.
+*)
+
+PROCEDURE DebugTree (t: Tree) ;
+
+
+(*
+   ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
+*)
+
+PROCEDURE ExpandExpressionStatement (t: Tree) ;
+
+
+(*
+   RememberConstant - adds a tree, t, onto the list of constants to be marked
+                      whenever the ggc re-marks all used storage. Constants
+                      live throughout the whole compilation - and they
+                      can be used by many different functions if necessary.
+                      It returns, t.
+*)
+
+PROCEDURE RememberConstant (t: Tree) : Tree ;
+
+
+END gccgm2.

@@ -1,0 +1,90 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2GCCDeclare ;
+
+(*
+    Title      : M2GCCDeclare
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Sat Jul 17 10:28:43 1999
+    Last edit  : Sat Jul 17 10:28:43 1999
+    Description: declares Modula-2 types to GCC, it attempts
+                 to only declare a type once all subcomponents are known.
+                 Basically it is a hybrid of M2EvalSym and M2GDB in the
+                 directory above.
+*)
+
+FROM gccgm2 IMPORT Tree ;
+EXPORT QUALIFIED FoldConstants, StartDeclareMainModule, EndDeclareMainModule,
+                 DeclareConstant, DeclareLocalVariables, PromoteToString,
+                 CompletelyResolved ;
+
+
+(*
+   FoldConstants - a wrapper for ResolveConstantExpressions.
+*)
+
+PROCEDURE FoldConstants ;
+
+
+(*
+   StartDeclareMainModule - declares types, variables associated with main module.
+*)
+
+PROCEDURE StartDeclareMainModule ;
+
+
+(*
+   EndDeclareMainModule - removes the scope associated with main module.
+*)
+
+PROCEDURE EndDeclareMainModule ;
+
+
+(*
+   DeclareConstant - declares a constant.
+*)
+
+PROCEDURE DeclareConstant (sym: CARDINAL) ;
+
+
+(*
+   DeclareLocalVariables - lists the Local variables for procedure Sym
+                           together with their offset.
+*)
+
+PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
+
+
+(*
+   PromoteToString - declare, sym, and then promote it to a string.
+                     Note that if sym is a single character we do *not* record it as a string
+                          but as a char however we always return a string constant.
+*)
+
+PROCEDURE PromoteToString (sym: CARDINAL) : Tree ;
+
+
+(*
+   CompletelyResolved - returns TRUE if a symbols has been completely resolved
+                        and is not partically declared (such as a record).
+*)
+
+PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
+
+
+END M2GCCDeclare.

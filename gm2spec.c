@@ -48,107 +48,44 @@ extern const char *find_file PARAMS ((const char *));
 #endif
 
 
-#define MAXPATHCHAR    64*1024         /* large enough not to worry */
-
 int lang_specific_extra_outfiles = 0;
-
-
-static int               found_verbose   = false;
-static int               need_to_link    =  true;
 
 /* #define DEBUGGING */
 
-/*
- *  convert_into_m2path - converts an include -Ioption into the equivalent
- *                        Modula-2 M2PATH space delimitered path.
- */
-
-static int convert_into_m2path (const char *incl)
-{
-  char *m2path=getenv("M2PATH");
-  char *newm2path;
-  int l=0;
-  int j=0;
-
-#if defined(DEBUGGING)
-  fprintf(stderr, "entered include = %s\n", incl);
-#endif
-  if (incl != NULL) {
-    l = strlen(incl);
-  }
-  if (m2path != NULL) {
-    j=strlen(m2path);
-  }
-  newm2path=(char *)xmalloc(j+l+1);
-
-  if (newm2path != NULL) {
-    int i=2;  /* skip -I */
-
-    if (m2path != NULL) {
-      strcpy(newm2path, m2path);
-    }
-    if (l>0) {
-      if (j>0) {
-	newm2path[j] = ' ';
-	j++;
-      }
-      while (i<l) {
-	if (incl[i] == ':') {
-	  newm2path[j] = ' ';
-	} else {
-	  newm2path[j] = incl[i];
-	}
-	j++;
-	i++;
-      }
-    }
-    newm2path[j] = (char)0;
-#if defined(DEBUGGING)
-    printf("M2PATH = %s\n", newm2path);
-#endif
-    return( setenv("M2PATH", newm2path, 1) );
-  }
-  return( false );
-}
-
-/*
- *  remove_args - removes args: i..i+n-1 from in_argc, in_argv
- */
-
-static void
-remove_args (in_argc, in_argv, i, n)
-     int *in_argc;
-     char ***in_argv;
-     int i;
-     int n;
-{
-  int j=i+n;
-
-  while (j<=*in_argc) {
-    (*in_argv)[i] = (*in_argv)[j];
-    i++;
-    j++;
-  }
-  *in_argc -= n;
-}
+void add_default_directories (int incl, char ***in_argv);
+void insert_arg (int  incl, int *in_argc, char ***in_argv);
+void lang_specific_driver (int *in_argc, char ***in_argv,
+			   int *in_added_libraries ATTRIBUTE_UNUSED);
+int  lang_specific_pre_link (void);
 
 
 /*
  *  add_default_directories - finally we add the current working directory and
  *                            the GM2 default library directory to the end of
- *                            M2PATH.
+ *                            the search path.
  */
 
 void
-add_default_directories (void)
+add_default_directories (incl, in_argv)
+     int incl;
+     char ***in_argv;
 {
   char *gm2libs;
   char  sepstr[2];
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
-  gm2libs   = (char *) alloca( strlen("-I") + strlen(LIBSUBDIR) + sizeof(DIR_SEPARATOR) + strlen("gm2") + 1);
-  strcpy(gm2libs, "-I");
+  if (in_argv[incl] == NULL) {
+    gm2libs = (char *) alloca(strlen("-I") +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
+    strcpy(gm2libs, "-I");
+  }
+  else {
+    gm2libs = (char *) alloca(strlen(*in_argv[incl]) + strlen(":") +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
+    strcpy(gm2libs, *in_argv[incl]);
+    strcat(gm2libs, ":");
+  }
   strcat(gm2libs, LIBSUBDIR);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
@@ -156,11 +93,35 @@ add_default_directories (void)
 #if defined(DEBUGGING)
   fprintf(stderr, "adding -I. and %s\n", gm2libs);
 #endif
-  if ((convert_into_m2path("-I.")) || (convert_into_m2path(gm2libs))) {
-    /*
-     *   want to say  	error ("out of memory trying to alter environment");
-     */
+  *in_argv[incl] = strdup(gm2libs);
+}
+
+/*
+ *  insert_arg - inserts an empty argument at position, incl.
+ *               in_argv and in_argc are updated accordingly.
+ */
+
+void
+insert_arg (incl, in_argc, in_argv)
+     int  incl;
+     int *in_argc;
+     char ***in_argv;
+{
+  int i=0;
+  char **new_argv = (char **)xmalloc(sizeof(char *) * (*in_argc + 1));
+  (*in_argc)++;
+
+  while (i < incl) {
+    new_argv[i] = *in_argv[i];
+    i++;
   }
+  new_argv[incl] = NULL;
+  i = incl+1;
+  while (i < *in_argc) {
+    new_argv[i] = *in_argv[i-1];
+    i++;
+  }
+  *in_argv = new_argv;
 }
 
 /*
@@ -173,10 +134,11 @@ add_default_directories (void)
 void
 lang_specific_driver (in_argc, in_argv, in_added_libraries)
      int *in_argc;
-     const char *const **in_argv;
+     char ***in_argv;
      int *in_added_libraries ATTRIBUTE_UNUSED;
 {
   int i=1;
+  int incl=-1;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -186,48 +148,11 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   i=1;
 #endif
 
-  /*
-   *  we need to remove the -M "thispath thatpath . whateverpath"
-   *  as the -M option in GCC is a linker option and takes no argument.
-   *  Since the Modula-2 front end will examine the M2PATH environment
-   *  variable we will use that.
-   */
-  
   while (i<*in_argc) {
-    if (strcmp((*in_argv)[i], "-M") == 0) {
-      /* found the offending path option, remove it */
-      if (i+1<*in_argc) {
-	if (setenv("M2PATH", (*in_argv)[i+1], 1)) {
-	  /*
-	   *  want to say  error ("out of memory trying to alter environment");
-	   */
-	  return;
-	}
-	remove_args(in_argc, in_argv, i, 2);
-      } else {
-	return;
-	/*
-	 *  want to say  error ("path argument to -M flag is missing");
-	 */
-	i++;
-      }
-    } else if (strncmp((*in_argv)[i], "-I", 2) == 0) {
-      if (convert_into_m2path((*in_argv)[i])) {
-	return;
-	/*
-	 *   want to say  	error ("out of memory trying to alter environment");
-	 */
-      }
-      remove_args(in_argc, in_argv, i, 1);
-    } else if (strcmp((*in_argv)[i], "-v") == 0) {
-      found_verbose = true;
-      i++;
-    } else if (strcmp((*in_argv)[i], "-c") == 0) {
-      need_to_link = false;
-      i++;
-    } else {
-      i++;
-    }
+    if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
+	(strcmp((*in_argv)[i], "-I-") != 0))
+      incl = i;
+    i++;
   }
 #if defined(DEBUGGING)
   i=1;
@@ -236,9 +161,12 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     i++;
   }
 #endif
-  add_default_directories();
+  if (incl == -1) {
+    incl = 1;
+    insert_arg(incl, in_argc, in_argv);
+  }
+  add_default_directories(incl, in_argv);
 }
-
 
 /*
  *  lang_specific_pre_link - does nothing.
@@ -247,5 +175,5 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 int
 lang_specific_pre_link ()
 {
-  return( 0 );
+  return 0;
 }

@@ -1,0 +1,42 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2SubExp ;
+
+(*
+    Title      : M2SubExp
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Thu Dec  7 12:40:51 1995
+    Last edit  : Thu Dec  7 12:40:51 1995
+    Description: removes common subexpressions from a basic block.
+                 It uses the algorithm presented in Aho, Sethi & Ullman
+                 "Compilers principles, techniques and tools" p. 549.
+*)
+
+EXPORT QUALIFIED RemoveCommonSubExpressions ;
+
+
+(*
+   RemoveCommonSubExpressions - removes all common subexpressions
+                                from the basic block delimited by
+                                the quadruples Start..End.
+*)
+
+PROCEDURE RemoveCommonSubExpressions (Start, End: CARDINAL) ;
+
+
+END M2SubExp.

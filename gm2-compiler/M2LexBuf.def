@@ -1,0 +1,161 @@
+DEFINITION MODULE M2LexBuf ;
+
+(*
+    Title      : M2LexBuf
+    Author     : Gaius Mulley
+    System     : UNIX (GNU Modula-2)
+    Date       : Fri Jul 27 12:42:13 2001
+    Description: provides a buffer for the all the tokens created by m2.lex.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+FROM M2Reserved IMPORT toktype ;
+FROM Strings IMPORT String ;
+EXPORT QUALIFIED OpenSource, CloseSource, GetToken, InsertToken,
+                 InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
+                 GetTokenNo, TokenToLineNo, FindFileNameFromToken, GetFileName,
+                 currenttoken, currentstring, currentinteger,
+                 AddTok, AddTokCharStar, AddTokInteger,
+                 SetFile, PushFile, PopFile ;
+
+VAR
+   currenttoken  : toktype ;
+   currentstring : ADDRESS ;
+   currentinteger: INTEGER ;
+
+
+(*
+   OpenSource - Attempts to open the source file, s.
+                The success of the operation is returned.
+*)
+
+PROCEDURE OpenSource (s: String) : BOOLEAN ;
+
+
+(*
+   CloseSource - closes the current open file.
+*)
+
+PROCEDURE CloseSource ;
+
+
+(*
+   GetToken - gets the next token into currenttoken.
+*)
+
+PROCEDURE GetToken ;
+
+
+(*
+   InsertToken - inserts a symbol, token, infront of the current token
+                 ready for the next pass.
+*)
+
+PROCEDURE InsertToken (token: toktype) ;
+
+
+(*
+   InsertTokenAndRewind - inserts a symbol, token, infront of the current token
+                          and then moves the token stream back onto the inserted token.
+*)
+
+PROCEDURE InsertTokenAndRewind (token: toktype) ;
+
+
+(*
+   GetPreviousTokenLineNo - returns the line number of the previous token.
+*)
+
+PROCEDURE GetPreviousTokenLineNo () : CARDINAL ;
+
+
+(*
+   GetLineNo - returns the current line number where the symbol occurs in
+               the source file.
+*)
+
+PROCEDURE GetLineNo () : CARDINAL ;
+
+
+(*
+   GetTokenNo - returns the number of tokens read from
+                the source file by the lexical analaysis.
+*)
+
+PROCEDURE GetTokenNo () : CARDINAL ;
+
+
+(*
+   TokenToLineNo - returns the line number of the current file for the
+                   TokenNo.
+*)
+
+PROCEDURE TokenToLineNo (TokenNo: CARDINAL) : CARDINAL ;
+
+
+(*
+   FindFileNameFromToken - returns the complete FileName for the appropriate
+                           source file yields the token number, TokenNo.
+*)
+
+PROCEDURE FindFileNameFromToken (TokenNo: CARDINAL) : String ;
+
+
+(*
+   GetFileName - assigns, a, to the current file name.
+*)
+
+PROCEDURE GetFileName () : String ;
+
+
+(* ***********************************************************************
+ *
+ * These functions allow m2.lex to deliver tokens into the buffer
+ *
+ ************************************************************************* *)
+
+(*
+   AddTok - adds a token to the buffer.
+*)
+
+PROCEDURE AddTok (t: toktype) ;
+
+
+(*
+   AddTokCharStar - adds a token to the buffer and an additional string, s.
+                    A copy of string, s, is made.
+*)
+
+PROCEDURE AddTokCharStar (t: toktype; s: ADDRESS) ;
+
+
+(*
+   AddTokInteger - adds a token and an integer to the buffer.
+*)
+
+PROCEDURE AddTokInteger (t: toktype; i: INTEGER) ;
+
+
+(*
+   SetFile - sets the current filename to, filename.
+*)
+
+PROCEDURE SetFile (filename: ADDRESS) ;
+
+
+(*
+   PushFile - indicates that, filename, has just been included.
+*)
+
+PROCEDURE PushFile (filename: ADDRESS) ;
+
+
+(*
+   PopFile - indicates that we are returning to, filename, having finished
+             an include.
+*)
+
+PROCEDURE PopFile (filename: ADDRESS) ;
+
+
+END M2LexBuf.

@@ -1,0 +1,318 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+DEFINITION MODULE libc ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : libc
+   Date       : Wed Jun  6 11:49:37 BST 1990
+   Description: Provides an interface to the C library functions.
+   Last update: Wed Jun  6 11:49:55 BST 1990
+*)
+
+(*
+    Author     : Keith Verheyden
+    System     : UNIX (gm2)
+    Date       : Mon May 20 11:08:56 1996
+    Last edit  : Mon May 20 11:08:56 1996
+    Description: Mods to include extra system calls for compiler server
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+EXPORT QUALIFIED write, read,
+                 system, abort,
+                 malloc, cfree,
+                 exit, isatty,
+                 getenv, getpid,
+                 dup, close, open, lseek,
+                 readv, writev,
+                 perror, creat,
+                 environ, setenv, getcwd, chown, strlen, strcpy,
+                 memcpy, memzero ;
+
+
+(*
+     int write(d, buf, nbytes)
+     int d;
+     char *buf;
+     int nbytes;
+*)
+
+PROCEDURE write (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+
+
+(*
+     int read(d, buf, nbytes)
+     int d;
+     char *buf;
+     int nbytes;
+*)
+
+PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+
+
+(*
+     system(string)
+     char *string;
+*)
+
+PROCEDURE system (a: ADDRESS) : INTEGER ;
+
+
+(*
+     abort - generate a fault
+
+     abort() first closes all open files if possible, then sends
+     an IOT signal to the process.  This signal usually results
+     in termination with a core dump, which may be used for
+     debugging.
+
+     It is possible for abort() to return control if is caught or
+     ignored, in which case the value returned is that of the
+     kill(2V) system call.
+*)
+
+PROCEDURE abort ;
+
+
+(*
+   malloc and cfree.
+
+DESCRIPTION
+     These routines provide a general-purpose memory allocation
+     package.  They maintain a table of free blocks for efficient
+     allocation and coalescing of free storage.  When there is no
+     suitable space already free, the allocation routines call
+     sbrk() (see brk(2)) to get more memory from the system.
+ 
+     Each of the allocation routines returns a pointer to space
+     suitably aligned for storage of any type of object. Each
+     returns a NULL pointer if the request cannot be completed.
+*)
+
+
+(*
+     malloc - memory allocator.
+
+     char *malloc(size)
+     unsigned size;
+
+     malloc() returns a pointer to a block of at least size
+     bytes, which is appropriately aligned.  If size is zero,
+     malloc() returns a non-NULL pointer, but this pointer should
+     not be dereferenced.
+*)
+
+PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
+
+
+(*
+     cfree - memory deallocator.
+ 
+     cfree(ptr)
+     char *ptr;
+
+     free() releases a previously allocated block.  Its argument
+     is a pointer to a block previously allocated by malloc, cal-
+     loc, realloc, malloc, or memalign.
+*)
+
+PROCEDURE cfree (ptr: ADDRESS) ;
+
+
+(*
+   isatty - returns true if the default input channel is the keyboard.
+*)
+
+PROCEDURE isatty () : BOOLEAN ;
+
+
+(*
+   exit - returns control to the invoking process. Result, r, is
+          returned.
+*)
+
+PROCEDURE exit (r: INTEGER) ;
+
+
+(*
+   getenv - returns the C string for the equivalent C environment
+            variable.
+*)
+
+PROCEDURE getenv (s: ADDRESS) : ADDRESS ;
+
+
+(*
+   getpid - returns the UNIX process identification number.
+*)
+
+PROCEDURE getpid () : INTEGER ;
+
+
+(*
+   dup - duplicates the file descriptor, d.
+*)
+
+PROCEDURE dup (d: INTEGER) : INTEGER ;
+
+
+(*
+   close - closes the file descriptor, d.
+*)
+
+PROCEDURE close (d: INTEGER) : INTEGER ;
+
+
+(*
+   open - open the file, filename with flag and mode.
+*)
+
+PROCEDURE open (filename: ADDRESS; flag, mode: CARDINAL) : INTEGER ;
+
+
+(* 
+   creat - creates a new file 
+*)
+
+PROCEDURE creat (filename : ADDRESS; mode : CARDINAL) : INTEGER;
+
+
+(*
+   lseek - calls unix lseek:
+
+           off_t lseek(int fildes, off_t offset, int whence);
+*)
+
+PROCEDURE lseek (fd: INTEGER; offset: INTEGER; whence: INTEGER) : INTEGER ;
+
+
+(* 
+   perror - writes errno and string 
+*)
+
+PROCEDURE perror (string: ADDRESS);
+
+
+(*
+   readv - reads an io vector of bytes.
+*)
+
+PROCEDURE readv (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
+
+
+(*
+   writev - writes an io vector of bytes.
+*)
+
+PROCEDURE writev (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
+
+
+(*
+   environ - returns the libc variable environ.
+*)
+
+PROCEDURE environ () : ADDRESS ;
+
+
+(*
+   setenv - adds the variable name to the environment with the
+            value value, if name does not already exist.
+            If name does exist in the environment, then its
+            value is changed to value if overwrite is non-zero;
+            if overwrite is zero, then the value of name is not changed.
+
+            The setenv function returns zero on success, or -1 if
+            there was insufficient space in the environment.
+*)
+
+PROCEDURE setenv (name, value: ADDRESS; overwrite: INTEGER) : INTEGER ;
+
+
+(*
+   getcwd - copies the absolute pathname of  the
+            current  working directory to the array pointed to by buf,
+            which is of length size.
+
+            If the current absolute path name would require  a  buffer
+            longer  than size elements, NULL is returned, and errno is
+            set to ERANGE; an application should check for this error,
+            and allocate a larger buffer if necessary.
+*)
+
+PROCEDURE getcwd (buf: ADDRESS; size: INTEGER) : ADDRESS ;
+
+
+(*
+   chown - The  owner  of  the  file  specified  by  path or by fd is
+           changed.  Only the super-user may change the  owner  of  a
+           file.   The  owner  of  a file may change the group of the
+           file to any group of which that owner is  a  member.   The
+           super-user may change the group arbitrarily.
+
+           If  the owner or group is specified as -1, then that ID is
+           not changed.
+
+           On success, zero is returned.  On error, -1  is  returned,
+           and errno is set appropriately.
+*)
+
+PROCEDURE chown (filename: ADDRESS; uid, gid: INTEGER) : INTEGER ;
+
+
+(*
+   strlen - returns the length of string, a.
+*)
+
+PROCEDURE strlen (a: ADDRESS) : INTEGER ;
+
+
+(*
+   strcpy - copies string, src, into, dest.
+*)
+
+PROCEDURE strcpy (dest, src: ADDRESS) ;
+
+
+(*
+   memcpy - copy memory area
+
+   SYNOPSIS
+
+   #include <string.h>
+
+   void *memcpy(void *dest, const void *src, size_t n);
+*)
+
+PROCEDURE memcpy (dest, src: ADDRESS; size: CARDINAL) ;
+
+
+(*
+   memset - fill memory with a constant byte
+
+   SYNOPSIS
+
+   #include <string.h>
+
+   void *memset(void *s, int c, size_t n);
+*)
+
+PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) ;
+
+
+END libc.

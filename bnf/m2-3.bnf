@@ -43,7 +43,6 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P3Build ;
 
-FROM M2Atom IMPORT IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2 ;
 FROM NameKey IMPORT NulName ;
@@ -92,7 +91,8 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildDesignatorArray,
                     BuildDesignatorPointer,
                     CheckWithReference,
-                    CheckOuterScopeProcedureVariable ;
+                    CheckOuterScopeProcedureVariable,
+                    IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        P3EndBuildProgModule,
@@ -550,12 +550,13 @@ ImplementationOrProgramModule :=                                           % Pus
 
 Number := Integer | Real =:
 
-Qualident :=                                                               % VAR Name, Type, Sym: CARDINAL ; %
+Qualident :=                                                               % VAR name: Name;
+                                                                                 Type, Sym: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
-                                                                                PopT(Name) ;
-                                                                                Sym := RequestSym(Name) ;
+                                                                                PopT(name) ;
+                                                                                Sym := RequestSym(name) ;
                                                                                 IF IsDefImp(Sym) OR IsModule(Sym)
                                                                                 THEN
                                                                                    Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
@@ -1143,7 +1144,8 @@ AsmStatement :=                                                            % VAR
                                                                            %
                   ')' =:
 
-AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash, string: CARDINAL ;
+AsmOperands :=                                                             % VAR CurrentAsm, outputs, inputs, trash: CARDINAL ;
+                                                                                 string: Name;
                                                                            %
                String                                                      % IF Pass3
                                                                              THEN
@@ -1188,7 +1190,8 @@ AsmList     :=                                                             % IF 
                                                                            %
                [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement :=                                                              % VAR str, expr, CurrentInterface: CARDINAL ; %
+AsmElement :=                                                              % VAR str: Name;
+                                                                                 expr, CurrentInterface: CARDINAL ; %
               String '(' Expression                                        % IF Pass3
                                                                              THEN
                                                                                 PopT(expr) ;
@@ -1205,7 +1208,8 @@ AsmElement :=                                                              % VAR
                       ')'
            =:
 
-TrashList :=                                                               % VAR CurrentInterface, str: CARDINAL ; %
+TrashList :=                                                               % VAR CurrentInterface: CARDINAL ;
+                                                                                 str: Name; %
              [ String                                                      % IF Pass3
                                                                              THEN
                                                                                 PopT(str) ;

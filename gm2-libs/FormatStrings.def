@@ -1,0 +1,54 @@
+DEFINITION MODULE FormatStrings ;
+
+(*
+    Title      : FormatStrings
+    Author     : Gaius Mulley
+    System     : UNIX (GNU Modula-2)
+    Date       : Fri Jul 27 14:12:31 2001
+    Last edit  : Fri Jul 27 14:12:31 2001
+    Description: provides a pseudo printf capability for GM2.
+*)
+
+FROM SYSTEM IMPORT WORD ;
+FROM Strings IMPORT String ;
+EXPORT QUALIFIED Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
+
+
+(*
+   Sprintf0 - returns a String containing, s, after it has had its
+              escape sequences translated.
+*)
+
+PROCEDURE Sprintf0 (s: String) : String ;
+
+
+(*
+   Sprintf1 - returns a String containing, s, together with encapsulated
+              entity, w. It only formats the first %s or %d with n.
+*)
+
+PROCEDURE Sprintf1 (s: String; w: WORD) : String ;
+
+
+(*
+   Sprintf2 - returns a string, s, which has been formatted.
+*)
+
+PROCEDURE Sprintf2 (s: String; w1, w2: WORD) : String ;
+
+
+(*
+   Sprintf3 - returns a string, s, which has been formatted.
+*)
+
+PROCEDURE Sprintf3 (s: String; w1, w2, w3: WORD) : String ;
+
+
+(*
+   Sprintf4 - returns a string, s, which has been formatted.
+*)
+
+PROCEDURE Sprintf4 (s: String; w1, w2, w3, w4: WORD) : String ;
+
+
+END FormatStrings.

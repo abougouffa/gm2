@@ -1,0 +1,194 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+DEFINITION MODULE Strings ;
+
+(*
+    Title      : Strings
+    Author     : Gaius Mulley
+    System     : UNIX (GNU Modula-2)
+    Date       : Wed Jul 25 19:24:41 2001
+    Last edit  : Wed Jul 25 19:24:41 2001
+    Description: provides a dynamic string type and common methods.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT QUALIFIED String,
+                 InitString, KillString, InitStringCharStar, InitStringChar,
+                 Index, RIndex,
+                 Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
+                 Equal, EqualCharStar, EqualArray,
+                 Mult, Slice, Char, string ;
+
+TYPE
+   String ;
+
+
+(*
+   InitString - creates and returns a String type object.
+                Initial contents are, a.
+*)
+
+PROCEDURE InitString (a: ARRAY OF CHAR) : String ;
+
+
+(*
+   KillString - frees String, s, and its contents.
+                NIL is returned.
+*)
+
+PROCEDURE KillString (s: String) : String ;
+
+
+(*
+   InitStringCharStar - initializes and returns a String to contain the C string.
+*)
+
+PROCEDURE InitStringCharStar (a: ADDRESS) : String ;
+
+
+(*
+   InitStringChar - initializes and returns a String to contain the single character, ch.
+*)
+
+PROCEDURE InitStringChar (ch: CHAR) : String ;
+
+
+(*
+   Mark - marks String, s, ready for garbage collection.
+*)
+
+PROCEDURE Mark (s: String) : String ;
+
+(*
+   Length - returns the length of the String, s.
+*)
+
+PROCEDURE Length (s: String) : CARDINAL ;
+
+
+(*
+   ConCat - returns String, a, after the contents of, b, have been appended.
+*)
+
+PROCEDURE ConCat (a, b: String) : String ;
+
+
+(*
+   ConCatChar - returns String, a, after character, ch, has been appended.
+*)
+
+PROCEDURE ConCatChar (a: String; ch: CHAR) : String ;
+
+
+(*
+   Assign - assigns the contents of, b, into, a.
+            String, a, is returned.
+*)
+
+PROCEDURE Assign (a, b: String) : String ;
+
+
+(*
+   Dup - duplicate a String, s, returning the copy of s.
+*)
+
+PROCEDURE Dup (s: String) : String ;
+
+
+(*
+   Add - returns a new String which contains the contents of a and b.
+*)
+
+PROCEDURE Add (a, b: String) : String ;
+
+
+(*
+   Equal - returns TRUE if String, a, and, b, are equal.
+*)
+
+PROCEDURE Equal (a, b: String) : BOOLEAN ;
+
+
+(*
+   EqualCharStar - returns TRUE if contents of String, s, is the same as the
+                   string, a.
+*)
+
+PROCEDURE EqualCharStar (s: String; a: ADDRESS) : BOOLEAN ;
+
+
+(*
+   EqualArray - returns TRUE if contents of String, s, is the same as the
+                string, a.
+*)
+
+PROCEDURE EqualArray (s: String; a: ARRAY OF CHAR) : BOOLEAN ;
+
+
+(*
+   Mult - returns a new string which is n concatenations of String, s.
+*)
+
+PROCEDURE Mult (s: String; n: CARDINAL) : String ;
+
+
+(*
+   Slice - returns a new string which contains the elements
+           low..high-1
+
+           strings start at element 0
+           Slice(s, 1, 3)  will return elements 1, 2 but not 3
+           Slice(s, 2, 0)  will return elements 2..max
+           Slice(s, 3, -1) will return elements 3..max-1
+           Slice(s, 4, -2) will return elements 4..max-2
+*)
+
+PROCEDURE Slice (s: String; low, high: INTEGER) : String ;
+
+
+(*
+   Index - returns the indice of the first occurance of, ch, in
+           String, s. -1 is returned if, ch, does not exist.
+           The search starts at position, o.
+*)
+
+PROCEDURE Index (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
+
+
+(*
+   RIndex - returns the indice of the last occurance of, ch,
+            in String, s.
+*)
+
+PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
+
+
+(*
+   Char - returns the character, ch, at position, i, in String, s.
+*)
+
+PROCEDURE Char (s: String; i: CARDINAL) : CHAR ;
+
+
+(*
+   string - returns the C style char * of String, s.
+*)
+
+PROCEDURE string (s: String) : ADDRESS ;
+
+
+END Strings.

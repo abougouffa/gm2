@@ -1,0 +1,108 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Reserved ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : M2Reserved
+   Date       : 15/5/87
+   Description: Implements a procedure to determine if a symbol is a
+                Modula-2 reserved word.
+   Last update: 15/5/87
+*)
+
+FROM NameKey IMPORT Name ;
+
+EXPORT QUALIFIED IsReserved, tokToTok,
+
+   NulTok, PlusTok, MinusTok, TimesTok, DivideTok, BecomesTok,
+   AmbersandTok, PeriodTok, CommaTok, SemiColonTok, LParaTok,
+   LSBraTok, LCBraTok, UpArrowTok, SingleQuoteTok, EqualTok,
+   HashTok, LessTok, GreaterTok, LessGreaterTok, LessEqualTok,
+   GreaterEqualTok, PeriodPeriodTok, ColonTok, RParaTok,
+   RSBraTok, RCBraTok, BarTok, DoubleQuotesTok,
+
+   AndTok, ArrayTok, BeginTok, ByTok, CaseTok, ConstTok,
+   DefinitionTok, DivTok, DoTok, ElseTok, ElsifTok, EndTok,
+   ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
+   ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
+   OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
+   UnQualifiedTok, RecordTok, RepeatTok, ReturnTok, SetTok,
+   ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
+
+   (* additional tokens which extend PIM Modula-2 slightly *)
+   EofTok, AsmTok, VolatileTok, DateTok, LineTok, FileTok,
+
+   toktype ;
+
+TYPE
+   toktype = (eoftok, plustok, minustok, timestok, dividetok,
+              becomestok, ambersandtok, periodtok, commatok,
+              semicolontok, lparatok, rparatok, lsbratok, rsbratok,
+              lcbratok, rcbratok, uparrowtok, singlequotetok,
+              equaltok, hashtok, lesstok, greatertok, lessgreatertok,
+              lessequaltok, greaterequaltok, periodperiodtok,
+              colontok, doublequotestok, bartok, andtok,
+              arraytok, begintok, bytok, casetok, consttok,
+              definitiontok, divtok, dotok, elsetok, elsiftok,
+              endtok, exittok, exporttok, fortok, fromtok, iftok,
+              implementationtok, importtok, intok, looptok, modtok,
+              moduletok, nottok, oftok, ortok, pointertok,
+              proceduretok, qualifiedtok, unqualifiedtok,
+              recordtok, repeattok, returntok, settok, thentok,
+              totok, typetok, untiltok, vartok, whiletok, withtok,
+              asmtok, volatiletok, periodperiodperiodtok,
+              datetok, linetok, filetok,
+              integertok, identtok, realtok, stringtok) ;
+
+VAR
+   NulName,
+   NulTok, PlusTok, MinusTok, TimesTok, DivideTok, BecomesTok,
+   AmbersandTok, PeriodTok, CommaTok, SemiColonTok, LParaTok,
+   LSBraTok, LCBraTok, UpArrowTok, SingleQuoteTok, EqualTok,
+   HashTok, LessTok, GreaterTok, LessGreaterTok, LessEqualTok,
+   GreaterEqualTok, PeriodPeriodTok, ColonTok, RParaTok,
+   RSBraTok, RCBraTok, BarTok, DoubleQuotesTok,
+
+   AndTok, ArrayTok, BeginTok, ByTok, CaseTok, ConstTok,
+   DefinitionTok, DivTok, DoTok, ElseTok, ElsifTok, EndTok,
+   ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
+   ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
+   OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
+   UnQualifiedTok, RecordTok, RepeatTok, ReturnTok, SetTok,
+   ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
+
+   EofTok, AsmTok, VolatileTok, DateTok, LineTok, FileTok: Name ;
+
+
+(*
+   IsReserved - returns TRUE if the symbol, Name, is a reserved word.
+                If TRUE it also sets tok to the appropriate enumerated
+                value.
+*)
+
+PROCEDURE IsReserved (n: Name; VAR tok: toktype) : BOOLEAN ;
+
+
+(*
+   tokToTok - returns a Tok given the enumerated variable, t.
+*)
+
+PROCEDURE tokToTok (t: toktype) : CARDINAL ;
+
+
+END M2Reserved.

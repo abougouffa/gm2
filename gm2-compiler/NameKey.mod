@@ -1,0 +1,385 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+IMPLEMENTATION MODULE NameKey ;
+
+
+FROM SYSTEM IMPORT ADR ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM StrIO IMPORT WriteString, WriteLn ;
+FROM StdIO IMPORT Write ;
+FROM NumberIO IMPORT WriteCard ;
+FROM StrLib IMPORT StrLen ;
+FROM libc IMPORT strlen ;
+FROM ASCII IMPORT nul ;
+
+
+TYPE
+   PtrToChar  = POINTER TO CHAR ;
+
+   NameNode   = POINTER TO Node ;
+   Node       = RECORD
+                   Key  : Name ;
+                   Left,
+                   Right: NameNode ;
+                END ;
+
+   Comparison = (less, equal, greater) ;
+
+VAR
+   BinaryTree: NameNode ;
+
+
+(* %%%FORWARD%%%
+PROCEDURE FindNodeAndParentInTree (n: Name; VAR child, father: NameNode) : Comparison ; FORWARD ;
+   %%%FORWARD%%% *)
+
+
+(*
+   GetKey - returns the name, a, of the key, Key.
+*)
+
+PROCEDURE GetKey (key: Name; VAR a: ARRAY OF CHAR) ;
+VAR
+   p       : PtrToChar ;
+   i, higha: CARDINAL ;
+BEGIN
+   p := PtrToChar(key) ;
+   i := 0 ;
+   higha := HIGH(a) ;
+   WHILE (i<higha) AND (p^#nul) DO
+      a[i] := p^ ;
+      INC(p) ;
+      INC(i)
+   END ;
+   IF i<=higha
+   THEN
+      a[i] := nul
+   END
+END GetKey ;
+
+
+(*
+   IsKey - returns TRUE if string, a, is currently a key.
+           We dont use the Compare function, we inline it and avoid
+           converting, a, into a String, for speed.
+*)
+
+PROCEDURE IsKey (a: ARRAY OF CHAR) : BOOLEAN ;
+VAR
+   child : NameNode ;
+   p     : PtrToChar ;
+   i,
+   higha : CARDINAL ;
+BEGIN
+   (* firstly set up the initial values of child, using sentinal node *)
+   child := BinaryTree^.Left ;
+   IF child#NIL
+   THEN
+      REPEAT
+         i := 0 ;
+         higha := HIGH(a) ;
+         p := PtrToChar(child^.Key) ;
+         WHILE (i<=higha) AND (a[i]#nul) DO
+            IF a[i]<p^
+            THEN
+               child := child^.Left ;
+               i := higha
+            ELSIF a[i]>p^
+            THEN
+               child := child^.Right ;
+               i := higha
+            ELSE
+               IF (a[i]=nul) OR (i=higha)
+               THEN
+                  IF p^=nul
+                  THEN
+                     RETURN( TRUE )
+                  ELSE
+                     child := child^.Left
+                  END
+               END ;
+               INC(p)
+            END ;
+            INC(i)
+         END ;
+      UNTIL child=NIL
+   END ;
+   RETURN( FALSE ) ;
+END IsKey ;
+
+
+(*
+   DoMakeKey - finds the name, n, in the tree or else create a name.
+               If a name is found then the string, n, is deallocated.
+*)
+
+PROCEDURE DoMakeKey (n: Name; higha: CARDINAL) : Name ;
+VAR
+   result: Comparison ;
+   father,
+   child : NameNode ;
+BEGIN
+   result := FindNodeAndParentInTree(n, child, father) ;
+   IF child=NIL
+   THEN
+      IF result=less
+      THEN
+         NEW(child) ;
+         father^.Left := child
+      ELSIF result=greater
+      THEN
+         NEW(child) ;
+         father^.Right := child
+      END ;
+      WITH child^ DO
+         Right := NIL ;
+         Left := NIL ;
+         Key := n
+      END
+   ELSE
+      DEALLOCATE(n, higha+1) ;
+      n := child^.Key
+   END ;
+   RETURN( n )
+END DoMakeKey ;
+
+
+(*
+   MakeKey - returns the Key of the symbol, a. If a is not in the 
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+*)
+
+PROCEDURE MakeKey (a: ARRAY OF CHAR) : Name ;
+VAR
+   n     : Name ;
+   p     : PtrToChar ;
+   i,
+   higha : CARDINAL ;
+BEGIN
+   higha := StrLen(a) ;
+   ALLOCATE(p, higha+1) ;
+   IF p=NIL
+   THEN
+      HALT      (* out of memory error *)
+   ELSE
+      n := Name(p) ;
+      i := 0 ;
+      WHILE (i<higha) DO
+         p^ := a[i] ;
+         INC(i) ;
+         INC(p)
+      END ;
+      p^ := nul ;
+
+      RETURN( DoMakeKey(n, higha) )
+   END 
+END MakeKey ;
+
+
+(*
+   makekey - returns the Key of the symbol, a. If a is not in the 
+             name table then it is added, otherwise the Key of a is returned
+             directly. Note that the name table has no scope - it merely
+             presents a more convienient way of expressing strings. By a Key.
+             These keys last for the duration of compilation.
+*)
+
+PROCEDURE makekey (a: ADDRESS) : Name ;
+VAR
+   n     : Name ;
+   p, pa : PtrToChar ;
+   i,
+   higha : CARDINAL ;
+BEGIN
+   higha := strlen(a) ;
+   ALLOCATE(p, higha+1) ;
+   IF p=NIL
+   THEN
+      HALT      (* out of memory error *)
+   ELSE
+      n  := Name(p) ;
+      pa := a ;
+      i  := 0 ;
+      WHILE (i<higha) DO
+         p^ := pa^ ;
+         INC(i) ;
+         INC(p) ;
+         INC(pa)
+      END ;
+      p^ := nul ;
+
+      RETURN( DoMakeKey(n, higha) )
+   END
+END makekey ;
+
+
+(*
+   LengthKey - returns the StrLen of Key.
+*)
+
+PROCEDURE LengthKey (Key: Name) : CARDINAL ;
+VAR
+   i: CARDINAL ;
+   p: PtrToChar ;
+BEGIN
+   p := Key ;
+   i := 0 ;
+   WHILE p^#nul DO
+      INC(i) ;
+      INC(p)
+   END ;
+   RETURN( i )
+END LengthKey ;
+
+
+(*
+   Compare - return the result of Names[i] with Names[j]
+*)
+
+PROCEDURE Compare (i, j: Name) : Comparison ;
+VAR
+   pi, pj: PtrToChar ;
+   c1, c2: CHAR ;
+BEGIN
+   pi := i ;
+   pj := j ;
+   c1 := pi^ ;
+   c2 := pj^ ;
+   WHILE (c1#nul) OR (c2#nul) DO
+      IF c1<c2
+      THEN
+         RETURN( less )
+      ELSIF c1>c2
+      THEN
+         RETURN( greater )
+      ELSE
+         INC(pi) ;
+         INC(pj) ;
+         c1 := pi^ ;
+         c2 := pj^
+      END
+   END ;
+   RETURN( equal )
+END Compare ;
+
+
+(*
+   FindNodeAndParentInTree - search BinaryTree for a name.
+                             If this name is found in the BinaryTree then
+                             child is set to this name and father is set to the node above.
+                             A comparison is returned to assist adding entries into this tree.
+*)
+
+PROCEDURE FindNodeAndParentInTree (n: Name; VAR child, father: NameNode) : Comparison ;
+VAR
+   result: Comparison ;
+BEGIN
+   (* firstly set up the initial values of child and father, using sentinal node *)
+   father := BinaryTree ;
+   child := BinaryTree^.Left ;
+   IF child=NIL
+   THEN
+      RETURN( less )
+   ELSE
+      REPEAT
+         result := Compare(n, child^.Key) ;
+         IF result=less
+         THEN
+            father := child ;
+            child := child^.Left
+         ELSIF result=greater
+         THEN
+            father := child ;
+            child := child^.Right
+         END
+      UNTIL (child=NIL) OR (result=equal) ;
+      RETURN( result )
+   END
+END FindNodeAndParentInTree ;
+
+
+(*
+   IsSameExcludingCase - returns TRUE if key1 and key2 are
+                         the same. It is case insensitive.
+                         This function deliberately inlines CAP for speed.
+*)
+
+PROCEDURE IsSameExcludingCase (key1, key2: Name) : BOOLEAN ;
+VAR
+   pi, pj: PtrToChar ;
+   c1, c2: CHAR ;
+BEGIN
+   IF key1=key2
+   THEN
+      RETURN( TRUE )
+   ELSE
+      pi := key1 ;
+      pj := key2 ;
+      c1 := pi^ ;
+      c2 := pj^ ;
+      WHILE (c1#nul) AND (c2#nul) DO
+         IF (c1=c2) OR
+            (((c1>='A') AND (c1<='Z')) AND (c2=CHR(ORD(c1)-ORD('A')+ORD('a')))) OR
+            (((c2>='A') AND (c2<='Z')) AND (c1=CHR(ORD(c2)-ORD('A')+ORD('a'))))
+         THEN
+            INC(pi) ;
+            INC(pj) ;
+            c1 := pi^ ;
+            c2 := pj^
+         ELSE
+            (* difference found *)
+            RETURN( FALSE )
+         END
+      END ;
+      RETURN( c1=c2 )
+   END
+END IsSameExcludingCase ;
+
+
+(*
+   KeyToCharStar - returns the C char * string equivalent for, key.
+*)
+
+PROCEDURE KeyToCharStar (key: Name) : ADDRESS ;
+BEGIN
+   RETURN( ADDRESS(key) )
+END KeyToCharStar ;
+
+
+PROCEDURE WriteKey (key: Name) ;
+VAR
+   s: PtrToChar ;
+BEGIN
+   s := key ;
+   WHILE (s#NIL) AND (s^#nul) DO
+      Write(s^) ;
+      INC(s)
+   END
+END WriteKey ;
+
+
+BEGIN
+   NEW(BinaryTree) ;
+   BinaryTree^.Left := NIL
+END NameKey.
+(*
+ * Local variables:
+ *  compile-command: "m2f -quiet -g -verbose -M \". ../gm2-libs\" -o NameKey.o NameKey.mod"
+ * End:
+ *)

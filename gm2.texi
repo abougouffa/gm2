@@ -21,7 +21,7 @@
 @ifinfo
 This is a short example of a complete Texinfo file.
 
-Copyright @copyright{} 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001 Free Software Foundation, Inc.
 @end ifinfo
 
 @c Part 3: Titlepage and Copyright
@@ -37,7 +37,7 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 30 November 2000
+@center Last updated 31 October 2001
 @sp 1
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000 Free Software Foundation, Inc.
@@ -68,7 +68,7 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 * Assembly language:: Interface to assembly language.
 @end menu
 
-@node About, History, , Using
+@node About, Compiler options, , Using
 @section About
 
 This file contains design notes accompanying the Modula-2
@@ -80,20 +80,9 @@ Although it does include minor extensions.
 
 The libraries are currently a mixture of ISO Modula-2 and
 'Programming in Modula-2'. It is our aim to extend the
-GNU Modula-2 to include PIM3 and PIM4 command line switches
-to include later language alterations.
+GNU Modula-2 to include PIM3 and PIM4 compatability.
 
-@node History, Compiler options, About, Using
-@section History
-
-The Modula-2 compiler sources have come from the m2f compiler which
-runs under GNU/Linux. The original m2f compiler was written in Modula-2
-and was bootstrapped via a "hacked" version of p2c 1.20. The m2f
-compiler was a recursive descent which generated quadruples as
-intermediate code. It also used C style calling convention wherever
-possible and utilized a C structure for dynamic arrays.
-
-@node Compiler options, Example usage, History, Using
+@node Compiler options, Example usage, About, Using
 @section Compiler options
 
 This section describe the compiler options specific to GNU Modula-2 for
@@ -121,12 +110,12 @@ generates quadruple information: number of quadruples generated,
 number of quadruples remaining after optimization.
 
 @item -Wstudents
-checks for novice peculiarities. Note that these warnings are not
-the same as error messages. Hardened users of Modula-2 may wish to ignore this
-option as it checks to see whether a user has declared a variable name
-twice which looks the same and whether a variable looks similar to a keyword.
-(Case difference etc). This is of course quite legal Modula-2 but
-some first year students might find this option useful.
+checks for bad programming style. This option is aimed at
+new users of Modula-2 in that it checks for situations which
+might cause confusion and thus mistakes.
+It checks whether variables of the same name are declared in
+different scopes and whether variables look like keywords.
+Experienced users might find this option too agressive.
 
 @item -Wpedantic
 forces the compiler to reject nested @samp{WITH}
@@ -239,72 +228,41 @@ column.
 The GNU Modula-2 compiler tries to use the C calling convention wherever
 possible however some parameters have no C equivalent and
 thus a language specific method is used. For example unbounded
-arrays are passed as a @code{struct void *address, unsigned int high }
+arrays are passed as a @code{struct void *address, unsigned int high}
 and the contents of these arrays are copied by callee functions
 when they are declared as non @code{VAR} parameters.
 The @code{VAR} equivalent unbounded array parameters need no copy,
 but still use the @code{struct} representation.
 
-The recommended method of interfacing GNU Modula-2 to C is by using
-a dummy definition module and writing a C wrapper implementation module.
-For example suppose we wish to utilize the
-@code{read} function within libc. In this case we might write a
-definition module as shown below:
+The recommended method of interfacing GNU Modula-2 to C is by telling
+the definition module that the implmentation is in the C language.
+This is achieved by using the keywords @code{DEFINITION MODULE FOR C}.
+For example:
 
 @example
-DEFINITION MODULE libc ;
+DEFINITION MODULE FOR C libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED read ;
+EXPORT UNQUALIFIED read, printf ;
 
 PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+PROCEDURE printf (a: ARRAY OF CHAR; ...) ;
 
 END libc.
 @end example
 
-The C implementation module might look similar to this:
+the @code{UNQUALIFIED} keyword in the definition module informs
+GNU Modula-2 not to prefix the module name to exported references
+in the object file.
 
-@example
-int libc_read(int d, void *buf, int nbytes)
-@{
-  return( read(d, buf, nbytes) );
-@}
+The @code{printf} declaration states that the first parameter semantically
+matches @code{ARRAY OF CHAR} but since the module is for the C language
+it will be mapped onto @code{char *}. The token @code{...} indicates
+a variable number of arguments (varargs) and all parameters passed
+here are mapped onto the Modula-2 type @code{WORD}.
 
-void _M2_libc_init (void)
-@{
-@}
-@end example
-
-Notice the last function is currently required as all modules have
-an initialization section. In the C wrapper implemenation we provide
-this function to satisfy the linking mechanism.
-
-The mechanism of using a C implementation wrapper does add a slight overhead
-but reduces name clashes within a module importing from this module and
-solves the initialization function issue.
-
-The alternative method is to use the @code{UNQUALIFIED} keyword
-in the definition module which tells GNU Modula-2 not to prefix the module name
-to identifiers when emiting the assembly language. So if we were linking to
-libc again we would write our definition module as:
-
-@example
-DEFINITION MODULE libc ;
-
-FROM SYSTEM IMPORT ADDRESS ;
-EXPORT UNQUALIFIED read ;
-
-PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
-
-END libc.
-@end example
-
-and require no C wrapper implementation. In this case the file @file{libc.a}
-must be in the GNU Modula-2 link path.
-
-This second method is appropriate for linking modula-2 to C libraries, but
-does require that the definition module is independently kept up to date with
-the library.
+(--fixme--) include a short example of a user program using printf and
+give an exact compile/link command.
 
 @node Assembly language, , Interface to C, Using
 @section Interface to assembly language
@@ -341,64 +299,61 @@ Modula-2 compiler and how it integrates with GCC.
 The document is still in it's infancy.
 
 @menu
+* History::           Where the sources came from.
+* Overview::          Overview of the structure of GNU Modula-2.
 * Integrating::       How the front end integrates with gcc.
-* Practicalities::    Overview of how m2f is built.
+* Building::          How to build gm2.
 * Future::            A future wish list.
 * Done list::         Progression of the GNU Modula-2 project.
 * To do list::        Outstanding issues.
 @end menu
 
-@node Integrating, Practicalities, ,Internals
+@node History, Overview, , Internals
+@section History
+
+The Modula-2 compiler sources have come from the m2f compiler which
+runs under GNU/Linux. The original m2f compiler was written in Modula-2
+and was bootstrapped via a modified version of p2c 1.20. The m2f
+compiler was a recursive descent which generated quadruples as
+intermediate code. It also used C style calling convention wherever
+possible and utilized a C structure for dynamic arrays.
+
+@node Overview, Integrating, History, Internals
+@section Overview
+
+GNU Modula-2 uses flex and a machine generated recursive descent
+parser. Most of the source code is written in Modula-2 and
+bootstrapping is achieved via a modified version of p2c-1.20.
+The modified p2c-1.20 is contained in the GNU Modula-2 source
+tree as are a number of other tools necessary for bootstrapping.
+
+@node Integrating, Building, Overview, Internals
 @section How the front end integrates with gcc
 
-This section needs rewriting and is currently out of date
-(--fixme-- 20/9/2000).
-We need to convert the quadruples into tree structure and also
-declare variables, functions, modules, types seemingly at the
-same time. The m2f native code generators all took the quadruples
-and sequentially generated code. The GCC integration needs more
-thought as it must only declare items who have had their children
-already written out by GCC. The approach taken is as follows:
+The M2Base and M2System
+modules contain base types and system types respectively they
+map onto GCC backend data types.
 
-@itemize @bullet
-@item
-follow the M2GDB dependancy code to ensure that all TYPEs
-are declared and written to the assembly fule *without*
-need for forward references.
+@node Building, Future, Integrating, Internals
+@section Building
 
-@item
-At this point all of the types *seen* will be declared and
-written out in '.stabs'
+The GNU Modula-2 source tree should be unpacked in the GNU GCC
+source tree directory @file{gcc-version/gcc}. Typically this
+is achieved by the commands:
 
-@item
-then we can trawl though the quadruple list happily declaring
-functions and generating code in the knowledge that all types
-global variables have already been declared.
-Lists of quadruples are turned into trees and passed onto GCC.
-@end itemize
+@example
+cd gcc-version/gcc
+tar zxf gm2-version.tar.gz
+cd ../..
+@end example
 
-@node Practicalities, Future, Integrating, Internals
-@section Practicalities
+GNU Modula-2 can be built by typing:
 
-(Also out of date --fixme--).
-For the moment the directory gm2/m2 will contain the Modula-2
-source code for front end m2f. The m2f compiler will be built
-during stage1, stage2, stage3 in line with gcc. We introduce
-a stage0 which will build the "hacked" p2c-1.20 which translates
-the Modula-2 code into C during stage1. At a later stage we
-can dispense with the "hacked" p2c-1.20 and ship C/M2 source
-code maybe? Anyhow, currently that is a long way off and since
-major development will take place the p2c-1.20 will remain.
-
-In essence m2f will be given a new code generator namely "gcc".
-This new code generator performs the quadruples to tree conversion
-and symbol table to gcc symbol table conversion. This code will
-be a mixture of Modula-2 and C.
-The original M2ALU module containing simple arithmetic operators (used for
-constant folding) will be replaced by a skeleton M2ALU which utilizes
-the GCC tree constant folding functions. The M2Base and M2System
-modules containing base types and system types respectively are also
-rewritten to utilize the GCC backend data types.
+@example
+cd gcc-version
+./configure
+make
+@end example
 
 @node Future, Done list, Practicalities, Internals
 @section A future wish list

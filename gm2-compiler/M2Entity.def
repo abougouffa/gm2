@@ -1,0 +1,132 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Entity ;
+
+(*
+    Title      : M2Entity
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Tue Feb 18 11:46:36 1997
+    Last edit  : Tue Feb 18 11:46:36 1997
+    Description: provides a variable entity manipulation package.
+*)
+
+EXPORT QUALIFIED NulEntity,
+                 Entities,
+                 InitEntities,
+                 GetNoOfEntities,
+                 FindLatestEntity, GetLatestEntity,
+                 IsEntityClean, IsLValue,
+                 MakeEntityDirty, MakeEntityClean,
+                 GiveEntityIndex, GetEntityIndex, GetEntitySym, MakeNewEntity ;
+
+
+CONST
+   NulEntity   =    0 ;
+   MaxEntity   =  500 ;
+
+TYPE
+   Entities    = [0..MaxEntity] ;
+
+
+(*
+   InitEntities - destroy all entities.
+*)
+
+PROCEDURE InitEntities ;
+
+
+(*
+   GetNoOfEntities - returns the number of entities.
+*)
+
+PROCEDURE GetNoOfEntities () : CARDINAL ;
+
+
+(*
+   FindLatestEntity - returns the latest entity, possibly NulEntity.
+                      It does not create one.
+*)
+
+PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entities ;
+
+
+(*
+   GetLatestEntity - returns the latest entity of a variable.
+                     It will create one if necessary.
+*)
+
+PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+
+
+(*
+   IsEntityClean - returns TRUE if the entity, e, is clean.
+*)
+
+PROCEDURE IsEntityClean (e: Entities) : BOOLEAN ;
+
+
+(*
+   IsLValue - returns TRUE if entity, e, is an LValue
+*)
+
+PROCEDURE IsLValue (e: Entities) : BOOLEAN ;
+
+
+(*
+   MakeEntityDirty - 
+*)
+
+PROCEDURE MakeEntityDirty (e: Entities) ;
+
+
+(*
+   MakeEntityClean - 
+*)
+
+PROCEDURE MakeEntityClean (e: Entities) ;
+
+
+(*
+   GiveEntityIndex - 
+*)
+
+PROCEDURE GiveEntityIndex (e: Entities; index: CARDINAL) ;
+
+
+(*
+   GetEntityIndex - 
+*)
+
+PROCEDURE GetEntityIndex (e: Entities) : CARDINAL ;
+
+
+(*
+   GetEntitySym - 
+*)
+
+PROCEDURE GetEntitySym (e: Entities) : CARDINAL ;
+
+
+(*
+   MakeNewEntity - makes a new entity for symbol, Sym.
+*)
+
+PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+
+
+END M2Entity.

@@ -1,0 +1,67 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2Constants ;
+
+(*
+    Title      : M2Constants
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Thu Jul  4 13:01:11 1996
+    Last edit  : Thu Jul  4 13:01:11 1996
+    Description: provides a simple package for comparing constant symbols.
+*)
+
+EXPORT QUALIFIED IsSame, IsZero, IsOne, IsTwo, MakeNewConstFromValue ;
+
+
+(*
+   MakeNewConstFromValue - makes a new constant given a value on the M2ALU stack.
+*)
+
+PROCEDURE MakeNewConstFromValue () : CARDINAL ;
+
+
+(*
+   IsSame - returns TRUE if the symbols, s1, and, s2, are the same or
+            have the same constant value and same type.
+*)
+
+PROCEDURE IsSame (s1, s2: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsZero - returns TRUE if symbol, s, represents the value zero.
+*)
+
+PROCEDURE IsZero (s: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsOne - returns TRUE if symbol, s, represents the value one.
+*)
+
+PROCEDURE IsOne (s: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsTwo - returns TRUE if symbol, s, represents the value two.
+*)
+
+PROCEDURE IsTwo (s: CARDINAL) : BOOLEAN ;
+
+
+END M2Constants.

@@ -1,0 +1,52 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+DEFINITION MODULE Debug ;
+
+(*
+    Title      : Debug
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Sat Aug 13 19:41:57 1994
+    Last edit  : Sat Aug 13 19:41:57 1994
+    Description: provides some simple debugging routines.
+*)
+
+EXPORT QUALIFIED Halt, DebugString ;
+
+
+(*
+   Halt - writes a message in the format:
+          Module:Line:Message
+
+          to the debugging device. (Scn.Write).
+          It then terminates by looping forever.
+*)
+
+PROCEDURE Halt (Message: ARRAY OF CHAR;
+                LineNo: CARDINAL;
+                Module: ARRAY OF CHAR) ;
+
+
+(*
+   DebugString - writes a string to the debugging device (Scn.Write).
+                 It interprets \n as carriage return, linefeed.
+*)
+
+PROCEDURE DebugString (a: ARRAY OF CHAR) ;
+
+
+END Debug.

@@ -62,10 +62,9 @@ SHELL = /bin/sh
 MAKEINFO = makeinfo
 TEXI2DVI = texi2dvi
 LN_S=ln -s
-P2C=m2/comp/bin/p2c -c p2crc
-PRE=m2/comp/bin/mkfor
-M2LINK=m2/comp/bin/mklink
-GM2-VERSION=0.1
+P2C=boot-bin/p2c -c p2crc -M0 -q
+M2LINK=boot-bin/mklink
+GM2-VERSION=0.2
 GM2_FLAGS=-Wbounds -Wreturn -g
 
 # Define this as & to perform parallel make on a Sequent.
@@ -189,7 +188,7 @@ INCLUDES = -I. -I.. -I$(srcdir) -I$(srcdir)/.. -I$(srcdir)/../config -I$(srcdir)
 GM2_OBJS          = gccgm2.o                                         # the C implementation module bridging the Modula-2 -> GCC
 GM2_LIBS          = gm2-compiler/gm2.a gm2-libs/libgm2.a             # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2-compiler-boot/gm2.a gm2-libs-boot/libgm2.a \
-                    m2/comp/p2c/home/libp2c.a                        # the translated Modula-2 -> C front end
+                    p2c/p2c-src/home/libp2c.a                        # the translated Modula-2 -> C front end
 GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
                     gm2-libs-paranoid/libgm2.a                       # build it again using GM2_LIBS
 
@@ -201,13 +200,13 @@ compiler: ../cc1gm2$(exeext) gm2support
 
 paranoid: ../bcc1gm2$(exeext) verifyparanoid
 
-../bcc1gm2$(exeext): ../cc1gm2$(exeext) checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
+../bcc1gm2$(exeext): ../cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS)
 
-../cc1gm2$(exeext): ../acc1gm2$(exeext) checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+../cc1gm2$(exeext): ../acc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
 
-../acc1gm2$(exeext): checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+../acc1gm2$(exeext): $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(srcdir)/../configure
@@ -246,68 +245,9 @@ c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../c-convert.c | sed 's,^\./,,'`
 
-gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
-	rm -f m2/config.h ; cd m2 ; ln -s config.h.gcc config.h
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)" \
-               "PUSH=LEFTTORIGHT" \
-               "DEBUG=-g" \
-               "BINDIR=$$M2PWD/bin" \
-               "BINDIR1=$$M2PWD/bin1" \
-               "INCFILE=$$M2PWD/tools/incfile" \
-               "MAKEVERSION=$$M2PWD/tools/makeversion" \
-               "MAKECONFIGURE=$$M2PWD/tools/makeconfigure" \
-               "STAGEFILE=$$M2PWD/.stage" \
-               "MAJORFILE=$$M2PWD/.major" \
-               "MINORFILE=$$M2PWD/.minor" \
-               "ARCHIVEFILE=$$M2PWD/.archive" \
-               "AR=ar" \
-               "COPY=cp" \
-               "LN=ln -s" \
-               "MV=mv" \
-               "P2C=$$M2PWD/bin/p2c" \
-               "P2CDIR=$$M2PWD/p2c/home" \
-               "PRE=$$M2PWD/bin/mkfor" \
-               "M2LINK=$$M2PWD/bin/mklink" \
-               stage1.gcc )
-
-gm2tools: force
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)" \
-               "PUSH=LEFTTORIGHT" \
-               "DEBUG=-g" \
-               "BINDIR=$$M2PWD/bin" \
-               "BINDIR1=$$M2PWD/bin1" \
-               "INCFILE=$$M2PWD/tools/incfile" \
-               "MAKEVERSION=$$M2PWD/tools/makeversion" \
-               "MAKECONFIGURE=$$M2PWD/tools/makeconfigure" \
-               "STAGEFILE=$$M2PWD/.stage" \
-               "MAJORFILE=$$M2PWD/.major" \
-               "MINORFILE=$$M2PWD/.minor" \
-               "ARCHIVEFILE=$$M2PWD/.archive" \
-               "AR=ar" \
-               "COPY=cp" \
-               "LN=ln -s" \
-               "MV=mv" \
-               "P2C=$$M2PWD/bin/p2c" \
-               "P2CDIR=$$M2PWD/p2c/home" \
-               "PRE=$$M2PWD/bin/mkfor" \
-               "M2LINK=$$M2PWD/bin/mklink" \
-               "CFLAGS=-g" \
-               stage1.gcctools )
-
-
-#
-# checkLinks builds a source tree of symbolic links from the modules in the m2/comp
-#            directory. Not all the modules in m2/comp are needed, some were for
-#            x86 etc which are irrelevant to gm2.
-#
-
-checkLinks: m2/comp/bin/p2c gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
-
 #
 #  the following tables define the source files which are translated into C using p2c
-#  and defines the handbuilt C files which p2c cannot translate (due to abstract data types).
+#  and defines the system interface C files.
 #
 
 GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def       \
@@ -315,55 +255,52 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
                      CmdArgs.def     Scan.def        DebugPMD.def    StrCase.def     \
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def    wrapc.def       Math.def        Environment.def \
-                     FpuIO.def       Debug.def       SysStorage.def
+                     FpuIO.def       Debug.def       SysStorage.def  Strings.def     \
+                     SFIO.def        SArgs.def       libc.def        StdIO.def       \
+                     FormatStrings.def PushBackInput.def Storage.def
 
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
                      DebugPMD.mod    StrCase.mod     FIO.mod         StrIO.mod       \
-                     TimeString.mod  Math.mod        Environment.mod FpuIO.mod       \
-                     Debug.mod       SysStorage.mod
+                     TimeString.mod  StrLib.mod      Math.mod        Environment.mod \
+                     FpuIO.mod       Debug.mod       SysStorage.mod  Strings.mod     \
+                     SFIO.mod        M2RTS.mod       SArgs.mod                       \
+                     FormatStrings.mod PushBackInput.mod
 
-GM2-LIBS-BOOT-C    = wrapc.c         libc.c          UnixArgs.c      StdIO.c         \
-                     M2RTS.c         StrLib.c        Selective.c     MemUtils.c      \
+GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      libc.c          StdIO.c         \
                      Storage.c
 
-GM2-LIBS-BOOT-H    = libc.h          StdIO.h         MemUtils.h      Storage.h
+GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.def  \
+                     M2Options.def   P3SymBuild.def  M2ALU.def       M2Depth.def     \
+                     M2Pass.def      P1SymBuild.def  M2AsmUtil.def   M2EvalSym.def   \
+                     M2Quads.def     M2FileName.def  M2Reference.def M2Stack.def     \
+                     M2Base.def      M2Reserved.def  SymbolKey.def   M2BasicBlock.def\
+                     M2Search.def    M2Batch.def     M2System.def    P2SymBuild.def  \
+                     M2Code.def      M2Comp.def      m2lex.def       NameKey.def     \
+                     M2LexBuf.def    M2Version.def   M2Error.def     M2Math.def      \
+                     M2SubExp.def    M2Constants.def M2Students.def  M2Entity.def    \
+                     M2GenGCC.def    M2GCCDeclare.def \
+                     M2Configure.def SymbolTable.def Lists.def       SymbolConversion.def \
+                     P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def     \
+                     M2Printf.def    bnflex.def      M2Quiet.def
 
-GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expression.def\
-                     P3Statement.def M2Defaults.def  M2Options.def   P1Statement.def \
-                     P3SymBuild.def  M2ALU.def       M2Depth.def     M2Pass.def      \
-                     P1SymBuild.def  P3Type.def      M2AsmUtil.def   M2EvalSym.def   \
-                     M2Quads.def     P1Type.def      PHCompile.def   M2Atom.def      \
-                     M2FileName.def  M2Reference.def P2Compile.def   M2Base.def      \
-                     M2Reserved.def  P2Expression.def SymbolKey.def  M2BasicBlock.def\
-                     M2Search.def    P2Statement.def M2Batch.def     M2System.def    \
-                     P2SymBuild.def  M2Code.def      M2Inline.def    P2Type.def      \
-                     M2Comp.def      M2Lex.def       NameKey.def     P3Compile.def   \
-                     M2Lexical.def   P1Compile.def   P3Expression.def M2Version.def  \
-                     M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
-                     M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
-                     SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def
-
-GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
-                     M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
+GM2-COMP-BOOT-MODS = ppg.mod         \
+                     FifoQueue.mod   M2LexBuf.mod                             \
+                     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  M2Stack.mod     \
                      M2Options.mod   M2Pass.mod      M2Batch.mod     M2Quads.mod     \
                      M2Reference.mod M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
-                     P1Compile.mod   M2FileName.mod  P1Expression.mod                \
-                     P1Statement.mod P1SymBuild.mod  P1Type.mod      P2Compile.mod   \
-                     P2Expression.mod P2Statement.mod P2SymBuild.mod P2Type.mod      \
-                     P3Compile.mod   P3Expression.mod P3Statement.mod P3SymBuild.mod \
-                     PHCompile.mod   SymbolKey.mod   SymbolTable.mod gm2l.mod        \
-                     gm2lcc.mod      gm2lgen.mod     gm2lsub.mod                     \
-                     M2Error.mod     M2Math.mod      M2SubExp.mod    M2Constants.mod \
-                     M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
-                     M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
-                     M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
+                     M2FileName.mod  P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
+                     SymbolKey.mod   SymbolTable.mod gm2l.mod        gm2lcc.mod      \
+                     gm2lgen.mod     gm2lsub.mod     M2Error.mod     M2Math.mod      \
+                     M2SubExp.mod    M2Constants.mod M2Students.mod  M2Entity.mod    \
+                     M2BasicBlock.mod M2Code.mod     M2GenGCC.mod    M2GCCDeclare.mod \
+                     SymbolConversion.mod           \
+                     M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
+                     M2Printf.mod    bnflex.mod      M2Quiet.mod
 
-GM2-COMP-BOOT-C    = M2Search.c      P1SyntaxCheck.c P3Type.c P2Build.c         \
-                     P3Build.c PHBuild.c
-GM2-COMP-BOOT-H    = 
+GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
+
 
 #
 #  the following tables define the source files used to build gm2 using only Modula-2
@@ -378,8 +315,7 @@ GM2-LIBS-DEFS      = ASCII.def       IO.def          Args.def        M2RTS.def  
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def    wrapc.def       Math.def        Environment.def \
                      FpuIO.def       Debug.def       SysStorage.def  MATH.def        \
-                     Storage.def     StdIO.def       MemUtils.def    libc.def        \
-                     PushBackInput.def
+                     Storage.def     StdIO.def       libc.def        PushBackInput.def
 
 GM2-LIBS-MODS      = ASCII.mod       IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod   NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -387,112 +323,104 @@ GM2-LIBS-MODS      = ASCII.mod       IO.mod          Args.mod        M2RTS.mod  
                      FIO.mod         StrIO.mod       StrLib.mod      TimeString.mod  \
                                                      Math.mod        Environment.mod \
                      FpuIO.mod       Debug.mod       SysStorage.mod  MATH.mod        \
-                     Storage.mod     StdIO.mod       MemUtils.mod    PushBackInput.mod
+                     Storage.mod     StdIO.mod       PushBackInput.mod
 
 GM2-LIBS-C         = wrapc.c         libc.c          UnixArgs.c      Selective.c
 GM2-LIBS-H         = libc.h
 
-GM2-COMP-DEFS      = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expression.def\
-                     P3Statement.def M2Defaults.def  M2Options.def   P1Statement.def \
-                     P3SymBuild.def  M2ALU.def       M2Depth.def     M2Pass.def      \
-                     P1SymBuild.def  P3Type.def      M2AsmUtil.def   M2EvalSym.def   \
-                     M2Quads.def     P1Type.def      PHCompile.def   M2Atom.def      \
-                     M2FileName.def  M2Reference.def P2Compile.def   M2Base.def      \
-                     M2Reserved.def  P2Expression.def SymbolKey.def  M2BasicBlock.def\
-                     M2Search.def    P2Statement.def M2Batch.def     M2System.def    \
-                     P2SymBuild.def  M2Code.def      M2Inline.def    P2Type.def      \
-                     M2Comp.def      M2Lex.def       NameKey.def     P3Compile.def   \
-                     M2Lexical.def   P1Compile.def   P3Expression.def M2Version.def  \
-                     M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
-                     M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
-                     SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     P1SyntaxCheck.def bnflex.def    P2Build.def     P3Build.def     \
-                     PHBuild.def
+GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
+                     M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
+                     M2Pass.def        P1SymBuild.def  M2AsmUtil.def   M2Quads.def     \
+                     M2Stack.def       M2FileName.def  M2Base.def      M2Reserved.def  \
+                     SymbolKey.def     M2BasicBlock.def M2Search.def   M2Batch.def     \
+                     M2System.def      P2SymBuild.def  M2Code.def      M2Comp.def      \
+                     NameKey.def       M2Version.def   M2Error.def     M2Math.def      \
+                     M2Constants.def   M2Students.def  M2Entity.def    M2GenGCC.def    \
+                     M2GCCDeclare.def  M2Configure.def SymbolTable.def Lists.def       \
+                     P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
+                     PHBuild.def       M2SubExp.def    SymbolConversion.def
 
-GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
-                     M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
-                     M2Options.mod   M2Pass.mod      M2Batch.mod     M2Quads.mod     \
-                     M2Reference.mod M2Comp.mod      M2Reserved.mod  M2Configure.mod \
-                     M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
-                     P1Compile.mod   M2FileName.mod  P1Expression.mod                \
-                     P1Statement.mod P1SymBuild.mod  P1Type.mod      P2Compile.mod   \
-                     P2Expression.mod P2Statement.mod P2SymBuild.mod P2Type.mod      \
-                     P3Compile.mod   P3Expression.mod P3Statement.mod P3SymBuild.mod \
-                     PHCompile.mod   SymbolKey.mod   SymbolTable.mod gm2l.mod        \
-                     gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     m2m.mod         \
-                     M2Error.mod     M2Math.mod      M2SubExp.mod    M2Constants.mod \
-                     M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
-                     M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
-                     M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod    P3Type.mod      P1SyntaxCheck.mod bnflex.mod    \
-                     ppg.mod         P2Build.mod     P3Build.mod     PHBuild.mod
+GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
+                     M2Stack.mod       M2Options.mod   M2Pass.mod      M2Batch.mod     \
+                     M2Quads.mod       M2Comp.mod      M2Reserved.mod  M2Configure.mod \
+                     M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
+                     M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
+                     SymbolKey.mod     SymbolTable.mod gm2l.mod        gm2lcc.mod      \
+                     gm2lgen.mod       gm2lsub.mod     m2m.mod         M2Error.mod     \
+                     M2Math.mod        M2Constants.mod M2Students.mod  M2Entity.mod    \
+                     M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
+                     M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
+                     M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
+                     SymbolConversion.mod
 
 GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      m2m.mod         ppg.mod
 
-# add ppg.mod when gm2 can compile it
-
-gm2-libs-boot:
-	$(QUIAT)mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
-	for i in $(GM2-LIBS-BOOT-DEFS) $(GM2-LIBS-BOOT-MODS) ; do \
-	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
-	done ; \
-	for i in $(GM2-LIBS-BOOT-C) $(GM2-LIBS-BOOT-H) ; do \
-	   $(LN_S) ../m2/comp/libs/CH/$$i $$i ; \
-	done ; \
-	$(RM) SYSTEM.def ; \
-	$(LN_S) ../m2/comp/libs/STAGE1/SYSTEM.def SYSTEM.def ; \
-	for i in libc.def StdIO.def MemUtils.def Storage.def ; do \
-           $(LN_S) ../m2/comp/libs/$$i $$i ; \
-        done
+GM2-AUTO-MODS      = P2Build.mod     P3Build.mod     PHBuild.mod     P1SyntaxCheck.mod 
 
 gm2-libs-boot/%.o: gm2-libs-boot/%.c
 	$(CC) -c -g -O2 -I. -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
 gm2-libs-boot/%.o: gm2-libs-boot/%.mod
-	$(PRE) gm2-libs-boot/$*
-	$(P2C) -s gm2-libs-boot/$*.def gm2-libs-boot/$*.md -o gm2-libs-boot/$*.c
-	if [ -f gm2-libs-boot/$*.H ] ; then \
-          mv gm2-libs-boot/$*.H gm2-libs-boot/$*.h ; \
-        fi
-	$(RM) gm2-libs-boot/$*.md
+	$(P2C) -s gm2-libs-boot/$*.def gm2-libs-boot/$*.mod -o gm2-libs-boot/$*.c
 	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $@
 
-#
-#  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
-#  it creates a garbage .h file.
-#
+gm2-libs-boot/%.o: gm2-libs/%.mod
+	$(P2C) -s gm2-libs/$*.def gm2-libs/$*.mod -o gm2-libs-boot/$*.c
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $@
 
-gm2-libs-boot/%.h: gm2-libs-boot/%.def
-	$(P2C) gm2-libs-boot/$*.def -o gm2-libs-boot/$*.H
-	mv $*.h gm2-libs-boot/$*.h
-	if [ -h gm2-libs-boot/$*.mod ] ; then \
-           cp gm2-libs-boot/$*.h gm2-libs-boot/$*.H ; \
-        fi
+gm2-libs-boot/%.h: gm2-libs/%.def
+	$(P2C) gm2-libs/$*.def -h gm2-libs-boot/$*.h
 
-gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
-	$(PRE) gm2-compiler-boot/$*
-	$(P2C) -s gm2-compiler-boot/$*.def gm2-compiler-boot/$*.md -o gm2-compiler-boot/$*.c
-	if [ -f gm2-compiler-boot/$*.H ] ; then \
-          mv gm2-compiler-boot/$*.H gm2-compiler-boot/$*.h ; \
+gm2-libs-boot/SYSTEM.o: gm2-libs/SYSTEM.mod
+	$(P2C) -s gm2-libs-boot/SYSTEM.def gm2-libs/$*.mod -o gm2-libs-boot/$*.c
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $@
+
+gm2-libs-boot/SYSTEM.h: gm2-libs-boot/SYSTEM.def
+	$(P2C) gm2-libs-boot/SYSTEM.def -h gm2-libs-boot/SYSTEM.h
+
+gm2-libs-boot/wrapc.o: gm2-libs-ch/wrapc.c gm2-libs-boot/wrapc.h
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2-libs-boot/UnixArgs.o: gm2-libs-ch/UnixArgs.c gm2-libs-boot/UnixArgs.h
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2-libs-boot/libc.o: gm2-libs-ch/libc.c gm2-libs-boot/libc.h
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2-libs-boot/StdIO.o: gm2-libs-ch/StdIO.c gm2-libs-boot/StdIO.h
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2-libs-boot/Storage.o: gm2-libs-ch/Storage.c gm2-libs-boot/Storage.h
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2-compiler-boot/%.o: gm2-compiler/%.mod
+	if [ -f gm2-compiler/$*.def ] ; then \
+          $(P2C) -s gm2-compiler/$*.def gm2-compiler/$*.mod -o gm2-compiler-boot/$*.c ; \
+        else \
+          $(P2C) gm2-compiler/$*.mod -o gm2-compiler-boot/$*.c ; \
         fi
-	$(RM) gm2-compiler-boot/$*.md
 	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-compiler-boot/$*.c -o $@
 
 gm2-compiler-boot/%.o: gm2-compiler-boot/%.c
 	$(CC) -c -g -O2 -I./ -Igm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
-#
-#  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
-#  it creates a garbage .h file.
-#
-
-gm2-compiler-boot/%.h: gm2-compiler-boot/%.def
-	$(P2C) gm2-compiler-boot/$*.def -o gm2-compiler-boot/$*.H
-	mv $*.h gm2-compiler-boot/$*.h
-	if [ -h gm2-compiler-boot/$*.mod -o -f gm2-compiler-boot/$*.mod ] ; then \
-           cp gm2-compiler-boot/$*.h gm2-compiler-boot/$*.H ; \
+gm2-compiler-boot/%.o: gm2-auto/%.mod
+	if [ -f gm2-compiler/$*.def ] ; then \
+          $(P2C) -s gm2-compiler/$*.def gm2-auto/$*.mod -o gm2-auto/$*.c ; \
+        else \
+          $(P2C) gm2-auto/$*.mod -o gm2-auto/$*.c ; \
         fi
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot -Igm2-auto $(INCLUDES) gm2-auto/$*.c -o $@
+
+gm2-compiler-boot/%.h: gm2-compiler/%.def
+	$(P2C) gm2-compiler/$*.def -h gm2-compiler-boot/$*.h
+
+gm2-compiler-boot/m2lex.o: gm2-compiler/m2lex.c
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -Igm2-compiler-boot -Igm2-compiler-libs $<
+
+gm2-compiler/m2lex.c: m2.lex
+	flex -o$@ m2.lex
 
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
@@ -506,6 +434,8 @@ gm2-libs/%.o: gm2-libs/%.mod
 gm2-compiler/%.o: gm2-compiler/%.mod
 	../xgm2 $(GM2_FLAGS) -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
+gm2-compiler/m2lex.o: gm2-compiler/m2lex.c
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -Igm2-compiler-boot -Igm2-compiler-libs $<
 
 #
 #  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
@@ -517,144 +447,78 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 gm2-boot: $(GM2_LIBS_BOOT) gm2support-boot
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2$(exeext) $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
-gm2-libs/libgm2.a: gm2-boot force
-	$(MAKE) build-libs
+gm2-compiler/M2Version.mod:
+	cd gm2-compiler ; ../$(srcdir)/tools-src/makeversion $(GM2-VERSION)b
+
+build-libs: $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
+            $(GM2-LIBS-C:%.c=gm2-libs/%.o)
+
+build-compiler: $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
+                gm2-compiler/M2Version.o
+
+gm2-libs/libgm2.a: build-libs
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
                     $(GM2-LIBS-C:%.c=gm2-libs/%.o)
 
-gm2-compiler/gm2.a: gm2-boot force
-	$(MAKE) build-compiler
+gm2-compiler/gm2.a: build-compiler
 	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
 	mv mod_init.c gm2-compiler
 	$(CC) -c -g gm2-compiler/mod_init.c -o gm2-compiler/mod_init.o
 	$(AR) cr $@ gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
                     gm2-compiler/M2Version.o
 
-gm2-libs-boot/libgm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor force
-	$(MAKE) build-libs-boot
+BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2-libs-boot/%.h) \
+                  $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
+                  $(GM2-LIBS-BOOT-C:%.c=gm2-libs-boot/%.o)
+
+BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
+                      $(GM2-AUTO-MODS:%.mod=gm2-compiler-boot/%.o) \
+                      $(GM2-COMP-BOOT-MODS:%.mod=gm2-compiler-boot/%.o) \
+                      gm2-compiler-boot/m2lex.o \
+                      gm2-compiler-boot/M2Version.o
+
+gm2-libs-boot/libgm2.a: boot-bin/p2c $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
                     $(GM2-LIBS-BOOT-C:%.c=gm2-libs-boot/%.o)
 
-gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor gm2-libs-boot/libgm2.a force
-	$(MAKE) "CFLAGS=$(CFLAGS) -Igm2-libs-boot" build-compiler-boot
+gm2-compiler-boot/gm2.a: boot-bin/p2c $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
 	$(M2LINK) -s -exit -main gccgm2front gm2-gccinit
 	mv mod_init.c gm2-compiler-boot
 	$(CC) -c -g gm2-compiler-boot/mod_init.c -o gm2-compiler-boot/mod_init.o
-	$(AR) cr $@ gm2-compiler-boot/mod_init.o \
+	$(AR) cr $@ gm2-compiler-boot/m2lex.o \
+                    gm2-compiler-boot/mod_init.o \
                     $(GM2-COMP-BOOT-MODS:%.mod=gm2-compiler-boot/%.o) \
-                    $(GM2-COMP-BOOT-C:%.c=gm2-compiler-boot/%.o) \
+                    $(GM2-AUTO-MODS:gm2-auto/%.mod=gm2-compiler-boot/%.o) \
                     gm2-compiler-boot/M2Version.o
 
-build-libs-boot: $(GM2-LIBS-BOOT-DEFS:%.def=gm2-libs-boot/%.h) \
-                 $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
-                 $(GM2-LIBS-BOOT-C:%.c=gm2-libs-boot/%.o)
-
-build-compiler-boot: $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
-                     $(GM2-COMP-BOOT-MODS:%.mod=gm2-compiler-boot/%.o) \
-                     $(GM2-COMP-BOOT-C:%.c=gm2-compiler-boot/%.o) \
-	             gm2-compiler-boot/M2Version.o
-
 gm2-compiler-boot:
-	$(QUIAT)mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
-	for i in $(GM2-COMP-BOOT-DEFS) $(GM2-COMP-BOOT-MODS) ; do \
-           if [ -h "$$i" ] ; then \
-              echo "$$i already present" ; \
-              exit 1 ; \
-           fi ; \
-           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
-              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
-           else \
-              if [ -f ../m2/comp/gm2s/$$i ] ; then \
-                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
-              else \
-                 if [ -f ../$$i ] ; then \
-                    $(LN_S) ../$$i $$i ; \
-                 else \
-                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
-                    exit 1 ; \
-                 fi ; \
-              fi ; \
-           fi ; \
-	done ; \
-	for i in $(GM2-COMP-BOOT-C) $(GM2-COMP-BOOT-H) ; do \
-	   $(LN_S) ../m2/comp/gm2s/CH/$$i $$i ; \
-	done ; \
-        $(LN_S) ../gccgm2.def . ; \
-        $(LN_S) ../m2/comp/gm2s/Lists.def . ; \
-	../m2/comp/tools/makeversion $(GM2-VERSION)a
+	../$(srcdir)/tools-src/makeversion $(GM2-VERSION)a
 	$(MAKE) gm2-compiler-boot/gccgm2.h
 
-gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor
+gm2-compiler-boot/gm2.a: boot-bin/p2c
 
-m2/comp/p2c/home/libp2c.a:
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
+p2c/p2c-src/home/libp2c.a:
+	( M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; cd p2c/p2c-src ; \
+          $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/boot-bin" COPY="cp" all )
 
-m2/comp/bin/p2c:
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
+boot-bin/p2c:
+	( M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; cd p2c/p2c-src ; \
+	 $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/boot-bin" COPY="cp" all )
 
-m2/comp/bin/mkfor:
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)"       \
-                  "BINDIR=$$M2PWD/bin"   \
-                  "BINDIR1=$$M2PWD/bin1" \
-                  "BINDIR2=$$M2PWD/bin2" \
-                  "BINDIR3=$$M2PWD/bin3" \
-                  "BINDIR4=$$M2PWD/bin4" \
-                  COPY="cp" tools )
+boot-bin/mklink: $(srcdir)/tools-src/mklink.c
+	gcc -g -o $@ $<
 
-$(M2LINK):
-	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          $(MAKE) "QUIAT=$(QUIAT)"       \
-                  "BINDIR=$$M2PWD/bin"   \
-                  "BINDIR1=$$M2PWD/bin1" \
-                  "BINDIR2=$$M2PWD/bin2" \
-                  "BINDIR3=$$M2PWD/bin3" \
-                  "BINDIR4=$$M2PWD/bin4" \
-                  COPY="cp" tools )
+gm2-auto/%.o: gm2-auto/%.mod
+	if [ -f gm2-compiler-boot/$*.def ] ; then \
+          $(P2C) -s gm2-compiler-boot/$*.def gm2-auto/$*.mod -o gm2-auto/$*.c ; \
+        else \
+          $(P2C) gm2-auto/$*.mod -o gm2-auto/$*.c ; \
+        fi
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-auto/$*.c -o $@
 
-build-libs: gm2-libs $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
-            $(GM2-LIBS-C:%.c=gm2-libs/%.o)
+gm2-compiler-boot/%.h: gm2-compiler-boot/%.def
+	$(P2C) gm2-compiler-boot/$*.def -h gm2-compiler-boot/$*.h
 
-build-compiler: gm2-compiler $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
-                gm2-compiler/M2Version.o
-
-gm2-libs:
-	$(QUIAT)mkdir gm2-libs ; cd gm2-libs ; \
-	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
-	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
-	done ; \
-	for i in $(GM2-LIBS-C) $(GM2-LIBS-H) ; do \
-	   $(LN_S) ../m2/comp/libs/CH/$$i $$i ; \
-	done ; \
-	$(RM) SYSTEM.def ; \
-	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
-
-gm2-compiler:
-	$(QUIAT)mkdir gm2-compiler ; cd gm2-compiler ; \
-	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h "$$i" ] ; then \
-              echo "$$i already present" ; \
-              exit 1 ; \
-           fi ; \
-           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
-              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
-           else \
-              if [ -f ../m2/comp/gm2s/$$i ] ; then \
-                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
-              else \
-                 if [ -f ../$$i ] ; then \
-                    $(LN_S) ../$$i $$i ; \
-                 else \
-                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
-                    exit 1 ; \
-                 fi ; \
-              fi ; \
-           fi ; \
-	done ; \
-        $(LN_S) ../gccgm2.def . ; \
-	../m2/comp/tools/makeversion $(GM2-VERSION)b
 
 #
 #  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories
@@ -707,35 +571,13 @@ gm2-libs-paranoid:
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
 
 gm2-compiler-paranoid:
-	$(QUIAT)mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
-	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h "$$i" ] ; then \
-              echo "$$i already present" ; \
-              exit 1 ; \
-           fi ; \
-           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
-              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
-           else \
-              if [ -f ../m2/comp/gm2s/$$i ] ; then \
-                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
-              else \
-                 if [ -f ../$$i ] ; then \
-                    $(LN_S) ../$$i $$i ; \
-                 else \
-                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
-                    exit 1 ; \
-                 fi ; \
-              fi ; \
-           fi ; \
-	done ; \
-        $(LN_S) ../gccgm2.def . ; \
-	../m2/comp/tools/makeversion $(GM2-VERSION)c
+	../$(srcdir)/tools-src/makeversion $(GM2-VERSION)c
 
 #
 #  and now the linkage tools and general Modula-2 tools
 #
 
-gm2support-boot: gm2lcc gm2l gm2lgen gm2lsub
+gm2support-boot: gm2lcc gm2l gm2lgen gm2lsub ppg
 
 gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
             $(GM2-TOOLS-MOD:%.mod=%.exe)
@@ -747,37 +589,117 @@ gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
 	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst
 	../xgm2 -v -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
 
-gm2lcc: m2/comp/p2c/home/libp2c.a force
+gm2lcc: p2c/p2c-src/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
 	mv a.out a$@
 
-gm2l: m2/comp/p2c/home/libp2c.a force
+gm2l: p2c/p2c-src/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
 	mv a.out a$@
 
-gm2lgen: m2/comp/p2c/home/libp2c.a force
+gm2lgen: p2c/p2c-src/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
 	mv a.out a$@
 
-gm2lsub: m2/comp/p2c/home/libp2c.a force
+gm2lsub: p2c/p2c-src/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
 	mv a.out a$@
+
+ppg: p2c/p2c-src/home/libp2c.a boot-bin/mklink boot-bin/p2c \
+     gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2-compiler-boot/%.o) \
+     gm2-compiler-boot/ppg.o
+	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
+gm2-auto:
+	mkdir gm2-auto
+
+pg: gm2-auto ppg gm2-auto/pg.mod \
+    p2c/p2c-src/home/libp2c.a boot-bin/mklink gm2-libs-boot \
+    $(GM2-PPG-MODS:%.mod=gm2-compiler-boot/%.o)
+	$(MAKE) gm2-auto/pg.o
+	sed -e 's/ppg/pg/' < m2/comp/gm2s/ppginit > gm2-auto/pginit
+	$(M2LINK) -s gm2-auto/$@init
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a gm2-auto/$@init
+	$(SHELL) linkcommand
+	mv a.out $@
+
+pg-e: pg
+	mv pg pg-e
+
+gm2-auto/pg.mod: gm2-auto ppg
+	tools-src/buildpg m2/comp/gm2s/ppg.mod -e > gm2-auto/pg.bnf
+	./ppg -e gm2-auto/pg.bnf > gm2-auto/pg.mod
+
+verifypg-e: pg-e
+	tools-src/buildpg m2/comp/gm2s/ppg.mod -e > gm2-auto/pg.bnf
+	./pg-e -e gm2-auto/pg.bnf > gm2-auto/t.mod
+	$(QUIAT)if ! diff gm2-auto/t.mod gm2-auto/pg.mod > /dev/null ; then \
+           echo "pg failed during self build" ; \
+           exit 1 ; \
+        fi
+
+buildpge: verifypg-e
+	tools-src/buildpg m2/comp/gm2s/ppg.mod > gm2-auto/pg.bnf
+	./pg-e gm2-auto/pg.bnf > gm2-auto/pg.mod
+	$(MAKE) gm2-auto/pg.o
+	sed -e 's/ppg/pg/' < m2/comp/gm2s/ppginit > gm2-auto/pginit
+	$(M2LINK) -s gm2-auto/pginit
+	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
+	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a gm2-auto/pginit
+	$(SHELL) linkcommand
+	mv a.out pge
+	$(RM) gm2-auto/pg.bnf gm2-auto/pg.mod
+
+pge: buildpge
+	tools-src/buildpg m2/comp/gm2s/ppg.mod > gm2-auto/pg.bnf
+	./pge gm2-auto/pg.bnf > gm2-auto/t.mod
+	./pg-e gm2-auto/pg.bnf > gm2-auto/t1.mod
+	$(QUIAT)if ! diff gm2-auto/t.mod gm2-auto/t1.mod > /dev/null ; then \
+           echo "failure: pg (with error recovery) failed" ; \
+           $(RM) pge ; \
+           exit 1 ; \
+        fi
+	$(RM) gm2-auto/t.mod gm2-auto/t1.mod gm2-auto/pg.bnf
+
+gm2-auto/P1SyntaxCheck.mod: bnf/m2.bnf
+	$(MAKE) pge
+	./pge $< > $@
+
+gm2-auto/P2Build.mod: bnf/m2-2.bnf
+	$(MAKE) pge
+	./pge $< > $@
+
+gm2-auto/P3Build.mod: bnf/m2-3.bnf
+	$(MAKE) pge
+	./pge $< > $@
+
+gm2-auto/PHBuild.mod: bnf/m2-h.bnf
+	$(MAKE) pge
+	./pge $< > $@
 
 #
 # verifyparanoid - diffs the output of all three compilers with the compiler source code
@@ -827,70 +749,37 @@ verifycompiler: ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
         done ; \
 	$(RM) -f 1.s 2.s 3.s 1_2.diff
 
-
-#
-#  keep all the links in a single directory as we are not building a compiler
-#  also we omit M2Options.mod as this has the __DATE__ which will cause a diff
-#  failure
-#	
 gm2-compiler-verify:
-	$(QUIAT)mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
-	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
-	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
-	done ; \
-	for i in $(GM2-LIBS-C) $(GM2-LIBS-H) ; do \
-	   $(LN_S) ../m2/comp/libs/CH/$$i $$i ; \
-	done ; \
-	$(RM) SYSTEM.def ; \
-	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def ; \
-	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h "$$i" ] ; then \
-              echo "$$i already present" ; \
-              exit 1 ; \
-           fi ; \
-           if [ -f ../m2/comp/gm2s/gcc/$$i ] ; then \
-              $(LN_S) ../m2/comp/gm2s/gcc/$$i $$i ; \
-           else \
-              if [ -f ../m2/comp/gm2s/$$i ] ; then \
-                 $(LN_S) ../m2/comp/gm2s/$$i $$i ; \
-              else \
-                 if [ -f ../$$i ] ; then \
-                    $(LN_S) ../$$i $$i ; \
-                 else \
-                    echo "module $$i cannot be found in either ../m2/comp/gm2s or ../m2/comp/gm2s/gcc or ../" ; \
-                    exit 1 ; \
-                 fi ; \
-              fi ; \
-           fi ; \
-	done ; \
-	../m2/comp/tools/makeversion $(GM2-VERSION)c ; \
-	$(RM) -f M2Options.mod ; \
-        $(LN_S) ../gccgm2.def .
+	../$(srcdir)/tools-src/makeversion $(GM2-VERSION)c
 
 clean: force
-	$(RM) -f *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
-	$(RM) -f gm2l gm2lcc gm2lgen gm2lsub linkcommand mod_init.c
-	$(RM) -f xgm2l xgm2lgen xgm2lsub xgm2lcc
-	( cd m2/comp/p2c ; $(MAKE) "QUIAT=$(QUIAT)" clean )
-	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
-	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
-	$(RM) -rf gm2-compiler-verify
-	$(RM) -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
-	$(RM) -rf m2/comp/bin m2/comp/bin[1234] m2/comp/p2c/home
-	$(RM) -f m2/comp/man/m2f.cat
-	$(RM) -f m2/comp/tools/mkfor m2/comp/tools/mklink
-	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
-	$(RM) -f agm2l agm2lcc agm2lgen agm2lsub
+	-rm -f *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
+	-rm -f gm2l gm2lcc gm2lgen gm2lsub linkcommand mod_init.c
+	-rm -f xgm2l xgm2lgen xgm2lsub xgm2lcc
+	( cd p2c/p2c-src ; $(MAKE) "QUIAT=$(QUIAT)" clean )
+	-rm -f gm2-libs-boot/*.[aoch] gm2-compiler-boot/*.[aoch] gm2-libs/*.[oa] gm2-compiler/*.[oa] */*~ *~
+	-rm -f gm2-libs-paranoid*.[oa]  gm2-compiler-paranoid/*.[oa]
+	-rm -f gm2-compiler-verify/*.[oa]
+	-rm -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
+	-rm -f -r boot-bin p2c/p2c-src/home
+	-rm -f boot-bin/mklink
+	-rm -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
+	-rm -f agm2l agm2lcc agm2lgen agm2lsub pg-e pge
+	-rm -f gm2-auto/*.c gm2-auto/*~ gm2-auto/pginit
+	-rm -f gm2.cp gm2.fn gm2.pg gm2.toc gm2.tp gm2.vr gm2.ky
 
 distclean: force
 	-rm -f m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile
-	-rm -f m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile
-	-rm -f m2/comp/Makefile m2/comp/p2c/examples/Makefile
+	-rm -f m2/comp/autotest/warnings/Makefile
+	-rm -f m2/comp/Makefile p2c/p2c-src/examples/Makefile
 	-rm -f m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/bnf/Makefile
 	-rm -f m2/comp/autotest/Makefile m2/comp/man/Makefile
-	-rm -f m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile
+	-rm -f p2c/p2c-src/src/Makefile m2/comp/autotest/run/Makefile
 	-rm -f m2/comp/autotest/types/Makefile m2/comp/test/Makefile
 	-rm -f m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile
-	-rm -f Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile
+	-rm -f Makefile m2/comp/autotest/errors/Makefile p2c/p2c-src/Makefile
+
+maintainer-clean: force
+	-rm -rf gm2-auto
 
 force:

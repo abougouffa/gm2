@@ -1,0 +1,81 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+DEFINITION MODULE StrLib ;
+
+(*
+   Author     : Gaius Mulley
+   Date       : '84
+   LastEdit   : 28/1/97
+   Description: Provides string manipulation
+*)
+
+EXPORT QUALIFIED StrLen, StrCopy, StrEqual, StrConCat, StrLess,
+      	       	 IsSubString, StrRemoveWhitePrefix ;
+
+
+(*
+   StrLess - returns TRUE if string, a, alphabetically occurs before
+             string, b.
+*)
+
+PROCEDURE StrLess (a, b: ARRAY OF CHAR) : BOOLEAN ;
+
+
+(*
+   StrEqual - performs a = b on two strings.
+*)
+
+PROCEDURE StrEqual (a, b: ARRAY OF CHAR) : BOOLEAN ;
+
+
+(*
+   StrLen - returns the length of string, a.
+*)
+
+PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
+
+
+(*
+   StrCopy - effectively performs b := a with two strings.
+*)
+
+PROCEDURE StrCopy (a: ARRAY OF CHAR ; VAR b: ARRAY OF CHAR) ;
+
+
+(*
+   StrConCat - combines a and b into c.
+*)
+
+PROCEDURE StrConCat (a, b: ARRAY OF CHAR ; VAR c: ARRAY OF CHAR) ;
+
+
+(*
+   IsSubString - returns true if b is a subcomponent of a.
+*)
+
+PROCEDURE IsSubString (a, b: ARRAY OF CHAR) : BOOLEAN ;
+
+
+(*
+   StrRemoveWhitePrefix - copies string, into string, b, excluding any white
+                          space infront of a.
+*)
+
+PROCEDURE StrRemoveWhitePrefix (a: ARRAY OF CHAR; VAR b: ARRAY OF CHAR) ;
+
+
+END StrLib.

@@ -1,0 +1,93 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE M2System ;
+
+(*
+    Title      : M2System
+    Author     : Gaius Mulley
+    System     : UNIX (gm2)
+    Date       : Tue Jul 11 08:39:17 2000
+    Last edit  : Tue Jul 11 08:39:17 2000
+    Description: Implements the base types of the module SYSTEM
+                 for the GNU Modula-2 compiler. Note that the base types
+                 are mapped onto their equivalents in the gcc backend.
+                 It would be possible to produce a generic M2System.def
+                 for both m2f and GNU Modula-2 but I think it much safer
+                 to have different definition modules as this module does
+                 not export AddressSize, ByteSize etc. This is as it should
+                 be since the front end of GNU Modula-2 should not generate
+                 intemediate code based on these values. At least by using
+                 different definition modules we see any breach of this rule
+                 at compile time rather than a runtime bug.
+*)
+
+EXPORT QUALIFIED 
+                 Word,             (* System Type *)
+                 Byte,             (* System Type *)
+                 Address,          (* System Type *)
+      	       	 Bitset,           (* System Type *)
+                 Adr,              (* System Function *)
+                 Size,             (* System Function *)
+                 TSize,            (* System Function *)
+
+                 GetSystemTypeMinMax,
+                 IsPseudoSystemFunction,
+                 IsSystemType,
+
+                 InitSystem ;
+
+
+VAR
+   Word, Byte,
+   Bitset,
+   Address,
+
+   Adr,  Size,
+   TSize     : CARDINAL ;
+
+
+(*
+   InitSystem - initializes the base types Word and Byte in the module
+                SYSTEM.
+*)
+
+PROCEDURE InitSystem ;
+
+
+(*
+   GetSystemTypeMinMax - returns the minimum and maximum values for a given system type.
+*)
+
+PROCEDURE GetSystemTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
+
+
+(*
+   IsPseudoSystemFunction - returns true if Sym is a SYSTEM pseudo function.
+*)
+
+PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsSystemType - returns TRUE if Sym is a SYSTEM (inbuilt) type.
+                  It does not search your SYSTEM implementation module.
+*)
+
+PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
+
+
+END M2System.

@@ -1,0 +1,123 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE Lists ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : Lists
+   Date       : Tue Dec 12 20:53:36 EST 1989
+   SYSTEM     : UNIX (GNU Modula-2)
+   Description: Provides an unordered list manipulation package.
+   Last update: $Date: 2001/10/31 09:08:30 $
+   Version    : $Revision: 1.1 $
+*)
+
+FROM SYSTEM IMPORT WORD ;
+FROM SymbolKey IMPORT PerformOperation ;
+
+EXPORT QUALIFIED List,
+                 InitList, KillList, PutItemIntoList, GetItemFromList,
+                 GetIndexOfList,
+                 NoOfItemsInList, IsItemInList, IncludeItemIntoList,
+                 RemoveItemFromList, ForeachItemInListDo, DuplicateList ;
+
+TYPE
+   List ;
+
+
+(*
+   InitList - creates a new list, l.
+*)
+
+PROCEDURE InitList (VAR l: List) ;
+
+
+(*
+   KillList - deletes the complete list, l.
+*)
+
+PROCEDURE KillList (VAR l: List) ;
+
+
+(*
+   PutItemIntoList - places a CARDINAL, c, into list, l.
+*)
+
+PROCEDURE PutItemIntoList (l: List; c: WORD) ;
+
+
+(*
+   GetItemFromList - retrieves the nth WORD from list, l.
+*)
+
+PROCEDURE GetItemFromList (l: List; n: CARDINAL) : WORD ;
+
+
+(*
+   GetIndexOfList - returns the index for WORD, c, in list, l.
+                    If more than one CARDINAL, c, exists the index
+                    for the first is returned.
+*)
+
+PROCEDURE GetIndexOfList (l: List; c: WORD) : CARDINAL ;
+
+
+(*
+   NoOfItemsInList - returns the number of items in list, l.
+*)
+
+PROCEDURE NoOfItemsInList (l: List) : CARDINAL ;
+
+
+(*
+   IncludeItemIntoList - adds a WORD, c, into a list providing
+                         the value does not already exist.
+*)
+
+PROCEDURE IncludeItemIntoList (l: List; c: WORD) ;
+
+
+(*
+   RemoveItemFromList - removes a WORD, c, from a list.
+                        It assumes that this value only appears once.
+*)
+
+PROCEDURE RemoveItemFromList (l: List; c: WORD) ;
+
+
+(*
+   IsItemInList - returns true if a WORD, c, was found in list, l.
+*)
+
+PROCEDURE IsItemInList (l: List; c: WORD) : BOOLEAN ;
+
+
+(*
+   ForeachItemInListDo - calls procedure, P, foreach item in list, l.
+*)
+
+PROCEDURE ForeachItemInListDo (l: List; P: PerformOperation) ;
+
+
+(*
+   DuplicateList - returns a duplicate list derived from, l.
+*)
+
+PROCEDURE DuplicateList (l: List) : List ;
+
+ 
+END Lists.
