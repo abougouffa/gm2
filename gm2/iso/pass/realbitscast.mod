@@ -8,19 +8,25 @@ TYPE
     BITS96 = SET OF [0..95] ;
     REAL32 = SHORTREAL;
     REAL64 = REAL;
-    REAL96 = LONGREAL ;
+#if !defined(__sparc__)
+    REAL96 = LONGREAL ;  (* on the __sparc__ SIZE(LONGREAL) = SIZE(REAL) *)
+#endif
 
 VAR
     b32 : BITS32;
     b64 : BITS64;
     r32 : REAL32;
     r64 : REAL64;
-    b96: BITS96 ;
-    r96: REAL96 ;
+#if !defined(__sparc__)
+    b96 : BITS96 ;
+    r96 : REAL96 ;
+#endif
     w   : WORD ;
 BEGIN
    r32 := 1.0 ;
    b32 := CAST(BITS32,r32) ;
    b64 := CAST(BITS64,r64) ;
+#if !defined(__sparc__)
    b96 := CAST(BITS96,r96)
+#endif
 END realbitscast.
