@@ -517,7 +517,7 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 #  So we need the objects to be built from *.mod (not *.c)
 #
 
-gm2-boot: $(GM2_LIBS_BOOT)
+gm2-boot: $(GM2_LIBS_BOOT) gm2support-boot
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2$(exeext) $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 gm2-libs/libgm2.a: gm2-boot force
@@ -737,6 +737,8 @@ gm2-compiler-paranoid:
 #
 #  and now the linkage tools and general Modula-2 tools
 #
+
+gm2support-boot: gm2lcc gm2l gm2lgen gm2lsub
 
 gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
             $(GM2-TOOLS-MOD:%.mod=%.exe)
