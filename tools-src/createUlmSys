@@ -2,7 +2,8 @@
 
 LIBS_H=$1
 
-PROTOTYPE_LIST=(ii ip ipi ippp iiip iip END)
+PROTOTYPE_LIST=(i ii iii ip ipi ipp iipi \
+                ippp ipii iiip iip lp lili END)
 
 #
 #  createUlmSys - creates the Sys.def and SYSTEM.c files for the ulm
@@ -21,25 +22,59 @@ CALL_LIST=(access          ipi
            exit            ii
            fcntl           iiip
            fstat           iip
+           getdents        iipi
+           getgid          i
+           getpid          i
+           gettimeofday    ipp
+           getuid          i
+           ioctl           iiip
+           kill            iii
+           link            ipp
+           lseek           lili
+           open            ipii
+           pause           i
+           pipe            ip
+           read            iipi
+           setitimer       iipp
+           setgid          ii
+           setuid          ii
+           stat            ipp
+           times           lp
+           unlink          ip
+           wait            ip
+           write           iipi
            END             END)
 
-#           getdents getgid getpid gettimeofday getuid
-#           ioctl kill link lseek open pause pipe read setitimer
-#           setgid setuid stat times unlink wait write
+function createPrototypes () {
+   echo "int SYSTEM_UNIXCALL (int code, int *r0, int *r1, ...);"
+   echo "void _M2_SYSTEM_init ();"
+   count=0
+   proto=1
+   while [ "${CALL_LIST[$count]}" != "END" ] ; do
+      echo ""
+      emitReturn ${CALL_LIST[$proto]}
+      func=`echo -n ${CALL_LIST[$count]}`
+      echo -n " no_$func "
+      emitPrototype ${CALL_LIST[$proto]}
+      echo ";"
+      count=`expr $count + 2`
+      proto=`expr $proto + 2`
+   done
+}
 
 function createSyscall () {
     cat <<EOFEOF
 
 
-int SYSTEM_SYSCALL (int code, )
+int SYSTEM_UNIXCALL (int code, int *r0, int *r1, ...)
 {
     va_list argsPtr;
     int ret;
 
     if (! initialized)
 	_M2_SYSTEM_init ();
-    va_start(argsPtr, code);
-    switch (code)
+    va_start(argsPtr, r1);
+    switch (code) {
 
 EOFEOF
 
@@ -48,28 +83,50 @@ EOFEOF
        parameters=${PROTOTYPE_LIST[$proto]}
        count=0
        while [ "${CALL_LIST[$count]}" != "END" ] ; do
-	   func=`echo -n ${CALL_LIST[$count]} | tr '[:lower:]' '[:upper:]'`
+	   func=`echo -n ${CALL_LIST[$count]}`
 	   count=`expr $count + 1`
 	   if [ "${CALL_LIST[$count]}" == "$parameters" ] ; then
-	       echo "    HAVE_$func:"
+	       echo "    case CALL_$func:"
            fi
 	   count=`expr $count + 1`
        done
-       echo "       ret = (*syscalls[code])(argsPtr);"
-       echo "       break;"
+       echo    "      {"
+       emitDeclareVariables $parameters
+       echo -n "         ret = (*syscalls[code])"
+       emitPassParameters $parameters
+       echo ";"
+       echo    "      }"
+       echo    "      break;"
        proto=`expr $proto + 1`
    done
 
    cat <<EOFEOF
-
-    va_end(args);
-    return ret;
+   }
+   va_end(argsPtr);
+   if (errno == 0)
+      *r0 = ret;
+   else
+      *r0 = errno;
+   *r1 = *r0;
+   return errno == 0;
 }
 EOFEOF
 }
 
 #
-#  
+#  safeIncludeFile - wraps #include <$2> by #if defined($1)
+#
+
+safeIncludeFile () {
+   echo ""
+   echo "#if defined($1)"
+   echo "#   include <$2>"
+   echo "#endif"
+}
+
+#
+#  createSystem - creates the SYSTEM.c file.
+#                 It creates defines/includes/prototypes/syscalls.
 #
 
 function createSystem () {
@@ -84,10 +141,7 @@ EOFEOF
    while [ "${CALL_LIST[$count]}" != "END" ] ; do
       func=`echo -n ${CALL_LIST[$count]} | tr '[:lower:]' '[:upper:]'`
       if [ -f ${LIBS_H} ] ; then
-	  if grep ^\#define ${LIBS_H} \
-             | grep HAVE_$func | grep 1 >& /dev/null ; then
-	      echo "#define CALL_${CALL_LIST[$count]} $callno"
-	  fi
+	  echo "#define CALL_${CALL_LIST[$count]} $callno"
 	  callno=`expr $callno + 1`
 	  count=`expr $count + 1`
 	  count=`expr $count + 1`
@@ -96,30 +150,69 @@ EOFEOF
           exit 1
       fi
    done
+   echo ""
+   echo "#include <stdio.h>"
+   echo "#include <stdarg.h>"
+   echo "#include \"../../gm2-libs/gm2-libs-host.h\""
+   safeIncludeFile HAVE_UNISTD_H unistd.h
+   safeIncludeFile HAVE_DIRECT_H direct.h
+   safeIncludeFile HAVE_FCNTL_H fcntl.h
+   safeIncludeFile HAVE_INTTYPES_H inttypes.h
+   safeIncludeFile HAVE_PWD_H pwd.h
+   safeIncludeFile HAVE_STDDEF_H stddef.h
+   safeIncludeFile HAVE_STDINT_H stdint.h
+   safeIncludeFile HAVE_STDLIB_H stdlib.h
+   safeIncludeFile HAVE_SYS_FILE_H sys/file.h
+   safeIncludeFile HAVE_SYS_IOCTL_H sys/ioctl.h
+   safeIncludeFile HAVE_SYS_STAT_H sys/stat.h
+   safeIncludeFile HAVE_SYS_TIMES_H sys/times.h
+   safeIncludeFile HAVE_SYS_TIME_H sys/time.h
+   safeIncludeFile HAVE_SYS_WAIT_H sys/wait.h
+   safeIncludeFile HAVE_ERRNO_H errno.h
+   safeIncludeFile HAVE_SYS_ERRNO_H sys/errno.h
+   echo "#define ATTRIBUTE_UNUSED  __attribute__ ((__unused__))"
    cat << EOFEOF
 
-static int (*syscalls[$callno])();
+typedef int (*ptrToSyscall)();
+static ptrToSyscall syscalls[$callno];
 static int initialized = 0;
 
 EOFEOF
+
+    createPrototypes
+
+    createNoSyscall
 
     createSyscall
 
 cat <<EOFEOF
 
-_M2_SYSTEM_init ()
+void _M2_SYSTEM_init ()
 {
    if (initialized)
       return;
    initialized = 1;
 EOFEOF
    count=0
-   callno=0
    while [ "${CALL_LIST[$count]}" != "END" ] ; do
+       func=`echo -n ${CALL_LIST[$count]} | tr '[:lower:]' '[:upper:]'`
        if grep ^\#define ${LIBS_H} \
 	   | grep HAVE_$func | grep 1 >& /dev/null ; then
+           echo "# if defined(HAVE_$func)"
 	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)${CALL_LIST[$count]};"
-	   callno=`expr $callno + 1`
+           echo "# else"
+	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)no_${CALL_LIST[$count]};"
+           echo "# endif"
+       elif grep ^\#undef ${LIBS_H} \
+	   | grep HAVE_$func >& /dev/null ; then
+           echo "# if defined(HAVE_$func)"
+	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)${CALL_LIST[$count]};"
+           echo "# else"
+	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)no_${CALL_LIST[$count]};"
+           echo "# endif"
+       else
+           echo "   /* ${LIBS_H} should test for the system call or libc call $func */" 
+	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)no_${CALL_LIST[$count]};"
        fi
        count=`expr $count + 1`
        count=`expr $count + 1`
@@ -136,6 +229,176 @@ function createSysDef () {
       count=`expr $count + 1`
       count=`expr $count + 1`
       callno=`expr $callno + 1`
+   done
+}
+
+function emitReturn () {
+    case $1 in
+
+    i)           echo -n "int" ;;
+    ii)          echo -n "int" ;;
+    iii)         echo -n "int" ;;
+    ip)          echo -n "int" ;;
+    ipi)         echo -n "int" ;;
+    ipp)         echo -n "int" ;;
+    iipp)        echo -n "int" ;;
+    iipi)        echo -n "int" ;;
+    ipii)        echo -n "int" ;;
+    ippp)        echo -n "int" ;;
+    iiip)        echo -n "int" ;;
+    iip)         echo -n "int" ;;
+    lp)          echo -n "long" ;;
+    lili)        echo -n "long" ;;
+
+    esac
+}
+
+function emitParameters () {
+    if [ $# -eq 1 ] ; then
+        echo -n "(void)"
+    else
+       shift 1 # remove return value
+       p=1
+       echo -n "("
+       while [ $# -ge 1 ] ; do
+           case $1 in
+
+           i)  echo -n "int ATTRIBUTE_UNUSED p$p" ;;
+           l)  echo -n "long ATTRIBUTE_UNUSED p$p" ;;
+           p)  echo -n "void ATTRIBUTE_UNUSED *p$p" ;;
+
+           esac
+           if [ $# -gt 1 ] ; then
+               echo -n ", "
+           fi
+           shift 1
+           p=`expr $p + 1`
+       done
+       echo -n ")"
+    fi
+}
+
+function emitPrototype () {
+    case $1 in
+
+    i)           emitParameters i ;;
+    ii)          emitParameters i i ;;
+    iii)         emitParameters i i i ;;
+    ip)          emitParameters i p ;;
+    ipi)         emitParameters i p i ;;
+    ipp)         emitParameters i p p ;;
+    iipp)        emitParameters i i p p ;;
+    iipi)        emitParameters i i p i ;;
+    ipii)        emitParameters i p i i ;;
+    ippp)        emitParameters i p p p ;;
+    iiip)        emitParameters i i i p ;;
+    iip)         emitParameters i i p ;;
+    lp)          emitParameters l p ;;
+    lili)        emitParameters l i l i ;;
+
+    esac
+}
+
+function emitVariable () {
+    if [ $# -ne 1 ] ; then
+       shift 1 # remove return value
+       v=1
+       while [ $# -ge 1 ] ; do
+           case $1 in
+
+           i)  echo "         int i$v = va_arg(argsPtr, int);" ;;
+           l)  echo "         int l$v = va_arg(argsPtr, int);" ;;
+           p)  echo "         void *p$v = va_arg(argsPtr, void *);" ;;
+
+           esac
+           shift 1
+           v=`expr $v + 1`
+       done
+    fi
+}
+
+function emitDeclareVariables () {
+    case $1 in
+
+    i)           emitVariable i ;;
+    ii)          emitVariable i i ;;
+    iii)         emitVariable i i i ;;
+    ip)          emitVariable i p ;;
+    ipi)         emitVariable i p i ;;
+    ipp)         emitVariable i p p ;;
+    iipp)        emitVariable i i p p ;;
+    iipi)        emitVariable i i p i ;;
+    ipii)        emitVariable i p i i ;;
+    ippp)        emitVariable i p p p ;;
+    iiip)        emitVariable i i i p ;;
+    iip)         emitVariable i i p ;;
+    lp)          emitVariable l p ;;
+    lili)        emitVariable l i l i ;;
+
+    esac
+}
+
+function emitPassParameters () {
+    case $1 in
+
+    i)           echo -n "()" ;;
+    ii)          echo -n "(i1)" ;;
+    iii)         echo -n "(i1, i2)" ;;
+    ip)          echo -n "(p1)" ;;
+    ipi)         echo -n "(p1, i2)" ;;
+    ipp)         echo -n "(p1, p2)" ;;
+    iipp)        echo -n "(i1, p2, p3)" ;;
+    iipi)        echo -n "(i1, p2, i3)" ;;
+    ipii)        echo -n "(p1, i2, i3)" ;;
+    ippp)        echo -n "(p1, p2, p3)" ;;
+    iiip)        echo -n "(i1, i2, p3)" ;;
+    iip)         echo -n "(i1, p2)" ;;
+    lp)          echo -n "(p1)" ;;
+    lili)        echo -n "(i1, l2, i3)" ;;
+
+    esac
+}
+
+function emitReturnValue () {
+   case $1 in
+
+    i)           echo "return 0;" ;;
+    ii)          echo "return 0;" ;;
+    iii)         echo "return 0;" ;;
+    ip)          echo "return 0;" ;;
+    ipi)         echo "return 0;" ;;
+    ipp)         echo "return 0;" ;;
+    iipp)        echo "return 0;" ;;
+    iipi)        echo "return 0;" ;;
+    ipii)        echo "return 0;" ;;
+    ippp)        echo "return 0;" ;;
+    iiip)        echo "return 0;" ;;
+    iip)         echo "return 0;" ;;
+    lp)          echo "return 0L;" ;;
+    lili)        echo "return 0L;" ;;
+
+    esac
+}
+
+function createNoSyscall () {
+   count=0
+   proto=1
+   while [ "${CALL_LIST[$count]}" != "END" ] ; do
+      echo ""
+      emitReturn ${CALL_LIST[$proto]}
+      func=`echo -n ${CALL_LIST[$count]}`
+      echo -n " no_$func "
+      emitPrototype ${CALL_LIST[$proto]}
+      echo ""
+cat <<EOF
+{
+    fprintf(stderr, "system call $func does not exist\\n");
+EOF
+      echo -n "    "
+      emitReturnValue ${CALL_LIST[$proto]}
+      echo "}"
+      count=`expr $count + 2`
+      proto=`expr $proto + 2`
    done
 }
 

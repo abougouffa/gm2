@@ -67,7 +67,7 @@ GCC_TOOLS_FOR_GM2 = \
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
-                 build-libs build-libs-iso
+                 build-libs build-libs-iso build-libs-ulm
 
 TEXI2HTML=texi2html
 
@@ -99,6 +99,7 @@ po-generated:
 #
 # directories for the public definition, implementation and object libraries
 #
+GM2_LIB_DIR_ULM= $(libsubdir)/gm2/ulm
 GM2_LIB_DIR_PIM= $(libsubdir)/gm2/pim
 GM2_LIB_DIR_ISO= $(libsubdir)/gm2/iso
 GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
@@ -108,6 +109,9 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/gm2-compiler-paranoid $(objdir)/gm2/gm2-libs-paranoid \
                  $(objdir)/gm2/gm2-compiler-verify \
                  $(objdir)/gm2/boot-bin \
+                 $(objdir)/gm2/ulm-lib-gm2 \
+                 $(objdir)/gm2/ulm-lib-gm2/sys \
+                 $(objdir)/gm2/ulm-lib-gm2/std \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 check_cross: stage1/gm2 force
@@ -200,6 +204,15 @@ $(objdir)/gm2/gm2-compiler-verify:
 $(objdir)/gm2/boot-bin:
 	mkdir $@
 
+$(objdir)/gm2/ulm-lib-gm2:
+	mkdir $@
+
+$(objdir)/gm2/ulm-lib-gm2/sys:
+	mkdir $@
+
+$(objdir)/gm2/ulm-lib-gm2/std:
+	mkdir $@
+
 stage1/gm2:
 	-mkdir -p stage1/gm2
 
@@ -222,7 +235,11 @@ $(GM2_LIB_DIR_PIM):
 $(GM2_LIB_DIR_ISO):
 	-mkdir -p $(GM2_LIB_DIR_ISO)
 
-gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO)
+$(GM2_LIB_DIR_ULM):
+	-mkdir -p $(GM2_LIB_DIR_ULM)
+
+gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
+                    $(GM2_LIB_DIR_ULM)
 	-if [ -f $(GM2)$(exeext) ]; then \
 	  if [ -f $(GM2)-cross$(exeext) ]; then \
 	    rm -f $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
@@ -267,7 +284,7 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO)
               fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-iso/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
+	for i in $(srcdir)/gm2/gm2-iso/*.def $(srcdir)/gm2/gm2-iso/*.mod ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(DESTDIR)$(GM2_LIB_DIR_ISO)/$$i ; \
               $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_ISO) ; \
@@ -278,6 +295,23 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO)
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
                  $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_ISO) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/ulm-lib-gm2/sys/*.def \
+                 $(srcdir)/gm2/ulm-lib-gm2/std/*.def \
+                 $(srcdir)/gm2/ulm-lib-gm2/sys/*.mod \
+                 $(srcdir)/gm2/ulm-lib-gm2/std/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(DESTDIR)$(GM2_LIB_DIR_ULM)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_ULM) ; \
+           fi ; \
+        done
+	for i in x gm2/ulm-lib-gm2/std/*.o gm2/ulm-lib-gm2/sys/*.o ; do \
+           rm -f $(DESTDIR)$(GM2_LIB_DIR_ULM)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_ULM) ; \
               fi ; \
            fi ; \
         done
@@ -708,8 +742,38 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
 # the ISO implementation modules are still being written
 #
 
-GM2_LIBS_ISO_MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod   LongMath.mod \
+GM2_LIBS_ISO_MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
+                     LongMath.mod \
                      RealMath.mod      Storage.mod     TERMINATION.mod
+
+GM2-LIBS-ULM-MODS-STD  = \
+              Plot.mod      Archive.mod    EtcGroup.mod   Strings.mod \
+              RandomGenerator.mod          Arguments.mod  Files.mod \
+              StrSpec.mod   ReadIntCard.mod               ASCII.mod \
+              FtdIO.mod     StrToNum.mod   RealConv.mod   Calendar.mod \
+                            StrToReal.mod  RealInOut.mod  CallShell.mod \
+              GetPass.mod   SysConf.mod                   Clock.mod \
+              InOut.mod     SysPerror.mod  ScanPwfile.mod Conversions.mod \
+                            Terminal.mod   StdFuncs.mod   Passwd.mod \
+                            Directories.mod               StdIO.mod \
+              PipeIO.mod    Environment.mod               Storage.mod \
+              M2RTS.mod
+
+######################################################################
+### GM2 cannot compile these yet
+###           Functions.mod   RTErrors.mod    MathLib.mod   TimeIO.mod
+######################################################################
+
+GM2-LIBS-ULM-MODS-SYS  = \
+              Errno.mod     SysExec.mod     SysKill.mod   SysPause.mod \
+              SysTermIO.mod SysAccess.mod   SysExit.mod   SysLink.mod \
+              SysPipe.mod   SysTime.mod     SysAlarm.mod  SysFcntl.mod \
+              SysLocations.mod              SysRead.mod   SysUnlink.mod \
+              SysBreak.mod  SysFork.mod     SysLseek.mod  SysSetuid.mod \
+              SysWait.mod   SysClose.mod    SysGetpid.mod Sys.mod \
+              SysSignal.mod SysWrite.mod    SysCreat.mod  SysGetuid.mod \
+              SysOpen.mod   SysStat.mod     SysDup.mod    SysIoctl.mod \
+              SysPanic.mod  SystemTypes.mod UnixString.mod
 
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 
@@ -973,6 +1037,22 @@ gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
 	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
+
+build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
+                $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \
+                gm2/ulm-lib-gm2/sys/SYSTEM.o
+
+gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
+	$(CC) -c $(CFLAGS) $< -o $@
+
+gm2/ulm-lib-gm2/sys/SYSTEM.c: 
+	$(srcdir)/gm2/tools-src/createUlmSys gm2/gm2-libs/gm2-libs-host.h > $@
+
+gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@
+
+gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \

@@ -1,3 +1,11 @@
+2005-03-14	Gaius Mulley <gaius@glam.ac.uk>
+
+	* finished tools-src/createUlSys which builds a SYSTEM.c
+	  (from ./configure results) ULM library compatible interface.
+	* modified Make-lang.in to install the ULM libraries.
+	* added new switch -Wulm which modifies the default search
+	  path so that the ULM libraries are included.
+	
 2005-01-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by john o goyo <jgoyo@ca.inter.net>.

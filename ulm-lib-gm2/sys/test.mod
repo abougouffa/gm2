@@ -26,7 +26,7 @@ VAR
    c: INTEGER ;
 BEGIN
    a := "hello world" ;
-   c := 12 ;
+   c := 11 ;
    IF Write(1, ADR(a), c)
    THEN
    END ;

@@ -53,7 +53,10 @@ int lang_specific_extra_outfiles = 0;
 
 #undef DEBUGGING
 
-void add_default_directories (int incl, char ***in_argv, int is_pim);
+typedef enum { iso, pim, ulm, maxlib } libs;
+static char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "max" };
+
+void add_default_directories (int incl, char ***in_argv, libs which_lib);
 void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
 void add_exec_prefix(int, int *in_argc, char ***in_argv);
@@ -86,10 +89,10 @@ void add_exec_prefix(pos, in_argc, in_argv)
  */
 
 void
-add_default_directories (incl, in_argv, is_pim)
+add_default_directories (incl, in_argv, which_lib)
      int incl;
      char ***in_argv;
-     int is_pim;
+     libs which_lib;
 {
   char *gm2libs;
   char  sepstr[2];
@@ -99,14 +102,14 @@ add_default_directories (incl, in_argv, is_pim)
 
   if ((*in_argv)[incl] == NULL) {
     gm2libs = (char *) alloca(strlen("-I") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("pim") + 1 +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("iso") + 1);
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1 +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1);
     strcpy(gm2libs, "-I");
   }
   else {
     gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("pim") + 1 +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen("iso") + 1);
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1 +
+			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1);
     strcpy(gm2libs, (*in_argv)[incl]);
     strcat(gm2libs, ":");
   }
@@ -114,20 +117,18 @@ add_default_directories (incl, in_argv, is_pim)
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
-  if (is_pim)
-    strcat(gm2libs, "pim");
-  else
-    strcat(gm2libs, "iso");
+
+  strcat(gm2libs, libraryName[which_lib]);
 
   strcat(gm2libs, ":");
   strcat(gm2libs, LIBSUBDIR);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
-  if (is_pim)
-    strcat(gm2libs, "iso");
+  if (which_lib == pim)
+    strcat(gm2libs, "iso");   /* fall back to iso libraries if using pim */
   else
-    strcat(gm2libs, "pim");
+    strcat(gm2libs, "pim");   /* all other libraries fall back to pim */
 
 #if defined(DEBUGGING)
   fprintf(stderr, "adding -I. and %s\n", gm2libs);
@@ -178,7 +179,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 {
   int i=1;
   int incl=-1;
-  int is_pim=1;
+  int libraries=pim;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -193,7 +194,9 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 	(strcmp((*in_argv)[i], "-I-") != 0))
       incl = i;
     if (strncmp((*in_argv)[i], "-Wiso", 5) == 0)
-      is_pim = 0;
+      libraries = iso;
+    if (strncmp((*in_argv)[i], "-Wulm", 5) == 0)
+      libraries = ulm;
     i++;
   }
 #if defined(DEBUGGING)
@@ -207,7 +210,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     incl = 1;
     insert_arg(incl, in_argc, (char ***)in_argv);
   }
-  add_default_directories(incl, (char ***)in_argv, is_pim);
+  add_default_directories(incl, (char ***)in_argv, libraries);
   add_exec_prefix(1, in_argc, (char ***)in_argv);
 #if defined(DEBUGGING)
   i=1;
