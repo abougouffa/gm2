@@ -40,6 +40,7 @@ VAR
    array: ARRAY [1..10] OF CHAR ;
    large: ARRAY [1..100], [1..200] OF rec ;
    it   : proc ;
+   card : CARDINAL ;
 (*
 TYPE
 
@@ -64,5 +65,6 @@ END dummy ;
 
 
 BEGIN
+   card := dummy('a', card)
 (*   i := j+k *)
 END foo.

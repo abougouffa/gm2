@@ -41,6 +41,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildIfIn, BuildIfNotIn,
                  BuildIndirect,
                  DoJump,
+                 BuildProcedureCall, BuildParam, BuildFunctValue,
                  AssignBooleanTrueFalse ;
 
 
@@ -452,6 +453,28 @@ PROCEDURE BuildIndirect (target, type: Tree) : Tree ;
 *)
 
 PROCEDURE DoJump (exp: Tree; falselabel, truelabel: ADDRESS) ;
+
+
+(*
+   BuildParam - build a list of parameters, ready for a subsequent procedure call.
+*)
+
+PROCEDURE BuildParam (param: Tree) ;
+
+
+(*
+   BuildProcedureCall - creates a procedure call from a procedure and
+                        parameter list and the return type, rettype.
+*)
+
+PROCEDURE BuildProcedureCall (procedure, rettype: Tree) : Tree ;
+
+
+(*
+   BuildFunctValue - generates code for value := funct(foobar);
+*)
+
+PROCEDURE BuildFunctValue (value: Tree) ;
 
 
 END gccgm2.

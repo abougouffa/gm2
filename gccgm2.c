@@ -247,7 +247,8 @@ tree enumvalues=NULL_TREE;
 
 /* Used in BuildStartFunctionType */
 tree param_type_list;
-tree param_list;
+tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
+static tree last_function=NULL_TREE;
 
 
 static tree qualify_type		PROTO ((tree, tree));
@@ -377,6 +378,7 @@ build_function_decl (name, nargs)
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
 
   rest_of_decl_compilation (fndecl, NULL_PTR, 1, 0);
+  param_list = NULL_TREE;   /* ready for the next time we call/define a function */
   return fndecl;
 }
 
@@ -7692,7 +7694,7 @@ void
 gccgm2_BuildStartFunctionType ()
 {
   param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
-  param_list      = NULL_TREE;
+  param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 }
 
 
@@ -7752,10 +7754,10 @@ void
 gccgm2_BuildStartFunctionDeclaration ()
 {
   param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
-  param_list      = NULL_TREE;
+  param_list = NULL_TREE;   /* ready for when we define a function */
 }
 
-
+tree was_fntype;
 /*
  *
  *  BuildEndFunctionDeclaration - build a function which will return a value of returntype.
@@ -7767,17 +7769,20 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
      char *name;
      tree  returntype;
 {
+  tree fntype;
+  tree fndecl;
 
   /*
    *  the function type depends on the return type and type of args,
    *  both of which we have created in BuildParameterDeclaration
    */
-  tree fntype = build_function_type (returntype, param_type_list);
-  tree fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
-
   if (returntype == NULL_TREE) {
     returntype = void_type_node;
   }
+
+  fntype = build_function_type (returntype, param_type_list);
+  was_fntype = fntype;
+  fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
 
   DECL_EXTERNAL (fndecl)    = 0;
   TREE_PUBLIC (fndecl)      = 1;
@@ -7790,6 +7795,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
   DECL_SOURCE_LINE (fndecl) = lineno;
 
   rest_of_decl_compilation (fndecl, NULL_PTR, 1, 0);
+  param_list = NULL_TREE;   /* ready for the next time we call/define a function */
   return( fndecl );
 }
 
@@ -8210,6 +8216,61 @@ gccgm2_DoJump (exp, falselabel, truelabel)
   }
 }
 
+/*
+ *  BuildParam - build a list of parameters, ready for a subsequent procedure call.
+ */
+
+void
+gccgm2_BuildParam (param)
+     tree param;
+{
+  param_list = chainon (param, param_list);
+}
+
+/*
+ *  BuildProcedureCall - creates a procedure call from a procedure and
+ *                       parameter list and the return type, rettype.
+ */
+
+tree
+gccgm2_BuildProcedureCall (procedure, rettype)
+     tree procedure, rettype;
+{
+  tree functype = was_fntype;  /* DECL_ARGUMENTS (procedure); */  /* gaius got to here */
+  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), procedure);
+  tree call;
+
+  TREE_USED(procedure) = TRUE;
+
+  if (rettype == NULL_TREE) {
+    rettype = void_type_node;
+    call = build(CALL_EXPR, rettype, funcptr, listify(param_list), NULL_TREE);
+    TREE_USED(call) = TRUE;
+    expand_expr_stmt(call);
+    last_function   = NULL_TREE;
+  } else {
+    last_function   = build(CALL_EXPR, rettype, funcptr, listify(param_list), NULL_TREE);
+  }
+
+  param_list = NULL_TREE;   /* ready for the next time we call a procedure */
+  return( last_function );
+}
+
+/*
+ *  BuildFunctValue - generates code for value := funct(foobar);
+ */
+
+tree
+gccgm2_BuildFunctValue (value)
+     tree value;
+{
+  tree assign = build(MODIFY_EXPR, void_type_node, value, last_function);
+
+  TREE_SIDE_EFFECTS(assign) = TRUE;
+  TREE_USED(assign) = TRUE;
+  debug_tree(assign);
+  expand_expr_stmt(assign);
+}
 
 /*
  *  AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
