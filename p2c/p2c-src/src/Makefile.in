@@ -34,6 +34,7 @@
 
 srcdir = @srcdir@
 VPATH = @srcdir@
+objdir = @objdir@
 
 SHELL=/bin/sh
 RM = rm -f
@@ -71,15 +72,15 @@ CUSTDEFS = -DCUST1=hpmods -DCUST2=citmods
 
 
 # File names
-P2CSRCS = trans.c stuff.c out.c comment.c lex.c parse.c decl.c \
-          expr.c pexpr.c funcs.c dir.c
+P2CSRCS = trans.c stuff.c out.c comment.c lex.c parse.c \
+          decl.c expr.c pexpr.c funcs.c dir.c
 P2COBJS = trans.o stuff.o out.o comment.o lex.o parse.o decl.o \
           expr.o pexpr.o funcs.o dir.o
 
 SRCS = $(P2CSRCS) $(CUSTSRCS)
 OBJS = $(P2COBJS) $(CUSTOBJS)
 
-LIBSRCS = p2clib.c loc.p2clib.c
+LIBSRCS = $(srcdir)/p2clib.c $(srcdir)/loc.p2clib.c
 LIBOBJS = p2clib.o loc.p2clib.o
 OTHERLIBOBJS =
 
@@ -90,7 +91,7 @@ ABSLIBDIR = `cd $(LIBDIR); pwd`
 MISCSRCS = makeproto.c
 PROTOS = p2c.proto p2c.hdrs
 HDRS = trans.h p2c.h
-INCLUDES = -I$(srcdir)/../include/
+INCLUDES = -I$(srcdir)/../include/ -I$(srcdir)/ -I.
 
 # Top-level targets
 all: proto p2c libp2c.a p2c.cat
@@ -142,10 +143,13 @@ citmods.o: citmods.c trans.h
 
 # Making and using makeproto
 p2c.hdrs: $(SRCS) makeproto
-	./makeproto -n -m -h -t16 -a35 -s0 -x $(SRCS) -o p2c.hdrs
+	cd $(srcdir) ; \
+	$(objdir)/gm2/p2c/p2c-src/src/makeproto -n -m -h -t16 -a35 -s0 -x $(SRCS) -o $(objdir)/gm2/p2c/p2c-src/src/p2c.hdrs
+	echo $(VPATH)
 
 p2c.proto: $(SRCS) makeproto
-	./makeproto -n -m -h -t16 -a35 -s1 -i $(SRCS) -o p2c.proto
+	cd $(srcdir) ; \
+	$(objdir)/gm2/p2c/p2c-src/src/makeproto -n -m -h -t16 -a35 -s1 -i $(SRCS) -o $(objdir)/gm2/p2c/p2c-src/src/p2c.proto
 
 makeproto: makeproto.c
 	$(CC) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $(srcdir)/makeproto.c -o makeproto
@@ -218,25 +222,25 @@ $(MANDIR)/p2c.1: $(MANFILE)
 	$(COPY)  $(MANFILE)   $(MANDIR)/p2c.1
 
 $(INCDIR)/p2c.h: p2c.h
-	$(COPY)  p2c.h        $(INCDIR)/p2c.h
+	$(COPY)  $(srcdir)/p2c.h        $(INCDIR)/p2c.h
 
 $(HOMEDIR)/p2crc: sys.p2crc
-	$(COPY)  sys.p2crc    $(HOMEDIR)/p2crc
+	$(COPY)  $(srcdir)/sys.p2crc    $(HOMEDIR)/p2crc
 
 $(HOMEDIR)/loc.p2crc: loc.p2crc
-	$(COPY)  loc.p2crc    $(HOMEDIR)/loc.p2crc
+	$(COPY)  $(srcdir)/loc.p2crc    $(HOMEDIR)/loc.p2crc
 
 $(HOMEDIR)/system.imp: system.imp
-	$(COPY)  system.imp   $(HOMEDIR)/system.imp
+	$(COPY)  $(srcdir)/system.imp   $(HOMEDIR)/system.imp
 
 $(HOMEDIR)/system.m2: system.m2
-	$(COPY)  system.m2    $(HOMEDIR)/system.m2
+	$(COPY)  $(srcdir)/system.m2    $(HOMEDIR)/system.m2
 
 $(HOMEDIR)/turbo.imp: turbo.imp
-	$(COPY)  turbo.imp    $(HOMEDIR)/turbo.imp
+	$(COPY)  $(srcdir)/turbo.imp    $(HOMEDIR)/turbo.imp
 
 $(HOMEDIR)/string.pas: string.pas
-	$(COPY)  string.pas   $(HOMEDIR)/string.pas
+	$(COPY)  $(srcdir)/string.pas   $(HOMEDIR)/string.pas
 
 
 

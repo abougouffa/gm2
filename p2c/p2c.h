@@ -10,7 +10,7 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-#include <gansidecl.h>
+#include <ansidecl.h>
 #include <auto-host.h>
 #include <config.h>
 #include <system.h>
