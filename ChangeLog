@@ -1,3 +1,10 @@
+2003-01-09	Gaius Mulley <gaius@glam.ac.uk>
+
+	* initial checkin of complete built-in function support
+	  to obvious C functions.
+	* gm2-libs/libc.c, gm2-libs/libc.def:: modified reference
+	  to cfree to free as suggested by John Calley
+	
 2003-01-02	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by Matthias Manhart

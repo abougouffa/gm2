@@ -529,6 +529,10 @@ What has been done:
 @itemize @bullet
 
 @item
+provided access to a few compiler built-in constants
+and twenty seven built-in C functions.
+
+@item
 definition modules no longer have to @samp{EXPORT QUALIFIED}
 objects (as per PIM-3, PIM-4 and ISO).
 
