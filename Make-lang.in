@@ -73,8 +73,10 @@ gm2.all.build: force
 	cd gm2 ; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2support
 	for i in $(GM2LINKEXES) ; do \
             rm -f x$$i$(exeext); \
-            cp gm2/$$i$(exeext) x$$i$(exeext); \
-            chmod a+x x$$i$(exeext); \
+            if [ -x gm2/$$i$(exeext) ] ; then \
+               cp gm2/$$i$(exeext) x$$i$(exeext); \
+               chmod a+x x$$i$(exeext); \
+            fi ; \
         done
 
 gm2.all.cross: 

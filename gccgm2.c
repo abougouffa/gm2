@@ -7305,8 +7305,10 @@ finish_decl (decl, init, asmspec_tree)
   if (TREE_CODE (decl) == PARM_DECL)
     init = 0;
 
-#if !defined(GM2)
   if (init)
+#if defined(GM2)
+	error("should not reach here in Modula-2?");
+#else
     {
       if (TREE_CODE (decl) != TYPE_DECL)
 	store_init_value (decl, init);
@@ -8534,6 +8536,9 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   announce_function (fndecl);
 
   /* Set up to compile the function and enter it.  */
+
+  /* Make the init_value nonzero so pushdecl knows this is not tentative.
+     error_mark_node is replaced below (in poplevel) with the BLOCK.  */
   current_function_decl = fndecl;
   DECL_INITIAL (fndecl) = error_mark_node;
 
@@ -8564,7 +8569,8 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
 
-#if 1
+  /* hmm (gaius) */
+#if 0
   if (lineno==1833) {
     debug_tree(fndecl);
     my_debug = 0x405d43c0;
