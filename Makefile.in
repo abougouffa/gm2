@@ -373,7 +373,7 @@ GM2-COMP-BOOT-H    = M2Alias.h
 #  the following tables define the source files used to build gm2 using only Modula-2
 #  sources (except for interfacing to libc and gcc).
 #
-#  It is these files which are the source to ../cc1gm2 at the end of stage1
+#  It is these files which are the source to ../cc1gm2$(exeext) at the end of stage1
 #
 
 GM2-LIBS-DEFS      = ASCII.def       IO.def          Args.def        M2RTS.def       \
@@ -382,7 +382,8 @@ GM2-LIBS-DEFS      = ASCII.def       IO.def          Args.def        M2RTS.def  
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def    wrapc.def       Math.def        Environment.def \
                      FpuIO.def       Debug.def       SysStorage.def  MATH.def        \
-                     Storage.def     StdIO.def       MemUtils.def    libc.def
+                     Storage.def     StdIO.def       MemUtils.def    libc.def        \
+                     PushBackInput.def
 
 GM2-LIBS-MODS      = ASCII.mod       IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod   NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -390,7 +391,7 @@ GM2-LIBS-MODS      = ASCII.mod       IO.mod          Args.mod        M2RTS.mod  
                      FIO.mod         StrIO.mod       StrLib.mod      TimeString.mod  \
                                                      Math.mod        Environment.mod \
                      FpuIO.mod       Debug.mod       SysStorage.mod  MATH.mod        \
-                     Storage.mod     StdIO.mod       MemUtils.mod
+                     Storage.mod     StdIO.mod       MemUtils.mod    PushBackInput.mod
 
 GM2-LIBS-C         = wrapc.c         libc.c          UnixArgs.c      Selective.c
 GM2-LIBS-H         = libc.h
@@ -409,7 +410,7 @@ GM2-COMP-DEFS      = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
                      SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     M2Alias.def     P1SyntaxCheck.def
+                     M2Alias.def     P1SyntaxCheck.def bnflex.def
 
 GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -426,10 +427,13 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod
+                     M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod \
+                     bnflex.mod      ppg.mod
 
 GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
-                     m2m.mod
+                     m2m.mod         ppg.mod
+
+# add ppg.mod when gm2 can compile it
 
 gm2-libs-boot:
 	$(QUIAT)mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
@@ -507,14 +511,14 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 
 
 #
-#  we build the cc1gm2 from the boot stage and then proceed to build it again using
+#  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
 #  itself. (Not really stage1/stage2 as gcc knows it - as we're attempting to bootstrap
 #  from p2c into gm2. The sooner we can debug Modula-2 source from gdb the better :-)
 #  So we need the objects to be built from *.mod (not *.c)
 #
 
 gm2-boot: $(GM2_LIBS_BOOT)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2$(exeext) $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 gm2-libs/libgm2.a: gm2-boot force
 	$(MAKE) build-libs
@@ -742,7 +746,7 @@ gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
 
 %.exe:
 	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst
-	../xgm2 -v -Igm2-libs -Igm2-compiler -g -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
+	../xgm2 -v -Igm2-libs -Igm2-compiler -g -B./ -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
 
 gm2lcc: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -851,6 +855,7 @@ clean: force
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
 	$(RM) -rf gm2-compiler-verify
+	$(RM) -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
 	$(RM) -rf m2/comp/bin m2/comp/bin[1234] m2/comp/p2c/home
 	$(RM) -f m2/comp/man/m2f.cat
 	$(RM) -f m2/comp/tools/mkfor m2/comp/tools/mklink
