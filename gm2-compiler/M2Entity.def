@@ -56,7 +56,7 @@ PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entity ;
                      It will create one if necessary.
 *)
 
-PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
+PROCEDURE GetLatestEntity (tokenno: CARDINAL; Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 
 
 (*
@@ -112,7 +112,7 @@ PROCEDURE GetEntitySym (e: Entity) : CARDINAL ;
    MakeNewEntity - makes a new entity for symbol, Sym.
 *)
 
-PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
+PROCEDURE MakeNewEntity (tokenno: CARDINAL; Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 
 
 (*

@@ -1,4 +1,4 @@
-;; Copyright (C) 1985, 1986, 1987, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 2001, 2002 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -31,6 +31,7 @@
 ;; Author Gaius Mulley (gaius@glam.ac.uk)
 ;;    contains automatic indentation
 ;;    automatic END matching
+;;    electric THEN, END, ELSE
 ;;    expression formatting
 ;;    comment formatting
 ;;    procedure declaration finding
@@ -52,6 +53,12 @@
 
 (defconst m2-auto-indent-on-end t
   "*Automatic indentation when END is typed.")
+
+(defconst m2-auto-indent-on-then t
+  "*Automatic indentation when THEN is typed.")
+
+(defconst m2-auto-indent-on-else t
+  "*Automatic indentation when ELSE is typed.")
 
 ;; default path which is overwritten by the environment variable
 ;; M2PATH. (If it exists).
@@ -95,11 +102,12 @@
 (defun setup-g-mode-keys ()
   "sets up the keymap for g-mode."
   (setq g-mode-map (make-sparse-keymap))
-;;  (define-key g-mode-map "@" 'gaius-test)
   (define-key g-mode-map "\t" 'm2-tab)
   (define-key g-mode-map "D" 'm2-test-end)
+  (define-key g-mode-map "N" 'm2-test-then)
+  (define-key g-mode-map "E" 'm2-test-else)
 ;;  (define-key g-mode-map "%" 'm2-local-test)
-  (define-key g-mode-map "!" 'm2-local-recompile)
+;;  (define-key g-mode-map "!" 'm2-local-recompile)
   (define-key g-mode-map "\177" 'backward-delete-char-untabify)
   (define-key g-mode-map "\e."   'm2-tag)
   (define-key g-mode-map "\e\t"  'm2-complete)
@@ -1182,12 +1190,6 @@ FROM StdIO IMPORT Write, Read ;
   (modify-syntax-entry ?| "." g-mode-syntax-table)
   (modify-syntax-entry ?\' "\"" g-mode-syntax-table))
 
-(defun gaius-test ()
-  "simple test function harness"
-  (interactive)
-  (m2-backward-to-token)
-  (message "m2-expression-commencer = %s" (m2-expression-commencer)))
-
 (defun m2-recursive (lim)
   "test my understanding of local bindings!"
   (interactive)
@@ -1224,6 +1226,42 @@ FROM StdIO IMPORT Write, Read ;
     (if (m2-match-end)
 	(m2-display-match (point))
       (message "no matching statement found"))))
+
+(defun m2-test-then ()
+  "check to see whether THEN has been typed"
+  (interactive)
+  (insert "N")
+  (setq case-fold-search nil)
+  (if (and (not (m2-is-in-string))
+	   (> (point) 5))
+      (save-excursion
+	(forward-char -5)
+	(if (looking-at "[; \t\n]THEN[; \t\n]")
+	    (m2-found-then)))))
+
+(defun m2-found-then ()
+  "found THEN now attempt to line up code"
+  (interactive)
+  (if m2-auto-indent-on-then
+      (m2-tab)))
+
+(defun m2-test-else ()
+  "check to see whether ELSE has been typed"
+  (interactive)
+  (insert "E")
+  (setq case-fold-search nil)
+  (if (and (not (m2-is-in-string))
+	   (> (point) 5))
+      (save-excursion
+	(forward-char -5)
+	(if (looking-at "[; \t\n]ELSE[; \t\n]")
+	    (m2-found-else)))))
+
+(defun m2-found-else ()
+  "found ELSE now attempt to line up code"
+  (interactive)
+  (if m2-auto-indent-on-else
+      (m2-tab)))
 
 (defun m2-local-test ()
  "simple test hook."

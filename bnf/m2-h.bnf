@@ -67,8 +67,8 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
       	       	    BuildLineNo,
                     BuildFunctionCall,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
-      	       	    BuildLogicalOr, BuildSetRange, BuildEmptySet,
-                    BuildElement, BuildBitsetStart, BuildBitsetEnd,
+      	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
+                    BuildBitsetStart, BuildSetEnd,
                     BuildLineNo, BuildSizeCheckStart,
                     BuildAssignment,
                     BuildRepeat, BuildUntil,
@@ -671,8 +671,8 @@ QualidentOrSet := SimpleSet
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
-Element := ConstExpression ( ".." ConstExpression                          % BuildSetRange %
-                             |                                             % BuildElement (* epsilon *) %
+Element := ConstExpression ( ".." ConstExpression                          % BuildInclRange %
+                             |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
 TypeDeclaration := Ident "=" Type
@@ -771,9 +771,6 @@ SilentCaseLabels := SilentConstExpression [ ".." SilentConstExpression ] =:
 --
 --  the following rules are a copy of the ConstExpression ebnf rules but without
 --  any actions all prefixed with Silent.
---  At present they are only used by CaseLabels, if this continues to be true we
---  might consider restricting the SilentConstExpression. Eg it makes no sence to allow
---  String in these circumstances!
 --
 
 SilentConstExpression :=                                                   % PushAutoOff %
@@ -937,9 +934,13 @@ CaseStatement := "CASE"
                           StatementSequence ] "END"
                =:
 
-Case := CaseLabelList ":"
+Case := SilentCaseLabelList ":"
                           StatementSequence
       =:
+
+--
+--  we might consider removing CaseLabelList and its decendants as this pass uses SilentCaseLabelList
+--
 
 CaseLabelList := CaseLabels { ","
                                   CaseLabels } =:

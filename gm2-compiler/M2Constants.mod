@@ -40,15 +40,15 @@ VAR
                      names that we must otherwise generate.
 *)
 
-PROCEDURE FindCommonValue (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE FindCommonValue (tokenno: CARDINAL; Sym: CARDINAL) : CARDINAL ;
 BEGIN
-   IF IsZero(Sym)
+   IF IsZero(tokenno, Sym)
    THEN
       RETURN( ZeroCard )
-   ELSIF IsOne(Sym)
+   ELSIF IsOne(tokenno, Sym)
    THEN
       RETURN( OneCard )
-   ELSIF IsTwo(Sym)
+   ELSIF IsTwo(tokenno, Sym)
    THEN
       RETURN( TwoCard )
    ELSE
@@ -61,7 +61,7 @@ END FindCommonValue ;
    MakeNewConstFromValue - makes a new constant given a value on the M2ALU stack.
 *)
 
-PROCEDURE MakeNewConstFromValue () : CARDINAL ;
+PROCEDURE MakeNewConstFromValue (tokenno: CARDINAL) : CARDINAL ;
 VAR
    Sym : CARDINAL ;
    Name: ARRAY [0..50] OF CHAR ;
@@ -71,7 +71,7 @@ BEGIN
    INC(ConstNo) ;
    Sym := MakeConstVar(MakeKey(Name)) ;
    PopValue(Sym) ;
-   RETURN( FindCommonValue(Sym) )
+   RETURN( FindCommonValue(tokenno, Sym) )
 END MakeNewConstFromValue ;
 
 
@@ -80,7 +80,7 @@ END MakeNewConstFromValue ;
             have the same constant value and same type.
 *)
 
-PROCEDURE IsSame (s1, s2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSame (tokenno: CARDINAL; s1, s2: CARDINAL) : BOOLEAN ;
 BEGIN
    IF s1=s2
    THEN
@@ -93,7 +93,7 @@ BEGIN
       THEN
          PushValue(s1) ;
          PushValue(s2) ;
-         RETURN( Equ() )
+         RETURN( Equ(tokenno) )
       ELSE
          RETURN( FALSE )    (* not constant or a different type therefore we do not know *)
       END
@@ -105,7 +105,7 @@ END IsSame ;
    IsZero - returns TRUE if symbol, s, represents the value zero.
 *)
 
-PROCEDURE IsZero (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsZero (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 BEGIN
    IF (s=ZeroCard) OR (s=ZeroReal)
    THEN
@@ -114,7 +114,7 @@ BEGIN
    THEN
       PushValue(s) ;
       PushValue(ZeroCard) ;
-      RETURN( Equ() )
+      RETURN( Equ(tokenno) )
    ELSE
       RETURN( FALSE )
    END
@@ -125,7 +125,7 @@ END IsZero ;
    IsOne - returns TRUE if symbol, s, represents the value one.
 *)
 
-PROCEDURE IsOne (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsOne (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 BEGIN
    IF (s=OneCard) OR (s=OneReal)
    THEN
@@ -134,7 +134,7 @@ BEGIN
    THEN
       PushValue(s) ;
       PushValue(OneCard) ;
-      RETURN( Equ() )
+      RETURN( Equ(tokenno) )
    ELSE
       RETURN( FALSE )
    END
@@ -145,7 +145,7 @@ END IsOne ;
    IsTwo - returns TRUE if symbol, s, represents the value two.
 *)
 
-PROCEDURE IsTwo (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsTwo (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 BEGIN
    IF (s=TwoCard) OR (s=TwoReal)
    THEN
@@ -154,7 +154,7 @@ BEGIN
    THEN
       PushValue(s) ;
       PushValue(TwoCard) ;
-      RETURN( Equ() )
+      RETURN( Equ(tokenno) )
    ELSE
       RETURN( FALSE )
    END

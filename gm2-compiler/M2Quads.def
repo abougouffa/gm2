@@ -45,15 +45,16 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildFunctionCall,
                  BuildProcedureStart, BuildProcedureEnd,
                  BuildReturn,
+                 BuildBooleanVariable,
                  BuildSizeCheckStart,
                  StartBuildWith, EndBuildWith, CheckWithReference,
                  CheckOuterScopeProcedureVariable,
                  BuildDesignatorRecord,
                  BuildDesignatorArray,
                  BuildDesignatorPointer,
-      	       	 BuildBitsetStart, BuildBitsetEnd,
-                 BuildEmptySet, BuildLogicalOr,
-                 BuildSetRange, BuildElement,
+      	       	 BuildBitsetStart, BuildSetEnd,
+                 BuildEmptySet,
+                 BuildInclRange, BuildInclBit,
                  BuildNulExpression,
                  BuildNot,
                  BuildRelOp,
@@ -117,8 +118,8 @@ TYPE
                    DummyOp,
                    GotoOp, EndOp, StartOp,
                    NegateOp, AddOp, SubOp, DivOp, MultOp, ModOp,
-      	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp,
-                   BitRangeOp, BitOp,
+      	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
+                   InclOp, ExclOp,
                    UnboundedOp, HighOp,
                    CoerceOp, ConvertOp,
                    StartDefFileOp, StartModFileOp, EndFileOp,
@@ -126,7 +127,6 @@ TYPE
                    ProfileOnOp, ProfileOffOp,
                    OptimizeOnOp, OptimizeOffOp,
                    InlineOp, LineNumberOp, MathOp,
-                   LogicalShiftLeftOp, LogicalShiftRightOp,
                    SubrangeLowOp, SubrangeHighOp) ;
 
 (*
@@ -1223,6 +1223,15 @@ PROCEDURE BuildFunctionCall ;
 
 
 (*
+   BuildBooleanVariable - tests to see whether top of stack is a boolean
+                          conditional and if so it converts it into a boolean
+                          variable.
+*)
+
+PROCEDURE BuildBooleanVariable ;
+
+
+(*
    BuildProcedureStart - Builds start of the procedure. Creates space for
                          the local variables.
                          The Stack is expected to contain:
@@ -1431,7 +1440,7 @@ PROCEDURE BuildNulExpression ;
 
                       Entry             Exit
 
-               Ptr ->                                   <- Ptr
+                                                       <- Ptr
 
                       Empty             +-------------+
                                         | Bitset      |
@@ -1442,17 +1451,20 @@ PROCEDURE BuildBitsetStart ;
 
 
 (*
-   BuildBitsetEnd - pops the Bitset type from the stack.
+   BuildSetEnd - pops the set value and type from the stack
+                 and pushes the value,type pair.
 
-                    Entry                   Exit
+                        Entry                   Exit
 
-             Ptr ->
-                    +--------------+        Empty
-                    | Bitset       |
-                    |--------------|
+                 Ptr ->
+                        +--------------+
+                        | Set Value    |                         <- Ptr
+                        |--------------|        +--------------+
+                        | Set Type     |        | Value | Type |
+                        |--------------|        |--------------|
 *)
 
-PROCEDURE BuildBitsetEnd ;
+PROCEDURE BuildSetEnd ;
 
 
 (*
@@ -1461,86 +1473,65 @@ PROCEDURE BuildBitsetEnd ;
 
                    Entry             Exit
 
-            Ptr ->                                   <- Ptr
-                   +-----------+     +-------------+
-      	       	   | SetName   |     | t | SetType |
+                                                     <- Ptr
+                                     +-------------+
+            Ptr ->                   | Value       |
+                   +-----------+     |-------------|
+      	       	   | SetType   |     | SetType     |
                    |-----------|     |-------------|
 
-      	    Quads
-
-      	    q   t  :=  0
 *)
 
 PROCEDURE BuildEmptySet ;
 
 
 (*
-   BuildLogicalOr - performs a logical OR of the top two elements
-                    on the stack and then pushes the result.
-
-                    The Stack:
-
-                    Entry             Exit
-
-             Ptr ->              
-                    +-----------+
-      	       	    | e1  | t1  |                     <- Ptr 
-                    |-----------|     +-------------+        
-                    | e2  | t2  |     | e3  | t3    |        
-                    |-----------|     |-------------|        
-      	    Quads
-
-      	    q   e3  +  e1  e2
-*)
-
-
-PROCEDURE BuildLogicalOr ;
-
-
-(*
-   BuildSetRange - builds a set range.
+   BuildInclRange - includes a set range with a set.
 
 
                           Entry                   Exit
                           =====                   ====
 
 
-                   Ptr ->                                        <- Ptr
+                   Ptr ->
                           +------------+
-                          | Element2   |
-                          |------------|          +------------+
-                          | Element1   |          | BitRange   | 
-                          |------------|          |------------|
+                          | El2        |
+                          |------------|
+                          | El1        |                                 <- Ptr
+                          |------------|           +-------------------+
+                          | Set Value  |           | Value + {El1..El2}|
+                          |------------|           |-------------------|
+                          | Set Type   |           | Set Type          |
+                          |------------|           |-------------------|
 
-
-                   Quadruples Produced
-
-                   q     BitRangeOp  BitRange  Element1 Element2
+                   No quadruples produced as the range info is contained within
+                   the set value.
 *)
 
-PROCEDURE BuildSetRange ;
+PROCEDURE BuildInclRange ;
 
 
 (*
-   BuildElement - builds an element.
+   BuildInclBit - includes a bit into the set.
 
-                          Entry                   Exit
-                          =====                   ====
+                         Entry                   Exit
+                         =====                   ====
 
 
-                   Ptr ->                                        <- Ptr
-                          +------------+          +------------+
-                          | Element    |          | BitNumber  | 
-                          |------------|          |------------|
-                          | Set|Type   |          | Set|Type   |
-                          |------------|          |------------|
+                  Ptr ->
+                         +------------+
+                         | Element    |                         <- Ptr
+                         |------------|          +------------+
+                         | Value      |          | Value      |
+                         |------------|          |------------|
+                         | Type       |          | Type       |
+                         |------------|          |------------|
 
-                   Quadruples Produced
-
-                   q     BitOp  BitNumber  _  Element
+                  No quadruples produced as this bit inclusion is contained within
+                  the set value.
 *)
 
-PROCEDURE BuildElement ;
+PROCEDURE BuildInclBit ;
 
 
 (*

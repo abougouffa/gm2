@@ -30,7 +30,11 @@ TYPE
 
 PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
 BEGIN
-   
+   p1 := pth_self() ;
+   IF NOT pth_yield(p2)
+   THEN
+      HALT  (* attempting to transfer to an unrecognisable thread *)
+   END
 END TRANSFER ;
 
 
@@ -42,8 +46,21 @@ END TRANSFER ;
 *)
 
 PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
+VAR
+   attr: pth_attr_t ;
 BEGIN
-   
+   IF NOT initPthreads
+   THEN
+      IF NOT pth_init()
+      THEN
+         HALT
+      END ;
+      initPthreads := TRUE
+   END ;
+   attr := pth_attr_new() ;
+   pth_attr_set(attr, PTH_ATTR_STACK_SIZE, n) ;
+   pth_attr_set(attr, PTH_ATTR_STACK_ADDR, a) ;
+   new := pth_spawn(attr, p, NIL)
 END NEWPROCESS ;
 
 
@@ -76,5 +93,5 @@ END LISTEN ;
 
 
 BEGIN
-
+   initPthreads := FALSE
 END SYSTEM.

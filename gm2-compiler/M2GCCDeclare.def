@@ -31,7 +31,8 @@ DEFINITION MODULE M2GCCDeclare ;
 FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED FoldConstants, StartDeclareMainModule, EndDeclareMainModule,
                  DeclareConstant, DeclareLocalVariables, PromoteToString,
-                 CompletelyResolved ;
+                 CompletelyResolved,
+                 GetTypeMin, GetTypeMax ;
 
 
 (*
@@ -59,7 +60,7 @@ PROCEDURE EndDeclareMainModule ;
    DeclareConstant - declares a constant.
 *)
 
-PROCEDURE DeclareConstant (sym: CARDINAL) ;
+PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 
 
 (*
@@ -76,15 +77,29 @@ PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
                           but as a char however we always return a string constant.
 *)
 
-PROCEDURE PromoteToString (sym: CARDINAL) : Tree ;
+PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 
 
 (*
-   CompletelyResolved - returns TRUE if a symbols has been completely resolved
+   CompletelyResolved - returns TRUE if a symbol has been completely resolved
                         and is not partially declared (such as a record).
 *)
 
 PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetTypeMin - returns a symbol corresponding to MIN(type)
+*)
+
+PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetTypeMax - returns a symbol corresponding to MAX(type)
+*)
+
+PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
 
 
 END M2GCCDeclare.

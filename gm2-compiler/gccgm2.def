@@ -5,7 +5,6 @@ DEFINITION MODULE gccgm2 ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Sat Jul 24 15:47:03 1999
-    Last edit  : Tue Jul 11 2000
     Description: provides a Modula-2 interface to the C file gm2.c
 *)
 
@@ -16,8 +15,9 @@ EXPORT QUALIFIED Tree,
                  BuildBinProcedure, BuildUnaryProcedure,
                  SetFileNameAndLineNo, EmitLineNote,
                  DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
+                 GetDefaultType, GetCopyOfType,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
-                 GetCharType, GetVoidType, GetCurrentFunction,
+                 GetCharType, GetM2CharType, GetVoidType, GetCurrentFunction,
                  GetPointerType,
                  GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
@@ -32,6 +32,8 @@ EXPORT QUALIFIED Tree,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildPointerType, BuildArrayType, BuildSetType,
+                 BuildStartSetConstructor, BuildSetConstructorElement,
+                 BuildEndSetConstructor,
                  BuildStartFunctionType, BuildEndFunctionType,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
@@ -40,12 +42,16 @@ EXPORT QUALIFIED Tree,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                  BuildConvert,
-                 BuildAddr, BuildNegate, BuildSize, BuildOffset, BuildTrunc,
+                 BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
+                 BuildOffset, BuildTrunc,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
                  BuildLessThanOrEqual, BuildGreaterThanOrEqual,
                  BuildEqualTo, BuildNotEqualTo,
-                 BuildIfIn, BuildIfNotIn,
+                 BuildIsSuperset, BuildIsNotSuperset,
+                 BuildIsSubset, BuildIsNotSubset,
+                 BuildIfConstInVar, BuildIfNotConstInVar,
+                 BuildIfVarInVar, BuildIfNotVarInVar,
                  BuildIndirect,
                  DoJump,
                  BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
@@ -54,8 +60,16 @@ EXPORT QUALIFIED Tree,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
                  RememberConstant,
+                 BuildBinaryForeachWordDo,
+                 BuildUnaryForeachWordDo,
+                 BuildIncludeVarVar, BuildExcludeVarVar,
+                 BuildIncludeVarConst, BuildExcludeVarConst,
+                 BuildIfNotIn, BuildIfIn,
+                 BuildForeachWordInSetDoIfExpr,
+                 BuildIfInRangeGoto, BuildIfNotInRangeGoto,
 
-                 AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
+                 AreConstantsEqual, DetermineSign, CompareTrees,
+                 AssignBooleanTrueFalse,
                  ConvertConstantAndCheck, ExpandExpressionStatement ;
 
 
@@ -63,6 +77,7 @@ TYPE
    Tree                = ADDRESS ;
    BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
    BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
+   BuildExprProcedure  = PROCEDURE (Tree, Tree) : Tree ;
 
 
 (*
@@ -95,8 +110,11 @@ PROCEDURE DeclareKnownConstant   (type: Tree  ; value: Tree) : Tree ;
 PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
                                   isexported, isimported, istemporary, isglobal: BOOLEAN;
                                   scope: Tree) : Tree ;
+PROCEDURE GetCopyOfType          (t : Tree) : Tree ;
+PROCEDURE GetDefaultType         (name: ADDRESS; type: Tree) : Tree ;
 PROCEDURE GetIntegerType         () : Tree ;
 PROCEDURE GetCharType            () : Tree ;
+PROCEDURE GetM2CharType          () : Tree ;
 PROCEDURE GetByteType            () : Tree ;
 PROCEDURE GetVoidType            () : Tree ;
 PROCEDURE GetPointerType         () : Tree ;
@@ -159,6 +177,114 @@ PROCEDURE GetSizeOf (type: Tree) : Tree ;
 
 
 (*
+   BuildBinaryForeachWordDo - provides the large set operators. Each word (or less)
+                              of the set can be calculated by binop.
+                              This procedure runs along each word of the large set
+                              invoking the binop.
+*)
+
+PROCEDURE BuildBinaryForeachWordDo (type, op1, op2, op3: Tree;
+                                    binop: BuildBinProcedure;
+                                    is_op1lvalue, is_op2lvalue, is_op3lvalue: BOOLEAN) ;
+
+
+(*
+   BuildUnaryForeachWordDo - provides the large set operators. Each word (or less)
+                             of the set can be calculated by unop.
+                             This procedure runs along each word of the large set
+                             invoking the unop.
+*)
+
+PROCEDURE BuildUnaryForeachWordDo (type, op1, op2: Tree;
+                                   unop: BuildUnaryProcedure;
+                                   is_op1lvalue, is_op2lvalue: BOOLEAN) ;
+
+
+(*
+   BuildExcludeVarConst - builds the EXCL(op1, 1<<op2) operation for a large/small set. Large
+                          sets call this routine to exclude the bit in the particular field.
+                          op2 is a constant. (which indicates the bit 0..BitsPerWord-1 to unset
+                          in fieldno).
+                          op1 is the set (possibly a large set)
+*)
+
+PROCEDURE BuildExcludeVarConst (type, op1, op3: Tree; is_lvalue: BOOLEAN; fieldno: CARDINAL) ;
+
+
+(*
+   BuildIncludeVarConst - builds the INCL(op1, 1<<op2) operation for a large/small set. Large
+                          sets call this routine to include the bit in the particular field.
+                          op2 is a constant. (which indicates the bit 0..BitsPerWord-1 to set
+                          in fieldno).
+                          op1 is the set (possibly a large set)
+*)
+
+PROCEDURE BuildIncludeVarConst (type, op1, op3: Tree; is_lvalue: BOOLEAN; fieldno: CARDINAL) ;
+
+
+(*
+   BuildIncludeVarVar - builds the INCL(varset, 1<<varel) operation for a small and large sets.
+                        op2 is a variable.
+*)
+
+PROCEDURE BuildIncludeVarVar (type, varset, varel: Tree; is_lvalue: BOOLEAN; low: Tree) ;
+
+
+(*
+   BuildExcludeVarVar - builds the EXCL(varset, 1<<varel) operation for a small and large sets.
+                        varel is a variable.
+*)
+
+PROCEDURE BuildExcludeVarVar (type, varset, varel: Tree; is_lvalue: BOOLEAN; low: Tree) ;
+
+
+(*
+   BuildIfConstInVar - generates: if constel in varset then goto label.
+*)
+
+PROCEDURE BuildIfConstInVar (type, varset, constel: Tree; is_lvalue: BOOLEAN; fieldno: CARDINAL;
+                             label: ADDRESS) ;
+
+
+(*
+   BuildIfNotConstInVar - generates: if not (constel in varset) then goto label.
+*)
+
+PROCEDURE BuildIfNotConstInVar (type, varset, constel: Tree; is_lvalue: BOOLEAN; fieldno: CARDINAL;
+                                label: ADDRESS) ;
+
+
+(*
+   BuildIfVarInVar - generates: if varel in varset then goto label
+*)
+
+PROCEDURE BuildIfVarInVar (type, varset, varel: Tree; is_lvalue: BOOLEAN;
+                           low, high: Tree; label: ADDRESS) ;
+
+
+(*
+   BuildIfNotVarInVar - generates: if not (varel in varset) then goto label
+*)
+
+PROCEDURE BuildIfNotVarInVar (type, varset, varel: Tree; is_lvalue: BOOLEAN;
+                              low, high: Tree; label: ADDRESS) ;
+
+
+(*
+   BuildIfInRangeGoto - if var is in the range low..high then goto label
+*)
+
+PROCEDURE BuildIfInRangeGoto (var, low, high: Tree; label: ADDRESS) ;
+
+
+(*
+   BuildIfNotInRangeGoto - if var is not in the range low..high then goto label
+*)
+
+PROCEDURE BuildIfNotInRangeGoto (var, low, high: Tree; label: ADDRESS) ;
+
+
+(*
    AreConstantsEqual - maps onto tree.c (tree_int_cst_equal). It returns
                        TRUE if the value of e1 is the same as e2.
 *)
@@ -175,6 +301,13 @@ PROCEDURE AreConstantsEqual (e1, e2: Tree) : BOOLEAN ;
 *)
 
 PROCEDURE DetermineSign (e: Tree) : INTEGER ;
+
+
+(*
+   CompareTrees - returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
+*)
+
+PROCEDURE CompareTrees (e1, e2: Tree) : INTEGER ;
 
 
 (*
@@ -394,6 +527,28 @@ PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
 PROCEDURE BuildSetType (name: ADDRESS; type, low, high: Tree) : Tree ;
 
 (*
+   BuildStartSetConstructor - starts to create a set constant.
+                              Remember that type is really a record type.
+*)
+
+PROCEDURE BuildStartSetConstructor (type: Tree) ;
+
+
+(*
+   BuildSetConstructorElement - adds, value, to the constructor_element_list.
+*)
+
+PROCEDURE BuildSetConstructorElement (value: Tree) ;
+
+
+(*
+   BuildEndSetConstructor - finishes building a set constant.
+*)
+
+PROCEDURE BuildEndSetConstructor () : Tree ;
+
+
+(*
    BuildStartFunctionType - starts the building of a function type.
 *)
 
@@ -527,6 +682,13 @@ PROCEDURE BuildNegate (op1: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
+   BuildSetNegate - builds a set negate expression and returns the tree.
+*)
+
+PROCEDURE BuildSetNegate (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
    BuildSize - builds a SIZE function expression and returns the tree.
 *)
 
@@ -628,6 +790,34 @@ PROCEDURE BuildNotEqualTo (op1, op2: Tree) : Tree ;
 
 
 (*
+   BuildIsSuperset - return a tree which computes:  op1 & op2 == op2
+*)
+
+PROCEDURE BuildIsSuperset (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIsNotSuperset - return a tree which computes: op1 & op2 != op2
+*)
+
+PROCEDURE BuildIsNotSuperset (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIsSubset - return a tree which computes:  op1 & op2 == op1
+*)
+
+PROCEDURE BuildIsSubset (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildIsNotSubset - return a tree which computes: op1 & op2 != op1
+*)
+
+PROCEDURE BuildIsNotSubset (op1, op2: Tree) : Tree ;
+
+
+(*
    BuildIfIn - return a tree which computes ((op1 & op2) # 0)
 *)
 
@@ -639,6 +829,17 @@ PROCEDURE BuildIfIn (op1, op2: Tree) : Tree ;
 *)
 
 PROCEDURE BuildIfNotIn (op1, op2: Tree) : Tree ;
+
+
+(*
+   BuildForeachWordInSetDoIfExpr - foreach word in set, type, compute the expression, expr, and if true
+                                   goto label.
+*)
+
+PROCEDURE BuildForeachWordInSetDoIfExpr (type, op1, op2: Tree;
+				         is_op1lvalue, is_op2lvalue,
+				         is_op1const, isop2const: BOOLEAN;
+                                         expr: BuildExprProcedure; label: ADDRESS) ;
 
 
 (*

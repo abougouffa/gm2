@@ -32,7 +32,7 @@ EXPORT QUALIFIED IsSame, IsZero, IsOne, IsTwo, MakeNewConstFromValue ;
    MakeNewConstFromValue - makes a new constant given a value on the M2ALU stack.
 *)
 
-PROCEDURE MakeNewConstFromValue () : CARDINAL ;
+PROCEDURE MakeNewConstFromValue (tokenno: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -40,28 +40,28 @@ PROCEDURE MakeNewConstFromValue () : CARDINAL ;
             have the same constant value and same type.
 *)
 
-PROCEDURE IsSame (s1, s2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSame (tokenno: CARDINAL; s1, s2: CARDINAL) : BOOLEAN ;
 
 
 (*
    IsZero - returns TRUE if symbol, s, represents the value zero.
 *)
 
-PROCEDURE IsZero (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsZero (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 
 
 (*
    IsOne - returns TRUE if symbol, s, represents the value one.
 *)
 
-PROCEDURE IsOne (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsOne (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 
 
 (*
    IsTwo - returns TRUE if symbol, s, represents the value two.
 *)
 
-PROCEDURE IsTwo (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsTwo (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 
 
 END M2Constants.

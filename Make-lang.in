@@ -321,7 +321,7 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc -I$(srcdir)/gm2/gm2-libs-boot/%s.def
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink
 GM2-VERSION=0.32
-GM2_FLAGS=-Wbounds -Wreturn -g
+GM2_FLAGS=-Wbounds -Wreturn -gstabs
 
 # Language-specific object files for the gm2 compiler.
 
@@ -1057,7 +1057,7 @@ gm2/pge: buildpge
 
 $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 	$(MAKE) gm2/pge
-	./gm2/pge $< > $@
+	./gm2/pge -l $< > $@
 
 $(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
 	$(MAKE) gm2/pge
@@ -1086,7 +1086,7 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S -Wbounds -Wreturn -g -c -B./gm2/stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -v -S -Wbounds -Wreturn -g -c -B./gm2/stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
            ./xgm2 -S -Wbounds -Wreturn -g -c -B./gm2/stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \

@@ -75,6 +75,7 @@ PROCEDURE AddTokToList (t: toktype; n: Name;
                         i: INTEGER; l: CARDINAL; f: SourceList) ; FORWARD ;
 PROCEDURE SyncOpenWithBuffer ; FORWARD ;
 PROCEDURE FindTokenBucket (VAR TokenNo: CARDINAL) : TokenBucket ; FORWARD ;
+PROCEDURE IsLastTokenEof () : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 

@@ -44,7 +44,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
                         PutProcedureStartQuad, PutProcedureEndQuad,
-                        PutVar,
+                        PutVar, PutConstSet,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
@@ -62,7 +62,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         IsTemporary,
                         IsAModula2Type,
                         PutVarTypeAndSize,
-                        PushSize, PushValue,
+                        PushSize, PushValue, PopValue,
                         ForeachFieldEnumerationDo,
                         NulSym ;
 
@@ -80,7 +80,7 @@ FROM M2Error IMPORT Error,
                     InternalError,
                     WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3,
                     NewError, NewWarning, ErrorFormat0, ErrorFormat1,
-                    ErrorFormat2, FlushErrors, ChainError,
+                    ErrorFormat2, ErrorFormat3, FlushErrors, ChainError,
                     ErrorString,
                     ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
                     WarnStringAt, WarnStringAt2, WarnStringsAt2 ;
@@ -113,7 +113,7 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
                      Address, Bitset, Byte, Word ;
 
 FROM M2Math IMPORT IsPseudoMathFunction ;
-FROM M2ALU IMPORT PushInt, PopCard, Gre, Less ;
+FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
@@ -818,7 +818,10 @@ BEGIN
 
    (* variable references *)
 
-   BitOp,
+   InclOp,
+   ExclOp            : CheckAddVariableRead(Oper1, QuadNo) ;
+                       CheckAddVariableRead(Oper3, QuadNo) ;
+                       CheckAddVariableWrite(Oper1, QuadNo) |
    UnboundedOp,
    HighOp,
    FunctValueOp,
@@ -849,7 +852,6 @@ BEGIN
    LogicalOrOp,
    LogicalAndOp,
    LogicalXorOp,
-   BitRangeOp,
    CoerceOp,
    ConvertOp,
    AddOp,
@@ -923,7 +925,11 @@ BEGIN
 
       (* variable references *)
 
-      BitOp,
+      InclOp,
+      ExclOp            : CheckRemoveVariableRead(Operand1, QuadNo) ;
+                          CheckRemoveVariableRead(Operand3, QuadNo) ;
+                          CheckRemoveVariableWrite(Operand1, QuadNo) |
+
       UnboundedOp,
       HighOp,
       FunctValueOp,
@@ -955,7 +961,6 @@ BEGIN
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
-      BitRangeOp,
       CoerceOp,
       ConvertOp,
       AddOp,
@@ -1101,7 +1106,10 @@ BEGIN
 
       (* variable references *)
 
-      BitOp,
+      InclOp,
+      ExclOp            : CheckRemoveVariableRead(Operand1, QuadNo) ;
+                          CheckRemoveVariableRead(Operand3, QuadNo) ;
+                          CheckRemoveVariableWrite(Operand1, QuadNo) |
       UnboundedOp,
       HighOp,
       FunctValueOp,
@@ -1130,7 +1138,6 @@ BEGIN
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
-      BitRangeOp,
       CoerceOp,
       ConvertOp,
       AddOp,
@@ -3270,38 +3277,33 @@ BEGIN
          THEN
             printf2('%a: %a', GetSymName(ParamI), GetSymName(GetType(ParamI)))
          END ;
-         IF IsBoolean(pi)
+         CallParam := OperandT(pi) ;
+         IF IsConst(CallParam)
          THEN
-            CheckParameter(Boolean, ParamI, Proc, i)
-         ELSE
-            CallParam := OperandT(pi) ;
-            IF IsConst(CallParam)
+            IF IsVarParam(Proc, i)
             THEN
-               IF IsVarParam(Proc, i)
+               FailParameter('trying to pass a constant to a VAR parameter',
+                             CallParam, ParamI, Proc, i)
+            ELSIF IsConstString(CallParam)
+            THEN
+               IF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
-                  FailParameter('trying to pass a constant to a VAR parameter',
-                                CallParam, ParamI, Proc, i)
-               ELSIF IsConstString(CallParam)
+                  CheckParameter(CallParam, ParamI, Proc, i)
+               ELSIF NOT IsUnboundedParam(Proc, i)
                THEN
-                  IF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
+                  (* we possibly need to allow passing strings of exact size to an ARRAY [0..n] OF CHAR *)
+                  IF IsForC AND (GetType(GetParam(Proc, i))=Address)
                   THEN
-                     CheckParameter(CallParam, ParamI, Proc, i)
-                  ELSIF NOT IsUnboundedParam(Proc, i)
-                  THEN
-                     (* we possibly need to allow passing strings of exact size to an ARRAY [0..n] OF CHAR *)
-                     IF IsForC AND (GetType(GetParam(Proc, i))=Address)
-                     THEN
-                        FailParameter('a string constant can either be passed to an ADDRESS parameter or an ARRAY OF CHAR',
-                                      CallParam, ParamI, Proc, i)
-                     ELSE
-                        FailParameter('cannot pass a string constant to a non unbounded array parameter',
-                                      CallParam, ParamI, Proc, i)
-                     END
+                     FailParameter('a string constant can either be passed to an ADDRESS parameter or an ARRAY OF CHAR',
+                                   CallParam, ParamI, Proc, i)
+                  ELSE
+                     FailParameter('cannot pass a string constant to a non unbounded array parameter',
+                                   CallParam, ParamI, Proc, i)
                   END
                END
-            ELSE
-               CheckParameter(CallParam, ParamI, Proc, i)
             END
+         ELSE
+            CheckParameter(CallParam, ParamI, Proc, i)
          END
       ELSE
          IF IsForC AND UsesVarArgs(Proc)
@@ -3350,8 +3352,8 @@ BEGIN
       ErrorFormat2(e, 'procedure (%a) is a parameter being passed as variable (%a) but they are declared with different number of parameters',
                    GetSymName(call), GetSymName(ProcType)) ;
       e := ChainError(GetDeclared(call), e) ;
-      ErrorFormat2(e, 'procedure (%a) is being called incorrectly with (%d) parameters, declared with (%d)',
-                   n, NoOfParam(CheckedProcedure))
+      ErrorFormat3(e, 'procedure (%a) is being called incorrectly with (%d) parameters, declared with (%d)',
+                   GetSymName(call), n, NoOfParam(CheckedProcedure))
    ELSE
       i := 1 ;
       WHILE i<=n DO
@@ -3836,14 +3838,10 @@ BEGIN
    i := 1 ;
    pi := NoOfParameters+1 ;
    WHILE i<=NoOfParameters DO
-      IF IsBoolean(pi)
-      THEN
-         (* Ok Des will be a boolean type *)
-         ConvertBooleanToVariable(pi)
-      ELSIF (GetMode(OperandT(pi))=LeftValue) AND
-            (Proc#Adr) AND (Proc#Size) AND (Proc#TSize) AND (Proc#High) AND
-            (* procedures which have first parameter as a VAR param *)
-            (((Proc#Inc) AND (Proc#Incl) AND (Proc#Dec) AND (Proc#Excl) AND (Proc#New) AND (Proc#Dispose)) OR (i>1))
+      IF (GetMode(OperandT(pi))=LeftValue) AND
+         (Proc#Adr) AND (Proc#Size) AND (Proc#TSize) AND (Proc#High) AND
+         (* procedures which have first parameter as a VAR param *)
+         (((Proc#Inc) AND (Proc#Incl) AND (Proc#Dec) AND (Proc#Excl) AND (Proc#New) AND (Proc#Dispose)) OR (i>1))
       THEN
          (* must dereference LeftValue *)
          f := Peep(BoolStack, pi) ;
@@ -3936,11 +3934,7 @@ BEGIN
       THEN
          IF IsForC AND UsesVarArgs(Proc)
          THEN
-            IF IsBoolean(pi)
-            THEN
-               (* Ok Des will be a boolean type *)
-               ConvertBooleanToVariable(pi)
-            ELSIF (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
+            IF (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
             THEN
                f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
             ELSIF IsConstString(OperandT(pi))
@@ -3979,10 +3973,6 @@ BEGIN
               which ignores the distinction between Left and Right.
          *)
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
-      ELSIF IsBoolean(pi)
-      THEN
-         (* Ok Des will be a boolean type *)
-         ConvertBooleanToVariable(pi)
       ELSIF (NOT IsVarParam(Proc, i)) AND (GetMode(OperandT(pi))=LeftValue)
       THEN
          (* must dereference LeftValue *)
@@ -4639,6 +4629,31 @@ END BuildDecProcedure ;
 
 
 (*
+   DereferenceLValue - checks to see whether, operand, is declare as an LValue
+                       and if so it dereferences it.
+*)
+
+PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   IF GetMode(operand)=LeftValue
+   THEN
+      (* dereference the pointer *)
+      sym := MakeTemporary(AreConstant(IsConst(operand))) ;
+      PutVar(sym, GetType(operand)) ;
+
+      PushT(sym) ;
+      PushT(operand) ;
+      BuildAssignmentWithoutBounds ;
+      RETURN( sym )
+   ELSE
+      RETURN( operand )
+   END
+END DereferenceLValue ;
+
+
+(*
    BuildInclProcedure - builds the pseudo procedure call INCL.
                         INCL is a procedure which adds bit b into a BITSET a.
                         It takes two parameters:
@@ -4666,12 +4681,9 @@ END BuildDecProcedure ;
 PROCEDURE BuildInclProcedure ;
 VAR
    NoOfParam,
-   TempOperandSym,
    OperandSym,
-   TempVarSym,
    VarSym,
-   TempSym,
-   ProcSym       : CARDINAL ;
+   ProcSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
@@ -4682,39 +4694,7 @@ BEGIN
       THEN
          IF IsSet(GetType(VarSym))
          THEN
-            (* get value into TempVarSym *)
-            TempVarSym := MakeTemporary(RightValue) ;
-            PutVar(TempVarSym, GetType(VarSym)) ;
-
-            PushT(TempVarSym) ;
-            PushT(VarSym) ;
-            BuildAssignmentWithoutBounds ;
-
-            (* get value into TempOperandSym *)
-            TempOperandSym := MakeTemporary(AreConstant(IsConst(OperandSym))) ;
-            PutVar(TempOperandSym, GetType(OperandSym)) ;
-
-            PushT(TempOperandSym) ;
-            PushT(OperandSym) ;
-            BuildAssignmentWithoutBounds ;
-
-            (* now build stack for BuildElement *)
-            PushTF(TempVarSym, GetType(TempVarSym)) ;
-            PushT(TempOperandSym) ;
-            BuildElement ;
-            (* collect results from stack *)
-            PopT(TempOperandSym) ;   (* new bit TempOperandSym *)
-            PopT(TempVarSym) ;
-            PushTF(TempVarSym, Bitset) ;  (* GetType(TempVarSym)) ; *)
-            PushT(LogicalOrTok) ;
-            PushTF(TempOperandSym, GetType(TempOperandSym)) ;
-            BuildBinaryOp ;
-            PopT(TempSym) ;
-
-            PutVar(TempSym, GetType(VarSym)) ;   (* now alter the type of the temporary *)
-            PushT(VarSym) ;
-            PushT(TempSym) ;   (* inefficient but understandable *)
-            BuildAssignmentWithoutBounds
+            GenQuad(InclOp, VarSym, NulSym, DereferenceLValue(OperandSym))
          ELSE
             ExpectVariable('the first parameter to INCL must be a SET variable',
                            VarSym)
@@ -4731,7 +4711,7 @@ END BuildInclProcedure ;
 
 (*
    BuildExclProcedure - builds the pseudo procedure call EXCL.
-                        INCL is a procedure which removes bit b from a BITSET a.
+                        INCL is a procedure which removes bit b from SET a.
                         It takes two parameters:
                         EXCL(a, b)
 
@@ -4757,12 +4737,9 @@ END BuildInclProcedure ;
 PROCEDURE BuildExclProcedure ;
 VAR
    NoOfParam,
-   TempOperandSym,
    OperandSym,
-   TempVarSym,
    VarSym,
-   TempSym,
-   ProcSym       : CARDINAL ;
+   ProcSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
@@ -4773,44 +4750,7 @@ BEGIN
       THEN
          IF IsSet(GetType(VarSym))
          THEN
-            (* get value into TempVarSym *)
-            TempVarSym := MakeTemporary(RightValue) ;
-            PutVar(TempVarSym, GetType(VarSym)) ;
-
-            PushT(TempVarSym) ;
-            PushT(VarSym) ;
-            BuildAssignmentWithoutBounds ;
-
-            (* get value into TempOperandSym *)
-            TempOperandSym := MakeTemporary(AreConstant(IsConst(OperandSym))) ;
-            PutVar(TempOperandSym, GetType(OperandSym)) ;
-
-            PushT(TempOperandSym) ;
-            PushT(OperandSym) ;
-            BuildAssignmentWithoutBounds ;
-
-            (* now build stack for BuildElement *)
-            PushTF(TempVarSym, GetType(TempVarSym)) ;
-            PushT(TempOperandSym) ;
-            BuildElement ;
-            (* collect results from stack *)
-            PopT(TempOperandSym) ;   (* new bit TempOperandSym *)
-            PopT(TempVarSym) ;
-
-            PushTF(TempVarSym, Bitset) ;  (* GetType(TempVarSym)) ; *)
-            PushT(LogicalAndTok) ;
-            PushTF(TempOperandSym, GetType(TempOperandSym)) ;
-            PushT(LogicalXorTok) ;
-            PushInt(-1) ;   (* flip bits *)
-            PushTF(MakeNewConstFromValue(), Bitset) ;
-            BuildBinaryOp ;    (* flip all bits in TempOperandSym  *)
-            BuildBinaryOp ;    (* AND flipped value to exclude bit *)
-            PopT(TempSym) ;
-
-            PutVar(TempSym, GetType(VarSym)) ;   (* now alter the type of the temporary *)
-            PushT(VarSym) ;
-            PushT(TempSym) ;   (* inefficient but understandable *)
-            BuildAssignmentWithoutBounds
+            GenQuad(ExclOp, VarSym, NulSym, DereferenceLValue(OperandSym))
          ELSE
             ExpectVariable('the first parameter to EXCL must be a SET variable',
                            VarSym)
@@ -5474,10 +5414,6 @@ BEGIN
       ProcSym := RequestSym(MakeKey('CONVERT')) ;
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
-         IF IsBoolean(1)
-         THEN
-            ConvertBooleanToVariable(1)
-         END ;
          Var := OperandT(1) ;
          IF IsVar(Var) OR IsConst(Var)
          THEN
@@ -5548,10 +5484,6 @@ BEGIN
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
          Type := OperandT(2) ;
-         IF IsBoolean(1)
-         THEN
-            ConvertBooleanToVariable(1)
-         END ;
          Var := OperandT(1) ;
          IF IsUnknown(Type)
          THEN
@@ -5630,10 +5562,6 @@ BEGIN
       WriteFormat0('base procedure CONVERT expects 2 parameters')
    ELSE
       Type := OperandT(2) ;
-      IF IsBoolean(1)
-      THEN
-         ConvertBooleanToVariable(1)
-      END ;
       Var := OperandT(1) ;
       IF IsUnknown(Type)
       THEN
@@ -5697,7 +5625,7 @@ BEGIN
    ELSE
       PushValue(field) ;
       PushValue(MaxEnumerationField) ;
-      IF Gre()
+      IF Gre(GetTokenNo())
       THEN
          MaxEnumerationField := field
       END
@@ -5708,7 +5636,7 @@ BEGIN
    ELSE
       PushValue(field) ;
       PushValue(MinEnumerationField) ;
-      IF Less()
+      IF Less(GetTokenNo())
       THEN
          MinEnumerationField := field
       END
@@ -5824,10 +5752,6 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      IF IsBoolean(1)
-      THEN
-         ConvertBooleanToVariable(1)
-      END ;
       Var := OperandT(1) ;
       PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
       IF IsAModula2Type(Var)
@@ -5839,10 +5763,12 @@ BEGIN
          min := GetTypeMin(GetType(Var)) ;
          PushTF(min, NulSym)
       ELSE
-         WriteFormat0('parameter to MIN must be a type or a variable')
+         WriteFormat0('parameter to MIN must be a type or a variable') ;
+         PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
       END
    ELSE
-      WriteFormat0('the pseudo function MIN only has one parameter')
+      WriteFormat0('the pseudo function MIN only has one parameter') ;
+      PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
    END
 END BuildMinFunction ;
 
@@ -5875,10 +5801,6 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
-      IF IsBoolean(1)
-      THEN
-         ConvertBooleanToVariable(1)
-      END ;
       Var := OperandT(1) ;
       PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
       IF IsAModula2Type(Var)
@@ -5890,10 +5812,12 @@ BEGIN
          max := GetTypeMax(GetType(Var)) ;
          PushTF(max, NulSym)
       ELSE
-         WriteFormat0('parameter to MAX must be a type or a variable')
+         WriteFormat0('parameter to MAX must be a type or a variable') ;
+         PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
       END
    ELSE
-      WriteFormat0('the pseudo function MAX only has one parameter')
+      WriteFormat0('the pseudo function MAX only has one parameter') ;
+      PushT(MakeConstLit(MakeKey('0')))   (* put a legal value on the stack *)
    END
 END BuildMaxFunction ;
 
@@ -6310,7 +6234,7 @@ BEGIN
             (* n is a parameter *)
             IF NOT IsAModula2Type(GetType(n))
             THEN
-               ErrorStringAt2(Sprintf2(Mark(InitString('the parameter type specified (%s) in procedure (%s) was not itself declared as a type')),
+               ErrorStringAt2(Sprintf2(Mark(InitString('the parameter type specified (%s) in procedure (%s) was not declared as a type')),
                                        Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(n))))),
                                        Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym))))),
                               GetDeclared(BlockSym), GetDeclared(GetType(n)))
@@ -6319,7 +6243,7 @@ BEGIN
             (* n is a local variable *)
             IF NOT IsAModula2Type(GetType(n))
             THEN
-               ErrorStringAt(Sprintf1(Mark(InitString('the variable type specified (%s) was not itself declared as a type')),
+               ErrorStringAt(Sprintf1(Mark(InitString('the variable type specified (%s) was not declared as a type')),
                                       Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(n)))))),
                              GetDeclared(GetType(n)))
             END
@@ -7051,10 +6975,6 @@ BEGIN
       (* Again ti has no type since constant *)
       ti := MakeTemporary(ImmediateValue) ;
       GenQuad(ElementSizeOp, ti, Type, i) ;
-      IF IsBoolean(pi)
-      THEN
-         WriteFormat0('cannot use a conditional expression to index an array')
-      END ;
       OpI := OperandT(pi) ;
       IF IsConst(OpI)
       THEN
@@ -7194,10 +7114,6 @@ BEGIN
    (* ti has no type since constant *)
    ti := MakeTemporary(ImmediateValue) ;
    GenQuad(ElementSizeOp, ti, Type, 1) ;
-   IF IsBoolean(1)
-   THEN
-      WriteFormat0('cannot use a conditional expression to index an array')
-   END ;
    idx := OperandT(1) ;
    IF IsConst(idx)
    THEN
@@ -7642,19 +7558,20 @@ END BuildBitsetStart ;
 
 
 (*
-   BuildBitsetEnd - pops the Bitset type from the stack.
+   BuildSetEnd - pops the set value and type from the stack
+                 and pushes the value,type pair.
 
                     Entry                   Exit
 
              Ptr ->
-                    +--------------+        Empty
-                    | Set Value    |
-                    |--------------|
-                    | Set Type     |
-                    |--------------|
+                    +--------------+
+                    | Set Value    |                         <- Ptr
+                    |--------------|        +--------------+
+                    | Set Type     |        | Value | Type |
+                    |--------------|        |--------------|
 *)
 
-PROCEDURE BuildBitsetEnd ;
+PROCEDURE BuildSetEnd ;
 VAR
    v, t: CARDINAL ;
 BEGIN
@@ -7662,7 +7579,7 @@ BEGIN
    PopT(t) ;
    PushTF(v, t) ;
    Assert(IsSet(t))
-END BuildBitsetEnd ;
+END BuildSetEnd ;
 
 
 (*
@@ -7671,14 +7588,13 @@ END BuildBitsetEnd ;
 
                    Entry             Exit
 
-            Ptr ->                                   <- Ptr
-                   +-----------+     +-------------+
-                   | SetName   |     | t | SetType |
+                                                     <- Ptr
+                                     +-------------+
+            Ptr ->                   | Value       |
+                   +-----------+     |-------------|
+      	       	   | SetType   |     | SetType     |
                    |-----------|     |-------------|
 
-            Quads
-
-                   q   t  :=  0
 *)
 
 PROCEDURE BuildEmptySet ;
@@ -7691,14 +7607,17 @@ BEGIN
    NulSet := MakeTemporary(ImmediateValue) ;
    Assert(Type#NulSym) ;
    PutVar(NulSet, Type) ;
+   PutConstSet(NulSet) ;
+   IF CompilerDebugging
+   THEN
+      printf1('set type = %a\n', GetSymName(Type))
+   END ;
+   PushNulSet(Type) ;   (* onto the ALU stack  *)
+   PopValue(NulSet) ;   (* ALU -> symbol table *)
 
-   (* Assign with 0 clear all bits *)
+   (* and now construct the M2Quads stack as defined by the comments above *)
+   PushT(Type) ;
    PushT(NulSet) ;
-   PushT(MakeConstLit(MakeKey('0'))) ;
-   BuildAssignmentWithoutBounds ;
-
-   PushTF(Type, Type) ;
-   PushTF(NulSet, Type) ;
    IF CompilerDebugging
    THEN
       printf2('Type = %a  (%d)  built empty set\n', GetSymName(Type), Type) ;
@@ -7708,225 +7627,107 @@ END BuildEmptySet ;
 
 
 (*
-   BuildLogicalOr - performs a logical OR of the top two elements
-                    on the stack and then pushes the result.
-
-                    The Stack:
-
-                    Entry             Exit
-
-             Ptr ->              
-                    +-----------+
-                    | e1  | t1  |                     <- Ptr 
-                    |-----------|     +-------------+        
-                    | e2  | t2  |     | e3  | t3    |        
-                    |-----------|     |-------------|        
-            Quads
-
-            q   e3  +  e1  e2
-*)
-
-PROCEDURE BuildLogicalOr ;
-VAR
-   e1, e2   ,
-   t1, t2   : CARDINAL ;
-   Low, High: CARDINAL ;
-BEGIN
-   IF CompilerDebugging
-   THEN
-      printf0('Build Logical Or\n') ;
-      DisplayStack   (* Debugging info *)
-   END ;
-   PopTF(e1, t1) ;
-   PopTF(e2, t2) ;   (* t2 contains the set type - we ignore t1 *)
-                     (* as it might be an integer ie {1,2,3}    *)
-                     (* We push e1 with type t2.                *)
-   IF CompilerDebugging
-   THEN
-      printf2('e1 = %a      t1 = %a\n', GetSymName(e1), GetSymName(t1)) ;
-      printf2('e2 = %a      t2 = %a\n', GetSymName(e2), GetSymName(t2))
-   END ;
-   IF t2=NulSym
-   THEN
-      t2 := Bitset
-   END ;
-   PushTF(e2, t2) ;
-   PushT(LogicalOrTok) ;    (* insist that we perform a logical OR always *)
-   PushTF(e1, t2) ;
-   BuildBinaryOp ;
-   PopTF(e1, t1) ;
-   PushTF(e1, t2)
-(*  ;    DisplayStack ; *)
-END BuildLogicalOr ;
-
-
-(*
-   BuildSetRange - builds a set range.
+   BuildInclRange - includes a set range with a set.
 
 
                           Entry                   Exit
                           =====                   ====
 
 
-                   Ptr ->                                        <- Ptr
+                   Ptr ->
                           +------------+
-                          | Element2   |
-                          |------------|          +------------+
-                          | Element1   |          | BitRange   | 
-                          |------------|          |------------|
+                          | El2        |
+                          |------------|
+                          | El1        |                                 <- Ptr
+                          |------------|           +-------------------+
+                          | Set Value  |           | Value + {El1..El2}|
+                          |------------|           |-------------------|
 
-
-                   Quadruples Produced
-
-                   q     BitRangeOp  BitRange  Element1 Element2
+                   No quadruples produced as the range info is contained within
+                   the set value.
 *)
 
-PROCEDURE BuildSetRange ;
+PROCEDURE BuildInclRange ;
 VAR
-   BitRange,
-   Element1,
-   Element2: CARDINAL ;
+   el1, el2,
+   value: CARDINAL ;
 BEGIN
-   PopT(Element2) ;
-   PopT(Element1) ;
-   BitRange := MakeTemporary(ImmediateValue) ;
-   PutVar(BitRange, Bitset) ;
-   GenQuad(BitRangeOp, BitRange, Element1, Element2) ;
-   PushTF(BitRange, Bitset)
-END BuildSetRange ;
-
-
-(*
-   BuildElement - builds an element.
-
-                          Entry                   Exit
-                          =====                   ====
-
-
-                   Ptr ->                                        <- Ptr
-                          +------------+          +------------+
-                          | Element    |          | BitNumber  | 
-                          |------------|          |------------|
-                          | Set|Type   |          | Set|Type   |
-                          |------------|          |------------|
-
-
-                   Quadruples Produced
-
-                   q     BitOp  BitNumber  _  Element
-*)
-
-PROCEDURE BuildElement ;
-VAR
-   Low,
-   BitNumber,
-   Set,
-   Ignore,
-   Type,
-   Element  : CARDINAL ;
-BEGIN
-   IF CompilerDebugging
+   PopT(el2) ;
+   PopT(el1) ;
+   PopT(value) ;
+   IF IsConst(el1) AND IsConst(el2)
    THEN
-      DisplayStack
-   END ;
-   PopT(Element) ;
-   PopTF(Set, Type) ;
-   IF CompilerDebugging
-   THEN
-      printf3('Element = %a    b Type = %a       Set = %a\n', GetSymName(Element), GetSymName(Type), GetSymName(Set))
-   END ;
-   IF (Type#NulSym) AND IsSet(Type)
-   THEN
-      IF IsEnumeration(GetType(Type))
+      PushValue(value) ;  (* onto ALU stack *)
+      AddBitRange(el1, el2) ;
+      PopValue(value)     (* ALU -> symboltable *)
+   ELSE
+      IF NOT IsConst(el1)
       THEN
-         (* 
-            enumerations start at zero anyway
-            and so no need to subtract the base.
-            But we will coerse it though.
-         *)
-      ELSE
-         IF IsSubrange(GetType(Type))
-         THEN
-            (* remember we cannot use GetSubrange - as the limits (constants) may be declared later on *)
-            Low := MakeTemporary(ImmediateValue) ;
-            GenQuad(SubrangeLowOp, Low, NulSym, GetType(Type)) ;
-
-            PushTF(Element, Cardinal) ;  (* must not be a set type since then M2GenCode will perform set difference. *)
-            PushT(MinusTok) ; (* Subtract offset from the type ie:       *)
-                              (* TYPE  s = SET OF [90..99] ;             *)
-            PushTF(Low, NulSym) ;
-            BuildBinaryOp ;   (* e = Element - Low *)
-            PopTF(Element, Ignore)
-         ELSE
-            WriteFormat0('type of set is expected to be a subrange type')
-         END
+         WriteFormat1('must use constants as ranges when defining a set constant, problem with the low value %a', GetSymName(el1))
+      END ;
+      IF NOT IsConst(el2)
+      THEN
+         WriteFormat1('must use constants as ranges when defining a set constant, problem with the high value %a', GetSymName(el2))
       END
    END ;
-   BitNumber := MakeTemporary(AreConstant(IsConst(Element))) ;
-   PutVar(BitNumber, Bitset) ;
-   GenQuad(BitOp, BitNumber, NulSym, Element) ;
-   PushTF(Set, Type) ;
-   PushTF(BitNumber, Bitset)
-END BuildElement ;
+   PushT(value)
+END BuildInclRange ;
 
 
 (*
-   CheckInOp - manipulates the stack so that the IN operator takes
-               two bitsets. It converts: number IN bitset to bitset in bitset
-               where the first bitset only contains number.
+   BuildInclBit - includes a bit into the set.
+
+                         Entry                   Exit
+                         =====                   ====
 
 
-                       Entry                   Exit
-                       =====                   ====
+                  Ptr ->
+                         +------------+
+                         | Element    |                         <- Ptr
+                         |------------|          +------------+
+                         | Value      |          | Value      |
+                         |------------|          |------------|
 
-
-                Ptr ->                                        <- Ptr
-                       +------------+          +------------+
-                       | Set|Type   |          | Set|Type   |
-                       |------------|          |------------|
-                       | InTok      |          | InTok      |
-                       |------------|          |------------|
-                       | Element    |          | BitNumber  | 
-                       |------------|          |------------|
 *)
 
-PROCEDURE CheckInOp ;
+PROCEDURE BuildInclBit ;
 VAR
-   Op            : Name ;
-   Set, Type1,
-   Element, Type2: CARDINAL ;
+   e           : Error ;
+   el, value, t: CARDINAL ;
 BEGIN
-   PopTF(Set, Type1) ;
-   PopT(Op) ;
-   PopTF(Element, Type2) ;
-   IF Op=InTok
+   PopT(el) ;
+   PopT(value) ;
+   IF value=5504
    THEN
-      IF (GetType(Element)#NulSym) AND (IsSet(GetType(Element)))
-      THEN
-         WriteFormat1('cannot test whether a set is in a set, left hand side must be an element (%a)', GetSymName(Element))
-      END ;
-      IF (GetType(Set)#NulSym) AND
-         (
-          (IsProcType(GetType(Set)) AND (NOT IsSet(GetType(GetType(Set))))) OR
-          (NOT IsSet(GetType(Set)))
-         )
-      THEN
-         WriteFormat1('expecting right hand side of IN operator to be a set (%a)', GetSymName(Set))
-      END ;
-      PushTF(Set, Type1) ;
-      PushT(Element) ;
-      BuildElement ;
-      PopTF(Element, Type2) ;
-      PopTF(Set, Type1) ;
-      Type2 := Type1
+      stop
    END ;
-   (* restore stack *)
-   PushTF(Element, Type2) ;
-   PushT(Op) ;
-   PushTF(Set, Type1)
-END CheckInOp ;
+   IF IsConst(el)
+   THEN
+      PushValue(value) ;  (* onto ALU stack *)
+      AddBit(el) ;
+      PopValue(value)    (* ALU -> symboltable *)
+   ELSE
+      IF GetMode(el)=LeftValue
+      THEN
+         t := MakeTemporary(RightValue) ;
+         PutVar(t, GetType(el)) ;
+         GenQuad(IndrXOp, t, GetType(el), el) ;
+         el := t
+      END ;
+      IF IsConst(value)
+      THEN
+         (* move constant into a variable to achieve the include *)
+         t := MakeTemporary(RightValue) ;
+         PutVar(t, GetType(value)) ;
+         GenQuad(BecomesOp, t, NulSym, value) ;
+         value := t
+      END ;
+      GenQuad(InclOp, value, NulSym, el)
+   END ;
+   PushT(value)
+END BuildInclBit ;
 
-   
+
 (*
    RecordOp - Records the operator passed on the stack.
               Checks for AND operator or OR operator
@@ -8007,6 +7808,47 @@ END CheckForLogicalOperator ;
 
 
 (*
+   CheckGenericNulSet - checks to see whether e1 is a generic nul set and if so it alters it
+                        to the nul set of t2.
+*)
+
+PROCEDURE CheckGenericNulSet (e1: CARDINAL; VAR t1: CARDINAL; t2: CARDINAL) ;
+BEGIN
+   IF IsConstSet(e1)
+   THEN
+      IF NOT IsSet(t2)
+      THEN
+         WriteFormat2('incompatibility between a set constant of type (%a) and an object of type (%a)',
+                      GetSymName(t1), GetSymName(t2))
+      END ;
+      PushValue(e1) ;
+      IF IsGenericNulSet()
+      THEN
+         PopValue(e1) ;
+         PushNulSet(t2) ;
+         t1 := t2
+      END ;
+      PopValue(e1)
+   END
+END CheckGenericNulSet ;
+
+
+(*
+   CheckForGenericNulSet - if e1 or e2 is the generic nul set then
+                           alter it to the nul set of the other operands type.
+*)
+
+PROCEDURE CheckForGenericNulSet (e1, e2: CARDINAL; VAR t1, t2: CARDINAL) ;
+BEGIN
+   IF t1#t2
+   THEN
+      CheckGenericNulSet(e1, t1, t2) ;
+      CheckGenericNulSet(e2, t2, t1)
+   END
+END CheckForGenericNulSet ;
+
+
+(*
    BuildBinaryOp   - Builds a binary operation from the quad stack.
                      Be aware that this procedure will check for
                      the overloading of the bitset operators + - \ *.
@@ -8058,6 +7900,7 @@ END CheckForLogicalOperator ;
 
 PROCEDURE BuildBinaryOp ;
 VAR
+   NewTok,
    Tok   : Name ;
    t1, f1,
    t2, f2,
@@ -8086,25 +7929,34 @@ BEGIN
       PopTF(e1, t1) ;
       PopT(Tok) ;
       PopTF(e2, t2) ;
-      (*
-         BinaryOps and UnaryOps only work with immediate and offset addressing.
-         which is fine for calculating array and record offsets but we need
-         to get the real values to perform normal arithmetic. Not address
-         arithmetic.
-      *)
-      IF GetMode(e1)=LeftValue
+      NewTok := CheckForLogicalOperator(Tok, e1, t1, e2, t2) ;
+      IF NewTok=Tok
       THEN
-         t := MakeTemporary(RightValue) ;
-         PutVar(t, t1) ;
-         GenQuad(IndrXOp, t, t1, e1) ;
-         e1 := t
-      END ;
-      IF GetMode(e2)=LeftValue
-      THEN
-         t := MakeTemporary(RightValue) ;
-         PutVar(t, t2) ;
-         GenQuad(IndrXOp, t, t2, e2) ;
-         e2 := t
+         (*
+            BinaryOps and UnaryOps only work with immediate and offset addressing.
+            which is fine for calculating array and record offsets but we need
+            to get the real values to perform normal arithmetic. Not address
+            arithmetic.
+
+            However the set operators will dereference LValues (to optimize large
+            set arithemetic)
+         *)
+         IF GetMode(e1)=LeftValue
+         THEN
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, t1) ;
+            GenQuad(IndrXOp, t, t1, e1) ;
+            e1 := t
+         END ;
+         IF GetMode(e2)=LeftValue
+         THEN
+            t := MakeTemporary(RightValue) ;
+            PutVar(t, t2) ;
+            GenQuad(IndrXOp, t, t2, e2) ;
+            e2 := t
+         END
+      ELSE
+         (* CheckForGenericNulSet(e1, e2, t1, t2) *)
       END ;
       IF (Tok=EqualTok) OR (Tok=HashTok)
       THEN
@@ -8113,21 +7965,9 @@ BEGIN
          CheckExpressionCompatible(t1, t2)
       END ;
       t := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2))) ;
-      PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;  (* this is a trial - can we always put a type for a temporary? *)
-      Tok := CheckForLogicalOperator(Tok, e1, t1, e2, t2) ;
-      IF Tok=LogicalDifferenceTok
-      THEN
-         (* expand into 2 quadruples *)
-         PushInt(-1) ;
-         GenQuad(LogicalXorOp, t, e1, MakeNewConstFromValue()) ;
-         ta := MakeTemporary(AreConstant(IsConst(e2) AND IsConst(t))) ;
-         PutVar(ta, Bitset) ;
-         GenQuad(LogicalAndOp, ta, e2, t) ;
-         PushTF(ta, GetType(ta))
-      ELSE
-         GenQuad(MakeOp(Tok), t, e2, e1) ;
-         PushTF(t, GetType(t))
-      END
+      PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;
+      GenQuad(MakeOp(NewTok), t, e2, e1) ;
+      PushTF(t, GetType(t))
    END
 END BuildBinaryOp ;
 
@@ -8157,6 +7997,7 @@ END BuildBinaryOp ;
 PROCEDURE BuildUnaryOp ;
 VAR
    Tok     : Name ;
+   type,
    Sym,
    SymT,  t: CARDINAL ;
 BEGIN
@@ -8164,16 +8005,24 @@ BEGIN
    PopT(Tok) ;
    IF Tok=MinusTok
    THEN
+      type := MixTypes(GetType(Sym), NulSym, GetTokenNo()) ;
       t := MakeTemporary(AreConstant(IsConst(Sym))) ;
+      PutVar(t, type) ;
+
       (*
          variables must have a type and REAL/LONGREAL constants must
          be typed
       *)
-      PutVar(t, MixTypes(GetType(Sym), NulSym, GetTokenNo())) ;
+
       IF NOT IsConst(Sym)
       THEN
-         IF GetMode(Sym)=LeftValue
+         IF (type#NulSym) AND IsSet(type)
          THEN
+            (* do not dereference set variables *)
+         ELSIF GetMode(Sym)=LeftValue
+         THEN
+            (* dereference symbols which are not sets and which are variables *)
+
             SymT := MakeTemporary(RightValue) ;
             PutVar(SymT, GetType(Sym)) ;
             GenQuad(IndrXOp, SymT, GetType(Sym), Sym) ;
@@ -8239,6 +8088,21 @@ BEGIN
       BooleanOp := FALSE (* no longer a Boolean True|False pair    *)
    END
 END ConvertBooleanToVariable ;
+
+
+(*
+   BuildBooleanVariable - tests to see whether top of stack is a boolean
+                          conditional and if so it converts it into a boolean
+                          variable.
+*)
+
+PROCEDURE BuildBooleanVariable ;
+BEGIN
+   IF IsBoolean(1)
+   THEN
+      ConvertBooleanToVariable(1)
+   END
+END BuildBooleanVariable ;
 
 
 (*
@@ -8424,7 +8288,6 @@ BEGIN
       THEN
          ConvertBooleanToVariable(3)
       END ;
-      CheckInOp ;
       PopTF(e1, t1) ;
       PopT(Op) ;
       PopTF(e2, t2) ;
@@ -8539,6 +8402,9 @@ BEGIN
    ELSIF t=LogicalXorTok
    THEN
       RETURN( LogicalXorOp )
+   ELSIF t=LogicalDifferenceTok
+   THEN
+      RETURN( LogicalDiffOp )
    ELSE
       InternalError('binary operation not implemented yet', __FILE__, __LINE__)
    END
@@ -8690,7 +8556,8 @@ BEGIN
       SubrangeLowOp,
       SubrangeHighOp,
       BecomesOp,
-      BitOp,
+      InclOp,
+      ExclOp,
       UnboundedOp,
       HighOp,
       ReturnValueOp,
@@ -8744,9 +8611,6 @@ BEGIN
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
-      LogicalShiftLeftOp,
-      LogicalShiftRightOp,
-      BitRangeOp,
       CoerceOp,
       ConvertOp,
       AddOp,
@@ -8786,10 +8650,7 @@ BEGIN
    LogicalOrOp              : printf0('Or           ') |
    LogicalAndOp             : printf0('And          ') |
    LogicalXorOp             : printf0('Xor          ') |
-   LogicalShiftLeftOp       : printf0('<<           ') |
-   LogicalShiftRightOp      : printf0('>>           ') |
-   BitOp                    : printf0('Bit          ') |
-   BitRangeOp               : printf0('BitRange     ') |
+   LogicalDiffOp            : printf0('Ldiff        ') |
    BecomesOp                : printf0('Becomes      ') |
    IndrXOp                  : printf0('IndrXOp      ') |
    XIndrOp                  : printf0('XIndrOp      ') |
@@ -8819,6 +8680,8 @@ BEGIN
    ModOp                    : printf0('MOD          ') |
    MultOp                   : printf0('*            ') |
    NegateOp                 : printf0('Negate       ') |
+   InclOp                   : printf0('Incl         ') |
+   ExclOp                   : printf0('Excl         ') |
    ReturnOp                 : printf0('Return       ') |
    ReturnValueOp            : printf0('ReturnValue  ') |
    FunctValueOp             : printf0('FunctValue   ') |

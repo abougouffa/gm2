@@ -27,7 +27,7 @@ FROM M2Error IMPORT InternalError, ErrorStringAt ;
 FROM Strings IMPORT InitString ;
 
 FROM M2Constants IMPORT IsZero, IsOne, IsTwo, IsSame, MakeNewConstFromValue ;
-FROM M2ALU IMPORT Add, Mult, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;
+FROM M2ALU IMPORT Addn, Multn, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;
 FROM M2Quads IMPORT QuadOperator, GetQuad, SubQuad, PutQuad, EraseQuad, GetNextQuad, DisplayQuad, Head,
                     WriteOperator, IsOptimizeOn, QuadToTokenNo ;
 
@@ -38,7 +38,7 @@ FROM Environment IMPORT GetEnvironment ;
 FROM StrLib IMPORT StrConCat ;
 
 FROM M2Entity IMPORT Entity, InitEntities, HasLValue,
-                     FindLatestEntity, GetLatestEntity,
+                     GetLatestEntity,
                      IsEntityClean, IsLValue,
                      MakeEntityDirty, MakeEntityClean,
                      GiveEntityIndex, GetEntityIndex, GetEntitySym, MakeNewEntity ;
@@ -108,7 +108,7 @@ PROCEDURE CheckNeeded (l: List; n: Nodes; sym: CARDINAL; index: CARDINAL;
                        Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE ChooseCleanEntityForLabel (n: Nodes) ; FORWARD ;
 PROCEDURE CheckNodesWereSorted (Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE CollectSymIfNotValue (sym: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE CollectSymIfNotValue (tokenno: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE MakeQuadFromNode (q: CARDINAL; n: Nodes) ; FORWARD ;
 PROCEDURE CheckEntList (n: Nodes; index: CARDINAL; Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE DisplayForest ; FORWARD ;
@@ -473,8 +473,9 @@ VAR
 BEGIN
    IF FunctNode=NulNode
    THEN
-      e := MakeNewEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
-      FunctNode := MakeNode(q, e, FunctValueOp, NulNode, MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes)))) ;
+      e := MakeNewEntity(QuadToTokenNo(q), op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+      FunctNode := MakeNode(q, e, FunctValueOp, NulNode,
+                            MakeLeaf(GetLatestEntity(QuadToTokenNo(q), op3, FALSE, VAL(CARDINAL, NoOfNodes)))) ;
       MakeOp(q, e, e, FunctNode)
    ELSE
       InternalError('only expect one FunctValueOp per basic block', __FILE__, __LINE__)
@@ -516,7 +517,7 @@ BEGIN
       IF Debugging
       THEN
          ; WriteString('------------------------------------------') ; WriteLn ;
-         DisplayTree(MakeLeaf(GetLatestEntity(op3, FALSE)), 0)
+         DisplayTree(MakeLeaf(GetLatestEntity(QuadToTokenNo(q), op3, FALSE)), 0)
          ; WriteString('------------------------------------------') ; WriteLn ;
       END
    END
@@ -553,7 +554,7 @@ BEGIN
    IF Debugging
    THEN
       ; WriteString('------------------------------------------') ; WriteLn ;
-      DisplayTree(MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))), 0)
+      DisplayTree(MakeLeaf(GetLatestEntity(QuadToTokenNo(q), op3, FALSE, VAL(CARDINAL, NoOfNodes))), 0)
       ; WriteString('------------------------------------------') ; WriteLn ;
    END
 END MakeIndrX ;
@@ -588,7 +589,7 @@ BEGIN
    IF Debugging
    THEN
       ; WriteString('------------------------------------------') ; WriteLn ;
-      DisplayTree(MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))), 0)
+      DisplayTree(MakeLeaf(GetLatestEntity(QuadToTokenNo(q), op3, FALSE, VAL(CARDINAL, NoOfNodes))), 0)
       ; WriteString('------------------------------------------') ; WriteLn ;
    END
 END MakeXIndr ;
@@ -610,14 +611,16 @@ PROCEDURE MakeAddr (q: CARDINAL; Start, End: CARDINAL;
                     op1, op3: CARDINAL) ;
 VAR
    new, old: Entity ;
+   t       : CARDINAL ;
 BEGIN
+   t := QuadToTokenNo(q) ;
    (* addr can operate on different sizes as it calculates the address of a symbol ADR(record) *)
-   old := GetLatestEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
-   new := MakeNewEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+   old := GetLatestEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+   new := MakeNewEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
    (* it calculates the address of op3, which might be a subexpression *)
    MakeOp(q, new, old,
           MakeNode(q, new, AddrOp, NulNode,
-                   MakeLeaf(GetLatestEntity(op3, TRUE, VAL(CARDINAL, NoOfNodes))))
+                   MakeLeaf(GetLatestEntity(t, op3, TRUE, VAL(CARDINAL, NoOfNodes))))
          )
 END MakeAddr ;
 
@@ -631,13 +634,16 @@ PROCEDURE MakeMove (q: CARDINAL; Start, End: CARDINAL;
                     op1, op3: CARDINAL) ;
 VAR
    new, old: Entity ;
+   t       : CARDINAL ;
 BEGIN
    (* just like a copy *)
    RemoveQuad(q) ;
    IF op1#op3
    THEN
-      RemoveEntityFromEntList(GetLatestEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)), q) ;
-      AddDependent(MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))), MakeNewEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+      t := QuadToTokenNo(q) ;
+      RemoveEntityFromEntList(GetLatestEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)), q) ;
+      AddDependent(MakeLeaf(GetLatestEntity(t, op3, FALSE, VAL(CARDINAL, NoOfNodes))),
+                   MakeNewEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes))) ;
       IF Debugging
       THEN
          DisplayForest
@@ -659,7 +665,7 @@ BEGIN
       (* since ParamOp rightly ignores ModeOfAddr we can use the following method *)
       EraseQuad(q) ;
       (* can only perform this code when we actually place ParamOp's into the forest - to take advantage of the DAG *)
-      PutQuad(q, ParamOp, op1, op2, GetSym(MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))))) ;
+      PutQuad(q, ParamOp, op1, op2, GetSym(MakeLeaf(GetLatestEntity(QuadToTokenNo(q), op3, FALSE, VAL(CARDINAL, NoOfNodes))))) ;
       SaveQuad(q)
    ELSE
       (* this works, but is not very clever *)
@@ -973,24 +979,27 @@ END AddDependent ;
 *)
 
 PROCEDURE MakeNewConstant (op: QuadOperator; l, r: CARDINAL) : CARDINAL ;
+VAR
+   t: CARDINAL ;
 BEGIN
+   t := QuadToTokenNo(NodeList[l].SymQuad) ;
    PushValue(l) ;
    PushValue(r) ;
    CASE op OF
 
-   AddOp              : Add |
-   MultOp             : Mult |
+   AddOp              : Addn |
+   MultOp             : Multn |
    SubOp              : Sub |
    DivOp              : Div |
    ModOp              : Mod |
-   LogicalOrOp        : SetOr |
-   LogicalAndOp       : SetAnd |
-   LogicalXorOp       : SetSymmetricDifference
+   LogicalOrOp        : SetOr(t) |
+   LogicalAndOp       : SetAnd(t) |
+   LogicalXorOp       : SetSymmetricDifference(t)
 
    ELSE
       InternalError('quadruple operator not known as a constant folding operator', __FILE__, __LINE__)
    END ;
-   RETURN( MakeNewConstFromValue() )
+   RETURN( MakeNewConstFromValue(t) )
 END MakeNewConstant ;
 
 
@@ -998,10 +1007,11 @@ END MakeNewConstant ;
    IsAliasedTo - returns TRUE if symbol, s1, is aliased to symbol, s2.
 *)
 
-PROCEDURE IsAliasedTo (s1, s2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAliasedTo (tokenno: CARDINAL; s1, s2: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          MakeLeaf(GetLatestEntity(s1, FALSE, VAL(CARDINAL, NoOfNodes))) = MakeLeaf(GetLatestEntity(s2, FALSE, VAL(CARDINAL, NoOfNodes)))
+          MakeLeaf(GetLatestEntity(tokenno, s1, FALSE, VAL(CARDINAL, NoOfNodes))) =
+          MakeLeaf(GetLatestEntity(tokenno, s2, FALSE, VAL(CARDINAL, NoOfNodes)))
          )
 END IsAliasedTo ;
 
@@ -1010,16 +1020,16 @@ END IsAliasedTo ;
    IsAliasedToZero - returns TRUE if symbol, s, is aliased to zero.
 *)
 
-PROCEDURE IsAliasedToZero (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAliasedToZero (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 VAR
    i: CARDINAL ;
    n: Nodes ;
 BEGIN
-   n := MakeLeaf(GetLatestEntity(s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+   n := MakeLeaf(GetLatestEntity(tokenno, s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
    WITH NodeList[n] DO
       i := 1 ;
       WHILE i<=NoOfIds DO
-         IF IsZero(GetEntitySym(EntList[i]))
+         IF IsZero(tokenno, GetEntitySym(EntList[i]))
          THEN
             RETURN( TRUE )
          END ;
@@ -1034,16 +1044,16 @@ END IsAliasedToZero ;
    IsAliasedToOne - returns TRUE if symbol, s, is aliased to one.
 *)
 
-PROCEDURE IsAliasedToOne (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAliasedToOne (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 VAR
    i: CARDINAL ;
    n: Nodes ;
 BEGIN
-   n := MakeLeaf(GetLatestEntity(s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+   n := MakeLeaf(GetLatestEntity(tokenno, s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
    WITH NodeList[n] DO
       i := 1 ;
       WHILE i<=NoOfIds DO
-         IF IsOne(GetEntitySym(EntList[i]))
+         IF IsOne(tokenno, GetEntitySym(EntList[i]))
          THEN
             RETURN( TRUE )
          END ;
@@ -1058,16 +1068,16 @@ END IsAliasedToOne ;
    IsAliasedToTwo - returns TRUE if symbol, s, is aliased to one.
 *)
 
-PROCEDURE IsAliasedToTwo (s: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAliasedToTwo (tokenno: CARDINAL; s: CARDINAL) : BOOLEAN ;
 VAR
    i: CARDINAL ;
    n: Nodes ;
 BEGIN
-   n := MakeLeaf(GetLatestEntity(s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+   n := MakeLeaf(GetLatestEntity(tokenno, s, FALSE, VAL(CARDINAL, NoOfNodes))) ;
    WITH NodeList[n] DO
       i := 1 ;
       WHILE i<=NoOfIds DO
-         IF IsTwo(GetEntitySym(EntList[i]))
+         IF IsTwo(tokenno, GetEntitySym(EntList[i]))
          THEN
             RETURN( TRUE )
          END ;
@@ -1114,25 +1124,27 @@ END CannotBeCalculated ;
 
 PROCEDURE MakeOpWithMakeNode (q: CARDINAL; Start, End: CARDINAL; op1: CARDINAL; op: QuadOperator; op2, op3: CARDINAL) ;
 VAR
+   t       : CARDINAL ;
    n2, n3  : Nodes ;
    new, old: Entity ;
 BEGIN
    IF CannotBeCalculated(q, Start, End, op1, op, op2, op3)
    THEN
+      t := QuadToTokenNo(q) ;
       IF op2=NulSym
       THEN
-         n3 := MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))) ;
-         old := GetLatestEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
-         new := MakeNewEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+         n3 := MakeLeaf(GetLatestEntity(t, op3, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+         old := GetLatestEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+         new := MakeNewEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
          MakeOp(q, new, old, MakeNode(q, new, op, NulNode, n3))
       ELSIF op3=NulSym
       THEN
          InternalError('not expecting op3 to be nul', __FILE__, __LINE__)
       ELSE
-         n2 := MakeLeaf(GetLatestEntity(op2, FALSE, VAL(CARDINAL, NoOfNodes))) ;
-         n3 := MakeLeaf(GetLatestEntity(op3, FALSE, VAL(CARDINAL, NoOfNodes))) ;
-         old := GetLatestEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
-         new := MakeNewEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+         n2 := MakeLeaf(GetLatestEntity(t, op2, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+         n3 := MakeLeaf(GetLatestEntity(t, op3, FALSE, VAL(CARDINAL, NoOfNodes))) ;
+         old := GetLatestEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+         new := MakeNewEntity(t, op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
          MakeOp(q, new, old, MakeNode(q, new, op, n2, n3))
       END
    END
@@ -1146,22 +1158,23 @@ END MakeOpWithMakeNode ;
 PROCEDURE MakeMult (q, Start, End: CARDINAL;
                     op1, op2, op3: CARDINAL) ;
 VAR
-   k       : CARDINAL ;
+   t       : CARDINAL ;
    new, old: Entity ;
 BEGIN
-   IF IsAliasedToOne(op2)
+   t := QuadToTokenNo(q) ;
+   IF IsAliasedToOne(t, op2)
    THEN
       MakeMove(q, Start, End, op1, op3)
-   ELSIF IsAliasedToOne(op3)
+   ELSIF IsAliasedToOne(t, op3)
    THEN
       MakeMove(q, Start, End, op1, op2)
-   ELSIF IsAliasedToZero(op2)
+   ELSIF IsAliasedToZero(t, op2)
    THEN
       MakeMove(q, Start, End, op1, op2)
-   ELSIF IsAliasedToZero(op3)
+   ELSIF IsAliasedToZero(t, op3)
    THEN
       MakeMove(q, Start, End, op1, op3)
-   ELSIF IsAliasedToTwo(op2)
+   ELSIF IsAliasedToTwo(t, op2)
    THEN
       (*
          always simpler to add two numbers than multiply by 2. On the pentium a multiply takes
@@ -1169,7 +1182,7 @@ BEGIN
          an add.
       *)
       MakeOpWithMakeNode(q, Start, End, op1, AddOp, op3, op3)
-   ELSIF IsAliasedToTwo(op3)
+   ELSIF IsAliasedToTwo(t, op3)
    THEN
       MakeOpWithMakeNode(q, Start, End, op1, AddOp, op2, op2)
    ELSE
@@ -1185,18 +1198,19 @@ END MakeMult ;
 PROCEDURE MakeDiv (q, Start, End: CARDINAL;
                    op1, op2, op3: CARDINAL) ;
 VAR
-   k       : CARDINAL ;
+   t       : CARDINAL ;
    new, old: Entity ;
 BEGIN
-   IF IsAliasedToOne(op3)
+   t := QuadToTokenNo(q) ;
+   IF IsAliasedToOne(t, op3)
    THEN
       MakeMove(q, Start, End, op1, op2)
-   ELSIF IsAliasedTo(op2, op3)
+   ELSIF IsAliasedTo(t, op2, op3)
    THEN
       MakeMove(q, Start, End, op1, MakeConstLit(MakeKey('1')))
-   ELSIF IsAliasedToZero(op3)
+   ELSIF IsAliasedToZero(t, op3)
    THEN
-      ErrorStringAt(InitString('division by zero in source file (found by constant propergation and common subexpression elimination)'), QuadToTokenNo(q))
+      ErrorStringAt(InitString('division by zero in source file (found by constant propergation and common subexpression elimination)'), t)
    ELSE
       MakeOpWithMakeNode(q, Start, End, op1, MultOp, op2, op3)
    END      
@@ -1210,13 +1224,14 @@ END MakeDiv ;
 PROCEDURE MakeSub (q, Start, End: CARDINAL;
                    op1, op2, op3: CARDINAL) ;
 VAR
-   k: CARDINAL ;
+   t: CARDINAL ;
 BEGIN
    (* later on should test for op2=0 or op3=0 and alter to copy *)
-   IF IsAliasedToZero(op3)
+   t := QuadToTokenNo(q) ;
+   IF IsAliasedToZero(t, op3)
    THEN
       MakeMove(q, Start, End, op1, op2)
-   ELSIF IsAliasedTo(op2, op3)
+   ELSIF IsAliasedTo(t, op2, op3)
    THEN
       MakeMove(q, Start, End, op1, MakeConstLit(MakeKey('0')))
    ELSE
@@ -1232,12 +1247,13 @@ END MakeSub ;
 PROCEDURE MakeAdd (q, Start, End: CARDINAL;
                    op1, op2, op3: CARDINAL) ;
 VAR
-   k: CARDINAL ;
+   t: CARDINAL ;
 BEGIN
-   IF IsAliasedToZero(op2)
+   t := QuadToTokenNo(q) ;
+   IF IsAliasedToZero(t, op2)
    THEN
       MakeMove(q, Start, End, op1, op3)
-   ELSIF IsAliasedToZero(op3)
+   ELSIF IsAliasedToZero(t, op3)
    THEN
       MakeMove(q, Start, End, op1, op2)
    ELSE
@@ -1265,6 +1281,7 @@ END MakeBase ;
 PROCEDURE MakeConditional (q: CARDINAL; Start, End: CARDINAL;
                            op: QuadOperator; op1, op2, op3: CARDINAL) ;
 VAR
+   t     : CARDINAL ;
    o1, o2: CARDINAL ;
 BEGIN
    (*
@@ -1272,8 +1289,9 @@ BEGIN
       the nodes (aliases) before they are destroyed
    *)
 
-   o1 := CollectSymIfNotValue(op1) ;
-   o2 := CollectSymIfNotValue(op2) ;
+   t  := QuadToTokenNo(q) ;
+   o1 := CollectSymIfNotValue(t, op1) ;
+   o2 := CollectSymIfNotValue(t, op2) ;
    SaveQuad(q) ;
    EraseQuad(q) ;
    PutQuad(q, op, o1, o2, op3) ;
@@ -1295,7 +1313,8 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CASE op OF
 
-   BitOp,
+   InclOp,
+   ExclOp,
    HighOp,
    OffsetOp,
    NegateOp,
@@ -1351,7 +1370,7 @@ BEGIN
    LogicalOrOp,
    LogicalAndOp,
    LogicalXorOp,
-   BitRangeOp,
+   LogicalDiffOp,
    ModOp,
    DivOp             : MakeOpWithMakeNode(q, Start, End, op1, op, op2, op3) |
 
@@ -1898,7 +1917,8 @@ BEGIN
          END ;
 
          sym := MakeNewConstant(op, GetSymOfChoice(l), GetSymOfChoice(r)) ;
-         e := MakeNewEntity(sym, FALSE, VAL(CARDINAL, NoOfNodes)) ;
+         e := MakeNewEntity(QuadToTokenNo(NodeList[bot].SymQuad),
+                            sym, FALSE, VAL(CARDINAL, NoOfNodes)) ;
          GiveEntityIndex(e, NodeList[bot].IndexNo) ;   (* constant therefore give life at same time as bot *)
          k := MakeLeaf(e) ;
 
@@ -2945,7 +2965,8 @@ BEGIN
       CASE Op OF
 
       ReturnValueOp     : InternalError('should have been done elsewhere', __FILE__, __LINE__) |
-      BitOp,
+      InclOp,
+      ExclOp,
       HighOp,
       FunctValueOp,
       OffsetOp,
@@ -2976,7 +2997,7 @@ BEGIN
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
-      BitRangeOp,
+      LogicalDiffOp,
       ModOp,
       DivOp             : PutQuad(q, Op, GetSym(n), GetSymOfChoice(Left), GetSymOfChoice(Right)) ;
                           RemoveAllOlderEntities(n, EntList[1])
@@ -2999,7 +3020,7 @@ END MakeQuadFromNode ;
                           will result.
 *)
 
-PROCEDURE CollectSymIfNotValue (sym: CARDINAL) : CARDINAL ;
+PROCEDURE CollectSymIfNotValue (tokenno: CARDINAL; sym: CARDINAL) : CARDINAL ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -3010,7 +3031,7 @@ BEGIN
          - therefore we can only choose a symbol with the same mode
       *)
    ELSE
-      WITH NodeList[MakeLeaf(GetLatestEntity(sym, FALSE, VAL(CARDINAL, NoOfNodes)))] DO
+      WITH NodeList[MakeLeaf(GetLatestEntity(tokenno, sym, FALSE, VAL(CARDINAL, NoOfNodes)))] DO
          i := 1 ;
          (* check to see whether a constant can be found *)
          WHILE i<=NoOfIds DO
@@ -3085,7 +3106,7 @@ BEGIN
    (* FlushDirtySymbols(Start, q) ; *)
    (* ReWriteQuadruples(Start, q) ; *)
    DestroyFreeList ;
-   sym := CollectSymIfNotValue(sym) ;
+   sym := CollectSymIfNotValue(QuadToTokenNo(End), sym) ;
    InitForest ;
    RETURN( sym )
 END FlushIndirection ;
@@ -3149,3 +3170,8 @@ END Init ;
 BEGIN
    Init
 END M2SubExp.
+(*
+ * Local variables:
+ *  compile-command: "gm2 -c -g -I.:../gm2-libs:../gm2-libs-ch:../gm2-libiberty/ M2SubExp.mod"
+ * End:
+ *)

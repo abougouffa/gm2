@@ -208,6 +208,9 @@ EXPORT QUALIFIED NulSym,
                  PutDefinitionForC,
                  IsDefinitionForC,
 
+                 PutDoesNeedExportList, PutDoesNotNeedExportList,
+                 DoesNotNeedExportList,
+
                  IsSizeSolved,
                  IsOffsetSolved,
                  IsValueSolved,
@@ -250,7 +253,7 @@ PROCEDURE FinalSymbol () : CARDINAL ;
 
 
 (*
-   MakeTemporary - Makes a new temporary variable at the heighest real scope.
+   MakeTemporary - makes a new temporary variable at the highest real scope.
                    The addressing mode of the temporary is set to Mode.
 *)
 
@@ -1379,6 +1382,32 @@ PROCEDURE PutDefinitionForC (Sym: CARDINAL) ;
 *)
 
 PROCEDURE IsDefinitionForC (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutDoesNeedExportList - sets a flag in module, Sym, which
+                           indicates that this module requires an explicit
+                           EXPORT QUALIFIED or UNQUALIFIED list. PIM-2
+*)
+
+PROCEDURE PutDoesNeedExportList (Sym: CARDINAL) ;
+
+
+(*
+   PutDoesNotNeedExportList - sets a flag in module, Sym, which
+                              indicates that this module does not require an explicit
+                              EXPORT QUALIFIED or UNQUALIFIED list. PIM-3|4
+*)
+
+PROCEDURE PutDoesNotNeedExportList (Sym: CARDINAL) ;
+
+
+(*
+   DoesNotNeedExportList - returns TRUE if module, Sym, does not require an explicit
+                           EXPORT QUALIFIED list.
+*)
+
+PROCEDURE DoesNotNeedExportList (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -41,8 +41,7 @@ FROM M2GCCDeclare IMPORT FoldConstants ;
 
 CONST
    MaxOptimTimes = 10 ;   (* upper limit of no of times we run through all optimization *)
-   VerboseDebug  = FALSE ;
-
+   Debugging     = FALSE ;
 
 (*
    Percent - calculates the percentage from numerator and divisor
@@ -99,7 +98,7 @@ BEGIN
 
    ForLoopAnalysis ;   (* must be done before any optimization as the index variable increment quad might change *)
 
-   IF DisplayQuadruples AND VerboseDebug
+   IF DisplayQuadruples
    THEN
       WriteString('before any optimization') ; WriteLn ;
       DisplayQuadList(Head)
@@ -116,7 +115,7 @@ BEGIN
       GenBasicBlocks(Head) ;
       DestroyBasicBlocks ;
 
-      IF DisplayQuadruples AND VerboseDebug
+      IF Debugging AND DisplayQuadruples
       THEN
          WriteString('start of basic block decomposition for the ') ; WriteCard(OptimTimes, 0) ;
          WriteString(' time') ; WriteLn ;
@@ -130,7 +129,7 @@ BEGIN
       DeltaJump := Count - CountQuads(Head) ;
       Count := CountQuads(Head) ;
 
-      IF DisplayQuadruples AND VerboseDebug
+      IF Debugging AND DisplayQuadruples
       THEN
          WriteString('after folding branches') ; WriteLn ;
          DisplayQuadList(Head)
@@ -140,7 +139,7 @@ BEGIN
       INC(DeltaBasicB, Count - CountQuads(Head)) ;
       Count := CountQuads(Head) ;
 
-      IF DisplayQuadruples AND VerboseDebug
+      IF Debugging AND DisplayQuadruples
       THEN
          WriteString('after second basic block decomposition for the ') ; WriteCard(OptimTimes, 0) ;
          WriteString(' time') ; WriteLn ;
@@ -155,7 +154,7 @@ BEGIN
 
          DeltaProc := Count - CountQuads(Head) ;
          Count := CountQuads(Head) ;
-         IF DisplayQuadruples AND VerboseDebug
+         IF Debugging AND DisplayQuadruples
          THEN
             WriteString('after uncalled procedure optimization') ; WriteLn ;
             DisplayQuadList(Head)
@@ -172,7 +171,7 @@ BEGIN
 
          DestroyBasicBlocks ;
          GenBasicBlocks(Head) ;
-         IF DisplayQuadruples AND VerboseDebug
+         IF Debugging AND DisplayQuadruples
          THEN
             WriteString('after removing common sub expressions') ; WriteLn ;
             DisplayQuadList(Head)
@@ -194,7 +193,7 @@ BEGIN
    UNTIL (OptimTimes=MaxOptimTimes) OR
          ((DeltaProc=0) AND (DeltaConst=0) AND (DeltaJump=0) AND (DeltaBasicB=0) AND (DeltaCse=0)) ;
 
-   IF DisplayQuadruples
+   IF Debugging AND DisplayQuadruples
    THEN
       WriteString('after all optimization') ; WriteLn ;
       DisplayQuadList(Head)

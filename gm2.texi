@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 2 May 2002
+@center Last updated 29 October 2002
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -375,17 +375,20 @@ cd ../..
 GNU Modula-2 can be built by typing:
 
 @example
-cd gcc-version
-./configure
+mkdir host-build
+cd host-build
+../gcc-version/configure
 make
+cd ..
 @end example
 
 It can be installed by:
 
 @example
 su
-cd gcc-version
+cd host-build
 make install
+cd ..
 @end example
 
 @node Future, Done list, Building and installing, Internals
@@ -403,6 +406,18 @@ conceptually easier.
 What has been done:
 
 @itemize @bullet
+
+@item
+definition modules no longer have to @samp{EXPORT QUALIFIED}
+objects (as per PIM-3, PIM-4 and ISO).
+
+@item
+implemented ISO Modula-2 sets. Large sets are now allowed,
+no limits imposed. The comparison operators
+@samp{# = <= >= < >} all behave as per ISO standard.
+The obvious use for large sets is
+@samp{SET OF CHAR}. These work well with gdb once it has been
+patched to understand Modula-2 sets.
 
 @item
 added @code{DEFINITION MODULE FOR "C"} method of linking
@@ -499,9 +514,6 @@ SymbolTable needs to be modified.
 
 @item
 investigate the use of collect2 during link/module initialization.
-
-@item
-utilize GNU autoconf rather than the makeconfigure script.
 
 @item
 integrate the small testsuite (gm2/m2/comp/autotest)

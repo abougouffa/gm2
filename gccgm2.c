@@ -125,6 +125,8 @@ enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
 tree proc_type_node;
 tree gm2_memcpy_node;
 tree gm2_alloca_node;
+tree bitset_type_node;
+tree m2_char_type_node;
 
 
 /* Global Variables for the various types and nodes we create.  */ 
@@ -257,6 +259,11 @@ static tree named_labels;
 
 static tree shadowed_labels;
 
+/* constructor globals used by BuildStartSetConstructor (constant set creation) */
+static tree constructor_type = NULL_TREE;
+static tree constructor_fields = NULL_TREE;
+static tree constructor_element_list = NULL_TREE;
+
 
 static tree qualify_type                PARAMS ((tree, tree));
 static tree build_c_type_variant        PARAMS ((tree, int, int));
@@ -356,14 +363,12 @@ static int                    duplicate_decls                   	  PARAMS ((tree
 									 	  const char *library_void));
        void                   init_m2_builtins                  	  PARAMS ((void));
        void                   gm2_init_decl_processing              	  PARAMS ((void));
-       void                   lang_init                         	  PARAMS ((void));
        void                   lang_finish                       	  PARAMS ((void));
        const char            *init_parse                        	  PARAMS ((const char *filename));
        void                   finish_parse                      	  PARAMS ((void));
        const char            *lang_identify                     	  PARAMS ((void));
        tree                   truthvalue_conversion             	  PARAMS ((tree expr));
        void                   print_lang_statistics             	  PARAMS ((void));
-       void                   lang_init_options                 	  PARAMS ((void));
        void                   init_lex                          	  PARAMS ((void));
        void                   yyerror                           	  PARAMS ((char *str));
        int                    yyparse                          	          PARAMS ((void));
@@ -434,7 +439,7 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildEnumerator 	       	 	  PARAMS ((char *name, tree value));
        tree                   gccgm2_BuildPointerType 	       	 	  PARAMS ((tree totype));
        tree                   gccgm2_BuildArrayType 	       	 	  PARAMS ((tree elementtype, tree indextype));
-       tree                   build_set_type 		       	 	  PARAMS ((tree range, tree type));
+       tree                   build_set_type                              PARAMS ((tree members, int allow_void));
        tree                   gccgm2_BuildSetType 	       	 	  PARAMS ((char *name, tree type, tree lowval,
 									 	  tree highval));
        tree                   gccgm2_BuildSubrangeType 	       	 	  PARAMS ((char *name, tree type, tree lowval,
@@ -469,6 +474,7 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildConvert 	       	 	  PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildTrunc 		       	  PARAMS ((tree op1));
        tree                   gccgm2_BuildNegate 	       	 	  PARAMS ((tree op1, int needconvert));
+       tree                   gccgm2_BuildSetNegate 	       	 	  PARAMS ((tree op1, int needconvert));
        tree                   gccgm2_GetSizeOf 		       	 	  PARAMS ((tree type));
        tree                   gccgm2_BuildAddr 		       	 	  PARAMS ((tree op1, int needconvert));
        tree                   gccgm2_BuildLogicalOr 	       	 	  PARAMS ((tree op1, tree op2, int needconvert));
@@ -483,8 +489,10 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildGreaterThanOrEqual    	  PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildEqualTo 	       	 	  PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildNotEqualTo 	       	 	  PARAMS ((tree op1, tree op2));
-       tree                   gccgm2_BuildIfIn 		       	 	  PARAMS ((tree op1, tree op2));
-       tree                   gccgm2_BuildIfNotIn 	       	 	  PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIsSuperset                      PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIsNotSuperset                   PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIsSubset                        PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildIsNotSubset                     PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildIndirect 	       	 	  PARAMS ((tree target, tree type));
        void                   gccgm2_DoJump  		       	 	  PARAMS ((tree exp, char *falselabel, char *truelabel));
        void                   gccgm2_BuildParam 		       	  PARAMS ((tree param));
@@ -513,8 +521,8 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   convertToPtr   		       	 	  PARAMS ((tree t));
        tree                   gccgm2_BuiltInMemCopy 	       	 	  PARAMS ((tree dest, tree src, tree n));
        tree                   gccgm2_BuiltInAlloca 	       	 	  PARAMS ((tree n));
-       int                   gccgm2_AreConstantsEqual 	       	 	  PARAMS ((tree e1, tree e2));
-       int                   gccgm2_DetermineSign 	       	 	  PARAMS ((tree e));
+       int                    gccgm2_AreConstantsEqual 	       	 	  PARAMS ((tree e1, tree e2));
+       int                    gccgm2_DetermineSign 	       	 	  PARAMS ((tree e));
        tree                   gccgm2_BuildStringConstant        	  PARAMS ((char *string, int length));
        tree                   gccgm2_BuildCharConstant 	       	 	  PARAMS ((char *string));
        tree                   gccgm2_ConvertConstantAndCheck    	  PARAMS ((tree type, tree expr));
@@ -559,10 +567,49 @@ static int                    function_types_compatible_p                 PARAMS
 static int                    type_lists_compatible_p                     PARAMS ((tree args1, tree args2));
 static int                    is_var                                      PARAMS ((tree var));
 static int                    is_type                                     PARAMS ((tree type));
+static tree                   build_bitset_type                           PARAMS ((void));
+static tree                   build_m2_char_node                          PARAMS ((void));
+       tree                   convert_type_to_range                       PARAMS ((tree type));
+       tree                   gccgm2_GetDefaultType                       PARAMS ((char *name, tree type));
+       void                   gccgm2_BuildStartSetConstructor             PARAMS ((tree type));
+       void                   gccgm2_BuildSetConstructorElement           PARAMS ((tree value));
+       tree                   gccgm2_BuildEndSetConstructor               PARAMS ((void));
+       tree                   gccgm2_GetM2CharType                        PARAMS ((void));
+       int                    gccgm2_CompareTrees                         PARAMS ((tree e1, tree e2));
+static void                   debug_watch                                 PARAMS ((tree));
+static int                    is_array                                    PARAMS ((tree));
+       void                   gccgm2_BuildBinaryForeachWordDo             PARAMS ((tree, tree, tree, tree, tree (*binop)(tree, tree, int), int, int, int));
+       void                   gccgm2_BuildUnaryForeachWordDo              PARAMS ((tree, tree, tree, tree (*unop)(tree, int), int, int));
+static tree                   get_rvalue                                  PARAMS ((tree, tree, int));
+static tree                   get_set_address                             PARAMS ((tree, int));
+static tree                   get_set_field_lhs                           PARAMS ((tree, tree));
+static tree                   get_set_field_rhs                           PARAMS ((tree, tree));
+       void                   gccgm2_BuildExcludeVarConst                 PARAMS ((tree, tree, tree, int, int));
+       void                   gccgm2_BuildIncludeVarConst                 PARAMS ((tree, tree, tree, int, int));
+       void                   gccgm2_BuildExcludeVarVar                   PARAMS ((tree, tree, tree, int, tree));
+       void                   gccgm2_BuildIncludeVarVar                   PARAMS ((tree, tree, tree, int, tree));
+       void                   gccgm2_BuildIfConstInVar                    PARAMS ((tree, tree, tree, int, int, char *));
+       void                   gccgm2_BuildIfNotConstInVar                 PARAMS ((tree, tree, tree, int, int, char *));
+       void                   gccgm2_BuildIfVarInVar                      PARAMS ((tree, tree, tree, int, tree, tree, char *));
+       void                   gccgm2_BuildIfNotVarInVar                   PARAMS ((tree, tree, tree, int, tree, tree, char *));
+static void                   do_jump_if_bit                              PARAMS ((enum tree_code, tree, tree, char *));
+#if 0
+       void                   gccgm2_BuildIfConstSetEquVar                PARAMS ((tree, tree, tree, int, char *));
+       void                   gccgm2_BuildIfNotConstSetEquVar             PARAMS ((tree, tree, tree, int, char *));
+       void                   gccgm2_BuildIfVarEquVar                     PARAMS ((tree, tree, tree, int, int, char *));
+       void                   gccgm2_BuildIfNotVarEquVar                  PARAMS ((tree, tree, tree, int, int, char *));
+#endif
+       void                   gccgm2_BuildIfInRangeGoto                   PARAMS ((tree, tree, tree, char *));
+       void                   gccgm2_BuildIfNotInRangeGoto                PARAMS ((tree, tree, tree, char *));
+       void                   gccgm2_BuildForeachWordInSetDoIfExpr        PARAMS ((tree, tree, tree, int, int, int, int, tree (*expr) (tree, tree), char *));
+static tree                   get_set_address_if_var                      PARAMS ((tree, int, int));
+static tree                   get_field_list                              PARAMS ((tree, tree, int));
+static tree                   get_set_value                               PARAMS ((tree, tree, int));
+
 
 
 #if defined(TRACE_DEBUG_GGC)
-static void                   dump_binding_level                         PARAMS ((struct binding_level *level));
+static void                   dump_binding_level                          PARAMS ((struct binding_level *level));
 #endif
 
 /* end of prototypes */
@@ -2870,6 +2917,17 @@ init_m2_builtins ()
 
   gm2_alloca_node  = builtin_function ("__builtin_alloca", alloca_ftype,
                                        BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca");
+
+  bitset_type_node = build_bitset_type ();
+  m2_char_type_node = build_m2_char_node ();
+
+  /*
+   * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
+   * in gcc-3.2. The command line must include -gstabs
+   * Note that -g doesn't work as gdb 5.2.1 will give up even if the following line is removed
+   * if we use sets. Presumably a dwarf gdb/gcc/gm2 bug..
+   */
+  use_gnu_debug_info_extensions = 1;
 }
 
 /* Build the void_list_node (void_type_node having been created).  */
@@ -2878,6 +2936,33 @@ build_void_list_node ()
 {
   tree t = build_tree_list (NULL_TREE, void_type_node);
   return t;
+}
+
+static
+tree
+build_m2_char_node (void)
+{
+  tree c;
+
+  /* Define `CHAR', which is like either `signed char' or `unsigned char'
+     but not the same as either.  */
+
+  /* Modula-2 CHAR type, borrowed from GNU Pascal */
+  c = make_node (CHAR_TYPE);
+  TYPE_PRECISION (c) = CHAR_TYPE_SIZE;
+  TYPE_SIZE (c) = 0;
+
+  if (flag_signed_char)
+    {
+      fixup_signed_type (c);
+      TREE_UNSIGNED (c) = 0;
+    }
+  else
+    {
+      fixup_unsigned_type (c);
+      TREE_UNSIGNED (c) = 1;
+    }
+  return c;
 }
 
 /* Create the predefined scalar types such as `integer_type_node' needed 
@@ -3045,11 +3130,11 @@ global_constant (t)
   if (global_binding_level->constants != NULL)
     for (t1 = global_binding_level->constants; TREE_CHAIN (t1); t1 = TREE_CHAIN (t1))
       if (t1 == t)
-	return( t );
+	return t;
   
   global_binding_level->constants = tree_cons (NULL_TREE,
 					       t, global_binding_level->constants);
-  return( t );
+  return t;
 }
 
 /* Decode all the language specific options that cannot be decoded by GCC. The
@@ -3105,10 +3190,10 @@ gm2_init (filename)
   lineno = 0;
 
   lang_expand_expr = gm2_expand_expr;
-  gm2_init_decl_processing();
+  gm2_init_decl_processing ();
   set_internal_error_function (internal_error_function);
 
-  return( filename );
+  return filename;
 }
 
 /* Here we have the function to handle the compiler error processing in GCC.  */
@@ -4421,9 +4506,8 @@ convert (type, expr)
 
 #if defined(GM2)
   /* check for set type conversion */
-  if ((TREE_TYPE (expr) != NULL_TREE) && (TREE_CODE( TREE_TYPE (expr)) == SET_TYPE)) {
+  if ((TREE_TYPE (expr) != NULL_TREE) && (TREE_CODE (TREE_TYPE (expr)) == SET_TYPE))
     return fold (convert_set(type, expr));
-  }
 #endif
 
   if (code == INTEGER_TYPE || code == ENUMERAL_TYPE)
@@ -4436,6 +4520,24 @@ convert (type, expr)
     return fold (convert_to_complex (type, e));
   if (code == VECTOR_TYPE)
     return fold (convert_to_vector (type, e));
+
+#if defined(GM2)
+  if (code == CHAR_TYPE)
+    {
+      tree intype = TREE_TYPE (e);
+      enum tree_code form = TREE_CODE (intype);
+      if (form == CHAR_TYPE)
+        return fold (build1 (NOP_EXPR, type, e));
+      /* @@ If it does not fit? */
+      if (ORDINAL_TYPE (form))
+        return fold (build1 (CONVERT_EXPR, type, e));
+      error ("cannot convert to a char type");
+      return error_mark_node;
+    }
+
+  if (code == SET_TYPE)
+    return expr;
+#endif
 
   error ("conversion to non-scalar type requested");
   return error_mark_node;
@@ -6208,6 +6310,11 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
   /* The expression codes of the data types of the arguments tell us
      whether the arguments are integers, floating, pointers, etc.  */
 #if defined(GM2)
+if (base_type (type0) == m2_char_type_node)
+    type0 = char_type_node;
+  if (base_type (type1) == m2_char_type_node)
+    type1 = char_type_node;
+
   code0 = TREE_CODE (base_type (type0));
   code1 = TREE_CODE (base_type (type1));
 #else
@@ -6914,7 +7021,7 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
 }
 
 /*
- *  routines which interface with m2f
+ *  routines which interface with the Modula-2 source
  */
 
 tree
@@ -6925,11 +7032,11 @@ skip_type_decl (type)
     return error_mark_node;
 
   if (type == NULL_TREE)
-    return( NULL_TREE );
+    return NULL_TREE;
 
   if (TREE_CODE (type) == TYPE_DECL)
-    return( TREE_TYPE (type) ) ;
-  return (type);
+    return TREE_TYPE (type);
+  return type;
 }
 
 /*
@@ -6956,7 +7063,33 @@ gccgm2_DeclareKnownType (name, type)
   finish_decl (decl, NULL_TREE, NULL_TREE);
   ASSERT(is_type(decl), decl);
 
-  return( tem );
+  return tem;
+}
+
+/*
+ *  GetDefaultType - given a, type, with a, name, return a GCC declaration of this type.
+ *                   Checks to see whether the type name has already been declared as a
+ *                   default type and if so it returns this declaration. Otherwise it
+ *                   declares the type. In Modula-2 this is equivalent to:
+ *		     
+ *                   TYPE
+ *                      name = type ;
+ *		     
+ *                   We need this function as the initialization to gccgm2.c will
+ *                   declare C default types and _some_ M2 default types.
+ */
+
+tree
+gccgm2_GetDefaultType (name, type)
+     char *name;
+     tree type;
+{
+  tree id = maybe_get_identifier (name);
+
+  if (id == NULL)
+    return gccgm2_DeclareKnownType(name, type);
+  else
+    return id;
 }
 
 /*
@@ -6980,19 +7113,18 @@ tree
 gccgm2_GetMaxFrom (type)
      tree type;
 {
-  return( TYPE_MAX_VALUE( skip_type_decl (type)) );
+  return TYPE_MAX_VALUE( skip_type_decl (type));
 }
-
 
 int
 gccgm2_GetBitsPerWord ()
 {
-  return( BITS_PER_WORD );
+  return BITS_PER_WORD;
 }
 
 static tree watch;
 
-static debug_watch (t)
+static void debug_watch (t)
      tree t;
 {
   watch = t;
@@ -7053,8 +7185,6 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   tree decl;
 
   ASSERT(is_type(type), type);
-  if (name == 0x8a454a0)
-    stop();
 
   id   = get_identifier (name);
   type = skip_type_decl (type);
@@ -7076,28 +7206,28 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
 
   /* now for the id */
 
-  if (imported) {
+  if (imported)
     TREE_STATIC   (id)    = 0;           /* declaration and definition */
-  } else {
+  else
     TREE_STATIC   (id)    = 1;           /* declaration and definition */
-  }
-  if (isglobal) {
+
+  if (isglobal)
     TREE_PUBLIC   (id)    = exported;
-  }
+
   TREE_USED     (id)      = 1;
 
-  pushdecl(decl);
+  pushdecl (decl);
 
   if (DECL_SIZE(decl) == 0) {
     error_with_decl (decl, "storage size of `%s' hasn't been resolved");
   }
-  expand_decl(decl);
+  expand_decl (decl);
   if (isglobal) {
     layout_decl (decl, 0);
     rest_of_decl_compilation (decl, 0, 1, 0);
   }
 
-  return( decl );
+  return decl;
 }
 
 
@@ -7127,7 +7257,7 @@ gccgm2_DeclareKnownConstant (type, value)
     TREE_TYPE (decl)    = type;
     pushdecl (decl);
 
-    return( decl );
+    return decl;
 }
 
 
@@ -8191,11 +8321,10 @@ tree
 gccgm2_BuildArrayType (elementtype, indextype)
      tree elementtype, indextype;
 {
-  if (TREE_CODE (elementtype) == FUNCTION_TYPE) {
-    return( build_array_type (ptr_type_node, indextype) );
-  } else {
-    return( build_array_type ( skip_type_decl (elementtype), indextype) );
-  }
+  if (TREE_CODE (elementtype) == FUNCTION_TYPE)
+    return build_array_type (ptr_type_node, indextype);
+  else
+    return build_array_type (skip_type_decl (elementtype), indextype);
 }
 
 
@@ -8205,19 +8334,81 @@ gccgm2_BuildArrayType (elementtype, indextype)
  */
 
 tree
-build_set_type (range, type)
-     tree range, type;
+build_set_type (members, allow_void)
+     tree members;
+     int allow_void;
 {
-  tree settype          = make_node (SET_TYPE);
+  tree d = TREE_VALUE (members);
+  tree type;
 
-  use_gnu_debug_info_extensions = 1;
-  TREE_TYPE (settype)   = type;
-  TYPE_DOMAIN (settype) = range;
+  if (! ORDINAL_TYPE (TREE_CODE (TREE_PURPOSE (members)))
+      && !(allow_void && TREE_CODE (TREE_PURPOSE (members)) == VOID_TYPE))
+    {
+      error ("set base type must be an ordinal type");
+      /* Don't call this before the `if' test because check_set_limit
+         calls this function (endless recursion)! */
+      return NULL;
+    }
 
-  if (TYPE_SIZE (settype) == 0)
-    layout_type (settype);
+  type = make_node (SET_TYPE);
+  TREE_TYPE (type) = TREE_PURPOSE (members);
+  TYPE_DOMAIN (type) = d;
 
-  return( settype );
+  /* @@ Hash set types here ... */
+
+  if (TYPE_SIZE (type) == 0)
+    layout_type (type);
+
+  return type;
+}
+
+/*
+ *  convert_type_to_range - does the conversion and copies the range type
+ */
+
+tree
+convert_type_to_range (type)
+     tree type;
+{
+  tree min, max;
+  tree itype;
+
+  if (! ORDINAL_TYPE (TREE_CODE (type)))
+    {
+      error ("ordinal type expected");
+      return error_mark_node;
+    }
+
+  min = TYPE_MIN_VALUE (type);
+  max = TYPE_MAX_VALUE (type);
+
+  if (TREE_TYPE (min) != TREE_TYPE (max))
+    {
+      error ("range limits are not of the same type");
+      return error_mark_node;
+    }
+
+  itype = build_type_copy (build_range_type (TREE_TYPE (min), min, max));
+
+  if TREE_TYPE (type)
+    TREE_TYPE (itype) = TREE_TYPE (type);
+  else
+    TREE_TYPE (itype) = type;
+
+  return itype;
+}
+
+/*
+ *  build_bitset_type - builds the type BITSET which is exported from SYSTEM
+ */
+
+static
+tree
+build_bitset_type (void)
+{
+  return gccgm2_BuildSetType (NULL, gccgm2_GetCardinalType(),
+			      gccgm2_BuildIntegerConstant (0),
+			      gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerWord()-1));
 }
 
 /*
@@ -8229,21 +8420,82 @@ gccgm2_BuildSetType (name, type, lowval, highval)
      char *name;
      tree type, lowval, highval;
 {
-  tree id=build_range_type( skip_type_decl (type), lowval, highval);
+  tree range      = build_range_type (skip_type_decl (type), lowval, highval);
+  tree noelements = gccgm2_BuildAdd (gccgm2_BuildSub (highval, lowval, FALSE),
+				     integer_one_node,
+				     FALSE);
   tree settype;
 
-  layout_type (id);
-  settype = build_set_type(id, type);
-
-  if ((name == NULL) || (strcmp(name, "") == 0)) {
-    /* no modula-2 name thus return id */
-    return( settype );
-  } else {
-    /* obviously declared as TYPE foo = SET OF [x..y] ; */
-    id = gccgm2_DeclareKnownType(name, settype);
-    layout_type ( skip_type_decl (id));
-    return( id );
+  layout_type (range);
+  settype = build_set_type (build_tree_list (range, convert_type_to_range (range)), 0);
+  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (BITS_PER_WORD)) == 0)
+    TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
+  else
+    TYPE_MAX_VALUE (settype) = gccgm2_BuildSub (gccgm2_BuildLSL (integer_one_node, noelements, FALSE),
+						integer_one_node,
+						FALSE);
+  TYPE_MIN_VALUE (settype) = integer_zero_node;
+  
+  if ((name == NULL) || (strcmp(name, "") == 0))
+    /* no modula-2 name */
+    return settype;
+  else {
+    /* declared as TYPE foo = SET OF [x..y] ; */
+    settype = gccgm2_DeclareKnownType(name, settype);
+    layout_type (skip_type_decl (settype));
+    return settype;
   }
+}
+
+/*
+ *  BuildStartSetConstructor - starts to create a set constant.
+ *                             Remember that type is really a record type.
+ */
+
+void
+gccgm2_BuildStartSetConstructor (type)
+     tree type;
+{
+  constructor_type = type;
+  constructor_fields = TYPE_FIELDS (type);
+  constructor_element_list = NULL_TREE;
+}
+
+/*
+ *  BuildSetConstructorElement - adds, value, to the constructor_element_list.
+ */
+
+void
+gccgm2_BuildSetConstructorElement (value)
+     tree value;
+{
+  if (value == NULL_TREE) {
+    error_with_decl(constructor_type, "internal error `%s' set type cannot be initialized with a NULL_TREE");
+    return;
+  }
+
+  if (constructor_fields == NULL) {
+    error_with_decl(constructor_type, "internal error `%s' set type does not take another integer value");
+    error_with_decl(value, "internal error `%s' value initializing the set");
+    return;
+  }
+  
+  constructor_element_list = tree_cons (constructor_fields, value, constructor_element_list);
+  constructor_fields = TREE_CHAIN (constructor_fields);
+}
+
+/*
+ *  BuildEndSetConstructor - finishes building a set constant.
+ */
+
+tree
+gccgm2_BuildEndSetConstructor ()
+{
+  tree constructor = build (CONSTRUCTOR, constructor_type, NULL_TREE,
+			    nreverse (constructor_element_list));
+  TREE_CONSTANT (constructor) = 1;
+  TREE_STATIC (constructor) = 1;
+  return constructor;
 }
 
 /*
@@ -8255,20 +8507,19 @@ gccgm2_BuildSubrangeType (name, type, lowval, highval)
      char *name;
      tree type, lowval, highval;
 {
-  tree id=build_range_type( skip_type_decl (type), lowval, highval);
+  tree id = build_range_type( skip_type_decl (type), lowval, highval);
 
   layout_type (id);
   if ((name == NULL) || (strcmp(name, "") == 0)) {
     /* no modula-2 name thus return id */
-    return( id );
+    return id;
   } else {
     /* obviously declared as TYPE foo = [x..y] ; */
     id = gccgm2_DeclareKnownType(name, id);
-    layout_type ( skip_type_decl (id));
-    return( id );
+    layout_type (skip_type_decl (id));
+    return id;
   }
 }
-
 
 /*
  *  BuildArrayIndexType - creates an integer index which accesses an array.
@@ -8280,9 +8531,8 @@ gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
   tree maxval = build_binary_op(MINUS_EXPR, default_conversion(high), default_conversion(low), 0);
-  return( build_index_type(maxval) );
+  return build_index_type(maxval);
 }
-
 
 /*
  *  BuildVariableArrayAndDeclare - creates a variable length array.
@@ -8296,9 +8546,9 @@ gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
      char *name;
      tree scope;
 {
-  tree indextype = build_index_type(variable_size(high));
+  tree indextype = build_index_type (variable_size(high));
   tree arraytype = build_array_type (elementtype, indextype);
-  tree id        = get_identifier(name);
+  tree id        = get_identifier (name);
   tree decl;
 
   C_TYPE_VARIABLE_SIZE (arraytype) = TRUE;
@@ -8312,10 +8562,10 @@ gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
   TREE_USED       (decl)  = 1;
 
   C_DECL_VARIABLE_SIZE (decl) = TRUE;
-  pushdecl(decl);
-  expand_decl(decl);
+  pushdecl (decl);
+  expand_decl (decl);
   layout_decl (decl, 0);
-  return( decl );
+  return decl;
 }
 
 /*
@@ -8345,9 +8595,8 @@ gccgm2_BuildEndFunctionType (type)
     type = void_type_node;
   }
   type = skip_type_decl (type);
-  return( build_pointer_type(build_function_type (type, param_type_list)) );
+  return build_pointer_type (build_function_type (type, param_type_list));
 }
-
 
 /*
  *  BuildParameterDeclaration - creates and returns one parameter from, name, and, type.
@@ -8374,15 +8623,15 @@ gccgm2_BuildParameterDeclaration (name, type, isreference)
     parm_decl = build_decl (PARM_DECL, get_identifier (name), type);
     DECL_ARG_TYPE (parm_decl) = type;
     param_list = chainon (parm_decl, param_list);
-    layout_type (type);  /* testing (gaius) */
+    layout_type (type);
 #if 0
     printf("making parameter %s known to gcc\n", name);
 #endif
     param_type_list = tree_cons (NULL_TREE, type, param_type_list);
-    return( parm_decl );
+    return parm_decl;
   } else {
     param_type_list = tree_cons (NULL_TREE, type, param_type_list);
-    return( type );
+    return type;
   }
 }
 
@@ -8420,11 +8669,10 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
    *  the function type depends on the return type and type of args,
    *  both of which we have created in BuildParameterDeclaration
    */
-  if (returntype == NULL_TREE) {
+  if (returntype == NULL_TREE)
     returntype = void_type_node;
-  } else if (TREE_CODE(returntype) == FUNCTION_TYPE) {
+  else if (TREE_CODE(returntype) == FUNCTION_TYPE)
     returntype = ptr_type_node;
-  }
 
   fntype = build_function_type (returntype, param_type_list);
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
@@ -8446,14 +8694,13 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
 
   rest_of_decl_compilation (fndecl, NULL, 1, 0);
   param_list = NULL_TREE;   /* ready for the next time we call/define a function */
-  return( fndecl );
+  return fndecl;
 }
 
 /*
  *  BuildStartFunctionCode - generate function entry code.
  */
 
-#if 1
 void
 gccgm2_BuildStartFunctionCode (fndecl, isexported)
      tree fndecl;
@@ -8497,88 +8744,14 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
      (This does not mean `static' in the C sense!)  */
   TREE_STATIC (fndecl)     = 1;
   TREE_PUBLIC (fndecl)     = isexported;
-  TREE_ADDRESSABLE(fndecl) = 1;   /* could be improved, if we want inline it make this a 0 */
+  TREE_ADDRESSABLE(fndecl) = 1;   /* could be improved, if we want to inline it make this a 0 */
 
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
-}
 
-/*
- *  BuildEndFunctionCode - generates the function epilogue.
- */
-
-void
-gccgm2_BuildEndFunctionCode (fndecl)
-     tree fndecl;
-{
-  /* pop the block level */
-  poplevel (1, 0, 1);
-
-  BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
-
-  /* Must mark the RESULT_DECL as being in this function.  */
-  DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
-
-  expand_function_end (input_filename, lineno, 0);
-
-  rest_of_compilation (fndecl);
-  current_function_decl = NULL;
-}
-#else
-
-void
-gccgm2_BuildStartFunctionCode (fndecl, isexported)
-     tree fndecl;
-     int  isexported;
-{
-  tree param_decl, next_param;
-
-  /* set line number information */
-  DECL_SOURCE_FILE (fndecl) = input_filename;
-  DECL_SOURCE_LINE (fndecl) = lineno;
-  
-
-  /* Announce we are compiling this function.  */
-  announce_function (fndecl);
-
-  /* Set up to compile the function and enter it.  */
-
-  /* Make the init_value nonzero so pushdecl knows this is not tentative.
-     error_mark_node is replaced below (in poplevel) with the BLOCK.  */
-  current_function_decl = fndecl;
-  DECL_INITIAL (fndecl) = error_mark_node;
-
-  pushlevel (0);
-  make_decl_rtl (fndecl, NULL);
-
-  /* Push all the PARM_DECL nodes onto the current scope (i.e. the scope of the
-     subprogram body) so that they can be recognized as local variables in the
-     subprogram.   */
-
-  for (param_decl = nreverse (DECL_ARGUMENTS (fndecl));
-       param_decl; param_decl = next_param)
-    {
-      next_param = TREE_CHAIN (param_decl);
-      TREE_CHAIN (param_decl) = NULL;
-      pushdecl (param_decl);
-    }
-
-  /* Store back the PARM_DECL nodes. They appear in the right order. */
-  DECL_ARGUMENTS (fndecl) = getdecls ();
-  /* This function exists in static storage.
-     (This does not mean `static' in the C sense!)  */
-  TREE_STATIC (fndecl)     = 1;
-  TREE_PUBLIC (fndecl)     = isexported;
-  TREE_ADDRESSABLE(fndecl) = 1;   /* could be improved, if we want inline it make this a 0 */
-
-  init_function_start (fndecl, input_filename, lineno);
-  expand_function_start (fndecl, 0);
+  /* open a new nesting level */
+  pushlevel (0);   /* outer nesting level contains parameters and inner contains local variables */
   expand_start_bindings (0);
-
-  /*
-   *  create a block at the BEGIN for the local variables
-   */
-  pushlevel (0);
 }
 
 /*
@@ -8589,18 +8762,10 @@ void
 gccgm2_BuildEndFunctionCode (fndecl)
      tree fndecl;
 {
-  tree block;
-
-  /* pop the block level */
-  block = poplevel(1, 1, 0);
-  expand_end_bindings(block, 1, 0);
-
-  /* get back out of the function and compile it */
-  block = poplevel (1, 0, 1);
-
-  DECL_INITIAL(fndecl) = block;
+  expand_end_bindings (getdecls (), 1, 0);
+  poplevel (1, 1, 0);   /* shutdown local variables */
+  poplevel (1, 0, 1);   /* shutdown parameters and function */
   BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
-  /* expand_end_bindings (block, 1, 0); */
 
   /* Must mark the RESULT_DECL as being in this function.  */
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
@@ -8610,7 +8775,6 @@ gccgm2_BuildEndFunctionCode (fndecl)
   rest_of_compilation (fndecl);
   current_function_decl = NULL;
 }
-#endif
 
 /*
  *  BuildReturnValueCode - generates the code associated with: RETURN( value )
@@ -8623,15 +8787,14 @@ gccgm2_BuildReturnValueCode (fndecl, value)
   DECL_SOURCE_LINE (DECL_RESULT (fndecl)) = lineno;
   DECL_SOURCE_FILE (DECL_RESULT (fndecl)) = input_filename;
 
-  if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE) {
+  if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE)
     expand_return( build (MODIFY_EXPR, void_type_node,
                           DECL_RESULT (fndecl), build1 (CONVERT_EXPR, ptr_type_node, value)) );
 
-  } else {
+  else
     expand_return( build (MODIFY_EXPR, void_type_node,
                           DECL_RESULT (fndecl),
                           gccgm2_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value)) );
-  }
 }
 
 
@@ -8644,12 +8807,11 @@ tree
 gccgm2_BuildAssignment (des, expr)
      tree des, expr;
 {
-  if (TREE_CODE(expr) == FUNCTION_DECL) {
-    expr = build_unary_op(ADDR_EXPR, expr, 0);
-  }
+  if (TREE_CODE(expr) == FUNCTION_DECL)
+    expr = build_unary_op (ADDR_EXPR, expr, 0);
 
-  expand_assignment( des, expr, 0, 0 );
-  return( des );
+  expand_assignment (des, expr, 0, 0);
+  return des;
 }
 
 
@@ -8662,7 +8824,7 @@ gccgm2_BuildAdd (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(PLUS_EXPR, op1, op2, needconvert) );
+  return build_binary_op (PLUS_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8675,7 +8837,7 @@ gccgm2_BuildSub (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(MINUS_EXPR, op1, op2, needconvert) );
+  return build_binary_op (MINUS_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8688,7 +8850,7 @@ gccgm2_BuildMult (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(MULT_EXPR, op1, op2, needconvert) );
+  return build_binary_op (MULT_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8701,7 +8863,7 @@ gccgm2_BuildDiv (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(TRUNC_DIV_EXPR, op1, op2, needconvert) );
+  return build_binary_op (TRUNC_DIV_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8714,7 +8876,7 @@ gccgm2_BuildMod (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(TRUNC_MOD_EXPR, op1, op2, needconvert) );
+  return build_binary_op (TRUNC_MOD_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8727,7 +8889,7 @@ gccgm2_BuildLSL (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op(LSHIFT_EXPR, op1, op2, needconvert) );
+  return build_binary_op (LSHIFT_EXPR, op1, op2, needconvert);
 }
 
 
@@ -8740,7 +8902,7 @@ tree
 gccgm2_BuildConvert (op1, op2)
      tree op1, op2;
 {
-  return( convert_and_check( skip_type_decl (op1), op2) );
+  return convert_and_check (skip_type_decl (op1), op2);
 }
 
 
@@ -8752,7 +8914,7 @@ tree
 gccgm2_BuildTrunc (op1)
      tree op1;
 {
-  return( convert_to_integer(gccgm2_GetIntegerType(), op1) );
+  return convert_to_integer (gccgm2_GetIntegerType (), op1);
 }
 
 /*
@@ -8764,7 +8926,23 @@ gccgm2_BuildNegate (op1, needconvert)
      tree op1;
      int  needconvert;
 {
-  return( build_unary_op (NEGATE_EXPR, op1, needconvert) );
+  return build_unary_op (NEGATE_EXPR, op1, needconvert);
+}
+
+/*
+ *  BuildSetNegate - builds a set negate expression and returns the tree.
+ */
+
+tree
+gccgm2_BuildSetNegate (op1, needconvert)
+     tree op1;
+     int  needconvert;
+{
+  return build_binary_op (BIT_XOR_EXPR,
+			  gccgm2_BuildConvert(gccgm2_GetWordType(), op1),
+			  gccgm2_BuildConvert(gccgm2_GetWordType(),
+					      gccgm2_BuildIntegerConstant(-1)),
+			  needconvert);
 }
 
 /*
@@ -8778,24 +8956,22 @@ gccgm2_GetSizeOf (type)
   enum tree_code code = TREE_CODE (type);
 
   if (code == FUNCTION_TYPE)
-    {
-      return( gccgm2_GetSizeOf(ptr_type_node) );
-    }
-  if (code == VOID_TYPE)
-    {
-      if (pedantic || warn_pointer_arith)
-	pedwarn ("sizeof applied to a void type");
-      return size_one_node;
-    }
+    return( gccgm2_GetSizeOf(ptr_type_node) );
+
+  if (code == VOID_TYPE) {
+    if (pedantic || warn_pointer_arith)
+      pedwarn ("sizeof applied to a void type");
+    return size_one_node;
+  }
 
   if (code == VAR_DECL)
-    return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
+    return gccgm2_GetSizeOf(TREE_TYPE(type));
 
   if (code == PARM_DECL)
-    return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
+    return gccgm2_GetSizeOf(TREE_TYPE(type));
 
   if (code == TYPE_DECL)
-    return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
+    return gccgm2_GetSizeOf(TREE_TYPE(type));
 
   if (code == ERROR_MARK)
     return size_one_node;
@@ -8821,7 +8997,7 @@ gccgm2_BuildSize (op1, needconvert)
      tree op1;
      int  needconvert ATTRIBUTE_UNUSED;
 {
-  return( gccgm2_GetSizeOf(op1) );
+  return gccgm2_GetSizeOf(op1);
 }
 
 
@@ -8834,7 +9010,7 @@ gccgm2_BuildAddr (op1, needconvert)
      tree op1;
      int  needconvert;
 {
-  return( convert (integer_type_node, build_unary_op (ADDR_EXPR, op1, needconvert)) );
+  return convert (integer_type_node, build_unary_op (ADDR_EXPR, op1, needconvert));
 }
 
 
@@ -8861,17 +9037,13 @@ gccgm2_BuildOffset (field, needconvert)
      tree field;
      int  needconvert ATTRIBUTE_UNUSED;
 {
-#if 0
-  debug_print_value(DECL_FIELD_OFFSET (field));
-#endif
-  return( gccgm2_BuildConvert(gccgm2_GetIntegerType(),
-			      gccgm2_BuildAdd(DECL_FIELD_OFFSET (field),
-					      gccgm2_BuildDiv(DECL_FIELD_BIT_OFFSET (field),
-							      gccgm2_BuildIntegerConstant(BITS_PER_UNIT),
-							      FALSE),
-					      FALSE)) );
+  return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
+			      gccgm2_BuildAdd (DECL_FIELD_OFFSET (field),
+					       gccgm2_BuildDiv (DECL_FIELD_BIT_OFFSET (field),
+								gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
+								FALSE),
+					       FALSE));
 }
-
 
 /*
  *  BuildLogicalOr - build a logical or expressions and return the tree.
@@ -8882,11 +9054,10 @@ gccgm2_BuildLogicalOr (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_OR_EXPR,
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
+  return build_binary_op (BIT_IOR_EXPR,
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
 }
-
 
 /*
  *  BuildLogicalAnd - build a logical and expression and return the tree.
@@ -8897,11 +9068,10 @@ gccgm2_BuildLogicalAnd (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_AND_EXPR,
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
+  return build_binary_op (BIT_AND_EXPR,
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
 }
-
 
 /*
  *  BuildSymmetricalDifference - build a logical xor expression and return the tree.
@@ -8912,11 +9082,10 @@ gccgm2_BuildSymmetricDifference (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_XOR_EXPR,
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
-			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
+  return build_binary_op (BIT_XOR_EXPR,
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
 }
-
 
 /*
  *  create_label_from_name - returns a tree label.
@@ -8927,14 +9096,13 @@ create_label_from_name (name)
      char *name;
 {
   tree id   = get_identifier (name);   /* name must never conflict with the scope universe */
-  tree decl = lookup_label   (id);
+  tree decl = lookup_label (id);
   
-  if (decl == 0) {
+  if (decl == 0)
     error ("problems trying to create a label");
-  }
-  return( decl );
+ 
+  return decl;
 }
-
 
 /*
  *  BuildGoto - builds a goto operation.
@@ -8948,7 +9116,6 @@ gccgm2_BuildGoto (char *name)
   TREE_USED (decl) = 1;
   expand_goto (decl);
 }
-
 
 /*
  *  DeclareLabel - create a label, name, and return the tree.
@@ -8967,9 +9134,8 @@ gccgm2_DeclareLabel (name)
     TREE_USED (decl) = 1;
   }
   expand_label( decl );
-  return( decl );
+  return decl;
 }
-
 
 /*
  *  BuildLessThan - return a tree which computes <
@@ -8979,9 +9145,8 @@ tree
 gccgm2_BuildLessThan (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (LT_EXPR, op1, op2, 0) );
+  return build_binary_op (LT_EXPR, op1, op2, 0);
 }
-
 
 /*
  *  BuildGreaterThan - return a tree which computes >
@@ -8991,7 +9156,7 @@ tree
 gccgm2_BuildGreaterThan (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (GT_EXPR, op1, op2, 0) );
+  return build_binary_op (GT_EXPR, op1, op2, 0);
 }
 
 
@@ -9003,7 +9168,7 @@ tree
 gccgm2_BuildLessThanOrEqual (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (LE_EXPR, op1, op2, TRUE) );
+  return build_binary_op (LE_EXPR, op1, op2, TRUE);
 }
 
 
@@ -9015,7 +9180,7 @@ tree
 gccgm2_BuildGreaterThanOrEqual (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (GE_EXPR, op1, op2, 0) );
+  return build_binary_op (GE_EXPR, op1, op2, 0);
 }
 
 
@@ -9027,7 +9192,7 @@ tree
 gccgm2_BuildEqualTo (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (EQ_EXPR, op1, op2, 0) );
+  return build_binary_op (EQ_EXPR, op1, op2, 0);
 }
 
 
@@ -9039,41 +9204,433 @@ tree
 gccgm2_BuildNotEqualTo (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (NE_EXPR, op1, op2, 0) );
+  return build_binary_op (NE_EXPR, op1, op2, 0);
+}
+
+/*
+ *  BuildIsSuperset - return a tree which computes:  op1 & op2 == op2
+ */
+
+tree
+gccgm2_BuildIsSuperset (op1, op2)
+     tree op1, op2;
+{
+  return gccgm2_BuildEqualTo (op2,
+			      gccgm2_BuildLogicalAnd (op1, op2, FALSE));
+}
+
+/*
+ *  BuildIsNotSuperset - return a tree which computes: op1 & op2 != op2
+ */
+
+tree
+gccgm2_BuildIsNotSuperset (op1, op2)
+     tree op1, op2;
+{
+  return gccgm2_BuildNotEqualTo (op2,
+				 gccgm2_BuildLogicalAnd (op1, op2, FALSE));
+}
+
+/*
+ *  BuildIsSubset - return a tree which computes:  op1 & op2 == op1
+ */
+
+tree
+gccgm2_BuildIsSubset (op1, op2)
+     tree op1, op2;
+{
+  return gccgm2_BuildEqualTo (op1,
+			      gccgm2_BuildLogicalAnd (op1, op2, FALSE));
+}
+
+/*
+ *  BuildIsNotSubset - return a tree which computes: op1 & op2 != op1
+ */
+
+tree
+gccgm2_BuildIsNotSubset (op1, op2)
+     tree op1, op2;
+{
+  return gccgm2_BuildNotEqualTo (op1,
+				 gccgm2_BuildLogicalAnd (op1, op2, FALSE));
 }
 
 
 /*
- *  BuildIfIn - return a tree which computes (op1 IN op2)
+ *  do_jump_if_bit - tests bit in word against integer zero using operator, code.
+ *                   If the result is true then jump to label.
  */
 
-tree
-gccgm2_BuildIfIn (op1, op2)
-     tree op1, op2;
+static
+void
+do_jump_if_bit (code, word, bit, label)
+     enum tree_code code;
+     tree word, bit;
+     char *label;
 {
-  return( build_binary_op(NE_EXPR,
-                          build_binary_op(TRUTH_AND_EXPR,
-					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
-					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), 0),
-                          integer_zero_node, 0));
+    gccgm2_DoJump (build_binary_op (code,
+				    build_binary_op (BIT_AND_EXPR,
+						     gccgm2_BuildConvert (gccgm2_GetWordType (), word),
+						     gccgm2_BuildConvert (gccgm2_GetWordType (), gccgm2_BuildLSL (gccgm2_GetIntegerOne(),
+														 gccgm2_BuildConvert (gccgm2_GetWordType (), bit),
+														 FALSE)),
+						     FALSE),
+				    integer_zero_node, FALSE),
+		   NULL, label);
+}
+
+/*
+ *  BuildIfConstInVar - generates: if constel in varset then goto label.
+ */
+
+void
+gccgm2_BuildIfConstInVar (type, varset, constel, is_lvalue, fieldno, label)
+     tree type, varset, constel;
+     int is_lvalue, fieldno;
+     char *label;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    do_jump_if_bit (NE_EXPR, get_rvalue (varset, type, is_lvalue), constel, label);
+  else {
+    tree p1 = get_set_address (varset, is_lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+      fieldno--;
+
+    do_jump_if_bit (NE_EXPR, get_set_field_rhs (p1, field), constel, label);
+  }
+}
+
+/*
+ *  BuildIfConstInVar - generates: if not (constel in varset) then goto label.
+ */
+
+void
+gccgm2_BuildIfNotConstInVar (type, varset, constel, is_lvalue, fieldno, label)
+     tree type, varset, constel;
+     int is_lvalue, fieldno;
+     char *label;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    do_jump_if_bit (EQ_EXPR, get_rvalue (varset, type, is_lvalue), constel, label);
+  else {
+    tree p1 = get_set_address (varset, is_lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+      fieldno--;
+
+    do_jump_if_bit (EQ_EXPR, get_set_field_rhs (p1, field), constel, label);
+  }
+}
+
+/*
+ *  BuildIfVarInVar - generates: if varel in varset then goto label
+ */
+
+void
+gccgm2_BuildIfVarInVar (type, varset, varel, is_lvalue, low, high, label)
+     tree  type, varset, varel;
+     int   is_lvalue;
+     tree  low, high;
+     char *label;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    do_jump_if_bit (NE_EXPR, get_rvalue (varset, type, is_lvalue), varel, label);
+  else {
+    tree p1               = get_set_address (varset, is_lvalue);
+    /* calculate the index from the first bit */
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    /* which word do we need to fetch? */
+    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+    /* calculate the bit in this word */
+    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+
+    /* calculate the address of the word we are interested in */
+    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT),
+						FALSE),
+			  FALSE);
+
+    /* fetch the word, extract the bit and test for != 0 */
+    do_jump_if_bit (NE_EXPR, gccgm2_BuildIndirect (p1, bitset_type_node), offset_into_word, label);
+  }
 }
 
 
 /*
- *  BuildIfNotIn - return a tree which computes NOT (op1 IN op2)
+ *  BuildIfNotVarInVar - generates: if not (varel in varset) then goto label
  */
 
-tree
-gccgm2_BuildIfNotIn (op1, op2)
-     tree op1, op2;
+void
+gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
+     tree  type, varset, varel;
+     int   is_lvalue;
+     tree  low, high;
+     char *label;
 {
-  return( build_binary_op(EQ_EXPR,
-                          build_binary_op(TRUTH_AND_EXPR,
-					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
-					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), 0),
-                          integer_zero_node, 0) );
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    do_jump_if_bit (EQ_EXPR, get_rvalue (varset, type, is_lvalue), varel, label);
+  else {
+    tree p1               = get_set_address (varset, is_lvalue);
+    /* calculate the index from the first bit */
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    /* which word do we need to fetch? */
+    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+    /* calculate the bit in this word */
+    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+
+    /* calculate the address of the word we are interested in */
+    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT),
+						FALSE),
+			  FALSE);
+
+    /* fetch the word, extract the bit and test for == 0 */
+    do_jump_if_bit (EQ_EXPR, gccgm2_BuildIndirect (p1, bitset_type_node), offset_into_word, label);
+  }
 }
 
+#if 0
+/*
+ *  BuildIfConstSetEquVar - builds the if var == constset then label
+ */
+
+void
+gccgm2_BuildIfConstSetEquVar (type, constset, varset, is_lvalue, label)
+     tree type, constset, varset;
+     int  is_lvalue;
+     char *label;
+{
+  tree p1 = get_set_address (varset, is_lvalue);
+  tree fieldlist = TYPE_FIELDS (type);
+  tree constlist = CONSTRUCTOR_ELTS (constset);
+  tree field;
+  tree constfield= constlist;
+
+  for (field = fieldlist; (field != NULL) && (constfield != NULL); field = TREE_CHAIN (field)) {
+    tree constvalue = TREE_VALUE (constfield);
+    tree fieldvalue = gccgm2_BuildIndirect (get_set_field_lhs (p1, field), gccgm2_GetWordType ());
+
+    if (constvalue == NULL) {
+      error ("constant set has a different number of fields than the set variable");
+      return;
+    }
+    gccgm2_DoJump (gccgm2_BuildEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue),
+					gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue)),
+		   NULL, label);
+    constfield = TREE_CHAIN (constfield);
+  }
+}
+
+/*
+ *  BuildIfNotConstSetEquVar - builds the if varset != constset then label
+ */
+
+void
+gccgm2_BuildIfNotConstSetEquVar (type, constset, varset, is_lvalue, label)
+     tree type, constset, varset;
+     int  is_lvalue;
+     char *label;
+{
+  tree p1 = get_set_address (varset, is_lvalue);
+  tree fieldlist = TYPE_FIELDS (type);
+  tree constlist = CONSTRUCTOR_ELTS (constset);
+  tree field;
+  tree constfield= constlist;
+
+  for (field = fieldlist; (field != NULL) && (constfield != NULL); field = TREE_CHAIN (field)) {
+    tree constvalue = TREE_VALUE (constfield);
+    tree fieldvalue = gccgm2_BuildIndirect (get_set_field_lhs (p1, field), gccgm2_GetWordType ());
+
+    if (constvalue == NULL) {
+      error ("constant set has a different number of fields than the set variable");
+      return;
+    }
+    gccgm2_DoJump (gccgm2_BuildNotEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue),
+					   gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue)),
+		   NULL, label);
+    constfield = TREE_CHAIN (constfield);
+  }
+}
+
+void
+gccgm2_BuildIfVarEquVar (type, op1, op2, is_op1lvalue, is_op2lvalue, label)
+     tree type, op1, op2;
+     int is_op1lvalue, is_op2lvalue;
+     char *label;
+{
+  tree p1 = get_set_address (op1, is_op1lvalue);
+  tree p2 = get_set_address (op2, is_op2lvalue);
+  tree fieldlist = TYPE_FIELDS (type);
+  tree field;
+
+  for (field = fieldlist; field != NULL; field = TREE_CHAIN (field)) {
+    tree fieldvalue1 = gccgm2_BuildIndirect (get_set_field_lhs (p1, field), gccgm2_GetWordType ());
+    tree fieldvalue2 = gccgm2_BuildIndirect (get_set_field_lhs (p2, field), gccgm2_GetWordType ());
+
+    gccgm2_DoJump (gccgm2_BuildEqualTo (fieldvalue1, fieldvalue2), NULL, label);
+  }
+}
+
+void
+gccgm2_BuildIfNotVarEquVar (type, op1, op2, is_op1lvalue, is_op2lvalue, label)
+     tree type, op1, op2;
+     int is_op1lvalue, is_op2lvalue;
+     char *label;
+{
+  tree p1 = get_set_address (op1, is_op1lvalue);
+  tree p2 = get_set_address (op2, is_op2lvalue);
+  tree fieldlist = TYPE_FIELDS (type);
+  tree field;
+
+  for (field = fieldlist; field != NULL; field = TREE_CHAIN (field)) {
+    tree fieldvalue1 = gccgm2_BuildIndirect (get_set_field_lhs (p1, field), gccgm2_GetWordType ());
+    tree fieldvalue2 = gccgm2_BuildIndirect (get_set_field_lhs (p2, field), gccgm2_GetWordType ());
+
+    gccgm2_DoJump (gccgm2_BuildNotEqualTo (fieldvalue1, fieldvalue2), NULL, label);
+  }
+}
+#endif
+
+/*
+ *  get_set_address_if_var - returns the address of, op, providing it is not a constant.
+ *                           NULL is returned if, op, is a constant.
+ */
+
+static
+tree
+get_set_address_if_var (op, is_lvalue, is_const)
+     tree op;
+     int  is_lvalue, is_const;
+{
+  if (is_const)
+    return NULL;
+  else
+    return get_set_address (op, is_lvalue);
+}
+
+/*
+ *  get_field_list - returns the field list for, op. The struct field list of the type
+ *                   is returned if, op, is a variable. This allows the calling function
+ *                   to dereference the field using a pointer to the variable.
+ *                   Alternatively if, op, is a constant then the first member of the constant
+ *                   structure is returned.
+ */
+
+static
+tree
+get_field_list (type, op, is_const)
+     tree type, op;
+     int is_const;
+{
+  if (is_const)
+    return CONSTRUCTOR_ELTS (op);
+  else
+    return TYPE_FIELDS (type);
+}
+
+/*
+ *  get_set_value - returns the value indicated by, field, in the set.
+ *                  Either p->field or the constant(field) is returned.
+ */
+
+static
+tree
+get_set_value (p, field, is_const)
+     tree p, field;
+     int  is_const;
+{
+  if (is_const)
+    return TREE_VALUE (field);
+  else
+    return gccgm2_BuildIndirect (get_set_field_lhs (p, field), gccgm2_GetWordType ());
+}
+
+/*
+ *  BuildForeachWordInSetDoIfExpr - foreach word in set, type, compute the expression, expr, and if true
+ *                                  goto label.
+ */
+
+void
+gccgm2_BuildForeachWordInSetDoIfExpr (type, op1, op2,
+				      is_op1lvalue, is_op2lvalue,
+				      is_op1const, is_op2const,
+				      expr, label)
+     tree type, op1, op2;
+     int  is_op1lvalue, is_op2lvalue;
+     int  is_op1const, is_op2const;
+     tree (*expr) (tree, tree);
+     char *label;
+{
+  tree p1 = get_set_address_if_var (op1, is_op1lvalue, is_op1const);
+  tree p2 = get_set_address_if_var (op2, is_op2lvalue, is_op2const);
+  tree field1 = get_field_list (type, op1, is_op1const);
+  tree field2 = get_field_list (type, op2, is_op2const);
+
+  while (field1 != NULL && field2 != NULL) {
+    gccgm2_DoJump ((*expr) (get_set_value (p1, field1, is_op1const),
+			    get_set_value (p2, field2, is_op2const)),
+		   NULL, label);
+    field1 = TREE_CHAIN (field1);
+    field2 = TREE_CHAIN (field2);
+  }
+  if (field1 != NULL || field2 != NULL)
+    error ("the two sets have a different number of fields");
+}
+
+/*
+ *  BuildIfInRangeGoto - if var is in the range low..high then goto label
+ */
+
+void
+gccgm2_BuildIfInRangeGoto (var, low, high, label)
+     tree var, low, high;
+     char *label;
+{
+  if (gccgm2_CompareTrees (low, high) == 0)
+    gccgm2_DoJump (gccgm2_BuildEqualTo (var, low),
+		   NULL, label);
+  else
+    gccgm2_DoJump (build_binary_op (TRUTH_ANDIF_EXPR,
+				    gccgm2_BuildGreaterThanOrEqual (var, low),
+				    gccgm2_BuildLessThanOrEqual (var, high), FALSE),
+		   NULL, label);
+}
+
+/*
+ *  BuildIfNotInRangeGoto - if var is not in the range low..high then goto label
+ */
+
+void
+gccgm2_BuildIfNotInRangeGoto (var, low, high, label)
+     tree var, low, high;
+     char *label;
+{
+  if (gccgm2_CompareTrees (low, high) == 0)
+    gccgm2_DoJump (gccgm2_BuildNotEqualTo (var, low),
+		   NULL, label);
+  else
+    gccgm2_DoJump (build_binary_op (TRUTH_ORIF_EXPR,
+				    gccgm2_BuildLessThan (var, low),
+				    gccgm2_BuildGreaterThan (var, high), FALSE),
+		   NULL, label);
+}
 
 /*
  *  BuildIndirect - build: (*target) given that the object to be copied is of, type.
@@ -9093,9 +9650,8 @@ gccgm2_BuildIndirect (target, type)
    *   the object to be indirectly moved.
    */
 
-  return( build1 (INDIRECT_REF, skip_type_decl(type), target) );
+  return build1 (INDIRECT_REF, skip_type_decl(type), target);
 }
-
 
 /*
  *  DoJump - jump to the appropriate label depending whether
@@ -9108,13 +9664,12 @@ gccgm2_DoJump (exp, falselabel, truelabel)
      char *falselabel;
      char *truelabel;
 {
-  if ((falselabel != 0) && (truelabel == 0)) {
+  if ((falselabel != NULL) && (truelabel == NULL))
     do_jump(exp, label_rtx(create_label_from_name(falselabel)), NULL_RTX);
-  } else if ((falselabel == 0) && (truelabel != 0)) {
+  else if ((falselabel == NULL) && (truelabel != NULL))
     do_jump(exp, NULL_RTX, label_rtx(create_label_from_name(truelabel)));
-  } else {
+  else
     error("expecting one and only one label to be declared");
-  }
 }
 
 /*
@@ -9129,9 +9684,9 @@ gccgm2_BuildParam (param)
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
   fprintf(stderr, "list of elements\n"); fflush(stderr);
 #endif
-  if (TREE_CODE(param) == FUNCTION_DECL) {
+  if (TREE_CODE(param) == FUNCTION_DECL)
     param = build_unary_op(ADDR_EXPR, param, 0);
-  }
+
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
 #if 0
   debug_tree(param_list);
@@ -9148,8 +9703,8 @@ tree
 gccgm2_BuildProcedureCall (procedure, rettype)
      tree procedure, rettype;
 {
-  tree functype = TREE_TYPE(procedure);
-  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), procedure);
+  tree functype = TREE_TYPE (procedure);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type(functype), procedure);
   tree call;
 
   TREE_USED(procedure) = TRUE;
@@ -9170,12 +9725,11 @@ gccgm2_BuildProcedureCall (procedure, rettype)
 #endif
     expand_expr_stmt(call);
     last_function   = NULL_TREE;
-  } else {
+  } else
     last_function   = build(CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
-  }
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
-  return( last_function );
+  return last_function;
 }
 
 /*
@@ -9193,9 +9747,9 @@ gccgm2_BuildIndirectProcedureCall (procedure, rettype)
 
   if (rettype == NULL_TREE) {
     rettype = void_type_node;
-    call = build(CALL_EXPR, rettype, procedure, param_list, NULL_TREE);
-    TREE_USED(call)         = TRUE;
-    TREE_SIDE_EFFECTS(call) = TRUE ;
+    call = build (CALL_EXPR, rettype, procedure, param_list, NULL_TREE);
+    TREE_USED (call)         = TRUE;
+    TREE_SIDE_EFFECTS (call) = TRUE ;
 
 #if 0
     fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
@@ -9205,14 +9759,14 @@ gccgm2_BuildIndirectProcedureCall (procedure, rettype)
     fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
     debug_tree(call);
 #endif
-    expand_expr_stmt(call);
+    expand_expr_stmt (call);
     last_function   = NULL_TREE;
   } else {
     last_function   = build(CALL_EXPR, skip_type_decl (rettype), procedure, param_list, NULL_TREE);
   }
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
-  return( last_function );
+  return last_function;
 }
 
 /*
@@ -9223,14 +9777,11 @@ void
 gccgm2_BuildFunctValue (value)
      tree value;
 {
-  tree assign = build_modify_expr(value, NOP_EXPR, last_function);
+  tree assign = build_modify_expr (value, NOP_EXPR, last_function);
 
-  TREE_SIDE_EFFECTS(assign) = TRUE;
-  TREE_USED(assign) = TRUE;
-#if 0
-  debug_tree(assign);
-#endif
-  expand_expr_stmt(assign);
+  TREE_SIDE_EFFECTS (assign) = TRUE;
+  TREE_USED (assign) = TRUE;
+  expand_expr_stmt (assign);
 }
 
 /*
@@ -9259,104 +9810,110 @@ gccgm2_AssignBooleanTrueFalse (booleanid, trueid, falseid)
   boolean_type_node  = booleanid;
   boolean_true_node  = trueid;
   boolean_false_node = falseid;
-  TREE_TYPE(boolean_false_node) = booleanid;
-  TREE_TYPE(boolean_true_node)  = booleanid;
+  TREE_TYPE (boolean_false_node) = booleanid;
+  TREE_TYPE (boolean_true_node)  = booleanid;
 }
 
 tree
 gccgm2_GetIntegerType ()
 {
-  return( integer_type_node );
+  return integer_type_node;
 }
 
 tree
 gccgm2_GetCharType ()
 {
-  return( char_type_node );
+  return char_type_node;
+}
+
+tree
+gccgm2_GetM2CharType ()
+{
+  return m2_char_type_node;
 }
 
 tree
 gccgm2_GetByteType ()
 {
-  return( unsigned_char_type_node );
+  return unsigned_char_type_node;
 }
 
 tree
 gccgm2_GetVoidType ()
 {
-  return( void_type_node );
+  return void_type_node;
 }
 
 tree
 gccgm2_GetPointerType ()
 {
-  return( ptr_type_node );
+  return ptr_type_node;
 }
 
 tree
 gccgm2_GetCardinalType ()
 {
-  return( unsigned_type_node );
+  return unsigned_type_node;
 }
 
 tree
 gccgm2_GetBitsetType ()
 {
-  return( unsigned_type_node );   /* --fixme-- */
+  return bitset_type_node;
 }
 
 tree
 gccgm2_GetRealType ()
 {
-  return( float_type_node );
+  return float_type_node;
 }
 
 tree
 gccgm2_GetLongRealType ()
 {
-  return( double_type_node );
+  return double_type_node;
 }
 
 tree
 gccgm2_GetLongIntType ()
 {
-  return( long_unsigned_type_node );
+  return long_integer_type_node;
 }
 
 tree
 gccgm2_GetWordType ()
 {
-  return( long_unsigned_type_node );
+  return unsigned_type_node;
 }
 
 tree
 gccgm2_GetProcType ()
 {
-  return( proc_type_node );
+  return proc_type_node;
 }
 
 tree
 gccgm2_GetIntegerZero ()
 {
-  return( integer_zero_node );
+  return integer_zero_node;
 }
 
 tree
 gccgm2_GetIntegerOne ()
 {
-  return( integer_one_node );
+  return integer_one_node;
 }
 
 tree
 gccgm2_GetCurrentFunction ()
 {
-  return( current_function_decl );
+  return current_function_decl;
 }
 
 tree
 gccgm2_GetErrorNode ()
 {
-  return( error_mark_node );
+  return error_mark_node;
 }
 
 /*
@@ -9367,11 +9924,10 @@ tree
 convertToPtr (t)
      tree t;
 {
-  if (TREE_CODE(TREE_TYPE(t)) == POINTER_TYPE) {
-    return( t );
-  } else {
-    return( gccgm2_BuildConvert(ptr_type_node, t) );
-  }
+  if (TREE_CODE(TREE_TYPE(t)) == POINTER_TYPE)
+    return t;
+  else
+    return gccgm2_BuildConvert (ptr_type_node, t);
 }
 
 /*
@@ -9382,23 +9938,23 @@ tree
 gccgm2_BuiltInMemCopy (dest, src, n)
      tree dest, src, n;
 {
-  tree params   = chainon(chainon(build_tree_list(NULL_TREE, convertToPtr(dest)),
-                                  build_tree_list(NULL_TREE, convertToPtr(src))),
-                          build_tree_list(NULL_TREE, n));
-  tree functype = TREE_TYPE(gm2_memcpy_node);
-  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), gm2_memcpy_node);
-  tree call     = build(CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
+  tree params   = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
+				    build_tree_list (NULL_TREE, convertToPtr (src))),
+			   build_tree_list (NULL_TREE, n));
+  tree functype = TREE_TYPE (gm2_memcpy_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_memcpy_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
 
-  TREE_USED(call)         = TRUE;
-  TREE_SIDE_EFFECTS(call) = TRUE ;
+  TREE_USED (call)         = TRUE;
+  TREE_SIDE_EFFECTS (call) = TRUE ;
 
 #if 0
   fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
-  debug_tree(params);
+  debug_tree (params);
   fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
-  debug_tree(call);
+  debug_tree (call);
 #endif
-  return( call );
+  return call;
 }
 
 /*
@@ -9410,15 +9966,15 @@ tree
 gccgm2_BuiltInAlloca (n)
      tree n;
 {
-  tree params   = listify(n);
-  tree functype = TREE_TYPE(gm2_alloca_node);
-  tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), gm2_alloca_node);
-  tree call     = build(CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
+  tree params   = listify (n);
+  tree functype = TREE_TYPE (gm2_alloca_node);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
+  tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
 
-  TREE_USED(call)         = TRUE;
-  TREE_SIDE_EFFECTS(call) = TRUE ;
+  TREE_USED (call)         = TRUE;
+  TREE_SIDE_EFFECTS (call) = TRUE ;
 
-  return( call );
+  return call;
 }
 
 /*
@@ -9430,7 +9986,7 @@ int
 gccgm2_AreConstantsEqual (e1, e2)
   tree e1, e2;
 {
-  return( tree_int_cst_equal(e1, e2) != 0 );
+  return tree_int_cst_equal (e1, e2) != 0;
 }
 
 /*
@@ -9445,7 +10001,300 @@ int
 gccgm2_DetermineSign (e)
      tree e;
 {
-  return( tree_int_cst_sgn(e) );
+  return tree_int_cst_sgn(e);
+}
+
+/*
+ *  CompareTrees - returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
+ */
+
+int gccgm2_CompareTrees (e1, e2)
+     tree e1, e2;
+{
+  return tree_int_cst_compare(e1, e2);
+}
+
+/*
+ *  get_rvalue - returns the rvalue of t. The, type, is the object type to be
+ *               copied upon indirection.
+ */
+
+static
+tree
+get_rvalue (t, type, is_lvalue)
+     tree t, type;
+     int  is_lvalue;
+{
+  if (is_lvalue)
+    return gccgm2_BuildIndirect(t, type);
+  else
+    return t;
+}
+
+/*
+ *  get_set_address - returns the address of op1.
+ */
+
+static
+tree
+get_set_address (op1, is_lvalue)
+     tree op1;
+     int  is_lvalue;
+{
+  if (is_lvalue)
+    return op1;
+  else
+    return build_unary_op (ADDR_EXPR, op1, FALSE);
+}
+
+/*
+ *  get_set_field_lhs - returns the address of p->field.
+ */
+
+static
+tree
+get_set_field_lhs (p, field)
+     tree p, field;
+{
+  return gccgm2_BuildAdd (p, gccgm2_BuildOffset (field, FALSE), FALSE);
+}
+
+/*
+ *  get_set_field_rhs - returns the value of p->field.
+ */
+
+static
+tree
+get_set_field_rhs (p, field)
+     tree p, field;
+{
+  return gccgm2_BuildIndirect (get_set_field_lhs (p, field), gccgm2_GetWordType ());
+}
+
+/*
+ *  BuildBinaryForeachWordDo - provides the large set operators. Each word (or less)
+ *                             of the set can be calculated by binop.
+ *                             This procedure runs along each word of the large set
+ *                             invoking the binop.
+ */
+
+void
+gccgm2_BuildBinaryForeachWordDo (type, op1, op2, op3, binop,
+				 is_op1lvalue, is_op2lvalue, is_op3lvalue)
+     tree  type, op1, op2, op3;
+     tree  (*binop)(tree, tree, int);
+     int   is_op1lvalue, is_op2lvalue, is_op3lvalue;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (op1, type, is_op1lvalue),
+			    (*binop) (get_rvalue (op2, type, is_op2lvalue),
+				      get_rvalue (op3, type, is_op3lvalue), FALSE));
+  else {
+    /* large set size > TSIZE(WORD) */
+
+    tree p1        = get_set_address (op1, is_op1lvalue);
+    tree p2        = get_set_address (op2, is_op2lvalue);
+    tree p3        = get_set_address (op3, is_op3lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; field != NULL; field = TREE_CHAIN (field))
+      gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
+			      (*binop) (get_set_field_rhs (p2, field),
+					get_set_field_rhs (p3, field), FALSE));
+  }
+}
+
+/*
+ *  BuildUnaryForeachWordDo - provides the large set operators. Each word (or less)
+ *                            of the set can be calculated by unop.
+ *                            This procedure runs along each word of the large set
+ *                            invoking the unop.
+ */
+
+void
+gccgm2_BuildUnaryForeachWordDo (type, op1, op2, unop,
+				is_op1lvalue, is_op2lvalue)
+     tree  type, op1, op2;
+     tree  (*unop)(tree, int);
+     int   is_op1lvalue, is_op2lvalue;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (op1, type, is_op1lvalue),
+			    (*unop) (get_rvalue (op2, type, is_op2lvalue), FALSE));
+  else {
+    /* large set size > TSIZE(WORD) */
+
+    tree p1        = get_set_address (op1, is_op1lvalue);
+    tree p2        = get_set_address (op2, is_op2lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; field != NULL; field = TREE_CHAIN (field))
+      gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
+			      (*unop) (get_set_field_rhs (p2, field), FALSE));
+  }
+}
+
+/*
+ *  BuildExcludeVarConst - builds the EXCL(op1, 1<<op2) operation for a small sets. Large
+ *                         sets call this routine to exclude the bit in the particular word.
+ *                         op2 is a constant.
+ */
+
+void
+gccgm2_BuildExcludeVarConst (type, op1, op2, is_lvalue, fieldno)
+     tree type, op1, op2;
+     int  is_lvalue, fieldno;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant(BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (op1, type, is_lvalue),
+			    gccgm2_BuildLogicalAnd (get_rvalue (op1, type, is_lvalue),
+						    gccgm2_BuildSetNegate (gccgm2_BuildLSL (gccgm2_GetIntegerOne(), op2, FALSE),
+									  FALSE),
+						    FALSE));
+  else {
+    tree p1 = get_set_address (op1, is_lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+      fieldno--;
+    gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
+			    gccgm2_BuildLogicalAnd (get_set_field_rhs (p1, field),
+						    gccgm2_BuildSetNegate(gccgm2_BuildLSL (gccgm2_GetIntegerOne(), op2, FALSE),
+									  FALSE),
+						    FALSE));
+  }
+}
+
+/*
+ *  BuildExcludeVarVar - builds the EXCL(varset, 1<<varel) operation for a small and large sets.
+ *                       varel is a variable.
+ */
+
+void
+gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
+     tree  type, varset, varel;
+     int   is_lvalue;
+     tree  low;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (varset, type, is_lvalue),
+			    gccgm2_BuildLogicalAnd (get_rvalue (varset, type, is_lvalue),
+						    gccgm2_BuildSetNegate (gccgm2_BuildLSL (gccgm2_GetIntegerOne(), varel, FALSE),
+									   FALSE),
+						    FALSE));
+  else {
+    tree p1               = get_set_address (varset, is_lvalue);
+    /* calculate the index from the first bit */
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    /* which word do we need to fetch? */
+    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+    /* calculate the bit in this word */
+    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+
+    /* calculate the address of the word we are interested in */
+    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT),
+						FALSE),
+			  FALSE);
+
+    /* set bit offset_into_word within the word pointer at by p1 */
+    gccgm2_BuildAssignment (gccgm2_BuildIndirect (p1, bitset_type_node),
+			    gccgm2_BuildLogicalAnd (gccgm2_BuildIndirect (p1, bitset_type_node),
+						    gccgm2_BuildSetNegate (gccgm2_BuildLSL (gccgm2_GetIntegerOne(),
+											    offset_into_word, FALSE),
+									   FALSE),
+						    FALSE));
+  }
+}
+
+/*
+ *  BuildIncludeVarConst - builds the INCL(op1, 1<<op2) operation for a small sets. Large
+ *                         sets call this routine to include the bit in the particular word.
+ *                         op2 is a constant.
+ */
+
+void
+gccgm2_BuildIncludeVarConst (type, op1, op2, is_lvalue, fieldno)
+     tree type, op1, op2;
+     int  is_lvalue, fieldno;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant(BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (op1, type, is_lvalue),
+			    gccgm2_BuildLogicalOr (get_rvalue (op1, type, is_lvalue),
+						   gccgm2_BuildLSL (gccgm2_GetIntegerOne(), op2, FALSE),
+						   FALSE));
+  else {
+    tree p1 = get_set_address (op1, is_lvalue);
+    tree fieldlist = TYPE_FIELDS (type);
+    tree field;
+
+    for (field = fieldlist; (field != NULL) && (fieldno>0); field = TREE_CHAIN (field))
+      fieldno--;
+    gccgm2_BuildAssignment (get_set_field_rhs (p1, field),
+			    gccgm2_BuildLogicalOr (get_set_field_rhs (p1, field),
+						   gccgm2_BuildLSL (gccgm2_GetIntegerOne(), op2, FALSE),
+						   FALSE));
+  }
+}
+
+/*
+ *  BuildIncludeVarVar - builds the INCL(varset, 1<<varel) operation for a small and large sets.
+ *                       op2 is a variable.
+ */
+
+void
+gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
+     tree  type, varset, varel;
+     int   is_lvalue;
+     tree  low;
+{
+  tree size = gccgm2_GetSizeOf (type);
+
+  if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT)) <= 0)
+    /* small set size <= TSIZE(WORD) */
+    gccgm2_BuildAssignment (get_rvalue (varset, type, is_lvalue),
+			    gccgm2_BuildLogicalOr (get_rvalue (varset, type, is_lvalue),
+						   gccgm2_BuildLSL (gccgm2_GetIntegerOne(), varel, FALSE),
+						   FALSE));
+  else {
+    tree p1               = get_set_address (varset, is_lvalue);
+    /* calculate the index from the first bit */
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    /* which word do we need to fetch? */
+    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+    /* calculate the bit in this word */
+    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
+
+    /* calculate the address of the word we are interested in */
+    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (BITS_PER_WORD/BITS_PER_UNIT),
+						FALSE),
+			  FALSE);
+
+    /* set bit offset_into_word within the word pointer at by p1 */
+    gccgm2_BuildAssignment (gccgm2_BuildIndirect (p1, bitset_type_node),
+			    gccgm2_BuildLogicalOr (gccgm2_BuildIndirect (p1, bitset_type_node),
+						   gccgm2_BuildLSL (gccgm2_GetIntegerOne(), offset_into_word, FALSE),
+						   FALSE));
+  }
 }
 
 tree
@@ -9455,13 +10304,12 @@ gccgm2_BuildIntegerConstant (int value)
 
   switch (value) {
 
-  case 0:  return( integer_zero_node );
-           break;
-  case 1:  return( integer_one_node );
-           break;
+  case 0:  return integer_zero_node;
+  case 1:  return integer_one_node;
+
   default:
       id = build_int_2 (value, 0);
-      return( id );
+      return id;
   }
 }
 
@@ -9478,24 +10326,11 @@ gccgm2_BuildStringConstant (string, length)
 {
   tree id;
 
-#if 0
-  if (length == 0) {
-    /* we need to emit .string "" or .ascii "\0" in the assembly file,
-     * rather than an empty label.
-     * So we tell gcc that the string has length 1 and contains contents (char)0
-     */
-    id=build_string(length+1, string);
-  } else {
-    id=build_string(length, string);
-  }
-#else
-  id=build_string(length+1, string);  /* +1 ensures that we always nul terminate our strings */
-#endif
-  TREE_TYPE(id) = char_array_type_node;
+  id = build_string (length+1, string);  /* +1 ensures that we always nul terminate our strings */
+  TREE_TYPE (id) = char_array_type_node;
   mystr = id;
-  return( id );
+  return id;
 }
-
 
 /*
  *  BuildCharConstant - creates a character constant given a, string.
@@ -9518,7 +10353,7 @@ gccgm2_BuildCharConstant (string)
                                  >> (HOST_BITS_PER_WIDE_INT - num_bits)),
                       -1);
   TREE_TYPE (id) = integer_type_node;
-  return( id );
+  return id;
 }
 
 /*
@@ -9531,7 +10366,7 @@ tree
 gccgm2_ConvertConstantAndCheck (type, expr)
      tree type, expr;
 {
-  return( convert_and_check( skip_type_decl (type), expr) );
+  return convert_and_check( skip_type_decl (type), expr);
 }
 
 /*
@@ -9542,8 +10377,8 @@ tree
 gccgm2_RealToTree (name)
      char *name;
 {
-  return( build_real( gccgm2_GetLongRealType(),
-		      REAL_VALUE_ATOF (name, TYPE_MODE (gccgm2_GetLongRealType ()))) );
+  return build_real( gccgm2_GetLongRealType(),
+		     REAL_VALUE_ATOF (name, TYPE_MODE (gccgm2_GetLongRealType ())));
 }
 
 /*
@@ -9566,9 +10401,9 @@ gccgm2_BuildStart (name, inner_module)
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
 
   DECL_EXTERNAL (fndecl) = 0;
-  if (! inner_module) {
+  if (! inner_module)
     TREE_PUBLIC (fndecl) = 1;
-  }
+
   TREE_STATIC (fndecl)   = 1;
   DECL_RESULT (fndecl)   = build_decl (RESULT_DECL, NULL_TREE, integer_type_node);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
@@ -9605,7 +10440,7 @@ gccgm2_BuildStart (name, inner_module)
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
-  return( fndecl );
+  return fndecl;
 }
 
 void
@@ -9625,7 +10460,7 @@ void
 gccgm2_BuildCallInnerInit (fndecl)
      tree fndecl;
 {
-  expand_expr_stmt( build_function_call(fndecl, NULL_TREE) );
+  expand_expr_stmt( build_function_call (fndecl, NULL_TREE));
 }
 
 
@@ -9879,12 +10714,12 @@ gccgm2_BuildStartRecord (name)
 {
   tree id;
 
-  if ((name == NULL) || (strcmp(name, "") == 0)) {
+  if ((name == NULL) || (strcmp(name, "") == 0))
     id = NULL_TREE;
-  } else {
+  else
     id = get_identifier (name);
-  }
-  return( start_struct(RECORD_TYPE, id) );
+
+  return start_struct (RECORD_TYPE, id);
 }
 
 
@@ -9894,12 +10729,12 @@ gccgm2_BuildStartVarientRecord (name)
 {
   tree id;
 
-  if ((name == NULL) || (strcmp(name, "") == 0)) {
+  if ((name == NULL) || (strcmp(name, "") == 0))
     id = NULL_TREE;
-  } else {
+  else
     id = get_identifier (name);
-  }
-  return( start_struct(UNION_TYPE, id) );
+
+  return start_struct (UNION_TYPE, id);
 }
 
 
@@ -9929,11 +10764,10 @@ gccgm2_BuildFieldRecord (name, type)
 {
   tree field, declarator;
   
-  if ((name == NULL) || (strcmp(name, "") == 0)) {
+  if ((name == NULL) || (strcmp(name, "") == 0))
     declarator = NULL_TREE;
-  } else {
+  else
     declarator = get_identifier (name);
-  }
 
   /* The corresponding pop_obstacks is in finish_decl.  */
   field = build_decl (FIELD_DECL, declarator, skip_type_decl (type)) ;
@@ -9950,7 +10784,7 @@ tree
 gccgm2_ChainOn (t1, t2)
      tree t1, t2;
 {
-  return( chainon(t1, t2) );
+  return chainon(t1, t2);
 }
 
 /*
@@ -9961,7 +10795,7 @@ tree
 gccgm2_ChainOnParamValue (list, parm, value)
      tree list, parm, value;
 {
-  return( chainon(list, build_tree_list(parm, value)) );
+  return chainon(list, build_tree_list(parm, value));
 }
 
 /*
@@ -10311,7 +11145,7 @@ start_enum (name)
     TYPE_PACKED (enumtype) = 1;
 
 #if defined(GM2)
-  TREE_TYPE(enumtype) = gccgm2_GetIntegerType();  /* gaius added this, hope it is ok */
+  TREE_TYPE (enumtype) = gccgm2_GetIntegerType();
 #endif
 
   return enumtype;
@@ -10552,11 +11386,11 @@ void
 gccgm2_ExpandExpressionStatement (t)
      tree t;
 {
-  expand_expr_stmt(t);
+  expand_expr_stmt (t);
 }
 
 /*
  * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wwrite-strings -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall  -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
+ *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wwrite-strings -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2 -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
  * End:
  */

@@ -42,12 +42,15 @@ FROM SymbolTable IMPORT NulSym,
                         PutMode,
                         PutFieldEnumeration, PutSubrange, PutVar,
                         IsDefImp, IsType,
+                        GetCurrentModule,
                         GetSym, RequestSym, IsUnknown, RenameSym,
                         GetFromOuterModule,
                         GetExported,
                         PutImported,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         PutDefinitionForC,
+                        PutDoesNeedExportList, PutDoesNotNeedExportList,
+                        DoesNotNeedExportList,
                         MakeProcedure,
                         PutFunction, PutParam, PutVarParam,
                         GetNthParam,
@@ -137,6 +140,7 @@ BEGIN
    PopT(name) ;
    (* CheckFileName(name, 'definition') ; *)
    ModuleSym := MakeDefinitionSource(name) ;
+   PutDoesNotNeedExportList(ModuleSym) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
@@ -479,12 +483,12 @@ END BuildImportOuterModule ;
 
 PROCEDURE BuildExportOuterModule ;
 VAR
-   ModSym,
-   i, n  : CARDINAL ;
+   i, n: CARDINAL ;
 BEGIN
    PopT(n) ;       (* n   = # of the Ident List *)
    IF (OperandT(n+1)=QualifiedTok) AND CompilingDefinitionModule()
    THEN
+      PutDoesNeedExportList(GetCurrentModule()) ;
       (* Ident List contains list of export qualified objects *)
       i := 1 ;
       WHILE i<=n DO
@@ -493,6 +497,7 @@ BEGIN
       END
    ELSIF (OperandT(n+1)=UnQualifiedTok) AND CompilingDefinitionModule()
    THEN
+      PutDoesNeedExportList(GetCurrentModule()) ;
       (* Ident List contains list of export unqualified objects *)
       i := 1 ;
       WHILE i<=n DO
@@ -507,6 +512,32 @@ BEGIN
    END ;
    PopN(n+1)  (* clear stack *)
 END BuildExportOuterModule ;
+
+
+(*
+   CheckExplicitExportQualified - checks to see whether we are compiling
+                                  a definition module and whether the ident
+                                  is implicitly export qualified.
+
+
+                                  The Stack is expected:
+
+                                  Entry                 Exit
+
+                           Ptr ->                Ptr ->
+                                  +------------+        +-----------+
+                                  | Identname  |        | Identname |
+                                  |------------|        |-----------|
+ 
+*)
+
+PROCEDURE CheckExplicitExportQualified ;
+BEGIN
+   IF CompilingDefinitionModule() AND DoesNotNeedExportList(GetCurrentModule())
+   THEN
+      PutExportQualified(OperandT(1))
+   END
+END CheckExplicitExportQualified ;
 
 
 (*

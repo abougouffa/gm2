@@ -22,8 +22,8 @@ FROM M2Debug IMPORT Assert ;
 
 FROM M2Options IMPORT Pedantic ;
 
-FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopCard, PopInto,
-                  PushString, PushFrom, PushChar, PushInt, PopInt,
+FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
+                  PushString, PushFrom, PushChar, PushInt,
                   IsSolved ;
 FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
@@ -434,6 +434,7 @@ TYPE
                ContainsHiddenType: BOOLEAN ;(* True if this module           *)
                                             (* implements a hidden type.     *)
                ForC          : BOOLEAN ;    (* Is it a definition for "C"    *)
+               NeedExportList: BOOLEAN ;    (* Must user supply export list? *)
                ListOfVars    : List ;       (* List of variables in this     *)
                                             (* scope.                        *)
                ListOfProcs   : List ;       (* List of all procedures        *)
@@ -2010,6 +2011,7 @@ BEGIN
          ContainsHiddenType := FALSE ;(* True if this module           *)
                                       (* implements a hidden type.     *)
          ForC := FALSE ;              (* Is it a definition for "C"    *)
+         NeedExportList := FALSE ;    (* Must user supply export list? *)
          InitList(ListOfVars) ;       (* List of variables in this     *)
                                       (* scope.                        *)
          InitList(ListOfProcs) ;      (* List of all procedures        *)
@@ -2549,7 +2551,7 @@ END GetStringLength ;
 
 (*
    PutConstSet - informs the const var symbol, sym, that it is or will contain
-                    a set value.
+                 a set value.
 *)
 
 PROCEDURE PutConstSet (Sym: CARDINAL) ;
@@ -2775,7 +2777,7 @@ END GetType ;
 
 (*
    GetConstLitType - returns the type of the constant, Sym.
-                     All constants have type NulSym except CHAR constants
+                     All constants have type NulSym except CHARACTER constants
                      ie 00C 012C etc and floating point constants which have type LONGREAL.
 *)
 
@@ -4449,6 +4451,65 @@ BEGIN
       END
    END
 END IsDefinitionForC ;
+
+
+(*
+   PutDoesNeedExportList - sets a flag in module, Sym, which
+                           indicates that this module requires an explicit
+                           EXPORT QUALIFIED or UNQUALIFIED list. PIM-2
+*)
+
+PROCEDURE PutDoesNeedExportList (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      DefImpSym: DefImp.NeedExportList := TRUE
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDoesNeedExportList ;
+
+
+(*
+   PutDoesNotNeedExportList - sets a flag in module, Sym, which
+                              indicates that this module does not require an explicit
+                              EXPORT QUALIFIED or UNQUALIFIED list. PIM-3|4
+*)
+
+PROCEDURE PutDoesNotNeedExportList (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      DefImpSym: DefImp.NeedExportList := FALSE
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDoesNotNeedExportList ;
+
+
+(*
+   DoesNotNeedExportList - returns TRUE if module, Sym, does not require an explicit
+                           EXPORT QUALIFIED list.
+*)
+
+PROCEDURE DoesNotNeedExportList (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      DefImpSym: RETURN( NOT DefImp.NeedExportList )
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END DoesNotNeedExportList ;
 
 
 (*
@@ -6591,8 +6652,6 @@ END PushParamSize ;
 *)
  
 PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ;
-VAR
-   i: INTEGER ;
 BEGIN
    CheckLegal(Sym) ;
    WITH Symbols[Sym] DO
@@ -6605,13 +6664,6 @@ BEGIN
       ELSE
          InternalError('expecting Procedure, DefImp or Module symbol', __FILE__, __LINE__)
       END
-   END ;
-   i := PopInt() ;
-   IF i<0
-   THEN
-      PushInt(-i)
-   ELSE
-      PushInt(i)
    END
 END PushSumOfLocalVarSize ;
 

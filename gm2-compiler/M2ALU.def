@@ -21,7 +21,6 @@ DEFINITION MODULE M2ALU ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Tue Jul 11 09:14:28 2000
-    Last edit  : Tue Jul 11 09:14:28 2000
     Description: Handles all values in the Modula-2 compiler and all
                  manipulations of values. All values are mapped onto
                  gcc trees.
@@ -34,34 +33,30 @@ EXPORT QUALIFIED PtrToValue,
                  InitValue,
                  PopInto, PushFrom,
                  PushIntegerTree, PopIntegerTree,
+                 PopSetTree,
                  PushRealTree, PopRealTree,
-                 PushCard, PopCard,
-                 PushInt, PopInt,
-                 PushChar, PopChar,
+                 PushCard,
+                 PushInt,
+                 PushChar,
                  PushString,
                  CoerseLongRealToCard,
                  ConvertRealToInt,
-
+                 ConvertToInt,
                  IsSolved,
 
-      	       	 SetOr, SetAnd, SetIn, Bit, BitRange,
+                 IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
+      	       	 SetOr, SetAnd, SetIn,
                  SetDifference, SetSymmetricDifference,
-                 Add, Mult, Div, Sub, Mod,
-                 Equ, NotEqu, Less, Gre, LessEqu, GreEqu ;
+                 SetNegate,
+
+                 Addn, Multn, Div, Sub, Mod,
+                 Equ, NotEqu, Less, Gre, LessEqu, GreEqu,
+                 GetValue, GetRange,  ConstructSetConstant, BuildRange,
+                 CollectSetDependants ;
 
 
 TYPE
-   (* we would really like these to be written as abstract data types, but p2c cannot
-      handle them yet. *)
-
-   (* only PtrToValue as an abstract data type is exported *)
-   PtrToValue = POINTER TO cell ;
-   cell       = RECORD
-                   Type  : (integer, real) ;
-                   Value : Tree ;
-                   Next  : PtrToValue ;
-                   Solved: BOOLEAN ;
-                END ;
+   PtrToValue ;
 
 
 (*
@@ -100,6 +95,13 @@ PROCEDURE PopRealTree () : Tree ;
 
 
 (*
+   PopSetTree - pops a gcc tree from the ALU stack.
+*)
+
+PROCEDURE PopSetTree (tokenno: CARDINAL) : Tree ;
+
+
+(*
    PushFrom - pushes a copy of the contents of, v, onto stack.
 *)
 
@@ -121,16 +123,6 @@ PROCEDURE PushCard (c: CARDINAL) ;
 
 
 (*
-   PopCard - attempts to return the top element from the stack as
-             a cardinal.
-             If the top element is negative then an error messsage
-             is emitted.
-*)
-
-PROCEDURE PopCard () : CARDINAL ;
-
-
-(*
    PushInt - pushes a cardinal onto the stack.
 *)
 
@@ -138,26 +130,10 @@ PROCEDURE PushInt (i: INTEGER) ;
 
 
 (*
-   PopInt - attempts to return the top element from the stack as
-            an integer.
-*)
-
-PROCEDURE PopInt () : INTEGER ;
-
-
-(*
    PushChar - pushes a char onto the stack.
 *)
 
 PROCEDURE PushChar (c: CHAR) ;
-
-
-(*
-   PopChar - attempts to return the top element from the stack as
-             a char.
-*)
-
-PROCEDURE PopChar () : CHAR ;
 
 
 (*
@@ -183,6 +159,15 @@ PROCEDURE ConvertRealToInt ;
 
 
 (*
+   ConvertToInt - converts the value into an INTEGER. This should be used
+                  if we are computing the number of elements in a char set to
+                  avoid an overflow.
+*)
+
+PROCEDURE ConvertToInt ;
+
+
+(*
    IsSolved - returns true if the memory cell indicated by v
               has a set value.
 *)
@@ -205,7 +190,7 @@ PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
          |------------|    |------------|
 *)
 
-PROCEDURE Add ;
+PROCEDURE Addn ;
 
 
 (*
@@ -241,7 +226,7 @@ PROCEDURE Sub ;
           |------------|    |------------|
 *)
 
-PROCEDURE Mult ;
+PROCEDURE Multn ;
 
 
 (*
@@ -298,7 +283,7 @@ PROCEDURE Mod ;
          RETURN( Op2 = Op1 )
 *)
 
-PROCEDURE Equ () : BOOLEAN ;
+PROCEDURE Equ (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -319,7 +304,7 @@ PROCEDURE Equ () : BOOLEAN ;
             RETURN( Op2 # Op1 )
 *)
 
-PROCEDURE NotEqu () : BOOLEAN ;
+PROCEDURE NotEqu (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -340,12 +325,11 @@ PROCEDURE NotEqu () : BOOLEAN ;
           RETURN( Op2 < Op1 )
 *)
 
-PROCEDURE Less () : BOOLEAN ;
+PROCEDURE Less (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
    Gre - returns true if Op2 > Op1
-         are not identical.
 
          The Stack:
 
@@ -361,12 +345,11 @@ PROCEDURE Less () : BOOLEAN ;
          RETURN( Op2 > Op1 )
 *)
 
-PROCEDURE Gre () : BOOLEAN ;
+PROCEDURE Gre (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
-   LessEqu - returns true if Op2<Op1
-             are not identical.
+   LessEqu - returns true if Op2 <= Op1
 
             The Stack:
 
@@ -382,7 +365,7 @@ PROCEDURE Gre () : BOOLEAN ;
             RETURN( Op2 <= Op1 )
 *)
 
-PROCEDURE LessEqu () : BOOLEAN ;
+PROCEDURE LessEqu (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -403,47 +386,84 @@ PROCEDURE LessEqu () : BOOLEAN ;
             RETURN( Op2 >= Op1 )
 *)
 
-PROCEDURE GreEqu () : BOOLEAN ;
+PROCEDURE GreEqu (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
-   Bit -  performs 1 shifted right by the value of the number on the stack.
-
-                 The Stack:
-
-                 Entry             Exit
-
-          Ptr ->                                 <- Ptr
-
-                 +------------+    +------------+
-                 | Op1        |    | 1 << Op1   |
-                 |------------|    |------------|
-
+   IsNulSet - returns TRUE if the top element is the nul set constant, {}.
 *)
 
-PROCEDURE Bit ;
+PROCEDURE IsNulSet () : BOOLEAN ;
 
 
 (*
-   BitRange -  evaluates the mask defined by Op1..Op2
-
-                    The Stack:
-
-                    Entry             Exit
-
-               Ptr ->
-                      +------------+
-                      | Op1        |                   <- Ptr
-                      |------------|    +------------+
-                      | Op2        |    | Op1..Op2   |
-                      |------------|    |------------|
+   IsGenericNulSet - returns TRUE if the top element is the generic nul set constant, {}.
 *)
 
-PROCEDURE BitRange ;
+PROCEDURE IsGenericNulSet () : BOOLEAN ;
 
 
 (*
-   SetIn - returns true if the Op2 IN Op1
+   PushNulSet - pushes an empty set {} onto the ALU stack. The subrange type used
+                to construct the set is defined by, setType. If this is NulSym then
+                the set is generic and compatible with all sets.
+
+                The Stack:
+
+                Entry             Exit
+
+                                                 <- Ptr
+                                  +------------+
+                                  | {}         |
+                Ptr ->            |------------|
+                                  
+*)
+
+PROCEDURE PushNulSet (settype: CARDINAL) ;
+
+
+(*
+   AddBitRange - adds the range op1..op2 to the underlying set.
+
+                 Ptr ->
+                                                           <- Ptr
+                        +------------+      +------------+
+                        | Set        |      | Set        |
+                        |------------|      |------------|
+*)
+
+PROCEDURE AddBitRange (op1, op2: CARDINAL) ;
+
+
+(*
+   AddBit - adds the bit op1 to the underlying set. INCL(Set, op1)
+
+            Ptr ->
+                                                      <- Ptr
+                   +------------+      +------------+
+                   | Set        |      | Set        |
+                   |------------|      |------------|
+*)
+
+PROCEDURE AddBit (op1: CARDINAL) ;
+
+
+(*
+   SubBit - removes a bit op1 from the underlying set. EXCL(Set, Op1)
+
+            Ptr ->
+                   +------------+
+                   | Op1        |                     <- Ptr
+                   |------------|      +------------+
+                   | Set        |      | Set        |
+                   |------------|      |------------|
+*)
+
+PROCEDURE SubBit (tokenno: CARDINAL; op1: CARDINAL) ;
+
+
+(*
+   SetIn - returns true if the Op1 IN Set
 
            The Stack:
 
@@ -451,19 +471,19 @@ PROCEDURE BitRange ;
 
     Ptr ->
            +------------+
-           | Op1        |
+           | Set        |
            |------------|
-           | Op2        |
+           | Op1        |
            |------------|    Empty
 
-           RETURN( Op2 IN Op1 )
+           RETURN( Op1 IN Set )
 *)
 
-PROCEDURE SetIn () : BOOLEAN ;
+PROCEDURE SetIn (tokenno: CARDINAL; Op1: CARDINAL) : BOOLEAN ;
 
 
 (*
-   SetOr -  performs an inclusive OR of the top two elements on the stack.
+   SetOr -  performs an inclusive OR of the top two sets on the stack.
 
             The Stack:
 
@@ -478,11 +498,11 @@ PROCEDURE SetIn () : BOOLEAN ;
 
 *)
 
-PROCEDURE SetOr ;
+PROCEDURE SetOr (tokenno: CARDINAL) ;
 
 
 (*
-   SetAnd - performs a set AND the top two elements on the stack.
+   SetAnd - performs a set AND the top two sets on the stack.
 
             The Stack:
 
@@ -496,11 +516,11 @@ PROCEDURE SetOr ;
             |------------|    |------------|
 *)
 
-PROCEDURE SetAnd ;
+PROCEDURE SetAnd (tokenno: CARDINAL) ;
 
 
 (*
-   SetDifference - performs a set difference of the top two elements on the stack.
+   SetDifference - performs a set difference of the top two sets on the stack.
 
                    The Stack:
 
@@ -514,11 +534,11 @@ PROCEDURE SetAnd ;
                    |------------|    |------------|
 *)
 
-PROCEDURE SetDifference ;
+PROCEDURE SetDifference (tokenno: CARDINAL) ;
 
 
 (*
-   SetSymmetricDifference - performs a set difference of the top two elements on the stack.
+   SetSymmetricDifference - performs a set difference of the top two sets on the stack.
 
                             The Stack:
 
@@ -532,7 +552,58 @@ PROCEDURE SetDifference ;
                             |------------|    |------------|
 *)
 
-PROCEDURE SetSymmetricDifference ;
+PROCEDURE SetSymmetricDifference (tokenno: CARDINAL) ;
 
- 
+
+(*
+   SetNegate - negates the top set on the stack.
+
+               Ptr ->                                               <- Ptr
+                      +-----------+                  +------------+
+                      | Set       |                  | Set        |
+                      |-----------|                  |------------|
+*)
+
+PROCEDURE SetNegate (tokenno: CARDINAL) ;
+
+
+(*
+   GetValue - returns and pops the value from the top of stack.
+*)
+
+PROCEDURE GetValue (tokenno: CARDINAL) : PtrToValue ;
+
+
+(*
+   GetRange - returns TRUE if range number, n, exists in the value, v.
+              A non empty set is defined by having 1..N ranges
+*)
+
+PROCEDURE GetRange (v: PtrToValue; n: CARDINAL; VAR low, high: CARDINAL) : BOOLEAN ;
+
+
+(*
+   ConstructSetConstant - builds a struct of integers which represents the
+                          set const, sym.
+*)
+
+PROCEDURE ConstructSetConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
+
+
+(*
+   BuildRange - returns a integer sized constant which represents the
+                value  {e1..e2}.
+*)
+
+PROCEDURE BuildRange (tokenno: CARDINAL; e1, e2: Tree) : Tree ;
+
+
+(*
+   CollectSetDependants - traverse the set, sym, declaring all constants which define the set value.
+                          TRUE is returned if all constants and the set type has been declared to GCC.
+*)
+
+PROCEDURE CollectSetDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+
+
 END M2ALU.

@@ -59,7 +59,7 @@ FROM M2Options IMPORT BoundsChecking, ReturnChecking ;
 FROM M2System IMPORT Address, Bitset, Byte, Word, InitSystem ;
 FROM M2Math IMPORT InitMath ;
 
-FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetCharType, GetMaxFrom, GetMinFrom,
+FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType ;
 
 TYPE
@@ -176,7 +176,7 @@ BEGIN
 
    Char := MakeType(MakeKey('CHAR')) ;
    PutType(Char, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetCharType())) ;
+   PushIntegerTree(GetSizeOf(GetM2CharType())) ;
    PopSize(Char) ;
 
    (*
@@ -196,12 +196,12 @@ BEGIN
 
    (* MinChar *)
    MinChar := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetCharType())) ;
+   PushIntegerTree(GetMinFrom(GetM2CharType())) ;
    PopValue(MinChar) ;
 
    (* MaxChar *)
    MaxChar := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetCharType())) ;
+   PushIntegerTree(GetMaxFrom(GetM2CharType())) ;
    PopValue(MaxChar) ;
 
    (* MinInteger *)

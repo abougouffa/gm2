@@ -22,7 +22,7 @@ DEFINITION MODULE FOR "C" libpthread ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Mar 18 09:19:45 2002
-    Last edit  : $Date: 2002/05/03 21:24:31 $
+    Last edit  : $Date: 2002/10/29 16:08:04 $
     Revision   : $Version$ 
     Description: provides a set of language bindings into the GNU Pthread library.
 *)
@@ -39,27 +39,34 @@ TYPE
                 PTH_CTRL_GETNAME,
                 PTH_CTRL_DUMPSTATE) ;
 
-   Attribute = (PTH_ATTR_PRIO,
-                PTH_ATTR_NAME,
-                PTH_ATTR_JOINABLE,
-                PTH_ATTR_CANCEL_STATE,
-                PTH_ATTR_STACK_SIZE,
-                PTH_ATTR_STACK_ADDR,
-                PTH_ATTR_TIME_SPAWN,
-                PTH_ATTR_TIME_LAST,
-                PTH_ATTR_TIME_RAN,
-                PTH_ATTR_START_FUNC,
-                PTH_ATTR_START_ARG,
-                PTH_ATTR_STATE,
-                PTH_ATTR_EVENTS,
-                PTH_ATTR_BOUND) ;
+   Attribute =  (PTH_ATTR_PRIO,
+                 PTH_ATTR_NAME,
+                 PTH_ATTR_JOINABLE,
+                 PTH_ATTR_CANCEL_STATE,
+                 PTH_ATTR_STACK_SIZE,
+                 PTH_ATTR_STACK_ADDR,
+                 PTH_ATTR_TIME_SPAWN,
+                 PTH_ATTR_TIME_LAST,
+                 PTH_ATTR_TIME_RAN,
+                 PTH_ATTR_START_FUNC,
+                 PTH_ATTR_START_ARG,
+                 PTH_ATTR_STATE,
+                 PTH_ATTR_EVENTS,
+                 PTH_ATTR_BOUND) ;
 
 
 PROCEDURE pth_init () : INTEGER ;
 PROCEDURE pth_kill () : INTEGER ;
 PROCEDURE pth_ctrl (query: CARDINAL; ...) : INTEGER ;
 PROCEDURE pth_version () : INTEGER ;
-PROCEDURE pth_attr_set (attr: Attribute; field: WORD; ...) : INTEGER ;
-PROCEDURE pth_attr_get (attr: Attribute; VAR field: WORD) : INTEGER ;
+
+PROCEDURE pth_attr_set (attr: pth_attr_t; field: WORD; ...) : INTEGER ;
+PROCEDURE pth_attr_get (attr: pth_attr_t; VAR field: WORD; ...) : INTEGER ;
+PROCEDURE pth_attr_init (attr: pth_attr) : pth_attr;
+PROCEDURE pth_attr_new () : pth_attr;
+PROCEDURE pth_attr_destroy (attr: pth_attr_t) ;
+PROCEDURE pth_spawn (attr: pth_attr;
+PROCEDURE pth_attr_of (tid: pth_t) : pth_attr ;
+
 
 END libpthread.

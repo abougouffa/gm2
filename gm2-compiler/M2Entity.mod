@@ -42,6 +42,7 @@ TYPE
                IsClean    : BOOLEAN ;   (* have we cleaned this entity? *)
                IndexNo    : CARDINAL ;  (* which version of variable    *)
                IsLeftValue: BOOLEAN ;   (* is entity really &Sym ?      *)
+               TokenNo    : CARDINAL ;  (* the associated token to sym  *)
             END ;
 
 VAR
@@ -101,7 +102,7 @@ BEGIN
    WHILE i>0 DO
       e := GetItemFromList(EntityList, i) ;
       WITH e^ DO
-         IF IsSame(Symbol, Sym) AND (IndexNo>=highest) AND (IsLeft=IsLeftValue)
+         IF IsSame(TokenNo, Symbol, Sym) AND (IndexNo>=highest) AND (IsLeft=IsLeftValue)
          THEN
             highest := IndexNo ;
             latest := e
@@ -118,14 +119,14 @@ END FindLatestEntity ;
                      It will create one if necessary.
 *)
 
-PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
+PROCEDURE GetLatestEntity (tokenno: CARDINAL; Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 VAR
    latest: Entity ;
 BEGIN
    latest := FindLatestEntity(Sym, IsLeft) ;
    IF latest=NIL
    THEN
-      RETURN( MakeNewEntity(Sym, IsLeft, Index) )
+      RETURN( MakeNewEntity(tokenno, Sym, IsLeft, Index) )
    ELSE
       RETURN( latest )
    END
@@ -234,7 +235,7 @@ END CheckEntityConsistancy ;
    MakeNewEntity - makes a new entity for symbol, Sym.
 *)
 
-PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
+PROCEDURE MakeNewEntity (tokenno: CARDINAL; Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 VAR
    latest: Entity ;
 BEGIN
@@ -249,11 +250,13 @@ BEGIN
       THEN
          InternalError('out of memory error', __FILE__, __LINE__)
       END ;
+      IncludeItemIntoList(EntityList, latest) ;
       WITH latest^ DO
          IsClean     := IsConst(Sym) ;
          IndexNo     := Index ;
          Symbol      := Sym ;
-         IsLeftValue := IsLeft
+         IsLeftValue := IsLeft ;
+         TokenNo     := tokenno
       END ;
       CheckEntityConsistancy ;
       RETURN( latest )

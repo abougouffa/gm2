@@ -50,11 +50,14 @@ END InitList ;
 
 PROCEDURE KillList (VAR l: List) ;
 BEGIN
-   IF l^.Next#NIL
+   IF l#NIL
    THEN
-      KillList(l^.Next)
-   END ;
-   DISPOSE(l)
+      IF l^.Next#NIL
+      THEN
+         KillList(l^.Next)
+      END ;
+      DISPOSE(l)
+   END
 END KillList ;
 
 

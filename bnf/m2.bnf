@@ -70,6 +70,7 @@ FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        BuildImportInnerModule,
                        BuildExportOuterModule,
                        BuildExportInnerModule,
+                       CheckExplicitExportQualified,
 
                        BuildHiddenType,
                        BuildTypeEnd,
@@ -515,7 +516,8 @@ Number := Integer | Real =:
 
 Qualident := Ident { "." Ident } =:
 
-ConstantDeclaration := Ident "=" ConstExpression =:
+ConstantDeclaration := Ident                                               % CheckExplicitExportQualified %
+                             "=" ConstExpression =:
 
 ConstExpression :=                                                         % PushAutoOff %
                    SimpleConstExpr [ Relation SimpleConstExpr ]            % PopAuto %
@@ -637,9 +639,29 @@ ProcedureParameters := ProcedureParameter
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 VariableDeclaration :=
-                       ( IdentList ":"                                     % BuildNulName %
+                       ( VarIdentList ":"                                  % BuildNulName %
                          Type )
                     =:
+
+VarIdentList := Ident                                                      % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                CheckExplicitExportQualified ;
+                                                                                n := 1
+                                                                             END %
+             { "," Ident                                                   % IF on
+                                                                             THEN
+                                                                                CheckExplicitExportQualified ;
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
 
 Designator := Qualident { SubDesignator } =:
 
@@ -788,7 +810,8 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
 
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"                                                       % PushAutoOn %
-                    { Ident ( ";"                                          % BuildHiddenType %
+                    { Ident                                                % CheckExplicitExportQualified %
+                            ( ";"                                          % BuildHiddenType %
                                   | "=" Type ";" ) }                       % PopAuto %
               |
               "VAR" { VariableDeclaration ";" } |

@@ -215,12 +215,12 @@ BEGIN
    s2 := SetOfStop2{} ;
    IF ORD(t)<32
    THEN
-      s0 := SetOfStop0{t}
+      INCL(s0, t)
    ELSIF ORD(t)<64
    THEN
-      s1 := SetOfStop1{t}
+      INCL(s1, t)
    ELSE
-      s2 := SetOfStop2{t}
+      INCL(s2, t)
    END ;
    str := DescribeStop(s0, s1, s2) ;
    
@@ -834,7 +834,9 @@ ProcedureHeading := "PROCEDURE"
                      ( Ident
                                                                            % StartBuildProcedure %
                                                                            % Assert(IsProcedure(OperandT(1))) %
+                                                                           % StartBuildFormalParameters  %
                        [ FormalParameters ]
+                                                                           % EndBuildFormalParameters %
                                                                            % BuildProcedureHeading %
                      )
                      =:
@@ -856,10 +858,14 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-FormalParameters := "("                                                    % StartBuildFormalParameters  %
-                    [ FPSection { ";" FPSection } ] ")"                    % EndBuildFormalParameters %
+FormalParameters := "("
+                    [ FPSection { ";" FPSection } ]                        % VAR n: CARDINAL; %
+                                                                           % PopT(n) ; (* remove param count *) %
+                    ")"
                     [ ":" Qualident                                        % BuildFunction %
-                    ] =:
+                    ]
+                                                                           % PushT(n) ; (* restore param count *) %
+                    =:
 
 FPSection := NonVarFPSection | VarFPSection | "..."                        % BuildVarArgs %
           =:

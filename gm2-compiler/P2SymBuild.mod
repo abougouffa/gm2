@@ -25,6 +25,7 @@ FROM M2Base IMPORT Char, MixTypes ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2 ;
 FROM Strings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
+FROM M2Printf IMPORT printf2 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -1059,7 +1060,7 @@ BEGIN
    THEN
       IF AreParametersDefinedInDefinition(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteFormat1('cannot declare procedure %a twice in definition module', GetSymName(ProcSym))
+         WriteFormat1('cannot declare procedure %a twice in the definition module', GetSymName(ProcSym))
       ELSIF AreParametersDefinedInImplementation(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1075,7 +1076,7 @@ BEGIN
    THEN
       IF AreParametersDefinedInImplementation(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteFormat1('cannot declare procedure %a twice in implementation module', GetSymName(ProcSym))
+         WriteFormat1('cannot declare procedure %a twice in the implementation module', GetSymName(ProcSym))
       ELSIF AreParametersDefinedInDefinition(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1510,9 +1511,9 @@ BEGIN
    THEN
       IF CompilingDefinitionModule()
       THEN
-         WriteFormat1('smaller number of procedure (%a) parameters in the DEFINITION MODULE', GetSymName(ProcSym))
+         WriteFormat1('procedure (%a) was declared with fewer parameters in the DEFINITION MODULE', GetSymName(ProcSym))
       ELSE
-         WriteFormat1('larger number of procedure (%a) parameters in the DEFINIION MODULE', GetSymName(ProcSym))
+         WriteFormat1('procedure (%a) was declared with more parameters in the DEFINITION MODULE', GetSymName(ProcSym))
       END
    END ;
    Assert(IsProcedure(OperandT(1)))

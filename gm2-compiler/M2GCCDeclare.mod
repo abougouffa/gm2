@@ -29,11 +29,12 @@ FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Options IMPORT GenerateDebugging, GenerateLineDebug ;
-FROM NameKey IMPORT MakeKey, NulName, KeyToCharStar ;
+FROM NameKey IMPORT Name, MakeKey, NulName, KeyToCharStar, makekey ;
 FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM Strings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat3 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -48,7 +49,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetMode,
                         GetScopeAuthor,
                         GetNth, GetType,
-                        MakeType, PutType,
+                        MakeType, PutType, MakeConstLit,
       	       	     	GetSubrange, PutSubrange,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopSize,
@@ -56,7 +57,7 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	IsSubrange, IsPointer, IsRecord, IsArray,
                         IsProcedure, IsProcedureNested, IsModule, IsDefImp,
       	       	     	IsSubscript, IsVarient, IsFieldVarient,
-      	       	     	IsType, IsProcType, IsSet, IsConst,
+      	       	     	IsType, IsProcType, IsSet, IsConst, IsConstSet,
                         IsFieldEnumeration,
                         IsExported, IsImported,
                         IsVarParam, IsRecordField, IsUnboundedParam,
@@ -70,22 +71,26 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
                         ForeachInnerModuleDo, ForeachImportedDo ;
 
-FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
+FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, Boolean, True, False ;
-FROM M2System IMPORT IsPseudoSystemFunction, Address, Word, Bitset, Byte ;
+FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte ;
 FROM M2Math IMPORT IsPseudoMathFunction ;
-FROM M2ALU IMPORT PushCard, PushIntegerTree, PopIntegerTree, PopRealTree ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
+
+FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
+                  PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
+                  CollectSetDependants ;
 
 FROM gccgm2 IMPORT Tree,
                    SetFileNameAndLineNo,
                    DeclareKnownType, DeclareKnownVariable,
-                   GetIntegerType, GetCharType,
+                   GetDefaultType, GetCopyOfType,
+                   GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
                    GetPointerType, GetLongRealType, GetLongIntType, GetRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
-                   GetBitsetType, GetMinFrom, GetMaxFrom,
+                   GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
@@ -117,7 +122,7 @@ PROCEDURE IsPointerDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsRecordDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsVarientDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSetDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE IsSetDependantsWritten (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsProcTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ; FORWARD ;
@@ -394,13 +399,13 @@ END DeclareIntegerConstant ;
 
 
 (*
-   DeclareIntegerConstantFromTree - declares an integer constant from a Tree, value.
+   DeclareIntegerFromTree - declares an integer constant from a Tree, value.
 *)
 
-PROCEDURE DeclareIntegerConstantFromTree (sym: CARDINAL; value: Tree) ;
+PROCEDURE DeclareConstantFromTree (sym: CARDINAL; value: Tree) ;
 BEGIN
    AddModGcc(sym, value)
-END DeclareIntegerConstantFromTree ;
+END DeclareConstantFromTree ;
 
 
 (*
@@ -429,11 +434,11 @@ END DeclareStringConstant ;
                           but as a char however we always return a string constant.
 *)
 
-PROCEDURE PromoteToString (sym: CARDINAL) : Tree ;
+PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 VAR
    size: CARDINAL ;
 BEGIN
-   DeclareConstant(sym) ;
+   DeclareConstant(tokenno, sym) ;
    size := GetStringLength(sym) ;
    IF size>1
    THEN
@@ -446,15 +451,49 @@ END PromoteToString ;
 
 
 (*
+   ResolveConstSet - 
+*)
+
+PROCEDURE ResolveConstSet (tokenno: CARDINAL; sym: CARDINAL) ;
+VAR
+   type,
+   size: CARDINAL ;
+BEGIN
+   type := GetType(sym) ;
+   (* ensure that all dependants are on the various to do lists *)
+   IF Debugging
+   THEN
+      printf2('declaring const %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+   END ;
+   IF AllDependantsWritten(type) AND CollectSetDependants(tokenno, sym)
+   THEN
+      IF Debugging
+      THEN
+         printf2('dependants are all known for %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+      END
+   END
+END ResolveConstSet ;
+
+
+(*
    DeclareConstant - checks to see whether, sym, is a constant and declares the constant to gcc.
 *)
 
-PROCEDURE DeclareConstant (sym: CARDINAL) ;
+PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    size: CARDINAL ;
 BEGIN
+   IF sym=NulSym
+   THEN
+      InternalError('trying to declare the NulSym', __FILE__, __LINE__)
+   END ;
    IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
    THEN
+      IF IsConstSet(sym)
+      THEN
+         ResolveConstSet(tokenno, sym)
+      END ;
+
       IF IsConstString(sym)
       THEN
          size := GetStringLength(sym) ;
@@ -467,12 +506,17 @@ BEGIN
       ELSIF IsValueSolved(sym)
       THEN
          PushValue(sym) ;
-         IF GetType(sym)=LongReal
+         IF IsConstSet(sym)
          THEN
-            DeclareIntegerConstantFromTree(sym, PopRealTree())
+            DeclareConstantFromTree(sym, PopSetTree(tokenno))
+         ELSIF GetType(sym)=LongReal
+         THEN
+            DeclareConstantFromTree(sym, PopRealTree())
          ELSE
-            DeclareIntegerConstantFromTree(sym, PopIntegerTree())
+            DeclareConstantFromTree(sym, PopIntegerTree())
          END
+      ELSE
+         IncludeItemIntoList(ToDoConstants, sym)
       END
    END
 END DeclareConstant ;
@@ -562,12 +606,12 @@ BEGIN
    THEN
       printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
    END ;
-(*
-   IF (Sym=100)
+
+   IF Sym=98
    THEN
       mystop
    END ;
-*)
+
    IF IsVarient(Sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
@@ -792,8 +836,9 @@ VAR
    t        : Tree ;
    high, low: CARDINAL ;
 BEGIN
-   (* DeclareKnownType will declare a new identifier as a type of, gcctype *)
-   t := DeclareKnownType(KeyToCharStar(MakeKey(name)), gcctype) ;
+   (* DeclareDefaultType will declare a new identifier as a type of, gcctype, if it has not already been
+      declared by gccgm2.c *)
+   t := GetDefaultType(KeyToCharStar(MakeKey(name)), gcctype) ;
    AddModGcc(sym, t) ;
    (*
       this is very simplistic and assumes that the caller only uses Subranges, Sets and GCC types.
@@ -802,15 +847,15 @@ BEGIN
    IF IsSubrange(sym)
    THEN
       GetSubrange(sym, high, low) ;
-      DeclareConstant(high) ;
-      DeclareConstant(low)
+      DeclareConstant(GetDeclared(sym), high) ;
+      DeclareConstant(GetDeclared(sym), low)
    ELSIF IsSet(sym)
    THEN
       IF IsSubrange(GetType(sym))
       THEN
          GetSubrange(GetType(sym), high, low) ;
-         DeclareConstant(high) ;
-         DeclareConstant(low)
+         DeclareConstant(GetDeclared(sym), high) ;
+         DeclareConstant(GetDeclared(sym), low)
       ELSIF IsEnumeration(GetType(sym))
       THEN
          IF NOT GccKnowsAbout(GetType(sym))
@@ -847,27 +892,17 @@ BEGIN
    IF NOT HaveInitDefaultTypes
    THEN
       HaveInitDefaultTypes := TRUE ;
-      (* Integer *)
+
       DeclareDefaultType(Integer , "INTEGER" , GetIntegerType()) ;
-      (* Char *)
-      DeclareDefaultType(Char    , "CHAR"    , GetCharType()) ;
-      (* Cardinal *)
+      DeclareDefaultType(Char    , "CHAR"    , GetM2CharType()) ;
       DeclareDefaultType(Cardinal, "CARDINAL", GetCardinalType()) ;
-      (* Word *)
       DeclareDefaultType(Word    , "WORD"    , GetWordType()) ;
-      (* Proc *)
       DeclareDefaultType(Proc    , "PROC"    , GetProcType()) ;
-      (* Byte *)
       DeclareDefaultType(Byte    , "BYTE"    , GetByteType()) ;
-      (* Address *)
       DeclareDefaultType(Address , "ADDRESS" , GetPointerType()) ;
-      (* LongInt *)
       DeclareDefaultType(LongInt , "LONGINT" , GetLongIntType()) ;
-      (* Real *)
       DeclareDefaultType(Real    , "REAL"    , GetRealType()) ;
-      (* LongReal *)
       DeclareDefaultType(LongReal, "LONGREAL", GetLongRealType()) ;
-      (* Bitset *)
       DeclareDefaultType(Bitset  , "BITSET"  , GetBitsetType()) ;
       DeclareBoolean
    END
@@ -1251,6 +1286,219 @@ BEGIN
 END DeclareProcType ;
 
 
+VAR
+   MaxEnumerationField,
+   MinEnumerationField: CARDINAL ;
+
+
+(*
+   FindMinMaxEnum - finds the minimum and maximum enumeration fields.
+*)
+
+PROCEDURE FindMinMaxEnum (field: WORD) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   IF MaxEnumerationField=NulSym
+   THEN
+      MaxEnumerationField := field
+   ELSE
+      PushValue(field) ;
+      PushValue(MaxEnumerationField) ;
+      IF Gre(GetDeclared(field))
+      THEN
+         MaxEnumerationField := field
+      END
+   END ;
+   IF MinEnumerationField=NulSym
+   THEN
+      MinEnumerationField := field
+   ELSE
+      PushValue(field) ;
+      PushValue(MinEnumerationField) ;
+      IF Less(GetDeclared(field))
+      THEN
+         MinEnumerationField := field
+      END
+   END
+END FindMinMaxEnum ;
+
+
+(*
+   GetTypeMin - 
+*)
+
+PROCEDURE GetTypeMin (type: CARDINAL) : CARDINAL ;
+VAR
+   min, max: CARDINAL ;
+BEGIN
+   IF IsSubrange(type)
+   THEN
+      GetSubrange(type, max, min) ;
+      RETURN( min )
+   ELSIF IsSet(type)
+   THEN
+      RETURN( GetTypeMin(GetType(type)) )
+   ELSIF IsEnumeration(type)
+   THEN
+      MinEnumerationField := NulSym ;
+      MaxEnumerationField := NulSym ;
+      ForeachFieldEnumerationDo(type, FindMinMaxEnum) ;
+      RETURN( MinEnumerationField )
+   ELSIF IsBaseType(type)
+   THEN
+      GetBaseTypeMinMax(type, min, max) ;
+      RETURN( min )
+   ELSIF IsSystemType(type)
+   THEN
+      GetSystemTypeMinMax(type, min, max) ;
+      RETURN( min )
+   ELSIF GetType(type)=NulSym
+   THEN
+      WriteFormat1('unable to obtain the MIN value for type %a', GetSymName(type))
+   ELSE
+      RETURN( GetTypeMin(GetType(type)) )
+   END
+END GetTypeMin ;
+
+
+(*
+   GetTypeMax - 
+*)
+
+PROCEDURE GetTypeMax (type: CARDINAL) : CARDINAL ;
+VAR
+   min, max: CARDINAL ;
+BEGIN
+   IF IsSubrange(type)
+   THEN
+      GetSubrange(type, max, min) ;
+      RETURN( max )
+   ELSIF IsSet(type)
+   THEN
+      RETURN( GetTypeMax(GetType(type)) )
+   ELSIF IsEnumeration(type)
+   THEN
+      MinEnumerationField := NulSym ;
+      MaxEnumerationField := NulSym ;
+      ForeachFieldEnumerationDo(type, FindMinMaxEnum) ;
+      RETURN( MaxEnumerationField )
+   ELSIF IsBaseType(type)
+   THEN
+      GetBaseTypeMinMax(type, min, max) ;
+      RETURN( max )
+   ELSIF IsSystemType(type)
+   THEN
+      GetSystemTypeMinMax(type, min, max) ;
+      RETURN( max )
+   ELSIF GetType(type)=NulSym
+   THEN
+      WriteFormat1('unable to obtain the MAX value for type %a', GetSymName(type))
+   ELSE
+      RETURN( GetTypeMax(GetType(type)) )
+   END
+END GetTypeMax ;
+
+
+(*
+   DeclareLargeSet - n is the name of the set.
+                     type is the subrange type (or simple type)
+                     low and high are the limits of the subrange.
+*)
+
+PROCEDURE DeclareLargeSet (n: Name; type: CARDINAL; low, high: CARDINAL) : Tree ;
+VAR
+   lowtree,
+   hightree,
+   BitsInSet,
+   RecordType,
+   GccField,
+   FieldList : Tree ;
+   bpw       : CARDINAL ;
+BEGIN
+   bpw        := GetBitsPerWord() ;
+   PushValue(low) ;
+   lowtree    := PopIntegerTree() ;
+   PushValue(high) ;
+   hightree   := PopIntegerTree() ;
+   FieldList  := Tree(NIL) ;
+   RecordType := BuildStartRecord(KeyToCharStar(n)) ;  (* no problem with recursive types here *)
+   PushValue(high) ;
+   ConvertToInt ;
+   PushValue(low) ;
+   ConvertToInt ;
+   Sub ;
+   PushCard(1) ;
+   Addn ;
+   BitsInSet := PopIntegerTree() ;
+   PushIntegerTree(BitsInSet) ;
+   PushCard(0) ;
+   WHILE Gre(GetDeclared(type)) DO
+      PushIntegerTree(BitsInSet) ;
+      PushCard(bpw-1) ;
+      IF GreEqu(GetDeclared(type))
+      THEN
+         PushIntegerTree(lowtree) ;
+         PushCard(bpw-1) ;
+         Addn ;
+         
+         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
+         PushIntegerTree(lowtree) ;
+         PushCard(bpw) ;
+         Addn ;
+         lowtree := PopIntegerTree() ;
+         PushIntegerTree(BitsInSet) ;
+         PushCard(bpw) ;
+         Sub ;
+         BitsInSet := PopIntegerTree()
+      ELSE
+         (* printf2('range is %a..%a\n', GetSymName(low), GetSymName(high)) ; *)
+         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, hightree)) ;
+         PushCard(0) ;
+         BitsInSet := PopIntegerTree()
+      END ;
+      FieldList := ChainOn(FieldList, GccField) ;
+      PushIntegerTree(BitsInSet) ;
+      PushCard(0)
+   END ;
+   RETURN( BuildEndRecord(RecordType, FieldList) )
+END DeclareLargeSet ;
+
+
+(*
+   DeclareLargeOrSmallSet - works out whether the set will exceed TSIZE(WORD). If it does
+                            we manufacture a set using:
+
+                            settype = RECORD
+                                         w1: SET OF [...]
+                                         w2: SET OF [...]
+                                      END
+
+                            We do this as GCC and GDB (stabs) only knows about WORD sized sets.
+                            If the set will fit into a WORD then we call gccgm2 directly.
+*)
+
+PROCEDURE DeclareLargeOrSmallSet (sym: CARDINAL;
+                                  n: Name; type: CARDINAL; low, high: CARDINAL) : Tree ;
+BEGIN
+   PushValue(high) ;
+   ConvertToInt ;
+   PushValue(low) ;
+   ConvertToInt ;
+   Sub ;
+   PushCard(GetBitsPerWord()) ;
+   IF Less(GetDeclared(type))
+   THEN
+      (* small set *)
+      (* PutSetSmall(sym) ; *)
+      RETURN( BuildSetType(KeyToCharStar(n), Mod2Gcc(type), Mod2Gcc(low), Mod2Gcc(high)) )
+   ELSE
+      (* PutSetLarge(sym) ; *)
+      RETURN( DeclareLargeSet(n, type, low, high) )
+   END
+END DeclareLargeOrSmallSet ;
+
+
 (*
    DeclareSet - declares a set type to gcc and returns a Tree.
 *)
@@ -1261,16 +1509,13 @@ VAR
    type,
    high, low: CARDINAL ;
 BEGIN
-   RETURN( GetIntegerType() ) ;    (* fudge --fixme-- *)
    type := GetType(sym) ;
    IF IsSubrange(type)
    THEN
       GetSubrange(type, high, low) ;
-      gccsym := BuildSetType(KeyToCharStar(GetSymName(sym)),
-                             Mod2Gcc(type), Mod2Gcc(low), Mod2Gcc(high))
+      gccsym := DeclareLargeOrSmallSet(sym, GetSymName(sym), GetType(type), low, high)
    ELSE
-      gccsym := BuildSetType(KeyToCharStar(GetSymName(sym)),
-                             Mod2Gcc(type), GetMinFrom(Mod2Gcc(type)), GetMaxFrom(Mod2Gcc(type)));
+      gccsym := DeclareLargeOrSmallSet(sym, GetSymName(sym), type, GetTypeMin(type), GetTypeMax(type))
    END ;
    RETURN( gccsym )
 END DeclareSet ;
@@ -1651,63 +1896,10 @@ BEGIN
          Assert(IsSubrange(Subrange)) ;
          GetSubrange(Subrange, High, Low) ;
 
-         (*
-            --fixme-- when we have fixed IsSubrangeDependantsWritten we should be able
-                      to use that function rather that the rather convoluted tests below.
-                      However IsSubrangeDependantsWritten alters subranges to INTEGER which
-                      must be fixed first.
-
-                      IF NOT IsSubrangeDependantsWritten(Subrange)
-                      THEN
-                         RETURN( FALSE )
-                      END
-         *)
-
-(* T R I A L *)
          IF NOT IsSubrangeDependantsWritten(Subrange)
          THEN
             RETURN( FALSE )
-         END ;
-(*
-         IF IsFieldEnumeration(High)
-         THEN
-            IF NOT AllDependantsWritten(GetType(High))
-            THEN
-               solved := FALSE
-            END
-         ELSIF IsConst(High)
-         THEN
-            IF NOT GccKnowsAbout(High)
-            THEN
-               IncludeItemIntoList(ToDoConstants, High) ;
-               solved := FALSE
-            END
-         ELSE
-            IF NOT IsSymTypeKnown(Sym, High)
-            THEN
-               solved := FALSE
-            END
-         END ;
-         IF IsFieldEnumeration(Low)
-         THEN
-            IF NOT AllDependantsWritten(GetType(Low))
-            THEN
-               solved := FALSE
-            END
-         ELSIF IsConst(Low)
-         THEN
-            IF NOT GccKnowsAbout(Low)
-            THEN
-               IncludeItemIntoList(ToDoConstants, Low) ;
-               solved := FALSE
-            END
-         ELSE
-            IF NOT IsSymTypeKnown(Sym, Low)
-            THEN
-               solved := FALSE
-            END
          END
-*)
       END ;
       INC(i)
    UNTIL Subscript=NulSym ;
@@ -1720,18 +1912,32 @@ END IsArrayDependantsWritten ;
                             been written into the assembly file.
 *)
 
-PROCEDURE IsSetDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSetDependantsWritten (sym: CARDINAL) : BOOLEAN ;
 VAR
-   Type: CARDINAL ;
+   type, low, high: CARDINAL ;
 BEGIN
-   Assert(IsSet(Sym)) ;
+   Assert(IsSet(sym)) ;
 
-   Type := GetType(Sym) ;
-   IF IsSubrange(Type)
+   type := GetType(sym) ;
+   IF IsSubrange(type)
    THEN
-      RETURN( IsSubrangeDependantsWritten(Type) )
+      RETURN( IsSubrangeDependantsWritten(type) )
    ELSE
-      RETURN( IsSymTypeKnown(Sym, Type) )
+      IF IsSymTypeKnown(sym, type)
+      THEN
+         low  := GetTypeMin(type) ;
+         high := GetTypeMax(type) ;
+         IF NOT GccKnowsAbout(low)
+         THEN
+            IncludeItemIntoList(ToDoConstants, low)
+         END ;
+         IF NOT GccKnowsAbout(high)
+         THEN
+            IncludeItemIntoList(ToDoConstants, high)
+         END ;
+         RETURN( GccKnowsAbout(low) AND GccKnowsAbout(high) )
+      END ;
+      RETURN( FALSE )
    END
 END IsSetDependantsWritten ;
 
@@ -1847,6 +2053,6 @@ BEGIN
 END M2GCCDeclare.
 (*
  * Local variables:
- *  compile-command: "m2f -quiet -g -verbose -M \"../../libs ../ ../../../../ .\" -o M2GCCDeclare.o M2GCCDeclare.mod"
+ *  compile-command: "gm2 -c -g -I.:../gm2-libs:../gm2-libs-ch:../gm2-libiberty/ M2GCCDeclare.mod"
  * End:
  *)

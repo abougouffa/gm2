@@ -22,11 +22,12 @@ DEFINITION MODULE M2GenGCC ;
     System     : UNIX (gm2)
     Date       : Fri Jul  9 13:05:13 1999
     Last edit  : Fri Jul  9 13:05:13 1999
-    Description: procides an interface to GCC, essentially convert the
+    Description: provides an interface to GCC, essentially convert the
                  internal quadruples of m2f into a GCC tree structure.
 *)
 
 FROM Lists IMPORT List ;
+(* FROM gccgm2 IMPORT Tree ; *)
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions, InitGNUM2 ;
 
 
