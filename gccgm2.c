@@ -3216,9 +3216,9 @@ gccgm2_RememberConstant (t)
      tree t;
 {
   if ((t != NULL) && (is_a_constant(t))) {
-    return( global_constant(t) );
+    return global_constant(t);
   }
-  return( t );
+  return t;
 }
 
 /*
@@ -3314,8 +3314,8 @@ internal_error_function (msgid, ap)
     (&dc, msgid, ap, input_filename, lineno, /* warn = */0);
   report_diagnostic (&dc);
 
-  fprintf(stderr, GM2_BUG_REPORT);
-  exit(1);
+  fprintf (stderr, GM2_BUG_REPORT);
+  exit (1);
 }
 
 /* If DECL has a cleanup, build and return that cleanup here.
@@ -10179,8 +10179,8 @@ gccgm2_BuiltInMemCopy (dest, src, n)
 }
 
 /*
- *   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
- *                   of the current function.
+ *  BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+ *                  of the current function.
  */
 
 tree
@@ -11025,7 +11025,7 @@ tree
 gccgm2_ChainOn (t1, t2)
      tree t1, t2;
 {
-  return chainon(t1, t2);
+  return chainon (t1, t2);
 }
 
 /*
@@ -11036,7 +11036,7 @@ tree
 gccgm2_ChainOnParamValue (list, parm, value)
      tree list, parm, value;
 {
-  return chainon(list, build_tree_list(parm, value));
+  return chainon (list, build_tree_list(parm, value));
 }
 
 /*
@@ -11047,7 +11047,7 @@ tree
 gccgm2_AddStringToTreeList (list, string)
      tree list, string;
 {
-  return( tree_cons (NULL_TREE, string, list) );
+  return tree_cons (NULL_TREE, string, list);
 }
 
 /* Fill in the fields of a RECORD_TYPE or UNION_TYPE node, T.
