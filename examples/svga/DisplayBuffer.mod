@@ -106,7 +106,8 @@ END AddLine ;
 
 PROCEDURE EraseBuffer ;
 VAR
-   i: CARDINAL ;
+   res: INTEGER ;
+   i  : CARDINAL ;
 BEGIN
    i := Top[CurrentBuffer] ;
    WHILE i>0 DO
@@ -119,8 +120,8 @@ BEGIN
             WriteCard(x2, 4) ;
             WriteCard(y2, 4) ; WriteLn
          ELSE
-            vga_setcolor(0) ;
-            vga_drawline(x1, y1, x2, y2)
+            res := vga_setcolor(0) ;
+            res := vga_drawline(x1, y1, x2, y2)
          END
       END ;
       DEC(i)
@@ -135,7 +136,8 @@ END EraseBuffer ;
 
 PROCEDURE ShowBuffer ;
 VAR
-   i: CARDINAL ;
+   res: INTEGER ;
+   i  : CARDINAL ;
 BEGIN
    i := Top[CurrentBuffer] ;
    WHILE i>0 DO
@@ -148,8 +150,8 @@ BEGIN
             WriteCard(x2, 4) ;
             WriteCard(y2, 4) ; WriteLn
          ELSE
-            vga_setcolor(Colour) ;
-            vga_drawline(x1, y1, x2, y2)
+            res := vga_setcolor(Colour) ;
+            res := vga_drawline(x1, y1, x2, y2)
          END
       END ;
       DEC(i)
