@@ -1,0 +1,6 @@
+MODULE tinyimp ;
+IMPORT SYSTEM;
+TYPE
+  X = SYSTEM.BITSET;
+BEGIN
+END tinyimp.

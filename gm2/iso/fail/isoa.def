@@ -1,0 +1,8 @@
+DEFINITION MODULE isoa;
+
+IMPORT isob;
+
+TYPE
+   i = isob.i ;
+
+END isoa.

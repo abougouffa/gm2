@@ -1,0 +1,20 @@
+#!/bin/sh
+
+BFLAGS=-B../../../../../../../build-isode/gcc/stage1/gm2
+LIBS=-I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2/gm2
+DRIVER=../../../../../../../build-isode/gcc/xgm2
+
+if [ ! -x $DRIVER ] ; then
+   echo "cannot find $DRIVER"
+   exit 1
+fi
+if ! $DRIVER $BFLAGS -v $LIBS -Wcpp -gstabs -c $1 ; then
+    exit $?
+fi
+if ! $DRIVER $BFLAGS $LIBS -Wcpp -S -gstabs -c $1 ; then
+    exit $?
+fi
+if ! $DRIVER $BFLAGS $LIBS -Wcpp -gstabs -I. $1 ; then
+    exit $?
+fi
+

@@ -1,0 +1,25 @@
+#!/bin/sh
+
+BFLAGS=-B../../../../../../../build/gcc/stage1/gm2
+LIBS=-I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2/gm2
+DRIVER=../../../../../../../build/gcc/xgm2
+
+as -o `basename $1 .mod`.o `basename $1 .mod`.s
+if [ ! -x $DRIVER ] ; then
+   echo "cannot find $DRIVER"
+   exit 1
+fi
+if ! $DRIVER -Wcpp $BFLAGS -I$LIBS -g -I. $1 ; then
+    exit $?
+fi
+cat << EOFEOF > .gdbinit
+# set language modula-2
+# set language pascal
+break _M2_`basename $1 .mod`_init
+run
+# next
+# print s
+# print ch
+EOFEOF
+emacs .gdbinit
+

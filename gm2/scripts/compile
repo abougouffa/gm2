@@ -1,0 +1,33 @@
+#!/bin/sh
+
+GCC_VERSION=3.3.1
+BFLAGS=-B../../../../../../../build-$GCC_VERSION/gcc/stage1/gm2
+LIBS=-I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/$GCC_VERSION/gm2
+DRIVER=../../../../../../../build-$GCC_VERSION/gcc/xgm2
+OPTS=$2
+CPP=
+
+if [ ! -x $DRIVER ] ; then
+   echo "cannot find $DRIVER"
+   exit 1
+fi
+if ! $DRIVER $OPTS $BFLAGS $LIBS -gstabs -c $1 ; then
+    exit $?
+fi
+if ! $DRIVER $OPTS $BFLAGS $LIBS -S -gstabs -c $1 ; then
+    exit $?
+fi
+if ! $DRIVER $OPTS $BFLAGS $LIBS -gstabs -I. $1 -lm ; then
+    exit $?
+fi
+cat << EOFEOF > .gdbinit
+# set language modula-2
+# set language pascal
+break _M2_`basename $1 .mod`_init
+run
+#next
+#print r
+#ptype r
+EOFEOF
+emacs .gdbinit
+

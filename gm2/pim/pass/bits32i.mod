@@ -1,0 +1,9 @@
+MODULE bits32i;
+
+FROM bits32 IMPORT BITS32;
+
+VAR
+   b32: BITS32;
+BEGIN
+   b32 := BITS32{}
+END bits32i.

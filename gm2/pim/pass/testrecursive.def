@@ -1,0 +1,5 @@
+DEFINITION MODULE testrecursive;
+TYPE
+  test_type   = CARDINAL;
+  Error_Proc  = PROCEDURE(ARRAY OF CHAR, ARRAY OF CHAR);
+END testrecursive.

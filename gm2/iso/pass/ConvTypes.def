@@ -1,0 +1,11 @@
+DEFINITION MODULE ConvTypes;
+
+TYPE
+  ConvResults =  (strAllRight, strOutOfRange, strWrongFormat, strEmpty);
+
+  ScanClass =  (padding, valid, invalid, terminator);
+
+  ScanState = PROCEDURE (CHAR, VAR ScanClass, VAR ScanState);
+
+END ConvTypes.
+
