@@ -349,8 +349,6 @@ BEGIN
       s := CheckPoisoned(s)
    END ;
    IF (s#NIL) AND (s^.head^.state=inuse)
-# we need to ensure that the C compiler and headers are configured correctly
-#
    THEN
       s^.head^.state := marked
    END ;
