@@ -26,7 +26,7 @@ contexts. @code{IOTRANSFER} is more complex. There is a support module
 @code{SysVec} which provides pseudo interrupt vectors. These can
 either be created from input/output file descriptors and also timer
 events @code{timeval}. This vector is then passed to @code{IOTRANSFER}
-which keeps track of which file desriptors and timevals are
+which keeps track of which file descriptors and timevals are
 active. When a call to @code{TurnInterrupts} or @code{LISTEN} is made
 the sub system calls @code{pth_select} and tests for any ready file
 descriptor or timeout. A ready file descriptor or timeout will
