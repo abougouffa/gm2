@@ -233,17 +233,19 @@ CHAR                      char
 This section describes the procedures and functions which are
 always visible.
 
-@subsection PIM standard procedures and functions
+@subsection Standard procedures and functions common to PIM and ISO
 
 The following procedures are implemented and conform with Programming
-in Modula-2: @code{NEW}, @code{DISPOSE}, @code{INC}, @code{DEC},
-@code{INCL}, @code{EXCL} and @code{HALT}.  The standard functions are:
-@code{HIGH}, @code{CAP}, @code{ABS}, @code{ODD}, @code{VAL},
-@code{CHR}, @code{MIN}, @code{MAX}. All these functions
-and procedures (except @code{HALT}, @code{NEW} and @code{DISPOSE})
-generate in-line code for efficiency.
+in Modula-2 and ISO Modula-2: @code{NEW}, @code{DISPOSE}, @code{INC},
+@code{DEC}, @code{INCL}, @code{EXCL} and @code{HALT}.  The standard
+functions are: @code{HIGH}, @code{CAP}, @code{ABS}, @code{ODD},
+@code{VAL}, @code{CHR}, @code{MIN}, @code{MAX}. All these functions
+and procedures (except @code{HALT}, @code{NEW}, @code{DISPOSE} and,
+under non constant conditions, @code{LENGTH}) generate in-line code
+for efficiency.
 
 @example
+
 (*
    NEW - the procedure NEW is replaced by:
          ALLOCATE(p, TSIZE(p^)) ;
@@ -260,6 +262,7 @@ PROCEDURE NEW (VAR p:<any pointer type>) ;
 @end example
 
 @example
+
 (*
    DISPOSE - the procedure DISPOSE is replaced by:
              DEALLOCATE(p, TSIZE(p^)) ;
@@ -276,10 +279,10 @@ PROCEDURE NEW (VAR p:<any pointer type>) ;
 
 @findex DISPOSE
 PROCEDURE DISPOSE (VAR p:<any pointer type>) ;
-
 @end example
 
 @example
+
 (*
    INC - can take one or two parameters. If suppied with one
          parameter it adds 1 to the variable, v.
@@ -293,6 +296,7 @@ PROCEDURE INC (VAR v: <any base type>; a: <any base type>) ;
 @end example
 
 @example
+
 (*
    DEC - can take one or two parameters. If suppied with one
          parameter it subtracts 1 from the variable, v.
@@ -306,6 +310,7 @@ PROCEDURE DEC (VAR v: <any base type>; a: <any base type>) ;
 @end example
 
 @example
+
 (*
    INCL - includes bit element, e, to a set type, s.
 *)
@@ -315,6 +320,7 @@ PROCEDURE INCL (VAR s: <any set type>; e: <element of set type s>) ;
 @end example
 
 @example
+
 (*
    EXCL - excludes bit element, e, from a set type, s.
 *)
@@ -324,6 +330,7 @@ PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
 @end example
 
 @example
+
 (*
    HALT - will call the HALT procedure inside the module M2RTS.
           Users can replace M2RTS.
@@ -334,9 +341,10 @@ PROCEDURE HALT ;
 @end example
 
 The following define the standard set of functions which conform with Programming
-in Modula-2.
+in Modula-2 and ISO Modula-2.
 
 @example
+
 (*
    HIGH - returns the last accessible indice of an parameter declared as
           ARRAY OF CHAR. Thus
@@ -358,11 +366,38 @@ in Modula-2.
 PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
 @end example
 
-@c complete this gaius
+@example
+
+(*
+   CAP - returns the capital of character, ch, providing
+         ch lies within the range 'a'..'z'. Otherwise, ch,
+         is returned unaltered.
+*)
+
+PROCEDURE CAP (ch: CHAR) : CHAR ;
+
+@end example
 @c @code{CAP}, @code{ABS}, @code{VAL},
 @c @code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}
 
-@subsection ISO standard procedures and functions
+@subsection ISO specific standard procedures and functions
+
+The standard function @code{LENGTH} is specific to ISO Modula-2 and
+is defined as:
+
+@example
+
+(*
+   LENGTH - returns the length of string, a.
+*)
+
+PROCEDURE LENGTH (a: ARRAY OF CHAR) : CARDINAL ;
+
+@end example
+
+This function is evaluated at compile time, providing that string @code{a}
+is a constant. If @code{a} cannot be evaluated then a call is made to
+@code{M2RTS.Length}.
 
 @c complete this as well
 
