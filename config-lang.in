@@ -1,3 +1,6 @@
+# Top level configure fragment for GNU GM2.
+#   Copyright (C) 2000 Free Software Foundation, Inc.
+
 # Configure looks for the existence of this file to auto-config each language.
 # We define several parameters used by configure:
 #
@@ -10,6 +13,7 @@ language="gm2"
 
 compilers="cc1gm2\$(exeext)"
 
-stagestuff="xgm2\$(exeext)"
+stagestuff="xgm2\$(exeext) cc1gm2\$(exeext) gm2l\$(exeext) \
+            gm2lcc\$(exeext) gm2lgen\$(exeext) gm2lsub\$(exeext)"
 
 outputs=gm2/Makefile
