@@ -180,4 +180,19 @@ BEGIN
    RETURN cbuiltin.strrchr (s, c)
 END strrchr ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_val)) huge_val (r: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.huge_val (r)
+END huge_val ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_vall)) huge_vall (l: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.huge_vall (l)
+END huge_vall ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_valf)) huge_valf (s: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.huge_valf (s)
+END huge_valf ;
+
 END Builtins.

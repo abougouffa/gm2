@@ -23,9 +23,10 @@ DEFINITION MODULE FOR "C" cbuiltin ;
     System     : GNU Modula-2
     Date       : Sat Jan  4 21:46:33 2003
     Revision   : $Version$ 
-    Description: provides replacement routines in case the builtins are not used
-                 by GNU Modula-2. This module is called by implementation modules
-                 which implement builtins (see Builtins.mod for an example).
+    Description: provides replacement routines in case the builtins are
+                 not used by GNU Modula-2. This module is called by
+                 implementation modules which implement builtins
+                 (see Builtins.mod for an example).
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -37,7 +38,8 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
-                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
+                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr,
+                   huge_val, huge_vall, huge_valf ;
 
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
 PROCEDURE memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
@@ -70,5 +72,8 @@ PROCEDURE strspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+PROCEDURE huge_val (r: REAL) : REAL ;
+PROCEDURE huge_vall (l: LONGREAL) : LONGREAL ;
+PROCEDURE huge_valf (s: SHORTREAL) : SHORTREAL ;
 
 END cbuiltin.
