@@ -36,7 +36,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED write, read,
                  system, abort,
-                 malloc, cfree,
+                 malloc, free,
                  exit, isatty,
                  getenv, getpid,
                  dup, close, open, lseek,
@@ -92,7 +92,7 @@ PROCEDURE abort ;
 
 
 (*
-   malloc and cfree.
+   malloc and free.
 
 DESCRIPTION
      These routines provide a general-purpose memory allocation
@@ -123,9 +123,9 @@ PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
 
 
 (*
-     cfree - memory deallocator.
+     free - memory deallocator.
  
-     cfree(ptr)
+     free(ptr)
      char *ptr;
 
      free() releases a previously allocated block.  Its argument
@@ -133,7 +133,7 @@ PROCEDURE malloc (size: CARDINAL) : ADDRESS ;
      loc, realloc, malloc, or memalign.
 *)
 
-PROCEDURE cfree (ptr: ADDRESS) ;
+PROCEDURE free (ptr: ADDRESS) ;
 
 
 (*

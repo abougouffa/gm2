@@ -16,7 +16,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 IMPLEMENTATION MODULE SysStorage ;
 
-FROM libc IMPORT malloc, cfree ;
+FROM libc IMPORT malloc, free ;
 FROM Debug IMPORT Halt ;
 
 
@@ -34,7 +34,7 @@ END ALLOCATE ;
 
 PROCEDURE DEALLOCATE (a: ADDRESS; Size: CARDINAL);
 BEGIN
-   cfree(a)
+   free(a)
 END DEALLOCATE ;
 
 
@@ -48,7 +48,7 @@ BEGIN
    THEN
       RETURN( FALSE )
    ELSE
-      cfree(a) ;
+      free(a) ;
       RETURN( TRUE )
    END
 END Available ;

@@ -126,9 +126,9 @@ unsigned long size;
 
 
 /*
-     cfree - memory deallocator.
+     free - memory deallocator.
  
-     cfree(ptr)
+     free(ptr)
      char *ptr;
 
      free() releases a previously allocated block.  Its argument
@@ -136,10 +136,10 @@ unsigned long size;
      loc, realloc, malloc, or memalign.
 */
 
-void libc_cfree (ptr)
+void libc_free (ptr)
 Anyptr ptr;
 {
-	cfree(ptr);
+	free(ptr);
 }
 
 
