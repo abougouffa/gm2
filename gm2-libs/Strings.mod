@@ -688,6 +688,7 @@ END Slice ;
    Index - returns the indice of the first occurance of, ch, in
            String, s. -1 is returned if, ch, does not exist.
            The search starts at position, o.
+           -1 is returned if, ch, is not found.
 *)
 
 PROCEDURE Index (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
@@ -725,7 +726,8 @@ END Index ;
 
 (*
    RIndex - returns the indice of the last occurance of, ch,
-            in String, s.
+            in String, s. The search starts at position, o.
+            -1 is returned if, ch, is not found.
 *)
 
 PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
