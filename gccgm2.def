@@ -25,7 +25,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
-                 BuildFieldRecord, ChainOn,
+                 BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildPointerType, BuildArrayType,
                  BuildStartFunctionType, BuildEndFunctionType,
                  BuildParameterDeclaration,
@@ -44,6 +44,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  DoJump,
                  BuildProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
+                 BuildAsm,
                  AssignBooleanTrueFalse ;
 
 
@@ -233,6 +234,20 @@ PROCEDURE BuildFieldRecord (name: ADDRESS; type: Tree) : Tree ;
 *)
 
 PROCEDURE ChainOn (t1, t2: Tree) : Tree ;
+
+
+(*
+   ChainOnParamValue - adds a list node {parm, value} into the tree list.
+*)
+
+PROCEDURE ChainOnParamValue (list, parm, value: Tree) : Tree ;
+
+
+(*
+   AddStringToTreeList - adds, string, to list.
+*)
+
+PROCEDURE AddStringToTreeList (list, string: Tree) : Tree ;
 
 
 (*
@@ -509,6 +524,13 @@ PROCEDURE BuildProcedureCall (procedure, rettype: Tree) : Tree ;
 *)
 
 PROCEDURE BuildFunctValue (value: Tree) ;
+
+
+(*
+   BuildAsm - generates an inline assembler instruction.
+*)
+
+PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tree) ;
 
 
 END gccgm2.

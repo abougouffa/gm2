@@ -9056,6 +9056,20 @@ gccgm2_BuildFunctValue (value)
 }
 
 /*
+ *  BuildAsm - generates an inline assembler instruction.
+ */
+
+void
+gccgm2_BuildAsm (instr, IsVolatile, inputs, outputs, trash)
+     tree instr;
+     int  IsVolatile;
+     tree inputs, outputs, trash;
+{
+  expand_asm_operands (instr, outputs, inputs, trash, IsVolatile,
+		       input_filename, lineno);
+}
+
+/*
  *  AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
  *                           This allows gm2 to declare boolean as an enumerated type.
  */
@@ -9772,9 +9786,44 @@ tree
 gccgm2_ChainOn (t1, t2)
      tree t1, t2;
 {
+#if 0
   return( chainon(t1, t2) );
+#else
+  fprintf(stderr, "tree t1\n");
+  debug_tree(t1);
+  fprintf(stderr, "tree t2\n");
+  debug_tree(t2);
+  {
+    tree t=chainon(t1, t2);
+
+    debug_tree(t);
+    return( t );
+  }
+#endif
 }
 
+
+/*
+ *  ChainOnParamValue - adds a list node {parm, value} into the tree list.
+ */
+
+tree
+gccgm2_ChainOnParamValue (list, parm, value)
+     tree list, parm, value;
+{
+  return( chainon(list, build_tree_list(parm, value)) );
+}
+
+/*
+ *  AddStringToTreeList - adds, string, to list.
+ */
+
+tree
+gccgm2_AddStringToTreeList (list, string)
+     tree list, string;
+{
+  return( tree_cons (NULL_TREE, string, list) );
+}
 
 /* Function to help qsort sort FIELD_DECLs by name order.  */
 

@@ -37,7 +37,7 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 21 Jan 2000
+@center Last updated 08 May 2000
 @sp 1
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000 Free Software Foundation, Inc.
@@ -56,13 +56,14 @@ This document is a small step in the long journey of documenting the GNU
 Modula-2 compiler and how it integrates with GCC.
 
 @menu
-* About::           What this document explains.
-* History::         How GNU Modula-2 came about.
-* Integrating::     How m2f is integrated with gcc.
-* Practicalities::  Overview of how m2f is built.
-* Future::          A future wish list.
-* Done list::       Progression of the GNU Modula-2 project.
-* To do list::      Outstanding issues.
+* About::             What this document explains.
+* History::           How GNU Modula-2 came about.
+* Integrating::       How m2f is integrated with gcc.
+* Practicalities::    Overview of how m2f is built.
+* Future::            A future wish list.
+* Done list::         Progression of the GNU Modula-2 project.
+* To do list::        Outstanding issues.
+* Assembly language:: Interface to assembly language.
 @end menu
 
 @node About, History, Top, Top
@@ -182,28 +183,25 @@ front end @samp{gm2} can now compile and link modules.
 @item  
 basic procedure calls
 
+@item
+the ability to insert gnu asm statements within GNU Modula-2.
+
 @end itemize
 
 Nearly all the to do work is concerned with interfacing m2f with
 gcc and most of this work is localized in the following files:
 
-@example
-gm2/gm2.c
-gm2/gccgm2.def
-gm2/m2/comp/gm2s/gcc/M2GenGCC.mod
-gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod
-@end example
+@file{gm2/gm2.c}
+@file{gm2/gccgm2.def}
+@file{gm2/m2/comp/gm2s/gcc/M2GenGCC.mod}
+@file{gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod}
 
-@node To do list,, Done list, Top
+@node To do list, Assembly language, Done list, Top
 @section To do list
 
 What needs to be done:
 
 @itemize @bullet
-
-@item
-currently being implemented is the ability to insert gnu asm statements
-within GNU Modula-2.
 
 @item
 complex procedure parameters (unbounded arrays, strings)
@@ -246,6 +244,33 @@ Coroutines - as mentioned by readers of comp.lang.modula2.
 improve documentation
 
 @end itemize
+
+@node Assembly language,, To do list, Top
+@section Assembly language
+
+The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
+The only alterations are that the keywords asm and volatile are in capitals,
+following the Modula-2 convention.
+
+A simple, but highly non optimal, example is given below. Here we want to add the
+two @code{CARDINAL}s @code{foo} and @code{bar} together and return the result.
+
+@example
+PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
+VAR
+   myout: CARDINAL ;
+BEGIN
+   ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
+      : "=g" (myout)           (* outputs *)
+      : "g" (foo), "g" (bar)   (* inputs  *)
+      : "eax") ;               (* we trash *)
+   RETURN( myout )
+END Example ;
+@end example
+
+For a full description of this interface we refer the reader to the GNU C manual.
+
+@xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
 
 @c @printindex cp
 
