@@ -51,8 +51,11 @@ TYPE
               periodtok,
               gretok, lesstok, ortok, andtok, bartok, ambersandtok,
               shiftlefttok, shiftrighttok, divtok, modtok,
-              sizeoftok, hattok, equaltok, notequaltok,
-              greequaltok, lessequaltok, plustok, minustok, tildetok) ;
+              sizeoftok, definedtok, hattok, equaltok, notequaltok,
+              greequaltok, lessequaltok, plustok, minustok, tildetok,
+              externtok, statictok, autotok, registertok,
+              voidtok, shorttok, signedtok, uniontok, colontok, becomestok,
+              volatiletok) ;
 
 VAR
    currenttoken  : toktype ;

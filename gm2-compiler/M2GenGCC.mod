@@ -80,7 +80,7 @@ FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList ;
 
 FROM M2ALU IMPORT PtrToValue,
-                  IsValueTypeReal,
+                  IsValueTypeReal, IsValueTypeSet,
                   PushIntegerTree, PopIntegerTree, PopSetTree, PopRealTree, PushCard, Gre, Sub, Equ, NotEqu, LessEqu,
                   BuildRange, SetOr, SetAnd, SetNegate, SetSymmetricDifference, SetDifference,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn, GetRange, GetValue ;
@@ -1338,6 +1338,9 @@ BEGIN
                   IF IsValueTypeReal()
                   THEN
                      AddModGcc(operand1, PopRealTree())
+                  ELSIF IsValueTypeSet()
+                  THEN
+                     AddModGcc(operand1, PopSetTree(tokenno))
                   ELSE
                      AddModGcc(operand1, PopIntegerTree())
                   END
