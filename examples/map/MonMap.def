@@ -1,0 +1,23 @@
+DEFINITION MODULE MonMap ;
+
+(*
+   Title      : MonMap
+   Author     : Gaius Mulley
+   Date       : 20/8/88
+   LastEdit   : 20/8/88
+   System     : LOGITECH MODULA-2/86
+   Description: Allows the user to monitor the generated map.
+*)
+
+EXPORT QUALIFIED Monitor ;
+
+
+(*
+   Monitor - allows the user to wander arround the map using h j k l keys.
+*)
+
+PROCEDURE Monitor ;
+
+
+
+END MonMap.

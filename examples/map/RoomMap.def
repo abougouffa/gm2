@@ -1,0 +1,75 @@
+DEFINITION MODULE RoomMap ;
+
+(*
+   Title      : RoomMap
+   Author     : Gaius Mulley
+   Date       : 20/8/88
+   LastEdit   : 20/8/88
+   System     : LOGITECH MODULA-2/86
+   Description: Generates rooms from a list of boxes.
+*)
+
+EXPORT QUALIFIED MaxNoOfRooms,
+                 MaxNoOfTreasures,
+                 Rooms,
+                 NoOfRooms,
+                 DoorStatus,
+                 Treasure, TreasureInfo, Door, Line,
+                 CreateRoomMap ;
+
+CONST
+   MaxNoOfRooms           = 350 ;  (* An upper limit *)
+   WallsPerRoom           =   8 ;  (* An upper limit *)
+   DoorsPerRoom           =   6 ;  (* An upper limit *)
+   MaxNoOfTreasures       =  15 ;  (* An upper limit *)
+
+TYPE
+   Line         = RECORD
+                     X1 : CARDINAL ;
+                     Y1 : CARDINAL ;
+                     X2 : CARDINAL ;
+                     Y2 : CARDINAL
+                  END ;
+
+   DoorStatus   = (Open, Closed, Secret) ;
+
+   Door         = RECORD
+                     Position    : Line ;
+                     StateOfDoor : DoorStatus ;
+                     LeadsTo     : CARDINAL
+                  END ;
+
+   TreasureInfo = RECORD
+                     Xpos         : CARDINAL ;
+                     Ypos         : CARDINAL ;
+                     Rm           : CARDINAL ;
+                     Tweight      : CARDINAL ;
+                     TreasureName : ARRAY [0..12] OF CHAR
+                  END ;
+
+   Room         = RECORD
+                     RoomNo      : CARDINAL ;
+                     NoOfWalls   : CARDINAL ;
+                     NoOfDoors   : CARDINAL ;
+                     Walls       : ARRAY [1..WallsPerRoom] OF Line ;
+                     Doors       : ARRAY [1..DoorsPerRoom] OF Door ;
+                     (* Treasures   : BITSET ; *)
+                  END ;
+
+
+
+VAR
+   NoOfRooms       : CARDINAL ;
+   Treasure        : ARRAY [1..MaxNoOfTreasures] OF TreasureInfo ;
+   Rooms           : ARRAY [1..MaxNoOfRooms] OF Room ;
+
+
+(*
+   CreateRoomMap - creates rooms from a list of boxes in BoxMap.
+*)
+
+PROCEDURE CreateRoomMap ;
+
+
+
+END RoomMap.

@@ -1,0 +1,2187 @@
+Creating Boxes
+Starting Room building
+No of coords 320
+No of coords 608
+No of coords 620
+No of coords 625
+No of coords 641
+No of coords 653
+No of coords 661
+No of coords 683
+No of coords 673
+No of coords 693
+No of coords 717
+No of coords 721
+No of coords 707
+No of coords 697
+No of coords 697
+No of coords 704
+No of coords 724
+No of coords 722
+No of coords 732
+No of coords 732
+No of coords 732
+No of coords 746
+No of coords 746
+No of coords 746
+No of coords 746
+No of coords 760
+No of coords 748
+No of coords 736
+No of coords 738
+No of coords 736
+No of coords 718
+No of coords 718
+No of coords 740
+No of coords 740
+No of coords 730
+No of coords 744
+No of coords 754
+No of coords 746
+No of coords 758
+No of coords 749
+No of coords 751
+No of coords 762
+No of coords 770
+No of coords 758
+No of coords 744
+No of coords 744
+No of coords 748
+No of coords 748
+No of coords 748
+No of coords 738
+No of coords 738
+No of coords 732
+No of coords 736
+No of coords 752
+No of coords 748
+No of coords 748
+No of coords 736
+No of coords 730
+No of coords 725
+No of coords 715
+No of coords 733
+No of coords 745
+No of coords 747
+No of coords 763
+No of coords 758
+No of coords 768
+No of coords 768
+No of coords 782
+No of coords 790
+No of coords 766
+No of coords 736
+No of coords 736
+No of coords 752
+No of coords 747
+No of coords 764
+No of coords 758
+No of coords 776
+No of coords 766
+No of coords 734
+No of coords 742
+No of coords 760
+No of coords 760
+No of coords 774
+No of coords 790
+No of coords 796
+No of coords 806
+No of coords 796
+No of coords 795
+No of coords 799
+No of coords 811
+No of coords 817
+No of coords 797
+No of coords 807
+No of coords 805
+No of coords 814
+No of coords 786
+No of coords 778
+No of coords 783
+No of coords 779
+No of coords 780
+No of coords 786
+No of coords 801
+No of coords 807
+No of coords 801
+No of coords 817
+No of coords 817
+No of coords 825
+No of coords 841
+No of coords 841
+No of coords 817
+No of coords 831
+No of coords 827
+No of coords 826
+No of coords 831
+No of coords 844
+No of coords 840
+No of coords 830
+No of coords 835
+No of coords 825
+No of coords 807
+No of coords 799
+Creating Rooms
+Corridors  12
+Rooms     132
+Not allowing corridor door!
+Not allowing corridor door!
+Not allowing corridor door!
+Not allowing corridor door!
+Not allowing corridor door!
+Not allowing corridor door!
+Creating RoomDoors
+Pushing walls   4   2
+Point  42  59
+Pushing walls   7   1
+Point  41  52
+Point  41  53
+Point  41  54
+Point  41  55
+Point  41  56
+Point  41  57
+Making walls   7   1
+No of coords   8
+Pushing walls   1   2
+Point  73   2
+Point  73   3
+Point  73   4
+Point  73   5
+Point  73   6
+Point  73   7
+Point  73   8
+Point  73   9
+Point  73  10
+Point  73  11
+Point  73  12
+Point  73  13
+Making walls   1   2
+No of coords  13
+Pushing walls   7   4
+Point  83  63
+Point  83  64
+Point  83  65
+Point  83  66
+Making walls   7   4
+No of coords   5
+Pushing walls   2   2
+Point 111  17
+Point 111  18
+Point 111  19
+Point 111  20
+Point 111  21
+Point 111  22
+Point 111  23
+Point 111  24
+Point 111  25
+Point 111  26
+Point 111  27
+Point 111  28
+Point 111  29
+Point 111  30
+Point 111  31
+Point 111  32
+Point 111  33
+Point 111  34
+Point 111  35
+Point 111  36
+Point 111  37
+Making walls   2   2
+No of coords  22
+Pushing walls   1   1
+Point  41  19
+Point  41  20
+Point  41  21
+Point  41  22
+Point  41  23
+Point  41  24
+Point  41  25
+Point  41  26
+Point  41  27
+Point  41  28
+Point  41  29
+Point  41  30
+Making walls   1   1
+No of coords  13
+Pushing walls   4   4
+Point 105  22
+Point 105  23
+Point 105  24
+Point 105  25
+Point 105  26
+Point 105  27
+Point 105  28
+Point 105  29
+Point 105  30
+Point 105  31
+Point 105  32
+Point 105  33
+Point 105  34
+Point 105  35
+Point 105  36
+Point 105  37
+Making walls   4   4
+No of coords  17
+Pushing walls   6   1
+Point  55  41
+Point  55  42
+Point  55  43
+Point  55  44
+Making walls   6   1
+No of coords   5
+Pushing walls   3   3
+Point  47  19
+Point  47  20
+Point  47  21
+Point  47  22
+Point  47  23
+Point  47  24
+Point  47  25
+Point  47  26
+Point  47  27
+Point  47  28
+Point  47  29
+Point  47  30
+Point  47  31
+Point  47  32
+Pushing walls   4   4
+Point  48  18
+Point  49  18
+Point  50  18
+Point  51  18
+Point  52  18
+Making walls   4   4
+No of coords  20
+Pushing walls   7   2
+Point  89   2
+Point  89   3
+Point  89   4
+Point  89   5
+Point  89   6
+Point  89   7
+Point  89   8
+Point  89   9
+Point  89  10
+Point  89  11
+Point  89  12
+Point  89  13
+Making walls   7   2
+No of coords  13
+Pushing walls   5   8
+Point  36  51
+Point  37  51
+Point  38  51
+Point  39  51
+Making walls   5   8
+No of coords   5
+Pushing walls   1   3
+Point  71  47
+Point  71  48
+Point  71  49
+Point  71  50
+Point  71  51
+Point  71  52
+Point  71  53
+Point  71  54
+Point  71  55
+Point  71  56
+Point  71  57
+Point  71  58
+Pushing walls   6   2
+Point  66  46
+Point  67  46
+Point  68  46
+Point  69  46
+Making walls   6   2
+No of coords  17
+Pushing walls   3   1
+Point  14  37
+Point  14  38
+Point  14  39
+Point  14  40
+Pushing walls   4   2
+Point  15  36
+Point  16  36
+Point  17  36
+Point  18  36
+Point  19  36
+Point  20  36
+Point  21  36
+Point  22  36
+Point  23  36
+Point  24  36
+Point  25  36
+Making walls   3   1
+No of coords  16
+Pushing walls   4   8
+Point  43  12
+Point  44  12
+Point  45  12
+Point  46  12
+Point  47  12
+Point  48  12
+Point  49  12
+Point  50  12
+Point  51  12
+Point  52  12
+Making walls   4   8
+No of coords  11
+Pushing walls   2   4
+Point  61  40
+Point  62  40
+Point  63  40
+Point  64  40
+Point  65  40
+Point  66  40
+Point  67  40
+Point  68  40
+Point  69  40
+Pushing walls   3   5
+Point  71  36
+Point  71  37
+Point  71  38
+Pushing walls   7   5
+Point  71  22
+Point  71  23
+Point  71  24
+Point  71  25
+Point  71  26
+Making walls   3   5
+No of coords  18
+No of coords   1
+Pushing walls   6   1
+Point  84  62
+Point  85  62
+Point  86  62
+Point  87  62
+Point  88  62
+Point  89  62
+Making walls   6   1
+No of coords   7
+Pushing walls   3   2
+Point  34  67
+Point  35  67
+Point  36  67
+Point  37  67
+Point  38  67
+Point  39  67
+Point  40  67
+Point  41  67
+Pushing walls   8   1
+Point  33  61
+Point  33  62
+Point  33  63
+Point  33  64
+Point  33  65
+Making walls   8   1
+No of coords  14
+Pushing walls   1   4
+Point  67   2
+Point  67   3
+Point  67   4
+Point  67   5
+Point  67   6
+Point  67   7
+Point  67   8
+Point  67   9
+Point  67  10
+Point  67  11
+Point  67  12
+Point  67  13
+Making walls   1   4
+No of coords  13
+Pushing walls   2   1
+Point  23  72
+Point  24  72
+Point  25  72
+Point  26  72
+Point  27  72
+Point  28  72
+Point  29  72
+Point  30  72
+Point  31  72
+Point  32  72
+Making walls   2   1
+No of coords  11
+Pushing walls   3   4
+Point  36  37
+Point  37  37
+Point  38  37
+Point  39  37
+Making walls   3   4
+No of coords   5
+Pushing walls   1   2
+Point  78  39
+Point  79  39
+Point  80  39
+Point  81  39
+Point  82  39
+Point  83  39
+Making walls   1   2
+No of coords   7
+Pushing walls   6   8
+Point  20  10
+Point  21  10
+Point  22  10
+Point  23  10
+Point  24  10
+Point  25  10
+Point  26  10
+Point  27  10
+Point  28  10
+Point  29  10
+Point  30  10
+Point  31  10
+Point  32  10
+Making walls   6   8
+No of coords  14
+Pushing walls   5   2
+Point  64  57
+Point  64  58
+Making walls   5   2
+No of coords   3
+Pushing walls   4   8
+Point  17  44
+Point  18  44
+Point  19  44
+Point  20  44
+Point  21  44
+Point  22  44
+Point  23  44
+Point  24  44
+Point  25  44
+Point  26  44
+Point  27  44
+Point  28  44
+Pushing walls   7   7
+Point  30  45
+Point  30  46
+Point  30  47
+Point  30  48
+Point  30  49
+Making walls   7   7
+No of coords  18
+Pushing walls   4   2
+Point  43  68
+Point  43  69
+Point  43  70
+Making walls   4   2
+No of coords   4
+Pushing walls   1   3
+Point 111   8
+Point 112   8
+Point 113   8
+Point 114   8
+Point 115   8
+Point 116   8
+Point 117   8
+Point 118   8
+Making walls   1   3
+No of coords   9
+Pushing walls   3   2
+Point  60  71
+Point  60  72
+Point  60  73
+Point  60  74
+Point  60  75
+Point  60  76
+Point  60  77
+Point  60  78
+Making walls   3   2
+No of coords   9
+Pushing walls   8   1
+Point   7  50
+Point   7  51
+Point   7  52
+Making walls   8   1
+No of coords   4
+Pushing walls   1   3
+Point  91  68
+Point  92  68
+Point  93  68
+Point  94  68
+Point  95  68
+Making walls   1   3
+No of coords   6
+Pushing walls   4   3
+Point  16  65
+Making walls   4   3
+No of coords   2
+Pushing walls   2   3
+Point  87  76
+Point  87  77
+Point  87  78
+Making walls   2   3
+No of coords   4
+No of coords   1
+Pushing walls   2   1
+Point  12  12
+Point  12  13
+Point  12  14
+Point  12  15
+Point  12  16
+Making walls   2   1
+No of coords   6
+No of coords   1
+Pushing walls   4   1
+Point 104  68
+Point 105  68
+Point 106  68
+Making walls   4   1
+No of coords   4
+No of coords   1
+Pushing walls   3   2
+Point   2  57
+Point   3  57
+Point   4  57
+Making walls   3   2
+No of coords   4
+No of coords   1
+Number of rooms 132
+Removing room 101
+Pushing walls   1   8
+Pushing walls   2   3
+Point  34  67
+Point  35  67
+Point  36  67
+Point  37  67
+Point  38  67
+Point  39  67
+Point  40  67
+Point  41  67
+Making walls   2   3
+No of coords   9
+Pushing walls   1   8
+Pushing walls   2   3
+Point  39  67
+Point  40  67
+Point  41  67
+Making walls   2   3
+No of coords   4
+Pushing walls   1   8
+Pushing walls   2   3
+No of coords   1
+No of coords   1
+Pushing walls   8   5
+No of coords   1
+Pushing walls   4   2
+Point  42  59
+Pushing walls   7   1
+Point  41  57
+Making walls   7   1
+No of coords   3
+Pushing walls   1   2
+Point  73   8
+Point  73   9
+Point  73  10
+Point  73  11
+Point  73  12
+Point  73  13
+Making walls   1   2
+No of coords   7
+Pushing walls   1   2
+Point  73  13
+Making walls   1   2
+No of coords   2
+Pushing walls   1   2
+No of coords   1
+Pushing walls   4   4
+Point  83   2
+Point  83   3
+Point  83   4
+Point  83   5
+Point  83   6
+Point  83   7
+Making walls   4   4
+No of coords   7
+Pushing walls   1   5
+Point  67  71
+Point  67  72
+Making walls   1   5
+No of coords   3
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   6
+Point  74  74
+Point  75  74
+Point  76  74
+Making walls   2   6
+No of coords   4
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   6
+No of coords   1
+No of coords   1
+Pushing walls   7   4
+Point  83  66
+Making walls   7   4
+No of coords   2
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   6
+No of coords   1
+No of coords   1
+Pushing walls   7   4
+No of coords   1
+Pushing walls   8   6
+Point  73  61
+Point  74  61
+Point  75  61
+Making walls   8   6
+No of coords   4
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   6
+No of coords   1
+No of coords   1
+Pushing walls   7   4
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   6
+No of coords   1
+No of coords   1
+Pushing walls   7   4
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   6   8
+Point 104  60
+Point 105  60
+Point 106  60
+Point 107  60
+Point 108  60
+Point 109  60
+Point 110  60
+Point 111  60
+Point 112  60
+Point 113  60
+Point 114  60
+Point 115  60
+Point 116  60
+Point 117  60
+Point 118  60
+Pushing walls   7   3
+Point 103  61
+Making walls   6   8
+No of coords  17
+Pushing walls   6   8
+Point 109  60
+Point 110  60
+Point 111  60
+Point 112  60
+Point 113  60
+Point 114  60
+Point 115  60
+Point 116  60
+Point 117  60
+Point 118  60
+Pushing walls   7   3
+Point 103  61
+Making walls   6   8
+No of coords  12
+Pushing walls   6   8
+Point 117  60
+Point 118  60
+Pushing walls   7   3
+Point 103  61
+Making walls   6   8
+No of coords   4
+Pushing walls   6   8
+Pushing walls   7   3
+Point 103  61
+Making walls   7   3
+No of coords   2
+Pushing walls   6   8
+Pushing walls   7   3
+No of coords   1
+Pushing walls   3   3
+Point 112  16
+Point 113  16
+Point 114  16
+Point 115  16
+Point 116  16
+Point 117  16
+Point 118  16
+Making walls   3   3
+No of coords   8
+Pushing walls   4   2
+Point  20  18
+Point  21  18
+Point  22  18
+Point  23  18
+Point  24  18
+Point  25  18
+Point  26  18
+Point  27  18
+Point  28  18
+Point  29  18
+Point  30  18
+Point  31  18
+Point  32  18
+Making walls   4   2
+No of coords  14
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   1
+Point  36  32
+Point  37  32
+Point  38  32
+Point  39  32
+Making walls   2   1
+No of coords   5
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   1
+Point  39  32
+Making walls   2   1
+No of coords   2
+Pushing walls   4   4
+Point 105  27
+Point 105  28
+Point 105  29
+Point 105  30
+Point 105  31
+Point 105  32
+Point 105  33
+Point 105  34
+Point 105  35
+Point 105  36
+Point 105  37
+Making walls   4   4
+No of coords  12
+Pushing walls   4   4
+No of coords   1
+Pushing walls   1   7
+Point  97  22
+Point  97  23
+Point  97  24
+Point  97  25
+Point  97  26
+Point  97  27
+Point  97  28
+Point  97  29
+Point  97  30
+Point  97  31
+Point  97  32
+Point  97  33
+Point  97  34
+Point  97  35
+Point  97  36
+Point  97  37
+Pushing walls   3   4
+Point  98  39
+Point  99  39
+Point 100  39
+Point 101  39
+Point 102  39
+Point 103  39
+Making walls   1   7
+No of coords  23
+Pushing walls   4   4
+No of coords   1
+Pushing walls   1   7
+Point  97  35
+Point  97  36
+Point  97  37
+Pushing walls   3   4
+Point  98  39
+Point  99  39
+Point 100  39
+Point 101  39
+Point 102  39
+Point 103  39
+Making walls   3   4
+No of coords  10
+Pushing walls   4   4
+No of coords   1
+Pushing walls   1   7
+Point  97  35
+Point  97  36
+Point  97  37
+Pushing walls   3   4
+Making walls   1   7
+No of coords   4
+Pushing walls   4   4
+No of coords   1
+Pushing walls   1   7
+Pushing walls   3   4
+No of coords   1
+Pushing walls   2   2
+Point  98  21
+Point  99  21
+Point 100  21
+Point 101  21
+Point 102  21
+Point 103  21
+Making walls   2   2
+No of coords   7
+Pushing walls   2   3
+Point  53  57
+Making walls   2   3
+No of coords   2
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   3   3
+Pushing walls   4   4
+No of coords   1
+No of coords   1
+Pushing walls   3   3
+Pushing walls   4   4
+No of coords   1
+No of coords   1
+Pushing walls   3   3
+Pushing walls   4   4
+No of coords   1
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+Point  89  10
+Point  89  11
+Point  89  12
+Point  89  13
+Making walls   7   2
+No of coords   5
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+Point  89  13
+Making walls   7   2
+No of coords   2
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+No of coords   1
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+No of coords   1
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+No of coords   1
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+Pushing walls   7   2
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   7   7
+Pushing walls   8   4
+Point  17  44
+Point  18  44
+Point  19  44
+Point  20  44
+Point  21  44
+Point  22  44
+Point  23  44
+Point  24  44
+Point  25  44
+Point  26  44
+Point  27  44
+Point  28  44
+Making walls   8   4
+No of coords  13
+Pushing walls   4   3
+No of coords   1
+Pushing walls   7   7
+Pushing walls   8   4
+No of coords   1
+Pushing walls   1   3
+Pushing walls   2   4
+Point  15  36
+Point  16  36
+Point  17  36
+Point  18  36
+Point  19  36
+Point  20  36
+Point  21  36
+Point  22  36
+Point  23  36
+Point  24  36
+Point  25  36
+Making walls   2   4
+No of coords  12
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Point  71  47
+Point  71  48
+Point  71  49
+Point  71  50
+Point  71  51
+Point  71  52
+Point  71  53
+Point  71  54
+Point  71  55
+Point  71  56
+Point  71  57
+Point  71  58
+Pushing walls   6   2
+Making walls   1   3
+No of coords  13
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   5
+No of coords   1
+Pushing walls   1   3
+Pushing walls   6   2
+No of coords   1
+Pushing walls   1   8
+Point   7  37
+Point   7  38
+Point   7  39
+Point   7  40
+Pushing walls   6   3
+Point   8  36
+Point   9  36
+Pushing walls   7   4
+Point  11  32
+Point  11  33
+Point  11  34
+Making walls   6   3
+No of coords  10
+Pushing walls   1   8
+Point   7  37
+Point   7  38
+Point   7  39
+Point   7  40
+Pushing walls   6   3
+Pushing walls   7   4
+Point  11  32
+Point  11  33
+Point  11  34
+Making walls   1   8
+No of coords   8
+Pushing walls   1   8
+Pushing walls   6   3
+Pushing walls   7   4
+Point  11  32
+Point  11  33
+Point  11  34
+Making walls   7   4
+No of coords   4
+Pushing walls   1   8
+Pushing walls   6   3
+Pushing walls   7   4
+No of coords   1
+Pushing walls   3   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   8   7
+Point  19  31
+Point  20  31
+Point  21  31
+Point  22  31
+Point  23  31
+Point  24  31
+Point  25  31
+Making walls   8   7
+No of coords   8
+Pushing walls   8   6
+Point  32  10
+Making walls   8   6
+No of coords   2
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   8
+No of coords   1
+Pushing walls   7   5
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   8
+No of coords   1
+Pushing walls   7   5
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   8
+No of coords   1
+Pushing walls   7   5
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   8
+No of coords   1
+Pushing walls   7   5
+No of coords   1
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   8
+No of coords   1
+Pushing walls   7   5
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   5
+Pushing walls   7   5
+No of coords   1
+Pushing walls   1   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+Point  89  62
+Making walls   6   1
+No of coords   2
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   5
+No of coords   1
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   5
+No of coords   1
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   5
+No of coords   1
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   5
+No of coords   1
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+No of coords   1
+Pushing walls   6   1
+No of coords   1
+Pushing walls   3   5
+No of coords   1
+No of coords   1
+Pushing walls   1   2
+Point  26  72
+Point  27  72
+Point  28  72
+Point  29  72
+Point  30  72
+Point  31  72
+Point  32  72
+Making walls   1   2
+No of coords   8
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   2   4
+Pushing walls   3   7
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+Point  10  65
+Point  10  66
+Point  10  67
+Point  10  68
+Making walls   1   5
+No of coords   5
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   5
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+No of coords   1
+Pushing walls   3   4
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+Pushing walls   6   5
+No of coords   1
+Pushing walls   5   7
+No of coords   1
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+Pushing walls   6   5
+No of coords   1
+Pushing walls   5   7
+No of coords   1
+No of coords   1
+Pushing walls   1   2
+No of coords   1
+Pushing walls   6   5
+No of coords   1
+Pushing walls   5   7
+No of coords   1
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+No of coords   1
+Pushing walls   6   8
+No of coords   1
+Pushing walls   2   4
+No of coords   1
+Pushing walls   1   3
+Point  55  66
+Point  56  66
+Point  57  66
+Making walls   1   3
+No of coords   4
+Pushing walls   1   3
+No of coords   1
+Pushing walls   5   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   5   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   5   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   5   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   5   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+Point  16  54
+Point  17  54
+Point  18  54
+Point  19  54
+Point  20  54
+Making walls   2   3
+No of coords   6
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   8
+Pushing walls   7   7
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   8
+Pushing walls   7   7
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   8
+Pushing walls   7   7
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   8
+Pushing walls   7   7
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   8
+Pushing walls   7   7
+No of coords   1
+Pushing walls   2   3
+Point  60  76
+Point  60  77
+Point  60  78
+Making walls   2   3
+No of coords   4
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   4   2
+No of coords   1
+Pushing walls   3   1
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   3   3
+No of coords   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   6   5
+Point   8  21
+Point   9  21
+Making walls   6   5
+No of coords   3
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   1   4
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   1   3
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   4   3
+No of coords   1
+Pushing walls   2   7
+No of coords   1
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   3
+No of coords   1
+Pushing walls   6   2
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   5   6
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   5   6
+No of coords   1
+Pushing walls   2   1
+No of coords   1
+Pushing walls   5   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   4   1
+No of coords   1
+Pushing walls   3   7
+Pushing walls   8   6
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+Pushing walls   3   2
+No of coords   1
+Pushing walls   5   1
+No of coords   1
+ROOM   1
+WALL
+      60  21  60  40
+      60  21 105  21
+     105  15 105  21
+      60  15 105  15
+      54   1  54  40
+      54  40  60  40
+      60   1  60  15
+      54   1  60   1
+DOOR  54  13  54  17  STATUS OPEN   LEADS TO   2
+DOOR  72  21  76  21  STATUS OPEN   LEADS TO   3
+DOOR  84  15  88  15  STATUS SECRET LEADS TO   4
+DOOR  92  21  96  21  STATUS SECRET LEADS TO   5
+DOOR  68  15  72  15  STATUS OPEN   LEADS TO   8
+DOOR 100  21 101  21  STATUS CLOSED LEADS TO  14
+END
+ROOM   2
+WALL
+      41  18  41  59
+      41  59  47  59
+      47  18  47  59
+      47  18  54  18
+      40  12  40  18
+      40  18  41  18
+      54  12  54  18
+      40  12  54  12
+DOOR  54  13  54  17  STATUS OPEN   LEADS TO   1
+DOOR  41  53  41  55  STATUS SECRET LEADS TO   9
+DOOR  41  21  41  23  STATUS CLOSED LEADS TO  13
+DOOR  48  18  49  18  STATUS CLOSED LEADS TO  16
+DOOR  43  12  44  12  STATUS CLOSED LEADS TO  21
+DOOR  41  57  41  58  STATUS CLOSED LEADS TO   9
+END
+ROOM   3
+WALL
+      55  40  55  46
+      55  46  71  46
+      71  46  71  61
+      55  40  71  40
+      71  21  71  40
+      71  61  77  61
+      77  21  77  61
+      71  21  77  21
+DOOR  72  21  76  21  STATUS OPEN   LEADS TO   1
+DOOR  55  42  55  44  STATUS CLOSED LEADS TO  15
+DOOR  67  46  68  46  STATUS CLOSED LEADS TO  19
+DOOR  71  37  71  39  STATUS SECRET LEADS TO  22
+DOOR  75  61  76  61  STATUS SECRET LEADS TO  11
+DOOR  71  49  71  51  STATUS CLOSED LEADS TO  19
+END
+ROOM   4
+WALL
+      83   1  89   1
+      89   1  89  15
+      83  15  89  15
+      83   1  83  15
+DOOR  84  15  88  15  STATUS SECRET LEADS TO   1
+DOOR  89   6  89   8  STATUS CLOSED LEADS TO  17
+DOOR  83   7  83   8  STATUS CLOSED LEADS TO  10
+DOOR  89  10  89  11  STATUS CLOSED LEADS TO  17
+DOOR  89  13  89  14  STATUS CLOSED LEADS TO  17
+END
+ROOM   5
+WALL
+      97  45  97  62
+      97  45 111  45
+     111  39 111  45
+      97  39 111  39
+      91  21  91  62
+      91  62  97  62
+      97  21  97  39
+      91  21  97  21
+DOOR  92  21  96  21  STATUS SECRET LEADS TO   1
+DOOR  92  62  96  62  STATUS OPEN   LEADS TO   6
+DOOR 106  39 110  39  STATUS OPEN   LEADS TO   7
+DOOR  97  31  97  33  STATUS SECRET LEADS TO  14
+DOOR 101  39 103  39  STATUS CLOSED LEADS TO  14
+DOOR  97  37  97  38  STATUS CLOSED LEADS TO  14
+END
+ROOM   6
+WALL
+      83  62  97  62
+      97  62  97  68
+      83  68  97  68
+      83  62  83  68
+DOOR  92  62  96  62  STATUS OPEN   LEADS TO   5
+DOOR  83  63  83  64  STATUS CLOSED LEADS TO  11
+DOOR  85  62  87  62  STATUS SECRET LEADS TO  23
+DOOR  95  68  96  68  STATUS SECRET LEADS TO  36
+DOOR  83  66  83  67  STATUS CLOSED LEADS TO  11
+DOOR  89  62  90  62  STATUS CLOSED LEADS TO  23
+END
+ROOM   7
+WALL
+     105  16 111  16
+     111  16 111  39
+     105  39 111  39
+     105  16 105  39
+DOOR 106  39 110  39  STATUS OPEN   LEADS TO   5
+DOOR 111  19 111  21  STATUS SECRET LEADS TO  12
+DOOR 105  23 105  25  STATUS SECRET LEADS TO  14
+DOOR 105  37 105  38  STATUS CLOSED LEADS TO  14
+END
+ROOM   8
+WALL
+      67   1  73   1
+      73   1  73  15
+      67  15  73  15
+      67   1  67  15
+DOOR  68  15  72  15  STATUS OPEN   LEADS TO   1
+DOOR  73   4  73   6  STATUS CLOSED LEADS TO  10
+DOOR  67  12  67  14  STATUS SECRET LEADS TO  25
+DOOR  73   9  73  11  STATUS CLOSED LEADS TO  10
+DOOR  73  13  73  14  STATUS CLOSED LEADS TO  10
+END
+ROOM   9
+WALL
+      33  59  33  67
+      33  67  44  67
+      44  59  44  67
+      41  59  44  59
+      35  51  35  59
+      33  59  35  59
+      41  51  41  59
+      35  51  41  51
+DOOR  41  53  41  55  STATUS SECRET LEADS TO   2
+DOOR  38  51  40  51  STATUS SECRET LEADS TO  18
+DOOR  33  63  33  65  STATUS SECRET LEADS TO  24
+DOOR  35  67  37  67  STATUS CLOSED LEADS TO  24
+DOOR  41  67  42  67  STATUS CLOSED LEADS TO  24
+DOOR  41  57  41  58  STATUS CLOSED LEADS TO   2
+END
+ROOM  10
+WALL
+      73   1  73  15
+      73  15  78  15
+      78   9  78  15
+      83   1  83   9
+      78   9  83   9
+      73   1  83   1
+DOOR  73   4  73   6  STATUS CLOSED LEADS TO   8
+DOOR  73   9  73  11  STATUS CLOSED LEADS TO   8
+DOOR  73  13  73  14  STATUS CLOSED LEADS TO   8
+DOOR  83   7  83   8  STATUS CLOSED LEADS TO   4
+END
+ROOM  11
+WALL
+      67  69  67  74
+      67  74  78  74
+      78  69  78  74
+      78  69  83  69
+      72  61  72  69
+      67  69  72  69
+      83  61  83  69
+      72  61  83  61
+DOOR  83  63  83  64  STATUS CLOSED LEADS TO   6
+DOOR  67  72  67  73  STATUS SECRET LEADS TO  34
+DOOR  74  74  76  74  STATUS CLOSED LEADS TO  38
+DOOR  83  66  83  67  STATUS CLOSED LEADS TO   6
+DOOR  75  61  76  61  STATUS SECRET LEADS TO   3
+END
+ROOM  12
+WALL
+     120  16 120  60
+     111  16 111  45
+     111  16 120  16
+      97  45  97  63
+      97  45 111  45
+     103  60 120  60
+     103  60 103  63
+      97  63 103  63
+DOOR 111  19 111  21  STATUS SECRET LEADS TO   7
+DOOR 105  60 107  60  STATUS SECRET LEADS TO  40
+DOOR 113  60 115  60  STATUS CLOSED LEADS TO  40
+DOOR 117  60 119  60  STATUS CLOSED LEADS TO  40
+DOOR 103  61 103  62  STATUS CLOSED LEADS TO  40
+DOOR 114  16 116  16  STATUS SECRET LEADS TO  33
+END
+ROOM  13
+WALL
+      41  18  41  32
+      34  32  41  32
+      19  18  19  26
+      19  18  41  18
+      18  26  19  26
+      18  26  18  31
+      18  31  34  31
+      34  31  34  32
+DOOR  41  21  41  23  STATUS CLOSED LEADS TO   2
+DOOR  31  18  33  18  STATUS CLOSED LEADS TO  29
+DOOR  36  32  37  32  STATUS CLOSED LEADS TO  27
+DOOR  39  32  40  32  STATUS CLOSED LEADS TO  27
+DOOR  21  31  23  31  STATUS SECRET LEADS TO  20
+END
+ROOM  14
+WALL
+      97  21  97  39
+      97  21 105  21
+      97  39 105  39
+     105  21 105  39
+DOOR 105  23 105  25  STATUS SECRET LEADS TO   7
+DOOR 105  37 105  38  STATUS CLOSED LEADS TO   7
+DOOR  97  31  97  33  STATUS SECRET LEADS TO   5
+DOOR 101  39 103  39  STATUS CLOSED LEADS TO   5
+DOOR  97  37  97  38  STATUS CLOSED LEADS TO   5
+DOOR 100  21 101  21  STATUS CLOSED LEADS TO   1
+END
+ROOM  15
+WALL
+      47  59  53  59
+      53  50  53  59
+      47  40  47  59
+      47  40  55  40
+      53  50  55  50
+      55  40  55  50
+DOOR  55  42  55  44  STATUS CLOSED LEADS TO   3
+DOOR  53  57  53  58  STATUS CLOSED LEADS TO  30
+END
+ROOM  16
+WALL
+      54  18  54  34
+      47  34  54  34
+      47  18  47  34
+      47  18  54  18
+DOOR  48  18  49  18  STATUS CLOSED LEADS TO   2
+END
+ROOM  17
+WALL
+      89   1 120   1
+     120   1 120   8
+     108   8 120   8
+     108   7 108   8
+      89  15 103  15
+     103   7 103  15
+      89   1  89  15
+     103   7 108   7
+DOOR  89   6  89   8  STATUS CLOSED LEADS TO   4
+DOOR 115   8 117   8  STATUS CLOSED LEADS TO  33
+DOOR  89  10  89  11  STATUS CLOSED LEADS TO   4
+DOOR  89  13  89  14  STATUS CLOSED LEADS TO   4
+END
+ROOM  18
+WALL
+      14  36  14  44
+      14  36  30  36
+      30  36  30  37
+      30  37  41  37
+      30  51  41  51
+      41  37  41  51
+      30  44  30  51
+      14  44  30  44
+DOOR  38  51  40  51  STATUS SECRET LEADS TO   9
+DOOR  14  37  14  39  STATUS CLOSED LEADS TO  20
+DOOR  37  37  39  37  STATUS CLOSED LEADS TO  27
+DOOR  30  49  30  50  STATUS CLOSED LEADS TO  31
+DOOR  25  44  27  44  STATUS CLOSED LEADS TO  31
+DOOR  25  36  26  36  STATUS CLOSED LEADS TO  20
+END
+ROOM  19
+WALL
+      71  46  71  60
+      64  54  64  60
+      64  60  71  60
+      65  46  65  54
+      64  54  65  54
+      65  46  71  46
+DOOR  67  46  68  46  STATUS CLOSED LEADS TO   3
+DOOR  64  58  64  59  STATUS SECRET LEADS TO  30
+DOOR  71  49  71  51  STATUS CLOSED LEADS TO   3
+END
+ROOM  20
+WALL
+       7  36   7  42
+       7  42  14  42
+      14  36  14  42
+      14  36  27  36
+      27  31  27  36
+       7  36  11  36
+      11  31  11  36
+      11  31  27  31
+DOOR  14  37  14  39  STATUS CLOSED LEADS TO  18
+DOOR  25  36  26  36  STATUS CLOSED LEADS TO  18
+DOOR   8  36  10  36  STATUS SECRET LEADS TO  35
+DOOR   7  39   7  41  STATUS CLOSED LEADS TO  35
+DOOR  11  34  11  35  STATUS CLOSED LEADS TO  35
+DOOR  21  31  23  31  STATUS SECRET LEADS TO  13
+END
+ROOM  21
+WALL
+      19   1  19  10
+      19   1  54   1
+      36   7  36  10
+      42  12  54  12
+      42   7  42  12
+      36   7  42   7
+      54   1  54  12
+      19  10  36  10
+DOOR  43  12  44  12  STATUS CLOSED LEADS TO   2
+DOOR  28  10  30  10  STATUS SECRET LEADS TO  29
+DOOR  32  10  33  10  STATUS CLOSED LEADS TO  29
+END
+ROOM  22
+WALL
+      60  21  60  40
+      60  40  71  40
+      71  35  71  40
+      60  21  71  21
+      66  28  66  35
+      66  28  71  28
+      71  21  71  28
+      66  35  71  35
+DOOR  71  37  71  39  STATUS SECRET LEADS TO   3
+END
+ROOM  23
+WALL
+      77  39  77  52
+      77  39  85  39
+      91  44  91  62
+      85  44  91  44
+      83  52  83  62
+      83  62  91  62
+      77  52  83  52
+      85  39  85  44
+DOOR  85  62  87  62  STATUS SECRET LEADS TO   6
+DOOR  83  39  84  39  STATUS SECRET LEADS TO  28
+DOOR  89  62  90  62  STATUS CLOSED LEADS TO   6
+END
+ROOM  24
+WALL
+      22  72  43  72
+      43  67  43  72
+      33  67  43  67
+      27  60  33  60
+      27  60  27  61
+      22  61  27  61
+      22  61  22  72
+      33  60  33  67
+DOOR  33  63  33  65  STATUS SECRET LEADS TO   9
+DOOR  23  72  24  72  STATUS CLOSED LEADS TO  26
+DOOR  43  70  43  71  STATUS SECRET LEADS TO  32
+DOOR  35  67  37  67  STATUS CLOSED LEADS TO   9
+DOOR  41  67  42  67  STATUS CLOSED LEADS TO   9
+DOOR  27  72  29  72  STATUS CLOSED LEADS TO  26
+END
+ROOM  25
+WALL
+      67   1  67  15
+      60  15  67  15
+      60   1  60  15
+      60   1  67   1
+DOOR  67  12  67  14  STATUS SECRET LEADS TO   8
+END
+ROOM  26
+WALL
+      10  64  10  72
+      16  72  34  72
+      16  64  16  72
+      10  64  16  64
+      12  80  34  80
+      34  72  34  80
+      12  72  12  80
+      10  72  12  72
+DOOR  23  72  24  72  STATUS CLOSED LEADS TO  24
+DOOR  16  65  16  66  STATUS CLOSED LEADS TO  37
+DOOR  27  72  29  72  STATUS CLOSED LEADS TO  24
+DOOR  10  65  10  67  STATUS SECRET LEADS TO  41
+END
+ROOM  27
+WALL
+      35  32  41  32
+      41  32  41  37
+      35  37  41  37
+      35  32  35  37
+DOOR  37  37  39  37  STATUS CLOSED LEADS TO  18
+DOOR  36  32  37  32  STATUS CLOSED LEADS TO  13
+DOOR  39  32  40  32  STATUS CLOSED LEADS TO  13
+END
+ROOM  28
+WALL
+      77  39  91  39
+      91  32  91  39
+      84  32  91  32
+      84  27  84  32
+      77  21  77  39
+      91  21  91  27
+      84  27  91  27
+      77  21  91  21
+DOOR  83  39  84  39  STATUS SECRET LEADS TO  23
+END
+ROOM  29
+WALL
+      12  11  12  18
+      12  18  34  18
+      12  11  17  11
+      34  10  34  18
+      17  10  17  11
+      17  10  34  10
+DOOR  28  10  30  10  STATUS SECRET LEADS TO  21
+DOOR  12  16  12  17  STATUS SECRET LEADS TO  39
+DOOR  31  18  33  18  STATUS CLOSED LEADS TO  13
+DOOR  32  10  33  10  STATUS CLOSED LEADS TO  21
+END
+ROOM  30
+WALL
+      53  66  59  66
+      59  61  59  66
+      53  56  53  66
+      59  61  64  61
+      64  56  64  61
+      53  56  64  56
+DOOR  64  58  64  59  STATUS SECRET LEADS TO  19
+DOOR  53  57  53  58  STATUS CLOSED LEADS TO  15
+DOOR  57  66  58  66  STATUS SECRET LEADS TO  32
+END
+ROOM  31
+WALL
+       7  49   7  54
+       7  54  24  54
+       7  49  16  49
+      16  44  30  44
+      24  52  24  54
+      24  52  30  52
+      30  44  30  52
+      16  44  16  49
+DOOR  30  49  30  50  STATUS CLOSED LEADS TO  18
+DOOR   7  52   7  53  STATUS SECRET LEADS TO  35
+DOOR  25  44  27  44  STATUS CLOSED LEADS TO  18
+DOOR  20  54  21  54  STATUS SECRET LEADS TO  37
+END
+ROOM  32
+WALL
+      54  66  54  71
+      60  66  60  80
+      54  66  60  66
+      43  67  43  80
+      43  67  49  67
+      49  67  49  71
+      43  80  60  80
+      49  71  54  71
+DOOR  43  70  43  71  STATUS SECRET LEADS TO  24
+DOOR  60  72  60  74  STATUS SECRET LEADS TO  34
+DOOR  57  66  58  66  STATUS SECRET LEADS TO  30
+DOOR  60  78  60  79  STATUS CLOSED LEADS TO  34
+END
+ROOM  33
+WALL
+     110   8 120   8
+     110   8 110  16
+     110  16 120  16
+     120   8 120  16
+DOOR 115   8 117   8  STATUS CLOSED LEADS TO  17
+DOOR 114  16 116  16  STATUS SECRET LEADS TO  12
+END
+ROOM  34
+WALL
+      60  80  66  80
+      66  75  66  80
+      60  70  60  80
+      66  75  67  75
+      67  70  67  75
+      60  70  67  70
+DOOR  60  72  60  74  STATUS SECRET LEADS TO  32
+DOOR  67  72  67  73  STATUS SECRET LEADS TO  11
+DOOR  60  78  60  79  STATUS CLOSED LEADS TO  32
+END
+ROOM  35
+WALL
+       1  36   1  57
+       1  57   7  57
+       7  36  11  36
+      11  21  11  36
+       1  36   6  36
+       6  21  11  21
+       6  21   6  36
+       7  36   7  57
+DOOR   7  52   7  53  STATUS SECRET LEADS TO  31
+DOOR   4  57   5  57  STATUS SECRET LEADS TO  41
+DOOR   8  36  10  36  STATUS SECRET LEADS TO  20
+DOOR   7  39   7  41  STATUS CLOSED LEADS TO  20
+DOOR  11  34  11  35  STATUS CLOSED LEADS TO  20
+DOOR   9  21  10  21  STATUS CLOSED LEADS TO  39
+END
+ROOM  36
+WALL
+      90  68 108  68
+     108  68 108  73
+      87  73  87  80
+      90  68  90  73
+      87  73  90  73
+     105  73 108  73
+     105  73 105  80
+      87  80 105  80
+DOOR  95  68  96  68  STATUS SECRET LEADS TO   6
+DOOR  87  78  87  79  STATUS SECRET LEADS TO  38
+DOOR 106  68 107  68  STATUS SECRET LEADS TO  40
+END
+ROOM  37
+WALL
+      15  54  15  59
+      22  54  22  67
+      15  54  22  54
+      16  59  16  67
+      16  67  22  67
+      15  59  16  59
+DOOR  16  65  16  66  STATUS CLOSED LEADS TO  26
+DOOR  20  54  21  54  STATUS SECRET LEADS TO  31
+END
+ROOM  38
+WALL
+      73  80  87  80
+      87  75  87  80
+      80  75  87  75
+      73  74  73  80
+      80  74  80  75
+      73  74  80  74
+DOOR  87  78  87  79  STATUS SECRET LEADS TO  36
+DOOR  74  74  76  74  STATUS CLOSED LEADS TO  11
+END
+ROOM  39
+WALL
+       6   1   6   6
+      12   1  12  21
+       6   1  12   1
+       7  14   7  21
+       7  21  12  21
+       1   6   6   6
+       1  14   7  14
+       1   6   1  14
+DOOR  12  16  12  17  STATUS SECRET LEADS TO  29
+DOOR   9  21  10  21  STATUS CLOSED LEADS TO  35
+END
+ROOM  40
+WALL
+     114  80 120  80
+     108  70 114  70
+     103  60 103  68
+     103  68 108  68
+     108  68 108  70
+     114  70 114  80
+     120  60 120  80
+     103  60 120  60
+DOOR 106  68 107  68  STATUS SECRET LEADS TO  36
+DOOR 105  60 107  60  STATUS SECRET LEADS TO  12
+DOOR 113  60 115  60  STATUS CLOSED LEADS TO  12
+DOOR 117  60 119  60  STATUS CLOSED LEADS TO  12
+DOOR 103  61 103  62  STATUS CLOSED LEADS TO  12
+END
+ROOM  41
+WALL
+       1  57   1  70
+       6  57   6  64
+       1  57   6  57
+       1  70  10  70
+      10  64  10  70
+       6  64  10  64
+DOOR   4  57   5  57  STATUS SECRET LEADS TO  35
+DOOR  10  65  10  67  STATUS SECRET LEADS TO  26
+END
+END.

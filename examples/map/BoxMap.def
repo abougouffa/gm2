@@ -1,0 +1,66 @@
+DEFINITION MODULE BoxMap ;
+
+(*
+   Title      : BoxMap
+   Author     : Gaius Mulley
+   Date       : 18/7/88
+   LastEdit   : 18/7/88
+   System     : LOGITECH MODULA-2/86
+   Description: Generates a simple random map full of boxes.
+                Box corridors and box rooms.
+                All boxes are contained in the array Boxes and
+                1..NoOfCorridorBoxes are the corridor boxes and
+                NoOfCorridorBoxes..NoOfBoxes are the room boxes.
+*)
+
+EXPORT QUALIFIED MaxBoxes, MaxX, MaxY,
+                 MaxDoorLength, MinDoorLength,
+                 CorridorWidth, CorridorDoorLength,
+                 TotalCorridorLength, MinDistanceBetweenCorridors,
+                 MaxCorridorLength, MinCorridorLength,
+                 MaxRoomLength, MinRoomLength,
+                 MinDistanceBetweenRooms,
+                 Box,
+                 Boxes,
+                 NoOfBoxes, NoOfCorridorBoxes,
+                 CreateBoxMap ;
+
+CONST
+   MaxBoxes =  500 ;
+   MaxX     =  120 ;  (* 38 ; *)
+   MaxY     =   80 ;  (* 24 ; *)
+
+   MaxDoorLength               =   3 ;
+   MinDoorLength               =   2 ;
+   CorridorWidth               =   7 ;  (* 4 ; *)
+   CorridorDoorLength          =   CorridorWidth-2 ;
+   TotalCorridorLength         =   (MaxX*3+MaxY*3) DIV 2 ;
+   MinDistanceBetweenCorridors =   CorridorWidth ;
+   MaxCorridorLength           =  70 ;  (* 70 ; *)
+   MinCorridorLength           =  15 ;  (* 8 ; *)
+   MaxRoomLength               =  13 ;
+   MinRoomLength               =   6 ;  (* 4 ; *)
+   MinDistanceBetweenRooms     =   MinRoomLength-1 ;
+
+TYPE
+   Box    = RECORD
+               x1, y1,
+               x2, y2   : CARDINAL ;
+               RoomOfBox: CARDINAL ;
+            END ;
+
+VAR
+                      (* Box 0 is the boarder of the map.             *)
+   Boxes            : ARRAY [0..MaxBoxes] OF Box ;
+   NoOfCorridorBoxes: CARDINAL ;
+   NoOfBoxes        : CARDINAL ;
+
+
+(*
+   CreateBoxMap - builds a map with central corridors and ajoining rooms.
+*)
+
+PROCEDURE CreateBoxMap ;
+
+
+END BoxMap.

@@ -1,0 +1,55 @@
+DEFINITION MODULE Chance ;
+
+(*
+   Title      : Chance
+   Author     : Gaius Mulley
+   Date       : 19/7/88
+   LastEdit   : 19/7/88
+   System     : LOGITECH MODULA-2/86
+   Description: Provides a set of utilities for random numbers.
+*)
+
+EXPORT QUALIFIED InitRandom, KillRandom,
+                 GetAndDeleteRandom, AddRandom, GetRand ;
+
+(*
+   InitRandom - Initializes a potential list of random numbers.
+                An index to this potential random number list is returned.
+*)
+
+PROCEDURE InitRandom () : CARDINAL ;
+
+
+(*
+   KillRandom - Kills a complete list of random numbers.
+*)
+
+PROCEDURE KillRandom (RandomListIndex: CARDINAL) ;
+
+
+(*
+   GetAndDeleteRandom - Returns a random number from the
+                        list and then it is deleted.
+                        Numbers 1..n will be returned if they exist,
+                        if 0 is returned then the list is empty.
+*)
+
+PROCEDURE GetAndDeleteRandom (RandomListIndex: CARDINAL) : CARDINAL ;
+
+
+(*
+   AddRandom - places a list of numbers 1..n into the specified list.
+*)
+
+PROCEDURE AddRandom (RandomListIndex: CARDINAL; n: CARDINAL) ;
+
+
+(*
+   GetRand - returns a number between 0..n-1.
+             This routine is independant from the above routines.
+*)
+
+PROCEDURE GetRand (n: CARDINAL) : CARDINAL ;
+
+
+END Chance.

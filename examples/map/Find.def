@@ -1,0 +1,35 @@
+DEFINITION MODULE Find ;
+
+(*
+   Title      : WriteMap
+   Author     : Gaius Mulley
+   Date       : Sat Dec  7 16:04:47 gmt 1991
+   LastEdit   : Sat Dec  7 16:04:47 gmt 1991
+   System     : LOGITECH MODULA-2/86
+   Description: Works out an optimum route from a start position
+      	        to a finish position.
+*)
+
+EXPORT QUALIFIED FindOptimumRoute ;
+
+
+(*
+   FindOptimumRoute - finds the optimum route between two points,
+                      x1, y1, x2, y2. The directions are returned
+                      in a string, Commands. A boolean is returned
+                      if any commands were entered.
+*)
+
+PROCEDURE FindOptimumRoute (x1, y1, x2, y2: INTEGER;
+      	       	     	    VAR Commands: ARRAY OF CHAR) : BOOLEAN ;
+
+(*
+   IsOptimumRoutePossible - returns true if we can use the optimum
+                            route procedure to work out how to get
+      	       	     	    to position, x2, y2 from x1, y1.
+*)
+
+PROCEDURE IsOptimumRoutePossible (x1, y1, x2, y2: INTEGER) : BOOLEAN ;
+
+
+END Find.

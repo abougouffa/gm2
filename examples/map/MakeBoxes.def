@@ -1,0 +1,50 @@
+DEFINITION MODULE MakeBoxes ;
+
+(*
+   Title      : MakeBoxes
+   Author     : Gaius Mulley
+   Date       : 15/7/88
+   LastEdit   : 15/7/88
+   System     : LOGITECH MODULA-2/86
+   Description: Provides a list of all possible box sizes.
+                Any number of unique boxes may be requested and deleted.
+*)
+
+EXPORT QUALIFIED InitBoxes, KillBoxes,
+                 AddBoxes, GetAndDeleteRandomBox ;
+
+
+(*
+   InitBoxes - Initializes a list of boxes.
+               An index to this box list is returned.
+*)
+
+PROCEDURE InitBoxes () : CARDINAL ;
+
+
+(*
+   KillBoxes - Kills a complete box list.
+*)
+
+PROCEDURE KillBoxes (BoxListIndex: CARDINAL) ;
+
+
+(*
+   AddBoxes - Adds a list of boxes MinX..MaxX, MinY..MaxY
+              to a box list BoxListIndex.
+*)
+
+PROCEDURE AddBoxes (BoxListIndex: CARDINAL;
+                    MinX, MinY, MaxX, MaxY: CARDINAL) ;
+
+
+(*
+   GetAndDeleteRandomBox - Returns a random box from the box list and
+                           this box is then deleted from the list.
+*)
+
+PROCEDURE GetAndDeleteRandomBox (BoxListIndex: CARDINAL;
+                                 VAR SizeX, SizeY: CARDINAL) ;
+
+
+END MakeBoxes.

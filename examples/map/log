@@ -1,0 +1,66 @@
+gm2 -v -o map -Wbounds -Wreturn -g -I. -Wmake-I=. -Wmakeall Map.mod
+Reading specs from /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/specs
+Configured with: ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure 
+Thread model: single
+gcc version 3.0.4
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2m -Wgm2begin -Wmakeall0 -g -v -Wbounds -Wreturn -Wmake-I=. -Wmakeall -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2 -Wgm2end -o /tmp/ccOpifj3.m Map.mod
+ make -f /tmp/ccOpifj3.m
+make[1]: Entering directory `/home/gaius/GM2/gcc-3.0.4/gcc/gm2/map'
+gm2 -I. -Wmakeall0 -g -v -Wbounds -Wreturn -Wmake-I=. -Wmakeall -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2  Map.mod
+Reading specs from /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/specs
+Configured with: ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure 
+Thread model: single
+gcc version 3.0.4
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2l -I. -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2 -o /tmp/ccDJiR15.l Map.mod
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lsub /tmp/ccDJiR15.l -o /tmp/cc0XHl22.lst
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lgen /tmp/cc0XHl22.lst -o /tmp/ccdZgzUZ.c
+ gcc -v -g -c -o /tmp/ccy2qiPY.o /tmp/ccdZgzUZ.c
+Reading specs from /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/specs
+Configured with: ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure 
+Thread model: single
+gcc version 3.0.4
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/cc1 -lang-c -v -D__GNUC__=3 -D__GNUC_MINOR__=0 -D__GNUC_PATCHLEVEL__=4 -D__ELF__ -Dunix -Dlinux -D__ELF__ -D__unix__ -D__linux__ -D__unix -D__linux -Asystem=posix -D__NO_INLINE__ -D__STDC_HOSTED__=1 -Acpu=i386 -Amachine=i386 -Di386 -D__i386 -D__i386__ -D__tune_i686__ -D__tune_pentiumpro__ /tmp/ccdZgzUZ.c -quiet -dumpbase ccdZgzUZ.c -g -version -o /tmp/ccn7fmW8.s
+GNU CPP version 3.0.4 (cpplib) (i386 Linux/ELF)
+GNU C version 3.0.4 (i686-pc-linux-gnu)
+	compiled by GNU C version 2.95.2 20000220 (Debian GNU/Linux).
+ignoring nonexistent directory "NONE/include"
+ignoring nonexistent directory "/usr/local/i686-pc-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/include
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/include
+ /usr/include
+End of search list.
+ as --traditional-format -V -Qy -o /tmp/ccy2qiPY.o /tmp/ccn7fmW8.s
+GNU assembler version 2.9.5 (i386-linux) using BFD version 2.9.5.0.37
+ rm -f /tmp/ccDbcdmY.a
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lcc -I. -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2 -v -exec -ar -startup /tmp/ccy2qiPY.o -o /tmp/ccDbcdmY.a /tmp/cc0XHl22.lst
+ar rc /tmp/ccDbcdmY.a /tmp/ccy2qiPY.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/M2RTS.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/libc.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/NumberIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/ASCII.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/SYSTEM.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Debug.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/SysStorage.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StrLib.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Storage.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Strings.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/UnixArgs.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Math.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/FIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Args.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StrIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/IO.o Chance.o StoreCoords.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StdIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Assertion.o MakeBoxes.o Geometry.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Break.o BoxMap.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/DebugPMD.o RoomMap.o WriteMap.o Map.o
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/collect2 -m elf_i386 -dynamic-linker /lib/ld-linux.so.2 /usr/lib/crt1.o /usr/lib/crti.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/crtbegin.o -L/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4 -L/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/../../.. /tmp/ccDbcdmY.a -lgcc -lc -lgcc /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/crtend.o /usr/lib/crtn.o
+make[1]: Leaving directory `/home/gaius/GM2/gcc-3.0.4/gcc/gm2/map'
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2l -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2 -o /tmp/cc63GXoa.l Map.mod
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lsub /tmp/cc63GXoa.l -o /tmp/cccqP6Ei.lst
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lgen /tmp/cccqP6Ei.lst -o /tmp/ccKizWTq.c
+ gcc -v -g -c -o /tmp/cc2CPjQy.o /tmp/ccKizWTq.c
+Reading specs from /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/specs
+Configured with: ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure  : (reconfigured) ./configure 
+Thread model: single
+gcc version 3.0.4
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/cc1 -lang-c -v -D__GNUC__=3 -D__GNUC_MINOR__=0 -D__GNUC_PATCHLEVEL__=4 -D__ELF__ -Dunix -Dlinux -D__ELF__ -D__unix__ -D__linux__ -D__unix -D__linux -Asystem=posix -D__NO_INLINE__ -D__STDC_HOSTED__=1 -Acpu=i386 -Amachine=i386 -Di386 -D__i386 -D__i386__ -D__tune_i686__ -D__tune_pentiumpro__ /tmp/ccKizWTq.c -quiet -dumpbase ccKizWTq.c -g -version -o /tmp/cckpjyXh.s
+GNU CPP version 3.0.4 (cpplib) (i386 Linux/ELF)
+GNU C version 3.0.4 (i686-pc-linux-gnu)
+	compiled by GNU C version 2.95.2 20000220 (Debian GNU/Linux).
+ignoring nonexistent directory "NONE/include"
+ignoring nonexistent directory "/usr/local/i686-pc-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/local/include
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/include
+ /usr/include
+End of search list.
+ as --traditional-format -V -Qy -o /tmp/cc2CPjQy.o /tmp/cckpjyXh.s
+GNU assembler version 2.9.5 (i386-linux) using BFD version 2.9.5.0.37
+ rm -f /tmp/cc61lOfH.a
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2lcc -I.:/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2 -v -exec -ar -startup /tmp/cc2CPjQy.o -o /tmp/cc61lOfH.a /tmp/cccqP6Ei.lst
+ar rc /tmp/cc61lOfH.a /tmp/cc2CPjQy.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/M2RTS.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/libc.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/NumberIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/ASCII.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/SYSTEM.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Debug.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/SysStorage.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StrLib.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Storage.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Strings.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/UnixArgs.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Math.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/FIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Args.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StrIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/IO.o Chance.o StoreCoords.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/StdIO.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Assertion.o MakeBoxes.o Geometry.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/Break.o BoxMap.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/gm2/DebugPMD.o RoomMap.o WriteMap.o Map.o
+ /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/collect2 -m elf_i386 -dynamic-linker /lib/ld-linux.so.2 -o map /usr/lib/crt1.o /usr/lib/crti.o /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/crtbegin.o -L/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4 -L/usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/../../.. /tmp/cc61lOfH.a -lgcc -lc -lgcc /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.0.4/crtend.o /usr/lib/crtn.o

@@ -1,0 +1,22 @@
+DEFINITION MODULE WriteMap ;
+
+(*
+   Title      : WriteMap
+   Author     : Gaius Mulley
+   Date       : 22/8/88
+   LastEdit   : 22/8/88
+   System     : LOGITECH MODULA-2/86
+   Description: Writes an ASCII description of the map.
+*)
+
+EXPORT QUALIFIED WriteMapText ;
+
+
+(*
+   WriteMapText - writes out the map in textual form.
+*)
+
+PROCEDURE WriteMapText ;
+
+
+END WriteMap.
