@@ -1,0 +1,26 @@
+# 
+# Initialization order
+# 
+M2RTS
+StrLib
+libc
+IO
+StdIO
+Debug
+SysStorage
+Storage
+StrIO
+Strings
+NameKey
+NumberIO
+Math
+PushBackInput
+SymbolKey
+UnixArgs
+FIO
+StrCase
+bnflex
+Lists
+Args
+ppg
+mod_init
