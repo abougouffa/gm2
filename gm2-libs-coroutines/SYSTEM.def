@@ -1,0 +1,99 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+DEFINITION MODULE SYSTEM ;
+
+(*
+   Author     : Gaius Mulley
+   Title      : SYSTEM
+   Description: Implements the SYSTEM dependent module
+                in the Modula-2 compiler. This module is designed
+                to be used on a native operating system rather than
+                an embedded system as it implements the coroutine
+                primitives TRANSFER, IOTRANSFER and
+                NEWPROCESS through the GNU Pthread library.
+*)
+
+
+EXPORT QUALIFIED (* the following are built into the compiler: *)
+                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE,
+
+                 (* and the rest are implemented in SYSTEM.mod *)
+                 PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,
+                 LISTEN ;
+
+
+TYPE
+   PROCESS ;
+
+
+(*
+   TRANSFER - save the current volatile environment into, p1.
+              Restore the volatile environment from, p2.
+*)
+
+PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
+
+
+(*
+   NEWPROCESS - p is a parameterless procedure, a, is the origin of
+                the workspace used for the process stack and containing
+                the volatile environment of the process. n, is the amount
+                in bytes of this workspace. new, is the new process.
+*)
+
+PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
+
+
+(*
+   IOTRANSFER - saves the current volatile environment into, First,
+                and restores volatile environment, Second.
+                When an interrupt, InterruptNo, is encountered then
+                the reverse takes place. (The then current volatile
+                environment is shelved onto Second and First is resumed).
+
+                NOTE: that upon interrupt the Second might not be the
+                      same process as that before the original call to
+                      IOTRANSFER.
+*)
+
+PROCEDURE IOTRANSFER (VAR First, Second: PROCESS; InterruptNo: CARDINAL) ;
+
+
+(*
+   LISTEN - briefly listen for any interrupts.
+*)
+
+PROCEDURE LISTEN ;
+
+
+END SYSTEM.

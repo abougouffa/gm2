@@ -1,0 +1,65 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE FOR "C" libpthread ;
+
+(*
+    Title      : libpthread
+    Author     : Gaius Mulley
+    System     : UNIX (GNU Modula-2)
+    Date       : Mon Mar 18 09:19:45 2002
+    Last edit  : $Date: 2002/05/03 21:24:31 $
+    Revision   : $Version$ 
+    Description: provides a set of language bindings into the GNU Pthread library.
+*)
+
+EXPORT UNQUALIFIED pth_init, pth_kill, pth_version, pth_ctrl,
+                   pth_yield, pth_nap, pth_wait, pth_cancel, pth_abort,
+                   pth_join, pth_exit, pth_raise, pth_resume, pth_suspend,
+                   pth_self, pth_once, pth_spawn ;
+
+TYPE
+   Query     = (PTH_CTRL_GETTHREADS,
+                PTH_CTRL_GETAVLOAD,
+                PTH_CTRL_GETPRIO,
+                PTH_CTRL_GETNAME,
+                PTH_CTRL_DUMPSTATE) ;
+
+   Attribute = (PTH_ATTR_PRIO,
+                PTH_ATTR_NAME,
+                PTH_ATTR_JOINABLE,
+                PTH_ATTR_CANCEL_STATE,
+                PTH_ATTR_STACK_SIZE,
+                PTH_ATTR_STACK_ADDR,
+                PTH_ATTR_TIME_SPAWN,
+                PTH_ATTR_TIME_LAST,
+                PTH_ATTR_TIME_RAN,
+                PTH_ATTR_START_FUNC,
+                PTH_ATTR_START_ARG,
+                PTH_ATTR_STATE,
+                PTH_ATTR_EVENTS,
+                PTH_ATTR_BOUND) ;
+
+
+PROCEDURE pth_init () : INTEGER ;
+PROCEDURE pth_kill () : INTEGER ;
+PROCEDURE pth_ctrl (query: CARDINAL; ...) : INTEGER ;
+PROCEDURE pth_version () : INTEGER ;
+PROCEDURE pth_attr_set (attr: Attribute; field: WORD; ...) : INTEGER ;
+PROCEDURE pth_attr_get (attr: Attribute; VAR field: WORD) : INTEGER ;
+
+END libpthread.
