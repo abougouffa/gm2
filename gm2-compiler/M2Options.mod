@@ -210,6 +210,10 @@ BEGIN
    THEN
       (* gcc passes this to us, we ignore it *)
       Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-m')
+   THEN
+      (* if gcc passes architectural flags to us, we ignore it *)
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wmakeall') OR EqualArray(s, '-Wmakeall0') OR
          EqualArray(Mark(Slice(s, 0, 9)), '-Wmake-I=')
    THEN

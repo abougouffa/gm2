@@ -120,7 +120,7 @@ gm2.install-common: installdirs $(GM2_LIB_DIR)
             chmod a+x $(libsubdir)/$$i$(exeext); \
         done
 	for i in gm2/gm2-libs/* ; do \
-           if [ ! -d $i ] ; then \
+           if [ ! -d $$i ] ; then \
               rm -f $(GM2_LIB_DIR)/$$i ; \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR) ; \
            fi ; \

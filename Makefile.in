@@ -40,6 +40,13 @@
 
 QUIAT=@
 
+# How to invoke ranlib.
+RANLIB = ranlib
+# Test to use to see whether ranlib exists on the system.
+RANLIB_TEST = \
+  [ -f $(RANLIB) ] \
+  || [ -f /usr/bin/ranlib -o -f /bin/ranlib ]
+
 # Various ways of specifying flags for compilations:  
 # CFLAGS is for the user to override to, e.g., do a bootstrap with -O2.
 # BOOT_CFLAGS is the value of CFLAGS to pass
@@ -383,8 +390,8 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Quads.mod       M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
-                     SymbolKey.mod     SymbolTable.mod gm2l.mod        gm2lcc.mod      \
-                     gm2lgen.mod       gm2lsub.mod     gm2m.mod        M2Error.mod     \
+                     SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
+                     gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
                      M2Math.mod        M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
@@ -516,6 +523,7 @@ build-compiler: $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
 gm2-libs/libgm2.a: build-libs
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
                     $(GM2-LIBS-C:%.c=gm2-libs/%.o)
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2-compiler/gm2.a: build-compiler
 	$(M2LINK) -s -exit -main gccgm2front init/gm2-gccinit
@@ -525,6 +533,7 @@ gm2-compiler/gm2.a: build-compiler
                     gm2-compiler/M2Version.o \
                     $(GM2-AUTO-MODS:%.mod=gm2-compiler/%.o) \
                     gm2-compiler/m2lex.o
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2-libs-boot/%.h) \
                   $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
@@ -541,6 +550,7 @@ BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
 gm2-libs-boot/libgm2.a: boot-bin/p2c $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2-libs-boot/%.o) \
                     $(GM2-LIBS-BOOT-C:%.c=gm2-libs-boot/%.o)
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2-compiler-boot/gm2.a: boot-bin/p2c boot-bin/mklink \
                          $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
@@ -552,6 +562,7 @@ gm2-compiler-boot/gm2.a: boot-bin/p2c boot-bin/mklink \
                     $(GM2-COMP-BOOT-MODS:%.mod=gm2-compiler-boot/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2-compiler-boot/%.o) \
                     gm2-compiler-boot/M2Version.o
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2-compiler-boot:
 	../$(srcdir)/tools-src/makeversion $(GM2-VERSION)a
@@ -561,6 +572,7 @@ gm2-compiler-boot/gm2.a: boot-bin/p2c
 p2c/p2c-src/home/libp2c.a:
 	( M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; cd p2c/p2c-src ; \
           $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/boot-bin" COPY="cp" all )
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 boot-bin/p2c:
 	( M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; cd p2c/p2c-src ; \
@@ -623,6 +635,7 @@ gm2-libs-paranoid/libgm2.a: $(GM2-LIBS-MODS:%.mod=gm2-libs-paranoid/%.o) \
 	                    $(GM2-LIBS-C:%.c=gm2-libs-paranoid/%.o)
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2-libs-paranoid/%.o) \
                     $(GM2-LIBS-C:%.c=gm2-libs-paranoid/%.o)
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2-compiler-paranoid/gm2.a: gm2-compiler-paranoid/mod_init.o \
                              $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
@@ -634,6 +647,7 @@ gm2-compiler-paranoid/gm2.a: gm2-compiler-paranoid/mod_init.o \
                     $(GM2-AUTO-MODS:%.mod=gm2-compiler-paranoid/%.o) \
                     gm2-compiler-paranoid/M2Version.o \
                     gm2-compiler-paranoid/m2lex.o
+	if $(RANLIB_TEST) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2-compiler-paranoid/mod_init.o: init/gm2-gccinit
 	$(M2LINK) -s -exit -main gccgm2front init/gm2-gccinit
