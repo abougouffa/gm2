@@ -1114,7 +1114,7 @@ END NotEqu ;
 PROCEDURE Less (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
-   result: INTEGER ;
+   result: BOOLEAN ;
 BEGIN
    v1 := Pop() ;
    v2 := Pop() ;
@@ -1126,11 +1126,11 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := CompareTrees(v2^.numberValue, v1^.numberValue)
+      result := (CompareTrees(v2^.numberValue, v1^.numberValue)=-1)
    END ;
    Dispose(v1) ;
    Dispose(v2) ;
-   RETURN( result=-1 )
+   RETURN( result )
 END Less ;
 
 
@@ -1154,7 +1154,7 @@ END Less ;
 PROCEDURE Gre (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
-   result: INTEGER ;
+   result: BOOLEAN ;
 BEGIN
    v1 := Pop() ;
    v2 := Pop() ;
@@ -1166,11 +1166,11 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := CompareTrees(v2^.numberValue, v1^.numberValue)
+      result := (CompareTrees(v2^.numberValue, v1^.numberValue)=1)
    END ;
    Dispose(v1) ;
    Dispose(v2) ;
-   RETURN( result=1 )
+   RETURN( result )
 END Gre ;
 
 
@@ -1208,7 +1208,7 @@ END IsSubset ;
 PROCEDURE LessEqu (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
-   result: INTEGER ;
+   result: BOOLEAN ;
 BEGIN
    v1 := Pop() ;
    v2 := Pop() ;
@@ -1220,11 +1220,11 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := CompareTrees(v2^.numberValue, v1^.numberValue)
+      result := (CompareTrees(v2^.numberValue, v1^.numberValue)<=0)
    END ;
    Dispose(v1) ;
    Dispose(v2) ;
-   RETURN( result<=0 )
+   RETURN( result )
 END LessEqu ;
 
 
@@ -1263,7 +1263,7 @@ END IsSuperset ;
 PROCEDURE GreEqu (tokenno: CARDINAL) : BOOLEAN ;
 VAR
    v1, v2: PtrToValue ;
-   result: INTEGER ;
+   result: BOOLEAN ;
 BEGIN
    v1 := Pop() ;
    v2 := Pop() ;
@@ -1275,11 +1275,11 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := CompareTrees(v2^.numberValue, v1^.numberValue)
+      result := (CompareTrees(v2^.numberValue, v1^.numberValue)>=0)
    END ;
    Dispose(v1) ;
    Dispose(v2) ;
-   RETURN( result>=0 )
+   RETURN( result )
 END GreEqu ;
 
 

@@ -372,6 +372,7 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    CurrentQuadToken := QuadToTokenNo(CurrentQuad) ;
    CheckReferenced(CurrentQuad, Operator) ;
+   CheckStop(CurrentQuad) ;
 
    CASE Operator OF
 
@@ -1083,7 +1084,6 @@ VAR
    tree    : Tree ;
 BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
-   CheckStop(CurrentQuad) ;
 
    IF GetType(Operand3)=NulSym
    THEN
@@ -1227,7 +1227,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=6905
+   IF q=501
    THEN
       stop
    END

@@ -3940,6 +3940,13 @@ BEGIN
             ELSIF IsConstString(OperandT(pi))
             THEN
                f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
+            ELSIF GetMode(OperandT(pi))=LeftValue
+            THEN
+               (* must dereference LeftValue (even if we are passing variable as a vararg) *)
+               t := MakeTemporary(RightValue) ;
+               PutVar(t, GetType(OperandT(pi))) ;
+               GenQuad(IndrXOp, t, GetType(OperandT(pi)), OperandT(pi)) ;
+               f^.TrueExit := t
             END
          ELSE
             WriteFormat1('parameter not expected for procedure %a', GetSymName(Proc))

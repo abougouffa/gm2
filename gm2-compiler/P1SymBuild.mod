@@ -23,6 +23,7 @@ FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetFileName ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
 FROM Strings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
+FROM M2Printf IMPORT printf1 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -535,6 +536,7 @@ PROCEDURE CheckExplicitExportQualified ;
 BEGIN
    IF CompilingDefinitionModule() AND DoesNotNeedExportList(GetCurrentModule())
    THEN
+      (* printf1('exporting identifier %a\n', OperandT(1)) ; *)
       PutExportQualified(OperandT(1))
    END
 END CheckExplicitExportQualified ;

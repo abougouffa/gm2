@@ -331,6 +331,25 @@ END Ident ;
 
 
 (*
+   PossiblyExportIdent - error checking varient of Ident which also checks to see if
+                         this ident should be explicitly exported.
+*)
+
+PROCEDURE PossiblyExportIdent (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+VAR
+   nothing: CARDINAL ;
+BEGIN
+   PushTF(currentstring, identtok) ;
+   CheckExplicitExportQualified ;
+   IF NOT IsAutoPushOn()
+   THEN
+      PopT(nothing)
+   END ;
+   Expect(identtok, stopset0, stopset1, stopset2)
+END PossiblyExportIdent ;
+
+
+(*
    string -
 *)
 
@@ -461,10 +480,11 @@ token   'identifier'     identtok
 token   'real number'    realtok
 token   'string'         stringtok
 
-special Ident             first { < identtok > } follow { }
-special Integer           first { < integertok > } follow { }
-special Real              first { < realtok > } follow { }
-special string            first { < stringtok > } follow { }
+special PossiblyExportIdent  first { < identtok > } follow { }
+special Ident                first { < identtok > } follow { }
+special Integer              first { < integertok > } follow { }
+special Real                 first { < realtok > } follow { }
+special string               first { < stringtok > } follow { }
 
 BNF
 
@@ -516,7 +536,7 @@ Number := Integer | Real =:
 
 Qualident := Ident { "." Ident } =:
 
-ConstantDeclaration := Ident                                               % CheckExplicitExportQualified %
+ConstantDeclaration := PossiblyExportIdent
                              "=" ConstExpression =:
 
 ConstExpression :=                                                         % PushAutoOff %
@@ -643,18 +663,16 @@ VariableDeclaration :=
                          Type )
                     =:
 
-VarIdentList := Ident                                                      % VAR
+VarIdentList := PossiblyExportIdent                                        % VAR
                                                                                 on: BOOLEAN ;
                                                                                 n : CARDINAL ; %
                                                                            % on := IsAutoPushOn() ;
                                                                              IF on
                                                                              THEN
-                                                                                CheckExplicitExportQualified ;
                                                                                 n := 1
                                                                              END %
-             { "," Ident                                                   % IF on
+             { "," PossiblyExportIdent                                     % IF on
                                                                              THEN
-                                                                                CheckExplicitExportQualified ;
                                                                                 INC(n)
                                                                              END %
              }                                                             % IF on
@@ -736,8 +754,7 @@ ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock              % Pus
                       =:
 
 ProcedureHeading := "PROCEDURE"                                            % PushAutoOn %
-                     ( Ident
-                                                                           % StartBuildProcedure %
+                     ( PossiblyExportIdent                                 % StartBuildProcedure %
                                                                            % PushAutoOff %
                        [ FormalParameters ]
                                                                            % PopAuto %
@@ -810,7 +827,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
 
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"                                                       % PushAutoOn %
-                    { Ident                                                % CheckExplicitExportQualified %
+                    { PossiblyExportIdent
                             ( ";"                                          % BuildHiddenType %
                                   | "=" Type ";" ) }                       % PopAuto %
               |
