@@ -178,6 +178,9 @@ pointers
 @item
 front end @samp{gm2} can now compile and link modules.
 
+@item  
+basic procedure calls
+
 @end itemize
 
 Nearly all the to do work is concerned with interfacing m2f with
@@ -194,11 +197,17 @@ What needs to be done:
 
 @itemize @bullet
 
-@item  
-procedure calls
+@item
+complex procedure parameters (unbounded arrays, strings)
+and nested procedures
 
 @item
-identifier declaration is wrong (it treats temporaries as real variables).
+migrate from p2c-1.20 to p2c-1.22 taking Modula-2 p2c-1.20
+modifications. Hopefully this will fix all C compiler
+warnings when gcc compiles with -Wall.
+
+@item
+utilize GNU autoconf rather than the makeconfigure script.
 
 @item
 block becomes

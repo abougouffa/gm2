@@ -44,22 +44,23 @@ Building GNU Modula-2
 =====================
 
 To build gm2 type:
-   cd egcs-version ; ./configure ; make info ; make dvi ; make c xgcc
-   cd gcc ; make gm2
+   cd egcs-version ; ./configure ; make info ; make dvi
+   (ignore any error associated with making java.dvi..)
+   cd gcc ; make c xgcc gm2
 
 A simple test
 =============
 
 you should be able to perform:
 
-   ./xgm2 -B./x -S -g -c -Igm2/m2/comp/libs -Igm2 gm2/foo.mod
+   ./xgm2 -B./x -S -g -c -Igm2/m2/comp/libs -Igm2/m2/comp/autotest/gm2 gm2/m2/comp/autotest/gm2/foo.mod
 
 Building m2f
 ============
 
 To build the original m2f without gcc codegenerator type:
 
-   cd egcs-version/gcc/m2/comp ; make clean reconfig ; make all
+   cd egcs-version/gcc/gm2/m2/comp ; make clean reconfig ; make all
 
 Note that you have to be on a [3456]86 Linux box to do this.
 It will generate a [34]86 & 586 codegenerator and an x86 tiny
