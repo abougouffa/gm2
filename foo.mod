@@ -48,7 +48,9 @@ TYPE
    bar = CARDINAL ;
 VAR
    z      : bar ;
+*)
    i, j, k: INTEGER ;
+(*
    c      : colours ;
    b      : BOOLEAN ;
 *)
@@ -65,6 +67,7 @@ END dummy ;
 
 
 BEGIN
-   card := dummy('a', card)
-(*   i := j+k *)
+   (* card := dummy('a', card) *)
+   i := 100
+   (* i := j+k *)
 END foo.

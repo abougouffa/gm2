@@ -40,8 +40,9 @@ enum decl_context
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
 	    A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
 	    A_UNUSED, A_FORMAT, A_FORMAT_ARG, A_WEAK, A_ALIAS};
-
+#if 0
 static void declare_hidden_char_array	PROTO((char *, char *));
+#endif
 static void add_attribute		PROTO((enum attrs, char *,
 					       int, int, int));
 static void init_attributes		PROTO((void));
@@ -253,8 +254,9 @@ static tree last_function=NULL_TREE;
 
 static tree qualify_type		PROTO ((tree, tree));
 static tree build_c_type_variant        PROTO ((tree, int, int));
+#if 0
 static int  type_lists_compatible_p     PROTO ((tree, tree));
-
+#endif
 
 
 /* Nonzero means allow type mismatches in conditional expressions;
@@ -658,6 +660,7 @@ static struct binding_level clear_binding_level
   = {NULL, NULL, NULL, NULL, NULL, NULL_BINDING_LEVEL, 0, 0, 0, 0, 0, 0,
      NULL};
 
+#if 0
 /* Nonzero means unconditionally make a BLOCK for the next level pushed.  */
 
 static int keep_next_level_flag;
@@ -674,7 +677,7 @@ static int keep_next_if_subblocks;
    a label binding level outside the current one.  */
 
 static struct binding_level *label_level_chain;
-
+#endif
 
 /* Return non-zero if we are currently in the global binding level.  */
 
@@ -2476,7 +2479,9 @@ struct spelling
 
 static struct spelling *spelling;	/* Next stack element (unused).  */
 static struct spelling *spelling_base;	/* Spelling stack base.  */
+#if 0
 static int spelling_size;		/* Size of the spelling stack.  */
+#endif
 
 /* Macros to save and restore the spelling stack around push_... functions.
    Alternative to SAVE_SPELLING_STACK.  */
@@ -2518,6 +2523,7 @@ static int spelling_size;		/* Size of the spelling stack.  */
   spelling++;								\
 }
 
+#if 0
 /* Push STRING on the stack.  Printed literally.  */
 
 static void
@@ -2547,6 +2553,7 @@ push_array_bounds (bounds)
 {
   PUSH_SPELLING (SPELLING_BOUNDS, bounds, u.i);
 }
+#endif
 
 /* Compute the maximum size in bytes of the printed spelling.  */
 
@@ -2587,7 +2594,7 @@ print_spelling (buffer)
       {
 	if (p->kind == SPELLING_MEMBER)
 	  *d++ = '.';
-	for (s = p->u.s; *d = *s++; d++)
+	for (s = p->u.s; (*d = *s++); d++)
 	  ;
       }
   *d++ = '\0';
@@ -3619,6 +3626,7 @@ comp_target_types (ttl, ttr)
 
 /* Subroutines of `comptypes'.  */
 
+#if 0
 /* Return 1 if two function types F1 and F2 are compatible.
    If either type specifies no argument types,
    the other must specify a fixed number of self-promoting arg types.
@@ -3729,6 +3737,7 @@ type_lists_compatible_p (args1, args2)
       args2 = TREE_CHAIN (args2);
     }
 }
+#endif
 
 /* Print a warning using MSG.
    It gets OPNAME as its one parameter.
@@ -4460,6 +4469,7 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 }
 
 
+#if 0
 /* Return a tree for the sum or difference (RESULTCODE says which)
    of pointer PTROP and integer INTOP.  */
 
@@ -4592,7 +4602,7 @@ pointer_diff (op0, op1)
     TREE_CONSTANT (folded) = TREE_CONSTANT (op0) & TREE_CONSTANT (op1);
   return folded;
 }
-
+#endif
 
 /* Do `exp = require_complete_type (exp);' to make sure exp
    does not have an incomplete type.  (That includes void types.)  */
@@ -6984,6 +6994,25 @@ init_attributes ()
   add_attribute (A_ALIAS, "alias", 1, 1, 1);
 }
 
+/* Default implementation of valid_lang_attribute, below.  By default, there
+   are no language-specific attributes.  */
+
+static int
+default_valid_lang_attribute (attr_name, attr_args, decl, type)
+  tree attr_name ATTRIBUTE_UNUSED;
+  tree attr_args ATTRIBUTE_UNUSED;
+  tree decl ATTRIBUTE_UNUSED;
+  tree type ATTRIBUTE_UNUSED;
+{
+  return 0;
+}
+
+/* Return a 1 if ATTR_NAME and ATTR_ARGS denote a valid language-specific
+   attribute for either declaration DECL or type TYPE and 0 otherwise.  */
+
+int (*valid_lang_attribute) PROTO ((tree, tree, tree, tree))
+     = default_valid_lang_attribute;
+
 /* Process the attributes listed in ATTRIBUTES and PREFIX_ATTRIBUTES
    and install them in NODE, which is either a DECL (including a TYPE_DECL)
    or a TYPE.  PREFIX_ATTRIBUTES can appear after the declaration specifiers
@@ -6993,8 +7022,8 @@ void
 decl_attributes (node, attributes, prefix_attributes)
      tree node, attributes, prefix_attributes;
 {
-  tree decl = 0, type;
-  int is_type;
+  tree decl = 0, type = 0;
+  int is_type = 0;
   tree a;
 
   if (attrtab_idx == 0)
@@ -7024,7 +7053,8 @@ decl_attributes (node, attributes, prefix_attributes)
 
       if (i == attrtab_idx)
 	{
-	  if (! valid_machine_attribute (name, args, decl, type))
+	  if (! valid_machine_attribute (name, args, decl, type)
+	      && ! (* valid_lang_attribute) (name, args, decl, type))
 	    warning ("`%s' attribute directive ignored",
 		     IDENTIFIER_POINTER (name));
 	  else if (decl != 0)
@@ -7078,7 +7108,7 @@ decl_attributes (node, attributes, prefix_attributes)
 	    TREE_THIS_VOLATILE (decl) = 1;
 	  else if (TREE_CODE (type) == POINTER_TYPE
 		   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
-	    TREE_TYPE (decl) = type 
+	    TREE_TYPE (decl) = type
 	      = build_pointer_type
 		(build_type_variant (TREE_TYPE (type),
 				     TREE_READONLY (TREE_TYPE (type)), 1));
@@ -7086,12 +7116,21 @@ decl_attributes (node, attributes, prefix_attributes)
 	    warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
 	  break;
 
+#if NOT_NEEDED_IN_M2
+	case A_MALLOC:
+	  if (TREE_CODE (decl) == FUNCTION_DECL)
+	    DECL_IS_MALLOC (decl) = 1;
+	  else
+	    warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
+	  break;
+#endif
 	case A_UNUSED:
 	  if (is_type)
 	    TREE_USED (type) = 1;
-	  else if (TREE_CODE (decl) == PARM_DECL 
+	  else if (TREE_CODE (decl) == PARM_DECL
 		   || TREE_CODE (decl) == VAR_DECL
-		   || TREE_CODE (decl) == FUNCTION_DECL)
+		   || TREE_CODE (decl) == FUNCTION_DECL
+		   || TREE_CODE (decl) == LABEL_DECL)
 	    TREE_USED (decl) = 1;
 	  else
 	    warning ("`%s' attribute ignored", IDENTIFIER_POINTER (name));
@@ -7155,7 +7194,7 @@ decl_attributes (node, attributes, prefix_attributes)
 	  else
 	    {
 	      int j;
-	      char *p = IDENTIFIER_POINTER (TREE_VALUE (args));
+	      const char *p = IDENTIFIER_POINTER (TREE_VALUE (args));
 	      int len = strlen (p);
 	      enum machine_mode mode = VOIDmode;
 	      tree typefm;
@@ -7203,7 +7242,7 @@ decl_attributes (node, attributes, prefix_attributes)
 	       || TREE_CODE (decl) == VAR_DECL)
 	      && TREE_CODE (TREE_VALUE (args)) == STRING_CST)
 	    {
-	      if (TREE_CODE (decl) == VAR_DECL 
+	      if (TREE_CODE (decl) == VAR_DECL
 		  && current_function_decl != NULL_TREE
 		  && ! TREE_STATIC (decl))
 		error_with_decl (decl,
@@ -7605,7 +7644,7 @@ tree
 gccgm2_BuildEndEnumeration (enumtype)
      tree enumtype;
 {
-  tree finished = finish_enum(enumtype, enumvalues, NULL_TREE);
+  tree finished ATTRIBUTE_UNUSED = finish_enum(enumtype, enumvalues, NULL_TREE);
   enumvalues = NULL_TREE;
   return( enumtype );
 }
@@ -7726,7 +7765,7 @@ tree
 gccgm2_BuildParameterDeclaration (name, type, isreference)
      char *name;
      tree  type;
-     int   isreference;
+     int   isreference ATTRIBUTE_UNUSED;
 {
   tree parm_decl;
 
@@ -8260,7 +8299,7 @@ gccgm2_BuildProcedureCall (procedure, rettype)
  *  BuildFunctValue - generates code for value := funct(foobar);
  */
 
-tree
+void
 gccgm2_BuildFunctValue (value)
      tree value;
 {
@@ -8858,6 +8897,7 @@ layout_array_type (t)
 }
 
 
+#if 0
 static char *
 get_name_from_decl (declarator)
      tree declarator;
@@ -8890,7 +8930,6 @@ get_name_from_decl (declarator)
   return( name );
 }
 
-#if 0
 /* for modula-2 it is simpler to inline the single useful statement in BuildFieldRecord */
 static tree
 build_field(declarator)
