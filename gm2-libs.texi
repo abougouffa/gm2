@@ -264,6 +264,12 @@ PROCEDURE __BUILTIN__ strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE __BUILTIN__ strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex strrchr
 PROCEDURE __BUILTIN__ strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+@findex huge_val
+PROCEDURE __BUILTIN__ huge_val (r: REAL) : REAL ;
+@findex huge_valf
+PROCEDURE __BUILTIN__ huge_valf (s: SHORTREAL) : SHORTREAL ;
+@findex huge_vall
+PROCEDURE __BUILTIN__ huge_vall (l: LONGREAL) : LONGREAL ;
 
 END Builtins.
 @end example
@@ -3550,25 +3556,49 @@ END Terminal.
 @section PIM coroutine support
 
 
-This directory contains a PIM SYSTEM containing the PROCESS primitives
-built on top of GNU Pthreads.
+This directory contains a PIM @code{SYSTEM} containing the
+@code{PROCESS} primitives built on top of GNU Pthreads.
 
-The justification for this approach is that is provides a SYSTEM
-compatible with Programming in Modula-2 [234] and the Logitech 3.0
-compiler. It also allows higher level executives to be ported onto GM2
-with little effort. The disadvantage with this approach is that
-IOTRANSFER is not preemptive. IOTRANSFER will only context switch when
-a call to LISTEN is made. In practice this limitation can be tolerated
-as long as processes perform IO (or wait for a timer interrupt) the
-idle process (in an executive) will call LISTEN and all should
-work. But nevertheless a LOOP END will starve all other
-processes. However the great advantage is that GNU Modula-2 can offer
-users the ability to use IOTRANSFER, TRANSFER, NEWPROCESS in user
-space on a multi-user operating system.
+The justification for this approach is that it provides a
+@code{SYSTEM} compatible with Programming in Modula-2 [234] and the
+Logitech 3.0 compiler. It also allows higher level executives to be
+ported onto GM2 with little effort. The disadvantage with this
+approach is that @code{IOTRANSFER} is not
+preemptive. @code{IOTRANSFER} will only context switch when a call to
+@code{LISTEN} is made or a call to @code{SYSTEM.TurnInterrupts} is
+made.
 
-See the @file{examples/executive} directory for an executive and
-timerhandler modules which provide higher level process creation,
-synchronisation and interrupt handling routines.
+In practice this limitation can be tolerated as long as processes
+perform IO at some point (or wait for a timer interrupt) or call
+@code{SYSTEM.TurnInterrupts}. But nevertheless a @code{LOOP}
+@code{END} will starve all other processes. However the great
+advantage is that GNU Modula-2 can offer users the ability to use
+@code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space
+and on a multi-user operating system.
+
+The GNU Modula-2 @code{SYSTEM} works by utilizing the user context
+switching mechanism provided by GNU Pthreads. @code{NEWPROCESS}
+creates a new context, @code{TRANSFER} switches
+contexts. @code{IOTRANSFER} is more complex. There is a support module
+@code{SysVec} which provides pseudo interrupt vectors. These can
+either be created from input/output file descriptors and also timer
+events @code{timeval}. This vector is then passed to @code{IOTRANSFER}
+which keeps track of which file desriptors and timevals are
+active. When a call to @code{TurnInterrupts} or @code{LISTEN} is made
+the sub system calls @code{pth_select} and tests for any ready file
+descriptor or timeout. A ready file descriptor or timeout will
+ultimately cause the backwards @code{TRANSFER} inside
+@code{IOTRANSFER} to take effect.
+
+See the @file{gm2/examples/executive} directory for an executive and
+timerhandler module which provide higher level process creation,
+synchronisation and interrupt handling routines. These libraries have
+been tested with the examples shown in @file{gm2/examples/executive}
+and @file{gm2/gm2-libs-coroutines}.
+
+Users of these libraries and the libraries in
+@file{gm2/examples/executive} must link their application against the
+GNU Pthread library (typically by using @code{-lpth}).
 @menu
 * gm2-libs-coroutines/SYSTEM::SYSTEM.def
 * gm2-libs-coroutines/SysVec::SysVec.def
