@@ -6,7 +6,7 @@ CONST
   pi   = 3.1415926535897932384626433832795028841972;
   exp1 = 2.7182818284590452353602874713526624977572;
 
-PROCEDURE sqrt (x: REAL): REAL;
+PROCEDURE __BUILTIN__ sqrt (x: REAL): REAL;
   (* Returns the positive square root of x *)
 
 PROCEDURE exp (x: REAL): REAL;
@@ -17,13 +17,13 @@ PROCEDURE ln (x: REAL): REAL;
 
   (* The angle in all trigonometric functions is measured in radians *)
 
-PROCEDURE sin (x: REAL): REAL;
+PROCEDURE __BUILTIN__ sin (x: REAL): REAL;
   (* Returns the sine of x *)
 
-PROCEDURE cos (x: REAL): REAL;
+PROCEDURE __BUILTIN__ cos (x: REAL): REAL;
   (* Returns the cosine of x *)
 
-PROCEDURE tan (x: REAL): REAL;
+PROCEDURE __BUILTIN__ tan (x: REAL): REAL;
   (* Returns the tangent of x *)
 
 PROCEDURE arcsin (x: REAL): REAL;

@@ -19,19 +19,19 @@ IMPLEMENTATION MODULE Builtins ;
 
 IMPORT cbuiltin ;
 
-
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_alloca)) alloca (i: CARDINAL) : ADDRESS ;
 BEGIN
-   (* hopefully the compiler will choose to use the __builtin_alloca function within GCC.
-      This call is here just in case it cannot. Ie if the user sets a procedure variable to
-      alloca, then clearly the compiler cannot inline such a call and thus it will
-      be forced into calling this function.
-   *)
-   RETURN cbuiltin.alloca (i)
+   HALT ;  (* not allowed to call alloca yet, it can only be expanded as a built-in *)
+   RETURN NIL
 END alloca ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_memcpy)) memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
 BEGIN
+   (* hopefully the compiler will choose to use the __builtin_memcpy function within GCC.
+      This call is here just in case it cannot. Ie if the user sets a procedure variable to
+      memcpy, then clearly the compiler cannot inline such a call and thus it will
+      be forced into calling this function.
+   *)
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;
 

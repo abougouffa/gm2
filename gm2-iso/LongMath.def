@@ -9,10 +9,10 @@ CONST
 PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
   (* Returns the positive square root of x *)
 
-PROCEDURE __BUILTIN__ exp (x: LONGREAL): LONGREAL;
+PROCEDURE exp (x: LONGREAL): LONGREAL;
   (* Returns the exponential of x *)
 
-PROCEDURE __BUILTIN__ ln (x: LONGREAL): LONGREAL;
+PROCEDURE ln (x: LONGREAL): LONGREAL;
   (* Returns the natural logarithm of x *)
 
   (* The angle in all trigonometric functions is measured in radians *)
@@ -26,19 +26,19 @@ PROCEDURE __BUILTIN__ cos (x: LONGREAL): LONGREAL;
 PROCEDURE __BUILTIN__ tan (x: LONGREAL): LONGREAL;
   (* Returns the tangent of x *)
 
-PROCEDURE __BUILTIN__ arcsin (x: LONGREAL): LONGREAL;
+PROCEDURE arcsin (x: LONGREAL): LONGREAL;
   (* Returns the arcsine of x *)
 
-PROCEDURE __BUILTIN__ arccos (x: LONGREAL): LONGREAL;
+PROCEDURE arccos (x: LONGREAL): LONGREAL;
   (* Returns the arccosine of x *)
 
-PROCEDURE __BUILTIN__ arctan (x: LONGREAL): LONGREAL;
+PROCEDURE arctan (x: LONGREAL): LONGREAL;
   (* Returns the arctangent of x *)
 
-PROCEDURE __BUILTIN__ power (base, exponent: LONGREAL): LONGREAL;
+PROCEDURE power (base, exponent: LONGREAL): LONGREAL;
   (* Returns the value of the number base raised to the power exponent *)
 
-PROCEDURE __BUILTIN__ round (x: LONGREAL): INTEGER;
+PROCEDURE round (x: LONGREAL): INTEGER;
   (* Returns the value of x rounded to the nearest integer *)
 
 PROCEDURE IsRMathException (): BOOLEAN;
