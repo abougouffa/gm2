@@ -21,7 +21,7 @@ Boston, MA 02111-1307, USA.  */
 /* This is the contribution to the `lang_options' array in gcc.c for
    gm2.  */
 
-#include "gcc-version.h"
+/* #include "gcc-version.h" */
 #ifdef EGCS
 DEFINE_LANG_NAME ("Modula-2")
 #define GM2_OPT(NAME, DESCRIPTION) { NAME, DESCRIPTION }
