@@ -26,7 +26,7 @@ Boston, MA 02111-1307, USA.  */
   {".def", "@modula-2" },
   {"@modula-2",
       "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
-           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:%(trad_capable_cpp) -lang-asm %(cpp_options) -C -o %g.mod \n\
+           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:tradcpp0 -lang-asm %(cpp_options) -C -o %g.mod \n\
                                                      cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %g.mod \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}} \n\

@@ -157,8 +157,10 @@ providing @samp{gm2} has been told to link the program module this
 option uses the file @file{modulename.lst} for the initialization
 order of modules.
 
-@item -Wnocpp
-do not automatically preprocess the source with cpp.
+@item -Wcpp
+do preprocess the source with @samp{cpp -traditional -lang-asm -C}
+For further details about these options see
+@xref{Invocation, , ,cpp}.
 
 @end table
 
@@ -224,8 +226,10 @@ BEGIN
 END colour.
 @end example
 
-The preprocessor is invoked with the @samp{-lang-asm -C}
-options which will preserve comments and all quotations.
+The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp} command
+line option. This in turn invokes @samp{cpp} with the following
+arguments @samp{-traditional -lang-asm -C}.
+These options preserve comments and all quotations.
 The preprocessor character @samp{#} must be in the first
 column.
 

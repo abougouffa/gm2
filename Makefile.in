@@ -198,7 +198,8 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 #  ggc-page - is only present here as there is a bug in gm2 which manifests itself
 #             when garbage collection occurs. This is a temporary hack.
 #
-BACKEND = ../toplev.o ggc-page.o ../libbackend.a
+# BACKEND = ../toplev.o ggc-page.o ../libbackend.a
+BACKEND = ../toplev.o ../libbackend.a
 
 compiler: ../cc1gm2$(exeext) gm2support
 
@@ -516,10 +517,10 @@ gm2-libs/%.o: gm2-libs/%.c
 	$(CC) -c -g -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -v -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -Wcpp -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -v -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 -Wcpp -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
