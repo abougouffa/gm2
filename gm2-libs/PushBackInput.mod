@@ -17,20 +17,21 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 IMPLEMENTATION MODULE PushBackInput ;
 
 
-FROM FIO IMPORT ReadChar, IsNoError, EOF, OpenToRead ;
+FROM FIO IMPORT ReadChar, IsNoError, EOF, OpenToRead, WriteChar, StdErr ;
 FROM Strings IMPORT string ;
 FROM ASCII IMPORT nul, cr, lf ;
 FROM Debug IMPORT Halt ;
 FROM StrLib IMPORT StrCopy, StrLen ;
 FROM NumberIO IMPORT WriteCard ;
 FROM StrIO IMPORT WriteString, WriteLn ;
-FROM StdIO IMPORT Write ;
+FROM StdIO IMPORT Write, PushOutput, PopOutput ;
 FROM libc IMPORT exit ;
 
 IMPORT FIO ;
 
 (* %%%FORWARD%%%
 PROCEDURE Init ; FORWARD ;
+PROCEDURE ErrChar (ch: CHAR) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -149,12 +150,25 @@ END Close ;
 
 
 (*
+   ErrChar - writes a char, ch, to stderr.
+*)
+
+PROCEDURE ErrChar (ch: CHAR) ;
+BEGIN
+   WriteChar(StdErr, ch)
+END ErrChar ;
+
+
+(*
    Error - emits an error message with the appropriate file, line combination.
 *)
 
 PROCEDURE Error (a: ARRAY OF CHAR) ;
 BEGIN
+   PushOutput(ErrChar) ;
    WriteString(FileName) ; Write(':') ; WriteCard(LineNo, 0) ; Write(':') ; WriteString(a) ; WriteLn ;
+   PopOutput ;
+   FIO.Close(StdErr) ;
    exit(1)
 END Error ;
 
@@ -167,7 +181,9 @@ END Error ;
 
 PROCEDURE WarnError (a: ARRAY OF CHAR) ;
 BEGIN
+   PushOutput(ErrChar) ;
    WriteString(FileName) ; Write(':') ; WriteCard(LineNo, 0) ; Write(':') ; WriteString(a) ; WriteLn ;
+   PopOutput ;
    ExitStatus := 1
 END WarnError ;
 
