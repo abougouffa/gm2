@@ -1474,28 +1474,38 @@ BEGIN
                                END
                             END
                          END |
-         ndenum       :  IF en.name#NIL
+         ndenum       :  (* IF emitting=vars
                          THEN
-                            hprintf1('%s', Mark(InitStringCharStar(en.name)))
-                         END ;
-                         hprintf0(' = (') ;
-                         PrintNode(en.list, t) ;
-                         hprintf0(') ;') |
-         ndstruct     :  IF str.name#NIL
+                            hprintf0(':')
+                         END ; *)
+                         IF en.name=NIL
                          THEN
-                            hprintf1('%s', Mark(InitStringCharStar(str.name))) ;
-                            IF emitting=vars
+                            hprintf0('(') ;
+                            PrintNode(en.list, t) ;
+                            hprintf0(')')
+                         ELSE
+                            hprintf1('%s', Mark(InitStringCharStar(en.name))) ;
+                            IF en.list#NIL
                             THEN
-                               hprintf0('; (* var *)')
+                               hprintf0(' ;\n')
                             END ;
                             PutItemIntoList(ToDoList, n)
-                         ELSE
+                         END |
+         ndstruct     :  IF str.name=NIL
+                         THEN
                             Indent := PushIndent(CurColumn+4) ;
                             Indent := PushIndent(CurColumn+4) ;
                             hprintf0('RECORD\n') ;
                             PrintNode(str.list, t) ;
                             hprintf0('END') ;
                             PopIndent
+                         ELSE
+                            hprintf1('%s', Mark(InitStringCharStar(str.name))) ;
+                            IF emitting=vars
+                            THEN
+                               hprintf0('; (* var *)')
+                            END ;
+                            PutItemIntoList(ToDoList, n)
                          END |
          ndstructfield:  PrintNode(esf.decl, esf.type) ; (* hprintf0('<:') ; PrintNode(esf.type, t) ; *)
                          IF chain=NIL
@@ -1503,7 +1513,11 @@ BEGIN
                             PopIndent
                          END ;
                          hprintf0(' ;\n') |
-         ndenumfield  :  hprintf1('%s,', Mark(InitStringCharStar(ef.name))) |
+         ndenumfield  :  hprintf1('%s', Mark(InitStringCharStar(ef.name))) ;
+                         IF chain#NIL
+                         THEN
+                            hprintf0(',')
+                         END |
 (*
          ndunion      :  uni: unionNode |
 *)
@@ -1660,6 +1674,19 @@ BEGIN
                           PrintNode(str.list, NIL) ;
                           hprintf0('END') ;
                           PopIndent ;
+                       END ;
+                    END ;
+                    RETURN |
+         ndenum:    IF n^.en.name#NIL
+                    THEN
+                       IF NOT IsItemInList(DoneList, n^.en.name)
+                       THEN
+                          PutItemIntoList(DoneList, n^.en.name) ;
+                          Emit(types) ;
+                          hprintf1('%s = ', Mark(InitStringCharStar(en.name))) ;
+                          hprintf0(' (') ;
+                          PrintNode(en.list, NIL) ;
+                          hprintf0(')')
                        END ;
                     END ;
                     RETURN |
