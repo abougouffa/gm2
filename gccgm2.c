@@ -696,7 +696,7 @@ gccgm2_EmitLineNote (fn, line)
      int   line;
 {
   if (cfun && fn)
-    emit_line_note (ggc_strdup(fn), line);
+    emit_line_note (ggc_strdup (fn), line);
 }
 
 /* Routines Expected by gcc:  */
@@ -1547,6 +1547,7 @@ mark_binding_level (arg)
       ggc_mark_tree (level->this_block);
       ggc_mark_tree (level->constants);
     }
+  m2lex_GGCMark();
 }
 
 #if defined(TRACE_DEBUG_GGC)

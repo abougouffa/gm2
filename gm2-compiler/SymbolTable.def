@@ -77,7 +77,7 @@ EXPORT QUALIFIED NulSym,
                  GetBaseModule,
                  GetCurrentModuleScope,
                  GetLastModuleScope,
-                 GetType,
+                 GetType, SkipType,
                  GetLowestType,
                  GetSym, GetLocalSym,
                  GetNth,
@@ -668,6 +668,15 @@ PROCEDURE GetLastModuleScope () : CARDINAL ;
 *)
 
 PROCEDURE GetType (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   SkipType - if sym is a TYPE foo = bar
+              then call SkipType(bar)
+              else return sym
+*)
+
+PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
 
 
 (*

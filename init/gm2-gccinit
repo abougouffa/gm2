@@ -30,7 +30,6 @@ StrLib
 M2ALU
 M2Options
 M2Comp
-m2lex
 M2LexBuf
 SymbolTable
 M2Base

@@ -10,7 +10,6 @@ SFIO
 UnixArgs
 CmdArgs
 IO
-m2lex
 M2LexBuf
 StrIO
 StrLib

@@ -28,7 +28,7 @@ FROM DynamicStrings IMPORT String, string, InitString, KillString,
 FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         MakeTemporary, MakeConstLit, MakeConstLitString,
                         RequestSym,
-                        GetType, GetLowestType,
+                        GetType, GetLowestType, SkipType,
                         GetScopeAuthor, GetCurrentScope,
                         GetSubrange,
                         GetModule, GetMainModule,
@@ -5646,7 +5646,7 @@ END BuildHighFromChar ;
 PROCEDURE BuildOddFunction ;
 VAR
    NoOfParam,
-   Var      : CARDINAL ;
+   Res, Var : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -5658,20 +5658,34 @@ BEGIN
          (*
             Build macro: VAL(BOOLEAN, (x MOD 2))
          *)
-         PushTF(Convert, NulSym) ;
-         PushT(Boolean) ;
 
          (* compute (x MOD 2) *)
-         PushT(Var) ;
+         PushTF(Var, GetType(Var)) ;
          PushT(ModTok) ;
-         PushT(MakeConstLit(MakeKey('2'))) ;
+         PushTF(MakeConstLit(MakeKey('2')), Integer) ;
          BuildBinaryOp ;
-         PopT(Var) ;
-         PutVar(Var, Integer) ;
-         PushTF(Var, Integer) ;
+         PopT(Res) ;
 
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction
+         (* compute IF ...=0 *)
+         PushT(Res) ;
+         PushT(EqualTok) ;
+         PushT(MakeConstLit(MakeKey('0'))) ;
+         BuildRelOp ;
+         BuildThenIf ;
+         
+         Res := MakeTemporary(RightValue) ;
+         PutVar(Res, Boolean) ;
+
+         PushT(Res) ;
+         PushT(False) ;
+         BuildAssignment ;
+         BuildElse ;
+         PushT(Res) ;
+         PushT(True) ;
+         BuildAssignment ;
+         BuildEndIf ;
+
+         PushT(Res)
       ELSE
          WriteFormat0('argument to ODD must be a variable or constant')
       END
@@ -5810,7 +5824,6 @@ VAR
    NoOfParam,
    Res, Var : CARDINAL ;
 BEGIN
-   DisplayStack ;    (* Debugging info *)
    PopT(NoOfParam) ;
    IF NoOfParam=1
    THEN
@@ -5823,17 +5836,17 @@ BEGIN
          PutVar(Res, Char) ;
 
          (* compute IF (x>='a') AND (x<='z') *)
-         PushT(Var) ;
+         PushTF(Var, GetType(Var)) ;
          PushT(GreaterEqualTok) ;
-         PushT(MakeConstLitString(MakeKey('a'))) ;
+         PushTF(MakeConstLitString(MakeKey('a')), Char) ;
          BuildRelOp ;
          
          PushT(AndTok) ;
          RecordOp ;
 
-         PushT(Var) ;
+         PushTF(Var, GetType(Var)) ;
          PushT(LessEqualTok) ;
-         PushT(MakeConstLitString(MakeKey('z'))) ;
+         PushTF(MakeConstLitString(MakeKey('z')), Char) ;
          BuildRelOp ;
          
          BuildBinaryOp ;
@@ -5853,7 +5866,7 @@ BEGIN
          RecordOp ;
 
          PushTF(Ord, NulSym) ;
-         PushT(MakeConstLitString(MakeKey('a'))) ;
+         PushTF(MakeConstLitString(MakeKey('a')), Char) ;
          PushT(1) ;
          BuildOrdFunction ;
 
@@ -5863,7 +5876,7 @@ BEGIN
          RecordOp ;
 
          PushTF(Ord, NulSym) ;
-         PushT(MakeConstLitString(MakeKey('A'))) ;
+         PushTF(MakeConstLitString(MakeKey('A')), Char) ;
          PushT(1) ;
          BuildOrdFunction ;
 
@@ -8284,10 +8297,12 @@ BEGIN
    THEN
       WriteFormat1('set type %a is undefined', GetSymName(Type)) ;
       Type := Bitset
-   ELSIF NOT IsSet(Type)
+   ELSIF NOT IsSet(SkipType(Type))
    THEN
       WriteFormat1('expecting a set type %a', GetSymName(Type)) ;
       Type := Bitset
+   ELSE
+      Type := SkipType(Type)
    END ;
    NulSet := MakeTemporary(ImmediateValue) ;
    Assert(Type#NulSym) ;

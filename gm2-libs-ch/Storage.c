@@ -20,7 +20,7 @@ void Storage_ALLOCATE(void **a, unsigned long Size)
 }
 
 
-void Storage_DEALLOCATE(void *a, unsigned long Size)
+void Storage_DEALLOCATE(void **a, unsigned long Size)
 {
   SysStorage_DEALLOCATE(a, Size);
 }

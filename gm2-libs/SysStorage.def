@@ -43,9 +43,10 @@ PROCEDURE ALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
 
 (*
    DEALLOCATE - return, Size, bytes to the heap.
+                The variable, a, is set to NIL.
 *)
 
-PROCEDURE DEALLOCATE (a: ADDRESS ; Size: CARDINAL) ;
+PROCEDURE DEALLOCATE (VAR a: ADDRESS ; Size: CARDINAL) ;
 
 
 (*

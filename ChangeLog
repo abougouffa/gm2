@@ -1,3 +1,9 @@
+2003-05-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified Storage and SysStorage modules so that the procedure
+	  DEALLOCATE assigns the pointer to NIL
+	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/bitset2.mod)
+
 2003-05-05	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed two bugs reported by Iztok Kobal.

@@ -239,8 +239,8 @@ The following procedures are implemented and conform with Programming
 in Modula-2: @code{NEW}, @code{DISPOSE}, @code{INC}, @code{DEC},
 @code{INCL}, @code{EXCL} and @code{HALT}.  The standard functions are:
 @code{HIGH}, @code{CAP}, @code{ABS}, @code{ODD}, @code{VAL},
-@code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}. All these functions
-and procedures (except @code{HALT}, @code{NEW} and @code{DISPOSE}
+@code{CHR}, @code{MIN}, @code{MAX}. All these functions
+and procedures (except @code{HALT}, @code{NEW} and @code{DISPOSE})
 generate in-line code for efficiency.
 
 @example
@@ -273,8 +273,6 @@ PROCEDURE NEW (VAR p:<any pointer type>) ;
                   holding p^ is returned to the system.
                   Note that the underlying procedure DEALLOCATE
                   procedure in module Storage will assign p to NIL.
-
-(* fix this NIL assignment gaius *)
 *)
 
 @findex DISPOSE
@@ -335,6 +333,36 @@ PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
 @findex HALT
 PROCEDURE HALT ;
 @end example
+
+The following define the standard set of functions which conform with Programming
+in Modula-2.
+
+@example
+(*
+   HIGH - returns the last accessible indice of an parameter declared as
+          ARRAY OF CHAR. Thus
+
+          PROCEDURE foo (a: ARRAY OF CHAR) ;
+          VAR
+             c: CARDINAL ;
+          BEGIN
+             c := HIGH(a)
+          END foo ;
+
+          BEGIN
+             foo('hello')
+          END
+
+          will cause the local variable, c, to contain the value 4
+*)
+@findex HIGH
+PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
+@end example
+
+@c complete this gaius
+@c @code{CAP}, @code{ABS}, @code{VAL},
+@c @code{CHR}, @code{ODD}, @code{MIN}, @code{MAX}
+
 
 @node Extensions, Interface to C, Standard procedures, Using
 @section GNU Modula-2 language extensions

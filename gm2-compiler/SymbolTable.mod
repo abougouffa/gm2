@@ -2968,6 +2968,23 @@ END GetType ;
 
 
 (*
+   SkipType - if sym is a TYPE foo = bar
+              then call SkipType(bar)
+              else return sym
+*)
+
+PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF IsType(Sym)
+   THEN
+      RETURN( GetType(Sym) )
+   ELSE
+      RETURN( Sym )
+   END
+END SkipType ;
+
+
+(*
    GetConstLitType - returns the type of the constant, Sym.
                      All constants have type NulSym except CHARACTER constants
                      ie 00C 012C etc and floating point constants which have type LONGREAL.

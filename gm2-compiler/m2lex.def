@@ -22,13 +22,13 @@ DEFINITION MODULE m2lex ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2001/10/31 09:08:31 $ 
+    Last edit  : $Date: 2003/05/06 22:00:57 $ 
     Revision   : $Version$ 
     Description: provides a Modula-2 definition module for the C lexical analysis.
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo ;
+EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo, GGCMark ;
 
 
 (*
@@ -66,6 +66,13 @@ PROCEDURE GetLineNo () : CARDINAL ;
 *)
 
 PROCEDURE M2Error (s: ADDRESS) ;
+
+
+(*
+   GGCMark - marks the dynamic data structures as being in use.
+*)
+
+PROCEDURE GGCMark ;
 
 
 END m2lex.

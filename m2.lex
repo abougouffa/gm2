@@ -22,6 +22,15 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include "M2Reserved.h"
 #include "M2LexBuf.h"
 
+#if defined(GM2USEGGC)
+#  include "ggc.h"
+#  define xfree(X) do { } while (0);
+#else
+#  define xmalloc  malloc
+#  define xfree    free
+#  define xstrdup  strdup
+#endif
+
   /*
    *  m2.lex - provides a lexical analyser for GNU Modula-2
    */
@@ -42,19 +51,24 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   static int              commentLevel=0;
   static struct lineInfo *currentLine=NULL;
 
-        void m2lex_M2Error(const char *);
-static  void pushLine     (void);
-static  void popLine      (void);
-static  void finishedLine (void);
-static  void resetpos     (void);
-static  void consumeLine  (void);
-static  void updatepos    (void);
-static  void skippos      (void);
-static  void poperrorskip (const char *);
-static  void endOfComment (void);
-static  void handleDate   (void);
-static  void handleLine   (void);
-static  void handleFile   (void);
+        void m2lex_M2Error     (const char *);
+static  void pushLine          (void);
+static  void popLine           (void);
+static  void finishedLine      (void);
+static  void resetpos          (void);
+static  void consumeLine       (void);
+static  void updatepos         (void);
+static  void skippos           (void);
+static  void poperrorskip      (const char *);
+static  void endOfComment      (void);
+static  void handleDate        (void);
+static  void handleLine        (void);
+static  void handleFile        (void);
+        void m2lex_GGCMark     (void);
+	int  m2lex_OpenSource  (char *s);
+	int  m2lex_GetLineNo   (void);
+	void m2lex_CloseSource (void);
+	char *m2lex_GetToken   (void);
 
 #if !defined(TRUE)
 #    define TRUE  (1==1)
@@ -328,7 +342,7 @@ static void poperrorskip (const char *s)
 static void consumeLine (void)
 {
   if (currentLine->linelen<yyleng) {
-    currentLine->linebuf = (char *)xrealloc(currentLine->linebuf, yyleng);
+    currentLine->linebuf = (char *)xrealloc (currentLine->linebuf, yyleng);
     currentLine->linelen = yyleng;
   }
   strcpy(currentLine->linebuf, yytext+1);  /* copy all except the initial \n */
@@ -366,7 +380,7 @@ static void skippos (void)
 
 static void initLine (void)
 {
-  currentLine = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
+  currentLine = (struct lineInfo *)xmalloc (sizeof(struct lineInfo));
 
   if (currentLine == NULL)
     perror("xmalloc");
@@ -386,17 +400,17 @@ static void initLine (void)
 
 static void pushLine (void)
 {
-  if (currentLine == NULL) {
+  if (currentLine == NULL)
     initLine();
-  } else if (currentLine->inuse) {
-      struct lineInfo *l = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
+  else if (currentLine->inuse) {
+      struct lineInfo *l = (struct lineInfo *)xmalloc (sizeof(struct lineInfo));
 
       if (currentLine->linebuf == NULL) {
 	l->linebuf  = NULL;
 	l->linelen  = 0;
       } else {
-	l->linebuf    = (char *)xstrdup(currentLine->linebuf);
-	l->linelen    = strlen(l->linebuf)+1;
+	l->linebuf    = (char *)xstrdup (currentLine->linebuf);
+	l->linelen    = strlen (l->linebuf)+1;
       }
       l->tokenpos   = currentLine->tokenpos;
       l->toklen     = currentLine->toklen;
@@ -418,11 +432,28 @@ static void popLine (void)
     struct lineInfo *l = currentLine;
 
     if (currentLine->linebuf != NULL)
-      free(currentLine->linebuf);
+      xfree(currentLine->linebuf);
     currentLine = l->next;
-    free(l);
+    xfree(l);
   }
 }
+
+#if defined(GM2USEGGC)
+/*
+ *  GGCMark - marks the dynamic data structures as being in use.
+ */
+
+void m2lex_GGCMark (void)
+{
+  struct lineInfo *l = currentLine;
+
+  return;
+  while (l != NULL) {
+    ggc_mark (l);
+    l = l->next;
+  }
+}
+#endif
 
 /*
  *  resetpos - resets the position of the next token to the start of the line.
@@ -454,7 +485,7 @@ char *m2lex_GetToken (void)
     initLine();
   currentLine->tokenpos = currentLine->nextpos;
   yylex();
-  return( yytext );
+  return yytext;
 }
 
 /*
