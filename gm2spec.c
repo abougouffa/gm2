@@ -144,12 +144,13 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 {
   int i=1;
 
-  i=1;
+#if defined(DEBUGGING)
   while (i<*in_argc) {
     printf("in lang specific driver %s\n", (*in_argv)[i]);
     i++;
   }
   i=1;
+#endif
 
   /*
    *  we need to remove the -M "thispath thatpath . whateverpath"
@@ -194,11 +195,13 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
       i++;
     }
   }
+#if defined(DEBUGGING)
   i=1;
   while (i<*in_argc) {
     printf("out lang specific driver %s\n", (*in_argv)[i]);
     i++;
   }
+#endif
 }
 
 
