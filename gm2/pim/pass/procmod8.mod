@@ -15,40 +15,49 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE procmod3 ;
+MODULE procmod8 ;
 
-
-PROCEDURE bar ;
 VAR
-   variable: CARDINAL ;
+   x: INTEGER ;
 
-   PROCEDURE error ;
-   BEGIN
-   END error ;
+PROCEDURE aaa ;
+   MODULE yyy ;
+   IMPORT x ;
+      PROCEDURE zzz ;
+      BEGIN
+         x := 111
+      END zzz ;
+   END yyy ;
 
-   MODULE foo ;
-   IMPORT error, variable ;
+   MODULE qqq ;
+   IMPORT x ;
+      PROCEDURE rrr ;
 
-(*
-   PROCEDURE try ;
-   BEGIN
-      variable := 99 ;
-      error
-   END try ;
-*)
+         PROCEDURE ttt ;
+         BEGIN
+            x := 222
+         END ttt ;
 
-   VAR
-      x: INTEGER ;
-   BEGIN
-      x := 101 ;
-      variable := 99 ;
-      error
-   END foo ;
+      BEGIN
+         x := 333
+      END rrr ;
+   END qqq ;
+
+BEGIN
+END aaa ;
+
+
+PROCEDURE bbb ;
+   MODULE ccc ;
+   IMPORT x ;
+      PROCEDURE ddd ;
+      BEGIN
+         x := 444
+      END ddd ;
+   END ccc ;
+BEGIN
+END bbb ;
 
 
 BEGIN
-END bar ;
-
-BEGIN
-   bar
-END procmod3.
+END procmod8.

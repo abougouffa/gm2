@@ -27,7 +27,7 @@ VAR
 
       PROCEDURE bar ;
       BEGIN
-         variable := 99 ;
+         variable := 99
       END bar ;
 
    END foo ;

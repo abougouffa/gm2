@@ -28,8 +28,8 @@ END m1 ;
 
 MODULE m2 ;
 
-EXPORT M2 ;
 IMPORT M1 ;
+EXPORT M2 ;
 
 TYPE
    M2 = M1 ;
@@ -38,6 +38,6 @@ END m2 ;
 TYPE
    
 CONST
-   c = M2.red ;
+   c = m2.red ;
 
 END testmod2.

@@ -15,40 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE procmod3 ;
+MODULE real3 ;
 
 
-PROCEDURE bar ;
+CONST
+   mir = MIN(REAL) ;
+   mis = MIN(SHORTREAL) ;
+   mil = MIN(LONGREAL) ;
+
+   mar = MAX(REAL) ;
+   mas = MAX(SHORTREAL) ;
+   mal = MAX(LONGREAL) ;
+
 VAR
-   variable: CARDINAL ;
-
-   PROCEDURE error ;
-   BEGIN
-   END error ;
-
-   MODULE foo ;
-   IMPORT error, variable ;
-
-(*
-   PROCEDURE try ;
-   BEGIN
-      variable := 99 ;
-      error
-   END try ;
-*)
-
-   VAR
-      x: INTEGER ;
-   BEGIN
-      x := 101 ;
-      variable := 99 ;
-      error
-   END foo ;
-
-
+   a, b, c, d, e, f: REAL ;
 BEGIN
-END bar ;
-
-BEGIN
-   bar
-END procmod3.
+   a := mir ;
+   b := mis ;
+   c := mil ;
+   d := mar ;
+   e := mas ;
+   f := mal
+END real3.

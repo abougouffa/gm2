@@ -15,40 +15,40 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE procmod3 ;
+MODULE procmod9 ;
 
+   PROCEDURE ParseFunction ;
 
-PROCEDURE bar ;
-VAR
-   variable: CARDINAL ;
+      MODULE Lex;
+	 EXPORT val ;
 
-   PROCEDURE error ;
+	 VAR
+	    val: REAL;
+
+      BEGIN
+      END Lex;
+
+      PROCEDURE Expression ;
+	 PROCEDURE SimpleExpression ;
+	    PROCEDURE Term ;
+
+	       PROCEDURE Factor ;
+	       BEGIN
+                  IF val=0.0
+                  THEN
+                  END
+	       END Factor;
+
+	    BEGIN
+	    END Term;
+
+	 BEGIN
+	 END SimpleExpression;
+
+      BEGIN
+      END Expression;
+
    BEGIN
-   END error ;
+   END ParseFunction;
 
-   MODULE foo ;
-   IMPORT error, variable ;
-
-(*
-   PROCEDURE try ;
-   BEGIN
-      variable := 99 ;
-      error
-   END try ;
-*)
-
-   VAR
-      x: INTEGER ;
-   BEGIN
-      x := 101 ;
-      variable := 99 ;
-      error
-   END foo ;
-
-
-BEGIN
-END bar ;
-
-BEGIN
-   bar
-END procmod3.
+END procmod9.

@@ -15,40 +15,28 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE procmod3 ;
+MODULE localmod ;
 
 
-PROCEDURE bar ;
-VAR
-   variable: CARDINAL ;
+   MODULE SinCos ;
+      EXPORT zsin ;
+      PROCEDURE zsin (x: REAL) : REAL ;
+      BEGIN
+         RETURN 1.0
+      END zsin ;
 
-   PROCEDURE error ;
-   BEGIN
-   END error ;
-
-   MODULE foo ;
-   IMPORT error, variable ;
-
-(*
-   PROCEDURE try ;
-   BEGIN
-      variable := 99 ;
-      error
-   END try ;
-*)
+      PROCEDURE foo ;
+      BEGIN
+      END foo ;
 
    VAR
-      x: INTEGER ;
+      y: REAL ;
    BEGIN
-      x := 101 ;
-      variable := 99 ;
-      error
-   END foo ;
+      y := zsin(2.0)
+   END SinCos ;
 
-
+VAR
+   x: REAL ;
 BEGIN
-END bar ;
-
-BEGIN
-   bar
-END procmod3.
+   x := zsin(1.0)
+END localmod.
