@@ -16,7 +16,7 @@
 # Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 all: force
-	gm2 -v -I.:../../gm2-libs:../../gm2-iso -Wmakeall testbox.mod -lsvga -lm
+	gm2 -I.:../../gm2-libs:../../gm2-iso -Wmakeall testbox.mod -lvga -lm
 
 clean:
 	$(RM) *.o a.out *~

@@ -24,7 +24,7 @@ FROM DisplayBuffer IMPORT FlipBuffer, AddLine ;
 FROM StdIO IMPORT Read ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
-FROM RealMath IMPORT pi ;
+FROM MathLib0 IMPORT pi ;
 
 
 CONST
@@ -236,7 +236,7 @@ BEGIN
       UNTIL (ch='q') OR (Count=600) ;
       Count := 0 ;
       Del(Movement) ;
-      Movement := Translate( .75, .5 ) ;
+      Movement := Translate( .65, .3 ) ;
       Del(Rotation) ;
       Rotation := Rotate(0.002) ;
 (* *)
