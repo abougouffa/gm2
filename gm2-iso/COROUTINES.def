@@ -7,15 +7,19 @@ IMPORT SYSTEM;
 TYPE
   COROUTINE; (* Values of this type are created dynamically by NEWCOROUTINE 
                 and identify the coroutine in subsequent operations *)
-  INTERRUPTSOURCE = <implementation-defined>;
+  INTERRUPTSOURCE;
+  PROTECTION;
+
 
 PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS; size: CARDINAL;
-                        VAR cr: COROUTINE[; initProtection: PROTECTION]);
-  (* Creates a new coroutine whose body is given by procBody, and returns the identity
-     of the coroutine in cr.  workspace is a pointer to the work space allocated to
-     the coroutine; size specifies the size of this workspace in terms of SYSTEM.LOC.
-     initProtection is an optional parameter that specifies the initial protection
-     level of the coroutine.
+                        VAR cr: COROUTINE; [initProtection: PROTECTION = NIL]);
+  (* Creates a new coroutine whose body is given by procBody, and
+     returns the identity  of the coroutine in cr.  workspace is a
+     pointer to the work space allocated to the coroutine; size
+     specifies the size of this workspace in terms of SYSTEM.LOC.
+
+     The optarg, initProtection, may contain a single parameter which
+     specifies the initial protection level of the coroutine.
   *)
 
 PROCEDURE TRANSFER (VAR from: COROUTINE; to: COROUTINE);

@@ -85,6 +85,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        EndBuildFormalParameters,
                        BuildFPSection,
                        BuildVarArgs,
+                       BuildOptArg,
                        BuildFormalVarArgs,
                        BuildProcedureHeading,
                        StartBuildProcedure,
@@ -870,7 +871,7 @@ DefProcedureHeading := "PROCEDURE"
                                                                            % StartBuildProcedure %
                                                                            % Assert(IsProcedure(OperandT(1))) %
                                                                            % StartBuildFormalParameters  %
-                          [ FormalParameters ]
+                          [ DefFormalParameters ]
                                                                            % EndBuildFormalParameters %
                                                                            % BuildProcedureHeading %
                         )
@@ -893,17 +894,57 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
+DefFormalParameters := "("
+                        [ DefMultiFPSection ]                              % VAR n: CARDINAL; %
+                                                                           % PopT(n) ; (* remove param count *) %
+                        ")"
+                        [ ":" Qualident                                    % BuildFunction %
+                                        ]
+                                                                           % PushT(n) ; (* restore param count *) %
+                      =:
+
+DefMultiFPSection := DefExtendedFP |
+                     FPSection [ ";" DefMultiFPSection ] =:
+
 FormalParameters := "("
-                    [ FPSection { ";" FPSection } ]                        % VAR n: CARDINAL; %
+                    [ MultiFPSection ]                                     % VAR n: CARDINAL; %
                                                                            % PopT(n) ; (* remove param count *) %
                     ")"
                     [ ":" Qualident                                        % BuildFunction %
-                    ]
+                                    ]
                                                                            % PushT(n) ; (* restore param count *) %
                     =:
 
-FPSection := NonVarFPSection | VarFPSection | "..."                        % BuildVarArgs %
+MultiFPSection := ExtendedFP |
+                  FPSection [ ";" MultiFPSection ] =:
+
+FPSection := NonVarFPSection | VarFPSection
           =:
+
+DefExtendedFP := DefOptArg | "..." =:
+
+ExtendedFP := OptArg | "..."                                               % BuildVarArgs %
+            =:
+
+OptArg := "["                                                              % VAR n: CARDINAL ; %
+                                                                           % PopT(n) %
+                                                                           % PushT(NulTok) %
+              Ident                                                        % PushT(1) %
+                    ":" FormalType                                         % PushT(n) %
+                                                                           % BuildFPSection %
+                                                                           % BuildOptArg %
+                                   [ "=" ConstExpression ]
+                                                           "]" =:
+
+DefOptArg := "["                                                           % VAR n: CARDINAL ; %
+                                                                           % PopT(n) %
+                                                                           % PushT(NulTok) %
+              Ident                                                        % PushT(1) %
+                    ":" FormalType                                         % PushT(n) %
+                                                                           % BuildFPSection %
+                                                                           % BuildOptArg %
+                                   "=" ConstExpression
+                                                       "]" =:
 
 VarFPSection := "VAR"                                                      % VAR n: CARDINAL ; %
                                                                            % PopT(n) ; %

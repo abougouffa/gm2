@@ -49,7 +49,8 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutVarWriteQuad, RemoveVarWriteQuad,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
-                        UsesVarArgs,
+                        UsesVarArgs, UsesOptArg,
+                        GetOptArgInit,
                         NoOfElements,
                         NoOfParam,
                         StartScope, EndScope,
@@ -3189,21 +3190,21 @@ END BuildRealProcedureCall ;
 
 PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
 VAR
-   e          : Error ;
-   NoOfParam,
+   e             : Error ;
+   NoOfParameters,
    i, pi,
    ReturnVar,
    ProcSym,
-   Proc       : CARDINAL ;
+   Proc          : CARDINAL ;
 BEGIN
    CheckProcedureParameters(IsForC) ;
-   PopT(NoOfParam) ;
-   PushT(NoOfParam) ;  (* Restore stack to original state *)
-   ProcSym := OperandT(NoOfParam+2) ;
+   PopT(NoOfParameters) ;
+   PushT(NoOfParameters) ;  (* Restore stack to original state *)
+   ProcSym := OperandT(NoOfParameters+2) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(NoOfParam+2)
+      Proc := OperandF(NoOfParameters+2)
    ELSE
       Proc := ProcSym
    END ;
@@ -3224,14 +3225,18 @@ BEGIN
       END
    END ;
    ManipulateParameters(IsForC) ;
-   PopT(NoOfParam) ;
+   PopT(NoOfParameters) ;
    IF IsFunc
    THEN
       GenQuad(ParamOp, 0, Proc, ProcSym)  (* Space for return value *)
    END ;
    IF PushParametersLeftToRight
    THEN
-      i := NoOfParam ;
+      IF (NoOfParameters+1=NoOfParam(Proc)) AND UsesOptArg(Proc)
+      THEN
+         GenQuad(ParamOp, NoOfParam(Proc), Proc, GetOptArgInit(Proc))
+      END ;
+      i := NoOfParameters ;
       pi := 1 ;     (* stack index referencing stacked parameter, i *)
       WHILE i>0 DO
          GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
@@ -3240,15 +3245,19 @@ BEGIN
       END
    ELSE
       i := 1 ;
-      pi := NoOfParam ;   (* stack index referencing stacked parameter, i *)
-      WHILE i<=NoOfParam DO
+      pi := NoOfParameters ;   (* stack index referencing stacked parameter, i *)
+      WHILE i<=NoOfParameters DO
          GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
          INC(i) ;
          DEC(pi)
+      END ;
+      IF (NoOfParameters+1=NoOfParam(Proc)) AND UsesOptArg(Proc)
+      THEN
+         GenQuad(ParamOp, NoOfParam(Proc), Proc, GetOptArgInit(Proc))
       END
    END ;
    GenQuad(CallOp, NulSym, NulSym, ProcSym) ;
-   PopN(NoOfParam+1) ; (* Destroy arguments and procedure call *)
+   PopN(NoOfParameters+1) ; (* Destroy arguments and procedure call *)
    IF IsFunc
    THEN
       (* ReturnVar - will have the type of the procedure *)
@@ -3994,7 +4003,28 @@ BEGIN
    ELSE
       Proc := ProcSym
    END ;
-   IF (NOT (IsForC AND UsesVarArgs(Proc))) AND (NoOfParam(Proc)#NoOfParameters)
+
+   IF IsForC AND UsesVarArgs(Proc)
+   THEN
+      IF NoOfParameters<NoOfParam(Proc)
+      THEN
+         ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with varargs but contains at least (%d) parameters')),
+                                 NoOfParameters,
+                                 Mark(InitStringCharStar(KeyToCharStar(GetSymName(Proc)))),
+                                 NoOfParam(Proc)),
+                        GetTokenNo(), GetTokenNo())
+      END
+   ELSIF UsesOptArg(Proc)
+   THEN
+      IF NOT ((NoOfParameters=NoOfParam(Proc)) OR (NoOfParameters+1=NoOfParam(Proc)))
+      THEN
+         ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with an optarg with a maximum of (%d) parameters')),
+                                 NoOfParameters,
+                                 Mark(InitStringCharStar(KeyToCharStar(GetSymName(Proc)))),
+                                 NoOfParam(Proc)),
+                        GetTokenNo(), GetTokenNo())
+      END
+   ELSIF NoOfParameters#NoOfParam(Proc)
    THEN
       ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with (%d) parameters')),
                               NoOfParameters,

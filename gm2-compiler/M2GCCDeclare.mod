@@ -688,7 +688,7 @@ BEGIN
       printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
    END ;
 
-   IF Sym=99
+   IF Sym=107
    THEN
       mystop
    END ;

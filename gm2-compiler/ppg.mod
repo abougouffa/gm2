@@ -22,18 +22,18 @@ FROM bnflex IMPORT IsSym, SymIs, TokenType, GetCurrentToken, GetCurrentTokenType
                    PushBackToken, SetDebugging ;
 FROM StrLib IMPORT StrCopy, StrEqual, StrLen, StrConCat ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM NameKey IMPORT Name, MakeKey, WriteKey, LengthKey, GetKey, NulName ;
+FROM NameKey IMPORT Name, MakeKey, WriteKey, LengthKey, GetKey, KeyToCharStar, NulName ;
 FROM NumberIO IMPORT CardToStr, WriteCard ;
 FROM SymbolKey IMPORT InitTree, SymbolTree, PutSymKey, GetSymKey, ForeachNodeDo, NulKey ;
 FROM Lists IMPORT InitList, IsItemInList, IncludeItemIntoList, RemoveItemFromList, KillList, List ;
-FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar,
+                           InitStringCharStar, char, Length ;
 FROM ASCII IMPORT nul, lf, tab ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;
 FROM Debug IMPORT Halt ;
 FROM Args IMPORT GetArg, Narg ;
 FROM SYSTEM IMPORT BITSET, WORD ;
-FROM libc IMPORT exit ;
 
 
 CONST
@@ -182,6 +182,7 @@ PROCEDURE PrettyCommentFactor (f: FactorDesc; Left: CARDINAL) ; FORWARD ;
 PROCEDURE PeepTerm (t: TermDesc) : CARDINAL ; FORWARD ;
 PROCEDURE PeepExpression (e: ExpressionDesc) : CARDINAL ; FORWARD ;
 PROCEDURE PeepFactor (f: FactorDesc) : CARDINAL ; FORWARD ;
+PROCEDURE PrettyPrintProduction (p: ProductionDesc) ; FORWARD ;
 PROCEDURE PrettyCommentTerm (t: TermDesc; Left: CARDINAL) ; FORWARD ;
 PROCEDURE PrettyCommentExpression (e: ExpressionDesc; Left: CARDINAL) ; FORWARD ;
 PROCEDURE PrettyCommentStatement (s: StatementDesc; Left: CARDINAL) ; FORWARD ;
@@ -294,7 +295,9 @@ VAR
    LastLineNo         : CARDINAL ;
    Finished,
    SuppressFileLineTag,
+   PrettyPrint,
    EmitCode,
+   Texinfo,
    Debugging,
    WasNoError         : BOOLEAN ;
    LinePrologue,
@@ -2262,6 +2265,36 @@ END PrettyPara ;
 
 
 (*
+   WriteKeyTexinfo - 
+*)
+
+PROCEDURE WriteKeyTexinfo (s: Name) ;
+VAR
+   ds  : String ;
+   ch  : CHAR ;
+   i, l: CARDINAL ;
+BEGIN
+   IF Texinfo
+   THEN
+      ds := InitStringCharStar(KeyToCharStar(s)) ;
+      l := Length(ds) ;
+      i := 0 ;
+      WHILE i<l DO
+         ch := char(ds, i) ;
+         IF (ch='{') OR (ch='}')
+         THEN
+            Write('@')
+         END ;
+         Write(ch) ;
+         INC(i)
+      END
+   ELSE
+      WriteKey(s)
+   END
+END WriteKeyTexinfo ;
+
+
+(*
    PrettyCommentFactor - 
 *)
 
@@ -2279,20 +2312,28 @@ BEGIN
                 INC(Indent, LengthKey(ident^.name)+1) |
          lit :  IF MakeKey("'")=string
                 THEN
-                   Write('"') ; WriteKey(string) ; WriteString('" ')
+                   Write('"') ; WriteKeyTexinfo(string) ; WriteString('" ')
                 ELSE
-                   Write("'") ; WriteKey(string) ; WriteString("' ")
+                   Write("'") ; WriteKeyTexinfo(string) ; WriteString("' ")
                 END ;
                 INC(Indent, LengthKey(string)+3) |
          sub:   PrettyPara('( ', ' ) ', expr, Left) |
          opt:   PrettyPara('[ ', ' ] ', expr, Left) |
-         mult:  PrettyPara('{ ', ' } ', expr, Left) |
-         m2 :   NewLine(Left) ; WriteString('% ') ;
-                seentext := FALSE ;
-                curpos := 0 ;
-                WriteCodeHunkListIndent(code^.code, code^.indent, curpos, Left+2, seentext) ;
-                WriteString(' %') ;
-                NewLine(Left)
+         mult:  IF Texinfo
+                THEN
+                   PrettyPara('@{ ', ' @} ', expr, Left)
+                ELSE
+                   PrettyPara('{ ', ' } ', expr, Left)
+                END |
+         m2 :   IF EmitCode
+                THEN
+                   NewLine(Left) ; WriteString('% ') ;
+                   seentext := FALSE ;
+                   curpos := 0 ;
+                   WriteCodeHunkListIndent(code^.code, code^.indent, curpos, Left+2, seentext) ;
+                   WriteString(' %') ;
+                   NewLine(Left)
+                END
 
          ELSE
          END ;
@@ -2462,6 +2503,40 @@ END PrettyCommentProduction ;
 
 
 (*
+   PrettyPrintProduction - pretty prints the ebnf rule, p.
+*)
+
+PROCEDURE PrettyPrintProduction (p: ProductionDesc) ;
+VAR
+   to: SetDesc ;
+BEGIN
+   IF p#NIL
+   THEN
+      BeginningOfLine := TRUE ;
+      Indent          := 0 ;
+      IF Texinfo
+      THEN
+         WriteString('@example') ; NewLine(0)
+      END ;
+      WriteKey(GetDefinitionName(p)) ;
+      WriteString(' := ') ;
+      INC(Indent, LengthKey(GetDefinitionName(p))+4) ;
+      PrettyCommentStatement(p^.statement, Indent) ;
+      NewLine(0) ;
+      WriteIndent(LengthKey(GetDefinitionName(p))+1) ;
+      WriteString(' =: ') ;
+      NewLine(0) ;
+      IF Texinfo
+      THEN
+         WriteString('@findex ') ; WriteKey(GetDefinitionName(p)) ; WriteString(' (ebnf)') ; NewLine(0) ;
+         WriteString('@end example') ; NewLine(0)
+      END ;
+      NewLine(0)
+   END
+END PrettyPrintProduction ;
+
+
+(*
    EmitFileLineTag - emits a line and file tag using the C preprocessor syntax.
 *)
 
@@ -2482,12 +2557,17 @@ END EmitFileLineTag ;
 
 PROCEDURE EmitRule (p: ProductionDesc) ;
 BEGIN
-   PrettyCommentProduction(p) ;
-   IF ErrorRecovery
+   IF PrettyPrint
    THEN
-      RecoverProduction(p)
+      PrettyPrintProduction(p)
    ELSE
-      CodeProduction(p)
+      PrettyCommentProduction(p) ;
+      IF ErrorRecovery
+      THEN
+         RecoverProduction(p)
+      ELSE
+         CodeProduction(p)
+      END
    END
 END EmitRule ;
 
@@ -5231,6 +5311,7 @@ VAR
 BEGIN
    ErrorRecovery := TRUE ;  (* DefaultRecovery ; *)
    Debugging     := FALSE ;
+   PrettyPrint   := FALSE ;
    i := 1 ;
    n := Narg() ;
    WHILE i<n DO
@@ -5238,7 +5319,7 @@ BEGIN
       THEN
          IF StrEqual(FileName, '-e')
          THEN
-            ErrorRecovery := NOT DefaultRecovery ;
+            ErrorRecovery := FALSE
          ELSIF StrEqual(FileName, '-d')
          THEN
             Debugging := TRUE ;
@@ -5249,6 +5330,15 @@ BEGIN
          ELSIF StrEqual(FileName, '-l')
          THEN
             SuppressFileLineTag := TRUE
+         ELSIF StrEqual(FileName, '-h') OR StrEqual(FileName, '--help')
+         THEN
+            n := 1
+         ELSIF StrEqual(FileName, '-p')
+         THEN
+            PrettyPrint := TRUE
+         ELSIF StrEqual(FileName, '-t')
+         THEN
+            Texinfo := TRUE
          ELSIF OpenSource(FileName)
          THEN
             AdvanceToken
@@ -5261,7 +5351,14 @@ BEGIN
    IF n=1
    THEN
       WriteString('Usage: ppg [-l] [-c] [-d] [-e] filename') ; WriteLn ;
-      exit(0)
+      WriteString('   -l             suppress file and line source information') ; WriteLn ;
+      WriteString('   -c             do not generate any Modula-2 code within the parser rules') ; WriteLn ;
+      WriteString('   -h or --help   generate this help message') ; WriteLn ;
+      WriteString('   -e             do not generate a parser with error recovery') ; WriteLn ;
+      WriteString('   -d             generate internal debugging information') ; WriteLn ;
+      WriteString('   -p             only display the ebnf rules') ; WriteLn ;
+      WriteString('   -t             generate texinfo formating for pretty printing (-p)') ; WriteLn ;
+      HALT
    END
 END ParseArgs ;
 
@@ -5273,6 +5370,7 @@ END ParseArgs ;
 PROCEDURE Init ;
 BEGIN
    WasNoError        := TRUE ;
+   Texinfo           := FALSE ;
    EmitCode          := TRUE ;
    LargestValue      := 0 ;
    HeadProduction    := NIL ;
@@ -5297,6 +5395,9 @@ BEGIN
       IF WasNoError
       THEN
          IF Debugging
+         THEN
+            EmitRules
+         ELSIF PrettyPrint
          THEN
             EmitRules
          ELSE

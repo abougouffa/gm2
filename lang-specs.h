@@ -26,17 +26,17 @@ Boston, MA 02111-1307, USA.  */
   {".def", "@modula-2", 0},
   {"@modula-2",
       "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
-           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin cc1%s -E -lang-asm -quiet %(cpp_unique_options) -Wcppend \
+           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend \
                                                      %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}} \n\
                                                %{!Wcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
-           %{Wmakelist:%{Wcpp:cc1%s -E -lang-asm -quiet %(cpp_unique_options) %g.mod \n\
+           %{Wmakelist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
                               gm2l %{I*} -o %b.lst %g.mod} \n\
                        %{!Wcpp:gm2l %{I*} -o %b.lst %i}} \n\
-           %{Wmodules:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -quiet %(cpp_unique_options) %g.mod \n\
+           %{Wmodules:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
                                          gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{I*} %{v} -c %g.lst} \n\
@@ -48,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
       %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \n\
       %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
                                    make -r -f %g.m }}} \n\
-      %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -quiet %(cpp_unique_options) %g.mod \n\
+      %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
                                              gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\

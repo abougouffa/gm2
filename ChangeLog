@@ -1,3 +1,14 @@
+2003-11-27	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed a bug in the handling of the -Wcpp option so that it uses
+	  -traditional-cpp
+	* integrated the gm2 and m2f regression tests into the GNU GCC
+          dejagnu format - all the m2f tests are now used to test gm2.
+	* started work on a minor extension to GNU Modula-2 which allows
+	  the last parameter to be optional. In turn this allows a
+	  Modula-2 implementation of the ISO module COROUTINES which is
+	  in development.
+	
 2003-11-13	Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified the generated .h files to be prefixed with `G' to avoid

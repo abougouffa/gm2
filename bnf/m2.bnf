@@ -801,7 +801,7 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
                         Builtin
                        ( PossiblyExportIdent                               % StartBuildProcedure %
                                                                            % PushAutoOff %
-                       [ FormalParameters ]
+                       [ DefFormalParameters ]
                                                                            % PopAuto %
                                                                            % BuildProcedureHeading %
                      )                                                     % PopAuto %
@@ -820,14 +820,29 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-FormalParameters := "(" [ FPSection { ";" FPSection } ] ")"
-                    [ ":" Qualident ] =:
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" [ ":" Qualident ] =:
 
-FPSection := NonVarFPSection | VarFPSection | "..." =:
+DefMultiFPSection := DefExtendedFP |
+                     FPSection [ ";" DefMultiFPSection ] =:
+
+FormalParameters := "(" [ MultiFPSection ] ")" [ ":" Qualident ] =:
+
+MultiFPSection := ExtendedFP |
+                  FPSection [ ";" MultiFPSection ] =:
+
+FPSection := NonVarFPSection | VarFPSection =:
+
+DefExtendedFP := DefOptArg | "..." =:
+
+ExtendedFP := OptArg | "..." =:
 
 VarFPSection := "VAR" IdentList ":" FormalType =:
 
 NonVarFPSection := IdentList ":" FormalType =:
+
+OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+
+DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
 
 FormalType := [ "ARRAY" "OF" ] Qualident =:
 

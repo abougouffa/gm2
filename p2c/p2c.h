@@ -10,8 +10,9 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-#include "ansidecl.h"
+/* swapped top two around */
 #include "auto-host.h"
+#include "ansidecl.h"
 #include "p2c-src/src/p2c-config.h"
 #include "system.h"
 
@@ -49,7 +50,8 @@ typedef void *Anyptr;
 #if !defined(IN_GCC)
 /* if we are IN_GCC we must not use malloc as it is poisoned */
 #  ifdef __GNUC__
-#    define Malloc(n)   (malloc(n) ?: (Anyptr)_OutMem())
+/* #    define Malloc(n)   ((malloc(n)) ?: (Anyptr)_OutMem()) */
+#    define Malloc(n)   (malloc(n))
 #  else
 extern Anyptr __MallocTemp__;
 #    define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())

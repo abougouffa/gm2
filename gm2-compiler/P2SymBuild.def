@@ -52,6 +52,7 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildFPSection,
                  BuildVarArgs,
                  BuildFormalVarArgs,
+                 BuildOptArg,
                  StartBuildProcedure,
                  EndBuildProcedure,
                  BuildFunction,
@@ -670,6 +671,21 @@ PROCEDURE BuildVarArgs ;
 *)
 
 PROCEDURE BuildFormalVarArgs ;
+
+
+(*
+   BuildOptArg - indicates that the ProcSym takes a single optarg
+                 after ParamTotal.
+
+                                                         <- Ptr
+                 +------------+        +------------+
+                 | ParamTotal |        | ParamTotal |
+                 |------------|        |------------|
+                 | ProcSym    |        | ProcSym    |
+                 |------------|        |------------|
+*)
+
+PROCEDURE BuildOptArg ;
 
 
 (*

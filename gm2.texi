@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 20 May 2003
+@center Last updated 27 November 2003
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -53,12 +53,15 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 @menu
 * Using::            Using GNU Modula-2.
+* Obtaining::        Obtaining GNU Modula-2.
 * Internals::        GNU Modula-2 internals.
+* Contributing::     Contributing to GNU Modula-2.
+* EBNF::             EBNF of GNU Modula-2
 * Libraries::        PIM and ISO library definitions.
 * Function Index::   Index for all library functions.
 @end menu
 
-@node Using, Internals, Top, Top
+@node Using, Obtaining, Top, Top
 @chapter Using GNU Modula-2
 
 @menu
@@ -167,10 +170,10 @@ turn on ISO standard features. Currently this enables the ISO
 that the ISO libraries are searched before the PIM libraries.
 
 @item -Wextended-opaque
-allows opaque types to be implemented as any type. This
-is a GNU Modula-2 extension and it requires that the implementation
-module defining the opaque type is available so that it
-can be resolved when compiling the module which imports the opaque type.
+allows opaque types to be implemented as any type. This is a GNU
+Modula-2 extension and it requires that the implementation module
+defining the opaque type is available so that it can be resolved when
+compiling the module which imports the opaque type.
 
 @item -Wsources
 displays the path to the source of each module.
@@ -425,6 +428,9 @@ Declarations can be made in any order, whether they are
 types, constants, procedures, nested modules or variables
 (see @xref{Passes, , ,}.)
 
+GNU Modula-2 also allows programmers to interface to @code{C} and
+assembly language.
+
 The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
 command line option. This in turn invokes @samp{cpp} with the
 following arguments @samp{-traditional -lang-asm -C}.  These options
@@ -437,40 +443,78 @@ twice via the macro @code{ERROR}.
 @example
 MODULE cpp ;
 
-FROM SYSTEM IMPORT ADR ;
-FROM libc IMPORT exit, printf ;
+FROM SYSTEM IMPORT ADR, SIZE ;
+FROM libc IMPORT exit, printf, malloc ;
 
-PROCEDURE InternalError (a, file: ARRAY OF CHAR;
+PROCEDURE FatalError (a, file: ARRAY OF CHAR;
                          line: CARDINAL) ;
 VAR
    r: INTEGER ;
 BEGIN
-   r := printf("%s:%d:internal error, %s\n",
+   r := printf("%s:%d:fatal error, %s\n",
                ADR(file), line, ADR(a)) ;
    exit(1)
-END InternalError ;
+END FatalError ;
 
-#define ERROR(X)  InternalError(X, __FILE__, __LINE__)
+#define ERROR(X)  FatalError(X, __FILE__, __LINE__)
 
 VAR
-   i, j: CARDINAL ;
+   pc: POINTER TO CARDINAL;
 BEGIN
-   i := 1 ;
-   j := 1 ;
-   IF i#j
+   pc := malloc(SIZE(CARDINAL)) ;
+   IF pc=NIL
    THEN
-      ERROR('trivial assignment failed')
-   END ;
-   i := 2 DIV 2 ;
-   IF i#j
-   THEN
-      ERROR('trivial division failed')
+      ERROR('out of memory')
    END
 END cpp.
 @end example
 
-GNU Modula-2 also allows programmers to interface to @code{C} and
-assembly language.
+@subsection Optional procedure parameter
+
+GNU Modula-2 allows the last parameter to a procedure or function
+parameter to be optional. For example in the ISO library
+@code{COROUTINES.def} the procedure @code{NEWCOROUTINE} is defined as
+having an optional fifth argument (@code{initProtection}) which, if
+absent, is automatically replaced by @code{NIL}.
+
+@example
+@findex NEWCOROUTINE
+PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS;
+                        size: CARDINAL; VAR cr: COROUTINE;
+                        [initProtection: PROTECTION = NIL]);
+
+  (* Creates a new coroutine whose body is given by procBody,
+     and returns the identity of the coroutine in cr.
+     workspace is a pointer to the work space allocated to
+     the coroutine; size specifies the size of this workspace
+     in terms of SYSTEM.LOC.
+
+     The optional fifth argument may contain a single parameter
+     which specifies the initial protection level of the coroutine.
+  *)
+@end example
+
+The implementation module @file{COROUTINES.mod} implements this
+procedure using the following syntax:
+
+@example
+PROCEDURE NEWCOROUTINE (procBody: PROC; workspace: SYSTEM.ADDRESS;
+                        size: CARDINAL; VAR cr: COROUTINE;
+                        [initProtection: PROTECTION]);
+BEGIN
+   
+END NEWCOROUTINE ;
+@end example
+
+Note that it is illegal for this declaration to contain an initialiser
+value for @code{initProtection}. However it is necessary to surround
+this parameter with the brackets @code{[} and @code{]}. This serves to
+remind the programmer that the last parameter was declared as optional
+in the definition module.
+
+Local procedures can be declared to have an optional final parameter
+in which case the initializer is mandatory in the implementation or
+program module.
 
 @node Interface to C, h2def, Extensions, Using
 @section Interfacing GNU Modula-2 to C
@@ -488,7 +532,7 @@ The recommended method of interfacing GNU Modula-2 to C is by telling
 the definition module that the implementation is in the C language.
 This is achieved by using the tokens @code{DEFINITION MODULE FOR "C"}.
 Here is an example which can be found in the source tree
-@file{gcc-version/gcc/gm2/examples/callingC/libprintf.def}
+@file{gcc-@var{version}/gcc/gm2/examples/callingC/libprintf.def}
 
 @example
 DEFINITION MODULE FOR "C" libprintf ;
@@ -793,7 +837,159 @@ The built-in mechanism will be applied to these generic
 libraries where appropriate. Note for the mathematical routines to
 be inlined you need to specify the @samp{-ffast-math -O} options.
 
-@node Internals, Libraries, Using, Top
+@node Obtaining, Contributing, Using, Top
+@chapter Obtaining GNU Modula-2.
+
+@section Warning
+
+This code is currently in development and it is not yet complete.
+Nevertheless the compiler is sufficiently stable to support itself on
+Debian GNU/Linux ix86 systems. The PIM libraries are complete but the
+ISO libraries and ISO language features are still in development.
+Patches and development volunteers highly welcome! 
+@xref{Contributing, Contributing to GNU Modula-2}.
+
+@section Getting GNU Modula-2
+
+Currently you have several options, you could either download a source
+tar ball from @uref{ftp://floppsie.comp.glam.ac.uk/pub/c} and
+search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
+Prebuilt binary packages are also available at
+@uref{http://www.unet.univie.ac.at/~a9406973/modula2/downl.html}.
+
+Alternatively the development sources can be downloaded via CVS.
+Please be aware that as gm2 is in
+development it might fail to compile with the current version of gcc.
+
+@section Development sources via CVS
+
+To get the latest sources to GM2 type the following:
+
+@example
+export CVSROOT=:pserver:anoncvs@@floppsie.comp.glam.ac.uk:/usr/src/cvs
+cvs login
+cvs -z9 checkout GM2
+@end example
+
+(note the capital GM2 in the checkout, GM2 is the project module within cvs).
+This will checkout a copy of GNU Modula-2 into one subdirectory:
+@file{gm2}.
+
+This version of GM2 needs to be placed inside the GCC source tree in
+the position gcc-@var{version}/gcc before GNU Modula-2 can be built. Please
+check the GNU Modula-2 homepage
+@uref{http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/GNUModula-2.html}
+for details about which GCC releases are supported by GNU Modula-2.
+
+Once you have downloaded the correct GCC release from
+@uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC archive.
+Assuming that both the @file{gcc-@var{version}} and @file{gm2} dicectories
+are at the same level, you can graft @file{gm2} onto @file{gcc-@var{version}} by:
+
+@example   
+mv gm2 gcc-@var{version}/gcc
+@end example
+
+@section Building GNU Modula-2
+
+To build gm2 type:
+
+@example
+mkdir host-build
+cd host-build
+../gcc-@var{version}/configure
+make
+cd ..
+@end example
+
+Installing GNU Modula-2 is achieved by:
+
+@example
+su
+cd host-build
+make install
+exit
+@end example
+
+Now you should be able to perform:
+
+@example
+cd gcc-@var{version}/gcc/gm2/examples/hello
+make
+@end example
+
+which should result in creating an @file{a.out} for the infamous hello
+world example.
+
+@section Stress testing GM2
+
+Currently there are two automated methods to test GNU Modula-2.
+The first method is @samp{make gm2.paranoid} in which @code{gm2}
+builds itself and finally the test runs both parent and child
+generations of the compiler and compares the output. Be warned
+that this test can take some time to execute.
+This test is invoked by:
+
+@example
+cd host-build/gcc ; make gm2.paranoid
+@end example
+
+The second method used to test GNU Modula-2 is to run the regression
+test suite.  The GNU Modula-2 regression test suite is available for
+download.  To install and run the GNU Modula-2 regression suite you
+need to have installed the @file{dejagnu} and @file{expect}
+packages. You also need to have downloaded the gcc testsuite and
+grafted it onto the GCC source tree. Finally you need to graft the GNU
+Modula-2 testsuite onto the gcc testsuite. To ease this process there
+are pre grafted versions available from
+@uref{ftp://floppsie.comp.glam.ac.uk/pub/c}.
+
+Assuming that the root of the GCC source tree is in the current
+working directory you can use the following commands to install
+the test suite:
+
+@example
+export CVSROOT=:pserver:anoncvs@@floppsie.comp.glam.ac.uk:/usr/src/cvs
+cvs login
+cvs -z9 checkout testsuite
+tar cf - testsuite | ( cd gcc-@var{version}/gcc ; tar xf - )
+@end example
+
+Do not simply move the directory @file{testsuite} into
+@file{gcc-@var{version}/gcc} as the GNU Modula-2 regression
+tests have to be overlaid on top of the gcc testsuite.
+
+Thereafter you can run the GNU Modula-2 testsuite by:
+
+@example
+cd host-build/gcc
+make check-gm2
+@end example
+
+Depending on the speed of your computer these tests may take a while
+to complete.
+
+@node Contributing, Internals, Obtaining, Top
+@section Contributing to GNU Modula-2
+
+Please do. But also please read the GNU Emacs info under
+
+@example
+* Standards: (standards).       GNU coding standards.
+* Intellectual Property::       Keeping Free Software Free
+* Reading Non-Free Code::       Referring to Proprietary Programs
+* Contributions::               Accepting Contributions
+@end example
+
+You might consider joining the GM2 Mailing list:
+see URL:
+@uref{http://floppsie.comp.glam.ac.uk/mailman/listinfo/gm2}
+or mail: @uref{mail:gm2-request@@glam.ac.uk}
+before you start coding.
+
+Many thanks and enjoy your coding!
+
+@node Internals, EBNF, Contributing, Top
 @chapter GNU Modula-2 Internals
 
 This document is a small step in the long journey of documenting the GNU
@@ -804,7 +1000,6 @@ The document is still in it's infancy.
 * History::                 Where the sources came from.
 * Overview::                Overview of the structure of GNU Modula-2.
 * Integrating::             How the front end integrates with gcc.
-* Building and installing:: How to build GNU Modula-2.
 * Passes::                  What gets processed during each pass.
 * Scope rules::             Clarification of some the scope rules.
 * Future::                  A future wish list.
@@ -873,46 +1068,14 @@ The front end builds a complete symbol table and a list of quadruples.
 Each symbol is translated into a @code{gcc} equivalent after which
 each quadruple is translated into a @code{gcc} @code{tree}.
 
-@node Integrating, Building and installing, Overview, Internals
+@node Integrating, Passes, Overview, Internals
 @section How the front end integrates with gcc
 
 The M2Base and M2System
 modules contain base types and system types respectively they
 map onto GCC back-end data types.
 
-@node Building and installing, Passes, Integrating, Internals
-@section Building
-
-The GNU Modula-2 source tree should be unpacked in the GNU GCC
-source tree directory @file{gcc-version/gcc}. Typically this
-is achieved by the commands:
-
-@example
-cd gcc-version/gcc
-tar zxf gm2-version.tar.gz
-cd ../..
-@end example
-
-GNU Modula-2 can be built by typing:
-
-@example
-mkdir host-build
-cd host-build
-../gcc-version/configure
-make
-cd ..
-@end example
-
-It can be installed by:
-
-@example
-su
-cd host-build
-make install
-cd ..
-@end example
-
-@node Passes, Scope rules, Building and installing, Internals
+@node Passes, Scope rules, Integrating, Internals
 @section Passes
 
 This section describes the general actions of each pass.  The key to
@@ -1208,6 +1371,11 @@ What has been done:
 @itemize @bullet
 
 @item
+converted the regression test suite into the GNU dejagnu format.
+In turn this can be grafted onto the GCC testsuite and can be
+invoked as @code{make check-gm2}.
+
+@item
 provided access to a few compiler built-in constants
 and twenty seven built-in C functions.
 
@@ -1325,10 +1493,6 @@ SymbolTable needs to be modified.
 investigate the use of collect2 during link/module initialization.
 
 @item
-integrate the small testsuite (gm2/m2/comp/autotest)
-into dejagnu ?? and improve
-
-@item
 Coroutines - as mentioned by readers of comp.lang.modula2.
 
 @item
@@ -1340,7 +1504,22 @@ testing and fixing bugs
 
 @end itemize
 
-@node Libraries, Function Index, Internals, Top
+@node EBNF, Libraries, Internals, Top
+@chapter EBNF of GNU Modula-2
+
+This chapter contains the EBNF of GNU Modula-2. This grammer
+currently supports PIM and a number of ISO features. It is intended
+to be altered to become fully complient with ISO in the future.
+The rules here are automatically extracted from the grammer files in
+GNU Modula-2 and serve to document the syntax of the extensions described
+earlier and how they fit in with the base language.
+
+Note that the first five productions are in-built from the lexical analysis
+phase.
+
+@include gm2-ebnf.texi
+
+@node Libraries, Function Index, EBNF, Top
 @chapter PIM and ISO library definitions
 
 This chapter contains PIM and ISO libraries. The ISO libraries are currently

@@ -1002,7 +1002,7 @@ Builtin := [ "__BUILTIN__" ] =:
 DefProcedureHeading := "PROCEDURE"
                         Builtin
                         ( Ident
-                          [ FormalParameters ]
+                          [ DefFormalParameters ]
                         )
                     =:
 
@@ -1024,15 +1024,29 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-FormalParameters := "(" [ FPSection { ";" FPSection } ] ")"
-                    [ ":" Qualident
-                    ] =:
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" [ ":" Qualident ] =:
 
-FPSection := NonVarFPSection | VarFPSection | "..." =:
+DefMultiFPSection := DefExtendedFP |
+                     FPSection [ ";" DefMultiFPSection ] =:
+
+FormalParameters := "(" [ MultiFPSection ] ")" [ ":" Qualident ] =:
+
+MultiFPSection := ExtendedFP |
+                  FPSection [ ";" MultiFPSection ] =:
+
+FPSection := NonVarFPSection | VarFPSection =:
+
+DefExtendedFP := DefOptArg | "..." =:
+
+ExtendedFP := OptArg | "..." =:
 
 VarFPSection := "VAR" IdentList ":" FormalType =:
 
 NonVarFPSection := IdentList ":" FormalType =:
+
+OptArg := "[" Ident ":" FormalType [ "=" SilentConstExpression ] "]" =:
+
+DefOptArg := "[" Ident ":" FormalType "=" SilentConstExpression "]" =:
 
 FormalType := [ "ARRAY" "OF" ] Qualident =:
 

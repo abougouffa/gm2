@@ -48,7 +48,8 @@ EXPORT QUALIFIED P3StartBuildDefModule,
                  BuildNulName,
                  BuildConst,
                  BuildImportOuterModule,
-                 BuildImportInnerModule ;
+                 BuildImportInnerModule,
+                 BuildOptArgInitializer ;
 
 
 (*
@@ -378,6 +379,20 @@ PROCEDURE BuildNulName ;
 *)
 
 PROCEDURE BuildConst ;
+
+
+(*
+   BuildOptArgInitializer - assigns the constant value symbol, const, to be the
+                            initial value of the optional parameter should it be
+                            absent.
+
+                            Ptr ->
+                                   +------------+
+                                   | const      |
+                                   |------------|                      <- Ptr
+*)
+
+PROCEDURE BuildOptArgInitializer ;
 
 
 END P3SymBuild.

@@ -213,6 +213,8 @@ TYPE
                                               (* The second occurence is       *)
                                               (* compared to the first.        *)
                  HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
+                 HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
+                 OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
                  IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
                  BuiltinName   : Name ;       (* name of equivalent builtin    *)
                  StartQuad     : CARDINAL ;   (* Index into quads for start    *)
@@ -251,6 +253,8 @@ TYPE
                  ListOfParam   : List ;       (* Contains a list of all the    *)
                                               (* parameters in this procedure. *)
                  HasVarArgs    : BOOLEAN ;    (* Does this proc type use ... ? *)
+                 HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
+                 OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
                  ReturnType    : CARDINAL ;   (* Return type for function.     *)
                  Scope         : CARDINAL ;   (* Scope of declaration.         *)
                  Size          : PtrToValue ; (* Runtime size of symbol.       *)
@@ -2184,6 +2188,8 @@ BEGIN
                                          (* The second occurence is       *)
                                          (* compared to the first.        *)
             HasVarArgs := FALSE ;        (* Does the procedure use ... ?  *)
+            HasOptArg := FALSE ;         (* Does this procedure use [ ] ? *)
+            OptArgInit := NulSym ;       (* The optarg initial value.     *)
             IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
             BuiltinName := NulName ;     (* name of equivalent builtin    *)
             Scope := GetCurrentScope() ;
@@ -5216,9 +5222,11 @@ END NoOfParam ;
 
 
 (*
-   PutUseVarArgs - returns TRUE if procedure, Sym, uses varargs.
+   PutUseVarArgs - tell the symbol table that this procedure, Sym,
+                   uses varargs.
                    The procedure _must_ be declared inside a
                    DEFINITION FOR "C"
+
 *)
 
 PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
@@ -5259,6 +5267,105 @@ BEGIN
       END
    END
 END UsesVarArgs ;
+
+
+(*
+   PutUseOptArg - tell the symbol table that this procedure, Sym,
+                  uses an optarg.
+*)
+
+PROCEDURE PutUseOptArg (Sym: CARDINAL) ;
+BEGIN
+   CheckLegal(Sym) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ErrorSym: |
+      ProcedureSym: Procedure.HasOptArg := TRUE |
+      ProcTypeSym : ProcType.HasOptArg := TRUE
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END PutUseOptArg ;
+
+
+(*
+   UsesOptArg - returns TRUE if procedure, Sym, uses varargs.
+*)
+
+PROCEDURE UsesOptArg (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ErrorSym    : RETURN( FALSE ) |
+      ProcedureSym: RETURN( Procedure.HasOptArg ) |
+      ProcTypeSym : RETURN( ProcType.HasOptArg )
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END UsesOptArg ;
+
+
+(*
+   PutOptArgInit - makes symbol, Sym, the initializer value to
+                   procedure, ProcSym.
+*)
+
+PROCEDURE PutOptArgInit (ProcSym, Sym: CARDINAL) ;
+BEGIN
+   CheckLegal(Sym) ;
+   IF NOT IsError(ProcSym)
+   THEN
+      IF UsesOptArg(ProcSym)
+      THEN
+         WITH Symbols[ProcSym] DO
+            CASE SymbolType OF
+
+            ErrorSym    : |
+            ProcedureSym: Procedure.OptArgInit := Sym |
+            ProcTypeSym : ProcType.OptArgInit := Sym
+         
+            ELSE
+               InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+            END
+         END
+      END
+   END
+END PutOptArgInit ;
+
+
+(*
+   GetOptArgInit - returns the initializer value to the optional parameter in
+                   procedure, ProcSym.
+*)
+
+PROCEDURE GetOptArgInit (ProcSym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF NOT IsError(ProcSym)
+   THEN
+      IF UsesOptArg(ProcSym)
+      THEN
+         WITH Symbols[ProcSym] DO
+            CASE SymbolType OF
+
+            ErrorSym    : |
+            ProcedureSym: RETURN( Procedure.OptArgInit ) |
+            ProcTypeSym : RETURN( ProcType.OptArgInit )
+         
+            ELSE
+               InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+            END
+         END
+      END
+   END ;
+   RETURN( NulSym )
+END GetOptArgInit ;
 
 
 (*
@@ -5909,6 +6016,8 @@ BEGIN
                       ProcType.name := ProcTypeName ;
                       InitList(ProcType.ListOfParam) ;
                       ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
+                      ProcType.HasOptArg  := FALSE ;   (* Does this proc type use [ ] ? *)
+                      ProcType.OptArgInit := NulSym ;  (* The optarg initial value.     *)
                       ProcType.Scope := GetCurrentScope() ;
                                                        (* scope of procedure.           *)
                       ProcType.Size := InitValue() ;

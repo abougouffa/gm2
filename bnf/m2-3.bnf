@@ -120,7 +120,8 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        BuildSubrange,
                        BuildNulName,
                        BuildImportOuterModule,
-                       BuildImportInnerModule ;
+                       BuildImportInnerModule,
+                       BuildOptArgInitializer ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
@@ -1086,7 +1087,7 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
                         ( Ident
                                                                            % StartBuildProcedure ;
                                                                              PushAutoOff %
-                          [ FormalParameters ]
+                          [ DefFormalParameters ]
                                                                            % BuildProcedureHeading ;
                                                                              PopAuto %
                         )                                                  % PopAuto %
@@ -1112,15 +1113,31 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-FormalParameters := "(" [ FPSection { ";" FPSection } ] ")"
-                    [ ":" Qualident
-                    ] =:
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" [ ":" Qualident ] =:
 
-FPSection := NonVarFPSection | VarFPSection | "..." =:
+DefMultiFPSection := DefExtendedFP |
+                     FPSection [ ";" DefMultiFPSection ] =:
+
+FormalParameters := "(" [ MultiFPSection ] ")" [ ":" Qualident ] =:
+
+MultiFPSection := ExtendedFP |
+                  FPSection [ ";" MultiFPSection ] =:
+
+FPSection := NonVarFPSection | VarFPSection =:
+
+DefExtendedFP := DefOptArg | "..." =:
+
+ExtendedFP := OptArg | "..." =:
 
 VarFPSection := "VAR" IdentList ":" FormalType =:
 
 NonVarFPSection := IdentList ":" FormalType =:
+
+OptArg := "[" Ident ":" FormalType [ "=" ConstExpression                   % BuildOptArgInitializer %
+                                                         ] "]" =:
+
+DefOptArg := "[" Ident ":" FormalType "=" ConstExpression                  % BuildOptArgInitializer %
+                                                          "]" =:
 
 FormalType := [ "ARRAY" "OF" ] Qualident =:
 

@@ -24,12 +24,12 @@ FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors ;
 
 FROM SymbolTable IMPORT NulSym,
-                        StartScope, EndScope, GetScope,
+                        StartScope, EndScope, GetScope, GetCurrentScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
                         GetExported,
                         IsDefImp, IsModule,
                         RequestSym,
-                        IsProcedure,
+                        IsProcedure, PutOptArgInit,
                         CheckForUnknownInModule,
                         GetFromOuterModule,
                         CheckForEnumerationInCurrentModule,
@@ -610,6 +610,26 @@ BEGIN
    Sym := RequestSym(name) ;
    PushT(Sym)
 END BuildConst ;
+
+
+(*
+   BuildOptArgInitializer - assigns the constant value symbol, const, to be the
+                            initial value of the optional parameter should it be
+                            absent.
+
+                            Ptr ->
+                                   +------------+
+                                   | const      |
+                                   |------------|                      <- Ptr
+*)
+
+PROCEDURE BuildOptArgInitializer ;
+VAR
+   const: CARDINAL ;
+BEGIN
+   PopT(const) ;
+   PutOptArgInit(GetCurrentScope(), const)
+END BuildOptArgInitializer ;
 
 
 END P3SymBuild.

@@ -178,6 +178,10 @@ EXPORT QUALIFIED NulSym,
 
                  PutUseVarArgs,
                  UsesVarArgs,
+                 PutUseOptArg,
+                 UsesOptArg,
+                 PutOptArgInit,
+                 GetOptArgInit,
 
                  NoOfElements,
                  NoOfParam,
@@ -1539,9 +1543,10 @@ PROCEDURE AreParametersDefinedInImplementation (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   PutUseVarArgs - returns TRUE if procedure, Sym, uses varargs.
+   PutUseVarArgs - tell the symbol table that this procedure, Sym, uses varargs.
                    The procedure _must_ be declared inside a
                    DEFINITION FOR "C"
+
 *)
 
 PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
@@ -1554,6 +1559,37 @@ PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
 *)
 
 PROCEDURE UsesVarArgs (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutUseOptArg - tell the symbol table that this procedure, Sym,
+                  uses an optarg.
+*)
+
+PROCEDURE PutUseOptArg (Sym: CARDINAL) ;
+
+
+(*
+   UsesOptArg - returns TRUE if procedure, Sym, uses varargs.
+*)
+
+PROCEDURE UsesOptArg (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutOptArgInit - makes symbol, Sym, the initializer value to
+                   procedure, ProcSym.
+*)
+
+PROCEDURE PutOptArgInit (ProcSym, Sym: CARDINAL) ;
+
+
+(*
+   GetOptArgInit - returns the initializer value to the optional parameter in
+                   procedure, ProcSym.
+*)
+
+PROCEDURE GetOptArgInit (ProcSym: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -69,6 +69,8 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeex) cc1gm2$(exeext) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  build-libs build-libs-iso
 
+TEXI2HTML=texi2html
+
 SRC_PREFIX=G
 
 .PHONY: gm2 m2 modula-2 modula2 GM2 M2 Modula-2 Modula2 MODULA-2 MODULA2
@@ -81,7 +83,7 @@ gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 		$(INCLUDES) $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
 # Create the compiler driver for $(GM2).
-$(GM2)$(exeext): gcc.o gm2spec.o version.o \
+$(GM2)$(exeext): $(GM2_DIRS) gcc.o gm2spec.o version.o \
 	   prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ gcc.o gm2spec.o prefix.o intl.o \
 	  version.o $(EXTRA_GCC_OBJS) $(LIBS)
@@ -104,6 +106,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/gm2-libs-iso \
                  $(objdir)/gm2/gm2-compiler-paranoid $(objdir)/gm2/gm2-libs-paranoid \
                  $(objdir)/gm2/gm2-compiler-verify \
+                 $(objdir)/gm2/boot-bin \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 check_cross: stage1/gm2 force
@@ -129,8 +132,14 @@ gm2.info: $(srcdir)/gm2/gm2.info
 gm2.generated-manpages:
 
 gm2.dvi: $(srcdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
-         $(srcdir)/gm2/gm2-libs.texi
+         $(srcdir)/gm2/gm2-libs.texi \
+	 $(srcdir)/gm2/gm2-ebnf.texi
 	$(TEXI2DVI) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
+
+gm2.html: $(srcdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
+         $(srcdir)/gm2/gm2-libs.texi \
+	 $(srcdir)/gm2/gm2-ebnf.texi
+	$(TEXI2HTML) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
 	dvips -o gm2.ps gm2.dvi
@@ -139,7 +148,7 @@ gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
 $(srcdir)/gm2/gm2.info: $(srcdir)/gm2/images/gnu.eps \
-         $(srcdir)/gm2/gm2.texi $(srcdir)/gm2/gm2-libs.texi
+         $(srcdir)/gm2/gm2.texi $(srcdir)/gm2/gm2-libs.texi $(srcdir)/gm2/gm2-ebnf.texi
 	$(MAKEINFO) -I$(srcdir)/gm2 -o $(srcdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(srcdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
@@ -147,6 +156,9 @@ $(srcdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
 
 $(srcdir)/gm2/gm2-libs.texi:
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py > gm2-libs.texi
+
+$(srcdir)/gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg $(srcdir)/gm2/bnf/m2.bnf
+	./gm2/ppg -c -p -t $(srcdir)/gm2/bnf/m2.bnf > $(srcdir)/gm2/gm2-ebnf.texi
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
@@ -176,6 +188,9 @@ $(objdir)/gm2/gm2-libs-paranoid:
 	mkdir $@
 
 $(objdir)/gm2/gm2-compiler-verify:
+	mkdir $@
+
+$(objdir)/gm2/boot-bin:
 	mkdir $@
 
 stage1/gm2:
@@ -388,7 +403,7 @@ gm2.paranoid: stage3/gm2/cc1gm2$(exeext) gm2.verifyparanoid
 # start here 1->2
 # we need to ensure that the C compiler and headers are configured correctly
 #
-cc1gm2$(exeext): force
+cc1gm2$(exeext): $(GM2_DIRS) force
 	if [ "$(host_canonical)" = "$(target)" ] ; then \
            $(MAKE) stage1_build stage2/gm2/$@ ; \
            cp stage2/gm2/$@ $@ ; \
@@ -444,15 +459,15 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) \
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) \
                             gm2/gm2-compiler/m2lex.o $(BACKEND) $(LIBS)
 
-stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) \
+stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) $(P) $(GM2_OBJS) \
                             $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS) gm2/gm2-compiler-boot/m2lex.o 
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) \
                             gm2/gm2-compiler-boot/m2lex.o $(BACKEND) $(LIBS)
 
 # Compiling object files from source files.
 
-gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
-gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+gm2/gccgm2.o : $(GM2_DIRS) $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
+gm2/gm2builtins.o : $(GM2_DIRS) $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 
 
@@ -615,6 +630,26 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
 GM2_LIBS_ISO_MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod   LongMath.mod \
                      RealMath.mod      Storage.mod     TERMINATION.mod
 
+BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
+
+BUILD-LIBS-BOOT = $(BUILD-LIBS-BOOT-H) \
+                  $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
+                  $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
+
+BUILD-COMPILER-BOOT-H = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
+                        $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/$(SRC_PREFIX)%.h) \
+                        gm2/gm2-compiler-boot/$(SRC_PREFIX)gccgm2.h \
+                        gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2builtins.h
+               
+BUILD-COMPILER-BOOT = $(BUILD-COMPILER-BOOT-H) \
+                      $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
+                      $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
+                      $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
+                      gm2/gm2-compiler-boot/m2lex.o \
+                      gm2/gm2-compiler-boot/M2Version.o
+
+BUILD-BOOT-H = $(BUILD-LIBS-BOOT-H) $(BUILD-COMPILER-BOOT-H)
+
 
 P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
 
@@ -629,7 +664,7 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs/$*.def $(srcdir)/gm2/gm2-libs/$*.mod -o gm2/gm2-libs-boot/$*.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(objdir)/gm2/gm2-libs-boot $(srcdir)/gm2/gm2-libs/%.def
 	$(P2C) $(srcdir)/gm2/gm2-libs/$*.def -h $@
 
 gm2/gm2-libs-boot/SYSTEM.o: $(srcdir)/gm2/gm2-libs/SYSTEM.mod
@@ -662,7 +697,7 @@ gm2/gm2-compiler-boot/ppg.o: $(srcdir)/gm2/gm2-compiler/ppg.mod
 	$(P2C) $(srcdir)/gm2/gm2-compiler/ppg.mod -o gm2/gm2-compiler-boot/ppg.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/ppg.c -o $@
 
-gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
+gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod $(BUILD-BOOT-H)
 	$(P2C) -s $(srcdir)/gm2/gm2-compiler/$*.def $(srcdir)/gm2/gm2-compiler/$*.mod -o gm2/gm2-compiler-boot/$*.c ; \
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/$*.c -o $@
 
@@ -826,19 +861,6 @@ gm2/gm2-compiler/gm2.a: build-compiler
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
 
-BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h) \
-                  $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
-                  $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
-
-BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
-                      $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/$(SRC_PREFIX)%.h) \
-	              gm2/gm2-compiler-boot/$(SRC_PREFIX)gccgm2.h \
-	              gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2builtins.h \
-                      $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
-                      $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
-                      gm2/gm2-compiler-boot/m2lex.o \
-                      gm2/gm2-compiler-boot/M2Version.o
-
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
                     $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
@@ -953,7 +975,6 @@ gm2/p2c/p2c-src/src/p2c.proto: $(P2CSRCS) gm2/boot-bin/makeproto
 	$(objdir)/gm2/boot-bin/makeproto -n -m -h -t16 -a35 -s1 -i $(P2CSRCLIST) -o $(objdir)/$@
 
 gm2/boot-bin/makeproto: $(srcdir)/gm2/p2c/p2c-src/src/makeproto.c
-	if [ ! -d gm2/boot-bin ] ; then mkdir -p gm2/boot-bin ; fi
 	$(CC) $(CFLAGS) $(LDFLAGS) $(P2C_INCLUDES) $< -o $@
 
 # Making the p2c runtime library
@@ -1281,7 +1302,7 @@ $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 
 $(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
 	$(MAKE) gm2/pge
-	./gm2/pge $< > $@
+	./gm2/pge -l $< > $@
 
 $(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
 	$(MAKE) gm2/pge
@@ -1353,9 +1374,31 @@ gm2.verifystage12: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
         done ; \
 	$(RM) -f gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/2_3.diff gm2/gm2-compiler-verify/1_2.diff
 
+check-m2: check-gm2
+check_m2: check-gm2
+check_gm2: check-gm2
+check-modula2: check-gm2
+check_modula2: check-gm2
+check-modula-2: check-gm2
+check_modula-2: check-gm2
+check_modula-2: check-gm2
+
+GM2TESTSUITEDIR=testsuite
+
+check-gm2: $(GM2TESTSUITEDIR)/site.exp
+	-(rootme=`${PWD_COMMAND}`; export rootme; \
+	srcdir=`cd ${srcdir}; ${PWD_COMMAND}` ; export srcdir ; \
+	cd $(TESTSUITEDIR); \
+	EXPECT=${EXPECT} ; export EXPECT ; \
+	if [ -f $${rootme}/../expect/expect ] ; then  \
+	   TCL_LIBRARY=`cd .. ; cd ${srcdir}/../tcl/library ; ${PWD_COMMAND}` ; \
+	    export TCL_LIBRARY ; fi ; \
+	$(RUNTEST) --tool gm2 $(RUNTESTFLAGS))
+
 gm2.maintainer-clean: force
 	-rm -f $(srcdir)/gm2/gm2-auto/*
 	-rm -f $(srcdir)/gm2/gm2-libs.texi
+	-rm -f $(srcdir)/gm2/gm2-ebnf.texi
 	-rm -f $(srcdir)/gm2/images/gnu.eps
 
 GM2DISTFILES = CVS ChangeLog gm2/Make-lang.in README bnf config-lang.in \

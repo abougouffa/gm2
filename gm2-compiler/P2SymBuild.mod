@@ -90,6 +90,8 @@ FROM SymbolTable IMPORT NulSym,
                         IsVarParam,
                         PutUseVarArgs,
                         UsesVarArgs,
+                        PutUseOptArg,
+                        UsesOptArg,
                         IsDefinitionForC,
                         GetSymName,
                         GetDeclared,
@@ -1168,6 +1170,10 @@ VAR
 BEGIN
    PopT(ParamTotal) ;
    PopT(ProcSym) ;
+   IF UsesOptArg(ProcSym)
+   THEN
+      WriteFormat0('procedure can use either a single optional argument or a single vararg section ... at the end of the formal parameter list')
+   END ;
    IF UsesVarArgs(ProcSym)
    THEN
       WriteFormat0('procedure can only have one vararg section ... at the end of the formal parameter list')
@@ -1188,7 +1194,37 @@ END BuildVarArgs ;
 
 
 (*
+   BuildOptArg - indicates that the ProcSym takes a single optarg
+                 after ParamTotal.
+
+                                                         <- Ptr
+                 +------------+        +------------+
+                 | ParamTotal |        | ParamTotal |
+                 |------------|        |------------|
+                 | ProcSym    |        | ProcSym    |
+                 |------------|        |------------|
+*)
+
+PROCEDURE BuildOptArg ;
+VAR
+   ProcSym,
+   ParamTotal: CARDINAL ;
+BEGIN
+   PopT(ParamTotal) ;
+   PopT(ProcSym) ;
+   IF UsesVarArgs(ProcSym)
+   THEN
+      WriteFormat0('procedure can not use an optional argument after a vararg ...')
+   END ;
+   PutUseOptArg(ProcSym) ;
+   PushT(ProcSym) ;
+   PushT(ParamTotal)
+END BuildOptArg ;
+
+
+(*
    BuildFormalVarArgs - indicates that the procedure type takes varargs.
+
                                                              <- Ptr
                         +------------+        +------------+
                         | ProcSym    |        | ProcSym    |
