@@ -10386,7 +10386,7 @@ tree
 gccgm2_ConvertConstantAndCheck (type, expr)
      tree type, expr;
 {
-  return convert_and_check( skip_type_decl (type), expr);
+  return convert_and_check (skip_type_decl (type), expr);
 }
 
 /*
@@ -10397,7 +10397,7 @@ tree
 gccgm2_RealToTree (name)
      char *name;
 {
-  return build_real( gccgm2_GetLongRealType(),
+  return build_real (gccgm2_GetLongRealType(),
 		     REAL_VALUE_ATOF (name, TYPE_MODE (gccgm2_GetLongRealType ())));
 }
 
