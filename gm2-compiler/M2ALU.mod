@@ -236,6 +236,94 @@ END InitValue ;
 
 
 (*
+   IsValueTypeNone - returns TRUE if the value on the top stack has no value.
+*)
+
+PROCEDURE IsValueTypeNone () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=none
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeNone ;
+
+
+(*
+   IsValueTypeInteger - returns TRUE if the value on the top stack is an integer.
+*)
+
+PROCEDURE IsValueTypeInteger () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=integer
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeInteger ;
+
+
+(*
+   IsValueTypeReal - returns TRUE if the value on the top stack is a real.
+*)
+
+PROCEDURE IsValueTypeReal () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=real
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeReal ;
+
+
+(*
+   IsValueTypeSet - returns TRUE if the value on the top stack is a set.
+*)
+
+PROCEDURE IsValueTypeSet () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=set
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeSet ;
+
+
+(*
    PushIntegerTree - pushes a gcc tree value onto the ALU stack.
 *)
 

@@ -3172,7 +3172,7 @@ VAR
 BEGIN
    CheckProcedureParameters(IsForC) ;
    PopT(NoOfParam) ;
-   PushT(NoOfParam) ;  (* Restore stack to origional state *)
+   PushT(NoOfParam) ;  (* Restore stack to original state *)
    ProcSym := OperandT(NoOfParam+2) ;
    IF IsVar(ProcSym)
    THEN

@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE Builtins ;
 IMPORT cbuiltin ;
 
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((alloca)) alloca (i: CARDINAL) : ADDRESS ;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_alloca)) alloca (i: CARDINAL) : ADDRESS ;
 BEGIN
    (* hopefully the compiler will choose to use the __builtin_alloca function within GCC.
       This call is here just in case it cannot. Ie if the user sets a procedure variable to
@@ -30,7 +30,7 @@ BEGIN
    RETURN cbuiltin.__builtin_alloca (i)
 END alloca ;
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((memcpy)) memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_memcpy)) memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;

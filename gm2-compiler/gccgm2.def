@@ -23,9 +23,7 @@ EXPORT QUALIFIED Tree,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetM2RealType, GetM2LongRealType, GetM2LongIntType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
-                 GetBitsPerWord, GetBuiltinConst, GetBuiltinConstType,
-                 BuiltinExists, BuildBuiltinTree,
-                 BuiltInMemCopy, BuiltInAlloca,
+                 GetBitsPerWord,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -139,20 +137,6 @@ PROCEDURE GetIntegerOne          () : Tree ;
 PROCEDURE GetCurrentFunction     () : Tree ;
 PROCEDURE GetErrorNode           () : Tree ;
 
-(*
-   Builtin functions.
-*)
-
-PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
-
-
-(*
-   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
-                   of the current function.
-*)
-
-PROCEDURE BuiltInAlloca (n: Tree) : Tree ;
-
 
 (*
    GetMinFrom - given a, type, return a constant representing the minimum
@@ -175,39 +159,6 @@ PROCEDURE GetMaxFrom (type: Tree) : Tree ;
 *)
 
 PROCEDURE GetBitsPerWord () : CARDINAL ;
-
-
-(*
-   GetBuiltinConst - returns the gcc tree of a built in constant, name.
-                     NIL is returned if the constant is unknown.
-*)
-
-PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
-
-
-(*
-   GetBuiltinConstType - returns the type of a builtin constant, name.
- 
-                         0 = unknown constant name
-                         1 = integer
-                         2 = real
-*)
-
-PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
-
-(*
-   BuiltinExists - returns TRUE if the builtin function, name, exists
-                   for this target architecture.
-*)
-
-PROCEDURE BuiltinExists (name: ADDRESS) : BOOLEAN ;
-
-
-(*
-   BuildBuiltinTree - returns a Tree containing the builtin function, name.
-*)
-
-PROCEDURE BuildBuiltinTree (name: ADDRESS) : Tree ;
 
 
 (*

@@ -31,6 +31,10 @@ FROM gccgm2 IMPORT Tree ;
 
 EXPORT QUALIFIED PtrToValue,
                  InitValue,
+                 IsValueTypeNone,
+                 IsValueTypeInteger,
+                 IsValueTypeReal,
+                 IsValueTypeSet,
                  PopInto, PushFrom,
                  PushIntegerTree, PopIntegerTree,
                  PopSetTree,
@@ -64,6 +68,34 @@ TYPE
 *)
 
 PROCEDURE InitValue () : PtrToValue ;
+
+
+(*
+   IsValueTypeNone - returns TRUE if the value on the top stack has no value.
+*)
+
+PROCEDURE IsValueTypeNone () : BOOLEAN ;
+
+
+(*
+   IsValueTypeInteger - returns TRUE if the value on the top stack is an integer.
+*)
+
+PROCEDURE IsValueTypeInteger () : BOOLEAN ;
+
+
+(*
+   IsValueTypeReal - returns TRUE if the value on the top stack is a real.
+*)
+
+PROCEDURE IsValueTypeReal () : BOOLEAN ;
+
+
+(*
+   IsValueTypeSet - returns TRUE if the value on the top stack is a set.
+*)
+
+PROCEDURE IsValueTypeSet () : BOOLEAN ;
 
 
 (*

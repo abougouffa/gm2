@@ -79,16 +79,20 @@ FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList ;
 
 FROM M2ALU IMPORT PtrToValue,
-                  PushIntegerTree, PopIntegerTree, PopSetTree, PushCard, Gre, Sub, Equ, NotEqu, LessEqu,
+                  IsValueTypeReal,
+                  PushIntegerTree, PopIntegerTree, PopSetTree, PopRealTree, PushCard, Gre, Sub, Equ, NotEqu, LessEqu,
                   BuildRange, SetOr, SetAnd, SetNegate, SetSymmetricDifference, SetDifference,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn, GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT StartDeclareMainModule, EndDeclareMainModule, DeclareConstant,
                          DeclareLocalVariables, PromoteToString, CompletelyResolved ;
 
+FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
+                        GetBuiltinConst,
+                        BuiltinExists, BuildBuiltinTree ;
+
 FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildVariableArrayAndDeclare,
-                   BuiltInMemCopy, BuiltInAlloca,
                    BuildBinProcedure, BuildUnaryProcedure,
                    ChainOnParamValue, AddStringToTreeList,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
@@ -107,7 +111,6 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIfIn, BuildIfNotIn,
                    BuildIndirect,
                    BuildConvert, BuildTrunc,
-                   BuiltInAlloca,
                    BuildBinaryForeachWordDo,
                    BuildUnaryForeachWordDo,
                    BuildExcludeVarConst, BuildIncludeVarConst,
@@ -124,8 +127,6 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ExpandExpressionStatement,
                    GetPointerType, GetWordType,
                    GetBitsPerWord,
-                   GetBuiltinConst,
-                   BuiltinExists, BuildBuiltinTree,
                    RememberConstant ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -1315,7 +1316,12 @@ BEGIN
                IF IsValueSolved(operand3)
                THEN
                   PushValue(operand3) ;
-                  AddModGcc(operand1, PopIntegerTree())
+                  IF IsValueTypeReal()
+                  THEN
+                     AddModGcc(operand1, PopRealTree())
+                  ELSE
+                     AddModGcc(operand1, PopIntegerTree())
+                  END
                ELSE
                   AddModGcc(operand1,
                             DeclareKnownConstant(Mod2Gcc(GetType(operand3)),

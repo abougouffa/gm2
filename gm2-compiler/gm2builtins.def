@@ -1,0 +1,86 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE gm2builtins ;
+
+(*
+    Title      : gm2builtins
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Jan  6 08:36:23 2003
+    Revision   : $Version$ 
+    Description: provides access to the builtin functions within GCC for GNU Modula-2
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+FROM gccgm2 IMPORT Tree ;
+
+EXPORT QUALIFIED GetBuiltinConst, GetBuiltinConstType,
+                 BuiltinExists, BuildBuiltinTree,
+                 BuiltInMemCopy, BuiltInAlloca ;
+
+
+(*
+   GetBuiltinConst - returns the gcc tree of a built in constant, name.
+                     NIL is returned if the constant is unknown.
+*)
+
+PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
+
+
+(*
+   GetBuiltinConstType - returns the type of a builtin constant, name.
+ 
+                         0 = unknown constant name
+                         1 = integer
+                         2 = real
+*)
+
+PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
+
+
+(*
+   BuiltinExists - returns TRUE if the builtin function, name, exists
+                   for this target architecture.
+*)
+
+PROCEDURE BuiltinExists (name: ADDRESS) : BOOLEAN ;
+
+
+(*
+   BuildBuiltinTree - returns a Tree containing the builtin function, name.
+*)
+
+PROCEDURE BuildBuiltinTree (name: ADDRESS) : Tree ;
+
+
+(*
+   BuiltinMemCopy and BuiltinAlloca - are called by M2GenGCC to implement open arrays.
+*)
+
+PROCEDURE BuiltInMemCopy (dest, src, n: Tree) : Tree ;
+
+
+(*
+   BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+                   of the current function.
+*)
+
+PROCEDURE BuiltInAlloca (n: Tree) : Tree ;
+
+
+END gm2builtins.
