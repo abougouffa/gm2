@@ -101,7 +101,7 @@ gm2/gm2.info:
 # Install hooks:
 # cc1gm2 is installed elsewhere as part of $(COMPILERS).
 
-GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub
+GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub gm2m
 
 $(GM2_LIB_DIR): force
 	-if [ ! -d $(GM2_LIB_DIR) ] ; then mkdir $(GM2_LIB_DIR) ; fi
