@@ -3447,13 +3447,6 @@ readonly_warning (arg, string)
   char buf[80];
   strcpy (buf, string);
 
-  /* Forbid assignments to iterators.  */
-  if (TREE_CODE (arg) == VAR_DECL && ITERATOR_P (arg))
-    {
-      strcat (buf, " of iterator `%s'");
-      pedwarn (buf, IDENTIFIER_POINTER (DECL_NAME (arg)));
-    }
-
   if (TREE_CODE (arg) == COMPONENT_REF)
     {
       if (TREE_READONLY (TREE_OPERAND (arg, 0))
@@ -3605,7 +3598,7 @@ decl_constant_value (decl)
       current_function_decl != 0
       && ! pedantic
       && ! TREE_THIS_VOLATILE (decl)
-      && TREE_READONLY (decl) && ! ITERATOR_P (decl)
+      && TREE_READONLY (decl)
       && DECL_INITIAL (decl) != 0
       && TREE_CODE (DECL_INITIAL (decl)) != ERROR_MARK
       /* This is invalid if initial value is not constant.
@@ -7181,14 +7174,6 @@ finish_decl (decl, init, asmspec_tree)
   if (TREE_CODE (decl) == PARM_DECL)
     init = 0;
 
-  if (ITERATOR_P (decl))
-    {
-      if (init == 0)
-        error_with_decl (decl, "iterator has no initial value");
-      else
-        init = save_expr (init);
-    }
-
 #if !defined(GM2)
   if (init)
     {
@@ -7261,11 +7246,8 @@ finish_decl (decl, init, asmspec_tree)
                    Also if it is not file scope.
                    Otherwise, let it through, but if it is not `extern'
                    then it may cause an error message later.  */
-              /* A duplicate_decls call could have changed an extern
-                 declaration into a file scope one.  This can be detected
-                 by TREE_ASM_WRITTEN being set.  */
                 (DECL_INITIAL (decl) != 0
-                 || (DECL_CONTEXT (decl) != 0 && ! TREE_ASM_WRITTEN (decl)))
+                 || DECL_CONTEXT (decl) != 0)
               :
                 /* An automatic variable with an incomplete type
                    is an error.  */
