@@ -275,6 +275,8 @@ gm2.clean:
 	-rm -f gm2/gm2-auto/pg.o
 	-rm -f gm2/gm2.cp gm2/gm2.fn gm2/gm2.pg gm2/gm2.toc gm2/gm2.tp gm2/gm2.vr gm2/gm2.ky
 	-rm -f gm2/gm2-compiler/M2Version.mod
+	-rm -f gm2/gm2-auto/gm2l.mod gm2/gm2-auto/P1SyntaxCheck.mod
+	-rm -f gm2/gm2-auto/P2Build.mod gm2/gm2-auto/P3Build.mod gm2/gm2-auto/PHBuild.mod
 
 gm2.distclean:
 	-rm -f gm2/m2/comp/autotest/run/fail/Makefile gm2/m2/comp/autotest/dynamic/Makefile
@@ -566,13 +568,29 @@ gm2/gm2-compiler-boot/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 gm2/gm2-compiler-boot/%.o: gm2/gm2-compiler-boot/%.c
 	$(CC) -c -g -O2 -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
-gm2/gm2-compiler-boot/%.o: gm2/gm2-auto/%.mod
-	if [ -f $(srcdir)/gm2/gm2-compiler/$*.def ] ; then \
-          $(P2C) -s $(srcdir)/gm2/gm2-compiler/$*.def gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
-        else \
-          $(P2C) gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
-        fi
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/$*.c -o $@
+gm2/gm2-compiler-boot/P1SyntaxCheck.o: $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod
+	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P1SyntaxCheck.def gm2/gm2-auto/P1SyntaxCheck.mod -o gm2/gm2-auto/P1SyntaxCheck.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P1SyntaxCheck.c -o $@
+
+gm2/gm2-compiler-boot/P2Build.o: $(objdir)/gm2/gm2-auto/P2Build.mod
+	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P2Build.def gm2/gm2-auto/P2Build.mod -o gm2/gm2-auto/P2Build.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P2Build.c -o $@
+
+gm2/gm2-compiler-boot/P3Build.o: $(objdir)/gm2/gm2-auto/P3Build.mod
+	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P3Build.def gm2/gm2-auto/P3Build.mod -o gm2/gm2-auto/P3Build.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P3Build.c -o $@
+
+gm2/gm2-compiler-boot/PHBuild.o: $(objdir)/gm2/gm2-auto/PHBuild.mod
+	$(P2C) -s $(srcdir)/gm2/gm2-compiler/PHBuild.def gm2/gm2-auto/P3Build.mod -o gm2/gm2-auto/PHBuild.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P3Build.c -o $@
+
+gm2/gm2-compiler-boot/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
+	$(P2C) gm2/gm2-auto/gm2l.mod -o gm2/gm2-auto/gm2l.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/gm2l.c -o $@
+
+gm2/gm2-compiler-boot/gm2m.o: $(objdir)/gm2/gm2-auto/gm2m.mod
+	$(P2C) gm2/gm2-auto/gm2m.mod -o gm2/gm2-auto/gm2m.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/gm2m.c -o $@
 
 gm2/gm2-compiler-boot/%.h: $(srcdir)/gm2/gm2-compiler/%.def
 	$(P2C) $(srcdir)/gm2/gm2-compiler/$*.def -h gm2/gm2-compiler-boot/$*.h
@@ -896,10 +914,10 @@ stage2/gm2/gm2lsub$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler
 stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2minit > gm2m.lst
 	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
-               -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-auto/gm2m.mod
+               -g -B./stage1/gm2 -B./ gm2/gm2-auto/gm2m.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist $(srcdir)/gm2/gm2-auto/gm2m.mod $(LIBS)
+               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS)
 
 gm2/ppg: gm2/p2c/p2c-src/home/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
@@ -976,27 +994,27 @@ gm2/pge: buildpge
         fi
 	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/pg.bnf
 
-gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
+$(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
+$(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
+$(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf
+$(objdir)/gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf
+$(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
+$(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
