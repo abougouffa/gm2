@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: Directories.def,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: Directories.def,v 1.2 2004/06/22 18:14:01 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Directories.def,v $
+   Revision 1.2  2004/06/22 18:14:01  gaius
+   fixed parameters in ulm directory
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -57,7 +60,7 @@ DEFINITION MODULE Directories;
 
    PROCEDURE TellDir(dirp: DIR; VAR offset: OFF) : BOOLEAN;
 
-   PROCEDURE SeekDir(dirp: DIR; offset: OFF) : BOOLEAN;
+   PROCEDURE SeekDir(dirp: DIR; pos: OFF) : BOOLEAN;
 
    PROCEDURE RewindDir(dirp: DIR) : BOOLEAN;
 

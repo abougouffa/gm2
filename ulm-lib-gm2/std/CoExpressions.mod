@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: CoExpressions.mod,v 1.1 2004/05/05 21:34:58 gaius Exp $
+   $Id: CoExpressions.mod,v 1.2 2004/06/22 18:14:01 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: CoExpressions.mod,v $
+   Revision 1.2  2004/06/22 18:14:01  gaius
+   fixed parameters in ulm directory
+
    Revision 1.1  2004/05/05 21:34:58  gaius
    * added SHIFT and ROTATE into ISO SYSTEM and
      made the compiler shift and rotate word and multi-word
@@ -89,7 +92,7 @@ IMPLEMENTATION MODULE CoExpressions;
       failed: BOOLEAN;
       SuspendValue: ResultType;
 
-   PROCEDURE Send(cr: CoRoutine; value: ResultType);
+   PROCEDURE Send(cr: CoRoutine; value: WORD);
    BEGIN
       IF cr = NIL THEN RETURN END;
       source := cp;
@@ -122,7 +125,7 @@ IMPLEMENTATION MODULE CoExpressions;
       END;
    END Create;
 
-   PROCEDURE Receive(cr: CoRoutine; VAR value: ResultType) : BOOLEAN;
+   PROCEDURE Receive(cr: CoRoutine; VAR value: WORD) : BOOLEAN;
    BEGIN
       WITH cr^ DO
          cr^.caller := cp;

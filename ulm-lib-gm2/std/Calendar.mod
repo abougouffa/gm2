@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Calendar.mod,v 1.3 2004/06/21 15:53:32 gaius Exp $
+   $Id: Calendar.mod,v 1.4 2004/06/22 18:14:01 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Calendar.mod,v $
+   Revision 1.4  2004/06/22 18:14:01  gaius
+   fixed parameters in ulm directory
+
    Revision 1.3  2004/06/21 15:53:32  gaius
    fixed bug in constant set declaration
    (see ulm library ulm-lib-gm2/std/Calendar.mod and
@@ -116,9 +119,9 @@ IMPLEMENTATION MODULE Calendar;
 	 aux := 0
       END;
       IF negative THEN
-	 localtime := -Time(aux)
+	 localtime := -VAL(Time, aux)
       ELSE
-	 localtime := Time(aux)
+	 localtime := VAL(Time, aux)
       END
    END PresetLocaltime;
 
@@ -164,7 +167,8 @@ IMPLEMENTATION MODULE Calendar;
       WITH daytime DO
 	 RETURN
 	    (Time(date) - Time(TimebaseDn)) * SecsPerDay
-	    + Time(hour * (60 * 60) + minute * 60 + second) + localtime
+	    + VAL(Time, hour * (60 * 60) + minute * 60 + second)
+            + localtime
       END
    END CTime;
 
@@ -367,7 +371,9 @@ IMPLEMENTATION MODULE Calendar;
 BEGIN
    PresetLocaltime;
    SetFirstOfWeek(Mon);
-   ConvertDate(MAX(Date) DIV 5, maxcalendarday); (* DIV 5: avoid overflow *)
+(*
+   ConvertDate( MAX(Date) DIV 5, maxcalendarday); (* DIV 5: avoid overflow *)
+*)
 END Calendar.
 (*
  * Local variables:

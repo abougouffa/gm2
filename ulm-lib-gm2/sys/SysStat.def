@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: SysStat.def,v 1.1 2003/12/27 00:16:08 gaius Exp $
+   $Id: SysStat.def,v 1.2 2004/06/22 18:14:03 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: SysStat.def,v $
+   Revision 1.2  2004/06/22 18:14:03  gaius
+   fixed parameters in ulm directory
+
    Revision 1.1  2003/12/27 00:16:08  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -37,6 +40,7 @@
 DEFINITION MODULE SysStat;
 
    FROM SystemTypes IMPORT TIME, OFF;
+   FROM SYSTEM IMPORT BITSET ;
 
    TYPE
       StatBuf =
