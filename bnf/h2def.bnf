@@ -1163,12 +1163,15 @@ BEGIN
             END ;
             PrintBasicType(m, t)
          END
-      ELSIF (n^.type=ndbase) OR (n^.type=ndstruct)
-      THEN
-         PrintBasicType(n, {})
-      ELSIF n^.type=ndvararg
-      THEN
-         hprintf0('...')
+      ELSE
+         n := SkipDummy(n) ;
+         IF (n^.type=ndbase) OR (n^.type=ndstruct)
+         THEN
+            PrintBasicType(n, {})
+         ELSIF n^.type=ndvararg
+         THEN
+            hprintf0('...')
+         END
       END
    END
 END PrintBaseType ;
@@ -1442,9 +1445,9 @@ BEGIN
    THEN
       m := n ;
       REPEAT
-         IF (n^.chain#NIL) AND (n^.chain^.type=ndident)
+         IF (m^.chain#NIL) AND (m^.chain^.type=ndident)
          THEN
-            f := FindFunc(n^.chain^.id.type)
+            f := FindFunc(m^.chain^.id.type)
          ELSE
             f := NIL
          END ;
@@ -1452,13 +1455,13 @@ BEGIN
          THEN
             i := InitNode(ndident) ;
             i^.id.name := makekey(string(Sprintf1(Mark(InitString('__gm2param%d')), DummyNo))) ;
-            i^.id.type := MakeBaseNode(n^.chain^.id.name) ;
+            i^.id.type := MakeBaseNode(m^.chain^.id.name) ;
             
             t := InitNode(ndtypedef) ;
-            t^.chain := n^.chain^.id.type ;
-            n^.chain^.id.type := t ;
-            PutItemIntoList(ToDoList, n^.chain) ;
-            n^.chain := i
+            t^.chain := m^.chain^.id.type ;
+            m^.chain^.id.type := t ;
+            PutItemIntoList(ToDoList, m^.chain) ;
+            m^.chain := i
          END ;
          m := m^.nextChain
       UNTIL m=n
@@ -1823,10 +1826,7 @@ BEGIN
       WHILE NoOfItemsInList(ToDoList)#0 DO
          n := GetItemFromList(ToDoList, 1) ;
          RemoveItemFromList(ToDoList, n) ;
-         IF emitting=procedures
-         THEN
-            hprintf0(';\n')
-         END ;
+         hprintf0(';\n') ;
          Emit(types) ;
          PrintCNode(n)
       END
