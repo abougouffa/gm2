@@ -29,11 +29,11 @@ This will checkout a copy of GNU Modula-2 into one subdirectory: gm2
 
 This (very development, very buggy, highly unstable)
 version of GM2 needs to be placed inside an GCC directory tree in
-the position egcs-version/gcc before GNU Modula-2 can be built.
+the position gcc-version/gcc before GNU Modula-2 can be built.
 
 Assuming that both GCC and gm2 are at the same directory level, type:
    
-   mv gm2 egcs-version/gcc
+   mv gm2 gcc-version/gcc
 
 The gm2.texi file outlines the strategy for generating gm2 from the
 m2f source tree. The gm2.texi file also describes the history of m2f.
@@ -42,30 +42,15 @@ Tarballs
 ========
 
 see ftp://floppsie.comp.glam.ac.uk/pub/c
-for files which look like gm2+egcs-version.tar.gz.
+for files which look like gm2+gcc-version.tar.gz.
 The tarballs will have the modifications outlined below applied.
-
-Modifications to gcc
-====================
-
-in gcc/ggc-page.c:
-
-void
-ggc_collect ()
-{
-#if defined(GM2)
-  return;  /* don't garbage collect when building gm2 - this
-            * is an ugly hack which will be removed r.s.n
-            */
-#endif
- etc etc
 
 
 Building GNU Modula-2
 =====================
 
 To build gm2 type:
-   cd egcs-version ; ./configure ; make
+   cd gcc-version ; ./configure ; make
 
 A simple test
 =============
@@ -84,7 +69,7 @@ Building m2f
 
 To build the original m2f without gcc codegenerator type:
 
-   cd egcs-version/gcc/gm2/m2/comp ; make clean reconfig ; make all
+   cd gcc-version/gcc/gm2/m2/comp ; make clean reconfig ; make all
 
 Note that you have to be on a [3456]86 GNU/Linux box to do this.
 It will generate a [345]86 codegenerator and an x86 tiny
