@@ -8525,7 +8525,6 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   current_function_decl = fndecl;
   DECL_INITIAL (fndecl) = error_mark_node;
 
-  temporary_allocation ();
   pushlevel (0);
   make_function_rtl (fndecl);
 
@@ -8586,124 +8585,8 @@ gccgm2_BuildEndFunctionCode (fndecl)
   expand_function_end (input_filename, lineno, 0);
   rest_of_compilation (fndecl);
   current_function_decl = 0;
-  permanent_allocation (1);
 }
 
-
-#if 0
-void
-iterative_factorial()
-{
-  /****************************
-   **
-   ** 2. iterative factorial
-   **
-   ****************************/
-
-  tree fakdecl;
-
-  tree locdecl, functype, funcid, resultdecl, parmdecl, block, parmid, arglist;
-  struct nesting *loop;
-  tree assign;
-
-  /* build & initialize declaration */
-  arglist = listify(integer_type_node);
-  functype = build_function_type(integer_type_node, arglist);
-  funcid = get_identifier("fak");  
-  fakdecl = build_decl(FUNCTION_DECL, funcid, functype);
-  temporary_allocation();
-  TREE_TYPE(fakdecl) = functype;
-  resultdecl = build_decl(RESULT_DECL, NULL_TREE, integer_type_node);
-  TREE_TYPE(resultdecl) = integer_type_node;
-  DECL_CONTEXT(resultdecl) = fakdecl;
-  DECL_RESULT(fakdecl) = resultdecl;
-  layout_decl(resultdecl, 0);
-  parmid = get_identifier("n");
-  parmdecl = build_decl(PARM_DECL, parmid, integer_type_node);
-  DECL_CONTEXT(parmdecl) = fakdecl;
-  DECL_ARG_TYPE(parmdecl) = integer_type_node;
-  DECL_ARGUMENTS(fakdecl) = parmdecl;
-  layout_decl(parmdecl, 0);
-  TREE_STATIC(fakdecl) = 1;
-  TREE_ADDRESSABLE(fakdecl) = 1;
-  TREE_PUBLIC(fakdecl) = 1;
-
-  /* let's go! */
-  current_function_decl = fakdecl;
-  announce_function(fakdecl);
-  rest_of_decl_compilation(fakdecl, NULL, 1, 0);
-  make_function_rtl(fakdecl);
-  init_function_start(fakdecl, NULL, 0);
-  expand_function_start(fakdecl, 0);
-  pushlevel(0);
-  expand_start_bindings (0);
-  pushdecl(parmdecl);
-
-  /* implement function body */
-  /* build tree for "Result := 1" and convert it to RTL : */
-  assign = build(MODIFY_EXPR, void_type_node, resultdecl, integer_one_node);
-  TREE_SIDE_EFFECTS(assign) = 1;
-  TREE_USED(resultdecl) = 1;
-  expand_expr_stmt(assign);
-
-  /* build local variable declaration for 'i' : */  
-  locdecl = build_decl(VAR_DECL, get_identifier("i"), integer_type_node);
-  /* set its scope */
-  DECL_CONTEXT(locdecl) = fakdecl;
-  /* set its initial value */
-  DECL_INITIAL(locdecl) = integer_one_node;
-  /* insert it to debugging symbol table */
-  pushdecl(locdecl);
-  /* convert it to RTL */
-  expand_decl(locdecl);
-  /* and also emit initialization assignment (i := 1) */
-  expand_decl_init(locdecl);
-
-  /* emit RTL for head of "while"-loop */
-  loop = expand_start_loop(0);
-
-  /* emit RTL for test of exit condition "i < n" : */
-  expand_exit_loop_if_false(loop, build(LE_EXPR, integer_type_node, 
-                                        locdecl, parmdecl));
-
-  /* build tree for "Result := Result * i" and convert it to RTL: */
-  assign = build(MODIFY_EXPR, void_type_node, 
-                 resultdecl,
-                 build(MULT_EXPR, integer_type_node, 
-                       resultdecl,
-                       locdecl
-                       )
-                 );
-  TREE_SIDE_EFFECTS(assign) = 1; 
-  expand_expr_stmt(assign);
-
-  /* build tree for "i := i + 1" and convert it to RTL: */
-  assign = build(MODIFY_EXPR, void_type_node, 
-                 locdecl, 
-                 build(PLUS_EXPR, integer_type_node, 
-                       locdecl,
-                       integer_one_node
-                       )
-                 );
-  TREE_SIDE_EFFECTS(assign) = 1; 
-  expand_expr_stmt(assign);
-
-  /* emit RTL for end of "while" loop */
-  expand_end_loop();
-
-  /* emit RTL for return statement, see commentary above */
-  expand_return(resultdecl);
-
-  /* cleanup tail */
-  block = poplevel(1,0,1);
-  DECL_INITIAL(fakdecl) = block;
-  expand_end_bindings(block, 1, 1);
-  expand_function_end(NULL, 0, 0);
-  rest_of_compilation(fakdecl);
-  end_temporary_allocation();
-  current_function_decl = NULL_TREE;
-}
-#endif
 
 /*
  *  BuildReturnValueCode - generates the code associated with: RETURN( value )
@@ -9667,7 +9550,6 @@ gccgm2_BuildStart (name, inner_module)
   current_function_decl = fndecl;
   DECL_INITIAL (fndecl) = error_mark_node;
 
-  temporary_allocation ();
   pushlevel (0);
   make_function_rtl (fndecl);
 
@@ -9700,18 +9582,12 @@ gccgm2_BuildEnd (fndecl)
      tree fndecl;
 {
   /* Now get back out of the function and compile it.  */
-#if defined(NO_LONGER_NEEDED)
-  expand_end_bindings (NULL_TREE, 1, 0);
-  poplevel (1, 0, 1);
-#else
   /* pop the block level */
   tree block = poplevel(1, 0, 1);
   expand_end_bindings (block, 0, 1);
-#endif
   expand_function_end (input_filename, lineno, 0);
   rest_of_compilation (fndecl);
   current_function_decl = 0;
-  permanent_allocation (1);
 }
 
 void
@@ -9991,13 +9867,10 @@ pushtag (name, type)
       /* Record the identifier as the type's name if it has none.  */
 
       if (TYPE_NAME (type) == 0)
-        TYPE_NAME (type) = name;
+	TYPE_NAME (type) = name;
     }
 
-  if (b == global_binding_level)
-    b->tags = perm_tree_cons (name, type, b->tags);
-  else
-    b->tags = saveable_tree_cons (name, type, b->tags);
+  b->tags = tree_cons (name, type, b->tags);
 
   /* Create a fake NULL-named TYPE_DECL node whose TREE_TYPE will be the
      tagged type we just added to the current binding level.  This fake
@@ -10016,10 +9889,7 @@ pushtag (name, type)
 
 /* Make sure that the tag NAME is defined *in the current binding level*
    at least as a forward reference.
-   CODE says which kind of tag NAME ought to be.
-
-   We also do a push_obstacks_nochange
-   whose matching pop is in finish_struct.  */
+   CODE says which kind of tag NAME ought to be.  */
 
 tree
 start_struct (code, name)
@@ -10031,12 +9901,7 @@ start_struct (code, name)
 
   register tree ref = 0;
 
-  push_obstacks_nochange ();
-
-  if (current_binding_level == global_binding_level)
-    end_temporary_allocation ();
-
-#if NOT_NEEDED_FOR_M2
+#if !defined(GM2)
   if (name != 0)
     ref = lookup_tag (code, name, current_binding_level, 1);
 #endif
@@ -10046,9 +9911,9 @@ start_struct (code, name)
       C_TYPE_BEING_DEFINED (ref) = 1;
       TYPE_PACKED (ref) = flag_pack_struct;
       if (TYPE_FIELDS (ref))
-        error ((code == UNION_TYPE ? "redefinition of `union %s'"
-                : "redefinition of `struct %s'"),
-               IDENTIFIER_POINTER (name));
+	error ("redefinition of `%s %s'",
+	       code == UNION_TYPE ? "union" : "struct",
+	       IDENTIFIER_POINTER (name));
 
       return ref;
     }
@@ -10126,7 +9991,6 @@ gccgm2_BuildFieldRecord (name, type)
   }
 
   /* The corresponding pop_obstacks is in finish_decl.  */
-  push_obstacks_nochange ();
   field = build_decl (FIELD_DECL, declarator, skip_type_decl (type)) ;
   finish_decl (field, NULL_TREE, NULL_TREE);
 
@@ -10473,30 +10337,23 @@ tree
 start_enum (name)
      tree name;
 {
-  tree enumtype = 0;
+  register tree enumtype = 0;
 
   /* If this is the real definition for a previous forward reference,
      fill in the contents in the same object that used to be the
      forward reference.  */
 
-#if NOT_NEEDED_FOR_M2
+#if !defined(GM2)
   if (name != 0)
     enumtype = lookup_tag (ENUMERAL_TYPE, name, current_binding_level, 1);
 #endif
-
-  /* The corresponding pop_obstacks is in finish_enum.  */
-  push_obstacks_nochange ();
-  /* If these symbols and types are global, make them permanent.  */
-  if (current_binding_level == global_binding_level)
-    end_temporary_allocation ();
 
   if (enumtype == 0 || TREE_CODE (enumtype) != ENUMERAL_TYPE)
     {
       enumtype = make_node (ENUMERAL_TYPE);
       pushtag (name, enumtype);
     }
-
-#if NOT_NEEDED_FOR_M2
+#if !defined(GM2)
   C_TYPE_BEING_DEFINED (enumtype) = 1;
 #endif
 
@@ -10506,16 +10363,19 @@ start_enum (name)
       error ("redeclaration of `enum %s'", IDENTIFIER_POINTER (name));
 
       /* Completely replace its old definition.
-         The old enumerators remain defined, however.  */
+	 The old enumerators remain defined, however.  */
       TYPE_VALUES (enumtype) = 0;
     }
 
   enum_next_value = integer_zero_node;
+  enum_overflow = 0;
 
   if (flag_short_enums)
     TYPE_PACKED (enumtype) = 1;
 
+#if defined(GM2)
   TREE_TYPE(enumtype) = gccgm2_GetIntegerType();  /* gaius added this, hope it is ok */
+#endif
 
   return enumtype;
 }
