@@ -248,8 +248,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 
 
 /*
- *  lang_specific_pre_link - the aim of this function is to generate the
- *                           module_gm2.a library (consisting of all dependant modules).
+ *  lang_specific_pre_link - does nothing.
  */
 
 int
