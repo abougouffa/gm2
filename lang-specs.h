@@ -39,11 +39,11 @@ Boston, MA 02111-1307, USA.  */
            %{Wmodules:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
                                          gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{I*} %{v} -c %g.lst} \n\
+                                         gm2lcc %{Wtarget-ar=*} %{I*} %{v} -c %g.lst} \n\
                                  %{!Wcpp:gm2l %{I*} %{!pipe:-o %g.l} %i |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{I*} %{v} -c %g.lst}} \n\
-                       %{Wuselist:gm2lcc %{I*} %{v} -c %b.lst}}} \n\
+                                         gm2lcc %{Wtarget-ar=*} %{I*} %{v} -c %g.lst}} \n\
+                       %{Wuselist:gm2lcc %{Wtarget-ar=*} %{I*} %{v} -c %b.lst}}} \n\
       %{!c:%{Wmakelist:%eGNU Modula-2 does not support -Wmakelist without -c}} \n\
       %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \n\
       %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
@@ -54,15 +54,15 @@ Boston, MA 02111-1307, USA.  */
                                              gm2lgen %g.lst -o %g.c \n\
                                              gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
                                              rm -f %w%d%g.a \n\
-                                             gm2lcc %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst} \n\
+                                             gm2lcc %{Wtarget-ar=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst} \n\
                                       %{!Wcpp:gm2l %{I*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\
                                              gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
                                              rm -f %w%d%g.a \n\
-                                             gm2lcc %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst}} \n\
+                                             gm2lcc %{Wtarget-ar=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst}} \n\
                            %{Wuselist:gm2lgen %b.lst -o %g.c \n\
                                       gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
                                       rm -f %w%d%g.a \n\
-                                      gm2lcc %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
+                                      gm2lcc %{Wtarget-ar=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
     ", 0},

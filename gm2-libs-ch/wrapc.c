@@ -7,12 +7,16 @@
 
 char *wrapc_strtime (void)
 {
+#if defined(HAVE_CTIME)
   long clock   = time((long *)0) ;
   char *string = ctime(&clock);
 
   string[24] = (char) 0;
 
-  return( string );
+  return string;
+#else
+  return "";
+#endif
 }
 
 
@@ -20,11 +24,10 @@ int wrapc_filesize (int f)
 {
   struct stat s;
 
-  if (fstat(f, (struct stat *) &s) == 0) {
-    return( s.st_size );
-  } else {
-    return( -1 );
-  }
+  if (fstat(f, (struct stat *) &s) == 0)
+    return s.st_size;
+  else
+    return -1;
 }
 
 
@@ -36,11 +39,10 @@ int wrapc_filemtime (int f)
 {
   struct stat s;
 
-  if (fstat(f, (struct stat *) &s) == 0) {
-    return( s.st_mtime );
-  } else {
-    return( -1 );
-  }
+  if (fstat(f, (struct stat *) &s) == 0)
+    return s.st_mtime;
+  else
+    return -1;
 }
 
 
@@ -50,17 +52,16 @@ int wrapc_filemtime (int f)
 
 int wrapc_getrand (int n)
 {
-  return( rand() % n );
+  return rand() % n;
 }
 
-
+#if defined(HAVE_PWD_H)
 #include <pwd.h>
 
 char *wrapc_getusername (void)
 {
-  return( getpwuid(getuid()) -> pw_gecos );
+  return getpwuid(getuid()) -> pw_gecos;
 }
-
 
 /*
    getnameuidgid - fills in the, uid, and, gid, which represents
@@ -79,6 +80,18 @@ void wrapc_getnameuidgid (char *name, int *uid, int *gid)
     *gid = p->pw_gid;
   }
 }
+#else
+char *wrapc_getusername (void)
+{
+  return "unknown";
+}
+
+void wrapc_getnameuidgid (char *name, int *uid, int *gid)
+{
+  *uid = -1;
+  *gid = -1;
+}
+#endif
 
 
 /*

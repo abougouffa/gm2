@@ -12,26 +12,39 @@
                      timeout: Timeval) : INTEGER ;
 */
 
+#if defined(HAVE_SELECT)
 int Selective_Select (int nooffds,
-		      fd_set *readfds, fd_set *writefds, fd_set *exceptfds,
+		      fd_set *readfds,
+		      fd_set *writefds,
+		      fd_set *exceptfds,
 		      struct timeval *timeout)
 {
-  return( select(nooffds, readfds, writefds, exceptfds, timeout) );
+  return select(nooffds, readfds, writefds, exceptfds, timeout);
 }
+#else
+int Selective_Select (int nooffds,
+		      void *readfds,
+		      void *writefds,
+		      void *exceptfds,
+		      void *timeout)
+{
+  return 0;
+}
+#endif
 
 /*
    PROCEDURE InitTime (sec, usec) : Timeval ;
 */
 
+#if defined(HAVE_TIMEVAL)
 struct timeval *Selective_InitTime (long sec, long usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));
 
   t->tv_sec = sec;
   t->tv_usec = usec;
-  return( t );
+  return t;
 }
-
 
 /*
    PROCEDURE KillTime (t: Timeval) : Timeval ;
@@ -40,7 +53,7 @@ struct timeval *Selective_InitTime (long sec, long usec)
 struct timeval *Selective_KillTime (struct timeval *t)
 {
   free(t);
-  return( NULL );
+  return NULL;
 }
 
 /*
@@ -51,9 +64,8 @@ fd_set *Selective_InitSet (void)
 {
   fd_set *s=(fd_set *)malloc(sizeof(fd_set));
 
-  return( s );
+  return s;
 }
-
 
 /*
    PROCEDURE KillSet (s: SetOfFd) : SetOfFd ;
@@ -62,9 +74,8 @@ fd_set *Selective_InitSet (void)
 fd_set *Selective_KillSet (fd_set *s)
 {
   free(s);
-  return( NULL );
+  return NULL;
 }
-
 
 /*
    PROCEDURE FdZero (s: SetOfFd) ;
@@ -102,8 +113,39 @@ void Selective_FdClr (int fd, fd_set *s)
 
 int Selective_FdIsSet (int fd, fd_set *s)
 {
-  return( FD_ISSET(fd, s) );
+  return FD_ISSET(fd, s);
 }
+
+#else
+
+void *Selective_InitTime (long sec, long usec)
+{
+  return NULL;
+}
+
+void *Selective_KillTime (void *t)
+{
+  return NULL;
+}
+
+void Selective_FdZero (void *s)
+{
+}
+
+void Selective_FdSet (int fd, void *s)
+{
+}
+
+void Selective_FdClr (int fd, void *s)
+{
+}
+
+int Selective_FdIsSet (int fd, void *s)
+{
+  return 0;
+}
+
+#endif
 
 
 /*
@@ -112,11 +154,10 @@ int Selective_FdIsSet (int fd, fd_set *s)
 
 int Selective_MaxFdsPlusOne (int a, int b)
 {
-  if (a>b) {
-    return( a+1 );
-  } else {
-    return( b+1 );
-  }
+  if (a>b)
+    return a+1;
+  else
+    return b+1;
 }
 
 
@@ -139,7 +180,7 @@ char Selective_ReadCharRaw (int fd)
   char ch;
 
   read(fd, &ch, 1);
-  return( ch );
+  return ch;
 }
 
 void _M2_Selective_init () {}

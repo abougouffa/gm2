@@ -1,3 +1,14 @@
+2004-03-17	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.42
+	* MinGW cross compilation port entered into CVS
+	* added -Wtarget-ar to gm2lcc.mod, gm2specs.c lang-specs.h
+	* added gm2/configure and associated files to determine
+	  the whereabouts of target `ar'.
+	* added gm2/gm2-libs/configure and associated files to
+	  test for target libraries, header files and C functions.
+	  Required to implement the gm2-libs.
+
 2004-02-13	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 Release 0.41

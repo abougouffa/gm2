@@ -228,6 +228,9 @@ BEGIN
          Quiet := TRUE    (* Quiet is automatically set by the front end *)
       END ;
       Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-Wtarget-ar=')
+   THEN
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wq')
    THEN
       DisplayQuadruples := TRUE ;

@@ -353,8 +353,10 @@ extern char *getcwd PARAMS ((char *, size_t));
 extern char *getenv PARAMS ((const char *));
 #endif
 
+#if 0
 #if defined (HAVE_DECL_GETOPT) && !HAVE_DECL_GETOPT
 extern int getopt PARAMS ((int, char **, char *));
+#endif
 #endif
 
 #if defined (HAVE_DECL_GETWD) && !HAVE_DECL_GETWD
@@ -602,9 +604,19 @@ extern void abort PARAMS ((void));
 #endif
 #endif
 
-/* GCC now gives implicit declaration warnings for undeclared builtins.  */
-#if defined(__GNUC__) && defined (__SIZE_TYPE__)
-extern void *alloca (__SIZE_TYPE__);
+/* AIX requires this to be the first thing in the file.  */
+#ifndef __GNUC__
+# if HAVE_ALLOCA_H
+#  include <alloca.h>
+# else
+#  ifdef _AIX
+#pragma alloca
+#  else
+#   ifndef alloca /* predefined by HP cc +Olibcalls */
+char *alloca ();
+#   endif
+#  endif
+# endif
 #endif
 
 /* Various error reporting routines want to use __FUNCTION__.  */

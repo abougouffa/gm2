@@ -83,7 +83,8 @@ gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 		$(INCLUDES) $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
 # Create the compiler driver for $(GM2).
-$(GM2)$(exeext): $(GM2_DIRS) gcc.o gm2spec.o version.o \
+$(GM2)$(exeext): $(GM2_DIRS) gm2/gm2config.h \
+                 gcc.o gm2spec.o version.o \
 	   prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ gcc.o gm2spec.o prefix.o intl.o \
 	  version.o $(EXTRA_GCC_OBJS) $(LIBS)
@@ -310,6 +311,9 @@ gm2.mostlyclean:
 
 gm2.clean:
 	-rm -f gm2/*.o
+	-rm -f gm2/gm2-libs/config.*
+	-rm gm2/gm2-libs/auto-host.h gm2/gm2config.h
+	-rm -f gm2/gm2-libs/autoscan.log
 	-rm -f gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	-rm -fr gm2/stage?
 	-rm gm2/include
@@ -373,7 +377,7 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-libs/%s.def -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink
-GM2-VERSION=0.41
+GM2-VERSION=0.42
 GM2_FLAGS=-Wbounds -Wreturn -gstabs
 
 # Language-specific object files for the gm2 compiler.
@@ -773,13 +777,13 @@ gm2/gm2-compiler-boot/M2Version.mod:
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
 gm2/gm2-libs/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
@@ -836,7 +840,36 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #  itself.
 #
 
-build-libs: $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
+gm2/gm2-libs/auto-host.h:
+	for i in x $(INTERNAL_CFLAGS) ; do \
+            echo $$i ; \
+            if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
+                cd gm2/gm2-libs ; \
+                CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
+                export CC ; \
+                CPP=`echo $(GCC_FOR_TARGET) -E | sed -e "s/^ //"` ; \
+                export CPP ; \
+                $(SHELL) -c ../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR) ; \
+                return ; \
+            fi ; \
+        done ; \
+        $(SHELL) -c ../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)
+
+gm2/gm2config.h:
+	cd gm2 ; \
+	for i in x $(INTERNAL_CFLAGS) ; do \
+            echo $$i ; \
+            if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
+                AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
+                export AR ; \
+                $(SHELL) -c ../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR) ; \
+                return ; \
+            fi ; \
+        done ; \
+        $(SHELL) -c ../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)
+
+build-libs: gm2/gm2-libs/auto-host.h \
+            $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
 
 build-compiler: $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \

@@ -30,7 +30,6 @@ Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #endif
 
-extern const char *find_file PARAMS ((const char *));
 /* #include "gcc.h" */
 
 /* This bit is set if we saw a `-xfoo' language specification.  */
@@ -48,20 +47,42 @@ extern const char *find_file PARAMS ((const char *));
 #define DIR_SEPARATOR '/'
 #endif
 
-
 int lang_specific_extra_outfiles = 0;
+
+#include "gm2/gm2config.h"
 
 #undef DEBUGGING
 
 void add_default_directories (int incl, char ***in_argv, int is_pim);
-void insert_arg (int  incl, int *in_argc, char ***in_argv);
+void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
-
+void add_exec_prefix(int, int *in_argc, char ***in_argv);
+extern char *find_executable PARAMS ((const char *));
 
 /*
- *  add_default_directories - finally we add the current working directory and
- *                            the GM2 default library directory to the end of
- *                            the search path.
+ *  add_exec_prefix - adds the -Wtarget-ar= option so that we can tell
+ *                    gm2lcc where to pick up the `ar' utility.
+ */
+
+void add_exec_prefix(pos, in_argc, in_argv)
+     int pos;
+     int *in_argc;
+     char ***in_argv;
+{
+  char *prefix;
+  char *ar = AR_PATH;
+  insert_arg(pos, in_argc, in_argv);
+  prefix = (char *) alloca(strlen("-Wtarget-ar=") +
+				    strlen(ar) + 1);
+  strcpy(prefix, "-Wtarget-ar=");
+  strcat(prefix, ar);
+  (*in_argv)[pos] = xstrdup(prefix);
+}
+
+/*
+ *  add_default_directories - add the current working
+ *                            directory and the GM2 default library
+ *                            directory to the end of the search path.
  */
 
 void
@@ -184,9 +205,18 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 #endif
   if (incl == -1) {
     incl = 1;
-    insert_arg(incl, in_argc, in_argv);
+    insert_arg(incl, in_argc, (char ***)in_argv);
   }
-  add_default_directories(incl, in_argv, is_pim);
+  add_default_directories(incl, (char ***)in_argv, is_pim);
+  add_exec_prefix(1, in_argc, (char ***)in_argv);
+#if defined(DEBUGGING)
+  i=1;
+  while (i<*in_argc) {
+    printf("in lang specific driver %s\n", (*in_argv)[i]);
+    i++;
+  }
+  i=1;
+#endif
 }
 
 /*
