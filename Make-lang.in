@@ -312,7 +312,7 @@ gm2.mostlyclean:
 gm2.clean:
 	-rm -f gm2/*.o
 	-rm -f gm2/gm2-libs/config.*
-	-rm gm2/gm2-libs/auto-host.h gm2/gm2config.h
+	-rm gm2/gm2-libs/gm2-libs-host.h gm2/gm2config.h
 	-rm -f gm2/gm2-libs/autoscan.log
 	-rm -f gm2.aux gm2.html gm2.dvi gm2.ps gm2.info gm2.log
 	-rm -fr gm2/stage?
@@ -777,19 +777,19 @@ gm2/gm2-compiler-boot/M2Version.mod:
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
 gm2/gm2-libs/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
-	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
-	$(GCC_FOR_TARGET) -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
@@ -840,7 +840,7 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #  itself.
 #
 
-gm2/gm2-libs/auto-host.h:
+gm2/gm2-libs/gm2-libs-host.h:
 	for i in x $(INTERNAL_CFLAGS) ; do \
             echo $$i ; \
             if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
@@ -853,6 +853,7 @@ gm2/gm2-libs/auto-host.h:
                 return ; \
             fi ; \
         done ; \
+        cd gm2/gm2-libs ; \
         $(SHELL) -c ../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)
 
 gm2/gm2config.h:
@@ -868,7 +869,7 @@ gm2/gm2config.h:
         done ; \
         $(SHELL) -c ../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)
 
-build-libs: gm2/gm2-libs/auto-host.h \
+build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
 
