@@ -1,3 +1,11 @@
+2004-06-28	Gaius Mulley <gaius@glam.ac.uk>
+
+	* made flex lexical analysers ignore carriage return
+	* fixed bug in M2Quads.mod checking parameter of
+	  a const var before value was known.
+	* fixed local MODULEs so that they can FROM mod IMPORT
+	* tidied up some ulm implementation modules in ulm-lib-gm2/std
+
 2004-06-22	Gaius Mulley <gaius@glam.ac.uk>
 
 	* allowed LONGCARD compatibility with INTEGER

@@ -243,7 +243,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 [0-9]+B                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9]+C                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9A-F]+H                 { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
-[\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
+[\t\r ]+                   { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
 .                          { updatepos(); m2flex_M2Error("unrecognised symbol"); skippos(); }
 
 %%

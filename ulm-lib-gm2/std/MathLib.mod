@@ -52,11 +52,18 @@
    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
    SUCH DAMAGE.
    ----------------------------------------------------------------------------
-   E-mail contact: modula@mathematik.uni-ulm.de
+   E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.mod,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: MathLib.mod,v 1.2 2004/06/29 08:51:41 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.mod,v $
+   Revision 1.2  2004/06/29 08:51:41  gaius
+   * made flex lexical analysers ignore carriage return
+   * fixed bug in M2Quads.mod checking parameter of
+     a const var before value was known.
+   * fixed local MODULEs so that they can FROM mod IMPORT
+   * tidied up some ulm implementation modules in ulm-lib-gm2/std
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they

@@ -15,11 +15,18 @@
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    ----------------------------------------------------------------------------
-   E-mail contact: modula@mathematik.uni-ulm.de
+   E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: CoExpressions.mod,v 1.2 2004/06/22 18:14:01 gaius Exp $
+   $Id: CoExpressions.mod,v 1.3 2004/06/29 08:51:41 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: CoExpressions.mod,v $
+   Revision 1.3  2004/06/29 08:51:41  gaius
+   * made flex lexical analysers ignore carriage return
+   * fixed bug in M2Quads.mod checking parameter of
+     a const var before value was known.
+   * fixed local MODULEs so that they can FROM mod IMPORT
+   * tidied up some ulm implementation modules in ulm-lib-gm2/std
+
    Revision 1.2  2004/06/22 18:14:01  gaius
    fixed parameters in ulm directory
 
@@ -167,3 +174,8 @@ BEGIN
    NEW(cp);
    main := cp;
 END CoExpressions.
+(*
+ * Local variables:
+ *  compile-command: "gm2 -c -g -I../sys:. CoExpressions.mod"
+ * End:
+ *)

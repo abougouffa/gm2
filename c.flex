@@ -303,7 +303,7 @@ volatile                   { updatepos(); CLexBuf_AddTok(CLexBuf_volatiletok); r
 [0-9]+                     { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_integertok, yytext); return; }
 [0-9]+L                    { /* long int */ updatepos(); CLexBuf_AddTokCharStar(CLexBuf_integertok, yytext); return; }
 0x[0-9A-Fa-f]+             { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_hexintegertok, yytext); return; }
-[\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
+[\t\r ]+                   { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
 <<EOF>>                    { if (! handleEof()) return; }
 .                          { updatepos(); cflex_CError("unrecognised symbol"); skippos(); }
 

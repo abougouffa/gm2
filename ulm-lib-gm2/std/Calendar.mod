@@ -17,9 +17,16 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Calendar.mod,v 1.4 2004/06/22 18:14:01 gaius Exp $
+   $Id: Calendar.mod,v 1.5 2004/06/29 08:51:41 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Calendar.mod,v $
+   Revision 1.5  2004/06/29 08:51:41  gaius
+   * made flex lexical analysers ignore carriage return
+   * fixed bug in M2Quads.mod checking parameter of
+     a const var before value was known.
+   * fixed local MODULEs so that they can FROM mod IMPORT
+   * tidied up some ulm implementation modules in ulm-lib-gm2/std
+
    Revision 1.4  2004/06/22 18:14:01  gaius
    fixed parameters in ulm directory
 
@@ -371,9 +378,8 @@ IMPLEMENTATION MODULE Calendar;
 BEGIN
    PresetLocaltime;
    SetFirstOfWeek(Mon);
-(*
-   ConvertDate( MAX(Date) DIV 5, maxcalendarday); (* DIV 5: avoid overflow *)
-*)
+   ConvertDate(VAL(Date, MAX(CARDINAL) DIV 5),
+               maxcalendarday); (* DIV 5: avoid overflow *)
 END Calendar.
 (*
  * Local variables:

@@ -2730,7 +2730,8 @@ BEGIN
                       PutConstString(Sym, String)
 
       ELSE
-         InternalError('expecting ConstString or ConstVar symbol', __FILE__, __LINE__)
+         InternalError('expecting ConstString or ConstVar symbol',
+                       __FILE__, __LINE__)
       END
    END
 END PutConstString ;

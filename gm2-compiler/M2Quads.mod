@@ -3566,7 +3566,10 @@ BEGIN
                              CallParam, ParamI, Proc, i)
             ELSIF IsConstString(CallParam)
             THEN
-               IF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
+               IF (GetStringLength(CallParam) = 0)   (* if = 0 then it maybe unknown at this time *)
+               THEN
+                  (* dont check this yet *)
+               ELSIF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
                   CheckParameter(CallParam, ParamI, Proc, i, NIL)
                ELSIF NOT IsUnboundedParam(Proc, i)

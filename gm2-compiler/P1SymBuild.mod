@@ -597,8 +597,6 @@ END CheckExplicitExported ;
 
                             IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
 
-
-                                                  Error Condition
                             Exit
 
                             All above stack discarded
@@ -620,7 +618,14 @@ BEGIN
          INC(i)
       END
    ELSE
-      WriteFormat0('not allowed FROM in an inner module')
+      (* Ident List contains list of objects *)
+      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetExported(ModSym, OperandT(n+1-i)) ;
+         PutImported(Sym) ;
+         INC(i)
+      END
    END ;
    PopN(n+1)    (* clear stack *)
 END BuildImportInnerModule ;
