@@ -7296,7 +7296,6 @@ gccgm2_BuiltinExists (name)
   return FALSE;
 }
 
-
 /*
  *  BuildBuiltinTree - returns a Tree containing the builtin function, name.
  */
@@ -7312,6 +7311,7 @@ gccgm2_BuildBuiltinTree (name)
   if (strcmp(name, "memcpy") == 0)
     last_function = DoBuiltinMemCopy (param_list);
 
+  param_list = NULL_TREE;
   return last_function;
 }
 
@@ -9960,7 +9960,7 @@ gccgm2_BuildProcedureCall (procedure, rettype)
     expand_expr_stmt (call);
     last_function = NULL_TREE;
   } else
-    last_function = build(CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
+    last_function = build (CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
   return last_function;
@@ -9995,9 +9995,8 @@ gccgm2_BuildIndirectProcedureCall (procedure, rettype)
 #endif
     expand_expr_stmt (call);
     last_function   = NULL_TREE;
-  } else {
-    last_function   = build(CALL_EXPR, skip_type_decl (rettype), procedure, param_list, NULL_TREE);
-  }
+  } else
+    last_function   = build (CALL_EXPR, skip_type_decl (rettype), procedure, param_list, NULL_TREE);
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
   return last_function;
@@ -10202,9 +10201,6 @@ DoBuiltinMemCopy (params)
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_memcpy_node);
   tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
 
-  TREE_USED (call)         = TRUE;
-  TREE_SIDE_EFFECTS (call) = TRUE ;
-
 #if 0
   fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
   debug_tree (params);
@@ -10235,9 +10231,6 @@ DoBuiltinAlloca (params)
   tree functype = TREE_TYPE (gm2_alloca_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
   tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
-
-  TREE_USED (call)         = TRUE;
-  TREE_SIDE_EFFECTS (call) = TRUE ;
 
   return call;
 }
