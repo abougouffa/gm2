@@ -87,11 +87,9 @@ BEGIN
       fprintf(stderr, string(Sprintf0(InitString("main: in loop\n"))));
       IF evt = NIL
       THEN
-         (* evt := pth_event(VAL(CARDINAL, PTH_EVENT_TIME), pth_timeout(10,0)); fails *)
-         evt := pth_event(CARDINAL({4}), pth_timeout(10,0));
+         evt := pth_event(CARDINAL(PTH_EVENT_TIME), pth_timeout(10,0))
       ELSE
-         (* CARDINAL(PTH_EVENT_TIME+PTH_MODE_REUSE) *)
-         evt := pth_event(CARDINAL({4, 20}), evt, pth_timeout(10,0));
+         evt := pth_event(CARDINAL(PTH_EVENT_TIME+PTH_MODE_REUSE), evt, pth_timeout(10,0))
       END ;
       fprintf(stderr, string(Sprintf0(InitString("main: after event\n"))));
       FdZero(rfds);
