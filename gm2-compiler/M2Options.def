@@ -19,10 +19,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2003/09/19 22:10:06 $]
+   Date       : 27/5/87  [$Date: 2003/10/07 21:24:56 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.5 $
+   Version    : $Revision: 1.6 $
 *)
 
 FROM DynamicStrings IMPORT String ;
@@ -35,7 +35,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
                  OptimizeCommonSubExpressions,
                  StudentChecking,
                  BoundsChecking, ReturnChecking,
-                 Quiet, LineDirectives, CPreProcessor,
+                 Quiet, LineDirectives, CPreProcessor, ExtendedOpaque,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
                  CppCommandLine ;
@@ -67,6 +67,7 @@ VAR
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)
    CPreProcessor,                (* must we run the cpp on the source?       *)
+   ExtendedOpaque,               (* do we allow non pointer opaque types?    *)
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;

@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE SymbolTable ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
 
-FROM M2Options IMPORT Pedantic ;
+FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
@@ -318,6 +318,7 @@ TYPE
                 name     : Name ;             (* Index into name array, name *)
                                               (* of type.                    *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
+                IsHidden : BOOLEAN ;          (* Was it declared as hidden?  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
@@ -604,6 +605,7 @@ VAR
 
 
 (* %%%FORWARD%%%
+PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE PushConstString (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AddParameter (Sym: CARDINAL; ParSym: CARDINAL) ; FORWARD ;
@@ -2429,8 +2431,9 @@ BEGIN
             name := TypeName ;        (* Index into name array, name *)
                                       (* of type.                    *)
             Type := NulSym ;          (* Index to a type symbol.     *)
+            IsHidden := FALSE ;       (* Was it declared as hidden?  *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
-            Scope := GetCurrentScope() ;  (* Which scope created it *)
+            Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)     (* Declared here               *)
          END
       END
@@ -2458,15 +2461,24 @@ BEGIN
       WITH Symbols[Sym] DO
          SymbolType := TypeSym ;
          WITH Type DO
-            name := TypeName ;    (* Index into name array, name *)
-                                  (* of type.                    *)
-            Type := NulSym ;      (* Index to a type symbol.     *)
-            Size := InitValue() ; (* Runtime size of symbol.     *)
-            InitWhereDeclared(At) (* Declared here               *)
+            name   := TypeName ;    (* Index into name array, name *)
+                                    (* of type.                    *)
+            IsHidden := GetMainModule()#GetCurrentScope() ;
+            IF ExtendedOpaque OR (NOT IsHidden)
+            THEN
+               Type := NulSym       (* will be filled in later     *)
+            ELSE
+               Type := Address
+            END ;
+            Size   := InitValue() ; (* Runtime size of symbol.     *)
+            InitWhereDeclared(At)   (* Declared here               *)
          END
       END ;
       PutExportUnImplemented(Sym) ;
-      PutHiddenTypeDeclared ;
+      IF ExtendedOpaque OR (GetMainModule()=GetCurrentScope())
+      THEN
+         PutHiddenTypeDeclared
+      END ;
       (* Now add this type to the symbol table of the current scope *)
       AddSymToScope(Sym, TypeName)
    END ;
@@ -2986,13 +2998,31 @@ END GetType ;
 
 PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
 BEGIN
-   IF (Sym#NulSym) AND IsType(Sym) AND (GetType(Sym)#NulSym)
+   IF (Sym#NulSym) AND IsType(Sym) AND (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
    THEN
       RETURN( SkipType(GetType(Sym)) )
    ELSE
       RETURN( Sym )
    END
 END SkipType ;
+
+
+(*
+   IsHiddenType - returns TRUE if, Sym, is a Type and is also declared as a hidden type.
+*)
+
+PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      TypeSym:  RETURN( Type.IsHidden )
+
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END IsHiddenType ;
 
 
 (*

@@ -28,7 +28,8 @@ FROM Debug IMPORT Halt ;
 
 
 VAR
-   CppAndArgs: String ;
+   CppAndArgs : String ;
+   SeenVerbose: BOOLEAN ;
 
 
 (*
@@ -205,13 +206,25 @@ BEGIN
    THEN
       Pedantic := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wextended-opaque')
+   THEN
+      ExtendedOpaque := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
    THEN
       Verbose := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wverbose')
+   THEN
+      Quiet := FALSE ;
+      SeenVerbose := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-quiet')
    THEN
-      Quiet := TRUE ;
+      IF NOT SeenVerbose
+      THEN
+         Quiet := TRUE    (* Quiet is automatically set by the front end *)
+      END ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wq')
    THEN
@@ -267,6 +280,7 @@ BEGIN
    CppAndArgs                   := InitString('') ;
    Pim                          := TRUE ;
    Iso                          := FALSE ;
+   SeenVerbose                  := FALSE ;
    Statistics                   := FALSE ;
    StudentChecking              := FALSE ;
    CompilerDebugging            := FALSE ;
@@ -284,5 +298,6 @@ BEGIN
    ReturnChecking               := FALSE ;
    CPreProcessor                := FALSE ;
    LineDirectives               := FALSE ;
+   ExtendedOpaque               := FALSE ;
    ScanForInitialOptions
 END M2Options.

@@ -1,3 +1,15 @@
+2003-10-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* introduced -Wextended-opaque which enables the GM2 extension
+	  to opaque types. This allows opaque types to be non pointer
+	  types, but requires that GM2 parse the corresponding
+	  implementation module.
+	* modified GM2 to default to the standard opaque implementation
+	  of using SYSTEM.ADDRESS as the `opaque type' outside the
+	  module of its declaration.
+	* introduced -Wverbose to allow users see the source file names
+	  for modules as they are being compiled.
+	
 2003-09-30	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug in ADDADR as reported by Iztok
