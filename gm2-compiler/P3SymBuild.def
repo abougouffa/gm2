@@ -32,12 +32,19 @@ DEFINITION MODULE P3SymBuild ;
                 origional names.
 *)
 
-EXPORT QUALIFIED (* StartBuildDefinitionModule, *)  P3StartBuildDefModule,
-                 (* EndBuildDefinitionModule, *)  P3EndBuildDefModule,
-                 (* StartBuildImplementationModule, *)  P3StartBuildImpModule,
-                 (* EndBuildImplementationModule, *)  P3EndBuildImpModule,
-                 (* StartBuildProgramModule, *)  P3StartBuildProgModule,
-                 (* EndBuildProgramModule, *)  P3EndBuildProgModule,
+(* StartBuildDefinitionModule, *)
+(* EndBuildDefinitionModule, *)  
+(* StartBuildImplementationModule, *)  
+(* EndBuildImplementationModule, *)  
+(* StartBuildProgramModule, *)  
+(* EndBuildProgramModule, *)  
+
+EXPORT QUALIFIED P3StartBuildDefModule,
+                 P3EndBuildDefModule,
+                 P3StartBuildImpModule,
+                 P3EndBuildImpModule,
+                 P3StartBuildProgModule,
+                 P3EndBuildProgModule,
                  StartBuildInnerModule,
                  EndBuildInnerModule,
                  BuildProcedureHeading,
@@ -277,44 +284,6 @@ PROCEDURE EndBuildProcedure ;
 
 PROCEDURE BuildSubrange ;
 
-(*
-(*
-   BuildType - Builds a Type.
-
-
-               Stack
-
-               Entry                 Exit
-
-        Ptr ->
-               +------------+
-               | Type       |                          <- Ptr
-               |------------|        +---------------+
-               | Name       |        | Type  | Name  |
-               |------------|        |---------------|
-
-                                     Empty
-*)
-
-PROCEDURE BuildType ;
-
-
-(*
-   BuildTypeEnd - Pops the type Type and Name.
-                  The Stack:
-
-
-                  Entry                    Exit
-
-
-           Ptr ->
-                  +-------------+
-                  | Type | Name |          Empty
-                  |-------------|
-*)
-
-PROCEDURE BuildTypeEnd ;
-*)
 
 (*
    BuildNulName - Pushes a NulKey onto the top of the stack.

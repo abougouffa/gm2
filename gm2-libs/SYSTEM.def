@@ -36,7 +36,7 @@ DEFINITION MODULE SYSTEM ;
    Author     : Gaius Mulley
    Title      : SYSTEM
    Date       : 3/4/86
-   Description: Implements the SYSTEM dependant module
+   Description: Implements the SYSTEM dependent module
                 in the Modula-2 compiler.
    Last update: 9/9/89  - types and pseudo procedures exported:
                           ADR, SIZE, TSIZE.

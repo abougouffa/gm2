@@ -346,6 +346,25 @@ void libc_strcpy (void *dest, void *src)
   strcpy(dest, src);
 }
 
+
+/*
+ *  strncpy - copies string, src, into, dest, copying at most, n, bytes.
+ */
+
+void libc_strncpy (void *dest, void *src, unsigned long n)
+{
+  strncpy(dest, src, n);
+}
+
+/*
+ *  unlink - removes file and returns 0 if successful.
+ */
+
+long libc_unlink (void *file)
+{
+  return( unlink(file) );
+}
+
 /*
  *  memcpy - maps onto equivalent libc call
  */

@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
  *
  *  Gaius Mulley (gaius@glam.ac.uk) constructed this file.
  *  It was built by borrowing code from the gcc c-*.c files
@@ -2841,7 +2841,6 @@ init_m2_builtins ()
                                       tree_cons (NULL_TREE, const_ptr_type_node,
                                                  sizetype_endlink)));
 
-  /* Currently under experimentation.  */
   gm2_memcpy_node = builtin_function ("__builtin_memcpy", memcpy_ftype, BUILT_IN_MEMCPY,
                                       BUILT_IN_NORMAL, "memcpy");
 
@@ -6416,14 +6415,18 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
       else if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
         {
           result_type = type0;
+#if !defined(GM2)
           if (! flag_traditional)
             pedwarn ("comparison between pointer and integer");
+#endif
         }
       else if (code0 == INTEGER_TYPE && code1 == POINTER_TYPE)
         {
           result_type = type1;
+#if !defined(GM2)
           if (! flag_traditional)
             pedwarn ("comparison between pointer and integer");
+#endif
         }
       break;
 
@@ -8027,7 +8030,7 @@ tree
 gccgm2_BuildPointerType (totype)
      tree totype;
 {
-  return( build_pointer_type (skip_type_decl (totype)) );
+  return build_pointer_type (skip_type_decl (totype));
 }
 
 
@@ -8078,7 +8081,7 @@ gccgm2_BuildSetType (name, type, lowval, highval)
      char *name;
      tree type, lowval, highval;
 {
-  tree id =build_range_type( skip_type_decl (type), lowval, highval);
+  tree id=build_range_type( skip_type_decl (type), lowval, highval);
   tree settype;
 
   layout_type (id);
@@ -8098,7 +8101,6 @@ gccgm2_BuildSetType (name, type, lowval, highval)
 /*
  *  BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
  */
-
 
 tree
 gccgm2_BuildSubrangeType (name, type, lowval, highval)
@@ -9154,6 +9156,10 @@ convertToPtr (t)
   }
 }
 
+/*
+ *  BuiltInMemCopy - copy n bytes of memory efficiently from address src to dest.
+ */
+
 tree
 gccgm2_BuiltInMemCopy (dest, src, n)
      tree dest, src, n;
@@ -9235,7 +9241,6 @@ gccgm2_BuildIntegerConstant (int value)
            break;
   case 1:  return( integer_one_node );
            break;
-
   default:
       id = build_int_2 (value, 0);
       return( id );
@@ -9255,6 +9260,7 @@ gccgm2_BuildStringConstant (string, length)
 {
   tree id;
 
+#if 0
   if (length == 0) {
     /* we need to emit .string "" or .ascii "\0" in the assembly file,
      * rather than an empty label.
@@ -9264,7 +9270,9 @@ gccgm2_BuildStringConstant (string, length)
   } else {
     id=build_string(length, string);
   }
-
+#else
+  id=build_string(length+1, string);  /* +1 ensures that we always nul terminate our strings */
+#endif
   TREE_TYPE(id) = char_array_type_node;
   mystr = id;
   return( id );

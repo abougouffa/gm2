@@ -17,51 +17,53 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Comp ;
 
 
-FROM M2Options IMPORT Statistics,
-                      Recovery1, Recovery2, Recovery3, Quiet ;
+FROM SYSTEM IMPORT ADDRESS ;
+FROM M2Options IMPORT Statistics, Quiet ;
 
 FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPass3,
                    SetPassToNoPass, SetPassToPassHidden ;
 
+FROM M2Reserved IMPORT toktype ;
 FROM M2Search IMPORT FindSourceFile ;
 FROM M2Code IMPORT Code ;
-FROM M2Lexical IMPORT OpenSource, CloseSource, WriteError, WriteErrorFormat1, NearToken ;
+FROM M2LexBuf IMPORT OpenSource, CloseSource, ResetForNewPass, currenttoken, GetToken, ReInitialize, currentstring ;
 FROM M2FileName IMPORT CalculateFileName ;
+FROM M2Preprocess IMPORT PreprocessModule ;
 FROM libc IMPORT exit ;
 
+FROM M2Error IMPORT ErrorStringAt, ErrorStringAt2, ErrorStringsAt2, WriteFormat0, FlushErrors, FlushWarnings ;
+FROM FormatStrings IMPORT Sprintf1 ;
+
+IMPORT m2lex ;
 IMPORT P1SyntaxCheck ;
 IMPORT P2Build ;
 IMPORT P3Build ;
 IMPORT PHBuild ;
-IMPORT P1Compile ;
-IMPORT P2Compile ;
-IMPORT P3Compile ;
-IMPORT PHCompile ;
 
-FROM M2Batch IMPORT GetSource, GetModuleNo ;
+FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFile,
+                    AssociateModule, AssociateDefinition, MakeImplementationSource,
+                    MakeProgramSource ;
 
 FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
-                        IsHiddenTypeDeclared, GetFirstUsed ;
+                        IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule ;
 
-FROM NameKey IMPORT GetKey ;
-FROM NumberIO IMPORT CardToStr ;
-FROM StrLib IMPORT StrConCat ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM StdIO IMPORT Write ;
-
+FROM FIO IMPORT StdErr ;
+FROM NameKey IMPORT GetKey, KeyToCharStar, makekey ;
+FROM M2Printf IMPORT fprintf1 ;
+FROM M2Quiet IMPORT qprintf0, qprintf1, qprintf2 ;
+FROM Strings IMPORT String, InitString, KillString, InitStringCharStar, Dup, Mark, string ;
 
 CONST
-   MaxStringLen = 8192 ;
-
+   Debugging = FALSE ;
 
 VAR
    ModuleType : (None, Definition, Implementation, Program) ;
 
 
 (* %%%FORWARD%%%
-PROCEDURE DoPass1 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE DoPass2 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ; FORWARD ;
-PROCEDURE DoPass3 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ; FORWARD ;
+PROCEDURE DoPass1 (s: String) ; FORWARD ;
+PROCEDURE DoPass2 ; FORWARD ;
+PROCEDURE DoPass3 ; FORWARD ;
    %%%FORWARD%%% *)
 
 (*
@@ -98,154 +100,159 @@ END CompilingProgramModule ;
 
 
 (*
-   Compile - compiles the required modules by using a 3 pass compilation
-             technique.
+   Compile - compile file, s, using a 3 pass technique.
 *)
 
-PROCEDURE Compile (Sym: CARDINAL; FullPath: String) ;
+PROCEDURE Compile (s: String) ;
 BEGIN
-   qprintf0('Pass 1\n') ;
-   DoPass1(Sym, FullPath) ;
+   DoPass1(s) ;
+   FlushWarnings ; FlushErrors ; 
    qprintf0('Pass 2\n') ;
-   DoPass2(Sym, FullPath) ;
+   ResetForNewPass ;
+   DoPass2 ;
+   FlushWarnings ; FlushErrors ; 
    qprintf0('Pass 3\n') ;
-   DoPass3(Sym, FullPath) ;
+   ResetForNewPass ;
+   DoPass3 ;
+   FlushWarnings ; FlushErrors ; 
    qprintf0('Pass 4\n') ;
-   Code
+   Code ;
+   FlushWarnings ; FlushErrors
 END Compile ;
 
 
 (*
-   OpenSourceOrIntemediate - 
+   ExamineCompilationUnit - opens the source file to obtain the module name and kind of module.
 *)
 
-PROCEDURE OpenSourceOrIntemediate (Main, Sym: CARDINAL; Announce: BOOLEAN;
-                                   Name, FullName: ARRAY OF CHAR) : BOOLEAN ;
-VAR
-   FileName: ARRAY [0..MaxStringLen] OF CHAR ;
+PROCEDURE ExamineCompilationUnit (VAR name: ADDRESS; VAR isdefimp: BOOLEAN) ;
 BEGIN
-   IF Main=Sym
-   THEN
-      (* potentially reading from a temporary file *)
-      IF OpenSource(FullName, GetSymName(Sym))
+   isdefimp := FALSE ;   (* default to program module *)
+   (* stop if we see eof, ';' or '[' *)
+   WHILE (currenttoken#eoftok) AND (currenttoken#semicolontok) AND (currenttoken#lsbratok) DO
+      IF (currenttoken=implementationtok) OR (currenttoken=definitiontok)
       THEN
-         IF Announce
-         THEN
-            QuietString('   Module ') ; QuietName(Name) ; QuietString(' : ') ;
-            QuietString(Name) ; QuietLn
-         END ;
-         IF ModuleType=Definition
-         THEN
-            ModuleType := Implementation
-         ELSE
-            ModuleType := Program
-         END ;
-         RETURN( TRUE )
-      ELSE
-         RETURN( FALSE )
-      END
-   ELSE
-      (* straight forward .mod or .def file (no preprocessing should have occurred in this file) *)
-      CalculateFileName(Name, 'mod', FileName) ;
-      IF OpenSource(FileName, GetSymName(Sym))
+         isdefimp := TRUE ;
+         GetToken
+      END ;
+      IF currenttoken=identtok
       THEN
-         IF Announce
-         THEN
-            QuietString('   Module ') ; QuietName(Name) ; QuietString(' : ') ;
-            IF FindSourceFile(FileName, FileName)
-            THEN
-               QuietString(FileName) ; QuietLn
-            END
-         END ;
-         IF ModuleType=Definition
-         THEN
-            ModuleType := Implementation
-         ELSE
-            ModuleType := Program
-         END ;
-         RETURN( TRUE )
-      ELSE
-         RETURN( FALSE )
-      END
-   END
-END OpenSourceOrIntemediate ;
+         name := currentstring ;
+         RETURN
+      END ;
+      GetToken
+   END ;
+   m2lex.M2Error(string(InitString('failed to find module name'))) ;
+   exit(1)
+END ExamineCompilationUnit ;
 
 
 (*
-   DoPass1 - parses the sources of all modules necessary to compile
-             the required module, Main.
+   PeepInto - peeps into source, s, and initializes a definition/implementation or
+              program module accordingly.
 *)
 
-PROCEDURE DoPass1 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ;
+PROCEDURE PeepInto (s: String) ;
 VAR
-   Sym : CARDINAL ;
-   n, i: CARDINAL ;
+   name    : ADDRESS ;
+   isdefimp: BOOLEAN ;
+BEGIN
+   IF OpenSource(PreprocessModule(s))
+   THEN
+      ExamineCompilationUnit(name, isdefimp) ;
+      IF isdefimp
+      THEN
+         SetMainModule(MakeImplementationSource(makekey(name)))
+      ELSE
+         SetMainModule(MakeProgramSource(makekey(name)))
+      END ;
+      CloseSource ;
+      ReInitialize
+   ELSE
+      fprintf1(StdErr, 'failed to open %s\n', s) ;
+      exit(1)
+   END
+END PeepInto ;
+
+
+(*
+   DoPass1 - 
+*)
+
+PROCEDURE DoPass1 (s: String) ;
+VAR
+   Main,
+   Sym     : CARDINAL ;
+   i       : CARDINAL ;
+   ModName,
    Name,
-   FileName: ARRAY [0..MaxStringLen] OF CHAR ;
+   FileName: String ;
 BEGIN
    SetPassToPass1 ;
+   PeepInto(s) ;
+   Main := GetMainModule() ;
    i := 1 ;
    Sym := GetModuleNo(i) ;
+   qprintf1('Compiling: %s\n', s) ;
    WHILE Sym#NulSym DO
-      n := GetSymName(Sym) ;
-      GetKey(n, Name) ;
-      (*
-         Attempt to open <Name>.def, cannot test IsDefImp because it may not
-         be set yet.
-      *)
-      CalculateFileName(Name, 'def', FileName) ;
-      IF OpenSource(FileName, n)
+      Name := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
+      IF IsDefImp(Sym)
       THEN
-         QuietString('   Module ') ; QuietName(Name) ; QuietString(' : ') ;
-      	 IF FindSourceFile(FileName, FileName)
-      	 THEN
-            QuietString(FileName) ; QuietLn
-      	 ELSE
-      	    WriteError('inconsistancy between opening file and finding file')
-      	 END ;
-         ModuleType := Definition ;
-         IF Recovery1
+         FileName := CalculateFileName(Name, Mark(InitString('def'))) ;
+         IF FindSourceFile(FileName, FileName)
          THEN
-            IF NOT P1SyntaxCheck.CompilationUnit()
+            qprintf2('   Module %-20s : %s\n', Name, FileName) ;
+            ModuleType := Definition ;
+            IF OpenSource(AssociateDefinition(PreprocessModule(FileName), Sym))
             THEN
-               WriteError('compilation failed')
+               IF NOT P1SyntaxCheck.CompilationUnit()
+               THEN
+                  WriteFormat0('compilation failed') ;
+                  CloseSource ;
+                  RETURN
+               END ;
+               CloseSource
+            ELSE
+               fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+               exit(1)
             END
          ELSE
-            IF NOT P1Compile.CompilationUnit()
-            THEN
-               WriteError('compilation failed')
-            END
+            fprintf1(StdErr, 'failed to find definition module %s.def\n', Name) ;
+            exit(1)
          END ;
-         CloseSource
-      ELSIF Sym#Main
-      THEN
-         NearToken('', GetFirstUsed(Sym)) ;
-         WriteErrorFormat1('cannot find definition module %s.def', n)
+         ModuleType := Implementation
       ELSE
          ModuleType := Program
       END ;
       IF (Main=Sym) OR (IsDefImp(Sym) AND IsHiddenTypeDeclared(Sym))
       THEN
-         IF OpenSourceOrIntemediate(Main, Sym, TRUE, Name, FullPath)
+         (* only need to read implementation module if hidden types are declared or it is the main module *)
+         IF Main=Sym
          THEN
-            IF Recovery1
+            FileName := Dup(s)
+         ELSE
+            FileName := CalculateFileName(Name, Mark(InitString('mod'))) ;
+            IF FindSourceFile(FileName, FileName)
             THEN
-               IF NOT P1SyntaxCheck.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
-            ELSE
-               IF NOT P1Compile.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
+            END
+         END ;
+         qprintf2('   Module %-20s : %s\n', Name, FileName) ;
+         IF OpenSource(AssociateModule(PreprocessModule(FileName), Sym))
+         THEN
+            IF NOT P1SyntaxCheck.CompilationUnit()
+            THEN
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
             END ;
             CloseSource
          ELSE
-            NearToken('', GetFirstUsed(Sym)) ;
-            WriteErrorFormat1('module %s.mod cannot be found', n)
+            ErrorStringAt(Sprintf1(InitString('file %s cannot be found'), FileName), GetFirstUsed(Sym)) ;
+            fprintf1(StdErr, 'file %s cannot be opened\n', FileName)
          END
       END ;
+      Name := KillString(Name) ;
+      FileName := KillString(FileName) ;
       INC(i) ;
       Sym := GetModuleNo(i)
    END ;
@@ -258,66 +265,61 @@ END DoPass1 ;
              the required module, Main.
 *)
 
-PROCEDURE DoPass2 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ;
+PROCEDURE DoPass2 ;
 VAR
-   Sym : CARDINAL ;
+   Sym     : CARDINAL ;
    i,
-   n   : CARDINAL ;
-   Name,
-   FileName: ARRAY [0..MaxStringLen] OF CHAR ;
+   n       : CARDINAL ;
+   FileName: String ;
 BEGIN
    SetPassToPass2 ;
    i := 1 ;
    Sym := GetModuleNo(i) ;
    WHILE Sym#NulSym DO
-      n := GetSymName(Sym) ;
-      GetKey(n, Name) ;
-      IF IsDefImp(Sym)
+      FileName := GetDefinitionModuleFile(Sym) ;
+      IF FileName#NIL
       THEN
-      	 CalculateFileName(Name, 'def', FileName) ;
-         IF OpenSource(FileName, n)
+         IF Debugging
+         THEN
+            qprintf1('   Module %a\n', GetSymName(Sym))
+         END ;
+         IF OpenSource(FileName)
          THEN
             ModuleType := Definition ;
-            IF Recovery2
+            IF NOT P2Build.CompilationUnit()
             THEN
-               IF NOT P2Build.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
-            ELSE
-               IF NOT P2Compile.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
             END ;
             CloseSource
          ELSE
-            NearToken('', GetFirstUsed(Sym)) ;
-            WriteErrorFormat1('module %s.def cannot be found', n)
-         END
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END ;
+         ModuleType := Implementation
       ELSE
          ModuleType := Program
       END ;
-      IF (Main=Sym) OR (IsDefImp(Sym) AND IsHiddenTypeDeclared(Sym))
+      FileName := GetModuleFile(Sym) ;
+      IF FileName#NIL
       THEN
-         IF OpenSourceOrIntemediate(Main, Sym, FALSE, Name, FullPath)
+         IF Debugging
          THEN
-            IF Recovery2
+            qprintf1('   Module %a\n', GetSymName(Sym))
+         END ;
+         IF OpenSource(FileName)
+         THEN
+            IF NOT P2Build.CompilationUnit()
             THEN
-               IF NOT P2Build.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
-            ELSE
-               IF NOT P2Compile.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
             END ;
             CloseSource
          ELSE
-            NearToken('', GetFirstUsed(Sym)) ;
-            WriteErrorFormat1('module %s.mod cannot be found', n)
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
          END
       END ;
       INC(i) ;
@@ -332,63 +334,53 @@ END DoPass2 ;
              the required module, Main.
 *)
 
-PROCEDURE DoPass3 (Main: CARDINAL; FullPath: ARRAY OF CHAR) ;
+PROCEDURE DoPass3 ;
 VAR
+   Main,
    Sym : CARDINAL ;
    i,
    n   : CARDINAL ;
    Name,
-   FileName: ARRAY [0..MaxStringLen] OF CHAR ;
+   FileName: String ;
 BEGIN
    SetPassToPass3 ;
+   Main := GetMainModule() ;
    i := 1 ;
    Sym := GetModuleNo(i) ;
    WHILE Sym#NulSym DO
-      n := GetSymName(Sym) ;
-      GetKey(n, Name) ;
-      IF IsDefImp(Sym)
+      FileName := GetDefinitionModuleFile(Sym) ;
+      IF FileName#NIL
       THEN
-      	 CalculateFileName(Name, 'def', FileName) ;
-         IF OpenSource(FileName, n)
+         IF OpenSource(FileName)
          THEN
             ModuleType := Definition ;
-            IF Recovery3
+            IF NOT P3Build.CompilationUnit()
             THEN
-               IF NOT P3Build.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
-            ELSE
-               IF NOT P3Compile.CompilationUnit()
-               THEN
-                  WriteError('compilation failed')
-               END
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
             END ;
             CloseSource
          ELSE
-            NearToken('', GetFirstUsed(Sym)) ;
-            WriteErrorFormat1('module %s.def cannot be found', n)
-         END
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END ;
+         ModuleType := Implementation
       ELSE
          ModuleType := Program
       END ;
-      IF (Main=Sym) OR (IsDefImp(Sym) AND IsHiddenTypeDeclared(Sym))
+      FileName := GetModuleFile(Sym) ;
+      IF FileName#NIL
       THEN
-         IF OpenSourceOrIntemediate(Main, Sym, FALSE, Name, FullPath)
+         IF OpenSource(FileName)
          THEN
             IF Main=Sym
             THEN
-               IF Recovery3
+               IF NOT P3Build.CompilationUnit()
                THEN
-                  IF NOT P3Build.CompilationUnit()
-                  THEN
-                     WriteError('compilation failed')
-                  END
-               ELSE
-                  IF NOT P3Compile.CompilationUnit()
-                  THEN
-                     WriteError('compilation failed')
-                  END
+                  WriteFormat0('compilation failed') ;
+                  CloseSource ;
+                  RETURN
                END
             ELSE
                (*
@@ -399,25 +391,19 @@ BEGIN
                *)
                SetPassToNoPass ;
                SetPassToPassHidden ;
-               IF Recovery3
+               IF NOT PHBuild.CompilationUnit()
                THEN
-                  IF NOT PHBuild.CompilationUnit()
-                  THEN
-                     WriteError('compilation failed')
-                  END
-               ELSE
-                  IF NOT PHCompile.CompilationUnit()
-                  THEN
-                     WriteError('compilation failed')
-                  END
+                  WriteFormat0('compilation failed') ;
+                  CloseSource ;
+                  RETURN
                END ;
                SetPassToNoPass ;
                SetPassToPass3
             END ;
             CloseSource
          ELSE
-            NearToken('', GetFirstUsed(Sym)) ;
-            WriteErrorFormat1('module %s.mod cannot be found', n)
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
          END
       END ;
       INC(i) ;

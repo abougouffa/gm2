@@ -21,18 +21,19 @@ IMPLEMENTATION MODULE M2Base ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Mon Jul 10 20:16:54 2000
-    Last edit  : Mon Jul 10 20:16:54 2000
     Description: gcc version of M2Base. This module initializes the front end
                  symbol table with the base types. We collect the size of the
                  base types and range of values from the gcc backend.
 *)
 
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard ;
-FROM NameKey IMPORT MakeKey, WriteKey ;
+FROM Strings IMPORT InitString, String, Mark, InitStringCharStar ;
+FROM M2LexBuf IMPORT GetTokenNo ;
+FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
 
-FROM M2Lexical IMPORT WriteError, WriteErrorFormat1, WriteErrorFormat2,
-                      NearToken, LastError ;
+FROM M2Error IMPORT Error, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2,
+                    InternalError, ChainError, WriteFormat1, ErrorString, FlushErrors ;
+
+FROM FormatStrings IMPORT Sprintf2 ;
 
 FROM SymbolTable IMPORT ModeOfAddr,
                         MakeModule, MakeType, PutType,
@@ -55,21 +56,30 @@ FROM SymbolTable IMPORT ModeOfAddr,
 FROM M2ALU IMPORT PushIntegerTree, PushCard ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking ;
-FROM M2System IMPORT Address, Bitset, InitSystem ;
+FROM M2System IMPORT Address, Bitset, Byte, Word, InitSystem ;
 FROM M2Math IMPORT InitMath ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetCharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType ;
+
+TYPE
+   Compatability = (expression, assignment) ;
+   MetaType      = (const, word, byte, address, chr, intgr, cardinal, pointer, enum) ;
+
 
 (* %%%FORWARD%%%
 PROCEDURE InitBaseConstants ; FORWARD ;
 PROCEDURE InitBaseSimpleTypes ; FORWARD ;
 PROCEDURE InitBaseFunctions ; FORWARD ;
 PROCEDURE InitBaseProcedures ; FORWARD ;
+PROCEDURE InitCompatibilityMatrices ; FORWARD ;
+PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 
 VAR
+   Expr,
+   Ass       : ARRAY MetaType, MetaType OF BOOLEAN ;
    MinChar,
    MaxChar,
    MinInteger,
@@ -103,6 +113,7 @@ BEGIN
             when all other scopes fail to deliver a symbol.
    *)
    EndScope ;
+   InitCompatibilityMatrices
 END InitBase ;
 
 
@@ -223,7 +234,7 @@ BEGIN
       min := MinChar ;
       max := MaxChar
    ELSE
-      WriteErrorFormat1('unable to find MIN or MAX for the base type %s', GetSymName(type))
+      WriteFormat1('unable to find MIN or MAX for the base type %a', GetSymName(type))
    END
 END GetBaseTypeMinMax ;
 
@@ -371,74 +382,133 @@ END IsBaseType ;
 
 
 (*
-   CheckCompatibleTypes - returns if t1 and t2 are compatible types for
-                          +, -, *, DIV, >, <, =, etc.
-                          If t1 and t2 are not compatible then an error
-                          message is displayed.
+   CheckCompatible - returns if t1 and t2 are kind compatible
 *)
 
-PROCEDURE CheckCompatibleTypes (t1, t2: CARDINAL) ;
+PROCEDURE CheckCompatible (t1, t2: CARDINAL; kind: Compatability) ;
+VAR
+   e: Error ;
+   s: String ;
 BEGIN
-   IF NOT IsCompatible(t1, t2)
+   IF NOT IsCompatible(t1, t2, kind)
    THEN
-      WriteString('the two types are: ') ; WriteKey(GetSymName(t1)) ;
-      WriteString(' and ') ; WriteKey(GetSymName(t2)) ; WriteLn ;
+      e := NewError(GetTokenNo()) ;
+      IF IsUnknown(t1) AND IsUnknown(t2)
+      THEN
+         ErrorFormat0(e, 'two different unknown types must be resolved (declared or imported)')
+      ELSIF IsUnknown(t1) OR IsUnknown(t2)
+      THEN
+         ErrorFormat0(e, 'a type must be declared or imported')
+      ELSE
+         ErrorFormat0(e, 'type incompatability, hint the types should be converted or coersed')
+      END ;
+
+      e := ChainError(GetTokenNo(), e) ;
+      s := Sprintf2(Mark(InitString('the two types are: %s and %s\n')),
+                    Mark(InitStringCharStar(KeyToCharStar(GetSymName(t1)))),
+                    Mark(InitStringCharStar(KeyToCharStar(GetSymName(t2))))) ;
+      ErrorString(e, s) ;
       IF IsUnknown(t1)
       THEN
-         WriteKey(GetSymName(t1)) ;
-         WriteString(' (is actually unknown and perhaps should be declared or imported)') ;
-         NearToken('', GetDeclared(t1))
+         e := ChainError(GetDeclared(t1), e) ;
+         ErrorFormat1(e, 'hint, %a, is unknown and perhaps should be declared or imported',
+                      GetSymName(t1))
       END ;
 
       IF IsUnknown(t2)
       THEN
-         WriteKey(GetSymName(t2)) ;
-         WriteString(' (is actually unknown and perhaps should be declared or imported)') ;
-         NearToken('', GetDeclared(t2))
-      END ;
-      WriteLn ;
-      IF IsUnknown(t1) AND IsUnknown(t2)
-      THEN
-         LastError('two different unknown types must be resolved (declared or imported)')
-      ELSIF IsUnknown(t1) OR IsUnknown(t2)
-      THEN
-         LastError('a type must be declared or imported')
-      ELSE
-         WriteError('type incompatability - types should be converted or coersed')
+         e := ChainError(GetDeclared(t2), e) ;
+         ErrorFormat1(e, 'hint, %a, is unknown and perhaps should be declared or imported',
+                      GetSymName(t2))
       END
    END
-END CheckCompatibleTypes ;
+END CheckCompatible ;
 
 
 (*
-   IsBaseCompatible - returns TRUE if the simple base type comparison is legal.
+   CheckExpressionCompatible - returns if t1 and t2 are compatible types for
+                               +, -, *, DIV, >, <, =, etc.
+                               If t1 and t2 are not compatible then an error
+                               message is displayed.
 *)
 
-PROCEDURE IsBaseCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+PROCEDURE CheckExpressionCompatible (t1, t2: CARDINAL) ;
 BEGIN
-   IF (t1=NulSym) OR (t2=NulSym)
+   CheckCompatible(t1, t2, expression)
+END CheckExpressionCompatible ;
+
+
+(*
+   CheckAssignmentCompatible - returns if t1 and t2 are compatible types for
+                               :=, =, #.
+                               If t1 and t2 are not compatible then an error
+                               message is displayed.
+*)
+
+PROCEDURE CheckAssignmentCompatible (t1, t2: CARDINAL) ;
+BEGIN
+   IF t1#t1
    THEN
-      (*
-         NulSym type indicates a CONSTANT which could be one of many types.
-         eg. BitSet, Integer, Cardinal.
-      *)
-      RETURN( TRUE )
-   ELSIF t1=t2
+      CheckCompatible(t1, t2, assignment)
+   END
+END CheckAssignmentCompatible ;
+
+
+(*
+   FindMetaType - returns the MetaType associated with, sym.
+*)
+
+PROCEDURE FindMetaType (sym: CARDINAL) : MetaType ;
+BEGIN
+   IF sym=NulSym
    THEN
-      (* compatible because same type *)
-      RETURN( TRUE )
-   ELSIF (t1=Address) AND (t2#NulSym) AND (IsPointer(t2))
+      RETURN( const )
+   ELSIF sym=Word
    THEN
-      RETURN( TRUE )
-   ELSIF (t2=Address) AND (t1#NulSym) AND (IsPointer(t1))
+      RETURN( word )
+   ELSIF sym=Byte
    THEN
-      RETURN( TRUE )
-   ELSIF ((t1=Integer) AND (t2=Cardinal)) OR
-         ((t2=Integer) AND (t1=Cardinal))
+      RETURN( byte )
+   ELSIF sym=Address
    THEN
-      RETURN( TRUE )   (* INTEGER and CARDINAL are compatible Wirth PIM2 P152 2nd Edition *)
+      RETURN( address )
+   ELSIF sym=Char
+   THEN
+      RETURN( chr )
+   ELSIF sym=Integer
+   THEN
+      RETURN( intgr )
+   ELSIF sym=Cardinal
+   THEN
+      RETURN( cardinal )
+   ELSIF IsPointer(sym)
+   THEN
+      RETURN( pointer )
+   ELSIF IsEnumeration(sym)
+   THEN
+      RETURN( enum )
+   ELSIF IsType(sym)
+   THEN
+      RETURN( FindMetaType(GetType(sym)) )
    ELSE
-      RETURN( FALSE )
+      InternalError('unexpected base type', __FILE__, __LINE__)
+   END
+END FindMetaType ;
+
+
+(*
+   IsBaseCompatible - returns TRUE if a simple base type comparison is legal.
+*)
+
+PROCEDURE IsBaseCompatible (t1, t2: CARDINAL; kind: Compatability) : BOOLEAN ;
+BEGIN
+   CASE kind OF
+
+   expression: RETURN( Expr[FindMetaType(t1), FindMetaType(t2)] ) |
+   assignment: RETURN( Ass [FindMetaType(t1), FindMetaType(t2)] )
+
+   ELSE
+      InternalError('unexpected Compatibility', __FILE__, __LINE__)
    END
 END IsBaseCompatible ;
 
@@ -447,9 +517,25 @@ END IsBaseCompatible ;
    IsCompatible - returns true if the types, t1, and, t2, are compatible.
 *)
 
-PROCEDURE IsCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : BOOLEAN ;
 BEGIN
-   IF IsBaseCompatible(t1, t2)
+   IF (t1=NulSym) OR (t2=NulSym)
+   THEN
+      RETURN( TRUE )
+   ELSIF IsSubrange(t1)
+   THEN
+      (* since we check for t1 or t2 for subranges we will never ask IsCompatible about CARDINAL *)
+      RETURN( IsCompatible(GetType(t1), t2, kind) )
+   ELSIF IsSubrange(t2)
+   THEN
+      RETURN( IsCompatible(t1, GetType(t2), kind) )
+   ELSIF IsSet(t1)
+   THEN
+      RETURN( TRUE ) (* cannot test set compatability at this point --fixme-- *)
+   ELSIF IsSet(t2)
+   THEN
+      RETURN( TRUE ) (* cannot test set compatability at this point --fixme-- *)
+   ELSIF IsBaseCompatible(t1, t2, kind)
    THEN
       RETURN( TRUE )
 (*
@@ -459,12 +545,6 @@ BEGIN
         however we do not know the type to our subranges yet (GetType(SubrangeType)=NulSym).
         An oversight which needs to be fixed...
 *)
-   ELSIF IsSubrange(t1)
-   THEN
-      RETURN( IsCompatible(GetType(t1), t2) )
-   ELSIF IsSubrange(t2)
-   THEN
-      RETURN( IsCompatible(t1, GetType(t2)) )
    ELSIF ((t1=Integer) AND (t2=LongInt)) OR
          ((t2=Integer) AND (t1=LongInt))
    THEN
@@ -480,7 +560,31 @@ END IsCompatible ;
 
 
 (*
+   IsAssignmentCompatible - returns TRUE if t1 and t2 are assignment
+                            compatible.
+*)
+
+PROCEDURE IsAssignmentCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (t1=t2) OR IsCompatible(t1, t2, assignment) )
+END IsAssignmentCompatible ;
+
+
+(*
+   IsExpressionCompatible - returns TRUE if t1 and t2 are expression
+                            compatible.
+*)
+
+PROCEDURE IsExpressionCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsCompatible(t1, t2, expression) )
+END IsExpressionCompatible ;
+
+
+(*
    MixTypes - returns the type symbol that corresponds to the types t1 and t2.
+              NearTok is used to identify the source position if a type
+              incompatability occurs.
 *)
 
 PROCEDURE MixTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
@@ -514,16 +618,16 @@ BEGIN
       RETURN( t2 )
    ELSIF IsEnumeration(t1)
    THEN
-      RETURN( MixTypes(Integer, t2) )
+      RETURN( MixTypes(Integer, t2, NearTok) )
    ELSIF IsEnumeration(t2)
    THEN
-      RETURN( MixTypes(t1, Integer) )
+      RETURN( MixTypes(t1, Integer, NearTok) )
    ELSIF IsSubrange(t1)
    THEN
-      RETURN( MixTypes(GetType(t1), t2) )
+      RETURN( MixTypes(GetType(t1), t2, NearTok) )
    ELSIF IsSubrange(t2)
    THEN
-      RETURN( MixTypes(t1, GetType(t2)) )
+      RETURN( MixTypes(t1, GetType(t2), NearTok) )
    ELSIF ((t1=Integer) AND (t2=LongInt)) OR
          ((t2=Integer) AND (t1=LongInt))
    THEN
@@ -535,11 +639,12 @@ BEGIN
    ELSIF (t1=GetLowestType(t1)) AND (t2=GetLowestType(t2))
    THEN
       ErrorFormat2(NewError(NearTok),
-                   'type incompatibility between (%a) and (%a)', GetSymName(t1), GetSymName(t2))
+                   'type incompatibility between (%a) and (%a)', GetSymName(t1), GetSymName(t2)) ;
+      FlushErrors  (* unrecoverable at present *)
    ELSE
       t1 := GetLowestType(t1) ;
       t2 := GetLowestType(t2) ;
-      RETURN( MixTypes(t1, t2) )
+      RETURN( MixTypes(t1, t2, NearTok) )
    END
 END MixTypes ;
 
@@ -554,6 +659,82 @@ PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( (type=LongInt) OR (type=Real) OR (type=LongReal) )
 END IsMathType ;
+
+
+(*
+     The rules are:
+   
+     assignment compatible matrix
+                                             t2
+   
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum
+                  +------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T
+           Word   |         T     F     T       F    T       T        T    T
+           Byte   |               T     F       T    F       F        F    F
+   t1   Address   |                     T       F    F       F        T    F
+           Char   |                             T    F       F        F    F
+        Integer   |                                  T       T        F    F
+       Cardinal   |                                          T        F    F
+            Ptr   |                                                   T    F
+           Enum   |                                                        T
+   
+   
+   
+     expression compatible matrix
+                                             t2
+   
+                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum
+                  +------------------------------------------------------------
+           NulSym | T       T     T     T       T    T       T        T    T
+           Word   |         T     F     F       F    F       F        F    F
+           Byte   |               T     F       F    F       F        F    F
+   t1   Address   |                     T       F    F       F        T    F
+           Char   |                             T    F       F        F    F
+        Integer   |                                  T       T        F    F
+       Cardinal   |                                          T        F    F
+            Ptr   |                                                   T    F
+           Enum   |                                                        T
+*)
+
+(*
+   InitCompatibilityMatrices - initializes the tables above.
+*)
+
+PROCEDURE InitCompatibilityMatrices ;
+VAR
+   i, j: MetaType ;
+BEGIN
+   FOR i := MIN(MetaType) TO MAX(MetaType) DO
+      FOR j := MIN(MetaType) TO MAX(MetaType) DO
+         Ass[i, j]  := FALSE ;
+         Expr[i, j] := FALSE
+      END
+   END ;
+   FOR i := MIN(MetaType) TO MAX(MetaType) DO
+      Ass[i, i] := TRUE ;      (* identity *)
+      Ass[const, i] := TRUE ;  (* all const are compatible *)
+      Ass[i, const] := TRUE ;
+   END ;
+   Ass[word, address] := TRUE ; Ass[address, word] := TRUE ;
+   Ass[word, intgr] := TRUE ; Ass[intgr, word] := TRUE ;
+   Ass[word, cardinal] := TRUE ; Ass[cardinal, word] := TRUE ;
+   Ass[word, pointer] := TRUE ; Ass[pointer, word] := TRUE ;
+   Ass[byte, chr] := TRUE ; Ass[chr, byte] := TRUE ;
+   Ass[address, pointer] := TRUE ; Ass[pointer, address] := TRUE ;
+   Ass[intgr, cardinal] := TRUE ; Ass[cardinal, intgr] := TRUE ;
+   Ass[word, enum] := TRUE ; Ass[enum, word] := TRUE ;
+
+   (* expression matrix *)
+   FOR i := MIN(MetaType) TO MAX(MetaType) DO
+      Expr[i, i] := TRUE ;      (* identity *)
+      Expr[const, i] := TRUE ;  (* all const are compatible *)
+      Expr[i, const] := TRUE ;
+   END ;
+
+   Expr[address, pointer] := TRUE ; Expr[pointer, address] := TRUE ;
+   Expr[intgr, cardinal] := TRUE ; Expr[cardinal, intgr] := TRUE
+END InitCompatibilityMatrices ;
 
 
 END M2Base.

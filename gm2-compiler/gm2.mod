@@ -19,93 +19,20 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2001/10/31 09:08:31 $]
+   Date       : 1987  [$Date: 2002/04/15 16:26:51 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.1 $
+   Version    : $Revision: 1.2 $
 *)
 
-IMPORT DebugPMD ;
-IMPORT CmdArgs ;
-FROM M2Search IMPORT FindSourceFile ;
 FROM M2Options IMPORT IsAnOption, ParseOptions ;
 FROM M2Comp IMPORT Compile ;
-FROM M2Batch IMPORT MakeProgramSource, MakeImplementationSource ;
-FROM SymbolTable IMPORT SetMainModule ;
-FROM NameKey IMPORT MakeKey ;
-FROM M2FileName IMPORT CalculateFileName, ExtractExtension ;
 FROM SArgs IMPORT GetArg, Narg ;
 FROM Strings IMPORT String, InitString, string, KillString, EqualArray ;
-FROM M2Printf IMPORT fprintf1 ;
-FROM M2Quiet IMPORT qprintf1 ;
+FROM M2Printf IMPORT fprintf0 ;
 FROM FIO IMPORT StdErr ;
 FROM libc IMPORT exit ;
-
-
-(*
-   CompileModule - attempts to locate a module in, file, and then compile
-                   this module. The, file, maybe anywhere on the search path
-                   and might be a temporary file. Thus we cannot derive the
-                   module name from the file name.
-*)
-
-PROCEDURE CompileModule (file, modulename: String) ;
-VAR
-   Sym     : CARDINAL ;
-   basemod,
-   basefile,
-   FullPath,
-   FileName: String ;
-BEGIN
-   FullPath := NIL ;
-   basemod := ExtractExtension(modulename, Mark(InitString('.mod'))) ;
-   IF basemod=NIL
-   THEN
-      basemod := ExtractExtension(modulename, Mark(InitString('.def')))
-   END ;
-   basefile := ExtractExtension(file, Mark(InitString('.mod'))) ;
-   IF basefile=NIL
-   THEN
-      basefile := ExtractExtension(file, Mark(InitString('.def')))
-   END ;
-   (* look up definition module, use module name and M2 path to find definition module *)
-   FileName := CalculateFileName(modulename, InitString('def')) ;
-   IF FindSourceFile(FileName, FullPath)
-   THEN
-      Sym := MakeImplementationSource(makekey(string(modulename))) ;
-      FileName := KillString(FileName) ;
-      FileName := CalculateFileName(file, Mark(InitString('.mod'))) ;
-      FullPath := KillString(FullPath) ;
-      IF FindSourceFile(FileName, FullPath)
-      THEN 
-         SetMainModule(Sym) ;
-         qprintf1('Compiling %s\n', modulename) ;
-         Compile(Sym, FullPath)
-      ELSE
-         fprintf1(StdErr, 'file: %s not found\n', FileName) ;
-         exit(1)
-      END
-   ELSE
-      (* look up implementation or program module, use file name as it may have been preprocessed *)
-      FileName := KillString(FileName) ;
-      FileName := CalculateFileName(file, Mark(InitString('mod'))) ;
-      IF FindSourceFile(FileName, FullPath)
-      THEN
-      	 qprintf1('Compiling %s\n', modulename) ;
-         Sym := MakeProgramSource(makekey(string(modulename))) ;
-         SetMainModule(Sym) ;
-         Compile(Sym, FileName)
-      ELSE
-         fprintf1(StdErr, 'file: %s not found\n', FileName) ;
-         exit(1)
-      END
-   END ;
-   basemod  := KillString(basemod) ;
-   basefile := KillString(basefile) ;
-   FullPath := KillString(FullPath) ;
-   FileName := KillString(FileName)
-END CompileModule ;
 
 
 (*
@@ -133,20 +60,23 @@ BEGIN
          INC(n)
       ELSIF EqualArray(s, '-version')
       THEN
+      ELSIF EqualArray(s, '-Wcppbegin')
+      THEN
+         REPEAT
+            INC(n)
+         UNTIL (NOT GetArg(s, n)) OR (s=NIL) OR EqualArray(s, '-Wcppend') ;
+         IF NOT EqualArray(s, '-Wcppend')
+         THEN
+            fprintf0(StdErr, 'expecting -Wcppend argument after a -Wcppbegin\n') ;
+            exit(1)
+         END
       END ;
       s := KillString(s) ;
       INC(n)
    END ;
    IF GetArg(s, n) AND (NOT IsAnOption(s))
    THEN
-      IF EqualArray(module, '')
-      THEN
-         (* filename is the module *)
-         CompileModule(s, s)
-      ELSE
-         (* filename is different to the modulename *)
-         CompileModule(s, module)
-      END
+      Compile(s)
    END ;
    s := KillString(s) ;
    module := KillString(module)

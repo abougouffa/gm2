@@ -32,7 +32,7 @@ FROM Math IMPORT ABS ;
 FROM StrLib IMPORT StrLen, StrConCat, StrCopy ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
-FROM libc IMPORT exit, open, creat, read, write, close, lseek, strcpy, memcpy ;
+FROM libc IMPORT exit, open, creat, read, write, close, lseek, strncpy, memcpy ;
 FROM Strings IMPORT Length, string ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 
@@ -73,6 +73,8 @@ TYPE
                                      buffer: Buffer ;
                                      abspos: CARDINAL ;    (* absolute position into file.     *)
                                   END ;
+
+   PtrToChar         = POINTER TO CHAR ;
 
 (* we only need forward directives for the p2c bootstrapping tool *)
 
@@ -116,7 +118,8 @@ BEGIN
    THEN
       RETURN( FileInfo[f]^.unixfd )
    ELSE
-      FormatError1('file %d has not been opened or is out of range\n', f)
+      FormatError1('file %d has not been opened or is out of range\n', f) ;
+      RETURN( -1 )
    END
 END GetUnixFileDescriptor ;
 
@@ -278,6 +281,8 @@ END exists ;
 
 PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
                           fstate: FileStatus; use: FileUsage; towrite: BOOLEAN; buflength: CARDINAL) : File ;
+VAR
+   p: PtrToChar ;
 BEGIN
    NEW(FileInfo[f]) ;
    IF FileInfo[f]=NIL
@@ -295,7 +300,10 @@ BEGIN
             state := outofmemory ;
             RETURN( f )
          END ;
-         strcpy(name.address, fname) ;
+         strncpy(name.address, fname, flength) ;
+         (* and assign nul to the last byte *)
+         p := ADDRESS(CARDINAL(name.address) + flength) ;
+         p^ := nul ;
          abspos := 0 ;
          (* now for the buffer *)
          NEW(buffer) ;
@@ -1238,22 +1246,16 @@ END FindPosition ;
 PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
                          state: FileStatus; use: FileUsage; towrite: BOOLEAN; bufsize: CARDINAL) ;
 BEGIN
-   NEW(FileInfo[f]) ;
-   IF FileInfo[f]=NIL
+   IF InitializeFile(f, ADR(fname), StrLen(fname), state, use, towrite, bufsize)=f
    THEN
-      HALT   (* out of memory already, serious problems *)
-   ELSE
-      IF InitializeFile(f, ADR(fname), StrLen(fname), state, use, towrite, bufsize)=f
+      IF f<MaxNoOfFiles
       THEN
-         IF f<MaxNoOfFiles
-         THEN
-            FileInfo[f]^.unixfd := INTEGER(f)
-         ELSE
-            FileInfo[f]^.unixfd := FileInfo[StdErr]^.unixfd    (* the error channel *)
-         END
+         FileInfo[f]^.unixfd := INTEGER(f)
       ELSE
-         HALT
+         FileInfo[f]^.unixfd := FileInfo[StdErr]^.unixfd    (* the error channel *)
       END
+   ELSE
+      HALT
    END
 END PreInitialize ;
 

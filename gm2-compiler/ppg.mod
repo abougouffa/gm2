@@ -16,7 +16,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 MODULE ppg ;
 
-FROM PushBackInput IMPORT WarnError, GetColumnPosition, GetCurrentLine ;
+FROM PushBackInput IMPORT WarnError, WarnString, GetColumnPosition, GetCurrentLine ;
 FROM bnflex IMPORT IsSym, SymIs, TokenType, GetCurrentToken, GetCurrentTokenType, GetChar, PutChar,
                    SkipWhite, SkipUntilEoln, AdvanceToken, IsReserved, OpenSource, CloseSource,
                    PushBackToken, SetDebugging ;
@@ -26,6 +26,7 @@ FROM NameKey IMPORT Name, MakeKey, WriteKey, LengthKey, GetKey, NulName ;
 FROM NumberIO IMPORT CardToStr, WriteCard ;
 FROM SymbolKey IMPORT InitTree, SymbolTree, PutSymKey, GetSymKey, ForeachNodeDo, NulKey ;
 FROM Lists IMPORT InitList, IsItemInList, IncludeItemIntoList, RemoveItemFromList, KillList, List ;
+FROM Strings IMPORT String, InitString, KillString, ConCat, Mark, ConCatChar ;
 FROM ASCII IMPORT nul, lf, tab ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;
@@ -58,6 +59,7 @@ TYPE
    identdesc      =            RECORD
                                   definition: ProductionDesc ;   (* where this idents production is defined *)
                                   name      : Name ;
+                                  line      : CARDINAL ;
                                END ;
 
    SetDesc        = POINTER TO setdesc ;
@@ -80,7 +82,7 @@ TYPE
                                   reachend,                        (* can we see the end of the sentance (due to multiple epsilons) *)
                                   calcepsilon,                     (* have we calculated the value epsilon yet? *)
                                   epsilon     : BOOLEAN ;          (* potentially no token may be consumed *)
-
+                                  line        : CARDINAL ;
                     END ;
 
    TermDesc       = POINTER TO termdesc ;
@@ -89,6 +91,7 @@ TYPE
    expressiondesc =            RECORD
                                   term      : TermDesc ;
                                   followinfo: FollowDesc ;
+                                  line      : CARDINAL ;
                                END ;
 
    StatementDesc  = POINTER TO statementdesc ;
@@ -96,6 +99,7 @@ TYPE
                                   ident      : IdentDesc ;
                                   expr       : ExpressionDesc ;
                                   followinfo : FollowDesc ;
+                                  line       : CARDINAL ;
                                END ;
 
    CodeHunk       = POINTER TO codehunk ;
@@ -108,6 +112,7 @@ TYPE
    codedesc       =            RECORD
                                   code      : CodeHunk ;
                                   indent    : CARDINAL ;         (* column of the first % *)
+                                  line      : CARDINAL ;
                                END ;
 
    FactorType     = (id, lit, sub, opt, mult, m2) ;
@@ -116,6 +121,7 @@ TYPE
    factordesc     =            RECORD
                                   followinfo: FollowDesc ;
                                   next      : FactorDesc ;   (* chain of successive factors *)
+                                  line      : CARDINAL ;
                                   CASE type: FactorType OF
 
                                   id  : ident : IdentDesc |
@@ -132,6 +138,7 @@ TYPE
                                   factor    : FactorDesc ;
                                   next      : TermDesc ;  (* chain of alternative terms *)
                                   followinfo: FollowDesc ;
+                                  line      : CARDINAL ;
                                END ;
 
    productiondesc =            RECORD
@@ -140,6 +147,7 @@ TYPE
                                   first       : SetDesc ;          (* the first set *)
                                   firstsolved : BOOLEAN ;
                                   followinfo  : FollowDesc ;
+                                  line        : CARDINAL ;
                                END ;
 
    DoProcedure    = PROCEDURE (ProductionDesc) ;
@@ -275,42 +283,45 @@ PROCEDURE Init ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
+   LastLineNo         : CARDINAL ;
+   SuppressFileLineTag,
    EmitCode,
    Debugging,
-   WasNoError       : BOOLEAN ;
+   WasNoError         : BOOLEAN ;
    CodePrologue,
    CodeEpilogue,
-   CodeDeclaration  : CodeHunk ;
+   CodeDeclaration    : CodeHunk ;
    CurrentProduction,
    TailProduction,
-   HeadProduction   : ProductionDesc ;
-   CurrentExpression: ExpressionDesc ;
-   CurrentTerm      : TermDesc ;
-   CurrentFactor    : FactorDesc ;
-   CurrentIdent     : IdentDesc ;
-   CurrentStatement : StatementDesc ;
-   CurrentSetDesc   : SetDesc ;
+   HeadProduction     : ProductionDesc ;
+   CurrentExpression  : ExpressionDesc ;
+   CurrentTerm        : TermDesc ;
+   CurrentFactor      : FactorDesc ;
+   CurrentIdent       : IdentDesc ;
+   CurrentStatement   : StatementDesc ;
+   CurrentSetDesc     : SetDesc ;
    ReverseValues,
-   Values           ,              (* tree of tokens and their ORD value        *)
-   ReverseAliases   ,
-   Aliases          : SymbolTree ;
-   ModuleName       : Name ;
-   LastLiteral      : Name ;
-   LastIdent        : Name ;
-   SymIsProc,                      (* the name of the SymIs function tests and consumes token *)
-   TokenTypeProc,                  (* the name of the function which yields the current token type *)
-   ErrorProc        : Name ;       (* the name of the error procedure *)
-   FileName         : ARRAY [0..MaxFileName] OF CHAR ;
+   Values,                           (* tree of tokens and their ORD value        *)
+   ReverseAliases,
+   Aliases            : SymbolTree ;
+   ModuleName         : Name ;
+   LastLiteral        : Name ;
+   LastIdent          : Name ;
+   SymIsProc,                        (* the name of the SymIs function tests and consumes token *)
+   TokenTypeProc,                    (* the name of the function which yields the current token type *)
+   ErrorProcArray,
+   ErrorProcString    : Name ;       (* the name of the error procedures *)
+   FileName           : ARRAY [0..MaxFileName] OF CHAR ;
 
-   BeginningOfLine  : BOOLEAN ;
-   Indent           : CARDINAL ;
-   EmittedVar       : BOOLEAN ;    (* have we written VAR yet?                   *)
-   ErrorRecovery    : BOOLEAN ;    (* do we want to recover from parsing errors? *)
-   LargestValue     : CARDINAL ;   (* the number of tokens we are using.         *)
-   InitialElement   : BOOLEAN ;    (* used to determine whether we are writing   *)
-                                   (* the first element of a case statement.     *)
-   list             : List ;       (* keep a list of all idents to detect        *)
-                                   (* recursion.                                 *)
+   BeginningOfLine    : BOOLEAN ;
+   Indent             : CARDINAL ;
+   EmittedVar         : BOOLEAN ;    (* have we written VAR yet?                   *)
+   ErrorRecovery      : BOOLEAN ;    (* do we want to recover from parsing errors? *)
+   LargestValue       : CARDINAL ;   (* the number of tokens we are using.         *)
+   InitialElement     : BOOLEAN ;    (* used to determine whether we are writing   *)
+                                     (* the first element of a case statement.     *)
+   list               : List ;       (* keep a list of all idents to detect        *)
+                                     (* recursion.                                 *)
 
 (* % declaration *)
 
@@ -617,7 +628,8 @@ BEGIN
       statement    := NIL ;
       first        := NIL ;
       firstsolved  := FALSE ;
-      followinfo   := NewFollow()
+      followinfo   := NewFollow() ;
+      line         := GetCurrentLine()
    END ;
    RETURN( p )
 END NewProduction ;
@@ -634,7 +646,8 @@ BEGIN
    NEW(f) ;
    WITH f^ DO
       next       := NIL ;
-      followinfo := NewFollow()
+      followinfo := NewFollow() ;
+      line       := GetCurrentLine()
    END ;
    RETURN( f )
 END NewFactor ;
@@ -653,6 +666,7 @@ BEGIN
       factor     := NIL ;
       followinfo := NewFollow() ;
       next       := NIL ;
+      line       := GetCurrentLine()
    END ;
    RETURN( t )
 END NewTerm ;
@@ -669,7 +683,8 @@ BEGIN
    NEW(e) ;
    WITH e^ DO
       term       := NIL ;
-      followinfo := NewFollow()
+      followinfo := NewFollow() ;
+      line       := GetCurrentLine()
    END ;
    RETURN( e )
 END NewExpression ;
@@ -687,7 +702,8 @@ BEGIN
    WITH s^ DO
       ident      := NIL ;
       expr       := NIL ;
-      followinfo := NewFollow()
+      followinfo := NewFollow() ;
+      line       := GetCurrentLine()
    END ;
    RETURN( s )
 END NewStatement ;
@@ -720,7 +736,8 @@ BEGIN
    NEW(c) ;
    WITH c^ DO
       code   := NIL ;
-      indent := 0
+      indent := 0 ;
+      line   := GetCurrentLine()
    END ;
    RETURN( c )
 END NewCodeDesc ;
@@ -991,7 +1008,7 @@ PROCEDURE Follow () : BOOLEAN ; FORWARD ;
 PROCEDURE LitOrTokenOrIdent () : BOOLEAN ; FORWARD ;
 PROCEDURE Literal () : BOOLEAN ; FORWARD ;
 PROCEDURE Token () : BOOLEAN ; FORWARD ;
-PROCEDURE ErrorProcedure () : BOOLEAN ; FORWARD ;
+PROCEDURE ErrorProcedures () : BOOLEAN ; FORWARD ;
 PROCEDURE TokenProcedure () : BOOLEAN ; FORWARD ;
 PROCEDURE SymProcedure () : BOOLEAN ; FORWARD ;
 PROCEDURE ExtBNF () : BOOLEAN ; FORWARD ;
@@ -1013,7 +1030,8 @@ BEGIN
       NEW(CurrentIdent) ;
       WITH CurrentIdent^ DO
          definition := NIL ;
-         name       := GetName()
+         name       := GetName() ;
+         line       := GetCurrentLine()
       END ;
       RETURN( TRUE )
    ELSE
@@ -1200,7 +1218,8 @@ BEGIN
       NEW(CurrentIdent) ;
       WITH CurrentIdent^ DO
          definition := NIL ;
-         name       := GetName()
+         name       := GetName() ;
+         line       := GetCurrentLine()
       END ;
    END
 END Ident ;
@@ -1418,7 +1437,8 @@ END Rules ;
 
 
 (*
-   Defs       := " special " Special | " token " Token | " error " ErrorProcedure | "tokenfunc" TokenProcedure =:
+   Defs       := " special " Special | " token " Token | " error " ErrorProcedures |
+                 "tokenfunc" TokenProcedure =:
 *)
 
 PROCEDURE Defs () : BOOLEAN ;
@@ -1437,7 +1457,7 @@ BEGIN
       END
    ELSIF SymIs(errortok)
    THEN
-      IF ErrorProcedure()
+      IF ErrorProcedures()
       THEN
          RETURN( TRUE )
       END
@@ -1700,19 +1720,23 @@ END Token ;
 
 
 (*
-   ErrorProcedure := % ErrorProc := GetName() ; % =:
+   ErrorProcedures  := Literal % ErrorProcArray := LastLiteral %
+                       Literal % ErrorProcString := LastLiteral % =:
 *)
 
-PROCEDURE ErrorProcedure () : BOOLEAN ;
+PROCEDURE ErrorProcedures () : BOOLEAN ;
 BEGIN
    IF Literal()
    THEN
-      ErrorProc := LastLiteral ;
-      RETURN( TRUE )
-   ELSE
-      RETURN( FALSE )
-   END
-END ErrorProcedure ;
+      ErrorProcArray := LastLiteral ;
+      IF Literal()
+      THEN
+         ErrorProcString := LastLiteral ;
+         RETURN( TRUE )
+      END
+   END ;
+   RETURN( FALSE )
+END ErrorProcedures ;
 
 
 (*
@@ -2057,7 +2081,8 @@ BEGIN
          definition := FindDefinition(name) ;
          IF definition=NIL
          THEN
-            WarnError1('unable to find production %s', name)
+            WarnError1('unable to find production %s', name) ;
+            WasNoError := FALSE
          END
       END
    END
@@ -2218,6 +2243,24 @@ BEGIN
       NewLine(Left)
    END
 END CheckNewLine ;
+
+
+(*
+   IndentString - writes out a string with a preceeding indent.
+*)
+
+PROCEDURE IndentString (a: ARRAY OF CHAR) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 0 ;
+   WHILE i<Indent DO
+      Write(' ') ;
+      INC(i)
+   END ;
+   WriteString(a) ;
+   LastLineNo := 0
+END IndentString ;
 
 
 (*
@@ -2434,6 +2477,21 @@ END PrettyCommentProduction ;
 
 
 (*
+   EmitFileLineTag - emits a line and file tag using the C preprocessor syntax.
+*)
+
+PROCEDURE EmitFileLineTag (line: CARDINAL) ;
+BEGIN
+   IF (NOT SuppressFileLineTag) AND (line#LastLineNo)
+   THEN
+      LastLineNo := line ;
+      WriteString('# ') ; WriteCard(line, 0) ; WriteString(' "') ; WriteString(FileName) ; Write('"') ;
+      WriteLn
+   END
+END EmitFileLineTag ;
+
+
+(*
    EmitRule - generates a comment and code for rule, p.
 *)
 
@@ -2455,13 +2513,12 @@ END EmitRule ;
 
 PROCEDURE CodeCondition (m: m2condition) ;
 BEGIN
-   NewLine(Indent) ;
    CASE m OF
 
    m2if,
-   m2none :  WriteString('IF ')    |
-   m2elsif:  WriteString('ELSIF ') |
-   m2while:  WriteString('WHILE ')
+   m2none :  IndentString('IF ')    |
+   m2elsif:  IndentString('ELSIF ') |
+   m2while:  IndentString('WHILE ')
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
@@ -2479,8 +2536,14 @@ BEGIN
 
    m2if,
    m2none,
-   m2elsif:  NewLine(Indent) ; WriteString('THEN') |
-   m2while:  WriteString(' DO')
+   m2elsif:  IF LastLineNo=0
+             THEN
+                WriteLn
+             END ;
+             IndentString('THEN') ;
+             WriteLn |
+   m2while:  WriteString(' DO') ;
+             WriteLn
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
@@ -2494,14 +2557,16 @@ END CodeThenDo ;
 
 PROCEDURE CodeElseEnd (end: ARRAY OF CHAR; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ;
 BEGIN
-   NewLine(Indent) ;
+   WriteLn ;
+   EmitFileLineTag(f^.line) ;
    IF NOT inopt
    THEN
-      WriteString('ELSE') ;
-      INC(Indent, 3) ; NewLine(Indent) ;
+      IndentString('ELSE') ; WriteLn ;
+      INC(Indent, 3) ;
       IF consumed
       THEN
-         WriteKey(ErrorProc) ;
+         IndentString('') ;
+         WriteKey(ErrorProcArray) ;
          Write('(') ;
          WITH f^ DO
             CASE type OF
@@ -2523,12 +2588,14 @@ BEGIN
             ELSE
             END
          END ;
-         NewLine(Indent)
+         WriteLn
       END ;
-      WriteString('RETURN( FALSE )') ;
-      DEC(Indent, 3) ; NewLine(Indent)
+      IndentString('RETURN( FALSE )') ;
+      DEC(Indent, 3) ;
+      WriteLn
    END ;
-   WriteString(end)
+   IndentString(end) ;
+   WriteLn
 END CodeElseEnd ;
 
 
@@ -2539,6 +2606,7 @@ END CodeElseEnd ;
 PROCEDURE CodeEnd (m: m2condition; t: TermDesc; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ;
 BEGIN
    DEC(Indent, 3) ;
+   WriteLn ;
    CASE m OF
 
    m2none :  IF t=NIL
@@ -2553,8 +2621,7 @@ BEGIN
              THEN
                 CodeElseEnd('END ;  (* elsif *)', consumed, f, inopt)
              END |
-   m2while:  NewLine(Indent) ;
-             WriteString('END ;  (* while *)')
+   m2while:  IndentString('END ;  (* while *)')
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
@@ -2577,8 +2644,11 @@ BEGIN
    THEN
       seentext := FALSE ;
       curpos := 0 ;
+      EmitFileLineTag(code^.line) ;
+      IndentString('') ;
       WriteCodeHunkListIndent(code^.code, code^.indent, curpos, left, seentext) ;
-      WriteString(' ;')
+      WriteString(' ;') ;
+      WriteLn
    END
 END EmitNonVarCode ;
 
@@ -2593,11 +2663,12 @@ BEGIN
    THEN
       IF (* ((l=m2elsif) OR (l=m2if) OR (l=m2none)) AND *) (NOT inwhile) AND (NOT inopt)
       THEN
-         NewLine(Indent) ;
-         WriteString('RETURN( TRUE )')
+         WriteLn ;
+         IndentString('RETURN( TRUE )')
       END
    ELSE
       WITH f^ DO
+         EmitFileLineTag(line) ;
          CASE type OF
 
          id  :  CodeCondition(n) ;
@@ -2646,16 +2717,15 @@ VAR
 BEGIN
    l := m ;
    WHILE t#NIL DO
+      EmitFileLineTag(t^.line) ;
       IF (t^.factor^.type=m2) AND (m=m2elsif)
       THEN
-         NewLine(Indent) ;
          m := m2if ;
-         WriteString('ELSE') ;
+         IndentString('ELSE') ; WriteLn ;
          INC(Indent, 3) ;
          CodeFactor(t^.factor, t^.next, m2none, m2none, inopt, inwhile, consumed) ;
          DEC(Indent, 3) ;
-         NewLine(Indent) ;
-         WriteString('END ;')
+         IndentString('END ;') ; WriteLn
       ELSE
          CodeFactor(t^.factor, t^.next, m2none, m, inopt, inwhile, consumed)
       END ;
@@ -2677,6 +2747,7 @@ PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, con
 BEGIN
    IF e#NIL
    THEN
+      EmitFileLineTag(e^.line) ;
       CodeTerm(e^.term, m, inopt, inwhile, consumed)
    END
 END CodeExpression ;
@@ -2690,6 +2761,7 @@ PROCEDURE CodeStatement (s: StatementDesc; m: m2condition) ;
 BEGIN
    IF s#NIL
    THEN
+      EmitFileLineTag(s^.line) ;
       CodeExpression(s^.expr, m, FALSE, FALSE, FALSE)
    END
 END CodeStatement ;
@@ -2705,20 +2777,24 @@ BEGIN
    THEN
       BeginningOfLine := TRUE ;
       Indent          := 0 ;
-      NewLine(0) ;
-      WriteString('PROCEDURE ') ;
+      WriteLn ;
+      EmitFileLineTag(p^.line) ;
+      IndentString('PROCEDURE ') ;
       WriteKey(GetDefinitionName(p)) ;
       WriteString(' () : BOOLEAN ;') ;
       VarProduction(p) ;
-      NewLine(0) ;
-      WriteString('BEGIN') ;
+      WriteLn ;
+      EmitFileLineTag(p^.line) ;
+      IndentString('BEGIN') ;
+      EmitFileLineTag(p^.line) ;
       Indent := 3 ;
       CodeStatement(p^.statement, m2none) ;
-      NewLine(0) ;
-      WriteString('END ') ; WriteKey(GetDefinitionName(p)) ; WriteString(' ;') ;
-      NewLine(0) ;
-      NewLine(0) ;
-      NewLine(0)
+      WriteLn ;
+      Indent := 0 ;
+      IndentString('END ') ; WriteKey(GetDefinitionName(p)) ; WriteString(' ;') ;
+      WriteLn ;
+      WriteLn ;
+      WriteLn
    END
 END CodeProduction ;
 
@@ -2732,13 +2808,12 @@ END CodeProduction ;
 
 PROCEDURE RecoverCondition (m: m2condition) ;
 BEGIN
-   NewLine(Indent) ;
    CASE m OF
 
-   m2if   :  WriteString('IF ')    |
-   m2none :  WriteString('IF ')    |
-   m2elsif:  WriteString('ELSIF ') |
-   m2while:  WriteString('WHILE ')
+   m2if   :  IndentString('IF ')    |
+   m2none :  IndentString('IF ')    |
+   m2elsif:  IndentString('ELSIF ') |
+   m2while:  IndentString('WHILE ')
 
    ELSE
       Halt('unrecognised m2condition', __LINE__, __FILE__)
@@ -2796,10 +2871,12 @@ BEGIN
                  THEN
                     INC(n)
                  END |
-         idel :  WarnError('not expecting ident in first symbol list')
+         idel :  WarnError('not expecting ident in first symbol list') ;
+                 WasNoError := FALSE
 
          ELSE
-            WarnError('unknown enuneration element')
+            WarnError('unknown enuneration element') ;
+            WasNoError := FALSE
          END
       END ;
       to := to^.next ;
@@ -2849,7 +2926,7 @@ BEGIN
       (* no need to check whether GetTokenType > low *)
       WriteString('((') ; WriteGetTokenType ; Write('<') ; WriteElement(INTEGER(high)+1) ;
       WriteString(') AND (') ; EmitIsInSet(to, low, high) ; WriteString('))')
-   ELSIF high>LargestValue
+   ELSIF CARDINAL(high)>LargestValue
    THEN
       (* no need to check whether GetTokenType < high *)
       WriteString('((') ; WriteGetTokenType ; WriteString('>=') ; WriteElement(low) ;
@@ -2879,7 +2956,7 @@ BEGIN
       Write('=') ;
       EmitSet(to, 0, 0)
    ELSE
-      IF LargestValue<=MaxElementsInSet
+      IF LargestValue<MaxElementsInSet
       THEN
          Write('(') ; WriteGetTokenType ; WriteString(' IN ') ; EmitSetAsParameters(to) ; WriteString(')')
       ELSE
@@ -2915,6 +2992,7 @@ BEGIN
    IF f=NIL
    THEN
    ELSE
+      EmitFileLineTag(f^.line) ;
       WITH f^ DO
          CASE type OF
 
@@ -2927,17 +3005,9 @@ BEGIN
                    CodeThenDo(m) ;
                    INC(Indent, 3) ;
                 END ;
-                NewLine(Indent) ;
+                IndentString('') ;
                 WriteKey(ident^.name) ; Write('(') ;
-                EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ;
-(*
-                IF (to#NIL) AND (m=m2none)
-                THEN
-                   DEC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('END ;')
-                END ;
-*)
+                EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ; WriteLn ;
                 RecoverFactor(f^.next, m2none) ;
                 IF (to#NIL) AND (m#m2none)
                 THEN
@@ -2945,10 +3015,9 @@ BEGIN
                 END |
          lit :  IF m=m2none
                 THEN
-                   NewLine(Indent) ;
-                   WriteString('Expect(') ;
+                   IndentString('Expect(') ;
                    WriteKey(GetSymKey(Aliases, string)) ; WriteString(', ') ;
-                   EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ;
+                   EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ; WriteLn ;
                    RecoverFactor(f^.next, m2none)
                 ELSE
                    RecoverCondition(m) ;
@@ -2957,10 +3026,10 @@ BEGIN
                    WriteKey(GetSymKey(Aliases, string)) ;
                    CodeThenDo(m) ;
                    INC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('Expect(') ;
+                   IndentString('Expect(') ;
                    WriteKey(GetSymKey(Aliases, string)) ; WriteString(', ') ;
                    EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ;
+                   WriteLn ;
                    RecoverFactor(f^.next, m2none) ;
                    DEC(Indent, 3)
                 END |
@@ -2968,62 +3037,52 @@ BEGIN
                 RecoverFactor(f^.next, m2none) |
          opt:   IF OptExpSeen(f)
                 THEN
-                   NewLine(Indent) ;
                    to := NIL ;
                    CalcFirstExpression(expr, NIL, to) ;
                    RecoverCondition(m) ;
                    EmitIsInFirst(to, m) ;
                    CodeThenDo(m) ;
                    INC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('(* seen optional [ | ] expression *)') ;
+                   IndentString('(* seen optional [ | ] expression *)') ; WriteLn ;
                    stop();
                    RecoverExpression(expr, m2none, m2if) ;
-                   NewLine(Indent) ;
-                   WriteString('(* end of optional [ | ] expression *)') ;
+                   IndentString('(* end of optional [ | ] expression *)') ; WriteLn ;
                    DEC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('END ;')
+                   IndentString('END ;') ; WriteLn
                 ELSE
                    RecoverExpression(expr, m2if, m)
                 END ;
                 RecoverFactor(f^.next, m2none) |
          mult:  IF OptExpSeen(f) OR (m=m2if) OR (m=m2elsif)
                 THEN
-                   NewLine(Indent) ;
                    to := NIL ;
                    CalcFirstExpression(expr, NIL, to) ;
                    RecoverCondition(m) ;
                    EmitIsInFirst(to, m) ;
                    CodeThenDo(m) ;
                    INC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('(* seen optional { | } expression *)') ;
+                   IndentString('(* seen optional { | } expression *)') ; WriteLn ;
                    RecoverCondition(m2while) ;
                    EmitIsInFirst(to, m2while) ;
                    CodeThenDo(m2while) ;
                    INC(Indent, 3) ;
                    RecoverExpression(expr, m2none, m2while) ;
-                   NewLine(Indent) ;
-                   WriteString('(* end of optional { | } expression *)') ;
+                   IndentString('(* end of optional { | } expression *)') ; WriteLn ;
                    DEC(Indent, 3) ;
-                   NewLine(Indent) ;
-                   WriteString('END ;') ;
+                   IndentString('END ;') ; WriteLn ;
                    DEC(Indent, 3) ;
                    IF m=m2none
                    THEN
-                      NewLine(Indent) ;
-                      WriteString('END ;') ;
+                      IndentString('END ;') ; WriteLn ;
                       DEC(Indent, 3)
                    END
                 ELSE
                    RecoverExpression(expr, m2while, m)
                 END ;
                 RecoverFactor(f^.next, m2none) |
-         m2 :   NewLine(Indent) ; EmitNonVarCode(code, 0, Indent) ;
+         m2 :   EmitNonVarCode(code, 0, Indent) ;
                 IF f^.next#NIL
                 THEN
-                   NewLine(Indent) ;
                    RecoverFactor(f^.next, m)   (* was m2none *)
                 END
 
@@ -3061,7 +3120,8 @@ BEGIN
          END
       END
    END ;
-   WarnError('all cases were not handled')
+   WarnError('all cases were not handled') ;
+   WasNoError := FALSE
 END OptExpSeen ;
 
 
@@ -3084,12 +3144,12 @@ BEGIN
       new := m2if
    END ;
    WHILE t#NIL DO
+      EmitFileLineTag(t^.line) ;
       LastWasM2Only := (t^.factor^.type = m2) AND (t^.next = NIL) ;
       IF (t^.factor^.type=m2) AND (new=m2elsif)
       THEN
-         NewLine(Indent) ;
          new := m2if ;
-         WriteString('ELSE') ;
+         IndentString('ELSE') ; WriteLn ;
          INC(Indent, 3) ;
          RecoverFactor(t^.factor, m2none) ;
          alternative := FALSE
@@ -3107,31 +3167,23 @@ BEGIN
    THEN
       IF alternative AND (old#m2while)
       THEN
-         NewLine(Indent) ;
-         WriteString('ELSE') ;
+         IndentString('ELSE') ; WriteLn ;
          INC(Indent, 3) ;
-         NewLine(Indent) ;
-         WriteKey(ErrorProc) ;
+         IndentString('') ;
+         WriteKey(ErrorProcArray) ;
          WriteString("('expecting one of: ") ;
          EmitSetName(to, 0, 0) ;
          WriteString("')") ;
+         WriteLn ;
          DEC(Indent, 3)
       ELSIF LastWasM2Only
       THEN
          DEC(Indent, 3)
       END ;
-      NewLine(Indent) ;
-      WriteString('END ;')
+      IndentString('END ;') ; WriteLn
    ELSIF new=m2while
    THEN
-(*
-      INC(Indent, 3) ;
-      NewLine(Indent) ;
-      WriteString('ExpectSet(') ; EmitStopParametersAndSet(to) ; WriteString(') ;') ;
-      DEC(Indent, 3) ;
-*)
-      NewLine(Indent) ;
-      WriteString('END (* while *) ;')
+      IndentString('END (* while *) ;') ; WriteLn
    ELSIF LastWasM2Only
    THEN
       DEC(Indent, 3)
@@ -3147,6 +3199,7 @@ PROCEDURE RecoverExpression (e: ExpressionDesc; new, old: m2condition) ;
 BEGIN
    IF e#NIL
    THEN
+      EmitFileLineTag(e^.line) ;
       RecoverTerm(e^.term, new, old)
    END
 END RecoverExpression ;
@@ -3160,6 +3213,7 @@ PROCEDURE RecoverStatement (s: StatementDesc; m: m2condition) ;
 BEGIN
    IF s#NIL
    THEN
+      EmitFileLineTag(s^.line) ;
       RecoverExpression(s^.expr, m, m2none)
    END
 END RecoverStatement ;
@@ -3242,10 +3296,12 @@ BEGIN
                  THEN
                     RETURN( FALSE )
                  END |
-         idel :  WarnError('not expecting ident in first symbol list')
+         idel :  WarnError('not expecting ident in first symbol list') ;
+                 WasNoError := FALSE
 
          ELSE
-            WarnError('unknown enuneration element')
+            WarnError('unknown enuneration element') ;
+            WasNoError := FALSE
          END
       END ;
       to := to^.next ;
@@ -3285,10 +3341,12 @@ BEGIN
                     WriteKey(GetSymKey(Aliases, string)) ;
                     first := FALSE
                  END |
-         idel :  WarnError('not expecting ident in first symbol list')
+         idel :  WarnError('not expecting ident in first symbol list') ;
+                 WasNoError := FALSE
 
          ELSE
-            WarnError('unknown enuneration element')
+            WarnError('unknown enuneration element') ;
+            WasNoError := FALSE
          END
       END ;
       to := to^.next
@@ -3320,10 +3378,12 @@ BEGIN
                  THEN
                     WriteKey(string)
                  END |
-         idel :  WarnError('not expecting ident in first symbol list')
+         idel :  WarnError('not expecting ident in first symbol list') ;
+                 WasNoError := FALSE
 
          ELSE
-            WarnError('unknown enuneration element')
+            WarnError('unknown enuneration element') ;
+            WasNoError := FALSE
          END
       END ;
       to := to^.next ;
@@ -3458,23 +3518,27 @@ BEGIN
    IF (p#NIL) AND ((NOT p^.firstsolved) OR ((p^.statement#NIL) AND (p^.statement^.expr#NIL)))
    THEN
       BeginningOfLine := TRUE ;
-      Indent          := 0 ;
-      NewLine(0) ;
-      WriteString('PROCEDURE ') ;
+      Indent := 0 ;
+      WriteLn ;
+      EmitFileLineTag(p^.line) ;
+      IndentString('PROCEDURE ') ;
       WriteKey(GetDefinitionName(p)) ;
       WriteString(' (') ;
       EmitStopParameters(TRUE) ;
       WriteString(') ;') ;
       VarProduction(p) ;
-      NewLine(0) ;
-      WriteString('BEGIN') ;
+      WriteLn ;
+      EmitFileLineTag(p^.line) ;
+      Indent := 0 ;
+      IndentString('BEGIN') ; WriteLn ;
+      EmitFileLineTag(p^.line) ;
       Indent := 3 ;
       RecoverStatement(p^.statement, m2none) ;
-      NewLine(0) ;
-      WriteString('END ') ; WriteKey(GetDefinitionName(p)) ; WriteString(' ;') ;
-      NewLine(0) ;
-      NewLine(0) ;
-      NewLine(0)
+      Indent := 0 ;
+      IndentString('END ') ; WriteKey(GetDefinitionName(p)) ; WriteString(' ;') ;
+      WriteLn ;
+      WriteLn ;
+      WriteLn
    END
 END RecoverProduction ;
 
@@ -3579,10 +3643,11 @@ BEGIN
    THEN
       IF NOT EmittedVar
       THEN
-         NewLine(0) ;
-         WriteString('VAR') ;
+         WriteLn ;
+         Indent := 0 ;
+         IndentString('VAR') ;
          INC(Indent, 3) ;
-         NewLine(Indent) ;
+         WriteLn ;
          EmittedVar := TRUE ;
       END ;
       WriteUpto(code, t, i)
@@ -3689,7 +3754,8 @@ BEGIN
                   END
 
          ELSE
-            WarnError('internal error CASE type not known')
+            WarnError('internal error CASE type not known') ;
+            WasNoError := FALSE
          END
       END ;
       to := to^.next
@@ -3720,7 +3786,8 @@ BEGIN
                  END
 
          ELSE
-            WarnError('internal error CASE type not known')
+            WarnError('internal error CASE type not known') ;
+            WasNoError := FALSE
          END
       END ;
       s1 := s1^.next
@@ -3762,7 +3829,8 @@ BEGIN
 
          tokel:  AddSet(to, string) |
          litel:  AddSet(to, GetSymKey(Aliases, string)) |
-         idel :  WarnError('not expecting ident in first symbol list')
+         idel :  WarnError('not expecting ident in first symbol list') ;
+                 WasNoError := FALSE
          
          ELSE
             Halt('unknown element in enumeration type', __LINE__, __FILE__)
@@ -3785,8 +3853,14 @@ BEGIN
 
          id  :  IF (ident^.definition=from) AND (from#NIL)
                 THEN
-                   WarnError1("cannot resolve first because of cyclic dependancy with rule '%s'", ident^.name)
+                   WarnError1("cannot resolve first because of cyclic dependancy with rule '%s'", ident^.name) ;
+                   WasNoError := FALSE
                 ELSE
+                   IF ident^.definition=NIL
+                   THEN
+                      WarnError1("no rule found for an 'ident' called '%s'", ident^.name) ;
+                      HALT
+                   END ;
                    CalcFirstProduction(ident^.definition, from, to) ;
                    IF NOT ReachEnd(ident^.definition^.followinfo)
                    THEN
@@ -3795,7 +3869,8 @@ BEGIN
                 END |
          lit :  IF GetSymKey(Aliases, string)=NulKey
                 THEN
-                   WarnError1("unknown token for '%s'", string)
+                   WarnError1("unknown token for '%s'", string) ;
+                   WasNoError := FALSE
                 ELSE
                    AddSet(to, GetSymKey(Aliases, string))
                 END ;
@@ -3911,7 +3986,8 @@ BEGIN
       IF NOT EpsilonKnown(f^.followinfo)
       THEN
          WarnError('internal error: epsilon unknown') ;
-         PrettyCommentFactor(f, 3)
+         PrettyCommentFactor(f, 3) ;
+         WasNoError := FALSE
       END ;
       foundepsilon := Epsilon(f^.followinfo) ;
       canreachend := ReachEnd(f^.followinfo) ;  (* only goes from FALSE -> TRUE (after once through loop) *)
@@ -4502,15 +4578,27 @@ BEGIN
    ELSE
       WriteString(' |')
    END ;
-   NewLine(3) ;
+   WriteLn ;
+   Indent := 3 ;
+   IndentString('') ;
    WriteKey(name) ;
    WriteString(': ') ;
    lit := GetSymKey(ReverseAliases, name) ;
-   IF MakeKey("'")=lit
+   IF MakeKey('"')=lit
    THEN
-      WriteString('StrConCat("syntax error, found ') ; WriteKey(lit) ; WriteString('", str, str)')
+      WriteString('str := ConCat(ConCatChar(ConCatChar(InitString("syntax error, found ') ;
+      Write("'") ; WriteString('"), ') ;
+      Write("'") ; Write('"') ; Write("'") ; WriteString("), ") ;
+      Write('"') ; Write("'") ; Write('"') ; WriteString("), Mark(str))")
+   ELSIF MakeKey("'")=lit
+   THEN
+      WriteString("str := ConCat(ConCatChar(ConCatChar(InitString('syntax error, found ") ;
+      Write('"') ; WriteString("'), ") ;
+      Write('"') ; Write("'") ; Write('"') ; WriteString('), ') ;
+      Write("'") ; Write('"') ; Write("'") ; WriteString('), Mark(str))')
    ELSE
-      WriteString("StrConCat('syntax error, found ") ; WriteKey(lit) ; WriteString("', str, str)")
+      WriteString("str := ConCat(InitString(") ; Write('"') ;
+      WriteString("syntax error, found `") ; WriteKey(lit) ; Write("'") ; WriteString('"), Mark(str))')
    END
 END DescribeElement ;
 
@@ -4542,18 +4630,38 @@ PROCEDURE DescribeStopElement (name: WORD) ;
 VAR
    lit: Name ;
 BEGIN
-   NewLine(3) ;
-   WriteString('IF ') ; EmitInTestStop(name) ; NewLine(3) ;
-   WriteString('THEN') ; NewLine(6) ;
+   Indent := 3 ;
+   IndentString('IF ') ; EmitInTestStop(name) ; WriteLn ;
+   IndentString('THEN') ; WriteLn ;
+   Indent := 6 ;
    lit := GetSymKey(ReverseAliases, name) ;
-   IF MakeKey("'")=lit
+   IF (lit=NulName) OR (lit=MakeKey(''))
    THEN
-      WriteString('StrConCat(message, " ') ; WriteKey(lit) ; WriteString('", message) ; INC(n)')
+      IndentString('(* ') ;
+      WriteKey(name) ;
+      WriteString(' has no token name (needed to generate error messages) *)')
+   ELSIF MakeKey("'")=lit
+   THEN
+      IndentString('message := ConCatChar(ConCatChar(ConCatChar(ConCatChar(ConCatChar(message, ') ;
+      WriteString("' '), ") ;
+      Write("'") ; Write('"') ; WriteString("'), ") ;
+      Write('"') ; Write("'") ; WriteString('"), ') ;
+      Write("'") ; Write('"') ; WriteString("'), ',') ; INC(n) ; ")
+   ELSIF MakeKey('"')=lit
+   THEN
+      IndentString("message := ConCatChar(ConCatChar(ConCatChar(ConCatChar(ConCatChar(message, ") ;
+      WriteString('" "), ') ;
+      Write('"') ; Write("`") ; WriteString('"), ') ;
+      Write("'") ; Write('"') ; WriteString("'), ") ;
+      Write('"') ; Write("'") ; WriteString('"), ",") ; INC(n) ; ')
    ELSE
-      WriteString("StrConCat(message, ' ") ; WriteKey(lit) ; WriteString("', message) ; INC(n)")
+      IndentString("message := ConCat(ConCatChar(message, ' ") ; WriteString("'), ") ;
+      WriteString('Mark(InitString("') ; Write("`") ; WriteKey(lit) ; Write("'") ; Write('"') ;
+      WriteString('))) ; INC(n)')
    END ;
-   NewLine(3) ;
-   WriteString('END ;')
+   WriteLn ;
+   Indent := 3 ;
+   IndentString('END ;') ; WriteLn
 END DescribeStopElement ;
 
 
@@ -4563,37 +4671,53 @@ END DescribeStopElement ;
 
 PROCEDURE EmitDescribeStop ;
 BEGIN
-   NewLine(0) ;
-   WriteString('(*') ;
-   NewLine(3) ;
-   WriteString('DescribeStop - issues a message explaining what tokens were expected') ;
-   NewLine(0) ;
+   WriteLn ;
+   Indent := 0 ;
+   IndentString('(*') ;
+   Indent := 3 ;
+   WriteLn ;
+   IndentString('DescribeStop - issues a message explaining what tokens were expected') ;
+   WriteLn ;
    WriteString('*)') ;
-   NewLine(0) ;
-   NewLine(0) ;
-   WriteString('PROCEDURE DescribeStop (') ; EmitStopParameters(TRUE) ; WriteString('; VAR str: ARRAY OF CHAR) ;') ;
-   NewLine(0) ;
-   WriteString('VAR') ; NewLine(3) ;
-   WriteString('n      : CARDINAL ;') ; NewLine(3) ;
-   WriteString('message: ARRAY [0..8192] OF CHAR ;') ; NewLine(0) ;
-   WriteString('BEGIN') ; NewLine(3) ;
-   WriteString('n := 0 ;') ; NewLine(3) ;
-   WriteString("StrCopy('', message) ;") ;
-   InitialElement := TRUE ;
-   ForeachNodeDo(Aliases, DescribeStopElement) ; NewLine(3) ;
-   WriteString('IF n=0') ; NewLine(3) ;
-   WriteString('THEN') ; NewLine(6) ;
-   WriteString("StrCopy(' syntax error', str) ;") ; NewLine(3) ;
-   WriteString('ELSIF n=1') ; NewLine(3) ;
-   WriteString('THEN') ; NewLine(6) ;
-   WriteString("StrCopy(' missing ', str) ;") ; NewLine(6) ;
-   WriteString('StrConCat(str, message, str)') ; NewLine(3) ;
-   WriteString('ELSE') ; NewLine(6) ;
-   WriteString("StrCopy(' expecting one of', str) ;") ; NewLine(6) ;
-   WriteString('StrConCat(str, message, str)') ; NewLine(3) ;
-   WriteString('END') ; NewLine(0) ;
-   WriteString('END DescribeStop ;') ; NewLine(0) ;
-   NewLine(0)
+   WriteLn ;
+   WriteLn ;
+   Indent := 0 ;
+   IndentString('PROCEDURE DescribeStop (') ; EmitStopParameters(TRUE) ; WriteString(') : String ;') ;
+   WriteLn ;
+   IndentString('VAR') ; WriteLn ;
+   Indent := 3 ;
+   IndentString('n      : CARDINAL ;') ; WriteLn ;
+   IndentString('str,') ; WriteLn ;
+   IndentString('message: String ;') ; WriteLn ;
+   Indent := 0 ;
+   IndentString('BEGIN') ; WriteLn ;
+   Indent := 3 ;
+   IndentString('n := 0 ;') ; WriteLn ;
+   IndentString("message := InitString('') ;") ;
+   WriteLn ;
+   ForeachNodeDo(Aliases, DescribeStopElement) ; WriteLn ;
+   Indent := 3 ;
+   IndentString('IF n=0') ; WriteLn ;
+   IndentString('THEN') ; WriteLn ;
+   Indent := 6 ;
+   IndentString("str := InitString(' syntax error') ; ") ; WriteLn ;
+   IndentString('message := KillString(message) ; ') ; WriteLn ;
+   Indent := 3 ;
+   IndentString('ELSIF n=1') ; WriteLn ;
+   IndentString('THEN') ; WriteLn ;
+   Indent := 6 ;
+   IndentString("str := ConCat(message, Mark(InitString(' missing '))) ;") ; WriteLn ;
+   Indent := 3 ;
+   IndentString('ELSE') ; WriteLn ;
+   Indent := 6 ;
+   IndentString("str := ConCat(InitString(' expecting one of'), message) ;") ; WriteLn ;
+   IndentString("message := KillString(message) ;") ; WriteLn ;
+   Indent := 3 ;
+   IndentString('END ;') ; WriteLn ;
+   IndentString('RETURN( str )') ; WriteLn ;
+   Indent := 0 ;
+   IndentString('END DescribeStop ;') ; WriteLn ;
+   WriteLn
 END EmitDescribeStop ;
 
 
@@ -4603,31 +4727,38 @@ END EmitDescribeStop ;
 
 PROCEDURE EmitDescribeError ;
 BEGIN
-   NewLine(0) ;
-   WriteString('(*') ;
-   NewLine(3) ;
-   WriteString('DescribeError - issues a message explaining what tokens were expected') ;
-   NewLine(0) ;
-   WriteString('*)') ;
-   NewLine(0) ;
-   NewLine(0) ;
-   WriteString('PROCEDURE DescribeError (') ; EmitStopParameters(TRUE) ; WriteString(') ;') ;
-   NewLine(0) ;
-   WriteString('VAR') ; NewLine(3) ;
-   WriteString('str: ARRAY [0..8192] OF CHAR ;') ; NewLine(0) ;
-   WriteString('BEGIN') ; NewLine(3) ;
-   WriteString('DescribeStop(') ; EmitStopParameters(FALSE) ; WriteString(', str) ;') ; NewLine(3) ;
-   WriteString('CASE ') ; WriteGetTokenType ; WriteString(' OF') ; NewLine(3) ;
+   WriteLn ;
+   Indent := 0 ;
+   IndentString('(*') ; WriteLn ;
+   Indent := 3 ;
+   IndentString('DescribeError - issues a message explaining what tokens were expected') ; WriteLn ;
+   Indent := 0 ;
+   IndentString('*)') ;
+   WriteLn ;
+   WriteLn ;
+   IndentString('PROCEDURE DescribeError (') ; EmitStopParameters(TRUE) ; WriteString(') ;') ;
+   WriteLn ;
+   IndentString('VAR') ; WriteLn ;
+   Indent := 3 ;
+   IndentString('str: String ;') ; WriteLn ;
+   Indent := 0 ;
+   IndentString('BEGIN') ; WriteLn ;
+   Indent := 3 ;
+   IndentString("str := InitString('') ;") ; WriteLn ;
+   (* was
+   IndentString('str := DescribeStop(') ; EmitStopParameters(FALSE) ; WriteString(') ;') ; WriteLn ;
+   *)
+   IndentString('CASE ') ; WriteGetTokenType ; WriteString(' OF') ; NewLine(3) ;
    InitialElement := TRUE ;
    ForeachNodeDo(Aliases, DescribeElement) ;
-   NewLine(0) ;
-   NewLine(3) ;
-   WriteString('ELSE') ;
-   NewLine(3) ;
-   WriteString('END ;') ; NewLine(3) ;
-   WriteKey(ErrorProc) ; WriteString('(str) ;') ; NewLine(0) ;
-   WriteString('END DescribeError ;') ; NewLine(0) ;
-   NewLine(0)
+   WriteLn ;
+   Indent := 3 ;
+   IndentString('ELSE') ; WriteLn ;
+   IndentString('END ;') ; WriteLn ;
+   IndentString('') ;
+   WriteKey(ErrorProcString) ; WriteString('(str) ;') ; WriteLn ;
+   Indent := 0 ;
+   IndentString('END DescribeError ;') ; WriteLn
 END EmitDescribeError ;
 
 
@@ -5040,9 +5171,25 @@ END TestForLALR1 ;
 PROCEDURE PostProcessRules ;
 BEGIN
    ForeachRuleDo(BackPatchIdentToDefinitions) ;
+   IF NOT WasNoError
+   THEN
+      HALT
+   END ;
    ForeachRuleDo(CalcEpsilonProduction) ;
+   IF NOT WasNoError
+   THEN
+      HALT
+   END ;
    ForeachRuleDo(CalculateReachEndProduction) ;
+   IF NOT WasNoError
+   THEN
+      HALT
+   END ;
    ForeachRuleDo(CalculateFirstAndFollow) ;
+   IF NOT WasNoError
+   THEN
+      HALT
+   END ;
    ForeachRuleDo(TestForLALR1) ;
    IF NOT WasNoError
    THEN
@@ -5076,6 +5223,9 @@ BEGIN
          ELSIF StrEqual(FileName, '-c')
          THEN
             EmitCode := FALSE
+         ELSIF StrEqual(FileName, '-l')
+         THEN
+            SuppressFileLineTag := TRUE
          ELSIF OpenSource(FileName)
          THEN
             AdvanceToken
@@ -5087,7 +5237,7 @@ BEGIN
    END ;
    IF n=1
    THEN
-      WriteString('Usage: ppg [-c] [-d] [-e] filename') ; WriteLn ;
+      WriteString('Usage: ppg [-l] [-c] [-d] [-e] filename') ; WriteLn ;
       exit(0)
    END
 END ParseArgs ;
@@ -5108,10 +5258,12 @@ BEGIN
    InitTree(ReverseAliases) ;
    InitTree(Values) ;
    InitTree(ReverseValues) ;
+   LastLineNo        := 0 ;
    CodePrologue      := NIL ;
    CodeEpilogue      := NIL ;
    CodeDeclaration   := NIL ;
-   ErrorProc         := MakeKey('Error') ;
+   ErrorProcArray    := MakeKey('Error') ;
+   ErrorProcString   := MakeKey('ErrorS') ;
    TokenTypeProc     := MakeKey('GetCurrentTokenType()') ;
    SymIsProc         := MakeKey('SymIs') ;
    ParseArgs ;

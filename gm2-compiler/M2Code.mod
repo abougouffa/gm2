@@ -21,7 +21,7 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 
 FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
-                      OptimizeDynamic, OptimizeCommonSubExpressions, StudentChecking ;
+                      (* OptimizeDynamic, *) OptimizeCommonSubExpressions, StudentChecking ;
 
 FROM M2Students IMPORT StudentVariableCheck ;
 

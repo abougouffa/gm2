@@ -29,16 +29,13 @@ IMPLEMENTATION MODULE M2ALU ;
 *)
 
 FROM ASCII IMPORT nul ;
-FROM StrLib IMPORT StrLen ;
-FROM NameKey IMPORT GetKey, KeyToCharStar ;
-FROM FpuIO IMPORT StrToLongReal ;
-FROM M2Lexical IMPORT WriteError, InternalError ;
-FROM StrIO IMPORT WriteString, WriteLn ;
+FROM NameKey IMPORT KeyToCharStar ;
+FROM M2Error IMPORT InternalError, WriteFormat0 ;
 FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
+FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 
-FROM NumberIO IMPORT StrToInt, StrToCard, StrToHex, StrToOct, StrToBin, WriteCard, BinToStr,
-                     StrToBinInt, StrToOctInt, StrToHexInt ;
+IMPORT Strings ;
 
 FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    DetermineSign, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
@@ -57,7 +54,6 @@ VAR
 (* %%%FORWARD%%%
 PROCEDURE Push (v: PtrToValue) ; FORWARD ;
 PROCEDURE Pop () : PtrToValue ; FORWARD ;
-PROCEDURE IsReal (a: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
 PROCEDURE RealSub (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE RealAdd (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE RealMult (Op1, Op2: PtrToValue) ; FORWARD ;
@@ -392,72 +388,60 @@ END PopLongReal ;
 
 
 (*
+   IsReal - returns TRUE if a is a REAL number.
+*)
+
+PROCEDURE IsReal (a: Strings.String) : BOOLEAN ;
+BEGIN
+   RETURN( Strings.Index(a, '.', 0)#-1 )
+END IsReal ;
+
+
+(*
    PushString - pushes the numerical human readable value of the string
                 onto the stack.
 *)
  
-PROCEDURE PushString (s: CARDINAL) ;
-CONST
-   Max = 64 ;
+PROCEDURE PushString (s: Name) ;
 VAR
-   a      : ARRAY [0..Max] OF CHAR ;
-   r      : LONGREAL ;
-   i, v   : INTEGER ;
-   high   : CARDINAL ;
+   ch    : CHAR ;
+   a, b  : Strings.String ;
+   length: CARDINAL ;
 BEGIN
-   GetKey(s, a) ;
-   high := StrLen(a) ;
-   IF a[high-1]='H'
+   a := Strings.InitStringCharStar(KeyToCharStar(s)) ;
+   b := NIL ;
+   length := Strings.Length(a) ;
+   IF length>0
    THEN
-      a[high-1] := nul ;
-      StrToHexInt(a, v) ;
-      PushInt(v)
-   ELSIF a[high-1]='A'
-   THEN
-      a[high-1] := nul ;
-      StrToBinInt(a, v) ;
-      PushInt(v)
-   ELSIF a[high-1]='B'
-   THEN
-      a[high-1] := nul ;
-      StrToOctInt(a, v) ;
-      PushInt(v)
-   ELSIF a[high-1]='C'
-   THEN
-      a[high-1] := nul ;
-      StrToOctInt(a, v) ;
-      PushInt(v)
-   ELSIF IsReal(a)
-   THEN
-      PushRealTree(RealToTree(KeyToCharStar(s)))
-   ELSE
-      StrToInt(a, i) ;
-      PushInt(i)
-   END
-END PushString ;
+      DEC(length) ;
+      ch := Strings.char(a, length) ;
+      CASE ch OF
 
+      'H': (* hexadecimal *)
+           b := Strings.Slice(a, 0, -1) ;
+           PushInt(hstoi(b)) |
+      'A': (* binary *)
+           b := Strings.Slice(a, 0, -1) ;
+           PushInt(bstoi(b)) |
+      'C',
+      'B': (* octal *)
+           b := Strings.Slice(a, 0, -1) ;
+           PushInt(ostoi(b))
 
-(*
-   IsReal - returns TRUE if a is a REAL number.
-*)
-
-PROCEDURE IsReal (a: ARRAY OF CHAR) : BOOLEAN ;
-VAR
-   high,
-   i   : CARDINAL ;
-BEGIN
-   high := StrLen(a) ;
-   i := 0 ;
-   WHILE i<high DO
-      IF a[i]='.'
-      THEN
-         RETURN( TRUE )
       ELSE
-         INC(i)
+         IF IsReal(a)
+         THEN
+            PushRealTree(RealToTree(KeyToCharStar(s)))
+         ELSE
+            PushInt(stoi(a))
+         END
       END
+   ELSE
+      InternalError('expecting constant literal', __FILE__, __LINE__)
    END ;
-   RETURN( FALSE )
-END IsReal ;
+   a := Strings.KillString(a) ;
+   b := Strings.KillString(b)
+END PushString ;
 
 
 (*
@@ -844,7 +828,7 @@ BEGIN
    Op2 := Pop() ;
    IF EitherReal(Op1, Op2)
    THEN
-      WriteError('cannot yet perform MOD on REALs') ;
+      WriteFormat0('cannot perform MOD on REALs') ;
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1136,7 +1120,7 @@ BEGIN
       Dispose(Pop()) ;
       (* now we are left with the running total *)
    ELSE
-      WriteError('bitrange exceeds wordlength')
+      WriteFormat0('bitrange exceeds wordlength')
    END ;
    Dispose(Op1) ;
    Dispose(Op2)

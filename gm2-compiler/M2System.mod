@@ -28,7 +28,6 @@ IMPLEMENTATION MODULE M2System ;
                  We also need to tell the compiler the size of the data types.
 *)
 
-FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NameKey IMPORT MakeKey, NulName ;
 
 FROM SymbolTable IMPORT NulSym,
@@ -53,7 +52,7 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree ;
-FROM M2Lexical IMPORT InternalError ;
+FROM M2Error IMPORT InternalError ;
 FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom, GetWordType, GetPointerType,
                    GetBitsPerWord, GetSizeOf, BuildSize ;
 

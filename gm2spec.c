@@ -50,7 +50,7 @@ extern const char *find_file PARAMS ((const char *));
 
 int lang_specific_extra_outfiles = 0;
 
-/* #define DEBUGGING */
+// #define DEBUGGING
 
 void add_default_directories (int incl, char ***in_argv);
 void insert_arg (int  incl, int *in_argc, char ***in_argv);
@@ -75,15 +75,15 @@ add_default_directories (incl, in_argv)
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
-  if (in_argv[incl] == NULL) {
+  if ((*in_argv)[incl] == NULL) {
     gm2libs = (char *) alloca(strlen("-I") +
 			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
     strcpy(gm2libs, "-I");
   }
   else {
-    gm2libs = (char *) alloca(strlen(*in_argv[incl]) + strlen(":") +
+    gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
 			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + 1);
-    strcpy(gm2libs, *in_argv[incl]);
+    strcpy(gm2libs, (*in_argv)[incl]);
     strcat(gm2libs, ":");
   }
   strcat(gm2libs, LIBSUBDIR);
@@ -93,7 +93,7 @@ add_default_directories (incl, in_argv)
 #if defined(DEBUGGING)
   fprintf(stderr, "adding -I. and %s\n", gm2libs);
 #endif
-  *in_argv[incl] = strdup(gm2libs);
+  (*in_argv)[incl] = strdup(gm2libs);
 }
 
 /*
@@ -108,17 +108,17 @@ insert_arg (incl, in_argc, in_argv)
      char ***in_argv;
 {
   int i=0;
-  char **new_argv = (char **)xmalloc(sizeof(char *) * (*in_argc + 1));
+  char **new_argv = (char **)xmalloc(sizeof(char *) * ((*in_argc) + 1));
   (*in_argc)++;
 
   while (i < incl) {
-    new_argv[i] = *in_argv[i];
+    new_argv[i] = (*in_argv)[i];
     i++;
   }
   new_argv[incl] = NULL;
   i = incl+1;
   while (i < *in_argc) {
-    new_argv[i] = *in_argv[i-1];
+    new_argv[i] = (*in_argv)[i-1];
     i++;
   }
   *in_argv = new_argv;

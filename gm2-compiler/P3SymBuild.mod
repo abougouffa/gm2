@@ -17,14 +17,14 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P3SymBuild ;
 
 
-FROM NameKey IMPORT WriteKey, NulName ;
+FROM NameKey IMPORT Name, WriteKey, NulName ;
 
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 
 FROM M2Debug IMPORT Assert, WriteDebug ;
 
-FROM M2Lexical IMPORT WriteError, WriteErrorFormat1, WriteErrorFormat2 ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2 ;
 
 FROM SymbolTable IMPORT NulSym,
                         StartScope, EndScope, GetScopeAuthor,
@@ -66,17 +66,17 @@ FROM FifoQueue IMPORT GetFromFifoQueue ;
 
 PROCEDURE P3StartBuildDefModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := MakeDefinitionSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeDefinitionSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
-   PushT(Name)
+   PushT(name)
 END P3StartBuildDefModule ;
 
 
@@ -108,7 +108,7 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat2('inconsistant definition module was named (%s) and concluded as (%s)', NameStart, NameEnd)
+      WriteFormat2('inconsistant definition module was named (%a) and concluded as (%a)', NameStart, NameEnd)
    END
 END P3EndBuildDefModule ;
 
@@ -130,17 +130,17 @@ END P3EndBuildDefModule ;
 
 PROCEDURE P3StartBuildImpModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := MakeImplementationSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeImplementationSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingImplementationModule()) ;
-   PushT(Name)                        
+   PushT(name)
 END P3StartBuildImpModule ;
 
 
@@ -163,7 +163,7 @@ END P3StartBuildImpModule ;
 PROCEDURE P3EndBuildImpModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingImplementationModule()) ;
    CheckForUnknownInModule ;
@@ -172,7 +172,7 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat2('inconsistant implementation module was named (%s) and concluded as (%s)', NameStart, NameEnd)
+      WriteFormat2('inconsistant implementation module was named (%a) and concluded as (%a)', NameStart, NameEnd)
    END
 END P3EndBuildImpModule ;
 
@@ -194,19 +194,19 @@ END P3EndBuildImpModule ;
 
 PROCEDURE P3StartBuildProgModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
    (* WriteString('StartBuildProgramModule') ; WriteLn ; *)
-   PopT(Name) ;
-   ModuleSym := MakeProgramSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeProgramSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    (* WriteString('MODULE - ') ; WriteKey(GetSymName(ModuleSym)) ; WriteLn ; *)
    StartScope(ModuleSym) ;
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(Name)
+   PushT(name)
 END P3StartBuildProgModule ;
 
 
@@ -229,7 +229,7 @@ END P3StartBuildProgModule ;
 PROCEDURE P3EndBuildProgModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingProgramModule()) ;
    CheckForUnknownInModule ;
@@ -238,7 +238,7 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat2('inconsistant program module was named (%s) and concluded as (%s)', NameStart, NameEnd)
+      WriteFormat2('inconsistant program module was named (%a) and concluded as (%a)', NameStart, NameEnd)
    END
 END P3EndBuildProgModule ;
 
@@ -260,16 +260,16 @@ END P3EndBuildProgModule ;
 
 PROCEDURE StartBuildInnerModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := RequestSym(Name) ;
+   PopT(name) ;
+   ModuleSym := RequestSym(name) ;
    Assert(IsModule(ModuleSym)) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   SetCurrentModule(ModuleSym) ;   (* --gaius--  16/10/97 *)
-   PushT(Name)
+   SetCurrentModule(ModuleSym) ;
+   PushT(name)
 END StartBuildInnerModule ;
 
 
@@ -292,7 +292,7 @@ END StartBuildInnerModule ;
 PROCEDURE EndBuildInnerModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    CheckForUnknownInModule ;
    EndScope ;
@@ -300,9 +300,8 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat2('inconsistant inner module was named (%s) and concluded as (%s)', NameStart, NameEnd)
+      WriteFormat2('inconsistant inner module was named (%a) and concluded as (%a)', NameStart, NameEnd)
    END ;
-   (* --gaius--  16/10/97 *)
    SetCurrentModule(GetScopeAuthor(GetCurrentModule()))
 END EndBuildInnerModule ;
 
@@ -324,12 +323,12 @@ END EndBuildInnerModule ;
 
 PROCEDURE StartBuildProcedure ;
 VAR 
-   Name,
+   name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   PushT(Name) ;  (* Name saved for the EndBuildProcedure name check *)
-   ProcSym := RequestSym(Name) ;
+   PopT(name) ;
+   PushT(name) ;  (* Name saved for the EndBuildProcedure name check *)
+   ProcSym := RequestSym(name) ;
    Assert(IsProcedure(ProcSym)) ;
    PushT(ProcSym) ;
    StartScope(ProcSym)
@@ -360,16 +359,16 @@ END StartBuildProcedure ;
 
 PROCEDURE EndBuildProcedure ;
 VAR
+   ProcSym  : CARDINAL ;
    NameEnd,
-   ProcSym,
-   NameStart: CARDINAL ;
+   NameStart: Name ;
 BEGIN
    PopT(NameEnd) ;
    PopT(ProcSym) ;
    PopT(NameStart) ;
    IF NameEnd#NameStart
    THEN
-      WriteErrorFormat2('procedure name (%s) does not match end name (%s)', NameStart, NameEnd)
+      WriteFormat2('procedure name (%a) does not match end name (%a)', NameStart, NameEnd)
    END ;
    EndScope
 END EndBuildProcedure ;
@@ -398,8 +397,8 @@ END EndBuildProcedure ;
 
 PROCEDURE BuildProcedureHeading ;
 VAR
-   ProcSym,
-   NameStart: CARDINAL ;
+   ProcSym  : CARDINAL ;
+   NameStart: Name ;
 BEGIN
    IF CompilingDefinitionModule()
    THEN
@@ -478,11 +477,11 @@ END BuildNulName ;
 
 PROCEDURE BuildConst ;
 VAR
-   Name,
+   name: Name ;
    Sym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   Sym := RequestSym(Name) ;
+   PopT(name) ;
+   Sym := RequestSym(name) ;
    PushT(Sym)
 END BuildConst ;
 

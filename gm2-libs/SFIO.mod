@@ -17,8 +17,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE SFIO ;
 
-FROM Strings IMPORT string, Length ;
-FROM FIO IMPORT exists, openToRead, openToWrite, openForRandom, WriteNBytes ;
+FROM ASCII IMPORT nul ;
+FROM Strings IMPORT string, Length, InitString, ConCatChar ;
+FROM FIO IMPORT exists, openToRead, openToWrite, openForRandom, WriteNBytes, ReadChar,
+                EOLN, EOF, IsNoError ;
 
 
 (*
@@ -84,6 +86,33 @@ BEGIN
    nBytes := WriteNBytes(file, Length(s), string(s)) ;
    RETURN( s )
 END WriteS ;
+
+
+(*
+   ReadS - reads and returns a string from, file.
+           It stops reading the string at the end of line or end of file.
+           It consumes the newline at the end of line but does not place
+           this into the returned string.
+*)
+
+PROCEDURE ReadS (file: File) : String ;
+VAR
+   s: String ;
+   c: CARDINAL ;
+BEGIN
+   s := InitString('') ;
+   WHILE (NOT EOLN(file)) AND (NOT EOF(file)) AND IsNoError(file) DO
+      s := ConCatChar(s, ReadChar(file))
+   END ;
+   IF EOLN(file)
+   THEN
+      (* consume nl *)
+      IF ReadChar(file)=nul
+      THEN
+      END
+   END ;
+   RETURN( s )
+END ReadS ;
 
 
 END SFIO.

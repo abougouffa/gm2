@@ -19,46 +19,10 @@ DEFINITION MODULE M2FileName ;
 (*
    Author     : Gaius Mulley
    Title      : M2FileName
-   Date       : 3/4/86  [$Date: 2001/10/31 09:08:31 $]
+   Date       : 3/4/86  [$Date: 2002/04/15 16:26:50 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Provides a procedure to calculate a system file name.
-   Version    : $Revision: 1.1 $
-*)
-
-(*
-   Log        : $Log: M2FileName.def,v $
-   Log        : Revision 1.1  2001/10/31 09:08:31  anoncvs
-   Log        : major overhaul of gm2, includes:
-   Log        :   moving to a flat Makefile with few if any recusive makes
-   Log        :   replaced many modules with their dynamic equivalent
-   Log        :   using flex to build the lexical analyser
-   Log        :   using ppg to build the top down recursive descent parser
-   Log        :   many modifications to p2c to handle opaque types, sets
-   Log        :   and forward references.
-   Log        :   using new String library which removes any fixed size
-   Log        :   character array limits.
-   Log        :   using new M2Error library for all error handling
-   Log        :   using new print style procedures rather than WriteString NumberIO
-   Log        :   combination.
-   Log        :   moving sources files into a new directory layout (no more symbolic
-   Log        :   links will be used) - this reduces the build time and reduces
-   Log        :   confusion.
-   Log        :
-   Log        : the overhaul is very incomplete and this is an interim checkin
-   Log        :
-   Log        : Revision 1.4  2001/03/09 12:32:54  anoncvs
-   Log        : added FSF copyright notice to all definition, implementation,
-   Log        : program modules and Makefile.in
-   Log        :
-   Log        : Revision 1.3  2000/08/29 09:16:28  gaius
-   Log        : fixed gdb modula-2 (due to filename not containing .mod in the assembly file)
-   Log        :
-   Log        : Revision 1.2  1999/12/03 16:49:02  gaius
-   Log        : first checkin after writing part of the gcc backend
-   Log        :
-   Log        : Revision 1.1.1.1  1996/05/28 10:13:02  gaius
-   Log        : Modula-2 compiler sources imported
-   Log        :
+   Version    : $Revision: 1.2 $
 *)
 
 FROM Strings IMPORT String ;
@@ -92,6 +56,14 @@ PROCEDURE CalculateStemName (Module: String) : String ;
 *)
 
 PROCEDURE ExtractExtension (filename, ext: String) : String ;
+
+
+(*
+   ExtractModule - given a, filename, return the module name including any
+                   extension. A new string is returned.
+*)
+
+PROCEDURE ExtractModule (filename: String) : String ;
 
 
 END M2FileName.

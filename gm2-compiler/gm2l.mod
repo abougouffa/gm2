@@ -20,7 +20,7 @@ MODULE gm2l ;
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2001/10/31 09:08:31 $]
+              : [$Date: 2002/04/15 16:26:51 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -31,76 +31,51 @@ MODULE gm2l ;
                 will match a foreign language, therefore we do not create an
                 initialization call but we do link this object/archive.
                 This allows us to write definition modules for C libraries.
-   Version    : $Revision: 1.1 $
-*)
-
-(*
-   Log        : $Log: gm2l.mod,v $
-   Log        : Revision 1.1  2001/10/31 09:08:31  anoncvs
-   Log        : major overhaul of gm2, includes:
-   Log        :   moving to a flat Makefile with few if any recusive makes
-   Log        :   replaced many modules with their dynamic equivalent
-   Log        :   using flex to build the lexical analyser
-   Log        :   using ppg to build the top down recursive descent parser
-   Log        :   many modifications to p2c to handle opaque types, sets
-   Log        :   and forward references.
-   Log        :   using new String library which removes any fixed size
-   Log        :   character array limits.
-   Log        :   using new M2Error library for all error handling
-   Log        :   using new print style procedures rather than WriteString NumberIO
-   Log        :   combination.
-   Log        :   moving sources files into a new directory layout (no more symbolic
-   Log        :   links will be used) - this reduces the build time and reduces
-   Log        :   confusion.
-   Log        :
-   Log        : the overhaul is very incomplete and this is an interim checkin
-   Log        :
-   Log        : Revision 1.6  2001/03/09 12:32:55  anoncvs
-   Log        : added FSF copyright notice to all definition, implementation,
-   Log        : program modules and Makefile.in
-   Log        :
-   Log        : Revision 1.5  2000/11/25 19:47:22  anoncvs
-   Log        : fixed atan bug and introduced a better method for linking into C libraries
-   Log        : via the EXPORT UNQUALIFIED mechanism.
-   Log        :
-   Log        : Revision 1.4  2000/02/03 11:47:19  gaius
-   Log        : minor changes
-   Log        :
-   Log        : Revision 1.3  1999/12/03 16:49:02  gaius
-   Log        : first checkin after writing part of the gcc backend
-   Log        :
-   Log        : Revision 1.2  1997/07/11 08:03:52  gaius
-   Log        : altered gm2l.mod to contain an 8k char path variable and not 79 chars.
-   Log        :
-   Log        : Revision 1.1.1.1  1996/05/28 10:13:02  gaius
-   Log        : Modula-2 compiler sources imported
-   Log        :
 *)
 
 IMPORT Break ;
 IMPORT DebugPMD ;
 IMPORT M2Search ;
+IMPORT SArgs ;
 FROM libc IMPORT exit ;
-FROM M2Lex IMPORT OpenSource, GetSymbol, IsSym, SymIs, CloseSource,
-                  CurrentSymbol ;
-FROM M2FileName IMPORT CalculateFileName ;
-FROM StrLib IMPORT StrEqual, StrCopy, StrConCat, StrLen ;
-FROM NumberIO IMPORT WriteCard ;
-FROM FIO IMPORT File, OpenToWrite, IsNoError, File, WriteChar, Close, StdOut ;
-FROM StdIO IMPORT Write, PushOutput ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-IMPORT Args ;
+FROM M2LexBuf IMPORT OpenSource, CloseSource, GetToken, currenttoken, currentstring ;
+FROM M2Reserved IMPORT toktype ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
+FROM M2FileName IMPORT CalculateFileName, CalculateStemName ;
+FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath ;
+FROM SArgs IMPORT Narg, GetArg ;
+FROM M2Defaults IMPORT GetOptions, GetSearchPath ;
+FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
 FROM M2Depth IMPORT MakeDependant, GetDepth ;
-FROM CmdArgs IMPORT Narg, GetArg ;
-FROM NameKey IMPORT GetKey, MakeKey, WriteKey ;
+FROM SFIO IMPORT OpenToWrite, Exists ;
+FROM FIO IMPORT File, WriteChar, IsNoError, Close, StdOut ;
+FROM StdIO IMPORT PushOutput ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+FROM SYSTEM IMPORT WORD ;
+FROM Strings IMPORT String, InitString, KillString, Slice, InitStringCharStar,
+                    Mark, EqualArray, string ;
 
 
+CONST
+   Comment      = '#' ;  (* Comment identifier *)
+ 
+TYPE
+   Source = POINTER TO source ;
+   source = RECORD
+               name       : Name ;
+               Depth      : CARDINAL ;
+               OnlyDef    ,
+               ForC,
+               UnQualified: BOOLEAN ;
+               next       : Source ;
+            END ;
+ 
 (* %%%FORWARD%%%
-PROCEDURE ScanSources ; FORWARD ;
-PROCEDURE ScanImport (s: CARDINAL) ; FORWARD ;
-PROCEDURE ScanImportsIn (s: CARDINAL; extension: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
-PROCEDURE MakeModule (ModuleName: CARDINAL) ; FORWARD ;
-PROCEDURE FindSourceFile (s: CARDINAL; extension: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
+PROCEDURE Open (ModuleName, ExtName: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE ScanSources (main: Name) ; FORWARD ;
+PROCEDURE ScanImport (p: Source) ; FORWARD ;
+PROCEDURE ScanImportsIn (p: Source; extension: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE MakeModule (ModuleName: Name) ; FORWARD ;
 PROCEDURE WriteFileName (FileName: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE CalculateDepth ; FORWARD ;
 PROCEDURE SortSources ; FORWARD ;
@@ -108,26 +83,10 @@ PROCEDURE DisplaySources ; FORWARD ;
 PROCEDURE ScanArgs() : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
- 
-CONST
-   MaxStringLen = 8192 ;
-   MaxNoOfFiles =  100 ;
-   Comment      = '# ' ;  (* Comment identifier *)
- 
-TYPE
-   Source = RECORD
-               Name       : CARDINAL ;
-               Depth      : CARDINAL ;
-               OnlyDef    ,
-               UnQualified: BOOLEAN ;
-            END ;
- 
- 
 VAR
    fo          : File ;
-   Main        : ARRAY [0..MaxStringLen] OF CHAR ;
-   SourceNo    : CARDINAL ;
-   Sources     : ARRAY [1..MaxNoOfFiles] OF Source ;
+   main        : Name ;
+   Head, Tail  : Source ;    (* head source list *)
    IncludeM2RTS: BOOLEAN ;   (* do we automatically include M2RTS into the top module? *)
 
 
@@ -136,29 +95,25 @@ VAR
                  imports into the Sources array.
 *)
 
-PROCEDURE ScanSources ;
+PROCEDURE ScanSources (main: Name) ;
 VAR
-   i: CARDINAL ;
+   p: Source ;
 BEGIN
-   SourceNo := 1 ;
-   WITH Sources[SourceNo] DO
-      Name        := MakeKey(Main) ;
-      Depth       := 0 ;
-      UnQualified := FALSE ;
-      OnlyDef     := FALSE
-   END ;
+   Head := NIL ;
+   Tail := NIL ;
+   MakeModule(main) ;
    IF IncludeM2RTS
    THEN
       (*
          we should include M2RTS as a dependant module otherwise it simply wont link
       *)
       MakeModule(MakeKey('M2RTS')) ;
-      MakeDependant(MakeKey(Main), MakeKey('M2RTS'))
+      MakeDependant(main, MakeKey('M2RTS'))
    END ;
-   i := 0 ;
-   WHILE i<SourceNo DO
-      INC(i) ;
-      ScanImport(i)
+   p := Head ;
+   WHILE p#NIL DO
+      ScanImport(p) ;
+      p := p^.next
    END
 END ScanSources ;
 
@@ -167,14 +122,14 @@ END ScanSources ;
    ScanImport - looks for .def and .mod source files and scans imports of these
                 sources.
 *)
- 
-PROCEDURE ScanImport (s: CARDINAL) ;
+
+PROCEDURE ScanImport (p: Source) ;
 BEGIN
-   IF ScanImportsIn(s, 'def')
+   IF ScanImportsIn(p, MakeKey('def'), TRUE)
    THEN
    END ;
    (* set OnlyDef to TRUE if we dont see a .mod file *)
-   Sources[s].OnlyDef := NOT ScanImportsIn(s, 'mod')
+   p^.OnlyDef := NOT ScanImportsIn(p, MakeKey('mod'), FALSE)
 END ScanImport ;
 
 
@@ -185,54 +140,60 @@ END ScanImport ;
                    contains EXPORT UNQUALIFIED.
 *)
 
-PROCEDURE ScanImportsIn (s: CARDINAL; extension: ARRAY OF CHAR) : BOOLEAN ;
+PROCEDURE ScanImportsIn (p: Source; extension: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
 VAR
-   done : BOOLEAN ;
-   mod  : CARDINAL ;
+   symbol   : Name ;
+   lasttoken: toktype ;
 BEGIN
-   IF FindSourceFile(s, extension)
+   IF Open(p^.name, extension, IsDefinition)
    THEN
-      done := FALSE ;
-      REPEAT
-         GetSymbol ;
-         WHILE (NOT IsSym('FROM')) AND (NOT IsSym('END')) AND
-               (NOT IsSym('IMPORT')) AND (NOT IsSym(';')) AND
-               (NOT IsSym('EXPORT'))
-         DO
-            GetSymbol
+      GetToken ;
+      LOOP
+         lasttoken := eoftok ;
+         WHILE (currenttoken#eoftok) AND
+               (currenttoken#fromtok) AND
+               (currenttoken#endtok) AND
+               ((currenttoken#importtok) OR (lasttoken#semicolontok))
+            DO
+            lasttoken := currenttoken ;
+            GetToken
          END ;
-         IF IsSym('FROM')
+         IF currenttoken=fromtok
          THEN
-            GetSymbol ;
-            MakeModule(MakeKey(CurrentSymbol)) ;
-            MakeDependant(Sources[s].Name, MakeKey(CurrentSymbol)) ;
-            (* Eat up to end of IMPORT line *)
-            WHILE NOT IsSym(';') DO
-               GetSymbol
+            GetToken ;
+            symbol := makekey(currentstring) ;
+            MakeModule(symbol) ;
+            MakeDependant(p^.name, symbol) ;
+            (* eat up to end of IMPORT line *)
+            WHILE (currenttoken#eoftok) AND (currenttoken#commatok) DO
+               GetToken
             END
-         ELSIF IsSym('IMPORT')
+         ELSIF currenttoken=importtok
          THEN
+            (* might be an import list of modules *)
             REPEAT
-               GetSymbol ;
-               MakeModule(MakeKey(CurrentSymbol)) ;
-               MakeDependant(Sources[s].Name, MakeKey(CurrentSymbol)) ;
-               GetSymbol
-            UNTIL IsSym(';')
-         ELSIF IsSym('EXPORT')
+               GetToken ;
+               symbol := makekey(currentstring) ;
+               MakeModule(symbol) ;
+               MakeDependant(p^.name, symbol) ;
+               GetToken
+            UNTIL currenttoken#commatok
+         ELSIF currenttoken=exporttok
          THEN
-            GetSymbol ;
-            IF IsSym('UNQUALIFIED')
+            GetToken ;
+            IF IsDefinition AND (currenttoken=unqualifiedtok)
             THEN
-               GetSymbol ;
-               Sources[s].UnQualified := TRUE
+               GetToken ;
+               p^.UnQualified := TRUE
             END
-         ELSIF IsSym('BEGIN') OR IsSym('END') OR IsSym('VAR') OR IsSym('TYPE')
+         ELSIF (currenttoken=begintok) OR (currenttoken=endtok) OR
+               (currenttoken=vartok) OR (currenttoken=typetok) OR
+               (currenttoken=eoftok)
          THEN
-            done := TRUE
+            CloseSource ;
+            RETURN( TRUE )
          END
-      UNTIL done ;
-      CloseSource ;
-      RETURN( TRUE )
+      END
    ELSE
       RETURN( FALSE )
    END
@@ -243,102 +204,100 @@ END ScanImportsIn ;
    MakeModule - makes a module for ModuleName.
 *)
 
-PROCEDURE MakeModule (ModuleName: CARDINAL) ;
+PROCEDURE MakeModule (ModuleName: Name) ;
 VAR
-   i    : CARDINAL ;
-   Found: BOOLEAN ;
+   s: Source ;
 BEGIN
-   Found := FALSE ;
-   i := 1 ;
-   WHILE (i<=SourceNo) AND (NOT Found) DO
-      WITH Sources[i] DO
-         IF Name=ModuleName
+   s := Head ;
+   WHILE s#NIL DO
+      WITH s^ DO
+         IF name=ModuleName
          THEN
-            Found := TRUE
+            RETURN
          ELSE
-            INC(i)
+            s := s^.next
          END
       END
    END ;
-   IF NOT Found
+   (* not found so create new entry *)
+   IF Head=NIL
    THEN
-      (* Not found so create *)
-      INC(SourceNo) ;
-      WITH Sources[SourceNo] DO
-         Name        := ModuleName ;
-         Depth       := 0 ;
-         UnQualified := FALSE ;
-         OnlyDef     := FALSE
-      END
+      NEW(Head) ;
+      Tail := Head
+   ELSE
+      NEW(Tail^.next) ;
+      Tail := Tail^.next
+   END ;
+   WITH Tail^ DO
+      name        := ModuleName ;
+      Depth       := 0 ;
+      UnQualified := FALSE ;
+      ForC        := FALSE ;
+      OnlyDef     := FALSE ;
+      next        := NIL
    END
 END MakeModule ;
 
 
 (*
-   FindSourceFile - attempts to find the source file for source, s.
+   Open - attempts to open a module, it will return TRUE if the module can be found.
 *)
 
-PROCEDURE FindSourceFile (s: CARDINAL; extension: ARRAY OF CHAR) : BOOLEAN ;
+PROCEDURE Open (ModuleName, ExtName: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
 VAR
-   FileName,
-   Path    : ARRAY [0..MaxStringLen] OF CHAR ;
+   a, b: String ;
 BEGIN
-   GetKey(Sources[s].Name, FileName) ;
-   WriteString(Comment) ;
-   CalculateFileName(FileName, extension, FileName) ;
-   IF M2Search.FindSourceFile(FileName, Path) AND OpenSource(Path)
+   a := CalculateFileName(InitStringCharStar(KeyToCharStar(ModuleName)),
+                          Mark(InitStringCharStar(KeyToCharStar(ExtName)))) ;
+   IF FindSourceFile(a, b) AND OpenSource(b)
    THEN
-      WriteString('Module ') ; WriteFileName(FileName) ;
-      WriteString(' In file: ') ; WriteString(Path) ; WriteLn ;
+      printf3('%c Module %a in file: %s\n', WORD(Comment), ModuleName, b) ;
+      a := KillString(a) ;
+      b := KillString(b) ;
       RETURN( TRUE )
    ELSE
-      (* WriteString(Path) ; WriteString(' : ') ; *)
+      a := KillString(a) ;
+      b := KillString(b) ;
+      RETURN( FALSE )
    END ;
-   RETURN( FALSE )
-END FindSourceFile ;
+END Open ;
 
 
 (*
-   WriteFileName - displays a file name, FileName, with formatted spaces
-                   after the string.
-*)
-
-PROCEDURE WriteFileName (FileName: ARRAY OF CHAR) ;
-CONST
-   MaxSpaces = 20 ;
-VAR
-   i, High: CARDINAL ;
-BEGIN
-   WriteString(FileName) ;
-   High := StrLen(FileName) ;
-   IF High<MaxSpaces
-   THEN
-      High := MaxSpaces - High ;
-      i := 0 ;
-      WHILE i<High DO
-         Write(' ') ;
-         INC(i)
-      END
-   END
-END WriteFileName ;
-
-
-(*
-   CalculateDepth - Calculates the modules depth.
+   CalculateDepth - for each module in the list, calculate the dependancy depth.
 *)
 
 PROCEDURE CalculateDepth ;
 VAR
-   i: CARDINAL ;
+   p: Source ;
 BEGIN
-   i := 1 ;
-   WHILE i<=SourceNo DO
-      WITH Sources[i] DO
-         Depth := GetDepth(Name)
+   p := Head ;
+   WHILE p#NIL DO
+      WITH p^ DO
+         Depth := GetDepth(name)
       END ;
-      INC(i)
+      p := p^.next
    END
 END CalculateDepth ;
+
+
+(*
+   Swap - swaps the contents of, p, and, q. The next field remains the same.
+*)
+
+PROCEDURE Swap (p, q: Source) ;
+VAR
+   t: source ;
+   n: Source ;
+BEGIN
+   t := p^ ;
+   n := p^.next ;
+   p^ := q^ ;
+   p^.next := n ;  (* preserve the next field of p *)
+   n := q^.next ;
+   q^ := t ;
+   q^.next := n    (* preserve the next field of q *)
+END Swap ;
 
 
 (*
@@ -348,22 +307,19 @@ END CalculateDepth ;
 
 PROCEDURE SortSources ;
 VAR
-   i, j: CARDINAL ;
-   t   : Source ;
+   pi, pj: Source ;
 BEGIN
-   i := 1 ;
-   WHILE i<=SourceNo DO
-      j := 1 ;
-      WHILE j<=SourceNo DO
-         IF (i#j) AND (Sources[i].Depth>Sources[j].Depth)
+   pi := Head ;
+   WHILE pi#NIL DO
+      pj := Head ;
+      WHILE pj#NIL DO
+         IF (pi#pj) AND (pi^.Depth>pj^.Depth)
          THEN
-            t := Sources[i] ;
-            Sources[i] := Sources[j] ;
-            Sources[j] := t
+            Swap(pi, pj)
          END ;
-         INC(j)
+         pj := pj^.next
       END ;
-      INC(i)
+      pi := pi^.next
    END
 END SortSources ;
 
@@ -374,33 +330,29 @@ END SortSources ;
 
 PROCEDURE DisplaySources ;
 VAR
-   i: CARDINAL ;
-   a: ARRAY [0..MaxStringLen] OF CHAR ;
+   p: Source ;
+   s: String ;
 BEGIN
-   i := 1 ;
-   WHILE i<=SourceNo DO
-      WITH Sources[i] DO
-         GetKey(Name, a) ;
-         WriteString(Comment) ;
-         WriteFileName(a) ; WriteCard(Depth, 4) ; WriteLn
+   p := Head ;
+   WHILE p#NIL DO
+      WITH p^ DO
+         printf3('%c %a %4d\n', WORD(Comment), name, Depth)
       END ;
-      INC(i)
+      p := p^.next
    END ;
-   WriteString(Comment) ; WriteLn ;
-   WriteString(Comment) ; WriteString('Initialization order') ; WriteLn ;
-   WriteString(Comment) ; WriteLn ;
-   i := 1 ;
-   WHILE i<=SourceNo DO
-      WITH Sources[i] DO
+   printf3('%c\n%c Initialization order\n%c\n', WORD(Comment), WORD(Comment), WORD(Comment)) ;
+   p := Head ;
+   WHILE p#NIL DO
+      WITH p^ DO
          (* UnQualified modules do not have an initialization section *)
          IF UnQualified AND OnlyDef
          THEN
-            WriteString('<onlylink> ') ; WriteKey(Name) ; WriteLn
+            printf1('<onlylink> %a\n', name)
          ELSE
-            WriteKey(Name) ; WriteLn
+            printf1('%a\n', name)
          END
       END ;
-      INC(i)
+      p := p^.next
    END
 END DisplaySources ;
 
@@ -419,14 +371,14 @@ END LocalWrite ;
    OpenOutputFile - attempts to open an output file.
 *)
 
-PROCEDURE OpenOutputFile (a: ARRAY OF CHAR) ;
+PROCEDURE OpenOutputFile (s: String) ;
 BEGIN
-   fo := OpenToWrite(a) ;
+   fo := OpenToWrite(s) ;
    IF IsNoError(fo)
    THEN
       PushOutput(LocalWrite)
    ELSE
-      WriteString('cannot write to: ') ; WriteString(a) ; WriteLn ;
+      printf1('cannot write to: %s\n', s) ;
       exit(1)
    END
 END OpenOutputFile ;
@@ -440,49 +392,41 @@ END OpenOutputFile ;
 PROCEDURE ScanArgs () : BOOLEAN ;
 VAR
    i, n: CARDINAL ;
-   a   : ARRAY [0..MaxStringLen] OF CHAR ;
+   s   : String ;
 BEGIN
    IncludeM2RTS := TRUE ;
-   StrCopy('', Main) ;
-   n := Args.Narg() ;
+   main := NulName ;
+   n := SArgs.Narg() ;
    IF n=1
    THEN
-      WriteString('Usage: gm2l [-M2RTS] [-M searchpath] [-o outputfile] modulename') ; WriteLn
+      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-o outputfile] modulename\n')
    ELSE
       i := 1 ;
       REPEAT
-         IF Args.GetArg(a, i)
+         IF SArgs.GetArg(s, i)
          THEN
-            (* WriteString('Argument found: ') ; WriteString(a) ; WriteLn ; *)
-            IF StrEqual(a, '-M')
+            IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
-               INC(i) ;
-               IF Args.GetArg(a, i)
-               THEN
-                  M2Search.SetSearchPath(a)
-               ELSE
-                  WriteString('Expecting path after -M flag') ; WriteLn
-               END
-               (* ; WriteString('Paths are: ') ; WriteString(a) ; WriteLn *)
-            ELSIF StrEqual(a, '-M2RTS')
+               PrependSearchPath(Slice(s, 2, 0))
+            ELSIF EqualArray(s, '-M2RTS')
             THEN
                (* no M2RTS to be automatically linked imported from the main module *)
                IncludeM2RTS := FALSE
-            ELSIF StrEqual(a, '-o')
+            ELSIF EqualArray(s, '-o')
             THEN
                INC(i) ;
-               IF Args.GetArg(a, i)
+               IF GetArg(s, i)
                THEN
-                  OpenOutputFile(a)
+                  OpenOutputFile(s)
                END
             ELSE
-               StrCopy(a, Main)
+               main := makekey(string(s))
             END
          END ;
          INC(i)
       UNTIL i>n
    END ;
-   RETURN( NOT StrEqual('', Main) )
+   RETURN( main#NulName )
 END ScanArgs ;
 
 
@@ -490,7 +434,7 @@ BEGIN
    fo := StdOut ;
    IF ScanArgs()
    THEN
-      ScanSources ;
+      ScanSources(main) ;
       CalculateDepth ;
       SortSources ;
       DisplaySources

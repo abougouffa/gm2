@@ -5,7 +5,6 @@ DEFINITION MODULE gccgm2 ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Sat Jul 24 15:47:03 1999
-    Last edit  : Tue Jul 11 2000
     Description: provides a Modula-2 interface to the C file gm2.c
 *)
 

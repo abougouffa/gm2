@@ -19,23 +19,23 @@ IMPLEMENTATION MODULE M2Students ;
 
 FROM SymbolTable IMPORT FinalSymbol, IsVar, GetVarFather, IsProcedure, IsModule,
                         GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclared, NoOfParam ;
-FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard ;
-FROM M2Lexical IMPORT FormatWarningMessage2, GetTokenNo ;
-FROM StrLib IMPORT StrEqual, StrConCat, StrLen ;
+FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey ;
+FROM M2Error IMPORT WarnStringAt ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
+FROM Strings IMPORT String, InitString, KillString, ToUpper, InitStringCharStar, string, Mark, ToUpper ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
+FROM M2LexBuf IMPORT GetTokenNo ;
 FROM ASCII IMPORT nul ;
 
 
 VAR
+   ErrantNames,
    ErrantSymbols: List ;
 
 
-
 (*
-   IsNotADuplicate - returns TRUE if either s1 or s2 have been reported before.
+   IsNotADuplicate - returns TRUE if either s1 or s2 have not been reported before.
 *)
 
 PROCEDURE IsNotADuplicate (s1, s2: CARDINAL) : BOOLEAN ;
@@ -52,39 +52,43 @@ END IsNotADuplicate ;
 
 
 (*
+   IsNotADuplicateName - returns TRUE if name has not been reported before.
+*)
+
+PROCEDURE IsNotADuplicateName (name: Name) : BOOLEAN ;
+BEGIN
+   IF NOT IsItemInList(ErrantNames, name)
+   THEN
+      IncludeItemIntoList(ErrantNames, name) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsNotADuplicateName ;
+
+
+(*
    CheckForVariableThatLooksLikeKeyword - checks for a identifier that looks the same
                                           as a keyword except for its case.
 *)
 
-PROCEDURE CheckForVariableThatLooksLikeKeyword (a: ARRAY OF CHAR; name: CARDINAL) ;
+PROCEDURE CheckForVariableThatLooksLikeKeyword (a: ADDRESS; name: Name) ;
 VAR
-   name2  : CARDINAL ;
-   i, high: CARDINAL ;
-   ch     : CHAR ;
-   token  : toktype ;
+   upper: Name ;
+   token: toktype ;
+   s    : String ;
 BEGIN
-   (* inlined StrToUpperCase for speed *)
-   high := HIGH(a) ;
-   i := 0 ;
-   ch := a[0] ;
-   WHILE (i<high) AND (ch#nul) DO
-      IF (ch>='a') AND (ch<='z')
-      THEN
-         a[i] := CHR( ORD(ch)-ORD('a')+ORD('A') )
-      END ;
-      INC(i) ;
-      ch := a[i]
-   END ;
-   (* end of inlined procedure *)
-   name2 := MakeKey(a) ;
-   IF IsReserved(name2, token)
+   s := ToUpper(InitStringCharStar(a)) ;
+   upper := makekey(string(s)) ;
+   IF IsReserved(upper, token)
    THEN
-      IF IsNotADuplicate(name, name)
+      IF IsNotADuplicateName(name)
       THEN
-         FormatWarningMessage2('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case (%s and %s). Note that this symbol name is legal as an identifier, however as such it might cause confusion and is considered bad programming practice',
-                                name, name2, GetTokenNo())
+         WarnStringAt(Sprintf2(Mark(InitString('either the identifier has the same name as a keyword or alternatively a keyword has the wrong case (%s and %s). Note that this symbol name is legal as an identifier, however as such it might cause confusion and is considered bad programming practice')),
+                               name, upper), GetTokenNo())
       END
-   END
+   END ;
+   s := KillString(s)
 END CheckForVariableThatLooksLikeKeyword ;
 
 
@@ -94,7 +98,7 @@ END CheckForVariableThatLooksLikeKeyword ;
 
 PROCEDURE CheckAsciiName (previous, s1, newblock, s2: CARDINAL) ;
 VAR
-   n1, n2: CARDINAL ;
+   n1, n2: Name ;
 BEGIN
    n1 := GetSymName(s1) ;
    n2 := GetSymName(s2) ;
@@ -102,19 +106,19 @@ BEGIN
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         FormatWarningMessage2('idential symbol name in two different scopes, scope (%s) has symbol called (%s)',
-                               GetSymName(previous), GetSymName(s1), GetDeclared(s1)) ;
-         FormatWarningMessage2('idential symbol name in two different scopes, scope (%s) has symbol called (%s)',
-                               GetSymName(newblock), GetSymName(s2), GetDeclared(s2))
+         WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
+                               GetSymName(previous), GetSymName(s1)), GetDeclared(s1)) ;
+         WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
+                               GetSymName(newblock), GetSymName(s2)), GetDeclared(s2))
       END
    ELSIF IsSameExcludingCase(n1, n2)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         FormatWarningMessage2('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)',
-                               GetSymName(previous), GetSymName(s1), GetDeclared(s1)) ;
-         FormatWarningMessage2('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)',
-                               GetSymName(newblock), GetSymName(s2), GetDeclared(s2))
+         WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
+                               GetSymName(previous), GetSymName(s1)), GetDeclared(s1)) ;
+         WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
+                               GetSymName(newblock), GetSymName(s2)), GetDeclared(s2))
       END
    END
 END CheckAsciiName ;
@@ -228,5 +232,6 @@ END StudentVariableCheck ;
 
 
 BEGIN
-   InitList(ErrantSymbols)
+   InitList(ErrantSymbols) ;
+   InitList(ErrantNames)
 END M2Students.

@@ -26,6 +26,16 @@ FROM NameKey IMPORT KeyToCharStar ;
 
 
 (*
+   IsDigit - returns TRUE if, ch, is a character 0..9
+*)
+
+PROCEDURE IsDigit (ch: CHAR) : BOOLEAN ;
+BEGIN
+   RETURN( (ch>='0') AND (ch<='9') )
+END IsDigit ;
+
+
+(*
    TranslateNameToString - takes a format specification string, a, and
                            if they consist of of %a then this is translated
                            into a String and %a is replaced by %s.
@@ -41,12 +51,16 @@ BEGIN
    i := 0 ;
    h := StrLen(a) ;
    WHILE i<h DO
-      IF (a[i]='%') AND (i+1<h)
+      IF a[i]='%'
       THEN
-         IF a[i+1]='a'
+         INC(i) ;
+         WHILE (i<h) AND IsDigit(a[i]) DO
+            INC(i)
+         END ;
+         IF (i<h) AND (a[i]='a')
          THEN
             (* translate the NameKey into a String *)
-            a[i+1] := 's' ;
+            a[i] := 's' ;
             IF argno=1
             THEN
                w1 := Mark(InitStringCharStar(KeyToCharStar(w1)))

@@ -32,12 +32,10 @@ EXPORT QUALIFIED CompilingDefinitionModule,
 
 
 (*
-   Compile - continually call the main compilation procedure for every
-             source file that is referenced.
-             The module to be compiled is Sym.
+   Compile - compile file, s.
 *)
 
-PROCEDURE Compile (Sym: CARDINAL; FullPath: String) ;
+PROCEDURE Compile (s: String) ;
 
 
 (*

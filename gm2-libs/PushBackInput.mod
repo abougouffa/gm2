@@ -18,6 +18,7 @@ IMPLEMENTATION MODULE PushBackInput ;
 
 
 FROM FIO IMPORT ReadChar, IsNoError, EOF, OpenToRead ;
+FROM Strings IMPORT string ;
 FROM ASCII IMPORT nul, cr, lf ;
 FROM Debug IMPORT Halt ;
 FROM StrLib IMPORT StrCopy, StrLen ;
@@ -169,6 +170,35 @@ BEGIN
    WriteString(FileName) ; Write(':') ; WriteCard(LineNo, 0) ; Write(':') ; WriteString(a) ; WriteLn ;
    ExitStatus := 1
 END WarnError ;
+
+
+(*
+   WarnString - emits an error message with the appropriate file, line combination.
+                It does not terminate but when the program finishes an exit status of
+                1 will be issued.
+*)
+
+PROCEDURE WarnString (s: String) ;
+VAR
+   p : POINTER TO CHAR ;
+BEGIN
+   p := string(s) ;
+   WriteString(FileName) ; Write(':') ; WriteCard(LineNo, 0) ; Write(':') ;
+   REPEAT
+      IF p#NIL
+      THEN
+         IF p^=lf
+         THEN
+            WriteLn ;
+            WriteString(FileName) ; Write(':') ; WriteCard(LineNo, 0) ; Write(':')
+         ELSE
+            Write(p^)
+         END ;
+         INC(p)
+      END ;
+   UNTIL (p=NIL) OR (p^=nul) ;
+   ExitStatus := 1
+END WarnString ;
 
 
 (*

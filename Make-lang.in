@@ -54,7 +54,7 @@ xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
 	$(CC) $(ALL_CFLAGS) $(INCLUDES) \
 	$(DRIVER_DEFINES) \
 	-DLANG_SPECIFIC_DRIVER \
-        -c xgm2.c
+        -c $(srcdir)/xgm2.c
 
 # Create the compiler driver for gm2.
 
@@ -84,11 +84,14 @@ gm2.start.encap:
 gm2.rest.encap:
 gm2.info: gm2/gm2.info
 
-gm2.dvi:
+gm2.dvi: gm2/images/gnu.eps gm2/gm2.texi
 	$(TEXI2DVI)  gm2/gm2.texi
 
-gm2/gm2.info:
+gm2/gm2.info: gm2/images/gnu.eps gm2/gm2.texi
 	$(MAKEINFO) -o gm2/gm2.info gm2/gm2.texi
+
+gm2/images/gnu.eps: gm2/images/gnupng
+	pngtopnm $< | pnmtops -noturn > $@
 
 # Install hooks:
 # cc1gm2 is installed elsewhere as part of $(COMPILERS).

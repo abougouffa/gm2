@@ -26,7 +26,7 @@ PROCEDURE qprintf0 (a: ARRAY OF CHAR) ;
 BEGIN
    IF NOT Quiet
    THEN
-      printf0(s)
+      printf0(a)
    END
 END qprintf0 ;
 

@@ -21,23 +21,22 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Fri Jul 16 20:10:55 1999
-    Last edit  : Fri Jul 16 20:10:55 1999
     Description: declares Modula-2 types to GCC, it attempts
                  to only declare a type once all subcomponents are known.
 *)
 
-FROM SYSTEM IMPORT ADDRESS, ADR ;
+FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM StdIO IMPORT Write ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM StrLib IMPORT StrConCat ;
-FROM NumberIO IMPORT WriteCard, WriteInt, CardToStr ;
 FROM M2Options IMPORT GenerateDebugging, GenerateLineDebug ;
-FROM NameKey IMPORT WriteKey, MakeKey, GetKey, NulName, KeyToCharStar ;
-FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName ;
+FROM NameKey IMPORT MakeKey, NulName, KeyToCharStar ;
+FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
+FROM Strings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
+FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat3 ;
+FROM M2Printf IMPORT printf0, printf1, printf2 ;
 
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
                   PutItemIntoList, GetItemFromList,
@@ -76,7 +75,6 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
 FROM M2System IMPORT IsPseudoSystemFunction, Address, Word, Bitset, Byte ;
 FROM M2Math IMPORT IsPseudoMathFunction ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, PopIntegerTree, PopRealTree ;
-FROM M2Lexical IMPORT InternalError, TokenToLineNo, FindFileNameFromToken, WriteErrorFormat1, FormatWarningMessage2 ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 
@@ -104,12 +102,12 @@ FROM gccgm2 IMPORT Tree,
 
 (* %%%FORWARD%%%
 PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareImportedVariables (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareImportedVariables (Sym: WORD) ; FORWARD ;
 PROCEDURE DeclareSet (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclarePointer (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareLocalVariables (Sym: CARDINAL; i: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareDefaultTypes ; FORWARD ;
-PROCEDURE DeclareGlobalVariables (ModSym: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareGlobalVariables (ModSym: WORD) ; FORWARD ;
 PROCEDURE DeclareType (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareOrFindKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
@@ -122,15 +120,14 @@ PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsSetDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsProcTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareEnumeration (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ; FORWARD ;
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
 
-
 CONST
-   MaxString = 8192 ;
+   Debugging = FALSE ;
 
 TYPE
    StartProcedure = PROCEDURE (ADDRESS) : Tree ;
@@ -145,6 +142,8 @@ VAR
                                     (* been written.                  *)
    ToDoConstants       : List ;     (* all unresolved constants go    *)
                                     (* here, M2GenGCC resolves them.  *)
+   DefinedList         : List ;     (* those types which have been    *)
+                                    (* declared to GCC.               *)
    AnotherType         : CARDINAL ; (* The number of AnotherTypes     *)
                                     (* that have been produced.       *)
    HaveInitDefaultTypes: BOOLEAN ;  (* have we initialized them yet?  *)
@@ -193,6 +192,25 @@ VAR
    Sym,
    i, n: CARDINAL ;
 BEGIN
+   IF Debugging
+   THEN
+      printf0('ToFinishList { ')
+   END ;
+   i := 1 ;
+   n := NoOfItemsInList(ToFinishList) ;
+   WHILE i<=n DO
+      Sym := GetItemFromList(ToFinishList, i) ;
+      IF Debugging
+      THEN
+         printf2('%d %a, ', Sym, GetSymName(Sym))
+      END ;
+      INC(i)
+   END ;
+   IF Debugging
+   THEN
+      printf0('}\n')
+   END ;
+
    i := 1 ;
    n := NoOfItemsInList(ToFinishList) ;
    WHILE i<=n DO
@@ -241,6 +259,7 @@ BEGIN
       	    THEN
                (* add relationship between gccSym and Sym *)
                AddModGcc(Sym, DeclareKindOfType(Sym)) ;
+               IncludeItemIntoList(DefinedList, Sym) ;
                RemoveItemFromList(ToDoList, Sym) ;
                n := NoOfItemsInList(ToDoList) ;
                i := 0 ;
@@ -265,22 +284,28 @@ BEGIN
          Sym := GetItemFromList(ToDoList, i) ;
          IF (NOT GccKnowsAbout(Sym)) OR IsItemInList(ToFinishList, Sym)
          THEN
-            WriteString('// need to solve ') ;
-            WriteCard(Sym, 4) ; Write(' ') ; WriteKey(GetSymName(Sym)) ;
+            IF Debugging
+            THEN
+               printf2('// need to solve %d %a ', Sym, GetSymName(Sym))
+            END ;
             IF IsItemInList(ToFinishList, Sym)
             THEN
-               WriteString(' partially declared')
+               IF Debugging
+               THEN
+                  printf0('partially declared\n')
+               END ;
             ELSE
-               WriteString(' not declared at all')
+               IF Debugging
+               THEN
+                  printf0('not declared at all\n')
+               END
             END ;
-            WriteLn ;
-            mystop ;
             FoldConstants ;
             IF NOT AllDependantsWritten(Sym)
             THEN
                NoMoreWritten := TRUE ;
-               FormatWarningMessage2('internal error: circular type dependancy between %s (%d)',
-                                     GetSymName(Sym), Sym, GetDeclared(Sym))
+               printf2('internal error: circular type dependancy on symbol %a (%d)',
+                       GetSymName(Sym), Sym)  (* could use GetDeclared(Sym) maybe? *)
             END ;
          END ;
          INC(i)
@@ -288,13 +313,15 @@ BEGIN
       i := 1 ;
       n := NoOfItemsInList(ToFinishList) ;
       WHILE i<=n DO
-         WriteString('// symbol type has only been partically declared ') ;
          Sym := GetItemFromList(ToFinishList, i) ;
-         WriteCard(Sym, 4) ; Write(' ') ; WriteKey(GetSymName(Sym)) ;
-         WriteLn ;
+         IF Debugging
+         THEN
+            printf2('// symbol type (%a) %d has only been partically declared\n',
+                    GetSymName(Sym), Sym)
+         END ;
          IF NOT AllDependantsWritten(Sym)
          THEN
-            WriteString('dependants unresolved') ; WriteLn
+            printf0('dependants unresolved\n')
          END ;
          INC(i) ;
          NoMoreWritten := TRUE
@@ -342,11 +369,8 @@ VAR
 BEGIN
    IF GetType(Sym)=NulSym
    THEN
-      WriteString('// Base type ') ;
-      WriteKey(GetSymName(Sym)) ;
-      WriteString(' not understood') ;
-      WriteLn ;
-      InternalError('why is this unknown?', __FILE__, __LINE__)
+      WriteFormat1('base type %a not understood', GetSymName(Sym)) ;
+      InternalError('base type should have been declared', __FILE__, __LINE__)
    ELSE
       IF GetSymName(Sym)=NulName
       THEN
@@ -530,10 +554,20 @@ END AllDependantsWritten ;
                      A type symbol, Sym, will be transformed into its GCC equivalent.
 *)
 
-PROCEDURE DeclareTypeInfo (Sym: CARDINAL) ;
+PROCEDURE DeclareTypeInfo (Sym: WORD) ;
 VAR
    gcc: Tree ;
 BEGIN
+   IF Debugging
+   THEN
+      printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
+   END ;
+(*
+   IF (Sym=100)
+   THEN
+      mystop
+   END ;
+*)
    IF IsVarient(Sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
@@ -563,7 +597,7 @@ END DeclareTypeInfo ;
    DeclareTypesInProcedure - declare all types in procedure, Sym, to GCC.
 *)
 
-PROCEDURE DeclareTypesInProcedure (Sym: CARDINAL) ;
+PROCEDURE DeclareTypesInProcedure (Sym: WORD) ;
 BEGIN
    ForeachLocalSymDo(Sym, DeclareTypeInfo)
 END DeclareTypesInProcedure ;
@@ -573,7 +607,7 @@ END DeclareTypesInProcedure ;
    DeclareTypesInModule - declare all types in module, Sym, to GCC.
 *)
 
-PROCEDURE DeclareTypesInModule (Sym: CARDINAL) ;
+PROCEDURE DeclareTypesInModule (Sym: WORD) ;
 BEGIN
    ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
    ForeachProcedureDo(Sym, DeclareTypesInProcedure) ;
@@ -590,7 +624,7 @@ VAR
    s: CARDINAL ;
 BEGIN
    s := GetScopeAuthor(Sym) ;
-   IF IsDefImp(s) OR IsModule(s)
+   IF (s=NulSym) OR IsDefImp(s) OR IsModule(s)
    THEN
       RETURN( s )
    ELSE
@@ -624,7 +658,7 @@ VAR
 BEGIN
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsImported(GetMainModule(), Sym) OR (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
-       (IsImported(GetBaseModule(), Sym)))
+       IsImported(GetBaseModule(), Sym) OR IsImported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       IF IsProcedureNested(Sym) AND (NOT GccKnowsAbout(GetScopeAuthor(Sym)))
       THEN
@@ -669,7 +703,7 @@ END DeclareProcedureToGcc ;
                       module sym.
 *)
 
-PROCEDURE DeclareProcedure (Sym: CARDINAL) ;
+PROCEDURE DeclareProcedure (Sym: WORD) ;
 BEGIN
    IF IsProcedure(Sym)
    THEN
@@ -702,12 +736,13 @@ END FoldConstants ;
 PROCEDURE StartDeclareMainModule ;
 VAR
    ModuleName,
-   FileName  : ARRAY [0..MaxString] OF CHAR ;
+   FileName  : String ;
    n, m      : CARDINAL ;
 BEGIN
-   GetKey(GetSymName(GetMainModule()), ModuleName) ;
-   CalculateFileName(ModuleName, 'mod', FileName) ;
-   SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), 1) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
+   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
+
+   SetFileNameAndLineNo(string(FileName), 1) ;
    DeclareDefaultTypes ;
    ForeachModuleDo(DeclareTypesInModule) ;
    REPEAT
@@ -732,7 +767,9 @@ BEGIN
    (* now it is safe to declare all procedures *)
    ForeachProcedureDo(GetMainModule(), DeclareProcedure) ;
    ForeachInnerModuleDo(GetMainModule(), DeclareProcedure) ;
-   BuildStartMainModule
+   BuildStartMainModule ;
+   ModuleName := KillString(ModuleName) ;
+   FileName   := KillString(FileName)
 END StartDeclareMainModule ;
 
 
@@ -785,7 +822,7 @@ BEGIN
    END ;
    IF NOT AllDependantsWritten(sym)
    THEN
-      WriteErrorFormat1('defining a default type (%s) before its dependants are known', MakeKey(name))
+      WriteFormat1('defining a default type (%a) before its dependants are known', MakeKey(name))
    END
 END DeclareDefaultType ;
 
@@ -844,12 +881,12 @@ END DeclareDefaultTypes ;
 
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ;
 VAR
-   a: ARRAY [0..MaxString] OF CHAR ;
+   s: String ;
    t: CARDINAL ;
 BEGIN
    t := GetDeclared(sym) ;
-   FindFileNameFromToken(a, t) ;
-   SetFileNameAndLineNo(ADR(a), TokenToLineNo(t))
+   s := FindFileNameFromToken(t, 0) ;
+   SetFileNameAndLineNo(string(s), TokenToLineNo(t, 0))
 END AlignDeclarationWithSource ;
 
 
@@ -908,7 +945,7 @@ END DeclareGlobalVariables ;
    DeclareImportedVariables - declares all imported variables to GM2.
 *)
 
-PROCEDURE DeclareImportedVariables (Sym: CARDINAL) ;
+PROCEDURE DeclareImportedVariables (Sym: WORD) ;
 BEGIN
    IF IsVar(Sym)
    THEN
@@ -960,11 +997,17 @@ END DeclareLocalVariables ;
    DeclareFieldEnumeration - declares an enumerator within the current enumeration type.
 *)
 
-PROCEDURE DeclareFieldEnumeration (Sym: CARDINAL) ;
+PROCEDURE DeclareFieldEnumeration (Sym: WORD) ;
 BEGIN
    (* add relationship between gccSym and Sym *)
    PushValue(Sym) ;
-   AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)), PopIntegerTree()))
+   IF (GetModuleWhereDeclared(Sym)=NulSym) OR
+      (GetModuleWhereDeclared(Sym)=GetMainModule())
+   THEN
+      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)), PopIntegerTree()))
+   ELSE
+      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)), PopIntegerTree()))
+   END
 END DeclareFieldEnumeration ;
 
 
@@ -972,7 +1015,7 @@ END DeclareFieldEnumeration ;
    DeclareEnumeration - declare an enumerated type.
 *)
 
-PROCEDURE DeclareEnumeration (Sym: CARDINAL) : Tree ;
+PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ;
 VAR
    gccenum: Tree ;
 BEGIN
@@ -1057,10 +1100,6 @@ VAR
 BEGIN
    i := 1 ;
    FieldList := Tree(NIL) ;
-   IF Sym=584
-   THEN
-      mystop
-   END ;
    RecordType := DoStartDeclaration(Sym, BuildStartRecord) ;
    REPEAT
       Field := GetNth(Sym, i) ;
@@ -1078,8 +1117,7 @@ BEGIN
                GccFieldType := DeclareVarient(Field)
             ELSIF IsFieldVarient(Field)
             THEN
-               WriteKey(GetSymName(Field)) ;
-               WriteString(' found unexpected field varient') ; WriteLn ;
+               WriteFormat1('found unexpected field varient name %a\n', GetSymName(Field)) ;
                InternalError('should not get here', __FILE__, __LINE__)
             ELSE
                IF NOT AllDependantsWritten(GetType(Field))
@@ -1107,7 +1145,13 @@ END DeclareRecord ;
 
 PROCEDURE DeclarePointer (Sym: CARDINAL) : Tree ;
 BEGIN
-   RETURN( BuildPointerType(DeclareOrFindKindOfType(GetType(Sym))) )
+   IF GetSymName(Sym)=NulName
+   THEN
+      RETURN( BuildPointerType(DeclareOrFindKindOfType(GetType(Sym))) )
+   ELSE
+      RETURN( DeclareKnownType(KeyToCharStar(GetSymName(Sym)),
+                               BuildPointerType(DeclareOrFindKindOfType(GetType(Sym)))) )
+   END
 END DeclarePointer ;
 
 
@@ -1164,10 +1208,7 @@ BEGIN
          Subrange := GetType(Subscript) ;
          IF NOT IsSubrange(Subrange)
          THEN
-            WriteString('error with array ') ; WriteKey(GetSymName(Sym)) ;
-            WriteString(' subscript: ') ; WriteCard(i, 0) ;
-            WriteString(' no subrange for this subscript, instead the TYPE given is ') ;
-            WriteKey(GetSymName(Subrange)) ; WriteLn
+            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', GetSymName(Sym), i, GetSymName(Subrange))
          END ;
          Assert(IsSubrange(Subrange)) ;
          GetSubrange(Subrange, High, Low) ;
@@ -1220,11 +1261,11 @@ VAR
    type,
    high, low: CARDINAL ;
 BEGIN
+   RETURN( GetIntegerType() ) ;    (* fudge --fixme-- *)
    type := GetType(sym) ;
    IF IsSubrange(type)
    THEN
       GetSubrange(type, high, low) ;
-      type := GetType(low) ;  (* --fixme-- this should be removed once IsSubrangeDependantsWritten has been fixed *)
       gccsym := BuildSetType(KeyToCharStar(GetSymName(sym)),
                              Mod2Gcc(type), Mod2Gcc(low), Mod2Gcc(high))
    ELSE
@@ -1255,9 +1296,9 @@ BEGIN
       t2 := DeclareKindOfType(sym) ;
       IF t1#t2
       THEN
-         WriteString('problems after completing the type definition (before)') ; WriteLn ;
+         printf0('problems after completing the type definition (before)\n') ;
          DebugTree(t1) ;
-         WriteString('problems after completing the type definition (after)') ; WriteLn ;
+         printf0('problems after completing the type definition (after)\n') ;
          DebugTree(t2)
       END
    END ;
@@ -1269,7 +1310,7 @@ END ForceDeclareType ;
 (*
    DeclareOrFindKindOfType - firstly lookup the symbol, if it is known return this symbol
                              otherwise declare the symbol. Remember that we have have
-                             particially declared symbols in the Mod2Gcc lookup facility.
+                             partially declared symbols in the Mod2Gcc lookup facility.
 *)
 
 PROCEDURE DeclareOrFindKindOfType (Sym: CARDINAL) : Tree ;
@@ -1354,6 +1395,60 @@ END IsEnumerationDependantsWritten ;
 
 
 (*
+   CheckResolveSubrange - checks to see whether we can resolve the subrange type.
+                          We are able to do this once low, and high are known.
+*)
+
+PROCEDURE CheckResolveSubrange (Sym: CARDINAL) ;
+VAR
+   size, high, low, type: CARDINAL ;
+BEGIN
+   GetSubrange(Sym, high, low) ;
+   type := GetType(Sym) ;
+   IF type#NulSym
+   THEN
+      IF NOT GccKnowsAbout(type)
+      THEN
+         IncludeItemIntoList(ToDoList, type)
+      END
+   ELSIF GccKnowsAbout(low) AND GccKnowsAbout(high)
+   THEN
+      IF IsConstString(low)
+      THEN
+         size := GetStringLength(low) ;
+         IF size=1
+         THEN
+            PutSubrange(Sym, low, high, Char)
+         ELSE
+            WriteFormat1('cannot have a subrange of a string type %a', GetSymName(Sym)) ;
+         END
+      ELSIF IsFieldEnumeration(low)
+      THEN
+         IF GetType(low)=GetType(high)
+         THEN
+            PutSubrange(Sym, low, high, GetType(low))
+         ELSE
+            WriteFormat1('subrange limits must be of the same type %a', GetSymName(Sym)) ;
+         END
+      ELSIF IsValueSolved(low)
+      THEN
+         IF GetType(low)=LongReal
+         THEN
+            WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', GetSymName(Sym)) ;
+         ELSE
+            PutSubrange(Sym, low, high, Integer)
+         END
+      END ;
+      type := GetType(Sym) ;
+      IF (type#NulSym) AND (NOT GccKnowsAbout(type))
+      THEN
+         IncludeItemIntoList(ToDoList, type)
+      END
+   END
+END CheckResolveSubrange ;
+
+
+(*
    IsSubrangeDependantsWritten - returns true if the subrange
                                  dependants have been written to the
                                  assembly file.
@@ -1364,7 +1459,6 @@ VAR
    high, low: CARDINAL ;
 BEGIN
    GetSubrange(Sym, high, low) ;
-   PutSubrange(Sym, low, high, Integer) ;  (* --testing--     when removed alter DeclareSet accordingly  *)
    (* low and high are not types but constants and they are resolved by M2GenGCC *)
    IF NOT GccKnowsAbout(low)
    THEN
@@ -1374,6 +1468,7 @@ BEGIN
    THEN
       IncludeItemIntoList(ToDoConstants, high)
    END ;
+   CheckResolveSubrange(Sym) ;
    RETURN(
           GccKnowsAbout(GetType(Sym)) AND
           GccKnowsAbout(low) AND GccKnowsAbout(high)
@@ -1387,8 +1482,43 @@ END IsSubrangeDependantsWritten ;
 *)
 
 PROCEDURE IsPointerDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   type: CARDINAL ;
 BEGIN
-   RETURN( IsSymTypeKnown(Sym, GetType(Sym)) )
+   IF NOT GccKnowsAbout(Sym)
+   THEN
+      IncludeItemIntoList(ToDoList, Sym)
+   END ;
+   type := GetType(Sym) ;
+   IF Debugging
+   THEN
+      printf2('// lets see about %d %a ', Sym, GetSymName(Sym))
+   END ;
+   (* is it partially known but has no name required for forward references *)
+   IF IsItemInList(ToFinishList, type) AND (GetSymName(type)=NulName)
+   THEN
+      IF Debugging
+      THEN
+         printf0('no partially declared and nulname\n')
+      END ;
+      IncludeItemIntoList(ToDoList, type) ;
+      IncludeItemIntoList(ToDoList, Sym) ;
+      RETURN( FALSE )
+   END ;
+   IF IsSymTypeKnown(Sym, type)
+   THEN
+      IF Debugging
+      THEN
+         printf0('yes...\n')
+      END ;
+      RETURN( TRUE )
+   ELSE
+      IF Debugging
+      THEN
+         printf0('no its type is unknown...\n')
+      END ;
+      RETURN( FALSE )
+   END
 END IsPointerDependantsWritten ;
 
 
@@ -1516,10 +1646,7 @@ BEGIN
          Subrange := GetType(Subscript) ;
          IF NOT IsSubrange(Subrange)
          THEN
-            WriteString('error with array ') ; WriteKey(GetSymName(Sym)) ;
-            WriteString(' subscript: ') ; WriteCard(i, 0) ;
-            WriteString(' no subrange for this subscript instead the TYPE given is ') ;
-            WriteKey(GetSymName(Subrange)) ; WriteLn
+            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', GetSymName(Sym), i, GetSymName(Subrange))
          END ;
          Assert(IsSubrange(Subrange)) ;
          GetSubrange(Subrange, High, Low) ;
@@ -1536,6 +1663,12 @@ BEGIN
                       END
          *)
 
+(* T R I A L *)
+         IF NOT IsSubrangeDependantsWritten(Subrange)
+         THEN
+            RETURN( FALSE )
+         END ;
+(*
          IF IsFieldEnumeration(High)
          THEN
             IF NOT AllDependantsWritten(GetType(High))
@@ -1574,6 +1707,7 @@ BEGIN
                solved := FALSE
             END
          END
+*)
       END ;
       INC(i)
    UNTIL Subscript=NulSym ;
@@ -1588,71 +1722,16 @@ END IsArrayDependantsWritten ;
 
 PROCEDURE IsSetDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 VAR
-   Type     : CARDINAL ;
-   Low, High: CARDINAL ;
-   solved   : BOOLEAN ;
+   Type: CARDINAL ;
 BEGIN
    Assert(IsSet(Sym)) ;
 
    Type := GetType(Sym) ;
-
    IF IsSubrange(Type)
    THEN
-      GetSubrange(Type, High, Low) ;
-
-      (*
-          --fixme--          --fixme--          --fixme--          --fixme--
-          --fixme-- when we have fixed IsSubrangeDependantsWritten we should be able
-                    to use that function rather that the rather convoluted tests below.
-                    However IsSubrangeDependantsWritten alters subranges to INTEGER which
-                    must be fixed first.
-          --fixme--          --fixme--          --fixme--          --fixme--
-
-         RETURN( IsSymTypeKnown(Sym, Subrange) AND AllDependantsWritten(Subrange) )
-     *)
-
-      solved := TRUE ;
-      IF IsFieldEnumeration(High)
-      THEN
-         IF NOT AllDependantsWritten(GetType(High))
-         THEN
-            solved := FALSE
-         END
-      ELSIF IsConst(High)
-      THEN
-         IF NOT GccKnowsAbout(High)
-         THEN
-            IncludeItemIntoList(ToDoConstants, High) ;
-            solved := FALSE
-         END
-      ELSE
-         IF NOT IsSymTypeKnown(Sym, High)
-         THEN
-            solved := FALSE
-         END
-      END ;
-      IF IsFieldEnumeration(Low)
-      THEN
-         IF NOT AllDependantsWritten(GetType(Low))
-         THEN
-            solved := FALSE
-         END
-      ELSIF IsConst(Low)
-      THEN
-         IF NOT GccKnowsAbout(Low)
-         THEN
-            IncludeItemIntoList(ToDoConstants, Low) ;
-            solved := FALSE
-         END
-      ELSE
-         IF NOT IsSymTypeKnown(Sym, Low)
-         THEN
-            solved := FALSE
-         END
-      END ;
-      RETURN( IsSymTypeKnown(Sym, GetType(Type)) AND solved )
+      RETURN( IsSubrangeDependantsWritten(Type) )
    ELSE
-      RETURN( IsSymTypeKnown(Sym, Type) AND AllDependantsWritten(Type) )
+      RETURN( IsSymTypeKnown(Sym, Type) )
    END
 END IsSetDependantsWritten ;
 
@@ -1737,13 +1816,17 @@ BEGIN
    solved := TRUE ;
    IF Sym#NulSym
    THEN
+      (*
       IF GetSymName(Sym)#NulName
       THEN
+      *)
          IF NOT GccKnowsAbout(Sym)
          THEN
             IncludeItemIntoList(ToDoList, Sym) ;
             solved := FALSE ;
+(*
          END
+*)
       END ;
       type := GetType(Sym) ;
       IF NOT IsSymTypeKnown(Sym, type)
@@ -1759,6 +1842,7 @@ BEGIN
    InitList(ToDoList) ;
    InitList(ToDoConstants) ;
    InitList(ToFinishList) ;
+   InitList(DefinedList) ;
    HaveInitDefaultTypes := FALSE
 END M2GCCDeclare.
 (*

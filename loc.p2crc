@@ -52,8 +52,10 @@
 IncludeDir  gm2-libs-boot/%s.def
 IncludeDir  gm2-libs/%s.def
 IncludeDir  gm2-compiler/%s.def
+IncludeDir  gm2-libiberty/%s.def
 ImportDir   gm2-libs-boot/%s.def
 ImportDir   gm2-libs/%s.def
 ImportDir   gm2-compiler/%s.def
+ImportDir   gm2-libiberty/%s.def
 
 # End of loc.p2crc

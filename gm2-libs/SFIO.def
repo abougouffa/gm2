@@ -22,7 +22,7 @@ DEFINITION MODULE SFIO ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Aug  3 16:55:18 2001
-    Last edit  : $Date: 2001/10/31 09:08:31 $ 
+    Last edit  : $Date: 2002/04/15 16:26:51 $ 
     Revision   : $Version$ 
     Description: provides a String interface to the opening routines of FIO
 *)
@@ -30,7 +30,7 @@ DEFINITION MODULE SFIO ;
 FROM Strings IMPORT String ;
 FROM FIO IMPORT File ;
 
-EXPORT QUALIFIED OpenToRead, OpenToWrite, OpenForRandom, Exists, WriteS ;
+EXPORT QUALIFIED OpenToRead, OpenToWrite, OpenForRandom, Exists, WriteS, ReadS ;
 
 
 (*
@@ -77,6 +77,16 @@ PROCEDURE OpenForRandom (fname: String; towrite: BOOLEAN) : File ;
 *)
 
 PROCEDURE WriteS (file: File; s: String) : String ;
+
+
+(*
+   ReadS - reads a string, s, from, file. It returns the String, s.
+           It stops reading the string at the end of line or end of file.
+           It consumes the newline at the end of line but does not place
+           this into the returned string.
+*)
+
+PROCEDURE ReadS (file: File) : String ;
 
 
 END SFIO.

@@ -20,22 +20,23 @@ MODULE gm2lcc ;
    Author     : Gaius Mulley
    Title      : gm2lcc
    Date       : Fri Jul 24 11:45:08 BST 1992
-   Description: Generates the cc command for linking the suit of modules.
-   Last update: Fri Sep 15 14:42:38 BST 1989
+   Description: Generates the cc command for linking all the modules.
 *)
 
 FROM libc IMPORT system, exit ;
 FROM SYSTEM IMPORT ADR ;
-FROM NameKey IMPORT MakeKey, WriteKey, GetKey ;
-FROM M2Search IMPORT SetSearchPath, FindSourceFile ;
+FROM NameKey IMPORT Name, MakeKey, WriteKey, GetKey ;
+FROM M2Search IMPORT FindSourceFile, PrependSearchPath ;
 FROM M2FileName IMPORT CalculateFileName ;
-FROM Args IMPORT GetArg ;
+FROM SArgs IMPORT GetArg ;
 FROM StrLib IMPORT StrEqual, StrLen, StrCopy, StrConCat, StrRemoveWhitePrefix, IsSubString ;
-FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, WriteChar, OpenToRead,
-                IsNoError, ReadString, WriteString, WriteLine, WriteNBytes, EOF ;
-FROM ASCII IMPORT eof, nul, lf ;  (* UNIX *)
+FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, IsNoError, EOF, WriteString, WriteLine ;
+FROM SFIO IMPORT OpenToRead, WriteS, ReadS ;
+FROM ASCII IMPORT nul ;
 FROM M2FileName IMPORT ExtractExtension ;
-FROM NumberIO IMPORT CardToStr ;
+FROM Strings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, string, Mark, InitStringChar, Dup, Mult, Assign ;
+FROM FormatStrings IMPORT Sprintf1 ;
+FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 
 
 (* %%%FORWARD%%%
@@ -49,10 +50,9 @@ PROCEDURE DisplaySources ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
-   MaxName     =    4096 ; (* max string              *)
-   Comment     =     '#' ; (* Comment identifier.     *)
-   MaxArchives =    1000 ;
-   MaxCommand  = 65*1024 ;
+   Comment     =     '#' ;      (* Comment leader.                 *)
+   MaxSpaces   =      20 ;      (* Maximum spaces after a module   *)
+                                (* name.                           *)
 
 VAR
    ApuFound      : BOOLEAN ;
@@ -61,40 +61,19 @@ VAR
    VerboseFound  : BOOLEAN ;
    ProfileFound  : BOOLEAN ;
    LibrariesFound: BOOLEAN ;
-   Libraries     : ARRAY [0..MaxName] OF CHAR ;
-   MainModule,
-   Target        : ARRAY [0..MaxName] OF CHAR ;
    TargetFound   : BOOLEAN ;
    PathFound     : BOOLEAN ;
    ExecCommand   : BOOLEAN ;    (* should we execute the final cmd *)
    UseAr         : BOOLEAN ;    (* use 'ar' and create archive     *)
    IgnoreMain    : BOOLEAN ;    (* ignore main module when linking *)
-   Path          : ARRAY [0..MaxName] OF CHAR ;
-   StartupFile   : ARRAY [0..MaxName] OF CHAR ;
-   Archives      : ARRAY [0..MaxArchives] OF CARDINAL ;
-   NoOfArchives  : CARDINAL ;
-   Command       : ARRAY [0..MaxCommand] OF CHAR ;
-   CommandLength : CARDINAL ;
+   Archives,
+   Path,
+   StartupFile,
+   Libraries,
+   MainModule,
+   Command,
+   Target        : String ;
    fi, fo        : File ;       (* the input and output files      *)
-
-
-
-(*
-   AddCommand - adds the command, a, to buffer, Command.
-*)
-
-PROCEDURE AddCommand (a: ARRAY OF CHAR) ;
-VAR
-   i, n: CARDINAL ;
-BEGIN
-   i := 0 ;
-   n := StrLen(a) ;
-   WHILE i<n DO
-      Command[CommandLength] := a[i] ;
-      INC(i) ;
-      INC(CommandLength)
-   END
-END AddCommand ;
 
 
 (*
@@ -104,58 +83,17 @@ END AddCommand ;
 
 PROCEDURE FlushCommand ;
 BEGIN
-   Command[CommandLength] := lf ;
-   INC(CommandLength) ;
-   Command[CommandLength] := nul ;
-   (* don't bother incrementing CommandLength as we don't wish to write nul *)
    IF ExecCommand
    THEN
       IF VerboseFound
       THEN
-         IF WriteNBytes(StdErr, CommandLength, ADR(Command))=CommandLength
-         THEN
-         END
+         Command := WriteS(StdErr, Command)
       END ;
-      exit( system(ADR(Command)) )
+      exit( system(string(Command)) )
    ELSE
-      IF WriteNBytes(fo, CommandLength, ADR(Command))=CommandLength
-      THEN
-      END
+      Command := WriteS(fo, Command)
    END
 END FlushCommand ;
-
-
-(*
-   AddArchive - adds an archive into the archive list.
-*)
-
-PROCEDURE AddArchive (Name: CARDINAL) ;
-BEGIN
-   IF NoOfArchives=MaxArchives
-   THEN
-      WriteString(StdErr, 'increase MaxArchives in gm2lcc.mod') ; WriteLine(StdErr) ; Close(StdErr) ;
-      exit(1)
-   ELSE
-      Archives[NoOfArchives] := Name ;
-      INC(NoOfArchives)
-   END
-END AddArchive ;
-
-
-(*
-   Remove - removes a file, a.
-*)
-
-PROCEDURE Remove (a: ARRAY OF CHAR) ;
-VAR
-   buf: ARRAY [0..MaxCommand] OF CHAR ;
-BEGIN
-   StrCopy('rm -f ', buf) ;
-   StrConCat(buf, a, buf) ;
-   IF system(ADR(buf))=0
-   THEN
-   END
-END Remove ;
 
 
 (*
@@ -167,79 +105,57 @@ PROCEDURE GenerateCommand ;
 BEGIN
    IF ApuFound
    THEN
-      AddCommand('ld-is32 -Ttext 0x0 ')
+      Command := InitString('ld-is32 -Ttext 0x0 ')
    ELSIF UseAr
    THEN
-      AddCommand('ar rc ') ;
+      Command := InitString('ar rc ') ;
       IF TargetFound
       THEN
-         (* Remove(Target) ; *)
-         AddCommand(Target) ;
-         AddCommand(' ')
+         Command := ConCat(Command, Target) ;
+         Command := ConCatChar(Command, ' ')
       ELSE
          WriteString(StdErr, 'need target with ar') ; WriteLine(StdErr) ; Close(StdErr) ;
          exit(1)
       END
    ELSE
-      AddCommand('gcc ') ;
+      Command := InitString('gcc ') ;
       IF DebugFound
       THEN
-         AddCommand('-g ')
+         Command := ConCat(Command, Mark(InitString('-g ')))
       END ;
       IF ProfileFound
       THEN
-         AddCommand('-p ')
+         Command := ConCat(Command, Mark(InitString('-p ')))
       END ;
       IF TargetFound
       THEN
-         AddCommand('-o ') ;
-         AddCommand(Target) ;
-         AddCommand(' ')
+         Command := ConCat(Command, Mark(InitString('-o '))) ;
+         Command := ConCat(Command, Target) ;
+         Command := ConCatChar(Command, ' ')
       END ;
       IF ProfileFound
       THEN
-         AddCommand('-lgmon ')
+         Command := ConCat(Command, Mark(InitString('-lgmon ')))
       END
    END
 END GenerateCommand ;
 
 
 (*
-   WriteArchives - writes out the archive list.
-*)
-
-PROCEDURE WriteArchives ;
-VAR
-   i: CARDINAL ;
-   a: ARRAY [0..MaxName] OF CHAR ;
-BEGIN
-   i := 0 ;
-   WHILE i<NoOfArchives DO
-      AddCommand('  ') ;
-      GetKey(Archives[i], a) ;
-      AddCommand(a) ;
-      INC(i)
-   END ;
-END WriteArchives ;
-
-
-(*
    RemoveLinkOnly - removes the <onlylink> prefix, if present.
+                    Otherwise, s, is returned.
 *)
 
-PROCEDURE RemoveLinkOnly (VAR a: ARRAY OF CHAR) ;
+PROCEDURE RemoveLinkOnly (s: String) : String ;
 VAR
-   i, l: CARDINAL ;
+   t: String ;
 BEGIN
-   IF IsSubString(a, '<onlylink>')
+   t := InitString('<onlylink>') ;
+   IF Equal(Mark(Slice(s, 0, Length(t)-1)), t)
    THEN
-      l := StrLen('<onlylink>') ;
-      i := 0 ;
-      WHILE i<l DO
-         a[i] := ' ' ;
-         INC(i)
-      END ;
-      StrRemoveWhitePrefix(a, a)
+      RETURN( RemoveWhitePrefix(Slice(Mark(s), Length(t), 0)) )
+   ELSE
+      RETURN( s )
    END
 END RemoveLinkOnly ;
 
@@ -250,56 +166,55 @@ END RemoveLinkOnly ;
 
 PROCEDURE GenCC ;
 VAR
-   a, b: ARRAY [0..MaxName] OF CHAR ;
+   s, t, u: String ;
 BEGIN
    GenerateCommand ;
    IF ApuFound
    THEN
-      AddCommand(' crt0.obj ') ; AddCommand(StartupFile) ; AddCommand('.obj')
+      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString(' crt0.obj %s.obj')),
+                                               StartupFile)))
    ELSE
-      AddCommand(StartupFile) ; AddCommand('.o')
+      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
+                                               StartupFile)))
    END ;
    REPEAT
-      ReadString(fi, a) ;
-      StrRemoveWhitePrefix(a, a) ;
-      IF (a[0]#Comment) AND
-         (NOT (IgnoreMain AND StrEqual(a, MainModule))) AND
-         (NOT StrEqual(a, ''))
+      s := RemoveWhitePrefix(ReadS(fi)) ;
+      IF (NOT Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1)))) AND
+         (NOT (IgnoreMain AND Equal(s, MainModule))) AND (NOT EqualArray(s, ''))
       THEN
-         RemoveLinkOnly(a) ;
-         StrCopy(a, b) ;
+         s := RemoveLinkOnly(s) ;
+         t := Dup(s) ;
          IF ApuFound
          THEN
-            CalculateFileName(a, 'obj', a)
+            t := CalculateFileName(s, Mark(InitString('obj')))
          ELSE
-            CalculateFileName(a, 'o', a)
+            t := CalculateFileName(s, Mark(InitString('o')))
          END ;
-         IF FindSourceFile(a, a)
+         IF FindSourceFile(t, u)
          THEN
-            AddCommand('  ') ;
-            AddCommand(a)
+            Command := ConCat(ConCatChar(Command, ' '), u) ;
+            u := KillString(u)
          ELSE
-            StrCopy(b, a) ;
-            CalculateFileName(a, 'a', a) ;
-            IF FindSourceFile(a, a)
+            t := KillString(t) ;
+            (* try finding .a archive *)
+            t := CalculateFileName(s, Mark(InitString('a'))) ;
+            IF FindSourceFile(t, u)
             THEN
-               AddArchive(MakeKey(a))
+               Archives := ConCatChar(ConCat(Archives, u), ' ') ;
+               u := KillString(u)
             ELSE
-               WriteString(StdErr, 'have not found ') ;
-               WriteString(StdErr, b) ;
-               WriteString(StdErr, '.o or ') ;
-               WriteString(StdErr, b) ;
-               WriteString(StdErr, '.a') ; WriteLine(StdErr) ; Close(StdErr) ;
+               fprintf2(StdErr, 'cannot find %s.o or %s.a\n', s, s) ;
+               Close(StdErr) ;
                exit(1)
             END
-         END
+         END ;
+         t := KillString(t)
       END
    UNTIL EOF(fi) ;
-   WriteArchives ;
+   Command := ConCat(Command, Archives) ;
    IF LibrariesFound
    THEN
-      AddCommand(' ') ;
-      AddCommand(Libraries)
+      Command := ConCat(ConCatChar(Command, ' '), Libraries)
    END ;
    FlushCommand
 END GenCC ;
@@ -310,22 +225,11 @@ END GenCC ;
                      after the string.
 *)
 
-PROCEDURE WriteModuleName (ModuleName: ARRAY OF CHAR) ;
-CONST
-   MaxSpaces = 20 ;
-VAR
-   i, High: CARDINAL ;
+PROCEDURE WriteModuleName (ModuleName: String) ;
 BEGIN
-   WriteString(fo, ModuleName) ;
-   High := StrLen(ModuleName) ;
-   IF High<MaxSpaces
+   ModuleName := WriteS(fo, ModuleName) ;
+   IF KillString(WriteS(fo, Mark(Mult(Mark(InitString(' ')), MaxSpaces-Length(ModuleName)))))=NIL
    THEN
-      High := MaxSpaces - High ;
-      i := 0 ;
-      WHILE i<High DO
-         WriteChar(fo, ' ') ;
-         INC(i)
-      END
    END
 END WriteModuleName ;
 
@@ -337,43 +241,49 @@ END WriteModuleName ;
 
 PROCEDURE CheckCC ;
 VAR
-   a, b : ARRAY [0..MaxName] OF CHAR ;
-   Error: INTEGER ;
+   s, t, u: String ;
+   Error  : INTEGER ;
 BEGIN
    Error := 0 ;
-   ReadString(fi, a) ;
-   WHILE NOT EOF(fi) DO
-      RemoveLinkOnly(a) ;
-      IF (a[0]#Comment) AND (NOT StrEqual(a, ''))
+   REPEAT
+      s := RemoveWhitePrefix(ReadS(fi)) ;
+      IF Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1))) AND
+         (NOT EqualArray(s, ''))
       THEN
-         WriteString(fo, 'Module ') ;
-         WriteModuleName(a) ;
-         StrCopy(a, b) ;
+         s := RemoveLinkOnly(s) ;
+         t := Dup(s) ;
          IF ApuFound
          THEN
-            CalculateFileName(a, 'obj', a)
+            t := CalculateFileName(s, Mark(InitString('obj')))
          ELSE
-            CalculateFileName(a, 'o', a)
+            t := CalculateFileName(s, Mark(InitString('o')))
          END ;
-         IF FindSourceFile(a, a)
+         IF FindSourceFile(t, u)
          THEN
-            WriteString(fo, ' : ') ;
-            WriteString(fo, a)
-         ELSE
-            CalculateFileName(b, 'a', b) ;
-            IF FindSourceFile(b, b)
+            IF KillString(WriteS(fo, Mark(Sprintf1(Mark(InitString(' : %s\n')), u))))=NIL
             THEN
-               WriteString(fo, ' : ') ;
-               WriteString(fo, b)
+            END ;
+            u := KillString(u)
+         ELSE
+            t := KillString(t) ;
+            (* try finding .a archive *)
+            t := Assign(t, s) ;
+            t := CalculateFileName(s, Mark(InitString('a'))) ;
+            IF FindSourceFile(t, u)
+            THEN
+               IF KillString(WriteS(fo, Mark(Sprintf1(Mark(InitString(' : %s\n')), u))))=NIL
+               THEN
+               END ;
+               u := KillString(u)
             ELSE
-               WriteString(fo, ' : Not found') ;
+               IF KillString(WriteS(fo, Mark(InitString(' : Not found\n'))))=NIL
+               THEN
+               END ;
                Error := 1
             END
-         END ;
-         WriteLine(fo)
-      END ;
-      ReadString(fi, a)
-   END ;
+         END
+      END
+   UNTIL EOF(fi) ;
    Close(fo) ;
    exit(Error)
 END CheckCC ;
@@ -388,7 +298,8 @@ PROCEDURE ProcessTarget (i: CARDINAL) ;
 BEGIN
    IF NOT GetArg(Target, i)
    THEN
-      WriteString(StdErr, 'cannot get target argument after -o') ; WriteLine(StdErr) ;
+      fprintf0(StdErr, 'cannot get target argument after -o\n') ;
+      Close(StdErr) ;
       exit(1)
    END ;
    TargetFound := TRUE
@@ -396,14 +307,17 @@ END ProcessTarget ;
 
 
 (*
-   StripModuleExtention - strips a .mod from off the end of string, a.
+   StripModuleExtension - returns a String without an extension from, s.
+                          It only considers '.obj' and '.o' as extensions.
 *)
 
-PROCEDURE StripModuleExtention (VAR a: ARRAY OF CHAR) ;
+PROCEDURE StripModuleExtension (s: String) : String ;
 BEGIN
-   ExtractExtension(a, '.obj') ;
-   ExtractExtension(a, '.o')
-END StripModuleExtention ;
+   RETURN(
+          ExtractExtension(ExtractExtension(s, Mark(InitString('.o'))),
+                           Mark(InitString('.obj')))
+         )
+END StripModuleExtension ;
 
 
 (*
@@ -414,9 +328,10 @@ PROCEDURE ProcessStartupFile (i: CARDINAL) ;
 BEGIN
    IF GetArg(StartupFile, i)
    THEN
-      StripModuleExtention(StartupFile)
+      StartupFile := StripModuleExtension(StartupFile)
    ELSE
-      WriteString(StdErr, 'cannot get startup argument after -startup') ; WriteLine(StdErr) ; Close(StdErr) ;
+      fprintf0(StdErr, 'cannot get startup argument after -startup\n') ;
+      Close(StdErr) ;
       exit(1)
    END
 END ProcessStartupFile ;
@@ -424,15 +339,15 @@ END ProcessStartupFile ;
 
 (*
    IsALibrary - returns TRUE if, a, is a library. If TRUE we add it to the
-                Libraries array.
+                Libraries string.
 *)
 
-PROCEDURE IsALibrary (a: ARRAY OF CHAR) : BOOLEAN ;
+PROCEDURE IsALibrary (s: String) : BOOLEAN ;
 BEGIN
-   IF (StrLen(a)>1) AND (a[0]='-') AND (a[1]='l')
+   IF EqualArray(Mark(Slice(s, 0, 1)), '-l')
    THEN
       LibrariesFound := TRUE ;
-      StrConCat(Libraries, a, Libraries) ;
+      Libraries := ConCat(Libraries, s) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -446,76 +361,73 @@ END IsALibrary ;
 
 PROCEDURE ScanArguments ;
 VAR
-   a        : ARRAY [0..MaxName] OF CHAR ;
+   s        : String ;
    i        : CARDINAL ;
    FoundFile: BOOLEAN ;
 BEGIN
    FoundFile := FALSE ;
    i := 1 ;
-   WHILE GetArg(a, i) DO
-      IF StrEqual(a, '-apu')
+   WHILE GetArg(s, i) DO
+      IF EqualArray(s, '-apu')
       THEN
          ApuFound := TRUE
-      ELSIF StrEqual(a, '-g')
+      ELSIF EqualArray(s, '-g')
       THEN
          DebugFound := TRUE
-      ELSIF StrEqual(a, '-c')
+      ELSIF EqualArray(s, '-c')
       THEN
          CheckFound := TRUE
-      ELSIF StrEqual(a, '-main')
+      ELSIF EqualArray(s, '-main')
       THEN
          INC(i) ;
          IF NOT GetArg(MainModule, i)
          THEN
-            WriteString(StdErr, 'expecting modulename after -main option not: ') ;
-            WriteString(StdErr, MainModule) ; WriteLine(StdErr) ; Close(StdErr) ;
+            fprintf0(StdErr, 'expecting modulename after -main option\n') ;
+            Close(StdErr) ;
             exit(1)
          END
-      ELSIF StrEqual(a, '-p')
+      ELSIF EqualArray(s, '-p')
       THEN
          ProfileFound := TRUE
-      ELSIF StrEqual(a, '-v')
+      ELSIF EqualArray(s, '-v')
       THEN
          VerboseFound := TRUE
-      ELSIF StrEqual(a, '-exec')
+      ELSIF EqualArray(s, '-exec')
       THEN
          ExecCommand := TRUE
-      ELSIF StrEqual(a, '-ignoremain')
+      ELSIF EqualArray(s, '-ignoremain')
       THEN
          IgnoreMain := TRUE
-      ELSIF StrEqual(a, '-ar')
+      ELSIF EqualArray(s, '-ar')
       THEN
          UseAr := TRUE
-      ELSIF StrEqual(a, '-M')
+      ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
       THEN
-         INC(i) ;
-         IF GetArg(a, i)
-         THEN
-            SetSearchPath(a)
-         END
-      ELSIF StrEqual(a, '-o')
+         PrependSearchPath(Slice(s, 2, 0))
+      ELSIF EqualArray(s, '-o')
       THEN
          INC(i) ;                 (* Target found *)
          ProcessTarget(i)
-      ELSIF StrEqual(a, '-startup')
+      ELSIF EqualArray(s, '-startup')
       THEN
          INC(i) ;                 (* Target found *)
          ProcessStartupFile(i)
-      ELSIF IsALibrary(a)
+      ELSIF IsALibrary(s)
       THEN
       ELSE
          IF FoundFile
          THEN
-            WriteString(StdErr, 'already found filename, unknown option: ') ;
-            WriteString(StdErr, a) ; WriteLine(StdErr) ; Close(StdErr) ;
+            fprintf1(StdErr, 'already specified input filename, unknown option (%s)\n', s) ;
+            Close(StdErr) ;
             exit(1)
          ELSE
             (* must be input filename *)
             Close(StdIn) ;
-            fi := OpenToRead(a) ;
+            fi := OpenToRead(s) ;
             IF NOT IsNoError(fi)
             THEN
-               WriteString(StdErr, 'failed to open ') ; WriteString(StdErr, a) ; WriteLine(StdErr) ; Close(StdErr) ;
+               fprintf1(StdErr, 'failed to open %s\n', s) ;
+               Close(StdErr) ;
                exit(1)
             END ;
             FoundFile := TRUE
@@ -532,7 +444,6 @@ END ScanArguments ;
 
 PROCEDURE Init ;
 BEGIN
-   NoOfArchives  := 0 ;
    DebugFound    := FALSE ;
    CheckFound    := FALSE ;
    TargetFound   := FALSE ;
@@ -541,12 +452,18 @@ BEGIN
    ApuFound      := FALSE ;
    UseAr         := FALSE ;
    VerboseFound  := FALSE ;
-   StrCopy('', MainModule) ;
-   StrCopy('mod_init', StartupFile) ;
+   MainModule    := InitString('') ;
+   StartupFile   := InitString('mod_init') ;
    fi            := StdIn ;
    fo            := StdOut ;
    ExecCommand   := FALSE ;
-   CommandLength := 0 ;
+
+   Archives      := NIL ;
+   Path          := NIL ;
+   Libraries     := NIL ;
+   Command       := NIL ;
+   Target        := NIL ;
+
    ScanArguments ;
    IF CheckFound
    THEN

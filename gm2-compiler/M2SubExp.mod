@@ -22,13 +22,14 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr, GetMode, GetSymName, IsVar, IsTempor
                         IsProcedure, GetVarFather, IsConst, IsConstLit, MakeConstVar, PushValue, PopValue,
                         IsValueSolved ;
 
+FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
+FROM M2Error IMPORT InternalError, ErrorStringAt ;
+FROM Strings IMPORT InitString ;
+
 FROM M2Constants IMPORT IsZero, IsOne, IsTwo, IsSame, MakeNewConstFromValue ;
 FROM M2ALU IMPORT Add, Mult, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;
-FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
-FROM M2Lexical IMPORT InternalError, NearToken ;
-
 FROM M2Quads IMPORT QuadOperator, GetQuad, SubQuad, PutQuad, EraseQuad, GetNextQuad, DisplayQuad, Head,
-                    WriteOperator, IsOptimizeOn ;
+                    WriteOperator, IsOptimizeOn, QuadToTokenNo ;
 
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT Write ;
@@ -36,7 +37,7 @@ FROM NumberIO IMPORT WriteCard, StrToCard, CardToStr ;
 FROM Environment IMPORT GetEnvironment ;
 FROM StrLib IMPORT StrConCat ;
 
-FROM M2Entity IMPORT NulEntity, Entities, InitEntities, GetNoOfEntities,
+FROM M2Entity IMPORT Entity, InitEntities, HasLValue,
                      FindLatestEntity, GetLatestEntity,
                      IsEntityClean, IsLValue,
                      MakeEntityDirty, MakeEntityClean,
@@ -69,7 +70,7 @@ TYPE
    Node = RECORD
              IsLeaf   : BOOLEAN ;    (* is this a leaf node, true means left, right not used *)
              SymQuad  : CARDINAL ;
-             EntList  : ARRAY [1..MaxEntList] OF CARDINAL ;
+             EntList  : ARRAY [1..MaxEntList] OF Entity ;
              NoOfIds  : CARDINAL ;
              Op       : QuadOperator ;
              Left,
@@ -98,8 +99,7 @@ VAR
 
 
 (* %%%FORWARD%%%
-PROCEDURE HasLValue (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE RemoveAllOlderEntities (n: Nodes; e: Entities) ; FORWARD ;
+PROCEDURE RemoveAllOlderEntities (n: Nodes; e: Entity) ; FORWARD ;
 PROCEDURE IsCommutative (op: QuadOperator) : BOOLEAN ; FORWARD ;
 PROCEDURE MakeMove (q: CARDINAL; Start, End: CARDINAL;
                     op1, op3: CARDINAL) ; FORWARD ;
@@ -117,19 +117,19 @@ PROCEDURE GetNodeIndexNo (node: Nodes) : CARDINAL ; FORWARD ;
 PROCEDURE Flush (Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE FlushIndirection (Start, End: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE DisplayTree (root: Nodes; indent: CARDINAL) ; FORWARD ;
-PROCEDURE AddDependent (n: Nodes; entity: Entities) ; FORWARD ;
-PROCEDURE RemoveEntityFromEntList (entity: Entities; q: CARDINAL) ; FORWARD ;
+PROCEDURE AddDependent (n: Nodes; entity: Entity) ; FORWARD ;
+PROCEDURE RemoveEntityFromEntList (entity: Entity; q: CARDINAL) ; FORWARD ;
 PROCEDURE WriteNode (n: Nodes) ; FORWARD ;
 PROCEDURE CreateTree (n: Nodes) ; FORWARD ;
 PROCEDURE RemoveTree (n: CARDINAL) ; FORWARD ;
 PROCEDURE MakeNode (q: CARDINAL;
-                    entity: Entities; op: QuadOperator;
+                    entity: Entity; op: QuadOperator;
                     left, right: Nodes) : Nodes ; FORWARD ;
-PROCEDURE MakeLeaf (entity: Entities) : Nodes ; FORWARD ;
+PROCEDURE MakeLeaf (entity: Entity) : Nodes ; FORWARD ;
 PROCEDURE NewNode (q: CARDINAL;
-                   entity: Entities; op: QuadOperator;
+                   entity: Entity; op: QuadOperator;
                    left, right: CARDINAL) : Nodes ; FORWARD ;
-PROCEDURE NewLeaf (entity: Entities) : Nodes ; FORWARD ;
+PROCEDURE NewLeaf (entity: Entity) : Nodes ; FORWARD ;
 PROCEDURE IsNodeKnown (op: QuadOperator; left, right: Nodes) : Nodes ; FORWARD ;
    %%%FORWARD%%% *)
 
@@ -305,7 +305,7 @@ BEGIN
       RETURN( NulSym )
    ELSE
       WITH NodeList[n] DO
-         IF EntList[1]=NulEntity
+         IF EntList[1]=NIL
          THEN
             ChooseCleanEntityForLabel(n)
          END ;
@@ -332,7 +332,7 @@ BEGIN
       WITH NodeList[n] DO
          i := NoOfIds ;
          WHILE i>1 DO
-            IF (EntList[i]#NulEntity) AND IsConstLit(GetEntitySym(EntList[i]))
+            IF (EntList[i]#NIL) AND IsConstLit(GetEntitySym(EntList[i]))
             THEN
                RETURN( GetEntitySym(EntList[i]) )
             END ;
@@ -348,7 +348,7 @@ END GetSymOfChoice ;
    CreateSubExpression - creates a subexpression which references node, k.
 *)
 
-PROCEDURE CreateSubExpression (entity: Entities; node: Nodes) : BOOLEAN ;
+PROCEDURE CreateSubExpression (entity: Entity; node: Nodes) : BOOLEAN ;
 BEGIN
    WITH NodeList[node] DO
       IF Debugging
@@ -368,7 +368,7 @@ END CreateSubExpression ;
               It searches all dependents.
 *)
 
-PROCEDURE FindLeaf (entity: Entities) : Nodes ;
+PROCEDURE FindLeaf (entity: Entity) : Nodes ;
 VAR
    n   : Nodes ;
    i, j: CARDINAL ;
@@ -396,7 +396,7 @@ END FindLeaf ;
               Otherwise a leaf is created.
 *)
 
-PROCEDURE MakeLeaf (entity: Entities) : Nodes ;
+PROCEDURE MakeLeaf (entity: Entity) : Nodes ;
 VAR
    l: CARDINAL ;
 BEGIN
@@ -414,7 +414,7 @@ END MakeLeaf ;
    MakeOp - 
 *)
 
-PROCEDURE MakeOp (q: CARDINAL; new, old: Entities; n: Nodes) ;
+PROCEDURE MakeOp (q: CARDINAL; new, old: Entity; n: Nodes) ;
 VAR
    index: CARDINAL ;
 BEGIN
@@ -469,7 +469,7 @@ END MakeReturnValue ;
 
 PROCEDURE MakeFunctValue (q: CARDINAL; Start, End: CARDINAL; op1, op3: CARDINAL) ;
 VAR
-   e: Entities ;
+   e: Entity ;
 BEGIN
    IF FunctNode=NulNode
    THEN
@@ -609,7 +609,7 @@ END MakeXIndr ;
 PROCEDURE MakeAddr (q: CARDINAL; Start, End: CARDINAL;
                     op1, op3: CARDINAL) ;
 VAR
-   new, old: Entities ;
+   new, old: Entity ;
 BEGIN
    (* addr can operate on different sizes as it calculates the address of a symbol ADR(record) *)
    old := GetLatestEntity(op1, FALSE, VAL(CARDINAL, NoOfNodes)) ;
@@ -630,7 +630,7 @@ END MakeAddr ;
 PROCEDURE MakeMove (q: CARDINAL; Start, End: CARDINAL;
                     op1, op3: CARDINAL) ;
 VAR
-   new, old: Entities ;
+   new, old: Entity ;
 BEGIN
    (* just like a copy *)
    RemoveQuad(q) ;
@@ -712,7 +712,7 @@ END MakeCoerce ;
 *)
 
 PROCEDURE MakeNode (q: CARDINAL;
-                    entity: Entities; op: QuadOperator;
+                    entity: Entity; op: QuadOperator;
                     left, right: Nodes) : Nodes ;
 VAR
    r: BOOLEAN ;
@@ -751,7 +751,7 @@ END GetNodeIndexNo ;
 *)
 
 PROCEDURE NewNode (q: CARDINAL;
-                   entity: Entities; op: QuadOperator;
+                   entity: Entity; op: QuadOperator;
                    left, right: Nodes) : Nodes ;
 VAR
    k: Nodes ;
@@ -832,7 +832,7 @@ END CreateTree ;
                              is an FALSE.
 *)
 
-PROCEDURE RemoveEntityFromEntList (entity: Entities; q: CARDINAL) ;
+PROCEDURE RemoveEntityFromEntList (entity: Entity; q: CARDINAL) ;
 VAR
    i, j, k: CARDINAL ;
 BEGIN
@@ -848,7 +848,7 @@ BEGIN
          WHILE j<=NoOfIds DO
             IF EntList[j]=entity
             THEN
-               EntList[j] := NulEntity
+               EntList[j] := NIL
             END ;
             INC(j)
          END ;
@@ -856,7 +856,7 @@ BEGIN
          j := 1 ;
          k := 1 ;
          WHILE j<=NoOfIds DO
-            IF EntList[j]=NulEntity
+            IF EntList[j]=NIL
             THEN
                INC(k)
             END ;
@@ -882,7 +882,7 @@ END RemoveEntityFromEntList ;
    NewLeaf - creates a new node for symbol, id.
 *)
 
-PROCEDURE NewLeaf (entity: Entities) : Nodes ;
+PROCEDURE NewLeaf (entity: Entity) : Nodes ;
 BEGIN
    IF NoOfNodes=MaxNodes
    THEN
@@ -936,7 +936,7 @@ END IsNodeKnown ;
    AddDependent - places an entity, entity, into the label list node, n.
 *)
 
-PROCEDURE AddDependent (n: Nodes; entity: Entities) ;
+PROCEDURE AddDependent (n: Nodes; entity: Entity) ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -947,7 +947,7 @@ BEGIN
          THEN
             MakeEntityDirty(entity) ;
             RETURN
-         ELSIF EntList[i]=NulEntity
+         ELSIF EntList[i]=NIL
          THEN
             EntList[i] := entity ;
             MakeEntityDirty(entity) ;
@@ -1115,7 +1115,7 @@ END CannotBeCalculated ;
 PROCEDURE MakeOpWithMakeNode (q: CARDINAL; Start, End: CARDINAL; op1: CARDINAL; op: QuadOperator; op2, op3: CARDINAL) ;
 VAR
    n2, n3  : Nodes ;
-   new, old: Entities ;
+   new, old: Entity ;
 BEGIN
    IF CannotBeCalculated(q, Start, End, op1, op, op2, op3)
    THEN
@@ -1147,7 +1147,7 @@ PROCEDURE MakeMult (q, Start, End: CARDINAL;
                     op1, op2, op3: CARDINAL) ;
 VAR
    k       : CARDINAL ;
-   new, old: Entities ;
+   new, old: Entity ;
 BEGIN
    IF IsAliasedToOne(op2)
    THEN
@@ -1186,7 +1186,7 @@ PROCEDURE MakeDiv (q, Start, End: CARDINAL;
                    op1, op2, op3: CARDINAL) ;
 VAR
    k       : CARDINAL ;
-   new, old: Entities ;
+   new, old: Entity ;
 BEGIN
    IF IsAliasedToOne(op3)
    THEN
@@ -1196,7 +1196,7 @@ BEGIN
       MakeMove(q, Start, End, op1, MakeConstLit(MakeKey('1')))
    ELSIF IsAliasedToZero(op3)
    THEN
-      NearToken('division by zero in source file (found by constant propergation and common subexpression elimination)', op1)
+      ErrorStringAt(InitString('division by zero in source file (found by constant propergation and common subexpression elimination)'), QuadToTokenNo(q))
    ELSE
       MakeOpWithMakeNode(q, Start, End, op1, MultOp, op2, op3)
    END      
@@ -1290,7 +1290,7 @@ VAR
    k            : CARDINAL ;
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
-   new, old     : Entities ;
+   new, old     : Entity ;
 BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CASE op OF
@@ -1507,7 +1507,7 @@ BEGIN
       ELSIF GetSym(n)=NulSym
       THEN
 (*
-         IF EntList[1]=NulEntity
+         IF EntList[1]=NIL
          THEN
             InternalError('why are we using an entity which is nul?', __FILE__, __LINE__)
          END ;
@@ -1550,17 +1550,17 @@ END IsNode ;
 
 
 (*
-   SwapCard - 
+   SwapEntity - 
 *)
 
-PROCEDURE SwapCard (VAR i, j: CARDINAL) ;
+PROCEDURE SwapEntity (VAR i, j: Entity) ;
 VAR
-   t: CARDINAL ;
+   t: Entity ;
 BEGIN
    t := i ;
    i := j ;
    j := t
-END SwapCard ;
+END SwapEntity ;
 
 
 (*
@@ -1573,14 +1573,14 @@ VAR
    i: CARDINAL ;
 BEGIN
    WITH NodeList[n] DO
-      IF (EntList[1]=NulEntity) OR (NOT IsConst(GetEntitySym(EntList[1])))
+      IF (EntList[1]=NIL) OR (NOT IsConst(GetEntitySym(EntList[1])))
       THEN
          (* check to see whether a constant can be found *)
          i := 2 ;
          WHILE i<=NoOfIds DO
             IF (GetEntitySym(EntList[i])#NulSym) AND IsConst(GetEntitySym(EntList[i]))
             THEN
-               SwapCard(EntList[1], EntList[i]) ;
+               SwapEntity(EntList[1], EntList[i]) ;
                RETURN
             END ;
             INC(i)
@@ -1591,23 +1591,23 @@ BEGIN
          (* we prefer to use a variable or temporary which is used outside the block: Start..End *)
          i := 2 ;
          WHILE i<=NoOfIds DO
-            IF EntList[1]=NulEntity
+            IF EntList[1]=NIL
             THEN
-               SwapCard(EntList[1], EntList[i])
-            ELSIF (EntList[1]#NulEntity) AND IsVar(GetEntitySym(EntList[1])) AND
+               SwapEntity(EntList[1], EntList[i])
+            ELSIF (EntList[1]#NIL) AND IsVar(GetEntitySym(EntList[1])) AND
                   (NOT IsUsedOutSide(GetEntitySym(EntList[1]), Start, End))
             THEN
                (* now we know that EntList[1] is either a temp/real variable
                   and it is not used outside Start..End.
                   We shall now see whether EntList[i] is used outside and is a variable
                *)
-               IF EntList[i]#NulEntity
+               IF EntList[i]#NIL
                THEN
                   IF IsVar(GetEntitySym(EntList[i])) AND
                      IsUsedOutSide(GetEntitySym(EntList[i]), Start, End)
                   THEN
                      (* better to use EntList[i] as it is used outside *)
-                     SwapCard(EntList[1], EntList[i])
+                     SwapEntity(EntList[1], EntList[i])
                   ELSIF IsTemporary(GetEntitySym(EntList[1])) AND
                         (NOT IsTemporary(GetEntitySym(EntList[i])))
                   THEN
@@ -1615,7 +1615,7 @@ BEGIN
                         EntList[1] is a temporary and EntList[i] is a real variable.
                         - use real variable as it might save a flush.
                      *)
-                     SwapCard(EntList[1], EntList[i])
+                     SwapEntity(EntList[1], EntList[i])
                   END
                END ;
                INC(i)
@@ -1755,7 +1755,7 @@ BEGIN
          (* now we must clobber this node - make it a leaf with no ids *)
          IsLeaf := TRUE ;
          NoOfIds := 0 ;
-         EntList[1] := NulEntity
+         EntList[1] := NIL
       END
    ELSE
       InternalError('node was thought to be unreferenced (see CheckOperator)', __FILE__, __LINE__)
@@ -1859,7 +1859,7 @@ BEGIN
    WITH NodeList[n] DO
       i := NoOfIds ;
       WHILE i>0 DO
-         IF (EntList[i]#NulEntity) AND IsUsedOutSide(GetEntitySym(EntList[i]), Start, End)
+         IF (EntList[i]#NIL) AND IsUsedOutSide(GetEntitySym(EntList[i]), Start, End)
          THEN
             RETURN( FALSE )
          END ;
@@ -1878,7 +1878,7 @@ PROCEDURE IsConstIfFlipNode (top, bot: Nodes;
                              op: QuadOperator; l, r: Nodes) : BOOLEAN ;
 VAR
    sym: CARDINAL ;
-   e  : Entities ;
+   e  : Entity ;
    k  : Nodes ;
 BEGIN
    IF (r#NulNode) AND (l#NulNode)
@@ -2335,7 +2335,7 @@ END TopologicalSortTree ;
    IsReferencedInNode - returns TRUE whether a node, n, references an entity, e.
 *)
 
-PROCEDURE IsReferencedInNode (n: Nodes; e: Entities) : BOOLEAN ;
+PROCEDURE IsReferencedInNode (n: Nodes; e: Entity) : BOOLEAN ;
 VAR
    i: CARDINAL ;
 BEGIN
@@ -2369,7 +2369,7 @@ BEGIN
    i := 1 ;
    WHILE i<=NoOfNodes DO
       WITH NodeList[i] DO
-         IF IsLeaf AND (EntList[1]#NulEntity) AND (NOT IsReferencedInNode(FunctNode, EntList[1]))
+         IF IsLeaf AND (EntList[1]#NIL) AND (NOT IsReferencedInNode(FunctNode, EntList[1]))
          THEN
             MakeEntityClean(EntList[1])
          END
@@ -2415,7 +2415,7 @@ BEGIN
          THEN
             i := 1 ;
             WHILE i<=NoOfIds DO
-               IF (EntList[i]#NulEntity) AND IsEntityClean(EntList[i]) AND (GetEntityIndex(EntList[i])>IndexNo)
+               IF (EntList[i]#NIL) AND IsEntityClean(EntList[i]) AND (GetEntityIndex(EntList[i])>IndexNo)
                THEN
                   IndexNo := GetEntityIndex(EntList[i])
                END ;
@@ -2468,26 +2468,6 @@ END TopologicallySortForest ;
 
 
 (*
-   HasLValue - returns TRUE if symbol, Sym, has an LValue
-*)
-
-PROCEDURE HasLValue (Sym: CARDINAL) : BOOLEAN ;
-VAR
-   i: Entities ;
-BEGIN
-   i := GetNoOfEntities() ;
-   WHILE i>0 DO
-      IF (GetEntitySym(i)=Sym) AND IsLValue(i)
-      THEN
-         RETURN( TRUE )
-      END ;
-      DEC(i)
-   END ;
-   RETURN( FALSE )
-END HasLValue ;
-
-
-(*
    IsUsedOutSide - returns TRUE if symbol is used outside the quadruple range, Start..End.
 *)
 
@@ -2524,11 +2504,11 @@ END IsUsedOutSide ;
                     to read the variable and alter it..
 *)
 
-PROCEDURE NeedsToBeSaved (e: Entities; Start, End: CARDINAL) : BOOLEAN ;
+PROCEDURE NeedsToBeSaved (e: Entity; Start, End: CARDINAL) : BOOLEAN ;
 VAR
    sym: CARDINAL ;
 BEGIN
-   IF e=NulEntity
+   IF e=NIL
    THEN
       RETURN( FALSE )
    ELSE
@@ -2550,7 +2530,7 @@ END NeedsToBeSaved ;
 PROCEDURE IsDirty (n: Nodes; i: CARDINAL) : BOOLEAN ;
 BEGIN
    WITH NodeList[n] DO
-      RETURN( (EntList[i]#NulEntity) AND (IsVar(GetEntitySym(EntList[i]))) AND (NOT IsEntityClean(EntList[i])) )
+      RETURN( (EntList[i]#NIL) AND (IsVar(GetEntitySym(EntList[i]))) AND (NOT IsEntityClean(EntList[i])) )
    END
 END IsDirty ;
 
@@ -2577,12 +2557,12 @@ END IsGlobalVariable ;
    CleanSymbol - clean the entity, e, using the symbol, with.
 *)
 
-PROCEDURE CleanSymbol (e: Entities; with: CARDINAL) ;
+PROCEDURE CleanSymbol (e: Entity; with: CARDINAL) ;
 VAR
    sym,
    i  : CARDINAL ;
 BEGIN
-   IF e#NulEntity
+   IF e#NIL
    THEN
       sym := GetEntitySym(e) ;
       IF Debugging
@@ -2622,9 +2602,9 @@ BEGIN
       (* try for a constant first *)
       i := 2 ;
       WHILE i<=NoOfIds DO
-         IF (EntList[i]#NulEntity) AND IsEntityClean(EntList[i]) AND IsConst(GetEntitySym(EntList[i]))
+         IF (EntList[i]#NIL) AND IsEntityClean(EntList[i]) AND IsConst(GetEntitySym(EntList[i]))
          THEN
-            SwapCard(EntList[1], EntList[i]) ;
+            SwapEntity(EntList[1], EntList[i]) ;
             RETURN
          END ;
          INC(i)
@@ -2633,9 +2613,9 @@ BEGIN
       (* try for a variable second *)
       i := 2 ;
       WHILE i<=NoOfIds DO
-         IF (EntList[i]#NulEntity) AND IsEntityClean(EntList[i]) AND IsVar(GetEntitySym(EntList[i]))
+         IF (EntList[i]#NIL) AND IsEntityClean(EntList[i]) AND IsVar(GetEntitySym(EntList[i]))
          THEN
-            SwapCard(EntList[1], EntList[i]) ;
+            SwapEntity(EntList[1], EntList[i]) ;
             RETURN
          END ;
          INC(i)
@@ -2644,9 +2624,9 @@ BEGIN
       (* now try for a temporary (or any clean symbol) *)
       i := 2 ;
       WHILE i<=NoOfIds DO
-         IF (EntList[i]#NulEntity) AND IsEntityClean(EntList[i])
+         IF (EntList[i]#NIL) AND IsEntityClean(EntList[i])
          THEN
-            SwapCard(EntList[1], EntList[i]) ;
+            SwapEntity(EntList[1], EntList[i]) ;
             RETURN
          END ;
          INC(i)
@@ -2669,12 +2649,12 @@ BEGIN
       i := 2 ;
       index := GetEntityIndex(EntList[j]) ;
       sym := GetEntitySym(EntList[j]) ;
-      EntList[j] := NulEntity ;  (* remove it *)
+      EntList[j] := NIL ;  (* remove it *)
       (* prefer to choose a clean entity *)
       WHILE i<=NoOfIds DO
-         IF (EntList[i]#NulEntity) AND IsEntityClean(EntList[i])
+         IF (EntList[i]#NIL) AND IsEntityClean(EntList[i])
          THEN
-            SwapCard(EntList[1], EntList[i]) ;
+            SwapEntity(EntList[1], EntList[i]) ;
             RETURN
          END ;
          INC(i)
@@ -2700,7 +2680,7 @@ END ChooseAnotherEntityForLabel ;
                             references to this symbol.
 *)
 
-PROCEDURE RemoveAllOlderEntities (n: Nodes; e: Entities) ;
+PROCEDURE RemoveAllOlderEntities (n: Nodes; e: Entity) ;
 VAR
    i    : Nodes ;
    j    : CARDINAL ;
@@ -2722,7 +2702,7 @@ BEGIN
          WITH NodeList[i] DO
             j := NoOfIds ;
             WHILE j>0 DO
-               IF (EntList[j]#NulEntity) AND
+               IF (EntList[j]#NIL) AND
                   (GetEntitySym(EntList[j])=sym) AND (GetEntityIndex(EntList[j])<index)
                THEN
                   (* found an older symbol entity *)
@@ -2731,7 +2711,7 @@ BEGIN
                      ChooseAnotherEntityForLabel(i, j)
                   ELSE
                      (* remove older entity *)
-                     EntList[j] := NulEntity
+                     EntList[j] := NIL
                   END
                END ;
                DEC(j)
@@ -2772,7 +2752,7 @@ BEGIN
          j := 1 ;
          WHILE j<=NoOfIds DO
             IF (j#i) AND
-               (EntList[j]#NulEntity) AND (GetEntityIndex(EntList[j])<highest)
+               (EntList[j]#NIL) AND (GetEntityIndex(EntList[j])<highest)
             THEN
                RETURN( TRUE )
             END ;
@@ -2812,7 +2792,7 @@ BEGIN
          IF NOT IsItemInList(l, VAL(CARDINAL, i))
          THEN
             WITH NodeList[i] DO
-               IF (EntList[1]#NulEntity) AND IsEntityClean(EntList[1]) AND
+               IF (EntList[1]#NIL) AND IsEntityClean(EntList[1]) AND
                   (GetEntitySym(EntList[1])=sym) AND (GetEntityIndex(EntList[1])<index)
                THEN
                   IF Debugging
@@ -2855,7 +2835,7 @@ VAR
 BEGIN
    WITH NodeList[n] DO
       (* can only clean if this node or leaf lable is clean *)
-      IF (EntList[1]#NulEntity) AND IsEntityClean(EntList[1])
+      IF (EntList[1]#NIL) AND IsEntityClean(EntList[1])
       THEN
          i := NoOfIds ;
          WHILE i>1 DO
@@ -3034,7 +3014,7 @@ BEGIN
          i := 1 ;
          (* check to see whether a constant can be found *)
          WHILE i<=NoOfIds DO
-            IF (EntList[i]#NulEntity) AND IsConst(GetEntitySym(EntList[i]))
+            IF (EntList[i]#NIL) AND IsConst(GetEntitySym(EntList[i]))
             THEN
                RETURN( GetEntitySym(EntList[i]) )
             END ;
@@ -3042,7 +3022,7 @@ BEGIN
          END ;
          i := 1 ;
          WHILE i<=NoOfIds DO
-            IF (EntList[i]#NulEntity) AND IsVar(GetEntitySym(EntList[i])) AND (NOT IsTemporary(GetEntitySym(EntList[i])))
+            IF (EntList[i]#NIL) AND IsVar(GetEntitySym(EntList[i])) AND (NOT IsTemporary(GetEntitySym(EntList[i])))
             THEN
                RETURN( GetEntitySym(EntList[i]) )
             END ;
@@ -3068,7 +3048,7 @@ BEGIN
       WITH NodeList[i] DO
          IF NOT IsLeaf
          THEN
-            IF (EntList[1]#NulEntity) AND (NOT IsEntityClean(EntList[1]))
+            IF (EntList[1]#NIL) AND (NOT IsEntityClean(EntList[1]))
             THEN
                IF Debugging
                THEN

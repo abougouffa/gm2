@@ -102,7 +102,7 @@ PROCEDURE IsReserved (n: Name; VAR tok: toktype) : BOOLEAN ;
    tokToTok - returns a Tok given the enumerated variable, t.
 *)
 
-PROCEDURE tokToTok (t: toktype) : CARDINAL ;
+PROCEDURE tokToTok (t: toktype) : Name ;
 
 
 END M2Reserved.

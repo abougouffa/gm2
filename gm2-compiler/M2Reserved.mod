@@ -309,9 +309,9 @@ END IsReserved ;
    tokToTok - returns a Tok given the enumerated variable, t.
 *)
 
-PROCEDURE tokToTok (t: toktype) : CARDINAL ;
+PROCEDURE tokToTok (t: toktype) : Name ;
 BEGIN
-   RETURN( GetSymKey(tokToName, ORD(t)) )
+   RETURN( GetSymKey(tokToName, VAL(Name, t)) )
 END tokToTok ;
 
 

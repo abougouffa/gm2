@@ -60,8 +60,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildBinaryOp,
                  BuildUnaryOp,
                  RecordOp,
-                 Operand, PutPtr, GetPtr,
-                 PopTF, PushTF, PopT, PushT, PopNothing, SetWatch,
+                 PopTF, PushTF, PopT, PushT, PopNothing, PopN,
+                 OperandT, OperandF,
                  DisplayStack,
 
                  BuildCodeOn, BuildCodeOff,
@@ -89,7 +89,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsPseudoQuad,
                  IsModFile,
 
-                 DisplayQuadList, DisplayQuad,
+                 DisplayQuadList, DisplayQuad, DumpStack,
                  WriteOperator, BackPatchSubranges,
 
                  GetQuad, GetNextQuad, PutQuad,
@@ -284,6 +284,13 @@ PROCEDURE DisplayQuadList (Head: CARDINAL) ;
 *)
 
 PROCEDURE DisplayQuad (QuadNo: CARDINAL) ;
+
+
+(*
+   DumpStack - display the expression stack.
+*)
+
+PROCEDURE DumpStack ;
 
 
 (*
@@ -1662,24 +1669,17 @@ PROCEDURE BuildUnaryOp ;
 
 
 (*
-   Operand - Returns the operand value from the Stack at position Pos.
+   OperandT - returns the ident operand stored in the true position on the boolean stack.
 *)
 
-PROCEDURE Operand (Pos: CARDINAL) : CARDINAL ;
+PROCEDURE OperandT (pos: CARDINAL) : WORD ;
 
 
 (*
-   GetPtr - sets, p, to the value of the quadruple stack pointer.
+   OperandF - returns the ident operand stored in the false position on the boolean stack.
 *)
 
-PROCEDURE GetPtr (VAR p: CARDINAL) ;
-
-
-(*
-   PutPtr - sets the quadruple stack pointer to p.
-*)
-
-PROCEDURE PutPtr (p: CARDINAL) ;
+PROCEDURE OperandF (pos: CARDINAL) : WORD ;
 
 
 (*
@@ -1722,11 +1722,10 @@ PROCEDURE PopNothing ;
 
 
 (*
-   SetWatch - sets a debugging watch on the quad stack.
-              If the stack goes below this position then an internal error is issued.
+   PopN - pops multiple elements from the BoolStack.
 *)
 
-PROCEDURE SetWatch ;
+PROCEDURE PopN (n: CARDINAL) ;
 
 
 (*

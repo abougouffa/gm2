@@ -28,8 +28,9 @@ DEFINITION MODULE PushBackInput ;
 *)
 
 FROM FIO IMPORT File ;
+FROM Strings IMPORT String ;
 
-EXPORT QUALIFIED Open, PutCh, GetCh, Error, WarnError, Close, SetDebug, GetExitStatus,
+EXPORT QUALIFIED Open, PutCh, GetCh, Error, WarnError, WarnString, Close, SetDebug, GetExitStatus,
                  PutString, GetColumnPosition, GetCurrentLine ;
 
 
@@ -77,6 +78,16 @@ PROCEDURE Error (a: ARRAY OF CHAR) ;
 *)
 
 PROCEDURE WarnError (a: ARRAY OF CHAR) ;
+
+
+(*
+   WarnString - emits an error message with the appropriate file, line combination.
+                It does not terminate but when the program finishes an exit status of
+                1 will be issued.
+*)
+
+PROCEDURE WarnString (s: String) ;
+
 
 (*
    Close - closes the opened file.

@@ -21,7 +21,7 @@ FROM Storage IMPORT ALLOCATE ;
 FROM StrLib IMPORT StrEqual, StrCopy ;
 FROM NumberIO IMPORT WriteCard ;
 FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NameKey IMPORT WriteKey ;
+FROM NameKey IMPORT Name, WriteKey ;
 
  
 CONST
@@ -41,7 +41,7 @@ TYPE
    (* replaced in another part of the dependancy tree.               *)
 
    Source    = RECORD
-                  Name       : CARDINAL ;
+                  name       : Name ;
                   Depth      : CARDINAL ;
                   SourceNode : PtrToNode ;  (* Node which corresponds to *)
                                             (* source.                   *)
@@ -63,7 +63,7 @@ PROCEDURE DisplaySource ; FORWARD ;
 PROCEDURE DisplayTree ; FORWARD ;
 PROCEDURE DisplayTreeFile (f: CARDINAL) ; FORWARD ;
 PROCEDURE ENTER ; FORWARD ;
-PROCEDURE GetModuleID (Name: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE GetModuleID (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE GetNodeDepth (son: PtrToNode) : CARDINAL ; FORWARD ;
 PROCEDURE IncreaseLevel (n: PtrToNode ; inc, Threshold: CARDINAL) ; FORWARD ;
 PROCEDURE IsSon (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
@@ -97,34 +97,29 @@ BEGIN
 END NewSource ;
 
 
-PROCEDURE GetModuleID (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetModuleID (name: Name) : CARDINAL ;
 VAR
-   i    : CARDINAL ;
-   Found: BOOLEAN ;
-   Mod  : PtrToNode ;
+   i  : CARDINAL ;
+   Mod: PtrToNode ;
 BEGIN
    i := 1 ;
-   Found := FALSE ;
-   WHILE (i<=FileNo) AND (NOT Found) DO
-      IF Name=Files[i].Name
+   WHILE i<=FileNo DO
+      IF name=Files[i].name
       THEN
-         Found := TRUE
+         RETURN( i )
       ELSE
          INC(i)
       END
    END ;
-   IF Found
-   THEN
-      RETURN( i )
-   ELSE
-      NewNode( Mod ) ;
-      Mod^.Father := NIL ;
-      NewSource( Mod^.Index ) ;
-      Files[Mod^.Index].Depth := 0 ;
-      Files[Mod^.Index].SourceNode := Mod ;
-      Files[Mod^.Index].Name := Name ;
-      RETURN( Mod^.Index )
-   END
+   NewNode( Mod ) ;
+   Mod^.Father := NIL ;
+   NewSource( Mod^.Index ) ;
+   WITH Files[Mod^.Index] DO
+      Depth := 0 ;
+      SourceNode := Mod
+   END ;
+   Files[Mod^.Index].name := name ;
+   RETURN( Mod^.Index )
 END GetModuleID ;
 
 
@@ -132,7 +127,7 @@ END GetModuleID ;
    MakeDependant - makes DepandantName a son of ModuleName.
 *)
 
-PROCEDURE MakeDependant (ModuleName, DependantName: CARDINAL) ;
+PROCEDURE MakeDependant (ModuleName, DependantName: Name) ;
 VAR
    DependantId,
    ModuleId   : CARDINAL ;
@@ -152,7 +147,7 @@ END MakeDependant ;
    GetDepth - returns the depth of a module.
 *)
 
-PROCEDURE GetDepth (ModuleName: CARDINAL) : CARDINAL ;
+PROCEDURE GetDepth (ModuleName: Name) : CARDINAL ;
 VAR
    ModuleId: CARDINAL ;
 BEGIN
@@ -248,16 +243,17 @@ PROCEDURE IsSon (father, son: PtrToNode) : BOOLEAN ;
 VAR
    i: CARDINAL ;
    t: PtrToNode ;
-   found: BOOLEAN ;
 BEGIN
    i := 1 ;
-   found := FALSE ;
-   WHILE (i<=father^.NoOfSons) AND (NOT found) DO
+   WHILE i<=father^.NoOfSons DO
       t := father^.Sons[i] ;
-      found := (t#NIL) AND (t=son) ;
-      INC( i )
+      IF (t#NIL) AND (t=son)
+      THEN
+         RETURN( TRUE )
+      END ;
+      INC(i)
    END ;
-   RETURN( found )
+   RETURN( FALSE )
 END IsSon ;
 
 
@@ -271,7 +267,7 @@ BEGIN
       THEN
          father^.Sons[i] := NIL
       END ;
-      INC( i )
+      INC(i)
    END
 END DeleteSons ;
 
@@ -408,7 +404,7 @@ BEGIN
          WriteString('  ') ;
          INC(i)
       END ;
-      WriteKey(Name) ; WriteLn ;
+      WriteKey(name) ; WriteLn ;
       i := 1 ;
       WITH SourceNode^ DO
          WHILE i<=NoOfSons DO
@@ -452,10 +448,10 @@ BEGIN
             WriteString('  ') ;
             INC(j)
          END ;
-         WriteKey(Name) ; WriteLn ;
+         WriteKey(name) ; WriteLn ;
 (*
       WriteCard(i, 3) ;
-      WriteKey(Files[i].Name) ; WriteString(' : Depth') ;
+      WriteKey(Files[i].name) ; WriteString(' : Depth') ;
       WriteCard( Files[i].Depth, 6 ) ;
       WriteLn ;
 *)
@@ -470,7 +466,7 @@ VAR
    i, j: CARDINAL ;
    t   : PtrToNode ;
 BEGIN
-   WriteKey(Files[n^.Index].Name) ;
+   WriteKey(Files[n^.Index].name) ;
    IF n^.NoOfSons>0
    THEN
       WriteString(' --> ') ;
@@ -481,7 +477,7 @@ BEGIN
          THEN
             j := t^.Index ;
             WriteString('  ') ;
-            WriteKey(Files[j].Name)
+            WriteKey(Files[j].name)
          END ;
          INC( i )
       END

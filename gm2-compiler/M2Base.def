@@ -24,6 +24,7 @@ DEFINITION MODULE M2Base ;
                 procedures in the Modula-2 compiler.
 *)
 
+FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Cardinal,              (* Base types              *)
                  Integer,
@@ -57,8 +58,9 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  IsBaseType,
                  GetBaseTypeMinMax,
                  InitBase,
-                 CheckCompatibleTypes,
-                 IsCompatible, IsMathType,
+                 CheckExpressionCompatible,
+                 CheckAssignmentCompatible,
+                 IsAssignmentCompatible, IsExpressionCompatible, IsMathType,
                  MixTypes,
                  TemplateProcedure,
                  ActivationPointer ;
@@ -81,15 +83,13 @@ VAR
    TemplateProcedure,
    ActivationPointer,
 
-   Unbounded,
-   ArrayAddress, ArrayHigh,
-
    Nil,
    Cardinal, Integer,
    Boolean, True, False,
    Char, Proc,
    LongInt,
    Real, LongReal,
+   Unbounded,
    High,
    Convert, Val,
    Trunc, Float,
@@ -98,6 +98,7 @@ VAR
    New, Dispose,
    Inc, Dec,
    Incl, Excl             : CARDINAL ;
+   ArrayAddress, ArrayHigh: Name ;
 
 
 (*
@@ -139,20 +140,39 @@ PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsCompatible - returns true if the types, t1, and, t2, are compatible.
+   IsAssignmentCompatible - returns TRUE if t1 and t2 are assignment
+                            compatible.
 *)
 
-PROCEDURE IsCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAssignmentCompatible (t1, t2: CARDINAL) : BOOLEAN ;
 
 
 (*
-   CheckCompatibleTypes - returns if t1 and t2 are compatible types for
-                          +, -, *, DIV, >, <, =, etc.
-                          If t1 and t2 are not compatible then an error
-                          message is displayed.
+   IsExpressionCompatible - returns TRUE if t1 and t2 are expression
+                            compatible.
 *)
 
-PROCEDURE CheckCompatibleTypes (t1, t2: CARDINAL) ;
+PROCEDURE IsExpressionCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+
+
+(*
+   CheckExpressionCompatible - returns if t1 and t2 are compatible types for
+                               +, -, *, DIV, >, <, =, etc.
+                               If t1 and t2 are not compatible then an error
+                               message is displayed.
+*)
+
+PROCEDURE CheckExpressionCompatible (t1, t2: CARDINAL) ;
+
+
+(*
+   CheckAssignmentCompatible - returns if t1 and t2 are compatible types for
+                               :=, =, #.
+                               If t1 and t2 are not compatible then an error
+                               message is displayed.
+*)
+
+PROCEDURE CheckAssignmentCompatible (t1, t2: CARDINAL) ;
 
 
 (*

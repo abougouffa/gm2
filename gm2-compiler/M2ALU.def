@@ -27,6 +27,7 @@ DEFINITION MODULE M2ALU ;
                  gcc trees.
 *)
 
+FROM NameKey IMPORT Name ;
 FROM gccgm2 IMPORT Tree ;
 
 EXPORT QUALIFIED PtrToValue,
@@ -164,7 +165,7 @@ PROCEDURE PopChar () : CHAR ;
                 onto the stack.
 *)
 
-PROCEDURE PushString (s: CARDINAL) ;
+PROCEDURE PushString (s: Name) ;
 
 
 (*

@@ -61,7 +61,7 @@ BEGIN
       v := v * 10.0 ;
       INC(i)
    END ;
-   RETURN( VAL(REAL, v) )
+   RETURN( VAL(LONGREAL, v) )
 END ToThePower10 ;
 
 

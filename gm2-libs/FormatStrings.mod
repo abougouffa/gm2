@@ -1,11 +1,11 @@
 IMPLEMENTATION MODULE FormatStrings ;
 
-FROM Strings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, Char,
-                    Assign, Length, Mult ;
+FROM Strings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, char,
+                    Assign, Length, Mult, Dup, ConCatChar ;
 
+FROM StringConvert IMPORT IntegerToString ;
 FROM ASCII IMPORT nul, nl, tab ;
 FROM SYSTEM IMPORT ADDRESS ;
-FROM libc IMPORT strlen ;
 
 
 (*
@@ -37,7 +37,7 @@ BEGIN
          (* initially i might be zero which means the end of the string, which is not what we want *)
          d := ConCat(d, Slice(s, j, i))
       END ;
-      ch := Char(s, i+1) ;
+      ch := char(s, i+1) ;
       IF ch='n'
       THEN
          (* requires a newline *)
@@ -59,61 +59,17 @@ END HandleEscape ;
 
       
 (*
-   Integer - converts INTEGER, i, into a String. The field with can be specified
-             if non zero. Leading characters are defined by padding and this
-             function will prepend a + if sign is set to TRUE.
-*)
-
-PROCEDURE Integer (i: INTEGER; width: CARDINAL; padding: CHAR; sign: BOOLEAN) : String ;
-VAR
-   s: String ;
-BEGIN
-   IF i<0
-   THEN
-      IF i=MIN(INTEGER)
-      THEN
-         IF width>0
-         THEN
-            RETURN( ConCat(Integer(i DIV 10, width-1, padding, sign),
-                           Integer(i MOD 10, 0, ' ', FALSE)) )
-         ELSE
-            RETURN( ConCat(Integer(i DIV 10, 0, padding, sign),
-                           Integer(i MOD 10, 0, ' ', FALSE)) )
-         END
-      ELSE
-         s := InitString('-')
-      END ;
-      i := -i
-   ELSE
-      IF sign
-      THEN
-         s := InitString('+')
-      ELSE
-         s := InitString('')
-      END
-   END ;
-   IF i>9
-   THEN
-      s := ConCat(ConCat(s, Integer(i DIV 10, 0, ' ', FALSE)), Integer(i MOD 10, 0, ' ', FALSE))
-   ELSE
-      s := ConCat(s, InitStringChar(CHR(i+ORD('0'))))
-   END ;
-   IF width>Length(s)
-   THEN
-      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
-   END ;
-   RETURN( s )
-END Integer ;
-
-
-(*
    FormatString - returns a String containing, s, together with encapsulated
                   entity, w. It only formats the first %s or %d with n.
+                  A new string is returned.
 *)
 
 PROCEDURE FormatString (s: String; w: WORD) : String ;
 VAR
+   left   : BOOLEAN ;
+   width,
    i, j, k: INTEGER ;
+   leader,
    ch     : CHAR ;
    p      : String ;
 BEGIN
@@ -127,32 +83,58 @@ BEGIN
    END ;
    IF j>=0
    THEN
-      ch := Char(s, j+1) ;
-      IF ch='s'
+      IF char(s, j+1)='-'
       THEN
-         p := w ;
+         left := TRUE ;
+         INC(j)
+      ELSE
+         left := FALSE
+      END ;
+      ch := char(s, j+1) ;
+      IF ch='0'
+      THEN
+         leader := '0'
+      ELSE
+         leader := ' '
+      END ;
+      width := 0 ;
+      WHILE IsDigit(ch) DO
+         width := (width*10)+ORD(ch)-ORD('0') ;
+         INC(j) ;
+         ch := char(s, j+1)
+      END ;
+      IF (ch='c') OR (ch='s')
+      THEN
+         IF (ch='c')
+         THEN
+            p := ConCatChar(InitString(''), VAL(CHAR, w))
+         ELSE
+            p := Dup(w)
+         END ;
+         IF (width>0) AND (Length(p)<width)
+         THEN
+            IF left
+            THEN
+               (* place trailing spaces after, p *)
+               p := ConCat(p,
+                           Mark(Mult(Mark(InitString(' ')), width-Length(p))))
+            ELSE
+               (* padd string, p, with leading spaces *)
+               p := ConCat(Mult(Mark(InitString(' ')), width-Length(p)),
+                           Mark(p))
+            END
+         END ;
          (* include string, p, into s *)
-         RETURN( ConCat(ConCat(Slice(s, i, k), p), Slice(s, j+2, 0)) )
+         RETURN( ConCat(ConCat(Slice(s, i, k), Mark(p)), Slice(s, j+2, 0)) )
       ELSIF ch='d'
       THEN
-         RETURN( ConCat(ConCat(Slice(s, i, k), Integer(w, 0, ' ', FALSE)),
+         RETURN( ConCat(ConCat(Slice(s, i, k), IntegerToString(w, width, leader, FALSE, 10, FALSE)),
                         Slice(s, j+2, 0)) )
-      ELSIF (ch='0') AND (Char(s, j+2)='d')
-      THEN
-         RETURN( ConCat(ConCat(Slice(s, i, k), Integer(w, 0, '0', FALSE)), Slice(s, j+3, 0)) )
-      ELSIF (ch='0') AND IsDigit(Char(s, j+2)) AND (Char(s, j+3)='d')
-      THEN
-         RETURN( ConCat(ConCat(Slice(s, i, k), Integer(w, ORD(Char(s, j+2))-ORD('0'), '0', FALSE)),
-                        Slice(s, j+4, 0)) )
-      ELSIF IsDigit(ch) AND (Char(s, j+2)='d')
-      THEN
-         RETURN( ConCat(ConCat(Slice(s, i, k), Integer(w, ORD(ch)-ORD('0'), ' ', FALSE)),
-                        Slice(s, j+3, 0)) )
       ELSE
          RETURN( ConCat(ConCat(Slice(s, i, k), Mark(InitStringChar(ch))), Slice(s, j+1, 0)) )
       END
    ELSE
-      RETURN( s )
+      RETURN( Dup(s) )
    END
 END FormatString ;
 

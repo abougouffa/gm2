@@ -60,19 +60,19 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PutConst,
                         NulSym ;
 
-FROM M2Lexical IMPORT WriteError, NearToken, NearTokens, InternalError, WriteErrorFormat1,
-                      WriteErrorFormat2, FormatWarningMessage2 ;
-
 FROM M2Debug IMPORT Assert ;
-FROM M2Error IMPORT BeginError, EndError ;
+FROM M2Error IMPORT InternalError, WriteFormat1, ErrorStringAt, WarnStringAt ;
+FROM M2Options IMPORT DisplayQuadruples ;
+FROM M2Printf IMPORT printf0 ;
+
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
 FROM M2Math IMPORT pi, sin, cos, tan, atan, sqrt ;
-FROM NameKey IMPORT WriteKey, GetKey, MakeKey, KeyToCharStar, NulName ;
+FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, NulName ;
+FROM Strings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
+FROM M2Error IMPORT WriteFormat0 ;
 FROM M2System IMPORT Address, Word ;
 FROM M2FileName IMPORT CalculateFileName ;
-FROM StrLib IMPORT StrLen, StrEqual, StrConCat, StrCopy ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard, CardToStr ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList ;
@@ -109,9 +109,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    GetPointerType,
                    RememberConstant ;
 
+FROM SYSTEM IMPORT WORD ;
 
-CONST
-   MaxString            = 8*1024 ;
 
 VAR
    CurrentProcedure,
@@ -124,7 +123,7 @@ VAR
                                         (* quadrules are being processed.         *)
    LastOperator             : QuadOperator ; (* The last operator processed.      *)
    ModuleName,
-   FileName                 : ARRAY [0..MaxString] OF CHAR ;
+   FileName                 : String ;
    CurrentModuleInitFunction: Tree ;
 
 
@@ -229,6 +228,7 @@ Notes
 (* To keep p2c happy we declare forward procedures *)
 
 (* %%%FORWARD%%%
+PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE CodeStart ; FORWARD ;
 PROCEDURE CodeEnd ; FORWARD ;
 PROCEDURE CodeStartModFile ; FORWARD ;
@@ -401,8 +401,7 @@ BEGIN
    OptimizeOffOp      :
 
    ELSE
-      BeginError ;
-      WriteString('quad') ; WriteCard(CurrentQuad, 6) ; WriteLn ;
+      WriteFormat1('quadruple %d not yet implemented', CurrentQuad) ;
       InternalError('quadruple not implemented yet', __FILE__, __LINE__)
    END ;
    LastOperator := Operator ;
@@ -489,6 +488,11 @@ BEGIN
       END ;
       Next := NoOfItemsInList(l)
    UNTIL Last=Next ;
+   IF DisplayQuadruples
+   THEN
+      printf0('after resolving expressions with gcc\n') ;
+      DisplayQuadList(AbsoluteHead) ;
+   END ;
    RETURN( Orig#Last )
 END ResolveConstantExpressions ;
 
@@ -543,9 +547,10 @@ END FindType ;
 
 PROCEDURE BuildTreeFromInterface (sym: CARDINAL) : Tree ;
 VAR
-   n       : CARDINAL ;
-   str, obj: CARDINAL ;
-   tree    : Tree ;
+   n   : CARDINAL ;
+   str,
+   obj : CARDINAL ;
+   tree: Tree ;
 BEGIN
    tree := Tree(NIL) ;
    IF sym#NulSym
@@ -560,7 +565,7 @@ BEGIN
                DeclareConstant(obj) ;
                tree := ChainOnParamValue(tree, PromoteToString(str), Mod2Gcc(obj))
             ELSE
-               WriteError('a constraint to the GNU ASM statement must be a constant string')
+               WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
          END ;
          INC(n)
@@ -576,9 +581,10 @@ END BuildTreeFromInterface ;
 
 PROCEDURE BuildTrashTreeFromInterface (sym: CARDINAL) : Tree ;
 VAR
-   n       : CARDINAL ;
-   str, obj: CARDINAL ;
-   tree    : Tree ;
+   n   : CARDINAL ;
+   str,
+   obj : CARDINAL ;
+   tree: Tree ;
 BEGIN
    tree := Tree(NIL) ;
    IF sym#NulSym
@@ -592,7 +598,7 @@ BEGIN
             THEN
                tree := AddStringToTreeList(tree, PromoteToString(str))
             ELSE
-               WriteError('a constraint to the GNU ASM statement must be a constant string')
+               WriteFormat0('a constraint to the GNU ASM statement must be a constant string')
             END
          END ;
          IF obj#NulSym
@@ -660,8 +666,8 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    IF LastOperator#LineNumberOp
    THEN
-      SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), Operand3) ;
-      EmitLineNote(KeyToCharStar(MakeKey(FileName)), Operand3)
+      SetFileNameAndLineNo(string(FileName), Operand3) ;
+      EmitLineNote(string(FileName), Operand3)
    END
 END CodeLineNumber ;
 
@@ -687,9 +693,10 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    LastLine := 1 ;
    CompilingMainModule := GetMainModule()=Operand3 ;
-   GetKey(GetSymName(Operand3), ModuleName) ;
-   CalculateFileName(ModuleName, 'mod', FileName) ;
-   SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), LastLine)
+   ModuleName := KillString(ModuleName) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
+   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
+   SetFileNameAndLineNo(string(FileName), LastLine)
 END CodeStartModFile ;
 
 
@@ -714,8 +721,9 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    LastLine := 1 ;
    CompilingMainModule := FALSE ;
-   GetKey(GetSymName(Operand3), ModuleName) ;
-   CalculateFileName(ModuleName, 'def', FileName)
+   ModuleName := KillString(ModuleName) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
+   FileName   := CalculateFileName(ModuleName, Mark(InitString('def'))) ;
 END CodeStartDefFile ;
 
 
@@ -742,7 +750,7 @@ END CodeEndFile ;
    CallInnerInit - produce a call to inner module initialization routine.
 *)
 
-PROCEDURE CallInnerInit (Sym: CARDINAL) ;
+PROCEDURE CallInnerInit (Sym: WORD) ;
 BEGIN
    BuildCallInnerInit(Mod2Gcc(Sym))
 END CallInnerInit ;
@@ -761,10 +769,10 @@ BEGIN
    GetQuad(CurrentQuad, op, op1, op2, op3) ;
    IF CompilingMainModule
    THEN
-      SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), op1) ;
+      SetFileNameAndLineNo(string(FileName), op1) ;
       CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op2#op3) ;
       AddModGcc(op3, CurrentModuleInitFunction) ;
-      EmitLineNote(KeyToCharStar(MakeKey(FileName)), op1) ;
+      EmitLineNote(string(FileName), op1) ;
       ForeachInnerModuleDo(op3, CallInnerInit)
    END
 END CodeStart ;
@@ -783,8 +791,8 @@ BEGIN
    IF CompilingMainModule
    THEN
       GetQuad(CurrentQuad, op, op1, op2, op3) ;
-      SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), op1) ;
-      EmitLineNote(KeyToCharStar(MakeKey(FileName)), op1) ;
+      SetFileNameAndLineNo(string(FileName), op1) ;
+      EmitLineNote(string(FileName), op1) ;
       BuildEnd(CurrentModuleInitFunction)
    END
 END CodeEnd ;
@@ -799,6 +807,9 @@ END CodeEnd ;
                                                      END
                     we simply declare a new array of size, ArrayHigh
                     and set ArrayAddress to the address of the copy.
+
+                    Remember ArrayHigh == sizeof(Array)-sizeof(typeof(array))
+                             so we add 1 for the size and add 1 for a possible <nul>
 *)
 
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ;
@@ -816,10 +827,13 @@ BEGIN
    ArrayType := GetType(GetType(param)) ;
 
    (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
-   High      := BuildMult(BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                          BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
-                                                          FALSE),
-                                                 GetIntegerType()),
+   High      := BuildMult(BuildAdd(
+                                   BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                                                   BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
+                                                                   FALSE),
+                                                          GetIntegerType()),
+                                            GetIntegerOne(),
+                                            FALSE),
                                    GetIntegerOne(),
                                    FALSE),
                           FindSize(ArrayType), FALSE) ;
@@ -913,14 +927,15 @@ VAR
    Operand1: CARDINAL ;
 BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, PreviousScope, CurrentProcedure) ;
-   GetKey(GetSymName(GetMainModule()), ModuleName) ;
-   CalculateFileName(ModuleName, 'mod', FileName) ;
-   SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), Operand1) ;
+   ModuleName := KillString(ModuleName) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
+   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
+   SetFileNameAndLineNo(string(FileName), Operand1) ;
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure), IsExported(GetMainModule(), CurrentProcedure)) ;
    DeclareLocalVariables(CurrentProcedure) ;
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(CurrentProcedure) ;
-   EmitLineNote(KeyToCharStar(MakeKey(FileName)), Operand1)
+   EmitLineNote(string(FileName), Operand1)
 END CodeNewLocalVar ;
 
 
@@ -935,7 +950,7 @@ VAR
    Operand2: CARDINAL ;
 BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, CurrentProcedure) ;
-   SetFileNameAndLineNo(KeyToCharStar(MakeKey(FileName)), Operand1) ;
+   SetFileNameAndLineNo(string(FileName), Operand1) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure)) ;
 
    CurrentProcedure := NulSym ;
@@ -1076,24 +1091,24 @@ END CodeIndirectCall ;
 
 PROCEDURE CodeParam ;
 VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+   operator: QuadOperator ;
+   operand1,
+   operand2,
+   operand3: CARDINAL ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
-   IF Operand1>0
+   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
+   IF operand1>0
    THEN
-      IF IsVarParam(Operand2, Operand1) AND IsConst(Operand3)
+      IF IsVarParam(operand2, operand1) AND IsConst(operand3)
       THEN
-         WriteError('cannot pass a constant as a VAR parameter')
+         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')), GetSymName(operand3)), QuadToTokenNo(CurrentQuad))
       ELSE
-         DeclareConstant(Operand3) ;
+         DeclareConstant(operand3) ;
          (*
             ignore LeftAddr and RightAddr, but must be careful about size of Operand3.
             SIZE(operand3) will normally be TSIZE(ADDRESS) but NOT when it is unbounded
          *)
-         BuildParam(Mod2Gcc(Operand3))
+         BuildParam(Mod2Gcc(operand3))
       END
    END
 END CodeParam ;
@@ -1106,19 +1121,19 @@ END CodeParam ;
 
 PROCEDURE CodeFunctValue ;
 VAR
-   Operator: QuadOperator ;
-   Operand1,
-   Operand2,
-   Operand3: CARDINAL ;
+   operator: QuadOperator ;
+   operand1,
+   operand2,
+   operand3: CARDINAL ;
 BEGIN
-   GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
+   GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
 
    (*
-      Operator : FunctValueOp
-      Operand1 : The Returned Variable
-      Operand2 : The Function Returning this Variable
+      operator : FunctValueOp
+      operand1 : The Returned Variable
+      operand2 : The Function Returning this Variable
    *)
-   BuildFunctValue(Mod2Gcc(Operand1))
+   BuildFunctValue(Mod2Gcc(operand1))
 END CodeFunctValue ;
 
 
@@ -1142,7 +1157,7 @@ BEGIN
    GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    IF IsConst(operand3) AND (NOT IsConstString(operand3))
    THEN
-      WriteError('not expecting to be asked to find the address of a constant')
+      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%a)')), GetSymName(operand3)), QuadToTokenNo(CurrentQuad))
    ELSE
       t := BuildAssignment(Mod2Gcc(operand1),
                            BuildAddr(Mod2Gcc(operand3), FALSE))
@@ -1154,7 +1169,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=736
+   IF q=6905
    THEN
       stop
    END
@@ -1185,8 +1200,7 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(operand1)
          THEN
-            NearToken('', QuadToTokenNo(quad)) ;
-            WriteErrorFormat1('constant, %s, should not be reassigned', GetSymName(operand1))
+            ErrorStringAt(Sprintf1(Mark(InitString('constant, %a, should not be reassigned')), GetSymName(operand1)), QuadToTokenNo(quad))
          ELSE
             IF IsConstString(operand3)
             THEN
@@ -1284,8 +1298,8 @@ BEGIN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(operand1)
          THEN
-            Assert(MixTypes(FindType(operand3), FindType(operand2))#NulSym) ;
-            PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2))) ;
+            Assert(MixTypes(FindType(operand3), FindType(operand2), QuadToTokenNo(CurrentQuad))#NulSym) ;
+            PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), QuadToTokenNo(CurrentQuad))) ;
             AddModGcc(operand1,
                       DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
                                            binop(Mod2Gcc(operand2),
@@ -1322,8 +1336,9 @@ BEGIN
    IF IsConst(operand1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
-      Assert(MixTypes(FindType(operand3), FindType(operand2))#NulSym) ;
-      PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2))) ;
+      Assert(MixTypes(FindType(operand3), FindType(operand2), QuadToTokenNo(CurrentQuad))#NulSym) ;
+
+      PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), QuadToTokenNo(CurrentQuad))) ;
       AddModGcc(operand1,
                 DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
                                      binop(Mod2Gcc(operand2),
@@ -1588,7 +1603,11 @@ BEGIN
          THEN
             IF CoerceConst=Tree(NIL)
             THEN
-               CoerceConst := Tree(Mod2Gcc(GetType(operand3)))
+               CoerceConst := Tree(Mod2Gcc(GetType(operand3))) ;
+               IF CoerceConst=Tree(NIL)
+               THEN
+                  CoerceConst := GetIntegerType()
+               END
             END ;
             PutConst(operand1, FindType(operand3)) ;
             AddModGcc(operand1,
@@ -1938,8 +1957,8 @@ BEGIN
    Type := GetType(operand) ;
    IF NoOfElements(Type)#1
    THEN
-      NearToken('HIGH operator only allowed on one dimensional arrays',
-                QuadToTokenNo(quad))
+      ErrorStringAt(InitString('HIGH operator only allowed on one dimensional arrays'),
+                    QuadToTokenNo(quad))
    END ;
    Subscript := GetNth(Type, 1) ;
    Subrange := GetType(Subscript) ;
@@ -2037,6 +2056,10 @@ VAR
    t       : Tree ;
 BEGIN
    GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
+   IF CurrentQuad=1524
+   THEN
+      stop
+   END ;
 
    DeclareConstant(operand3) ;
    IF IsConstString(operand3)
@@ -2049,8 +2072,11 @@ BEGIN
                                      FALSE),
                             GetIntegerType()) ;
       t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), Addr)
-   ELSE
+   ELSIF GetMode(operand3)=RightValue
+   THEN
       t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), BuildAddr(Mod2Gcc(operand3), FALSE))
+   ELSE
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(operand1), GetIntegerType()), Mod2Gcc(operand3))
    END
 END CodeUnbounded ;
 
@@ -2349,7 +2375,8 @@ BEGIN
             t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
          END
       ELSE
-         WriteError('procedure address can only be stored in a word size operand')
+         ErrorStringAt(InitString('procedure address can only be stored in a word size operand'),
+                       QuadToTokenNo(CurrentQuad))
       END
    ELSIF IsConst(operand3) OR AreConstantsEqual(FindSize(operand1), FindSize(operand3))
    THEN
@@ -2362,8 +2389,8 @@ BEGIN
          t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
       END
    ELSE
-      FormatWarningMessage2('TYPE Coersion can only be achieved with types of the same size, problem with %s and %s, attempting convert via VAL instead',
-                            GetSymName(operand2), GetSymName(operand3), QuadToTokenNo(CurrentQuad)) ;
+      WarnStringAt(Sprintf2(Mark(InitString('TYPE Coersion can only be achieved with types of the same size, problem with %a and %a, attempting convert via VAL instead')),
+                            GetSymName(operand2), GetSymName(operand3)), QuadToTokenNo(CurrentQuad)) ;
       CodeConvert
    END
 END CodeCoerce ;
@@ -2397,7 +2424,7 @@ BEGIN
                SubQuad(AbsoluteHead, quad)
             END
          ELSE
-            WriteError('procedure address can only be stored in a word size operand')
+            ErrorStringAt(Sprintf0(Mark(InitString('procedure address can only be stored in a word size operand'))), QuadToTokenNo(quad))
          END
       ELSIF IsConst(operand3)
       THEN
@@ -2473,13 +2500,10 @@ END CodeMath ;
    CreateLabelName - creates a namekey from quadruple, q.
 *)
 
-PROCEDURE CreateLabelName (q: CARDINAL) : CARDINAL ;
-VAR
-   str: ARRAY [0..30] OF CHAR ;
+PROCEDURE CreateLabelName (q: CARDINAL) : String ;
 BEGIN
-   CardToStr(q, 0, str) ;
-   StrConCat('.L', str, str) ;   (* prefixed by . to ensure that no Modula-2 identifiers clash *)
-   RETURN( MakeKey(str) )
+   (* prefixed by . to ensure that no Modula-2 identifiers clash *)
+   RETURN( Sprintf1(Mark(InitString('.L%d')), q) )
 END CreateLabelName ;
 
 
@@ -2495,7 +2519,7 @@ VAR
    operand3 : CARDINAL ;
 BEGIN
    GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
-   BuildGoto(KeyToCharStar(CreateLabelName(operand3)))
+   BuildGoto(string(CreateLabelName(operand3)))
 END CodeGoto ;
 
 
@@ -2510,7 +2534,7 @@ BEGIN
    (* we do not create labels for procedure entries *)
    IF (op#NewLocalVarOp) AND IsReferenced(AbsoluteHead, q)
    THEN
-      t := DeclareLabel(KeyToCharStar(CreateLabelName(q)))
+      t := DeclareLabel(string(CreateLabelName(q)))
    END
 END CheckReferenced ;
 
@@ -2532,7 +2556,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildLessThan(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfLess ;
 
 
@@ -2553,7 +2577,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildGreaterThan(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfGre ;
 
 
@@ -2575,7 +2599,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildLessThanOrEqual(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfLessEqu ;
 
 
@@ -2596,7 +2620,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildGreaterThanOrEqual(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfGreEqu ;
 
 
@@ -2617,7 +2641,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildEqualTo(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfEqu ;
 
 
@@ -2638,7 +2662,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildNotEqualTo(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfNotEqu ;
 
 
@@ -2659,7 +2683,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildIfIn(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfIn ;
 
 
@@ -2680,7 +2704,7 @@ BEGIN
    DeclareConstant(operand1) ;
    DeclareConstant(operand2) ;
    DoJump(BuildIfNotIn(Mod2Gcc(operand1), Mod2Gcc(operand2)),
-          NIL, KeyToCharStar(CreateLabelName(operand3)))
+          NIL, string(CreateLabelName(operand3)))
 END CodeIfNotIn ;
 
 
@@ -2761,6 +2785,9 @@ BEGIN
 END CodeXIndr ;
 
 
+BEGIN
+   ModuleName := NIL ;
+   FileName   := NIL
 END M2GenGCC.
 (*
  * Local variables:

@@ -1,0 +1,11 @@
+
+*  complete the DEFINITION FOR C mechanism
+    .  complete the varargs implementation
+    .  complete the C paramater calling mechanism
+
+*  complete sets (build_set_type in gccgm2.c)
+
+*  complete coroutines (gm2-libs-coroutines)
+    . this is dependant upon DEFINITION FOR C working.
+
+*  fix `configure' to operate in a different subdirectory

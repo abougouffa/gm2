@@ -36,13 +36,14 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P1SyntaxCheck ;
 
-FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind ;
-FROM M2Error IMPORT WriteFormat0 ;
+FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok ;
 FROM NameKey IMPORT NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
+FROM Strings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Printf IMPORT printf0 ;
 
@@ -54,8 +55,7 @@ FROM M2Quads IMPORT PushT, PopT,
                     BuildProcedureStart,
                     BuildProcedureEnd,
                     BuildAssignment,
-                    BuildInline,
-                    GetPtr ;
+                    BuildInline ;
 
 FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        P1EndBuildProgramModule,
@@ -98,11 +98,17 @@ VAR
    WasNoError: BOOLEAN ;
 
 
-PROCEDURE ErrorMessage (a: ARRAY OF CHAR) ;
+PROCEDURE ErrorString (s: String) ;
 BEGIN
-   WriteFormat0(a) ;
+   ErrorStringAt(s, GetTokenNo()) ;
    WasNoError := FALSE
-END ErrorMessage ;
+END ErrorString ;
+
+
+PROCEDURE ErrorArray (a: ARRAY OF CHAR) ;
+BEGIN
+   ErrorString(InitString(a))
+END ErrorArray ;
 
 
 % declaration P1SyntaxCheck begin
@@ -164,7 +170,7 @@ VAR
    s0 : SetOfStop0 ;
    s1 : SetOfStop1 ;
    s2 : SetOfStop2 ;
-   str: ARRAY [0..8192] OF CHAR ;
+   str: String ;
 BEGIN
    s0 := SetOfStop0{} ;
    s1 := SetOfStop1{} ;
@@ -178,9 +184,10 @@ BEGIN
    ELSE
       s2 := SetOfStop2{t}
    END ;
-   DescribeStop(s0, s1, s2, str) ;
-   StrConCat('syntax error,', str, str) ;
-   WriteFormat0(str)
+   str := DescribeStop(s0, s1, s2) ;
+   
+   str := ConCat(InitString('syntax error,'), Mark(str)) ;
+   ErrorStringAt(str, GetTokenNo())
 END WarnMissingToken ;
 
 
@@ -280,6 +287,10 @@ BEGIN
    IF currenttoken=t
    THEN
       GetToken ;
+(*
+      WriteFormat2('token number %d token was %a', GetTokenNo(), currentstring) ;
+      FlushErrors ;
+*)
       IF Pass1
       THEN
          PeepToken(stopset0, stopset1, stopset2)
@@ -319,10 +330,10 @@ END Ident ;
 
 
 (*
-   String -
+   string -
 *)
 
-PROCEDURE String (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+PROCEDURE string (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
    IF IsAutoPushOn()
    THEN
@@ -330,7 +341,7 @@ BEGIN
       BuildString
    END ;
    Expect(stringtok, stopset0, stopset1, stopset2)
-END String ;
+END string ;
 
 
 (*
@@ -365,7 +376,7 @@ END Real ;
 % module P1SyntaxCheck end
 END P1SyntaxCheck.
 % rules
-error       'ErrorMessage'
+error       'ErrorArray' 'ErrorString'
 tokenfunc   'currenttoken'
 
 token   ''                eoftok      -- internal token
@@ -444,15 +455,15 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
-token   'integer number,' integertok
-token   'identifier,'     identtok
-token   'real number,'    realtok
-token   'string,'         stringtok
+token   'integer number' integertok
+token   'identifier'     identtok
+token   'real number'    realtok
+token   'string'         stringtok
 
 special Ident             first { < identtok > } follow { }
 special Integer           first { < integertok > } follow { }
 special Real              first { < realtok > } follow { }
-special String            first { < stringtok > } follow { }
+special string            first { < stringtok > } follow { }
 
 BNF
 
@@ -473,18 +484,14 @@ FileUnit :=                                                                % Pus
          =:
 
 ProgramModule := "MODULE"                                                  % PushAutoOn ; %
-                  Ident                                                    % VAR Ptr, PtrC: CARDINAL ; %
-                                                                           % GetPtr(Ptr) ; %
-                                                                           % P1StartBuildProgramModule ; %
+                  Ident                                                    % P1StartBuildProgramModule ; %
                                                                            % PushAutoOff ; %
-                                                                           % GetPtr(PtrC) ; Assert(Ptr=PtrC) ; %
-                  [ Priority ]                                             % GetPtr(PtrC) ; Assert(Ptr=PtrC) ; %
+                  [ Priority ]
                   ";"
                                                                            % PushAutoOn ; %
                   { Import                                                 % BuildImportOuterModule %
                   }                                                        % PopAuto %
-                                                                           % GetPtr(PtrC) ; Assert(Ptr=PtrC) ; %
-                  Block                                                    % GetPtr(PtrC) ; Assert(Ptr=PtrC) ; %
+                  Block
                                                                            % PushAutoOn %
                   Ident                                                    % P1EndBuildProgramModule %
                   "."                                                      % PopAuto ; PopAuto ; PopAuto %
@@ -531,7 +538,7 @@ ConstFactor := ConstQualidentOrSet | Number | ConstString |
 
 -- to help satisfy LL1
 
-ConstString := String =:
+ConstString := string =:
 
 ConstQualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 
@@ -541,26 +548,21 @@ QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-TypeDeclaration :=                                                         % VAR c1, c2: CARDINAL ; %
-                                                                           % GetPtr(c1) %
+TypeDeclaration :=
                                                                            % PushAutoOn %
                    ( Ident "=" Type )                                      % PopAuto    %
-                                                                           % GetPtr(c2) %
-                                                                           % Assert(c1=c2) %
                 =:
 
 Type :=                                                                    % VAR Name: CARDINAL ; %
-                                                                           % VAR Ptr, PtrC: CARDINAL ; %
-                                                                           % GetPtr(Ptr) ; PushAutoOff %
+                                                                           % PushAutoOff %
         ( SimpleType | ArrayType | RecordType | SetType |
-          PointerType | ProcedureType )                                    % PopAuto ; GetPtr(PtrC) ; Assert(Ptr=PtrC) %
+          PointerType | ProcedureType )                                    % PopAuto %
                                                                            % PopT(Name)  (* remove TYPE name from stack *) %
         =:
 
-SimpleType :=                                                              % VAR Ptr, PtrC: CARDINAL ; %
-                                                                           % GetPtr(Ptr) %
+SimpleType :=
               ( Qualident | Enumeration                                    % BuildType %
-                                        | SubrangeType )                   % GetPtr(PtrC) ; Assert(Ptr=PtrC) %
+                                        | SubrangeType )
            =:
 
 Enumeration := "("                                                         % PushAutoOn %
@@ -634,11 +636,9 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "VAR" FormalType | FormalType =:
 
-VariableDeclaration :=                                                     % VAR Ptr, PtrC: CARDINAL ; %
-                                                                           % GetPtr(Ptr) %
+VariableDeclaration :=
                        ( IdentList ":"                                     % BuildNulName %
-                         Type )                                            % GetPtr(PtrC) %
-                                                                           % Assert(Ptr=PtrC) %
+                         Type )
                     =:
 
 Designator := Qualident { SubDesignator } =:
@@ -655,7 +655,7 @@ SimpleExpression := [ "+" | "-" ] Term { AddOperator Term } =:
 
 Term := Factor { MulOperator Factor } =:
 
-Factor := Number | String | SetOrDesignatorOrFunction |
+Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" Factor =:
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident
@@ -793,14 +793,14 @@ Definition := "CONST" { ConstantDeclaration ";" } |
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 
-AsmOperands  := String [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
+AsmOperands  := string [ ':' AsmList [ ':' AsmList [ ':' TrashList ] ] ]
              =:
 
 AsmList      := [ AsmElement ] { ',' AsmElement } =:
 
-AsmElement   := String '(' Expression ')'
+AsmElement   := string '(' Expression ')'
              =:
 
-TrashList    := [ String ] { ',' String } =:
+TrashList    := [ string ] { ',' string } =:
 
 FNB

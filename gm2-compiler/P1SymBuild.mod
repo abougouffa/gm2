@@ -18,13 +18,12 @@ IMPLEMENTATION MODULE P1SymBuild ;
 
 
 FROM ASCII IMPORT nul ;
-FROM StrLib IMPORT StrLen, StrEqual ;
-FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard ;
+FROM NameKey IMPORT Name, WriteKey, MakeKey, KeyToCharStar, NulName ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2Lexical IMPORT WriteError, GetFileName, WriteErrorFormat1, WriteErrorFormat2 ;
-FROM M2Error IMPORT BeginError, EndError ;
+FROM M2LexBuf IMPORT GetFileName ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
+FROM Strings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
+
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
 
@@ -67,9 +66,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT,
-                    PushTF, PopTF,
-                    Operand, GetPtr, PutPtr ;
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -78,69 +75,39 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 FROM M2Base IMPORT MixTypes ;
 
 
-CONST
-   MaxFileName = 4096 ;
-
 VAR
    CheckProcedure: BOOLEAN ;  (* Set if currently implementing a defined *)
                               (* procedure.                              *)
 
 
 (*
-   ReduceToModule - creates the module name from the file name.
-*)
-
-PROCEDURE ReduceToModule (File: ARRAY OF CHAR; VAR Module: ARRAY OF CHAR) ;
-VAR
-   fi, mi,
-   high  : CARDINAL ;
-BEGIN
-   fi := 0 ;
-   mi := 0 ;
-   high := StrLen(File) ;
-   IF (high>3) AND (File[high-4]='.')
-   THEN
-      File[high-4] := nul
-   END ;
-   fi := StrLen(File)-1 ;
-   WHILE (fi>0) AND (File[fi]#'/') DO
-      DEC(fi)
-   END ;
-   IF File[fi]='/'
-   THEN
-      INC(fi)
-   END ;
-   high := StrLen(File) ;
-   WHILE (fi<high) AND (mi<=HIGH(Module)) DO
-      Module[mi] := File[fi] ;
-      INC(mi) ;
-      INC(fi)
-   END ;
-   IF mi<=HIGH(Module)
-   THEN
-      Module[mi] := nul
-   END
-END ReduceToModule ;
-
-
-(*
    CheckName - checks to see that the module name matches the file name.
 *)
 
-PROCEDURE CheckFileName (Name: CARDINAL; ModuleType: ARRAY OF CHAR) ;
+PROCEDURE CheckFileName (name: Name; ModuleType: ARRAY OF CHAR) ;
 VAR
-   FileName: ARRAY [0..MaxFileName] OF CHAR ;
+   ext,
+   basename: CARDINAL ;
+   FileName: String ;
 BEGIN
-   GetFileName(FileName) ;
-   ReduceToModule(FileName, FileName) ;
-   IF MakeKey(FileName)#Name
+   FileName := GetFileName() ;
+   basename := RIndex(FileName, '/', 0) ;
+   IF basename=-1
    THEN
-      BeginError ;
-      WriteString(ModuleType) ;
-      WriteString(' module name does not match file name') ;
-      WriteLn ;
-      WriteErrorFormat1('inconsistant module and file name (%s)', Name) ;
-      EndError
+      basename := 0
+   END ;
+   ext := RIndex(FileName, '.', 0) ;
+   IF ext=-1
+   THEN
+      ext := 0
+   END ;
+   FileName := Slice(FileName, basename, ext) ;
+   IF EqualCharStar(FileName, KeyToCharStar(name))
+   THEN
+      FileName := KillString(FileName)
+   ELSE
+      WriteFormat3('%s module name (%a) is inconsistant with the filename (%s)',
+                   Mark(InitString(ModuleType)), name, FileName)
    END
 END CheckFileName ;
 
@@ -162,18 +129,18 @@ END CheckFileName ;
 
 PROCEDURE P1StartBuildDefinitionModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   CheckFileName(Name, 'definition') ;
-   ModuleSym := MakeDefinitionSource(Name) ;
+   PopT(name) ;
+   (* CheckFileName(name, 'definition') ; *)
+   ModuleSym := MakeDefinitionSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
-   PushT(Name)
+   PushT(name)
 END P1StartBuildDefinitionModule ;
 
 
@@ -196,7 +163,7 @@ END P1StartBuildDefinitionModule ;
 PROCEDURE P1EndBuildDefinitionModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN                                 
    Assert(CompilingDefinitionModule()) ;
    EndScope ;
@@ -204,7 +171,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant definition module name %s', NameStart)
+      WriteFormat1('inconsistant definition module name %a', NameStart)
    END
 END P1EndBuildDefinitionModule ;
 
@@ -226,21 +193,21 @@ END P1EndBuildDefinitionModule ;
 
 PROCEDURE P1StartBuildImplementationModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   CheckFileName(Name, 'implementation') ;
-   ModuleSym := MakeImplementationSource(Name) ;
+   PopT(name) ;
+   (* CheckFileName(name, 'implementation') ; *)
+   ModuleSym := MakeImplementationSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    IF NOT IsDefImp(ModuleSym)
    THEN
-      WriteErrorFormat1('cannot find corresponding definition module to %s', GetSymName(ModuleSym))
+      WriteFormat1('cannot find corresponding definition module to %a', GetSymName(ModuleSym))
    END ;
    Assert(CompilingImplementationModule()) ;
-   PushT(Name)                        
+   PushT(name)
 END P1StartBuildImplementationModule ;
 
 
@@ -263,7 +230,7 @@ END P1StartBuildImplementationModule ;
 PROCEDURE P1EndBuildImplementationModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingImplementationModule()) ;
    EndScope ;
@@ -271,7 +238,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant implementation module name %s', NameStart)
+      WriteFormat1('inconsistant implementation module name %a', NameStart)
    END
 END P1EndBuildImplementationModule ;
 
@@ -293,18 +260,18 @@ END P1EndBuildImplementationModule ;
 
 PROCEDURE P1StartBuildProgramModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   CheckFileName(Name, 'main') ;
-   ModuleSym := MakeProgramSource(Name) ;
+   PopT(name) ;
+   (* CheckFileName(name, 'main') ; *)
+   ModuleSym := MakeProgramSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(Name)
+   PushT(name)
 END P1StartBuildProgramModule ;
 
 
@@ -327,7 +294,7 @@ END P1StartBuildProgramModule ;
 PROCEDURE P1EndBuildProgramModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingProgramModule()) ;
    EndScope ;
@@ -335,7 +302,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant program module name %s', NameStart)
+      WriteFormat1('inconsistant program module name %a', NameStart)
    END
 END P1EndBuildProgramModule ;
 
@@ -357,14 +324,14 @@ END P1EndBuildProgramModule ;
 
 PROCEDURE StartBuildInnerModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := MakeInnerModule(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeInnerModule(name) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(Name)
+   PushT(name)
 END StartBuildInnerModule ;
 
 
@@ -387,14 +354,14 @@ END StartBuildInnerModule ;
 PROCEDURE EndBuildInnerModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    EndScope ;
    PopT(NameStart) ;
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant inner module name %s', NameStart)
+      WriteFormat1('inconsistant inner module name %a', NameStart)
    END
 END EndBuildInnerModule ;
 
@@ -432,36 +399,33 @@ END EndBuildInnerModule ;
 
 PROCEDURE BuildImportOuterModule ;
 VAR
-   Ptr, Top,
    Sym, ModSym,
-   i, j       : CARDINAL ;
+   i, n       : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ImportTok           *)
-   IF Operand(Ptr)=ImportTok
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)=ImportTok
    THEN
       (* Ident list contains Module Names *)
-      WHILE j<=Top DO
-         ModSym := MakeDefinitionSource(Operand(j)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         ModSym := MakeDefinitionSource(OperandT(n+1-i)) ;
          PutImported(ModSym) ;
-         INC(j)
+         INC(i)
       END
    ELSE
       (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(Operand(Ptr)) ;
-      WHILE j<=Top DO
+      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      i := 1 ;
+      WHILE i<=n DO
 (*
          WriteString('Importing ') ; WriteKey(Operand(j)) ; WriteString(' from ') ; WriteKey(GetSymName(ModSym)) ; WriteLn ;
 *)
-         Sym := GetExported(ModSym, Operand(j)) ;
+         Sym := GetExported(ModSym, OperandT(n+1-i)) ;
          PutImported(Sym) ;
-         INC(j)
+         INC(i)
       END
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)   (* clear stack *)
 END BuildImportOuterModule ;
 
 
@@ -500,36 +464,33 @@ END BuildImportOuterModule ;
 
 PROCEDURE BuildExportOuterModule ;
 VAR
-   Ptr, Top,
    ModSym,
-   i, j    : CARDINAL ;
+   i, n  : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ExportTok           *)
-   IF (Operand(Ptr)=QualifiedTok) AND CompilingDefinitionModule()
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF (OperandT(n+1)=QualifiedTok) AND CompilingDefinitionModule()
    THEN
-      (* Ident List contains list of objects *)
-      WHILE j<=Top DO
-         PutExportQualified(Operand(j)) ;
-         INC(j)
+      (* Ident List contains list of export qualified objects *)
+      i := 1 ;
+      WHILE i<=n DO
+         PutExportQualified(OperandT(i)) ;
+         INC(i)
       END
-   ELSIF (Operand(Ptr)=UnQualifiedTok) AND CompilingDefinitionModule()
+   ELSIF (OperandT(n+1)=UnQualifiedTok) AND CompilingDefinitionModule()
    THEN
-      (* Ident List contains list of objects *)
-      WHILE j<=Top DO
-         PutExportUnQualified(Operand(j)) ;
-         INC(j)
+      (* Ident List contains list of export unqualified objects *)
+      i := 1 ;
+      WHILE i<=n DO
+         PutExportUnQualified(OperandT(i)) ;
+         INC(i)
       END
    ELSIF CompilingDefinitionModule()
    THEN
-      WriteError('QUALIFIED export only allowed in a definition module')
+      WriteFormat0('the export must be either QUALIFIED or UNQUALIFIED in a definition module')
    ELSE
-      WriteError('only allowed inter module exports in definition module')
+      WriteFormat0('only allowed inter module exports in definition module')
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)  (* clear stack *)
 END BuildExportOuterModule ;
 
 
@@ -567,27 +528,23 @@ END BuildExportOuterModule ;
 
 PROCEDURE BuildImportInnerModule ;
 VAR
-   Ptr, Top,
    Sym, ModSym,
-   i, j       : CARDINAL ;
+   i, n       : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ImportTok           *)
-   IF Operand(Ptr)=ImportTok
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)=ImportTok
    THEN
       (* Ident List contains list of objects *)
-      WHILE j<=Top DO
-         Sym := GetFromOuterModule(Operand(j)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetFromOuterModule(OperandT(i)) ;
          PutImported(Sym) ;
-         INC(j)
+         INC(i)
       END
    ELSE
-      WriteError('not allowed FROM in an inner module')
+      WriteFormat0('not allowed FROM in an inner module')
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)    (* clear stack *)
 END BuildImportInnerModule ;
 
 
@@ -624,29 +581,25 @@ END BuildImportInnerModule ;
 
 PROCEDURE BuildExportInnerModule ;
 VAR
-   Ptr, Top,
    Sym, ModSym,
-   i, j       : CARDINAL ;
+   i, n       : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ExportTok           *)
-   IF Operand(Ptr)=ExportTok
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)=ExportTok
    THEN
       (* Ident List contains list of objects *)
-      WHILE j<=Top DO
-         Sym := RequestSym(Operand(j)) ;          (* NulSym - dependant sym *)
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := RequestSym(OperandT(i)) ;         (* NulSym - dependant sym *)
                                                   (* in case an unknown is  *)
                                                   (* used.                  *)
          PutExported(Sym) ;
-         INC(j)
+         INC(i)
       END
    ELSE
-      WriteError('QUALIFIED not allowed in an Inner Module')
+      WriteFormat0('QUALIFIED not allowed in an Inner Module')
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)    (* clear stack *)
 END BuildExportInnerModule ;
 
 
@@ -678,24 +631,21 @@ END BuildExportInnerModule ;
 
 PROCEDURE BuildEnumeration ;
 VAR
-   No,
-   Ptr, Top,
-   i,
-   Name, Type: CARDINAL ;
+   name: Name ;
+   n, i,
+   Type: CARDINAL ;
 BEGIN
-   PopT(No) ;      (* No := # *)
-   GetPtr(Ptr) ;
-   Top := Ptr-1 ;  (* Top -> en 1 *)
-   i := Ptr-No ;   (* i   -> en # *)
-   PutPtr(i) ;
-   PopT(Name) ;
-   Type := MakeEnumeration(Name) ;
-   WHILE i<=Top DO
-      PutFieldEnumeration(Type, Operand(i)) ;
+   PopT(n) ;      (* No := # *)
+   name := OperandT(n+1) ;
+   Type := MakeEnumeration(name) ;
+   i := 1 ;
+   WHILE i<=n DO
+      PutFieldEnumeration(Type, OperandT(n-i+1)) ;
       INC(i)
    END ;
-   PutIntoFifoQueue(Type) ;  (* Store enumeration away for Pass 2 *)
-   PushT(Name) ;
+   PutIntoFifoQueue(Type) ;  (* store enumeration away for pass 2 *)
+   PopN(n+1) ;
+   PushT(name) ;
    PushT(Type)
 END BuildEnumeration ;
 
@@ -721,8 +671,8 @@ END BuildEnumeration ;
 PROCEDURE BuildType ;
 VAR
    Sym,
-   Type,
-   Name: CARDINAL ;
+   Type: CARDINAL ;
+   name: Name ;
 BEGIN
    (*
       Two cases
@@ -732,8 +682,8 @@ BEGIN
         we create a new type.
    *)
    PopT(Type) ;
-   PopT(Name) ;
-   IF (Name=NulName) OR (GetSymName(Type)=Name)
+   PopT(name) ;
+   IF (name=NulName) OR (GetSymName(Type)=name)
    THEN
       (*
          Typically the declaration that causes this case is:
@@ -746,12 +696,12 @@ BEGIN
              |
              +---- type has no name.
       *)
-      PushTF(Type, Name)
+      PushTF(Type, name)
    ELSE
       (* E.G   TYPE a = CARDINAL *)
-      Sym := MakeType(Name) ;
+      Sym := MakeType(name) ;
       PutType(Sym, Type) ;
-      PushTF(Sym, Name)
+      PushTF(Sym, name)
    END
 END BuildType ;
 
@@ -772,13 +722,13 @@ END BuildType ;
 
 PROCEDURE BuildHiddenType ;
 VAR
-   Name,
+   name: Name ;
    Sym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
+   PopT(name) ;
    (* WriteString('Hidden type enocuntered: ') ; *)
    (* WriteKey(Name) ; WriteLn ; *)
-   Sym := MakeHiddenType(Name)
+   Sym := MakeHiddenType(name)
 END BuildHiddenType ;
 
 
@@ -799,19 +749,19 @@ END BuildHiddenType ;
 
 PROCEDURE StartBuildProcedure ;
 VAR 
-   Name,
+   name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   PushT(Name) ;  (* Name saved for the EndBuildProcedure name check *)
-   ProcSym := RequestSym(Name) ;
+   PopT(name) ;
+   PushT(name) ;  (* Name saved for the EndBuildProcedure name check *)
+   ProcSym := RequestSym(name) ;
    IF IsUnknown(ProcSym)
    THEN
       (*
          May have been compiled in DEF or IMP module, remember that IMP maybe
          compiled before corresponding DEF module.
       *)
-      ProcSym := MakeProcedure(Name)
+      ProcSym := MakeProcedure(name)
    ELSE
       Assert(IsProcedure(ProcSym))
    END ;
@@ -844,16 +794,16 @@ END StartBuildProcedure ;
 
 PROCEDURE EndBuildProcedure ;
 VAR
+   ProcSym  : CARDINAL ;
    NameEnd,
-   ProcSym,
-   NameStart: CARDINAL ;
+   NameStart: Name ;
 BEGIN
    PopT(NameEnd) ;
    PopT(ProcSym) ;
    PopT(NameStart) ;
    IF NameEnd#NameStart
    THEN
-      WriteErrorFormat2('procedure name at end (%s) does not match name at beginning (%s)', NameEnd, NameStart)
+      WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
    END ;
    EndScope
 END EndBuildProcedure ;
@@ -882,8 +832,8 @@ END EndBuildProcedure ;
 
 PROCEDURE BuildProcedureHeading ;
 VAR
-   ProcSym,
-   NameStart: CARDINAL ;
+   ProcSym  : CARDINAL ;
+   NameStart: Name ;
 BEGIN
    IF CompilingDefinitionModule()
    THEN
@@ -929,9 +879,10 @@ END BuildNulName ;
 
 PROCEDURE BuildTypeEnd ;
 VAR
-   Type, Name: CARDINAL ;
+   Type: CARDINAL ;
+   name: Name ;
 BEGIN
-   PopTF(Type, Name)
+   PopTF(Type, name)
 END BuildTypeEnd ;
 
 

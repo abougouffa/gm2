@@ -1,3 +1,21 @@
+2002-04-15	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.21
+	* brought gm2 up to date with gcc-3.0.4
+	* make paranoid works on Debian GNU/Linux (Athlon)
+	* finally finished rewrite of a number of key modules
+	* Strings.mod used instead of StrLib.mod allowing for
+	  dynamic arrays
+	* new flex built lexical analyser in use.
+	* cpp is run on all definition/implementation modules if
+	  -Wcpp is used.
+	* gm2m rewritten
+	* gm2 and its utilities now use -I for path specification
+	  rather than -M
+	* Makefiles much simplified, removed most recusive makes.
+	* all parsers are now mechanically generated using ppg.
+	* ppg built if required.
+	
 2001-08-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* brought gm2 up to date with gcc-3.0

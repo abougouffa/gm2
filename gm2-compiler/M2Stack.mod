@@ -17,8 +17,9 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE M2Stack ;
 
-
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Error IMPORT InternalError ;
+FROM M2Debug IMPORT Assert ;
 
 CONST
    MaxBucket = 10 ;
@@ -113,7 +114,7 @@ BEGIN
       InternalError('stack has not been initialized', __FILE__, __LINE__)
    ELSE
       WITH s^ DO
-         IF tail=NIL
+         IF (tail=NIL) OR (tail^.items=MaxBucket)
          THEN
             tail := InitBucket(tail)
          END ;
@@ -199,17 +200,18 @@ BEGIN
          END ;
          DISPOSE(b)
       END ;
-      b := s^.tail
-      WHILE n>1 DO
+      b := s^.tail ;
+      WHILE n>=1 DO
          IF b=NIL
          THEN
             InternalError('stack underflow', __FILE__, __LINE__)
          ELSIF b^.items>=n
          THEN
-            RETURN( b^.bucket[n-1] )
+            RETURN( b^.bucket[b^.items-n] )
          ELSE
-            b := b^.last ;
-            DEC(n, b^.items)
+            Assert(b^.items<n) ;
+            DEC(n, b^.items) ;
+            b := b^.last
          END
       END ;
       InternalError('stack underflow', __FILE__, __LINE__)
@@ -250,13 +252,37 @@ BEGIN
             RETURN  (* all done exit *)
          ELSE
             b := s^.tail ;
-            DEC(n, b^.items)
+            DEC(n, b^.items) ;
             s^.tail := s^.tail^.last ;
             DISPOSE(b)
          END
       END
    END
 END Reduce ;
+
+
+(*
+   NoOfItemsInStack - returns the number of items held in the stack, s.
+*)
+
+PROCEDURE NoOfItemsInStack (s: Stack) : CARDINAL ;
+VAR
+   b: StackBucket ;
+   n: CARDINAL ;
+BEGIN
+   IF IsEmpty(s)
+   THEN
+      RETURN( 0 )
+   ELSE
+      n := 0 ;
+      b := s^.tail ;
+      WHILE b#NIL DO
+         INC(n, b^.items) ;
+         b := b^.last
+      END ;
+      RETURN( n )
+   END
+END NoOfItemsInStack ;
 
 
 END M2Stack.

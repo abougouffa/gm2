@@ -18,31 +18,27 @@ IMPLEMENTATION MODULE SymbolTable ;
 
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM StrLib IMPORT StrConCat ;
-FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2Debug IMPORT Assert ;
-
-FROM NumberIO IMPORT CardToStr,
-                     WriteCard ;  (* Delete this line when all works *)
 
 FROM M2Options IMPORT Pedantic ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt, PopInt,
                   IsSolved ;
+FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
+                    ErrorFormat0, ErrorFormat1, ErrorFormat2,
+                    WriteFormat0, WriteFormat1, WriteFormat2, ErrorString ;
 
-FROM M2Lexical IMPORT WriteError, PedanticError, LastError,
-                      NearToken, NearTokens, GetTokenNo, InternalError,
-                      WriteErrorFormat1, WriteErrorFormat2,
-                      WriteFormat1, WriteFormat2 ;
-
-FROM M2Error IMPORT BeginError, EndError ;
+FROM M2LexBuf IMPORT GetTokenNo ;
+FROM Strings IMPORT String, string, InitString, InitStringCharStar, Mark, KillString ;
+FROM FormatStrings IMPORT Sprintf1 ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, PutItemIntoList,
                   IsItemInList, IncludeItemIntoList, NoOfItemsInList,
                   RemoveItemFromList, ForeachItemInListDo ;
 
-FROM NameKey IMPORT MakeKey, NulName, WriteKey, LengthKey, GetKey ;
+FROM NameKey IMPORT Name, MakeKey, makekey, NulName, WriteKey, LengthKey, GetKey, KeyToCharStar ;
 
 FROM SymbolKey IMPORT NulKey, SymbolTree,
                       InitTree,
@@ -81,13 +77,14 @@ TYPE
            END ;
 
    SymUndefined = RECORD
-                     Name      : CARDINAL ;   (* Index into name array, name *)
+                     name      : Name ;       (* Index into name array, name *)
                                               (* of record.                  *)
                      At        : Where ;      (* Where was sym declared/used *)
                   END ;
 
    SymGnuAsm    = RECORD
-                     String    : CARDINAL ;   (* The assembly instruction.   *)
+                     String    : CARDINAL ;   (* (ConstString) the assembly  *)
+                                              (* instruction.                *)
                      At        : Where ;      (* Where was sym declared/used *)
                      Inputs,
                      Outputs,
@@ -113,7 +110,7 @@ TYPE
                END ;
 
    SymRecord = RECORD
-                  Name         : CARDINAL ;   (* Index into name array, name *)
+                  name         : Name ;       (* Index into name array, name *)
                                               (* of record.                  *)
                   LocalSymbols : SymbolTree ; (* Contains all record fields. *)
                   Size         : PtrToValue ; (* Size at runtime of symbol.  *)
@@ -127,7 +124,7 @@ TYPE
                END ;
 
    SymSubrange = RECORD
-                    Name       : CARDINAL ;   (* Index into name array, name *)
+                    name       : Name ;       (* Index into name array, name *)
                                               (* of subrange.                *)
                     Low        : CARDINAL ;   (* Index to symbol for lower   *)
                     High       : CARDINAL ;   (* Index to symbol for higher  *)
@@ -139,7 +136,7 @@ TYPE
 
    SymEnumeration =
                 RECORD
-                   Name        : CARDINAL ;   (* Index into name array, name *)
+                   name        : Name ;       (* Index into name array, name *)
                                               (* of enumeration.             *)
                    NoOfElements: CARDINAL ;   (* No elements in enumeration  *)
                    LocalSymbols: SymbolTree ; (* Contains all enumeration    *)
@@ -154,7 +151,7 @@ TYPE
                 END ;
 
    SymArray = RECORD
-                 Name        : CARDINAL ;     (* Index into name array, name *)
+                 name        : Name ;         (* Index into name array, name *)
                                               (* of array.                   *)
                  ListOfSubs  : List ;         (* Contains a list of all      *)
                                               (* subscripts for this array.  *)
@@ -188,7 +185,7 @@ TYPE
 
    SymProcedure
             = RECORD
-                 Name          : CARDINAL ;   (* Index into name array, name   *)
+                 name          : Name ;       (* Index into name array, name   *)
                                               (* of procedure.                 *)
                  ListOfParam   : List ;       (* Contains a list of all the    *)
                                               (* parameters in this procedure. *)
@@ -236,7 +233,7 @@ TYPE
 
    SymProcType
             = RECORD
-                 Name          : CARDINAL ;   (* Index into name array, name   *)
+                 name          : Name ;       (* Index into name array, name   *)
                                               (* of procedure.                 *)
                  ListOfParam   : List ;       (* Contains a list of all the    *)
                                               (* parameters in this procedure. *)
@@ -247,14 +244,14 @@ TYPE
               END ;
 
    SymParam = RECORD
-                 Name        : CARDINAL ;     (* Index into name array, name *)
+                 name        : Name ;         (* Index into name array, name *)
                                               (* of param.                   *)
                  Type        : CARDINAL ;     (* Index to the type of param. *)
                  At          : Where ;        (* Where was sym declared/used *)
               END ;
 
    SymVarParam = RECORD
-                    Name     : CARDINAL ;     (* Index into name array, name *)
+                    name     : Name ;         (* Index into name array, name *)
                                               (* of param.                   *)
                     Type     : CARDINAL ;     (* Index to the type of param. *)
                     At       : Where ;        (* Where was sym declared/used *)
@@ -262,15 +259,15 @@ TYPE
 
    SymConstString
                = RECORD
-                    Name     : CARDINAL ;     (* Index into name array, name *)
+                    name     : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
-                    String   : CARDINAL ;     (* Value of string.            *)
+                    String   : Name ;         (* Value of string.            *)
                     Length   : CARDINAL ;     (* StrLen(String)              *)
                     At       : Where ;        (* Where was sym declared/used *)
                  END ;
 
    SymConstLit = RECORD
-                    Name     : CARDINAL ;     (* Index into name array, name *)
+                    name     : Name ;     (* Index into name array, name *)
                                               (* of const.                   *)
                     Value    : PtrToValue ;   (* Value of the constant.      *)
                     Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
@@ -279,7 +276,7 @@ TYPE
                  END ;
 
    SymConstVar = RECORD
-                    Name     : CARDINAL ;     (* Index into name array, name *)
+                    name     : Name ;     (* Index into name array, name *)
                                               (* of const.                   *)
                     Value    : PtrToValue ;   (* Value of the constant       *)
                     Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
@@ -288,7 +285,7 @@ TYPE
                  END ;
 
    SymVar = RECORD
-               Name          : CARDINAL ;     (* Index into name array, name *)
+               name          : Name ;     (* Index into name array, name *)
                                               (* of const.                   *)
                Type          : CARDINAL ;     (* Index to a type symbol.     *)
                Size          : PtrToValue ;   (* Runtime size of symbol.     *)
@@ -303,7 +300,7 @@ TYPE
             END ;
 
    SymType = RECORD
-                Name     : CARDINAL ;         (* Index into name array, name *)
+                name     : Name ;             (* Index into name array, name *)
                                               (* of type.                    *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
@@ -312,7 +309,7 @@ TYPE
 
    SymPointer
            = RECORD
-                Name     : CARDINAL ;         (* Index into name array, name *)
+                name     : Name ;         (* Index into name array, name *)
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
@@ -321,7 +318,7 @@ TYPE
 
    SymRecordField =
              RECORD
-                Name     : CARDINAL ;         (* Index into name array, name *)
+                name     : Name ;         (* Index into name array, name *)
                                               (* of record field.            *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
@@ -348,7 +345,7 @@ TYPE
 
    SymEnumerationField =
              RECORD
-                Name     : CARDINAL ;         (* Index into name array, name *)
+                name     : Name ;             (* Index into name array, name *)
                                               (* of enumeration field.       *)
                 Value    : PtrToValue ;       (* Enumeration field value.    *)
                 Type     : CARDINAL ;         (* Index to the father.        *)
@@ -356,7 +353,7 @@ TYPE
              END ;
 
    SymSet  = RECORD
-      	        Name     : CARDINAL ;         (* Index into name array, name *)
+      	        name     : Name ;             (* Index into name array, name *)
                                               (* of set.                     *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
@@ -366,7 +363,7 @@ TYPE
 
    SymDefImp =
             RECORD
-               Name          : CARDINAL ;   (* Index into name array, name   *)
+               name          : Name ;   (* Index into name array, name   *)
                                             (* of record field.              *)
                Type          : CARDINAL ;   (* Index to a type symbol.       *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
@@ -443,7 +440,7 @@ TYPE
 
    SymModule =
             RECORD
-               Name          : CARDINAL ;   (* Index into name array, name   *)
+               name          : Name ;   (* Index into name array, name   *)
                                             (* of record field.              *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                Offset        : PtrToValue ; (* Offset at runtime of symbol   *)
@@ -579,6 +576,7 @@ VAR
    BaseModule    : CARDINAL ;    (* Index to the symbol table of the   *)
                                  (* Base pseudo modeule declaration.   *)
    TemporaryNo   : CARDINAL ;    (* The next temporary number.         *)
+   CurrentError  : Error ;       (* Current error chain.               *)
 
 
 (* %%%FORWARD%%%
@@ -587,38 +585,38 @@ PROCEDURE PushConstString (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AddParameter (Sym: CARDINAL; ParSym: CARDINAL) ; FORWARD ;
 PROCEDURE AddProcedureToList (Mod, Proc: CARDINAL) ; FORWARD ;
 PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
-PROCEDURE AddSymToScope (Sym: CARDINAL; Name: CARDINAL) ; FORWARD ;
-PROCEDURE AddSymToUnknownTree (Name: CARDINAL; Sym: CARDINAL) ; FORWARD ;
+PROCEDURE AddSymToScope (Sym: CARDINAL; name: Name) ; FORWARD ;
+PROCEDURE AddSymToUnknownTree (name: Name; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AddVarToList (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckEnumerationInList (l: List; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForEnumerationInOuterModule (Sym: CARDINAL;
                                             OuterModule: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForExportedDeclaration (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckForHiddenType (TypeName: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE CheckForUnknowns (Name: CARDINAL; Tree: SymbolTree;
+PROCEDURE CheckForHiddenType (TypeName: Name) : CARDINAL ; FORWARD ;
+PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
                             a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE CheckIfEnumerationExported (Sym: CARDINAL; ScopeId: CARDINAL) ; FORWARD ;
 PROCEDURE CheckLegal (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; Name: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE DeclareSym (Name: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
+PROCEDURE DeclareSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE DisplayScopes ; FORWARD ;
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ; FORWARD ;
 PROCEDURE DisposeSym (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; Name: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE FetchUnknownFromDefImp (ModSym: CARDINAL;
-                                  SymName: CARDINAL) : CARDINAL ; FORWARD ;
+                                  SymName: Name) : CARDINAL ; FORWARD ;
 PROCEDURE FetchUnknownFromModule (ModSym: CARDINAL;
-                                  SymName: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE FetchUnknownSym (Name: CARDINAL) : CARDINAL ; FORWARD ;
+                                  SymName: Name) : CARDINAL ; FORWARD ;
+PROCEDURE FetchUnknownSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE GetConstLitType (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE GetCurrentModule () : CARDINAL ; FORWARD ;
 PROCEDURE GetModuleScopeId (Id: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE GetRecord (Sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE GetScopeSym (Name: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE GetSymFromUnknownTree (Name: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE GetScopeSym (name: Name) : CARDINAL ; FORWARD ;
+PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE Init ; FORWARD ;
 PROCEDURE InitSymTable ; FORWARD ;
-PROCEDURE IsAlreadyDeclaredSym (Name: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ; FORWARD ;
 PROCEDURE IsNthParamVar (Head: List; n: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE NewSym (VAR Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PlaceEnumerationListOntoScope (l: List) ; FORWARD ;
@@ -632,13 +630,13 @@ PROCEDURE PutTypeSize (Sym: CARDINAL; SizeBytes, SizeBits: CARDINAL) ; FORWARD ;
 PROCEDURE PutVarTypeAndSize (Sym: CARDINAL; VarType: CARDINAL; TypeSize: CARDINAL) ; FORWARD ;
 PROCEDURE RemoveExportUnImplemented (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE RemoveExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
-PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE SubSymFromUnknownTree (Name: CARDINAL) ; FORWARD ;
+PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ; FORWARD ;
+PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: Name) : CARDINAL ; FORWARD ;
+PROCEDURE SubSymFromUnknownTree (name: Name) ; FORWARD ;
 PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE UnImplementedSymbolError (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE UndeclaredSymbolError (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE UnknownSymbolError (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
+PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
+PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -716,37 +714,41 @@ END DisposeSym ;
                           the places where the symbols were declared.
 *)
 
-PROCEDURE AlreadyDeclaredError (a: ARRAY OF CHAR; Name: CARDINAL; OtherOccurance: CARDINAL) ;
+PROCEDURE AlreadyDeclaredError (s: String; name: Name; OtherOccurance: CARDINAL) ;
+VAR
+   e: Error ;
 BEGIN
    IF (OtherOccurance=0) OR (OtherOccurance=GetTokenNo())
    THEN
-      NearToken(a, GetTokenNo())
+      e := NewError(GetTokenNo()) ;
+      ErrorString(e, s)
    ELSE
-      NearTokens(a, GetTokenNo(), OtherOccurance)
-   END ;
-   WriteFormat1('symbol name clash with %s', Name) ;
-   LastError('name clash')
+      e := NewError(GetTokenNo()) ;
+      ErrorString(e, s) ;
+      e := ChainError(OtherOccurance, e) ;
+      ErrorFormat1(e, 'and symbol (%a) is also declared here', name)
+   END
 END AlreadyDeclaredError ;
 
 
 (*
    DeclareSym - returns a symbol which was either in the unknown tree or
-                a New symbol, since Name is about to be declared.
+                a New symbol, since name is about to be declared.
 *)
 
-PROCEDURE DeclareSym (Name: CARDINAL) : CARDINAL ;
+PROCEDURE DeclareSym (name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   IF Name=NulName
+   IF name=NulName
    THEN
       NewSym(Sym)
-   ELSIF IsAlreadyDeclaredSym(Name)
+   ELSIF IsAlreadyDeclaredSym(name)
    THEN
-      AlreadyDeclaredError('symbol already declared in this scope, use a different name', Name,
-                           GetDeclared(GetLocalSym(ScopeCallFrame[ScopePtr].Main, Name)))
+      AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(name)))), name,
+                           GetDeclared(GetLocalSym(ScopeCallFrame[ScopePtr].Main, name)))
    ELSE
-      Sym := FetchUnknownSym(Name) ;
+      Sym := FetchUnknownSym(name) ;
       IF Sym=NulSym
       THEN
          NewSym(Sym)
@@ -774,6 +776,7 @@ END InitSymTable ;
 
 PROCEDURE Init ;
 BEGIN
+   CurrentError := NIL ;
    InitSymTable ;
    InitTree(ConstLitTree) ;
    InitTree(ConstLitStringTree) ;
@@ -795,18 +798,18 @@ END Init ;
 
 
 (*
-   AddSymToUnknownTree - adds a symbol with name, Name, and Sym to the
+   AddSymToUnknownTree - adds a symbol with name, name, and Sym to the
                          unknown tree.
 *)
 
-PROCEDURE AddSymToUnknownTree (Name: CARDINAL; Sym: CARDINAL) ;
+PROCEDURE AddSymToUnknownTree (name: Name; Sym: CARDINAL) ;
 BEGIN
    (* Add symbol to unknown tree *)
    WITH Symbols[CurrentModule] DO
       CASE SymbolType OF
 
-      DefImpSym: PutSymKey(DefImp.Unresolved, Name, Sym) |
-      ModuleSym: PutSymKey(Module.Unresolved, Name, Sym)
+      DefImpSym: PutSymKey(DefImp.Unresolved, name, Sym) |
+      ModuleSym: PutSymKey(Module.Unresolved, name, Sym)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
@@ -816,18 +819,18 @@ END AddSymToUnknownTree ;
 
 
 (*
-   SubSymFromUnknownTree - removes a symbol with name, Name, from the
+   SubSymFromUnknownTree - removes a symbol with name, name, from the
                            unknown tree.
 *)
 
-PROCEDURE SubSymFromUnknownTree (Name: CARDINAL) ;
+PROCEDURE SubSymFromUnknownTree (name: Name) ;
 BEGIN
    (* Delete symbol from unknown tree *)
    WITH Symbols[CurrentModule] DO
       CASE SymbolType OF
 
-      DefImpSym: DelSymKey(DefImp.Unresolved, Name) |
-      ModuleSym: DelSymKey(Module.Unresolved, Name)
+      DefImpSym: DelSymKey(DefImp.Unresolved, name) |
+      ModuleSym: DelSymKey(Module.Unresolved, name)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
@@ -837,27 +840,27 @@ END SubSymFromUnknownTree ;
 
 
 (*
-   GetSymFromUnknownTree - returns a symbol with name, Name, from the
+   GetSymFromUnknownTree - returns a symbol with name, name, from the
                            unknown tree.
-                           If no symbol with Name is found then NulSym
+                           If no symbol with name is found then NulSym
                            is returned.
 *)
 
-PROCEDURE GetSymFromUnknownTree (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ;
 BEGIN
    (* Get symbol from unknown tree *)
-   RETURN( ExamineUnresolvedTree(CurrentModule, Name) )
+   RETURN( ExamineUnresolvedTree(CurrentModule, name) )
 END GetSymFromUnknownTree ;
 
 
 (*
-   ExamineUnresolvedTree - returns a symbol with name, Name, from the
+   ExamineUnresolvedTree - returns a symbol with name, name, from the
                            unresolved tree of module, ModSym.
-                           If no symbol with Name is found then NulSym
+                           If no symbol with name is found then NulSym
                            is returned.
 *)
 
-PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; Name: CARDINAL) : CARDINAL ;
+PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -865,8 +868,8 @@ BEGIN
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
-      DefImpSym: Sym := GetSymKey(DefImp.Unresolved, Name) |
-      ModuleSym: Sym := GetSymKey(Module.Unresolved, Name)
+      DefImpSym: Sym := GetSymKey(DefImp.Unresolved, name) |
+      ModuleSym: Sym := GetSymKey(Module.Unresolved, name)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
@@ -881,23 +884,23 @@ END ExamineUnresolvedTree ;
                      available. It also updates the unknown tree.
 *)
 
-PROCEDURE FetchUnknownSym (Name: CARDINAL) : CARDINAL ;
+PROCEDURE FetchUnknownSym (name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   Sym := GetSymFromUnknownTree(Name) ;
+   Sym := GetSymFromUnknownTree(name) ;
    IF Sym#NulSym
    THEN
       (* Such a symbol does exist, therefore must unhook it from the *)
       (* dependancies. Checking that the scopes where the symbol is  *)
       (* expected can see this declaration.                          *)
 (*
-      WriteKey(Name) ; WriteString(' being resolved') ; WriteCard(Sym, 4) ;
+      WriteKey(name) ; WriteString(' being resolved') ; WriteCard(Sym, 4) ;
       WriteLn ;
 *)
-      SubSymFromUnknownTree(Name) ;
+      SubSymFromUnknownTree(name) ;
 (*
-      ; WriteKey(Name) ; WriteString(' is now') ; WriteCard(Sym, 4) ; WriteLn ;
+      ; WriteKey(name) ; WriteString(' is now') ; WriteCard(Sym, 4) ; WriteLn ;
 *)
    END ;
    RETURN( Sym )
@@ -933,13 +936,13 @@ BEGIN
                     THEN
                        PutSymKey(DefImp.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       WriteErrorFormat1('IMPORT name clash with symbol (%s) symbol already declared ', GetSymName(Sym))
+                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', GetSymName(Sym))
                     END |
       ModuleSym   : IF GetSymKey(Module.LocalSymbols, GetSymName(Sym))=NulKey
                     THEN
                        PutSymKey(Module.LocalSymbols, GetSymName(Sym), Sym)
                     ELSE
-                       WriteErrorFormat1('IMPORT name clash with symbol (%s) symbol already declared ', GetSymName(Sym))
+                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', GetSymName(Sym))
                     END
 
       ELSE
@@ -996,41 +999,41 @@ END GetLastModuleScope ;
 
 
 (*
-   AddSymToScope - adds a symbol Sym with name Name to
+   AddSymToScope - adds a symbol Sym with name name to
                    the current scope symbol tree.
 *)
 
-PROCEDURE AddSymToScope (Sym: CARDINAL; Name: CARDINAL) ;
+PROCEDURE AddSymToScope (Sym: CARDINAL; name: Name) ;
 VAR
    ScopeId: CARDINAL ;
 BEGIN
    ScopeId := ScopeCallFrame[ScopePtr].Main ;
    (*
-      WriteString('Adding ') ; WriteKey(Name) ; WriteString(' :') ; WriteCard(Sym, 4) ; WriteString(' to scope: ') ;
+      WriteString('Adding ') ; WriteKey(name) ; WriteString(' :') ; WriteCard(Sym, 4) ; WriteString(' to scope: ') ;
       WriteKey(GetSymName(ScopeId)) ; WriteLn ;
    *)
    WITH Symbols[ScopeId] DO
       CASE SymbolType OF
 
-      DefImpSym   : IF Name#NulName
+      DefImpSym   : IF name#NulName
                     THEN
-                       PutSymKey(DefImp.LocalSymbols, Name, Sym)
+                       PutSymKey(DefImp.LocalSymbols, name, Sym)
                     END ;
                     IF IsEnumeration(Sym)
                     THEN
                        CheckEnumerationInList(DefImp.EnumerationScopeList, Sym)
                     END |
-      ModuleSym   : IF Name#NulName
+      ModuleSym   : IF name#NulName
                     THEN
-                       PutSymKey(Module.LocalSymbols, Name, Sym)
+                       PutSymKey(Module.LocalSymbols, name, Sym)
                     END ;
                     IF IsEnumeration(Sym)
                     THEN
                        CheckEnumerationInList(Module.EnumerationScopeList, Sym)
                     END |
-      ProcedureSym: IF Name#NulName
+      ProcedureSym: IF name#NulName
                     THEN
-                       PutSymKey(Procedure.LocalSymbols, Name, Sym)
+                       PutSymKey(Procedure.LocalSymbols, name, Sym)
                     END ;
                     IF IsEnumeration(Sym)
                     THEN
@@ -1197,22 +1200,33 @@ END PseudoScope ;
 
 (*
    GetScopeAuthor - returns the symbol where symbol, Sym, was declared.
-                    Sym is expected to be a Variable, Procedure,
-                    Module or DefImp symbol.
+                    The declared scope will be the first non transparent
+                    scope. So enumeration fields will return the procedure,
+                    module, or defimp where it was created.
 *)
 
 PROCEDURE GetScopeAuthor (Sym: CARDINAL) : CARDINAL ;
 BEGIN
-   WITH Symbols[Sym] DO
-      CASE SymbolType OF
+   IF IsDefImp(Sym)
+   THEN
+      RETURN( NulSym )
+   END ;
+   Sym := Father(Sym) ;
+   IF Sym=NulSym
+   THEN
+      (* base scope *)
+      RETURN( NulSym )
+   ELSE
+      WITH Symbols[Sym] DO
+         CASE SymbolType OF
 
-      DefImpSym   : RETURN( NulSym ) |
-      ModuleSym   : RETURN( Module.Father ) |
-      VarSym      : RETURN( Var.Father ) |
-      ProcedureSym: RETURN( Procedure.Father )
+         DefImpSym   : RETURN( Sym ) |
+         ModuleSym   : RETURN( Sym ) |
+         ProcedureSym: RETURN( Sym )
 
-      ELSE
-         InternalError('expecting DefImp, Module, Var or Procedure symbol', __FILE__, __LINE__)
+         ELSE
+            RETURN( GetScopeAuthor(Sym) )
+         END
       END
    END
 END GetScopeAuthor ;
@@ -1248,6 +1262,7 @@ END MakeGnuAsm ;
 
 PROCEDURE PutGnuAsm (sym: CARDINAL; string: CARDINAL) ;
 BEGIN
+   Assert(IsConstString(string)) ;
    WITH Symbols[sym] DO
       CASE SymbolType OF
 
@@ -1262,7 +1277,7 @@ END PutGnuAsm ;
 
 (*
    GetGnuAsm - returns the string symbol, representing the instruction textual
-               of the GnuAsm symbol.
+               of the GnuAsm symbol. It will return a ConstString.
 *)
 
 PROCEDURE GetGnuAsm (sym: CARDINAL) : CARDINAL ;
@@ -1428,7 +1443,7 @@ END MakeRegInterface ;
 
 (*
    PutRegInterface - places a, string, and, object, into the interface list, sym.
-                     The string will either be a register name or a constraint.
+                     The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
@@ -1590,21 +1605,21 @@ END GetBaseModule ;
 
 (*
    GetSym - searches the current scope (and previous scopes if the
-            scope tranparent allows) for a symbol with Name.
+            scope tranparent allows) for a symbol with name.
 *)
 
-PROCEDURE GetSym (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetSym (name: Name) : CARDINAL ;
 VAR
    Sym        : CARDINAL ;
    OldScopePtr: CARDINAL ;
 BEGIN
-   Sym := GetScopeSym(Name) ;
+   Sym := GetScopeSym(name) ;
    IF Sym=NulSym
    THEN
       (* Check default base types for symbol *)
       OldScopePtr := ScopePtr ;  (* Save ScopePtr *)
       ScopePtr := BaseScopePtr ; (* Alter ScopePtr to point to top of BaseModule *)
-      Sym := GetScopeSym(Name) ; (* Search BaseModule for Name *)
+      Sym := GetScopeSym(name) ; (* Search BaseModule for name *)
       ScopePtr := OldScopePtr    (* Restored ScopePtr *)
    END ;
    RETURN( Sym )
@@ -1613,10 +1628,10 @@ END GetSym ;
 
 (*
    GetScopeSym - searches the current scope and below, providing that the
-                 scopes are transparent, for a symbol with name, Name.
+                 scopes are transparent, for a symbol with name, name.
 *)
 
-PROCEDURE GetScopeSym (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetScopeSym (name: Name) : CARDINAL ;
 VAR
    ScopeSym,
    ScopeId ,
@@ -1626,11 +1641,11 @@ BEGIN
    ScopeId := ScopePtr ;
    ScopeSym := ScopeCallFrame[ScopeId].Search ;
    (* WriteString(' scope: ') ; WriteKey(GetSymName(ScopeSym)) ; *)
-   Sym := CheckScopeForSym(ScopeSym, Name) ;
+   Sym := CheckScopeForSym(ScopeSym, name) ;
    WHILE (ScopeId>0) AND (Sym=NulSym) AND TransparentScope(ScopeSym) DO
       DEC(ScopeId) ;
       ScopeSym := ScopeCallFrame[ScopeId].Search ;
-      Sym := CheckScopeForSym(ScopeSym, Name) ;
+      Sym := CheckScopeForSym(ScopeSym, name) ;
       (* WriteString(' scope: ') ; WriteKey(GetSymName(ScopeSym)) *)
    END ;
    (* IF Sym#NulSym THEN WriteKey(GetSymName(Sym)) END ; WriteLn ; *)
@@ -1640,19 +1655,19 @@ END GetScopeSym ;
 
 (*
    CheckScopeForSym - checks the scope, ScopeSym, for an identifier
-                      of name, Name. CheckScopeForSym checks for
+                      of name, name. CheckScopeForSym checks for
                       the symbol by the GetLocalSym and also
                       ExamineUnresolvedTree.
 *)
 
-PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; Name: CARDINAL) : CARDINAL ;
+PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   Sym := GetLocalSym(ScopeSym, Name) ;
+   Sym := GetLocalSym(ScopeSym, name) ;
    IF (Sym=NulSym) AND (IsModule(ScopeSym) OR IsDefImp(ScopeSym))
    THEN
-      Sym := ExamineUnresolvedTree(ScopeSym, Name)
+      Sym := ExamineUnresolvedTree(ScopeSym, name)
    END ;
    RETURN( Sym )
 END CheckScopeForSym ;
@@ -1669,23 +1684,22 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    i := ScopePtr ;
-   WriteString('Displaying scopes') ; WriteLn ;
+   printf0('Displaying scopes\n') ;
    WHILE i>=1 DO
       Sym := ScopeCallFrame[i].Search ;
-      WriteString('Symbol') ; WriteCard(Sym, 4) ;
+      printf1('Symbol %4d', Sym) ;
       IF Sym#NulSym
       THEN
-         WriteString(' : name ') ; WriteKey(GetSymName(Sym)) ;
-         WriteString(' is ') ;
+         printf1(' : name %a is ', GetSymName(Sym)) ;
          IF NOT TransparentScope(Sym)
          THEN
-            WriteString('not')
+            printf0('not')
          END ;
-         WriteString(' transparent') ; WriteLn
+         printf0(' transparent\n')
       END ;
       DEC(i)
    END ;
-   WriteLn ;
+   printf0('\n')
 END DisplayScopes ;
 
 
@@ -1716,10 +1730,10 @@ END GetModuleScopeId ;
                           in the current main scope.
 *)
 
-PROCEDURE IsAlreadyDeclaredSym (Name: CARDINAL) : BOOLEAN ;
+PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ;
 BEGIN
    WITH ScopeCallFrame[ScopePtr] DO
-      RETURN( GetLocalSym(ScopeCallFrame[ScopePtr].Main, Name)#NulSym )
+      RETURN( GetLocalSym(ScopeCallFrame[ScopePtr].Main, name)#NulSym )
    END
 END IsAlreadyDeclaredSym ;
 
@@ -1729,7 +1743,7 @@ END IsAlreadyDeclaredSym ;
                 symbol index.
 *)
 
-PROCEDURE MakeModule (ModuleName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeModule (ModuleName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -1744,7 +1758,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := ModuleSym ;
       WITH Module DO
-         Name := ModuleName ;               (* Index into name array, name   *)
+         name := ModuleName ;               (* Index into name array, name   *)
                                             (* of record field.              *)
          Size := InitValue() ;              (* Runtime size of symbol.       *)
          Offset := InitValue() ;            (* Offset at runtime of symbol   *)
@@ -1831,7 +1845,7 @@ END AddModuleToParent ;
                      symbol index.
 *)
 
-PROCEDURE MakeInnerModule (ModuleName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeInnerModule (ModuleName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -1839,7 +1853,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := ModuleSym ;
       WITH Module DO
-         Name := ModuleName ;               (* Index into name array, name   *)
+         name := ModuleName ;               (* Index into name array, name   *)
                                             (* of record field.              *)
          Size := InitValue() ;              (* Runtime size of symbol.       *)
          Offset := InitValue() ;            (* Offset at runtime of symbol   *)
@@ -1909,7 +1923,7 @@ END MakeInnerModule ;
                 with name DefImpName. It returns the symbol index.
 *)
 
-PROCEDURE MakeDefImp (DefImpName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeDefImp (DefImpName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -1924,7 +1938,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := DefImpSym ;
       WITH DefImp DO
-         Name := DefImpName ;         (* Index into name array, name   *)
+         name := DefImpName ;         (* Index into name array, name   *)
                                       (* of record field.              *)
          Type := NulSym ;             (* Index to a type symbol.       *)
          Size := InitValue() ;        (* Runtime size of symbol.       *)
@@ -2006,11 +2020,11 @@ END MakeDefImp ;
 
 
 (*
-   MakeProcedure - creates a procedure sym with Name. It returns
+   MakeProcedure - creates a procedure sym with name. It returns
                    the symbol index.
 *)
 
-PROCEDURE MakeProcedure (ProcedureName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeProcedure (ProcedureName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2018,7 +2032,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := ProcedureSym ;
       WITH Procedure DO
-         Name := ProcedureName ;
+         name := ProcedureName ;
          InitList(ListOfParam) ;      (* Contains a list of all the    *)
                                       (* parameters in this procedure. *)
          ParamDefined := FALSE ;      (* Have the parameters been      *)
@@ -2115,7 +2129,7 @@ END AddVarToList ;
              symbol index.
 *)
 
-PROCEDURE MakeVar (VarName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeVar (VarName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2123,7 +2137,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := VarSym ;
       WITH Var DO
-         Name := VarName ;
+         name := VarName ;
          Size := InitValue() ;
          Offset := InitValue() ;
          AddrMode := RightValue ;
@@ -2148,7 +2162,7 @@ END MakeVar ;
    MakeRecord - makes the a Record symbol with name RecordName.
 *)
 
-PROCEDURE MakeRecord (RecordName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2162,7 +2176,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := RecordSym ;
       WITH Record DO
-         Name := RecordName ;
+         name := RecordName ;
          InitTree(LocalSymbols) ;
          Size := InitValue() ;
          InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
@@ -2234,7 +2248,7 @@ END GetRecord ;
                      is an enumeration symbol. The symbol index is returned.
 *)
 
-PROCEDURE MakeEnumeration (EnumerationName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeEnumeration (EnumerationName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2249,13 +2263,13 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := EnumerationSym ;
       WITH Enumeration DO
-         Name := EnumerationName ;     (* Name of enumeration.   *)
-         NoOfElements := 0 ;           (* No of elements in the  *)
-                                       (* enumeration type.      *)
-         Size := InitValue() ;         (* Size at runtime of sym *)
-         InitTree(LocalSymbols) ;      (* Enumeration fields.    *)
-         Parent := NulSym ;            (* Parent scope undefined *)
-         InitWhereDeclared(At)         (* Declared here          *)
+         name := EnumerationName ;      (* Name of enumeration.   *)
+         NoOfElements := 0 ;            (* No of elements in the  *)
+                                        (* enumeration type.      *)
+         Size := InitValue() ;          (* Size at runtime of sym *)
+         InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
+         Parent := GetCurrentScope() ;  (* Which scope created it *)
+         InitWhereDeclared(At)          (* Declared here          *)
       END
    END ;
    CheckIfEnumerationExported(Sym, ScopePtr) ;
@@ -2267,7 +2281,7 @@ END MakeEnumeration ;
    MakeType - makes a type symbol with name TypeName.
 *)
 
-PROCEDURE MakeType (TypeName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2281,7 +2295,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := TypeSym ;
       WITH Type DO
-         Name := TypeName ;    (* Index into name array, name *)
+         name := TypeName ;    (* Index into name array, name *)
                                (* of type.                    *)
          Type := NulSym ;      (* Index to a type symbol.     *)
          Size := InitValue() ; (* Runtime size of symbol.     *)
@@ -2301,7 +2315,7 @@ END MakeType ;
                     is reached.
 *)
 
-PROCEDURE MakeHiddenType (TypeName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeHiddenType (TypeName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2309,7 +2323,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := TypeSym ;
       WITH Type DO
-         Name := TypeName ;    (* Index into name array, name *)
+         name := TypeName ;    (* Index into name array, name *)
                                (* of type.                    *)
          Type := NulSym ;      (* Index to a type symbol.     *)
          Size := InitValue() ; (* Runtime size of symbol.     *)
@@ -2334,7 +2348,7 @@ END MakeHiddenType ;
                   character manipulation.
 *)
 
-PROCEDURE MakeConstLit (ConstName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeConstLit (ConstName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2347,7 +2361,7 @@ BEGIN
          SymbolType := ConstLitSym ;
          CASE SymbolType OF
 
-         ConstLitSym : ConstLit.Name := ConstName ;
+         ConstLitSym : ConstLit.name := ConstName ;
                        ConstLit.Value := InitValue() ;
                        PushString(ConstName) ;
                        PopInto(ConstLit.Value) ;
@@ -2369,7 +2383,7 @@ END MakeConstLit ;
                   name ConstVarName.
 *)
 
-PROCEDURE MakeConstVar (ConstVarName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeConstVar (ConstVarName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2377,7 +2391,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := ConstVarSym ;
       WITH ConstVar DO
-         Name  := ConstVarName ;
+         name  := ConstVarName ;
          Value := InitValue() ;
          Type  := NulSym ;
          IsSet := FALSE ;
@@ -2404,7 +2418,7 @@ END MakeConstVar ;
                         In this procedure ConstName is the string.
 *)
 
-PROCEDURE MakeConstLitString (ConstName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeConstLitString (ConstName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2417,7 +2431,7 @@ BEGIN
          SymbolType := ConstStringSym ;
          CASE SymbolType OF
 
-         ConstStringSym : ConstString.Name := ConstName ;
+         ConstStringSym : ConstString.name := ConstName ;
                           PutConstString(Sym, ConstName) ;
                           InitWhereDeclared(ConstString.At)
 
@@ -2436,7 +2450,7 @@ END MakeConstLitString ;
                      filled in later by PutString.
 *)
    
-PROCEDURE MakeConstString (ConstName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeConstString (ConstName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2446,7 +2460,7 @@ BEGIN
       SymbolType := ConstStringSym ;
       CASE SymbolType OF
 
-      ConstStringSym : ConstString.Name := ConstName ;
+      ConstStringSym : ConstString.name := ConstName ;
                        ConstString.Length := 0 ;
                        ConstString.String := NulKey ;
                        InitWhereDeclared(ConstString.At)
@@ -2465,9 +2479,9 @@ END MakeConstString ;
                     true then the ConstVar is converted to a ConstString.
 *)
 
-PROCEDURE PutConstString (Sym: CARDINAL; String: CARDINAL) ;
+PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
 VAR
-   n: CARDINAL ;
+   n: Name ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -2477,10 +2491,10 @@ BEGIN
                       InitWhereFirstUsed(ConstString.At) |
 
       ConstVarSym   : (* ok altering this to ConstString *)
-                      n := ConstVar.Name ;
+                      n := ConstVar.name ;
                       (* copy name and alter symbol.     *)
                       SymbolType := ConstStringSym ;
-                      ConstString.Name := n ;
+                      ConstString.name := n ;
                       PutConstString(Sym, String)
 
       ELSE
@@ -2496,7 +2510,7 @@ END PutConstString ;
                CONST declared string will be different to its value.
 *)
 
-PROCEDURE GetString (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetString (Sym: CARDINAL) : Name ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -2572,7 +2586,7 @@ END IsConstSet ;
                   name SubrangeName.
 *)
 
-PROCEDURE MakeSubrange (SubrangeName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeSubrange (SubrangeName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2586,7 +2600,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := SubrangeSym ;
       WITH Subrange DO
-         Name := SubrangeName ;
+         name := SubrangeName ;
          Low := NulSym ;             (* Index to a symbol determining *)
                                      (* the lower bound of subrange.  *)
                                      (* Points to a constant -        *)
@@ -2611,7 +2625,7 @@ END MakeSubrange ;
    MakeArray - makes an Array symbol with name ArrayName.
 *)
 
-PROCEDURE MakeArray (ArrayName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2625,7 +2639,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := ArraySym ;
       WITH Array DO
-         Name := ArrayName ;
+         name := ArrayName ;
          InitList(ListOfSubs) ;  (* Contains a list of the array        *)
                                  (* subscripts.                         *)
          Size := InitValue() ;   (* Size of array.                      *)
@@ -2639,12 +2653,12 @@ END MakeArray ;
 
 
 (*
-   GetModule - Returns the Module symbol for the module with name, Name.
+   GetModule - Returns the Module symbol for the module with name, name.
 *)
 
-PROCEDURE GetModule (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetModule (name: Name) : CARDINAL ;
 BEGIN
-   RETURN( GetSymKey(ModuleTree, Name) )
+   RETURN( GetSymKey(ModuleTree, name) )
 END GetModule ;
 
 
@@ -2789,11 +2803,11 @@ END GetConstLitType ;
 
 
 (*
-   GetLocalSym - only searches the scope Sym for a symbol with Name
+   GetLocalSym - only searches the scope Sym for a symbol with name
                  and returns the index to the symbol.
 *)
 
-PROCEDURE GetLocalSym (Sym: CARDINAL; Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetLocalSym (Sym: CARDINAL; name: Name) : CARDINAL ;
 VAR
    LocalSym: CARDINAL ;
 BEGIN
@@ -2804,11 +2818,11 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      EnumerationSym : LocalSym := GetSymKey(Enumeration.LocalSymbols, Name) |
-      RecordSym      : LocalSym := GetSymKey(Record.LocalSymbols, Name) |
-      ProcedureSym   : LocalSym := GetSymKey(Procedure.LocalSymbols, Name) |
-      ModuleSym      : LocalSym := GetSymKey(Module.LocalSymbols, Name) |
-      DefImpSym      : LocalSym := GetSymKey(DefImp.LocalSymbols, Name)
+      EnumerationSym : LocalSym := GetSymKey(Enumeration.LocalSymbols, name) |
+      RecordSym      : LocalSym := GetSymKey(Record.LocalSymbols, name) |
+      ProcedureSym   : LocalSym := GetSymKey(Procedure.LocalSymbols, name) |
+      ModuleSym      : LocalSym := GetSymKey(Module.LocalSymbols, name) |
+      DefImpSym      : LocalSym := GetSymKey(DefImp.LocalSymbols, name)
 
       ELSE
          InternalError('symbol does not have a LocalSymbols field', __FILE__, __LINE__)
@@ -2950,7 +2964,7 @@ END PutConst ;
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
-                          FieldName: CARDINAL; FieldType: CARDINAL) ;
+                          FieldName: Name; FieldType: CARDINAL) ;
 VAR
    ParSym,
    SonSym: CARDINAL ;
@@ -2996,7 +3010,7 @@ BEGIN
       SymbolType := RecordFieldSym ;
       WITH RecordField DO
          Type := FieldType ;
-         Name := FieldName ;
+         name := FieldName ;
          Parent := GetRecord(Sym) ;
          Size := InitValue() ;
          Offset := InitValue()
@@ -3082,7 +3096,7 @@ END IsVarient ;
                          value FieldVal.
 *)
 
-PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: CARDINAL) ;
+PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name) ;
 VAR
    Field: CARDINAL ;
 BEGIN
@@ -3094,7 +3108,7 @@ BEGIN
    WITH Symbols[Field] DO
       SymbolType := EnumerationFieldSym ;
       WITH EnumerationField DO
-         Name := FieldName ;  (* Index into name array, name *)
+         name := FieldName ;  (* Index into name array, name *)
                               (* of type.                    *)
          PushCard(Symbols[Sym].Enumeration.NoOfElements) ;
          Value := InitValue() ;
@@ -3110,8 +3124,9 @@ BEGIN
                          INC(NoOfElements) ;
                          IF GetSymKey(LocalSymbols, FieldName)#NulSym
                          THEN
-                            AlreadyDeclaredError('enumeration field name has already been declared elsewhere',
-                                                 FieldName, GetDeclared(GetSymKey(LocalSymbols, FieldName)))
+                            AlreadyDeclaredError(Sprintf1(Mark(InitString('enumeration field (%s) is already declared elsewhere, use a different name or remove the declaration')), Mark(InitStringCharStar(KeyToCharStar(FieldName)))),
+                                                 FieldName,
+                                                 GetDeclared(GetSymKey(LocalSymbols, FieldName)))
                          ELSE
                             PutSymKey(LocalSymbols, FieldName, Field)
                          END
@@ -3183,9 +3198,9 @@ END IsInnerModule ;
    GetSymName - returns the symbol name.
 *)
 
-PROCEDURE GetSymName (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetSymName (Sym: CARDINAL) : Name ;
 VAR
-   n: CARDINAL ;
+   n: Name ;
 BEGIN
    IF Sym=NulSym
    THEN
@@ -3194,28 +3209,28 @@ BEGIN
       WITH Symbols[Sym] DO
          CASE SymbolType OF
 
-         DefImpSym           : n := DefImp.Name |
-         ModuleSym           : n := Module.Name |
-         TypeSym             : n := Type.Name |
-         VarSym              : n := Var.Name |
-         ConstLitSym         : n := ConstLit.Name |
-         ConstVarSym         : n := ConstVar.Name |
-         ConstStringSym      : n := ConstString.Name |
-         EnumerationSym      : n := Enumeration.Name |
-         EnumerationFieldSym : n := EnumerationField.Name |
-         UndefinedSym        : n := Undefined.Name |
-         ProcedureSym        : n := Procedure.Name |
-         ProcTypeSym         : n := ProcType.Name |
-         RecordFieldSym      : n := RecordField.Name |
-         RecordSym           : n := Record.Name |
+         DefImpSym           : n := DefImp.name |
+         ModuleSym           : n := Module.name |
+         TypeSym             : n := Type.name |
+         VarSym              : n := Var.name |
+         ConstLitSym         : n := ConstLit.name |
+         ConstVarSym         : n := ConstVar.name |
+         ConstStringSym      : n := ConstString.name |
+         EnumerationSym      : n := Enumeration.name |
+         EnumerationFieldSym : n := EnumerationField.name |
+         UndefinedSym        : n := Undefined.name |
+         ProcedureSym        : n := Procedure.name |
+         ProcTypeSym         : n := ProcType.name |
+         RecordFieldSym      : n := RecordField.name |
+         RecordSym           : n := Record.name |
          VarientSym          : n := NulName |
-         VarParamSym         : n := VarParam.Name |
-         ParamSym            : n := Param.Name |
-         PointerSym          : n := Pointer.Name |
-         ArraySym            : n := Array.Name |
+         VarParamSym         : n := VarParam.name |
+         ParamSym            : n := Param.name |
+         PointerSym          : n := Pointer.name |
+         ArraySym            : n := Array.name |
          UnboundedSym        : n := NulName |
-         SubrangeSym         : n := Subrange.Name |
-      	 SetSym              : n := Set.Name |
+         SubrangeSym         : n := Subrange.name |
+      	 SetSym              : n := Set.name |
          SubscriptSym        : n := NulName |
          DummySym            : n := NulName
 
@@ -3235,18 +3250,17 @@ END GetSymName ;
 
 PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
 VAR
-   a  : ARRAY [0..8] OF CHAR ;
+   s  : String ;
    Sym: CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
    (* Make the name *)
-   CardToStr(TemporaryNo, 0, a) ;
-   StrConCat('_T', a, a) ;
+   s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF Mode=ImmediateValue
    THEN
-      Sym := MakeConstVar(MakeKey(a))
+      Sym := MakeConstVar(makekey(string(s)))
    ELSE
-      Sym := MakeVar(MakeKey(a)) ;
+      Sym := MakeVar(makekey(string(s))) ;
       WITH Symbols[Sym] DO
          CASE SymbolType OF
 
@@ -3259,6 +3273,7 @@ BEGIN
          END
       END
    END ;
+   s := KillString(s) ;
    RETURN( Sym )
 END MakeTemporary ;
 
@@ -3281,7 +3296,7 @@ BEGIN
                Var.AddrMode := SymMode
 
       ELSE
-         WriteError('Expecting VarSym') ; HALT
+         InternalError('Expecting VarSym', __FILE__, __LINE__)
       END
    END
 END PutMode ;
@@ -3329,20 +3344,20 @@ END GetMode ;
                the same scope of being declared.
 *)
 
-PROCEDURE RenameSym (Sym: CARDINAL; SymName: CARDINAL) ;
+PROCEDURE RenameSym (Sym: CARDINAL; SymName: Name) ;
 BEGIN
    IF GetSymName(Sym)=NulName
    THEN
       WITH Symbols[Sym] DO
          CASE SymbolType OF
 
-         TypeSym             : Type.Name      := SymName |
-         VarSym              : Var.Name       := SymName |
-         ConstLitSym         : ConstLit.Name  := SymName |
-         ConstVarSym         : ConstVar.Name  := SymName |
-         UndefinedSym        : Undefined.Name := SymName |
-         RecordSym           : Record.Name    := SymName |
-         PointerSym          : Pointer.Name   := SymName
+         TypeSym             : Type.name      := SymName |
+         VarSym              : Var.name       := SymName |
+         ConstLitSym         : ConstLit.name  := SymName |
+         ConstVarSym         : ConstVar.name  := SymName |
+         UndefinedSym        : Undefined.name := SymName |
+         RecordSym           : Record.name    := SymName |
+         PointerSym          : Pointer.name   := SymName
 
          ELSE
             InternalError('not implemented yet', __FILE__, __LINE__)
@@ -3359,7 +3374,7 @@ END RenameSym ;
    IsUnknown - returns true is the symbol Sym is unknown.
 *)
 
-PROCEDURE IsUnknown (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsUnknown (Sym: WORD) : BOOLEAN ;
 BEGIN
    CheckLegal(Sym) ;
    RETURN( Symbols[Sym].SymbolType=UndefinedSym )
@@ -3372,7 +3387,7 @@ END IsUnknown ;
 
 PROCEDURE CheckLegal (Sym: CARDINAL) ;
 BEGIN
-   IF (Sym<1) OR (Sym>MaxSymbols)
+   IF (Sym<1) OR (Sym>FinalSymbol())
    THEN
       InternalError('illegal symbol', __FILE__, __LINE__)
    END
@@ -3390,7 +3405,7 @@ END CheckLegal ;
                         types to be implemented using any type schema.
 *)
 
-PROCEDURE CheckForHiddenType (TypeName: CARDINAL) : CARDINAL ;
+PROCEDURE CheckForHiddenType (TypeName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3419,7 +3434,7 @@ END CheckForHiddenType ;
                 else an unknown symbol is returned.
 *)
 
-PROCEDURE RequestSym (SymName: CARDINAL) : CARDINAL ;
+PROCEDURE RequestSym (SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3437,7 +3452,7 @@ BEGIN
          WITH Symbols[Sym] DO
             SymbolType := UndefinedSym ;
             WITH Undefined DO
-               Name := SymName ;
+               name := SymName ;
                InitWhereFirstUsed(At)
             END
          END ;
@@ -3472,27 +3487,27 @@ BEGIN
                  THEN
                     IF Pedantic
                     THEN
-                       WriteErrorFormat1('symbol (%s) has already been imported', GetSymName(Sym))
+                       WriteFormat1('symbol (%a) has already been imported', GetSymName(Sym))
                     END
                  ELSIF GetSymKey(Module.ImportTree, GetSymName(Sym))=NulKey
                  THEN
                     PutSymKey(Module.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
-                    WriteErrorFormat1('name clash when trying to import %s', GetSymName(Sym))
+                    WriteFormat1('name clash when trying to import (%a)', GetSymName(Sym))
                  END |
       DefImpSym: IF GetSymKey(DefImp.ImportTree, GetSymName(Sym))=Sym
                  THEN
                     IF Pedantic
                     THEN
-                       WriteErrorFormat1('symbol (%s) has already been imported', GetSymName(Sym))
+                       WriteFormat1('symbol (%a) has already been imported', GetSymName(Sym))
                     END
                  ELSIF GetSymKey(DefImp.ImportTree, GetSymName(Sym))=NulKey
                  THEN
                     PutSymKey(DefImp.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
-                    WriteErrorFormat1('name clash when trying to import %s', GetSymName(Sym))
+                    WriteFormat1('name clash when trying to import (%a)', GetSymName(Sym))
                  END
 
       ELSE
@@ -3557,7 +3572,7 @@ BEGIN
                     PutExportUndeclared(GetCurrentModuleScope(), Sym)
                  END
 (*
-                 ; WriteKey(Module.Name) ; WriteString(' exports ') ;
+                 ; WriteKey(Module.name) ; WriteString(' exports ') ;
                  ; WriteKey(GetSymName(Sym)) ; WriteLn ;
 *)
 
@@ -3572,13 +3587,13 @@ END PutExported ;
    PutExportQualified - places a symbol with the name, SymName,
                         into the export tree of the
                         Definition module being compiled.
-                        The symbol with Name has been EXPORT QUALIFIED
+                        The symbol with name has been EXPORT QUALIFIED
                         by the definition module and therefore any reference
                         to this symbol in the code generation phase
                         will be in the form _Module_Name.
 *)
 
-PROCEDURE PutExportQualified (SymName: CARDINAL) ;
+PROCEDURE PutExportQualified (SymName: Name) ;
 VAR
    Sym,
    ModSym: CARDINAL ;
@@ -3597,8 +3612,8 @@ BEGIN
                     IF (GetSymKey(ExportQualifiedTree, SymName)#NulKey) AND
                        (GetSymKey(ExportRequest, SymName)=NulKey)
                     THEN
-                       WriteErrorFormat2('identifier (%s) has already been exported from MODULE %s',
-                                         SymName, GetSymName(ModSym))
+                       WriteFormat2('identifier (%a) has already been exported from MODULE %a',
+                                    SymName, GetSymName(ModSym))
                     ELSIF GetSymKey(ExportRequest, SymName)#NulKey
                     THEN
                        Sym := GetSymKey(ExportRequest, SymName) ;
@@ -3629,7 +3644,7 @@ END PutExportQualified ;
                           will be in the form _Name.
 *)
 
-PROCEDURE PutExportUnQualified (SymName: CARDINAL) ;
+PROCEDURE PutExportUnQualified (SymName: Name) ;
 VAR
    Sym,
    ModSym: CARDINAL ;
@@ -3644,8 +3659,8 @@ BEGIN
                     IF (GetSymKey(ExportUnQualifiedTree, SymName)#NulKey) AND
                        (GetSymKey(ExportRequest, SymName)=NulKey)
                     THEN
-                       WriteErrorFormat2('identifier (%s) has already been exported from MODULE %s',
-                                         SymName, GetSymName(ModSym))
+                       WriteFormat2('identifier (%a) has already been exported from MODULE %a',
+                                    SymName, GetSymName(ModSym))
                     ELSIF GetSymKey(ExportRequest, SymName)#NulKey
                     THEN
                        Sym := GetSymKey(ExportRequest, SymName) ;
@@ -3673,7 +3688,7 @@ END PutExportUnQualified ;
 *)
 
 PROCEDURE GetExported (ModSym: CARDINAL;
-                       SymName: CARDINAL) : CARDINAL ;
+                       SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3694,7 +3709,7 @@ END GetExported ;
    RequestFromModule - returns a symbol from module ModSym with name, SymName.
 *)
 
-PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: CARDINAL) : CARDINAL ;
+PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3730,7 +3745,7 @@ END RequestFromModule ;
                            SymName.
 *)
 
-PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: CARDINAL) : CARDINAL ;
+PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3768,7 +3783,7 @@ END RequestFromDefinition ;
 
 PROCEDURE DisplaySymbol (sym: CARDINAL) ;
 BEGIN
-    WriteString('  ') ; WriteKey(GetSymName(sym))
+   printf1('   %s', Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))))
 END DisplaySymbol ;
 
 
@@ -3778,7 +3793,9 @@ END DisplaySymbol ;
 
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
 BEGIN
+(*
    WriteString('Symbol trees for module: ') ; WriteKey(GetSymName(ModSym)) ; WriteLn ;
+*)
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
@@ -3809,7 +3826,7 @@ END DisplayTrees ;
 *)
 
 PROCEDURE FetchUnknownFromModule (ModSym: CARDINAL;
-                                  SymName: CARDINAL) : CARDINAL ;
+                                  SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3821,7 +3838,7 @@ BEGIN
                        THEN
                           NewSym(Sym) ;
                           Symbols[Sym].SymbolType := UndefinedSym ;
-                          Symbols[Sym].Undefined.Name := SymName ;
+                          Symbols[Sym].Undefined.name := SymName ;
                           InitWhereFirstUsed(Symbols[Sym].Undefined.At) ;
                           PutSymKey(Unresolved, SymName, Sym)
                        END
@@ -3839,7 +3856,7 @@ END FetchUnknownFromModule ;
 *)
 
 PROCEDURE FetchUnknownFromDefImp (ModSym: CARDINAL;
-                                  SymName: CARDINAL) : CARDINAL ;
+                                  SymName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -3851,7 +3868,7 @@ BEGIN
                        THEN
                           NewSym(Sym) ;
                           Symbols[Sym].SymbolType := UndefinedSym ;
-                          Symbols[Sym].Undefined.Name := SymName ;
+                          Symbols[Sym].Undefined.name := SymName ;
                           InitWhereFirstUsed(Symbols[Sym].Undefined.At) ;
                           PutSymKey(Unresolved, SymName, Sym)
                        END
@@ -3870,7 +3887,7 @@ END FetchUnknownFromDefImp ;
                         Only works with one level of internal module!
 *)
 
-PROCEDURE GetFromOuterModule (SymName: CARDINAL) : CARDINAL ;
+PROCEDURE GetFromOuterModule (SymName: Name) : CARDINAL ;
 BEGIN
    RETURN( RequestFromModule(GetLastModuleScope(), SymName) )
 END GetFromOuterModule ;
@@ -4033,20 +4050,20 @@ BEGIN
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
-                    CheckForUnknowns( Name, ExportQualifiedTree,
+                    CheckForUnknowns( name, ExportQualifiedTree,
                                       'EXPORT QUALIFIED' ) ;
-                    CheckForUnknowns( Name, ExportUnQualifiedTree,
+                    CheckForUnknowns( name, ExportUnQualifiedTree,
                                       'EXPORT UNQUALIFIED' ) ;
                     CheckForSymbols ( ExportRequest,
                                       'requested by another modules import (symbols have not been EXPORTed by the appropriate definition module)' ) ;
-                    CheckForUnknowns( Name, Unresolved, 'unresolved' ) ;
-                    CheckForUnknowns( Name, LocalSymbols, 'locally used' )
+                    CheckForUnknowns( name, Unresolved, 'unresolved' ) ;
+                    CheckForUnknowns( name, LocalSymbols, 'locally used' )
                  END |
       ModuleSym: WITH Module DO
-                    CheckForUnknowns( Name, Unresolved, 'unresolved' ) ;
-                    CheckForUnknowns( Name, ExportUndeclared, 'EXPORT' ) ;
-                    CheckForUnknowns( Name, ExportTree, 'EXPORT pass 1' ) ;
-                    CheckForUnknowns( Name, LocalSymbols, 'locally used' )
+                    CheckForUnknowns( name, Unresolved, 'unresolved' ) ;
+                    CheckForUnknowns( name, ExportUndeclared, 'EXPORT' ) ;
+                    CheckForUnknowns( name, ExportTree, 'EXPORT pass 1' ) ;
+                    CheckForUnknowns( name, LocalSymbols, 'locally used' )
                  END
 
       ELSE
@@ -4057,46 +4074,50 @@ END CheckForUnknownInModule ;
 
 
 (*
+   UnknownSymbolError - displays symbol name for symbol, Sym.
+*)
+
+PROCEDURE UnknownSymbolError (Sym: WORD) ;
+VAR
+   e: Error ;
+BEGIN
+   IF IsUnknown(Sym)
+   THEN
+      e := ChainError(GetFirstUsed(Sym), CurrentError) ;
+      ErrorFormat1(e, 'unknown symbol (%a) found', GetSymName(Sym))
+   END
+END UnknownSymbolError ;
+
+
+(*
    CheckForUnknowns - checks a binary tree, Tree, to see whether it contains
                       an unknown symbol. All unknown symbols are displayed
                       together with an error message.
 *)
 
-PROCEDURE CheckForUnknowns (Name: CARDINAL; Tree: SymbolTree;
+PROCEDURE CheckForUnknowns (name: Name; Tree: SymbolTree;
                             a: ARRAY OF CHAR) ;
 BEGIN
    IF DoesTreeContainAny(Tree, IsUnknown)
    THEN
-      ForeachNodeDo(Tree, UnknownSymbolError) ;
-      WriteFormat2('the following symbols are unknown in module %s which were %s',
-                   Name, MakeKey(a)) ;
-      LastError('unknown symbols in module')
+      CurrentError := NewError(GetTokenNo()) ;
+      ErrorFormat2(CurrentError, 'the following symbols are unknown in module %a which were %a',
+                   name, MakeKey(a)) ;      
+      ForeachNodeDo(Tree, UnknownSymbolError)
    END
 END CheckForUnknowns ;
-
-
-(*
-   UnknownSymbolError - displays symbol name for symbol, Sym.
-*)
-
-PROCEDURE UnknownSymbolError (Sym: CARDINAL) ;
-BEGIN
-   IF IsUnknown(Sym)
-   THEN
-      NearToken('', GetFirstUsed(Sym)) ;
-      WriteFormat1('unknown symbol found (%s)', GetSymName(Sym))
-   END
-END UnknownSymbolError ;
 
 
 (*
    SymbolError - displays symbol name for symbol, Sym.
 *)
 
-PROCEDURE SymbolError (Sym: CARDINAL) ;
+PROCEDURE SymbolError (Sym: WORD) ;
+VAR
+   e: Error ;
 BEGIN
-   NearToken('', GetFirstUsed(Sym)) ;
-   WriteFormat1('%s', GetSymName(Sym))
+   e := ChainError(GetFirstUsed(Sym), CurrentError) ;
+   ErrorFormat1(e, 'unknown symbol (%a) found', GetSymName(Sym))
 END SymbolError ;
 
 
@@ -4110,10 +4131,9 @@ PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ;
 BEGIN
    IF NOT IsEmptyTree(Tree)
    THEN
-      ForeachNodeDo( Tree, SymbolError ) ;
-      WriteFormat2('the following symbols are unknown at the end of module %s when %s',
+      WriteFormat2('the following symbols are unknown at the end of module %a when %a',
                    GetSymName(MainModule), MakeKey(a)) ;
-      LastError('unresolved symbol in module, first used at this line')
+      ForeachNodeDo(Tree, SymbolError) ;
    END
 END CheckForSymbols ;
 
@@ -4201,13 +4221,13 @@ BEGIN
 
       ModuleSym: IF NOT IsEmptyTree(Module.ExportUndeclared)
                  THEN
-                    ForeachNodeDo( Module.ExportUndeclared, UndeclaredSymbolError ) ;
-                    LastError('undeclared identifier(s) in EXPORT list of MODULE')
+                    WriteFormat0('undeclared identifier(s) in EXPORT list of MODULE') ;
+                    ForeachNodeDo(Module.ExportUndeclared, UndeclaredSymbolError)
                  END |
       DefImpSym: IF NOT IsEmptyTree(DefImp.ExportUndeclared)
                  THEN
-                    ForeachNodeDo( DefImp.ExportUndeclared, UndeclaredSymbolError ) ;
-                    LastError('undeclared identifier(s) in EXPORT list of DEFINITION MODULE')
+                    WriteFormat0('undeclared identifier(s) in EXPORT list of DEFINITION MODULE') ;
+                    ForeachNodeDo(DefImp.ExportUndeclared, UndeclaredSymbolError)
                  END
 
       ELSE
@@ -4221,10 +4241,12 @@ END CheckForUndeclaredExports ;
    UndeclaredSymbolError - displays symbol name for symbol, Sym.
 *)
 
-PROCEDURE UndeclaredSymbolError (Sym: CARDINAL) ;
+PROCEDURE UndeclaredSymbolError (Sym: WORD) ;
+VAR
+   e: Error ;
 BEGIN
-   NearToken('', GetFirstUsed(Sym)) ;
-   WriteFormat1('undeclared symbol (%s)', GetSymName(Sym))
+   e := ChainError(GetFirstUsed(Sym), CurrentError) ;
+   ErrorFormat1(e, 'undeclared symbol (%a)', GetSymName(Sym))
 END UndeclaredSymbolError ;
 
 
@@ -4240,8 +4262,8 @@ BEGIN
 
       DefImpSym: IF GetSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym))=Sym
                  THEN
-                    WriteErrorFormat2('symbol (%s) already exported from module (%s)',
-                                      GetSymName(Sym), GetSymName(CurrentModule))
+                    WriteFormat2('symbol (%a) already exported from module (%a)',
+                                 GetSymName(Sym), GetSymName(CurrentModule))
                  ELSE
                     PutSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym), Sym)
                  END
@@ -4312,12 +4334,9 @@ BEGIN
 
       DefImpSym: IF NOT IsEmptyTree(DefImp.NeedToBeImplemented)
                  THEN
-                    BeginError ;
-                    WriteString('unimplemented identifier(s) in EXPORT list of DEFINITION MODULE:') ; WriteLn ;
-                    WriteString('implementation module fails to implement all declared identifier(s) :') ; WriteLn ;
-                    ForeachNodeDo( DefImp.NeedToBeImplemented, UnImplementedSymbolError ) ;
-                    EndError ;
-                    WriteError('implementation module fails to implement all definition declared identifier(s)')
+                    CurrentError := NewError(GetTokenNo()) ;
+                    ErrorFormat1(CurrentError, 'unimplemented identifier(s) in EXPORT list of DEFINITION MODULE %a\nthe implementation module fails to implement the following exported identifier(s)', DefImp.name) ;
+                    ForeachNodeDo( DefImp.NeedToBeImplemented, UnImplementedSymbolError )
                  END
 
       ELSE
@@ -4331,16 +4350,15 @@ END CheckForUnImplementedExports ;
    UnImplementedSymbolError - displays symbol name for symbol, Sym.
 *)
 
-PROCEDURE UnImplementedSymbolError (Sym: CARDINAL) ;
+PROCEDURE UnImplementedSymbolError (Sym: WORD) ;
 BEGIN
+   CurrentError := ChainError(GetFirstUsed(Sym), CurrentError) ;
    IF IsType(Sym)
    THEN
-      NearToken('', GetFirstUsed(Sym)) ;
-      WriteFormat1('hidden type is undeclared (%s)', GetSymName(Sym))
+      ErrorFormat1(CurrentError, 'hidden type is undeclared (%a)', GetSymName(Sym))
    ELSIF IsProcedure(Sym)
    THEN
-      NearToken('', GetFirstUsed(Sym)) ;
-      WriteFormat1('procedure is undeclared (%s)', GetSymName(Sym))
+      ErrorFormat1(CurrentError, 'procedure is undeclared (%a)', GetSymName(Sym))
    ELSE
       InternalError('expecting Type or Procedure symbols', __FILE__, __LINE__)
    END
@@ -4506,7 +4524,7 @@ END CheckForEnumerationInOuterModule ;
 
 PROCEDURE IsExported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
 VAR
-   SymName: CARDINAL ;
+   SymName: Name ;
 BEGIN
    SymName := GetSymName(Sym) ;
    WITH Symbols[ModSym] DO
@@ -4536,7 +4554,7 @@ END IsExported ;
 
 PROCEDURE IsImported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
 VAR
-   SymName: CARDINAL ;
+   SymName: Name ;
 BEGIN
    SymName := GetSymName(Sym) ;
    WITH Symbols[ModSym] DO
@@ -4600,7 +4618,7 @@ END PutFunction ;
 *)
 
 PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
-                    ParamName: CARDINAL; ParamType: CARDINAL) : BOOLEAN ;
+                    ParamName: Name; ParamType: CARDINAL) : BOOLEAN ;
 VAR
    ParSym     : CARDINAL ;
    VariableSym: CARDINAL ;
@@ -4614,7 +4632,7 @@ BEGIN
       WITH Symbols[ParSym] DO
          SymbolType := ParamSym ;
          WITH Param DO
-            Name := ParamName ;
+            name := ParamName ;
             Type := ParamType ;
             InitWhereDeclared(At)
          END
@@ -4649,7 +4667,7 @@ END PutParam ;
 *)
 
 PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
-                       ParamName: CARDINAL; ParamType: CARDINAL) : BOOLEAN ;
+                       ParamName: Name; ParamType: CARDINAL) : BOOLEAN ;
 VAR
    ParSym     : CARDINAL ;
    VariableSym: CARDINAL ;
@@ -4664,7 +4682,7 @@ BEGIN
       WITH Symbols[ParSym] DO
          SymbolType := VarParamSym ;
          WITH VarParam DO
-            Name := ParamName ;
+            name := ParamName ;
             Type := ParamType ;
             InitWhereDeclared(At)
          END
@@ -4767,6 +4785,7 @@ PROCEDURE NoOfParam (Sym: CARDINAL) : CARDINAL ;
 VAR
    n: CARDINAL ;
 BEGIN
+   CheckLegal(Sym) ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
@@ -4982,7 +5001,7 @@ END AreParametersDefinedInImplementation ;
    MakePointer - returns a pointer symbol with PointerName.
 *)
 
-PROCEDURE MakePointer (PointerName: CARDINAL) : CARDINAL ;
+PROCEDURE MakePointer (PointerName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -4998,7 +5017,7 @@ BEGIN
       CASE SymbolType OF
 
       PointerSym: Pointer.Type := NulSym ;
-                  Pointer.Name := PointerName ;
+                  Pointer.name := PointerName ;
                   Pointer.Size := InitValue()
 
       ELSE
@@ -5199,7 +5218,7 @@ END PutSubscript ;
    MakeSet - makes a set Symbol with name, SetName.
 *)
 
-PROCEDURE MakeSet (SetName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -5213,7 +5232,7 @@ BEGIN
    WITH Symbols[Sym] DO
       SymbolType := SetSym ;
       WITH Set DO
-      	 Name := SetName ;      (* The name of the set.        *)
+      	 name := SetName ;      (* The name of the set.        *)
          Type := NulSym ;       (* Index to a subrange symbol. *)
          Size := InitValue() ;  (* Size of this set            *)
          InitWhereDeclared(At)  (* Declared here               *)
@@ -5318,21 +5337,23 @@ END PutArray ;
 *)
 
 PROCEDURE Father (Sym: CARDINAL) : CARDINAL ;
-VAR
-   i: CARDINAL ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      RecordFieldSym  : i := RecordField.Parent |
-      VarientSym      : i := Varient.Parent |
-      VarientFieldSym : i := VarientField.Parent
+      ModuleSym          : RETURN( Module.Father ) |
+      VarSym             : RETURN( Var.Father ) |
+      ProcedureSym       : RETURN( Procedure.Father ) |
+      RecordFieldSym     : RETURN( RecordField.Parent ) |
+      VarientSym         : RETURN( Varient.Parent ) |
+      VarientFieldSym    : RETURN( VarientField.Parent ) |
+      EnumerationSym     : RETURN( Enumeration.Parent ) |
+      EnumerationFieldSym: RETURN( EnumerationField.Type )
 
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)
       END
-   END ;
-   RETURN( i )
+   END
 END Father ;
 
 
@@ -5350,7 +5371,7 @@ END IsRecordField ;
    MakeProcType - returns a procedure type symbol with ProcTypeName.
 *)
 
-PROCEDURE MakeProcType (ProcTypeName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -5360,7 +5381,7 @@ BEGIN
       CASE SymbolType OF
 
       ProcTypeSym: ProcType.ReturnType := NulSym ;
-                   ProcType.Name := ProcTypeName ;
+                   ProcType.name := ProcTypeName ;
                    InitList(ProcType.ListOfParam) ;
                    ProcType.Size := InitValue() ;
                    ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
@@ -5389,7 +5410,7 @@ BEGIN
    WITH Symbols[ParSym] DO
       SymbolType := ParamSym ;
       WITH Param DO
-         Name := NulName ;
+         name := NulName ;
          Type := ParamType
       END
    END ;
@@ -5410,7 +5431,7 @@ BEGIN
    WITH Symbols[ParSym] DO
       SymbolType := VarParamSym ;
       WITH Param DO
-         Name := NulName ;
+         name := NulName ;
          Type := ParamType
       END
    END ;
@@ -6420,7 +6441,7 @@ BEGIN
                             GetKey(String, a) ;
                             PushChar(a[0])
                          ELSE
-                            WriteError('ConstString must be length 1')
+                            WriteFormat0('ConstString must be length 1')
                          END
                       END
 
@@ -6560,8 +6581,7 @@ BEGIN
       EnumerationFieldSym : InternalError('cannot pop into an enumeration field', __FILE__, __LINE__)
 
       ELSE
-         WriteError('Symbol type not expected') ;
-         HALT
+         InternalError('symbol type not expected', __FILE__, __LINE__)
       END
    END
 END PopValue ;

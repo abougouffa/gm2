@@ -27,7 +27,8 @@ DEFINITION MODULE M2AsmUtil ;
 FROM Strings IMPORT String ;
 FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED WriteAsmName, WriteName, GetAsmName, GetFullSymName,
-                 UnderScoreString, DotifyLabel, GetModuleInitName ;
+                 UnderScoreString, DotifyLabel, GetModuleInitName,
+                 GetFullScopeAsmName ;
 
 
 (*
@@ -71,6 +72,15 @@ PROCEDURE GetAsmName (Sym: CARDINAL) : Name ;
 *)
 
 PROCEDURE GetFullSymName (Sym: CARDINAL) : Name ;
+
+
+(*
+   GetFullScopeAsmName - returns the fully qualified name for the symbol.
+                         This will take the format
+                         [DefImpModule|Module]_{InnerModule}_{Procedure}_SymbolName
+*)
+
+PROCEDURE GetFullScopeAsmName (Sym: CARDINAL) : Name ;
 
 
 (*

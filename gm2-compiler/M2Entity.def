@@ -21,26 +21,19 @@ DEFINITION MODULE M2Entity ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Tue Feb 18 11:46:36 1997
-    Last edit  : Tue Feb 18 11:46:36 1997
     Description: provides a variable entity manipulation package.
 *)
 
-EXPORT QUALIFIED NulEntity,
-                 Entities,
+EXPORT QUALIFIED Entity,
                  InitEntities,
-                 GetNoOfEntities,
+                 HasLValue,
                  FindLatestEntity, GetLatestEntity,
                  IsEntityClean, IsLValue,
                  MakeEntityDirty, MakeEntityClean,
                  GiveEntityIndex, GetEntityIndex, GetEntitySym, MakeNewEntity ;
 
-
-CONST
-   NulEntity   =    0 ;
-   MaxEntity   =  500 ;
-
 TYPE
-   Entities    = [0..MaxEntity] ;
+   Entity ;
 
 
 (*
@@ -51,18 +44,11 @@ PROCEDURE InitEntities ;
 
 
 (*
-   GetNoOfEntities - returns the number of entities.
-*)
-
-PROCEDURE GetNoOfEntities () : CARDINAL ;
-
-
-(*
    FindLatestEntity - returns the latest entity, possibly NulEntity.
                       It does not create one.
 *)
 
-PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entities ;
+PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entity ;
 
 
 (*
@@ -70,63 +56,70 @@ PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entities ;
                      It will create one if necessary.
 *)
 
-PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 
 
 (*
    IsEntityClean - returns TRUE if the entity, e, is clean.
 *)
 
-PROCEDURE IsEntityClean (e: Entities) : BOOLEAN ;
+PROCEDURE IsEntityClean (e: Entity) : BOOLEAN ;
 
 
 (*
    IsLValue - returns TRUE if entity, e, is an LValue
 *)
 
-PROCEDURE IsLValue (e: Entities) : BOOLEAN ;
+PROCEDURE IsLValue (e: Entity) : BOOLEAN ;
 
 
 (*
    MakeEntityDirty - 
 *)
 
-PROCEDURE MakeEntityDirty (e: Entities) ;
+PROCEDURE MakeEntityDirty (e: Entity) ;
 
 
 (*
    MakeEntityClean - 
 *)
 
-PROCEDURE MakeEntityClean (e: Entities) ;
+PROCEDURE MakeEntityClean (e: Entity) ;
 
 
 (*
    GiveEntityIndex - 
 *)
 
-PROCEDURE GiveEntityIndex (e: Entities; index: CARDINAL) ;
+PROCEDURE GiveEntityIndex (e: Entity; index: CARDINAL) ;
 
 
 (*
    GetEntityIndex - 
 *)
 
-PROCEDURE GetEntityIndex (e: Entities) : CARDINAL ;
+PROCEDURE GetEntityIndex (e: Entity) : CARDINAL ;
 
 
 (*
    GetEntitySym - 
 *)
 
-PROCEDURE GetEntitySym (e: Entities) : CARDINAL ;
+PROCEDURE GetEntitySym (e: Entity) : CARDINAL ;
 
 
 (*
    MakeNewEntity - makes a new entity for symbol, Sym.
 *)
 
-PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
+
+
+(*
+   HasLValue - returns TRUE if symbol, Sym, has an LValue
+*)
+
+PROCEDURE HasLValue (Sym: CARDINAL) : BOOLEAN ;
 
 
 END M2Entity.

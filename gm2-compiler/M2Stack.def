@@ -22,13 +22,13 @@ DEFINITION MODULE M2Stack ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Oct 12 17:26:50 2001
-    Last edit  : $Date: 2001/10/31 09:08:31 $ 
+    Last edit  : $Date: 2002/04/15 16:26:50 $ 
     Revision   : $Version$ 
     Description: provides a generic stack for WORD sized objects.
 *)
 
 FROM SYSTEM IMPORT WORD ;
-EXPORT QUALIFIED Stack, InitStack, KillStack, Push, Pop, IsEmpty ;
+EXPORT QUALIFIED Stack, InitStack, KillStack, Push, Pop, Peep, IsEmpty, NoOfItemsInStack ;
 
 TYPE
    Stack ;
@@ -82,6 +82,13 @@ PROCEDURE Peep (s: Stack; n: CARDINAL) : WORD ;
 *)
 
 PROCEDURE Reduce (s: Stack; n: CARDINAL) ;
+
+
+(*
+   NoOfItemsInStack - returns the number of items held in the stack, s.
+*)
+
+PROCEDURE NoOfItemsInStack (s: Stack) : CARDINAL ;
 
 
 END M2Stack.

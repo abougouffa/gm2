@@ -18,12 +18,13 @@ IMPLEMENTATION MODULE M2FileName ;
 
 
 FROM ASCII IMPORT nul ;
-FROM Strings IMPORT InitString, Mark, Slice, Dup, ConCatChar, ConCat, Length, Equal ;
+FROM Strings IMPORT InitString, Mark, Slice, Dup, ConCatChar, ConCat, Length, Equal, Index ;
 
 
 CONST
    MaxFileName = 0 ;   (* zero means no limits *)
    MaxStemName = 0 ;
+   Directory   = '/' ;
 
 
 (*
@@ -76,6 +77,25 @@ BEGIN
       RETURN( filename )
    END
 END ExtractExtension ;
+
+
+(*
+   ExtractModule - given a, filename, return the module name including any
+                   extension. A new string is returned.
+*)
+
+PROCEDURE ExtractModule (filename: String) : String ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := Index(filename, Directory, 0) ;
+   IF i=-1
+   THEN
+      RETURN( Dup(filename) )
+   ELSE
+      RETURN( Slice(filename, i+1, 0) )
+   END
+END ExtractModule ;
 
 
 END M2FileName.

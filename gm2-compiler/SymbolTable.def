@@ -24,6 +24,7 @@ DEFINITION MODULE SymbolTable ;
                 maintain a symbol table for the Modula-2 Compiler.
 *)
 
+FROM SYSTEM IMPORT WORD ;
 FROM SymbolKey IMPORT PerformOperation ;
 FROM NameKey IMPORT Name ;
 
@@ -509,7 +510,7 @@ PROCEDURE MakeGnuAsm () : CARDINAL ;
    PutGnuAsm - places the instruction textual name into the GnuAsm symbol.
 *)
 
-PROCEDURE PutGnuAsm (sym: CARDINAL; string: Name) ;
+PROCEDURE PutGnuAsm (sym: CARDINAL; string: CARDINAL) ;
 
 
 (*
@@ -535,7 +536,7 @@ PROCEDURE PutGnuAsmTrash (sym: CARDINAL; trash: CARDINAL) ;
 
 (*
    GetGnuAsm - returns the string symbol, representing the instruction textual
-               of the GnuAsm symbol.
+               of the GnuAsm symbol. It will return a ConstString.
 *)
 
 PROCEDURE GetGnuAsm (sym: CARDINAL) : CARDINAL ;
@@ -578,25 +579,25 @@ PROCEDURE MakeRegInterface () : CARDINAL ;
 
 (*
    PutRegInterface - places a, string, and, object, into the interface list, sym.
-                     The string will either be a register name or a constraint.
+                     The string symbol will either be a register name or a constraint.
                      The object is an optional Modula-2 variable or constant symbol.
 *)
 
-PROCEDURE PutRegInterface (sym: CARDINAL; string: Name; object: CARDINAL) ;
+PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
 
 
 (*
    GetRegInterface - gets a, string, and, object, from the interface list, sym.
 *)
 
-PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string: Name; VAR object: CARDINAL) ;
+PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
 
 
 (*
    GetModule - Returns the Module symbol for the module with name, n.
 *)
 
-PROCEDURE GetModule (n: Name) : CARDINAL ;
+PROCEDURE GetModule (name: Name) : CARDINAL ;
 
 
 (*
@@ -669,7 +670,7 @@ PROCEDURE GetLowestType (Sym: CARDINAL) : CARDINAL ;
             scope tranparent allows) for a symbol with Name.
 *)
 
-PROCEDURE GetSym (Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetSym (name: Name) : CARDINAL ;
 
 
 (*
@@ -677,7 +678,7 @@ PROCEDURE GetSym (Name: CARDINAL) : CARDINAL ;
                  and returns the index to the symbol.
 *)
 
-PROCEDURE GetLocalSym (Sym: CARDINAL; Name: CARDINAL) : CARDINAL ;
+PROCEDURE GetLocalSym (Sym: CARDINAL; name: Name) : CARDINAL ;
 
 
 (*
@@ -820,7 +821,7 @@ PROCEDURE IsConstSet (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
-                          FieldName: CARDINAL; FieldType: CARDINAL) ;
+                          FieldName: Name; FieldType: CARDINAL) ;
 
 
 (*
@@ -1153,7 +1154,7 @@ PROCEDURE RenameSym (Sym: CARDINAL; SymName: Name) ;
    IsUnknown - returns true is the symbol Sym is unknown.
 *)
 
-PROCEDURE IsUnknown (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsUnknown (Sym: WORD) : BOOLEAN ;
 
 
 (*
@@ -1597,7 +1598,7 @@ PROCEDURE IsRecordField (Sym: CARDINAL) : BOOLEAN ;
    MakeProcType - returns a procedure type symbol with ProcTypeName.
 *)
 
-PROCEDURE MakeProcType (ProcTypeName: CARDINAL) : CARDINAL ;
+PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
 
 
 (*

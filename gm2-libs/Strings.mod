@@ -20,7 +20,7 @@ FROM libc IMPORT strlen ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT ADR ;
-FROM ASCII IMPORT nul ;
+FROM ASCII IMPORT nul, tab ;
 
 CONST
    MaxBuf   = 127 ;
@@ -28,7 +28,7 @@ CONST
 
 TYPE
    Contents = RECORD
-                 buf : ARRAY [0..MaxBuf] OF CHAR ;
+                 buf : ARRAY [0..MaxBuf-1] OF CHAR ;
                  len : CARDINAL ;
                  next: String ;
               END ;
@@ -50,6 +50,15 @@ TYPE
                                                               once this string is killed *)
                            END ;
 
+
+VAR
+   captured: String ;  (* debugging aid *)
+
+PROCEDURE Capture (s: String) : CARDINAL ;
+BEGIN
+   captured := s ;
+   RETURN 1;
+END Capture ;
 
 (*
    Min - 
@@ -91,7 +100,7 @@ VAR
    i: CARDINAL ;
 BEGIN
    i := c.len ;
-   WHILE (o<h) AND (i<=MaxBuf) DO
+   WHILE (o<h) AND (i<MaxBuf) DO
       c.buf[i] := a[o] ;
       INC(o) ;
       INC(i)
@@ -217,6 +226,21 @@ END KillString ;
 
 
 (*
+   Fin - finishes with a string, it calls KillString with, s.
+         The purpose of the procedure is to provide a short cut
+         to calling KillString and then testing the return result.
+*)
+
+PROCEDURE Fin (s: String) ;
+BEGIN
+   IF KillString(s)#NIL
+   THEN
+      HALT
+   END
+END Fin ;
+
+
+(*
    MarkInvalid - marks the char * version of String, s, as invalid.
 *)
 
@@ -245,7 +269,7 @@ VAR
 BEGIN
    i := c.len ;
    p := a ;
-   WHILE (i<h) AND (i<=MaxBuf) DO
+   WHILE (i<h) AND (i<MaxBuf) DO
       c.buf[i] := p^ ;
       INC(i) ;
       INC(p)
@@ -374,6 +398,8 @@ END Length ;
 *)
 
 PROCEDURE ConCat (a, b: String) : String ;
+VAR
+   t: String ;
 BEGIN
    IF PoisonOn
    THEN
@@ -387,13 +413,18 @@ BEGIN
    THEN
       a := AddToGarbage(a, b) ;
       MarkInvalid(a) ;
+      t := a ;
       WHILE b#NIL DO
-         WHILE (a^.contents.len#MaxBuf) AND (a^.contents.next#NIL) DO
-            a := a^.contents.next
+         WHILE (t^.contents.len=MaxBuf) AND (t^.contents.next#NIL) DO
+            t := t^.contents.next
          END ;
-         ConcatContents(a^.contents, b^.contents.buf, b^.contents.len, 0) ;
+         ConcatContents(t^.contents, b^.contents.buf, b^.contents.len, 0) ;
          b := b^.contents.next
       END
+   END ;
+   IF (a=NIL) AND (b#NIL)
+   THEN
+      HALT
    END ;
    RETURN( a )
 END ConCat ;
@@ -406,6 +437,7 @@ END ConCat ;
 PROCEDURE ConCatChar (a: String; ch: CHAR) : String ;
 VAR
    b: ARRAY [0..1] OF CHAR ;
+   t: String ;
 BEGIN
    IF PoisonOn
    THEN
@@ -413,9 +445,11 @@ BEGIN
    END ;
    b[0] := ch ;
    b[1] := nul ;
-   WITH a^ DO
-      ConcatContents(contents, b, 1, 0)
+   t := a ;
+   WHILE (t^.contents.len=MaxBuf) AND (t^.contents.next#NIL) DO
+      t := t^.contents.next
    END ;
+   ConcatContents(t^.contents, b, 1, 0) ;
    RETURN( a )
 END ConCatChar ;
 
@@ -566,7 +600,7 @@ BEGIN
    THEN
       s := CheckPoisoned(s)
    END ;
-   IF n=0
+   IF n<=0
    THEN
       RETURN( InitString('') )
    ELSE
@@ -580,6 +614,7 @@ END Mult ;
            low..high-1
 
            strings start at element 0
+           Slice(s, 0, 2)  will return elements 0, 1 but not 2
            Slice(s, 1, 3)  will return elements 1, 2 but not 3
            Slice(s, 2, 0)  will return elements 2..max
            Slice(s, 3, -1) will return elements 3..max-1
@@ -613,8 +648,13 @@ BEGIN
             s := NIL
          ELSE
             (* found sliceable unit *)
-            start := low-o ;
-            end   := Max(Min(MaxBuf, high-o), 0) ;
+            IF low<o
+            THEN
+               start := 0
+            ELSE
+               start := low-o
+            END ;
+            end := Max(Min(MaxBuf, high-o), 0) ;
             ConcatContentsAddress(d^.contents,
                                   ADR(s^.contents.buf[start]), end-start) ;
             INC(o, s^.contents.len) ;
@@ -657,7 +697,9 @@ BEGIN
                   RETURN( k+i )
                END ;
                INC(i)
-            END
+            END ;
+            INC(k, i) ;
+            o := k
          END
       END ;
       s := s^.contents.next
@@ -705,10 +747,10 @@ END RIndex ;
 
 
 (*
-   Char - returns the character, ch, at position, i, in String, s.
+   char - returns the character, ch, at position, i, in String, s.
 *)
 
-PROCEDURE Char (s: String; i: CARDINAL) : CHAR ;
+PROCEDURE char (s: String; i: CARDINAL) : CHAR ;
 BEGIN
    IF PoisonOn
    THEN
@@ -724,7 +766,7 @@ BEGIN
    ELSE
       RETURN( s^.contents.buf[i] )
    END
-END Char ;
+END char ;
 
 
 (*
@@ -774,6 +816,111 @@ BEGIN
       RETURN( s^.head^.charStar )
    END
 END string ;
+
+
+(*
+   IsWhite - returns TRUE if, ch, is a space or a tab.
+*)
+
+PROCEDURE IsWhite (ch: CHAR) : BOOLEAN ;
+BEGIN
+   RETURN( (ch=' ') OR (ch=tab) )
+END IsWhite ;
+
+
+(*
+   RemoveWhitePrefix - removes any leading white space from String, s.
+                       A new string is returned.
+*)
+
+PROCEDURE RemoveWhitePrefix (s: String) : String ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := 0 ;
+   WHILE IsWhite(char(s, i)) DO
+      INC(i)
+   END ;
+   RETURN( Slice(s, INTEGER(i), 0) )
+END RemoveWhitePrefix ;
+
+
+(*
+   ToUpper - returns string, s, after it has had its lower case characters
+             replaced by upper case characters.
+             The string, s, is not duplicated.
+*)
+
+PROCEDURE ToUpper (s: String) : String ;
+VAR
+   ch: CHAR ;
+   i : CARDINAL ;
+   t : String ;
+BEGIN
+   IF s#NIL
+   THEN
+      t := s ;
+      IF PoisonOn
+      THEN
+         t := CheckPoisoned(t)
+      END ;
+      t^.head^.charStarValid := FALSE ;
+      WHILE t#NIL DO
+         WITH t^ DO
+            i := 0 ;
+            WHILE i<contents.len DO
+               ch := contents.buf[i] ;
+               IF (ch>='a') AND (ch<='z')
+               THEN
+                  contents.buf[i] := CHR( ORD(ch)-ORD('a')+ORD('A') )
+               END ;
+               INC(i)
+            END
+         END ;
+         t := t^.contents.next
+      END
+   END ;
+   RETURN( s )
+END ToUpper ;
+
+
+(*
+   ToLower - returns string, s, after it has had its upper case characters
+             replaced by lower case characters.
+             The string, s, is not duplicated.
+*)
+
+PROCEDURE ToLower (s: String) : String ;
+VAR
+   ch: CHAR ;
+   i : CARDINAL ;
+   t : String ;
+BEGIN
+   IF s#NIL
+   THEN
+      t := s ;
+      IF PoisonOn
+      THEN
+         t := CheckPoisoned(t)
+      END ;
+      t^.head^.charStarValid := FALSE ;
+      WHILE t#NIL DO
+         WITH t^ DO
+            i := 0 ;
+            WHILE i<contents.len DO
+               ch := contents.buf[i] ;
+               IF (ch>='A') AND (ch<='Z')
+               THEN
+                  contents.buf[i] := CHR( ORD(ch)-ORD('A')+ORD('a') )
+               END ;
+               INC(i)
+            END
+         END ;
+         t := t^.contents.next
+      END
+   END ;
+   RETURN( s )
+END ToLower ;
 
 
 END Strings.

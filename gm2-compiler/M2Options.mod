@@ -19,12 +19,16 @@ IMPLEMENTATION MODULE M2Options ;
 
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
-FROM Strings IMPORT String, InitString, Mark, Slice, EqualArray ;
+FROM Strings IMPORT String, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
 FROM M2Search IMPORT PrependSearchPath ;
 FROM M2Version IMPORT WriteVersion ;
 FROM M2Printf IMPORT printf0, printf1 ;
 FROM libc IMPORT exit ;
 FROM Debug IMPORT Halt ;
+
+
+VAR
+   CppAndArgs: String ;
 
 
 (*
@@ -46,9 +50,11 @@ END DisplayVersion ;
 
 PROCEDURE ParseOptions ;
 VAR
-   s   : String ;
-   i, n: CARDINAL ;
+   s      : String ;
+   i, n   : CARDINAL ;
+   CppArgs: BOOLEAN ;
 BEGIN
+   CppArgs := FALSE ;
    n := Narg() ;
    IF n>1
    THEN
@@ -56,9 +62,24 @@ BEGIN
       REPEAT
          IF GetArg(s, i)
          THEN
-            IF EqualArray(Mark(Slice(s, 0, 1)), '-I')
+            IF CppArgs
             THEN
-               PrependSearchPath(Slice(s, 2, -1))
+               IF EqualArray(s, '-Wcppend')
+               THEN
+                  CppArgs := FALSE
+               ELSE
+                  IF NOT EqualArray(CppAndArgs, '')
+                  THEN
+                     CppAndArgs := ConCatChar(CppAndArgs, ' ')
+                  END ;
+                  CppAndArgs := ConCat(CppAndArgs, s)
+               END
+            ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+            THEN
+               PrependSearchPath(Slice(s, 2, 0))
+            ELSIF EqualArray(s, '-Wcppbegin')
+            THEN
+               CppArgs := TRUE
             ELSIF EqualArray(s, '-version')
             THEN
                DisplayVersion
@@ -136,9 +157,10 @@ BEGIN
    THEN
       BoundsChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wcpp')
+   ELSIF EqualArray(s, '-Wcpp') OR EqualArray(s, '-Wcppbegin')
    THEN
       Legal := TRUE ;
+      CPreProcessor := TRUE ;
       LineDirectives := TRUE
    ELSIF EqualArray(s, '-Wreturn')
    THEN
@@ -168,6 +190,9 @@ BEGIN
    THEN
       DisplayQuadruples := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+   THEN
+      Legal := TRUE
    ELSIF EqualArray(s, '-dumpbase')
    THEN
       (* gcc passes this to us, we ignore it *)
@@ -179,7 +204,18 @@ BEGIN
 END IsAnOption ;
 
 
+(*
+   CppCommandLine - returns the Cpp command line and all arguments.
+*)
+
+PROCEDURE CppCommandLine () : String ;
 BEGIN
+   RETURN( CppAndArgs )
+END CppCommandLine ;
+
+
+BEGIN
+   CppAndArgs                   := InitString('') ;
    Statistics                   := FALSE ;
    StudentChecking              := FALSE ;
    CompilerDebugging            := FALSE ;
@@ -195,6 +231,7 @@ BEGIN
    OptimizeCommonSubExpressions := FALSE ;
    BoundsChecking               := FALSE ;
    ReturnChecking               := FALSE ;
+   CPreProcessor                := FALSE ;
    LineDirectives               := FALSE ;
    ScanForInitialOptions
 END M2Options.

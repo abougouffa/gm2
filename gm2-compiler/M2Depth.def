@@ -25,6 +25,7 @@ DEFINITION MODULE M2Depth ;
                 Code copied from the m2m module.
 *)
 
+FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED GetDepth, MakeDependant ;
 
 
@@ -32,14 +33,14 @@ EXPORT QUALIFIED GetDepth, MakeDependant ;
    MakeDependant - makes DepandantName a son of ModuleName.
 *)
 
-PROCEDURE MakeDependant (ModuleName, DependantName: CARDINAL) ;
+PROCEDURE MakeDependant (ModuleName, DependantName: Name) ;
 
 
 (*
    GetDepth - returns the depth of a module.
 *)
 
-PROCEDURE GetDepth (ModuleName: CARDINAL) : CARDINAL ;
+PROCEDURE GetDepth (ModuleName: Name) : CARDINAL ;
 
 
 

@@ -42,8 +42,9 @@ EXPORT QUALIFIED write, read,
                  dup, close, open, lseek,
                  readv, writev,
                  perror, creat,
-                 environ, setenv, getcwd, chown, strlen, strcpy,
-                 memcpy, memzero ;
+                 environ, setenv, getcwd, chown, strlen, strcpy, strncpy,
+                 unlink,
+                 memcpy, memset ;
 
 
 (*
@@ -287,6 +288,20 @@ PROCEDURE strlen (a: ADDRESS) : INTEGER ;
 *)
 
 PROCEDURE strcpy (dest, src: ADDRESS) ;
+
+
+(*
+   strncpy - copies string, src, into, dest, copying at most, n, bytes.
+*)
+
+PROCEDURE strncpy (dest, src: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   unlink - removes file and returns 0 if successful.
+*)
+
+PROCEDURE unlink (file: ADDRESS) : INTEGER ;
 
 
 (*

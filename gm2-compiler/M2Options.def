@@ -19,14 +19,14 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2001/10/31 09:08:31 $]
+   Date       : 27/5/87  [$Date: 2002/04/15 16:26:50 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.1 $
+   Version    : $Revision: 1.2 $
 *)
 
 FROM Strings IMPORT String ;
-EXPORT QUALIFIED IsAnOption, DisplayOptions, ParseOptions,
+EXPORT QUALIFIED IsAnOption, ParseOptions,
 
                  Pedantic, Verbose, Statistics,
                  Profiling, Coding, Optimizing,
@@ -34,9 +34,10 @@ EXPORT QUALIFIED IsAnOption, DisplayOptions, ParseOptions,
                  OptimizeCommonSubExpressions,
                  StudentChecking,
                  BoundsChecking, ReturnChecking,
-                 Quiet, LineDirectives,
+                 Quiet, LineDirectives, CPreProcessor,
       	       	 DisplayQuadruples,
-                 CompilerDebugging, GenerateDebugging, GenerateLineDebug ;
+                 CompilerDebugging, GenerateDebugging, GenerateLineDebug,
+                 CppCommandLine ;
 
 
 VAR
@@ -62,6 +63,7 @@ VAR
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)
+   CPreProcessor,                (* must we run the cpp on the source?       *)
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;
@@ -76,19 +78,18 @@ PROCEDURE IsAnOption (s: String) : BOOLEAN ;
 
 
 (*
-   DisplayOptions - displays a string of legal options and a brief
-                    explanation about each option.
-*)
-
-PROCEDURE DisplayOptions ;
-
-
-(*
    ParseOptions - parses the options and sets the option flags
                   accordingly.
 *)
 
 PROCEDURE ParseOptions ;
+
+
+(*
+   CppCommandLine - returns the Cpp command line and all arguments.
+*)
+
+PROCEDURE CppCommandLine () : String ;
 
 
 END M2Options.

@@ -16,9 +16,9 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE SymbolConversion ;
 
-
+FROM NameKey IMPORT Name ;
 FROM SymbolKey IMPORT SymbolTree, GetSymKey, PutSymKey, DelSymKey, InitTree, NulKey ;
-FROM M2Lexical IMPORT InternalError ;
+FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved ;
 FROM M2ALU IMPORT PushIntegerTree ;
 FROM gccgm2 IMPORT GetErrorNode, RememberConstant ;
@@ -48,13 +48,13 @@ VAR
 BEGIN
    IF USEPOISON
    THEN
-      t := PtrToInteger(GetSymKey(mod2gcc, sym)) ;
+      t := PtrToInteger(GetSymKey(mod2gcc, Name(sym))) ;
       IF (t#NIL) AND (t^=GGCPOISON)
       THEN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   RETURN( Tree(GetSymKey(mod2gcc, sym)) )
+   RETURN( Tree(GetSymKey(mod2gcc, Name(sym))) )
 END Mod2Gcc ;
 
 
@@ -89,7 +89,7 @@ BEGIN
    IF old=Tree(NIL)
    THEN
       (* absent - add it *)
-      PutSymKey(mod2gcc, sym, CARDINAL(gcc)) ;
+      PutSymKey(mod2gcc, Name(sym), CARDINAL(gcc)) ;
       gcc := RememberConstant(gcc)
    ELSIF old=gcc
    THEN
@@ -121,7 +121,7 @@ END AddModGcc ;
 
 PROCEDURE GccKnowsAbout (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( GetSymKey(mod2gcc, sym)#NulKey )
+   RETURN( GetSymKey(mod2gcc, Name(sym))#NulKey )
 END GccKnowsAbout ;
 
 
@@ -132,7 +132,7 @@ END GccKnowsAbout ;
 PROCEDURE AddTemporaryKnown (sym: CARDINAL) ;
 BEGIN
    (* we add the error node against symbol, sym. We expect it to be retacted later.. *)
-   PutSymKey(mod2gcc, sym, CARDINAL(GetErrorNode()))
+   PutSymKey(mod2gcc, Name(sym), CARDINAL(GetErrorNode()))
 END AddTemporaryKnown ;
 
 
@@ -144,7 +144,7 @@ PROCEDURE RemoveTemporaryKnown (sym: CARDINAL) ;
 BEGIN
    IF Mod2Gcc(sym)=GetErrorNode()
    THEN
-      DelSymKey(mod2gcc, sym)
+      DelSymKey(mod2gcc, Name(sym))
    ELSE
       InternalError('attempting to remove a symbol which is not present in the tree', __FILE__, __LINE__)
    END

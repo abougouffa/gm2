@@ -19,11 +19,11 @@ IMPLEMENTATION MODULE M2AsmUtil ;
 
 FROM SFIO IMPORT WriteS ;
 FROM FIO IMPORT StdOut ;
-FROM Strings IMPORT String, ConCat ;
+FROM Strings IMPORT String, string, ConCat, KillString, InitString, Mark, InitStringCharStar, ConCatChar ;
 FROM StdIO IMPORT Write ;
 FROM StrIO IMPORT WriteString ;
 FROM StrLib IMPORT StrCopy, StrConCat ;
-FROM NameKey IMPORT WriteKey, GetKey, MakeKey ;
+FROM NameKey IMPORT WriteKey, GetKey, MakeKey, makekey, KeyToCharStar ;
 
 FROM SymbolTable IMPORT NulSym,
                         GetSymName,
@@ -44,6 +44,7 @@ FROM M2Configure IMPORT UseUnderscoreForC, UseDotForJumpLabels ;
 (* %%%FORWARD%%%
 PROCEDURE GetModulePrefix (Name: String; Sym, ModSym: CARDINAL) : String ; FORWARD ;
 PROCEDURE WriteModulePrefix (Sym, ModSym: CARDINAL) ; FORWARD ;
+PROCEDURE GetFullScopePrefix (Name: String; Sym: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -79,6 +80,30 @@ END DotifyLabel ;
 
 
 (*
+   GetFullScopeAsmName - returns the fully qualified name for the symbol.
+                         This will take the format
+                         [DefImpModule|Module]_{InnerModule}_{Procedure}_SymbolName
+*)
+
+PROCEDURE GetFullScopeAsmName (Sym: CARDINAL) : Name ;
+VAR
+   Module: String ;
+   Father: CARDINAL ;
+BEGIN
+   Father := GetScopeAuthor(Sym) ;
+   IF UseUnderscoreForC
+   THEN
+      Module := InitString('_')
+   ELSE
+      Module := InitString('')
+   END ;
+   Module := ConCat(GetFullScopePrefix(Module, Father),
+                    InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
+   RETURN( StringToKey(Module) )
+END GetFullScopeAsmName ;
+
+
+(*
    GetAsmName - returns the NameKey for the assembler string of a symbol.
 *)
 
@@ -87,21 +112,16 @@ VAR
    Module: String ;
    Father: CARDINAL ;
 BEGIN
-   IF IsVar(Sym) OR IsProcedure(Sym)
+   Father := GetScopeAuthor(Sym) ;
+   IF UseUnderscoreForC
    THEN
-      Father := GetScopeAuthor(Sym) ;
-      IF UseUnderscoreForC
-      THEN
-         Module := InitString('_')
-      ELSE
-         Module := InitString('')
-      END ;
-      Module := ConCat(GetModulePrefix(Module, Sym, Father),
-                       InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
-      RETURN( StringToKey(Module) )
+      Module := InitString('_')
    ELSE
-      InternalError('Expecting Var or Procedure symbol', __FILE__, __LINE__)
-   END
+      Module := InitString('')
+   END ;
+   Module := ConCat(GetModulePrefix(Module, Sym, Father),
+                    InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
+   RETURN( StringToKey(Module) )
 END GetAsmName ;
 
 
@@ -117,14 +137,9 @@ VAR
    k       : Name ;
    Father  : CARDINAL ;
 BEGIN
-   IF IsVar(Sym) OR IsProcedure(Sym)
-   THEN
-      Father := GetScopeAuthor(Sym) ;
-      Module := GetModulePrefix(InitString(''), Sym, Father) ;
-      RETURN( StringToKey(ConCat(Module, InitStringCharStar(KeyToCharStar(GetSymName(Sym))))) )
-   ELSE
-      InternalError('Expecting Var or Procedure symbol', __FILE__, __LINE__)
-   END
+   Father := GetScopeAuthor(Sym) ;
+   Module := GetModulePrefix(InitString(''), Sym, Father) ;
+   RETURN( StringToKey(ConCat(Module, InitStringCharStar(KeyToCharStar(GetSymName(Sym))))) )
 END GetFullSymName ;
 
 
@@ -137,18 +152,13 @@ PROCEDURE WriteAsmName (Sym: CARDINAL) ;
 VAR
    Father: CARDINAL ;
 BEGIN
-   IF IsVar(Sym) OR IsProcedure(Sym)
+   IF UseUnderscoreForC
    THEN
-      IF UseUnderscoreForC
-      THEN
-         Write('_')
-      END ;
-      Father := GetScopeAuthor(Sym) ;
-      WriteModulePrefix(Sym, Father) ;
-      WriteKey(GetSymName(Sym))
-   ELSE
-      InternalError('Expecting Var or Procedure symbol', __FILE__, __LINE__)
-   END
+      Write('_')
+   END ;
+   Father := GetScopeAuthor(Sym) ;
+   WriteModulePrefix(Sym, Father) ;
+   WriteKey(GetSymName(Sym))
 END WriteAsmName ;
 
 
@@ -190,11 +200,34 @@ BEGIN
                         GetModulePrefix(Name, ModSym, GetScopeAuthor(ModSym))) )
       ELSIF IsDefImp(ModSym) AND IsExportQualified(Sym)
       THEN
-         RETURN( ConCat(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), Mark(Name)), '_') )
+         RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), Mark(Name)), '_') )
       END
    END ;
    RETURN( Name )
 END GetModulePrefix ;
+
+
+(*
+   GetFullScopePrefix - returns a String containing the full scope prefix
+                        for symbol, Sym.
+                        Name is marked if it is appended onto the new string.
+*)
+
+PROCEDURE GetFullScopePrefix (Name: String; Sym: CARDINAL) : String ;
+BEGIN
+   IF Sym#NulSym
+   THEN
+      IF IsInnerModule(Sym)
+      THEN
+         RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), '_'),
+                        GetFullScopePrefix(Name, GetScopeAuthor(Sym))) )
+      ELSIF IsDefImp(Sym) OR IsProcedure(Sym)
+      THEN
+         RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), Mark(Name)), '_') )
+      END
+   END ;
+   RETURN( Name )
+END GetFullScopePrefix ;
 
 
 (*
@@ -207,8 +240,7 @@ VAR
    s: String ;
 BEGIN
    s := GetModulePrefix(InitString(''), Sym, ModSym) ;
-   WriteS(StdOut, s) ;
-   s := KillString(s)
+   s := KillString(WriteS(StdOut, s))
 END WriteModulePrefix ;
 
 
@@ -231,7 +263,7 @@ END UnderScoreString ;
    GetModuleInitName - returns the name of the initialization section of a module.
 *)
 
-PROCEDURE GetModuleInitName (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetModuleInitName (Sym: CARDINAL) : Name ;
 VAR
    s: String ;
 BEGIN

@@ -21,10 +21,11 @@ DEFINITION MODULE M2Students ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Wed Nov 27 22:11:22 1996
-    Last edit  : Wed Nov 27 22:11:22 1996
     Description: provides a simple set of routines which checks for new programmers errors.
 *)
 
+FROM SYSTEM IMPORT ADDRESS ;
+FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED StudentVariableCheck, CheckForVariableThatLooksLikeKeyword ;
 
 
@@ -33,7 +34,7 @@ EXPORT QUALIFIED StudentVariableCheck, CheckForVariableThatLooksLikeKeyword ;
                                           as a keyword except for its case.
 *)
 
-PROCEDURE CheckForVariableThatLooksLikeKeyword (a: ARRAY OF CHAR; name: CARDINAL) ;
+PROCEDURE CheckForVariableThatLooksLikeKeyword (a: ADDRESS; name: Name) ;
 
 
 (*

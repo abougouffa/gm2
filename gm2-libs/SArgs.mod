@@ -17,7 +17,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 IMPLEMENTATION MODULE SArgs ;
 
 
-FROM SYSTEM IMPORT TSIZE ;
+FROM SYSTEM IMPORT TSIZE, ADDRESS ;
 FROM UnixArgs IMPORT ArgC, ArgV ;
 FROM Strings IMPORT InitStringCharStar ;
 
@@ -40,7 +40,7 @@ VAR
 BEGIN
    IF i<ArgC
    THEN
-      ppc := ArgV + (i*TSIZE(PtrToChar)) ;
+      ppc := ADDRESS(CARDINAL(ArgV) + (i*TSIZE(PtrToChar))) ;
       s   := InitStringCharStar(ppc^) ;
 
       RETURN( TRUE )

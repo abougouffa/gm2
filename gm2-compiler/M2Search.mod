@@ -37,7 +37,13 @@ VAR
 
 PROCEDURE PrependSearchPath (path: String) ;
 BEGIN
-   UserPath := ConCat(ConCatChar(UserPath, ':'), path)
+   IF EqualArray(UserPath, '')
+   THEN
+      UserPath := KillString(UserPath) ;
+      UserPath := Dup(path)
+   ELSE
+      UserPath := ConCat(ConCatChar(UserPath, ':'), path)
+   END
 END PrependSearchPath ;
 
 
@@ -47,7 +53,12 @@ END PrependSearchPath ;
                     FALSE is returned.
                     The parameter FullPath is set indicating the
                     absolute location of source FileName.
-                    FindSourceFile sets FullPath to a new string if successful.                    
+                    FullPath will be totally overwritten and should
+                    not be initialized by InitString before this function
+                    is called.
+                    FullPath is set to NIL if this function returns FALSE.
+                    FindSourceFile sets FullPath to a new string if successful.
+                    The string, FileName, is not altered.
 *)
 
 PROCEDURE FindSourceFile (FileName: String;
@@ -97,6 +108,7 @@ BEGIN
       END
    UNTIL end=0 ;
 
+   FullPath := NIL ;
    newpath := KillString(newpath) ;
    CompleteSearchPath :=  KillString(CompleteSearchPath) ;
    RETURN( FALSE )

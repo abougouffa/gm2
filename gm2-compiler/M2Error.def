@@ -32,7 +32,9 @@ EXPORT QUALIFIED Error,
                  NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorFormat3,
                  ErrorString,
                  NewWarning,
-                 FlushErrors, FlushWarnings, ChainError ;
+                 FlushErrors, FlushWarnings, ChainError,
+                 ErrorStringAt, ErrorStringAt2, ErrorStringsAt2,
+                 WarnStringAt, WarnStringAt2, WarnStringsAt2 ;
 
 TYPE
    Error ;
@@ -122,6 +124,20 @@ PROCEDURE ErrorFormat1 (e: Error; a: ARRAY OF CHAR; w: WORD) ;
 PROCEDURE ErrorFormat2 (e: Error; a: ARRAY OF CHAR; w1, w2: WORD) ;
 PROCEDURE ErrorFormat3 (e: Error; a: ARRAY OF CHAR; w1, w2, w3: WORD) ;
 PROCEDURE ErrorString  (e: Error; str: String) ;
+
+
+(* ***************************************************************************
+   The following routines are useful for positioning and warnings and errors
+   at tokens. The strings are emitted later, so the caller must not destroy
+   the strings.
+   *************************************************************************** *)
+
+PROCEDURE ErrorStringAt (s: String; tok: CARDINAL) ;
+PROCEDURE ErrorStringAt2 (s: String; tok1, tok2: CARDINAL) ;
+PROCEDURE ErrorStringsAt2 (s1, s2: String; tok1, tok2: CARDINAL) ;
+PROCEDURE WarnStringAt (s: String; tok: CARDINAL) ;
+PROCEDURE WarnStringAt2 (s: String; tok1, tok2: CARDINAL) ;
+PROCEDURE WarnStringsAt2 (s1, s2: String; tok1, tok2: CARDINAL) ;
 
 
 (*

@@ -18,20 +18,23 @@ IMPLEMENTATION MODULE M2Batch ;
 
 
 FROM M2Debug IMPORT Assert ;
+FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT MakeModule, MakeDefImp, NulSym ;
 FROM NameKey IMPORT GetKey, WriteKey ;
 FROM M2Printf IMPORT printf2 ;
-FROM NumberIO IMPORT WriteCard ;
 FROM M2Error IMPORT InternalError ;
 FROM Lists IMPORT List, InitList, RemoveItemFromList, IncludeItemIntoList, GetItemFromList, NoOfItemsInList ;
 FROM Storage IMPORT ALLOCATE ;
+FROM Strings IMPORT String ;
 
 
 TYPE
    Module = POINTER TO module ;
    module =            RECORD
-                          SymNo: CARDINAL ;
-                          Key  : Name ;
+                          SymNo  : CARDINAL ;
+                          Key    : Name ;
+                          DefFile,
+                          ModFile: String ;
                        END ;
 
 VAR
@@ -135,14 +138,21 @@ END GetSource ;
 
 
 (*
-   GetModuleNo - returns with symbol number of the n th module which was
-                 read in Pass 1.
+   GetModuleNo - returns with symbol number of the nth module read during Pass 1.
 *)
 
 PROCEDURE GetModuleNo (n: CARDINAL) : CARDINAL ;
+VAR
+   m: Module ;
 BEGIN
    Assert(n#0) ;
-   RETURN( GetItemFromList(DoneQueue, n) )
+   m := GetItemFromList(DoneQueue, n) ;
+   IF m=NIL
+   THEN
+      RETURN( NulSym )
+   ELSE
+      RETURN( m^.SymNo )
+   END
 END GetModuleNo ;
 
 
@@ -182,15 +192,17 @@ BEGIN
 END Get ;
 
 
-PROCEDURE Put (Sym: CARDINAL; n: CARDINAL) ;
+PROCEDURE Put (Sym: CARDINAL; n: Name) ;
 VAR
    m: Module ;
 BEGIN
    NEW(m) ;
    IncludeItemIntoList(DoneQueue, m) ;
    WITH m^ DO
-      SymNo := Sym ;
-      Key   := n
+      SymNo   := Sym ;
+      Key     := n ;
+      DefFile := NIL ;
+      ModFile := NIL
    END
 END Put ;
 
@@ -233,6 +245,116 @@ BEGIN
       INC(i)
    END
 END DisplayModules ;
+
+
+(*
+   AssociateDefinition - associate the source file, filename, with the definition module,
+                         Sym.
+*)
+
+PROCEDURE AssociateDefinition (filename: String; Sym: CARDINAL) : String ;
+VAR
+   no, i: CARDINAL ;
+   m    : Module ;
+BEGIN
+   i := 1 ;
+   no := NoOfItemsInList(DoneQueue) ;
+   WHILE i<=no DO
+      m := GetItemFromList(DoneQueue, i) ;
+      WITH m^ DO
+         IF SymNo=Sym
+         THEN
+            DefFile := filename ;
+            RETURN( filename )
+         ELSE
+            INC(i)
+         END
+      END
+   END ;
+   InternalError('failed to find module sym', __FILE__, __LINE__)
+END AssociateDefinition ;
+
+
+(*
+   GetDefinitionModuleFile - returns the filename associated with the definition module, Sym.
+                             It may return a temporary preprocessed file.
+*)
+
+PROCEDURE GetDefinitionModuleFile (Sym: CARDINAL) : String ;
+VAR
+   no, i: CARDINAL ;
+   m    : Module ;
+BEGIN
+   i := 1 ;
+   no := NoOfItemsInList(DoneQueue) ;
+   WHILE i<=no DO
+      m := GetItemFromList(DoneQueue, i) ;
+      WITH m^ DO
+         IF SymNo=Sym
+         THEN
+            RETURN( DefFile )
+         ELSE
+            INC(i)
+         END
+      END
+   END ;
+   RETURN( NIL )
+END GetDefinitionModuleFile ;
+
+
+(*
+   AssociateModule - associate the source file, filename, with the implementation/program
+                     module, Sym.
+*)
+
+PROCEDURE AssociateModule (filename: String; Sym: CARDINAL) : String ;
+VAR
+   no, i: CARDINAL ;
+   m    : Module ;
+BEGIN
+   i := 1 ;
+   no := NoOfItemsInList(DoneQueue) ;
+   WHILE i<=no DO
+      m := GetItemFromList(DoneQueue, i) ;
+      WITH m^ DO
+         IF SymNo=Sym
+         THEN
+            ModFile := filename ;
+            RETURN( filename )
+         ELSE
+            INC(i)
+         END
+      END
+   END ;
+   InternalError('failed to find module sym', __FILE__, __LINE__)
+END AssociateModule ;
+
+
+(*
+   GetModuleFile - returns the filename associated with the implementation/program module, Sym.
+                   It may return a temporary preprocessed file.
+*)
+
+PROCEDURE GetModuleFile (Sym: CARDINAL) : String ;
+VAR
+   no, i: CARDINAL ;
+   m    : Module ;
+BEGIN
+   i := 1 ;
+   no := NoOfItemsInList(DoneQueue) ;
+   WHILE i<=no DO
+      m := GetItemFromList(DoneQueue, i) ;
+      WITH m^ DO
+         IF SymNo=Sym
+         THEN
+            RETURN( ModFile )
+         ELSE
+            INC(i)
+         END
+      END
+   END ;
+   RETURN( NIL )
+END GetModuleFile ;
 
 
 BEGIN

@@ -17,19 +17,19 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE P2SymBuild ;
 
 
-FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM NumberIO IMPORT WriteCard, CardToStr ;
+FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName ;
 FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2Lexical IMPORT WriteError, NearTokens, GetTokenNo, WriteErrorFormat1, WriteErrorFormat2, InternalError ;
-FROM M2Error IMPORT BeginError, EndError ;
-FROM M2Base IMPORT Char ;
+FROM M2LexBuf IMPORT GetTokenNo ;
+FROM M2Base IMPORT Char, MixTypes ;
+FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2 ;
+FROM Strings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
 
-FROM FifoQueue IMPORT GetFromFifoQueue ;
+FROM FifoQueue IMPORT GetFromFifoQueue, PutIntoFifoQueue ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -92,17 +92,13 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeProgramSource ;
 
 FROM M2Quads IMPORT PushT, PopT,
-                    PushTF, PopTF, SetWatch,
-                    Operand, GetPtr, PutPtr, DisplayStack ;
+                    PushTF, PopTF,
+                    OperandT, PopN, DisplayStack ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM M2Base IMPORT MixTypes ;
-
-
-FROM FifoQueue IMPORT PutIntoFifoQueue ;
 
 
 (* %%%FORWARD%%%
@@ -111,13 +107,29 @@ PROCEDURE BuildNulParam ; FORWARD ;
 PROCEDURE CheckFormalParameterSection ; FORWARD ;
 PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          PreviousState: ARRAY OF CHAR;
-                         Expecting    : CARDINAL ;
+                         Given        : Name ;
                          ParameterNo  : CARDINAL;
                          ProcedureSym : CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
    IsBuildingConstDeclaration: BOOLEAN ;
+   AnonymousName             : CARDINAL ;
+
+
+(*
+   CheckAnonymous - 
+*)
+
+PROCEDURE CheckAnonymous (name: Name) : Name ;
+BEGIN
+   IF name=NulName
+   THEN
+      INC(AnonymousName) ;
+      name := makekey(string(Mark(Sprintf1(Mark(InitString('$$%d')), AnonymousName))))
+   END ;
+   RETURN( name )
+END CheckAnonymous ;
 
 
 (*
@@ -137,17 +149,17 @@ VAR
 
 PROCEDURE P2StartBuildDefModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := MakeDefinitionSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeDefinitionSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
-   PushT(Name)
+   PushT(name)
 END P2StartBuildDefModule ;
 
 
@@ -170,7 +182,7 @@ END P2StartBuildDefModule ;
 PROCEDURE P2EndBuildDefModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN                                 
    Assert(CompilingDefinitionModule()) ;
    CheckForUndeclaredExports(GetCurrentModule()) ;
@@ -179,7 +191,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant definition module name %s', NameStart)
+      WriteFormat2('inconsistant definition module name, module began as (%a) and ended with (%a)', NameStart, NameEnd)
    END
 END P2EndBuildDefModule ;
 
@@ -201,17 +213,17 @@ END P2EndBuildDefModule ;
 
 PROCEDURE P2StartBuildImplementationModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := MakeImplementationSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeImplementationSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingImplementationModule()) ;
-   PushT(Name)                        
+   PushT(name)
 END P2StartBuildImplementationModule ;
 
 
@@ -234,7 +246,7 @@ END P2StartBuildImplementationModule ;
 PROCEDURE P2EndBuildImplementationModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingImplementationModule()) ;
    CheckForUnImplementedExports ;
@@ -243,7 +255,7 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant implementation module name %s', NameStart)
+      WriteFormat1('inconsistant implementation module name %a', NameStart)
    END
 END P2EndBuildImplementationModule ;
 
@@ -265,23 +277,17 @@ END P2EndBuildImplementationModule ;
 
 PROCEDURE P2StartBuildProgramModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   (* WriteString('StartBuildProgramModule') ; WriteLn ; *)
-   PopT(Name) ;
-   ModuleSym := MakeProgramSource(Name) ;
+   PopT(name) ;
+   ModuleSym := MakeProgramSource(name) ;
    SetCurrentModule(ModuleSym) ;
    SetFileModule(ModuleSym) ;
-   (* WriteString('MODULE - ') ; WriteKey(GetSymName(ModuleSym)) ; WriteLn ; *)
    StartScope(ModuleSym) ;
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(Name) ;
-(*
-   WriteString('P2StartBuildProgramModule') ; WriteLn ;
-   DisplayStack
-*)
+   PushT(name) ;
 END P2StartBuildProgramModule ;
 
 
@@ -304,20 +310,16 @@ END P2StartBuildProgramModule ;
 PROCEDURE P2EndBuildProgramModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    Assert(CompilingProgramModule()) ;
    CheckForUndeclaredExports(GetCurrentModule()) ;  (* Not really allowed exports here though! *)
    EndScope ;
-(*
-   WriteString('P2EndBuildProgramModule') ; WriteLn ;
-   DisplayStack ;
-*)
    PopT(NameStart) ;
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant program module name %s', NameStart)
+      WriteFormat2('inconsistant program module name %a does not match %a', NameStart, NameEnd)
    END
 END P2EndBuildProgramModule ;
 
@@ -339,14 +341,14 @@ END P2EndBuildProgramModule ;
 
 PROCEDURE StartBuildInnerModule ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ModuleSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ModuleSym := RequestSym(Name) ;
+   PopT(name) ;
+   ModuleSym := RequestSym(name) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
-   PushT(Name)
+   PushT(name)
 END StartBuildInnerModule ;
 
 
@@ -369,7 +371,7 @@ END StartBuildInnerModule ;
 PROCEDURE EndBuildInnerModule ;
 VAR
    NameStart,
-   NameEnd  : CARDINAL ;
+   NameEnd  : Name ;
 BEGIN
    CheckForUndeclaredExports(GetCurrentModule()) ;
    EndScope ;
@@ -377,7 +379,8 @@ BEGIN
    PopT(NameEnd) ;
    IF NameStart#NameEnd
    THEN
-      WriteErrorFormat1('inconsistant inner module name %s', NameStart)
+      WriteFormat2('inconsistant inner module name %a does not match %a',
+                   NameStart, NameEnd)
    END
 END EndBuildInnerModule ;
 
@@ -415,26 +418,22 @@ END EndBuildInnerModule ;
 
 PROCEDURE BuildImportOuterModule ;
 VAR
-   Ptr, Top,
    Sym, ModSym,
-   i, j       : CARDINAL ;
+   i, n       : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ImportTok           *)
-   IF Operand(Ptr)#ImportTok
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)#ImportTok
    THEN
       (* Ident List contains list of objects *)
-      ModSym := MakeDefinitionSource(Operand(Ptr)) ;
-      WHILE j<=Top DO
-         Sym := GetExported(ModSym, Operand(j)) ;
+      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetExported(ModSym, OperandT(i)) ;
          CheckForEnumerationInCurrentModule(Sym) ;
-         INC(j)
+         INC(i)
       END
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)   (* clear stack *)
 END BuildImportOuterModule ;
 
 
@@ -473,18 +472,10 @@ END BuildImportOuterModule ;
 
 PROCEDURE BuildExportOuterModule ;
 VAR
-   Ptr, Top,
-   ModSym,
-   i, j    : CARDINAL ;
+   n: CARDINAL ;
 BEGIN
-   (* WriteString('Inside BuildExportOuterModule') ; WriteLn ; *)
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ExportTok           *)
-   PutPtr(Ptr)     (* Clear Stack *)
- (* ;  WriteString('Exit BuildExportOuterModule') ; WriteLn ; *)
+   PopT(n) ;       (* n   = # of the Ident List *)
+   PopN(n+1)
 END BuildExportOuterModule ;
 
 
@@ -522,27 +513,23 @@ END BuildExportOuterModule ;
 
 PROCEDURE BuildImportInnerModule ;
 VAR
-   Ptr, Top,
    Sym, ModSym,
-   i, j       : CARDINAL ;
+   n, i       : CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ImportTok           *)
-   IF Operand(Ptr)=ImportTok
+   PopT(n) ;       (* i   = # of the Ident List *)
+   IF OperandT(n+1)=ImportTok
    THEN
       (* Ident List contains list of objects *)
-      WHILE j<=Top DO
-         Sym := GetFromOuterModule(Operand(j)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetFromOuterModule(OperandT(i)) ;
          CheckForEnumerationInCurrentModule(Sym) ;
-         INC(j)
+         INC(i)
       END
    ELSE
-      WriteError('not allowed FROM in an inner module')
+      WriteFormat0('not allowed to import using FROM in an inner module')
    END ;
-   PutPtr(Ptr)   (* Clear Stack *)
+   PopN(n+1)   (* Clear Stack *)
 END BuildImportInnerModule ;
 
 
@@ -579,16 +566,10 @@ END BuildImportInnerModule ;
 
 PROCEDURE BuildExportInnerModule ;
 VAR
-   Ptr, Top,
-   Sym, ModSym,
-   i, j       : CARDINAL ;
+   n: CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   Top := Ptr-2 ;  (* Top = Id1                 *)
-   PopT(i) ;       (* i   = # of the Ident List *)
-   j := Top-i+1 ;  (* j   = Id#                 *)
-   DEC(Ptr,i+2) ;  (* Ptr = ExportTok           *)
-   PutPtr(Ptr)     (* Clear Stack               *)
+   PopT(n) ;
+   PopN(n+1)   (* clear stack               *)
 END BuildExportInnerModule ;
 
 
@@ -608,12 +589,11 @@ END BuildExportInnerModule ;
 
 PROCEDURE BuildNumber ;
 VAR
-   Name,
+   name: Name ;
    Sym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   Sym := MakeConstLit(Name) ;
-   (* WriteString('Number symbol is') ; WriteCard(Sym, 6) ; WriteLn ; *)
+   PopT(name) ;
+   Sym := MakeConstLit(name) ;
    PushTF(Sym, GetType(Sym))
 END BuildNumber ;
 
@@ -634,11 +614,12 @@ END BuildNumber ;
 
 PROCEDURE BuildString ;
 VAR
-   Name,
+   name: Name ;
    Sym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   Sym := MakeConstLitString(Name) ;
+   PopT(name) ;
+   (* slice off the leading and trailing quotes *)
+   Sym := MakeConstLitString(makekey(string(Mark(Slice(Mark(InitStringCharStar(KeyToCharStar(name))), 1, -1))))) ;
    PushTF(Sym, NulSym)
 END BuildString ;
 
@@ -657,11 +638,11 @@ END BuildString ;
 
 PROCEDURE BuildConst ;
 VAR
-   Name,
+   name: Name ;
    Sym : CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   Sym := MakeConstVar(Name) ;
+   PopT(name) ;
+   Sym := MakeConstVar(name) ;
    PushT(Sym)
 END BuildConst ;
 
@@ -723,23 +704,9 @@ VAR
    Expr,
    Sym : CARDINAL ;
 BEGIN
-   IF IsBuildingConstDeclaration
-   THEN
-      PopT(Expr) ;
-      PutConstSet(Expr) ;
-      PushT(Expr)
-(*
-      PopT(Expr) ;
-      PopT(Sym) ;
-      PutConstSet(Sym) ;  (* Sym = Expr is being parsed *)
-      PushT(Sym) ;
-      PushT(Expr)
-*)
-   ELSE
-      PopT(Expr) ;
-      PutConstSet(Expr) ;
-      PushT(Expr)
-   END
+   PopT(Expr) ;
+   PutConstSet(Expr) ;
+   PushT(Expr)
 END BuildConstSetType ;
 
 
@@ -771,20 +738,15 @@ END BuildConstSetType ;
 
 PROCEDURE BuildEnumeration ;
 VAR
-   No,
-   Ptr, Top,
-   i,
-   Name, Type: CARDINAL ;
+   name: Name ;
+   n, i,
+   Type: CARDINAL ;
 BEGIN
-   PopT(No) ;      (* No := # *)
-   GetPtr(Ptr) ;
-   Top := Ptr-1 ;  (* Top -> en 1 *)
-   i := Ptr-No ;   (* i   -> en # *)
-   PutPtr(i) ;
-   PopT(Name) ;
+   PopT(n) ;       (* n := # *)
+   name := OperandT(n+1) ;
    GetFromFifoQueue(Type) ;
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
-   PushT(Name) ;
+   PopN(n) ;
    PushT(Type)
 END BuildEnumeration ;
 
@@ -808,16 +770,15 @@ END BuildEnumeration ;
 
 PROCEDURE BuildSubrange ;
 VAR
-   Type,
-   Name: CARDINAL ;
+   name: Name ;
+   Type: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   (* WriteString('Subrange type name is: ') ; WriteKey(Name) ; WriteLn ; *)
-   Type := MakeSubrange(Name) ;
+   PopT(name) ;
+   Type := MakeSubrange(name) ;
    PutIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
                               (* its bounds during pass 3.                  *)
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
-   PushT(Name) ;
+   PushT(name) ;
    PushT(Type)
 END BuildSubrange ;
 
@@ -851,27 +812,20 @@ END BuildSubrange ;
 
 PROCEDURE BuildVariable ;
 VAR
-   Type, Name,
+   name: Name ;
+   Type,
    Var,
-   Ptr, Top ,
-   i, No    : CARDINAL ;
+   i, n: CARDINAL ;
 BEGIN
-   PopTF(Type, Name) ;
-   (* WriteString('Name of variable type is ') ; WriteKey(Name) ; WriteLn ; *)
-   PopT(No) ;
-   GetPtr(Ptr) ;
-   Top := Ptr-1 ;  (* Ident 1 *)
-   i := Ptr-No ;   (* Ident # *)
-   PutPtr(i) ;     (* Chuck all stack *)
-   WHILE i<=Top DO
-      Var := MakeVar(Operand(i)) ;
+   PopTF(Type, name) ;
+   PopT(n) ;
+   i := 1 ;
+   WHILE i<=n DO
+      Var := MakeVar(OperandT(n+1-i)) ;
       PutVar(Var, Type) ;
-(*
-      ; WriteString('Variable ') ; WriteKey(GetSymName(Var)) ;
-      ; WriteString(' has a type ') ; WriteKey(GetSymName(Type)) ; WriteLn ;
-*)
       INC(i)
-   END
+   END ;
+   PopN(n)
 END BuildVariable ;
 
 
@@ -896,8 +850,8 @@ END BuildVariable ;
 PROCEDURE BuildType ;
 VAR
    Sym,
-   Type,
-   Name: CARDINAL ;
+   Type: CARDINAL ;
+   name: Name ;
 BEGIN
    (*
       Two cases
@@ -907,8 +861,8 @@ BEGIN
         we create a new type.
    *)
    PopT(Type) ;
-   PopT(Name) ;
-   IF (Name=NulName) OR (GetSymName(Type)=Name)
+   PopT(name) ;
+   IF (name=NulName) OR (GetSymName(Type)=name)
    THEN
       (*
          Typically the declaration that causes this case is:
@@ -922,17 +876,13 @@ BEGIN
              +---- type has no name.
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
-      PushTF(Type, Name)
+      PushTF(Type, name)
    ELSE
-(*
-      WriteString('Creating an intemediate type with name ') ;
-      WriteKey(Name) ; WriteLn ;
-*)
-      (* E.G   TYPE a = CARDINAL *)
-      Sym := MakeType(Name) ;
+      (* example   TYPE a = CARDINAL *)
+      Sym := MakeType(name) ;
       PutType(Sym, Type) ;
       CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
-      PushTF(Sym, Name)
+      PushTF(Sym, name)
    END
 END BuildType ;
 
@@ -954,12 +904,12 @@ END BuildType ;
 
 PROCEDURE StartBuildProcedure ;
 VAR 
-   Name,
-   ProcSym : CARDINAL ;
+   name   : Name ;
+   ProcSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   PushT(Name) ;  (* Name saved for the EndBuildProcedure name check *)
-   ProcSym := RequestSym(Name) ;
+   PopT(name) ;
+   PushT(name) ;  (* name saved for the EndBuildProcedure name check *)
+   ProcSym := RequestSym(name) ;
    IF IsUnknown(ProcSym)
    THEN
       (*
@@ -967,13 +917,12 @@ BEGIN
          compiled before corresponding DEF module.
          - no defs should always be compilied before implementation modules.
       *)
-      ProcSym := MakeProcedure(Name)
+      ProcSym := MakeProcedure(name)
    ELSE
       IF NOT IsProcedure(ProcSym)
       THEN
-         NearTokens('', GetTokenNo(), GetDeclared(ProcSym)) ;
-         WriteErrorFormat1('procedure name (%s) has been declared as another object elsewhere',
-                           Name)
+         ErrorStringAt2(Sprintf1(Mark(InitString('procedure name (%a) has been declared as another object elsewhere')),
+                                 name), GetTokenNo(), GetDeclared(ProcSym))
       END
    END ;
    IF CompilingDefinitionModule()
@@ -983,9 +932,6 @@ BEGIN
       CheckForExportedImplementation(ProcSym)   (* May be exported procedure *)
    END ;
    PushT(ProcSym) ;
-(*
-   WriteString('PROCEDURE ') ; WriteKey(Name) ; WriteString(' Built - symbol:') ; WriteCard(ProcSym, 4) ; WriteLn ;
-*)
    StartScope(ProcSym)
 END StartBuildProcedure ;
 
@@ -1015,15 +961,16 @@ END StartBuildProcedure ;
 PROCEDURE EndBuildProcedure ;
 VAR
    NameEnd,
-   ProcSym,
-   NameStart: CARDINAL ;
+   NameStart: Name ;
+   ProcSym  : CARDINAL ;
 BEGIN
    PopT(NameEnd) ;
    PopT(ProcSym) ;
+   Assert(IsProcedure(ProcSym)) ;
    PopT(NameStart) ;
    IF NameEnd#NameStart
    THEN
-      WriteErrorFormat1('procedure name does not match beginning %s', NameStart)
+      WriteFormat2('end procedure name does not match beginning %a name %a', NameStart, NameEnd)
    END ;
    EndScope
 END EndBuildProcedure ;
@@ -1052,12 +999,13 @@ END EndBuildProcedure ;
 
 PROCEDURE BuildProcedureHeading ;
 VAR
-   ProcSym,
-   NameStart: CARDINAL ;
+   ProcSym  : CARDINAL ;
+   NameStart: Name ;
 BEGIN
    IF CompilingDefinitionModule()
    THEN
       PopT(ProcSym) ;
+      Assert(IsProcedure(ProcSym)) ;
       PopT(NameStart) ;
       EndScope
    END
@@ -1097,25 +1045,18 @@ END BuildProcedureHeading ;
 
 PROCEDURE BuildFPSection ;
 VAR
-   ParamTotal,
-   TypeSym,
-   UnBoundedSym,
-   Array,
-   NoOfIds,
-   Ptr,
    ProcSym,
-   i, Var    : CARDINAL ;
+   ParamTotal: CARDINAL ;
 BEGIN
-   GetPtr(Ptr) ;
-   ParamTotal := Operand(Ptr-1) ;
-   DEC(Ptr, 4) ;
-   ProcSym := Operand(Ptr-Operand(Ptr)-2) ;
+   PopT(ParamTotal) ;
+   ProcSym := CARDINAL(OperandT(3+CARDINAL(OperandT(3))+2)) ;
+   PushT(ParamTotal) ;
    Assert(IsProcedure(ProcSym)) ;
    IF CompilingDefinitionModule()
    THEN
       IF AreParametersDefinedInDefinition(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteErrorFormat1('cannot declare procedure %s twice in definition module', GetSymName(ProcSym))
+         WriteFormat1('cannot declare procedure %a twice in definition module', GetSymName(ProcSym))
       ELSIF AreParametersDefinedInImplementation(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1131,7 +1072,7 @@ BEGIN
    THEN
       IF AreParametersDefinedInImplementation(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteErrorFormat1('cannot declare procedure %s twice in implementation module', GetSymName(ProcSym))
+         WriteFormat1('cannot declare procedure %a twice in implementation module', GetSymName(ProcSym))
       ELSIF AreParametersDefinedInDefinition(ProcSym)
       THEN
          CheckFormalParameterSection
@@ -1147,7 +1088,7 @@ BEGIN
    THEN
       IF AreProcedureParametersDefined(ProcSym) AND (ParamTotal=0)
       THEN
-         WriteErrorFormat1('procedure %s parameters already declared in program module', GetSymName(ProcSym))
+         WriteFormat1('procedure %a parameters already declared in program module', GetSymName(ProcSym))
       ELSE
          BuildFormalParameterSection ;
          IF ParamTotal=0
@@ -1157,7 +1098,8 @@ BEGIN
       END
    ELSE
       InternalError('should never reach this point', __FILE__, __LINE__)
-   END
+   END ;
+   Assert(IsProcedure(OperandT(2)))
 END BuildFPSection ;
 
 
@@ -1194,26 +1136,23 @@ END BuildFPSection ;
 
 PROCEDURE BuildFormalParameterSection ;
 VAR
+   Var,
+   Array     : Name ;
    ParamTotal,
    TypeSym,
    UnBoundedSym,
-   Array,
    NoOfIds,
-   Ptr,
    ProcSym,
-   i, Var    : CARDINAL ;
+   i           : CARDINAL ;
 BEGIN
    PopT(ParamTotal) ;
    PopT(TypeSym) ;
    PopT(Array) ;
    Assert( (Array=ArrayTok) OR (Array=NulTok) ) ;
    PopT(NoOfIds) ;
-   GetPtr(Ptr) ;
-   DEC(Ptr, NoOfIds+2) ;  (* Ptr points to ProcSym *)
-   PutPtr(Ptr) ;
-   ProcSym := Operand(Ptr) ;
+   ProcSym := OperandT(NoOfIds+2) ;
    Assert(IsProcedure(ProcSym)) ;
-   Var := Operand(Ptr+1) ;
+   Var := OperandT(NoOfIds+1) ;
    Assert( (Var=VarTok) OR (Var=NulTok) ) ;
    IF Array=ArrayTok
    THEN
@@ -1230,13 +1169,13 @@ BEGIN
       IF Var=VarTok
       THEN
          (* VAR pamarater *)
-         IF NOT PutVarParam(ProcSym, ParamTotal+i, Operand(Ptr+i+1), TypeSym)
+         IF NOT PutVarParam(ProcSym, ParamTotal+i, OperandT(NoOfIds+1-i), TypeSym)
          THEN
             InternalError('problems adding a VarParameter - wrong param #?', __FILE__, __LINE__)
          END
       ELSE
          (* Non VAR parameter *)
-         IF NOT PutParam(ProcSym, ParamTotal+i, Operand(Ptr+i+1), TypeSym)
+         IF NOT PutParam(ProcSym, ParamTotal+i, OperandT(NoOfIds+1-i), TypeSym)
          THEN
             InternalError('problems adding a Parameter - wrong param #?', __FILE__, __LINE__)
          END
@@ -1248,8 +1187,9 @@ BEGIN
 *)
       INC(i)
    END ;
-   PushT(ProcSym) ;
-   PushT(ParamTotal+NoOfIds)
+   PopN(NoOfIds+1) ;
+   PushT(ParamTotal+NoOfIds) ;
+   Assert(IsProcedure(OperandT(2)))
 END BuildFormalParameterSection ;
 
 
@@ -1286,31 +1226,28 @@ END BuildFormalParameterSection ;
 
 PROCEDURE CheckFormalParameterSection ;
 VAR
-   Unbounded   : BOOLEAN ;
+   Array, Var: Name ;
+   Unbounded : BOOLEAN ;
    ParamI,
    ParamIType,
    ParamTotal,
    TypeSym,
-   Array,
    NoOfIds,
-   Ptr,
    ProcSym,
-   i, Var      : CARDINAL ;
+   pi, i     : CARDINAL ;
 BEGIN
    PopT(ParamTotal) ;
    PopT(TypeSym) ;
    PopT(Array) ;
    Assert( (Array=ArrayTok) OR (Array=NulTok) ) ;
    PopT(NoOfIds) ;
-   GetPtr(Ptr) ;
-   DEC(Ptr, NoOfIds+2) ;  (* Ptr points to ProcSym *)
-   PutPtr(Ptr) ;
-   ProcSym := Operand(Ptr) ;
+   ProcSym := OperandT(NoOfIds+2) ;
    Assert(IsProcedure(ProcSym)) ;
-   Var := Operand(Ptr+1) ;
+   Var := OperandT(NoOfIds+1) ;
    Assert( (Var=VarTok) OR (Var=NulTok) ) ;
    Unbounded := (Array=ArrayTok) ;  (* ARRAY OF Type, parameter *)
    i := 1 ;
+   pi := NoOfIds ;     (* stack index referencing stacked parameter, i *)
 (*
    WriteString('No. of identifiers:') ; WriteCard(NoOfIds, 4) ; WriteLn ;
 *)
@@ -1342,12 +1279,12 @@ BEGIN
                           NulName, ParamTotal+i, ProcSym)
          END ;
          ParamI := GetParam(ProcSym, ParamTotal+i) ;
-         IF GetSymName(ParamI)#Operand(Ptr+i+1)
+         IF GetSymName(ParamI)#OperandT(pi)
          THEN
             (* different parameter names *)
             FailParameter('',
                           'the parameter has been declared with a different name',
-                          GetSymName(ParamI), ParamTotal+i, ProcSym)
+                          OperandT(pi), ParamTotal+i, ProcSym)
          END ;
          IF Unbounded
          THEN
@@ -1361,21 +1298,19 @@ BEGIN
             (* different parameter types *)
             FailParameter('',
                           'the parameter has been declared with a different type',
-                          GetSymName(ParamIType), ParamTotal+i, ProcSym)
-         END ;
-(*
-         WriteKey(Operand(Ptr+i+1)) ; WriteString(' is a parameter with type ') ;
-         WriteKey(GetSymName(TypeSym)) ; WriteLn
-*)
+                          OperandT(pi), ParamTotal+i, ProcSym)
+         END
       ELSE
          FailParameter('too many parameters',
                        'fewer parameters were declared',
                        NulName, ParamTotal+i, ProcSym)
       END ;
-      INC(i)
+      INC(i) ;
+      DEC(pi)
    END ;
-   PushT(ProcSym) ;
-   PushT(ParamTotal+NoOfIds)
+   PopN(NoOfIds+1) ;   (* +1 for the Var/Nul *)
+   PushT(ParamTotal+NoOfIds) ;
+   Assert(IsProcedure(OperandT(2)))
 END CheckFormalParameterSection ;
 
 
@@ -1387,7 +1322,7 @@ END CheckFormalParameterSection ;
 
                    CurrentState  - string describing the current failing state.
                    PreviousState - string describing the old defined state.
-                   Expecting     - token or identifier that was expected.
+                   Given         - token or identifier that was given.
                    ParameterNo   - parameter number that has failed.
                    ProcedureSym  - procedure symbol where parameter has failed.
 
@@ -1396,14 +1331,16 @@ END CheckFormalParameterSection ;
 
 PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          PreviousState: ARRAY OF CHAR;
-                         Expecting    : CARDINAL ;
+                         Given        : Name ;
                          ParameterNo  : CARDINAL;
                          ProcedureSym : CARDINAL) ;
 VAR
    First,
-   Second: CARDINAL ;
+   Second      : CARDINAL ;
+   FirstModule,
+   SecondModule,
+   s1          : String ;
 BEGIN
-   BeginError ;
    IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
       First := GetDeclared(GetNthParam(ProcedureSym, ParameterNo))
@@ -1413,60 +1350,41 @@ BEGIN
    END ;
    IF CompilingDefinitionModule()
    THEN
-      WriteString('Error found while compiling the definition module') ; WriteLn ;
-      WriteString('PROCEDURE ') ; WriteKey(GetSymName(ProcedureSym)) ;
-      WriteString(' : parameter') ; WriteCard(ParameterNo, 4) ;
-      IF NOT StrEqual(CurrentState, '')
-      THEN
-         WriteString(' - ') ; WriteString(CurrentState)
-      END ;
-      WriteLn ;
-      IF NOT StrEqual(PreviousState, '')
-      THEN
-         WriteString('whereas in the implementation module ') ;
-         WriteString(PreviousState) ;
-         WriteLn
-      END
+      FirstModule := InitString('definition module') ;
+      SecondModule := InitString('implementation module')
    ELSIF CompilingImplementationModule()
    THEN
-      WriteString('Error found while compiling the implementation module') ; WriteLn ;
-      WriteString('PROCEDURE ') ; WriteKey(GetSymName(ProcedureSym)) ;
-      WriteString(' : parameter') ; WriteCard(ParameterNo, 4) ;
-      IF NOT StrEqual(CurrentState, '')
-      THEN
-         WriteString(' - ') ; WriteString(CurrentState)
-      END ;
-      WriteLn ;
-      IF NOT StrEqual(PreviousState, '')
-      THEN
-         WriteString('Whereas in the definition module ') ;
-         WriteString(PreviousState) ;
-         WriteLn
-      END
+      FirstModule := InitString('implementation module') ;
+      SecondModule := InitString('definition module')
    ELSIF CompilingProgramModule()
    THEN
-      WriteString('Error found while compiling the program module') ; WriteLn ;
-      WriteString('PROCEDURE ') ; WriteKey(GetSymName(ProcedureSym)) ;
-      WriteString(' : parameter') ; WriteCard(ParameterNo, 4) ;
-      IF NOT StrEqual(CurrentState, '')
-      THEN
-         WriteString(' - ') ; WriteString(CurrentState)
-      END ;
-      WriteLn ;
-      IF NOT StrEqual(PreviousState, '')
-      THEN
-         WriteString('whereas previously ') ;
-         WriteString(PreviousState) ;
-         WriteLn
-      END
+      FirstModule := InitString('program module') ;
+      SecondModule := InitString('definition module')
    END ;
-   IF Expecting#NulName
+   s1 := Sprintf4(Mark(InitString('declaration of procedure %s in the %s differs from the %s, problem with parameter number %d')),
+                  Mark(InitStringCharStar(KeyToCharStar(GetSymName(ProcedureSym)))),
+                  Mark(FirstModule),
+                  SecondModule,
+                  ParameterNo) ;
+   IF NoOfParam(ProcedureSym)>=ParameterNo
    THEN
-      WriteString('Compiler expected ') ; WriteKey(Expecting)
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')),
+                                     Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetNthParam(ProcedureSym, ParameterNo))))))))
    END ;
-   WriteLn ;
-   NearTokens('parameter mismatch', First, GetTokenNo()) ;
-   EndError
+   IF NOT StrEqual(CurrentState, '')
+   THEN
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(', %s')), Mark(InitString(CurrentState)))))
+   END ;
+   IF NOT StrEqual(PreviousState, '')
+   THEN
+      s1 := ConCat(s1, Mark(Sprintf2(Mark(InitString(' in the %s %s')), Mark(SecondModule), Mark(InitString(PreviousState)))))
+   END ;
+   IF Given#NulName
+   THEN
+      s1 := ConCat(s1, Mark(Sprintf1(Mark(InitString(' (%s)')), Mark(InitStringCharStar(KeyToCharStar(Given))))))
+   END ;
+   s1 := ConCat(s1, Mark(Sprintf0(Mark(InitString('\n'))))) ;
+   ErrorStringAt2(s1, GetTokenNo(), First)
 END FailParameter ;
 
 
@@ -1519,11 +1437,12 @@ BEGIN
    THEN
       IF CompilingDefinitionModule()
       THEN
-         WriteErrorFormat1('smaller number of procedure (%s) parameters in the DEFINITION MODULE', GetSymName(ProcSym))
+         WriteFormat1('smaller number of procedure (%a) parameters in the DEFINITION MODULE', GetSymName(ProcSym))
       ELSE
-         WriteErrorFormat1('larger number of procedure (%s) parameters in the DEFINIION MODULE', GetSymName(ProcSym))
+         WriteFormat1('larger number of procedure (%a) parameters in the DEFINIION MODULE', GetSymName(ProcSym))
       END
-   END
+   END ;
+   Assert(IsProcedure(OperandT(1)))
 END EndBuildFormalParameters ;
 
 
@@ -1598,19 +1517,20 @@ END BuildNulParam ;
 
 PROCEDURE BuildPointerType ;
 VAR
+   name     : Name ;
    Type,
-   Name,
    PtrToType: CARDINAL ;
 BEGIN
    PopT(Type) ;
-   PopT(Name) ;
-   PtrToType := MakePointer(Name) ;
+   PopT(name) ;
+   name := CheckAnonymous(name) ;
+   PtrToType := MakePointer(name) ;
    PutPointer(PtrToType, Type) ;
    CheckForExportedImplementation(PtrToType) ;   (* May be an exported hidden type *)
-   PushT(Name) ;
+   PushT(name) ;
    PushT(PtrToType)
 (*
- ; WriteKey(Name) ; WriteString(' Pointer made') ; WriteLn
+ ; WriteKey(name) ; WriteString(' Pointer made') ; WriteLn
 *)
 END BuildPointerType ;
 
@@ -1633,16 +1553,16 @@ END BuildPointerType ;
 
 PROCEDURE BuildSetType ;
 VAR
+   name   : Name ;
    Type,
-   Name,
    SetType: CARDINAL ;
 BEGIN
    PopT(Type) ;
-   PopT(Name) ;
-   SetType := MakeSet(Name) ;
+   PopT(name) ;
+   SetType := MakeSet(name) ;
    CheckForExportedImplementation(SetType) ;   (* May be an exported hidden type *)
    PutSet(SetType, Type) ;
-   PushT(Name) ;
+   PushT(name) ;
    PushT(SetType)
 END BuildSetType ;
 
@@ -1664,15 +1584,16 @@ END BuildSetType ;
 
 PROCEDURE BuildRecord ;
 VAR
-   Name      : CARDINAL ;
+   name      : Name ;
    RecordType: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   PushT(Name) ;
-   RecordType := MakeRecord(Name) ;
+   PopT(name) ;
+   PushT(name) ;
+   name := CheckAnonymous(name) ;
+   RecordType := MakeRecord(name) ;
    CheckForExportedImplementation(RecordType) ;   (* May be an exported hidden type *)
    PushT(RecordType)
-(* ; WriteKey(Name) ; WriteString(' RECORD made') ; WriteLn *)
+(* ; WriteKey(name) ; WriteString(' RECORD made') ; WriteLn *)
 END BuildRecord ;
 
 
@@ -1706,17 +1627,16 @@ END BuildRecord ;
 
 PROCEDURE BuildFieldRecord ;
 VAR
+   name      : Name ;
    Parent,
-   Type, Name,
+   Type,
    NoOfFields,
    Record,
    Ptr, i    : CARDINAL ;
 BEGIN
-   PopTF(Type, Name) ;
+   PopTF(Type, name) ;
    PopT(NoOfFields) ;
-   GetPtr(Ptr) ;
-   DEC(Ptr, NoOfFields+1) ;  (* Ptr points to the record sym *)
-   Record := Operand(Ptr) ;
+   Record := OperandT(NoOfFields+1) ;
    IF IsRecord(Record)
    THEN
       Parent := Record
@@ -1727,25 +1647,24 @@ BEGIN
    i := 1 ;
    WHILE i<=NoOfFields DO
 (*
-      WriteKey(Operand(Ptr+i)) ; WriteString(' is a Field with type ') ;
+      WriteKey(Operand(NoOfFields+1-i)) ; WriteString(' is a Field with type ') ;
       WriteKey(GetSymName(Type)) ; WriteLn ;
 *)
-      IF GetLocalSym(Parent, Operand(Ptr+i))=NulSym
+      IF GetLocalSym(Parent, OperandT(NoOfFields+1-i))=NulSym
       THEN
-         PutFieldRecord(Record, Operand(Ptr+i), Type)
+         PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type)
       ELSE
          IF GetSymName(Parent)=NulName
          THEN
-            WriteErrorFormat1('field %s is already present inside record', Operand(Ptr+i))
+            WriteFormat1('field %a is already present inside record', OperandT(NoOfFields+1-i))
          ELSE
-            WriteErrorFormat2('field %s is already present inside record %s', Operand(Ptr+i), GetSymName(Parent))
+            WriteFormat2('field %a is already present inside record %s', OperandT(NoOfFields+1-i), GetSymName(Parent))
          END
       END ;
       INC(i)
    END ;
-   PutPtr(Ptr) ;
+   PopN(NoOfFields+1) ;
    PushT(Record)
-(*  ; WriteString('Field Placed in record') ; WriteLn *)
 END BuildFieldRecord ;
 
 
@@ -1922,9 +1841,10 @@ END BuildNulName ;
 
 PROCEDURE BuildTypeEnd ;
 VAR
-   Type, Name: CARDINAL ;
+   Type: CARDINAL ;
+   name: Name ;
 BEGIN
-   PopTF(Type, Name)
+   PopTF(Type, name)
 END BuildTypeEnd ;
 
 
@@ -1945,12 +1865,12 @@ END BuildTypeEnd ;
 
 PROCEDURE StartBuildArray ;
 VAR
-   Name     : CARDINAL ;
+   name     : Name ;
    ArrayType: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   PushT(Name) ;
-   ArrayType := MakeArray(Name) ;
+   PopT(name) ;
+   PushT(name) ;
+   ArrayType := MakeArray(name) ;
    CheckForExportedImplementation(ArrayType) ;   (* May be an exported hidden type *)
    PushT(ArrayType)
 (* ; WriteKey(Name) ; WriteString(' ARRAY made') ; WriteLn *)
@@ -2007,13 +1927,14 @@ END EndBuildArray ;
 
 PROCEDURE BuildFieldArray ;
 VAR
-   Str       : ARRAY [0..12] OF CHAR ;
+   s         : String ;
    Subrange,
    Subscript,
-   Type, Name,
+   Type,
    Array     : CARDINAL ;
+   name      : Name ;
 BEGIN
-   PopTF(Type, Name) ;
+   PopTF(Type, name) ;
    PopT(Array) ;
    Assert(IsArray(Array)) ;
    Subscript := MakeSubscript() ;
@@ -2023,12 +1944,13 @@ BEGIN
       Subrange := MakeSubrange(NulName) ;
       IF NoOfElements(Type)=0
       THEN
-         WriteError('cannot create an array with 0 elements')
+         WriteFormat0('cannot create an array with 0 elements')
       ELSE
-         CardToStr(NoOfElements(Type)-1, 0, Str) ;
+         s := Sprintf1(Mark(InitString('%d')), NoOfElements(Type)-1) ;
          PutSubrange(Subrange,
-                     MakeConstLit(MakeKey('0')), MakeConstLit(MakeKey(Str)),
+                     MakeConstLit(MakeKey('0')), MakeConstLit(makekey(string(s))),
                      Type) ;
+         s := KillString(s) ;
          PutSubscript(Subscript, Subrange)
       END
    ELSE
@@ -2062,12 +1984,12 @@ END BuildFieldArray ;
 
 PROCEDURE BuildProcedureType ;
 VAR
-   Name,
+   name       : Name ;
    ProcTypeSym: CARDINAL ;
 BEGIN
-   PopT(Name) ;
-   ProcTypeSym := MakeProcType(Name) ;
-   PushT(Name) ;
+   PopT(name) ;
+   ProcTypeSym := MakeProcType(name) ;
+   PushT(name) ;
    PushT(ProcTypeSym)
 END BuildProcedureType ;
 
@@ -2093,12 +2015,10 @@ END BuildProcedureType ;
 
 PROCEDURE BuildFormalType ;
 VAR
+   Array, Var : Name ;
    TypeSym,
    UnboundedSym,
-   Array,
-   Ptr,
-   ProcTypeSym,
-   Var        : CARDINAL ;
+   ProcTypeSym: CARDINAL ;
 BEGIN
    PopT(TypeSym) ;
    PopT(Array) ;
@@ -2144,8 +2064,8 @@ END BuildFormalType ;
 
 PROCEDURE BuildPriority ;
 VAR
-   ConstSym,
-   ModuleName: CARDINAL ;
+   ModuleName: Name ;
+   ConstSym  : CARDINAL ;
 BEGIN
    PopT(ConstSym) ;
    PopT(ModuleName) ;

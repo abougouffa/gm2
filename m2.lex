@@ -65,6 +65,7 @@ static  void handleFile   (void);
 
 #define YY_DECL void yylex (void)
 
+
 #if !defined(GM2)
 static void *xmalloc (unsigned int size)
 {
@@ -107,21 +108,9 @@ static void *xmalloc (unsigned int size)
 <COMMENT1><<EOF>>          { poperrorskip("unterminated source code directive, missing *>"); BEGIN COMMENT; }
 <COMMENT><<EOF>>           { poperrorskip("unterminated comment found at the end of the file, missing *)"); BEGIN INITIAL; }
 
-\n.*                       { consumeLine(); }
-
-\"[^\"\n]*\"               { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
-\"[^\"\n]*$                { updatepos();
-                             m2lex_M2Error("missing terminating quote, \"");
-                             resetpos(); return;
-                           }
-
-'[^'\n]*'                  { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
-'[^'\n]*$                  { updatepos();
-                             m2lex_M2Error("missing terminating quote, '");
-                             resetpos(); return;
-                           }
-
-^#[ \t]*                   { updatepos(); BEGIN LINE0; }
+^\#.*                      { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ BEGIN LINE0; }
+\n\#.*                     { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ BEGIN LINE0; }
+<LINE0>\#[ \t]*            { updatepos(); }
 <LINE0>[0-9]+[ \t]*\"      { updatepos(); lineno=atoi(yytext)-1; BEGIN LINE1; }
 <LINE0>\n                  { m2lex_M2Error("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE0>[^\n]
@@ -139,6 +128,21 @@ static void *xmalloc (unsigned int size)
 <LINE2>2[ \t]*\n           { M2LexBuf_PopFile(filename); updatepos(); BEGIN INITIAL; }
 <LINE2>1[ \t]*\n           { M2LexBuf_PushFile(filename); updatepos(); BEGIN INITIAL; }
 
+\n[^\#].*                  { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }
+\n                         { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ }
+
+\"[^\"\n]*\"               { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
+\"[^\"\n]*$                { updatepos();
+                             m2lex_M2Error("missing terminating quote, \"");
+                             resetpos(); return;
+                           }
+
+'[^'\n]*'                  { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
+'[^'\n]*$                  { updatepos();
+                             m2lex_M2Error("missing terminating quote, '");
+                             resetpos(); return;
+                           }
+
 <<EOF>>                    { updatepos(); M2LexBuf_AddTok(M2Reserved_eoftok); return; }
 \+                         { updatepos(); M2LexBuf_AddTok(M2Reserved_plustok); return; }
 -                          { updatepos(); M2LexBuf_AddTok(M2Reserved_minustok); return; }
@@ -154,6 +158,8 @@ static void *xmalloc (unsigned int size)
 \[                         { updatepos(); M2LexBuf_AddTok(M2Reserved_lsbratok); return; }
 \]                         { updatepos(); M2LexBuf_AddTok(M2Reserved_rsbratok); return; }
 \^                         { updatepos(); M2LexBuf_AddTok(M2Reserved_uparrowtok); return; }
+\{                         { updatepos(); M2LexBuf_AddTok(M2Reserved_lcbratok); return; }
+\}                         { updatepos(); M2LexBuf_AddTok(M2Reserved_rcbratok); return; }
 \'                         { updatepos(); M2LexBuf_AddTok(M2Reserved_singlequotetok); return; }
 \=                         { updatepos(); M2LexBuf_AddTok(M2Reserved_equaltok); return; }
 \#                         { updatepos(); M2LexBuf_AddTok(M2Reserved_hashtok); return; }
@@ -214,13 +220,18 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 \_\_LINE\_\_               { updatepos(); handleLine(); return; }
 \_\_FILE\_\_               { updatepos(); handleFile(); return; }
 
--?(([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
+(([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
 [a-zA-Z_][a-zA-Z0-9_]*     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_identtok, yytext); return; }
--?[0-9]+                   { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
+[0-9]+                     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
+[0-9]+B                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
+[0-9]+C                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
+[0-9A-F]+H                 { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
 .                          { updatepos(); m2lex_M2Error("unrecognised symbol"); skippos(); }
 
 %%
+
+/* have removed the -? from the beginning of the real/integer constant literal rules */
 
 /*
  *  hand built routines
@@ -233,7 +244,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 
 static void handleFile (void)
 {
-  char *s = (char *)xmalloc(strlen(filename)+2);
+  char *s = (char *)xmalloc(strlen(filename)+2+1);
 
   strcpy(s, "\"");
   strcat(s, filename);
@@ -261,7 +272,7 @@ static void handleDate (void)
 {
   time_t  clock = time((long *)0);
   char   *sdate = ctime(&clock);
-  char   *s     = (char *)xmalloc(strlen(sdate)+2);
+  char   *s     = (char *)xmalloc(strlen(sdate)+2+1);
   char   *p     = index(sdate, '\n');
 
   if (p != NULL) {
@@ -416,11 +427,13 @@ static void pushLine (void)
 
       if (l == NULL)
 	perror("malloc");
-      if (currentLine->linebuf == NULL)
+      if (currentLine->linebuf == NULL) {
 	l->linebuf  = NULL;
-      else
+	l->linelen  = 0;
+      } else {
 	l->linebuf    = (char *)strdup(currentLine->linebuf);
-      l->linelen    = currentLine->linelen;
+	l->linelen    = strlen(l->linebuf)+1;
+      }
       l->tokenpos   = currentLine->tokenpos;
       l->toklen     = currentLine->toklen;
       l->nextpos    = currentLine->nextpos;
@@ -497,6 +510,12 @@ int m2lex_OpenSource (char *s)
 {
   FILE *f = fopen(s, "r");
 
+#if 0
+  /* remove any pending line buffers from the last time we opened a file */
+  while (currentLine != NULL)
+    popLine();
+#endif
+
   if (f == NULL)
     return( FALSE );
   else {
@@ -505,6 +524,7 @@ int m2lex_OpenSource (char *s)
     if (filename)
       free(filename);
     filename = strdup(s);
+    lineno   =1;
     return( TRUE );
   }
 }
@@ -516,9 +536,19 @@ int m2lex_OpenSource (char *s)
 int m2lex_GetLineNo (void)
 {
   if (currentLine != NULL)
-    return( currentLine->actualline );
+    return currentLine->actualline;
   else
-    return( 0 );
+    return 0;
+}
+
+/*
+ *  yywrap is called when end of file is seen. We push an eof token
+ *         and tell the lexical analysis to stop.
+ */
+
+int yywrap (void)
+{
+  updatepos(); M2LexBuf_AddTok(M2Reserved_eoftok); return 1;
 }
 
 void _M2_m2lex_init () {}

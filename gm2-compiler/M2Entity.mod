@@ -17,32 +17,49 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Entity ;
 
 
+FROM SYSTEM IMPORT WORD ;
 FROM SymbolTable IMPORT NulSym, IsConst ;
 FROM M2Constants IMPORT IsSame ;
-FROM M2Lexical IMPORT InternalError ;
-
+FROM M2Error IMPORT InternalError ;
+FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList,
+                  ForeachItemInListDo, GetItemFromList ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 TYPE
 
    (*
-      the version of the variable might vary during a basic block as
-      the variable might be altered, consider: a := b + c ; b := d ;
-      We set the IndexNo to the NodeIndex for the SymId record and
-      set the Node.IndexNo to the maximum operand IndexNo+1. Follow
-      the rules outlined by Trembley & Sorenson P.624 of The Theory and
-      Practice of Compiler Writing
+      This module handles variable entities where an entity is
+      a different value of a variable. Here we store two entities
+      for variable, b.
+      Consider: a := b + c ; b := d ;
+      It follows the rules outlined by Trembley & Sorenson p.624 of
+      The Theory and Practice of Compiler Writing
    *)
 
-   EntityId = RECORD
-                 Symbol     : CARDINAL ;  (* symbol table id              *)
-                 IsClean    : BOOLEAN ;   (* have we cleaned this entity? *)
-                 IndexNo    : CARDINAL ;  (* which version of variable    *)
-                 IsLeftValue: BOOLEAN ;   (* is entity really &Sym ?      *)
-              END ;
+   Entity = POINTER TO entity ;
+   entity = RECORD
+               Symbol     : CARDINAL ;  (* symbol table id              *)
+               IsClean    : BOOLEAN ;   (* have we cleaned this entity? *)
+               IndexNo    : CARDINAL ;  (* which version of variable    *)
+               IsLeftValue: BOOLEAN ;   (* is entity really &Sym ?      *)
+            END ;
 
 VAR
    NoOfEntities: CARDINAL ;
-   EntityList  : ARRAY [1..MaxEntity] OF EntityId ;
+   EntityList  : List ;
+
+
+(*
+   DeallocateEntity - 
+*)
+
+PROCEDURE DeallocateEntity (e: WORD) ;
+VAR
+   p: Entity ;
+BEGIN
+   p := e ;
+   DISPOSE(p)
+END DeallocateEntity ;
 
 
 (*
@@ -51,7 +68,10 @@ VAR
 
 PROCEDURE InitEntities ;
 BEGIN
-   NoOfEntities := 0 ;   
+   NoOfEntities := 0 ;
+   ForeachItemInListDo(EntityList, DeallocateEntity) ;
+   KillList(EntityList) ;
+   InitList(EntityList)
 END InitEntities ;
 
 
@@ -66,23 +86,25 @@ END GetNoOfEntities ;
 
 
 (*
-   FindLatestEntity - returns the latest entity, possibly NulEntity.
+   FindLatestEntity - returns the latest entity, possibly NIL.
 *)
 
-PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entities ;
+PROCEDURE FindLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN) : Entity ;
 VAR
-   i, highest,
-   latest    : CARDINAL ;
+   i, highest: CARDINAL ;
+   e,
+   latest    : Entity ;
 BEGIN
    i := GetNoOfEntities() ;
    highest := 0 ;
-   latest := NulEntity ;
+   latest := NIL ;
    WHILE i>0 DO
-      WITH EntityList[i] DO
+      e := GetItemFromList(EntityList, i) ;
+      WITH e^ DO
          IF IsSame(Symbol, Sym) AND (IndexNo>=highest) AND (IsLeft=IsLeftValue)
          THEN
             highest := IndexNo ;
-            latest := i
+            latest := e
          END
       END ;
       DEC(i)
@@ -96,12 +118,12 @@ END FindLatestEntity ;
                      It will create one if necessary.
 *)
 
-PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+PROCEDURE GetLatestEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 VAR
-   latest: CARDINAL ;
+   latest: Entity ;
 BEGIN
    latest := FindLatestEntity(Sym, IsLeft) ;
-   IF latest=0
+   IF latest=NIL
    THEN
       RETURN( MakeNewEntity(Sym, IsLeft, Index) )
    ELSE
@@ -114,9 +136,9 @@ END GetLatestEntity ;
    IsEntityClean - returns TRUE if the entity, e, is clean.
 *)
 
-PROCEDURE IsEntityClean (e: Entities) : BOOLEAN ;
+PROCEDURE IsEntityClean (e: Entity) : BOOLEAN ;
 BEGIN
-   RETURN( EntityList[e].IsClean )
+   RETURN( e^.IsClean )
 END IsEntityClean ;
 
 
@@ -124,9 +146,9 @@ END IsEntityClean ;
    IsLValue - returns TRUE if entity, e, is an LValue
 *)
 
-PROCEDURE IsLValue (e: Entities) : BOOLEAN ;
+PROCEDURE IsLValue (e: Entity) : BOOLEAN ;
 BEGIN
-   RETURN( EntityList[e].IsLeftValue )
+   RETURN( e^.IsLeftValue )
 END IsLValue ;
 
 
@@ -134,9 +156,9 @@ END IsLValue ;
    MakeEntityDirty - 
 *)
 
-PROCEDURE MakeEntityDirty (e: Entities) ;
+PROCEDURE MakeEntityDirty (e: Entity) ;
 BEGIN
-   EntityList[e].IsClean := FALSE
+   e^.IsClean := FALSE
 END MakeEntityDirty ;
 
 
@@ -144,9 +166,9 @@ END MakeEntityDirty ;
    MakeEntityClean - 
 *)
 
-PROCEDURE MakeEntityClean (e: Entities) ;
+PROCEDURE MakeEntityClean (e: Entity) ;
 BEGIN
-   EntityList[e].IsClean := TRUE
+   e^.IsClean := TRUE
 END MakeEntityClean ;
 
 
@@ -154,9 +176,9 @@ END MakeEntityClean ;
    GiveEntityIndex - 
 *)
 
-PROCEDURE GiveEntityIndex (e: Entities; index: CARDINAL) ;
+PROCEDURE GiveEntityIndex (e: Entity; index: CARDINAL) ;
 BEGIN
-   EntityList[e].IndexNo := index
+   e^.IndexNo := index
 END GiveEntityIndex ;
 
 
@@ -164,9 +186,9 @@ END GiveEntityIndex ;
    GetEntityIndex - 
 *)
 
-PROCEDURE GetEntityIndex (e: Entities) : CARDINAL ;
+PROCEDURE GetEntityIndex (e: Entity) : CARDINAL ;
 BEGIN
-   RETURN( EntityList[e].IndexNo )
+   RETURN( e^.IndexNo )
 END GetEntityIndex ;
 
 
@@ -174,13 +196,13 @@ END GetEntityIndex ;
    GetEntitySym - 
 *)
 
-PROCEDURE GetEntitySym (e: Entities) : CARDINAL ;
+PROCEDURE GetEntitySym (e: Entity) : CARDINAL ;
 BEGIN
-   IF e=NulEntity
+   IF e=NIL
    THEN
       RETURN( NulSym )
    ELSE
-      RETURN( EntityList[e].Symbol )
+      RETURN( e^.Symbol )
    END
 END GetEntitySym ;
 
@@ -191,13 +213,15 @@ END GetEntitySym ;
 
 PROCEDURE CheckEntityConsistancy ;
 VAR
-   i: CARDINAL ;
+   i   : CARDINAL ;
+   e, f: Entity ;
 BEGIN
+   f := GetItemFromList(EntityList, NoOfEntities) ;  (* last in the list *)
    i := 1 ;
    WHILE i<NoOfEntities DO
-      IF (EntityList[i].Symbol=EntityList[NoOfEntities].Symbol) AND
-         (EntityList[i].IndexNo=EntityList[NoOfEntities].IndexNo) AND
-         (EntityList[i].IsLeftValue=EntityList[NoOfEntities].IsLeftValue)
+      e := GetItemFromList(EntityList, i) ;
+      IF (e^.Symbol=f^.Symbol) AND (e^.IndexNo=f^.IndexNo) AND
+         (e^.IsLeftValue=f^.IsLeftValue)
       THEN
          InternalError('the same entity is declared twice', __FILE__, __LINE__)
       END ;
@@ -210,31 +234,53 @@ END CheckEntityConsistancy ;
    MakeNewEntity - makes a new entity for symbol, Sym.
 *)
 
-PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entities ;
+PROCEDURE MakeNewEntity (Sym: CARDINAL; IsLeft: BOOLEAN; Index: CARDINAL) : Entity ;
 VAR
-   latest: Entities ;
+   latest: Entity ;
 BEGIN
-   IF NoOfEntities=MaxEntity
+   latest := FindLatestEntity(Sym, IsLeft) ;
+   IF (latest#NIL) AND (GetEntityIndex(latest)=Index)
    THEN
-      InternalError('increase MaxEntity', __FILE__, __LINE__)
+      RETURN( latest )
    ELSE
-      latest := FindLatestEntity(Sym, IsLeft) ;
-      IF (latest#NulEntity) AND (GetEntityIndex(latest)=Index)
+      INC(NoOfEntities) ;
+      NEW(latest) ;
+      IF latest=NIL
       THEN
-         RETURN( latest )
-      ELSE
-         INC(NoOfEntities) ;
-         WITH EntityList[NoOfEntities] DO
-            IsClean     := IsConst(Sym) ;
-            IndexNo     := Index ;
-            Symbol      := Sym ;
-            IsLeftValue := IsLeft
-         END ;
-         CheckEntityConsistancy ;
-         RETURN( NoOfEntities )
-      END
+         InternalError('out of memory error', __FILE__, __LINE__)
+      END ;
+      WITH latest^ DO
+         IsClean     := IsConst(Sym) ;
+         IndexNo     := Index ;
+         Symbol      := Sym ;
+         IsLeftValue := IsLeft
+      END ;
+      CheckEntityConsistancy ;
+      RETURN( latest )
    END
 END MakeNewEntity ;
+
+
+(*
+   HasLValue - returns TRUE if symbol, Sym, has an LValue
+*)
+
+PROCEDURE HasLValue (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   i: CARDINAL ;
+   e: Entity ;
+BEGIN
+   i := GetNoOfEntities() ;
+   WHILE i>0 DO
+      e := GetItemFromList(EntityList, i) ;
+      IF (GetEntitySym(e)=Sym) AND IsLValue(e)
+      THEN
+         RETURN( TRUE )
+      END ;
+      DEC(i)
+   END ;
+   RETURN( FALSE )
+END HasLValue ;
 
 
 END M2Entity.

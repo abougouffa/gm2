@@ -11,9 +11,10 @@ DEFINITION MODULE M2LexBuf ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Reserved IMPORT toktype ;
 FROM Strings IMPORT String ;
-EXPORT QUALIFIED OpenSource, CloseSource, GetToken, InsertToken,
+EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
                  GetTokenNo, TokenToLineNo, FindFileNameFromToken, GetFileName,
+                 ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
                  AddTok, AddTokCharStar, AddTokInteger,
                  SetFile, PushFile, PopFile ;
@@ -37,6 +38,21 @@ PROCEDURE OpenSource (s: String) : BOOLEAN ;
 *)
 
 PROCEDURE CloseSource ;
+
+
+(*
+   ReInitialize - re-initialize the all the data structures.
+*)
+
+PROCEDURE ReInitialize ;
+
+
+(*
+   ResetForNewPass - reset the buffer pointers to the beginning ready for
+                     a new pass
+*)
+
+PROCEDURE ResetForNewPass ;
 
 
 (*
@@ -87,18 +103,24 @@ PROCEDURE GetTokenNo () : CARDINAL ;
 
 (*
    TokenToLineNo - returns the line number of the current file for the
-                   TokenNo.
+                   TokenNo. The depth refers to the include depth.
+                   A depth of 0 is the current file, depth of 1 is the file
+                   which included the current file. Zero is returned if the
+                   depth exceeds the file nesting level.
 *)
 
-PROCEDURE TokenToLineNo (TokenNo: CARDINAL) : CARDINAL ;
+PROCEDURE TokenToLineNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
 
 
 (*
    FindFileNameFromToken - returns the complete FileName for the appropriate
                            source file yields the token number, TokenNo.
+                           The, Depth, indicates the include level: 0..n
+                           Level 0 is the current. NIL is returned if n+1
+                           is requested.
 *)
 
-PROCEDURE FindFileNameFromToken (TokenNo: CARDINAL) : String ;
+PROCEDURE FindFileNameFromToken (TokenNo: CARDINAL; depth: CARDINAL) : String ;
 
 
 (*

@@ -21,17 +21,16 @@ DEFINITION MODULE Strings ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Wed Jul 25 19:24:41 2001
-    Last edit  : Wed Jul 25 19:24:41 2001
     Description: provides a dynamic string type and common methods.
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED String,
-                 InitString, KillString, InitStringCharStar, InitStringChar,
+                 InitString, KillString, Fin, InitStringCharStar, InitStringChar,
                  Index, RIndex,
                  Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
-                 Equal, EqualCharStar, EqualArray,
-                 Mult, Slice, Char, string ;
+                 Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
+                 Mult, Slice, RemoveWhitePrefix, char, string ;
 
 TYPE
    String ;
@@ -51,6 +50,15 @@ PROCEDURE InitString (a: ARRAY OF CHAR) : String ;
 *)
 
 PROCEDURE KillString (s: String) : String ;
+
+
+(*
+   Fin - finishes with a string, it calls KillString with, s.
+         The purpose of the procedure is to provide a short cut
+         to calling KillString and then testing the return result.
+*)
+
+PROCEDURE Fin (s: String) ;
 
 
 (*
@@ -141,6 +149,7 @@ PROCEDURE EqualArray (s: String; a: ARRAY OF CHAR) : BOOLEAN ;
 
 (*
    Mult - returns a new string which is n concatenations of String, s.
+          If n<=0 then an empty string is returned.
 *)
 
 PROCEDURE Mult (s: String; n: CARDINAL) : String ;
@@ -151,6 +160,7 @@ PROCEDURE Mult (s: String; n: CARDINAL) : String ;
            low..high-1
 
            strings start at element 0
+           Slice(s, 0, 2)  will return elements 0, 1 but not 2
            Slice(s, 1, 3)  will return elements 1, 2 but not 3
            Slice(s, 2, 0)  will return elements 2..max
            Slice(s, 3, -1) will return elements 3..max-1
@@ -178,10 +188,36 @@ PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
 
 
 (*
-   Char - returns the character, ch, at position, i, in String, s.
+   RemoveWhitePrefix - removes any leading white space from String, s.
+                       A new string is returned.
 *)
 
-PROCEDURE Char (s: String; i: CARDINAL) : CHAR ;
+PROCEDURE RemoveWhitePrefix (s: String) : String ;
+
+
+(*
+   ToUpper - returns string, s, after it has had its lower case characters
+             replaced by upper case characters.
+             The string, s, is not duplicated.
+*)
+
+PROCEDURE ToUpper (s: String) : String ;
+
+
+(*
+   ToLower - returns string, s, after it has had its upper case characters
+             replaced by lower case characters.
+             The string, s, is not duplicated.
+*)
+
+PROCEDURE ToLower (s: String) : String ;
+
+
+(*
+   char - returns the character, ch, at position, i, in String, s.
+*)
+
+PROCEDURE char (s: String; i: CARDINAL) : CHAR ;
 
 
 (*

@@ -57,6 +57,9 @@ PROCEDURE PrependSearchPath (path: String) ;
                     FALSE is returned.
                     The parameter FullPath is set indicating the
                     absolute location of source FileName.
+                    FullPath will be totally overwritten and should
+                    not be initialized by InitString before this function
+                    is called.
                     FindSourceFile sets FullPath to a new string if successful.
 *)
 
