@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_INIT(ASCII.def, 0.42, gm2@glam.ac.uk)
-AC_CONFIG_HEADER(auto-host.h:auto-host.h.in)
+AC_CONFIG_HEADER(gm2-libs-host.h:gm2-libs-host.h.in)
 
 # Checks for programs.
 
