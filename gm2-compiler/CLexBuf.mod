@@ -26,6 +26,7 @@ FROM FormatStrings IMPORT Sprintf1 ;
 FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM NameKey IMPORT makekey ;
+FROM SymbolKey IMPORT SymbolTree, InitTree, DelSymKey, PutSymKey, GetSymKey ;
 
 CONST
    MaxBucketSize = 100 ;
@@ -61,12 +62,28 @@ TYPE
                  LastBucketOffset: CARDINAL ;
               END ;
 
+
+   Macro = POINTER TO RECORD
+                         str   : Name ;
+                         tokno : CARDINAL ;
+                         noArgs: CARDINAL ;
+                         args  : POINTER TO MacroArgs ;
+                      END ;
+
+   MacroArgs = POINTER TO RECORD
+                             next: MacroArgs ;
+                             str : Name ;
+                          END ;
+
 VAR
    CurrentSource    : SourceList ;
    UseBufferedTokens,
    CurrentUsed      : BOOLEAN ;
    ListOfTokens     : ListDesc ;
    CurrentTokNo     : CARDINAL ;
+   MacroDefinitions : SymbolTree ;
+   EnabledMacros    : BOOLEAN ;
+
 
 (* %%%FORWARD%%%
 PROCEDURE AddTokToList (t: toktype; n: Name;
@@ -75,6 +92,133 @@ PROCEDURE SyncOpenWithBuffer ; FORWARD ;
 PROCEDURE FindTokenBucket (VAR TokenNo: CARDINAL) : TokenBucket ; FORWARD ;
 PROCEDURE IsLastTokenEof () : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
+
+
+(* M A C R O *)
+
+(*
+   EnableMacroSubstitutions - 
+*)
+
+PROCEDURE EnableMacroSubstitutions (b: BOOLEAN) ;
+BEGIN
+   EnabledMacros := b
+END EnableMacroSubstitutions ;
+
+
+(*
+   IsMacroDefined - returns TRUE if macro, n, was defined.
+*)
+
+PROCEDURE IsMacroDefined (n: Name) : BOOLEAN ;
+BEGIN
+   RETURN( GetSymKey(MacroDefinitions, n)#NIL )
+END IsMacroDefined ;
+
+
+(*
+   NoArgs - returns the number of arguments for macro, n.
+            -1 if the macro does not exist
+*)
+
+PROCEDURE NoArgs (n: Name) : INTEGER ;
+VAR
+   m: Macro ;
+BEGIN
+   IF IsMacroDefined(n)
+   THEN
+      m := GetSymKey(MacroDefinitions, n) ;
+      RETURN( m^.noArgs )
+   ELSE
+      RETURN( -1 )
+   END
+END NoArgs ;
+
+
+(*
+   DefineMacro - defines macro, n, as defined to start at token, t.
+*)
+
+PROCEDURE DefineMacro (n: Name; t: CARDINAL) ;
+VAR
+   m: Macro ;
+BEGIN
+   NEW(m) ;
+   WITH m^ DO
+      str := n ;
+      tokno := t ;
+      noArgs := 0 ;
+      args := NIL
+   END ;
+   UnDefineMacro(n) ;
+   PutSymKey(MacroDefinitions, n, m)
+END DefineMacro ;
+
+
+(*
+   UnDefineMacro - 
+*)
+
+PROCEDURE UnDefineMacro (n: Name) ;
+VAR
+   m: Macro ;
+BEGIN
+   IF IsMacroDefined(n)
+   THEN
+      m := GetSymKey(MacroDefinitions, n) ;
+      DelSymKey(MacroDefinitions, n) ;
+      DISPOSE(m)
+   END
+END UnDefineMacro ;
+
+
+(*
+   PushMacroDefinition - pushes the macro definition, n, onto the token stream.
+                         It returns TRUE if the macro was found and pushed.
+*)
+
+PROCEDURE PushMacroDefinition (n: Name) : BOOLEAN ;
+VAR
+   m: Macro ;
+   t: CARDINAL ;
+   b: TokenBucket ;
+BEGIN
+   IF EnabledMacros AND IsMacroDefined(n)
+   THEN
+      m := GetSymKey(MacroDefinitions, n) ;
+      WITH m^ DO
+         IF tokno>0
+         THEN
+            t := tokno ;
+            LOOP
+               b := FindTokenBucket(t) ;
+               WITH b^.buf[t] DO
+                  IF token=endhashtok
+                  THEN
+                     RETURN( TRUE )
+                  ELSE
+                     IF IsMacroDefined(str) AND (str#n)
+                     THEN
+                        IF PushMacroDefinition(str)
+                        THEN
+                        END
+                     ELSE
+                        AddTokToList(token, str, int, line, file)
+                     END
+                  END
+               END ;
+               INC(t)
+            END
+         END
+      END ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END PushMacroDefinition ;
+
+
+(*   e n d    o f    M A C R O    r o u t i n e s   *)
 
 
 (*
@@ -88,7 +232,9 @@ BEGIN
    CurrentSource := NIL ;
    ListOfTokens.head := NIL ;
    ListOfTokens.tail := NIL ;
-   UseBufferedTokens := FALSE
+   UseBufferedTokens := FALSE ;
+   InitTree(MacroDefinitions) ;
+   EnabledMacros := TRUE
 END Init ;
 
 
@@ -818,8 +964,13 @@ END AddTok ;
 
 PROCEDURE AddTokCharStar (t: toktype; s: ADDRESS) ;
 BEGIN
-   AddTokToList(t, makekey(s), 0, clex.GetLineNo(), CurrentSource) ;
-   CurrentUsed := TRUE
+   IF (t=identtok) AND PushMacroDefinition(makekey(s))
+   THEN
+      (* do nothing *)
+   ELSE
+      AddTokToList(t, makekey(s), 0, clex.GetLineNo(), CurrentSource) ;
+      CurrentUsed := TRUE
+   END
 END AddTokCharStar ;
 
 

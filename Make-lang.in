@@ -562,12 +562,14 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod
 
+P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
+
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
 	$(CC) -c -g -O2 -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs-boot/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs-boot/$*.def $(srcdir)/gm2/gm2-libs-boot/$*.mod -o gm2/gm2-libs-boot/$*.c
-	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
+	$(CC) -c $(CFLAGS) $(P2C_INCLUDE_TRANSLATE) gm2/gm2-libs-boot/$*.c -o $@
 
 gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs/$*.def $(srcdir)/gm2/gm2-libs/$*.mod -o gm2/gm2-libs-boot/$*.c
@@ -832,8 +834,8 @@ P2C_LIBSRCS = $(srcdir)/gm2/p2c/p2c-src/src/p2clib.c \
 P2C_LIBOBJS = gm2/boot-bin/p2clib.o gm2/boot-bin/loc-p2clib.o
 
 P2C_PROTOTYPES = gm2/p2c/p2c-src/src/p2c.proto gm2/p2c/p2c-src/src/p2c.hdrs
-P2C_INCLUDES = -I$(srcdir)/gm2/p2c/p2c-src/src/ -I$(srcdir)/gm2/p2c/p2c-src/include/ \
-               -Igm2/p2c/p2c-src/src/ -I$(srcdir)/ -I.
+P2C_INCLUDES = -I. -I$(srcdir) -I$(srcdir)/../include -I../include \
+               -I$(srcdir)/gm2/p2c/p2c-src/src -Igm2/p2c/p2c-src/src
 
 ABSHOMEDIR = `cd $(HOMEDIR); pwd`
 ABSINCDIR = `cd $(INCDIR); pwd`
@@ -901,10 +903,10 @@ gm2/p2c/p2c-src/src/libp2c.a: $(P2C_LIBOBJS)
 	ar cr $@ $(P2C_LIBOBJS)
 
 gm2/boot-bin/p2clib.o: $(srcdir)/gm2/p2c/p2c-src/src/p2clib.c
-	$(CC) -c $(CFLAGS) $(P2C_INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2/p2c $(P2C_INCLUDES) $< -o $@
 
 gm2/boot-bin/loc-p2clib.o: $(srcdir)/gm2/p2c/p2c-src/src/loc.p2clib.c
-	$(CC) -c $(CFLAGS) $(P2C_INCLUDES) $< -o $@
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2/p2c $(P2C_INCLUDES) $< -o $@
 
 ################################################################################################
 #

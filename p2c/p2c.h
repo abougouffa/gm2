@@ -10,10 +10,10 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-#include <ansidecl.h>
-#include <auto-host.h>
-#include <config.h>
-#include <system.h>
+#include "ansidecl.h"
+#include "auto-host.h"
+#include "p2c-src/src/p2c-config.h"
+#include "system.h"
 
 #  define Signed    signed
 #  define Void       void      /* Void f() = procedure */

@@ -47,7 +47,9 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 FROM ASCII IMPORT nul, tab, lf ;
 FROM Storage IMPORT ALLOCATE ;
 FROM CLexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize, InsertToken, InsertTokenAndRewind,
-                    currenttoken, currentstring, toktype ;
+                    GetTokenNo, EnableMacroSubstitutions,
+                    currenttoken, currentstring, toktype,
+                    IsMacroDefined, NoArgs, DefineMacro, UnDefineMacro ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
                      fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1 ;
@@ -219,9 +221,8 @@ VAR
    DoneList,
    ToDoList,
    CompileTimeList,
-   PoisonedList,
-   DefinedList,
-   UndefinedList       : List ;
+   ConstList,
+   PoisonedList        : List ;
    freeExp,
    expStack            : ExpStack ;
    freeIndent,
@@ -811,14 +812,14 @@ BEGIN
    ELSE
       IF b
       THEN
-         IF IsItemInList(DefinedList, LastIdent)
+         IF IsMacroDefined(LastIdent)
          THEN
             c := MarkTrue(c)
          ELSE
             clex.ParsingOn(FALSE)
          END
       ELSE
-         IF IsItemInList(DefinedList, LastIdent)
+         IF IsMacroDefined(LastIdent)
          THEN
             clex.ParsingOn(FALSE)
          ELSE
@@ -885,7 +886,7 @@ BEGIN
       printf1('\n# undef %s', Mark(InitStringCharStar(LastIdent))) ;
       hprintf0('\n')
    ELSE
-      RemoveItemFromList(DefinedList, LastIdent)
+      UnDefineMacro(LastIdent)
    END
 END BuildUndef ;
 
@@ -1422,7 +1423,7 @@ BEGIN
          ndhexint     :  hprintf1('%s', Mark(InitStringCharStar(value))) |
          ndident      :  IF id.type=NIL
                          THEN
-                            IF emitting=consts
+                            IF (emitting=consts) OR IsItemInList(ConstList, id.name)
                             THEN
                                hprintf1('%s', Mark(InitStringCharStar(id.name)))
                             ELSE
@@ -1779,7 +1780,7 @@ BEGIN
          nddefined   : IF IsItemInList(CompileTimeList, cpp.macro)
                        THEN
                           RETURN( compiled )
-                       ELSIF IsItemInList(DefinedList, cpp.macro)
+                       ELSIF IsMacroDefined(cpp.macro)
                        THEN
                           RETURN( true )
                        ELSE
@@ -2181,16 +2182,6 @@ BEGIN
 END Real ;
 
 
-(*
-   any - 
-*)
-
-PROCEDURE any (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-BEGIN
-   GetToken
-END any ;
-
-
 % module h2def end
 
 (*
@@ -2301,7 +2292,7 @@ BEGIN
             OpenOutputFile(OutputFile)
          ELSIF EqualArray(Slice(s, 0, 2), '-D')
          THEN
-            IncludeItemIntoList(DefinedList, makekey(string(Slice(s, 2, 0))))
+            DefineMacro(makekey(string(Slice(s, 2, 0))), 0)
          ELSIF EqualArray(Slice(s, 0, 2), '-C')
          THEN
             IncludeItemIntoList(CompileTimeList, makekey(string(Slice(s, 2, 0))))
@@ -2365,11 +2356,10 @@ BEGIN
    indentStack := NIL ;
    Debugging := FALSE ;
    InitList(PoisonedList) ;
-   InitList(UndefinedList) ;
-   InitList(DefinedList) ;
    InitList(CompileTimeList) ;
    InitList(ToDoList) ;
    InitList(DoneList) ;
+   InitList(ConstList) ;
    Indent := 0 ;
    CurColumn := 0 ;
    ParseArgs
@@ -2466,7 +2456,6 @@ special HexInteger        first { < hexintegertok > } follow { }
 special Real              first { < realtok > } follow { }
 special strconstant       first { < conststringtok > } follow { }
 special charconstant      first { < constchartok > } follow { }
-special any               first { } follow { }
 
 BNF
 
@@ -2477,10 +2466,23 @@ CppLine := 'start#'                                               % inCpp := TRU
              else | endif | "include" ) 'end#'                    % inCpp := FALSE %
         =:
 
-define := 'define'                                                % PoisonNode := FALSE %
-          Ident ( DefinedConstExpression |                        % IncludeItemIntoList(DefinedList, LastIdent) %
-                )
-        =:
+define := 'define'                                                % VAR t: CARDINAL ; %
+                                                                  % PoisonNode := FALSE %
+                                                                  % EnableMacroSubstitutions(FALSE) %
+              Ident                                               % t := GetTokenNo() %
+                                                                  % IncludeItemIntoList(ConstList, makekey(LastIdent)) %
+                                                                  % IF currenttoken=endhashtok
+                                                                    THEN
+                                                                       t := 0
+                                                                    END %
+                    ( DefinedConstExpression
+                                             |                    % WHILE currenttoken#endhashtok DO
+                                                                       GetToken
+                                                                    END %
+                    )
+                                                                  % DefineMacro(LastIdent, t) ;
+                                                                    EnableMacroSubstitutions(TRUE) %
+          =:
 
 undef := 'undef' Ident                                            % BuildUndef %
        =:
@@ -2718,9 +2720,18 @@ DirectAbstractDeclarator := '(' AbstractDeclarator ')'
 
 ConstantExpression := ConstExpression =:
 
-DefinedConstExpression :=                                         % VAR constName: ADDRESS ; %
-                                                                  % constName := LastIdent %
-                          ConstExpression                         % BuildConst(constName, Pop()) %
+DefinedConstExpression :=                                         % VAR constName: ADDRESS ;
+                                                                        t        : CARDINAL ;
+                                                                        n        : Node ; %
+                                                                  % constName := LastIdent ;
+                                                                    t := GetTokenNo() %
+                          ConstExpression                         % n := Pop() ;
+                                                                    IF IsPoisoned(n)
+                                                                    THEN
+                                                                       DefineMacro(makekey(constName), t)
+                                                                    ELSE
+                                                                       BuildConst(constName, n)
+                                                                    END %
                        =:
 
 ConstExpression := LogicalOrExpression =: 

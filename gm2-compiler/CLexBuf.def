@@ -28,12 +28,15 @@ DEFINITION MODULE CLexBuf ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Strings IMPORT String ;
+FROM NameKey IMPORT Name ;
 EXPORT QUALIFIED toktype,
+                 IsMacroDefined, NoArgs, DefineMacro, UnDefineMacro,
                  OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetLineNo,
                  GetTokenNo, TokenToLineNo, FindFileNameFromToken, GetFileName,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
+                 EnableMacroSubstitutions,
                  AddTok, AddTokCharStar, AddTokInteger,
                  SetFile, PushFile, PopFile, FlushTokens ;
 
@@ -61,6 +64,42 @@ VAR
    currenttoken  : toktype ;
    currentstring : ADDRESS ;
    currentinteger: INTEGER ;
+
+
+(*
+   EnableMacroSubstitutions - 
+*)
+
+PROCEDURE EnableMacroSubstitutions (b: BOOLEAN) ;
+
+
+(*
+   IsMacroDefined - returns TRUE if macro, n, was defined.
+*)
+
+PROCEDURE IsMacroDefined (n: Name) : BOOLEAN ;
+
+
+(*
+   NoArgs - returns the number of arguments for macro, n.
+            -1 if the macro does not exist
+*)
+
+PROCEDURE NoArgs (n: Name) : INTEGER ;
+
+
+(*
+   DefineMacro - defines macro, n, as defined to start at token, t.
+*)
+
+PROCEDURE DefineMacro (n: Name; t: CARDINAL) ;
+
+
+(*
+   UnDefineMacro - 
+*)
+
+PROCEDURE UnDefineMacro (n: Name) ;
 
 
 (*
