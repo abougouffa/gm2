@@ -34,14 +34,20 @@ Building GNU Modula-2
 =====================
 
 To build gm2 type:
-   cd egcs-version ; ./configure ; make gm2
+   cd egcs-version ; ./configure ; make info ; make dvi ; make c xgcc
+   cd gcc ; make gm2
+
+on a x86 Linux system continue with:
+
+   cd gm2/m2/comp
+   make libs
 
 A simple test
 =============
 
 you should be able to perform:
 
-   ./xgm2 -S -g -c -Igm2/m2/comp/libs foo.mod
+   ./xgcc -B./x -S -g -c -Igm2/m2/comp/libs foo.mod
 
 Building m2f
 ============

@@ -286,7 +286,7 @@ gm2tools: force
                stage1.gcctools )
 
 clean: force
-	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info
+	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux
 	( cd m2 ; make clean )
 
 force:

@@ -67,32 +67,40 @@ static int               need_to_link    =  TRUE;
 static int convert_into_m2path (char *incl)
 {
   char *m2path=getenv("M2PATH");
+  char *newm2path;
+  int l=0;
+  int j=0;
 
+  if (incl != NULL) {
+    l = strlen(incl);
+  }
   if (m2path != NULL) {
-    char *newm2path=(char *)xmalloc(strlen(m2path)+1+strlen(incl));
+    j=strlen(m2path);
+  }
+  newm2path=(char *)xmalloc(j+l+1);
 
-    if (newm2path != NULL) {
-      int i=2;  /* skip -I */
-      int l=strlen(incl);
-      int j=strlen(m2path);
+  if (newm2path != NULL) {
+    int i=2;  /* skip -I */
 
-      strcpy(newm2path, m2path);
-      if (l>0) {
+    strcpy(newm2path, m2path);
+    if (l>0) {
+      if (j>0) {
 	newm2path[j] = ' ';
 	j++;
-	while (i<l) {
-	  if (incl[i] == ':') {
-	    newm2path[j] = ' ';
-	  } else {
-	    newm2path[j] = incl[i];
-	  }
-	  j++;
-	  i++;
-	}
       }
-      newm2path[j] = (char)0;
-      return( setenv("M2PATH", newm2path, 1) );
+      while (i<l) {
+	if (incl[i] == ':') {
+	  newm2path[j] = ' ';
+	} else {
+	  newm2path[j] = incl[i];
+	}
+	j++;
+	i++;
+      }
     }
+    newm2path[j] = (char)0;
+    printf("M2PATH = %s\n", newm2path);
+    return( setenv("M2PATH", newm2path, 1) );
   }
   return( FALSE );
 }
@@ -136,7 +144,7 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
 
   i=1;
   while (i<*in_argc) {
-    printf("lang specific driver %s\n", (*in_argv)[i]);
+    printf("in lang specific driver %s\n", (*in_argv)[i]);
     i++;
   }
   i=1;
@@ -183,6 +191,11 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
     } else {
       i++;
     }
+  }
+  i=1;
+  while (i<*in_argc) {
+    printf("out lang specific driver %s\n", (*in_argv)[i]);
+    i++;
   }
 }
 
