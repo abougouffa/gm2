@@ -75,8 +75,7 @@ END OpenForRandom ;
 
 
 (*
-   WriteS - writes a string, s, to, file. It returns the number of
-            bytes written.
+   WriteS - writes a string, s, to, file. It returns the String, s.
 *)
 
 PROCEDURE WriteS (file: File; s: String) : String ;
