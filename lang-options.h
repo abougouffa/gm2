@@ -31,6 +31,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("use ISO dialect of Modula-2") },
   { "-Wpim",
       N_("use PIM [234] dialect of Modula-2") },
+  { "-Wpim2",
+      N_("only use PIM 2 dialect of Modula-2") },
   { "-Wbounds",
       N_("turns on runtime subrange, array index and indirection via NIL pointer checking") },
   { "-Wreturn",
