@@ -19,14 +19,14 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2002/04/15 16:26:50 $]
+   Date       : 27/5/87  [$Date: 2002/04/28 11:36:17 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.2 $
+   Version    : $Revision: 1.3 $
 *)
 
 FROM Strings IMPORT String ;
-EXPORT QUALIFIED IsAnOption, ParseOptions,
+EXPORT QUALIFIED IsAnOption, ParseOptions, ScanCppArgs,
 
                  Pedantic, Verbose, Statistics,
                  Profiling, Coding, Optimizing,
@@ -83,6 +83,13 @@ PROCEDURE IsAnOption (s: String) : BOOLEAN ;
 *)
 
 PROCEDURE ParseOptions ;
+
+
+(*
+   ScanCppArgs - scans the cpp arguments and builds up the cpp command line.
+*)
+
+PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 
 
 (*

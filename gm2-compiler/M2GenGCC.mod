@@ -666,6 +666,8 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
    IF LastOperator#LineNumberOp
    THEN
+      FileName := KillString(FileName) ;
+      FileName := InitStringCharStar(KeyToCharStar(Name(Operand1))) ;
       SetFileNameAndLineNo(string(FileName), Operand3) ;
       EmitLineNote(string(FileName), Operand3)
    END
@@ -694,9 +696,7 @@ BEGIN
    LastLine := 1 ;
    CompilingMainModule := GetMainModule()=Operand3 ;
    ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
-   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
-   SetFileNameAndLineNo(string(FileName), LastLine)
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3)))
 END CodeStartModFile ;
 
 
@@ -722,8 +722,7 @@ BEGIN
    LastLine := 1 ;
    CompilingMainModule := FALSE ;
    ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
-   FileName   := CalculateFileName(ModuleName, Mark(InitString('def'))) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3)))
 END CodeStartDefFile ;
 
 
@@ -929,7 +928,6 @@ BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, PreviousScope, CurrentProcedure) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-   FileName   := CalculateFileName(ModuleName, Mark(InitString('mod'))) ;
    SetFileNameAndLineNo(string(FileName), Operand1) ;
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure), IsExported(GetMainModule(), CurrentProcedure)) ;
    DeclareLocalVariables(CurrentProcedure) ;

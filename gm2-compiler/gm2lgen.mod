@@ -48,11 +48,12 @@ CONST
    Comment = '#'  ; (* Comment leader      *)
 
 VAR
+   NeedTerminate,
    ExitNeeded,
-   ApuFound    : BOOLEAN ;
-   MainName    : String ;
-   FunctionList: List ;
-   fi, fo      : File ;
+   ApuFound     : BOOLEAN ;
+   MainName     : String ;
+   FunctionList : List ;
+   fi, fo       : File ;
 
 
 (*
@@ -94,12 +95,13 @@ VAR
    i: CARDINAL ;
    s: String ;
 BEGIN
-   i          := 1 ;
-   ApuFound   := FALSE ;
-   ExitNeeded := TRUE ;
-   MainName   := InitString('main') ;
-   fi         := StdIn ;
-   fo         := StdOut ;
+   i              := 1 ;
+   NeedTerminate  := TRUE ;
+   ApuFound       := FALSE ;
+   ExitNeeded     := TRUE ;
+   MainName       := InitString('main') ;
+   fi             := StdIn ;
+   fo             := StdOut ;
    WHILE GetArg(s, i) DO
       IF EqualArray(s, '-apu')
       THEN
@@ -107,9 +109,12 @@ BEGIN
       ELSIF EqualArray(s, '-exit')
       THEN
          ExitNeeded := FALSE
+      ELSIF EqualArray(s, '-terminate')
+      THEN
+         NeedTerminate := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-main function] [-o outputfile] [ inputfile ] [-apu] [-exit]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-main function] [-o outputfile] [ inputfile ] [-apu] [-exit] [-terminate]\n') ;
          exit(0)
       ELSIF EqualArray(s, '-o')
       THEN
@@ -174,6 +179,10 @@ BEGIN
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('char  *argv[];\n')))))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
       GenInitializationCalls(ApuFound) ;
+      IF NeedTerminate
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate();\n'))))))
+      END ;
       IF ExitNeeded
       THEN
          Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   libc_exit(0);\n'))))))
@@ -204,6 +213,15 @@ BEGIN
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), GetItemFromList(FunctionList, i)))))
       END ;
       INC(i)
+   END ;
+   IF NeedTerminate
+   THEN
+      IF ApuFound
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  .extern _M2RTS_Terminate\n'))))))
+      ELSE
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern M2RTS_Terminate(void);\n'))))))
+      END
    END
 END GenExternals ;
 
@@ -231,6 +249,16 @@ BEGIN
                                       GetItemFromList(FunctionList, i)))))
       END ;
       INC(i)
+   END ;
+   IF NeedTerminate
+   THEN
+      IF ApuFound
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  load.d.d $_M2RTS_Terminate\n')))))) ;
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  call\n'))))))
+      ELSE
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  M2RTS_Terminate();\n'))))))
+      END
    END
 END GenInitializationCalls ;
 

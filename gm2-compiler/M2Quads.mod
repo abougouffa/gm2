@@ -1377,7 +1377,8 @@ VAR
 BEGIN
    PopT(ModuleName) ;
    PushT(ModuleName) ;
-   GenQuad(StartDefFileOp, GetPreviousTokenLineNo(), NulSym, GetModule(ModuleName))
+   GenQuad(StartDefFileOp, GetPreviousTokenLineNo(), NulSym, GetModule(ModuleName)) ;
+   BuildLineNo
 END StartBuildDefFile ;
 
 
@@ -1405,7 +1406,8 @@ END StartBuildDefFile ;
 
 PROCEDURE StartBuildModFile ;
 BEGIN
-   GenQuad(StartModFileOp, GetPreviousTokenLineNo(), NulSym, GetFileModule())
+   GenQuad(StartModFileOp, GetPreviousTokenLineNo(), NulSym, GetFileModule()) ;
+   BuildLineNo
 END StartBuildModFile ;
 
 
@@ -8624,8 +8626,9 @@ BEGIN
                           printf1('  %4d', Operand3) |
 
       InlineOp,
-      LineNumberOp,
       GotoOp            : printf1('%4d', Operand3) |
+
+      LineNumberOp      : printf2('%a:%d', Operand1, Operand3) |
 
       EndFileOp         : printf1('%a', GetSymName(Operand3)) |
 
@@ -8638,7 +8641,7 @@ BEGIN
       StartOp           : printf3('  %4d  %a  %a', Operand1, GetSymName(Operand2), GetSymName(Operand3)) |
 
       StartDefFileOp,
-      StartModFileOp    : printf2('%4d  %a', Operand1, GetSymName(Operand3)) |
+      StartModFileOp    : printf2('  %4d  %a', Operand1, GetSymName(Operand3)) |
 
       ParamOp           : printf1('%4d  ', Operand1) ;
                           WriteOperand(Operand2) ;
@@ -9031,14 +9034,18 @@ END BuildInline ;
 *)
 
 PROCEDURE BuildLineNo ;
+VAR
+   filename: Name ;
 BEGIN
    IF (NextQuad#Head) AND (GenerateLineDebug OR GenerateDebugging)
    THEN
-      IF Quads[NextQuad-1].Operator=LineNumberOp
+      filename := makekey(string(GetFileName())) ;
+      IF (Quads[NextQuad-1].Operator=LineNumberOp) AND
+         (Quads[NextQuad-1].Operand1=WORD(filename))
       THEN
-         PutQuad(NextQuad-1, LineNumberOp, NulSym, NulSym, GetLineNo())
+         PutQuad(NextQuad-1, LineNumberOp, WORD(filename), NulSym, GetLineNo())
       ELSE
-         GenQuad(LineNumberOp, NulSym, NulSym, GetLineNo())
+         GenQuad(LineNumberOp, WORD(filename), NulSym, GetLineNo())
       END
    END
 END BuildLineNo ;

@@ -11,7 +11,7 @@ FROM StrIO IMPORT WriteString ;
 
 PROCEDURE WriteVersion ;
 BEGIN
-    WriteString('0.2b (gaius@guenevere)') ;
+    WriteString('0.21b (gaius@isode)') ;
 END WriteVersion ;
 
 

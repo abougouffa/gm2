@@ -288,6 +288,9 @@ VAR
    EmitCode,
    Debugging,
    WasNoError         : BOOLEAN ;
+   LinePrologue,
+   LineEpilogue,
+   LineDeclaration    : CARDINAL ;
    CodePrologue,
    CodeEpilogue,
    CodeDeclaration    : CodeHunk ;
@@ -749,6 +752,7 @@ END NewCodeDesc ;
 
 PROCEDURE CodeFragmentPrologue ;
 BEGIN
+   LinePrologue := GetCurrentLine() ;
    GetCodeFragment(CodePrologue)
 END CodeFragmentPrologue ;
 
@@ -759,6 +763,7 @@ END CodeFragmentPrologue ;
 
 PROCEDURE CodeFragmentEpilogue ;
 BEGIN
+   LineEpilogue := GetCurrentLine() ;
    GetCodeFragment(CodeEpilogue)
 END CodeFragmentEpilogue ;
 
@@ -769,6 +774,7 @@ END CodeFragmentEpilogue ;
 
 PROCEDURE CodeFragmentDeclaration ;
 BEGIN
+   LineDeclaration := GetCurrentLine() ;
    GetCodeFragment(CodeDeclaration)
 END CodeFragmentDeclaration ;
 
@@ -5279,11 +5285,15 @@ BEGIN
          ELSE
             WriteString('(* it is advisable not to edit this file as it was automatically generated from the grammer file ') ;
             WriteString(FileName) ; WriteString(' *)') ; WriteLn ;
+            EmitFileLineTag(LinePrologue) ;
+            BeginningOfLine := TRUE ;
             WriteCodeHunkList(CodePrologue) ;
             EmitSupport ;
+            EmitFileLineTag(LineDeclaration) ;
             WriteCodeHunkList(CodeDeclaration) ;
             EmitRules ;
             (* code rules *)
+            EmitFileLineTag(LineEpilogue) ;
             WriteCodeHunkList(CodeEpilogue)
          END
       END

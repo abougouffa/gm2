@@ -77,7 +77,7 @@ BEGIN
          CompleteSearchPath := Dup(InitialPath)
       END
    ELSE
-      CompleteSearchPath := Add(ConCatChar(UserPath, ':'), InitialPath)
+      CompleteSearchPath := ConCat(ConCatChar(Dup(UserPath), ':'), InitialPath)
    END ;
    start := 0 ;
    end   := Index(CompleteSearchPath, ':', CARDINAL(start)) ;

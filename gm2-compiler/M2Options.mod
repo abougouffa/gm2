@@ -44,17 +44,42 @@ END DisplayVersion ;
 
 
 (*
+   ScanCppArgs - scans the cpp arguments and builds up the cpp command line.
+*)
+
+PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
+VAR
+   s: String ;
+BEGIN
+   IF GetArg(s, i) AND EqualArray(s, '-Wcppbegin')
+   THEN
+      INC(i) ;
+      WHILE GetArg(s, i) DO
+         IF EqualArray(s, '-Wcppend')
+         THEN
+            RETURN( i )
+         ELSIF NOT EqualArray(CppAndArgs, '')
+         THEN
+            CppAndArgs := ConCatChar(CppAndArgs, ' ')
+         END ;
+         CppAndArgs := ConCat(CppAndArgs, s) ;
+         INC(i)
+      END
+   END ;
+   RETURN( i )
+END ScanCppArgs ;
+
+
+(*
    ParseOptions - parses the options and sets the option flags
                   accordingly.
 *)
 
 PROCEDURE ParseOptions ;
 VAR
-   s      : String ;
-   i, n   : CARDINAL ;
-   CppArgs: BOOLEAN ;
+   s   : String ;
+   i, n: CARDINAL ;
 BEGIN
-   CppArgs := FALSE ;
    n := Narg() ;
    IF n>1
    THEN
@@ -62,24 +87,12 @@ BEGIN
       REPEAT
          IF GetArg(s, i)
          THEN
-            IF CppArgs
-            THEN
-               IF EqualArray(s, '-Wcppend')
-               THEN
-                  CppArgs := FALSE
-               ELSE
-                  IF NOT EqualArray(CppAndArgs, '')
-                  THEN
-                     CppAndArgs := ConCatChar(CppAndArgs, ' ')
-                  END ;
-                  CppAndArgs := ConCat(CppAndArgs, s)
-               END
-            ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+            IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
             ELSIF EqualArray(s, '-Wcppbegin')
             THEN
-               CppArgs := TRUE
+               i := ScanCppArgs(i)
             ELSIF EqualArray(s, '-version')
             THEN
                DisplayVersion
@@ -196,6 +209,10 @@ BEGIN
    ELSIF EqualArray(s, '-dumpbase')
    THEN
       (* gcc passes this to us, we ignore it *)
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wmakeall') OR EqualArray(s, '-Wmakeall0') OR
+         EqualArray(Mark(Slice(s, 0, 9)), '-Wmake-I=')
+   THEN
       Legal := TRUE
    ELSE
       Legal := FALSE

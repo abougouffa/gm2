@@ -87,7 +87,8 @@ BEGIN
    THEN
       IF VerboseFound
       THEN
-         Command := WriteS(StdErr, Command)
+         Command := WriteS(StdOut, Command) ;
+         fprintf0(StdOut, '\n')
       END ;
       exit( system(string(Command)) )
    ELSE
@@ -179,7 +180,7 @@ BEGIN
    END ;
    REPEAT
       s := RemoveWhitePrefix(ReadS(fi)) ;
-      IF (NOT Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1)))) AND
+      IF (NOT Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment))))))) AND
          (NOT (IgnoreMain AND Equal(s, MainModule))) AND (NOT EqualArray(s, ''))
       THEN
          s := RemoveLinkOnly(s) ;
