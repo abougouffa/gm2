@@ -1,6 +1,6 @@
 MODULE import ;
 
-IMPORT foo, 
+IMPORT M2RTS,
 
 BEGIN
 END import.
