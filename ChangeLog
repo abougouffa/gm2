@@ -12,6 +12,8 @@
 	  cleanly under Apple Darwin
 	* many internal changes made to ppg to handle recursive ebnf
 	  rules.
+	* fixed automatic export of unqualified identifiers from a
+	  DEFINITION MODULE FOR "C"
 
 2003-02-02	Gaius Mulley <gaius@glam.ac.uk>
 
