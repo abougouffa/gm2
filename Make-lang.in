@@ -1223,7 +1223,7 @@ $(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
 
 $(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
 	$(MAKE) gm2/pge
-	./gm2/pge -l $< > $@
+	./gm2/pge $< > $@
 
 #
 # gm2.verifyparanoid - diffs the output of all three compilers with the compiler source code
