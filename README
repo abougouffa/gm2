@@ -36,9 +36,9 @@ You can get egcs-20000103 from my machine
 ftp://floppsie.comp.glam.ac.uk/pub/c but be warned it is large
 (approximately 14 MB). Originally I had gcc-2.8.1 checked into the cvs
 source tree together with GM2, but since egcs has grown in size and so
-far GM2 has *not* modified egcs in any way I've separated the two.
-You might already have a copy of egcs and if you're a modem user you
-might be very glad of this :-)
+far development of GM2 has *not* modified egcs in any way I've
+separated the two.  You might already have a copy of egcs and if
+you're a modem user you might be very glad of this :-)
 
 Building GNU Modula-2
 =====================
@@ -54,6 +54,8 @@ A simple test
 you should be able to perform:
 
    ./xgm2 -B./x -S -g -c -Igm2/m2/comp/libs -Igm2/m2/comp/autotest/gm2 gm2/m2/comp/autotest/gm2/foo.mod
+
+this should result in creating a file foo.s in your current working directory.
 
 Building m2f
 ============
