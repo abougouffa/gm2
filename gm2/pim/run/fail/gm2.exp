@@ -24,7 +24,7 @@ load_lib gm2-torture.exp
 
 gm2_init "-I$srcdir/../../gm2/gm2-libs:$srcdir/gm2/pim/pass:$srcdir/../../gm2/gm2-compiler:../../gm2/gm2-libs:../../gm2/gm2-compiler" -Wpim -Wcase -Wnil
 
-foreach testcase [glob -nocomplain $srcdir/$subdir/*.mod] {
+foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.
     if ![runtest_file_p $runtests $testcase] then {
 	continue

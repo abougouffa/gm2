@@ -28,5 +28,6 @@ VAR
 
 BEGIN
    (* this should cause an overflow warning or error *)
-   LongIntegerVariable := MAX(CARDINAL) + MAX(CARDINAL);
+   LongIntegerVariable := VAL(LONGINT, MAX(CARDINAL)) +
+                          VAL(LONGINT, MAX(CARDINAL))
 END TestLong6.
