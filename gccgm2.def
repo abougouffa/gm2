@@ -42,6 +42,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildIndirect,
                  DoJump,
                  BuildProcedureCall, BuildParam, BuildFunctValue,
+                 BuildStartMainModule, BuildEndMainModule,
                  AssignBooleanTrueFalse ;
 
 
@@ -68,7 +69,8 @@ PROCEDURE SetFileNameAndLineNo (fn: ADDRESS; line: CARDINAL) ;
 PROCEDURE DeclareKnownType       (name: ADDRESS; type: Tree) : Tree ;
 PROCEDURE DeclareKnownConstant   (name: ADDRESS; type: Tree; value: Tree) : Tree ;
 PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
-                                  isexported, isimported, istemporary, isglobal: BOOLEAN) : Tree ;
+                                  isexported, isimported, istemporary, isglobal: BOOLEAN;
+                                  scope: Tree) : Tree ;
 PROCEDURE GetIntegerType         () : Tree ;
 PROCEDURE GetCharType            () : Tree ;
 PROCEDURE GetUnsignedIntegerType () : Tree ;
@@ -106,6 +108,22 @@ PROCEDURE BuildEnd (t: Tree) ;
 *)
 
 PROCEDURE BuildCallInnerInit (funct: Tree) ;
+
+
+(*
+   BuildStartMainModule - creates the global scope and expands all global
+                          variables ready for main module compilation.
+*)
+
+PROCEDURE BuildStartMainModule ;
+
+
+(*
+   BuildEndMainModule - tidies up the end of the main module. It moves
+                        back to global scope.
+*)
+
+PROCEDURE BuildEndMainModule ;
 
 
 (*

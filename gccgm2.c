@@ -16,6 +16,8 @@
 #include "flags.h"
 #include <stdio.h>
 
+#undef DEBUG_PROCEDURE_CALLS
+
 /*
  *  utilize some of the C build routines
  */
@@ -6861,7 +6863,6 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   }
   TREE_USED     (id)      = 1;
 
-  debug_tree(decl);
   pushdecl(decl);
 
   if (DECL_SIZE(decl) == 0) {
@@ -8307,7 +8308,6 @@ gccgm2_BuildStartFunctionDeclaration ()
   param_list = NULL_TREE;   /* ready for when we define a function */
 }
 
-tree was_fntype;
 /*
  *
  *  BuildEndFunctionDeclaration - build a function which will return a value of returntype.
@@ -8330,9 +8330,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
     returntype = void_type_node;
   }
 
-  param_type_list = listify(integer_type_node);
   fntype = build_function_type (returntype, param_type_list);
-  was_fntype = fntype;
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
 
   DECL_EXTERNAL (fndecl)    = 0;
@@ -8341,6 +8339,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
   DECL_ARGUMENTS (fndecl)   = param_list;
   DECL_RESULT (fndecl)      = build_decl (RESULT_DECL, NULL_TREE, returntype);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
+  TREE_TYPE(fndecl)         = fntype;
 
   DECL_SOURCE_FILE (fndecl) = input_filename;
   DECL_SOURCE_LINE (fndecl) = lineno;
@@ -8423,13 +8422,14 @@ gccgm2_BuildEndFunctionCode (fndecl)
 
   /* pop the block level */
   block = poplevel(1, 1, 0);
+#if 0
   debug_tree(block);
+#endif
   expand_end_bindings(block, 1, 0);
 
   /* get back out of the function and compile it */
   block = poplevel (1, 0, 1);
   DECL_INITIAL(fndecl) = block;
-  debug_tree(block);
   BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
   /* expand_end_bindings (block, 1, 0); */
 
@@ -8915,11 +8915,15 @@ void
 gccgm2_BuildParam (param)
      tree param;
 {
+#if 0
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
   fprintf(stderr, "list of elements\n"); fflush(stderr);
+#endif
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
+#if 0
   debug_tree(param_list);
   fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
+#endif
 }
 
 /*
@@ -8943,14 +8947,17 @@ gccgm2_BuildProcedureCall (procedure, rettype)
     TREE_USED(call)         = TRUE;
     TREE_SIDE_EFFECTS(call) = TRUE ;
 
+#if 0
     fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
     debug_tree(param_list);
+#endif
+#if defined(DEBUG_PROCEDURE_CALLS)
     fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
     debug_tree(call);
+#endif
     expand_expr_stmt(call);
     last_function   = NULL_TREE;
   } else {
-    /* listify(param_list) */
     last_function   = build(CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
   }
 
