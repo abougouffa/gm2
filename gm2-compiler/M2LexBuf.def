@@ -94,8 +94,7 @@ PROCEDURE GetLineNo () : CARDINAL ;
 
 
 (*
-   GetTokenNo - returns the number of tokens read from
-                the source file by the lexical analaysis.
+   GetTokenNo - returns the current token number.
 *)
 
 PROCEDURE GetTokenNo () : CARDINAL ;

@@ -454,7 +454,7 @@ VAR
 BEGIN
    IF UseBufferedTokens
    THEN
-      t := GetTokenNo() ;
+      t := CurrentTokNo ;
       b := FindTokenBucket(t) ;
       WITH b^.buf[t] DO
          currenttoken   := token ;
@@ -586,9 +586,9 @@ END GetPreviousTokenLineNo ;
 
 PROCEDURE GetLineNo () : CARDINAL ;
 BEGIN
-   IF GetTokenNo()>0
+   IF CurrentTokNo=0
    THEN
-      RETURN( TokenToLineNo(GetTokenNo()-1, 0) )
+      RETURN( 0 )
    ELSE
       RETURN( TokenToLineNo(GetTokenNo(), 0) )
    END
@@ -596,13 +596,17 @@ END GetLineNo ;
 
 
 (*
-   GetTokenNo - returns the number of tokens read from
-                the source file by the lexical analaysis.
+   GetTokenNo - returns the current token number.
 *)
 
 PROCEDURE GetTokenNo () : CARDINAL ;
 BEGIN
-   RETURN( CurrentTokNo )
+   IF CurrentTokNo=0
+   THEN
+      RETURN( 0 )
+   ELSE
+      RETURN( CurrentTokNo-1 )
+   END
 END GetTokenNo ;
 
 
