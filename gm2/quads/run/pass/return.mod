@@ -15,18 +15,15 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE TestLong6 ;
+MODULE return ;
 
-FROM SYSTEM IMPORT TSIZE ;
-FROM StrIO IMPORT WriteLn, WriteString;
-FROM FpuIO IMPORT WriteLongInt;
-FROM NumberIO IMPORT WriteCard ;
-FROM M2RTS IMPORT ExitOnHalt ;
+PROCEDURE foo () : INTEGER ;
+BEGIN
+   RETURN 1
+END foo ;
 
 VAR
-  LongIntegerVariable : LONGINT;
-
+   i: INTEGER ;
 BEGIN
-   (* this should cause an overflow warning or error *)
-   LongIntegerVariable := MAX(LONGINT) + MAX(LONGINT)
-END TestLong6.
+   i := foo()
+END return.
