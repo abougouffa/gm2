@@ -1,3 +1,24 @@
+2003-09-25	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed -Wmakeall option.
+	* fixed CARDINAL type to have range 0..max(unsigned int)
+	  rather than 0..max(integer) as reported by Iztok.
+	* fixed set type incompatability as reported by Iztok.
+	* fixed README note about make gm2.paranoid as reported by
+          Matthias Kurz.
+	* fixed many of the example programs which broken during migration
+	  to gcc-3.3.1.
+	* fixed lang-specs.h to invoke new cpp.
+	* removed the M2PATH environment variable usage.
+	* added more modules to make gm2.paranoid.
+	* fixed gm2->gcc declaration of arrays.
+	* fixed infinite loop in M2GenGCC.mod and M2Optimize.mod
+	* added more regression tests.
+	* fixed Make-file.in as suggested by Matthias Kurz.
+	* fixed tools-src/makeversion and tools-src/buildpg to be
+	  more portable as suggested by Matthias Kurz.
+	* fixed examples/pthread
+
 2003-09-19	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 release 0.40

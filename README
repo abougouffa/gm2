@@ -1,8 +1,8 @@
 Warning
 =======
 
-This code is currently in development, it is not yet complete and highly
-likely to create massive core dumps. Patches and development
+This code is currently in development, it is not yet complete and
+highly likely to create massive core dumps. Patches and development
 volunteers highly welcome! See contributions at the bottom of this
 file.
 
@@ -71,7 +71,7 @@ this should result in creating an a.out for the infamous hello world example.
 Stress testing GM2
 ==================
 
-   cd gcc-version/gcc/gm2 ; make paranoid
+   cd host-build/gcc ; make gm2.paranoid
 
 which builds gm2 using itself and then compiles each module
 with both versions of gm2 comparing the emitted assembler code.
