@@ -94,27 +94,12 @@ possible and utilized a C structure for dynamic arrays.
 @node Integrating, Practicalities, History, Top
 @section Integrating m2f with gcc
 
-An expedient method for combining the m2f front end onto the gcc
-back end is to make m2f generate the quadruple intermediate code.
-At this point *no* computation of storage space has occurred,
-no calculation of runtime addresses has occurred either.
-Also no optimization has taken place.
-
-Now the quadruples could be converted into the tree structure
-gcc demands and the symbol table converted into gcc equivalent.
-Not efficient with respect to compilation speed, but it saves a
-major rewrite of m2f. It should also preserve the independence
-between the target machine and front end m2f. Hopefully there
-should be no detrimental effect on the quality of generated code.
-
 We need to convert the quadruples into tree structure and also
 declare variables, functions, modules, types seemingly at the
 same time. The m2f native code generators all took the quadruples
 and sequentially generated code. The GCC integration needs more
 thought as it must only declare items who have had their children
-already written out by GCC. Unless we generate prototypes for
-all functions as a matter of course. I believe that the following
-will work when integrating M2F with GCC:
+already written out by GCC. The approach taken is as follows:
 
 @itemize @bullet
 @item
@@ -130,6 +115,7 @@ written out in '.stabs'
 then we can trawl though the quadruple list happily declaring
 functions and generating code in the knowledge that all types
 global variables have already been declared.
+Lists of quadruples are turned into trees and passed onto GCC.
 @end itemize
 
 @node Practicalities, Future, Integrating, Top
@@ -148,6 +134,11 @@ In essence m2f will be given a new code generator namely "gcc".
 This new code generator performs the quadruples to tree conversion
 and symbol table to gcc symbol table conversion. This code will
 be a mixture of Modula-2 and C.
+The original M2ALU module containing simple arithmetic operators (used for
+constant folding) will be replaced by a skeleton M2ALU which utilizes
+the GCC tree constant folding functions. The M2Base and M2System
+modules containing base types and system types respectively are also
+rewritten to utilize the GCC backend data types.
 
 @node Future, Done list, Practicalities, Top
 @section Future
@@ -175,22 +166,22 @@ modules containing global variables of all types. Procedure
 prologue/epilogue is created.
 
 @item
-simple expressions are complete.
+expressions are complete.
 
 @item
-all loop constructs, if then else, case stuff has been done.
+all loop constructs, if then else, case statements.
 
 @item
-nested module initialization
+nested module initialization.
 
 @item
-pointers
+pointers, arrays
 
 @item
 front end @samp{gm2} can now compile and link modules.
 
 @item  
-basic procedure calls
+procedure calls
 
 @item
 the ability to insert gnu asm statements within GNU Modula-2.
@@ -205,6 +196,9 @@ nested procedures
 the front end now utilizes GCC tree constants and types and is no
 longer tied to a 32 bit architecture, but reflects the 'configure'
 target machine description.
+
+@item
+complex procedure parameters (unbounded arrays, strings)
 
 @end itemize
 
@@ -224,7 +218,7 @@ What needs to be done:
 @itemize @bullet
 
 @item
-complex procedure parameters (unbounded arrays, strings)
+complex procedure parameters (passing records?)
 
 @item
 the modula-2 front end needs to convert the quadruples into
@@ -254,9 +248,6 @@ See @samp{ gm2/m2/comp/gm2s/gcc/asm.bnf } for an example
 of how this could be done.
 
 @item
-unbounded arrays
-
-@item
 integrate the small testsuite (gm2/m2/comp/autotest)
 into dejagnu ?? and improve
 
@@ -264,7 +255,8 @@ into dejagnu ?? and improve
 Coroutines - as mentioned by readers of comp.lang.modula2.
 
 @item
-improve documentation
+improve documentation, specifically this document which should
+also include a synopsis of 2nd Edition Modula-2.
 
 @item
 testing and fixing bugs
