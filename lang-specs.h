@@ -27,10 +27,10 @@ Boston, MA 02111-1307, USA.  */
   {"@modula-2",
       "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
            %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin tradcpp0%s -lang-asm -C %(cpp_options) -Wcppend \
-                                                     %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %i \
+                                                     %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}} \n\
-                                               %{!Wcpp:cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %i \
+                                               %{!Wcpp:cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
            %{Wmakelist:%{Wcpp:tradcpp0%s -lang-asm -C %(cpp_options) %g.mod \n\

@@ -100,6 +100,4 @@ set complaints 20
 # Put this last because gcc does not reference it any more unless
 # USE_SYSTEM_ABORT is defined, so gdb may complain and bail out.
 b abort
-cd gm2
-run -M "gm2-compiler gm2-libs" -g -Wbounds gm2.mod -o -
-# run -quiet -dumpbase FifoQueue.mod -g -Wbounds -Wreturn -version /tmp/cciRXtIk.mod
+run -Igm2/gm2-compiler:gm2/gm2-libs -g -Wbounds gm2/gm2-compiler/FifoQueue.mod -o -

@@ -20,23 +20,38 @@ Boston, MA 02111-1307, USA.  */
 
 #define LINK_COMMAND_SPEC ""
 
-/* This is the contribution to the `lang_options' array in gcc.c for
-   gm2.  */
+/* This is the contribution to the `documented_lang_options' array in
+   toplev.c for gm2.  */
 
-DEFINE_LANG_NAME ("GNU Modula-2")
-#define GM2_OPT(NAME, DESCRIPTION) { NAME , DESCRIPTION }
-  GM2_OPT("-I", "specifies a library path (C syntax)"),
-  GM2_OPT("-Wbounds",   "turns on runtime subrange, array index and indirection via NIL pointer checking"),
-  GM2_OPT("-Wreturn",   "turns on runtime checking for functions which finish without executing a RETURN statement"),
-  GM2_OPT("-Wstudents", "extra compile time semantic checking, typically tries to catch bad style"),
-  GM2_OPT("-Wpedantic", "compiler checks nested WITH statements (referencing same type) and multiple identical imports"),
-  GM2_OPT("-Wuselist",  "use ordered list of modules when linking"),
-  GM2_OPT("-Wmakelist", "created ordered list of modules"),
-  GM2_OPT("-Wmodules",  "display list of modules and location"),
-  GM2_OPT("-Wmakeall",  "build a project using make"),
-  GM2_OPT("-Wmakeall0", "do not build a project using make (internal)"),
-  GM2_OPT("-Wmake-I=",  "build project path (internal)"),
-  GM2_OPT("-Wcpp",      "use cpp to preprocess the module"),
-  GM2_OPT("-Wq",        "debugging information - dump the list of quadruples"),
-  GM2_OPT("-version",   "display the version of the GNU Modula-2 front end"),
-  GM2_OPT("-O",         "optimize code"),
+DEFINE_LANG_NAME ("Modula-2")
+
+  { "-I",
+      N_("specifies a library path (C syntax)") },
+  { "-Wbounds",
+      N_("turns on runtime subrange, array index and indirection via NIL pointer checking") },
+  { "-Wreturn",
+      N_("turns on runtime checking for functions which finish without executing a RETURN statement") },
+  { "-Wstudents",
+      N_("extra compile time semantic checking, typically tries to catch bad style") },
+  { "-Wpedantic",
+      N_("compiler checks nested WITH statements (referencing same type) and multiple identical imports") },
+  { "-Wuselist",
+      N_("use ordered list of modules when linking") },
+  { "-Wmakelist",
+      N_("created ordered list of modules") },
+  { "-Wmodules",
+      N_("display list of modules and location") },
+  { "-Wmakeall",
+      N_("build a project using make") },
+  { "-Wmakeall0",
+      N_("do not build a project using make (internal)") },
+  { "-Wmake-I=",
+      N_("build project path (internal)") },
+  { "-Wcpp",
+      N_("use cpp to preprocess the module") },
+  { "-Wq",
+      N_("debugging information - dump the list of quadruples") },
+  { "-version",
+      N_("display the version of the GNU Modula-2 front end") },
+  { "-O",
+      N_("optimize code") },

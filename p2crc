@@ -1600,10 +1600,4 @@ CheckFileSeek                   # 1=check for errors during seek
 				# 2 or default=only when $iocheck off$ or {$I-}
 
 
-
-
-Include loc.p2crc		# Include any local modifications to this file.
-
-
-
 # End of p2crc
