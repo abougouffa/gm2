@@ -189,8 +189,7 @@ PROCEDURE PushChar (c: CHAR) ;
 
 
 (*
-   PushString - pushes the numerical human readable value of the string
-                onto the stack.
+   PushString - pushes the numerical value of the string onto the stack.
 *)
 
 PROCEDURE PushString (s: Name) ;

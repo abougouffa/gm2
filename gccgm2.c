@@ -695,8 +695,9 @@ static bool                   flexible_array_type_p                       PARAMS
        int                    objc_comptypes                              PARAMS ((tree, tree, int));
 static tree                   build_set_full_complement                   PARAMS ((void));
        void                   gccgm2_GarbageCollect                       PARAMS ((void));
-
-
+       tree                   gccgm2_BuildConstLiteralNumber              PARAMS ((const char *str, unsigned int base));
+static int                    interpret_integer                           PARAMS ((const char *str, unsigned int base, unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high));
+static int                    append_digit                                PARAMS ((unsigned HOST_WIDE_INT *low, HOST_WIDE_INT *high, unsigned int digit, unsigned int base));
 
 
 #if defined(TRACE_DEBUG_GGC)
@@ -9656,7 +9657,7 @@ gccgm2_GetSizeOfInBits (type)
       return size_zero_node;
     }
 
-  return TYPE_PRECISION (type);
+  return gccgm2_BuildIntegerConstant (TYPE_PRECISION (type));
 }
 
 /*
@@ -11176,6 +11177,154 @@ gccgm2_BuildIntegerConstant (int value)
       id = build_int_2 (value, 0);
       return id;
   }
+}
+
+/*
+ *  BuildConstLiteralNumber - returns a GCC TREE built from the string, str.
+ *                            It assumes that, str, represents a legal
+ *                            number in Modula-2. It always returns a
+ *                            positive value.
+ */
+
+tree
+gccgm2_BuildConstLiteralNumber (str, base)
+     const char *str;
+     unsigned int base;
+{
+  tree value;
+  unsigned HOST_WIDE_INT low;
+  HOST_WIDE_INT high;
+  int overflow;
+
+  overflow = interpret_integer (str, base,
+				&low, (HOST_WIDE_INT *) &high);
+  value = build_int_2_wide (low, high);
+#if 1
+  if (high < 0)
+    TREE_UNSIGNED (value) = TRUE;
+#endif
+
+  return value;
+}
+
+/*
+ * interpret_integer - converts an integer constant into two integer
+ *                     constants. Heavily borrowed from gcc/cppexp.c.
+ */
+
+static int
+interpret_integer (str, base, low, high)
+     const char *str;
+     unsigned int base;
+     unsigned HOST_WIDE_INT *low;
+     HOST_WIDE_INT *high;
+{
+  const unsigned char *p, *end;
+  int overflow = FALSE;
+  int len;
+
+  *low = 0;
+  *high = 0;
+  p = str;
+  len = strlen(str);
+  end = p + len;
+
+  /* Common case of a single digit.  */
+  if (len == 1)
+    *low = p[0] - '0';
+  else
+    {
+      unsigned int c = 0;
+
+      /* We can add a digit to numbers strictly less than this without
+	 needing the precision and slowness of double integers.  */
+
+      unsigned HOST_WIDE_INT max = ~(unsigned HOST_WIDE_INT) 0;
+      max = (max - base + 1) / base + 1;
+
+      for (; p < end; p++)
+	{
+	  c = *p;
+
+	  if (ISDIGIT (c) || (base == 16 && ISXDIGIT (c)))
+	    c = hex_value (c);
+	  else
+	    return overflow;
+
+	  /* Strict inequality for when max is set to zero.  */
+	  if (*low < max)
+	    *low = (*low) * base + c;
+	  else
+	    {
+	      overflow = append_digit (low, high, c, base);
+	      max = 0;  /* from now on we always use append_digit */
+	    }
+	}
+
+      if (overflow)
+	error ("integer constant is too large");
+    }
+  return overflow;
+}
+
+/* Append DIGIT to NUM, a number of PRECISION bits being read in base
+   BASE.  */
+static int
+append_digit (low, high, digit, base)
+     unsigned HOST_WIDE_INT *low;
+     HOST_WIDE_INT *high;
+     unsigned int digit;
+     unsigned int base;
+{
+  unsigned int shift;
+  int overflow;
+  HOST_WIDE_INT add_high, res_high;
+  unsigned HOST_WIDE_INT int add_low, res_low;
+
+  switch (base) {
+
+  case 2:  shift = 1; break;
+  case 8:  shift = 3; break;
+  case 10: shift = 3; break;
+  case 16:  shift = 4; break;
+
+  default:
+    shift = 3;
+    error("internal error: not expecting this base value for a constant");
+  }
+
+  /* Multiply by 2, 8 or 16.  Catching this overflow here means we don't
+     need to worry about add_high overflowing.  */
+  if (((*high) >> (INT_TYPE_SIZE - shift)) == 0)
+    overflow = FALSE;
+  else
+    overflow = TRUE;
+
+  res_high = *high << shift;
+  res_low = *low << shift;
+  res_high |= (*low) >> (INT_TYPE_SIZE - shift);
+
+  if (base == 10)
+    {
+      add_low = (*low) << 1;
+      add_high = ((*high) << 1) + ((*low) >> (INT_TYPE_SIZE - 1));
+    }
+  else
+    add_high = add_low = 0;
+
+  if (add_low + digit < add_low)
+    add_high++;
+  add_low += digit;
+    
+  if (res_low + add_low < res_low)
+    add_high++;
+  if (res_high + add_high < res_high)
+    overflow = TRUE;
+
+  *low = res_low + add_low;
+  *high = res_high + add_high;
+
+  return overflow;
 }
 
 static tree

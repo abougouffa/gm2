@@ -38,6 +38,7 @@ EXPORT QUALIFIED Tree,
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
+                 BuildConstLiteralNumber,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
@@ -478,6 +479,13 @@ PROCEDURE BuildStringConstant (string: ADDRESS; length: CARDINAL) : Tree ;
 *)
 
 PROCEDURE BuildCharConstant (string: ADDRESS) : Tree ;
+
+
+(*
+   BuildConstLiteralNumber - converts a string, str, into a tree.
+*)
+
+PROCEDURE BuildConstLiteralNumber (str: ADDRESS; base: CARDINAL) : Tree ;
 
 
 (*

@@ -1,3 +1,16 @@
+2004-11-05	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+	  concerning assignment of a constant to a LONGINT
+	  (see testsuite/gm2/pim/run/TestLong.mod).
+	  Creation of LONGINT and LONGCARD constant literals
+	  was broken for values > MAX(INTEGER).
+
+2004-10-29      John B. Wallace, Jr <wallacjb@enter.net>
+
+	* fixed infinite loop when calling StrToLongInt.
+	* contributed test code testsuite/gm2/pim/run/TestLong.mod
+	
 2004-10-26	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed -Wpedantic-param-names option.

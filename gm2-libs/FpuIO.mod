@@ -16,16 +16,9 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
 IMPLEMENTATION MODULE FpuIO ;
 
-
 FROM StrIO IMPORT ReadString, WriteString, WriteLn ;
 FROM StrLib IMPORT StrLen, StrRemoveWhitePrefix ;
 FROM ASCII IMPORT nul ;
-
-
-(* %%%FORWARD%%%
-
-
-   %%%FORWARD%%% *)
 
 
 CONST
@@ -462,6 +455,8 @@ BEGIN
          ELSIF (a[i]<'0') OR (a[i]>'9')
          THEN
             INC(i)
+         ELSE
+            finished := TRUE
          END
       ELSE
          finished := TRUE

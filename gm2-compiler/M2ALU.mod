@@ -60,7 +60,7 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildIfIn,
                    BuildStartRecord, BuildFieldRecord, ChainOn, BuildEndRecord,
-                   RealToTree, RememberConstant,
+                   RealToTree, RememberConstant, BuildConstLiteralNumber,
                    BuildStartSetConstructor, BuildSetConstructorElement,
                    BuildEndSetConstructor,
                    FoldAndStrip,
@@ -720,8 +720,7 @@ END IsReal ;
 
 
 (*
-   PushString - pushes the numerical human readable value of the string
-                onto the stack.
+   PushString - pushes the numerical value of the string onto the stack.
 *)
  
 PROCEDURE PushString (s: Name) ;
@@ -741,21 +740,25 @@ BEGIN
 
       'H': (* hexadecimal *)
            b := DynamicStrings.Slice(a, 0, -1) ;
-           PushInt(hstoi(b)) |
+           PushIntegerTree(BuildConstLiteralNumber(DynamicStrings.string(b),
+                                                   16)) |
       'A': (* binary *)
            b := DynamicStrings.Slice(a, 0, -1) ;
-           PushInt(bstoi(b)) |
-      'C',
+           PushIntegerTree(BuildConstLiteralNumber(DynamicStrings.string(b),
+                                                   2)) |
+      'C', (* --fixme-- question:
+              should we type this as a char rather than an int? *)
       'B': (* octal *)
            b := DynamicStrings.Slice(a, 0, -1) ;
-           PushInt(ostoi(b))
+           PushIntegerTree(BuildConstLiteralNumber(DynamicStrings.string(b),
+                                                   8))
 
       ELSE
          IF IsReal(a)
          THEN
             PushRealTree(RealToTree(KeyToCharStar(s)))
          ELSE
-            PushInt(stoi(a))
+            PushIntegerTree(BuildConstLiteralNumber(KeyToCharStar(s), 10))
          END
       END
    ELSE

@@ -6933,7 +6933,8 @@ BEGIN
       DefImpSym: DefImp.StartQuad := QuadNumber
 
       ELSE
-         InternalError('expecting a Module or DefImp symbol', __FILE__, __LINE__)
+         InternalError('expecting a Module or DefImp symbol',
+                        __FILE__, __LINE__)
       END
    END
 END PutModuleStartQuad ;
@@ -6982,7 +6983,8 @@ BEGIN
                  END
 
       ELSE
-         InternalError('expecting a Module or DefImp symbol', __FILE__, __LINE__)
+         InternalError('expecting a Module or DefImp symbol',
+                        __FILE__, __LINE__)
       END
    END
 END GetModuleQuads ;
