@@ -343,7 +343,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
                      SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     P1SyntaxCheck.def P2Build.def   P3Build.def
+                     P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -361,7 +361,8 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-GM2-COMP-BOOT-C    = M2Search.c M2Alias.c P1SyntaxCheck.c P3Type.c P2Build.c P3Build.c
+GM2-COMP-BOOT-C    = M2Search.c M2Alias.c P1SyntaxCheck.c P3Type.c P2Build.c         \
+                     P3Build.c PHBuild.c
 GM2-COMP-BOOT-H    = M2Alias.h
 
 #
@@ -406,7 +407,7 @@ GM2-COMP-DEFS      = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
                      SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
                      M2Alias.def     P1SyntaxCheck.def bnflex.def    P2Build.def     \
-                     P3Build.def
+                     P3Build.def     PHBuild.def
 
 GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -424,7 +425,8 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod \
-                     bnflex.mod      ppg.mod         P2Build.mod     P3Build.mod
+                     bnflex.mod      ppg.mod         P2Build.mod     P3Build.mod     \
+                     PHBuild.mod
 
 GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      m2m.mod         ppg.mod
@@ -806,23 +808,21 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
 	$(RM) -f 1.s 2.s 3.s 2_3.diff 1_2.diff
 
 #
-# verifycompiler - diffs the output of the first two compilers using the compiler source code
+# verifycompiler - diffs the output of the last two compilers using the compiler source code
 #                  as the test.
 #
-verifycompiler: ../acc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
-	@echo "verifying the two generations of GNU Modula-2 compilers.."
-	cp ../../../working/gcc-20001204/gcc/acc1gm2 ../wcc1gm2
+verifycompiler: ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
+	@echo "verifying the last two generations of GNU Modula-2 compilers.."
 	$(QUIAT)cd gm2-compiler-verify ; \
         for i in *.mod ; do \
            echo -n "$$i" ; \
-           ../../xgm2 -S -Wbounds -Wreturn -c -B../../a -I. $$i -o 1.s ; \
-           ../../xgm2 -S -Wbounds -Wreturn -c -B../../w -I. $$i -o 2.s ; \
+           ../../xgm2 -S -Wbounds -Wreturn -c -B../../b -I. $$i -o 1.s ; \
+           ../../xgm2 -S -Wbounds -Wreturn -c -B../../  -I. $$i -o 2.s ; \
            if ! diff 1.s 2.s >& 1_2.diff ; then \
-               echo -n " [stage 1 and stage 2 differ]" ; \
+               echo -n " [stage 2 and stage 3 differ]" ; \
                cp 1.s t.s | as -ahl t.s > $$i.1.lst ; \
                cp 2.s t.s | as -ahl t.s > $$i.2.lst ; \
                echo " " ; \
-               exit 1 ; \
            fi ; \
            echo " " ; \
         done ; \

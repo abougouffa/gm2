@@ -499,6 +499,22 @@ basing the gcc calls on the tree structure that M2SubExp.mod builds.
 My belief is that this should not take much time to complete and
 should produce better code.
 
+This requires separating the semantic checking routines away from M2Quads.mod.
+Propose a new module M2Tree which contains the functionality of M2Quads/M2SubExp.
+We should be able to remove M2Quads, M2SubExp, M2Optimize, M2GenGCC, M2EvalSym
+once this is complete.
+
+SymbolTable needs to be modified.
+
+@item
+interfacing to C, we need to introduce DEFINITION MODULE FOR C libc ;
+which will allow printf (s: ARRAY OF CHAR; ...);
+ARRAY OF CHAR is treated as char * in this module. Any item passed
+to a vararg needs to be cast to a WORD.
+
+@item
+investigate the use of collect2 during link/module initialization.
+
 @item
 utilize GNU autoconf rather than the makeconfigure script.
 

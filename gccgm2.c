@@ -42,12 +42,6 @@ Boston, MA 02111-1307, USA.  */
 #include "flags.h"
 #include <stdio.h>
 
-/*
- *   remove this function
- */
-
-#define maybe_objc_check_decl(X)
-
 #undef DEBUG_PROCEDURE_CALLS
 
 /*
@@ -550,6 +544,8 @@ static int                    default_valid_lang_attribute               PARAMS 
        tree                   global_constant                            PARAMS ((tree t));
        void                   stop                                       PARAMS ((void));
 static int                    is_a_constant                              PARAMS ((tree t));
+static int                    gm2_decode_option                          PARAMS ((int argc ATTRIBUTE_UNUSED, char **argv));
+
 #if defined(TRACE_DEBUG_GGC)
 static void                   dump_binding_level                         PARAMS ((struct binding_level *level));
 #endif
@@ -557,6 +553,23 @@ static void                   dump_binding_level                         PARAMS 
 /* end of prototypes */
 
 void stop (void) {}
+
+/*
+ *  maybe_objc_check_decl - empty, linker fodder, so we can utilize some of the gcc code.
+ */
+
+void
+maybe_objc_check_decl (decl)
+     tree decl ATTRIBUTE_UNUSED;
+{
+}
+
+/* Each front end provides its own.  */
+struct lang_hooks lang_hooks = {NULL, /* c_init   */
+				NULL, /* c_finish */
+				NULL, /* c_init_options, */
+				gm2_decode_option,
+				NULL}; /* c_post_options */
 
 /*
  *  gccgm2_SetFileNameAndLineNo - allows GM2 to set the filename and line number
@@ -2767,7 +2780,7 @@ builtin_function (name, type, function_code, class, library_name)
 
   if (library_name)
     DECL_ASSEMBLER_NAME (decl) = get_identifier (library_name);
-  make_decl_rtl (decl, NULL_PTR, 1);
+  make_decl_rtl (decl, NULL_PTR);
   pushdecl (decl);
   DECL_BUILT_IN_CLASS (decl) = class;
   DECL_FUNCTION_CODE (decl) = function_code;
@@ -2996,11 +3009,14 @@ global_constant (t)
    option decoding phase of GCC calls this routine on the flags that it cannot
    decode.  Return 1 if successful, otherwise return 0. */
 
-int
-lang_decode_option (argc, argv)
+static int
+gm2_decode_option (argc, argv)
      int argc ATTRIBUTE_UNUSED;
-     char **argv ATTRIBUTE_UNUSED;
+     char **argv;
 {
+  if (argc == 0)
+    return 0;
+
   if (strcmp(argv[0], "-Wreturn") == 0) {
     return( 1 );
   } else if (strcmp(argv[0], "-Wbounds") == 0) {
@@ -8174,7 +8190,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
   if (returntype == NULL_TREE) {
     returntype = void_type_node;
   } else if (TREE_CODE(returntype) == FUNCTION_TYPE) {
-    returntype = ptr_type_node; // build_unary_op(ADDR_EXPR, returntype, 0);
+    returntype = ptr_type_node;
   }
 
   fntype = build_function_type (returntype, param_type_list);
@@ -8226,7 +8242,7 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   DECL_INITIAL (fndecl) = error_mark_node;
 
   pushlevel (0);
-  make_function_rtl (fndecl);
+  make_decl_rtl (fndecl, NULL);
 
   /* Push all the PARM_DECL nodes onto the current scope (i.e. the scope of the
      subprogram body) so that they can be recognized as local variables in the
@@ -9258,7 +9274,7 @@ gccgm2_BuildStart (name, inner_module)
   DECL_INITIAL (fndecl) = error_mark_node;
 
   pushlevel (0);
-  make_function_rtl (fndecl);
+  make_decl_rtl (fndecl, NULL);
 
 #if 0
   /* Push all the PARM_DECL nodes onto the current scope (i.e. the scope of the
@@ -9338,7 +9354,38 @@ gccgm2_DebugTree (t)
   debug_tree(t);
 }
 
-/* taken from c-typeck.c line 1534 */
+/* taken from c-common.c:3614 and pruned */
+
+/* Recognize certain built-in functions so we can make tree-codes
+   other than CALL_EXPR.  We do this when it enables fold-const.c
+   to do something useful.  */
+/* ??? By rights this should go in builtins.c, but only C and C++
+   implement build_{binary,unary}_op.  Not exactly sure what bits
+   of functionality are actually needed from those functions, or
+   where the similar functionality exists in the other front ends.  */
+
+tree
+expand_tree_builtin (function, params, coerced_params)
+     tree function, params, coerced_params;
+{
+  enum tree_code code;
+
+  if (DECL_BUILT_IN_CLASS (function) != BUILT_IN_NORMAL)
+    return NULL_TREE;
+
+  switch (DECL_FUNCTION_CODE (function))
+    {
+    case BUILT_IN_ABS:
+    case BUILT_IN_FABS:
+      if (coerced_params == 0)
+	return integer_zero_node;
+      return build_unary_op (ABS_EXPR, TREE_VALUE (coerced_params), 0);
+    default:
+    }
+  return NULL_TREE;
+}
+
+/* taken from c-typeck.c line 1523 */
 
 /* Build a function call to function FUNCTION with parameters PARAMS.
    PARAMS is a list--a chain of TREE_LIST nodes--in which the
@@ -9351,7 +9398,7 @@ build_function_call (function, params)
 {
   register tree fntype, fundecl = 0;
   register tree coerced_params;
-  tree name = NULL_TREE, assembler_name = NULL_TREE;
+  tree name = NULL_TREE, assembler_name = NULL_TREE, result;
 
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
   STRIP_TYPE_NOPS (function);
@@ -9363,11 +9410,11 @@ build_function_call (function, params)
       assembler_name = DECL_ASSEMBLER_NAME (function);
 
       /* Differs from default_conversion by not setting TREE_ADDRESSABLE
-         (because calling an inline function does not mean the function
-         needs to be separately compiled).  */
+	 (because calling an inline function does not mean the function
+	 needs to be separately compiled).  */
       fntype = build_type_variant (TREE_TYPE (function),
-                                   TREE_READONLY (function),
-                                   TREE_THIS_VOLATILE (function));
+				   TREE_READONLY (function),
+				   TREE_THIS_VOLATILE (function));
       fundecl = function;
       function = build1 (ADDR_EXPR, build_pointer_type (fntype), function);
     }
@@ -9380,7 +9427,7 @@ build_function_call (function, params)
     return error_mark_node;
 
   if (!(TREE_CODE (fntype) == POINTER_TYPE
-        && TREE_CODE (TREE_TYPE (fntype)) == FUNCTION_TYPE))
+	&& TREE_CODE (TREE_TYPE (fntype)) == FUNCTION_TYPE))
     {
       error ("called object is not a function");
       return error_mark_node;
@@ -9389,13 +9436,11 @@ build_function_call (function, params)
   /* fntype now gets the type of function pointed to.  */
   fntype = TREE_TYPE (fntype);
 
-
 #if NOT_NEEDED_FOR_MODULA
   /* not needed as the front end will convert any parameters using
      assignment to temps and will build unbounded arrays using
      specific operators.
   */
-
 
   /* Convert the parameters to the types declared in the
      function prototype, or apply default promotions.  */
@@ -9406,7 +9451,7 @@ build_function_call (function, params)
   /* Check for errors in format strings.  */
 
   if (warn_format && (name || assembler_name))
-    check_function_format (name, assembler_name, coerced_params);
+    check_function_format (NULL, name, assembler_name, coerced_params);
 #else
   coerced_params = params;
 #endif
@@ -9418,29 +9463,23 @@ build_function_call (function, params)
   if (TREE_CODE (function) == ADDR_EXPR
       && TREE_CODE (TREE_OPERAND (function, 0)) == FUNCTION_DECL
       && DECL_BUILT_IN (TREE_OPERAND (function, 0)))
-    switch (DECL_FUNCTION_CODE (TREE_OPERAND (function, 0)))
-      {
-      case BUILT_IN_ABS:
-      case BUILT_IN_LABS:
-      case BUILT_IN_FABS:
-        if (coerced_params == 0)
-          return integer_zero_node;
-        return build_unary_op (ABS_EXPR, TREE_VALUE (coerced_params), 0);
-      default:
-        break;
-      }
+    {
+      result = expand_tree_builtin (TREE_OPERAND (function, 0),
+				    params, coerced_params);
+      if (result)
+	return result;
+    }
 
-  {
-    register tree result
-      = build (CALL_EXPR, TREE_TYPE (fntype),
-               function, coerced_params, NULL_TREE);
+  result = build (CALL_EXPR, TREE_TYPE (fntype),
+		  function, coerced_params, NULL_TREE);
+  TREE_SIDE_EFFECTS (result) = 1;
+  result = fold (result);
 
-    TREE_SIDE_EFFECTS (result) = 1;
-    if (TREE_TYPE (result) == void_type_node)
-      return result;
-    return require_complete_type (result);
-  }
+  if (VOID_TYPE_P (TREE_TYPE (result)))
+    return result;
+  return require_complete_type (result);
 }
+
 
 /* Push a definition or a declaration of struct, union or enum tag "name".
    "type" should be the type node.
