@@ -60,7 +60,7 @@ PROCEDURE StrCopy (a: ARRAY OF CHAR ; VAR b: ARRAY OF CHAR) ;
    StrConCat - combines a and b into c.
 *)
 
-PROCEDURE StrConCat (a, b: ARRAY OF CHAR ; VAR c: ARRAY OF CHAR) ;
+PROCEDURE StrConCat (a, b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 
 
 (*
