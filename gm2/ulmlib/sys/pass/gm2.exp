@@ -24,7 +24,7 @@ load_lib gm2-torture.exp
 
 gm2_init "-I$srcdir/../gm2/ulm-lib-gm2/sys:$srcdir/../gm2/gm2-libs" -Wpim
 
-foreach testcase [glob -nocomplain $srcdir/../../gm2/ulm-lib-gm2/sys/*.mod] {
+foreach testcase [glob -nocomplain $srcdir/../gm2/ulm-lib-gm2/sys/*.mod] {
     # If we're only testing specific files and this isn't one of them, skip it.
     if ![runtest_file_p $runtests $testcase] then {
 	continue
