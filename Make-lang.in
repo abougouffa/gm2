@@ -38,6 +38,7 @@
 # - define the names for selecting the language in LANGUAGES.
 
 QUIAT=@
+GM2_MAKE_DEBUG=
 
 # Actual names to use when installing a native compiler.
 GM2_INSTALL_NAME = `echo gm2|sed '$(program_transform_name)'`
@@ -50,7 +51,7 @@ GM2 = xgm2
 # Define the name of target independent tools to be installed in $(bindir)
 # Names are subject to changes
 
-GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage2/gm2/gm2m$(exeext)
+GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage1/gm2/gm2m$(exeext)
 
 GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) gm2lsub$(exeext)
 
@@ -65,7 +66,8 @@ GCC_TOOLS_FOR_GM2 = \
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
-                 $(GM2_TARGET_INDEPENDENT_BIN_TOOLS)
+                 $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
+                 build-libs
 
 .PHONY: gm2 m2 modula-2 modula2
 
@@ -295,16 +297,20 @@ gm2.realclean:
 # Stage hooks:
 
 gm2.stage1: stage1/gm2/cc1gm2$(exeext)
-	-cp gm2/*$(objext) stage1/gm2
+	-mv gm2/*$(objext) stage1/gm2
 
 gm2.stage2: stage2/gm2/cc1gm2$(exeext)
-	-cp gm2/*$(objext) stage2/gm2
+	-mv gm2/*$(objext) stage2/gm2
 
 gm2.stage3: stage3/gm2/cc1gm2$(exeext)
-	-cp gm2/*$(objext) stage3/gm2
+	-mv gm2/*$(objext) stage3/gm2
 
 gm2.stage4: stage4/gm2/cc1gm2$(exeext)
-	-cp gm2/*$(objext) stage4/gm2
+	-mv gm2/*$(objext) stage4/gm2
+
+quit: force
+	echo "calling exit"
+	exit 1
 
 #
 # Rules to build the compiler and tools
@@ -341,20 +347,50 @@ GM2_LIBS_PARANOID = gm2/gm2-compiler-paranoid/gm2.a \
 gm2.paranoid: stage3/gm2/cc1gm2$(exeext) gm2.verifyparanoid
 
 # start here 1->2
-cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext)
-	-cp -p $< $@
+cc1gm2$(exeext): force
+	if [ "$(host_canonical)" = "$(target)" ] ; then \
+           $(MAKE) stage2/gm2/$@ ; \
+           cp stage2/gm2/$@ $@ ; \
+        else \
+           $(MAKE) stage1/gm2/$@ ; \
+           cp stage1/gm2/$@ $@ ; \
+        fi
 
-gm2lcc$(exeext): stage2/gm2/gm2lcc$(exeext)
-	-cp -p $< $@
+gm2lcc$(exeext): force
+	if [ "$(host_canonical)" = "$(target)" ] ; then \
+           $(MAKE) stage2/gm2/$@ ; \
+           cp stage2/gm2/$@ $@ ; \
+        else \
+           $(MAKE) stage1/gm2/$@ ; \
+           cp stage1/gm2/$@ $@ ; \
+        fi
 
-gm2l$(exeext): stage2/gm2/gm2l$(exeext)
-	-cp -p $< $@
+gm2l$(exeext): force
+	if [ "$(host_canonical)" = "$(target)" ] ; then \
+           $(MAKE) stage2/gm2/$@ ; \
+           cp stage2/gm2/$@ $@ ; \
+        else \
+           $(MAKE) stage1/gm2/$@ ; \
+           cp stage1/gm2/$@ $@ ; \
+        fi
 
-gm2lgen$(exeext): stage2/gm2/gm2lgen$(exeext)
-	-cp -p $< $@
+gm2lgen$(exeext): force
+	if [ "$(host_canonical)" = "$(target)" ] ; then \
+           $(MAKE) stage2/gm2/$@ ; \
+           cp stage2/gm2/$@ $@ ; \
+        else \
+           $(MAKE) stage1/gm2/$@ ; \
+           cp stage1/gm2/$@ $@ ; \
+        fi
 
-gm2lsub$(exeext): stage2/gm2/gm2lsub$(exeext)
-	-cp -p $< $@
+gm2lsub$(exeext): force
+	if [ "$(host_canonical)" = "$(target)" ] ; then \
+           $(MAKE) stage2/gm2/$@ ; \
+           cp stage2/gm2/$@ $@ ; \
+        else \
+           $(MAKE) stage1/gm2/$@ ; \
+           cp stage1/gm2/$@ $@ ; \
+        fi
 
 # end here
 
@@ -657,6 +693,12 @@ gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 
 gm2/gm2-compiler/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+
+gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
+	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler/gm2m.o: $(objdir)/gm2/gm2-auto/gm2m.mod
+	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/%.o: gm2/gm2-auto/%.mod
 	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
