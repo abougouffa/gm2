@@ -1,0 +1,8 @@
+DEFINITION MODULE varin ;
+
+EXPORT QUALIFIED var ;
+
+VAR
+   var: INTEGER ;
+
+END varin.
