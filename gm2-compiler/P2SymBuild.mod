@@ -22,7 +22,7 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Base IMPORT Char, MixTypes ;
-FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2 ;
+FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt ;
 FROM Strings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf2 ;
@@ -2141,7 +2141,7 @@ BEGIN
    PopT(ConstSym) ;
    PopT(ModuleName) ;
    PushT(ModuleName) ;
-   InternalError('not implemented yet - to implement place a PutModulePriority and GetModulePriority into SymbolTable', __FILE__, __LINE__)
+   WarnStringAt(InitString('module priority is not implemented yet, ignoring priority'), GetTokenNo())
 END BuildPriority ;
 
 

@@ -172,7 +172,7 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
+      (* we dont issue an error based around incorrect module names as this is done in P1 and P2.
          If we get here then something has gone wrong with our error recovery in P3, so we bail out.
       *)
       WriteFormat0('too many errors in pass 3') ;
