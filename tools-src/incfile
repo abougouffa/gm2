@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#
+# incfile - increments a number within a file
+#
+
+if [ -f $1 ] ; then
+   number=`cat $1`
+else
+   number="0"
+fi
+
+number=`expr $number + 1`
+rm -f $1
+echo "$number" > $1

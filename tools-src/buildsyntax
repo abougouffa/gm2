@@ -1,0 +1,72 @@
+#!/bin/sh
+
+TMPFILE=/tmp/t.$$
+
+function buildpass1 () {
+    if [ -x ../bin3/pg ] ; then
+        if ../bin3/pg ../bnf/m2.bnf > $TMPFILE ; then
+           cat $TMPFILE | sed -e "s/WHICHPASS1/TRUE/" > P1SyntaxCheck.mod
+           rm -f $TMPFILE
+        else
+           echo "pg failed: trying to build parser for pass 1"
+        fi
+    else
+       echo "you need to build pg, I suggest you try make stage3"
+       exit 1
+    fi
+}
+
+function buildpass2 () {
+    if [ -x ../bin3/pg ] ; then
+        if ../bin3/pg ../bnf/m2-2.bnf > $TMPFILE ; then
+           cat $TMPFILE | sed -e "s/WHICHPASS2/TRUE/" > P2Build.mod
+           rm -f $TMPFILE
+        else
+           echo "pg failed: trying to build parser for pass 2"
+        fi
+    else
+       echo "you need to build pg, I suggest you try make stage3"
+       exit 1
+    fi
+}
+
+function buildpass3 () {
+    if [ -x ../bin3/pg ] ; then
+        if ../bin3/pg ../bnf/m2-3.bnf > $TMPFILE ; then
+           cat $TMPFILE | sed -e "s/WHICHPASS3/TRUE/" > P3Build.mod
+           rm -f $TMPFILE
+        else
+           echo "pg failed: trying to build parser for pass 3"
+        fi
+    else
+       echo "you need to build pg, I suggest you try make stage3"
+       exit 1
+    fi
+}
+
+function buildpassH () {
+    if [ -x ../bin3/pg ] ; then
+        if ../bin3/pg ../bnf/m2-h.bnf > $TMPFILE ; then
+           cat $TMPFILE | sed -e "s/WHICHPASS3/TRUE/" > PHBuild.mod
+           rm -f $TMPFILE
+        else
+           echo "pg failed: trying to build parser for pass 3"
+        fi
+    else
+       echo "you need to build pg, I suggest you try make stage3"
+       exit 1
+    fi
+}
+
+#
+#  buildsyntax - build the pass 1 parser with error recovery
+#
+
+function buildsyntax () {
+   buildpass1
+   buildpass2
+   buildpass3
+   buildpassH
+}
+
+buildsyntax

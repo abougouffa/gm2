@@ -1,0 +1,265 @@
+#!/bin/sh
+
+# builds the pg.bnf from ppg.mod
+# usage buildpg ppg.mod [-e]
+#    -e   build without error recovery
+#
+PPGSRC=$1
+
+function includeNonErrorChecking () {
+   sed -e "1,/StartNonErrorChecking/d" < $PPGSRC |\
+   sed -e "1,/EndNonErrorChecking/!d"
+}
+
+function includeErrorChecking () {
+   sed -e "1,/StartErrorChecking/d" < $PPGSRC |\
+   sed -e "1,/EndErrorChecking/!d"
+}
+
+
+echo "% module pg begin"
+sed -e "1,/% declaration/!d" < $PPGSRC | sed -e "s/ppg/pg/g"
+
+echo "% declaration pg begin"
+
+sed -e "1,/% declaration/d" < $PPGSRC | sed -e "1,/% rules/!d" | sed -e "s/ppg/pg/g"
+
+if [ "$2" = "-e" ] ; then
+   includeNonErrorChecking
+   echo "% module pg end"
+   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/pg/g"
+else
+   includeErrorChecking
+   echo "% module pg end"
+   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/pg/g" |\
+   sed -e "s/WasNoError := Main() ;/Main({eoftok}) ;/"
+fi
+
+echo "% rules"
+
+cat << EOFEOF  | sed -e "s/ppg/pg/g"
+error       'WarnError' 'WarnString'
+tokenfunc   'GetCurrentTokenType()'
+
+token   '%'           codetok
+token   ':='          lbecomestok
+token   '=:'          rbecomestok
+token   '|'           bartok
+token   '['           lsparatok
+token   ']'           rsparatok
+token   '{'           lcparatok   -- left  curly para
+token   '}'           rcparatok   -- right curly para
+token   '('           lparatok
+token   ')'           rparatok
+token   '<'           lesstok
+token   '>'           gretok
+token   '"'           dquotetok
+token   "'"           squotetok
+token   "module"      moduletok
+token   "begin"       begintok
+token   "rules"       rulestok
+token   "special"     specialtok
+token   "token"       tokentok
+token   "error"       errortok
+token   "tokenfunc"   tfunctok
+token   "symfunc"     symfunctok
+token   "end"         endtok
+token   "declaration" declarationtok
+token   "first"       firsttok
+token   "follow"      followtok
+token   "epsilon"     epsilontok
+token   "BNF"         BNFtok
+token   "FNB"         FNBtok
+
+special Ident          first { < identtok > }   follow { }
+special Modula2Code    first { }                follow { '%' }
+special StartModName   first { < identtok > }   follow { }
+special EndModName     first { < identtok > }   follow { }
+special DoDeclaration  first { < identtok > }   follow { }
+special CollectLiteral first { < literaltok > } follow { }
+special CollectTok     first { < identtok > }   follow { }
+special DefineToken    first { < identtok > }   follow { }
+
+BNF
+
+Rules      := "%" "rules" { Defs } ExtBNF =:
+
+Special    := Ident
+              % VAR p: ProductionDesc ; %
+              %     p                           := NewProduction() ;
+                    p^.statement                := NewStatement() ;
+                    p^.statement^.ident         := CurrentIdent ;
+                    p^.statement^.expr          := NIL ;
+                    p^.firstsolved              := TRUE ;
+                    p^.followinfo^.calcfollow   := TRUE ;
+                    p^.followinfo^.calcepsilon  := TRUE ;
+                    p^.followinfo^.epsilon      := FALSE ;
+                    p^.followinfo^.calcreachend := TRUE ;
+                    p^.followinfo^.reachend     := FALSE ; %
+              First Follow [ "epsilon" % p^.followinfo^.epsilon := TRUE ; % ] =:
+
+Factor     := "%" Modula2Code "%" |
+              Ident % WITH CurrentFactor^ DO
+                         type  := id ;
+                         ident := CurrentIdent
+                      END ; % |
+              Literal % WITH CurrentFactor^ DO
+                           type   := lit ;
+                           string := LastLiteral ;
+                           IF GetSymKey(Aliases, LastLiteral)=NulName
+                           THEN
+                              WarnError1('no token defined for literal %s', LastLiteral)
+                           END
+                        END ; % |
+              "{" % WITH CurrentFactor^ DO
+                       type := mult ;
+                       expr := NewExpression() ;
+                       CurrentExpression := expr ;
+                    END ; %
+                    Expression "}" |
+              "[" % WITH CurrentFactor^ DO
+                       type := opt ;
+                       expr := NewExpression() ;
+                       CurrentExpression := expr ;
+                    END ; %
+                    Expression "]" |
+              "(" % WITH CurrentFactor^ DO
+                       type := sub ;
+                       expr := NewExpression() ;
+                       CurrentExpression := expr ;
+                    END ; %
+                    Expression ")" =:
+
+Statement  := % VAR i: IdentDesc ; %
+              Ident
+              % VAR p: ProductionDesc ; %
+              % p := FindDefinition(CurrentIdent^.name) ;
+                IF p=NIL
+                THEN
+                   p := NewProduction()
+                ELSE
+                   IF NOT ((p^.statement=NIL) OR (p^.statement^.expr=NIL))
+                   THEN
+                      WarnError1('already declared rule %s', CurrentIdent^.name)
+                   END
+                END ;
+                i := CurrentIdent ; %
+              ":="
+              % VAR e: ExpressionDesc ; %
+              % e := NewExpression() ;
+                CurrentExpression := e ; %
+              % VAR s: StatementDesc ; %
+              % s := NewStatement() ;
+                WITH s^ DO
+                   ident := i ;
+                   expr  := e
+                END ; %
+              Expression
+              % p^.statement := s ; %
+              "=:" =:
+
+Defs       := "special" Special | "token" Token | "error" ErrorProcedures |
+              "tokenfunc" TokenProcedure | "symfunc" SymProcedure =:
+ExtBNF     := "BNF" { Production } "FNB" =:
+Main       := Header Decls Footer Rules =:
+Header     := "%" "module" StartModName =:
+Decls      := "%" "declaration" DoDeclaration =:
+Footer     := "%" "module" EndModName =:
+
+First      := "first"  "{" { LitOrTokenOrIdent
+                             % WITH CurrentSetDesc^ DO
+                                  next := TailProduction^.first ;
+                               END ;
+                               TailProduction^.first := CurrentSetDesc
+                             %
+                           } "}" =:
+Follow     := "follow" "{" { LitOrTokenOrIdent
+                             % WITH CurrentSetDesc^ DO
+                                  next := TailProduction^.followinfo^.follow ;
+                               END ;
+                               TailProduction^.followinfo^.follow := CurrentSetDesc
+                             %
+                           } "}" =:
+LitOrTokenOrIdent := Literal % CurrentSetDesc := NewSetDesc() ;
+                               WITH CurrentSetDesc^ DO
+                                  type   := litel ;
+                                  string := LastLiteral ;
+                               END ;
+                              % |
+                     '<' CollectTok '>' |
+                     Ident % CurrentSetDesc := NewSetDesc() ;
+                             WITH CurrentSetDesc^ DO
+                                type   := idel ;
+                                ident  := CurrentIdent ;
+                             END ;
+                           % =:
+
+Literal    := '"' CollectLiteral '"' |
+              "'" CollectLiteral "'" =:
+
+CollectTok := % CurrentSetDesc := NewSetDesc() ;
+                WITH CurrentSetDesc^ DO
+                   type   := tokel ;
+                   string := GetCurrentToken() ;
+                END ;
+                IF GetSymKey(Values, GetCurrentToken())=NulName
+                THEN
+                   (* this token is not yet defined *)
+                   PutSymKey(Values, GetCurrentToken(), LargestValue) ;
+                   PutSymKey(ReverseValues, Name(LargestValue), GetCurrentToken()) ;
+                   PutSymKey(Aliases, GetCurrentToken(), GetCurrentToken()) ;
+                   PutSymKey(ReverseAliases, GetCurrentToken(), GetCurrentToken()) ;
+                   INC(LargestValue)
+                END ;
+                AdvanceToken() ; % =:
+
+CollectLiteral := % LastLiteral := GetCurrentToken() ;
+                    AdvanceToken ; % =:
+
+DefineToken := % PutSymKey(Aliases, LastLiteral, GetCurrentToken()) ;
+                  PutSymKey(ReverseAliases, GetCurrentToken(), LastLiteral) ;
+                  IF GetSymKey(Values, GetCurrentToken())=NulName
+                  THEN
+                     PutSymKey(Values, GetCurrentToken(), LargestValue) ;
+                     PutSymKey(ReverseValues, Name(LargestValue), GetCurrentToken())
+                  ELSE
+                     WarnError1("already seen a definition for token '%s'", GetCurrentToken())
+                  END ;
+                  INC(LargestValue) ;
+                  AdvanceToken ; % =:
+
+Token      := Literal DefineToken =:
+
+ErrorProcedures  := Literal % ErrorProcArray := LastLiteral %
+                    Literal % ErrorProcString := LastLiteral % =:
+TokenProcedure := Literal % TokenTypeProc := LastLiteral % =:
+SymProcedure   := Literal % SymIsProc := LastLiteral % =:
+
+Production := Statement =:
+Expression := % VAR t1, t2: TermDesc ;
+                    e     : ExpressionDesc ; %
+              % e := CurrentExpression ;
+                t1 := NewTerm() ;
+                CurrentTerm := t1 ; %
+                Term % e^.term := t1 ; %
+                { "|" % t2 := NewTerm() ;
+                        CurrentTerm := t2 %
+                        Term % t1^.next := t2 ;
+                               t1 := t2 % } =:
+
+Term       := % VAR    t1: TermDesc ; f1, f2: FactorDesc ; %
+              % CurrentFactor := NewFactor() ;
+                f1 := CurrentFactor ;
+                t1 := CurrentTerm ; %
+              Factor % t1^.factor := f1 ;
+                       f2 := NewFactor() ;
+                       CurrentFactor := f2 %
+              { Factor % f1^.next := f2 ;
+                         f1 := f2 ;
+                         f2 := NewFactor() ;
+                         CurrentFactor := f2 ; % }
+           =:
+
+FNB
+
+EOFEOF
