@@ -194,7 +194,7 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 
 BACKEND = ../toplev.o ../libbackend.a
 
-compiler: ../cc1gm2$(exeext)
+compiler: ../cc1gm2$(exeext) gm2support
 
 paranoid: ../bcc1gm2$(exeext) verifyparanoid
 
@@ -251,7 +251,7 @@ rtl.o : $(srcdir)/../rtl.c $(CONFIG_H) $(srcdir)/../system.h $(RTL_H) \
 	  -c `echo $(srcdir)/../rtl.c | sed 's,^\./,,'`
 
 gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make \
                "PUSH=LEFTTORIGHT" \
                "DEBUG=-g" \
@@ -275,7 +275,7 @@ gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
                stage1.gcc )
 
 gm2tools: force
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make \
                "PUSH=LEFTTORIGHT" \
                "DEBUG=-g" \
@@ -585,19 +585,19 @@ gm2-compiler-boot:
 gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor
 
 m2/comp/p2c/home/libp2c.a:
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
 
 m2/comp/bin/p2c:
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
 
 m2/comp/bin/mkfor:
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make "BINDIR=$$M2PWD/bin" COPY="cp" tools )
 
 $(M2LINK):
-	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           make "BINDIR=$$M2PWD/bin" COPY="cp" tools )
 
 build-libs: gm2-libs $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
