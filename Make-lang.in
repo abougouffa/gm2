@@ -225,8 +225,8 @@ gm2.install-common: installdirs $(GM2_LIB_DIR)
         done
 
 gm2.install-info: installdirs
-	if [ -f gm2$(exeext) ] ; then \
-	  if [ -f $(srcdir)/gm2/gcj.info ]; then \
+	if [ -d gm2$(exeext) ] ; then \
+	  if [ -f $(srcdir)/gm2/gm2.info ]; then \
 	    rm -f $(infodir)/gm2.info*; \
 	    for f in $(srcdir)/gm2/gm2.info*; do \
 	      realfile=`echo $$f | sed -e 's|.*/\([^/]*\)$$|\1|'`; \

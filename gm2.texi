@@ -112,7 +112,7 @@ the gm2 linker and compiler.
 
 @item -Wstatistics
 generates quadruple information: number of quadruples generated,
-number of quadruples remaining after optimization.
+number of quadruples remaining after optimisation.
 
 @item -Wstudents
 checks for bad programming style. This option is aimed at
@@ -136,10 +136,10 @@ without being reset.
 @item -Wmakelist
 this option is only applicable when linking a program module.
 The compiler will generate a @file{modulename.lst} file which contains
-a list indicating the initialization order of all modules which are to be
+a list indicating the initialisation order of all modules which are to be
 linked. The actual link does not occur.
 The gm2 linker scans all @code{IMPORT}s, generates a list of dependencies
-and produces an ordered list for initialization. It will probably get the
+and produces an ordered list for initialisation. It will probably get the
 order wrong if your project has cyclic dependencies, but
 the @file{.lst} file is plain text and can be modified if required.
 Once the @file{.lst} file is created it can be used by the compiler
@@ -148,7 +148,7 @@ It has no effect if the @samp{-c} option is present.
 
 @item -Wuselist
 providing @samp{gm2} has been told to link the program module this
-option uses the file @file{modulename.lst} for the initialization
+option uses the file @file{modulename.lst} for the initialisation
 order of modules.
 
 @item -Wcpp
@@ -219,7 +219,7 @@ SHORTREAL                 float
 CHAR                      char
 @end example
 
-@node Extensions, h2def, Elementary data types, Using
+@node Extensions, Interface to C, Elementary data types, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
@@ -259,7 +259,7 @@ These options preserve comments and all quotations.
 @samp{gm2} treats a @samp{#} character in the first column
 as a preprocessor directive.
 
-@node Interface to C, Assembly language, Extensions, Using
+@node Interface to C, h2def, Extensions, Using
 @section Interfacing GNU Modula-2 to C
 
 The GNU Modula-2 compiler tries to use the C calling convention wherever
@@ -342,12 +342,12 @@ int *p, ch;
 
 extern MYTYPE func (void (*funcarray)(int, char));
 
-struct mumble {
+struct mumble @{
   char *name;
   void *addr;
   struct mumble *next;
   void (*arrayfunc[5])(int, char);
-} *mylist;
+@} *mylist;
 @end example
 
 Using the following command line @code{h2def header.h} will generate
@@ -388,13 +388,15 @@ END header.
 
 The main limitation of @code{h2def} is in the preprocessing handling.
 It does not understand the C preprocessor token constructor directives
-@code{#} and @code{##}.
+@code{#} and @code{##}. Also it will not combine successive string
+tokens.
 
 Support for the @code{#define} mechanism is limited. Initially the
 macro is parsed to check whether it is a constant expression.  If it
 fails it is reassigned as a macro definition.  A macro which contains
 C statement code cannot be translated into a definition module. These
 macros and all dependents are poisoned and are not translated.
+At present it does not understand macros with arguments.
 
 The @samp{-I} option to @code{h2def} allows include directories to be
 specified and the @samp{-C} option states that a macro definition must
