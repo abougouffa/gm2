@@ -11279,7 +11279,7 @@ append_digit (low, high, digit, base)
   unsigned int shift;
   int overflow;
   HOST_WIDE_INT add_high, res_high;
-  unsigned HOST_WIDE_INT int add_low, res_low;
+  unsigned HOST_WIDE_INT add_low, res_low;
 
   switch (base) {
 
