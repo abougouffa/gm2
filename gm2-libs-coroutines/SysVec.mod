@@ -21,7 +21,8 @@ IMPLEMENTATION MODULE SysVec ;
 FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
-FROM libc IMPORT printf ;
+FROM SYSTEM IMPORT PRIORITY ;
+FROM Debug IMPORT DebugString ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
                       SetOfFd, FdIsSet ;
@@ -29,14 +30,15 @@ FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
 TYPE
    VectorType = (input, output, time) ;
    Vector     = POINTER TO RECORD
-                              type   : VectorType ;
-                              arg    : ADDRESS ;
+                              type    : VectorType ;
+                              priority: CARDINAL ;
+                              arg     : ADDRESS ;
                               pending,
-                              exists : Vector ;
-                              no     : CARDINAL ;
-                              File   : INTEGER ;
+                              exists  : Vector ;
+                              no      : CARDINAL ;
+                              File    : INTEGER ;
                               Micro,
-                              Secs   : CARDINAL ;
+                              Secs    : CARDINAL ;
                               
 (*  BUG IN GM2
                               CASE type OF
@@ -52,8 +54,8 @@ TYPE
 
 VAR
    VecNo  : CARDINAL ;
-   Exists,
-   Pending: Vector ;
+   Exists : Vector ;
+   Pending: ARRAY [MIN(PRIORITY)..MAX(PRIORITY)] OF Vector ;
 
 
 (*
@@ -108,7 +110,7 @@ END FindVector ;
                      with the file descriptor, fd.
 *)
 
-PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitInputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
 BEGIN
@@ -118,12 +120,13 @@ BEGIN
       NEW(v) ;
       INC(VecNo) ;
       WITH v^ DO
-         type    := input ;
-         arg     := NIL ;
-         pending := NIL ;
-         exists  := Exists ;
-         no      := VecNo ;
-         File    := fd
+         type     := input ;
+         priority := pri ;
+         arg      := NIL ;
+         pending  := NIL ;
+         exists   := Exists ;
+         no       := VecNo ;
+         File     := fd
       END ;
       Exists := v ;
       RETURN( VecNo )
@@ -138,22 +141,23 @@ END InitInputVector ;
                       with the file descriptor, fd.
 *)
 
-PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitOutputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
 BEGIN
-   v := FindVector(fd, input) ;
+   v := FindVector(fd, output) ;
    IF v=NIL
    THEN
       NEW(v) ;
       INC(VecNo) ;
       WITH v^ DO
-         type    := output ;
-         arg     := NIL ;
-         pending := NIL ;
-         exists  := Exists ;
-         no      := VecNo ;
-         File    := fd
+         type     := output ;
+         priority := pri ;
+         arg      := NIL ;
+         pending  := NIL ;
+         exists   := Exists ;
+         no       := VecNo ;
+         File     := fd
       END ;
       Exists := v ;
       RETURN( VecNo )
@@ -168,20 +172,21 @@ END InitOutputVector ;
                     the relative time.
 *)
 
-PROCEDURE InitTimeVector (micro, secs: CARDINAL) : CARDINAL ;
+PROCEDURE InitTimeVector (micro, secs: CARDINAL; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
 BEGIN
    NEW(v) ;
    INC(VecNo) ;
    WITH v^ DO
-      type    := time ;
-      arg     := NIL ;
-      pending := NIL ;
-      exists  := Exists ;
-      no      := VecNo ;
-      Secs    := secs ;
-      Micro   := micro
+      type     := time ;
+      priority := pri ;
+      arg      := NIL ;
+      pending  := NIL ;
+      exists   := Exists ;
+      no       := VecNo ;
+      Secs     := secs ;
+      Micro    := micro
    END ;
    Exists := v ;
    RETURN( VecNo )
@@ -210,13 +215,20 @@ END FindVectorNo ;
 
 PROCEDURE FindPendingVector (vec: CARDINAL) : Vector ;
 VAR
+   i: CARDINAL ;
    v: Vector ;
 BEGIN
-   v := Pending ;
-   WHILE (v#NIL) AND (v^.no#vec) DO
-      v := v^.pending
+   FOR i := MIN(PRIORITY) TO MAX(PRIORITY) DO
+      v := Pending[i] ;
+      WHILE (v#NIL) AND (v^.no#vec) DO
+         v := v^.pending
+      END ;
+      IF (v#NIL) AND (v^.no=vec)
+      THEN
+         RETURN( v )
+      END
    END ;
-   RETURN( v )
+   RETURN( NIL )
 END FindPendingVector ;
 
 
@@ -299,6 +311,7 @@ END AttachVector ;
 
 PROCEDURE IncludeVector (vec: CARDINAL) ;
 VAR
+   r: INTEGER ;
    v: Vector ;
 BEGIN
    v := FindPendingVector(vec) ;
@@ -310,9 +323,15 @@ BEGIN
          Halt(__FILE__, __LINE__, __FUNCTION__,
               'cannot find vector supplied') ;
       ELSE
-         v^.pending := Pending ;
-         Pending := v
+         (* use DebugString .. r := printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
+         v^.pending := Pending[v^.priority] ;
+         Pending[v^.priority] := v
       END 
+   ELSE
+      (* r := printf('odd vector %d (fd %d) is already attached to the pending queue\n',
+                  vec, v^.File) ;
+      *)
+      stop
    END
 END IncludeVector ;
 
@@ -325,6 +344,7 @@ END IncludeVector ;
 PROCEDURE ExcludeVector (vec: CARDINAL) ;
 VAR
    v, u: Vector ;
+   r  : INTEGER ;
 BEGIN
    v := FindPendingVector(vec) ;
    IF v=NIL
@@ -332,11 +352,12 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'cannot find pending vector supplied')
    ELSE
-      IF Pending=v
+      (* r := printf('excluding vector %d\n', vec) ; *)
+      IF Pending[v^.priority]=v
       THEN
-         Pending := Pending^.pending
+         Pending[v^.priority] := Pending[v^.priority]^.pending
       ELSE
-         u := Pending ;
+         u := Pending[v^.priority] ;
          WHILE u^.pending#v DO
             u := u^.pending
          END ;
@@ -351,6 +372,8 @@ END ExcludeVector ;
 *)
 
 PROCEDURE AddFd (VAR s: SetOfFd; VAR max: INTEGER; fd: INTEGER) ;
+VAR
+   r: INTEGER ;
 BEGIN
    max := Max(fd, max) ;
    IF s=NIL
@@ -358,8 +381,41 @@ BEGIN
       s := InitSet()
    END ;
    FdSet(fd, s)
+   (* r := printf('%d, ', fd) *)
 END AddFd ;
 
+
+(*
+   DumpPendingQueue - displays the pending queue.
+*)
+
+PROCEDURE DumpPendingQueue ;
+VAR
+   r: INTEGER ;
+   p: PRIORITY ;
+   v: Vector ;
+BEGIN
+(*
+   DebugString("\nPending queue\n");
+   FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
+      r := printf("[%d]  ", p);
+      v := Pending[p] ;
+      WHILE v#NIL DO
+         IF (v^.type=input) OR (v^.type=output)
+         THEN
+            r := printf("%d ", v^.File)
+         END ;
+         v := v^.pending
+      END ;
+      r := printf(" \n")
+   END
+*)
+END DumpPendingQueue ;
+
+
+PROCEDURE stop ;
+BEGIN
+END stop ;
 
 (*
    Listen - will either block indefinitely (until an interrupt)
@@ -367,9 +423,12 @@ END AddFd ;
             are pending.
             If a pending interrupt was found then, call, is called
             and then this procedure returns.
+            It only listens for interrupts > pri.
 *)
 
-PROCEDURE Listen (untilInterrupt: BOOLEAN; call: DespatchVector) ;
+PROCEDURE Listen (untilInterrupt: BOOLEAN;
+                  call: DespatchVector;
+                  pri: CARDINAL) ;
 VAR
    r    : INTEGER ;
    t    : Timeval ;
@@ -377,106 +436,162 @@ VAR
    i, o : SetOfFd ;
    maxFd,
    s, m : INTEGER ;
+   p    : CARDINAL ;
 BEGIN
-   maxFd := 0 ;
-   t := NIL ;
-   i := NIL ;
-   o := NIL ;
-   s := -1 ;
-   m := -1 ;
-   v := Pending ;
-   WHILE v#NIL DO
-      WITH v^ DO
-         CASE type OF
-
-         input :  AddFd(i, maxFd, File) |
-         output:  AddFd(o, maxFd, File) |
-         time  :  IF s=-1
-                  THEN
-                     s := Secs ;
-                     m := Micro
-                  ELSE
-                     s := Min(s, Secs) ;
-                     m := Min(m, Micro)
-                  END
-
-         END
-      END ;
-      v := v^.pending
-   END ;
-   IF s=-1
+   IF pri<MAX(PRIORITY)
    THEN
-      IF NOT untilInterrupt
+      maxFd := -1 ;
+      t := NIL ;
+      i := NIL ;
+      o := NIL ;
+      s := -1 ;
+      m := -1 ;
+      p := MAX(PRIORITY) ;
+      (*   r := printf('select fds = {') ; *)
+      WHILE p>pri DO
+         v := Pending[p] ;
+         WHILE v#NIL DO
+            WITH v^ DO
+               CASE type OF
+               
+               input :  AddFd(i, maxFd, File) |
+               output:  AddFd(o, maxFd, File) |
+               time  :  IF s=-1
+                        THEN
+                           s := Secs ;
+                           m := Micro
+                        ELSE
+                           s := Min(s, Secs) ;
+                           m := Min(m, Micro)
+                        END
+
+               END
+            END ;
+            v := v^.pending
+         END ;
+         DEC(p)
+      END ;
+      IF untilInterrupt
       THEN
-         t := InitTime(0, 0)
-      END
-   ELSE
-      t := InitTime(s, m)
-   END ;
-   IF untilInterrupt AND (i=NIL) AND (o=NIL) AND (s=-1)
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'deadlock found, no more processes to run and no interrupts active')
-   END ;
-   (* r := printf('timeval = 0x%x\n', t) ; *)
-   r := pth_select(maxFd+1, i, o, NIL, t) ;
-(*
-   IF t#NIL
-   THEN
-      GetTime(t, s, m) ;
-      v := Pending ;
-      WHILE v#NIL DO
-         IF v^.type=time
+         IF s#-1
          THEN
-            
+            t := InitTime(s, m)
+         END
+      ELSE
+         t := InitTime(0, 0)
+      END ;
+      IF untilInterrupt AND (i=NIL) AND (o=NIL) AND (s=-1)
+      THEN
+         Halt(__FILE__, __LINE__, __FUNCTION__,
+              'deadlock found, no more processes to run and no interrupts active')
+      END ;
+      (* r := printf('timeval = 0x%x\n', t) ; *)
+      (* r := printf('}\n') ; *)
+      IF (t=NIL) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
+      THEN
+         RETURN
+      ELSE
+(*
+         IF (i#NIL) AND (o#NIL) AND FdIsSet(0, i) AND FdIsSet(1, o)
+         THEN
+            r := printf('select %d  (0, 1)\n', maxFd)
+         ELSIF (i#NIL) AND FdIsSet(0, i)
+         THEN
+            r := printf('select %d  (0)\n', maxFd)
+         ELSIF (o#NIL) AND FdIsSet(1, o)
+         THEN
+            r := printf('select %d  (1)\n', maxFd)
+         ELSIF t=NIL
+         THEN
+            r := printf('select %d  ()   really odd \n', maxFd)
+         ELSE
+            (* r := printf('polling\n') *)
+         END ;
+*)
+         r := pth_select(maxFd+1, i, o, NIL, t)
+      END ;
+      (*
+      IF t#NIL
+      THEN
+         GetTime(t, s, m) ;
+         v := Pending ;
+         WHILE v#NIL DO
+            IF v^.type=time
+            THEN
+               
+            END
          END
       END
-   END
-*)
-   v := Pending ;
-   WHILE v#NIL DO
-      WITH v^ DO
-         CASE type OF
+      *)
+      p := MAX(PRIORITY) ;
+      WHILE p>pri DO
+         v := Pending[p] ;
+         WHILE v#NIL DO
+            WITH v^ DO
+               CASE type OF
+               
+               input :  IF FdIsSet(File, i)
+                        THEN
+                           DebugString('\nread is ready\n') ;
+(*                         r := printf('read is ready\n') ; *)
+                           call(no, priority, arg)
+                        END |
+               output:  IF FdIsSet(File, o)
+                        THEN
+(*                         r := printf('write is ready\n') ; *)
+                           call(no, priority, arg)
+                        END |
+               time  :  call(no, priority, arg) ;
+                        (* think ...
+                         IF NOT untilInterrupt
+                        THEN
+                           IF s=-1
+                           THEN
+                              s := Secs ;
+                              m := Micro
+                           ELSE
+                              s := Min(s, Secs) ;
+                              m := Min(m, Micro)
+                           END
+                        END  *)
 
-         input :  IF FdIsSet(File, i)
-                  THEN
-                     call(no, arg)
-                  END |
-         output:  IF FdIsSet(File, o)
-                  THEN
-                     call(no, arg)
-                  END |
-         time  :  call(no, arg) ;
-                  (* think ...
-                  IF NOT untilInterrupt
-                  THEN
-                     IF s=-1
-                     THEN
-                        s := Secs ;
-                        m := Micro
-                     ELSE
-                        s := Min(s, Secs) ;
-                        m := Min(m, Micro)
-                     END
-                  END  *)
-
-         END
+               END
+            END ;
+            v := v^.pending
+         END ;
+         DEC(p)
       END ;
-      v := v^.pending
-   END ;
-   IF t#NIL
-   THEN
-      t := KillTime(t)
-   END ;
-   IF i#NIL
-   THEN
-      i := KillSet(i)
-   END ;
-   IF o#NIL
-   THEN
-      o := KillSet(o)
+      IF t#NIL
+      THEN
+         t := KillTime(t)
+      END ;
+      IF i#NIL
+      THEN
+         i := KillSet(i)
+      END ;
+      IF o#NIL
+      THEN
+         o := KillSet(o)
+      END
    END
 END Listen ;
 
 
+(*
+   Init - 
+*)
+
+PROCEDURE Init ;
+VAR
+   p: PRIORITY ;
+BEGIN
+   Exists := NIL ;
+   FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
+      Pending[p] := NIL
+   END
+END Init ;
+
+
+BEGIN
+   Init
 END SysVec.

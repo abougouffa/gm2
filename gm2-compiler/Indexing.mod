@@ -17,15 +17,16 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE Indexing ;
 
-FROM libc IMPORT memset ;
+FROM libc IMPORT memset, memcpy ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
-FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD, BITSET ;
+FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD, BITSET, BYTE ;
 
 CONST
    MinSize = 128 ;
 
 TYPE
    PtrToAddress = POINTER TO ADDRESS ;
+   PtrToByte    = POINTER TO BYTE ;
 
    Index = POINTER TO RECORD
                          ArrayStart: ADDRESS ;
@@ -187,6 +188,7 @@ END PutIndice ;
 
 PROCEDURE GetIndice (i: Index; n: CARDINAL) : ADDRESS ;
 VAR
+   b: PtrToByte ;
    p: PtrToAddress ;
 BEGIN
    WITH i^ DO
@@ -194,7 +196,8 @@ BEGIN
       THEN
          HALT
       END ;
-      p := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      b := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      p := b ;
       IF Debug
       THEN
          IF (n<32) AND (NOT (n IN Map)) AND (p^#NIL)
@@ -214,17 +217,20 @@ END GetIndice ;
 PROCEDURE IsIndiceInIndex (i: Index; a: ADDRESS) : BOOLEAN ;
 VAR
    j: CARDINAL ;
+   b: PtrToByte ;
    p: PtrToAddress ;
 BEGIN
    WITH i^ DO
       j := Low ;
-      p := ArrayStart ;
+      b := ArrayStart ;
       WHILE j<=High DO
+         p := b ;
          IF p^=a
          THEN
             RETURN( TRUE )
          END ;
-         INC(p, TSIZE(ADDRESS)) ;
+         (* we must not INC(p, ..) as p2c gets confused *)
+         INC(b, TSIZE(ADDRESS)) ;
          INC(j)
       END
    END ;
@@ -239,27 +245,20 @@ END IsIndiceInIndex ;
 PROCEDURE RemoveIndiceFromIndex (i: Index; a: ADDRESS) ;
 VAR
    j, k: CARDINAL ;
-   p, q, r: PtrToAddress ;
+   p   : PtrToAddress ;
+   b   : PtrToByte ;
 BEGIN
    WITH i^ DO
       j := Low ;
-      p := ArrayStart ;
+      b := ArrayStart ;
       WHILE j<=High DO
+         p := b ;
+         INC(b, TSIZE(ADDRESS)) ;
          IF p^=a
          THEN
-            q := p ;
-            r := p ;
-            INC(q, TSIZE(ADDRESS)) ;
-            k := j+1 ;
-            WHILE k<=High DO
-               r^ := q^ ;
-               INC(r, TSIZE(ADDRESS)) ;
-               INC(q, TSIZE(ADDRESS)) ;
-               INC(k)
-            END ;
+            p := memcpy(p, b, (High-j)*TSIZE(ADDRESS)) ;
             DEC(High)
          END ;
-         INC(p, TSIZE(ADDRESS)) ;
          INC(j)
       END
    END

@@ -142,6 +142,8 @@ static GTY(()) tree m2_real_type_node;
 static GTY(()) tree m2_long_real_type_node;
 static GTY(()) tree m2_long_int_type_node;
 static GTY(()) tree m2_long_card_type_node;
+static GTY(()) tree m2_short_int_type_node;
+static GTY(()) tree m2_short_card_type_node;
 static GTY(()) tree m2_iso_loc_type_node;
 static GTY(()) tree m2_iso_byte_type_node;
 static GTY(()) tree m2_iso_word_type_node;
@@ -580,6 +582,7 @@ static char *                 createUniqueLabel                           PARAMS
        void                   gccgm2_BuildEndMainModule 	       	  PARAMS ((void));
        tree                   gccgm2_BuildCap                             PARAMS ((tree t));
        void                   gccgm2_DebugTree 		       	 	  PARAMS ((tree t));
+       void                   gccgm2_DebugTreeChain                       PARAMS ((tree t));
        tree                   build_function_call 	       	 	  PARAMS ((tree function, tree params));
        tree                   start_enum     		       	 	  PARAMS ((tree name));
        void                   pushtag        		       	 	  PARAMS ((tree name, tree type));
@@ -620,6 +623,8 @@ static tree                   build_m2_real_node                          PARAMS
 static tree                   build_m2_long_real_node                     PARAMS ((void));
 static tree                   build_m2_long_int_node                      PARAMS ((void));
 static tree                   build_m2_long_card_node                     PARAMS ((void));
+static tree                   build_m2_short_int_node                     PARAMS ((void));
+static tree                   build_m2_short_card_node                     PARAMS ((void));
 static tree                   build_m2_iso_loc_node                       PARAMS ((void));
 static tree                   build_m2_iso_byte_node                      PARAMS ((void));
 static tree                   build_m2_iso_word_node                      PARAMS ((void));
@@ -634,6 +639,10 @@ static tree                   build_m2_iso_word_node                      PARAMS
        tree                   gccgm2_GetM2RealType                        PARAMS ((void));
        tree                   gccgm2_GetM2LongRealType                    PARAMS ((void));
        tree                   gccgm2_GetM2LongIntType                     PARAMS ((void));
+       tree                   gccgm2_GetM2ShortIntType                    PARAMS ((void));
+       tree                   gccgm2_GetShortIntType                      PARAMS ((void));
+       tree                   gccgm2_GetM2ShortCardType                   PARAMS ((void));
+       tree                   gccgm2_GetShortCardType                     PARAMS ((void));
        tree                   gccgm2_GetISOWordType                       PARAMS ((void));
        tree                   gccgm2_GetISOByteType                       PARAMS ((void));
        tree                   gccgm2_GetISOLocType                        PARAMS ((void));
@@ -2279,6 +2288,8 @@ init_m2_builtins ()
   m2_long_real_type_node = build_m2_long_real_node ();
   m2_long_int_type_node = build_m2_long_int_node ();
   m2_long_card_type_node = build_m2_long_card_node ();
+  m2_short_int_type_node = build_m2_short_int_node ();
+  m2_short_card_type_node = build_m2_short_card_node ();
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
   m2_iso_byte_type_node = build_m2_iso_byte_node ();
   m2_iso_word_type_node = build_m2_iso_word_node ();
@@ -2431,6 +2442,34 @@ build_m2_long_card_node (void)
   /* Define `LONGCARD' */
 
   c = make_unsigned_type (LONG_LONG_TYPE_SIZE);
+  layout_type (c);
+
+  return c;
+}
+
+static
+tree
+build_m2_short_int_node (void)
+{
+  tree c;
+
+  /* Define `SHORTINT' */
+
+  c = make_signed_type (SHORT_TYPE_SIZE);
+  layout_type (c);
+
+  return c;
+}
+
+static
+tree
+build_m2_short_card_node (void)
+{
+  tree c;
+
+  /* Define `SHORTCARD' */
+
+  c = make_unsigned_type (SHORT_TYPE_SIZE);
   layout_type (c);
 
   return c;
@@ -7104,7 +7143,7 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   tree id;
   tree decl;
 
-  if (strcmp(name, "Lex_ParseFunction_Functions_val") == 0)
+  if (strcmp(name, "varin_var") == 0)
     stop();
 
   ASSERT(is_type(type), type);
@@ -10673,6 +10712,30 @@ gccgm2_GetM2LongCardType ()
 }
 
 tree
+gccgm2_GetM2ShortIntType ()
+{
+  return m2_short_int_type_node;
+}
+
+tree
+gccgm2_GetShortIntType ()
+{
+  return short_integer_type_node;
+}
+
+tree
+gccgm2_GetM2ShortCardType ()
+{
+  return m2_short_card_type_node;
+}
+
+tree
+gccgm2_GetShortCardType ()
+{
+  return short_unsigned_type_node;
+}
+
+tree
 gccgm2_GetIntegerZero ()
 {
   return integer_zero_node;
@@ -11305,6 +11368,14 @@ gccgm2_DebugTree (t)
      tree t;
 {
   debug_tree(t);
+}
+
+void
+gccgm2_DebugTreeChain (t)
+     tree t;
+{
+  for (; t; t = TREE_CHAIN (t))
+    debug_tree(t);
 }
 
 /*

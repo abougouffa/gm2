@@ -20,14 +20,13 @@ IMPLEMENTATION MODULE Executive ;
 
 FROM SYSTEM IMPORT ADDRESS, PROCESS, LISTEN, ADR,
                    NEWPROCESS, TRANSFER, IOTRANSFER, ListenLoop,
-                   OnOrOff, TurnInterrupts ;
+                   PRIORITY, TurnInterrupts ;
 
 FROM SysStorage IMPORT ALLOCATE ;
 FROM StrLib IMPORT StrCopy ;
 FROM StrLib IMPORT StrLen ;
 FROM NumberIO IMPORT CardToStr ;
 FROM Debug IMPORT DebugString, Halt ;
-FROM libc IMPORT printf ;
 
 
 (* IMPORT gdb ; *)
@@ -113,10 +112,10 @@ PROCEDURE InitProcess (p: PROC;
                        Name: ARRAY OF CHAR) : DESCRIPTOR ;
 VAR
    d         : DESCRIPTOR ;
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    db        : ARRAY [0..80] OF CHAR ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    NEW(d) ;
    WITH d^ DO
       Size        := StackSize ;
@@ -144,9 +143,9 @@ END InitProcess ;
 
 PROCEDURE Resume (d: DESCRIPTOR) : DESCRIPTOR ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
 
    (* your code needs to go here *)
    WITH d^ DO                                                                  (* remove for student *)
@@ -176,9 +175,9 @@ END Resume ;
 
 PROCEDURE Suspend ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    WITH CurrentProcess^ DO
       Status := Suspended
    END ;
@@ -196,9 +195,9 @@ END Suspend ;
 PROCEDURE InitSemaphore (v: CARDINAL; Name: ARRAY OF CHAR) : SEMAPHORE ;
 VAR
    s         : SEMAPHORE ;
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    NEW(s) ;
    WITH s^ DO
       Value := v ;                  (* initial value of semaphore           *)
@@ -220,9 +219,9 @@ END InitSemaphore ;
 
 PROCEDURE Wait (s: SEMAPHORE) ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
 
    (* your code needs to go here *)
    WITH s^ DO                                                                  (* remove for student *)
@@ -258,10 +257,10 @@ END Wait ;
 
 PROCEDURE Signal (s: SEMAPHORE) ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    d         : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    WITH s^ DO
       IF Who=NIL
       THEN
@@ -287,11 +286,15 @@ PROCEDURE WaitForIO (VectorNo: CARDINAL) ;
 VAR
    Calling   : DESCRIPTOR ;
    Next      : PROCESS ;
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    r         : INTEGER ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;
-   (* DebugString('inside WaitForIO') ; *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
+   DebugString('inside WaitForIO ') ;
+   DebugString(CurrentProcess^.RunName) ;
+   DebugString('\n') ;
+   Assert(CurrentProcess^.Status=Runnable,
+          __FILE__, __LINE__, __FUNCTION__) ;
    SubFromReady(CurrentProcess) ;   (* remove process from run queue *)
    (*
       alter run priority to hi as all processes waiting for an interrupt
@@ -318,17 +321,15 @@ BEGIN
       the interrupted process are in Next. Next is the current process
       and so we must save them before picking up the Calling descriptor.
    *)
-(*
-   r := printf('assigning 0x%x to ', Next.context) ;
-   DebugString(CurrentProcess^.RunName) ;
-*)
+
    CurrentProcess^.Volatiles := Next ;             (* carefully stored away *)
    CurrentProcess := Calling ;                     (* update CurrentProcess *)
+   DebugString(CurrentProcess^.RunName) ;
    CurrentProcess^.Status := Runnable ;            (* add to run queue      *)
    AddToReady(CurrentProcess) ;
-(*
-   DebugString('finishing WaitForIO') ;
-*)
+
+   DebugString(' finishing WaitForIO\n') ;
+
    ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
 END WaitForIO ;
 
@@ -339,12 +340,12 @@ END WaitForIO ;
 
 PROCEDURE Ps ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    p         : DESCRIPTOR ;
    s         : SEMAPHORE ;
    a         : ARRAY [0..5] OF CHAR ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    p := ExistsQueue ;
    IF p#NIL
    THEN
@@ -423,10 +424,10 @@ END WriteNSpaces ;
 
 PROCEDURE GetCurrentProcess () : DESCRIPTOR ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    p         : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *)
    p := CurrentProcess ;
    ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
    RETURN( p )
@@ -439,9 +440,9 @@ END GetCurrentProcess ;
 
 PROCEDURE RotateRunQueue ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    (* we only need to rotate the lo priority processes as:
       idle - should only have one process (the idle process)
       hi   - are the device drivers which most of the time are performing
@@ -472,9 +473,9 @@ END ProcessName ;
 
 PROCEDURE DebugProcess (d: DESCRIPTOR) ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
    WITH d^ DO
       IF Status=WaitOnSem
       THEN
@@ -570,17 +571,17 @@ BEGIN
    IF Highest#CurrentProcess
    THEN
       From := CurrentProcess ;
-(*      DebugString('context switching from ') ; DebugString(From^.RunName) ; *)
+      DebugString('context switching from ') ; DebugString(From^.RunName) ;
       (* alter CurrentProcess before we TRANSFER *)
       CurrentProcess := Highest ;
-(*
+
       DebugString(' to ') ; DebugString(CurrentProcess^.RunName) ;
-*)
+
       TRANSFER(From^.Volatiles, Highest^.Volatiles)
-(*
+
       ; DebugString(' (') ; DebugString(CurrentProcess^.RunName) ;
       DebugString(')\n') ;
-*)
+
    END
 END ScheduleProcess ;
 
@@ -769,9 +770,9 @@ END SubFromSemaphore ;
 
 PROCEDURE Idle ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(On) ;                (* enable interrupts *)
+   ToOldState := TurnInterrupts(MIN(PRIORITY)) ;    (* enable interrupts *)
    LOOP
       (*
          Listen for interrupts.

@@ -24,6 +24,7 @@ FROM SysVec IMPORT Listen, AttachVector,
 
 FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
+FROM libc IMPORT printf ;
 
 
 CONST
@@ -42,7 +43,7 @@ VAR
    illegalFinish  : ADDRESS ;
    initMain,
    initPthreads   : BOOLEAN ;
-   currentIntValue: OnOrOff ;
+   currentIntValue: CARDINAL ;
 
 
 (*
@@ -133,9 +134,11 @@ END IOTRANSFER ;
 *)
 
 PROCEDURE IOTransferHandler (InterruptNo: CARDINAL;
+                             Priority: CARDINAL ;
                              l: PtrToIOTransferState) ;
 VAR
    old: PtrToIOTransferState ;
+   r  : INTEGER ;
 BEGIN
    IF l=NIL
    THEN
@@ -152,6 +155,8 @@ BEGIN
          IF next=NIL
          THEN
             ExcludeVector(InterruptNo)
+         ELSE
+            r := printf('odd vector has been chained\n')
          END ;
          ptrToSecond^.context := currentContext ;
          TRANSFER(ptrToSecond^, ptrToFirst^)
@@ -167,7 +172,7 @@ END IOTransferHandler ;
 PROCEDURE LISTEN ;
 BEGIN
    localInit ;
-   Listen(FALSE, IOTransferHandler)
+   Listen(FALSE, IOTransferHandler, MIN(PRIORITY))
 END LISTEN ;
 
 
@@ -190,13 +195,13 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen(TRUE, IOTransferHandler)
+   Listen(TRUE, IOTransferHandler, MIN(PRIORITY))
 END ListenLoop ;
 
 
 (*
-   TurnInterrupts - switches processor interrupts on or off depending
-                    on Switch. It returns the old value.
+   TurnInterrupts - switches processor interrupts to the priority, to.
+                    It returns the old value.
 
                     This function is available in this implementation
                     to allow microkernel Modula-2 code to be
@@ -204,20 +209,14 @@ END ListenLoop ;
                     and a stand alone system.
 *)
 
-PROCEDURE TurnInterrupts (Switch: OnOrOff) : OnOrOff ;
+PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
 VAR
-   old: OnOrOff ;
+   old: PRIORITY ;
 BEGIN
+   Listen(FALSE, IOTransferHandler, currentIntValue) ;
    old := currentIntValue ;
-   IF currentIntValue=On
-   THEN
-      LISTEN
-   END ;
-   currentIntValue := Switch ;
-   IF currentIntValue=On
-   THEN
-      LISTEN
-   END ;
+   currentIntValue := to ;
+   Listen(FALSE, IOTransferHandler, currentIntValue) ;
    RETURN( old )
 END TurnInterrupts ;
 
@@ -286,5 +285,5 @@ BEGIN
    currentContext := NIL ;
    initPthreads := FALSE ;
    initMain := FALSE ;
-   currentIntValue := Off
+   currentIntValue := MIN(PRIORITY)
 END SYSTEM.

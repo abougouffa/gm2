@@ -48,7 +48,7 @@ VAR
    t: Timeval ;
    s: SetOfFd ;
 BEGIN
-   t := InitTime(0, 50) ;
+   t := InitTime(0, 5000) ;
    s := InitSet() ;
    FdZero(s) ;
    IF Select(0, s, s, s, t)=0

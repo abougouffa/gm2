@@ -10,3 +10,4 @@
 *  implement module priorities
 *  fix bugs in compiler exhibited by ulm standard libraries
 *  fix bug in varient record found in SysVec.mod
+*  fix bug (no export qualified leads to unqualified assembler names)

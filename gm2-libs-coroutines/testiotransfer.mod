@@ -19,7 +19,7 @@ MODULE testiotransfer ;
 
 
 FROM SYSTEM IMPORT ADDRESS, PROCESS, TRANSFER, NEWPROCESS,
-                   BYTE, LISTEN, IOTRANSFER ;
+                   BYTE, LISTEN, IOTRANSFER, PRIORITY ;
 
 FROM SysVec IMPORT InitTimeVector, ReArmTimeVector ;
 FROM Storage IMPORT ALLOCATE ;
@@ -35,7 +35,7 @@ VAR
    c: CARDINAL ;
 BEGIN
    r := printf('clock starting\n') ;
-   v := InitTimeVector(500, 0) ;
+   v := InitTimeVector(500, 0, MAX(PRIORITY)) ;
    c := 0 ;
    LOOP
       INC(c) ;

@@ -1,0 +1,77 @@
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+MODULE testwin ;
+
+FROM WindowDevice IMPORT Window, InitWindow, SetWindow, TitleWindow,
+                         WriteChar, PutOnTop ;
+FROM StdIO IMPORT PushOutput, Write ;
+FROM StrIO IMPORT WriteString, WriteLn ;
+FROM ncurses IMPORT Blue, Red, White, Green, Yellow ;
+
+
+VAR
+   First,
+   Second   : Window ;
+   Debugging: Window ;
+
+(*
+   SetupWindows - sets up three windows, First, Second and Debugging.
+                  After this procedure has been called all StdIO
+                  writes will go through LocalWrite.
+*)
+
+PROCEDURE SetupWindows ;
+BEGIN
+   WriteString('\nBefore SetWindow') ;
+
+   (* first process window *)
+   First := SetWindow(InitWindow(), Blue, White, 38, 9, 1, 1, TRUE) ;
+   WriteString('\nBefore TitleWindow') ;
+   TitleWindow(First, 'Initial process') ;
+
+   (* second process window *)
+   Second := SetWindow(InitWindow(), Green, White, 36, 9, 42, 1, TRUE) ;
+   TitleWindow(Second, 'Second process') ;
+
+   (* debugging window at the bottom *)
+   Debugging := SetWindow(InitWindow(), Red, White, 77, 11, 1, 12, TRUE) ;
+   TitleWindow(Debugging, 'Debugging output') ;
+   PutOnTop(Debugging) ;
+
+   PushOutput(LocalWrite)
+END SetupWindows ;
+
+
+(*
+   LocalWrite - 
+*)
+
+PROCEDURE LocalWrite (ch: CHAR) ;
+BEGIN
+   WriteChar(First, ch) ;
+   WriteChar(Second, ch) ;
+   WriteChar(Debugging, ch) ;
+END LocalWrite ;
+
+
+BEGIN
+   SetupWindows ;
+   LOOP
+      WriteString('hello world')
+   END
+END testwin.

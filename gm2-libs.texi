@@ -264,6 +264,7 @@ PROCEDURE __BUILTIN__ strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE __BUILTIN__ strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex strrchr
 PROCEDURE __BUILTIN__ strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+
 @findex huge_val
 PROCEDURE __BUILTIN__ huge_val (r: REAL) : REAL ;
 @findex huge_valf
@@ -2446,9 +2447,10 @@ END UnixArgs.
 DEFINITION MODULE FOR "C" cbuiltin ;
 
 (*
-    Description: provides replacement routines in case the builtins are not used
-                 by GNU Modula-2. This module is called by implementation modules
-                 which implement builtins (see Builtins.mod for an example).
+    Description: provides replacement routines in case the builtins are
+                 not used by GNU Modula-2. This module is called by
+                 implementation modules which implement builtins
+                 (see Builtins.mod for an example).
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -2460,7 +2462,8 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
-                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
+                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr,
+                   huge_val, huge_vall, huge_valf ;
 
 @findex alloca
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
@@ -2524,6 +2527,12 @@ PROCEDURE strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex strrchr
 PROCEDURE strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
+@findex huge_val
+PROCEDURE huge_val (r: REAL) : REAL ;
+@findex huge_vall
+PROCEDURE huge_vall (l: LONGREAL) : LONGREAL ;
+@findex huge_valf
+PROCEDURE huge_valf (s: SHORTREAL) : SHORTREAL ;
 
 END cbuiltin.
 @end example
@@ -3361,10 +3370,32 @@ DEFINITION MODULE RealInOut ;
     Description: provides a compatible RealInOut PIM 234 module.
 *)
 
-EXPORT QUALIFIED ReadReal ;
+EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct, Done ;
+
+VAR
+   Done: BOOLEAN ;
+
 
 @findex ReadReal
 PROCEDURE ReadReal (VAR x: REAL) ;
+
+
+(*
+   WriteReal - writes a real to the terminal. The real number
+               is right justified and, n, is the minimum field
+               width.
+*)
+
+@findex WriteReal
+PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
+
+
+(*
+   WriteRealOct - writes the real to terminal in octal words.
+*)
+
+@findex WriteRealOct
+PROCEDURE WriteRealOct (x: REAL) ;
 
 END RealInOut.
 @end example
@@ -3574,7 +3605,7 @@ perform IO at some point (or wait for a timer interrupt) or call
 @code{END} will starve all other processes. However the great
 advantage is that GNU Modula-2 can offer users the ability to use
 @code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space
-and on a multi-user operating system.
+and on a multi-user operating system across many platforms.
 
 The GNU Modula-2 @code{SYSTEM} works by utilizing the user context
 switching mechanism provided by GNU Pthreads. @code{NEWPROCESS}
@@ -3583,7 +3614,7 @@ contexts. @code{IOTRANSFER} is more complex. There is a support module
 @code{SysVec} which provides pseudo interrupt vectors. These can
 either be created from input/output file descriptors and also timer
 events @code{timeval}. This vector is then passed to @code{IOTRANSFER}
-which keeps track of which file desriptors and timevals are
+which keeps track of which file descriptors and timevals are
 active. When a call to @code{TurnInterrupts} or @code{LISTEN} is made
 the sub system calls @code{pth_select} and tests for any ready file
 descriptor or timeout. A ready file descriptor or timeout will

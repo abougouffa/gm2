@@ -39,7 +39,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2004/06/07 21:20:08 $]
+   Date       : 3/4/86  [$Date: 2004/09/20 13:41:34 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -79,7 +79,7 @@ IMPORT m2flex ;
 CONST
    MaxLineBreak =   70 ;     (* Any line whose columns is beyond this is    *)
                              (* broken into multiple lines.                 *)
-   Debugging        = FALSE ;
+   Debugging    = FALSE ;
 
 TYPE
    PtrToNode = POINTER TO node ;
@@ -209,7 +209,7 @@ BEGIN
                              Mark(InitStringCharStar(KeyToCharStar(ExtName)))) ;
    IF Debugging
    THEN
-      fprintf1(StdErr, 'CreateSon %s\n', name)
+      fprintf1(StdErr, 'CreateSon %s ', name)
    END ;
    IF AlreadyParsed(ModuleName, ExtName, file)
    THEN
@@ -262,6 +262,11 @@ BEGIN
          (* Do not set the father field here for reason above. *)
       END ;
       name := KillString(name) ;
+      IF Debugging
+      THEN
+         fprintf0(StdErr, 'returning FALSE\n')
+      END ;
+
       RETURN( FALSE )
    ELSE
       son := NewNode() ;
@@ -300,6 +305,10 @@ BEGIN
       MakeObject(son^.Source^.ModName, main, 1) ;   (* attach the object to the executable *)
 
       name := KillString(name) ;
+      IF Debugging
+      THEN
+         fprintf0(StdErr, 'returning TRUE\n')
+      END ;
       RETURN( TRUE )
    END
 END CreateSon ;
@@ -901,8 +910,20 @@ END IncreaseLevel ;
 *)
 
 PROCEDURE AddSon (father, son: PtrToNode) ;
+VAR
+   n1, n2: Name ;
+   n     : CARDINAL ;
 BEGIN
-   IncludeIndiceIntoIndex(father^.Sons, son)
+   IF Debugging
+   THEN
+      n1 := father^.Source^.ModName ;
+      n2 := father^.Source^.Ext ;
+      n := HighIndice(father^.Sons) ;
+      fprintf3(StdErr,
+               'father %a.%a has %d sons\n',
+               n1, n2, n)
+   END ;
+   IncludeIndiceIntoIndex(father^.Sons, son) ;
 END AddSon ;
 
 
@@ -1087,6 +1108,7 @@ BEGIN
             IF Ext=ObjExtn
             THEN
                s := CalculateFileName(name, Mark(InitStringCharStar(KeyToCharStar(ModExtn)))) ;
+               p := NIL ;
                IF FindSourceFile(s, p)
                THEN
                   p := KillString(p) ;
@@ -1096,12 +1118,13 @@ BEGIN
                   FormatS(s)
                END
             ELSE
-               FormatString(' ') ;
                s := CalculateFileName(name, ext) ;
+               p := NIL ;
                IF FindSourceFile(s, p)
                THEN
+                  FormatString(' ') ;
+                  FormatS(p)
                END ;
-               FormatS(p) ;
                p := KillString(p)
             END ;
             s    := KillString(s) ;
@@ -1125,6 +1148,7 @@ VAR
    ext,
    s, f: String ;
 BEGIN
+   s := NIL ;
    name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
    ext  := InitStringCharStar(KeyToCharStar(n^.Source^.Ext)) ;
    IF n^.Source^.Ext=ObjExtn
@@ -1213,6 +1237,7 @@ BEGIN
             s := InitStringCharStar(KeyToCharStar(MainSrc)) ;
             name := NIL
          ELSE
+            s := NIL ;
             name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
             a := CalculateFileName(name, Mark(InitString('mod'))) ;
             IF NOT FindSourceFile(a, s)

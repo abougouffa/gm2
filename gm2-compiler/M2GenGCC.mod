@@ -924,6 +924,26 @@ END CodeStart ;
 
 
 (*
+   BuildTerminationCall - generates a call to the termination handler.
+                          After checking that, module, is a MODULE and
+                          is also the main module.
+*)
+
+(*
+PROCEDURE BuildTerminationCall (module: CARDINAL) ;
+BEGIN
+   IF (GetMainModule()=module) AND IsModule(module)
+   THEN
+      IF Pim
+      THEN
+         CodeDirectCall(FromModuleGetSym(MakeKey('Terminate'),
+                                         GetModule(MakeKey('M2RTS'))))
+      END
+   END
+END BuildTerminationCall ;
+*)
+
+(*
    CodeEnd - emits terminating code after the main BEGIN END of the
              current module.
 *)

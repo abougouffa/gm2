@@ -68,6 +68,13 @@ FROM SymbolTable IMPORT NulSym,
                         IsExported, IsImported,
                         IsVarParam, IsRecordField, IsUnboundedParam,
                         IsValueSolved,
+                        IsDefinitionForC, IsHiddenTypeDeclared,
+                        IsInnerModule, IsUnknown,
+                        IsProcedureReachable, IsParameter, IsConstLit,
+                        IsDummy, IsVarAParam, IsProcedureVariable,
+                        IsGnuAsmVolatile,
+                        IsError, IsHiddenType,
+                        IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
                         GetProcedureScope,
                         IsAModula2Type, UsesVarArgs,
@@ -82,8 +89,8 @@ FROM SymbolTable IMPORT NulSym,
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    GetBaseTypeMinMax, MixTypes,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt,
-                   LongCard,
+                   Cardinal, Char, Proc, Integer, Unbounded,
+                   LongInt, LongCard, ShortCard, ShortInt,
                    Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh,
                    IsRealType, IsNeededAtRunTime ;
@@ -108,6 +115,7 @@ FROM gccgm2 IMPORT Tree,
                    GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
                    GetPointerType, GetM2LongIntType, GetM2LongCardType,
+                   GetM2ShortIntType, GetM2ShortCardType,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerInt, GetBitsPerBitset,
@@ -154,6 +162,7 @@ PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ; FORWARD ;
 PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -1215,6 +1224,8 @@ BEGIN
       DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
       DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
       DeclareDefaultType(LongCard , "LONGCARD" , GetM2LongCardType()) ;
+      DeclareDefaultType(ShortInt , "SHORTINT" , GetM2ShortIntType()) ;
+      DeclareDefaultType(ShortCard, "SHORTCARD", GetM2ShortCardType()) ;
       DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
       DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
       DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
@@ -1478,6 +1489,140 @@ END DeclareSubrange ;
 
 
 (*
+   PrintSymbol - prints limited information about a symbol.
+*)
+
+PROCEDURE PrintSymbol (sym: CARDINAL) ;
+VAR
+   n: Name ;
+BEGIN
+   n := GetSymName(sym) ;
+   IF IsDefImp(sym)
+   THEN
+      printf2('sym %d IsDefImp (%a)', sym, n) ;
+      IF IsDefinitionForC(sym)
+      THEN
+         printf0('and IsDefinitionForC')
+      END ;
+      IF IsHiddenTypeDeclared(sym)
+      THEN
+         printf0(' IsHiddenTypeDeclared')
+      END
+   ELSIF IsModule(sym)
+   THEN
+      printf2('sym %d IsModule (%a)', sym, n) ;
+      IF IsModuleWithinProcedure(sym)
+      THEN
+         printf0(' and IsModuleWithinProcedure')
+      END
+   ELSIF IsInnerModule(sym)
+   THEN
+      printf2('sym %d IsInnerModule (%a)', sym, n)
+   ELSIF IsUnknown(sym)
+   THEN
+      printf2('sym %d IsUnknown (%a)', sym, n)
+   ELSIF IsType(sym)
+   THEN
+      printf2('sym %d IsType (%a)', sym, n)
+   ELSIF IsProcedure(sym)
+   THEN
+      printf2('sym %d IsProcedure (%a)', sym, n);
+      IF IsProcedureReachable(sym)
+      THEN
+         printf0(' and IsProcedureReachable')
+      END
+   ELSIF IsParameter(sym)
+   THEN
+      printf2('sym %d IsParameter (%a)', sym, n)
+   ELSIF IsPointer(sym)
+   THEN
+      printf2('sym %d IsPointer (%a)', sym, n)
+   ELSIF IsRecord(sym)
+   THEN
+      printf2('sym %d IsRecord (%a)', sym, n)
+   ELSIF IsVarient(sym)
+   THEN
+      printf2('sym %d IsVarient (%a)', sym, n)
+   ELSIF IsFieldVarient(sym)
+   THEN
+      printf2('sym %d IsFieldVarient (%a)', sym, n)
+   ELSIF IsFieldEnumeration(sym)
+   THEN
+      printf2('sym %d IsFieldEnumeration (%a)', sym, n)
+   ELSIF IsArray(sym)
+   THEN
+      printf2('sym %d IsArray (%a)', sym, n)
+   ELSIF IsEnumeration(sym)
+   THEN
+      printf2('sym %d IsEnumeration (%a)', sym, n)
+   ELSIF IsSet(sym)
+   THEN
+      printf2('sym %d IsSet (%a)', sym, n)
+   ELSIF IsUnbounded(sym)
+   THEN
+      printf2('sym %d IsUnbounded (%a)', sym, n)
+   ELSIF IsRecordField(sym)
+   THEN
+      printf2('sym %d IsRecordField (%a)', sym, n)
+   ELSIF IsProcType(sym)
+   THEN
+      printf2('sym %d IsProcType (%a)', sym, n)
+   ELSIF IsVar(sym)
+   THEN
+      printf2('sym %d IsVar (%a)', sym, n)
+   ELSIF IsConst(sym)
+   THEN
+      printf2('sym %d IsConst (%a)', sym, n)
+   ELSIF IsConstString(sym)
+   THEN
+      printf2('sym %d IsConstString (%a)', sym, n)
+   ELSIF IsConstLit(sym)
+   THEN
+      printf2('sym %d IsConstLit (%a)', sym, n)
+   ELSIF IsDummy(sym)
+   THEN
+      printf2('sym %d IsDummy (%a)', sym, n)
+   ELSIF IsTemporary(sym)
+   THEN
+      printf2('sym %d IsTemporary (%a)', sym, n)
+   ELSIF IsVarAParam(sym)
+   THEN
+      printf2('sym %d IsVarAParam (%a)', sym, n)
+   ELSIF IsSubscript(sym)
+   THEN
+      printf2('sym %d IsSubscript (%a)', sym, n)
+   ELSIF IsSubrange(sym)
+   THEN
+      printf2('sym %d IsSubrange (%a)', sym, n)
+   ELSIF IsProcedureVariable(sym)
+   THEN
+      printf2('sym %d IsProcedureVariable (%a)', sym, n)
+   ELSIF IsProcedureNested(sym)
+   THEN
+      printf2('sym %d IsProcedureNested (%a)', sym, n)
+   ELSIF IsAModula2Type(sym)
+   THEN
+      printf2('sym %d IsAModula2Type (%a)', sym, n)
+   ELSIF IsGnuAsmVolatile(sym)
+   THEN
+      printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
+   ELSIF IsError(sym)
+   THEN
+      printf2('sym %d IsError (%a)', sym, n)
+   END ;
+
+   IF IsHiddenType(sym)
+   THEN
+      printf0(' IsHiddenType')
+   END ;
+   printf0('\n')
+END PrintSymbol ;
+
+
+PROCEDURE stop ; BEGIN END stop ;
+
+
+(*
    DeclareVarient - declares a varient record to gcc and returns the gcc representation.
 *)
 
@@ -1488,18 +1633,22 @@ VAR
    Field2      : CARDINAL ;
    GccFieldType,
    GccField,
+   VarientList,
    FieldList,
+   VarientType,
    RecordType  : Tree ;
 BEGIN
    i := 1 ;
-   FieldList := Tree(NIL) ;
-   RecordType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(Sym))) ;
+   VarientList := Tree(NIL) ;
+   VarientType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(Sym))) ;
    (* no need to store the [Sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
    REPEAT
       Field1 := GetNth(Sym, i) ;
       IF Field1#NulSym
       THEN
+         FieldList := Tree(NIL) ;
       	 Assert(IsFieldVarient(Field1)) ;
+         RecordType := BuildStartRecord(NIL) ;
       	 j := 1 ;
       	 REPEAT
       	    Field2 := GetNth(Field1, j) ;
@@ -1511,12 +1660,16 @@ BEGIN
                AddModGcc(Field2, GccField) ;
       	       INC(j)
       	    END
-      	 UNTIL Field2=NulSym
+      	 UNTIL Field2=NulSym ;
+         GccFieldType := BuildEndRecord(RecordType, FieldList) ;
+         GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field1)), GccFieldType) ;
+         AddModGcc(Field1, GccField) ;
+         VarientList := ChainOn(VarientList, GccField)
       END ;
       INC(i)
    UNTIL Field1=NulSym ;
    RemoveItemFromList(ToFinishList, Sym) ;
-   RETURN( BuildEndRecord(RecordType, FieldList) )
+   RETURN( BuildEndRecord(VarientType, VarientList) )
 END DeclareVarient ;
 
 
@@ -1535,6 +1688,11 @@ VAR
    FieldList,
    RecordType  : Tree ;
 BEGIN
+   IF Sym=300
+   THEN
+      stop
+   END ;
+
    i := 1 ;
    FieldList := Tree(NIL) ;
    RecordType := DoStartDeclaration(Sym, BuildStartRecord) ;

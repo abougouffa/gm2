@@ -38,7 +38,7 @@ EXPORT QUALIFIED InitInputVector, InitOutputVector, InitTimeVector,
                  Listen, IncludeVector, ExcludeVector, DespatchVector ;
 
 TYPE
-   DespatchVector = PROCEDURE (CARDINAL, ADDRESS) ;
+   DespatchVector = PROCEDURE (CARDINAL, CARDINAL, ADDRESS) ;
 
 
 (*
@@ -46,7 +46,7 @@ TYPE
                      with the file descriptor, fd.
 *)
 
-PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitInputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -54,7 +54,7 @@ PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
                       with the file descriptor, fd.
 *)
 
-PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitOutputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -62,7 +62,7 @@ PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
                     the relative time.
 *)
 
-PROCEDURE InitTimeVector (micro, secs: CARDINAL) : CARDINAL ;
+PROCEDURE InitTimeVector (micro, secs: CARDINAL; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -114,9 +114,12 @@ PROCEDURE ExcludeVector (vec: CARDINAL) ;
             are pending.
             If a pending interrupt was found then, call, is called
             and then this procedure returns.
+            It only listens for interrupts > pri.
 *)
 
-PROCEDURE Listen (untilInterrupt: BOOLEAN; call: DespatchVector) ;
+PROCEDURE Listen (untilInterrupt: BOOLEAN;
+                  call: DespatchVector;
+                  pri: CARDINAL) ;
 
 
 END SysVec.

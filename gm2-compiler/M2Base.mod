@@ -35,6 +35,7 @@ FROM M2Error IMPORT Error, NewError, NewWarning,
                     InternalError, ChainError, WriteFormat1, ErrorString, FlushErrors ;
 
 FROM FormatStrings IMPORT Sprintf2 ;
+FROM StrLib IMPORT StrLen ;
 
 FROM SymbolTable IMPORT ModeOfAddr,
                         MakeModule, MakeType, PutType,
@@ -71,14 +72,20 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType,
                    GetLongIntType, GetLongRealType, GetProcType,
                    GetM2ShortRealType, GetM2RealType,
                    GetM2LongRealType, GetM2LongCardType,
-                   GetM2CardinalType, GetPointerType, GetWordType ;
+                   GetShortIntType, GetM2ShortCardType,
+                   GetM2CardinalType, GetPointerType, GetWordType,
+                   GetByteType ;
 
 TYPE
    Compatability = (expression, assignment) ;
-   MetaType      = (const, word, byte, address, chr, intgr,
-                    cardinal, pointer, enum, real, set, opaque,
-                    unknown) ;
-   Compatible    = (yes, no, warning) ;
+   MetaType      = (const, word, byte, address, chr,
+                    normint, shortint, longint,
+                    normcard, shortcard, longcard,
+                    pointer, enum,
+                    real, shortreal, longreal,
+                    set, opaque, unknown) ;
+   Compatible    = (uninitialized, no, warnfirst, warnsecond,
+                    first, second) ;
 
 (* %%%FORWARD%%%
 PROCEDURE InitBaseConstants ; FORWARD ;
@@ -89,10 +96,12 @@ PROCEDURE InitCompatibilityMatrices ; FORWARD ;
 PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
    %%%FORWARD%%% *)
 
+TYPE
+   CompatibilityArray = ARRAY MetaType, MetaType OF Compatible ;
 
 VAR
    Expr,
-   Ass        : ARRAY MetaType, MetaType OF Compatible ;
+   Ass        : CompatibilityArray ;
    m2rts,
    MinReal,
    MaxReal,
@@ -104,6 +113,10 @@ VAR
    MaxLongInt,
    MinLongCard,
    MaxLongCard,
+   MinShortInt,
+   MaxShortInt,
+   MinShortCard,
+   MaxShortCard,
    MinChar,
    MaxChar,
    MinCardinal,
@@ -207,9 +220,19 @@ BEGIN
    PopSize(LongInt) ;
 
    LongCard := MakeType(MakeKey('LONGCARD')) ;
-   PutType(LongCard, NulSym) ;                 (* Base Type       *)
+   PutType(LongCard, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2LongCardType())) ;
    PopSize(LongCard) ;
+
+   ShortInt := MakeType(MakeKey('SHORTINT')) ;
+   PutType(ShortInt, NulSym) ;                (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetShortIntType())) ;
+   PopSize(ShortInt) ;
+
+   ShortCard := MakeType(MakeKey('SHORTCARD')) ;
+   PutType(ShortCard, NulSym) ;               (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2ShortCardType())) ;
+   PopSize(ShortCard) ;
 
    Real := MakeType(MakeKey('REAL')) ;
    PutType(Real, NulSym) ;                    (* Base Type       *)
@@ -217,7 +240,7 @@ BEGIN
    PopSize(Real) ;
 
    ShortReal := MakeType(MakeKey('SHORTREAL')) ;
-   PutType(ShortReal, NulSym) ;                    (* Base Type       *)
+   PutType(ShortReal, NulSym) ;               (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2ShortRealType())) ;
    PopSize(ShortReal) ;
 
@@ -379,6 +402,14 @@ BEGIN
    THEN
       min := MinLongCard ;
       max := MaxLongCard
+   ELSIF (type=ShortInt)
+   THEN
+      min := MinShortInt ;
+      max := MaxShortInt
+   ELSIF (type=ShortCard)
+   THEN
+      min := MinShortCard ;
+      max := MaxShortCard
    ELSIF (type=Real)
    THEN
       min := MinReal ;
@@ -571,6 +602,7 @@ BEGIN
           (Sym=Cardinal) OR (Sym=Integer)  OR (Sym=Boolean) OR
           (Sym=Char)     OR (Sym=Proc)     OR
           (Sym=LongInt)  OR (Sym=LongCard) OR
+          (Sym=ShortInt) OR (Sym=ShortCard) OR
           (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
           ((Sym=Bitset) AND Iso)
          )
@@ -589,9 +621,9 @@ VAR
    r        : Compatible ;
 BEGIN
    r := IsCompatible(t1, t2, kind) ;
-   IF r#yes
+   IF (r#first) AND (r#second)
    THEN
-      IF r=warning
+      IF (r=warnfirst) OR (r=warnsecond)
       THEN
          e := NewWarning(GetTokenNo())
       ELSE
@@ -604,7 +636,7 @@ BEGIN
       THEN
          ErrorFormat0(e, 'a type must be declared or imported')
       ELSE
-         IF r=warning
+         IF (r=warnfirst) OR (r=warnsecond)
          THEN
             ErrorFormat0(e, 'warning type incompatibility, hint the types should be converted')
          ELSE
@@ -689,10 +721,22 @@ BEGIN
       RETURN( chr )
    ELSIF sym=Integer
    THEN
-      RETURN( intgr )
+      RETURN( normint )
+   ELSIF sym=ShortInt
+   THEN
+      RETURN( shortint )
+   ELSIF sym=LongInt
+   THEN
+      RETURN( longint )
    ELSIF sym=Cardinal
    THEN
-      RETURN( cardinal )
+      RETURN( normcard )
+   ELSIF sym=ShortCard
+   THEN
+      RETURN( shortcard )
+   ELSIF sym=LongCard
+   THEN
+      RETURN( longcard )
    ELSIF IsPointer(sym)
    THEN
       RETURN( pointer )
@@ -728,13 +772,13 @@ VAR
 BEGIN
    IF (kind=assignment) AND (t1=t2)
    THEN
-      RETURN( yes )
+      RETURN( first )
    ELSE
       mt1 := FindMetaType(t1) ;
       mt2 := FindMetaType(t2) ;
       IF (mt1=unknown) OR (mt2=unknown)
       THEN
-         RETURN( FALSE )
+         RETURN( no )
       END ;
          
       CASE kind OF
@@ -769,34 +813,25 @@ BEGIN
    t2 := SkipType(t2) ;
    IF (t1=NulSym) OR (t2=NulSym)
    THEN
-      RETURN( yes )
+      RETURN( first )
    ELSIF IsSubrange(t1)
    THEN
-      (* since we check for t1 or t2 for subranges we will never ask IsCompatible about CARDINAL *)
       RETURN( IsCompatible(GetType(t1), t2, kind) )
    ELSIF IsSubrange(t2)
    THEN
       RETURN( IsCompatible(t1, GetType(t2), kind) )
-   ELSIF IsSet(t1)
+   ELSIF IsSet(t1) OR IsSet(t2)
    THEN
-      RETURN( yes ) (* cannot test set compatibility at this point --fixme-- *)
-   ELSIF IsSet(t2)
-   THEN
-      RETURN( yes ) (* cannot test set compatibility at this point --fixme-- *)
+      RETURN( first ) (* cannot test set compatibility at this point --fixme-- *)
    ELSIF (IsHiddenType(t1) OR IsProcType(t1)) AND (kind=assignment)
    THEN
       IF t1=t2
       THEN
-         RETURN( yes )
+         RETURN( first )
       ELSE
          RETURN( no )
       END
-   ELSIF IsBaseCompatible(t1, t2, kind)=warning
-   THEN
-      RETURN( warning )
-   ELSIF IsBaseCompatible(t1, t2, kind)=yes
-   THEN
-      RETURN( yes )
+   ELSE
 (*
    see M2Quads for the fixme comment at assignment.
 
@@ -804,15 +839,8 @@ BEGIN
         however we do not know the type to our subranges yet (GetType(SubrangeType)=NulSym).
         An oversight which needs to be fixed...
 *)
-   ELSIF ((t1=Integer) AND (t2=LongInt)) OR
-         ((t2=Integer) AND (t1=LongInt))
-   THEN
-      RETURN( yes )
-   ELSIF IsRealType(t1) AND IsRealType(t2)
-   THEN
-      RETURN( yes )
-   ELSE
-      RETURN( no )
+
+      RETURN( IsBaseCompatible(t1, t2, kind) )
    END
 END IsCompatible ;
 
@@ -827,7 +855,10 @@ END IsCompatible ;
 
 PROCEDURE AssignmentRequiresWarning (t1, t2: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsCompatible(t1, t2, assignment)=warning )
+   RETURN(
+          (IsCompatible(t1, t2, assignment)=warnfirst) OR
+          (IsCompatible(t1, t2, assignment)=warnsecond)
+         )
 END AssignmentRequiresWarning ;
 
 
@@ -838,7 +869,11 @@ END AssignmentRequiresWarning ;
 
 PROCEDURE IsAssignmentCompatible (t1, t2: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (t1=t2) OR (IsCompatible(t1, t2, assignment)=yes) )
+   RETURN(
+          (t1=t2) OR
+          (IsCompatible(t1, t2, assignment)=first) OR
+          (IsCompatible(t1, t2, assignment)=second)
+         )
 END IsAssignmentCompatible ;
 
 
@@ -849,29 +884,142 @@ END IsAssignmentCompatible ;
 
 PROCEDURE IsExpressionCompatible (t1, t2: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsCompatible(t1, t2, expression)=yes )
+   RETURN(
+          (IsCompatible(t1, t2, expression)=first) OR
+          (IsCompatible(t1, t2, expression)=second)
+         )
 END IsExpressionCompatible ;
 
 
 (*
-   MixTypes - returns the type symbol that corresponds to the types t1 and t2.
+   IsIntCard - returns TRUE if, t, is of an INTEGER or CARDINAL type.
+*)
+
+PROCEDURE IsIntCard (t: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (t=Integer) OR (t=Cardinal) OR
+          (t=LongCard) OR (t=ShortCard) OR
+          (t=LongInt) OR (t=ShortInt)
+         )
+END IsIntCard ;
+
+
+(*
+   IsXor - returns TRUE if (a1=b1 and a2=b2) or
+                           (a2=b1 and a1=b2)
+*)
+
+PROCEDURE IsXor (a1, a2, b1, b2: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( ((a1=b1) AND (a2=b2)) OR ((a2=b1) AND (a1=b2)) )
+END IsXor ;
+
+
+(*
+   MixIntCard - promotes INTEGER and CARDINAL types.
+*)
+
+PROCEDURE MixIntCard (t1, t2: CARDINAL) : CARDINAL ;
+BEGIN
+   IF IsXor(t1, t2, Integer, Cardinal)
+   THEN
+      RETURN( Integer )
+   ELSIF IsXor(t1, t2, Integer, LongCard)
+   THEN
+      RETURN( LongCard )
+   ELSIF IsXor(t1, t2, Integer, ShortCard)
+   THEN
+      RETURN( Integer )
+   ELSIF IsXor(t1, t2, Integer, LongInt)
+   THEN
+      RETURN( LongInt )
+   ELSIF IsXor(t1, t2, Integer, ShortInt)
+   THEN
+      RETURN( Integer )
+   ELSIF IsXor(t1, t2, Cardinal, LongCard)
+   THEN
+      RETURN( LongCard )
+   ELSIF IsXor(t1, t2, Cardinal, ShortCard)
+   THEN
+      RETURN( Cardinal )
+   ELSIF IsXor(t1, t2, Cardinal, LongInt)
+   THEN
+      RETURN( LongInt )
+   ELSIF IsXor(t1, t2, Cardinal, ShortInt)
+   THEN
+      RETURN( Integer )
+   ELSIF IsXor(t1, t2, ShortInt, Cardinal)
+   THEN
+      RETURN( Integer )
+   ELSIF IsXor(t1, t2, ShortInt, LongCard)
+   THEN
+      RETURN( LongInt )
+   ELSIF IsXor(t1, t2, ShortInt, ShortCard)
+   THEN
+      RETURN( ShortInt )
+   ELSIF IsXor(t1, t2, ShortInt, LongInt)
+   THEN
+      RETURN( LongInt )
+   ELSIF IsXor(t1, t2, ShortCard, Cardinal)
+   THEN
+      RETURN( Cardinal )
+   ELSIF IsXor(t1, t2, ShortCard, LongCard)
+   THEN
+      RETURN( LongCard )
+   ELSIF IsXor(t1, t2, ShortCard, LongInt)
+   THEN
+      RETURN( LongInt )
+   ELSIF IsXor(t1, t2, LongInt, LongCard)
+   THEN
+      RETURN( LongInt )
+   ELSE
+      InternalError('not expecting these types', __FILE__, __LINE__)
+   END
+END MixIntCard ;
+
+
+(*
+   MixMetaTypes - 
+*)
+
+PROCEDURE MixMetaTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
+VAR
+   mt1, mt2: MetaType ;
+   n1, n2  : Name ;
+BEGIN
+   mt1 := FindMetaType(t1) ;
+   mt2 := FindMetaType(t2) ;
+   CASE Expr[mt1, mt2] OF
+
+   no        :  n1 := GetSymName(t1) ;
+                n2 := GetSymName(t2) ;
+                ErrorFormat2(NewError(NearTok),
+                             'type incompatibility between (%a) and (%a)', n1, n2) ;
+                FlushErrors  (* unrecoverable at present *) |
+   warnfirst,
+   first     :  RETURN( t1 ) |
+   warnsecond,
+   second    :  RETURN( t2 )
+
+   ELSE
+      InternalError('not expecting this metatype value', __FILE__, __LINE__)
+   END
+END MixMetaTypes ;
+
+
+(*
+   MixTypes - returns the type symbol that corresponds to the types t1
+              and t2.
               NearTok is used to identify the source position if a type
               incompatability occurs.
 *)
 
 PROCEDURE MixTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
-VAR
-   n1, n2: Name ;
 BEGIN
    IF t1=t2
    THEN
       RETURN( t1 )
-   ELSIF (t1=Cardinal) AND (t2=Integer)
-   THEN
-      RETURN( Integer )
-   ELSIF (t1=Integer) AND (t2=Cardinal)
-   THEN
-      RETURN( Integer )
    ELSIF (t1=Address) AND (t2=Cardinal)
    THEN
       RETURN( Address )
@@ -908,41 +1056,9 @@ BEGIN
    ELSIF IsSubrange(t2)
    THEN
       RETURN( MixTypes(t1, GetType(t2), NearTok) )
-   ELSIF ((t1=Integer) AND (t2=LongCard)) OR
-         ((t2=Integer) AND (t1=LongCard))
-   THEN
-      RETURN( LongCard )
-   ELSIF ((t1=Cardinal) AND (t2=LongInt)) OR
-         ((t2=Cardinal) AND (t1=LongInt))
-   THEN
-      RETURN( LongInt )
-   ELSIF ((t1=Integer) AND (t2=LongInt)) OR
-         ((t2=Integer) AND (t1=LongInt))
-   THEN
-      RETURN( LongInt )
-   ELSIF ((t1=Cardinal) AND (t2=LongCard)) OR
-         ((t2=Cardinal) AND (t1=LongCard))
-   THEN
-      RETURN( LongCard )
-   ELSIF ((t1=Real) AND (t2=LongReal)) OR
-         ((t2=Real) AND (t1=LongReal))
-   THEN
-      RETURN( LongReal )
-   ELSIF ((t1=Real) AND (t2=ShortReal)) OR
-         ((t2=Real) AND (t1=ShortReal))
-   THEN
-      RETURN( Real )
-   ELSIF ((t1=ShortReal) AND (t2=LongReal)) OR
-         ((t2=ShortReal) AND (t1=LongReal))
-   THEN
-      RETURN( LongReal )
    ELSIF (t1=GetLowestType(t1)) AND (t2=GetLowestType(t2))
    THEN
-      n1 := GetSymName(t1) ;
-      n2 := GetSymName(t2) ;
-      ErrorFormat2(NewError(NearTok),
-                   'type incompatibility between (%a) and (%a)', n1, n2) ;
-      FlushErrors  (* unrecoverable at present *)
+      RETURN( MixMetaTypes(t1, t2, NearTok) )
    ELSE
       t1 := GetLowestType(t1) ;
       t2 := GetLowestType(t2) ;
@@ -964,44 +1080,159 @@ END IsMathType ;
 
 
 (*
-     The rules are:
-   
-     assignment compatible matrix
-                                             t2
-   
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set Opaque
-                  +----------------------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T    T   T
-           Word   |         T     F     W       F    T       T        T    T    F    T   T
-           Byte   |               T     F       T    F       F        F    F    F    F   F
-   t1   Address   |                     T       F    F       F        T    F    F    F   T
-           Char   |                             T    F       F        F    F    F    F   F
-        Integer   |                                  T       T        F    F    F    F   F
-       Cardinal   |                                          T        F    F    F    F   F
-            Ptr   |                                                   T    F    F    F   F
-           Enum   |                                                        T    F    F   F
-           Real   |                                                             T    F   F
-            Set   |                                                                  T   F
-         Opaque   |                                                                      T
-   
-     expression compatible matrix
-                                             t2
-   
-                    NulSym  Word  Byte  Address Char Integer Cardinal Ptr  Enum Real Set Opaque
-                  +----------------------------------------------------------------------------
-           NulSym | T       T     T     T       T    T       T        T    T    T    T   T
-           Word   |         T     F     F       F    F       F        F    F    F    F   F
-           Byte   |               T     F       F    F       F        F    F    F    F   F
-   t1   Address   |                     T       F    T       T        T    F    F    F   F
-           Char   |                             T    F       F        F    F    F    F   F
-        Integer   |                                  T       T        F    F    F    F   F
-       Cardinal   |                                          T        F    F    F    F   F
-            Ptr   |                                                   T    F    F    F   F
-           Enum   |                                                        T    F    F   F
-           Real   |                                                             T    F   F
-            Set   |                                                                  T   F
-         Opaque   |                                                                      T
+   PushSizeOf - pushes the size of a meta type.
 *)
+
+PROCEDURE PushSizeOf (t: MetaType) ;
+BEGIN
+   CASE t OF
+
+   const    :   InternalError('do not know the size of a constant', __FILE__, __LINE__) |
+   word     :   PushIntegerTree(GetSizeOf(GetWordType())) |
+   byte     :   PushIntegerTree(GetSizeOf(GetByteType())) |
+   address  :   PushIntegerTree(GetSizeOf(GetPointerType())) |
+   chr      :   PushIntegerTree(GetSizeOf(GetM2CharType())) |
+   normint  :   PushIntegerTree(GetSizeOf(GetIntegerType())) |
+   shortint :   PushIntegerTree(GetSizeOf(GetShortIntType())) |
+   longint  :   PushIntegerTree(GetSizeOf(GetLongIntType())) |
+   normcard :   PushIntegerTree(GetSizeOf(GetM2CardinalType())) |
+   shortcard:   PushIntegerTree(GetSizeOf(GetM2ShortCardType())) |
+   longcard :   PushIntegerTree(GetSizeOf(GetM2LongCardType())) |
+   pointer  :   PushIntegerTree(GetSizeOf(GetPointerType())) |
+   enum     :   PushIntegerTree(GetSizeOf(GetIntegerType())) |
+   real     :   PushIntegerTree(GetSizeOf(GetM2RealType())) |
+   shortreal:   PushIntegerTree(GetSizeOf(GetM2ShortRealType())) |
+   longreal :   PushIntegerTree(GetSizeOf(GetM2LongRealType())) |
+   set      :   InternalError('do not know the size of a set', __FILE__, __LINE__) |
+   opaque   :   InternalError('do not know the size of an opaque', __FILE__, __LINE__) |
+   unknown  :   InternalError('should not get here', __FILE__, __LINE__)
+
+   ELSE
+      InternalError('should not get here', __FILE__, __LINE__)
+   END
+END PushSizeOf ;
+
+
+(*
+   IsSizeSame - 
+*)
+
+PROCEDURE IsSizeSame (t1, t2: MetaType) : BOOLEAN ;
+BEGIN
+   PushSizeOf(t1) ;
+   PushSizeOf(t2) ;
+   RETURN( Equ(0) )
+END IsSizeSame ;
+
+
+(*
+   InitArray - 
+*)
+
+PROCEDURE InitArray (VAR c: CompatibilityArray;
+                     y: MetaType; a: ARRAY OF CHAR) ;
+VAR
+   x   : MetaType ;
+   h, i: CARDINAL ;
+BEGIN
+   h := StrLen(a) ;
+   i := 0 ;
+   x := MIN(MetaType) ;
+   WHILE i<h DO
+      IF (c[x, y]#uninitialized) AND (x#unknown) AND (y#unknown)
+      THEN
+         InternalError('expecting array element to be uninitialized',
+                       __FILE__, __LINE__)
+      END ;
+      CASE a[i] OF
+
+      ' ':  |
+      '.':  CASE c[y, x] OF
+
+            uninitialized:  InternalError('cannot reflect value as it is unknown',
+                                          __FILE__, __LINE__) |
+            first        :  c[x, y] := second |
+            second       :  c[x, y] := first |
+            warnfirst    :  c[x, y] := warnsecond |
+            warnsecond   :  c[x, y] := warnfirst
+
+            ELSE
+               c[x, y] := c[y, x]
+            END ;
+            INC(x) |
+      'F':  c[x, y] := no ;
+            INC(x) |
+      'T',
+      '1':  c[x, y] := first ;
+            INC(x) |
+      '2':  c[x, y] := second ;
+            INC(x) |
+      'W':  IF Pim
+            THEN
+               IF IsSizeSame(x, y)
+               THEN
+                  c[x, y] := warnsecond
+               ELSE
+                  c[x, y] := no
+               END
+            ELSE
+               c[x, y] := no
+            END ;
+            INC(x) |
+      'w':  IF Pim
+            THEN
+               IF IsSizeSame(x, y)
+               THEN
+                  c[x, y] := warnfirst
+               ELSE
+                  c[x, y] := no
+               END
+            ELSE
+               c[x, y] := no
+            END ;
+            INC(x) |
+      'P':  IF Pim
+            THEN
+               c[x, y] := second
+            ELSE
+               c[x, y] := no
+            END ;
+            INC(x) |
+      'p':  IF Pim
+            THEN
+               c[x, y] := first
+            ELSE
+               c[x, y] := no
+            END ;
+            INC(x)
+
+      ELSE
+         InternalError('unexpected specifier', __FILE__, __LINE__)
+      END ;
+      INC(i)
+   END
+END InitArray ;
+
+
+(*
+   A - initialize the assignment array
+*)
+
+PROCEDURE A (y: MetaType; a: ARRAY OF CHAR) ;
+BEGIN
+   InitArray(Ass, y, a)
+END A ;
+
+
+(*
+   E - initialize the expression array
+*)
+
+PROCEDURE E (y: MetaType; a: ARRAY OF CHAR) ;
+BEGIN
+   InitArray(Expr, y, a)
+END E ;
+
 
 (*
    InitCompatibilityMatrices - initializes the tables above.
@@ -1011,55 +1242,97 @@ PROCEDURE InitCompatibilityMatrices ;
 VAR
    i, j: MetaType ;
 BEGIN
-   (* all false *)
+   (* initialize to a known state *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
       FOR j := MIN(MetaType) TO MAX(MetaType) DO
-         Ass[i, j]  := no ;
-         Expr[i, j] := no
+         Ass[i, j]  := uninitialized ;
+         Expr[i, j]  := uninitialized
       END
    END ;
-   (* now open up compatibility for assignment *)
+
+   (* all unknowns are false *)
    FOR i := MIN(MetaType) TO MAX(MetaType) DO
-      Ass[i, i] := yes ;      (* identity *)
-      Ass[const, i] := yes ;  (* all const are compatible *)
-      Ass[i, const] := yes ;
-   END ;
-   IF Pim
-   THEN
-      PushIntegerTree(GetSizeOf(GetPointerType())) ;
-      PushIntegerTree(GetSizeOf(GetWordType())) ;
-      IF Equ(GetTokenNo())
-      THEN
-         Ass[word, address] := warning ; Ass[address, word] := warning
-      END
-   END ;
-   Ass[word, intgr] := yes ; Ass[intgr, word] := yes ;
-   Ass[word, cardinal] := yes ; Ass[cardinal, word] := yes ;
-   Ass[word, pointer] := yes ; Ass[pointer, word] := yes ;
-   Ass[byte, chr] := yes ; Ass[chr, byte] := yes ;
-   Ass[address, pointer] := yes ; Ass[pointer, address] := yes ;
-   Ass[intgr, cardinal] := yes ; Ass[cardinal, intgr] := yes ;
-   Ass[word, enum] := yes ; Ass[enum, word] := yes ;
-   Ass[word, set] := yes ; Ass[set, word] := yes ;
-   Ass[word, opaque] := yes ; Ass[opaque, word] := yes ;
-   Ass[address, opaque] := yes ; Ass[opaque, address] := yes ;
-
-   (* expression matrix *)
-   FOR i := MIN(MetaType) TO MAX(MetaType) DO
-      Expr[i, i] := yes ;      (* identity *)
-      Expr[const, i] := yes ;  (* all const are compatible *)
-      Expr[i, const] := yes ;
+      Ass[i, unknown]  := no ;
+      Expr[unknown, i] := no
    END ;
 
-   Expr[address, pointer] := yes ; Expr[pointer, address] := yes ;
-   Expr[intgr, cardinal] := yes ; Expr[cardinal, intgr] := yes ;
+   (*
+                                     1 p w
 
-   IF Pim
-   THEN
-      Expr[address, cardinal] := yes ; Expr[cardinal, address] := yes ;
-      Expr[address, intgr] := yes ; Expr[intgr, address] := yes ;
-   END
-   
+                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O
+                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p
+                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a
+                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q
+                 y        e     g  t  i  i  t  c           t  r     u
+                 m        s     e  i  n  n  c  a           r  e     e
+                          s     r  n  t  a  a  r           e  a
+                                   t     l  r  d           a  l
+                                            d              l
+      ------------------------------------------------------------------
+   2
+   P
+   W
+   *)
+   A(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T') ;
+   A(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  F  W  W  T  T') ;
+   A(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   A(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2') ;
+   A(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   A(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F') ;
+   A(shortint , '.  .  .  .  .  .  T  1  1  2  1  F  F  F  F  F  F  F') ;
+   A(longint  , '.  .  .  .  .  .  .  T  2  2  2  F  F  F  F  F  F  F') ;
+   A(normcard , '.  .  .  .  .  .  .  .  T  2  1  F  F  F  F  F  F  F') ;
+   A(shortcard, '.  .  .  .  .  .  .  .  .  T  1  F  F  F  F  F  F  F') ;
+   A(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F') ;
+   A(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F') ;
+   A(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F') ;
+   A(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F') ;
+   A(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
+   A(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
+   A(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
+   A(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
+
+
+   (* Expression compatibility *)
+
+
+   (*
+                                        1 p w
+
+                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O
+                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p
+                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a
+                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q
+                 y        e     g  t  i  i  t  c           t  r     u
+                 m        s     e  i  n  n  c  a           r  e     e
+                          s     r  n  t  a  a  r           e  a
+                                   t     l  r  d           a  l
+                                            d              l
+      ------------------------------------------------------------------
+   2
+   P
+   W
+   *)
+
+   E(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T') ;
+   E(word     , '.  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   E(byte     , '.  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   E(address  , '.  .  .  T  F  P  F  F  P  F  F  T  F  F  F  F  F  F') ;
+   E(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   E(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F') ;
+   E(shortint , '.  .  .  .  .  .  T  1  1  2  1  F  F  F  F  F  F  F') ;
+   E(longint  , '.  .  .  .  .  .  .  T  2  2  2  F  F  F  F  F  F  F') ;
+   E(normcard , '.  .  .  .  .  .  .  .  T  2  1  F  F  F  F  F  F  F') ;
+   E(shortcard, '.  .  .  .  .  .  .  .  .  T  1  F  F  F  F  F  F  F') ;
+   E(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F') ;
+   E(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F') ;
+   E(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F') ;
+   E(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  2  1  F  F') ;
+   E(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  1  F  F') ;
+   E(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
+   E(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
+   E(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
+
 END InitCompatibilityMatrices ;
 
 

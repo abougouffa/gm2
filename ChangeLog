@@ -1,3 +1,33 @@
+2004-09-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed varient record bug as reported by John B. Wallace, Jr
+	  <wallacjb@enter.net>. See testsuite/gm2/pim/pass/varient.mod.
+
+2004-09-16	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in gm2/gm2-compiler/Indexing.mod which
+	  occurred after the p2c translation.
+	* in turn this fixed a gm2m problem. The bug resulted in
+	  touching memory which would not have been malloced so
+	  this fix may have cured a number of problems.
+
+2004-09-14	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed the ncurses definition module and WindowDevice module.
+	* fixed M2RTS:Termination to call termination procedures in
+	  reverse.
+
+2004-09-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* tidied up gm2-compiler/M2Base.mod and introduced
+	  compatability matrices which include all the base
+	  types.
+
+2004-09-03	Gaius Mulley <gaius@glam.ac.uk>
+
+	* introduced SHORTINT and SHORTCARD data types.
+	* added ncurses.def example in examples/ncurses
+
 2004-08-31	Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified SIZE handling so that SIZE is only available

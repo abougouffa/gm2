@@ -388,7 +388,7 @@ GM2_O=
 GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
- -funbounded-by-reference -Wverbose-unbounded 
+ -funbounded-by-reference -Wverbose-unbounded -Wpim
 
 # Language-specific object files for the gm2 compiler.
 
@@ -849,6 +849,9 @@ gm2/gm2-libs/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boo
 gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
+gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
@@ -1283,13 +1286,14 @@ stage2/gm2/gm2lsub$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
                -Wuselist $(srcdir)/gm2/gm2-compiler/gm2lsub.mod $(LIBS)
 
-stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o
+stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2minit > gm2m.lst
 	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/gm2m.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS)
+               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
+                gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 
 stage1/gm2/h2def$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/p2c$(exeext) \

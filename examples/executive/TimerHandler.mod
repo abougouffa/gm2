@@ -18,7 +18,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE TimerHandler ;
 
 
-FROM SYSTEM IMPORT OnOrOff, TurnInterrupts ;
+FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
 FROM SysStorage IMPORT ALLOCATE ;
 FROM Debug IMPORT Halt, DebugString ;
 FROM KeyBoardLEDs IMPORT SwitchScroll ;
@@ -71,10 +71,10 @@ VAR
 
 PROCEDURE GetTicks () : CARDINAL ;
 VAR
-   ToOldState : OnOrOff ;
+   ToOldState : PRIORITY ;
    CopyOfTicks: CARDINAL ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    CopyOfTicks := TotalTicks ;
    ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
    RETURN( CopyOfTicks )
@@ -88,9 +88,9 @@ END GetTicks ;
  
 PROCEDURE Sleep (t: CARDINAL) ;
 VAR
-   ToOldState  : OnOrOff ;
+   ToOldState  : PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;               (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;               (* disable interrupts *)
 
    (* your code needs to go here *)
    IF WaitOn(ArmEvent(t))                            (* remove for student *)
@@ -116,10 +116,10 @@ END Sleep ;
 PROCEDURE ArmEvent (t: CARDINAL) : EVENT ;
 VAR
    e         : EVENT ;
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    Ticks     : CARDINAL ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    e := CreateSolo() ;
 
    (* your code needs to go here *)
@@ -146,10 +146,10 @@ END ArmEvent ;
  
 PROCEDURE WaitOn (e: EVENT) : BOOLEAN ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    Cancelled : BOOLEAN ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    IF e=NIL
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -193,11 +193,11 @@ END WaitOn ;
 
 PROCEDURE Cancel (e: EVENT) : BOOLEAN ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    Cancelled : BOOLEAN ;
    Private   : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    IF IsOnActiveQueue(e)
    THEN
       WITH e^ DO
@@ -239,10 +239,10 @@ END Cancel ;
 
 PROCEDURE ReArmEvent (e: EVENT; t: CARDINAL) : BOOLEAN ;
 VAR
-   ToOldState: OnOrOff ;
+   ToOldState: PRIORITY ;
    ReArmed   : BOOLEAN ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;                (* disable interrupts *)
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
    WITH e^ DO
       IF WasCancelled
       THEN
@@ -299,13 +299,14 @@ END LoadClock ;
 PROCEDURE Timer ;
 VAR
    CurrentCount: CARDINAL ;
-   ToOldState  : OnOrOff ;
+   ToOldState  : PRIORITY ;
    ScrollLED   : BOOLEAN ;
    TimerIntNo  : CARDINAL ;
 BEGIN
-   ToOldState := TurnInterrupts(Off) ;
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
    ScrollLED := FALSE ;
-   TimerIntNo := InitTimeVector(BaseTicks DIV TicksPerSecond, 0) ;
+   TimerIntNo := InitTimeVector(BaseTicks DIV TicksPerSecond, 0,
+                                MAX(PRIORITY)) ;
    LOOP
       WaitForIO(TimerIntNo) ;
 

@@ -37,17 +37,17 @@ VAR
 
 
 (*
-   Terminate - calls each installed termination procedure in turn.
+   Terminate - calls each installed termination procedure in reverse order.
 *)
 
 PROCEDURE Terminate ;
 VAR
    i: CARDINAL ;
 BEGIN
-   i := 0 ;
-   WHILE i<Ptr DO
-      List[i] ;
-      INC(i)
+   i := Ptr ;
+   WHILE i>0 DO
+      DEC(i) ;
+      List[i]
    END
 END Terminate ;
 

@@ -35,16 +35,16 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
                  PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,
                  LISTEN,
 
-                 ListenLoop, OnOrOff, TurnInterrupts ;
+                 ListenLoop, TurnInterrupts, PRIORITY ;
 
 
 TYPE
-   PROCESS = RECORD
-                context: ADDRESS ;
-                ints   : OnOrOff ;
-             END ;
+   PROCESS  = RECORD
+                 context: ADDRESS ;
+                 ints   : PRIORITY ;
+              END ;
 
-   OnOrOff = (On, Off) ;
+   PRIORITY = [0..7] ;
 
 
 (*
@@ -107,18 +107,16 @@ PROCEDURE ListenLoop ;
 
 
 (*
-   TurnInterrupts - switches processor interrupts on or off depending
-                    on Switch. It returns the old value.
+   TurnInterrupts - switches processor interrupts to the priority, to.
+                    It returns the old value.
 
                     This function is available in this implementation
                     to allow microkernel Modula-2 code to be
                     compiled and run both under a Pthread implementation
                     and a stand alone system.
-                    TurnInterrupts will call LISTEN if either the
-                    current interrupt value is On or Switch is On.
 *)
 
-PROCEDURE TurnInterrupts (Switch: OnOrOff) : OnOrOff ;
+PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
 
 
 END SYSTEM.

@@ -6,7 +6,7 @@ FROM StdIO IMPORT PushOutput ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM TimerHandler IMPORT EVENT, TicksPerSecond, Sleep, ArmEvent,
                          Cancel, WaitOn, ReArmEvent ;
-FROM SYSTEM IMPORT OnOrOff, TurnInterrupts ;
+FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
 FROM Executive IMPORT DESCRIPTOR, InitProcess, Resume, Ps ;
 FROM SYSTEM IMPORT ADR ;
 FROM libc IMPORT write ;
@@ -30,7 +30,7 @@ END LocalWrite ;
 
 PROCEDURE TenSeconds ;
 BEGIN
-   OldInts := TurnInterrupts(On) ;
+   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Sleep(10*TicksPerSecond) ;
       WriteString('..10..') ;
@@ -44,7 +44,7 @@ END TenSeconds ;
 
 PROCEDURE FifteenSeconds ;
 BEGIN
-   OldInts := TurnInterrupts(On) ;
+   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Sleep(15*TicksPerSecond) ;
       WriteString('..15..') ;
@@ -58,7 +58,7 @@ END FifteenSeconds ;
 
 PROCEDURE SixtySeconds ;
 BEGIN
-   OldInts := TurnInterrupts(Off) ;
+   OldInts := TurnInterrupts(MAX(PRIORITY)) ;
    LOOP
       Timeout := ArmEvent(60*TicksPerSecond) ;
       IF WaitOn(Timeout)
@@ -78,11 +78,11 @@ CONST
 VAR
    p10, p15,
    p60     : DESCRIPTOR ;
-   OldInts : OnOrOff ;
+   OldInts : PRIORITY ;
    Timeout : EVENT ;
    ch      : CHAR ;
 BEGIN
-   OldInts := TurnInterrupts(On) ;
+   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
    PushOutput(LocalWrite) ;
    WriteString('got to OS\n') ;
 

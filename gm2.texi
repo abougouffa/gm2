@@ -1041,13 +1041,11 @@ END SYSTEM.
 The different dialects of Modula-2 PIM-[234] and ISO Modula-2 declare
 the function @code{SIZE} in different places.  PIM-[34] and ISO
 Modula-2 declare @code{SIZE} as a pervasive function (declared in the
-base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module.
+base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module
+(as shown above).
 
-By default GNU Modula-2 liberally allows users to access @code{SIZE}
-pervasively and also by an import from @code{SYSTEM}.
-
-It is possible to enforce strict access to @code{SIZE} from the module
-@code{SYSTEM} by invoking @code{gm2} with the @code{-Wpim2} flag.
+GNU Modula-2 allows users to specify the dialect of Modula-2
+by using the @code{-Wiso} and @code{-Wpim2} command line switches.
 
 @node The ISO system module, , The PIM system module, Using
 @section The ISO system module

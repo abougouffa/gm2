@@ -17,7 +17,7 @@ perform IO at some point (or wait for a timer interrupt) or call
 @code{END} will starve all other processes. However the great
 advantage is that GNU Modula-2 can offer users the ability to use
 @code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space
-and on a multi-user operating system.
+and on a multi-user operating system across many platforms.
 
 The GNU Modula-2 @code{SYSTEM} works by utilizing the user context
 switching mechanism provided by GNU Pthreads. @code{NEWPROCESS}

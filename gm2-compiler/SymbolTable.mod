@@ -3762,6 +3762,7 @@ BEGIN
          RecordFieldSym      : n := RecordField.name |
          RecordSym           : n := Record.name |
          VarientSym          : n := NulName |
+         VarientFieldSym     : n := NulName |
          VarParamSym         : n := VarParam.name |
          ParamSym            : n := Param.name |
          PointerSym          : n := Pointer.name |

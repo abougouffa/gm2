@@ -20,15 +20,38 @@ MODULE testexecutive ;
 
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT PushOutput, Write ;
-FROM SYSTEM IMPORT ADR, TurnInterrupts, OnOrOff ;
+FROM SYSTEM IMPORT ADR, TurnInterrupts, PRIORITY ;
 FROM libc IMPORT write, read ;
 FROM ASCII IMPORT nl ;
 FROM SysVec IMPORT InitInputVector, InitOutputVector ;
+FROM Debug IMPORT DebugString, Halt ;
+FROM Selective IMPORT SetOfFd, Timeval, InitSet, FdSet, InitTime, Select,
+                      FdIsSet ;
 
 FROM Executive IMPORT DESCRIPTOR, InitProcess, Resume,
                       Suspend, GetCurrentProcess, Ps,
                       SEMAPHORE, InitSemaphore, Wait, Signal,
-                      WaitForIO ;
+                      WaitForIO, ProcessName ;
+
+
+PROCEDURE AssertFd ;
+VAR
+   r: INTEGER ;
+   s: SetOfFd ;
+   t: Timeval ;
+BEGIN
+   s := InitSet() ;
+   FdSet(0, s) ;
+   t := InitTime(0, 0) ;
+   r := Select(1, s, NIL, NIL, t) ;
+   IF NOT FdIsSet(0, s)
+   THEN
+      DebugString('help..') ; ProcessName(GetCurrentProcess()) ;
+      DebugString('.. will block\n') ;
+      Ps ;
+      Halt(__FILE__, __LINE__, __FUNCTION__, 'read will block')
+   END
+END AssertFd ;
 
 
 PROCEDURE LocalWrite (ch: CHAR) ;
@@ -36,11 +59,19 @@ VAR
    r: INTEGER ;
    v: CARDINAL ;
 BEGIN
-(*
-   v := InitOutputVector(1) ;
-   WaitForIO(v) ;
-*)
-   r := write(1, ADR(ch), 1)
+   IF (GetCurrentProcess()=ProcA) OR
+      (GetCurrentProcess()=ProcB)
+   THEN
+      v := InitOutputVector(1, MAX(PRIORITY)) ;
+      DebugString('inside LocalWrite: ') ;
+      WaitForIO(v) ;
+      r := write(1, ADR(ch), 1) ;
+      ch := 012C ;
+      r := write(1, ADR(ch), 1) ;
+      DebugString('finishing LocalWrite: ')
+   ELSE
+      r := write(2, ADR(ch), 1)
+   END
 END LocalWrite ;
 
 
@@ -49,9 +80,18 @@ VAR
    r: INTEGER ;
    v: CARDINAL ;
 BEGIN
-   v := InitInputVector(0) ;
+   DebugString('inside LocalRead (before WaitForIO)\n') ;
+   v := InitInputVector(0, MAX(PRIORITY)) ;
    WaitForIO(v) ;
-   r := read(0, ADR(ch), 1)
+   DebugString('before read\n') ;
+   IF GetCurrentProcess()#Init
+   THEN
+      Halt(__FILE__, __LINE__, __FUNCTION__, 'wrong process!')
+   END ;
+   Ps ;
+   AssertFd ;
+   r := read(0, ADR(ch), 1) ;
+   DebugString('after read\n')
 END LocalRead ;
 
 
@@ -61,13 +101,17 @@ END LocalRead ;
 
 PROCEDURE ProcessA ;
 VAR
-   InterruptState: OnOrOff ;
+   InterruptState: PRIORITY ;
 BEGIN
-   InterruptState := TurnInterrupts(On) ;
+   InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Wait(FromB) ;
       WriteString('A: is this going to work? ') ;
-      Signal(FromA)
+      Signal(FromA) ;
+      IF GetCurrentProcess()#ProcA
+      THEN
+         Halt(__FILE__, __LINE__, __FUNCTION__, 'wrong process!')
+      END
    END
 END ProcessA ;
 
@@ -78,13 +122,17 @@ END ProcessA ;
 
 PROCEDURE ProcessB ;
 VAR
-   InterruptState: OnOrOff ;
+   InterruptState: PRIORITY ;
 BEGIN
-   InterruptState := TurnInterrupts(On) ;
+   InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Wait(FromA) ;
       WriteString('B: is this going to work? ') ;
-      Signal(FromB)
+      Signal(FromB) ;
+      IF GetCurrentProcess()#ProcB
+      THEN
+         Halt(__FILE__, __LINE__, __FUNCTION__, 'wrong process!')
+      END
    END
 END ProcessB ;
 
@@ -93,6 +141,7 @@ CONST
    StackSize = 0100000H ;
 
 VAR
+   Init,
    ProcA, ProcB: DESCRIPTOR ;
    FromA, FromB: SEMAPHORE ;
    ch          : CHAR ;
@@ -110,8 +159,11 @@ BEGIN
    WriteString('lots of text to be displayed\n') ;
    WriteString('now to create a process...\n') ;
 
-   ProcA := Resume(InitProcess(ProcessA, StackSize, 'Process1')) ;
-   ProcB := Resume(InitProcess(ProcessB, StackSize, 'Process2')) ;
+   Init  := GetCurrentProcess() ;
+   ProcA := InitProcess(ProcessA, StackSize, 'Process1') ;
+   ProcB := InitProcess(ProcessB, StackSize, 'Process2') ;
+   ProcA := Resume(ProcA) ;
+   ProcB := Resume(ProcB) ;
 
    LOOP
       LocalRead(ch) ;
