@@ -233,6 +233,9 @@ tree current_function_decl;
 
 static tree enum_next_value;
 
+/* Nonzero means that there was overflow computing enum_next_value.  */
+
+static int enum_overflow;
 
 /* Used in build_enumerator() */
 tree current_enum_type;
@@ -587,10 +590,6 @@ gccgm2_EmitLineNote (fn, line)
 #ifndef MAX_BITS_PER_WORD
 #define MAX_BITS_PER_WORD  BITS_PER_WORD
 #endif
-
-/* This variable keeps a table for types for each precision so that we only 
-   allocate each of them once. Signed and unsigned types are kept separate.  */
-static tree signed_and_unsigned_types[MAX_BITS_PER_WORD + 1][2];
 
 /* Return an integer type with BITS bits of precision,
    that is unsigned if UNSIGNEDP is nonzero, otherwise signed.  */
@@ -10548,7 +10547,7 @@ tree
 build_enumerator (name, value)
      tree name, value;
 {
-  tree decl, type;
+  register tree decl, type;
 
   /* Validate and default VALUE.  */
 
@@ -10559,16 +10558,16 @@ build_enumerator (name, value)
   if (value != 0)
     {
       if (TREE_CODE (value) == INTEGER_CST)
-        {
-          value = default_conversion (value);
-          constant_expression_warning (value);
-        }
+	{
+	  value = default_conversion (value);
+	  constant_expression_warning (value);
+	}
       else
-        {
-          error ("enumerator value for `%s' not integer constant",
-                 IDENTIFIER_POINTER (name));
-          value = 0;
-        }
+	{
+	  error ("enumerator value for `%s' not integer constant",
+		 IDENTIFIER_POINTER (name));
+	  value = 0;
+	}
     }
 
   /* Default based on previous value.  */
@@ -10577,43 +10576,35 @@ build_enumerator (name, value)
   if (value == 0)
     {
       value = enum_next_value;
+      if (enum_overflow)
+	error ("overflow in enumeration values");
     }
 
   if (pedantic && ! int_fits_type_p (value, integer_type_node))
     {
-      pedwarn ("ANSI C restricts enumerator values to range of `int'");
-      value = integer_zero_node;
+      pedwarn ("ISO C restricts enumerator values to range of `int'");
+      value = convert (integer_type_node, value);
     }
 
   /* Set basis for default for next value.  */
   enum_next_value = build_binary_op (PLUS_EXPR, value, integer_one_node, 0);
-#if 0
   enum_overflow = tree_int_cst_lt (enum_next_value, value);
-#endif
 
   /* Now create a declaration for the enum value name.  */
 
   type = TREE_TYPE (value);
   type = type_for_size (MAX (TYPE_PRECISION (type),
-                             TYPE_PRECISION (integer_type_node)),
-                        ((flag_traditional
-                          || TYPE_PRECISION (type) >= TYPE_PRECISION (integer_type_node))
-                         && TREE_UNSIGNED (type)));
+			     TYPE_PRECISION (integer_type_node)),
+			((flag_traditional
+			  || TYPE_PRECISION (type) >= TYPE_PRECISION (integer_type_node))
+			 && TREE_UNSIGNED (type)));
 
   decl = build_decl (CONST_DECL, name, type);
-#ifdef GPC
-  /* @@@? DO NOT change the type of value */
-  DECL_INITIAL (decl) = copy_node (value);
-  TREE_TYPE (DECL_INITIAL (decl)) = current_enum_type;
-#else
-  DECL_INITIAL (decl) = value;
-  TREE_TYPE (value) = type;
-#endif /* GPC */
+  DECL_INITIAL (decl) = convert (type, value);
   pushdecl (decl);
 
-  return saveable_tree_cons (decl, value, NULL_TREE);
+  return tree_cons (decl, value, NULL_TREE);
 }
-
 
 /*
  *  ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
