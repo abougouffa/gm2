@@ -1,3 +1,13 @@
+Warning
+=======
+
+This code is currently in development, it is very incomplete &
+highly likely to create massive core dumps. Patches and
+development volunteers highly welcome! See contributions at
+the bottom of this file.
+
+Please see the TODO file for furthur info
+
 Getting GNU Modula-2
 ====================
 
@@ -25,6 +35,13 @@ Building GNU Modula-2
 To build gm2 type:
    cd gcc-2.8.1 ; make gm2
 
+A simple test
+=============
+
+you should be able to perform:
+
+   ./xgm2 -S -g -c -Igm2/m2/comp/libs foo.mod
+
 Building m2f
 ============
 
@@ -47,6 +64,8 @@ Please do. But also please read the GNU Emacs info under
 
 * Standards: (standards).       GNU coding standards.
 * Intellectual Property::       Keeping Free Software Free
+* Reading Non-Free Code::       Referring to Proprietary Programs
+* Contributions::               Accepting Contributions
 
 before you start coding
 
