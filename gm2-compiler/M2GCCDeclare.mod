@@ -517,15 +517,18 @@ VAR
 BEGIN
    type := GetType(sym) ;
    (* ensure that all dependants are on the various to do lists *)
-   IF Debugging
-   THEN
-      printf2('declaring const %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
-   END ;
-   IF AllDependantsWritten(type) AND CollectSetDependants(tokenno, sym)
+   IF type#NulSym
    THEN
       IF Debugging
       THEN
-         printf2('dependants are all known for %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+         printf2('declaring const %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+      END ;
+      IF AllDependantsWritten(type) AND CollectSetDependants(tokenno, sym)
+      THEN
+         IF Debugging
+         THEN
+            printf2('dependants are all known for %a = SET OF %a\n', GetSymName(sym), GetSymName(type))
+         END
       END
    END
 END ResolveConstSet ;

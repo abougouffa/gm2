@@ -2104,6 +2104,14 @@ BEGIN
    THEN
       InternalError('one or more operands have not been resolved', __FILE__, __LINE__)
    END ;
+   IF Set1^.type#set
+   THEN
+      InternalError('expecting type of constant to be a set', __FILE__, __LINE__)
+   END ;
+   IF Set2^.type#set
+   THEN
+      InternalError('expecting type of constant to be a set', __FILE__, __LINE__)
+   END ;
    Result := New() ;
    WITH Result^ DO
       type     := set ;

@@ -1340,6 +1340,9 @@ BEGIN
                      AddModGcc(operand1, PopRealTree())
                   ELSIF IsValueTypeSet()
                   THEN
+                     PopValue(operand1) ;
+                     PushValue(operand1) ;
+                     PutConstSet(operand1) ;
                      AddModGcc(operand1, PopSetTree(tokenno))
                   ELSE
                      AddModGcc(operand1, PopIntegerTree())
@@ -1527,10 +1530,10 @@ BEGIN
          doOp(CurrentQuadToken) ;
          PopValue(operand1) ;
          PushValue(operand1) ;
+         PutConstSet(operand1) ;
          AddModGcc(operand1,
                    DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
                                         PopSetTree(CurrentQuadToken))) ;
-         PutConstSet(operand1)
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'),
                        CurrentQuadToken)
@@ -1695,10 +1698,10 @@ BEGIN
          op(tokenno) ;
          PopValue(operand1) ;
          PushValue(operand1) ;
+         PutConstSet(operand1) ;
          AddModGcc(operand1,
                    DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
                                         PopSetTree(tokenno))) ;
-         PutConstSet(operand1) ;
          RemoveItemFromList(l, operand1) ;
          SubQuad(AbsoluteHead, quad)
       END
@@ -1791,10 +1794,10 @@ BEGIN
          doOp(CurrentQuadToken) ;
          PopValue(operand1) ;
          PushValue(operand1) ;
+         PutConstSet(operand1) ;
          AddModGcc(operand1,
                    DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
-                                        PopSetTree(CurrentQuadToken))) ;
-         PutConstSet(operand1)
+                                        PopSetTree(CurrentQuadToken)))
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'), CurrentQuadToken)
       END
@@ -2155,17 +2158,17 @@ BEGIN
    IF IsConst(operand3) AND IsConstSet(operand3) AND
       IsConst(operand1)
    THEN
-      IF IsValueSolved(operand3)
+      IF IsValueSolved(operand3) AND (GetType(operand3)#NulSym)
       THEN
          PutConst(operand1, FindType(operand3)) ;
          PushValue(operand3) ;
          doOp(tokenno) ;
          PopValue(operand1) ;
          PushValue(operand1) ;
+         PutConstSet(operand1) ;
          AddModGcc(operand1,
                    DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
                                         PopSetTree(QuadToTokenNo(quad)))) ;
-         PutConstSet(operand1) ;
          RemoveItemFromList(l, operand1) ;
          SubQuad(AbsoluteHead, quad)
       END

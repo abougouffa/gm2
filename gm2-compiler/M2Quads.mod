@@ -3594,7 +3594,7 @@ END CheckParameter ;
 
 
 (*
-   DescribeType - returns a String describeing a symbol, Sym, name and its type.
+   DescribeType - returns a String describing a symbol, Sym, name and its type.
 *)
 
 PROCEDURE DescribeType (Sym: CARDINAL) : String ;
@@ -7648,7 +7648,15 @@ VAR
    NulSet: CARDINAL ;
 BEGIN
    PopT(Type) ;  (* type of set we are building *)
-   Assert(IsSet(Type)) ;
+   IF IsUnknown(Type)
+   THEN
+      WriteFormat1('set type %a is undefined', GetSymName(Type)) ;
+      Type := Bitset
+   ELSIF NOT IsSet(Type)
+   THEN
+      WriteFormat1('expecting a set type %a', GetSymName(Type)) ;
+      Type := Bitset
+   END ;
    NulSet := MakeTemporary(ImmediateValue) ;
    Assert(Type#NulSym) ;
    PutVar(NulSet, Type) ;
