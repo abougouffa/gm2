@@ -1400,6 +1400,27 @@ END CodeBecomes ;
 
 
 (*
+   CoerseTree - coerses a lvalue into an integer
+*)
+
+PROCEDURE CoerseTree (sym: CARDINAL) : Tree ;
+VAR
+   t: Tree ;
+BEGIN
+   t := Mod2Gcc(sym) ;
+   IF t=NIL
+   THEN
+      InternalError('expecting symbol to be resolved', __FILE__, __LINE__)
+   END ;
+   IF GetMode(sym)=LeftValue
+   THEN
+      t := BuildConvert(GetIntegerType(), t, FALSE)
+   END ;
+   RETURN( t )
+END CoerseTree ;
+
+
+(*
    FoldBinary - check whether we can fold the binop operation.
 *)
 
@@ -1409,6 +1430,7 @@ VAR
    operand1,
    operand2,
    operand3: CARDINAL ;
+   tl, tr  : Tree ;
 BEGIN
    GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
@@ -1423,11 +1445,11 @@ BEGIN
          THEN
             Assert(MixTypes(FindType(operand3), FindType(operand2), tokenno)#NulSym) ;
             PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), tokenno)) ;
+            tl := CoerseTree(operand2) ;
+            tr := CoerseTree(operand3) ;
             AddModGcc(operand1,
                       DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
-                                           binop(Mod2Gcc(operand2),
-                                                 Mod2Gcc(operand3),
-                                                 TRUE))) ;
+                                           binop(tl, tr, TRUE))) ;
             RemoveItemFromList(l, operand1) ;
             SubQuad(AbsoluteHead, quad)
          ELSE
@@ -1450,12 +1472,15 @@ VAR
    operand1,
    operand2,
    operand3: CARDINAL ;
-   t       : Tree ;
+   t,
+   tl, tr  : Tree ;
 BEGIN
    GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, operand3) ;
    DeclareConstant(CurrentQuadToken, operand2) ;
+   tl := CoerseTree(operand2) ;
+   tr := CoerseTree(operand3) ;
    IF IsConst(operand1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
@@ -1464,12 +1489,9 @@ BEGIN
       PutConst(operand1, MixTypes(FindType(operand3), FindType(operand2), CurrentQuadToken)) ;
       AddModGcc(operand1,
                 DeclareKnownConstant(Mod2Gcc(GetType(operand3)),
-                                     binop(Mod2Gcc(operand2),
-                                           Mod2Gcc(operand3),
-                                           TRUE))) ;
+                                     binop(tl, tr, TRUE)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(operand1),
-                           binop(Mod2Gcc(operand2), Mod2Gcc(operand3), TRUE))
+      t := BuildAssignment(Mod2Gcc(operand1), binop(tl, tr, TRUE))
    END
 END CodeBinary ;
 
@@ -2100,7 +2122,7 @@ BEGIN
             PutConst(operand1, FindType(operand3)) ;
             AddModGcc(operand1,
                       DeclareKnownConstant(CoerceConst,
-                                           unop(Mod2Gcc(operand3), FALSE))) ;
+                                           unop(CoerseTree(operand3), FALSE))) ;
             RemoveItemFromList(l, operand1) ;
             SubQuad(AbsoluteHead, quad)
          ELSE
@@ -2173,10 +2195,10 @@ BEGIN
       PutConst(operand1, FindType(operand3)) ;
       AddModGcc(operand1,
                 DeclareKnownConstant(CoerceConst,
-                                     unop(Mod2Gcc(operand3), FALSE)))
+                                     unop(CoerseTree(operand3), FALSE)))
    ELSE
       t := BuildAssignment(Mod2Gcc(operand1),
-                           unop(Mod2Gcc(operand3), FALSE))
+                           unop(CoerseTree(operand3), FALSE))
    END
 END CodeUnary ;
 
