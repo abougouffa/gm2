@@ -11,7 +11,7 @@ libraryClassifications = [['gm2-libs','PIM Compatible',
                            'ISO defined libraries']]
 
 #
-#  too incomplete to include:
+#  at present the following are too incomplete to include:
 #
 #                           ['gm2-libs-coroutines','PIM Coroutines',
 #                           'PIM Coroutine specific modules'],
@@ -205,7 +205,9 @@ def doCat (dir, file):
 
 def moduleMenu (dir):
     print "@menu"
-    for file in os.listdir(dir):
+    listOfFiles = os.listdir(dir)
+    listOfFiles.sort()
+    for file in listOfFiles:
         if os.path.isfile(os.path.join(dir, file)):
             if (len(file)>4) and (file[-4:] == '.def'):
                 print "* " + dir + "/" + file[:-4] + "::" + file
@@ -224,7 +226,9 @@ def displayModules(up, dir):
 
         moduleMenu(dir)
         listOfModules = []
-        for file in os.listdir(dir):
+        listOfFiles = os.listdir(dir)
+        listOfFiles.sort()
+        for file in listOfFiles:
             if os.path.isfile(os.path.join(dir, file)):
                 if (len(file)>4) and (file[-4:] == '.def'):
                     listOfModules = listOfModules + [file]
