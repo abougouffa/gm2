@@ -1,3 +1,8 @@
+2004-11-17	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed ppg to generate a comment for in-built rules when
+	  producing the EBNF documentation within gm2.texi
+
 2004-11-12	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>

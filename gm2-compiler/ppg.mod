@@ -156,6 +156,7 @@ TYPE
                                   firstsolved : BOOLEAN ;
                                   followinfo  : FollowDesc ;
                                   line        : CARDINAL ;
+                                  description : Name ;
                                END ;
 
    DoProcedure    = PROCEDURE (ProductionDesc) ;
@@ -594,7 +595,8 @@ BEGIN
       first        := NIL ;
       firstsolved  := FALSE ;
       followinfo   := NewFollow() ;
-      line         := GetCurrentLine()
+      line         := GetCurrentLine() ;
+      description  := NulName
    END ;
    RETURN( p )
 END NewProduction ;
@@ -1479,6 +1481,10 @@ BEGIN
                p^.statement^.followinfo^.reachend := true ;
                p^.followinfo^.epsilon  := true ;
                p^.followinfo^.reachend := true
+            END ;
+            IF Literal()
+            THEN
+               p^.description := LastLiteral
             END ;
             RETURN( TRUE )
          ELSE
@@ -2522,6 +2528,10 @@ BEGIN
       WriteString(' := ') ;
       INC(Indent, LengthKey(GetDefinitionName(p))+4) ;
       PrettyCommentStatement(p^.statement, Indent) ;
+      IF p^.description#NulName
+      THEN
+         WriteKey(p^.description)
+      END ;
       NewLine(0) ;
       WriteIndent(LengthKey(GetDefinitionName(p))+1) ;
       WriteString(' =: ') ;

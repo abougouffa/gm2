@@ -101,7 +101,9 @@ Special    := Ident
                                          p^.statement^.followinfo^.reachend := true ;
                                          p^.followinfo^.epsilon  := true ;
                                          p^.followinfo^.reachend := true
-                                       % ] =:
+                                       % ]
+              [ Literal % p^.description := LastLiteral % ]
+              =:
 
 Factor     := "%" Modula2Code "%" |
               Ident % WITH CurrentFactor^ DO
