@@ -1,3 +1,9 @@
+2003-01-11	Gaius Mulley <gaius@glam.ac.uk>
+
+	* changed ebnf to allow empty variant clauses in a case
+	  statement. Now complies with ISO case statement syntax.
+          (Bug reported by Iztok Kobal)
+	
 2003-01-09	Gaius Mulley <gaius@glam.ac.uk>
 
 	* initial checkin of complete built-in function support
@@ -8,6 +14,7 @@
 2003-01-02	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by Matthias Manhart
+	  (procedure type).
 
 2002-12-20	Gaius Mulley <gaius@glam.ac.uk>
 
