@@ -72,10 +72,10 @@ cc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
 gm2.all.build: $(GCC_PASSES) $(GCC_PARTS)
 	cd gm2 ; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2support
 	for i in $(GM2LINKEXES) ; do \
-            rm -f x$$i$(exeext); \
+            rm -f $$i$(exeext); \
             if [ -x gm2/$$i$(exeext) ] ; then \
-               cp gm2/$$i$(exeext) x$$i$(exeext); \
-               chmod a+x x$$i$(exeext); \
+               cp gm2/$$i$(exeext) $$i$(exeext); \
+               chmod a+x $$i$(exeext); \
             fi ; \
         done
 
