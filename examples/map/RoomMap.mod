@@ -5,9 +5,7 @@ IMPORT Break ;
 IMPORT DebugPMD ;
 
 FROM NumberIO IMPORT WriteCard ;
-
 FROM StrIO IMPORT WriteLn, WriteString ;
-
 FROM Assertion IMPORT Assert ;
 
 FROM Geometry IMPORT IsSubLine, IsSubRange, Swap, IntersectionLength,
