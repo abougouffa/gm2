@@ -32,6 +32,11 @@ DEFINE_LANG_NAME ("GNU Modula-2")
 #define GM2_OPT(NAME, DESCRIPTION) NAME
 #endif
   GM2_OPT("-I", "specifies a library path (C syntax)"),
-  GM2_OPT("-M", "specifies a library path (space seperated list in quotes)"),
-  GM2_OPT("-bounds", "turns on runtime subrange, array index and indirection via NIL pointer checking"),
-  GM2_OPT("-return", "turns on runtime checking for functions which finish without executing a RETURN statement"),
+  GM2_OPT("-M", "specifies a library path (space separated list in quotes)"),
+  GM2_OPT("-Wbounds",   "turns on runtime subrange, array index and indirection via NIL pointer checking"),
+  GM2_OPT("-Wreturn",   "turns on runtime checking for functions which finish without executing a RETURN statement"),
+  GM2_OPT("-Wstudents", "extra compile time semantic checking, typically tries to catch bad style"),
+  GM2_OPT("-Wpedantic", "compiler checks nested WITH statements (referencing same type) and multiple identical imports"),
+  GM2_OPT("-Wq",        "debugging information - dump the list of quadruples"),
+  GM2_OPT("-version",   "display the version of the GNU Modula-2 front end"),
+  GM2_OPT("-O",         "optimize code"),

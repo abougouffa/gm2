@@ -28,10 +28,8 @@ Boston, MA 02111-1307, USA.  */
         %{!Q:-quiet} %{d*} %{m*} %{a}\
         %{I*} %{g*} %{O*} %{w}\
         %{M}\
-        %{v:-version} %{pg:-p} %{p} %{q}\
-        %{Wstudents}\
-        %{Wbounds} %{Wreturn} %{Wpedantic} %{Wstatistics}\
-        %{!v:%{version}}\
+        %{version} %{pg:-p} %{p} %{q}\
+        %{Wstudents} %{Wbounds} %{Wreturn} %{Wpedantic} %{Wstatistics} %{Wq}\
         %{f*} %{+e*} %{aux-info*}\
         %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
         %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\
