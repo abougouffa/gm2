@@ -18,16 +18,10 @@ DEFINITION MODULE libc ;
 
 (*
    Author     : Gaius Mulley
+   Author     : Keith Verheyden (Mods to include extra system calls for compiler server)
    Title      : libc
    Date       : Wed Jun  6 11:49:37 BST 1990
    Description: Provides an interface to the C library functions.
-*)
-
-(*
-    Author     : Keith Verheyden
-    System     : UNIX (gm2)
-    Date       : Mon May 20 11:08:56 1996
-    Description: Mods to include extra system calls for compiler server
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;

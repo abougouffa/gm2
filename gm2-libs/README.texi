@@ -1,0 +1,11 @@
+
+These libraries are based on the modules expressed in Programming in
+Modula-2.  They include a number of alterations and a number of extra
+libraries to allow access to compiler built-ins and underlying
+operating system features. Perhaps the largest addition is the
+@code{DynamicString} module which declares the type @code{String}
+which results in a number of equivalent modules that can either handle
+@code{ARRAY OF CHAR} or @code{String}.
+
+These modules have been extensively tested and are used throughout
+gm2.
