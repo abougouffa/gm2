@@ -35,7 +35,12 @@ BEGIN
    RETURN cbuiltin.memcpy (dest, src, n)
 END memcpy ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sinf)) sinf (x: REAL) : REAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sin)) sin (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.sin (x)
+END sin ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sinf)) sinf (x: SHORTREAL) : SHORTREAL ;
 BEGIN
    RETURN cbuiltin.sinf (x)
 END sinf ;
@@ -45,7 +50,12 @@ BEGIN
    RETURN cbuiltin.sinl (x)
 END sinl ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cosf)) cosf (x: REAL) : REAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cos)) cos (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.cos (x)
+END cos ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cosf)) cosf (x: SHORTREAL) : SHORTREAL ;
 BEGIN
    RETURN cbuiltin.cosf (x)
 END cosf ;
@@ -55,7 +65,12 @@ BEGIN
    RETURN cbuiltin.cosl (x)
 END cosl ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrtf)) sqrtf (x: REAL) : REAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrt)) sqrt (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.sqrt (x)
+END sqrt ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrtf)) sqrtf (x: SHORTREAL) : SHORTREAL ;
 BEGIN
    RETURN cbuiltin.sqrtf (x)
 END sqrtf ;
@@ -65,7 +80,12 @@ BEGIN
    RETURN cbuiltin.sqrtl (x)
 END sqrtl ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_fabsf)) fabsf (x: REAL) : REAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_fabs)) fabs (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.fabs (x)
+END fabs ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_fabsf)) fabsf (x: SHORTREAL) : SHORTREAL ;
 BEGIN
    RETURN cbuiltin.fabsf (x)
 END fabsf ;

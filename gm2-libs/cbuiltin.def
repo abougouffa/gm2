@@ -30,8 +30,10 @@ DEFINITION MODULE FOR "C" cbuiltin ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,
-                   sinf, sinl, cosf, cosl, sqrtf, sqrtl, fabsf, fabsl,
-                   sin, cos, sqrt, fabs,
+                   sinf, sinl, sin,
+                   cosf, cosl, cos,
+                   sqrtf, sqrtl, sqrt,
+                   fabsf, fabsl, fabs,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
