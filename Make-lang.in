@@ -128,6 +128,12 @@ gm2.dvi: $(srcdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi
 	$(TEXI2DVI) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
 
+gm2.ps: gm2.dvi
+	dvips -o gm2.ps gm2.dvi
+
+gm2.pdf: gm2.ps
+	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
+
 $(srcdir)/gm2/gm2.info: $(srcdir)/gm2/images/gnu.eps \
          $(srcdir)/gm2/gm2.texi $(srcdir)/gm2/gm2-libs.texi
 	$(MAKEINFO) -I$(srcdir)/gm2 -o $(srcdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi

@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 31 March 2003
+@center Last updated 29 April 2003
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
