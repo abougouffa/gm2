@@ -612,7 +612,7 @@ PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
    BuildStartFunctionCode - generate function entry code.
 *)
 
-PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported, isnested: BOOLEAN) ;
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN) ;
 
 
 (*

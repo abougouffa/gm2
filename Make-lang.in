@@ -433,14 +433,19 @@ gm2lsub$(exeext): force
 
 # end here
 
-stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS)
+stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS) gm2/gm2-compiler-paranoid/m2lex.o
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) \
+                            gm2/gm2-compiler-paranoid/m2lex.o $(BACKEND) $(LIBS)
 
-stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
+stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) $(P) $(GM2_OBJS) \
+                            $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS) gm2/gm2-compiler/m2lex.o 
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) \
+                            gm2/gm2-compiler/m2lex.o $(BACKEND) $(LIBS)
 
-stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
+stage1/gm2/cc1gm2$(exeext): $(GM2)$(exeext) $(GM2_DIRS) $(P) $(GM2_OBJS) \
+                            $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS) gm2/gm2-compiler-boot/m2lex.o 
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) \
+                            gm2/gm2-compiler-boot/m2lex.o $(BACKEND) $(LIBS)
 
 # Compiling object files from source files.
 
@@ -813,8 +818,7 @@ gm2/gm2-compiler/gm2.a: build-compiler
 	$(GCC_FOR_TARGET) -c -g gm2/gm2-compiler/mod_init.c -o gm2/gm2-compiler/mod_init.o
 	$(AR_FOR_TARGET) cr $@ gm2/gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                     gm2/gm2-compiler/M2Version.o \
-                    $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o) \
-                    gm2/gm2-compiler/m2lex.o
+                    $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
 	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
@@ -843,8 +847,7 @@ gm2/gm2-compiler-boot/gm2.a: gm2/boot-bin/p2c gm2/boot-bin/mklink \
 	../$(M2LINK) -s -exit -main gccgm2front ../$(srcdir)/gm2/init/gm2-gccinit ; \
 	mv mod_init.c gm2-compiler-boot
 	$(CC) -c -g gm2/gm2-compiler-boot/mod_init.c -o gm2/gm2-compiler-boot/mod_init.o
-	$(AR) cr $@ gm2/gm2-compiler-boot/m2lex.o \
-                    gm2/gm2-compiler-boot/mod_init.o \
+	$(AR) cr $@ gm2/gm2-compiler-boot/mod_init.o \
                     $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     gm2/gm2-compiler-boot/M2Version.o
@@ -1036,8 +1039,7 @@ gm2/gm2-compiler-paranoid/gm2.a: gm2/gm2-compiler-paranoid/mod_init.o \
 	$(AR) cr $@ gm2/gm2-compiler-paranoid/mod_init.o \
                     $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
-                    gm2/gm2-compiler-paranoid/M2Version.o \
-                    gm2/gm2-compiler-paranoid/m2lex.o
+                    gm2/gm2-compiler-paranoid/M2Version.o
 	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2/gm2-compiler-paranoid/mod_init.o: $(srcdir)/gm2/init/gm2-gccinit
@@ -1070,12 +1072,14 @@ stage1/gm2/cpp$(exeext): cpp$(exeext)
 stage1/gm2/gm2l$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2l.o \
+     gm2/gm2-compiler-boot/m2lex.o \
      $(GM2_LIBS_BOOT)
 	$(M2LINK) -s -exit $(srcdir)/gm2/init/gm2linit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2l_init.c
 	$(CC) -c -g gm2/gm2-compiler-boot/gm2l_init.c -o gm2/gm2-compiler-boot/gm2l_init.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2l_init.o \
+              gm2/gm2-compiler-boot/m2lex.o \
               gm2/gm2-compiler-boot/gm2l.o $(GM2_LIBS_BOOT) $(LIBS)
 
 stage1/gm2/gm2lcc$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
@@ -1113,12 +1117,14 @@ stage1/gm2/gm2lsub$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
 stage1/gm2/gm2m$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler-boot/gm2m.o \
+     gm2/gm2-compiler-boot/m2lex.o \
      $(GM2_LIBS_BOOT)
 	$(M2LINK) -s -exit $(srcdir)/gm2/init/gm2minit
 	mv mod_init.c gm2/gm2-compiler-boot/gm2m_init.c
 	$(CC) -c -g gm2/gm2-compiler-boot/gm2m_init.c -o gm2/gm2-compiler-boot/gm2m_init.o
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
               gm2/gm2-compiler-boot/gm2m_init.o \
+              gm2/gm2-compiler-boot/m2lex.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS)
 
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
@@ -1297,11 +1303,11 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \
-           ./xgm2 -S -Wbounds -Wreturn -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
            echo -n "[1]" ; \
-           ./xgm2 -S -Wbounds -Wreturn -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
            echo -n "[2]" ; \
-           ./xgm2 -S -Wbounds -Wreturn -g -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
+           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/3.s ; \
            echo -n "[3]" ; \
            if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s >& gm2/gm2-compiler-verify/1_2.diff ; then \
                echo -n " [stage 1 and stage 2 differ]" ; \
@@ -1314,6 +1320,27 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
                echo -n " [stage 2 and stage 3 differ]" ; \
                cp gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.2.lst ; \
                cp gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.3.lst ; \
+           fi ; \
+           echo " " ; \
+        done ; \
+	$(RM) -f gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/2_3.diff gm2/gm2-compiler-verify/1_2.diff
+
+#
+# gm2.verifystage12 - diffs the output of the stage1 and stage2 compilers with the compiler source code
+#
+gm2.verifystage12: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
+	@echo "verifying stage1 and stage2 generations of GNU Modula-2 compilers - it may take some time.."
+	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
+           echo -n "$$i " ; \
+           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/1.s ; \
+           echo -n "[1]" ; \
+           ./xgm2 -S $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty $(srcdir)/gm2/gm2-compiler/$$i -o gm2/gm2-compiler-verify/2.s ; \
+           echo -n "[2]" ; \
+           if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s >& gm2/gm2-compiler-verify/1_2.diff ; then \
+               echo -n " [stage 1 and stage 2 differ]" ; \
+               cp gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.1.lst ; \
+               cp gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.2.lst ; \
+               echo " " ; \
            fi ; \
            echo " " ; \
         done ; \

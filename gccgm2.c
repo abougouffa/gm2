@@ -235,7 +235,7 @@ tree m2_iso_word_type_node;
 
 tree c_global_trees[CTI_MAX];
 
-tree current_function_decl;
+extern tree current_function_decl;
 
 
 /* While defining an enum type, this is 1 plus the last enumerator
@@ -472,7 +472,7 @@ static tree                   finish_build_pointer_type                   PARAMS
 										   tree returntype,
 										   int isexternal,
 										   int isnested));
-       void                   gccgm2_BuildStartFunctionCode     	  PARAMS ((tree fndecl, int isexported, int nested));
+       void                   gccgm2_BuildStartFunctionCode     	  PARAMS ((tree fndecl, int isexported));
        void                   gccgm2_BuildEndFunctionCode       	  PARAMS ((tree fndecl));
        void                   iterative_factorial 	       	 	  PARAMS ((void));
        void                   gccgm2_BuildReturnValueCode       	  PARAMS ((tree fndecl, tree value));
@@ -9330,18 +9330,11 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal, isnested)
  */
 
 void
-gccgm2_BuildStartFunctionCode (fndecl, isexported, nested)
+gccgm2_BuildStartFunctionCode (fndecl, isexported)
      tree fndecl;
      int  isexported;
-     int  nested;
 {
   tree param_decl, next_param;
-
-#if 0
-  /* set line number information */
-  DECL_SOURCE_FILE (fndecl) = input_filename;
-  DECL_SOURCE_LINE (fndecl) = lineno;
-#endif
 
   /* Announce we are compiling this function.  */
   announce_function (fndecl);

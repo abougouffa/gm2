@@ -63,6 +63,8 @@ static  void handleFile        (void);
 	int  m2lex_GetLineNo   (void);
 	void m2lex_CloseSource (void);
 	char *m2lex_GetToken   (void);
+        void _M2_m2lex_init    (void);
+extern  void  yylex            (void);
 
 #if !defined(TRUE)
 #    define TRUE  (1==1)
@@ -517,4 +519,4 @@ int yywrap (void)
   updatepos(); M2LexBuf_AddTok(M2Reserved_eoftok); return 1;
 }
 
-void _M2_m2lex_init () {}
+void _M2_m2lex_init (void) {}

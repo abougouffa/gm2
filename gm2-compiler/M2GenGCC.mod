@@ -978,8 +978,7 @@ BEGIN
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
    SetFileNameAndLineNo(string(FileName), LineNo) ;
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
-                          IsExported(GetMainModule(), CurrentProcedure),
-                          IsProcedureNested(CurrentProcedure)) ;
+                          IsExported(GetMainModule(), CurrentProcedure)) ;
    StartDeclareScope(CurrentProcedure) ;
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(CurrentProcedure) ;
