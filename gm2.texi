@@ -61,6 +61,7 @@ Modula-2 compiler and how it integrates with GCC.
 * Integrating::     How m2f is integrated with gcc.
 * Practicalities::  Overview of how m2f is built.
 * Future::          A future wish list.
+* Done list::       Progression of the GNU Modula-2 project.
 * To do list::      Outstanding issues.
 @end menu
 
@@ -138,7 +139,7 @@ This new code generator performs the quadruples to tree conversion
 and symbol table to gcc symbol table conversion. This code will
 be a mixture of Modula-2 and C.
 
-@node Future, To do list, Practicalities, Top
+@node Future, Done list, Practicalities, Top
 @section Future
 
 In the future it might be sensible to rewrite M2Quads.mod to
@@ -147,8 +148,8 @@ However this is a large alteration and I'd firstly like to
 see gm2 working with the method outlined above, which is
 conceptually easier.
 
-@node To do list,, Future, Top
-@section To do list
+@node Done list, To do list, Future, Top
+@section Done list
 
 What has been done:
 
@@ -161,10 +162,10 @@ intemediate code.
 @item
 the back end will generate code and assembly declarations for
 modules containing global variables of all types. Procedure
-prologue/epilogue is created, but no procedures can be called yet!
+prologue/epilogue is created.
 
 @item
-simple expressions are pretty complete.
+simple expressions are nearly complete.
 
 @item
 all loop constructs, if then else, case stuff has been done.
@@ -193,9 +194,16 @@ gm2/m2/comp/gm2s/gcc/M2GenGCC.mod
 gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod
 @end example
 
+@node To do list,, Done list, Top
+@section To do list
+
 What needs to be done:
 
 @itemize @bullet
+
+@item
+currently being implemented is the ability to insert gnu asm statements
+within GNU Modula-2.
 
 @item
 complex procedure parameters (unbounded arrays, strings)

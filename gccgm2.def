@@ -34,6 +34,7 @@ EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
                  BuildAssignment, BuildBinaryOperator,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
+                 BuildAddr, BuildNegate, BuildSize,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
                  BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -295,7 +296,7 @@ PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
    BuildStartFunctionCode - generate function entry code.
 *)
 
-PROCEDURE BuildStartFunctionCode (fndecl: Tree) ;
+PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported: BOOLEAN) ;
 
 
 (*
@@ -379,7 +380,21 @@ PROCEDURE BuildLogicalAnd (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
    BuildNegate - builds a negate expression and returns the tree.
 *)
 
-PROCEDURE BuildNegate (op1: Tree) : Tree ;
+PROCEDURE BuildNegate (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildSize - builds a SIZE function expression and returns the tree.
+*)
+
+PROCEDURE BuildSize (op1: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildAddr - builds an expression which calculates the address of op1 and returns the tree.
+*)
+
+PROCEDURE BuildAddr (op1: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
