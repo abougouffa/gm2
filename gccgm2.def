@@ -12,8 +12,6 @@ DEFINITION MODULE gccgm2 ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED Tree,
-                 EndTemporaryAllocation, ResumeTemporaryAllocation,
-                 PushObstacksNochange, PopObstacks,
 
                  BuildBinProcedure, BuildUnaryProcedure,
                  SetFileNameAndLineNo, EmitLineNote,
@@ -64,41 +62,6 @@ TYPE
    Tree                = ADDRESS ;
    BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
    BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
-
-
-(*
-   EndTemporaryAllocation - Start allocating on the permanent obstack but don't
-                            free the temporary data.  After calling this, call
-                            `permanent_allocation' to fully resume permanent allocation status.
-                            (Interface to tree.c).
-*)
-
-PROCEDURE EndTemporaryAllocation ;
-
-
-(*
-   ResumeTemporaryAllocation - Resume allocating on the temporary obstack, undoing
-                               effects of `end_temporary_allocation'.
-                               (Interface to tree.c).
-*)
-
-PROCEDURE ResumeTemporaryAllocation ;
-
-
-(*
-   PushObstacksNochange - save the current set of obstacks, but don't change them.
-                          (Interface to tree.c).
-*)
-
-PROCEDURE PushObstacksNochange ;
-
-
-(*
-   PopObstacks - pop the obstack selection stack.
-                 (Interface to tree.c).
-*)
-
-PROCEDURE PopObstacks ;
 
 
 (*

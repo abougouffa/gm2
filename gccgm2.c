@@ -1112,10 +1112,17 @@ define_label (filename, line, name)
       IDENTIFIER_LABEL_VALUE (name) = 0;
       decl = lookup_label (name);
     }
+#if !defined(GM2)
+  if (warn_traditional && !in_system_header && lookup_name (name))
+    warning_with_file_and_line (filename, line,
+				"traditional C lacks a separate namespace for labels, identifier `%s' conflicts",
+				IDENTIFIER_POINTER (name));
+#endif
 
   if (DECL_INITIAL (decl) != 0)
     {
-      error ("duplicate label `%s'", IDENTIFIER_POINTER (name));
+      error_with_file_and_line (filename, line, "duplicate label `%s'",
+				IDENTIFIER_POINTER (name));
       return 0;
     }
   else
@@ -1217,13 +1224,13 @@ poplevel (keep, reverse, functionbody)
         if (DECL_ABSTRACT_ORIGIN (decl) != 0
             && DECL_ABSTRACT_ORIGIN (decl) != decl)
           TREE_ADDRESSABLE (DECL_ABSTRACT_ORIGIN (decl)) = 1;
-        else if (DECL_SAVED_INSNS (decl) != 0)
-          {
-            push_function_context ();
-            output_inline_function (decl);
-            pop_function_context ();
-          }
       }
+
+  /* We used to warn about unused variables in expand_end_bindings,
+     i.e. while generating RTL.  But in function-at-a-time mode we may
+     choose to never expand a function at all (e.g. auto inlining), so
+     we do this explicitly now.  */
+  warn_about_unused_variables (getdecls ());
 
   /* If there were any declarations or structure tags in that level,
      or if this level is a function body,
@@ -1234,7 +1241,7 @@ poplevel (keep, reverse, functionbody)
   if (block_previously_created)
     block = current_binding_level->this_block;
   else if (keep || functionbody
-           || (current_binding_level->keep_if_subblocks && subblocks != 0))
+	   || (current_binding_level->keep_if_subblocks && subblocks != 0))
     block = make_node (BLOCK);
   if (block != 0)
     {
@@ -1252,18 +1259,18 @@ poplevel (keep, reverse, functionbody)
   for (link = decls; link; link = TREE_CHAIN (link))
     {
       if (DECL_NAME (link) != 0)
-        {
-          /* If the ident. was used or addressed via a local extern decl,
-             don't forget that fact.  */
-          if (DECL_EXTERNAL (link))
-            {
-              if (TREE_USED (link))
-                TREE_USED (DECL_NAME (link)) = 1;
-              if (TREE_ADDRESSABLE (link))
-                TREE_ADDRESSABLE (DECL_ASSEMBLER_NAME (link)) = 1;
-            }
-          IDENTIFIER_LOCAL_VALUE (DECL_NAME (link)) = 0;
-        }
+	{
+	  /* If the ident. was used or addressed via a local extern decl,
+	     don't forget that fact.  */
+	  if (DECL_EXTERNAL (link))
+	    {
+	      if (TREE_USED (link))
+		TREE_USED (DECL_NAME (link)) = 1;
+	      if (TREE_ADDRESSABLE (link))
+		TREE_ADDRESSABLE (DECL_ASSEMBLER_NAME (link)) = 1;
+	    }
+	  IDENTIFIER_LOCAL_VALUE (DECL_NAME (link)) = 0;
+	}
     }
 
   /* Restore all name-meanings of the outer levels
@@ -1281,36 +1288,36 @@ poplevel (keep, reverse, functionbody)
       clear_limbo_values (block);
 
       /* If this is the top level block of a function,
-         the vars are the function's parameters.
-         Don't leave them in the BLOCK because they are
-         found in the FUNCTION_DECL instead.  */
+	 the vars are the function's parameters.
+	 Don't leave them in the BLOCK because they are
+	 found in the FUNCTION_DECL instead.  */
 
       BLOCK_VARS (block) = 0;
 
       /* Clear out the definitions of all label names,
-         since their scopes end here,
-         and add them to BLOCK_VARS.  */
+	 since their scopes end here,
+	 and add them to BLOCK_VARS.  */
 
       for (link = named_labels; link; link = TREE_CHAIN (link))
-        {
-          register tree label = TREE_VALUE (link);
+	{
+	  register tree label = TREE_VALUE (link);
 
-          if (DECL_INITIAL (label) == 0)
-            {
-              error_with_decl (label, "label `%s' used but not defined");
-              /* Avoid crashing later.  */
-              define_label (input_filename, lineno,
-                            DECL_NAME (label));
-            }
-          else if (warn_unused_label && !TREE_USED (label))
-            warning_with_decl (label, "label `%s' defined but not used");
-          IDENTIFIER_LABEL_VALUE (DECL_NAME (label)) = 0;
+	  if (DECL_INITIAL (label) == 0)
+	    {
+	      error_with_decl (label, "label `%s' used but not defined");
+	      /* Avoid crashing later.  */
+	      define_label (input_filename, lineno,
+			    DECL_NAME (label));
+	    }
+	  else if (warn_unused_label && !TREE_USED (label))
+	    warning_with_decl (label, "label `%s' defined but not used");
+	  IDENTIFIER_LABEL_VALUE (DECL_NAME (label)) = 0;
 
-          /* Put the labels into the "variables" of the
-             top-level block, so debugger can see them.  */
-          TREE_CHAIN (label) = BLOCK_VARS (block);
-          BLOCK_VARS (block) = label;
-        }
+	  /* Put the labels into the "variables" of the
+	     top-level block, so debugger can see them.  */
+	  TREE_CHAIN (label) = BLOCK_VARS (block);
+	  BLOCK_VARS (block) = label;
+	}
     }
 
   /* Pop the current level, and free the structure for reuse.  */
@@ -1329,8 +1336,8 @@ poplevel (keep, reverse, functionbody)
   else if (block)
     {
       if (!block_previously_created)
-        current_binding_level->blocks
-          = chainon (current_binding_level->blocks, block);
+	current_binding_level->blocks
+	  = chainon (current_binding_level->blocks, block);
     }
   /* If we did not make a block for the level just exited,
      any blocks made for inner levels
@@ -1364,6 +1371,7 @@ poplevel (keep, reverse, functionbody)
 
   if (block)
     TREE_USED (block) = 1;
+
   return block;
 }
 
@@ -1890,6 +1898,7 @@ duplicate_decls (newdecl, olddecl, different_binding_level)
 	      && !TREE_PUBLIC (newdecl))
 	    warning_with_decl (newdecl, "static declaration for `%s' follows non-static");
 
+#if !defined(GM2)
 	  /* If warn_traditional, warn when a non-static function
 	     declaration follows a static one.  */
 	  if (warn_traditional && !in_system_header
@@ -1897,6 +1906,7 @@ duplicate_decls (newdecl, olddecl, different_binding_level)
 	      && !TREE_PUBLIC (olddecl)
 	      && TREE_PUBLIC (newdecl))
 	    warning_with_decl (newdecl, "non-static declaration for `%s' follows static");
+#endif
 
 	  /* Warn when const declaration follows a non-const
 	     declaration, but not for functions.  */
@@ -7269,7 +7279,6 @@ complete_array_type (type, initial_value, do_default)
   return value;
 }
 
-/* new */
 /* Finish processing of a declaration;
    install its initial value.
    If the length of an array type is not known before,
@@ -7416,12 +7425,15 @@ finish_decl (decl, init, asmspec_tree)
 				  (DECL_CONTEXT (decl) == 0
 				   || TREE_ASM_WRITTEN (decl)), 0);
       else
+#if defined(GM2)
+	error("should not reach here in Modula-2?");
+#else
 	{
 	  if (asmspec)
 	    DECL_ASSEMBLER_NAME (decl) = get_identifier (asmspec);
 	  add_decl_stmt (decl);
 	}
-
+#endif
       if (DECL_CONTEXT (decl) != 0)
 	{
 	  /* Recompute the RTL of a local array now
@@ -8501,6 +8513,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
   return( fndecl );
 }
 
+static rtx my_debug;
 
 /*
  *  BuildStartFunctionCode - generate function entry code.
@@ -8551,6 +8564,13 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
 
+#if 1
+  if (lineno==1833) {
+    debug_tree(fndecl);
+    my_debug = 0x405d43c0;
+  }
+#endif
+
   /*
    *  create a block at the BEGIN for the local variables
    */
@@ -8573,7 +8593,7 @@ gccgm2_BuildEndFunctionCode (fndecl)
 #if 0
   debug_tree(block);
 #endif
-  expand_end_bindings(block, 1, 0);  /* was 1, 0 */
+  expand_end_bindings(block, 1, 0);
 
   /* get back out of the function and compile it */
   block = poplevel (1, 0, 1);
@@ -8581,9 +8601,13 @@ gccgm2_BuildEndFunctionCode (fndecl)
   BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
   /* expand_end_bindings (block, 1, 0); */
 
+  /* Must mark the RESULT_DECL as being in this function.  */
+  DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
+
   expand_function_end (input_filename, lineno, 0);
+
   rest_of_compilation (fndecl);
-  current_function_decl = 0;
+  current_function_decl = NULL;
 }
 
 
@@ -8595,6 +8619,9 @@ void
 gccgm2_BuildReturnValueCode (fndecl, value)
      tree fndecl, value;
 {
+  DECL_SOURCE_LINE (DECL_RESULT (fndecl)) = lineno;
+  DECL_SOURCE_FILE (DECL_RESULT (fndecl)) = input_filename;
+
   if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE) {
     expand_return( build (MODIFY_EXPR, void_type_node,
                           DECL_RESULT (fndecl), build1 (CONVERT_EXPR, ptr_type_node, value)) );
