@@ -47,20 +47,17 @@ Building GNU Modula-2
 To build gm2 type:
    cd gcc-version ; ./configure ; make
 
+Installing GNU Modula-2
+
+   cd gcc-version/gcc ; make install
+
 A simple test
 =============
 
 you should be able to perform:
 
-   cd gcc-version/gcc/gm2
-
-   compile
-   =======
-   ../xgm2 -B./ -c -g -Igm2-libs m2/comp/autotest/gm2/hello.mod
-
-   link
-   ====
-   ../xgm2 -B./    -g -Igm2-libs m2/comp/autotest/gm2/hello.mod
+   cd gcc-version/gcc/gm2/examples/hello
+   make
 
 this should result in creating an a.out for the infamous hello world example.
 
