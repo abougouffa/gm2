@@ -1561,7 +1561,7 @@ ArrayCheck          1           # 1=check array bounds
                                 # 2=according to $range$ directives
                                 #   (not yet implemented)
 
-NilCheck            1           # check pointer dereferences (0, 1, or 2)
+NilCheck            0           # check pointer dereferences (0, 1, or 2)
 
 RangeCheck          1           # enable other range checking (0, 1, or 2):
                                 #   string indexing, ...?
