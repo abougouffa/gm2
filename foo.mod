@@ -40,7 +40,9 @@ VAR
    array: ARRAY [1..10] OF CHAR ;
    large: ARRAY [1..100], [1..200] OF rec ;
    it   : proc ;
-   card : CARDINAL ;
+   another,
+   card   : CARDINAL ;
+
 (*
 TYPE
 
@@ -55,19 +57,23 @@ VAR
    b      : BOOLEAN ;
 *)
 
-
-PROCEDURE dummy (ch: CHAR; q: CARDINAL) : CARDINAL ;
+(* *)
+PROCEDURE dummy (q: CARDINAL) ;
 VAR
    t: CARDINAL ;
    a: CHAR ;
 BEGIN
    t := 123 ;
-   RETURN( t )
+   (* another := *) dummy(t) ;
+(*   RETURN( t ) *)
 END dummy ;
 
 
 BEGIN
-   (* card := dummy('a', card) *)
+   card := 12 ;
+   (* myproc('a', card) ; *)
+   (*  *)
+   (* another := *) dummy(card);
    i := 100
    (* i := j+k *)
 END foo.

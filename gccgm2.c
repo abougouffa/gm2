@@ -2131,6 +2131,35 @@ lang_mark_tree (t)
     ggc_mark (TYPE_LANG_SPECIFIC (t));
 }
 
+/* Hook used by expand_expr to expand language-specific tree codes.  */
+
+static rtx
+gm2_expand_expr (exp, target, tmode, modifier)
+     tree exp;
+     rtx target;
+     enum machine_mode tmode ATTRIBUTE_UNUSED;
+     enum expand_modifier modifier ATTRIBUTE_UNUSED;
+{
+  fprintf(stderr, "gm2 front end has been asked to expand the following expression\n");
+  debug_tree(exp);
+  fprintf(stderr, "halting\n");
+  do_abort();
+  return( target );
+}
+
+/*
+ * initialize the lang_expand_expr function
+ */
+
+void
+init_gm2_expand ()
+{
+  lang_expand_expr     = gm2_expand_expr;
+#if 0
+  lang_expand_constant = gm2_expand_constant;  /* eventually should handle the string constants? */
+#endif
+}
+
 /* Create the predefined scalar types such as `integer_type_node' needed 
    in the gcc back-end and initialize the global binding level.  */
 
@@ -2306,6 +2335,8 @@ init_decl_processing ()
      array type.  */
   char_array_type_node
     = build_array_type (char_type_node, array_domain_type);
+
+  init_gm2_expand ();
 }
 
 /* Decode all the language specific options that cannot be decoded by GCC. The
@@ -6293,76 +6324,91 @@ gccgm2_DeclareKnownType (name, type)
     return( cp );
 }
 
+/*
+ *  DeclareKnownVariable - declares a variable in scope, funcscope. Note that the global
+ *                         variable, current_function_decl, is altered if isglobal is TRUE.
+ */
+
 tree
 gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglobal)
      char *name;
      tree type;
      int  exported, imported, istemporary, isglobal;
 {
-    tree id   = get_identifier (name);
-    tree decl = build_decl (VAR_DECL, id, type);
+  tree id;
+  tree decl;
 
-    /* The corresponding pop_obstacks is in finish_decl.  */
-    push_obstacks_nochange ();
+  if (isglobal) {
+    current_function_decl = NULL_TREE;
+  }
+  id   = get_identifier (name);
+  decl = build_decl (VAR_DECL, id, type);
 
-    pushdecl(decl);
+  /* The corresponding pop_obstacks is in finish_decl.  */
+  push_obstacks_nochange ();
 
-    DECL_SOURCE_LINE(decl)  = lineno;
+  pushdecl(decl);
 
-    DECL_EXTERNAL (decl)    = imported;
-    TREE_STATIC   (decl)    = isglobal;
-    if (isglobal) {
-      TREE_PUBLIC   (decl)  = exported;
-    } else {
-      TREE_PUBLIC   (decl)  = 0;
-    }
-    TREE_PUBLIC   (decl)    = ! istemporary;
-    TREE_USED     (type)    = ! istemporary;
-    TREE_USED     (decl)    = ! istemporary;
+  DECL_SOURCE_LINE(decl)  = lineno;
+
+  DECL_EXTERNAL (decl)    = imported;
+  TREE_STATIC   (decl)    = isglobal;
+  if (isglobal) {
+    TREE_PUBLIC   (decl)  = exported;
+    DECL_EXTERNAL(decl)   = exported;
+    DECL_CONTEXT  (decl)  = NULL_TREE;
+  } else {
+    TREE_PUBLIC   (decl)  = 0;
+    DECL_EXTERNAL (decl)  = 0;
+    DECL_CONTEXT  (decl)  = current_function_decl;
+  }
+  TREE_PUBLIC   (decl)    = ! istemporary;
+  TREE_USED     (type)    = ! istemporary;
+  TREE_USED     (decl)    = ! istemporary;
 
 #if 1
-    /* now for the id */
+  /* now for the id */
 
-    DECL_EXTERNAL (id)      = imported;
-    TREE_STATIC   (id)      = isglobal;
-    if (isglobal) {
-      TREE_PUBLIC   (id)    = exported;
-    } else {
-      TREE_PUBLIC   (id)    = 0;
-    }
-    TREE_PUBLIC   (id)      = 1;
-    TREE_USED     (id)      = 1;
+  DECL_EXTERNAL (id)      = imported;
+  TREE_STATIC   (id)      = isglobal;
+  if (isglobal) {
+    TREE_PUBLIC   (id)    = exported;
+  } else {
+    TREE_PUBLIC   (id)    = 0;
+  }
+  TREE_PUBLIC   (id)      = 1;
+  TREE_USED     (id)      = 1;
 #endif
 
-    /* TREE_TYPE (TYPE_SIZE (id)) = TYPE_SIZE (type); */
+  /* TREE_TYPE (TYPE_SIZE (id)) = TYPE_SIZE (type); */
 
-    layout_type (type);
-    layout_decl (decl, 0);
+  layout_type (type);
+  layout_decl (decl, 0);
+  
+  if (DECL_SIZE(decl) == 0) {
+    error_with_decl (decl, "storage size of `%s' hasn't been resolved");
+  }
 
-    if (DECL_SIZE(decl) == 0) {
-      error_with_decl (decl, "storage size of `%s' hasn't been resolved");
+  /* For a local variable, define the RTL now.  */
+  if (current_binding_level != global_binding_level
+      /* But not if this is a duplicate decl
+	 and we preserved the rtl from the previous one
+	 (which may or may not happen).  */
+      && DECL_RTL (decl) == 0)
+    {
+      if (TYPE_SIZE (TREE_TYPE (decl)) != 0)
+	expand_decl (decl);
+      else if (TREE_CODE (TREE_TYPE (decl)) == ARRAY_TYPE
+	       && DECL_INITIAL (decl) != 0)
+	expand_decl (decl);
     }
-
-    /* For a local variable, define the RTL now.  */
-    if (current_binding_level != global_binding_level
-	/* But not if this is a duplicate decl
-	   and we preserved the rtl from the previous one
-	   (which may or may not happen).  */
-	&& DECL_RTL (decl) == 0)
-      {
-	if (TYPE_SIZE (TREE_TYPE (decl)) != 0)
-	  expand_decl (decl);
-	else if (TREE_CODE (TREE_TYPE (decl)) == ARRAY_TYPE
-		 && DECL_INITIAL (decl) != 0)
-	  expand_decl (decl);
-      }
-
+  
 #if 0
-    /* Avoid warnings if the standard decls are unused */
-    TREE_USED (decl) = 1;
+  /* Avoid warnings if the standard decls are unused */
+  TREE_USED (decl) = 1;
 #endif
-    finish_decl (decl, NULL_TREE, NULL_TREE);
-    return( decl );
+  finish_decl (decl, NULL_TREE, NULL_TREE);
+  return( decl );
 }
 
 
@@ -7819,6 +7865,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype)
     returntype = void_type_node;
   }
 
+  param_type_list = listify(integer_type_node);
   fntype = build_function_type (returntype, param_type_list);
   was_fntype = fntype;
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
@@ -8263,7 +8310,10 @@ void
 gccgm2_BuildParam (param)
      tree param;
 {
+  fprintf(stderr, "tree for parameter\n"); fflush(stderr);
+  debug_tree(param);
   param_list = chainon (param, param_list);
+  fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
 }
 
 /*
@@ -8284,7 +8334,8 @@ gccgm2_BuildProcedureCall (procedure, rettype)
   if (rettype == NULL_TREE) {
     rettype = void_type_node;
     call = build(CALL_EXPR, rettype, funcptr, listify(param_list), NULL_TREE);
-    TREE_USED(call) = TRUE;
+    TREE_USED(call)         = TRUE;
+    TREE_SIDE_EFFECTS(call) = TRUE ;
     expand_expr_stmt(call);
     last_function   = NULL_TREE;
   } else {
