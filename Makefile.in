@@ -345,7 +345,7 @@ GM2-LIBS-DEFS      = ASCII.def       IO.def          Args.def        M2RTS.def  
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def    wrapc.def       Math.def        Environment.def \
                      FpuIO.def       Debug.def       SysStorage.def  MATH.def        \
-                     Storage.def     StdIO.def       MemUtils.def
+                     Storage.def     StdIO.def       MemUtils.def    libc.def
 
 GM2-LIBS-MODS      = ASCII.mod       IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod   NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -412,7 +412,7 @@ gm2-libs-boot/%.o: gm2-libs-boot/%.mod
           mv gm2-libs-boot/$*.H gm2-libs-boot/$*.h ; \
         fi
 	$(RM) gm2-libs-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot gm2-libs-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDE) gm2-libs-boot/$*.c -o $*.o
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
@@ -433,7 +433,7 @@ gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
           mv gm2-compiler-boot/$*.H gm2-compiler-boot/$*.h ; \
         fi
 	$(RM) gm2-compiler-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot gm2-compiler-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDE) gm2-compiler-boot/$*.c -o $*.o
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
