@@ -64,7 +64,7 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/cpp0$(exeext)
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
-gm2 m2 modula-2 modula2: $(GM2)$(exeext) cc1gm2$(exeext) \
+gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeex) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  build-libs
