@@ -37,7 +37,7 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 08 May 2000
+@center Last updated 16 September 2000
 @sp 1
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000 Free Software Foundation, Inc.
@@ -61,9 +61,11 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @menu
 * About::             What this document explains.
 * History::           How GNU Modula-2 came about.
-* Assembly language:: Interface to assembly language.
 * Compiler options::  GNU Modula-2 compiler options.
 * Example usage::     Example compile and link.
+* Extensions::        GNU Modula-2 language extensions.
+* Interface to C::    Interfacing GNU Modula-2 to C
+* Assembly language:: Interface to assembly language.
 @end menu
 
 @node About, History, , Using
@@ -165,7 +167,7 @@ order of modules.
 
 @end table
 
-@node Example usage, Assembly language, Compiler options, Using
+@node Example usage, Extensions, Compiler options, Using
 
 This section describes how to compiler and link a simple hello world program.
 It provides a few examples of using the different options mentioned in
@@ -189,7 +191,69 @@ and link via:
 @samp{gm2 -g hello.mod}.
 The result should be an @samp{a.out} file created in your directory.
 
-@node Assembly language, , Example usage, Using
+@node Extensions, Interface to C, Example usage, Using
+
+This section introduces the GNU Modula-2 language extensions.
+The GNU Modula-2 compiler allows abstract data types to be
+@code{any} type, not just restricted to a pointer type.
+
+It also allows declarations in any order. Type, constant, procedure and
+variable declarations can be in any order. Nested modules may also declare
+types in any order, consider:
+
+@example
+MODULE colour ;
+
+   PROCEDURE make (VAR c: colours) ;
+   BEGIN
+      c := yellow
+   END make ;
+
+   MODULE inner ;
+   EXPORT colours ;
+
+   TYPE
+      colours = (red, blue, yellow, white) ;
+   END inner ;
+
+VAR
+   g: colours
+BEGIN
+   make(g)
+END colour.
+@end example
+
+@node Interface to C, Assembly language, Extensions, Using
+
+The GNU Modula-2 compiler tries to use the C calling convention wherever
+possible however some parameters have no C equivalent and
+thus a language specific method is used. For example unbounded
+arrays are passed as a @code{struct void *address, unsigned int noelements }
+and the contents of these arrays are copied by callee functions
+when they are declared as non @code{VAR} parameters.
+The @code{VAR} equivalent unbounded array parameters need no copy,
+but still use the @code{struct} representation.
+
+The recommended method of interfacing GNU Modula-2 to C is by using
+a dummy definition module. For example suppose we wish to utilize the
+@code{read} function within libc. In this case we might write a
+definition module as shown below:
+
+@example
+DEFINITION MODULE libc ;
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT UNQUALIFIED read ;
+
+PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
+
+END libc.
+@end example
+
+The @code{UNQUALIFIED} keyword tells GNU Modula-2 not to prefix the module name
+to this identifier when emiting the assembly language.
+
+@node Assembly language, , Interface to C, Using
 @section Assembly language
 
 The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
