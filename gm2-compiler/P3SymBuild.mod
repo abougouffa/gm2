@@ -24,7 +24,7 @@ FROM NumberIO IMPORT WriteCard ;
 
 FROM M2Debug IMPORT Assert, WriteDebug ;
 
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2 ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors ;
 
 FROM SymbolTable IMPORT NulSym,
                         StartScope, EndScope, GetScopeAuthor,
@@ -172,7 +172,11 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat2('inconsistant implementation module was named (%a) and concluded as (%a)', NameStart, NameEnd)
+      (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
+         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+      *)
+      WriteFormat0('too many errors in pass 3') ;
+      FlushErrors
    END
 END P3EndBuildImpModule ;
 
@@ -238,7 +242,11 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat2('inconsistant program module was named (%a) and concluded as (%a)', NameStart, NameEnd)
+      (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
+         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+      *)
+      WriteFormat0('too many errors in pass 3') ;
+      FlushErrors
    END
 END P3EndBuildProgModule ;
 
@@ -300,7 +308,11 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat2('inconsistant inner module was named (%a) and concluded as (%a)', NameStart, NameEnd)
+      (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
+         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+      *)
+      WriteFormat0('too many errors in pass 3') ;
+      FlushErrors
    END ;
    SetCurrentModule(GetScopeAuthor(GetCurrentModule()))
 END EndBuildInnerModule ;
@@ -368,7 +380,11 @@ BEGIN
    PopT(NameStart) ;
    IF NameEnd#NameStart
    THEN
-      WriteFormat2('procedure name (%a) does not match end name (%a)', NameStart, NameEnd)
+      (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
+         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+      *)
+      WriteFormat0('too many errors in pass 3') ;
+      FlushErrors
    END ;
    EndScope
 END EndBuildProcedure ;
