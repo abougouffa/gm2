@@ -1,3 +1,10 @@
+2004-02-05	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed more constant subrange bugs.
+	* added new quad to delimit the start of declaration
+	  scope of a procedure.
+	* regression test failures reduced from 9 to 3.
+
 2004-01-03	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bugs in forward and previous references within gm2.texi

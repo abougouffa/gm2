@@ -63,6 +63,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     StartBuildInit,
                     EndBuildInit,
                     BuildProcedureStart,
+                    BuildProcedureBegin,
                     BuildProcedureEnd,
                     BuildAssignment,
       	       	    BuildLineNo,
@@ -1096,7 +1097,8 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration }                                          % BuildProcedureStart %
+ProcedureBlock :=                                                          % BuildProcedureStart %
+                  { Declaration }                                          % BuildProcedureBegin %
                                   [ "BEGIN"
                                             StatementSequence ]            % BuildLineNo %
                                                             "END"

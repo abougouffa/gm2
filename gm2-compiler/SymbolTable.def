@@ -123,6 +123,7 @@ EXPORT QUALIFIED NulSym,
                  PutModuleEndQuad,
                  PutProcedureStartQuad,
                  PutProcedureEndQuad,
+                 PutProcedureScopeQuad,
                  PutProcedureReachable,
                  PutVarReadQuad, RemoveVarReadQuad,
                  PutVarWriteQuad, RemoveVarWriteQuad,
@@ -982,6 +983,15 @@ PROCEDURE GetModuleQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 
 
 (*
+   PutProcedureScopeQuad - Places QuadNumber into the Procedure symbol, Sym.
+                           QuadNumber is the start quad of procedure,
+                           Sym.
+*)
+
+PROCEDURE PutProcedureScopeQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+
+
+(*
    PutProcedureStartQuad - Places QuadNumber into the Procedure symbol, Sym.
                            QuadNumber is the start quad of procedure,
                            Sym.
@@ -1003,7 +1013,7 @@ PROCEDURE PutProcedureEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
    GetProcedureQuads - Returns, Start and End, Quads of a procedure, Sym.
 *)
 
-PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR scope, start, end: CARDINAL) ;
 
 
 (*

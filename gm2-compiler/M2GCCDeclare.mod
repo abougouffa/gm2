@@ -928,10 +928,7 @@ BEGIN
       THEN
       END ;
    UNTIL (NOT ResolveConstantExpressions(ToDoConstants, start, end)) AND (n=NoOfItemsInList(ToDoConstants)) AND
-         (m=NoOfItemsInList(ToDoConstants));
-   IF DeclaredOutstandingTypes(TRUE, start, end)
-   THEN
-   END
+         (m=NoOfItemsInList(ToDoConstants)) ;
 END DeclareTypesAndConstantsInRange ;
 
 
@@ -941,12 +938,45 @@ END DeclareTypesAndConstantsInRange ;
 
 PROCEDURE DeclareTypesAndConstants (scope: CARDINAL) ;
 VAR
+   s, t,
+   n, m: CARDINAL ;
+   sb  : ScopeBlock ;
+BEGIN
+   sb := InitScopeBlock(scope) ;
+   REPEAT
+      s := NoOfItemsInList(ToDoList) ;
+      n := NoOfItemsInList(ToDoConstants) ;
+      ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
+      t := NoOfItemsInList(ToDoList) ;
+      m := NoOfItemsInList(ToDoConstants) ;
+   UNTIL (n=m) AND (s=t) ;
+   sb := KillScopeBlock(sb)
+END DeclareTypesAndConstants ;
+
+(*
+   AssertDeclareTypesAndConstantsInRange - 
+*)
+
+PROCEDURE AssertDeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
+BEGIN
+   IF DeclaredOutstandingTypes(TRUE, start, end)
+   THEN
+   END
+END AssertDeclareTypesAndConstantsInRange ;
+
+
+(*
+   AssertAllTypesDeclared - 
+*)
+
+PROCEDURE AssertAllTypesDeclared (scope: CARDINAL) ;
+VAR
    sb: ScopeBlock ;
 BEGIN
    sb := InitScopeBlock(scope) ;
-   ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
+   ForeachScopeBlockDo(sb, AssertDeclareTypesAndConstantsInRange) ;
    sb := KillScopeBlock(sb)
-END DeclareTypesAndConstants ;
+END AssertAllTypesDeclared ;
 
 
 (*
@@ -959,6 +989,7 @@ BEGIN
    THEN
       DeclareTypesInProcedure(scope) ;
       DeclareTypesAndConstants(scope) ;
+      AssertAllTypesDeclared(scope) ;
       DeclareLocalVariables(scope) ;
       ForeachProcedureDo(scope, DeclareProcedure)
    ELSE
@@ -966,6 +997,7 @@ BEGIN
       DeclareTypesAndConstants(scope) ;
       ForeachModuleDo(DeclareProcedure) ;
       (* now that all types have been resolved it is safe to declare variables *)
+      AssertAllTypesDeclared(scope) ;
       DeclareGlobalVariables(scope) ;
       ForeachImportedDo(scope, DeclareImportedVariables) ;
       (* now it is safe to declare all procedures *)

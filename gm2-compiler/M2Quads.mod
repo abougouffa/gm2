@@ -44,6 +44,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
                         PutProcedureStartQuad, PutProcedureEndQuad,
+                        PutProcedureScopeQuad,
                         PutVar, PutConstSet,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
@@ -417,7 +418,8 @@ VAR
    i: CARDINAL ;
 BEGIN
    WITH Quads[QuadNo] DO
-      RETURN( (Operator=NewLocalVarOp) OR (NoOfTimesReferenced>0) )
+      RETURN( (Operator=ProcedureScopeOp) OR (Operator=NewLocalVarOp) OR
+              (NoOfTimesReferenced>0) )
    END
 END IsReferenced ;
 
@@ -7043,8 +7045,9 @@ END CheckVariablesAndParameterTypesInBlock ;
 
 
 (*
-   BuildProcedureStart - Builds start of the procedure. Creates space for
-                         the local variables.
+   BuildProcedureStart - Builds start of the procedure. Generates a
+                         quadruple which indicated the start of
+                         this procedure declarations scope.
                          The Stack is expected to contain:
 
 
@@ -7061,10 +7064,45 @@ END CheckVariablesAndParameterTypesInBlock ;
 
                         Quadruples:
 
-                        q   NewLocalVarOp  Line#  _  ProcSym
+                        q   ProcedureScopeOp  Line#  Scope  ProcSym
 *)
 
 PROCEDURE BuildProcedureStart ;
+VAR
+   ProcSym: CARDINAL ;
+BEGIN
+   BuildLineNo ;
+   PopT(ProcSym) ;
+   Assert(IsProcedure(ProcSym)) ;
+   PutProcedureScopeQuad(ProcSym, NextQuad) ;
+   GenQuad(ProcedureScopeOp, GetPreviousTokenLineNo(), GetScope(ProcSym), ProcSym) ;
+   PushT(ProcSym)
+END BuildProcedureStart ;
+
+
+(*
+   BuildProcedureBegin - determines the start of the BEGIN END block of
+                         the procedure.
+                         The Stack is expected to contain:
+
+
+                         Entry                   Exit
+                         =====                   ====
+
+                 Ptr ->                                       <- Ptr
+                        +------------+          +-----------+
+                        | ProcSym    |          | ProcSym   |
+                        |------------|          |-----------|
+                        | Name       |          | Name      |
+                        |------------|          |-----------|
+
+
+                        Quadruples:
+
+                        q   NewLocalVarOp  _  _  ProcSym
+*)
+
+PROCEDURE BuildProcedureBegin ;
 VAR
    ProcSym: CARDINAL ;
 BEGIN
@@ -7076,7 +7114,7 @@ BEGIN
    CurrentProc := ProcSym ;
    Push(ReturnStack, 0) ;
    PushT(ProcSym)
-END BuildProcedureStart ;
+END BuildProcedureBegin ;
 
 
 (*
@@ -7430,13 +7468,14 @@ END CheckUninitializedVariablesAreUsed ;
 
 PROCEDURE AsmStatementsInBlock (BlockSym: CARDINAL) : BOOLEAN ;
 VAR
+   Scope,
    Start, End   : CARDINAL ;
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
 BEGIN
    IF IsProcedure(BlockSym)
    THEN
-      GetProcedureQuads(BlockSym, Start, End)
+      GetProcedureQuads(BlockSym, Scope, Start, End)
    ELSE
       GetModuleQuads(BlockSym, Start, End)
    END ;
@@ -7477,12 +7516,13 @@ PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ;
 VAR
    Op           : QuadOperator ;
    Op1, Op2, Op3,
+   Scope,
    Start, End   : CARDINAL ;
 BEGIN
    IF GetType(ProcSym)#NulSym
    THEN
       (* yes it is a function *)
-      GetProcedureQuads(ProcSym, Start, End) ;
+      GetProcedureQuads(ProcSym, Scope, Start, End) ;
       GetQuad(Start, Op, Op1, Op2, Op3) ;
       IF Start=0
       THEN
@@ -9438,6 +9478,7 @@ BEGIN
       CallOp,
       KillLocalVarOp    : WriteOperand(Operand3) |
 
+      ProcedureScopeOp,
       NewLocalVarOp,
       EndOp,
       StartOp           : printf3('  %4d  %a  %a', Operand1, GetSymName(Operand2), GetSymName(Operand3)) |
@@ -9542,6 +9583,7 @@ BEGIN
    OptParamOp               : printf0('OptParam         ') |
    NewLocalVarOp            : printf0('NewLocalVar      ') |
    KillLocalVarOp           : printf0('KillLocalVar     ') |
+   ProcedureScopeOp         : printf0('ProcedureScope   ') |
    UnboundedOp              : printf0('Unbounded        ') |
    CoerceOp                 : printf0('Coerce           ') |
    ConvertOp                : printf0('Convert          ') |

@@ -41,6 +41,7 @@ FROM SymbolTable IMPORT GetSymName,
                         GetSubrange,
                         PutProcedureReachable, IsProcedureReachable,
                         PutProcedureStartQuad, PutProcedureEndQuad,
+                        PutProcedureScopeQuad,
                         IsProcedure,
                         GetDeclared, GetFirstUsed,
                         GetNth, NoOfElements, GetType,
@@ -342,6 +343,7 @@ END RemoveProcedures ;
 
 PROCEDURE MakeExportedProceduresReachable ;
 VAR
+   Scope,
    Start,
    End,
    n, m,
@@ -360,7 +362,7 @@ BEGIN
                (NOT IsProcedureReachable(Proc))
             THEN
                PutProcedureReachable(Proc) ;
-               GetProcedureQuads(Proc, Start, End) ;
+               GetProcedureQuads(Proc, Scope, Start, End) ;
                KnownReachable(Start, End)
             END ;
             INC(n) ;
@@ -453,6 +455,7 @@ END KnownReachable ;
 
 PROCEDURE KnownReach (Sym: CARDINAL) ;
 VAR
+   Scope,
    Start,
    End  : CARDINAL ;
 BEGIN
@@ -462,7 +465,7 @@ BEGIN
       THEN
          (* Not reachable at present - therefore make it reachable *)
          PutProcedureReachable(Sym) ;
-         GetProcedureQuads(Sym, Start, End) ;
+         GetProcedureQuads(Sym, Scope, Start, End) ;
          KnownReachable(Start, End)
       END
    END
@@ -476,6 +479,7 @@ END KnownReach ;
 PROCEDURE DeleteUnReachableProcedures ;
 VAR
    n, m,
+   Scope,
    Start,
    End,
    Module,
@@ -496,11 +500,12 @@ BEGIN
             ELSE
                qprintf1('[%a]\n', GetSymName(Proc)) ;
 
-               GetProcedureQuads(Proc, Start, End) ;
+               GetProcedureQuads(Proc, Scope, Start, End) ;
                IF Start#0
                THEN
-                  Delete(Start, End) ;
+                  Delete(Scope, End) ;
                   (* No Longer any Quads for this Procedure *)
+                  PutProcedureScopeQuad(Proc, 0) ;
                   PutProcedureStartQuad(Proc, 0) ;
                   PutProcedureEndQuad(Proc, 0)
                END
@@ -559,6 +564,7 @@ END Delete ;
 PROCEDURE DisplayReachable ;
 VAR
    n, m,
+   Scope,
    Start,
    End,
    Module,
@@ -576,7 +582,7 @@ BEGIN
          Proc := GetNthProcedure(Module, n) ;
          WHILE Proc#NulSym DO
             WriteString('Procedure ') ; WriteKey(GetSymName(Proc)) ;
-            GetProcedureQuads(Proc, Start, End) ;
+            GetProcedureQuads(Proc, Scope, Start, End) ;
             WriteString(' Quads: ') ; WriteCard(Start, 6) ; WriteCard(End, 6) ;
             IF NOT IsProcedureReachable(Proc)
             THEN

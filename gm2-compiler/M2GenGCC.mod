@@ -279,6 +279,7 @@ PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedu
 PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDINAL); FORWARD ;
 PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL); FORWARD ;
 PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
 PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldAdd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -409,6 +410,7 @@ BEGIN
    EndOp              : CodeEnd(q, op1, op2, op3, CompilingMainModule) |
    NewLocalVarOp      : CodeNewLocalVar(q, op1, op2, op3) |
    KillLocalVarOp     : CodeKillLocalVar(q, op1, op2, op3) |
+   ProcedureScopeOp   : CodeProcedureScope(q, op1, op2, op3) |
    ReturnOp           : CodeReturn(q, op1, op2, op3) |
    ReturnValueOp      : CodeReturnValue(q, op1, op2, op3) |
    DummyOp            : |
@@ -933,9 +935,9 @@ END MakeCopyAndUse ;
 
 PROCEDURE IsUnboundedWrittenTo (proc, param: CARDINAL) : BOOLEAN ;
 VAR
-   start, end: CARDINAL ;
+   scope, start, end: CARDINAL ;
 BEGIN
-   GetProcedureQuads(proc, start, end) ;
+   GetProcedureQuads(proc, scope, start, end) ;
    RETURN( TRUE )
 END IsUnboundedWrittenTo ;
 
@@ -991,12 +993,6 @@ END SaveNonVarUnboundedParameters ;
 
 PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
-   ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-   SetFileNameAndLineNo(string(FileName), LineNo) ;
-   BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
-                          IsExported(GetMainModule(), CurrentProcedure)) ;
-   StartDeclareScope(CurrentProcedure) ;
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(CurrentProcedure) ;
    EmitLineNote(string(FileName), LineNo)
@@ -1016,6 +1012,21 @@ BEGIN
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)
 END CodeKillLocalVar ;
+
+
+(*
+   CodeProcedureScope -
+*)
+
+PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
+BEGIN
+   ModuleName := KillString(ModuleName) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
+   SetFileNameAndLineNo(string(FileName), LineNo) ;
+   BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
+                          IsExported(GetMainModule(), CurrentProcedure)) ;
+   StartDeclareScope(CurrentProcedure)
+END CodeProcedureScope ;
 
 
 (*
@@ -3265,7 +3276,7 @@ VAR
    t: Tree ;
 BEGIN
    (* we do not create labels for procedure entries *)
-   IF (op#NewLocalVarOp) AND IsReferenced(q)
+   IF (op#ProcedureScopeOp) AND (op#NewLocalVarOp) AND IsReferenced(q)
    THEN
       t := DeclareLabel(string(CreateLabelName(q)))
    END

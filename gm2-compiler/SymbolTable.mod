@@ -217,6 +217,7 @@ TYPE
                  OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
                  IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
                  BuiltinName   : Name ;       (* name of equivalent builtin    *)
+                 ScopeQuad     : CARDINAL ;   (* Index into quads for scope    *)
                  StartQuad     : CARDINAL ;   (* Index into quads for start    *)
                                               (* of procedure.                 *)
                  EndQuad       : CARDINAL ;   (* Index into quads for end of   *)
@@ -6172,6 +6173,26 @@ END GetModuleQuads ;
 
 
 (*
+   PutProcedureScopeQuad - Places QuadNumber into the Procedure symbol, Sym.
+                           QuadNumber is the start quad of scope for procedure,
+                           Sym.
+*)
+
+PROCEDURE PutProcedureScopeQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.ScopeQuad := QuadNumber
+
+      ELSE
+         InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutProcedureScopeQuad ;
+
+
+(*
    PutProcedureStartQuad - Places QuadNumber into the Procedure symbol, Sym.
                            QuadNumber is the start quad of procedure,
                            Sym.
@@ -6215,14 +6236,15 @@ END PutProcedureEndQuad ;
    GetProcedureQuads - Returns, Start and End, Quads of a procedure, Sym.
 *)
 
-PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR scope, start, end: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ProcedureSym: WITH Procedure DO
-                       Start := StartQuad ;
-                       End := EndQuad
+                       scope := ScopeQuad ;
+                       start := StartQuad ;
+                       end := EndQuad
                     END
 
       ELSE

@@ -45,6 +45,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildNulParam, BuildProcedureCall,
                  BuildFunctionCall, BuildConstFunctionCall,
                  BuildProcedureStart, BuildProcedureEnd,
+                 BuildProcedureBegin,
                  BuildReturn,
                  BuildBooleanVariable,
                  BuildSizeCheckStart,
@@ -115,7 +116,7 @@ TYPE
                    IfEquOp, IfLessEquOp, IfGreEquOp, IfGreOp, IfLessOp,
                    IfNotEquOp, IfInOp, IfNotInOp,
                    CallOp, ParamOp, OptParamOp, ReturnOp, ReturnValueOp, FunctValueOp,
-                   NewLocalVarOp, KillLocalVarOp,
+                   NewLocalVarOp, KillLocalVarOp, ProcedureScopeOp,
                    DummyOp,
                    GotoOp, EndOp, StartOp,
                    NegateOp, AddOp, SubOp, DivOp, MultOp, ModOp,
@@ -1311,6 +1312,31 @@ PROCEDURE BuildBooleanVariable ;
 *)
 
 PROCEDURE BuildProcedureStart ;
+
+
+(*
+   BuildProcedureBegin - determines the start of the BEGIN END block of
+                         the procedure.
+                         The Stack is expected to contain:
+
+
+                         Entry                   Exit
+                         =====                   ====
+
+                 Ptr ->                                       <- Ptr
+                        +------------+          +-----------+
+                        | ProcSym    |          | ProcSym   |
+                        |------------|          |-----------|
+                        | Name       |          | Name      |
+                        |------------|          |-----------|
+
+
+                        Quadruples:
+
+                        q   BeginOp  _  _  ProcSym
+*)
+
+PROCEDURE BuildProcedureBegin ;
 
 
 (*

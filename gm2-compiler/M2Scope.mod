@@ -20,6 +20,7 @@ IMPLEMENTATION MODULE M2Scope ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads ;
 FROM M2Quads IMPORT QuadOperator, Head, GetNextQuad, GetQuad ;
+FROM M2Stack IMPORT Stack, InitStack, KillStack, Pop, Push, Peep ;
 
 
 TYPE
@@ -62,50 +63,140 @@ END Dispose ;
 
 
 (*
+   AddToRange - returns a ScopeBlock pointer to the last block. The,
+                quad, will be added to the end of sb or a later block
+                if First is TRUE.
+*)
+
+PROCEDURE AddToRange (sb: ScopeBlock;
+                      First: BOOLEAN; quad: CARDINAL) : ScopeBlock ;
+BEGIN
+   IF First
+   THEN
+      sb^.next := InitScopeBlock(0) ;
+      sb := sb^.next
+   END ;
+   IF sb^.low=0
+   THEN
+      sb^.low := quad
+   END ;
+   sb^.high := quad ;
+   RETURN( sb )
+END AddToRange ;
+
+
+(*
    GetGlobalQuads - 
 *)
 
-PROCEDURE GetGlobalQuads (sb: ScopeBlock) ;
+PROCEDURE GetGlobalQuads (sb: ScopeBlock) : ScopeBlock ;
 VAR
+   nb           : ScopeBlock ;
+   NestedLevel,
    i            : CARDINAL ;
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
-   First,
-   InProcedure  : BOOLEAN ;
+   First        : BOOLEAN ;
 BEGIN
-   InProcedure := FALSE ;
+   NestedLevel := 0 ;
    First := FALSE ;
    i := Head ;
+   nb := sb ;
    sb^.low := 0 ;
    sb^.high := 0 ;
    WHILE i#0 DO
       GetQuad(i, op, op1, op2, op3) ;
-      IF op=NewLocalVarOp
+      IF op=ProcedureScopeOp
       THEN
-         InProcedure := TRUE
+         INC(NestedLevel)
       ELSIF op=ReturnOp
       THEN
-         InProcedure := FALSE ;
-         First := TRUE
-      ELSE
-         IF NOT InProcedure
+         IF NestedLevel>0
          THEN
-            IF First
-            THEN
-               First := FALSE ;
-               sb^.next := InitScopeBlock(0) ;
-               sb := sb^.next
-            END ;
-            IF sb^.low=0
-            THEN
-               sb^.low := i
-            END ;
-            sb^.high := i
+            DEC(NestedLevel)
+         END ;
+         IF NestedLevel=0
+         THEN
+            First := TRUE
+         END
+      ELSE
+         IF NestedLevel=0
+         THEN
+            nb := AddToRange(nb, First, i) ;
+            First := FALSE
          END
       END ;
       i := GetNextQuad(i)
-   END
+   END ;
+   RETURN( sb )
 END GetGlobalQuads ;
+
+
+(*
+   GetProcQuads - 
+*)
+
+PROCEDURE GetProcQuads (sb: ScopeBlock;
+                        proc: CARDINAL) : ScopeBlock ;
+VAR
+   nb           : ScopeBlock ;
+   scope, start,
+   end, i, last : CARDINAL ;
+   op           : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
+   First        : BOOLEAN ;
+   s            : Stack ;
+BEGIN
+   s := InitStack() ;
+   GetProcedureQuads(proc, scope, start, end) ;
+   Push(s, 0) ;
+   First := FALSE ;
+   i := scope ;
+   last := scope ;
+   nb := sb ;
+   sb^.low := scope ;
+   sb^.high := 0 ;
+   WHILE (i<=end) AND (start#0) DO
+      GetQuad(i, op, op1, op2, op3) ;
+      IF op=ProcedureScopeOp
+      THEN
+         IF Peep(s, 1)=proc
+         THEN
+            nb := AddToRange(nb, First, last) ;
+            First := FALSE
+         END ;
+         Push(s,  op3)
+      ELSIF op=ReturnOp
+      THEN
+         op3 := Pop(s) ;
+         IF Peep(s, 1)=proc
+         THEN
+            First := TRUE
+         END
+      ELSE
+         IF Peep(s, 1)=proc
+         THEN
+            nb := AddToRange(nb, First, i) ;
+            First := FALSE
+         END
+      END ;
+      last := i ;
+      i := GetNextQuad(i)
+   END ;
+   IF start<=nb^.high
+   THEN
+      nb^.high := end
+   ELSE
+      nb^.next := InitScopeBlock(0) ;
+      nb := nb^.next ;
+      WITH nb^ DO
+         low := start ;
+         high := end
+      END
+   END ;
+   s := KillStack(s) ;
+   RETURN( sb )
+END GetProcQuads ;
 
 
 (*
@@ -126,9 +217,9 @@ BEGIN
       ELSE
          IF IsProcedure(scope)
          THEN
-            GetProcedureQuads(scope, low, high)
+            sb := GetProcQuads(sb, scope)
          ELSE
-            GetGlobalQuads(sb)
+            sb := GetGlobalQuads(sb)
          END
       END
    END ;

@@ -19,9 +19,10 @@ IMPLEMENTATION MODULE SymbolConversion ;
 FROM NameKey IMPORT Name ;
 FROM SymbolKey IMPORT SymbolTree, GetSymKey, PutSymKey, DelSymKey, InitTree, NulKey ;
 FROM M2Error IMPORT InternalError ;
-FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved ;
+FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName ;
 FROM M2ALU IMPORT PushIntegerTree ;
 FROM gccgm2 IMPORT GetErrorNode, RememberConstant ;
+FROM M2Printf IMPORT printf1 ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -60,6 +61,7 @@ BEGIN
    tr := Tree(GetSymKey(mod2gcc, Name(sym))) ;
    IF tr=PoisonedSymbol
    THEN
+      printf1('name of poisoned symbol was (%a)\n', GetSymName(sym)) ;
       InternalError('attempting to use a gcc symbol which is no longer in scope', __FILE__, __LINE__)
    END ;
    RETURN( tr )

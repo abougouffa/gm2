@@ -26,6 +26,7 @@ FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
 
 FROM M2Students IMPORT StudentVariableCheck ;
 FROM SymbolTable IMPORT GetMainModule, IsProcedure, ForeachProcedureDo ;
+FROM M2Printf IMPORT printf2 ;
 
 FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubrangesAndOptParam, VariableAnalysis,
@@ -323,6 +324,19 @@ END OptimizeScopeBlock ;
 
 
 (*
+   DisplayQuadNumbers - the range, start..end.
+*)
+
+PROCEDURE DisplayQuadNumbers (start, end: CARDINAL) ;
+BEGIN
+   IF DisplayQuadruples
+   THEN
+      printf2('Coding [%d..%d]\n', start, end)
+   END
+END DisplayQuadNumbers ;
+
+
+(*
    CodeBlock - generates all code for this block and also declares all types and procedures for
                this block. It will also optimize quadruples within this scope.
 *)
@@ -341,19 +355,22 @@ BEGIN
    THEN
       ForeachScopeBlockDo(sb, DisplayQuadRange)
    END ;
+   ForeachScopeBlockDo(sb, DisplayQuadNumbers) ;
    IF IsProcedure(scope)
    THEN
       DeclareProcedure(scope) ;
       IF DisplayQuadruples
       THEN
-         ForeachScopeBlockDo(sb, DisplayQuadRange)
+         WriteString('before coding') ; WriteLn ;
+         DisplayQuadList(Head)
       END ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree)
    ELSE
       StartDeclareScope(scope) ;
       IF DisplayQuadruples
       THEN
-         ForeachScopeBlockDo(sb, DisplayQuadRange)
+         WriteString('before coding') ; WriteLn ;
+         DisplayQuadList(Head)
       END ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
       ForeachProcedureDo(scope, CodeBlock)
