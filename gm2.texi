@@ -176,7 +176,7 @@ nested module initialization
 pointers
 
 @item
-front end @samp{gcc} can now compile and link modules.
+front end @samp{gm2} can now compile and link modules.
 
 @end itemize
 

@@ -82,7 +82,9 @@ static int convert_into_m2path (char *incl)
   if (newm2path != NULL) {
     int i=2;  /* skip -I */
 
-    strcpy(newm2path, m2path);
+    if (m2path != NULL) {
+      strcpy(newm2path, m2path);
+    }
     if (l>0) {
       if (j>0) {
 	newm2path[j] = ' ';

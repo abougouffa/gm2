@@ -47,7 +47,7 @@ A simple test
 
 you should be able to perform:
 
-   ./xgcc -B./x -S -g -c -Igm2/m2/comp/libs foo.mod
+   ./xgm2 -B./x -S -g -c -Igm2/m2/comp/libs foo.mod
 
 Building m2f
 ============
