@@ -96,19 +96,11 @@ possible and utilized a C structure for dynamic arrays.
 @node Compiler options, Example usage, History, Using
 @section Compiler options
 
-This sections describe the compiler options specific to GNU Modula-2 for
+This section describe the compiler options specific to GNU Modula-2 for
 generic flags details see
 @xref{Invoking GCC, , ,gcc}.
 
 @table @code
-
-@item -M
-to include directories into the search path of the compiler either the
-conventional @samp{-I} option can be applied or alternatively the
-Modula-2 @samp{-M} option can be used. For example:
-@example
--M "libs somedir ."
-@end example
 
 @item -Wbounds
 generate code to check the bounds of subranges and array indexes.
@@ -168,6 +160,7 @@ order of modules.
 @end table
 
 @node Example usage, Extensions, Compiler options, Using
+@section Example compile and link
 
 This section describes how to compiler and link a simple hello world program.
 It provides a few examples of using the different options mentioned in
@@ -190,8 +183,13 @@ You should be able to compile it by:
 and link via:
 @samp{gm2 -g hello.mod}.
 The result should be an @samp{a.out} file created in your directory.
+Hint, the
+@samp{-v} displays the subprocesses initiated by
+@samp{gm2}.
+This can be useful when trouble shooting.
 
 @node Extensions, Interface to C, Example usage, Using
+@section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
 The GNU Modula-2 compiler allows abstract data types to be
@@ -224,11 +222,12 @@ END colour.
 @end example
 
 @node Interface to C, Assembly language, Extensions, Using
+@section Interfacing GNU Modula-2 to C
 
 The GNU Modula-2 compiler tries to use the C calling convention wherever
 possible however some parameters have no C equivalent and
 thus a language specific method is used. For example unbounded
-arrays are passed as a @code{struct void *address, unsigned int noelements }
+arrays are passed as a @code{struct void *address, unsigned int high }
 and the contents of these arrays are copied by callee functions
 when they are declared as non @code{VAR} parameters.
 The @code{VAR} equivalent unbounded array parameters need no copy,
@@ -254,7 +253,7 @@ The @code{UNQUALIFIED} keyword tells GNU Modula-2 not to prefix the module name
 to this identifier when emiting the assembly language.
 
 @node Assembly language, , Interface to C, Using
-@section Assembly language
+@section Interface to assembly language
 
 The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
 The only alterations are that the keywords asm and volatile are in capitals,
@@ -288,7 +287,7 @@ Modula-2 compiler and how it integrates with GCC.
 The document is still in it's infancy.
 
 @menu
-* Integrating::       How m2f is integrated with gcc.
+* Integrating::       How the front end integrates with gcc.
 * Practicalities::    Overview of how m2f is built.
 * Future::            A future wish list.
 * Done list::         Progression of the GNU Modula-2 project.
@@ -296,8 +295,10 @@ The document is still in it's infancy.
 @end menu
 
 @node Integrating, Practicalities, ,Internals
-@section Integrating m2f with gcc
+@section How the front end integrates with gcc
 
+This section needs rewriting and is currently out of date
+(--fixme-- 20/9/2000).
 We need to convert the quadruples into tree structure and also
 declare variables, functions, modules, types seemingly at the
 same time. The m2f native code generators all took the quadruples
@@ -325,6 +326,7 @@ Lists of quadruples are turned into trees and passed onto GCC.
 @node Practicalities, Future, Integrating, Internals
 @section Practicalities
 
+(Also out of date --fixme--).
 For the moment the directory gm2/m2 will contain the Modula-2
 source code for front end m2f. The m2f compiler will be built
 during stage1, stage2, stage3 in line with gcc. We introduce
@@ -345,7 +347,7 @@ modules containing base types and system types respectively are also
 rewritten to utilize the GCC backend data types.
 
 @node Future, Done list, Practicalities, Internals
-@section Future
+@section A future wish list
 
 In the future it might be sensible to rewrite M2Quads.mod to
 directly call gcc routines, rather than generate quadruples.
