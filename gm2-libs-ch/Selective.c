@@ -128,6 +128,11 @@ void *Selective_KillTime (void *t)
   return NULL;
 }
 
+fd_set *Selective_InitSet (void)
+{
+  return NULL;
+}
+
 void Selective_FdZero (void *s)
 {
 }

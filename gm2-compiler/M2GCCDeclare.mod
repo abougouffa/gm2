@@ -67,7 +67,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsVarParam, IsRecordField, IsUnboundedParam,
                         IsValueSolved,
       	       	     	GetMainModule, GetBaseModule, GetModule,
-                        IsAModula2Type,
+                        IsAModula2Type, UsesVarArgs,
                         GetSymName,
                         GetDeclared,
                         GetString, GetStringLength, IsConstString,
@@ -859,7 +859,7 @@ BEGIN
        IsImported(GetBaseModule(), Sym) OR IsImported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
-      BuildStartFunctionDeclaration ;
+      BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
       p := NoOfParam(Sym) ;
       i := p ;
       WHILE i>0 DO
@@ -1528,7 +1528,7 @@ VAR
 BEGIN
    ReturnType := GetType(Sym) ;
    func := DoStartDeclaration(Sym, BuildStartFunctionType) ;
-   InitFunctionTypeParameters ;
+   InitFunctionTypeParameters(UsesVarArgs(Sym)) ;
    p := NoOfParam(Sym) ;
    i := p ;
    Assert(PushParametersLeftToRight) ;

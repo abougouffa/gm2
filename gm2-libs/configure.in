@@ -30,7 +30,19 @@ AC_CHECK_FUNCS(rand)
 AC_CHECK_FUNCS(fstat)
 AC_CHECK_FUNCS(select)
 
-AC_CHECK_TYPE(stat, timeval)
+dnl
+dnl  now check for specific types
+dnl
 
-# AC_CONFIG_FILES([])
+AC_CACHE_CHECK([for timeval],HAVE_TIMEVAL,[
+AC_TRY_COMPILE([
+#include <sys/types.h>
+#include <sys/time.h>
+],
+[struct timeval tbuf; tbuf.tv_sec = 0; tbuf.tv_usec = 1; exit(0);],
+HAVE_TIMEVAL=yes,HAVE_TIMEVAL=no,)])
+if test x"$HAVE_TIMEVAL" = x"yes"; then
+    AC_DEFINE(HAVE_TIMEVAL, 1, [have found timeval in sys/time.h])
+fi
+
 AC_OUTPUT

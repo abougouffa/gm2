@@ -610,7 +610,7 @@ PROCEDURE BuildEndFunctionType (func, value: Tree) : Tree ;
    InitFunctionTypeParameters - resets the current function type parameter list.
 *)
 
-PROCEDURE InitFunctionTypeParameters ;
+PROCEDURE InitFunctionTypeParameters (usesVarArgs: BOOLEAN) ;
 
 
 (*
@@ -628,7 +628,7 @@ PROCEDURE BuildParameterDeclaration (name: ADDRESS; type: Tree; isreference: BOO
                                    a function declaration.
 *)
 
-PROCEDURE BuildStartFunctionDeclaration ;
+PROCEDURE BuildStartFunctionDeclaration (usesVarArgs: BOOLEAN) ;
 
 
 (*
