@@ -464,7 +464,7 @@ gm2-libs-boot/%.o: gm2-libs-boot/%.mod
 gm2-libs-boot/%.h: gm2-libs-boot/%.def
 	$(P2C) gm2-libs-boot/$*.def -o gm2-libs-boot/$*.H
 	mv $*.h gm2-libs-boot/$*.h
-	if [ -L gm2-libs-boot/$*.mod ] ; then \
+	if [ -h gm2-libs-boot/$*.mod ] ; then \
            cp gm2-libs-boot/$*.h gm2-libs-boot/$*.H ; \
         fi
 
@@ -488,7 +488,7 @@ gm2-compiler-boot/%.o: gm2-compiler-boot/%.c
 gm2-compiler-boot/%.h: gm2-compiler-boot/%.def
 	$(P2C) gm2-compiler-boot/$*.def -o gm2-compiler-boot/$*.H
 	mv $*.h gm2-compiler-boot/$*.h
-	if [ -L gm2-compiler-boot/$*.mod -o -f gm2-compiler-boot/$*.mod ] ; then \
+	if [ -h gm2-compiler-boot/$*.mod -o -f gm2-compiler-boot/$*.mod ] ; then \
            cp gm2-compiler-boot/$*.h gm2-compiler-boot/$*.H ; \
         fi
 
@@ -555,7 +555,7 @@ build-compiler-boot: $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
 gm2-compiler-boot:
 	@mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
 	for i in $(GM2-COMP-BOOT-DEFS) $(GM2-COMP-BOOT-MODS) ; do \
-           if [ -L $$i ] ; then \
+           if [ -h $$i ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -620,7 +620,7 @@ gm2-libs:
 gm2-compiler:
 	@mkdir gm2-compiler ; cd gm2-compiler ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -L $$i ] ; then \
+           if [ -h $$i ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -695,7 +695,7 @@ gm2-libs-paranoid:
 gm2-compiler-paranoid:
 	@mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -L $$i ] ; then \
+           if [ -h $$i ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -807,7 +807,7 @@ gm2-compiler-verify:
 	$(RM) SYSTEM.def ; \
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -L $$i ] ; then \
+           if [ -h $$i ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
