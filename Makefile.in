@@ -260,7 +260,7 @@ gm2tools: force
                stage1.gcctools )
 
 gm2test: force
-	../cc1gm2 -O -q -M "m2/comp/autotest/gm2 m2/comp/libs" -c -version -g -o - gcd
+	../cc1gm2 -O2 -q -M "m2/comp/autotest/gm2 m2/comp/libs" -c -version -g -o - gcd
 
 clean: force
 	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux
