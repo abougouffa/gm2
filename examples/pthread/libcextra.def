@@ -34,7 +34,7 @@ VAR
 
 
 PROCEDURE exit (r: INTEGER) ;
-PROCEDURE fprintf (f: FILE; s: ADDRESS; ...) ;
+PROCEDURE fprintf (f: FILE; s: ARRAY OF CHAR; ...) ;
 PROCEDURE sleep (s: INTEGER) ;
 
 

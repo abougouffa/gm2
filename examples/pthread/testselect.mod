@@ -39,7 +39,7 @@ CONST
 
 PROCEDURE die (str: ARRAY OF CHAR) ;
 BEGIN
-   fprintf(stderr, string(InitString("**die: %s: errno=%d\n")), string(InitString(str)), errno) ;
+   fprintf(stderr, "**die: %s: errno=%d\n", string(InitString(str)), errno) ;
    exit(1)
 END die ;
 
@@ -48,10 +48,10 @@ PROCEDURE ticker (arg: ADDRESS) : ADDRESS ;
 VAR
    c: CARDINAL ;
 BEGIN
-   fprintf(stderr, string(Sprintf0(InitString("ticker: start\n"))));
+   fprintf(stderr, "ticker: start\n");
    LOOP
       c := pth_sleep(5);
-      fprintf(stderr, string(Sprintf0(InitString("ticker was woken up on %s\n"))), strtime());
+      fprintf(stderr, "ticker was woken up on %s\n", strtime());
    END ;
    RETURN NIL
 END ticker ;
@@ -68,44 +68,42 @@ VAR
 BEGIN
    i := pth_init() ;
 
-   fprintf(stderr, string(Sprintf0(InitString("This is TEST_SELECT, a Pth test using select.\n"))));
-   fprintf(stderr, string(Sprintf0(InitString("\n"))));
-   fprintf(stderr, string(Sprintf0(InitString("Enter data. Hit CTRL-C to stop this test.\n"))));
-   fprintf(stderr, string(Sprintf0(InitString("\n"))));
+   fprintf(stderr, "This is TEST_SELECT, a Pth test using select.\n\n");
+   fprintf(stderr, "Enter data. Hit CTRL-C to stop this test.\n\n");
 
    t_attr := pth_attr_new();
    i := pth_attr_set(t_attr, PTH_ATTR_NAME, "ticker");
    t_ticker := pth_spawn(t_attr, ticker, NIL);
-   fprintf(stderr, string(Sprintf0(InitString("main: after spawn\n"))));
+   fprintf(stderr, "main: after spawn\n");
    i := pth_attr_destroy(t_attr);
    i := pth_yield(NIL);
 
-   fprintf(stderr, string(Sprintf0(InitString("main: before loop\n"))));
+   fprintf(stderr, "main: before loop\n");
    rfds := InitSet() ;
    evt := NIL;
    LOOP
-      fprintf(stderr, string(Sprintf0(InitString("main: in loop\n"))));
+      fprintf(stderr, "main: in loop\n");
       IF evt = NIL
       THEN
          evt := pth_event(CARDINAL(PTH_EVENT_TIME), pth_timeout(10,0))
       ELSE
          evt := pth_event(CARDINAL(PTH_EVENT_TIME+PTH_MODE_REUSE), evt, pth_timeout(10,0))
       END ;
-      fprintf(stderr, string(Sprintf0(InitString("main: after event\n"))));
+      fprintf(stderr, "main: after event\n");
       FdZero(rfds);
       FdSet(STDIN_FILENO, rfds);
       n := pth_select_ev(STDIN_FILENO+1, rfds, NIL, NIL, NIL, evt);
       IF (n = -1) AND (errno = EINTR)
       THEN
-         fprintf(stderr, string(Sprintf0(InitString("main: timeout - repeating\n"))))
+         fprintf(stderr, "main: timeout - repeating\n")
       ELSE
          IF NOT FdIsSet(STDIN_FILENO, rfds)
          THEN
             die("main: Hmmmm... strange situation: bit not set\n")
          END ;
-         fprintf(stderr, string(Sprintf0(InitString("main: select returned %d\n"))), n);
+         fprintf(stderr, "main: select returned %d\n", n);
          WHILE pth_read(STDIN_FILENO, ADR(c), 1) > 0 DO
-            fprintf(stderr, string(Sprintf0(InitString("main: read stdin '%c'\n"))), c)
+            fprintf(stderr, "main: read stdin '%c'\n", c)
          END
       END
    END
