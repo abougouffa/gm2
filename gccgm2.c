@@ -8277,16 +8277,22 @@ tree
 gccgm2_BuildParameterDeclaration (name, type, isreference)
      char *name;
      tree  type;
-     int   isreference ATTRIBUTE_UNUSED;
+     int   isreference;
 {
   tree parm_decl;
 
   layout_type (type);
+  if (isreference) {
+    type = build_reference_type (type);
+  }
   if ((name != NULL) && (strcmp(name, "") != 0)) {
     /* creating a function with parameters */
     parm_decl = build_decl (PARM_DECL, get_identifier (name), type);
     DECL_ARG_TYPE (parm_decl) = type;
     param_list = chainon (parm_decl, param_list);
+    layout_type (parm_decl);  /* testing (gaius) */
+    layout_type (type);  /* testing (gaius) */
+    printf("making parameter %s known to gcc\n", name);
     param_type_list = tree_cons (NULL_TREE, type, param_type_list);
     return( parm_decl );
   } else {
@@ -8356,8 +8362,9 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
  */
 
 void
-gccgm2_BuildStartFunctionCode (fndecl)
+gccgm2_BuildStartFunctionCode (fndecl, isexported)
      tree fndecl;
+     int  isexported;
 {
   tree param_decl, next_param;
 
@@ -8392,13 +8399,9 @@ gccgm2_BuildStartFunctionCode (fndecl)
   DECL_ARGUMENTS (fndecl) = getdecls ();
   /* This function exists in static storage.
      (This does not mean `static' in the C sense!)  */
-  TREE_STATIC (fndecl) = 1;
-  /*
-   *  this should only be done if the function is exported
-   *  --fixme-- gaius
-   */
-  TREE_PUBLIC (fndecl) = 1;
-  TREE_ADDRESSABLE(fndecl) = 1;
+  TREE_STATIC (fndecl)     = 1;
+  TREE_PUBLIC (fndecl)     = isexported;
+  TREE_ADDRESSABLE(fndecl) = 1;   /* could be improved, if we want inline it make this a 0 */
 
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
@@ -8671,6 +8674,74 @@ gccgm2_BuildNegate (op1, needconvert)
      int  needconvert;
 {
   return( build_unary_op (NEGATE_EXPR, op1, needconvert) );
+}
+
+
+/*
+ *  gm2_sizeof - taken from c-typeck.c (c_sizeof).
+ */
+
+tree
+gm2_sizeof (type)
+     tree type;
+{
+  enum tree_code code = TREE_CODE (type);
+  tree t;
+
+  if (code == FUNCTION_TYPE)
+    {
+      if (pedantic || warn_pointer_arith)
+	pedwarn ("sizeof applied to a function type");
+      return size_int (1);
+    }
+  if (code == VOID_TYPE)
+    {
+      if (pedantic || warn_pointer_arith)
+	pedwarn ("sizeof applied to a void type");
+      return size_int (1);
+    }
+  if (code == ERROR_MARK)
+    return size_int (1);
+  if (TYPE_SIZE (type) == 0)
+    {
+      error ("sizeof applied to an incomplete type");
+      return size_int (0);
+    }
+
+  /* Convert in case a char is more than one unit.  */
+  t = size_binop (CEIL_DIV_EXPR, TYPE_SIZE (type), 
+		  size_int (TYPE_PRECISION (char_type_node)));
+  t = convert (sizetype, t);
+  /* size_binop does not put the constant in range, so do it now.  */
+  if (TREE_CODE (t) == INTEGER_CST && force_fit_type (t, 0))
+    TREE_CONSTANT_OVERFLOW (t) = TREE_OVERFLOW (t) = 1;
+  return t;
+}
+
+
+/*
+ *  BuildSize - builds a SIZE function expression and returns the tree.
+ */
+
+tree
+gccgm2_BuildSize (op1, needconvert)
+     tree op1;
+     int  needconvert;
+{
+  return( gm2_sizeof(op1) );
+}
+
+
+/*
+ *  BuildAddr - builds an expression which calculates the address of op1 and returns the tree.
+ */
+
+tree
+gccgm2_BuildAddr (op1, needconvert)
+     tree op1;
+     int  needconvert;
+{
+  return( build_unary_op (ADDR_EXPR, op1, needconvert) );
 }
 
 
@@ -8978,7 +9049,9 @@ gccgm2_BuildFunctValue (value)
 
   TREE_SIDE_EFFECTS(assign) = TRUE;
   TREE_USED(assign) = TRUE;
+#if 0
   debug_tree(assign);
+#endif
   expand_expr_stmt(assign);
 }
 
