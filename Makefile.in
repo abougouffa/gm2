@@ -194,11 +194,6 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 
 # Remove patched files from language-independent object file list.
 
-#
-#  ggc-page - is only present here as there is a bug in gm2 which manifests itself
-#             when garbage collection occurs. This is a temporary hack.
-#
-# BACKEND = ../toplev.o ggc-page.o ../libbackend.a
 BACKEND = ../toplev.o ../libbackend.a
 
 compiler: ../cc1gm2$(exeext) gm2support
@@ -242,14 +237,6 @@ toplev.o : $(srcdir)/../toplev.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../toplev.c | sed 's,^\./,,'`
 
-ggc-page.o : $(srcdir)/../ggc-page.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
-           $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
-           $(srcdir)/../defaults.h $(srcdir)/../output.h
-	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
-	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
-	  -DTARGET_NAME=\"$(target_alias)\" \
-	  -c `echo $(srcdir)/../ggc-page.c | sed 's,^\./,,'`
-
 c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
               $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
               $(srcdir)/../defaults.h $(srcdir)/../output.h
@@ -257,13 +244,6 @@ c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
 	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../c-convert.c | sed 's,^\./,,'`
-
-# rtl.o : $(srcdir)/../rtl.c $(CONFIG_H) $(srcdir)/../system.h $(RTL_H) \
-#        $(srcdir)/../bitmap.h $(srcdir)/../ggc.h $(srcdir)/../toplev.h
-# 	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
-#	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
-#	  -DTARGET_NAME=\"$(target_alias)\" \
-#	  -c `echo $(srcdir)/../rtl.c | sed 's,^\./,,'`
 
 gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \

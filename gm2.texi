@@ -458,6 +458,12 @@ with -Wall.
 @item
 built a new parser which implements error recovery.
 
+@item
+added mechanism to invoke cpp to support conditional compilation if required.
+
+@item
+all @samp{Makefile}s are generated via @samp{./configure}
+
 @end itemize
 
 Nearly all the to do work is concerned with interfacing m2f with
@@ -474,12 +480,6 @@ gcc and most of this work is localized in the following files:
 What needs to be done:
 
 @itemize @bullet
-
-@item
-fix the implications of UNQUALIFIED within the linking mechanism
-
-@item
-modify all makefiles to make them comply with GNU standards.
 
 @item
 rewrite documentation.
@@ -515,9 +515,6 @@ also include a synopsis of 2nd Edition Modula-2.
 
 @item
 testing and fixing bugs
-
-@item
-provide a mechanism for conditional compilation.
 
 @end itemize
 
