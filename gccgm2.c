@@ -701,6 +701,8 @@ static int                    append_digit                                PARAMS
 static int                    interpret_m2_integer                        PARAMS ((const char *str, unsigned int base, unsigned int *low, int *high));
 static int                    append_m2_digit                             PARAMS ((unsigned int *low, int *high, unsigned int digit, unsigned int base));
        void                   gccgm2_DetermineSizeOfConstant              PARAMS ((char *str, int base, int *needsLong, int *needsUnsigned));
+       int                    gccgm2_Overflow                             PARAMS ((tree t));
+
 
 
 #if defined(TRACE_DEBUG_GGC)
@@ -9561,6 +9563,30 @@ build_m2_cast (type, expr)
   return value;
 }
 #endif
+
+/*
+ *  gccgm2_TreeOverflow - returns TRUE if the contant expression, t, has
+ *                        caused an overflow. No error message or warning
+ *                        is emitted and no modification is made to, t.
+ */
+
+int
+gccgm2_TreeOverflow (t)
+     tree t;
+{
+  if ((TREE_CODE (t) == INTEGER_CST
+       || (TREE_CODE (t) == COMPLEX_CST
+           && TREE_CODE (TREE_REALPART (t)) == INTEGER_CST))
+      && TREE_OVERFLOW (t))
+    return TRUE;
+  else if ((TREE_CODE (t) == REAL_CST
+            || (TREE_CODE (t) == COMPLEX_CST
+                && TREE_CODE (TREE_REALPART (t)) == REAL_CST))
+           && TREE_OVERFLOW (t))
+    return TRUE;
+  else
+    return FALSE;
+}
 
 /*
  *  BuildCoerce - returns a tree containing the expression, expr, after

@@ -105,7 +105,7 @@ FROM M2ALU IMPORT PtrToValue,
                   SetSymmetricDifference, SetDifference,
                   SetShift, SetRotate,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn,
-                  GetRange, GetValue ;
+                  CheckOverflow, GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
@@ -1617,6 +1617,7 @@ BEGIN
             END ;
             IF GetType(op3)=NulSym
             THEN
+               CheckOverflow(tokenno, Mod2Gcc(op3)) ;
                AddModGcc(op1, Mod2Gcc(op3))
             ELSE
                IF IsValueSolved(op3)
@@ -1624,6 +1625,8 @@ BEGIN
                   PushValue(op3) ;
                   IF IsValueTypeReal()
                   THEN
+                     CheckOverflow(tokenno, PopRealTree()) ;
+                     PushValue(op3) ;
                      AddModGcc(op1, PopRealTree())
                   ELSIF IsValueTypeSet()
                   THEN
@@ -1632,9 +1635,12 @@ BEGIN
                      PutConstSet(op1)
                      (* AddModGcc(op1, PopSetTree(tokenno)) *)
                   ELSE
+                     CheckOverflow(tokenno, PopIntegerTree()) ;
+                     PushValue(op3) ;
                      AddModGcc(op1, PopIntegerTree())
                   END
                ELSE
+                  CheckOverflow(tokenno, Mod2Gcc(op3)) ;
                   AddModGcc(op1,
                             DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                                  Mod2Gcc(op3)))
@@ -1854,7 +1860,7 @@ END CoerceTree ;
 PROCEDURE FoldBinary (tokenno: CARDINAL; l: List; binop: BuildBinProcedure;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   tl, tr: Tree ;
+   tl, tr, tv: Tree ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(tokenno, op3) ;
@@ -1870,14 +1876,15 @@ BEGIN
             PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
             tl := CoerceTree(op2) ;
             tr := CoerceTree(op3) ;
+            tv := binop(tl, tr, TRUE) ;
+            CheckOverflow(tokenno, tv) ;
             AddModGcc(op1,
-                      DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                           binop(tl, tr, TRUE))) ;
+                      DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv)) ;
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          ELSE
-            (* we can still fold the expression, but not the assignment, however, we will
-               not do this here but in CodeBinary
+            (* we can still fold the expression, but not the assignment,
+               however, we will not do this here but in CodeBinary
              *)
          END
       END
@@ -1893,7 +1900,7 @@ PROCEDURE CodeBinary (binop: BuildBinProcedure;
                       q: CARDINAL;
                       op1, op2, op3: CARDINAL) ;
 VAR
-   t,
+   t, tv,
    tl, tr: Tree ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -1901,17 +1908,17 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op2) ;
    tl := CoerceTree(op2) ;
    tr := CoerceTree(op3) ;
+   tv := binop(tl, tr, TRUE) ;
+   CheckOverflow(CurrentQuadToken, tv) ;
    IF IsConst(op1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
       Assert(MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)#NulSym) ;
 
       PutConst(op1, MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)) ;
-      AddModGcc(op1,
-                DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                     binop(tl, tr, TRUE)))
+      AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), binop(tl, tr, TRUE))
+      t := BuildAssignment(Mod2Gcc(op1), tv)
    END
 END CodeBinary ;
 
@@ -2797,6 +2804,8 @@ END CodeExcl ;
 PROCEDURE FoldUnary (tokenno: CARDINAL; l: List;
                      unop: BuildUnaryProcedure; CoerceConst: Tree;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tv: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(tokenno, op3) ;
@@ -2816,9 +2825,10 @@ BEGIN
                END
             END ;
             PutConst(op1, FindType(op3)) ;
-            AddModGcc(op1,
-                      DeclareKnownConstant(CoerceConst,
-                                           unop(CoerceTree(op3), FALSE))) ;
+            tv := unop(CoerceTree(op3), FALSE) ;
+            CheckOverflow(tokenno, tv) ;
+
+            AddModGcc(op1, DeclareKnownConstant(CoerceConst, tv)) ;
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          ELSE
@@ -2868,10 +2878,12 @@ END FoldUnarySet ;
 PROCEDURE CodeUnary (unop: BuildUnaryProcedure; CoerceConst: Tree;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   t, tv: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
+   tv := unop(CoerceTree(op3), FALSE) ;
+   CheckOverflow(CurrentQuadToken, tv) ;
    IF IsConst(op1)
    THEN
       IF CoerceConst=Tree(NIL)
@@ -2880,12 +2892,9 @@ BEGIN
       END ;
       (* still have a constant which was not resolved, pass it to gcc *)
       PutConst(op1, FindType(op3)) ;
-      AddModGcc(op1,
-                DeclareKnownConstant(CoerceConst,
-                                     unop(CoerceTree(op3), FALSE)))
+      AddModGcc(op1, DeclareKnownConstant(CoerceConst, tv))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1),
-                           unop(CoerceTree(op3), FALSE))
+      t := BuildAssignment(Mod2Gcc(op1), tv)
    END
 END CodeUnary ;
 

@@ -93,7 +93,7 @@ EXPORT QUALIFIED Tree,
                  DetermineSizeOfConstant,
                  ToWord,
                  ExpandExpressionStatement,
-                 InitGlobalContext, GarbageCollect ;
+                 InitGlobalContext, GarbageCollect, TreeOverflow ;
 
 
 TYPE
@@ -1144,6 +1144,15 @@ PROCEDURE InitGlobalContext ;
 *)
 
 PROCEDURE GarbageCollect ;
+
+
+(*
+   TreeOverflow - returns TRUE if the contant expression, t, has
+                  caused an overflow. No error message or warning
+                  is emitted and no modification is made to, t.
+*)
+
+PROCEDURE TreeOverflow (t: Tree) : BOOLEAN ;
 
 
 END gccgm2.

@@ -63,7 +63,7 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    RealToTree, RememberConstant, BuildConstLiteralNumber,
                    BuildStartSetConstructor, BuildSetConstructorElement,
                    BuildEndSetConstructor,
-                   FoldAndStrip,
+                   FoldAndStrip, TreeOverflow,
                    DebugTree ;
 
 
@@ -3036,6 +3036,21 @@ BEGIN
    END ;
    RETURN( TRUE )
 END IsValueAndTreeKnown ;
+
+
+(*
+   CheckOverflow - tests to see whether the tree, t, has caused
+                   an overflow error and if so it generates an
+                   error message.
+*)
+
+PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
+BEGIN
+   IF TreeOverflow(t)
+   THEN
+      ErrorStringAt(InitString('constant overflow error'), tokenno)
+   END
+END CheckOverflow ;
 
 
 (*

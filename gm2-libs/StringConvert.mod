@@ -203,7 +203,8 @@ END CardinalToString ;
                      The parameter found is set TRUE if a number was found.
 *)
 
-PROCEDURE StringToInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTEGER ;
+PROCEDURE StringToInteger (s: String; base: CARDINAL;
+                           VAR found: BOOLEAN) : INTEGER ;
 VAR
    n, l    : CARDINAL ;
    c       : CARDINAL ;
@@ -233,7 +234,7 @@ BEGIN
    s := KillString(s) ;
    IF negative
    THEN
-      RETURN( VAL(INTEGER, -Min(MAX(INTEGER)+1, c)) )
+      RETURN( -VAL(INTEGER, Min(VAL(CARDINAL, MAX(INTEGER))+1, c)) )
    ELSE
       RETURN( VAL(INTEGER, Min(MAX(INTEGER), c)) )
    END
@@ -248,7 +249,8 @@ END StringToInteger ;
                       The parameter found is set TRUE if a number was found.
 *)
 
-PROCEDURE StringToCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTEGER ;
+PROCEDURE StringToCardinal (s: String; base: CARDINAL;
+                            VAR found: BOOLEAN) : CARDINAL ;
 VAR
    n, l: CARDINAL ;
    c   : CARDINAL ;

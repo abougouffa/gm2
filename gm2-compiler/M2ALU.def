@@ -59,7 +59,7 @@ EXPORT QUALIFIED PtrToValue,
                  GetValue, GetRange,  ConstructSetConstant, BuildRange,
                  CollectSetDependants,
 
-                 IsValueAndTreeKnown ;
+                 IsValueAndTreeKnown, CheckOverflow ;
 
 TYPE
    PtrToValue ;
@@ -723,6 +723,15 @@ PROCEDURE CollectSetDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsValueAndTreeKnown () : BOOLEAN ;
+
+
+(*
+   CheckOverflow - tests to see whether the tree, t, has caused
+                   an overflow error and if so it generates an
+                   error message.
+*)
+
+PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
 
 
 END M2ALU.

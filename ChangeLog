@@ -1,3 +1,8 @@
+2004-11-22	Gaius Mulley <gaius@glam.ac.uk>
+
+        * compiler now checks for overflow at compile time
+	  when constructing constant expressions.
+	
 2004-11-17	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed ppg to generate a comment for in-built rules when
