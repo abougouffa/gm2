@@ -23,7 +23,7 @@ FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetFileName ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, WriteFormat3 ;
 FROM DynamicStrings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex, Mark ;
-FROM M2Printf IMPORT printf1 ;
+FROM M2Printf IMPORT printf0, printf1, printf2 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok, BuiltinTok ;
@@ -33,6 +33,8 @@ FROM FifoQueue IMPORT PutIntoFifoQueue ;
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         StartScope, EndScope, PseudoScope,
+                        GetScope, GetCurrentScope,
+                        IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         MakeInnerModule,
                         MakeConstLit,
@@ -66,7 +68,8 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcTypeVarParam, PutProcTypeParam,
                         PutProcedureBuiltin,
                         MakeUnbounded, PutUnbounded,
-                        GetSymName ;
+                        GetSymName,
+                        DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
@@ -80,6 +83,9 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 FROM M2Base IMPORT MixTypes ;
 
+
+CONST
+   Debugging = FALSE ;
 
 VAR
    CheckProcedure: BOOLEAN ;  (* Set if currently implementing a defined *)
@@ -191,6 +197,11 @@ BEGIN
    EndScope ;
    PopT(NameStart) ;
    PopT(NameEnd) ;
+   IF Debugging
+   THEN
+      printf0('pass 1: ') ;
+      DisplayTrees(GetCurrentModule())
+   END ;
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant definition module name %a', NameStart)
@@ -322,6 +333,11 @@ BEGIN
    EndScope ;
    PopT(NameStart) ;
    PopT(NameEnd) ;
+   IF Debugging
+   THEN
+      printf0('pass 1: ') ;
+      DisplayTrees(GetCurrentModule())
+   END ;
    IF NameStart#NameEnd
    THEN
       WriteFormat1('inconsistant program module name %a', NameStart)
@@ -691,32 +707,32 @@ END BuildExportInnerModule ;
 
 
 (*
-   BuildEnumeration - Builds an Enumeration type Type.
+   StartBuildEnumeration - Builds an Enumeration type Type.
 
 
-                      Stack
+                           Stack
 
-                      Entry                 Exit
+                           Entry                 Exit
 
-               Ptr ->
-                      +------------+
-                      | #          |
-                      |------------|
-                      | en 1       |
-                      |------------|
-                      | en 2       |
-                      |------------|
-                      .            .
-                      .            .
-                      .            .                       <- Ptr
-                      |------------|        +------------+
-                      | en #       |        | Type       |
-                      |------------|        |------------|
-                      | Name       |        | Name       |
-                      |------------|        |------------|
+                    Ptr ->
+                           +------------+
+                           | #          |
+                           |------------|
+                           | en 1       |
+                           |------------|
+                           | en 2       |
+                           |------------|
+                           .            .
+                           .            .
+                           .            .                       <- Ptr
+                           |------------|        +------------+
+                           | en #       |        | Type       |
+                           |------------|        |------------|
+                           | Name       |        | Name       |
+                           |------------|        |------------|
 *)
 
-PROCEDURE BuildEnumeration ;
+PROCEDURE StartBuildEnumeration ;
 VAR
    name: Name ;
    n, i,
@@ -734,28 +750,28 @@ BEGIN
    PopN(n+1) ;
    PushT(name) ;
    PushT(Type)
-END BuildEnumeration ;
+END StartBuildEnumeration ;
 
 
 (*
-   BuildType - Builds a Type.
+   EndBuildEnumeration - completes the construction of the enumeration type.
 
 
-               Stack
+                         Stack
 
-               Entry                 Exit
+                         Entry                 Exit
 
-        Ptr ->
-               +------------+
-               | Type       |                          <- Ptr
-               |------------|        +---------------+
-               | Name       |        | Type  | Name  |
-               |------------|        |---------------|
-
-                                     Empty
+                  Ptr ->
+                         +------------+
+                         | Type       |                          <- Ptr
+                         |------------|        +---------------+
+                         | Name       |        | Type  | Name  |
+                         |------------|        |---------------|
+          
+                                               Empty
 *)
 
-PROCEDURE BuildType ;
+PROCEDURE EndBuildEnumeration ;
 VAR
    Sym,
    Type: CARDINAL ;
@@ -770,27 +786,45 @@ BEGIN
    *)
    PopT(Type) ;
    PopT(name) ;
+
+   IF Debugging
+   THEN
+      printf2('inside module %a declaring type name %a\n',
+              GetSymName(GetCurrentModule()), name) ;
+      IF (NOT IsUnknown(Type))
+      THEN
+         printf2('type was created inside scope %a as name %a\n',
+                 GetSymName(GetScope(Type)), GetSymName(Type))
+      END
+   END ;
    IF (name=NulName) OR (GetSymName(Type)=name)
    THEN
       (*
          Typically the declaration that causes this case is:
 
          VAR
-            a: RECORD
-                  etc
-               END ;
+            a: (blue, green, red) ;
              ^
              |
              +---- type has no name.
+
+         in which case the constructed from StartBuildEnumeration is complete
       *)
       PushTF(Type, name)
    ELSE
-      (* E.G   TYPE a = CARDINAL *)
+      (* in this case we are seeing:
+
+         TYPE
+            name = (blue, green, red)
+
+         so we construct the type name and define it to have the previously
+         created enumeration type
+      *)
       Sym := MakeType(name) ;
       PutType(Sym, Type) ;
       PushTF(Sym, name)
    END
-END BuildType ;
+END EndBuildEnumeration ;
 
 
 (*

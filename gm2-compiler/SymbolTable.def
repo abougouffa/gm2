@@ -35,7 +35,8 @@ EXPORT QUALIFIED NulSym,
                  GetMode, PutMode,
 
                  StartScope, EndScope, PseudoScope,
-                 GetScopeAuthor, GetCurrentScope,
+                 GetCurrentScope,
+                 IsDeclaredIn,
 
                  SetCurrentModule,
                  SetMainModule,
@@ -81,7 +82,7 @@ EXPORT QUALIFIED NulSym,
                  GetLowestType,
                  GetSym, GetLocalSym,
                  GetNth,
-                 GetVarFather,
+                 GetVarScope,
                  GetSubrange,
                  GetParam,
                  GetString,
@@ -179,7 +180,7 @@ EXPORT QUALIFIED NulSym,
 
                  NoOfElements,
                  NoOfParam,
-                 Father,
+                 GetScope, GetParent,
 
                  GetSymName,
                  RenameSym,
@@ -230,7 +231,8 @@ EXPORT QUALIFIED NulSym,
                  PopValue,
                  PopSize,
                  PopOffset,
-                 PopSumOfParamSize ;
+                 PopSumOfParamSize,
+                 DisplayTrees ;
 
 
 (*
@@ -315,20 +317,18 @@ PROCEDURE PseudoScope (Sym: CARDINAL) ;
 
 
 (*
-   GetScopeAuthor - returns the symbol where symbol, Sym, was declared.
-                    Sym is expected to be a Variable, Procedure,
-                    Module or DefImp symbol.
-*)
-
-PROCEDURE GetScopeAuthor (Sym: CARDINAL) : CARDINAL ;
-
-
-(*
    GetCurrentScope - returns the symbol who is responsible for the current
                      scope. Note that it ignores pseudo scopes.
 *)
 
 PROCEDURE GetCurrentScope () : CARDINAL ;
+
+
+(*
+   IsDeclaredIn - returns TRUE if a symbol was declared in, scope.
+*)
+
+PROCEDURE IsDeclaredIn (scope, sym: CARDINAL) : BOOLEAN ;
 
 
 (*
@@ -726,11 +726,11 @@ PROCEDURE GetNthParam (Sym: CARDINAL; ParamNo: CARDINAL) : CARDINAL ;
 
 
 (*
-   GetVarFather - returns the symbol which is the father to variable Sym.
-                  ie a Module, DefImp or Procedure Symbol.
+   GetVarScope - returns the symbol definining the scope where, Sym, was declared.
+                 ie a Module, DefImp or Procedure Symbol.
 *)
 
-PROCEDURE GetVarFather (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetVarScope (Sym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -1681,10 +1681,17 @@ PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
 
 
 (*
-   Father - returns the father of a type.
+   GetScope - returns the declaration scope of the symbol.
 *)
 
-PROCEDURE Father (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetScope (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetParent - returns the parent of symbol, Sym.
+*)
+
+PROCEDURE GetParent (Sym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -1964,6 +1971,13 @@ PROCEDURE MakeError (name: Name) : CARDINAL ;
 *)
 
 PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   DisplayTrees - displays the SymbolTrees for Module symbol, ModSym.
+*)
+
+PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
 
 
 END SymbolTable.

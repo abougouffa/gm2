@@ -118,7 +118,9 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        EndBuildProcedure,
                        BuildConst,
                        BuildSubrange,
-                       BuildNulName ;
+                       BuildNulName,
+                       BuildImportOuterModule,
+                       BuildImportInnerModule ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
@@ -537,7 +539,7 @@ ProgramModule := "MODULE"                                                  % Pus
                   [ Priority
                   ]                                             
                   ";"							   
-                  { Import                                                 
+                  { Import                                                 % BuildImportOuterModule %
                   }
                   Block                                                    % PushAutoOn %
                   Ident                                                    % EndBuildFile %
@@ -551,7 +553,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                                                                            % PushAutoOff %
                          [ Priority
                          ] ";"                                  
-                         { Import
+                         { Import                                          % BuildImportOuterModule %
                            }                                               
                          Block                                             % PushAutoOn %
                                  					   
@@ -1124,7 +1126,7 @@ ModuleDeclaration := "MODULE"                                              % Pus
                      Ident                                                 % StartBuildInnerModule ;
                                                                              PushAutoOff %
                      [ Priority ] ";"
-                     { Import
+                     { Import                                              % BuildImportInnerModule %
                         } [ Export
                             ]
                        Block                                               % PushAutoOn %
@@ -1140,9 +1142,12 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-Import :=  "FROM" Ident "IMPORT" IdentList ";" |
-           "IMPORT"
-            IdentList ";" =:
+Import :=                                                                  % PushAutoOn %
+          ( "FROM" Ident "IMPORT" IdentList ";" |
+           "IMPORT"                                                        % PushT(ImportTok)
+                                                                             (* determines whether Ident or Module *) %
+            IdentList ";" )                                                % PopAuto %
+        =:
 
 DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
                     [ "FOR" string ]
@@ -1150,7 +1155,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
                                                                              P3StartBuildDefModule ;
                                                                              PushAutoOff %
                     ";"
-                    { Import
+                    { Import                                               % BuildImportOuterModule %
                              } [ Export
                                         ]
                     { Definition }

@@ -28,12 +28,12 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PushSumOfLocalVarSize,
                         PushSumOfParamSize,
                         MakeConstLit,
-                        GetMainModule, GetScopeAuthor,
-                        GetVarFather, GetSymName, ModeOfAddr, GetMode,
+                        GetMainModule, GetScope,
+                        GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLocalSym,
-                        NoOfParam, Father,
+                        NoOfParam, GetScope, GetParent,
                         IsModule, IsType,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType, IsProcedureNested,
@@ -2346,7 +2346,7 @@ VAR
    Record      : CARDINAL ;
 BEGIN
    Assert(IsRecordField(sym)) ;
-   Record := Father(sym) ;
+   Record := GetParent(sym) ;
    Assert(IsRecord(Record)) ;
    i := 1 ;
    LOOP

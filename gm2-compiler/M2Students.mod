@@ -17,7 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Students ;
 
 
-FROM SymbolTable IMPORT FinalSymbol, IsVar, GetVarFather, IsProcedure, IsModule,
+FROM SymbolTable IMPORT FinalSymbol, IsVar, IsProcedure, IsModule,
                         GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclared, NoOfParam ;
 FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey ;
 FROM M2Error IMPORT WarnStringAt ;

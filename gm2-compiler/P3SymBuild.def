@@ -24,12 +24,6 @@ DEFINITION MODULE P3SymBuild ;
    System     : UNIX (GNU Modula-2)
    Description: Builds symbol entities, types, constants, variables,
                 procedures, modules and scopes.
-                All procedures are only called during Pass 1.
-
-                NOTE that the procedure names needed altering to
-                insure uniqueness with a dumb linker.
-                When a better linker is found, revert back to
-                origional names.
 *)
 
 (* StartBuildDefinitionModule, *)
@@ -52,7 +46,9 @@ EXPORT QUALIFIED P3StartBuildDefModule,
                  EndBuildProcedure,
                  BuildSubrange,
                  BuildNulName,
-                 BuildConst ;
+                 BuildConst,
+                 BuildImportOuterModule,
+                 BuildImportInnerModule ;
 
 
 (*
@@ -264,6 +260,75 @@ PROCEDURE StartBuildProcedure ;
 *)
 
 PROCEDURE EndBuildProcedure ;
+
+
+(*
+   BuildImportOuterModule - Builds imported identifiers into an outer module
+                            from a definition module.
+
+                            The Stack is expected:
+
+                            Entry           OR    Entry
+
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                            Exit
+
+                            All above stack discarded
+*)
+
+PROCEDURE BuildImportOuterModule ;
+
+
+(*
+   BuildImportInnerModule - Builds imported identifiers into an inner module
+                            from the last level of module.
+
+                            The Stack is expected:
+
+                            Entry           OR    Entry
+
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                                                  Error Condition
+                            Exit
+
+                            All above stack discarded
+*)
+
+PROCEDURE BuildImportInnerModule ;
 
 
 (*

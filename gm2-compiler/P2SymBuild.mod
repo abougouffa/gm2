@@ -25,7 +25,7 @@ FROM M2Base IMPORT Char, MixTypes ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
-FROM M2Printf IMPORT printf2 ;
+FROM M2Printf IMPORT printf0, printf2 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -35,6 +35,8 @@ FROM FifoQueue IMPORT GetFromFifoQueue, PutIntoFifoQueue ;
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         StartScope, EndScope, PseudoScope,
+                        GetCurrentScope, GetScope,
+                        IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         GetCurrentModule,
                         MakeConstLit,
@@ -47,7 +49,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDefImp, IsType,
                         IsSubrange, IsEnumeration, IsConstString,
                         GetSym, RequestSym, IsUnknown, RenameSym,
-                        GetLocalSym, Father, IsRecord,
+                        GetLocalSym, GetParent, IsRecord,
                         GetFromOuterModule,
                         GetExported,
                         PutImported,
@@ -89,7 +91,8 @@ FROM SymbolTable IMPORT NulSym,
                         UsesVarArgs,
                         IsDefinitionForC,
                         GetSymName,
-                        GetDeclared ;
+                        GetDeclared,
+                        DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
@@ -115,6 +118,9 @@ PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          ParameterNo  : CARDINAL;
                          ProcedureSym : CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
+
+CONST
+   Debugging = FALSE ;
 
 VAR
    IsBuildingConstDeclaration: BOOLEAN ;
@@ -193,6 +199,11 @@ BEGIN
    EndScope ;
    PopT(NameStart) ;
    PopT(NameEnd) ;
+   IF Debugging
+   THEN
+      printf0('pass 2: ') ;
+      DisplayTrees(GetCurrentModule())
+   END ;
    IF NameStart#NameEnd
    THEN
       WriteFormat2('inconsistant definition module name, module began as (%a) and ended with (%a)', NameStart, NameEnd)
@@ -321,6 +332,11 @@ BEGIN
    EndScope ;
    PopT(NameStart) ;
    PopT(NameEnd) ;
+   IF Debugging
+   THEN
+      printf0('pass 2: ') ;
+      DisplayTrees(GetCurrentModule())
+   END ;
    IF NameStart#NameEnd
    THEN
       WriteFormat2('inconsistant program module name %a does not match %a', NameStart, NameEnd)
@@ -715,32 +731,32 @@ END BuildConstSetType ;
 
 
 (*
-   BuildEnumeration - Builds an Enumeration type Type.
+   StartBuildEnumeration - Builds an Enumeration type Type.
 
 
-                      Stack
+                           Stack
 
-                      Entry                 Exit
+                           Entry                 Exit
 
-               Ptr ->
-                      +------------+
-                      | #          |
-                      |------------|
-                      | en 1       |
-                      |------------|
-                      | en 2       |
-                      |------------|
-                      .            .
-                      .            .
-                      .            .                       <- Ptr
-                      |------------|        +------------+
-                      | en #       |        | Type       |
-                      |------------|        |------------|
-                      | Name       |        | Name       |
-                      |------------|        |------------|
+                    Ptr ->
+                           +------------+
+                           | #          |
+                           |------------|
+                           | en 1       |
+                           |------------|
+                           | en 2       |
+                           |------------|
+                           .            .
+                           .            .
+                           .            .                       <- Ptr
+                           |------------|        +------------+
+                           | en #       |        | Type       |
+                           |------------|        |------------|
+                           | Name       |        | Name       |
+                           |------------|        |------------|
 *)
 
-PROCEDURE BuildEnumeration ;
+PROCEDURE StartBuildEnumeration ;
 VAR
    name: Name ;
    n, i,
@@ -752,7 +768,7 @@ BEGIN
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
    PopN(n) ;
    PushT(Type)
-END BuildEnumeration ;
+END StartBuildEnumeration ;
 
 
 (*
@@ -866,7 +882,17 @@ BEGIN
    *)
    PopT(Type) ;
    PopT(name) ;
-   IF (name=NulName) OR (GetSymName(Type)=name)
+   IF Debugging
+   THEN
+      printf2('inside module %a declaring type name %a\n',
+              GetSymName(GetCurrentModule()), name) ;
+      IF (NOT IsUnknown(Type))
+      THEN
+         printf2('type was created inside scope %a as name %a\n',
+                 GetSymName(GetScope(Type)), GetSymName(Type))
+      END
+   END ;
+   IF name=NulName
    THEN
       (*
          Typically the declaration that causes this case is:
@@ -881,6 +907,17 @@ BEGIN
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
       PushTF(Type, name)
+   ELSIF GetSymName(Type)=name
+   THEN
+      IF IsUnknown(Type) OR (NOT IsDeclaredIn(GetCurrentScope(), Type))
+      THEN
+         Sym := MakeType(name) ;
+         PutType(Sym, Type) ;
+         CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
+         PushTF(Sym, name)
+      ELSE
+         PushTF(Type, name)
+      END
    ELSE
       (* example   TYPE a = CARDINAL *)
       Sym := MakeType(name) ;
@@ -1713,7 +1750,7 @@ BEGIN
       Parent := Record
    ELSE
       (* Record maybe VarientRecord *)
-      Parent := Father(Record)
+      Parent := GetParent(Record)
    END ;
    i := 1 ;
    WHILE i<=NoOfFields DO

@@ -111,7 +111,8 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
-                   Parent      : CARDINAL ;   (* Points to the Father Symbol *)
+                   Parent      : CARDINAL ;   (* Points to the parent symbol *)
+                   Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                END ;
 
@@ -125,7 +126,8 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
-                  Parent       : CARDINAL ;   (* Points to the Father Symbol *)
+                  Parent       : CARDINAL ;   (* Points to the parent symbol *)
+                  Scope        : CARDINAL ;   (* Scope of declaration.       *)
                   At           : Where ;      (* Where was sym declared/used *)
                END ;
 
@@ -137,6 +139,7 @@ TYPE
                     Size       : PtrToValue ; (* Size of subrange type.      *)
                     Type       : CARDINAL ;   (* Index to type symbol for    *)
                                               (* the type of subrange.       *)
+                    Scope      : CARDINAL ;   (* Scope of declaration.       *)
                     At         : Where ;      (* Where was sym declared/used *)
                  END ;
 
@@ -148,11 +151,7 @@ TYPE
                    LocalSymbols: SymbolTree ; (* Contains all enumeration    *)
                                               (* fields.                     *)
                    Size        : PtrToValue ; (* Size at runtime of symbol.  *)
-                   Parent      : CARDINAL ;   (* Parent is used as an index  *)
-                                              (* to the parent block. The    *)
-                                              (* enumeration type is a       *)
-                                              (* pseudo block which has its  *)
-                                              (* fields as LocalSymbols.     *)
+                   Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                 END ;
 
@@ -164,6 +163,7 @@ TYPE
                  Size        : PtrToValue ;   (* Size at runtime of symbol.  *)
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
+                 Scope       : CARDINAL ;     (* Scope of declaration.       *)
                  At          : Where ;        (* Where was sym declared/used *)
               END ;
 
@@ -214,7 +214,6 @@ TYPE
                  HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
                  IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
                  BuiltinName   : Name ;       (* name of equivalent builtin    *)
-                 Father        : CARDINAL ;   (* Father scope of procedure.    *)
                  StartQuad     : CARDINAL ;   (* Index into quads for start    *)
                                               (* of procedure.                 *)
                  EndQuad       : CARDINAL ;   (* Index into quads for end of   *)
@@ -237,6 +236,7 @@ TYPE
                                               (* scope.                        *)
                  Size          : PtrToValue ; (* Activation record size.       *)
                  TotalParamSize: PtrToValue ; (* size of all parameters.       *)
+                 Scope         : CARDINAL ;   (* Scope of declaration.         *)
                  At            : Where ;      (* Where was sym declared/used   *)
               END ;
 
@@ -248,7 +248,7 @@ TYPE
                                               (* parameters in this procedure. *)
                  HasVarArgs    : BOOLEAN ;    (* Does this proc type use ... ? *)
                  ReturnType    : CARDINAL ;   (* Return type for function.     *)
-                 Father        : CARDINAL ;   (* Father scope of proc type.    *)
+                 Scope         : CARDINAL ;   (* Scope of declaration.         *)
                  Size          : PtrToValue ; (* Runtime size of symbol.       *)
                  TotalParamSize: PtrToValue ; (* size of all parameters.       *)
                  At            : Where ;      (* Where was sym declared/used *)
@@ -302,7 +302,7 @@ TYPE
                Size          : PtrToValue ;   (* Runtime size of symbol.     *)
                Offset        : PtrToValue ;   (* Offset at runtime of symbol *)
                AddrMode      : ModeOfAddr ;   (* Type of Addressing mode.    *)
-               Father        : CARDINAL ;     (* Father scope of variable.   *)
+               Scope         : CARDINAL ;     (* Scope of declaration.       *)
                IsTemp        : BOOLEAN ;      (* Is variable a temporary?    *)
                IsParam       : BOOLEAN ;      (* Is variable a parameter?    *)
                At            : Where ;        (* Where was sym declared/used *)
@@ -315,6 +315,7 @@ TYPE
                                               (* of type.                    *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -324,6 +325,7 @@ TYPE
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -338,6 +340,7 @@ TYPE
                                               (* determine the parent symbol *)
                                               (* for this record field. Used *)
                                               (* for BackPatching.           *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -351,6 +354,7 @@ TYPE
                                               (* for BackPatching.           *)
                 ListOfSons: List ;            (* Contains a list of the      *)
                                               (* RecordField symbols.        *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -359,7 +363,8 @@ TYPE
                 name     : Name ;             (* Index into name array, name *)
                                               (* of enumeration field.       *)
                 Value    : PtrToValue ;       (* Enumeration field value.    *)
-                Type     : CARDINAL ;         (* Index to the father.        *)
+                Type     : CARDINAL ;         (* Index to the enumeration.   *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -369,6 +374,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
@@ -488,7 +494,7 @@ TYPE
                                             (* contains a list of all        *)
                                             (* enumerations which are        *)
                                             (* visable within this scope.    *)
-               Father        : CARDINAL ;   (* Father scope of module.       *)
+               Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Priority      : CARDINAL ;   (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
                Unresolved    : SymbolTree ; (* All symbols currently         *)
@@ -614,7 +620,6 @@ PROCEDURE CheckLegal (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE DeclareSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE DisplayScopes ; FORWARD ;
-PROCEDURE DisplayTrees (ModSym: CARDINAL) ; FORWARD ;
 PROCEDURE DisposeSym (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE FetchUnknownFromDefImp (ModSym: CARDINAL;
@@ -775,6 +780,8 @@ BEGIN
 END IsError ;
 
 
+PROCEDURE stop ; BEGIN END stop ;
+
 (*
    DeclareSym - returns a symbol which was either in the unknown tree or
                 a New symbol, since name is about to be declared.
@@ -784,6 +791,10 @@ PROCEDURE DeclareSym (name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
+   IF name=MakeKey('C')
+   THEN
+      stop
+   END ;
    IF name=NulName
    THEN
       NewSym(Sym)
@@ -1244,37 +1255,24 @@ END PseudoScope ;
 
 
 (*
-   GetScopeAuthor - returns the symbol where symbol, Sym, was declared.
-                    The declared scope will be the first non transparent
-                    scope. So enumeration fields will return the procedure,
-                    module, or defimp where it was created.
+   IsDeclaredIn - returns TRUE if a symbol was declared in, scope.
 *)
 
-PROCEDURE GetScopeAuthor (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE IsDeclaredIn (scope, sym: CARDINAL) : BOOLEAN ;
+VAR
+   s: CARDINAL ;
 BEGIN
-   IF IsDefImp(Sym)
-   THEN
-      RETURN( NulSym )
-   END ;
-   Sym := Father(Sym) ;
-   IF Sym=NulSym
-   THEN
-      (* base scope *)
-      RETURN( NulSym )
-   ELSE
-      WITH Symbols[Sym] DO
-         CASE SymbolType OF
-
-         DefImpSym   : RETURN( Sym ) |
-         ModuleSym   : RETURN( Sym ) |
-         ProcedureSym: RETURN( Sym )
-
-         ELSE
-            RETURN( GetScopeAuthor(Sym) )
-         END
+   s := GetScope(sym) ;
+   WHILE s#scope DO
+      IF (s=NulSym) OR IsProcedure(s) OR IsModule(s) OR IsDefImp(s)
+      THEN
+         RETURN( FALSE )
+      ELSE
+         s := GetScope(s)
       END
-   END
-END GetScopeAuthor ;
+   END ;
+   RETURN( TRUE )
+END IsDeclaredIn ;
 
 
 (*
@@ -1902,9 +1900,9 @@ BEGIN
          InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
          IF ScopeCallFrame[ScopePtr].Main=GetBaseModule()
          THEN
-            Father := NulSym
+            Scope := NulSym
          ELSE
-            Father := ScopeCallFrame[ScopePtr].Main
+            Scope := ScopeCallFrame[ScopePtr].Main
          END
       END
    END ;
@@ -1914,12 +1912,12 @@ END MakeModule ;
 
 
 (*
-   AddModuleToParent - adds symbol, Sym, to module, Father.
+   AddModuleToParent - adds symbol, Sym, to module, Parent.
 *)
 
-PROCEDURE AddModuleToParent (Sym: CARDINAL; Father: CARDINAL) ;
+PROCEDURE AddModuleToParent (Sym: CARDINAL; Parent: CARDINAL) ;
 BEGIN
-   WITH Symbols[Father] DO
+   WITH Symbols[Parent] DO
       CASE SymbolType OF
 
       DefImpSym:  PutItemIntoList(DefImp.ListOfModules, Sym) |
@@ -1996,12 +1994,12 @@ BEGIN
             InitList(ListOfModules) ;          (* List of all inner modules.    *)
             InitWhereDeclared(At) ;            (* Where symbol declared.        *)
             InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
-            IF ScopeCallFrame[ScopePtr].Main=GetBaseModule()
+            IF GetCurrentScope()=GetBaseModule()
             THEN
-               Father := NulSym
+               Scope := NulSym
             ELSE
-               Father := ScopeCallFrame[ScopePtr].Main ;
-               AddModuleToParent(Sym, Father)
+               Scope := GetCurrentScope() ;
+               AddModuleToParent(Sym, Scope)
             END
          END ;
       END ;
@@ -2153,8 +2151,8 @@ BEGIN
             HasVarArgs := FALSE ;        (* Does the procedure use ... ?  *)
             IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
             BuiltinName := NulName ;     (* name of equivalent builtin    *)
-            Father := GetCurrentScope() ;
-                                         (* Father scope of procedure.    *)
+            Scope := GetCurrentScope() ;
+                                         (* Scope of procedure.           *)
             StartQuad := 0 ;             (* Index into list of quads.     *)
             EndQuad := 0 ;
             Reachable := FALSE ;         (* Procedure not known to        *)
@@ -2246,7 +2244,7 @@ BEGIN
             Size := InitValue() ;
             Offset := InitValue() ;
             AddrMode := RightValue ;
-            Father := ScopeCallFrame[ScopePtr].Main ;  (* Procedure or Module ? *)
+            Scope := GetCurrentScope() ;  (* Procedure or Module ? *)
             IsTemp := FALSE ;
             IsParam := FALSE ;
             InitWhereDeclared(At) ;
@@ -2292,6 +2290,7 @@ BEGIN
             Size := InitValue() ;
             InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
             Parent := NulSym ;
+            Scope := GetCurrentScope() ;
             InitWhereDeclared(At)
          END
       END
@@ -2315,6 +2314,7 @@ BEGIN
       WITH Varient DO
          Size := InitValue() ;
          Parent := GetRecord(RecSym) ;
+         Scope := GetCurrentScope() ;
          InitList(ListOfSons) ;
          InitWhereDeclared(At)
       END
@@ -2385,7 +2385,7 @@ BEGIN
                                            (* enumeration type.      *)
             Size := InitValue() ;          (* Size at runtime of sym *)
             InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
-            Parent := GetCurrentScope() ;  (* Which scope created it *)
+            Scope := GetCurrentScope() ;  (* Which scope created it *)
             InitWhereDeclared(At)          (* Declared here          *)
          END
       END ;
@@ -2418,11 +2418,12 @@ BEGIN
       WITH Symbols[Sym] DO
          SymbolType := TypeSym ;
          WITH Type DO
-            name := TypeName ;    (* Index into name array, name *)
-                                  (* of type.                    *)
-            Type := NulSym ;      (* Index to a type symbol.     *)
-            Size := InitValue() ; (* Runtime size of symbol.     *)
-            InitWhereDeclared(At) (* Declared here               *)
+            name := TypeName ;        (* Index into name array, name *)
+                                      (* of type.                    *)
+            Type := NulSym ;          (* Index to a type symbol.     *)
+            Size := InitValue() ;     (* Runtime size of symbol.     *)
+            Scope := GetCurrentScope() ;  (* Which scope created it *)
+            InitWhereDeclared(At)     (* Declared here               *)
          END
       END
    END ;
@@ -2806,6 +2807,7 @@ BEGIN
             Type := NulSym ;            (* Index to a type. Determines   *)
                                         (* the type of subrange.         *)
             Size := InitValue() ;       (* Size determines the type size *)
+            Scope := GetCurrentScope() ;      (* Which scope created it *)
             InitWhereDeclared(At)       (* Declared here                 *)
          END
       END
@@ -2843,6 +2845,7 @@ BEGIN
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
+            Scope := GetCurrentScope() ;        (* Which scope created it *)
             InitWhereDeclared(At)   (* Declared here                       *)
          END
       END
@@ -3187,14 +3190,14 @@ VAR
 BEGIN
    NewSym(SonSym) ; (* Cannot be used before declared since use occurs *)
                     (* in pass 3 and it will be declared in pass 2.    *)
-   (* Fill in the SonSym and connect it to its Brothers (if any) and   *)
-   (* ensure that it is connected to the Father.                       *)
+   (* Fill in the SonSym and connect it to its brothers (if any) and   *)
+   (* ensure that it is connected its parent.                          *)
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       RecordSym       : WITH Record DO
                            PutItemIntoList(ListOfSons, SonSym) ;
-                           (* Ensure that the Field is in the Fathers Local Symbols *)
+                           (* Ensure that the Field is in the Parents Local Symbols *)
                            PutSymKey(LocalSymbols, FieldName, SonSym)
                         END |
       VarientFieldSym : WITH VarientField DO
@@ -3208,7 +3211,7 @@ BEGIN
    (I've been burnt by this before, so I respect -pedantic warnings..)
 
                         WITH Symbols[ParSym] DO
-                        (* Ensure that the Field is in the Fathers Local Symbols *)
+                        (* Ensure that the Field is in the parents Local Symbols *)
                            CASE SymbolType OF
 
                            RecordSym: PutSymKey(Record.LocalSymbols, FieldName, SonSym)
@@ -3248,7 +3251,7 @@ BEGIN
    NewSym(SonSym) ; (* Cannot be used before declared since use occurs *)
                     (* in pass 3 and it will be declared in pass 2.    *)
    (* Fill in the SonSym and connect it to its Brothers (if any) and   *)
-   (* ensure that it is connected to the Father.                       *)
+   (* ensure that it is connected to the parent.                       *)
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
@@ -3266,6 +3269,7 @@ BEGIN
          Parent := GetRecord(Sym) ;
          Size := InitValue() ;
          Offset := InitValue() ;
+         Scope := GetCurrentScope() ;
          InitWhereDeclared(At)
       END
    END ;
@@ -3332,6 +3336,7 @@ BEGIN
             Value := InitValue() ;
             PopInto(Value) ;
             Type := Sym ;
+            Scope := GetCurrentScope() ;
             InitWhereDeclared(At)  (* Declared here *)
          END
       END ;
@@ -3407,13 +3412,13 @@ PROCEDURE IsInnerModule (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    IF IsModule(Sym)
    THEN
-      RETURN( GetScopeAuthor(Sym)#NulSym )
+      RETURN( GetScope(Sym)#NulSym )
    ELSE
       RETURN( FALSE )
    END
 END IsInnerModule ;
 
-                   
+
 (*
    GetSymName - returns the symbol name.
 *)
@@ -3825,6 +3830,7 @@ BEGIN
    ModSym := GetCurrentModule() ;
    Assert(IsDefImp(ModSym)) ;
    Assert(CompilingDefinitionModule()) ;
+(* printf2('module %a exporting %a\n', GetSymName(ModSym), SymName) ; *)
 (*
    WriteString('1st MODULE ') ; WriteKey(GetSymName(ModSym)) ;
    WriteString(' identifier ') ; WriteKey(SymName) ; WriteLn ;
@@ -4005,9 +4011,9 @@ END RequestFromDefinition ;
    DisplaySymbol - displays the name of a symbol
 *)
 
-PROCEDURE DisplaySymbol (sym: CARDINAL) ;
+PROCEDURE DisplaySymbol (sym: WORD) ;
 BEGIN
-   printf1('   %s', Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))))
+   printf2('   %s (%d)', Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))), sym)
 END DisplaySymbol ;
 
 
@@ -4017,25 +4023,33 @@ END DisplaySymbol ;
 
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
 BEGIN
-(*
-   WriteString('Symbol trees for module: ') ; WriteKey(GetSymName(ModSym)) ; WriteLn ;
-*)
+   printf1('Symbol trees for module: %a\n', GetSymName(ModSym)) ;
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
-(*
-                    WriteKey(GetSymName(ModSym)) ; WriteString('  UndefinedTree') ;
-                    ForeachNodeDo(Unresolved, DisplaySymbol) ;  WriteLn ;
-                    WriteKey(GetSymName(ModSym)) ; WriteString('  Local symbols') ;
-                    ForeachNodeDo(LocalSymbols, DisplaySymbol) ; WriteLn ;
-                    WriteKey(GetSymName(ModSym)) ; WriteString('  ExportRequest') ;
-                    ForeachNodeDo(ExportRequest, DisplaySymbol) ; WriteLn ;
-                    WriteKey(GetSymName(ModSym)) ; WriteString('  ExportQualified') ;
-                    ForeachNodeDo(ExportQualifiedTree, DisplaySymbol) ; WriteLn ;
-                    WriteKey(GetSymName(ModSym)) ; WriteString('  ExportUnQualified') ;
-                    ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; WriteLn
-*)
+                    printf1('%a  UndefinedTree', GetSymName(ModSym)) ;
+                    ForeachNodeDo(Unresolved, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  Local symbols', GetSymName(ModSym)) ;
+                    ForeachNodeDo(LocalSymbols, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportRequest', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ExportRequest, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportQualified', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ExportQualifiedTree, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportUnQualified', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; printf0('\n')
+                 END |
+      ModuleSym: WITH Module DO
+                    printf1('%a  UndefinedTree', GetSymName(ModSym)) ;
+                    ForeachNodeDo(Unresolved, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  Local symbols', GetSymName(ModSym)) ;
+                    ForeachNodeDo(LocalSymbols, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ImportTree', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ImportTree, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportTree', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ExportTree, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportUndeclared', GetSymName(ModSym)) ;
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n')
                  END
 
       ELSE
@@ -4131,8 +4145,8 @@ BEGIN
    Assert(IsVar(Sym) OR IsProcedure(Sym)) ;
    OuterModule := Sym ;
    REPEAT
-      OuterModule := GetScopeAuthor(OuterModule)
-   UNTIL GetScopeAuthor(OuterModule)=NulSym ;
+      OuterModule := GetScope(OuterModule)
+   UNTIL GetScope(OuterModule)=NulSym ;
    WITH Symbols[OuterModule] DO
       CASE SymbolType OF
 
@@ -4164,8 +4178,8 @@ BEGIN
    Assert(IsVar(Sym) OR IsProcedure(Sym)) ;
    OuterModule := Sym ;
    REPEAT
-      OuterModule := GetScopeAuthor(OuterModule)
-   UNTIL GetScopeAuthor(OuterModule)=NulSym ;
+      OuterModule := GetScope(OuterModule)
+   UNTIL GetScope(OuterModule)=NulSym ;
    WITH Symbols[OuterModule] DO
       CASE SymbolType OF
 
@@ -4450,7 +4464,12 @@ BEGIN
                  END |
       DefImpSym: IF NOT IsEmptyTree(DefImp.ExportUndeclared)
                  THEN
-                    WriteFormat0('undeclared identifier(s) in EXPORT list of DEFINITION MODULE') ;
+                    IF DoesNotNeedExportList(ModSym)
+                    THEN
+                       WriteFormat0('undeclared identifier(s) in DEFINITION MODULE')
+                    ELSE
+                       WriteFormat0('undeclared identifier(s) in EXPORT list of DEFINITION MODULE')
+                    END ;
                     ForeachNodeDo(DefImp.ExportUndeclared, UndeclaredSymbolError)
                  END
 
@@ -4739,6 +4758,11 @@ PROCEDURE CheckForEnumerationInCurrentModule (Sym: CARDINAL) ;
 VAR
    ModSym: CARDINAL ;
 BEGIN
+   IF (SkipType(Sym)#NulSym) AND IsEnumeration(SkipType(Sym))
+   THEN
+      Sym := SkipType(Sym)
+   END ;
+
    IF IsEnumeration(Sym)
    THEN
       ModSym := GetCurrentModuleScope() ;
@@ -5405,6 +5429,7 @@ BEGIN
 
          PointerSym: Pointer.Type := NulSym ;
                      Pointer.name := PointerName ;
+                     Pointer.Scope := GetCurrentScope() ;      (* Which scope created it *)
                      Pointer.Size := InitValue()
 
          ELSE
@@ -5491,23 +5516,23 @@ END IsUnbounded ;
 
 
 (*
-   GetVarFather - returns the symbol which is the father to variable Sym.
-                  ie a Module, DefImp or Procedure Symbol.
+   GetVarScope - returns the symbol which is the scope of variable Sym.
+                 ie a Module, DefImp or Procedure Symbol.
 *)
 
-PROCEDURE GetVarFather (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetVarScope (Sym: CARDINAL) : CARDINAL ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ErrorSym: RETURN( NulSym ) |
-      VarSym  : RETURN( Var.Father )
+      VarSym  : RETURN( Var.Scope )
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END GetVarFather ;
+END GetVarScope ;
 
 
 (*
@@ -5630,10 +5655,11 @@ BEGIN
       WITH Symbols[Sym] DO
          SymbolType := SetSym ;
          WITH Set DO
-            name := SetName ;      (* The name of the set.        *)
-            Type := NulSym ;       (* Index to a subrange symbol. *)
-            Size := InitValue() ;  (* Size of this set            *)
-            InitWhereDeclared(At)  (* Declared here               *)
+            name := SetName ;          (* The name of the set.        *)
+            Type := NulSym ;           (* Index to a subrange symbol. *)
+            Size := InitValue() ;      (* Size of this set            *)
+            Scope := GetCurrentScope() ;   (* Which scope created it *)
+            InitWhereDeclared(At)      (* Declared here               *)
          END
       END
    END ;
@@ -5735,30 +5761,59 @@ END PutArray ;
 
 
 (*
-   Father - returns the father of a type.
+   GetScope - returns the declaration scope of the symbol.
 *)
 
-PROCEDURE Father (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetScope (Sym: CARDINAL) : CARDINAL ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ErrorSym           : ErrorAbort0('') |
-      ModuleSym          : RETURN( Module.Father ) |
-      VarSym             : RETURN( Var.Father ) |
-      ProcedureSym       : RETURN( Procedure.Father ) |
-      ProcTypeSym        : RETURN( ProcType.Father ) |
-      RecordFieldSym     : RETURN( RecordField.Parent ) |
+      DefImpSym          : RETURN( NulSym ) |
+      ModuleSym          : RETURN( Module.Scope ) |
+      VarSym             : RETURN( Var.Scope ) |
+      ProcedureSym       : RETURN( Procedure.Scope ) |
+      ProcTypeSym        : RETURN( ProcType.Scope ) |
+      RecordFieldSym     : RETURN( RecordField.Scope ) |
+      VarientSym         : RETURN( Varient.Scope ) |
+      VarientFieldSym    : RETURN( VarientField.Scope ) |
+      EnumerationSym     : RETURN( Enumeration.Scope ) |
+      EnumerationFieldSym: RETURN( EnumerationField.Scope ) |
+      SubrangeSym        : RETURN( Subrange.Scope ) |
+      ArraySym           : RETURN( Array.Scope ) |
+      TypeSym            : RETURN( Type.Scope ) |
+      PointerSym         : RETURN( Pointer.Scope ) |
+      RecordSym          : RETURN( Record.Scope ) |
+      SetSym             : RETURN( Set.Scope )
+
+      ELSE
+         InternalError('not implemented yet', __FILE__, __LINE__)
+      END
+   END
+END GetScope ;
+
+
+(*
+   GetParent - returns the parent of symbol, Sym.
+*)
+
+PROCEDURE GetParent (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ErrorSym           : ErrorAbort0('') |
       VarientSym         : RETURN( Varient.Parent ) |
       VarientFieldSym    : RETURN( VarientField.Parent ) |
-      EnumerationSym     : RETURN( Enumeration.Parent ) |
+      RecordFieldSym     : RETURN( RecordField.Parent ) |
       EnumerationFieldSym: RETURN( EnumerationField.Type )
 
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)
       END
    END
-END Father ;
+END GetParent ;
 
 
 (*
@@ -5790,8 +5845,8 @@ BEGIN
                       ProcType.name := ProcTypeName ;
                       InitList(ProcType.ListOfParam) ;
                       ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
-                      ProcType.Father := GetCurrentScope() ;
-                                                       (* Father scope of procedure.    *)
+                      ProcType.Scope := GetCurrentScope() ;
+                                                       (* scope of procedure.           *)
                       ProcType.Size := InitValue() ;
                       ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
                       InitWhereDeclared(ProcType.At)  (* Declared here *)
@@ -6559,7 +6614,7 @@ END IsSubrange ;
 PROCEDURE IsProcedureVariable (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( IsVar(Sym) AND IsProcedure(GetVarFather(Sym)) )
+   RETURN( IsVar(Sym) AND IsProcedure(GetVarScope(Sym)) )
 END IsProcedureVariable ;
 
 
@@ -6570,7 +6625,7 @@ END IsProcedureVariable ;
 
 PROCEDURE IsProcedureNested (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsProcedure(Sym) AND (IsProcedure(GetScopeAuthor(Sym))) )
+   RETURN( IsProcedure(Sym) AND (IsProcedure(GetScope(Sym))) )
 END IsProcedureNested ;
 
 

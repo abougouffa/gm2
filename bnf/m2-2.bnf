@@ -79,7 +79,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildConstTypeFromAssignment,
                        BuildConstSetType,
                        BuildType,
-                       BuildEnumeration,
+                       StartBuildEnumeration,
 
                        StartBuildFormalParameters,
                        EndBuildFormalParameters,
@@ -98,8 +98,6 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildVarientSelector,
                        StartBuildVarientFieldRecord,
                        EndBuildVarientFieldRecord,
-                       BuildEnumeration,
-                       BuildType,
                        BuildNulName,
                        StartBuildArray,
                        EndBuildArray,
@@ -541,9 +539,9 @@ ProgramModule := "MODULE"
 ImplementationModule := "IMPLEMENTATION" "MODULE"                          
                          Ident                                             % P2StartBuildImplementationModule ; %
                                                                            
-                         [ Priority                                        % BuildPriority ; %
+                         [ Priority                                        % BuildPriority %
                          ] ";"                                  
-                         { Import                                          % BuildImportOuterModule ; %
+                         { Import                                          % BuildImportOuterModule %
                            }                                               
                          Block                                             
                                  					   
@@ -650,7 +648,7 @@ SimpleType :=
 Enumeration := "("                                                         
                    ( IdentList                                             
                                )                                           
-               ")"                                                         % BuildEnumeration ; %
+               ")"                                                         % StartBuildEnumeration ; %
             =:
 
 IdentList := Ident                                                         % VAR

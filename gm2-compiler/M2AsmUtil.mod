@@ -26,7 +26,7 @@ FROM NameKey IMPORT WriteKey, GetKey, MakeKey, makekey, KeyToCharStar ;
 
 FROM SymbolTable IMPORT NulSym,
                         GetSymName,
-                        GetScopeAuthor,
+                        GetScope,
                         GetBaseModule,
                         IsInnerModule,
                         IsVar,
@@ -87,16 +87,16 @@ END DotifyLabel ;
 PROCEDURE GetFullScopeAsmName (Sym: CARDINAL) : Name ;
 VAR
    Module: String ;
-   Father: CARDINAL ;
+   Scope : CARDINAL ;
 BEGIN
-   Father := GetScopeAuthor(Sym) ;
+   Scope := GetScope(Sym) ;
    IF UseUnderscoreForC
    THEN
       Module := InitString('_')
    ELSE
       Module := InitString('')
    END ;
-   Module := ConCat(GetFullScopePrefix(Module, Father),
+   Module := ConCat(GetFullScopePrefix(Module, Scope),
                     InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
    RETURN( StringToKey(Module) )
 END GetFullScopeAsmName ;
@@ -109,16 +109,16 @@ END GetFullScopeAsmName ;
 PROCEDURE GetAsmName (Sym: CARDINAL) : Name ;
 VAR
    Module: String ;
-   Father: CARDINAL ;
+   Scope : CARDINAL ;
 BEGIN
-   Father := GetScopeAuthor(Sym) ;
+   Scope := GetScope(Sym) ;
    IF UseUnderscoreForC
    THEN
       Module := InitString('_')
    ELSE
       Module := InitString('')
    END ;
-   Module := ConCat(GetModulePrefix(Module, Sym, Father),
+   Module := ConCat(GetModulePrefix(Module, Sym, Scope),
                     InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
    RETURN( StringToKey(Module) )
 END GetAsmName ;
@@ -134,10 +134,10 @@ PROCEDURE GetFullSymName (Sym: CARDINAL) : Name ;
 VAR
    Module  : String ;
    k       : Name ;
-   Father  : CARDINAL ;
+   Scope   : CARDINAL ;
 BEGIN
-   Father := GetScopeAuthor(Sym) ;
-   Module := GetModulePrefix(InitString(''), Sym, Father) ;
+   Scope := GetScope(Sym) ;
+   Module := GetModulePrefix(InitString(''), Sym, Scope) ;
    RETURN( StringToKey(ConCat(Module, InitStringCharStar(KeyToCharStar(GetSymName(Sym))))) )
 END GetFullSymName ;
 
@@ -149,14 +149,14 @@ END GetFullSymName ;
 
 PROCEDURE WriteAsmName (Sym: CARDINAL) ;
 VAR
-   Father: CARDINAL ;
+   Scope: CARDINAL ;
 BEGIN
    IF UseUnderscoreForC
    THEN
       Write('_')
    END ;
-   Father := GetScopeAuthor(Sym) ;
-   WriteModulePrefix(Sym, Father) ;
+   Scope := GetScope(Sym) ;
+   WriteModulePrefix(Sym, Scope) ;
    WriteKey(GetSymName(Sym))
 END WriteAsmName ;
 
@@ -170,12 +170,12 @@ END WriteAsmName ;
 
 PROCEDURE WriteName (Sym: CARDINAL) ;
 VAR
-   Father: CARDINAL ;
+   Scope: CARDINAL ;
 BEGIN
    IF IsVar(Sym) OR IsProcedure(Sym)
    THEN
-      Father := GetScopeAuthor(Sym) ;
-      WriteModulePrefix(Sym, Father) ;
+      Scope := GetScope(Sym) ;
+      WriteModulePrefix(Sym, Scope) ;
       WriteKey(GetSymName(Sym))
    ELSE
       InternalError('Expecting Var or Procedure symbol', __FILE__, __LINE__)
@@ -196,7 +196,7 @@ BEGIN
       IF IsInnerModule(Sym) OR IsInnerModule(ModSym)
       THEN
          RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), '_'),
-                        GetModulePrefix(Name, ModSym, GetScopeAuthor(ModSym))) )
+                        GetModulePrefix(Name, ModSym, GetScope(ModSym))) )
       ELSIF IsDefImp(ModSym) AND IsExportQualified(Sym)
       THEN
          RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(ModSym))), Mark(Name)), '_') )
@@ -219,7 +219,7 @@ BEGIN
       IF IsInnerModule(Sym)
       THEN
          RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), '_'),
-                        GetFullScopePrefix(Name, GetScopeAuthor(Sym))) )
+                        GetFullScopePrefix(Name, GetScope(Sym))) )
       ELSIF IsDefImp(Sym) OR IsProcedure(Sym)
       THEN
          RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), Mark(Name)), '_') )
@@ -267,7 +267,7 @@ VAR
    s: String ;
 BEGIN
    s := ConCat(ConCat(InitString('_M2_'), Mark(GetModulePrefix(InitStringCharStar(KeyToCharStar(GetSymName(Sym))),
-                                                               Sym, GetScopeAuthor(Sym)))),
+                                                               Sym, GetScope(Sym)))),
                Mark(InitString('_init'))) ;
    IF UseUnderscoreForC
    THEN

@@ -47,7 +47,7 @@ FROM Lists IMPORT List, InitList, IncludeItemIntoList,
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         GetMode,
-                        GetScopeAuthor,
+                        GetScope,
                         GetNth, GetType,
                         MakeType, PutType, MakeConstLit,
       	       	     	GetSubrange, PutSubrange,
@@ -742,7 +742,7 @@ PROCEDURE GetModuleWhereDeclared (Sym: CARDINAL) : CARDINAL ;
 VAR
    s: CARDINAL ;
 BEGIN
-   s := GetScopeAuthor(Sym) ;
+   s := GetScope(Sym) ;
    IF (s=NulSym) OR IsDefImp(s) OR IsModule(s)
    THEN
       RETURN( s )
@@ -779,9 +779,9 @@ BEGIN
       (IsImported(GetMainModule(), Sym) OR (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
        IsImported(GetBaseModule(), Sym) OR IsImported(GetModuleWhereDeclared(Sym), Sym))
    THEN
-      IF IsProcedureNested(Sym) AND (NOT GccKnowsAbout(GetScopeAuthor(Sym)))
+      IF IsProcedureNested(Sym) AND (NOT GccKnowsAbout(GetScope(Sym)))
       THEN
-         DeclareProcedureToGcc(GetScopeAuthor(Sym))
+         DeclareProcedureToGcc(GetScope(Sym))
       END ;
 
       Assert(PushParametersLeftToRight) ;

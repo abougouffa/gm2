@@ -38,7 +38,7 @@ IMPLEMENTATION MODULE P1SyntaxCheck ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, ErrorStringAt ;
-FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
+FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
 FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok ;
 FROM NameKey IMPORT Name, NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
@@ -74,10 +74,9 @@ FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        CheckConstFunction,
 
                        BuildHiddenType,
-                       BuildTypeEnd,
                        BuildNulName,
 
-                       BuildEnumeration, BuildType,
+                       StartBuildEnumeration, EndBuildEnumeration,
 
                        BuildProcedureHeading,
                        StartBuildProcedure,
@@ -594,13 +593,11 @@ Type :=                                                                    % VAR
                                                                            % PopT(Name)  (* remove TYPE name from stack *) %
         =:
 
-SimpleType :=
-              ( Qualident | Enumeration                                    % BuildType %
-                                        | SubrangeType )
-           =:
+SimpleType := Qualident | Enumeration | SubrangeType =:
 
 Enumeration := "("                                                         % PushAutoOn %
-                   ( IdentList                                             % BuildEnumeration %
+                   ( IdentList                                             % StartBuildEnumeration %
+                                                                           % EndBuildEnumeration %
                                )                                           % PopAuto %
                ")" =:
 

@@ -18,21 +18,21 @@ IMPLEMENTATION MODULE P3SymBuild ;
 
 
 FROM NameKey IMPORT Name, WriteKey, NulName ;
-
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
-
 FROM M2Debug IMPORT Assert, WriteDebug ;
-
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors ;
 
 FROM SymbolTable IMPORT NulSym,
-                        StartScope, EndScope, GetScopeAuthor,
+                        StartScope, EndScope, GetScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
+                        GetExported,
                         IsDefImp, IsModule,
                         RequestSym,
                         IsProcedure,
                         CheckForUnknownInModule,
+                        GetFromOuterModule,
+                        CheckForEnumerationInCurrentModule,
                         PutSubrange,
                         GetSymName ;
 
@@ -40,13 +40,14 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
 FROM FifoQueue IMPORT GetFromFifoQueue ;
+FROM M2Reserved IMPORT ImportTok ;
 
 
 (*
@@ -314,8 +315,114 @@ BEGIN
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
    END ;
-   SetCurrentModule(GetScopeAuthor(GetCurrentModule()))
+   SetCurrentModule(GetScope(GetCurrentModule()))
 END EndBuildInnerModule ;
+
+
+(*
+   BuildImportOuterModule - Builds imported identifiers into an outer module
+                            from a definition module.
+
+                            The Stack is expected:
+
+                            Entry           OR    Entry
+
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                            Exit
+
+                            All above stack discarded
+*)
+
+PROCEDURE BuildImportOuterModule ;
+VAR
+   Sym, ModSym,
+   i, n       : CARDINAL ;
+BEGIN
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)#ImportTok
+   THEN
+      (* Ident List contains list of objects *)
+      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetExported(ModSym, OperandT(i)) ;
+         CheckForEnumerationInCurrentModule(Sym) ;
+         INC(i)
+      END
+   END ;
+   PopN(n+1)   (* clear stack *)
+END BuildImportOuterModule ;
+
+
+(*
+   BuildImportInnerModule - Builds imported identifiers into an inner module
+                            from the last level of module.
+
+                            The Stack is expected:
+
+                            Entry           OR    Entry
+
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                                                  Error Condition
+                            Exit
+
+                            All above stack discarded
+*)
+
+PROCEDURE BuildImportInnerModule ;
+VAR
+   Sym, ModSym,
+   n, i       : CARDINAL ;
+BEGIN
+   PopT(n) ;       (* i   = # of the Ident List *)
+   IF OperandT(n+1)=ImportTok
+   THEN
+      (* Ident List contains list of objects *)
+      i := 1 ;
+      WHILE i<=n DO
+         Sym := GetFromOuterModule(OperandT(i)) ;
+         CheckForEnumerationInCurrentModule(Sym) ;
+         INC(i)
+      END
+   ELSE
+      WriteFormat0('not allowed to import using FROM in an inner module')
+   END ;
+   PopN(n+1)   (* Clear Stack *)
+END BuildImportInnerModule ;
 
 
 (*

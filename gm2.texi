@@ -21,7 +21,7 @@
 @ifinfo
 This is a short example of a complete Texinfo file.
 
-Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @end ifinfo
 
 @c Part 3: Titlepage and Copyright
@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 29 April 2003
+@center Last updated 16 May 2003
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -737,6 +737,8 @@ The document is still in it's infancy.
 * Overview::                Overview of the structure of GNU Modula-2.
 * Integrating::             How the front end integrates with gcc.
 * Building and installing:: How to build gm2.
+* Passes::                  What gets processed during each pass.
+* Scope rules::             Clarification of some the scope rules.
 * Future::                  A future wish list.
 * Done list::               Progression of the GNU Modula-2 project.
 * To do list::              Outstanding issues.
@@ -768,7 +770,7 @@ The M2Base and M2System
 modules contain base types and system types respectively they
 map onto GCC back-end data types.
 
-@node Building and installing, Future, Integrating, Internals
+@node Building and installing, Passes, Integrating, Internals
 @section Building
 
 The GNU Modula-2 source tree should be unpacked in the GNU GCC
@@ -800,7 +802,162 @@ make install
 cd ..
 @end example
 
-@node Future, Done list, Building and installing, Internals
+@node Passes, Scope rules, Building and installing, Internals
+@section Passes
+
+This section describes the general actions of each pass.
+
+@subsection Pass 1
+
+@node Scope rules, Future, Passes, Internals
+@section Scope rules
+
+This section describes my understanding of the Modula-2 scope rules
+with respect to enumerated types.
+If they are incorrect please correct me by email
+<gaius at glam.ac.uk>. They also serve to document the behaviour of gm2
+in these cirumstances.
+
+In gm2 the syntax for a type declaration is defined as:
+
+@example
+TypeDeclaration := Ident "=" Type =:							   
+
+Type :=  SimpleType | ArrayType
+          | RecordType          
+          | SetType             
+          | PointerType         
+          | ProcedureType
+      =:								   
+									   
+SimpleType := Qualident | Enumeration | SubrangeType =:								   
+@end example
+
+If the @code{TypeDeclaration} rule is satisfied by
+@code{SimpleType} and @code{Qualident} ie:
+
+@example
+TYPE
+   foo = bar ;
+@end example
+
+then @code{foo} is said to be equivalent to @code{bar}. Thus
+variables, parameters and record fields declared with either type will
+be compatible with each other.
+
+If, however, the @code{TypeDeclaration} rule is satisfied by any
+alternative clause @code{ArrayType}, @code{RecordType},
+@code{SetType}, @code{PointerType}, @code{ProcedureType},
+@code{Enumeration} or @code{SubrangeType} then in these cases a new
+type is created which is distinct from all other types.  It will be
+incompatible with all other user defined types.
+
+It also has furthur consequences in that if bar was defined as an
+enumerated type and foo is imported by another module then the
+enumerated values are also visible in this module.
+
+Consider the following modules:
+
+@example
+DEFINITION MODULE impc ;
+
+TYPE
+   C = (red, blue, green) ;
+
+END impc.
+@end example
+
+@example
+DEFINITION MODULE impb ;
+
+IMPORT impc ;
+
+TYPE
+   C = impc.C ;
+
+END impb.
+@end example
+
+@example
+MODULE impa ;
+
+FROM impb IMPORT C ;
+
+VAR
+   a: C ;
+BEGIN
+   a := red
+END impa.
+@end example
+
+Here we see that the type @code{C} defined in module @code{impb} is
+equivalent to the type @code{C} in module @code{impc}. Module
+@code{impa} imports the type @code{C} from module @code{impb}
+and at that point the enumeration values @code{red, blue, green}
+(declared in module @code{impc}) are also visible.
+
+At the time of writing I cannot find clarification on this issue in
+the PIM-[234] books.  However according to the Interim Version of 4th
+Working Draft Modula-2 Standard in sections 6.1.6.4. and 6.1.6.5. The
+annotation states that:
+
+``The set of identifiers that are explicitly imported must not be
+redeclared in the block that imports those identifiers. The implicitly
+imported identifiers are given by the closures of all the explicitly
+imported identifiers.''
+
+and closure is defined as:
+
+``The closure of an identifier defines the set of identifiers that is
+implicitly imported or exported if that identifier is imported or
+exported.''
+
+``The closure of an identifier shall be a set consisting of that
+identifier, together with the closure of the type if that identifier
+is associated with a type.''
+
+``The closure of an identifier is a singleton set containing that
+identifier, for an identifier denoting an enumerated type the closure
+set includes the enumerated constants of the type as well as the
+identifier denoting the type itself.''
+
+``Thus an identifier denoting with an enumerated type is imported
+(exported), then the occurance of that identifier in that import list
+(export list) is an abbreviation for the occurrence of that
+identifier, together with all of the identifiers associated with the
+constant values of the enumerated type.''
+
+Which seems to imply that the following module should not compile:
+
+@example
+MODULE impd ;
+
+IMPORT impb ;
+
+VAR
+   a: impb.C ;
+BEGIN
+   a := impb.red  (* red should not be resolved *)
+END impd.
+@end example
+
+Whereas if the module were altered to:
+
+@example
+MODULE impd ;
+
+FROM impb IMPORT C ;
+
+VAR
+   a: C ;
+BEGIN
+   a := red
+END impd.
+@end example
+
+then @code{red} is resolved and the module is legal.
+
+@node Future, Done list, Scope rules, Internals
 @section A future wish list
 
 In the future it might be sensible to rewrite M2Quads.mod to
@@ -911,10 +1068,6 @@ implement many of the ISO built-in functions and procedures.
 
 @item
 rewrite documentation.
-
-@item
-profile compiler and improve compilation speed.
-Compiling @file{P1SyntaxCheck.mod} takes far too long.
 
 @item
 the modula-2 front end needs to convert the quadruples into

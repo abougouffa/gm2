@@ -1,3 +1,8 @@
+2003-05-16	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/longstrimp.mod)
+	  and also (gm2/m2/comp/autotest/gm2/imp[deghij].mod)
+	
 2003-05-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented the standard function LENGTH

@@ -39,8 +39,8 @@ EXPORT QUALIFIED P1StartBuildDefinitionModule,
                  BuildExportOuterModule,
                  BuildImportInnerModule,
                  BuildExportInnerModule,
-                 BuildEnumeration,
-                 BuildType,
+                 StartBuildEnumeration,
+                 EndBuildEnumeration,
                  BuildHiddenType,
                  StartBuildProcedure,
                  EndBuildProcedure,
@@ -379,53 +379,53 @@ PROCEDURE BuildExportInnerModule ;
 
 
 (*
-   BuildEnumeration - Builds an Enumeration type Type.
+   StartBuildEnumeration - Builds an Enumeration type Type.
 
 
-                      Stack
+                           Stack
 
-                      Entry                 Exit
+                           Entry                 Exit
 
-               Ptr ->
-                      +------------+
-                      | #          |
-                      |------------|
-                      | en 1       |
-                      |------------|
-                      | en 2       |
-                      |------------|
-                      .            .
-                      .            .
-                      .            .                       <- Ptr
-                      |------------|        +------------+
-                      | en #       |        | Type       |
-                      |------------|        |------------|
-                      | Name       |        | Name       |
-                      |------------|        |------------|
+                    Ptr ->
+                           +------------+
+                           | #          |
+                           |------------|
+                           | en 1       |
+                           |------------|
+                           | en 2       |
+                           |------------|
+                           .            .
+                           .            .
+                           .            .                       <- Ptr
+                           |------------|        +------------+
+                           | en #       |        | Type       |
+                           |------------|        |------------|
+                           | Name       |        | Name       |
+                           |------------|        |------------|
 *)
 
-PROCEDURE BuildEnumeration ;
+PROCEDURE StartBuildEnumeration ;
 
 
 (*
-   BuildType - Builds a Type.
+   EndBuildEnumeration - completes the construction of the enumeration type.
 
 
-               Stack
+                         Stack
 
-               Entry                 Exit
+                         Entry                 Exit
 
-        Ptr ->
-               +------------+
-               | Type       |                          <- Ptr
-               |------------|        +---------------+
-               | Name       |        | Type  | Name  |
-               |------------|        |---------------|
-
-                                     Empty
+                  Ptr ->
+                         +------------+
+                         | Type       |                          <- Ptr
+                         |------------|        +---------------+
+                         | Name       |        | Type  | Name  |
+                         |------------|        |---------------|
+          
+                                               Empty
 *)
 
-PROCEDURE BuildType ;
+PROCEDURE EndBuildEnumeration ;
 
 
 (*

@@ -18,8 +18,8 @@ IMPLEMENTATION MODULE M2SubExp ;
 
 
 FROM SymbolTable IMPORT NulSym, ModeOfAddr, GetMode, GetSymName, IsVar, IsTemporary,
-                        MakeConstLit, IsModule, IsExported, GetScopeAuthor, GetVarQuads, PushSize,
-                        IsProcedure, GetVarFather, IsConst, IsConstLit, MakeConstVar, PushValue, PopValue,
+                        MakeConstLit, IsModule, IsExported, GetScope, GetVarQuads, PushSize,
+                        IsProcedure, GetVarScope, IsConst, IsConstLit, MakeConstVar, PushValue, PopValue,
                         IsValueSolved ;
 
 FROM NameKey IMPORT WriteKey, MakeKey, NulName ;
@@ -2507,11 +2507,11 @@ END TopologicallySortForest ;
 
 PROCEDURE IsUsedOutSide (Sym: CARDINAL; Start, End: CARDINAL) : BOOLEAN ;
 VAR
-   Father,
+   Scope,
    UsedStart, UsedEnd: CARDINAL ;
 BEGIN
-   Father := GetScopeAuthor(Sym) ;
-   IF IsModule(Father) AND IsExported(Father, Sym)
+   Scope := GetScope(Sym) ;
+   IF IsModule(Scope) AND IsExported(Scope, Sym)
    THEN
       RETURN( TRUE )
    ELSE
@@ -2578,7 +2578,7 @@ BEGIN
    IF IsConst(sym) OR IsProcedure(sym)
    THEN
       RETURN( FALSE )
-   ELSIF IsProcedure(GetVarFather(sym))
+   ELSIF IsProcedure(GetVarScope(sym))
    THEN
       RETURN( FALSE )
    ELSE

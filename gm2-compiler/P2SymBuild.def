@@ -42,9 +42,9 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildNumber,
                  BuildString,
                  BuildConst,
-                 BuildEnumeration,
                  BuildSubrange,
                  BuildVariable,
+                 StartBuildEnumeration,
                  BuildType,
                  StartBuildFormalParameters,
                  EndBuildFormalParameters,
@@ -436,32 +436,32 @@ PROCEDURE BuildConstTypeFromAssignment ;
 
 
 (*
-   BuildEnumeration - Builds an Enumeration type Type.
+   StartBuildEnumeration - Builds an Enumeration type Type.
 
 
-                      Stack
+                           Stack
 
-                      Entry                 Exit
+                           Entry                 Exit
 
-               Ptr ->
-                      +------------+
-                      | #          |
-                      |------------|
-                      | en 1       |
-                      |------------|
-                      | en 2       |
-                      |------------|
-                      .            .
-                      .            .
-                      .            .                       <- Ptr
-                      |------------|        +------------+
-                      | en #       |        | Type       |
-                      |------------|        |------------|
-                      | Name       |        | Name       |
-                      |------------|        |------------|
+                    Ptr ->
+                           +------------+
+                           | #          |
+                           |------------|
+                           | en 1       |
+                           |------------|
+                           | en 2       |
+                           |------------|
+                           .            .
+                           .            .
+                           .            .                       <- Ptr
+                           |------------|        +------------+
+                           | en #       |        | Type       |
+                           |------------|        |------------|
+                           | Name       |        | Name       |
+                           |------------|        |------------|
 *)
 
-PROCEDURE BuildEnumeration ;
+PROCEDURE StartBuildEnumeration ;
 
 
 (*

@@ -29,7 +29,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         MakeTemporary, MakeConstLit, MakeConstLitString,
                         RequestSym,
                         GetType, GetLowestType, SkipType,
-                        GetScopeAuthor, GetCurrentScope,
+                        GetScope, GetCurrentScope,
                         GetSubrange,
                         GetModule, GetMainModule,
                         GetCurrentModule, GetFileModule, GetLocalSym,
@@ -39,7 +39,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         GetFirstUsed, GetDeclared,
                         GetVarQuads, GetVarReadQuads, GetVarWriteQuads,
                         GetVarWriteLimitQuads, GetVarReadLimitQuads,
-                        GetVarFather,
+                        GetVarScope,
                         GetModuleQuads, GetProcedureQuads,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
@@ -53,7 +53,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         NoOfElements,
                         NoOfParam,
                         StartScope, EndScope,
-                        Father, IsRecordField, IsFieldVarient, IsRecord,
+                        GetParent, IsRecordField, IsFieldVarient, IsRecord,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
@@ -3151,7 +3151,7 @@ BEGIN
       (* Procedure Variable ? *)
       ProcSym := OperandF(NoOfParam+2)
    END ;
-   IF IsDefImp(GetScopeAuthor(ProcSym)) AND IsDefinitionForC(GetScopeAuthor(ProcSym))
+   IF IsDefImp(GetScope(ProcSym)) AND IsDefinitionForC(GetScope(ProcSym))
    THEN
       BuildRealFuncProcCall(FALSE, TRUE)
    ELSE
@@ -5078,7 +5078,7 @@ BEGIN
       (* Procedure Variable ? *)
       ProcSym := OperandF(NoOfParam+2)
    END ;
-   IF IsDefImp(GetScopeAuthor(ProcSym)) AND IsDefinitionForC(GetScopeAuthor(ProcSym))
+   IF IsDefImp(GetScope(ProcSym)) AND IsDefinitionForC(GetScope(ProcSym))
    THEN
       BuildRealFuncProcCall(TRUE, TRUE)
    ELSE
@@ -7090,7 +7090,7 @@ BEGIN
    PopT(ProcSym) ;
    Assert(IsProcedure(ProcSym)) ;
    PutProcedureStartQuad(ProcSym, NextQuad) ;
-   GenQuad(NewLocalVarOp, GetPreviousTokenLineNo(), GetScopeAuthor(ProcSym), ProcSym) ;
+   GenQuad(NewLocalVarOp, GetPreviousTokenLineNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
    Push(ReturnStack, 0) ;
    PushT(ProcSym)
@@ -7293,8 +7293,8 @@ BEGIN
       (* remember that this function is only called once we have optimized the redundant gotos and conditionals *)
       IF IsConditional(Current) AND (NOT IsGlobal)
       THEN
-         IsGlobal := (IsVar(op1) AND (NOT IsProcedure(GetVarFather(op1)))) OR
-                     (IsVar(op2) AND (NOT IsProcedure(GetVarFather(op2))))
+         IsGlobal := (IsVar(op1) AND (NOT IsProcedure(GetVarScope(op1)))) OR
+                     (IsVar(op2) AND (NOT IsProcedure(GetVarScope(op2))))
       END ;
       IF op=CallOp
       THEN
@@ -7318,8 +7318,8 @@ BEGIN
       ELSE
          IF NOT IsGlobal
          THEN
-            IsGlobal := (IsVar(op1) AND (NOT IsProcedure(GetVarFather(op1)))) OR
-                        (IsVar(op2) AND (NOT IsProcedure(GetVarFather(op2))))
+            IsGlobal := (IsVar(op1) AND (NOT IsProcedure(GetVarScope(op1)))) OR
+                        (IsVar(op2) AND (NOT IsProcedure(GetVarScope(op2))))
          END
       END
    END ;
@@ -8174,7 +8174,7 @@ BEGIN
          (* WriteString('Checking for a with') ; *)
          f := Peep(WithStack, n) ;
          WITH f^ DO
-            IF IsRecordField(Sym) AND (Father(Sym)=RecordSym)
+            IF IsRecordField(Sym) AND (GetParent(Sym)=RecordSym)
             THEN
                (* Fake a RecordSym.op *)
                PushTF(PtrSym, RecordSym) ;
@@ -8258,9 +8258,9 @@ PROCEDURE CheckOuterScopeProcedureVariable ;
 VAR
    t2, t1,
    t, c,
-   FatherSym,
    ScopeSym,
-   Sym, Type: CARDINAL ;
+   DeclaredScopeSym,
+   Sym, Type       : CARDINAL ;
 BEGIN
    ScopeSym := GetCurrentScope() ;
    (*
@@ -8275,16 +8275,16 @@ BEGIN
       PopTF(Sym, Type) ;
       IF IsVar(Sym)
       THEN
-         (* note we must not try to GetScopeAuthor if Sym is not a variable *)
-         FatherSym := GetScopeAuthor(Sym) ;
+         (* note we must not try to GetScope if Sym is not a variable *)
+         DeclaredScopeSym := GetScope(Sym) ;
 
          IF CompilerDebugging
          THEN
             printf2('need to reference symbol, %a, defined in scope %a\n',
-                    GetSymName(Sym), GetSymName(GetScopeAuthor(Sym)))
+                    GetSymName(Sym), GetSymName(GetScope(Sym)))
          END ;
 
-         IF IsProcedure(FatherSym) AND (FatherSym#ScopeSym)
+         IF IsProcedure(DeclaredScopeSym) AND (DeclaredScopeSym#ScopeSym)
          THEN
             (*
                so now we know that Sym is a procedure variable which was not declared in
@@ -8293,8 +8293,8 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, Address) ;
             GenQuad(BecomesOp, t, NulSym, ActivationPointer) ;
-            ScopeSym := GetScopeAuthor(ScopeSym) ;
-            WHILE IsProcedure(FatherSym) AND (ScopeSym#FatherSym) DO
+            ScopeSym := GetScope(ScopeSym) ;
+            WHILE IsProcedure(DeclaredScopeSym) AND (ScopeSym#DeclaredScopeSym) DO
                c := MakeTemporary(ImmediateValue) ;
                (* must continue to chain backwards to find the scope where Sym was declared *)
                GenQuad(OffsetOp, c, NulSym, ActivationPointer) ;
@@ -8306,9 +8306,9 @@ BEGIN
                PutVar(t2, Address) ;
                GenQuad(IndrXOp, t2, Address, t1) ; (* next chained frame is now in t2 *)
                t := t2 ;
-               ScopeSym := GetScopeAuthor(ScopeSym)
+               ScopeSym := GetScope(ScopeSym)
             END ;
-            IF ScopeSym=FatherSym
+            IF ScopeSym=DeclaredScopeSym
             THEN
                (* finished chaining backwards, found sym in scope ScopeSym *)
                c := MakeTemporary(ImmediateValue) ;
