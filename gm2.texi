@@ -843,11 +843,11 @@ syntax is parsed but no symbols are created.
 
 To do
 
-@Subsection Pass 3
+@subsection Pass 3
 
 To do
 
-@Subsection Pass H
+@subsection Pass H
 
 To do
 
