@@ -367,7 +367,8 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-GM2-COMP-BOOT-C    = M2Search.c P3Type.c M2Alias.c P1SyntaxCheck.c
+
+GM2-COMP-BOOT-C    = M2Search.c M2Alias.c P1SyntaxCheck.c P3Type.c
 GM2-COMP-BOOT-H    = M2Alias.h
 
 #
