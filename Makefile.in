@@ -734,10 +734,10 @@ gm2m: $(GM2_LIBS) gm2-compiler/gm2m.o
 ppg: p2c/p2c-src/home/libp2c.a boot-bin/mklink boot-bin/p2c \
      gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2-compiler-boot/%.o) \
      gm2-compiler-boot/ppg.o
-	$(M2LINK) -s m2/comp/gm2s/$@init
+	$(M2LINK) -s init/$@init
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a m2/comp/gm2s/$@init
+	$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a init/$@init
 	$(SHELL) linkcommand
 	mv a.out $@
 
