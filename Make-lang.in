@@ -1139,9 +1139,9 @@ gm2/gm2-auto:
 
 gm2/pg: gm2/gm2-auto gm2/ppg gm2/gm2-auto/pg.mod \
     gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/gm2-libs-boot \
-    $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
-    gm2/gm2-auto/pg.o
+    $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o)
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
+	$(MAKE) gm2/gm2-auto/pg.o
 	$(QUIAT)cd gm2 ; \
 	../$(M2LINK) -s ../gm2/gm2-auto/pginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
@@ -1197,25 +1197,32 @@ gm2/pge: buildpge
         fi
 	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/pg.bnf
 
-$(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge -l $< > $@
 
-$(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-$(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-$(objdir)/gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/PHBuild.mod: $(srcdir)/gm2/bnf/m2-h.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-$(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-$(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
-$(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf gm2/pge
+$(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
+	$(MAKE) gm2/pge
 	./gm2/pge -l $< > $@
 
 #
