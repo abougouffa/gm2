@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE Indexing ;
 
 FROM libc IMPORT memset ;
 FROM Storage IMPORT ALLOCATE, REALLOCATE, DEALLOCATE ;
-FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD ;
+FROM SYSTEM IMPORT TSIZE, ADDRESS, WORD, BITSET ;
 
 CONST
    MinSize = 128 ;
@@ -32,6 +32,8 @@ TYPE
                          ArraySize : CARDINAL ;
                          Low,
                          High      : CARDINAL ;
+                         Debug     : BOOLEAN ;
+                         Map       : BITSET ;
                       END ;
 
 (*
@@ -47,7 +49,10 @@ BEGIN
       Low := low ;
       High := 0 ;
       ArraySize := MinSize ;
-      ALLOCATE(ArrayStart, MinSize)
+      ALLOCATE(ArrayStart, MinSize) ;
+      ArrayStart := memset(ArrayStart, 0, ArraySize) ;
+      Debug := FALSE ;
+      Map := BITSET{}
    END ;
    RETURN( i )
 END InitIndex ;
@@ -65,6 +70,17 @@ BEGIN
    DISPOSE(i) ;
    RETURN( NIL )
 END KillIndex ;
+
+
+(*
+   DebugIndex - turns on debugging within an index.
+*)
+
+PROCEDURE DebugIndex (i: Index) : Index ;
+BEGIN
+   i^.Debug := TRUE ;
+   RETURN( i )
+END DebugIndex ;
 
 
 (*
@@ -134,10 +150,17 @@ BEGIN
          ELSE
             oldSize := ArraySize ;
             WHILE (n-Low)*TSIZE(ADDRESS)>=ArraySize DO
-               ArraySize := ArraySize * 2 ;               
+               ArraySize := ArraySize * 2
             END ;
             IF oldSize#ArraySize
             THEN
+(*
+               IF Debug
+               THEN
+                  printf2('increasing memory hunk from %d to %d\n',
+                          oldSize, ArraySize)
+               END ;
+*)
                REALLOCATE(ArrayStart, ArraySize) ;
                (* and initialize the remainder of the array to NIL *)
                b := memset(ArrayStart+oldSize, 0, ArraySize-oldSize)
@@ -146,7 +169,14 @@ BEGIN
          END
       END ;
       p := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
-      p^ := a
+      p^ := a ;
+      IF Debug
+      THEN
+         IF n<32
+         THEN
+            INCL(Map, n)
+         END
+      END
    END
 END PutIndice ;
 
@@ -165,6 +195,13 @@ BEGIN
          HALT
       END ;
       p := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
+      IF Debug
+      THEN
+         IF (n<32) AND (NOT (n IN Map)) AND (p^#NIL)
+         THEN
+            HALT
+         END
+      END ;
       RETURN( p^ )
    END
 END GetIndice ;

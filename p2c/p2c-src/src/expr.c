@@ -2212,7 +2212,7 @@ Expr *a, *b;
 		if (abs(i+j) == 32) {
 		    delfreearg(&a, a->nargs-1);
 		    delsimpfreearg(&a, a->nargs-1);
-		    a = makeexpr_bicall_1((i+j > 0) ? "_tolower" : "_toupper",
+		    a = makeexpr_bicall_1((i+j > 0) ? "tolower" : "toupper",
 					  tp_char, a);
 		}
 	    }

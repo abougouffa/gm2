@@ -8,7 +8,7 @@
 char *wrapc_strtime (void)
 {
 #if defined(HAVE_CTIME)
-  long clock   = time((long *)0) ;
+  void *clock = time((void *)0) ;
   char *string = ctime(&clock);
 
   string[24] = (char) 0;

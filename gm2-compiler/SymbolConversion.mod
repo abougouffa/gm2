@@ -18,7 +18,9 @@ IMPLEMENTATION MODULE SymbolConversion ;
 
 FROM NameKey IMPORT Name ;
 
-FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds ;
+FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds,
+                     DebugIndex ;
+
 FROM M2Error IMPORT InternalError ;
 FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName ;
 FROM M2ALU IMPORT PushIntegerTree ;

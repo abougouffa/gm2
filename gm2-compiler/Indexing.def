@@ -30,7 +30,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED Index, InitIndex, KillIndex, GetIndice, PutIndice,
                  HighIndice, LowIndice, InBounds, IsIndiceInIndex,
                  RemoveIndiceFromIndex, IncludeIndiceIntoIndex,
-                 ForeachIndiceInIndexDo ;
+                 ForeachIndiceInIndexDo, DebugIndex ;
 
 TYPE
    Index ;
@@ -49,6 +49,13 @@ PROCEDURE InitIndex (low: CARDINAL) : Index ;
 *)
 
 PROCEDURE KillIndex (i: Index) : Index ;
+
+
+(*
+   DebugIndex - turns on debugging within an index.
+*)
+
+PROCEDURE DebugIndex (i: Index) : Index ;
 
 
 (*

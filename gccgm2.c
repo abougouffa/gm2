@@ -9064,9 +9064,9 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
     /*
      *  these parameters must match the prototypes of the procedures:
      *  ShiftLeft, ShiftRight, ShiftVal, RotateLeft, RotateRight, RotateVal
-     *  inside SYSTEM.mod
+     *  inside gm2-iso/SYSTEM.mod
      */
-
+#if 0
     /* parameter 1 source set */
     gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
 					      get_rvalue (op2, settype,
@@ -9078,6 +9078,7 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
 					      get_rvalue (op2, settype,
 							  is_op2lvalue),
 					      high));
+#endif
     /* parameter 3 nBits */
     gccgm2_BuildParam (nBits);
 

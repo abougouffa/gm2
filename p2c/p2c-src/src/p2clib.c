@@ -128,7 +128,7 @@ register int n;
     return d;
 }
 
-
+#if 0
 int my_toupper(c)
 int c;
 {
@@ -147,7 +147,7 @@ int c;
     else
 	return c;
 }
-
+#endif
 
 
 
@@ -837,7 +837,7 @@ char *s;
     time(&clock);
     c = ctime(&clock);
     for (i = 0; i < 11; i++)
-	s[i] = my_toupper(c[where[i]]);
+	s[i] = toupper(c[where[i]]);
     s[2] = '-';
     s[6] = '-';
 }

@@ -1,3 +1,11 @@
+2004-05-10	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2 now builds on FreeBSD 5.2.1
+	* removed to_upper and to_lower in p2c
+	* made gm2/gm2-libs/configure and friends test for `strsignal'
+	* fixed initialization bug (missing memset)
+	  in gm2/gm2-compiler/Indexing.mod
+
 2004-05-06	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added SHIFT and ROTATE into ISO SYSTEM and

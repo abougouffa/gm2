@@ -113,7 +113,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
 check_cross: stage1/gm2 force
 	for i in x $(INTERNAL_CFLAGS) ; do \
             echo $$i ; \
-            if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
+            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
                 echo "cross compiling Modula-2, we skip stage1, and build using the native Modula-2" ; \
                 cp -pr /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2/* stage1/gm2 ; \
             fi \
@@ -850,31 +850,31 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 gm2/gm2-libs/gm2-libs-host.h:
 	for i in x $(INTERNAL_CFLAGS) ; do \
             echo $$i ; \
-            if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
+            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
                 cd gm2/gm2-libs ; \
                 CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
                 export CC ; \
                 CPP=`echo $(GCC_FOR_TARGET) -E | sed -e "s/^ //"` ; \
                 export CPP ; \
-                $(SHELL) -c ../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR) ; \
+                $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
                 return ; \
             fi ; \
         done ; \
         cd gm2/gm2-libs ; \
-        $(SHELL) -c ../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)
+        $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)'
 
 gm2/gm2config.h:
 	cd gm2 ; \
 	for i in x $(INTERNAL_CFLAGS) ; do \
             echo $$i ; \
-            if [ "$$i" == "-DCROSS_COMPILE" ] ; then \
+            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
                 AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
                 export AR ; \
-                $(SHELL) -c ../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR) ; \
+                $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
                 return ; \
             fi ; \
         done ; \
-        $(SHELL) -c ../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)
+        $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)'
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \

@@ -709,7 +709,7 @@ long a2;
 
 
 
-
+#if 0
 /* String conversions */
 
 int my_toupper(c)
@@ -730,7 +730,7 @@ int c;
     else
 	return c;
 }
-
+#endif
 
 void upc(s)
 register char *s;

@@ -120,7 +120,7 @@ PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
                time.
 *)
 
-PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
+PROCEDURE ShiftLeft ( (* VAR s, d: ARRAY OF BITSET; *)
                      SetSizeInBits: CARDINAL;
                      ShiftCount: INTEGER) ;
 

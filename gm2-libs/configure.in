@@ -29,6 +29,7 @@ AC_CHECK_FUNCS(ctime)
 AC_CHECK_FUNCS(rand)
 AC_CHECK_FUNCS(fstat)
 AC_CHECK_FUNCS(select)
+AC_CHECK_FUNCS(strsignal)
 
 dnl
 dnl  now check for specific types

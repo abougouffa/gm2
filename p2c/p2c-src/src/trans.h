@@ -1853,7 +1853,7 @@ int unlink         PP( (char *) );
 #  define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
-
+#if 0
 #ifdef toupper
 # undef toupper
 # undef tolower
@@ -1874,7 +1874,7 @@ int unlink         PP( (char *) );
 #  define _tolower(c)  tolower(c)
 # endif
 #endif
-
+#endif
 
 
 

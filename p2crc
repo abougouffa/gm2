@@ -1218,7 +1218,8 @@ AvoidName         Signed Const Volatile Register Static Local Inline
 AvoidName         cdecl far near huge
 AvoidName         isalpha isupper islower isdigit isxdigit isspace ispunct
 AvoidName         isalnum isprint isgraph iscntrl isascii toascii
-AvoidName         toupper tolower const
+AvoidName         toupper tolower
+AvoidName         const
 AvoidName         fmod div fdiv fabs
 AvoidName	  LINK SEXT
 AvoidName	  TRUE FALSE BOOLEAN
