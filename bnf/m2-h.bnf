@@ -983,11 +983,24 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
                         Ident
                       =:
 
+DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" ]
+                       =:
+
 ProcedureHeading := "PROCEDURE"
+                     DefineBuiltinProcedure
                      ( Ident
                        [ FormalParameters ]
                      )
-                     =:
+                 =:
+
+Builtin := [ "__BUILTIN__" ] =:
+
+DefProcedureHeading := "PROCEDURE"
+                        Builtin
+                        ( Ident
+                          [ FormalParameters ]
+                        )
+                    =:
 
 -- introduced procedure block so we can produce more informative
 -- error messages
@@ -1067,7 +1080,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
                     }
               |
               "VAR" { VariableDeclaration ";" } |
-              ProcedureHeading ";" =:
+              DefProcedureHeading ";" =:
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 

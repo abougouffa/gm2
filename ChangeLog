@@ -1,4 +1,13 @@
-2002-03-11	Gaius Mulley <gaius@glam.ac.uk>
+2002-12-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added __ATTRIBUTE__ __BUILTIN__ ((Ident))
+	  rules for obtaining target compiler constants
+	* fixed handling of recursive procedure type definitions
+	* improved base types to aid gdb in displaying data types
+	* checked in some sketchy initial ISO library implementation
+	  modules
+
+2002-11-03	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 Release 0.33
 	* implemented large sets

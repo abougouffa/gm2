@@ -206,6 +206,8 @@ TYPE
                                               (* The second occurence is       *)
                                               (* compared to the first.        *)
                  HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
+                 IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
+                 BuiltinName   : Name ;       (* name of equivalent builtin    *)
                  Father        : CARDINAL ;   (* Father scope of procedure.    *)
                  StartQuad     : CARDINAL ;   (* Index into quads for start    *)
                                               (* of procedure.                 *)
@@ -2058,6 +2060,9 @@ BEGIN
                                       (* the .def or .mod first.       *)
                                       (* The second occurence is       *)
                                       (* compared to the first.        *)
+         HasVarArgs := FALSE ;        (* Does the procedure use ... ?  *)
+         IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
+         BuiltinName := NulName ;     (* name of equivalent builtin    *)
          Father := GetCurrentScope() ;
                                       (* Father scope of procedure.    *)
          StartQuad := 0 ;             (* Index into list of quads.     *)
@@ -2547,6 +2552,63 @@ BEGIN
       END
    END
 END GetStringLength ;
+
+
+(*
+   GetProcedureBuiltin - returns the builtin name for the equivalent procedure, Sym.
+*)
+
+PROCEDURE GetProcedureBuiltin (Sym: CARDINAL) : Name ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym   : RETURN( Procedure.BuiltinName )
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END GetProcedureBuiltin ;
+
+
+(*
+   PutProcedureBuiltin - assigns the builtin name for the equivalent procedure, Sym.
+*)
+
+PROCEDURE PutProcedureBuiltin (Sym: CARDINAL; name: Name) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym   : Procedure.BuiltinName := name ;
+                       Procedure.IsBuiltin := TRUE ;
+                       (* we use the same extra pass method as hidden types for builtins *)
+                       PutHiddenTypeDeclared
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutProcedureBuiltin ;
+
+
+(*
+   IsProcedureBuiltin - returns TRUE if this procedure has a builtin equivalent.
+*)
+
+PROCEDURE IsProcedureBuiltin (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym   : RETURN( Procedure.IsBuiltin )
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END IsProcedureBuiltin ;
 
 
 (*

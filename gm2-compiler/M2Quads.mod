@@ -114,7 +114,10 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
 
 FROM M2Math IMPORT IsPseudoMathFunction ;
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
-FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList ;
+
+FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
+                  IsItemInList, KillList, IncludeItemIntoList ;
+
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
@@ -224,7 +227,7 @@ PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ; FORWARD ;
 PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ; FORWARD ;
-PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL) ; FORWARD ;
+PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ; FORWARD ;
 PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          Given        : CARDINAL;
                          Expecting    : CARDINAL;
@@ -3328,7 +3331,7 @@ BEGIN
             THEN
                IF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
-                  CheckParameter(CallParam, ParamI, Proc, i)
+                  CheckParameter(CallParam, ParamI, Proc, i, NIL)
                ELSIF NOT IsUnboundedParam(Proc, i)
                THEN
                   (* we possibly need to allow passing strings of exact size to an ARRAY [0..n] OF CHAR *)
@@ -3343,7 +3346,7 @@ BEGIN
                END
             END
          ELSE
-            CheckParameter(CallParam, ParamI, Proc, i)
+            CheckParameter(CallParam, ParamI, Proc, i, NIL)
          END
       ELSE
          IF IsForC AND UsesVarArgs(Proc)
@@ -3373,7 +3376,7 @@ END CheckProcedureParameters ;
    CheckProcTypeAndProcedure - checks the ProcType with the call.
 *)
 
-PROCEDURE CheckProcTypeAndProcedure (ProcType: CARDINAL; call: CARDINAL) ;
+PROCEDURE CheckProcTypeAndProcedure (ProcType: CARDINAL; call: CARDINAL; TypeList: List) ;
 VAR
    i, n            : CARDINAL ;
    CheckedProcedure: CARDINAL ;
@@ -3416,7 +3419,7 @@ BEGIN
                ErrorFormat1(e, 'whereas procedure (%a) has declared it as a non VAR parameter', GetSymName(call))
             END ;
          END ;
-         CheckParameter(GetParam(CheckedProcedure, i), GetParam(ProcType, i), call, i) ;
+         CheckParameter(GetParam(CheckedProcedure, i), GetParam(ProcType, i), call, i, TypeList) ;
          INC(i)
       END
    END
@@ -3463,8 +3466,9 @@ END IsReallyPointer ;
                     Note that type sizes are checked during the code generation pass.
 *)
 
-PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL) ;
+PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
 VAR
+   NewList            : BOOLEAN ;
    CallType, ParamType: CARDINAL ;
 BEGIN
    ParamType := GetType(Param) ;
@@ -3477,6 +3481,19 @@ BEGIN
    ELSE
       CallType := GetType(Call)
    END ;
+   IF TypeList=NIL
+   THEN
+      NewList := TRUE ;
+      InitList(TypeList)
+   ELSE
+      NewList := FALSE
+   END ;
+   IF IsItemInList(TypeList, CallType)
+   THEN
+      (* no need to check *)
+      RETURN
+   END ;
+   IncludeItemIntoList(TypeList, CallType) ;
    IF IsProcType(ParamType)
    THEN
       IF (NOT IsProcedure(Call)) AND ((CallType=NulSym) OR (NOT IsProcType(CallType)))
@@ -3511,7 +3528,7 @@ BEGIN
          END
       END ;
       (* now to check each parameter of the proc type *)
-      CheckProcTypeAndProcedure(ParamType, Call)
+      CheckProcTypeAndProcedure(ParamType, Call, TypeList)
    ELSIF (CallType#ParamType) AND (CallType#NulSym)
    THEN
       IF IsUnknown(ParamType)
@@ -3556,6 +3573,10 @@ BEGIN
                           Call, Param, ProcSym, i)
          END
       END
+   END ;
+   IF NewList
+   THEN
+      KillList(TypeList)
    END
 END CheckParameter ;
 

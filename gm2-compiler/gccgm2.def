@@ -24,6 +24,7 @@ EXPORT QUALIFIED Tree,
                  GetM2RealType, GetM2LongRealType, GetM2LongIntType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
                  GetBitsPerWord, GetBuiltinConst, GetBuiltinConstType,
+                 BuiltinExists, BuildBuiltinTree,
                  BuiltInMemCopy, BuiltInAlloca,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
@@ -194,9 +195,23 @@ PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
 
 PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
 
+(*
+   BuiltinExists - returns TRUE if the builtin function, name, exists
+                   for this target architecture.
+*)
+
+PROCEDURE BuiltinExists (name: ADDRESS) : BOOLEAN ;
+
 
 (*
-   GetSizeOf - returns a TREE containing the sizeof(type).
+   BuildBuiltinTree - returns a Tree containing the builtin function, name.
+*)
+
+PROCEDURE BuildBuiltinTree (name: ADDRESS) : Tree ;
+
+
+(*
+   GetSizeOf - returns a Tree containing the sizeof(type).
 *)
 
 PROCEDURE GetSizeOf (type: Tree) : Tree ;

@@ -357,18 +357,27 @@ a section of the ISO library @code{LongMath.def} which exploits this
 feature:
 
 @example
-PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
-  (* Returns the positive square root of x *)
-
-PROCEDURE __BUILTIN__ exp (x: LONGREAL): LONGREAL;
-  (* Returns the exponential of x *)
+PROCEDURE __BUILTIN__ sin (x: LONGREAL): LONGREAL;
+  (* Returns the sine of x *)
 @end example
 
-which indicates that the functions @code{sqrt} and @code{exp} will be
-implemented using gcc built-in maths library. If gcc cannot support
-any built-in function (for example if the programmer has requested the
-address of @code{exp}) then code is generated to call the alternative
+which indicates that the function @code{sin} will be
+implemented using the gcc built-in maths library. If gcc cannot utilize
+the built-in function (for example if the programmer requested the address
+of @code{sin}) then code is generated to call the alternative
 function implemented in the @code{IMPLEMENTATION} @code{MODULE}.
+
+Sometimes a function exported from the @code{DEFINITION} @code{MODULE}
+will have a different name from the built-in function within gcc. In such
+cases the mapping between the GNU Modula-2 function name and the gcc name
+is expressed using the keywords @code{__ATTRIBUTE__} @code{__BUILTIN__}
+@code{((Ident))}. For example the function @code{sqrt} in @code{LongMath.def}
+maps onto the gcc built-in function @code{sqrtl} and this is expressed as:
+
+@example
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ (sqrtl) sqrt (x: LONGREAL): LONGREAL;
+  (* Returns the positive square root of x *)
+@end example
 
 @node Internals, , Using, Top
 @chapter GNU Modula-2 Internals

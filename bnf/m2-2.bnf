@@ -834,7 +834,14 @@ ProcedureDeclaration := ProcedureHeading                                   % Ass
 
                       =:
 
+DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__"
+                            "(" "("                                        % PushAutoOff %
+                                    Ident                                  % PopAuto %
+                                          ")" ")" ]
+                      =:
+
 ProcedureHeading := "PROCEDURE"
+                     DefineBuiltinProcedure
                      ( Ident
                                                                            % StartBuildProcedure %
                                                                            % Assert(IsProcedure(OperandT(1))) %
@@ -844,6 +851,20 @@ ProcedureHeading := "PROCEDURE"
                                                                            % BuildProcedureHeading %
                      )
                      =:
+
+Builtin := [ "__BUILTIN__" ] =:
+
+DefProcedureHeading := "PROCEDURE"
+                        Builtin
+                        ( Ident
+                                                                           % StartBuildProcedure %
+                                                                           % Assert(IsProcedure(OperandT(1))) %
+                                                                           % StartBuildFormalParameters  %
+                          [ FormalParameters ]
+                                                                           % EndBuildFormalParameters %
+                                                                           % BuildProcedureHeading %
+                        )
+                    =:
 
 -- introduced procedure block so we can produce more informative
 -- error messages
@@ -940,7 +961,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
                     }
               |
               "VAR" { VariableDeclaration ";" } |
-              ProcedureHeading ";" =:
+              DefProcedureHeading ";" =:
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 

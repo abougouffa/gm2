@@ -1041,7 +1041,14 @@ ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock                % Bui
                                                                              PopAuto %
                       =:
 
+DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__"
+                            "(" "("                                        % PushAutoOff %
+                                    Ident                                  % PopAuto %
+                                          ")" ")" ]
+                      =:
+
 ProcedureHeading := "PROCEDURE"                                            % PushAutoOn %
+                     DefineBuiltinProcedure
                      ( Ident
                                                                            % StartBuildProcedure ;
                                                                              PushAutoOff %
@@ -1049,6 +1056,19 @@ ProcedureHeading := "PROCEDURE"                                            % Pus
                                                                            % BuildProcedureHeading ;
                                                                              PopAuto %
                      )                                                     % PopAuto %
+                     =:
+
+Builtin := [ "__BUILTIN__" ] =:
+
+DefProcedureHeading := "PROCEDURE"                                         % PushAutoOn %
+                        Builtin
+                        ( Ident
+                                                                           % StartBuildProcedure ;
+                                                                             PushAutoOff %
+                          [ FormalParameters ]
+                                                                           % BuildProcedureHeading ;
+                                                                             PopAuto %
+                        )                                                  % PopAuto %
                      =:
 
 -- introduced procedure block so we can produce more informative
@@ -1136,7 +1156,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
                     }
               |
               "VAR" { VariableDeclaration ";" } |
-              ProcedureHeading ";" =:
+              DefProcedureHeading ";" =:
 
 AsmStatement :=                                                            % VAR CurrentAsm: CARDINAL ; %
                 'ASM'                                                      % IF Pass3

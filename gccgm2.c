@@ -623,7 +623,14 @@ static tree                   get_set_address_if_var                      PARAMS
 static tree                   get_field_list                              PARAMS ((tree, tree, int));
 static tree                   get_set_value                               PARAMS ((tree, tree, int));
        tree                   gccgm2_GetBuiltinConst                      PARAMS ((char *name));
-
+static int                    gccgm2_GetBuiltinConstType                  PARAMS ((char *name));
+       int                    gccgm2_BuiltinExists                        PARAMS ((char *name));
+       tree                   gccgm2_BuildBuiltinTree                     PARAMS ((char *name));
+       void                   gccgm2_InitFunctionTypeParameters           PARAMS ((void));
+       tree                   gccgm2_GetM2CardinalType                    PARAMS ((void));
+       tree                   gccgm2_BuildBuiltinTree                     PARAMS ((char *name));
+static tree                   DoBuiltinAlloca                             PARAMS ((tree params));
+static tree                   DoBuiltInMemCopy 	                          PARAMS ((tree params));
 
 
 
@@ -7272,6 +7279,42 @@ gccgm2_GetBuiltinConstType (name)
   return 0;
 }
 
+/*
+ *  BuiltinExists - returns TRUE if the builtin function, name, exists
+ *                 for this target architecture.
+ */
+
+int
+gccgm2_BuiltinExists (name)
+     char *name;
+{
+  if (strcmp(name, "alloca") == 0)
+    return gm2_alloca_node != NULL_TREE;
+  if (strcmp(name, "memcpy") == 0)
+    return gm2_memcpy_node != NULL_TREE;
+
+  return FALSE;
+}
+
+
+/*
+ *  BuildBuiltinTree - returns a Tree containing the builtin function, name.
+ */
+
+tree
+gccgm2_BuildBuiltinTree (name)
+     char *name;
+{
+  last_function = NULL_TREE;
+
+  if (strcmp(name, "alloca") == 0)
+    last_function = DoBuiltinAlloca (param_list);
+  if (strcmp(name, "memcpy") == 0)
+    last_function = DoBuiltinMemCopy (param_list);
+
+  return last_function;
+}
+
 static tree watch;
 
 static void debug_watch (t)
@@ -9895,29 +9938,29 @@ gccgm2_BuildProcedureCall (procedure, rettype)
      tree procedure, rettype;
 {
   tree functype = TREE_TYPE (procedure);
-  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type(functype), procedure);
+  tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), procedure);
   tree call;
 
-  TREE_USED(procedure) = TRUE;
+  TREE_USED (procedure) = TRUE;
 
   if (rettype == NULL_TREE) {
     rettype = void_type_node;
-    call = build(CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
-    TREE_USED(call)         = TRUE;
-    TREE_SIDE_EFFECTS(call) = TRUE ;
+    call = build (CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
+    TREE_USED (call)         = TRUE;
+    TREE_SIDE_EFFECTS (call) = TRUE ;
 
 #if 0
     fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
-    debug_tree(param_list);
+    debug_tree (param_list);
 #endif
 #if defined(DEBUG_PROCEDURE_CALLS)
     fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
-    debug_tree(call);
+    debug_tree (call);
 #endif
-    expand_expr_stmt(call);
-    last_function   = NULL_TREE;
+    expand_expr_stmt (call);
+    last_function = NULL_TREE;
   } else
-    last_function   = build(CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
+    last_function = build(CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
   return last_function;
@@ -10151,17 +10194,10 @@ convertToPtr (t)
     return gccgm2_BuildConvert (ptr_type_node, t);
 }
 
-/*
- *  BuiltInMemCopy - copy n bytes of memory efficiently from address src to dest.
- */
-
-tree
-gccgm2_BuiltInMemCopy (dest, src, n)
-     tree dest, src, n;
+static tree
+DoBuiltinMemCopy (params)
+     tree params;
 {
-  tree params   = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
-				    build_tree_list (NULL_TREE, convertToPtr (src))),
-			   build_tree_list (NULL_TREE, n));
   tree functype = TREE_TYPE (gm2_memcpy_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_memcpy_node);
   tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
@@ -10179,15 +10215,23 @@ gccgm2_BuiltInMemCopy (dest, src, n)
 }
 
 /*
- *  BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
- *                  of the current function.
+ *  BuiltInMemCopy - copy n bytes of memory efficiently from address src to dest.
  */
 
 tree
-gccgm2_BuiltInAlloca (n)
-     tree n;
+gccgm2_BuiltInMemCopy (dest, src, n)
+     tree dest, src, n;
 {
-  tree params   = listify (n);
+  tree params   = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
+				    build_tree_list (NULL_TREE, convertToPtr (src))),
+			   build_tree_list (NULL_TREE, n));
+  return DoBuiltinMemCopy (params);
+}
+
+static tree
+DoBuiltinAlloca (params)
+     tree params;
+{
   tree functype = TREE_TYPE (gm2_alloca_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
   tree call     = build (CALL_EXPR, ptr_type_node, funcptr, params, NULL_TREE);
@@ -10196,6 +10240,18 @@ gccgm2_BuiltInAlloca (n)
   TREE_SIDE_EFFECTS (call) = TRUE ;
 
   return call;
+}
+
+/*
+ *  BuiltInAlloca - given an expression, n, allocate, n, bytes on the stack for the life
+ *                  of the current function.
+ */
+
+tree
+gccgm2_BuiltInAlloca (n)
+     tree n;
+{
+  return DoBuiltinAlloca (listify (n));
 }
 
 /*

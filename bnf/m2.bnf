@@ -39,7 +39,7 @@ IMPLEMENTATION MODULE P1SyntaxCheck ;
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
-FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok ;
+FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok ;
 FROM NameKey IMPORT NulName ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
@@ -758,8 +758,27 @@ ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock              % Pus
                                                                            % PopAuto %
                       =:
 
+DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
+                          |                                                % PushT(NulTok) %
+                       =:
+
 ProcedureHeading := "PROCEDURE"                                            % PushAutoOn %
+                     DefineBuiltinProcedure
                      ( PossiblyExportIdent                                 % StartBuildProcedure %
+                                                                           % PushAutoOff %
+                       [ FormalParameters ]
+                                                                           % PopAuto %
+                                                                           % BuildProcedureHeading %
+                     )                                                     % PopAuto %
+                     =:
+
+Builtin := "__BUILTIN__"                                                   % PushT(BuiltinTok) %
+            |                                                              % PushT(NulTok) %
+        =:
+
+DefProcedureHeading := "PROCEDURE"                                         % PushAutoOn %
+                        Builtin
+                       ( PossiblyExportIdent                               % StartBuildProcedure %
                                                                            % PushAutoOff %
                        [ FormalParameters ]
                                                                            % PopAuto %
@@ -837,7 +856,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
                                   | "=" Type ";" ) }                       % PopAuto %
               |
               "VAR" { VariableDeclaration ";" } |
-              ProcedureHeading ";" =:
+              DefProcedureHeading ";" =:
 
 AsmStatement := 'ASM' [ 'VOLATILE' ] '(' AsmOperands ')' =:
 

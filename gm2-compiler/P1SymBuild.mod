@@ -26,7 +26,7 @@ FROM Strings IMPORT String, Slice, InitString, KillString, EqualCharStar, RIndex
 FROM M2Printf IMPORT printf1 ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
-                       NulTok, VarTok, ArrayTok ;
+                       NulTok, VarTok, ArrayTok, BuiltinTok ;
 
 FROM FifoQueue IMPORT PutIntoFifoQueue ;
 
@@ -63,6 +63,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutArray, GetType, IsArray,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
+                        PutProcedureBuiltin,
                         MakeUnbounded, PutUnbounded,
                         GetSymName ;
 
@@ -787,21 +788,25 @@ END BuildHiddenType ;
 
                          Entry                 Exit
 
-                                                              <- Ptr
-                                               +------------+
-                  Ptr ->                       | ProcSym    |
-                         +------------+        |------------|
-                         | Name       |        | Name       |
+                  Ptr ->                                      <- Ptr
+                         +------------+        +------------+
+                         | Name       |        | ProcSym    |
+                         |------------|        |------------|
+                         | builtintok |        |            |
+                         | or name or |        | Name       |
+                         | NulTok     |        |            |
                          |------------|        |------------|
 *)
 
 PROCEDURE StartBuildProcedure ;
-VAR 
+VAR
+   builtin,
    name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
    PopT(name) ;
-   PushT(name) ;  (* Name saved for the EndBuildProcedure name check *)
+   PopT(builtin) ; (* was this procedure defined as a builtin?        *)
+   PushT(name) ;   (* Name saved for the EndBuildProcedure name check *)
    ProcSym := RequestSym(name) ;
    IF IsUnknown(ProcSym)
    THEN
@@ -812,6 +817,15 @@ BEGIN
       ProcSym := MakeProcedure(name)
    ELSE
       Assert(IsProcedure(ProcSym))
+   END ;
+   IF builtin#NulTok
+   THEN
+      IF builtin=BuiltinTok
+      THEN
+         PutProcedureBuiltin(ProcSym, name)
+      ELSE
+         PutProcedureBuiltin(ProcSym, builtin)
+      END
    END ;
    PushT(ProcSym) ;
    StartScope(ProcSym)

@@ -45,6 +45,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsExportQualified,
                         IsExported,
                         IsSubrange,
+                        IsProcedureBuiltin,
                         IsValueSolved, IsSizeSolved,
                         ForeachExportedDo,
                         ForeachImportedDo,
@@ -55,6 +56,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetFirstUsed, GetDeclared,
                         GetRegInterface,
                         GetProcedureQuads,
+                        GetProcedureBuiltin,
                         PutConstString,
                         PutConst, PutConstSet,
                         NulSym ;
@@ -123,6 +125,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    GetPointerType, GetWordType,
                    GetBitsPerWord,
                    GetBuiltinConst,
+                   BuiltinExists, BuildBuiltinTree,
                    RememberConstant ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -1075,6 +1078,35 @@ END CodeCall ;
 
 
 (*
+   CanUseBuiltin - returns TRUE if the procedure, Sym, can be
+                   inlined via a builtin function.
+*)
+
+PROCEDURE CanUseBuiltin (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( BuiltinExists(KeyToCharStar(GetProcedureBuiltin(Sym))) OR
+           BuiltinExists(KeyToCharStar(GetSymName(Sym))) )
+END CanUseBuiltin ;
+
+
+(*
+   UseBuiltin - returns a Tree containing the builtin function
+                and parameters. It should only be called if
+                CanUseBuiltin returns TRUE.
+*)
+
+PROCEDURE UseBuiltin (Sym: CARDINAL) : Tree ;
+BEGIN
+   IF BuiltinExists(KeyToCharStar(GetProcedureBuiltin(Sym)))
+   THEN
+      RETURN( BuildBuiltinTree(KeyToCharStar(GetProcedureBuiltin(Sym))) )
+   ELSE
+      RETURN( BuildBuiltinTree(KeyToCharStar(GetSymName(Sym))) )
+   END
+END UseBuiltin ;
+
+
+(*
    CodeDirectCall - saves all volitiles and jumps to a subroutine.
 *)
 
@@ -1088,11 +1120,16 @@ VAR
 BEGIN
    GetQuad(CurrentQuad, Operator, Operand1, Operand2, Operand3) ;
 
-   IF GetType(Operand3)=NulSym
+   IF IsProcedureBuiltin(Operand3) AND CanUseBuiltin(Operand3)
    THEN
-      tree := BuildProcedureCall(Mod2Gcc(Operand3), NIL)
+      tree := UseBuiltin(Operand3)
    ELSE
-      tree := BuildProcedureCall(Mod2Gcc(Operand3), Mod2Gcc(GetType(Operand3)))
+      IF GetType(Operand3)=NulSym
+      THEN
+         tree := BuildProcedureCall(Mod2Gcc(Operand3), NIL)
+      ELSE
+         tree := BuildProcedureCall(Mod2Gcc(Operand3), Mod2Gcc(GetType(Operand3)))
+      END
    END
 END CodeDirectCall ;
 

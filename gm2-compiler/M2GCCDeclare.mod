@@ -1330,7 +1330,7 @@ BEGIN
    Assert(PushParametersLeftToRight) ;
    WHILE i>0 DO
       Son := GetNthParam(Sym, i) ;
-      GccParam := BuildParameterDeclaration(NIL, Mod2Gcc(GetType(Son)), IsVarParam(Sym, i)) ;
+      GccParam := BuildParameterDeclaration(NIL, DeclareOrFindKindOfType(GetType(Son)), IsVarParam(Sym, i)) ;
       AddModGcc(Son, GccParam) ;
       DEC(i)
    END ;
@@ -1338,7 +1338,7 @@ BEGIN
    THEN
       RETURN( BuildEndFunctionType(func, NIL) )
    ELSE
-      RETURN( BuildEndFunctionType(func, Mod2Gcc(ReturnType)) )
+      RETURN( BuildEndFunctionType(func, DeclareOrFindKindOfType(ReturnType)) )
    END
 END DeclareProcType ;
 

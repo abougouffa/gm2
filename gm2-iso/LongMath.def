@@ -6,39 +6,39 @@ CONST
   pi   = 3.1415926535897932384626433832795028841972;
   exp1 = 2.7182818284590452353602874713526624977572;
 
-PROCEDURE sqrt (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
   (* Returns the positive square root of x *)
 
-PROCEDURE exp (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ exp (x: LONGREAL): LONGREAL;
   (* Returns the exponential of x *)
 
-PROCEDURE ln (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ ln (x: LONGREAL): LONGREAL;
   (* Returns the natural logarithm of x *)
 
   (* The angle in all trigonometric functions is measured in radians *)
 
-PROCEDURE sin (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ sin (x: LONGREAL): LONGREAL;
   (* Returns the sine of x *)
 
-PROCEDURE cos (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ cos (x: LONGREAL): LONGREAL;
   (* Returns the cosine of x *)
 
-PROCEDURE tan (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ tan (x: LONGREAL): LONGREAL;
   (* Returns the tangent of x *)
 
-PROCEDURE arcsin (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ arcsin (x: LONGREAL): LONGREAL;
   (* Returns the arcsine of x *)
 
-PROCEDURE arccos (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ arccos (x: LONGREAL): LONGREAL;
   (* Returns the arccosine of x *)
 
-PROCEDURE arctan (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ arctan (x: LONGREAL): LONGREAL;
   (* Returns the arctangent of x *)
 
-PROCEDURE power (base, exponent: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ power (base, exponent: LONGREAL): LONGREAL;
   (* Returns the value of the number base raised to the power exponent *)
 
-PROCEDURE round (x: LONGREAL): INTEGER;
+PROCEDURE __BUILTIN__ round (x: LONGREAL): INTEGER;
   (* Returns the value of x rounded to the nearest integer *)
 
 PROCEDURE IsRMathException (): BOOLEAN;

@@ -85,6 +85,7 @@ EXPORT QUALIFIED NulSym,
                  GetParam,
                  GetString,
                  GetStringLength,
+                 GetProcedureBuiltin,
                  GetNthParam,
                  GetNthProcedure,
                  GetModuleQuads,
@@ -115,6 +116,7 @@ EXPORT QUALIFIED NulSym,
                  PutPointer,
                  PutSubscript,
                  PutUnbounded,
+                 PutProcedureBuiltin,
                  PutModuleStartQuad,
                  PutModuleEndQuad,
                  PutProcedureStartQuad,
@@ -160,6 +162,7 @@ EXPORT QUALIFIED NulSym,
                  IsProcedureReachable,
                  IsProcedureVariable,
                  IsProcedureNested,
+                 IsProcedureBuiltin,
 
                  ForeachProcedureDo,
                  ProcedureParametersDefined,
@@ -757,9 +760,24 @@ PROCEDURE GetStringLength (Sym: CARDINAL) : CARDINAL ;
 
 
 (*
-   The Following procedures fill in the symbol table with the
-   symbol entities.
+   GetProcedureBuiltin - returns the builtin name for the equivalent procedure, Sym.
 *)
+
+PROCEDURE GetProcedureBuiltin (Sym: CARDINAL) : Name ;
+
+
+(*
+   PutProcedureBuiltin - assigns the builtin name for the equivalent procedure, Sym.
+*)
+
+PROCEDURE PutProcedureBuiltin (Sym: CARDINAL; name: Name) ;
+
+
+(*
+   IsProcedureBuiltin - returns TRUE if this procedure has a builtin equivalent.
+*)
+
+PROCEDURE IsProcedureBuiltin (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
