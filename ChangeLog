@@ -1,5 +1,7 @@
 2004-08-31	Gaius Mulley <gaius@glam.ac.uk>
 
+	* modified SIZE handling so that SIZE is only available
+	  from SYSTEM when -Wpim2 is present.
 	* fixed bug as reported by "John B. Wallace, Jr."
 	  <wallacjb@enter.net>. A variable which when implicitly
 	  imported via an IMPORT module; failed.

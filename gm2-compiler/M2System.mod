@@ -165,8 +165,10 @@ BEGIN
    ELSE
       InitPIMTypes ;
       (* SIZE is declared in SYSTEM.def in PIM-2 but not PIM-[34] *)
-      (* For now we relax this.                                   *)
-      MakeSize
+      IF Pim2
+      THEN
+         MakeSize
+      END
    END ;
 
    (* And now the predefined pseudo functions *)
