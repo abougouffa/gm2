@@ -34,7 +34,7 @@ BEGIN
    WriteLn ;
    IF TSIZE(CARDINAL)=4
    THEN
-      IF LongIntegerVariable=8589934592
+      IF LongIntegerVariable=8589934590
       THEN
          WriteString(' correct result') ; WriteLn
       ELSE
