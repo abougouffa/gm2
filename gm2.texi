@@ -37,9 +37,9 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 31 October 2001
+@center Last updated 2 May 2002
 @sp 10
-@center @image{gm2/images/gnu,,1.5in}
+@c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @end titlepage
@@ -324,13 +324,13 @@ Modula-2 compiler and how it integrates with GCC.
 The document is still in it's infancy.
 
 @menu
-* History::           Where the sources came from.
-* Overview::          Overview of the structure of GNU Modula-2.
-* Integrating::       How the front end integrates with gcc.
-* Building::          How to build gm2.
-* Future::            A future wish list.
-* Done list::         Progression of the GNU Modula-2 project.
-* To do list::        Outstanding issues.
+* History::                 Where the sources came from.
+* Overview::                Overview of the structure of GNU Modula-2.
+* Integrating::             How the front end integrates with gcc.
+* Building and installing:: How to build gm2.
+* Future::                  A future wish list.
+* Done list::               Progression of the GNU Modula-2 project.
+* To do list::              Outstanding issues.
 @end menu
 
 @node History, Overview, , Internals
@@ -416,7 +416,6 @@ cpp can be run on definition and implementation modules.
 will build all dependant modules.
 
 @item
-the sources to m2f and gcc compile and link to produce cc1gm2.
 Compiler will bootstrap itself and three generations of the
 compiler all produce the same code.
 
@@ -465,14 +464,6 @@ added mechanism to invoke cpp to support conditional compilation if required.
 all @samp{Makefile}s are generated via @samp{./configure}
 
 @end itemize
-
-Nearly all the to do work is concerned with interfacing m2f with
-gcc and most of this work is localized in the following files:
-
-@file{gm2/gm2.c}
-@file{gm2/gccgm2.def}
-@file{gm2/m2/comp/gm2s/gcc/M2GenGCC.mod}
-@file{gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod}
 
 @node To do list, , Done list, Internals
 @section To do list
