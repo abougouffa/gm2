@@ -56,15 +56,6 @@ Boston, MA 02111-1307, USA.  */
 #include "convert.h"
 
 
-/* In grokdeclarator, distinguish syntactic contexts of declarators.  */
-enum decl_context
-{ NORMAL,                       /* Ordinary declaration */
-  FUNCDEF,                      /* Function definition */
-  PARM,                         /* Declaration of parm before function body */
-  FIELD,                        /* Declaration inside struct or union */
-  BITFIELD,                     /* Likewise but with specified width */
-  TYPENAME};                    /* Typename (inside cast or sizeof)  */
-
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
             A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
             A_UNUSED, A_FORMAT, A_FORMAT_ARG, A_WEAK, A_ALIAS};
@@ -312,7 +303,6 @@ extern void gccgm2front PARAMS((int argc, char *argv[]));
 
 const char * const language_string = "Modula-2";
 int flag_traditional=FALSE;     /* Used by dwarfout.c.  */
-int ggc_p=FALSE;                /* at present we do not garbage collect */
 
 
 /* function prototypes */
@@ -329,13 +319,13 @@ int ggc_p=FALSE;                /* at present we do not garbage collect */
        tree                   signed_type                       	 PARAMS ((tree type_node));
        tree                   signed_or_unsigned_type           	 PARAMS ((int unsignedp, tree type));
 static struct binding_level  *make_binding_level                	 PARAMS ((void));
+static void                   mark_binding_level                         PARAMS ((void *arg));
        int                    global_bindings_p                 	 PARAMS ((void));
        tree                   getdecls                          	 PARAMS ((void));
        int                    kept_level_p                      	 PARAMS ((void));
        int                    in_parm_level_p                   	 PARAMS ((void));
        void                   pushlevel                         	 PARAMS ((int tag_transparent));
 static void                   clear_limbo_values                	 PARAMS ((tree block));
-       tree                   shadow_label                      	 PARAMS ((tree name));
        tree                   define_label                      	 PARAMS ((const char *filename, int line, tree name));
        tree                   poplevel                          	 PARAMS ((int keep, int reverse, int functionbody));
        void                   delete_block                      	 PARAMS ((tree block));
@@ -548,15 +538,21 @@ static int                    default_valid_lang_attribute               PARAMS 
        tree                   gccgm2_BuildOffset                         PARAMS ((tree field, int needconvert));
        tree                   gccgm2_BuildIntegerConstant                PARAMS ((int value));
        void                   gccgm2_BuildGoto                           PARAMS ((char *name));
+       tree                   gccgm2_RememberConstant                    PARAMS ((tree t));
+       tree                   global_constant                            PARAMS ((tree t));
+       void                   stop                                       PARAMS ((void));
+static int                    is_a_constant                              PARAMS ((tree t));
+static void                   dump_binding_level                         PARAMS ((struct binding_level *level));
 
 /* end of prototypes */
 
+void stop (void) {}
 
 /*
- *  gccgm2_SetFileNameAndLineNo - allows m2f to set the filename and line number
+ *  gccgm2_SetFileNameAndLineNo - allows GM2 to set the filename and line number
  *                                at relevent points during the declaration of types
- *                                and construction of code. Also remember that m2f must
- *                                pass a static string as no copy is made.
+ *                                and construction of code. We make a copy of the string
+ *                                as ggc will collect input_filename.
  */
 
 void
@@ -564,7 +560,8 @@ gccgm2_SetFileNameAndLineNo (fn, line)
      char *fn;
      int   line;
 {
-  input_filename = fn;       /* remember that both these variables are actually external to this file */
+  /* remember that both these variables are actually external to this file */
+  input_filename = ggc_strdup(fn);
   lineno         = line;
 }
 
@@ -579,7 +576,7 @@ gccgm2_EmitLineNote (fn, line)
      char *fn;
      int   line;
 {
-  emit_line_note(fn, line);
+  emit_line_note(ggc_strdup(fn), line);
 }
 
 /* Routines Expected by gcc:  */
@@ -879,20 +876,11 @@ struct binding_level
        structure or union types.  */
     int n_incomplete;
 
-    /* A list of decls giving the (reversed) specified order of parms,
-       not including any forward-decls in the parmlist.
-       This is so we can put the parms in proper order for assign_parms.  */
-    tree parm_order;
-#if defined(NO_LONGER_NEEDED)
-    /* The back end may need, for its own internal processing, to create a BLOCK
-       node. This field is set aside for this purpose. If this field is non-null
-       when the level is popped, i.e. when poplevel is invoked, we will use such
-       block instead of creating a new one from the 'names' field, that is the
-       ..._DECL nodes accumulated so far.  Typically the routine 'pushlevel'
-       will be called before setting this field, so that if the front-end had
-       inserted ..._DECL nodes in the current block they will not be lost.   */
-    tree block_created_by_back_end;
-#endif
+    /* a list of constants (only kept in the global binding level).
+       Constants need to be kept through the life of the compilation,
+       as the same constants can be used in any scope. */
+    tree constants;
+
   };
 
 #define NULL_BINDING_LEVEL (struct binding_level *) NULL
@@ -959,17 +947,12 @@ getdecls ()
 int
 kept_level_p ()
 {
-#if defined(NO_LONGER_NEEDED)
-  /* was .. */
-  return (current_binding_level->names != 0);
-#else
   return ((current_binding_level->keep_if_subblocks
 	   && current_binding_level->blocks != 0)
 	  || current_binding_level->keep
 	  || current_binding_level->names != 0
 	  || (current_binding_level->tags != 0
 	      && !current_binding_level->tag_transparent));
-#endif
 }
 
 /* Identify this binding level as a level of parameters.
@@ -1053,44 +1036,6 @@ clear_limbo_values (block)
 
   for (tem = BLOCK_SUBBLOCKS (block); tem; tem = TREE_CHAIN (tem))
     clear_limbo_values (tem);
-}
-
-/* Make a label named NAME in the current function,
-   shadowing silently any that may be inherited from containing functions
-   or containing scopes.
-
-   Note that valid use, if the label being shadowed
-   comes from another scope in the same function,
-   requires calling declare_nonlocal_label right away.  */
-
-tree
-shadow_label (name)
-     tree name;
-{
-  register tree decl = IDENTIFIER_LABEL_VALUE (name);
-
-  if (decl != 0)
-    {
-      register tree dup;
-
-      /* Check to make sure that the label hasn't already been declared
-         at this label scope */
-      for (dup = named_labels; dup; dup = TREE_CHAIN (dup))
-        if (TREE_VALUE (dup) == decl)
-          {
-            error ("duplicate label declaration `%s'", 
-                   IDENTIFIER_POINTER (name));
-            error_with_decl (TREE_VALUE (dup),
-                             "this is a previous declaration");
-            /* Just use the previous declaration.  */
-            return lookup_label (name);
-          }
-
-      shadowed_labels = tree_cons (NULL_TREE, decl, shadowed_labels);
-      IDENTIFIER_LABEL_VALUE (name) = decl = 0;
-    }
-
-  return lookup_label (name);
 }
 
 /* Define a label, specifying the location in the source file.
@@ -1459,6 +1404,54 @@ lookup_name_current_level (name)
       return t;
 
   return 0;
+}
+
+/* Mark ARG for GC.  */
+
+static void
+mark_binding_level (arg)
+     void *arg;
+{
+  struct binding_level *level = *(struct binding_level **) arg;
+
+  for (; level != 0; level = level->level_chain)
+    {
+#if defined(TRACE_DEBUG_GGC)
+      dump_binding_level (level);
+#endif
+
+      ggc_mark_tree (level->names);
+      ggc_mark_tree (level->tags);
+      ggc_mark_tree (level->shadowed);
+      ggc_mark_tree (level->blocks);
+      ggc_mark_tree (level->this_block);
+      ggc_mark_tree (level->constants);
+    }
+}
+
+/*
+ *  dump_binding_level - displays the contents of a binding level.
+ */
+
+static void
+dump_binding_level (level)
+     struct binding_level *level;
+{
+  if (level) {
+    tree t;
+
+    for (t = level->names; t; t = TREE_CHAIN (t))
+      debug_tree (t);
+    for (t = level->tags; t; t = TREE_CHAIN (t))
+      debug_tree (t);
+    for (t = level->shadowed; t; t = TREE_CHAIN (t))
+      debug_tree (t);
+    for (t = level->blocks; t; t = TREE_CHAIN (t))
+      debug_tree (t);
+    for (t = level->this_block; t; t = TREE_CHAIN (t))
+      debug_tree (t);
+
+  }
 }
 
 /* Return zero if the declaration NEWDECL is valid
@@ -2195,6 +2188,7 @@ pushdecl (x)
   register struct binding_level *b = current_binding_level;
 
   DECL_CONTEXT (x) = current_function_decl;
+
   /* A local extern declaration for a function doesn't constitute nesting.
      A local auto declaration does, since it's a forward decl
      for a nested function coming later.  */
@@ -2929,8 +2923,62 @@ init_decl_processing ()
   ggc_add_tree_root (c_global_trees, CTI_MAX);
   ggc_add_tree_root (&named_labels, 1);
   ggc_add_tree_root (&shadowed_labels, 1);
+  ggc_add_root (&current_binding_level, 1, sizeof current_binding_level,
+		mark_binding_level);
 }
 
+/*
+ *  is_a_constant - returns TRUE if tree, t, is a constant.
+ */
+
+static int
+is_a_constant (t)
+     tree t;
+{
+  return((TREE_CODE (t) == INTEGER_CST) ||
+	 (TREE_CODE (t) == REAL_CST) ||
+	 (TREE_CODE (t) == REAL_CST) ||
+	 (TREE_CODE (t) == COMPLEX_CST) ||   /* front end doesn't use COMPLEX_CST yet, here for completeness */
+	 (TREE_CODE (t) == STRING_CST));
+}
+
+/*
+ *  RememberConstant - adds a tree, t, onto the list of constants to be marked
+ *                     whenever the ggc re-marks all used storage. Constants
+ *                     live throughout the whole compilation - and they
+ *                     can be used by many different functions if necessary.
+ */
+
+tree
+gccgm2_RememberConstant (t)
+     tree t;
+{
+  if ((t != NULL) && (is_a_constant(t))) {
+    return( global_constant(t) );
+  }
+  return( t );
+}
+
+/*
+ *  global_constant - t is a constant, we keep a chain of all constants
+ *                    in the global binding level.
+ */
+
+tree
+global_constant (t)
+  tree t;
+{
+  tree t1;
+
+  if (global_binding_level->constants != NULL)
+    for (t1 = global_binding_level->constants; TREE_CHAIN (t1); t1 = TREE_CHAIN (t1))
+      if (t1 == t)
+	return( t );
+  
+  global_binding_level->constants = tree_cons (NULL_TREE,
+					       t, global_binding_level->constants);
+  return( t );
+}
 
 /* Decode all the language specific options that cannot be decoded by GCC. The
    option decoding phase of GCC calls this routine on the flags that it cannot
@@ -2941,9 +2989,6 @@ lang_decode_option (argc, argv)
      int argc ATTRIBUTE_UNUSED;
      char **argv ATTRIBUTE_UNUSED;
 {
-#if 0
-  fprintf(stderr, "asked to decode arg = %s\n", argv[0]);
-#endif
   if (strcmp(argv[0], "-Wreturn") == 0) {
     return( TRUE );
   } else if (strcmp(argv[0], "-Wbounds") == 0) {
@@ -3145,38 +3190,6 @@ struct spelling
   spelling->MEMBER = (VALUE);                                           \
   spelling++;                                                           \
 }
-
-#if 0
-/* Push STRING on the stack.  Printed literally.  */
-
-static void
-push_string (string)
-     char *string;
-{
-  PUSH_SPELLING (SPELLING_STRING, string, u.s);
-}
-
-/* Push a member name on the stack.  Printed as '.' STRING.  */
-
-static void
-push_member_name (decl)
-     tree decl;
-     
-{
-  char *string
-    = DECL_NAME (decl) ? IDENTIFIER_POINTER (DECL_NAME (decl)) : "<anonymous>";
-  PUSH_SPELLING (SPELLING_MEMBER, string, u.s);
-}
-
-/* Push an array bounds on the stack.  Printed as [BOUNDS].  */
-
-static void
-push_array_bounds (bounds)
-     int bounds;
-{
-  PUSH_SPELLING (SPELLING_BOUNDS, bounds, u.i);
-}
-#endif
 
 /* Provide a means to pass component names derived from the spelling stack.  */
 
@@ -4154,120 +4167,6 @@ comp_target_types (ttl, ttr)
   return val;
 }
 
-/* Subroutines of `comptypes'.  */
-
-#if 0
-/* Return 1 if two function types F1 and F2 are compatible.
-   If either type specifies no argument types,
-   the other must specify a fixed number of self-promoting arg types.
-   Otherwise, if one type specifies only the number of arguments, 
-   the other must specify that number of self-promoting arg types.
-   Otherwise, the argument types must match.  */
-
-static int
-function_types_compatible_p (f1, f2)
-     tree f1, f2;
-{
-  tree args1, args2;
-  /* 1 if no need for warning yet, 2 if warning cause has been seen.  */
-  int val = 1;
-  int val1;
-
-  if (!(TREE_TYPE (f1) == TREE_TYPE (f2)
-        || (val = comptypes (TREE_TYPE (f1), TREE_TYPE (f2)))))
-    return 0;
-
-  args1 = TYPE_ARG_TYPES (f1);
-  args2 = TYPE_ARG_TYPES (f2);
-
-  /* Both types have argument lists: compare them and propagate results.  */
-  val1 = type_lists_compatible_p (args1, args2);
-  return val1 != 1 ? val1 : val;
-}
-
-/* Check two lists of types for compatibility,
-   returning 0 for incompatible, 1 for compatible,
-   or 2 for compatible with warning.  */
-
-static int
-type_lists_compatible_p (args1, args2)
-     tree args1, args2;
-{
-  /* 1 if no need for warning yet, 2 if warning cause has been seen.  */
-  int val = 1;
-  int newval = 0;
-
-  while (1)
-    {
-      if (args1 == 0 && args2 == 0)
-        return val;
-      /* If one list is shorter than the other,
-         they fail to match.  */
-      if (args1 == 0 || args2 == 0)
-        return 0;
-#if NOT_NEEDED_FOR_M2
-      /* A null pointer instead of a type
-         means there is supposed to be an argument
-         but nothing is specified about what type it has.
-         So match anything that self-promotes.  */
-      if (TREE_VALUE (args1) == 0)
-        {
-          if (! self_promoting_type_p (TREE_VALUE (args2)))
-            return 0;
-        }
-      else if (TREE_VALUE (args2) == 0)
-        {
-          if (! self_promoting_type_p (TREE_VALUE (args1)))
-            return 0;
-        }
-#endif
-      else if (! (newval = comptypes (TREE_VALUE (args1), TREE_VALUE (args2))))
-        {
-          /* Allow  wait (union {union wait *u; int *i} *)
-             and  wait (union wait *)  to be compatible.  */
-          if (TREE_CODE (TREE_VALUE (args1)) == UNION_TYPE
-              && (TYPE_NAME (TREE_VALUE (args1)) == 0
-                  || TYPE_TRANSPARENT_UNION (TREE_VALUE (args1)))
-              && TREE_CODE (TYPE_SIZE (TREE_VALUE (args1))) == INTEGER_CST
-              && tree_int_cst_equal (TYPE_SIZE (TREE_VALUE (args1)),
-                                     TYPE_SIZE (TREE_VALUE (args2))))
-            {
-              tree memb;
-              for (memb = TYPE_FIELDS (TREE_VALUE (args1));
-                   memb; memb = TREE_CHAIN (memb))
-                if (comptypes (TREE_TYPE (memb), TREE_VALUE (args2)))
-                  break;
-              if (memb == 0)
-                return 0;
-            }
-          else if (TREE_CODE (TREE_VALUE (args2)) == UNION_TYPE
-                   && (TYPE_NAME (TREE_VALUE (args2)) == 0
-                       || TYPE_TRANSPARENT_UNION (TREE_VALUE (args2)))
-                   && TREE_CODE (TYPE_SIZE (TREE_VALUE (args2))) == INTEGER_CST
-                   && tree_int_cst_equal (TYPE_SIZE (TREE_VALUE (args2)),
-                                          TYPE_SIZE (TREE_VALUE (args1))))
-            {
-              tree memb;
-              for (memb = TYPE_FIELDS (TREE_VALUE (args2));
-                   memb; memb = TREE_CHAIN (memb))
-                if (comptypes (TREE_TYPE (memb), TREE_VALUE (args1)))
-                  break;
-              if (memb == 0)
-                return 0;
-            }
-          else
-            return 0;
-        }
-
-      /* comptypes said ok, but record if it said to warn.  */
-      if (newval > val)
-        val = newval;
-
-      args1 = TREE_CHAIN (args1);
-      args2 = TREE_CHAIN (args2);
-    }
-}
-#endif
 
 
 /*
@@ -5102,143 +5001,6 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 
   return 0;
 }
-
-
-#if 0
-/* Return a tree for the sum or difference (RESULTCODE says which)
-   of pointer PTROP and integer INTOP.  */
-
-
-static tree
-pointer_int_sum (resultcode, ptrop, intop)
-     enum tree_code resultcode;
-     register tree ptrop, intop;
-{
-  tree size_exp;
-
-  register tree result;
-  register tree folded;
-
-  /* The result is a pointer of the same type that is being added.  */
-
-  register tree result_type = TREE_TYPE (ptrop);
-
-  if (TREE_CODE (TREE_TYPE (result_type)) == VOID_TYPE)
-    {
-      if (pedantic || warn_pointer_arith)
-        pedwarn ("untyped pointer used in arithmetic");
-      size_exp = integer_one_node;
-    }
-  else if (TREE_CODE (TREE_TYPE (result_type)) == FUNCTION_TYPE)
-    {
-      if (pedantic || warn_pointer_arith)
-        pedwarn ("pointer to a function used in arithmetic");
-      size_exp = integer_one_node;
-    }
-  else
-    size_exp = c_size_in_bytes (TREE_TYPE (result_type));
-
-  /* If what we are about to multiply by the size of the elements
-     contains a constant term, apply distributive law
-     and multiply that constant term separately.
-     This helps produce common subexpressions.  */
-
-  if ((TREE_CODE (intop) == PLUS_EXPR || TREE_CODE (intop) == MINUS_EXPR)
-      && ! TREE_CONSTANT (intop)
-      && TREE_CONSTANT (TREE_OPERAND (intop, 1))
-      && TREE_CONSTANT (size_exp)
-      /* If the constant comes from pointer subtraction,
-         skip this optimization--it would cause an error.  */
-      && TREE_CODE (TREE_TYPE (TREE_OPERAND (intop, 0))) == INTEGER_TYPE
-      /* If the constant is unsigned, and smaller than the pointer size,
-         then we must skip this optimization.  This is because it could cause
-         an overflow error if the constant is negative but INTOP is not.  */
-      && (! TREE_UNSIGNED (TREE_TYPE (intop))
-          || (TYPE_PRECISION (TREE_TYPE (intop))
-              == TYPE_PRECISION (TREE_TYPE (ptrop)))))
-    {
-      enum tree_code subcode = resultcode;
-      tree int_type = TREE_TYPE (intop);
-      if (TREE_CODE (intop) == MINUS_EXPR)
-        subcode = (subcode == PLUS_EXPR ? MINUS_EXPR : PLUS_EXPR);
-      /* Convert both subexpression types to the type of intop,
-         because weird cases involving pointer arithmetic
-         can result in a sum or difference with different type args.  */
-      ptrop = build_binary_op (subcode, ptrop,
-                               convert (int_type, TREE_OPERAND (intop, 1)), 1);
-      intop = convert (int_type, TREE_OPERAND (intop, 0));
-    }
-
-  /* Convert the integer argument to a type the same size as sizetype
-     so the multiply won't overflow spuriously.  */
-
-  if (TYPE_PRECISION (TREE_TYPE (intop)) != TYPE_PRECISION (sizetype)
-      || TREE_UNSIGNED (TREE_TYPE (intop)) != TREE_UNSIGNED (sizetype))
-    intop = convert (type_for_size (TYPE_PRECISION (sizetype),
-                                    TREE_UNSIGNED (sizetype)), intop);
-
-  /* Replace the integer argument with a suitable product by the object size.
-     Do this multiplication as signed, then convert to the appropriate
-     pointer type (actually unsigned integral).  */
-
-  intop = convert (result_type,
-                   build_binary_op (MULT_EXPR, intop,
-                                    convert (TREE_TYPE (intop), size_exp), 1));
-
-  /* Create the sum or difference.  */
-
-  result = build (resultcode, result_type, ptrop, intop);
-
-  folded = fold (result);
-  if (folded == result)
-    TREE_CONSTANT (folded) = TREE_CONSTANT (ptrop) & TREE_CONSTANT (intop);
-  return folded;
-}
-
-/* Return a tree for the difference of pointers OP0 and OP1.
-   The resulting tree has type int.  */
-
-static tree
-pointer_diff (op0, op1)
-     register tree op0, op1;
-{
-  register tree result, folded;
-  tree restype = ptrdiff_type_node;
-
-  tree target_type = TREE_TYPE (TREE_TYPE (op0));
-
-  if (pedantic || warn_pointer_arith)
-    {
-      if (TREE_CODE (target_type) == VOID_TYPE)
-        pedwarn ("untyped pointer used in subtraction");
-      if (TREE_CODE (target_type) == FUNCTION_TYPE)
-        pedwarn ("pointer to a function used in subtraction");
-    }
-
-  /* First do the subtraction as integers;
-     then drop through to build the divide operator.
-     Do not do default conversions on the minus operator
-     in case restype is a short type.  */
-
-  op0 = build_binary_op (MINUS_EXPR, convert (restype, op0),
-                         convert (restype, op1), 0);
-  /* This generates an error if op1 is pointer to incomplete type.  */
-  if (TYPE_SIZE (TREE_TYPE (TREE_TYPE (op1))) == 0)
-    error ("arithmetic on pointer to an incomplete type");
-
-  /* This generates an error if op0 is pointer to incomplete type.  */
-  op1 = c_size_in_bytes (target_type);
-
-  /* Divide by the size, in easiest possible way.  */
-
-  result = build (EXACT_DIV_EXPR, restype, op0, convert (restype, op1));
-
-  folded = fold (result);
-  if (folded == result)
-    TREE_CONSTANT (folded) = TREE_CONSTANT (op0) & TREE_CONSTANT (op1);
-  return folded;
-}
-#endif
 
 /* Do `exp = require_complete_type (exp);' to make sure exp
    does not have an incomplete type.  (That includes void types.)  */
@@ -7049,56 +6811,6 @@ gccgm2_GetBitsPerWord ()
   return( BITS_PER_WORD );
 }
 
-void
-trythis ()
-{
-  /*
-   *  testing how to create global variables
-   */
-
-  {  
-    tree id;
-    tree decl;
-
-    if (current_binding_level != global_binding_level) {
-      error("declaring a global variable outside of the global binding level");
-    }
-
-    id   = get_identifier ("another_global_int");
-    decl = build_decl (VAR_DECL, id, integer_type_node);
-
-    pushdecl(decl);
-
-    DECL_SOURCE_LINE(decl)  = 1;
-
-    DECL_EXTERNAL (decl)    = 0;
-    TREE_STATIC   (decl)    = 1;           /* declaration and definition */
-
-    TREE_PUBLIC   (decl)    = 0;
-    DECL_CONTEXT  (decl)    = NULL_TREE;
-
-    TREE_USED     (integer_type_node)    = 1;
-    TREE_USED     (decl)    = 1;
-
-#if 1
-    /* now for the id */
-
-    DECL_EXTERNAL (id)      = 0;
-    TREE_STATIC   (id)      = 1;           /* declaration and definition */
-    TREE_PUBLIC   (id)      = 1;
-    TREE_USED     (id)      = 1;
-#endif
-
-    layout_type (integer_type_node);
-    layout_decl (decl, 0);
-    expand_decl(decl);
-  }
-  /*
-   *  end of test code
-   */
-}
-
-
 /*
  *  DeclareKnownVariable - declares a variable in scope, funcscope. Note that the global
  *                         variable, current_function_decl, is altered if isglobal is TRUE.
@@ -8125,7 +7837,7 @@ lookup_label (id)
   /* Use a label already defined or ref'd with this name.  */
   if (decl != 0)
     {
-#if NOT_NEEDED_FOR_MODULA_2
+#if !defined(GM2)
       /* But not if it is inherited and wasn't declared to be inheritable.  */
       if (DECL_CONTEXT (decl) != current_function_decl
           && ! C_DECLARED_LABEL_FLAG (decl))
@@ -8340,9 +8052,6 @@ gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
   pushdecl(decl);
   expand_decl(decl);
   layout_decl (decl, 0);
-#if 0
-  rest_of_decl_compilation (decl, 0, 1, 0);
-#endif
   return( decl );
 }
 
@@ -8383,7 +8092,7 @@ gccgm2_BuildEndFunctionType (type)
  *                              If name is nul then we assume we are creating a function
  *                              type declaration and we ignore names.
  */
-#if 1
+
 tree
 gccgm2_BuildParameterDeclaration (name, type, isreference)
      char *name;
@@ -8413,50 +8122,6 @@ gccgm2_BuildParameterDeclaration (name, type, isreference)
     return( type );
   }
 }
-#else
-
-tree
-completeParameterDeclaration (name, actual_type, parm_type)
-     char *name;
-     tree actual_type;
-     tree parm_type;
-{
-  tree parm_decl;
-
-  if ((name != NULL) && (strcmp(name, "") != 0)) {
-    /* creating a function with parameters */
-    parm_decl = build_decl (PARM_DECL, get_identifier (name), parm_type);
-    DECL_ARG_TYPE (parm_decl) = actual_type;
-    param_list = chainon (parm_decl, param_list);
-    layout_type (parm_decl);  /* testing (gaius) */
-    layout_type (parm_type);  /* testing (gaius) */
-#if 0
-    printf("making parameter %s known to gcc\n", name);
-#endif
-    param_type_list = tree_cons (NULL_TREE, parm_type, param_type_list);
-    return( parm_decl );
-  } else {
-    param_type_list = tree_cons (NULL_TREE, parm_type, param_type_list);
-    return( parm_type );
-  }
-}
-
-
-tree
-gccgm2_BuildParameterDeclaration (name, type, isreference)
-     char *name;
-     tree  type;
-     int   isreference;
-{
-  type = skip_type_decl (type);
-  layout_type (type);
-  if (isreference) {
-    return( completeParameterDeclaration( name, type, build_reference_type (type)));
-  } else {
-    return( completeParameterDeclaration( name, type, type));
-  }
-}
-#endif
 
 /*
  *  BuildStartFunctionDeclaration - initializes global variables ready for building
@@ -8469,6 +8134,8 @@ gccgm2_BuildStartFunctionDeclaration ()
   param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
   param_list = NULL_TREE;   /* ready for when we define a function */
 }
+
+tree gm2_debugging_func;
 
 /*
  *
@@ -8499,6 +8166,8 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
   fntype = build_function_type (returntype, param_type_list);
   fndecl = build_decl (FUNCTION_DECL, get_identifier (name), fntype);
 
+  gm2_debugging_func = global_binding_level->names;
+
   DECL_EXTERNAL (fndecl)    = isexternal;
   TREE_PUBLIC (fndecl)      = 1;
   TREE_STATIC (fndecl)      = 1;
@@ -8510,12 +8179,12 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
   DECL_SOURCE_FILE (fndecl) = input_filename;
   DECL_SOURCE_LINE (fndecl) = lineno;
 
+  pushdecl (fndecl);
+
   rest_of_decl_compilation (fndecl, NULL_PTR, 1, 0);
   param_list = NULL_TREE;   /* ready for the next time we call/define a function */
   return( fndecl );
 }
-
-static rtx my_debug;
 
 /*
  *  BuildStartFunctionCode - generate function entry code.
@@ -8568,14 +8237,6 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
-
-  /* hmm (gaius) */
-#if 0
-  if (lineno==1833) {
-    debug_tree(fndecl);
-    my_debug = 0x405d43c0;
-  }
-#endif
 
   /*
    *  create a block at the BEGIN for the local variables
@@ -9608,7 +9269,6 @@ gccgm2_BuildStart (name, inner_module)
   return( fndecl );
 }
 
-
 void
 gccgm2_BuildEnd (fndecl)
      tree fndecl;
@@ -9768,114 +9428,6 @@ build_function_call (function, params)
   }
 }
 
-
-/* Push a definition or a declaration of struct, union or enum tag "name".
-   "type" should be the type node.
-   We assume that the tag "name" is not already defined.
-
-   Note that the definition may really be just a forward reference.
-   In that case, the TYPE_SIZE will be zero.  */
-
-/*
- *   --fixme-- does Modula-2 really need this?
- */
-#if 0
-void
-pushtag (name, type)
-     tree name, type;
-{
-  register struct binding_level *b;
-
-  /* Find the proper binding level for this type tag.  */
-
-  for (b = current_binding_level; b->tag_transparent; b = b->level_chain)
-    continue;
-
-  if (name)
-    {
-      /* Record the identifier as the type's name if it has none.  */
-
-      if (TYPE_NAME (type) == 0)
-        TYPE_NAME (type) = name;
-    }
-
-  if (b == global_binding_level)
-    b->tags = perm_tree_cons (name, type, b->tags);
-  else
-    b->tags = saveable_tree_cons (name, type, b->tags);
-
-  /* Create a fake NULL-named TYPE_DECL node whose TREE_TYPE will be the
-     tagged type we just added to the current binding level.  This fake
-     NULL-named TYPE_DECL node helps dwarfout.c to know when it needs
-     to output a representation of a tagged type, and it also gives
-     us a convenient place to record the "scope start" address for the
-     tagged type.  */
-
-  TYPE_STUB_DECL (type) = pushdecl (build_decl (TYPE_DECL, NULL_TREE, type));
-
-  /* An approximation for now, so we can tell this is a function-scope tag.
-     This will be updated in poplevel.  */
-  TYPE_CONTEXT (type) = DECL_CONTEXT (TYPE_STUB_DECL (type));
-}
-#endif
-
-#if 0
-/* taken from c-decl.c */
-
-/* Begin compiling the definition of an enumeration type.
-   NAME is its name (or null if anonymous).
-   Returns the type object, as yet incomplete.
-   Also records info about it so that build_enumerator
-   may be used to declare the individual values as they are read.  */
-
-tree
-start_enum (name)
-     tree name;
-{
-  tree enumtype = 0;
-
-  /* If this is the real definition for a previous forward reference,
-     fill in the contents in the same object that used to be the
-     forward reference.  */
-
-  if (name != 0)
-    enumtype = lookup_tag (ENUMERAL_TYPE, name, current_binding_level, 1);
-
-  /* The corresponding pop_obstacks is in finish_enum.  */
-  push_obstacks_nochange ();
-  /* If these symbols and types are global, make them permanent.  */
-  if (current_binding_level == global_binding_level)
-    end_temporary_allocation ();
-
-  if (enumtype == 0 || TREE_CODE (enumtype) != ENUMERAL_TYPE)
-    {
-      enumtype = make_node (ENUMERAL_TYPE);
-      pushtag (name, enumtype);
-    }
-
-  C_TYPE_BEING_DEFINED (enumtype) = 1;
-
-  if (TYPE_VALUES (enumtype) != 0)
-    {
-      /* This enum is a named one that has been declared already.  */
-      error ("redeclaration of `enum %s'", IDENTIFIER_POINTER (name));
-
-      /* Completely replace its old definition.
-         The old enumerators remain defined, however.  */
-      TYPE_VALUES (enumtype) = 0;
-    }
-
-  enum_next_value = integer_zero_node;
-  enum_overflow = 0;
-
-  if (flag_short_enums)
-    TYPE_PACKED (enumtype) = 1;
-
-  return enumtype;
-}
-#endif
-
-
 /* Push a definition or a declaration of struct, union or enum tag "name".
    "type" should be the type node.
    We assume that the tag "name" is not already defined.
@@ -10029,7 +9581,6 @@ gccgm2_BuildFieldRecord (name, type)
   return field;
 }
 
-
 /*
  *  ChainOn - interface so that Modula-2 can also create chains of declarations.
  */
@@ -10038,22 +9589,8 @@ tree
 gccgm2_ChainOn (t1, t2)
      tree t1, t2;
 {
-#if 1
   return( chainon(t1, t2) );
-#else
-  fprintf(stderr, "tree t1\n");
-  debug_tree(t1);
-  fprintf(stderr, "tree t2\n");
-  debug_tree(t2);
-  {
-    tree t=chainon(t1, t2);
-
-    debug_tree(t);
-    return( t );
-  }
-#endif
 }
-
 
 /*
  *  ChainOnParamValue - adds a list node {parm, value} into the tree list.
@@ -10179,6 +9716,7 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
       /* Detect invalid bit-field type.  */
       if (DECL_INITIAL (x)
 	  && TREE_CODE (TREE_TYPE (x)) != INTEGER_TYPE
+	  && TREE_CODE (TREE_TYPE (x)) != BOOLEAN_TYPE
 	  && TREE_CODE (TREE_TYPE (x)) != ENUMERAL_TYPE)
 	{
 	  error_with_decl (x, "bit-field `%s' has invalid type");
@@ -10188,6 +9726,7 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
       if (DECL_INITIAL (x) && pedantic
 	  && TYPE_MAIN_VARIANT (TREE_TYPE (x)) != integer_type_node
 	  && TYPE_MAIN_VARIANT (TREE_TYPE (x)) != unsigned_type_node
+	  && TYPE_MAIN_VARIANT (TREE_TYPE (x)) != c_bool_type_node
 	  /* Accept an enum that's equivalent to int or unsigned int.  */
 	  && !(TREE_CODE (TREE_TYPE (x)) == ENUMERAL_TYPE
 	       && (TYPE_PRECISION (TREE_TYPE (x))
@@ -10198,10 +9737,14 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
 	 field widths.  */
       if (DECL_INITIAL (x))
 	{
+	  int max_width;
+	  if (TYPE_MAIN_VARIANT (TREE_TYPE (x)) == c_bool_type_node)
+	    max_width = CHAR_TYPE_SIZE;
+	  else
+	    max_width = TYPE_PRECISION (TREE_TYPE (x));
 	  if (tree_int_cst_sgn (DECL_INITIAL (x)) < 0)
 	    error_with_decl (x, "negative width in bit-field `%s'");
-	  else if (0 < compare_tree_int (DECL_INITIAL (x),
-					 TYPE_PRECISION (TREE_TYPE (x))))
+	  else if (0 < compare_tree_int (DECL_INITIAL (x), max_width))
 	    pedwarn_with_decl (x, "width of `%s' exceeds its type");
 	  else if (integer_zerop (DECL_INITIAL (x)) && DECL_NAME (x) != 0)
 	    error_with_decl (x, "zero width for bit-field `%s'");
@@ -10221,7 +9764,8 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
 				   "`%s' is narrower than values of its type");
 
 	      DECL_SIZE (x) = bitsize_int (width);
-	      DECL_BIT_FIELD (x) = DECL_C_BIT_FIELD (x) = 1;
+	      DECL_BIT_FIELD (x) = 1;
+	      SET_DECL_C_BIT_FIELD (x);
 
 	      if (width == 0)
 		{
@@ -10330,7 +9874,7 @@ gccgm2_BuildEndRecord (t, fieldlist /* , attributes */ )
       tree decl;
       for (decl = current_binding_level->names; decl; decl = TREE_CHAIN (decl))
 	{
-	  if (TREE_TYPE (decl) == t
+	  if (TYPE_MAIN_VARIANT (TREE_TYPE (decl)) == TYPE_MAIN_VARIANT (t)
 	      && TREE_CODE (decl) != TYPE_DECL)
 	    {
 	      layout_decl (decl, 0);
