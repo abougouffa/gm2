@@ -132,6 +132,7 @@ tree m2_short_real_type_node;
 tree m2_real_type_node;
 tree m2_long_real_type_node;
 tree m2_long_int_type_node;
+tree m2_long_card_type_node;
 tree m2_iso_loc_type_node;
 tree m2_iso_byte_type_node;
 tree m2_iso_word_type_node;
@@ -588,6 +589,7 @@ static tree                   build_m2_short_real_node                    PARAMS
 static tree                   build_m2_real_node                          PARAMS ((void));
 static tree                   build_m2_long_real_node                     PARAMS ((void));
 static tree                   build_m2_long_int_node                      PARAMS ((void));
+static tree                   build_m2_long_card_node                     PARAMS ((void));
 static tree                   build_m2_iso_loc_node                       PARAMS ((void));
 static tree                   build_m2_iso_byte_node                      PARAMS ((void));
 static tree                   build_m2_iso_word_node                      PARAMS ((void));
@@ -2903,6 +2905,7 @@ init_m2_builtins ()
   m2_real_type_node = build_m2_real_node ();
   m2_long_real_type_node = build_m2_long_real_node ();
   m2_long_int_type_node = build_m2_long_int_node ();
+  m2_long_card_type_node = build_m2_long_card_node ();
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
   m2_iso_byte_type_node = build_m2_iso_byte_node ();
   m2_iso_word_type_node = build_m2_iso_word_node ();
@@ -3047,6 +3050,20 @@ build_m2_long_int_node (void)
 #else
   c = m2_integer_type_node;
 #endif
+
+  return c;
+}
+
+static
+tree
+build_m2_long_card_node (void)
+{
+  tree c;
+
+  /* Define `LONGCARD' */
+
+  c = make_unsigned_type (LONG_LONG_TYPE_SIZE);
+  layout_type (c);
 
   return c;
 }
@@ -10386,6 +10403,12 @@ tree
 gccgm2_GetM2LongIntType ()
 {
   return m2_long_int_type_node;
+}
+
+tree
+gccgm2_GetM2LongCardType ()
+{
+  return m2_long_card_type_node;
 }
 
 tree

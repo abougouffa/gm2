@@ -465,8 +465,8 @@ PROCEDURE StartBuildEnumeration ;
 
 
 (*
-   BuildSubrange - Builds a Subrange type Symbol.
-
+   BuildSubrange - Builds a Subrange type Symbol, the base type can also be
+                   supplied if known.
 
                       Stack
 
@@ -481,7 +481,7 @@ PROCEDURE StartBuildEnumeration ;
                       |------------|        |------------| 
 *)
 
-PROCEDURE BuildSubrange ;
+PROCEDURE BuildSubrange (Base: CARDINAL) ;
 
 
 (*

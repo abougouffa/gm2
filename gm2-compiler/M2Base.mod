@@ -63,7 +63,7 @@ FROM M2Size IMPORT Size, MakeSize ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType,
-                   GetM2ShortRealType, GetM2RealType, GetM2LongRealType ;
+                   GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongCardType ;
 
 TYPE
    Compatability = (expression, assignment) ;
@@ -170,6 +170,11 @@ BEGIN
    PutType(LongInt, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetLongIntType())) ;
    PopSize(LongInt) ;
+
+   LongCard := MakeType(MakeKey('LONGCARD')) ;
+   PutType(LongCard, NulSym) ;                 (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2LongCardType())) ;
+   PopSize(LongCard) ;
 
    Real := MakeType(MakeKey('REAL')) ;
    PutType(Real, NulSym) ;                    (* Base Type       *)

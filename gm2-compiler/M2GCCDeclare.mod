@@ -72,7 +72,7 @@ FROM SymbolTable IMPORT NulSym,
                         ForeachInnerModuleDo, ForeachImportedDo ;
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False,
+                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard, Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
 FROM M2Bitset IMPORT Bitset, Bitnum ;
@@ -89,7 +89,7 @@ FROM gccgm2 IMPORT Tree,
                    GetDefaultType, GetCopyOfType,
                    GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
-                   GetPointerType, GetM2LongIntType,
+                   GetPointerType, GetM2LongIntType, GetM2LongCardType,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
@@ -990,6 +990,7 @@ BEGIN
       DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
       DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
       DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
+      DeclareDefaultType(LongCard , "LONGCARD" , GetM2LongCardType()) ;
       DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
       DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
       DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;

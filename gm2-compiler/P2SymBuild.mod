@@ -772,8 +772,8 @@ END StartBuildEnumeration ;
 
 
 (*
-   BuildSubrange - Builds a Subrange type Symbol.
-
+   BuildSubrange - Builds a Subrange type Symbol, the base type can also be
+                   supplied if known.
 
                       Stack
 
@@ -788,7 +788,7 @@ END StartBuildEnumeration ;
                       |------------|        |------------| 
 *)
 
-PROCEDURE BuildSubrange ;
+PROCEDURE BuildSubrange (Base: CARDINAL) ;
 VAR
    name: Name ;
    Type: CARDINAL ;
@@ -797,6 +797,7 @@ BEGIN
    Type := MakeSubrange(name) ;
    PutIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
                               (* its bounds during pass 3.                  *)
+   PutIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
    PushT(name) ;
    PushT(Type)

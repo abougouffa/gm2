@@ -75,7 +75,7 @@
 (defvar m2-compile-command (concat "gm2 -c " m2-options)
   "Command to compile Modula-2 programs")
 
-(defvar m2-link-command (concat "gm2 " m2-options)
+(defvar m2-link-command (concat "gm2 -I. " m2-options)
   "Command to link Modula-2 programs")
 
 (defvar m2-link-name nil
@@ -735,8 +735,8 @@ FROM StdIO IMPORT Write, Read ;
 (defun generate-assembler-command (assembly-file)
   "generate the compilation string which will generate, assembly-file"
   (interactive)
-  (if (string-equal "m2f" (substring compile-command 0 3))
-      (concat "m2f -S -g " (substring compile-command 4 (length compile-command)))
+  (if (string-equal "gm2" (substring compile-command 0 3))
+      (concat "gm2 -S -g " (substring compile-command 4 (length compile-command)))
     ""))
 
 (defun m2-link ()
@@ -1282,11 +1282,6 @@ FROM StdIO IMPORT Write, Read ;
   "simple function which returns a number of different symbols"
   nil
 )
-
-;     (if (stringp m2-success)
-;	 (message "string found: %s" m2-success)
-;       (if m2-success
-;	   (message "true returned"))))))
 
 (defun m2-match-end ()
   "finds the start of the statement matching the END returns true if found."

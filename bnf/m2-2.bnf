@@ -639,7 +639,7 @@ Type :=
       =:								   
 									   
 SimpleType :=                                                              
-              ( Qualident                                                  % BuildType ; %
+              ( Qualident [ PrefixedSubrangeType ]                         % BuildType ; %
                 | Enumeration                                              % BuildType ; %
                 | SubrangeType                                             % BuildType ; %
               )
@@ -669,7 +669,12 @@ IdentList := Ident                                                         % VAR
                                                                              END %
              =:
 
-SubrangeType := "[" ConstExpression  ".." ConstExpression "]"              % BuildSubrange ; %
+SubrangeType := "[" ConstExpression  ".." ConstExpression "]"              % BuildSubrange(NulSym) %
+              =:
+
+PrefixedSubrangeType := "[" ConstExpression  ".." ConstExpression "]"      % VAR t: CARDINAL ; %
+                                                                           % PopT(t) ;
+                                                                             BuildSubrange(t) %
               =:
 
 ArrayType := "ARRAY"                                                       % StartBuildArray ;
@@ -702,11 +707,12 @@ FieldListStatement := [ FieldList ] =:
 FieldList := IdentList ":"                                                 % BuildNulName ; %
                            Type                                            % BuildFieldRecord ; %
              |
-             "CASE" Ident [ ":" Qualident                                  % BuildVarientSelector ; %
+             "CASE" TagIdent
+                                [ ":" Qualident                            % BuildVarientSelector ; %
                                                                            % BuildNulName ; %
-                           | "."                                           % PushAutoOff ; %
-                             Qualident                                     % PopAuto ; %
-                          ] "OF"                                           % PopNothing ; %
+                                                | "."                      % PushAutoOff ; %
+                                                      Qualident            % PopAuto ; %
+                                                                ] "OF"     % PopNothing ; %
                                                                            % StartBuildVarient ; %
                                                                            % StartBuildVarientFieldRecord ; %
               Varient                                                      % EndBuildVarientFieldRecord ; %
@@ -718,7 +724,10 @@ FieldList := IdentList ":"                                                 % Bui
               ] "END"                                                      % EndBuildVarient ; %
            =:
 
-Varient := CaseLabelList ":" FieldListSequence =:
+TagIdent := Ident |                                                        % BuildNulName %
+          =:
+
+Varient := [ CaseLabelList ":" FieldListSequence ] =:
 
 CaseLabelList := CaseLabels { "," CaseLabels } =:
 

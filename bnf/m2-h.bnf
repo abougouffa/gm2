@@ -692,7 +692,7 @@ Type :=
           | ProcedureType )                                                % PopAuto %
       =:								   
 									   
-SimpleType := Qualident | Enumeration | SubrangeType =:								   
+SimpleType := Qualident [ SubrangeType ] | Enumeration | SubrangeType =:
 									   
 Enumeration := "("                                                         
                    ( IdentList                                             
@@ -745,19 +745,16 @@ FieldListStatement := [ FieldList ] =:
 -- was
 -- FieldList := IdentList ":"                                              % BuildNulName %
 --                           Type |
---             "CASE" [ Ident ":" ] Qualident "OF" Varient { "|" Varient }
+--             "CASE" [ Ident ] [ ":" Qualident ] "OF" Varient { "|" Varient }
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"
                            Type
              |
-             "CASE" Ident [ ":" Qualident
-
-                           | "."
-                             Qualident
-                          ] "OF"
-
-
+             "CASE" TagIdent [ ":" Qualident
+                                             | "."
+                                                   Qualident
+                                                             ] "OF"
               Varient
                       { "|"
                         Varient
@@ -766,6 +763,8 @@ FieldList := IdentList ":"
                 FieldListSequence
               ] "END"
            =:
+
+TagIdent := [ Ident ] =:
 
 Varient := [ SilentCaseLabelList ":" FieldListSequence ] =:
 

@@ -1,3 +1,10 @@
+2003-06-01	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added the LONGCARD data type.
+	* fixed subrange declarations so that they can be prefixed by a qualident.
+	* fixed variant record for ISO syntax (gm2/m2/comp/autotest/gm2/caseiso.mod).
+	* fixed importing of an enumerated element (gm2/m2/comp/autotest/gm2/impm.mod).
+
 2003-05-27	Gaius Mulley <gaius@glam.ac.uk>
 	
 	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/realbitscast.mod).
@@ -19,7 +26,7 @@
 
 	* implemented the standard function LENGTH
 	* allowed standard functions to be called from constant expressions
-	* improved cyclic dependancy errors
+	* improved cyclic data type dependancy error messages
 	* SIZE is now only exported from SYSTEM if the switch -Wiso is absent
 	  SIZE is declared as a standard procedure if -Wiso is present
 

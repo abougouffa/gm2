@@ -208,9 +208,9 @@ This section describes the elementary data types supported by GNU
 Modula-2. It also describes the relationship between these data types
 and the equivalent C data types.
 
-The following data types are supported: @code{INTEGER}, @code{LONGINT},
-@code{CARDINAL}, @code{BOOLEAN}, @code{REAL}, @code{LONGREAL}, @code{SHORTREAL},
-and @code{CHAR}.
+The following data types are supported: @code{INTEGER},
+@code{LONGINT}, @code{CARDINAL}, @code{LONGCARD}, @code{BOOLEAN},
+@code{REAL}, @code{LONGREAL}, @code{SHORTREAL}, and @code{CHAR}.
 
 An equivalence table is given below:
 
@@ -363,6 +363,7 @@ in Modula-2 and ISO Modula-2.
 
           will cause the local variable, c, to contain the value 4
 *)
+
 @findex HIGH
 PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
 @end example
@@ -391,6 +392,7 @@ is defined as:
 (*
    LENGTH - returns the length of string, a.
 *)
+
 @findex LENGTH
 PROCEDURE LENGTH (a: ARRAY OF CHAR) : CARDINAL ;
 
@@ -411,7 +413,7 @@ not just restricted to a pointer type.
 
 It also allows declarations in any order, whether they are
 types, constants, procedures, nested modules or variables
-(see @xref{Declaration ordering, , ,gm2}).
+(see @xref{Passes, , ,}.)
 
 The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
 command line option. This in turn invokes @samp{cpp} with the
@@ -602,7 +604,7 @@ At present it does not understand macros with arguments.
 The @samp{-I} option to @code{h2def} allows include directories to be
 specified and the @samp{-C} option states that a macro definition must
 be computed at compile time.  For example consider the following
-header file:
+header file called @code{ifdef.h}:
 
 @example
 #if !defined(FOOBAR)
@@ -611,7 +613,7 @@ header file:
 #endif
 @end example
 
-which if processed by @code{h2def -CFOOBAR} yields the following code:
+which if processed by @code{h2def -CFOOBAR ifdef.h} yields the following code:
 
 @example
 DEFINITION MODULE FOR "C" ifdef ;
@@ -731,7 +733,7 @@ which can be accessed in GNU Modula-2. It also serves to define the parameter
 and return value for each function:
 
 @example
-DEFINITION MODULE Builtins ;
+ DEFINITION MODULE Builtins ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -819,6 +821,48 @@ bootstrapping is achieved via a modified version of p2c-1.20.
 The modified p2c-1.20 is contained in the GNU Modula-2 source
 tree as are a number of other tools necessary for bootstrapping.
 
+The changes to p2c include:
+
+@itemize @bullet
+@item
+allowing @code{DEFINITION MODULE FOR "C"}
+@item
+fixes to abstract data types.
+@item
+making p2c understand the 2nd Edition dialect of Modula-2.
+@item
+introducing the @code{UNQUALIFIED} keyword.
+@item
+allowing varargs (@code{...}) inside @code{DEFINITION MODULE FOR "C"} modules.
+@item
+fixing the parser to understand commented @code{FORWARD} prototypes,
+which are ignored by GNU Modula-2.
+@item
+fixes to the @code{CASE} syntax for 2nd Edition Modula-2.
+@item
+fixes to a @code{FOR} loop counting down to zero using a @code{CARDINAL}.
+@item
+introducing an initialization section for each implementation module.
+@end itemize
+
+GNU Modula-2 comes with PIM and ISO style libraries. The compiler
+is built using PIM libraries and the source of the compiler
+complies with the PIM dialect together with a few @code{C}
+library calling extensions.
+
+The compiler is a four pass compiler. The first pass tokenizes
+the source code, creates scope and enumeration type symbols.
+All tokens are placed into a dynamic buffer and subsequent passes reread
+tokens and build types, quadruples and resolve hidden types.
+@xref{Passes, , ,}.
+
+GNU Modula-2 uses a technique of double book keeping @footnote{See the
+excellent tutorial by Joachim Nadler translated by Tim Josling}.
+@xref{Back end Access to Symbol Table, , , gcc}.
+The front end builds a complete symbol table and a list of quadruples.
+Each symbol is translated into a @code{gcc} equivalent after which
+each quadruple is translated into a @code{gcc} @code{tree}.
+
 @node Integrating, Building and installing, Overview, Internals
 @section How the front end integrates with gcc
 
@@ -888,41 +932,42 @@ The @code{Module} symbol maintains the: @code{LocalSymbols},
 @code{Unresolved}, @code{ListOfVars}, @code{ListOfProcs} and
 @code{ListOfModules} lists.
 
+Initially we discuss the lists which are common to both @code{DefImp}
+and @code{Module} symbols, thereafter the lists peculiar to @code{DefImp}
+and @code{Module} symbols are discussed.
+
 The @code{ListOfVars}, @code{ListOfProcs} and @code{ListOfModules}
-lists are common to both symbols and simply contain a list of
+lists (common to both symbols) and simply contain a list of
 variables, procedures and inner modules which are declared with this
 definition/implementation or program module.
 
-The @code{LocalSymbols} list present in both @code{DefImp} and
-@code{Module} symbols contains a complete list of symbols visible in
-this modules scope. The symbols in this list may have been imported or
-exported from an inner module.
+The @code{LocalSymbols} list (common to both symbols) contains a
+complete list of symbols visible in this modules scope. The symbols in
+this list may have been imported or exported from an inner module.
 
-The @code{EnumerationScope} list is common to both @code{DefImp} and
-@code{Module} symbols and defines all visible enumeration symbols.
+The @code{EnumerationScope} list (common to both symbols)
+defines all visible enumeration symbols.
 When this module is parsed these the contents of these enumeration
 types are marked as visible. Internally to GNU Modula-2 these form a
 pseudo scope (rather like a @code{WITH} statement which temporarily
 makes the fields of the record visible).
 
-The @code{ExportUndeclared} list is common to both @code{DefImp} and
-@code{Module} symbols and contains a list of all symbols marked as
-exported but as yet undeclared.
+The @code{ExportUndeclared} list (common to both symbols) contains a
+list of all symbols marked as exported but as yet undeclared.
 
-The @code{IncludeList} is common to both @code{DefImp} and
-@code{Module} symbols and contains a list of all modules imported by
-the @code{IMPORT modulename ;} construct.
+The @code{IncludeList} is (common to both symbols) contains a list of
+all modules imported by the @code{IMPORT modulename ;} construct.
 
-The @code{ImportTree} is common to both @code{DefImp} and
-@code{Module} symbols and contains a tree of all imported identifiers.
+The @code{ImportTree} (common to both symbols) contains a tree of all
+imported identifiers.
 
-The @code{ExportQualified} and @code{ExportUnQualified} trees
-are only present in the @code{DefImp} symbol. They contain identifiers
-which are marked as @code{EXPORT QUALIFIED} and @code{EXPORT
-UNQUALIFIED} respectively.
+The @code{ExportQualified} and @code{ExportUnQualified} trees (only
+present in the @code{DefImp} symbol) contain identifiers which are
+marked as @code{EXPORT QUALIFIED} and @code{EXPORT UNQUALIFIED}
+respectively.
 
-The @code{NeedToBeImplemented} list is only present in the @code{DefImp}
-module and contains a list of all unresolved symbols which are exported.
+The @code{NeedToBeImplemented} list (only present in the @code{DefImp}
+symbol) and contains a list of all unresolved symbols which are exported.
 
 @subsection Pass 1
 
@@ -994,7 +1039,7 @@ END colour.
 
 This section describes my understanding of the Modula-2 scope rules
 with respect to enumerated types.  If they are incorrect please
-correct me by email <gaius at glam.ac.uk>. They also serve to document
+correct me by email @email{gaius@@glam.ac.uk}. They also serve to document
 the behaviour of GNU Modula-2 in these cirumstances.
 
 In GNU Modula-2 the syntax for a type declaration is defined as:

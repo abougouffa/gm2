@@ -550,6 +550,7 @@ END BuildProcedureHeading ;
 
 PROCEDURE BuildSubrange ;
 VAR
+   Base,
    Type,
    Low,
    High: CARDINAL ;
@@ -558,12 +559,14 @@ BEGIN
    PopT(Low) ;
    GetFromFifoQueue(Type) ;  (* Collect subrange type from pass 2 and fill in *)
                              (* bounds.                                       *)
+   GetFromFifoQueue(Base) ;  (* Get base of subrange (maybe NulSym)           *)
 (*
    WriteString('Subrange type name is: ') ; WriteKey(GetSymName(Type)) ; WriteLn ;
    WriteString('Subrange High is: ') ; WriteKey(GetSymName(High)) ;
    WriteString(' Low is: ') ; WriteKey(GetSymName(Low)) ; WriteLn ;
 *)
-   PutSubrange(Type, Low, High, NulSym)   (* Base is worked out in M2EvalSym *)
+   PutSubrange(Type, Low, High, Base)   (* if Base is NulSym then it is       *)
+                                        (* worked out later in M2GCCDeclare   *)
 END BuildSubrange ;
 
 

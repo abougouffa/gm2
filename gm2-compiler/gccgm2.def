@@ -22,6 +22,7 @@ EXPORT QUALIFIED Tree,
                  GetByteType, GetCardinalType, GetBitsetType, GetBitnumType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetM2ShortRealType, GetM2RealType, GetM2LongRealType, GetM2LongIntType,
+                 GetM2LongCardType,
                  GetWordType,
                  GetISOLocType, GetISOByteType, GetISOWordType,
                  GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
@@ -133,6 +134,7 @@ PROCEDURE GetM2ShortRealType     () : Tree ;
 PROCEDURE GetM2RealType          () : Tree ;
 PROCEDURE GetM2LongRealType      () : Tree ;
 PROCEDURE GetM2LongIntType       () : Tree ;
+PROCEDURE GetM2LongCardType      () : Tree ;
 PROCEDURE GetWordType            () : Tree ;
 PROCEDURE GetProcType            () : Tree ;
 PROCEDURE GetISOLocType          () : Tree ;

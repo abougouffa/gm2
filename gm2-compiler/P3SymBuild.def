@@ -334,7 +334,6 @@ PROCEDURE BuildImportInnerModule ;
 (*
    BuildSubrange - Builds a Subrange type Symbol.
 
-
                       Stack
 
                       Entry                 Exit
