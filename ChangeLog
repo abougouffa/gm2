@@ -1,3 +1,11 @@
+2001-02-28	Gaius Mulley <gaius@glam.ac.uk>
+
+	* using new parser P1SyntaxCheck.mod and P2Build.mod
+	  P1SyntaxCheck.mod now inserts simple missing tokens.
+	* both automatically generated and provide better error
+	  recovery
+	* improved some error messages
+
 2001-01-23	Gaius Mulley <gaius@glam.ac.uk>
 
 	* brought gm2 up to date with gcc-20001204
