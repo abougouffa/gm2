@@ -251,6 +251,16 @@ tree param_type_list;
 tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 static tree last_function=NULL_TREE;
 
+/* A list (chain of TREE_LIST nodes) of all LABEL_DECLs in the function
+   that have names.  Here so we can clear out their names' definitions
+   at the end of the function.  */
+
+static tree named_labels;
+
+/* A list of LABEL_DECLs from outer contexts that are currently shadowed.  */
+
+static tree shadowed_labels;
+
 
 static tree qualify_type		PROTO ((tree, tree));
 static tree build_c_type_variant        PROTO ((tree, int, int));
@@ -660,7 +670,6 @@ static struct binding_level clear_binding_level
   = {NULL, NULL, NULL, NULL, NULL, NULL_BINDING_LEVEL, 0, 0, 0, 0, 0, 0,
      NULL};
 
-#if 0
 /* Nonzero means unconditionally make a BLOCK for the next level pushed.  */
 
 static int keep_next_level_flag;
@@ -677,7 +686,16 @@ static int keep_next_if_subblocks;
    a label binding level outside the current one.  */
 
 static struct binding_level *label_level_chain;
-#endif
+
+/* Create a new `struct binding_level'.  */
+
+static
+struct binding_level *
+make_binding_level ()
+{
+  /* NOSTRICT */
+  return (struct binding_level *) xmalloc (sizeof (struct binding_level));
+}
 
 /* Return non-zero if we are currently in the global binding level.  */
 
@@ -723,6 +741,433 @@ in_parm_level_p ()
 {
   return current_binding_level->parm_flag;
 }
+
+#if 1
+/* Enter a new binding level.
+   If TAG_TRANSPARENT is nonzero, do so only for the name space of variables,
+   not for that of tags.  */
+
+void
+pushlevel (tag_transparent)
+     int tag_transparent;
+{
+  register struct binding_level *newlevel = NULL_BINDING_LEVEL;
+
+  /* If this is the top level of a function,
+     just make sure that NAMED_LABELS is 0.  */
+
+  if (current_binding_level == global_binding_level)
+    {
+      named_labels = 0;
+    }
+
+  /* Reuse or create a struct for this binding level.  */
+
+  if (free_binding_level)
+    {
+      newlevel = free_binding_level;
+      free_binding_level = free_binding_level->level_chain;
+    }
+  else
+    {
+      newlevel = make_binding_level ();
+    }
+
+  /* Add this level to the front of the chain (stack) of levels that
+     are active.  */
+
+  *newlevel = clear_binding_level;
+  newlevel->tag_transparent
+    = (tag_transparent
+       || (current_binding_level
+	   ? current_binding_level->subblocks_tag_transparent
+	   : 0));
+  newlevel->level_chain = current_binding_level;
+  current_binding_level = newlevel;
+  newlevel->keep = keep_next_level_flag;
+  keep_next_level_flag = 0;
+  newlevel->keep_if_subblocks = keep_next_if_subblocks;
+  keep_next_if_subblocks = 0;
+}
+
+/* Clear the limbo values of all identifiers defined in BLOCK or a subblock. */
+
+static void
+clear_limbo_values (block)
+     tree block;
+{
+  tree tem;
+
+  for (tem = BLOCK_VARS (block); tem; tem = TREE_CHAIN (tem))
+    if (DECL_NAME (tem) != 0)
+      IDENTIFIER_LIMBO_VALUE (DECL_NAME (tem)) = 0;
+
+  for (tem = BLOCK_SUBBLOCKS (block); tem; tem = TREE_CHAIN (tem))
+    clear_limbo_values (tem);
+}
+
+/* Make a label named NAME in the current function,
+   shadowing silently any that may be inherited from containing functions
+   or containing scopes.
+
+   Note that valid use, if the label being shadowed
+   comes from another scope in the same function,
+   requires calling declare_nonlocal_label right away.  */
+
+tree
+shadow_label (name)
+     tree name;
+{
+  register tree decl = IDENTIFIER_LABEL_VALUE (name);
+
+  if (decl != 0)
+    {
+      register tree dup;
+
+      /* Check to make sure that the label hasn't already been declared
+	 at this label scope */
+      for (dup = named_labels; dup; dup = TREE_CHAIN (dup))
+	if (TREE_VALUE (dup) == decl)
+	  {
+	    error ("duplicate label declaration `%s'", 
+		   IDENTIFIER_POINTER (name));
+	    error_with_decl (TREE_VALUE (dup),
+			     "this is a previous declaration");
+	    /* Just use the previous declaration.  */
+	    return lookup_label (name);
+	  }
+
+      shadowed_labels = tree_cons (NULL_TREE, decl, shadowed_labels);
+      IDENTIFIER_LABEL_VALUE (name) = decl = 0;
+    }
+
+  return lookup_label (name);
+}
+
+/* Define a label, specifying the location in the source file.
+   Return the LABEL_DECL node for the label, if the definition is valid.
+   Otherwise return 0.  */
+
+tree
+define_label (filename, line, name)
+     char *filename;
+     int line;
+     tree name;
+{
+  tree decl = lookup_label (name);
+
+  /* If label with this name is known from an outer context, shadow it.  */
+  if (decl != 0 && DECL_CONTEXT (decl) != current_function_decl)
+    {
+      shadowed_labels = tree_cons (NULL_TREE, decl, shadowed_labels);
+      IDENTIFIER_LABEL_VALUE (name) = 0;
+      decl = lookup_label (name);
+    }
+
+  if (DECL_INITIAL (decl) != 0)
+    {
+      error ("duplicate label `%s'", IDENTIFIER_POINTER (name));
+      return 0;
+    }
+  else
+    {
+      /* Mark label as having been defined.  */
+      DECL_INITIAL (decl) = error_mark_node;
+      /* Say where in the source.  */
+      DECL_SOURCE_FILE (decl) = filename;
+      DECL_SOURCE_LINE (decl) = line;
+      return decl;
+    }
+}
+    
+/* Exit a binding level.
+   Pop the level off, and restore the state of the identifier-decl mappings
+   that were in effect when this level was entered.
+
+   If KEEP is nonzero, this level had explicit declarations, so
+   and create a "block" (a BLOCK node) for the level
+   to record its declarations and subblocks for symbol table output.
+
+   If FUNCTIONBODY is nonzero, this level is the body of a function,
+   so create a block as if KEEP were set and also clear out all
+   label names.
+
+   If REVERSE is nonzero, reverse the order of decls before putting
+   them into the BLOCK.  */
+
+tree
+poplevel (keep, reverse, functionbody)
+     int keep;
+     int reverse;
+     int functionbody;
+{
+  register tree link;
+  /* The chain of decls was accumulated in reverse order.
+     Put it into forward order, just for cleanliness.  */
+  tree decls;
+  tree tags = current_binding_level->tags;
+  tree subblocks = current_binding_level->blocks;
+  tree block = 0;
+  tree decl;
+  int block_previously_created;
+
+  keep |= current_binding_level->keep;
+
+  /* This warning is turned off because it causes warnings for
+     declarations like `extern struct foo *x'.  */
+#if 0
+  /* Warn about incomplete structure types in this level.  */
+  for (link = tags; link; link = TREE_CHAIN (link))
+    if (TYPE_SIZE (TREE_VALUE (link)) == 0)
+      {
+	tree type = TREE_VALUE (link);
+	tree type_name = TYPE_NAME (type);
+	char *id = IDENTIFIER_POINTER (TREE_CODE (type_name) == IDENTIFIER_NODE
+				       ? type_name
+				       : DECL_NAME (type_name));
+	switch (TREE_CODE (type))
+	  {
+	  case RECORD_TYPE:
+	    error ("`struct %s' incomplete in scope ending here", id);
+	    break;
+	  case UNION_TYPE:
+	    error ("`union %s' incomplete in scope ending here", id);
+	    break;
+	  case ENUMERAL_TYPE:
+	    error ("`enum %s' incomplete in scope ending here", id);
+	    break;
+	  }
+      }
+#endif /* 0 */
+
+  /* Get the decls in the order they were written.
+     Usually current_binding_level->names is in reverse order.
+     But parameter decls were previously put in forward order.  */
+
+  if (reverse)
+    current_binding_level->names
+      = decls = nreverse (current_binding_level->names);
+  else
+    decls = current_binding_level->names;
+
+  /* Output any nested inline functions within this block
+     if they weren't already output.  */
+
+  for (decl = decls; decl; decl = TREE_CHAIN (decl))
+    if (TREE_CODE (decl) == FUNCTION_DECL
+	&& ! TREE_ASM_WRITTEN (decl)
+	&& DECL_INITIAL (decl) != 0
+	&& TREE_ADDRESSABLE (decl))
+      {
+	/* If this decl was copied from a file-scope decl
+	   on account of a block-scope extern decl,
+	   propagate TREE_ADDRESSABLE to the file-scope decl.
+
+	   DECL_ABSTRACT_ORIGIN can be set to itself if warn_return_type is
+	   true, since then the decl goes through save_for_inline_copying.  */
+	if (DECL_ABSTRACT_ORIGIN (decl) != 0
+	    && DECL_ABSTRACT_ORIGIN (decl) != decl)
+	  TREE_ADDRESSABLE (DECL_ABSTRACT_ORIGIN (decl)) = 1;
+	else if (DECL_SAVED_INSNS (decl) != 0)
+	  {
+	    push_function_context ();
+	    output_inline_function (decl);
+	    pop_function_context ();
+	  }
+      }
+
+  /* If there were any declarations or structure tags in that level,
+     or if this level is a function body,
+     create a BLOCK to record them for the life of this function.  */
+
+  block = 0;
+  block_previously_created = (current_binding_level->this_block != 0);
+  if (block_previously_created)
+    block = current_binding_level->this_block;
+  else if (keep || functionbody
+	   || (current_binding_level->keep_if_subblocks && subblocks != 0))
+    block = make_node (BLOCK);
+  if (block != 0)
+    {
+      BLOCK_VARS (block) = decls;
+      BLOCK_SUBBLOCKS (block) = subblocks;
+    }
+
+  /* In each subblock, record that this is its superior.  */
+
+  for (link = subblocks; link; link = TREE_CHAIN (link))
+    BLOCK_SUPERCONTEXT (link) = block;
+
+  /* Clear out the meanings of the local variables of this level.  */
+
+  for (link = decls; link; link = TREE_CHAIN (link))
+    {
+      if (DECL_NAME (link) != 0)
+	{
+	  /* If the ident. was used or addressed via a local extern decl,
+	     don't forget that fact.  */
+	  if (DECL_EXTERNAL (link))
+	    {
+	      if (TREE_USED (link))
+		TREE_USED (DECL_NAME (link)) = 1;
+	      if (TREE_ADDRESSABLE (link))
+		TREE_ADDRESSABLE (DECL_ASSEMBLER_NAME (link)) = 1;
+	    }
+	  IDENTIFIER_LOCAL_VALUE (DECL_NAME (link)) = 0;
+	}
+    }
+
+  /* Restore all name-meanings of the outer levels
+     that were shadowed by this level.  */
+
+  for (link = current_binding_level->shadowed; link; link = TREE_CHAIN (link))
+    IDENTIFIER_LOCAL_VALUE (TREE_PURPOSE (link)) = TREE_VALUE (link);
+
+  /* If the level being exited is the top level of a function,
+     check over all the labels, and clear out the current
+     (function local) meanings of their names.  */
+
+  if (functionbody)
+    {
+      clear_limbo_values (block);
+
+      /* If this is the top level block of a function,
+	 the vars are the function's parameters.
+	 Don't leave them in the BLOCK because they are
+	 found in the FUNCTION_DECL instead.  */
+
+      BLOCK_VARS (block) = 0;
+
+      /* Clear out the definitions of all label names,
+	 since their scopes end here,
+	 and add them to BLOCK_VARS.  */
+
+      for (link = named_labels; link; link = TREE_CHAIN (link))
+	{
+	  register tree label = TREE_VALUE (link);
+
+	  if (DECL_INITIAL (label) == 0)
+	    {
+	      error_with_decl (label, "label `%s' used but not defined");
+	      /* Avoid crashing later.  */
+	      define_label (input_filename, lineno,
+			    DECL_NAME (label));
+	    }
+	  else if (warn_unused && !TREE_USED (label))
+	    warning_with_decl (label, "label `%s' defined but not used");
+	  IDENTIFIER_LABEL_VALUE (DECL_NAME (label)) = 0;
+
+	  /* Put the labels into the "variables" of the
+	     top-level block, so debugger can see them.  */
+	  TREE_CHAIN (label) = BLOCK_VARS (block);
+	  BLOCK_VARS (block) = label;
+	}
+    }
+
+  /* Pop the current level, and free the structure for reuse.  */
+
+  {
+    register struct binding_level *level = current_binding_level;
+    current_binding_level = current_binding_level->level_chain;
+
+    level->level_chain = free_binding_level;
+    free_binding_level = level;
+  }
+
+  /* Dispose of the block that we just made inside some higher level.  */
+  if (functionbody)
+    DECL_INITIAL (current_function_decl) = block;
+  else if (block)
+    {
+      if (!block_previously_created)
+        current_binding_level->blocks
+          = chainon (current_binding_level->blocks, block);
+    }
+  /* If we did not make a block for the level just exited,
+     any blocks made for inner levels
+     (since they cannot be recorded as subblocks in that level)
+     must be carried forward so they will later become subblocks
+     of something else.  */
+  else if (subblocks)
+    current_binding_level->blocks
+      = chainon (current_binding_level->blocks, subblocks);
+
+  /* Set the TYPE_CONTEXTs for all of the tagged types belonging to this
+     binding contour so that they point to the appropriate construct, i.e.
+     either to the current FUNCTION_DECL node, or else to the BLOCK node
+     we just constructed.
+
+     Note that for tagged types whose scope is just the formal parameter
+     list for some function type specification, we can't properly set
+     their TYPE_CONTEXTs here, because we don't have a pointer to the
+     appropriate FUNCTION_TYPE node readily available to us.  For those
+     cases, the TYPE_CONTEXTs of the relevant tagged type nodes get set
+     in `grokdeclarator' as soon as we have created the FUNCTION_TYPE
+     node which will represent the "scope" for these "parameter list local"
+     tagged types.
+  */
+
+  if (functionbody)
+    for (link = tags; link; link = TREE_CHAIN (link))
+      TYPE_CONTEXT (TREE_VALUE (link)) = current_function_decl;
+  else if (block)
+    for (link = tags; link; link = TREE_CHAIN (link))
+      TYPE_CONTEXT (TREE_VALUE (link)) = block;
+
+  if (block)
+    TREE_USED (block) = 1;
+  return block;
+}
+
+/* Delete the node BLOCK from the current binding level.
+   This is used for the block inside a stmt expr ({...})
+   so that the block can be reinserted where appropriate.  */
+
+void
+delete_block (block)
+     tree block;
+{
+  tree t;
+  if (current_binding_level->blocks == block)
+    current_binding_level->blocks = TREE_CHAIN (block);
+  for (t = current_binding_level->blocks; t;)
+    {
+      if (TREE_CHAIN (t) == block)
+	TREE_CHAIN (t) = TREE_CHAIN (block);
+      else
+	t = TREE_CHAIN (t);
+    }
+  TREE_CHAIN (block) = NULL;
+  /* Clear TREE_USED which is always set by poplevel.
+     The flag is set again if insert_block is called.  */
+  TREE_USED (block) = 0;
+}
+
+/* Insert BLOCK at the end of the list of subblocks of the
+   current binding level.  This is used when a BIND_EXPR is expanded,
+   to handle the BLOCK node inside the BIND_EXPR.  */
+
+void
+insert_block (block)
+     tree block;
+{
+  TREE_USED (block) = 1;
+  current_binding_level->blocks
+    = chainon (current_binding_level->blocks, block);
+}
+
+/* Set the BLOCK node for the innermost scope
+   (the one we are currently in).  */
+
+void
+set_block (block)
+     register tree block;
+{
+  current_binding_level->this_block = block;
+}
+
+#else
+/* *********** old gcc-2.8.1 version **************************/
 
 
 /* Enter a new binding level. The input parameter is ignored, but has to be
@@ -873,6 +1318,7 @@ set_block (block)
 {
   current_binding_level->block_created_by_back_end = block;
 }
+#endif
 
 /* Look up NAME in the current binding level and its superiors
    in the namespace of variables, functions and typedefs.
@@ -6324,90 +6770,109 @@ gccgm2_DeclareKnownType (name, type)
     return( cp );
 }
 
+void
+trythis ()
+{
+  /*
+   *  testing how to create global variables
+   */
+
+  {  
+    tree id;
+    tree decl;
+
+    if (current_binding_level != global_binding_level) {
+      error("declaring a global variable outside of the global binding level");
+    }
+
+    id   = get_identifier ("another_global_int");
+    decl = build_decl (VAR_DECL, id, integer_type_node);
+
+    pushdecl(decl);
+
+    DECL_SOURCE_LINE(decl)  = 1;
+
+    DECL_EXTERNAL (decl)    = 0;
+    TREE_STATIC   (decl)    = 1;           /* declaration and definition */
+
+    TREE_PUBLIC   (decl)    = 0;
+    DECL_CONTEXT  (decl)    = NULL_TREE;
+
+    TREE_USED     (integer_type_node)    = 1;
+    TREE_USED     (decl)    = 1;
+
+#if 1
+    /* now for the id */
+
+    DECL_EXTERNAL (id)      = 0;
+    TREE_STATIC   (id)      = 1;           /* declaration and definition */
+    TREE_PUBLIC   (id)      = 1;
+    TREE_USED     (id)      = 1;
+#endif
+
+    layout_type (integer_type_node);
+    layout_decl (decl, 0);
+    expand_decl(decl);
+  }
+  /*
+   *  end of test code
+   */
+}
+
+
 /*
  *  DeclareKnownVariable - declares a variable in scope, funcscope. Note that the global
  *                         variable, current_function_decl, is altered if isglobal is TRUE.
  */
 
 tree
-gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglobal)
+gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglobal, scope)
      char *name;
      tree type;
      int  exported, imported, istemporary, isglobal;
+     tree scope;
 {
   tree id;
   tree decl;
 
-  if (isglobal) {
-    current_function_decl = NULL_TREE;
-  }
   id   = get_identifier (name);
   decl = build_decl (VAR_DECL, id, type);
-
-  /* The corresponding pop_obstacks is in finish_decl.  */
-  push_obstacks_nochange ();
-
-  pushdecl(decl);
 
   DECL_SOURCE_LINE(decl)  = lineno;
 
   DECL_EXTERNAL (decl)    = imported;
-  TREE_STATIC   (decl)    = isglobal;
   if (isglobal) {
     TREE_PUBLIC   (decl)  = exported;
-    DECL_EXTERNAL(decl)   = exported;
     DECL_CONTEXT  (decl)  = NULL_TREE;
+    TREE_STATIC   (decl)  = isglobal;           /* declaration and definition */
   } else {
-    TREE_PUBLIC   (decl)  = 0;
-    DECL_EXTERNAL (decl)  = 0;
-    DECL_CONTEXT  (decl)  = current_function_decl;
+    TREE_PUBLIC   (decl)  = 1;
+    DECL_CONTEXT  (decl)  = scope;              /* scope is actually the current function */
   }
-  TREE_PUBLIC   (decl)    = ! istemporary;
-  TREE_USED     (type)    = ! istemporary;
-  TREE_USED     (decl)    = ! istemporary;
+  TREE_USED     (type)    = 1;
+  TREE_USED     (decl)    = 1;
 
-#if 1
   /* now for the id */
 
   DECL_EXTERNAL (id)      = imported;
-  TREE_STATIC   (id)      = isglobal;
+  TREE_STATIC   (id)      = 1;           /* declaration and definition */
   if (isglobal) {
     TREE_PUBLIC   (id)    = exported;
-  } else {
-    TREE_PUBLIC   (id)    = 0;
   }
-  TREE_PUBLIC   (id)      = 1;
   TREE_USED     (id)      = 1;
-#endif
 
-  /* TREE_TYPE (TYPE_SIZE (id)) = TYPE_SIZE (type); */
+  debug_tree(decl);
+  pushdecl(decl);
 
-  layout_type (type);
-  layout_decl (decl, 0);
-  
   if (DECL_SIZE(decl) == 0) {
     error_with_decl (decl, "storage size of `%s' hasn't been resolved");
   }
+  expand_decl(decl);
+  if (isglobal) {
+    layout_decl (decl, 0);
+    rest_of_decl_compilation (decl, 0, 1, 0);
+  }
 
-  /* For a local variable, define the RTL now.  */
-  if (current_binding_level != global_binding_level
-      /* But not if this is a duplicate decl
-	 and we preserved the rtl from the previous one
-	 (which may or may not happen).  */
-      && DECL_RTL (decl) == 0)
-    {
-      if (TYPE_SIZE (TREE_TYPE (decl)) != 0)
-	expand_decl (decl);
-      else if (TREE_CODE (TREE_TYPE (decl)) == ARRAY_TYPE
-	       && DECL_INITIAL (decl) != 0)
-	expand_decl (decl);
-    }
-  
-#if 0
-  /* Avoid warnings if the standard decls are unused */
-  TREE_USED (decl) = 1;
-#endif
-  finish_decl (decl, NULL_TREE, NULL_TREE);
   return( decl );
 }
 
@@ -7925,10 +8390,24 @@ gccgm2_BuildStartFunctionCode (fndecl)
 
   /* Store back the PARM_DECL nodes. They appear in the right order. */
   DECL_ARGUMENTS (fndecl) = getdecls ();
+  /* This function exists in static storage.
+     (This does not mean `static' in the C sense!)  */
+  TREE_STATIC (fndecl) = 1;
+  /*
+   *  this should only be done if the function is exported
+   *  --fixme-- gaius
+   */
+  TREE_PUBLIC (fndecl) = 1;
+  TREE_ADDRESSABLE(fndecl) = 1;
 
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
+
+  /*
+   *  create a block at the BEGIN for the local variables
+   */
+  pushlevel (0);
 }
 
 
@@ -7940,15 +8419,141 @@ void
 gccgm2_BuildEndFunctionCode (fndecl)
      tree fndecl;
 {
+  tree block;
+
+  /* pop the block level */
+  block = poplevel(1, 1, 0);
+  debug_tree(block);
+  expand_end_bindings(block, 1, 0);
+
   /* get back out of the function and compile it */
-  expand_end_bindings (NULL_TREE, 1, 0);
-  poplevel (1, 0, 1);
+  block = poplevel (1, 0, 1);
+  DECL_INITIAL(fndecl) = block;
+  debug_tree(block);
+  BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
+  /* expand_end_bindings (block, 1, 0); */
+
   expand_function_end (input_filename, lineno, 0);
   rest_of_compilation (fndecl);
   current_function_decl = 0;
   permanent_allocation (1);
 }
 
+
+#if 1
+void
+iterative_factorial()
+{
+  /****************************
+   **
+   ** 2. iterative factorial
+   **
+   ****************************/
+
+  tree fakdecl;
+
+  tree locdecl, functype, funcid, resultdecl, parmdecl, block, parmid, arglist;
+  struct nesting *loop;
+  tree assign;
+
+  /* build & initialize declaration */
+  arglist = listify(integer_type_node);
+  functype = build_function_type(integer_type_node, arglist);
+  funcid = get_identifier("fak");  
+  fakdecl = build_decl(FUNCTION_DECL, funcid, functype);
+  temporary_allocation();
+  TREE_TYPE(fakdecl) = functype;
+  resultdecl = build_decl(RESULT_DECL, NULL_TREE, integer_type_node);
+  TREE_TYPE(resultdecl) = integer_type_node;
+  DECL_CONTEXT(resultdecl) = fakdecl;
+  DECL_RESULT(fakdecl) = resultdecl;
+  layout_decl(resultdecl, 0);
+  parmid = get_identifier("n");
+  parmdecl = build_decl(PARM_DECL, parmid, integer_type_node);
+  DECL_CONTEXT(parmdecl) = fakdecl;
+  DECL_ARG_TYPE(parmdecl) = integer_type_node;
+  DECL_ARGUMENTS(fakdecl) = parmdecl;
+  layout_decl(parmdecl, 0);
+  TREE_STATIC(fakdecl) = 1;
+  TREE_ADDRESSABLE(fakdecl) = 1;
+  TREE_PUBLIC(fakdecl) = 1;
+
+  /* let's go! */
+  current_function_decl = fakdecl;
+  announce_function(fakdecl);
+  rest_of_decl_compilation(fakdecl, NULL, 1, 0);
+  make_function_rtl(fakdecl);
+  init_function_start(fakdecl, NULL, 0);
+  expand_function_start(fakdecl, 0);
+  pushlevel(0);
+  expand_start_bindings(0);
+  pushdecl(parmdecl);
+
+  /* implement function body */
+  /* build tree for "Result := 1" and convert it to RTL : */
+  assign = build(MODIFY_EXPR, void_type_node, resultdecl, integer_one_node);
+  TREE_SIDE_EFFECTS(assign) = 1;
+  TREE_USED(resultdecl) = 1;
+  expand_expr_stmt(assign);
+
+  /* build local variable declaration for 'i' : */  
+  locdecl = build_decl(VAR_DECL, get_identifier("i"), integer_type_node);
+  /* set its scope */
+  DECL_CONTEXT(locdecl) = fakdecl;
+  /* set its initial value */
+  DECL_INITIAL(locdecl) = integer_one_node;
+  /* insert it to debugging symbol table */
+  pushdecl(locdecl);
+  /* convert it to RTL */
+  expand_decl(locdecl);
+  /* and also emit initialization assignment (i := 1) */
+  expand_decl_init(locdecl);
+
+  /* emit RTL for head of "while"-loop */
+  loop = expand_start_loop(0);
+
+  /* emit RTL for test of exit condition "i < n" : */
+  expand_exit_loop_if_false(loop, build(LE_EXPR, integer_type_node, 
+					locdecl, parmdecl));
+
+  /* build tree for "Result := Result * i" and convert it to RTL: */
+  assign = build(MODIFY_EXPR, void_type_node, 
+		 resultdecl,
+		 build(MULT_EXPR, integer_type_node, 
+		       resultdecl,
+		       locdecl
+		       )
+		 );
+  TREE_SIDE_EFFECTS(assign) = 1; 
+  expand_expr_stmt(assign);
+
+  /* build tree for "i := i + 1" and convert it to RTL: */
+  assign = build(MODIFY_EXPR, void_type_node, 
+		 locdecl, 
+		 build(PLUS_EXPR, integer_type_node, 
+		       locdecl,
+		       integer_one_node
+		       )
+		 );
+  TREE_SIDE_EFFECTS(assign) = 1; 
+  expand_expr_stmt(assign);
+
+  /* emit RTL for end of "while" loop */
+  expand_end_loop();
+
+  /* emit RTL for return statement, see commentary above */
+  expand_return(resultdecl);
+
+  /* cleanup tail */
+  block = poplevel(1,0,1);
+  DECL_INITIAL(fakdecl) = block;
+  expand_end_bindings(block, 1, 1);
+  expand_function_end(NULL, 0, 0);
+  rest_of_compilation(fakdecl);
+  end_temporary_allocation();
+  current_function_decl = NULL_TREE;
+}
+#endif
 
 /*
  *  BuildReturnValueCode - generates the code associated with: RETURN( value )
@@ -8310,9 +8915,10 @@ void
 gccgm2_BuildParam (param)
      tree param;
 {
-  fprintf(stderr, "tree for parameter\n"); fflush(stderr);
-  debug_tree(param);
-  param_list = chainon (param, param_list);
+  fprintf(stderr, "tree for parameter containing "); fflush(stderr);
+  fprintf(stderr, "list of elements\n"); fflush(stderr);
+  param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
+  debug_tree(param_list);
   fprintf(stderr, "end of tree for parameter\n"); fflush(stderr);
 }
 
@@ -8325,7 +8931,7 @@ tree
 gccgm2_BuildProcedureCall (procedure, rettype)
      tree procedure, rettype;
 {
-  tree functype = was_fntype;  /* DECL_ARGUMENTS (procedure); */  /* gaius got to here */
+  tree functype = TREE_TYPE(procedure);   /* was: was_fntype  gaius got to here */
   tree funcptr  = build1(ADDR_EXPR, build_pointer_type(functype), procedure);
   tree call;
 
@@ -8333,13 +8939,19 @@ gccgm2_BuildProcedureCall (procedure, rettype)
 
   if (rettype == NULL_TREE) {
     rettype = void_type_node;
-    call = build(CALL_EXPR, rettype, funcptr, listify(param_list), NULL_TREE);
+    call = build(CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
     TREE_USED(call)         = TRUE;
     TREE_SIDE_EFFECTS(call) = TRUE ;
+
+    fprintf(stderr, "built the modula-2 call, here are the params\n"); fflush(stderr);
+    debug_tree(param_list);
+    fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
+    debug_tree(call);
     expand_expr_stmt(call);
     last_function   = NULL_TREE;
   } else {
-    last_function   = build(CALL_EXPR, rettype, funcptr, listify(param_list), NULL_TREE);
+    /* listify(param_list) */
+    last_function   = build(CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
   }
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
@@ -8596,6 +9208,35 @@ gccgm2_BuildCallInnerInit (fndecl)
      tree fndecl;
 {
   expand_expr_stmt( build_function_call(fndecl, NULL_TREE) );
+}
+
+
+/*
+ *  BuildStartMainModule - expands all the global variables ready for the main module.
+ */
+
+void
+gccgm2_BuildStartMainModule ()
+{
+#if 0
+  current_function_decl = NULL_TREE;
+  expand_start_bindings (2);
+#endif
+}
+
+
+/*
+ *  BuildEndMainModule - tidies up the end of the main module. It moves
+ *                       back to global scope.
+ */
+
+void
+gccgm2_BuildEndMainModule ()
+{
+#if 0
+  current_function_decl = NULL_TREE;
+  expand_end_bindings(NULL_TREE, 1, 1);
+#endif
 }
 
 
@@ -9686,7 +10327,6 @@ build_enumerator (name, value)
   return saveable_tree_cons (decl, value, NULL_TREE);
 }
 
-/* was cc -c  -DIN_GCC -DUSE_CPPLIB -DGM2   -g     -I. -I.. -I. -I./.. -I./../config gm2.c */
 /*
  * Local variables:
  *  compile-command: "gcc -c  -DIN_GCC    -g -Wtraditional     -I. -I.. -I. -I./.. -I./../config -I./../../include gm2.c"
