@@ -356,7 +356,7 @@ cd gcc-version
 make
 @end example
 
-@node Future, Done list, Practicalities, Internals
+@node Future, Done list, Building, Internals
 @section A future wish list
 
 In the future it might be sensible to rewrite M2Quads.mod to

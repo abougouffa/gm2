@@ -100,7 +100,7 @@ static void *xmalloc (unsigned int size)
 <COMMENT>\n.*              { consumeLine(); }
 <COMMENT>.                 { updatepos(); skippos(); }
 <COMMENT1>.                { updatepos(); skippos(); }
-<COMMENT1>ATTRIBUTE_UNUSED { updatepos(); return; }
+<COMMENT1>ATTRIBUTE_UNUSED { updatepos(); M2LexBuf_AddTok(M2Reserved_attributeunusedtok); return; }
 <COMMENT1>"*>"             { updatepos(); skippos(); finishedLine(); BEGIN COMMENT; }
 <COMMENT1>\n.*             { consumeLine(); }
 <COMMENT1>"*)"             { poperrorskip("unterminated source code directive, missing *>");

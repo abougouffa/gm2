@@ -871,6 +871,7 @@ clean: force
 	-rm -f gm2-libs-boot/*.[aoch] gm2-compiler-boot/*.[aoch] gm2-libs/*.[oa] gm2-compiler/*.[oa] */*~ *~
 	-rm -f gm2-libs-paranoid/*  gm2-compiler-paranoid/*
 	-rm -f gm2-compiler-verify/*
+	-rm -f gm2-compiler/mod_init.c
 	-rm -f *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
 	-rm -f -r boot-bin p2c/p2c-src/home
 	-rm -f boot-bin/mklink
@@ -878,6 +879,7 @@ clean: force
 	-rm -f agm2l agm2lcc agm2lgen agm2lsub pg-e pge
 	-rm -f gm2-auto/*.c gm2-auto/*~ gm2-auto/pginit
 	-rm -f gm2-libiberty/*.h gm2-libiberty/*~
+	-rm -f gm2-auto/pg.o
 	-rm -f gm2.cp gm2.fn gm2.pg gm2.toc gm2.tp gm2.vr gm2.ky
 
 distclean: clean force
