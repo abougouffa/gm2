@@ -86,58 +86,9 @@ TYPE
                ndenumfield, ndstructfield,
                ndfunc, ndstruct, ndunion, ndvararg) ;
 
-   Node = POINTER TO RECORD
-                        CASE type: nodeType OF
-
-                        ndchain     :  nextChain: Node |
-                        nderror,
-                        nddefined   :  cpp: cppNode |
-                        ndcast,
-                        ndgre,
-                        ndless,
-                        ndgreequ,
-                        ndlessequ,
-                        ndequal,
-                        ndnotequal,
-                        ndor,
-                        ndand,
-                        ndplus,
-                        ndarray,
-                        ndminus,
-                        ndmult,
-                        nddiv,
-                        ndmod,
-                        ndshiftleft,
-                        ndshiftright :  bin: binaryNode |
-                        nddummy,
-                        ndsizeof,
-                        ndnegate,
-                        ndlnot,
-                        ndnot        :  un : unaryNode |
-                        ndident      :  id : identNode |
-                        ndconststr,
-                        ndconstchar,
-                        nddecint,
-                        ndoctint,
-                        ndhexint     :  value: Name |
-                        ndtypedef    :  |
-                        ndarraytype  :  max: Node |
-                        ndptr        :  |
-                        ndenum       :  en: enumNode |
-                        ndenumfield  :  ef: enumFieldNode |
-                        ndstructfield:  esf: structFieldNode |
-                        ndstruct     :  str: structNode |
-                        ndunion      :  uni: unionNode |
-                        ndfunc       :  func: funcNode |
-                        ndbase       :  base: baseNode |
-                        ndvararg     :
-
-                        END ;
-                        status       :  nodeStatus ;
-                        chain        :  Node ;
-                     END ;
-
    nodeStatus = (dontknow, poisoned, true, false, compiled, free) ;
+
+   Node = POINTER TO node ;
 
    cppNode = RECORD
                 macro: Name ;
@@ -191,21 +142,75 @@ TYPE
                  list: Node ;
               END ;
 
-   cppIfElseEnd = POINTER TO RECORD
+   cppIfElseEnd = POINTER TO cppifelseend ;
+   cppifelseend =            RECORD
                                 doneTrue: BOOLEAN ;
                                 compile : BOOLEAN ;
                                 next    : cppIfElseEnd ;
                              END ;
 
-   ExpStack = POINTER TO RECORD
+   ExpStack = POINTER TO expstack ;
+   expstack =            RECORD
                             next :  ExpStack ;
                             value:  WORD ;
                          END ;
 
-   IndentStack = POINTER TO RECORD
+   IndentStack = POINTER TO indentstack ;   (* these intemediate types help p2c *)
+   indentstack =            RECORD
                                next          : IndentStack ;
                                previousIndent: CARDINAL ;
                             END ;
+
+   node =            RECORD
+                        status: nodeStatus ;
+                        chain : Node ;
+                        CASE type: nodeType OF
+
+                        ndchain     :  nextChain: Node |
+                        nderror,
+                        nddefined   :  cpp: cppNode |
+                        ndcast,
+                        ndgre,
+                        ndless,
+                        ndgreequ,
+                        ndlessequ,
+                        ndequal,
+                        ndnotequal,
+                        ndor,
+                        ndand,
+                        ndplus,
+                        ndarray,
+                        ndminus,
+                        ndmult,
+                        nddiv,
+                        ndmod,
+                        ndshiftleft,
+                        ndshiftright :  bin: binaryNode |
+                        nddummy,
+                        ndsizeof,
+                        ndnegate,
+                        ndlnot,
+                        ndnot        :  un : unaryNode |
+                        ndident      :  id : identNode |
+                        ndconststr,
+                        ndconstchar,
+                        nddecint,
+                        ndoctint,
+                        ndhexint     :  value: Name |
+                        ndtypedef    :  |
+                        ndarraytype  :  max: Node |
+                        ndptr        :  |
+                        ndenum       :  en: enumNode |
+                        ndenumfield  :  ef: enumFieldNode |
+                        ndstructfield:  esf: structFieldNode |
+                        ndstruct     :  str: structNode |
+                        ndunion      :  uni: unionNode |
+                        ndfunc       :  func: funcNode |
+                        ndbase       :  base: baseNode |
+                        ndvararg     :
+
+                        END
+                     END ;
 
    EmitType = (consts, types, procedures, vars, nothing) ;
 
@@ -244,9 +249,30 @@ VAR
    watch               : Node ;
 
 
+(* %%%FORWARD%%%
+PROCEDURE IsTypeDef (n: Node) : BOOLEAN ; FORWARD ;
+PROCEDURE IsPointer (n: Node) : BOOLEAN ; FORWARD ;
+PROCEDURE writes (s: String) : String ; FORWARD ;
+PROCEDURE SkipDummy (n: Node) : Node ; FORWARD ;
+PROCEDURE PushIndent (n: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE PopIndent ; FORWARD ;
+PROCEDURE PrintNode (n, t: Node) ; FORWARD ;
+PROCEDURE Emit (e: EmitType) ; FORWARD ;
+PROCEDURE hprintf0 (a: ARRAY OF CHAR) ; FORWARD ;
+PROCEDURE hprintf1 (a: ARRAY OF CHAR; w: WORD) ; FORWARD ;
+PROCEDURE Pop () : WORD ; FORWARD ;
+PROCEDURE Push (w: WORD) ; FORWARD ;
+PROCEDURE IsPoisoned (n: Node) : BOOLEAN ; FORWARD ;
+PROCEDURE ErrorArray (a: ARRAY OF CHAR) ; FORWARD ;
+PROCEDURE ErrorString (s: String) ; FORWARD ;
+PROCEDURE DisplayStack ; FORWARD ;
+PROCEDURE Poison (n: Node) : Node ; FORWARD ;
+PROCEDURE EvaluateNode (n: Node) : nodeStatus ; FORWARD ;
+PROCEDURE CppPrintNode (n: Node) ; FORWARD ;
+   %%%FORWARD%%% *)
+
 (*
    setwatch - 
-
 *)
 
 PROCEDURE setwatch (n: Node) ;
