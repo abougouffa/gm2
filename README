@@ -52,10 +52,15 @@ A simple test
 
 you should be able to perform:
 
-compile
-   ./xgm2 -B./x -c -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
-link
-   ./xgm2 -B./x -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
+   cd gcc-version/gcc/gm2
+
+   compile
+   =======
+   ../xgm2 -B./ -c -g -Igm2-libs m2/comp/autotest/gm2/hello.mod
+
+   link
+   ====
+   ../xgm2 -B./    -g -Igm2-libs m2/comp/autotest/gm2/hello.mod
 
 this should result in creating an a.out for the infamous hello world example.
 
