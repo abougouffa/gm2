@@ -506,17 +506,17 @@ token   'real number'     realtok
 token   'string'          stringtok
 
 special PossiblyExportIdent  first { < identtok > } follow { }
-     '@r{is a builtin and automatically exports an identifier}'
+     '@i{is a builtin that automatically exports an identifier}'
 special Ident                first { < identtok > } follow { }
-     '@r{is a builtin and checks for an identifier}'
+     '@i{is a builtin and checks for an identifier}'
 special IdentScope           first { < identtok > } follow { }
-     '@r{a builtin which provides a context for error messages}'
+     '@i{a builtin which provides a context for error messages}'
 special Integer              first { < integertok > } follow { }
-     '@r{is a builtin and checks for an integer}'
+     '@i{is a builtin and checks for an integer}'
 special Real                 first { < realtok > } follow { }
-     '@r{is a builtin and checks for an real constant}'
+     '@i{is a builtin and checks for an real constant}'
 special string               first { < stringtok > } follow { }
-     '@r{is a builtin and checks for an string constant}'
+     '@i{is a builtin and checks for an string constant}'
 BNF
 
 -- the following are provided by the module m2flex and also hand built procedures below
