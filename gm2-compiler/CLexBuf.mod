@@ -62,18 +62,19 @@ TYPE
                  LastBucketOffset: CARDINAL ;
               END ;
 
-
-   Macro = POINTER TO RECORD
-                         str   : Name ;
-                         tokno : CARDINAL ;
-                         noArgs: CARDINAL ;
-                         args  : POINTER TO MacroArgs ;
-                      END ;
-
-   MacroArgs = POINTER TO RECORD
+   MacroArgs = POINTER TO macroargs ;
+   macroargs =            RECORD
                              next: MacroArgs ;
                              str : Name ;
                           END ;
+
+   Macro = POINTER TO macro ;
+   macro =            RECORD
+                         str   : Name ;
+                         tokno : CARDINAL ;
+                         noArgs: CARDINAL ;
+                         args  : MacroArgs ;
+                      END ;
 
 VAR
    CurrentSource    : SourceList ;
