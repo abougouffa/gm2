@@ -1,0 +1,10 @@
+2000-09-14	Matthias Kurz <mk@baerlap.north.de>
+
+	* Many makefile portability corrections (tests for symbol links).
+	  Made makeversion more portable via guessing email address.
+	  Added setenv emulation in libc.c.
+	  Inserted missing Close(fo) to gm2lgen.mod.GenMain().
+	  Improved README,
+	  Added QUIAT to the makefiles.
+	  Cast EOF to (char) inside mkfor.c mklink.c.
+	  

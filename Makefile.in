@@ -38,6 +38,8 @@
 # Variables that exist for you to override.
 # See below for how to change them for certain systems.
 
+QUIAT=@
+
 # Various ways of specifying flags for compilations:  
 # CFLAGS is for the user to override to, e.g., do a bootstrap with -O2.
 # BOOT_CFLAGS is the value of CFLAGS to pass
@@ -252,7 +254,7 @@ rtl.o : $(srcdir)/../rtl.c $(CONFIG_H) $(srcdir)/../system.h $(RTL_H) \
 
 gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make \
+          $(MAKE) "QUIAT=$(QUIAT)" \
                "PUSH=LEFTTORIGHT" \
                "DEBUG=-g" \
                "BINDIR=$$M2PWD/bin" \
@@ -276,7 +278,7 @@ gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
 
 gm2tools: force
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make \
+          $(MAKE) "QUIAT=$(QUIAT)" \
                "PUSH=LEFTTORIGHT" \
                "DEBUG=-g" \
                "BINDIR=$$M2PWD/bin" \
@@ -364,7 +366,6 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-
 GM2-COMP-BOOT-C    = M2Search.c M2Alias.c P1SyntaxCheck.c P3Type.c
 GM2-COMP-BOOT-H    = M2Alias.h
 
@@ -431,7 +432,7 @@ GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod
                      m2m.mod
 
 gm2-libs-boot:
-	@mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
+	$(QUIAT)mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
 	for i in $(GM2-LIBS-BOOT-DEFS) $(GM2-LIBS-BOOT-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -553,9 +554,9 @@ build-compiler-boot: $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
 	             gm2-compiler-boot/M2Version.o
 
 gm2-compiler-boot:
-	@mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
+	$(QUIAT)mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
 	for i in $(GM2-COMP-BOOT-DEFS) $(GM2-COMP-BOOT-MODS) ; do \
-           if [ -h $$i ] ; then \
+           if [ -h "$$i" ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -577,8 +578,8 @@ gm2-compiler-boot:
 	for i in $(GM2-COMP-BOOT-C) $(GM2-COMP-BOOT-H) ; do \
 	   $(LN_S) ../m2/comp/gm2s/CH/$$i $$i ; \
 	done ; \
-        $(LN_S) ../gccgm2.def ; \
-        $(LN_S) ../m2/comp/gm2s/Lists.def ; \
+        $(LN_S) ../gccgm2.def . ; \
+        $(LN_S) ../m2/comp/gm2s/Lists.def . ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)a
 	$(MAKE) gm2-compiler-boot/gccgm2.h
 
@@ -586,19 +587,31 @@ gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor
 
 m2/comp/p2c/home/libp2c.a:
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
+          $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
 
 m2/comp/bin/p2c:
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
+          $(MAKE) "QUIAT=$(QUIAT)" "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
 
 m2/comp/bin/mkfor:
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make "BINDIR=$$M2PWD/bin" COPY="cp" tools )
+          $(MAKE) "QUIAT=$(QUIAT)"       \
+                  "BINDIR=$$M2PWD/bin"   \
+                  "BINDIR1=$$M2PWD/bin1" \
+                  "BINDIR2=$$M2PWD/bin2" \
+                  "BINDIR3=$$M2PWD/bin3" \
+                  "BINDIR4=$$M2PWD/bin4" \
+                  COPY="cp" tools )
 
 $(M2LINK):
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
-          make "BINDIR=$$M2PWD/bin" COPY="cp" tools )
+          $(MAKE) "QUIAT=$(QUIAT)"       \
+                  "BINDIR=$$M2PWD/bin"   \
+                  "BINDIR1=$$M2PWD/bin1" \
+                  "BINDIR2=$$M2PWD/bin2" \
+                  "BINDIR3=$$M2PWD/bin3" \
+                  "BINDIR4=$$M2PWD/bin4" \
+                  COPY="cp" tools )
 
 build-libs: gm2-libs $(GM2-LIBS-MODS:%.mod=gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=gm2-libs/%.o)
@@ -607,7 +620,7 @@ build-compiler: gm2-compiler $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
                 gm2-compiler/M2Version.o
 
 gm2-libs:
-	@mkdir gm2-libs ; cd gm2-libs ; \
+	$(QUIAT)mkdir gm2-libs ; cd gm2-libs ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -618,9 +631,9 @@ gm2-libs:
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
 
 gm2-compiler:
-	@mkdir gm2-compiler ; cd gm2-compiler ; \
+	$(QUIAT)mkdir gm2-compiler ; cd gm2-compiler ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h $$i ] ; then \
+           if [ -h "$$i" ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -639,7 +652,7 @@ gm2-compiler:
               fi ; \
            fi ; \
 	done ; \
-        $(LN_S) ../gccgm2.def ; \
+        $(LN_S) ../gccgm2.def . ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)b
 
 #
@@ -682,7 +695,7 @@ build-compiler-paranoid: gm2-compiler-paranoid
                 gm2-compiler-paranoid/M2Version.o
 
 gm2-libs-paranoid:
-	@mkdir gm2-libs-paranoid ; cd gm2-libs-paranoid ; \
+	$(QUIAT)mkdir gm2-libs-paranoid ; cd gm2-libs-paranoid ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -693,9 +706,9 @@ gm2-libs-paranoid:
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
 
 gm2-compiler-paranoid:
-	@mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
+	$(QUIAT)mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h $$i ] ; then \
+           if [ -h "$$i" ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -714,7 +727,7 @@ gm2-compiler-paranoid:
               fi ; \
            fi ; \
 	done ; \
-        $(LN_S) ../gccgm2.def ; \
+        $(LN_S) ../gccgm2.def . ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)c
 
 #
@@ -722,7 +735,7 @@ gm2-compiler-paranoid:
 #
 
 gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
-          $(GM2-TOOLS-MOD:%.mod=%.exe)
+            $(GM2-TOOLS-MOD:%.mod=%.exe)
 	@if [ -x m2m ] ; then \
             mv m2m gm2m ; \
          fi
@@ -768,7 +781,7 @@ gm2lsub: m2/comp/p2c/home/libp2c.a force
 #
 verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
-	@cd gm2-compiler-verify ; \
+	$(QUIAT)cd gm2-compiler-verify ; \
         for i in *.mod ; do \
            echo -n "$$i" ; \
            ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../a -I. $$i -o 1.s ; \
@@ -797,7 +810,7 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
 #  failure
 #	
 gm2-compiler-verify:
-	@mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
+	$(QUIAT)mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -807,7 +820,7 @@ gm2-compiler-verify:
 	$(RM) SYSTEM.def ; \
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
-           if [ -h $$i ] ; then \
+           if [ -h "$$i" ] ; then \
               echo "$$i already present" ; \
               exit 1 ; \
            fi ; \
@@ -828,17 +841,19 @@ gm2-compiler-verify:
 	done ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)c ; \
 	$(RM) -f M2Options.mod ; \
-        $(LN_S) ../gccgm2.def
+        $(LN_S) ../gccgm2.def .
 
 clean: force
-	$(RM) *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
-	$(RM) xgm2l xgm2lgen xgm2lsub xgm2lcc
-	( cd m2/comp/p2c ; make clean )
+	$(RM) -f *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
+	$(RM) -f gm2l gm2lcc gm2lgen gm2lsub linkcommand mod_init.c
+	$(RM) -f xgm2l xgm2lgen xgm2lsub xgm2lcc
+	( cd m2/comp/p2c ; $(MAKE) "QUIAT=$(QUIAT)" clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
 	$(RM) -rf gm2-compiler-verify
-	$(RM) *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
-	$(RM) -f m2/comp/bin/*
+	$(RM) -rf m2/comp/bin m2/comp/bin[1234] m2/comp/p2c/home
+	$(RM) -f m2/comp/man/m2f.cat
+	$(RM) -f m2/comp/tools/mkfor m2/comp/tools/mklink
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 
 force:
