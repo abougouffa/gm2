@@ -837,7 +837,7 @@ clean: force
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
 	$(RM) -rf gm2-compiler-verify
-	$(RM) *.lst
+	$(RM) *.lst $(basename $(GM2-TOOLS-MOD)) gm2m
 	$(RM) -f m2/comp/bin/*
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 

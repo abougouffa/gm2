@@ -85,9 +85,9 @@ A simple test
 you should be able to perform:
 
 compile
-   ./xgm2 -B./a -c -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
+   ./xgm2 -B./x -c -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
 link
-   ./xgm2 -B./a -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
+   ./xgm2 -B./x -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
 
 this should result in creating an a.out for the infamous hello world example.
 
