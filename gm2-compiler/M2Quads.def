@@ -69,7 +69,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildCodeOn, BuildCodeOff,
                  BuildProfileOn, BuildProfileOff,
                  BuildOptimizeOn, BuildOptimizeOff,
-                 BuildInline, BuildLineNo,
+                 BuildInline, BuildLineNo, PushLineNo,
 
                  SetOptionOptimizing, SetOptionCoding, SetOptionProfiling,
 
@@ -1842,6 +1842,13 @@ PROCEDURE BuildInline ;
 *)
 
 PROCEDURE BuildLineNo ;
+
+
+(*
+   PushLineNo - pushes the current file and line number to the stack.
+*)
+
+PROCEDURE PushLineNo ;
 
 
 (*

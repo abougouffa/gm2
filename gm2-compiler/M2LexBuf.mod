@@ -25,7 +25,7 @@ FROM Strings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillStr
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM NameKey IMPORT Name, makekey, KeyToCharStar ;
 FROM M2Reserved IMPORT toktype ;
-FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 FROM M2Debug IMPORT Assert ;
 FROM NameKey IMPORT makekey ;
 
@@ -337,7 +337,7 @@ END CloseSource ;
 
 PROCEDURE ResetForNewPass ;
 BEGIN
-   CurrentTokNo := 1 ;
+   CurrentTokNo := 0 ;
    UseBufferedTokens := TRUE
 END ResetForNewPass ;
 
@@ -467,7 +467,7 @@ BEGIN
       END ;
       IF Debugging
       THEN
-         printf1('line %d ', l) ;
+         printf3('line %d (# %d  %d) ', l, t, CurrentTokNo) ;
          DisplayToken
       END ;
       INC(CurrentTokNo)
@@ -490,6 +490,7 @@ BEGIN
             END ;
             IF Debugging
             THEN
+               printf1('# %d ', CurrentTokNo) ;
                DisplayToken
             END ;
             INC(CurrentTokNo)
@@ -566,12 +567,15 @@ END InsertTokenAndRewind ;
 
 PROCEDURE GetPreviousTokenLineNo () : CARDINAL ;
 BEGIN
+   (*
    IF GetTokenNo()>0
    THEN
       RETURN( TokenToLineNo(GetTokenNo()-1, 0) )
    ELSE
       RETURN( 0 )
    END
+      *)
+   RETURN( GetLineNo() )
 END GetPreviousTokenLineNo ;
 
 
@@ -582,7 +586,12 @@ END GetPreviousTokenLineNo ;
 
 PROCEDURE GetLineNo () : CARDINAL ;
 BEGIN
-   RETURN( TokenToLineNo(GetTokenNo(), 0) )
+   IF GetTokenNo()>0
+   THEN
+      RETURN( TokenToLineNo(GetTokenNo()-1, 0) )
+   ELSE
+      RETURN( TokenToLineNo(GetTokenNo(), 0) )
+   END
 END GetLineNo ;
 
 
@@ -593,12 +602,7 @@ END GetLineNo ;
 
 PROCEDURE GetTokenNo () : CARDINAL ;
 BEGIN
-   IF CurrentTokNo=0
-   THEN
-      RETURN( 0 )
-   ELSE
-      RETURN( CurrentTokNo-1 )
-   END
+   RETURN( CurrentTokNo )
 END GetTokenNo ;
 
 

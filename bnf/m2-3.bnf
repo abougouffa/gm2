@@ -70,7 +70,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
                     BuildBitsetStart, BuildSetEnd,
-                    BuildLineNo, BuildSizeCheckStart,
+                    BuildLineNo, PushLineNo, BuildSizeCheckStart,
                     BuildBuiltinConst,
                     BuildAssignment,
                     BuildRepeat, BuildUntil,
@@ -931,15 +931,20 @@ ActualParameters := "("                                                    % Bui
                         ( ExpList |                                        % BuildNulParam %
                         ) ")" =:
 
-Statement :=                                                               % PushAutoOn ; DumpStack ;
-                                                                             BuildLineNo %
+ExitStatement :=                                                           % BuildLineNo %
+                 "EXIT"                                                    % BuildExit %
+              =:
+
+ReturnStatement :=                                                         % BuildLineNo %
+                   "RETURN" ( Expression |                                 % BuildNulExpression (* in epsilon *) %
+                                           )                               % BuildReturn %
+                =:
+
+Statement :=                                                               % PushAutoOn ; DumpStack %
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               "EXIT"                                                      % BuildExit %
-               | "RETURN"                                                  % BuildLineNo %
-                 ( Expression |                                            % BuildNulExpression (* in epsilon *) %
-                               )                                           % BuildReturn %
+               ExitStatement | ReturnStatement 
              ]                                                             % PopAuto ; %
           =:
 
@@ -956,39 +961,36 @@ AssignmentOrProcedureCall :=                                               % Bui
 -- ProcedureCall := Designator [ ActualParameters ] =:
 -- Assignment := Designator ":=" Expression =:
 
-StatementSequence :=                                                       % BuildLineNo %
-                     Statement                                             % BuildLineNo %
-                               { ";"                                       % BuildLineNo %
-                                     Statement }                           % BuildLineNo %
+StatementSequence :=
+                     Statement
+                               { ";"
+                                     Statement }
                   =:
 
 IfStatement :=                                                             % BuildLineNo %
                "IF"
-                    Expression "THEN"                                      % BuildLineNo ;
-                                                                             BuildThenIf %
+                    Expression "THEN"                                      % BuildThenIf %
                 StatementSequence
-              { "ELSIF"                                                    % BuildLineNo ;
-                                                                             BuildElsif1 %
-                        Expression "THEN"                                  % BuildLineNo ;
-                                                                             BuildThenIf %
+              { "ELSIF"                                                    % BuildElsif1 ;
+                                                                             BuildLineNo %
+                        Expression "THEN"                                  % BuildThenIf %
                                           StatementSequence                % BuildElsif2 %
               }
-              [ "ELSE"                                                     % BuildLineNo ;
-                                                                             BuildElse %
-                      StatementSequence ] "END"                            % BuildLineNo ;
-                                                                             BuildEndIf %
+              [ "ELSE"                                                     % BuildElse %
+                      StatementSequence ] "END"                            % BuildEndIf %
             =:
 
-CaseStatement := "CASE"                                                    % BuildLineNo %
+CaseStatement :=                                                           % BuildLineNo %
+                 "CASE"
                         Expression                                         % BuildCaseStart %
                                    "OF" Case { "|" Case }
-                 [ "ELSE"                                                  % BuildLineNo ;
-                                                                             BuildCaseElse %
-                          StatementSequence ] "END"                        % BuildLineNo ;
-                                                                             BuildCaseEnd %
+                 [ "ELSE"                                                  % BuildCaseElse %
+                          StatementSequence ] "END"                        % BuildCaseEnd %
                =:
 
-Case := [ CaseLabelList ":"                                                % BuildCaseStartStatementSequence %
+Case := [ CaseLabelList                                                    % BuildCaseStartStatementSequence %
+                                                                           % BuildLineNo %
+                        ":"
                           StatementSequence                                % BuildCaseEndStatementSequence %
         ]
       =:
@@ -1002,37 +1004,45 @@ CaseLabels := ConstExpression ( ".." ConstExpression                       % Bui
                                                                              BuildCaseList %
                               ) =:
 
-WhileStatement := "WHILE"                                                  % BuildLineNo ;
-                                                                             BuildWhile ; DumpStack %
-                  Expression "DO"                                          % BuildDoWhile %
+WhileStatement :=                                                          % BuildLineNo %
+                  "WHILE"
+                                                                           % BuildWhile %
+                  Expression                                               % BuildLineNo %
+                             "DO"                                          % BuildDoWhile %
                                   StatementSequence "END"                  % DumpStack ; BuildEndWhile %
                 =:
 
-RepeatStatement := "REPEAT"                                                % BuildLineNo ;
-                                                                             BuildRepeat %
-                            StatementSequence "UNTIL"                      % BuildLineNo %
-                    Expression                                             % BuildUntil ;
-                                                                             BuildLineNo %
+RepeatStatement :=
+                   "REPEAT"
+                                                                           % BuildRepeat %
+                            StatementSequence                              % BuildLineNo %
+                                              "UNTIL"
+                    Expression                                             % BuildUntil %
                  =:
 
-ForStatement := "FOR"                                                      % BuildLineNo %
-                      Ident ":=" Expression "TO" Expression
-                ( "BY" ConstExpression |                                   % BuildPseudoBy  (* epsilon *) %
-                ) "DO"                                                     % BuildForToByDo %
-                StatementSequence "END"                                    % BuildEndFor %
+ForStatement :=                                                            % PushLineNo %
+                "FOR" Ident ":=" Expression "TO" Expression
+                ( "BY" ConstExpression |                                   % BuildPseudoBy (* epsilon *) %
+                )                                                          % PushLineNo %
+                  "DO"                                                     % BuildForToByDo %
+                StatementSequence                                          % BuildLineNo %
+                                  "END"                                    % BuildEndFor %
               =:
 
-LoopStatement := "LOOP"                                                    % BuildLineNo ;
-                                                                             BuildLoop %
-                        StatementSequence "END"                            % BuildEndLoop %
+LoopStatement :=                                                           % BuildLineNo %
+                 "LOOP"
+                                                                           % BuildLoop %
+                        StatementSequence                                  % BuildLineNo %
+                                          "END"                            % BuildEndLoop %
                =:
 
-WithStatement := "WITH"                                                    % DumpStack ; BuildLineNo %
-                        Designator "DO"                                    % BuildLineNo ;
-                                                                             StartBuildWith %
+WithStatement :=                                                           % BuildLineNo %
+                 "WITH"
+                        Designator                                         % StartBuildWith %
+                                   "DO"                                   
+                                                                           % BuildLineNo %
                         StatementSequence
-                 "END"                                                     % BuildLineNo ;
-                                                                             EndBuildWith ; DumpStack %
+                 "END"                                                     % EndBuildWith %
                =:
 
 ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock                % BuildProcedureEnd ;
@@ -1075,21 +1085,15 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 -- introduced procedure block so we can produce more informative
 -- error messages
 
-ProcedureBlock := { Declaration } "BEGIN"                                  % BuildProcedureStart ;
-                                                                             BuildLineNo %
-                                          StatementSequence "END"          % BuildLineNo %
+ProcedureBlock := { Declaration }                                          % BuildProcedureStart %
+                                  "BEGIN"
+                                          StatementSequence                % BuildLineNo %
+                                                            "END"
                 =:
 
-Block := { Declaration } ( "BEGIN"                                         % StartBuildModFile ;
-                                                                             StartBuildInit ;
-                                                                             BuildLineNo %
-                                   StatementSequence "END"                 % BuildLineNo ;
-                                                                             EndBuildInit %
-                         | "END"                                           % StartBuildModFile ;
-                                                                             StartBuildInit ;
-                                                                             BuildLineNo ;
-                                                                             EndBuildInit %
-                         )
+Block := { Declaration }                                                   % StartBuildModFile ;
+                                                                             StartBuildInit %
+                         [ "BEGIN" StatementSequence ] "END"               % EndBuildInit %
        =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |

@@ -316,7 +316,7 @@ PROCEDURE RealToTree (name: ADDRESS) : Tree ;
                 initialization code is exported (not inner).
 *)
 
-PROCEDURE BuildStart (name: ADDRESS; inner: BOOLEAN) : Tree ;
+PROCEDURE BuildStart (name: ADDRESS; line: CARDINAL; inner: BOOLEAN) : Tree ;
 
 
 (*

@@ -765,7 +765,12 @@ BEGIN
    LastLine := 1 ;
    CompilingMainModule := GetMainModule()=Operand3 ;
    ModuleName := KillString(ModuleName) ;
-   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3)))
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(Operand3))) ;
+   IF CompilingMainModule
+   THEN
+      SetFileNameAndLineNo(KeyToCharStar(Name(Operand2)), Operand1) ;
+      EmitLineNote(KeyToCharStar(Name(Operand2)), Operand1)
+   END
 END CodeStartModFile ;
 
 
@@ -838,7 +843,7 @@ BEGIN
    IF CompilingMainModule
    THEN
       SetFileNameAndLineNo(string(FileName), op1) ;
-      CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op2#op3) ;
+      CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3) ;
       AddModGcc(op3, CurrentModuleInitFunction) ;
       EmitLineNote(string(FileName), op1) ;
       ForeachInnerModuleDo(op3, CallInnerInit)

@@ -531,7 +531,7 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_BuildCharConstant 	       	 	  PARAMS ((char *string));
        tree                   gccgm2_ConvertConstantAndCheck    	  PARAMS ((tree type, tree expr));
        tree                   gccgm2_RealToTree 		       	  PARAMS ((char *name));
-       tree                   gccgm2_BuildStart 		       	  PARAMS ((char *name, int inner_module));
+       tree                   gccgm2_BuildStart 		       	  PARAMS ((char *name, int line, int inner_module));
        void                   gccgm2_BuildEnd 		       	 	  PARAMS ((tree fndecl));
        void                   gccgm2_BuildCallInnerInit 	       	  PARAMS ((tree fndecl));
        void                   gccgm2_BuildStartMainModule       	  PARAMS ((void));
@@ -682,7 +682,7 @@ gccgm2_EmitLineNote (fn, line)
      int   line;
 {
   if (cfun && fn)
-    emit_line_note(ggc_strdup(fn), line);
+    emit_line_note (ggc_strdup(fn), line);
 }
 
 /* Routines Expected by gcc:  */
@@ -9237,15 +9237,17 @@ tree
 gccgm2_DeclareLabel (name)
      char *name;
 {
-  tree id   = get_identifier (name);
-  tree decl = lookup_label   (id);
+  tree id = get_identifier (name);
+  tree decl = lookup_label (id);
 
-  if (decl == 0) {
+  if (decl == 0)
     error ("problems trying to declare a label");
-  } else {
+  else {
     TREE_USED (decl) = 1;
+    DECL_SOURCE_FILE (decl) = input_filename;
+    DECL_SOURCE_LINE (decl) = lineno;
   }
-  expand_label( decl );
+  expand_label (decl);
   return decl;
 }
 
@@ -10511,8 +10513,9 @@ gccgm2_RealToTree (name)
  */
 
 tree
-gccgm2_BuildStart (name, inner_module)
+gccgm2_BuildStart (name, line, inner_module)
      char *name;
+     int   line;
      int   inner_module;
 {
   tree fntype;
@@ -10559,7 +10562,7 @@ gccgm2_BuildStart (name, inner_module)
   DECL_ARGUMENTS (fndecl) = getdecls ();
 #endif
 
-  init_function_start (fndecl, input_filename, lineno);
+  init_function_start (fndecl, input_filename, line);
   expand_function_start (fndecl, 0);
   expand_start_bindings (0);
   return fndecl;

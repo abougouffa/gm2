@@ -1,3 +1,21 @@
+2003-01-17	Gaius Mulley <gaius@glam.ac.uk>
+
+	* bug fixes to the line numbering debugging info
+	  which is passed to gcc. Resulting in better gdb support.
+	
+2003-01-14	Gaius Mulley <gaius@glam.ac.uk>
+
+        * added the C `double' math built-ins
+	* fixed path in Make-lang.in which caused `file not found
+	  error' during build
+	* updated documentation to show correspondance between C and
+	  M2 data types.
+	* fixed bug in M2SubExp.mod shown by indirect procedure calls
+	* fixed bug in M2Constants.mod
+	* introduced SHORTREAL data type and removed the pseudo module
+	  MATH as built-ins are handled via gcc backend.
+	* removed corresponding gm2-compiler/M2Math module.
+
 2003-01-11	Gaius Mulley <gaius@glam.ac.uk>
 
 	* changed ebnf to allow empty variant clauses in a case

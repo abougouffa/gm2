@@ -165,7 +165,14 @@ TYPE
                     ForLoopIndex  : List ;                       (* variables are not abused       *)
                  END ;
 
+   LineNote  = POINTER TO lineFrame ;
+   lineFrame =            RECORD
+                             Line: CARDINAL ;
+                             File: Name ;
+                             Next: LineNote ;
+                          END ;
 VAR
+   LineStack,
    AutoStack,
    BoolStack,
    ExitStack,
@@ -193,6 +200,7 @@ VAR
    GrowInitialization   : CARDINAL ;  (* upper limit of where the initialized    *)
                                       (* quadruples.                             *)
    QuadrupleGeneration  : BOOLEAN ;      (* should we be generating quadruples?  *)
+   FreeLineList         : LineNote ;  (* free list of line notes                 *)
 
 
 (*
@@ -208,6 +216,9 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE PushLineNote (l: LineNote) ; FORWARD ;
+PROCEDURE PopLineNo () : LineNote ; FORWARD ;
+PROCEDURE UseLineNote (l: LineNote) ; FORWARD ;
 PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE CheckForIndex (Start, End, Omit: CARDINAL; IndexSym: CARDINAL) ; FORWARD ;
 PROCEDURE BuildMaxFunction ; FORWARD ;
@@ -1385,8 +1396,7 @@ VAR
 BEGIN
    PopT(ModuleName) ;
    PushT(ModuleName) ;
-   GenQuad(StartDefFileOp, GetPreviousTokenLineNo(), NulSym, GetModule(ModuleName)) ;
-   BuildLineNo
+   GenQuad(StartDefFileOp, GetPreviousTokenLineNo(), NulSym, GetModule(ModuleName))
 END StartBuildDefFile ;
 
 
@@ -1409,13 +1419,13 @@ END StartBuildDefFile ;
 
                        Quadruples Produced
 
-                       q     StartModFileOp  _  _  ModuleSym
+                       q     StartModFileOp  lineno  filename  ModuleSym
 *)
 
 PROCEDURE StartBuildModFile ;
 BEGIN
-   GenQuad(StartModFileOp, GetPreviousTokenLineNo(), NulSym, GetFileModule()) ;
-   BuildLineNo
+   GenQuad(StartModFileOp, GetPreviousTokenLineNo(),
+           WORD(makekey(string(GetFileName()))), GetFileModule())
 END StartBuildModFile ;
 
 
@@ -2554,6 +2564,7 @@ END BuildPseudoBy ;
 
 PROCEDURE BuildForToByDo ;
 VAR
+   l1, l2: LineNote ;
    e1, e2,
    Id    : Name ;
    IdSym,
@@ -2561,6 +2572,9 @@ VAR
    t, f  : CARDINAL ;
    t1, f1: CARDINAL ;
 BEGIN
+   l2 := PopLineNo() ;
+   l1 := PopLineNo() ;
+   UseLineNote(l1) ;
    PushExit(0) ;  (* Allows EXIT to be used to exit the for loop *)
    PopT(BySym) ;
    PopT(e2) ;
@@ -2571,6 +2585,7 @@ BEGIN
    PushT(e1) ;
    BuildAssignment ;
 
+   UseLineNote(l2) ;
    PushT(IdSym) ;     (* Push information for future FOR reference *)
    PushT(BySym) ;
    PushT(NextQuad) ;
@@ -2599,7 +2614,7 @@ BEGIN
    BackPatch(f1, NextQuad) ; (* Fixes q+6 GotoOp         *)
    PushBool(Merge(t1, t), 0) ;
          (* q+3 and q+5 provide the exit to the for loop *)
-   CheckSubrange(IdSym, IdSym)
+   CheckSubrange(IdSym, IdSym) ;
 END BuildForToByDo ;
 
 
@@ -8610,8 +8625,9 @@ BEGIN
       EndOp,
       StartOp           : printf3('  %4d  %a  %a', Operand1, GetSymName(Operand2), GetSymName(Operand3)) |
 
-      StartDefFileOp,
-      StartModFileOp    : printf2('  %4d  %a', Operand1, GetSymName(Operand3)) |
+      StartModFileOp    : printf3('%a:%d  %a', Operand2, Operand1, GetSymName(Operand3)) |
+
+      StartDefFileOp    : printf2('  %4d  %a', Operand1, GetSymName(Operand3)) |
 
       ParamOp           : printf1('%4d  ', Operand1) ;
                           WriteOperand(Operand2) ;
@@ -9009,12 +9025,98 @@ BEGIN
       IF (Quads[NextQuad-1].Operator=LineNumberOp) AND
          (Quads[NextQuad-1].Operand1=WORD(filename))
       THEN
-         PutQuad(NextQuad-1, LineNumberOp, WORD(filename), NulSym, GetLineNo())
+         (* PutQuad(NextQuad-1, LineNumberOp, WORD(filename), NulSym, GetLineNo()) *)
       ELSE
-         GenQuad(LineNumberOp, WORD(filename), NulSym, GetLineNo())
+         GenQuad(LineNumberOp, WORD(filename), NulSym, WORD(GetLineNo()))
       END
    END
 END BuildLineNo ;
+
+
+(*
+   UseLineNote - uses the line note and returns it to the free list.
+*)
+
+PROCEDURE UseLineNote (l: LineNote) ;
+BEGIN
+   WITH l^ DO
+      IF (Quads[NextQuad-1].Operator=LineNumberOp) AND
+         (Quads[NextQuad-1].Operand1=WORD(File))
+      THEN
+(*
+         IF Line<Quads[NextQuad-1].Operand3
+         THEN
+            PutQuad(NextQuad-1, LineNumberOp, WORD(File), NulSym, Line)
+         END
+*)
+      ELSE
+         GenQuad(LineNumberOp, WORD(File), NulSym, WORD(Line))
+      END ;
+      Next := FreeLineList
+   END ;
+   FreeLineList := l
+END UseLineNote ;
+
+
+(*
+   PopLineNo - pops a line note from the line stack.
+*)
+
+PROCEDURE PopLineNo () : LineNote ;
+VAR
+   l: LineNote ;
+BEGIN
+   l := Pop(LineStack) ;
+   IF l=NIL
+   THEN
+      InternalError('no line note available', __FILE__, __LINE__)
+   END ;
+   RETURN( l  )
+END PopLineNo ;
+
+
+(*
+   InitLineNote - creates a line note and initializes it to
+                  contain, file, line.
+*)
+
+PROCEDURE InitLineNote (file: Name; line: CARDINAL) : LineNote ;
+VAR
+   l: LineNote ;
+BEGIN
+   IF FreeLineList=NIL
+   THEN
+      NEW(l)
+   ELSE
+      l := FreeLineList ;
+      FreeLineList := FreeLineList^.Next
+   END ;
+   WITH l^ DO
+      File := file ;
+      Line := line
+   END ;
+   RETURN( l )
+END InitLineNote ;
+
+
+(*
+   PushLineNote - 
+*)
+
+PROCEDURE PushLineNote (l: LineNote) ;
+BEGIN
+   Push(LineStack, l)   
+END PushLineNote ;
+
+
+(*
+   PushLineNo - pushes the current file and line number to the stack.
+*)
+
+PROCEDURE PushLineNo ;
+BEGIN
+   PushLineNote(InitLineNote(makekey(string(GetFileName())), GetLineNo()))
+END PushLineNo ;
 
 
 (*
@@ -9227,8 +9329,8 @@ END StressStack ;
 
 
 (*
-   Init - initialize the M2Quads module, quadruple stack, with stack
-          and quadruples.
+   Init - initialize the M2Quads module, all the stacks, all the lists 
+          and the quads list.
 *)
 
 PROCEDURE Init ;
@@ -9245,6 +9347,7 @@ BEGIN
    ExitStack := InitStack() ;
    WithStack := InitStack() ;
    ReturnStack := InitStack() ;
+   LineStack := InitStack() ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;
@@ -9260,7 +9363,8 @@ BEGIN
    END ;
    QuadrupleGeneration := TRUE ;
    AutoStack := InitStack() ;
-   IsAutoOn := TRUE
+   IsAutoOn := TRUE ;
+   FreeLineList := NIL
 END Init ;
 
 
