@@ -652,7 +652,7 @@ gm2/gm2-compiler-boot/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/m2lex.c: $(srcdir)/gm2/m2.lex
-	flex -o$@ $<
+	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
 
 gm2/gm2-libiberty/%.h: $(srcdir)/gm2/gm2-libiberty/%.def
 	$(P2C) $(srcdir)/gm2/gm2-libiberty/$*.def -h gm2/gm2-libiberty/$*.h

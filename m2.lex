@@ -42,7 +42,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   static int              commentLevel=0;
   static struct lineInfo *currentLine=NULL;
 
-        void m2lex_M2Error(char *);
+        void m2lex_M2Error(const char *);
 static  void pushLine     (void);
 static  void popLine      (void);
 static  void finishedLine (void);
@@ -50,7 +50,7 @@ static  void resetpos     (void);
 static  void consumeLine  (void);
 static  void updatepos    (void);
 static  void skippos      (void);
-static  void poperrorskip (char *);
+static  void poperrorskip (const char *);
 static  void endOfComment (void);
 static  void handleDate   (void);
 static  void handleLine   (void);
@@ -64,20 +64,6 @@ static  void handleFile   (void);
 #endif
 
 #define YY_DECL void yylex (void)
-
-
-#if !defined(GM2)
-static void *xmalloc (unsigned int size)
-{
-  void *a=(void *)malloc(size);
-
-  if (a == NULL) {
-    m2lex_M2Error("memory exhausted");
-    exit(1);
-  }
-  return a;
-}
-#endif
 %}
 
 %x COMMENT COMMENT1 LINE0 LINE1 LINE2
@@ -116,10 +102,8 @@ static void *xmalloc (unsigned int size)
 <LINE0>[^\n]
 <LINE1>[^\"\n]+            { m2lex_M2Error("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE1>.*\"                { updatepos();
-                             if (filename != NULL) {
-			       free(filename);
-	                     }
-                             filename = (char *)strdup(yytext);
+                             filename = (char *)xrealloc(filename, yyleng+1);
+			     strcpy(filename, yytext);
                              filename[yyleng-1] = (char)0;  /* remove trailing quote */
                              BEGIN LINE2;
                            }
@@ -244,13 +228,12 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 
 static void handleFile (void)
 {
-  char *s = (char *)xmalloc(strlen(filename)+2+1);
+  char *s = (char *)alloca(strlen(filename)+2+1);
 
   strcpy(s, "\"");
   strcat(s, filename);
   strcat(s, "\"");
   M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
-  free(s);
 }
 
 /*
@@ -272,7 +255,7 @@ static void handleDate (void)
 {
   time_t  clock = time((long *)0);
   char   *sdate = ctime(&clock);
-  char   *s     = (char *)xmalloc(strlen(sdate)+2+1);
+  char   *s     = (char *)alloca(strlen(sdate)+2+1);
   char   *p     = index(sdate, '\n');
 
   if (p != NULL) {
@@ -282,7 +265,6 @@ static void handleDate (void)
   strcat(s, sdate);
   strcat(s, "\"");
   M2LexBuf_AddTokCharStar(M2Reserved_stringtok, s);
-  free(s);
 }
 
 /*
@@ -306,7 +288,7 @@ static void endOfComment (void)
  *                  to the erroneous token.
  */
 
-void m2lex_M2Error (char *s)
+void m2lex_M2Error (const char *s)
 {
   if (currentLine->linebuf != NULL) {
     int i=1;
@@ -322,7 +304,7 @@ void m2lex_M2Error (char *s)
   printf("%s:%d:%s\n", filename, currentLine->actualline, s);
 }
 
-static void poperrorskip (char *s)
+static void poperrorskip (const char *s)
 {
   int nextpos =currentLine->nextpos;
   int tokenpos=currentLine->tokenpos;
@@ -335,20 +317,6 @@ static void poperrorskip (char *s)
   }
 }
 
-#if 0
-/*
- *  setFileName - assigns filename to s.
- */
-
-void setFileName (char *s)
-{
-  if (filename != NULL) {
-    free(filename);
-  }
-  filename = (char *)strdup(s);
-}
-#endif
-
 /*
  *  consumeLine - reads a line into a buffer, it then pushes back the whole
  *                line except the initial \n.
@@ -357,12 +325,7 @@ void setFileName (char *s)
 static void consumeLine (void)
 {
   if (currentLine->linelen<yyleng) {
-    if (currentLine->linebuf != NULL) {
-      free(currentLine->linebuf);
-    }
-    currentLine->linebuf = (char *)malloc(yyleng);
-    if (currentLine->linebuf == NULL)
-      perror("malloc");
+    currentLine->linebuf = (char *)xrealloc(currentLine->linebuf, yyleng);
     currentLine->linelen = yyleng;
   }
   strcpy(currentLine->linebuf, yytext+1);  /* copy all except the initial \n */
@@ -400,10 +363,10 @@ static void skippos (void)
 
 static void initLine (void)
 {
-  currentLine = (struct lineInfo *)malloc(sizeof(struct lineInfo));
+  currentLine = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
 
   if (currentLine == NULL)
-    perror("malloc");
+    perror("xmalloc");
   currentLine->linebuf    = NULL;
   currentLine->linelen    = 0;
   currentLine->tokenpos   = 0;
@@ -423,15 +386,13 @@ static void pushLine (void)
   if (currentLine == NULL) {
     initLine();
   } else if (currentLine->inuse) {
-      struct lineInfo *l = (struct lineInfo *)malloc(sizeof(struct lineInfo));
+      struct lineInfo *l = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
 
-      if (l == NULL)
-	perror("malloc");
       if (currentLine->linebuf == NULL) {
 	l->linebuf  = NULL;
 	l->linelen  = 0;
       } else {
-	l->linebuf    = (char *)strdup(currentLine->linebuf);
+	l->linebuf    = (char *)xstrdup(currentLine->linebuf);
 	l->linelen    = strlen(l->linebuf)+1;
       }
       l->tokenpos   = currentLine->tokenpos;
@@ -510,20 +471,12 @@ int m2lex_OpenSource (char *s)
 {
   FILE *f = fopen(s, "r");
 
-#if 0
-  /* remove any pending line buffers from the last time we opened a file */
-  while (currentLine != NULL)
-    popLine();
-#endif
-
   if (f == NULL)
     return( FALSE );
   else {
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-    if (filename)
-      free(filename);
-    filename = strdup(s);
+    filename = xstrdup(s);
     lineno   =1;
     return( TRUE );
   }

@@ -50,7 +50,7 @@ extern const char *find_file PARAMS ((const char *));
 
 int lang_specific_extra_outfiles = 0;
 
-// #define DEBUGGING
+#undef DEBUGGING
 
 void add_default_directories (int incl, char ***in_argv);
 void insert_arg (int  incl, int *in_argc, char ***in_argv);
@@ -93,7 +93,7 @@ add_default_directories (incl, in_argv)
 #if defined(DEBUGGING)
   fprintf(stderr, "adding -I. and %s\n", gm2libs);
 #endif
-  (*in_argv)[incl] = strdup(gm2libs);
+  (*in_argv)[incl] = xstrdup(gm2libs);
 }
 
 /*

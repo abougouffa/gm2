@@ -10,24 +10,10 @@
  * by the licence agreement accompanying p2c itself.
  */
 
-typedef void *Anyptr;
-
-/* Memory allocation, we define malloc before we poison it with the gcc includes below */
-#ifdef __GNUC__
-# define Malloc(n)  (malloc(n) ?: (Anyptr)_OutMem())
-#else
-extern Anyptr __MallocTemp__;
-# define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
-#endif
-#define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
-#define Free(p)     (free((Anyptr)(p)), (p)=NULL)
-
-
 #include <ansidecl.h>
 #include <auto-host.h>
 #include <config.h>
 #include <system.h>
-
 
 #  define Signed    signed
 #  define Void       void      /* Void f() = procedure */
@@ -57,6 +43,20 @@ typedef int      BOOLEAN;
 # define FALSE   0
 #endif
 
+
+typedef void *Anyptr;
+
+#if !defined(IN_GCC)
+/* if we are IN_GCC we must not use malloc as it is poisoned */
+#  ifdef __GNUC__
+#    define Malloc(n)   (malloc(n) ?: (Anyptr)_OutMem())
+#  else
+extern Anyptr __MallocTemp__;
+#    define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
+#  endif
+#  define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
+#  define Free(p)     (free((Anyptr)(p)), (p)=NULL)
+#endif
 
 typedef struct {
     Anyptr proc, link;
