@@ -127,7 +127,7 @@ TYPE
                    CodeOnOp, CodeOffOp,
                    ProfileOnOp, ProfileOffOp,
                    OptimizeOnOp, OptimizeOffOp,
-                   InlineOp, LineNumberOp, MathOp,
+                   InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
                    BuiltinConstOp) ;
 

@@ -46,6 +46,7 @@ EXPORT QUALIFIED PtrToValue,
                  CoerseLongRealToCard,
                  ConvertRealToInt,
                  ConvertToInt,
+                 GetSetValueType,
                  IsSolved,
 
                  IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
@@ -96,6 +97,13 @@ PROCEDURE IsValueTypeReal () : BOOLEAN ;
 *)
 
 PROCEDURE IsValueTypeSet () : BOOLEAN ;
+
+
+(*
+   GetSetValueType - returns the set type on top of the ALU stack.
+*)
+
+PROCEDURE GetSetValueType () : CARDINAL ;
 
 
 (*

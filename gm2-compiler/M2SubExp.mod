@@ -596,6 +596,24 @@ END MakeXIndr ;
 
 
 (*
+   MakeCall - 
+*)
+
+PROCEDURE MakeCall (q: CARDINAL; Start, End: CARDINAL;
+                    op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF IsVar(op3)
+   THEN
+      (* an indirect call, therefore flush forest *)
+      EraseQuad(q) ;
+      PutQuad(q, CallOp, op1, op2, op3) ;
+      SaveQuad(q) ;
+      Flush(Start, PreviousQuad(q, Start))
+   END
+END MakeCall ;
+
+
+(*
    MakeAddr - 
 
 
@@ -978,11 +996,8 @@ END AddDependent ;
                      a new constant containing the value op(l, r).
 *)
 
-PROCEDURE MakeNewConstant (op: QuadOperator; l, r: CARDINAL) : CARDINAL ;
-VAR
-   t: CARDINAL ;
+PROCEDURE MakeNewConstant (tn: CARDINAL; op: QuadOperator; l, r: CARDINAL) : CARDINAL ;
 BEGIN
-   t := QuadToTokenNo(NodeList[l].SymQuad) ;
    PushValue(l) ;
    PushValue(r) ;
    CASE op OF
@@ -992,14 +1007,14 @@ BEGIN
    SubOp              : Sub |
    DivOp              : Div |
    ModOp              : Mod |
-   LogicalOrOp        : SetOr(t) |
-   LogicalAndOp       : SetAnd(t) |
-   LogicalXorOp       : SetSymmetricDifference(t)
+   LogicalOrOp        : SetOr(tn) |
+   LogicalAndOp       : SetAnd(tn) |
+   LogicalXorOp       : SetSymmetricDifference(tn)
 
    ELSE
       InternalError('quadruple operator not known as a constant folding operator', __FILE__, __LINE__)
    END ;
-   RETURN( MakeNewConstFromValue(t) )
+   RETURN( MakeNewConstFromValue(tn) )
 END MakeNewConstant ;
 
 
@@ -1097,8 +1112,7 @@ END IsAliasedToTwo ;
 PROCEDURE CannotBeCalculated (q: CARDINAL; Start, End: CARDINAL;
                               op1: CARDINAL; op: QuadOperator; op2, op3: CARDINAL) : BOOLEAN ;
 BEGIN
-   (* we could do better here FIXME - we should be able to calculate the MathOp - needs time.. *)
-   IF (op#MathOp) AND (op2#NulSym) AND (op3#NulSym) AND IsConst(op2) AND IsConst(op3)
+   IF (op2#NulSym) AND (op3#NulSym) AND IsConst(op2) AND IsConst(op3)
    THEN
       (* we do not always perform folding of constants in M2Optimize (GNU Modula-2, for example,
          performs constant folding later on. *)
@@ -1110,7 +1124,7 @@ BEGIN
       *)
       IF IsValueSolved(op2) AND IsValueSolved(op3)
       THEN
-         MakeMove(q, Start, End, op1, MakeNewConstant(op, op2, op3)) ;
+         MakeMove(q, Start, End, op1, MakeNewConstant(QuadToTokenNo(q), op, op2, op3)) ;
          RETURN( FALSE )
       END
    END ;
@@ -1350,8 +1364,9 @@ BEGIN
    EndOp,
    StartOp           : (* WriteKey(GetSymName(Operand3)) *) |
 
+   CallOp            : MakeCall(q, Start, End, op1, op2, op3) |
+
    ReturnOp,
-   CallOp,
    NewLocalVarOp,
    KillLocalVarOp    : (* WriteOperand(Operand3) *) |
 
@@ -1363,9 +1378,6 @@ BEGIN
    MultOp            : MakeMult(q, Start, End, op1, op2, op3) |
 
    BaseOp            : MakeBase(q, Start, End, op1, op2, op3) |
-
-   (* in the math op op2 is the result, op1 the function type (sin/cos/etc) *)
-   MathOp            : MakeOpWithMakeNode(q, Start, End, op2, op, op1, op3) |
 
    LogicalOrOp,
    LogicalAndOp,
@@ -1896,6 +1908,7 @@ END IsEntityListNotUsedOutside ;
 PROCEDURE IsConstIfFlipNode (top, bot: Nodes;
                              op: QuadOperator; l, r: Nodes) : BOOLEAN ;
 VAR
+   tn : CARDINAL ;
    sym: CARDINAL ;
    e  : Entity ;
    k  : Nodes ;
@@ -1916,8 +1929,9 @@ BEGIN
             WriteString('yes') ; WriteLn
          END ;
 
-         sym := MakeNewConstant(op, GetSymOfChoice(l), GetSymOfChoice(r)) ;
-         e := MakeNewEntity(QuadToTokenNo(NodeList[bot].SymQuad),
+         tn := QuadToTokenNo(NodeList[bot].SymQuad) ;
+         sym := MakeNewConstant(tn, op, GetSymOfChoice(l), GetSymOfChoice(r)) ;
+         e := MakeNewEntity(tn,
                             sym, FALSE, VAL(CARDINAL, NoOfNodes)) ;
          GiveEntityIndex(e, NodeList[bot].IndexNo) ;   (* constant therefore give life at same time as bot *)
          k := MakeLeaf(e) ;
@@ -2982,10 +2996,6 @@ BEGIN
       ElementSizeOp     : InternalError('this should have been optimized away during constant folding', __FILE__, __LINE__) |
 
       ParamOp           : InternalError('unsure what to do here', __FILE__, __LINE__) |
-
-      (* in the math op op2 is the result, op1 the function type (sin/cos/etc) *)
-      MathOp            : PutQuad(q, Op, GetSym(Left), GetSym(n), GetSymOfChoice(Right)) ;
-                          RemoveAllOlderEntities(n, EntList[1]) |
 
       CoerceOp,
       ConvertOp         : InternalError('CoerceOp and ConvertOp are should not be optimized', __FILE__, __LINE__) |

@@ -41,7 +41,7 @@ FROM M2GCCDeclare IMPORT FoldConstants ;
 
 CONST
    MaxOptimTimes = 10 ;   (* upper limit of no of times we run through all optimization *)
-   Debugging     = FALSE ;
+   Debugging     = TRUE ;
 
 (*
    Percent - calculates the percentage from numerator and divisor
@@ -227,6 +227,11 @@ BEGIN
    IF StudentChecking
    THEN
       StudentVariableCheck      
+   END ;
+   IF DisplayQuadruples
+   THEN
+      WriteString('after all front end optimization') ; WriteLn ;
+      DisplayQuadList(Head)
    END ;
    GenBasicBlockCode(Head)
 END Code ;

@@ -68,7 +68,6 @@ FROM M2Options IMPORT DisplayQuadruples ;
 FROM M2Printf IMPORT printf0, printf2 ;
 
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, ArrayHigh, ArrayAddress, Cardinal, Char, Integer, Unbounded, Trunc ;
-FROM M2Math IMPORT pi, sin, cos, tan, atan, sqrt ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, NulName ;
 FROM Strings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
@@ -256,6 +255,7 @@ Notes
 
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
+PROCEDURE stop ; FORWARD ;
 PROCEDURE CodeStart ; FORWARD ;
 PROCEDURE CodeEnd ; FORWARD ;
 PROCEDURE CodeStartModFile ; FORWARD ;
@@ -379,6 +379,10 @@ BEGIN
    CurrentQuadToken := QuadToTokenNo(CurrentQuad) ;
    CheckReferenced(CurrentQuad, Operator) ;
    CheckStop(CurrentQuad) ;
+   IF CurrentQuad=349
+   THEN
+      stop
+   END ;
 
    CASE Operator OF
 
@@ -428,7 +432,6 @@ BEGIN
    ElementSizeOp      : CodeElementSize |
    ConvertOp          : CodeConvert |
    CoerceOp           : CodeCoerce |
-   MathOp             : CodeMath |
 
    (* And the Compiler Flag Pseudo Quadruples *)
    InlineOp           : CodeInline |
@@ -1268,7 +1271,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=501
+   IF q=349
    THEN
       stop
    END
@@ -2107,7 +2110,6 @@ VAR
 BEGIN
    GetQuad(quad, operator, operand1, operand2, operand3) ;
    (* firstly try and ensure that constants are declared *)
-   DeclareConstant(tokenno, operand2) ;
    DeclareConstant(tokenno, operand3) ;
    IF IsConst(operand3) AND IsConstSet(operand3) AND
       IsConst(operand1)
@@ -2992,31 +2994,6 @@ BEGIN
    ELSE
       InternalError('unknown math operator', __FILE__, __LINE__)
    END ;
-(*
-   ELSIF Op1=sin
-   THEN
-      AddInstruction(fsin, 0) ;
-      pop(Op2)
-   ELSIF Op1=cos
-   THEN
-      AddInstruction(fcos, 0) ;
-      pop(Op2)
-   ELSIF Op1=tan
-   THEN
-      AddInstruction(ftan, 0) ;
-      pop(Op2)
-   ELSIF Op1=atan
-   THEN
-      AddInstruction(fatan, 0) ;
-      pop(Op2)
-   ELSIF Op1=sqrt
-   THEN
-      AddInstruction(fsqrt, 0) ;
-      pop(Op2)
-   ELSE
-      InternalError('unknown math operator', __FILE__, __LINE__)
-   END
-*)
 END CodeMath ;
 
 

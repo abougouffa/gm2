@@ -80,7 +80,8 @@ PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
-   Debugging = FALSE ;
+   Debugging    = FALSE ;
+   DebugGarbage = TRUE ;
 
 TYPE
    cellType   = (none, integer, real, set) ;
@@ -156,6 +157,54 @@ BEGIN
    v := NIL
 END DisposeRange ;
 
+PROCEDURE stop ; BEGIN END stop ;
+
+
+(*
+   CheckNotAlreadyOnFreeList - checks to see whether, v, is already on the free list
+                               and aborts if this is the case.
+*)
+
+PROCEDURE CheckNotAlreadyOnFreeList (v: PtrToValue) ;
+VAR
+   l: PtrToValue ;
+BEGIN
+   IF DebugGarbage
+   THEN
+      l := FreeList ;
+      WHILE l#NIL DO
+         IF l=v
+         THEN
+            InternalError('value is already on the free list', __FILE__, __LINE__)
+         END ;
+         l := l^.next
+      END
+   END
+END CheckNotAlreadyOnFreeList ;
+
+
+(*
+   CheckNotOnStack - checks to see whether, v, is already on the stack
+                     and aborts if this is the case.
+*)
+
+PROCEDURE CheckNotOnStack (v: PtrToValue) ;
+VAR
+   l: PtrToValue ;
+BEGIN
+   IF DebugGarbage
+   THEN
+      l := TopOfStack ;
+      WHILE l#NIL DO
+         IF l=v
+         THEN
+            InternalError('value is already on the stack', __FILE__, __LINE__)
+         END ;
+         l := l^.next
+      END
+   END
+END CheckNotOnStack ;
+
 
 (*
    Dispose - place, v, onto the FreeList.
@@ -163,6 +212,12 @@ END DisposeRange ;
 
 PROCEDURE Dispose (v: PtrToValue) ;
 BEGIN
+   CheckNotAlreadyOnFreeList(v) ;
+   CheckNotOnStack(v) ;
+   IF CARDINAL(v)=145152112
+   THEN
+      stop
+   END ;
    IF v^.type=set
    THEN
       DisposeRange(v^.setValue)
@@ -324,6 +379,27 @@ END IsValueTypeSet ;
 
 
 (*
+   GetSetValueType - returns the set type on top of the ALU stack.
+*)
+
+PROCEDURE GetSetValueType () : CARDINAL ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   Push(v) ;
+   WITH v^ DO
+      IF type=set
+      THEN
+         RETURN( setType )
+      ELSE
+         InternalError('expecting set type', __FILE__, __LINE__)
+      END
+   END
+END GetSetValueType ;
+
+
+(*
    PushIntegerTree - pushes a gcc tree value onto the ALU stack.
 *)
 
@@ -448,6 +524,7 @@ BEGIN
       v          := TopOfStack ;
       TopOfStack := TopOfStack^.next
    END ;
+   CheckNotAlreadyOnFreeList(v) ;
    RETURN( v )
 END Pop ;
 
@@ -458,6 +535,8 @@ END Pop ;
 
 PROCEDURE Push (v: PtrToValue) ;
 BEGIN
+   CheckNotAlreadyOnFreeList(v) ;
+   CheckNotOnStack(v) ;
    v^.next    := TopOfStack ;
    TopOfStack := v
 END Push ;
@@ -490,6 +569,7 @@ PROCEDURE PushFrom (v: PtrToValue) ;
 VAR
    t: PtrToValue ;
 BEGIN
+   CheckNotAlreadyOnFreeList(v) ;
    t := New() ;     (* as it is a copy *)
    t^ := v^ ;
    IF v^.type=set
@@ -779,7 +859,8 @@ BEGIN
       Temp := New() ;    (* as it is a temp *)
       WITH Temp^ DO
          type   := integer ;
-         numberValue  := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE)
+         numberValue  := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
+         solved       := TRUE
       END ;
       Push(Temp)
    END ;
@@ -811,7 +892,8 @@ BEGIN
    Temp := New() ;
    WITH Temp^ DO
       numberValue := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
-      type        := real
+      type        := real ;
+      solved      := TRUE
    END ;
    Push(Temp)
 END RealAdd ;
@@ -1322,10 +1404,10 @@ END LessEqu ;
 
 PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ;
 BEGIN
-   Push(s1) ;
-   Push(s2) ;
+   PushFrom(s1) ;
+   PushFrom(s2) ;
    SetAnd(tokenno) ;
-   Push(s2) ;
+   PushFrom(s2) ;
    RETURN( Equ(tokenno) )
 END IsSuperset ;
 
@@ -1689,6 +1771,7 @@ END EvalElements ;
 
 PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ;
 BEGIN
+   CheckNotAlreadyOnFreeList(v) ;
    WITH v^ DO
       IF type=set
       THEN

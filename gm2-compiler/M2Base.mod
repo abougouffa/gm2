@@ -57,10 +57,10 @@ FROM M2ALU IMPORT PushIntegerTree, PushCard ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking ;
 FROM M2System IMPORT Address, Bitset, Byte, Word, InitSystem ;
-FROM M2Math IMPORT InitMath ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
-                   GetRealType, GetLongIntType, GetLongRealType, GetProcType ;
+                   GetRealType, GetLongIntType, GetLongRealType, GetProcType,
+                   GetM2ShortRealType, GetM2RealType, GetM2LongRealType ;
 
 TYPE
    Compatability = (expression, assignment) ;
@@ -106,7 +106,6 @@ BEGIN
    InitBaseFunctions ;
    InitBaseProcedures ;
 
-   InitMath ;
    (*
       Note: that we do end the Scope since we keep the symbol to the head
             of the base scope. This head of base scope is searched
@@ -166,12 +165,17 @@ BEGIN
 
    Real := MakeType(MakeKey('REAL')) ;
    PutType(Real, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetRealType())) ;
+   PushIntegerTree(GetSizeOf(GetM2RealType())) ;
    PopSize(Real) ;
+
+   ShortReal := MakeType(MakeKey('SHORTREAL')) ;
+   PutType(ShortReal, NulSym) ;                    (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2ShortRealType())) ;
+   PopSize(ShortReal) ;
 
    LongReal := MakeType(MakeKey('LONGREAL')) ;
    PutType(LongReal, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetLongRealType())) ;
+   PushIntegerTree(GetSizeOf(GetM2LongRealType())) ;
    PopSize(LongReal) ;
 
    Char := MakeType(MakeKey('CHAR')) ;
@@ -376,7 +380,7 @@ BEGIN
    RETURN(
           (Sym=Cardinal) OR (Sym=Integer)  OR (Sym=Boolean) OR
           (Sym=Char)     OR (Sym=Proc)     OR (Sym=LongInt) OR
-          (Sym=Real)     OR (Sym=LongReal)
+          (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal)
          )
 END IsBaseType ;
 
@@ -514,6 +518,16 @@ END IsBaseCompatible ;
 
 
 (*
+   IsRealType - returns TRUE if, t, is a real type.
+*)
+
+PROCEDURE IsRealType (t: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (t=Real) OR (t=LongReal) OR (t=ShortReal) )
+END IsRealType ;
+
+
+(*
    IsCompatible - returns true if the types, t1, and, t2, are compatible.
 *)
 
@@ -549,8 +563,7 @@ BEGIN
          ((t2=Integer) AND (t1=LongInt))
    THEN
       RETURN( TRUE )
-   ELSIF ((t1=Real) AND (t2=LongReal)) OR
-         ((t2=Real) AND (t1=LongReal))
+   ELSIF IsRealType(t1) AND IsRealType(t2)
    THEN
       RETURN( TRUE )
    ELSE
@@ -636,6 +649,14 @@ BEGIN
          ((t2=Real) AND (t1=LongReal))
    THEN
       RETURN( LongReal )
+   ELSIF ((t1=Real) AND (t2=ShortReal)) OR
+         ((t2=Real) AND (t1=ShortReal))
+   THEN
+      RETURN( Real )
+   ELSIF ((t1=ShortReal) AND (t2=LongReal)) OR
+         ((t2=ShortReal) AND (t1=LongReal))
+   THEN
+      RETURN( LongReal )
    ELSIF (t1=GetLowestType(t1)) AND (t2=GetLowestType(t2))
    THEN
       ErrorFormat2(NewError(NearTok),
@@ -652,12 +673,12 @@ END MixTypes ;
 (*
    IsMathType - returns TRUE if the type is a mathematical type.
                 A mathematical type has a range larger than INTEGER.
-                (Typically REAL/LONGREAL/LONGINT)
+                (Typically SHORTREAL/REAL/LONGREAL/LONGINT)
 *)
 
 PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (type=LongInt) OR (type=Real) OR (type=LongReal) )
+   RETURN( (type=LongInt) OR (type=Real) OR (type=LongReal) OR (type=ShortReal) )
 END IsMathType ;
 
 

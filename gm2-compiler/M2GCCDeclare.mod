@@ -72,9 +72,8 @@ FROM SymbolTable IMPORT NulSym,
                         ForeachInnerModuleDo, ForeachImportedDo ;
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, Boolean, True, False ;
+                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte ;
-FROM M2Math IMPORT IsPseudoMathFunction ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 
@@ -88,7 +87,8 @@ FROM gccgm2 IMPORT Tree,
                    GetDefaultType, GetCopyOfType,
                    GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
-                   GetPointerType, GetM2LongRealType, GetM2LongIntType, GetM2RealType,
+                   GetPointerType, GetM2LongIntType,
+                   GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
                    GetM2IntegerType, GetM2CardinalType,
@@ -740,7 +740,7 @@ PROCEDURE IsPseudoProcFunc (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           IsPseudoBaseProcedure(Sym) OR IsPseudoBaseFunction(Sym) OR
-          IsPseudoSystemFunction(Sym) OR IsPseudoMathFunction(Sym)
+          IsPseudoSystemFunction(Sym)
          )
 END IsPseudoProcFunc ;
 
@@ -948,17 +948,18 @@ BEGIN
    THEN
       HaveInitDefaultTypes := TRUE ;
 
-      DeclareDefaultType(Integer , "INTEGER" , GetM2IntegerType()) ;
-      DeclareDefaultType(Char    , "CHAR"    , GetM2CharType()) ;
-      DeclareDefaultType(Cardinal, "CARDINAL", GetM2CardinalType()) ;
-      DeclareDefaultType(Word    , "WORD"    , GetWordType()) ;
-      DeclareDefaultType(Proc    , "PROC"    , GetProcType()) ;
-      DeclareDefaultType(Byte    , "BYTE"    , GetByteType()) ;
-      DeclareDefaultType(Address , "ADDRESS" , GetPointerType()) ;
-      DeclareDefaultType(LongInt , "LONGINT" , GetM2LongIntType()) ;
-      DeclareDefaultType(Real    , "REAL"    , GetM2RealType()) ;
-      DeclareDefaultType(LongReal, "LONGREAL", GetM2LongRealType()) ;
-      DeclareDefaultType(Bitset  , "BITSET"  , GetBitsetType()) ;
+      DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
+      DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
+      DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
+      DeclareDefaultType(Word     , "WORD"     , GetWordType()) ;
+      DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
+      DeclareDefaultType(Byte     , "BYTE"     , GetByteType()) ;
+      DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
+      DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
+      DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
+      DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
+      DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
+      DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
       DeclareBoolean
    END
 END DeclareDefaultTypes ;

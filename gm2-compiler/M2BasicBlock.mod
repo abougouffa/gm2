@@ -22,7 +22,7 @@ FROM M2Pass IMPORT SetPassToCodeGeneration ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Options IMPORT OptimizeBasicBlock, DisplayQuadruples ;
+FROM M2Options IMPORT OptimizeBasicBlock ;
 
 FROM M2Quads IMPORT IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,

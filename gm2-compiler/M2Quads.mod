@@ -97,7 +97,7 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
                        SemiColonTok, toktype ;
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
-                   Real, LongReal,
+                   Real, LongReal, ShortReal,
                    MixTypes,
                    IsExpressionCompatible, IsAssignmentCompatible,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
@@ -112,7 +112,6 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
                      Adr, Size, TSize,
                      Address, Bitset, Byte, Word ;
 
-FROM M2Math IMPORT IsPseudoMathFunction ;
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
@@ -220,7 +219,6 @@ PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAddVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE ConvertBooleanToVariable (i: CARDINAL) ; FORWARD ;
-PROCEDURE BuildPseudoMathFunction ; FORWARD ;
 PROCEDURE BuildFloatFunction ; FORWARD ;
 PROCEDURE BuildTruncFunction ; FORWARD ;
 PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
@@ -851,7 +849,6 @@ BEGIN
                           CheckAddVariableWrite(Oper3, QuadNo)    (* may also write to a var parameter *)
                        END |
    BaseOp,
-   MathOp,
    LogicalOrOp,
    LogicalAndOp,
    LogicalXorOp,
@@ -960,7 +957,6 @@ BEGIN
                           END |
 
       BaseOp,
-      MathOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -1137,7 +1133,6 @@ BEGIN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
       BaseOp,
-      MathOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -4877,8 +4872,7 @@ BEGIN
       ManipulatePseudoCallParameters ;
       BuildTypeCoercion
    ELSIF IsPseudoSystemFunction(ProcSym) OR
-         IsPseudoBaseFunction(ProcSym) OR
-         IsPseudoMathFunction(ProcSym)
+         IsPseudoBaseFunction(ProcSym)
    THEN
       ManipulatePseudoCallParameters ;
       BuildPseudoFunctionCall
@@ -5084,9 +5078,6 @@ BEGIN
    ELSIF ProcSym=Max
    THEN
       BuildMaxFunction
-   ELSIF IsPseudoMathFunction(ProcSym)
-   THEN
-      BuildPseudoMathFunction
    ELSE
       InternalError('pseudo Function not implemented yet', __FILE__, __LINE__)
    END
@@ -5893,7 +5884,7 @@ END BuildMaxFunction ;
 (*
    BuildTruncFunction - builds the pseudo procedure call TRUNC.
                         This procedure is actually a "macro" for
-                        TRUNC(x) --> CONVERT(CARDINAL, x)
+                        TRUNC(x) --> CONVERT(INTEGER, x)
                         However we cannot push tokens back onto the input stack
                         because the compiler is currently building a function
                         call and expecting a ReturnVar on the stack.
@@ -5934,22 +5925,31 @@ BEGIN
    Assert(OperandT(NoOfParam+1)=Trunc) ;
    IF NoOfParam=1
    THEN
-      Var := OperandT(1) ;
-      IF IsVar(Var) OR IsConst(Var)
+      ProcSym := RequestSym(MakeKey('CONVERT')) ;
+      IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
-         IF (GetType(Var)=LongReal) OR (GetType(Var)=Real)
+         Var := OperandT(1) ;
+         IF IsVar(Var) OR IsConst(Var)
          THEN
-            ReturnVar := MakeTemporary(RightValue) ;
-            PutVar(ReturnVar, Cardinal) ;
-            GenQuad(MathOp, OperandT(NoOfParam+1), ReturnVar, Var) ;
-
-            PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
-            PushTF(ReturnVar, Cardinal)
+            IF (GetType(Var)=LongReal) OR (GetType(Var)=Real) OR (GetType(Var)=ShortReal)
+            THEN
+               PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
+               (*
+                  Build macro: CONVERT( INTEGER, Var )
+               *)
+               PushTF(ProcSym, NulSym) ;
+               PushT(Integer) ;
+               PushT(Var) ;
+               PushT(2) ;          (* Two parameters *)
+               BuildConvertFunction
+            ELSE
+               WriteFormat0('argument to TRUNC must have type REAL or LONGREAL')
+            END
          ELSE
-            WriteFormat0('argument to TRUNC must have type REAL or LONGREAL')
+            WriteFormat0('argument to TRUNC must be a variable or constant')
          END
       ELSE
-         WriteFormat0('argument to TRUNC must be a variable or constant')
+         InternalError('CONVERT procedure not found for TRUNC substitution', __FILE__, __LINE__)
       END
    ELSE
       WriteFormat0('the pseudo procedure TRUNC only has one parameter')
@@ -6015,69 +6015,15 @@ BEGIN
             PushT(2) ;          (* Two parameters *)
             BuildConvertFunction
          ELSE
-            WriteFormat0('argument to TRUNC must be a variable or constant')
+            WriteFormat0('argument to FLOAT must be a variable or constant')
          END
       ELSE
-         WriteFormat0('CONVERT procedure not found for TRUNC substitution')
+         InternalError('CONVERT procedure not found for FLOAT substitution', __FILE__, __LINE__)
       END
    ELSE
-      WriteFormat0('the pseudo procedure TRUNC only has one parameter')
+      WriteFormat0('the pseudo procedure FLOAT only has one parameter')
    END
 END BuildFloatFunction ;
-
-
-(*
-   BuildPseudoMathFunction - builds the pseudo math functions.
-
-                             The Stack:
-
-                             Entry                      Exit
-
-                      Ptr ->
-                             +----------------+
-                             | NoOfParam      |
-                             |----------------|
-                             | Param 1        |
-                             |----------------|
-                             | Param 2        |
-                             |----------------|
-                             .                .
-                             .                .
-                             .                .
-                             |----------------|
-                             | Param #        |
-                             |----------------|
-                             | ProcSym | Type |         Empty
-                             |----------------|
-*)
-
-PROCEDURE BuildPseudoMathFunction ;
-VAR
-   NoOfParam,
-   Var,
-   ReturnVar,
-   ProcSym,
-   Ptr      : CARDINAL ;
-BEGIN
-   PopT(NoOfParam) ;
-   IF NoOfParam=1
-   THEN
-      Var := OperandT(1) ;
-      IF (IsVar(Var) OR IsConst(Var)) AND IsMathType(GetType(Var))
-      THEN
-         ReturnVar := MakeTemporary(RightValue) ;
-         PutVar(ReturnVar, GetType(Var)) ;
-         GenQuad(MathOp, OperandT(NoOfParam+1), ReturnVar, Var) ;
-
-         PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
-         PushTF(ReturnVar, GetType(Var))
-      ELSE
-         WriteFormat0('argument to math function must be a variable or constant with type REAL or LONGREAL')
-      END
-   ELSE
-      WriteFormat0('this math pseudo procedure only has one parameter')
-   END
-END BuildPseudoMathFunction ;
 
 
 (*
@@ -8675,7 +8621,6 @@ BEGIN
       IndrXOp,
       XIndrOp,
       BaseOp,
-      MathOp,
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
@@ -8715,7 +8660,6 @@ PROCEDURE WriteOperator (Operator: QuadOperator) ;
 BEGIN
    CASE Operator OF
 
-   MathOp                   : printf0('MathOp       ') |
    LogicalOrOp              : printf0('Or           ') |
    LogicalAndOp             : printf0('And          ') |
    LogicalXorOp             : printf0('Xor          ') |

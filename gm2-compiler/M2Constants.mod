@@ -19,12 +19,13 @@ IMPLEMENTATION MODULE M2Constants ;
 FROM M2ALU IMPORT Equ ;
 
 FROM SymbolTable IMPORT MakeConstLit, PushValue, IsConst, GetType, IsValueSolved, MakeConstVar, PopValue,
-                        IsConstString, GetStringLength ;
+                        IsConstString, GetStringLength, IsConstSet, PutConstSet, PutConst ;
 
-FROM NameKey IMPORT MakeKey ;
+FROM M2ALU IMPORT IsValueTypeSet, GetSetValueType ;
+FROM NameKey IMPORT MakeKey, makekey ;
 FROM NumberIO IMPORT CardToStr ;
-FROM StrLib IMPORT StrConCat ;
-
+FROM Strings IMPORT String, string, InitString, KillString, Mark ;
+FROM FormatStrings IMPORT Sprintf1 ;
 
 VAR
    ConstNo           : CARDINAL ;  (* count of generated constants *)
@@ -42,18 +43,20 @@ VAR
 
 PROCEDURE FindCommonValue (tokenno: CARDINAL; Sym: CARDINAL) : CARDINAL ;
 BEGIN
-   IF IsZero(tokenno, Sym)
+   IF NOT IsConstSet(Sym)
    THEN
-      RETURN( ZeroCard )
-   ELSIF IsOne(tokenno, Sym)
-   THEN
-      RETURN( OneCard )
-   ELSIF IsTwo(tokenno, Sym)
-   THEN
-      RETURN( TwoCard )
-   ELSE
-      RETURN( Sym )   (* we don't know about this value *)
-   END
+      IF IsZero(tokenno, Sym)
+      THEN
+         RETURN( ZeroCard )
+      ELSIF IsOne(tokenno, Sym)
+      THEN
+         RETURN( OneCard )
+      ELSIF IsTwo(tokenno, Sym)
+      THEN
+         RETURN( TwoCard )
+      END
+   END ;
+   RETURN( Sym )   (* we don't know about this value *)
 END FindCommonValue ;
 
 
@@ -64,13 +67,18 @@ END FindCommonValue ;
 PROCEDURE MakeNewConstFromValue (tokenno: CARDINAL) : CARDINAL ;
 VAR
    Sym : CARDINAL ;
-   Name: ARRAY [0..50] OF CHAR ;
+   Name: String ;
 BEGIN
-   CardToStr(ConstNo, 0, Name) ;
-   StrConCat('_const', Name, Name) ;
+   Name := Sprintf1(Mark(InitString('_const%d')), ConstNo) ;
    INC(ConstNo) ;
-   Sym := MakeConstVar(MakeKey(Name)) ;
+   Sym := MakeConstVar(makekey(string(Name))) ;
+   IF IsValueTypeSet()
+   THEN
+      PutConstSet(Sym) ;
+      PutConst(Sym, GetSetValueType())
+   END ;
    PopValue(Sym) ;
+   Name := KillString(Name) ;
    RETURN( FindCommonValue(tokenno, Sym) )
 END MakeNewConstFromValue ;
 

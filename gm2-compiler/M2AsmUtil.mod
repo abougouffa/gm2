@@ -22,7 +22,6 @@ FROM FIO IMPORT StdOut ;
 FROM Strings IMPORT String, string, ConCat, KillString, InitString, Mark, InitStringCharStar, ConCatChar ;
 FROM StdIO IMPORT Write ;
 FROM StrIO IMPORT WriteString ;
-FROM StrLib IMPORT StrCopy, StrConCat ;
 FROM NameKey IMPORT WriteKey, GetKey, MakeKey, makekey, KeyToCharStar ;
 
 FROM SymbolTable IMPORT NulSym,

@@ -35,6 +35,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  LongInt,
                  Real,
                  LongReal,
+                 ShortReal,
                  Unbounded,             (* Not directly used by    *)
                  ArrayAddress,          (* users.                  *)
                  ArrayHigh,             (* Implement ARRAY OF Type *)
@@ -88,7 +89,8 @@ VAR
    Boolean, True, False,
    Char, Proc,
    LongInt,
-   Real, LongReal,
+   Real,
+   LongReal, ShortReal,
    Unbounded,
    High,
    Convert, Val,
