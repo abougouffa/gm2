@@ -11285,7 +11285,7 @@ gccgm2_BuildConstLiteralNumber (str, base)
     TREE_TYPE (value) = gccgm2_GetIntegerType ();
 #endif
 
-  if (gccgm2_TreeOverflow (t))
+  if (gccgm2_TreeOverflow (value))
     error("constant too large");
 
   return value;
