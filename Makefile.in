@@ -537,7 +537,9 @@ gm2-compiler-boot:
 
 gm2-compiler-boot/gm2.a: m2/comp/bin/p2c m2/comp/bin/mkfor
 
-m2/comp/p2c/home/libp2c.a: m2/comp/bin/p2c
+m2/comp/p2c/home/libp2c.a:
+	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
+          make "BINDIR=$$M2PWD/bin" COPY="cp" stage0 )
 
 m2/comp/bin/p2c:
 	( cd m2/comp ; export M2PWD="`pwd`" ; echo $$M2PWD ; \
@@ -609,5 +611,6 @@ clean: force
 	( cd m2/comp/p2c ; make clean )
 	( cd m2/comp/tools ; make clean )
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
+	$(RM) m2/comp/bin/*
 
 force:
