@@ -570,7 +570,7 @@ gm2/gm2-compiler-boot/%.o: gm2/gm2-auto/%.mod
 	if [ -f $(srcdir)/gm2/gm2-compiler/$*.def ] ; then \
           $(P2C) -s $(srcdir)/gm2/gm2-compiler/$*.def $(srcdir)/gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
         else \
-          $(P2C) $(srcdir)/gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
+          $(P2C) gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
         fi
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/$*.c -o $@
 
