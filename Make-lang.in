@@ -24,6 +24,12 @@ GM2_INSTALL_NAME = gm2
 # (Cygnus configure overrides these when using -program-transform-name).
 GM2_CROSS_NAME = $(target_alias)-gm2
 
+#
+# directory for the public definition, implementation and object libraries
+#
+GM2_LIB_DIR    = $(libsubdir)/gm2
+
+
 # Extra flags to pass to recursive makes.
 GM2_FLAGS_TO_PASS = \
 	"GM2_FOR_BUILD=$(GM2_FOR_BUILD) -DEGCS" \
@@ -97,8 +103,11 @@ gm2/gm2.info:
 
 GM2LINKEXES = gm2lcc gm2l gm2lgen gm2lsub
 
+$(GM2_LIB_DIR): force
+	-if [ ! -d $(GM2_LIB_DIR) ] ; then mkdir $(GM2_LIB_DIR) ; fi
+
 gm2.install-normal:
-gm2.install-common: installdirs
+gm2.install-common: installdirs $(GM2_LIB_DIR)
 	-if [ -f cc1gm2$(exeext) ] ; then \
            if [ -f gcc-cross$(exeext) ]; then \
 	      rm -f $(bindir)/$(GM2_CROSS_NAME); \
@@ -116,7 +125,10 @@ gm2.install-common: installdirs
             $(INSTALL_PROGRAM) gm2/$$i$(exeext) $(bindir)/$$i$(exeext); \
             chmod a+x $(bindir)/$$i$(exeext); \
         done
-
+	for i in gm2/gm2-libs/* ; do \
+           rm -f $(GM2_LIB_DIR)/$$i ; \
+           $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR) ; \
+        done
 
 # Don't delete $(infodir)/gm2.info* unless there's actually new
 # docs to install (in case LANGUAGES didn't contain gm2 earlier).
