@@ -488,6 +488,15 @@ What needs to be done:
 @itemize @bullet
 
 @item
+implement ISO library (use FIO.mod as the underlying substructure).
+
+@item
+implement LONGCARD and include IO functions within FpuIO.
+
+@item
+implement many of the ISO built-in functions and procedures.
+
+@item
 rewrite documentation.
 
 @item
