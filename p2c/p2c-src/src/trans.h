@@ -89,22 +89,10 @@ char *malloc(), *realloc();
 
 #include <ctype.h>
 
-#if 0
-#ifdef __GNUC__      /* Fast, in-line version of strcmp */
-# define strcmp(a,b) ({ char *_aa = (a), *_bb = (b); int _diff;  \
-			for (;;) {    \
-			    if (!*_aa && !*_bb) { _diff = 0; break; }   \
-                            if (*_aa++ != *_bb++)    \
-				{ _diff = _aa[-1] - _bb[-1]; break; }   \
-			} _diff; })
-#endif
-#endif
-
 
 #if defined(HASDUMPS) && defined(define_globals)
 # define DEFDUMPS
 #endif
-
 
 
 /* Constants */
@@ -124,11 +112,7 @@ char *malloc(), *realloc();
 
 
 #ifndef P2C_HOME
-# ifdef citPWS
-#  define    P2C_HOME        "/lib/p2c"
-# else
-#  define    P2C_HOME        "/usr/local/p2c"     /* sounds reasonable... */
-# endif
+#  define P2C_HOME "."
 #endif
 
 #ifdef define_globals
@@ -138,8 +122,6 @@ extern const char *p2c_home;
 #endif
 
 #define P2C_VERSION  "1.20"
-
-
 
 
 /* Types */
