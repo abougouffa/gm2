@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2005/03/15 20:14:15 $]
+              : [$Date: 2005/03/24 12:39:38 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -481,6 +481,7 @@ BEGIN
    InitStopSet(vartok, s0, s1, s2) ;
    InitStopSet(proceduretok, s0, s1, s2) ;
    InitStopSet(begintok, s0, s1, s2) ;
+   InitStopSet(moduletok, s0, s1, s2) ;
    InitStopSet(endtok, s0, s1, s2) ;
    FileUnit(s0, s1, s2)
 END CompilationUnit ;

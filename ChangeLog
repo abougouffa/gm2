@@ -1,3 +1,8 @@
+2005-03-24	Gaius Mulley <gaius@glam.ac.uk>
+
+	* included the keyword MODULE as an stop set element
+	  in gm2m and gm2l.
+
 2005-03-15	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 Release 0.44
