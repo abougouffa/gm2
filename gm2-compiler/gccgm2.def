@@ -44,7 +44,8 @@ EXPORT QUALIFIED Tree,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                  BuildAssignment,
-                 BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                 BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
+                 BuildLSL, BuildLSR,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                  BuildConvert, BuildCoerce,
                  BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
@@ -688,6 +689,13 @@ PROCEDURE BuildMod (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 *)
 
 PROCEDURE BuildLSL (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLSR - build a >> tree  ie  (op1 << op2).
+*)
+
+PROCEDURE BuildLSR (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

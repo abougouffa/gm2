@@ -9385,6 +9385,18 @@ gccgm2_BuildLSL (op1, op2, needconvert)
 }
 
 /*
+ *  BuildLSR - builds and returns tree (op1 >> op2)
+ */
+
+tree
+gccgm2_BuildLSR (op1, op2, needconvert)
+     tree op1, op2;
+     int  needconvert;
+{
+  return build_binary_op (RSHIFT_EXPR, op1, op2, needconvert);
+}
+
+/*
  *  BuildConvert - build and return tree VAL(op1, op2)
  *                 where op1 is the type to which op2 is to be converted.
  */

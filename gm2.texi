@@ -1475,7 +1475,7 @@ all @samp{Makefile}s are generated via @samp{./configure}
 
 @end itemize
 
-@node To do list, EBNF, Done list, Internals
+@node To do list, , Done list, Internals
 @section To do list
 
 What needs to be done:
@@ -1516,7 +1516,7 @@ testing and fixing bugs
 
 @end itemize
 
-@node EBNF, Libraries, To do list, Top
+@node EBNF, Libraries, Internals, Top
 @chapter EBNF of GNU Modula-2
 
 This chapter contains the EBNF of GNU Modula-2. This grammer

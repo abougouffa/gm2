@@ -84,9 +84,15 @@ FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList, NoOfItemsInList, GetI
 
 FROM M2ALU IMPORT PtrToValue,
                   IsValueTypeReal, IsValueTypeSet,
-                  PushIntegerTree, PopIntegerTree, PopSetTree, PopRealTree, PushCard, Gre, Sub, Equ, NotEqu, LessEqu,
-                  BuildRange, SetOr, SetAnd, SetNegate, SetSymmetricDifference, SetDifference,
-                  AddBit, SubBit, Less, Addn, GreEqu, SetIn, GetRange, GetValue ;
+                  PushIntegerTree, PopIntegerTree,
+                  PushSetTree, PopSetTree,
+                  PopRealTree, PushCard,
+                  PushRealTree,
+                  Gre, Sub, Equ, NotEqu, LessEqu,
+                  BuildRange, SetOr, SetAnd, SetNegate,
+                  SetSymmetricDifference, SetDifference,
+                  AddBit, SubBit, Less, Addn, GreEqu, SetIn,
+                  GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
@@ -1279,9 +1285,9 @@ BEGIN
                   ELSIF IsValueTypeSet()
                   THEN
                      PopValue(op1) ;
-                     PushValue(op1) ;
-                     PutConstSet(op1) ;
-                     AddModGcc(op1, PopSetTree(tokenno))
+                     (* PushValue(op1) ; *)
+                     PutConstSet(op1)
+                     (* AddModGcc(op1, PopSetTree(tokenno)) *)
                   ELSE
                      AddModGcc(op1, PopIntegerTree())
                   END
@@ -1367,12 +1373,28 @@ END DefaultConvertGM2 ;
 
 
 (*
+   GetTypeMode - 
+*)
+
+PROCEDURE GetTypeMode (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF GetMode(sym)=LeftValue
+   THEN
+      RETURN( Address )
+   ELSE
+      RETURN( GetType(sym) )
+   END
+END GetTypeMode ;
+
+
+(*
    FoldConstBecomes - returns a Tree containing op3.
                       The tree will have been folded and
                       type converted if necessary.
 *)
 
-PROCEDURE FoldConstBecomes (op1, op3: CARDINAL) : Tree ;
+PROCEDURE FoldConstBecomes (tokenno: CARDINAL;
+                            op1, op3: CARDINAL) : Tree ;
 VAR
    t: Tree ;
 BEGIN
@@ -1388,13 +1410,15 @@ BEGIN
                    (SkipType(GetType(op1))#Bitset) AND
                    (SkipType(GetType(op3))#Bitset)))
 *)
-      IF SkipType(GetType(op1))#SkipType(GetType(op3))
+      IF SkipType(GetTypeMode(op1))#SkipType(GetTypeMode(op3))
       THEN
          DescribeTypeError(CurrentQuadToken, op1, op3) ;
          RETURN( Mod2Gcc(op1) ) (* we might crash if we execute the BuildAssignment with op3 *)
       END
    END ;
+   DeclareConstant(tokenno, op3) ;
    t := Mod2Gcc(op3) ;
+   Assert(t#NIL) ;
    IF IsConst(op3)
    THEN
       IF (NOT IsConstString(op3)) AND (NOT IsConstSet(op3)) AND
@@ -1416,7 +1440,7 @@ END FoldConstBecomes ;
    Sym1<O> := Sym3<O>           := has the effect Mem[Sym1<I>] := Mem[Sym3<I>]
 *)
 
-PROCEDURE CodeBecomes (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
 BEGIN
@@ -1439,7 +1463,8 @@ BEGIN
                                                BuildAddr(Mod2Gcc(op3), FALSE),
                                                FindSize(op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), FoldConstBecomes(op1, op3))
+      t := BuildAssignment(Mod2Gcc(op1),
+                           FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
    END
 END CodeBecomes ;
 
@@ -1558,11 +1583,13 @@ BEGIN
          PushValue(op3) ;
          doOp(CurrentQuadToken) ;
          PopValue(op1) ;
-         PushValue(op1) ;
+         (* PushValue(op1) ; *)
          PutConstSet(op1) ;
-         AddModGcc(op1,
+         (*
+          AddModGcc(op1,
                    DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                        PopSetTree(CurrentQuadToken))) ;
+                                        PopSetTree(CurrentQuadToken)))
+         *)
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'),
                        CurrentQuadToken)
@@ -2995,18 +3022,54 @@ BEGIN
    DeclareConstant(tokenno, op3) ;
    IF IsConst(op3)
    THEN
-      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3) AND
-         GccKnowsAbout(FindType(op2))
+      IF GccKnowsAbout(op2) AND IsValueSolved(op3) AND
+         GccKnowsAbout(SkipType(op2))
       THEN
          (* fine, we can take advantage of this and fold constant *)
          IF IsConst(op1)
          THEN
             PutConst(op1, op2) ;
-            tl := Mod2Gcc(FindType(op2)) ;
-            PushIntegerTree(FoldAndStrip(BuildConvert(tl, Mod2Gcc(op3), TRUE))) ;
-            PopValue(op1) ;
-            PushValue(op1) ;
-            AddModGcc(op1, PopIntegerTree()) ;
+            tl := Mod2Gcc(SkipType(op2)) ;
+            PushValue(op3) ;
+            IF IsConstSet(op3)
+            THEN
+               IF IsSet(SkipType(op2))
+               THEN
+                  WriteFormat0('cannot convert values between sets')
+               ELSE
+                  PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopSetTree(tokenno), TRUE))) ;
+                  PopValue(op1)
+               END
+            ELSE
+               IF IsSet(SkipType(op2))
+               THEN
+                  (* testing gaius *)
+                  PushSetTree(tokenno,
+                              FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
+                                                        TRUE)), SkipType(op2)) ;
+                  PopValue(op1) ;
+                  PutConstSet(op1) ;
+(*
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopIntegerTree())
+*)
+               ELSIF IsRealType(SkipType(op2))
+               THEN
+                  PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(), TRUE))) ;
+                  PopValue(op1)
+(*
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopRealTree())
+*)
+               ELSE
+                  PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(), TRUE))) ;
+                  PopValue(op1)
+(*
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopIntegerTree())
+*)
+               END
+            END ;
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          END
@@ -3035,7 +3098,7 @@ BEGIN
    THEN
       (* fine, we can take advantage of this and fold constant *)
       PutConst(op1, op2) ;
-      tl := Mod2Gcc(FindType(op2)) ;
+      tl := Mod2Gcc(SkipType(op2)) ;
       AddModGcc(op1,
                 BuildConvert(tl, Mod2Gcc(op3), TRUE))
 (*

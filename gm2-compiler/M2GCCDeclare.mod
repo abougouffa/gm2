@@ -78,7 +78,8 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax, MixTypes,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard,
                    Real, LongReal, ShortReal, Boolean, True, False,
-                   ArrayAddress, ArrayHigh ;
+                   ArrayAddress, ArrayHigh,
+                   IsRealType ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison ;
@@ -602,7 +603,7 @@ BEGIN
          IF IsConstSet(sym)
          THEN
             DeclareConstantFromTree(sym, PopSetTree(tokenno))
-         ELSIF GetType(sym)=LongReal
+         ELSIF IsRealType(GetType(sym))
          THEN
             DeclareConstantFromTree(sym, PopRealTree())
          ELSE

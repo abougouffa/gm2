@@ -40,10 +40,11 @@ FROM SymbolConversion IMPORT Mod2Gcc ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Base IMPORT MixTypes ;
 FROM DynamicStrings IMPORT InitString ;
+FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
-                        IsSet,
+                        IsSet, SkipType,
                         GetSubrange, GetSymName,
                         ModeOfAddr ;
 
@@ -54,7 +55,8 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    GetIntegerOne, GetIntegerZero,
                    GetWordOne, ToWord,
                    AreConstantsEqual, GetBitsPerWord,
-                   BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                   BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
+                   BuildLSL, BuildLSR,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildIfIn,
                    BuildStartRecord, BuildFieldRecord, ChainOn, BuildEndRecord,
@@ -79,6 +81,7 @@ PROCEDURE RealMod (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree ; FORWARD ;
 PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
+PROCEDURE Val (tokenno: CARDINAL; type: CARDINAL; value: Tree) : CARDINAL ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -110,6 +113,11 @@ TYPE
                 END ;
 
    DoSetProcedure = PROCEDURE (CARDINAL, listOfRange, listOfRange) : listOfRange ;
+
+(* %%%FORWARD%%%
+PROCEDURE SortElements (tokenno: CARDINAL; h: listOfRange) ; FORWARD ;
+PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
+   %%%FORWARD%%% *)
 
 VAR
    RangeFreeList   : listOfRange ;
@@ -481,6 +489,49 @@ BEGIN
    Dispose(v) ;
    RETURN( t )
 END PopRealTree ;
+
+
+(*
+   PushSetTree - pushes a gcc tree onto the ALU stack.
+                 The tree, t, is expected to contain a
+                 word value. It is converted into a set
+                 type (sym). Bit 0 maps onto MIN(sym).
+*)
+
+PROCEDURE PushSetTree (tokenno: CARDINAL;
+                       t: Tree; sym: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+   c,
+   i: CARDINAL ;
+   r: listOfRange ;
+BEGIN
+   r := NIL ;
+   i := 0 ;
+   WHILE (i<GetBitsPerWord()) AND
+         (CompareTrees(GetIntegerZero(), t)#0) DO
+      IF CompareTrees(GetIntegerOne(),
+                      BuildLogicalAnd(t, GetIntegerOne(), FALSE))=0
+      THEN
+         PushCard(i) ;
+         c := Val(tokenno, SkipType(sym), PopIntegerTree()) ;
+         DeclareConstant(tokenno, c) ;
+         r := AddRange(r, c, c)
+      END ;
+      t := BuildLSR(t, GetIntegerOne(), FALSE) ;
+      INC(i)
+   END ;
+   SortElements(tokenno, r) ;
+   CombineElements(tokenno, r) ;
+   v := New() ;
+   WITH v^ DO
+      type := set ;
+      setType := sym ;
+      setValue := r
+   END ;
+   Eval(tokenno, v) ;
+   Push(v)
+END PushSetTree ;
 
 
 (*
@@ -2558,7 +2609,7 @@ BEGIN
    PushIntegerTree(high) ;
    ConvertToInt ;
    high := PopIntegerTree() ;
-   bpw        := GetBitsPerWord() ;
+   bpw  := GetBitsPerWord() ;
 
    PushIntegerTree(high) ;
    PushIntegerTree(low) ;

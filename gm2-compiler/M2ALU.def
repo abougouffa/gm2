@@ -37,7 +37,7 @@ EXPORT QUALIFIED PtrToValue,
                  IsValueTypeSet,
                  PopInto, PushFrom,
                  PushIntegerTree, PopIntegerTree,
-                 PopSetTree,
+                 PushSetTree, PopSetTree,
                  PushRealTree, PopRealTree,
                  PushCard,
                  PushInt,
@@ -132,6 +132,17 @@ PROCEDURE PushRealTree (t: Tree) ;
 *)
 
 PROCEDURE PopRealTree () : Tree ;
+
+
+(*
+   PushSetTree - pushes a gcc tree onto the ALU stack.
+                 The tree, t, is expected to contain a
+                 word value. It is converted into a set
+                 type (sym). Bit 0 maps onto MIN(sym).
+*)
+
+PROCEDURE PushSetTree (tokenno: CARDINAL;
+                       t: Tree; sym: CARDINAL) ;
 
 
 (*
