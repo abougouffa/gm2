@@ -481,7 +481,9 @@ int m2lex_OpenSource (char *s)
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
     filename = xstrdup(s);
     lineno   =1;
-    return( TRUE );
+    if (currentLine != NULL)
+      currentLine->actualline = lineno;
+    return TRUE;
   }
 }
 

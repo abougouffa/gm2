@@ -659,6 +659,9 @@ gm2/gm2-compiler-boot/m2lex.o: gm2/gm2-compiler/m2lex.c
 gm2/gm2-compiler/m2lex.c: $(srcdir)/gm2/m2.lex
 	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
 
+gm2/gm2-compiler/clex.c: $(srcdir)/gm2/c.lex
+	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
+
 gm2/gm2-libiberty/%.h: $(srcdir)/gm2/gm2-libiberty/%.def
 	$(P2C) $(srcdir)/gm2/gm2-libiberty/$*.def -h gm2/gm2-libiberty/$*.h
 
@@ -699,6 +702,9 @@ gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 gm2/gm2-compiler/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
+gm2/gm2-compiler/clex.o: gm2/gm2-compiler/clex.c
+	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
+
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
 	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
@@ -722,6 +728,9 @@ gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
 
 gm2/gm2-compiler/M2Version.mod:
 	cd gm2/gm2-compiler ; ../../$(srcdir)/gm2/tools-src/makeversion $(GM2-VERSION)b
+
+gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
+	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 #
 #  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
@@ -993,6 +1002,18 @@ stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
                -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS)
 
+#
+# the following rule is for testing only
+#
+
+stage2/gm2/h2def$(exeext): gm2/p2c/p2c-src/home/libp2c.a \
+     gm2/boot-bin/mklink gm2/boot-bin/p2c \
+     gm2/gm2-libs-boot/libgm2.a gm2/gm2-compiler/clex.o \
+     gm2/gm2-compiler/CLexBuf.o gm2/gm2-compiler/h2def.o \
+     $(GM2_LIBS_BOOT)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
+              gm2/gm2-compiler/clex.o $(GM2_LIBS_BOOT) $(LIBS)
+
 gm2/ppg: gm2/p2c/p2c-src/home/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
      gm2/gm2-compiler-boot/ppg.o
@@ -1013,7 +1034,7 @@ gm2/pg: gm2/gm2-auto gm2/ppg gm2/gm2-auto/pg.mod \
     $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o)
 	$(MAKE) gm2/gm2-auto/pg.o
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
-	cd gm2 ; \
+	$(QUIAT)cd gm2 ; \
 	../$(M2LINK) -s ../gm2/gm2-auto/pginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
@@ -1089,6 +1110,10 @@ $(objdir)/gm2/gm2-auto/gm2l.mod: $(srcdir)/gm2/bnf/gm2l.bnf
 	./gm2/pge $< > $@
 
 $(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
+	$(MAKE) gm2/pge
+	./gm2/pge $< > $@
+
+$(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
 	$(MAKE) gm2/pge
 	./gm2/pge $< > $@
 
