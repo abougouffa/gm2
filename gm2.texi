@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 29 October 2002
+@center Last updated 20 December 2002
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -67,6 +67,7 @@ Copyright @copyright{} 2000, 2001, 2002 Free Software Foundation, Inc.
 * Extensions::        GNU Modula-2 language extensions.
 * Interface to C::    Interfacing GNU Modula-2 to C
 * Assembly language:: Interface to assembly language.
+* Built-ins::         Accessing GNU Modula-2 Built-ins
 @end menu
 
 @node About, Compiler options, , Using
@@ -289,7 +290,7 @@ In reality the @samp{-lc} is redundant as libc is always included in the
 linking process. It is shown here to emphasise that the C library or
 object file containing @code{printf} must be present.
 
-@node Assembly language, , Interface to C, Using
+@node Assembly language, Built-ins, Interface to C, Using
 @section Interface to assembly language
 
 The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
@@ -315,6 +316,59 @@ END Example ;
 For a full description of this interface we refer the reader to the GNU C manual.
 
 @xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
+
+@node Built-ins, , Assembly language, Using
+@section Accessing GNU Modula-2 Built-ins
+
+This section describes the built-in constants and functions defined in
+GNU Modula-2.  The following compiler constants can be accessed using
+the @code{__ATTRIBUTE__} @code{__BUILTIN__} keywords. These are not
+part of the Modula-2 language and they may differ depending upon the
+target architecture but they provide a method whereby different
+libraries can interface to the underlying architecture.
+
+The built-in constants are: @code{BITS_PER_UNIT}, @code{BITS_PER_WORD},
+@code{BITS_PER_CHAR} and @code{UNITS_PER_WORD}. They are integrated into
+GNU Modula-2 by extending the @code{ConstFactor} rule:
+
+@example
+ConstFactor := ConstQualidentOrSet | Number | ConstString |
+               "(" ConstExpression ")" | "NOT" ConstFactor |
+               ConstAttribute =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+@end example
+
+Here is an example taken from the ISO library @code{SYSTEM.def}:
+
+@example
+CONST
+   BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+   LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+@end example
+
+[--fixme-- the following is actually work in progress and has not been
+completed yet]
+
+To access built-in functions in GNU Modula-2 the user needs to
+import the relevant function. Built-in functions are declared in
+definition modules by using the @code{__BUILTIN__} keyword. Here is
+a section of the ISO library @code{LongMath.def} which exploits this
+feature:
+
+@example
+PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
+  (* Returns the positive square root of x *)
+
+PROCEDURE __BUILTIN__ exp (x: LONGREAL): LONGREAL;
+  (* Returns the exponential of x *)
+@end example
+
+which indicates that the functions @code{sqrt} and @code{exp} will be
+implemented using gcc built-in maths library. If gcc cannot support
+any built-in function (for example if the programmer has requested the
+address of @code{exp}) then code is generated to call the alternative
+function implemented in the @code{IMPLEMENTATION} @code{MODULE}.
 
 @node Internals, , Using, Top
 @chapter GNU Modula-2 Internals
