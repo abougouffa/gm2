@@ -767,7 +767,7 @@ FieldList := IdentList ":"
               ] "END"
            =:
 
-Varient := SilentCaseLabelList ":" FieldListSequence =:
+Varient := [ SilentCaseLabelList ":" FieldListSequence ] =:
 
 SilentCaseLabelList := SilentCaseLabels { "," SilentCaseLabels } =:
 
@@ -937,9 +937,7 @@ CaseStatement := "CASE"
                           StatementSequence ] "END"
                =:
 
-Case := SilentCaseLabelList ":"
-                          StatementSequence
-      =:
+Case := [ SilentCaseLabelList ":" StatementSequence ] =:
 
 --
 --  we might consider removing CaseLabelList and its decendants as this pass uses SilentCaseLabelList

@@ -812,7 +812,7 @@ IfStatement := "IF" Expression "THEN" StatementSequence
 CaseStatement := "CASE" Expression "OF" Case { "|" Case }
                  [ "ELSE" StatementSequence ] "END" =:
 
-Case := CaseLabelList ":" StatementSequence =:
+Case := [ CaseLabelList ":" StatementSequence ] =:
 
 WhileStatement := "WHILE" Expression "DO" StatementSequence "END" =:
 

@@ -1603,9 +1603,6 @@ BEGIN
    CheckForExportedImplementation(PtrToType) ;   (* May be an exported hidden type *)
    PushT(name) ;
    PushT(PtrToType)
-(*
- ; WriteKey(name) ; WriteString(' Pointer made') ; WriteLn
-*)
 END BuildPointerType ;
 
 
@@ -1732,7 +1729,7 @@ BEGIN
          THEN
             WriteFormat1('field %a is already present inside record', OperandT(NoOfFields+1-i))
          ELSE
-            WriteFormat2('field %a is already present inside record %s', OperandT(NoOfFields+1-i), GetSymName(Parent))
+            WriteFormat2('field %a is already present inside record %a', OperandT(NoOfFields+1-i), GetSymName(Parent))
          END
       END ;
       INC(i)

@@ -764,7 +764,7 @@ FieldList := IdentList ":"
               ] "END"
            =:
 
-Varient := SilentCaseLabelList ":" FieldListSequence =:
+Varient := [ SilentCaseLabelList ":" FieldListSequence ] =:
 
 SilentCaseLabelList := SilentCaseLabels { "," SilentCaseLabels } =:
 
@@ -988,8 +988,9 @@ CaseStatement := "CASE"                                                    % Bui
                                                                              BuildCaseEnd %
                =:
 
-Case := CaseLabelList ":"                                                  % BuildCaseStartStatementSequence %
+Case := [ CaseLabelList ":"                                                % BuildCaseStartStatementSequence %
                           StatementSequence                                % BuildCaseEndStatementSequence %
+        ]
       =:
 
 CaseLabelList := CaseLabels { ","                                          % BuildCaseOr %
