@@ -55,12 +55,19 @@ cc1gm2: $(LIBDEPS) stamp-objlist $(GM2_SRCS)
 
 # Build hooks:
 
-#
-# finish this rule..
-#
-gm2tools:
+gm2/gm2lcc: force
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lcc
 
-gm2.all.build: gm2tools
+gm2/gm2l: force
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2l
+
+gm2/gm2lgen: force
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lgen
+
+gm2/gm2lsub: force
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lsub
+
+gm2.all.build: gm2/gm2lcc gm2/gm2l gm2/gm2lgen gm2/gm2lsub
 	for i in $(GM2LINKEXES) ; do \
             rm -f x$$i$(exeext); \
             cp gm2/$$i$(exeext) x$$i$(exeext); \

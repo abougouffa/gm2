@@ -9013,6 +9013,16 @@ gccgm2_BuildAddr (op1, needconvert)
 }
 
 
+static void debug_print_value (t)
+     tree t;
+{
+  if (TREE_CODE(t) == INTEGER_CST) {
+    fprintf(stderr, "value of tree [low = %d, high = %d]\n",
+	    TREE_INT_CST_LOW (t),
+	    TREE_INT_CST_HIGH (t));
+  }
+}
+
 /*
  *  BuildOffset - builds an expression containing the number of bytes the field
  *                is offset from the start of the record structure.
@@ -9024,6 +9034,9 @@ gccgm2_BuildOffset (field, needconvert)
      tree field;
      int  needconvert ATTRIBUTE_UNUSED;
 {
+#if 0
+  debug_print_value(DECL_FIELD_BITPOS (field));
+#endif
   return( gccgm2_BuildConvert(gccgm2_GetIntegerType(),
 			      gccgm2_BuildDiv(DECL_FIELD_BITPOS (field), gccgm2_BuildIntegerConstant(BITS_PER_UNIT), FALSE),
 			      FALSE) );
