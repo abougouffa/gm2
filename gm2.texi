@@ -194,6 +194,13 @@ the front end now utilizes GCC tree constants and types and is no
 longer tied to a 32 bit architecture, but reflects the 'configure'
 target machine description.
 
+@item
+fixed all C compiler warnings when gcc compiles the p2c generated C
+with -Wall.
+
+@item
+built a new parser which implements error recovery.
+
 @end itemize
 
 Nearly all the to do work is concerned with interfacing m2f with
@@ -222,18 +229,7 @@ My belief is that this should not take much time to complete and
 should produce much better code.
 
 @item
-Fix all C compiler warnings when gcc compiles the p2c generated C
-with -Wall.
-
-@item
 utilize GNU autoconf rather than the makeconfigure script.
-
-@item
-error recovery needs to be implemented,
-during pass 1 (first and follow sets etc). One of those
-to do's which was never done.. use the ppg tool.
-See @samp{ gm2/m2/comp/gm2s/gcc/asm.bnf } for an example
-of how this could be done.
 
 @item
 integrate the small testsuite (gm2/m2/comp/autotest)

@@ -27,10 +27,15 @@ Boston, MA 02111-1307, USA.  */
      "%{c:%{!gm2gcc:cc1gm2 %B %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM}\
              %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
       as %(asm_options) %{!pipe:%g.s} %A }}}} \
-      %{!c:%{!S:%{!gm2gcc:gm2l %{!pipe:-o %g.l} %b|\n\
-                 gm2lsub %{!pipe:%g.l} -o %g.list \n\
-                 gm2lgen %g.list -o %g.c \n\
-                 gcc -g -c -o %d%w%g%O %g.c \n\
-                 rm -f %w%d%g.a \n\
-                 gm2lcc %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.list \n\
+      %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{!Wmakelist:gm2l %{!pipe:-o %g.l} %b|\n\
+                                                   gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                                   gm2lgen %g.lst -o %g.c \n\
+                                                   gcc -g -c -o %d%w%g%O %g.c \n\
+                                                   rm -f %w%d%g.a \n\
+                                                   gm2lcc %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst} \n\
+                                       %{Wmakelist:gm2l -o %b.lst %b}} \n\
+                           %{Wuselist:gm2lgen %b.lst -o %g.c \n\
+                                      gcc -g -c -o %d%w%g%O %g.c \n\
+                                      rm -f %w%d%g.a \n\
+                                      gm2lcc %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst} \n\
     }}}"},

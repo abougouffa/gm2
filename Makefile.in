@@ -203,9 +203,6 @@ paranoid: ../bcc1gm2$(exeext) verifyparanoid
 
 ../cc1gm2$(exeext): ../acc1gm2$(exeext) checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
-#	echo "since cc1gm2 is less reliable than acc1gm2 we will replace it by cc1gm2"
-#	echo "this is a development hack and will be fixed asap.."
-#	cp ../acc1gm2$(exeext) ../cc1gm2$(exeext)
 
 ../acc1gm2$(exeext): checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
@@ -429,6 +426,8 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod
+
+GM2-TOOLS-MOD      = gm2l.mod        gm2lcc.mod      gm2lgen.mod     gm2lsub.mod
 
 gm2-libs-boot:
 	@mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
@@ -718,8 +717,15 @@ gm2-compiler-paranoid:
 	../m2/comp/tools/makeversion $(GM2-VERSION)c
 
 #
-#  and now the linkage tools
+#  and now the linkage tools and general Modula-2 tools
 #
+
+gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
+          $(GM2-TOOLS-MOD:%.mod=%.exe)
+
+%.exe:
+	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst
+	../xgm2 -v -I../gm2-libs -Igm2-compiler -g -B../x -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
 
 gm2lcc: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -827,6 +833,7 @@ clean: force
 	$(RM) -rf gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 	$(RM) -rf gm2-libs-paranoid  gm2-compiler-paranoid
 	$(RM) -rf gm2-compiler-verify
+	$(RM) *.lst
 	$(RM) -f m2/comp/bin/*
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
 
