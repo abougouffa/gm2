@@ -1013,7 +1013,7 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
 	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/h2def.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -B./stage1/gm2 -B./ -o $@ \
                -Wuselist gm2/gm2-auto/h2def.mod $(LIBS)
 
 gm2/ppg: gm2/p2c/p2c-src/home/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
@@ -1117,7 +1117,7 @@ $(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
 
 $(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
 	$(MAKE) gm2/pge
-	./gm2/pge $< > $@
+	./gm2/pge -l $< > $@
 
 #
 # gm2.verifyparanoid - diffs the output of all three compilers with the compiler source code

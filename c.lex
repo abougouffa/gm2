@@ -100,13 +100,19 @@ static  void handleNewline(int hashSeen, int n);
 <SUPPRESS>\n#[ \t]*ifdef   { level++; }
 <SUPPRESS>\n#[ \t]*endif   { level--;
                              if (level == 0) {
+                                CLexBuf_AddTok(CLexBuf_starthashtok);
 			        CLexBuf_AddTok(CLexBuf_endiftok);
+                                CLexBuf_AddTok(CLexBuf_endhashtok);
+				hash = FALSE;
                                 BEGIN INITIAL;
 				return;
                              }
                            }
 <SUPPRESS>\n#[ \t]*else    { if (level == 1) {
+                                CLexBuf_AddTok(CLexBuf_starthashtok);
 			        CLexBuf_AddTok(CLexBuf_elsetok);
+                                CLexBuf_AddTok(CLexBuf_endhashtok);
+				hash = FALSE;
                                 BEGIN INITIAL;
 				return;
                              }
@@ -273,6 +279,7 @@ void clex_ParsingOn (int t)
   if (! parsingOn) {
     level = 1;
     BEGIN SUPPRESS;
+    CLexBuf_FlushTokens();
   }
 }
 
