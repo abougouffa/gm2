@@ -1,4 +1,4 @@
-;; Copyright (C) 1985, 1986, 1987, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -441,7 +441,7 @@ Control-C followed by the first character of the construct.
 (defun m2-fsf-copyright ()
   "emit the a copyright notice providing m2-assign-future is set."
   (if m2-assign-future
-      (insert "(* Copyright (C) 2001 Free Software Foundation, Inc. *)\n")))
+      (insert "(* Copyright (C) 2003 Free Software Foundation, Inc. *)\n")))
 
 (defun m2-fsf-notice ()
   "emit the fsf notice at the relevant position, providing m2-assign-future is
