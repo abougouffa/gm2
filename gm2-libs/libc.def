@@ -216,12 +216,12 @@ PROCEDURE writev (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
 
 
 (*
-   getcwd - copies the absolute pathname of  the
-            current  working directory to the array pointed to by buf,
+   getcwd - copies the absolute pathname of the
+            current working directory to the array pointed to by buf,
             which is of length size.
 
-            If the current absolute path name would require  a  buffer
-            longer  than size elements, NULL is returned, and errno is
+            If the current absolute path name would require a buffer
+            longer than size elements, NULL is returned, and errno is
             set to ERANGE; an application should check for this error,
             and allocate a larger buffer if necessary.
 *)

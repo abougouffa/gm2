@@ -2705,13 +2705,23 @@ END BuildElsif2 ;
 
                                                            <- Ptr
                                            +------------+
-                   Empty                   | BySym      |
-                                           |------------|
+            Ptr ->                         | BySym | t  |
+                   +------------+          |------------|
+                   | e    | t   |          | e     | t  |
+                   |------------|          |------------|
 *)
 
 PROCEDURE BuildPseudoBy ;
+VAR
+   e, t: CARDINAL ;
 BEGIN
-   PushT(MakeConstLit(MakeKey('1')))
+   PopTF(e, t) ;
+   PushTF(e, t) ;
+   IF t=NulSym
+   THEN
+      t := GetType(e)
+   END ;
+   PushTF(MakeConstLit(MakeKey('1')), t)
 END BuildPseudoBy ;
 
 
@@ -2724,28 +2734,55 @@ END BuildPseudoBy ;
                     Entry                   Exit
                     =====                   ====
 
+                    
+             Ptr ->                                           <- Ptr
+                    +----------------+      |----------------|
+                    | BySym | ByType |      | ForQuad        |
+                    |----------------|      |----------------|
+                    | e2             |      | LastValue      |
+                    |----------------|      |----------------|
+                    | e1             |      | BySym | ByType |
+                    |----------------|      |----------------|
+                    | Ident          |      | IdentSym       |
+                    |----------------|      |----------------|
 
-             Ptr ->                                        <- Ptr
-                    +------------+          +------------+
-                    | BySym      |          | t   | f    |
-                    |------------|          |------------|
-                    | e2         |          | ForQuad    |
-                    |------------|          |------------|
-                    | e1         |          | BySym      |
-                    |------------|          |------------|
-                    | Ident      |          | IdentSym   |
-                    |------------|          |------------|
 
-                    Quadruple
+                    x := e1 ;
+                    IF BySym<0
+                    THEN
+                       IF e1<e2
+                       THEN
+                          goto exit
+                       END ;
+                       LASTVALUE := ((e1-e2) DIV BySym) * BySym + e1
+                    ELSE
+                       IF e1>e2
+                       THEN
+                          goto exit
+                       END ;
+                       LASTVALUE := ((e2-e1) DIV BySym) * BySym + e1
+                    END ;
+                    LOOP
+                       body
+                       IF x=LASTVALUE
+                       THEN
+                          goto exit
+                       END ;
+                       INC(x, BySym)
+                    END
 
-                    q   BecomesOp  IdentSym  _  e1
-                    q+1 if <       by        0  q+5
-                    q+2 GotoOp                  q+3
-                    q+3 If >       IdentSym  e2 _
-                    q+4 GotoOp                  q+7
-                    q+5 If <=      IdentSym  e2 _
-                    q+6 GotoOp                  q+7
+                    Quadruples:
 
+                    q     BecomesOp  IdentSym  _  e1
+                    q+1   if >=      by        0  q+..2
+                    q+2   GotoOp                  q+3
+                    q+3   If >=      e1  e2       q+5
+                    q+4   GotoOp                  exit
+                    q+5   LastValue  := ((e1-e2) DIV by) * by + e1
+                    q+..1 Goto                    q+..5
+                    q+..2 If >=      e2  e1       q+..4
+                    q+..3 GotoOp                  exit
+                    q+..4 LastValue  := ((e2-e1) DIV by) * by + e1
 
                     The For Loop is regarded:
 
@@ -2756,57 +2793,120 @@ END BuildPseudoBy ;
 
 PROCEDURE BuildForToByDo ;
 VAR
-   l1, l2: LineNote ;
+   l1, l2    : LineNote ;
    e1, e2,
-   Id    : Name ;
+   Id        : Name ;
+   FinalValue,
+   exit1,
    IdSym,
    BySym,
-   t, f  : CARDINAL ;
-   t1, f1: CARDINAL ;
+   ByType,
+   ForLoop,
+   t, f      : CARDINAL ;
+   t1, f1    : CARDINAL ;
 BEGIN
    l2 := PopLineNo() ;
    l1 := PopLineNo() ;
    UseLineNote(l1) ;
-   PushExit(0) ;  (* Allows EXIT to be used to exit the for loop *)
-   PopT(BySym) ;
+   PushExit(0) ;    (* Allows EXIT to be used to exit the for loop *)
+   PopTF(BySym, ByType) ;
    PopT(e2) ;
    PopT(e1) ;
    PopT(Id) ;
    IdSym := RequestSym(Id) ;
+   IF ByType=NulSym
+   THEN
+      ByType := GetType(BySym)
+   END ;
    PushT(IdSym) ;
    PushT(e1) ;
    BuildAssignment ;
 
    UseLineNote(l2) ;
-   PushT(IdSym) ;     (* Push information for future FOR reference *)
-   PushT(BySym) ;
-   PushT(NextQuad) ;
-   (* q+1 if <       by        0  q+5 *)
-   (* q+2 GotoOp                  q+3 *)
+   (* q+1 if >=      by        0  q+..2 *)
+   (* q+2 GotoOp                  q+3   *)
    PushT(BySym) ;           (* BuildRelOp  1st parameter *)
-   PushT(LessTok) ;         (*             2nd parameter *)
+   PushT(GreaterEqualTok) ; (*             2nd parameter *)
    PushT(MakeConstLit(MakeKey('0'))) ;  (* 3rd parameter *)
    BuildRelOp ;
-   PopBool(t, f) ;          (*             return value  *)
+   PopBool(t, f) ;
    BackPatch(f, NextQuad) ;
-   (* q+3 If >       IdentSym  e2 _   *)
-   (* q+4 GotoOp                  q+7 *)
-   PushT(IdSym) ;           (* BuildRelOp  1st parameter *)
-   PushT(GreaterTok) ;      (*             2nd parameter *)
+   (* q+3 If >=       e1  e2      q+5  *)
+   (* q+4 GotoOp                  Exit *)
+   PushT(e1) ;              (* BuildRelOp  1st parameter *)
+   PushT(GreaterEqualTok) ; (*             2nd parameter *)
    PushT(e2) ;              (*             3rd parameter *)
    BuildRelOp ;
-   BackPatch(t, NextQuad) ; (* fixes q+1 Destimation to q+5 *)
-   PopBool(t, f) ;          (* true = exits, false = in  *)
-   PushT(IdSym) ;           (* BuildRelOp  1st parameter *)
-   PushT(LessTok) ;         (*             2nd parameter *)
-   PushT(e2) ;              (*             3nd parameter *)
+   PopBool(t1, exit1) ;
+   BackPatch(t1, NextQuad) ;
+   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
+
+   FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
+                                           IsConst(BySym))) ;
+   PutVar(FinalValue, GetType(IdSym)) ;
+
+   PushTF(FinalValue, GetType(FinalValue)) ;
+   PushTF(e1, GetType(e1)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
+   PushT(MinusTok) ;
+   PushTF(e2, GetType(e2)) ;
+   BuildBinaryOp ;
+   PushT(DivTok) ;
+   PushTF(BySym, ByType) ;
+   BuildBinaryOp ;
+   PushT(TimesTok) ;
+   PushTF(BySym, ByType) ;
+   BuildBinaryOp ;
+   PushT(PlusTok) ;
+   PushTF(e1, GetType(e1)) ;
+   BuildBinaryOp ;
+   BuildAssignment ;
+   GenQuad(GotoOp, NulSym, NulSym, 0) ;
+   ForLoop := NextQuad-1 ;
+
+   (* ELSE *)
+
+   BackPatch(t, NextQuad) ;
+   PushT(e2) ;              (* BuildRelOp  1st parameter *)
+   PushT(GreaterEqualTok) ; (*             2nd parameter *)
+   PushT(e1) ;              (*             3rd parameter *)
    BuildRelOp ;
-   BackPatch(f, NextQuad) ; (* Fixes q+4 GotoOp          *)
-   PopBool(t1, f1) ;
-   BackPatch(f1, NextQuad) ; (* Fixes q+6 GotoOp         *)
-   PushBool(Merge(t1, t), 0) ;
-         (* q+3 and q+5 provide the exit to the for loop *)
+   PopBool(t1, exit1) ;
+   BackPatch(t1, NextQuad) ;
+   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
+
+   (* we must use another temporary for this FinalValue rather than
+      the one we created earlier, as the quadruple rules
+      expect constants to be assigned only once
+   *)
+   FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
+                                           IsConst(BySym))) ;
+   PutVar(FinalValue, GetType(IdSym)) ;
+   PushTF(FinalValue, GetType(FinalValue)) ;
+   PushTF(e2, GetType(e2)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
+   PushT(MinusTok) ;
+   PushTF(e1, GetType(e1)) ;
+   BuildBinaryOp ;
+   PushT(DivTok) ;
+   PushTF(BySym, ByType) ;
+   BuildBinaryOp ;
+   PushT(TimesTok) ;
+   PushTF(BySym, ByType) ;
+   BuildBinaryOp ;
+   PushT(PlusTok) ;
+   PushTF(e1, GetType(e1)) ;
+   BuildBinaryOp ;
+   BuildAssignment ;
+
+   BackPatch(ForLoop, NextQuad) ; (* fixes the start of the for loop *)
+   ForLoop := NextQuad ;
    CheckSubrange(IdSym, IdSym) ;
+
+   (* and set up the stack *)
+
+   PushTF(IdSym, GetSym(IdSym)) ;
+   PushTF(BySym, ByType) ;
+   PushTF(FinalValue, GetType(FinalValue)) ;
+   PushT(ForLoop)
 END BuildForToByDo ;
 
 
@@ -2820,31 +2920,44 @@ END BuildForToByDo ;
                  =====                   ====
 
          Ptr ->
-                 +------------+
-                 | t   | f    |
-                 |------------|
-                 | ForQuad    |
-                 |------------|
-                 | BySym      |
-                 |------------|
-                 | IdSym      |          Empty
-                 |------------|
+                 +----------------+
+                 | ForQuad        |
+                 |----------------|
+                 | LastValue      |
+                 |----------------|
+                 | BySym | ByType |
+                 |----------------|
+                 | IdSym          |      Empty
+                 |----------------|
 *)
 
 PROCEDURE BuildEndFor ;
 VAR
-   tsym,
    t, f,
+   tsym,
    IncQuad,
-   ForQuad,
+   ForQuad: CARDINAL ;
+   LastSym,
+   ByType,
    BySym,
    IdSym  : CARDINAL ;
 BEGIN
-   PopBool(t, f) ;
-   Assert(f=0) ;
    PopT(ForQuad) ;
-   PopT(BySym) ;
+   PopT(LastSym) ;
+   PopTF(BySym, ByType) ;
    PopT(IdSym) ;
+
+   (* IF IdSym=LastSym THEN exit END *)
+   PushTF(IdSym, GetType(IdSym)) ;
+   PushT(EqualTok) ;
+   PushTF(LastSym, GetType(LastSym)) ;
+   BuildRelOp ;
+   PopBool(t, f) ;
+   
+   BackPatch(t, NextQuad) ;
+   GenQuad(GotoOp, NulSym, NulSym, 0) ;
+   PushExit(Merge(PopExit(), NextQuad-1)) ;
+   BackPatch(f, NextQuad) ;
    IF GetMode(IdSym)=LeftValue
    THEN
       (* index variable is a LeftValue, therefore we must dereference it *)
@@ -2860,8 +2973,8 @@ BEGIN
       IncQuad := NextQuad ;
       GenQuad(AddOp, IdSym, IdSym, BySym)
    END ;
+   CheckSubrange(IdSym, IdSym) ;
    GenQuad(GotoOp, NulSym, NulSym, ForQuad) ;
-   BackPatch(t, NextQuad) ;
    BackPatch(PopExit(), NextQuad) ;
    AddForInfo(ForQuad, NextQuad-1, IncQuad, IdSym)
 END BuildEndFor ;

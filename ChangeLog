@@ -1,3 +1,16 @@
+2005-01-05	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by john o goyo <jgoyo@ca.inter.net>.
+	  (testsuite/gm2/pim/run/pass/Countdown.mod)
+	* for loops are now implemented as per ISO description.
+	  GNU Modula-2 now calculates the last iteration value
+	  before the start of a loop. It then initializes the
+	  iteration value and works towards the final value,
+	  rather than testing to see whether the iteration value
+	  exceeds or preceeds the limit value (this fails when using
+	  a CARDINAL iterator and stopping at 0).
+	* added a number of run tests to exercise these changes.
+	
 2004-12-22	Gaius Mulley <gaius@glam.ac.uk>
 
 	* more fixes to enable to the Z type to work.

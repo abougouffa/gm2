@@ -1,5 +1,9 @@
 #!/bin/sh
 
+LIBS_H=$1
+
+PROTOTYPE_LIST=(ii ip ipi ippp iiip iip END)
+
 #
 #  createUlmSys - creates the Sys.def and SYSTEM.c files for the ulm
 #                 libraries. The stategy is to provide access to the
@@ -23,42 +27,102 @@ CALL_LIST=(access          ipi
 #           ioctl kill link lseek open pause pipe read setitimer
 #           setgid setuid stat times unlink wait write
 
+function createSyscall () {
+    cat <<EOFEOF
+
+
+int SYSTEM_SYSCALL (int code, )
+{
+    va_list argsPtr;
+    int ret;
+
+    if (! initialized)
+	_M2_SYSTEM_init ();
+    va_start(argsPtr, code);
+    switch (code)
+
+EOFEOF
+
+   proto=0
+   while [ "${PROTOTYPE_LIST[$proto]}" != "END" ] ; do
+       parameters=${PROTOTYPE_LIST[$proto]}
+       count=0
+       while [ "${CALL_LIST[$count]}" != "END" ] ; do
+	   func=`echo -n ${CALL_LIST[$count]} | tr '[:lower:]' '[:upper:]'`
+	   count=`expr $count + 1`
+	   if [ "${CALL_LIST[$count]}" == "$parameters" ] ; then
+	       echo "    HAVE_$func:"
+           fi
+	   count=`expr $count + 1`
+       done
+       echo "       ret = (*syscalls[code])(argsPtr);"
+       echo "       break;"
+       proto=`expr $proto + 1`
+   done
+
+   cat <<EOFEOF
+
+    va_end(args);
+    return ret;
+}
+EOFEOF
+}
+
 #
 #  
 #
 
 function createSystem () {
+   cat <<EOFEOF
+/*
+ *  Do not edit - as this is created automatically via
+ *                gm2/tools-src/createUlmSys
+ */
+EOFEOF
    count=0
    callno=0
    while [ "${CALL_LIST[$count]}" != "END" ] ; do
-      defined=\"^#define HAVE_`echo ${CALL_LIST[$count]} | \
-               tr '[:lower:]' '[:upper:]'` 1\"
-      if grep $defined gm2-libs/gm2-libs-host.h >& /dev/null ; then
-	  echo "#define CALL_${CALL_LIST[$count]} $callno"
+      func=`echo -n ${CALL_LIST[$count]} | tr '[:lower:]' '[:upper:]'`
+      if [ -f ${LIBS_H} ] ; then
+	  if grep ^\#define ${LIBS_H} \
+             | grep HAVE_$func | grep 1 >& /dev/null ; then
+	      echo "#define CALL_${CALL_LIST[$count]} $callno"
+	  fi
 	  callno=`expr $callno + 1`
+	  count=`expr $count + 1`
+	  count=`expr $count + 1`
+      else
+          echo "cannot find gm2-libs/gm2-libs-host.h"
+          exit 1
       fi
-      count=`expr $count + 1`
-      count=`expr $count + 1`
    done
    cat << EOFEOF
 
 static int (*syscalls[$callno])();
+static int initialized = 0;
+
+EOFEOF
+
+    createSyscall
+
+cat <<EOFEOF
 
 _M2_SYSTEM_init ()
 {
+   if (initialized)
+      return;
    initialized = 1;
 EOFEOF
    count=0
    callno=0
    while [ "${CALL_LIST[$count]}" != "END" ] ; do
-      defined=\"^#define HAVE_`echo ${CALL_LIST[$count]} | \
-               tr '[:lower:]' '[:upper:]'` 1\"
-      if grep $defined gm2-libs/gm2-libs-host.h  ; then
-	  echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)${CALL_LIST[$count]};"
-	  callno=`expr $callno + 1`
-      fi
-      count=`expr $count + 1`
-      count=`expr $count + 1`
+       if grep ^\#define ${LIBS_H} \
+	   | grep HAVE_$func | grep 1 >& /dev/null ; then
+	   echo "   syscalls[CALL_${CALL_LIST[$count]}] = (void *)${CALL_LIST[$count]};"
+	   callno=`expr $callno + 1`
+       fi
+       count=`expr $count + 1`
+       count=`expr $count + 1`
    done
    echo "}"
 }

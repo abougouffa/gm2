@@ -31,6 +31,22 @@ AC_CHECK_FUNCS(fstat)
 AC_CHECK_FUNCS(select)
 AC_CHECK_FUNCS(strsignal)
 
+#
+# library functions (used by gm2-libs and ulm-lib-gm2)
+# the results of this configuration are process by
+# tools-src/createUlSys in order to produce the runtime system
+# interface.
+#
+AC_CHECK_FUNCS(access)
+AC_CHECK_FUNCS(brk)
+AC_CHECK_FUNCS(close)
+AC_CHECK_FUNCS(creat)
+AC_CHECK_FUNCS(dup)
+AC_CHECK_FUNCS(execve)
+AC_CHECK_FUNCS(exit)
+AC_CHECK_FUNCS(fcntl)
+
+
 dnl
 dnl  now check for specific types
 dnl
