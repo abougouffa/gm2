@@ -122,6 +122,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ExpandExpressionStatement,
                    GetPointerType, GetWordType,
                    GetBitsPerWord,
+                   GetBuiltinConst,
                    RememberConstant ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -327,6 +328,7 @@ PROCEDURE FoldIncl (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldExcl (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldIfIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
 PROCEDURE FoldIfNotIn (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; quad: CARDINAL; l: List) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -518,6 +520,7 @@ BEGIN
 
          CASE Operator OF
 
+         BuiltinConstOp     : FoldBuiltinConst(tokenno, quad, l) |
          LogicalOrOp        : FoldSetOr(tokenno, quad, l) |
          LogicalAndOp       : FoldSetAnd(tokenno, quad, l) |
          LogicalXorOp       : FoldSymmetricDifference(tokenno, quad, l) |
@@ -1550,6 +1553,31 @@ PROCEDURE CodeMod ;
 BEGIN
    CodeBinary(BuildMod)
 END CodeMod ;
+
+
+(*
+   FoldBuiltinConst - 
+*)
+
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; quad: CARDINAL; l: List) ;
+VAR
+   t            : Tree ;
+   operator     : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
+BEGIN
+   GetQuad(quad, operator, op1, op2, op3) ;
+   t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
+   IF t=NIL
+   THEN
+      ErrorStringAt(Sprintf1(Mark(InitString('unknown built in constant (%s)')),
+                             Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3)))))),
+                    tokenno)
+   ELSE
+      AddModGcc(op1, t) ;
+      RemoveItemFromList(l, op1) ;
+      SubQuad(AbsoluteHead, quad)
+   END
+END FoldBuiltinConst ;
 
 
 (*

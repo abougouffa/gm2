@@ -1872,6 +1872,46 @@ END MoveWithMode ;
 
 
 (*
+   BuildBuiltinConst - makes reference to a builtin constant within gm2.
+
+                              Entry                 Exit
+
+                       Ptr ->
+                              +------------+        +------------+
+                              | Ident      |        | Sym        |
+                              |------------|        |------------|
+
+                       Quadruple produced:
+
+                       q    Sym  BuiltinConstOp  Ident
+*)
+
+PROCEDURE BuildBuiltinConst ;
+VAR
+   Id : CARDINAL ;
+   Sym: CARDINAL ;
+BEGIN
+   PopT(Id) ;
+   Sym := MakeTemporary(ImmediateValue) ;
+   PutVar(Sym, Integer) ;
+(*
+   CASE GetBuiltinConstType(KeyToCharStar(Name(Id))) OF
+
+   0:  ErrorFormat1(NewError(GetTokenNo()),
+                    '%a unrecognised builtin constant', Id) |
+   1:  PutVar(Sym, Integer) |
+   2:  PutVar(Sym, Real)
+
+   ELSE
+      InternalError('unrecognised value', __FILE__, __LINE__)
+   END ;
+*)
+   GenQuad(BuiltinConstOp, Sym, NulSym, Id) ;
+   PushT(Sym)
+END BuildBuiltinConst ;
+
+
+(*
    BuildAssignment - Builds an assignment from the values given on the
                      quad stack. Either an assignment to an
                      arithmetic expression or an assignment to a
@@ -8635,8 +8675,9 @@ BEGIN
       ProfileOnOp,
       ProfileOffOp,
       OptimizeOnOp,
-      OptimizeOffOp     :
-
+      OptimizeOffOp     : |
+      BuiltinConstOp    : WriteOperand(Operand1) ;
+                          printf1('   %a', Operand3)
 
       ELSE
          InternalError('quadruple not recognised', __FILE__, __LINE__)
@@ -8707,7 +8748,8 @@ BEGIN
    OptimizeOnOp             : printf0('OptimizeOn   ') |
    OptimizeOffOp            : printf0('OptimizeOff  ') |
    InlineOp                 : printf0('Inline       ') |
-   LineNumberOp             : printf0('LineNumber   ')
+   LineNumberOp             : printf0('LineNumber   ') |
+   BuiltinConstOp           : printf0('BuiltinConst ')
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)

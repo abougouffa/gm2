@@ -27,6 +27,7 @@ DEFINITION MODULE M2Quads ;
 FROM SYSTEM IMPORT WORD ;
 EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  StartBuildInit, EndBuildInit,
+                 BuildBuiltinConst,
                  BuildAssignment,
                  BuildRepeat, BuildUntil,
                  BuildWhile, BuildDoWhile, BuildEndWhile,
@@ -127,7 +128,8 @@ TYPE
                    ProfileOnOp, ProfileOffOp,
                    OptimizeOnOp, OptimizeOffOp,
                    InlineOp, LineNumberOp, MathOp,
-                   SubrangeLowOp, SubrangeHighOp) ;
+                   SubrangeLowOp, SubrangeHighOp,
+                   BuiltinConstOp) ;
 
 (*
    note that the shift pseudo operators are not used by M2Quads, but only during
@@ -544,6 +546,24 @@ PROCEDURE StartBuildInnerInit ;
 *)
  
 PROCEDURE EndBuildInnerInit ;
+
+
+(*
+   BuildBuiltinConst - makes reference to a builtin constant within gm2.
+
+                              Entry                 Exit
+
+                       Ptr ->
+                              +------------+        +------------+
+                              | Ident      |        | Sym        |
+                              |------------|        |------------|
+
+                       Quadruple produced:
+
+                       q    Sym  BuiltinConstOp  Ident
+*)
+
+PROCEDURE BuildBuiltinConst ;
 
 
 (*

@@ -273,8 +273,11 @@ BEGIN
    FileTok := MakeKey('__FILE__') ;
    AddKeyword(FileTok, ORD(filetok)) ;
 
-   AttributeUnusedTok := MakeKey('ATTRIBUTE_UNUSED') ; (* GCC extension incorporated into gm2 *)
-   AddKeyword(AttributeUnusedTok, ORD(attributeunusedtok)) ;
+   AttributeTok := MakeKey('__ATTRIBUTE__') ; (* GCC extension incorporated into gm2 *)
+   AddKeyword(AttributeTok, ORD(attributetok)) ;
+
+   BuiltinTok := MakeKey('__BUILTIN__') ; (* GCC extension incorporated into gm2 *)
+   AddKeyword(BuiltinTok, ORD(builtintok)) ;
 
    a[0] := eof ;
    a[1] := nul ;

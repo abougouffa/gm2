@@ -502,6 +502,8 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
+token   '__ATTRIBUTE__'   attributetok
+token   '__BUILTIN__'     builtintok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok
@@ -651,10 +653,11 @@ MulOperator := "*"                                                         % Pus
                                                                              RecordOp %
             =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString
-               |
+ConstFactor := ConstQualidentOrSet | Number | ConstString |
                "(" ConstExpression ")" | ( "NOT" ConstFactor               % BuildNot %
-                                         ) =:
+                                         ) |
+               ConstAttribute
+            =:
 
 -- to help satisfy LL1
 
@@ -668,6 +671,8 @@ ConstQualidentOrSet := SimpleSet                                           % Bui
 
 QualidentOrSet := SimpleSet
                   | Qualident [ SimpleSet ] =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -862,10 +867,8 @@ UnaryOrTerm := "+"
 Term := Factor { SilentMulOperator Factor
                } =:
 
-Factor :=
-          Number | string | SetOrDesignatorOrFunction |
-          "(" Expression ")" | "NOT" ( Factor
-                                ) =:
+Factor := Number | string | SetOrDesignatorOrFunction |
+          "(" Expression ")" | "NOT" Factor | ConstAttribute =:
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident
 

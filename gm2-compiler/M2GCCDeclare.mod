@@ -88,7 +88,7 @@ FROM gccgm2 IMPORT Tree,
                    GetDefaultType, GetCopyOfType,
                    GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
-                   GetPointerType, GetLongRealType, GetLongIntType, GetRealType,
+                   GetPointerType, GetM2LongRealType, GetM2LongIntType, GetM2RealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
                    GetM2IntegerType, GetM2CardinalType,
@@ -901,9 +901,9 @@ BEGIN
       DeclareDefaultType(Proc    , "PROC"    , GetProcType()) ;
       DeclareDefaultType(Byte    , "BYTE"    , GetByteType()) ;
       DeclareDefaultType(Address , "ADDRESS" , GetPointerType()) ;
-      DeclareDefaultType(LongInt , "LONGINT" , GetLongIntType()) ;
-      DeclareDefaultType(Real    , "REAL"    , GetRealType()) ;
-      DeclareDefaultType(LongReal, "LONGREAL", GetLongRealType()) ;
+      DeclareDefaultType(LongInt , "LONGINT" , GetM2LongIntType()) ;
+      DeclareDefaultType(Real    , "REAL"    , GetM2RealType()) ;
+      DeclareDefaultType(LongReal, "LONGREAL", GetM2LongRealType()) ;
       DeclareDefaultType(Bitset  , "BITSET"  , GetBitsetType()) ;
       DeclareBoolean
    END

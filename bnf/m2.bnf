@@ -475,10 +475,12 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
-token   'integer number' integertok
-token   'identifier'     identtok
-token   'real number'    realtok
-token   'string'         stringtok
+token   '__ATTRIBUTE__'   attributetok
+token   '__BUILTIN__'     builtintok
+token   'integer number'  integertok
+token   'identifier'      identtok
+token   'real number'     realtok
+token   'string'          stringtok
 
 special PossiblyExportIdent  first { < identtok > } follow { }
 special Ident                first { < identtok > } follow { }
@@ -556,7 +558,8 @@ ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
 
 ConstFactor := ConstQualidentOrSet | Number | ConstString |
-               "(" ConstExpression ")" | "NOT" ConstFactor =:
+               "(" ConstExpression ")" | "NOT" ConstFactor |
+               ConstAttribute =:
 
 -- to help satisfy LL1
 
@@ -565,6 +568,8 @@ ConstString := string =:
 ConstQualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 
 QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -696,7 +701,7 @@ SimpleExpression := [ "+" | "-" ] Term { AddOperator Term } =:
 Term := Factor { MulOperator Factor } =:
 
 Factor := Number | string | SetOrDesignatorOrFunction |
-          "(" Expression ")" | "NOT" Factor =:
+          "(" Expression ")" | "NOT" Factor | ConstAttribute =:
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident
 

@@ -129,6 +129,9 @@ tree bitset_type_node;
 tree m2_char_type_node;
 tree m2_integer_type_node;
 tree m2_cardinal_type_node;
+tree m2_real_type_node;
+tree m2_long_real_type_node;
+tree m2_long_int_type_node;
 
 
 /* Global Variables for the various types and nodes we create.  */ 
@@ -573,6 +576,9 @@ static tree                   build_bitset_type                           PARAMS
 static tree                   build_m2_char_node                          PARAMS ((void));
 static tree                   build_m2_integer_node                       PARAMS ((void));
 static tree                   build_m2_cardinal_node                      PARAMS ((void));
+static tree                   build_m2_real_node                          PARAMS ((void));
+static tree                   build_m2_long_real_node                     PARAMS ((void));
+static tree                   build_m2_long_int_node                      PARAMS ((void));
        tree                   convert_type_to_range                       PARAMS ((tree type));
        tree                   gccgm2_GetDefaultType                       PARAMS ((char *name, tree type));
        void                   gccgm2_BuildStartSetConstructor             PARAMS ((tree type));
@@ -580,6 +586,10 @@ static tree                   build_m2_cardinal_node                      PARAMS
        tree                   gccgm2_BuildEndSetConstructor               PARAMS ((void));
        tree                   gccgm2_GetM2CharType                        PARAMS ((void));
        tree                   gccgm2_GetM2IntegerType                     PARAMS ((void));
+       tree                   gccgm2_GetM2RealType                        PARAMS ((void));
+       tree                   gccgm2_GetM2LongRealType                    PARAMS ((void));
+       tree                   gccgm2_GetM2LongIntType                     PARAMS ((void));
+
        int                    gccgm2_CompareTrees                         PARAMS ((tree e1, tree e2));
 static void                   debug_watch                                 PARAMS ((tree));
 static int                    is_array                                    PARAMS ((tree));
@@ -610,6 +620,8 @@ static void                   do_jump_if_bit                              PARAMS
 static tree                   get_set_address_if_var                      PARAMS ((tree, int, int));
 static tree                   get_field_list                              PARAMS ((tree, tree, int));
 static tree                   get_set_value                               PARAMS ((tree, tree, int));
+       tree                   gccgm2_GetBuiltinConst                      PARAMS ((char *name));
+
 
 
 
@@ -2904,7 +2916,7 @@ init_m2_builtins ()
     = build_pointer_type (void_type_node);
 
   proc_type_node
-    = build_pointer_type( build_function_type (void_type_node, NULL_TREE));
+    = build_pointer_type (build_function_type (void_type_node, NULL_TREE));
 
   endlink = void_list_node;
   sizetype_endlink = tree_cons (NULL_TREE, sizetype, endlink);
@@ -2927,6 +2939,9 @@ init_m2_builtins ()
   m2_char_type_node = build_m2_char_node ();
   m2_integer_type_node = build_m2_integer_node ();
   m2_cardinal_type_node = build_m2_cardinal_node ();
+  m2_real_type_node = build_m2_real_node ();
+  m2_long_real_type_node = build_m2_long_real_node ();
+  m2_long_int_type_node = build_m2_long_int_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -3003,6 +3018,55 @@ build_m2_char_node (void)
       fixup_unsigned_type (c);
       TREE_UNSIGNED (c) = 1;
     }
+  return c;
+}
+
+static
+tree
+build_m2_real_node (void)
+{
+  tree c;
+
+  /* Define `REAL' */
+
+  c = make_node (REAL_TYPE);
+  TYPE_PRECISION (c) = FLOAT_TYPE_SIZE;
+  layout_type (c);
+
+  return c;
+}
+
+static
+tree
+build_m2_long_real_node (void)
+{
+  tree c;
+
+  /* Define `LONGREAL' */
+
+  c = make_node (REAL_TYPE);
+  TYPE_PRECISION (c) = LONG_DOUBLE_TYPE_SIZE;
+  layout_type (c);
+
+  return c;
+}
+
+static
+tree
+build_m2_long_int_node (void)
+{
+  tree c;
+
+  /* Define `LONGINT' */
+
+#if 0
+  /* fails to build in a cross development environment */
+  c = make_signed_node (LONG_LONG_TYPE_SIZE);
+  layout_type (c);
+#else
+  c = m2_integer_type_node;
+#endif
+
   return c;
 }
 
@@ -7140,7 +7204,7 @@ tree
 gccgm2_GetMinFrom (type)
      tree type;
 {
-  return( TYPE_MIN_VALUE( skip_type_decl (type)) );
+  return TYPE_MIN_VALUE (skip_type_decl (type));
 }
 
 /*
@@ -7159,6 +7223,51 @@ int
 gccgm2_GetBitsPerWord ()
 {
   return BITS_PER_WORD;
+}
+
+/*
+ *  GetBuiltinConst - returns the gcc tree of a builtin constant, name.
+ *                    NIL is returned if the constant is unknown.
+ */
+
+tree
+gccgm2_GetBuiltinConst (name)
+     char *name;
+{
+  if (strcmp(name, "BITS_PER_UNIT") == 0)
+    return gccgm2_BuildIntegerConstant (BITS_PER_UNIT);
+  if (strcmp(name, "BITS_PER_WORD") == 0)
+    return gccgm2_BuildIntegerConstant (BITS_PER_WORD);
+  if (strcmp (name, "BITS_PER_CHAR") == 0)
+    return gccgm2_BuildIntegerConstant (CHAR_TYPE_SIZE);
+  if (strcmp (name, "UNITS_PER_WORD") == 0)
+    return gccgm2_BuildIntegerConstant (UNITS_PER_WORD);
+  
+  return NULL_TREE;
+}
+
+/*
+ *  GetBuiltinConstType - returns the type of a builtin constant, name.
+ *
+ *                        0 = unknown constant name
+ *                        1 = integer
+ *                        2 = real
+ */
+
+int
+gccgm2_GetBuiltinConstType (name)
+     char *name;
+{
+  if (strcmp(name, "BITS_PER_UNIT") == 0)
+    return 1;
+  if (strcmp(name, "BITS_PER_WORD") == 0)
+    return 1;
+  if (strcmp (name, "BITS_PER_CHAR") == 0)
+    return 1;
+  if (strcmp (name, "UNITS_PER_WORD") == 0)
+    return 1;
+  
+  return 0;
 }
 
 static tree watch;
@@ -8570,7 +8679,7 @@ gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
   tree maxval = build_binary_op(MINUS_EXPR, default_conversion(high), default_conversion(low), 0);
-  return build_index_type(maxval);
+  return build_index_type (maxval);
 }
 
 /*
@@ -9866,24 +9975,6 @@ gccgm2_GetCharType ()
 }
 
 tree
-gccgm2_GetM2CharType ()
-{
-  return m2_char_type_node;
-}
-
-tree
-gccgm2_GetM2IntegerType ()
-{
-  return m2_integer_type_node;
-}
-
-tree
-gccgm2_GetM2CardinalType ()
-{
-  return m2_cardinal_type_node;
-}
-
-tree
 gccgm2_GetByteType ()
 {
   return unsigned_char_type_node;
@@ -9941,6 +10032,42 @@ tree
 gccgm2_GetProcType ()
 {
   return proc_type_node;
+}
+
+tree
+gccgm2_GetM2CharType ()
+{
+  return m2_char_type_node;
+}
+
+tree
+gccgm2_GetM2IntegerType ()
+{
+  return m2_integer_type_node;
+}
+
+tree
+gccgm2_GetM2CardinalType ()
+{
+  return m2_cardinal_type_node;
+}
+
+tree
+gccgm2_GetM2RealType ()
+{
+  return m2_real_type_node;
+}
+
+tree
+gccgm2_GetM2LongRealType ()
+{
+  return m2_long_real_type_node;
+}
+
+tree
+gccgm2_GetM2LongIntType ()
+{
+  return m2_long_int_type_node;
 }
 
 tree

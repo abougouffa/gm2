@@ -71,6 +71,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
                     BuildBitsetStart, BuildSetEnd,
                     BuildLineNo, BuildSizeCheckStart,
+                    BuildBuiltinConst,
                     BuildAssignment,
                     BuildRepeat, BuildUntil,
                     BuildWhile, BuildDoWhile, BuildEndWhile,
@@ -500,6 +501,8 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
+token   '__ATTRIBUTE__'   attributetok
+token   '__BUILTIN__'     builtintok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok
@@ -644,9 +647,9 @@ MulOperator := "*"                                                         % Pus
                                                                              RecordOp %
             =:
 
-ConstFactor := ConstQualidentOrSet | Number | ConstString
-               |
+ConstFactor := ConstQualidentOrSet | Number | ConstString |
                "(" ConstExpression ")" | "NOT" ConstFactor               % BuildNot %
+               | ConstAttribute
              =:
 
 -- to help satisfy LL1
@@ -662,6 +665,11 @@ ConstQualidentOrSet := Qualident [ SimpleSet ] |
 
 QualidentOrSet := SimpleSet                                                % BuildBitsetStart %
                   | Qualident [ SimpleSet ] =:
+
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                        % PushAutoOn %
+                  Ident                                                    % BuildBuiltinConst ;
+                                                                             PopAuto %
+                  ")" ")" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -895,6 +903,7 @@ Term := Factor { MulOperator Factor                                        % Bui
 Factor :=                                                                  % BuildLineNo %
           Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor                              % BuildNot %
+          | ConstAttribute
                                 ) =:
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident

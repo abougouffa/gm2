@@ -5,9 +5,12 @@ DEFINITION MODULE SYSTEM;
   (* The constants and types define underlying properties of storage *)
 
 CONST
-  BITSPERLOC    = <implementation-defined constant> ;
-  LOCSPERWORD   = <implementation-defined constant> ;
+                  (* <implementation-defined constant> ; *)
+  BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+                  (* <implementation-defined constant> ; *)
+  LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
 
+(*
 TYPE
   LOC; (* A system basic type. Values are the uninterpreted contents of the smallest
           addressable unit of storage *)
@@ -16,7 +19,8 @@ TYPE
 
   (* BYTE and LOCSPERBYTE are provided if appropriate for machine *)
 CONST
-  LOCSPERBYTE = <implementation-defined constant> ;
+  (* <implementation-defined constant> ; *)
+  LOCSPERBYTE = 8 DIV BITS_PER_LOC ;
 
 TYPE
   BYTE = ARRAY [0 .. LOCSPERBYTE-1] OF LOC;
@@ -67,4 +71,5 @@ PROCEDURE TSIZE (<type>; ... ): CARDINAL;
      extra parameters, if present, are used to distinguish variants in a variant record.
   *)
 
+*)
 END SYSTEM.

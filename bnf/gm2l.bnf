@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2002/05/02 08:56:13 $]
+              : [$Date: 2002/12/20 09:45:13 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -855,10 +855,12 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
-token   'integer number' integertok
-token   'identifier'     identtok
-token   'real number'    realtok
-token   'str'            stringtok
+token   '__ATTRIBUTE__'   attributetok
+token   '__BUILTIN__'     builtintok
+token   'integer number'  integertok
+token   'identifier'      identtok
+token   'real number'     realtok
+token   'str'             stringtok
 
 special Ident             first { < identtok > } follow { }
 special Integer           first { < integertok > } follow { }

@@ -39,7 +39,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2002/04/29 09:13:31 $]
+   Date       : 3/4/86  [$Date: 2002/12/20 09:45:13 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1655,10 +1655,12 @@ token   '...'             periodperiodperiodtok
 token   '__DATE__'        datetok
 token   '__LINE__'        linetok
 token   '__FILE__'        filetok
-token   'integer number' integertok
-token   'identifier'     identtok
-token   'real number'    realtok
-token   'str'            stringtok
+token   '__ATTRIBUTE__'   attributetok
+token   '__BUILTIN__'     builtintok
+token   'integer number'  integertok
+token   'identifier'      identtok
+token   'real number'     realtok
+token   'str'             stringtok
 
 special Ident             first { < identtok > } follow { }
 special Integer           first { < integertok > } follow { }

@@ -21,8 +21,9 @@ EXPORT QUALIFIED Tree,
                  GetPointerType, GetM2IntegerType, GetM2CardinalType,
                  GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
+                 GetM2RealType, GetM2LongRealType, GetM2LongIntType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
-                 GetBitsPerWord,
+                 GetBitsPerWord, GetBuiltinConst, GetBuiltinConstType,
                  BuiltInMemCopy, BuiltInAlloca,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
@@ -125,6 +126,9 @@ PROCEDURE GetBitsetType          () : Tree ;
 PROCEDURE GetRealType            () : Tree ;
 PROCEDURE GetLongRealType        () : Tree ;
 PROCEDURE GetLongIntType         () : Tree ;
+PROCEDURE GetM2RealType            () : Tree ;
+PROCEDURE GetM2LongRealType        () : Tree ;
+PROCEDURE GetM2LongIntType         () : Tree ;
 PROCEDURE GetWordType            () : Tree ;
 PROCEDURE GetProcType            () : Tree ;
 
@@ -169,6 +173,25 @@ PROCEDURE GetMaxFrom (type: Tree) : Tree ;
 *)
 
 PROCEDURE GetBitsPerWord () : CARDINAL ;
+
+
+(*
+   GetBuiltinConst - returns the gcc tree of a built in constant, name.
+                     NIL is returned if the constant is unknown.
+*)
+
+PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
+
+
+(*
+   GetBuiltinConstType - returns the type of a builtin constant, name.
+ 
+                         0 = unknown constant name
+                         1 = integer
+                         2 = real
+*)
+
+PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
 
 
 (*

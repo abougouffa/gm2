@@ -86,7 +86,6 @@ static  void handleFile   (void);
 <COMMENT>\n.*              { consumeLine(); }
 <COMMENT>.                 { updatepos(); skippos(); }
 <COMMENT1>.                { updatepos(); skippos(); }
-<COMMENT1>ATTRIBUTE_UNUSED { updatepos(); M2LexBuf_AddTok(M2Reserved_attributeunusedtok); return; }
 <COMMENT1>"*>"             { updatepos(); skippos(); finishedLine(); BEGIN COMMENT; }
 <COMMENT1>\n.*             { consumeLine(); }
 <COMMENT1>"*)"             { poperrorskip("unterminated source code directive, missing *>");
@@ -204,6 +203,9 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 \_\_DATE\_\_               { updatepos(); handleDate(); return; }
 \_\_LINE\_\_               { updatepos(); handleLine(); return; }
 \_\_FILE\_\_               { updatepos(); handleFile(); return; }
+\_\_ATTRIBUTE\_\_          { updatepos(); M2LexBuf_AddTok(M2Reserved_attributetok); return; }
+\_\_BUILTIN\_\_            { updatepos(); M2LexBuf_AddTok(M2Reserved_builtintok); return; }
+
 
 (([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }
 [a-zA-Z_][a-zA-Z0-9_]*     { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_identtok, yytext); return; }
