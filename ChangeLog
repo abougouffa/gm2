@@ -1,3 +1,10 @@
+2001-01-23	Gaius Mulley <gaius@glam.ac.uk>
+
+	* brought gm2 up to date with gcc-20001204
+	* introduced configure and moved all makefiles to Makefile.in
+	* tidied up p2c a little, in an attempt to reduce the compile time
+	  warnings
+
 2000-12-02	Gaius Mulley <gaius@glam.ac.uk>
 
 	* brought gm2 up to date with gcc-20001120
