@@ -127,6 +127,7 @@ tree bitset_type_node;
 tree m2_char_type_node;
 tree m2_integer_type_node;
 tree m2_cardinal_type_node;
+tree m2_short_real_type_node;
 tree m2_real_type_node;
 tree m2_long_real_type_node;
 tree m2_long_int_type_node;
@@ -572,6 +573,7 @@ static tree                   build_bitset_type                           PARAMS
 static tree                   build_m2_char_node                          PARAMS ((void));
 static tree                   build_m2_integer_node                       PARAMS ((void));
 static tree                   build_m2_cardinal_node                      PARAMS ((void));
+static tree                   build_m2_short_real_node                    PARAMS ((void));
 static tree                   build_m2_real_node                          PARAMS ((void));
 static tree                   build_m2_long_real_node                     PARAMS ((void));
 static tree                   build_m2_long_int_node                      PARAMS ((void));
@@ -582,6 +584,7 @@ static tree                   build_m2_long_int_node                      PARAMS
        tree                   gccgm2_BuildEndSetConstructor               PARAMS ((void));
        tree                   gccgm2_GetM2CharType                        PARAMS ((void));
        tree                   gccgm2_GetM2IntegerType                     PARAMS ((void));
+       tree                   gccgm2_GetM2ShortRealType                   PARAMS ((void));
        tree                   gccgm2_GetM2RealType                        PARAMS ((void));
        tree                   gccgm2_GetM2LongRealType                    PARAMS ((void));
        tree                   gccgm2_GetM2LongIntType                     PARAMS ((void));
@@ -2880,6 +2883,7 @@ init_m2_builtins ()
   m2_char_type_node = build_m2_char_node ();
   m2_integer_type_node = build_m2_integer_node ();
   m2_cardinal_type_node = build_m2_cardinal_node ();
+  m2_short_real_type_node = build_m2_short_real_node ();
   m2_real_type_node = build_m2_real_node ();
   m2_long_real_type_node = build_m2_long_real_node ();
   m2_long_int_type_node = build_m2_long_int_node ();
@@ -2966,7 +2970,7 @@ build_m2_char_node (void)
 
 static
 tree
-build_m2_real_node (void)
+build_m2_short_real_node (void)
 {
   tree c;
 
@@ -2974,6 +2978,21 @@ build_m2_real_node (void)
 
   c = make_node (REAL_TYPE);
   TYPE_PRECISION (c) = FLOAT_TYPE_SIZE;
+  layout_type (c);
+
+  return c;
+}
+
+static
+tree
+build_m2_real_node (void)
+{
+  tree c;
+
+  /* Define `REAL' */
+
+  c = make_node (REAL_TYPE);
+  TYPE_PRECISION (c) = DOUBLE_TYPE_SIZE;
   layout_type (c);
 
   return c;
@@ -9996,6 +10015,12 @@ tree
 gccgm2_GetM2CardinalType ()
 {
   return m2_cardinal_type_node;
+}
+
+tree
+gccgm2_GetM2ShortRealType ()
+{
+  return m2_short_real_type_node;
 }
 
 tree

@@ -60,14 +60,15 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @chapter Using GNU Modula-2
 
 @menu
-* About::             What this document explains.
-* History::           How GNU Modula-2 came about.
-* Compiler options::  GNU Modula-2 compiler options.
-* Example usage::     Example compile and link.
-* Extensions::        GNU Modula-2 language extensions.
-* Interface to C::    Interfacing GNU Modula-2 to C
-* Assembly language:: Interface to assembly language.
-* Built-ins::         Accessing GNU Modula-2 Built-ins
+* About::                 What this document explains.
+* History::               How GNU Modula-2 came about.
+* Compiler options::      GNU Modula-2 compiler options.
+* Example usage::         Example compile and link.
+* Elementary data types:: Data types supported by GNU Modula-2
+* Extensions::            GNU Modula-2 language extensions.
+* Interface to C::        Interfacing GNU Modula-2 to C
+* Assembly language::     Interface to assembly language.
+* Built-ins::             Accessing GNU Modula-2 Built-ins
 @end menu
 
 @node About, Compiler options, , Using
@@ -158,7 +159,7 @@ modules which are parsed will be preprocessed by @samp{cpp}.
 
 @end table
 
-@node Example usage, Extensions, Compiler options, Using
+@node Example usage, Elementary data types, Compiler options, Using
 @section Example compile and link
 
 This section describes how to compiler and link a simple hello world program.
@@ -191,7 +192,33 @@ Alternatively it may be compiled by:
 
 @samp{gm2 -g -I. -Wmakeall hello.mod}
 
-@node Extensions, Interface to C, Example usage, Using
+@node Elementary data types, Extensions, Example usage, Using
+@section Elementary data types
+
+This section describes the elementary data types supported by GNU
+Modula-2. It also describes the relationship between these data types
+and the equivalent C data types.
+
+The following data types are supported: @code{INTEGER}, @code{LONGINT},
+@code{CARDINAL}, @code{BOOLEAN}, @code{REAL}, @code{LONGREAL}, @code{SHORTREAL},
+and @code{CHAR}.
+
+An equivalence table is given below:
+
+@example
+GNU Modula-2              GNU C
+======================================
+INTEGER                   int
+LONGINT                   long int
+CARDINAL                  unsigned int
+BOOLEAN                   int
+REAL                      double
+LONGREAL                  long double
+SHORTREAL                 float
+CHAR                      char
+@end example
+
+@node Extensions, Interface to C, Elementary data types, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.

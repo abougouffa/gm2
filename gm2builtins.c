@@ -55,6 +55,7 @@ typedef enum {
   BT_FN_PTR_SIZE,
   BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE,
   BT_FN_FLOAT_FLOAT,
+  BT_FN_DOUBLE_DOUBLE,
   BT_FN_LONG_DOUBLE_LONG_DOUBLE,
   BT_FN_STRING_CONST_STRING_INT,
   BT_FN_INT_CONST_PTR_CONST_PTR_SIZE,
@@ -85,33 +86,37 @@ struct builtin_function_entry {
  */
 
 static struct builtin_function_entry list_of_builtins[] = {
-{ "__builtin_alloca", BT_FN_PTR_SIZE, BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca", NULL, NULL},
-{ "__builtin_memcpy", BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCPY, BUILT_IN_NORMAL, "memcpy", NULL, NULL},
-{ "__builtin_sinf",   BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "sinf", NULL, NULL},
-{ "__builtin_sinl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SINL, BUILT_IN_NORMAL, "sinl", NULL, NULL},
-{ "__builtin_cosf",   BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "cosf", NULL, NULL},
-{ "__builtin_cosl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SINL, BUILT_IN_NORMAL, "cosl", NULL, NULL},
-{ "__builtin_sqrtf",  BT_FN_FLOAT_FLOAT, BUILT_IN_SQRTF, BUILT_IN_NORMAL, "sqrtf", NULL, NULL},
-{ "__builtin_sqrtl",  BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SQRTL, BUILT_IN_NORMAL, "sqrtl", NULL, NULL},
-{ "__builtin_fabsf",  BT_FN_FLOAT_FLOAT, BUILT_IN_FABSF, BUILT_IN_NORMAL, "fabsf", NULL, NULL},
-{ "__builtin_fabsl",  BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_FABSL, BUILT_IN_NORMAL, "fabsl", NULL, NULL},
-{ "__builtin_index",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
+{ "__builtin_alloca",  BT_FN_PTR_SIZE, BUILT_IN_ALLOCA, BUILT_IN_NORMAL, "alloca", NULL, NULL},
+{ "__builtin_memcpy",  BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCPY, BUILT_IN_NORMAL, "memcpy", NULL, NULL},
+{ "__builtin_sinf",    BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "sinf", NULL, NULL},
+{ "__builtin_sin",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_SIN, BUILT_IN_NORMAL, "sin", NULL, NULL},
+{ "__builtin_sinl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SINL, BUILT_IN_NORMAL, "sinl", NULL, NULL},
+{ "__builtin_cosf",    BT_FN_FLOAT_FLOAT, BUILT_IN_SINF, BUILT_IN_NORMAL, "cosf", NULL, NULL},
+{ "__builtin_cos",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_COS, BUILT_IN_NORMAL, "cos", NULL, NULL},
+{ "__builtin_cosl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_COSL, BUILT_IN_NORMAL, "cosl", NULL, NULL},
+{ "__builtin_sqrtf",   BT_FN_FLOAT_FLOAT, BUILT_IN_SQRTF, BUILT_IN_NORMAL, "sqrtf", NULL, NULL},
+{ "__builtin_sqrt",    BT_FN_DOUBLE_DOUBLE, BUILT_IN_SQRT, BUILT_IN_NORMAL, "sqrt", NULL, NULL},
+{ "__builtin_sqrtl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SQRTL, BUILT_IN_NORMAL, "sqrtl", NULL, NULL},
+{ "__builtin_fabsf",   BT_FN_FLOAT_FLOAT, BUILT_IN_FABSF, BUILT_IN_NORMAL, "fabsf", NULL, NULL},
+{ "__builtin_fabs",    BT_FN_DOUBLE_DOUBLE, BUILT_IN_FABS, BUILT_IN_NORMAL, "fabs", NULL, NULL},
+{ "__builtin_fabsl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_FABSL, BUILT_IN_NORMAL, "fabsl", NULL, NULL},
+{ "__builtin_index",   BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
 { "__builtin_rindex",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_RINDEX, BUILT_IN_NORMAL, "rindex", NULL, NULL},
 { "__builtin_memcmp",  BT_FN_INT_CONST_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCMP, BUILT_IN_NORMAL, "memcmp", NULL, NULL},
 { "__builtin_memset",  BT_FN_TRAD_PTR_PTR_INT_SIZE, BUILT_IN_MEMSET, BUILT_IN_NORMAL, "memset", NULL, NULL},
 { "__builtin_strcat",  BT_FN_STRING_STRING_CONST_STRING, BUILT_IN_STRCAT, BUILT_IN_NORMAL, "strcat", NULL, NULL},
-{ "__builtin_strncat",  BT_FN_STRING_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCAT, BUILT_IN_NORMAL, "strncat", NULL, NULL},
+{ "__builtin_strncat", BT_FN_STRING_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCAT, BUILT_IN_NORMAL, "strncat", NULL, NULL},
 { "__builtin_strcpy",  BT_FN_STRING_STRING_CONST_STRING, BUILT_IN_STRCPY, BUILT_IN_NORMAL, "strcpy", NULL, NULL},
-{ "__builtin_strncpy",  BT_FN_STRING_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCPY, BUILT_IN_NORMAL, "strncpy", NULL, NULL},
+{ "__builtin_strncpy", BT_FN_STRING_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCPY, BUILT_IN_NORMAL, "strncpy", NULL, NULL},
 { "__builtin_strcmp",  BT_FN_INT_CONST_STRING_CONST_STRING, BUILT_IN_STRCMP, BUILT_IN_NORMAL, "strcmp", NULL, NULL},
-{ "__builtin_strncmp",  BT_FN_INT_CONST_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCMP, BUILT_IN_NORMAL, "strncmp", NULL, NULL},
+{ "__builtin_strncmp", BT_FN_INT_CONST_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCMP, BUILT_IN_NORMAL, "strncmp", NULL, NULL},
 { "__builtin_strlen",  BT_FN_INT_CONST_STRING, BUILT_IN_STRLEN, BUILT_IN_NORMAL, "strlen", NULL, NULL},
 { "__builtin_strstr",  BT_FN_STRING_CONST_STRING_CONST_STRING, BUILT_IN_STRSTR, BUILT_IN_NORMAL, "strstr", NULL, NULL},
-{ "__builtin_strpbrk",  BT_FN_STRING_CONST_STRING_CONST_STRING, BUILT_IN_STRPBRK, BUILT_IN_NORMAL, "strpbrk", NULL, NULL},
+{ "__builtin_strpbrk", BT_FN_STRING_CONST_STRING_CONST_STRING, BUILT_IN_STRPBRK, BUILT_IN_NORMAL, "strpbrk", NULL, NULL},
 { "__builtin_strspn",  BT_FN_SIZE_CONST_STRING_CONST_STRING, BUILT_IN_STRSPN, BUILT_IN_NORMAL, "strspn", NULL, NULL},
-{ "__builtin_strcspn",  BT_FN_SIZE_CONST_STRING_CONST_STRING, BUILT_IN_STRCSPN, BUILT_IN_NORMAL, "strcspn", NULL, NULL},
+{ "__builtin_strcspn", BT_FN_SIZE_CONST_STRING_CONST_STRING, BUILT_IN_STRCSPN, BUILT_IN_NORMAL, "strcspn", NULL, NULL},
 { "__builtin_strchr",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_STRCHR, BUILT_IN_NORMAL, "strchr", NULL, NULL},
-{ "__builtin_strrchr",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_STRCHR, BUILT_IN_NORMAL, "strrchr", NULL, NULL},
+{ "__builtin_strrchr", BT_FN_STRING_CONST_STRING_INT, BUILT_IN_STRCHR, BUILT_IN_NORMAL, "strrchr", NULL, NULL},
   //{ "__builtin_constant_p", BT_FN_INT_VAR, BUILT_IN_CONSTANT_P, BUILT_IN_NORMAL, "constant_p", NULL, NULL},
   //{ "__builtin_frame_address", BT_FN_PTR_UNSIGNED, BUILT_IN_FRAME_ADDRESS, BUILT_IN_NORMAL, "frame_address", NULL, NULL},
   //{ "__builtin_return_address", BT_FN_PTR_UNSIGNED, BUILT_IN_RETURN_ADDRESS, BUILT_IN_NORMAL, "return_address", NULL, NULL},
@@ -353,13 +358,10 @@ create_function_prototype (fe)
     ftype = float_ftype_float;
     fe->return_node = float_type_node;
     break;
-#if 0
   case BT_FN_DOUBLE_DOUBLE:
-    /* not actually used */
     ftype = double_ftype_double;
     fe->return_node = double_type_node;
     break;
-#endif
   case BT_FN_LONG_DOUBLE_LONG_DOUBLE:
     ftype = ldouble_ftype_ldouble;
     fe->return_node = long_double_type_node;
@@ -452,7 +454,7 @@ gm2builtins_init ()
 
   float_ftype_float
     = build_function_type (float_type_node,
- 			   tree_cons (NULL_TREE, gccgm2_GetM2RealType (), math_endlink));
+ 			   tree_cons (NULL_TREE, float_type_node, math_endlink));
 
   double_ftype_double
     = build_function_type (double_type_node,

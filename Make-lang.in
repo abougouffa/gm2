@@ -446,7 +446,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Base.def      M2Reserved.def  SymbolKey.def   M2BasicBlock.def\
                      M2Search.def    M2Batch.def     M2System.def    P2SymBuild.def  \
                      M2Code.def      M2Comp.def      m2lex.def       NameKey.def     \
-                     M2LexBuf.def    M2Version.def   M2Error.def     M2Math.def      \
+                     M2LexBuf.def    M2Version.def   M2Error.def     \
                      M2SubExp.def    M2Constants.def M2Students.def  M2Entity.def    \
                      M2GenGCC.def    M2GCCDeclare.def \
                      M2Configure.def SymbolTable.def Lists.def       SymbolConversion.def \
@@ -461,7 +461,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod  P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod   SymbolTable.mod                 gm2lcc.mod      \
-                     gm2lgen.mod     gm2lsub.mod     M2Error.mod     M2Math.mod      \
+                     gm2lgen.mod     gm2lsub.mod     M2Error.mod     \
                      M2SubExp.mod    M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod M2Code.mod     M2GenGCC.mod    M2GCCDeclare.mod \
                      SymbolConversion.mod            M2Base.mod      \
@@ -484,7 +484,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      CmdArgs.def       Scan.def        DebugPMD.def    StrCase.def     \
                      FIO.def           StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def      wrapc.def       Math.def        Environment.def \
-                     FpuIO.def         Debug.def       SysStorage.def  MATH.def        \
+                     FpuIO.def         Debug.def       SysStorage.def  \
                      Storage.def       StdIO.def       libc.def        SEnvironment.def\
                      Strings.def       SFIO.def        SArgs.def \
                      PushBackInput.def StringConvert.def FormatStrings.def \
@@ -495,7 +495,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      CmdArgs.mod       Scan.mod        DebugPMD.mod    StrCase.mod     \
                      FIO.mod           StrIO.mod       StrLib.mod      TimeString.mod  \
                                                        Math.mod        Environment.mod \
-                     FpuIO.mod         Debug.mod       SysStorage.mod  MATH.mod        \
+                     FpuIO.mod         Debug.mod       SysStorage.mod  \
                      Storage.mod       StdIO.mod                       SEnvironment.mod\
                      Strings.mod       SFIO.mod        SArgs.mod \
                      PushBackInput.mod StringConvert.mod FormatStrings.mod \
@@ -511,7 +511,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2Stack.def       M2FileName.def  M2Base.def      M2Reserved.def  \
                      SymbolKey.def     M2BasicBlock.def M2Search.def   M2Batch.def     \
                      M2System.def      P2SymBuild.def  M2Code.def      M2Comp.def      \
-                     NameKey.def       M2Version.def   M2Error.def     M2Math.def      \
+                     NameKey.def       M2Version.def   M2Error.def     \
                      M2Constants.def   M2Students.def  M2Entity.def    M2GenGCC.def    \
                      M2GCCDeclare.def  M2Configure.def SymbolTable.def Lists.def       \
                      P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
@@ -525,7 +525,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
-                     M2Math.mod        M2Constants.mod M2Students.mod  M2Entity.mod    \
+                                       M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
@@ -553,7 +553,7 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
                      gm2lgen.mod       gm2lsub.mod                     M2Error.mod     \
-                     M2Math.mod        M2Constants.mod M2Students.mod  M2Entity.mod    \
+                                       M2Constants.mod M2Students.mod  M2Entity.mod    \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
@@ -1048,10 +1048,10 @@ buildpge: verifypg-e
 	$(MAKE) gm2/gm2-auto/pg.o
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
 	cd gm2 ; \
-	../$(M2LINK) -s ../gm2-auto/pginit ; \
+	../$(M2LINK) -s gm2-auto/pginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a ../gm2/gm2-auto/pginit ; \
+	../$(M2LINK) -l -p2c p2c/p2c-src/home/libp2c.a gm2-auto/pginit ; \
 	$(SHELL) linkcommand ; \
 	$(RM) linkcommand ; \
 	mv a.out pge
