@@ -2798,7 +2798,9 @@ Specifier := Ident                                                % VAR n1, n2: 
                                                                     Push(n1) %
                    [ '{' StructDeclarationList '}'                % AddNodeToList(n1, Pop()) %
                    ]
-             | '{' StructDeclarationList '}'                      % AddNodeToList(n1, Pop()) %
+             | '{' StructDeclarationList '}'                      % n2 := Pop() ; n1 := Pop() ;
+                                                                    AddNodeToList(n1, n2) ;
+                                                                    Push(n1) %
            =:
 
 StructOrUnion := "struct"                                         % Push(InitNode(ndstruct)) %
