@@ -33,7 +33,7 @@ EXPORT QUALIFIED Tree,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
-                 BuildPointerType, BuildArrayType,
+                 BuildPointerType, BuildArrayType, BuildSetType,
                  BuildStartFunctionType, BuildEndFunctionType,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
@@ -421,6 +421,13 @@ PROCEDURE BuildPointerType (totype: Tree) : Tree ;
 
 PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
 
+
+(*
+   BuildSetType - creates a SET OF [low..high] where low and high
+                  both have type, type.
+*)
+
+PROCEDURE BuildSetType (name: ADDRESS; type, low, high: Tree) : Tree ;
 
 (*
    BuildStartFunctionType - starts the building of a function type.

@@ -160,8 +160,8 @@ What has been done:
 @itemize @bullet
 @item
 the sources to m2f and gcc compile and link to produce cc1gm2.
-The front end works and compiles all legal Modula-2 into
-intemediate code.
+Compiler will bootstrap itself and three generations of the
+compiler all produce the same code.
 
 @item
 the back end will generate code and assembly declarations for
@@ -248,6 +248,9 @@ also include a synopsis of 2nd Edition Modula-2.
 
 @item
 testing and fixing bugs
+
+@item
+provide a mechanism for conditional compilation.
 
 @end itemize
 
@@ -338,6 +341,24 @@ without being reset.
 This section describes how to compiler and link a simple hello world program.
 It provides a few examples of using the different options mentioned in
 @xref{Compiler options, , ,gm2}.
+Assuming that you have a file called @file{hello.mod} in your current directory
+which contains:
+
+@example
+MODULE hello ;
+
+FROM StrIO IMPORT WriteString, WriteLn ;
+
+BEGIN
+   WriteString('hello world') ; WriteLn
+END hello.
+@end example
+
+You should be able to compile it by:
+@samp{gm2 -c -g hello.mod}
+and link via:
+@samp{gm2 -g hello.mod}.
+The result should be an @samp{a.out} file is created in your directory.
 
 @c @printindex cp
 

@@ -2602,6 +2602,8 @@ lang_decode_option (argc, argv)
     return( TRUE );
   } else if (strcmp(argv[0], "-Wbounds") == 0) {
     return( TRUE );
+  } else if (strcmp(argv[0], "-Wrecovery") == 0) {
+    return( TRUE );
   } else if (strcmp(argv[0], "-Wquiet") == 0) {
     return( TRUE );
   }
@@ -4003,6 +4005,48 @@ type_lists_compatible_p (args1, args2)
 }
 #endif
 
+
+/*
+ *  convert_set - returns NULL if no set was found,
+ *                otherwise convert set to type.
+ */
+
+tree
+convert_set (type, expr)
+     tree type, expr;
+{
+  tree intype            = TREE_TYPE (expr);
+  unsigned int inprec    = TYPE_PRECISION (intype);
+  unsigned int outprec   = TYPE_PRECISION (type);
+
+  switch (TREE_CODE (intype))
+    {
+    case SET_TYPE:
+      /* If we are widening the type, put in an explicit conversion.
+	 Similarly if we are not changing the width.  After this, we know
+	 we are truncating EXPR.  */
+
+      if (outprec >= inprec)
+	return build1 (NOP_EXPR, type, expr);
+
+      /* If TYPE is an enumeral type or a type with a precision less
+	 than the number of bits in its mode, do the conversion to the
+	 type corresponding to its mode, then do a nop conversion
+	 to TYPE.  */
+      else if (TREE_CODE (type) == ENUMERAL_TYPE
+	       || outprec != GET_MODE_BITSIZE (TYPE_MODE (type)))
+	return build1 (NOP_EXPR, type,
+		       convert (type_for_mode (TYPE_MODE (type),
+					       TREE_UNSIGNED (type)),
+				expr));
+      else
+	return build1 (NOP_EXPR, type, expr);
+
+    default:
+      return( NULL_TREE);
+    }
+}
+
 /* Create an expression whose value is that of EXPR,
    converted to type TYPE.  The TREE_TYPE of the value
    is always TYPE.  This function implements all reasonable
@@ -4038,6 +4082,14 @@ convert (type, expr)
   if (TREE_CODE (expr) == NOP_EXPR)
     return convert (type, TREE_OPERAND (expr, 0));
 #endif
+
+#if defined(GM2)
+  /* check for set type conversion */
+  if ((TREE_TYPE (expr) != NULL_TREE) && (TREE_CODE( TREE_TYPE (expr)) == SET_TYPE)) {
+    return fold (convert_set(type, expr));
+  }
+#endif
+
   if (code == INTEGER_TYPE || code == ENUMERAL_TYPE)
     return fold (convert_to_integer (type, e));
   if (code == POINTER_TYPE || code == REFERENCE_TYPE)
@@ -5805,7 +5857,7 @@ void
 binary_op_error (code)
      enum tree_code code;
 {
-  register char *opname;
+  register const char *opname;
 
   switch (code)
     {
@@ -5858,6 +5910,10 @@ binary_op_error (code)
     case LROTATE_EXPR:
     case RROTATE_EXPR:
       opname = "rotate"; break;
+    case TRUTH_AND_EXPR:
+      opname = "&"; break;
+    case TRUTH_OR_EXPR:
+      opname = "|"; break;
     default:
       opname = "unknown"; break;
     }
@@ -8083,6 +8139,53 @@ gccgm2_BuildArrayType (elementtype, indextype)
 
 
 /*
+ *  build_set_type - creates a set type from the, range, [low..high]. The
+ *                   values low..high all have type, type.
+ */
+
+tree
+build_set_type (range, type)
+     tree range, type;
+{
+  tree settype          = make_node (SET_TYPE);
+
+  use_gnu_debug_info_extensions = 1;
+  TREE_TYPE (settype)   = type;
+  TYPE_DOMAIN (settype) = range;
+
+  if (TYPE_SIZE (settype) == 0)
+    layout_type (settype);
+
+  return( settype );
+}
+
+/*
+ *  BuildSetType - creates a SET OF [lowval..highval]
+ */
+
+tree
+gccgm2_BuildSetType (name, type, lowval, highval)
+     char *name;
+     tree type, lowval, highval;
+{
+  tree id =build_range_type( skip_type_decl (type), lowval, highval);
+  tree settype;
+
+  layout_type (id);
+  settype = build_set_type(id, type);
+
+  if ((name == NULL) || (strcmp(name, "") == 0)) {
+    /* no modula-2 name thus return id */
+    return( settype );
+  } else {
+    /* obviously declared as TYPE foo = SET OF [x..y] ; */
+    id = gccgm2_DeclareKnownType(name, settype);
+    layout_type ( skip_type_decl (id));
+    return( id );
+  }
+}
+
+/*
  *  BuildSubrangeType - creates a subrange of, type, with, lowval, highval.
  */
 
@@ -8797,7 +8900,9 @@ gccgm2_BuildLogicalOr (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_OR_EXPR, op1, op2, needconvert) );
+  return( build_binary_op (TRUTH_OR_EXPR,
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
 }
 
 
@@ -8810,7 +8915,9 @@ gccgm2_BuildLogicalAnd (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_AND_EXPR, op1, op2, needconvert) );
+  return( build_binary_op (TRUTH_AND_EXPR,
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
 }
 
 
@@ -8823,7 +8930,9 @@ gccgm2_BuildSymmetricDifference (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return( build_binary_op (TRUTH_XOR_EXPR, op1, op2, needconvert) );
+  return( build_binary_op (TRUTH_XOR_EXPR,
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
+			   gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), needconvert) );
 }
 
 
@@ -8961,7 +9070,9 @@ gccgm2_BuildIfIn (op1, op2)
      tree op1, op2;
 {
   return( build_binary_op(NE_EXPR,
-                          build_binary_op(TRUTH_AND_EXPR, op1, op2, 0),
+                          build_binary_op(TRUTH_AND_EXPR,
+					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
+					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), 0),
                           integer_zero_node, 0));
 }
 
@@ -8975,7 +9086,9 @@ gccgm2_BuildIfNotIn (op1, op2)
      tree op1, op2;
 {
   return( build_binary_op(EQ_EXPR,
-                          build_binary_op(TRUTH_AND_EXPR, op1, op2, 0),
+                          build_binary_op(TRUTH_AND_EXPR,
+					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op1),
+					  gccgm2_BuildConvert(gccgm2_GetIntegerType(), op2), 0),
                           integer_zero_node, 0) );
 }
 

@@ -348,7 +348,8 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Lexical.def   P1Compile.def   P3Expression.def M2Version.def  \
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
-                     SymbolConversion.def M2Configure.def SymbolTable.def Lists.def
+                     SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
+                     P1SyntaxCheck.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -366,7 +367,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-GM2-COMP-BOOT-C    = M2Search.c P3Type.c M2Alias.c
+GM2-COMP-BOOT-C    = M2Search.c P3Type.c M2Alias.c P1SyntaxCheck.c
 GM2-COMP-BOOT-H    = M2Alias.h
 
 #
@@ -409,7 +410,7 @@ GM2-COMP-DEFS      = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
                      SymbolConversion.def M2Configure.def SymbolTable.def Lists.def  \
-                     M2Alias.def
+                     M2Alias.def     P1SyntaxCheck.def
 
 GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -426,7 +427,7 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
                      M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod       \
-                     M2Search.mod    P3Type.mod      M2Alias.mod
+                     M2Search.mod    P3Type.mod      M2Alias.mod     P1SyntaxCheck.mod
 
 gm2-libs-boot:
 	@mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
@@ -755,7 +756,7 @@ gm2lsub: m2/comp/p2c/home/libp2c.a force
 # verifyparanoid - diffs the output of all three compilers with the compiler source code
 #
 verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
-	@echo "verifying the three generations of GNU Modula-2 compilers - it may be take some time.."
+	@echo "verifying the three generations of GNU Modula-2 compilers - it may take some time.."
 	@cd gm2-compiler-verify ; \
         for i in *.mod ; do \
            echo -n "$$i" ; \
