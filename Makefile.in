@@ -321,7 +321,7 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Options.mod   M2Pass.mod      M2Batch.mod     M2Quads.mod     \
                      M2Reference.mod M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
-                     P1Compile.mod   M2FileName.mod  P1Expression.mod m2f.mod        \
+                     P1Compile.mod   M2FileName.mod  P1Expression.mod                \
                      P1Statement.mod P1SymBuild.mod  P1Type.mod      P2Compile.mod   \
                      P2Expression.mod P2Statement.mod P2SymBuild.mod P2Type.mod      \
                      P3Compile.mod   P3Expression.mod P3Statement.mod P3SymBuild.mod \
@@ -382,7 +382,7 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Options.mod   M2Pass.mod      M2Batch.mod     M2Quads.mod     \
                      M2Reference.mod M2Comp.mod      M2Reserved.mod  M2Configure.mod \
                      M2Debug.mod     M2Defaults.mod  M2Depth.mod     NameKey.mod     \
-                     P1Compile.mod   M2FileName.mod  P1Expression.mod m2f.mod        \
+                     P1Compile.mod   M2FileName.mod  P1Expression.mod                \
                      P1Statement.mod P1SymBuild.mod  P1Type.mod      P2Compile.mod   \
                      P2Expression.mod P2Statement.mod P2SymBuild.mod P2Type.mod      \
                      P3Compile.mod   P3Expression.mod P3Statement.mod P3SymBuild.mod \

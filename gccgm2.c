@@ -66,6 +66,7 @@ static void add_attribute		PROTO((enum attrs, char *,
 static void init_attributes		PROTO((void));
        tree gccgm2_BuildIntegerConstant PROTO((int value));
        tree gccgm2_GetIntegerType       PROTO((void));
+       tree gccgm2_BuildConvert         PROTO((tree, tree, int));
 
 
 /*
