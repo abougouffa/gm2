@@ -4951,7 +4951,7 @@ BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
    PushT(NoOfParam) ;
-   IF (ProcSym#Convert) AND IsPseudoBaseFunction(ProcSym)
+   IF (ProcSym#Convert) AND IsPseudoBaseFunction(ProcSym) OR (ProcSym=Size)
    THEN
       BuildFunctionCall
    ELSE
@@ -6326,7 +6326,7 @@ END BuildValFunction ;
 (*
    BuildCastFunction - builds the pseudo procedure call CAST.
                        This procedure is actually a "macro" for
-                       CAST(Type, x) --> CONVERT(Type, x)
+                       CAST(Type, x) --> Type(x)
                        However we cannot push tokens back onto the input stack
                        because the compiler is currently building a function
                        call and expecting a ReturnVar on the stack.
@@ -6374,13 +6374,12 @@ BEGIN
       THEN
          PopN(NoOfParam+1) ;
          (*
-            Build macro: CONVERT( Type, Var )
+            Build macro: Type( Var )
          *)
-         PushTF(Convert, NulSym) ;
-         PushT(Type) ;
+         PushTF(Type, NulSym) ;
          PushT(Var) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction
+         PushT(1) ;          (* one parameter *)
+         BuildTypeCoercion
       ELSE
          WriteFormat0('arguments to CAST must be (Type, Variable or Constant)')
       END

@@ -1,3 +1,9 @@
+2003-05-27	Gaius Mulley <gaius@glam.ac.uk>
+	
+	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/realbitscast.mod).
+	  Fixed cast to copy data.
+	* enabled SIZE to be invoked from constant expressions.
+
 2003-05-20	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/testlength3.mod)

@@ -44,7 +44,7 @@ EXPORT QUALIFIED Tree,
                  BuildAssignment,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
                  BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
-                 BuildConvert,
+                 BuildConvert, BuildCoerce,
                  BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
                  BuildOffset, BuildTrunc,
                  BuildGoto, DeclareLabel,
@@ -744,6 +744,13 @@ PROCEDURE BuildSymmetricDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree
 *)
 
 PROCEDURE BuildConvert (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildCoerce - returns a tree containing the cast op1 := op2.
+*)
+
+PROCEDURE BuildCoerce (op1, op2, op3: Tree) : Tree ;
 
 
 (*

@@ -397,6 +397,8 @@ static tree                   unary_complex_lvalue 	        	  PARAMS ((enum tre
 static int                    comp_target_types 		        	  PARAMS ((tree ttl, tree ttr));
        tree                   convert_set    		        	  PARAMS ((tree type, tree expr));
        tree                   convert        		        	  PARAMS ((tree type, tree expr));
+       tree                   gccgm2_BuildCoerce                          PARAMS ((tree op1, tree op2, tree op3));
+static tree                   build_m2_cast                               PARAMS ((tree, tree));
 static void                   warn_for_assignment 	       	          PARAMS ((const char *msg, const char *opname,
 									 	  tree function, int argnum));
        void                   constant_expression_warning       	  PARAMS ((tree value));
@@ -4609,7 +4611,7 @@ convert_set (type, expr)
 	return build1 (NOP_EXPR, type, expr);
 
     default:
-      return( NULL_TREE);
+      return NULL_TREE;
     }
 }
 
@@ -4652,7 +4654,7 @@ convert (type, expr)
 #if defined(GM2)
   /* check for set type conversion */
   if ((TREE_TYPE (expr) != NULL_TREE) && (TREE_CODE (TREE_TYPE (expr)) == SET_TYPE))
-    return fold (convert_set(type, expr));
+    return fold (convert_set (type, expr));
 #endif
 
   if (code == INTEGER_TYPE || code == ENUMERAL_TYPE)
@@ -9122,6 +9124,220 @@ gccgm2_BuildConvert (op1, op2)
   return convert_and_check (skip_type_decl (op1), op2);
 }
 
+/*
+ *  Build an expression representing a cast to type TYPE of expression EXPR.
+ *  (taken from build_c_cast)
+ */
+
+static
+tree
+build_m2_cast (type, expr)
+     tree type;
+     tree expr;
+{
+  tree value = expr;
+  
+  if (type == error_mark_node || expr == error_mark_node)
+    return error_mark_node;
+#if !defined(GM2)
+  type = TYPE_MAIN_VARIANT (type);
+#endif
+
+#if 0
+  /* Strip NON_LVALUE_EXPRs since we aren't using as an lvalue.  */
+  if (TREE_CODE (value) == NON_LVALUE_EXPR)
+    value = TREE_OPERAND (value, 0);
+#endif
+
+  if (TREE_CODE (type) == ARRAY_TYPE)
+    {
+      error ("cast specifies array type");
+      return error_mark_node;
+    }
+
+  if (TREE_CODE (type) == FUNCTION_TYPE)
+    {
+      error ("cast specifies function type");
+      return error_mark_node;
+    }
+
+#if !defined(GM2)
+  if (type == TYPE_MAIN_VARIANT (TREE_TYPE (value)))
+    {
+      if (pedantic)
+	{
+	  if (TREE_CODE (type) == RECORD_TYPE
+	      || TREE_CODE (type) == UNION_TYPE)
+	    pedwarn ("ISO C forbids casting nonscalar to the same type");
+	}
+    }
+  else if (TREE_CODE (type) == UNION_TYPE)
+    {
+      tree field;
+      value = default_function_array_conversion (value);
+
+      for (field = TYPE_FIELDS (type); field; field = TREE_CHAIN (field))
+	if (comptypes (TYPE_MAIN_VARIANT (TREE_TYPE (field)),
+		       TYPE_MAIN_VARIANT (TREE_TYPE (value))))
+	  break;
+
+      if (field)
+	{
+	  const char *name;
+	  tree t;
+
+	  if (pedantic)
+	    pedwarn ("ISO C forbids casts to union type");
+	  if (TYPE_NAME (type) != 0)
+	    {
+	      if (TREE_CODE (TYPE_NAME (type)) == IDENTIFIER_NODE)
+		name = IDENTIFIER_POINTER (TYPE_NAME (type));
+	      else
+		name = IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (type)));
+	    }
+	  else
+	    name = "";
+	  t = digest_init (type, build (CONSTRUCTOR, type, NULL_TREE,
+					build_tree_list (field, value)),
+			   0, 0);
+	  TREE_CONSTANT (t) = TREE_CONSTANT (value);
+	  return t;
+	}
+      error ("cast to union type from type not present in union");
+      return error_mark_node;
+    }
+  else
+#endif
+    {
+      tree otype, ovalue;
+
+      /* If casting to void, avoid the error that would come
+	 from default_conversion in the case of a non-lvalue array.  */
+      if (type == void_type_node)
+	return build1 (CONVERT_EXPR, type, value);
+
+      /* Convert functions and arrays to pointers,
+	 but don't convert any other types.  */
+      value = default_function_array_conversion (value);
+      otype = TREE_TYPE (value);
+
+#if !defined(GM2)
+      /* Optionally warn about potentially worrisome casts.  */
+
+      if (warn_cast_qual
+	  && TREE_CODE (type) == POINTER_TYPE
+	  && TREE_CODE (otype) == POINTER_TYPE)
+	{
+	  tree in_type = type;
+	  tree in_otype = otype;
+	  int added = 0;
+	  int discarded = 0;
+
+	  /* Check that the qualifiers on IN_TYPE are a superset of
+	     the qualifiers of IN_OTYPE.  The outermost level of
+	     POINTER_TYPE nodes is uninteresting and we stop as soon
+	     as we hit a non-POINTER_TYPE node on either type.  */
+	  do
+	    {
+	      in_otype = TREE_TYPE (in_otype);
+	      in_type = TREE_TYPE (in_type);
+
+	      /* GNU C allows cv-qualified function types.  'const'
+		 means the function is very pure, 'volatile' means it
+		 can't return.  We need to warn when such qualifiers
+		 are added, not when they're taken away.  */
+	      if (TREE_CODE (in_otype) == FUNCTION_TYPE
+		  && TREE_CODE (in_type) == FUNCTION_TYPE)
+		added |= (TYPE_QUALS (in_type) & ~TYPE_QUALS (in_otype));
+	      else
+		discarded |= (TYPE_QUALS (in_otype) & ~TYPE_QUALS (in_type));
+	    }
+	  while (TREE_CODE (in_type) == POINTER_TYPE
+		 && TREE_CODE (in_otype) == POINTER_TYPE);
+
+	  if (added)
+	    warning ("cast adds new qualifiers to function type");
+
+	  if (discarded)
+	    /* There are qualifiers present in IN_OTYPE that are not
+	       present in IN_TYPE.  */
+	    warning ("cast discards qualifiers from pointer target type");
+	}
+
+      /* Warn about possible alignment problems.  */
+      if (STRICT_ALIGNMENT && warn_cast_align
+	  && TREE_CODE (type) == POINTER_TYPE
+	  && TREE_CODE (otype) == POINTER_TYPE
+	  && TREE_CODE (TREE_TYPE (otype)) != VOID_TYPE
+	  && TREE_CODE (TREE_TYPE (otype)) != FUNCTION_TYPE
+	  /* Don't warn about opaque types, where the actual alignment
+	     restriction is unknown.  */
+	  && !((TREE_CODE (TREE_TYPE (otype)) == UNION_TYPE
+		|| TREE_CODE (TREE_TYPE (otype)) == RECORD_TYPE)
+	       && TYPE_MODE (TREE_TYPE (otype)) == VOIDmode)
+	  && TYPE_ALIGN (TREE_TYPE (type)) > TYPE_ALIGN (TREE_TYPE (otype)))
+	warning ("cast increases required alignment of target type");
+#endif
+      if (TREE_CODE (type) == INTEGER_TYPE
+	  && TREE_CODE (otype) == POINTER_TYPE
+	  && TYPE_PRECISION (type) != TYPE_PRECISION (otype)
+	  && !TREE_CONSTANT (value))
+	warning ("cast from pointer to integer of different size");
+
+#if !defined(GM2)
+      if (warn_bad_function_cast
+	  && TREE_CODE (value) == CALL_EXPR
+	  && TREE_CODE (type) != TREE_CODE (otype))
+	warning ("cast does not match function type");
+#endif
+
+      if (TREE_CODE (type) == POINTER_TYPE
+	  && TREE_CODE (otype) == INTEGER_TYPE
+	  && TYPE_PRECISION (type) != TYPE_PRECISION (otype)
+	  /* Don't warn about converting any constant.  */
+	  && !TREE_CONSTANT (value))
+	warning ("cast to pointer from integer of different size");
+
+      ovalue = value;
+      value = convert (type, value);
+
+      /* Ignore any integer overflow caused by the cast.  */
+      if (TREE_CODE (value) == INTEGER_CST)
+	{
+	  TREE_OVERFLOW (value) = TREE_OVERFLOW (ovalue);
+	  TREE_CONSTANT_OVERFLOW (value) = TREE_CONSTANT_OVERFLOW (ovalue);
+	}
+    }
+
+  /* Pedantically, don't let (void *) (FOO *) 0 be a null pointer constant.  */
+  if (pedantic && TREE_CODE (value) == INTEGER_CST
+      && TREE_CODE (expr) == INTEGER_CST
+      && TREE_CODE (TREE_TYPE (expr)) != INTEGER_TYPE)
+    value = non_lvalue (value);
+
+  /* If pedantic, don't let a cast be an lvalue.  */
+  if (value == expr && pedantic)
+    value = non_lvalue (value);
+
+  return value;
+}
+
+/*
+ *  BuildCoerce - returns a tree containing the expression, expr, after
+ *                it has been coersed to, type.
+ */
+
+tree
+gccgm2_BuildCoerce (des, type, expr)
+     tree des, type, expr;
+{
+  tree copy = copy_node (expr);
+  TREE_TYPE (copy) = type;
+  
+  return build_modify_expr (des, NOP_EXPR, copy);
+  /* return copy; */
+  /*  return build_m2_cast (type, expr); */
+}
 
 /*
  *  BuildTrunc - returns an integer expression from a REAL or LONGREAL op1.

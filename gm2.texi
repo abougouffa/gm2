@@ -37,7 +37,7 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 16 May 2003
+@center Last updated 20 May 2003
 @sp 10
 @c @center @image{gm2/images/gnu,,1.5in}
 @vskip 0pt plus 1filll
@@ -78,13 +78,13 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @node About, Compiler options, , Using
 @section About
 
-This file contains design notes accompanying the Modula-2 front end to
-gcc. The GNU Modula-2 compiler is based on the language as defined in
-'Programming in Modula-2' 2nd Edition, Springer Verlag, 1982, 1983 by
-Niklaus Wirth.  (PIM2) and 'Programming in Modula-2', 3rd Corrected
-Edition, Springer Verlag, 1985 (PIM3) and 'Programming in Modula-2',
-4th Edition, Springer Verlag, 1988 (PIM4).  It also includes ISO M2
-features and GNU M2 extensions.
+This document contains the user and design issues relevant to the
+Modula-2 front end to gcc. The GNU Modula-2 compiler is based on the
+language as defined in 'Programming in Modula-2' 2nd Edition, Springer
+Verlag, 1982, 1983 by Niklaus Wirth (PIM2), 'Programming in
+Modula-2', 3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
+'Programming in Modula-2', 4th Edition, Springer Verlag, 1988 (PIM4).
+It also includes ISO M2 features and GNU M2 extensions.
 
 There are currently two sets of libraries. The 'Programming in Modula-2'
 libraries are reasonably complete whereas the ISO libraries are still
@@ -113,7 +113,7 @@ fall out at the end.
 
 @item -v
 display all calls to subsidiary programs, such as the C preprocessor,
-the gm2 linker and compiler.
+the GNU Modula-2 linker and compiler.
 
 @item -Wstatistics
 generates quadruple information: number of quadruples generated,
@@ -140,14 +140,14 @@ outside the end of this loop without being reset.
 this option is only applicable when linking a program module.  The
 compiler will generate a @file{modulename.lst} file which contains a
 list indicating the initialisation order of all modules which are to
-be linked. The actual link does not occur.  The gm2 linker scans all
-@code{IMPORT}s, generates a list of dependencies and produces an
-ordered list for initialisation. It will probably get the order wrong
-if your project has cyclic dependencies, but the @file{.lst} file is
-plain text and can be modified if required.  Once the @file{.lst} file
-is created it can be used by the compiler to link your project via the
-@samp{-Wuselist} option.  It has no effect if the @samp{-c} option is
-present.
+be linked. The actual link does not occur.  The GNU Modula-2 linker
+scans all @code{IMPORT}s, generates a list of dependencies and
+produces an ordered list for initialisation. It will probably get the
+order wrong if your project has cyclic dependencies, but the
+@file{.lst} file is plain text and can be modified if required.  Once
+the @file{.lst} file is created it can be used by the compiler to link
+your project via the @samp{-Wuselist} option.  It has no effect if the
+@samp{-c} option is present.
 
 @item -Wuselist
 providing @samp{gm2} has been told to link the program module this
@@ -338,6 +338,7 @@ PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
 
 @findex HALT
 PROCEDURE HALT ;
+
 @end example
 
 The following define the standard set of functions which conform with Programming
@@ -390,56 +391,74 @@ is defined as:
 (*
    LENGTH - returns the length of string, a.
 *)
-
+@findex LENGTH
 PROCEDURE LENGTH (a: ARRAY OF CHAR) : CARDINAL ;
 
 @end example
 
-This function is evaluated at compile time, providing that string @code{a}
-is a constant. If @code{a} cannot be evaluated then a call is made to
-@code{M2RTS.Length}.
+This function is evaluated at compile time, providing that string
+@code{a} is a constant. If @code{a} cannot be evaluated then a call is
+made to @code{M2RTS.Length}.
 
-@c complete this as well
+@c complete other ISO functions
 
 @node Extensions, Interface to C, Standard procedures, Using
 @section GNU Modula-2 language extensions
 
-This section introduces the GNU Modula-2 language extensions.
-The GNU Modula-2 compiler allows abstract data types to be
-@code{any} type, not just restricted to a pointer type.
+This section introduces the GNU Modula-2 language extensions.  The GNU
+Modula-2 compiler allows abstract data types to be @code{any} type,
+not just restricted to a pointer type.
 
-It also allows declarations in any order. Type, constant, procedure and
-variable declarations can be in any order. Nested modules may also declare
-types in any order, consider:
+It also allows declarations in any order, whether they are
+types, constants, procedures, nested modules or variables
+(see @xref{Declaration ordering, , ,gm2}).
+
+The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
+command line option. This in turn invokes @samp{cpp} with the
+following arguments @samp{-traditional -lang-asm -C}.  These options
+preserve comments and all quotations.  @samp{gm2} treats a @samp{#}
+character in the first column as a preprocessor directive.
+
+For example here is a module which calls @code{InternalError}
+twice via the macro @code{ERROR}.
 
 @example
-MODULE colour ;
+MODULE cpp ;
 
-   PROCEDURE make (VAR c: colours) ;
-   BEGIN
-      c := yellow
-   END make ;
+FROM SYSTEM IMPORT ADR ;
+FROM libc IMPORT exit, printf ;
 
-   MODULE inner ;
-   EXPORT colours ;
+PROCEDURE InternalError (a, file: ARRAY OF CHAR;
+                         line: CARDINAL) ;
+VAR
+   r: INTEGER ;
+BEGIN
+   r := printf("%s:%d:internal error, %s\n",
+               ADR(file), line, ADR(a)) ;
+   exit(1)
+END InternalError ;
 
-   TYPE
-      colours = (red, blue, yellow, white) ;
-   END inner ;
+#define ERROR(X)  InternalError(X, __FILE__, __LINE__)
 
 VAR
-   g: colours
+   i, j: CARDINAL ;
 BEGIN
-   make(g)
-END colour.
+   i := 1 ;
+   j := 1 ;
+   IF i#j
+   THEN
+      ERROR('trivial assignment failed')
+   END ;
+   i := 2 DIV 2 ;
+   IF i#j
+   THEN
+      ERROR('trivial division failed')
+   END
+END cpp.
 @end example
 
-The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp} command
-line option. This in turn invokes @samp{cpp} with the following
-arguments @samp{-traditional -lang-asm -C}.
-These options preserve comments and all quotations.
-@samp{gm2} treats a @samp{#} character in the first column
-as a preprocessor directive.
+GNU Modula-2 also allows programmers to interface to @code{C} and
+assembly language.
 
 @node Interface to C, h2def, Extensions, Using
 @section Interfacing GNU Modula-2 to C
@@ -773,7 +792,7 @@ The document is still in it's infancy.
 * History::                 Where the sources came from.
 * Overview::                Overview of the structure of GNU Modula-2.
 * Integrating::             How the front end integrates with gcc.
-* Building and installing:: How to build gm2.
+* Building and installing:: How to build GNU Modula-2.
 * Passes::                  What gets processed during each pass.
 * Scope rules::             Clarification of some the scope rules.
 * Future::                  A future wish list.
@@ -845,9 +864,9 @@ cd ..
 This section describes the general actions of each pass.  The key to
 building up the symbol table correctly is to ensure that the symbols
 are only created in the scope where they were declared.  This may seem
-obvious (and easy) but it is complicated by two issues: firstly gm2
-does not generate @code{.sym} files and so all imported definition
-modules are parsed after the module is parsed; secondly the
+obvious (and easy) but it is complicated by two issues: firstly GNU
+Modula-2 does not generate @code{.sym} files and so all imported
+definition modules are parsed after the module is parsed; secondly the
 import/export rules might mean that you can see and use a symbol
 before it is declared in a completely different scope.
 
@@ -882,8 +901,8 @@ exported from an inner module.
 The @code{EnumerationScope} list is common to both @code{DefImp} and
 @code{Module} symbols and defines all visible enumeration symbols.
 When this module is parsed these the contents of these enumeration
-types are marked as visible. Internally to gm2 these form a pseudo
-scope (rather like a @code{WITH} statement which temporarily
+types are marked as visible. Internally to GNU Modula-2 these form a
+pseudo scope (rather like a @code{WITH} statement which temporarily
 makes the fields of the record visible).
 
 The @code{ExportUndeclared} list is common to both @code{DefImp} and
@@ -939,15 +958,46 @@ To do
 
 To do
 
+@subsection Declaration ordering
+
+This section gives a few stress testing examples and walks though
+the mechanics of the passes and how the lists of symbols are created.
+
+The first example contains a nested module in which an enumeration
+type is created and exported. A procedure declared before the nested
+module uses the enumeration type.
+
+@example
+MODULE colour ;
+
+   PROCEDURE make (VAR c: colours) ;
+   BEGIN
+      c := yellow
+   END make ;
+
+   MODULE inner ;
+   EXPORT colours ;
+
+   TYPE
+      colours = (red, blue, yellow, white) ;
+   END inner ;
+
+VAR
+   g: colours
+BEGIN
+   make(g)
+END colour.
+@end example
+
 @node Scope rules, Future, Passes, Internals
 @section Scope rules
 
 This section describes my understanding of the Modula-2 scope rules
 with respect to enumerated types.  If they are incorrect please
 correct me by email <gaius at glam.ac.uk>. They also serve to document
-the behaviour of gm2 in these cirumstances.
+the behaviour of GNU Modula-2 in these cirumstances.
 
-In gm2 the syntax for a type declaration is defined as:
+In GNU Modula-2 the syntax for a type declaration is defined as:
 
 @example
 TypeDeclaration := Ident "=" Type =:							   
@@ -1092,7 +1142,7 @@ then @code{red} is resolved and the module is legal.
 In the future it might be sensible to rewrite M2Quads.mod to
 directly call gcc routines, rather than generate quadruples.
 However this is a large alteration and I'd firstly like to
-see gm2 working with the method outlined above, which is
+see GNU Modula-2 working with the method outlined above, which is
 conceptually easier.
 
 @node Done list, To do list, Future, Internals

@@ -111,7 +111,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIsSubset, BuildIsNotSubset,
                    BuildIfIn, BuildIfNotIn,
                    BuildIndirect,
-                   BuildConvert, BuildTrunc,
+                   BuildConvert, BuildTrunc, BuildCoerce,
                    BuildBinaryForeachWordDo,
                    BuildUnaryForeachWordDo,
                    BuildExcludeVarConst, BuildIncludeVarConst,
@@ -3027,11 +3027,11 @@ END CodeConvert ;
 
 
 (*
-   CodeCoerce - Coerce Operand3 to type Operand2 placing the result into
-                Operand1.
+   CodeCoerce - Coerce operand3 to type operand2 placing the result into
+                operand1.
                 Coerce will NOT alter the machine representation
-                of Operand3 to comply with TYPE Operand2.
-                Therefore it INSISTS that under all circumstances that the
+                of operand3 to comply with TYPE Operand2.
+                Therefore it _insists_ that under all circumstances that the
                 type sizes of Operand1 and Operand3 are the same.
                 CONVERT will perform machine manipulation to change variable
                 types, coerce does no such thing.
@@ -3071,12 +3071,20 @@ BEGIN
                    DeclareKnownConstant(Mod2Gcc(GetType(operand1)),
                                         Mod2Gcc(operand3)))
       ELSE
-         t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
+         Assert(GccKnowsAbout(operand2)) ;
+         IF IsConst(operand3)
+         THEN
+            t := BuildAssignment(Mod2Gcc(operand1), Mod2Gcc(operand3))
+         ELSE
+            (* does not work t := BuildCoerce(Mod2Gcc(operand1), Mod2Gcc(operand2), Mod2Gcc(operand3)) *)
+            ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(operand1), FALSE),
+                                                     BuildAddr(Mod2Gcc(operand3), FALSE),
+                                                     FindSize(operand2)))
+         END
       END
    ELSE
-      WarnStringAt(Sprintf2(Mark(InitString('TYPE Coersion can only be achieved with types of the same size, problem with %a and %a, attempting convert via VAL instead')),
-                            GetSymName(operand2), GetSymName(operand3)), CurrentQuadToken) ;
-      CodeConvert
+      ErrorStringAt(InitString('can only CAST objects of the same size'),
+                    QuadToTokenNo(CurrentQuad))
    END
 END CodeCoerce ;
 
