@@ -57,6 +57,7 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 CONST
    MaxScopes  =    50 ; (* Maximum number of scopes at any one time.         *)
    MaxSymbols = 100000 ; (* Maximum number of symbols.                        *)
+   DebugUnknowns = FALSE ;
 
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
@@ -167,102 +168,105 @@ TYPE
                  At          : Where ;        (* Where was sym declared/used *)
               END ;
 
-   SymSubscript = RECORD
-                     Type       : CARDINAL ;   (* Index to a subrange symbol. *)
-                     Size       : PtrToValue ; (* Size of this indice in*Size *)
-                     Offset     : PtrToValue ; (* Offset at runtime of symbol *)
-                                               (* Pseudo ie: Offset+Size*i    *)
-                                               (* 1..n. The array offset is   *)
-                                               (* the real memory offset.     *)
-                                               (* This offset allows the a[i] *)
-                                               (* to be calculated without    *)
-                                               (* the need to perform         *)
-                                               (* subtractions when a[4..10]  *)
-                                               (* needs to be indexed.        *)
-                     At         : Where ;      (* Where was sym declared/used *)
-                  END ;
+  SymSubscript = RECORD
+                    Type       : CARDINAL ;   (* Index to a subrange symbol. *)
+                    Size       : PtrToValue ; (* Size of this indice in*Size *)
+                    Offset     : PtrToValue ; (* Offset at runtime of symbol *)
+                                              (* Pseudo ie: Offset+Size*i    *)
+                                              (* 1..n. The array offset is   *)
+                                              (* the real memory offset.     *)
+                                              (* This offset allows the a[i] *)
+                                              (* to be calculated without    *)
+                                              (* the need to perform         *)
+                                              (* subtractions when a[4..10]  *)
+                                              (* needs to be indexed.        *)
+                    At         : Where ;      (* Where was sym declared/used *)
+                 END ;
 
-   SymUnbounded = RECORD
-                     Type       : CARDINAL ;   (* Index to Simple type symbol *)
-                     Size       : PtrToValue ; (* Max No of words ever        *)
-                                               (* passed to this type.        *)
-                     Scope      : CARDINAL ;   (* Scope of declaration.       *)
-                     At         : Where ;      (* Where was sym declared/used *)
-                  END ;
+  SymUnbounded = RECORD
+                    Type       : CARDINAL ;   (* Index to Simple type symbol *)
+                    Size       : PtrToValue ; (* Max No of words ever        *)
+                                              (* passed to this type.        *)
+                    Scope      : CARDINAL ;   (* Scope of declaration.       *)
+                    At         : Where ;      (* Where was sym declared/used *)
+                 END ;
 
    SymProcedure
-            = RECORD
-                 name          : Name ;       (* Index into name array, name   *)
-                                              (* of procedure.                 *)
-                 ListOfParam   : List ;       (* Contains a list of all the    *)
-                                              (* parameters in this procedure. *)
-                 ParamDefined  : BOOLEAN ;    (* Have the parameters been      *)
-                                              (* defined yet?                  *)
-                 DefinedInDef  : BOOLEAN ;    (* Were the parameters defined   *)
-                                              (* in the Definition module?     *)
-                                              (* Note that this depends on     *)
-                                              (* whether the compiler has read *)
-                                              (* the .def or .mod first.       *)
-                                              (* The second occurence is       *)
-                                              (* compared to the first.        *)
-                 DefinedInImp  : BOOLEAN ;    (* Were the parameters defined   *)
-                                              (* in the Implementation module? *)
-                                              (* Note that this depends on     *)
-                                              (* whether the compiler has read *)
-                                              (* the .def or .mod first.       *)
-                                              (* The second occurence is       *)
-                                              (* compared to the first.        *)
-                 HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
-                 HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
-                 OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
-                 IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
-                 BuiltinName   : Name ;       (* name of equivalent builtin    *)
-                 ScopeQuad     : CARDINAL ;   (* Index into quads for scope    *)
-                 StartQuad     : CARDINAL ;   (* Index into quads for start    *)
-                                              (* of procedure.                 *)
-                 EndQuad       : CARDINAL ;   (* Index into quads for end of   *)
-                                              (* procedure.                    *)
-                 Reachable     : BOOLEAN ;    (* Defines if procedure will     *)
-                                              (* ever be called by the main    *)
-                                              (* Module.                       *)
-                 ReturnType    : CARDINAL ;   (* Return type for function.     *)
-                 Offset        : CARDINAL ;   (* Location of procedure used    *)
-                                              (* in Pass 2 and if procedure    *)
-                                              (* is a syscall.                 *)
-                 LocalSymbols: SymbolTree ;   (* Contains all symbols declared *)
-                                              (* within this procedure.        *)
-                 EnumerationScopeList: List ;
-                                              (* Enumeration scope list which  *)
-                                              (* contains a list of all        *)
-                                              (* enumerations which are        *)
-                                              (* visable within this scope.    *)
-                 ListOfVars    : List ;       (* List of variables in this     *)
-                                              (* scope.                        *)
-                 ListOfProcs   : List ;       (* List of all procedures        *)
-                                              (* declared within this          *)
-                                              (* procedure.                    *)
-                 Size          : PtrToValue ; (* Activation record size.       *)
-                 TotalParamSize: PtrToValue ; (* size of all parameters.       *)
-                 Scope         : CARDINAL ;   (* Scope of declaration.         *)
-                 ListOfModules : List ;       (* List of all inner modules.    *)
-                 At            : Where ;      (* Where was sym declared/used   *)
-              END ;
+          = RECORD
+               name          : Name ;       (* Index into name array, name   *)
+                                            (* of procedure.                 *)
+               ListOfParam   : List ;       (* Contains a list of all the    *)
+                                            (* parameters in this procedure. *)
+               ParamDefined  : BOOLEAN ;    (* Have the parameters been      *)
+                                            (* defined yet?                  *)
+               DefinedInDef  : BOOLEAN ;    (* Were the parameters defined   *)
+                                            (* in the Definition module?     *)
+                                            (* Note that this depends on     *)
+                                            (* whether the compiler has read *)
+                                            (* the .def or .mod first.       *)
+                                            (* The second occurence is       *)
+                                            (* compared to the first.        *)
+               DefinedInImp  : BOOLEAN ;    (* Were the parameters defined   *)
+                                            (* in the Implementation module? *)
+                                            (* Note that this depends on     *)
+                                            (* whether the compiler has read *)
+                                            (* the .def or .mod first.       *)
+                                            (* The second occurence is       *)
+                                            (* compared to the first.        *)
+               HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
+               HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
+               OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
+               IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
+               BuiltinName   : Name ;       (* name of equivalent builtin    *)
+               Unresolved    : SymbolTree ; (* All symbols currently         *)
+                                            (* unresolved in this procedure. *)
+               ScopeQuad     : CARDINAL ;   (* Index into quads for scope    *)
+               StartQuad     : CARDINAL ;   (* Index into quads for start    *)
+                                            (* of procedure.                 *)
+               EndQuad       : CARDINAL ;   (* Index into quads for end of   *)
+                                            (* procedure.                    *)
+               Reachable     : BOOLEAN ;    (* Defines if procedure will     *)
+                                            (* ever be called by the main    *)
+                                            (* Module.                       *)
+               ReturnType    : CARDINAL ;   (* Return type for function.     *)
+               Offset        : CARDINAL ;   (* Location of procedure used    *)
+                                            (* in Pass 2 and if procedure    *)
+                                            (* is a syscall.                 *)
+               LocalSymbols: SymbolTree ;   (* Contains all symbols declared *)
+                                            (* within this procedure.        *)
+               EnumerationScopeList: List ;
+                                            (* Enumeration scope list which  *)
+                                            (* contains a list of all        *)
+                                            (* enumerations which are        *)
+                                            (* visable within this scope.    *)
+               ListOfVars    : List ;       (* List of variables in this     *)
+                                            (* scope.                        *)
+               ListOfProcs   : List ;       (* List of all procedures        *)
+                                            (* declared within this          *)
+                                            (* procedure.                    *)
+               NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
+               Size          : PtrToValue ; (* Activation record size.       *)
+               TotalParamSize: PtrToValue ; (* size of all parameters.       *)
+               Scope         : CARDINAL ;   (* Scope of declaration.         *)
+               ListOfModules : List ;       (* List of all inner modules.    *)
+               At            : Where ;      (* Where was sym declared/used   *)
+            END ;
 
    SymProcType
-            = RECORD
-                 name          : Name ;       (* Index into name array, name   *)
-                                              (* of procedure.                 *)
-                 ListOfParam   : List ;       (* Contains a list of all the    *)
-                                              (* parameters in this procedure. *)
-                 HasVarArgs    : BOOLEAN ;    (* Does this proc type use ... ? *)
-                 HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
-                 OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
-                 ReturnType    : CARDINAL ;   (* Return type for function.     *)
-                 Scope         : CARDINAL ;   (* Scope of declaration.         *)
-                 Size          : PtrToValue ; (* Runtime size of symbol.       *)
-                 TotalParamSize: PtrToValue ; (* size of all parameters.       *)
-                 At            : Where ;      (* Where was sym declared/used *)
-              END ;
+          = RECORD
+               name          : Name ;       (* Index into name array, name   *)
+                                            (* of procedure.                 *)
+               ListOfParam   : List ;       (* Contains a list of all the    *)
+                                            (* parameters in this procedure. *)
+               HasVarArgs    : BOOLEAN ;    (* Does this proc type use ... ? *)
+               HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
+               OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
+               ReturnType    : CARDINAL ;   (* Return type for function.     *)
+               Scope         : CARDINAL ;   (* Scope of declaration.         *)
+               Size          : PtrToValue ; (* Runtime size of symbol.       *)
+               TotalParamSize: PtrToValue ; (* size of all parameters.       *)
+               At            : Where ;      (* Where was sym declared/used   *)
+            END ;
 
    SymParam = RECORD
                  name        : Name ;         (* Index into name array, name *)
@@ -451,6 +455,8 @@ TYPE
                                             (* contains a list of all        *)
                                             (* enumerations which are        *)
                                             (* visible within this scope.    *)
+               NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
+               NamedImports  : SymbolTree ; (* Names of items imported.      *)
                Priority      : CARDINAL ;   (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
                Unresolved    : SymbolTree ; (* All symbols currently         *)
@@ -508,6 +514,8 @@ TYPE
                                             (* contains a list of all        *)
                                             (* enumerations which are        *)
                                             (* visable within this scope.    *)
+               NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
+               NamedImports  : SymbolTree ; (* Names of items imported.      *)
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Priority      : CARDINAL ;   (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
@@ -614,6 +622,7 @@ VAR
 
 
 (* %%%FORWARD%%%
+PROCEDURE stop ; FORWARD ;
 PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE PushConstString (Sym: CARDINAL) ; FORWARD ;
@@ -636,7 +645,7 @@ PROCEDURE CheckScopeForSym (ScopeSym: CARDINAL; name: Name) : CARDINAL ; FORWARD
 PROCEDURE DeclareSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE DisplayScopes ; FORWARD ;
 PROCEDURE DisposeSym (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
+PROCEDURE ExamineUnresolvedTree (ScopeSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE FetchUnknownFromDefImp (ModSym: CARDINAL;
                                   SymName: Name) : CARDINAL ; FORWARD ;
 PROCEDURE FetchUnknownFromModule (ModSym: CARDINAL;
@@ -667,6 +676,7 @@ PROCEDURE RemoveExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ; FORWARD ;
 PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: Name) : CARDINAL ; FORWARD ;
 PROCEDURE SubSymFromUnknownTree (name: Name) ; FORWARD ;
+PROCEDURE RemoveFromUnresolvedTree (ScopeSym: CARDINAL; name: Name) : BOOLEAN ; FORWARD ;
 PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
@@ -720,6 +730,10 @@ BEGIN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
       Sym := FreeSymbol ;
+      IF Sym=153
+      THEN
+         stop
+      END ;
       Symbols[Sym].SymbolType := DummySym ;
       INC(FreeSymbol)
    END
@@ -829,10 +843,6 @@ VAR
    s  : String ;
    Sym: CARDINAL ;
 BEGIN
-   IF name=MakeKey('C')
-   THEN
-      stop
-   END ;
    IF name=NulName
    THEN
       NewSym(Sym)
@@ -933,7 +943,16 @@ END FromModuleGetSym ;
 *)
 
 PROCEDURE AddSymToUnknownTree (name: Name; Sym: CARDINAL) ;
+VAR
+   n: Name ;
 BEGIN
+(*
+   IF DebugUnknowns
+   THEN
+      n := GetSymName(CurrentModule) ;
+      printf3('adding unknown %a (%d) to module %a\n', name, Sym, n)
+   END ;
+*)
    (* Add symbol to unknown tree *)
    WITH Symbols[CurrentModule] DO
       CASE SymbolType OF
@@ -954,17 +973,27 @@ END AddSymToUnknownTree ;
 *)
 
 PROCEDURE SubSymFromUnknownTree (name: Name) ;
+VAR
+   ScopeSym,
+   ScopeId : CARDINAL ;
 BEGIN
-   (* Delete symbol from unknown tree *)
-   WITH Symbols[CurrentModule] DO
-      CASE SymbolType OF
-
-      DefImpSym: DelSymKey(DefImp.Unresolved, name) |
-      ModuleSym: DelSymKey(Module.Unresolved, name)
-
-      ELSE
-         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
-      END
+   IF ScopePtr>0
+   THEN
+      ScopeId := ScopePtr ;
+      REPEAT
+         ScopeSym := ScopeCallFrame[ScopeId].Search ;
+         IF IsModule(ScopeSym) OR IsDefImp(ScopeSym) OR IsProcedure(ScopeSym)
+         THEN
+            IF RemoveFromUnresolvedTree(ScopeSym, name)
+            THEN
+               RETURN
+            END
+         END ;
+         DEC(ScopeId) ;
+      UNTIL (ScopeId>0) AND (IsModule(ScopeSym) OR IsDefImp(ScopeSym))
+   END ;
+   IF RemoveFromUnresolvedTree(CurrentModule, name)
+   THEN
    END
 END SubSymFromUnknownTree ;
 
@@ -977,7 +1006,27 @@ END SubSymFromUnknownTree ;
 *)
 
 PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ;
+VAR
+   ScopeSym,
+   ScopeId ,
+   Sym     : CARDINAL ;
 BEGIN
+   IF ScopePtr>0
+   THEN
+      ScopeId := ScopePtr ;
+      REPEAT
+         ScopeSym := ScopeCallFrame[ScopeId].Search ;
+         IF IsModule(ScopeSym) OR IsDefImp(ScopeSym) OR IsProcedure(ScopeSym)
+         THEN
+            Sym := ExamineUnresolvedTree(ScopeSym, name) ;
+            IF Sym#NulSym
+            THEN
+               RETURN( Sym )
+            END
+         END ;
+         DEC(ScopeId) ;
+      UNTIL (ScopeId>0) AND (IsModule(ScopeSym) OR IsDefImp(ScopeSym))
+   END ;
    (* Get symbol from unknown tree *)
    RETURN( ExamineUnresolvedTree(CurrentModule, name) )
 END GetSymFromUnknownTree ;
@@ -990,23 +1039,59 @@ END GetSymFromUnknownTree ;
                            is returned.
 *)
 
-PROCEDURE ExamineUnresolvedTree (ModSym: CARDINAL; name: Name) : CARDINAL ;
+PROCEDURE ExamineUnresolvedTree (ScopeSym: CARDINAL; name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
    (* Get symbol from unknown tree *)
-   WITH Symbols[ModSym] DO
+   WITH Symbols[ScopeSym] DO
       CASE SymbolType OF
 
-      DefImpSym: Sym := GetSymKey(DefImp.Unresolved, name) |
-      ModuleSym: Sym := GetSymKey(Module.Unresolved, name)
+      DefImpSym   : Sym := GetSymKey(DefImp.Unresolved, name) |
+      ModuleSym   : Sym := GetSymKey(Module.Unresolved, name) |
+      ProcedureSym: Sym := GetSymKey(Procedure.Unresolved, name)
 
       ELSE
-         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
+         InternalError('expecting DefImp, Module or Procedure symbol', __FILE__, __LINE__)
       END
    END ;
    RETURN( Sym )
 END ExamineUnresolvedTree ;
+
+
+(*
+   RemoveFromUnresolvedTree - removes a symbol with name, name, from the
+                              unresolved tree of symbol, ScopeSym.
+*)
+
+PROCEDURE RemoveFromUnresolvedTree (ScopeSym: CARDINAL; name: Name) : BOOLEAN ;
+BEGIN
+   (* Get symbol from unknown tree *)
+   WITH Symbols[ScopeSym] DO
+      CASE SymbolType OF
+
+      DefImpSym   : IF GetSymKey(DefImp.Unresolved, name)#NulKey
+                    THEN
+                       DelSymKey(DefImp.Unresolved, name) ;
+                       RETURN( TRUE )
+                    END |
+      ModuleSym   : IF GetSymKey(Module.Unresolved, name)#NulKey
+                    THEN
+                       DelSymKey(Module.Unresolved, name) ;
+                       RETURN( TRUE )
+                    END |
+      ProcedureSym: IF GetSymKey(Procedure.Unresolved, name)#NulKey
+                    THEN
+                       DelSymKey(Procedure.Unresolved, name) ;
+                       RETURN( TRUE )
+                    END
+
+      ELSE
+         InternalError('expecting DefImp, Module or Procedure symbol', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN( FALSE )
+END RemoveFromUnresolvedTree ;
 
 
 (*
@@ -1021,17 +1106,7 @@ BEGIN
    Sym := GetSymFromUnknownTree(name) ;
    IF Sym#NulSym
    THEN
-      (* Such a symbol does exist, therefore must unhook it from the *)
-      (* dependancies. Checking that the scopes where the symbol is  *)
-      (* expected can see this declaration.                          *)
-(*
-      WriteKey(name) ; WriteString(' being resolved') ; WriteCard(Sym, 4) ;
-      WriteLn ;
-*)
-      SubSymFromUnknownTree(name) ;
-(*
-      ; WriteKey(name) ; WriteString(' is now') ; WriteCard(Sym, 4) ; WriteLn ;
-*)
+      SubSymFromUnknownTree(name)
    END ;
    RETURN( Sym )
 END FetchUnknownSym ;
@@ -1175,7 +1250,7 @@ BEGIN
                     END
 
       ELSE
-         InternalError('Should never get here', __FILE__, __LINE__)
+         InternalError('should never get here', __FILE__, __LINE__)
       END
    END
 END AddSymToScope ;
@@ -1787,7 +1862,8 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := GetLocalSym(ScopeSym, name) ;
-   IF (Sym=NulSym) AND (IsModule(ScopeSym) OR IsDefImp(ScopeSym))
+   IF (Sym=NulSym) AND (IsModule(ScopeSym) OR IsDefImp(ScopeSym) OR
+                        IsProcedure(ScopeSym))
    THEN
       Sym := ExamineUnresolvedTree(ScopeSym, name)
    END ;
@@ -1964,6 +2040,8 @@ BEGIN
                                             (* enumerations which are        *)
                                             (* visable within this scope.    *)
                                             (* Outer Module.                 *)
+         InitTree(NamedObjects) ;           (* Names of all items declared.  *)
+         InitTree(NamedImports) ;           (* Names of items imported.      *)
          Priority := NulSym ;               (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
          InitTree(Unresolved) ;             (* All symbols currently         *)
@@ -2027,55 +2105,57 @@ BEGIN
       WITH Symbols[Sym] DO
          SymbolType := ModuleSym ;
          WITH Module DO
-            name := ModuleName ;               (* Index into name array, name   *)
-                                               (* of record field.              *)
-            Size := InitValue() ;              (* Runtime size of symbol.       *)
-            Offset := InitValue() ;            (* Offset at runtime of symbol   *)
-            InitTree(LocalSymbols) ;           (* The LocalSymbols hold all the *)
-                                               (* variables declared local to   *)
-                                               (* the block. It contains the    *)
-                                               (* FROM _ IMPORT x, y, x ;       *)
-                                               (* IMPORT A ;                    *)
-                                               (*    and also                   *)
-                                               (* MODULE WeAreHere ;            *)
-                                               (*    x y z visiable by localsym *)
-                                               (*    MODULE Inner ;             *)
-                                               (*       EXPORT x, y, z ;        *)
-                                               (*    END Inner ;                *)
-                                               (* END WeAreHere.                *)
-            InitTree(ExportTree) ;             (* Holds all the exported        *)
-                                               (* identifiers.                  *)
-                                               (* This tree may be              *)
-                                               (* deleted at the end of Pass 1. *)
-            InitTree(ImportTree) ;             (* Contains all IMPORTed         *)
-                                               (* identifiers.                  *)
-            InitList(IncludeList) ;            (* Contains all included symbols *)
-                                               (* which are included by         *)
-                                               (* IMPORT modulename ;           *)
-                                               (* modulename.Symbol             *)
-            InitTree(ExportUndeclared) ;       (* ExportUndeclared contains all *)
-                                               (* the identifiers which were    *)
-                                               (* exported but have not yet     *)
-                                               (* been declared.                *)
-            InitList(EnumerationScopeList) ;   (* Enumeration scope list which  *)
-                                               (* contains a list of all        *)
-                                               (* enumerations which are        *)
-                                               (* visable within this scope.    *)
-            Priority := NulSym ;               (* Priority of the module. This  *)
-                                               (* is an index to a constant.    *)
-            InitTree(Unresolved) ;             (* All symbols currently         *)
-                                               (* unresolved in this module.    *)
-            StartQuad := 0 ;                   (* Signify the initialization    *)
-                                               (* code.                         *)
-            EndQuad := 0 ;                     (* EndQuad should point to a     *)
-                                               (* goto quad.                    *)
-            InitList(ListOfVars) ;             (* List of variables in this     *)
-                                               (* scope.                        *)
-            InitList(ListOfProcs) ;            (* List of all procedures        *)
-                                               (* declared within this module.  *)
-            InitList(ListOfModules) ;          (* List of all inner modules.    *)
-            InitWhereDeclared(At) ;            (* Where symbol declared.        *)
-            InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
+            name := ModuleName ;            (* Index into name array, name   *)
+                                            (* of record field.              *)
+            Size := InitValue() ;           (* Runtime size of symbol.       *)
+            Offset := InitValue() ;         (* Offset at runtime of symbol   *)
+            InitTree(LocalSymbols) ;        (* The LocalSymbols hold all the *)
+                                            (* variables declared local to   *)
+                                            (* the block. It contains the    *)
+                                            (* FROM _ IMPORT x, y, x ;       *)
+                                            (* IMPORT A ;                    *)
+                                            (*    and also                   *)
+                                            (* MODULE WeAreHere ;            *)
+                                            (*    x y z visiable by localsym *)
+                                            (*    MODULE Inner ;             *)
+                                            (*       EXPORT x, y, z ;        *)
+                                            (*    END Inner ;                *)
+                                            (* END WeAreHere.                *)
+            InitTree(ExportTree) ;          (* Holds all the exported        *)
+                                            (* identifiers.                  *)
+                                            (* This tree may be              *)
+                                            (* deleted at the end of Pass 1. *)
+            InitTree(ImportTree) ;          (* Contains all IMPORTed         *)
+                                            (* identifiers.                  *)
+            InitList(IncludeList) ;         (* Contains all included symbols *)
+                                            (* which are included by         *)
+                                            (* IMPORT modulename ;           *)
+                                            (* modulename.Symbol             *)
+            InitTree(ExportUndeclared) ;    (* ExportUndeclared contains all *)
+                                            (* the identifiers which were    *)
+                                            (* exported but have not yet     *)
+                                            (* been declared.                *)
+            InitList(EnumerationScopeList) ;(* Enumeration scope list which  *)
+                                            (* contains a list of all        *)
+                                            (* enumerations which are        *)
+                                            (* visable within this scope.    *)
+            InitTree(NamedObjects) ;        (* Names of all items declared.  *)
+            InitTree(NamedImports) ;        (* Names of items imported.      *)
+            Priority := NulSym ;            (* Priority of the module. This  *)
+                                            (* is an index to a constant.    *)
+            InitTree(Unresolved) ;          (* All symbols currently         *)
+                                            (* unresolved in this module.    *)
+            StartQuad := 0 ;                (* Signify the initialization    *)
+                                            (* code.                         *)
+            EndQuad := 0 ;                  (* EndQuad should point to a     *)
+                                            (* goto quad.                    *)
+            InitList(ListOfVars) ;          (* List of variables in this     *)
+                                            (* scope.                        *)
+            InitList(ListOfProcs) ;         (* List of all procedures        *)
+                                            (* declared within this module.  *)
+            InitList(ListOfModules) ;       (* List of all inner modules.    *)
+            InitWhereDeclared(At) ;         (* Where symbol declared.        *)
+            InitWhereFirstUsed(At) ;        (* Where symbol first used.      *)
             IF GetCurrentScope()=GetBaseModule()
             THEN
                Scope := NulSym
@@ -2085,8 +2165,6 @@ BEGIN
             END
          END ;
       END ;
-      PutSymKey(ModuleTree, ModuleName, Sym) ;
-      (* Now add module to the outer level scope *)
       AddSymToScope(Sym, ModuleName)
    END ;
    RETURN( Sym )
@@ -2170,6 +2248,8 @@ BEGIN
                                       (* contains a list of all        *)
                                       (* enumerations which are        *)
                                       (* visable within this scope.    *)
+         InitTree(NamedObjects) ;     (* names of all items declared.  *)
+         InitTree(NamedImports) ;     (* Names of items imported.      *)
          Priority := NulSym ;         (* Priority of the module. This  *)
                                       (* is an index to a constant.    *)
          InitTree(Unresolved) ;       (* All symbols currently         *)
@@ -2235,11 +2315,12 @@ BEGIN
             OptArgInit := NulSym ;       (* The optarg initial value.     *)
             IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
             BuiltinName := NulName ;     (* name of equivalent builtin    *)
-            Scope := GetCurrentScope() ;
-                                         (* Scope of procedure.           *)
+            Scope := GetCurrentScope() ; (* Scope of procedure.           *)
+            InitTree(Unresolved) ;       (* All symbols currently         *)
+                                         (* unresolved in this procedure. *)
             StartQuad := 0 ;             (* Index into list of quads.     *)
             EndQuad := 0 ;
-            Reachable := FALSE ;         (* Procedure not known to        *)
+            Reachable := FALSE ;         (* Procedure not known to be     *)
                                          (* reachable.                    *)
             ReturnType := NulSym ;       (* Not a function yet!           *)
             Offset := 0 ;                (* Location of procedure.        *)
@@ -2249,6 +2330,7 @@ BEGIN
                                          (* contains a list of all        *)
                                          (* enumerations which are        *)
                                          (* visable within this scope.    *)
+            InitTree(NamedObjects) ;     (* Names of all items declared.  *)
             InitList(ListOfVars) ;       (* List of variables in this     *)
                                          (* scope.                        *)
             InitList(ListOfProcs) ;      (* List of all procedures        *)
@@ -4209,6 +4291,16 @@ END RequestFromDefinition ;
 
 
 (*
+   DisplayName - displays the name.
+*)
+
+PROCEDURE DisplayName (sym: WORD) ;
+BEGIN
+   printf1('   %a', sym)
+END DisplayName ;
+
+
+(*
    DisplaySymbol - displays the name of a symbol
 *)
 
@@ -4245,7 +4337,13 @@ BEGIN
                     printf1('%a  ExportQualified', n) ;
                     ForeachNodeDo(ExportQualifiedTree, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportUnQualified', n) ;
-                    ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; printf0('\n')
+                    ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportUndeclared', n) ;
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ;
+                    printf1('%a  DeclaredObjects', n) ;
+                    ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
+                    printf1('%a  ImportedObjects', n) ;
+                    ForeachNodeDo(NamedImports, DisplayName) ; printf0('\n')
                  END |
       ModuleSym: WITH Module DO
                     n := GetSymName(ModSym) ;
@@ -4258,8 +4356,23 @@ BEGIN
                     printf1('%a  ExportTree', n) ;
                     ForeachNodeDo(ExportTree, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportUndeclared', n) ;
-                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n')
-                 END
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
+                    printf1('%a  ExportUndeclared', n) ;
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ;
+                    printf1('%a  DeclaredObjects', n) ;
+                    ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
+                    printf1('%a  ImportedObjects', n) ;
+                    ForeachNodeDo(NamedImports, DisplayName) ; printf0('\n')
+                 END |
+      ProcedureSym: WITH Procedure DO
+                       n := GetSymName(ModSym) ;
+                       printf1('%a  UndefinedTree', n) ;
+                       ForeachNodeDo(Unresolved, DisplaySymbol) ; printf0('\n') ;
+                       printf1('%a  Local symbols', n) ;
+                       ForeachNodeDo(LocalSymbols, DisplaySymbol) ; printf0('\n') ;
+                       printf1('%a  DeclaredObjects', n) ;
+                       ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n')
+                    END
 
       ELSE
          InternalError('expecting DefImp symbol', __FILE__, __LINE__)
@@ -4280,7 +4393,7 @@ BEGIN
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
          ModuleSym: WITH Module DO
-                       Sym := GetSymKey(Unresolved , SymName) ;
+                       Sym := GetSymKey(Unresolved, SymName) ;
                        IF Sym=NulSym
                        THEN
                           NewSym(Sym) ;
@@ -4328,14 +4441,97 @@ BEGIN
 END FetchUnknownFromDefImp ;
 
 
+PROCEDURE FetchUnknownFrom (scope: CARDINAL;
+                            SymName: Name) : CARDINAL ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   WITH Symbols[scope] DO
+      CASE SymbolType OF
+         DefImpSym: WITH DefImp DO
+                       Sym := GetSymKey(Unresolved, SymName) ;
+                       IF Sym=NulSym
+                       THEN
+                          NewSym(Sym) ;
+                          Symbols[Sym].SymbolType := UndefinedSym ;
+                          Symbols[Sym].Undefined.name := SymName ;
+                          PutSymKey(Unresolved, SymName, Sym)
+                       END
+                    END |
+         ModuleSym: WITH Module DO
+                       Sym := GetSymKey(Unresolved, SymName) ;
+                       IF Sym=NulSym
+                       THEN
+                          NewSym(Sym) ;
+                          Symbols[Sym].SymbolType := UndefinedSym ;
+                          Symbols[Sym].Undefined.name := SymName ;
+                          PutSymKey(Unresolved, SymName, Sym)
+                       END
+                    END |
+         ProcedureSym: WITH Procedure DO
+                          Sym := GetSymKey(Unresolved, SymName) ;
+                          IF Sym=NulSym
+                          THEN
+                             NewSym(Sym) ;
+                             Symbols[Sym].SymbolType := UndefinedSym ;
+                             Symbols[Sym].Undefined.name := SymName ;
+                             PutSymKey(Unresolved, SymName, Sym)
+                          END
+                       END
+
+      ELSE
+         InternalError('expecting a DefImp or Module or Procedure symbol', __FILE__, __LINE__)
+      END
+   END ;
+   RETURN( Sym )
+END FetchUnknownFrom ;
+
+
 (*
    GetFromOuterModule - returns a symbol with name, SymName, which comes
-                        from an outer level module.
-                        Only works with one level of internal module!
+                        from outside the current module.
 *)
 
 PROCEDURE GetFromOuterModule (SymName: Name) : CARDINAL ;
+VAR
+   ScopeId : CARDINAL ;
+   Sym,
+   ScopeSym: CARDINAL ;
 BEGIN
+   (* -- fixme -- gaius *)
+   ScopeId := ScopePtr ;
+   WHILE (NOT IsModule(ScopeCallFrame[ScopeId].Search)) AND
+         (NOT IsDefImp(ScopeCallFrame[ScopeId].Search)) DO
+      Assert(ScopeId>0) ;
+      DEC(ScopeId)
+   END ;
+   DEC(ScopeId) ;
+   (* we are now below the current module *)
+   WHILE ScopeId>0 DO
+      ScopeSym := ScopeCallFrame[ScopeId].Search ;
+      IF ScopeSym#NulSym
+      THEN
+         Sym := GetLocalSym(ScopeSym, SymName) ;
+         IF Sym=NulSym
+         THEN
+            IF IsModule(ScopeSym) OR IsProcedure(ScopeSym) OR IsDefImp(ScopeSym)
+            THEN
+               IF Sym=NulSym
+               THEN
+                  Sym := ExamineUnresolvedTree(ScopeSym, SymName) ;
+                  IF Sym#NulSym
+                  THEN
+                     RETURN( Sym )
+                  END
+               END
+            END
+         ELSE
+            RETURN( Sym )
+         END
+      END ;
+      DEC(ScopeId)
+   END ;
+   (* at this point we force an unknown from the last module scope *)
    RETURN( RequestFromModule(GetLastModuleScope(), SymName) )
 END GetFromOuterModule ;
 
@@ -4526,6 +4722,7 @@ VAR
 BEGIN
    IF IsUnknown(Sym)
    THEN
+      printf1('Sym is %d\n', Sym) ;
       n := GetSymName(Sym) ;
       e := ChainError(GetFirstUsed(Sym), CurrentError) ;
       ErrorFormat1(e, 'unknown symbol (%a) found', n)
@@ -4706,6 +4903,10 @@ VAR
 BEGIN
    e := ChainError(GetFirstUsed(Sym), CurrentError) ;
    n := GetSymName(Sym) ;
+   IF DebugUnknowns
+   THEN
+      printf2('undeclared symbol %a (%d)\n', n, Sym)
+   END ;
    ErrorFormat1(e, 'undeclared symbol (%a)', n)
 END UndeclaredSymbolError ;
 
@@ -6088,6 +6289,212 @@ END PutArray ;
 
 
 (*
+   AddNameTo - adds Name, n, to tree, s.
+*)
+
+PROCEDURE AddNameTo (s: SymbolTree; n: Name) ;
+BEGIN
+   IF GetSymKey(s, n)=NulKey
+   THEN
+      PutSymKey(s, n, n)
+   END
+END AddNameTo ;
+
+
+(*
+   AddNameToScope - adds a Name, n, to the list of objects declared at the
+                    current scope.
+*)
+
+PROCEDURE AddNameToScope (n: Name) ;
+VAR
+   scope: CARDINAL ;
+BEGIN
+   scope := GetCurrentScope() ;
+   WITH Symbols[scope] DO
+      CASE SymbolType OF
+
+      ProcedureSym:  AddNameTo(Procedure.NamedObjects, n) |
+      ModuleSym   :  AddNameTo(Module.NamedObjects, n) |
+      DefImpSym   :  AddNameTo(DefImp.NamedObjects, n)
+
+      ELSE
+         InternalError('expecting - DefImp, Module or Procedure symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END AddNameToScope ;
+
+
+(*
+   AddNameToImportList - adds a Name, n, to the import list of the current
+                         module.
+*)
+
+PROCEDURE AddNameToImportList (n: Name) ;
+VAR
+   scope: CARDINAL ;
+BEGIN
+   scope := GetCurrentScope() ;
+   WITH Symbols[scope] DO
+      CASE SymbolType OF
+
+      ModuleSym:  AddNameTo(Module.NamedImports, n) |
+      DefImpSym:  AddNameTo(DefImp.NamedImports, n)
+
+      ELSE
+         InternalError('expecting - DefImp or Module symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END AddNameToImportList ;
+
+
+VAR
+   ResolveModule: CARDINAL ;
+
+
+(*
+   CollectSymbolFrom - 
+*)
+
+PROCEDURE CollectSymbolFrom (scope: CARDINAL; n: Name) : CARDINAL ;
+VAR
+   n1 : Name ;
+   sym: CARDINAL ;
+BEGIN
+   n1 := GetSymName(scope) ;
+   IF DebugUnknowns
+   THEN
+      printf2('declaring %a in %a', n, n1)
+   END ;
+   sym := CheckScopeForSym(scope, n) ;
+   IF sym=NulSym
+   THEN
+      sym := FetchUnknownFrom(scope, n)
+   END ;
+   IF DebugUnknowns
+   THEN
+      printf1(' symbol created (%d)\n', sym)
+   END ;
+   RETURN( sym )
+END CollectSymbolFrom ;
+
+
+(*
+   CollectUnknown - 
+*)
+
+PROCEDURE CollectUnknown (sym: CARDINAL; n: Name) : CARDINAL ;
+VAR
+   s: CARDINAL ;
+BEGIN
+   IF IsModule(sym) OR IsDefImp(sym)
+   THEN
+      RETURN( CollectSymbolFrom(sym, n) )
+   ELSIF IsProcedure(sym)
+   THEN
+      s := CheckScopeForSym(sym, n) ;
+      IF s=NulSym
+      THEN
+         WITH Symbols[sym] DO
+            CASE SymbolType OF
+
+            ProcedureSym:  IF GetSymKey(Procedure.NamedObjects, n)=n
+                           THEN
+                              RETURN( CollectSymbolFrom(sym, n) )
+                           END
+
+            ELSE
+               InternalError('expecting - Procedure symbol',
+                             __FILE__, __LINE__)
+            END
+         END ;
+         s := CollectUnknown(GetScope(sym), n)
+      END ;
+      RETURN( s )
+   END
+END CollectUnknown ;
+
+
+(*
+   ResolveImport - 
+*)
+
+PROCEDURE ResolveImport (n: WORD) ;
+VAR
+   n1, n2: Name ;
+   sym   : CARDINAL ;
+BEGIN
+   IF DebugUnknowns
+   THEN
+      printf1('attempting to find out where %a was declared\n', n)
+   END ;
+   n1 := GetSymName(ResolveModule) ;
+   n2 := GetSymName(GetScope(ResolveModule)) ;
+   IF DebugUnknowns
+   THEN
+      printf2('scope of module %a is %a\n', n1, n2)
+   END ;
+   sym := CollectUnknown(GetScope(ResolveModule), n) ;
+   IF sym=NulSym
+   THEN
+      (* could be a user semantic error (when all debugged..) *)
+      IF DebugUnknowns
+      THEN
+         printf1('hmm failed to find out where %a was declared\n', n)
+      END
+   ELSE
+      AddSymToModuleScope(ResolveModule, sym)
+   END
+END ResolveImport ;
+
+
+(*
+   ResolveRelativeImport - 
+*)
+
+PROCEDURE ResolveRelativeImport (sym: CARDINAL) ;
+BEGIN
+   IF IsModule(sym)
+   THEN
+      ResolveModule := sym ;
+      WITH Symbols[sym] DO
+         CASE SymbolType OF
+
+         ModuleSym:  ForeachNodeDo(Module.NamedImports,
+                                   ResolveImport)
+
+         ELSE
+            InternalError('expecting - Module symbol', __FILE__, __LINE__)
+         END
+      END
+   END ;
+   ForeachProcedureDo(sym, ResolveRelativeImport) ;
+   ForeachInnerModuleDo(sym, ResolveRelativeImport)
+END ResolveRelativeImport ;
+
+
+(*
+   ResolveImports - it examines the import list of all inner modules
+                    and resolves all relative imports.
+*)
+
+PROCEDURE ResolveImports ;
+VAR
+   scope: CARDINAL ;
+BEGIN
+   scope := GetCurrentScope() ;
+   IF DebugUnknowns
+   THEN
+      DisplayTrees(scope)
+   END ;
+   ForeachProcedureDo(scope, ResolveRelativeImport) ;
+   ForeachInnerModuleDo(scope, ResolveRelativeImport)
+END ResolveImports ;
+
+
+(*
    GetScope - returns the declaration scope of the symbol.
 *)
 
@@ -7436,10 +7843,6 @@ END PushVarSize ;
 
 PROCEDURE PopValue (Sym: CARDINAL) ;
 BEGIN
-   IF Sym=71
-   THEN
-      stop
-   END ;
    CheckLegal(Sym) ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF

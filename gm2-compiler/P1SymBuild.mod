@@ -45,11 +45,14 @@ FROM SymbolTable IMPORT NulSym,
                         MakeHiddenType,
                         PutMode,
                         PutFieldEnumeration, PutSubrange, PutVar,
-                        IsDefImp, IsType,
+                        IsDefImp, IsModule, IsType,
                         GetCurrentModule,
+                        AddSymToModuleScope,
+                        AddNameToImportList,
                         GetSym, RequestSym, IsUnknown, RenameSym,
                         GetFromOuterModule,
-                        GetExported,
+                        GetExported, IsExported,
+                        GetLocalSym,
                         PutImported,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         PutDefinitionForC,
@@ -70,6 +73,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcedureBuiltin,
                         MakeUnbounded, PutUnbounded,
                         GetSymName,
+                        ResolveImports,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -270,6 +274,7 @@ VAR
    NameStart,
    NameEnd  : Name ;
 BEGIN
+   ResolveImports ;
    Assert(CompilingImplementationModule()) ;
    EndScope ;
    PopT(NameStart) ;
@@ -336,6 +341,7 @@ VAR
    NameStart,
    NameEnd  : Name ;
 BEGIN
+   ResolveImports ;
    Assert(CompilingProgramModule()) ;
    EndScope ;
    PopT(NameStart) ;
@@ -613,8 +619,7 @@ BEGIN
       (* Ident List contains list of objects *)
       i := 1 ;
       WHILE i<=n DO
-         Sym := GetFromOuterModule(OperandT(i)) ;
-         PutImported(Sym) ;
+         AddNameToImportList(OperandT(i)) ;
          INC(i)
       END
    ELSE
@@ -659,11 +664,13 @@ END BuildImportInnerModule ;
 
                             Exit
 
+
                             All above stack discarded
 *)
 
 PROCEDURE BuildExportInnerModule ;
 VAR
+   PrevMod,
    Sym, ModSym,
    i, n       : CARDINAL ;
 BEGIN
@@ -672,11 +679,22 @@ BEGIN
    THEN
       (* Ident List contains list of objects *)
       i := 1 ;
+      PrevMod := GetScope(GetCurrentScope()) ;
       WHILE i<=n DO
-         Sym := RequestSym(OperandT(i)) ;         (* NulSym - dependant sym *)
-                                                  (* in case an unknown is  *)
-                                                  (* used.                  *)
-         PutExported(Sym) ;
+         IF (PrevMod#NulSym) AND (IsModule(PrevMod) OR IsDefImp(PrevMod))
+         THEN
+            Sym := GetLocalSym(PrevMod, OperandT(i))
+         ELSE
+            Sym := NulSym
+         END ;
+         IF (Sym#NulSym) AND IsExported(PrevMod, Sym)
+         THEN
+            (* use Sym which has already been created in outer scope *)
+            AddSymToModuleScope(GetCurrentScope(), Sym)
+         ELSE
+            Sym := RequestSym(OperandT(i)) ;
+            PutExported(Sym)
+         END ;
          INC(i)
       END
    ELSE

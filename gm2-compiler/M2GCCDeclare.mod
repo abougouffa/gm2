@@ -874,7 +874,8 @@ BEGIN
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
        IsNeededAtRunTime(Sym) OR
        IsImported(GetBaseModule(), Sym) OR
-       IsImported(GetModuleWhereDeclared(Sym), Sym))
+       IsImported(GetModuleWhereDeclared(Sym), Sym) OR
+       IsExported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
       BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
@@ -1035,19 +1036,15 @@ BEGIN
       ForeachProcedureDo(scope, DeclareProcedure)
    ELSIF IsModuleWithinProcedure(scope)
    THEN
-(*
-      ForeachLocalSymDo(scope, DeclareTypeInfo) ;
-      DeclareTypesAndConstants(scope) ;
-      AssertAllTypesDeclared(scope) ;
-      DeclareModuleVariables(scope) ;
-      ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
-      ForeachProcedureDo(scope, DeclareProcedure)
-*)
+      (* do nothing, modules within procedures are declared elsewhere *)
    ELSE
       ForeachModuleDo(DeclareTypesInModule) ;
       DeclareTypesAndConstants(scope) ;
       ForeachModuleDo(DeclareProcedure) ;
-      (* now that all types have been resolved it is safe to declare variables *)
+      (*
+         now that all types have been resolved it is safe to declare
+         variables
+      *)
       AssertAllTypesDeclared(scope) ;
       DeclareGlobalVariables(scope) ;
       ForeachImportedDo(scope, DeclareImportedVariables) ;

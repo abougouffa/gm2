@@ -1521,8 +1521,9 @@ VAR
    ModuleSym: CARDINAL ;
 BEGIN
    PopT(name) ;
-   ModuleSym := GetModule(name) ;
+   ModuleSym := GetCurrentModule() ;
    Assert(IsModule(ModuleSym) OR IsDefImp(ModuleSym)) ;
+   Assert(GetSymName(ModuleSym)=name) ;
    PutModuleStartQuad(ModuleSym, NextQuad) ;
    GenQuad(StartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
    PushT(name)
@@ -1740,7 +1741,7 @@ VAR
    old      : BOOLEAN ;
 BEGIN
    IF BoundsChecking AND
-      (NOT IsConst(Des)) AND (NOT MustNotCheckBounds)
+      (Des#NulSym) AND (NOT IsConst(Des)) AND (NOT MustNotCheckBounds)
    THEN
       old := MustNotCheckBounds ;
       MustNotCheckBounds := TRUE ;  (* stop recursive checking *)

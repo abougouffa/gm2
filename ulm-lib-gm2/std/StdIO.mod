@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StdIO.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: StdIO.mod,v 1.3 2004/07/02 21:07:42 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StdIO.mod,v $
+   Revision 1.3  2004/07/02 21:07:42  gaius
+   fixed many IMPORT bugs in inner modules
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -312,7 +315,7 @@ IMPLEMENTATION MODULE StdIO; (* AFB 2/84 *)
                text^[0] := ungetc;
                unget := FALSE;
                DEC(bytecount);
-               ptr := ADDRESS(CARDINAL(ptr)+1);
+               INC(ptr);
             END;
             ok := Read(fd, ptr, bytecount);
             nitems := bytecount DIV size;

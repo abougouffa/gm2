@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Storage.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: Storage.mod,v 1.3 2004/07/02 21:07:42 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Storage.mod,v $
+   Revision 1.3  2004/07/02 21:07:42  gaius
+   fixed many IMPORT bugs in inner modules
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -54,12 +57,7 @@ IMPLEMENTATION MODULE Storage;
       FreeNode =
          RECORD
             size: CARDINAL; (* in units *)
-	    CASE : BOOLEAN OF
-              TRUE:
-		 next: FreePtr;
-	    | FALSE:
-		 cnext: CARDINAL;
-            END;
+            next: FreePtr;
          END;
    VAR
       FreeList: FreePtr; (* circular ordered list *)
@@ -113,21 +111,17 @@ IMPLEMENTATION MODULE Storage;
    PROCEDURE DEALLOCATE(VAR ptr: ADDRESS; size: CARDINAL);
       (* size in words *)
       VAR free: FreePtr;
-	  cfree: CARDINAL;
-	  cptr: CARDINAL;
 	  fptr: FreePtr;
    BEGIN
       size := btou(size); (* now size in units *)
 
-      cptr := CARDINAL(ptr);
       free := FreeList;
       LOOP
-	 cfree := CARDINAL(free);
-	 IF (cptr > cfree) AND (cptr < free^.cnext) THEN
+	 IF (ptr > ADDRESS(free)) AND (ptr < ADDRESS(free^.next)) THEN
 	    EXIT
 	 END;
-	 IF (cfree >= free^.cnext) AND
-	    ((cptr > cfree) OR (cptr < free^.cnext)) THEN
+	 IF (free >= free^.next) AND
+	    ((ptr > ADDRESS(free)) OR (ptr < ADDRESS(free^.next))) THEN
 	    EXIT (* at one end or other *)
 	 END;
 	 free := free^.next;
@@ -135,13 +129,15 @@ IMPLEMENTATION MODULE Storage;
 
       fptr := FreePtr(ptr);
       fptr^.size := size;
-      IF cptr + stob(fptr^.size) = free^.cnext THEN (* join to upper nbr *)
+      IF ptr + VAL(ADDRESS, stob(fptr^.size)) = free^.next
+      THEN (* join to upper nbr *)
 	 fptr^.size := size + free^.next^.size;
 	 fptr^.next := free^.next^.next;
       ELSE
 	 fptr^.next := free^.next;
       END;
-      IF cfree + stob(free^.size) = cptr THEN (* join to lower nbr *)
+      IF ADDRESS(free) + VAL(ADDRESS, stob(free^.size)) = ptr
+      THEN (* join to lower nbr *)
 	 free^.size := free^.size + fptr^.size;
 	 free^.next := fptr^.next;
       ELSE
@@ -168,7 +164,7 @@ IMPLEMENTATION MODULE Storage;
 	    ptr := free;
             IF free^.size > size THEN
 	       free^.size := free^.size - size;
-	       INC(ptr, ADDRESS(stob(free^.size)));
+	       INC(ptr, stob(free^.size));
 	    ELSE
                IF old^.next = FreeList THEN
                   FreeList := old;

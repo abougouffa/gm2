@@ -29,21 +29,24 @@ BEGIN
 END InvalidChan ;
 
 
-  (* For each of the following operations, if the device supports the operation on the
-     channel, the behaviour of the procedure conforms with the description below.  The full
-     behaviour is defined for each device module.  If the device does not support the
-     operation on the channel, the behaviour of the procedure is to raise the exception
+  (* For each of the following operations, if the device supports the
+     operation on the channel, the behaviour of the procedure conforms
+     with the description below.  The full behaviour is defined for
+     each device module.  If the device does not support the operation
+     on the channel, the behaviour of the procedure is to raise the exception
      notAvailable.
   *)
 
-  (* Text operations - these perform any required translation between the internal and
-     external representation of text.
+  (* Text operations - these perform any required translation between
+     the internal and external representation of text.
   *)
 
 PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
-  (* If there is a character as the next item in the input stream cid, assigns its value to
-     ch without removing it from the stream; otherwise the value of ch is not defined.  res
-     (and the stored read result) are set to the value allRight, endOfLine, or endOfInput.
+  (* If there is a character as the next item in the input stream cid,
+     assigns its value to ch without removing it from the stream;
+     otherwise the value of ch is not defined.
+     res (and the stored read result) are set to the value
+     allRight, endOfLine, or endOfInput.
   *)
 VAR
    f: File ;
@@ -66,9 +69,9 @@ END Look ;
 
 
 PROCEDURE Skip (cid: ChanId);
-  (* If the input stream cid has ended, the exception skipAtEnd is raised; otherwise the
-     next character or line mark in cid is removed, and the stored read result is set to the
-     value allRight.
+  (* If the input stream cid has ended, the exception skipAtEnd is raised;
+     otherwise the next character or line mark in cid is removed,
+     and the stored read result is set to the value allRight.
   *)
 BEGIN
    
@@ -76,11 +79,13 @@ END Skip ;
 
 
 PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
-  (* If the input stream cid has ended, the exception skipAtEnd is raised; otherwise the
-     next character or line mark in cid is removed.  If there is a character as the next
-     item in cid stream, assigns its value to ch without removing it from the stream.
-     Otherwise, the value of ch is not defined.  res (and the stored read result) are set to
-     the value allRight, endOfLine, or endOfInput.
+  (* If the input stream cid has ended, the exception skipAtEnd is raised;
+     otherwise the next character or line mark in cid is removed.
+     If there is a character as the next item in cid stream,
+     assigns its value to ch without removing it from the stream.
+     Otherwise, the value of ch is not defined.
+     res (and the stored read result) are set to the value allRight,
+     endOfLine, or endOfInput.
   *)
 
 PROCEDURE WriteLn (cid: ChanId);

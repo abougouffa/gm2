@@ -46,6 +46,7 @@ FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Printf IMPORT printf0 ;
+FROM SymbolTable IMPORT AddNameToScope ;
 
 
 (* imports for Pass1 *)
@@ -333,14 +334,28 @@ END Ident ;
 
 
 (*
-   PossiblyExportIdent - error checking varient of Ident which also checks to see if
-                         this ident should be explicitly exported.
+   IdentScope - error checking varient of Ident but it remembers the
+                idents name in the current scope.
+*)
+
+PROCEDURE IdentScope (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+BEGIN
+   Ident(stopset0, stopset1, stopset2) ;
+   AddNameToScope(LastIdent)
+END IdentScope ;
+
+
+(*
+   PossiblyExportIdent - error checking varient of Ident which also
+                         checks to see if this ident should be
+                         explicitly exported.
 *)
 
 PROCEDURE PossiblyExportIdent (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 VAR
    nothing: CARDINAL ;
 BEGIN
+   AddNameToScope(makekey(currentstring)) ;
    PushTF(makekey(currentstring), identtok) ;
    CheckExplicitExported ;
    IF NOT IsAutoPushOn()
@@ -485,6 +500,7 @@ token   'real number'     realtok
 token   'string'          stringtok
 
 special PossiblyExportIdent  first { < identtok > } follow { }
+special IdentScope           first { < identtok > } follow { }
 special Ident                first { < identtok > } follow { }
 special Integer              first { < integertok > } follow { }
 special Real                 first { < realtok > } follow { }
@@ -581,7 +597,7 @@ Element := ConstExpression [ ".." ConstExpression ] =:
 
 TypeDeclaration :=
                                                                            % PushAutoOn %
-                   ( Ident "=" Type )                                      % PopAuto    %
+                   ( IdentScope "=" Type )                                 % PopAuto    %
                 =:
 
 Type :=                                                                    % VAR Name: CARDINAL ; %
@@ -608,6 +624,24 @@ IdentList := Ident                                                         % VAR
                                                                                 n := 1
                                                                              END %
              { "," Ident                                                   % IF on
+                                                                             THEN
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
+
+IdentScopeList := IdentScope                                               % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                n := 1
+                                                                             END %
+             { "," IdentScope                                              % IF on
                                                                              THEN
                                                                                 INC(n)
                                                                              END %
@@ -837,13 +871,13 @@ DefExtendedFP := DefOptArg | "..." =:
 
 ExtendedFP := OptArg | "..." =:
 
-VarFPSection := "VAR" IdentList ":" FormalType =:
+VarFPSection := "VAR" IdentScopeList ":" FormalType =:
 
-NonVarFPSection := IdentList ":" FormalType =:
+NonVarFPSection := IdentScopeList ":" FormalType =:
 
-OptArg := "[" Ident ":" FormalType [ "=" ConstExpression ] "]" =:
+OptArg := "[" IdentScope ":" FormalType [ "=" ConstExpression ] "]" =:
 
-DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
+DefOptArg := "[" IdentScope ":" FormalType "=" ConstExpression "]" =:
 
 FormalType := [ "ARRAY" "OF" ] Qualident =:
 

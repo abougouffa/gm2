@@ -78,6 +78,7 @@ EXPORT QUALIFIED NulSym,
                  GetBaseModule,
                  GetCurrentModuleScope,
                  GetLastModuleScope,
+                 AddSymToModuleScope,
                  GetType, SkipType,
                  GetLowestType,
                  GetSym, GetLocalSym,
@@ -192,6 +193,8 @@ EXPORT QUALIFIED NulSym,
 
                  NoOfElements,
                  NoOfParam,
+                 AddNameToImportList,
+                 AddNameToScope, ResolveImports,
                  GetScope, GetModuleScope, GetProcedureScope,
                  GetParent,
 
@@ -673,6 +676,14 @@ PROCEDURE GetCurrentModuleScope () : CARDINAL ;
 *)
 
 PROCEDURE GetLastModuleScope () : CARDINAL ;
+
+
+(*
+   AddSymToModuleScope - adds a symbol, Sym, to the scope of the module
+                         ModSym.
+*)
+
+PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ;
 
 
 (*
@@ -1344,8 +1355,7 @@ PROCEDURE GetExported (ModSym: CARDINAL;
 
 (*
    GetFromOuterModule - returns a symbol with name, SymName, which comes
-                        from an outer level module.
-                        Only works with one level of internal module!
+                        from outside the current module.
 *)
 
 PROCEDURE GetFromOuterModule (SymName: Name) : CARDINAL ;
@@ -1780,6 +1790,29 @@ PROCEDURE NoOfElements (Sym: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
+
+
+(*
+   ResolveImports - 
+*)
+
+PROCEDURE ResolveImports ;
+
+
+(*
+   AddNameToScope - adds a Name, n, to the list of objects declared at the
+                    current scope.
+*)
+
+PROCEDURE AddNameToScope (n: Name) ;
+
+
+(*
+   AddNameToImportList - adds a Name, n, to the import list of the current
+                         module.
+*)
+
+PROCEDURE AddNameToImportList (n: Name) ;
 
 
 (*

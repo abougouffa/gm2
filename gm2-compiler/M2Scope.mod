@@ -77,6 +77,10 @@ PROCEDURE AddToRange (sb: ScopeBlock;
 BEGIN
    IF First
    THEN
+      IF sb^.high=0
+      THEN
+         sb^.high := sb^.low
+      END ;
       sb^.next := InitScopeBlock(0) ;
       sb := sb^.next
    END ;
@@ -189,7 +193,7 @@ BEGIN
       GetQuad(i, op, op1, op2, op3) ;
       IF (op=ProcedureScopeOp) OR (op=ModuleScopeOp)
       THEN
-         IF PeepWord(s, 1)=proc
+         IF (PeepWord(s, 1)=proc) AND (op3=proc)
          THEN
             nb := AddToRange(nb, First, last) ;
             First := FALSE

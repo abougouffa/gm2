@@ -1,3 +1,19 @@
+2004-07-02	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed many IMPORT bugs in inner modules
+	
+2004-06-30	Gerrit Haase <gp@familiehaase.de>
+
+	* cygwin patch for gm2/Make-lang.in
+	
+2004-06-29	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed EXPORT of an object from an inner module into an
+	  implementation module which EXPORTs the same object.
+	* fixed EXPORT of a procedure from an inner module into an
+	  outer module which is not exported but is assigned to a
+	  variable.
+
 2004-06-28	Gaius Mulley <gaius@glam.ac.uk>
 
 	* made flex lexical analysers ignore carriage return
