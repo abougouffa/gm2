@@ -66,6 +66,7 @@ P2C=m2/comp/bin/p2c -c p2crc
 PRE=m2/comp/bin/mkfor
 M2LINK=m2/comp/bin/mklink
 GM2-VERSION=0.1
+GM2_FLAGS=-Wbounds -Wreturn -g -Wrecovery
 
 # Define this as & to perform parallel make on a Sequent.
 # Note that this has some bugs, and it seems currently necessary 
@@ -499,10 +500,10 @@ gm2-libs/%.o: gm2-libs/%.c
 	$(CC) -c -g -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs/%.o: gm2-libs/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 $(GM2_FLAGS) -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 gm2-compiler/%.o: gm2-compiler/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
+	../xgm2 $(GM2_FLAGS) -g -c -B../a -Igm2-compiler -Igm2-libs $< -o $@
 
 
 #
@@ -662,10 +663,10 @@ gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.c
 	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+	../xgm2 $(GM2_FLAGS) -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+	../xgm2 $(GM2_FLAGS) -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 
 #
@@ -803,6 +804,29 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
            echo " " ; \
         done ; \
 	$(RM) -f 1.s 2.s 3.s 2_3.diff 1_2.diff
+
+#
+# verifycompiler - diffs the output of the first two compilers using the compiler source code
+#                  as the test.
+#
+verifycompiler: ../acc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
+	@echo "verifying the two generations of GNU Modula-2 compilers.."
+	cp ../../../working/gcc-20001204/gcc/acc1gm2 ../wcc1gm2
+	$(QUIAT)cd gm2-compiler-verify ; \
+        for i in *.mod ; do \
+           echo -n "$$i" ; \
+           ../../xgm2 -S -Wbounds -Wreturn -c -B../../a -I. $$i -o 1.s ; \
+           ../../xgm2 -S -Wbounds -Wreturn -c -B../../w -I. $$i -o 2.s ; \
+           if ! diff 1.s 2.s >& 1_2.diff ; then \
+               echo -n " [stage 1 and stage 2 differ]" ; \
+               cp 1.s t.s | as -ahl t.s > $$i.1.lst ; \
+               cp 2.s t.s | as -ahl t.s > $$i.2.lst ; \
+               echo " " ; \
+               exit 1 ; \
+           fi ; \
+           echo " " ; \
+        done ; \
+	$(RM) -f 1.s 2.s 3.s 1_2.diff
 
 
 #

@@ -15,8 +15,8 @@ Two options, either get download a copy of gcc+gm2 in a large tarball
 or checkout the development sources.  Please be aware that gm2 is in
 development and might fail to compile with the current version of gcc.
 
-Cutting edge development sources
-================================
+Development sources
+===================
 
 To get the latest sources to GM2 type the following:
 
