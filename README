@@ -48,36 +48,17 @@ The tarballs will have the modifications outlined below applied.
 Modifications to gcc
 ====================
 
-Here is the change I made to gcc/rtl.c:
-
-
-/* Report an internal compiler error in a friendly manner and without
-   dumping core.  */
+in gcc/ggc-page.c:
 
 void
-fancy_abort (file, line, function)
-     const char *file;
-     int line;
-     const char *function;
+ggc_collect ()
 {
-  if (function == NULL)
-    function = "?";
-  fatal (
 #if defined(GM2)
-	 /*
-	  *  point the finger of suspicion towards GM2 not GCC
-	  */
-"Internal compiler error in `%s', at %s:%d\n\
-Please submit a full bug report to <gaius@glam.ac.uk>\n",
-#else
-"Internal compiler error in `%s', at %s:%d\n\
-Please submit a full bug report.\n\
-See <URL:http://www.gnu.org/software/gcc/faq.html#bugreport> \
-for instructions.",
+  return;  /* don't garbage collect when building gm2 - this
+            * is an ugly hack which will be removed r.s.n
+            */
 #endif
-	 function, trim_filename (file), line);
-}
-
+ etc etc
 
 
 Building GNU Modula-2
@@ -123,6 +104,10 @@ Please do. But also please read the GNU Emacs info under
 * Intellectual Property::       Keeping Free Software Free
 * Reading Non-Free Code::       Referring to Proprietary Programs
 * Contributions::               Accepting Contributions
+
+you might consider joining the GM2 Mailing list:
+see URL: floppsie.comp.glam.ac.uk/mailman/listinfo/gm2
+or mail: gm2-request@glam.ac.uk
 
 before you start coding
 
