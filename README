@@ -17,10 +17,10 @@ To get GM2 type the following:
    cvs login
    cvs -z9 checkout GM2
 
-this will checkout a copy of GNU Modula-2
-into one subdirectory: gm2
+(note the capital GM2 in the checkout, GM2 is the project module within cvs).
+This will checkout a copy of GNU Modula-2 into one subdirectory: gm2
 
-This (very development, very incomplete, very buggy, highly unstable)
+This (very development, very buggy, highly unstable)
 version of GM2 needs to be placed inside an egcs directory tree in
 the position egcs-version/gcc before GNU Modula-2 can be built.
 
@@ -35,27 +35,61 @@ m2f source tree. The gm2.texi file also describes the history of m2f.
 You can get egcs-20000103 from my machine
 ftp://floppsie.comp.glam.ac.uk/pub/c but be warned it is large
 (approximately 14 MB). Originally I had gcc-2.8.1 checked into the cvs
-source tree together with GM2, but since egcs has grown in size and so
-far development of GM2 has *not* modified egcs in any way I've
-separated the two.  You might already have a copy of egcs and if
-you're a modem user you might be very glad of this :-)
+source tree together with GM2, but since egcs has grown in size and
+the changes to egcs are inconsequential I've separated the two.
+You might already have a copy of egcs and if you're a modem user you
+might be very glad of this :-)
+
+The only modification to egcs so far is in gcc/rtl.c to the abort function
+so that the finger of blame is pointed in my direction.
+
+Here is the change I made to gcc/rtl.c:
+
+
+/* Report an internal compiler error in a friendly manner and without
+   dumping core.  */
+
+void
+fancy_abort (file, line, function)
+     const char *file;
+     int line;
+     const char *function;
+{
+  if (function == NULL)
+    function = "?";
+  fatal (
+#if defined(GM2)
+	 /*
+	  *  point the finger of suspicion towards GM2 not GCC
+	  */
+"Internal compiler error in `%s', at %s:%d\n\
+Please submit a full bug report to <gaius@glam.ac.uk>\n",
+#else
+"Internal compiler error in `%s', at %s:%d\n\
+Please submit a full bug report.\n\
+See <URL:http://www.gnu.org/software/gcc/faq.html#bugreport> \
+for instructions.",
+#endif
+	 function, trim_filename (file), line);
+}
 
 Building GNU Modula-2
 =====================
 
 To build gm2 type:
-   cd egcs-version ; ./configure ; make info ; make dvi
-   (ignore any error associated with making java.dvi..)
-   cd gcc ; make c xgcc gm2
+   cd egcs-version ; ./configure ; make
 
 A simple test
 =============
 
 you should be able to perform:
 
-   ./xgm2 -B./x -S -g -c -Igm2/m2/comp/libs -Igm2/m2/comp/autotest/gm2 gm2/m2/comp/autotest/gm2/foo.mod
+compile
+   ./xgm2 -B./a -c -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
+link
+   ./xgm2 -B./a -g -Igm2/gm2-libs -Igm2/m2/comp/libs gm2/m2/comp/libs/hello.mod
 
-this should result in creating a file foo.s in your current working directory.
+this should result in creating an a.out for the infamous hello world example.
 
 Building m2f
 ============
@@ -64,8 +98,8 @@ To build the original m2f without gcc codegenerator type:
 
    cd egcs-version/gcc/gm2/m2/comp ; make clean reconfig ; make all
 
-Note that you have to be on a [3456]86 Linux box to do this.
-It will generate a [34]86 & 586 codegenerator and an x86 tiny
+Note that you have to be on a [3456]86 GNU/Linux box to do this.
+It will generate a [345]86 codegenerator and an x86 tiny
 model codegenerator.
 
 To install m2f type:
