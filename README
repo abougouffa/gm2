@@ -43,8 +43,6 @@ Tarballs
 
 see ftp://floppsie.comp.glam.ac.uk/pub/c
 for files which look like gm2+gcc-version.tar.gz.
-The tarballs will have the modifications outlined below applied.
-
 
 Building GNU Modula-2
 =====================
@@ -69,7 +67,8 @@ Building m2f
 
 To build the original m2f without gcc codegenerator type:
 
-   cd gcc-version/gcc/gm2/m2/comp ; make clean reconfig ; make all
+   cd gcc-version/gcc/gm2/m2 ; ./configure ; cd comp ;
+   make clean reconfig ; make all
 
 Note that you have to be on a [3456]86 GNU/Linux box to do this.
 It will generate a [345]86 codegenerator and an x86 tiny

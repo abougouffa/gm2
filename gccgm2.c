@@ -542,7 +542,9 @@ static int                    default_valid_lang_attribute               PARAMS 
        tree                   global_constant                            PARAMS ((tree t));
        void                   stop                                       PARAMS ((void));
 static int                    is_a_constant                              PARAMS ((tree t));
+#if defined(TRACE_DEBUG_GGC)
 static void                   dump_binding_level                         PARAMS ((struct binding_level *level));
+#endif
 
 /* end of prototypes */
 
@@ -1429,6 +1431,7 @@ mark_binding_level (arg)
     }
 }
 
+#if defined(TRACE_DEBUG_GGC)
 /*
  *  dump_binding_level - displays the contents of a binding level.
  */
@@ -1453,6 +1456,7 @@ dump_binding_level (level)
 
   }
 }
+#endif
 
 /* Return zero if the declaration NEWDECL is valid
    when the declaration OLDDECL (assumed to be for the same name)
@@ -7005,7 +7009,7 @@ finish_decl (decl, init, asmspec_tree)
 {
   register tree type = TREE_TYPE (decl);
   int was_incomplete = (DECL_SIZE (decl) == 0);
-  char *asmspec = 0;
+  const char *asmspec = 0;
 
   /* If a name was specified, get the string.   */
   if (asmspec_tree)

@@ -33,7 +33,7 @@ GM2_LIB_DIR    = $(libsubdir)/gm2
 
 # Extra flags to pass to recursive makes.
 GM2_FLAGS_TO_PASS = \
-	"GM2_FOR_BUILD=$(GM2_FOR_BUILD) -DEGCS" \
+	"GM2_FOR_BUILD=$(GM2_FOR_BUILD) " \
 	"GM2FLAGS=$(GM2FLAGS)" \
 	"GM2_FOR_TARGET=$(GM2_FOR_TARGET)"
 

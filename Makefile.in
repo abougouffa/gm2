@@ -246,6 +246,7 @@ c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
 	  -c `echo $(srcdir)/../c-convert.c | sed 's,^\./,,'`
 
 gccgm2: m2/comp/bin/p2c $(PRE) $(M2LINK) force
+	rm -f m2/config.h ; cd m2 ; ln -s config.h.gcc config.h
 	( cd m2/comp ; M2PWD="`pwd`" ; export M2PWD ; echo $$M2PWD ; \
           $(MAKE) "QUIAT=$(QUIAT)" \
                "PUSH=LEFTTORIGHT" \
