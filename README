@@ -62,6 +62,14 @@ link
 
 this should result in creating an a.out for the infamous hello world example.
 
+Stress testing GM2
+==================
+
+   cd gcc-version/gcc/gm2 ; make paranoid
+
+which builds gm2 using itself and then compiles each module
+with both versions of gm2 comparing the emitted assembler code.
+
 Building m2f
 ============
 

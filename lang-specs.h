@@ -1,5 +1,5 @@
-/* Definitions for specs for Modula-2.
-   Copyright (C) 1999 Free Software Foundation, Inc.
+/* Definitions for specs for GNU Modula-2.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
    Contributed by Gaius Mulley.
 
 This file is part of GNU Modula-2.

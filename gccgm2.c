@@ -1,3 +1,11 @@
+/* Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+ *
+ *  Gaius Mulley (gaius@glam.ac.uk) constructed this file.
+ *  It was built by borrowing code from the gcc c-*.c files
+ *  and its function is to provide an interface between the
+ *  Modula-2 source and C back end.
+ */
+
 /*
 This file is part of GNU Modula-2.
 
