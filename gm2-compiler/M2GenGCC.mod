@@ -111,6 +111,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
 
 FROM SYSTEM IMPORT WORD ;
 
+CONST
+   VerboseDebug = FALSE ;
 
 VAR
    CurrentProcedure,
@@ -488,7 +490,7 @@ BEGIN
       END ;
       Next := NoOfItemsInList(l)
    UNTIL Last=Next ;
-   IF DisplayQuadruples
+   IF DisplayQuadruples AND VerboseDebug
    THEN
       printf0('after resolving expressions with gcc\n') ;
       DisplayQuadList(AbsoluteHead) ;

@@ -138,7 +138,7 @@ PROCEDURE IsAnOption (s: String) : BOOLEAN ;
 VAR
    Legal: BOOLEAN ;
 BEGIN
-   IF EqualArray(s, '-g')
+   IF EqualArray(Mark(Slice(s, 0, 2)), '-g')
    THEN
       GenerateDebugging := TRUE ;
       Legal := TRUE

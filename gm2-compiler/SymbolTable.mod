@@ -2775,7 +2775,7 @@ END GetType ;
 
 (*
    GetConstLitType - returns the type of the constant, Sym.
-                     All constants have type NulSym except CHARACTER constants
+                     All constants have type NulSym except CHAR constants
                      ie 00C 012C etc and floating point constants which have type LONGREAL.
 *)
 

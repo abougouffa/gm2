@@ -80,7 +80,7 @@ BEGIN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
    END ;
-   IF sym=248
+   IF sym=2006
    THEN
       mystop2
    END ;
