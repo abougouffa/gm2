@@ -1,3 +1,9 @@
+2003-02-01	Gaius Mulley <gaius@glam.ac.uk>
+
+	* bug fixes in error handling. In particular duplicate symbols
+	  are better handled.
+	* development checkin of the h2def tool and subsidiary modules.
+
 2003-01-20	Gaius Mulley <gaius@glam.ac.uk>
 
 	* bug fixes for gm2m and link-specs.h which allow libraries
