@@ -25,6 +25,7 @@ FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors ;
 
 FROM SymbolTable IMPORT NulSym,
                         StartScope, EndScope, GetScope, GetCurrentScope,
+                        GetModuleScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
                         GetExported,
                         IsDefImp, IsModule,
@@ -315,7 +316,7 @@ BEGIN
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
    END ;
-   SetCurrentModule(GetScope(GetCurrentModule()))
+   SetCurrentModule(GetModuleScope(GetCurrentModule()))
 END EndBuildInnerModule ;
 
 

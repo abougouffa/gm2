@@ -1537,8 +1537,20 @@ PROCEDURE EndBuildInit ;
 BEGIN
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
-   GenQuad(EndOp, GetPreviousTokenLineNo(), GetFileModule(), GetCurrentModule())
+   GenQuad(EndOp, GetPreviousTokenLineNo(), GetFileModule(),
+           GetCurrentModule())
 END EndBuildInit ;
+
+
+(*
+   BuildModuleStart - starts current module scope.
+*)
+
+PROCEDURE BuildModuleStart ;
+BEGIN
+   GenQuad(ModuleScopeOp, GetPreviousTokenLineNo(),
+           WORD(makekey(string(GetFileName()))), GetCurrentModule())
+END BuildModuleStart ;
 
 
 (*
@@ -10125,6 +10137,7 @@ BEGIN
                           n2 := GetSymName(Operand3) ;
                           printf3('  %4d  %a  %a', Operand1, n1, n2) |
 
+      ModuleScopeOp,
       StartModFileOp    : n1 := GetSymName(Operand3) ;
                           printf3('%a:%d  %a', Operand2, Operand1, n1) |
 
@@ -10210,6 +10223,7 @@ BEGIN
    IfLessOp                 : printf0('If <             ') |
    GotoOp                   : printf0('Goto             ') |
    DummyOp                  : printf0('Dummy            ') |
+   ModuleScopeOp            : printf0('ModuleScopeOp    ') |
    StartDefFileOp           : printf0('StartDefFile     ') |
    StartModFileOp           : printf0('StartModFile     ') |
    EndFileOp                : printf0('EndFileOp        ') |

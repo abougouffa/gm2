@@ -58,6 +58,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        OrTok, TimesTok, DivTok, ModTok, AndTok, AmbersandTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
+                    BuildModuleStart,
                     StartBuildDefFile, StartBuildModFile,
                     EndBuildFile,
                     StartBuildInit,
@@ -538,6 +539,8 @@ FileUnit :=                                                                % Pus
 
 ProgramModule := "MODULE"                                                  % PushAutoOn %
                   Ident                                                    % P3StartBuildProgModule %
+                                                                           % StartBuildModFile %
+                                                                           % BuildModuleStart %
                                                                            % PushAutoOff %
                   [ Priority
                   ]                                             
@@ -553,6 +556,7 @@ ProgramModule := "MODULE"                                                  % Pus
 ImplementationModule := "IMPLEMENTATION" "MODULE"                          % PushAutoOn %
                          Ident                                             % StartBuildModFile %
                                                                            % P3StartBuildImpModule %
+                                                                           % BuildModuleStart %
                                                                            % PushAutoOff %
                          [ Priority
                          ] ";"                                  
@@ -1117,7 +1121,7 @@ ProcedureBlock :=                                                          % Bui
                 =:
 
 Block := { Declaration }
-                                                                           % StartBuildModFile %
+                                                                           % (* StartBuildModFile *) %
                                                                            % StartBuildInit %
                          [ "BEGIN" StatementSequence ] "END"               % EndBuildInit %
        =:
@@ -1157,7 +1161,8 @@ DefOptArg := "[" Ident ":" FormalType "=" ConstExpression                  % Bui
 FormalType := [ "ARRAY" "OF" ] Qualident =:
 
 ModuleDeclaration := "MODULE"                                              % PushAutoOn %
-                     Ident                                                 % StartBuildInnerModule ;
+                     Ident                                                 % StartBuildInnerModule %
+                                                                           % BuildModuleStart ;
                                                                              PushAutoOff %
                      [ Priority ] ";"
                      { Import                                              % BuildImportInnerModule %

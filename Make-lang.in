@@ -379,7 +379,9 @@ P2C=gm2/boot-bin/p2c -c $(srcdir)/gm2/p2crc \
 M2LINK=gm2/boot-bin/mklink
 GM2-VERSION=0.44
 GM2_O=
-GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn -gstabs+ $(GM2_O) \
+GM2_G=-g -gdwarf-2
+# GM2_G=-gstabs+
+GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -Wverbose-unbounded 
 
 # Language-specific object files for the gm2 compiler.
@@ -1265,6 +1267,10 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
 gm2/ppg: gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
      gm2/gm2-compiler-boot/ppg.o
+	echo "building gm2/ppg" ; \
+	if [ -f gm2/ppg ] ; then \
+            echo "hmm already built" ; \
+        fi ; \
 	cd gm2 ; \
 	../$(M2LINK) -s ../$(srcdir)/gm2/init/ppginit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \

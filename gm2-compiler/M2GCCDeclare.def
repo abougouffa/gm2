@@ -31,6 +31,7 @@ FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED FoldConstants,
                  DeclareConstant, DeclareLocalVariables, PromoteToString,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
+                 DeclareModuleVariables,
                  DeclareProcedure, PoisonSymbols,
                  CompletelyResolved,
                  GetTypeMin, GetTypeMax ;
@@ -78,6 +79,14 @@ PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
 *)
 
 PROCEDURE DeclareProcedure (Sym: WORD) ;
+
+
+(*
+   DeclareModuleVariables - declares Module variables for a module
+                            which inside a procedure.
+*)
+
+PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ;
 
 
 (*

@@ -30,15 +30,16 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         MakeConstLit,
                         RequestSym, FromModuleGetSym,
                         StartScope, EndScope,
-                        GetMainModule, GetScope,
+                        GetMainModule, GetScope, GetModuleScope,
                         GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLocalSym, GetVarWritten,
                         NoOfParam, GetScope, GetParent,
-                        IsModule, IsType,
+                        IsModule, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
-                        IsConst, IsConstSet, IsProcedure, IsProcType, IsProcedureNested,
+                        IsConst, IsConstSet, IsProcedure, IsProcType,
+                        IsProcedureNested,
                         IsVar, IsVarParam, IsTemporary,
                         IsUnbounded, IsArray, IsSet,
                         IsProcedureVariable,
@@ -87,6 +88,9 @@ FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 
+FROM M2StackWord IMPORT InitStackWord, StackOfWord, PeepWord, ReduceWord,
+                        PushWord, PopWord ;
+
 FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList,
                   NoOfItemsInList, GetItemFromList ;
 
@@ -113,6 +117,7 @@ FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                         BuiltinExists, BuildBuiltinTree ;
 
 FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
+                   BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildVariableArrayAndDeclare,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure,
@@ -148,7 +153,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ConvertConstantAndCheck,
                    AreConstantsEqual, CompareTrees,
                    DoJump,
-                   BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
+                   BuildProcedureCall, BuildIndirectProcedureCall,
+                   BuildParam, BuildFunctValue,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
@@ -174,12 +180,12 @@ VAR
    AbsoluteHead             : CARDINAL ;
    LastLine                 : CARDINAL ;(* The Last Line number emitted with the  *)
                                         (* generated code.                        *)
-   CompilingMainModule      : BOOLEAN ; (* Determines whether the main module     *)
-                                        (* quadrules are being processed.         *)
    LastOperator             : QuadOperator ; (* The last operator processed.      *)
    ModuleName,
    FileName                 : String ;
-   CurrentModuleInitFunction: Tree ;
+   CompilingMainModule      : StackOfWord ; (* Determines whether the main module     *)
+                                            (* quadrules are being processed.         *)
+   
 
 
 (*
@@ -269,15 +275,6 @@ VAR
                                                   Mem[Mem[Sym1<I>]] := Mem[Sym3<I>]
                    Sym2 is the array type
 ------------------------------------------------------------------------------
-
-Notes
-
-1)   All references to memory Mem[Sym1<I>] may need to add the base
-     pointer of the activation record if the symbol is a procedure variable.
-
-2)   Addr provides the address of variables and therefore can be used to
-     perform the pseudo system call function ADR( variable ), provided
-     one obeys rule (1).
 *)
 
 (* To keep p2c happy we declare forward procedures *)
@@ -381,8 +378,8 @@ PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; l: List;
 PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
                        q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-
 PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -414,6 +411,19 @@ END ConvertQuadsToTree ;
 
 
 (*
+   IsCompilingMainModule - 
+*)
+
+PROCEDURE IsCompilingMainModule (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WHILE (sym#NulSym) AND (GetMainModule()#sym) DO
+      sym := GetModuleScope(sym)
+   END ;
+   RETURN( sym#NulSym )
+END IsCompilingMainModule ;
+
+
+(*
    CodeStatement - A multi-way decision call depending on the current
                    quadruple.
 *)
@@ -435,9 +445,10 @@ BEGIN
 
    StartDefFileOp     : CodeStartDefFile(q, op1, op2, op3) |
    StartModFileOp     : CodeStartModFile(q, op1, op2, op3) |
+   ModuleScopeOp      : CodeModuleScope(q, op1, op2, op3) |
    EndFileOp          : CodeEndFile(q, op1, op2, op3) |
-   StartOp            : CodeStart(q, op1, op2, op3, CompilingMainModule) |
-   EndOp              : CodeEnd(q, op1, op2, op3, CompilingMainModule) |
+   StartOp            : CodeStart(q, op1, op2, op3, IsCompilingMainModule(op3)) |
+   EndOp              : CodeEnd(q, op1, op2, op3, IsCompilingMainModule(op3)) |
    NewLocalVarOp      : CodeNewLocalVar(q, op1, op2, op3) |
    KillLocalVarOp     : CodeKillLocalVar(q, op1, op2, op3) |
    ProcedureScopeOp   : CodeProcedureScope(q, op1, op2, op3) |
@@ -795,6 +806,26 @@ END CodeLineNumber ;
 
 
 (*
+   CodeModuleScope - ModuleScopeOp is a quadruple which has the following
+                     format:
+
+                     ModuleScopeOp  _  _  ModuleSym
+
+                     Its function is to reset the source file to another
+                     file, hence all line numbers emitted with the
+                     generated code will be relative to this source file.
+*)
+
+PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   ModuleName := KillString(ModuleName) ;
+   ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
+   SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
+   EmitLineNote(KeyToCharStar(Name(op2)), op1)
+END CodeModuleScope ;
+
+
+(*
    CodeStartModFile - StartModFileOp is a quadruple which has the following
                       format:
 
@@ -808,10 +839,10 @@ END CodeLineNumber ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    LastLine := 1 ;
-   CompilingMainModule := GetMainModule()=op3 ;
+   PushWord(CompilingMainModule, GetMainModule()=op3) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
-   IF CompilingMainModule
+   IF PeepWord(CompilingMainModule, 1)=TRUE
    THEN
       SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
       EmitLineNote(KeyToCharStar(Name(op2)), op1)
@@ -833,7 +864,7 @@ END CodeStartModFile ;
 PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    LastLine := 1 ;
-   CompilingMainModule := FALSE ;
+   PushWord(CompilingMainModule, FALSE) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3)))
 END CodeStartDefFile ;
@@ -851,11 +882,7 @@ END CodeStartDefFile ;
 
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   IF CompilingMainModule
-   THEN
-      (* do we need an equivalent ? Gaius *)
-      (* EndDeclareMainModule *)
-   END
+   ReduceWord(CompilingMainModule, 1)
 END CodeEndFile ;
 
 
@@ -876,11 +903,23 @@ END CallInnerInit ;
 
 PROCEDURE CodeStart (quad: CARDINAL; op1, op2, op3: CARDINAL;
                      CompilingMainModule: BOOLEAN) ;
+VAR
+   CurrentModuleInitFunction: Tree ;
 BEGIN
    IF CompilingMainModule
    THEN
       SetFileNameAndLineNo(string(FileName), op1) ;
-      CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3) ;
+      IF IsModuleWithinProcedure(op3)
+      THEN
+         BuildStartFunctionDeclaration(FALSE) ;
+         CurrentModuleInitFunction :=
+         BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(op3)),
+                                     NIL, FALSE, TRUE) ;
+         BuildStartFunctionCode(CurrentModuleInitFunction,
+                                FALSE)
+      ELSE
+         CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3)
+      END ;
       AddModGcc(op3, CurrentModuleInitFunction) ;
       EmitLineNote(string(FileName), op1) ;
       ForeachInnerModuleDo(op3, CallInnerInit)
@@ -900,7 +939,12 @@ BEGIN
    THEN
       SetFileNameAndLineNo(string(FileName), op1) ;
       EmitLineNote(string(FileName), op1) ;
-      BuildEnd(CurrentModuleInitFunction)
+      IF IsModuleWithinProcedure(op3)
+      THEN
+         BuildEndFunctionCode(Mod2Gcc(op3))
+      ELSE
+         BuildEnd(Mod2Gcc(op3))
+      END
    END
 END CodeEnd ;
 
@@ -1049,11 +1093,17 @@ END SaveNonVarUnboundedParameters ;
                      local variables.
 *)
 
-PROCEDURE CodeNewLocalVar (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
+PROCEDURE CodeNewLocalVar (quad: CARDINAL;
+                           LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
    (* callee saves non var unbounded parameter contents *)
    SaveNonVarUnboundedParameters(CurrentProcedure) ;
-   EmitLineNote(string(FileName), LineNo)
+   EmitLineNote(string(FileName), LineNo) ;
+   BuildPushFunctionContext ;
+   ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
+   ForeachInnerModuleDo(CurrentProcedure, CodeBlock) ;
+   BuildPopFunctionContext ;
+   ForeachInnerModuleDo(CurrentProcedure, CallInnerInit)
 END CodeNewLocalVar ;
 
 
@@ -1061,11 +1111,9 @@ END CodeNewLocalVar ;
    CodeKillLocalVar - removes local variables and returns to previous scope.
 *)
 
-PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDINAL) ;
+PROCEDURE CodeKillLocalVar (quad: CARDINAL;
+                            LineNo, op2, CurrentProcedure: CARDINAL) ;
 BEGIN
-   BuildPushFunctionContext ;
-   ForeachProcedureDo(CurrentProcedure, CodeBlock) ;
-   BuildPopFunctionContext ;
    SetFileNameAndLineNo(string(FileName), LineNo) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)
@@ -4357,8 +4405,9 @@ END CodeXIndr ;
 
 
 BEGIN
-   ModuleName    := NIL ;
-   FileName      := NIL
+   ModuleName := NIL ;
+   FileName := NIL ;
+   CompilingMainModule := InitStackWord()
 END M2GenGCC.
 (*
  * Local variables:

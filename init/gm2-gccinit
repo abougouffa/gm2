@@ -57,5 +57,6 @@ StrCase
 M2Entity
 SymbolConversion
 M2GCCDeclare
+M2GenGCC
 gm2
 mod_init

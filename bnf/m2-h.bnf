@@ -58,6 +58,7 @@ FROM P2SymBuild IMPORT BuildString, BuildNumber ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     StartBuildDefFile, StartBuildModFile,
+                    BuildModuleStart,
                     EndBuildFile,
                     StartBuildInit,
                     EndBuildInit,
@@ -534,6 +535,7 @@ FileUnit :=                                                                % Pus
 
 ProgramModule := "MODULE"                                                  % PushAutoOn %
                   Ident                                                    % P3StartBuildProgModule %
+                                                                           % BuildModuleStart %
                                                                            % PushAutoOff %
                   [ Priority
                   ]                                             
@@ -551,6 +553,7 @@ ProgramModule := "MODULE"                                                  % Pus
 ImplementationModule := "IMPLEMENTATION" "MODULE"                          % PushAutoOn %
                          Ident                                             % StartBuildModFile %
                                                                            % P3StartBuildImpModule %
+                                                                           % BuildModuleStart %
                                                                            % PushAutoOff %
                          [ Priority
                          ] ";"                                  
@@ -1052,6 +1055,8 @@ FormalType := [ "ARRAY" "OF" ] Qualident =:
 
 ModuleDeclaration := "MODULE"                                              % PushAutoOn %
                      Ident                                                 % StartBuildInnerModule ;
+                                                                             BuildModuleStart ;
+                          
                                                                              PushAutoOff %
                      [ Priority ] ";"
                      { Import

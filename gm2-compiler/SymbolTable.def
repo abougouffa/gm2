@@ -173,6 +173,7 @@ EXPORT QUALIFIED NulSym,
                  IsProcedureVariable,
                  IsProcedureNested,
                  IsProcedureBuiltin,
+                 IsModuleWithinProcedure,
 
                  ForeachProcedureDo,
                  ProcedureParametersDefined,
@@ -191,7 +192,8 @@ EXPORT QUALIFIED NulSym,
 
                  NoOfElements,
                  NoOfParam,
-                 GetScope, GetParent,
+                 GetScope, GetModuleScope, GetProcedureScope,
+                 GetParent,
 
                  GetSymName,
                  RenameSym,
@@ -1785,6 +1787,34 @@ PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
 *)
 
 PROCEDURE GetScope (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetModuleScope - returns the module scope of symbol, sym.
+                    If sym was declared within a nested procedure
+                    then return the module which defines the
+                    procedure.
+*)
+
+PROCEDURE GetModuleScope (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetProcedureScope - returns the innermost procedure (if any)
+                       in which the symbol, sym, resides.
+                       A module inside the procedure is skipped
+                       over.
+*)
+
+PROCEDURE GetProcedureScope (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsModuleWithinProcedure - returns TRUE if module, sym, is
+                             inside a procedure.
+*)
+
+PROCEDURE IsModuleWithinProcedure (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

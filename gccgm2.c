@@ -7091,14 +7091,13 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   DECL_SOURCE_LINE (decl) = lineno;
 
   DECL_EXTERNAL (decl)    = imported;
-  if (isglobal) {
+  if (isglobal && (scope == NULL_TREE)) {
     TREE_PUBLIC   (decl)  = exported;
-    DECL_CONTEXT  (decl)  = NULL_TREE;
     TREE_STATIC   (decl)  = isglobal;           /* declaration and definition */
-  } else {
+  } else
     TREE_PUBLIC   (decl)  = 1;
-    DECL_CONTEXT  (decl)  = scope;              /* scope is actually the current function */
-  }
+
+  DECL_CONTEXT  (decl)    = scope;
   TREE_USED     (type)    = 1;
   TREE_USED     (decl)    = 1;
 
@@ -11157,10 +11156,11 @@ gccgm2_RealToTree (name)
 }
 
 /*
- *  BuildStart - creates a module initialization function. We make this function
- *               public if it is not an inner module. The linker will create
- *               a call list for all linked modules which determines the
- *               initialization sequence for all modules.
+ *  BuildStart - creates a module initialization function. We make
+ *               this function public if it is not an inner module.
+ *               The linker will create a call list for all linked
+ *               modules which determines the initialization
+ *               sequence for all modules.
  */
 
 tree

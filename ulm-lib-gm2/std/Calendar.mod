@@ -17,9 +17,13 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: Calendar.mod,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: Calendar.mod,v 1.2 2004/06/18 10:44:53 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Calendar.mod,v $
+   Revision 1.2  2004/06/18 10:44:53  gaius
+   * implemented nested module within procedures.
+     This allows a few more ulm library modules to compile.
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -359,3 +363,8 @@ BEGIN
    SetFirstOfWeek(Mon);
    ConvertDate(MAX(Date) DIV 5, maxcalendarday); (* DIV 5: avoid overflow *)
 END Calendar.
+(*
+ * Local variables:
+ *  compile-command: "gm2 -c -g -I../sys:. Calendar.mod"
+ * End:
+ *)

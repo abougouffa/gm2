@@ -58,8 +58,10 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopSize,
                         IsTemporary, IsUnbounded, IsEnumeration, IsVar,
-      	       	     	IsSubrange, IsPointer, IsRecord, IsArray, IsFieldEnumeration,
-                        IsProcedure, IsProcedureNested, IsModule, IsDefImp,
+      	       	     	IsSubrange, IsPointer, IsRecord, IsArray,
+                        IsFieldEnumeration,
+                        IsProcedure, IsProcedureNested, IsModule,
+                        IsDefImp,
       	       	     	IsSubscript, IsVarient, IsFieldVarient,
       	       	     	IsType, IsProcType, IsSet, IsConst, IsConstSet,
                         IsFieldEnumeration,
@@ -67,23 +69,28 @@ FROM SymbolTable IMPORT NulSym,
                         IsVarParam, IsRecordField, IsUnboundedParam,
                         IsValueSolved,
       	       	     	GetMainModule, GetBaseModule, GetModule,
+                        GetProcedureScope,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName,
                         GetDeclared,
                         GetString, GetStringLength, IsConstString,
+                        IsModuleWithinProcedure,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
-                        ForeachInnerModuleDo, ForeachImportedDo, ForeachExportedDo ;
+                        ForeachInnerModuleDo, ForeachImportedDo,
+                        ForeachExportedDo ;
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    GetBaseTypeMinMax, MixTypes,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard,
+                   Cardinal, Char, Proc, Integer, Unbounded, LongInt,
+                   LongCard,
                    Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh,
                    IsRealType, IsNeededAtRunTime ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
-                     GetSystemTypeMinMax, Address, Word, Byte, Loc, System ;
+                     GetSystemTypeMinMax, Address, Word, Byte, Loc,
+                     System ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison ;
@@ -130,6 +137,7 @@ PROCEDURE DeclarePointer (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareLocalVariables (Sym: CARDINAL; i: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareDefaultTypes ; FORWARD ;
 PROCEDURE DeclareGlobalVariables (ModSym: WORD) ; FORWARD ;
+PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareType (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareOrFindKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
@@ -273,18 +281,20 @@ BEGIN
       THEN
          printf0('}\n')
       END ;
-      InternalError('partially declared types are not all resolved', __FILE__, __LINE__)
+      InternalError('partially declared types are not all resolved',
+                    __FILE__, __LINE__)
    END
 END CheckToFinishList ;
 
 
 (*
-   DeclaredOutandingTypes - writes out any types that have their dependants
-                            solved. It returns TRUE if all outstanding types
-                            have been written.
+   DeclaredOutandingTypes - writes out any types that have their
+                            dependants solved. It returns TRUE if
+                            all outstanding types have been written.
 *)
 
-PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN; start, end: CARDINAL) : BOOLEAN ;
+PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
+                                    start, end: CARDINAL) : BOOLEAN ;
 VAR
    n1           : Name ;
    e            : Error ;
@@ -713,7 +723,8 @@ END AllDependantsWritten ;
 
 (*
    DeclareTypeInfo - generates type information for a type symbol, Sym.
-                     A type symbol, Sym, will be transformed into its GCC equivalent.
+                     A type symbol, Sym, will be transformed into its
+                     GCC equivalent.
 *)
 
 PROCEDURE DeclareTypeInfo (Sym: WORD) ;
@@ -974,10 +985,11 @@ BEGIN
       n := NoOfItemsInList(ToDoConstants) ;
       ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
       t := NoOfItemsInList(ToDoList) ;
-      m := NoOfItemsInList(ToDoConstants) ;
+      m := NoOfItemsInList(ToDoConstants)
    UNTIL (n=m) AND (s=t) ;
    sb := KillScopeBlock(sb)
 END DeclareTypesAndConstants ;
+
 
 (*
    AssertDeclareTypesAndConstantsInRange - 
@@ -1015,9 +1027,22 @@ BEGIN
    THEN
       DeclareTypesInProcedure(scope) ;
       DeclareTypesAndConstants(scope) ;
+      ForeachInnerModuleDo(scope, DeclareTypeInfo) ;
+      ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
       AssertAllTypesDeclared(scope) ;
       DeclareLocalVariables(scope) ;
+      ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
       ForeachProcedureDo(scope, DeclareProcedure)
+   ELSIF IsModuleWithinProcedure(scope)
+   THEN
+(*
+      ForeachLocalSymDo(scope, DeclareTypeInfo) ;
+      DeclareTypesAndConstants(scope) ;
+      AssertAllTypesDeclared(scope) ;
+      DeclareModuleVariables(scope) ;
+      ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
+      ForeachProcedureDo(scope, DeclareProcedure)
+*)
    ELSE
       ForeachModuleDo(DeclareTypesInModule) ;
       DeclareTypesAndConstants(scope) ;
@@ -1177,14 +1202,39 @@ END AlignDeclarationWithSource ;
 
 
 (*
+   FindTreeScope - returns the scope where the symbol
+                   should be created.
+
+                   Symbols created in a module will
+                   return NIL trees, but symbols created
+                   in a module which is declared inside
+                   a procedure will return the procedure Tree.
+*)
+
+PROCEDURE FindTreeScope (sym: CARDINAL) : Tree ;
+BEGIN
+   sym := GetProcedureScope(sym) ;
+   IF sym=NulSym
+   THEN
+      RETURN( NIL )
+   ELSE
+      RETURN( Mod2Gcc(sym) )
+   END
+END FindTreeScope ;
+
+
+(*
    DeclareVariable - declares a global variable to GCC.
 *)
 
 PROCEDURE DeclareVariable (ModSym, Son: CARDINAL) ;
+VAR
+   scope: Tree ;
 BEGIN
    IF NOT GccKnowsAbout(Son)
    THEN
       AlignDeclarationWithSource(Son) ;
+      scope := FindTreeScope(ModSym) ;
       IF GetMode(Son)=LeftValue
       THEN
          (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
@@ -1194,7 +1244,7 @@ BEGIN
                                              IsImported(ModSym, Son),
                                              IsTemporary(Son),
                                              TRUE,
-                                             NIL))
+                                             scope))
       ELSE
          AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
                                              Mod2Gcc(GetType(Son)),
@@ -1202,15 +1252,15 @@ BEGIN
                                              IsImported(ModSym, Son),
                                              IsTemporary(Son),
                                              TRUE,
-                                             NIL))
+                                             scope))
       END
    END
 END DeclareVariable ;
 
 
 (*
-   DeclareGlobalVariables - lists the Global variables for Module ModSym
-                            together with their offset.
+   DeclareGlobalVariables - lists the Global variables for
+                            Module ModSym together with their offset.
 *)
 
 PROCEDURE DeclareGlobalVariables (ModSym: CARDINAL) ;
@@ -1282,6 +1332,47 @@ BEGIN
       Var := GetNth(Sym, i)
    END
 END DeclareLocalVariables ;
+
+
+(*
+   DeclareModuleVariables - declares Module variables for a module
+                            which was declared inside a procedure.
+*)
+
+PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ;
+VAR
+   scope : Tree ;
+   i, Var: CARDINAL ;
+BEGIN
+   CheckToFinishList(TRUE) ;
+   i := 1 ;
+   scope := Mod2Gcc(GetProcedureScope(Sym)) ;
+   Var := GetNth(Sym, i) ;
+   WHILE Var#NulSym DO
+      AlignDeclarationWithSource(Var) ;
+      IF GetMode(Var)=LeftValue
+      THEN
+         (* really a pointer to GetType(Var) - we will tell gcc exactly this *)
+         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
+                                             BuildPointerType(Mod2Gcc(GetType(Var))),
+                                             FALSE,  (* local variables cannot be imported *)
+                                             FALSE,  (* local variables cannot be exported *)
+                                             IsTemporary(Var),
+                                             FALSE,
+                                             scope))
+      ELSE
+         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
+                                             Mod2Gcc(GetType(Var)),
+                                             FALSE,  (* local variables cannot be imported *)
+                                             FALSE,  (* local variables cannot be exported *)
+                                             IsTemporary(Var),
+                                             FALSE,
+                                             scope))
+      END ;
+      INC(i) ;
+      Var := GetNth(Sym, i)
+   END
+END DeclareModuleVariables ;
 
 
 (*

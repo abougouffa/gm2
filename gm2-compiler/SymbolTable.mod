@@ -244,6 +244,7 @@ TYPE
                  Size          : PtrToValue ; (* Activation record size.       *)
                  TotalParamSize: PtrToValue ; (* size of all parameters.       *)
                  Scope         : CARDINAL ;   (* Scope of declaration.         *)
+                 ListOfModules : List ;       (* List of all inner modules.    *)
                  At            : Where ;      (* Where was sym declared/used   *)
               END ;
 
@@ -2000,8 +2001,9 @@ BEGIN
    WITH Symbols[Parent] DO
       CASE SymbolType OF
 
-      DefImpSym:  PutItemIntoList(DefImp.ListOfModules, Sym) |
-      ModuleSym:  PutItemIntoList(Module.ListOfModules, Sym)
+      DefImpSym   :  PutItemIntoList(DefImp.ListOfModules, Sym) |
+      ModuleSym   :  PutItemIntoList(Module.ListOfModules, Sym) |
+      ProcedureSym:  PutItemIntoList(Procedure.ListOfModules, Sym)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
@@ -2252,6 +2254,7 @@ BEGIN
             InitList(ListOfProcs) ;      (* List of all procedures        *)
                                          (* declared within this          *)
                                          (* procedure.                    *)
+            InitList(ListOfModules) ;    (* List of all inner modules.    *)
             Size := InitValue() ;        (* Activation record size.       *)
             TotalParamSize
                        := InitValue() ;  (* size of all parameters.       *)
@@ -6119,6 +6122,57 @@ END GetScope ;
 
 
 (*
+   GetModuleScope - returns the module scope of symbol, sym.
+                    If sym was declared within a nested procedure
+                    then return the module which defines the
+                    procedure.
+*)
+
+PROCEDURE GetModuleScope (sym: CARDINAL) : CARDINAL ;
+VAR
+   mod: CARDINAL ;
+BEGIN
+   mod := GetScope(sym) ;
+   WHILE (mod#NulSym) AND (NOT IsDefImp(mod)) AND (NOT IsModule(mod)) DO
+      mod := GetScope(mod)
+   END ;
+   RETURN( mod )
+END GetModuleScope ;
+
+
+(*
+   GetProcedureScope - returns the innermost procedure (if any)
+                       in which the symbol, sym, resides.
+                       A module inside the procedure is skipped
+                       over.
+*)
+
+PROCEDURE GetProcedureScope (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WHILE (sym#NulSym) AND (NOT IsProcedure(sym)) DO
+      sym := GetScope(sym)
+   END ;
+   IF (sym#NulSym) AND IsProcedure(sym)
+   THEN
+      RETURN( sym )
+   ELSE
+      RETURN( NulSym )
+   END
+END GetProcedureScope ;
+
+
+(*
+   IsModuleWithinProcedure - returns TRUE if module, sym, is
+                             inside a procedure.
+*)
+
+PROCEDURE IsModuleWithinProcedure (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( GetProcedureScope(sym)#NulSym )
+END IsModuleWithinProcedure ;
+
+
+(*
    GetParent - returns the parent of symbol, Sym.
 *)
 
@@ -6286,7 +6340,8 @@ BEGIN
       DefImpSym: DefImp.EndQuad := QuadNumber
 
       ELSE
-         InternalError('expecting a Module or DefImp symbol', __FILE__, __LINE__)
+         InternalError('expecting a Module or DefImp symbol',
+                       __FILE__, __LINE__)
       END
    END
 END PutModuleEndQuad ;
@@ -6769,8 +6824,9 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      DefImpSym: ForeachItemInListDo( DefImp.ListOfModules, P) |
-      ModuleSym: ForeachItemInListDo( Module.ListOfModules, P)
+      DefImpSym   : ForeachItemInListDo( DefImp.ListOfModules, P) |
+      ModuleSym   : ForeachItemInListDo( Module.ListOfModules, P) |
+      ProcedureSym: ForeachItemInListDo( Procedure.ListOfModules, P)
 
       ELSE
          InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)

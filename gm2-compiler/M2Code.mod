@@ -25,8 +25,14 @@ FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
                       (* OptimizeDynamic, *) OptimizeCommonSubExpressions, StudentChecking ;
 
 FROM M2Students IMPORT StudentVariableCheck ;
-FROM SymbolTable IMPORT GetMainModule, IsProcedure, ForeachProcedureDo ;
-FROM M2Printf IMPORT printf2 ;
+
+FROM SymbolTable IMPORT GetMainModule, IsProcedure,
+                        IsModuleWithinProcedure,
+                        ForeachProcedureDo,
+                        ForeachInnerModuleDo, GetSymName ;
+
+FROM M2Printf IMPORT printf2, printf1, printf0 ;
+FROM NameKey IMPORT Name ;
 
 FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubrangesAndOptParam, VariableAnalysis,
@@ -41,7 +47,11 @@ FROM M2BasicBlock IMPORT BasicBlock,
 
 FROM M2Optimize IMPORT FoldBranches, RemoveProcedures ;
 FROM M2GenGCC IMPORT InitGNUM2, ConvertQuadsToTree ;
-FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope, DeclareProcedure, InitDeclarations ;
+
+FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
+                         DeclareProcedure, InitDeclarations,
+                         DeclareModuleVariables ;
+
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 FROM gccgm2 IMPORT InitGlobalContext ;
 
@@ -345,33 +355,40 @@ END DisplayQuadNumbers ;
 PROCEDURE CodeBlock (scope: WORD) ;
 VAR
    sb: ScopeBlock ;
+   n : Name ;
 BEGIN
    sb := InitScopeBlock(scope) ;
-   IF DisplayQuadruples AND FALSE
-   THEN
-      ForeachScopeBlockDo(sb, DisplayQuadRange)
-   END ;
    OptimizeScopeBlock(sb) ;
-   IF DisplayQuadruples AND FALSE
-   THEN
-      ForeachScopeBlockDo(sb, DisplayQuadRange) ;
-      ForeachScopeBlockDo(sb, DisplayQuadNumbers)
-   END ;
    IF IsProcedure(scope)
    THEN
       DeclareProcedure(scope) ;
-      IF DisplayQuadruples AND FALSE
+      IF DisplayQuadruples
       THEN
-         WriteString('before coding') ; WriteLn ;
-         DisplayQuadList(Head)
+         n := GetSymName(scope) ;
+         printf1('before coding procedure %a\n', n) ;
+         ForeachScopeBlockDo(sb, DisplayQuadRange) ;
+         printf0('===============\n')
       END ;
+      ForeachScopeBlockDo(sb, ConvertQuadsToTree)
+   ELSIF IsModuleWithinProcedure(scope)
+   THEN
+      IF DisplayQuadruples
+      THEN
+         n := GetSymName(scope) ;
+         printf1('before coding module %a within procedure\n', n) ;
+         ForeachScopeBlockDo(sb, DisplayQuadRange) ;
+         printf0('===============\n')
+      END ;
+      ForeachInnerModuleDo(scope, CodeBlock) ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree)
    ELSE
       StartDeclareScope(scope) ;
-      IF DisplayQuadruples AND FALSE
+      IF DisplayQuadruples
       THEN
-         WriteString('before coding') ; WriteLn ;
-         DisplayQuadList(Head)
+         n := GetSymName(scope) ;
+         printf1('before coding module %a\n', n) ;
+         ForeachScopeBlockDo(sb, DisplayQuadRange) ;
+         printf0('===============\n')
       END ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
       ForeachProcedureDo(scope, CodeBlock)

@@ -18,7 +18,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Scope ;
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads ;
+
+FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads, GetScope,
+                        NulSym ;
+
 FROM M2Quads IMPORT QuadOperator, Head, GetNextQuad, GetQuad ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PopWord, PushWord, PeepWord ;
@@ -90,7 +93,7 @@ END AddToRange ;
    GetGlobalQuads - 
 *)
 
-PROCEDURE GetGlobalQuads (sb: ScopeBlock) : ScopeBlock ;
+PROCEDURE GetGlobalQuads (sb: ScopeBlock; scope: CARDINAL) : ScopeBlock ;
 VAR
    nb           : ScopeBlock ;
    NestedLevel,
@@ -98,14 +101,36 @@ VAR
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
    First        : BOOLEAN ;
+   start, end   : CARDINAL ;
 BEGIN
    NestedLevel := 0 ;
    First := FALSE ;
-   i := Head ;
+   IF (GetScope(scope)#NulSym) AND IsProcedure(GetScope(scope))
+   THEN
+      GetProcedureQuads(GetScope(scope), i, start, end) ;
+      GetQuad(i, op, op1, op2, op3) ;
+      WHILE (op#ModuleScopeOp) OR (op3#scope) DO
+         i := GetNextQuad(i) ;
+         GetQuad(i, op, op1, op2, op3)
+      END ;
+      end := i ;
+      GetQuad(end, op, op1, op2, op3) ;
+      WHILE (op#EndOp) OR (op3#scope) DO
+         end := GetNextQuad(end) ;
+         GetQuad(end, op, op1, op2, op3)
+      END
+   ELSE
+      i := Head ;
+      end := 0
+   END ;
    nb := sb ;
    sb^.low := 0 ;
    sb^.high := 0 ;
-   WHILE i#0 DO
+   LOOP
+      IF i=0
+      THEN
+         RETURN( sb )
+      END ;
       GetQuad(i, op, op1, op2, op3) ;
       IF op=ProcedureScopeOp
       THEN
@@ -127,9 +152,12 @@ BEGIN
             First := FALSE
          END
       END ;
+      IF i=end
+      THEN
+         RETURN( sb )
+      END ;
       i := GetNextQuad(i)
-   END ;
-   RETURN( sb )
+   END
 END GetGlobalQuads ;
 
 
@@ -159,7 +187,7 @@ BEGIN
    sb^.high := 0 ;
    WHILE (i<=end) AND (start#0) DO
       GetQuad(i, op, op1, op2, op3) ;
-      IF op=ProcedureScopeOp
+      IF (op=ProcedureScopeOp) OR (op=ModuleScopeOp)
       THEN
          IF PeepWord(s, 1)=proc
          THEN
@@ -167,7 +195,7 @@ BEGIN
             First := FALSE
          END ;
          PushWord(s,  op3)
-      ELSIF op=ReturnOp
+      ELSIF (op=ReturnOp) OR (op=EndOp)
       THEN
          op3 := PopWord(s) ;
          IF PeepWord(s, 1)=proc
@@ -220,7 +248,7 @@ BEGIN
          THEN
             sb := GetProcQuads(sb, scope)
          ELSE
-            sb := GetGlobalQuads(sb)
+            sb := GetGlobalQuads(sb, scope)
          END
       END
    END ;

@@ -26,6 +26,7 @@ DEFINITION MODULE M2Quads ;
 
 FROM SYSTEM IMPORT WORD ;
 EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
+                 BuildModuleStart,
                  StartBuildInit, EndBuildInit,
                  BuildBuiltinConst,
                  BuildAssignment,
@@ -116,7 +117,8 @@ TYPE
                    IfEquOp, IfLessEquOp, IfGreEquOp, IfGreOp, IfLessOp,
                    IfNotEquOp, IfInOp, IfNotInOp,
                    CallOp, ParamOp, OptParamOp, ReturnOp, ReturnValueOp, FunctValueOp,
-                   NewLocalVarOp, KillLocalVarOp, ProcedureScopeOp,
+                   NewLocalVarOp, KillLocalVarOp,
+                   ProcedureScopeOp, ModuleScopeOp,
                    DummyOp,
                    GotoOp, EndOp, StartOp,
                    NegateOp, AddOp, SubOp, DivOp, MultOp, ModOp,
@@ -1291,6 +1293,13 @@ PROCEDURE BuildConstFunctionCall ;
 *)
 
 PROCEDURE BuildBooleanVariable ;
+
+
+(*
+   BuildModuleStart - starts current module scope.
+*)
+
+PROCEDURE BuildModuleStart ;
 
 
 (*

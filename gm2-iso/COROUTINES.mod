@@ -156,7 +156,7 @@ BEGIN
    currentCoRoutine := to ;
    Priority(currentCoRoutine, PTH_PRIO_MAX) ;
    Yield(currentCoRoutine) ;
-   (* now we are running currentCoRoutine so we suspend from *)
+   (* now we are running currentCoRoutine so we suspend, from *)
    Suspend(from)
 END TRANSFER ;
 
