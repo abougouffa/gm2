@@ -412,7 +412,7 @@ gm2-libs-boot/%.o: gm2-libs-boot/%.mod
           mv gm2-libs-boot/$*.H gm2-libs-boot/$*.h ; \
         fi
 	$(RM) gm2-libs-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDE) gm2-libs-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot $(INCLUDES) gm2-libs-boot/$*.c -o $*.o
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
@@ -433,7 +433,7 @@ gm2-compiler-boot/%.o: gm2-compiler-boot/%.mod
           mv gm2-compiler-boot/$*.H gm2-compiler-boot/$*.h ; \
         fi
 	$(RM) gm2-compiler-boot/$*.md
-	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDE) gm2-compiler-boot/$*.c -o $*.o
+	$(CC) -c $(CFLAGS) -I. -I.. -Igm2-libs-boot -Igm2-compiler-boot $(INCLUDES) gm2-compiler-boot/$*.c -o $*.o
 
 #
 #  careful with p2c as it leaves the .h in the cwd and when we translate the .mod
