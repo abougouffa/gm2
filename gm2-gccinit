@@ -59,7 +59,6 @@ M2Code
 P1Compile
 P2Compile
 P3Compile
-M2Alias
 M2AsmUtil
 M2SubExp
 M2FileName
