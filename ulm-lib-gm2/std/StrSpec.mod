@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StrSpec.mod,v 1.3 2004/12/22 12:38:44 gaius Exp $
+   $Id: StrSpec.mod,v 1.4 2004/12/22 12:40:05 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StrSpec.mod,v $
+   Revision 1.4  2004/12/22 12:40:05  gaius
+   corrected test.
+
    Revision 1.3  2004/12/22 12:38:44  gaius
    * more fixes to enable to the Z type to work.
    * introduced GetM2ZRealType which maps onto the largest
@@ -121,8 +124,6 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 	targetLen   : CARDINAL;
 
    BEGIN
-      StrPartCpy ( StoreIt^, target, position, targetLen-position );
-(*
       targetLen := StrLen ( target );
       IF position > targetLen THEN
 	 StrCat ( target, insertion )
@@ -148,7 +149,6 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 	 END;
 	 DEALLOCATE ( StoreIt, SIZE(target) )
       END
-*)
    END StrIns;
 
 
