@@ -198,7 +198,7 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 #  ggc-page - is only present here as there is a bug in gm2 which manifests itself
 #             when garbage collection occurs. This is a temporary hack.
 #
-BACKEND = ../toplev.o diagnostic.o ggc-page.o ../libbackend.a
+BACKEND = ../toplev.o ggc-page.o ../libbackend.a
 
 compiler: ../cc1gm2$(exeext) gm2support
 
@@ -248,14 +248,6 @@ ggc-page.o : $(srcdir)/../ggc-page.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
 	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
 	  -DTARGET_NAME=\"$(target_alias)\" \
 	  -c `echo $(srcdir)/../ggc-page.c | sed 's,^\./,,'`
-
-diagnostic.o : $(srcdir)/../diagnostic.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
-           $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
-           $(srcdir)/../defaults.h $(srcdir)/../output.h
-	$(CC) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
-	  $(MAYBE_TARGET_DEFAULT) $(MAYBE_USE_COLLECT2) \
-	  -DTARGET_NAME=\"$(target_alias)\" \
-	  -c `echo $(srcdir)/../diagnostic.c | sed 's,^\./,,'`
 
 c-convert.o : $(srcdir)/../c-convert.c $(CONFIG_H) $(TREE_H) $(RTL_H) \
               $(FLAGS_H) $(INPUT_H) ../insn-attr.h $(srcdir)/../xcoffout.h \
@@ -767,8 +759,8 @@ gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
          fi
 
 %.exe:
-	 grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst ; \
-        ../xgm2 -v -Igm2-libs -Igm2-compiler -g -B./ -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod ; \
+	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst
+	../xgm2 -v -Igm2-libs -Igm2-compiler -g -B./a -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
 
 gm2lcc: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -776,7 +768,7 @@ gm2lcc: m2/comp/p2c/home/libp2c.a force
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
 	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
-	mv a.out $@
+	mv a.out a$@
 
 gm2l: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -784,7 +776,7 @@ gm2l: m2/comp/p2c/home/libp2c.a force
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
 	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
-	mv a.out $@
+	mv a.out a$@
 
 gm2lgen: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -792,7 +784,7 @@ gm2lgen: m2/comp/p2c/home/libp2c.a force
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
 	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
-	mv a.out $@
+	mv a.out a$@
 
 gm2lsub: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
@@ -800,7 +792,7 @@ gm2lsub: m2/comp/p2c/home/libp2c.a force
 	M2PATH=". gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
 	$(M2LINK) -l -p2c m2/comp/p2c/home/libp2c.a m2/comp/gm2s/$@init
 	$(SHELL) linkcommand
-	mv a.out $@
+	mv a.out a$@
 
 #
 # verifyparanoid - diffs the output of all three compilers with the compiler source code
@@ -882,5 +874,6 @@ clean: force
 	$(RM) -f m2/comp/man/m2f.cat
 	$(RM) -f m2/comp/tools/mkfor m2/comp/tools/mklink
 	$(RM) -f ../cc1gm2$(exeext) ../acc1gm2$(exeext) ../bcc1gm2$(exeext)
+	$(RM) -f agm2l agm2lcc agm2lgen agm2lsub
 
 force:

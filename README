@@ -28,10 +28,10 @@ To get the latest sources to GM2 type the following:
 This will checkout a copy of GNU Modula-2 into one subdirectory: gm2
 
 This (very development, very buggy, highly unstable)
-version of GM2 needs to be placed inside an egcs directory tree in
+version of GM2 needs to be placed inside an GCC directory tree in
 the position egcs-version/gcc before GNU Modula-2 can be built.
 
-Assuming that both egcs and gm2 are at the same directory level, type:
+Assuming that both GCC and gm2 are at the same directory level, type:
    
    mv gm2 egcs-version/gcc
 

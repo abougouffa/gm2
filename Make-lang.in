@@ -69,7 +69,7 @@ cc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
 
 # Build hooks:
 
-gm2.all.build: force
+gm2.all.build: $(GCC_PASSES) $(GCC_PARTS)
 	cd gm2 ; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2support
 	for i in $(GM2LINKEXES) ; do \
             rm -f x$$i$(exeext); \
