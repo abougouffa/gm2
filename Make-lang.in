@@ -123,7 +123,8 @@ gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h : s-gtype; @true
 
 # Build hooks:
 
-gm2.all.build: $(GM2)$(exeext)
+gm2.all.build: $(GM2)$(exeext) stage1/gm2/cc1gm2$(exeext) \
+	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext)
 gm2.all.cross: $(GM2)-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
 	$(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext)
 
