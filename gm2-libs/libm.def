@@ -1,0 +1,49 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE FOR "C" libm ;
+
+(*
+    Title      : libm
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sat Jan 11 19:44:29 2003
+    Revision   : $Version$ 
+    Description: provides access to libm. Users are strongly advised to
+                 use MathLib0 or RealMath as call to functions within
+                 these modules will generate inline code. This module
+                 is used by MathLib0 and RealMath when inline code cannot
+                 be generated.
+*)
+
+EXPORT UNQUALIFIED sin, cos, tan, sqrt,
+                   asin, acos, atan, exp, log, pow ;
+
+PROCEDURE sin (x: REAL) : REAL ;
+PROCEDURE cos (x: REAL) : REAL ;
+PROCEDURE tan (x: REAL) : REAL ;
+PROCEDURE sqrt (x: REAL) : REAL ;
+PROCEDURE asin (x: REAL) : REAL ;
+PROCEDURE acos (x: REAL) : REAL ;
+PROCEDURE atan (x: REAL) : REAL ;
+PROCEDURE exp (x: REAL) : REAL ;
+PROCEDURE log (x: REAL) : REAL ;
+PROCEDURE pow (x, y: REAL) : REAL ;
+PROCEDURE floor (x: REAL) : REAL ;
+PROCEDURE ceil (x: REAL) : REAL ;
+
+END libm.
