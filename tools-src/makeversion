@@ -9,12 +9,12 @@ GuessMailAdr()
 {
   user=`logname`
   host=`hostname`
-  if   [ ! `expr match $host '.*[.]'` -gt 0 ]
+  if   [ ! `expr $host : '.*[.]'` -gt 0 ]
   then if   [ -f /etc/hosts ]
        then qhost=`cut -d'#' -f1 /etc/hosts | grep $host. | head -1`
 	    set -- $qhost
 	    shift
-	    while [ -n "$1" ] && [ `expr match $1 '.*[.]'` -eq 0 ];
+	    while [ -n "$1" ] && [ `expr $1 : '.*[.]'` -eq 0 ];
 	    do shift
 	    done
 	    [ -n "$1" ] && mail="$user@$1"

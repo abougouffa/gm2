@@ -6,12 +6,12 @@
 #
 PPGSRC=$1
 
-function includeNonErrorChecking () {
+includeNonErrorChecking () {
    sed -e "1,/StartNonErrorChecking/d" < $PPGSRC |\
    sed -e "1,/EndNonErrorChecking/!d"
 }
 
-function includeErrorChecking () {
+includeErrorChecking () {
    sed -e "1,/StartErrorChecking/d" < $PPGSRC |\
    sed -e "1,/EndErrorChecking/!d"
 }
