@@ -363,9 +363,6 @@ static int                    duplicate_decls                   	 PARAMS ((tree 
        void                   init_lex                          	 PARAMS ((void));
        void                   yyerror                           	 PARAMS ((char *str));
        int                    yyparse                          	         PARAMS ((void));
-static int                    spelling_length                   	 PARAMS ((void));
-static char                  *print_spelling                    	 PARAMS ((char *buffer));
-static char                  *get_spelling                      	 PARAMS ((char *errtype));
 static tree                   build_c_type_variant              	 PARAMS ((tree type, int constp, int volatilep));
 static tree                   qualify_type                      	 PARAMS ((tree type, tree like));
        tree                   common_type                       	 PARAMS ((tree t1, tree t2));
@@ -384,8 +381,8 @@ static tree                  unary_complex_lvalue 	        	 PARAMS ((enum tree_
 static int                   comp_target_types 		        	 PARAMS ((tree ttl, tree ttr));
        tree                   convert_set    		        	 PARAMS ((tree type, tree expr));
        tree                   convert        		        	 PARAMS ((tree type, tree expr));
-static void                   warn_for_assignment 	       	         PARAMS ((char *msg, char *opname, tree function,
-										  int        argnum));
+static void                   warn_for_assignment 	       	         PARAMS ((const char *msg, const char *opname,
+										  tree function, int argnum));
        void                   constant_expression_warning       	 PARAMS ((tree value));
        void                   overflow_warning 		         	 PARAMS ((tree value));
        void                   unsigned_conversion_warning       	 PARAMS ((tree result, tree operand));
@@ -396,7 +393,7 @@ static void                   warn_for_assignment 	       	         PARAMS ((cha
 										  tree *restype_ptr,
 										  enum tree_code *rescode_ptr));
        tree                   require_complete_type 	       	 	 PARAMS ((tree value));
-static tree                   convert_for_assignment 	       	 	 PARAMS ((tree type, tree rhs, char *errtype,
+static tree                   convert_for_assignment 	       	 	 PARAMS ((tree type, tree rhs, const char *errtype,
 										  tree fundecl, tree funname,
 										  int parmnum));
        tree                   build_modify_expr 		       	 PARAMS ((tree lhs, enum tree_code modifycode,
@@ -421,7 +418,7 @@ static tree                   convert_for_assignment 	       	 	 PARAMS ((tree t
        int                    complete_array_type 	       	 	 PARAMS ((tree type, tree initial_value,
 										  int do_default));
        void                   finish_decl    		       	 	 PARAMS ((tree decl, tree init, tree asmspec_tree));
-static void                   add_attribute  		       	 	 PARAMS ((enum attrs id, char *string, int min_len,
+static void                   add_attribute  		       	 	 PARAMS ((enum attrs id, const char *string, int min_len,
 										  int max_len, int decl_req));
 static void                   init_attributes 		       	 	 PARAMS ((void));
        void                   decl_attributes 		       	 	 PARAMS ((tree node, tree attributes,
@@ -2997,12 +2994,6 @@ struct spelling
 #define SPELLING_MEMBER 2
 #define SPELLING_BOUNDS 3
 
-static struct spelling *spelling;       /* Next stack element (unused).  */
-static struct spelling *spelling_base;  /* Spelling stack base.  */
-#if 0
-static int spelling_size;               /* Size of the spelling stack.  */
-#endif
-
 /* Macros to save and restore the spelling stack around push_... functions.
    Alternative to SAVE_SPELLING_STACK.  */
 
@@ -3075,85 +3066,9 @@ push_array_bounds (bounds)
 }
 #endif
 
-/* Compute the maximum size in bytes of the printed spelling.  */
-
-static int
-spelling_length ()
-{
-  register int size = 0;
-  register struct spelling *p;
-
-  for (p = spelling_base; p < spelling; p++)
-    {
-      if (p->kind == SPELLING_BOUNDS)
-        size += 25;
-      else
-        size += strlen (p->u.s) + 1;
-    }
-
-  return size;
-}
-
-/* Print the spelling to BUFFER and return it.  */
-
-static char *
-print_spelling (buffer)
-     register char *buffer;
-{
-  register char *d = buffer;
-  register char *s;
-  register struct spelling *p;
-
-  for (p = spelling_base; p < spelling; p++)
-    if (p->kind == SPELLING_BOUNDS)
-      {
-        sprintf (d, "[%d]", p->u.i);
-        d += strlen (d);
-      }
-    else
-      {
-        if (p->kind == SPELLING_MEMBER)
-          *d++ = '.';
-        for (s = p->u.s; (*d = *s++); d++)
-          ;
-      }
-  *d++ = '\0';
-  return buffer;
-}
-
 /* Provide a means to pass component names derived from the spelling stack.  */
 
 char initialization_message;
-
-/* Interpret the spelling of the given ERRTYPE message.  */
-
-static char *
-get_spelling (errtype)
-     char *errtype;
-{
-  static char *buffer;
-  static int size = -1;
-
-  if (errtype == &initialization_message)
-    {
-      /* Avoid counting chars */
-      static char message[] = "initialization of `%s'";
-      register int needed = sizeof (message) + spelling_length () + 1;
-      char *temp;
-
-      if (size < 0)
-        buffer = (char *) xmalloc (size = needed);
-      if (needed > size)
-        buffer = (char *) xrealloc (buffer, size = needed);
-
-      temp = (char *) alloca (needed);
-      sprintf (buffer, message, print_spelling (temp));
-      return buffer;
-    }
-
-  return errtype;
-}
-
 
 static
 tree
@@ -4342,48 +4257,53 @@ convert (type, expr)
   return error_mark_node;
 }
 
-/* Print a warning using MSG.
+/* Print a warning using MSGID.
    It gets OPNAME as its one parameter.
    If OPNAME is null, it is replaced by "passing arg ARGNUM of `FUNCTION'".
    FUNCTION and ARGNUM are handled specially if we are building an
    Objective-C selector.  */
 
 static void
-warn_for_assignment (msg, opname, function, argnum)
-     char *msg;
-     char *opname;
+warn_for_assignment (msgid, opname, function, argnum)
+     const char *msgid;
+     const char *opname;
      tree function;
      int argnum;
 {
-  static char argstring[] = "passing arg %d of `%s'";
-  static char argnofun[] =  "passing arg %d";
-
   if (opname == 0)
     {
 #if NOT_NEEDED_FOR_M2
       tree selector = maybe_building_objc_message_expr ();
+      char * new_opname;
       
       if (selector && argnum > 2)
-        {
-          function = selector;
-          argnum -= 2;
-        }
+	{
+	  function = selector;
+	  argnum -= 2;
+	}
+#else
+      char * new_opname;
 #endif
       if (function)
-        {
-          /* Function name is known; supply it.  */
-          opname = (char *) alloca (IDENTIFIER_LENGTH (function)
-                                    + sizeof (argstring) + 25 /*%d*/ + 1);
-          sprintf (opname, argstring, argnum, IDENTIFIER_POINTER (function));
-        }
+	{
+	  /* Function name is known; supply it.  */
+	  const char *argstring = _("passing arg %d of `%s'");
+	  new_opname = (char *) alloca (IDENTIFIER_LENGTH (function)
+					+ strlen (argstring) + 1 + 25
+					/*%d*/ + 1);
+	  sprintf (new_opname, argstring, argnum,
+		   IDENTIFIER_POINTER (function));
+	}
       else
-        {
-          /* Function name unknown (call through ptr); just give arg number.  */
-          opname = (char *) alloca (sizeof (argnofun) + 25 /*%d*/ + 1);
-          sprintf (opname, argnofun, argnum);
-        }
+	{
+	  /* Function name unknown (call through ptr); just give arg number.*/
+	  const char *argnofun = _("passing arg %d of pointer to function");
+	  new_opname = (char *) alloca (strlen (argnofun) + 1 + 25 /*%d*/ + 1);
+	  sprintf (new_opname, argnofun, argnum);
+	}
+      opname = new_opname;
     }
-  pedwarn (msg, opname);
+  pedwarn (msgid, opname);
 }
 
 /* Print a warning if a constant expression had overflow in folding.
@@ -5233,9 +5153,7 @@ require_complete_type (value)
    for assignments that are not allowed in C.
    ERRTYPE is a string to use in error messages:
    "assignment", "return", etc.  If it is null, this is parameter passing
-   for a function call (and different error messages are output).  Otherwise,
-   it may be a name stored in the spelling stack and interpreted by
-   get_spelling.
+   for a function call (and different error messages are output).
 
    FUNNAME is the name of the function being called,
    as an IDENTIFIER_NODE, or null.
@@ -5244,7 +5162,7 @@ require_complete_type (value)
 static tree
 convert_for_assignment (type, rhs, errtype, fundecl, funname, parmnum)
      tree type, rhs;
-     char *errtype;
+     const char *errtype;
      tree fundecl, funname;
      int parmnum;
 {
@@ -5286,11 +5204,32 @@ convert_for_assignment (type, rhs, errtype, fundecl, funname, parmnum)
       error ("void value not ignored as it ought to be");
       return error_mark_node;
     }
+  /* A type converts to a reference to it.  
+     This code doesn't fully support references, it's just for the
+     special case of va_start and va_copy.  */
+  if (codel == REFERENCE_TYPE
+      && comptypes (TREE_TYPE (type), TREE_TYPE (rhs)) == 1)
+    {
+      if (mark_addressable (rhs) == 0)
+	return error_mark_node;
+      rhs = build1 (ADDR_EXPR, build_pointer_type (TREE_TYPE (rhs)), rhs);
+
+      /* We already know that these two types are compatible, but they
+	 may not be exactly identical.  In fact, `TREE_TYPE (type)' is
+	 likely to be __builtin_va_list and `TREE_TYPE (rhs)' is
+	 likely to be va_list, a typedef to __builtin_va_list, which
+	 is different enough that it will cause problems later.  */
+      if (TREE_TYPE (TREE_TYPE (rhs)) != TREE_TYPE (type))
+	rhs = build1 (NOP_EXPR, build_pointer_type (TREE_TYPE (type)), rhs);
+
+      rhs = build1 (NOP_EXPR, type, rhs);
+      return rhs;
+    }
   /* Arithmetic types all interconvert, and enum is treated like int.  */
-  if ((codel == INTEGER_TYPE || codel == REAL_TYPE || codel == ENUMERAL_TYPE
-       || codel == COMPLEX_TYPE)
-      && (coder == INTEGER_TYPE || coder == REAL_TYPE || coder == ENUMERAL_TYPE
-          || coder == COMPLEX_TYPE))
+  else if ((codel == INTEGER_TYPE || codel == REAL_TYPE
+	    || codel == ENUMERAL_TYPE || codel == COMPLEX_TYPE)
+	   && (coder == INTEGER_TYPE || coder == REAL_TYPE
+	       || coder == ENUMERAL_TYPE || coder == COMPLEX_TYPE))
     return convert_and_check (type, rhs);
 
   /* Conversion to a transparent union from its member types.
@@ -5312,206 +5251,186 @@ convert_for_assignment (type, rhs, errtype, fundecl, funname, parmnum)
           if (TREE_CODE (memb_type) != POINTER_TYPE)
             continue;
 
-          if (coder == POINTER_TYPE)
-            {
-              register tree ttl = TREE_TYPE (memb_type);
-              register tree ttr = TREE_TYPE (rhstype);
+	  if (coder == POINTER_TYPE)
+	    {
+	      register tree ttl = TREE_TYPE (memb_type);
+	      register tree ttr = TREE_TYPE (rhstype);
 
-              /* Any non-function converts to a [const][volatile] void *
-                 and vice versa; otherwise, targets must be the same.
-                 Meanwhile, the lhs target must have all the qualifiers of
-                 the rhs.  */
-              if (TYPE_MAIN_VARIANT (ttl) == void_type_node
-                  || TYPE_MAIN_VARIANT (ttr) == void_type_node
-                  || comp_target_types (memb_type, rhstype))
-                {
-                  /* If this type won't generate any warnings, use it.  */
-                  if ((TREE_CODE (ttr) == FUNCTION_TYPE
-                       && TREE_CODE (ttl) == FUNCTION_TYPE)
-                      ? ((! TYPE_READONLY (ttl) | TYPE_READONLY (ttr))
-                         & (! TYPE_VOLATILE (ttl) | TYPE_VOLATILE (ttr)))
-                      : ((TYPE_READONLY (ttl) | ! TYPE_READONLY (ttr))
-                         & (TYPE_VOLATILE (ttl) | ! TYPE_VOLATILE (ttr))))
-                    break;
+	      /* Any non-function converts to a [const][volatile] void *
+		 and vice versa; otherwise, targets must be the same.
+		 Meanwhile, the lhs target must have all the qualifiers of
+		 the rhs.  */
+	      if (VOID_TYPE_P (ttl) || VOID_TYPE_P (ttr)
+		  || comp_target_types (memb_type, rhstype))
+		{
+		  /* If this type won't generate any warnings, use it.  */
+		  if (TYPE_QUALS (ttl) == TYPE_QUALS (ttr)
+		      || ((TREE_CODE (ttr) == FUNCTION_TYPE
+			   && TREE_CODE (ttl) == FUNCTION_TYPE)
+			  ? ((TYPE_QUALS (ttl) | TYPE_QUALS (ttr))
+			     == TYPE_QUALS (ttr))
+			  : ((TYPE_QUALS (ttl) | TYPE_QUALS (ttr))
+			     == TYPE_QUALS (ttl))))
+		    break;
 
-                  /* Keep looking for a better type, but remember this one.  */
-                  if (! marginal_memb_type)
-                    marginal_memb_type = memb_type;
-                }
-            }
+		  /* Keep looking for a better type, but remember this one.  */
+		  if (! marginal_memb_type)
+		    marginal_memb_type = memb_type;
+		}
+	    }
 
-          /* Can convert integer zero to any pointer type.  */
-          if (integer_zerop (rhs)
-              || (TREE_CODE (rhs) == NOP_EXPR
-                  && integer_zerop (TREE_OPERAND (rhs, 0))))
-            {
-              rhs = null_pointer_node;
-              break;
-            }
-        }
+	  /* Can convert integer zero to any pointer type.  */
+	  if (integer_zerop (rhs)
+	      || (TREE_CODE (rhs) == NOP_EXPR
+		  && integer_zerop (TREE_OPERAND (rhs, 0))))
+	    {
+	      rhs = null_pointer_node;
+	      break;
+	    }
+	}
 
       if (memb_types || marginal_memb_type)
-        {
-          if (! memb_types)
-            {
-              /* We have only a marginally acceptable member type;
-                 it needs a warning.  */
-              register tree ttl = TREE_TYPE (marginal_memb_type);
-              register tree ttr = TREE_TYPE (rhstype);
+	{
+	  if (! memb_types)
+	    {
+	      /* We have only a marginally acceptable member type;
+		 it needs a warning.  */
+	      register tree ttl = TREE_TYPE (marginal_memb_type);
+	      register tree ttr = TREE_TYPE (rhstype);
 
-              /* Const and volatile mean something different for function
-                 types, so the usual warnings are not appropriate.  */
-              if (TREE_CODE (ttr) == FUNCTION_TYPE
-                  && TREE_CODE (ttl) == FUNCTION_TYPE)
-                {
-                  /* Because const and volatile on functions are
-                     restrictions that say the function will not do
-                     certain things, it is okay to use a const or volatile
-                     function where an ordinary one is wanted, but not
-                     vice-versa.  */
-                  if (TYPE_READONLY (ttl) && ! TYPE_READONLY (ttr))
-                    warn_for_assignment ("%s makes `const *' function pointer from non-const",
-                                         get_spelling (errtype), funname,
-                                         parmnum);
-                  if (TYPE_VOLATILE (ttl) && ! TYPE_VOLATILE (ttr))
-                    warn_for_assignment ("%s makes `volatile *' function pointer from non-volatile",
-                                         get_spelling (errtype), funname,
-                                         parmnum);
-                }
-              else
-                {
-                  if (! TYPE_READONLY (ttl) && TYPE_READONLY (ttr))
-                    warn_for_assignment ("%s discards `const' from pointer target type",
-                                         get_spelling (errtype), funname,
-                                         parmnum);
-                  if (! TYPE_VOLATILE (ttl) && TYPE_VOLATILE (ttr))
-                    warn_for_assignment ("%s discards `volatile' from pointer target type",
-                                         get_spelling (errtype), funname,
-                                         parmnum);
-                }
-            }
-          
-          if (pedantic && ! DECL_IN_SYSTEM_HEADER (fundecl))
-            pedwarn ("ANSI C prohibits argument conversion to union type");
+	      /* Const and volatile mean something different for function
+		 types, so the usual warnings are not appropriate.  */
+	      if (TREE_CODE (ttr) == FUNCTION_TYPE
+		  && TREE_CODE (ttl) == FUNCTION_TYPE)
+		{
+		  /* Because const and volatile on functions are
+		     restrictions that say the function will not do
+		     certain things, it is okay to use a const or volatile
+		     function where an ordinary one is wanted, but not
+		     vice-versa.  */
+		  if (TYPE_QUALS (ttl) & ~TYPE_QUALS (ttr))
+		    warn_for_assignment ("%s makes qualified function pointer from unqualified",
+					 errtype, funname, parmnum);
+		}
+	      else if (TYPE_QUALS (ttr) & ~TYPE_QUALS (ttl))
+		warn_for_assignment ("%s discards qualifiers from pointer target type",
+				     errtype, funname,
+				     parmnum);
+	    }
+	  
+	  if (pedantic && ! DECL_IN_SYSTEM_HEADER (fundecl))
+	    pedwarn ("ISO C prohibits argument conversion to union type");
 
-          return build1 (NOP_EXPR, type, rhs);
-        }
+	  return build1 (NOP_EXPR, type, rhs);
+	}
     }
 
   /* Conversions among pointers */
-  else if (codel == POINTER_TYPE && coder == POINTER_TYPE)
+  else if ((codel == POINTER_TYPE || codel == REFERENCE_TYPE)
+	   && (coder == POINTER_TYPE || coder == REFERENCE_TYPE))
     {
       register tree ttl = TREE_TYPE (type);
       register tree ttr = TREE_TYPE (rhstype);
 
       /* Any non-function converts to a [const][volatile] void *
-         and vice versa; otherwise, targets must be the same.
-         Meanwhile, the lhs target must have all the qualifiers of the rhs.  */
-      if (TYPE_MAIN_VARIANT (ttl) == void_type_node
-          || TYPE_MAIN_VARIANT (ttr) == void_type_node
-          || comp_target_types (type, rhstype)
-          || (unsigned_type (TYPE_MAIN_VARIANT (ttl))
-              == unsigned_type (TYPE_MAIN_VARIANT (ttr))))
-        {
-          if (pedantic
-              && ((TYPE_MAIN_VARIANT (ttl) == void_type_node
-                   && TREE_CODE (ttr) == FUNCTION_TYPE)
-                  ||
-                  (TYPE_MAIN_VARIANT (ttr) == void_type_node
-                   /* Check TREE_CODE to catch cases like (void *) (char *) 0
-                      which are not ANSI null ptr constants.  */
-                   && (!integer_zerop (rhs) || TREE_CODE (rhs) == NOP_EXPR)
-                   && TREE_CODE (ttl) == FUNCTION_TYPE)))
-            warn_for_assignment ("ANSI forbids %s between function pointer and `void *'",
-                                 get_spelling (errtype), funname, parmnum);
-          /* Const and volatile mean something different for function types,
-             so the usual warnings are not appropriate.  */
-          else if (TREE_CODE (ttr) != FUNCTION_TYPE
-                   && TREE_CODE (ttl) != FUNCTION_TYPE)
-            {
-              if (! TYPE_READONLY (ttl) && TYPE_READONLY (ttr))
-                warn_for_assignment ("%s discards `const' from pointer target type",
-                                     get_spelling (errtype), funname, parmnum);
-              else if (! TYPE_VOLATILE (ttl) && TYPE_VOLATILE (ttr))
-                warn_for_assignment ("%s discards `volatile' from pointer target type",
-                                     get_spelling (errtype), funname, parmnum);
-              /* If this is not a case of ignoring a mismatch in signedness,
-                 no warning.  */
-              else if (TYPE_MAIN_VARIANT (ttl) == void_type_node
-                       || TYPE_MAIN_VARIANT (ttr) == void_type_node
-                       || comp_target_types (type, rhstype))
-                ;
-              /* If there is a mismatch, do warn.  */
-              else if (pedantic)
-                warn_for_assignment ("pointer targets in %s differ in signedness",
-                                     get_spelling (errtype), funname, parmnum);
-            }
-          else if (TREE_CODE (ttl) == FUNCTION_TYPE
-                   && TREE_CODE (ttr) == FUNCTION_TYPE)
-            {
-              /* Because const and volatile on functions are restrictions
-                 that say the function will not do certain things,
-                 it is okay to use a const or volatile function
-                 where an ordinary one is wanted, but not vice-versa.  */
-              if (TYPE_READONLY (ttl) && ! TYPE_READONLY (ttr))
-                warn_for_assignment ("%s makes `const *' function pointer from non-const",
-                                     get_spelling (errtype), funname, parmnum);
-              if (TYPE_VOLATILE (ttl) && ! TYPE_VOLATILE (ttr))
-                warn_for_assignment ("%s makes `volatile *' function pointer from non-volatile",
-                                     get_spelling (errtype), funname, parmnum);
-            }
-        }
+	 and vice versa; otherwise, targets must be the same.
+	 Meanwhile, the lhs target must have all the qualifiers of the rhs.  */
+      if (VOID_TYPE_P (ttl) || VOID_TYPE_P (ttr)
+	  || comp_target_types (type, rhstype)
+	  || (unsigned_type (TYPE_MAIN_VARIANT (ttl))
+	      == unsigned_type (TYPE_MAIN_VARIANT (ttr))))
+	{
+	  if (pedantic
+	      && ((VOID_TYPE_P (ttl) && TREE_CODE (ttr) == FUNCTION_TYPE)
+		  ||
+		  (VOID_TYPE_P (ttr)
+		   /* Check TREE_CODE to catch cases like (void *) (char *) 0
+		      which are not ANSI null ptr constants.  */
+		   && (!integer_zerop (rhs) || TREE_CODE (rhs) == NOP_EXPR)
+		   && TREE_CODE (ttl) == FUNCTION_TYPE)))
+	    warn_for_assignment ("ISO C forbids %s between function pointer and `void *'",
+				 errtype, funname, parmnum);
+	  /* Const and volatile mean something different for function types,
+	     so the usual warnings are not appropriate.  */
+	  else if (TREE_CODE (ttr) != FUNCTION_TYPE
+		   && TREE_CODE (ttl) != FUNCTION_TYPE)
+	    {
+	      if (TYPE_QUALS (ttr) & ~TYPE_QUALS (ttl))
+		warn_for_assignment ("%s discards qualifiers from pointer target type",
+				     errtype, funname, parmnum);
+	      /* If this is not a case of ignoring a mismatch in signedness,
+		 no warning.  */
+	      else if (VOID_TYPE_P (ttl) || VOID_TYPE_P (ttr)
+		       || comp_target_types (type, rhstype))
+		;
+	      /* If there is a mismatch, do warn.  */
+	      else if (pedantic)
+		warn_for_assignment ("pointer targets in %s differ in signedness",
+				     errtype, funname, parmnum);
+	    }
+	  else if (TREE_CODE (ttl) == FUNCTION_TYPE
+		   && TREE_CODE (ttr) == FUNCTION_TYPE)
+	    {
+	      /* Because const and volatile on functions are restrictions
+		 that say the function will not do certain things,
+		 it is okay to use a const or volatile function
+		 where an ordinary one is wanted, but not vice-versa.  */
+	      if (TYPE_QUALS (ttl) & ~TYPE_QUALS (ttr))
+		warn_for_assignment ("%s makes qualified function pointer from unqualified",
+				     errtype, funname, parmnum);
+	    }
+	}
       else
-        warn_for_assignment ("%s from incompatible pointer type",
-                             get_spelling (errtype), funname, parmnum);
+	warn_for_assignment ("%s from incompatible pointer type",
+			     errtype, funname, parmnum);
       return convert (type, rhs);
     }
   else if (codel == POINTER_TYPE && coder == INTEGER_TYPE)
     {
       /* An explicit constant 0 can convert to a pointer,
-         or one that results from arithmetic, even including
-         a cast to integer type.  */
+	 or one that results from arithmetic, even including
+	 a cast to integer type.  */
       if (! (TREE_CODE (rhs) == INTEGER_CST && integer_zerop (rhs))
-          &&
-          ! (TREE_CODE (rhs) == NOP_EXPR
-             && TREE_CODE (TREE_TYPE (rhs)) == INTEGER_TYPE
-             && TREE_CODE (TREE_OPERAND (rhs, 0)) == INTEGER_CST
-             && integer_zerop (TREE_OPERAND (rhs, 0))))
-        {
-          warn_for_assignment ("%s makes pointer from integer without a cast",
-                               get_spelling (errtype), funname, parmnum);
-          return convert (type, rhs);
-        }
+	  &&
+	  ! (TREE_CODE (rhs) == NOP_EXPR
+	     && TREE_CODE (TREE_TYPE (rhs)) == INTEGER_TYPE
+	     && TREE_CODE (TREE_OPERAND (rhs, 0)) == INTEGER_CST
+	     && integer_zerop (TREE_OPERAND (rhs, 0))))
+	{
+	  warn_for_assignment ("%s makes pointer from integer without a cast",
+			       errtype, funname, parmnum);
+	  return convert (type, rhs);
+	}
       return null_pointer_node;
     }
   else if (codel == INTEGER_TYPE && coder == POINTER_TYPE)
     {
       warn_for_assignment ("%s makes integer from pointer without a cast",
-                           get_spelling (errtype), funname, parmnum);
+			   errtype, funname, parmnum);
       return convert (type, rhs);
     }
 
   if (!errtype)
     {
       if (funname)
-        {
+ 	{
 #if NOT_NEEDED_FOR_M2
-          tree selector = maybe_building_objc_message_expr ();
+ 	  tree selector = maybe_building_objc_message_expr ();
  
-          if (selector && parmnum > 2)
-            error ("incompatible type for argument %d of `%s'",
-                   parmnum - 2, IDENTIFIER_POINTER (selector));
-          else
+ 	  if (selector && parmnum > 2)
+ 	    error ("incompatible type for argument %d of `%s'",
+		   parmnum - 2, IDENTIFIER_POINTER (selector));
+ 	  else
+	    error ("incompatible type for argument %d of `%s'",
+		   parmnum, IDENTIFIER_POINTER (funname));
 #endif
-            error ("incompatible type for argument %d of `%s'",
-                   parmnum, IDENTIFIER_POINTER (funname));
-        }
+	}
       else
-        error ("incompatible type for argument %d of indirect function call",
-               parmnum);
+	error ("incompatible type for argument %d of indirect function call",
+	       parmnum);
     }
   else
-    error ("incompatible types in %s", get_spelling (errtype));
+    error ("incompatible types in %s", errtype);
 
   return error_mark_node;
 }
@@ -7634,7 +7553,7 @@ static int attrtab_idx = 0;
 static void
 add_attribute (id, string, min_len, max_len, decl_req)
      enum attrs id;
-     char *string;
+     const char *string;
      int min_len, max_len;
      int decl_req;
 {
@@ -10997,6 +10916,6 @@ gccgm2_ExpandExpressionStatement (t)
 
 /*
  * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2    -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
+ *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wwrite-strings -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2    -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
  * End:
  */
