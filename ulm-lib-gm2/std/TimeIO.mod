@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: TimeIO.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: TimeIO.mod,v 1.3 2004/07/02 16:58:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: TimeIO.mod,v $
+   Revision 1.3  2004/07/02 16:58:59  gaius
+   moved modules which require the PROCESS type into another directory
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -59,7 +62,7 @@ IMPLEMENTATION MODULE TimeIO; (* AFB 9/88 *)
    FROM Environment IMPORT GetEnv;
    FROM FtdIO IMPORT FwriteString;
    FROM StdIO IMPORT FILE, stdin, stdout, Fgetc;
-   FROM SYSTEM IMPORT ADDRESS, ADR;
+   FROM SYSTEM IMPORT ADDRESS, ADR, SIZE;
    IMPORT Strings, Storage;
 
    (* (* exported from definition module *)

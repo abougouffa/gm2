@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: FtdIO.mod,v 1.2 2004/06/29 08:51:41 gaius Exp $
+   $Id: FtdIO.mod,v 1.3 2004/07/02 16:58:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: FtdIO.mod,v $
+   Revision 1.3  2004/07/02 16:58:59  gaius
+   moved modules which require the PROCESS type into another directory
+
    Revision 1.2  2004/06/29 08:51:41  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -43,7 +46,7 @@
 
 IMPLEMENTATION MODULE FtdIO;
 
-   FROM SYSTEM IMPORT WORD, ADR;
+   FROM SYSTEM IMPORT WORD, ADR, SIZE;
    FROM StdIO IMPORT FILE, Fputc, Fgetc, Feof, Ferror;
    FROM ReadIntCard IMPORT Read, Type;
    FROM Conversions IMPORT ConvertInteger, ConvertCardinal;
@@ -194,6 +197,11 @@ IMPLEMENTATION MODULE FtdIO;
    END FwriteChar;
 
 END FtdIO.
+(*
+ * Local variables:
+ *  compile-command: "gm2 -c -g -I../sys:. FtdIO.mod"
+ * End:
+ *)
 (*
  * Local variables:
  *  compile-command: "gm2 -c -g -I../sys:. FtdIO.mod"

@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: FtdIO.def,v 1.2 2004/06/29 08:51:41 gaius Exp $
+   $Id: FtdIO.def,v 1.3 2004/07/02 16:58:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: FtdIO.def,v $
+   Revision 1.3  2004/07/02 16:58:59  gaius
+   moved modules which require the PROCESS type into another directory
+
    Revision 1.2  2004/06/29 08:51:41  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -49,13 +52,13 @@ DEFINITION MODULE FtdIO;
    VAR Done: BOOLEAN;
        termCH: CHAR;
 
-   PROCEDURE FreadInt(f: FILE; VAR int: INTEGER);
+   PROCEDURE FreadInt(f: FILE; VAR arg: INTEGER);
 
-   PROCEDURE FwriteInt(f: FILE; int: INTEGER; w: CARDINAL);
+   PROCEDURE FwriteInt(f: FILE; arg: INTEGER; w: CARDINAL);
 
-   PROCEDURE FreadCard(f: FILE; VAR card: CARDINAL);
+   PROCEDURE FreadCard(f: FILE; VAR arg: CARDINAL);
 
-   PROCEDURE FwriteCard(f: FILE; card: CARDINAL; w: CARDINAL);
+   PROCEDURE FwriteCard(f: FILE; arg: CARDINAL; w: CARDINAL);
 
    PROCEDURE FreadString(f: FILE; VAR str: ARRAY OF CHAR);
 

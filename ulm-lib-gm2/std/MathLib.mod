@@ -54,9 +54,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.mod,v 1.2 2004/06/29 08:51:41 gaius Exp $
+   $Id: MathLib.mod,v 1.3 2004/07/02 16:58:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.mod,v $
+   Revision 1.3  2004/07/02 16:58:59  gaius
+   moved modules which require the PROCESS type into another directory
+
    Revision 1.2  2004/06/29 08:51:41  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -773,7 +776,7 @@ IMPLEMENTATION MODULE MathLib;
       logFHead[i] := 0.693147180560117703862; INC(i);
 
       i := 0;
-      logFTail[i] := 0.; INC(i);
+      logFTail[i] := 0.0; INC(i);
       logFTail[i] := -0.00000000000000543229938420049; INC(i);
       logFTail[i] :=  0.00000000000000172745674997061; INC(i);
       logFTail[i] := -0.00000000000001323017818229233; INC(i);
