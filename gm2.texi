@@ -273,8 +273,9 @@ Modula-2. It also describes the relationship between these data types
 and the equivalent C data types.
 
 The following data types are supported: @code{INTEGER},
-@code{LONGINT}, @code{CARDINAL}, @code{LONGCARD}, @code{BOOLEAN},
-@code{REAL}, @code{LONGREAL}, @code{SHORTREAL}, and @code{CHAR}.
+@code{LONGINT}, @code{SHORTINT}, @code{CARDINAL}, @code{LONGCARD},
+@code{SHORTCARD}, @code{BOOLEAN}, @code{REAL}, @code{LONGREAL},
+@code{SHORTREAL}, and @code{CHAR}.
 
 An equivalence table is given below:
 
@@ -283,8 +284,10 @@ GNU Modula-2              GNU C
 ======================================
 INTEGER                   int
 LONGINT                   long int
+SHORTINT                  short int
 CARDINAL                  unsigned int
 LONGCARD                  long unsigned int
+SHORTCARD                 short unsigned int
 BOOLEAN                   int
 REAL                      double
 LONGREAL                  long double
