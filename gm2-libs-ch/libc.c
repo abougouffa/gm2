@@ -91,7 +91,7 @@ void libc_abort ()
 
 
 /*
-   malloc and cfree.
+   malloc and free.
 
 DESCRIPTION
      These routines provide a general-purpose memory allocation
