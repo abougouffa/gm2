@@ -66,6 +66,7 @@ TYPE
               recordtok, repeattok, returntok, settok, thentok,
               totok, typetok, untiltok, vartok, whiletok, withtok,
               asmtok, volatiletok, periodperiodperiodtok,
+              attributeunusedtok,
               datetok, linetok, filetok,
               integertok, identtok, realtok, stringtok) ;
 
@@ -86,6 +87,7 @@ VAR
    UnQualifiedTok, RecordTok, RepeatTok, ReturnTok, SetTok,
    ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
 
+   AttributeUnusedTok,
    EofTok, AsmTok, VolatileTok, DateTok, LineTok, FileTok: Name ;
 
 

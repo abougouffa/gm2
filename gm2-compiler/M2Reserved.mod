@@ -264,7 +264,7 @@ BEGIN
    VolatileTok := MakeKey('VOLATILE') ;
    AddKeyword(VolatileTok, ORD(volatiletok)) ;
 
-   DateTok := MakeKey('__DATE__') ;     (* C compatible preprocessor prims *)
+   DateTok := MakeKey('__DATE__') ;     (* C compatible preprocessor primatives *)
    AddKeyword(DateTok, ORD(datetok)) ;
 
    LineTok := MakeKey('__LINE__') ;
@@ -272,6 +272,9 @@ BEGIN
 
    FileTok := MakeKey('__FILE__') ;
    AddKeyword(FileTok, ORD(filetok)) ;
+
+   AttributeUnusedTok := MakeKey('ATTRIBUTE_UNUSED') ; (* GCC extension incorporated into gm2 *)
+   AddKeyword(AttributeUnusedTok, ORD(attributeunusedtok)) ;
 
    a[0] := eof ;
    a[1] := nul ;
