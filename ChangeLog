@@ -1,3 +1,9 @@
+2004-04-19	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added more address regression tests
+	* fixed address arithmetic bugs as reported by Waldek Hebisch
+	* fixed record referencing bug as reported by Waldek Hebisch
+	
 2004-04-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* tagged CVS using gm2_0_43
@@ -35,6 +41,7 @@
 2004-04-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed record parameter equivalence bug as reported by Waldek
+	  Hebisch
 	  (see testsuite/gm2/pim/pass/record4.mod)
 
 2004-03-26	Gaius Mulley <gaius@glam.ac.uk>

@@ -8337,6 +8337,7 @@ VAR
    Sym2, Type2: CARDINAL ;
 BEGIN
    PopTF(Sym1, Type1) ;
+   Type1 := SkipType(Type1) ;
    IF IsUnknown(Sym1)
    THEN
       n1 := GetSymName(Sym1) ;
@@ -8387,6 +8388,7 @@ VAR
 BEGIN
    DumpStack ;
    PopTF(Sym, Type) ;
+   Type := SkipType(Type) ;
    adr := MakeTemporary(LeftValue) ;
    PutVarTypeAndSize(adr, Type, Address) ;
 

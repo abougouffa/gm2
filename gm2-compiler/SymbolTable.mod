@@ -1177,6 +1177,7 @@ END GetCurrentScope ;
 
 PROCEDURE StartScope (Sym: CARDINAL) ;
 BEGIN
+   Sym := SkipType(Sym) ;
    IF ScopePtr=MaxScopes
    THEN
       InternalError('too many scopes - increase MaxScopes', __FILE__, __LINE__)

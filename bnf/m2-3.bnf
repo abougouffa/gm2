@@ -128,7 +128,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
                         MakeRegInterface,
                         PutRegInterface,
-                        GetSymName, GetType,
+                        GetSymName, GetType, SkipType,
                         NulSym,
                         StartScope, EndScope,
                         PutIncluded,
@@ -855,6 +855,7 @@ SubDesignator := "."                                                       % VAR
                                                                                  name,
                                                                                  n1       : Name ; %
                                                                            % PopTF(Sym, Type) ;
+                                                                             Type := SkipType(Type) ;
                                                                              PushTF(Sym, Type) ;
                                                                              IF Type=NulSym
                                                                              THEN

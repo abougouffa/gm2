@@ -6163,12 +6163,11 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
       /* Handle the pointer + int case.  */
 #if defined(GM2)
       if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
-          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE)) {
+          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
         result_type = ptr_type_node;
-      } else if ((code0 == POINTER_TYPE) && (code1 == POINTER_TYPE)) {
-        result_type = ptr_type_node;
-      }
-      common = 1;
+      else
+	common = 1;
 #else
       if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
         return pointer_int_sum (PLUS_EXPR, op0, op1);
@@ -6182,9 +6181,11 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
     case MINUS_EXPR:
 #if defined(GM2)
       if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
-          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE))
+          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
         result_type = ptr_type_node;
-      common = 1;
+      else
+	common = 1;
 #else
       /* Subtraction of two similar pointers.
          We must subtract them as integers, then divide by object size.  */
@@ -6194,13 +6195,21 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
       /* Handle pointer minus int.  Just like pointer plus int.  */
       else if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
         return pointer_int_sum (MINUS_EXPR, op0, op1);
-      else
-        common = 1;
+      common = 1;
 #endif
       break;
 
     case MULT_EXPR:
+#if defined(GM2)
+      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
+          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
+        result_type = ptr_type_node;
+      else
+	common = 1;
+#else
       common = 1;
+#endif
       break;
 
     case TRUNC_DIV_EXPR:
@@ -6212,6 +6221,13 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
 	 infinities and NaNs.  */
       if (warn_div_by_zero && skip_evaluation == 0 && integer_zerop (op1))
 	warning ("division by zero");
+
+#if defined(GM2)
+      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
+          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
+        result_type = ptr_type_node;
+#endif
 
       if ((code0 == INTEGER_TYPE || code0 == REAL_TYPE
 	   || code0 == COMPLEX_TYPE || code0 == VECTOR_TYPE)
@@ -6247,6 +6263,13 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
     case FLOOR_MOD_EXPR:
       if (warn_div_by_zero && skip_evaluation == 0 && integer_zerop (op1))
 	warning ("division by zero");
+
+#if defined(GM2)
+      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
+          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
+        result_type = ptr_type_node;
+#endif
 
       if (code0 == INTEGER_TYPE && code1 == INTEGER_TYPE)
 	{
