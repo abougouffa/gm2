@@ -2,6 +2,8 @@
 
 	* fixed ppg to generate a comment for in-built rules when
 	  producing the EBNF documentation within gm2.texi
+	* updated gm2/gm2.texi to reflect availability of the
+	  gm2-harness which will build and test gm2 automatically.
 
 2004-11-12	Gaius Mulley <gaius@glam.ac.uk>
 
