@@ -101,6 +101,7 @@ FROM gccgm2 IMPORT Tree,
                    ChainOn,
                    BuildPointerType,
                    BuildStartFunctionType, BuildEndFunctionType,
+                   InitFunctionTypeParameters,
                    BuildParameterDeclaration,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildStartMainModule, BuildEndMainModule,
@@ -133,18 +134,21 @@ PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
-   Debugging = FALSE ;
+   Debugging       = FALSE ;
+   DebugFinishList = FALSE ;
 
 TYPE
    StartProcedure = PROCEDURE (ADDRESS) : Tree ;
 
 VAR
    ToFinishList,                    (* those types which have need to *)
-                                    (* be finished.                   *)
+                                    (* be finished (but already       *)
+                                    (* started: records & function    *)
+                                    (* types).                        *)
    ToDoList            : List ;     (* Contains a list of all         *)
                                     (* outstanding types that need to *)
-                                    (* be written to the assembly     *)
-                                    (* file when its dependants have  *)
+                                    (* be declared to GCC once        *)
+                                    (* its dependants have            *)
                                     (* been written.                  *)
    ToDoConstants       : List ;     (* all unresolved constants go    *)
                                     (* here, M2GenGCC resolves them.  *)
@@ -198,7 +202,7 @@ VAR
    Sym,
    i, n: CARDINAL ;
 BEGIN
-   IF Debugging
+   IF DebugFinishList
    THEN
       printf0('ToFinishList { ')
    END ;
@@ -206,13 +210,13 @@ BEGIN
    n := NoOfItemsInList(ToFinishList) ;
    WHILE i<=n DO
       Sym := GetItemFromList(ToFinishList, i) ;
-      IF Debugging
+      IF DebugFinishList
       THEN
          printf2('%d %a, ', Sym, GetSymName(Sym))
       END ;
       INC(i)
    END ;
-   IF Debugging
+   IF DebugFinishList
    THEN
       printf0('}\n')
    END ;
@@ -236,6 +240,21 @@ BEGIN
    END ;
    IF MustBeResolved AND (NoOfItemsInList(ToFinishList)#0)
    THEN
+      printf0('cannot resolve the following: ') ;
+      i := 1 ;
+      n := NoOfItemsInList(ToFinishList) ;
+      WHILE i<=n DO
+         Sym := GetItemFromList(ToFinishList, i) ;
+         IF DebugFinishList
+         THEN
+            printf2('%d %a, ', Sym, GetSymName(Sym))
+         END ;
+         INC(i)
+      END ;
+      IF DebugFinishList
+      THEN
+         printf0('}\n')
+      END ;
       InternalError('partially declared types are not all resolved', __FILE__, __LINE__)
    END
 END CheckToFinishList ;
@@ -257,26 +276,61 @@ BEGIN
       NoMoreWritten := TRUE ;
       n := NoOfItemsInList(ToDoList) ;
       i := 1 ;
+      IF DebugFinishList
+      THEN
+         printf0('ToDoList { ')
+      END ;
       WHILE i<=n DO
       	 Sym := GetItemFromList(ToDoList, i) ;
-      	 IF NOT GccKnowsAbout(Sym)
+         IF DebugFinishList
+         THEN
+            printf2('%d %a, ', Sym, GetSymName(Sym))
+         END ;
+      	 IF GccKnowsAbout(Sym)
       	 THEN
+            IF DebugFinishList
+            THEN
+               printf0('<gccknows> ')
+            END
+         ELSE
       	    IF AllDependantsWritten(Sym)
       	    THEN
                (* add relationship between gccSym and Sym *)
                AddModGcc(Sym, DeclareKindOfType(Sym)) ;
                IncludeItemIntoList(DefinedList, Sym) ;
                RemoveItemFromList(ToDoList, Sym) ;
-               n := NoOfItemsInList(ToDoList) ;
                i := 0 ;
-      	       NoMoreWritten := FALSE
-      	    END
+      	       NoMoreWritten := FALSE ;
+               IF DebugFinishList
+               THEN
+                  printf0('<resolved> ')
+               END
+            ELSE
+               IF DebugFinishList
+               THEN
+                  printf0('<unresolved> ')
+               END
+       	    END ;
+            IF n#NoOfItemsInList(ToDoList)
+            THEN
+               i := 0 ;
+               n := NoOfItemsInList(ToDoList) ;
+               IF DebugFinishList
+               THEN
+                  printf0('}\nToDoList { ')
+               END
+            END
       	 END ;
          INC(i)
       END
    UNTIL NoMoreWritten ;
 
-   CheckToFinishList(TRUE) ;
+   IF DebugFinishList
+   THEN
+      printf0('}\n')
+   END ;
+
+   CheckToFinishList(MustHaveCompleted) ;
 
    IF MustHaveCompleted
    THEN
@@ -608,7 +662,7 @@ BEGIN
       printf2('// declaring %d %a\n', Sym, GetSymName(Sym))
    END ;
 
-   IF Sym=98
+   IF Sym=101
    THEN
       mystop
    END ;
@@ -1265,10 +1319,12 @@ PROCEDURE DeclareProcType (Sym: CARDINAL) : Tree ;
 VAR
    i, p, Son,
    ReturnType: CARDINAL ;
+   func,
    GccParam  : Tree ;
 BEGIN
    ReturnType := GetType(Sym) ;
-   BuildStartFunctionType ;
+   func := DoStartDeclaration(Sym, BuildStartFunctionType) ;
+   InitFunctionTypeParameters ;
    p := NoOfParam(Sym) ;
    i := p ;
    Assert(PushParametersLeftToRight) ;
@@ -1280,9 +1336,9 @@ BEGIN
    END ;
    IF ReturnType=NulSym
    THEN
-      RETURN( BuildEndFunctionType(NIL) )
+      RETURN( BuildEndFunctionType(func, NIL) )
    ELSE
-      RETURN( BuildEndFunctionType(Mod2Gcc(ReturnType)) )
+      RETURN( BuildEndFunctionType(func, Mod2Gcc(ReturnType)) )
    END
 END DeclareProcType ;
 
@@ -1708,11 +1764,13 @@ BEGIN
    (* low and high are not types but constants and they are resolved by M2GenGCC *)
    IF NOT GccKnowsAbout(low)
    THEN
-      IncludeItemIntoList(ToDoConstants, low)
+      IncludeItemIntoList(ToDoConstants, low) ;
+      IncludeItemIntoList(ToDoList, Sym)
    END ;
    IF NOT GccKnowsAbout(high)
    THEN
-      IncludeItemIntoList(ToDoConstants, high)
+      IncludeItemIntoList(ToDoConstants, high) ;
+      IncludeItemIntoList(ToDoList, Sym)
    END ;
    CheckResolveSubrange(Sym) ;
    RETURN(
@@ -1763,6 +1821,7 @@ BEGIN
       THEN
          printf0('no its type is unknown...\n')
       END ;
+      IncludeItemIntoList(ToDoList, type) ;
       RETURN( FALSE )
    END
 END IsPointerDependantsWritten ;
@@ -1922,7 +1981,12 @@ BEGIN
    type := GetType(sym) ;
    IF IsSubrange(type)
    THEN
-      RETURN( IsSubrangeDependantsWritten(type) )
+      IF IsSymTypeKnown(sym, type)
+      THEN
+         RETURN( TRUE )
+      ELSE
+         RETURN( IsSubrangeDependantsWritten(type) )
+      END
    ELSE
       IF IsSymTypeKnown(sym, type)
       THEN
@@ -1953,22 +2017,24 @@ VAR
    ParamType,
    ReturnType: CARDINAL ;
    solved    : BOOLEAN ;
+   tree      : Tree ;
 BEGIN
    solved := TRUE ;
    Assert(IsProcType(Sym)) ;
+   tree := DoStartDeclaration(Sym, BuildStartFunctionType) ;
    i := 1 ;
    ReturnType := GetType(Sym) ;
    p := NoOfParam(Sym) ;
    WHILE i<=p DO
       Son := GetNthParam(Sym, i) ;
       ParamType := GetType(Son) ;
-      IF NOT IsSymTypeKnown(Sym, ParamType)
+      IF (NOT IsSymTypeKnown(Sym, ParamType)) AND (NOT AllDependantsWritten(ParamType))
       THEN
          solved := FALSE
       END ;
       INC(i)
    END ;
-   IF NOT IsSymTypeKnown(Sym, ReturnType)
+   IF (NOT IsSymTypeKnown(Sym, ReturnType)) AND (NOT AllDependantsWritten(ReturnType))
    THEN
       RETURN( FALSE )
    ELSE

@@ -36,6 +36,7 @@ EXPORT QUALIFIED Tree,
                  BuildStartSetConstructor, BuildSetConstructorElement,
                  BuildEndSetConstructor,
                  BuildStartFunctionType, BuildEndFunctionType,
+                 InitFunctionTypeParameters,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
@@ -577,15 +578,22 @@ PROCEDURE BuildEndSetConstructor () : Tree ;
    BuildStartFunctionType - starts the building of a function type.
 *)
 
-PROCEDURE BuildStartFunctionType ;
+PROCEDURE BuildStartFunctionType (name: ADDRESS) : Tree ;
 
 
 (*
-   BuildEndFunctionType - build a function type which would return a, value.
+   BuildEndFunctionType - build a function type, func, which would return a, value.
                           The arguments have been created by BuildParameterDeclaration.
 *)
 
-PROCEDURE BuildEndFunctionType (value: Tree) : Tree ;
+PROCEDURE BuildEndFunctionType (func, value: Tree) : Tree ;
+
+
+(*
+   InitFunctionTypeParameters - resets the current function type parameter list.
+*)
+
+PROCEDURE InitFunctionTypeParameters ;
 
 
 (*

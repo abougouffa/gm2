@@ -453,8 +453,10 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildVariableArrayAndDeclare         PARAMS ((tree elementtype,
 									 	  tree high, char *name,
 									 	  tree scope));
-       void                   gccgm2_BuildStartFunctionType     	  PARAMS ((void));
-       tree                   gccgm2_BuildEndFunctionType       	  PARAMS ((tree type));
+       tree                   gccgm2_BuildStartFunctionType     	  PARAMS ((char *name));
+       tree                   gccgm2_BuildEndFunctionType       	  PARAMS ((tree func, tree type));
+static tree                   finish_build_pointer_type                   PARAMS ((tree t, tree to_type));
+
        tree                   gccgm2_BuildParameterDeclaration  	  PARAMS ((char *name, tree type,
 									 	  int isreference));
        tree                   completeParameterDeclaration      	  PARAMS ((char *name, tree actual_type,
@@ -8717,17 +8719,54 @@ gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
 }
 
 /*
- *  BuildStartFunctionType - initializes global variables ready for building
- *                           a function.
+ *  InitFunctionTypeParameters - resets the current function type parameter list.
  */
 
 void
-gccgm2_BuildStartFunctionType ()
+gccgm2_InitFunctionTypeParameters ()
 {
   param_type_list = tree_cons (NULL_TREE, void_type_node, NULL_TREE);
   param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 }
 
+/*
+ *  BuildStartFunctionType - initializes global variables ready for building
+ *                           a function.
+ */
+
+tree
+gccgm2_BuildStartFunctionType (name)
+     char *name ATTRIBUTE_UNUSED;
+{
+  tree n = make_node (POINTER_TYPE);
+  TYPE_SIZE (n) = 0;
+
+  return n;
+}
+
+/*
+ *  finish_build_pointer_type - finish building a POINTER_TYPE node.
+ *                              necessary to solve self references in
+ *                              procedure types.
+ */
+
+static
+tree
+finish_build_pointer_type (t, to_type)
+     tree t, to_type;
+{
+  TREE_TYPE (t) = to_type;
+
+  /* Record this type as the pointer to TO_TYPE.  */
+  TYPE_POINTER_TO (to_type) = t;
+
+  /* Lay out the type.  This function has many callers that are concerned
+     with expression-construction, and this simplifies them all.
+     Also, it guarantees the TYPE_SIZE is in the same obstack as the type.  */
+  layout_type (t);
+
+  return t;
+}
 
 /*
  *
@@ -8736,14 +8775,18 @@ gccgm2_BuildStartFunctionType ()
  */
 
 tree
-gccgm2_BuildEndFunctionType (type)
-     tree type;
+gccgm2_BuildEndFunctionType (func, type)
+     tree func, type;
 {
-  if (type == NULL_TREE) {
+  tree t;
+
+  if (type == NULL_TREE)
     type = void_type_node;
-  }
+
   type = skip_type_decl (type);
-  return build_pointer_type (build_function_type (type, param_type_list));
+  t = finish_build_pointer_type (func, build_function_type (type, param_type_list));
+
+  return t;
 }
 
 /*
