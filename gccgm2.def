@@ -53,6 +53,7 @@ EXPORT QUALIFIED Tree,
                  BuildAsm, BuildExpand, DebugTree,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
+                 RememberConstant,
 
                  AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
                  ConvertConstantAndCheck, ExpandExpressionStatement ;
@@ -711,6 +712,17 @@ PROCEDURE DebugTree (t: Tree) ;
 *)
 
 PROCEDURE ExpandExpressionStatement (t: Tree) ;
+
+
+(*
+   RememberConstant - adds a tree, t, onto the list of constants to be marked
+                      whenever the ggc re-marks all used storage. Constants
+                      live throughout the whole compilation - and they
+                      can be used by many different functions if necessary.
+                      It returns, t.
+*)
+
+PROCEDURE RememberConstant (t: Tree) : Tree ;
 
 
 END gccgm2.
