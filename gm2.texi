@@ -46,30 +46,27 @@ Copyright @copyright{} 2000 Free Software Foundation, Inc.
 @c Part 4: `Top' Node and Master Menu
 
 @ifinfo
-@node Top, About, (dir), (dir)
+@node Top, Using, (dir), (dir)
 @top Introduction
 @end ifinfo
 
-@chapter GNU Modula-2 Internals
+@menu
+* Using::            Using GNU Modula-2
+* Internals::        GNU Modula-2 internals
+@end menu
 
-This document is a small step in the long journey of documenting the GNU
-Modula-2 compiler and how it integrates with GCC.
-The document should be completely rewritten when time prevails.
+@node Using, Internals, Top, Top
+@chapter Using GNU Modula-2
 
 @menu
 * About::             What this document explains.
 * History::           How GNU Modula-2 came about.
-* Integrating::       How m2f is integrated with gcc.
-* Practicalities::    Overview of how m2f is built.
-* Future::            A future wish list.
-* Done list::         Progression of the GNU Modula-2 project.
-* To do list::        Outstanding issues.
 * Assembly language:: Interface to assembly language.
 * Compiler options::  GNU Modula-2 compiler options.
 * Example usage::     Example compile and link.
 @end menu
 
-@node About, History, Top, Top
+@node About, History, , Using
 @section About
 
 This file contains design notes accompanying the Modula-2
@@ -84,7 +81,7 @@ The libraries are currently a mixture of ISO Modula-2 and
 GNU Modula-2 to include PIM3 and PIM4 command line switches
 to include later language alterations.
 
-@node History, Integrating, About, Top
+@node History, Compiler options, About, Using
 @section History
 
 The Modula-2 compiler sources have come from the m2f compiler which
@@ -94,7 +91,147 @@ compiler was a recursive descent which generated quadruples as
 intermediate code. It also used C style calling convention wherever
 possible and utilized a C structure for dynamic arrays.
 
-@node Integrating, Practicalities, History, Top
+@node Compiler options, Example usage, History, Using
+@section Compiler options
+
+This sections describe the compiler options specific to GNU Modula-2 for
+generic flags details see
+@xref{Invoking GCC, , ,gcc}.
+
+@table @code
+
+@item -M
+to include directories into the search path of the compiler either the
+conventional @samp{-I} option can be applied or alternatively the
+Modula-2 @samp{-M} option can be used. For example:
+@example
+-M "libs somedir ."
+@end example
+
+@item -Wbounds
+generate code to check the bounds of subranges and array indexes.
+
+@item -Wreturn
+generate code to check that functions always exit with a @samp{RETURN} and do not
+fall out at the end.
+
+@item -verbose
+if an error occurs the erroneous text is displayed with an arrow indicating
+the approximate character in error.
+The line number and file is always displayed, but sometimes the compiler
+attributes the error to the following line.
+The @samp{-verbose} option is more accurate and more verbose!
+
+@item -Wstatistics
+generates quadruple information: number of quadruples generated,
+number of quadruples remaining after optimization.
+
+@item -Wstudents
+checks for novice peculiarities. Note that these warnings are not
+the same as error messages. Hardened users of Modula-2 may wish to ignore this
+option as it checks to see whether a user has declared a variable name
+twice which looks the same and whether a variable looks similar to a keyword.
+(Case difference etc). This is of course quite legal Modula-2 but
+some first year students might find this option useful.
+
+@item -Wpedantic
+forces the compiler to reject nested @samp{WITH}
+statements referencing the same record type.
+Does not allow multiple imports of the same item from a module.
+It also checks that: procedure variables are written to before being read;
+variables are not only written to but read from; variables are declared and used.
+If the compiler encounters a variable being read before written it will terminate
+with a message.
+It will check that @samp{FOR} loop indices are not used outside the end of this loop
+without being reset.
+
+@item -Wmakelist
+this option is only applicable when linking a program module.
+The compiler will generate a @file{modulename.lst} file which contains
+a list indicating the initialization order of all modules which are to be
+linked. The actual link does not occur.
+The gm2 linker scans all @code{IMPORT}s, generates a list of dependancies
+and produces an ordered list for initialization. It will probably get the
+order wrong if your project has cyclic dependancies, but
+the @file{.lst} file is plain text and can be modified if required.
+Once the @file{.lst} file is created it can be used by the compiler
+to link your project via the @samp{-Wuselist} option.
+It has no effect if the @samp{-c} option is present.
+
+@item -Wuselist
+providing @samp{gm2} has been told to link the program module this
+option uses the file @file{modulename.lst} for the initialization
+order of modules.
+
+@end table
+
+@node Example usage, Assembly language, Compiler options, Using
+
+This section describes how to compiler and link a simple hello world program.
+It provides a few examples of using the different options mentioned in
+@xref{Compiler options, , ,gm2}.
+Assuming that you have a file called @file{hello.mod} in your current directory
+which contains:
+
+@example
+MODULE hello ;
+
+FROM StrIO IMPORT WriteString, WriteLn ;
+
+BEGIN
+   WriteString('hello world') ; WriteLn
+END hello.
+@end example
+
+You should be able to compile it by:
+@samp{gm2 -c -g hello.mod}
+and link via:
+@samp{gm2 -g hello.mod}.
+The result should be an @samp{a.out} file created in your directory.
+
+@node Assembly language, , Example usage, Using
+@section Assembly language
+
+The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
+The only alterations are that the keywords asm and volatile are in capitals,
+following the Modula-2 convention.
+
+A simple, but highly non optimal, example is given below. Here we want to add the
+two @code{CARDINAL}s @code{foo} and @code{bar} together and return the result.
+
+@example
+PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
+VAR
+   myout: CARDINAL ;
+BEGIN
+   ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
+      : "=g" (myout)           (* outputs *)
+      : "g" (foo), "g" (bar)   (* inputs  *)
+      : "eax") ;               (* we trash *)
+   RETURN( myout )
+END Example ;
+@end example
+
+For a full description of this interface we refer the reader to the GNU C manual.
+
+@xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
+
+@node Internals, , Using, Top
+@chapter GNU Modula-2 Internals
+
+This document is a small step in the long journey of documenting the GNU
+Modula-2 compiler and how it integrates with GCC.
+The document is still in it's infancy.
+
+@menu
+* Integrating::       How m2f is integrated with gcc.
+* Practicalities::    Overview of how m2f is built.
+* Future::            A future wish list.
+* Done list::         Progression of the GNU Modula-2 project.
+* To do list::        Outstanding issues.
+@end menu
+
+@node Integrating, Practicalities, ,Internals
 @section Integrating m2f with gcc
 
 We need to convert the quadruples into tree structure and also
@@ -121,7 +258,7 @@ global variables have already been declared.
 Lists of quadruples are turned into trees and passed onto GCC.
 @end itemize
 
-@node Practicalities, Future, Integrating, Top
+@node Practicalities, Future, Integrating, Internals
 @section Practicalities
 
 For the moment the directory gm2/m2 will contain the Modula-2
@@ -143,7 +280,7 @@ the GCC tree constant folding functions. The M2Base and M2System
 modules containing base types and system types respectively are also
 rewritten to utilize the GCC backend data types.
 
-@node Future, Done list, Practicalities, Top
+@node Future, Done list, Practicalities, Internals
 @section Future
 
 In the future it might be sensible to rewrite M2Quads.mod to
@@ -152,7 +289,7 @@ However this is a large alteration and I'd firstly like to
 see gm2 working with the method outlined above, which is
 conceptually easier.
 
-@node Done list, To do list, Future, Top
+@node Done list, To do list, Future, Internals
 @section Done list
 
 What has been done:
@@ -211,7 +348,7 @@ gcc and most of this work is localized in the following files:
 @file{gm2/m2/comp/gm2s/gcc/M2GenGCC.mod}
 @file{gm2/m2/comp/gm2s/gcc/M2GCCDeclare.mod}
 
-@node To do list, Assembly language, Done list, Top
+@node To do list, , Done list, Internals
 @section To do list
 
 What needs to be done:
@@ -256,112 +393,6 @@ testing and fixing bugs
 provide a mechanism for conditional compilation.
 
 @end itemize
-
-@node Assembly language, Compiler options, To do list, Top
-@section Assembly language
-
-The interface for GNU Modula-2 to assembly language is almost identical to GNU C.
-The only alterations are that the keywords asm and volatile are in capitals,
-following the Modula-2 convention.
-
-A simple, but highly non optimal, example is given below. Here we want to add the
-two @code{CARDINAL}s @code{foo} and @code{bar} together and return the result.
-
-@example
-PROCEDURE Example (foo, bar: CARDINAL) : CARDINAL ;
-VAR
-   myout: CARDINAL ;
-BEGIN
-   ASM VOLATILE ("movl %1,%%eax; addl %2,%%eax; movl %%eax,%0"
-      : "=g" (myout)           (* outputs *)
-      : "g" (foo), "g" (bar)   (* inputs  *)
-      : "eax") ;               (* we trash *)
-   RETURN( myout )
-END Example ;
-@end example
-
-For a full description of this interface we refer the reader to the GNU C manual.
-
-@xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
-
-@node Compiler options, Example usage, Assembly language, Top
-@section Compiler options
-
-This sections describe the compiler options specific to GNU Modula-2 for
-generic flags details see
-@xref{Invoking GCC, , ,gcc}.
-
-@table @code
-
-@item -M
-to include directories into the search path of the compiler either the
-conventional @samp{-I} option can be applied or alternatively the
-Modula-2 @samp{-M} option can be used. For example:
-@example
--M "libs somedir ."
-@end example
-
-@item -Wbounds
-generate code to check the bounds of subranges and array indexes.
-
-@item -Wreturn
-generate code to check that functions always exit with a @samp{RETURN} and do not
-fall out at the end.
-
-@item -verbose
-if an error occurs the erroneous text is displayed with an arrow indicating
-the approximate character in error.
-The line number and file is always displayed, but sometimes the compiler
-attributes the error to the following line.
-The @samp{-verbose} option is more accurate and more verbose!
-
-@item -Wstatistics
-generates quadruple information: number of quadruples generated,
-number of quadruples remaining after optimization.
-
-@item -Wstudents
-checks for novice peculiarities. Note that these warnings are not
-the same as error messages. Hardened users of Modula-2 may wish to ignore this
-option as it checks to see whether a user has declared a variable name
-twice which looks the same and whether a variable looks similar to a keyword.
-(Case difference etc). This is of course quite legal Modula-2 but
-some first year students might find this option useful.
-
-@item -Wpedantic
-forces the compiler to reject nested @samp{WITH}
-statements referencing the same record type.
-Does not allow multiple imports of the same item from a module.
-It also checks that: procedure variables are written to before being read;
-variables are not only written to but read from; variables are declared and used.
-If the compiler encounters a variable being read before written it will terminate
-with a message.
-It will check that @samp{FOR} loop indices are not used outside the end of this loop
-without being reset.
-@end table
-
-@node Example usage,, Compiler options, Top
-
-This section describes how to compiler and link a simple hello world program.
-It provides a few examples of using the different options mentioned in
-@xref{Compiler options, , ,gm2}.
-Assuming that you have a file called @file{hello.mod} in your current directory
-which contains:
-
-@example
-MODULE hello ;
-
-FROM StrIO IMPORT WriteString, WriteLn ;
-
-BEGIN
-   WriteString('hello world') ; WriteLn
-END hello.
-@end example
-
-You should be able to compile it by:
-@samp{gm2 -c -g hello.mod}
-and link via:
-@samp{gm2 -g hello.mod}.
-The result should be an @samp{a.out} file is created in your directory.
 
 @c @printindex cp
 
