@@ -1096,7 +1096,7 @@ BEGIN
       DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
       DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
       DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
-      DeclareBoolean ;
+      DeclareBoolean
    END
 END DeclareDefaultTypes ;
 

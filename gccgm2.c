@@ -1,4 +1,5 @@
-/* Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004
+ * Free Software Foundation, Inc.
  *
  *  Gaius Mulley (gaius@glam.ac.uk) constructed this file.
  *  It was built by borrowing code from the gcc c-*.c files
@@ -656,6 +657,7 @@ static bool                   flexible_array_type_p                       PARAMS
        void                   declare_parm_level                          PARAMS ((int));
        tree                   c_type_promotes_to                          PARAMS ((tree));
        int                    objc_comptypes                              PARAMS ((tree, tree, int));
+
 
 
 #if defined(TRACE_DEBUG_GGC)
@@ -2569,6 +2571,63 @@ duplicate_decls (newdecl, olddecl, different_binding_level)
   return 1;
 }
 
+#if 0
+/* Records a ..._DECL node DECL as belonging to the current lexical scope.
+   Returns the ..._DECL node. */
+
+tree
+pushdecl (decl)
+     tree decl;
+{
+  struct binding_level *b;
+
+  /* If at top level, there is no context. But PARM_DECLs always go in the
+     level of its function. */
+  if (global_bindings_p () && TREE_CODE (decl) != PARM_DECL)
+    {
+      b = global_binding_level;
+      DECL_CONTEXT (decl) = 0;
+    }
+  else
+    {
+      b = current_binding_level;
+      DECL_CONTEXT (decl) = current_function_decl;
+    }
+
+  /* Put the declaration on the list.  The list of declarations is in reverse
+     order. The list will be reversed later if necessary.  This needs to be
+     this way for compatibility with the back-end. */
+
+
+  if (TREE_CODE (decl) != TYPE_DECL)
+    {
+      TREE_CHAIN (decl) = b->names;
+      b->names = decl;
+    }
+
+  /* For the declaration of a type, set its name if it either is not already
+     set, was set to an IDENTIFIER_NODE, indicating an internal name,
+     or if the previous type name was not derived from a source name.
+     We'd rather have the type named with a real name and all the pointer
+     types to the same object have the same POINTER_TYPE node.  Code in this
+     function in c-decl.c makes a copy of the type node here, but that may
+     cause us trouble with incomplete types, so let's not try it (at least
+     for now).  */
+
+  if (TREE_CODE (decl) == TYPE_DECL
+      && DECL_NAME (decl) != 0
+      && (TYPE_NAME (TREE_TYPE (decl)) == 0
+	  || TREE_CODE (TYPE_NAME (TREE_TYPE (decl))) == IDENTIFIER_NODE
+	  || (TREE_CODE (TYPE_NAME (TREE_TYPE (decl))) == TYPE_DECL
+	      && DECL_ARTIFICIAL (TYPE_NAME (TREE_TYPE (decl)))
+	      && ! DECL_ARTIFICIAL (decl))))
+    TYPE_NAME (TREE_TYPE (decl)) = decl;
+
+  return decl;
+}
+#endif
+
+#if 1
 /* Record a decl-node X as belonging to the current lexical scope.
    Check for errors (such as an incompatible declaration for the same
    name already seen in the same scope).
@@ -2651,6 +2710,9 @@ pushdecl (x)
 	  TREE_THIS_VOLATILE (name) = 1;
 	}
 
+      /* testing removal of this if statement (gaius) */
+#if 0
+      
       if (t != 0 && duplicate_decls (x, t, different_binding_level))
 	{
 	  if (TREE_CODE (t) == PARM_DECL)
@@ -2662,6 +2724,7 @@ pushdecl (x)
 	    }
 	  return t;
 	}
+#endif
 
       /* If we are processing a typedef statement, generate a whole new
 	 ..._TYPE node (which will be just a variant of the existing
@@ -2943,6 +3006,7 @@ pushdecl (x)
 
   return x;
 }
+#endif
 
 /* Like pushdecl, only it places X in GLOBAL_BINDING_LEVEL, if appropriate.  */
 
@@ -7407,7 +7471,7 @@ gccgm2_DeclareKnownType (name, type)
      char *name;
      tree type;
 {
-  tree id = get_identifier  (name);
+  tree id = get_identifier (name);
   tree decl, tem;
 
   ASSERT(is_type(type), type);
