@@ -336,7 +336,7 @@ For example consider the following header file (@code{header.h}):
 extern MYTYPE h;
 
 #define LIMIT  1000
-#define FOOBAR (1+MAXIMUM)
+#define FOOBAR (1+LIMIT)
 
 int *p, ch;
 
@@ -361,19 +361,19 @@ VAR
    
 CONST
    LIMIT = 1000 ;
-   FOOBAR = (MAXIMUM) + ( 1) ;
+   FOOBAR = (LIMIT) + (1) ;
      
 VAR
    p: POINTER TO INTEGER ;
    ch: INTEGER ;
    
-PROCEDURE func (__gm2param0: funcarray) : ADDRESS;
+PROCEDURE func (funcarray: t1) : ADDRESS;
 
 TYPE
-   funcarray = PROCEDURE (INTEGER, CHAR) ;
+   t1 = PROCEDURE (INTEGER, CHAR) ;
     
 VAR
-   mylist: POINTER TO mumble; (* var *);
+   mylist: POINTER TO mumble;
    
 TYPE
    mumble = RECORD
@@ -382,7 +382,7 @@ TYPE
                next: POINTER TO mumble ;
                arrayfunc: ARRAY [0.. 5-1] OF PROCEDURE (INTEGER, CHAR) ;
             END ;
-    
+
 END header.
 @end example
 
@@ -433,6 +433,10 @@ example the GNU/Linux svga header file @code{vga.h} requires a little
 help whereas the GNU pthread file @code{pthread.h} requires more.
 Nevertheless the effort required is much less than writing the modules
 by hand.
+
+The @samp{-e} option will emit an error message if a C syntax error is
+encountered. The @samp{-p} option generate a comment for every
+occurance of an object which cannot be translated into Modula-2.
 
 @node Assembly language, Built-ins, h2def, Using
 @section Interface to assembly language
