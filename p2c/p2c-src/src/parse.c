@@ -4233,8 +4233,12 @@ int isdefn;
 		char codehname[256] ;
 
 		output(format_s("#define %s\n", format_s(name_GSYMBOL, mod->sym->name)));
-		strcpy(codehname, mod->sym->name) ;
-		strcat(codehname, ".h");
+		if (*headerfnfmt)
+		  strcpy(codehname, format_s(headerfnfmt, mod->sym->name));
+		else {
+		  strcpy(codehname, mod->sym->name) ;
+		  strcat(codehname, ".h");
+		}
 		out_include(codehname, 1);   /* include our definition module */
 	}
     } else {

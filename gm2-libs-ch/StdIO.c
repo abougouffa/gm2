@@ -6,15 +6,15 @@
 
 
 #define StdIOG
-#include "StdIO.h"
+#include "GStdIO.h"
 
 
 #ifndef IOH
-#include "IO.h"
+#include "GIO.h"
 #endif
 
 #ifndef M2RTSH
-#include "M2RTS.h"
+#include "GM2RTS.h"
 extern void   M2RTS_HALT PV() ATTRIBUTE_NORETURN;
 #endif
 

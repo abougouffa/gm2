@@ -13,7 +13,7 @@
 #endif
 
 #define libcG
-#include "libc.h"
+#include "Glibc.h"
 
 
 /*

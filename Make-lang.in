@@ -69,6 +69,8 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeex) cc1gm2$(exeext) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  build-libs build-libs-iso
 
+SRC_PREFIX=G
+
 .PHONY: gm2 m2 modula-2 modula2 GM2 M2 Modula-2 Modula2 MODULA-2 MODULA2
 
 gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
@@ -627,29 +629,29 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs/$*.def $(srcdir)/gm2/gm2-libs/$*.mod -o gm2/gm2-libs-boot/$*.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/%.h: $(srcdir)/gm2/gm2-libs/%.def
-	$(P2C) $(srcdir)/gm2/gm2-libs/$*.def -h gm2/gm2-libs-boot/$*.h
+gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
+	$(P2C) $(srcdir)/gm2/gm2-libs/$*.def -h $@
 
 gm2/gm2-libs-boot/SYSTEM.o: $(srcdir)/gm2/gm2-libs/SYSTEM.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs-boot/SYSTEM.def $(srcdir)/gm2/gm2-libs/$*.mod -o gm2/gm2-libs-boot/$*.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/SYSTEM.h: $(srcdir)/gm2/gm2-libs-boot/SYSTEM.def
-	$(P2C) $(srcdir)/gm2/gm2-libs-boot/SYSTEM.def -h gm2/gm2-libs-boot/SYSTEM.h
+gm2/gm2-libs-boot/$(SRC_PREFIX)SYSTEM.h: $(srcdir)/gm2/gm2-libs-boot/SYSTEM.def
+	$(P2C) $(srcdir)/gm2/gm2-libs-boot/SYSTEM.def -h $@
 
-gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/wrapc.h
+gm2/gm2-libs-boot/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/UnixArgs.h
+gm2/gm2-libs-boot/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/StdIO.o: gm2/gm2-libs-ch/StdIO.c gm2/gm2-libs-boot/StdIO.h
+gm2/gm2-libs-boot/StdIO.o: gm2/gm2-libs-ch/StdIO.c gm2/gm2-libs-boot/$(SRC_PREFIX)StdIO.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/Storage.o: gm2/gm2-libs-ch/Storage.c gm2/gm2-libs-boot/Storage.h
+gm2/gm2-libs-boot/Storage.o: gm2/gm2-libs-ch/Storage.c gm2/gm2-libs-boot/$(SRC_PREFIX)Storage.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-boot/choosetemp.o: gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/choosetemp.h
+gm2/gm2-libs-boot/choosetemp.o: gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-boot/gm2.o: $(srcdir)/gm2/gm2-compiler/gm2.mod
@@ -691,7 +693,7 @@ gm2/gm2-compiler-boot/gm2m.o: $(objdir)/gm2/gm2-auto/gm2m.mod
 	$(P2C) gm2/gm2-auto/gm2m.mod -o gm2/gm2-auto/gm2m.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/gm2m.c -o $@
 
-gm2/gm2-compiler-boot/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod gm2/gm2-compiler-boot/clex.h
+gm2/gm2-compiler-boot/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod gm2/gm2-compiler-boot/$(SRC_PREFIX)clex.h
 	$(P2C) gm2/gm2-auto/h2def.mod -o gm2/gm2-auto/h2def.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/h2def.c -o $@
 
@@ -707,13 +709,13 @@ gm2/gm2-compiler-boot/gm2lsub.o: $(srcdir)/gm2/gm2-compiler/gm2lsub.mod
 	$(P2C) $(srcdir)/gm2/gm2-compiler/gm2lsub.mod -o gm2/gm2-compiler-boot/gm2lsub.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/gm2lsub.c -o $@
 
-gm2/gm2-compiler-boot/%.h: $(srcdir)/gm2/gm2-compiler/%.def
-	$(P2C) $(srcdir)/gm2/gm2-compiler/$*.def -h gm2/gm2-compiler-boot/$*.h
+gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler/%.def
+	$(P2C) $(srcdir)/gm2/gm2-compiler/$*.def -h $@
 
 gm2/gm2-compiler-boot/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
-gm2/gm2-compiler-boot/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/CLexBuf.h
+gm2/gm2-compiler-boot/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/GCLexBuf.h
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/m2lex.c: $(srcdir)/gm2/m2.lex
@@ -722,8 +724,8 @@ gm2/gm2-compiler/m2lex.c: $(srcdir)/gm2/m2.lex
 gm2/gm2-compiler/clex.c: $(srcdir)/gm2/c.lex
 	flex -t $< | sed -e 's/ malloc/xmalloc/' | sed -e 's/ realloc/xrealloc/' > $@
 
-gm2/gm2-libiberty/%.h: $(srcdir)/gm2/gm2-libiberty/%.def
-	$(P2C) $(srcdir)/gm2/gm2-libiberty/$*.def -h gm2/gm2-libiberty/$*.h
+gm2/gm2-libiberty/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libiberty/%.def
+	$(P2C) $(srcdir)/gm2/gm2-libiberty/$*.def -h $@
 
 gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-compiler/M2Version.def $< -o gm2/gm2-compiler-boot/M2Version.c
@@ -735,16 +737,16 @@ gm2/gm2-compiler-boot/M2Version.mod:
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
-gm2/gm2-libs/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/wrapc.h
+gm2/gm2-libs/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/UnixArgs.h
+gm2/gm2-libs/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/Selective.h
+gm2/gm2-libs/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/choosetemp.h
+gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
@@ -759,7 +761,8 @@ gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 gm2/gm2-compiler/m2lex.o: gm2/gm2-compiler/m2lex.c
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
-gm2/gm2-compiler/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/CLexBuf.h gm2/gm2-compiler-boot/clex.h
+gm2/gm2-compiler/clex.o: gm2/gm2-compiler/clex.c gm2/gm2-compiler-boot/$(SRC_PREFIX)CLexBuf.h \
+                         gm2/gm2-compiler-boot/$(SRC_PREFIX)clex.h
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
@@ -823,14 +826,14 @@ gm2/gm2-compiler/gm2.a: build-compiler
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
 
-BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/%.h) \
+BUILD-LIBS-BOOT = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h) \
                   $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
                   $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
 
-BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/%.h) \
-                      $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/%.h) \
-	              gm2/gm2-compiler-boot/gccgm2.h \
-	              gm2/gm2-compiler-boot/gm2builtins.h \
+BUILD-COMPILER-BOOT = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
+                      $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/$(SRC_PREFIX)%.h) \
+	              gm2/gm2-compiler-boot/$(SRC_PREFIX)gccgm2.h \
+	              gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2builtins.h \
                       $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                       $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                       gm2/gm2-compiler-boot/m2lex.o \
@@ -986,8 +989,8 @@ gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod
         fi
 	$(CC) -c $(CFLAGS) -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/$*.c -o $@
 
-gm2/gm2-compiler-boot/%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
-	$(P2C) $(srcdir)/gm2/gm2-compiler-boot/$*.def -h gm2/gm2-compiler-boot/$*.h
+gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-compiler-boot/%.def
+	$(P2C) $(srcdir)/gm2/gm2-compiler-boot/$*.def -h $@
 
 
 #
@@ -1015,7 +1018,7 @@ gm2/gm2-libs-paranoid/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-l
 gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/Selective.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
-gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/choosetemp.h
+gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-paranoid/m2lex.o: gm2/gm2-compiler/m2lex.c

@@ -6,11 +6,11 @@
 
 
 #define StorageG
-#include "Storage.h"
+#include "GStorage.h"
 
 
 #ifndef SysStorageH
-#include "SysStorage.h"
+#include "GSysStorage.h"
 #endif
 
 

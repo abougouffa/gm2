@@ -1,5 +1,5 @@
 #include <libiberty.h>
-#include "../gm2-libiberty/choosetemp.h"
+#include "../gm2-libiberty/Gchoosetemp.h"
 
 /* Return a temporary file name (as a string) or NIL if unable to create
    one.  */

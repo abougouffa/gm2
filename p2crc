@@ -1037,10 +1037,10 @@ UseStrncmp			# 1=use strncmp to compare packed array of char
 CodeFileName      %Rs.c         # Name of .c output file for a program,
                                 # %s=input file name.
 
-ModuleFileName    %S.c         # Name of .c output file for a module,
+ModuleFileName    %S.c          # Name of .c output file for a module,
                                 # %s=input file name, %S=module name.
 
-HeaderFileName    %S.h         # Name of .h output file for a module,
+HeaderFileName    G%S.h         # Name of .h output file for a module,
                                 # %s=input file name, %S=module name.
 
 HeaderFileName2                 # If defined, different format to use when

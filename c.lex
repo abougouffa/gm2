@@ -18,7 +18,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
 #include <p2c/p2c.h>
-#include "CLexBuf.h"
+#include "GCLexBuf.h"
 
 #define MAX_INCLUDE_DEPTH 50
 

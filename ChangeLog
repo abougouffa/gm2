@@ -1,3 +1,9 @@
+2003-11-13	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified the generated .h files to be prefixed with `G' to avoid
+	  name clashes which in turn allows gm2 to be built under a vfat
+	  file system.
+	
 2003-11-07	Gaius Mulley <gaius@glam.ac.uk>
 
 	* changed the flag name -Wverbose to -Wsources

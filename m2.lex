@@ -19,8 +19,8 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 
 #include <p2c/p2c.h>
 
-#include "M2Reserved.h"
-#include "M2LexBuf.h"
+#include "GM2Reserved.h"
+#include "GM2LexBuf.h"
 
 #if defined(GM2USEGGC)
 #  include "ggc.h"
