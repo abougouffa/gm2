@@ -84,6 +84,8 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        StartBuildFormalParameters,
                        EndBuildFormalParameters,
                        BuildFPSection,
+                       BuildVarArgs,
+                       BuildFormalVarArgs,
                        BuildProcedureHeading,
                        StartBuildProcedure,
                        EndBuildProcedure,
@@ -729,7 +731,8 @@ ProcedureType := "PROCEDURE"                                               % Bui
                  [ FormalTypeList ] =:
 
 FormalTypeList := "(" ( ")" FormalReturn |
-                        ProcedureParameters ")" FormalReturn ) =:
+                        ProcedureParameters 
+                  ")" FormalReturn ) =:
 
 FormalReturn := [ ":" Qualident                                            % BuildFunction ; %
                 ] =:
@@ -737,10 +740,11 @@ FormalReturn := [ ":" Qualident                                            % Bui
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
 
-ProcedureParameter := "VAR"                                                % PushT(VarTok) ; %
-                      FormalType                                           % BuildFormalType ; %
-                      |                                                    % PushT(NulTok) ; %
-                      FormalType                                           % BuildFormalType ; %
+ProcedureParameter :=  "..."                                                % BuildFormalVarArgs %
+                       | "VAR"                                              % PushT(VarTok) ; %
+                       FormalType                                           % BuildFormalType ; %
+                       |                                                    % PushT(NulTok) ; %
+                       FormalType                                           % BuildFormalType ; %
                     =:
 
 VariableDeclaration := IdentList ":"                                       % BuildNulName %
@@ -857,7 +861,8 @@ FormalParameters := "("                                                    % Sta
                     [ ":" Qualident                                        % BuildFunction %
                     ] =:
 
-FPSection := NonVarFPSection | VarFPSection =:
+FPSection := NonVarFPSection | VarFPSection | "..."                        % BuildVarArgs %
+          =:
 
 VarFPSection := "VAR"                                                      % VAR n: CARDINAL ; %
                                                                            % PopT(n) ; %

@@ -19,34 +19,24 @@ along with GNU Modula-2; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/*
-           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:tradcpp0 -lang-asm %(cpp_options) -C -o %g.mod \n\
-                                                     cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %g.mod \
-                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
-                                                     as %(asm_options) %{!pipe:%g.s} %A }}} \n\
-                                               %{!Wcpp:cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %B \
-                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
-                                                     as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
-*/
-
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-  {".mod", "@modula-2" },
-  {".def", "@modula-2" },
+  {".mod", "@modula-2", 0},
+  {".def", "@modula-2", 0},
   {"@modula-2",
       "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
-           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin tradcpp0 -lang-asm %(cpp_options) -C -Wcppend \
-                                                     %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} \
+           %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin tradcpp0%s -lang-asm -C %(cpp_options) -Wcppend \
+                                                     %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}} \n\
                                                %{!Wcpp:cc1gm2 %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %i \
                                                      %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
                                                      as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
-           %{Wmakelist:%{Wcpp:tradcpp0 -lang-asm %(cpp_options) -C -o %g.mod \n\
+           %{Wmakelist:%{Wcpp:tradcpp0%s -lang-asm -C %(cpp_options) %g.mod \n\
                               gm2l %{I*} -o %b.lst %g.mod} \n\
                        %{!Wcpp:gm2l %{I*} -o %b.lst %i}} \n\
-           %{Wmodules:%{!Wuselist:%{Wcpp:tradcpp0 -lang-asm %(cpp_options) -C -o %g.mod \n\
+           %{Wmodules:%{!Wuselist:%{Wcpp:tradcpp0%s -lang-asm -C %(cpp_options) %g.mod \n\
                                          gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{I*} %{v} -c %g.lst} \n\
@@ -58,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
       %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \n\
       %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -Wgm2begin -Wmakeall0 %{g*} %{v*} %{l*} %{L*} %{B*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
                                    make -f %g.m }}} \n\
-      %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:tradcpp0 -lang-asm %(cpp_options) -C -o %g.mod \n\
+      %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:tradcpp0%s -lang-asm -C %(cpp_options) %g.mod \n\
                                              gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\
@@ -75,4 +65,4 @@ Boston, MA 02111-1307, USA.  */
                                       gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
                                       rm -f %w%d%g.a \n\
                                       gm2lcc %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
-    "},
+    ", 0},

@@ -115,14 +115,19 @@ gm2.install-common: installdirs $(GM2_LIB_DIR)
            fi ; \
         fi
 	for i in $(GM2EXES) ; do \
-            rm -f $(bindir)/$$i$(exeext); \
-            $(INSTALL_PROGRAM) x$$i$(exeext) $(bindir)/$$i$(exeext); \
-            chmod a+x $(bindir)/$$i$(exeext); \
+            rm -f $(libsubdir)/$$i$(exeext); \
+            $(INSTALL_PROGRAM) x$$i$(exeext) $(libsubdir)/$$i$(exeext); \
+            chmod a+x $(libsubdir)/$$i$(exeext); \
         done
 	for i in gm2/gm2-libs/* ; do \
-           rm -f $(GM2_LIB_DIR)/$$i ; \
-           $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR) ; \
+           if [ ! -d $i ] ; then \
+              rm -f $(GM2_LIB_DIR)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR) ; \
+           fi ; \
         done
+	rm -f $(bindir)/gm2m$(exeext)
+	$(INSTALL_PROGRAM) xgm2m$(exeext) $(bindir)/gm2m$(exeext)
+
 
 # Don't delete $(infodir)/gm2.info* unless there's actually new
 # docs to install (in case LANGUAGES didn't contain gm2 earlier).
@@ -138,9 +143,7 @@ gm2.install-man:
 gm2.uninstall:
 	-rm -rf $(bindir)/$(GM2_INSTALL_NAME)
 	-rm -rf $(bindir)/$(GM2_CROSS_NAME)
-	-for i in $(GM2LINKEXES) ; do \
-            rm -f $(bindir)/$$i$(exeext); \
-        done
+	-rm -f $(bindir)/gm2m$(exeext)
 
 # Clean hooks:
 # A lot of the ancillary files are deleted by the main makefile.

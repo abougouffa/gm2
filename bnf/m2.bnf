@@ -634,7 +634,7 @@ FormalReturn := [ ":" Qualident ] =:
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
 
-ProcedureParameter := "VAR" FormalType | FormalType =:
+ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 VariableDeclaration :=
                        ( IdentList ":"                                     % BuildNulName %
@@ -739,7 +739,7 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
 FormalParameters := "(" [ FPSection { ";" FPSection } ] ")"
                     [ ":" Qualident ] =:
 
-FPSection := NonVarFPSection | VarFPSection =:
+FPSection := NonVarFPSection | VarFPSection | "..." =:
 
 VarFPSection := "VAR" IdentList ":" FormalType =:
 
@@ -773,7 +773,9 @@ Import :=  "FROM" Ident "IMPORT" IdentList ";" |
             IdentList ";" =:
 
 DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
-                    [ "FOR" string ]
+                    ( "FOR"  string |                                      % (* epsilon *)
+                                                                             PushT(NulSym) %
+                    )
                     Ident                                                  % P1StartBuildDefinitionModule %
                     ";"
                     { Import                                               % BuildImportOuterModule %

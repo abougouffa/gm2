@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2002/04/29 09:13:31 $]
+              : [$Date: 2002/05/02 08:56:13 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -681,11 +681,12 @@ BEGIN
    p := Head ;
    WHILE p#NIL DO
       WITH p^ DO
-         (* ForC modules do not have an initialization section *)
-         IF ForC
+         (*
+            do not automatically link ForC modules,
+	    the user must specify them either as -lmodule or module.o
+         *)
+         IF NOT ForC
          THEN
-            fprintf1(fo, '<onlylink> %a\n', name)
-         ELSE
             fprintf1(fo, '%a\n', name)
          END
       END ;

@@ -825,11 +825,7 @@ FormalReturn := [ ":" Qualident
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
 
-ProcedureParameter := "VAR"
-                      FormalType
-                      |
-                      FormalType
-                    =:
+ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
 VariableDeclaration := IdentList ":"
                        Type
@@ -1008,12 +1004,11 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-FormalParameters := "("
-                    [ FPSection { ";" FPSection } ] ")"
+FormalParameters := "(" [ FPSection { ";" FPSection } ] ")"
                     [ ":" Qualident
                     ] =:
 
-FPSection := NonVarFPSection | VarFPSection =:
+FPSection := NonVarFPSection | VarFPSection | "..." =:
 
 VarFPSection := "VAR" IdentList ":" FormalType =:
 

@@ -2176,7 +2176,7 @@ PROCEDURE FormalTypeList (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: 
 # 629 "bnf/m2.bnf"
 BEGIN
 # 629 "bnf/m2.bnf"
-   Expect(lparatok, stopset0 + SetOfStop0{rparatok, arraytok}, stopset1, stopset2 + SetOfStop2{vartok, identtok}) ;
+   Expect(lparatok, stopset0 + SetOfStop0{rparatok, arraytok}, stopset1, stopset2 + SetOfStop2{periodperiodperiodtok, vartok, identtok}) ;
 # 629 "bnf/m2.bnf"
    IF currenttoken=rparatok
    THEN
@@ -2185,7 +2185,7 @@ BEGIN
       FormalReturn(stopset0, stopset1, stopset2) ;
 # 630 "bnf/m2.bnf"
    ELSIF (currenttoken=arraytok) OR
-         ((currenttoken>=totok) AND (currenttoken IN SetOfStop2 {identtok, vartok}))
+         ((currenttoken>=totok) AND (currenttoken IN SetOfStop2 {identtok, vartok, periodperiodperiodtok}))
    THEN
       ProcedureParameters(stopset0 + SetOfStop0{rparatok}, stopset1, stopset2) ;
 # 630 "bnf/m2.bnf"
@@ -2193,7 +2193,7 @@ BEGIN
 # 630 "bnf/m2.bnf"
       FormalReturn(stopset0, stopset1, stopset2) ;
    ELSE
-      ErrorArray('expecting one of: identifier ARRAY VAR )')
+      ErrorArray('expecting one of: identifier ARRAY VAR ... )')
    END ;
 END FormalTypeList ;
 
@@ -2223,7 +2223,7 @@ END FormalReturn ;
 (*
    ProcedureParameters := ProcedureParameter { ',' ProcedureParameter  }
 
-   first  symbols:identtok, arraytok, vartok
+   first  symbols:identtok, arraytok, vartok, periodperiodperiodtok
    
    cannot reachend
 *)
@@ -2237,7 +2237,7 @@ BEGIN
    ProcedureParameter(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
 # 635 "bnf/m2.bnf"
    WHILE currenttoken=commatok DO
-      Expect(commatok, stopset0 + SetOfStop0{arraytok}, stopset1, stopset2 + SetOfStop2{vartok, identtok}) ;
+      Expect(commatok, stopset0 + SetOfStop0{arraytok}, stopset1, stopset2 + SetOfStop2{periodperiodperiodtok, vartok, identtok}) ;
 # 635 "bnf/m2.bnf"
       ProcedureParameter(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
    END (* while *) ;
@@ -2245,10 +2245,10 @@ END ProcedureParameters ;
 
 
 (*
-   ProcedureParameter := 'VAR' FormalType  | 
+   ProcedureParameter := '...'  | 'VAR' FormalType  | 
                          FormalType 
 
-   first  symbols:identtok, arraytok, vartok
+   first  symbols:identtok, arraytok, vartok, periodperiodperiodtok
    
    cannot reachend
 *)
@@ -2258,7 +2258,11 @@ PROCEDURE ProcedureParameter (stopset0: SetOfStop0; stopset1: SetOfStop1; stopse
 # 637 "bnf/m2.bnf"
 BEGIN
 # 637 "bnf/m2.bnf"
-   IF currenttoken=vartok
+   IF currenttoken=periodperiodperiodtok
+   THEN
+      Expect(periodperiodperiodtok, stopset0, stopset1, stopset2) ;
+# 637 "bnf/m2.bnf"
+   ELSIF currenttoken=vartok
    THEN
       Expect(vartok, stopset0 + SetOfStop0{arraytok}, stopset1, stopset2 + SetOfStop2{identtok}) ;
 # 637 "bnf/m2.bnf"
@@ -2269,7 +2273,7 @@ BEGIN
    THEN
       FormalType(stopset0, stopset1, stopset2) ;
    ELSE
-      ErrorArray('expecting one of: identifier ARRAY VAR')
+      ErrorArray('expecting one of: identifier ARRAY VAR ...')
    END ;
 END ProcedureParameter ;
 
@@ -3277,14 +3281,14 @@ PROCEDURE FormalParameters (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2
 # 739 "bnf/m2.bnf"
 BEGIN
 # 739 "bnf/m2.bnf"
-   Expect(lparatok, stopset0 + SetOfStop0{rparatok}, stopset1, stopset2 + SetOfStop2{identtok, vartok}) ;
+   Expect(lparatok, stopset0 + SetOfStop0{rparatok}, stopset1, stopset2 + SetOfStop2{identtok, vartok, periodperiodperiodtok}) ;
 # 739 "bnf/m2.bnf"
-   IF ((currenttoken>=totok) AND (currenttoken IN SetOfStop2 {vartok, identtok}))
+   IF ((currenttoken>=totok) AND (currenttoken IN SetOfStop2 {periodperiodperiodtok, vartok, identtok}))
    THEN
       FPSection(stopset0 + SetOfStop0{semicolontok, rparatok}, stopset1, stopset2) ;
 # 739 "bnf/m2.bnf"
       WHILE currenttoken=semicolontok DO
-         Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok, vartok}) ;
+         Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok, vartok, periodperiodperiodtok}) ;
 # 739 "bnf/m2.bnf"
          FPSection(stopset0 + SetOfStop0{rparatok, semicolontok}, stopset1, stopset2) ;
       END (* while *) ;
@@ -3302,9 +3306,10 @@ END FormalParameters ;
 
 
 (*
-   FPSection := NonVarFPSection  | VarFPSection 
+   FPSection := NonVarFPSection  | VarFPSection  | 
+                '...' 
 
-   first  symbols:vartok, identtok
+   first  symbols:periodperiodperiodtok, vartok, identtok
    
    cannot reachend
 *)
@@ -3321,8 +3326,12 @@ BEGIN
    ELSIF currenttoken=vartok
    THEN
       VarFPSection(stopset0, stopset1, stopset2) ;
+# 742 "bnf/m2.bnf"
+   ELSIF currenttoken=periodperiodperiodtok
+   THEN
+      Expect(periodperiodperiodtok, stopset0, stopset1, stopset2) ;
    ELSE
-      ErrorArray('expecting one of: VAR identifier')
+      ErrorArray('expecting one of: ... VAR identifier')
    END ;
 END FPSection ;
 
@@ -3593,7 +3602,10 @@ END Import ;
 (*
    DefinitionModule := 'DEFINITION' 'MODULE' 
                        % PushAutoOn  %
-                       [ 'FOR' string  ]Ident 
+                       ( 'FOR' string  | 
+                         % (* epsilon *)
+                           PushT(NulSym)  %
+                          )Ident 
                        % P1StartBuildDefinitionModule  %
                        ';' { Import 
                              % BuildImportOuterModule  %
@@ -3630,44 +3642,50 @@ BEGIN
       Expect(fortok, stopset0, stopset1, stopset2 + SetOfStop2{stringtok}) ;
 # 776 "bnf/m2.bnf"
       string(stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
+# 776 "bnf/m2.bnf"
+   ELSE
+# 776 "bnf/m2.bnf"
+# 777 "bnf/m2.bnf"
+      (* epsilon *)
+      PushT(NulSym)  ;
    END ;
-# 777 "bnf/m2.bnf"
-   Ident(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-# 777 "bnf/m2.bnf"
-   P1StartBuildDefinitionModule  ;
-# 778 "bnf/m2.bnf"
-   Expect(semicolontok, stopset0, stopset1 + SetOfStop1{fromtok, importtok, exporttok, consttok, proceduretok, endtok}, stopset2 + SetOfStop2{typetok, vartok}) ;
 # 779 "bnf/m2.bnf"
+   Ident(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
+# 779 "bnf/m2.bnf"
+   P1StartBuildDefinitionModule  ;
+# 780 "bnf/m2.bnf"
+   Expect(semicolontok, stopset0, stopset1 + SetOfStop1{fromtok, importtok, exporttok, consttok, proceduretok, endtok}, stopset2 + SetOfStop2{typetok, vartok}) ;
+# 781 "bnf/m2.bnf"
    WHILE ((currenttoken>=bytok) AND (currenttoken<totok) AND (currenttoken IN SetOfStop1 {importtok, fromtok})) DO
       Import(stopset0, stopset1 + SetOfStop1{endtok, proceduretok, consttok, exporttok, importtok, fromtok}, stopset2 + SetOfStop2{vartok, typetok}) ;
-# 779 "bnf/m2.bnf"
+# 781 "bnf/m2.bnf"
       BuildImportOuterModule  ;
    END (* while *) ;
-# 780 "bnf/m2.bnf"
+# 782 "bnf/m2.bnf"
    IF currenttoken=exporttok
    THEN
       Export(stopset0, stopset1 + SetOfStop1{endtok, proceduretok, consttok}, stopset2 + SetOfStop2{vartok, typetok}) ;
-# 780 "bnf/m2.bnf"
+# 782 "bnf/m2.bnf"
       BuildExportOuterModule  ;
    END ;
-# 781 "bnf/m2.bnf"
+# 783 "bnf/m2.bnf"
    PushAutoOff  ;
-# 782 "bnf/m2.bnf"
+# 784 "bnf/m2.bnf"
    WHILE ((currenttoken>=bytok) AND (currenttoken<totok) AND (currenttoken IN SetOfStop1 {proceduretok, consttok})) OR
          ((currenttoken>=totok) AND (currenttoken IN SetOfStop2 {vartok, typetok})) DO
       Definition(stopset0, stopset1 + SetOfStop1{endtok, proceduretok, consttok}, stopset2 + SetOfStop2{vartok, typetok}) ;
    END (* while *) ;
-# 782 "bnf/m2.bnf"
+# 784 "bnf/m2.bnf"
    PopAuto  ;
-# 783 "bnf/m2.bnf"
+# 785 "bnf/m2.bnf"
    Expect(endtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-# 783 "bnf/m2.bnf"
+# 785 "bnf/m2.bnf"
    Ident(stopset0 + SetOfStop0{periodtok}, stopset1, stopset2) ;
-# 783 "bnf/m2.bnf"
+# 785 "bnf/m2.bnf"
    P1EndBuildDefinitionModule  ;
-# 784 "bnf/m2.bnf"
+# 786 "bnf/m2.bnf"
    Expect(periodtok, stopset0, stopset1, stopset2) ;
-# 784 "bnf/m2.bnf"
+# 786 "bnf/m2.bnf"
    PopAuto  ;
 END DefinitionModule ;
 
@@ -3688,64 +3706,64 @@ END DefinitionModule ;
    cannot reachend
 *)
 
-# 787 "bnf/m2.bnf"
+# 789 "bnf/m2.bnf"
 PROCEDURE Definition (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 787 "bnf/m2.bnf"
+# 789 "bnf/m2.bnf"
 BEGIN
-# 787 "bnf/m2.bnf"
+# 789 "bnf/m2.bnf"
    IF currenttoken=consttok
    THEN
       Expect(consttok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-# 787 "bnf/m2.bnf"
+# 789 "bnf/m2.bnf"
       WHILE currenttoken=identtok DO
          ConstantDeclaration(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-# 787 "bnf/m2.bnf"
+# 789 "bnf/m2.bnf"
          Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
       END (* while *) ;
-# 788 "bnf/m2.bnf"
+# 790 "bnf/m2.bnf"
    ELSIF currenttoken=typetok
    THEN
       Expect(typetok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-# 788 "bnf/m2.bnf"
+# 790 "bnf/m2.bnf"
       PushAutoOn  ;
-# 789 "bnf/m2.bnf"
+# 791 "bnf/m2.bnf"
       WHILE currenttoken=identtok DO
          Ident(stopset0 + SetOfStop0{semicolontok, equaltok}, stopset1, stopset2) ;
-# 789 "bnf/m2.bnf"
+# 791 "bnf/m2.bnf"
          IF currenttoken=semicolontok
          THEN
             Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-# 789 "bnf/m2.bnf"
+# 791 "bnf/m2.bnf"
             BuildHiddenType  ;
-# 790 "bnf/m2.bnf"
+# 792 "bnf/m2.bnf"
          ELSIF currenttoken=equaltok
          THEN
             Expect(equaltok, stopset0 + SetOfStop0{lparatok, lsbratok, arraytok}, stopset1 + SetOfStop1{recordtok, settok, pointertok, proceduretok}, stopset2 + SetOfStop2{identtok}) ;
-# 790 "bnf/m2.bnf"
+# 792 "bnf/m2.bnf"
             Type(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-# 790 "bnf/m2.bnf"
+# 792 "bnf/m2.bnf"
             Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
          ELSE
             ErrorArray('expecting one of: = ;')
          END ;
       END (* while *) ;
-# 790 "bnf/m2.bnf"
-      PopAuto  ;
 # 792 "bnf/m2.bnf"
+      PopAuto  ;
+# 794 "bnf/m2.bnf"
    ELSIF currenttoken=vartok
    THEN
       Expect(vartok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-# 792 "bnf/m2.bnf"
+# 794 "bnf/m2.bnf"
       WHILE currenttoken=identtok DO
          VariableDeclaration(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-# 792 "bnf/m2.bnf"
+# 794 "bnf/m2.bnf"
          Expect(semicolontok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
       END (* while *) ;
-# 793 "bnf/m2.bnf"
+# 795 "bnf/m2.bnf"
    ELSIF currenttoken=proceduretok
    THEN
       ProcedureHeading(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-# 793 "bnf/m2.bnf"
+# 795 "bnf/m2.bnf"
       Expect(semicolontok, stopset0, stopset1, stopset2) ;
    ELSE
       ErrorArray('expecting one of: PROCEDURE VAR TYPE CONST')
@@ -3761,22 +3779,22 @@ END Definition ;
    cannot reachend
 *)
 
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
 PROCEDURE AsmStatement (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
 BEGIN
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
    Expect(asmtok, stopset0 + SetOfStop0{lparatok}, stopset1, stopset2 + SetOfStop2{volatiletok}) ;
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
    IF currenttoken=volatiletok
    THEN
       Expect(volatiletok, stopset0 + SetOfStop0{lparatok}, stopset1, stopset2) ;
    END ;
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
    Expect(lparatok, stopset0, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
    AsmOperands(stopset0 + SetOfStop0{rparatok}, stopset1, stopset2) ;
-# 795 "bnf/m2.bnf"
+# 797 "bnf/m2.bnf"
    Expect(rparatok, stopset0, stopset1, stopset2) ;
 END AsmStatement ;
 
@@ -3789,29 +3807,29 @@ END AsmStatement ;
    cannot reachend
 *)
 
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
 PROCEDURE AsmOperands (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
 BEGIN
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
    string(stopset0 + SetOfStop0{colontok}, stopset1, stopset2) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
    IF currenttoken=colontok
    THEN
       Expect(colontok, stopset0 + SetOfStop0{commatok, colontok}, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
       AsmList(stopset0 + SetOfStop0{colontok}, stopset1, stopset2) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
       IF currenttoken=colontok
       THEN
          Expect(colontok, stopset0 + SetOfStop0{commatok, colontok}, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
          AsmList(stopset0 + SetOfStop0{colontok}, stopset1, stopset2) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
          IF currenttoken=colontok
          THEN
             Expect(colontok, stopset0 + SetOfStop0{commatok}, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 797 "bnf/m2.bnf"
+# 799 "bnf/m2.bnf"
             TrashList(stopset0, stopset1, stopset2) ;
          END ;
       END ;
@@ -3827,19 +3845,19 @@ END AsmOperands ;
    reachend
 *)
 
-# 800 "bnf/m2.bnf"
+# 802 "bnf/m2.bnf"
 PROCEDURE AsmList (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 800 "bnf/m2.bnf"
+# 802 "bnf/m2.bnf"
 BEGIN
-# 800 "bnf/m2.bnf"
+# 802 "bnf/m2.bnf"
    IF currenttoken=stringtok
    THEN
       AsmElement(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
    END ;
-# 800 "bnf/m2.bnf"
+# 802 "bnf/m2.bnf"
    WHILE currenttoken=commatok DO
       Expect(commatok, stopset0, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 800 "bnf/m2.bnf"
+# 802 "bnf/m2.bnf"
       AsmElement(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
    END (* while *) ;
 END AsmList ;
@@ -3853,17 +3871,17 @@ END AsmList ;
    cannot reachend
 *)
 
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
 PROCEDURE AsmElement (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
 BEGIN
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
    string(stopset0 + SetOfStop0{lparatok}, stopset1, stopset2) ;
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
    Expect(lparatok, stopset0 + SetOfStop0{plustok, minustok, lcbratok, lparatok, rparatok}, stopset1 + SetOfStop1{nottok}, stopset2 + SetOfStop2{integertok, realtok, stringtok, identtok}) ;
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
    Expression(stopset0 + SetOfStop0{rparatok}, stopset1, stopset2) ;
-# 802 "bnf/m2.bnf"
+# 804 "bnf/m2.bnf"
    Expect(rparatok, stopset0, stopset1, stopset2) ;
 END AsmElement ;
 
@@ -3876,19 +3894,19 @@ END AsmElement ;
    reachend
 *)
 
-# 805 "bnf/m2.bnf"
+# 807 "bnf/m2.bnf"
 PROCEDURE TrashList (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
-# 805 "bnf/m2.bnf"
+# 807 "bnf/m2.bnf"
 BEGIN
-# 805 "bnf/m2.bnf"
+# 807 "bnf/m2.bnf"
    IF currenttoken=stringtok
    THEN
       string(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
    END ;
-# 805 "bnf/m2.bnf"
+# 807 "bnf/m2.bnf"
    WHILE currenttoken=commatok DO
       Expect(commatok, stopset0, stopset1, stopset2 + SetOfStop2{stringtok}) ;
-# 805 "bnf/m2.bnf"
+# 807 "bnf/m2.bnf"
       string(stopset0 + SetOfStop0{commatok}, stopset1, stopset2) ;
    END (* while *) ;
 END TrashList ;
