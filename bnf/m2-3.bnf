@@ -1005,9 +1005,8 @@ CaseLabels := ConstExpression ( ".." ConstExpression                       % Bui
                               ) =:
 
 WhileStatement :=                                                          % BuildLineNo %
-                  "WHILE"
-                                                                           % BuildWhile %
-                  Expression                                               % BuildLineNo %
+                  "WHILE"                                                  % BuildWhile %
+                  Expression
                              "DO"                                          % BuildDoWhile %
                                   StatementSequence "END"                  % DumpStack ; BuildEndWhile %
                 =:
