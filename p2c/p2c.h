@@ -10,18 +10,22 @@
  * by the licence agreement accompanying p2c itself.
  */
 
+/* Memory allocation, we define malloc before we poison it with the gcc includes below */
+#ifdef __GCC__
+# define Malloc(n)  (malloc(n) ?: (Anyptr)_OutMem())
+#else
+extern Anyptr __MallocTemp__;
+# define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
+#endif
+#define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
+#define Free(p)     (free((Anyptr)(p)), (p)=NULL)
+
+
 #include <ansidecl.h>
 #include <auto-host.h>
 #include <config.h>
 #include <system.h>
 
-
-#if 0
-typedef struct __p2c_jmp_buf {
-    struct __p2c_jmp_buf *next;
-    jmp_buf jbuf;
-} __p2c_jmp_buf;
-#endif
 
 #  define Signed    signed
 #  define Void       void      /* Void f() = procedure */
@@ -70,19 +74,7 @@ extern int	_Escape     PP( (int) );
 extern int	_EscIO      PP( (int) );
 
 
-/* Memory allocation */
-#ifdef __GCC__
-# define Malloc(n)  (malloc(n) ?: (Anyptr)_OutMem())
-#else
-extern Anyptr __MallocTemp__;
-# define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
-#endif
-#define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
-#define Free(p)     (free((Anyptr)(p)), (p)=NULL)
-
-
 #endif    /* P2C_H */
-
 
 
 /* End. */
