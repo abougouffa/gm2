@@ -1,3 +1,16 @@
+2002-03-11	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.33
+	* implemented large sets
+	* implemented ISO complient sets
+	* definition modules no longer have to explicitly export
+	  identifiers
+
+2002-06-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.32
+	* now supports building a cross compiler (strong-arm) tested
+	
 2002-06-09	Gaius Mulley <gaius@glam.ac.uk>
 
 	* brought gm2 up to date with gcc-3.2
