@@ -17,9 +17,15 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: Calendar.def,v 1.1 2003/12/27 00:16:05 gaius Exp $
+   $Id: Calendar.def,v 1.2 2004/06/21 15:53:32 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Calendar.def,v $
+   Revision 1.2  2004/06/21 15:53:32  gaius
+   fixed bug in constant set declaration
+   (see ulm library ulm-lib-gm2/std/Calendar.mod and
+   testsuite/gm2/pim/pass/setconst.mod and
+   testsuite/gm2/pim/pass/setconst2.mod)
+
    Revision 1.1  2003/12/27 00:16:05  gaius
    added ulm libraries into the gm2 tree. Currently these
    are only used when regression testing, but later they
@@ -103,8 +109,8 @@ DEFINITION MODULE Calendar;
     *	important for week of year calculation in ConvertCald; default is Mon.
     *)
 
-   PROCEDURE GetTimezone (VAR tzname: ARRAY OF CHAR);
-   PROCEDURE SetTimezone (    tzname: ARRAY OF CHAR);
+   PROCEDURE GetTimezone (VAR tzName: ARRAY OF CHAR);
+   PROCEDURE SetTimezone (    tzName: ARRAY OF CHAR);
    PROCEDURE GetLocaltime(VAR delay: Time);
    PROCEDURE SetLocaltime(    delay: Time);
    (*

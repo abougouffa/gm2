@@ -25,7 +25,8 @@ FROM M2Base IMPORT Char, MixTypes ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
-FROM M2Printf IMPORT printf0, printf2 ;
+FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -125,9 +126,13 @@ PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
 CONST
    Debugging = FALSE ;
 
+TYPE
+   constType = (unknown, set, str) ;
+
 VAR
-   IsBuildingConstDeclaration: BOOLEAN ;
-   AnonymousName             : CARDINAL ;
+   AnonymousName: CARDINAL ;
+   type         : constType ;
+   TypeStack    : StackOfWord ;
 
 
 (*
@@ -668,69 +673,6 @@ BEGIN
    Sym := MakeConstVar(name) ;
    PushT(Sym)
 END BuildConst ;
-
-
-(*
-   BuildConstTypeFromAssignment - assigns a string to the constant name.
-                                  But it only does this if we in a CONST statement.
-                                  In both cases the string on top of the stack is removed.
-
-                                  Stack
-
-                                  Entry           Exit
-
-                           Ptr ->
-                                  +------------+
-                                  | Expr       |
-                                  |------------|
-                                  | Sym        |            <- Ptr
-                                  |------------|
-*)
-
-PROCEDURE BuildConstTypeFromAssignment ;
-VAR
-   Expr,
-   Sym : CARDINAL ;
-BEGIN
-   (* we might get called via a type declaration, consider
-      TYPE  CharSet = SET OF ['0'..'9'] ;
-   *)
-   IF IsBuildingConstDeclaration
-   THEN
-      PopT(Expr) ;
-      PopT(Sym) ;
-      IF IsConstString(Expr)
-      THEN
-         PutConstString(Sym, GetString(Expr))
-      END ;
-      PushT(Sym)
-   ELSE
-      PopT(Expr)    (* remove the string *)
-   END
-END BuildConstTypeFromAssignment ;
-
-
-(*
-   BuildConstSetType - assigns the const var symbol on top of the stack
-                       as being a set constant. The stack is unchanged.
-
-                                  Entry           Exit
-
-                       Ptr ->                                    <- Ptr
-                              +------------+      +------------+
-                              | Sym        |      | Sym        |
-                              |------------|      |------------|
-*)
-
-PROCEDURE BuildConstSetType ;
-VAR
-   Expr,
-   Sym : CARDINAL ;
-BEGIN
-   PopT(Expr) ;
-   PutConstSet(Expr) ;
-   PushT(Expr)
-END BuildConstSetType ;
 
 
 (*
@@ -2245,25 +2187,76 @@ END BuildPriority ;
 
 
 (*
-   StartBuildingConstDeclaration - 
+   SeenUnknown - sets the operand type to unknown.
 *)
 
-PROCEDURE StartBuildingConstDeclaration ;
+PROCEDURE SeenUnknown ;
 BEGIN
-   IsBuildingConstDeclaration := TRUE
-END StartBuildingConstDeclaration ;
+   type := unknown
+END SeenUnknown ;
 
 
 (*
-   EndBuildingConstDeclaration - 
+   SeenSet - sets the operand type to set.
 *)
 
-PROCEDURE EndBuildingConstDeclaration ;
+PROCEDURE SeenSet ;
 BEGIN
-   IsBuildingConstDeclaration := FALSE
-END EndBuildingConstDeclaration ;
+   type := set
+END SeenSet ;
+
+
+(*
+   SeenString - sets the operand type to string.
+*)
+
+PROCEDURE SeenString ;
+BEGIN
+   type := str
+END SeenString ;
+
+
+(*
+   DetermineType - assigns the top of stack symbol with the type of
+                   constant expression, if known.
+*)
+
+PROCEDURE DetermineType ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   Sym := OperandT(1) ;
+   CASE type OF
+
+   set    :  PutConstSet(Sym) |
+   str    :  PutConstString(Sym, MakeKey('')) |
+   unknown:
+
+   ELSE
+   END
+END DetermineType ;
+
+
+(*
+   PushType - 
+*)
+
+PROCEDURE PushType ;
+BEGIN
+   PushWord(TypeStack, type)
+END PushType ;
+
+
+(*
+   PopType - 
+*)
+
+PROCEDURE PopType ;
+BEGIN
+   type := PopWord(TypeStack)
+END PopType ;
 
 
 BEGIN
-   IsBuildingConstDeclaration := FALSE
+   TypeStack := InitStackWord()
 END P2SymBuild.

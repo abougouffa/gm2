@@ -1,4 +1,12 @@
-2004-06-18	Gaius Mulley <gaius@glam.ac.uk>
+2004-06-21	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in constant set declaration
+	  (see ulm library ulm-lib-gm2/std/Calendar.mod and
+	   testsuite/gm2/pim/pass/setconst.mod and
+           testsuite/gm2/pim/pass/setconst2.mod)
+	* all regression tests pass on the Opteron port of gm2.
+	
+2004-06-18	Gaius Mulley <gaius@glam.ac.uk>	
 
 	* implemented nested module within procedures.
 	  This allows a few more ulm library modules to compile.

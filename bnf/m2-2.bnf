@@ -76,8 +76,6 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildVariable,
                        BuildTypeEnd,
                        BuildNulName,
-                       BuildConstTypeFromAssignment,
-                       BuildConstSetType,
                        BuildType,
                        StartBuildEnumeration,
 
@@ -106,9 +104,8 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildSubrange,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
-
-                       StartBuildingConstDeclaration,
-                       EndBuildingConstDeclaration ;
+                       DetermineType, PushType, PopType,
+                       SeenUnknown, SeenSet, SeenString ;
 
 FROM M2Reserved IMPORT ArrayTok, VarTok ;
 
@@ -578,8 +575,8 @@ Qualident :=                                                               % VAR
            =:
 
 ConstantDeclaration := Ident "="                                           % BuildConst ;
-                                                                             StartBuildingConstDeclaration %
-                       ConstExpression                                     % EndBuildingConstDeclaration ;
+                                                                             SeenUnknown %
+                       ConstExpression                                     % DetermineType ;
                                                                              PopNothing %
                      =:
 
@@ -587,17 +584,25 @@ ConstExpression :=                                                         % Pus
                    SimpleConstExpr [ Relation SimpleConstExpr ]            % PopAuto %
                 =:
 
-Relation := "=" | "#" | "<>" | "<" | "<=" | ">" | ">=" | "IN" =:
+Relation :=                                                                % SeenUnknown (* actually it will be a BOOLEAN, but this is not a SET and not a string *) %
+            "=" | "#" | "<>" | "<" | "<=" | ">" | ">=" | "IN" =:
 
 SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 
 UnaryOrConstTerm := "+" ConstTerm | "-" ConstTerm | ConstTerm =:
 
-AddOperator := "+" | "-" | "OR" =:
+AddOperator := "+" | "-" |
+               "OR"                                                     % SeenUnknown (* actually it will be a BOOLEAN, but this is not a SET and not a string *) %
+ =:
 
 ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
-MulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
+MulOperator := "*" | "/"
+               | "DIV"                                                    % SeenUnknown %
+               | "MOD"                                                    % SeenUnknown %
+               | "AND"                                                    % SeenUnknown %
+               | "&"                                                      % SeenUnknown %
+              =:
 
 ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
                "(" ConstExpression ")" | "NOT" ConstFactor |
@@ -605,16 +610,16 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString :=                                                             % PushAutoOn ; %
-                string                                                     % PopAuto ; %
-                                                                           % BuildConstTypeFromAssignment ; %
+ConstString :=  string                                                     % SeenString %
              =:
 
-ConstSetOrQualidentOrFunction := SimpleSet                                 % (* BuildConstSetType ; *) %
-                                 | Qualident [ SimpleSet                   % BuildConstSetType ; %
+ConstSetOrQualidentOrFunction := SimpleSet                                 % SeenSet %
+                                 | Qualident [ SimpleSet                   % SeenSet %
                                                | ConstActualParameters ]  =:
 
-ConstActualParameters :=  "(" [ ExpList ] ")" =:
+ConstActualParameters :=                                                   % PushType %
+                         "(" [ ExpList ] ")"                               % PopType %
+                       =:
 
 -- to help satisfy LL1
 

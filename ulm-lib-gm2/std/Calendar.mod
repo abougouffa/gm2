@@ -15,11 +15,17 @@
    License along with this library; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
    ----------------------------------------------------------------------------
-   E-mail contact: modula@mathematik.uni-ulm.de
+   E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Calendar.mod,v 1.2 2004/06/18 10:44:53 gaius Exp $
+   $Id: Calendar.mod,v 1.3 2004/06/21 15:53:32 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Calendar.mod,v $
+   Revision 1.3  2004/06/21 15:53:32  gaius
+   fixed bug in constant set declaration
+   (see ulm library ulm-lib-gm2/std/Calendar.mod and
+   testsuite/gm2/pim/pass/setconst.mod and
+   testsuite/gm2/pim/pass/setconst2.mod)
+
    Revision 1.2  2004/06/18 10:44:53  gaius
    * implemented nested module within procedures.
      This allows a few more ulm library modules to compile.
@@ -121,24 +127,24 @@ IMPLEMENTATION MODULE Calendar;
       firstofweek := weekday
    END SetFirstOfWeek;
 
-   PROCEDURE GetTimezone(VAR name: ARRAY OF CHAR);
+   PROCEDURE GetTimezone(VAR tzName: ARRAY OF CHAR);
    BEGIN
-      StrCpy(name,tzname)
+      StrCpy(tzName,tzname)
    END GetTimezone;
 
-   PROCEDURE SetTimezone(name: ARRAY OF CHAR);
+   PROCEDURE SetTimezone(tzName: ARRAY OF CHAR);
    BEGIN
-      StrCpy(tzname,name)
+      StrCpy(tzname,tzName)
    END SetTimezone;
 
-   PROCEDURE GetLocaltime(VAR ltime: Time);
+   PROCEDURE GetLocaltime(VAR delay: Time);
    BEGIN
-      ltime := localtime
+      delay := localtime
    END GetLocaltime;
 
-   PROCEDURE SetLocaltime(ltime: Time);
+   PROCEDURE SetLocaltime(delay: Time);
    BEGIN
-      localtime := ltime
+      localtime := delay
    END SetLocaltime;
 
    PROCEDURE CurrentTime(): Time;
@@ -189,7 +195,7 @@ IMPLEMENTATION MODULE Calendar;
     *	without changing this.
     *)
    BEGIN
-      RETURN VAL(Weekday, (date + ORD(Mon)) MOD 7 )
+      RETURN VAL(Weekday, (date + ORD(Mon)) MOD 7)
    END CWeekday;
 
    PROCEDURE ConvertTime(time: Time; VAR date: Date; VAR daytime: Daytime);

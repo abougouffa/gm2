@@ -67,17 +67,17 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  EndBuildVarientFieldRecord,
                  BuildNulName,
                  BuildTypeEnd,
-                 BuildConstTypeFromAssignment,
                  StartBuildArray,
                  EndBuildArray,
                  BuildFieldArray,
                  BuildProcedureType,
                  BuildFormalType,
                  BuildPriority,
-                 BuildConstSetType,
 
-                 StartBuildingConstDeclaration,
-                 EndBuildingConstDeclaration ;
+                 SeenSet,
+                 SeenUnknown,
+                 SeenString,
+                 DetermineType, PushType, PopType ;
 
 
 (*
@@ -415,25 +415,6 @@ PROCEDURE BuildString ;
 *)
 
 PROCEDURE BuildConst ;
-
-
-(*
-   BuildConstTypeFromAssignment - assigns the type of a constant
-                                  if possible from the expression.
-                                  The stack is unaltered.
-                                  Stack
-
-                                  Entry
-
-                           Ptr ->
-                                  +------------+
-                                  | Exp        |
-                                  |------------|
-                                  | Name       |
-                                  |------------+
-*)
-
-PROCEDURE BuildConstTypeFromAssignment ;
 
 
 (*
@@ -1066,32 +1047,46 @@ PROCEDURE BuildPriority ;
 
 
 (*
-   BuildConstSetType - assigns the const var symbol on top of the stack
-                       as being a set constant. The stack is unchanged.
-
-                                  Entry           Exit
-
-                       Ptr ->                                    <- Ptr
-                              +------------+      +------------+
-                              | Sym        |      | Sym        |
-                              |------------|      |------------|
+   SeenUnknown - sets the operand type to unknown.
 *)
 
-PROCEDURE BuildConstSetType ;
+PROCEDURE SeenUnknown ;
 
 
 (*
-   StartBuildingConstDeclaration - 
+   SeenSet - sets the operand type to set.
 *)
 
-PROCEDURE StartBuildingConstDeclaration ;
+PROCEDURE SeenSet ;
 
 
 (*
-   EndBuildingConstDeclaration - 
+   SeenString - sets the operand type to string.
 *)
 
-PROCEDURE EndBuildingConstDeclaration ;
+PROCEDURE SeenString ;
+
+
+(*
+   DetermineType - assigns the top of stack symbol with the type of
+                   constant expression, if known.
+*)
+
+PROCEDURE DetermineType ;
+
+
+(*
+   PushType - pushes the current constant type.
+*)
+
+PROCEDURE PushType ;
+
+
+(*
+   PopType - pops the stacked type.
+*)
+
+PROCEDURE PopType ;
 
 
 END P2SymBuild.

@@ -9816,8 +9816,13 @@ BEGIN
       THEN
          CheckAssignmentCompatible(t1, t2)
       ELSE
-         t1 := CheckInCompatible(Op, t2, t1) ;
-         CheckExpressionCompatible(t1, t2)
+         IF IsConst(e1) AND IsConstSet(e1)
+         THEN
+            (* ignore type checking for now *)
+         ELSE
+            t1 := CheckInCompatible(Op, t2, t1) ;
+            CheckExpressionCompatible(t1, t2)
+         END
       END ;
 
       (* must dereference LeftValue operands *)
