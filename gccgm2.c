@@ -9974,13 +9974,13 @@ gccgm2_GetBitsetType ()
 tree
 gccgm2_GetRealType ()
 {
-  return float_type_node;
+  return double_type_node;
 }
 
 tree
 gccgm2_GetLongRealType ()
 {
-  return double_type_node;
+  return long_double_type_node;
 }
 
 tree
