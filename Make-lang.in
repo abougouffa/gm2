@@ -599,8 +599,7 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
-                     M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Options.mod   \
-                     M2Scope.mod
+                     M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod
 
 #
 # the ISO implementation modules are still being written
