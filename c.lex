@@ -20,28 +20,38 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include <p2c/p2c.h>
 #include "CLexBuf.h"
 
+#define MAX_INCLUDE_DEPTH 50
+
   /*
    *  c.lex - provides a lexical analyser for C used by h2def
    */
 
   struct lineInfo {
+    char            *filename;         /* current files */
     char            *linebuf;          /* line contents */
     int              linelen;          /* length */
     int              tokenpos;         /* start position of token within line */
     int              toklen;           /* a copy of yylen (length of token) */
     int              nextpos;          /* position after token */
     int              actualline;       /* line number of this line */
-    int              inuse;            /* do we need to keep this line info? */
+    YY_BUFFER_STATE  lex_buffer;       /* the flex buffer for this file */
     struct lineInfo *next;
   };
 
-  static int              lineno      =1;   /* a running count of the file line number */
-  static char            *filename    =NULL;
+  struct typeDef {
+    char           *name;
+    struct typeDef *next;
+  };
+
   static int              commentLevel=0;
   static struct lineInfo *currentLine =NULL;
   static int              hash        =FALSE;
   static int              parsingOn   =TRUE;
   static int              level       =0;
+  static char            *searchPath  =NULL;
+  static int              includeNo   =0;
+  static struct typeDef  *listOfTypes =NULL;
+
 
         void clex_CError (const char *);
 static  void pushLine     (void);
@@ -55,6 +65,10 @@ static  void skipline     (void);
 static  void poperrorskip (const char *);
 static  void checkEndHash (void);
 static  void handleNewline(int hashSeen, int n);
+static  int  handleEof    (void);
+static  char *findFile    (char *, int);
+static  int  isTypeDef    (char *a);
+
 
 #if !defined(TRUE)
 #    define TRUE  (1==1)
@@ -84,17 +98,20 @@ static  void handleNewline(int hashSeen, int n);
 
 %}
 
-%x COMMENT LINE0 LINE1 LINE2 SUPPRESS
+%x COMMENT LINE0 LINE1 LINE2 SUPPRESS INCLUDE
 
 %%
 
 "/*"                       { updatepos();
-                             pushLine(); skippos(); 
+                             skippos(); 
 			     BEGIN COMMENT; }
-<COMMENT>"*/"              { updatepos(); skippos(); BEGIN INITIAL; finishedLine(); }
+<COMMENT>"*/"              { updatepos(); skippos(); BEGIN INITIAL; }
 <COMMENT>\n.*              { consumeLine(1); }
 <COMMENT>.                 { updatepos(); skippos(); }
-<COMMENT><<EOF>>           { updatepos(); clex_CError("end of file found inside a comment"); exit(0); return; }
+<COMMENT><<EOF>>           { handleEof();
+                             if (includeNo == 0)
+			       clex_CError("end of file found inside a comment"); exit(0);
+                           }
 
 <SUPPRESS>\n#[ \t]*if      { level++; }
 <SUPPRESS>\n#[ \t]*ifdef   { level++; }
@@ -119,7 +136,12 @@ static  void handleNewline(int hashSeen, int n);
                            }
 <SUPPRESS>\n               { }
 <SUPPRESS>.*               { }
-<SUPPRESS><<EOF>>          { CLexBuf_AddTok(CLexBuf_eoftok); return; }
+<SUPPRESS><<EOF>>          {
+                             if (includeNo == 0) {
+                               CLexBuf_AddTok(CLexBuf_eoftok);
+			       return;
+			     }
+                           }
 
 \n\#.*                     { handleNewline(TRUE, 1); }
 \n.*                       { handleNewline(FALSE, 1); }
@@ -128,31 +150,67 @@ static  void handleNewline(int hashSeen, int n);
 <LINE0>[ \t]*              { currentLine->tokenpos += yyleng; return; }
 <LINE0>define              { updatepos(); CLexBuf_AddTok(CLexBuf_definetok); BEGIN INITIAL; return; }
 <LINE0>undef               { updatepos(); CLexBuf_AddTok(CLexBuf_undeftok); BEGIN INITIAL; return; }
-<LINE0>include             { updatepos(); CLexBuf_AddTok(CLexBuf_includetok); BEGIN INITIAL; return; }
+<LINE0>include             { updatepos(); CLexBuf_AddTok(CLexBuf_includetok); BEGIN INCLUDE; return; }
 <LINE0>if                  { updatepos(); CLexBuf_AddTok(CLexBuf_iftok); BEGIN INITIAL; return; }
 <LINE0>else                { updatepos(); CLexBuf_AddTok(CLexBuf_elsetok); BEGIN INITIAL; return; }
 <LINE0>endif               { updatepos(); CLexBuf_AddTok(CLexBuf_endiftok); BEGIN INITIAL; return; }
 <LINE0>ifdef               { updatepos(); CLexBuf_AddTok(CLexBuf_ifdeftok); BEGIN INITIAL; return; }
 <LINE0>ifndef              { updatepos(); CLexBuf_AddTok(CLexBuf_ifndeftok); BEGIN INITIAL; return; }
-<LINE0>[0-9]+[ \t]*\"      { updatepos(); lineno=atoi(yytext)-1; BEGIN LINE1; }
+<LINE0>[0-9]+[ \t]*\"      { updatepos(); currentLine->actualline=atoi(yytext)-1; BEGIN LINE1; }
 <LINE0>\n                  { clex_CError("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE0>[^\n]
-<LINE0><<EOF>>             { updatepos(); CLexBuf_AddTok(CLexBuf_eoftok); return; }
+<LINE0><<EOF>>             { if (! handleEof()) return; }
 <LINE1>[^\"\n]+            { clex_CError("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE1>.*\"                { updatepos();
-                             filename = (char *)xrealloc(filename, yyleng+1);
+                             /* filename = (char *)xrealloc(filename, yyleng+1);
 			     strcpy(filename, yytext);
-                             filename[yyleng-1] = (char)0;  /* remove trailing quote */
+                             filename[yyleng-1] = (char)0; */  /* remove trailing quote */
                              BEGIN LINE2;
                            }
-<LINE1><<EOF>>             { updatepos(); CLexBuf_AddTok(CLexBuf_eoftok); return; }
+<LINE1><<EOF>>             { if (! handleEof()) return; }
 <LINE2>[ \t]*              { updatepos(); }
 <LINE2>\n                  { /* CLexBuf_SetFile(filename); */ updatepos(); BEGIN INITIAL; }
 <LINE2>2[ \t]*\n           { /* CLexBuf_PopFile(filename); */ updatepos(); BEGIN INITIAL; }
 <LINE2>1[ \t]*\n           { /* CLexBuf_PushFile(filename); */ updatepos(); BEGIN INITIAL; }
-<LINE2><<EOF>>             { updatepos(); CLexBuf_AddTok(CLexBuf_eoftok); return; }
+<LINE2><<EOF>>             { if (! handleEof()) return; }
 
-\"[^\"\n]*\"               { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_conststringtok, yytext); return; }
+<INCLUDE>[ \\t]*           /* eat the whitespace */
+<INCLUDE>[^ \t\n]+         { /* got the include file name */
+                              if (includeNo >= MAX_INCLUDE_DEPTH) {
+				fprintf( stderr, "too many nested include statements" );
+				exit(1);
+			      }
+                              includeNo++;
+                              pushLine();
+                              currentLine->actualline = 0;
+			      currentLine->lex_buffer = YY_CURRENT_BUFFER;
+			      if (strlen (yytext)>1) {
+				char *fileName   = strdup (yytext+1);
+				int   localFirst = (fileName[strlen(fileName)-1] == '"');
+				char *actualPath;
+
+				fileName[strlen(fileName)-1] = (char)0;
+				/* printf("searching for %s\n", fileName); */
+				actualPath = findFile (fileName, localFirst);
+				if (actualPath == NULL) {
+				  clex_CError ("include file not found");
+				  popLine();
+				} else {
+				  yyin = fopen (actualPath, "r");
+				  if (yyin) {
+				    yy_switch_to_buffer (yy_create_buffer (yyin, YY_BUF_SIZE) );
+				    currentLine->filename = actualPath;
+				  } else {
+				    perror("failed to open include file");
+				    popLine();
+				  }
+				}
+			      }
+			      BEGIN(INITIAL);
+			      checkEndHash();
+                           }
+     
+\"[^\"\n]*\"               { updatepos(); CLexBuf_AddTokCharStar (CLexBuf_conststringtok, yytext); return; }
 \"[^\"\n]*$                { updatepos();
                              clex_CError("missing terminating quote, \"");
                              resetpos(); return;
@@ -230,15 +288,44 @@ union                      { updatepos(); CLexBuf_AddTok(CLexBuf_uniontok); retu
 volatile                   { updatepos(); CLexBuf_AddTok(CLexBuf_volatiletok); return; }
 
 -?(([0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?) { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_realtok, yytext); return; }
-[a-zA-Z_][a-zA-Z0-9_]*     { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_identtok, yytext); return; }
+[a-zA-Z_][a-zA-Z0-9_]*     { updatepos();
+                             if (isTypeDef (yytext))
+                                CLexBuf_AddTokCharStar(CLexBuf_typetok, yytext);
+                             else
+                                CLexBuf_AddTokCharStar(CLexBuf_identtok, yytext);
+                             return;
+                           }
 0[0-9]+                    { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_octintegertok, yytext); return; }
 [0-9]+                     { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_integertok, yytext); return; }
+[0-9]+L                    { /* long int */ updatepos(); CLexBuf_AddTokCharStar(CLexBuf_integertok, yytext); return; }
 0x[0-9A-Fa-f]+             { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_hexintegertok, yytext); return; }
 [\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
-<<EOF>>                    { updatepos(); CLexBuf_AddTok(CLexBuf_eoftok); return; }
+<<EOF>>                    { if (! handleEof()) return; }
 .                          { updatepos(); clex_CError("unrecognised symbol"); skippos(); }
 
 %%
+
+/*
+ *  handleEof - unwinds the last nested include file or present,
+ *              otherwise it adds an eof token and returns.
+ */
+
+static int handleEof (void)
+{
+  includeNo--;
+  if (includeNo < 0) {
+    if (includeNo == -1) {
+       updatepos();
+       CLexBuf_AddTok(CLexBuf_eoftok);
+       return TRUE;
+    }
+  } else {
+    yy_delete_buffer (YY_CURRENT_BUFFER);
+    yy_switch_to_buffer (currentLine->lex_buffer);
+    popLine();
+  }
+  return FALSE;
+}
 
 /*
  *  handleNewline - 
@@ -290,18 +377,25 @@ void clex_ParsingOn (int t)
 
 void clex_CError (const char *s)
 {
+  struct lineInfo *l;
+
   if (currentLine->linebuf != NULL) {
     int i=1;
 
-    printf("%s:%d:%s\n", filename, currentLine->actualline, currentLine->linebuf);
-    printf("%s:%d:%*s", filename, currentLine->actualline, 1+currentLine->tokenpos, "^");
+    printf("%s:%d:%s\n", currentLine->filename, currentLine->actualline, currentLine->linebuf);
+    printf("%s:%d:%*s", currentLine->filename, currentLine->actualline, 1+currentLine->tokenpos, "^");
     while (i<currentLine->toklen) {
       putchar('^');
       i++;
     }
     putchar('\n');
   }
-  printf("%s:%d:%s\n", filename, currentLine->actualline, s);
+  printf("%s:%d:%s\n", currentLine->filename, currentLine->actualline, s);
+  l = currentLine->next;
+  while (l != NULL) {
+    printf("%s:%d:was included\n", l->filename, l->actualline);
+    l = l->next;
+  }
 }
 
 static void poperrorskip (const char *s)
@@ -331,8 +425,7 @@ static void consumeLine (int n)
     currentLine->linelen = yyleng;
   }
   strcpy(currentLine->linebuf, yytext+n);  /* copy all except the initial n */
-  lineno++;
-  currentLine->actualline = lineno;
+  currentLine->actualline++;
   currentLine->tokenpos=0;
   currentLine->nextpos=0;
   if (parsingOn || (currentLine->linebuf[0] == '#'))
@@ -390,9 +483,9 @@ static void initLine (void)
   currentLine->tokenpos   = 0;
   currentLine->toklen     = 0;
   currentLine->nextpos    = 0;
-  currentLine->actualline = lineno;
-  currentLine->inuse      = TRUE;
+  currentLine->actualline = 0;
   currentLine->next       = NULL;
+  currentLine->filename   = NULL;
 }
 
 /*
@@ -401,26 +494,26 @@ static void initLine (void)
 
 static void pushLine (void)
 {
-  if (currentLine == NULL) {
+  if (currentLine == NULL)
     initLine();
-  } else if (currentLine->inuse) {
-      struct lineInfo *l = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
+  else {
+    struct lineInfo *l = (struct lineInfo *)xmalloc(sizeof(struct lineInfo));
 
-      if (currentLine->linebuf == NULL) {
-	l->linebuf  = NULL;
-	l->linelen  = 0;
-      } else {
-	l->linebuf    = (char *)xstrdup(currentLine->linebuf);
-	l->linelen    = strlen(l->linebuf)+1;
-      }
-      l->tokenpos   = currentLine->tokenpos;
-      l->toklen     = currentLine->toklen;
-      l->nextpos    = currentLine->nextpos;
-      l->actualline = currentLine->actualline;
-      l->next       = currentLine;
-      currentLine   = l;
+    if (currentLine->linebuf == NULL) {
+      l->linebuf  = NULL;
+      l->linelen  = 0;
+    } else {
+      l->linebuf    = (char *)xstrdup(currentLine->linebuf);
+      l->linelen    = strlen(l->linebuf)+1;
+    }
+    l->tokenpos   = currentLine->tokenpos;
+    l->toklen     = currentLine->toklen;
+    l->nextpos    = currentLine->nextpos;
+    l->actualline = currentLine->actualline;
+    l->filename   = currentLine->filename;
+    l->next       = currentLine;
+    currentLine   = l;
   }
-  currentLine->inuse = TRUE;
 }
 
 /*
@@ -447,16 +540,6 @@ static void resetpos (void)
 {
   if (currentLine != NULL)
     currentLine->nextpos = 0;
-}
-
-/*
- *  finishedLine - indicates that the current line does not need to be preserved when a pushLine
- *                 occurs.
- */
-
-static void finishedLine (void)
-{
-  currentLine->inuse = FALSE;
 }
 
 /*
@@ -497,8 +580,8 @@ int clex_OpenSource (char *s)
   else {
     yy_delete_buffer(YY_CURRENT_BUFFER);
     yy_switch_to_buffer(yy_create_buffer(f, YY_BUF_SIZE));
-    filename = xstrdup(s);
-    lineno   =1;
+    initLine();
+    currentLine->filename = xstrdup(s);
     return TRUE;
   }
 }
@@ -516,14 +599,127 @@ int clex_GetLineNo (void)
 }
 
 /*
+ *  SetSearchPath - reassigns the search path to newPath.
+ */
+
+void clex_SetSearchPath (char *newPath)
+{
+  if (searchPath != NULL)
+    free(searchPath);
+  searchPath = strdup(newPath);
+}
+
+/*
+ *  fileExists - returns TRUE if, filename, exists.
+ */
+
+static int fileExists (char *fileName)
+{
+  FILE *f = fopen(fileName, "r");
+
+  if (f == NULL)
+    return FALSE;
+  fclose (f);
+  return TRUE;
+}
+
+/*
+ *  findFile - returns the path which contains, filename.
+ *             NULL is returned if, filename, cannot be found.
+ */
+
+static char *findFile (char *fileName, int localFirst)
+{
+  char *start = searchPath;
+
+  if (localFirst)
+    if (fileExists (fileName))
+      return fileName;
+
+  while (start != NULL) {
+    char *end = index (start, ':');
+    
+    if (end == NULL) {
+      char *try = (char *)malloc (strlen(start) + 2 + strlen (fileName));
+      strcpy (try, start);
+      strcat(try, "/");
+      strcat(try, fileName);
+      if (fileExists (try))
+	return try;
+      free (try);
+      
+      start = NULL;
+    }
+    else {
+      char *try = (char *)malloc (end-start + 2 + strlen (fileName));
+      strncpy (try, start, end-start);
+      try[end-start] = (char)0;
+      strcat(try, "/");
+      strcat(try, fileName);
+      if (fileExists (try))
+	return try;
+      free (try);
+      start = end+1;
+    }
+  }
+
+  if (! localFirst)
+    if (fileExists (fileName))
+      return fileName;
+
+  return NULL;
+}
+
+/*
+ *  addTypeDef - adds the string, a, to the list of typedefs.
+ */
+
+static void addTypeDef (char *a)
+{
+  struct typeDef *t = (struct typeDef*)xmalloc (sizeof (struct typeDef));
+
+  t->next = listOfTypes;
+  t->name = strdup (a);
+  listOfTypes = t;
+}
+
+/*
+ *  isTypeDef - returns TRUE if, a, is already defined as a typedef.
+ */
+
+static int isTypeDef (char *a)
+{
+  struct typeDef *t = listOfTypes;
+
+  while (t != NULL) {
+    if (strcmp (a, t->name) == 0)
+      return TRUE;
+    t = t->next;
+  }
+  return FALSE;
+}
+
+/*
+ *  AddTypeDef - adds the string, a, to the list of typedefs.
+ */
+
+void clex_AddTypeDef (char *a)
+{
+  if (! isTypeDef (a))
+    addTypeDef (a);
+}
+
+/*
  *  yywrap is called when end of file is seen. We push an eof token
  *         and tell the lexical analysis to stop.
  */
 
 int yywrap (void)
 {
-  updatepos(); CLexBuf_AddTok(CLexBuf_eoftok); return 1;
+  /* handleEof(); */
+  return 1;
 }
+
 
 void _M2_clex_init () {}
 
