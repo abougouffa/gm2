@@ -356,7 +356,7 @@ END IsALibrary ;
 
 
 (*
-   ScanArguments - scans arguments for flags: -M -g
+   ScanArguments - scans arguments for flags: -I -g
 *)
 
 PROCEDURE ScanArguments ;

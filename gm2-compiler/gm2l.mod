@@ -20,7 +20,7 @@ MODULE gm2l ;
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2002/04/15 16:26:51 $]
+              : [$Date: 2002/04/18 08:48:57 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -251,7 +251,6 @@ BEGIN
                           Mark(InitStringCharStar(KeyToCharStar(ExtName)))) ;
    IF FindSourceFile(a, b) AND OpenSource(b)
    THEN
-      printf3('%c Module %a in file: %s\n', WORD(Comment), ModuleName, b) ;
       a := KillString(a) ;
       b := KillString(b) ;
       RETURN( TRUE )
