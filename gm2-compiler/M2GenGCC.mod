@@ -76,6 +76,7 @@ FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference,
 FROM M2Printf IMPORT printf0, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
+                   IsOrdinalType,
                    ArrayHigh, ArrayAddress, Cardinal, Char, Integer,
                    Unbounded, Trunc, CheckAssignmentCompatible ;
 
@@ -161,7 +162,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildCap,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
-                   GetWordType,
+                   GetWordType, GetM2ZType,
                    GetBitsPerBitset, GetSizeOfInBits,
                    BuildIntegerConstant,
                    RememberConstant, FoldAndStrip ;
@@ -1296,12 +1297,18 @@ BEGIN
    IF IsConst(op3) AND IsRealType(OperandType) AND
       IsRealType(ParamType) AND (ParamType#OperandType)
    THEN
+      (* LONGREAL and REAL conversion during parameter passing *)
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            Mod2Gcc(op3), FALSE) )
    ELSIF (OperandType#NulSym) AND IsSet(OperandType)
    THEN
       RETURN( DeclareKnownConstant(Mod2Gcc(ParamType),
                                    Mod2Gcc(op3)) )
+   ELSIF IsConst(op3) AND IsOrdinalType(ParamType)
+   THEN
+      RETURN( BuildConvert(Mod2Gcc(ParamType),
+                           Mod2Gcc(op3), FALSE) )
+
    ELSE
       RETURN( Mod2Gcc(op3) )
    END
@@ -1833,7 +1840,8 @@ END CodeBecomes ;
 
 
 (*
-   CoerceTree - coerces a lvalue into an internal pointer type.
+   CoerceTree - returns a Tree representing symbol, sym.
+                It coerces a lvalue into an internal pointer type
 *)
 
 PROCEDURE CoerceTree (sym: CARDINAL) : Tree ;
@@ -1851,6 +1859,44 @@ BEGIN
    END ;
    RETURN( t )
 END CoerceTree ;
+
+
+(*
+   CoerceConst - checks whether op1 and op2 are constants and
+                 coerces, t, appropriately.
+*)
+
+PROCEDURE CoerceConst (t: Tree; op1, op2: CARDINAL) : Tree ;
+BEGIN
+   IF IsConst(op1) AND IsConst(op2)
+   THEN
+      (* leave, Z type, alone *)
+      RETURN( t )
+   ELSIF IsConst(op1)
+   THEN
+      IF GetMode(op2)=LeftValue
+      THEN
+         (* convert, Z type const into type of non constant operand *)
+         RETURN( BuildConvert(GetPointerType(), t, FALSE) )
+      ELSE
+         (* convert, Z type const into type of non constant operand *)
+         RETURN( BuildConvert(Mod2Gcc(FindType(op2)), t, FALSE) )
+      END
+   ELSIF IsConst(op2)
+   THEN
+      IF GetMode(op1)=LeftValue
+      THEN
+         (* convert, Z type const into type of non constant operand *)
+         RETURN( BuildConvert(GetPointerType(), t, FALSE) )
+      ELSE
+         (* convert, Z type const into type of non constant operand *)
+         RETURN( BuildConvert(Mod2Gcc(FindType(op1)), t, FALSE) )
+      END
+   ELSE
+      (* neither operands are constants, leave alone *)
+      RETURN( t )
+   END
+END CoerceConst ;
 
 
 (*
@@ -1878,8 +1924,18 @@ BEGIN
             tr := CoerceTree(op3) ;
             tv := binop(tl, tr, TRUE) ;
             CheckOverflow(tokenno, tv) ;
+
+            (* double check this code is also safe (see FoldUnary) for same issues *)
+            IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
+            THEN
+               AddModGcc(op1, DeclareKnownConstant(GetM2ZType(), tv))
+            ELSE
+               AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op1)), tv))
+            END ;
+(* was
             AddModGcc(op1,
                       DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv)) ;
+*)
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          ELSE
@@ -1906,8 +1962,9 @@ BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstant(CurrentQuadToken, op2) ;
-   tl := CoerceTree(op2) ;
-   tr := CoerceTree(op3) ;
+   tl := CoerceConst(CoerceTree(op2), op2, op3) ;
+   tr := CoerceConst(CoerceTree(op3), op2, op3) ;
+   
    tv := binop(tl, tr, TRUE) ;
    CheckOverflow(CurrentQuadToken, tv) ;
    IF IsConst(op1)
@@ -2818,10 +2875,16 @@ BEGIN
          THEN
             IF CoerceConst=Tree(NIL)
             THEN
+(*  **************** double check this is safe to replace with code below
                CoerceConst := Tree(Mod2Gcc(GetType(op3))) ;
                IF CoerceConst=Tree(NIL)
                THEN
-                  CoerceConst := GetIntegerType()
+                  CoerceConst := GetM2ZType()
+               END
+*)
+               IF (GetType(op3)=NulSym) OR IsOrdinalType(GetType(op3))
+               THEN
+                  CoerceConst := GetM2ZType()
                END
             END ;
             PutConst(op1, FindType(op3)) ;

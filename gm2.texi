@@ -1377,7 +1377,20 @@ The second method used to test GNU Modula-2 is to run the regression
 test suite.  The GNU Modula-2 regression test suite is available for
 download.  To install and run the GNU Modula-2 regression suite you
 need to have installed the @file{dejagnu} and @file{expect}
-packages. You also need to have downloaded the gcc testsuite and
+packages. Note that you need to ensure that you have at least the
+following releases of dejagnu components:
+
+@example
+$ runtest --version
+
+Expect version is	5.42.1
+Tcl version is		8.4
+Framework version is	1.4.4
+@end example
+
+otherwise some of the tests may not run.
+
+You also need to have downloaded the gcc testsuite and
 grafted it onto the GCC source tree. Finally you need to graft the GNU
 Modula-2 testsuite onto the gcc testsuite. To ease this process there
 are pre grafted versions available from

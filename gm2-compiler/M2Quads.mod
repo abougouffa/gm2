@@ -173,6 +173,7 @@ TYPE
                              LineNo             : CARDINAL ;     (* Line No of source text         *)
                              TokenNo            : CARDINAL ;     (* Token No of source text        *)
                              NoOfTimesReferenced: CARDINAL ;     (* No of times quad is referenced *)
+                             NeedWarnings       : BOOLEAN ;      (* should backend disable warning *)
                           END ;
 
    WithFrame = POINTER TO withFrame ;

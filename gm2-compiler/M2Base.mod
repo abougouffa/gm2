@@ -610,6 +610,25 @@ END IsBaseType ;
 
 
 (*
+   IsOrdinalType - returns TRUE if, sym, is an ordinal type.
+                   An ordinal type is defined as:
+                   a base type which contains whole numbers or
+                   a subrange type or an enumeration type.
+*)
+
+PROCEDURE IsOrdinalType (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym=Cardinal) OR (Sym=Integer)  OR (Sym=Boolean) OR
+          (Sym=Char)     OR 
+          (Sym=LongInt)  OR (Sym=LongCard) OR
+          (Sym=ShortInt) OR (Sym=ShortCard) OR
+          IsSubrange(Sym) OR IsEnumeration(Sym)
+         )
+END IsOrdinalType ;
+
+
+(*
    CheckCompatible - returns if t1 and t2 are kind compatible
 *)
 

@@ -61,6 +61,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  AssignmentRequiresWarning,
                  IsMathType,
                  IsRealType,
+                 IsOrdinalType,
                  MixTypes,
                  TemplateProcedure,
                  ActivationPointer,
@@ -151,6 +152,16 @@ PROCEDURE IsNeededAtRunTime (sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsOrdinalType - returns TRUE if, sym, is an ordinal type.
+                   An ordinal type is defined as:
+                   a base type which contains whole numbers or
+                   a subrange type or an enumeration type.
+*)
+
+PROCEDURE IsOrdinalType (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

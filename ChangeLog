@@ -1,3 +1,11 @@
+2004-11-29	Gaius Mulley <gaius@glam.ac.uk>
+
+	* internal changes to ordinal type which now use the Z
+	  type (long_long_int) for internal calculations before
+	  being converted into the actual ordinal type at assignment
+	  to a variable or procedure parameter or return value.
+	* works on a 32 bit i386 but fails on the Opteron LP64 model.
+	
 2004-11-22	Gaius Mulley <gaius@glam.ac.uk>
 
         * compiler now checks for overflow at compile time

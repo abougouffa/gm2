@@ -144,6 +144,7 @@ static GTY(()) tree m2_long_int_type_node;
 static GTY(()) tree m2_long_card_type_node;
 static GTY(()) tree m2_short_int_type_node;
 static GTY(()) tree m2_short_card_type_node;
+static GTY(()) tree m2_z_type_node;
 static GTY(()) tree m2_iso_loc_type_node;
 static GTY(()) tree m2_iso_byte_type_node;
 static GTY(()) tree m2_iso_word_type_node;
@@ -341,6 +342,12 @@ int flag_objc = 0;
 
 /* Nonzero means to warn about compile-time division by zero.  */
 int warn_div_by_zero = 1;
+
+/* by default this is 1 but the Modula-2 front end turns it off
+   when generating runtime checking, so we dont get warnings about
+   testing cardinal values < 0 */
+int want_warnings = 0;
+
 
 /* arguments given to compiler */
 
@@ -702,8 +709,9 @@ static int                    interpret_m2_integer                        PARAMS
 static int                    append_m2_digit                             PARAMS ((unsigned int *low, int *high, unsigned int digit, unsigned int base));
        void                   gccgm2_DetermineSizeOfConstant              PARAMS ((char *str, int base, int *needsLong, int *needsUnsigned));
        int                    gccgm2_Overflow                             PARAMS ((tree t));
+       tree                   gccgm2_GetM2ZType                           PARAMS ((void));
 
-
+/* PROTOTYPES: ADD HERE */
 
 #if defined(TRACE_DEBUG_GGC)
 static void                   dump_binding_level                          PARAMS ((struct binding_level *level));
@@ -2299,6 +2307,7 @@ init_m2_builtins ()
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
   m2_iso_byte_type_node = build_m2_iso_byte_node ();
   m2_iso_word_type_node = build_m2_iso_word_node ();
+  m2_z_type_node = build_m2_long_int_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -4751,7 +4760,7 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 	  type = gm2_unsigned_type (type);
 	}
 
-      if (TREE_CODE (primop0) != INTEGER_CST)
+      if (TREE_CODE (primop0) != INTEGER_CST && want_warnings)
 	{
 	  if (val == boolean_false_node)
 	    warning ("comparison is always false due to limited range of data type");
@@ -4822,7 +4831,7 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 		 are requested.  However, if OP0 is a constant that is
 		 >= 0, the signedness of the comparison isn't an issue,
 		 so suppress the warning.  */
-	      if (extra_warnings && !in_system_header
+	      if (extra_warnings && want_warnings && !in_system_header
 		  && ! (TREE_CODE (primop0) == INTEGER_CST
 			&& ! TREE_OVERFLOW (convert (gm2_signed_type (type),
 						     primop0))))
@@ -4831,7 +4840,7 @@ shorten_compare (op0_ptr, op1_ptr, restype_ptr, rescode_ptr)
 	      break;
 
 	    case LT_EXPR:
-	      if (extra_warnings && !in_system_header
+	      if (extra_warnings && want_warnings && !in_system_header
 		  && ! (TREE_CODE (primop0) == INTEGER_CST
 			&& ! TREE_OVERFLOW (convert (gm2_signed_type (type),
 						     primop0))))
@@ -10768,6 +10777,12 @@ gccgm2_GetShortCardType ()
 }
 
 tree
+gccgm2_GetM2ZType ()
+{
+  return m2_z_type_node;
+}
+
+tree
 gccgm2_GetIntegerZero ()
 {
   return integer_zero_node;
@@ -11258,12 +11273,17 @@ gccgm2_BuildConstLiteralNumber (str, base)
 
   if (needUnsigned && needLong)
     TREE_TYPE (value) = gccgm2_GetM2LongCardType ();
+#if 1
+  else
+    TREE_TYPE (value) = gccgm2_GetM2LongIntType ();
+#else
   else if (needLong)
     TREE_TYPE (value) = gccgm2_GetLongIntType ();
   else if (needUnsigned)
     TREE_TYPE (value) = gccgm2_GetCardinalType ();
   else
     TREE_TYPE (value) = gccgm2_GetIntegerType ();
+#endif
 
   return value;
 }
