@@ -1,7 +1,6 @@
 
 all: force
-	gm2 -Wbounds -Wreturn -g -I. -Wmake-I=. -Wmakeall Map.mod
-	mv a.out map
+	gm2 -v -o map -Wbounds -Wreturn -g -I. -Wmake-I=. -Wmakeall Map.mod
 
 clean:
 	$(RM) *.o a.out map
