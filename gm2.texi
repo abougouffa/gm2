@@ -2051,7 +2051,7 @@ The rules here are automatically extracted from the grammer files in
 GNU Modula-2 and serve to document the syntax of the extensions described
 earlier and how they fit in with the base language.
 
-Note that the first six productions are in-built from the lexical analysis
+Note that the first six productions are built into the lexical analysis
 phase.
 
 @include gm2-ebnf.texi
