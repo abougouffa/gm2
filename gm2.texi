@@ -92,6 +92,10 @@ generic flags details see
 
 @table @code
 
+@item -Wmakeall
+generate a temporary makefile and build all dependant modules and
+link.
+
 @item -Wbounds
 generate code to check the bounds of subranges and array indexes.
 
@@ -99,12 +103,9 @@ generate code to check the bounds of subranges and array indexes.
 generate code to check that functions always exit with a @samp{RETURN} and do not
 fall out at the end.
 
-@item -verbose
-if an error occurs the erroneous text is displayed with an arrow indicating
-the approximate character in error.
-The line number and file is always displayed, but sometimes the compiler
-attributes the error to the following line.
-The @samp{-verbose} option is more accurate and more verbose!
+@item -v
+display all calls to subsiduary programs, such as the C preprocessor,
+the gm2 linker and compiler.
 
 @item -Wstatistics
 generates quadruple information: number of quadruples generated,
@@ -151,6 +152,8 @@ order of modules.
 do preprocess the source with @samp{cpp -traditional -lang-asm -C}
 For further details about these options see
 @xref{Invocation, , ,cpp}.
+If @samp{-Wcpp} is supplied then all definition modules and implementation
+modules which are parsed will be preprocessed by @samp{cpp}.
 
 @end table
 
@@ -174,14 +177,18 @@ END hello.
 @end example
 
 You should be able to compile it by:
-@samp{gm2 -c -g hello.mod}
+@samp{gm2 -c -g -I. hello.mod}
 and link via:
-@samp{gm2 -g hello.mod}.
+@samp{gm2 -g -I. hello.mod}.
 The result should be an @samp{a.out} file created in your directory.
 Hint, the
 @samp{-v} displays the subprocesses initiated by
 @samp{gm2}.
 This can be useful when trouble shooting.
+
+Alternatively it may be compiled by:
+
+@samp{gm2 -g -I. -Wmakeall hello.mod}
 
 @node Extensions, Interface to C, Example usage, Using
 @section GNU Modula-2 language extensions
@@ -220,8 +227,8 @@ The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp} command
 line option. This in turn invokes @samp{cpp} with the following
 arguments @samp{-traditional -lang-asm -C}.
 These options preserve comments and all quotations.
-The preprocessor character @samp{#} must be in the first
-column.
+@samp{gm2} treats a @samp{#} character in the first column
+as a preprocessor directive.
 
 @node Interface to C, Assembly language, Extensions, Using
 @section Interfacing GNU Modula-2 to C
@@ -237,19 +244,18 @@ but still use the @code{struct} representation.
 
 The recommended method of interfacing GNU Modula-2 to C is by telling
 the definition module that the implmentation is in the C language.
-This is achieved by using the keywords @code{DEFINITION MODULE FOR C}.
-For example:
+This is achieved by using the tokens @code{DEFINITION MODULE FOR "C"}.
+Here is an example which can be found in the source tree
+@file{gcc-version/gcc/gm2/examples/callingC/libprintf.def}
 
 @example
-DEFINITION MODULE FOR C libc ;
+DEFINITION MODULE FOR "C" libprintf ;
 
-FROM SYSTEM IMPORT ADDRESS ;
-EXPORT UNQUALIFIED read, printf ;
+EXPORT UNQUALIFIED printf ;
 
-PROCEDURE read (d: INTEGER; buf: ADDRESS; nbytes: INTEGER) : INTEGER ;
 PROCEDURE printf (a: ARRAY OF CHAR; ...) ;
 
-END libc.
+END libprintf.
 @end example
 
 the @code{UNQUALIFIED} keyword in the definition module informs
@@ -260,10 +266,28 @@ The @code{printf} declaration states that the first parameter semantically
 matches @code{ARRAY OF CHAR} but since the module is for the C language
 it will be mapped onto @code{char *}. The token @code{...} indicates
 a variable number of arguments (varargs) and all parameters passed
-here are mapped onto the Modula-2 type @code{WORD}.
+here are mapped onto their C equivalents. Arrays and constant strings
+are passed as pointers.
 
-(--fixme--) include a short example of a user program using printf and
-give an exact compile/link command.
+The hello world program can be rewritten as:
+
+@example
+MODULE hello ;
+
+FROM libprintf IMPORT printf ;
+
+BEGIN
+   printf("hello world\n")
+END hello.
+@end example
+
+and it can be compiled by:
+
+@samp{gm2 -Wmakeall -g -I. hello.mod -lc}
+
+In reality the @samp{-lc} is redundant as libc is always included in the
+linking process. It is shown here to emphasise that the C library or
+object file containing @code{printf} must be present.
 
 @node Assembly language, , Interface to C, Using
 @section Interface to assembly language
@@ -328,14 +352,14 @@ bootstrapping is achieved via a modified version of p2c-1.20.
 The modified p2c-1.20 is contained in the GNU Modula-2 source
 tree as are a number of other tools necessary for bootstrapping.
 
-@node Integrating, Building, Overview, Internals
+@node Integrating, Building and installing, Overview, Internals
 @section How the front end integrates with gcc
 
 The M2Base and M2System
 modules contain base types and system types respectively they
 map onto GCC backend data types.
 
-@node Building, Future, Integrating, Internals
+@node Building and installing, Future, Integrating, Internals
 @section Building
 
 The GNU Modula-2 source tree should be unpacked in the GNU GCC
@@ -356,7 +380,15 @@ cd gcc-version
 make
 @end example
 
-@node Future, Done list, Building, Internals
+It can be installed by:
+
+@example
+su
+cd gcc-version
+make install
+@end example
+
+@node Future, Done list, Building and installing, Internals
 @section A future wish list
 
 In the future it might be sensible to rewrite M2Quads.mod to
@@ -371,6 +403,18 @@ conceptually easier.
 What has been done:
 
 @itemize @bullet
+
+@item
+added @code{DEFINITION MODULE FOR "C"} method of linking
+to C. Also added varargs handling in C definition modules.
+
+@item
+cpp can be run on definition and implementation modules.
+
+@item
+@samp{-Wmakell} generates a temporary @code{Makefile} and
+will build all dependant modules.
+
 @item
 the sources to m2f and gcc compile and link to produce cc1gm2.
 Compiler will bootstrap itself and three generations of the
@@ -461,12 +505,6 @@ We should be able to remove M2Quads, M2SubExp, M2Optimize, M2GenGCC, M2EvalSym
 once this is complete.
 
 SymbolTable needs to be modified.
-
-@item
-interfacing to C, we need to introduce DEFINITION MODULE FOR C libc ;
-which will allow printf (s: ARRAY OF CHAR; ...);
-ARRAY OF CHAR is treated as char * in this module. Any item passed
-to a vararg needs to be cast to a WORD.
 
 @item
 investigate the use of collect2 during link/module initialization.
