@@ -1,3 +1,9 @@
+2004-01-03	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bugs in forward and previous references within gm2.texi
+        * fixed more constant set conversion bugs which reduces
+	  the number of regression failures from 15 to 9.
+
 2003-12-26	Gaius Mulley <gaius@glam.ac.uk>
 
 	* increased the number of regression tests to 1332
