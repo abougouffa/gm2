@@ -2919,8 +2919,8 @@ init_decl_processing ()
 
 int
 lang_decode_option (argc, argv)
-     int argc;
-     char **argv;
+     int argc ATTRIBUTE_UNUSED;
+     char **argv ATTRIBUTE_UNUSED;
 {
 #if 0
   int i=0;
@@ -8355,7 +8355,11 @@ tree
 gccgm2_BuildArrayType (elementtype, indextype)
      tree elementtype, indextype;
 {
-  return( build_array_type (elementtype, indextype) );
+  if (TREE_CODE (elementtype) == FUNCTION_TYPE) {
+    return( build_array_type (ptr_type_node, indextype) );
+  } else {
+    return( build_array_type (elementtype, indextype) );
+  }
 }
 
 
@@ -8535,6 +8539,8 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal)
    */
   if (returntype == NULL_TREE) {
     returntype = void_type_node;
+  } else if (TREE_CODE(returntype) == FUNCTION_TYPE) {
+    returntype = ptr_type_node; // build_unary_op(ADDR_EXPR, returntype, 0);
   }
 
   fntype = build_function_type (returntype, param_type_list);
@@ -8767,8 +8773,13 @@ void
 gccgm2_BuildReturnValueCode (fndecl, value)
      tree fndecl, value;
 {
-  expand_return (build (MODIFY_EXPR, void_type_node,
-			DECL_RESULT (fndecl), value));
+  if (TREE_CODE (TREE_TYPE (value)) == FUNCTION_TYPE) {
+    expand_return (build (MODIFY_EXPR, void_type_node,
+			  DECL_RESULT (fndecl), build1 (CONVERT_EXPR, ptr_type_node, value)));
+  } else {
+    expand_return (build (MODIFY_EXPR, void_type_node,
+			  DECL_RESULT (fndecl), value));
+  }
 }
 
 
