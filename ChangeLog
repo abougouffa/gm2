@@ -1,5 +1,7 @@
 2003-05-07	Gaius Mulley <gaius@glam.ac.uk>
 
+	* implemented ISO BITSET as a standard type which takes effect when -Wiso
+	  is present on the command line.
 	* backed out garbage collection change to m2.lex
 	* fixed bugs reported by Iztok Kobal
 	  (gm2/m2/comp/autotest/gm2/[testexit.mod, bitset3.mod bits32.mod])
