@@ -190,125 +190,125 @@ CONST
      
 TYPE
      Sfdisc_t =  ADDRESS ;
-    
+
  PROCEDURE pth_init () : INTEGER ;
  PROCEDURE pth_kill () : INTEGER ;
  PROCEDURE pth_ctrl (p1: CARDINAL; ...) : INTEGER ;
  PROCEDURE pth_version () : INTEGER ;
- PROCEDURE pth_attr_of (p2: pth_t) : pth_attr_t ;
+ PROCEDURE pth_attr_of (p1: pth_t) : pth_attr_t ;
  PROCEDURE pth_attr_new () : pth_attr_t ;
- PROCEDURE pth_attr_init (p3: pth_attr_t) : INTEGER ;
- PROCEDURE pth_attr_set (p4: pth_attr_t; p5: INTEGER; ...) : INTEGER ;
- PROCEDURE pth_attr_get (p6: pth_attr_t; p7: INTEGER; ...) : INTEGER ;
- PROCEDURE pth_attr_destroy (p8: pth_attr_t) : INTEGER ;
- PROCEDURE pth_spawn (p10: pth_attr_t; p11: p9; p12: ADDRESS) : pth_t;
+ PROCEDURE pth_attr_init (p1: pth_attr_t) : INTEGER ;
+ PROCEDURE pth_attr_set (p1: pth_attr_t; p2: INTEGER; ...) : INTEGER ;
+ PROCEDURE pth_attr_get (p1: pth_attr_t; p2: INTEGER; ...) : INTEGER ;
+ PROCEDURE pth_attr_destroy (p1: pth_attr_t) : INTEGER ;
+ PROCEDURE pth_spawn (p2: pth_attr_t; p1: t1; p3: ADDRESS) : pth_t;
 
 TYPE
-     p9 =    PROCEDURE (ADDRESS) : ADDRESS ;
+     t1 =    PROCEDURE (ADDRESS) : ADDRESS ;
     
- PROCEDURE pth_once (p14: ADDRESS; p15: p13; p16: ADDRESS) : INTEGER;
+ PROCEDURE pth_once (p2: ADDRESS; p1: t2; p3: ADDRESS) : INTEGER;
 
 TYPE
-     p13 =    PROCEDURE (ADDRESS) ;
+     t2 =    PROCEDURE (ADDRESS) ;
     
  PROCEDURE pth_self () : pth_t ;
- PROCEDURE pth_suspend (p17: pth_t) : INTEGER ;
- PROCEDURE pth_resume (p18: pth_t) : INTEGER ;
- PROCEDURE pth_yield (p19: pth_t) : INTEGER ;
- PROCEDURE pth_nap (p20: pth_time_t) : INTEGER ;
- PROCEDURE pth_wait (p21: pth_event_t) : INTEGER ;
- PROCEDURE pth_cancel (p22: pth_t) : INTEGER ;
- PROCEDURE pth_abort (p23: pth_t) : INTEGER ;
- PROCEDURE pth_raise (p24: pth_t; p25: INTEGER) : INTEGER ;
- PROCEDURE pth_join (p26: pth_t; p27: ADDRESS) : INTEGER ;
- PROCEDURE pth_exit (p28: ADDRESS) ;
- PROCEDURE pth_fdmode (p29: INTEGER; p30: INTEGER) : INTEGER ;
- PROCEDURE pth_time (p31: INTEGER; p32: INTEGER) : pth_time_t ;
- PROCEDURE pth_timeout (p33: INTEGER; p34: INTEGER) : pth_time_t ;
- PROCEDURE pth_cancel_state (p35: INTEGER; p36: ADDRESS) ;
+ PROCEDURE pth_suspend (p1: pth_t) : INTEGER ;
+ PROCEDURE pth_resume (p1: pth_t) : INTEGER ;
+ PROCEDURE pth_yield (p1: pth_t) : INTEGER ;
+ PROCEDURE pth_nap (p1: pth_time_t) : INTEGER ;
+ PROCEDURE pth_wait (p1: pth_event_t) : INTEGER ;
+ PROCEDURE pth_cancel (p1: pth_t) : INTEGER ;
+ PROCEDURE pth_abort (p1: pth_t) : INTEGER ;
+ PROCEDURE pth_raise (p1: pth_t; p2: INTEGER) : INTEGER ;
+ PROCEDURE pth_join (p1: pth_t; p2: ADDRESS) : INTEGER ;
+ PROCEDURE pth_exit (p1: ADDRESS) ;
+ PROCEDURE pth_fdmode (p1: INTEGER; p2: INTEGER) : INTEGER ;
+ PROCEDURE pth_time (p1: INTEGER; p2: INTEGER) : pth_time_t ;
+ PROCEDURE pth_timeout (p1: INTEGER; p2: INTEGER) : pth_time_t ;
+ PROCEDURE pth_cancel_state (p1: INTEGER; p2: ADDRESS) ;
  PROCEDURE pth_cancel_point  ;
- PROCEDURE pth_event (p37: CARDINAL; ...) : pth_event_t ;
- PROCEDURE pth_event_typeof (p38: pth_event_t) : CARDINAL ;
+ PROCEDURE pth_event (p1: CARDINAL; ...) : pth_event_t ;
+ PROCEDURE pth_event_typeof (p1: pth_event_t) : CARDINAL ;
  PROCEDURE pth_event_extract (ev: pth_event_t; ...) : INTEGER ;
- PROCEDURE pth_event_concat (p39: pth_event_t; ...) : pth_event_t ;
- PROCEDURE pth_event_isolate (p40: pth_event_t) : pth_event_t ;
- PROCEDURE pth_event_walk (p41: pth_event_t; p42: CARDINAL) : pth_event_t ;
- PROCEDURE pth_event_occurred (p43: pth_event_t) : INTEGER ;
- PROCEDURE pth_event_free (p44: pth_event_t; p45: INTEGER) : INTEGER ;
- PROCEDURE pth_key_create (p47: ADDRESS; p48: p46) : INTEGER;
+ PROCEDURE pth_event_concat (p1: pth_event_t; ...) : pth_event_t ;
+ PROCEDURE pth_event_isolate (p1: pth_event_t) : pth_event_t ;
+ PROCEDURE pth_event_walk (p1: pth_event_t; p2: CARDINAL) : pth_event_t ;
+ PROCEDURE pth_event_occurred (p1: pth_event_t) : INTEGER ;
+ PROCEDURE pth_event_free (p1: pth_event_t; p2: INTEGER) : INTEGER ;
+ PROCEDURE pth_key_create (p2: ADDRESS; p1: t3) : INTEGER;
 
 TYPE
-     p46 =    PROCEDURE (ADDRESS) ;
+     t3 =    PROCEDURE (ADDRESS) ;
     
- PROCEDURE pth_key_delete (p49: pth_key_t) : INTEGER ;
- PROCEDURE pth_key_setdata (p50: pth_key_t; p51: ADDRESS) : INTEGER ;
- PROCEDURE pth_key_getdata (p52: pth_key_t) : ADDRESS ;
- PROCEDURE pth_msgport_create (p53: ADDRESS) : pth_msgport_t ;
- PROCEDURE pth_msgport_destroy (p54: pth_msgport_t) ;
- PROCEDURE pth_msgport_find (p55: ADDRESS) : pth_msgport_t ;
- PROCEDURE pth_msgport_pending (p56: pth_msgport_t) : INTEGER ;
- PROCEDURE pth_msgport_put (p57: pth_msgport_t; p58: ADDRESS) : INTEGER ;
- PROCEDURE pth_msgport_get (p59: pth_msgport_t) : ADDRESS ;
- PROCEDURE pth_msgport_reply (p60: ADDRESS) : INTEGER ;
- PROCEDURE pth_cleanup_push (p62: p61; p63: ADDRESS) : INTEGER;
+ PROCEDURE pth_key_delete (p1: pth_key_t) : INTEGER ;
+ PROCEDURE pth_key_setdata (p1: pth_key_t; p2: ADDRESS) : INTEGER ;
+ PROCEDURE pth_key_getdata (p1: pth_key_t) : ADDRESS ;
+ PROCEDURE pth_msgport_create (p1: ADDRESS) : pth_msgport_t ;
+ PROCEDURE pth_msgport_destroy (p1: pth_msgport_t) ;
+ PROCEDURE pth_msgport_find (p1: ADDRESS) : pth_msgport_t ;
+ PROCEDURE pth_msgport_pending (p1: pth_msgport_t) : INTEGER ;
+ PROCEDURE pth_msgport_put (p1: pth_msgport_t; p2: ADDRESS) : INTEGER ;
+ PROCEDURE pth_msgport_get (p1: pth_msgport_t) : ADDRESS ;
+ PROCEDURE pth_msgport_reply (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_cleanup_push (p1: t4; p2: ADDRESS) : INTEGER;
 
 TYPE
-     p61 =    PROCEDURE (ADDRESS) ;
+     t4 =    PROCEDURE (ADDRESS) ;
     
- PROCEDURE pth_cleanup_pop (p64: INTEGER) : INTEGER ;
- PROCEDURE pth_atfork_push (p68: p65; p69: p66; p70: p67; p71: ADDRESS) : INTEGER;
+ PROCEDURE pth_cleanup_pop (p1: INTEGER) : INTEGER ;
+ PROCEDURE pth_atfork_push (p1: t5; p2: t6; p3: t7; p4: ADDRESS) : INTEGER;
 
 TYPE
-     p65 =    PROCEDURE (ADDRESS);
-     p66 =    PROCEDURE (ADDRESS);
-     p67 =    PROCEDURE (ADDRESS) ;
+     t5 =    PROCEDURE (ADDRESS);
+     t6 =    PROCEDURE (ADDRESS);
+     t7 =    PROCEDURE (ADDRESS) ;
     
  PROCEDURE pth_atfork_pop () : INTEGER ;
  PROCEDURE pth_fork () : pid_t ;
- PROCEDURE pth_mutex_init (p72: ADDRESS) : INTEGER ;
- PROCEDURE pth_mutex_acquire (p73: ADDRESS; p74: INTEGER; p75: pth_event_t) : INTEGER ;
- PROCEDURE pth_mutex_release (p76: ADDRESS) : INTEGER ;
- PROCEDURE pth_rwlock_init (p77: ADDRESS) : INTEGER ;
- PROCEDURE pth_rwlock_acquire (p78: ADDRESS; p79: INTEGER; p80: INTEGER; p81: pth_event_t) : INTEGER ;
- PROCEDURE pth_rwlock_release (p82: ADDRESS) : INTEGER ;
- PROCEDURE pth_cond_init (p83: ADDRESS) : INTEGER ;
- PROCEDURE pth_cond_await (p84: ADDRESS; p85: ADDRESS; p86: pth_event_t) : INTEGER ;
- PROCEDURE pth_cond_notify (p87: ADDRESS; p88: INTEGER) : INTEGER ;
- PROCEDURE pth_barrier_init (p89: ADDRESS; p90: INTEGER) : INTEGER ;
- PROCEDURE pth_barrier_reach (p91: ADDRESS) : INTEGER ;
+ PROCEDURE pth_mutex_init (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_mutex_acquire (p1: ADDRESS; p2: INTEGER; p3: pth_event_t) : INTEGER ;
+ PROCEDURE pth_mutex_release (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_rwlock_init (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_rwlock_acquire (p1: ADDRESS; p2: INTEGER; p3: INTEGER; p4: pth_event_t) : INTEGER ;
+ PROCEDURE pth_rwlock_release (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_cond_init (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_cond_await (p1: ADDRESS; p2: ADDRESS; p3: pth_event_t) : INTEGER ;
+ PROCEDURE pth_cond_notify (p1: ADDRESS; p2: INTEGER) : INTEGER ;
+ PROCEDURE pth_barrier_init (p1: ADDRESS; p2: INTEGER) : INTEGER ;
+ PROCEDURE pth_barrier_reach (p1: ADDRESS) : INTEGER ;
  PROCEDURE pth_sfiodisc () : ADDRESS ;
- PROCEDURE pth_sigwait_ev (p92: ADDRESS; p93: ADDRESS; p94: pth_event_t) : INTEGER ;
- PROCEDURE pth_connect_ev (p95: INTEGER; p96: ADDRESS; p97: socklen_t; p98: pth_event_t) : INTEGER ;
- PROCEDURE pth_accept_ev (p99: INTEGER; p100: ADDRESS; p101: ADDRESS; p102: pth_event_t) : INTEGER ;
- PROCEDURE pth_select_ev (p103: INTEGER; p104: ADDRESS; p105: ADDRESS; p106: ADDRESS; p107: ADDRESS; p108: pth_event_t) : INTEGER ;
- PROCEDURE pth_poll_ev (p109: ADDRESS; p110: nfds_t; p111: INTEGER; p112: pth_event_t) : INTEGER ;
- PROCEDURE pth_read_ev (p113: INTEGER; p114: ADDRESS; p115: size_t; p116: pth_event_t) : ssize_t ;
- PROCEDURE pth_write_ev (p117: INTEGER; p118: ADDRESS; p119: size_t; p120: pth_event_t) : ssize_t ;
- PROCEDURE pth_readv_ev (p121: INTEGER; p122: ADDRESS; p123: INTEGER; p124: pth_event_t) : ssize_t ;
- PROCEDURE pth_writev_ev (p125: INTEGER; p126: ADDRESS; p127: INTEGER; p128: pth_event_t) : ssize_t ;
- PROCEDURE pth_recv_ev (p129: INTEGER; p130: ADDRESS; p131: size_t; p132: INTEGER; p133: pth_event_t) : ssize_t ;
- PROCEDURE pth_send_ev (p134: INTEGER; p135: ADDRESS; p136: size_t; p137: INTEGER; p138: pth_event_t) : ssize_t ;
- PROCEDURE pth_recvfrom_ev (p139: INTEGER; p140: ADDRESS; p141: size_t; p142: INTEGER; p143: ADDRESS; p144: ADDRESS; p145: pth_event_t) : ssize_t ;
- PROCEDURE pth_sendto_ev (p146: INTEGER; p147: ADDRESS; p148: size_t; p149: INTEGER; p150: ADDRESS; p151: socklen_t; p152: pth_event_t) : ssize_t ;
- PROCEDURE pth_usleep (p153: CARDINAL) : INTEGER ;
- PROCEDURE pth_sleep (p154: CARDINAL) : CARDINAL ;
- PROCEDURE pth_waitpid (p155: pid_t; p156: ADDRESS; p157: INTEGER) : pid_t ;
- PROCEDURE pth_system (p158: ADDRESS) : INTEGER ;
- PROCEDURE pth_sigmask (p159: INTEGER; p160: ADDRESS; p161: ADDRESS) : INTEGER ;
- PROCEDURE pth_sigwait (p162: ADDRESS; p163: ADDRESS) : INTEGER ;
- PROCEDURE pth_connect (p164: INTEGER; p165: ADDRESS; p166: socklen_t) : INTEGER ;
- PROCEDURE pth_accept (p167: INTEGER; p168: ADDRESS; p169: ADDRESS) : INTEGER ;
- PROCEDURE pth_select (p170: INTEGER; p171: ADDRESS; p172: ADDRESS; p173: ADDRESS; p174: ADDRESS) : INTEGER ;
- PROCEDURE pth_poll (p175: ADDRESS; p176: nfds_t; p177: INTEGER) : INTEGER ;
- PROCEDURE pth_read (p178: INTEGER; p179: ADDRESS; p180: size_t) : ssize_t ;
- PROCEDURE pth_write (p181: INTEGER; p182: ADDRESS; p183: size_t) : ssize_t ;
- PROCEDURE pth_readv (p184: INTEGER; p185: ADDRESS; p186: INTEGER) : ssize_t ;
- PROCEDURE pth_writev (p187: INTEGER; p188: ADDRESS; p189: INTEGER) : ssize_t ;
- PROCEDURE pth_recv (p190: INTEGER; p191: ADDRESS; p192: size_t; p193: INTEGER) : ssize_t ;
- PROCEDURE pth_send (p194: INTEGER; p195: ADDRESS; p196: size_t; p197: INTEGER) : ssize_t ;
- PROCEDURE pth_recvfrom (p198: INTEGER; p199: ADDRESS; p200: size_t; p201: INTEGER; p202: ADDRESS; p203: ADDRESS) : ssize_t ;
- PROCEDURE pth_sendto (p204: INTEGER; p205: ADDRESS; p206: size_t; p207: INTEGER; p208: ADDRESS; p209: socklen_t) : ssize_t ;
- PROCEDURE pth_pread (p210: INTEGER; p211: ADDRESS; p212: size_t; p213: off_t) : ssize_t ;
- PROCEDURE pth_pwrite (p214: INTEGER; p215: ADDRESS; p216: size_t; p217: off_t) : ssize_t ;
+ PROCEDURE pth_sigwait_ev (p1: ADDRESS; p2: ADDRESS; p3: pth_event_t) : INTEGER ;
+ PROCEDURE pth_connect_ev (p1: INTEGER; p2: ADDRESS; p3: socklen_t; p4: pth_event_t) : INTEGER ;
+ PROCEDURE pth_accept_ev (p1: INTEGER; p2: ADDRESS; p3: ADDRESS; p4: pth_event_t) : INTEGER ;
+ PROCEDURE pth_select_ev (p1: INTEGER; p2: ADDRESS; p3: ADDRESS; p4: ADDRESS; p5: ADDRESS; p6: pth_event_t) : INTEGER ;
+ PROCEDURE pth_poll_ev (p1: ADDRESS; p2: nfds_t; p3: INTEGER; p4: pth_event_t) : INTEGER ;
+ PROCEDURE pth_read_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: pth_event_t) : ssize_t ;
+ PROCEDURE pth_write_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: pth_event_t) : ssize_t ;
+ PROCEDURE pth_readv_ev (p1: INTEGER; p2: ADDRESS; p3: INTEGER; p4: pth_event_t) : ssize_t ;
+ PROCEDURE pth_writev_ev (p1: INTEGER; p2: ADDRESS; p3: INTEGER; p4: pth_event_t) : ssize_t ;
+ PROCEDURE pth_recv_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: pth_event_t) : ssize_t ;
+ PROCEDURE pth_send_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: pth_event_t) : ssize_t ;
+ PROCEDURE pth_recvfrom_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: ADDRESS; p6: ADDRESS; p7: pth_event_t) : ssize_t ;
+ PROCEDURE pth_sendto_ev (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: ADDRESS; p6: socklen_t; p7: pth_event_t) : ssize_t ;
+ PROCEDURE pth_usleep (p1: CARDINAL) : INTEGER ;
+ PROCEDURE pth_sleep (p1: CARDINAL) : CARDINAL ;
+ PROCEDURE pth_waitpid (p1: pid_t; p2: ADDRESS; p3: INTEGER) : pid_t ;
+ PROCEDURE pth_system (p1: ADDRESS) : INTEGER ;
+ PROCEDURE pth_sigmask (p1: INTEGER; p2: ADDRESS; p3: ADDRESS) : INTEGER ;
+ PROCEDURE pth_sigwait (p1: ADDRESS; p2: ADDRESS) : INTEGER ;
+ PROCEDURE pth_connect (p1: INTEGER; p2: ADDRESS; p3: socklen_t) : INTEGER ;
+ PROCEDURE pth_accept (p1: INTEGER; p2: ADDRESS; p3: ADDRESS) : INTEGER ;
+ PROCEDURE pth_select (p1: INTEGER; p2: ADDRESS; p3: ADDRESS; p4: ADDRESS; p5: ADDRESS) : INTEGER ;
+ PROCEDURE pth_poll (p1: ADDRESS; p2: nfds_t; p3: INTEGER) : INTEGER ;
+ PROCEDURE pth_read (p1: INTEGER; p2: ADDRESS; p3: size_t) : ssize_t ;
+ PROCEDURE pth_write (p1: INTEGER; p2: ADDRESS; p3: size_t) : ssize_t ;
+ PROCEDURE pth_readv (p1: INTEGER; p2: ADDRESS; p3: INTEGER) : ssize_t ;
+ PROCEDURE pth_writev (p1: INTEGER; p2: ADDRESS; p3: INTEGER) : ssize_t ;
+ PROCEDURE pth_recv (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER) : ssize_t ;
+ PROCEDURE pth_send (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER) : ssize_t ;
+ PROCEDURE pth_recvfrom (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: ADDRESS; p6: ADDRESS) : ssize_t ;
+ PROCEDURE pth_sendto (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: INTEGER; p5: ADDRESS; p6: socklen_t) : ssize_t ;
+ PROCEDURE pth_pread (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: off_t) : ssize_t ;
+ PROCEDURE pth_pwrite (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: off_t) : ssize_t ;
 
 END pth.
