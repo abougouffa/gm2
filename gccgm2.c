@@ -11285,6 +11285,9 @@ gccgm2_BuildConstLiteralNumber (str, base)
     TREE_TYPE (value) = gccgm2_GetIntegerType ();
 #endif
 
+  if (gccgm2_TreeOverflow (t))
+    error("constant too large");
+
   return value;
 }
 
@@ -11341,9 +11344,6 @@ interpret_integer (str, base, low, high)
 	      max = 0;  /* from now on we always use append_digit */
 	    }
 	}
-
-      if (overflow)
-	error ("integer constant is too large");
     }
   return overflow;
 }
