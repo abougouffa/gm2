@@ -305,6 +305,21 @@ END IsPseudoSystemFunction ;
 
 
 (*
+   IsPseudoSystemFunctionConstExpression - returns TRUE if this procedure
+                                           is legal in a constant expression.
+*)
+
+PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym=Size) OR (Sym=TSize) OR
+          (Iso AND ((Sym=Cast) OR (Sym=MakeAdr) OR
+                    (Sym=Rotate) OR (Sym=Shift)))
+         )
+END IsPseudoSystemFunctionConstExpression ;
+
+
+(*
    IsSystemType - returns TRUE if Sym is a SYSTEM (inbuilt) type.
                   It does not search your SYSTEM implementation module.
 *)

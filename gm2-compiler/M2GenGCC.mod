@@ -82,7 +82,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
-FROM M2System IMPORT Address, Word, System ;
+FROM M2System IMPORT Address, Word, System, MakeAdr ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -115,12 +115,14 @@ FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
 FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildVariableArrayAndDeclare,
                    BuildBinProcedure, BuildUnaryProcedure,
+                   BuildSetProcedure,
                    ChainOnParamValue, AddStringToTreeList,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
                    BuildCallInnerInit,
                    BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                    BuildAssignment, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                   BuildLogicalOrAddress,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
                    BuildLogicalShift, BuildLogicalRotate,
@@ -154,7 +156,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
                    GetWordType,
-                   GetBitsPerBitset,
+                   GetBitsPerBitset, GetSizeOfInBits,
+                   BuildIntegerConstant,
                    RememberConstant, FoldAndStrip ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -369,6 +372,17 @@ PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ; FORWARD ;
 PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSetShift (tokenno: CARDINAL; l: List;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSetRotate (tokenno: CARDINAL; l: List;
+                         quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; l: List;
+                               q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
+                       q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+
+PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -593,7 +607,10 @@ BEGIN
          ExclOp             : FoldExcl(tokenno, l, quad, op1, op2, op3) |
          IfLessOp           : FoldIfLess(tokenno, l, quad, op1, op2, op3) |
          IfInOp             : FoldIfIn(tokenno, l, quad, op1, op2, op3) |
-         IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3)
+         IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3) |
+         LogicalShiftOp     : FoldSetShift(tokenno, l, quad, op1, op2, op3) |
+         LogicalRotateOp    : FoldSetRotate(tokenno, l, quad, op1, op2, op3) |
+         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
@@ -602,7 +619,7 @@ BEGIN
       END ;
       Next := NoOfItemsInList(l)
    UNTIL Last=Next ;
-   IF Debugging AND DisplayQuadruples
+   IF Debugging AND DisplayQuadruples AND FALSE
    THEN
       printf0('after resolving expressions with gcc\n') ;
       DisplayQuadList(AbsoluteHead) ;
@@ -1228,6 +1245,174 @@ END CheckConvertCoerceParameter ;
 
 
 (*
+   CodeMakeAdr - code the function MAKEADR.
+*)
+
+PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   r   : CARDINAL ;
+   n   : CARDINAL ;
+   type: CARDINAL ;
+   op  : QuadOperator ;
+   bits,
+   max     : CARDINAL ;
+   tmp,
+   res,
+   val : Tree ;
+BEGIN
+   n := q ;
+   REPEAT
+      IF op1>0
+      THEN
+         DeclareConstant(QuadToTokenNo(n), op3)
+      END ;
+      n := GetNextQuad(n) ;
+      GetQuad(n, op, r, op2, op3)
+   UNTIL op=FunctValueOp ;
+
+   n := q ;
+   GetQuad(n, op, op1, op2, op3) ;
+   res := Mod2Gcc(r) ;
+   max := GetSizeOfInBits(Mod2Gcc(Address)) ;
+   bits := 0 ;
+   val := GetPointerZero() ;
+   REPEAT
+      IF (op=ParamOp) AND (op1>0)
+      THEN
+         IF GetType(op3)=NulSym
+         THEN
+            WriteFormat0('must supply typed constants to MAKEADR')
+         ELSE
+            type := GetType(op3) ;
+            tmp := BuildConvert(GetPointerType(), Mod2Gcc(op3), FALSE) ;
+            IF bits>0
+            THEN
+               tmp := BuildLSL(tmp, BuildIntegerConstant(bits), FALSE)
+            END ;
+            INC(bits, GetSizeOfInBits(Mod2Gcc(type))) ;
+            val := BuildLogicalOrAddress(val, tmp, FALSE)
+         END
+      END ;
+      SubQuad(n) ;
+      n := GetNextQuad(n) ;
+      GetQuad(n, op, op1, op2, op3)
+   UNTIL op=FunctValueOp ;
+   IF bits>max
+   THEN
+      ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
+                    QuadToTokenNo(q))
+   END ;
+   SubQuad(n) ;
+   res := BuildAssignment(res, val)
+END CodeMakeAdr ;
+
+
+(*
+   CodeBuiltinFunction - attempts to inline a function. Currently it only
+                         inlines the SYSTEM function MAKEADR.
+*)
+
+PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF (op1=0) AND (op3=MakeAdr)
+   THEN
+      CodeMakeAdr(q, op1, op2, op3)
+   END
+END CodeBuiltinFunction ;
+
+
+(*
+   FoldMakeAdr - attempts to fold the function MAKEADR.
+*)
+
+PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
+                       q: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   resolved: BOOLEAN ;
+   r       : CARDINAL ;
+   n       : CARDINAL ;
+   op      : QuadOperator ;
+   type    : CARDINAL ;
+   bits,
+   max     : CARDINAL ;
+   tmp,
+   val,
+   res     : Tree ;
+BEGIN
+   resolved := TRUE ;
+   n := q ;
+   r := op1 ;
+   REPEAT
+      IF r>0
+      THEN
+         DeclareConstant(QuadToTokenNo(n), op3) ;
+         IF NOT GccKnowsAbout(op3)
+         THEN
+            resolved := FALSE
+         END
+      END ;
+      n := GetNextQuad(n) ;
+      GetQuad(n, op, r, op2, op3)
+   UNTIL op=FunctValueOp ;
+
+   IF resolved AND IsConst(r)
+   THEN
+      n := q ;
+      GetQuad(n, op, op1, op2, op3) ;
+      max := GetSizeOfInBits(Mod2Gcc(Address)) ;
+      bits := 0 ;
+      val := GetPointerZero() ;
+      REPEAT
+         IF (op=ParamOp) AND (op1>0)
+         THEN
+            IF GetType(op3)=NulSym
+            THEN
+               WriteFormat0('must supply typed constants to MAKEADR')
+            ELSE
+               type := GetType(op3) ;
+               tmp := BuildConvert(GetPointerType(), Mod2Gcc(op3), FALSE) ;
+               IF bits>0
+               THEN
+                  tmp := BuildLSL(tmp, BuildIntegerConstant(bits), FALSE)
+               END ;
+               INC(bits, GetSizeOfInBits(Mod2Gcc(type))) ;
+               val := BuildLogicalOrAddress(val, tmp, FALSE)
+            END
+         END ;
+         SubQuad(n) ;
+         n := GetNextQuad(n) ;
+         GetQuad(n, op, op1, op2, op3)
+      UNTIL op=FunctValueOp ;
+      IF bits>max
+      THEN
+         ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
+                       QuadToTokenNo(q))
+      END ;
+      PutConst(r, Address) ;
+      AddModGcc(r,
+                DeclareKnownConstant(Mod2Gcc(Address), val)) ;
+      RemoveItemFromList(l, r) ;
+      SubQuad(n)
+   END
+END FoldMakeAdr ;
+
+
+(*
+   FoldBuiltinFunction - attempts to inline a function. Currently it only
+                         inlines the SYSTEM function MAKEADR.
+*)
+
+PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; l: List;
+                               q: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF (op1=0) AND (op3=MakeAdr)
+   THEN
+      FoldMakeAdr(tokenno, l, q, op1, op2, op3)
+   END
+END FoldBuiltinFunction ;
+
+
+(*
    CodeParam - builds a parameter list.
 
                NOTE that we almost can treat VAR and NON VAR parameters the same, expect for
@@ -1242,12 +1427,14 @@ END CheckConvertCoerceParameter ;
                NOTE that we CAN ignore ModeOfAddr though
 *)
 
-PROCEDURE CodeParam (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    n1: Name ;
 BEGIN
-   IF op1>0
+   IF op1=0
    THEN
+      CodeBuiltinFunction(quad, op1, op2, op3)
+   ELSE
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
@@ -2035,7 +2222,7 @@ END CodeSetAnd ;
                         evaluated by M2RTS.
 *)
 
-PROCEDURE CodeBinarySetShift (binop: BuildBinProcedure;
+PROCEDURE CodeBinarySetShift (binop: BuildSetProcedure;
                               doOp : DoProcedure;
                               var, left, right: Name;
                               q    : CARDINAL;
@@ -2107,7 +2294,8 @@ END FoldSetShift ;
 
 PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinarySetShift(BuildLogicalShift, SetShift,
+   CodeBinarySetShift(BuildLogicalShift,
+                      SetShift,
                       MakeKey('ShiftVal'),
                       MakeKey('ShiftLeft'),
                       MakeKey('ShiftRight'),
@@ -2132,11 +2320,12 @@ END FoldSetRotate ;
 
 PROCEDURE CodeSetRotate (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   (* got to here *)
-   InternalError('not finished yet', __FILE__, __LINE__)
-(*
-   CodeBinarySet(BuildLogicalRotate, SetRotate, quad, op1, op2, op3)
-*)
+   CodeBinarySetShift(BuildLogicalRotate,
+                      SetRotate,
+                      MakeKey('RotateVal'),
+                      MakeKey('RotateLeft'),
+                      MakeKey('RotateRight'),
+                      quad, op1, op2, op3)
 END CodeSetRotate ;
 
 
@@ -3839,9 +4028,9 @@ END CodeIfSetEqu ;
 
 PROCEDURE CodeIfSetNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
-   settype   : CARDINAL ;
-   falselabel: ADDRESS ;
+   t        : Tree ;
+   settype  : CARDINAL ;
+   truelabel: ADDRESS ;
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
@@ -3859,18 +4048,15 @@ BEGIN
                              BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
              NIL, string(CreateLabelName(op3)))
    ELSE
-      falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;
+      truelabel := string(CreateLabelName(op3)) ;
 
       BuildForeachWordInSetDoIfExpr(Mod2Gcc(settype),
                                     Mod2Gcc(op1), Mod2Gcc(op2),
                                     GetMode(op1)=LeftValue,
                                     GetMode(op2)=LeftValue,
                                     IsConst(op1), IsConst(op2),
-                                    BuildEqualTo,
-                                    falselabel) ;
-      
-      BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+                                    BuildNotEqualTo,
+                                    truelabel)
    END
 END CodeIfSetNotEqu ;
 

@@ -492,7 +492,7 @@ special string               first { < stringtok > } follow { }
 
 BNF
 
--- the following are provided by the module m2lex and also hand built procedures below
+-- the following are provided by the module m2flex and also hand built procedures below
 -- Ident := Letter { ( Letter | Digit ) } =:
 -- Integer := Digit { Digit } | OctalDigit { OctalDigit } ( " B " | " C " ) |
 --           Digit { HexDigit } " H " =:

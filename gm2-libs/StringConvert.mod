@@ -83,7 +83,7 @@ BEGIN
       RETURN( TRUE )
    ELSIF (ch>='A') AND (ch<='F') AND (ORD(ch)-ORD('F')+10<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('F')+10) ;
+      c := c*base + (ORD(ch)-ORD('A')+10) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )

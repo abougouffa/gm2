@@ -1,5 +1,5 @@
 %{
-/* Copyright (C) 2001 Free Software Foundation, Inc.
+/* Copyright (C) 2004 Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -27,7 +27,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #endif
 
   /*
-   *  m2.lex - provides a lexical analyser for GNU Modula-2
+   *  m2.flex - provides a lexical analyser for GNU Modula-2
    */
 
   struct lineInfo {
@@ -57,7 +57,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   static int                  seenModuleStart=FALSE;
   static int                  isDefinitionModule=FALSE;
 
-        void m2lex_M2Error     (const char *);
+        void m2flex_M2Error    (const char *);
 static  void pushLine          (void);
 static  void popLine           (void);
 static  void finishedLine      (void);
@@ -74,11 +74,11 @@ static  void handleFunction    (void);
 static  void pushFunction      (char *function, int module);
 static  void popFunction       (void);
 static  void checkFunction     (void);
-	int  m2lex_OpenSource  (char *s);
-	int  m2lex_GetLineNo   (void);
-	void m2lex_CloseSource (void);
-	char *m2lex_GetToken   (void);
-        void _M2_m2lex_init    (void);
+	int  m2flex_OpenSource (char *s);
+	int  m2flex_GetLineNo  (void);
+	void m2flex_CloseSource(void);
+	char *m2flex_GetToken  (void);
+        void _M2_m2flex_init   (void);
 extern  void  yylex            (void);
 
 #if !defined(TRUE)
@@ -122,9 +122,9 @@ extern  void  yylex            (void);
 \n\#.*                     { consumeLine(); /* printf("found: %s\n", currentLine->linebuf); */ BEGIN LINE0; }
 <LINE0>\#[ \t]*            { updatepos(); }
 <LINE0>[0-9]+[ \t]*\"      { updatepos(); lineno=atoi(yytext)-1; BEGIN LINE1; }
-<LINE0>\n                  { m2lex_M2Error("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
+<LINE0>\n                  { m2flex_M2Error("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE0>[^\n]
-<LINE1>[^\"\n]+            { m2lex_M2Error("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
+<LINE1>[^\"\n]+            { m2flex_M2Error("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE1>.*\"                { updatepos();
                              filename = (char *)xrealloc(filename, yyleng+1);
 			     strcpy(filename, yytext);
@@ -141,13 +141,13 @@ extern  void  yylex            (void);
 
 \"[^\"\n]*\"               { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
 \"[^\"\n]*$                { updatepos();
-                             m2lex_M2Error("missing terminating quote, \"");
+                             m2flex_M2Error("missing terminating quote, \"");
                              resetpos(); return;
                            }
 
 '[^'\n]*'                  { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_stringtok, yytext); return; }
 '[^'\n]*$                  { updatepos();
-                             m2lex_M2Error("missing terminating quote, '");
+                             m2flex_M2Error("missing terminating quote, '");
                              resetpos(); return;
                            }
 
@@ -244,7 +244,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 [0-9]+C                    { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [0-9A-F]+H                 { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_integertok, yytext); return; }
 [\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
-.                          { updatepos(); m2lex_M2Error("unrecognised symbol"); skippos(); }
+.                          { updatepos(); m2flex_M2Error("unrecognised symbol"); skippos(); }
 
 %%
 
@@ -380,11 +380,11 @@ static void endOfComment (void)
 }
 
 /*
- *  m2lex_M2Error - displays the error message, s, after the code line and pointer
- *                  to the erroneous token.
+ *  m2flex_M2Error - displays the error message, s, after the code line and pointer
+ *                   to the erroneous token.
  */
 
-void m2lex_M2Error (const char *s)
+void m2flex_M2Error (const char *s)
 {
   if (currentLine->linebuf != NULL) {
     int i=1;
@@ -406,7 +406,7 @@ static void poperrorskip (const char *s)
   int tokenpos=currentLine->tokenpos;
 
   popLine();
-  m2lex_M2Error(s);
+  m2flex_M2Error(s);
   if (currentLine != NULL) {
     currentLine->nextpos  = nextpos;
     currentLine->tokenpos = tokenpos;
@@ -562,10 +562,10 @@ static void finishedLine (void)
 }
 
 /*
- *  m2lex_GetToken - returns a new token.
+ *  m2flex_GetToken - returns a new token.
  */
 
-char *m2lex_GetToken (void)
+char *m2flex_GetToken (void)
 {
   if (currentLine == NULL)
     initLine();
@@ -578,7 +578,7 @@ char *m2lex_GetToken (void)
  *  CloseSource - provided for semantic sugar
  */
 
-void m2lex_CloseSource (void)
+void m2flex_CloseSource (void)
 {
 }
 
@@ -587,7 +587,7 @@ void m2lex_CloseSource (void)
  *               all tokens are taken from this file.
  */
 
-int m2lex_OpenSource (char *s)
+int m2flex_OpenSource (char *s)
 {
   FILE *f = fopen(s, "r");
 
@@ -613,10 +613,10 @@ int m2lex_OpenSource (char *s)
 }
 
 /*
- *  m2lex_GetLineNo - returns the current line number.
+ *  m2flex_GetLineNo - returns the current line number.
  */
 
-int m2lex_GetLineNo (void)
+int m2flex_GetLineNo (void)
 {
   if (currentLine != NULL)
     return currentLine->actualline;
@@ -634,4 +634,4 @@ int yywrap (void)
   updatepos(); M2LexBuf_AddTok(M2Reserved_eoftok); return 1;
 }
 
-void _M2_m2lex_init (void) {}
+void _M2_m2flex_init (void) {}

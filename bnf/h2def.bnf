@@ -72,7 +72,7 @@ FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Options IMPORT ScanCppArgs ;
 FROM libc IMPORT exit, memset ;
 FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE, BYTE ;
-IMPORT clex ;
+IMPORT cflex ;
 
 TYPE
    nodeType = (ndchain, nderror, nddefined,
@@ -875,7 +875,7 @@ BEGIN
       c := MarkTrue(c)
    ELSIF s=false
    THEN
-      clex.ParsingOn(FALSE)
+      cflex.ParsingOn(FALSE)
    ELSE
       (* might be compiled or poisoned *)
       c := MarkCompile(c) ;
@@ -918,12 +918,12 @@ BEGIN
          THEN
             c := MarkTrue(c)
          ELSE
-            clex.ParsingOn(FALSE)
+            cflex.ParsingOn(FALSE)
          END
       ELSE
          IF IsMacroDefined(LastIdent)
          THEN
-            clex.ParsingOn(FALSE)
+            cflex.ParsingOn(FALSE)
          ELSE
             c := MarkTrue(c)
          END
@@ -948,10 +948,10 @@ BEGIN
          printf0('\n# else') ; hprintf0('\n')
       ELSIF HaveDoneTrue(cppStack)
       THEN
-         clex.ParsingOn(FALSE)
+         cflex.ParsingOn(FALSE)
       ELSE
          cppStack := MarkTrue(cppStack) ;
-         clex.ParsingOn(TRUE)
+         cflex.ParsingOn(TRUE)
       END
    END
 END BuildElse ;
@@ -971,7 +971,7 @@ BEGIN
       THEN
          printf0('\n# endif') ; hprintf0('\n')
       END ;
-      clex.ParsingOn(TRUE) ;
+      cflex.ParsingOn(TRUE) ;
       KillCpp(PopCpp())
    END
 END BuildEndIf ;
@@ -1671,7 +1671,7 @@ BEGIN
                             IF IsTypeDef(id.type)
                             THEN
                                Emit(types) ;
-                               clex.AddTypeDef(KeyToCharStar(id.name)) ;
+                               cflex.AddTypeDef(KeyToCharStar(id.name)) ;
                                Str := Mark(InitStringCharStar(KeyToCharStar(id.name))) ;
                                hprintf1('%s = ', Str)
                             ELSE
@@ -2396,7 +2396,7 @@ PROCEDURE ErrorString (s: String) ;
 BEGIN
    IF DisplayErrors
    THEN
-      clex.CError(string(s))
+      cflex.CError(string(s))
    END
 END ErrorString ;
 
@@ -2719,7 +2719,7 @@ BEGIN
          IF EqualArray(Slice(s, 0, 2), '-I')
          THEN
             CurrentUserPath := ConCat(ConCatChar(CurrentUserPath, ':'), Slice(s, 2, 0)) ;
-            clex.SetSearchPath(string(ConCat(ConCatChar(CurrentUserPath, ':'), SystemPath)))
+            cflex.SetSearchPath(string(ConCat(ConCatChar(CurrentUserPath, ':'), SystemPath)))
          ELSIF EqualArray(s, '-o')
          THEN
             INC(CurrentArg) ;
@@ -2788,7 +2788,7 @@ PROCEDURE Init ;
 BEGIN
    CurrentUserPath := InitString('') ;
    SystemPath := InitString('/usr/include') ;
-   clex.SetSearchPath(string(SystemPath)) ;
+   cflex.SetSearchPath(string(SystemPath)) ;
    UseArrayInParameters := FALSE ;
    DisplayErrors := FALSE ;
    DisplayPoison := FALSE ;

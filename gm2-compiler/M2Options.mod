@@ -186,7 +186,7 @@ BEGIN
    THEN
       OptimizeCommonSubExpressions := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wunbounded-by-reference')
+   ELSIF EqualArray(s, '-funbounded-by-reference')
    THEN
       UnboundedByReference := TRUE ;
       Legal := TRUE

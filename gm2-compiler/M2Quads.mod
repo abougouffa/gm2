@@ -117,6 +117,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
+                     IsPseudoSystemFunctionConstExpression,
                      Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
                      MakeAdr, Address, Byte, Word ;
 
@@ -1005,7 +1006,9 @@ BEGIN
       KillLocalVarOp    : CheckRemoveVariableRead(Operand3, QuadNo) |
       ParamOp           : CheckRemoveVariableRead(Operand2, QuadNo) ;
                           CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          IF (Operand1>0) AND IsVarParam(Operand2, Operand1)
+                          IF (Operand1>0) AND
+                             (Operand1<=NoOfParam(Operand2)) AND
+                             IsVarParam(Operand2, Operand1)
                           THEN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
@@ -1184,7 +1187,9 @@ BEGIN
       KillLocalVarOp    : CheckRemoveVariableRead(Operand3, QuadNo) |
       ParamOp           : CheckRemoveVariableRead(Operand2, QuadNo) ;
                           CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          IF (Operand1>0) AND IsVarParam(Operand2, Operand1)
+                          IF (Operand1>0) AND
+                             (Operand1<=NoOfParam(Operand2)) AND
+                             IsVarParam(Operand2, Operand1)
                           THEN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
@@ -5348,7 +5353,9 @@ BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
    PushT(NoOfParam) ;
-   IF (ProcSym#Convert) AND IsPseudoBaseFunction(ProcSym) OR (ProcSym=Size)
+   IF (ProcSym#Convert) AND
+      (IsPseudoBaseFunction(ProcSym) OR
+       IsPseudoSystemFunctionConstExpression(ProcSym))
    THEN
       BuildFunctionCall
    ELSE
@@ -5374,9 +5381,9 @@ BEGIN
          (* error issue message and fake return stack *)
          IF Iso
          THEN
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC and VAL')
          ELSE
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC and VAL')
          END ;
          PopN(NoOfParam+2) ;
          PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
@@ -6545,14 +6552,7 @@ END BuildOrdFunction ;
 
 
 (*
-   BuildMakeAdrFunction - builds the pseudo procedure call MAKEADDR.
-                          This procedure is actually a "macro" for
-                          MAKEADDR(x) --> CONVERT(ADDRESS, x)
-                          However we cannot push tokens back onto the input stack
-                          because the compiler is currently building a function
-                          call and expecting a ReturnVar on the stack.
-                          Hence we manipulate the stack and call
-                          BuildConvertFunction.
+   BuildMakeAdrFunction - builds the pseudo procedure call MAKEADR.
 
                           The Stack:
 
@@ -6579,31 +6579,56 @@ END BuildOrdFunction ;
 
 PROCEDURE BuildMakeAdrFunction ;
 VAR
-   NoOfParam,
-   Var      : CARDINAL ;
+   AreConst      : BOOLEAN ;
+   i, pi,
+   NoOfParameters: CARDINAL ;
+   ReturnVar     : CARDINAL ;
 BEGIN
-   PopT(NoOfParam) ;
-   IF NoOfParam=1
+   PopT(NoOfParameters) ;
+   IF NoOfParameters>0
    THEN
-      Var := OperandT(1) ;
-      IF IsVar(Var) OR IsConst(Var)
+      GenQuad(ParamOp, 0, MakeAdr, MakeAdr) ;
+      IF PushParametersLeftToRight
       THEN
-         PopN(NoOfParam+1) ;
-
-         (*
-            Build macro: CONVERT( ADDRESS, Var )
-         *)
-
-         PushTF(Convert, NulSym) ;
-         PushT(Address) ;
-         PushT(Var) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction
+         i := NoOfParameters ;
+         (* stack index referencing stacked parameter, i *)
+         pi := 1 ;
+         WHILE i>0 DO
+            GenQuad(ParamOp, i, MakeAdr, OperandT(pi)) ;
+            DEC(i) ;
+            INC(pi)
+         END
       ELSE
-         WriteFormat0('argument to MAKEADR must be a variable or constant')
-      END
+         i := 1 ;
+         (* stack index referencing stacked parameter, i *)
+         pi := NoOfParameters ;
+         WHILE i<=NoOfParameters DO
+            GenQuad(ParamOp, i, MakeAdr, OperandT(pi)) ;
+            INC(i) ;
+            DEC(pi)
+         END
+      END ;
+      AreConst := TRUE ;
+      i := 1 ;
+      WHILE i<=NoOfParameters DO
+         IF IsVar(OperandT(i))
+         THEN
+            AreConst := FALSE ;
+         ELSIF NOT IsConst(OperandT(i))
+         THEN
+            WriteFormat1('problem in argument (%d) for MAKEADR, all arguments to MAKEADR must be either variables or constants', i)
+         END ;
+         INC(i)
+      END ;
+      (* ReturnVar - will have the type of the procedure *)
+      ReturnVar := MakeTemporary(AreConstant(AreConst)) ;
+      PutVar(ReturnVar, GetType(MakeAdr)) ;
+      GenQuad(FunctValueOp, ReturnVar, NulSym, MakeAdr) ;
+      PopN(NoOfParameters+1) ;
+      PushTF(ReturnVar, GetType(MakeAdr))
    ELSE
-      WriteFormat0('the pseudo procedure MAKEADR only has one parameter in GNU Modula-2')
+      WriteFormat0('the pseudo procedure MAKEADR requires at least one parameter') ;
+      PopN(1)
    END
 END BuildMakeAdrFunction ;
 
@@ -6699,7 +6724,6 @@ END BuildShiftFunction ;
 
 PROCEDURE BuildRotateFunction ;
 VAR
-   proc,
    ReturnVar,
    NoOfParam,
    OperandSym,
@@ -6708,9 +6732,6 @@ BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=2
    THEN
-      proc := EnsureImported(MakeKey('RotateVal')) ;
-      proc := EnsureImported(MakeKey('RotateLeft')) ;
-      proc := EnsureImported(MakeKey('RotateRight')) ;
       VarSym := OperandT(2) ;
       OperandSym := OperandT(1) ;
       PopN(NoOfParam+1) ;
@@ -6718,7 +6739,8 @@ BEGIN
       THEN
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(VarSym)) ;
-         GenQuad(LogicalRotateOp, ReturnVar, VarSym, DereferenceLValue(OperandSym)) ;
+         GenQuad(LogicalRotateOp, ReturnVar, VarSym,
+                 DereferenceLValue(OperandSym)) ;
          PushTF(ReturnVar, GetType(VarSym))
       ELSE
          WriteFormat0('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;

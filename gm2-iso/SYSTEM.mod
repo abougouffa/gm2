@@ -17,6 +17,9 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE SYSTEM ;
 
+CONST
+   BitsPerBitset = MAX(BITSET)+1 ;
+
 
 (*
    Max - returns the maximum of a and b.
@@ -61,10 +64,10 @@ PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
 BEGIN
    IF ShiftCount>0
    THEN
-      ShiftRight(s, d, SetSizeInBits, ShiftCount)
+      ShiftLeft(s, d, SetSizeInBits, ShiftCount)
    ELSIF ShiftCount<0
    THEN
-      ShiftLeft(s, d, SetSizeInBits, -ShiftCount)
+      ShiftRight(s, d, SetSizeInBits, -ShiftCount)
    END
 END ShiftVal ;
 
@@ -87,10 +90,10 @@ BEGIN
    i := h ;
    WHILE i>0 DO
       DEC(i) ;
-      lo := SHIFT(s[i], ShiftCount MOD MAX(BITSET)) ;
-      hi := SHIFT(s[i], -(MAX(BITSET) - (ShiftCount MOD MAX(BITSET)))) ;
+      lo := SHIFT(s[i], ShiftCount MOD BitsPerBitset) ;
+      hi := SHIFT(s[i], -(BitsPerBitset - (ShiftCount MOD BitsPerBitset))) ;
       d[i] := BITSET{} ;
-      j := i + ShiftCount DIV MAX(BITSET) ;
+      j := i + ShiftCount DIV BitsPerBitset ;
       IF j<h
       THEN
          d[j] := d[j] + lo ;
@@ -122,10 +125,10 @@ BEGIN
    h := HIGH(s) ;
    i := 0 ;
    WHILE i<h DO
-      lo := SHIFT(s[i], MAX(BITSET) - (ShiftCount MOD MAX(BITSET))) ;
-      hi := SHIFT(s[i], -(ShiftCount MOD MAX(BITSET))) ;
+      lo := SHIFT(s[i], BitsPerBitset - (ShiftCount MOD BitsPerBitset)) ;
+      hi := SHIFT(s[i], -(ShiftCount MOD BitsPerBitset)) ;
       d[i] := BITSET{} ;
-      j := i - ShiftCount DIV MAX(BITSET) ;
+      j := i - ShiftCount DIV BitsPerBitset ;
       IF j>=0
       THEN
          d[j] := d[j] + hi ;
@@ -138,6 +141,85 @@ BEGIN
       INC(i)
    END
 END ShiftRight ;
+
+
+(*
+   RotateVal - is a runtime procedure whose job is to implement
+               the ROTATE procedure of ISO SYSTEM. GNU Modula-2 will
+               inline a ROTATE of a single WORD (or less)
+               sized set and will only call this routine for larger sets.
+*)
+
+PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
+                     SetSizeInBits: CARDINAL;
+                     RotateCount: INTEGER) ;
+BEGIN
+   IF RotateCount>0
+   THEN
+      RotateLeft(s, d, SetSizeInBits, RotateCount)
+   ELSIF RotateCount<0
+   THEN
+      RotateRight(s, d, SetSizeInBits, -RotateCount)
+   END
+END RotateVal ;
+
+
+(*
+   RotateLeft - performs the rotate left for a multi word set.
+                This procedure might be called by the back end of
+                GNU Modula-2 depending whether amount is known at compile
+                time.
+*)
+
+PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
+                      SetSizeInBits: CARDINAL;
+                      RotateCount: INTEGER) ;
+VAR
+   lo, hi : BITSET ;
+   b, i, j, h: CARDINAL ;
+BEGIN
+   h := HIGH(s) ;
+   (* firstly we set d := {} *)
+   i := 0 ;
+   WHILE i<=h DO
+      d[i] := BITSET{} ;
+      INC(i)
+   END ;
+   i := h+1 ;
+   RotateCount := RotateCount MOD SetSizeInBits ;
+   b := SetSizeInBits MOD BitsPerBitset ;
+   IF b=0
+   THEN
+      b := BitsPerBitset
+   END ;
+   WHILE i>0 DO
+      DEC(i) ;
+      lo := SHIFT(s[i], RotateCount MOD BitsPerBitset) ;
+      hi := SHIFT(s[i], -(b - (RotateCount MOD BitsPerBitset))) ;
+      j := ((i*BitsPerBitset + RotateCount) MOD
+            SetSizeInBits) DIV BitsPerBitset ;
+      d[j] := d[j] + lo ;
+      j := (((i+1)*BitsPerBitset + RotateCount) MOD
+            SetSizeInBits) DIV BitsPerBitset ;
+      d[j] := d[j] + hi ;
+      b := BitsPerBitset
+   END
+END RotateLeft ;
+
+
+(*
+   RotateRight - performs the rotate right for a multi word set.
+                 This procedure might be called by the back end of
+                 GNU Modula-2 depending whether amount is known at compile
+                 time.
+*)
+
+PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
+                       SetSizeInBits: CARDINAL;
+                       RotateCount: INTEGER) ;
+BEGIN
+   RotateLeft(s, d, SetSizeInBits, SetSizeInBits-RotateCount)
+END RotateRight ;
 
 
 END SYSTEM.

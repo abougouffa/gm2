@@ -52,14 +52,14 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
   static struct typeDef  *listOfTypes =NULL;
 
 
-        void clex_ParsingOn (int t);
-	char *clex_GetToken (void);
-	void clex_CloseSource (void);
-	int clex_OpenSource (char *s);
-	int clex_GetLineNo (void);
-	void clex_SetSearchPath (char *newPath);
-	void clex_AddTypeDef (char *a);
-        void clex_CError (const char *);
+        void cflex_ParsingOn (int t);
+	char *cflex_GetToken (void);
+	void cflex_CloseSource (void);
+	int cflex_OpenSource (char *s);
+	int cflex_GetLineNo (void);
+	void cflex_SetSearchPath (char *newPath);
+	void cflex_AddTypeDef (char *a);
+        void cflex_CError (const char *);
 static  void pushLine     (void);
 static  void popLine      (void);
 static  void resetpos     (void);
@@ -112,7 +112,7 @@ static  int  isTypeDef    (char *a);
 <COMMENT>.                 { updatepos(); skippos(); }
 <COMMENT><<EOF>>           { handleEof();
                              if (includeNo == 0)
-			       clex_CError("end of file found inside a comment"); exit(0);
+			       cflex_CError("end of file found inside a comment"); exit(0);
                            }
 
 <SUPPRESS>\n#[ \t]*if      { level++; }
@@ -159,10 +159,10 @@ static  int  isTypeDef    (char *a);
 <LINE0>ifdef               { updatepos(); CLexBuf_AddTok(CLexBuf_ifdeftok); BEGIN INITIAL; return; }
 <LINE0>ifndef              { updatepos(); CLexBuf_AddTok(CLexBuf_ifndeftok); BEGIN INITIAL; return; }
 <LINE0>[0-9]+[ \t]*\"      { updatepos(); currentLine->actualline=atoi(yytext)-1; BEGIN LINE1; }
-<LINE0>\n                  { clex_CError("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
+<LINE0>\n                  { cflex_CError("missing initial quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE0>[^\n]
 <LINE0><<EOF>>             { if (! handleEof()) return; }
-<LINE1>[^\"\n]+            { clex_CError("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
+<LINE1>[^\"\n]+            { cflex_CError("missing final quote after #line directive"); resetpos(); BEGIN INITIAL; }
 <LINE1>.*\"                { updatepos();
                              /* filename = (char *)xrealloc(filename, yyleng+1);
 			     strcpy(filename, yytext);
@@ -195,7 +195,7 @@ static  int  isTypeDef    (char *a);
 				/* printf("searching for %s\n", fileName); */
 				actualPath = findFile (fileName, localFirst);
 				if (actualPath == NULL) {
-				  clex_CError ("include file not found");
+				  cflex_CError ("include file not found");
 				  popLine();
 				} else {
 				  yyin = fopen (actualPath, "r");
@@ -216,13 +216,13 @@ static  int  isTypeDef    (char *a);
 
 \"[^\"\n]*\"               { updatepos(); CLexBuf_AddTokCharStar (CLexBuf_conststringtok, yytext); return; }
 \"[^\"\n]*$                { updatepos();
-                             clex_CError("missing terminating quote, \"");
+                             cflex_CError("missing terminating quote, \"");
                              resetpos(); return;
                            }
 
 '[^'\n]*'                  { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_constchartok, yytext); return; }
 '[^'\n]*$                  { updatepos();
-                             clex_CError("missing terminating quote, '");
+                             cflex_CError("missing terminating quote, '");
                              resetpos(); return;
                            }
 
@@ -305,7 +305,7 @@ volatile                   { updatepos(); CLexBuf_AddTok(CLexBuf_volatiletok); r
 0x[0-9A-Fa-f]+             { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_hexintegertok, yytext); return; }
 [\t ]+                     { currentLine->tokenpos += yyleng;  /* ignore whitespace */; }
 <<EOF>>                    { if (! handleEof()) return; }
-.                          { updatepos(); clex_CError("unrecognised symbol"); skippos(); }
+.                          { updatepos(); cflex_CError("unrecognised symbol"); skippos(); }
 
 %%
 
@@ -364,7 +364,7 @@ static void checkEndHash (void)
  *              '#endif' or '#else' or '#if' or '#ifdef'
  */
 
-void clex_ParsingOn (int t)
+void cflex_ParsingOn (int t)
 {
   parsingOn = t;
   if (! parsingOn) {
@@ -375,11 +375,11 @@ void clex_ParsingOn (int t)
 }
 
 /*
- *  clex_CError - displays the error message, s, after the code line and pointer
+ *  cflex_CError - displays the error message, s, after the code line and pointer
  *                 to the erroneous token.
  */
 
-void clex_CError (const char *s)
+void cflex_CError (const char *s)
 {
   struct lineInfo *l;
 
@@ -409,7 +409,7 @@ static void poperrorskip (const char *s)
   int tokenpos=currentLine->tokenpos;
 
   popLine();
-  clex_CError(s);
+  cflex_CError(s);
   if (currentLine != NULL) {
     currentLine->nextpos  = nextpos;
     currentLine->tokenpos = tokenpos;
@@ -549,17 +549,17 @@ static void resetpos (void)
 }
 
 /*
- *  clex_GetToken - returns a new token.
+ *  cflex_GetToken - returns a new token.
  */
 
-char *clex_GetToken (void)
+char *cflex_GetToken (void)
 {
   if (currentLine == NULL)
     initLine();
   currentLine->tokenpos = currentLine->nextpos;
   yylex();
 #if 0
-  clex_CError("testing token");
+  cflex_CError("testing token");
 #endif
   return yytext;
 }
@@ -568,7 +568,7 @@ char *clex_GetToken (void)
  *  CloseSource - provided for semantic sugar
  */
 
-void clex_CloseSource (void)
+void cflex_CloseSource (void)
 {
 }
 
@@ -577,7 +577,7 @@ void clex_CloseSource (void)
  *               all tokens are taken from this file.
  */
 
-int clex_OpenSource (char *s)
+int cflex_OpenSource (char *s)
 {
   FILE *f = fopen(s, "r");
 
@@ -593,10 +593,10 @@ int clex_OpenSource (char *s)
 }
 
 /*
- *  clex_GetLineNo - returns the current line number.
+ *  cflex_GetLineNo - returns the current line number.
  */
 
-int clex_GetLineNo (void)
+int cflex_GetLineNo (void)
 {
   if (currentLine != NULL)
     return currentLine->actualline;
@@ -608,7 +608,7 @@ int clex_GetLineNo (void)
  *  SetSearchPath - reassigns the search path to newPath.
  */
 
-void clex_SetSearchPath (char *newPath)
+void cflex_SetSearchPath (char *newPath)
 {
   if (searchPath != NULL)
     free(searchPath);
@@ -709,7 +709,7 @@ static int isTypeDef (char *a)
  *  AddTypeDef - adds the string, a, to the list of typedefs.
  */
 
-void clex_AddTypeDef (char *a)
+void cflex_AddTypeDef (char *a)
 {
   if (! isTypeDef (a))
     addTypeDef (a);
@@ -727,21 +727,21 @@ int yywrap (void)
 }
 
 
-void _M2_clex_init () {}
+void _M2_cflex_init () {}
 
 #if 0
 main()
 {
   char *t;
 
-  if (clex_OpenSource("/usr/include/vga.h")) {
+  if (cflex_OpenSource("/usr/include/vga.h")) {
     do {
-      t=clex_GetToken();
+      t=cflex_GetToken();
 
       if (t != NULL)
-	clex_CError(t); printf("\n");
+	cflex_CError(t); printf("\n");
     } while (t != NULL);
-    clex_CloseSource();
+    cflex_CloseSource();
   }
 }
 #endif

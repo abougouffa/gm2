@@ -11,7 +11,8 @@ EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
                  SHIFT, CAST, TSIZE,
 
                  (* Internal GM2 compiler functions *)
-                 ShiftVal, ShiftLeft, ShiftRight ;
+                 ShiftVal, ShiftLeft, ShiftRight,
+                 RotateVal, RotateLeft, RotateRight ;
 
 CONST
                   (* <implementation-defined constant> ; *)
@@ -52,15 +53,23 @@ PROCEDURE DIFADR (addr1, addr2: ADDRESS): INTEGER;
      or address space is non-contiguous.
   *)
 
-PROCEDURE MAKEADR (low: <some type>; [high: <some type> = 0]): ADDRESS;
+PROCEDURE MAKEADR (high: <some type>; ...): ADDRESS;
   (* Returns an address constructed from a list of values whose
      types are implementation-defined, or may raise an
      exception if this address is not valid.
 
-     In GNU Modula-2, low, is promoted to an ADDRESS if a single
-     argument is passed. If two arguments are passed then
-     both arguments, low and high, are converted to CARDINAL
-     and form the low and high address bits of the type ADDRESS.
+     In GNU Modula-2, MAKEADR can take any number of arguments
+     which are mapped onto the type ADDRESS. The first parameter
+     maps onto the high address bits and subsequent parameters map
+     onto lower address bits. For example:
+
+     a := MAKEADR(BYTE(0FEH), BYTE(0DCH), BYTE(0BAH), BYTE(098H),
+                  BYTE(076H), BYTE(054H), BYTE(032H), BYTE(010H)) ;
+
+     then the value of, a, on a 64 bit machine is: 0FEDCBA9876543210H
+
+     The parameters do not have to have the same type, but constants
+     _must_ be typed.
   *)
 
 PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
@@ -120,7 +129,7 @@ PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
                time.
 *)
 
-PROCEDURE ShiftLeft ( (* VAR s, d: ARRAY OF BITSET; *)
+PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
                      ShiftCount: INTEGER) ;
 
@@ -134,6 +143,42 @@ PROCEDURE ShiftLeft ( (* VAR s, d: ARRAY OF BITSET; *)
 PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
                      ShiftCount: INTEGER) ;
+
+
+(*
+   RotateVal - is a runtime procedure whose job is to implement
+               the ROTATE procedure of ISO SYSTEM. GNU Modula-2 will
+               inline a ROTATE of a single WORD (or less)
+               sized set and will only call this routine for larger sets.
+*)
+
+PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
+                     SetSizeInBits: CARDINAL;
+                     RotateCount: INTEGER) ;
+
+
+(*
+   RotateLeft - performs the rotate left for a multi word set.
+                This procedure might be called by the back end of
+                GNU Modula-2 depending whether amount is known at compile
+                time.
+*)
+
+PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
+                      SetSizeInBits: CARDINAL;
+                      RotateCount: INTEGER) ;
+
+
+(*
+   RotateRight - performs the rotate right for a multi word set.
+                 This procedure might be called by the back end of
+                 GNU Modula-2 depending whether amount is known at compile
+                 time.
+*)
+
+PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
+                       SetSizeInBits: CARDINAL;
+                       RotateCount: INTEGER) ;
 
 
 END SYSTEM.

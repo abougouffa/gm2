@@ -17,7 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE CLexBuf ;
 
-IMPORT clex ;
+IMPORT cflex ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
@@ -283,7 +283,7 @@ BEGIN
    l^.left  := CurrentSource^.left ;
    CurrentSource^.left^.right := l ;
    CurrentSource^.left := l ;
-   l^.left^.line := clex.GetLineNo()
+   l^.left^.line := cflex.GetLineNo()
 END AddTo ;
 
 
@@ -479,7 +479,7 @@ BEGIN
       GetToken ;
       RETURN( TRUE )
    ELSE
-      IF clex.OpenSource(string(s))
+      IF cflex.OpenSource(string(s))
       THEN
          SetFile(string(s)) ;
          SyncOpenWithBuffer ;
@@ -504,7 +504,7 @@ BEGIN
          GetToken
       END
    ELSE
-      (* a subsequent call to clex.OpenSource will really close the file *)
+      (* a subsequent call to cflex.OpenSource will really close the file *)
    END
 END CloseSource ;
 
@@ -527,7 +527,7 @@ END ResetForNewPass ;
 
 PROCEDURE DisplayToken ;
 BEGIN
-   clex.CError(string(InitString('current token'))) ;
+   cflex.CError(string(InitString('current token'))) ;
    IF currenttoken=identtok
    THEN
       printf1('currenttoken = %a\n', currentstring)
@@ -610,7 +610,7 @@ BEGIN
       typetok              : printf0('type\n')
 
       ELSE
-         clex.CError(string(InitString('unrecognised token')))
+         cflex.CError(string(InitString('unrecognised token')))
       END
    END
 END DisplayToken ;
@@ -649,7 +649,7 @@ BEGIN
    ELSE
       IF ListOfTokens.tail=NIL
       THEN
-         a := clex.GetToken() ;
+         a := cflex.GetToken() ;
          IF ListOfTokens.tail=NIL
          THEN
             HALT
@@ -686,9 +686,9 @@ BEGIN
                END ;
                INC(CurrentTokNo)
             ELSE
-               a := clex.GetToken() ;
+               a := cflex.GetToken() ;
                GetToken ;
-               (* printf0('\n'); clex.CError(string(InitString('current token'))) ; *)
+               (* printf0('\n'); cflex.CError(string(InitString('current token'))) ; *)
             END
          END
       END
@@ -977,7 +977,7 @@ END IsLastTokenEof ;
 
 (* ***********************************************************************
  *
- * These functions allow c.lex to deliver tokens into the buffer
+ * These functions allow c.flex to deliver tokens into the buffer
  *
  ************************************************************************* *)
 
@@ -989,7 +989,7 @@ PROCEDURE AddTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
-      AddTokToList(t, NulName, 0, clex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, NulName, 0, cflex.GetLineNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -1006,7 +1006,7 @@ BEGIN
    THEN
       (* do nothing *)
    ELSE
-      AddTokToList(t, makekey(s), 0, clex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, makekey(s), 0, cflex.GetLineNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTokCharStar ;
@@ -1021,7 +1021,7 @@ VAR
    s: String ;
    lineno: CARDINAL ;
 BEGIN
-   lineno := clex.GetLineNo() ;
+   lineno := cflex.GetLineNo() ;
    s := Sprintf1(Mark(InitString('%d')), lineno) ;
    AddTokToList(t, makekey(string(s)), i, lineno, CurrentSource) ;
    s := KillString(s) ;

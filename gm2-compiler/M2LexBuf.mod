@@ -17,7 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 IMPLEMENTATION MODULE M2LexBuf ;
 
-IMPORT m2lex ;
+IMPORT m2flex ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
@@ -104,7 +104,7 @@ BEGIN
    l^.left  := CurrentSource^.left ;
    CurrentSource^.left^.right := l ;
    CurrentSource^.left := l ;
-   l^.left^.line := m2lex.GetLineNo()
+   l^.left^.line := m2flex.GetLineNo()
 END AddTo ;
 
 
@@ -300,7 +300,7 @@ BEGIN
       GetToken ;
       RETURN( TRUE )
    ELSE
-      IF m2lex.OpenSource(string(s))
+      IF m2flex.OpenSource(string(s))
       THEN
          SetFile(string(s)) ;
          SyncOpenWithBuffer ;
@@ -325,7 +325,7 @@ BEGIN
          GetToken
       END
    ELSE
-      (* a subsequent call to m2lex.OpenSource will really close the file *)
+      (* a subsequent call to m2flex.OpenSource will really close the file *)
    END
 END CloseSource ;
 
@@ -474,7 +474,7 @@ BEGIN
    ELSE
       IF ListOfTokens.tail=NIL
       THEN
-         a := m2lex.GetToken() ;
+         a := m2flex.GetToken() ;
          IF ListOfTokens.tail=NIL
          THEN
             HALT
@@ -495,7 +495,7 @@ BEGIN
             END ;
             INC(CurrentTokNo)
          ELSE
-            a := m2lex.GetToken() ;
+            a := m2flex.GetToken() ;
             GetToken
          END
       END
@@ -800,7 +800,7 @@ END IsLastTokenEof ;
 
 (* ***********************************************************************
  *
- * These functions allow m2.lex to deliver tokens into the buffer
+ * These functions allow m2.flex to deliver tokens into the buffer
  *
  ************************************************************************* *)
 
@@ -812,7 +812,7 @@ PROCEDURE AddTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
-      AddTokToList(t, NulName, 0, m2lex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, NulName, 0, m2flex.GetLineNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -825,7 +825,7 @@ END AddTok ;
 
 PROCEDURE AddTokCharStar (t: toktype; s: ADDRESS) ;
 BEGIN
-   AddTokToList(t, makekey(s), 0, m2lex.GetLineNo(), CurrentSource) ;
+   AddTokToList(t, makekey(s), 0, m2flex.GetLineNo(), CurrentSource) ;
    CurrentUsed := TRUE
 END AddTokCharStar ;
 
@@ -839,7 +839,7 @@ VAR
    s: String ;
    l: CARDINAL ;
 BEGIN
-   l := m2lex.GetLineNo() ;
+   l := m2flex.GetLineNo() ;
    s := Sprintf1(Mark(InitString('%d')), l) ;
    AddTokToList(t, makekey(string(s)), i, l, CurrentSource) ;
    s := KillString(s) ;

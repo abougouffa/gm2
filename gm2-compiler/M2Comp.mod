@@ -34,7 +34,7 @@ FROM libc IMPORT exit ;
 FROM M2Error IMPORT ErrorStringAt, ErrorStringAt2, ErrorStringsAt2, WriteFormat0, FlushErrors, FlushWarnings ;
 FROM FormatStrings IMPORT Sprintf1 ;
 
-IMPORT m2lex ;
+IMPORT m2flex ;
 IMPORT P1SyntaxCheck ;
 IMPORT P2Build ;
 IMPORT P3Build ;
@@ -142,7 +142,7 @@ BEGIN
       END ;
       GetToken
    END ;
-   m2lex.M2Error(string(InitString('failed to find module name'))) ;
+   m2flex.M2Error(string(InitString('failed to find module name'))) ;
    exit(1)
 END ExamineCompilationUnit ;
 

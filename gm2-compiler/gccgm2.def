@@ -13,6 +13,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED Tree,
 
                  BuildBinProcedure, BuildUnaryProcedure,
+                 BuildSetProcedure,
                  SetFileNameAndLineNo, EmitLineNote,
                  DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
                  GetDefaultType, GetCopyOfType,
@@ -27,7 +28,8 @@ EXPORT QUALIFIED Tree,
                  GetM2LongCardType,
                  GetWordType,
                  GetISOLocType, GetISOByteType, GetISOWordType,
-                 GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
+                 GetMinFrom, GetMaxFrom, GetSizeOf, GetSizeOfInBits,
+                 GetErrorNode,
                  GetBitsPerWord, GetBitsPerUnit, GetBitsPerInt,
                  GetBitsPerBitset,
 
@@ -49,6 +51,7 @@ EXPORT QUALIFIED Tree,
                  BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
                  BuildLSL, BuildLSR, BuildLogicalShift,
                  BuildLRL, BuildLRR, BuildLogicalRotate,
+                 BuildLogicalOrAddress,
                  BuildLogicalOr, BuildLogicalAnd,
                  BuildSymmetricDifference, BuildLogicalDifference,
                  BuildConvert, BuildCoerce,
@@ -94,6 +97,7 @@ TYPE
    BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
    BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
    BuildExprProcedure  = PROCEDURE (Tree, Tree) : Tree ;
+   BuildSetProcedure   = PROCEDURE (Tree, Tree, Tree, Tree, BOOLEAN) : Tree ;
 
 
 (*
@@ -215,6 +219,14 @@ PROCEDURE GetSizeOf (type: Tree) : Tree ;
 
 
 (*
+   GetSizeOfInBits - returns a Tree containing the number of bits used
+                     to store, type.
+*)
+
+PROCEDURE GetSizeOfInBits (type: Tree) : CARDINAL ;
+
+
+(*
    BuildBinaryForeachWordDo - provides the large set operators. Each word (or less)
                               of the set can be calculated by binop.
                               This procedure runs along each word of the large set
@@ -330,11 +342,11 @@ PROCEDURE BuildIfNotInRangeGoto (var, low, high: Tree; label: ADDRESS) ;
 
 PROCEDURE BuildBinarySetDo (settype,
                             op1, op2, op3: Tree;
-                            binop: BuildBinProcedure;
+                            binop: BuildSetProcedure;
                             is_op1lvalue,
                             is_op2lvalue,
                             is_op3lvalue: BOOLEAN;
-                            nBits, unbounded,
+                            nBits, unbounded: Tree ;
                             varproc, leftproc, rightproc: Tree) ;
 
 
@@ -757,7 +769,7 @@ PROCEDURE BuildLRR (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
                         for a fundamental data type.
 *)
 
-PROCEDURE BuildLogicalRotate (op1, op2: Tree;
+PROCEDURE BuildLogicalRotate (op1, op2, op3, nBits: Tree;
                               needconvert: BOOLEAN) : Tree ;
 
 
@@ -766,8 +778,15 @@ PROCEDURE BuildLogicalRotate (op1, op2: Tree;
                        for a fundamental data type.
 *)
 
-PROCEDURE BuildLogicalShift (op1, op2: Tree;
+PROCEDURE BuildLogicalShift (op1, op2, op3, nBits: Tree;
                              needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildLogicalOrAddress - build and return a logical or tree. ie (op1 || op2)
+*)
+
+PROCEDURE BuildLogicalOrAddress (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

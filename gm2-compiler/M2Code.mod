@@ -352,11 +352,11 @@ BEGIN
       ForeachScopeBlockDo(sb, DisplayQuadRange)
    END ;
    OptimizeScopeBlock(sb) ;
-   IF DisplayQuadruples
+   IF DisplayQuadruples AND FALSE
    THEN
-      ForeachScopeBlockDo(sb, DisplayQuadRange)
+      ForeachScopeBlockDo(sb, DisplayQuadRange) ;
+      ForeachScopeBlockDo(sb, DisplayQuadNumbers)
    END ;
-   ForeachScopeBlockDo(sb, DisplayQuadNumbers) ;
    IF IsProcedure(scope)
    THEN
       DeclareProcedure(scope) ;

@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #undef DEBUG_PROCEDURE_CALLS
-#define BROKEN_SET_DEBUGGING_INFO
+static int broken_set_debugging_info = TRUE;
 
 /*
  *  utilize some of the C build routines
@@ -268,6 +268,7 @@ tree enumvalues=NULL_TREE;
 tree param_type_list;
 tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
 tree last_function=NULL_TREE;
+static int label_count = 0;
 
 /* A list (chain of TREE_LIST nodes) of all LABEL_DECLs in the function
    that have names.  Here so we can clear out their names' definitions
@@ -499,18 +500,25 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_BuildNegate 	       	 	  PARAMS ((tree op1, int needconvert));
        tree                   gccgm2_BuildSetNegate 	       	 	  PARAMS ((tree op1, int needconvert));
        tree                   gccgm2_GetSizeOf 		       	 	  PARAMS ((tree type));
+       tree                   gccgm2_GetSizeOfInBits                      PARAMS ((tree type));
        tree                   gccgm2_BuildAddr 		       	 	  PARAMS ((tree op1, int needconvert));
+       tree                   gccgm2_BuildLogicalOrAddress     	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLogicalOr 	       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLogicalAnd 	       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildSymmetricDifference   	  PARAMS ((tree op1, tree op2, int needconvert));
-       tree                   gccgm2_BuildLogicalShift                    PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildLogicalDifference     	  PARAMS ((tree op1, tree op2, int needconvert));
+       void                   gccgm2_BuildLogicalShift                    PARAMS ((tree op1, tree op2, tree op3, tree nBits, int needconvert));
        tree                   gccgm2_BuildLRL                             PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLRR                             PARAMS ((tree op1, tree op2, int needconvert));
-       tree                   gccgm2_BuildLogicalRotate                   PARAMS ((tree op1, tree op2, int needconvert));
-       void                   gccgm2_BuildBinarySetDo                     PARAMS ((tree settype, tree op1, tree op2, tree op3, tree (*binop)(tree, tree, int), int is_op1lvalue, int is_op2lvalue, int is_op3lvalue, tree nBits, tree unbounded, tree varproc, tree leftproc, tree rightproc));
+       tree                   gccgm2_BuildLRLn                            PARAMS ((tree op1, tree op2, tree nBits, int needconvert));
+       tree                   gccgm2_BuildLRRn                            PARAMS ((tree op1, tree op2, tree nBits, int needconvert));
+       tree                   gccgm2_BuildMask                            PARAMS ((tree nBits, int needconvert));
+       void                   gccgm2_BuildLogicalRotate                   PARAMS ((tree op1, tree op2, tree op3, tree nBits, int needconvert));
+       void                   gccgm2_BuildBinarySetDo                     PARAMS ((tree settype, tree op1, tree op2, tree op3, tree (*binop)(tree, tree, tree, tree, int), int is_op1lvalue, int is_op2lvalue, int is_op3lvalue, tree nBits, tree unbounded, tree varproc, tree leftproc, tree rightproc));
        tree                   buildUnboundedArrayOf                       PARAMS ((tree, tree, tree));
        tree                   create_label_from_name 	       	 	  PARAMS ((char *name));
        tree                   gccgm2_DeclareLabel 	       	 	  PARAMS ((char *name));
+static char *                 createUniqueLabel                           PARAMS ((void));
        tree                   gccgm2_BuildLessThan 	       	 	  PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildGreaterThan 	       	 	  PARAMS ((tree op1, tree op2));
        tree                   gccgm2_BuildLessThanOrEqual       	  PARAMS ((tree op1, tree op2));
@@ -2695,8 +2703,6 @@ gm2_decode_option (argc, argv)
     return 1;
   } else if (strcmp(argv[0], "-Wcheck-all") == 0) {
     return 1;
-  } else if (strcmp(argv[0], "-Wunbounded-by-reference") == 0) {
-    return 1;
   } else if (strcmp(argv[0], "-Wverbose-unbounded") == 0) {
     return 1;
   } else if (strcmp(argv[0], "-Wquiet") == 0) {
@@ -2711,6 +2717,14 @@ gm2_decode_option (argc, argv)
   } else if (strcmp(argv[0], "-Wmakeall0") == 0) {
     return 1;
   } else if (strncmp(argv[0], "-Wmake-I=", 9) == 0) {
+    return 1;
+  } else if (strncmp(argv[0], "-gstabs", 7) == 0) {
+    /* we just note that -gstabs is being used and unset this flag */
+#if 0
+    broken_set_debugging_info = FALSE;
+#endif
+    /* note we do not return 1, as this is not really a front end option */
+  } else if (strcmp(argv[0], "-funbounded-by-reference") == 0) {
     return 1;
   }
   return 0;
@@ -6268,6 +6282,11 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
     case BIT_ANDTC_EXPR:
     case BIT_IOR_EXPR:
     case BIT_XOR_EXPR:
+#if defined(GM2)
+      if (code0 == POINTER_TYPE && code1 == POINTER_TYPE)
+        result_type = ptr_type_node;
+#endif
+
       if (code0 == INTEGER_TYPE && code1 == INTEGER_TYPE)
 	shorten = -1;
       else if (code0 == VECTOR_TYPE && code1 == VECTOR_TYPE)
@@ -6352,7 +6371,8 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
       break;
 
     case LSHIFT_EXPR:
-      if (code0 == INTEGER_TYPE && code1 == INTEGER_TYPE)
+      if ((code0 == INTEGER_TYPE && code1 == INTEGER_TYPE) ||
+	  (code0 == POINTER_TYPE && code1 == INTEGER_TYPE))
         {
           if (TREE_CODE (op1) == INTEGER_CST && skip_evaluation == 0)
             {
@@ -7043,8 +7063,10 @@ is_type (type)
 }
 
 /*
- *  DeclareKnownVariable - declares a variable in scope, funcscope. Note that the global
- *                         variable, current_function_decl, is altered if isglobal is TRUE.
+ *  DeclareKnownVariable - declares a variable in scope,
+ *                         funcscope. Note that the global variable,
+ *                         current_function_decl, is altered if
+ *                         isglobal is TRUE.
  */
 
 tree
@@ -7066,7 +7088,7 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
   type = skip_type_decl (type);
   decl = build_decl (VAR_DECL, id, type);
 
-  DECL_SOURCE_LINE(decl)  = lineno;
+  DECL_SOURCE_LINE (decl) = lineno;
 
   DECL_EXTERNAL (decl)    = imported;
   if (isglobal) {
@@ -8329,22 +8351,17 @@ static
 tree
 build_bitset_type (void)
 {
-  tree bitset;
   bitnum_type_node = build_range_type (skip_type_decl (gccgm2_GetCardinalType()),
 				       gccgm2_BuildIntegerConstant (0),
 				       gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset()-1));
   layout_type (bitnum_type_node);
-#if defined(BROKEN_SET_DEBUGGING_INFO)
-  return unsigned_type_node;
-  bitset = build_set_type (bitnum_type_node, bitnum_type_node, 0);
-  TYPE_MIN_VALUE (bitset) = integer_zero_node;
-  TYPE_MAX_VALUE (bitset) = gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset()-1);
-  return bitset;
-#else
+
+  if (broken_set_debugging_info)
+    return unsigned_type_node;
+
   return gccgm2_BuildSetTypeFromSubrange (NULL, bitnum_type_node,
 					  gccgm2_BuildIntegerConstant (0),
 					  gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset()-1));
-#endif
 }
 
 /*
@@ -8358,38 +8375,38 @@ gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
      tree lowval;
      tree highval;
 {
-#if defined(BROKEN_SET_DEBUGGING_INFO)
-  return unsigned_type_node;
-#else
-  tree noelements = gccgm2_BuildAdd (gccgm2_BuildSub (highval, lowval, FALSE),
-				     integer_one_node,
-				     FALSE);
-  tree settype;
-
-  layout_type (subrangeType);
-  settype = build_set_type (subrangeType,
-			    convert_type_to_range (subrangeType), 0);
-  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (SET_WORD_SIZE)) > 0)
-    error("internal error: not expecting an internal set type to have more bits than a machine word");
-  
-  if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (SET_WORD_SIZE)) == 0)
-    TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
-  else
-    TYPE_MAX_VALUE (settype) = gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
-						integer_one_node,
-						FALSE);
-  TYPE_MIN_VALUE (settype) = integer_zero_node;
-  
-  if ((name == NULL) || (strcmp(name, "") == 0))
-    /* no modula-2 name */
-    return settype;
+  if (broken_set_debugging_info)
+    return unsigned_type_node;
   else {
-    /* declared as TYPE foo = SET OF [x..y] ; */
-    settype = gccgm2_DeclareKnownType(name, settype);
-    layout_type (skip_type_decl (settype));
-    return settype;
+    tree noelements = gccgm2_BuildAdd (gccgm2_BuildSub (highval, lowval, FALSE),
+				       integer_one_node,
+				       FALSE);
+    tree settype;
+
+    layout_type (subrangeType);
+    settype = build_set_type (subrangeType,
+			      convert_type_to_range (subrangeType), 0);
+    if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (SET_WORD_SIZE)) > 0)
+      error("internal error: not expecting an internal set type to have more bits than a machine word");
+  
+    if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (SET_WORD_SIZE)) == 0)
+      TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
+    else
+      TYPE_MAX_VALUE (settype) = gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
+						  integer_one_node,
+						  FALSE);
+    TYPE_MIN_VALUE (settype) = integer_zero_node;
+    
+    if ((name == NULL) || (strcmp(name, "") == 0))
+      /* no modula-2 name */
+      return settype;
+    else {
+      /* declared as TYPE foo = SET OF [x..y] ; */
+      settype = gccgm2_DeclareKnownType(name, settype);
+      layout_type (skip_type_decl (settype));
+      return settype;
+    }
   }
-#endif
 }
 
 /*
@@ -8930,26 +8947,67 @@ gccgm2_BuildLSR (op1, op2, needconvert)
 }
 
 /*
+ *  createUniqueLabel - returns a unique label which has been
+ *                      xmalloc'ed.
+ */
+
+static char *
+createUniqueLabel ()
+{
+  int size, i;
+  char *label;
+
+  label_count++;  
+  i = label_count;
+  size = strlen(".LSHIFT")+2;
+  while (i>0) {
+    i /= 10;
+    size++;
+  }
+  label = (char *)xmalloc (size);
+  sprintf(label, ".LSHIFT%d", label_count);
+  return label;
+}
+
+/*
  *  BuildLogicalShift - builds the ISO Modula-2 SHIFT operator
  *                      for a fundamental data type.
  */
 
-tree gccgm2_BuildLogicalShift (op1, op2, needconvert)
-     tree op1, op2;
+void
+gccgm2_BuildLogicalShift (op1, op2, op3, nBits, needconvert)
+     tree op1, op2, op3;
+     tree nBits ATTRIBUTE_UNUSED;
      int needconvert;
 {
-  if (TREE_CODE (op2) == INTEGER_CST) {
-    if (tree_int_cst_sgn (op2) < 0)
-      return gccgm2_BuildLSR (op1, gccgm2_BuildNegate (op2, needconvert),
-			      needconvert);
-    else
-      return gccgm2_BuildLSL (op1, op2, needconvert);
-  }
-  else
-    return build_binary_op (RSHIFT_EXPR, op1, op2, needconvert);
-  /* this does assume GCC tree will shift RIGHT if op2 < 0 */
-}
+  tree res;
 
+  if (TREE_CODE (op3) == INTEGER_CST) {
+    if (tree_int_cst_sgn (op3) < 0)
+      res = gccgm2_BuildLSR (op2,
+			     gccgm2_BuildNegate (op3, needconvert),
+			     needconvert);
+    else
+      res = gccgm2_BuildLSL (op2, op3, needconvert);
+    gccgm2_BuildAssignment (op1, res);
+  }
+  else {
+    char *labelElseName = createUniqueLabel ();
+    char *labelEndName  = createUniqueLabel ();
+    tree  is_less       = gccgm2_BuildLessThan (op3, gccgm2_GetIntegerZero ());
+
+    gccgm2_DoJump (is_less, NULL, labelElseName);
+    res = gccgm2_BuildLSL (op2, op3, needconvert);
+    gccgm2_BuildAssignment (op1, res);
+    gccgm2_BuildGoto (labelEndName);
+    gccgm2_DeclareLabel (labelElseName);
+    res = gccgm2_BuildLSR (op2,
+			   gccgm2_BuildNegate (op3, needconvert),
+			   needconvert);
+    gccgm2_BuildAssignment (op1, res);
+    gccgm2_DeclareLabel (labelEndName);
+  }
+}
 
 /*
  *  BuildLRL - builds and returns tree (op1 rotate left by op2 bits)
@@ -8976,24 +9034,133 @@ gccgm2_BuildLRR (op1, op2, needconvert)
 }
 
 /*
+ *  gccgm2_BuildMask - returns a tree for the mask of a set
+ *                     of nBits. It assumes nBits is <= TSIZE(WORD)
+ */
+
+tree
+gccgm2_BuildMask (nBits, needconvert)
+     tree nBits;
+     int needconvert;
+{
+  tree mask = gccgm2_BuildLSL (gccgm2_GetIntegerOne (),
+			       nBits, needconvert);
+  return gccgm2_BuildSub (mask, gccgm2_GetIntegerOne (),
+			  needconvert);
+}
+
+/*
+ *  BuildLRLn - builds and returns tree (op1 rotate left by op2 bits)
+ *              it rotates a set of size, nBits.
+ */
+
+tree
+gccgm2_BuildLRLn (op1, op2, nBits, needconvert)
+     tree op1, op2, nBits;
+     int  needconvert;
+{
+  /*
+   *  ensure we wrap the rotate
+   */
+  op2 = gccgm2_BuildMod (op2, nBits, needconvert);
+  /*
+   *  optimize if we are we going to rotate a TSIZE(BITSET) set
+   */
+  if (gccgm2_CompareTrees (gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset ()),
+			   nBits) == 0)
+    return build_binary_op (LROTATE_EXPR, op1, op2, needconvert);
+  else {
+    tree mask = gccgm2_BuildMask (nBits, needconvert);
+    tree left, right;
+
+    /*
+     *  make absolutely sure there are no high order bits lying around
+     */
+    op1 = gccgm2_BuildLogicalAnd (op1, mask, needconvert);
+    left = gccgm2_BuildLSL (op1, op2, needconvert);
+    left = gccgm2_BuildLogicalAnd (left, mask, needconvert);
+    right = gccgm2_BuildLSR (op1, gccgm2_BuildSub (nBits, op2, needconvert),
+			     needconvert);
+    return gccgm2_BuildLogicalOr (left, right, needconvert);
+  }
+}
+
+/*
+ *  BuildLRRn - builds and returns tree (op1 rotate right by op2 bits)
+ *              it rotates a set of size, nBits.
+ */
+
+tree
+gccgm2_BuildLRRn (op1, op2, nBits, needconvert)
+     tree op1, op2, nBits;
+     int  needconvert;
+{
+  /*
+   *  ensure we wrap the rotate
+   */
+  op2 = gccgm2_BuildMod (op2, nBits, needconvert);
+  /*
+   *  optimize if we are we going to rotate a TSIZE(BITSET) set
+   */
+  if (gccgm2_CompareTrees (gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset ()),
+			   nBits) == 0)
+    return build_binary_op (RROTATE_EXPR, op1, op2, needconvert);
+  else {
+    tree mask = gccgm2_BuildMask (nBits, needconvert);
+    tree left, right;
+
+    /*
+     *  make absolutely sure there are no high order bits lying around
+     */
+    op1 = gccgm2_BuildLogicalAnd (op1, mask, needconvert);
+    right = gccgm2_BuildLSR (op1, op2, needconvert);
+    left = gccgm2_BuildLSL (op1, gccgm2_BuildSub (nBits, op2, needconvert),
+			    needconvert);
+    left = gccgm2_BuildLogicalAnd (left, mask, needconvert);
+    return gccgm2_BuildLogicalOr (left, right, needconvert);
+  }
+}
+
+/*
  *  BuildLogicalRotate - builds the ISO Modula-2 ROTATE operator
  *                       for a fundamental data type.
  */
 
-tree gccgm2_BuildLogicalRotate (op1, op2, needconvert)
-     tree op1, op2;
+void
+gccgm2_BuildLogicalRotate (op1, op2, op3, nBits, needconvert)
+     tree op1, op2, op3;
+     tree nBits;
      int needconvert;
 {
-  if (TREE_CODE (op2) == INTEGER_CST) {
-    if (tree_int_cst_sgn (op2) < 0)
-      return gccgm2_BuildLRR (op1, gccgm2_BuildNegate(op2, needconvert),
-			      needconvert);
+  tree res;
+
+  if (TREE_CODE (op3) == INTEGER_CST) {
+    if (tree_int_cst_sgn (op3) < 0)
+      res = gccgm2_BuildLRRn (op2,
+			     gccgm2_BuildNegate (op3, needconvert),
+			     nBits,
+			     needconvert);
     else
-      return gccgm2_BuildLRL (op1, op2, needconvert);
+      res = gccgm2_BuildLRLn (op2, op3, nBits, needconvert);
+    gccgm2_BuildAssignment (op1, res);
   }
-  else
-    return build_binary_op (RROTATE_EXPR, op1, op2, needconvert);
-  /* this does assume GCC tree will rotate RIGHT if op2 < 0 */
+  else {
+    char *labelElseName = createUniqueLabel ();
+    char *labelEndName  = createUniqueLabel ();
+    tree  is_less       = gccgm2_BuildLessThan (op3, gccgm2_GetIntegerZero ());
+
+    gccgm2_DoJump (is_less, NULL, labelElseName);
+    res = gccgm2_BuildLRLn (op2, op3, nBits, needconvert);
+    gccgm2_BuildAssignment (op1, res);
+    gccgm2_BuildGoto (labelEndName);
+    gccgm2_DeclareLabel (labelElseName);
+    res = gccgm2_BuildLRRn (op2,
+			    gccgm2_BuildNegate (op3, needconvert),
+			    nBits,
+			    needconvert);
+    gccgm2_BuildAssignment (op1, res);
+    gccgm2_DeclareLabel (labelEndName);
+  }
 }
 
 /*
@@ -9018,7 +9185,8 @@ buildUnboundedArrayOf (unbounded, contentsPtr, high)
   constructor = build (CONSTRUCTOR, unbounded, NULL_TREE,
 		       nreverse (field_list));
   TREE_CONSTANT (constructor) = 0;
-  TREE_STATIC (constructor) = 0;  /* is this correct? (gaius) */
+  TREE_STATIC (constructor) = 0;
+
   return constructor;
 }
 
@@ -9030,12 +9198,13 @@ buildUnboundedArrayOf (unbounded, contentsPtr, high)
  */
 
 void
-gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
+gccgm2_BuildBinarySetDo (settype, op1, op2, op3,
+			 binop,
 			 is_op1lvalue, is_op2lvalue, is_op3lvalue,
 			 nBits, unbounded,
 			 varproc, leftproc, rightproc)
      tree settype, op1, op2, op3;
-     tree (*binop)(tree, tree, int);
+     tree (*binop)(tree, tree, tree, tree, int);
      int is_op1lvalue, is_op2lvalue, is_op3lvalue;
      tree nBits;
      tree unbounded;
@@ -9047,14 +9216,11 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
-
-    /* got to here - improve by adding a binopleft, binopright
-     * for constant op3
-     */
-    gccgm2_BuildAssignment (get_rvalue (op1, settype, is_op1lvalue),
-			    (*binop) (get_rvalue (op2, settype, is_op2lvalue),
-				      get_rvalue (op3, settype, is_op3lvalue),
-				      FALSE));
+    (*binop) (get_rvalue (op1, settype, is_op1lvalue),
+	      get_rvalue (op2, settype, is_op2lvalue),
+	      get_rvalue (op3, settype, is_op3lvalue),
+	      nBits,
+	      FALSE);
   else {
     tree result;
     tree high = gccgm2_BuildSub (gccgm2_BuildDiv (size,
@@ -9062,32 +9228,12 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
 				 gccgm2_GetIntegerOne (), FALSE);
 
     /*
-     *  these parameters must match the prototypes of the procedures:
-     *  ShiftLeft, ShiftRight, ShiftVal, RotateLeft, RotateRight, RotateVal
-     *  inside gm2-iso/SYSTEM.mod
-     */
-#if 0
-    /* parameter 1 source set */
-    gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
-					      get_rvalue (op2, settype,
-							  is_op2lvalue),
-					      high));
-
-    /* parameter 2 destination set */
-    gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
-					      get_rvalue (op2, settype,
-							  is_op2lvalue),
-					      high));
-#endif
-    /* parameter 3 nBits */
-    gccgm2_BuildParam (nBits);
-
-    /*
      * if op3 is constant
      * then
      *    make op3 positive and remember which direction we are shifting
      * fi
      */
+    op3 = skip_const_decl (op3);
     if (TREE_CODE (op3) == INTEGER_CST) {
       is_const = TRUE;
       if (tree_int_cst_sgn (op3) < 0)
@@ -9096,9 +9242,32 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
 	is_left = TRUE;
     }
 
+    /*
+     *  these parameters must match the prototypes of the procedures:
+     *  ShiftLeft, ShiftRight, ShiftVal, RotateLeft, RotateRight, RotateVal
+     *  inside gm2-iso/SYSTEM.mod.
+     *
+     *  Remember we must build the parameters in reverse.
+     */
+
     /* parameter 4 amount */
     gccgm2_BuildParam (get_rvalue (op3, skip_type_decl (TREE_TYPE (op3)),
 				   is_op3lvalue));
+
+    /* parameter 3 nBits */
+    gccgm2_BuildParam (nBits);
+
+    /* parameter 2 destination set */
+    gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
+					      get_set_address (op1, 
+							       is_op1lvalue),
+					      high));
+
+    /* parameter 1 source set */
+    gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
+					      get_set_address (op2,
+							       is_op2lvalue),
+					      high));
 
     /* now call the appropriate procedure inside SYSTEM.mod */
     if (is_const)
@@ -9110,7 +9279,6 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3, binop,
       result = gccgm2_BuildProcedureCall (varproc, NULL_TREE);
   }
 }
-
 
 /*
  *  BuildConvert - build and return tree VAL(op1, op2)
@@ -9388,6 +9556,45 @@ gccgm2_BuildSetNegate (op1, needconvert)
 }
 
 /*
+ *  gccgm2_GetSizeOfInBits - returns the number of bits used to contain, type.
+ */
+
+tree
+gccgm2_GetSizeOfInBits (type)
+     tree type;
+{
+  enum tree_code code = TREE_CODE (type);
+
+  if (code == FUNCTION_TYPE)
+    return gccgm2_GetSizeOfInBits (ptr_type_node);
+
+  if (code == VOID_TYPE) {
+    error ("sizeof applied to a void type");
+    return size_one_node;
+  }
+
+  if (code == VAR_DECL)
+    return gccgm2_GetSizeOfInBits (TREE_TYPE (type));
+
+  if (code == PARM_DECL)
+    return gccgm2_GetSizeOfInBits (TREE_TYPE (type));
+
+  if (code == TYPE_DECL)
+    return gccgm2_GetSizeOfInBits (TREE_TYPE (type));
+
+  if (code == ERROR_MARK)
+    return size_one_node;
+
+  if (!COMPLETE_TYPE_P (type))
+    {
+      error ("sizeof applied to an incomplete type");
+      return size_zero_node;
+    }
+
+  return TYPE_PRECISION (type);
+}
+
+/*
  *  gccgm2_GetSizeOf - taken from c-typeck.c (c_sizeof).
  */
 
@@ -9485,6 +9692,18 @@ gccgm2_BuildOffset (field, needconvert)
 								gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
 								FALSE),
 					       FALSE));
+}
+
+/*
+ *  BuildLogicalOrAddress - build a logical or expressions and return the tree.
+ */
+
+tree
+gccgm2_BuildLogicalOrAddress (op1, op2, needconvert)
+     tree op1, op2;
+     int  needconvert;
+{
+  return build_binary_op (BIT_IOR_EXPR, op1, op2, needconvert);
 }
 
 /*
@@ -11599,7 +11818,8 @@ gccgm2_BuildFieldRecord (name, type)
 }
 
 /*
- *  ChainOn - interface so that Modula-2 can also create chains of declarations.
+ *  ChainOn - interface so that Modula-2 can also create chains of
+ *            declarations.
  */
 
 tree

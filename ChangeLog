@@ -1,3 +1,21 @@
+2004-06-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* renamed the -Wunbounded-by-reference option to
+	  -funbounded-by-reference as suggested by Waldek Hebisch.
+	* finished ISO SYSTEM implementation.
+	* ROTATE, SHIFT now work with smaller than WORD sized sets,
+	  WORD sized sets and larger than WORD sized sets.
+	* gm2-iso/SYSTEM.mod is called by the back end if larger than
+	  WORD sized sets are ROTATEd or SHIFTed.
+	* updated gm2.texi to include new sections describing ISO and PIM
+	  versions of the SYSTEM module.
+	* renamed m2.lex as m2.flex, c.lex as c.flex to fix a bug
+	  reported by Gerrit Haase while attempting the cygwin port.
+        * renamed gm2-compiler/m2lex.def as gm2-compiler/m2flex.def
+	* modified gm2-compiler/M2Comp to use m2flex
+	* modified Make-lang.in to use m2.flex and c.flex
+	* modified init/h2definit, init/gm2linit to use m2flex
+	
 2004-05-10	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2 now builds on FreeBSD 5.2.1
@@ -488,7 +506,7 @@
 	* gm2m rewritten
 	* gm2 and its utilities now use -I for path specification
 	  rather than -M
-	* Makefiles much simplified, removed most recusive makes.
+	* Makefiles much simplified, removed most recursive makes.
 	* all parsers are now mechanically generated using ppg.
 	* ppg built if required.
 	

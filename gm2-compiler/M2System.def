@@ -48,6 +48,7 @@ EXPORT QUALIFIED
                  GetSystemTypeMinMax,
                  IsPseudoSystemFunction,
                  IsSystemType,
+                 IsPseudoSystemFunctionConstExpression,
 
                  InitSystem ;
 
@@ -86,6 +87,14 @@ PROCEDURE GetSystemTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
 *)
 
 PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsPseudoSystemFunctionConstExpression - returns TRUE if this procedure
+                                           is legal in a constant expression.
+*)
+
+PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

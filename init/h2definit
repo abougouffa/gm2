@@ -29,6 +29,6 @@ Lists
 choosetemp
 M2FileName
 CLexBuf
-clex
+cflex
 h2def
 mod_init
