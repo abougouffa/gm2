@@ -47,7 +47,7 @@ EXPORT QUALIFIED P1StartBuildDefinitionModule,
                  BuildProcedureHeading,
                  BuildNulName,
                  BuildTypeEnd,
-                 CheckExplicitExportQualified ;
+                 CheckExplicitExported ;
 
 
 (*
@@ -271,23 +271,23 @@ PROCEDURE BuildExportOuterModule ;
 
 
 (*
-   CheckExplicitExportQualified - checks to see whether we are compiling
-                                  a definition module and whether the ident
-                                  is implicitly export qualified.
+   CheckExplicitExported - checks to see whether we are compiling
+                           a definition module and whether the ident
+                           is implicitly export qualified or unqualified.
 
 
-                                  The Stack is expected:
+                           The Stack is expected:
 
-                                  Entry                 Exit
+                           Entry                 Exit
 
-                           Ptr ->                Ptr ->
-                                  +------------+        +-----------+
-                                  | Identname  |        | Identname |
-                                  |------------|        |-----------|
+                    Ptr ->                Ptr ->
+                           +------------+        +-----------+
+                           | Identname  |        | Identname |
+                           |------------|        |-----------|
  
 *)
 
-PROCEDURE CheckExplicitExportQualified ;
+PROCEDURE CheckExplicitExported ;
 
 
 (*

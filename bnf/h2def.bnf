@@ -243,6 +243,7 @@ VAR
    emitting            : EmitType ;
    CurColumn,
    Indent              : CARDINAL ;
+   ParamName,
    CurrentUserPath,
    SystemPath          : String ;
    DummyNo             : CARDINAL ;
@@ -250,6 +251,7 @@ VAR
 
 
 (* %%%FORWARD%%%
+PROCEDURE DisplayNode (n: Node) ; FORWARD ;
 PROCEDURE IsTypeDef (n: Node) : BOOLEAN ; FORWARD ;
 PROCEDURE IsPointer (n: Node) : BOOLEAN ; FORWARD ;
 PROCEDURE writes (s: String) : String ; FORWARD ;
@@ -279,6 +281,20 @@ PROCEDURE setwatch (n: Node) ;
 BEGIN
    watch := n
 END setwatch ;
+
+
+(*
+   MakeUniqueName - 
+*)
+
+PROCEDURE MakeUniqueName () : Name ;
+VAR
+   s: String ;
+BEGIN
+   s := Add(ParamName, Sprintf1(Mark(InitString('%d')), DummyNo)) ;
+   INC(DummyNo) ;
+   RETURN( makekey(string(Mark(s))) )
+END MakeUniqueName ;
 
 
 (*
@@ -348,16 +364,27 @@ PROCEDURE ChainOn ;
 VAR
    n1, n2, t: Node ;
 BEGIN
+   IF Debugging
+   THEN
+      hprintf0('chaining top two stack elements\n') ;
+      DisplayStack
+   END ;
    InitChain ;
    n1 := Pop() ;
    n2 := Pop() ;
+   IF n2^.type#ndchain
+   THEN
+      DisplayStack ;
+      ErrorArray('internal error: expecting chained node')
+   END ;
    t := n2^.nextChain ;
    WHILE t^.nextChain#n2 DO
       t := t^.nextChain
    END ;
    t^.nextChain := n1 ;
    n1^.nextChain := n2 ;
-   Push(n2)
+   Push(n2) ;
+   DisplayStack
 END ChainOn ;
 
 
@@ -499,6 +526,10 @@ PROCEDURE ChainTopTwoIdent ;
 VAR
    n1, n2: Node;
 BEGIN
+   IF Debugging
+   THEN
+      hprintf0('chaining top two stack elements\n')
+   END ;
    DisplayStack ;
    n1 := Pop() ;
    n2 := Pop() ;
@@ -536,7 +567,8 @@ BEGIN
       Push(n2) ;
       Push(n1) ;
       ChainTopTwo
-   END
+   END ;
+   DisplayStack
 END ChainTopTwoIdent ;
 
 
@@ -1136,7 +1168,7 @@ BEGIN
    ELSIF t={longp, doublep}
    THEN
       hprintf0('LONGREAL')
-   ELSIF (t={unsignedp, intp}) OR (t={unsignedp})
+   ELSIF (t={unsignedp, intp}) OR (t={unsignedp}) OR (t={unsignedp, longp})
    THEN
       hprintf0('CARDINAL')
    ELSIF t={unsignedp, intp, longp}
@@ -1408,8 +1440,7 @@ BEGIN
          n := SkipDummy(n) ;
          IF (emitting=procedures) AND (n#NIL) AND (n^.type#ndvararg)
          THEN
-            hprintf1('__gm2param%d: ', DummyNo) ;
-            INC(DummyNo)
+            hprintf1('%s', InitStringCharStar(MakeUniqueName()))
          END ;
          IF IsArray(n)
          THEN
@@ -1430,7 +1461,6 @@ PROCEDURE PrintParameters (n, t: Node) ;
 BEGIN
    IF emitting=procedures
    THEN
-      DummyNo := 1 ;
       PrintChain(n, t, PrintParameter, '; ')
    ELSE
       PrintChain(n, t, PrintParameter, ', ')
@@ -1466,22 +1496,36 @@ END FindFunc ;
 PROCEDURE CheckProcedureParameters (n: Node) ;
 VAR
    f, i, t, m: Node ;
+   count     : CARDINAL ;
 BEGIN
    IF (n#NIL) AND (n^.type=ndchain)
    THEN
       m := n ;
+      count := 1 ;
       REPEAT
-         IF (m^.chain#NIL) AND (m^.chain^.type=ndident)
+         f := NIL ;
+         IF (m^.chain#NIL) AND (emitting=procedures)
          THEN
-            f := FindFunc(m^.chain^.id.type)
-         ELSE
-            f := NIL
+            m^.chain := SkipDummy(m^.chain) ;
+            IF (NOT IsVoid(m^.chain)) AND (m^.chain^.type#ndvararg)
+            THEN
+               IF m^.chain^.type#ndident
+               THEN
+                  i := InitNode(ndident) ;
+                  i^.id.name := MakeUniqueName() ;
+                  i^.id.type := m^.chain ;
+                  m^.chain := i ;
+                  INC(count)
+               END ;
+               f := FindFunc(m^.chain^.id.type)
+            END
          END ;
          IF f#NIL
          THEN
             i := InitNode(ndident) ;
-            i^.id.name := makekey(string(Sprintf1(Mark(InitString('__gm2param%d')), DummyNo))) ;
+            i^.id.name := MakeUniqueName() ;
             i^.id.type := MakeBaseNode(m^.chain^.id.name) ;
+            INC(count) ;
             
             t := InitNode(ndtypedef) ;
             t^.chain := m^.chain^.id.type ;
@@ -1641,7 +1685,12 @@ BEGIN
                             Indent := PushIndent(CurColumn+4) ;
                             Indent := PushIndent(CurColumn+4) ;
                             hprintf0('RECORD\n') ;
-                            PrintNode(str.list, t) ;
+                            IF str.list=NIL
+                            THEN
+                               PopIndent
+                            ELSE
+                               PrintNode(str.list, NIL)
+                            END ;
                             hprintf0('END') ;
                             PopIndent
                          ELSE
@@ -1650,7 +1699,10 @@ BEGIN
                             THEN
                                hprintf0('; (* var *)')
                             END ;
-                            PutItemIntoList(ToDoList, n)
+                            IF str.list#NIL
+                            THEN
+                               PutItemIntoList(ToDoList, n)
+                            END
                          END |
          ndstructfield:  PrintNode(esf.decl, esf.type) ; (* hprintf0('<:') ; PrintNode(esf.type, t) ; *)
                          IF chain=NIL
@@ -1681,7 +1733,8 @@ BEGIN
                                hprintf0(' : ') ;
                                PrintSimpleType(func.type)
                             END
-                         END |
+                         END ;
+                         RETURN |
          ndbase       :  PrintBaseType(n) ; RETURN (* hprintf1('%s', Mark(InitStringCharStar(base.name))) *) |
          ndvararg     :  hprintf0(', ...')
 
@@ -1694,6 +1747,10 @@ BEGIN
    END
 END PrintNode ;
 
+PROCEDURE stop ;
+BEGIN
+   DisplayStack
+END stop ;
 
 (*
    PushIndent - 
@@ -1801,6 +1858,9 @@ END IsTypeDef ;
 *)
 
 PROCEDURE PrintCNode (n: Node) ;
+VAR
+   c: Node ;
+   i: CARDINAL ;
 BEGIN
    DisplayStack ;
    IF n#NIL
@@ -1818,14 +1878,36 @@ BEGIN
                           Indent := PushIndent(CurColumn+4) ;
                           Indent := PushIndent(CurColumn+4) ;
                           hprintf0('RECORD\n') ;
-                          PrintNode(str.list, NIL) ;
+                          IF str.list=NIL
+                          THEN
+                             PopIndent
+                          ELSE
+                             PrintNode(str.list, NIL)
+                          END ;
                           hprintf0('END') ;
                           PopIndent ;
                        END ;
                     END ;
                     RETURN |
-         ndenum:    IF n^.en.name#NIL
+         ndenum:    IF n^.en.name=NIL
                     THEN
+                       Emit(consts) ;
+                       i := 0 ;
+                       c := en.list ;
+                       WHILE c#NIL DO
+                          IF c^.type=ndenumfield
+                          THEN
+                             IF i>0
+                             THEN
+                                hprintf0(' ;\n')
+                             END ;
+                             hprintf1('%s = ', Mark(InitStringCharStar(KeyToCharStar(c^.ef.name)))) ;
+                             hprintf1('%d', i) ;
+                             INC(i)
+                          END ;
+                          c := c^.chain
+                       END
+                    ELSE
                        IF NOT IsItemInList(DoneList, n^.en.name)
                        THEN
                           PutItemIntoList(DoneList, n^.en.name) ;
@@ -2025,7 +2107,10 @@ END EvaluateNode ;
 PROCEDURE Push (w: WORD) ;
 VAR
    e: ExpStack ;
+   n: Node ;
 BEGIN
+   n := w ;
+
    IF freeExp=NIL
    THEN
       NEW(e)
@@ -2113,7 +2198,7 @@ BEGIN
       ndarraytype:  hprintf0('ndarraytype\n') |
       ndenum:  hprintf0('ndenum\n') |
       ndptr:  hprintf0('ndptr\n') |
-      ndbase:  hprintf0('ndbase\n') |
+      ndbase:  hprintf1('ndbase %s\n', Mark(InitStringCharStar(n^.base.name))) |
       ndenumfield:  hprintf0('ndenumfield\n') |
       ndstructfield:  hprintf0('ndstructfield\n') |
       ndfunc:  hprintf0('ndfunc\n') |
@@ -2496,9 +2581,10 @@ END GetDirectory ;
 
 PROCEDURE Usage ;
 BEGIN
-   printf0('Usage: h2def [-h] [-Ddefinedsymbol [-Cresolveatcompiletime] [-Isearchpath] [-o outputfile] includefile\n') ;
+   printf0('Usage: h2def [-h] [-Ddefinedsymbol [-Cresolveatcompiletime] [-Isearchpath] [-o outputfile] [-n parameterstem] includefile\n') ;
    printf0('       -Dsymbol            define symbol\n') ;
    printf0('       -Csymbol            set symbol to be resolved at compile time\n') ;
+   printf0('       -nstem              use stem1, stem2 as parameter names\n') ;
    printf0('       -o outputfile       write output to outputfile, use stdout if outputfile is -\n') ;
    exit(0)
 END Usage ;
@@ -2535,6 +2621,9 @@ BEGIN
                exit(1)
             END ;
             OpenOutputFile(OutputFile)
+         ELSIF EqualArray(Slice(s, 0, 2), '-n')
+         THEN
+            ParamName := Slice(s, 2, 0)
          ELSIF EqualArray(Slice(s, 0, 2), '-D')
          THEN
             DefineMacro(makekey(string(Slice(s, 2, 0))), 0)
@@ -2607,6 +2696,8 @@ BEGIN
    InitList(ConstList) ;
    Indent := 0 ;
    CurColumn := 0 ;
+   ParamName := InitString('p') ;
+   DummyNo := 1 ;
    ParseArgs
 END Init ;
 
@@ -2749,12 +2840,13 @@ ExternalDeclaration := DeclarationSpecifiers                      % VAR n: Node 
                                                                   % n := Pop() ;
                                                                     Push(n) %
                                                                     
-                           [ Declarator                           % ChainTopTwoIdent ;
+                           ( Declarator                           % ChainTopTwoIdent ;
                                                                     PrintCNode(Pop()) ; hprintf0(' ;\n') %
                                         { ','                     % Push(n) %
                                               Declarator          % ChainTopTwoIdent ;
                                                                     PrintCNode(Pop()) ; hprintf0(' ;\n') %
-                                                         } ]    
+                                                         } |      % PrintCNode(Pop()) ; hprintf0(' ;\n') %
+                           )
                        ';' =:
 
 DeclarationSpecifiers :=
@@ -2846,7 +2938,8 @@ EnumSpecifier := 'enum'                                           % Push(InitNod
                                                                     Push(n) %
                                 [ '{' EnumeratorList              % AddNodeToList(n, Pop()) %
                                   '}' ] |
-                        '{' EnumeratorList                        % AddNodeToList(n, Pop()) %
+                        '{'                                       % n := Pop() ; Push(n) %
+                            EnumeratorList                        % AddNodeToList(n, Pop()) %
                         '}' ) =:
 
 EnumeratorList := Enumerator
@@ -2892,19 +2985,23 @@ DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i:
                                                     ]             % ChainTopTwoIdent %
                                                       ']' |
                            '('
-                                                                  % DisplayStack ;
-                                                                    i := Pop() ;
-                                                                    t := Pop() ;
+                                                                  % i := Pop() ;
                                                                     IF i^.type#ndident
                                                                     THEN
-                                                                       ErrorArray('internal error: expecting ident')
-                                                                    END %
-                               [ ParameterTypeList                % n := InitNode(ndfunc) ;
+                                                                       t := i ;
+                                                                       i := InitNode(ndident) ;
+                                                                       i^.id.name := MakeUniqueName() ;
+                                                                       i^.id.type := t
+                                                                    END ;
+                                                                    t := Pop() %
+                               [ ParameterTypeList                % DisplayStack ;
+                                                                    n := InitNode(ndfunc) ;
                                                                     n^.func.type := t ;
                                                                     n^.func.list := Pop() %
                                                    ]              % Push(InitNode(nddummy)) ;
                                                                     Push(n) ;
                                                                     Push(i) ;
+                                                                    DisplayStack ;
                                                                     ChainTopTwoIdent %
                                                      ')'
                        =:
@@ -2927,7 +3024,7 @@ ParameterTypeList := ParameterDeclaration                         % InitChain %
 
 AbstractDeclarator := DirectDeclarator =:
 
-ParameterDeclaration := DeclarationSpecifiers
+ParameterDeclaration := DeclarationSpecifiers                     % stop %
                               [ Declarator                        % ChainTopTwoIdent (* was DirectDeclarator *) %
                               ] =:
 

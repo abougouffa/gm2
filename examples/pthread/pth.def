@@ -15,14 +15,7 @@ CONST
      
 TYPE
      fd_set =  ADDRESS ;
-     __time_t =   LONGINT ;
-     __useconds_t =   CARDINAL ;
-     __suseconds_t =   LONGINT ;
      size_t =   CARDINAL ;
-    timeval = RECORD
-                 tv_sec: __time_t ;
-                 tv_usec: __suseconds_t ;
-              END ;
     
      sigset_t =  ADDRESS ;
      pid_t =   INTEGER ;
@@ -87,14 +80,14 @@ CONST
     PTH_EVENT_FUNC  =  BITSET {9} ;
 
     (* event occurange restrictions *)
-    PTH_UNTIL_OCCURRED =  BITSET {11} ;
-    PTH_UNTIL_FD_READABLE =  BITSET {12} ;
+    PTH_UNTIL_OCCURRED     =  BITSET {11} ;
+    PTH_UNTIL_FD_READABLE  =  BITSET {12} ;
     PTH_UNTIL_FD_WRITEABLE =  BITSET {13} ;
     PTH_UNTIL_FD_EXCEPTION =  BITSET {14} ;
-    PTH_UNTIL_TID_NEW =  BITSET {15} ;
-    PTH_UNTIL_TID_READY =  BITSET {16} ;
-    PTH_UNTIL_TID_WAITING =  BITSET {17} ;
-    PTH_UNTIL_TID_DEAD =  BITSET {18} ;
+    PTH_UNTIL_TID_NEW      =  BITSET {15} ;
+    PTH_UNTIL_TID_READY    =  BITSET {16} ;
+    PTH_UNTIL_TID_WAITING  =  BITSET {17} ;
+    PTH_UNTIL_TID_DEAD     =  BITSET {18} ;
 
     (* event structure handling modes *)
     PTH_MODE_REUSE  =  BITSET {20} ;

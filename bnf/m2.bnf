@@ -70,7 +70,7 @@ FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        BuildImportInnerModule,
                        BuildExportOuterModule,
                        BuildExportInnerModule,
-                       CheckExplicitExportQualified,
+                       CheckExplicitExported,
 
                        BuildHiddenType,
                        BuildTypeEnd,
@@ -340,7 +340,7 @@ VAR
    nothing: CARDINAL ;
 BEGIN
    PushTF(currentstring, identtok) ;
-   CheckExplicitExportQualified ;
+   CheckExplicitExported ;
    IF NOT IsAutoPushOn()
    THEN
       PopT(nothing)

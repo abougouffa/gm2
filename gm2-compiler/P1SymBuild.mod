@@ -50,6 +50,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutImported,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         PutDefinitionForC,
+                        IsDefinitionForC,
                         PutDoesNeedExportList, PutDoesNotNeedExportList,
                         DoesNotNeedExportList,
                         MakeProcedure,
@@ -517,9 +518,9 @@ END BuildExportOuterModule ;
 
 
 (*
-   CheckExplicitExportQualified - checks to see whether we are compiling
-                                  a definition module and whether the ident
-                                  is implicitly export qualified.
+   CheckExplicitExported - checks to see whether we are compiling
+                           a definition module and whether the ident
+                           is implicitly export qualified or unqualified.
 
 
                                   The Stack is expected:
@@ -533,14 +534,19 @@ END BuildExportOuterModule ;
  
 *)
 
-PROCEDURE CheckExplicitExportQualified ;
+PROCEDURE CheckExplicitExported ;
 BEGIN
    IF CompilingDefinitionModule() AND DoesNotNeedExportList(GetCurrentModule())
    THEN
       (* printf1('exporting identifier %a\n', OperandT(1)) ; *)
-      PutExportQualified(OperandT(1))
+      IF IsDefinitionForC(GetCurrentModule())
+      THEN
+         PutExportUnQualified(OperandT(1))
+      ELSE
+         PutExportQualified(OperandT(1))
+      END
    END
-END CheckExplicitExportQualified ;
+END CheckExplicitExported ;
 
 
 (*
