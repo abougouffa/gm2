@@ -29,7 +29,7 @@ EXPORT UNQUALIFIED GraphicsMode,
                    vga_clear, vga_flip,
                    vga_getxdim, vga_getydim,
                    vga_screenon, vga_screenoff,
-                   vga_readpixel, vga_drawpixel, vga_drawline, vga_setcolor,
+                   vga_getpixel, vga_drawpixel, vga_drawline, vga_setcolor,
                    vga_white,
                    vga_getch ;
 
@@ -69,7 +69,7 @@ PROCEDURE vga_getxdim () : CARDINAL ;
 PROCEDURE vga_getydim () : CARDINAL ;
 PROCEDURE vga_screenon ;
 PROCEDURE vga_screenoff ;
-PROCEDURE vga_readpixel (x, y: CARDINAL) : CARDINAL ;
+PROCEDURE vga_getpixel (x, y: CARDINAL) : CARDINAL ;
 PROCEDURE vga_drawpixel (x, y: CARDINAL) ;
 PROCEDURE vga_drawline (x1, y1, x2, y2: CARDINAL) ;
 PROCEDURE vga_setcolor (colour: CARDINAL) ;
