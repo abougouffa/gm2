@@ -30,6 +30,7 @@ EXPORT UNQUALIFIED GraphicsMode,
                    vga_getxdim, vga_getydim,
                    vga_screenon, vga_screenoff,
                    vga_readpixel, vga_drawpixel, vga_drawline, vga_setcolor,
+                   vga_white,
                    vga_getch ;
 
 TYPE
@@ -73,5 +74,6 @@ PROCEDURE vga_drawpixel (x, y: CARDINAL) ;
 PROCEDURE vga_drawline (x1, y1, x2, y2: CARDINAL) ;
 PROCEDURE vga_setcolor (colour: CARDINAL) ;
 PROCEDURE vga_getch () : CHAR ;
+PROCEDURE vga_white () : CARDINAL ;
 
 END vga.

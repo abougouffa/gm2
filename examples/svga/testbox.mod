@@ -16,7 +16,7 @@ with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 MODULE testbox ;
 
-FROM vga IMPORT GraphicsMode, vga_init, vga_setmode, vga_hasmode, vga_getch ;
+FROM vga IMPORT GraphicsMode, vga_init, vga_setmode, vga_hasmode, vga_getch, vga_white ;
 FROM Matrix3D IMPORT Init, Set, Get, Add, Mult, Kill, Del,
                      Matrix, MatrixValue ;
 FROM Transform IMPORT Translate, Rotate, Scale ;
@@ -28,7 +28,6 @@ FROM MathLib0 IMPORT pi ;
 
 
 CONST
-   Colour = 15 ;
    Debugging = FALSE ;
 
 VAR
@@ -161,6 +160,7 @@ VAR
    ch  : CHAR ;
    Rotation,
    Movement: Matrix ;
+   Colour,
    Count   : CARDINAL ;
 BEGIN
    IF NOT Debugging
@@ -172,7 +172,8 @@ BEGIN
       ELSE
          WriteString('vga does not know about 640x480 ? ') ; WriteLn ;
          vga_setmode(G320x200x256)
-      END
+      END ;
+      Colour := vga_white()
    END ;
    SetupViewingTransform ;
    CurrentTransform := Mult( Kill( Scale( 3.0, 3.0 ) ),
