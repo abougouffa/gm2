@@ -1,4 +1,4 @@
-(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* Copyright (C) 2004 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,32 +15,51 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE shift ;
+MODULE shift3 ;
 
 FROM libc IMPORT exit ;
 FROM SYSTEM IMPORT SHIFT ;
 
-VAR
-   b: BITSET ;
-   i: INTEGER ;
+PROCEDURE Check (a, b: large) ;
 BEGIN
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, 1) ;
-   IF b#BITSET{2, 3, 4}
+   IF a#b
    THEN
       exit(1)
-   END ;
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, -1) ;
-   IF b#BITSET{0, 1, 2}
+   END
+END Check ;
+
+
+PROCEDURE DoIt (s: large; v: INTEGER; r: large) ;
+BEGIN
+   s := SHIFT(s, v) ;
+   IF s#r
    THEN
       exit(2)
-   END ;
-   i := -1 ;
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, i) ;
-   IF b#BITSET{0, 1, 2}
-   THEN
-      exit(3)
    END
-END shift.
+END DoIt ;
+
+
+TYPE
+   large = SET OF [0..1023] ;
+VAR
+   b: large ;
+   i: INTEGER ;
+BEGIN
+   b := large{1, 2, 3} ;
+   b := SHIFT(b, 1) ;
+   Check(b, large{2, 3, 4}) ;
+   b := large{1, 2, 3} ;
+   b := SHIFT(b, -1) ;
+   Check(b, large{0, 1, 2}) ;
+   i := 1 ;
+   b := large{1, 2, 3} ;
+   DoIt(b, i, large{2, 3, 4}) ;
+   i := -1 ;
+   b := large{3, 4, 5} ;
+   DoIt(b, i, large{2, 3, 4})
+END shift3.
+(*
+ * Local variables:
+ *  compile-command: "gm2 -Wiso -c -g -I. shift3.mod"
+ * End:
+ *)

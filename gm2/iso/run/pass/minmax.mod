@@ -1,4 +1,4 @@
-(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,32 +15,23 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE shift ;
+MODULE minmax ;
 
-FROM libc IMPORT exit ;
-FROM SYSTEM IMPORT SHIFT ;
+
+TYPE
+   color = (red, blue, green) ;
+   colourset = SET OF color ;
 
 VAR
-   b: BITSET ;
-   i: INTEGER ;
+   c1, c2: color ;
+   b1, b2: CARDINAL ;
 BEGIN
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, 1) ;
-   IF b#BITSET{2, 3, 4}
-   THEN
-      exit(1)
-   END ;
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, -1) ;
-   IF b#BITSET{0, 1, 2}
-   THEN
-      exit(2)
-   END ;
-   i := -1 ;
-   b := BITSET{1, 2, 3} ;
-   b := SHIFT(b, i) ;
-   IF b#BITSET{0, 1, 2}
-   THEN
-      exit(3)
-   END
-END shift.
+   c1 := MIN(colourset) ;
+   c2 := MAX(colourset) ;
+(*
+   Assert(c1=red) ;
+   Assert(c2=green) ;
+*)
+   b1 := MIN(BITSET) ;
+   b2 := MAX(BITSET)
+END minmax.

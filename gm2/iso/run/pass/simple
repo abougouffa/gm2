@@ -1,0 +1,21 @@
+#!/bin/sh
+
+function runit () {
+   ./a.out 
+    code=$?
+    if [ $code != 0 ] ; then
+       echo $1 failed with $code
+    fi
+}
+
+gm2 -I. -Wiso -g $1 -c shift.mod
+gm2 -I. -Wiso -g $1 -c shift2.mod
+gm2 -I. -Wiso -g $1 -c -Wcpp testsystem.mod
+gm2 -I. -Wiso -g $1 -c ../../../../../gm2/gm2-iso/SYSTEM.mod
+
+gm2 -I. -Wiso -g $1 shift.mod
+runit shift.mod
+gm2 -I. -Wiso -g $1 shift2.mod
+runit shift2.mod
+gm2 -I. -Wiso -g $1 testsystem.mod
+runit testsystem.mod

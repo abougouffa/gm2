@@ -27,10 +27,14 @@ VAR
 BEGIN
    b := large{1, 2, 3} ;
    b := SHIFT(b, 1) ;
-   IF b=large{2, 3, 4}
+   IF b#large{2, 3, 4}
    THEN
-      exit(0)
-   ELSE
       exit(1)
+   END ;
+   b := large{1, 2, 3} ;
+   b := SHIFT(b, -1) ;
+   IF b#large{0, 1, 2}
+   THEN
+      exit(2)
    END
 END shift2.
