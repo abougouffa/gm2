@@ -486,7 +486,8 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      FpuIO.def         Debug.def       SysStorage.def  MATH.def        \
                      Storage.def       StdIO.def       libc.def        SEnvironment.def\
                      Strings.def       SFIO.def        SArgs.def \
-                     PushBackInput.def StringConvert.def FormatStrings.def
+                     PushBackInput.def StringConvert.def FormatStrings.def \
+                     Builtins.def      cbuiltin.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -496,7 +497,8 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      FpuIO.mod         Debug.mod       SysStorage.mod  MATH.mod        \
                      Storage.mod       StdIO.mod                       SEnvironment.mod\
                      Strings.mod       SFIO.mod        SArgs.mod \
-                     PushBackInput.mod StringConvert.mod FormatStrings.mod
+                     PushBackInput.mod StringConvert.mod FormatStrings.mod \
+                     Builtins.mod
 
 GM2-LIBS-C         = wrapc.c           libc.c          UnixArgs.c      Selective.c     \
                      choosetemp.c
@@ -535,7 +537,7 @@ GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lsub.m
 GM2-AUTO-MODS      = P2Build.mod       P3Build.mod     PHBuild.mod     P1SyntaxCheck.mod \
                      gm2l.mod          gm2m.mod
 
-GM2-LIBIBERTY-DEFS = choosetemp.def  pexecute.def
+GM2-LIBIBERTY-DEFS = choosetemp.def    pexecute.def
 
 #
 # GM2-VERIFY-MODS is a list of modules which have no __DATE__ stamp inside them

@@ -1,8 +1,13 @@
+2003-01-02	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by Matthias Manhart
+
 2002-12-20	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added __ATTRIBUTE__ __BUILTIN__ ((Ident))
 	  rules for obtaining target compiler constants
 	* fixed handling of recursive procedure type definitions
+	  bug reported by Iztok Kobal
 	* improved base types to aid gdb in displaying data types
 	* checked in some sketchy initial ISO library implementation
 	  modules

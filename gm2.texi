@@ -329,7 +329,7 @@ libraries can interface to the underlying architecture.
 
 The built-in constants are: @code{BITS_PER_UNIT}, @code{BITS_PER_WORD},
 @code{BITS_PER_CHAR} and @code{UNITS_PER_WORD}. They are integrated into
-GNU Modula-2 by extending the @code{ConstFactor} rule:
+GNU Modula-2 by an extension to the @code{ConstFactor} rule:
 
 @example
 ConstFactor := ConstQualidentOrSet | Number | ConstString |
@@ -346,9 +346,6 @@ CONST
    BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
    LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
 @end example
-
-[--fixme-- the following is actually work in progress and has not been
-completed yet]
 
 To access built-in functions in GNU Modula-2 the user needs to
 import the relevant function. Built-in functions are declared in
@@ -375,8 +372,20 @@ is expressed using the keywords @code{__ATTRIBUTE__} @code{__BUILTIN__}
 maps onto the gcc built-in function @code{sqrtl} and this is expressed as:
 
 @example
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ (sqrtl) sqrt (x: LONGREAL): LONGREAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ (sqrtl) sqrt (x: LONGREAL) : LONGREAL;
   (* Returns the positive square root of x *)
+@end example
+
+The following example code enumerates the list of built-in functions
+which can be accessed in GNU Modula-2. It also serves to define the parameter
+and return value for each function:
+
+@example
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((alloca))
+          alloca (n: CARDINAL) : ADDRESS ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((memcpy))
+          memcpy (dest, src: ADDRESS; nBytes: CARDINAL) : ADDRESS ;
 @end example
 
 @node Internals, , Using, Top
