@@ -47,8 +47,7 @@ EXPORT QUALIFIED P1StartBuildDefinitionModule,
                  BuildProcedureHeading,
                  BuildNulName,
                  BuildTypeEnd,
-                 CheckExplicitExported,
-                 CheckConstFunction ;
+                 CheckExplicitExported ;
 
 
 (*
@@ -289,24 +288,6 @@ PROCEDURE BuildExportOuterModule ;
 *)
 
 PROCEDURE CheckExplicitExported ;
-
-
-(*
-   CheckConstFunction - checks to see whether the function name matches the legal set of
-                        constant functions.
-
-                        The Stack is expected:
-
-                        Entry                 Exit
-
-                 Ptr -> 
-                        +------------+
-                        | Identname  |
-                        |------------|
-                                                  <- Ptr
-*)
-
-PROCEDURE CheckConstFunction ;
 
 
 (*

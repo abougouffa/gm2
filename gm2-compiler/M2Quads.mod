@@ -4945,8 +4945,9 @@ END BuildFunctionCall ;
 
 PROCEDURE BuildConstFunctionCall ;
 VAR
+   ConstExpression,
    NoOfParam,
-   ProcSym  : CARDINAL ;
+   ProcSym        : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -4955,14 +4956,35 @@ BEGIN
    THEN
       BuildFunctionCall
    ELSE
-      IF Iso
+      IF IsAModula2Type(ProcSym)
       THEN
-         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+         (* type conversion *)
+         IF NoOfParam=1
+         THEN
+            ConstExpression := OperandT(NoOfParam+1) ;
+            PopN(NoOfParam+2) ;
+            (*
+               Build macro: CONVERT( ProcSym, ConstExpression )
+            *)
+            PushTF(Convert, NulSym) ;
+            PushT(ProcSym) ;
+            PushT(ConstExpression) ;
+            PushT(2) ;          (* Two parameters *)
+            BuildConvertFunction
+         ELSE
+            WriteFormat0('a constant type conversion can only have one argument')
+         END
       ELSE
-         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
-      END ;
-      PopN(NoOfParam+2) ;
-      PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
+         (* error issue message and fake return stack *)
+         IF Iso
+         THEN
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+         ELSE
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
+         END ;
+         PopN(NoOfParam+2) ;
+         PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
+      END
    END
 END BuildConstFunctionCall ;
 

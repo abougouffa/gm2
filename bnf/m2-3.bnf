@@ -650,7 +650,7 @@ MulOperator := "*"                                                         % Pus
             =:
 
 ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
-               "(" ConstExpression ")" | "NOT" ConstFactor               % BuildNot %
+               "(" ConstExpression ")" | "NOT" ConstFactor                 % BuildNot %
                | ConstAttribute =:
 
 -- to help satisfy LL1
@@ -668,7 +668,7 @@ ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
 QualidentOrSet := SimpleSet                                                % BuildBitsetStart %
                   | Qualident [ SimpleSet ] =:
 
-ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                        % PushAutoOn %
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
                   Ident                                                    % BuildBuiltinConst ;
                                                                              PopAuto %
                   ")" ")" =:

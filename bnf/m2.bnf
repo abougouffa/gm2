@@ -71,7 +71,6 @@ FROM P1SymBuild IMPORT P1StartBuildProgramModule,
                        BuildExportOuterModule,
                        BuildExportInnerModule,
                        CheckExplicitExported,
-                       CheckConstFunction,
 
                        BuildHiddenType,
                        BuildNulName,
@@ -569,9 +568,7 @@ ConstString := string =:
 
 ConstSetOrQualidentOrFunction := SimpleSet | Qualident [ SimpleSet | ConstActualParameters ]  =:
 
-ConstActualParameters :=                                                   % PushT(LastIdent) ;
-                                                                             CheckConstFunction %
-                          "(" [ ExpList ] ")" =:
+ConstActualParameters := "(" [ ExpList ] ")" =:
 
 QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 

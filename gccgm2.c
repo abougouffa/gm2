@@ -9123,7 +9123,6 @@ gccgm2_BuildLSL (op1, op2, needconvert)
   return build_binary_op (LSHIFT_EXPR, op1, op2, needconvert);
 }
 
-
 /*
  *  BuildConvert - build and return tree VAL(op1, op2)
  *                 where op1 is the type to which op2 is to be converted.
@@ -10853,7 +10852,7 @@ tree
 gccgm2_ConvertConstantAndCheck (type, expr)
      tree type, expr;
 {
-  return convert_and_check (skip_type_decl (type), expr);
+  return convert_and_check (skip_type_decl (type), get_tree_val (expr));
 }
 
 /*

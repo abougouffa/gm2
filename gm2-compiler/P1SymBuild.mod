@@ -567,44 +567,6 @@ END CheckExplicitExported ;
 
 
 (*
-   CheckConstFunction - checks to see whether the function name matches the legal set of
-                        constant functions.
-
-                        The Stack is expected:
-
-                        Entry                 Exit
-
-                 Ptr -> 
-                        +------------+
-                        | Identname  |
-                        |------------|
-                                                  <- Ptr
-*)
-
-PROCEDURE CheckConstFunction ;
-VAR
-   name: Name ;
-BEGIN
-   PopT(name) ;
-   IF (name=MakeKey('CAP'))  OR (name=MakeKey('CHR'))    OR (name=MakeKey('FLOAT')) OR 
-      (name=MakeKey('HIGH')) OR (name=MakeKey('MAX')) OR
-      (name=MakeKey('MIN'))  OR (name=MakeKey('ODD'))    OR (name=MakeKey('ORD')) OR 
-      (name=MakeKey('SIZE')) OR (name=MakeKey('TRUNC'))  OR (name=MakeKey('VAL')) OR
-      ((name=MakeKey('LENGTH')) AND Iso)
-   THEN
-      (* legal, nothing to do *)
-   ELSE
-      IF Iso
-      THEN
-         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
-      ELSE
-         WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TRUNC and VAL')
-      END
-   END
-END CheckConstFunction ;
-
-
-(*
    BuildImportInnerModule - Builds imported identifiers into an inner module
                             from the last level of module.
 

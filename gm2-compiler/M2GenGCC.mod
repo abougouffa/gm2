@@ -384,7 +384,7 @@ BEGIN
    CurrentQuadToken := QuadToTokenNo(CurrentQuad) ;
    CheckReferenced(CurrentQuad, Operator) ;
    CheckStop(CurrentQuad) ;
-   IF CurrentQuad=349
+   IF CurrentQuad=414
    THEN
       stop
    END ;

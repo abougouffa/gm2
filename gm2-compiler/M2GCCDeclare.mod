@@ -69,7 +69,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetString, GetStringLength, IsConstString,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
-                        ForeachInnerModuleDo, ForeachImportedDo ;
+                        ForeachInnerModuleDo, ForeachImportedDo, ForeachExportedDo ;
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, LongCard, Real, LongReal, ShortReal, Boolean, True, False,
@@ -1023,25 +1023,28 @@ END AlignDeclarationWithSource ;
 
 PROCEDURE DeclareVariable (ModSym, Son: CARDINAL) ;
 BEGIN
-   AlignDeclarationWithSource(Son) ;
-   IF GetMode(Son)=LeftValue
+   IF NOT GccKnowsAbout(Son)
    THEN
-      (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
-      AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                          BuildPointerType(Mod2Gcc(GetType(Son))),
-                                          IsExported(ModSym, Son),
-                                          IsImported(ModSym, Son),
-                                          IsTemporary(Son),
-                                          TRUE,
-                                          NIL))
-   ELSE
-      AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                          Mod2Gcc(GetType(Son)),
-                                          IsExported(ModSym, Son),
-                                          IsImported(ModSym, Son),
-                                          IsTemporary(Son),
-                                          TRUE,
-                                          NIL))
+      AlignDeclarationWithSource(Son) ;
+      IF GetMode(Son)=LeftValue
+      THEN
+         (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
+         AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
+                                             BuildPointerType(Mod2Gcc(GetType(Son))),
+                                             IsExported(ModSym, Son),
+                                             IsImported(ModSym, Son),
+                                             IsTemporary(Son),
+                                             TRUE,
+                                             NIL))
+      ELSE
+         AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
+                                             Mod2Gcc(GetType(Son)),
+                                             IsExported(ModSym, Son),
+                                             IsImported(ModSym, Son),
+                                             IsTemporary(Son),
+                                             TRUE,
+                                             NIL))
+      END
    END
 END DeclareVariable ;
 
@@ -1077,6 +1080,9 @@ BEGIN
    IF IsVar(Sym)
    THEN
       DeclareVariable(GetMainModule(), Sym)
+   ELSIF IsDefImp(Sym)
+   THEN
+      ForeachExportedDo(Sym, DeclareImportedVariables)
    END
 END DeclareImportedVariables ;
 

@@ -1335,8 +1335,8 @@ PROCEDURE ForeachImportedDo (ModSym: CARDINAL; P: PerformOperation) ;
 
 
 (*
-   ForeachExportedDo - calls a procedure, P, foreach imported symbol
-                       in module, ModSym.
+   ForeachExportedDo - calls a procedure, P, foreach exported symbol
+                       from module, ModSym.
 *)
 
 PROCEDURE ForeachExportedDo (ModSym: CARDINAL; P: PerformOperation) ;
