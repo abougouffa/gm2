@@ -1,3 +1,13 @@
+2000-12-02	Gaius Mulley <gaius@glam.ac.uk>
+
+	* brought gm2 up to date with gcc-20001120
+	* garbage collection now working in gm2
+	* introduced EXPORT UNQUALIFIED as a method for writing
+	  definition modules as interfaces for C libraries
+	* altered link tools to reflect EXPORT UNQUALIFIED
+	* started work on preprocessing source when -Wcpp is supplied
+	* tidied up gccgm2.c
+
 2000-09-25	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added error messages to lang-spec.h. Issued if wrong combination
