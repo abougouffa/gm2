@@ -136,7 +136,7 @@ tree void_type_node;                 /* VOID     */
 tree char_type_node;                 /* CHAR     */
 tree ptr_type_node;                  /* ADDRESS  */
 tree unsigned_char_type_node;        /* BYTE     */
-tree long_unsigned_type_node;        /* CARDINAL & WORD */
+tree long_unsigned_type_node;        /* internal */
 tree float_type_node;                /* REAL     */
 tree double_type_node;               /* LONGREAL */
 tree long_long_integer_type_node;    /* LONGINT  */
@@ -144,7 +144,7 @@ tree long_long_unsigned_type_node;   /* LONGCARD */
 
 tree long_integer_type_node;         /* internal */
 tree long_double_type_node;          /* internal */
-tree unsigned_type_node;             /* internal */
+tree unsigned_type_node;             /* CARDINAL & WORD */
 tree signed_char_type_node;          /* internal */
 tree short_unsigned_type_node;       /* internal */
 tree short_integer_type_node;        /* internal */
@@ -337,6 +337,34 @@ const char *language_string = "Modula-2";
 int flag_traditional=FALSE;	/* Used by dwarfout.c.  */
 int ggc_p=FALSE;                /* don't bother garbage collecting */
 
+
+/*
+ *  tree.c - interface
+ */
+
+void
+gccgm2_EndTemporaryAllocation ()
+{
+  end_temporary_allocation();
+}
+
+void
+gccgm2_ResumeTemporaryAllocation ()
+{
+  resume_temporary_allocation();
+}
+
+void
+gccgm2_PushObstacksNochange ()
+{
+  push_obstacks_nochange();
+}
+
+void
+gccgm2_PopObstacks ()
+{
+  pop_obstacks();
+}
 
 /*
  *  gccgm2_SetFileNameAndLineNo - allows m2f to set the filename and line number
@@ -2602,11 +2630,26 @@ gm2_expand_expr (exp, target, tmode, modifier)
      enum machine_mode tmode ATTRIBUTE_UNUSED;
      enum expand_modifier modifier ATTRIBUTE_UNUSED;
 {
-  fprintf(stderr, "gm2 front end has been asked to expand the following expression\n");
-  debug_tree(exp);
-  fprintf(stderr, "halting\n");
-  do_abort();
-  return( target );
+  switch (TREE_CODE (exp))
+    {
+    case ERROR_MARK:
+      return( error_mark_node );
+      break;
+
+    case IDENTIFIER_NODE:
+      if (exp == boolean_false_node) {
+	return( const0_rtx );
+      } else if (exp == boolean_true_node) {
+	return( const1_rtx );
+      }
+      /* fall through */
+    default:
+      fprintf(stderr, "gm2 front end has been asked to expand the following expression\n");
+      debug_tree(exp);
+      fprintf(stderr, "halting\n");
+      do_abort();
+      return( target );
+    }
 }
 
 /*
@@ -2722,8 +2765,10 @@ init_decl_processing ()
   pushdecl (build_decl (TYPE_DECL, get_identifier ("char"),
 			char_type_node));
 
+#if 1
   sizetype = type_for_size (GET_MODE_BITSIZE (Pmode), 1);
-  pushdecl (build_decl (TYPE_DECL, get_identifier (SIZE_TYPE), sizetype));
+  /* pushdecl (build_decl (TYPE_DECL, get_identifier (SIZE_TYPE), sizetype)); */
+#endif
 
   error_mark_node = make_node (ERROR_MARK);
   TREE_TYPE (error_mark_node) = error_mark_node;
@@ -2746,7 +2791,7 @@ init_decl_processing ()
   pushdecl (build_decl (TYPE_DECL, get_identifier ("unsigned char"),
 			unsigned_char_type_node));
 
-  /* WORD  &  CARDINAL */
+  /* internal */
   long_unsigned_type_node = make_unsigned_type(LONG_TYPE_SIZE);
   pushdecl (build_decl (TYPE_DECL, get_identifier ("unsigned long"),
 			long_unsigned_type_node));
@@ -2792,11 +2837,10 @@ init_decl_processing ()
 #endif
   layout_type (long_double_type_node);
 
+  /* WORD  &  CARDINAL */
   unsigned_type_node = make_unsigned_type (INT_TYPE_SIZE);
-#if 0
   pushdecl (build_decl (TYPE_DECL, get_identifier ("unsigned int"),
 			unsigned_type_node));
-#endif
 
   signed_char_type_node = make_signed_type (CHAR_TYPE_SIZE);
 #if 0
@@ -2878,12 +2922,14 @@ lang_decode_option (argc, argv)
      int argc;
      char **argv;
 {
+#if 0
   int i=0;
 
   while (i<argc) {
     printf("asked to decode arg = %s\n", argv[i]);
     i++;
   }
+#endif
   return 0;
 }
 
@@ -6166,8 +6212,8 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
 
   /* The expression codes of the data types of the arguments tell us
      whether the arguments are integers, floating, pointers, etc.  */
-  code0 = TREE_CODE (type0);
-  code1 = TREE_CODE (type1);
+  code0 = TREE_CODE (base_type (type0));
+  code1 = TREE_CODE (base_type (type1));
 
   /* Strip NON_LVALUE_EXPRs, etc., since we aren't using as an lvalue.  */
   STRIP_TYPE_NOPS (op0);
@@ -8444,7 +8490,9 @@ gccgm2_BuildParameterDeclaration (name, type, isreference)
     param_list = chainon (parm_decl, param_list);
     layout_type (parm_decl);  /* testing (gaius) */
     layout_type (type);  /* testing (gaius) */
+#if 0
     printf("making parameter %s known to gcc\n", name);
+#endif
     param_type_list = tree_cons (NULL_TREE, type, param_type_list);
     return( parm_decl );
   } else {
@@ -8856,9 +8904,7 @@ gccgm2_GetSizeOf (type)
 
   if (code == FUNCTION_TYPE)
     {
-      if (pedantic || warn_pointer_arith)
-	pedwarn ("sizeof applied to a function type");
-      return size_int (1);
+      return( gccgm2_GetSizeOf(ptr_type_node) );
     }
   if (code == VOID_TYPE)
     {
@@ -8866,6 +8912,9 @@ gccgm2_GetSizeOf (type)
 	pedwarn ("sizeof applied to a void type");
       return size_int (1);
     }
+  if (code == VAR_DECL)
+    return( gccgm2_GetSizeOf(TREE_TYPE(type)) );
+
   if (code == ERROR_MARK)
     return size_int (1);
   if (TYPE_SIZE (type) == 0)
@@ -8873,7 +8922,6 @@ gccgm2_GetSizeOf (type)
       error ("sizeof applied to an incomplete type");
       return size_int (0);
     }
-
   /* Convert in case a char is more than one unit.  */
   t = size_binop (CEIL_DIV_EXPR, TYPE_SIZE (type), 
 		  size_int (TYPE_PRECISION (char_type_node)));
@@ -9052,7 +9100,7 @@ tree
 gccgm2_BuildLessThanOrEqual (op1, op2)
      tree op1, op2;
 {
-  return( build_binary_op (LT_EXPR, op1, op2, 0) );
+  return( build_binary_op (LE_EXPR, op1, op2, TRUE) );
 }
 
 
@@ -9174,6 +9222,9 @@ gccgm2_BuildParam (param)
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
   fprintf(stderr, "list of elements\n"); fflush(stderr);
 #endif
+  if (TREE_CODE(param) == FUNCTION_DECL) {
+    param = build_unary_op(ADDR_EXPR, param, 0);
+  }
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
 #if 0
   debug_tree(param_list);
@@ -9264,6 +9315,8 @@ gccgm2_AssignBooleanTrueFalse (booleanid, trueid, falseid)
   boolean_type_node  = booleanid;
   boolean_true_node  = trueid;
   boolean_false_node = falseid;
+  TREE_TYPE(boolean_false_node) = booleanid;
+  TREE_TYPE(boolean_true_node)  = booleanid;
 }
 
 tree
@@ -9279,9 +9332,63 @@ gccgm2_GetCharType ()
 }
 
 tree
+gccgm2_GetByteType ()
+{
+  return( unsigned_char_type_node );
+}
+
+tree
 gccgm2_GetVoidType ()
 {
   return( void_type_node );
+}
+
+tree
+gccgm2_GetPointerType ()
+{
+  return( ptr_type_node );
+}
+
+tree
+gccgm2_GetCardinalType ()
+{
+  return( unsigned_type_node );
+}
+
+tree
+gccgm2_GetBitsetType ()
+{
+  return( unsigned_type_node );   /* --fixme-- */
+}
+
+tree
+gccgm2_GetRealType ()
+{
+  return( float_type_node );
+}
+
+tree
+gccgm2_GetLongRealType ()
+{
+  return( double_type_node );
+}
+
+tree
+gccgm2_GetLongIntType ()
+{
+  return( long_unsigned_type_node );
+}
+
+tree
+gccgm2_GetWordType ()
+{
+  return( long_unsigned_type_node );
+}
+
+tree
+gccgm2_GetProcType ()
+{
+  return( proc_type_node );
 }
 
 tree
@@ -9303,57 +9410,9 @@ gccgm2_GetCurrentFunction ()
 }
 
 tree
-gccgm2_GetPointerType ()
+gccgm2_GetErrorNode ()
 {
-  return( ptr_type_node );
-}
-
-tree
-gccgm2_GetUnsignedCharType ()
-{
-  return( unsigned_char_type_node );
-}
-
-tree
-gccgm2_GetUnsignedType ()
-{
-  return( long_unsigned_type_node );
-}
-
-tree
-gccgm2_GetLongIntType ()
-{
-  return( long_unsigned_type_node );
-}
-
-tree
-gccgm2_GetRealType ()
-{
-  return( float_type_node );
-}
-
-tree
-gccgm2_GetLongRealType ()
-{
-  return( double_type_node );
-}
-
-tree
-gccgm2_GetUnsignedIntegerType ()
-{
-  return( long_unsigned_type_node );
-}
-
-tree
-gccgm2_GetWordType ()
-{
-  return( long_unsigned_type_node );
-}
-
-tree
-gccgm2_GetProcType ()
-{
-  return( proc_type_node );
+  return( error_mark_node );
 }
 
 /*
@@ -9454,6 +9513,8 @@ gccgm2_BuildIntegerConstant (int value)
   }
 }
 
+tree mystr;
+
 /*
  *  BuildStringConstant - creates a string constant given a, string, and, length.
  */
@@ -9466,6 +9527,7 @@ gccgm2_BuildStringConstant (string, length)
   tree id=build_string(length, string);
 
   TREE_TYPE(id) = char_array_type_node;
+  mystr = id;
   return( id );
 }
 

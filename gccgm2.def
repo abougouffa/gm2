@@ -11,15 +11,19 @@ DEFINITION MODULE gccgm2 ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT QUALIFIED Tree, BuildBinProcedure, BuildUnaryProcedure,
+EXPORT QUALIFIED Tree,
+                 EndTemporaryAllocation, ResumeTemporaryAllocation,
+                 PushObstacksNochange, PopObstacks,
+
+                 BuildBinProcedure, BuildUnaryProcedure,
                  SetFileNameAndLineNo,
                  DeclareKnownType, DeclareKnownVariable, DeclareKnownConstant,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
                  GetCharType, GetVoidType, GetCurrentFunction,
                  GetPointerType,
-                 GetUnsignedCharType, GetUnsignedIntegerType, GetUnsignedType,
+                 GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
-                 GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf,
+                 GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
                  BuiltInMemCopy,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
@@ -61,6 +65,41 @@ TYPE
 
 
 (*
+   EndTemporaryAllocation - Start allocating on the permanent obstack but don't
+                            free the temporary data.  After calling this, call
+                            `permanent_allocation' to fully resume permanent allocation status.
+                            (Interface to tree.c).
+*)
+
+PROCEDURE EndTemporaryAllocation ;
+
+
+(*
+   ResumeTemporaryAllocation - Resume allocating on the temporary obstack, undoing
+                               effects of `end_temporary_allocation'.
+                               (Interface to tree.c).
+*)
+
+PROCEDURE ResumeTemporaryAllocation ;
+
+
+(*
+   PushObstacksNochange - save the current set of obstacks, but don't change them.
+                          (Interface to tree.c).
+*)
+
+PROCEDURE PushObstacksNochange ;
+
+
+(*
+   PopObstacks - pop the obstack selection stack.
+                 (Interface to tree.c).
+*)
+
+PROCEDURE PopObstacks ;
+
+
+(*
    SetFileNameAndLineNo - assigns a filename and line number to the GCC
                           global variables. Remember that the string contents
                           addressed by fn must not be overwritten.
@@ -81,19 +120,21 @@ PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
                                   scope: Tree) : Tree ;
 PROCEDURE GetIntegerType         () : Tree ;
 PROCEDURE GetCharType            () : Tree ;
-PROCEDURE GetUnsignedIntegerType () : Tree ;
-PROCEDURE GetUnsignedCharType    () : Tree ;
-PROCEDURE GetUnsignedType        () : Tree ;
+PROCEDURE GetByteType            () : Tree ;
 PROCEDURE GetVoidType            () : Tree ;
 PROCEDURE GetPointerType         () : Tree ;
-PROCEDURE GetIntegerZero         () : Tree ;
-PROCEDURE GetIntegerOne          () : Tree ;
-PROCEDURE GetCurrentFunction     () : Tree ;
+PROCEDURE GetCardinalType        () : Tree ;
+PROCEDURE GetBitsetType          () : Tree ;
 PROCEDURE GetRealType            () : Tree ;
 PROCEDURE GetLongRealType        () : Tree ;
 PROCEDURE GetLongIntType         () : Tree ;
 PROCEDURE GetWordType            () : Tree ;
 PROCEDURE GetProcType            () : Tree ;
+
+PROCEDURE GetIntegerZero         () : Tree ;
+PROCEDURE GetIntegerOne          () : Tree ;
+PROCEDURE GetCurrentFunction     () : Tree ;
+PROCEDURE GetErrorNode           () : Tree ;
 
 (*
    Builtin functions.
