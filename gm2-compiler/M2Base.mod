@@ -316,8 +316,8 @@ BEGIN
                  END ;
    *)
    Unbounded := MakeRecord(MakeKey('_Unbounded')) ;
-   ArrayAddress := MakeKey('_ArrayAddress') ;
-   ArrayHigh := MakeKey('_ArrayHigh') ;
+   ArrayAddress := MakeKey('address') ;
+   ArrayHigh := MakeKey('HIGH') ;
    PutFieldRecord(Unbounded, ArrayAddress, Address) ;
    PutFieldRecord(Unbounded, ArrayHigh, Cardinal) ;
 

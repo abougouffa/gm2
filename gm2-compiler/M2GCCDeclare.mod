@@ -72,7 +72,8 @@ FROM SymbolTable IMPORT NulSym,
                         ForeachInnerModuleDo, ForeachImportedDo ;
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
-                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False ;
+                   Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False,
+                   ArrayAddress, ArrayHigh ;
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Byte ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
@@ -1259,9 +1260,9 @@ BEGIN
    IF GetType(Sym)=Char
    THEN
       RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
-      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(MakeKey('_ArrayAddress')),
-                                             BuildPointerType(Mod2Gcc(Char))),
-                            BuildFieldRecord(KeyToCharStar(MakeKey('_ArrayHigh')),
+      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayAddress),
+                                             BuildPointerType(GetCharType())),
+                            BuildFieldRecord(KeyToCharStar(ArrayHigh),
                                              Mod2Gcc(Cardinal))) ;
       RETURN( BuildEndRecord(RecordType, FieldList) )
    ELSE
