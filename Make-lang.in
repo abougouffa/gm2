@@ -69,18 +69,6 @@ cc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
 
 # Build hooks:
 
-gm2/gm2lcc: force
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lcc
-
-gm2/gm2l: force
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2l
-
-gm2/gm2lgen: force
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lgen
-
-gm2/gm2lsub: force
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2lsub
-
 gm2.all.build: force
 	cd gm2 ; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) gm2support
 	for i in $(GM2LINKEXES) ; do \

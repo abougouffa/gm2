@@ -9494,7 +9494,8 @@ gccgm2_BuildStringConstant (string, length)
   tree id;
 
   if (length == 0) {
-    /* we need to emit .string "" in the assembly file, rather than an empty label.
+    /* we need to emit .string "" or .ascii "\0" in the assembly file,
+     * rather than an empty label.
      * So we tell gcc that the string has length 1 and contains contents (char)0
      */
     id=build_string(length+1, string);

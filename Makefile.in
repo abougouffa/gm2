@@ -746,7 +746,7 @@ gm2support: $(GM2-TOOLS-MOD:%.mod=gm2-compiler/%.o) \
 
 %.exe:
 	grep -v mod_init m2/comp/gm2s/$(basename $@)init > $(basename $@).lst
-	../xgm2 -v -Igm2-libs -Igm2-compiler -g -B./ -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
+	../xgm2 -Igm2-libs -Igm2-compiler -g -B./ -B../ -o $(basename $@) -Wuselist gm2-compiler/$(basename $@).mod
 
 gm2lcc: m2/comp/p2c/home/libp2c.a force
 	$(M2LINK) -s m2/comp/gm2s/$@init
