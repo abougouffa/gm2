@@ -39,7 +39,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2002/12/20 09:45:13 $]
+   Date       : 3/4/86  [$Date: 2003/01/20 22:17:24 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -114,6 +114,7 @@ VAR
    Options,
    OutputFile,
    DestDirectory  : String ;
+   NoLink,
    DependOnly,
    GM2PathFound,
    M2MPathFound   : BOOLEAN ;
@@ -1157,24 +1158,27 @@ BEGIN
       s    := NIL ;
       IF (n^.Source^.Ext=ExeExtn) AND ModExists(n^.Source^.ModName)
       THEN
-         FormatChar(tab) ;
-         FormatString('$(M2L) ') ;
-         IF n^.Source^.ModName=MainName
+         IF NOT NoLink
          THEN
-            s := InitStringCharStar(KeyToCharStar(MainSrc)) ;
-            name := NIL
-         ELSE
-            name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
-            a := CalculateFileName(name, Mark(InitString('mod'))) ;
-            IF NOT FindSourceFile(a, s)
+            FormatChar(tab) ;
+            FormatString('$(M2L) ') ;
+            IF n^.Source^.ModName=MainName
             THEN
-               fprintf1(StdErr, 'cannot find source file %s\n', a) ;
-               exit(1)
+               s := InitStringCharStar(KeyToCharStar(MainSrc)) ;
+               name := NIL
+            ELSE
+               name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
+               a := CalculateFileName(name, Mark(InitString('mod'))) ;
+               IF NOT FindSourceFile(a, s)
+               THEN
+                  fprintf1(StdErr, 'cannot find source file %s\n', a) ;
+                  exit(1)
+               END ;
+               a := KillString(a)
             END ;
-            a := KillString(a)
-         END ;
-         FormatS(s) ;
-         FormatLn
+            FormatS(s) ;
+            FormatLn
+         END
       ELSIF (n^.Source^.Ext=ObjExtn) AND ModExists(n^.Source^.ModName)
       THEN
          FormatChar(tab) ;
@@ -1504,6 +1508,9 @@ BEGIN
          ELSIF EqualArray(s, '-depend')
          THEN
             DependOnly := TRUE
+         ELSIF EqualArray(s, '-nolink')
+         THEN
+            NoLink := TRUE
          ELSE
             MainSrc := makekey(string(s)) ;
             IF OpenSource(PreprocessModule(s))
@@ -1536,7 +1543,7 @@ BEGIN
          INC(CurrentArg)
       END
    ELSE
-      printf2('Usage: %a [-e extension][-d destination directory][-depend][-Wmake-I=searchpath][-I compiler searchpath] [-o outputfile] modulefile [options] [compiler]\n', ProgName, ProgName)
+      printf2('Usage: %a [-e extension][-d destination directory][-nolink][-depend][-Wmake-I=searchpath][-I compiler searchpath] [-o outputfile] modulefile [options] [compiler]\n', ProgName, ProgName)
    END
 END ParseArgs ;
 
@@ -1567,6 +1574,7 @@ BEGIN
    M2MPathFound := FALSE ;
    GM2PathFound := FALSE ;
    DependOnly := FALSE ;
+   NoLink := FALSE ;
    op := StdOut ;
    ParseArgs
 END Init ;

@@ -46,8 +46,8 @@ Boston, MA 02111-1307, USA.  */
                        %{Wuselist:gm2lcc %{I*} %{v} -c %b.lst}}} \n\
       %{!c:%{Wmakelist:%eGNU Modula-2 does not support -Wmakelist without -c}} \n\
       %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \n\
-      %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
-                                   make -f %g.m }}} \n\
+      %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
+                                   make -r -f %g.m }}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:tradcpp0%s -lang-asm -C %(cpp_unique_options) %g.mod \n\
                                              gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
