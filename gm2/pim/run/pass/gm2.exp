@@ -30,5 +30,5 @@ foreach testcase [glob -nocomplain $srcdir/$subdir/*.mod] {
 	continue
     }
 
-    gm2-torture-execute $testcase
+    gm2-torture-execute $testcase "" "pass"
 }

@@ -122,5 +122,6 @@ proc gm2_target_compile { source dest type options } {
 	lappend options "timeout=[target_info gcc,timeout]"
     }
     lappend options "compiler=$GCC_UNDER_TEST"
+    send_log "about to call target_compile with $source $dest $type $options\n"
     return [target_compile $source $dest $type $options]
 }

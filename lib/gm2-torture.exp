@@ -184,8 +184,9 @@ proc gm2-torture-compile-fail { src option } {
 # test instead.  We use .x so that we don't lengthen the existing filename
 # to more than 14 chars.
 #
-proc gm2-torture-execute { sources args } {
+proc gm2-torture-execute { sources args success } {
     global tmpdir tool srcdir output compiler_conditional_xfail_data
+    global TORTURE_OPTIONS
 
     # Use the first source filename given as the filename under test.
     set src [lindex $sources 0]
@@ -206,6 +207,7 @@ proc gm2-torture-execute { sources args } {
     }
 
     set executable $tmpdir/[file tail [file rootname $src].x]
+    set objectfile $tmpdir/[file tail [file rootname $src].o]
 
     regsub "^$srcdir/?" $src "" testcase
     # If we couldn't rip $srcdir out of `src' then just do the best we can.
@@ -215,6 +217,8 @@ proc gm2-torture-execute { sources args } {
     if [string match "/*" $testcase] {
 	set testcase "[file tail [file dirname $src]]/[file tail $src]"
     }
+
+    set option_list $TORTURE_OPTIONS
 
     set count 0;
     set oldstatus "foo";
@@ -240,17 +244,30 @@ proc gm2-torture-execute { sources args } {
 	remote_file build delete $execname;
 	verbose "Testing $testcase, $option" 1
 
-	set options ""
-	lappend options "additional_flags=$option"
-	if { $additional_flags != "" } {
-	    lappend options "additional_flags=$additional_flags";
+	set options $option
+	set comp_output [gm2_target_compile "$sources" "${objectfile}" object ${options}];
+
+	if ![gm2_check_compile "$testcase compilation" ${options} $objectfile $comp_output] {
+	    unresolved "$testcase execution, ${options}"
+	    remote_file build delete $objectfile
+	    continue
 	}
+
+	# now link the test
+
+	if { [llength $args] > 0 } {
+	    set additional_flags [lindex $args 0];
+	} else {
+	    set additional_flags "";
+	}
+
 	set options $option
 	set comp_output [gm2_target_compile "$sources" "${execname}" executable $options];
 
 	if ![gm2_check_compile "$testcase compilation" $option $execname $comp_output] {
 	    unresolved "$testcase execution, $option"
 	    remote_file build delete $execname
+	    remote_file build delete $objectfile
 	    continue
 	}
 
@@ -270,7 +287,6 @@ proc gm2-torture-execute { sources args } {
 	if [info exists torture_eval_before_execute] {
             set ignore_me [eval $torture_eval_before_execute]
 	}
-
 
 	# Sometimes we end up creating identical executables for two
 	# consecutive sets of different of compiler options.
@@ -295,6 +311,15 @@ proc gm2-torture-execute { sources args } {
 	    set result [gm2_load "$execname" "" ""]
 	    set status [lindex $result 0];
 	    set output [lindex $result 1];
+	    if { $success == "fail" } {
+		# invert the result
+		if { $status == "pass" } {
+		    set status "fail"
+		} else {
+		    set status "pass"
+		}
+	    }
+	    send_log "executed $execname with result $status"
 	}
         if { $oldstatus == "pass" } {
 	    remote_file build delete $oldexec;
@@ -305,6 +330,7 @@ proc gm2-torture-execute { sources args } {
     if [info exists status] {
 	if { $status == "pass" } {
 	    remote_file build delete $execname;
+	    remote_file build delete $objectfile;
 	}
     }
 }
