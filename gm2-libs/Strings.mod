@@ -112,6 +112,7 @@ BEGIN
       WITH c.next^ DO
          head := NIL ;
          contents.len := 0 ;
+         contents.next := NIL ;
          ConcatContents(contents, a, h, o)         
       END
    ELSE
