@@ -6726,6 +6726,11 @@ BEGIN
       (* yes it is a function *)
       GetProcedureQuads(ProcSym, Start, End) ;
       GetQuad(Start, Op, Op1, Op2, Op3) ;
+      IF Start=0
+      THEN
+         WriteFormat1('error in function %a', GetSymName(ProcSym)) ;
+         InternalError('incorrect start quad', __FILE__, __LINE__)
+      END ;
       WHILE (Start#End) AND (Op#ReturnValueOp) AND (Op#InlineOp) DO
          Start := GetNextQuad(Start) ;
          GetQuad(Start, Op, Op1, Op2, Op3)
