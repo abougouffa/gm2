@@ -1,3 +1,24 @@
+# Makefile for GNU Modula-2 compiler.
+#   Copyright (C) 1987, 1988, 1990, 1991, 1992, 1993, 1994, 1998,
+#   1999 Free Software Foundation, Inc.
+
+#This file is part of GNU CC.
+
+#GNU CC is free software; you can redistribute it and/or modify
+#it under the terms of the GNU General Public License as published by
+#the Free Software Foundation; either version 2, or (at your option)
+#any later version.
+
+#GNU CC is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General Public License
+#along with GNU CC; see the file COPYING.  If not, write to
+#the Free Software Foundation, 59 Temple Place - Suite 330,
+#Boston, MA 02111-1307, USA.  */
+
 # The makefile built from this file lives in the language subdirectory.
 # It's purpose is to provide support for:
 #
@@ -33,10 +54,6 @@ X_CPPFLAGS =
 T_CPPFLAGS =
 
 CC = @CC@
-BISON = bison
-BISONFLAGS =
-LEX = flex
-LEXFLAGS =
 AR = ar
 AR_FLAGS = rc
 SHELL = /bin/sh
@@ -64,7 +81,7 @@ GCC_CFLAGS=$(INTERNAL_CFLAGS) $(X_CFLAGS) $(T_CFLAGS) $(CFLAGS) $(XCFLAGS) \
 # These are used because `configure' appends `cross-make'
 # to the makefile when making a cross-compiler.
 
-# We don't use cross-make.  Instead we use the tools
+# CYGNUS LOCAL: We don't use cross-make.  Instead we use the tools
 # from the build tree, if they are available.
 # program_transform_name and objdir are set by configure.in.
 program_transform_name =
@@ -80,14 +97,18 @@ tmake_file=@dep_tmake_file@
 srcdir = @srcdir@
 VPATH = @srcdir@
 
-# Additional system libraries to link with.
-CLIB=
+# CYGNUS LOCAL
+# Directory where texinfo.tex lives
+# texidir = $(srcdir)/../../texinfo
 
 # Top build directory, relative to here.
 top_builddir = ..
 
 # Internationalization library.
 INTLLIBS = @INTLLIBS@
+
+# Additional system libraries to link with.
+CLIB=
 
 # Choose the real default target.
 ALL=all
@@ -111,6 +132,8 @@ all: all.indirect
 @cross_overrides@
 ####build overrides
 @build_overrides@
+####site overrides
+# @site_overrides@
 #
 # Now figure out from those variables how to compile and link.
 
@@ -130,7 +153,7 @@ LIBIBERTY = ../../libiberty/libiberty.a
 
 # How to link with both our special library facilities
 # and the system's installed libraries.
-LIBS = $(INTLLIBS) $(LIBIBERTY) $(CLIB)
+LIBS = $(LIBIBERTY) $(CLIB) $(INTLLIBS)
 LIBDEPS = $(INTLLIBS) $(LIBIBERTY)
 
 # Specify the directories to be searched for header files.
@@ -169,29 +192,23 @@ GM2_LIBS_PARANOID = gm2-compiler-paranoid/gm2.a \
 
 # Remove patched files from language-independent object file list.
 
-GCC_OBJDEPS = ../stamp-objlist c-convert.o toplev.o rtl.o
-GCC_OBJS = `cat ../stamp-objlist | sed -e 's:  : :g' \
-        -e 's:../toplev.o::g' -e 's:../rtl.o::g'` c-convert.o toplev.o rtl.o
-
-# GBE files recompiled with different flags for GM2.
-# Rebuild these with our flags
-GCC_PATCHED = toplev.o rtl.o
+BACKEND = ../toplev.o ../libbackend.a
 
 compiler: ../cc1gm2$(exeext)
 
-paranoid: ../bcc1gm2$(exeext) $(GM2_LIBS_PARANOID) verifyparanoid
+paranoid: ../bcc1gm2$(exeext) verifyparanoid
 
-../bcc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_PARANOID) ../cc1gm2$(exeext)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(GCC_OBJS) $(LIBS)
+../bcc1gm2$(exeext): ../cc1gm2$(exeext) checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) $(BACKEND) $(LIBS)
 
-../cc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS) ../acc1gm2$(exeext)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(GCC_OBJS) $(LIBS)
+../cc1gm2$(exeext): ../acc1gm2$(exeext) checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) $(BACKEND) $(LIBS)
 #	echo "since cc1gm2 is less reliable than acc1gm2 we will replace it by cc1gm2"
 #	echo "this is a development hack and will be fixed asap.."
 #	cp ../acc1gm2$(exeext) ../cc1gm2$(exeext)
 
-../acc1gm2$(exeext): checkLinks $(GM2_OBJS) $(GCC_PATCHED) $(GCC_OBJDEPS) $(LIBDEPS) $(GM2_LIBS_BOOT)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
+../acc1gm2$(exeext): checkLinks $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 Makefile: $(srcdir)/Makefile.in $(srcdir)/../configure
 	cd ..; $(SHELL) config.status
@@ -292,7 +309,7 @@ gm2tools: force
 #            x86 etc which are irrelevant to gm2.
 #
 
-checkLinks: gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
+checkLinks: m2/comp/bin/p2c gm2-libs-boot gm2-compiler-boot gm2-libs gm2-compiler
 
 #
 #  the following tables define the source files which are translated into C using p2c
@@ -331,7 +348,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  P1Expressio
                      M2Lexical.def   P1Compile.def   P3Expression.def M2Version.def  \
                      M2Error.def     M2Math.def      M2SubExp.def    M2Constants.def \
                      M2Students.def  M2Entity.def    M2GenGCC.def    M2GCCDeclare.def\
-                     SymbolConversion.def M2Configure.def SymbolTable.def
+                     SymbolConversion.def M2Configure.def SymbolTable.def Lists.def
 
 GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.mod   \
                      M2AsmUtil.mod   gm2.mod         M2Atom.mod      M2Optimize.mod  \
@@ -347,10 +364,10 @@ GM2-COMP-BOOT-MODS = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Error.mod     M2Math.mod      M2SubExp.mod    M2Constants.mod \
                      M2Students.mod  M2Entity.mod    M2BasicBlock.mod M2Code.mod     \
                      M2GenGCC.mod    M2GCCDeclare.mod SymbolConversion.mod           \
-                     M2ALU.mod       M2System.mod    M2Base.mod
+                     M2ALU.mod       M2System.mod    M2Base.mod      Lists.mod
 
-GM2-COMP-BOOT-C    = Lists.c M2Search.c P3Type.c M2Alias.c
-GM2-COMP-BOOT-H    = Lists.h M2Alias.h
+GM2-COMP-BOOT-C    = M2Search.c P3Type.c M2Alias.c
+GM2-COMP-BOOT-H    = M2Alias.h
 
 #
 #  the following tables define the source files used to build gm2 using only Modula-2
@@ -412,7 +429,7 @@ GM2-COMP-MODS      = FifoQueue.mod   M2Inline.mod    M2Lex.mod       M2Lexical.m
                      M2Search.mod    P3Type.mod      M2Alias.mod
 
 gm2-libs-boot:
-	mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
+	@mkdir gm2-libs-boot ; cd gm2-libs-boot ; \
 	for i in $(GM2-LIBS-BOOT-DEFS) $(GM2-LIBS-BOOT-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -494,7 +511,7 @@ gm2-compiler/%.o: gm2-compiler/%.mod
 #
 
 gm2-boot: $(GM2_LIBS_BOOT)
-	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(GCC_OBJS) $(LIBS)
+	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o ../acc1gm2 $(GM2_OBJS) $(GM2_LIBS_BOOT) $(BACKEND) $(LIBS)
 
 gm2-libs/libgm2.a: gm2-boot force
 	$(MAKE) build-libs
@@ -533,8 +550,8 @@ build-compiler-boot: $(GM2-COMP-BOOT-DEFS:%.def=gm2-compiler-boot/%.h) \
                      $(GM2-COMP-BOOT-C:%.c=gm2-compiler-boot/%.o) \
 	             gm2-compiler-boot/M2Version.o
 
-gm2-compiler-boot: m2/comp/bin/p2c
-	mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
+gm2-compiler-boot:
+	@mkdir gm2-compiler-boot ; cd gm2-compiler-boot ; \
 	for i in $(GM2-COMP-BOOT-DEFS) $(GM2-COMP-BOOT-MODS) ; do \
            if [ -L $$i ] ; then \
               echo "$$i already present" ; \
@@ -588,7 +605,7 @@ build-compiler: gm2-compiler $(GM2-COMP-MODS:%.mod=gm2-compiler/%.o) \
                 gm2-compiler/M2Version.o
 
 gm2-libs:
-	mkdir gm2-libs ; cd gm2-libs ; \
+	@mkdir gm2-libs ; cd gm2-libs ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -599,7 +616,7 @@ gm2-libs:
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
 
 gm2-compiler:
-	mkdir gm2-compiler ; cd gm2-compiler ; \
+	@mkdir gm2-compiler ; cd gm2-compiler ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
            if [ -L $$i ] ; then \
               echo "$$i already present" ; \
@@ -624,6 +641,20 @@ gm2-compiler:
 	../m2/comp/tools/makeversion $(GM2-VERSION)b
 
 #
+#  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories
+#
+
+gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.c
+	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
+
+gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
+	../xgm2 -Wbounds -Wreturn -g -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+
+gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
+	../xgm2 -Wbounds -Wreturn -g -c -B../ -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
+
+
+#
 #  now for rules which build the paranoid version of gm2
 #
 
@@ -640,14 +671,16 @@ gm2-compiler-paranoid/gm2.a: gm2-libs-paranoid/libgm2.a force
 	$(AR) cr $@ gm2-compiler-paranoid/mod_init.o $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
                     gm2-compiler-paranoid/M2Version.o
 
-build-libs-paranoid: gm2-libs-paranoid $(GM2-LIBS-MODS:%.mod=gm2-libs-paranoid/%.o) \
-            $(GM2-LIBS-C:%.c=gm2-libs-paranoid/%.o)
+build-libs-paranoid: gm2-libs-paranoid
+	$(MAKE) $(GM2-LIBS-MODS:%.mod=gm2-libs-paranoid/%.o) \
+                $(GM2-LIBS-C:%.c=gm2-libs-paranoid/%.o)
 
-build-compiler-paranoid: gm2-compiler-paranoid $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
+build-compiler-paranoid: gm2-compiler-paranoid
+	$(MAKE) $(GM2-COMP-MODS:%.mod=gm2-compiler-paranoid/%.o) \
                 gm2-compiler-paranoid/M2Version.o
 
 gm2-libs-paranoid:
-	mkdir gm2-libs-paranoid ; cd gm2-libs-paranoid ; \
+	@mkdir gm2-libs-paranoid ; cd gm2-libs-paranoid ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \
@@ -658,7 +691,7 @@ gm2-libs-paranoid:
 	$(LN_S) ../m2/comp/libs/STAGE2/SYSTEM.def SYSTEM.def
 
 gm2-compiler-paranoid:
-	mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
+	@mkdir gm2-compiler-paranoid ; cd gm2-compiler-paranoid ; \
 	for i in $(GM2-COMP-DEFS) $(GM2-COMP-MODS) ; do \
            if [ -L $$i ] ; then \
               echo "$$i already present" ; \
@@ -681,18 +714,6 @@ gm2-compiler-paranoid:
 	done ; \
         $(LN_S) ../gccgm2.def ; \
 	../m2/comp/tools/makeversion $(GM2-VERSION)c
-
-#
-#  now for the rules which build objects in the gm2-compiler-paranoid gm2-libs-paranoid directories
-#
-gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.c
-	$(CC) -c -g -O2 -I./ -Igm2-libs -Wall $(INCLUDES) $< -o $@
-
-gm2-libs-paranoid/%.o: gm2-libs-paranoid/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
-
-gm2-compiler-paranoid/%.o: gm2-compiler-paranoid/%.mod
-	../xgm2 -Wbounds -Wreturn -g -c -B../ -O2 -Igm2-compiler-paranoid -Igm2-libs-paranoid $< -o $@
 
 #
 #  and now the linkage tools
@@ -736,7 +757,7 @@ gm2lsub: m2/comp/p2c/home/libp2c.a force
 verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-compiler-verify force
 	@echo "verifying the three generations of GNU Modula-2 compilers - it may be take some time.."
 	@cd gm2-compiler-verify ; \
-        for i in one.mod *.mod ; do \
+        for i in *.mod ; do \
            echo -n "$$i" ; \
            ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../a -I. $$i -o 1.s ; \
            ../../xgm2 -S -Wbounds -Wreturn -g -c -B../../  -I. $$i -o 2.s ; \
@@ -745,6 +766,8 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
                echo -n " [stage 1 and stage 2 differ]" ; \
                cp 1.s t.s | as -ahl t.s > $$i.1.lst ; \
                cp 2.s t.s | as -ahl t.s > $$i.2.lst ; \
+               echo " " ; \
+               exit 1 ; \
            fi ; \
            if ! diff 2.s 3.s >& 2_3.diff ; then \
                echo -n " [stage 2 and stage 3 differ]" ; \
@@ -762,7 +785,7 @@ verifyparanoid: ../acc1gm2$(exeext) ../bcc1gm2$(exeext) ../cc1gm2$(exeext) gm2-c
 #  failure
 #	
 gm2-compiler-verify:
-	mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
+	@mkdir gm2-compiler-verify ; cd gm2-compiler-verify ; \
 	for i in $(GM2-LIBS-DEFS) $(GM2-LIBS-MODS) ; do \
 	   $(LN_S) ../m2/comp/libs/$$i $$i ; \
 	done ; \

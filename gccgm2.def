@@ -30,7 +30,6 @@ EXPORT QUALIFIED Tree,
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
-                 BuildLongRealConstant, BuildRealConstant,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
@@ -55,6 +54,7 @@ EXPORT QUALIFIED Tree,
                  BuildStartMainModule, BuildEndMainModule,
                  BuildAsm, BuildExpand, DebugTree,
                  BuildVariableArrayAndDeclare,
+                 RealToTree,
 
                  AreConstantsEqual, DetermineSign, AssignBooleanTrueFalse,
                  ConvertConstantAndCheck, ExpandExpressionStatement ;
@@ -211,6 +211,13 @@ PROCEDURE AreConstantsEqual (e1, e2: Tree) : BOOLEAN ;
 *)
 
 PROCEDURE DetermineSign (e: Tree) : INTEGER ;
+
+
+(*
+   RealToTree - convert a real number into a Tree.
+*)
+
+PROCEDURE RealToTree (name: ADDRESS) : Tree ;
 
 
 (*

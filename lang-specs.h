@@ -21,30 +21,16 @@ Boston, MA 02111-1307, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-  {".mod", { "@modula-2" } },
-  {".def", { "@modula-2" } },
+  {".mod", "@modula-2" },
+  {".def", "@modula-2" },
   {"@modula-2",
-     { "%{c:%{!gm2gcc:cc1gm2 %1 %2\
-        %{!Q:-quiet} %{d*} %{m*} %{a}\
-        %{I*} %{g*} %{O*} %{w}\
-        %{M}\
-        %{version} %{pg:-p} %{p} %{q}\
-        %{Wstudents} %{Wbounds} %{Wreturn} %{Wpedantic} %{Wstatistics} %{Wq}\
-        %{f*} %{+e*} %{aux-info*}\
-        %{pg:%{fomit-frame-pointer:%e-pg and -fomit-frame-pointer are incompatible}}\
-        %{S:%W{o*}%{!o*:-o %b.s}}%{!S:-o %{|!pipe:%g.s}}\
-        %b.mod|\n\
-    %{!S:as %a %Y\
-        %{c:%W{o*}%{!o*:-o %w%b%O}}%{!c:-o %d%w%u%O}\
-        %{!pipe:%g.s} %A\n }}}\
-    %{!c:%{!S:%{!gm2gcc:gm2l %{!pipe:-o %g.l} %b|\n\
+     "%{c:%{!gm2gcc:cc1gm2 %B %(cc1_options) %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM}\
+             %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
+      as %(asm_options) %{!pipe:%g.s} %A }}}} \
+      %{!c:%{!S:%{!gm2gcc:gm2l %{!pipe:-o %g.l} %b|\n\
                  gm2lsub %{!pipe:%g.l} -o %g.list \n\
                  gm2lgen %g.list -o %g.c \n\
                  gcc -g -c -o %d%w%g%O %g.c \n\
                  rm -f %w%d%g.a \n\
                  gm2lcc %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.list \n\
-    }}}"}},
-
-    /* #define LINK_COMMAND_SPEC "" */
-
-    /*                 gcc %{B*} %{v} %b%O %b.gm2.a\n }}}"}}, */
+    }}}"},

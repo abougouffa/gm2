@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "config.h"
 #include "gansidecl.h"
+#include "intl.h"
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -34,7 +35,7 @@ Boston, MA 02111-1307, USA.  */
 #include <string.h>
 #endif
 
-extern const char *find_file PROTO((const char *));
+extern const char *find_file PARAMS ((const char *));
 /* #include "gcc.h" */
 
 /* This bit is set if we saw a `-xfoo' language specification.  */
@@ -52,7 +53,7 @@ extern const char *find_file PROTO((const char *));
 #define DIR_SEPARATOR '/'
 #endif
 
-extern char *xmalloc PROTO((size_t));
+extern char *xmalloc PARAMS ((size_t));
 
 #define MAXPATHCHAR    64*1024         /* large enough not to worry */
 
@@ -69,7 +70,7 @@ static int               need_to_link    =  TRUE;
  *                        Modula-2 M2PATH space delimitered path.
  */
 
-static int convert_into_m2path (char *incl)
+static int convert_into_m2path (const char *incl)
 {
   char *m2path=getenv("M2PATH");
   char *newm2path;
@@ -179,7 +180,7 @@ add_default_directories (void)
 void
 lang_specific_driver (in_argc, in_argv, in_added_libraries)
      int *in_argc;
-     char ***in_argv;
+     const char *const **in_argv;
      int *in_added_libraries ATTRIBUTE_UNUSED;
 {
   int i=1;

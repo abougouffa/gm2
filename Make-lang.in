@@ -59,12 +59,12 @@ xgm2.o: $(CONFIG_H) multilib.h config.status $(lang_specs_files) xgm2.c
 
 gm2:  xgm2$(exeext) cc1gm2 gm2.all.build
 
-xgm2$(exeext): xgm2.o gm2spec.o version.o prefix.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
+xgm2$(exeext): xgm2.o gm2spec.o version.o prefix.o intl.o $(LIBDEPS) $(EXTRA_GCC_OBJS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ xgm2.o gm2spec.o prefix.o \
-	  version.o $(EXTRA_GCC_OBJS) $(LIBS)
+	  version.o intl.o $(EXTRA_GCC_OBJS) $(LIBS)
 
-cc1gm2: $(LIBDEPS) stamp-objlist $(GM2_SRCS)
-	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2
+cc1gm2$(exeext): $(P) $(GM2_SRCS) $(LIBDEPS) $(BACKEND) $(LIBDEPS)
+	cd gm2; $(MAKE) $(FLAGS_TO_PASS) $(GM2_FLAGS_TO_PASS) ../cc1gm2$(exeext)
 
 # Build hooks:
 
