@@ -243,9 +243,11 @@ VAR
    emitting            : EmitType ;
    CurColumn,
    Indent              : CARDINAL ;
+   StemTypeName,
    ParamName,
    CurrentUserPath,
    SystemPath          : String ;
+   TypeNo,
    DummyNo             : CARDINAL ;
    watch               : Node ;
 
@@ -284,17 +286,31 @@ END setwatch ;
 
 
 (*
-   MakeUniqueName - 
+   MakeUniqueParamName - 
 *)
 
-PROCEDURE MakeUniqueName () : Name ;
+PROCEDURE MakeUniqueParamName () : Name ;
 VAR
    s: String ;
 BEGIN
    s := Add(ParamName, Sprintf1(Mark(InitString('%d')), DummyNo)) ;
    INC(DummyNo) ;
    RETURN( makekey(string(Mark(s))) )
-END MakeUniqueName ;
+END MakeUniqueParamName ;
+
+
+(*
+   MakeUniqueTypeName - 
+*)
+
+PROCEDURE MakeUniqueTypeName () : Name ;
+VAR
+   s: String ;
+BEGIN
+   s := Add(StemTypeName, Sprintf1(Mark(InitString('%d')), TypeNo)) ;
+   INC(TypeNo) ;
+   RETURN( makekey(string(Mark(s))) )
+END MakeUniqueTypeName ;
 
 
 (*
@@ -1440,7 +1456,7 @@ BEGIN
          n := SkipDummy(n) ;
          IF (emitting=procedures) AND (n#NIL) AND (n^.type#ndvararg)
          THEN
-            hprintf1('%s', InitStringCharStar(MakeUniqueName()))
+            hprintf1('%s', InitStringCharStar(MakeUniqueParamName()))
          END ;
          IF IsArray(n)
          THEN
@@ -1495,8 +1511,8 @@ END FindFunc ;
 
 PROCEDURE CheckProcedureParameters (n: Node) ;
 VAR
-   f, i, t, m: Node ;
-   count     : CARDINAL ;
+   f, i, j, t, m: Node ;
+   count        : CARDINAL ;
 BEGIN
    IF (n#NIL) AND (n^.type=ndchain)
    THEN
@@ -1512,7 +1528,7 @@ BEGIN
                IF m^.chain^.type#ndident
                THEN
                   i := InitNode(ndident) ;
-                  i^.id.name := MakeUniqueName() ;
+                  i^.id.name := MakeUniqueParamName() ;
                   i^.id.type := m^.chain ;
                   m^.chain := i ;
                   INC(count)
@@ -1523,14 +1539,19 @@ BEGIN
          IF f#NIL
          THEN
             i := InitNode(ndident) ;
-            i^.id.name := MakeUniqueName() ;
-            i^.id.type := MakeBaseNode(m^.chain^.id.name) ;
-            INC(count) ;
+            i^.id.name := m^.chain^.id.name ; (* MakeUniqueParamName() ; *)
+            i^.id.type := MakeBaseNode(MakeUniqueTypeName()) ;
             
             t := InitNode(ndtypedef) ;
+            j := InitNode(ndident) ;
+            j^.id.name := i^.id.type^.base.name ;    (* name of the type *)
+            j^.id.type := t ;
             t^.chain := m^.chain^.id.type ;
+(*
             m^.chain^.id.type := t ;
             PutItemIntoList(ToDoList, m^.chain) ;
+*)
+            PutItemIntoList(ToDoList, j) ;
             m^.chain := i
          END ;
          m := m^.nextChain
@@ -2624,6 +2645,9 @@ BEGIN
          ELSIF EqualArray(Slice(s, 0, 2), '-n')
          THEN
             ParamName := Slice(s, 2, 0)
+         ELSIF EqualArray(Slice(s, 0, 2), '-t')
+         THEN
+            StemTypeName := Slice(s, 2, 0)
          ELSIF EqualArray(Slice(s, 0, 2), '-D')
          THEN
             DefineMacro(makekey(string(Slice(s, 2, 0))), 0)
@@ -2697,7 +2721,9 @@ BEGIN
    Indent := 0 ;
    CurColumn := 0 ;
    ParamName := InitString('p') ;
+   StemTypeName := InitString('t') ;
    DummyNo := 1 ;
+   TypeNo := 1 ;
    ParseArgs
 END Init ;
 
@@ -2837,7 +2863,8 @@ TranslationUnit := { ExternalDeclaration }
                  =:
 
 ExternalDeclaration := DeclarationSpecifiers                      % VAR n: Node ; %
-                                                                  % n := Pop() ;
+                                                                  % DummyNo := 1 ;
+                                                                    n := Pop() ;
                                                                     Push(n) %
                                                                     
                            ( Declarator                           % ChainTopTwoIdent ;
@@ -2990,7 +3017,7 @@ DirectDeclaratorAlpha :=   '['                                    % VAR n, t, i:
                                                                     THEN
                                                                        t := i ;
                                                                        i := InitNode(ndident) ;
-                                                                       i^.id.name := MakeUniqueName() ;
+                                                                       i^.id.name := MakeUniqueParamName() ;
                                                                        i^.id.type := t
                                                                     END ;
                                                                     t := Pop() %
