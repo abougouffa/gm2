@@ -310,13 +310,21 @@ int flag_short_double=0;
 extern int save_argc;
 extern char **save_argv;
 
-extern void gccgm2front ();
+extern void gccgm2front PARAMS((int argc, char *argv[]));
 
 /* Global Variables Expected by gcc: */
 
-const char *language_string = "Modula-2";
+const char * const language_string = "Modula-2";
 int flag_traditional=FALSE;     /* Used by dwarfout.c.  */
 int ggc_p=FALSE;                 /* yes we should garbage collect */
+
+
+/* function prototypes */
+
+void  gccgm2_EndTemporaryAllocation     PARAMS ((void));
+void  gccgm2_ResumeTemporaryAllocation  PARAMS ((void));
+
+/* end of prototypes */
 
 
 /*
@@ -10757,6 +10765,6 @@ gccgm2_ExpandExpressionStatement (t)
 
 /*
  * Local variables:
- *  compile-command: "gcc -c -DGM2 -DIN_GCC -g -Wall -Wtraditional -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
+ *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wtraditional -Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2    -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
  * End:
  */
