@@ -110,12 +110,5 @@ BEGIN
             fprintf(stderr, string(Sprintf0(InitString("main: read stdin '%c'\n"))), c)
          END
       END
-   END ;
-   (* unreachable ?
-    pth_cancel(t_ticker);
-    pth_join(t_ticker, NULL);
-    pth_event_free(evt, PTH_FREE_THIS);
-    pth_kill();
-    return 0;
-   *)
+   END
 END testselect.
