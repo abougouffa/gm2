@@ -18,8 +18,10 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE M2Size ;
 
 FROM NameKey IMPORT MakeKey ;
-FROM SymbolTable IMPORT MakeProcedure, PutFunction ;
 FROM M2Base IMPORT Cardinal ;
+
+FROM SymbolTable IMPORT NulSym, MakeProcedure, PutFunction,
+                        AddSymToModuleScope, GetCurrentScope ;
 
 
 (*
@@ -28,10 +30,17 @@ FROM M2Base IMPORT Cardinal ;
 
 PROCEDURE MakeSize ;
 BEGIN
-   Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
-   PutFunction(Size, Cardinal)                    (* Return Type     *)
-                                                  (* Cardinal        *)
+   IF Size=NulSym
+   THEN
+      Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
+      PutFunction(Size, Cardinal)                    (* Return Type     *)
+                                                     (* Cardinal        *)
+   ELSE
+      AddSymToModuleScope(GetCurrentScope(), Size)
+   END
 END MakeSize ;
 
 
+BEGIN
+   Size := NulSym
 END M2Size.

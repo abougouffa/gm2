@@ -21,7 +21,7 @@
 @ifinfo
 This is a short example of a complete Texinfo file.
 
-Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 @end ifinfo
 
 @c Part 3: Titlepage and Copyright
@@ -37,13 +37,13 @@ Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 26 August 2004
+@center Last updated 31 August 2004
 @sp 10
 @c
-@c @center @image{gm2/images/gnu,,1.5in}
+@center @image{gm2/images/gnu,,1.5in}
 @c
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 @end titlepage
 
 @c Part 4: `Top' Node and Master Menu
@@ -188,6 +188,17 @@ implementation modules which are parsed will be preprocessed by
 turn on ISO standard features. Currently this enables the ISO
 @code{SYSTEM} module and alters the default library search path so
 that the ISO libraries are searched before the PIM libraries.
+
+@item -Wpim
+turn on PIM standard features. Currently this enables the PIM
+@code{SYSTEM} module and determines which identifiers are pervasive
+(declared in the base module). It alters the default library search
+path so that the PIM libraries are searched before the ISO libraries.
+
+@item -Wpim2
+turn on PIM-2 standard features. Currently this removes @code{SIZE}
+from being a pervasive identifier (declared in the base module).
+It places @code{SIZE} in the @code{SYSTEM} module.
 
 @item -Wextended-opaque
 allows opaque types to be implemented as any type. This is a GNU
@@ -1026,6 +1037,17 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
 
 END SYSTEM.
 @end example
+
+The different dialects of Modula-2 PIM-[234] and ISO Modula-2 declare
+the function @code{SIZE} in different places.  PIM-[34] and ISO
+Modula-2 declare @code{SIZE} as a pervasive function (declared in the
+base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module.
+
+By default GNU Modula-2 liberally allows users to access @code{SIZE}
+pervasively and also by an import from @code{SYSTEM}.
+
+It is possible to enforce strict access to @code{SIZE} from the module
+@code{SYSTEM} by invoking @code{gm2} with the @code{-Wpim2} flag.
 
 @node The ISO system module, , The PIM system module, Using
 @section The ISO system module

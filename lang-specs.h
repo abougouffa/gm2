@@ -23,7 +23,6 @@ Boston, MA 02111-1307, USA.  */
    GNU Modula-2.  */
 
   {".mod", "@modula-2", 0},
-  {".def", "@modula-2", 0},
   {"@modula-2",
       "%{c:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
            %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend \

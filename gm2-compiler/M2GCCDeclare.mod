@@ -882,11 +882,10 @@ BEGIN
    END ;
 
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
-      (IsImported(GetMainModule(), Sym) OR
+      (IsEffectivelyImported(GetMainModule(), Sym) OR
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
        IsNeededAtRunTime(Sym) OR
        IsImported(GetBaseModule(), Sym) OR
-       IsImported(GetModuleWhereDeclared(Sym), Sym) OR
        IsExported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
@@ -913,11 +912,11 @@ BEGIN
       IF GetType(Sym)=NulSym
       THEN
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    NIL, IsImported(GetMainModule(), Sym),
+                                                    NIL, IsEffectivelyImported(GetMainModule(), Sym),
                                                     IsProcedureGccNested(Sym)))
       ELSE
          AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    Mod2Gcc(GetType(Sym)), IsImported(GetMainModule(), Sym),
+                                                    Mod2Gcc(GetType(Sym)), IsEffectivelyImported(GetMainModule(), Sym),
                                                     IsProcedureGccNested(Sym)))
       END
    END
@@ -1265,6 +1264,20 @@ END FindTreeScope ;
 
 
 (*
+   IsEffectivelyImported - returns TRUE if symbol, Sym, was
+                           effectively imported into ModSym.
+*)
+
+PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          IsImported(ModSym, Sym) OR
+          IsImported(ModSym, GetModuleWhereDeclared(Sym))
+         )
+END IsEffectivelyImported ;
+
+
+(*
    DeclareVariable - declares a global variable to GCC.
 *)
 
@@ -1282,7 +1295,7 @@ BEGIN
          AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
                                              BuildPointerType(Mod2Gcc(GetType(Son))),
                                              IsExported(ModSym, Son),
-                                             IsImported(ModSym, Son),
+                                             IsEffectivelyImported(ModSym, Son),
                                              IsTemporary(Son),
                                              TRUE,
                                              scope))
@@ -1290,7 +1303,7 @@ BEGIN
          AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
                                              Mod2Gcc(GetType(Son)),
                                              IsExported(ModSym, Son),
-                                             IsImported(ModSym, Son),
+                                             IsEffectivelyImported(ModSym, Son),
                                              IsTemporary(Son),
                                              TRUE,
                                              scope))

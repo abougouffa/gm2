@@ -61,7 +61,7 @@ FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
-                      Iso, Pim ;
+                      Iso, Pim, Pim2 ;
 FROM M2System IMPORT Address, Byte, Word, System, InitSystem ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
@@ -420,9 +420,11 @@ BEGIN
    Incl := MakeProcedure(MakeKey('INCL')) ;
    Excl := MakeProcedure(MakeKey('EXCL')) ;
 
-   IF Iso
+   IF NOT Pim2
    THEN
-      MakeSize  (* SIZE is declared as a standard function in ISO Modula-2 *)
+      MakeSize  (* SIZE is declared as a standard function in *)
+                (* ISO Modula-2 and PIM-[34] Modula-2 but not *)
+                (* PIM-2 Modula-2                             *)
    END ;
 
    (*
@@ -517,8 +519,18 @@ END InitBaseFunctions ;
 
 PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( Iso AND (Sym#NulSym) AND ((Sym=LengthS) OR (Sym=Size)) )
+   RETURN( (Iso AND (Sym#NulSym) AND ((Sym=LengthS) OR (Sym=Size))) )
 END IsISOPseudoBaseFunction ;
+
+
+(*
+   IsPIMPseudoBaseFunction - 
+*)
+
+PROCEDURE IsPIMPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (NOT Iso) AND (NOT Pim2) AND (Sym#NulSym) AND (Sym=Size) )
+END IsPIMPseudoBaseFunction ;
 
 
 (*
@@ -531,7 +543,7 @@ BEGIN
           (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR (Sym=Ord) OR
           (Sym=Chr) OR (Sym=Float) OR (Sym=Trunc) OR (Sym=Min) OR
           (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap) OR
-          IsISOPseudoBaseFunction(Sym)
+          IsISOPseudoBaseFunction(Sym) OR IsPIMPseudoBaseFunction(Sym)
          )
 END IsPseudoBaseFunction ;
 

@@ -1,3 +1,23 @@
+2004-08-31	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug as reported by "John B. Wallace, Jr."
+	  <wallacjb@enter.net>. A variable which when implicitly
+	  imported via an IMPORT module; failed.
+	  The variable was not being declared correctly by the
+	  GNU Modula-2 front end to the GCC back end.
+	
+2004-08-27	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added new switch -Wpim2 to stipulate the Modula-2 PIM-2
+	  dialect.
+	* Made SIZE pervasive for ISO Modula-2 and PIM-[34] Modula-2
+	  As reported by Diego Rodríguez Rodríguez <dieymir@yahoo.es>.
+	  SIZE can be imported from SYSTEM when -Wpim2 is present.
+	* removed the association with ".def" and "@modula-2"
+	  inside gm2/lang-specs.h as this conflicts with shared library
+	  file extension .def used by gcc. Bug reported by Gerrit P. Haase
+	  <gp@familiehaase.de>.
+
 2004-08-26	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented type PROCESS for SYSTEM in the pim library

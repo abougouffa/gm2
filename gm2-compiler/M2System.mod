@@ -47,7 +47,7 @@ FROM SymbolTable IMPORT NulSym,
                         PopValue,
                         PopSize ;
 
-FROM M2Options IMPORT Iso ;
+FROM M2Options IMPORT Iso, Pim2, Pedantic ;
 FROM NameKey IMPORT MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
@@ -164,7 +164,9 @@ BEGIN
       InitISOTypes
    ELSE
       InitPIMTypes ;
-      MakeSize     (* SIZE is declared in SYSTEM.def in PIM Modula-2 *)
+      (* SIZE is declared in SYSTEM.def in PIM-2 but not PIM-[34] *)
+      (* For now we relax this.                                   *)
+      MakeSize
    END ;
 
    (* And now the predefined pseudo functions *)

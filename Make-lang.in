@@ -132,12 +132,12 @@ gm2.rest.encap:
 gm2.info: $(srcdir)/gm2/gm2.info
 gm2.generated-manpages:
 
-gm2.dvi: $(srcdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
+gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi \
 	 $(srcdir)/gm2/gm2-ebnf.texi
 	$(TEXI2DVI) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
 
-gm2.html: $(srcdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
+gm2.html: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi \
 	 $(srcdir)/gm2/gm2-ebnf.texi
 	$(TEXI2HTML) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
@@ -148,12 +148,17 @@ gm2.ps: gm2.dvi
 gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
-$(srcdir)/gm2/gm2.info: $(srcdir)/gm2/images/gnu.eps \
+$(srcdir)/gm2/gm2.info: $(objdir)/gm2/images/gnu.eps \
          $(srcdir)/gm2/gm2.texi $(srcdir)/gm2/gm2-libs.texi $(srcdir)/gm2/gm2-ebnf.texi
 	$(MAKEINFO) -I$(srcdir)/gm2 -o $(srcdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
-$(srcdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
-	pngtopnm $< | pnmtops -noturn > $@
+$(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
+	mkdir -p gm2/images
+	if [ -f $(srcdir)/gm2/images/gnu.eps ] ; then \
+           cp $(srcdir)/gm2/images/gnu.eps $@ ; \
+        else \
+           pngtopnm $< | pnmtops -noturn > $@ ; \
+        fi
 
 $(srcdir)/gm2/gm2-libs.texi:
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py > gm2-libs.texi

@@ -156,10 +156,17 @@ BEGIN
    THEN
       Iso := TRUE ;
       Pim := FALSE ;
+      Pim2 := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wpim')
    THEN
       Pim := TRUE ;
+      Iso := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wpim2')
+   THEN
+      Pim := TRUE ;
+      Pim2 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wd')
@@ -310,6 +317,7 @@ END CppCommandLine ;
 BEGIN
    CppAndArgs                   := InitString('') ;
    Pim                          := TRUE ;
+   Pim2                         := FALSE ;
    Iso                          := FALSE ;
    SeenSources                  := FALSE ;
    Statistics                   := FALSE ;
