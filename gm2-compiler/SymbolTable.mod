@@ -4170,7 +4170,7 @@ BEGIN
    IF DoesTreeContainAny(Tree, IsUnknown)
    THEN
       CurrentError := NewError(GetTokenNo()) ;
-      ErrorFormat2(CurrentError, 'the following symbols are unknown in module %a which were %a',
+      ErrorFormat2(CurrentError, 'the following unknown symbols in module %a were %a',
                    name, MakeKey(a)) ;      
       ForeachNodeDo(Tree, UnknownSymbolError)
    END

@@ -4881,7 +4881,9 @@ BEGIN
    (* Compile time stack restored to entry state *)
    IF IsUnknown(ProcSym)
    THEN
-      WriteFormat1('function %a undefined', GetSymName(ProcSym))
+      WriteFormat1('function %a is undefined', GetSymName(ProcSym)) ;
+      PopN(NoOfParam+2) ;
+      PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)
    ELSIF IsAModula2Type(ProcSym)
    THEN
       ManipulatePseudoCallParameters ;
@@ -4997,7 +4999,6 @@ END BuildTypeCoercion ;
                            |----------------|         +------------+
                            | ProcSym | Type |         | ReturnVar  |
                            |----------------|         |------------|
-
 *)
 
 PROCEDURE BuildRealFunctionCall ;
