@@ -31,6 +31,7 @@ touch gcc-version.h
 if echo $version | grep '^3.3' > /dev/null; then
    echo "#define GCC_3_3_X" >> gcc-version.h
    echo "supported"
+   mainversion=3_3_3
 elif echo $version | grep '^3.2' > /dev/null; then
    echo "#define GCC_3_2_X" >> gcc-version.h
    echo "not supported. You need to use a gcc-3.3 series source tree"
@@ -39,6 +40,21 @@ else
    echo "not supported. You need to use a gcc-3.3 series source tree"
    exit 1
 fi
+
+######################################################################
+#
+#if grep "@@ PATCHED FOR GM2 @@" "$srcdir/stor-layout.c" > /dev/null; then
+#  :
+#else
+#  patchfile="gm2/diffs/gcc-$mainversion.diff"
+#  if [ ! -r "$srcdir/$patchfile" ]; then
+#    echo "" >&2
+#    echo "***" >&2
+#    echo "*** Detected GCC version $mainversion." >&2
+#  fi
+#fi
+#
+######################################################################
 
 language="gm2"
 
