@@ -20,8 +20,8 @@ MODULE impf ;
 IMPORT impb ;
 
 CONST
-   start = impb.red ;   (* should fail as we have not explicitly *)
-   end   = impb.green ; (* imported enumerated type              *)
+   start = impb.red ;
+   end   = impb.green ;
 
 VAR
    a: ARRAY [start..end] OF CARDINAL ;

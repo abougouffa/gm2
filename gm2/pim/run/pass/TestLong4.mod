@@ -1,4 +1,4 @@
-(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,12 +15,26 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE impl ;
+MODULE TestLong4 ;
 
-IMPORT impb ;
+FROM StrIO IMPORT WriteLn, WriteString;
+FROM FpuIO IMPORT WriteLongInt;
+FROM M2RTS IMPORT ExitOnHalt ;
 
 VAR
-   a: impb.C ;
+  LongIntegerVariable : LONGINT;
+
 BEGIN
-   a := impb.red  (* red should not be resolved *)
-END impl.
+   LongIntegerVariable := -12345678901234;
+   WriteString('we should see the value -12345678901234 appear here: ') ;
+   WriteLongInt(LongIntegerVariable,0);
+   WriteLn ;
+   IF LongIntegerVariable=-12345678901234
+   THEN
+      WriteString(' correct result') ; WriteLn
+   ELSE
+      WriteString(' incorrect result') ; WriteLn ;
+      ExitOnHalt(1) ;
+      HALT
+   END 
+END TestLong4.

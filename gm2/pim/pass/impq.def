@@ -1,0 +1,7 @@
+DEFINITION MODULE impq;
+
+IMPORT impc;
+TYPE
+   C = impc.C;
+
+END impq.
