@@ -127,6 +127,8 @@ tree gm2_memcpy_node;
 tree gm2_alloca_node;
 tree bitset_type_node;
 tree m2_char_type_node;
+tree m2_integer_type_node;
+tree m2_cardinal_type_node;
 
 
 /* Global Variables for the various types and nodes we create.  */ 
@@ -503,11 +505,11 @@ static int                    default_valid_lang_attribute                PARAMS
 									 	  tree outputs, tree trash));
        void                   gccgm2_AssignBooleanTrueFalse     	  PARAMS ((tree booleanid, tree trueid, tree falseid));
        tree                   gccgm2_GetIntegerType 	       	 	  PARAMS ((void));
+       tree                   gccgm2_GetCardinalType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetCharType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetByteType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetVoidType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetPointerType 	       	 	  PARAMS ((void));
-       tree                   gccgm2_GetCardinalType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetBitsetType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetRealType 	       	 	  PARAMS ((void));
        tree                   gccgm2_GetLongRealType 	       	 	  PARAMS ((void));
@@ -569,12 +571,15 @@ static int                    is_var                                      PARAMS
 static int                    is_type                                     PARAMS ((tree type));
 static tree                   build_bitset_type                           PARAMS ((void));
 static tree                   build_m2_char_node                          PARAMS ((void));
+static tree                   build_m2_integer_node                       PARAMS ((void));
+static tree                   build_m2_cardinal_node                      PARAMS ((void));
        tree                   convert_type_to_range                       PARAMS ((tree type));
        tree                   gccgm2_GetDefaultType                       PARAMS ((char *name, tree type));
        void                   gccgm2_BuildStartSetConstructor             PARAMS ((tree type));
        void                   gccgm2_BuildSetConstructorElement           PARAMS ((tree value));
        tree                   gccgm2_BuildEndSetConstructor               PARAMS ((void));
        tree                   gccgm2_GetM2CharType                        PARAMS ((void));
+       tree                   gccgm2_GetM2IntegerType                     PARAMS ((void));
        int                    gccgm2_CompareTrees                         PARAMS ((tree e1, tree e2));
 static void                   debug_watch                                 PARAMS ((tree));
 static int                    is_array                                    PARAMS ((tree));
@@ -2829,23 +2834,23 @@ gm2_expand_expr (exp, target, tmode, modifier)
   switch (TREE_CODE (exp))
     {
     case ERROR_MARK:
-      return( NULL_RTX );
+      return NULL_RTX;
       break;
 
     case IDENTIFIER_NODE:
     case TREE_LIST:
-      if (exp == boolean_false_node) {
-        return( const0_rtx );
-      } else if (exp == boolean_true_node) {
-        return( const1_rtx );
-      }
+      if (exp == boolean_false_node)
+        return const0_rtx;
+      else if (exp == boolean_true_node)
+        return const1_rtx;
+
       /* fall through */
     default:
       fprintf(stderr, "gm2 front end has been asked to expand the following expression\n");
-      debug_tree(exp);
-      fprintf(stderr, "halting\n");
-      do_abort();
-      return( target );
+      debug_tree (exp);
+      fprintf (stderr, "halting\n");
+      do_abort ();
+      return target;
     }
 }
 
@@ -2920,6 +2925,8 @@ init_m2_builtins ()
 
   bitset_type_node = build_bitset_type ();
   m2_char_type_node = build_m2_char_node ();
+  m2_integer_type_node = build_m2_integer_node ();
+  m2_cardinal_type_node = build_m2_cardinal_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -2936,6 +2943,40 @@ build_void_list_node ()
 {
   tree t = build_tree_list (NULL_TREE, void_type_node);
   return t;
+}
+
+static
+tree
+build_m2_integer_node (void)
+{
+  tree c;
+
+  /* Define `INTEGER' */
+
+  c = make_node (INTEGER_TYPE);
+  TYPE_PRECISION (c) = INT_TYPE_SIZE;
+  TYPE_SIZE (c) = 0;
+  fixup_signed_type (c);
+  TREE_UNSIGNED (c) = 0;
+
+  return c;
+}
+
+static
+tree
+build_m2_cardinal_node (void)
+{
+  tree c;
+
+  /* Define `CARDINAL' */
+
+  c = make_node (INTEGER_TYPE);
+  TYPE_PRECISION (c) = INT_TYPE_SIZE;
+  TYPE_SIZE (c) = 0;
+  fixup_unsigned_type (c);
+  TREE_UNSIGNED (c) = 1;
+
+  return c;
 }
 
 static
@@ -2987,10 +3028,8 @@ gm2_init_decl_processing ()
 			integer_type_node));
   pushdecl (build_decl (TYPE_DECL, get_identifier ("char"),
 			char_type_node));
-
   pushdecl (build_decl (TYPE_DECL, get_identifier ("long int"),
 			long_integer_type_node));
-
   pushdecl (build_decl (TYPE_DECL, get_identifier ("unsigned int"),
 			unsigned_type_node));
   pushdecl (build_decl (TYPE_DECL, get_identifier ("long unsigned int"),
@@ -9389,8 +9428,8 @@ gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType (), varel),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType (), low), FALSE);
     /* which word do we need to fetch? */
     tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (BITS_PER_WORD), FALSE);
     /* calculate the bit in this word */
@@ -9830,6 +9869,18 @@ tree
 gccgm2_GetM2CharType ()
 {
   return m2_char_type_node;
+}
+
+tree
+gccgm2_GetM2IntegerType ()
+{
+  return m2_integer_type_node;
+}
+
+tree
+gccgm2_GetM2CardinalType ()
+{
+  return m2_cardinal_type_node;
 }
 
 tree

@@ -18,7 +18,7 @@ EXPORT QUALIFIED Tree,
                  GetDefaultType, GetCopyOfType,
                  GetIntegerOne, GetIntegerType, GetIntegerZero,
                  GetCharType, GetM2CharType, GetVoidType, GetCurrentFunction,
-                 GetPointerType,
+                 GetPointerType, GetM2IntegerType, GetM2CardinalType,
                  GetByteType, GetCardinalType, GetBitsetType,
                  GetLongIntType, GetRealType, GetLongRealType, GetProcType,
                  GetWordType, GetMinFrom, GetMaxFrom, GetSizeOf, GetErrorNode,
@@ -115,6 +115,8 @@ PROCEDURE GetDefaultType         (name: ADDRESS; type: Tree) : Tree ;
 PROCEDURE GetIntegerType         () : Tree ;
 PROCEDURE GetCharType            () : Tree ;
 PROCEDURE GetM2CharType          () : Tree ;
+PROCEDURE GetM2IntegerType       () : Tree ;
+PROCEDURE GetM2CardinalType      () : Tree ;
 PROCEDURE GetByteType            () : Tree ;
 PROCEDURE GetVoidType            () : Tree ;
 PROCEDURE GetPointerType         () : Tree ;

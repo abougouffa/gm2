@@ -91,6 +91,7 @@ FROM gccgm2 IMPORT Tree,
                    GetPointerType, GetLongRealType, GetLongIntType, GetRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetMinFrom, GetMaxFrom, GetBitsPerWord,
+                   GetM2IntegerType, GetM2CardinalType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
@@ -893,9 +894,9 @@ BEGIN
    THEN
       HaveInitDefaultTypes := TRUE ;
 
-      DeclareDefaultType(Integer , "INTEGER" , GetIntegerType()) ;
+      DeclareDefaultType(Integer , "INTEGER" , GetM2IntegerType()) ;
       DeclareDefaultType(Char    , "CHAR"    , GetM2CharType()) ;
-      DeclareDefaultType(Cardinal, "CARDINAL", GetCardinalType()) ;
+      DeclareDefaultType(Cardinal, "CARDINAL", GetM2CardinalType()) ;
       DeclareDefaultType(Word    , "WORD"    , GetWordType()) ;
       DeclareDefaultType(Proc    , "PROC"    , GetProcType()) ;
       DeclareDefaultType(Byte    , "BYTE"    , GetByteType()) ;
