@@ -21,16 +21,16 @@ IMPLEMENTATION MODULE M2Preprocess ;
 FROM SYSTEM IMPORT WORD ;
 
 FROM Strings IMPORT string, InitString, Mark, KillString, EqualArray, InitStringCharStar,
-                    Dup, ConCat, ConCatChar ;
+                    Dup, ConCat, ConCatChar, RIndex, Slice ;
 
 FROM choosetemp IMPORT make_temp_file ;
 FROM pexecute IMPORT pexecute ;
 FROM libc IMPORT system, exit, unlink ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, ForeachItemInListDo ;
-FROM M2RTS IMPORT InstallTerminationProcedure ;
-FROM FIO IMPORT StdErr ;
+FROM M2RTS IMPORT InstallTerminationProcedure, Terminate ;
+FROM FIO IMPORT StdErr, StdOut ;
 FROM M2Printf IMPORT fprintf1 ;
-FROM M2Options IMPORT CppCommandLine ;
+FROM M2Options IMPORT CppCommandLine, Verbose ;
 FROM NameKey IMPORT MakeKey, KeyToCharStar ;
 
 
@@ -89,6 +89,7 @@ VAR
    tempfile,
    command,
    commandLine: String ;
+   pos        : CARDINAL ;
 BEGIN
    command := CppCommandLine() ;
    IF EqualArray(command, '')
@@ -96,12 +97,23 @@ BEGIN
       RETURN( filename )
    ELSE
       tempfile := InitStringCharStar(make_temp_file(KeyToCharStar(MakeKey('cpp')))) ;
-      commandLine := ConCat(ConCatChar(ConCat(ConCat(ConCatChar(Dup(command), ' '), Mark(InitString('-o '))),
-                                              tempfile), ' '), filename) ;
+      commandLine := Dup(command) ;
+      pos := RIndex(commandLine,  ' ', 0) ;
+      IF pos>0
+      THEN
+         commandLine := Slice(commandLine, 0, pos)
+      END ;
+      commandLine := ConCat(ConCatChar(ConCat(ConCatChar(Dup(commandLine), ' '), filename),
+                                       ' '),
+                            tempfile) ;
 (*  use pexecute in the future
       res := pexecute(string(Slice(commandLine, 0, Index(commandLine, ' ', 0))), etc etc );
 *)
       (* for now we'll use system *)
+      IF Verbose
+      THEN
+         fprintf1(StdOut, "%s\n", commandLine)
+      END ;
       IF system(string(commandLine))#0
       THEN
          fprintf1(StdErr, 'C preprocessor failed when preprocessing %s\n', filename) ;

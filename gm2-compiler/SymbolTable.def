@@ -169,6 +169,9 @@ EXPORT QUALIFIED NulSym,
                  ParametersDefinedInImplementation,
                  AreParametersDefinedInImplementation,
 
+                 PutUseVarArgs,
+                 UsesVarArgs,
+
                  NoOfElements,
                  NoOfParam,
                  Father,
@@ -201,6 +204,9 @@ EXPORT QUALIFIED NulSym,
                  CheckForEnumerationInCurrentModule,
 
                  IsHiddenTypeDeclared,
+
+                 PutDefinitionForC,
+                 IsDefinitionForC,
 
                  IsSizeSolved,
                  IsOffsetSolved,
@@ -1358,6 +1364,24 @@ PROCEDURE IsHiddenTypeDeclared (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
+   PutDefinitionForC - sets a flag in the module, Sym, which
+                       indicates that this module is a wrapper for a C
+                       file. Parameters passes to procedures in this module
+                       will adopt the C calling convention.
+*)
+
+PROCEDURE PutDefinitionForC (Sym: CARDINAL) ;
+
+
+(*
+   IsDefinitionForC - returns true if this definition module was declared
+                      as a DEFINITION MODULE FOR "C".
+*)
+
+PROCEDURE IsDefinitionForC (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
    CheckForEnumerationInCurrentModule - checks to see whether the enumeration
                                         type symbol, Sym, has been entered into
                                         the current modules scope list.
@@ -1453,6 +1477,24 @@ PROCEDURE ParametersDefinedInImplementation (Sym: CARDINAL) ;
 *)
 
 PROCEDURE AreParametersDefinedInImplementation (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutUseVarArgs - returns TRUE if procedure, Sym, uses varargs.
+                   The procedure _must_ be declared inside a
+                   DEFINITION FOR "C"
+*)
+
+PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
+
+
+(*
+   UsesVarArgs - returns TRUE if procedure, Sym, uses varargs.
+                 The procedure _must_ be declared inside a
+                 DEFINITION FOR "C"
+*)
+
+PROCEDURE UsesVarArgs (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

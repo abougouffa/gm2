@@ -191,7 +191,7 @@ BEGIN
    THEN
       Pedantic := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-verbose')
+   ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
    THEN
       Verbose := TRUE ;
       Legal := TRUE

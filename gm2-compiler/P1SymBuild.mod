@@ -47,10 +47,11 @@ FROM SymbolTable IMPORT NulSym,
                         GetExported,
                         PutImported,
                         PutExported, PutExportQualified, PutExportUnQualified,
+                        PutDefinitionForC,
                         MakeProcedure,
                         PutFunction, PutParam, PutVarParam,
                         GetNthParam,
-                        IsProcedure,
+                        IsProcedure, IsConstString,
                         MakePointer, PutPointer,
                         MakeRecord, PutFieldRecord,
                         MakeArray, PutFieldArray,
@@ -58,7 +59,6 @@ FROM SymbolTable IMPORT NulSym,
                         PutArray, GetType, IsArray,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
-                        MakeConstVar,
                         MakeUnbounded, PutUnbounded,
                         GetSymName ;
 
@@ -120,16 +120,18 @@ END CheckFileName ;
 
                                 Entry                 Exit
 
-                         Ptr ->                                     <- Ptr
-                                +------------+        +-----------+
-                                | NameStart  |        | NameStart |
-                                |------------|        |-----------|
-
+                         Ptr ->               
+                                +------------+
+                                | NameStart  |                       <- Ptr
+                                |------------|        +------------+
+                                | NulName/"C"|        | NameStart  |
+                                |------------|        |------------|
 *)
 
 PROCEDURE P1StartBuildDefinitionModule ;
 VAR
    name     : Name ;
+   language,
    ModuleSym: CARDINAL ;
 BEGIN
    PopT(name) ;
@@ -140,6 +142,19 @@ BEGIN
    StartScope(ModuleSym) ;
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
+   PopT(language) ;
+   IF (language#NulSym) AND IsConstString(language)
+   THEN
+      IF GetSymName(language)=MakeKey('C')
+      THEN
+         PutDefinitionForC(ModuleSym)
+      ELSIF GetSymName(language)=NulName
+      THEN
+         WriteFormat0('currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"')
+      ELSE
+         WriteFormat1('unknown definition module language (%a), currently a non modula-2 definition module can only be declared as DEFINITION FOR "C"', GetSymName(language))
+      END
+   END ;
    PushT(name)
 END P1StartBuildDefinitionModule ;
 

@@ -48,7 +48,8 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
-                        IsUnboundedParam, IsEnumeration,
+                        IsUnboundedParam, IsEnumeration, IsDefinitionForC,
+                        UsesVarArgs,
                         NoOfElements,
                         NoOfParam,
                         StartScope, EndScope,
@@ -205,6 +206,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE CheckForIndex (Start, End, Omit: CARDINAL; IndexSym: CARDINAL) ; FORWARD ;
 PROCEDURE BuildMaxFunction ; FORWARD ;
 PROCEDURE BuildMinFunction ; FORWARD ;
@@ -221,7 +223,7 @@ PROCEDURE BuildTruncFunction ; FORWARD ;
 PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ; FORWARD ;
 PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckProcedureParameters ; FORWARD ;
+PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL) ; FORWARD ;
 PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          Given        : CARDINAL;
@@ -274,7 +276,7 @@ PROCEDURE InitQuads ; FORWARD ;
 PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE IsReallyAPointer (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE MakeOp (t: Name) : QuadOperator ; FORWARD ;
-PROCEDURE ManipulateParameters ; FORWARD ;
+PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ; FORWARD ;
 PROCEDURE Merge (QuadList1, QuadList2: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE NewQuad (VAR QuadNo: CARDINAL) ; FORWARD ;
 PROCEDURE PopBool (VAR True, False: CARDINAL) ; FORWARD ;
@@ -837,7 +839,8 @@ BEGIN
 
    ParamOp           : CheckAddVariableRead(Oper2, QuadNo) ;
                        CheckAddVariableRead(Oper3, QuadNo) ;
-                       IF (Oper1>0) AND IsVarParam(Oper2, Oper1)
+                       IF (Oper1>0) AND (Oper1<=NoOfParam(Oper2)) AND
+                          IsVarParam(Oper2, Oper1)
                        THEN
                           CheckAddVariableWrite(Oper3, QuadNo)    (* may also write to a var parameter *)
                        END |
@@ -3063,13 +3066,61 @@ END BuildProcedureCall ;
 
 PROCEDURE BuildRealProcedureCall ;
 VAR
+   NoOfParam: CARDINAL ;
+   ProcSym  : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   PushT(NoOfParam) ;
+   ProcSym := OperandT(NoOfParam+2) ;
+   IF IsVar(ProcSym)
+   THEN
+      (* Procedure Variable ? *)
+      ProcSym := OperandF(NoOfParam+2)
+   END ;
+   IF IsDefImp(GetScopeAuthor(ProcSym)) AND IsDefinitionForC(GetScopeAuthor(ProcSym))
+   THEN
+      BuildRealFuncProcCall(FALSE, TRUE)
+   ELSE
+      BuildRealFuncProcCall(FALSE, FALSE)
+   END
+END BuildRealProcedureCall ;
+
+
+(*
+   BuildRealProcFuncCall - builds a real procedure or function call.
+                           The Stack:
+
+
+                            Entry                      Exit
+
+                     Ptr ->
+                            +----------------+
+                            | NoOfParam      |
+                            |----------------|
+                            | Param 1        |
+                            |----------------|
+                            | Param 2        |
+                            |----------------|
+                            .                .
+                            .                .
+                            .                .
+                            |----------------|
+                            | Param #        |
+                            |----------------|
+                            | ProcSym | Type |         Empty
+                            |----------------|
+*)
+
+PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
+VAR
    e          : Error ;
    NoOfParam,
    i, pi,
+   ReturnVar,
    ProcSym,
    Proc       : CARDINAL ;
 BEGIN
-   CheckProcedureParameters ;
+   CheckProcedureParameters(IsForC) ;
    PopT(NoOfParam) ;
    PushT(NoOfParam) ;  (* Restore stack to origional state *)
    ProcSym := OperandT(NoOfParam+2) ;
@@ -3080,15 +3131,28 @@ BEGIN
    ELSE
       Proc := ProcSym
    END ;
-   IF GetType(Proc)#NulSym
+   IF IsFunc
    THEN
-      e := NewError(GetTokenNo()) ;
-      ErrorFormat1(e, 'trying to call function, %a, but ignoring its return value', GetSymName(Proc)) ;
-      e := ChainError(GetDeclared(Proc), e) ;
-      ErrorFormat1(e, 'function, %a, is being called but its return value is ignored', GetSymName(Proc))
+      IF GetType(Proc)=NulSym
+      THEN
+         WriteFormat1('procedure %a does not have a return value - it is not a function', GetSymName(Proc))
+      END
+   ELSE
+      (* is being called as a procedure *)
+      IF GetType(Proc)#NulSym
+      THEN
+         e := NewError(GetTokenNo()) ;
+         ErrorFormat1(e, 'trying to call function, %a, but ignoring its return value', GetSymName(Proc)) ;
+         e := ChainError(GetDeclared(Proc), e) ;
+         ErrorFormat1(e, 'function, %a, is being called but its return value is ignored', GetSymName(Proc))
+      END
    END ;
-   ManipulateParameters ;
+   ManipulateParameters(IsForC) ;
    PopT(NoOfParam) ;
+   IF IsFunc
+   THEN
+      GenQuad(ParamOp, 0, Proc, ProcSym)  (* Space for return value *)
+   END ;
    IF PushParametersLeftToRight
    THEN
       i := NoOfParam ;
@@ -3109,8 +3173,16 @@ BEGIN
       END
    END ;
    GenQuad(CallOp, NulSym, NulSym, ProcSym) ;
-   PopN(NoOfParam+1)   (* Destroy arguments and procedure call *)
-END BuildRealProcedureCall ;
+   PopN(NoOfParam+1) ; (* Destroy arguments and procedure call *)
+   IF IsFunc
+   THEN
+      (* ReturnVar - will have the type of the procedure *)
+      ReturnVar := MakeTemporary(RightValue) ;
+      PutVar(ReturnVar, GetType(Proc)) ;
+      GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
+      PushTF(ReturnVar, GetType(Proc))
+   END
+END BuildRealFuncProcCall ;
 
 
 (*
@@ -3141,7 +3213,7 @@ END BuildRealProcedureCall ;
 
 *)
 
-PROCEDURE CheckProcedureParameters ;
+PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ;
 VAR
    e           : Error ;
    Unbounded   : BOOLEAN ;
@@ -3217,8 +3289,14 @@ BEGIN
                   ELSIF NOT IsUnboundedParam(Proc, i)
                   THEN
                      (* we possibly need to allow passing strings of exact size to an ARRAY [0..n] OF CHAR *)
-                     FailParameter('cannot pass a string constant to a non unbounded array parameter',
-                                   CallParam, ParamI, Proc, i)
+                     IF IsForC AND (GetType(GetParam(Proc, i))=Address)
+                     THEN
+                        FailParameter('a string constant can either be passed to an ADDRESS parameter or an ARRAY OF CHAR',
+                                      CallParam, ParamI, Proc, i)
+                     ELSE
+                        FailParameter('cannot pass a string constant to a non unbounded array parameter',
+                                      CallParam, ParamI, Proc, i)
+                     END
                   END
                END
             ELSE
@@ -3226,7 +3304,13 @@ BEGIN
             END
          END
       ELSE
-         FailParameter('too many parameters', OperandT(pi), NulSym, Proc, i)
+         IF IsForC AND UsesVarArgs(Proc)
+         THEN
+            (* these are varargs, therefore we don't check them *)
+            i := ParamTotal
+         ELSE
+            FailParameter('too many parameters', OperandT(pi), NulSym, Proc, i)
+         END
       END ;
       INC(i) ;
       DEC(pi) ;
@@ -3464,7 +3548,10 @@ BEGIN
       s := InitString('(unknown)')
    ELSE
       Type := GetType(Sym) ;
-      IF IsUnbounded(Type)
+      IF Type=NulSym
+      THEN
+         s := InitString('(unknown)')
+      ELSIF IsUnbounded(Type)
       THEN
          s := Sprintf1(Mark(InitString('ARRAY OF %s')),
                        Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(Type))))))
@@ -3769,6 +3856,22 @@ END ManipulatePseudoCallParameters ;
 
 
 (*
+   ConvertStringToC - creates a new ConstString symbol with a C style string.
+*)
+
+PROCEDURE ConvertStringToC (sym: CARDINAL) : CARDINAL ;
+VAR
+   s: String ;
+   n: CARDINAL ;
+BEGIN
+   s := Sprintf0(InitStringCharStar(KeyToCharStar(GetString(sym)))) ;
+   n := MakeConstLitString(makekey(string(s))) ;
+   s := KillString(s) ;
+   RETURN( n )
+END ConvertStringToC ;
+
+
+(*
    ManipulateParameters - manipulates the procedure parameters in
                           preparation for a procedure call.
                           Prepares Boolean, Unbounded and VAR parameters.
@@ -3795,7 +3898,7 @@ END ManipulatePseudoCallParameters ;
                           |----------------|
 *)
 
-PROCEDURE ManipulateParameters ;
+PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ;
 VAR
    s          : String ;
    ParamType,
@@ -3817,7 +3920,7 @@ BEGIN
    ELSE
       Proc := ProcSym
    END ;
-   IF NoOfParam(Proc)#NoOfParameters
+   IF (NOT (IsForC AND UsesVarArgs(Proc))) AND (NoOfParam(Proc)#NoOfParameters)
    THEN
       ErrorStringAt2(Sprintf3(Mark(InitString('attempting to pass (%d) parameters to procedure (%s) which was declared with (%d) parameters')),
                               NoOfParameters,
@@ -3831,7 +3934,29 @@ BEGIN
       f := Peep(BoolStack, pi) ;
       IF i>NoOfParam(Proc)
       THEN
-         WriteFormat1('parameter not expected for procedure %a', GetSymName(Proc))
+         IF IsForC AND UsesVarArgs(Proc)
+         THEN
+            IF IsBoolean(pi)
+            THEN
+               (* Ok Des will be a boolean type *)
+               ConvertBooleanToVariable(pi)
+            ELSIF (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
+            THEN
+               f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
+            ELSIF IsConstString(OperandT(pi))
+            THEN
+               f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
+            END
+         ELSE
+            WriteFormat1('parameter not expected for procedure %a', GetSymName(Proc))
+         END
+      ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
+            (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
+      THEN
+         f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
+      ELSIF IsForC AND IsConstString(OperandT(pi))
+      THEN
+         f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
       ELSIF IsUnboundedParam(Proc, i)
       THEN
          t := MakeTemporary(RightValue) ;
@@ -4861,58 +4986,22 @@ END BuildTypeCoercion ;
 PROCEDURE BuildRealFunctionCall ;
 VAR
    NoOfParam,
-   pi, i,
-   ProcSym,
-   Proc,
-   ReturnVar,
-   t,
-   true, false,
-   Des        : CARDINAL ;
+   ProcSym  : CARDINAL ;
 BEGIN
-   CheckProcedureParameters ;
    PopT(NoOfParam) ;
-   ProcSym := OperandT(NoOfParam+1) ;
+   PushT(NoOfParam) ;
+   ProcSym := OperandT(NoOfParam+2) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(NoOfParam+1)
-   ELSE
-      Proc := ProcSym
+      ProcSym := OperandF(NoOfParam+2)
    END ;
-   IF GetType(Proc)=NulSym
+   IF IsDefImp(GetScopeAuthor(ProcSym)) AND IsDefinitionForC(GetScopeAuthor(ProcSym))
    THEN
-      WriteFormat1('procedure %a does not have a return value - it is not a function', GetSymName(Proc))
-   END ;
-   PushT(NoOfParam) ;  (* Restore stack to origional state *)
-   ManipulateParameters ;
-   PopT(NoOfParam) ;
-   GenQuad(ParamOp, 0, Proc, ProcSym) ;  (* Space for return value *)
-   IF PushParametersLeftToRight
-   THEN
-      i := NoOfParam ;
-      pi := 1 ;     (* stack index referencing stacked parameter, i *)
-      WHILE i>0 DO
-         GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
-         DEC(i) ;
-         INC(pi)
-      END
+      BuildRealFuncProcCall(TRUE, TRUE)
    ELSE
-      Assert(NOT UsingGCCBackend) ;
-      i := 1 ;
-      pi := NoOfParam ;   (* stack index referencing stacked parameter, i *)
-      WHILE i<=NoOfParam DO
-         GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
-         INC(i) ;
-         DEC(pi)
-      END
-   END ;
-   GenQuad(CallOp, NulSym, NulSym, ProcSym) ;
-   PopN(NoOfParam+1) ;
-   (* ReturnVar - will have the type of the procedure *)
-   ReturnVar := MakeTemporary(RightValue) ;
-   PutVar(ReturnVar, GetType(Proc)) ;
-   GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
-   PushTF(ReturnVar, GetType(Proc))
+      BuildRealFuncProcCall(TRUE, FALSE)
+   END
 END BuildRealFunctionCall ;
 
 

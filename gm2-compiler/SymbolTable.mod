@@ -198,13 +198,14 @@ TYPE
                                               (* the .def or .mod first.       *)
                                               (* The second occurence is       *)
                                               (* compared to the first.        *)
-                 DefinedInImp: BOOLEAN ;      (* Were the parameters defined   *)
+                 DefinedInImp  : BOOLEAN ;    (* Were the parameters defined   *)
                                               (* in the Implementation module? *)
                                               (* Note that this depends on     *)
                                               (* whether the compiler has read *)
                                               (* the .def or .mod first.       *)
                                               (* The second occurence is       *)
                                               (* compared to the first.        *)
+                 HasVarArgs    : BOOLEAN ;    (* Does this procedure use ... ? *)
                  Father        : CARDINAL ;   (* Father scope of procedure.    *)
                  StartQuad     : CARDINAL ;   (* Index into quads for start    *)
                                               (* of procedure.                 *)
@@ -237,7 +238,9 @@ TYPE
                                               (* of procedure.                 *)
                  ListOfParam   : List ;       (* Contains a list of all the    *)
                                               (* parameters in this procedure. *)
+                 HasVarArgs    : BOOLEAN ;    (* Does this proc type use ... ? *)
                  ReturnType    : CARDINAL ;   (* Return type for function.     *)
+                 Father        : CARDINAL ;   (* Father scope of proc type.    *)
                  Size          : PtrToValue ; (* Runtime size of symbol.       *)
                  TotalParamSize: PtrToValue ; (* size of all parameters.       *)
                  At            : Where ;      (* Where was sym declared/used *)
@@ -267,7 +270,7 @@ TYPE
                  END ;
 
    SymConstLit = RECORD
-                    name     : Name ;     (* Index into name array, name *)
+                    name     : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
                     Value    : PtrToValue ;   (* Value of the constant.      *)
                     Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
@@ -276,7 +279,7 @@ TYPE
                  END ;
 
    SymConstVar = RECORD
-                    name     : Name ;     (* Index into name array, name *)
+                    name     : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
                     Value    : PtrToValue ;   (* Value of the constant       *)
                     Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
@@ -285,7 +288,7 @@ TYPE
                  END ;
 
    SymVar = RECORD
-               name          : Name ;     (* Index into name array, name *)
+               name          : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
                Type          : CARDINAL ;     (* Index to a type symbol.     *)
                Size          : PtrToValue ;   (* Runtime size of symbol.     *)
@@ -309,7 +312,7 @@ TYPE
 
    SymPointer
            = RECORD
-                name     : Name ;         (* Index into name array, name *)
+                name     : Name ;             (* Index into name array, name *)
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
@@ -318,7 +321,7 @@ TYPE
 
    SymRecordField =
              RECORD
-                name     : Name ;         (* Index into name array, name *)
+                name     : Name ;             (* Index into name array, name *)
                                               (* of record field.            *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
@@ -363,7 +366,7 @@ TYPE
 
    SymDefImp =
             RECORD
-               name          : Name ;   (* Index into name array, name   *)
+               name          : Name ;       (* Index into name array, name   *)
                                             (* of record field.              *)
                Type          : CARDINAL ;   (* Index to a type symbol.       *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
@@ -430,6 +433,7 @@ TYPE
                                             (* goto quad.                    *)
                ContainsHiddenType: BOOLEAN ;(* True if this module           *)
                                             (* implements a hidden type.     *)
+               ForC          : BOOLEAN ;    (* Is it a definition for "C"    *)
                ListOfVars    : List ;       (* List of variables in this     *)
                                             (* scope.                        *)
                ListOfProcs   : List ;       (* List of all procedures        *)
@@ -440,7 +444,7 @@ TYPE
 
    SymModule =
             RECORD
-               name          : Name ;   (* Index into name array, name   *)
+               name          : Name ;       (* Index into name array, name   *)
                                             (* of record field.              *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                Offset        : PtrToValue ; (* Offset at runtime of symbol   *)
@@ -2005,6 +2009,7 @@ BEGIN
                                       (* goto quad.                    *)
          ContainsHiddenType := FALSE ;(* True if this module           *)
                                       (* implements a hidden type.     *)
+         ForC := FALSE ;              (* Is it a definition for "C"    *)
          InitList(ListOfVars) ;       (* List of variables in this     *)
                                       (* scope.                        *)
          InitList(ListOfProcs) ;      (* List of all procedures        *)
@@ -4407,6 +4412,46 @@ END IsHiddenTypeDeclared ;
 
 
 (*
+   PutDefinitionForC - sets a flag in the current compiled module which
+                       indicates that this module is a wrapper for a C
+                       file. Parameters passes to procedures in this module
+                       will adopt the C calling convention.
+*)
+
+PROCEDURE PutDefinitionForC (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      DefImpSym: DefImp.ForC := TRUE
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END PutDefinitionForC ;
+
+
+(*
+   IsDefinitionForC - returns true if this definition module was declared
+                      as a DEFINITION MODULE FOR "C".
+*)
+
+PROCEDURE IsDefinitionForC (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      DefImpSym: RETURN( DefImp.ForC )
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END IsDefinitionForC ;
+
+
+(*
    CheckForEnumerationInCurrentModule - checks to see whether the enumeration
                                         type symbol, Sym, has been entered into
                                         the current modules scope list.
@@ -4798,6 +4843,50 @@ BEGIN
    END ;
    RETURN( n )
 END NoOfParam ;
+
+
+(*
+   PutUseVarArgs - returns TRUE if procedure, Sym, uses varargs.
+                   The procedure _must_ be declared inside a
+                   DEFINITION FOR "C"
+*)
+
+PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
+BEGIN
+   CheckLegal(Sym) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.HasVarArgs := TRUE |
+      ProcTypeSym : ProcType.HasVarArgs := TRUE
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END PutUseVarArgs ;
+
+
+(*
+   UsesVarArgs - returns TRUE if procedure, Sym, uses varargs.
+                 The procedure _must_ be declared inside a
+                 DEFINITION FOR "C"
+*)
+
+PROCEDURE UsesVarArgs (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: RETURN( Procedure.HasVarArgs ) |
+      ProcTypeSym : RETURN( ProcType.HasVarArgs )
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END UsesVarArgs ;
 
 
 (*
@@ -5344,6 +5433,7 @@ BEGIN
       ModuleSym          : RETURN( Module.Father ) |
       VarSym             : RETURN( Var.Father ) |
       ProcedureSym       : RETURN( Procedure.Father ) |
+      ProcTypeSym        : RETURN( ProcType.Father ) |
       RecordFieldSym     : RETURN( RecordField.Parent ) |
       VarientSym         : RETURN( Varient.Parent ) |
       VarientFieldSym    : RETURN( VarientField.Parent ) |
@@ -5383,6 +5473,9 @@ BEGIN
       ProcTypeSym: ProcType.ReturnType := NulSym ;
                    ProcType.name := ProcTypeName ;
                    InitList(ProcType.ListOfParam) ;
+                   ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
+                   ProcType.Father := GetCurrentScope() ;
+                                                    (* Father scope of procedure.    *)
                    ProcType.Size := InitValue() ;
                    ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
                    InitWhereDeclared(ProcType.At)  (* Declared here *)

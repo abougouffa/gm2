@@ -84,6 +84,9 @@ FROM SymbolTable IMPORT NulSym,
                         CheckForUndeclaredExports,
                         IsUnboundedParam,
                         IsVarParam,
+                        PutUseVarArgs,
+                        UsesVarArgs,
+                        IsDefinitionForC,
                         GetSymName,
                         GetDeclared ;
 
@@ -1101,6 +1104,76 @@ BEGIN
    END ;
    Assert(IsProcedure(OperandT(2)))
 END BuildFPSection ;
+
+
+(*
+   BuildVarArgs - indicates that the ProcSym takes varargs
+                  after ParamTotal.
+                                                         <- Ptr
+                    +------------+        +------------+
+                    | ParamTotal |        | ParamTotal |
+                    |------------|        |------------|
+                    | ProcSym    |        | ProcSym    |
+                    |------------|        |------------|
+
+*)
+
+PROCEDURE BuildVarArgs ;
+VAR
+   ProcSym,
+   ParamTotal: CARDINAL ;
+BEGIN
+   PopT(ParamTotal) ;
+   PopT(ProcSym) ;
+   IF UsesVarArgs(ProcSym)
+   THEN
+      WriteFormat0('procedure can only have one vararg section ... at the end of the formal parameter list')
+   END ;
+   PutUseVarArgs(ProcSym) ;
+   IF IsDefImp(GetCurrentModule())
+   THEN
+      IF NOT IsDefinitionForC(GetCurrentModule())
+      THEN
+         WriteFormat0('the definition module must be declared as DEFINITION MODULE FOR "C" if varargs are to be used')
+      END
+   ELSE
+      WriteFormat0('varargs can only be used in the module declared as DEFINITION MODULE FOR "C"')
+   END ;
+   PushT(ProcSym) ;
+   PushT(ParamTotal)
+END BuildVarArgs ;
+
+
+(*
+   BuildFormalVarArgs - indicates that the procedure type takes varargs.
+                                                             <- Ptr
+                        +------------+        +------------+
+                        | ProcSym    |        | ProcSym    |
+                        |------------|        |------------|
+
+*)
+
+PROCEDURE BuildFormalVarArgs ;
+VAR
+   ProcSym: CARDINAL ;
+BEGIN
+   PopT(ProcSym) ;
+   IF UsesVarArgs(ProcSym)
+   THEN
+      WriteFormat0('procedure type can only have one vararg section ... at the end of the formal parameter list')
+   END ;
+   PutUseVarArgs(ProcSym) ;
+   IF IsDefImp(GetCurrentModule())
+   THEN
+      IF NOT IsDefinitionForC(GetCurrentModule())
+      THEN
+         WriteFormat0('the definition module must be declared as DEFINITION MODULE FOR "C" if varargs are to be used')
+      END
+   ELSE
+      WriteFormat0('varargs can only be used in the module declared as DEFINITION MODULE FOR "C"')
+   END ;
+   PushT(ProcSym)
+END BuildFormalVarArgs ;
 
 
 (*

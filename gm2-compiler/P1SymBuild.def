@@ -57,11 +57,12 @@ EXPORT QUALIFIED P1StartBuildDefinitionModule,
 
                                 Entry                 Exit
 
-                         Ptr ->                                     <- Ptr
-                                +------------+        +-----------+
-                                | NameStart  |        | NameStart |
-                                |------------|        |-----------|
-
+                         Ptr ->
+                                +------------+
+                                | NameStart  |                       <- Ptr
+                                |------------|        +------------+
+                                | NulName/"C"|        | NameStart  |
+                                |------------|        |------------|
 *)
 
 PROCEDURE P1StartBuildDefinitionModule ;

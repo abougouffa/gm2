@@ -1097,7 +1097,8 @@ BEGIN
    GetQuad(CurrentQuad, operator, operand1, operand2, operand3) ;
    IF operand1>0
    THEN
-      IF IsVarParam(operand2, operand1) AND IsConst(operand3)
+      IF (operand1<=NoOfParam(operand2)) AND
+         IsVarParam(operand2, operand1) AND IsConst(operand3)
       THEN
          ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')), GetSymName(operand3)), QuadToTokenNo(CurrentQuad))
       ELSE
@@ -1157,6 +1158,7 @@ BEGIN
    THEN
       ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%a)')), GetSymName(operand3)), QuadToTokenNo(CurrentQuad))
    ELSE
+      DeclareConstant(operand3) ;  (* we might be asked to find the address of a constant string *)
       t := BuildAssignment(Mod2Gcc(operand1),
                            BuildAddr(Mod2Gcc(operand3), FALSE))
    END

@@ -50,6 +50,8 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  EndBuildFormalParameters,
                  BuildProcedureHeading,
                  BuildFPSection,
+                 BuildVarArgs,
+                 BuildFormalVarArgs,
                  StartBuildProcedure,
                  EndBuildProcedure,
                  BuildFunction,
@@ -641,6 +643,33 @@ PROCEDURE BuildFunction ;
 *)
 
 PROCEDURE BuildFPSection ;
+
+
+(*
+   BuildVarArgs - indicates that the ProcSym takes varargs
+                  after ParamTotal.
+                                                         <- Ptr
+                    +------------+        +------------+
+                    | ParamTotal |        | ParamTotal |
+                    |------------|        |------------|
+                    | ProcSym    |        | ProcSym    |
+                    |------------|        |------------|
+
+*)
+
+PROCEDURE BuildVarArgs ;
+
+
+(*
+   BuildFormalVarArgs - indicates that the procedure type takes varargs.
+                                                             <- Ptr
+                        +------------+        +------------+
+                        | ProcSym    |        | ProcSym    |
+                        |------------|        |------------|
+
+*)
+
+PROCEDURE BuildFormalVarArgs ;
 
 
 (*
