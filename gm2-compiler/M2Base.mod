@@ -26,6 +26,7 @@ IMPLEMENTATION MODULE M2Base ;
                  base types and range of values from the gcc backend.
 *)
 
+FROM M2Options IMPORT Iso ;
 FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
@@ -56,7 +57,8 @@ FROM SymbolTable IMPORT ModeOfAddr,
 FROM M2ALU IMPORT PushIntegerTree, PushCard ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Options IMPORT BoundsChecking, ReturnChecking ;
-FROM M2System IMPORT Address, Bitset, Byte, Word, InitSystem ;
+FROM M2System IMPORT Address, Byte, Word, InitSystem ;
+FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType, GetMaxFrom, GetMinFrom,
                    GetRealType, GetLongIntType, GetLongRealType, GetProcType,
@@ -101,6 +103,11 @@ BEGIN
 
    (* initialise the SYSTEM module before we used CARDINAL and ADDRESS! *)
    InitSystem ;
+
+   IF Iso
+   THEN
+      MakeBitset  (* we do this after SYSTEM has been created as BITSET is dependant upon WORD *)
+   END ;
 
    InitBaseConstants ;
    InitBaseFunctions ;
@@ -237,6 +244,9 @@ BEGIN
    THEN
       min := MinChar ;
       max := MaxChar
+   ELSIF (type=Bitset) AND Iso
+   THEN
+      GetBitsetMinMax(min, max)
    ELSE
       WriteFormat1('unable to find MIN or MAX for the base type %a', GetSymName(type))
    END
@@ -384,7 +394,8 @@ BEGIN
    RETURN(
           (Sym=Cardinal) OR (Sym=Integer)  OR (Sym=Boolean) OR
           (Sym=Char)     OR (Sym=Proc)     OR (Sym=LongInt) OR
-          (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal)
+          (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
+          ((Sym=Bitset) AND Iso)
          )
 END IsBaseType ;
 

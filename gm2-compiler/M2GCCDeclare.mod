@@ -74,7 +74,8 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction, GetBaseTypeMinMax,
                    Cardinal, Char, Proc, Integer, Unbounded, LongInt, Real, LongReal, ShortReal, Boolean, True, False,
                    ArrayAddress, ArrayHigh ;
-FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Bitset, Bitnum, Byte, Loc ;
+FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax, Address, Word, Byte, Loc ;
+FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 

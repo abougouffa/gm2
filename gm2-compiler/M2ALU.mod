@@ -35,7 +35,7 @@ FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareConstant ;
-FROM M2System IMPORT Bitset ;
+FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc ;
 FROM M2Printf IMPORT printf2 ;
 FROM M2Base IMPORT MixTypes ;

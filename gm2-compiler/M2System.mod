@@ -51,18 +51,18 @@ FROM M2Options IMPORT Iso ;
 FROM NameKey IMPORT MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
+FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, Div ;
 FROM M2Error IMPORT InternalError ;
 FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
-                   GetBitsPerWord, GetBitsPerUnit, GetSizeOf, BuildSize ;
+                   GetBitsPerUnit, GetSizeOf, BuildSize ;
 
 VAR
    MinWord   , MaxWord,
    MinAddress, MaxAddress,
    MinLoc    , MaxLoc,
-   MinByte   , MaxByte,
-   MinBitset , MaxBitset : CARDINAL ;
+   MinByte   , MaxByte   : CARDINAL ;
 
 
 (*
@@ -92,23 +92,10 @@ BEGIN
    PushIntegerTree(GetSizeOf(GetPointerType())) ;
    PopSize(Address) ;
 
-   Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
-
-   (* MinBitset *)
-   MinBitset := MakeConstLit(MakeKey('0')) ;
-
-   (* MaxBitset *)
-   MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;
-   PushCard(GetBitsPerWord()-1) ;
-   PopValue(MaxBitset) ;
-
-   Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
-   PutSubrange(Bitnum, MinBitset, MaxBitset, Word) ;
-   PutSet(Bitset, Bitnum) ;
-
-   PushIntegerTree(GetSizeOf(GetWordType())) ;
-   PopSize(Bitset)
-
+   IF NOT Iso
+   THEN
+      MakeBitset
+   END
 END InitPIMTypes ;
 
 
@@ -140,29 +127,12 @@ BEGIN
    PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
    PopSize(Word) ;
 
-   Bitset := MakeSet(MakeKey('BITSET')) ;     (* Base Type       *)
-
-   (* MinBitset *)
-   MinBitset := MakeConstLit(MakeKey('0')) ;
-
-   (* MaxBitset *)
-   MaxBitset := MakeConstVar(MakeKey('MaxBitset')) ;
-   PushCard(GetBitsPerWord()-1) ;
-   PopValue(MaxBitset) ;
-
-   Bitnum := MakeSubrange(MakeKey('BITNUM')) ;
-   PutSubrange(Bitnum, MinBitset, MaxBitset, Word) ;
-   PutSet(Bitset, Bitnum) ;
-
-   PushIntegerTree(GetSizeOf(GetWordType())) ;
-   PopSize(Bitset) ;
-
    (* MaxLoc *)
    MaxLoc := MakeConstVar(MakeKey('MaxLoc')) ;
    PushIntegerTree(GetMaxFrom(GetISOLocType())) ;
    PopValue(MaxLoc) ;
 
-   (* MinByte *)
+   (* MinLoc *)
    MinLoc := MakeConstVar(MakeKey('MinLoc')) ;
    PushIntegerTree(GetMinFrom(GetISOLocType())) ;
    PopValue(MinLoc)
@@ -280,10 +250,9 @@ BEGIN
    THEN
       min := MinAddress ;
       max := MaxAddress
-   ELSIF type=Bitset
+   ELSIF (type=Bitset) AND (NOT Iso)
    THEN
-      min := MinBitset ;
-      max := MaxBitset
+      GetBitsetMinMax(min, max)
    ELSIF (type=Loc) AND Iso
    THEN
       min := MinLoc ;
@@ -326,7 +295,7 @@ PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (Sym=Word)    OR (Sym=Byte) OR
-          (Sym=Address) OR (Sym=Bitset) OR
+          (Sym=Address) OR ((Sym=Bitset) AND (NOT Iso)) OR
           ((Sym=Loc) AND Iso)
          )
 END IsSystemType ;

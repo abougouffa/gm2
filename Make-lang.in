@@ -487,7 +487,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Configure.def SymbolTable.def Lists.def       SymbolConversion.def \
                      P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def     \
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
-                     clex.def        CLexBuf.def
+                     clex.def        CLexBuf.def     M2Bitset.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -503,7 +503,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      SymbolConversion.mod            M2Base.mod      \
                      M2ALU.mod       M2System.mod    Lists.mod       \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
-                     M2Preprocess.mod                CLexBuf.mod
+                     M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
@@ -550,7 +550,8 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      M2GCCDeclare.def  M2Configure.def SymbolTable.def Lists.def       \
                      P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
-                     M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def
+                     M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
+                     M2Bitset.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2Stack.mod       M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -564,7 +565,8 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
-                     M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod
+                     M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
+                     M2Bitset.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lsub.mod     \
                      gm2m.mod          ppg.mod
@@ -592,7 +594,8 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
-                     M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod
+                     M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
+                     M2Bitset.mod
 
 #
 # the ISO implementation modules are still being written

@@ -111,8 +111,9 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
                      Adr, Size, TSize, AddAdr, SubAdr, DifAdr, Cast, MakeAdr,
-                     Address, Bitset, Byte, Word ;
+                     Address, Byte, Word ;
 
+FROM M2Bitset IMPORT Bitset ;
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit, IsGenericNulSet ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
