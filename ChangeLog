@@ -1,3 +1,9 @@
+2003-05-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/testlength3.mod)
+	  LENGTH is now mapped onto M2RTS.Length if the parameter is not a constant
+	  at compile time.
+
 2003-05-16	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by Iztok Kobal (gm2/m2/comp/autotest/gm2/longstrimp.mod)
