@@ -2092,7 +2092,7 @@ done
 ac_given_srcdir=$srcdir
 ac_given_INSTALL="$INSTALL"
 
-trap 'rm -fr `echo "m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile m2/comp/Makefile m2/comp/p2c/examples/Makefile m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/autotest/Makefile m2/comp/man/Makefile m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile m2/comp/autotest/types/Makefile m2/comp/test/Makefile m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile makefile" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
+trap 'rm -fr `echo "m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile m2/comp/Makefile m2/comp/p2c/examples/Makefile m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/autotest/Makefile m2/comp/man/Makefile m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile m2/comp/autotest/types/Makefile m2/comp/test/Makefile m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile Makefile-m2f" | sed "s/:[^ ]*//g"` conftest*; exit 1' 1 2 15
 EOF
 cat >> $CONFIG_STATUS <<EOF
 
@@ -2178,7 +2178,7 @@ EOF
 
 cat >> $CONFIG_STATUS <<EOF
 
-CONFIG_FILES=\${CONFIG_FILES-"m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile m2/comp/Makefile m2/comp/p2c/examples/Makefile m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/autotest/Makefile m2/comp/man/Makefile m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile m2/comp/autotest/types/Makefile m2/comp/test/Makefile m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile makefile"}
+CONFIG_FILES=\${CONFIG_FILES-"m2/comp/autotest/run/fail/Makefile m2/comp/autotest/dynamic/Makefile m2/comp/tools/Makefile m2/comp/autotest/warnings/Makefile m2/comp/Makefile m2/comp/p2c/examples/Makefile m2/Makefile m2/comp/autotest/fpu/Makefile m2/comp/autotest/Makefile m2/comp/man/Makefile m2/comp/p2c/src/Makefile m2/comp/autotest/run/Makefile m2/comp/autotest/types/Makefile m2/comp/test/Makefile m2/comp/autotest/run/pass/Makefile m2/comp/autotest/cse/Makefile m2/comp/autotest/errors/Makefile m2/comp/p2c/Makefile Makefile-m2f"}
 EOF
 cat >> $CONFIG_STATUS <<\EOF
 for ac_file in .. $CONFIG_FILES; do if test "x$ac_file" != x..; then
