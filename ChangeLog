@@ -1,3 +1,9 @@
+2004-07-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* improved error handling of unknown objects in EXPORT lists.
+	* added regression test
+	* implemented a few procedures in the ISO libraries.
+
 2004-07-02	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed many IMPORT bugs in inner modules

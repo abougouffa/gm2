@@ -22,6 +22,7 @@ IMPORT FIO ;
 TYPE
   ChanId = FIO.File ; (* Values of this type are used to identify channels *)
 
+
 PROCEDURE InvalidChan (): ChanId;
   (* Returns the value identifying the invalid channel. *)
 BEGIN
@@ -73,8 +74,19 @@ PROCEDURE Skip (cid: ChanId);
      otherwise the next character or line mark in cid is removed,
      and the stored read result is set to the value allRight.
   *)
+VAR
+   f: File ;
 BEGIN
-   
+   f := File(cid) ;
+   IF EOF(f)
+   THEN
+      (* raise exception skipAtEnd *)
+   END ;
+   ch := ReadChar(f) ;
+   IF FIO.IsNoError(f)
+   THEN
+      res := IOConsts.allRight
+   END
 END Skip ;
 
 
@@ -87,41 +99,89 @@ PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
      res (and the stored read result) are set to the value allRight,
      endOfLine, or endOfInput.
   *)
+VAR
+   f: File ;
+BEGIN
+   f := File(cid) ;
+   IF EOF(f)
+   THEN
+      (* raise exception skipAtEnd *)
+   END ;
+   ch := ReadChar(f) ;
+   IF FIO.IsNoError(f)
+   THEN
+      FIO.UnReadChar(f, ch) ;
+      res := IOConsts.allRight
+   END ;
+   IF FIO.EOLN(f)
+   THEN
+      res := IOConsts.eofOfLine
+   ELSIF FIO.EOF(f)
+   THEN
+      res := IOConsts.endOfInput
+   END
+END SkipLook ;
 
 PROCEDURE WriteLn (cid: ChanId);
   (* Writes a line mark over the channel cid. *)
+VAR
+   f: File ;
+BEGIN
+   f := File(cid) ;
+   FIO.WriteLine(f)
+END WriteLn ;
 
 PROCEDURE TextRead (cid: ChanId; to: SYSTEM.ADDRESS; maxChars: CARDINAL;
                     VAR charsRead: CARDINAL);
-  (* Reads at most maxChars characters from the current line in cid, and assigns
-     corresponding values to successive components of an ARRAY OF CHAR variable for which
-     the address of the first component is to. The number of characters read is assigned
-     to charsRead. The stored read result is set to allRight, endOfLine, or endOfInput.
+  (* Reads at most maxChars characters from the current line in cid,
+     and assigns corresponding values to successive components of an
+     ARRAY OF CHAR variable for which the address of the first
+     component is to. The number of characters read is assigned
+     to charsRead. The stored read result is set to allRight, 
+     endOfLine, or endOfInput.
   *)
+BEGIN
+   (* --fixme-- complete it *)
+END TextRead ;
 
-PROCEDURE TextWrite (cid: ChanId; from: SYSTEM.ADDRESS; charsToWrite: CARDINAL);
-  (* Writes a number of characters given by the value of charsToWrite, from successive
-     components of an ARRAY OF CHAR variable for which the address of the first component
-     is from, to the channel cid.
+PROCEDURE TextWrite (cid: ChanId; from: SYSTEM.ADDRESS;
+                     charsToWrite: CARDINAL);
+  (* Writes a number of characters given by the value of charsToWrite,
+     from successive components of an ARRAY OF CHAR variable for which
+     the address of the first component is from, to the channel cid.
   *)
+BEGIN
+   (* --fixme-- complete it *)
+END TextWrite ;
 
-  (* Direct raw operations  - these do not effect translation between the internal and
-     external representation of data
+  (* Direct raw operations - these do not effect translation between
+     the internal and external representation of data
   *)
 
 PROCEDURE RawRead (cid: ChanId; to: SYSTEM.ADDRESS; maxLocs: CARDINAL;
                    VAR locsRead: CARDINAL);
-  (* Reads at most maxLocs items from cid, and assigns corresponding values to successive
-     components of an ARRAY OF LOC variable for which the address of the first component
-     is to. The number of characters read is assigned to charsRead. The stored read result
+  (* Reads at most maxLocs items from cid, and assigns corresponding
+     values to successive components of an ARRAY OF LOC variable for
+     which the address of the first component is to. The number of
+     characters read is assigned to charsRead. The stored read result
      is set to the value allRight, or endOfInput.
   *)
+BEGIN
+   locsRead := FIO.ReadNBytes(File(cid), maxLocs, to)
+END RawRead ;
 
 PROCEDURE RawWrite (cid: ChanId; from: SYSTEM.ADDRESS; locsToWrite: CARDINAL);
-  (* Writes a number of items given by the value of charsToWrite, from successive
-     components of an ARRAY OF LOC variable for which the address of the first component
-     is from, to the channel cid.
+  (* Writes a number of items given by the value of charsToWrite,
+     from successive components of an ARRAY OF LOC variable for
+     which the address of the first component is from, to the channel cid.
   *)
+BEGIN
+   IF locsToWrite#FIO.WriteNBytes(File(cid), from, locsToWrite)
+   THEN
+      (* should we raise an exception, perhaps not,
+         but something has gone wrong *)
+   END
+END RawWrite ;
 
   (* Common operations *)
 
@@ -142,8 +202,8 @@ PROCEDURE SetReadResult (cid: ChanId; res: IOConsts.ReadResults);
   (* Sets the read result value for the channel cid to the value res. *)
 
 PROCEDURE ReadResult (cid: ChanId): IOConsts.ReadResults;
-  (* Returns the stored read result value for the channel cid. (This is initially the value
-     notKnown).
+  (* Returns the stored read result value for the channel cid.
+     (This is initially the value notKnown).
   *)
 
   (* Users can discover which flags actually apply to a channel *)
@@ -160,35 +220,37 @@ TYPE
      skipAtEnd,        (* attempt to skip data from a stream that has ended *)
      softDeviceError,  (* device specific recoverable error *)
      hardDeviceError,  (* device specific non-recoverable error *)
-     textParseError,   (* input data does not correspond to a character or line mark -
-                          optional detection *)
-     notAChannel       (* given value does not identify a channel - optional detection *)
+     textParseError,   (* input data does not correspond to a character
+                          or line mark - optional detection *)
+     notAChannel       (* given value does not identify a channel
+                          - optional detection *)
     );
 
 PROCEDURE IsChanException (): BOOLEAN;
-  (* Returns TRUE if the current coroutine is in the exceptional execution state
-     because of the raising of an exception from ChanExceptions;
-     otherwise returns FALSE.
+  (* Returns TRUE if the current coroutine is in the exceptional
+     execution state because of the raising of an exception from
+     ChanExceptions; otherwise returns FALSE.
   *)
 
 PROCEDURE ChanException (): ChanExceptions;
-  (* If the current coroutine is in the exceptional execution state because of the
-     raising of an exception from ChanExceptions, returns the corresponding
-     enumeration value, and otherwise raises an exception.
+  (* If the current coroutine is in the exceptional execution state
+     because of the raising of an exception from ChanExceptions,
+     returns the corresponding enumeration value, and otherwise
+     raises an exception.
   *)
 
-  (* When a device procedure detects a device error, it raises the exception softDeviceError
-     or hardDeviceError.  If these exceptions are handled, the following facilities may be
-     used to discover an implementation-defined error number for the channel.
+  (* When a device procedure detects a device error, it raises the
+     exception softDeviceError or hardDeviceError.  If these exceptions
+     are handled, the following facilities may be used to discover
+     an implementation-defined error number for the channel.
   *)
 
 TYPE
   DeviceErrNum = INTEGER;
 
 PROCEDURE DeviceError (cid: ChanId): DeviceErrNum;
-  (* If a device error exception has been raised for the channel cid, returns the error
-     number stored by the device module.
+  (* If a device error exception has been raised for the channel cid,
+     returns the error number stored by the device module.
   *)
-
 
 END IOChan.

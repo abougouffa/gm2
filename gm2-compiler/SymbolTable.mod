@@ -62,16 +62,16 @@ CONST
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
 
-   TypeOfSymbol
-              = (RecordSym, VarientSym, DummySym,
-                 VarSym, EnumerationSym, SubrangeSym, ArraySym,
-                 ConstStringSym, ConstVarSym, ConstLitSym,
-                 VarParamSym, ParamSym, PointerSym,
-                 UndefinedSym, TypeSym,
-                 RecordFieldSym, VarientFieldSym, EnumerationFieldSym,
-                 DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
-                 SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
-                 ErrorSym) ;
+   TypeOfSymbol = (RecordSym, VarientSym, DummySym,
+                   VarSym, EnumerationSym, SubrangeSym, ArraySym,
+                   ConstStringSym, ConstVarSym, ConstLitSym,
+                   VarParamSym, ParamSym, PointerSym,
+                   UndefinedSym, TypeSym,
+                   RecordFieldSym, VarientFieldSym, EnumerationFieldSym,
+                   DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
+                   SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
+                   ObjectSym,
+                   ErrorSym) ;
 
    Where = RECORD
               Declared,
@@ -79,6 +79,11 @@ TYPE
            END ;
 
    SymError     = RECORD
+                     name      : Name ;
+                     At        : Where ;      (* Where was sym declared/used *)
+                  END ;
+
+   SymObject    = RECORD
                      name      : Name ;
                      At        : Where ;      (* Where was sym declared/used *)
                   END ;
@@ -543,6 +548,7 @@ TYPE
                CASE SymbolType : TypeOfSymbol OF
                                             (* Determines the type of symbol *)
 
+               ObjectSym           : Object           : SymObject |
                RecordSym           : Record           : SymRecord |
                VarientSym          : Varient          : SymVarient |
                VarSym              : Var              : SymVar |
@@ -829,6 +835,36 @@ BEGIN
    CheckLegal(Sym) ;
    RETURN( Symbols[Sym].SymbolType=ErrorSym )
 END IsError ;
+
+
+(*
+   MakeObject - creates an object node.
+*)
+
+PROCEDURE MakeObject (name: Name) : CARDINAL ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   NewSym(Sym) ;
+   WITH Symbols[Sym] DO
+      SymbolType := ObjectSym ;
+      Object.name := name ;
+      InitWhereDeclared(Object.At) ;
+      InitWhereFirstUsed(Object.At)
+   END ;
+   RETURN( Sym )
+END MakeObject ;
+
+
+(*
+   IsObject - returns TRUE if the symbol is an object symbol.
+*)
+
+PROCEDURE IsObject (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   RETURN( Symbols[Sym].SymbolType=ObjectSym )
+END IsObject ;
 
 
 PROCEDURE stop ; BEGIN END stop ;
@@ -3709,6 +3745,7 @@ BEGIN
          CASE SymbolType OF
 
          ErrorSym            : n := Error.name |
+         ObjectSym           : n := Object.name |
          DefImpSym           : n := DefImp.name |
          ModuleSym           : n := Module.name |
          TypeSym             : n := Type.name |
@@ -4699,8 +4736,8 @@ BEGIN
                  END |
       ModuleSym: WITH Module DO
                     CheckForUnknowns( name, Unresolved, 'unresolved' ) ;
-                    CheckForUnknowns( name, ExportUndeclared, 'EXPORT' ) ;
-                    CheckForUnknowns( name, ExportTree, 'EXPORT pass 1' ) ;
+                    CheckForUnknowns( name, ExportUndeclared, 'EXPORTed but undeclared' ) ;
+                    CheckForUnknowns( name, ExportTree, 'EXPORTed but undeclared' ) ;
                     CheckForUnknowns( name, LocalSymbols, 'locally used' )
                  END
 
@@ -4722,10 +4759,9 @@ VAR
 BEGIN
    IF IsUnknown(Sym)
    THEN
-      printf1('Sym is %d\n', Sym) ;
       n := GetSymName(Sym) ;
       e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-      ErrorFormat1(e, 'unknown symbol (%a) found', n)
+      ErrorFormat1(e, 'unknown symbol (%a)', n)
    END
 END UnknownSymbolError ;
 
@@ -6292,11 +6328,11 @@ END PutArray ;
    AddNameTo - adds Name, n, to tree, s.
 *)
 
-PROCEDURE AddNameTo (s: SymbolTree; n: Name) ;
+PROCEDURE AddNameTo (s: SymbolTree; o: CARDINAL) ;
 BEGIN
-   IF GetSymKey(s, n)=NulKey
+   IF GetSymKey(s, GetSymName(o))=NulKey
    THEN
-      PutSymKey(s, n, n)
+      PutSymKey(s, GetSymName(o), o)
    END
 END AddNameTo ;
 
@@ -6314,9 +6350,9 @@ BEGIN
    WITH Symbols[scope] DO
       CASE SymbolType OF
 
-      ProcedureSym:  AddNameTo(Procedure.NamedObjects, n) |
-      ModuleSym   :  AddNameTo(Module.NamedObjects, n) |
-      DefImpSym   :  AddNameTo(DefImp.NamedObjects, n)
+      ProcedureSym:  AddNameTo(Procedure.NamedObjects, MakeObject(n)) |
+      ModuleSym   :  AddNameTo(Module.NamedObjects, MakeObject(n)) |
+      DefImpSym   :  AddNameTo(DefImp.NamedObjects, MakeObject(n))
 
       ELSE
          InternalError('expecting - DefImp, Module or Procedure symbol',
@@ -6339,8 +6375,8 @@ BEGIN
    WITH Symbols[scope] DO
       CASE SymbolType OF
 
-      ModuleSym:  AddNameTo(Module.NamedImports, n) |
-      DefImpSym:  AddNameTo(DefImp.NamedImports, n)
+      ModuleSym:  AddNameTo(Module.NamedImports, MakeObject(n)) |
+      DefImpSym:  AddNameTo(DefImp.NamedImports, MakeObject(n))
 
       ELSE
          InternalError('expecting - DefImp or Module symbol',
@@ -6400,7 +6436,7 @@ BEGIN
          WITH Symbols[sym] DO
             CASE SymbolType OF
 
-            ProcedureSym:  IF GetSymKey(Procedure.NamedObjects, n)=n
+            ProcedureSym:  IF GetSymKey(Procedure.NamedObjects, n)#NulKey
                            THEN
                               RETURN( CollectSymbolFrom(sym, n) )
                            END
@@ -6421,8 +6457,10 @@ END CollectUnknown ;
    ResolveImport - 
 *)
 
-PROCEDURE ResolveImport (n: WORD) ;
+PROCEDURE ResolveImport (o: WORD) ;
 VAR
+   e     : Error ;
+   n, m,
    n1, n2: Name ;
    sym   : CARDINAL ;
 BEGIN
@@ -6436,14 +6474,16 @@ BEGIN
    THEN
       printf2('scope of module %a is %a\n', n1, n2)
    END ;
-   sym := CollectUnknown(GetScope(ResolveModule), n) ;
+   sym := CollectUnknown(GetScope(ResolveModule), GetSymName(o)) ;
    IF sym=NulSym
    THEN
       (* could be a user semantic error (when all debugged..) *)
-      IF DebugUnknowns
-      THEN
-         printf1('hmm failed to find out where %a was declared\n', n)
-      END
+      n := GetSymName(o) ;
+      e := NewError(GetFirstUsed(o)) ;
+      m := GetSymName(ResolveModule) ;
+      ErrorFormat2(e,
+                   'unknown symbol (%a) found in IMPORT list of module (%a)',
+                   n, m)
    ELSE
       AddSymToModuleScope(ResolveModule, sym)
    END
@@ -7128,6 +7168,7 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym           : RETURN( Error.At.Declared ) |
+      ObjectSym          : RETURN( Object.At.Declared ) |
       VarientSym         : RETURN( Varient.At.Declared ) |
       RecordSym          : RETURN( Record.At.Declared ) |
       SubrangeSym        : RETURN( Subrange.At.Declared ) |
@@ -7170,6 +7211,7 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym           : RETURN( Error.At.FirstUsed ) |
+      ObjectSym          : RETURN( Object.At.FirstUsed ) |
       UndefinedSym       : RETURN( Undefined.At.FirstUsed ) |
       VarientSym         : RETURN( Varient.At.FirstUsed ) |
       RecordSym          : RETURN( Record.At.FirstUsed ) |

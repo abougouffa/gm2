@@ -30,13 +30,12 @@ EXPORT QUALIFIED (* types *)
                  OpenToRead, OpenToWrite, OpenForRandom, Close,
                  EOF, EOLN, IsNoError, Exists,
                  exists, openToRead, openToWrite, openForRandom,
-                 SetPositionFromBeginning, FindPosition, (* Rewind, *)
-                 ReadChar, ReadString, (* ReadLine, *)
+                 SetPositionFromBeginning, FindPosition,
+                 ReadChar, ReadString,
                  WriteChar, WriteString, WriteLine,
                  WriteCardinal, ReadCardinal,
-                 (* WriteShort, ReadShort, *)
                  UnReadChar,
-                 WriteNBytes, ReadNBytes, (* WriteBase, *)
+                 WriteNBytes, ReadNBytes,
                  GetUnixFileDescriptor,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
@@ -219,7 +218,8 @@ PROCEDURE ReadString (f: File; VAR a: ARRAY OF CHAR) ;
 
 (*
    WriteCardinal - writes a CARDINAL to file, f.
-                   (Suggest that WriteAny be used instead - here for compatibility)
+                   (Suggest that WriteAny be used instead -
+                    here for compatibility)
 *)
 
 PROCEDURE WriteCardinal (f: File; c: CARDINAL) ;
@@ -227,7 +227,8 @@ PROCEDURE WriteCardinal (f: File; c: CARDINAL) ;
 
 (*
    ReadCardinal - reads a CARDINAL from file, f.
-                  (Suggest that ReadAny be used instead - here for compatibility)
+                  (Suggest that ReadAny be used instead -
+                   here for compatibility)
 *)
 
 PROCEDURE ReadCardinal (f: File) : CARDINAL ;
