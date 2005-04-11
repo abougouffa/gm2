@@ -40,16 +40,16 @@ BEGIN
    WriteString('\nBefore SetWindow') ;
 
    (* first process window *)
-   First := SetWindow(InitWindow(), Blue, White, 38, 9, 1, 1, TRUE) ;
+   First := SetWindow(InitWindow(), Blue, White, 37, 9, 1, 1, FALSE) ;
    WriteString('\nBefore TitleWindow') ;
    TitleWindow(First, 'Initial process') ;
 
    (* second process window *)
-   Second := SetWindow(InitWindow(), Green, White, 36, 9, 42, 1, TRUE) ;
+   Second := SetWindow(InitWindow(), Green, White, 36, 9, 41, 1, FALSE) ;
    TitleWindow(Second, 'Second process') ;
 
    (* debugging window at the bottom *)
-   Debugging := SetWindow(InitWindow(), Red, White, 77, 11, 1, 12, TRUE) ;
+   Debugging := SetWindow(InitWindow(), Red, White, 77, 10, 1, 12, FALSE) ;
    TitleWindow(Debugging, 'Debugging output') ;
    PutOnTop(Debugging) ;
 

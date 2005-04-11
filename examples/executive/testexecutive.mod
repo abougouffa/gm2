@@ -17,9 +17,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
 MODULE testexecutive ;
 
-
-FROM StrIO IMPORT WriteString, WriteLn ;
-FROM StdIO IMPORT PushOutput, Write ;
+FROM StdIO IMPORT PushOutput ;
 FROM SYSTEM IMPORT ADR, TurnInterrupts, PRIORITY ;
 FROM libc IMPORT write, read ;
 FROM ASCII IMPORT nl ;
@@ -63,12 +61,14 @@ BEGIN
       (GetCurrentProcess()=ProcB)
    THEN
       v := InitOutputVector(1, MAX(PRIORITY)) ;
-      DebugString('inside LocalWrite: ') ;
+(*      DebugString('inside LocalWrite: ') ; *)
       WaitForIO(v) ;
       r := write(1, ADR(ch), 1) ;
+(*
       ch := 012C ;
       r := write(1, ADR(ch), 1) ;
-      DebugString('finishing LocalWrite: ')
+*)
+(*      DebugString('finishing LocalWrite: ') *)
    ELSE
       r := write(2, ADR(ch), 1)
    END
@@ -80,10 +80,10 @@ VAR
    r: INTEGER ;
    v: CARDINAL ;
 BEGIN
-   DebugString('inside LocalRead (before WaitForIO)\n') ;
+(*   DebugString('inside LocalRead (before WaitForIO)\n') ; *)
    v := InitInputVector(0, MAX(PRIORITY)) ;
    WaitForIO(v) ;
-   DebugString('before read\n') ;
+(*   DebugString('before read\n') ; *)
    IF GetCurrentProcess()#Init
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__, 'wrong process!')
@@ -91,7 +91,7 @@ BEGIN
    Ps ;
    AssertFd ;
    r := read(0, ADR(ch), 1) ;
-   DebugString('after read\n')
+(*   DebugString('after read\n') *)
 END LocalRead ;
 
 
@@ -106,7 +106,7 @@ BEGIN
    InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Wait(FromB) ;
-      WriteString('A: is this going to work? ') ;
+      DebugString('A: is this going to work? ') ;
       Signal(FromA) ;
       IF GetCurrentProcess()#ProcA
       THEN
@@ -127,7 +127,7 @@ BEGIN
    InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
    LOOP
       Wait(FromA) ;
-      WriteString('B: is this going to work? ') ;
+      DebugString('B: is this going to work? ') ;
       Signal(FromB) ;
       IF GetCurrentProcess()#ProcB
       THEN
@@ -138,7 +138,7 @@ END ProcessB ;
 
 
 CONST
-   StackSize = 0100000H ;
+   StackSize = 01000000H ;
 
 VAR
    Init,
@@ -146,7 +146,7 @@ VAR
    FromA, FromB: SEMAPHORE ;
    ch          : CHAR ;
 BEGIN
-   WriteString('got to OS\n') ;
+   DebugString('got to OS\n') ;
 
    ProcA := NIL ;
    ProcB := NIL ;
@@ -156,15 +156,20 @@ BEGIN
    FromA := InitSemaphore(0, 'FromA') ;
    FromB := InitSemaphore(1, 'FromB') ;
 
-   WriteString('lots of text to be displayed\n') ;
-   WriteString('now to create a process...\n') ;
+   DebugString('lots of text to be displayed\n') ;
+   DebugString('now to create a process...\n') ;
 
    Init  := GetCurrentProcess() ;
+   DebugString('done and now to create another ') ;
    ProcA := InitProcess(ProcessA, StackSize, 'Process1') ;
+   DebugString('done and now to create another ') ;
    ProcB := InitProcess(ProcessB, StackSize, 'Process2') ;
+   DebugString('done and now to resume a process and ') ;
    ProcA := Resume(ProcA) ;
+   DebugString('done and now to resume a process and ') ;
    ProcB := Resume(ProcB) ;
 
+   DebugString('done and now to enter the loop ') ;
    LOOP
       LocalRead(ch) ;
 (*

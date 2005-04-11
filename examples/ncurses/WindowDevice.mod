@@ -16,8 +16,8 @@ IMPORT ColorText ;
 
 
 CONST
-   MaxWidth   = 79 ;
-   MaxHeight  = 25 ;
+   MaxWidth   = 78 ;
+   MaxHeight  = 24 ;
 
 (*
    The type Window is semi device specific. The parameters to control

@@ -131,6 +131,8 @@ PROCEDURE   endwin ()                                    : INTEGER ;
 PROCEDURE   isendwin ()                                  : BOOLEAN ;
 PROCEDURE   init_pair (pair: COLORPAIR;
                        fg, bg: SHORTCARD)                : INTEGER ;
+PROCEDURE   noecho ()				         : INTEGER ;
+PROCEDURE   nonl ()					 : INTEGER ;
 
 
 (*
@@ -230,8 +232,6 @@ PROCEDURE   napms (INTEGER);					 : INTEGER ;
 PROCEDURE   nl ();					 : INTEGER ;
 PROCEDURE   nocbreak ();				 : INTEGER ;
 PROCEDURE   nodelay (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;
-PROCEDURE   noecho ();				 : INTEGER ;
-PROCEDURE   nonl ();					 : INTEGER ;
 PROCEDURE   noqiflush ();
 PROCEDURE   noraw ();				 : INTEGER ;
 PROCEDURE   notimeout (w: WINDOW,NCURSES_BOOL );			 : INTEGER ;

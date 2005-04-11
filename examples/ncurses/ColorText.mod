@@ -18,6 +18,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 IMPLEMENTATION MODULE ColorText ;
 
 FROM ncurses IMPORT WINDOW, chtype, COLORPAIR,
+                    cbreak, noecho, nonl,
                     initscr, endwin, wclear, wrefresh, waddch, wmove,
                     init_pair, start_color, savetty, resetty, isendwin ;
 
@@ -41,6 +42,9 @@ BEGIN
    r := start_color();
    r := wclear(w) ;
    r := wrefresh(w) ;
+   r := cbreak() ;
+   r := noecho();
+   r := nonl() ;
    pair := 1 ;
    InstallTerminationProcedure(ResetScreen)
 END Init ;
@@ -68,7 +72,9 @@ END ResetScreen ;
 PROCEDURE MoveTo (x, y: CARDINAL) ;
 VAR
    r: INTEGER ;
+   i: SHORTCARD ;
 BEGIN
+   r := wrefresh(w) ;
    r := wmove(w, y, x) ;
    r := wrefresh(w)
 END MoveTo ;

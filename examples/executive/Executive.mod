@@ -290,9 +290,11 @@ VAR
    r         : INTEGER ;
 BEGIN
    ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
+(*
    DebugString('inside WaitForIO ') ;
    DebugString(CurrentProcess^.RunName) ;
    DebugString('\n') ;
+*)
    Assert(CurrentProcess^.Status=Runnable,
           __FILE__, __LINE__, __FUNCTION__) ;
    SubFromReady(CurrentProcess) ;   (* remove process from run queue *)
@@ -324,11 +326,14 @@ BEGIN
 
    CurrentProcess^.Volatiles := Next ;             (* carefully stored away *)
    CurrentProcess := Calling ;                     (* update CurrentProcess *)
+(*
    DebugString(CurrentProcess^.RunName) ;
+*)
    CurrentProcess^.Status := Runnable ;            (* add to run queue      *)
    AddToReady(CurrentProcess) ;
-
+(*
    DebugString(' finishing WaitForIO\n') ;
+*)
 
    ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
 END WaitForIO ;
@@ -571,16 +576,20 @@ BEGIN
    IF Highest#CurrentProcess
    THEN
       From := CurrentProcess ;
+(*
       DebugString('context switching from ') ; DebugString(From^.RunName) ;
+*)
       (* alter CurrentProcess before we TRANSFER *)
       CurrentProcess := Highest ;
-
+(*
       DebugString(' to ') ; DebugString(CurrentProcess^.RunName) ;
+*)
 
       TRANSFER(From^.Volatiles, Highest^.Volatiles)
-
+(*
       ; DebugString(' (') ; DebugString(CurrentProcess^.RunName) ;
       DebugString(')\n') ;
+*)
 
    END
 END ScheduleProcess ;

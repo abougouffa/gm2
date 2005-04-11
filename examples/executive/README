@@ -1,8 +1,36 @@
-these two examples show that an executive and simple application code
+Building
+========
+
+To build type:
+
+  make
+
+Running
+=======
+
+To run try:
+
+  ./testtime
+
+which will start three processes which wait on a timer queue.  A 10,
+15 and 60 second process. Each process waits for its time to expire
+and writes out a simple message. The test terminates after 2 minutes.
+
+  ./winexec
+
+displays three ncurses windows and writes text to two of them
+contineously. Any keyboard input will cause the third window (process)
+to display text. 'p' displays a simple process status.  Type ^C to
+terminate this example.
+
+Overview
+========
+
+These two examples show that an executive and simple application code
 can be built on top of the SYSTEM process primitives NEWPROCESS,
-TRANSFER and IOTRANSFER. The Executive and TimerHandler have been
-used in a stand alone microkernel for many years and have had
-only minor alterations to make them work with the GNU/Linux SYSTEM.
+TRANSFER and IOTRANSFER. The Executive and TimerHandler have been used
+in a stand alone microkernel for many years and have had only minor
+alterations to make them work with the GNU/Linux SYSTEM.
 
 The alterations were confined to:
 

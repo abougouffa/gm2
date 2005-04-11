@@ -22,7 +22,6 @@ FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
 FROM SYSTEM IMPORT PRIORITY ;
-FROM Debug IMPORT DebugString ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
                       SetOfFd, FdIsSet ;
@@ -323,7 +322,7 @@ BEGIN
          Halt(__FILE__, __LINE__, __FUNCTION__,
               'cannot find vector supplied') ;
       ELSE
-         (* use DebugString .. r := printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
+         (* r := printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
          v^.pending := Pending[v^.priority] ;
          Pending[v^.priority] := v
       END 
@@ -532,7 +531,6 @@ BEGIN
                
                input :  IF FdIsSet(File, i)
                         THEN
-                           DebugString('\nread is ready\n') ;
 (*                         r := printf('read is ready\n') ; *)
                            call(no, priority, arg)
                         END |
