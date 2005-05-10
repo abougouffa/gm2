@@ -15,30 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE varient8 ;
+DEFINITION MODULE FOR "C" d ;
 
-FROM v IMPORT test ;
-FROM SYSTEM IMPORT ADR, TSIZE ;
+EXPORT QUALIFIED test, this ;
 
 TYPE
    this = RECORD
              CASE tag: CARDINAL OF
-             1: foo: CARDINAL |
-             2: an: INTEGER |
+             1: foo: CARDINAL ;
+                  CASE bar: BOOLEAN OF
+                  TRUE : bt: INTEGER |
+                  FALSE: bf: CARDINAL
+                  END |
+             2: an: CARDINAL |
              ELSE
              END ;
-             bar: CARDINAL ;
+             final: CARDINAL ;
           END ;
 
-VAR
-   hmm: this ;
-   j,c: CARDINAL ;
-BEGIN
-   hmm.tag := 22 ;
-   hmm.an  := -1 ;
-   hmm.foo := 99 ;
-   hmm.bar := 77 ;
-   j := TSIZE(hmm) ;
-   c := TSIZE(CARDINAL) ;
-   test(ADR(hmm))
-END varient8.
+PROCEDURE test (VAR s: this; n: CARDINAL; v: INTEGER) ;
+
+
+END d.

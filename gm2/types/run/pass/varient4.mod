@@ -15,30 +15,27 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE varient8 ;
+MODULE varient4 ;
 
-FROM v IMPORT test ;
-FROM SYSTEM IMPORT ADR, TSIZE ;
+FROM d IMPORT this, test ;
+FROM libc IMPORT memset ;
+FROM SYSTEM IMPORT ADDRESS, TSIZE, ADR ;
 
-TYPE
-   this = RECORD
-             CASE tag: CARDINAL OF
-             1: foo: CARDINAL |
-             2: an: INTEGER |
-             ELSE
-             END ;
-             bar: CARDINAL ;
-          END ;
+PROCEDURE zero ;
+BEGIN
+   IF memset(ADR(hmm), 0, TSIZE(this))=NIL
+   THEN
+   END
+END zero ;
 
 VAR
    hmm: this ;
-   j,c: CARDINAL ;
 BEGIN
-   hmm.tag := 22 ;
-   hmm.an  := -1 ;
-   hmm.foo := 99 ;
-   hmm.bar := 77 ;
-   j := TSIZE(hmm) ;
-   c := TSIZE(CARDINAL) ;
-   test(ADR(hmm))
-END varient8.
+   zero ; hmm.tag   := 99   ; test(hmm, 1, 99) ;
+   zero ; hmm.foo   := 77   ; test(hmm, 2, 77) ;
+   zero ; hmm.bar   := TRUE ; test(hmm, 3, 1) ;
+   zero ; hmm.bt    := 66 ; test(hmm, 4, 66) ;
+   zero ; hmm.bf    := 55 ; test(hmm, 5, 55) ;
+   zero ; hmm.an    := 44 ; test(hmm, 6, 44) ;
+   zero ; hmm.final := 33 ; test(hmm, 7, 33)
+END varient4.

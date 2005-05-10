@@ -25,7 +25,7 @@ TYPE
                   TRUE : bt: INTEGER |
                   FALSE: bf: CARDINAL
                   END |
-             2: an: REAL |
+             2: an: SHORTREAL |
              ELSE
              END
           END ;
@@ -34,11 +34,13 @@ VAR
    hmm: this ;
    j  : CARDINAL ;
 BEGIN
-   hmm.foo := 99 ;
 (*
+   hmm.foo := 99 ;
    hmm.tag := 'a' ;
    hmm.bar := TRUE ;
-   hmm.bt  := -1
 *)
+   hmm.bt  := -1 ;
+   hmm.bf  := -2 ;
+   hmm.an  := 1.0 ;
    j := SIZE(this)
 END varient4.
