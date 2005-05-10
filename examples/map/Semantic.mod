@@ -8,8 +8,12 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM Args IMPORT GetArg ;
 FROM libc IMPORT system ;
+(*
 FROM FIO IMPORT File, OpenToWrite, Close, Exists, ReportError, WriteShort,
                 WriteChar, IsNoError ;
+*)
+FROM FIO IMPORT File, OpenToWrite, Close, Exists, WriteChar, IsNoError ;
+
 FROM AdvMap IMPORT ReadAdvMap, Rooms, DoorStatus, ActualNoOfRooms,
                    MaxNoOfTreasures, Treasure ;
 
@@ -229,6 +233,7 @@ END AnalyzeDoor ;
 
 
 (*
+(*
    CrunchRooms - 
 *)
 
@@ -345,7 +350,7 @@ BEGIN
       WriteString(' for writing: ') ; ReportError(f) ; WriteLn
    END
 END CrunchMap ;
-
+*)
 
 VAR
    FileName: ARRAY [0..MaxFileName] OF CHAR ;
@@ -356,10 +361,12 @@ BEGIN
       THEN
          ErrorInRoom := FALSE ;
          AnalyzeSemantic ;
+(*
          IF NOT ErrorInRoom
          THEN
             CrunchMap(FileName)
          END
+*)
       END
    END
 END Semantic.
