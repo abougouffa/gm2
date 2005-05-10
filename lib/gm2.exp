@@ -66,9 +66,11 @@ proc gm2_init { args } {
     global gm2_initialized
     global GCC_UNDER_TEST
     global TOOL_EXECUTABLE
+    global gm2_link_libraries
 
     if { $gm2_initialized == 1 } { return; }
 
+    set gm2_link_libraries "";
     set GCC_UNDER_TEST [lookfor_file $tmpdir xgm2];
     append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " $args;
 
@@ -124,4 +126,14 @@ proc gm2_target_compile { source dest type options } {
     lappend options "compiler=$GCC_UNDER_TEST"
     send_log "about to call target_compile with $source $dest $type $options\n"
     return [target_compile $source $dest $type $options]
+}
+
+#
+#  gm2_link_with - allows tests to specify link arguments, libraries and object files.
+#
+
+proc gm2_link_with { libraries } {
+    global gm2_link_libraries;
+
+    set gm2_link_libraries $libraries;
 }

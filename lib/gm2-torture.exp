@@ -187,6 +187,7 @@ proc gm2-torture-compile-fail { src option } {
 proc gm2-torture-execute { sources args success } {
     global tmpdir tool srcdir output compiler_conditional_xfail_data
     global TORTURE_OPTIONS
+    global gm2_link_libraries
 
     # Use the first source filename given as the filename under test.
     set src [lindex $sources 0]
@@ -260,12 +261,15 @@ proc gm2-torture-execute { sources args success } {
 	} else {
 	    set additional_flags "";
 	}
-
 	set options $option
+
+	lappend options "libs=$gm2_link_libraries"
 	set comp_output [gm2_target_compile "$sources" "${execname}" executable $options];
 
 	if ![gm2_check_compile "$testcase compilation" $option $execname $comp_output] {
-	    unresolved "$testcase execution, $option"
+	    unresolved "$testcase execution, $option (link failed)"
+	    verbose "Link libraries are: $gm2_link_libraries" 0
+	    verbose "$comp_output" 0
 	    remote_file build delete $execname
 	    remote_file build delete $objectfile
 	    continue
