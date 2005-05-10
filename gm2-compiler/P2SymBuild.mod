@@ -57,6 +57,8 @@ FROM SymbolTable IMPORT NulSym,
                         GetExported,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         PutExportUnImplemented,
+                        PutFieldVarient, GCFieldVarient,
+                        IsFieldVarient, IsVarient,
                         CheckForEnumerationInCurrentModule,
                         CheckForExportedImplementation,
                         MakeProcedure,
@@ -1760,6 +1762,7 @@ PROCEDURE BuildFieldRecord ;
 VAR
    name,
    n1, n2    : Name ;
+   Varient,
    Parent,
    Type,
    NoOfFields,
@@ -1771,10 +1774,15 @@ BEGIN
    Record := OperandT(NoOfFields+1) ;
    IF IsRecord(Record)
    THEN
-      Parent := Record
+      Parent := Record ;
+      Varient := NulSym
    ELSE
-      (* Record maybe VarientRecord *)
-      Parent := GetParent(Record)
+      (* Record maybe FieldVarient *)
+      Parent := GetParent(Record) ;
+      Assert(IsFieldVarient(Record)) ;
+      Varient := OperandT(NoOfFields+2) ;
+      Assert(IsVarient(Varient)) ;
+      PutFieldVarient(Record, Varient)
    END ;
    i := 1 ;
    WHILE i<=NoOfFields DO
@@ -1784,7 +1792,7 @@ BEGIN
 *)
       IF GetLocalSym(Parent, OperandT(NoOfFields+1-i))=NulSym
       THEN
-         PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type)
+         PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
       ELSE
          IF GetSymName(Parent)=NulName
          THEN
@@ -1823,13 +1831,36 @@ END BuildFieldRecord ;
 
 PROCEDURE BuildVarientSelector ;
 VAR
+   name,
+   Ident, n  : Name ;
    Qualident,
-   Ident    : CARDINAL ;
+   Varient,
+   Parent,
+   NoOfFields,
+   Record    : CARDINAL ;
 BEGIN
    PopT(Qualident) ;
-   PushT(1) ;  (* Number of Idents *)
-   PushTF(Qualident, GetSymName(Qualident)) ;
-   BuildFieldRecord
+   Ident := OperandT(1) ;
+   name := GetSymName(Qualident) ;
+   Record := OperandT(2) ;
+   IF IsRecord(Record)
+   THEN
+      Parent := Record ;
+      Varient := NulSym
+   ELSE
+      (* Record maybe FieldVarient *)
+      Parent := GetParent(Record) ;
+      Assert(IsFieldVarient(Record)) ;
+      Varient := OperandT(1+2) ;
+      Assert(IsVarient(Varient)) ;
+      PutFieldVarient(Record, Varient)
+   END ;
+   IF Ident#NulName
+   THEN
+      PutFieldRecord(Record, Ident, Qualident, Varient)
+   END ;
+   PopN(1+1) ;
+   PushT(Record)
 END BuildVarientSelector ;
 
 
@@ -1845,17 +1876,17 @@ END BuildVarientSelector ;
                                                        +-------------+
                       Ptr ->                           | VarientField|
                              +-------------+           |-------------|
-                             | VarientSym  |           | RecordSym   |
+                             | VarientSym  |           | VarientSym  |
                              |-------------|           |-------------|
 *)
 
 PROCEDURE StartBuildVarientFieldRecord ;
 VAR
-   FieldSym,
-   VarientSym: CARDINAL ;
+   VarientSym,
+   FieldSym  : CARDINAL ;
 BEGIN
    PopT(VarientSym) ;
-   FieldSym := MakeFieldVarient(VarientSym) ;
+   FieldSym := MakeFieldVarient(CheckAnonymous(NulName), VarientSym) ;
    PushT(VarientSym) ;
    PushT(FieldSym)
 END StartBuildVarientFieldRecord ;
@@ -1881,7 +1912,8 @@ PROCEDURE EndBuildVarientFieldRecord ;
 VAR
    FieldSym: CARDINAL ;
 BEGIN
-   PopT(FieldSym)
+   PopT(FieldSym) ;
+   GCFieldVarient(FieldSym)
 END EndBuildVarientFieldRecord ;
 
 

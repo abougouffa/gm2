@@ -3015,7 +3015,6 @@ BEGIN
       ExclOp,
       HighOp,
       FunctValueOp,
-      OffsetOp,
       NegateOp,
       SizeOp,
       BecomesOp,
@@ -3032,6 +3031,7 @@ BEGIN
       CoerceOp,
       ConvertOp         : InternalError('CoerceOp and ConvertOp are should not be optimized', __FILE__, __LINE__) |
 
+      OffsetOp,
       BaseOp,
       AddOp,
       SubOp,

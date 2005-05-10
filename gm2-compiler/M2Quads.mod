@@ -881,7 +881,6 @@ BEGIN
    UnboundedOp,
    HighOp,
    FunctValueOp,
-   OffsetOp,
    NegateOp,
    BecomesOp,
    SizeOp            : CheckAddVariableWrite(Oper1, QuadNo) ;
@@ -903,6 +902,7 @@ BEGIN
                        THEN
                           CheckAddVariableWrite(Oper3, QuadNo)    (* may also write to a var parameter *)
                        END |
+   OffsetOp,
    BaseOp,
    LogicalShiftOp,
    LogicalRotateOp,
@@ -991,7 +991,6 @@ BEGIN
       UnboundedOp,
       HighOp,
       FunctValueOp,
-      OffsetOp,
       NegateOp,
       BecomesOp,
       XIndrOp,
@@ -1016,6 +1015,7 @@ BEGIN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
 
+      OffsetOp,
       BaseOp,
       LogicalShiftOp,
       LogicalRotateOp,
@@ -1174,7 +1174,6 @@ BEGIN
       UnboundedOp,
       HighOp,
       FunctValueOp,
-      OffsetOp,
       NegateOp,
       BecomesOp,
       SizeOp            : CheckRemoveVariableWrite(Operand1, QuadNo) ;
@@ -1196,6 +1195,7 @@ BEGIN
                           THEN
                              CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
                           END |
+      OffsetOp,
       BaseOp,
       LogicalShiftOp,
       LogicalRotateOp,
@@ -8410,6 +8410,7 @@ END BuildReturn ;
 PROCEDURE BuildDesignatorRecord ;
 VAR
    n, i,
+   PrevType,
    Sym, Type,
    adr, Res,
    t1, t2, t3: CARDINAL ;
@@ -8423,19 +8424,23 @@ BEGIN
    t1 := MakeTemporary(ImmediateValue) ;
    Sym  := OperandT(n) ;
    Type := OperandF(n) ;
-   GenQuad(OffsetOp, t1, NulSym, Sym) ;
+   PrevType := GetParent(Sym) ;
+   GenQuad(OffsetOp, t1, PrevType, Sym) ;
    IF n>1
    THEN
+      InternalError('not expecting to see n>1', __FILE__, __LINE__) ;
+(*
       FOR i := n-1 TO 1 BY -1 DO
          (* no type for t2 since constant *)
          t2 := MakeTemporary(ImmediateValue) ;
-         GenQuad(OffsetOp, t2, NulSym, OperandT(i)) ;
          Type := OperandF(i) ;
+         GenQuad(OffsetOp, t2, Type, OperandT(i)) ;
          t3 := t1 ;
          (* No type for t1 since constant *)
          t1 := MakeTemporary(ImmediateValue) ;
          GenQuad(AddOp, t1, t3, t2)
       END
+*)
    END ;
    (* Res will be an Address since it is LeftValue mode *)
    Res := MakeTemporary(LeftValue) ;
@@ -9025,7 +9030,7 @@ BEGIN
    PopTF(Adr, Type2) ;
    t1 := MakeTemporary(ImmediateValue) ;
    (* No type since t1 is constant *)
-   GenQuad(OffsetOp, t1, NulSym, Field) ;
+   GenQuad(OffsetOp, t1, GetParent(Field), Field) ;
    Res := MakeTemporary(LeftValue) ;
    (*
       Ok must reference by address
@@ -9096,7 +9101,7 @@ BEGIN
             WHILE IsProcedure(DeclaredScopeSym) AND (ScopeSym#DeclaredScopeSym) DO
                c := MakeTemporary(ImmediateValue) ;
                (* must continue to chain backwards to find the scope where Sym was declared *)
-               GenQuad(OffsetOp, c, NulSym, ActivationPointer) ;
+               GenQuad(OffsetOp, c, GetParent(ActivationPointer), ActivationPointer) ;
                (* need to look indirectly to find next activation record *)
                t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
                PutVar(t1, Address) ;
@@ -9111,7 +9116,7 @@ BEGIN
             THEN
                (* finished chaining backwards, found sym in scope ScopeSym *)
                c := MakeTemporary(ImmediateValue) ;
-               GenQuad(OffsetOp, c, NulSym, Sym) ;
+               GenQuad(OffsetOp, c, GetParent(Sym), Sym) ;
                (* calculate address of sym *)
                t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
                PutVar(t1, Address) ;
@@ -10258,7 +10263,6 @@ BEGIN
       HighOp,
       ReturnValueOp,
       FunctValueOp,
-      OffsetOp,
       NegateOp,
       SizeOp,
       AddrOp            : WriteOperand(Operand1) ;
@@ -10308,7 +10312,7 @@ BEGIN
                           WriteOperand(Operand2) ;
                           printf0('  ') ;
                           WriteOperand(Operand3) |
-
+      OffsetOp,
       IndrXOp,
       XIndrOp,
       BaseOp,

@@ -59,7 +59,7 @@ EXPORT QUALIFIED Tree,
                  BuildSymmetricDifference, BuildLogicalDifference,
                  BuildConvert, BuildCoerce,
                  BuildAddr, BuildNegate, BuildSetNegate, BuildSize,
-                 BuildOffset, BuildTrunc,
+                 BuildOffset, BuildOffset1, BuildTrunc,
                  BuildGoto, DeclareLabel,
                  BuildLessThan, BuildGreaterThan,
                  BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -876,7 +876,18 @@ PROCEDURE BuildAddr (op1: Tree; needconvert: BOOLEAN) : Tree ;
                  The expression is returned.
 *)
 
-PROCEDURE BuildOffset (field: Tree; needconvert: BOOLEAN) : Tree ;
+PROCEDURE BuildOffset (record, field: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildOffset1 - builds an expression containing the number of bytes the field
+                  is offset from the start of the record structure.
+                  This function is the same as the above, except that it
+                  derives the record from the field and then calls BuildOffset.
+                  The expression is returned.
+*)
+
+PROCEDURE BuildOffset1 (field: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

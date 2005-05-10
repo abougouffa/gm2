@@ -17,9 +17,18 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: RTErrors.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: RTErrors.mod,v 1.3 2005/05/10 15:24:41 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: RTErrors.mod,v $
+   Revision 1.3  2005/05/10 15:24:41  gaius
+   Many changes which enable GM2 to compile nested varient records correctly.
+   Runtime regression test added to give confidence that this language
+   construct is working.
+   gm2.texi also contains documentation of the front end symbol table
+   representation of the record, varient, and field symbols.
+   These changes allow gm2/ulm-lib-gm2/std/RTErrors.mod to compile.
+   There are now three outstanding ULM modules which fail to compile.
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -58,7 +67,7 @@ IMPLEMENTATION MODULE RTErrors;
    BEGIN
       WITH error^ DO
 	 FwriteLn(stderr); (* don't start in the middle of a line *)
-	 IF (module # 0) & (line # 0) THEN
+	 IF (module # NIL) & (line # 0) THEN
 	    FwriteString(stderr, "runtime error in module ");
 	    modname := module; FwriteString(stderr, modname^);
 	    FwriteString(stderr, " at line "); FwriteCard(stderr, line, 1);

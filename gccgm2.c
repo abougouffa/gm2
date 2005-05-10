@@ -608,10 +608,13 @@ static void                   layout_array_type 		       	  PARAMS ((tree t));
        void                   gccgm2_ExpandExpressionStatement  	  PARAMS ((tree t));
        int                    is_of_string_type                           PARAMS ((tree type, int warn));
        tree                   gccgm2_BuildSize                            PARAMS ((tree op1, int  needconvert));
-       tree                   gccgm2_BuildOffset                          PARAMS ((tree field, int needconvert));
+       tree                   gccgm2_BuildOffset                          PARAMS ((tree record, tree field, int needconvert));
+       tree                   gccgm2_BuildOffset1                         PARAMS ((tree field, int needconvert));
+       int                    gccgm2_TreeOverflow                         PARAMS ((tree t));
        tree                   gccgm2_BuildIntegerConstant                 PARAMS ((int value));
        void                   gccgm2_BuildGoto                            PARAMS ((char *name));
        tree                   gccgm2_RememberConstant                     PARAMS ((tree t));
+static tree                   determinePenultimateField                   PARAMS ((tree record, tree field));
        tree                   global_constant                             PARAMS ((tree t));
        tree                   gccgm2_FoldAndStrip                         PARAMS ((tree t));
        void                   stop                                        PARAMS ((void));
@@ -9781,22 +9784,92 @@ static void debug_print_value (t)
 #endif
 
 /*
+ *  determinePenultimateField - returns the field associated with the DECL_CONTEXT (field)
+ *                              within a record or varient.
+ *                              record, is a record/varient but it maybe an outer nested record
+ *                              to the field that we are searching. Ie:
+ *
+ *                              record = RECORD
+ *                                          x: CARDINAL ;
+ *                                          y: RECORD
+ *                                                field: CARDINAL ;
+ *                                             END
+ *                                       END ;
+ *
+ *                              determinePenultimateField (record, field) returns, y.
+ *
+ *                              we are assurred that the chain of records leading to field
+ *                              will be unique as they are built on the fly to implement varient
+ *                              records.
+ */
+
+static
+tree
+determinePenultimateField (record, field)
+     tree record, field;
+{
+  tree fieldlist = TYPE_FIELDS (record);
+  tree x, r;
+
+  for (x = fieldlist; x; x = TREE_CHAIN (x)) {
+    if (DECL_CONTEXT (field) == TREE_TYPE (x))
+      return x;
+    switch (TREE_CODE (TREE_TYPE (x))) {
+      case RECORD_TYPE:
+      case UNION_TYPE:
+	r = determinePenultimateField (TREE_TYPE (x), field);
+	if (r != NULL)
+	  return r;
+	break;
+      default:
+	break;
+    }
+  }
+  return NULL_TREE;
+}
+
+/*
+ *  BuildOffset1 - builds an expression containing the number of bytes the field
+ *                 is offset from the start of the record structure.
+ *                 This function is the same as the above, except that it
+ *                 derives the record from the field and then calls BuildOffset.
+ *                 The expression is returned.
+ */
+
+tree
+gccgm2_BuildOffset1 (field, needconvert)
+     tree field;
+     int  needconvert ATTRIBUTE_UNUSED;
+{
+  return gccgm2_BuildOffset (DECL_CONTEXT (field), field, needconvert);
+}
+
+/*
  *  BuildOffset - builds an expression containing the number of bytes the field
  *                is offset from the start of the record structure.
  *                The expression is returned.
  */
 
 tree
-gccgm2_BuildOffset (field, needconvert)
-     tree field;
+gccgm2_BuildOffset (record, field, needconvert)
+     tree record, field;
      int  needconvert ATTRIBUTE_UNUSED;
 {
-  return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
-			      gccgm2_BuildAdd (DECL_FIELD_OFFSET (field),
-					       gccgm2_BuildDiv (DECL_FIELD_BIT_OFFSET (field),
-								gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
-								FALSE),
-					       FALSE));
+  if (DECL_CONTEXT (field) == record)
+    return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
+				gccgm2_BuildAdd (DECL_FIELD_OFFSET (field),
+						 gccgm2_BuildDiv (DECL_FIELD_BIT_OFFSET (field),
+								  gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
+								  FALSE),
+						 FALSE));
+  else {
+    tree r1 = DECL_CONTEXT (field);
+    tree r2 = determinePenultimateField (record, field);
+    return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
+				gccgm2_BuildAdd (gccgm2_BuildOffset (r1, field, needconvert),
+						 gccgm2_BuildOffset (record, r2, needconvert),
+						 FALSE));
+  }
 }
 
 /*
@@ -10950,7 +11023,7 @@ tree
 get_set_field_lhs (p, field)
      tree p, field;
 {
-  return gccgm2_BuildAdd (p, gccgm2_BuildOffset (field, FALSE), FALSE);
+  return gccgm2_BuildAdd (p, gccgm2_BuildOffset1 (field, FALSE), FALSE);
 }
 
 /*

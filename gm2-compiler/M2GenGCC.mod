@@ -35,6 +35,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLocalSym, GetVarWritten,
+                        GetVarient,
                         NoOfParam, GetScope, GetParent,
                         IsModule, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
@@ -132,7 +133,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
                    BuildLogicalShift, BuildLogicalRotate,
-                   BuildNegate, BuildAddr, BuildSize, BuildOffset,
+                   BuildNegate, BuildAddr, BuildSize, BuildOffset, BuildOffset1,
                    BuildGoto, DeclareLabel,
                    BuildLessThan, BuildGreaterThan,
                    BuildLessThanOrEqual, BuildGreaterThanOrEqual,
@@ -997,7 +998,7 @@ BEGIN
 
    High      := BuildMult(BuildAdd(
                                    BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                                   BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
+                                                                   BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
                                                                    FALSE),
                                                           GetIntegerType()),
                                             GetIntegerOne(),
@@ -1007,7 +1008,7 @@ BEGIN
                           FindSize(ArrayType), FALSE) ;
 
    Addr      := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                       BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                       BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                        FALSE),
                               GetPointerType()) ;
 
@@ -1019,7 +1020,7 @@ BEGIN
    (* now assign  param.Addr := ADR(NewArray) *)
 
    t         := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                       BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                                       BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                                        FALSE),
                                               GetPointerType()), NewArray)
 END MakeCopyAndUse ;
@@ -3060,56 +3061,25 @@ END CodeSize ;
                       We return the Varient symbol if sym was declared in the second method.
 *)
 
-PROCEDURE DetermineFieldOf (sym: CARDINAL) : CARDINAL ;
+PROCEDURE DetermineFieldOf (parent, sym: CARDINAL) : CARDINAL ;
 VAR
-   i, j, k,
-   Field,
-   VarientField,
-   Varient,
-   Record      : CARDINAL ;
+   varient: CARDINAL ;
 BEGIN
    Assert(IsRecordField(sym)) ;
-   Record := GetParent(sym) ;
-   Assert(IsRecord(Record)) ;
-   i := 1 ;
-   LOOP
-      Varient := GetNth(Record, i) ;
-      IF (sym=Varient) OR (sym=NulSym)
-      THEN
-         (* short cut a simple normal record, or we have finished looking at all the fields *)
-         RETURN( NulSym)
-      ELSIF IsVarient(Varient)
-      THEN
-         (* now check each VarientField *)
-         j := 1 ;
-         REPEAT
-            VarientField := GetNth(Varient, j) ;
-            IF VarientField#NulSym
-            THEN
-               Assert(IsFieldVarient(VarientField)) ;
-               k := 1 ;
-               REPEAT
-                  Field := GetNth(VarientField, k) ;
-                  IF Field=sym
-                  THEN
-                     (* found it.. *)
-                     RETURN( Varient )
-                  ELSE
-                     INC(k)
-                  END
-               UNTIL Field=NulSym
-            END ;
-            INC(j)
-         UNTIL VarientField=NulSym
-      ELSIF IsRecordField(Varient)
-      THEN
-         (* ok, normal field, but not ours, skip to the next *)
-      ELSE
-         InternalError('unexpected field in record', __FILE__, __LINE__)
+   varient := GetVarient(sym) ;
+   IF (varient=NulSym) OR IsRecord(varient)
+   THEN
+      RETURN( NulSym )
+   ELSE
+      sym := NulSym ;
+      WHILE (varient#NulSym) AND (IsVarient(varient) OR IsFieldVarient(varient)) DO
+         sym := varient ;
+         varient := GetVarient(varient)
       END ;
-      INC(i)
+      RETURN( sym )
    END
 END DetermineFieldOf ;
+
 
 
 (*
@@ -3128,26 +3098,12 @@ BEGIN
    DeclareConstant(tokenno, op3) ;
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(op3)
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
          THEN
-            field := DetermineFieldOf(op3) ;
-            IF field=NulSym
-            THEN
-               t := BuildOffset(Mod2Gcc(op3), FALSE)
-            ELSE
-               (*
-                  we must also add the position of op3 father as BuildOffset
-                  gives us the relative position of op3 to its father. We need
-                  to add fathers position to this in order to get correct overall offset.
-                  [The op3 father is akin to an invisible record]
-               *)
-               t := BuildAdd(BuildOffset(Mod2Gcc(op3), FALSE),
-                             BuildOffset(Mod2Gcc(field), FALSE),
-                             FALSE)
-            END ;
+            t := BuildOffset(Mod2Gcc(op2), Mod2Gcc(op3), FALSE) ;
             IF NOT IsValueSolved(op1)
             THEN
                PushIntegerTree(t) ;
@@ -3185,23 +3141,9 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(op3)
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
       THEN
-         field := DetermineFieldOf(op3) ;
-         IF field=NulSym
-         THEN
-            t := BuildOffset(Mod2Gcc(op3), FALSE)
-         ELSE
-            (*
-               we must also add the position of op3 father as BuildOffset
-               gives us the relative position of op3 to its father. We need
-               to add fathers position to this in order to get correct overall offset.
-               [The op3 father is akin to an invisible record]
-             *)
-            t := BuildAdd(BuildOffset(Mod2Gcc(op3), FALSE),
-                          BuildOffset(Mod2Gcc(field), FALSE),
-                          FALSE)
-         END ;
+         t := BuildOffset(Mod2Gcc(op2), Mod2Gcc(op3), FALSE) ;
          IF IsConst(op1)
          THEN
             (* fine, we can take advantage of this and fold constants *)
@@ -3338,7 +3280,7 @@ BEGIN
    ELSIF IsUnbounded(GetType(op3))
    THEN
       Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
-                                     BuildOffset(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                     BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
                                      FALSE),
                             GetPointerType()) ;
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)

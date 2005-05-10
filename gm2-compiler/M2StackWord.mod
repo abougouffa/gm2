@@ -30,7 +30,7 @@ TYPE
                          bucket: ARRAY [0..MaxBucket-1] OF WORD ;
                          items : CARDINAL ;
                          last  : StackBucket ;
-                      END ;
+                     END ;
 
    StackOfWord     = POINTER TO StackDescriptor ;
    StackDescriptor = RECORD

@@ -508,8 +508,8 @@ BEGIN
    Unbounded := MakeRecord(MakeKey('_Unbounded')) ;
    ArrayAddress := MakeKey('address') ;
    ArrayHigh := MakeKey('HIGH') ;
-   PutFieldRecord(Unbounded, ArrayAddress, Address) ;
-   PutFieldRecord(Unbounded, ArrayHigh, Cardinal) ;
+   PutFieldRecord(Unbounded, ArrayAddress, Address, NulSym) ;
+   PutFieldRecord(Unbounded, ArrayHigh, Cardinal, NulSym) ;
 
    (*
      _TemplateProcedure is a procedure which has a local variable _ActivationPointer

@@ -499,7 +499,7 @@ special string            first { < stringtok > } follow { }
 
 BNF
 
--- the following are provided by the module m2flex and also handbuild procedures below
+-- the following are provided by the module m2flex and also handbuilt procedures below
 -- Ident := Letter { ( Letter | Digit ) } =:
 -- Integer := Digit { Digit } | OctalDigit { OctalDigit } ( " B " | " C " ) |
 --           Digit { HexDigit } " H " =:
@@ -698,17 +698,10 @@ RecordType := "RECORD"                                                     % Bui
 
 FieldListSequence := FieldListStatement { ";" FieldListStatement } =:
 
--- at present FieldListStatement is as follows:
 FieldListStatement := [ FieldList ] =:
--- later replace it with FieldList to comply with PIM2
 
 -- sadly the PIM rules are not LL1 as Ident and Qualident have the same first
 -- symbols. We rewrite FieldList to inline qualident
--- was
--- FieldList := IdentList ":"                                              % BuildNulName %
---                           Type |
---             "CASE" [ Ident ":" ] Qualident "OF" Varient { "|" Varient }
---                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"                                                 % BuildNulName ; %
                            Type                                            % BuildFieldRecord ; %

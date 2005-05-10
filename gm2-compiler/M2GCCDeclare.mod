@@ -46,7 +46,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
                   PutItemIntoList, GetItemFromList,
                   RemoveItemFromList,
-      	       	  IsItemInList, NoOfItemsInList ;
+      	       	  IsItemInList, NoOfItemsInList, KillList ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -77,6 +77,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
                         GetProcedureScope,
+                        GetVarient,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName,
                         GetDeclared,
@@ -137,6 +138,7 @@ FROM gccgm2 IMPORT Tree,
                    AssignBooleanTrueFalse, BuildSize ;
 
 (* %%%FORWARD%%%
+PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareFileName ; FORWARD ;
 PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareImportedVariables (Sym: WORD) ; FORWARD ;
@@ -1495,10 +1497,267 @@ END DeclareSubrange ;
 
 
 (*
+   IncludeGetNth - 
+*)
+
+PROCEDURE IncludeGetNth (l: List; sym: CARDINAL) ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   printf0(' ListOfSons [') ;
+   i := 1 ;
+   WHILE GetNth(sym, i)#NulSym DO
+      IF i>1
+      THEN
+         printf0(', ') ;
+      END ;
+      IncludeItemIntoList(l, GetNth(sym, i)) ;
+      PrintTerse(GetNth(sym, i)) ;
+      INC(i)
+   END ;
+   printf0(']')
+END IncludeGetNth ;
+
+
+(*
+   IncludeType - 
+*)
+
+PROCEDURE IncludeType (l: List; sym: CARDINAL) ;
+VAR
+   t: CARDINAL ;
+BEGIN
+   t := GetType(sym) ;
+   IF t#NulSym
+   THEN
+      printf0(' type [') ;
+      PrintTerse(t) ;
+      IncludeItemIntoList(l, t) ;
+      printf0(']')
+   END
+END IncludeType ;
+
+
+(*
+   PrintLocalSymbol - 
+*)
+
+PROCEDURE PrintLocalSymbol (sym: CARDINAL) ;
+BEGIN
+   PrintTerse(sym) ; printf0(', ')
+END PrintLocalSymbol ;
+
+
+(*
+   PrintLocalSymbols - 
+*)
+
+PROCEDURE PrintLocalSymbols (sym: CARDINAL) ;
+BEGIN
+   printf0('Local Symbols {') ;
+   ForeachLocalSymDo(sym, PrintLocalSymbol) ;
+   printf0('}')
+END PrintLocalSymbols ;
+
+
+(*
+   IncludeGetVarient - 
+*)
+
+PROCEDURE IncludeGetVarient (l: List; sym: CARDINAL) ;
+BEGIN
+   IF GetVarient(sym)#NulSym
+   THEN
+      printf0(' Varient [') ;
+      PrintTerse(GetVarient(sym)) ;
+      printf0(']') ;
+      IncludeItemIntoList(l, GetVarient(sym))
+   END
+END IncludeGetVarient ;
+
+
+(*
+   PrintVerboseFromList - prints the, i, th element in the list, l.
+*)
+
+PROCEDURE PrintVerboseFromList (l: List; i: CARDINAL) ;
+VAR
+   sym: CARDINAL ;
+   n  : Name ;
+BEGIN
+   sym := GetItemFromList(l, i) ;
+   n := GetSymName(sym) ;
+   IF IsDefImp(sym)
+   THEN
+      printf2('sym %d IsDefImp (%a)', sym, n) ;
+      IF IsDefinitionForC(sym)
+      THEN
+         printf0('and IsDefinitionForC')
+      END ;
+      IF IsHiddenTypeDeclared(sym)
+      THEN
+         printf0(' IsHiddenTypeDeclared')
+      END
+   ELSIF IsModule(sym)
+   THEN
+      printf2('sym %d IsModule (%a)', sym, n) ;
+      IF IsModuleWithinProcedure(sym)
+      THEN
+         printf0(' and IsModuleWithinProcedure')
+      END
+   ELSIF IsInnerModule(sym)
+   THEN
+      printf2('sym %d IsInnerModule (%a)', sym, n)
+   ELSIF IsUnknown(sym)
+   THEN
+      printf2('sym %d IsUnknown (%a)', sym, n)
+   ELSIF IsType(sym)
+   THEN
+      printf2('sym %d IsType (%a)', sym, n) ;
+      IncludeType(l, sym)
+   ELSIF IsProcedure(sym)
+   THEN
+      printf2('sym %d IsProcedure (%a)', sym, n);
+      IF IsProcedureReachable(sym)
+      THEN
+         printf0(' and IsProcedureReachable')
+      END
+   ELSIF IsParameter(sym)
+   THEN
+      printf2('sym %d IsParameter (%a)', sym, n)
+   ELSIF IsPointer(sym)
+   THEN
+      printf2('sym %d IsPointer (%a)', sym, n) ;
+      IncludeType(l, sym)
+   ELSIF IsRecord(sym)
+   THEN
+      printf2('sym %d IsRecord (%a)', sym, n) ;
+      PrintLocalSymbols(sym) ;
+      IncludeGetNth(l, sym)
+   ELSIF IsVarient(sym)
+   THEN
+      printf2('sym %d IsVarient (%a)', sym, n) ;
+      IncludeGetNth(l, sym) ;
+      IncludeGetVarient(l, sym)
+   ELSIF IsFieldVarient(sym)
+   THEN
+      printf2('sym %d IsFieldVarient (%a)', sym, n) ;
+      IncludeGetNth(l, sym) ;
+      IncludeGetVarient(l, sym)
+   ELSIF IsFieldEnumeration(sym)
+   THEN
+      printf2('sym %d IsFieldEnumeration (%a)', sym, n)
+   ELSIF IsArray(sym)
+   THEN
+      printf2('sym %d IsArray (%a)', sym, n) ;
+      IncludeType(l, sym)
+   ELSIF IsEnumeration(sym)
+   THEN
+      printf2('sym %d IsEnumeration (%a)', sym, n)
+   ELSIF IsSet(sym)
+   THEN
+      printf2('sym %d IsSet (%a)', sym, n) ;
+      IncludeType(l, sym)
+   ELSIF IsUnbounded(sym)
+   THEN
+      printf2('sym %d IsUnbounded (%a)', sym, n)
+   ELSIF IsRecordField(sym)
+   THEN
+      printf2('sym %d IsRecordField (%a)', sym, n) ;
+      IncludeType(l, sym) ;
+      IncludeGetVarient(l, sym)
+   ELSIF IsProcType(sym)
+   THEN
+      printf2('sym %d IsProcType (%a)', sym, n)
+   ELSIF IsVar(sym)
+   THEN
+      printf2('sym %d IsVar (%a)', sym, n) ;
+      IncludeType(l, sym)
+   ELSIF IsConst(sym)
+   THEN
+      printf2('sym %d IsConst (%a)', sym, n)
+   ELSIF IsConstString(sym)
+   THEN
+      printf2('sym %d IsConstString (%a)', sym, n)
+   ELSIF IsConstLit(sym)
+   THEN
+      printf2('sym %d IsConstLit (%a)', sym, n)
+   ELSIF IsDummy(sym)
+   THEN
+      printf2('sym %d IsDummy (%a)', sym, n)
+   ELSIF IsTemporary(sym)
+   THEN
+      printf2('sym %d IsTemporary (%a)', sym, n)
+   ELSIF IsVarAParam(sym)
+   THEN
+      printf2('sym %d IsVarAParam (%a)', sym, n)
+   ELSIF IsSubscript(sym)
+   THEN
+      printf2('sym %d IsSubscript (%a)', sym, n)
+   ELSIF IsSubrange(sym)
+   THEN
+      printf2('sym %d IsSubrange (%a)', sym, n)
+   ELSIF IsProcedureVariable(sym)
+   THEN
+      printf2('sym %d IsProcedureVariable (%a)', sym, n)
+   ELSIF IsProcedureNested(sym)
+   THEN
+      printf2('sym %d IsProcedureNested (%a)', sym, n)
+   ELSIF IsAModula2Type(sym)
+   THEN
+      printf2('sym %d IsAModula2Type (%a)', sym, n)
+   ELSIF IsGnuAsmVolatile(sym)
+   THEN
+      printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
+   ELSIF IsError(sym)
+   THEN
+      printf2('sym %d IsError (%a)', sym, n)
+   END ;
+
+   IF IsHiddenType(sym)
+   THEN
+      printf0(' IsHiddenType')
+   END ;
+   printf0('\n')
+END PrintVerboseFromList ;
+
+
+(*
+   PrintVerbose - prints limited information about a symbol.
+*)
+
+PROCEDURE PrintVerbose (sym: CARDINAL) ;
+VAR
+   l: List ;
+   i: CARDINAL ;
+BEGIN
+   InitList(l) ;
+   IncludeItemIntoList(l, sym) ;
+   i := 1 ;
+   WHILE i<=NoOfItemsInList(l) DO
+      PrintVerboseFromList(l, i) ;
+      INC(i)
+   END ;
+   KillList(l)
+END PrintVerbose ;
+
+
+(*
    PrintSymbol - prints limited information about a symbol.
 *)
 
 PROCEDURE PrintSymbol (sym: CARDINAL) ;
+BEGIN
+   PrintTerse(sym) ;
+   printf0('\n')
+END PrintSymbol ;
+
+
+(*
+   PrintTerse - 
+*)
+
+PROCEDURE PrintTerse (sym: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
@@ -1620,9 +1879,8 @@ BEGIN
    IF IsHiddenType(sym)
    THEN
       printf0(' IsHiddenType')
-   END ;
-   printf0('\n')
-END PrintSymbol ;
+   END
+END PrintTerse ;
 
 
 PROCEDURE stop ; BEGIN END stop ;
@@ -1660,9 +1918,14 @@ BEGIN
       	    Field2 := GetNth(Field1, j) ;
       	    IF Field2#NulSym
       	    THEN
-               GccFieldType := ForceDeclareType(GetType(Field2)) ;
-               GccField     := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field2)), GccFieldType) ;
-               FieldList    := ChainOn(FieldList, GccField) ;
+               IF IsVarient(Field2)
+               THEN
+                  GccFieldType := DeclareVarient(Field2)
+               ELSE
+                  GccFieldType := ForceDeclareType(GetType(Field2))
+               END ;
+               GccField  := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field2)), GccFieldType) ;
+               FieldList := ChainOn(FieldList, GccField) ;
                AddModGcc(Field2, GccField) ;
       	       INC(j)
       	    END
@@ -1722,10 +1985,7 @@ BEGIN
                WriteFormat1('found unexpected field varient name %a\n', n1) ;
                InternalError('should not get here', __FILE__, __LINE__)
             ELSE
-               IF NOT AllDependantsWritten(GetType(Field))
-               THEN
-                  Assert(AllDependantsWritten(GetType(Field)))
-               END ;
+               Assert(AllDependantsWritten(GetType(Field))) ;
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;
             GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;

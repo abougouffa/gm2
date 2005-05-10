@@ -1,3 +1,31 @@
+2005-05-10	Gaius Mulley <gaius@glam.ac.uk>
+
+	* major changes which now allow GM2 to compile nested varient records
+	  (such as found in gm2/ulm-lib-gm2/std/RTErrors.def)
+	* added runtime regression test in testsuite/types/run/pass
+	* gm2/Make-lang.in modified to include RTErrors.mod to be built with
+	  the ulm libraries. Grammer files are built without the -l option to pge.
+	* gm2/gccgm2.c new functions gccgm2_BuildOffset1 determinePenultimateField
+	  which implement modifications to record/varient field calculation.
+	* gm2/gm2.texi contains gm2 internal documentation on how the front end
+	  symbol table represents records, field and varient records.
+	* gm2/bnf/m2-2.bnf removed commented out code.
+	* gm2/examples/map/Makefile builds the utility semantic.
+	* gm2/gm2-compiler/M2Base.mod modifications to reflect change in PutFieldRecord
+	* gm2/gm2-compiler/M2GCCDeclare.mod added debugging procedures PrintVerbose
+	  and PrintSymbol, which can be called interactively from gdb. Also fixed
+	  varient record declaration.
+	* gm2/gm2-compiler/M2GenGCC.mod fixed varient record field calculation.
+	* gm2/gm2-compiler/M2Quads.mod changed operands to OffsetOp.
+	* gm2/gm2-compiler/M2SubExp.mod changes to reflect OffsetOp change.
+	* gm2/gm2-compiler/P2SymBuild.mod changed to allow nested varient records.
+	* gm2/gm2-compiler/SymbolTable.[def, mod] changes to varient record
+	  representation. Fixed memory leak.
+	* gm2/gm2-compiler/gccgm2.def changed BuildOffset and added BuildOffset1
+	* gm2/ulm-lib-gm2/std/RTErrors.def changed parameter name to match
+	  implementation module.
+	* gm2/ulm-lib-gm2/std/RTErrors.mod fixed pointer/integer constant type clash.
+	
 2005-04-11	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed examples/executive

@@ -1620,7 +1620,192 @@ syntax is parsed but no symbols are created.
 
 @subsection Pass 2
 
-To do
+This section discuss varient records and their representation within
+the front end @file{gm2/gm2-compiler/SymbolTable.mod}. Records and
+varient records are declared in pass 2.
+
+Ordinary records are represented by the following symbol table entries:
+
+@example
+TYPE
+   this = RECORD
+             foo: CARDINAL ;
+             bar: CHAR ;
+          END ;
+
+
+    SymRecord [1]
+   +-------------+
+   | Name = this |        SymRecordField [2]
+   | ListOfSons  |       +-------------------+
+   |    +--------|       | Name = foo        |
+   |    | [2] [3]|       | Parent = [1]      |
+   +-------------+       | Type = [Cardinal] |
+   | LocalSymbols|       +-------------------+
+   | +-----------+
+   | | foo bar   |
+   | +-----------+
+   +-------------+
+
+
+    SymRecordField [3]
+   +-------------------+
+   | Name = bar        |
+   | Parent = [1]      |
+   | Type = [Cardinal] |
+   +-------------------+
+@end example
+
+Whereas varient records are represented by the following symbol table
+entries:
+
+@example
+TYPE
+   this = RECORD
+             CASE tag: CHAR OF
+             'a': foo: CARDINAL ;
+                  bar: CHAR |
+             'b': an:  REAL |
+             ELSE
+             END
+          END ;
+
+
+    SymRecord [1]
+   +-------------+
+   | Name = this |        SymRecordField [2]
+   | ListOfSons  |       +-------------------+
+   |    +--------|       | Name = tag        |
+   |    | [2] [3]|       | Parent = [1]      |
+   |    +--------+       | Type = [CHAR]     |
+   | LocalSymbols|       +-------------------+
+   | +-----------+
+   | | tag foo   |
+   | | bar an    |
+   | +-----------+
+   +-------------+
+
+    SymVarient [3]          SymFieldVarient [4]
+   +-------------------+   +-------------------+
+   | Parent = [1]      |   | Parent = [1]      |
+   | ListOfSons        |   | ListOfSons        |  
+   |    +--------------|   |    +--------------|
+   |    | [4] [5]      |   |    | [6] [7]      |
+   +-------------------+   +-------------------+
+
+    SymFieldVarient [5]
+   +-------------------+
+   | Parent = [1]      |
+   | ListOfSons        |  
+   |    +--------------|
+   |    | [8]          |
+   +-------------------+
+
+    SymRecordField [6]      SymRecordField [7]
+   +-------------------+   +-------------------+
+   | Name = foo        |   | Name = bar        |
+   | Parent = [1]      |   | Parent = [1]      |
+   | Type = [CARDINAL] |   | Type = [CHAR]     |
+   +-------------------+   +-------------------+
+
+    SymRecordField [8]
+   +-------------------+
+   | Name = an         |
+   | Parent = [1]      |
+   | Type = [REAL]     |
+   +-------------------+
+@end example
+
+Varient records which have nested @samp{CASE} statements are
+represented by the following symbol table entries:
+
+@example
+TYPE
+   this = RECORD
+             CASE tag: CHAR OF
+             'a': foo: CARDINAL ;
+                  CASE bar: BOOLEAN OF
+                  TRUE : bt: INTEGER |
+                  FALSE: bf: CARDINAL
+                  END |
+             'b': an:  REAL |
+             ELSE
+             END
+          END ;
+
+
+    SymRecord [1]
+   +-------------+
+   | Name = this |        SymRecordField [2]
+   | ListOfSons  |       +-------------------+
+   |    +--------|       | Name = tag        |
+   |    | [2] [3]|       | Parent = [1]      |
+   |    +--------+       | Type = [CHAR]     |
+   | LocalSymbols|       +-------------------+
+   | +-----------+
+   | | tag foo   |
+   | | bar bt bf |
+   | | an        |
+   | +-----------+
+   +-------------+
+
+      ('1st CASE')            ('a' selector)
+    SymVarient [3]          SymFieldVarient [4]
+   +-------------------+   +-------------------+
+   | Parent = [1]      |   | Parent = [1]      |
+   | ListOfSons        |   | ListOfSons        |  
+   |    +--------------|   |    +--------------|
+   |    | [4] [5]      |   |    | [6] [7] [8]  |
+   +-------------------+   +-------------------+
+
+     ('b' selector)
+    SymFieldVarient [5]
+   +-------------------+
+   | Parent = [1]      |
+   | ListOfSons        |  
+   |    +--------------|
+   |    | [9]          |
+   +-------------------+
+
+    SymRecordField [6]      SymRecordField [7]
+   +-------------------+   +-------------------+
+   | Name = foo        |   | Name = bar        |
+   | Parent = [1]      |   | Parent = [1]      |
+   | Type = [CARDINAL] |   | Type = [BOOLEAN]  |
+   +-------------------+   +-------------------+
+
+      ('2nd CASE')
+    SymVarient [8]
+   +-------------------+
+   | Parent = [1]      |
+   | ListOfSons        |
+   |    +--------------|
+   |    | [12] [13]    |
+   +-------------------+
+
+    SymRecordField [9]
+   +-------------------+
+   | Name = an         |
+   | Parent = [1]      |
+   | Type = [REAL]     |
+   +-------------------+
+
+    SymRecordField [10]     SymRecordField [11]
+   +-------------------+   +-------------------+
+   | Name = bt         |   | Name = bf         |
+   | Parent = [1]      |   | Parent = [1]      |
+   | Type = [REAL]     |   | Type = [REAL]     |
+   +-------------------+   +-------------------+
+
+    (TRUE selector)            (FALSE selector)
+    SymFieldVarient [12]    SymFieldVarient [13]
+   +-------------------+   +-------------------+
+   | Parent = [1]      |   | Parent = [1]      |
+   | ListOfSons        |   | ListOfSons        |
+   |    +--------------|   |    +--------------|
+   |    | [10]         |   |    | [11]         |
+   +-------------------+   +-------------------+
+@end example
 
 @subsection Pass 3
 

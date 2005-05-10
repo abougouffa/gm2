@@ -757,11 +757,11 @@ GM2-LIBS-ULM-MODS-STD  = \
                             Terminal.mod   StdFuncs.mod   Passwd.mod \
                             Directories.mod               StdIO.mod \
               PipeIO.mod    Environment.mod               Storage.mod \
-              M2RTS.mod
+              M2RTS.mod     RTErrors.mod
 
 ######################################################################
 ### GM2 cannot compile these yet
-###           Functions.mod   RTErrors.mod    MathLib.mod   TimeIO.mod
+###           Functions.mod   TimeIO.mod    MathLib.mod
 ######################################################################
 
 GM2-LIBS-ULM-MODS-SYS  = \
@@ -1515,11 +1515,11 @@ gm2/pge$(exeext): buildpge
 
 $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 	$(MAKE) gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
+	./gm2/pge$(exeext) $< > $@
 
 $(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
 	$(MAKE) gm2/pge$(exeext)
-	./gm2/pge$(exeext) -l $< > $@
+	./gm2/pge$(exeext) $< > $@
 
 $(objdir)/gm2/gm2-auto/P3Build.mod: $(srcdir)/gm2/bnf/m2-3.bnf
 	$(MAKE) gm2/pge$(exeext)

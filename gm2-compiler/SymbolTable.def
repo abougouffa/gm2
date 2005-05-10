@@ -112,6 +112,9 @@ EXPORT QUALIFIED NulSym,
                  PutConstString,
                  PutConstSet,
                  PutFieldRecord,
+                 PutFieldVarient,
+                 GetVarient,
+                 GCFieldVarient,
                  PutFieldEnumeration,
                  PutSubrange,
       	       	 PutSet,
@@ -425,10 +428,10 @@ PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
 
 (*
    MakeVarient - creates a new symbol, a varient symbol for record symbol,
-                 RecSym.
+                 RecOrVarFieldSym.
 *)
 
-PROCEDURE MakeVarient (RecSym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -436,7 +439,7 @@ PROCEDURE MakeVarient (RecSym: CARDINAL) : CARDINAL ;
                       assigned to the Varient symbol, Sym.
 *)
 
-PROCEDURE MakeFieldVarient (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeFieldVarient (n: Name; Sym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -916,20 +919,38 @@ PROCEDURE IsConstSet (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
-   PutFieldRecord - places a field, FieldName and FieldType with
-                    OffsetBytes, SizeBytes, OffsetBits and SizeBits
-                    into a new symbol. This new symbol is connected
-                    to the father record Sym.
-                    If the Bit fields are not zero then the field
-                    may be compressed with other fields to decrease
-                    the record size. (Only when the Alignment flag
-                    if FALSE). Records in general will only be
-                    compressable if all their fields are also
-                    compressable.
+   PutFieldRecord - places a field, FieldName and FieldType into a record, Sym.
+                    VarSym is a optional varient symbol which can be returned
+                    by a call to GetVarient(fieldsymbol).
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
-                          FieldName: Name; FieldType: CARDINAL) ;
+                          FieldName: Name; FieldType: CARDINAL;
+                          VarSym: CARDINAL) ;
+
+
+(*
+   PutFieldVarient - places the field varient, Field, as a brother to, the
+                     varient symbol, sym.
+*)
+
+PROCEDURE PutFieldVarient (Field, Sym: CARDINAL) ;
+
+
+(*
+   GetVarient - returns the varient symbol associated with the
+                record or varient field symbol, Field.
+*)
+
+PROCEDURE GetVarient (Field: CARDINAL) : CARDINAL ;
+
+
+(*
+   GCFieldVarient - garbage collect the field varient symbol, Sym.
+                    This must only be called once per Sym.
+*)
+
+PROCEDURE GCFieldVarient (Sym: CARDINAL) ;
 
 
 (*

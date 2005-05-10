@@ -123,6 +123,9 @@ TYPE
                                               (* declared by the source      *)
                                               (* file.                       *)
                    Parent      : CARDINAL ;   (* Points to the parent symbol *)
+                   Varient     : CARDINAL ;   (* Index into symbol table to  *)
+                                              (* determine the associated    *)
+                                              (* varient symbol.             *)
                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                END ;
@@ -193,13 +196,13 @@ TYPE
                     At         : Where ;      (* Where was sym declared/used *)
                  END ;
 
-  SymUnbounded = RECORD
-                    Type       : CARDINAL ;   (* Index to Simple type symbol *)
-                    Size       : PtrToValue ; (* Max No of words ever        *)
+   SymUnbounded = RECORD
+                     Type       : CARDINAL ;  (* Index to Simple type symbol *)
+                     Size       : PtrToValue ;(* Max No of words ever        *)
                                               (* passed to this type.        *)
-                    Scope      : CARDINAL ;   (* Scope of declaration.       *)
-                    At         : Where ;      (* Where was sym declared/used *)
-                 END ;
+                     Scope      : CARDINAL ;  (* Scope of declaration.       *)
+                     At         : Where ;     (* Where was sym declared/used *)
+                  END ;
 
    SymProcedure
           = RECORD
@@ -368,20 +371,29 @@ TYPE
                                               (* determine the parent symbol *)
                                               (* for this record field. Used *)
                                               (* for BackPatching.           *)
+                Varient  : CARDINAL ;         (* Index into symbol table to  *)
+                                              (* determine the associated    *)
+                                              (* varient symbol.             *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
 
    SymVarientField =
              RECORD
+                name     : Name ;             (* Index into name array, name *)
+                                              (* of varient field (internal) *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 Offset   : PtrToValue ;       (* Offset at runtime of symbol *)
                 Parent   : CARDINAL ;         (* Index into symbol table to  *)
                                               (* determine the parent symbol *)
                                               (* for this record field. Used *)
                                               (* for BackPatching.           *)
+                Varient  : CARDINAL ;         (* Index into symbol table to  *)
+                                              (* determine the associated    *)
+                                              (* varient symbol.             *)
                 ListOfSons: List ;            (* Contains a list of the      *)
-                                              (* RecordField symbols.        *)
+                                              (* RecordField symbols and     *)
+                                              (* SymVarients                 *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -632,6 +644,9 @@ VAR
    CurrentError  : Error ;       (* Current error chain.               *)
    AddressTypes  : List ;        (* A list of type symbols which must  *)
                                  (* be declared as ADDRESS or pointer  *)
+   FreeFVarientList,             (* Lists used to maintain GC of field *)
+   UsedFVarientList: List ;      (* varients.                          *)
+
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
@@ -944,10 +959,13 @@ BEGIN
       Main := NulSym ;
       Search := NulSym
    END ;
-   CurrentModule := NulSym ;
-   MainModule    := NulSym ;
-   FileModule    := NulSym ;
-   TemporaryNo   := 0 ;
+   CurrentModule     := NulSym ;
+   MainModule        := NulSym ;
+   FileModule        := NulSym ;
+   TemporaryNo       := 0 ;
+   InitList(FreeFVarientList) ;             (* Lists used to maintain GC of field *)
+   InitList(UsedFVarientList) ;             (* varients.                          *)
+
    InitBase(BaseModule) ;
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
    BaseScopePtr := ScopePtr ; (* BaseScopePtr points to the top of the BaseModule scope *)
@@ -2518,10 +2536,10 @@ END MakeRecord ;
 
 (*
    MakeVarient - creates a new symbol, a varient symbol for record symbol,
-                 RecSym.
+                 RecOrVarFieldSym.
 *)
 
-PROCEDURE MakeVarient (RecSym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
@@ -2530,20 +2548,28 @@ BEGIN
       SymbolType := VarientSym ;
       WITH Varient DO
          Size := InitValue() ;
-         Parent := GetRecord(RecSym) ;
+         Parent := GetRecord(RecOrVarFieldSym) ;
+         IF IsRecord(RecOrVarFieldSym)
+         THEN
+            Varient := NulSym
+         ELSE
+            Varient := RecOrVarFieldSym
+         END ;
          Scope := GetCurrentScope() ;
          InitList(ListOfSons) ;
          InitWhereDeclared(At)
       END
    END ;
    (* Now add Sym to the record RecSym field list *)
-   WITH Symbols[RecSym] DO
+   WITH Symbols[RecOrVarFieldSym] DO
       CASE SymbolType OF
 
-      RecordSym: PutItemIntoList(Record.ListOfSons, Sym)
+      RecordSym      : PutItemIntoList(Record.ListOfSons, Sym) |
+      VarientFieldSym: PutItemIntoList(VarientField.ListOfSons, Sym)
 
       ELSE
-         InternalError('expecting Record symbol', __FILE__, __LINE__)
+         InternalError('expecting Record or VarientField symbol',
+                       __FILE__, __LINE__)
       END
    END ;
    RETURN( Sym )
@@ -2552,7 +2578,7 @@ END MakeVarient ;
 
 (*
    GetRecord - fetches the record symbol from the parent of Sym.
-               Sym maybe a varient symbol in which case its father if searched
+               Sym maybe a varient symbol in which case its parent is searched
                etc.
 *)
 
@@ -3522,12 +3548,14 @@ END PutConst ;
 
 
 (*
-   PutFieldRecord - places a field, FieldName and FieldType into a
-                    record Sym.
+   PutFieldRecord - places a field, FieldName and FieldType into a record, Sym.
+                    VarSym is a optional varient symbol which can be returned
+                    by a call to GetVarient(fieldsymbol).
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
-                          FieldName: Name; FieldType: CARDINAL) ;
+                          FieldName: Name; FieldType: CARDINAL;
+                          VarSym: CARDINAL) ;
 VAR
    ParSym,
    SonSym: CARDINAL ;
@@ -3575,6 +3603,7 @@ BEGIN
          Type := FieldType ;
          name := FieldName ;
          Parent := GetRecord(Sym) ;
+         Varient := VarSym ;
          Size := InitValue() ;
          Offset := InitValue()
       END
@@ -3587,30 +3616,25 @@ END PutFieldRecord ;
                       assigned to the Varient symbol, Sym.
 *)
 
-PROCEDURE MakeFieldVarient (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE MakeFieldVarient (n: Name; Sym: CARDINAL) : CARDINAL ;
 VAR
    SonSym: CARDINAL ;
 BEGIN
-   Assert(IsVarient(Sym)) ;
-   NewSym(SonSym) ; (* Cannot be used before declared since use occurs *)
-                    (* in pass 3 and it will be declared in pass 2.    *)
-   (* Fill in the SonSym and connect it to its Brothers (if any) and   *)
-   (* ensure that it is connected to the parent.                       *)
-   WITH Symbols[Sym] DO
-      CASE SymbolType OF
-
-      VarientSym : PutItemIntoList(Varient.ListOfSons, SonSym)
-
-      ELSE
-         InternalError('expecting Varient symbol', __FILE__, __LINE__)
-      END    
+   IF NoOfItemsInList(FreeFVarientList)=0
+   THEN
+      NewSym(SonSym)
+   ELSE
+      SonSym := GetItemFromList(FreeFVarientList, 1) ;
+      RemoveItemFromList(FreeFVarientList, SonSym)
    END ;
-   (* Fill in SonSym *)
+   (* Fill in Sym *)
    WITH Symbols[SonSym] DO
       SymbolType := VarientFieldSym ;
       WITH VarientField DO
+         name := n ;
          InitList(ListOfSons) ;
          Parent := GetRecord(Sym) ;
+         Varient := NulSym ;
          Size := InitValue() ;
          Offset := InitValue() ;
          Scope := GetCurrentScope() ;
@@ -3619,6 +3643,78 @@ BEGIN
    END ;
    RETURN( SonSym )
 END MakeFieldVarient ;
+
+
+(*
+   PutFieldVarient - places the field varient, Field, as a brother to, the
+                     varient symbol, sym, and also tells Field that its varient
+                     parent is Sym.
+*)
+
+PROCEDURE PutFieldVarient (Field, Sym: CARDINAL) ;
+VAR
+   SonSym: CARDINAL ;
+BEGIN
+   Assert(IsVarient(Sym)) ;
+   Assert(IsFieldVarient(Field)) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      VarientSym : IncludeItemIntoList(Varient.ListOfSons, Field)
+
+      ELSE
+         InternalError('expecting Varient symbol', __FILE__, __LINE__)
+      END    
+   END ;
+   WITH Symbols[Field] DO
+      CASE SymbolType OF
+
+      VarientFieldSym : VarientField.Varient := Sym
+
+      ELSE
+         InternalError('expecting VarientField symbol', __FILE__, __LINE__)
+      END    
+   END ;
+   PutItemIntoList(UsedFVarientList, Field)
+END PutFieldVarient ;
+
+
+(*
+   GetVarient - returns the varient symbol associated with the
+                record or varient field symbol, Field.
+*)
+
+PROCEDURE GetVarient (Field: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[Field] DO
+      CASE SymbolType OF
+
+      VarientFieldSym : RETURN( VarientField.Varient ) |
+      RecordFieldSym  : RETURN( RecordField.Varient ) |
+      VarientSym      : RETURN( Varient.Varient )
+
+      ELSE
+         RETURN( NulSym )
+      END    
+   END
+END GetVarient ;
+
+
+(*
+   GCFieldVarient - garbage collect the field varient symbol, Sym.
+                    This must only be called once per Sym.
+*)
+
+PROCEDURE GCFieldVarient (Sym: CARDINAL) ;
+BEGIN
+   IF IsItemInList(UsedFVarientList, Sym)
+   THEN
+      RemoveItemFromList(UsedFVarientList, Sym)
+   ELSE
+      RemoveItemFromList(UsedFVarientList, Sym) ;
+      PutItemIntoList(FreeFVarientList, Sym)
+   END
+END GCFieldVarient ;
 
 
 (*
@@ -3797,7 +3893,7 @@ BEGIN
          RecordFieldSym      : n := RecordField.name |
          RecordSym           : n := Record.name |
          VarientSym          : n := NulName |
-         VarientFieldSym     : n := NulName |
+         VarientFieldSym     : n := VarientField.name |
          VarParamSym         : n := VarParam.name |
          ParamSym            : n := Param.name |
          PointerSym          : n := Pointer.name |
@@ -4813,15 +4909,21 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      DefImpSym:    WITH DefImp DO
-                       ForeachNodeDo( LocalSymbols, P )
-                    END |
-      ModuleSym:    WITH Module DO
-                       ForeachNodeDo( LocalSymbols, P )
-                    END |
-      ProcedureSym: WITH Procedure DO
-                       ForeachNodeDo( LocalSymbols, P )
-                    END
+      DefImpSym:      WITH DefImp DO
+                         ForeachNodeDo( LocalSymbols, P )
+                      END |
+      ModuleSym:      WITH Module DO
+                         ForeachNodeDo( LocalSymbols, P )
+                      END |
+      ProcedureSym:   WITH Procedure DO
+                         ForeachNodeDo( LocalSymbols, P )
+                      END |
+      RecordSym:      WITH Record DO
+                         ForeachNodeDo( LocalSymbols, P )
+                      END |
+      EnumerationSym: WITH Enumeration DO
+                         ForeachNodeDo( LocalSymbols, P )
+                      END
 
       ELSE
          InternalError('expecting a DefImp, Module or Procedure symbol', __FILE__, __LINE__)
