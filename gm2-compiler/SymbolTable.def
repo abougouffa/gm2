@@ -2174,7 +2174,10 @@ PROCEDURE PopSumOfParamSize (Sym: CARDINAL) ;
 
 
 (*
-   MakeError - creates an error node.
+   MakeError - creates an error node, it does assume that the caller
+               will issue an appropriate error message as this symbol
+               will be removed from the generic error message trees.
+               It will be removed from ExportUndeclared and Unknown trees.
 *)
 
 PROCEDURE MakeError (name: Name) : CARDINAL ;

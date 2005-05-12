@@ -874,7 +874,9 @@ BEGIN
          IF NOT IsError(Sym)
          THEN
             PutType(Sym, Type) ;
-            CheckForExportedImplementation(Sym) ;   (* May be an exported hidden type *)
+            CheckForExportedImplementation(Sym) ;    (* May be an exported hidden type *)
+            (* if Type is an enumerated type then add its contents to the pseudo scope *)
+            CheckForEnumerationInCurrentModule(Type)
          END ;
          PushTF(Sym, name)
       ELSE

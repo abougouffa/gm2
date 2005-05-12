@@ -565,8 +565,8 @@ Qualident :=                                                               % VAR
                                                                                    (* should we test for lack of ident? *)
                                                                                    PopTF(Sym, Type) ;
                                                                                    PushTF(Sym, Type) ;
-                                                                                   PutIncluded(Sym) ;
-                                                                                   EndScope
+                                                                                   EndScope ;
+                                                                                   PutIncluded(Sym)
                                                                                 ELSE
                                                                                    PushTF(Sym, GetType(Sym))
                                                                                 END

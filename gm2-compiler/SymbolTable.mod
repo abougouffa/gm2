@@ -60,8 +60,8 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 
 CONST
-   MaxScopes  =    50 ; (* Maximum number of scopes at any one time.         *)
-   MaxSymbols = 100000 ; (* Maximum number of symbols.                        *)
+   MaxScopes     =    50 ;  (* Maximum number of scopes at any one time.     *)
+   MaxSymbols    = 100000 ; (* Maximum number of symbols.                    *)
    DebugUnknowns = FALSE ;
 
 TYPE
@@ -479,6 +479,8 @@ TYPE
                                             (* visible within this scope.    *)
                NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
                NamedImports  : SymbolTree ; (* Names of items imported.      *)
+               WhereImported : SymbolTree ; (* Sym to TokenNo where import   *)
+                                            (* occurs. Error message use.    *)
                Priority      : CARDINAL ;   (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
                Unresolved    : SymbolTree ; (* All symbols currently         *)
@@ -538,6 +540,8 @@ TYPE
                                             (* visable within this scope.    *)
                NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
                NamedImports  : SymbolTree ; (* Names of items imported.      *)
+               WhereImported : SymbolTree ; (* Sym to TokenNo where import   *)
+                                            (* occurs. Error message use.    *)
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Priority      : CARDINAL ;   (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
@@ -709,6 +713,7 @@ PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
+PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -830,14 +835,28 @@ END AlreadyImportedError ;
 
 
 (*
-   MakeError - creates an error node.
+   MakeError - creates an error node, it does assume that the caller
+               will issue an appropriate error message as this symbol
+               will be removed from the generic error message trees.
+               It will be removed from ExportUndeclared and Unknown trees.
 *)
 
 PROCEDURE MakeError (name: Name) : CARDINAL ;
 VAR
    Sym: CARDINAL ;
 BEGIN
-   NewSym(Sym) ;
+   (* if Sym is present on the unknown tree then remove it *)
+   Sym := FetchUnknownSym(name) ;
+   IF Sym=NulSym
+   THEN
+      NewSym(Sym)
+   ELSE
+      (*
+         remove symbol from this tree as we have already generated
+         a meaningful error message
+      *)
+      RemoveExportUndeclared(GetCurrentModuleScope(), Sym)
+   END ;
    WITH Symbols[Sym] DO
       SymbolType := ErrorSym ;
       Error.name := name ;
@@ -911,7 +930,7 @@ BEGIN
       THEN
          s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
          AlreadyImportedError(Sprintf1(Mark(InitString('symbol (%s) is already present in this scope, check both definition and implementation modules, use a different name or remove the import')),
-                                       s), name, 0)
+                                       s), name, GetWhereImported(Sym)) ;
       ELSE
          s := Mark(InitStringCharStar(KeyToCharStar(name))) ;
          AlreadyDeclaredError(Sprintf1(Mark(InitString('symbol (%s) is already declared in this scope, use a different name or remove the declaration')), s),
@@ -2103,7 +2122,9 @@ BEGIN
                                             (* visable within this scope.    *)
                                             (* Outer Module.                 *)
          InitTree(NamedObjects) ;           (* Names of all items declared.  *)
-         InitTree(NamedImports) ;           (* Names of items imported.      *)
+         InitTree(NamedImports) ; 
+         InitTree(WhereImported) ;          (* Names of items imported.      *)
+                                            (* occurs. Error message use.    *)
          Priority := NulSym ;               (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
          InitTree(Unresolved) ;             (* All symbols currently         *)
@@ -2312,6 +2333,8 @@ BEGIN
                                       (* visable within this scope.    *)
          InitTree(NamedObjects) ;     (* names of all items declared.  *)
          InitTree(NamedImports) ;     (* Names of items imported.      *)
+         InitTree(WhereImported) ;    (* Names of items imported.      *)
+                                      (* occurs. Error message use.    *)
          Priority := NulSym ;         (* Priority of the module. This  *)
                                       (* is an index to a constant.    *)
          InitTree(Unresolved) ;       (* All symbols currently         *)
@@ -4247,6 +4270,10 @@ BEGIN
                     END
                  ELSIF GetSymKey(Module.ImportTree, GetSymName(Sym))=NulKey
                  THEN
+                    IF GetSymKey(Module.WhereImported, Sym)=NulKey
+                    THEN
+                       PutSymKey(Module.WhereImported, Sym, GetTokenNo())
+                    END ;
                     PutSymKey(Module.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
@@ -4262,6 +4289,10 @@ BEGIN
                     END
                  ELSIF GetSymKey(DefImp.ImportTree, GetSymName(Sym))=NulKey
                  THEN
+                    IF GetSymKey(DefImp.WhereImported, Sym)=NulKey
+                    THEN
+                       PutSymKey(DefImp.WhereImported, Sym, GetTokenNo())
+                    END ;
                     PutSymKey(DefImp.ImportTree, GetSymName(Sym), Sym) ;
                     AddSymToModuleScope(ModSym, Sym)
                  ELSE
@@ -4290,6 +4321,7 @@ END PutImported ;
 PROCEDURE PutIncluded (Sym: CARDINAL) ;
 VAR
    ModSym: CARDINAL ;
+   n1, n2: Name ;
 BEGIN
    (*
       We have referenced Sym, via modulename.Sym
@@ -4297,6 +4329,12 @@ BEGIN
    *)
    ModSym := GetCurrentModuleScope() ;
    Assert(IsDefImp(ModSym) OR IsModule(ModSym)) ;
+   IF DebugUnknowns
+   THEN
+      n1 := GetSymName(Sym) ;
+      n2 := GetSymName(ModSym) ;
+      printf2('including %a into scope %a\n', n1, n2)
+   END ;
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
@@ -4542,6 +4580,26 @@ END RequestFromDefinition ;
 
 
 (*
+   GetWhereImported - returns the token number where this symbol
+                      was imported into the current module.
+*)
+
+PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[GetCurrentModuleScope()] DO
+      CASE SymbolType OF
+
+      DefImpSym:  RETURN( GetSymKey(DefImp.WhereImported, Sym) ) |
+      ModuleSym:  RETURN( GetSymKey(Module.WhereImported, Sym) )
+
+      ELSE
+         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
+      END
+   END
+END GetWhereImported ;
+
+
+(*
    DisplayName - displays the name.
 *)
 
@@ -4590,7 +4648,7 @@ BEGIN
                     printf1('%a  ExportUnQualified', n) ;
                     ForeachNodeDo(ExportUnQualifiedTree, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportUndeclared', n) ;
-                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ;
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  DeclaredObjects', n) ;
                     ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
                     printf1('%a  ImportedObjects', n) ;
@@ -4609,7 +4667,7 @@ BEGIN
                     printf1('%a  ExportUndeclared', n) ;
                     ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportUndeclared', n) ;
-                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ;
+                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  DeclaredObjects', n) ;
                     ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
                     printf1('%a  ImportedObjects', n) ;

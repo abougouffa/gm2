@@ -245,21 +245,21 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
 	    rm -f $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
 	    $(INSTALL_PROGRAM) $(GM2)-cross$(exeext) $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
 	    chmod a+x $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
-            for tool in stage1/gm2/cc1gm2$(exeext) \
-                        $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
-              toolbase=`basename $$tool` ; \
-              tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-              if [ -f $$tool$(exeext) ]; then \
-                rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
-                $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
-                chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
-              fi ; \
-            done ; \
 	  else \
 	    rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
 	    $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
 	    chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
 	  fi ; \
+          for tool in stage1/gm2/cc1gm2$(exeext) \
+                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
+            toolbase=`basename $$tool` ; \
+            tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
+            if [ -f $$tool$(exeext) ]; then \
+              rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
+              $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
+              chmod a+x $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
+            fi ; \
+          done ; \
 	fi ; \
         for tool in $(GM2_TARGET_INDEPENDENT_BIN_TOOLS); do \
           toolbase=`basename $$tool` ; \

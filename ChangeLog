@@ -1,3 +1,17 @@
+2005-05-12	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gm2-compiler/SymbolTable.mod and gm2/gm2-compiler/P2SymBuild.mod
+	  modified to detect double declaration on import and produce useful
+	  error messages.
+	* gm2/Make-lang.in fixes to the gm2.install rule.
+	
+2005-05-11	Gaius Mulley <gaius@glam.ac.uk>
+
+	* P2SymBuild.mod added call to CheckForEnumerationInCurrentModule
+	  to fix 5 regression tests and allow enumeration types to be
+	  visible when aliased via TYPEs and later IMPORTed.
+	  (see testsuite/gm2/pim/pass/impf.mod)
+
 2005-05-10	Gaius Mulley <gaius@glam.ac.uk>
 
 	* major changes which now allow GM2 to compile nested varient records
