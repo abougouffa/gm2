@@ -1709,7 +1709,7 @@ BEGIN
       GenQuad(ConvertOp, addr, Address, sym) ;
       (* IF sym=NIL *)
       GenQuad(IfEquOp, addr, Nil, 0) ;       (* True  Exit *)
-      GenQuad(GotoOp, NulSym, NulSym, 0) ;  (* False Exit *)
+      GenQuad(GotoOp, NulSym, NulSym, 0) ;   (* False Exit *)
       PushBool(NextQuad-2, NextQuad-1) ;
       BuildThenIf ;
       (* THEN *)
@@ -8569,7 +8569,6 @@ VAR
    ti, tj,
    tk, ta   : CARDINAL ;
 BEGIN
-   s := InitStackWord() ;
    PopT(n) ;
    Sym  := OperandT(n+1) ;
    Type := OperandF(n+1) ;
@@ -8585,11 +8584,132 @@ BEGIN
    PutVar(Base, Address) ;
    Adr := MakeLeftValue(Sym, RightValue, Address) ;
    GenQuad(AddOp, Base, Adr, Offset) ;
+   (* ta should have type address as it points into memory *)
+   ta := MakeTemporary(RightValue) ;
+   PutVar(ta, Address) ;
+
+   (* now calculate the indices by converting through INTEGER *)
+
+   s := InitStackWord() ;
    i := 1 ;
    pi := n ;
    WHILE i<=n DO
       ti := MakeTemporary(ImmediateValue) ;
-      PutVar(ti, Cardinal) ;
+      PutVar(ti, Integer) ;
+      GenQuad(ElementSizeOp, ti, Type, i) ;
+      OpI := OperandT(pi) ;
+
+      (* tj has Cardinal type since we have multiplied array indices *)
+      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
+      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
+
+      IF GetType(OpI)#Integer
+      THEN
+         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
+         PushT(Integer) ;
+         PushT(OpI) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction ;
+         PopT(OpI)
+      END ;
+      tj := MakeTemporary(RightValue) ;
+      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
+      tk := MakeTemporary(RightValue) ;
+      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
+      CheckSubrange(GetNth(Type, i), OpI) ;
+
+      PushT(tj) ;
+      PushT(OpI) ;
+      BuildAssignmentWithoutBounds ;
+
+      GenQuad(MultOp, tk, ti, tj) ;
+      PushWord(s, tk) ;
+      INC(i) ;
+      DEC(pi)
+   END ;
+   GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
+   i := 2 ;
+   WHILE i<=n DO
+      GenQuad(AddOp, ta, ta, PopWord(s)) ;
+      INC(i)
+   END ;
+   s := KillStackWord(s) ;
+
+   (* and finally add, ta, to Base *)
+   Adr := MakeTemporary(LeftValue) ;
+   (*
+      Ok must reference by address
+      - but we contain the type of the referenced entity
+   *)
+   PutVarTypeAndSize(Adr, GetType(Type), Address) ;
+
+   GenQuad(AddOp, Adr, Base, ta) ;
+   PopN(n+1) ;   (* remove all parameters to this procedure *)
+   PushTF(Adr, GetType(Type))
+END BuildStaticArray ;
+
+
+(*
+PROCEDURE BuildStaticArray ;
+VAR
+   s        : StackOfWord ;
+   Goto,
+   Patch,
+   low,
+   Subrange,
+   Sym,
+   pi, i, n,
+   OpI,
+   Type, Adr,
+   Base,
+   Offset,
+   ti, tj,
+   tk, ta   : CARDINAL ;
+BEGIN
+   PopT(n) ;
+   Sym  := OperandT(n+1) ;
+   Type := OperandF(n+1) ;
+   IF NoOfElements(Type)#n
+   THEN
+      ErrorStringAt2(Mark(InitString('incorrect number of array indices: check [][] with [i, j]')),
+                     GetDeclared(Type), GetTokenNo())
+   END ;
+   Offset := MakeTemporary(ImmediateValue) ;
+   GenQuad(BaseOp, Offset, Type, Sym) ;
+   (* Base has address type since it points to the start of the array in memory *)
+   Base := MakeTemporary(RightValue) ;
+   PutVar(Base, Address) ;
+   Adr := MakeLeftValue(Sym, RightValue, Address) ;
+   GenQuad(AddOp, Base, Adr, Offset) ;
+   (* ta should have type address as it points into memory *)
+   ta := MakeTemporary(RightValue) ;
+   PutVar(ta, Address) ;
+
+   (* test for any negative subscript, in which case convert via INTEGER *)
+
+   i := 1 ;
+   Patch := 0 ;
+   WHILE i<=n DO
+      Subrange := GetType(SkipType(GetNth(Type, i))) ;
+      IF Subrange#NulSym
+      THEN
+         low := MakeTemporary(ImmediateValue) ;
+         PutVar(low, Subrange) ;
+         GenQuad(SubrangeLowOp, low, NulSym, Subrange) ;
+         GenQuad(IfLessOp, low, MakeConstLit(MakeKey('0')), Patch) ;
+         Patch := NextQuad-1
+      END ;
+      INC(i)
+   END ;
+
+   (* now calculate indices by converting through CARDINAL *)
+
+   s := InitStackWord() ;
+   i := 1 ;
+   pi := n ;
+   WHILE i<=n DO
+      ti := MakeTemporary(ImmediateValue) ;
+      PutVar(ti, Integer) ;
       GenQuad(ElementSizeOp, ti, Type, i) ;
       OpI := OperandT(pi) ;
 
@@ -8621,15 +8741,68 @@ BEGIN
       INC(i) ;
       DEC(pi)
    END ;
-   (* ta should have type address as it points into memory *)
-   ta := MakeTemporary(RightValue) ;
-   PutVar(ta, Address) ;
    GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
    i := 2 ;
    WHILE i<=n DO
       GenQuad(AddOp, ta, ta, PopWord(s)) ;
       INC(i)
    END ;
+   s := KillStackWord(s) ;
+
+   GenQuad(GotoOp, NulSym, NulSym, 0) ;
+   Goto := NextQuad-1 ;
+   BackPatch(Patch, NextQuad) ;
+
+   (* now calculate the indices by converting through INTEGER *)
+
+   s := InitStackWord() ;
+   i := 1 ;
+   pi := n ;
+   WHILE i<=n DO
+      ti := MakeTemporary(ImmediateValue) ;
+      PutVar(ti, Integer) ;
+      GenQuad(ElementSizeOp, ti, Type, i) ;
+      OpI := OperandT(pi) ;
+
+      (* tj has Cardinal type since we have multiplied array indices *)
+      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
+      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
+
+      IF GetType(OpI)#Integer
+      THEN
+         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
+         PushT(Integer) ;
+         PushT(OpI) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction ;
+         PopT(OpI)
+      END ;
+      tj := MakeTemporary(RightValue) ;
+      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
+      tk := MakeTemporary(RightValue) ;
+      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
+      CheckSubrange(GetNth(Type, i), OpI) ;
+
+      PushT(tj) ;
+      PushT(OpI) ;
+      BuildAssignmentWithoutBounds ;
+
+      GenQuad(MultOp, tk, ti, tj) ;
+      PushWord(s, tk) ;
+      INC(i) ;
+      DEC(pi)
+   END ;
+   GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
+   i := 2 ;
+   WHILE i<=n DO
+      GenQuad(AddOp, ta, ta, PopWord(s)) ;
+      INC(i)
+   END ;
+   s := KillStackWord(s) ;
+
+   BackPatch(Goto, NextQuad) ;
+
+   (* and finally add, ta, to Base *)
    Adr := MakeTemporary(LeftValue) ;
    (*
       Ok must reference by address
@@ -8639,9 +8812,9 @@ BEGIN
 
    GenQuad(AddOp, Adr, Base, ta) ;
    PopN(n+1) ;   (* remove all parameters to this procedure *)
-   PushTF(Adr, GetType(Type)) ;
-   s := KillStackWord(s)
+   PushTF(Adr, GetType(Type))
 END BuildStaticArray ;
+*)
 
 
 (*
@@ -9419,11 +9592,6 @@ END RecordOp ;
 
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ;
 BEGIN
-   IF (t1=179) OR (t2=179)
-   THEN
-      stop
-   END ;
-
    IF (Tok=PlusTok) OR (Tok=TimesTok) OR (Tok=DivTok) OR (Tok=MinusTok)
    THEN
       IF ((t2#NulSym) AND IsSet(SkipType(t2))) OR (IsConst(e2) AND IsConstSet(e2))

@@ -4,6 +4,8 @@
 	  modified to detect double declaration on import and produce useful
 	  error messages.
 	* gm2/Make-lang.in fixes to the gm2.install rule.
+	* gm2/gm2-compiler/M2Quads.mod fixed BuildStaticArray to calculate
+	  indices using INTEGER data type.
 	
 2005-05-11	Gaius Mulley <gaius@glam.ac.uk>
 
