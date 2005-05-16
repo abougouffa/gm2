@@ -1,3 +1,15 @@
+2005-05-16	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gm2-compiler/M2GenGCC.mod fixed to allow HIGH(ch) where ch is
+	  of type CHAR.
+	* gm2/gm2-compiler/M2GenGCC.mod fixed to allow comparison of literals
+	  against subrange types.
+	* gm2/gm2-compiler/M2GenGCC.mod fixed to allow automatic conversion
+	  of strings of 1 or 0 characters to be passed to a parameter of
+	  type CHAR.
+	* these fixes allow more of the third party tests (from Iztok)
+	  to pass.
+
 2005-05-13	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/Make-lang.in shell invocation to use $(SHELL) and also

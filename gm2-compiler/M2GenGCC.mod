@@ -83,7 +83,7 @@ FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
 
 FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
-FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, ConCat ;
+FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2System IMPORT Address, Word, System, MakeAdr ;
 FROM M2FileName IMPORT CalculateFileName ;
@@ -120,7 +120,7 @@ FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
 
 FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
-                   BuildVariableArrayAndDeclare,
+                   BuildVariableArrayAndDeclare, BuildCharConstant,
                    BuildBinProcedure, BuildUnaryProcedure,
                    BuildSetProcedure,
                    ChainOnParamValue, AddStringToTreeList,
@@ -1286,6 +1286,9 @@ PROCEDURE CheckConvertCoerceParameter (op1, op2, op3: CARDINAL) : Tree ;
 VAR
    OperandType,
    ParamType  : CARDINAL ;
+   s          : String ;
+   n          : Name ;
+   t          : Tree ;
 BEGIN
    IF GetNthParam(op2, op1)=NulSym
    THEN
@@ -1307,9 +1310,25 @@ BEGIN
                                    Mod2Gcc(op3)) )
    ELSIF IsConst(op3) AND IsOrdinalType(ParamType)
    THEN
-      RETURN( BuildConvert(Mod2Gcc(ParamType),
-                           Mod2Gcc(op3), FALSE) )
-
+      t := Mod2Gcc(op3) ;
+      IF (ParamType=Char) AND IsConstString(op3)
+      THEN
+         IF GetStringLength(op3)=0
+         THEN
+            s := InitStringCharStar('') ;
+            t := BuildCharConstant(s) ;
+            s := KillString(s) ;
+         ELSIF GetStringLength(op3)>1
+         THEN
+            n := GetSymName(op3) ;
+            WriteFormat1("attempting to pass a string ('%a') to a procedure parameter of type CHAR", n)
+         END ;
+         s := InitStringCharStar(KeyToCharStar(GetString(op3))) ;
+         s := Slice(s, 0, 1) ;
+         t := BuildCharConstant(string(s)) ;
+         s := KillString(s) ;
+      END ;
+      RETURN( BuildConvert(Mod2Gcc(ParamType), t, FALSE) )
    ELSE
       RETURN( Mod2Gcc(op3) )
    END
@@ -3183,8 +3202,11 @@ VAR
    Subscript,
    Subrange: CARDINAL ;
 BEGIN
-   Type := GetType(operand) ;
-   IF NoOfElements(Type)#1
+   Type := SkipType(GetType(operand)) ;
+   IF Type=Char
+   THEN
+      RETURN( BuildSize(Mod2Gcc(Type), FALSE) )
+   ELSIF NoOfElements(Type)#1
    THEN
       ErrorStringAt(InitString('HIGH operator only allowed on one dimensional arrays'),
                     QuadToTokenNo(quad))
@@ -3816,6 +3838,8 @@ END CodeIfSetLess ;
 *)
 
 PROCEDURE CodeIfLess (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -3835,8 +3859,9 @@ BEGIN
    THEN
       CodeIfSetLess(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildLessThan(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildLessThan(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLess ;
 
@@ -3889,6 +3914,8 @@ END CodeIfSetGre ;
 *)
 
 PROCEDURE CodeIfGre (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -3908,8 +3935,9 @@ BEGIN
    THEN
       CodeIfSetGre(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildGreaterThan(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildGreaterThan(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGre ;
 
@@ -3962,6 +3990,8 @@ END CodeIfSetLessEqu ;
 *)
 
 PROCEDURE CodeIfLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -3981,8 +4011,9 @@ BEGIN
    THEN
       CodeIfSetLessEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildLessThanOrEqual(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildLessThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLessEqu ;
 
@@ -4035,6 +4066,8 @@ END CodeIfSetGreEqu ;
 *)
 
 PROCEDURE CodeIfGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -4054,8 +4087,9 @@ BEGIN
    THEN
       CodeIfSetGreEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildGreaterThanOrEqual(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildGreaterThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGreEqu ;
 
@@ -4151,6 +4185,8 @@ END CodeIfSetNotEqu ;
 *)
 
 PROCEDURE CodeIfEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -4170,8 +4206,9 @@ BEGIN
    THEN
       CodeIfSetEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildEqualTo(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfEqu ;
 
@@ -4181,6 +4218,8 @@ END CodeIfEqu ;
 *)
 
 PROCEDURE CodeIfNotEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
@@ -4200,8 +4239,9 @@ BEGIN
    THEN
       CodeIfSetNotEqu(quad, op1, op2, op3)
    ELSE
-      DoJump(BuildNotEqualTo(Mod2Gcc(op1), Mod2Gcc(op2)),
-             NIL, string(CreateLabelName(op3)))
+      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
+      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      DoJump(BuildNotEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfNotEqu ;
 
