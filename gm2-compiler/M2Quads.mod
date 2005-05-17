@@ -10045,7 +10045,7 @@ BEGIN
    THEN
       ErrorStringAt2(InitString('not expecting an array variable as an operand for either comparison or binary operation'),
                      GetTokenNo(), GetDeclared(sym))
-   ELSIF IsConstString(sym) AND (GetStringLength(sym)#1)
+   ELSIF IsConstString(sym) AND (GetStringLength(sym)>1)
    THEN
       ErrorStringAt(InitString('not expecting a string constant as an operand for either comparison or binary operation'),
                     GetTokenNo())

@@ -1,3 +1,11 @@
+2005-05-17	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gm2-compiler/M2Quads.mod modified to accept zero length strings
+	  as compatible with type CHAR.
+	* gm2/gm2-compiler/M2GenGCC.mod many modifications/refactoring to enable
+	  strings of 1 or 0 characters to be type compatible with CHAR.
+	* these fixes allow Iztok's ISO library to compile cleanly.
+	
 2005-05-16	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gm2-compiler/M2GenGCC.mod fixed to allow HIGH(ch) where ch is

@@ -284,6 +284,10 @@ VAR
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
+PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -1279,6 +1283,58 @@ END CodeIndirectCall ;
 
 
 (*
+   StringToChar - if type=Char and str is a string (of size <= 1)
+                     then convert the string into a character constant.
+*)
+
+PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;
+VAR
+   s: String ;
+   n: Name ;
+BEGIN
+   type := SkipType(type) ;
+   IF (type=Char) AND IsConstString(str)
+   THEN
+      IF GetStringLength(str)=0
+      THEN
+         s := InitStringCharStar('') ;
+         t := BuildCharConstant(s) ;
+         s := KillString(s) ;
+      ELSIF GetStringLength(str)>1
+      THEN
+         n := GetSymName(str) ;
+         WriteFormat1("type incompatibility, attempting to use a string ('%a') when a CHAR is expected", n) ;
+         s := InitStringCharStar('') ;  (* do something safe *)
+         t := BuildCharConstant(s)
+      END ;
+      s := InitStringCharStar(KeyToCharStar(GetString(str))) ;
+      s := Slice(s, 0, 1) ;
+      t := BuildCharConstant(string(s)) ;
+      s := KillString(s) ;
+   END ;
+   RETURN( t )
+END StringToChar ;
+
+
+(*
+   SafeConvert - converts, sym, into a tree which is type compatible with, with.
+*)
+
+PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ;
+VAR
+   t: Tree ;
+BEGIN
+   t := StringToChar(NIL, GetType(with), sym) ;
+   IF t=NIL
+   THEN
+      RETURN( ZConstToTypedConst(LValueToGenericPtr(sym), sym, with) )
+   ELSE
+      RETURN( t )
+   END
+END SafeConvert ;
+
+
+(*
    CheckConvertCoerceParameter - 
 *)
 
@@ -1286,9 +1342,6 @@ PROCEDURE CheckConvertCoerceParameter (op1, op2, op3: CARDINAL) : Tree ;
 VAR
    OperandType,
    ParamType  : CARDINAL ;
-   s          : String ;
-   n          : Name ;
-   t          : Tree ;
 BEGIN
    IF GetNthParam(op2, op1)=NulSym
    THEN
@@ -1310,25 +1363,9 @@ BEGIN
                                    Mod2Gcc(op3)) )
    ELSIF IsConst(op3) AND IsOrdinalType(ParamType)
    THEN
-      t := Mod2Gcc(op3) ;
-      IF (ParamType=Char) AND IsConstString(op3)
-      THEN
-         IF GetStringLength(op3)=0
-         THEN
-            s := InitStringCharStar('') ;
-            t := BuildCharConstant(s) ;
-            s := KillString(s) ;
-         ELSIF GetStringLength(op3)>1
-         THEN
-            n := GetSymName(op3) ;
-            WriteFormat1("attempting to pass a string ('%a') to a procedure parameter of type CHAR", n)
-         END ;
-         s := InitStringCharStar(KeyToCharStar(GetString(op3))) ;
-         s := Slice(s, 0, 1) ;
-         t := BuildCharConstant(string(s)) ;
-         s := KillString(s) ;
-      END ;
-      RETURN( BuildConvert(Mod2Gcc(ParamType), t, FALSE) )
+      RETURN( BuildConvert(Mod2Gcc(ParamType),
+                           StringToChar(Mod2Gcc(op3), ParamType, op3),
+                           FALSE) )
    ELSE
       RETURN( Mod2Gcc(op3) )
    END
@@ -1800,6 +1837,9 @@ BEGIN
          (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
          t := ConvertConstantAndCheck(DefaultConvertGM2(GetType(op1)), t)
+      ELSIF GetType(op1)#NulSym
+      THEN
+         t := StringToChar(Mod2Gcc(op3), GetType(op1), op3)
       END
    END ;
    RETURN( t )
@@ -1859,11 +1899,11 @@ END CodeBecomes ;
 
 
 (*
-   CoerceTree - returns a Tree representing symbol, sym.
-                It coerces a lvalue into an internal pointer type
+   LValueToGenericPtr - returns a Tree representing symbol, sym.
+                        It coerces a lvalue into an internal pointer type
 *)
 
-PROCEDURE CoerceTree (sym: CARDINAL) : Tree ;
+PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ;
 VAR
    t: Tree ;
 BEGIN
@@ -1877,15 +1917,15 @@ BEGIN
       t := BuildConvert(GetPointerType(), t, FALSE)
    END ;
    RETURN( t )
-END CoerceTree ;
+END LValueToGenericPtr ;
 
 
 (*
-   CoerceConst - checks whether op1 and op2 are constants and
+   ZConstToTypedConst - checks whether op1 and op2 are constants and
                  coerces, t, appropriately.
 *)
 
-PROCEDURE CoerceConst (t: Tree; op1, op2: CARDINAL) : Tree ;
+PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
 BEGIN
    IF IsConst(op1) AND IsConst(op2)
    THEN
@@ -1915,7 +1955,7 @@ BEGIN
       (* neither operands are constants, leave alone *)
       RETURN( t )
    END
-END CoerceConst ;
+END ZConstToTypedConst ;
 
 
 (*
@@ -1939,8 +1979,8 @@ BEGIN
          THEN
             Assert(MixTypes(FindType(op3), FindType(op2), tokenno)#NulSym) ;
             PutConst(op1, MixTypes(FindType(op3), FindType(op2), tokenno)) ;
-            tl := CoerceTree(op2) ;
-            tr := CoerceTree(op3) ;
+            tl := LValueToGenericPtr(op2) ;
+            tr := LValueToGenericPtr(op3) ;
             tv := binop(tl, tr, TRUE) ;
             CheckOverflow(tokenno, tv) ;
 
@@ -1976,8 +2016,8 @@ BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstant(CurrentQuadToken, op2) ;
-   tl := CoerceConst(CoerceTree(op2), op2, op3) ;
-   tr := CoerceConst(CoerceTree(op3), op2, op3) ;
+   tl := ZConstToTypedConst(LValueToGenericPtr(op2), op2, op3) ;
+   tr := ZConstToTypedConst(LValueToGenericPtr(op3), op2, op3) ;
    
    tv := binop(tl, tr, TRUE) ;
    CheckOverflow(CurrentQuadToken, tv) ;
@@ -2873,7 +2913,7 @@ END CodeExcl ;
 *)
 
 PROCEDURE FoldUnary (tokenno: CARDINAL; l: List;
-                     unop: BuildUnaryProcedure; CoerceConst: Tree;
+                     unop: BuildUnaryProcedure; ZConstToTypedConst: Tree;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    tv: Tree ;
@@ -2887,21 +2927,21 @@ BEGIN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
          THEN
-            IF CoerceConst=Tree(NIL)
+            IF ZConstToTypedConst=Tree(NIL)
             THEN
                IF (GetType(op3)=NulSym) OR IsOrdinalType(GetType(op3))
                THEN
-                  CoerceConst := GetM2ZType()
+                  ZConstToTypedConst := GetM2ZType()
                ELSIF IsRealType(GetType(op3))
                THEN
-                  CoerceConst := GetM2ZRealType()
+                  ZConstToTypedConst := GetM2ZRealType()
                END
             END ;
             PutConst(op1, FindType(op3)) ;
-            tv := unop(CoerceTree(op3), FALSE) ;
+            tv := unop(LValueToGenericPtr(op3), FALSE) ;
             CheckOverflow(tokenno, tv) ;
 
-            AddModGcc(op1, DeclareKnownConstant(CoerceConst, tv)) ;
+            AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv)) ;
             RemoveItemFromList(l, op1) ;
             SubQuad(quad)
          ELSE
@@ -2948,24 +2988,24 @@ END FoldUnarySet ;
    CodeUnary - encode a unary arithmetic operation.
 *)
 
-PROCEDURE CodeUnary (unop: BuildUnaryProcedure; CoerceConst: Tree;
+PROCEDURE CodeUnary (unop: BuildUnaryProcedure; ZConstToTypedConst: Tree;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t, tv: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
-   tv := unop(CoerceTree(op3), FALSE) ;
+   tv := unop(LValueToGenericPtr(op3), FALSE) ;
    CheckOverflow(CurrentQuadToken, tv) ;
    IF IsConst(op1)
    THEN
-      IF CoerceConst=Tree(NIL)
+      IF ZConstToTypedConst=Tree(NIL)
       THEN
-         CoerceConst := Tree(Mod2Gcc(GetType(op3)))
+         ZConstToTypedConst := Tree(Mod2Gcc(GetType(op3)))
       END ;
       (* still have a constant which was not resolved, pass it to gcc *)
       PutConst(op1, FindType(op3)) ;
-      AddModGcc(op1, DeclareKnownConstant(CoerceConst, tv))
+      AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv))
    ELSE
       t := BuildAssignment(Mod2Gcc(op1), tv)
    END
@@ -3617,8 +3657,8 @@ VAR
 BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
-   tl := CoerceTree(op2) ;
-   tr := CoerceTree(op3) ;
+   tl := LValueToGenericPtr(op2) ;
+   tr := LValueToGenericPtr(op3) ;
    IF IsConst(op1)
    THEN
       (* fine, we can take advantage of this and fold constant *)
@@ -3859,8 +3899,8 @@ BEGIN
    THEN
       CodeIfSetLess(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildLessThan(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLess ;
@@ -3935,8 +3975,8 @@ BEGIN
    THEN
       CodeIfSetGre(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildGreaterThan(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGre ;
@@ -4011,8 +4051,8 @@ BEGIN
    THEN
       CodeIfSetLessEqu(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildLessThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfLessEqu ;
@@ -4087,8 +4127,8 @@ BEGIN
    THEN
       CodeIfSetGreEqu(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildGreaterThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfGreEqu ;
@@ -4206,8 +4246,8 @@ BEGIN
    THEN
       CodeIfSetEqu(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfEqu ;
@@ -4239,8 +4279,8 @@ BEGIN
    THEN
       CodeIfSetNotEqu(quad, op1, op2, op3)
    ELSE
-      tl := CoerceConst(CoerceTree(op1), op1, op2) ;
-      tr := CoerceConst(CoerceTree(op2), op1, op2) ;
+      tl := SafeConvert(op1, op2) ;
+      tr := SafeConvert(op2, op1) ;
       DoJump(BuildNotEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
    END
 END CodeIfNotEqu ;
@@ -4476,7 +4516,8 @@ BEGIN
    THEN
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)), Mod2Gcc(op3))
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
+                           StringToChar(Mod2Gcc(op3), op2, op3))
    END
 END CodeXIndr ;
 
