@@ -1,3 +1,22 @@
+2005-05-19	Gaius Mulley <gaius@glam.ac.uk>
+
+	* rebuilt gm2/gm2-libs/configure
+	* gm2/gm2.texi added section heading for advice on building
+	  GNU Modula-2 under FreeBSD 5.3
+
+2005-05-19	Michel Derosa <derosa@videotron.ca>
+
+	* applied patches to make gm2 build on FreeBSD 5.3
+	* gm2/gm2-libs/configure.in test for signal.h and direct.h
+	* gm2/gm2-libs/gm2-libs-host.h.in test for signal.h and direct.h
+	* gm2/tools-src/createUlmSys test for signal.h and direct.h
+
+2005-05-18	Gaius Mulley <gaius@glam.ac.uk>
+
+	* testsuite/gm2/types/run/pass/varient5.mod introduced to stress
+	  variant records (equivalent to a C union for casting BYTES
+	  into a CARDINAL). Based on an idea from Michel Derosa.
+
 2005-05-17	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gm2-compiler/M2Quads.mod modified to accept zero length strings

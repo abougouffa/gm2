@@ -2874,11 +2874,13 @@ done
 
 
 
+
+
 for ac_header in limits.h stddef.h string.h strings.h stdlib.h time.h \
 		 fcntl.h unistd.h sys/file.h sys/time.h sys/mman.h \
 		 sys/resource.h sys/param.h sys/times.h sys/stat.h \
                  sys/wait.h sys/ioctl.h errno.h sys/errno.h \
-		 pwd.h direct.h malloc.h langinfo.h
+		 pwd.h direct.h dirent.h signal.h malloc.h langinfo.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then

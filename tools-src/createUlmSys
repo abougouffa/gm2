@@ -156,6 +156,7 @@ EOFEOF
    echo "#include \"../../gm2-libs/gm2-libs-host.h\""
    safeIncludeFile HAVE_UNISTD_H unistd.h
    safeIncludeFile HAVE_DIRECT_H direct.h
+   safeIncludeFile HAVE_DIRENT_H dirent.h
    safeIncludeFile HAVE_FCNTL_H fcntl.h
    safeIncludeFile HAVE_INTTYPES_H inttypes.h
    safeIncludeFile HAVE_PWD_H pwd.h
@@ -168,6 +169,7 @@ EOFEOF
    safeIncludeFile HAVE_SYS_TIMES_H sys/times.h
    safeIncludeFile HAVE_SYS_TIME_H sys/time.h
    safeIncludeFile HAVE_SYS_WAIT_H sys/wait.h
+   safeIncludeFile HAVE_SIGNAL_H signal.h
    safeIncludeFile HAVE_ERRNO_H errno.h
    safeIncludeFile HAVE_SYS_ERRNO_H sys/errno.h
    echo "#define ATTRIBUTE_UNUSED  __attribute__ ((__unused__))"

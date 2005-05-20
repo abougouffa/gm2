@@ -33,6 +33,12 @@
 /* Define to 1 if you have the <direct.h> header file. */
 #undef HAVE_DIRECT_H
 
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
+
 /* Define to 1 if you have the `dup' function. */
 #undef HAVE_DUP
 
