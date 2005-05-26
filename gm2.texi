@@ -1421,9 +1421,56 @@ make check-gm2
 Depending on the speed of your computer these tests may take a while
 to complete.
 
-@section Building GNU Modula-2 under FreeBSD 5.3
+@section Building GNU Modula-2 under FreeBSD
 
-To do..
+When building GNU Modula-2 under FreeBSD, there are essentially three
+issues that need to be addressed.
+
+The first, is the system shell, @file{/bin/sh}. GNU Modula-2's build
+script uses some @file{bash} constructs that are not understood by
+@file{sh}.  Therefore @file{bash} must be installed and this can be
+obtained from the ports package collection (ports:shells/bash).
+
+The second, is the compiler used to bootstrap GNU Modula-2. On
+FreeBSD4.x the system compiler is from the 2.95.x generation, and
+should work without problems.  On 5-RELEASE and 6-CURRENT, the system
+compiler is from the 3.4.x generation or greater, and it is known to
+create a faulty GNU Modula-2 compiler. Therefore you will need to
+install an earlier gcc on your machine. Known to work are gcc 3.2.3
+(ports:lang/gcc32), gcc 3.3.4, 3.3.5 and 3.3.6 (ports:lang/gcc33).
+
+Finally, @file{gmake} is required.
+
+It is recommended that the same options are used to configure GNU
+Modula-2 as those suggested in the ports collection.  A number of
+options are not relevant for building GNU Modula-2 and these can be
+safely omitted. The only two which apply directly to GNU Modula-2's
+build process are @code{--with-system-zlib} and @code{--disable-nls}.
+
+The example below assumes that @code{gcc-3.2.3} is installed (from the
+ports collection) and the compiler is called @file{gcc32}. The example
+assumes that the bash shell has been installed (as described above).
+
+@example
+  mkdir host-build
+  cd host-build
+  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
+      --with-system-zlib --disable-nls --enable-languages=c,gm2
+  gmake
+@end example
+
+If you choose to install the generated compiler, you are urged to make
+use of the name rewriting options of configure
+(@code{--program-prefix} and @code{--program-suffix} work fine), and
+to avoid possible conflicts with a port that installs it's own gcc,
+you may also want to add @code{--host}. Here is the author of this
+section's full configure line:
+
+@example
+  env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
+      --with-system-zlib --disable-nls --enable-languages=c,gm2
+      --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
+@end example
 
 @node Contributing, Internals, Obtaining, Top
 @section Contributing to GNU Modula-2
