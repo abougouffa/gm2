@@ -17,9 +17,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StrSpec.mod,v 1.4 2004/12/22 12:40:05 gaius Exp $
+   $Id: StrSpec.mod,v 1.5 2005/05/27 15:23:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StrSpec.mod,v $
+   Revision 1.5  2005/05/27 15:23:59  gaius
+   modified MaxCard to MaxIndice and set its value to MAX(INTEGER)
+
    Revision 1.4  2004/12/22 12:40:05  gaius
    corrected test.
 
@@ -61,8 +64,10 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
    FROM Strings IMPORT StrLen, StrCat;
    FROM Storage IMPORT ALLOCATE, DEALLOCATE;
 
+
    CONST
-	MaxCard = 37777777777B;		(* groesste Cardinal *)
+      MaxIndice = MAX(INTEGER) ;  (* Was MaxCard = 37777777777B; *)
+
 
 
    PROCEDURE StrPartCpy ( VAR target           : ARRAY OF CHAR;
@@ -119,7 +124,7 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 
       VAR
 	lauf, index : CARDINAL;
-	StoreIt     : POINTER TO ARRAY [ 0 .. MaxCard-7 ] OF CHAR;
+	StoreIt     : POINTER TO ARRAY [ 0 .. MaxIndice ] OF CHAR;
 	insertLen,
 	targetLen   : CARDINAL;
 
