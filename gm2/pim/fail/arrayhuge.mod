@@ -18,11 +18,12 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 MODULE arrayhuge ;
 
 #if defined(__LP64__)
+BEGIN
+#  error "fails on purpose"
+#else
 VAR
    a: ARRAY [MAX(CARDINAL)-4..MAX(CARDINAL)] OF CHAR ;
 BEGIN
    a[MAX(CARDINAL)-1] := 'a'
-#else
-BEGIN
 #endif
 END arrayhuge.
