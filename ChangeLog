@@ -1,7 +1,9 @@
 2005-05-27	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gccgm2.c fixed to detect array indices which exceed
-	  sizetype.
+          sizetype.
+        * gm2/lang-specs.h fixed to propagate the -Wcpp flags though
+	  to gm2 subcomponents.
 
 2005-05-25	Michel Derosa <derosa@videotron.ca>
 

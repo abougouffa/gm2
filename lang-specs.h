@@ -45,10 +45,12 @@ Boston, MA 02111-1307, USA.  */
                        %{Wuselist:gm2lcc %{Wtarget-ar=*} %{I*} %{v} -c %b.lst}}} \n\
       %{!c:%{Wmakelist:%eGNU Modula-2 does not support -Wmakelist without -c}} \n\
       %{!c:%{Wmodules:%eGNU Modula-2 does not support -Wmodules without -c}} \n\
-      %{!c:%{Wmakeall:%{!Wmakeall0:gm2m -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
-                                   make -r -f %g.m }}} \n\
+      %{!c:%{Wmakeall:%{!Wmakeall0:%{Wcpp:gm2m -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
+                                     make -r -f %g.m } \n\
+                                   %{!Wcpp:gm2m -nolink -Wgm2begin -Wmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -Wgm2end -o %g.m %i \n\
+                                   make -r -f %g.m }}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!Wuselist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
-                                             gm2l %{I*} %{!pipe:-o %g.l} %g.mod |\n\
+                                             gm2l -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend %{I*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\
                                              gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
