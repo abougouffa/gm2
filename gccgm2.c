@@ -8589,6 +8589,14 @@ tree
 gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
+  tree sizelow = convert (sizetype, default_conversion(low));
+  tree sizehigh = convert (sizetype, default_conversion(high));
+  
+  if (gccgm2_TreeOverflow (sizelow))
+    error("lower bound of the array declaration is either too large or too small");
+  if (gccgm2_TreeOverflow (sizehigh))
+    error("higher bound of the array declaration is either too large or too small");
+  
   return build_index_2_type (default_conversion(low), default_conversion(high));
 }
 

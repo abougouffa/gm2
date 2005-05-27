@@ -1,3 +1,8 @@
+2005-05-27	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gccgm2.c fixed to detect array indices which exceed
+	  sizetype.
+
 2005-05-25	Michel Derosa <derosa@videotron.ca>
 
 	* applied patches to gm2/gm2.texi which describe FreeBSD
