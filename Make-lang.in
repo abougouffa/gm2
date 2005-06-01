@@ -986,7 +986,7 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #
 
 gm2/gm2-libs/gm2-libs-host.h:
-	if echo $(INTERNAL_CFLAGS) | grep -e -DCROSS_COMPILE; then \
+	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             echo "Configuring to build libraries using cross compiler" ; \
             cd gm2/gm2-libs ; \
             CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
@@ -1004,7 +1004,7 @@ gm2/gm2-libs/gm2-libs-host.h:
 
 gm2/gm2config.h:
 	cd gm2 ; \
-	if echo $(INTERNAL_CFLAGS) | grep -e -DCROSS_COMPILE; then \
+	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
             export AR ; \
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \

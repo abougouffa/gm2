@@ -22,6 +22,7 @@ FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
 FROM SYSTEM IMPORT PRIORITY ;
+FROM libc IMPORT printf ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
                       SetOfFd, FdIsSet ;
@@ -97,10 +98,14 @@ VAR
    v: Vector ;
 BEGIN
    v := Exists ;
-   WHILE (v#NIL) AND (v^.type#t) AND (v^.File#fd) DO
+   WHILE v#NIL DO
+      IF (v^.type=t) AND (v^.File=fd)
+      THEN
+         RETURN( v )
+      END ;
       v := v^.exists
    END ;
-   RETURN( v )
+   RETURN( NIL )
 END FindVector ;
 
 
@@ -112,7 +117,9 @@ END FindVector ;
 PROCEDURE InitInputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
+   r: INTEGER ;
 BEGIN
+   (* r := printf("InitInputVector fd = %d priority = %d\n", fd, pri); *)
    v := FindVector(fd, input) ;
    IF v=NIL
    THEN
@@ -327,9 +334,10 @@ BEGIN
          Pending[v^.priority] := v
       END 
    ELSE
-      (* r := printf('odd vector %d (fd %d) is already attached to the pending queue\n',
+(*
+      r := printf('odd vector %d (fd %d) is already attached to the pending queue\n',
                   vec, v^.File) ;
-      *)
+*)
       stop
    END
 END IncludeVector ;

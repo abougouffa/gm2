@@ -1,3 +1,13 @@
+2005-06-01	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/Make-file.in altered grep -e to aid portability under
+	  Solaris (as reported by john o goyo <jgoyo@ca.inter.net>).
+	* gm2/examples/server added example of a threaded server
+	  which uses the executive, transfer and iotransfer.
+	* gm2/examples/executive/Executive added KillProcess.
+	* gm2/gm2-libs-coroutines/SysVec.mod fixed vector selection
+	  bug.
+
 2005-05-27	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gccgm2.c fixed to detect array indices which exceed

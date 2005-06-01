@@ -22,14 +22,13 @@ DEFINITION MODULE Executive ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Thu Aug 18 10:34:58 1994
-    Last edit  : Thu Aug 18 10:34:58 1994
     Description: provides a simple multitasking executive.
 *)
 
 EXPORT QUALIFIED SEMAPHORE, DESCRIPTOR,
-                 InitProcess, Resume, Suspend, InitSemaphore, Wait, Signal,
-                 WaitForIO, Ps, GetCurrentProcess, RotateRunQueue,
-                 ProcessName, DebugProcess ;
+                 InitProcess, KillProcess, Resume, Suspend, InitSemaphore,
+                 Wait, Signal, WaitForIO, Ps, GetCurrentProcess,
+                 RotateRunQueue, ProcessName, DebugProcess ;
 
 TYPE
    SEMAPHORE ;         (* defines dijkstra's semaphores *)
@@ -46,6 +45,17 @@ TYPE
 
 PROCEDURE InitProcess (p: PROC; StackSize: CARDINAL;
                        Name: ARRAY OF CHAR) : DESCRIPTOR ;
+
+
+(*
+   KillProcess - kills the current process. Notice that if InitProcess
+                 is called again, it might reuse the DESCRIPTOR of the
+                 killed process. It is the responsibility of the caller
+                 to ensure all other processes understand this process
+                 is different.
+*)
+
+PROCEDURE KillProcess ;
 
 
 (*

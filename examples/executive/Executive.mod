@@ -22,7 +22,7 @@ FROM SYSTEM IMPORT ADDRESS, PROCESS, LISTEN, ADR,
                    NEWPROCESS, TRANSFER, IOTRANSFER, ListenLoop,
                    PRIORITY, TurnInterrupts ;
 
-FROM SysStorage IMPORT ALLOCATE ;
+FROM SysStorage IMPORT ALLOCATE, DEALLOCATE ;
 FROM StrLib IMPORT StrCopy ;
 FROM StrLib IMPORT StrLen ;
 FROM NumberIO IMPORT CardToStr ;
@@ -83,6 +83,8 @@ VAR
                                               (* List of runnable processes    *)
    CurrentProcess: DESCRIPTOR ;
    AllSemaphores : SEMAPHORE ;                (* List of all semaphores        *)
+   GarbageItem   : DESCRIPTOR ;               (* Descriptor destined to free   *)
+
 
 (*
    Assert - 
@@ -134,6 +136,27 @@ BEGIN
    ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
    RETURN( d )                   (* and return a descriptor to the caller   *)
 END InitProcess ;
+
+
+(*
+   KillProcess - kills the current process. Notice that if InitProcess
+                 is called again, it might reuse the DESCRIPTOR of the
+                 killed process. It is the responsibility of the caller
+                 to ensure all other processes understand this process
+                 is different.
+*)
+
+PROCEDURE KillProcess ;
+VAR
+   ToOldState: PRIORITY ;
+BEGIN
+   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;    (* disable interrupts *)
+   SubFromReady(CurrentProcess) ;
+   SubFromExists(ExistsQueue, CurrentProcess) ;
+   GarbageItem := CurrentProcess ;
+   Reschedule ;
+   ToOldState := TurnInterrupts(ToOldState)         (* restore interrupts *)
+END KillProcess ;
 
 
 (*
@@ -585,12 +608,12 @@ BEGIN
       DebugString(' to ') ; DebugString(CurrentProcess^.RunName) ;
 *)
 
-      TRANSFER(From^.Volatiles, Highest^.Volatiles)
+      TRANSFER(From^.Volatiles, Highest^.Volatiles) ;
 (*
       ; DebugString(' (') ; DebugString(CurrentProcess^.RunName) ;
       DebugString(')\n') ;
 *)
-
+      CheckGarbageCollect
    END
 END ScheduleProcess ;
 
@@ -617,6 +640,25 @@ END NextReady ;
 
 
 (*
+   CheckGarbageCollect - checks to see whether GarbageItem is set
+                         and if so it deallocates storage associated
+                         with this descriptor.
+*)
+
+PROCEDURE CheckGarbageCollect ;
+BEGIN
+   IF GarbageItem#NIL
+   THEN
+      WITH GarbageItem^ DO
+         DEALLOCATE(Start, Size)
+      END ;
+      DISPOSE(GarbageItem) ;
+      GarbageItem := NIL
+   END
+END CheckGarbageCollect ;
+
+
+(*
    AddToExists - adds item, Item, to the exists queue.
 *)
 
@@ -634,6 +676,26 @@ BEGIN
       ExistsQueue^.ExistsQ.Left := Item
    END
 END AddToExists ;
+
+
+(*
+   SubFromExists - removes a process, Item, from the exists queue, Head.
+*)
+
+PROCEDURE SubFromExists (VAR Head: DESCRIPTOR; Item: DESCRIPTOR) ;
+BEGIN
+   IF (Item^.ExistsQ.Right=Head) AND (Item=Head)
+   THEN
+      Head := NIL
+   ELSE
+      IF Head=Item
+      THEN
+         Head := Head^.ExistsQ.Right
+      END ;
+      Item^.ExistsQ.Left^.ExistsQ.Right := Item^.ExistsQ.Right ;
+      Item^.ExistsQ.Right^.ExistsQ.Left := Item^.ExistsQ.Left
+   END
+END SubFromExists ;
 
 
 (*
@@ -882,6 +944,7 @@ BEGIN
    RunQueue[hi] := NIL ;
    RunQueue[idle] := NIL ;
    AllSemaphores := NIL ;
+   GarbageItem := NIL ;
    InitInitProcess ;
    InitIdleProcess
 END Init ;
