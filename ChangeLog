@@ -1,3 +1,9 @@
+2005-06-02	Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gccgm2.c fixed BuildArrayIndexType so that gm2 can build
+	  arrays which have huge indices. This removes a failure from
+	  the regression tests on systems which have a 32 bit long.
+
 2005-06-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/Make-file.in altered grep -e to aid portability under

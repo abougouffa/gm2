@@ -8591,13 +8591,27 @@ gccgm2_BuildArrayIndexType (low, high)
 {
   tree sizelow = convert (sizetype, default_conversion(low));
   tree sizehigh = convert (sizetype, default_conversion(high));
-  
+
+  if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh)) {
+    sizelow = convert (m2_z_type_node, default_conversion(low));
+    sizehigh = convert (m2_z_type_node, default_conversion(high));
+
+    if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh))
+      error("array bounds are too large or too small");
+
+    return build_range_type (m2_z_type_node, sizelow, sizehigh);
+  }
+  else
+    return build_index_2_type (default_conversion(low), default_conversion(high));
+
+#if 0  
   if (gccgm2_TreeOverflow (sizelow))
     error("lower bound of the array declaration is either too large or too small");
   if (gccgm2_TreeOverflow (sizehigh))
     error("higher bound of the array declaration is either too large or too small");
-  
+
   return build_index_2_type (default_conversion(low), default_conversion(high));
+#endif
 }
 
 /*
