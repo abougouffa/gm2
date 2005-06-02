@@ -15,15 +15,10 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 
-MODULE arrayhuge ;
+MODULE arrayhuge2 ;
 
 VAR
    a: ARRAY [MAX(CARDINAL)-4..MAX(CARDINAL)] OF CHAR ;
-   i: CARDINAL ;
 BEGIN
-   a[MAX(CARDINAL)-1] := 'd' ;
-   a[MAX(CARDINAL)-4] := 'a' ;
-   FOR i := MAX(CARDINAL)-4 TO MAX(CARDINAL) DO
-      a[i] := 'z'
-   END
-END arrayhuge.
+   a[MAX(CARDINAL)-1] := 'a'
+END arrayhuge2.
