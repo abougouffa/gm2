@@ -808,13 +808,46 @@ SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 SilentConstSetOrQualidentOrFunction := Qualident [ SilentSimpleSet | SilentActualParameters ] |
                                        SilentSimpleSet =:
 
+SilentSetOrDesignatorOrFunction := ( Qualident
+                                   [ SilentSimpleSet |
+                                     SilentSimpleDes [ SilentActualParameters ]
+                                   ] | SilentSimpleSet )
+                                 =:
+
+SilentSimpleDes := { SilentSubDesignator } =:
+
 SilentSimpleSet := "{"  [ SilentElement { "," SilentElement } ] "}" =:
 
 SilentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
 
 SilentActualParameters := "(" [ SilentExpList ] ")" =:
 
-SilentExpList := SilentConstExpression { "," SilentConstExpression } =:
+SilentSubDesignator := "." Ident | "[" SilentExpList "]" | "^"
+                     =:
+
+SilentExpList := SilentExpression { "," SilentExpression } =:
+
+SilentDesignator := Qualident { SilentSubDesignator } =:
+
+SilentExpression :=
+                    SilentSimpleExpression
+                                           [ SilentRelation
+                                                            SilentSimpleExpression ]
+           =:
+
+SilentSimpleExpression := SilentUnaryOrTerm { SilentAddOperator SilentTerm } =:
+
+SilentUnaryOrTerm := "+"
+                        SilentTerm
+                                   | "-"
+                                         SilentTerm
+                                                    | SilentTerm =:
+
+SilentTerm := SilentFactor { SilentMulOperator SilentFactor
+                                                            } =:
+
+SilentFactor := Number | string | SilentSetOrDesignatorOrFunction |
+                "(" SilentExpression ")" | "NOT" SilentFactor | ConstAttribute =:
 
 -- end of the Silent constant rules
 
@@ -913,8 +946,8 @@ Statement :=
              ]
           =:
 
-AssignmentOrProcedureCall := Designator ( ":=" Expression |
-                                           ActualParameters |                     % (* in epsilon *) %
+AssignmentOrProcedureCall := Designator ( ":=" SilentExpression |
+                                           SilentActualParameters |         % (* in epsilon *) %
                                         ) =:
 
 -- these two break LL1 as both start with a Designator
@@ -929,7 +962,7 @@ StatementSequence :=
 
 IfStatement :=
                "IF"
-                    Expression "THEN"
+                    SilentExpression "THEN"
                 StatementSequence
               { "ELSIF"
                         Expression "THEN"
@@ -940,7 +973,7 @@ IfStatement :=
             =:
 
 CaseStatement := "CASE"
-                        Expression
+                        SilentExpression
                                    "OF" Case { "|" Case }
                  [ "ELSE"
                           StatementSequence ] "END"
@@ -948,40 +981,33 @@ CaseStatement := "CASE"
 
 Case := [ SilentCaseLabelList ":" StatementSequence ] =:
 
---
---  we might consider removing CaseLabelList and its decendants as this pass uses SilentCaseLabelList
---
-
-CaseLabelList := CaseLabels { ","
-                                  CaseLabels } =:
-
-CaseLabels := ConstExpression ( ".." ConstExpression
-                                |                                          % (* epsilon *) %
-                              ) =:
-
 WhileStatement := "WHILE"
-                  Expression "DO"
-                                  StatementSequence "END"
+                          SilentExpression
+                                           "DO"
+                                                StatementSequence
+                                                                  "END"
                 =:
 
 RepeatStatement := "REPEAT"
-                            StatementSequence "UNTIL"
-                    Expression
+                            StatementSequence
+                                              "UNTIL"
+                                                      SilentExpression
                  =:
 
 ForStatement := "FOR"
-                      Ident ":=" Expression "TO" Expression
+                      Ident ":=" SilentExpression "TO" SilentExpression
                 ( "BY" SilentConstExpression |                             % (* epsilon *) %
                 ) "DO"
                 StatementSequence "END"
               =:
 
 LoopStatement := "LOOP"
-                        StatementSequence "END"
+                       StatementSequence
+                                         "END"
                =:
 
 WithStatement := "WITH"
-                        Designator "DO"
+                        SilentDesignator "DO"
                         StatementSequence
                  "END" 
                =:

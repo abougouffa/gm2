@@ -2,6 +2,8 @@
 
 	* reverted some of the changes made to the ulm libraries
 	  in the light of fixing arrays with huge indices.
+	* mofified gm2/bnf/m2-h.bnf so that expressions within
+	  statement sequences are ignored.
 
 2005-06-02	Gaius Mulley <gaius@glam.ac.uk>
 
