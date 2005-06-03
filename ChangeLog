@@ -1,3 +1,8 @@
+2005-06-03	Gaius Mulley <gaius@glam.ac.uk>
+
+	* reverted some of the changes made to the ulm libraries
+	  in the light of fixing arrays with huge indices.
+
 2005-06-02	Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gccgm2.c fixed BuildArrayIndexType so that gm2 can build

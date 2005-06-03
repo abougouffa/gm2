@@ -17,9 +17,17 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StrSpec.mod,v 1.5 2005/05/27 15:23:59 gaius Exp $
+   $Id: StrSpec.mod,v 1.6 2005/06/03 08:41:24 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StrSpec.mod,v $
+   Revision 1.6  2005/06/03 08:41:24  gaius
+   * reverted some of the changes made to the ulm libraries
+     in the light of fixing arrays with huge indices.
+
+   * gm2/gccgm2.c fixed BuildArrayIndexType so that gm2 can build
+     arrays which have huge indices. This removes a failure from
+     the regression tests on systems which have a 32 bit long.
+
    Revision 1.5  2005/05/27 15:23:59  gaius
    modified MaxCard to MaxIndice and set its value to MAX(INTEGER)
 
@@ -66,7 +74,7 @@ IMPLEMENTATION MODULE StrSpec;		(* gsk 1/85 *)
 
 
    CONST
-      MaxIndice = MAX(INTEGER) ;  (* Was MaxCard = 37777777777B; *)
+      MaxIndice = MAX(CARDINAL) ;  (* Was MaxCard = 37777777777B; *)
 
 
 
