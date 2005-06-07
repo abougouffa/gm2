@@ -24,6 +24,7 @@ FROM Debug IMPORT Halt, DebugString ;
 FROM KeyBoardLEDs IMPORT SwitchScroll ;
 FROM NumberIO IMPORT CardToStr ;
 FROM SysVec IMPORT ReArmTimeVector, GetTimeVector, InitTimeVector ;
+FROM libc IMPORT printf ;
 FROM Executive IMPORT DESCRIPTOR, Suspend, Resume, GetCurrentProcess,
                       WaitForIO, InitProcess, RotateRunQueue,
                       ProcessName ;
@@ -302,6 +303,7 @@ VAR
    ToOldState  : PRIORITY ;
    ScrollLED   : BOOLEAN ;
    TimerIntNo  : CARDINAL ;
+   r           : INTEGER ;
 BEGIN
    ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
    ScrollLED := FALSE ;
@@ -321,7 +323,7 @@ BEGIN
       IF (TotalTicks MOD TicksPerSecond) = 0                                (* remove for student *)
       THEN                                                                  (* remove for student *)
          ScrollLED := NOT ScrollLED ;                                       (* remove for student *)
-         (* DebugString('scroll..\n') ; *)
+         r := printf("<scroll %d>", TotalTicks);
          SwitchScroll(ScrollLED)                             (* (iv)  *)    (* remove for student *)
       END ;                                                                 (* remove for student *)
       IF (TotalTicks MOD MaxQuantum) = 0                                    (* remove for student *)

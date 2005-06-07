@@ -257,10 +257,6 @@ BEGIN
          THEN
             Ps ;
             Halt(__FILE__, __LINE__, __FUNCTION__, 'we are already on sem')
-         ELSIF Who#NIL
-         THEN
-            Ps ;
-            Halt(__FILE__, __LINE__, __FUNCTION__, 'already process on sem')
          END ;
          AddToSemaphore(Who, CurrentProcess) ;        (* add to semaphore q *) (* remove for student *)
          CurrentProcess^.Status := WaitOnSem ;        (* set new status     *) (* remove for student *)
