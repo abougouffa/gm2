@@ -27,11 +27,14 @@ DEFINITION MODULE FOR "C" sckt ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT UNQUALIFIED tcpState, tcpServerEstablish, tcpServerAccept,
-                   tcpPortNo, tcpSocketFd ;
+EXPORT UNQUALIFIED tcpServerState, tcpServerEstablish, tcpServerAccept,
+                   tcpServerPortNo, tcpServerSocketFd,
+                   tcpClientSocket, tcpClientConnect,
+                   tcpClientPortNo, tcpClientSocketFd,
 
 TYPE
-   tcpState = ADDRESS ;
+   tcpServerState = ADDRESS ;
+   tcpClientState = ADDRESS ;
 
 
 (*
@@ -40,7 +43,7 @@ TYPE
                         tcp connections.
 *)
 
-PROCEDURE tcpServerEstablish () : tcpState ;
+PROCEDURE tcpServerEstablish () : tcpServerState ;
 
 
 (*
@@ -48,21 +51,51 @@ PROCEDURE tcpServerEstablish () : tcpState ;
                      been accepted.
 *)
 
-PROCEDURE tcpServerAccept (s: tcpState) : INTEGER ;
+PROCEDURE tcpServerAccept (s: tcpServerState) : INTEGER ;
 
 
 (*
-   tcpPortNo - returns the portNo from structure, s.
+   tcpServerPortNo - returns the portNo from structure, s.
 *)
 
-PROCEDURE tcpPortNo (s: tcpState) : CARDINAL ;
+PROCEDURE tcpServerPortNo (s: tcpServerState) : CARDINAL ;
 
 
 (*
    tcpSocketFd - returns the sockFd from structure, s.
 *)
 
-PROCEDURE tcpSocketFd (s: tcpState) : INTEGER ;
+PROCEDURE tcpServerSocketFd (s: tcpServerState) : INTEGER ;
+
+
+(*
+   tcpClientSocket - returns a file descriptor (socket) which has
+                     connected to, serverName:portNo.
+*)
+
+PROCEDURE tcpClientSocket (serverName: ADDRESS; portNo: CARDINAL) : tcpClientState ;
+
+
+(*
+   tcpClientConnect - returns the file descriptor associated with, s,
+                      once a connect has been performed.
+*)
+
+PROCEDURE tcpClientConnect (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientPortNo - returns the portNo from structure, s.
+*)
+
+PROCEDURE tcpClientPortNo (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientSocketFd - returns the sockFd from structure, s.
+*)
+
+PROCEDURE tcpClientSocketFd (s: tcpClientState) : INTEGER ;
 
 
 END sckt.

@@ -12,7 +12,7 @@
 
 #define PORTSTART     7000
 #define NOOFTRIES      100
-#define MAXHOSTNAME    256 
+#define MAXHOSTNAME    256
 
 #if !defined(TRUE)
 #  define TRUE  (1==1)
@@ -35,24 +35,25 @@ typedef struct {
   struct sockaddr_in  sa, isa;
   int                 sockFd;
   int                 portNo;
-} tcpState;
+} tcpServerState;
 
 
 /*
- *  tcpServerEstablish - returns a tcpState containing the relevant
+ *  tcpServerEstablish - returns a tcpServerState containing the relevant
  *                       information about a socket declared to recieve
  *                       tcp connections.
  */
 
-tcpState *tcpServerEstablish (void)
+tcpServerState *tcpServerEstablish (void)
 {
-  tcpState *s = (tcpState *)malloc(sizeof(tcpState));
+  tcpServerState *s = (tcpServerState *)malloc(sizeof(tcpServerState));
   int b, p, n;
+
+  if (s == NULL)
+    ERROR("no more memory");
 
   /* remove SIGPIPE which is raised on the server if the client is killed */
   signal(SIGPIPE, SIG_IGN);
-  if (s == NULL)
-    ERROR("no more memory");
   
   if (gethostname(s->hostname, MAXHOSTNAME) < 0)
     ERROR("cannot find our hostname");
@@ -96,7 +97,7 @@ tcpState *tcpServerEstablish (void)
  *                    been accepted.
  */
 
-int tcpServerAccept (tcpState *s)
+int tcpServerAccept (tcpServerState *s)
 {
   int i = sizeof(s->isa);
   int t;
@@ -110,19 +111,101 @@ int tcpServerAccept (tcpState *s)
 }
 
 /*
- *  tcpPortNo - returns the portNo from structure, s.
+ *  tcpServerPortNo - returns the portNo from structure, s.
  */
 
-int tcpPortNo (tcpState *s)
+int tcpServerPortNo (tcpServerState *s)
 {
   return s->portNo;
 }
 
 /*
- *  tcpSocketFd - returns the sockFd from structure, s.
+ *  tcpServerSocketFd - returns the sockFd from structure, s.
  */
 
-int tcpSocketFd (tcpState *s)
+int tcpServerSocketFd (tcpServerState *s)
+{
+  return s->sockFd;
+}
+
+
+/*
+****************************************************************
+***             C L I E N T     R O U T I N E S
+****************************************************************
+ */
+
+typedef struct {
+  char                hostname[MAXHOSTNAME];
+  struct hostent     *hp;
+  struct sockaddr_in  sa;
+  int                 sockFd;
+  int                 portNo;
+} tcpClientState;
+
+
+/*
+ *  tcpClientSocket - returns a file descriptor (socket) which has
+ *                    connected to, serverName:portNo.
+ */
+
+tcpClientState *tcpClientSocket (char *serverName, int portNo)
+{
+  tcpClientState *s = (tcpClientState *)malloc(sizeof(tcpClientState));
+
+  if (s == NULL)
+    ERROR("no more memory");
+
+  /* remove SIGPIPE which is raised on the server if the client is killed */
+  signal(SIGPIPE, SIG_IGN);
+
+  s->hp = gethostbyname(serverName);
+  if (s->hp == NULL) {
+    fprintf(stderr, "cannot find host: %s\n", serverName);
+    exit(1);
+  }
+
+  bzero((char *)&s->sa, sizeof(s->sa));
+  s->sa.sin_family = AF_INET;
+  bcopy((char *)s->hp->h_addr, (char *)&s->sa.sin_addr, s->hp->h_length);
+  s->portNo        = portNo;
+  s->sa.sin_port   = htons(portNo);
+
+  /*
+   * Open a TCP socket (an Internet stream socket)
+   */
+
+  s->sockFd = socket(hp->h_addrtype, SOCK_STREAM, 0);
+  return s;
+}
+
+/*
+ *  tcpClientConnect - returns the file descriptor associated with, s,
+ *                     once a connect has been performed.
+ */
+
+int tcpClientConnect (tcpClientState *s)
+{
+  if (connect(s->sockFd, (struct sockaddr *)&sa, sizeof(sa)) < 0)
+    ERROR("failed to connect to the TCP server");
+
+  return s->sockFd;
+}
+
+/*
+ *  tcpClientPortNo - returns the portNo from structure, s.
+ */
+
+int tcpClientPortNo (tcpClientState *s)
+{
+  return s->portNo;
+}
+
+/*
+ *  tcpClientSocketFd - returns the sockFd from structure, s.
+ */
+
+int tcpClientSocketFd (tcpClientState *s)
 {
   return s->sockFd;
 }

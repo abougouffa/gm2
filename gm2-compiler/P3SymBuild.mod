@@ -110,7 +110,8 @@ BEGIN
    PopT(NameStart) ;
    IF NameStart#NameEnd
    THEN
-      WriteFormat2('inconsistant definition module was named (%a) and concluded as (%a)', NameStart, NameEnd)
+      WriteFormat2('inconsistant definition module was named (%a) and concluded as (%a)',
+                   NameStart, NameEnd)
    END
 END P3EndBuildDefModule ;
 

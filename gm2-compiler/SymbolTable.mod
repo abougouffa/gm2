@@ -714,6 +714,7 @@ PROCEDURE UnImplementedSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -4549,7 +4550,8 @@ END RequestFromModule ;
 
 PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   Type, Sym  : CARDINAL ;
+   OldScopePtr: CARDINAL ;
 BEGIN
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
@@ -4564,7 +4566,24 @@ BEGIN
                           Sym := GetSymKey(ExportRequest, SymName) ;
                           IF Sym=NulSym
                           THEN
-                             Sym := FetchUnknownFromDefImp(ModSym, SymName) ;
+                             OldScopePtr := ScopePtr ;
+                             StartScope(ModSym) ;
+                             Sym := GetScopeSym(SymName) ;
+                             EndScope ;
+                             Assert(OldScopePtr=ScopePtr) ;
+                             IF Sym=NulSym
+                             THEN
+                                Sym := FetchUnknownFromDefImp(ModSym, SymName)
+                             ELSE
+                                IF IsFieldEnumeration(Sym)
+                                THEN
+                                   Type := GetType(Sym) ;
+                                   IF IsExported(ModSym, GetType(Sym))
+                                   THEN
+                                      RETURN( Sym )
+                                   END
+                                END
+                             END ;
                              PutSymKey(ExportRequest, SymName, Sym)
                           END
                        END
@@ -4650,7 +4669,7 @@ BEGIN
                     printf1('%a  ExportUndeclared', n) ;
                     ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  DeclaredObjects', n) ;
-                    ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
+                    ForeachNodeDo(NamedObjects, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ImportedObjects', n) ;
                     ForeachNodeDo(NamedImports, DisplayName) ; printf0('\n')
                  END |
@@ -4669,7 +4688,7 @@ BEGIN
                     printf1('%a  ExportUndeclared', n) ;
                     ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  DeclaredObjects', n) ;
-                    ForeachNodeDo(NamedObjects, DisplayName) ; printf0('\n') ;
+                    ForeachNodeDo(NamedObjects, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ImportedObjects', n) ;
                     ForeachNodeDo(NamedImports, DisplayName) ; printf0('\n')
                  END |
@@ -5276,6 +5295,47 @@ BEGIN
 END RemoveExportUnImplemented ;
 
 
+VAR
+   ExportRequestModule: CARDINAL ;
+
+
+(*
+   RemoveFromExportRequest - 
+*)
+
+PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[ExportRequestModule] DO
+      CASE SymbolType OF
+
+      DefImpSym: IF GetSymKey(DefImp.ExportRequest, GetSymName(Sym))=Sym
+                 THEN
+                    DelSymKey(DefImp.ExportRequest, GetSymName(Sym))
+                 END
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END RemoveFromExportRequest ;
+
+
+(*
+   RemoveEnumerationFromExportRequest - removes enumeration symbol, sym, 
+                                        (and its fields) from the ExportRequest tree.
+*)
+
+PROCEDURE RemoveEnumerationFromExportRequest (ModSym: CARDINAL; Sym: CARDINAL) ;
+BEGIN
+   IF IsEnumeration(Sym)
+   THEN
+      ExportRequestModule := ModSym ;
+      RemoveFromExportRequest(Sym) ;
+      ForeachLocalSymDo(Sym, RemoveFromExportRequest)
+   END
+END RemoveEnumerationFromExportRequest ;
+
+
 (*
    CheckForExportedImplementation - checks to see whether an implementation
                                     module is currently being compiled, if so,
@@ -5288,6 +5348,13 @@ END RemoveExportUnImplemented ;
                                     PROCEDURE is built since the implementation
                                     module can only implement these objects
                                     declared in the definition module.
+
+                                    It also checks whether a definition module
+                                    is currently being compiled and, if so,
+                                    it will ensure that symbol, Sym, is removed
+                                    from the ExportRequest list. If Sym is an
+                                    enumerated type it ensures that its fields
+                                    are also removed.
 *)
 
 PROCEDURE CheckForExportedImplementation (Sym: CARDINAL) ;
@@ -5295,6 +5362,10 @@ BEGIN
    IF CompilingImplementationModule()
    THEN
       RemoveExportUnImplemented(GetCurrentModule(), Sym)
+   END ;
+   IF CompilingDefinitionModule() AND IsEnumeration(Sym)
+   THEN
+      RemoveEnumerationFromExportRequest(GetCurrentModule(), Sym)
    END
 END CheckForExportedImplementation ;
 
