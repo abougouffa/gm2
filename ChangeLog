@@ -3,6 +3,7 @@
 	* fixed bug which occurred if an enumerated type field
 	  was imported by another module.
 	  (See testsuite/gm2/pim/pass/set10.mod)
+        * fixed circular dependancy bug in record generation.
 
 2005-06-03	Gaius Mulley <gaius@glam.ac.uk>
 

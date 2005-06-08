@@ -1985,7 +1985,6 @@ BEGIN
                WriteFormat1('found unexpected field varient name %a\n', n1) ;
                InternalError('should not get here', __FILE__, __LINE__)
             ELSE
-               Assert(AllDependantsWritten(GetType(Field))) ;
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;
             GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;

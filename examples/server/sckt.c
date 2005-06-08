@@ -39,12 +39,13 @@ typedef struct {
 
 
 /*
- *  tcpServerEstablish - returns a tcpServerState containing the relevant
- *                       information about a socket declared to recieve
- *                       tcp connections.
+ *  tcpServerEstablishPort - returns a tcpState containing the relevant
+ *                           information about a socket declared to recieve
+ *                           tcp connections. This method attempts to use
+ *                           the port specified by the parameter.
  */
 
-tcpServerState *tcpServerEstablish (void)
+tcpServerState *tcpServerEstablishPort (int portNo)
 {
   tcpServerState *s = (tcpServerState *)malloc(sizeof(tcpServerState));
   int b, p, n;
@@ -78,7 +79,7 @@ tcpServerState *tcpServerEstablish (void)
     ASSERT((s->hp->h_addrtype == AF_INET));
     s->sa.sin_family      = s->hp->h_addrtype;
     s->sa.sin_addr.s_addr = htonl(INADDR_ANY);
-    s->sa.sin_port        = htons(PORTSTART+p);
+    s->sa.sin_port        = htons(portNo+p);
     
     b = bind(s->sockFd, (struct sockaddr *)&s->sa, sizeof(s->sa));
   } while ((b < 0) && (n<NOOFTRIES));
@@ -86,10 +87,22 @@ tcpServerState *tcpServerEstablish (void)
   if (b < 0)
     ERROR("bind");
 
-  s->portNo = PORTSTART+p;
+  s->portNo = portNo+p;
   printf("The receiving host is: %s, the port is %d\n", s->hostname, s->portNo);
   listen(s->sockFd, 1);
   return s;
+}
+
+
+/*
+ *  tcpServerEstablish - returns a tcpServerState containing the relevant
+ *                       information about a socket declared to recieve
+ *                       tcp connections.
+ */
+
+tcpServerState *tcpServerEstablish (void)
+{
+  return tcpServerEstablishPort (PORTSTART);
 }
 
 /*
