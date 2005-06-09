@@ -9464,6 +9464,11 @@ BEGIN
    PopT(el2) ;
    PopT(el1) ;
    PopT(value) ;
+   IF NOT IsConstSet(value)
+   THEN
+      n := GetSymName(el1) ;
+      WriteFormat1('can only add bit ranges to a constant set, %a is not a constant set', n)
+   END ;
    IF IsConst(el1) AND IsConst(el2)
    THEN
       PushValue(value) ;  (* onto ALU stack *)
@@ -10489,6 +10494,7 @@ BEGIN
       LogicalOrOp,
       LogicalAndOp,
       LogicalXorOp,
+      LogicalDiffOp,
       CoerceOp,
       ConvertOp,
       AddOp,

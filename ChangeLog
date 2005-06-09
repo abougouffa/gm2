@@ -1,3 +1,10 @@
+2005-06-08	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug which occurred if a constant set was created
+	  in a procedure through the CONST construct.
+	* fixed a number of -Wextended-opaque issues in gm2/bnf/m2-h.bnf
+	* modified gm2/Make-lang.in to use -Wextended-opaque (for testing)
+
 2005-06-07	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug which occurred if an enumerated type field

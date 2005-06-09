@@ -2225,6 +2225,8 @@ BEGIN
                                             (* visable within this scope.    *)
             InitTree(NamedObjects) ;        (* Names of all items declared.  *)
             InitTree(NamedImports) ;        (* Names of items imported.      *)
+            InitTree(WhereImported) ;       (* Names of items imported.      *)
+                                            (* occurs. Error message use.    *)
             Priority := NulSym ;            (* Priority of the module. This  *)
                                             (* is an index to a constant.    *)
             InitTree(Unresolved) ;          (* All symbols currently         *)

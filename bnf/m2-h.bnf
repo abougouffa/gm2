@@ -666,11 +666,11 @@ ConstString :=
                 string
              =:
 
-ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
+ConstSetOrQualidentOrFunction := Qualident [ ConstSimpleSet
                                              | ActualParameters            % BuildConstFunctionCall %
                                                                 ]
                                  |                                         % BuildSetStart %
-                                   SimpleSet =:
+                                   ConstSimpleSet =:
 
 QualidentOrSet := SimpleSet
                   | Qualident [ SimpleSet ] =:
@@ -892,6 +892,7 @@ ExpList :=
              }
         =:
 
+
 Expression :=
               SimpleExpression [ SilentRelation SimpleExpression
                                ]
@@ -920,6 +921,12 @@ SimpleSet := "{"
                } ] "}"
           =:
 
+ConstSimpleSet := "{"                                                      % BuildEmptySet %
+                     [ Element
+                       { "," Element
+                                     } ] "}"                               % BuildSetEnd %
+          =:
+
 SetOrDesignatorOrFunction := ( Qualident
                               [ SimpleSet |
                                 SimpleDes [ ActualParameters
@@ -932,7 +939,7 @@ SetOrDesignatorOrFunction := ( Qualident
 SimpleDes := { SubDesignator } =:
 
 ActualParameters := "("
-                        ( ExpList |                                               % (* epsilon *) %
+                        ( ExpList |                                         % (* epsilon *) %
                         ) ")" =:
 
 Statement := 
@@ -1012,18 +1019,21 @@ WithStatement := "WITH"
                  "END" 
                =:
 
-ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock
-                        Ident
+ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock              % PushAutoOn %
+                        Ident )                                            % EndBuildProcedure %
+                                                                           % PopAuto %
                       =:
 
 DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" ]
                        =:
 
 ProcedureHeading := "PROCEDURE"
-                     DefineBuiltinProcedure
-                     ( Ident
+                     DefineBuiltinProcedure                                % PushAutoOn %
+                     ( Ident                                               % StartBuildProcedure %
+                                                                           % PushAutoOff %
                        [ FormalParameters ]
-                     )
+                                                                           % PopAuto %
+                     )                                                     % PopAuto %
                  =:
 
 Builtin := [ "__BUILTIN__" ] =:
