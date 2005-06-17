@@ -733,6 +733,24 @@ END MakeCoerce ;
 
 
 (*
+   MakeCast - cast takes into account the symbols mode, so we must flush
+              if a value mode is present in op1 or op3.
+*)
+
+PROCEDURE MakeCast (q: CARDINAL; Start, End: CARDINAL;
+                      op1, op2, op3: CARDINAL) ;
+VAR
+   l, k: CARDINAL ;
+BEGIN
+   (* safty first *)
+   EraseQuad(q) ;
+   PutQuad(q, CastOp, op1, op2, op3) ;
+   SaveQuad(q) ;
+   Flush(Start, PreviousQuad(q, Start))
+END MakeCast ;
+
+
+(*
    MakeNode - 
 *)
 
@@ -1402,6 +1420,7 @@ BEGIN
 
    CoerceOp          : MakeCoerce(q, Start, End, op1, op2, op3) |
    ConvertOp         : MakeConvert(q, Start, End, op1, op2, op3) |
+   CastOp            : MakeCast(q, Start, End, op1, op2, op3) |
    ParamOp           : MakeParam(q, Start, End, op1, op2, op3) |
    AddOp             : MakeAdd(q, Start, End, op1, op2, op3) |
    SubOp             : MakeSub(q, Start, End, op1, op2, op3) |
@@ -3028,8 +3047,9 @@ BEGIN
 
       ParamOp           : InternalError('unsure what to do here', __FILE__, __LINE__) |
 
+      CastOp,
       CoerceOp,
-      ConvertOp         : InternalError('CoerceOp and ConvertOp are should not be optimized', __FILE__, __LINE__) |
+      ConvertOp         : InternalError('CoerceOp, CastOp and ConvertOp should not be optimized', __FILE__, __LINE__) |
 
       OffsetOp,
       BaseOp,

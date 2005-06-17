@@ -30,9 +30,10 @@ FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED tcpServerState,
                    tcpServerEstablish, tcpServerEstablishPort,
                    tcpServerAccept,
-                   tcpServerPortNo, tcpServerSocketFd,
+                   tcpServerPortNo, tcpServerIP, tcpServerSocketFd,
+                   tcpClientState,
                    tcpClientSocket, tcpClientConnect,
-                   tcpClientPortNo, tcpClientSocketFd ;
+                   tcpClientPortNo, tcpClientIP, tcpClientSocketFd ;
 
 TYPE
    tcpServerState = ADDRESS ;
@@ -81,6 +82,13 @@ PROCEDURE tcpServerSocketFd (s: tcpServerState) : INTEGER ;
 
 
 (*
+   tcpServerIP - returns the IP address from structure, s.
+*)
+
+PROCEDURE tcpServerIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
    tcpClientSocket - returns a file descriptor (socket) which has
                      connected to, serverName:portNo.
 *)
@@ -108,6 +116,13 @@ PROCEDURE tcpClientPortNo (s: tcpClientState) : INTEGER ;
 *)
 
 PROCEDURE tcpClientSocketFd (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientIP - returns the IP address from structure, s.
+*)
+
+PROCEDURE tcpClientIP (s: tcpClientState) : CARDINAL ;
 
 
 END sckt.

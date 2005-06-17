@@ -212,6 +212,10 @@ BEGIN
    THEN
       PedanticParamNames := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wpedantic-cast')
+   THEN
+      PedanticCast := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wcheck-all')
    THEN
       BoundsChecking := TRUE ;
@@ -352,5 +356,6 @@ BEGIN
    UnboundedByReference         := FALSE ;
    VerboseUnbounded             := FALSE ;
    PedanticParamNames           := FALSE ;
+   PedanticCast                 := FALSE ;
    ScanForInitialOptions
 END M2Options.

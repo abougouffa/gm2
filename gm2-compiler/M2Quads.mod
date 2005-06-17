@@ -911,6 +911,7 @@ BEGIN
    LogicalXorOp,
    CoerceOp,
    ConvertOp,
+   CastOp,
    AddOp,
    SubOp,
    MultOp,
@@ -1024,6 +1025,7 @@ BEGIN
       LogicalXorOp,
       CoerceOp,
       ConvertOp,
+      CastOp,
       AddOp,
       SubOp,
       MultOp,
@@ -1204,6 +1206,7 @@ BEGIN
       LogicalXorOp,
       CoerceOp,
       ConvertOp,
+      CastOp,
       AddOp,
       SubOp,
       MultOp,
@@ -6998,6 +7001,7 @@ END BuildValFunction ;
 PROCEDURE BuildCastFunction ;
 VAR
    n        : Name ;
+   ReturnVar,
    NoOfParam,
    Var, Type: CARDINAL ;
 BEGIN
@@ -7010,17 +7014,29 @@ BEGIN
       THEN
          n := GetSymName(Type) ;
          WriteFormat1('undeclared type found in CAST (%a)', n)
-      ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR IsPointer(Type)) AND
-         (IsVar(Var) OR IsConst(Var))
+      ELSIF IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR
+            IsPointer(Type)
       THEN
-         PopN(NoOfParam+1) ;
-         (*
-            Build macro: Type( Var )
-         *)
-         PushTF(Type, NulSym) ;
-         PushT(Var) ;
-         PushT(1) ;          (* one parameter *)
-         BuildTypeCoercion
+         IF IsConst(Var)
+         THEN
+            PopN(NoOfParam+1) ;
+            (*
+               Build macro: Type( Var )
+            *)
+            PushTF(Type, NulSym) ;
+            PushT(Var) ;
+            PushT(1) ;          (* one parameter *)
+            BuildTypeCoercion
+         ELSIF IsVar(Var)
+         THEN
+            PopN(NoOfParam+1) ;
+            ReturnVar := MakeTemporary(RightValue) ;
+            PutVar(ReturnVar, Type) ;
+            GenQuad(CastOp, ReturnVar, Type, Var) ;
+            PushTF(ReturnVar, Type)
+         ELSE
+            WriteFormat0('second parameter to CAST must either be a variable or a constant, prototype of cast is CAST (Type, Variable or Constant)')
+         END
       ELSE
          WriteFormat0('arguments to CAST must be (Type, Variable or Constant)')
       END
@@ -7611,7 +7627,6 @@ END BuildAdrFunction ;
                        |----------------|         +------------+
                        | ProcSym | Type |         | ReturnVar  |
                        |----------------|         |------------|
-
 *)
 
 PROCEDURE BuildSizeFunction ;
@@ -10497,6 +10512,7 @@ BEGIN
       LogicalDiffOp,
       CoerceOp,
       ConvertOp,
+      CastOp,
       AddOp,
       SubOp,
       MultOp,
@@ -10586,6 +10602,7 @@ BEGIN
    UnboundedOp              : printf0('Unbounded        ') |
    CoerceOp                 : printf0('Coerce           ') |
    ConvertOp                : printf0('Convert          ') |
+   CastOp                   : printf0('Cast             ') |
    HighOp                   : printf0('High             ') |
    CodeOnOp                 : printf0('CodeOn           ') |
    CodeOffOp                : printf0('CodeOff          ') |

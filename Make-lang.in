@@ -439,7 +439,7 @@ GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -Wverbose-unbounded -Wpim \
- -Wpedantic-param-names -Wextended-opaque
+ -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
 
 # Language-specific object files for the gm2 compiler.
 

@@ -125,7 +125,7 @@ TYPE
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
                    InclOp, ExclOp, LogicalShiftOp, LogicalRotateOp,
                    UnboundedOp, HighOp,
-                   CoerceOp, ConvertOp,
+                   CoerceOp, ConvertOp, CastOp,
                    StartDefFileOp, StartModFileOp, EndFileOp,
                    CodeOnOp, CodeOffOp,
                    ProfileOnOp, ProfileOffOp,

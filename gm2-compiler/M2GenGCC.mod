@@ -71,7 +71,7 @@ FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
 
-FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference,
+FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim ;
 
 FROM M2Printf IMPORT printf0, printf2, printf4 ;
@@ -355,6 +355,8 @@ PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, 
 PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldCast (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeCast (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldConvert (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -499,6 +501,7 @@ BEGIN
    ElementSizeOp      : CodeElementSize(q, op1, op2, op3) |
    ConvertOp          : CodeConvert(q, op1, op2, op3) |
    CoerceOp           : CodeCoerce(q, op1, op2, op3) |
+   CastOp             : CodeCast(q, op1, op2, op3) |
    StandardFunctionOp : CodeStandardFunction(q, op1, op2, op3) |
 
    InlineOp           : CodeInline(q, op1, op2, op3) |
@@ -620,6 +623,7 @@ BEGIN
          ElementSizeOp      : FoldElementSize(tokenno, l, quad, op1, op2, op3) |
          ConvertOp          : FoldConvert(tokenno, l, quad, op1, op2, op3) |
          CoerceOp           : FoldCoerce(tokenno, l, quad, op1, op2, op3) |
+         CastOp             : FoldCast(tokenno, l, quad, op1, op2, op3) |
          InclOp             : FoldIncl(tokenno, l, quad, op1, op2, op3) |
          ExclOp             : FoldExcl(tokenno, l, quad, op1, op2, op3) |
          IfLessOp           : FoldIfLess(tokenno, l, quad, op1, op2, op3) |
@@ -3690,7 +3694,7 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    IF IsProcedure(op3)
    THEN
-      IF AreConstantsEqual(FindSize(op1), FindSize(Word))
+      IF AreConstantsEqual(FindSize(op1), FindSize(Address))
       THEN
          IF IsConst(op1)
          THEN
@@ -3699,7 +3703,7 @@ BEGIN
             t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
-         ErrorStringAt(InitString('procedure address can only be stored in a word size operand'),
+         ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
                        CurrentQuadToken)
       END
    ELSIF IsConst(op3) OR AreConstantsEqual(FindSize(op1), FindSize(op3))
@@ -3766,6 +3770,72 @@ BEGIN
       END
    END
 END FoldCoerce ;
+
+
+(*
+   CodeCast - Cast op3 to type op2 placing the result into op1.
+              Cast will NOT alter the machine representation
+              of op3 to comply with TYPE op2 as long as SIZE(op3)=SIZE(op2).
+              If the sizes differ then Convert is called.
+*)
+
+PROCEDURE CodeCast (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF IsProcedure(op3)
+   THEN
+      IF AreConstantsEqual(FindSize(op1), FindSize(Address))
+      THEN
+         IF IsConst(op1)
+         THEN
+            AddModGcc(op1, CheckConstant(op1, op3))
+         ELSE
+            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
+         END
+      ELSE
+         ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
+                       CurrentQuadToken)
+      END
+   ELSIF IsConst(op3) OR AreConstantsEqual(FindSize(op1), FindSize(op3))
+   THEN
+      CodeCoerce(quad, op1, op2, op3)
+   ELSE
+      IF PedanticCast
+      THEN
+         WarnStringAt(InitString('CAST is converting a variable to a different sized type'),
+                      QuadToTokenNo(quad))
+      END ;
+      CodeConvert(quad, op1, op2, op3)
+   END
+END CodeCast ;
+
+
+(*
+   FoldCoerce -
+*)
+
+PROCEDURE FoldCast (tokenno: CARDINAL; l: List;
+                    quad, op1, op2, op3: CARDINAL) ;
+BEGIN
+   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
+   THEN
+      IF IsProcedure(op3)
+      THEN
+         IF AreConstantsEqual(FindSize(op1), FindSize(Address))
+         THEN
+            FoldCoerce(tokenno, l, quad, op1, op2, op3)
+         ELSE
+            ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'), QuadToTokenNo(quad))
+         END
+      ELSIF IsConst(op3)
+      THEN
+         FoldCoerce(tokenno, l, quad, op1, op2, op3)
+      END
+   END
+END FoldCast ;
 
 
 (*

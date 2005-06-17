@@ -1,3 +1,10 @@
+2005-06-17	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John O Goyo <jgoyo@ca.inter.net>
+	  CAST of different sized variables would fail.
+	* added new switch -Wpedantic-cast which warns if a cast
+	  is converting a variable of a different size to the type.
+
 2005-06-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug which occurred if a constant set was created

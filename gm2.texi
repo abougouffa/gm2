@@ -163,6 +163,13 @@ necessary in ISO or PIM versions of Modula-2, but it can be
 extremely useful, as long as code is intentionally
 written in this way.
 
+@item -Wpedentic-cast
+warns if the ISO system function is used and if the size of
+the variable is different from that of the type. This is legal
+in ISO Modula-2, however it can be dangereous. Some users may prefer
+to use @code{VAL} instead in these situations and use @code{CAST}
+exclusively for changes in type on objects which have the same size.
+
 @item -Wmakelist
 this option is only applicable when linking a program module.  The
 compiler will generate a @file{modulename.lst} file which contains a

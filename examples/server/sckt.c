@@ -143,6 +143,15 @@ int tcpServerSocketFd (tcpServerState *s)
 
 
 /*
+ *  tcpServerIP - returns the IP address from structure, s.
+ */
+
+int tcpServerIP (tcpServerState *s)
+{
+  return s->sa.sin_addr.s_addr;
+}
+
+/*
 ****************************************************************
 ***             C L I E N T     R O U T I N E S
 ****************************************************************
@@ -188,7 +197,7 @@ tcpClientState *tcpClientSocket (char *serverName, int portNo)
    * Open a TCP socket (an Internet stream socket)
    */
 
-  s->sockFd = socket(hp->h_addrtype, SOCK_STREAM, 0);
+  s->sockFd = socket(s->hp->h_addrtype, SOCK_STREAM, 0);
   return s;
 }
 
@@ -199,7 +208,7 @@ tcpClientState *tcpClientSocket (char *serverName, int portNo)
 
 int tcpClientConnect (tcpClientState *s)
 {
-  if (connect(s->sockFd, (struct sockaddr *)&sa, sizeof(sa)) < 0)
+  if (connect(s->sockFd, (struct sockaddr *)&s->sa, sizeof(s->sa)) < 0)
     ERROR("failed to connect to the TCP server");
 
   return s->sockFd;
@@ -221,4 +230,13 @@ int tcpClientPortNo (tcpClientState *s)
 int tcpClientSocketFd (tcpClientState *s)
 {
   return s->sockFd;
+}
+
+/*
+ *  tcpClientIP - returns the sockFd from structure, s.
+ */
+
+int tcpClientIP (tcpClientState *s)
+{
+  return s->sa.sin_addr.s_addr;
 }
