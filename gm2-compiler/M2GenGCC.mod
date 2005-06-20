@@ -3403,7 +3403,6 @@ VAR
    i       : CARDINAL ;
    High,
    Low     : CARDINAL ;
-   Type,
    Subscript,
    Subrange: CARDINAL ;
 BEGIN

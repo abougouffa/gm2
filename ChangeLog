@@ -1,3 +1,8 @@
+2005-06-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added code to treat LOC as a system type in parameter
+	  passing.
+
 2005-06-17	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John O Goyo <jgoyo@ca.inter.net>

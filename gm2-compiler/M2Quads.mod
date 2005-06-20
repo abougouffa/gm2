@@ -119,7 +119,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
                      IsPseudoSystemFunctionConstExpression,
                      Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
-                     MakeAdr, Address, Byte, Word ;
+                     MakeAdr, Address, Byte, Word, Loc ;
 
 FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
@@ -3823,7 +3823,7 @@ END IsReallyPointer ;
 
                     We obey the following rules:
 
-                    (1)  we allow WORD and BYTE to be compitable with any like sized
+                    (1)  we allow WORD, BYTE, LOC to be compitable with any like sized
                          type.
                     (2)  we allow ADDRESS to be compatible with any pointer type.
                     (3)  we relax INTEGER and CARDINAL checking for Temporary variables.
@@ -3921,8 +3921,9 @@ BEGIN
             CallType := GetType(CallType)
          END ;
          ParamType := GetType(ParamType) ;
-         IF ((ParamType=Word)           OR  (ParamType=Byte))    OR
-            ((CallType=Word)            OR  (CallType=Byte))     OR
+         IF ((ParamType=Word) OR (CallType=Word)) OR
+            ((ParamType=Byte) OR (CallType=Byte)) OR
+            ((ParamType=Loc)  OR (CallType=Loc))  OR
             IsAssignmentCompatible(ParamType, CallType) OR IsTemporary(Call)
          THEN
             (* it is legal *)
@@ -4609,7 +4610,7 @@ BEGIN
          PushT(UnboundedSym) ;
          PushT(Sym) ;
          BuildAssignmentWithoutBounds ;
-      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte)
+      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
       THEN
          UnboundedVarLinkToArray(Sym, UnboundedSym, ParamType)
       ELSE
@@ -4656,7 +4657,7 @@ BEGIN
       IF IsUnbounded(Type)
       THEN
          UnboundedNonVarLinkToArray(Sym, UnboundedSym, ParamType)
-      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte)
+      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
       THEN
          UnboundedNonVarLinkToArray(Sym, UnboundedSym, ParamType)
       ELSE
@@ -4701,7 +4702,7 @@ BEGIN
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
-   IF (ParamType=Byte) OR (ParamType=Word)
+   IF (ParamType=Byte) OR (ParamType=Word) OR (ParamType=Loc)
    THEN
       ArrayType := GetType(ArraySym) ;
       IF IsUnbounded(ArrayType)
@@ -4780,7 +4781,7 @@ BEGIN
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
-   IF (ParamType=Byte) OR (ParamType=Word)
+   IF (ParamType=Byte) OR (ParamType=Word) OR (ParamType=Loc)
    THEN
       ArrayType := GetType(ArraySym) ;
       IF IsUnbounded(ArrayType)
