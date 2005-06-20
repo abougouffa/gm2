@@ -30,7 +30,7 @@ BEGIN
    w := 1234H ;
    b := BYTE(010H) ;
    b := VAL(BYTE, 0FFH) ;
-   l := 7FH ;
+   l := LOC(7FH) ;
    ch := 'z' ;
    bi := BITSET{1, 3, 5, 6, 31}
 END testiso2.
