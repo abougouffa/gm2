@@ -1322,11 +1322,11 @@ BEGIN
    P
    W
    *)
-   A(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F') ;
+   A(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T') ;
    A(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  F  W  W  T  T  F') ;
    A(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
-   A(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2  F') ;
-   A(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   A(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2  2') ;
+   A(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  2') ;
    A(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F  F') ;
    A(shortint , '.  .  .  .  .  .  T  1  1  2  1  F  F  F  F  F  F  F  F') ;
    A(longint  , '.  .  .  .  .  .  .  T  2  2  2  F  F  F  F  F  F  F  F') ;
