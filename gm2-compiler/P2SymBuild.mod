@@ -70,7 +70,7 @@ FROM SymbolTable IMPORT NulSym,
       	          	MakeSet, PutSet,
                         MakeRecord, PutFieldRecord,
                         MakeVarient, MakeFieldVarient,
-                        MakeArray, PutFieldArray,
+                        MakeArray, PutArraySubscript,
                         MakeSubscript, PutSubscript,
                         PutConstString, GetString,
                         PutArray, IsArray,
@@ -2133,11 +2133,39 @@ BEGIN
       *)
       PutSubscript(Subscript, Type)
    END ;
-   PutFieldArray(Array, Subscript) ;
+   PutArraySubscript(Array, Subscript) ;
    PushT(Array)
 (* ; WriteString('Field Placed in Array') ; WriteLn *)
 END BuildFieldArray ;
 
+
+(*
+   BuildArrayComma - converts ARRAY [..], [..] OF into ARRAY [..] OF ARRAY [..]
+
+
+              Ptr ->                                           <- Ptr
+                     +-------------+           +-------------+
+                     | ArraySym1   |           | ArraySym2   |
+                     |-------------|           |-------------|
+                     | ArrayName   |           | ArrayName   |
+                     |-------------|           |-------------|
+*)
+
+PROCEDURE BuildArrayComma ;
+VAR
+   Nothing,
+   ArraySym1,
+   ArraySym2: CARDINAL ;
+BEGIN
+   PushT(NulName) ;
+   StartBuildArray ;
+   PopT(ArraySym2) ;
+   PopT(Nothing) ;
+   PushT(ArraySym2) ;
+   EndBuildArray ;
+   PopT(ArraySym1) ;
+   PushT(ArraySym2)
+END BuildArrayComma ;
 
 
 (*

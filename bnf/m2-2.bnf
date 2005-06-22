@@ -100,7 +100,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildNulName,
                        StartBuildArray,
                        EndBuildArray,
-                       BuildFieldArray,
+                       BuildFieldArray, BuildArrayComma,
                        BuildSubrange,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
@@ -683,13 +683,18 @@ PrefixedSubrangeType := "[" ConstExpression  ".." ConstExpression "]"      % VAR
                                                                              BuildSubrange(t) %
               =:
 
-ArrayType := "ARRAY"                                                       % StartBuildArray ;
+ArrayType := "ARRAY"                                                       % VAR a: CARDINAL ; %
+                                                                           % StartBuildArray ;
+                                                                             PopT(a) ; PushT(a) ;
                                                                              BuildNulName ; %
               SimpleType                                                   % BuildFieldArray ; %
-              { ","                                                        % BuildNulName ; %
+              { ","                                                        % BuildArrayComma ;
+                                                                             BuildNulName ; %
                 SimpleType                                                 % BuildFieldArray ; %
               } "OF"                                                       % BuildNulName ; %
-             Type                                                          % EndBuildArray ; %
+             Type                                                          % EndBuildArray ;
+                                                                             PopNothing ;
+                                                                             PushT(a) %
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord ; %

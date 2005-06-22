@@ -891,17 +891,26 @@ SubDesignator := "."                                                       % VAR
                                                                              EndScope ;
                                                                              PushT(1) ;
                                                                              BuildDesignatorRecord %
-                 | "[" ExpList                                             % BuildDesignatorArray %
+                 | "[" ArrayExpList
                    "]"
                  | "^"                                                     % BuildDesignatorPointer %
             =:
+
+ArrayExpList :=
+           Expression                                                      % BuildBooleanVariable %
+                                                                           % BuildDesignatorArray %
+             { ","
+               Expression                                                  % BuildBooleanVariable %
+                                                                           % BuildDesignatorArray %
+             }
+        =:
 
 ExpList :=                                                                 % VAR n: CARDINAL ; %
            Expression                                                      % BuildBooleanVariable %
                                                                            % n := 1 %
              { ","
-               Expression                                                  % BuildBooleanVariable ;
-                                                                             INC(n) %
+               Expression                                                  % BuildBooleanVariable %
+                                                                           % INC(n) %
              }
                                                                            % PushT(n) %
         =:

@@ -34,6 +34,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         GetModule, GetMainModule,
                         GetCurrentModule, GetFileModule, GetLocalSym,
                         GetStringLength, GetString,
+                        GetArraySubscript,
                         GetParam,
                         GetNth, GetNthParam,
                         GetFirstUsed, GetDeclared,
@@ -6041,17 +6042,12 @@ BEGIN
       BuildHighFromString
    ELSIF IsArray(Type) OR IsUnbounded(Type)
    THEN
-      IF NoOfElements(Type)=1
+      IF IsArray(Type)
       THEN
-         IF IsArray(Type)
-         THEN
-            BuildHighFromArray
-         ELSIF IsUnbounded(Type)
-         THEN
-            BuildHighFromUnbounded
-         END
-      ELSE
-         WriteFormat0('not allowed multidemension array parameter for HIGH')
+         BuildHighFromArray
+      ELSIF IsUnbounded(Type)
+      THEN
+         BuildHighFromUnbounded
       END
    ELSE
       WriteFormat0('base procedure HIGH expects a variable of type array as its parameter')
@@ -8473,16 +8469,10 @@ END BuildDesignatorRecord ;
 
 (*
    BuildDesignatorArray - Builds the array referencing.
-                          The compile time stack is unchanged within
-                          this procedure.
                           The purpose of this procedure is to work out
                           whether the DesignatorArray is a static or
-                          dynamic array.
-                          ie. in this compiler terms IsArray or IsUnbounded
-                              In which case the appropriate routine is
-                              called.
-                              However these called routines DO alter
-                              the compile time stack.
+                          dynamic array and to call the appropriate
+                          BuildRoutine.
 
                           The Stack is expected to contain:
 
@@ -8492,15 +8482,7 @@ END BuildDesignatorRecord ;
 
                   Ptr ->
                           +--------------+
-                          | n            |
-                          |--------------|
-                          | e1           |
-                          |--------------|
-                          .              .
-                          .              .
-                          .              .
-                          |--------------|
-                          | e2           |                       <- Ptr
+                          | e            |                        <- Ptr
                           |--------------|        +------------+
                           | Sym  | Type  |        | S    | T   |
                           |--------------|        |------------|
@@ -8512,13 +8494,12 @@ VAR
    Sym, n,
    Type  : CARDINAL ;
 BEGIN
-   PopT(n) ;
-   IF (NOT IsVar(OperandT(n+1))) AND (NOT IsTemporary(OperandT(n+1)))
+   IF (NOT IsVar(OperandT(2))) AND (NOT IsTemporary(OperandT(2)))
    THEN
       ErrorStringAt2(Mark(InitString('can only access arrays using variables or formal parameters')),
-                     GetDeclared(OperandT(n+1)), GetTokenNo())
+                     GetDeclared(OperandT(2)), GetTokenNo())
    END ;
-   Sym := GetType(OperandT(n+1)) ;
+   Sym := GetType(OperandT(2)) ;
    IF Sym=NulSym
    THEN
       IF GetSymName(Sym)=NulName
@@ -8531,15 +8512,9 @@ BEGIN
                        GetTokenNo())
       END
    END ;
-   PushT(n) ;       (* Restore stack to origional state *)
    IF IsUnbounded(Sym)
    THEN
-      IF n=1
-      THEN
-         BuildDynamicArray
-      ELSE
-         WriteFormat0('dynamic array only allowed one indice')
-      END
+      BuildDynamicArray
    ELSIF IsArray(Sym)
    THEN
       BuildStaticArray
@@ -8559,15 +8534,7 @@ END BuildDesignatorArray ;
 
               Ptr ->
                       +--------------+
-                      | n            |
-                      |--------------|
-                      | e1           |
-                      |--------------|
-                      .              .
-                      .              .
-                      .              .
-                      |--------------|
-                      | e2           |                       <- Ptr
+                      | e            |                       <- Ptr
                       |--------------|        +------------+
                       | Sym  | Type  |        | S    | T   |
                       |--------------|        |------------|
@@ -8575,24 +8542,17 @@ END BuildDesignatorArray ;
 
 PROCEDURE BuildStaticArray ;
 VAR
-   s        : StackOfWord ;
    Sym,
-   pi, i, n,
-   OpI,
+   Op1,
    Type, Adr,
    Base,
    Offset,
    ti, tj,
    tk, ta   : CARDINAL ;
 BEGIN
-   PopT(n) ;
-   Sym  := OperandT(n+1) ;
-   Type := OperandF(n+1) ;
-   IF NoOfElements(Type)#n
-   THEN
-      ErrorStringAt2(Mark(InitString('incorrect number of array indices: check [][] with [i, j]')),
-                     GetDeclared(Type), GetTokenNo())
-   END ;
+   Op1  := OperandT(1) ;
+   Sym  := OperandT(2) ;
+   Type := OperandF(2) ;
    Offset := MakeTemporary(ImmediateValue) ;
    GenQuad(BaseOp, Offset, Type, Sym) ;
    (* Base has address type since it points to the start of the array in memory *)
@@ -8606,217 +8566,34 @@ BEGIN
 
    (* now calculate the indices by converting through INTEGER *)
 
-   s := InitStackWord() ;
-   i := 1 ;
-   pi := n ;
-   WHILE i<=n DO
-      ti := MakeTemporary(ImmediateValue) ;
-      PutVar(ti, Integer) ;
-      GenQuad(ElementSizeOp, ti, Type, i) ;
-      OpI := OperandT(pi) ;
+   ti := MakeTemporary(ImmediateValue) ;
+   PutVar(ti, Integer) ;
+   GenQuad(ElementSizeOp, ti, Type, 1) ;
 
-      (* tj has Cardinal type since we have multiplied array indices *)
-      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
-      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
+   (* tj has Cardinal type since we have multiplied array indices *)
+   (* The problem is that OperandT(1) might be a CHAR (or any     *)
+   (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
 
-      IF GetType(OpI)#Integer
-      THEN
-         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
-         PushT(Integer) ;
-         PushT(OpI) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction ;
-         PopT(OpI)
-      END ;
-      tj := MakeTemporary(RightValue) ;
-      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      tk := MakeTemporary(RightValue) ;
-      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      CheckSubrange(GetNth(Type, i), OpI) ;
-
-      PushT(tj) ;
-      PushT(OpI) ;
-      BuildAssignmentWithoutBounds ;
-
-      GenQuad(MultOp, tk, ti, tj) ;
-      PushWord(s, tk) ;
-      INC(i) ;
-      DEC(pi)
-   END ;
-   GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
-   i := 2 ;
-   WHILE i<=n DO
-      GenQuad(AddOp, ta, ta, PopWord(s)) ;
-      INC(i)
-   END ;
-   s := KillStackWord(s) ;
-
-   (* and finally add, ta, to Base *)
-   Adr := MakeTemporary(LeftValue) ;
-   (*
-      Ok must reference by address
-      - but we contain the type of the referenced entity
-   *)
-   PutVarTypeAndSize(Adr, GetType(Type), Address) ;
-
-   GenQuad(AddOp, Adr, Base, ta) ;
-   PopN(n+1) ;   (* remove all parameters to this procedure *)
-   PushTF(Adr, GetType(Type))
-END BuildStaticArray ;
-
-
-(*
-PROCEDURE BuildStaticArray ;
-VAR
-   s        : StackOfWord ;
-   Goto,
-   Patch,
-   low,
-   Subrange,
-   Sym,
-   pi, i, n,
-   OpI,
-   Type, Adr,
-   Base,
-   Offset,
-   ti, tj,
-   tk, ta   : CARDINAL ;
-BEGIN
-   PopT(n) ;
-   Sym  := OperandT(n+1) ;
-   Type := OperandF(n+1) ;
-   IF NoOfElements(Type)#n
+   IF GetType(Op1)#Integer
    THEN
-      ErrorStringAt2(Mark(InitString('incorrect number of array indices: check [][] with [i, j]')),
-                     GetDeclared(Type), GetTokenNo())
+      PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
+      PushT(Integer) ;
+      PushT(Op1) ;
+      PushT(2) ;          (* Two parameters *)
+      BuildConvertFunction ;
+      PopT(Op1)
    END ;
-   Offset := MakeTemporary(ImmediateValue) ;
-   GenQuad(BaseOp, Offset, Type, Sym) ;
-   (* Base has address type since it points to the start of the array in memory *)
-   Base := MakeTemporary(RightValue) ;
-   PutVar(Base, Address) ;
-   Adr := MakeLeftValue(Sym, RightValue, Address) ;
-   GenQuad(AddOp, Base, Adr, Offset) ;
-   (* ta should have type address as it points into memory *)
-   ta := MakeTemporary(RightValue) ;
-   PutVar(ta, Address) ;
+   tj := MakeTemporary(RightValue) ;
+   PutVar(tj, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
+   tk := MakeTemporary(RightValue) ;
+   PutVar(tk, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
+   CheckSubrange(GetArraySubscript(Type), Op1) ;
 
-   (* test for any negative subscript, in which case convert via INTEGER *)
+   PushT(tj) ;
+   PushT(Op1) ;
+   BuildAssignmentWithoutBounds ;
 
-   i := 1 ;
-   Patch := 0 ;
-   WHILE i<=n DO
-      Subrange := GetType(SkipType(GetNth(Type, i))) ;
-      IF Subrange#NulSym
-      THEN
-         low := MakeTemporary(ImmediateValue) ;
-         PutVar(low, Subrange) ;
-         GenQuad(SubrangeLowOp, low, NulSym, Subrange) ;
-         GenQuad(IfLessOp, low, MakeConstLit(MakeKey('0')), Patch) ;
-         Patch := NextQuad-1
-      END ;
-      INC(i)
-   END ;
-
-   (* now calculate indices by converting through CARDINAL *)
-
-   s := InitStackWord() ;
-   i := 1 ;
-   pi := n ;
-   WHILE i<=n DO
-      ti := MakeTemporary(ImmediateValue) ;
-      PutVar(ti, Integer) ;
-      GenQuad(ElementSizeOp, ti, Type, i) ;
-      OpI := OperandT(pi) ;
-
-      (* tj has Cardinal type since we have multiplied array indices *)
-      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
-      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
-
-      IF GetType(OpI)#Cardinal
-      THEN
-         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
-         PushT(Cardinal) ;
-         PushT(OpI) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction ;
-         PopT(OpI)
-      END ;
-      tj := MakeTemporary(RightValue) ;
-      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      tk := MakeTemporary(RightValue) ;
-      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      CheckSubrange(GetNth(Type, i), OpI) ;
-
-      PushT(tj) ;
-      PushT(OpI) ;
-      BuildAssignmentWithoutBounds ;
-
-      GenQuad(MultOp, tk, ti, tj) ;
-      PushWord(s, tk) ;
-      INC(i) ;
-      DEC(pi)
-   END ;
-   GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
-   i := 2 ;
-   WHILE i<=n DO
-      GenQuad(AddOp, ta, ta, PopWord(s)) ;
-      INC(i)
-   END ;
-   s := KillStackWord(s) ;
-
-   GenQuad(GotoOp, NulSym, NulSym, 0) ;
-   Goto := NextQuad-1 ;
-   BackPatch(Patch, NextQuad) ;
-
-   (* now calculate the indices by converting through INTEGER *)
-
-   s := InitStackWord() ;
-   i := 1 ;
-   pi := n ;
-   WHILE i<=n DO
-      ti := MakeTemporary(ImmediateValue) ;
-      PutVar(ti, Integer) ;
-      GenQuad(ElementSizeOp, ti, Type, i) ;
-      OpI := OperandT(pi) ;
-
-      (* tj has Cardinal type since we have multiplied array indices *)
-      (* The problem is that OperandT(pi) might be a CHAR (or any    *)
-      (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
-
-      IF GetType(OpI)#Integer
-      THEN
-         PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
-         PushT(Integer) ;
-         PushT(OpI) ;
-         PushT(2) ;          (* Two parameters *)
-         BuildConvertFunction ;
-         PopT(OpI)
-      END ;
-      tj := MakeTemporary(RightValue) ;
-      PutVar(tj, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      tk := MakeTemporary(RightValue) ;
-      PutVar(tk, MixTypes(GetType(ti), GetType(OpI), GetTokenNo())) ;
-      CheckSubrange(GetNth(Type, i), OpI) ;
-
-      PushT(tj) ;
-      PushT(OpI) ;
-      BuildAssignmentWithoutBounds ;
-
-      GenQuad(MultOp, tk, ti, tj) ;
-      PushWord(s, tk) ;
-      INC(i) ;
-      DEC(pi)
-   END ;
-   GenQuad(AddOp, ta, MakeConstLit(MakeKey('0')), PopWord(s)) ;
-   i := 2 ;
-   WHILE i<=n DO
-      GenQuad(AddOp, ta, ta, PopWord(s)) ;
-      INC(i)
-   END ;
-   s := KillStackWord(s) ;
-
-   BackPatch(Goto, NextQuad) ;
+   GenQuad(MultOp, tk, ti, tj) ;
 
    (* and finally add, ta, to Base *)
    Adr := MakeTemporary(LeftValue) ;
@@ -8826,11 +8603,10 @@ BEGIN
    *)
    PutVarTypeAndSize(Adr, GetType(Type), Address) ;
 
-   GenQuad(AddOp, Adr, Base, ta) ;
-   PopN(n+1) ;   (* remove all parameters to this procedure *)
+   GenQuad(AddOp, Adr, Base, tk) ;
+   PopN(2) ;   (* remove all parameters to this procedure *)
    PushTF(Adr, GetType(Type))
 END BuildStaticArray ;
-*)
 
 
 (*
@@ -8860,21 +8636,15 @@ END BuildStaticArray ;
 PROCEDURE BuildDynamicArray ;
 VAR
    Sym,
-   n, idx,
+   idx,
    Type, Adr,
    PtrToBase,
    Base,
    ti, tj, tk    : CARDINAL ;
 BEGIN
    DumpStack ;
-   PopT(n) ;
-   Sym  := OperandT(n+1) ;
-   Type := OperandF(n+1) ;
-   IF NoOfElements(Type)#n
-   THEN
-      ErrorStringAt2(Mark(InitString('incorrect number of array indices: unbounded arrays have 1 indice')),
-                     GetDeclared(Type), GetTokenNo())
-   END ;
+   Sym  := OperandT(2) ;
+   Type := OperandF(2) ;
    (*
       Base has type address because
       BuildDesignatorRecord references by address.
@@ -8905,11 +8675,6 @@ BEGIN
    ELSE
       Assert(GetMode(PtrToBase)#ImmediateValue) ;
       Base := PtrToBase
-   END ;
-   IF n#1
-   THEN
-      (* Only one dimemsion for dynamic arrays *)
-      WriteFormat0('dynamic arrays can only have one dimension')
    END ;
    (* ti has no type since constant *)
    ti := MakeTemporary(ImmediateValue) ;
@@ -8951,7 +8716,7 @@ BEGIN
    PutVarTypeAndSize(Adr, GetType(Type), Address) ;
 
    GenQuad(AddOp, Adr, Base, tk) ;
-   PopN(n+1) ;
+   PopN(2) ;
    PushTFA(Adr, GetType(Type), Sym) ;
    DumpStack ;
 END BuildDynamicArray ;

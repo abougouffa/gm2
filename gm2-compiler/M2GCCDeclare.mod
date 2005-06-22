@@ -40,7 +40,7 @@ FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
-FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat3 ;
+FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat2, WriteFormat3 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
@@ -54,7 +54,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetScope,
                         GetNth, GetType, SkipType,
                         MakeType, PutType, MakeConstLit,
-      	       	     	GetSubrange, PutSubrange,
+      	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopSize,
                         IsTemporary, IsUnbounded, IsEnumeration, IsVar,
@@ -2052,7 +2052,6 @@ END DeclareUnbounded ;
 PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ;
 VAR
    n1, n2   : Name ;
-   i        : CARDINAL ;
    Subscript,
    Subrange : CARDINAL ;
    High, Low: CARDINAL ;
@@ -2063,29 +2062,25 @@ BEGIN
    Assert(IsArray(Sym)) ;
 
    GccArray := ForceDeclareType(GetType(Sym)) ;
-   i := 1 ;
-   REPEAT
-      Subscript := GetNth(Sym, i) ;
-      IF Subscript#NulSym
+   Subscript := GetArraySubscript(Sym) ;
+   IF Subscript#NulSym
+   THEN
+      Assert(IsSubscript(Subscript)) ;
+      AddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
+      PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
+      PopSize(Subscript) ;
+      Subrange := SkipType(GetType(Subscript)) ;
+      IF NOT IsSubrange(Subrange)
       THEN
-         Assert(IsSubscript(Subscript)) ;
-         AddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
-         PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
-         PopSize(Subscript) ;
-         Subrange := SkipType(GetType(Subscript)) ;
-         IF NOT IsSubrange(Subrange)
-         THEN
-            n1 := GetSymName(Sym) ;
-            n2 := GetSymName(Subrange) ;
-            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', n1, i, n2)
-         END ;
-         Assert(IsSubrange(Subrange)) ;
-         GetSubrange(Subrange, High, Low) ;
-         GccIndex := BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) ;
-         GccArray := BuildArrayType(GccArray, GccIndex)
+         n1 := GetSymName(Sym) ;
+         n2 := GetSymName(Subrange) ;
+         WriteFormat2('error with array (%a) no subrange for this subscript, instead the type given was %a', n1, n2)
       END ;
-      INC(i)
-   UNTIL Subscript=NulSym ;
+      Assert(IsSubrange(Subrange)) ;
+      GetSubrange(Subrange, High, Low) ;
+      GccIndex := BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) ;
+      GccArray := BuildArrayType(GccArray, GccIndex)
+   END ;
    RETURN( GccArray )
 END DeclareArray ;
 
@@ -2719,7 +2714,6 @@ PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 VAR
    n1, n2   : Name ;
    solved   : BOOLEAN ;
-   i        : CARDINAL ;
    Subscript,
    Subrange : CARDINAL ;
    High, Low: CARDINAL ;
@@ -2742,29 +2736,25 @@ BEGIN
       solved := FALSE
    END ;
 
-   i := 1 ;
-   REPEAT
-      Subscript := GetNth(Sym, i) ;
-      IF Subscript#NulSym
+   Subscript := GetArraySubscript(Sym) ;
+   IF Subscript#NulSym
+   THEN
+      Assert(IsSubscript(Subscript)) ;
+      Subrange := SkipType(GetType(Subscript)) ;
+      IF NOT IsSubrange(Subrange)
       THEN
-         Assert(IsSubscript(Subscript)) ;
-         Subrange := SkipType(GetType(Subscript)) ;
-         IF NOT IsSubrange(Subrange)
-         THEN
-            n1 := GetSymName(Sym) ;
-            n2 := GetSymName(Subrange) ;
-            WriteFormat3('error with array (%a) subscript (%d) no subrange for this subscript, instead the type given was %a', n1, i, n2)
-         END ;
-         Assert(IsSubrange(Subrange)) ;
-         GetSubrange(Subrange, High, Low) ;
-
-         IF NOT IsSubrangeDependantsWritten(Subrange)
-         THEN
-            RETURN( FALSE )
-         END
+         n1 := GetSymName(Sym) ;
+         n2 := GetSymName(Subrange) ;
+         WriteFormat2('error with array (%a) no subrange for this subscript, instead the type given was %a', n1, n2)
       END ;
-      INC(i)
-   UNTIL Subscript=NulSym ;
+      Assert(IsSubrange(Subrange)) ;
+      GetSubrange(Subrange, High, Low) ;
+
+      IF NOT IsSubrangeDependantsWritten(Subrange)
+      THEN
+         RETURN( FALSE )
+      END
+   END ;
    RETURN( solved )
 END IsArrayDependantsWritten ;
 

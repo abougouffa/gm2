@@ -1,3 +1,13 @@
+2005-06-22	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John O Goyo <jgoyo@ca.inter.net>
+	  multiple indexed arrays were internally defined incorrectly
+	  and did not allow users to mix array indices by a[x,y,z] and
+	  a[x][y,z] etc as per PIM and ISO specification.
+	  see testsuite/gm2/pim/pass/index.mod and
+              testsuite/gm2/pim/pass/index2.mod and
+              testsuite/gm2/pim/run/pass/index3.mod
+
 2005-06-20	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added code to treat LOC as a system type in parameter

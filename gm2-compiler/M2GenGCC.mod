@@ -56,7 +56,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo,
                         GetType, GetNth, GetNthParam, SkipType,
-                        GetSubrange, NoOfElements,
+                        GetSubrange, NoOfElements, GetArraySubscript,
                         GetFirstUsed, GetDeclared,
                         GetRegInterface,
                         GetProcedureQuads,
@@ -3250,12 +3250,8 @@ BEGIN
    IF Type=Char
    THEN
       RETURN( BuildSize(Mod2Gcc(Type), FALSE) )
-   ELSIF NoOfElements(Type)#1
-   THEN
-      ErrorStringAt(InitString('HIGH operator only allowed on one dimensional arrays'),
-                    QuadToTokenNo(quad))
    END ;
-   Subscript := GetNth(Type, 1) ;
+   Subscript := GetArraySubscript(Type) ;
    Subrange := SkipType(GetType(Subscript)) ;
    GetSubrange(Subrange, High, Low) ;
    IF GccKnowsAbout(High)
@@ -3372,15 +3368,14 @@ VAR
 BEGIN
    IF GccKnowsAbout(array)
    THEN
-      i := 1 ;
-      subscript := GetNth(array, i) ;
-      WHILE subscript#NulSym DO
+      subscript := GetArraySubscript(array) ;
+      IF subscript#NulSym
+      THEN
          subrange := SkipType(GetType(subscript)) ;
          GetSubrange(subrange, high, low) ;
          IF GccKnowsAbout(low) AND GccKnowsAbout(high)
          THEN
-            INC(i) ;
-            subscript := GetNth(array, i)
+            RETURN( TRUE )
          ELSE
             RETURN( FALSE )
          END
@@ -3400,22 +3395,19 @@ PROCEDURE CalculateBase (array: CARDINAL) : Tree ;
 VAR
    offset  : Tree ;
    size    : Tree ;
-   i       : CARDINAL ;
    High,
    Low     : CARDINAL ;
    Subscript,
    Subrange: CARDINAL ;
 BEGIN
-   i := 1 ;
    offset    := GetPointerZero() ;
-   Subscript := GetNth(array, i) ;
-   WHILE Subscript#NulSym DO
-      size     := BuildSize(Mod2Gcc(Subscript), FALSE) ;  (* Size for element i *)
+   Subscript := GetArraySubscript(array) ;
+   IF Subscript#NulSym
+   THEN
+      size     := BuildSize(Mod2Gcc(Subscript), FALSE) ;  (* Size for element *)
       Subrange := SkipType(GetType(Subscript)) ;
       GetSubrange(Subrange, High, Low) ;
-      offset   := BuildSub(offset, BuildMult(size, Mod2Gcc(Low), FALSE), FALSE) ;
-      INC(i) ;
-      Subscript := GetNth(array, i)
+      offset   := BuildSub(offset, BuildMult(size, Mod2Gcc(Low), FALSE), FALSE)
    END ;
    RETURN( offset )
 END CalculateBase ;
@@ -3492,19 +3484,16 @@ VAR
 BEGIN
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
-      IF NoOfElements(type)>=op3
+      Subscript := GetArraySubscript(type) ;
+      IF IsSizeSolved(Subscript)
       THEN
-         Subscript := GetNth(type, op3) ;
-         IF IsSizeSolved(Subscript)
-         THEN
-            PutConst(op1, Integer) ;
-            PushSize(Subscript) ;
-            AddModGcc(op1,
-                      DeclareKnownConstant(GetIntegerType(),
-                                           PopIntegerTree())) ;
-            RemoveItemFromList(l, op1) ;
-            SubQuad(quad)
-         END
+         PutConst(op1, Integer) ;
+         PushSize(Subscript) ;
+         AddModGcc(op1,
+                   DeclareKnownConstant(GetIntegerType(),
+                                        PopIntegerTree())) ;
+         RemoveItemFromList(l, op1) ;
+         SubQuad(quad)
       END
    END
 END FoldElementSizeForArray ;
@@ -3529,8 +3518,6 @@ BEGIN
          InternalError('cannot assign a value twice to a constant', __FILE__, __LINE__)
       ELSE
          Assert(IsUnbounded(ArrayType)) ;
-         Assert(op3=1) ;
-         Assert(NoOfElements(ArrayType)=op3) ;
          Type := GetType(ArrayType) ;
          IF GccKnowsAbout(Type)
          THEN

@@ -172,8 +172,8 @@ TYPE
    SymArray = RECORD
                  name        : Name ;         (* Index into name array, name *)
                                               (* of array.                   *)
-                 ListOfSubs  : List ;         (* Contains a list of all      *)
-                                              (* subscripts for this array.  *)
+                 Subscript   : CARDINAL ;     (* the subscript for this      *)
+                                              (* array.                      *)
                  Size        : PtrToValue ;   (* Size at runtime of symbol.  *)
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
@@ -3124,8 +3124,7 @@ BEGIN
          SymbolType := ArraySym ;
          WITH Array DO
             name := ArrayName ;
-            InitList(ListOfSubs) ;  (* Contains a list of the array        *)
-                                    (* subscripts.                         *)
+            Subscript := NulSym ;   (* Contains the array subscripts.      *)
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
@@ -3397,7 +3396,6 @@ BEGIN
       RecordSym       : i := GetItemFromList(Record.ListOfSons, n) |
       VarientSym      : i := GetItemFromList(Varient.ListOfSons, n) |
       VarientFieldSym : i := GetItemFromList(VarientField.ListOfSons, n) |
-      ArraySym        : i := GetItemFromList(Array.ListOfSubs, n) |
       ProcedureSym    : i := GetItemFromList(Procedure.ListOfVars, n) |
       DefImpSym       : i := GetItemFromList(DefImp.ListOfVars, n) |
       ModuleSym       : i := GetItemFromList(Module.ListOfVars, n)
@@ -6537,7 +6535,7 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym      : n := 0 |
-      ArraySym      : n := NoOfItemsInList(Array.ListOfSubs) |
+      ArraySym      ,
       UnboundedSym  : n := 1 |   (* Standard language limitation *)
       EnumerationSym: n := Symbols[Sym].Enumeration.NoOfElements |
       InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
@@ -6551,23 +6549,42 @@ END NoOfElements ;
 
 
 (*
-   PutFieldArray - places an index field into the array Sym. The
-                   index field is a subrange sym.
+   PutArraySubscript - places an index field into the array Sym. The
+                       index field is a subscript sym.
 *)
 
-PROCEDURE PutFieldArray (Sym: CARDINAL; SubrangeSymbol: CARDINAL) ;
+PROCEDURE PutArraySubscript (Sym: CARDINAL; SubscriptSymbol: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ErrorSym: |
-      ArraySym: PutItemIntoList(Array.ListOfSubs, SubrangeSymbol)
+      ArraySym: Array.Subscript := SubscriptSymbol
 
       ELSE
          InternalError('expecting an Array symbol', __FILE__, __LINE__)
       END
    END
-END PutFieldArray ;
+END PutArraySubscript ;
+
+
+(*
+   GetArraySubscript - returns the subscript symbol for array, Sym.
+*)
+
+PROCEDURE GetArraySubscript (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ErrorSym: RETURN( NulSym ) |
+      ArraySym: RETURN( Array.Subscript )
+
+      ELSE
+         InternalError('expecting an Array symbol', __FILE__, __LINE__)
+      END
+   END
+END GetArraySubscript ;
 
 
 (*

@@ -44,16 +44,13 @@ FROM SymbolTable IMPORT GetSymName,
                         PutProcedureScopeQuad,
                         IsProcedure,
                         GetDeclared, GetFirstUsed,
-                        GetNth, NoOfElements, GetType,
+                        GetType,
                         IsExportQualified, IsExportUnQualified,
                         NulSym ;
 
 FROM M2Quads IMPORT QuadOperator, Head, GetQuad, GetNextQuad, PutQuad, SubQuad,
                     Opposite, IsReferenced, GetRealQuad, QuadToTokenNo ;
 
-
-CONST
-   MaxString = 255 ;
 
 
 (* %%%FORWARD%%%

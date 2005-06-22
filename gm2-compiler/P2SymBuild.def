@@ -67,7 +67,7 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  EndBuildVarientFieldRecord,
                  BuildNulName,
                  BuildTypeEnd,
-                 StartBuildArray,
+                 StartBuildArray, BuildArrayComma,
                  EndBuildArray,
                  BuildFieldArray,
                  BuildProcedureType,
@@ -988,6 +988,21 @@ PROCEDURE EndBuildArray ;
 *)
 
 PROCEDURE BuildFieldArray ;
+
+
+(*
+   BuildArrayComma - converts ARRAY [..], [..] OF into ARRAY [..] OF ARRAY [..]
+
+
+              Ptr ->                                           <- Ptr
+                     +-------------+           +-------------+
+                     | ArraySym1   |           | ArraySym2   |
+                     |-------------|           |-------------|
+                     | ArrayName   |           | ArrayName   |
+                     |-------------|           |-------------|
+*)
+
+PROCEDURE BuildArrayComma ;
 
 
 (*

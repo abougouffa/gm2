@@ -118,7 +118,7 @@ EXPORT QUALIFIED NulSym,
                  PutFieldEnumeration,
                  PutSubrange,
       	       	 PutSet,
-                 PutFieldArray,
+                 PutArraySubscript, GetArraySubscript,
                  PutArray,
                  PutType,
                  PutFunction,
@@ -978,11 +978,18 @@ PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL) ;
 
 
 (*
-   PutFieldArray - places an index field into the array Sym. The
-                   index field is a subrange sym.
+   GetArraySubscript - returns the subrange symbol for array, Sym.
 *)
 
-PROCEDURE PutFieldArray (Sym: CARDINAL; SubrangeSymbol: CARDINAL) ;
+PROCEDURE GetArraySubscript (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutArraySubscript - places an index field into the array Sym. The
+                       index field is a subscript sym.
+*)
+
+PROCEDURE PutArraySubscript (Sym: CARDINAL; SubscriptSymbol: CARDINAL) ;
 
 
 (*
