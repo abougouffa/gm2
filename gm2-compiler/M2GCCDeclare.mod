@@ -41,7 +41,7 @@ FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCha
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat2, WriteFormat3 ;
-FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
                   PutItemIntoList, GetItemFromList,
@@ -1082,7 +1082,7 @@ BEGIN
       DeclareProcedure(scope) ;
       DeclareTypesInProcedure(scope) ;
       DeclareTypesAndConstants(scope) ;
-      ForeachInnerModuleDo(scope, DeclareTypeInfo) ;
+      ForeachInnerModuleDo(scope, DeclareTypesInModule) ;
       ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
       AssertAllTypesDeclared(scope) ;
       DeclareLocalVariables(scope) ;
@@ -1109,6 +1109,10 @@ BEGIN
       ForeachImportedDo(scope, DeclareImportedVariables) ;
       (* now it is safe to declare all procedures *)
       ForeachProcedureDo(scope, DeclareProcedure) ;
+      (* --testing-- *)
+      ForeachInnerModuleDo(scope, DeclareTypesInModule) ;
+      ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
+      (* --end of test-- *)
       ForeachInnerModuleDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    END
@@ -1582,8 +1586,8 @@ END IncludeGetVarient ;
 
 PROCEDURE PrintVerboseFromList (l: List; i: CARDINAL) ;
 VAR
-   sym: CARDINAL ;
-   n  : Name ;
+   sym  : CARDINAL ;
+   n, n2: Name ;
 BEGIN
    sym := GetItemFromList(l, i) ;
    n := GetSymName(sym) ;
@@ -1671,7 +1675,8 @@ BEGIN
       printf2('sym %d IsProcType (%a)', sym, n)
    ELSIF IsVar(sym)
    THEN
-      printf2('sym %d IsVar (%a)', sym, n) ;
+      n2 := GetSymName(GetScope(sym)) ;
+      printf3('sym %d IsVar (%a) declared in scope %a', sym, n, n2) ;
       IncludeType(l, sym)
    ELSIF IsConst(sym)
    THEN

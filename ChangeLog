@@ -1,3 +1,17 @@
+2005-07-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed a number of bugs relating to gm2 failuring to compile
+	  gm2/ulm-lib-gm2/std/TimeIO.mod. Nested modules within
+	  procedures exporting variables.
+	* alterations include correct type declaration ahead of
+	  variable creation.
+	* creating all variables in the outer most procedure scope
+	  if these variables are exported from inner modules.
+	* also fixed gm2/gccgm2.c so that pointer to sets are cast
+	  into a generic ptr
+	* also fixed offset into sets (which had assumed sets started
+	  with an element value zero).
+
 2005-06-22	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John O Goyo <jgoyo@ca.inter.net>

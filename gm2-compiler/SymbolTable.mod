@@ -60,9 +60,9 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 
 CONST
-   MaxScopes     =    50 ;  (* Maximum number of scopes at any one time.     *)
+   MaxScopes     =     50 ; (* Maximum number of scopes at any one time.     *)
    MaxSymbols    = 100000 ; (* Maximum number of symbols.                    *)
-   DebugUnknowns = FALSE ;
+   DebugUnknowns =  FALSE ;
 
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
@@ -655,6 +655,7 @@ VAR
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
 PROCEDURE ResolveImport (o: WORD) ; FORWARD ;
+PROCEDURE GetExportUndeclared (ModSym: CARDINAL; name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE CheckForSymbols (Tree: SymbolTree; a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE PushConstString (Sym: CARDINAL) ; FORWARD ;
@@ -662,8 +663,9 @@ PROCEDURE AddParameter (Sym: CARDINAL; ParSym: CARDINAL) ; FORWARD ;
 PROCEDURE AddProcedureToList (Mod, Proc: CARDINAL) ; FORWARD ;
 PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AddSymToScope (Sym: CARDINAL; name: Name) ; FORWARD ;
-PROCEDURE AddSymToUnknownTree (name: Name; Sym: CARDINAL) ; FORWARD ;
+PROCEDURE AddSymToUnknownTree (ScopeId: INTEGER; name: Name; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE AddVarToList (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE AddVarToScopeList (scope, sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckEnumerationInList (l: List; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForEnumerationInOuterModule (Sym: CARDINAL;
                                             OuterModule: CARDINAL) ; FORWARD ;
@@ -1020,32 +1022,58 @@ END FromModuleGetSym ;
 
 
 (*
+   AddSymToUnknown - 
+*)
+
+PROCEDURE AddSymToUnknown (scope: CARDINAL; name: Name; Sym: CARDINAL) ;
+VAR
+   n: Name ;
+BEGIN
+   IF DebugUnknowns
+   THEN
+      n := GetSymName(scope) ;
+      printf3('adding unknown %a (%d) to scope %a\n', name, Sym, n)
+   END ;
+
+   (* Add symbol to unknown tree *)
+   WITH Symbols[scope] DO
+      CASE SymbolType OF
+
+      DefImpSym   : PutSymKey(DefImp.Unresolved, name, Sym) |
+      ModuleSym   : PutSymKey(Module.Unresolved, name, Sym) |
+      ProcedureSym: PutSymKey(Procedure.Unresolved, name, Sym)
+
+      ELSE
+         InternalError('expecting DefImp, Module or Procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END AddSymToUnknown ;
+
+
+(*
    AddSymToUnknownTree - adds a symbol with name, name, and Sym to the
                          unknown tree.
 *)
 
-PROCEDURE AddSymToUnknownTree (name: Name; Sym: CARDINAL) ;
+PROCEDURE AddSymToUnknownTree (ScopeId: INTEGER; name: Name; Sym: CARDINAL) ;
 VAR
-   n: Name ;
+   ScopeSym: CARDINAL ;
 BEGIN
-(*
-   IF DebugUnknowns
+   IF ScopeId>0
    THEN
-      n := GetSymName(CurrentModule) ;
-      printf3('adding unknown %a (%d) to module %a\n', name, Sym, n)
+      (* choose to place the unknown symbol in the first module scope scope
+         outside the current scope *)
+      REPEAT
+         ScopeSym := ScopeCallFrame[ScopeId].Main ;
+         IF (ScopeSym>0) AND (IsDefImp(ScopeSym) OR IsModule(ScopeSym))
+         THEN
+            AddSymToUnknown(ScopeSym, name, Sym) ;
+            RETURN
+         END ;
+         DEC(ScopeId)
+      UNTIL ScopeId=0
    END ;
-*)
-   (* Add symbol to unknown tree *)
-   WITH Symbols[CurrentModule] DO
-      CASE SymbolType OF
-
-      DefImpSym: PutSymKey(DefImp.Unresolved, name, Sym) |
-      ModuleSym: PutSymKey(Module.Unresolved, name, Sym)
-
-      ELSE
-         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
-      END
-   END
+   AddSymToUnknown(CurrentModule, name, Sym)
 END AddSymToUnknownTree ;
 
 
@@ -1142,6 +1170,56 @@ END ExamineUnresolvedTree ;
 
 
 (*
+   TryMoveUndeclaredSymToInnerModule - attempts to move a symbol of
+                                       name, name, which is
+                                       currently undefined in the
+                                       outer scope to the inner scope.
+                                       If successful then the symbol is
+                                       returned otherwise NulSym is
+                                       returned.
+*)
+
+PROCEDURE TryMoveUndeclaredSymToInnerModule (OuterScope,
+                                             InnerScope: CARDINAL;
+                                             name: Name) : CARDINAL ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   (* assume this should not be called if OuterScope was a procedure
+      as this case is handled by the caller (P1SymBuild)
+   *)
+   Assert(IsModule(OuterScope) OR IsDefImp(OuterScope)) ;
+   sym := GetExportUndeclared(OuterScope, name) ;
+   IF sym#NulSym
+   THEN
+      Assert(IsUnknown(sym)) ;
+      RemoveExportUndeclared(OuterScope, sym) ;
+      AddSymToModuleScope(OuterScope, sym) ;
+      AddVarToScopeList(OuterScope, sym) ;
+      WITH Symbols[OuterScope] DO
+         CASE SymbolType OF
+
+         DefImpSym: IF GetSymKey(DefImp.Unresolved, name)=sym
+                    THEN
+                       DelSymKey(DefImp.Unresolved, name)
+                    END |
+         ModuleSym: IF GetSymKey(Module.Unresolved, name)=sym
+                    THEN
+                       DelSymKey(Module.Unresolved, name)
+                    END
+
+         ELSE
+            InternalError('expecting DefImp, Module symbol', __FILE__, __LINE__)
+         END
+      END ;
+      AddSymToUnknown(InnerScope, name, sym) ;
+      PutExportUndeclared(InnerScope, sym)
+   END ;
+   RETURN( sym )
+END TryMoveUndeclaredSymToInnerModule ;
+
+
+(*
    RemoveFromUnresolvedTree - removes a symbol with name, name, from the
                               unresolved tree of symbol, ScopeSym.
 *)
@@ -1234,7 +1312,15 @@ BEGIN
                     ELSE
                        n := GetSymName(Sym) ;
                        WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
+                    END |
+      ProcedureSym: IF GetSymKey(Procedure.LocalSymbols, GetSymName(Sym))=NulKey
+                    THEN
+                       PutSymKey(Procedure.LocalSymbols, GetSymName(Sym), Sym)
+                    ELSE
+                       n := GetSymName(Sym) ;
+                       WriteFormat1('IMPORT name clash with symbol (%a) symbol already declared ', n)
                     END
+
 
       ELSE
          InternalError('expecting Module or DefImp symbol', __FILE__, __LINE__)
@@ -1287,6 +1373,35 @@ BEGIN
    (* Found module at position, i. *)
    RETURN( ScopeCallFrame[i].Search )
 END GetLastModuleScope ;
+
+
+(*
+   GetLastModuleOrProcedureScope - returns the last module or procedure scope encountered,
+                                   the scope before the current module scope.
+*)
+
+PROCEDURE GetLastModuleOrProcedureScope () : CARDINAL ;
+VAR
+   i  : CARDINAL ;
+BEGIN
+   (* find current inner module *)
+   i := ScopePtr ;
+   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
+         (NOT IsDefImp(ScopeCallFrame[i].Search)) DO
+      Assert(i>0) ;
+      DEC(i)
+   END ;
+   (* found module at position, i. *)
+   DEC(i) ;  (* Move to an outer level module or procedure scope *)
+   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
+         (NOT IsDefImp(ScopeCallFrame[i].Search)) AND
+         (NOT IsProcedure(ScopeCallFrame[i].Search)) DO
+      Assert(i>0) ;
+      DEC(i)
+   END ;
+   (* Found module at position, i. *)
+   RETURN( ScopeCallFrame[i].Search )
+END GetLastModuleOrProcedureScope ;
 
 
 (*
@@ -2461,26 +2576,33 @@ END AddProcedureToList ;
 
 
 (*
-   AddVarToList - add a variable symbol to the list of variables maintained
-                  by the inner most scope. (Procedure or Module).
+   AddVarToScopeList - adds symbol, sym, to, scope.
 *)
 
-PROCEDURE AddVarToList (Sym: CARDINAL) ;
-VAR
-   m: CARDINAL ;
+PROCEDURE AddVarToScopeList (scope, sym: CARDINAL) ;
 BEGIN
-   m := ScopeCallFrame[ScopePtr].Main ;
-   WITH Symbols[m] DO
+   WITH Symbols[scope] DO
       CASE SymbolType OF
 
-      ProcedureSym: PutItemIntoList(Procedure.ListOfVars, Sym) |
-      ModuleSym   : PutItemIntoList(Module.ListOfVars, Sym) |
-      DefImpSym   : PutItemIntoList(DefImp.ListOfVars, Sym)
+      ProcedureSym: PutItemIntoList(Procedure.ListOfVars, sym) |
+      ModuleSym   : PutItemIntoList(Module.ListOfVars, sym) |
+      DefImpSym   : PutItemIntoList(DefImp.ListOfVars, sym)
 
       ELSE
          InternalError('expecting Procedure or Module symbol', __FILE__, __LINE__)
       END
    END
+END AddVarToScopeList ;
+
+
+(*
+   AddVarToList - add a variable symbol to the list of variables maintained
+                  by the inner most scope. (Procedure or Module).
+*)
+
+PROCEDURE AddVarToList (Sym: CARDINAL) ;
+BEGIN
+   AddVarToScopeList(ScopeCallFrame[ScopePtr].Main, Sym)
 END AddVarToList ;
 
 
@@ -4206,6 +4328,30 @@ END CheckHiddenTypeAreAddress ;
 
 
 (*
+   GetLastMainScopeId - returns the, id, containing the last main scope.
+*)
+
+PROCEDURE GetLastMainScopeId (id: CARDINAL) : CARDINAL ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   IF id>0
+   THEN
+      sym := ScopeCallFrame[id].Main ;
+      WHILE id>1 DO
+         DEC(id) ;
+         IF sym#ScopeCallFrame[id].Main
+         THEN
+            RETURN( id )
+         END
+      END
+   END ;
+   RETURN( 0 )
+END GetLastMainScopeId ;
+
+
+
+(*
    RequestSym - searches for a symbol with a name SymName in the
                 current and previous scopes.
                 If the symbol is found then it is returned
@@ -4235,7 +4381,7 @@ BEGIN
             END
          END ;
          (* Add to unknown tree *)
-         AddSymToUnknownTree(SymName, Sym)
+         AddSymToUnknownTree(ScopePtr, SymName, Sym)   (* --fixme-- *)
          (*
            ; WriteKey(SymName) ; WriteString(' unknown demanded') ; WriteLn
          *)
@@ -4350,7 +4496,7 @@ END PutIncluded ;
 
 
 (*
-   PutExported - places a symbol, Sym into the the next level out module.
+   PutExported - places a symbol, Sym into the next level out module.
                  Sym is also placed in the ExportTree of the current inner
                  module.
 *)
@@ -4360,7 +4506,7 @@ BEGIN
 (*
    WriteString('PutExported') ; WriteLn ;
 *)
-   AddSymToModuleScope(GetLastModuleScope(), Sym) ;
+   AddSymToModuleScope(GetLastModuleOrProcedureScope(), Sym) ;
    WITH Symbols[GetCurrentModuleScope()] DO
       CASE SymbolType OF
 
@@ -4650,7 +4796,7 @@ VAR
    n: Name ;
 BEGIN
    n := GetSymName(ModSym) ;
-   printf1('Symbol trees for module: %a\n', n) ;
+   printf1('Symbol trees for module/procedure: %a\n', n) ;
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
@@ -4683,8 +4829,6 @@ BEGIN
                     ForeachNodeDo(ImportTree, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportTree', n) ;
                     ForeachNodeDo(ExportTree, DisplaySymbol) ; printf0('\n') ;
-                    printf1('%a  ExportUndeclared', n) ;
-                    ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  ExportUndeclared', n) ;
                     ForeachNodeDo(ExportUndeclared, DisplaySymbol) ; printf0('\n') ;
                     printf1('%a  DeclaredObjects', n) ;
@@ -5143,6 +5287,26 @@ BEGIN
       END
    END
 END PutExportUndeclared ;
+
+
+(*
+   GetExportUndeclared - returns a symbol which has, name, from module, ModSym,
+                         which is in the ExportUndeclared list.
+*)
+
+PROCEDURE GetExportUndeclared (ModSym: CARDINAL; name: Name) : CARDINAL ;
+BEGIN
+   WITH Symbols[ModSym] DO
+      CASE SymbolType OF
+
+      ModuleSym: RETURN( GetSymKey(Module.ExportUndeclared, name) ) |
+      DefImpSym: RETURN( GetSymKey(DefImp.ExportUndeclared, name) )
+
+      ELSE
+         InternalError('expecting a DefImp or Module symbol', __FILE__, __LINE__)
+      END
+   END
+END GetExportUndeclared ;
 
 
 (*
@@ -6908,6 +7072,7 @@ VAR
 BEGIN
    IF DebugUnknowns
    THEN
+      n := GetSymName(o) ;
       printf1('attempting to find out where %a was declared\n', n)
    END ;
    n1 := GetSymName(ResolveModule) ;

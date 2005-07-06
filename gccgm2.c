@@ -10242,8 +10242,9 @@ gccgm2_BuildIfVarInVar (type, varset, varel, is_lvalue, low, high, label)
     tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
-    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-						FALSE),
+    p1 = gccgm2_BuildAdd (convertToPtr (p1),
+			  gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+					    FALSE),
 			  FALSE);
 
     /* fetch the word, extract the bit and test for != 0 */
@@ -10280,8 +10281,10 @@ gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
     tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
-    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-						FALSE),
+    p1 = gccgm2_BuildAdd (convertToPtr (p1),
+			  gccgm2_BuildMult (word_index,
+					    gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+					    FALSE),
 			  FALSE);
 
     /* fetch the word, extract the bit and test for == 0 */
@@ -11045,7 +11048,7 @@ tree
 get_set_field_lhs (p, field)
      tree p, field;
 {
-  return gccgm2_BuildAdd (p, gccgm2_BuildOffset1 (field, FALSE), FALSE);
+  return gccgm2_BuildAdd (convertToPtr (p), gccgm2_BuildOffset1 (field, FALSE), FALSE);
 }
 
 /*
@@ -11220,8 +11223,9 @@ gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
     tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
-    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-						FALSE),
+    p1 = gccgm2_BuildAdd (convertToPtr (p1),
+			  gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+					    FALSE),
 			  FALSE);
 
     /* set bit offset_into_word within the word pointer at by p1 */
@@ -11297,8 +11301,9 @@ gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
     tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
-    p1 = gccgm2_BuildAdd (p1, gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
-						FALSE),
+    p1 = gccgm2_BuildAdd (convertToPtr (p1),
+			  gccgm2_BuildMult (word_index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT),
+					    FALSE),
 			  FALSE);
 
     /* set bit offset_into_word within the word pointer at by p1 */

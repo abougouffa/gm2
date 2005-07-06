@@ -53,6 +53,9 @@ PROCEDURE IsEmptyTree (t: SymbolTree) : BOOLEAN ; FORWARD ;
 PROCEDURE DoesTreeContainAny (t: SymbolTree; P: IsSymbol) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
+PROCEDURE stop ;
+BEGIN
+END stop ;
 
 PROCEDURE InitTree (VAR t: SymbolTree) ;
 BEGIN
@@ -127,6 +130,10 @@ VAR
    father,
    child : SymbolTree ;
 BEGIN
+   IF SymKey=138
+   THEN
+      stop
+   END ;
    FindNodeAndParentInTree(t, NameKey, child, father) ;
    IF child=NIL
    THEN

@@ -220,6 +220,7 @@ EXPORT QUALIFIED NulSym,
                  IsExportUnQualified,
                  IsExported,
                  IsImported,
+                 TryMoveUndeclaredSymToInnerModule,
                  ForeachImportedDo,
                  ForeachExportedDo,
 
@@ -1400,6 +1401,21 @@ PROCEDURE GetExported (ModSym: CARDINAL;
 *)
 
 PROCEDURE GetFromOuterModule (SymName: Name) : CARDINAL ;
+
+
+(*
+   TryMoveUndeclaredSymToInnerModule - attempts to move a symbol of
+                                       name, name, which is
+                                       currently undefined in the
+                                       outer scope to the inner scope.
+                                       If successful then the symbol is
+                                       returned otherwise NulSym is
+                                       returned.
+*)
+
+PROCEDURE TryMoveUndeclaredSymToInnerModule (OuterScope,
+                                             InnerScope: CARDINAL;
+                                             name: Name) : CARDINAL ;
 
 
 (*

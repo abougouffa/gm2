@@ -757,12 +757,8 @@ GM2-LIBS-ULM-MODS-STD  = \
                             Terminal.mod   StdFuncs.mod   Passwd.mod \
                             Directories.mod               StdIO.mod \
               PipeIO.mod    Environment.mod               Storage.mod \
-              M2RTS.mod     RTErrors.mod
-
-######################################################################
-### GM2 cannot compile these yet
-###           Functions.mod   TimeIO.mod    MathLib.mod
-######################################################################
+              M2RTS.mod     RTErrors.mod   Functions.mod  MathLib.mod \
+              TimeIO.mod
 
 GM2-LIBS-ULM-MODS-SYS  = \
               Errno.mod     SysExec.mod     SysKill.mod   SysPause.mod \

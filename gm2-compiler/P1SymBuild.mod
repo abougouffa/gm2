@@ -55,6 +55,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetLocalSym,
                         PutImported,
                         PutExported, PutExportQualified, PutExportUnQualified,
+                        TryMoveUndeclaredSymToInnerModule,
                         PutDefinitionForC,
                         IsDefinitionForC,
                         PutDoesNeedExportList, PutDoesNotNeedExportList,
@@ -674,6 +675,7 @@ VAR
    Sym, ModSym,
    i, n       : CARDINAL ;
 BEGIN
+   (* --fixme-- *)
    PopT(n) ;       (* n   = # of the Ident List *)
    IF OperandT(n+1)=ExportTok
    THEN
@@ -683,14 +685,19 @@ BEGIN
       WHILE i<=n DO
          IF (PrevMod#NulSym) AND (IsModule(PrevMod) OR IsDefImp(PrevMod))
          THEN
-            Sym := GetLocalSym(PrevMod, OperandT(i))
-         ELSE
-            Sym := NulSym
-         END ;
-         IF (Sym#NulSym) AND IsExported(PrevMod, Sym)
-         THEN
-            (* use Sym which has already been created in outer scope *)
-            AddSymToModuleScope(GetCurrentScope(), Sym)
+            Sym := GetLocalSym(PrevMod, OperandT(i)) ;
+            IF Sym=NulSym
+            THEN
+               Sym := TryMoveUndeclaredSymToInnerModule(PrevMod, GetCurrentScope(), OperandT(i)) ;
+               IF Sym=NulSym
+               THEN
+                  Sym := RequestSym(OperandT(i)) ;
+                  PutExported(Sym)
+               END
+            ELSE
+               (* use Sym which has already been created in outer scope *)
+               AddSymToModuleScope(GetCurrentScope(), Sym)
+            END
          ELSE
             Sym := RequestSym(OperandT(i)) ;
             PutExported(Sym)

@@ -4975,11 +4975,11 @@ BEGIN
             (*
                Build macro: ALLOCATE( PtrSym, SIZE(PtrSym^) )
             *)
-            PushT(TSize) ;           (* Procedure      *)
+            PushTF(TSize, Cardinal) ;(* Procedure      *)
                                      (* x^             *)
             PushT(GetItemPointedTo(PtrSym)) ;
             PushT(1) ;               (* One parameter  *)
-            BuildTSizeFunction ;
+            BuildFunctionCall ;
             PopT(SizeSym) ;
 
             PushT(ProcSym) ;         (* ALLOCATE       *)
@@ -5062,11 +5062,11 @@ BEGIN
             (*
                Build macro: DEALLOCATE( PtrSym, SIZE(PtrSym^) )
             *)
-            PushT(TSize) ;           (* Procedure      *)
+            PushTF(TSize, Cardinal) ;(* Procedure      *)
                                      (* x^             *)
             PushT(GetItemPointedTo(PtrSym)) ;
             PushT(1) ;               (* One parameter  *)
-            BuildTSizeFunction ;
+            BuildFunctionCall ;
             PopT(SizeSym) ;
 
             PushT(ProcSym) ;         (* DEALLOCATE     *)

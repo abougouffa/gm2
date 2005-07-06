@@ -20,6 +20,7 @@ IMPLEMENTATION MODULE M2Scope ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads, GetScope,
+                        GetProcedureScope, IsModule, IsModuleWithinProcedure,
                         NulSym ;
 
 FROM M2Quads IMPORT QuadOperator, Head, GetNextQuad, GetQuad ;
@@ -109,9 +110,11 @@ VAR
 BEGIN
    NestedLevel := 0 ;
    First := FALSE ;
-   IF (GetScope(scope)#NulSym) AND IsProcedure(GetScope(scope))
+   IF (GetScope(scope)#NulSym) AND
+      (IsProcedure(GetScope(scope)) OR
+       (IsModule(scope) AND IsModuleWithinProcedure(scope)))
    THEN
-      GetProcedureQuads(GetScope(scope), i, start, end) ;
+      GetProcedureQuads(GetProcedureScope(scope), i, start, end) ;
       GetQuad(i, op, op1, op2, op3) ;
       WHILE (op#ModuleScopeOp) OR (op3#scope) DO
          i := GetNextQuad(i) ;

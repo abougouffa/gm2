@@ -95,6 +95,11 @@ BEGIN
       InternalError('error node generated during symbol conversion', __FILE__, __LINE__)
    END ;
 
+   IF sym=138
+   THEN
+      mystop2
+   END ;
+
    IF USEPOISON
    THEN
       t := PtrToInteger(gcc) ;

@@ -17,9 +17,22 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Functions.mod,v 1.2 2004/06/29 08:51:41 gaius Exp $
+   $Id: Functions.mod,v 1.3 2005/07/06 22:32:53 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Functions.mod,v $
+   Revision 1.3  2005/07/06 22:32:53  gaius
+   * fixed a number of bugs relating to gm2 failuring to compile
+     gm2/ulm-lib-gm2/std/TimeIO.mod. Nested modules within
+     procedures exporting variables.
+   * alterations include correct type declaration ahead of
+     variable creation.
+   * creating all variables in the outer most procedure scope
+     if these variables are exported from inner modules.
+   * also fixed gm2/gccgm2.c so that pointer to sets are cast
+     into a generic ptr
+   * also fixed offset into sets (which had assumed sets started
+     with an element value zero).
+
    Revision 1.2  2004/06/29 08:51:41  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of
@@ -218,6 +231,7 @@ IMPLEMENTATION MODULE Functions; (* AFB 12/88 *)
       MODULE Lex;
 
 	 FROM ASCII IMPORT tab, nl; (* tab and new-line *)
+
 	 IMPORT Symbol, expr, Real, SymName, error, errpos, Error;
 	 EXPORT GetSy, sy, val, ident, SetErrPos;
 

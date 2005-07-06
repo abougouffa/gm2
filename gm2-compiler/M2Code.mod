@@ -371,15 +371,15 @@ VAR
    sb: ScopeBlock ;
    n : Name ;
 BEGIN
-(*
-   n := GetSymName(scope) ;
-   printf1('before coding block %a\n', n) ;
-*)
+   IF DisplayQuadruples
+   THEN
+      n := GetSymName(scope) ;
+      printf1('before coding block %a\n', n)
+   END ;
    sb := InitScopeBlock(scope) ;
    OptimizeScopeBlock(sb) ;
    IF IsProcedure(scope)
    THEN
-      (* DeclareProcedure(scope) ; ************************* *)
       IF DisplayQuadruples
       THEN
          n := GetSymName(scope) ;
@@ -397,11 +397,9 @@ BEGIN
          ForeachScopeBlockDo(sb, DisplayQuadRange) ;
          printf0('===============\n')
       END ;
-      ForeachInnerModuleDo(scope, CodeBlock) ;
       ForeachScopeBlockDo(sb, ConvertQuadsToTree) ;
       ForeachProcedureDo(scope, CodeBlock)
    ELSE
-      (* StartDeclareScope(scope) ; **************************** *)
       IF DisplayQuadruples
       THEN
          n := GetSymName(scope) ;

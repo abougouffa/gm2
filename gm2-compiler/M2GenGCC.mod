@@ -410,6 +410,10 @@ PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 VAR
    Prev: CARDINAL ;
 BEGIN
+   IF Start=1393
+   THEN
+      stop
+   END ;
    REPEAT
       CodeStatement(Start) ;
       Prev := Start ;
@@ -2786,6 +2790,8 @@ BEGIN
       INC(i) ;   (* move onto next field *)
       PushValue(element) ;
       PushCard((i+1)*bpw) ;
+      PushValue(low) ;
+      Addn ;
       PushIntegerTree(offset) ;
       PushCard(bpw) ;
       Addn ;
