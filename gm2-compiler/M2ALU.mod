@@ -37,7 +37,7 @@ FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareConstant ;
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc ;
-FROM M2Printf IMPORT printf2 ;
+FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes ;
 FROM DynamicStrings IMPORT InitString ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
@@ -123,6 +123,7 @@ TYPE
 (* %%%FORWARD%%%
 PROCEDURE SortElements (tokenno: CARDINAL; h: listOfRange) ; FORWARD ;
 PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
+PROCEDURE DisplayElements (i: listOfRange) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
@@ -1615,6 +1616,11 @@ BEGIN
    max := GetTypeMax(GetType(v^.setType)) ;
    i := min ;
    s := v^.setValue ;
+   IF Debugging
+   THEN
+      printf0('attempting to negate set\n') ;
+      DisplayElements(s)
+   END ;
    WHILE s#NIL DO
       PushValue(s^.low) ;
       PushValue(min) ;
@@ -1630,12 +1636,22 @@ BEGIN
       i := DupConst(tokenno, s^.high, 1) ;
       s := s^.next
    END ;
+   IF Debugging
+   THEN
+      printf0('negated set so far\n') ;
+      DisplayElements(r)
+   END ;
    DisposeRange(v^.setValue) ;
    PushValue(i) ;
    PushValue(max) ;
    IF LessEqu(tokenno)
    THEN
       r := AddRange(r, i, max)
+   END ;
+   IF Debugging
+   THEN
+      printf0('final negated set value\n') ;
+      DisplayElements(r)
    END ;
    WITH v^ DO
       solved := FALSE ;
@@ -1922,6 +1938,7 @@ BEGIN
    ELSE
       sym := MakeTemporary(ImmediateValue) ;
       PutVar(sym, type) ;
+      CheckOverflow(tokenno, value) ;
       PushIntegerTree(value) ;
       PopValue(sym) ;
       RETURN( sym )

@@ -11325,8 +11325,11 @@ gccgm2_BuildIntegerConstant (int value)
   case 1:  return integer_one_node;
 
   default:
+    if (value < 0)
+      id = build_int_2 (value, -1);
+    else
       id = build_int_2 (value, 0);
-      return id;
+    return id;
   }
 }
 
