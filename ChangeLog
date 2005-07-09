@@ -1,3 +1,7 @@
+2005-07-09	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented MAX(ADDRESS) and MIN(ADDRESS)
+
 2005-07-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* finally all ulm modules compile under GM2

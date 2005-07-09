@@ -7045,6 +7045,8 @@ gccgm2_GetMinFrom (type)
   if (type == m2_short_real_type_node || type == gccgm2_GetShortRealType())
     return fold (gccgm2_BuildNegate (fold (gm2builtins_BuiltInHugeValShort ()),
 				     FALSE));
+  if (type == ptr_type_node)
+    return gccgm2_GetPointerZero();
 
   return TYPE_MIN_VALUE (skip_type_decl (type));
 }
@@ -7064,6 +7066,10 @@ gccgm2_GetMaxFrom (type)
     return fold (gm2builtins_BuiltInHugeValLong ());
   if (type == m2_short_real_type_node || type == gccgm2_GetShortRealType())
     return fold (gm2builtins_BuiltInHugeValShort ());
+  if (type == ptr_type_node)
+    return fold (gccgm2_BuildSub( gccgm2_GetPointerZero (),
+				  gccgm2_GetPointerOne (),
+				  FALSE));
 
   return TYPE_MAX_VALUE (skip_type_decl (type));
 }
