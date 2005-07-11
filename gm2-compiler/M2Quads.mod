@@ -3699,13 +3699,15 @@ BEGIN
                IF (GetStringLength(CallParam) = 0)   (* if = 0 then it maybe unknown at this time *)
                THEN
                   (* dont check this yet *)
+               ELSIF IsArray(SkipType(GetType(ParamI))) AND (GetType(SkipType(GetType(ParamI)))=Char)
+               THEN
+                  (* allow string literals to be passed to ARRAY [0..n] OF CHAR *)
                ELSIF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
                   CheckParameter(CallParam, ParamI, Proc, i, NIL)
                ELSIF NOT IsUnboundedParam(Proc, i)
                THEN
-                  (* we possibly need to allow passing strings of exact size to an ARRAY [0..n] OF CHAR *)
-                  IF IsForC AND (GetType(GetParam(Proc, i))=Address)
+                  IF IsForC AND (GetType(ParamI)=Address)
                   THEN
                      FailParameter('a string constant can either be passed to an ADDRESS parameter or an ARRAY OF CHAR',
                                    CallParam, ParamI, Proc, i)

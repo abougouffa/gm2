@@ -19,11 +19,11 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2003/09/19 22:10:06 $]
+   Date       : 1987  [$Date: 2005/07/11 13:35:22 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.4 $
+   Version    : $Revision: 1.5 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
@@ -32,6 +32,7 @@ FROM SArgs IMPORT GetArg, Narg ;
 FROM DynamicStrings IMPORT String, InitString, string, KillString, EqualArray ;
 FROM M2Printf IMPORT fprintf0 ;
 FROM FIO IMPORT StdErr ;
+FROM M2RTS IMPORT Terminate ;
 FROM libc IMPORT exit ;
 
 
@@ -88,5 +89,6 @@ END StartParsing ;
 
 
 BEGIN
-   StartParsing
+   StartParsing ;
+   Terminate
 END gm2.

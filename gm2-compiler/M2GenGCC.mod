@@ -165,7 +165,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2ZRealType,
                    GetBitsPerBitset, GetSizeOfInBits,
-                   BuildIntegerConstant,
+                   BuildIntegerConstant, BuildStringConstant,
                    RememberConstant, FoldAndStrip ;
 
 FROM SYSTEM IMPORT WORD ;
@@ -1864,14 +1864,15 @@ END FoldConstBecomes ;
 
 PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   op3t, t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
       AddModGcc(op1, CheckConstant(op1, op3))
-   ELSIF IsConstString(op3) AND (GetType(op1)#Char)
+   ELSIF IsConstString(op3) AND (SkipType(GetType(op1))#Char)
    THEN
+      Assert(IsArray(SkipType(GetType(op1)))) ;
       (* handle string assignments:
          VAR
             str: ARRAY [0..10] OF CHAR ;
@@ -1881,15 +1882,31 @@ BEGIN
       *)
       PushIntegerTree(FindSize(op3)) ;
       PushIntegerTree(FindSize(op1)) ;
+      IF GetType(op3)=Char
+      THEN
+         (* create string from char and add nul to the end *)
+         op3t := BuildStringConstant(KeyToCharStar(GetString(op3)), 2)
+      ELSE
+         op3t := Mod2Gcc(op3)
+      END ;
       IF Less(CurrentQuadToken)
       THEN
          (* there is room for the extra <nul> character *)
          t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
       ELSE
-         t := FindSize(op3)
+         PushIntegerTree(FindSize(op3)) ;
+         PushIntegerTree(FindSize(op1)) ;
+         IF Gre(CurrentQuadToken)
+         THEN
+            WarnStringAt(InitString('string constant is too large to be assigned to the array'),
+                         CurrentQuadToken) ;
+            t := FindSize(op1)
+         ELSE
+            t := FindSize(op3)
+         END
       END ;
       ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                               BuildAddr(Mod2Gcc(op3), FALSE),
+                                               BuildAddr(op3t, FALSE),
                                                t))
    ELSE
       IF (SkipType(GetType(op1))=Word) AND Iso AND
