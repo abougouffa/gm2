@@ -27,7 +27,7 @@ DEFINITION MODULE Sys;
 (*
    The constants included here are those which are needed to get
    the ulm modules working. This is a much reduced list from the
-   original ULM library. Please email <gaius@glam.ac.uk> if you
+   original ULM library. Please email <gm2 at glam.ac.uk> if you
    require more system calls than those presented below:
 *)
 

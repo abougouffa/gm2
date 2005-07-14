@@ -67,7 +67,8 @@ GCC_TOOLS_FOR_GM2 = \
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
-                 build-libs build-libs-iso build-libs-ulm
+                 build-libs build-libs-iso build-libs-ulm \
+                 build-libs-pim
 
 TEXI2HTML=texi2html
 
@@ -112,6 +113,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/ulm-lib-gm2 \
                  $(objdir)/gm2/ulm-lib-gm2/sys \
                  $(objdir)/gm2/ulm-lib-gm2/std \
+                 $(objdir)/gm2/gm2-libs-pim \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 check_cross: stage1/gm2 force
@@ -213,6 +215,9 @@ $(objdir)/gm2/ulm-lib-gm2/sys:
 $(objdir)/gm2/ulm-lib-gm2/std:
 	mkdir $@
 
+$(objdir)/gm2/gm2-libs-pim:
+	mkdir $@
+
 stage1/gm2:
 	-mkdir -p stage1/gm2
 
@@ -270,13 +275,14 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
             chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
           fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
+	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod \
+                 $(srcdir)/gm2/gm2-libs-pim/*.def $(srcdir)/gm2/gm2-libs-pim/*.mod ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(DESTDIR)$(GM2_LIB_DIR_PIM)/$$i ; \
               $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_PIM) ; \
            fi ; \
         done
-	for i in x gm2/gm2-libs/*.o ; do \
+	for i in x gm2/gm2-libs/*.o gm2/gm2-libs-pim/*.o ; do \
            rm -f $(DESTDIR)$(GM2_LIB_DIR_PIM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -322,7 +328,8 @@ gm2.install-info: installdirs
 	    rm -f $(DESTDIR)$(infodir)/gm2.info*; \
 	    for f in $(srcdir)/gm2/gm2.info*; do \
 	      realfile=`echo $$f | sed -e 's|.*/\([^/]*\)$$|\1|'`; \
-	      $(INSTALL_DATA) $$f $(DESTDIR)$(infodir)/$$realfile; \
+              rm -f $(DESTDIR)$(infodir)/`basename $$realfile`; \
+	      $(INSTALL_DATA) $$f $(DESTDIR)$(infodir)/`basename $$realfile`; \
 	    done; \
 	    chmod a-x $(DESTDIR)$(infodir)/gm2.info*; \
 	  else true; fi; \
@@ -433,7 +440,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GM2-VERSION=0.45
+GM2-VERSION=0.49
 GM2_O=
 GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
@@ -771,6 +778,10 @@ GM2-LIBS-ULM-MODS-SYS  = \
               SysOpen.mod   SysStat.mod     SysDup.mod    SysIoctl.mod \
               SysPanic.mod  SystemTypes.mod UnixString.mod
 
+GM2-LIBS-PIM-MODS  = \
+              CardinalIO.mod                Display.mod   InOut.mod \
+              Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod
+
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 
 BUILD-LIBS-BOOT = $(BUILD-LIBS-BOOT-H) \
@@ -1038,6 +1049,8 @@ build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \
                 gm2/ulm-lib-gm2/sys/SYSTEM.o
 
+build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o)
+
 gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -1049,6 +1062,9 @@ gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
 
 gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
+
+gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \

@@ -10,22 +10,13 @@ libraryClassifications = [['gm2-libs','Base libraries',
                           ['gm2-libs-pim','PIM and Logitech 3.0 Compatible',
                            'PIM and Logitech 3.0 compatible libraries'],
                           ['gm2-libs-coroutines','PIM coroutine support',
-                           'PIM and Logitech 3.0 compatible process support'],
+                           'PIM compatible process support'],
                           ['gm2-iso','M2 ISO Libraries',
                            'ISO defined libraries'],
                           ['ulm-lib-gm2/sys','ULM System Libraries',
                            'ULM System libraries'],
                           ['ulm-lib-gm2/std','ULM Standard Libraries',
                            'ULM Standard libraries']]
-
-
-#
-#  at present the following are too incomplete to include:
-#
-#                           ['gm2-libs-coroutines','PIM Coroutines',
-#                           'PIM Coroutine specific modules'],
-#
-#
 
 
 #

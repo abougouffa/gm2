@@ -1,3 +1,17 @@
+2005-07-14	Gaius Mulley <gaius@glam.ac.uk>
+
+	* GM2 Release 0.49
+	* tagged CVS using gm2_0_49
+	
+	* introduced SHORTCARD into p2c
+	* added gm2/gm2-libs-pim/CardinalIO.def and
+	  gm2/gm2-libs-pim/CardinalIO.mod
+	* added a number of procedures to implement CardinalIO.mod
+	  in gm2/gm2-libs/StringConvert.mod
+	* improved gm2/gm2.texi
+	* modified gm2/Make-file.in so that the library modules
+	  in gm2/gm2-libs-pim are also built and installed
+
 2005-07-10	Gaius Mulley <gaius@glam.ac.uk>
 
 	* constant literal string array assignment of smaller sizes to
@@ -204,7 +218,7 @@
 
 2005-03-14	Gaius Mulley <gaius@glam.ac.uk>
 
-	* finished tools-src/createUlSys which builds a SYSTEM.c
+	* finished tools-src/createUlmSys which builds a SYSTEM.c
 	  (from ./configure results) ULM library compatible interface.
 	* modified Make-lang.in to install the ULM libraries.
 	* added new switch -Wulm which modifies the default search

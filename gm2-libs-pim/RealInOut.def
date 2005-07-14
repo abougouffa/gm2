@@ -14,6 +14,11 @@ VAR
    Done: BOOLEAN ;
 
 
+(*
+   ReadReal - reads a real number, legal syntaxes include:
+              100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
 PROCEDURE ReadReal (VAR x: REAL) ;
 
 
@@ -31,5 +36,54 @@ PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 *)
 
 PROCEDURE WriteRealOct (x: REAL) ;
+
+
+(*
+   ReadLongReal - reads a LONGREAL number, legal syntaxes include:
+                  100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
+PROCEDURE ReadLongReal (VAR x: LONGREAL) ;
+
+
+(*
+   WriteLongReal - writes a LONGREAL to the terminal. The real number
+                   is right justified and, n, is the minimum field
+                   width.
+*)
+
+PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;
+
+
+(*
+   WriteLongRealOct - writes the LONGREAL to terminal in octal words.
+*)
+
+PROCEDURE WriteLongRealOct (x: LONGREAL) ;
+
+
+(*
+   ReadShortReal - reads a SHORTREAL number, legal syntaxes include:
+                  100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
+PROCEDURE ReadShortReal (VAR x: SHORTREAL) ;
+
+
+(*
+   WriteShortReal - writes a SHORTREAL to the terminal. The real number
+                   is right justified and, n, is the minimum field
+                   width.
+*)
+
+PROCEDURE WriteShortReal (x: SHORTREAL; n: CARDINAL) ;
+
+
+(*
+   WriteShortRealOct - writes the SHORTREAL to terminal in octal words.
+*)
+
+PROCEDURE WriteShortRealOct (x: SHORTREAL) ;
+
 
 END RealInOut.

@@ -1,7 +1,7 @@
 @menu
 * Base libraries::Basic M2F compatible libraries
 * PIM and Logitech 3.0 Compatible::PIM and Logitech 3.0 compatible libraries
-* PIM coroutine support::PIM and Logitech 3.0 compatible process support
+* PIM coroutine support::PIM compatible process support
 * M2 ISO Libraries::ISO defined libraries
 * ULM System Libraries::ULM System libraries
 * ULM Standard Libraries::ULM Standard libraries
@@ -438,6 +438,7 @@ PROCEDURE InitStringChar (ch: CHAR) : String ;
 
 @findex Mark
 PROCEDURE Mark (s: String) : String ;
+
 
 (*
    Length - returns the length of the String, s.
@@ -2147,7 +2148,10 @@ DEFINITION MODULE StringConvert ;
 *)
 
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED IntegerToString, CardinalToString, StringToInteger,
+EXPORT QUALIFIED IntegerToString, StringToInteger,
+                 StringToCardinal, CardinalToString,
+                 StringToLongCardinal, LongCardinalToString,
+                 StringToShortCardinal, ShortCardinalToString,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
                  StringToLongreal, LongrealToString, stor, stolr ;
@@ -2196,6 +2200,75 @@ PROCEDURE CardinalToString (c: CARDINAL; width: CARDINAL; padding: CHAR;
 
 @findex StringToInteger
 PROCEDURE StringToInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTEGER ;
+
+
+(*
+   StringToCardinal - converts a string, s, of, base, into a CARDINAL.
+                      Leading white space is ignored. It stops converting
+                      when either the string is exhausted or if an illegal
+                      numeral is found.
+                      The parameter found is set TRUE if a number was found.
+*)
+
+@findex StringToCardinal
+PROCEDURE StringToCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : CARDINAL ;
+
+
+(*
+   LongCardinalToString - converts LONGCARD, c, into a String. The field
+                          width can be specified if non zero. Leading
+                          characters are defined by padding.
+                          The base allows the caller to generate binary,
+                          octal, decimal, hexidecimal numbers.
+                          The value of lower is only used when hexidecimal
+                          numbers are generated and if TRUE then digits
+                          abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+@findex LongCardinalToString
+PROCEDURE LongCardinalToString (c: LONGCARD; width: CARDINAL; padding: CHAR;
+                                base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+(*
+   StringToLongCardinal - converts a string, s, of, base, into a LONGCARD.
+                          Leading white space is ignored. It stops converting
+                          when either the string is exhausted or if an illegal
+                          numeral is found.
+                          The parameter found is set TRUE if a number was found.
+*)
+
+@findex StringToLongCardinal
+PROCEDURE StringToLongCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGCARD ;
+
+
+(*
+   ShortCardinalToString - converts SHORTCARD, c, into a String. The field
+                           width can be specified if non zero. Leading
+                           characters are defined by padding.
+                           The base allows the caller to generate binary,
+                           octal, decimal, hexidecimal numbers.
+                           The value of lower is only used when hexidecimal
+                           numbers are generated and if TRUE then digits
+                           abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+@findex ShortCardinalToString
+PROCEDURE ShortCardinalToString (c: SHORTCARD; width: CARDINAL; padding: CHAR;
+                                 base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+(*
+   StringToShortCardinal - converts a string, s, of, base, into a SHORTCARD.
+                           Leading white space is ignored. It stops converting
+                           when either the string is exhausted or if an illegal
+                           numeral is found.
+                           The parameter found is set TRUE if a number was found.
+*)
+
+@findex StringToShortCardinal
+PROCEDURE StringToShortCardinal (s: String; base: CARDINAL;
+                                 VAR found: BOOLEAN) : SHORTCARD ;
 
 
 (*
@@ -2761,12 +2834,12 @@ PROCEDURE writev (fd: INTEGER; v: ADDRESS; n: INTEGER) : INTEGER ;
 
 
 (*
-   getcwd - copies the absolute pathname of  the
-            current  working directory to the array pointed to by buf,
+   getcwd - copies the absolute pathname of the
+            current working directory to the array pointed to by buf,
             which is of length size.
 
-            If the current absolute path name would require  a  buffer
-            longer  than size elements, NULL is returned, and errno is
+            If the current absolute path name would require a buffer
+            longer than size elements, NULL is returned, and errno is
             set to ERANGE; an application should check for this error,
             and allocate a larger buffer if necessary.
 *)
@@ -3002,12 +3075,12 @@ Here is an outline of the module layering:
 
 @example
 
-InOut  RealInOut  LongIO     FileSystem
-    \     |     /               |
-       Terminal                 |
-------------------------------------------------------
-          |                     |
-       Termbase                FIO (basic)
+InOut  RealInOut  LongIO
+    \     |     /
+       Terminal
+------------------------
+          |
+       Termbase
        /      \
 Keyboard      Display
 
@@ -3022,6 +3095,7 @@ basic input/output, file system, string manipulation and conversion
 routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
 @menu
+* gm2-libs-pim/CardinalIO::CardinalIO.def
 * gm2-libs-pim/Display::Display.def
 * gm2-libs-pim/FileSystem::FileSystem.def
 * gm2-libs-pim/InOut::InOut.def
@@ -3032,7 +3106,151 @@ are not as these were constrained by the limitations of MS-DOS.
 @end menu
 
 
-@node gm2-libs-pim/Display, gm2-libs-pim/FileSystem, , PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/CardinalIO, gm2-libs-pim/Display, , PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/CardinalIO
+
+@example
+DEFINITION MODULE CardinalIO ;
+
+(*
+    Description: provides a PIM and Logitech compatible module.
+*)
+
+EXPORT QUALIFIED Done,
+                 ReadCardinal, WriteCardinal, ReadHex, WriteHex,
+                 ReadLongCardinal, WriteLongCardinal, ReadLongHex,
+                 WriteLongHex,
+                 ReadShortCardinal, WriteShortCardinal, ReadShortHex,
+                 WriteShortHex ;
+
+
+VAR
+   Done: BOOLEAN ;
+
+
+(*
+   ReadCardinal - read an unsigned decimal number from the terminal.
+                  The read continues until a space, newline, esc or
+                  end of file is reached.
+*)
+
+@findex ReadCardinal
+PROCEDURE ReadCardinal (VAR c: CARDINAL) ;
+
+
+(*
+   WriteCardinal - writes the value, c, to the terminal and ensures
+                   that at least, n, characters are written. The number
+                   will be padded out by preceeding spaces if necessary.
+*)
+
+@findex WriteCardinal
+PROCEDURE WriteCardinal (c: CARDINAL; n: CARDINAL) ;
+
+
+(*
+   ReadHex - reads in an unsigned hexadecimal number from the terminal.
+             The read continues until a space, newline, esc or
+             end of file is reached.
+*)
+
+@findex ReadHex
+PROCEDURE ReadHex (VAR c: CARDINAL) ;
+
+
+(*
+   WriteHex - writes out a CARDINAL, c, in hexadecimal format padding
+              with, n, characters (leading with '0')
+*)
+
+@findex WriteHex
+PROCEDURE WriteHex (c: CARDINAL; n: CARDINAL) ;
+
+
+(*
+   ReadLongCardinal - read an unsigned decimal number from the terminal.
+                      The read continues until a space, newline, esc or
+                      end of file is reached.
+*)
+
+@findex ReadLongCardinal
+PROCEDURE ReadLongCardinal (VAR c: LONGCARD) ;
+
+
+(*
+   WriteLongCardinal - writes the value, c, to the terminal and ensures
+                       that at least, n, characters are written. The number
+                       will be padded out by preceeding spaces if necessary.
+*)
+
+@findex WriteLongCardinal
+PROCEDURE WriteLongCardinal (c: LONGCARD; n: CARDINAL) ;
+
+
+(*
+   ReadLongHex - reads in an unsigned hexadecimal number from the terminal.
+                 The read continues until a space, newline, esc or
+                 end of file is reached.
+*)
+
+@findex ReadLongHex
+PROCEDURE ReadLongHex (VAR c: LONGCARD) ;
+
+
+(*
+   WriteLongHex - writes out a LONGCARD, c, in hexadecimal format padding
+                  with, n, characters (leading with '0')
+*)
+
+@findex WriteLongHex
+PROCEDURE WriteLongHex (c: LONGCARD; n: CARDINAL) ;
+
+
+(*
+   WriteShortCardinal - writes the value, c, to the terminal and ensures
+                       that at least, n, characters are written. The number
+                       will be padded out by preceeding spaces if necessary.
+*)
+
+@findex WriteShortCardinal
+PROCEDURE WriteShortCardinal (c: SHORTCARD; n: CARDINAL) ;
+
+
+(*
+   ReadShortCardinal - read an unsigned decimal number from the terminal.
+                       The read continues until a space, newline, esc or
+                       end of file is reached.
+*)
+
+@findex ReadShortCardinal
+PROCEDURE ReadShortCardinal (VAR c: SHORTCARD) ;
+
+
+(*
+   ReadShortHex - reads in an unsigned hexadecimal number from the terminal.
+                 The read continues until a space, newline, esc or
+                 end of file is reached.
+*)
+
+@findex ReadShortHex
+PROCEDURE ReadShortHex (VAR c: SHORTCARD) ;
+
+
+(*
+   WriteShortHex - writes out a SHORTCARD, c, in hexadecimal format padding
+                  with, n, characters (leading with '0')
+*)
+
+@findex WriteShortHex
+PROCEDURE WriteShortHex (c: SHORTCARD; n: CARDINAL) ;
+
+
+END CardinalIO.
+@end example
+@page
+
+
+@node gm2-libs-pim/Display, gm2-libs-pim/FileSystem, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Display
 
 @example
@@ -3067,10 +3285,13 @@ DEFINITION MODULE FileSystem ;
 
 (*
     Description: provides GNU Modula-2 with a PIM [234] FileSystem
-                 compatible module.
+                 compatible module. Use this module sparingly,
+                 FIO or the ISO file modules have a much cleaner
+                 interface.
 *)
 
 IMPORT FIO ;
+FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED File, Response, Flag, FlagSet,
 
                  Create, Close, Lookup, Rename, Delete,
@@ -3089,7 +3310,17 @@ TYPE
              fio     : FIO.File ;
              highpos,
              lowpos  : CARDINAL ;
+             name    : String ;
           END ;
+
+   Flag = (
+           read,        (* read access mode *)
+           write,       (* write access mode *)
+           truncate,    (* truncate file when closed *)
+           again        (* reread the last character *)
+          );
+
+   FlagSet = SET OF Flag;
 
    Response = (done, notdone, notsupported, callerror,
                unknownfile, paramerror, toomanyfiles,
@@ -3126,6 +3357,196 @@ PROCEDURE Close (f: File) ;
 
 @findex Lookup
 PROCEDURE Lookup (VAR f: File; filename: ARRAY OF CHAR; newFile: BOOLEAN) ;
+
+
+(*
+   Rename - rename a file.
+            f.res is set appropriately.
+*)
+
+@findex Rename
+PROCEDURE Rename (VAR f: File; newname: ARRAY OF CHAR) ;
+
+
+(*
+   Delete - deletes a file, name, and sets the f.res field.
+            f.res is set appropriately.
+*)
+
+@findex Delete
+PROCEDURE Delete (name: ARRAY OF CHAR; VAR f: File) ;
+
+
+(*
+   ReadWord - reads a WORD, w, from file, f.
+              f.res is set appropriately.
+*)
+
+@findex ReadWord
+PROCEDURE ReadWord (VAR f: File; VAR w: WORD) ;
+
+
+(*
+   WriteWord - writes one word to a file, f.
+               f.res is set appropriately.
+*)
+
+@findex WriteWord
+PROCEDURE WriteWord (VAR f: File; w: WORD) ;
+
+
+(*
+   ReadChar - reads one character from a file, f.
+*)
+
+@findex ReadChar
+PROCEDURE ReadChar (VAR f: File; VAR ch: CHAR) ;
+
+
+(*
+   WriteChar - writes a character, ch, to a file, f.
+               f.res is set appropriately.
+*)
+
+@findex WriteChar
+PROCEDURE WriteChar (VAR f: File; ch: CHAR) ;
+
+
+(*
+   ReadByte - reads a BYTE, b, from file, f.
+              f.res is set appropriately.
+*)
+
+@findex ReadByte
+PROCEDURE ReadByte (VAR f: File; VAR b: BYTE) ;
+
+
+(*
+   WriteByte - writes one BYTE, b, to a file, f.
+               f.res is set appropriately.
+*)
+
+@findex WriteByte
+PROCEDURE WriteByte (VAR f: File; b: BYTE) ;
+
+
+(*
+   ReadNBytes - reads a sequence of bytes from a file, f.
+*)
+
+@findex ReadNBytes
+PROCEDURE ReadNBytes (VAR f: File; a: ADDRESS; amount: CARDINAL;
+                      VAR actuallyRead: CARDINAL) ;
+
+
+(*
+   WriteNBytes - writes a sequence of bytes to file, f.
+*)
+
+@findex WriteNBytes
+PROCEDURE WriteNBytes (VAR f: File; a: ADDRESS; amount: CARDINAL;
+                       VAR actuallyWritten: CARDINAL) ;
+
+
+(*
+   Again - returns the last character read to the internal buffer
+           so that it can be read again.
+*)
+
+@findex Again
+PROCEDURE Again (VAR f: File) ;
+
+
+(*
+   SetRead - puts the file, f, into the read state.
+             The file position is unchanged.
+*)
+
+@findex SetRead
+PROCEDURE SetRead (VAR f: File) ;
+
+
+(*
+   SetWrite - puts the file, f, into the write state.
+              The file position is unchanged.
+*)
+
+@findex SetWrite
+PROCEDURE SetWrite (VAR f: File) ;
+
+
+(*
+   SetModify - puts the file, f, into the modify state.
+               The file position is unchanged but the file can be
+               read and written.
+*)
+
+@findex SetModify
+PROCEDURE SetModify (VAR f: File) ;
+
+
+(*
+   SetOpen - places a file, f, into the open state. The file may
+             have been in the read/write/modify state before and
+             in which case the previous buffer contents are flushed
+             and the file state is reset to open. The position is
+             unaltered.
+*)
+
+@findex SetOpen
+PROCEDURE SetOpen (VAR f: File) ;
+
+
+(*
+   Reset - places a file, f, into the open state and reset the
+           position to the start of the file.
+*)
+
+@findex Reset
+PROCEDURE Reset (VAR f: File) ;
+
+
+(*
+   SetPos - lseek to a position within a file.
+*)
+
+@findex SetPos
+PROCEDURE SetPos (VAR f: File; high, low: CARDINAL) ;
+
+
+(*
+   GetPos - return the position within a file.
+*)
+
+@findex GetPos
+PROCEDURE GetPos (VAR f: File; VAR high, low: CARDINAL) ;
+
+
+(*
+   Length - returns the length of file, in, high, and, low.
+*)
+
+@findex Length
+PROCEDURE Length (VAR f: File; VAR high, low: CARDINAL) ;
+
+
+(*
+   Doio - effectively flushes a file in write mode, rereads the
+          current buffer from disk if in read mode and writes
+          and rereads the buffer if in modify mode.
+*)
+
+PROCECURE Doio (VAR f: File) ;
+
+
+(*
+   FileNameChar - checks to see whether the character, ch, is
+                  legal in a filename. nul is returned if the
+                  character was illegal.
+*)
+
+@findex FileNameChar
+PROCEDURE FileNameChar (ch: CHAR) ;
 
 
 END FileSystem.
@@ -3376,6 +3797,11 @@ VAR
    Done: BOOLEAN ;
 
 
+(*
+   ReadReal - reads a real number, legal syntaxes include:
+              100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
 @findex ReadReal
 PROCEDURE ReadReal (VAR x: REAL) ;
 
@@ -3396,6 +3822,61 @@ PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 
 @findex WriteRealOct
 PROCEDURE WriteRealOct (x: REAL) ;
+
+
+(*
+   ReadLongReal - reads a LONGREAL number, legal syntaxes include:
+                  100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
+@findex ReadLongReal
+PROCEDURE ReadLongReal (VAR x: LONGREAL) ;
+
+
+(*
+   WriteLongReal - writes a LONGREAL to the terminal. The real number
+                   is right justified and, n, is the minimum field
+                   width.
+*)
+
+@findex WriteLongReal
+PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;
+
+
+(*
+   WriteLongRealOct - writes the LONGREAL to terminal in octal words.
+*)
+
+@findex WriteLongRealOct
+PROCEDURE WriteLongRealOct (x: LONGREAL) ;
+
+
+(*
+   ReadShortReal - reads a SHORTREAL number, legal syntaxes include:
+                  100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+*)
+
+@findex ReadShortReal
+PROCEDURE ReadShortReal (VAR x: SHORTREAL) ;
+
+
+(*
+   WriteShortReal - writes a SHORTREAL to the terminal. The real number
+                   is right justified and, n, is the minimum field
+                   width.
+*)
+
+@findex WriteShortReal
+PROCEDURE WriteShortReal (x: SHORTREAL; n: CARDINAL) ;
+
+
+(*
+   WriteShortRealOct - writes the SHORTREAL to terminal in octal words.
+*)
+
+@findex WriteShortRealOct
+PROCEDURE WriteShortRealOct (x: SHORTREAL) ;
+
 
 END RealInOut.
 @end example
@@ -3604,22 +4085,21 @@ perform IO at some point (or wait for a timer interrupt) or call
 @code{SYSTEM.TurnInterrupts}. But nevertheless a @code{LOOP}
 @code{END} will starve all other processes. However the great
 advantage is that GNU Modula-2 can offer users the ability to use
-@code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space
-and on a multi-user operating system across many platforms.
+@code{IOTRANSFER}, @code{TRANSFER}, @code{NEWPROCESS} in user space,
+on a multi-user operating system and across a range of platforms.
 
 The GNU Modula-2 @code{SYSTEM} works by utilizing the user context
 switching mechanism provided by GNU Pthreads. @code{NEWPROCESS}
 creates a new context, @code{TRANSFER} switches
 contexts. @code{IOTRANSFER} is more complex. There is a support module
-@code{SysVec} which provides pseudo interrupt vectors. These can
-either be created from input/output file descriptors and also timer
-events @code{timeval}. This vector is then passed to @code{IOTRANSFER}
-which keeps track of which file descriptors and timevals are
-active. When a call to @code{TurnInterrupts} or @code{LISTEN} is made
-the sub system calls @code{pth_select} and tests for any ready file
-descriptor or timeout. A ready file descriptor or timeout will
-ultimately cause the backwards @code{TRANSFER} inside
-@code{IOTRANSFER} to take effect.
+@code{SysVec} which provides pseudo interrupt vectors. These can be
+created from input/output file descriptors or timer events
+@code{timeval}. This vector is then passed to @code{IOTRANSFER} which
+keeps track of which file descriptors and timevals are active. When a
+call to @code{TurnInterrupts} or @code{LISTEN} is made the sub system
+calls @code{pth_select} and tests for any ready file descriptor or
+timeout. A ready file descriptor or timeout will ultimately cause the
+backwards @code{TRANSFER} inside @code{IOTRANSFER} to take effect.
 
 See the @file{gm2/examples/executive} directory for an executive and
 timerhandler module which provide higher level process creation,
@@ -3660,16 +4140,16 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
                  PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,
                  LISTEN,
 
-                 ListenLoop, OnOrOff, TurnInterrupts ;
+                 ListenLoop, TurnInterrupts, PRIORITY ;
 
 
 TYPE
-   PROCESS = RECORD
-                context: ADDRESS ;
-                ints   : OnOrOff ;
-             END ;
+   PROCESS  = RECORD
+                 context: ADDRESS ;
+                 ints   : PRIORITY ;
+              END ;
 
-   OnOrOff = (On, Off) ;
+   PRIORITY = [0..7] ;
 
 
 (*
@@ -3737,19 +4217,17 @@ PROCEDURE ListenLoop ;
 
 
 (*
-   TurnInterrupts - switches processor interrupts on or off depending
-                    on Switch. It returns the old value.
+   TurnInterrupts - switches processor interrupts to the priority, to.
+                    It returns the old value.
 
                     This function is available in this implementation
                     to allow microkernel Modula-2 code to be
                     compiled and run both under a Pthread implementation
                     and a stand alone system.
-                    TurnInterrupts will call LISTEN if either the
-                    current interrupt value is On or Switch is On.
 *)
 
 @findex TurnInterrupts
-PROCEDURE TurnInterrupts (Switch: OnOrOff) : OnOrOff ;
+PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
 
 
 END SYSTEM.
@@ -3779,7 +4257,7 @@ EXPORT QUALIFIED InitInputVector, InitOutputVector, InitTimeVector,
                  Listen, IncludeVector, ExcludeVector, DespatchVector ;
 
 TYPE
-   DespatchVector = PROCEDURE (CARDINAL, ADDRESS) ;
+   DespatchVector = PROCEDURE (CARDINAL, CARDINAL, ADDRESS) ;
 
 
 (*
@@ -3788,7 +4266,7 @@ TYPE
 *)
 
 @findex InitInputVector
-PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitInputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -3797,7 +4275,7 @@ PROCEDURE InitInputVector (fd: INTEGER) : CARDINAL ;
 *)
 
 @findex InitOutputVector
-PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
+PROCEDURE InitOutputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -3806,7 +4284,7 @@ PROCEDURE InitOutputVector (fd: INTEGER) : CARDINAL ;
 *)
 
 @findex InitTimeVector
-PROCEDURE InitTimeVector (micro, secs: CARDINAL) : CARDINAL ;
+PROCEDURE InitTimeVector (micro, secs: CARDINAL; pri: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -3863,10 +4341,13 @@ PROCEDURE ExcludeVector (vec: CARDINAL) ;
             are pending.
             If a pending interrupt was found then, call, is called
             and then this procedure returns.
+            It only listens for interrupts > pri.
 *)
 
 @findex Listen
-PROCEDURE Listen (untilInterrupt: BOOLEAN; call: DespatchVector) ;
+PROCEDURE Listen (untilInterrupt: BOOLEAN;
+                  call: DespatchVector;
+                  pri: CARDINAL) ;
 
 
 END SysVec.
@@ -7959,7 +8440,7 @@ DEFINITION MODULE FOR "C" SYSTEM ;
 
 (*
     Description: provides a SYSTEM module for GNU Modula-2 so that the
-                 Mocka libraries can be built.
+                 ULM libraries can be built.
 *)
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
@@ -8007,103 +8488,44 @@ END SYSTEM.
 @example
 DEFINITION MODULE Sys;
 
-   (* following constants have been extracted from
-         /usr/include/sys/syscall.h
-      on SunOS 5.5.1 at 1997/02/26
-   *)
+(*
+   The constants included here are those which are needed to get
+   the ulm modules working. This is a much reduced list from the
+   original ULM library. Please email <gm2 at glam.ac.uk> if you
+   require more system calls than those presented below:
+*)
 
-   CONST
-      syscall          =   0;        sigsendsys       = 108;
-      exit             =   1;        hrtsys           = 109;
-      fork             =   2;        acancel          = 110;
-      read             =   3;        async            = 111;
-      write            =   4;        priocntlsys      = 112;
-      open             =   5;        pathconf         = 113;
-      close            =   6;        mincore          = 114;
-      wait             =   7;        mmap             = 115;
-      creat            =   8;        mprotect         = 116;
-      link             =   9;        munmap           = 117;
-      unlink           =  10;        fpathconf        = 118;
-      exec             =  11;        vfork            = 119;
-      chdir            =  12;        fchdir           = 120;
-      time             =  13;        readv            = 121;
-      mknod            =  14;        writev           = 122;
-      chmod            =  15;        xstat            = 123;
-      chown            =  16;        lxstat           = 124;
-      brk              =  17;        fxstat           = 125;
-      stat             =  18;        xmknod           = 126;
-      lseek            =  19;        clocal           = 127;
-      getpid           =  20;        setrlimit        = 128;
-      mount            =  21;        getrlimit        = 129;
-      umount           =  22;        lchown           = 130;
-      setuid           =  23;        memcntl          = 131;
-      getuid           =  24;        getpmsg          = 132;
-      stime            =  25;        putpmsg          = 133;
-      ptrace           =  26;        rename           = 134;
-      alarm            =  27;        uname            = 135;
-      fstat            =  28;        setegid          = 136;
-      pause            =  29;        sysconfig        = 137;
-      utime            =  30;        adjtime          = 138;
-      stty             =  31;        systeminfo       = 139;
-      gtty             =  32;        seteuid          = 141;
-      access           =  33;        vtrace           = 142;
-      nice             =  34;        fork1            = 143;
-      statfs           =  35;        sigtimedwait     = 144;
-      sync             =  36;        lwpInfo          = 145;
-      kill             =  37;        yield            = 146;
-      fstatfs          =  38;        lwpSemaWait      = 147;
-      pgrpsys          =  39;        lwpSemaPost      = 148;
-      xenix            =  40;        modctl           = 152;
-      dup              =  41;        fchroot          = 153;
-      pipe             =  42;        utimes           = 154;
-      times            =  43;        vhangup          = 155;
-      profil           =  44;        gettimeofday     = 156;
-      plock            =  45;        getitimer        = 157;
-      setgid           =  46;        setitimer        = 158;
-      getgid           =  47;        lwpCreate        = 159;
-      signal           =  48;        lwpExit          = 160;
-      msgsys           =  49;        lwpSuspend       = 161;
-      syssun           =  50;        lwpContinue      = 162;
-      sysi86           =  50;        lwpKill          = 163;
-      sysppc           =  50;        lwpSelf          = 164;
-      acct             =  51;        lwpSetprivate    = 165;
-      shmsys           =  52;        lwpGetprivate    = 166;
-      semsys           =  53;        lwpWait          = 167;
-      ioctl            =  54;        lwpMutexUnlock   = 168;
-      uadmin           =  55;        lwpMutexLock     = 169;
-      utssys           =  57;        lwpCondWait      = 170;
-      fdsync           =  58;        lwpCondSignal    = 171;
-      execve           =  59;        lwpCondBroadcast = 172;
-      umask            =  60;        pread            = 173;
-      chroot           =  61;        pwrite           = 174;
-      fcntl            =  62;        llseek           = 175;
-      ulimit           =  63;        instSync         = 176;
-      rmdir            =  79;        kaio             = 178;
-      mkdir            =  80;        tsolsys          = 184;
-      getdents         =  81;        acl              = 185;
-      sysfs            =  84;        auditsys         = 186;
-      getmsg           =  85;        processorBind    = 187;
-      putmsg           =  86;        processorInfo    = 188;
-      poll             =  87;        pOnline          = 189;
-      lstat            =  88;        sigqueue         = 190;
-      symlink          =  89;        clockGettime     = 191;
-      readlink         =  90;        clockSettime     = 192;
-      setgroups        =  91;        clockGetres      = 193;
-      getgroups        =  92;        timerCreate      = 194;
-      fchmod           =  93;        timerDelete      = 195;
-      fchown           =  94;        timerSettime     = 196;
-      sigprocmask      =  95;        timerGettime     = 197;
-      sigsuspend       =  96;        timerGetoverrun  = 198;
-      sigaltstack      =  97;        nanosleep        = 199;
-      sigaction        =  98;        facl             = 200;
-      sigpending       =  99;        door             = 201;
-      context          = 100;        setreuid         = 202;
-      evsys            = 101;        setregid         = 203;
-      evtrapret        = 102;        installUtrap     = 204;
-      statvfs          = 103;        signotifywait    = 210;
-      fstatvfs         = 104;        lwpSigredirect   = 211;
-      nfssys           = 106;        lwpAlarm         = 212;
-      waitsys          = 107;
+CONST
+    access = 0 ;
+    brk = 1 ;
+    close = 2 ;
+    creat = 3 ;
+    dup = 4 ;
+    execve = 5 ;
+    exit = 6 ;
+    fcntl = 7 ;
+    fstat = 8 ;
+    getdents = 9 ;
+    getgid = 10 ;
+    getpid = 11 ;
+    gettimeofday = 12 ;
+    getuid = 13 ;
+    ioctl = 14 ;
+    kill = 15 ;
+    link = 16 ;
+    lseek = 17 ;
+    open = 18 ;
+    pause = 19 ;
+    pipe = 20 ;
+    read = 21 ;
+    setitimer = 22 ;
+    setgid = 23 ;
+    setuid = 24 ;
+    stat = 25 ;
+    times = 26 ;
+    unlink = 27 ;
+    wait = 28 ;
+    write = 29 ;
 
 END Sys.
 @end example
@@ -10016,7 +10438,7 @@ DEFINITION MODULE RTErrors;
       (* called by runtime system *)
 
 @findex SetHandler
-   PROCEDURE SetHandler(handler: Handler);
+   PROCEDURE SetHandler(newHandler: Handler);
       (* define alternative handler of runtime errors *)
 
 END RTErrors.

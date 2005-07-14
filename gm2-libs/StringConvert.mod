@@ -92,6 +92,83 @@ END IsHexidecimalDigitValid ;
 
 
 (*
+   IsDecimalDigitValidLong - returns the TRUE if, ch, is a base legal decimal digit.
+                             If legal then the value is appended numerically onto, c.
+*)
+
+PROCEDURE IsDecimalDigitValidLong (ch: CHAR; base: CARDINAL;
+                                   VAR c: LONGCARD) : BOOLEAN ;
+BEGIN
+   IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('0')) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsDecimalDigitValidLong ;
+
+
+(*
+   IsHexidecimalDigitValidLong - returns the TRUE if, ch, is a base legal hexidecimal digit.
+                                 If legal then the value is appended numerically onto, c.
+*)
+
+PROCEDURE IsHexidecimalDigitValidLong (ch: CHAR; base:  CARDINAL; VAR c: LONGCARD) : BOOLEAN ;
+BEGIN
+   IF (ch>='a') AND (ch<='f') AND (ORD(ch)-ORD('a')+10<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('a')+10) ;
+      RETURN( TRUE )
+   ELSIF (ch>='A') AND (ch<='F') AND (ORD(ch)-ORD('F')+10<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('A')+10) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsHexidecimalDigitValidLong ;
+
+
+(*
+   IsDecimalDigitValidShort - returns the TRUE if, ch, is a base legal decimal digit.
+                              If legal then the value is appended numerically onto, c.
+*)
+
+PROCEDURE IsDecimalDigitValidShort (ch: CHAR; base: CARDINAL; VAR c: SHORTCARD) : BOOLEAN ;
+BEGIN
+   IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('0')) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsDecimalDigitValidShort ;
+
+
+(*
+   IsHexidecimalDigitValidShort - returns the TRUE if, ch, is a base legal hexidecimal digit.
+                                  If legal then the value is appended numerically onto, c.
+*)
+
+PROCEDURE IsHexidecimalDigitValidShort (ch: CHAR; base: CARDINAL; VAR c: SHORTCARD) : BOOLEAN ;
+BEGIN
+   IF (ch>='a') AND (ch<='f') AND (ORD(ch)-ORD('a')+10<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('a')+10) ;
+      RETURN( TRUE )
+   ELSIF (ch>='A') AND (ch<='F') AND (ORD(ch)-ORD('F')+10<base)
+   THEN
+      c := c*base + (ORD(ch)-ORD('A')+10) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsHexidecimalDigitValidShort ;
+
+
+(*
    IntegerToString - converts INTEGER, i, into a String. The field with can be specified
                      if non zero. Leading characters are defined by padding and this
                      function will prepend a + if sign is set to TRUE.
@@ -242,7 +319,7 @@ END StringToInteger ;
 
 
 (*
-   StringToCardinal - converts a string, s, of, base, into an CARDINAL.
+   StringToCardinal - converts a string, s, of, base, into a CARDINAL.
                       Leading white space is ignored. It stops converting
                       when either the string is exhausted or if an illegal
                       numeral is found.
@@ -657,6 +734,159 @@ VAR
 BEGIN
    RETURN( StringToLongreal(s, found) )
 END stolr ;
+
+
+(*
+   LongCardinalToString - converts LONGCARD, c, into a String. The field
+                          width can be specified if non zero. Leading
+                          characters are defined by padding.
+                          The base allows the caller to generate binary,
+                          octal, decimal, hexidecimal numbers.
+                          The value of lower is only used when hexidecimal
+                          numbers are generated and if TRUE then digits
+                          abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+PROCEDURE LongCardinalToString (c: LONGCARD; width: CARDINAL; padding: CHAR;
+                                base: CARDINAL; lower: BOOLEAN) : String ;
+VAR
+   s: String ;
+BEGIN
+   s := InitString('') ;
+   IF c>base-1
+   THEN
+      s := ConCat(ConCat(s, LongCardinalToString(c DIV 10, 0, ' ', base, lower)),
+                  LongCardinalToString(c MOD 10, 0, ' ', base, lower))
+   ELSE
+      IF c<=9
+      THEN
+         s := ConCat(s, InitStringChar(CHR(c+ORD('0'))))
+      ELSE
+         IF lower
+         THEN
+            s := ConCat(s, InitStringChar(CHR(c+ORD('a')-10)))
+         ELSE
+            s := ConCat(s, InitStringChar(CHR(c+ORD('A')-10)))
+         END
+      END
+   END ;
+   IF width>Length(s)
+   THEN
+      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+   END ;
+   RETURN( s )
+END LongCardinalToString ;
+
+
+(*
+   StringToLongCardinal - converts a string, s, of, base, into a LONGCARD.
+                          Leading white space is ignored. It stops converting
+                          when either the string is exhausted or if an illegal
+                          numeral is found.
+                          The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToLongCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGCARD ;
+VAR
+   n, l: CARDINAL ;
+   c   : CARDINAL ;
+BEGIN
+   s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
+   l := Length(s) ;
+   c := 0 ;
+   n := 0 ;
+   IF n<l
+   THEN
+      (* parse leading + *)
+      WHILE (char(s, n)='+') DO
+         INC(n)
+      END ;
+      WHILE (n<l) AND (IsDecimalDigitValidLong(char(s, n), base, c) OR
+                       IsHexidecimalDigitValidLong(char(s, n), base, c)) DO
+         found := TRUE ;
+         INC(n)
+      END
+   END ;
+   s := KillString(s) ;
+   RETURN( c )
+END StringToLongCardinal ;
+
+
+(*
+   ShortCardinalToString - converts SHORTCARD, c, into a String. The field
+                          width can be specified if non zero. Leading
+                          characters are defined by padding.
+                          The base allows the caller to generate binary,
+                          octal, decimal, hexidecimal numbers.
+                          The value of lower is only used when hexidecimal
+                          numbers are generated and if TRUE then digits
+                          abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+PROCEDURE ShortCardinalToString (c: SHORTCARD; width: CARDINAL; padding: CHAR;
+                                base: CARDINAL; lower: BOOLEAN) : String ;
+VAR
+   s: String ;
+BEGIN
+   s := InitString('') ;
+   IF c>base-1
+   THEN
+      s := ConCat(ConCat(s, ShortCardinalToString(c DIV 10, 0, ' ', base, lower)),
+                  ShortCardinalToString(c MOD 10, 0, ' ', base, lower))
+   ELSE
+      IF c<=9
+      THEN
+         s := ConCat(s, InitStringChar(CHR(c+ORD('0'))))
+      ELSE
+         IF lower
+         THEN
+            s := ConCat(s, InitStringChar(CHR(c+ORD('a')-10)))
+         ELSE
+            s := ConCat(s, InitStringChar(CHR(c+ORD('A')-10)))
+         END
+      END
+   END ;
+   IF width>Length(s)
+   THEN
+      RETURN( ConCat(Mult(InitStringChar(padding), width-Length(s)), s) )
+   END ;
+   RETURN( s )
+END ShortCardinalToString ;
+
+
+(*
+   StringToShortCardinal - converts a string, s, of, base, into a SHORTCARD.
+                           Leading white space is ignored. It stops converting
+                           when either the string is exhausted or if an illegal
+                           numeral is found.
+                           The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToShortCardinal (s: String; base: CARDINAL;
+                                 VAR found: BOOLEAN) : SHORTCARD ;
+VAR
+   n, l: CARDINAL ;
+   c   : CARDINAL ;
+BEGIN
+   s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
+   l := Length(s) ;
+   c := 0 ;
+   n := 0 ;
+   IF n<l
+   THEN
+      (* parse leading + *)
+      WHILE (char(s, n)='+') DO
+         INC(n)
+      END ;
+      WHILE (n<l) AND (IsDecimalDigitValidShort(char(s, n), base, c) OR
+                       IsHexidecimalDigitValidShort(char(s, n), base, c)) DO
+         found := TRUE ;
+         INC(n)
+      END
+   END ;
+   s := KillString(s) ;
+   RETURN( c )
+END StringToShortCardinal ;
 
 
 END StringConvert.

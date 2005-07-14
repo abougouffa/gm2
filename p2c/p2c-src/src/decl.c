@@ -423,6 +423,9 @@ void setup_decl()
       warning("integer16 has incorrect value");
     }
 
+    mp = makestandardmeaning(MK_TYPE, "SHORTCARD");
+    mp->type = tp_ushort;
+
     mp = makestandardmeaning(MK_TYPE, "LONGCARD");
     mp->type = tp_unsigned;
 

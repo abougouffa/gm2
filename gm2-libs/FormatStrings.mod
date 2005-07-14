@@ -3,7 +3,7 @@ IMPLEMENTATION MODULE FormatStrings ;
 FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, char,
                            Assign, Length, Mult, Dup, ConCatChar ;
 
-FROM StringConvert IMPORT IntegerToString ;
+FROM StringConvert IMPORT IntegerToString, CardinalToString ;
 FROM ASCII IMPORT nul, nl, tab ;
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -79,13 +79,14 @@ END HandleEscape ;
       
 (*
    FormatString - returns a String containing, s, together with encapsulated
-                  entity, w. It only formats the first %s or %d with n.
+                  entity, w. It only formats the first %s or %d or %u with n.
                   A new string is returned.
 *)
 
 PROCEDURE FormatString (s: String; w: ARRAY OF BYTE) : String ;
 VAR
    left   : BOOLEAN ;
+   u      : CARDINAL ;
    c,
    width,
    i, j, k: INTEGER ;
@@ -152,6 +153,11 @@ BEGIN
       THEN
          Cast(c, w) ;
          RETURN( ConCat(ConCat(Slice(s, i, k), IntegerToString(c, width, leader, FALSE, 10, FALSE)),
+                        Slice(s, j+2, 0)) )
+      ELSIF ch='u'
+      THEN
+         Cast(u, w) ;
+         RETURN( ConCat(ConCat(Slice(s, i, k), CardinalToString(u, width, leader, 10, FALSE)),
                         Slice(s, j+2, 0)) )
       ELSE
          RETURN( ConCat(ConCat(Slice(s, i, k), Mark(InitStringChar(ch))), Slice(s, j+1, 0)) )

@@ -22,13 +22,16 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2004/08/26 19:07:53 $ 
+    Last edit  : $Date: 2005/07/14 19:43:59 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
 
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED IntegerToString, CardinalToString, StringToInteger,
+EXPORT QUALIFIED IntegerToString, StringToInteger,
+                 StringToCardinal, CardinalToString,
+                 StringToLongCardinal, LongCardinalToString,
+                 StringToShortCardinal, ShortCardinalToString,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
                  StringToLongreal, LongrealToString, stor, stolr ;
@@ -74,6 +77,70 @@ PROCEDURE CardinalToString (c: CARDINAL; width: CARDINAL; padding: CHAR;
 *)
 
 PROCEDURE StringToInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTEGER ;
+
+
+(*
+   StringToCardinal - converts a string, s, of, base, into a CARDINAL.
+                      Leading white space is ignored. It stops converting
+                      when either the string is exhausted or if an illegal
+                      numeral is found.
+                      The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : CARDINAL ;
+
+
+(*
+   LongCardinalToString - converts LONGCARD, c, into a String. The field
+                          width can be specified if non zero. Leading
+                          characters are defined by padding.
+                          The base allows the caller to generate binary,
+                          octal, decimal, hexidecimal numbers.
+                          The value of lower is only used when hexidecimal
+                          numbers are generated and if TRUE then digits
+                          abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+PROCEDURE LongCardinalToString (c: LONGCARD; width: CARDINAL; padding: CHAR;
+                                base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+(*
+   StringToLongCardinal - converts a string, s, of, base, into a LONGCARD.
+                          Leading white space is ignored. It stops converting
+                          when either the string is exhausted or if an illegal
+                          numeral is found.
+                          The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToLongCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGCARD ;
+
+
+(*
+   ShortCardinalToString - converts SHORTCARD, c, into a String. The field
+                           width can be specified if non zero. Leading
+                           characters are defined by padding.
+                           The base allows the caller to generate binary,
+                           octal, decimal, hexidecimal numbers.
+                           The value of lower is only used when hexidecimal
+                           numbers are generated and if TRUE then digits
+                           abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+PROCEDURE ShortCardinalToString (c: SHORTCARD; width: CARDINAL; padding: CHAR;
+                                 base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+(*
+   StringToShortCardinal - converts a string, s, of, base, into a SHORTCARD.
+                           Leading white space is ignored. It stops converting
+                           when either the string is exhausted or if an illegal
+                           numeral is found.
+                           The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToShortCardinal (s: String; base: CARDINAL;
+                                 VAR found: BOOLEAN) : SHORTCARD ;
 
 
 (*

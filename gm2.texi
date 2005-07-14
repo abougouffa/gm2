@@ -37,10 +37,14 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 17 November 2004
+@center Last updated 14 July 2005
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
+@sp 4
+@c @quotation
+@c ``And then one day you find ten years have got behind you'', Pink Floyd
+@c @end quotation
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
@@ -67,8 +71,8 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 @chapter Using GNU Modula-2
 
 @menu
-* About::                 What this document explains.
-* History::               How GNU Modula-2 came about.
+* What is GNU Modula-2::  Brief description of GNU Modula-2.
+* Why use GNU Modula-2::  Advantages of GNU Modula-2.
 * Compiler options::      GNU Modula-2 compiler options.
 * Example usage::         Example compile and link.
 * Elementary data types:: Data types supported by GNU Modula-2.
@@ -82,23 +86,77 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 * The ISO system module:: SYSTEM data types, procedures and run time.
 @end menu
 
-@node About, Compiler options, , Using
-@section About
+@set version-GM2 0.49
+@set version-GCC 3.3.6
 
 This document contains the user and design issues relevant to the
-Modula-2 front end to gcc. The GNU Modula-2 compiler is based on the
-language as defined in 'Programming in Modula-2' 2nd Edition, Springer
-Verlag, 1982, 1983 by Niklaus Wirth (PIM2), 'Programming in
-Modula-2', 3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
-'Programming in Modula-2', 4th Edition, Springer Verlag, 1988 (PIM4).
-It also includes ISO M2 features and GNU M2 extensions.
+Modula-2 front end to gcc.  It corresponds to GCC version
+@value{version-GCC} and GNU Modula-2 version @value{version-GM2}.
 
-There are currently two sets of libraries. The 'Programming in Modula-2'
-libraries are reasonably complete whereas the ISO libraries are still
-in development. However both sets of definition modules are contained
-within this document.
+@node What is GNU Modula-2, Why use GNU Modula-2, , Using
+@section What is GNU Modula-2
 
-@node Compiler options, Example usage, About, Using
+GNU Modula-2 is a front end @uref{http://gcc.gnu.org/frontends.html}
+for GCC. GCC is a retargetable C compiler which has been ported to a large
+number of architectures and operating systems. GNU Modula-2 utilizes the
+back end of GCC and replaces the C language front end with a Modula-2
+front end. Consequently GNU Modula-2 has been built on i[3456]86 GNU/Linux,
+i[3456]86 BSD, Opteron LP64 GNU/Linux and sparc GNU/Linux systems.
+It has also been built as a cross compiler for MinGW and StrongARM GNU/Linux.
+
+The GNU Modula-2 compiler is based on the language as defined in
+'Programming in Modula-2' 2nd Edition, Springer Verlag, 1982, 1983 by
+Niklaus Wirth (PIM2), 'Programming in Modula-2', 3rd Corrected
+Edition, Springer Verlag, 1985 (PIM3) and 'Programming in Modula-2',
+4th Edition, Springer Verlag, 1988 (PIM4).  It also includes ISO M2
+features and GNU Modula-2 extensions. Currently GNU Modula-2
+(@value{version-GM2}) implements all PIM dialects of the language,
+eventually GNU Modula-2 will be fully complient with ISO Modula-2.
+
+There are currently three sets of libraries. The 'Programming in
+Modula-2' libraries, the 'University of ULM libraries' and the ISO
+libraries. However the ISO libraries are still being written but all
+definition modules for the three library sets are contained within
+this document.
+
+@node Why use GNU Modula-2, Compiler options, What is GNU Modula-2, Using
+@section Why use GNU Modula-2
+
+It is expected that the primary purpose of GNU Modula-2 will be to
+compile legacy code. Currently there are only a few commercial
+Modula-2 compilers being actively maintained. Code which was written
+ten or fifteen years ago may still be compiled by older commercial
+(possibly unmaintained) compilers. While the 32 bit x86 remains these
+compilers presumably can be run in compatibility mode (some compilers
+only produce 16 bit code). Time is running out as the computing
+industry is switching to 64 microprocessors. Hence this older source
+code will either have to be translated into another high level
+language or alternatively a Modula-2 compiler which can target these
+new generation of microprocessors will have to be acquired. GNU
+Modula-2 builds and runs all its regression tests on Debian Pure 64
+(LP64 architecture) and also on 64 bit Solaris. It also runs on a
+number of other 32 bit combinations.
+
+GNU Modula-2 also has the advantage of being closely tied to GCC.
+Not only does this produce excellent code and excellent architectural
+and operating system coverage. But it also utilises many of the GCC
+features. For example GNU Modula-2 can invoke the C preprocessor to
+manage conditional compilation; inlining of @code{SYSTEM} procedures,
+intrinsic functions, memory copying routines is also exploited;
+access to assembly language using GCC syntax is also provided.
+
+GNU Modula-2 was based on a Modula-2 front end which performed a
+substantial amount of static analysis of the source code (see
+@samp{-Wpedantic}, @samp{-Wpedantic-param-names}, @samp{-Wstudents}
+and @samp{-Wpedentic-cast}.
+
+Finally runtime checking has been implemented and can check: bounds of
+subranges and array indexes, functions execute a @code{RETURN}
+statement, a pointer does not dereference a @code{NIL} pointer value
+and that the expression within a @code{CASE} statement is correctly
+matched.
+
+@node Compiler options, Example usage, Why use GNU Modula-2, Using
 @section Compiler options
 
 This section describe the compiler options specific to GNU Modula-2 for
@@ -147,13 +205,13 @@ declared in different scopes and whether variables look like keywords.
 Experienced users might find this option too aggressive.
 
 @item -Wpedantic
-forces the compiler to reject nested @samp{WITH} statements
+forces the compiler to reject nested @code{WITH} statements
 referencing the same record type.  Does not allow multiple imports of
 the same item from a module.  It also checks that: procedure variables
 are written to before being read; variables are not only written to
 but read from; variables are declared and used.  If the compiler
 encounters a variable being read before written it will terminate with
-a message.  It will check that @samp{FOR} loop indices are not used
+a message.  It will check that @code{FOR} loop indices are not used
 outside the end of this loop without being reset.
 
 @item -Wpedantic-param-names
@@ -1507,7 +1565,7 @@ Modula-2 compiler and how it integrates with GCC.
 The document is still in it's infancy.
 
 @menu
-* History::                 Where the sources came from.
+* History::                 How GNU Modula-2 came about.
 * Overview::                Overview of the structure of GNU Modula-2.
 * Integrating::             How the front end integrates with gcc.
 * Passes::                  What gets processed during each pass.
@@ -1774,7 +1832,7 @@ TYPE
    +-------------------+
 @end example
 
-Varient records which have nested @samp{CASE} statements are
+Varient records which have nested @code{CASE} statements are
 represented by the following symbol table entries:
 
 @example
@@ -2190,15 +2248,15 @@ provided access to a few compiler built-in constants
 and twenty seven built-in C functions.
 
 @item
-definition modules no longer have to @samp{EXPORT QUALIFIED}
+definition modules no longer have to @code{EXPORT QUALIFIED}
 objects (as per PIM-3, PIM-4 and ISO).
 
 @item
 implemented ISO Modula-2 sets. Large sets are now allowed,
 no limits imposed. The comparison operators
-@samp{# = <= >= < >} all behave as per ISO standard.
+@code{# = <= >= < >} all behave as per ISO standard.
 The obvious use for large sets is
-@samp{SET OF CHAR}. These work well with gdb once it has been
+@code{SET OF CHAR}. These work well with gdb once it has been
 patched to understand Modula-2 sets.
 
 @item
