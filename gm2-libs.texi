@@ -3095,8 +3095,12 @@ basic input/output, file system, string manipulation and conversion
 routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
 @menu
+* gm2-libs-pim/Break::Break.def
 * gm2-libs-pim/CardinalIO::CardinalIO.def
+* gm2-libs-pim/DebugTrace::DebugTrace.def
+* gm2-libs-pim/Delay::Delay.def
 * gm2-libs-pim/Display::Display.def
+* gm2-libs-pim/ErrorCode::ErrorCode.def
 * gm2-libs-pim/FileSystem::FileSystem.def
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
@@ -3106,7 +3110,62 @@ are not as these were constrained by the limitations of MS-DOS.
 @end menu
 
 
-@node gm2-libs-pim/CardinalIO, gm2-libs-pim/Display, , PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Break, gm2-libs-pim/CardinalIO, , PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/Break
+
+@example
+DEFINITION MODULE FOR "C" Break ;
+
+(*
+    Description: provides a Logitech compatible Break handler module
+                 which catches ctrl-c.
+*)
+
+EXPORT QUALIFIED EnableBreak, DisableBreak, InstallBreak, UnInstallBreak ;
+
+
+(*
+   EnableBreak - enable the current break handler.
+*)
+
+@findex EnableBreak
+PROCEDURE EnableBreak ;
+
+
+(*
+   DisableBreak - disable the current break handler (and all
+                  installed handlers).
+*)
+
+@findex DisableBreak
+PROCEDURE DisableBreak ;
+
+
+(*
+   InstallBreak - installs a procedure, p, to be invoked when
+                  a ctrl-c is caught. Any number of these
+                  procedures may be stacked. Only the top
+                  procedure is run when ctrl-c is caught.
+*)
+
+@findex InstallBreak
+PROCEDURE InstallBreak (p: PROC) ;
+
+
+(*
+   UnInstallBreak - pops the break handler stack.
+*)
+
+@findex UnInstallBreak
+PROCEDURE UnInstallBreak ;
+
+
+END Break.
+@end example
+@page
+
+
+@node gm2-libs-pim/CardinalIO, gm2-libs-pim/DebugTrace, gm2-libs-pim/Break, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/CardinalIO
 
 @example
@@ -3250,7 +3309,52 @@ END CardinalIO.
 @page
 
 
-@node gm2-libs-pim/Display, gm2-libs-pim/FileSystem, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/DebugTrace, gm2-libs-pim/Delay, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/DebugTrace
+
+@example
+DEFINITION MODULE DebugTrace ;
+
+(*
+    Description: provides a compatible module for the
+                 Logitech-3.0 PIM Modula-2 compiler.
+                 It does nothing other satisfy an import for
+                 legacy source code.
+*)
+
+END DebugTrace.
+@end example
+@page
+
+
+@node gm2-libs-pim/Delay, gm2-libs-pim/Display, gm2-libs-pim/DebugTrace, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/Delay
+
+@example
+DEFINITION MODULE Delay ;
+
+(*
+    Description: provides a Logitech-3.0 compatible module for
+                 GNU Modula-2.
+*)
+
+EXPORT QUALIFIED Delay ;
+
+
+(*
+   milliSec - delays the program by approximately, milliSec, milliseconds.
+*)
+
+@findex Delay
+PROCEDURE Delay (milliSec: INTEGER) ;
+
+
+END Delay.
+@end example
+@page
+
+
+@node gm2-libs-pim/Display, gm2-libs-pim/ErrorCode, gm2-libs-pim/Delay, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Display
 
 @example
@@ -3277,7 +3381,54 @@ END Display.
 @page
 
 
-@node gm2-libs-pim/FileSystem, gm2-libs-pim/InOut, gm2-libs-pim/Display, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/ErrorCode, gm2-libs-pim/FileSystem, gm2-libs-pim/Display, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/ErrorCode
+
+@example
+DEFINITION MODULE ErrorCode ;
+
+(*
+    Description: provides a Logitech-3.0 compatible module which
+                 handles exiting from an application with an exit
+                 value.
+*)
+
+EXPORT QUALIFIED SetErrorCode, GetErrorCode, ExitToOS ;
+
+
+(*
+   SetErrorCode - sets the exit value which will be used if
+                  the application terminates normally.
+*)
+
+@findex SetErrorCode
+PROCEDURE SetErrorCode (value: INTEGER) ;
+
+
+(*
+   GetErrorCode - returns the current value to be used upon
+                  application termination.
+*)
+
+@findex GetErrorCode
+PROCEDURE GetErrorCode (VAR value: INTEGER) ;
+
+
+(*
+   ExitToOS - terminate the application and exit returning
+              the last value set by SetErrorCode to the OS.
+*)
+
+@findex ExitToOS
+PROCEDURE ExitToOS ;
+
+
+END ErrorCode.
+@end example
+@page
+
+
+@node gm2-libs-pim/FileSystem, gm2-libs-pim/InOut, gm2-libs-pim/ErrorCode, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/FileSystem
 
 @example
@@ -7150,7 +7301,7 @@ PROCEDURE ReadToken (VAR s: ARRAY OF CHAR);
 
   (* The following procedure reads past the next line mark *)
 
-@findex SkipLine;
+@findex SkipLine
 PROCEDURE SkipLine;
   (* Removes successive items from the default input stream up to and including the next
      line mark or until the end of input is reached. The read result is set to the value
@@ -7164,7 +7315,7 @@ PROCEDURE SkipLine;
 PROCEDURE WriteChar (ch: CHAR);
   (* Writes the value of ch to the default output stream. *)
 
-@findex WriteLn;
+@findex WriteLn
 PROCEDURE WriteLn;
   (* Writes a line mark to the default output stream. *)
 
@@ -9589,7 +9740,7 @@ DEFINITION MODULE Arguments;	(* mh 5/85 *)
    PROCEDURE InitArgs(is: ARRAY OF CHAR);
 	(* specifies infoString and (re)starts the reading cyclus *)
 
-@findex Usage;
+@findex Usage
    PROCEDURE Usage;
 	(* prints 'Usage: command infoString' on stderr and aborts
 	 * program execution. FetchString, FetchCard and FetchInt call
@@ -9633,19 +9784,19 @@ DEFINITION MODULE Arguments;	(* mh 5/85 *)
    PROCEDURE GetArg(VAR arg: ARRAY OF CHAR): BOOLEAN;
 	(* reads one argument or returns FALSE if all are read. *)
 
-@findex UngetArg;
+@findex UngetArg
    PROCEDURE UngetArg;
 	(* pushes the argument that has been read just before
 	 * back to the argument list.
 	 *)
 
-@findex UngetOpt;
+@findex UngetOpt
    PROCEDURE UngetOpt;
 	(* pushes the flag or option that has been read just before
 	 * back to the argument list.
 	 *)
 
-@findex AllArgs;
+@findex AllArgs
    PROCEDURE AllArgs;
 	(* calls 'Usage' if any arguments are not yet read. *)
 
@@ -10211,7 +10362,7 @@ DEFINITION MODULE InOut; (* stripped version: AFB 4/84 *)
 @findex Write
    PROCEDURE Write(ch: CHAR);
 
-@findex WriteLn;
+@findex WriteLn
    PROCEDURE WriteLn;
 
 @findex WriteString
@@ -10355,7 +10506,7 @@ DEFINITION MODULE Plot;
 @findex OpenPlot
    PROCEDURE OpenPlot(f: FILE);
 
-@findex ClosePlot;
+@findex ClosePlot
    PROCEDURE ClosePlot;
 
 @findex Move
@@ -10379,7 +10530,7 @@ DEFINITION MODULE Plot;
 @findex Circle
    PROCEDURE Circle(xcenter, ycenter, radius: INTEGER);
 
-@findex Erase;
+@findex Erase
    PROCEDURE Erase;
 
 @findex LineMod
@@ -10896,13 +11047,13 @@ DEFINITION MODULE Terminal; (* A. Borchert *)
 @findex Read
    PROCEDURE Read(VAR ch: CHAR);
 
-@findex ReadAgain;
+@findex ReadAgain
    PROCEDURE ReadAgain;
 
 @findex Write
    PROCEDURE Write(ch: CHAR);
 
-@findex WriteLn;
+@findex WriteLn
    PROCEDURE WriteLn;
 
 @findex WriteString
@@ -11014,11 +11165,11 @@ DEFINITION MODULE TimeIO; (* AFB 9/88 *)
    PROCEDURE Insert(pattern: ARRAY OF CHAR);
       (* inserts a pattern before the beginning of the list *)
 
-@findex ReleaseList;
+@findex ReleaseList
    PROCEDURE ReleaseList;
       (* causes the list to be emptied *)
 
-@findex DefaultList;
+@findex DefaultList
    PROCEDURE DefaultList;
       (* appends a list of standard patterns to the list *)
       (* this procedure is called during initialization of TimeIO *)

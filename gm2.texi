@@ -41,10 +41,10 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
-@sp 4
-@c @quotation
-@c ``And then one day you find ten years have got behind you'', Pink Floyd
-@c @end quotation
+@c@sp 10
+@c@quotation
+@c``And then one day you find ten years have got behind you'', Pink Floyd
+@c@end quotation
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
@@ -73,6 +73,7 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 @menu
 * What is GNU Modula-2::  Brief description of GNU Modula-2.
 * Why use GNU Modula-2::  Advantages of GNU Modula-2.
+* Release map::           Future releases of GNU Modula-2.
 * Compiler options::      GNU Modula-2 compiler options.
 * Example usage::         Example compile and link.
 * Elementary data types:: Data types supported by GNU Modula-2.
@@ -119,8 +120,12 @@ libraries. However the ISO libraries are still being written but all
 definition modules for the three library sets are contained within
 this document.
 
-@node Why use GNU Modula-2, Compiler options, What is GNU Modula-2, Using
+@node Why use GNU Modula-2, Release map, What is GNU Modula-2, Using
 @section Why use GNU Modula-2
+
+This section is not designed to generate a language war, but rather
+map out some of the advantages of using GNU Modula-2 rather than
+translate Modula-2 sources into another language.
 
 It is expected that the primary purpose of GNU Modula-2 will be to
 compile legacy code. Currently there are only a few commercial
@@ -128,22 +133,25 @@ Modula-2 compilers being actively maintained. Code which was written
 ten or fifteen years ago may still be compiled by older commercial
 (possibly unmaintained) compilers. While the 32 bit x86 remains these
 compilers presumably can be run in compatibility mode (some compilers
-only produce 16 bit code). Time is running out as the computing
-industry is switching to 64 microprocessors. Hence this older source
+only produced 16 bit code). Time is running out as the computing
+industry is switching to 64 microprocessors. While x86 emulation or 16
+bit backwards compatibility is always possible it has some serious
+drawbacks. In order for the older source to run natively the source
 code will either have to be translated into another high level
 language or alternatively a Modula-2 compiler which can target these
 new generation of microprocessors will have to be acquired. GNU
-Modula-2 builds and runs all its regression tests on Debian Pure 64
-(LP64 architecture) and also on 64 bit Solaris. It also runs on a
-number of other 32 bit combinations.
+Modula-2 builds and passes all its regression tests on Debian Pure 64
+(LP64 architecture), 64 bit Solaris, 32 bit x86 GNU/Linux (Suse 9.1,
+Debian, stable and unstable) and 32 bit x86 FreeBSD.
 
-GNU Modula-2 also has the advantage of being closely tied to GCC.
-Not only does this produce excellent code and excellent architectural
-and operating system coverage. But it also utilises many of the GCC
+GNU Modula-2 also has the advantage of being closely tied to GCC.  Not
+only does this produce excellent code and excellent architectural and
+operating system coverage but it also utilises many of the GCC
 features. For example GNU Modula-2 can invoke the C preprocessor to
 manage conditional compilation; inlining of @code{SYSTEM} procedures,
-intrinsic functions, memory copying routines is also exploited;
-access to assembly language using GCC syntax is also provided.
+intrinsic functions, memory copying routines are also exploited;
+access to assembly language using GCC syntax is also provided.  GNU
+Modula-2 also support sets of any ordinal type (memory permitting).
 
 GNU Modula-2 was based on a Modula-2 front end which performed a
 substantial amount of static analysis of the source code (see
@@ -156,7 +164,54 @@ statement, a pointer does not dereference a @code{NIL} pointer value
 and that the expression within a @code{CASE} statement is correctly
 matched.
 
-@node Compiler options, Example usage, Why use GNU Modula-2, Using
+@node Release map, Compiler options, Why use GNU Modula-2, Using
+@section Release map
+
+This section attempts to give an idea of which releases points are
+likely in the future. Clearly this is a fairly fluid release map but
+hopefully it is more helpful than omitting it altogether. Please note
+that this is not set in stone and if you (the users) wish to see
+something different please email @email{gaius@@glam.ac.uk} with your
+ideas. Also please note that the actual release numbers do not have
+any correlation to the estimated time of release. For example please
+do not misunderstand that GM2-1.0 will take twice as long as GM2-0.5
+to appear. It is worthing noting that some of the later points in the
+release life have already been addressed (in part) but are not yet
+complete.
+
+@table @code
+
+@item 0.50
+compatible with gcc-3.3.6. GNU Modula-2 is stable and passes
+all regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.
+The compiler is PIM-234 compatible (use @samp{-Wpim2} to force
+mutually exclusive PIM2 features).
+
+It is also able to compile the University of Ulm libraries which
+are now distributed as part of GNU Modula-2. To reference these
+libraries use the @samp{-Wulm} compiler switch.
+
+@item 0.60
+many Logitech compatible libraries will be provided, which will
+be available when invoked by @samp{-Wpim}.
+
+@item 0.80
+a full set of ISO libraries will have been implemented. GNU Modula-2
+will be sufficiently ISO complient to compile the libraries but will
+not yet be able to fully conform to the ISO Modula-2 standard.
+
+@item 1.0
+GNU Modula-2 will be fully ISO complient.
+@end table
+
+There will be releases inbetween those outlined above and these releases
+may occur when GNU Modula-2 builds using a different GCC source tree.
+It is a goal that backward compatibity to gcc-3.3.6 will be provided
+as far as it is possible. Releases will also occur if a key component
+of ISO Modula-2 is implemented (for example exception handling,
+complex types or @samp{FINALLY} is implemented).
+
+@node Compiler options, Example usage, Release map, Using
 @section Compiler options
 
 This section describe the compiler options specific to GNU Modula-2 for
@@ -1316,7 +1371,7 @@ END SYSTEM.
 
 This code is currently in development and it is not yet complete.
 Nevertheless the compiler is sufficiently stable to support itself on
-Debian GNU/Linux ix86 systems. The PIM libraries are complete but the
+Debian GNU/Linux x86 systems. The PIM libraries are complete but the
 ISO libraries and ISO language features are still in development.
 Patches and development volunteers highly welcome! 
 @xref{Contributing, Contributing to GNU Modula-2}.

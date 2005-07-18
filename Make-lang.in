@@ -780,7 +780,8 @@ GM2-LIBS-ULM-MODS-SYS  = \
 
 GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
-              Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod
+              Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
+              Delay.mod     ErrorCode.mod   DebugTrace.mod
 
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 
@@ -1049,7 +1050,11 @@ build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \
                 gm2/ulm-lib-gm2/sys/SYSTEM.o
 
-build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o)
+build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
+                gm2/gm2-libs-pim/Break.o
+
+gm2/gm2-libs-pim/Break.o: gm2/gm2-libs-pim/Break.c
+	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@

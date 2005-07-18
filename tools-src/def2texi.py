@@ -122,9 +122,13 @@ def checkIndex (line):
             procedure = words[1]
 
     if procedure != "":
-        name = string.split(procedure, "(")                
+        name = string.split(procedure, "(")
         if name[0] != "":
-            print "@findex " + name[0]
+            proc = name[0]
+            if proc[-1] == ";":
+                proc = proc[:-1]
+            if proc != "":
+                print "@findex " + proc
 
 
 #

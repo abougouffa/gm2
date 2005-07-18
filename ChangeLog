@@ -1,3 +1,11 @@
+2005-07-18	Gaius Mulley <gaius@glam.ac.uk>
+
+	* updated gm2/gm2.texi and gm2/gm2-libs.texi
+	* introduced modules Delay, ErrorCode, DebugTrace
+	  and Break into gm2/gm2-libs-pim
+	* modified gm2/Make-file.in so that these modules
+	  are built and installed.
+
 2005-07-14	Gaius Mulley <gaius@glam.ac.uk>
 
 	* GM2 Release 0.49
