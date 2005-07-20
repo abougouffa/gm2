@@ -92,6 +92,27 @@ END Max ;
 
 
 (*
+   CopyOut - copies string, s, to a.
+*)
+
+PROCEDURE CopyOut (VAR a: ARRAY OF CHAR; s: String) ;
+VAR
+   i, l: CARDINAL ;
+BEGIN
+   l := Min(HIGH(a)+1, Length(s)) ;
+   i := 0 ;
+   WHILE i<l DO
+      a[i] := char(s, i) ;
+      INC(i)
+   END ;
+   IF i<=HIGH(a)
+   THEN
+      a[i] := nul
+   END
+END CopyOut ;
+
+
+(*
    ConcatContents - add the contents of string, a, where, h, is the
                     total length of, a. The offset is in, o.
 *)

@@ -22,19 +22,21 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2005/07/14 19:43:59 $ 
+    Last edit  : $Date: 2005/07/20 09:58:45 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
 
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IntegerToString, StringToInteger,
+                 StringToLongInteger, LongIntegerToString,
                  StringToCardinal, CardinalToString,
                  StringToLongCardinal, LongCardinalToString,
                  StringToShortCardinal, ShortCardinalToString,
+                 StringToLongreal, LongrealToString, 
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
-                 StringToLongreal, LongrealToString, stor, stolr ;
+                 stor, stolr ;
 
 
 (*
@@ -88,6 +90,34 @@ PROCEDURE StringToInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTE
 *)
 
 PROCEDURE StringToCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : CARDINAL ;
+
+
+(*
+   LongIntegerToString - converts LONGINT, i, into a String. The field with
+                         can be specified if non zero. Leading characters
+                         are defined by padding and this function will
+                         prepend a + if sign is set to TRUE.
+                         The base allows the caller to generate binary,
+                         octal, decimal, hexidecimal numbers.
+                         The value of lower is only used when hexidecimal
+                         numbers are generated and if TRUE then digits
+                         abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+PROCEDURE LongIntegerToString (i: LONGINT; width: CARDINAL; padding: CHAR;
+                               sign: BOOLEAN; base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+
+(*
+   StringToLongInteger - converts a string, s, of, base, into an LONGINT.
+                         Leading white space is ignored. It stops converting
+                         when either the string is exhausted or if an illegal
+                         numeral is found.
+                         The parameter found is set TRUE if a number was found.
+*)
+
+PROCEDURE StringToLongInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGINT ;
 
 
 (*

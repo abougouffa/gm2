@@ -30,7 +30,7 @@ EXPORT QUALIFIED String,
                  Index, RIndex,
                  Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
                  Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
-                 Mult, Slice, RemoveWhitePrefix, char, string ;
+                 CopyOut, Mult, Slice, RemoveWhitePrefix, char, string ;
 
 TYPE
    String ;
@@ -214,6 +214,13 @@ PROCEDURE ToUpper (s: String) : String ;
 *)
 
 PROCEDURE ToLower (s: String) : String ;
+
+
+(*
+   CopyOut - copies string, s, to a.
+*)
+
+PROCEDURE CopyOut (VAR a: ARRAY OF CHAR; s: String) ;
 
 
 (*
