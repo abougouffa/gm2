@@ -382,7 +382,7 @@ EXPORT QUALIFIED String,
                  Index, RIndex,
                  Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
                  Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
-                 Mult, Slice, RemoveWhitePrefix, char, string ;
+                 CopyOut, Mult, Slice, RemoveWhitePrefix, char, string ;
 
 TYPE
    String ;
@@ -588,6 +588,14 @@ PROCEDURE ToUpper (s: String) : String ;
 
 @findex ToLower
 PROCEDURE ToLower (s: String) : String ;
+
+
+(*
+   CopyOut - copies string, s, to a.
+*)
+
+@findex CopyOut
+PROCEDURE CopyOut (VAR a: ARRAY OF CHAR; s: String) ;
 
 
 (*
@@ -2149,12 +2157,14 @@ DEFINITION MODULE StringConvert ;
 
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IntegerToString, StringToInteger,
+                 StringToLongInteger, LongIntegerToString,
                  StringToCardinal, CardinalToString,
                  StringToLongCardinal, LongCardinalToString,
                  StringToShortCardinal, ShortCardinalToString,
+                 StringToLongreal, LongrealToString,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
-                 StringToLongreal, LongrealToString, stor, stolr ;
+                 stor, stolr ;
 
 
 (*
@@ -2212,6 +2222,36 @@ PROCEDURE StringToInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : INTE
 
 @findex StringToCardinal
 PROCEDURE StringToCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : CARDINAL ;
+
+
+(*
+   LongIntegerToString - converts LONGINT, i, into a String. The field with
+                         can be specified if non zero. Leading characters
+                         are defined by padding and this function will
+                         prepend a + if sign is set to TRUE.
+                         The base allows the caller to generate binary,
+                         octal, decimal, hexidecimal numbers.
+                         The value of lower is only used when hexidecimal
+                         numbers are generated and if TRUE then digits
+                         abcdef are used, and if FALSE then ABCDEF are used.
+*)
+
+@findex LongIntegerToString
+PROCEDURE LongIntegerToString (i: LONGINT; width: CARDINAL; padding: CHAR;
+                               sign: BOOLEAN; base: CARDINAL; lower: BOOLEAN) : String ;
+
+
+
+(*
+   StringToLongInteger - converts a string, s, of, base, into an LONGINT.
+                         Leading white space is ignored. It stops converting
+                         when either the string is exhausted or if an illegal
+                         numeral is found.
+                         The parameter found is set TRUE if a number was found.
+*)
+
+@findex StringToLongInteger
+PROCEDURE StringToLongInteger (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGINT ;
 
 
 (*
@@ -3097,6 +3137,7 @@ are not as these were constrained by the limitations of MS-DOS.
 @menu
 * gm2-libs-pim/Break::Break.def
 * gm2-libs-pim/CardinalIO::CardinalIO.def
+* gm2-libs-pim/Conversions::Conversions.def
 * gm2-libs-pim/DebugTrace::DebugTrace.def
 * gm2-libs-pim/Delay::Delay.def
 * gm2-libs-pim/Display::Display.def
@@ -3165,7 +3206,7 @@ END Break.
 @page
 
 
-@node gm2-libs-pim/CardinalIO, gm2-libs-pim/DebugTrace, gm2-libs-pim/Break, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/CardinalIO, gm2-libs-pim/Conversions, gm2-libs-pim/Break, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/CardinalIO
 
 @example
@@ -3309,7 +3350,52 @@ END CardinalIO.
 @page
 
 
-@node gm2-libs-pim/DebugTrace, gm2-libs-pim/Delay, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Conversions, gm2-libs-pim/DebugTrace, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/Conversions
+
+@example
+DEFINITION MODULE Conversions ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library.
+*)
+
+EXPORT QUALIFIED ConvertOctal, ConvertHex, ConvertCardinal,
+                 ConvertInteger, ConvertLongInt, ConvertShortInt ;
+
+(*
+   ConvertOctal - converts a CARDINAL, num, into an octal/hex/decimal
+                  string and right justifies the string. It adds
+                  spaces rather than '0' to pad out the string
+                  to len characters.
+
+                  If the length of str is < num then the number is
+                  truncated on the right.
+*)
+
+@findex ConvertOctal
+PROCEDURE ConvertOctal    (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+@findex ConvertHex
+PROCEDURE ConvertHex      (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+@findex ConvertCardinal
+PROCEDURE ConvertCardinal (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+
+(*
+   The INTEGER counterparts will add a '-' if, num, is <0
+*)
+
+@findex ConvertInteger
+PROCEDURE ConvertInteger (num: INTEGER; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+@findex ConvertLongInt
+PROCEDURE ConvertLongInt (num: LONGINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+
+
+END Conversions.
+@end example
+@page
+
+
+@node gm2-libs-pim/DebugTrace, gm2-libs-pim/Delay, gm2-libs-pim/Conversions, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/DebugTrace
 
 @example
