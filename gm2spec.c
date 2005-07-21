@@ -53,8 +53,11 @@ int lang_specific_extra_outfiles = 0;
 
 #undef DEBUGGING
 
-typedef enum { iso, pim, ulm, maxlib } libs;
-static char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "max" };
+typedef enum { iso, pim, ulm, logitech, pimcoroutine, maxlib } libs;
+
+/* the last entry in libraryName must be the longest string in the list */
+static char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "logitech",
+				       "pim-coroutine", "pim-coroutine" };
 
 void add_default_directories (int incl, char ***in_argv, libs which_lib);
 void insert_arg (int incl, int *in_argc, char ***in_argv);
@@ -126,7 +129,11 @@ add_default_directories (incl, in_argv, which_lib)
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
   if (which_lib == pim)
-    strcat(gm2libs, "iso");   /* fall back to iso libraries if using pim */
+    /*
+     *  fall back to logitech libraries if using pim (the logitech
+     *  libraries are extended pim libraries)
+     */
+    strcat(gm2libs, libraryName[logitech]);
   else
     strcat(gm2libs, "pim");   /* all other libraries fall back to pim */
 
@@ -195,8 +202,14 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
       incl = i;
     if (strncmp((*in_argv)[i], "-Wiso", 5) == 0)
       libraries = iso;
-    if (strncmp((*in_argv)[i], "-Wulm", 5) == 0)
+    if (strncmp((*in_argv)[i], "-Wlibs=pim", 10) == 0)
+      libraries = pim;
+    if (strncmp((*in_argv)[i], "-Wlibs=ulm", 10) == 0)
       libraries = ulm;
+    if (strncmp((*in_argv)[i], "-Wlibs=logitech", 15) == 0)
+      libraries = logitech;
+    if (strncmp((*in_argv)[i], "-Wlibs=pim-coroutine", 20) == 0)
+      libraries = pimcoroutine;
     i++;
   }
 #if defined(DEBUGGING)

@@ -191,7 +191,7 @@ mutually exclusive PIM2 features).
 
 It is also able to compile the University of Ulm libraries which
 are now distributed as part of GNU Modula-2. To reference these
-libraries use the @samp{-Wulm} compiler switch.
+libraries use the @samp{-Wlibs=ulm} compiler switch.
 
 @item 0.60
 many Logitech compatible libraries will be provided, which will
@@ -318,13 +318,33 @@ that the ISO libraries are searched before the PIM libraries.
 @item -Wpim
 turn on PIM standard features. Currently this enables the PIM
 @code{SYSTEM} module and determines which identifiers are pervasive
-(declared in the base module). It alters the default library search
-path so that the PIM libraries are searched before the ISO libraries.
+(declared in the base module).
 
 @item -Wpim2
 turn on PIM-2 standard features. Currently this removes @code{SIZE}
 from being a pervasive identifier (declared in the base module).
 It places @code{SIZE} in the @code{SYSTEM} module.
+
+@item -Wlibs=ulm
+modifies the default library search path so that the University of Ulm
+libraries are searched before the other PIM libraries.
+
+@item -Wlibs=pim
+modifies the default library search path so that the PIM libraries
+are searched before any others (the default).
+
+@item -Wlibs=iso
+modifies the default library search path so that the ISO libraries are
+searched before any others (not needed if @samp{-Wiso} was specified).
+
+@item -Wlibs=logitech
+modifies the default library search path so that the Logitech compatible
+libraries are searched before the base PIM libraries.
+
+@item -Wlibs=pim-coroutine
+modifies the default libraries search path so that the PIM @code{SYSTEM}
+module providing coroutine support is searched before the base PIM libraries.
+This directory also includes many coroutine related libraries.
 
 @item -Wextended-opaque
 allows opaque types to be implemented as any type. This is a GNU

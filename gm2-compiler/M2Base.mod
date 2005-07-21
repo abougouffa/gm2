@@ -1093,12 +1093,15 @@ END MixTypes ;
 (*
    IsMathType - returns TRUE if the type is a mathematical type.
                 A mathematical type has a range larger than INTEGER.
-                (Typically SHORTREAL/REAL/LONGREAL/LONGINT)
+                (Typically SHORTREAL/REAL/LONGREAL/LONGINT/LONGCARD)
 *)
 
 PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (type=LongInt) OR (type=Real) OR (type=LongReal) OR (type=ShortReal) )
+   RETURN(
+          (type=LongCard) OR (type=LongInt) OR (type=Real) OR
+          (type=LongReal) OR (type=ShortReal)
+         )
 END IsMathType ;
 
 

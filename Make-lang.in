@@ -102,6 +102,8 @@ po-generated:
 #
 GM2_LIB_DIR_ULM= $(libsubdir)/gm2/ulm
 GM2_LIB_DIR_PIM= $(libsubdir)/gm2/pim
+GM2_LIB_DIR_LOG= $(libsubdir)/gm2/logitech
+GM2_LIB_DIR_PCO= $(libsubdir)/gm2/pim-coroutine
 GM2_LIB_DIR_ISO= $(libsubdir)/gm2/iso
 GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/gm2-libiberty $(objdir)/gm2/gm2-auto \
@@ -243,8 +245,14 @@ $(GM2_LIB_DIR_ISO):
 $(GM2_LIB_DIR_ULM):
 	-mkdir -p $(GM2_LIB_DIR_ULM)
 
+$(GM2_LIB_DIR_LOG):
+	-mkdir -p $(GM2_LIB_DIR_LOG)
+
+$(GM2_LIB_DIR_PCO):
+	-mkdir -p $(GM2_LIB_DIR_PCO)
+
 gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
-                    $(GM2_LIB_DIR_ULM)
+                    $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_PCO)
 	-if [ -f $(GM2)$(exeext) ]; then \
 	  if [ -f $(GM2)-cross$(exeext) ]; then \
 	    rm -f $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
@@ -275,18 +283,31 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
             chmod a+x $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
           fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod \
-                 $(srcdir)/gm2/gm2-libs-pim/*.def $(srcdir)/gm2/gm2-libs-pim/*.mod ; do \
+	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(DESTDIR)$(GM2_LIB_DIR_PIM)/$$i ; \
               $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_PIM) ; \
            fi ; \
-        done
-	for i in x gm2/gm2-libs/*.o gm2/gm2-libs-pim/*.o ; do \
+        done ; \
+	for i in x gm2/gm2-libs/*.o ; do \
            rm -f $(DESTDIR)$(GM2_LIB_DIR_PIM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
                  $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_PIM) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/gm2-libs-pim/*.def $(srcdir)/gm2/gm2-libs-pim/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(DESTDIR)$(GM2_LIB_DIR_LOG)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_LOG) ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-pim/*.o ; do \
+           rm -f $(DESTDIR)$(GM2_LIB_DIR_PIM)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_LOG) ; \
               fi ; \
            fi ; \
         done ; \
@@ -599,7 +620,7 @@ gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcd
 
 GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def       \
                      Assertion.def   NumberIO.def    Break.def       SYSTEM.def      \
-                     CmdArgs.def     Scan.def        DebugPMD.def    StrCase.def     \
+                     CmdArgs.def     Scan.def                        StrCase.def     \
                      FIO.def         StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def    wrapc.def                       Environment.def \
                      FpuIO.def       Debug.def       SysStorage.def  DynamicStrings.def \
@@ -609,7 +630,7 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
 
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
-                     DebugPMD.mod    StrCase.mod     FIO.mod         StrIO.mod       \
+                                     StrCase.mod     FIO.mod         StrIO.mod       \
                      TimeString.mod  StrLib.mod                      Environment.mod \
                      FpuIO.mod       Debug.mod       SysStorage.mod  DynamicStrings.mod     \
                      SFIO.mod        M2RTS.mod       SArgs.mod                       \
@@ -665,7 +686,7 @@ GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Indexing.mod    \
 
 GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def       \
                      Assertion.def     NumberIO.def    Break.def       SYSTEM.def      \
-                     CmdArgs.def       Scan.def        DebugPMD.def    StrCase.def     \
+                     CmdArgs.def       Scan.def                        StrCase.def     \
                      FIO.def           StrIO.def       StrLib.def      TimeString.def  \
                      UnixArgs.def      wrapc.def                       Environment.def \
                      FpuIO.def         Debug.def       SysStorage.def  \
@@ -676,7 +697,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
-                     CmdArgs.mod       Scan.mod        DebugPMD.mod    StrCase.mod     \
+                     CmdArgs.mod       Scan.mod                        StrCase.mod     \
                      FIO.mod           StrIO.mod       StrLib.mod      TimeString.mod  \
                                                                        Environment.mod \
                      FpuIO.mod         Debug.mod       SysStorage.mod  \
@@ -781,7 +802,8 @@ GM2-LIBS-ULM-MODS-SYS  = \
 GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
               Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
-              Delay.mod     ErrorCode.mod   DebugTrace.mod
+              Delay.mod     ErrorCode.mod   DebugTrace.mod \
+              Conversions.mod               DebugPMD.mod
 
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 

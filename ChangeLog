@@ -1,3 +1,16 @@
+2005-07-21	Gaius Mulley <gaius@glam.ac.uk>
+
+	* removed the -Wulm option and replaced it with -Wlibs=ulm
+	* added -Wlibs=logitech, -Wlibs=pim, -Wlibs=iso,
+	  -Wlibs=pim-coroutine
+	* altered gm2/Make-file.in so that the correct library modules
+	  are placed into the correct directories during install.
+
+2005-07-20	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug exposed by: testsuite/gm2/pim/pass/maxlongint.mod
+	* modified IsMathType in gm2/gm2-compiler/M2Base.mod accordingly.
+	
 2005-07-18	Gaius Mulley <gaius@glam.ac.uk>
 
 	* updated gm2/gm2.texi and gm2/gm2-libs.texi

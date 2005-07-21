@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2Options ;
 
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
-FROM DynamicStrings IMPORT String, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
+FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
 FROM M2Search IMPORT PrependSearchPath ;
 FROM M2Version IMPORT WriteVersion ;
 FROM M2Printf IMPORT printf0, printf1 ;
@@ -169,12 +169,10 @@ BEGIN
       Pim2 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wulm')
+   ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-Wlibs=')
    THEN
       (* at present this switch just modifies the default library
          search path *)
-      Pim := TRUE ;
-      Iso := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-Wd')
    THEN
