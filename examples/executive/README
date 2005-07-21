@@ -1,6 +1,8 @@
 Building
 ========
 
+This can only be built once GNU Modula-2 has been installed.
+
 To build type:
 
   make
