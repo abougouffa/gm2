@@ -68,7 +68,7 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
                  build-libs build-libs-iso build-libs-ulm \
-                 build-libs-pim
+                 build-libs-pim build-libs-coroutines
 
 TEXI2HTML=texi2html
 
@@ -116,6 +116,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/ulm-lib-gm2/sys \
                  $(objdir)/gm2/ulm-lib-gm2/std \
                  $(objdir)/gm2/gm2-libs-pim \
+                 $(objdir)/gm2/gm2-libs-coroutines \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 check_cross: stage1/gm2 force
@@ -220,6 +221,9 @@ $(objdir)/gm2/ulm-lib-gm2/std:
 $(objdir)/gm2/gm2-libs-pim:
 	mkdir $@
 
+$(objdir)/gm2/gm2-libs-coroutines:
+	mkdir $@
+
 stage1/gm2:
 	-mkdir -p stage1/gm2
 
@@ -308,6 +312,21 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
                  $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_LOG) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/gm2-libs-coroutines/*.def \
+                 $(srcdir)/gm2/gm2-libs-coroutines/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(DESTDIR)$(GM2_LIB_DIR_PCO)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_PCO) ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-coroutines/*.o ; do \
+           rm -f $(DESTDIR)$(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_PCO) ; \
               fi ; \
            fi ; \
         done ; \
@@ -805,6 +824,10 @@ GM2-LIBS-PIM-MODS  = \
               Delay.mod     ErrorCode.mod   DebugTrace.mod \
               Conversions.mod               DebugPMD.mod
 
+GM2-LIBS-PIM-COR-MODS = \
+              Debug.mod     SYSTEM.mod      TimerHandler.mod \
+              Executive.mod SysVec.mod
+
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 
 BUILD-LIBS-BOOT = $(BUILD-LIBS-BOOT-H) \
@@ -1075,7 +1098,13 @@ build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
 build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
                 gm2/gm2-libs-pim/Break.o
 
+build-libs-coroutines: $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
+                       gm2/gm2-libs-coroutines/KeyBoardLEDs.o
+
 gm2/gm2-libs-pim/Break.o: gm2/gm2-libs-pim/Break.c
+	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
+
+gm2/gm2-libs-coroutines/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
@@ -1092,6 +1121,9 @@ gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
 
 gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+
+gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
+	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \

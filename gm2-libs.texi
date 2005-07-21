@@ -35,7 +35,6 @@ building the GNU Modula-2 compiler.
 * gm2-libs/Builtins::Builtins.def
 * gm2-libs/CmdArgs::CmdArgs.def
 * gm2-libs/Debug::Debug.def
-* gm2-libs/DebugPMD::DebugPMD.def
 * gm2-libs/DynamicStrings::DynamicStrings.def
 * gm2-libs/Environment::Environment.def
 * gm2-libs/FIO::FIO.def
@@ -315,7 +314,7 @@ END CmdArgs.
 @page
 
 
-@node gm2-libs/Debug, gm2-libs/DebugPMD, gm2-libs/CmdArgs, Base libraries
+@node gm2-libs/Debug, gm2-libs/DynamicStrings, gm2-libs/CmdArgs, Base libraries
 @subsection gm2-libs/Debug
 
 @example
@@ -355,18 +354,7 @@ END Debug.
 @page
 
 
-@node gm2-libs/DebugPMD, gm2-libs/DynamicStrings, gm2-libs/Debug, Base libraries
-@subsection gm2-libs/DebugPMD
-
-@example
-DEFINITION MODULE DebugPMD ;
-
-END DebugPMD.
-@end example
-@page
-
-
-@node gm2-libs/DynamicStrings, gm2-libs/Environment, gm2-libs/DebugPMD, Base libraries
+@node gm2-libs/DynamicStrings, gm2-libs/Environment, gm2-libs/Debug, Base libraries
 @subsection gm2-libs/DynamicStrings
 
 @example
@@ -3115,10 +3103,10 @@ Here is an outline of the module layering:
 
 @example
 
-InOut  RealInOut  LongIO
-    \     |     /
+InOut  RealInOut  LongIO CardinalIO
+    \     |     /        /
        Terminal
-------------------------
+---------------------------
           |
        Termbase
        /      \
@@ -3138,6 +3126,7 @@ are not as these were constrained by the limitations of MS-DOS.
 * gm2-libs-pim/Break::Break.def
 * gm2-libs-pim/CardinalIO::CardinalIO.def
 * gm2-libs-pim/Conversions::Conversions.def
+* gm2-libs-pim/DebugPMD::DebugPMD.def
 * gm2-libs-pim/DebugTrace::DebugTrace.def
 * gm2-libs-pim/Delay::Delay.def
 * gm2-libs-pim/Display::Display.def
@@ -3145,6 +3134,7 @@ are not as these were constrained by the limitations of MS-DOS.
 * gm2-libs-pim/FileSystem::FileSystem.def
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
+* gm2-libs-pim/LongIO::LongIO.def
 * gm2-libs-pim/RealInOut::RealInOut.def
 * gm2-libs-pim/Termbase::Termbase.def
 * gm2-libs-pim/Terminal::Terminal.def
@@ -3350,7 +3340,7 @@ END CardinalIO.
 @page
 
 
-@node gm2-libs-pim/Conversions, gm2-libs-pim/DebugTrace, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Conversions, gm2-libs-pim/DebugPMD, gm2-libs-pim/CardinalIO, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Conversions
 
 @example
@@ -3385,9 +3375,11 @@ PROCEDURE ConvertCardinal (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
 *)
 
 @findex ConvertInteger
-PROCEDURE ConvertInteger (num: INTEGER; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertInteger  (num: INTEGER; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
 @findex ConvertLongInt
-PROCEDURE ConvertLongInt (num: LONGINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertLongInt  (num: LONGINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+@findex ConvertShortInt
+PROCEDURE ConvertShortInt (num: SHORTINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
 
 
 END Conversions.
@@ -3395,7 +3387,18 @@ END Conversions.
 @page
 
 
-@node gm2-libs-pim/DebugTrace, gm2-libs-pim/Delay, gm2-libs-pim/Conversions, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/DebugPMD, gm2-libs-pim/DebugTrace, gm2-libs-pim/Conversions, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/DebugPMD
+
+@example
+DEFINITION MODULE DebugPMD ;
+
+END DebugPMD.
+@end example
+@page
+
+
+@node gm2-libs-pim/DebugTrace, gm2-libs-pim/Delay, gm2-libs-pim/DebugPMD, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/DebugTrace
 
 @example
@@ -3982,7 +3985,7 @@ END InOut.
 @page
 
 
-@node gm2-libs-pim/Keyboard, gm2-libs-pim/RealInOut, gm2-libs-pim/InOut, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Keyboard, gm2-libs-pim/LongIO, gm2-libs-pim/InOut, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Keyboard
 
 @example
@@ -4018,7 +4021,33 @@ END Keyboard.
 @page
 
 
-@node gm2-libs-pim/RealInOut, gm2-libs-pim/Termbase, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/LongIO, gm2-libs-pim/RealInOut, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/LongIO
+
+@example
+DEFINITION MODULE LongIO ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library for GNU Modula-2.
+*)
+
+EXPORT QUALIFIED Done, ReadLongInt, WriteLongInt ;
+
+VAR
+   Done: BOOLEAN ;
+
+@findex ReadLongInt
+PROCEDURE ReadLongInt (VAR i: LONGINT) ;
+@findex WriteLongInt
+PROCEDURE WriteLongInt (i: LONGINT; n: CARDINAL) ;
+
+
+END LongIO.
+@end example
+@page
+
+
+@node gm2-libs-pim/RealInOut, gm2-libs-pim/Termbase, gm2-libs-pim/LongIO, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/RealInOut
 
 @example

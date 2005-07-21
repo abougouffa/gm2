@@ -36,9 +36,6 @@
 /* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
-/* Define to 1 if you have the <signal.h> header file. */
-#undef HAVE_SIGNAL_H
-
 /* Define to 1 if you have the `dup' function. */
 #undef HAVE_DUP
 
@@ -111,6 +108,9 @@
 /* Define to 1 if you have the `pipe' function. */
 #undef HAVE_PIPE
 
+/* Define to 1 if you have the <pthread.h> header file. */
+#undef HAVE_PTHREAD_H
+
 /* Define to 1 if you have the <pwd.h> header file. */
 #undef HAVE_PWD_H
 
@@ -131,6 +131,9 @@
 
 /* Define to 1 if you have the `setuid' function. */
 #undef HAVE_SETUID
+
+/* Define to 1 if you have the <signal.h> header file. */
+#undef HAVE_SIGNAL_H
 
 /* Define to 1 if you have the `stat' function. */
 #undef HAVE_STAT

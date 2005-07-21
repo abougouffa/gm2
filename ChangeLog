@@ -1,9 +1,12 @@
 2005-07-21	Gaius Mulley <gaius@glam.ac.uk>
 
+	* moved gm2/examples/executive/Executive, TimerHandler, Debug,
+	  SysVec to gm2/gm2-libs-coroutines and
+	* made gm2/Make-lang.in install these modules
 	* removed the -Wulm option and replaced it with -Wlibs=ulm
 	* added -Wlibs=logitech, -Wlibs=pim, -Wlibs=iso,
 	  -Wlibs=pim-coroutine
-	* altered gm2/Make-file.in so that the correct library modules
+	* altered gm2/Make-lang.in so that the correct library modules
 	  are placed into the correct directories during install.
 
 2005-07-20	Gaius Mulley <gaius@glam.ac.uk>
