@@ -1,0 +1,55 @@
+(* Copyright (C) 2003 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+
+DEFINITION MODULE Conversions ;
+
+(*
+    Title      : Conversions
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Tue Jul 19 09:53:52 2005
+    Revision   : $Version$ 
+    Description: provides a Logitech-3.0 compatible library.
+*)
+
+EXPORT QUALIFIED ConvertOctal, ConvertHex, ConvertCardinal,
+                 ConvertInteger, ConvertLongInt, ConvertShortInt ;
+
+(*
+   ConvertOctal - converts a CARDINAL, num, into an octal/hex/decimal
+                  string and right justifies the string. It adds
+                  spaces rather than '0' to pad out the string
+                  to len characters.
+
+                  If the length of str is < num then the number is
+                  truncated on the right.
+*)
+
+PROCEDURE ConvertOctal    (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertHex      (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertCardinal (num, len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+
+(*
+   The INTEGER counterparts will add a '-' if, num, is <0
+*)
+
+PROCEDURE ConvertInteger  (num: INTEGER; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertLongInt  (num: LONGINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+PROCEDURE ConvertShortInt (num: SHORTINT; len: CARDINAL; VAR str: ARRAY OF CHAR) ;
+
+
+END Conversions.

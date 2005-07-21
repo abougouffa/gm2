@@ -7,10 +7,10 @@ Here is an outline of the module layering:
 
 @example
 
-InOut  RealInOut  LongIO
-    \     |     /
+InOut  RealInOut  LongIO CardinalIO
+    \     |     /        /
        Terminal
-------------------------
+---------------------------
           |
        Termbase
        /      \
