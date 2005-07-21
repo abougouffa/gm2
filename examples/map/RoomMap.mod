@@ -2,7 +2,6 @@ IMPLEMENTATION MODULE RoomMap ;
 
 
 IMPORT Break ;
-IMPORT DebugPMD ;
 
 FROM NumberIO IMPORT WriteCard ;
 FROM StrIO IMPORT WriteLn, WriteString ;
