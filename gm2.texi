@@ -12,8 +12,9 @@
 @c
 
 @setfilename gm2.info
-@set version-GM2 0.49
-@set version-GCC 3.3.6
+@set version-GM2     0.49
+@set version-GCC     3.3.6
+@set version-HARNESS 0.5
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
 
@@ -1415,7 +1416,7 @@ development it might fail to compile with the current version of gcc.
 The easiest and quickest method to obtain the development CVS source
 code for GNU Modula-2 and a compatible GCC release and the appropriate
 testsuite is to download the build harness:
-@uref{ftp://floppsie.comp.glam.ac.uk/pub/c/gm2-harness-0.4.tar.gz}.
+@uref{ftp://floppsie.comp.glam.ac.uk/pub/c/gm2-harness-@value{version-HARNESS}.tar.gz}.
 This will download the latest gm2 from the CVS repository, graft it
 onto the appropriate GCC release, graft the gcc testsuite onto the GCC
 tree and graft the GNU Modula-2 regression tests onto the tree. After
@@ -1426,8 +1427,8 @@ The @code{gm2-harness} is a normal tarball package and is built
 using the traditional GNU method.
 
 @example
-tar zxf gm2-harness-0.4.tar.gz
-cd gm2-harness-0.4
+tar zxf gm2-harness-@value{version-HARNESS}.tar.gz
+cd gm2-harness-@value{version-HARNESS}
 ./configure
 make
 su
