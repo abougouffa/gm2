@@ -1,3 +1,8 @@
+2005-05-25	Michel Derosa <derosa@videotron.ca>
+
+	* fixed malloc.h include for BSD based systems in
+	  gm2/gm2-libs-pim/Break.c
+
 2005-07-21	Gaius Mulley <gaius@glam.ac.uk>
 
 	* moved gm2/examples/executive/Executive, TimerHandler, Debug,
