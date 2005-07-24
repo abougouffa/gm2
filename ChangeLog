@@ -1,3 +1,8 @@
+2005-05-26	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified debian directory so that 0.49 can be built as
+	  a debian package
+
 2005-05-25	Michel Derosa <derosa@videotron.ca>
 
 	* fixed malloc.h include for BSD based systems in
