@@ -1,9 +1,14 @@
-2005-05-26	Gaius Mulley <gaius@glam.ac.uk>
+2005-08-08	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed many bugs in gm2/gm2-libs-coroutines/SysVec.mod
+	* minor updates to gm2/gm2-libs-coroutines/TimerHandler.mod
+
+2005-07-26	Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified debian directory so that 0.49 can be built as
 	  a debian package
 
-2005-05-25	Michel Derosa <derosa@videotron.ca>
+2005-07-25	Michel Derosa <derosa@videotron.ca>
 
 	* fixed malloc.h include for BSD based systems in
 	  gm2/gm2-libs-pim/Break.c

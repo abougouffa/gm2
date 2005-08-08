@@ -141,7 +141,6 @@ int tcpServerSocketFd (tcpServerState *s)
   return s->sockFd;
 }
 
-
 /*
  *  tcpServerIP - returns the IP address from structure, s.
  */

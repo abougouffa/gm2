@@ -29,9 +29,10 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED SetOfFd, Timeval,
                  InitSet, KillSet, InitTime, KillTime,
-                 GetTime,
+                 GetTime, SetTime,
                  FdZero, FdSet, FdClr, FdIsSet, Select,
-                 MaxFdsPlusOne, WriteCharRaw, ReadCharRaw ;
+                 MaxFdsPlusOne, WriteCharRaw, ReadCharRaw,
+                 GetTimeOfDay ;
 
 TYPE
    SetOfFd = ADDRESS ;    (* Hidden type in Selective.c *)
@@ -45,6 +46,7 @@ PROCEDURE Select (nooffds: CARDINAL;
 PROCEDURE InitTime (sec, usec: CARDINAL) : Timeval ;
 PROCEDURE KillTime (t: Timeval) : Timeval ;
 PROCEDURE GetTime (t: Timeval; VAR sec, usec: CARDINAL) ;
+PROCEDURE SetTime (t: Timeval; sec, usec: CARDINAL) ;
 PROCEDURE InitSet () : SetOfFd ;
 PROCEDURE KillSet (s: SetOfFd) : SetOfFd ;
 PROCEDURE FdZero (s: SetOfFd) ;
@@ -56,6 +58,13 @@ PROCEDURE MaxFdsPlusOne (a, b: INTEGER) : INTEGER ;
 (* you must use the raw routines with select - not the FIO buffered routines *)
 PROCEDURE WriteCharRaw (fd: INTEGER; ch: CHAR) ;
 PROCEDURE ReadCharRaw (fd: INTEGER) : CHAR ;
+
+(*
+   GetTimeOfDay - returns a record, Timeval, filled in with the
+                  current system time in seconds and microseconds.
+*)
+
+PROCEDURE GetTimeOfDay (tv: Timeval) : INTEGER ;
 
 
 END Selective.

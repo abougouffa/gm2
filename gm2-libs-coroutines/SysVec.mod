@@ -23,9 +23,15 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
 FROM SYSTEM IMPORT PRIORITY ;
 FROM libc IMPORT printf ;
+FROM Assertion IMPORT Assert ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
-                      SetOfFd, FdIsSet ;
+                      SetOfFd, FdIsSet, GetTime, FdZero, GetTimeOfDay, SetTime ;
+
+CONST
+   Microseconds = 1000000 ;
+   DebugTime    = 0 ;
+   Debugging    = FALSE ;
 
 TYPE
    VectorType = (input, output, time) ;
@@ -37,16 +43,19 @@ TYPE
                               exists  : Vector ;
                               no      : CARDINAL ;
                               File    : INTEGER ;
-                              Micro,
-                              Secs    : CARDINAL ;
+                              rel,
+                              abs     : Timeval ;
+                              queued  : BOOLEAN ;
                               
 (*  BUG IN GM2
                               CASE type OF
 
-                              time  : Micro: CARDINAL ;
-                                      Secs : CARDINAL |
+                              time  : rel,
+                                      abs   : Timeval ;
+                                      queued: BOOLEAN ;
+                                      Secs  : CARDINAL |
                               input,
-                              output: File : INTEGER
+                              output: File  : INTEGER
 
                               END
 *)
@@ -119,7 +128,10 @@ VAR
    v: Vector ;
    r: INTEGER ;
 BEGIN
-   (* r := printf("InitInputVector fd = %d priority = %d\n", fd, pri); *)
+   IF Debugging
+   THEN
+      r := printf("InitInputVector fd = %d priority = %d\n", fd, pri)
+   END ;
    v := FindVector(fd, input) ;
    IF v=NIL
    THEN
@@ -191,8 +203,9 @@ BEGIN
       pending  := NIL ;
       exists   := Exists ;
       no       := VecNo ;
-      Secs     := secs ;
-      Micro    := micro
+      rel      := InitTime(secs+DebugTime, micro) ;
+      abs      := InitTime(0, 0) ;
+      queued   := FALSE
    END ;
    Exists := v ;
    RETURN( VecNo )
@@ -255,8 +268,7 @@ BEGIN
            'cannot find vector supplied')
    ELSE
       WITH v^ DO
-         Micro   := micro ;
-         Secs    := secs
+         SetTime(rel, secs+DebugTime, micro)
       END
    END
 END ReArmTimeVector ;
@@ -280,8 +292,7 @@ BEGIN
            'cannot find vector supplied')
    ELSE
       WITH v^ DO
-         micro := Micro ;
-         secs  := Secs
+         GetTime(rel, secs, micro)
       END
    END
 END GetTimeVector ;
@@ -331,7 +342,14 @@ BEGIN
       ELSE
          (* r := printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
          v^.pending := Pending[v^.priority] ;
-         Pending[v^.priority] := v
+         Pending[v^.priority] := v ;
+         IF (v^.type=time) AND (NOT v^.queued)
+         THEN
+            v^.queued := TRUE ;
+            r := GetTimeOfDay(v^.abs) ;
+            Assert(r=0) ;
+            AddTime(v^.abs, v^.rel)
+         END
       END 
    ELSE
 (*
@@ -369,6 +387,10 @@ BEGIN
             u := u^.pending
          END ;
          u^.pending := v^.pending
+      END ;
+      IF v^.type=time
+      THEN
+         v^.queued := FALSE
       END
    END
 END ExcludeVector ;
@@ -385,7 +407,8 @@ BEGIN
    max := Max(fd, max) ;
    IF s=NIL
    THEN
-      s := InitSet()
+      s := InitSet() ;
+      FdZero(s)
    END ;
    FdSet(fd, s)
    (* r := printf('%d, ', fd) *)
@@ -398,31 +421,99 @@ END AddFd ;
 
 PROCEDURE DumpPendingQueue ;
 VAR
-   r: INTEGER ;
-   p: PRIORITY ;
-   v: Vector ;
+   r   : INTEGER ;
+   p   : PRIORITY ;
+   v   : Vector ;
+   s, m: CARDINAL ;
 BEGIN
-(*
-   DebugString("\nPending queue\n");
+   r := printf("Pending queue\n");
    FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
       r := printf("[%d]  ", p);
       v := Pending[p] ;
       WHILE v#NIL DO
          IF (v^.type=input) OR (v^.type=output)
          THEN
-            r := printf("%d ", v^.File)
+            r := printf("(fd=%d) (vec=%d)", v^.File, v^.no)
+         ELSIF v^.type=time
+         THEN
+            GetTime(v^.rel, s, m) ;
+            r := printf("time (%d.%6d secs)\n", s, m)
          END ;
          v := v^.pending
       END ;
       r := printf(" \n")
    END
-*)
 END DumpPendingQueue ;
 
 
 PROCEDURE stop ;
 BEGIN
 END stop ;
+
+
+(*
+   AddTime - t1 := t1 + t2
+*)
+
+PROCEDURE AddTime (t1, t2: Timeval) ;
+VAR
+   a, b, s, m: CARDINAL ;
+BEGIN
+   GetTime(t1, s, m) ;
+   GetTime(t2, a, b) ;
+   INC(a, s) ;
+   INC(b, m) ;
+   IF m>Microseconds
+   THEN
+      DEC(m, Microseconds) ;
+      INC(a)
+   END ;
+   SetTime(t1, a, b)
+END AddTime ;
+
+
+(*
+   IsGreaterEqual - returns TRUE if, a>=b
+*)
+
+PROCEDURE IsGreaterEqual (a, b: Timeval) : BOOLEAN ;
+VAR
+   as, am, bs, bm: CARDINAL ;
+BEGIN
+   GetTime(a, as, am) ;
+   GetTime(b, bs, bm) ;
+   RETURN( (as>bs) OR ((as=bs) AND (am>=bm)) )
+END IsGreaterEqual ;
+
+
+(*
+   SubTime - assigns, s and m, to a - b.
+*)
+
+PROCEDURE SubTime (VAR s, m: CARDINAL; a, b: Timeval) ;
+VAR
+   as, am,
+   bs, bm: CARDINAL ;
+BEGIN
+   GetTime(a, as, am) ;
+   GetTime(b, bs, bm) ;
+   IF IsGreaterEqual(a, b)
+   THEN
+      s := as-bs ;
+      IF am>=bm
+      THEN
+         m := am-bm
+      ELSE
+         Assert(s>0) ;
+         DEC(s) ;
+         m := (Microseconds + am) - bm
+      END
+   ELSE
+      s := 0 ;
+      m := 0
+   END
+END SubTime ;
+
 
 (*
    Listen - will either block indefinitely (until an interrupt)
@@ -437,24 +528,34 @@ PROCEDURE Listen (untilInterrupt: BOOLEAN;
                   call: DespatchVector;
                   pri: CARDINAL) ;
 VAR
+   found: BOOLEAN ;
    r    : INTEGER ;
+   b4,
+   after,
    t    : Timeval ;
    v    : Vector ;
    i, o : SetOfFd ;
-   maxFd,
-   s, m : INTEGER ;
+   b4s,
+   b4m,
+   afs,
+   afm,
+   s, m : CARDINAL ;
+   maxFd: INTEGER ;
    p    : CARDINAL ;
 BEGIN
    IF pri<MAX(PRIORITY)
    THEN
+      IF Debugging
+      THEN
+         DumpPendingQueue
+      END ;
       maxFd := -1 ;
       t := NIL ;
       i := NIL ;
       o := NIL ;
-      s := -1 ;
-      m := -1 ;
+      t := InitTime(MAX(CARDINAL), MAX(CARDINAL)) ;
       p := MAX(PRIORITY) ;
-      (*   r := printf('select fds = {') ; *)
+      found := FALSE ;
       WHILE p>pri DO
          v := Pending[p] ;
          WHILE v#NIL DO
@@ -463,13 +564,15 @@ BEGIN
                
                input :  AddFd(i, maxFd, File) |
                output:  AddFd(o, maxFd, File) |
-               time  :  IF s=-1
+               time  :  IF IsGreaterEqual(t, abs)
                         THEN
-                           s := Secs ;
-                           m := Micro
-                        ELSE
-                           s := Min(s, Secs) ;
-                           m := Min(m, Micro)
+                           GetTime(abs, s, m) ;
+                           IF Debugging
+                           THEN
+                              r := printf("shortest delay is %d.%d\n", s, m)
+                           END ;
+                           SetTime(t, s, m) ;
+                           found := TRUE
                         END
 
                END
@@ -478,58 +581,35 @@ BEGIN
          END ;
          DEC(p)
       END ;
-      IF untilInterrupt
+      IF NOT untilInterrupt
       THEN
-         IF s#-1
-         THEN
-            t := InitTime(s, m)
-         END
-      ELSE
-         t := InitTime(0, 0)
+         SetTime(t, 0, 0)
       END ;
-      IF untilInterrupt AND (i=NIL) AND (o=NIL) AND (s=-1)
+      IF untilInterrupt AND (i=NIL) AND (o=NIL) AND (NOT found)
       THEN
          Halt(__FILE__, __LINE__, __FUNCTION__,
               'deadlock found, no more processes to run and no interrupts active')
       END ;
       (* r := printf('timeval = 0x%x\n', t) ; *)
       (* r := printf('}\n') ; *)
-      IF (t=NIL) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
+      IF (NOT found) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
       THEN
+         t := KillTime(t) ;
          RETURN
       ELSE
-(*
-         IF (i#NIL) AND (o#NIL) AND FdIsSet(0, i) AND FdIsSet(1, o)
+         GetTime(t, s, m) ;
+         b4 := InitTime(0, 0) ;
+         after := InitTime(0, 0) ;
+         r := GetTimeOfDay(b4) ;
+         Assert(r=0) ;
+         SubTime(s, m, t, b4) ;
+         SetTime(t, s, m) ;
+         IF Debugging
          THEN
-            r := printf('select %d  (0, 1)\n', maxFd)
-         ELSIF (i#NIL) AND FdIsSet(0, i)
-         THEN
-            r := printf('select %d  (0)\n', maxFd)
-         ELSIF (o#NIL) AND FdIsSet(1, o)
-         THEN
-            r := printf('select %d  (1)\n', maxFd)
-         ELSIF t=NIL
-         THEN
-            r := printf('select %d  ()   really odd \n', maxFd)
-         ELSE
-            (* r := printf('polling\n') *)
+            r := printf("select waiting for %d.%d seconds\n", s, m)
          END ;
-*)
          r := pth_select(maxFd+1, i, o, NIL, t)
       END ;
-      (*
-      IF t#NIL
-      THEN
-         GetTime(t, s, m) ;
-         v := Pending ;
-         WHILE v#NIL DO
-            IF v^.type=time
-            THEN
-               
-            END
-         END
-      END
-      *)
       p := MAX(PRIORITY) ;
       WHILE p>pri DO
          v := Pending[p] ;
@@ -537,29 +617,49 @@ BEGIN
             WITH v^ DO
                CASE type OF
                
-               input :  IF FdIsSet(File, i)
+               input :  IF (i#NIL) AND FdIsSet(File, i)
                         THEN
-(*                         r := printf('read is ready\n') ; *)
-                           call(no, priority, arg)
-                        END |
-               output:  IF FdIsSet(File, o)
-                        THEN
-(*                         r := printf('write is ready\n') ; *)
-                           call(no, priority, arg)
-                        END |
-               time  :  call(no, priority, arg) ;
-                        (* think ...
-                         IF NOT untilInterrupt
-                        THEN
-                           IF s=-1
+                           IF Debugging
                            THEN
-                              s := Secs ;
-                              m := Micro
-                           ELSE
-                              s := Min(s, Secs) ;
-                              m := Min(m, Micro)
+                              r := printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
+                              DumpPendingQueue
+                           END ;
+                           call(no, priority, arg)
+                        END |
+               output:  IF (o#NIL) AND FdIsSet(File, o)
+                        THEN
+                           IF Debugging
+                           THEN
+                              r := printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
+                              DumpPendingQueue
+                           END ;
+                           call(no, priority, arg)
+                        END |
+               time  :  IF untilInterrupt OR TRUE
+                        THEN
+                           r := GetTimeOfDay(after) ;
+                           Assert(r=0) ;
+                           IF Debugging
+                           THEN
+                              GetTime(t, s, m) ;
+                              GetTime(after, afs, afm) ;
+                              GetTime(b4, b4s, b4m) ;
+                              r := printf("waited %d.%d + %d.%d now is %d.%d\n",
+                                          s, m, b4s, b4m, afs, afm) ;
+                           END ;
+                           IF IsGreaterEqual(after, abs)
+                           THEN
+                              IF Debugging
+                              THEN
+                                 DumpPendingQueue ;
+                                 r := printf("time has expired calling despatcher\n")
+                              END ;
+                              call(no, priority, arg)
+                           ELSIF Debugging
+                           THEN
+                              r := printf("must wait longer as time has not expired\n")
                            END
-                        END  *)
+                        END
 
                END
             END ;
@@ -570,6 +670,14 @@ BEGIN
       IF t#NIL
       THEN
          t := KillTime(t)
+      END ;
+      IF b4#NIL
+      THEN
+         t := KillTime(b4)
+      END ;
+      IF after#NIL
+      THEN
+         t := KillTime(after)
       END ;
       IF i#NIL
       THEN

@@ -323,7 +323,7 @@ BEGIN
       IF (TotalTicks MOD TicksPerSecond) = 0                                (* remove for student *)
       THEN                                                                  (* remove for student *)
          ScrollLED := NOT ScrollLED ;                                       (* remove for student *)
-         r := printf("<scroll %d>", TotalTicks);
+         (* r := printf("<scroll %d>", TotalTicks); *)
          SwitchScroll(ScrollLED)                             (* (iv)  *)    (* remove for student *)
       END ;                                                                 (* remove for student *)
       IF (TotalTicks MOD MaxQuantum) = 0                                    (* remove for student *)

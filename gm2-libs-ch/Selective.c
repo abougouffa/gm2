@@ -37,20 +37,27 @@ int Selective_Select (int nooffds,
 */
 
 #if defined(HAVE_TIMEVAL)
-struct timeval *Selective_InitTime (long sec, long usec)
+struct timeval *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   struct timeval *t=(struct timeval *)malloc(sizeof(struct timeval));
 
-  t->tv_sec = sec;
-  t->tv_usec = usec;
+  t->tv_sec = (long int)sec;
+  t->tv_usec = (long int)usec;
   return t;
 }
 
 void Selective_GetTime (struct timeval *t,
-			long *sec, long *usec)
+			unsigned int *sec, unsigned int *usec)
 {
-  *sec = t->tv_sec;
-  *usec = t->tv_usec;
+  *sec = (unsigned int)t->tv_sec;
+  *usec = (unsigned int)t->tv_usec;
+}
+
+void Selective_SetTime (struct timeval *t,
+			unsigned int sec, unsigned int usec)
+{
+  t->tv_sec = sec;
+  t->tv_usec = usec;
 }
 
 /*
@@ -93,7 +100,6 @@ void Selective_FdZero (fd_set *s)
   FD_ZERO(s);
 }
 
-
 /*
    PROCEDURE Fd_Set (fd: INTEGER; SetOfFd) ;
 */
@@ -123,9 +129,18 @@ int Selective_FdIsSet (int fd, fd_set *s)
   return FD_ISSET(fd, s);
 }
 
+/*
+   GetTimeOfDay - returns a record, Timeval, filled in with the
+                  current system time in seconds and microseconds.
+*/
+
+int Selective_GetTimeOfDay (struct timeval *t)
+{
+    return gettimeofday (t, NULL);
+}
 #else
 
-void *Selective_InitTime (long sec, long usec)
+void *Selective_InitTime (unsigned int sec, unsigned int usec)
 {
   return NULL;
 }
@@ -136,7 +151,12 @@ void *Selective_KillTime (void *t)
 }
 
 void Selective_GetTime (struct timeval *t,
-			long *sec, long *usec)
+		       unsigned int *sec, unsigned int *usec)
+{
+}
+
+void Selective_SetTime (struct timeval *t,
+			unsigned int sec, unsigned int usec)
 {
 }
 
@@ -162,6 +182,10 @@ int Selective_FdIsSet (int fd, void *s)
   return 0;
 }
 
+int Selective_GetTimeOfDay (struct timeval *t)
+{
+    return -1;
+}
 #endif
 
 
