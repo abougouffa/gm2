@@ -8919,7 +8919,7 @@ END PopWith ;
 PROCEDURE CheckWithReference ;
 VAR
    f        : WithFrame ;
-   n,
+   i, n,
    Sym, Type: CARDINAL ;
 BEGIN
    n := NoOfItemsInStackAddress(WithStack) ;
@@ -8927,9 +8927,10 @@ BEGIN
    THEN
       PopTF(Sym, Type) ;
       (* inner WITH always has precidence *)
-      REPEAT
+      i := 1 ;  (* top of stack *)
+      WHILE i<=n DO
          (* WriteString('Checking for a with') ; *)
-         f := PeepAddress(WithStack, n) ;
+         f := PeepAddress(WithStack, i) ;
          WITH f^ DO
             IF IsRecordField(Sym) AND (GetParent(Sym)=RecordSym)
             THEN
@@ -8938,12 +8939,12 @@ BEGIN
                PushTF(Sym, Type) ;
                BuildAccessWithField ;
                PopTF(Sym, Type) ;
-               n := 0
+               i := n+1
             ELSE
-               DEC(n)
+               INC(i)
             END
          END
-      UNTIL n=0 ;
+      END ;
       PushTF(Sym, Type)
    END
 END CheckWithReference ;

@@ -1,3 +1,9 @@
+2005-08-09	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed nested WITH statement bug and added
+	* testsuite/gm2/pim/run/pass/nestedwith.mod to regressively
+	  check the fix.
+
 2005-08-08	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed many bugs in gm2/gm2-libs-coroutines/SysVec.mod
