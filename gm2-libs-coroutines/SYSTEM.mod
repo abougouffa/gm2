@@ -52,6 +52,8 @@ VAR
 *)
 
 PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
+VAR
+   r: INTEGER ;
 BEGIN
    localMain(p1) ;
    p1.ints := currentIntValue ;
@@ -61,6 +63,7 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'error when attempting to context switch to the same process')
    END ;
+   (* r := printf('ctx\n') ; *)
    currentContext := p2.context ;
    IF pth_uctx_switch(p1.context, p2.context)=0
    THEN

@@ -1,3 +1,9 @@
+2005-09-01	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented -Wdef=extension and -Wmod=extension switches
+	  into GNU Modula-2 compiler and subcomponents (gm2l and gm2m).
+	* documented the new switches in gm2/gm2.texi
+	
 2005-08-09	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed nested WITH statement bug and added

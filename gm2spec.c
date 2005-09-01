@@ -56,10 +56,11 @@ int lang_specific_extra_outfiles = 0;
 typedef enum { iso, pim, ulm, logitech, pimcoroutine, maxlib } libs;
 
 /* the last entry in libraryName must be the longest string in the list */
-static char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "logitech",
+static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "logitech",
 				       "pim-coroutine", "pim-coroutine" };
 
 void add_default_directories (int incl, char ***in_argv, libs which_lib);
+void add_arg (int incl, char ***in_argv, const char *str);
 void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
 void add_exec_prefix(int, int *in_argc, char ***in_argv);
@@ -76,13 +77,25 @@ void add_exec_prefix(pos, in_argc, in_argv)
      char ***in_argv;
 {
   char *prefix;
-  char *ar = AR_PATH;
+  const char *ar = AR_PATH;
   insert_arg(pos, in_argc, in_argv);
   prefix = (char *) alloca(strlen("-Wtarget-ar=") +
 				    strlen(ar) + 1);
   strcpy(prefix, "-Wtarget-ar=");
   strcat(prefix, ar);
   (*in_argv)[pos] = xstrdup(prefix);
+}
+
+void
+add_arg (incl, in_argv, str)
+  int incl;
+  char ***in_argv;
+  const char *str;
+{
+  if ((*in_argv)[incl] == NULL)
+      (*in_argv)[incl] = xstrdup(str);
+  else
+     fprintf(stderr, "internal error not adding to an empty space\n");
 }
 
 /*
@@ -187,6 +200,8 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   int i=1;
   int incl=-1;
   int libraries=pim;
+  int x=-1;
+  int moduleExtension = -1;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -210,6 +225,10 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
       libraries = logitech;
     if (strncmp((*in_argv)[i], "-Wlibs=pim-coroutine", 20) == 0)
       libraries = pimcoroutine;
+    if (strncmp((*in_argv)[i], "-Wmod=", 6) == 0)
+      moduleExtension = i;
+    if (strcmp((*in_argv)[i], "-x") == 0)
+      x = i;
     i++;
   }
 #if defined(DEBUGGING)
@@ -225,6 +244,12 @@ lang_specific_driver (in_argc, in_argv, in_added_libraries)
   }
   add_default_directories(incl, (char ***)in_argv, libraries);
   add_exec_prefix(1, in_argc, (char ***)in_argv);
+  if (x == -1 && moduleExtension != -1) {
+    insert_arg(1, in_argc, (char ***)in_argv);
+    add_arg(1, (char ***)in_argv, "modula-2");
+    insert_arg(1, in_argc, (char ***)in_argv);
+    add_arg(1, (char ***)in_argv, "-x");
+  }
 #if defined(DEBUGGING)
   i=1;
   while (i<*in_argc) {

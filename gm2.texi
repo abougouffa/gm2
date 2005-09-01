@@ -356,6 +356,21 @@ compiling the module which imports the opaque type.
 @item -Wsources
 displays the path to the source of each module.
 
+@item -Wdef=
+recognise the specified suffix as a definition module filename.
+The default implmentation and module filename suffix is @file{.def}.
+If this option is used GNU Modula-2 will still fall back to this
+default if a requested definition module is not found.
+
+@item -Wmod=
+recognise the specified suffix as implementation and module filenames.
+The default implmentation and module filename suffix is @file{.mod}.
+If this option is used GNU Modula-2 will still fall back to this
+default if it needs to read an implmentation module and the specified
+suffixed filename does not exist.
+Both this option and @code{-Wdef=} also work with the @code{-Wmakeall}
+option.
+
 @item -Wverbose-unbounded
 inform the user which non @code{VAR} unbounded parameters will be
 passed by reference.  This only produces output if the option

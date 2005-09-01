@@ -20,14 +20,13 @@ IMPLEMENTATION MODULE TimerHandler ;
 
 FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
 FROM SysStorage IMPORT ALLOCATE ;
+FROM NumberIO IMPORT CardToStr ;
 FROM Debug IMPORT Halt, DebugString ;
 FROM KeyBoardLEDs IMPORT SwitchScroll ;
-FROM NumberIO IMPORT CardToStr ;
 FROM SysVec IMPORT ReArmTimeVector, GetTimeVector, InitTimeVector ;
-FROM libc IMPORT printf ;
 FROM Executive IMPORT DESCRIPTOR, Suspend, Resume, GetCurrentProcess,
                       WaitForIO, InitProcess, RotateRunQueue,
-                      ProcessName ;
+                      ProcessName, Ps ;
 
 CONST
    MaxQuantum     =     4 ;   (* Maximum ticks a process may consume    *)
@@ -346,8 +345,14 @@ END Timer ;
 
 PROCEDURE CheckActiveQueue ;
 VAR
-   e: EVENT ;
+   e      : EVENT ;
+   Private: DESCRIPTOR ;
 BEGIN
+   IF Debugging
+   THEN
+      DebugString('inside CheckActiveQueue\n') ;
+      DisplayActive
+   END ;
    WHILE (ActiveQueue#NIL) AND (ActiveQueue^.NoOfTicks=0) DO    (* (i)  *)
       e := ActiveQueue ;
       OnSoloQueue(e) ;
@@ -356,15 +361,25 @@ BEGIN
       WITH e^ DO
          IF (NOT WasCancelled) AND (Process#NIL)
          THEN
-            Process := Resume(Process) ;                        (* (ii) *)
-            Process := NIL
+            Private := Process ;    (* we use our own Private variable  *)
+            Process := NIL ;        (* as we might context switch in    *)
+            Process := Resume(Private) ;  (* resume.               (ii) *)
+            IF Debugging
+            THEN
+               Ps
+            END
          END
       END
    END ;
    IF ActiveQueue#NIL
    THEN
       DEC(ActiveQueue^.NoOfTicks)                              (* (iii) *)
-   END
+   END ;
+   IF Debugging
+   THEN
+      DebugString('after CheckActiveQueue\n') ;
+      DisplayActive
+   END ;
 END CheckActiveQueue ;
 
 
@@ -683,7 +698,12 @@ BEGIN
       CardToStr(NoOfTicks, 6, a) ;
       DebugString(a) ;
       DebugString('  process (') ;
-      ProcessName(Process) ;
+      IF Process=NIL
+      THEN
+         DebugString('is NIL') ;
+      ELSE
+         ProcessName(Process)
+      END ;
       DebugString(')') ;
       IF WasCancelled
       THEN

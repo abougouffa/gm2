@@ -39,7 +39,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2005/05/27 14:54:31 $]
+   Date       : 3/4/86  [$Date: 2005/09/01 18:52:38 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -53,7 +53,7 @@ FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
                      fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 FROM M2FileName IMPORT CalculateFileName, CalculateStemName ;
-FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath ;
+FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath, FindSourceDefFile, FindSourceModFile, SetDefExtension, SetModExtension ;
 FROM SArgs IMPORT Narg, GetArg ;
 FROM M2Defaults IMPORT GetSearchPath, GetOptions ;
 FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
@@ -142,7 +142,7 @@ PROCEDURE IsASon (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
 PROCEDURE DefExists (ModuleName: Name) : BOOLEAN ; FORWARD ;
 PROCEDURE MakeDef (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
 PROCEDURE ModExists (ModuleName: Name) : BOOLEAN ; FORWARD ;
-PROCEDURE ParseSource (ModuleName, ExtName: Name; IsDefinition: BOOLEAN;
+PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
                        n: PtrToNode; Level: CARDINAL) ; FORWARD ;
 PROCEDURE MakeObject (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
 PROCEDURE MakeMod (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ; FORWARD ;
@@ -291,7 +291,7 @@ BEGIN
          END ;
          IF ModExists(ModuleName)
          THEN
-            ParseSource(ModuleName, ModExtn, FALSE, son, Level+1)
+            ParseSource(ModuleName, FALSE, son, Level+1)
          END
       END ;
       (*
@@ -341,7 +341,7 @@ END MakeObject ;
 PROCEDURE MakeExe (ModuleName: Name; n: PtrToNode; Level: CARDINAL) ;
 BEGIN
    MakeObject(ModuleName, n, Level+1) ;
-   ParseSource(ModuleName, ModExtn, FALSE, n, Level+1)
+   ParseSource(ModuleName, FALSE, n, Level+1)
 END MakeExe ;
 
 
@@ -361,7 +361,7 @@ BEGIN
          THEN
             MakeDef(ModuleName, n, Level)
          END ;
-         ParseSource(ModuleName, ModExtn, FALSE, n, Level+1)
+         ParseSource(ModuleName, FALSE, n, Level+1)
       ELSE
          fprintf1(op, 'warning no matching %a.mod\n', ModuleName)
       END
@@ -379,7 +379,7 @@ VAR
 BEGIN
    IF CreateSon(son, ModuleName, DefExtn, n, Level+1)
    THEN
-      ParseSource(ModuleName, DefExtn, TRUE, n, Level)
+      ParseSource(ModuleName, TRUE, n, Level)
    END
 END MakeDef ;
  
@@ -414,24 +414,25 @@ END ExamineCompilationUnit ;
    Open - attempts to open a module, it will terminate if the module cannot be found.
 *)
 
-PROCEDURE Open (ModuleName, ExtName: Name; IsDefinition: BOOLEAN) ;
+PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) ;
 VAR
    a, b: String ;
 BEGIN
    IF Debugging
    THEN
-      fprintf2(StdErr, 'opening module %a.%a\n', ModuleName, ExtName)
+      fprintf1(StdErr, 'opening module %a.%a\n', ModuleName)
    END ;
    IF IsDefinition
    THEN
       IF NOT DefExists(ModuleName)
       THEN
-         fprintf2(StdErr, '# fatal error: %a.%a does not exist\n', ModuleName, ExtName) ;
+         fprintf1(StdErr, '# fatal error: definition module for %a does not exist\n', ModuleName)
       END
    ELSE
       IF NOT ModExists(ModuleName)
       THEN
-         fprintf2(StdErr, '# fatal error: %a.%a does not exist\n', ModuleName, ExtName) ;
+         fprintf1(StdErr, '# fatal error: implementation/program module %a does not exist\n',
+                  ModuleName)
       END
    END ;
    IF (NOT IsDefinition) AND (ModuleName=MainName)
@@ -445,12 +446,20 @@ BEGIN
          exit(1)
       END
    ELSE
-      a := CalculateFileName(InitStringCharStar(KeyToCharStar(ModuleName)),
-                             Mark(InitStringCharStar(KeyToCharStar(ExtName)))) ;
-      IF NOT (FindSourceFile(a, b) AND OpenSource(PreprocessModule(b)))
+      a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
+      IF IsDefinition
       THEN
-         fprintf1(StdErr, 'cannot find source file %s\n', a) ;
-         exit(1)
+         IF NOT (FindSourceDefFile(a, b) AND OpenSource(PreprocessModule(b)))
+         THEN
+            fprintf1(StdErr, 'cannot find source file for definition module %s\n', a) ;
+            exit(1)
+         END
+      ELSE
+         IF NOT (FindSourceModFile(a, b) AND OpenSource(PreprocessModule(b)))
+         THEN
+            fprintf1(StdErr, 'cannot find source file for implementation or program module %s\n', a) ;
+            exit(1)
+         END
       END ;
       a := KillString(a) ;
       b := KillString(b)
@@ -759,7 +768,7 @@ END Real ;
    ParseSource - find all imports from a module.
 *)
  
-PROCEDURE ParseSource (ModuleName, ExtName: Name; IsDefinition: BOOLEAN;
+PROCEDURE ParseSource (ModuleName: Name; IsDefinition: BOOLEAN;
                        n: PtrToNode; Level: CARDINAL) ;
 VAR
    i, j     : CARDINAL ;
@@ -769,7 +778,7 @@ VAR
    OldList  : List ;
 BEGIN
    InitList(ImportedModules) ;
-   Open(ModuleName, ExtName, IsDefinition) ;
+   Open(ModuleName, IsDefinition) ;
    CompilationUnit ;
    CloseSource ;
    OldList := DuplicateList(ImportedModules) ;
@@ -938,6 +947,7 @@ VAR
    Key  : CARDINAL ;
 BEGIN
    a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
+   b := NIL ;
    Key := GetSymKey(ModExistsTree, ModuleName) ;
    IF Key=WORD(KeyFound)
    THEN
@@ -965,8 +975,7 @@ BEGIN
             RETURN( FALSE )
          END
       ELSE
-         b := CalculateFileName(a, Mark(InitString('mod'))) ;
-         IF FindSourceFile(b, b)
+         IF FindSourceModFile(a, b)
          THEN
             IF Debugging
             THEN
@@ -1002,6 +1011,7 @@ VAR
    Key  : CARDINAL ;
 BEGIN
    a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
+   b := NIL ;
    Key := GetSymKey(DefExistsTree, ModuleName) ;
    IF Key=WORD(KeyFound)
    THEN
@@ -1013,8 +1023,7 @@ BEGIN
       RETURN( FALSE )
    ELSIF Key=NulKey
    THEN
-      b := CalculateFileName(a, Mark(InitString('def'))) ;
-      IF FindSourceFile(b, b)
+      IF FindSourceDefFile(a, b)
       THEN
          IF Debugging
          THEN
@@ -1106,11 +1115,12 @@ BEGIN
          WITH t^.Source^ DO
             name := InitStringCharStar(KeyToCharStar(ModName)) ;
             ext  := InitStringCharStar(KeyToCharStar(Ext)) ;
+            s := NIL ;
             IF Ext=ObjExtn
             THEN
                s := CalculateFileName(name, Mark(InitStringCharStar(KeyToCharStar(ModExtn)))) ;
                p := NIL ;
-               IF FindSourceFile(s, p)
+               IF FindSourceModFile(name, p)
                THEN
                   p := KillString(p) ;
                   (* good we can build the object from known source *)
@@ -1118,6 +1128,24 @@ BEGIN
                   s := Add(DestDirectory, CalculateFileName(name, ext)) ;
                   FormatS(s)
                END
+            ELSIF Ext=DefExtn
+            THEN
+               p := NIL ;
+               IF FindSourceDefFile(name, p)
+               THEN
+                  FormatString(' ') ;
+                  FormatS(p)
+               END ;
+               p := KillString(p)
+            ELSIF Ext=ModExtn
+            THEN
+               p := NIL ;
+               IF FindSourceModFile(name, p)
+               THEN
+                  FormatString(' ') ;
+                  FormatS(p)
+               END ;
+               p := KillString(p)
             ELSE
                s := CalculateFileName(name, ext) ;
                p := NIL ;
@@ -1158,6 +1186,16 @@ BEGIN
    ELSIF n^.Source^.Ext=ExeExtn
    THEN
       s := Dup(name)
+   ELSIF n^.Source^.Ext=DefExtn
+   THEN
+      IF FindSourceDefFile(name, s)
+      THEN
+      END
+   ELSIF n^.Source^.Ext=ModExtn
+   THEN
+      IF FindSourceModFile(name, s)
+      THEN
+      END
    ELSE
       f := CalculateFileName(name, ext) ;
       IF FindSourceFile(f, s)
@@ -1207,8 +1245,7 @@ BEGIN
                name := NIL
             ELSE
                name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
-               a := CalculateFileName(name, Mark(InitString('mod'))) ;
-               IF NOT FindSourceFile(a, s)
+               IF NOT FindSourceModFile(name, s)
                THEN
                   fprintf1(StdErr, 'cannot find source file %s\n', a) ;
                   exit(1)
@@ -1240,8 +1277,7 @@ BEGIN
          ELSE
             s := NIL ;
             name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
-            a := CalculateFileName(name, Mark(InitString('mod'))) ;
-            IF NOT FindSourceFile(a, s)
+            IF NOT FindSourceModFile(name, s)
             THEN
                fprintf1(StdErr, 'cannot find source file %s\n', a) ;
                exit(1)
@@ -1472,6 +1508,14 @@ BEGIN
                M2MPathFound := TRUE ;
                M2MPath := Slice(s, 9, 0) ;
                InitSearchPath(M2MPath)
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=')
+            THEN
+               SetDefExtension(Slice(s, 6, 0)) ;
+               DefExtn := makekey(string(Slice(s, 6, 0)))
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
+            THEN
+               SetModExtension(Slice(s, 6, 0)) ;
+               ModExtn := makekey(string(Slice(s, 6, 0)))
             END
          END ;
          INC(i)

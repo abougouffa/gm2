@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE M2Options ;
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
 FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
-FROM M2Search IMPORT PrependSearchPath ;
+FROM M2Search IMPORT PrependSearchPath, SetDefExtension, SetModExtension ;
 FROM M2Version IMPORT WriteVersion ;
 FROM M2Printf IMPORT printf0, printf1 ;
 FROM libc IMPORT exit ;
@@ -94,6 +94,12 @@ BEGIN
             IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=')
+            THEN
+               SetDefExtension(Slice(s, 6, 0))
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
+            THEN
+               SetModExtension(Slice(s, 6, 0))
             ELSIF EqualArray(s, '-Wcppbegin')
             THEN
                i := ScanCppArgs(i)
@@ -294,6 +300,10 @@ BEGIN
       Legal := TRUE
    ELSIF EqualArray(s, '-Wmakeall') OR EqualArray(s, '-Wmakeall0') OR
          EqualArray(Mark(Slice(s, 0, 9)), '-Wmake-I=')
+   THEN
+      Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=') OR
+         EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
    THEN
       Legal := TRUE
    ELSE

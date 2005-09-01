@@ -40,7 +40,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2005/07/21 11:40:37 $]
+              : [$Date: 2005/09/01 18:52:38 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -64,7 +64,8 @@ FROM M2Reserved IMPORT toktype ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4,
                      fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 FROM M2FileName IMPORT CalculateFileName, CalculateStemName ;
-FROM M2Search IMPORT InitSearchPath, FindSourceFile, PrependSearchPath ;
+FROM M2Search IMPORT InitSearchPath, FindSourceDefFile, FindSourceModFile,
+                     PrependSearchPath, SetDefExtension, SetModExtension ;
 FROM SArgs IMPORT Narg, GetArg ;
 FROM M2Defaults IMPORT GetOptions, GetSearchPath ;
 FROM NameKey IMPORT Name, KeyToCharStar, WriteKey, MakeKey, GetKey, makekey, NulName ;
@@ -98,10 +99,10 @@ TYPE
             END ;
  
 (* %%%FORWARD%%%
-PROCEDURE Open (ModuleName, ExtName: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE ScanSources (src: Name) ; FORWARD ;
 PROCEDURE ScanImport ; FORWARD ;
-PROCEDURE ScanImportsIn (extension: Name; IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE ScanImportsIn (IsDefinition: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE MakeModule (ModuleName: Name) ; FORWARD ;
 PROCEDURE CalculateDepth ; FORWARD ;
 PROCEDURE SortSources ; FORWARD ;
@@ -194,16 +195,21 @@ END ScanSources ;
                    contains EXPORT UNQUALIFIED and/or is a DEFINITION MODULE FOR C.
 *)
 
-PROCEDURE ScanImportsIn (extension: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
+PROCEDURE ScanImportsIn (IsDefinition: BOOLEAN) : BOOLEAN ;
 VAR
    modname: Name ;
    i, n   : CARDINAL ;
 BEGIN
-   IF Open(pSource^.name, extension, IsDefinition)
+   IF Open(pSource^.name, IsDefinition)
    THEN
       IF Debugging
       THEN
-         printf2('opened %a.%a\n', pSource^.name, extension)
+         IF IsDefinition
+         THEN
+            printf1('opened definition module %a\n', pSource^.name)
+         ELSE
+            printf1('opened module %a\n', pSource^.name)
+         END
       END ;
       InitList(ImportedModules) ;
       CompilationUnit ;
@@ -231,11 +237,11 @@ END ScanImportsIn ;
 
 PROCEDURE ScanImport ;
 BEGIN
-   IF ScanImportsIn(MakeKey('def'), TRUE)
+   IF ScanImportsIn(TRUE)
    THEN
    END ;
    (* set OnlyDef to TRUE if we dont see a .mod file *)
-   pSource^.OnlyDef := NOT ScanImportsIn(MakeKey('mod'), FALSE)
+   pSource^.OnlyDef := NOT ScanImportsIn(FALSE)
 END ScanImport ;
 
 % declaration gm2l begin
@@ -569,7 +575,7 @@ END MakeModule ;
    Open - attempts to open a module, it will return TRUE if the module can be found.
 *)
 
-PROCEDURE Open (ModuleName, ExtName: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
+PROCEDURE Open (ModuleName: Name; IsDefinition: BOOLEAN) : BOOLEAN ;
 VAR
    a, b: String ;
 BEGIN
@@ -585,17 +591,30 @@ BEGIN
          RETURN( FALSE )
       END
    ELSE
-      a := CalculateFileName(InitStringCharStar(KeyToCharStar(ModuleName)),
-                             Mark(InitStringCharStar(KeyToCharStar(ExtName)))) ;
-      IF FindSourceFile(a, b) AND OpenSource(PreprocessModule(b))
+      a := InitStringCharStar(KeyToCharStar(ModuleName)) ;
+      IF IsDefinition
       THEN
-         a := KillString(a) ;
-         b := KillString(b) ;
-         RETURN( TRUE )
+         IF FindSourceDefFile(a, b) AND OpenSource(PreprocessModule(b))
+         THEN
+            a := KillString(a) ;
+            b := KillString(b) ;
+            RETURN( TRUE )
+         ELSE
+            a := KillString(a) ;
+            b := KillString(b) ;
+            RETURN( FALSE )
+         END
       ELSE
-         a := KillString(a) ;
-         b := KillString(b) ;
-         RETURN( FALSE )
+         IF FindSourceModFile(a, b) AND OpenSource(PreprocessModule(b))
+         THEN
+            a := KillString(a) ;
+            b := KillString(b) ;
+            RETURN( TRUE )
+         ELSE
+            a := KillString(a) ;
+            b := KillString(b) ;
+            RETURN( FALSE )
+         END
       END
    END
 END Open ;
@@ -732,7 +751,7 @@ BEGIN
    n := SArgs.Narg() ;
    IF n=1
    THEN
-      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-o outputfile] modulefile\n')
+      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-Wdef=extension] [-Wmod=extension] [-o outputfile] modulefile\n')
    ELSE
       i := 1 ;
       REPEAT
@@ -741,6 +760,12 @@ BEGIN
             IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=')
+            THEN
+               SetDefExtension(Slice(s, 6, 0))
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
+            THEN
+               SetModExtension(Slice(s, 6, 0))
             ELSIF EqualArray(s, '-Wcppbegin')
             THEN
                i := ScanCppArgs(i)

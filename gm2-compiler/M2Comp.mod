@@ -24,7 +24,7 @@ FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPass3,
                    SetPassToNoPass, SetPassToPassHidden ;
 
 FROM M2Reserved IMPORT toktype ;
-FROM M2Search IMPORT FindSourceFile ;
+FROM M2Search IMPORT FindSourceDefFile, FindSourceModFile ;
 FROM M2Code IMPORT Code ;
 FROM M2LexBuf IMPORT OpenSource, CloseSource, ResetForNewPass, currenttoken, GetToken, ReInitialize, currentstring ;
 FROM M2FileName IMPORT CalculateFileName ;
@@ -198,8 +198,7 @@ BEGIN
       SymName := InitStringCharStar(KeyToCharStar(GetSymName(Sym))) ;
       IF IsDefImp(Sym)
       THEN
-         FileName := CalculateFileName(SymName, Mark(InitString('def'))) ;
-         IF FindSourceFile(FileName, FileName)
+         IF FindSourceDefFile(SymName, FileName)
          THEN
             qprintf2('   Module %-20s : %s\n', SymName, FileName) ;
             ModuleType := Definition ;
@@ -231,8 +230,7 @@ BEGIN
          THEN
             FileName := Dup(s)
          ELSE
-            FileName := CalculateFileName(SymName, Mark(InitString('mod'))) ;
-            IF FindSourceFile(FileName, FileName)
+            IF FindSourceModFile(SymName, FileName)
             THEN
             END
          END ;

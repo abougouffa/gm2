@@ -35,7 +35,7 @@ EXPORT QUALIFIED TicksPerSecond, GetTicks,
 
 
 CONST
-   TicksPerSecond =   10 ;  (* Number of ticks per second.         *)
+   TicksPerSecond =   25 ;  (* Number of ticks per second.         *)
 
 TYPE
    EVENT ;

@@ -20,13 +20,15 @@ IMPLEMENTATION MODULE M2Search ;
 FROM SFIO IMPORT Exists ;
 
 FROM DynamicStrings IMPORT InitString, InitStringChar,
-                           KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup ;
+                           KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup, Mark ;
+FROM M2FileName IMPORT CalculateFileName ;
 
  
 CONST
    Directory    =   '/' ;
  
 VAR
+   Def, Mod,
    UserPath,
    InitialPath: String ;
 
@@ -116,6 +118,84 @@ END FindSourceFile ;
 
 
 (*
+   FindSourceDefFile - attempts to find the definition module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*)
+
+PROCEDURE FindSourceDefFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+VAR
+   f: String ;
+BEGIN
+   IF Def#NIL
+   THEN
+      f := CalculateFileName(Stem, Def) ;
+      IF FindSourceFile(f, FullPath)
+      THEN
+         RETURN( TRUE )
+      END ;
+      f := KillString(f)
+   END ;
+   (* and try the GNU Modula-2 default extension *)
+   f := CalculateFileName(Stem, Mark(InitString('def'))) ;
+   RETURN( FindSourceFile(f, FullPath) )
+END FindSourceDefFile ;
+
+
+(*
+   FindSourceModFile - attempts to find the implementation module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*)
+
+PROCEDURE FindSourceModFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+VAR
+   f: String ;
+BEGIN
+   IF Mod#NIL
+   THEN
+      f := CalculateFileName(Stem, Mod) ;
+      IF FindSourceFile(f, FullPath)
+      THEN
+         RETURN( TRUE )
+      END ;
+      f := KillString(f)
+   END ;
+   (* and try the GNU Modula-2 default extension *)
+   f := CalculateFileName(Stem, Mark(InitString('mod'))) ;
+   RETURN( FindSourceFile(f, FullPath) )
+END FindSourceModFile ;
+
+
+(*
+   SetDefExtension - sets the default extension for definition modules to, ext.
+                     The string, ext, should be deallocated by the caller at
+                     an appropriate time.
+*)
+
+PROCEDURE SetDefExtension (ext: String) ;
+BEGIN
+   Def := KillString(Def) ;
+   Def := Dup(ext)
+END SetDefExtension ;
+
+
+(*
+   SetModExtension - sets the default extension for implementation and program
+                     modules to, ext. The string, ext, should be deallocated
+                     by the caller at an appropriate time.
+*)
+
+PROCEDURE SetModExtension (ext: String) ;
+BEGIN
+   Mod := KillString(Mod) ;
+   Mod := Dup(ext)
+END SetModExtension ;
+
+
+(*
    InitSearchPath - assigns the search path to Path.
                     The string Path may take the form:
 
@@ -144,7 +224,9 @@ END InitSearchPath ;
 PROCEDURE Init ;
 BEGIN
    UserPath    := InitString('') ;
-   InitialPath := InitStringChar('.')
+   InitialPath := InitStringChar('.') ;
+   Def := NIL ;
+   Mod := NIL
 END Init ;
 
 

@@ -26,7 +26,9 @@ DEFINITION MODULE M2Search ;
 *)
 
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED InitSearchPath, PrependSearchPath, FindSourceFile ;
+EXPORT QUALIFIED InitSearchPath, PrependSearchPath, FindSourceFile,
+                 FindSourceDefFile, FindSourceModFile,
+                 SetDefExtension, SetModExtension ;
 
 
 (*
@@ -65,6 +67,44 @@ PROCEDURE PrependSearchPath (path: String) ;
 
 PROCEDURE FindSourceFile (FileName: String;
                           VAR FullPath: String) : BOOLEAN ;
+
+
+(*
+   FindSourceDefFile - attempts to find the definition module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*)
+
+PROCEDURE FindSourceDefFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+
+
+(*
+   FindSourceModFile - attempts to find the implementation module for
+                       a module, Stem. If successful it returns
+                       the full path and returns TRUE. If unsuccessful
+                       then FALSE is returned and FullPath is set to NIL.
+*)
+
+PROCEDURE FindSourceModFile (Stem: String; VAR FullPath: String) : BOOLEAN ;
+
+
+(*
+   SetDefExtension - sets the default extension for definition modules to, ext.
+                     The string, ext, should be deallocated by the caller at
+                     an appropriate time.
+*)
+
+PROCEDURE SetDefExtension (ext: String) ;
+
+
+(*
+   SetModExtension - sets the default extension for implementation and program
+                     modules to, ext. The string, ext, should be deallocated
+                     by the caller at an appropriate time.
+*)
+
+PROCEDURE SetModExtension (ext: String) ;
 
 
 END M2Search.
