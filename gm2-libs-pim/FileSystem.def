@@ -11,8 +11,10 @@ DEFINITION MODULE FileSystem ;
                  interface.
 *)
 
+FROM SYSTEM IMPORT WORD, BYTE, ADDRESS ;
 IMPORT FIO ;
 FROM DynamicStrings IMPORT String ;
+
 EXPORT QUALIFIED File, Response, Flag, FlagSet,
 
                  Create, Close, Lookup, Rename, Delete,
@@ -235,7 +237,7 @@ PROCEDURE Length (VAR f: File; VAR high, low: CARDINAL) ;
           and rereads the buffer if in modify mode.
 *)
 
-PROCECURE Doio (VAR f: File) ;
+PROCEDURE Doio (VAR f: File) ;
 
 
 (*

@@ -1,3 +1,13 @@
+2005-09-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+          gm2-libs/StringConvert.mod incorrect assumption of negative valued
+	  modulus operator.
+	* added testsuite/gm2/pimlib/{logitech, ulm} with tests to check
+	  that programs can be linked against logitech and the ulm libraries.
+	* added testsuite/gm2/pim/run/pass/modulus.mod which tests for
+	  various division and modulus cases.
+	
 2005-09-01	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented -Wdef=extension and -Wmod=extension switches

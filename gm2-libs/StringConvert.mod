@@ -197,18 +197,21 @@ PROCEDURE IntegerToString (i: INTEGER; width: CARDINAL; padding: CHAR; sign: BOO
                            base: CARDINAL; lower: BOOLEAN) : String ;
 VAR
    s: String ;
+   c: CARDINAL ;
 BEGIN
    IF i<0
    THEN
       IF i=MIN(INTEGER)
       THEN
+         (* remember that -15 MOD 4 = 1 in Modula-2 *)
+         c := VAL(CARDINAL, ABS(i+1))+1 ;
          IF width>0
          THEN
             RETURN( ConCat(IntegerToString(i DIV 10, width-1, padding, sign, base, lower),
-                           IntegerToString(i MOD 10, 0, ' ', FALSE, base, lower)) )
+                           IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          ELSE
             RETURN( ConCat(IntegerToString(i DIV 10, 0, padding, sign, base, lower),
-                           IntegerToString(i MOD 10, 0, ' ', FALSE, base, lower)) )
+                           IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          END
       ELSE
          s := InitString('-')
@@ -304,18 +307,22 @@ PROCEDURE LongIntegerToString (i: LONGINT; width: CARDINAL; padding: CHAR;
 
 VAR
    s: String ;
+   c: LONGCARD ;
 BEGIN
    IF i<0
    THEN
       IF i=MIN(LONGINT)
       THEN
+         (* remember that -15 MOD 4 is 1 in Modula-2, and although ABS(MIN(LONGINT)+1)
+            is very likely MAX(LONGINT), it is safer not to assume this is the case *)
+         c := VAL(LONGCARD, ABS(i+1))+1 ;
          IF width>0
          THEN
             RETURN( ConCat(LongIntegerToString(i DIV 10, width-1, padding, sign, base, lower),
-                           LongIntegerToString(i MOD 10, 0, ' ', FALSE, base, lower)) )
+                           LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          ELSE
             RETURN( ConCat(LongIntegerToString(i DIV 10, 0, padding, sign, base, lower),
-                           LongIntegerToString(i MOD 10, 0, ' ', FALSE, base, lower)) )
+                           LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          END
       ELSE
          s := InitString('-')

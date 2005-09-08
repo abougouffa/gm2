@@ -822,7 +822,7 @@ GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
               Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
               Delay.mod     ErrorCode.mod   DebugTrace.mod \
-              Conversions.mod               DebugPMD.mod
+              Conversions.mod               DebugPMD.mod  LongIO.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \
