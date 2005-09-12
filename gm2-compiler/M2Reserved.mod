@@ -228,6 +228,9 @@ BEGIN
    RecordTok := MakeKey('RECORD') ;
    AddKeyword(RecordTok, ORD(recordtok)) ;
 
+   RemTok := MakeKey('REM') ;
+   AddKeyword(RemTok, ORD(remtok)) ;
+
    RepeatTok := MakeKey('REPEAT') ;
    AddKeyword(RepeatTok, ORD(repeattok)) ;
 

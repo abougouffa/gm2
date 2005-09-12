@@ -217,6 +217,7 @@ PROCEDURE                  { updatepos(); seenFunctionStart=TRUE;
 QUALIFIED                  { updatepos(); M2LexBuf_AddTok(M2Reserved_qualifiedtok); return; }
 UNQUALIFIED                { updatepos(); M2LexBuf_AddTok(M2Reserved_unqualifiedtok); return; }
 RECORD                     { updatepos(); M2LexBuf_AddTok(M2Reserved_recordtok); return; }
+REM                        { updatepos(); M2LexBuf_AddTok(M2Reserved_remtok); return; }
 REPEAT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_repeattok); return; }
 RETURN                     { updatepos(); M2LexBuf_AddTok(M2Reserved_returntok); return; }
 SET                        { updatepos(); M2LexBuf_AddTok(M2Reserved_settok); return; }

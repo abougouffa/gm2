@@ -41,7 +41,7 @@ EXPORT QUALIFIED IsReserved, tokToTok,
    ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
    ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
    OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
-   UnQualifiedTok, RecordTok, RepeatTok, ReturnTok, SetTok,
+   UnQualifiedTok, RecordTok, RemTok, RepeatTok, ReturnTok, SetTok,
    ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
 
    (* additional tokens which extend PIM Modula-2 slightly *)
@@ -64,7 +64,7 @@ TYPE
               implementationtok, importtok, intok, looptok, modtok,
               moduletok, nottok, oftok, ortok, pointertok,
               proceduretok, qualifiedtok, unqualifiedtok,
-              recordtok, repeattok, returntok, settok, thentok,
+              recordtok, remtok, repeattok, returntok, settok, thentok,
               totok, typetok, untiltok, vartok, whiletok, withtok,
               asmtok, volatiletok, periodperiodperiodtok,
               datetok, linetok, filetok,
@@ -85,7 +85,7 @@ VAR
    ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
    ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
    OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
-   UnQualifiedTok, RecordTok, RepeatTok, ReturnTok, SetTok,
+   UnQualifiedTok, RecordTok, RemTok, RepeatTok, ReturnTok, SetTok,
    ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
 
    EofTok, AsmTok, VolatileTok,

@@ -588,6 +588,7 @@ static char *                 createUniqueLabel                           PARAMS
        void                   gccgm2_BuildStartMainModule       	  PARAMS ((void));
        void                   gccgm2_BuildEndMainModule 	       	  PARAMS ((void));
        tree                   gccgm2_BuildCap                             PARAMS ((tree t));
+       tree                   gccgm2_BuildAbs                             PARAMS ((tree t));
        void                   gccgm2_DebugTree 		       	 	  PARAMS ((tree t));
        void                   gccgm2_DebugTreeChain                       PARAMS ((tree t));
        tree                   build_function_call 	       	 	  PARAMS ((tree function, tree params));
@@ -11929,6 +11930,19 @@ gccgm2_BuildCap (t)
 
   error ("argument to CAP is not a constant or variable of type CHAR");
   return error_mark_node;
+}
+
+
+/*
+ *  BuildAbs - builds the Modula-2 function ABS(t) and returns
+ *             the result in a gcc Tree.
+ */
+
+tree
+gccgm2_BuildAbs (t)
+     tree t;
+{
+  return build_unary_op (ABS_EXPR, t, 0);
 }
 
 /* taken from c-common.c:3614 and pruned */

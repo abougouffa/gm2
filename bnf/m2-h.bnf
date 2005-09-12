@@ -487,6 +487,7 @@ token   'PROCEDURE'       proceduretok
 token   'QUALIFIED'       qualifiedtok
 token   'UNQUALIFIED'     unqualifiedtok
 token   'RECORD'          recordtok
+token   'REM'             remtok
 token   'REPEAT'          repeattok
 token   'RETURN'          returntok
 token   'SET'             settok

@@ -1,3 +1,12 @@
+2005-09-12	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+	  testsuite/gm2/pim/options/bounds/fail/IdentifierBug.mod
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+	  testsuite/gm2/testsuite/gm2/pim/pass/ABSBug.mod
+	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
+	  testsuite/gm2/pim/run/pass/FpuIOBug.mod
+	
 2005-09-06	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>

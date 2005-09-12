@@ -1752,12 +1752,13 @@ VAR
    old      : BOOLEAN ;
 BEGIN
    IF BoundsChecking AND
-      (Des#NulSym) AND (NOT IsConst(Des)) AND (NOT MustNotCheckBounds)
+      (Des#NulSym) AND (NOT IsConst(Des)) AND (NOT IsUnknown(Des)) AND
+      (NOT MustNotCheckBounds)
    THEN
       old := MustNotCheckBounds ;
       MustNotCheckBounds := TRUE ;  (* stop recursive checking *)
       type := GetType(Des) ;
-      IF IsSubrange(type)
+      IF (type#NulSym) AND IsSubrange(type)
       THEN
          (*
             we cannot yet GetSubrange for low and high as these entities
@@ -6435,20 +6436,16 @@ END BuildOddFunction ;
 
 
 (*
-   BuildAbsFunction - builds the pseudo procedure call ABS.
+   BuildAbsFunction - builds a call to the standard function ABS.
 
-                      ABS(x) --> IF x<0
-                                 THEN
-                                    RETURN -x
-                                 ELSE
-                                    RETURN x
-                                 END
-
-                      However we cannot push tokens back onto the input stack
-                      because the compiler is currently building a function
+                      We cannot implement it as a macro or inline an
+                      IF THEN statement as the IF THEN ELSE requires
+                      we write the value to the same variable (or constant)
+                      twice. The macro implementation will fail as
+                      the compiler maybe building a function
                       call and expecting a ReturnVar on the stack.
-                      Hence we manipulate the stack and call
-                      BuildConvertFunction.
+                      The only method to implement this is to pass it to the
+                      gcc backend.
 
                       The Stack:
 
@@ -6476,6 +6473,7 @@ END BuildOddFunction ;
 PROCEDURE BuildAbsFunction ;
 VAR
    NoOfParam,
+   ProcSym,
    Res, Var : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -6484,31 +6482,14 @@ BEGIN
       Var := OperandT(1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
+         ProcSym := OperandT(NoOfParam+1) ;
          PopN(NoOfParam+1) ;
 
-         Res := MakeTemporary(RightValue) ;
+         Res := MakeTemporary(AreConstant(IsConst(Var))) ;
          PutVar(Res, GetType(Var)) ;
 
-         (* compute IF x<0 *)
-         PushT(Var) ;
-         PushT(LessTok) ;
-         PushT(MakeConstLit(MakeKey('0'))) ;
-         BuildRelOp ;
-
-         BuildThenIf ;
-         PushT(Res) ;
-         PushT(MinusTok) ;
-         PushT(Var) ;
-         BuildUnaryOp ;
-         BuildAssignment ;
-         
-         BuildElse ;
-         PushT(Res) ;
-         PushT(Var) ;
-         BuildAssignment ;
-         BuildEndIf ;
-
-         PushT(Res)
+         GenQuad(StandardFunctionOp, Res, ProcSym, Var) ;
+         PushTF(Res, GetType(Var))
       ELSE
          WriteFormat0('argument to ABS must be a variable or constant')
       END

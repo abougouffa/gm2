@@ -85,7 +85,7 @@ EXPORT QUALIFIED Tree,
                  BuildIfInRangeGoto, BuildIfNotInRangeGoto,
                  BuildBinarySetDo,
                  BuildPushFunctionContext, BuildPopFunctionContext,
-                 BuildCap,
+                 BuildCap, BuildAbs,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  AssignBooleanTrueFalse,
@@ -1143,6 +1143,14 @@ PROCEDURE BuildPopFunctionContext ;
 *)
 
 PROCEDURE BuildCap (t: Tree) : Tree ;
+
+
+(*
+   BuildAbs - builds the Modula-2 function ABS(t) and returns
+              the result in a gcc Tree.
+*)
+
+PROCEDURE BuildAbs (t: Tree) : Tree ;
 
 
 (*

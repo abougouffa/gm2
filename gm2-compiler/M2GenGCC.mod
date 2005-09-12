@@ -160,7 +160,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
-                   BuildCap,
+                   BuildCap, BuildAbs,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2ZRealType,
@@ -2305,8 +2305,20 @@ BEGIN
             END
          END
       END
+   ELSIF GetSymName(op2)=MakeKey('ABS')
+   THEN
+      IF IsConst(op3) AND GccKnowsAbout(op3)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            AddModGcc(op1, BuildAbs(Mod2Gcc(op3))) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
+         END
+      END
    ELSE
-      InternalError('only expecting LENGTH or CAP as a standard function', __FILE__, __LINE__)
+      InternalError('only expecting LENGTH, CAP or ABS as a standard function', __FILE__, __LINE__)
    END
 END FoldStandardFunction ;
 
