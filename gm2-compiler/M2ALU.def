@@ -54,7 +54,8 @@ EXPORT QUALIFIED PtrToValue,
                  SetDifference, SetSymmetricDifference,
                  SetNegate, SetShift, SetRotate,
 
-                 Addn, Multn, Div, Sub, Mod,
+                 Addn, Multn, Sub,
+                 DivFloor, ModFloor, DivTrunc, ModTrunc,
                  Equ, NotEqu, Less, Gre, LessEqu, GreEqu,
                  GetValue, GetRange,  ConstructSetConstant, BuildRange,
                  CollectSetDependants,
@@ -281,39 +282,75 @@ PROCEDURE Multn ;
 
 
 (*
-   Div - divides the top two elements on the stack.
+   DivFloor - divides the top two elements on the stack.
 
-         The Stack:
+              The Stack:
 
-         Entry             Exit
+              Entry             Exit
 
-  Ptr ->
-         +------------+
-         | Op1        |                     <- Ptr
-         |------------|    +--------------+
-         | Op2        |    | Op2 DIV Op1  |
-         |------------|    |--------------|
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 DIV Op1  |
+              |------------|    |--------------|
 *)
 
-PROCEDURE Div ;
+PROCEDURE DivFloor ;
 
 
 (*
-   Mod - modulus of the top two elements on the stack.
+   ModFloor - modulus of the top two elements on the stack.
 
-         The Stack:
+              The Stack:
 
-         Entry             Exit
+              Entry             Exit
 
-  Ptr ->
-         +------------+
-         | Op1        |                     <- Ptr
-         |------------|    +--------------+
-         | Op2        |    | Op2 MOD Op1  |
-         |------------|    |--------------|
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 MOD Op1  |
+              |------------|    |--------------|
 *)
 
-PROCEDURE Mod ;
+PROCEDURE ModFloor ;
+
+
+(*
+   DivTrunc - divides the top two elements on the stack.
+
+              The Stack:
+
+              Entry             Exit
+
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 DIV Op1  |
+              |------------|    |--------------|
+*)
+
+PROCEDURE DivTrunc ;
+
+
+(*
+   ModTrunc - modulus of the top two elements on the stack.
+
+              The Stack:
+
+              Entry             Exit
+
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 MOD Op1  |
+              |------------|    |--------------|
+*)
+
+PROCEDURE ModTrunc ;
 
 
 (*

@@ -55,7 +55,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        EqualTok, HashTok, LessGreaterTok, LessTok, LessEqualTok,
                        GreaterTok, GreaterEqualTok, InTok, PlusTok, MinusTok,
-                       OrTok, TimesTok, DivTok, ModTok, AndTok, AmbersandTok ;
+                       OrTok, TimesTok, DivTok, ModTok, RemTok, AndTok, AmbersandTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildModuleStart,
@@ -651,6 +651,8 @@ MulOperator := "*"                                                         % Pus
                                                                              RecordOp %
                | "MOD"                                                     % PushT(ModTok) ;
                                                                              RecordOp %
+               | "REM"                                                     % PushT(RemTok) ;
+                                                                             RecordOp %
                | "AND"                                                     % PushT(AndTok) ;
                                                                              RecordOp %
                | "&"                                                       % PushT(AmbersandTok) ;
@@ -805,7 +807,7 @@ SilentAddOperator := "+" | "-" | "OR" =:
 
 SilentConstTerm := SilentConstFactor { SilentMulOperator SilentConstFactor } =:
 
-SilentMulOperator := "*" | "/" | "DIV" | "MOD" | "AND" | "&" =:
+SilentMulOperator := "*" | "/" | "DIV" | "MOD" | "REM" | "AND" | "&" =:
 
 SilentConstFactor := Number | SilentConstString | SilentConstSetOrQualidentOrFunction |
                      "(" SilentConstExpression ")" | "NOT" SilentConstFactor

@@ -53,7 +53,7 @@ FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
 FROM M2Size IMPORT Size, MakeSize ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
-FROM M2ALU IMPORT PushCard, PushIntegerTree, Div ;
+FROM M2ALU IMPORT PushCard, PushIntegerTree, DivTrunc ;
 FROM M2Error IMPORT InternalError ;
 FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
@@ -83,7 +83,7 @@ BEGIN
    PutType(Byte, NulSym) ;                    (* Base Type       *)
    PushCard(GetBitsPerUnit()) ;
    PushCard(8) ;
-   Div ;
+   DivTrunc ;
    PopSize(Byte) ;
 
    (* ADDRESS = POINTER TO BYTE *)
@@ -120,7 +120,7 @@ BEGIN
    PutType(Byte, NulSym) ;                    (* Base Type       *)
    PushCard(GetBitsPerUnit()) ;
    PushCard(8) ;
-   Div ;
+   DivTrunc ;
    PopSize(Byte) ;
 
    Word := MakeType(MakeKey('WORD')) ;

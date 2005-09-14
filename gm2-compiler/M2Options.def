@@ -19,16 +19,16 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2005/06/17 13:56:48 $]
+   Date       : 27/5/87  [$Date: 2005/09/14 10:03:54 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.10 $
+   Version    : $Revision: 1.11 $
 *)
 
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
 
-                 Iso, Pim, Pim2,
+                 Iso, Pim, Pim2, Pim3, Pim4,
                  Pedantic, Verbose, Statistics,
                  UnboundedByReference, VerboseUnbounded,
                  Profiling, Coding, Optimizing,
@@ -46,7 +46,9 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
 VAR
    Iso,                          (* -Wiso use ISO SYSTEM.def                 *)
    Pim,                          (* -Wpim use PIM [234] SYSTEM.def           *)
-   Pim2,                         (* -Wpim2 use strict PIM2 SYSTEM and base   *)
+   Pim2,                         (* -Wpim2 use strict rules.                 *)
+   Pim3,                         (* -Wpim3 use strict rules.                 *)
+   Pim4,                         (* -Wpim4 use strict rules.                 *)
    CompilerDebugging,            (* -d internal debugging messages           *)
    GenerateDebugging,            (* -g option to generate info for gdb/dbx   *)
    GenerateLineDebug,            (* -gline to generate line debugging.       *)
@@ -72,9 +74,6 @@ VAR
                                  (* else statement within an case statement  *)
                                  (* when the user omits one                  *)
    Quiet,                        (* -quiet option specified.                 *)
-   Recovery1,                    (* -recovery1 option specified?             *)
-   Recovery2,                    (* -recovery2 option specified?             *)
-   Recovery3,                    (* -recovery3 option specified?             *)
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)

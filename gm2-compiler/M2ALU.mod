@@ -55,7 +55,8 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    GetIntegerOne, GetIntegerZero,
                    GetWordOne, ToWord,
                    AreConstantsEqual, GetBitsPerBitset,
-                   BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
+                   BuildAdd, BuildSub, BuildMult,
+                   BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLSL, BuildLSR,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildIfIn,
@@ -83,7 +84,6 @@ PROCEDURE RealSub (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE RealAdd (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE RealMult (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE RealDiv (Op1, Op2: PtrToValue) ; FORWARD ;
-PROCEDURE RealMod (Op1, Op2: PtrToValue) ; FORWARD ;
 PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree ; FORWARD ;
 PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
@@ -1097,21 +1097,21 @@ END RealMult ;
 
 
 (*
-   Div - divides the top two elements on the stack.
+   DivTrunc - divides the top two elements on the stack.
 
-         The Stack:
+              The Stack:
 
-         Entry             Exit
+              Entry             Exit
 
-  Ptr ->
-         +------------+
-         | Op1        |                     <- Ptr
-         |------------|    +--------------+
-         | Op2        |    | Op2 DIV Op1  |
-         |------------|    |--------------|
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 DIV Op1  |
+              |------------|    |--------------|
 *)
 
-PROCEDURE Div ;
+PROCEDURE DivTrunc ;
 VAR
    Temp,
    Op1, Op2: PtrToValue ;
@@ -1125,14 +1125,53 @@ BEGIN
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
          type  := integer ;
-         numberValue := BuildDiv(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
    END ;
    Dispose(Op1) ;
    Dispose(Op2)
-END Div ;
+END DivTrunc ;
+
+
+(*
+   DivFloor - divides the top two elements on the stack.
+
+              The Stack:
+
+              Entry             Exit
+
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 DIV Op1  |
+              |------------|    |--------------|
+*)
+
+PROCEDURE DivFloor ;
+VAR
+   Temp,
+   Op1, Op2: PtrToValue ;
+BEGIN
+   Op1 := Pop() ;
+   Op2 := Pop() ;
+   IF EitherReal(Op1, Op2)
+   THEN
+      RealDiv(Op1, Op2)
+   ELSE
+      Temp := New() ;     (* as it is a temp *)
+      WITH Temp^ DO
+         type  := integer ;
+         numberValue := BuildDivFloor(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   END ;
+   Dispose(Op1) ;
+   Dispose(Op2)
+END DivFloor ;
 
 
 (*
@@ -1157,7 +1196,7 @@ BEGIN
    END ;
    Temp := New() ;     (* as it is a temp *)
    WITH Temp^ DO
-      numberValue := BuildDiv(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+      numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
       type        := real ;
       solved      := TRUE
    END ;
@@ -1166,21 +1205,21 @@ END RealDiv ;
 
 
 (*
-   Mod - modulus of the top two elements on the stack.
+   ModFloor - modulus of the top two elements on the stack.
 
-         The Stack:
+              The Stack:
 
-         Entry             Exit
+              Entry             Exit
 
-  Ptr ->
-         +------------+
-         | Op1        |                     <- Ptr
-         |------------|    +--------------+
-         | Op2        |    | Op2 MOD Op1  |
-         |------------|    |--------------|
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 MOD Op1  |
+              |------------|    |--------------|
 *)
 
-PROCEDURE Mod ;
+PROCEDURE ModFloor ;
 VAR
    Temp,
    Op1, Op2: PtrToValue ;
@@ -1194,14 +1233,53 @@ BEGIN
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
          type        := integer ;
-         numberValue := BuildMod(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         numberValue := BuildModFloor(Op2^.numberValue, Op1^.numberValue, FALSE) ;
          solved      := TRUE
       END ;
       Push(Temp)
    END ;
    Dispose(Op1) ;
    Dispose(Op2)
-END Mod ;
+END ModFloor ;
+
+
+(*
+   ModTrunc - modulus of the top two elements on the stack.
+
+              The Stack:
+
+              Entry             Exit
+
+       Ptr ->
+              +------------+
+              | Op1        |                     <- Ptr
+              |------------|    +--------------+
+              | Op2        |    | Op2 MOD Op1  |
+              |------------|    |--------------|
+*)
+
+PROCEDURE ModTrunc ;
+VAR
+   Temp,
+   Op1, Op2: PtrToValue ;
+BEGIN
+   Op1 := Pop() ;
+   Op2 := Pop() ;
+   IF EitherReal(Op1, Op2)
+   THEN
+      WriteFormat0('cannot perform MOD on REALs')
+   ELSE
+      Temp := New() ;     (* as it is a temp *)
+      WITH Temp^ DO
+         type        := integer ;
+         numberValue := BuildModTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   END ;
+   Dispose(Op1) ;
+   Dispose(Op2)
+END ModTrunc ;
 
 
 (*
@@ -1994,7 +2072,7 @@ BEGIN
    PushValue(h) ;
    PushValue(l) ;
    Sub ;
-   Mod ;
+   ModTrunc ;
    PushValue(l) ;
    Addn ;
    RETURN( Val(tokenno, GetType(sym), PopIntegerTree()) )

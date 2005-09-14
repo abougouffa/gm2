@@ -28,7 +28,7 @@ FROM DynamicStrings IMPORT String, InitString ;
 FROM StringConvert IMPORT stoi ;
 
 FROM M2Constants IMPORT IsZero, IsOne, IsTwo, IsSame, MakeNewConstFromValue ;
-FROM M2ALU IMPORT Addn, Multn, SetOr, SetAnd, Sub, Div, Mod, SetSymmetricDifference, SetDifference ;
+FROM M2ALU IMPORT Addn, Multn, SetOr, SetAnd, Sub, DivTrunc, ModTrunc, DivFloor, ModFloor, SetSymmetricDifference, SetDifference ;
 FROM M2Quads IMPORT QuadOperator, GetQuad, SubQuad, PutQuad, EraseQuad, GetNextQuad, DisplayQuad,
                     WriteOperator, IsOptimizeOn, QuadToTokenNo ;
 
@@ -1024,8 +1024,10 @@ BEGIN
    AddOp              : Addn |
    MultOp             : Multn |
    SubOp              : Sub |
-   DivOp              : Div |
-   ModOp              : Mod |
+   DivTruncOp         : DivTrunc |
+   ModTruncOp         : ModTrunc |
+   DivFloorOp         : DivFloor |
+   ModFloorOp         : ModFloor |
    LogicalOrOp        : SetOr(tn) |
    LogicalAndOp       : SetAnd(tn) |
    LogicalXorOp       : SetSymmetricDifference(tn)
@@ -1434,8 +1436,10 @@ BEGIN
    LogicalDiffOp,
    LogicalShiftOp,
    LogicalRotateOp,
-   ModOp,
-   DivOp             : MakeOpWithMakeNode(q, Start, End, op1, op, op2, op3) |
+   ModTruncOp,
+   DivTruncOp,
+   ModFloorOp,
+   DivFloorOp        : MakeOpWithMakeNode(q, Start, End, op1, op, op2, op3) |
 
    DummyOp,
    CodeOnOp,
@@ -3062,8 +3066,10 @@ BEGIN
       LogicalDiffOp,
       LogicalShiftOp,
       LogicalRotateOp,
-      ModOp,
-      DivOp             : PutQuad(q, Op, GetSym(n), GetSymOfChoice(Left), GetSymOfChoice(Right)) ;
+      ModFloorOp,
+      DivFloorOp,
+      ModTruncOp,
+      DivTruncOp        : PutQuad(q, Op, GetSym(n), GetSymOfChoice(Left), GetSymOfChoice(Right)) ;
                           RemoveAllOlderEntities(n, EntList[1])
 
       ELSE

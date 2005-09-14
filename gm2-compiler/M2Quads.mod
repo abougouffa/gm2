@@ -96,7 +96,7 @@ FROM M2Error IMPORT Error,
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
 
 FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
-                       DivideTok,
+                       DivideTok, RemTok,
                        OrTok, AndTok, AmbersandTok,
                        EqualTok, LessEqualTok, GreaterEqualTok,
                        LessTok, GreaterTok, HashTok, LessGreaterTok,
@@ -135,7 +135,7 @@ FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM M2Options IMPORT NilChecking, CaseElseChecking,
                       BoundsChecking, ReturnChecking,
-                      Iso, Pim,
+                      Iso, Pim, Pim2, Pim3, Pim4,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug,
                       Profiling, Coding, Optimizing ;
@@ -916,8 +916,10 @@ BEGIN
    AddOp,
    SubOp,
    MultOp,
-   ModOp,
-   DivOp             : CheckAddVariableWrite(Oper1, QuadNo) ;
+   ModFloorOp,
+   DivFloorOp,
+   ModTruncOp,
+   DivTruncOp        : CheckAddVariableWrite(Oper1, QuadNo) ;
                        CheckAddVariableRead(Oper2, QuadNo) ;
                        CheckAddVariableRead(Oper3, QuadNo) |
 
@@ -1030,8 +1032,10 @@ BEGIN
       AddOp,
       SubOp,
       MultOp,
-      ModOp,
-      DivOp             : CheckRemoveVariableWrite(Operand1, QuadNo) ;
+      DivTruncOp,
+      ModTruncOp,
+      ModFloorOp,
+      DivFloorOp        : CheckRemoveVariableWrite(Operand1, QuadNo) ;
                           CheckRemoveVariableRead(Operand2, QuadNo) ;
                           CheckRemoveVariableRead(Operand3, QuadNo)
 
@@ -1211,8 +1215,10 @@ BEGIN
       AddOp,
       SubOp,
       MultOp,
-      ModOp,
-      DivOp             : CheckRemoveVariableWrite(Operand1, QuadNo) ;
+      ModFloorOp,
+      DivFloorOp,
+      ModTruncOp,
+      DivTruncOp        : CheckRemoveVariableWrite(Operand1, QuadNo) ;
                           CheckRemoveVariableRead(Operand2, QuadNo) ;
                           CheckRemoveVariableRead(Operand3, QuadNo) |
 
@@ -2855,7 +2861,7 @@ BEGIN
    PushT(MinusTok) ;
    PushTF(e2, GetType(e2)) ;
    BuildBinaryOp ;
-   PushT(DivTok) ;
+   PushT(DivideTok) ;
    PushTF(BySym, ByType) ;
    BuildBinaryOp ;
    PushT(TimesTok) ;
@@ -2891,7 +2897,7 @@ BEGIN
    PushT(MinusTok) ;
    PushTF(e1, GetType(e1)) ;
    BuildBinaryOp ;
-   PushT(DivTok) ;
+   PushT(DivideTok) ;
    PushTF(BySym, ByType) ;
    BuildBinaryOp ;
    PushT(TimesTok) ;
@@ -4725,7 +4731,7 @@ BEGIN
          PushT(ArraySym) ;
          PushT(1) ;                (* 1 parameter for SIZE()       *)
          BuildFunctionCall ;
-         PushT(DivTok) ;           (* Divide by                    *)
+         PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
@@ -4737,7 +4743,7 @@ BEGIN
          PushT(ArrayType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
          BuildFunctionCall ;
-         PushT(DivTok) ;           (* Divide by                    *)
+         PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
@@ -4804,7 +4810,7 @@ BEGIN
          PushT(ArraySym) ;
          PushT(1) ;                (* 1 parameter for SIZE()       *)
          BuildFunctionCall ;
-         PushT(DivTok) ;           (* Divide by                    *)
+         PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
@@ -4816,7 +4822,7 @@ BEGIN
          PushT(ArrayType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
          BuildFunctionCall ;
-         PushT(DivTok) ;           (* Divide by                    *)
+         PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;
          PushT(1) ;                (* 1 parameter for TSIZE()      *)
@@ -9982,15 +9988,31 @@ BEGIN
    ELSIF t=MinusTok
    THEN
       RETURN( SubOp )
-   ELSIF (t=DivTok) OR (t=DivideTok)
+   ELSIF t=DivTok
    THEN
-      RETURN( DivOp )
+      IF Pim2 OR Pim3
+      THEN
+         RETURN( DivTruncOp )
+      ELSE
+         RETURN( DivFloorOp )
+      END
+   ELSIF t=DivideTok
+   THEN
+      RETURN( DivFloorOp )
+   ELSIF t=RemTok
+   THEN
+      RETURN( ModTruncOp )
+   ELSIF t=ModTok
+   THEN
+      IF Pim2 OR Pim3
+      THEN
+         RETURN( ModTruncOp )
+      ELSE
+         RETURN( ModFloorOp )
+      END
    ELSIF t=TimesTok
    THEN
       RETURN( MultOp )
-   ELSIF t=ModTok
-   THEN
-      RETURN( ModOp )
    ELSIF t=HashTok
    THEN
       RETURN( IfNotEquOp )
@@ -10266,8 +10288,10 @@ BEGIN
       AddOp,
       SubOp,
       MultOp,
-      ModOp,
-      DivOp             : WriteOperand(Operand1) ;
+      ModFloorOp,
+      DivFloorOp,
+      ModTruncOp,
+      DivTruncOp        : WriteOperand(Operand1) ;
                           printf0('  ') ;
                           WriteOperand(Operand2) ;
                           printf0('  ') ;
@@ -10334,8 +10358,10 @@ BEGIN
    EndOp                    : printf0('End              ') |
    AddOp                    : printf0('+                ') |
    SubOp                    : printf0('-                ') |
-   DivOp                    : printf0('DIV              ') |
-   ModOp                    : printf0('MOD              ') |
+   DivFloorOp               : printf0('DIV floor        ') |
+   ModFloorOp               : printf0('MOD floor        ') |
+   DivTruncOp               : printf0('DIV trunc        ') |
+   ModTruncOp               : printf0('MOD trunc        ') |
    MultOp                   : printf0('*                ') |
    NegateOp                 : printf0('Negate           ') |
    InclOp                   : printf0('Incl             ') |

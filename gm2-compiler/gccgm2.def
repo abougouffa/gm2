@@ -51,7 +51,9 @@ EXPORT QUALIFIED Tree,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                  BuildAssignment,
-                 BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod,
+                 BuildAdd, BuildSub, BuildMult,
+                 BuildDivTrunc, BuildModTrunc,
+                 BuildDivFloor, BuildModFloor,
                  BuildLSL, BuildLSR, BuildLogicalShift,
                  BuildLRL, BuildLRR, BuildLogicalRotate,
                  BuildLogicalOrAddress,
@@ -755,17 +757,31 @@ PROCEDURE BuildMult (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
-   BuildDiv - build a division tree.
+   BuildDivTrunc - build a division tree.
 *)
 
-PROCEDURE BuildDiv (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+PROCEDURE BuildDivTrunc (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*
-   BuildMod - build a modulus tree.
+   BuildModTrunc - build a modulus tree.
 *)
 
-PROCEDURE BuildMod (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+PROCEDURE BuildModTrunc (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildDivFloor - build a division tree.
+*)
+
+PROCEDURE BuildDivFloor (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+
+
+(*
+   BuildModFloor - build a modulus tree.
+*)
+
+PROCEDURE BuildModFloor (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 
 
 (*

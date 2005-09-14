@@ -128,7 +128,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildCallInnerInit,
                    BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                    BuildAssignment, DeclareKnownConstant,
-                   BuildAdd, BuildSub, BuildMult, BuildDiv, BuildMod, BuildLSL,
+                   BuildAdd, BuildSub, BuildMult, BuildLSL,
+                   BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLogicalOrAddress,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
                    BuildLogicalDifference,
@@ -308,10 +309,14 @@ PROCEDURE FoldSub (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CAR
 PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldMult (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldDiv (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeDiv (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldMod (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeMod (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldDivTrunc (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldModTrunc (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeModTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldDivFloor (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE FoldModFloor (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeModFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldBitRange (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldBit (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBit (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -471,8 +476,10 @@ BEGIN
    AddOp              : CodeAdd(q, op1, op2, op3) |
    SubOp              : CodeSub(q, op1, op2, op3) |
    MultOp             : CodeMult(q, op1, op2, op3) |
-   DivOp              : CodeDiv(q, op1, op2, op3) |
-   ModOp              : CodeMod(q, op1, op2, op3) |
+   DivTruncOp         : CodeDivTrunc(q, op1, op2, op3) |
+   ModTruncOp         : CodeModTrunc(q, op1, op2, op3) |
+   DivFloorOp         : CodeDivFloor(q, op1, op2, op3) |
+   ModFloorOp         : CodeModFloor(q, op1, op2, op3) |
    GotoOp             : CodeGoto(q, op1, op2, op3) |
    InclOp             : CodeIncl(q, op1, op2, op3) |
    ExclOp             : CodeExcl(q, op1, op2, op3) |
@@ -617,8 +624,10 @@ BEGIN
          AddOp              : FoldAdd(tokenno, l, quad, op1, op2, op3) |
          SubOp              : FoldSub(tokenno, l, quad, op1, op2, op3) |
          MultOp             : FoldMult(tokenno, l, quad, op1, op2, op3) |
-         DivOp              : FoldDiv(tokenno, l, quad, op1, op2, op3) |
-         ModOp              : FoldMod(tokenno, l, quad, op1, op2, op3) |
+         DivTruncOp         : FoldDivTrunc(tokenno, l, quad, op1, op2, op3) |
+         ModTruncOp         : FoldModTrunc(tokenno, l, quad, op1, op2, op3) |
+         DivFloorOp         : FoldDivFloor(tokenno, l, quad, op1, op2, op3) |
+         ModFloorOp         : FoldModFloor(tokenno, l, quad, op1, op2, op3) |
          NegateOp           : FoldNegate(tokenno, l, quad, op1, op2, op3) |
          SizeOp             : FoldSize(tokenno, l, quad, op1, op2, op3) |
          OffsetOp           : FoldOffset(tokenno, l, quad, op1, op2, op3) |
@@ -2180,45 +2189,87 @@ END CodeMult ;
 
 
 (*
-   FoldDiv - check division for constant folding.
+   FoldDivTrunc - check division for constant folding.
 *)
 
-PROCEDURE FoldDiv (tokenno: CARDINAL; l: List;
+PROCEDURE FoldDivTrunc (tokenno: CARDINAL; l: List;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldBinary(tokenno, l, BuildDivTrunc, quad, op1, op2, op3)
+END FoldDivTrunc ;
+
+
+(*
+   CodeDivTrunc - encode multiplication.
+*)
+
+PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   CodeBinary(BuildDivTrunc, quad, op1, op2, op3)
+END CodeDivTrunc ;
+
+
+(*
+   FoldModTrunc - check modulus for constant folding.
+*)
+
+PROCEDURE FoldModTrunc (tokenno: CARDINAL; l: List;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildDiv, quad, op1, op2, op3)
-END FoldDiv ;
+   FoldBinary(tokenno, l, BuildModTrunc, quad, op1, op2, op3)
+END FoldModTrunc ;
 
 
 (*
-   CodeDiv - encode multiplication.
+   CodeModTrunc - encode modulus.
 *)
 
-PROCEDURE CodeDiv (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeModTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildDiv, quad, op1, op2, op3)
-END CodeDiv ;
+   CodeBinary(BuildModTrunc, quad, op1, op2, op3)
+END CodeModTrunc ;
 
 
 (*
-   FoldMod - check modulus for constant folding.
+   FoldDivFloor - check division for constant folding.
 *)
 
-PROCEDURE FoldMod (tokenno: CARDINAL; l: List;
+PROCEDURE FoldDivFloor (tokenno: CARDINAL; l: List;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldBinary(tokenno, l, BuildDivFloor, quad, op1, op2, op3)
+END FoldDivFloor ;
+
+
+(*
+   CodeDivFloor - encode multiplication.
+*)
+
+PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   CodeBinary(BuildDivFloor, quad, op1, op2, op3)
+END CodeDivFloor ;
+
+
+(*
+   FoldModFloor - check modulus for constant folding.
+*)
+
+PROCEDURE FoldModFloor (tokenno: CARDINAL; l: List;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildMod, quad, op1, op2, op3)
-END FoldMod ;
+   FoldBinary(tokenno, l, BuildModFloor, quad, op1, op2, op3)
+END FoldModFloor ;
 
 
 (*
-   CodeMod - encode modulus.
+   CodeModFloor - encode modulus.
 *)
 
-PROCEDURE CodeMod (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeModFloor (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   CodeBinary(BuildMod, quad, op1, op2, op3)
-END CodeMod ;
+   CodeBinary(BuildModFloor, quad, op1, op2, op3)
+END CodeModFloor ;
 
 
 (*
@@ -2369,8 +2420,17 @@ BEGIN
       ELSE
          t := BuildAssignment(Mod2Gcc(op1), BuildCap(Mod2Gcc(op3)))
       END
+   ELSIF (op2#NulSym) AND (GetSymName(op2)=MakeKey('ABS'))
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('ABS function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         t := BuildAssignment(Mod2Gcc(op1), BuildAbs(Mod2Gcc(op3)))
+      END
    ELSE
-      InternalError('expecting LENGTH or CAP as a standard function',
+      InternalError('expecting LENGTH, CAP or ABS as a standard function',
                     __FILE__, __LINE__)
    END
 END CodeStandardFunction ;

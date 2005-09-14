@@ -175,6 +175,18 @@ BEGIN
       Pim2 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wpim3')
+   THEN
+      Pim := TRUE ;
+      Pim3 := TRUE ;
+      Iso := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wpim4')
+   THEN
+      Pim := TRUE ;
+      Pim4 := TRUE ;
+      Iso := FALSE ;
+      Legal := TRUE
    ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-Wlibs=')
    THEN
       (* at present this switch just modifies the default library
@@ -339,8 +351,10 @@ END CppCommandLine ;
 
 BEGIN
    CppAndArgs                   := InitString('') ;
-   Pim                          := TRUE ;
+   Pim                          :=  TRUE ;
    Pim2                         := FALSE ;
+   Pim3                         := FALSE ;
+   Pim4                         :=  TRUE ;
    Iso                          := FALSE ;
    SeenSources                  := FALSE ;
    Statistics                   := FALSE ;
