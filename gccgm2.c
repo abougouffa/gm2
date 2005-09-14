@@ -503,8 +503,10 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_BuildAdd 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildSub 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildMult 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
-       tree                   gccgm2_BuildDiv 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
-       tree                   gccgm2_BuildMod 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildDivTrunc       	 	  PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildModTrunc       	 	  PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildDivFloor       	 	  PARAMS ((tree op1, tree op2, int needconvert));
+       tree                   gccgm2_BuildModFloor       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLSL 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLSR                             PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildConvert 	       	 	  PARAMS ((tree op1, tree op2));
@@ -9010,11 +9012,11 @@ gccgm2_BuildMult (op1, op2, needconvert)
 
 
 /*
- *  BuildDiv - builds a division tree.
+ *  BuildDivTrunc - builds a division tree.
  */
 
 tree
-gccgm2_BuildDiv (op1, op2, needconvert)
+gccgm2_BuildDivTrunc (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
@@ -9023,15 +9025,41 @@ gccgm2_BuildDiv (op1, op2, needconvert)
 
 
 /*
- *  BuildMod - builds a modulus tree.
+ *  BuildModTrunc - builds a modulus tree.
  */
 
 tree
-gccgm2_BuildMod (op1, op2, needconvert)
+gccgm2_BuildModTrunc (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
   return build_binary_op (TRUNC_MOD_EXPR, op1, op2, needconvert);
+}
+
+
+/*
+ *  BuildDivFloor - builds a division tree.
+ */
+
+tree
+gccgm2_BuildDivFloor (op1, op2, needconvert)
+     tree op1, op2;
+     int  needconvert;
+{
+  return build_binary_op (FLOOR_DIV_EXPR, op1, op2, needconvert);
+}
+
+
+/*
+ *  BuildModFloor - builds a modulus tree.
+ */
+
+tree
+gccgm2_BuildModFloor (op1, op2, needconvert)
+     tree op1, op2;
+     int  needconvert;
+{
+  return build_binary_op (FLOOR_MOD_EXPR, op1, op2, needconvert);
 }
 
 
@@ -9175,7 +9203,7 @@ gccgm2_BuildLRLn (op1, op2, nBits, needconvert)
   /*
    *  ensure we wrap the rotate
    */
-  op2 = gccgm2_BuildMod (op2, nBits, needconvert);
+  op2 = gccgm2_BuildModTrunc (op2, nBits, needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
    */
@@ -9211,7 +9239,7 @@ gccgm2_BuildLRRn (op1, op2, nBits, needconvert)
   /*
    *  ensure we wrap the rotate
    */
-  op2 = gccgm2_BuildMod (op2, nBits, needconvert);
+  op2 = gccgm2_BuildModTrunc (op2, nBits, needconvert);
   /*
    *  optimize if we are we going to rotate a TSIZE(BITSET) set
    */
@@ -9336,8 +9364,8 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3,
 	      FALSE);
   else {
     tree result;
-    tree high = gccgm2_BuildSub (gccgm2_BuildDiv (size,
-						  gccgm2_GetSizeOf (bitset_type_node), FALSE),
+    tree high = gccgm2_BuildSub (gccgm2_BuildDivTrunc (size,
+						       gccgm2_GetSizeOf (bitset_type_node), FALSE),
 				 gccgm2_GetIntegerOne (), FALSE);
 
     /*
@@ -9887,9 +9915,9 @@ gccgm2_BuildOffset (record, field, needconvert)
   if (DECL_CONTEXT (field) == record)
     return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
 				gccgm2_BuildAdd (DECL_FIELD_OFFSET (field),
-						 gccgm2_BuildDiv (DECL_FIELD_BIT_OFFSET (field),
-								  gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
-								  FALSE),
+						 gccgm2_BuildDivTrunc (DECL_FIELD_BIT_OFFSET (field),
+								       gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
+								       FALSE),
 						 FALSE));
   else {
     tree r1 = DECL_CONTEXT (field);
@@ -10244,9 +10272,9 @@ gccgm2_BuildIfVarInVar (type, varset, varel, is_lvalue, low, high, label)
     tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
 					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -10283,9 +10311,9 @@ gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
     tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType (), varel),
 					     gccgm2_BuildConvert (gccgm2_GetIntegerType (), low), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -11225,9 +11253,9 @@ gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
     tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
 					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -11303,9 +11331,9 @@ gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
     tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
 					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDiv (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildMod (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),

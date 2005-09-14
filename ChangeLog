@@ -1,3 +1,9 @@
+2005-09-13	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented REM
+	* implemented MOD, DIV, / as per ISO, PIM2, PIM3, PIM4
+	* updated gm2/gm2.texi documentation to reflect the rules
+
 2005-09-12	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John B. Wallace, Jr <wallacjb@enter.net>
