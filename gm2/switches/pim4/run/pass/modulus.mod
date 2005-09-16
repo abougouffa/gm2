@@ -43,24 +43,22 @@ VAR
 BEGIN
    res := 0 ;
 
-   (* example from ISO Standard 6-7 *)
+   (* see P29 of PIM4 *)
    i := 31 MOD 10 ;
    Assert(i=1, __FILE__, __LINE__, "31 MOD 10") ;
 
    (* example from PIM 4th edition *)
-   i := -15 MOD 4 ;
-   Assert(i=1, __FILE__, __LINE__, "-15 DIV 4") ;
+   i := (-15) MOD 4 ;
+   Assert(i=1, __FILE__, __LINE__, "(-15) DIV 4") ;
 
-   (* example from ISO Standard 6-7 *)
-   i := -31 MOD 10 ;
-   Assert(i=9, __FILE__, __LINE__, "-31 MOD 9") ;
+   i := (-31) MOD 10 ;
+   Assert(i=9, __FILE__, __LINE__, "(-31) MOD 9") ;
 
-   (* example from ISO Standard 6-7 *)
-   i := -31 DIV 10 ;
-   Assert(i=-4, __FILE__, __LINE__, "-31 DIV 10") ;
+   i := (-31) DIV 10 ;
+   Assert(i=-4, __FILE__, __LINE__, "(-31) DIV 10") ;
 
-   (* example from ISO Standard 6-7 *)
-   i := -31 / 10 ;
-   Assert(i=-3, __FILE__, __LINE__, "-31 / 10") ;
+   (* and we allow ISO compatability *)
+   i := (-31) / 10 ;
+   Assert(i=-3, __FILE__, __LINE__, "(-31) / 10") ;
    exit(res)
 END modulus.
