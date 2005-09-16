@@ -19,16 +19,17 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2005/09/14 10:03:54 $]
+   Date       : 27/5/87  [$Date: 2005/09/16 11:56:35 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.11 $
+   Version    : $Revision: 1.12 $
 *)
 
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
+                 PositiveModFloorDiv,
                  Pedantic, Verbose, Statistics,
                  UnboundedByReference, VerboseUnbounded,
                  Profiling, Coding, Optimizing,
@@ -49,6 +50,7 @@ VAR
    Pim2,                         (* -Wpim2 use strict rules.                 *)
    Pim3,                         (* -Wpim3 use strict rules.                 *)
    Pim4,                         (* -Wpim4 use strict rules.                 *)
+   PositiveModFloorDiv,          (* force PIM4 behaviour for DIV and MOD     *)
    CompilerDebugging,            (* -d internal debugging messages           *)
    GenerateDebugging,            (* -g option to generate info for gdb/dbx   *)
    GenerateLineDebug,            (* -gline to generate line debugging.       *)

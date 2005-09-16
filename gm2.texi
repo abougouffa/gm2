@@ -84,6 +84,7 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 * Example usage::         Example compile and link.
 * Elementary data types:: Data types supported by GNU Modula-2.
 * Standard procedures::   Permanently accessible base procedures.
+* Dialect::               GNU Modula-2 supported dialects.
 * Extensions::            GNU Modula-2 language extensions.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
@@ -185,10 +186,10 @@ complete.
 @table @code
 
 @item 0.50
-compatible with gcc-3.3.6. GNU Modula-2 is stable and passes
-all regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.
-The compiler is PIM-234 compatible (use @samp{-Wpim2} to force
-mutually exclusive PIM2 features).
+compatible with gcc-3.3.6. GNU Modula-2 is stable and passes all
+regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.  The
+compiler is PIM-234 compatible (use @samp{-Wpim2}, @samp{-Wpim3} and
+@samp{-Wpim4} to force mutually exclusive PIM features).
 
 It is also able to compile the University of Ulm libraries which
 are now distributed as part of GNU Modula-2. To reference these
@@ -314,17 +315,39 @@ implementation modules which are parsed will be preprocessed by
 @item -Wiso
 turn on ISO standard features. Currently this enables the ISO
 @code{SYSTEM} module and alters the default library search path so
-that the ISO libraries are searched before the PIM libraries.
+that the ISO libraries are searched before the PIM libraries.  It also
+effects the behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
 
 @item -Wpim
 turn on PIM standard features. Currently this enables the PIM
 @code{SYSTEM} module and determines which identifiers are pervasive
-(declared in the base module).
+(declared in the base module). If no other @samp{-Wpim[234]} switch is
+used then division and modulus operators behave as defined in PIM4.
+See @xref{Dialect, , ,gm2}.
 
 @item -Wpim2
 turn on PIM-2 standard features. Currently this removes @code{SIZE}
-from being a pervasive identifier (declared in the base module).
-It places @code{SIZE} in the @code{SYSTEM} module.
+from being a pervasive identifier (declared in the base module).  It
+places @code{SIZE} in the @code{SYSTEM} module.  It also effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -Wpim3
+turn on PIM-3 standard features. Currently this only effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -Wpim4
+turn on PIM-4 standard features. Currently this only effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -Wpositive-mod-floor-div
+forces the @code{DIV} and @code{MOD} operators to behave as defined by PIM4.
+All modulus results are positive and the results from the division are
+rounded to the floor.
+See @xref{Dialect, , ,gm2}.
 
 @item -Wlibs=ulm
 modifies the default library search path so that the University of Ulm
@@ -453,7 +476,7 @@ SHORTREAL                 float
 CHAR                      char
 @end example
 
-@node Standard procedures, Extensions, Elementary data types, Using
+@node Standard procedures, Dialect, Elementary data types, Using
 @section Permanently accessible base procedures.
 
 This section describes the procedures and functions which are
@@ -694,7 +717,72 @@ made to @code{M2RTS.Length}.
 
 @c complete other ISO functions
 
-@node Extensions, Interface to C, Standard procedures, Using
+@node Dialect, Extensions, Standard procedures, Using
+@section GNU Modula-2 supported dialects
+
+This section describes the dialects understood by GNU Modula-2.
+It also describes the differences between the dialects and
+any command line switches which determine dialect behaviour.
+
+The GNU Modula-2 compiler is based on the language as defined in
+'Programming in Modula-2' 2nd Edition, Springer Verlag, 1982, 1983 by
+Niklaus Wirth (PIM2), 'Programming in Modula-2', 3rd Corrected
+Edition, Springer Verlag, 1985 (PIM3) and 'Programming in Modula-2',
+4th Edition, Springer Verlag, 1988 (PIM4).  It also includes ISO M2
+features and GNU Modula-2 extensions. Currently GNU Modula-2
+(@value{version-GM2}) implements all PIM dialects of the language,
+eventually GNU Modula-2 will be fully compliant with ISO Modula-2.
+
+The command line switches @samp{-Wpim2}, @samp{-Wpim3},
+@samp{-Wpim4} and @samp{-Wiso} can be used to force mutually
+exclusive features. However by default the compiler will not
+agressively fail if a non mutually exclusive feature is used
+from another dialect. For example it is possible to specify
+@samp{-Wpim2} and still utilise @samp{DEFINITION} @samp{MODULES}
+which have no export list.
+
+Some dialect differences will force a compile time error, for example
+in PIM2 the user must @code{IMPORT} @code{SIZE} from the module
+@code{SYSTEM}, whereas in PIM3 and PIM4 @code{SIZE} is a pervasive
+function. Thus compiling PIM4 source code with the @samp{-Wpim2}
+switch will cause a compile time error. This can be fixed quickly
+with an additional @code{IMPORT} or alternatively by compiling with
+the @samp{-Wpim4} switch.
+
+However there are some very important differences between the dialects
+which are mutually exclusive and therefore it is vital that users
+choose the dialects with care when these language features are used.
+
+@subsection Integer division, remainder and modulus
+
+The most dangerous set of mutually exclusive features found in the
+four dialects supported by GNU Modula-2 are the @code{INTEGER}
+division, remainder and modulus arithmetic operators.  It is important
+to note that the same source code can be compiled to give different
+runtime results depending upon these switches! The reference manual
+for the various dialects of Modula-2 are quite clear about this
+behaviour and sadly there are three distinct definitions.
+
+The table below illustrates the problem when a negative operand is
+used.
+
+@example
+                  Pim2/3          Pim4                ISO
+               -----------    -----------    ----------------------
+lval    rval   DIV     MOD    DIV     MOD    DIV    MOD    /    REM
+ 31      10      3       1      3       1      3      1     3     1
+-31      10     -3      -1     -4       9     -4      9    -3    -1
+ 31     -10     -3       1     -3       1     Exception    -3     1
+-31     -10      3      -1      4       9     Exception     3    -1
+@end example
+
+See also P24 of PIM2, P27 of PIM3, P29 of PIM4 and P201 of the ISO Standard.
+At present all dialect division, remainder and modulus are implemented as
+above, apart from the exception calling in the ISO dialect. Instead of
+exception handling the results are the same as the PIM4 dialect. This
+is a temporary implementation situation.
+
+@node Extensions, Interface to C, Dialect, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.

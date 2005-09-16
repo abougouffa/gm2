@@ -1,3 +1,9 @@
+2005-09-16	Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented -Wpositive-mod-floor-div option
+	* updated gm2/gm2.texi and added many switch testing
+	  regression tests.
+
 2005-09-13	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented REM

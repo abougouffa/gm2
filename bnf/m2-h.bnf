@@ -136,7 +136,7 @@ FROM M2Batch IMPORT IsModuleKnown ;
 FROM M2Reserved IMPORT NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        EqualTok, HashTok, LessGreaterTok, LessTok, LessEqualTok,
                        GreaterTok, GreaterEqualTok, InTok, PlusTok, MinusTok,
-                       OrTok, TimesTok, DivTok, ModTok, RemTok, AndTok, AmbersandTok ;
+                       OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok, AndTok, AmbersandTok ;
 
 
 CONST
@@ -645,7 +645,7 @@ ConstTerm := ConstFactor { MulOperator ConstFactor                         % Bui
 
 MulOperator := "*"                                                         % PushT(TimesTok) ;
                                                                              RecordOp %
-               | "/"                                                       % PushT(DivTok) ;
+               | "/"                                                       % PushT(DivideTok) ;
                                                                              RecordOp %
                | "DIV"                                                     % PushT(DivTok) ;
                                                                              RecordOp %

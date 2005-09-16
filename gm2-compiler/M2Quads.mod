@@ -135,7 +135,7 @@ FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM M2Options IMPORT NilChecking, CaseElseChecking,
                       BoundsChecking, ReturnChecking,
-                      Iso, Pim, Pim2, Pim3, Pim4,
+                      Iso, Pim, Pim2, Pim3, Pim4, PositiveModFloorDiv,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug,
                       Profiling, Coding, Optimizing ;
@@ -9990,7 +9990,7 @@ BEGIN
       RETURN( SubOp )
    ELSIF t=DivTok
    THEN
-      IF Pim2 OR Pim3
+      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
       THEN
          RETURN( DivTruncOp )
       ELSE
@@ -9998,13 +9998,13 @@ BEGIN
       END
    ELSIF t=DivideTok
    THEN
-      RETURN( DivFloorOp )
+      RETURN( DivTruncOp )
    ELSIF t=RemTok
    THEN
       RETURN( ModTruncOp )
    ELSIF t=ModTok
    THEN
-      IF Pim2 OR Pim3
+      IF (Pim2 OR Pim3) AND (NOT PositiveModFloorDiv)
       THEN
          RETURN( ModTruncOp )
       ELSE

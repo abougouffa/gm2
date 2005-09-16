@@ -55,7 +55,7 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        EqualTok, HashTok, LessGreaterTok, LessTok, LessEqualTok,
                        GreaterTok, GreaterEqualTok, InTok, PlusTok, MinusTok,
-                       OrTok, TimesTok, DivTok, ModTok, RemTok, AndTok, AmbersandTok ;
+                       OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok, AndTok, AmbersandTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildModuleStart,
@@ -645,7 +645,7 @@ ConstTerm := ConstFactor { MulOperator ConstFactor                         % Bui
 
 MulOperator := "*"                                                         % PushT(TimesTok) ;
                                                                              RecordOp %
-               | "/"                                                       % PushT(DivTok) ;
+               | "/"                                                       % PushT(DivideTok) ;
                                                                              RecordOp %
                | "DIV"                                                     % PushT(DivTok) ;
                                                                              RecordOp %

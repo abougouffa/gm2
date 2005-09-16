@@ -187,6 +187,10 @@ BEGIN
       Pim4 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-Wpositive-mod-floor-div')
+   THEN
+      PositiveModFloorDiv := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-Wlibs=')
    THEN
       (* at present this switch just modifies the default library
@@ -355,6 +359,7 @@ BEGIN
    Pim2                         := FALSE ;
    Pim3                         := FALSE ;
    Pim4                         :=  TRUE ;
+   PositiveModFloorDiv          := FALSE ;
    Iso                          := FALSE ;
    SeenSources                  := FALSE ;
    Statistics                   := FALSE ;
