@@ -128,28 +128,6 @@ register int n;
     return d;
 }
 
-#if 0
-int my_toupper(c)
-int c;
-{
-    if (islower(c))
-	return _toupper(c);
-    else
-	return c;
-}
-
-
-int my_tolower(c)
-int c;
-{
-    if (isupper(c))
-	return _tolower(c);
-    else
-	return c;
-}
-#endif
-
-
 
 long ipow(a, b)
 long a, b;

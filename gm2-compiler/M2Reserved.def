@@ -72,7 +72,6 @@ TYPE
               integertok, identtok, realtok, stringtok) ;
 
 VAR
-   NulName,
    NulTok, PlusTok, MinusTok, TimesTok, DivideTok, BecomesTok,
    AmbersandTok, PeriodTok, CommaTok, SemiColonTok, LParaTok,
    LSBraTok, LCBraTok, UpArrowTok, SingleQuoteTok, EqualTok,

@@ -482,8 +482,9 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
 M2LINK=gm2/boot-bin/mklink$(exeext)
 GM2-VERSION=0.49
 GM2_O=
-GM2_G=-g -gdwarf-2
+# GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
+GM2_G=
 GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -Wverbose-unbounded -Wpim \
  -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
@@ -1246,6 +1247,7 @@ gm2/p2c/p2c-src/src/libp2c.a: $(P2C_LIBOBJS)
 	$(RM) gm2/p2c/p2c-src/src/libp2c.a
 	echo $(P2C_LIBOBJS)
 	ar cr $@ $(P2C_LIBOBJS)
+	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
 
 gm2/boot-bin/p2clib.o: $(srcdir)/gm2/p2c/p2c-src/src/p2clib.c
 	mkdir -p  $(GM2_DIRS)

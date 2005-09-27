@@ -393,32 +393,6 @@ extern Anyptr __MallocTemp__;
 # endif
 #endif
 
-#if 0
-/* Fix toupper/tolower on Suns and other stupid BSD systems */
-#ifdef toupper
-# undef toupper
-# undef tolower
-# define toupper(c)   my_toupper(c)
-# define tolower(c)   my_tolower(c)
-#endif
-
-#if 0
-#ifndef _toupper
-# if 'A' == 65 && 'a' == 97
-#  define _toupper(c)  ((c)-'a'+'A')
-#  define _tolower(c)  ((c)-'A'+'a')
-# else
-#  ifdef toupper
-#   undef toupper   /* hope these are shadowing real functions, */
-#   undef tolower   /* because my_toupper calls _toupper! */
-#  endif
-#  define _toupper(c)  toupper(c)
-#  define _tolower(c)  tolower(c)
-# endif
-#endif
-#endif
-#endif
-
 #endif    /* P2C_H */
 
 

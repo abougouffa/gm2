@@ -287,9 +287,9 @@ register int n;
         if (!(ch2 = *s2++))
             return 1;
         if (islower(ch1))
-            ch1 = _toupper(ch1);
+            ch1 = toupper(ch1);
         if (islower(ch2))
-            ch2 = _toupper(ch2);
+            ch2 = toupper(ch2);
         if (ch1 != ch2)
             return ch1 - ch2;
     }
@@ -309,9 +309,9 @@ const char *s1, *s2;
         if (!(ch2 = *s2++))
             return 1;
         if (islower(ch1))
-            ch1 = _toupper(ch1);
+            ch1 = toupper(ch1);
         if (islower(ch2))
-            ch2 = _toupper(ch2);
+            ch2 = toupper(ch2);
         if (ch1 != ch2)
             return ch1 - ch2;
     }
@@ -707,30 +707,6 @@ long a2;
     return format_gen(fmt, a2, 0L, (double)a2, a1, a3, NULL);
 }
 
-
-
-#if 0
-/* String conversions */
-
-int my_toupper(c)
-int c;
-{
-    if (islower(c))
-	return _toupper(c);
-    else
-	return c;
-}
-
-
-int my_tolower(c)
-int c;
-{
-    if (isupper(c))
-	return _tolower(c);
-    else
-	return c;
-}
-#endif
 
 void upc(s)
 register char *s;

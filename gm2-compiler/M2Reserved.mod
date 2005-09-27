@@ -18,7 +18,7 @@ IMPLEMENTATION MODULE M2Reserved ;
 
 
 FROM SymbolKey IMPORT SymbolTree, InitTree, PutSymKey, GetSymKey ;
-FROM NameKey IMPORT MakeKey ;
+FROM NameKey IMPORT MakeKey, NulName ;
 FROM ASCII IMPORT nul ;
 
 CONST

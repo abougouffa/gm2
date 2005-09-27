@@ -1,3 +1,14 @@
+2005-09-27	Gaius Mulley <gaius@glam.ac.uk>
+
+	* finally fixed _toupper porting problem in p2c as reported
+	  by Thomas Ahn <TAhnMaple@gmx.de>, Ed Smith-Rowland
+	  <3dw4rd@verizon.net>, John o goyo <jgoyo@ca.inter.net>,
+          Eduardo Abela <eabela@mac.com>, John Calley
+	  <calleys@iquest.net> and many others.
+	* finally fixed the linking problem when building under
+	  opendarwin. I suspect this will fix the same problems
+	  under MacOS.
+
 2005-09-16	Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented -Wpositive-mod-floor-div option

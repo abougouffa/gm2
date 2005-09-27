@@ -1853,31 +1853,6 @@ int unlink         PP( (char *) );
 #  define MAX(a,b) ((a) > (b) ? (a) : (b))
 #endif
 
-#if 0
-#ifdef toupper
-# undef toupper
-# undef tolower
-# define toupper(c)   my_toupper(c)
-# define tolower(c)   my_tolower(c)
-#endif
-
-#ifndef _toupper
-# if 'A' == 65 && 'a' == 97
-#  define _toupper(c)  ((c)-'a'+'A')
-#  define _tolower(c)  ((c)-'A'+'a')
-# else
-#  ifdef toupper
-#   undef toupper   /* hope these are shadowing real functions, */
-#   undef tolower   /* because my_toupper calls _toupper! */
-#  endif
-#  define _toupper(c)  toupper(c)
-#  define _tolower(c)  tolower(c)
-# endif
-#endif
-#endif
-
-
-
 /* End. */
 
 
