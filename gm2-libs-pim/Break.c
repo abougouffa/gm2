@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <stdarg.h>
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include "gm2-libs-host.h"
+
+#if defined(HAVE_STDLIB_H)
   #include <stdlib.h>
-#else
+#endif
+
+#if defined(HAVE_MALLOC_H)
   #include <malloc.h>
 #endif
-#include "gm2-libs-host.h"
+
 
 typedef void (*PROC)(void);
 

@@ -146,7 +146,7 @@ PROCEDURE LongIntToStr (x: LONGINT; n: CARDINAL ; VAR a: ARRAY OF CHAR) ;
 VAR
    s: String ;
 BEGIN
-   s := LongIntegerToString(x, n, ' ', TRUE, 10, TRUE) ;
+   s := LongIntegerToString(x, n, ' ', FALSE, 10, TRUE) ;
    CopyOut(a, s) ;
    s := KillString(s)
 END LongIntToStr ;

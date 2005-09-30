@@ -617,6 +617,7 @@ static void                   layout_array_type 		       	  PARAMS ((tree t));
        tree                   gccgm2_BuildIntegerConstant                 PARAMS ((int value));
        void                   gccgm2_BuildGoto                            PARAMS ((char *name));
        tree                   gccgm2_RememberConstant                     PARAMS ((tree t));
+       tree                   gccgm2_RememberInitModuleFunction           PARAMS ((tree t));
 static tree                   determinePenultimateField                   PARAMS ((tree record, tree field));
        tree                   global_constant                             PARAMS ((tree t));
        tree                   gccgm2_FoldAndStrip                         PARAMS ((tree t));
@@ -1102,6 +1103,9 @@ struct binding_level GTY(())
        Constants need to be kept through the life of the compilation,
        as the same constants can be used in any scope. */
     tree constants;
+
+    /* A list of inner module initialisation functions */
+    tree init_functions;
   };
 
 #define NULL_BINDING_LEVEL (struct binding_level *) NULL
@@ -1124,7 +1128,7 @@ static GTY(()) struct binding_level *global_binding_level;
 
 static struct binding_level clear_binding_level
   = {NULL, NULL, NULL, NULL, NULL, NULL_BINDING_LEVEL, 0, 0, 0, 0, 0, 0,
-     NULL};
+     NULL, NULL};
 
 /* Nonzero means unconditionally make a BLOCK for the next level pushed.  */
 
@@ -2715,7 +2719,7 @@ gccgm2_RememberConstant (t)
 
 tree
 global_constant (t)
-  tree t;
+     tree t;
 {
   tree t1;
 
@@ -2727,6 +2731,21 @@ global_constant (t)
   global_binding_level->constants = tree_cons (NULL_TREE,
 					       t, global_binding_level->constants);
   return t;
+}
+
+/*
+ *  RememberInitModuleFunction - records tree, t, in the global binding level.
+ *                               So that it will not be garbage collected.
+ *                               In theory the inner modules could be placed
+ *                               inside the current_binding_level I suspect.
+ */
+
+tree
+gccgm2_RememberInitModuleFunction (t)
+     tree t;
+{
+  global_binding_level->init_functions = tree_cons (NULL_TREE,
+						    t, global_binding_level->init_functions);
 }
 
 tree
@@ -11808,6 +11827,9 @@ gccgm2_BuildStart (name, line, inner_module)
   /* Announce we are compiling this function.  */
   announce_function (fndecl);
 
+  /* fix exposed on opendarwin to fix MathLib.mod */
+  gccgm2_RememberInitModuleFunction (fndecl);
+
   /* Set up to compile the function and enter it.  */
   current_function_decl = fndecl;
   DECL_INITIAL (fndecl) = error_mark_node;
@@ -11849,6 +11871,7 @@ gccgm2_BuildEnd (fndecl)
   expand_function_end (input_filename, lineno, 0);
   rest_of_compilation (fndecl);
   current_function_decl = 0;
+  ggc_collect();  /* stress testing */
 }
 
 void

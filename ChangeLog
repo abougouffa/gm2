@@ -1,3 +1,13 @@
+2005-09-30	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug in gm2/gm2-libs/FpuIO.mod so that the sign is
+	  not preprended to the string if the number is positive.
+	* fixed gm2/gm2-libs-pim/Break.c to use HAVE_STDLIB_H and
+	  HAVE_MALLOC_H as detected by the configure script.
+	* removed ulm-lib-gm2/std/MathLib.mod from the build
+	  process as a temporary work around to get gm2 working
+	  under opendarwin.
+
 2005-09-27	Gaius Mulley <gaius@glam.ac.uk>
 
 	* finally fixed _toupper porting problem in p2c as reported

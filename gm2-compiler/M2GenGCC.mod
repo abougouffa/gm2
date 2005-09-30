@@ -415,7 +415,7 @@ PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 VAR
    Prev: CARDINAL ;
 BEGIN
-   IF Start=1393
+   IF Start=19433
    THEN
       stop
    END ;
@@ -453,10 +453,6 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;
-   IF q=10
-   THEN
-      stop
-   END ;
 
    CASE op OF
 

@@ -750,7 +750,10 @@ BEGIN
       n1 := GetSymName(Sym) ;
       printf2('// declaring %d %a\n', Sym, n1)
    END ;
-
+   IF Sym=846
+   THEN
+      mystop
+   END ;
    IF IsVarient(Sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
@@ -1312,6 +1315,7 @@ BEGIN
    THEN
       AlignDeclarationWithSource(Son) ;
       scope := FindTreeScope(ModSym) ;
+      Assert(AllDependantsWritten(GetType(Son))) ;
       IF GetMode(Son)=LeftValue
       THEN
          (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
@@ -1386,6 +1390,7 @@ BEGIN
    Var := GetNth(Sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
+      Assert(AllDependantsWritten(GetType(Var))) ;
       IF GetMode(Var)=LeftValue
       THEN
          (* really a pointer to GetType(Var) - we will tell gcc exactly this *)
@@ -1427,6 +1432,7 @@ BEGIN
    Var := GetNth(Sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
+      Assert(AllDependantsWritten(GetType(Var))) ;
       IF GetMode(Var)=LeftValue
       THEN
          (* really a pointer to GetType(Var) - we will tell gcc exactly this *)
