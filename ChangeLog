@@ -1,3 +1,8 @@
+2005-10-03	Michael H Lambert <lambert@psc.edu>
+
+	* removed $(LIBS) from the dependancies of cc1gm2 in
+	  stage1, stage2 and stage3.
+
 2005-09-30	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug in gm2/gm2-libs/FpuIO.mod so that the sign is

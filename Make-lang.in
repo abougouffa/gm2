@@ -607,17 +607,17 @@ gm2lsub$(exeext): force
 # end here
   
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) $(LIBS)
+                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) \
                               gm2/gm2-compiler-paranoid/m2flex.o $(BACKEND) $(LIBS)
   
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
-                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) $(LIBS)
+                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) \
                               gm2/gm2-compiler/m2flex.o $(BACKEND) $(LIBS)
   
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT) $(LIBS)
+                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) \
                               gm2/gm2-compiler-boot/m2flex.o $(BACKEND) $(LIBS)
   
