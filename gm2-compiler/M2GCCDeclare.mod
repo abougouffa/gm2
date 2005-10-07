@@ -101,7 +101,7 @@ FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      System ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
-FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison ;
+FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
 FROM M2GenGCC IMPORT ResolveConstantExpressions ;
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 
@@ -135,6 +135,7 @@ FROM gccgm2 IMPORT Tree,
                    BuildParameterDeclaration,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildStartMainModule, BuildEndMainModule,
+                   RememberType,
                    AssignBooleanTrueFalse, BuildSize ;
 
 (* %%%FORWARD%%%
@@ -233,6 +234,7 @@ END CompletelyResolved ;
 
 PROCEDURE CheckToFinishList (MustBeResolved: BOOLEAN) ;
 VAR
+   t   : Tree ;
    n1  : Name ;
    Sym,
    i, n: CARDINAL ;
@@ -263,7 +265,8 @@ BEGIN
       Sym := GetItemFromList(ToFinishList, i) ;
       IF AllDependantsWritten(Sym)
       THEN
-         IF Mod2Gcc(Sym)#DeclareKindOfType(Sym)
+         t := Mod2Gcc(Sym) ;
+         IF t#DeclareKindOfType(Sym)
          THEN
             InternalError('gcc has returned a different symbol on completion of a type', __FILE__, __LINE__)
             (* the solution is to allow:          AddModGcc(Sym, DeclareKindOfType(Sym)) *)
@@ -745,11 +748,6 @@ VAR
    n1 : Name ;
    gcc: Tree ;
 BEGIN
-   IF Debugging
-   THEN
-      n1 := GetSymName(Sym) ;
-      printf2('// declaring %d %a\n', Sym, n1)
-   END ;
    IF Sym=846
    THEN
       mystop
@@ -772,7 +770,12 @@ BEGIN
             gcc := DeclareOrFindKindOfType(Sym)
          END ;
          RemoveItemFromList(ToDoList, Sym) ;
-         AddModGcc(Sym, gcc)
+         AddModGcc(Sym, gcc) ;
+         IF Debugging
+         THEN
+            n1 := GetSymName(Sym) ;
+            printf2('// declaring %d %a\n', Sym, n1)
+         END
       END
    END
 END DeclareTypeInfo ;
@@ -1076,10 +1079,11 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
-(*
-   n := GetSymName(scope) ;
-   printf1('before declaring block %a\n', n) ;
-*)
+   IF Debugging
+   THEN
+      n := GetSymName(scope) ;
+      printf1('Declaring symbols in BLOCK %a\n', n)
+   END ;
    IF IsProcedure(scope)
    THEN
       DeclareProcedure(scope) ;
@@ -1118,6 +1122,11 @@ BEGIN
       (* --end of test-- *)
       ForeachInnerModuleDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
+   END ;
+   IF Debugging
+   THEN
+      n := GetSymName(scope) ;
+      printf1('\nEND declaring symbols in BLOCK %a\n', n)
    END
 END StartDeclareScope ;
 
@@ -2092,6 +2101,22 @@ BEGIN
       GccIndex := BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) ;
       GccArray := BuildArrayType(GccArray, GccIndex)
    END ;
+   IF Debugging
+   THEN
+      n1 := GetSymName(Sym) ;
+      IF Subscript=NulSym
+      THEN
+         n2 := GetSymName(GetType(Sym)) ;
+         printf2('// declaring %a = ARRAY OF %a\n', n1, n2)
+      ELSE
+         n2 := GetSymName(Low) ;
+         printf2('// declaring %a = ARRAY [%a', n1, n2) ;
+         n1 := GetSymName(High) ;
+         n2 := GetSymName(GetType(Sym)) ;
+         printf2('..%a] OF %a\n', n1, n2) ;
+         stop
+      END
+   END ;
    RETURN( GccArray )
 END DeclareArray ;
 
@@ -2421,40 +2446,53 @@ END DeclareOrFindKindOfType ;
 *)
 
 PROCEDURE DeclareKindOfType (Sym: CARDINAL) : Tree ;
+VAR
+   t: Tree ;
+   n: Name ;
 BEGIN
    IF IsEnumeration(Sym)
    THEN
-      RETURN( DeclareEnumeration(Sym) )
+      t := DeclareEnumeration(Sym)
    ELSIF IsSubrange(Sym)
    THEN
-      RETURN( DeclareSubrange(Sym) )
+      t := DeclareSubrange(Sym)
    ELSIF IsRecord(Sym)
    THEN
-      RETURN( DeclareRecord(Sym) )
+      t := DeclareRecord(Sym)
    ELSIF IsFieldVarient(Sym)
    THEN
-      RETURN( DeclareVarient(Sym) )
+      t := DeclareVarient(Sym)
    ELSIF IsVarient(Sym)
    THEN
       InternalError('should not be solving varients here', __FILE__, __LINE__)
    ELSIF IsPointer(Sym)
    THEN
-      RETURN( DeclarePointer(Sym) )
+      t := DeclarePointer(Sym)
    ELSIF IsUnbounded(Sym)
    THEN
-      RETURN( DeclareUnbounded(Sym) )
+      t := DeclareUnbounded(Sym)
    ELSIF IsArray(Sym)
    THEN
-      RETURN( DeclareArray(Sym) )
+      t := DeclareArray(Sym)
    ELSIF IsProcType(Sym)
    THEN
-      RETURN( DeclareProcType(Sym) )
+      t := DeclareProcType(Sym)
    ELSIF IsSet(Sym)
    THEN
-      RETURN( DeclareSet(Sym) )
+      t := DeclareSet(Sym)
    ELSE
-      RETURN( DeclareType(Sym) )
-   END
+      t := DeclareType(Sym)
+   END ;
+   IF GetSymName(Sym)#NulName
+   THEN
+      IF Debugging
+      THEN
+         n := GetSymName(Sym) ;
+         printf1('Declaring type %a\n', n)
+      END ;
+      t := RememberType(t) ;
+   END ;
+   RETURN( t )
 END DeclareKindOfType ;
 
 

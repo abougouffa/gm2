@@ -26,7 +26,8 @@ DEFINITION MODULE SymbolConversion ;
 
 FROM gccgm2 IMPORT Tree ;
 FROM SYSTEM IMPORT WORD ;
-EXPORT QUALIFIED Mod2Gcc, AddModGcc, GccKnowsAbout, AddTemporaryKnown, RemoveTemporaryKnown, Poison ;
+EXPORT QUALIFIED Mod2Gcc, AddModGcc, GccKnowsAbout, AddTemporaryKnown,
+                 RemoveTemporaryKnown, Poison, RemoveMod2Gcc ;
 
 
 (*
@@ -41,6 +42,13 @@ PROCEDURE Mod2Gcc (sym: CARDINAL) : Tree ;
 *)
 
 PROCEDURE AddModGcc (sym: CARDINAL; gcc: Tree) ;
+
+
+(*
+   RemoveMod2Gcc - removes the gcc symbol from the lookup table.
+*)
+
+PROCEDURE RemoveMod2Gcc (sym: CARDINAL) ;
 
 
 (*

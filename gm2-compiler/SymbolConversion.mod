@@ -95,7 +95,7 @@ BEGIN
       InternalError('error node generated during symbol conversion', __FILE__, __LINE__)
    END ;
 
-   IF sym=138
+   IF sym=840
    THEN
       mystop2
    END ;
@@ -135,6 +135,16 @@ BEGIN
       PopValue(sym)
    END
 END AddModGcc ;
+
+
+(*
+   RemoveMod2Gcc - removes the gcc symbol from the lookup table.
+*)
+
+PROCEDURE RemoveMod2Gcc (sym: CARDINAL) ;
+BEGIN
+   PutIndice(mod2gcc, sym, NIL)   
+END RemoveMod2Gcc ;
 
 
 (*

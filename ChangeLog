@@ -1,3 +1,12 @@
+2005-10-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* replaced MathLib.mod onto the list of ULM modules	  
+          which prior to installation.
+	* fixed ggc bug so that types are remembered and marked.
+	  These types are declared in M2GCCDeclare.mod before
+	  code generation takes place and do not experience the
+	  `push_decl' function.
+
 2005-10-03	Michael H Lambert <lambert@psc.edu>
 
 	* removed $(LIBS) from the dependancies of cc1gm2 in
@@ -6,7 +15,7 @@
 2005-09-30	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug in gm2/gm2-libs/FpuIO.mod so that the sign is
-	  not preprended to the string if the number is positive.
+	  not prepended to the string if the number is positive.
 	* fixed gm2/gm2-libs-pim/Break.c to use HAVE_STDLIB_H and
 	  HAVE_MALLOC_H as detected by the configure script.
 	* removed ulm-lib-gm2/std/MathLib.mod from the build

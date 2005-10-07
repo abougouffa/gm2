@@ -618,6 +618,7 @@ static void                   layout_array_type 		       	  PARAMS ((tree t));
        void                   gccgm2_BuildGoto                            PARAMS ((char *name));
        tree                   gccgm2_RememberConstant                     PARAMS ((tree t));
        tree                   gccgm2_RememberInitModuleFunction           PARAMS ((tree t));
+       tree                   gccgm2_RememberType                         PARAMS ((tree t));
 static tree                   determinePenultimateField                   PARAMS ((tree record, tree field));
        tree                   global_constant                             PARAMS ((tree t));
        tree                   gccgm2_FoldAndStrip                         PARAMS ((tree t));
@@ -1106,6 +1107,11 @@ struct binding_level GTY(())
 
     /* A list of inner module initialisation functions */
     tree init_functions;
+
+    /* A list of types created by M2GCCDeclare prior to code generation
+       and those which may not be specifically declared and saved via
+       a push_decl */
+    tree types;
   };
 
 #define NULL_BINDING_LEVEL (struct binding_level *) NULL
@@ -1128,7 +1134,7 @@ static GTY(()) struct binding_level *global_binding_level;
 
 static struct binding_level clear_binding_level
   = {NULL, NULL, NULL, NULL, NULL, NULL_BINDING_LEVEL, 0, 0, 0, 0, 0, 0,
-     NULL, NULL};
+     NULL, NULL, NULL};
 
 /* Nonzero means unconditionally make a BLOCK for the next level pushed.  */
 
@@ -2746,6 +2752,20 @@ gccgm2_RememberInitModuleFunction (t)
 {
   global_binding_level->init_functions = tree_cons (NULL_TREE,
 						    t, global_binding_level->init_functions);
+  return t;
+}
+
+/*
+ *  RememberType - remember the type, t, in the ggc marked list.
+ */
+
+tree
+gccgm2_RememberType (t)
+     tree t;
+{
+  global_binding_level->types = tree_cons (NULL_TREE,
+					   t, global_binding_level->types);
+  return t;
 }
 
 tree

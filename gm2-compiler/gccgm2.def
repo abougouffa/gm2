@@ -77,7 +77,10 @@ EXPORT QUALIFIED Tree,
                  BuildAsm, BuildExpand, DebugTree,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
-                 RememberConstant, FoldAndStrip,
+                 RememberConstant,
+                 RememberType,
+                 RememberInitModuleFunction,
+                 FoldAndStrip,
                  BuildBinaryForeachWordDo,
                  BuildUnaryForeachWordDo,
                  BuildIncludeVarVar, BuildExcludeVarVar,
@@ -1127,6 +1130,21 @@ PROCEDURE ExpandExpressionStatement (t: Tree) ;
 *)
 
 PROCEDURE RememberConstant (t: Tree) : Tree ;
+
+
+(*
+   RememberInitModuleFunction - remember the initialization function of a module
+                                in the ggc marked list.
+*)
+
+PROCEDURE RememberInitModuleFunction (t: Tree) : Tree ;
+
+
+(*
+   RememberType - remember the type, t, in the ggc marked list.
+*)
+
+PROCEDURE RememberType (t: Tree) : Tree ;
 
 
 (*
