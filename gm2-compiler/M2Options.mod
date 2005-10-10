@@ -299,6 +299,9 @@ BEGIN
    ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-Wtarget-ar=')
    THEN
       Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-Wtarget-ranlib=')
+   THEN
+      Legal := TRUE
    ELSIF EqualArray(s, '-Wq')
    THEN
       DisplayQuadruples := TRUE ;

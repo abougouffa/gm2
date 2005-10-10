@@ -81,6 +81,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("build project path (internal)") },
   { "-Wtarget-ar=",
       N_("full path to target archiver") },
+  { "-Wtarget-ranlib=",
+      N_("full path to target ranlib") },
   { "-Wcpp",
       N_("use cpp to preprocess the module") },
   { "-Wq",

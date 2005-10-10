@@ -78,11 +78,22 @@ void add_exec_prefix(pos, in_argc, in_argv)
 {
   char *prefix;
   const char *ar = AR_PATH;
+  const char *ranlib = RANLIB_PATH;
+
+  /* insert ar */
   insert_arg(pos, in_argc, in_argv);
   prefix = (char *) alloca(strlen("-Wtarget-ar=") +
 				    strlen(ar) + 1);
   strcpy(prefix, "-Wtarget-ar=");
   strcat(prefix, ar);
+  (*in_argv)[pos] = xstrdup(prefix);
+
+  /* and now insert ranlib */
+  insert_arg(pos, in_argc, in_argv);
+  prefix = (char *) alloca(strlen("-Wtarget-ranlib=") +
+				    strlen(ranlib) + 1);
+  strcpy(prefix, "-Wtarget-ranlib=");
+  strcat(prefix, ranlib);
   (*in_argv)[pos] = xstrdup(prefix);
 }
 

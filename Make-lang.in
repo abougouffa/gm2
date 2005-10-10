@@ -1061,6 +1061,8 @@ gm2/gm2config.h:
 	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             AR=`echo $(AR_FOR_TARGET) | sed -e "s/^ //"` ; \
             export AR ; \
+            RANLIB=`echo $(RANLIB_FOR_TARGET) | sed -e "s/^ //"` ; \
+            export RANLIB ; \
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
         else \
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \

@@ -55,7 +55,6 @@ CONST
                                 (* name.                           *)
 
 VAR
-   ApuFound      : BOOLEAN ;
    DebugFound    : BOOLEAN ;
    CheckFound    : BOOLEAN ;
    VerboseFound  : BOOLEAN ;
@@ -65,7 +64,9 @@ VAR
    PathFound     : BOOLEAN ;
    ExecCommand   : BOOLEAN ;    (* should we execute the final cmd *)
    UseAr         : BOOLEAN ;    (* use 'ar' and create archive     *)
+   UseRanlib     : BOOLEAN ;    (* use 'ranlib' to index archive   *)
    IgnoreMain    : BOOLEAN ;    (* ignore main module when linking *)
+   RanlibProgram,
    ArProgram,
    Archives,
    Path,
@@ -99,16 +100,13 @@ END FlushCommand ;
 
 
 (*
-   GenerateCommand - generate the appropriate linkage command
-                     with the correct options.
+   GenerateLinkCommand - generate the appropriate linkage command
+                         with the correct options.
 *)
 
-PROCEDURE GenerateCommand ;
+PROCEDURE GenerateLinkCommand ;
 BEGIN
-   IF ApuFound
-   THEN
-      Command := InitString('ld-is32 -Ttext 0x0 ')
-   ELSIF UseAr
+   IF UseAr
    THEN
       Command := ConCat(ArProgram, InitString(' rc ')) ;
       IF TargetFound
@@ -140,7 +138,25 @@ BEGIN
          Command := ConCat(Command, Mark(InitString('-lgmon ')))
       END
    END
-END GenerateCommand ;
+END GenerateLinkCommand ;
+
+
+(*
+   GenerateRanlibCommand - generate the appropriate ranlib command.
+*)
+
+PROCEDURE GenerateRanlibCommand ;
+BEGIN
+   Command := ConCat(RanlibProgram, Mark(InitStringChar(' '))) ;
+   IF TargetFound
+   THEN
+      Command := ConCat(Command, Target) ;
+      Command := ConCatChar(Command, ' ')
+   ELSE
+      WriteString(StdErr, 'need target with ranlib') ; WriteLine(StdErr) ; Close(StdErr) ;
+      exit(1)
+   END
+END GenerateRanlibCommand ;
 
 
 (*
@@ -170,15 +186,9 @@ PROCEDURE GenCC ;
 VAR
    s, t, u: String ;
 BEGIN
-   GenerateCommand ;
-   IF ApuFound
-   THEN
-      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString(' crt0.obj %s.obj')),
-                                               StartupFile)))
-   ELSE
-      Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
-                                               StartupFile)))
-   END ;
+   GenerateLinkCommand ;
+   Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
+                                            StartupFile))) ;
    REPEAT
       s := RemoveWhitePrefix(ReadS(fi)) ;
       IF (NOT Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment))))))) AND
@@ -186,12 +196,7 @@ BEGIN
       THEN
          s := RemoveLinkOnly(s) ;
          t := Dup(s) ;
-         IF ApuFound
-         THEN
-            t := CalculateFileName(s, Mark(InitString('obj')))
-         ELSE
-            t := CalculateFileName(s, Mark(InitString('o')))
-         END ;
+         t := CalculateFileName(s, Mark(InitString('o'))) ;
          IF FindSourceFile(t, u)
          THEN
             Command := ConCat(ConCatChar(Command, ' '), u) ;
@@ -218,7 +223,12 @@ BEGIN
    THEN
       Command := ConCat(ConCatChar(Command, ' '), Libraries)
    END ;
-   FlushCommand
+   FlushCommand ;
+   IF UseRanlib
+   THEN
+      GenerateRanlibCommand ;
+      FlushCommand
+   END
 END GenCC ;
 
 
@@ -254,12 +264,7 @@ BEGIN
       THEN
          s := RemoveLinkOnly(s) ;
          t := Dup(s) ;
-         IF ApuFound
-         THEN
-            t := CalculateFileName(s, Mark(InitString('obj')))
-         ELSE
-            t := CalculateFileName(s, Mark(InitString('o')))
-         END ;
+         t := CalculateFileName(s, Mark(InitString('o'))) ;
          IF FindSourceFile(t, u)
          THEN
             IF KillString(WriteS(fo, Mark(Sprintf1(Mark(InitString(' : %s\n')), u))))=NIL
@@ -370,10 +375,7 @@ BEGIN
    FoundFile := FALSE ;
    i := 1 ;
    WHILE GetArg(s, i) DO
-      IF EqualArray(s, '-apu')
-      THEN
-         ApuFound := TRUE
-      ELSIF EqualArray(s, '-g')
+      IF EqualArray(s, '-g')
       THEN
          DebugFound := TRUE
       ELSIF EqualArray(s, '-c')
@@ -402,7 +404,8 @@ BEGIN
          IgnoreMain := TRUE
       ELSIF EqualArray(s, '-ar')
       THEN
-         UseAr := TRUE
+         UseAr := TRUE ;
+         UseRanlib := TRUE
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
       THEN
          PrependSearchPath(Slice(s, 2, 0))
@@ -410,6 +413,10 @@ BEGIN
       THEN
          ArProgram := KillString(ArProgram) ;
          ArProgram := Slice(s, 12, 0)
+      ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-Wtarget-ranlib=')
+      THEN
+         RanlibProgram := KillString(RanlibProgram) ;
+         RanlibProgram := Slice(s, 12, 0)
       ELSIF EqualArray(s, '-o')
       THEN
          INC(i) ;                 (* Target found *)
@@ -455,10 +462,11 @@ BEGIN
    TargetFound   := FALSE ;
    ProfileFound  := FALSE ;
    IgnoreMain    := FALSE ;
-   ApuFound      := FALSE ;
    UseAr         := FALSE ;
+   UseRanlib     := FALSE ;
    VerboseFound  := FALSE ;
    ArProgram     := InitString('ar') ;
+   RanlibProgram := InitString('ranlib') ;
    MainModule    := InitString('') ;
    StartupFile   := InitString('mod_init') ;
    fi            := StdIn ;

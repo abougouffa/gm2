@@ -1,3 +1,12 @@
+2005-10-10	Gaius Mulley <gaius@glam.ac.uk>
+
+	* introduced an invocation to ranlib after producing the
+	  archive to fix a linking bug on MacOS OS 10.3.9 reported
+	  by: Thomas Ahn <TAhnMaple@gmx.de>.
+	* propagated ranlib though the various subcomponents of
+	  gm2: gm2/gm2spec.c gm2/lang-specs.h gm2/Make-lang.in
+	  gm2/gm2-compiler/gm2lcc.mod gm2/gm2-compiler/M2Options.mod
+
 2005-10-07	Gaius Mulley <gaius@glam.ac.uk>
 
 	* replaced MathLib.mod onto the list of ULM modules	  
