@@ -83,7 +83,7 @@ VAR
                   or execute the command.
 *)
 
-PROCEDURE FlushCommand ;
+PROCEDURE FlushCommand () : INTEGER ;
 BEGIN
    IF ExecCommand
    THEN
@@ -92,10 +92,11 @@ BEGIN
          Command := WriteS(StdOut, Command) ;
          fprintf0(StdOut, '\n')
       END ;
-      exit( system(string(Command)) )
+      RETURN( system(string(Command)) )
    ELSE
       Command := WriteS(fo, Command)
-   END
+   END ;
+   RETURN( 0 )
 END FlushCommand ;
 
 
@@ -185,6 +186,7 @@ END RemoveLinkOnly ;
 PROCEDURE GenCC ;
 VAR
    s, t, u: String ;
+   Error  : INTEGER ;
 BEGIN
    GenerateLinkCommand ;
    Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
@@ -223,11 +225,24 @@ BEGIN
    THEN
       Command := ConCat(ConCatChar(Command, ' '), Libraries)
    END ;
-   FlushCommand ;
-   IF UseRanlib
+   Error := FlushCommand() ;
+   IF Error=0
    THEN
-      GenerateRanlibCommand ;
-      FlushCommand
+      IF UseRanlib
+      THEN
+         GenerateRanlibCommand ;
+         Error := FlushCommand() ;
+         IF Error#0
+         THEN
+            fprintf1(StdErr, 'ranlib failed with exit code %d\n', Error) ;
+            Close(StdErr) ;
+            exit(Error)
+         END
+      END
+   ELSE
+      fprintf1(StdErr, 'ar failed with exit code %d\n', Error) ;
+      Close(StdErr) ;
+      exit(Error)
    END
 END GenCC ;
 
@@ -416,7 +431,7 @@ BEGIN
       ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-Wtarget-ranlib=')
       THEN
          RanlibProgram := KillString(RanlibProgram) ;
-         RanlibProgram := Slice(s, 12, 0)
+         RanlibProgram := Slice(s, 16, 0)
       ELSIF EqualArray(s, '-o')
       THEN
          INC(i) ;                 (* Target found *)
