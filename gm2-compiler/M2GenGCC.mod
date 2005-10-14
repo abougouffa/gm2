@@ -415,10 +415,6 @@ PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 VAR
    Prev: CARDINAL ;
 BEGIN
-   IF Start=19433
-   THEN
-      stop
-   END ;
    REPEAT
       CodeStatement(Start) ;
       Prev := Start ;
@@ -450,6 +446,10 @@ VAR
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
 BEGIN
+   IF q=1897
+   THEN
+      stop
+   END ;
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;

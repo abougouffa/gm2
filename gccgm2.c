@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #undef DEBUG_PROCEDURE_CALLS
-static int broken_set_debugging_info = TRUE;
+static int broken_set_debugging_info = FALSE;
 
 /*
  *  utilize some of the C build routines
@@ -382,7 +382,8 @@ int flag_traditional=FALSE;     /* Used by dwarfout.c.  */
        void                   gccgm2_SetFileNameAndLineNo       	  PARAMS ((char *fn, int line));
        void                   gccgm2_EmitLineNote               	  PARAMS ((char *fn, int line));
 static struct binding_level  *make_binding_level                	  PARAMS ((void));
-//static void                   mark_binding_level                          PARAMS ((void *arg));
+static int                    is_integer                                  PARAMS ((enum tree_code code));
+static int                    is_pointer                                  PARAMS ((enum tree_code code));
        int                    kept_level_p                      	  PARAMS ((void));
        int                    in_parm_level_p                   	  PARAMS ((void));
 static void                   clear_limbo_values                	  PARAMS ((tree block));
@@ -693,7 +694,6 @@ static tree                   get_field_list                              PARAMS
 static tree                   get_set_value                               PARAMS ((tree, tree, int));
        void                   gccgm2_InitFunctionTypeParameters           PARAMS ((int uses_varargs));
        tree                   gccgm2_GetM2CardinalType                    PARAMS ((void));
-static tree                   get_tree_val                                PARAMS ((tree e));
 static tree                   convert_arguments                           PARAMS ((tree, tree, tree, tree));
 static tree                   default_function_array_conversion           PARAMS ((tree exp));
        void                   gccgm2_BuildPushFunctionContext             PARAMS ((void));
@@ -2775,7 +2775,10 @@ gccgm2_FoldAndStrip (t)
   if (t != NULL) {
     t = fold (t);
     STRIP_NOPS (t);
+    if (TREE_CODE (t) == CONST_DECL)
+      return gccgm2_FoldAndStrip (DECL_INITIAL (t));
   }
+
   return t;
 }
 
@@ -6185,6 +6188,23 @@ binary_op_error (code)
   error ("invalid operands to binary %s", opname);
 }
 
+
+static
+int
+is_pointer (code)
+     enum tree_code code;
+{
+  return (code == POINTER_TYPE) || (code == REFERENCE_TYPE);
+}
+
+static
+int
+is_integer (code)
+     enum tree_code code;
+{
+  return (code == INTEGER_TYPE);
+}
+
 /* Build a binary-operation expression without default conversions.
    CODE is the kind of expression to build.
    This function differs from `build' in several ways:
@@ -6296,10 +6316,10 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
     case PLUS_EXPR:
       /* Handle the pointer + int case.  */
 #if defined(GM2)
-      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
-          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
-	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
-        result_type = ptr_type_node;
+      if ((is_pointer (code0) && is_integer (code1)) ||
+	  (is_pointer (code1) && is_integer (code0)) ||
+	  (is_pointer (code0) && is_pointer (code1)))
+	result_type = ptr_type_node;
       else
 	common = 1;
 #else
@@ -6314,9 +6334,9 @@ build_binary_op (code, orig_op0, orig_op1, convert_p)
 
     case MINUS_EXPR:
 #if defined(GM2)
-      if ((code0 == POINTER_TYPE && code1 == INTEGER_TYPE) ||
-          (code1 == POINTER_TYPE && code0 == INTEGER_TYPE) ||
-	  (code0 == POINTER_TYPE && code1 == POINTER_TYPE))
+      if ((is_pointer (code0) && is_integer (code1)) ||
+	  (is_pointer (code1) && is_integer (code0)) ||
+	  (is_pointer (code0) && is_pointer (code1)))
         result_type = ptr_type_node;
       else
 	common = 1;
@@ -7247,9 +7267,9 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
 
   pushdecl (decl);
 
-  if (DECL_SIZE(decl) == 0) {
+  if (DECL_SIZE(decl) == 0)
     error_with_decl (decl, "storage size of `%s' hasn't been resolved");
-  }
+
   expand_decl (decl);
   if (isglobal) {
     layout_decl (decl, 0);
@@ -8490,6 +8510,8 @@ build_bitset_type (void)
   if (broken_set_debugging_info)
     return unsigned_type_node;
 
+  ASSERT((COMPLETE_TYPE_P (bitnum_type_node)), bitnum_type_node);
+
   return gccgm2_BuildSetTypeFromSubrange (NULL, bitnum_type_node,
 					  gccgm2_BuildIntegerConstant (0),
 					  gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset()-1));
@@ -8506,6 +8528,9 @@ gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
      tree lowval;
      tree highval;
 {
+  lowval = gccgm2_FoldAndStrip (lowval);
+  highval = gccgm2_FoldAndStrip (highval);
+
   if (broken_set_debugging_info)
     return unsigned_type_node;
   else {
@@ -8523,10 +8548,13 @@ gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
     if (gccgm2_CompareTrees (noelements, gccgm2_BuildIntegerConstant (SET_WORD_SIZE)) == 0)
       TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
     else
-      TYPE_MAX_VALUE (settype) = gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
+      TYPE_MAX_VALUE (settype) = gccgm2_FoldAndStrip (gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
 						  integer_one_node,
-						  FALSE);
+						  FALSE));
     TYPE_MIN_VALUE (settype) = integer_zero_node;
+
+    layout_type (settype);
+    ASSERT((COMPLETE_TYPE_P (settype)), settype);
     
     if ((name == NULL) || (strcmp(name, "") == 0))
       /* no modula-2 name */
@@ -8549,9 +8577,13 @@ gccgm2_BuildSetType (name, type, lowval, highval)
      char *name;
      tree type, lowval, highval;
 {
-  tree range = build_range_type (skip_type_decl (type), lowval, highval);
+  tree range = build_range_type (skip_type_decl (type),
+				 gccgm2_FoldAndStrip (lowval),
+				 gccgm2_FoldAndStrip (highval));
 
-  return gccgm2_BuildSetTypeFromSubrange (name, range, lowval, highval);
+  return gccgm2_BuildSetTypeFromSubrange (name, range,
+					  gccgm2_FoldAndStrip (lowval),
+					  gccgm2_FoldAndStrip (highval));
 }
 
 /*
@@ -8564,6 +8596,7 @@ gccgm2_BuildStartSetConstructor (type)
      tree type;
 {
   constructor_type = type;
+  layout_type (type);
   constructor_fields = TYPE_FIELDS (type);
   constructor_element_list = NULL_TREE;
 }
@@ -8598,8 +8631,18 @@ gccgm2_BuildSetConstructorElement (value)
 tree
 gccgm2_BuildEndSetConstructor ()
 {
-  tree constructor = build (CONSTRUCTOR, constructor_type, NULL_TREE,
-			    nreverse (constructor_element_list));
+  tree constructor;
+  tree link;
+
+  for (link = constructor_element_list; link; link = TREE_CHAIN (link))
+    {
+      tree field = TREE_PURPOSE (link);
+      DECL_SIZE (field) = bitsize_int (SET_WORD_SIZE);
+      DECL_BIT_FIELD (field) = 1;
+    }
+
+  constructor = build (CONSTRUCTOR, constructor_type, NULL_TREE,
+		       nreverse (constructor_element_list));
   TREE_CONSTANT (constructor) = 1;
   TREE_STATIC (constructor) = 1;
   return constructor;
@@ -8614,7 +8657,9 @@ gccgm2_BuildSubrangeType (name, type, lowval, highval)
      char *name;
      tree type, lowval, highval;
 {
-  tree id = build_range_type( skip_type_decl (type), lowval, highval);
+  tree id = build_range_type (skip_type_decl (type),
+			      gccgm2_FoldAndStrip (lowval),
+			      gccgm2_FoldAndStrip (highval));
 
   layout_type (id);
   if ((name == NULL) || (strcmp(name, "") == 0)) {
@@ -9020,7 +9065,9 @@ gccgm2_BuildAdd (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (PLUS_EXPR, op1, op2, needconvert);
+  return build_binary_op (PLUS_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9033,7 +9080,9 @@ gccgm2_BuildSub (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (MINUS_EXPR, op1, op2, needconvert);
+  return build_binary_op (MINUS_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9046,7 +9095,9 @@ gccgm2_BuildMult (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (MULT_EXPR, op1, op2, needconvert);
+  return build_binary_op (MULT_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9059,7 +9110,9 @@ gccgm2_BuildDivTrunc (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (TRUNC_DIV_EXPR, op1, op2, needconvert);
+  return build_binary_op (TRUNC_DIV_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9072,7 +9125,9 @@ gccgm2_BuildModTrunc (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (TRUNC_MOD_EXPR, op1, op2, needconvert);
+  return build_binary_op (TRUNC_MOD_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9085,7 +9140,9 @@ gccgm2_BuildDivFloor (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (FLOOR_DIV_EXPR, op1, op2, needconvert);
+  return build_binary_op (FLOOR_DIV_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9098,7 +9155,9 @@ gccgm2_BuildModFloor (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (FLOOR_MOD_EXPR, op1, op2, needconvert);
+  return build_binary_op (FLOOR_MOD_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 
@@ -9111,7 +9170,9 @@ gccgm2_BuildLSL (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (LSHIFT_EXPR, op1, op2, needconvert);
+  return build_binary_op (LSHIFT_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 /*
@@ -9123,7 +9184,9 @@ gccgm2_BuildLSR (op1, op2, needconvert)
      tree op1, op2;
      int  needconvert;
 {
-  return build_binary_op (RSHIFT_EXPR, op1, op2, needconvert);
+  return build_binary_op (RSHIFT_EXPR,
+			  gccgm2_FoldAndStrip (op1),
+			  gccgm2_FoldAndStrip (op2), needconvert);
 }
 
 /*
@@ -9828,6 +9891,9 @@ gccgm2_GetSizeOf (type)
 
   if (code == ERROR_MARK)
     return size_one_node;
+
+  if (code == CONSTRUCTOR)
+    return gccgm2_GetSizeOf(TREE_TYPE(type));
 
   if (!COMPLETE_TYPE_P (type))
     {
@@ -11050,26 +11116,6 @@ gccgm2_DetermineSign (e)
   return tree_int_cst_sgn(e);
 }
 
-static
-tree
-get_tree_val (e)
-     tree e;
-{
-  switch (TREE_CODE (e)) {
-
-  case CONST_DECL:
-    return DECL_INITIAL (e);
-    break;
-  case INTEGER_CST:
-  case REAL_CST:
-    return e;
-
-  default:
-    error ("not expecting this type when evaluating constant");
-    return ERROR_MARK;
-  }
-}  
-
 /*
  *  CompareTrees - returns -1 if e1 < e2, 0 if e1 == e2, and 1 if e1 > e2.
  */
@@ -11077,7 +11123,7 @@ get_tree_val (e)
 int gccgm2_CompareTrees (e1, e2)
      tree e1, e2;
 {
-  return tree_int_cst_compare (get_tree_val (e1), get_tree_val (e2));
+  return tree_int_cst_compare (gccgm2_FoldAndStrip (e1), gccgm2_FoldAndStrip (e2));
 }
 
 /*
@@ -11786,7 +11832,7 @@ gccgm2_ConvertConstantAndCheck (type, expr)
 {
   expr = fold (expr);
   STRIP_NOPS (expr);
-  return convert_and_check (skip_type_decl (type), get_tree_val (expr));
+  return convert_and_check (skip_type_decl (type), gccgm2_FoldAndStrip (expr));
 }
 
 /*

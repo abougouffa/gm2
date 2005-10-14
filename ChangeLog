@@ -1,3 +1,12 @@
+2005-10-14	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed set type debugging information.
+	  Many changes to gm2/gccgm2.c and
+	  minor changes to gm2/gm2-compiler/M2GenGCC.mod.
+	  Debugging set types with gdb now works if -gstabs
+	  are used on the command line of gm2 and also the
+	  modified gdb-6.3 is used.
+
 2005-10-13	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed call to ranlib in gm2/gm2-compiler/gm2lcc.mod

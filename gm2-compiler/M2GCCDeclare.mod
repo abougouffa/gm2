@@ -38,7 +38,7 @@ FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, Under
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
-FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
+FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat2, WriteFormat3 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
@@ -2285,7 +2285,8 @@ VAR
    RecordType,
    GccField,
    FieldList : Tree ;
-   bpw       : CARDINAL ;
+   i, bpw    : CARDINAL ;
+   fieldName : String ;
 BEGIN
    bpw        := GetBitsPerBitset() ;
    PushValue(low) ;
@@ -2304,7 +2305,12 @@ BEGIN
    BitsInSet := PopIntegerTree() ;
    PushIntegerTree(BitsInSet) ;
    PushCard(0) ;
+   fieldName := NIL ;
+   i := 0 ;
    WHILE Gre(GetDeclared(type)) DO
+      fieldName := KillString(fieldName) ;
+      fieldName := Sprintf1(Mark(InitString('w%d')), i) ;
+      INC(i) ;
       PushIntegerTree(BitsInSet) ;
       PushCard(bpw-1) ;
       IF GreEqu(GetDeclared(type))
@@ -2312,8 +2318,7 @@ BEGIN
          PushIntegerTree(lowtree) ;
          PushCard(bpw-1) ;
          Addn ;
-         
-         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
+         GccField := BuildFieldRecord(string(fieldName), BuildSetType(NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
          PushIntegerTree(lowtree) ;
          PushCard(bpw) ;
          Addn ;
@@ -2324,7 +2329,7 @@ BEGIN
          BitsInSet := PopIntegerTree()
       ELSE
          (* printf2('range is %a..%a\n', GetSymName(low), GetSymName(high)) ; *)
-         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, hightree)) ;
+         GccField := BuildFieldRecord(string(fieldName), BuildSetType(NIL, Mod2Gcc(type), lowtree, hightree)) ;
          PushCard(0) ;
          BitsInSet := PopIntegerTree()
       END ;
