@@ -2285,8 +2285,7 @@ VAR
    RecordType,
    GccField,
    FieldList : Tree ;
-   i, bpw    : CARDINAL ;
-   fieldName : String ;
+   bpw       : CARDINAL ;
 BEGIN
    bpw        := GetBitsPerBitset() ;
    PushValue(low) ;
@@ -2305,12 +2304,7 @@ BEGIN
    BitsInSet := PopIntegerTree() ;
    PushIntegerTree(BitsInSet) ;
    PushCard(0) ;
-   fieldName := NIL ;
-   i := 0 ;
    WHILE Gre(GetDeclared(type)) DO
-      fieldName := KillString(fieldName) ;
-      fieldName := Sprintf1(Mark(InitString('w%d')), i) ;
-      INC(i) ;
       PushIntegerTree(BitsInSet) ;
       PushCard(bpw-1) ;
       IF GreEqu(GetDeclared(type))
@@ -2318,7 +2312,7 @@ BEGIN
          PushIntegerTree(lowtree) ;
          PushCard(bpw-1) ;
          Addn ;
-         GccField := BuildFieldRecord(string(fieldName), BuildSetType(NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
+         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, PopIntegerTree())) ;
          PushIntegerTree(lowtree) ;
          PushCard(bpw) ;
          Addn ;
@@ -2329,7 +2323,7 @@ BEGIN
          BitsInSet := PopIntegerTree()
       ELSE
          (* printf2('range is %a..%a\n', GetSymName(low), GetSymName(high)) ; *)
-         GccField := BuildFieldRecord(string(fieldName), BuildSetType(NIL, Mod2Gcc(type), lowtree, hightree)) ;
+         GccField := BuildFieldRecord(NIL, BuildSetType(NIL, Mod2Gcc(type), lowtree, hightree)) ;
          PushCard(0) ;
          BitsInSet := PopIntegerTree()
       END ;

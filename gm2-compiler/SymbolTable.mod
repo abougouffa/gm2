@@ -3401,6 +3401,27 @@ END SkipType ;
 
 
 (*
+   SkipTypeAndSubrange - if sym is a TYPE foo = bar OR
+                            sym is declared as a subrange of bar
+                         then call SkipTypeAndSubrange(bar)
+                         else return sym
+
+                         it does not skip over hidden types.
+*)
+
+PROCEDURE SkipTypeAndSubrange (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF (Sym#NulSym) AND (IsType(Sym) OR IsSubrange(Sym)) AND
+      (NOT IsHiddenType(Sym)) AND (GetType(Sym)#NulSym)
+   THEN
+      RETURN( SkipType(GetType(Sym)) )
+   ELSE
+      RETURN( Sym )
+   END
+END SkipTypeAndSubrange ;
+
+
+(*
    IsHiddenType - returns TRUE if, Sym, is a Type and is also declared as a hidden type.
 *)
 

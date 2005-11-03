@@ -55,7 +55,8 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         ForeachImportedDo,
                         ForeachProcedureDo,
                         ForeachInnerModuleDo,
-                        GetType, GetNth, GetNthParam, SkipType,
+                        GetType, GetNth, GetNthParam,
+                        SkipType, SkipTypeAndSubrange,
                         GetSubrange, NoOfElements, GetArraySubscript,
                         GetFirstUsed, GetDeclared,
                         GetRegInterface,
@@ -1780,7 +1781,7 @@ END DescribeTypeError ;
 
 (*
    DefaultConvertGM2 - provides a simple mapping between
-                       from end data types and GCC equivalents.
+                       front end data types and GCC equivalents.
                        This is only used to aid assignment of
                        typed constants.
 *)
@@ -1875,7 +1876,7 @@ BEGIN
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
       AddModGcc(op1, CheckConstant(op1, op3))
-   ELSIF IsConstString(op3) AND (SkipType(GetType(op1))#Char)
+   ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       Assert(IsArray(SkipType(GetType(op1)))) ;
       (* handle string assignments:

@@ -484,7 +484,7 @@ GM2-VERSION=0.49
 GM2_O=
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
-GM2_G=
+GM2_G=-g
 GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -Wverbose-unbounded -Wpim \
  -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast

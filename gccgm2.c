@@ -21,9 +21,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU Modula-2; see the file COPYING.  If not, write to
-the Free Software Foundation, 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+along with GNU Modula-2; see the file COPYING.  If not, write to the
+Free Software Foundation, 59 Temple Place - Suite 330, Boston, MA
+02111-1307, USA.  */
 
 /*
  * IMPLEMENTATION MODULE gccgm2
@@ -8441,12 +8441,15 @@ build_set_type (domain, range_type, allow_void)
       return NULL;
     }
 
+  if (TYPE_SIZE (range_type) == 0)
+    layout_type (range_type);
+
+  if (TYPE_SIZE (domain) == 0)
+    layout_type (domain);
+
   type = make_node (SET_TYPE);
   TREE_TYPE (type) = range_type;
   TYPE_DOMAIN (type) = domain;
-
-  if (TYPE_SIZE (range_type) == 0)
-    layout_type (range_type);
 
   return type;
 }

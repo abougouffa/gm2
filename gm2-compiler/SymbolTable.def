@@ -79,7 +79,8 @@ EXPORT QUALIFIED NulSym,
                  GetCurrentModuleScope,
                  GetLastModuleScope,
                  AddSymToModuleScope,
-                 GetType, SkipType,
+                 GetType,
+                 SkipType, SkipTypeAndSubrange,
                  GetLowestType,
                  GetSym, GetLocalSym,
                  FromModuleGetSym,
@@ -710,6 +711,18 @@ PROCEDURE GetType (Sym: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE SkipType (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   SkipTypeAndSubrange - if sym is a TYPE foo = bar OR
+                            sym is declared as a subrange of bar
+                         then call SkipTypeAndSubrange(bar)
+                         else return sym
+
+                         it does not skip over hidden types.
+*)
+
+PROCEDURE SkipTypeAndSubrange (Sym: CARDINAL) : CARDINAL ;
 
 
 (*
