@@ -4,6 +4,8 @@
 	  when applied with the patches made to ../../gcc/dwarf2out.c
 	  and also gdb/gdb/dwarf2read.c allow subranges and
 	  set types to be debugged when using the dwarf2 format.
+	* included the patches to gcc-3.3.6 and gdb-6.3 under the
+	  new directory gm2/patches
 
 2005-10-14	Gaius Mulley <gaius@glam.ac.uk>
 
