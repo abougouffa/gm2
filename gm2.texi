@@ -14,7 +14,8 @@
 @setfilename gm2.info
 @set version-GM2     0.49
 @set version-GCC     3.3.6
-@set version-HARNESS 0.5
+@set version-HARNESS 0.6
+@set version-GDB     6.3
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
 
@@ -1532,7 +1533,7 @@ using the traditional GNU method.
 @example
 tar zxf gm2-harness-@value{version-HARNESS}.tar.gz
 cd gm2-harness-@value{version-HARNESS}
-./configure
+./configure --with-gdb
 make
 su
 make install
@@ -1544,7 +1545,9 @@ installs GNU Modula-2. Note that GNU Modula-2 is still in development
 and so it is likely that some of the regression tests may fail.
 
 The @code{gm2-harness} package automates the steps outlined in the
-next three sections.
+next three sections. Note that the option @samp{--with-gdb} will
+download @code{gdb-@var{version-GDB}} and patch it so that it
+understands Modula-2.
 
 @section Development sources via CVS
 
@@ -1575,6 +1578,20 @@ are at the same level, you can graft @file{gm2} onto @file{gcc-@var{version}} by
 mv gm2 gcc-@var{version}/gcc
 @end example
 
+If the directory
+@samp{gcc-@var{version-GCC}/gcc/gm2/patches/gcc/@var{version-GCC}}
+exists then the patch file inside that directory can be applied to the
+@samp{gcc-@var{version-GCC}} tree. This is done via:
+
+@example
+cd gcc-@var{version}
+patch -p1 < gcc/gm2/patches/gcc/@var{version-GCC}}/gm2/gcc-gm2.patch
+@end example
+
+Note that this patch is optional as it enables better @samp{dwarf-2}
+debugging information which in turn allows a patched @samp{gdb} to
+understand set types and subrange types.
+
 @section Building GNU Modula-2
 
 To build GNU Modula-2 type:
@@ -1582,7 +1599,8 @@ To build GNU Modula-2 type:
 @example
 mkdir host-build
 cd host-build
-../gcc-@var{version}/configure
+../gcc-@var{version}/configure --enable-languages=c,gm2 \
+  --enable-checking --disable-multilib
 make
 cd ..
 @end example

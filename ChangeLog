@@ -7,6 +7,9 @@
 	* included the patches to gcc-3.3.6 and gdb-6.3 under the
 	  new directory gm2/patches
 	* fixed patch for gdb-6.3
+	* updated gm2/gm2.texi
+	* released gm2-harness-0.6 which will automatically patch
+	  gcc-3.3.6 and gdb-6.3, build and install these components.
 
 2005-10-14	Gaius Mulley <gaius@glam.ac.uk>
 
