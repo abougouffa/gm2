@@ -1,14 +1,32 @@
 --- cvs-gcc-3.3.6/gcc/dwarf2out.c	2004-04-13 19:36:36.000000000 +0100
-+++ gcc-3.3.6/gcc/dwarf2out.c	2005-11-01 19:54:08.000000000 +0000
++++ gcc-3.3.6/gcc/dwarf2out.c	2005-11-03 22:44:04.498351819 +0000
 @@ -317,6 +317,7 @@
  static void flush_queued_reg_saves	PARAMS ((void));
  static bool clobbers_queued_reg_save	PARAMS ((rtx));
  static void dwarf2out_frame_debug_expr	PARAMS ((rtx, const char *));
-+static inline bool is_subrange_type     PARAMS ((tree));
++static bool is_subrange_type            PARAMS ((tree));
  
  /* Support for complex CFA locations.  */
  static void output_cfa_loc 		PARAMS ((dw_cfi_ref));
-@@ -3719,7 +3720,7 @@
+@@ -2330,6 +2331,8 @@
+ static unsigned long size_of_locs	PARAMS ((dw_loc_descr_ref));
+ static void output_loc_operands		PARAMS ((dw_loc_descr_ref));
+ static void output_loc_sequence		PARAMS ((dw_loc_descr_ref));
++static void gen_set_subrange_die        PARAMS ((tree, dw_die_ref));
++static dw_die_ref subrange_type_die     PARAMS ((tree, dw_die_ref));
+ 
+ /* Convert a DWARF stack opcode into its string name.  */
+ 
+@@ -3583,6 +3586,8 @@
+ static int is_cxx			PARAMS ((void));
+ static int is_java			PARAMS ((void));
+ static int is_fortran			PARAMS ((void));
++static int is_modula2                   PARAMS ((void));
++
+ static void remove_AT			PARAMS ((dw_die_ref,
+ 						 enum dwarf_attribute));
+ static inline void free_die		PARAMS ((dw_die_ref));
+@@ -3719,7 +3724,7 @@
  static void gen_inlined_enumeration_type_die PARAMS ((tree, dw_die_ref));
  static void gen_inlined_structure_type_die PARAMS ((tree, dw_die_ref));
  static void gen_inlined_union_type_die	PARAMS ((tree, dw_die_ref));
@@ -17,7 +35,7 @@
  static dw_die_ref gen_formal_parameter_die PARAMS ((tree, dw_die_ref));
  static void gen_unspecified_parameters_die PARAMS ((tree, dw_die_ref));
  static void gen_formal_types_die	PARAMS ((tree, dw_die_ref));
-@@ -4993,6 +4994,14 @@
+@@ -4993,6 +4998,14 @@
    return (lang == DW_LANG_Java);
  }
  
@@ -32,7 +50,7 @@
  /* Free up the memory used by A.  */
  
  static inline void free_AT PARAMS ((dw_attr_ref));
-@@ -7874,6 +7883,109 @@
+@@ -7874,6 +7887,112 @@
    return 0;
  }
  
@@ -40,7 +58,8 @@
 +   emitted as a subrange type.  */
 +
 +static inline bool
-+is_subrange_type (tree type)
++is_subrange_type (type)
++     tree type;
 +{
 +  tree subtype = TREE_TYPE (type);
 +
@@ -96,7 +115,9 @@
 +    to a DIE that describes the given type.  */
 +
 +static dw_die_ref
-+subrange_type_die (tree type, dw_die_ref context_die)
++subrange_type_die (type, context_die)
++     tree type;
++     dw_die_ref context_die;
 +{
 +  dw_die_ref subtype_die;
 +  dw_die_ref subrange_die;
@@ -142,7 +163,7 @@
  /* Given a pointer to an arbitrary ..._TYPE tree node, return a debugging
     entry that chains various modifiers in front of the given type.  */
  
-@@ -7966,6 +8078,8 @@
+@@ -7966,6 +8085,8 @@
  #endif
  	  item_type = TREE_TYPE (type);
  	}
@@ -151,7 +172,7 @@
        else if (is_base_type (type))
  	mod_type_die = base_type_die (type);
        else
-@@ -9637,7 +9751,7 @@
+@@ -9637,7 +9758,7 @@
  /* Generate an DW_AT_name attribute given some string value to be included as
     the value of the attribute.  */
  
@@ -160,7 +181,7 @@
  add_name_attribute (die, name_string)
       dw_die_ref die;
       const char *name_string;
-@@ -9673,7 +9787,20 @@
+@@ -9673,7 +9794,20 @@
  		  || (is_fortran () && integer_onep (bound)))))
  	/* use the default */
  	;
@@ -182,11 +203,13 @@
  	add_AT_unsigned (subrange_die, bound_attr, tree_low_cst (bound, 0));
        break;
  
-@@ -10235,7 +10362,14 @@
+@@ -10234,8 +10368,16 @@
+      support for unnamed types in base_type_die.  This can happen if this is
       an Ada subrange type.  Correct solution is emit a subrange type die.  */
    if ((code == INTEGER_TYPE || code == REAL_TYPE)
-       && TREE_TYPE (type) != 0 && TYPE_NAME (type) == 0)
+-      && TREE_TYPE (type) != 0 && TYPE_NAME (type) == 0)
 -    type = TREE_TYPE (type), code = TREE_CODE (type);
++      && TREE_TYPE (type) != 0 && TYPE_NAME (type) == 0) {
 +    if (is_modula2 ()) {
 +      type_die = subrange_type_die (type, context_die);
 +      if (type_die != NULL)
@@ -195,10 +218,11 @@
 +    }
 +    else
 +      type = TREE_TYPE (type), code = TREE_CODE (type);
++  }
  
    if (code == ERROR_MARK
        /* Handle a special case.  For functions whose return type is void, we
-@@ -10399,7 +10533,7 @@
+@@ -10399,7 +10541,7 @@
      = new_die (DW_TAG_set_type, scope_die_for (type, context_die), type);
  
    equate_type_number_to_die (type, type_die);
@@ -207,20 +231,16 @@
  }
  
  #if 0
-@@ -10486,10 +10620,8 @@
+@@ -10486,7 +10628,7 @@
     enumerated type name/value is listed as a child of the enumerated type
     DIE.  */
  
 -static void
--gen_enumeration_type_die (type, context_die)
--     tree type;
--     dw_die_ref context_die;
 +static dw_die_ref
-+gen_enumeration_type_die (tree type, dw_die_ref context_die)
- {
-   dw_die_ref type_die = lookup_type_die (type);
- 
-@@ -10501,7 +10633,7 @@
+ gen_enumeration_type_die (type, context_die)
+      tree type;
+      dw_die_ref context_die;
+@@ -10501,7 +10643,7 @@
        add_name_attribute (type_die, type_tag (type));
      }
    else if (! TYPE_SIZE (type))
@@ -229,7 +249,7 @@
    else
      remove_AT (type_die, DW_AT_declaration);
  
-@@ -10522,7 +10654,7 @@
+@@ -10522,7 +10664,7 @@
        if (type_die->die_parent == NULL)
  	add_child_die (scope_die_for (type, context_die), type_die);
  
@@ -238,7 +258,7 @@
  	   link != NULL; link = TREE_CHAIN (link))
  	{
  	  dw_die_ref enum_die = new_die (DW_TAG_enumerator, type_die, link);
-@@ -10544,6 +10676,8 @@
+@@ -10544,6 +10686,8 @@
      }
    else
      add_AT_flag (type_die, DW_AT_declaration, 1);
@@ -247,7 +267,7 @@
  }
  
  /* Generate a DIE to represent either a real live formal parameter decl or to
-@@ -11371,6 +11505,8 @@
+@@ -11371,6 +11515,8 @@
      language = DW_LANG_Fortran77;
    else if (strcmp (language_string, "GNU Pascal") == 0)
      language = DW_LANG_Pascal83;
@@ -256,7 +276,7 @@
    else if (strcmp (language_string, "GNU Java") == 0)
      language = DW_LANG_Java;
    else
-@@ -11628,6 +11764,20 @@
+@@ -11628,6 +11774,20 @@
      equate_decl_number_to_die (decl, type_die);
  }
  
@@ -277,7 +297,7 @@
  /* Generate a type description DIE.  */
  
  static void
-@@ -11699,7 +11849,7 @@
+@@ -11699,7 +11859,7 @@
        break;
  
      case SET_TYPE:
@@ -286,7 +306,7 @@
        gen_set_type_die (type, context_die);
        break;
  
-@@ -11774,8 +11924,14 @@
+@@ -11774,8 +11934,14 @@
  	 when appropriate.  */
        return;
  

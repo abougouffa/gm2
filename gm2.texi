@@ -1585,7 +1585,7 @@ exists then the patch file inside that directory can be applied to the
 
 @example
 cd gcc-@var{version}
-patch -p1 < gcc/gm2/patches/gcc/@var{version-GCC}}/gm2/gcc-gm2.patch
+patch -p1 < gcc/gm2/patches/gcc/@var{version-GCC}/gm2/gcc-gm2.patch
 @end example
 
 Note that this patch is optional as it enables better @samp{dwarf-2}
