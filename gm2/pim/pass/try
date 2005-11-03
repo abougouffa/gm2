@@ -1,0 +1,37 @@
+#!/bin/sh
+
+export PATH=$HOME/bin/bin:$PATH
+
+echo "Stabs sets"
+gm2 -g -c -gstabs+ setchar3.mod
+gm2 -g -gstabs+ -o a.stabs setchar3.mod
+gdb ./a.stabs
+echo "Stabs subrange"
+gm2 -g -c -gstabs+ subrange15.mod
+gm2 -g -gstabs+ -o a.stabs subrange15.mod
+gdb ./a.stabs
+echo "Stabs char subrange"
+gm2 -g -gstabs+ -c subrange16.mod
+gm2 -g -gstabs+ -o a.stabs subrange16.mod
+gdb ./a.stabs
+echo "Stabs enum subrange"
+gm2 -g -gstabs+ -c subrange17.mod
+gm2 -g -gstabs+ -o a.stabs subrange17.mod
+gdb ./a.stabs
+echo "Dwarf subrange"
+gm2 -g -c subrange15.mod
+gm2 -g -o a.dwarf subrange15.mod
+gdb ./a.dwarf
+echo "Dwarf sets"
+gm2 -g -c setchar3.mod
+gm2 -g -o a.dwarf setchar3.mod
+gdb ./a.dwarf
+echo "Dwarf char subrange"
+gm2 -g -c subrange16.mod
+gm2 -g -o a.dwarf subrange16.mod
+gdb ./a.dwarf
+echo "Dwarf enum subrange"
+gm2 -g -c subrange17.mod
+gm2 -g -o a.dwarf subrange17.mod
+gdb ./a.dwarf
+type gdb
