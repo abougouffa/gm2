@@ -1,3 +1,7 @@
+2005-11-06	Gaius Mulley <gaius@glam.ac.uk>
+
+	* improved the gdb patches
+
 2005-11-03	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixes to set types and subranges which in turn

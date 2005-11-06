@@ -1,6 +1,6 @@
 --- cvs-gdb-6.3/src-cvs/gdb/m2-lang.h	2001-03-06 08:21:09.000000000 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/m2-lang.h	2005-10-18 12:45:20.000000000 +0100
-@@ -26,6 +26,8 @@
++++ cvs-gdb-6.3/src-m2/gdb/m2-lang.h	2005-11-04 14:26:43.000000000 +0000
+@@ -26,6 +26,10 @@
  extern void m2_print_type (struct type *, char *, struct ui_file *, int,
  			   int);
  
@@ -9,9 +9,11 @@
  extern int m2_val_print (struct type *, char *, int, CORE_ADDR,
  			 struct ui_file *, int, int, int,
  			 enum val_prettyprint);
++extern int get_long_set_bounds (struct type *type, LONGEST *low,
++				LONGEST *high);
 --- cvs-gdb-6.3/src-cvs/gdb/m2-typeprint.c	2001-03-27 21:36:23.000000000 +0100
-+++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-10-29 20:56:24.000000000 +0100
-@@ -20,22 +20,1228 @@
++++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-11-04 23:48:03.000000000 +0000
+@@ -20,22 +20,1252 @@
     Boston, MA 02111-1307, USA.  */
  
  #include "defs.h"
@@ -34,7 +36,6 @@
 +#include "gdb_string.h"
  #include <errno.h>
  
-+
 +static void
 +cp_type_print_method_args (struct type *mtype, char *prefix, char *varstring,
 +			   int staticp, struct ui_file *stream);
@@ -52,6 +53,9 @@
 +void m2_type_print_base (struct type *type, struct ui_file *stream, int show,
 +			 int level);
 +
++static void m2_print_bounds (struct type *type,
++			     struct ui_file *stream, int show, int level,
++			     int print_high);
 +
 +/* Print "const", "volatile", or address space modifiers. */
 +static void m2_type_print_modifier (struct type *, struct ui_file *,
@@ -239,8 +243,10 @@
 +
 +    case TYPE_CODE_ARRAY:
 +      m2_type_print_varspec_prefix (TYPE_TARGET_TYPE (type), stream, 0, 0);
++#if 0
 +      if (passed_a_ptr)
 +	fprintf_filtered (stream, "(");
++#endif
 +      break;
 +
 +    case TYPE_CODE_UNDEF:
@@ -418,7 +424,9 @@
 +   parsers like this everywhere is stupid.  */
 +static char *
 +remove_qualifiers (char *qid)
-+{
+ {
+-  extern void c_print_type (struct type *, char *, struct ui_file *, int,
+-			    int);
 +  int quoted = 0;		/* zero if we're not in quotes;
 +				   '"' if we're in a double-quoted string;
 +				   '\'' if we're in a single-quoted string.  */
@@ -498,7 +506,7 @@
 +
 +void
 +m2_type_print_varspec_suffix (struct type *type, struct ui_file *stream,
-+			     int show, int passed_a_ptr, int demangled_args)
++			      int show, int passed_a_ptr, int demangled_args)
 +{
 +  if (type == 0)
 +    return;
@@ -511,15 +519,24 @@
 +  switch (TYPE_CODE (type))
 +    {
 +    case TYPE_CODE_ARRAY:
++#if 0
 +      if (passed_a_ptr)
 +	fprintf_filtered (stream, ")");
++#endif
 +
 +      fprintf_filtered (stream, "ARRAY [");
 +      if (TYPE_LENGTH (type) >= 0 && TYPE_LENGTH (TYPE_TARGET_TYPE (type)) > 0
-+	&& TYPE_ARRAY_UPPER_BOUND_TYPE (type) != BOUND_CANNOT_BE_DETERMINED)
-+	fprintf_filtered (stream, "%d",
-+			  (TYPE_LENGTH (type)
-+			   / TYPE_LENGTH (TYPE_TARGET_TYPE (type))));
++	  && TYPE_ARRAY_UPPER_BOUND_TYPE (type) != BOUND_CANNOT_BE_DETERMINED) {
++	if (TYPE_INDEX_TYPE (type) != 0) {
++	  m2_print_bounds (TYPE_INDEX_TYPE (type), stream, show, -1, 0);
++	  fprintf_filtered (stream, "..");
++	  m2_print_bounds (TYPE_INDEX_TYPE (type), stream, show, -1, 1);
++	}
++	else
++	  fprintf_filtered (stream, "%d",
++			    (TYPE_LENGTH (type)
++			     / TYPE_LENGTH (TYPE_TARGET_TYPE (type))));
++      }
 +      fprintf_filtered (stream, "] OF ");
 +
 +      m2_type_print_varspec_suffix (TYPE_TARGET_TYPE (type), stream, 0, 0, 0);
@@ -665,20 +682,31 @@
 +  struct type *range_type;
 +  int i;
 +  int len = TYPE_NFIELDS (type);
++  LONGEST low;
++  LONGEST high;
 +
 +  if (m2_is_long_set (type)) {
-+    fprintf_filtered(stream, "SET [");
++    fprintf_filtered(stream, "SET OF ");
 +
-+    i = TYPE_N_BASECLASSES (type);
-+    m2_print_bounds (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, i)), stream,
-+		     show - 1, level, 0);
++    if (get_long_set_bounds (type, &low, &high)) {
++      fprintf_filtered(stream, "[");
++      i = TYPE_N_BASECLASSES (type);
++      m2_print_bounds (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, i)),
++		       stream, show - 1, level, 0);
 +
-+    fprintf_filtered(stream, "..");
++      fprintf_filtered(stream, "..");
 +
-+    m2_print_bounds (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, len-1)), stream,
-+		     show - 1, level, 1);
++      m2_print_bounds (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, len-1)),
++		       stream, show - 1, level, 1);
++      fprintf_filtered(stream, "]");
++    }
++    else if (TYPE_TAG_NAME (type) != NULL)
++      fputs_filtered (TYPE_TAG_NAME (type), stream);
++    else if (TYPE_NAME (type) != NULL)
++      fputs_filtered (TYPE_NAME (type), stream);
++    else
++      fprintf_filtered(stream, " <unknown> ");
 +
-+    fprintf_filtered(stream, "]");
 +    return 1;
 +  }
 +  return 0;
@@ -703,9 +731,7 @@
 +void
 +m2_type_print_base (struct type *type, struct ui_file *stream, int show,
 +		   int level)
- {
--  extern void c_print_type (struct type *, char *, struct ui_file *, int,
--			    int);
++{
 +  int i;
 +  int len, real_len;
 +  int lastval;
@@ -1350,8 +1376,8 @@
  
    parent = die->parent;
 --- cvs-gdb-6.3/src-cvs/gdb/m2-valprint.c	2001-03-27 21:36:23.000000000 +0100
-+++ cvs-gdb-6.3/src-m2/gdb/m2-valprint.c	2005-11-01 14:57:59.000000000 +0000
-@@ -22,18 +22,508 @@
++++ cvs-gdb-6.3/src-m2/gdb/m2-valprint.c	2005-11-04 23:48:11.000000000 +0000
+@@ -22,18 +22,516 @@
  #include "defs.h"
  #include "symtab.h"
  #include "gdbtypes.h"
@@ -1391,7 +1417,7 @@
 + *  get_long_set_bounds - assigns the bounds of the long set to low and high.
 + */
 +
-+static void
++int
 +get_long_set_bounds (struct type *type, LONGEST *low, LONGEST *high)
 +{
 +  int len, i;
@@ -1399,11 +1425,14 @@
 +  if (TYPE_CODE (type) == TYPE_CODE_STRUCT) {
 +    len = TYPE_NFIELDS (type);
 +    i = TYPE_N_BASECLASSES (type);
++    if (i == 0 || len == 0)
++      return 0;
 +    *low = TYPE_LOW_BOUND (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, i)));
 +    *high = TYPE_HIGH_BOUND (TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, len-1)));
-+    return;
++    return 1;
 +  }
 +  error ("expecting long_set");
++  return 0;
 +}
 +
 +static void
@@ -1426,9 +1455,14 @@
 +
 +  fprintf_filtered (stream, "{");
 +  len = TYPE_NFIELDS (type);
-+  get_long_set_bounds (type, &low_bound, &high_bound);
-+  field = TYPE_N_BASECLASSES (type);
-+  range = TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, field));
++  if (get_long_set_bounds (type, &low_bound, &high_bound)) {
++    field = TYPE_N_BASECLASSES (type);
++    range = TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, field));
++  }
++  else {
++    fprintf_filtered (stream, " <unknown bounds of set> }");
++    return;
++  }
 +
 +  target = TYPE_TARGET_TYPE (range);
 +  if (target == NULL)
