@@ -1546,8 +1546,33 @@ and so it is likely that some of the regression tests may fail.
 
 The @code{gm2-harness} package automates the steps outlined in the
 next three sections. Note that the option @samp{--with-gdb} will
-download @code{gdb-@var{version-GDB}} and patch it so that it
-understands Modula-2.
+download @code{gdb-@value{version-GDB}} and patch it so that it
+understands Modula-2. Note that it is not manditory to patch
+@code{gcc} and @code{gdb} to build GNU Modula-2. But if the patches
+are applied (@code{gm2-harness} will do this automatically) then
+debugging executables produced by GNU Modula-2 is easier.
+The patches provide @code{gdb} with knowledge about subranges and
+sets. So for example:
+
+@example
+VAR
+   s: SET OF CHAR ;
+   r: [20..40] ;
+@end example
+
+will be understood and the debugger can be asked to print the values
+and types of variables. For example here is a typical @code{gdb} session:
+
+@example
+(gdb) print s
+@{'A'..'C', 'Z'@}
+(gdb) ptype s
+SET OF CHAR
+(gdb) print r
+21
+(gdb) ptype r
+[20..40]
+@end example
 
 @section Development sources via CVS
 
@@ -1564,28 +1589,28 @@ This will checkout a copy of GNU Modula-2 into one subdirectory:
 @file{gm2}.
 
 This version of GNU Modula-2 needs to be placed inside the GCC source
-tree in the position gcc-@var{version}/gcc before GNU Modula-2 can be
+tree in the position gcc-@value{version-GCC}/gcc before GNU Modula-2 can be
 built. Please check the GNU Modula-2 homepage
 @uref{http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/GNUModula-2.html}
 for details about which GCC releases are supported by GNU Modula-2.
 
 Once you have downloaded the correct GCC release from
 @uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC archive.
-Assuming that both the @file{gcc-@var{version}} and @file{gm2} dicectories
-are at the same level, you can graft @file{gm2} onto @file{gcc-@var{version}} by:
+Assuming that both the @file{gcc-@value{version-GCC}} and @file{gm2} dicectories
+are at the same level, you can graft @file{gm2} onto @file{gcc-@value{version-GCC}} by:
 
 @example   
-mv gm2 gcc-@var{version}/gcc
+mv gm2 gcc-@value{version-GCC}/gcc
 @end example
 
 If the directory
-@samp{gcc-@var{version-GCC}/gcc/gm2/patches/gcc/@var{version-GCC}}
+@samp{gcc-@value{version-GCC}/gcc/gm2/patches/gcc/@value{version-GCC}}
 exists then the patch file inside that directory can be applied to the
-@samp{gcc-@var{version-GCC}} tree. This is done via:
+@samp{gcc-@value{version-GCC}} tree. This is done via:
 
 @example
-cd gcc-@var{version}
-patch -p1 < gcc/gm2/patches/gcc/@var{version-GCC}/gm2/gcc-gm2.patch
+cd gcc-@value{version-GCC}
+patch -p1 < gcc/gm2/patches/gcc/@value{version-GCC}/gm2/gcc-gm2.patch
 @end example
 
 Note that this patch is optional as it enables better @samp{dwarf-2}
@@ -1599,7 +1624,7 @@ To build GNU Modula-2 type:
 @example
 mkdir host-build
 cd host-build
-../gcc-@var{version}/configure --enable-languages=c,gm2 \
+../gcc-@value{version-GCC}/configure --enable-languages=c,gm2 \
   --enable-checking --disable-multilib
 make
 cd ..
@@ -1617,7 +1642,7 @@ exit
 Now you should be able to perform:
 
 @example
-cd gcc-@var{version}/gcc/gm2/examples/hello
+cd gcc-@value{version-GCC}/gcc/gm2/examples/hello
 make
 @end example
 
