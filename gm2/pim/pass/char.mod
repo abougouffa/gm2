@@ -1,9 +1,16 @@
 MODULE char ;
 
 VAR
-   ch: CHAR ;
+   s: CHAR ;
 BEGIN
-   ch := 'a' ;
-   ch := 'z' ;
-   ch := '!'
+   s := 'a' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := 'z' ;
+   s := '!'
 END char.

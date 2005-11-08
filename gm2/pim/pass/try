@@ -45,5 +45,6 @@ doTry setchar4
 doTry array4
 doTry array5
 doTry int
+doTry char
 
 type gdb
