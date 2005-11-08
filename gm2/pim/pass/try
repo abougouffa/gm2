@@ -2,36 +2,48 @@
 
 export PATH=$HOME/bin/bin:$PATH
 
-echo "Stabs sets"
-gm2 -g -c -gstabs+ setchar3.mod
-gm2 -g -gstabs+ -o a.stabs setchar3.mod
-gdb ./a.stabs
-echo "Stabs subrange"
-gm2 -g -c -gstabs+ subrange15.mod
-gm2 -g -gstabs+ -o a.stabs subrange15.mod
-gdb ./a.stabs
-echo "Stabs char subrange"
-gm2 -g -gstabs+ -c subrange16.mod
-gm2 -g -gstabs+ -o a.stabs subrange16.mod
-gdb ./a.stabs
-echo "Stabs enum subrange"
-gm2 -g -gstabs+ -c subrange17.mod
-gm2 -g -gstabs+ -o a.stabs subrange17.mod
-gdb ./a.stabs
-echo "Dwarf subrange"
-gm2 -g -c subrange15.mod
-gm2 -g -o a.dwarf subrange15.mod
-gdb ./a.dwarf
-echo "Dwarf sets"
-gm2 -g -c setchar3.mod
-gm2 -g -o a.dwarf setchar3.mod
-gdb ./a.dwarf
-echo "Dwarf char subrange"
-gm2 -g -c subrange16.mod
-gm2 -g -o a.dwarf subrange16.mod
-gdb ./a.dwarf
-echo "Dwarf enum subrange"
-gm2 -g -c subrange17.mod
-gm2 -g -o a.dwarf subrange17.mod
-gdb ./a.dwarf
+
+doStabs () {
+    echo "====================================================="
+    echo "Stabs $1"
+    gm2 -g -c -gstabs+ $1.mod
+    gm2 -g -gstabs+ -o a.stabs $1.mod
+    gdb ./a.stabs
+}
+
+
+doDwarf2 () {
+    echo "====================================================="
+    echo "Dwarf2 $1"
+    gm2 -g -c -gdwarf-2 $1.mod
+    gm2 -g -gdwarf-2 -o a.dwarf2 $1.mod
+    gdb ./a.dwarf2
+}
+
+
+doTry () {
+   cat <<EOF > .gdbinit
+set lang modula-2
+break _M2_$1_init
+run
+next
+next
+next
+print s
+ptype s
+quit
+EOF
+   doStabs $1
+   doDwarf2 $1
+}
+
+doTry setchar3
+doTry subrange15
+doTry subrange16
+doTry subrange17
+doTry setchar4
+doTry array4
+doTry array5
+doTry int
+
 type gdb
