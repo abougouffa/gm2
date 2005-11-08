@@ -1,3 +1,10 @@
+2005-11-07	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added gm2/COPYING and included licence information
+	  inside gm2/gm2.texi
+	* added gm2/gnu.texi and gm2/gpl.texi and referenced
+	  them from gm2/gm2.texi
+
 2005-11-06	Gaius Mulley <gaius@glam.ac.uk>
 
 	* improved the gdb patches

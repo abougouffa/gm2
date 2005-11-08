@@ -7083,8 +7083,13 @@ gccgm2_GetDefaultType (name, type)
 {
   tree id = maybe_get_identifier (name);
 
-  if (id == NULL)
-    return gccgm2_DeclareKnownType(name, type);
+  if (id == NULL) {
+    tree t = gccgm2_DeclareKnownType(name, type);
+
+    if (TYPE_NAME (type) == NULL)
+      TYPE_NAME (type) = DECL_NAME (t);
+    return t;
+  }
   else
     return id;
 }

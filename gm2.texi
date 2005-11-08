@@ -67,8 +67,10 @@ Copyright @copyright{} 2000, 2001, 2002, 2003, 2004 Free Software Foundation, In
 @menu
 * Using::            Using GNU Modula-2.
 * Obtaining::        Obtaining GNU Modula-2.
-* Internals::        GNU Modula-2 internals.
+* Licence::          Licence of GNU Modula-2.
+* GNU Project::      The GNU Project and GNU/Linux.
 * Contributing::     Contributing to GNU Modula-2.
+* Internals::        GNU Modula-2 internals.
 * EBNF::             EBNF of GNU Modula-2
 * Libraries::        PIM and ISO library definitions.
 * Function Index::   Index for all library functions.
@@ -1761,7 +1763,16 @@ section's full configure line:
       --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
 @end example
 
-@node Contributing, Internals, Obtaining, Top
+@node Licence, Contributing, Obtaining, Top
+@section Licence of GNU Modula-2
+
+@include gpl.texi
+
+@node GNU Project, Contributing, Licence, Top
+
+@include gnu.texi
+
+@node Contributing, Internals, GNU Project, Top
 @section Contributing to GNU Modula-2
 
 Please do. But also please read the GNU Emacs info under
