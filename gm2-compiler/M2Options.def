@@ -13,16 +13,16 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02110-1301, USA. *)
 DEFINITION MODULE M2Options ;
 
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2005/09/16 11:56:35 $]
+   Date       : 27/5/87  [$Date: 2005/11/10 09:05:47 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.12 $
+   Version    : $Revision: 1.13 $
 *)
 
 FROM DynamicStrings IMPORT String ;

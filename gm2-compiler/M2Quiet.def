@@ -13,7 +13,7 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02110-1301, USA. *)
 
 DEFINITION MODULE M2Quiet ;
 
@@ -22,7 +22,7 @@ DEFINITION MODULE M2Quiet ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Oct 12 15:27:27 2001
-    Last edit  : $Date: 2004/04/05 10:42:36 $ 
+    Last edit  : $Date: 2005/11/10 09:05:47 $ 
     Revision   : $Version$ 
     Description: provides a wrapper to M2Printf, each call is only passed
                  to its corresponding M2Printf routine providing the -quiet

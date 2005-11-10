@@ -13,7 +13,7 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. *)
+Foundation, 59 Temple Place - Suite 330, Boston, MA 02110-1301, USA. *)
 MODULE testbox ;
 
 FROM vga IMPORT TEXT, G640x480x2, G320x200x256, vga_init, vga_setmode, vga_hasmode, vga_getch, vga_white ;

@@ -13,7 +13,7 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA *)
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
 DEFINITION MODULE SEnvironment ;
 
 (*
@@ -21,7 +21,7 @@ DEFINITION MODULE SEnvironment ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Aug  7 19:17:15 2001
-    Last edit  : $Date: 2003/04/29 15:27:24 $ 
+    Last edit  : $Date: 2005/11/10 09:05:48 $ 
     Revision   : $Version$ 
     Description: provides access to the environment settings of a process.
 *)
