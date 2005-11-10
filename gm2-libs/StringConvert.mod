@@ -207,10 +207,12 @@ BEGIN
          c := VAL(CARDINAL, ABS(i+1))+1 ;
          IF width>0
          THEN
-            RETURN( ConCat(IntegerToString(i DIV 10, width-1, padding, sign, base, lower),
+            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV 10),
+                                           width-1, padding, sign, base, lower),
                            IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          ELSE
-            RETURN( ConCat(IntegerToString(i DIV 10, 0, padding, sign, base, lower),
+            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV 10),
+                                           0, padding, sign, base, lower),
                            IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          END
       ELSE
@@ -318,10 +320,12 @@ BEGIN
          c := VAL(LONGCARD, ABS(i+1))+1 ;
          IF width>0
          THEN
-            RETURN( ConCat(LongIntegerToString(i DIV 10, width-1, padding, sign, base, lower),
+            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV 10),
+                                               width-1, padding, sign, base, lower),
                            LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          ELSE
-            RETURN( ConCat(LongIntegerToString(i DIV 10, 0, padding, sign, base, lower),
+            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV 10),
+                                               0, padding, sign, base, lower),
                            LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
          END
       ELSE

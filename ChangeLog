@@ -2,6 +2,14 @@
 
 	* added gm2/COPYING.LGPL
 	* changed all references of the old FSF address to the new address.
+	* fixed bugs reported by John Wallace (MAX(INTEGER), MAX(LONGINT),
+	  MIN(INTEGER) and MIN(LONGINT)) were not correctly converted in
+	  gm2/gm2-libs-pim/InOut.mod, gm2/gm2-libs/FpuIO.mod,
+	  gm2/gm2-libs/NumberIO.mod.
+	* added new regression tests in
+	  gm2/switches/pim4/run/pass/InOutBug.mod and
+	  gm2/switches/pim4/run/pass/FpuIOBug.mod which perform regression
+	  runtime tests.
 
 2005-11-07	Gaius Mulley <gaius@glam.ac.uk>
 

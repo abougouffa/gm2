@@ -135,7 +135,7 @@ END StrToCard ;
 
 PROCEDURE IntToStr (x: INTEGER; n: CARDINAL ; VAR a: ARRAY OF CHAR) ;
 VAR
-   i, j,
+   i, j, c,
    Higha   : CARDINAL ;
    buf     : ARRAY [1..MaxDigits] OF CARDINAL ;
    Negative: BOOLEAN ;
@@ -143,11 +143,13 @@ BEGIN
    IF x<0
    THEN
       Negative := TRUE ;
+      c := -x ;
       IF n>0
       THEN
          DEC(n)
       END
    ELSE
+      c := x ;
       Negative := FALSE
    END ;
    i := 0 ;
@@ -158,14 +160,9 @@ BEGIN
          WriteString('NumberIO - increase MaxDigits') ; WriteLn ;
          HALT
       END ;
-      IF Negative
-      THEN
-         buf[i] := -(x MOD 10)
-      ELSE
-         buf[i] := x MOD 10
-      END ;
-      x := x DIV 10 ;
-   UNTIL x=0 ;
+      buf[i] := c MOD 10 ;
+      c := c DIV 10 ;
+   UNTIL c=0 ;
    j := 0 ;
    Higha := HIGH(a) ;
    WHILE (n>i) AND (j<=Higha) DO
