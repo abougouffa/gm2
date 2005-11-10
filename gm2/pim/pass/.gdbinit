@@ -1,5 +1,5 @@
 set lang modula-2
-break _M2_int_init
+break _M2_char_init
 run
 next
 next
