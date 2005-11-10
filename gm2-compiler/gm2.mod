@@ -13,17 +13,17 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 59 Temple Place - Suite 330, Boston, MA 02110-1301, USA. *)
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE gm2 ;
 
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2005/11/10 09:05:48 $]
+   Date       : 1987  [$Date: 2005/11/10 10:31:09 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.6 $
+   Version    : $Revision: 1.7 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;

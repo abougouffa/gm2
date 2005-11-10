@@ -13,7 +13,7 @@
 
 # You should have received a copy of the GNU General Public License along
 # with gm2; see the file COPYING.  If not, write to the Free Software
-# Foundation, 59 Temple Place - Suite 330, Boston, MA 02110-1301, USA.
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 all: force
 	gm2 -O -ffast-math -I.:../../gm2-libs:../../gm2-iso -Wmakeall testbox.mod -lvga -lm
