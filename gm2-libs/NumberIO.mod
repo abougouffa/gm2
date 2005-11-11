@@ -143,7 +143,7 @@ BEGIN
    IF x<0
    THEN
       Negative := TRUE ;
-      c := -x ;
+      c := VAL(CARDINAL, ABS(x+1))+1 ;
       IF n>0
       THEN
          DEC(n)
