@@ -348,3 +348,15 @@
  	{
  	  gen_type_die (member_declared_type (decl), context_die);
  	  gen_field_die (decl, context_die);
+--- cvs-gcc-3.3.6/gcc/config/i386/i386.c	2004-12-12 21:00:44.000000000 +0000
++++ gcc-3.3.6/gcc/config/i386/i386.c	2005-10-11 14:03:44.000000000 +0100
+@@ -1879,6 +1879,9 @@
+ 		}
+ 	    }
+ 	}
++      /* gaius added SET_TYPE */
++      else if (TREE_CODE (type) == SET_TYPE)
++	return 1;
+       else
+ 	abort ();
+ 
