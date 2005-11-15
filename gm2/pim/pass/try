@@ -27,8 +27,6 @@ set lang modula-2
 break _M2_$1_init
 run
 next
-next
-next
 print s
 ptype s
 quit
@@ -41,10 +39,14 @@ doTry setchar3
 doTry subrange15
 doTry subrange16
 doTry subrange17
-doTry setchar4
 doTry array4
 doTry array5
-doTry int
 doTry char
+doTry int
+doTry ptrarray
+doTry record7
+doTry variant9
+doTry setenum
+doTry setchar4
 
 type gdb

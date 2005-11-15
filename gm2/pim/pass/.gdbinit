@@ -1,8 +1,6 @@
 set lang modula-2
-break _M2_char_init
+break _M2_setchar4_init
 run
-next
-next
 next
 print s
 ptype s
