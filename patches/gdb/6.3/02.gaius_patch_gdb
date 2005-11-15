@@ -88,8 +88,8 @@
  
  /* Print the character string STRING, printing at most LENGTH characters.
 --- cvs-gdb-6.3/src-cvs/gdb/m2-typeprint.c	2005-11-15 19:44:35.000000000 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-11-15 21:08:46.251423415 +0000
-@@ -20,22 +20,803 @@
++++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-11-15 21:34:04.868118218 +0000
+@@ -20,22 +20,808 @@
     Boston, MA 02111-1307, USA.  */
  
  #include "defs.h"
@@ -505,6 +505,7 @@
 +{
 +  LONGEST previous_high = 0;  /* unnecessary initialization keeps gcc -Wall happy */
 +  int len, i;
++  struct type *range;
 +
 +  if (TYPE_CODE (type) == TYPE_CODE_STRUCT) {
 +
@@ -513,14 +514,18 @@
 +     */
 +    len = TYPE_NFIELDS (type);
 +    for (i = TYPE_N_BASECLASSES (type); i < len; i++) {
++      if (TYPE_FIELD_TYPE (type, i) == NULL)
++	return 0;
 +      if (TYPE_CODE (TYPE_FIELD_TYPE (type, i)) != TYPE_CODE_SET)
 +	return 0;
-+      if (TYPE_FIELD_NAME (type, i) != "")
++      if (TYPE_FIELD_NAME (type, i) != NULL
++	  && (strcmp (TYPE_FIELD_NAME (type, i), "") != 0))
 +	return 0;
-+      if ((i > TYPE_N_BASECLASSES (type)) &&
-+	  previous_high + 1 != TYPE_LOW_BOUND (type))
++      range = TYPE_INDEX_TYPE (TYPE_FIELD_TYPE (type, i));
++      if ((i > TYPE_N_BASECLASSES (type))
++	  && previous_high + 1 != TYPE_LOW_BOUND (range))
 +	return 0;
-+      previous_high = TYPE_HIGH_BOUND (type);
++      previous_high = TYPE_HIGH_BOUND (range);
 +    }
 +    return len>0;
 +  }
