@@ -1,4 +1,4 @@
---- cvs-gdb-6.3/src-cvs/gdb/m2-lang.h	2005-11-15 19:44:35.022676044 +0000
+--- cvs-gdb-6.3/src-cvs/gdb/m2-lang.h	2005-11-15 19:44:35.000000000 +0000
 +++ cvs-gdb-6.3/src-m2/gdb/m2-lang.h	2005-11-04 14:26:43.000000000 +0000
 @@ -26,6 +26,10 @@
  extern void m2_print_type (struct type *, char *, struct ui_file *, int,
@@ -11,8 +11,8 @@
  			 enum val_prettyprint);
 +extern int get_long_set_bounds (struct type *type, LONGEST *low,
 +				LONGEST *high);
---- cvs-gdb-6.3/src-cvs/gdb/m2-lang.c	2005-11-15 19:44:35.022676044 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/m2-lang.c	2005-11-15 16:33:14.970447660 +0000
+--- cvs-gdb-6.3/src-cvs/gdb/m2-lang.c	2005-11-15 19:44:35.000000000 +0000
++++ cvs-gdb-6.3/src-m2/gdb/m2-lang.c	2005-11-15 16:33:14.000000000 +0000
 @@ -47,7 +47,6 @@
  static void
  m2_emit_char (int c, struct ui_file *stream, int quoter)
@@ -87,9 +87,9 @@
  }
  
  /* Print the character string STRING, printing at most LENGTH characters.
---- cvs-gdb-6.3/src-cvs/gdb/m2-typeprint.c	2005-11-15 19:44:35.022676044 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-11-15 14:31:16.534262475 +0000
-@@ -20,22 +20,801 @@
+--- cvs-gdb-6.3/src-cvs/gdb/m2-typeprint.c	2005-11-15 19:44:35.000000000 +0000
++++ cvs-gdb-6.3/src-m2/gdb/m2-typeprint.c	2005-11-15 21:08:46.251423415 +0000
+@@ -20,22 +20,803 @@
     Boston, MA 02111-1307, USA.  */
  
  #include "defs.h"
@@ -513,10 +513,12 @@
 +     */
 +    len = TYPE_NFIELDS (type);
 +    for (i = TYPE_N_BASECLASSES (type); i < len; i++) {
-+      if ((TYPE_CODE (TYPE_FIELD_TYPE (type, i)) != TYPE_CODE_SET) &&
-+	  (TYPE_FIELD_NAME (type, i) == "") &&
-+	  ((i > TYPE_N_BASECLASSES (type)) &&
-+	   previous_high + 1 != TYPE_LOW_BOUND (type)))
++      if (TYPE_CODE (TYPE_FIELD_TYPE (type, i)) != TYPE_CODE_SET)
++	return 0;
++      if (TYPE_FIELD_NAME (type, i) != "")
++	return 0;
++      if ((i > TYPE_N_BASECLASSES (type)) &&
++	  previous_high + 1 != TYPE_LOW_BOUND (type))
 +	return 0;
 +      previous_high = TYPE_HIGH_BOUND (type);
 +    }
@@ -897,7 +899,7 @@
 +    }
  }
 --- cvs-gdb-6.3/src-cvs/gdb/dwarf2read.c	2005-11-15 19:45:27.449869218 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/dwarf2read.c	2005-11-15 16:07:08.516939755 +0000
++++ cvs-gdb-6.3/src-m2/gdb/dwarf2read.c	2005-11-15 16:07:08.000000000 +0000
 @@ -4718,10 +4718,15 @@
  	  code = TYPE_CODE_FLT;
  	  break;
@@ -928,8 +930,8 @@
      default:
        cu->language = language_minimal;
        break;
---- cvs-gdb-6.3/src-cvs/gdb/m2-valprint.c	2005-11-15 19:44:35.023675876 +0000
-+++ cvs-gdb-6.3/src-m2/gdb/m2-valprint.c	2005-11-15 13:40:08.225291547 +0000
+--- cvs-gdb-6.3/src-cvs/gdb/m2-valprint.c	2005-11-15 19:44:35.000000000 +0000
++++ cvs-gdb-6.3/src-m2/gdb/m2-valprint.c	2005-11-15 13:40:08.000000000 +0000
 @@ -22,18 +22,516 @@
  #include "defs.h"
  #include "symtab.h"
