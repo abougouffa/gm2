@@ -13,7 +13,6 @@ Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
 @c man end
 @end ignore
-@node Copying
 @c man begin DESCRIPTION
 @unnumbered GNU GENERAL PUBLIC LICENSE
 @center Version 2, June 1991

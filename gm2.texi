@@ -1493,7 +1493,7 @@ PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
 END SYSTEM.
 @end example
 
-@node Obtaining, Contributing, Using, Top
+@node Obtaining, Licence, Using, Top
 @chapter Obtaining GNU Modula-2.
 
 @section Warning
@@ -1575,6 +1575,28 @@ SET OF CHAR
 (gdb) ptype r
 [20..40]
 @end example
+
+The debugger also has better knowledge of Modula-2 arrays. For example
+in this code fragment the declaration of @code{s} is described.
+
+@example
+VAR
+   s: ARRAY [-10..10] OF CHAR ;
+@end example
+
+and this information is now seen by @code{gdb}
+
+@example
+(gdb) ptype s
+ARRAY [-10..10] OF CHAR
+@end example
+
+Note that the following compile flags need to be present on the
+@code{gm2} command line @code{-g -gdwarf-2}. Also note that the array
+handling is not yet complete and although the type is printed
+correctly, the expression handling still assumes that all arrays have a
+lower bound of zero and not @code{-10} in the case above. Unbounded
+arrays are also not yet recognised.
 
 @section Development sources via CVS
 
@@ -1763,7 +1785,7 @@ section's full configure line:
       --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
 @end example
 
-@node Licence, Contributing, Obtaining, Top
+@node Licence, GNU Project, Obtaining, Top
 @section Licence of GNU Modula-2
 
 @include gpl.texi

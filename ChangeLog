@@ -1,3 +1,20 @@
+2005-11-15	Gaius Mulley <gaius@glam.ac.uk>
+
+	* added more regression tests and
+	* completed the printing of set types within gdb
+	* completed the printing of array and subrange types within gdb
+	* made gdb print Modula-2 style CHARs and improved type printing
+	  within gdb.
+	* rationalised the gdb and gcc patches within the gm2/patch
+	  subdirectories.
+	* modified gm2-harness-0.6 to apply patches in order.
+	* minor fixes to gm2/gccgm2.c to give better type information.
+	* improved gdb section within gm2/gm2.texi
+
+2005-11-11	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed minor node bugs in gm2/gm2.texi, gm2/gpl.texi, gm2/gnu.texi
+
 2005-11-10	Gaius Mulley <gaius@glam.ac.uk>
 
 	* added gm2/COPYING.LGPL

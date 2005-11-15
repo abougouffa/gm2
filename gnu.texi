@@ -1,8 +1,7 @@
 @c Copyright (C) 2001 Free Software Foundation, Inc.
-@c This is part of the GCC manual.
-@c For copying conditions, see the file gcc.texi.
+@c This is part of the GM2 manual.
+@c For copying conditions, see the file gm2.texi.
 
-@node GNU Project
 @unnumbered The GNU Project and GNU/Linux
 
 The GNU Project was launched in 1984 to develop a complete Unix-like

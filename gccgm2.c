@@ -1784,6 +1784,26 @@ lookup_name_current_level (name)
   return 0;
 }
 
+static void
+debug_name (t)
+     tree t;
+{
+  char class = TREE_CODE_CLASS (TREE_CODE (t));
+  tree name = DECL_NAME (t);
+  char buf[4096];
+  
+  if (class == 'd') {
+    tree tt = TREE_TYPE (t);
+
+    snprintf (buf, sizeof(buf), "tree code = <%s>\n", tree_code_name[(int) TREE_CODE (t)]);
+    fprintf(stderr, buf);
+    if (name) {
+      snprintf (buf, sizeof(buf), "name = <%s>\n", IDENTIFIER_POINTER (name));
+      fprintf(stderr, buf);
+    }
+  }
+}
+
 #if 0
 /* Mark ARG for GC.  */
 
@@ -2321,10 +2341,11 @@ init_m2_builtins ()
   m2_long_card_type_node = build_m2_long_card_node ();
   m2_short_int_type_node = build_m2_short_int_node ();
   m2_short_card_type_node = build_m2_short_card_node ();
+  m2_z_type_node = build_m2_long_int_node ();
   m2_iso_loc_type_node = build_m2_iso_loc_node ();
   m2_iso_byte_type_node = build_m2_iso_byte_node ();
   m2_iso_word_type_node = build_m2_iso_word_node ();
-  m2_z_type_node = build_m2_long_int_node ();
+
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -7084,14 +7105,26 @@ gccgm2_GetDefaultType (name, type)
   tree id = maybe_get_identifier (name);
 
   if (id == NULL) {
-    tree t = gccgm2_DeclareKnownType(name, type);
+    tree prev = type;
+    tree t;
 
-    if (TYPE_NAME (type) == NULL)
-      TYPE_NAME (type) = DECL_NAME (t);
+    while (prev != NULL) {
+      if (TYPE_NAME (prev) == NULL)
+	TYPE_NAME (prev) = get_identifier (name);
+      prev = TREE_TYPE (prev);
+    } 
+    t  = gccgm2_DeclareKnownType(name, type);
     return t;
   }
   else
     return id;
+}
+
+static tree check_name = NULL;
+
+static void setId (tree t)
+{
+  check_name = t;
 }
 
 /*
@@ -8690,29 +8723,13 @@ tree
 gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
-  tree sizelow = convert (sizetype, default_conversion(low));
-  tree sizehigh = convert (sizetype, default_conversion(high));
+  tree sizelow = convert (m2_z_type_node, default_conversion(low));
+  tree sizehigh = convert (m2_z_type_node, default_conversion(high));
 
-  if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh)) {
-    sizelow = convert (m2_z_type_node, default_conversion(low));
-    sizehigh = convert (m2_z_type_node, default_conversion(high));
-
-    if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh))
-      error("array bounds are too large or too small");
-
-    return build_range_type (m2_z_type_node, sizelow, sizehigh);
-  }
-  else
-    return build_index_2_type (default_conversion(low), default_conversion(high));
-
-#if 0  
-  if (gccgm2_TreeOverflow (sizelow))
-    error("lower bound of the array declaration is either too large or too small");
-  if (gccgm2_TreeOverflow (sizehigh))
-    error("higher bound of the array declaration is either too large or too small");
-
-  return build_index_2_type (default_conversion(low), default_conversion(high));
-#endif
+  if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh))
+    error("array bounds are too large or too small");
+  
+  return build_range_type (m2_z_type_node, sizelow, sizehigh);
 }
 
 /*
