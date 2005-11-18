@@ -1,4 +1,4 @@
-(* Copyright (C) 2001 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -22,7 +22,7 @@ DEFINITION MODULE SArgs ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Aug  7 17:07:13 2001
-    Last edit  : $Date: 2005/11/10 09:05:48 $ 
+    Last edit  : $Date: 2005/11/18 22:24:05 $ 
     Revision   : $Version$ 
     Description: provides a String interface to the command line arguments.
 *)
