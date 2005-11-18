@@ -1,6 +1,6 @@
 (* it is advisable not to edit this file as it was automatically generated from the grammer file ../../gcc-3.3.1/gcc/gm2/bnf/m2.bnf *)
 
-(* Copyright (C) 2001 Free Software Foundation, Inc.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under

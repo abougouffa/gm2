@@ -1,3 +1,19 @@
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
+
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
+
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (* ---------------------------------------------------------------------
  * This program is copyright (c) 1996 Faculty of Information Technology,
  *  Queensland University of Technology, Brisbane, Australia.
@@ -7,6 +23,9 @@
 
 (****************************************************************
 $Log: Strings.mod,v $
+Revision 1.2  2005/11/18 21:54:50  gaius
+fixed Copyright dates and added GPL notices to all files.
+
 Revision 1.1  2004/10/26 14:40:19  gaius
 added switch pass and fail tests
 
