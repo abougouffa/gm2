@@ -1,4 +1,4 @@
--- Copyright (C) 2001 Free Software Foundation, Inc.
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -19,7 +19,7 @@
 --
 % module gm2l begin
 MODULE gm2l ;
-(* Copyright (C) 2001 Free Software Foundation, Inc.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2005/11/10 10:31:08 $]
+              : [$Date: 2005/11/18 23:57:43 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
