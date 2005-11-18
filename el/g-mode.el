@@ -441,13 +441,11 @@ Control-C followed by the first character of the construct.
 (defun m2-fsf-copyright ()
   "emit the a copyright notice providing m2-assign-future is set."
   (if m2-assign-future
-      (insert "(* Copyright (C) 2003 Free Software Foundation, Inc. *)\n")))
+      (insert "(* Copyright (C) 2005 Free Software Foundation, Inc. *)\n")))
 
-(defun m2-fsf-notice ()
-  "emit the fsf notice at the relevant position, providing m2-assign-future is
-   set."
-  (if m2-assign-future
-      (insert "(* This file is part of GNU Modula-2.
+(defun m2-fsf-gpl-notice ()
+  "emit the fsf gpl notice at the relevant position."
+  (insert "(* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
@@ -461,7 +459,34 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)\n\n")))
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)\n\n"))
+
+(defun m2-fsf-lgpl-notice ()
+  "emit the fsf notice at the relevant position."
+  (insert "(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)\n\n"))
+
+(defun m2-fsf-notice ()
+  "if the m2-assign-future is set then prompt the user for 'g'pl or 'l'gpl."
+  (interactive)
+  (if m2-assign-future
+      (let ((type (read-string "which kind of license (g)GPL or (l)LGPL? ")))
+	(if (string-equal type "l")
+	    (m2-fsf-lgpl-notice ())
+	  (m2-fsf-gpl-notice ())))))
   
 (defun m2-definition ()
   "Build skeleton DEFINITION MODULE, prompting for the <module name>."
