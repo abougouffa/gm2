@@ -17,9 +17,20 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Storage.mod,v 1.4 2005/11/21 12:09:59 gaius Exp $
+   $Id: Storage.mod,v 1.5 2005/11/21 21:50:38 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Storage.mod,v $
+   Revision 1.5  2005/11/21 21:50:38  gaius
+   * fixed many Copyright dates and GPL, LGPL and FDL license
+     issues.
+   * modified gm2/ulm-lib-gm2/std/Storage.mod to use malloc and
+     free. This in turn fixes a runtime regression test (hello world)
+     now works with the Ulm libraries.
+   * fixed gm2/gm2.texi to include FDL notice and also fixed all
+     included texi files in the same way.
+   * added GPL, Modula-2 and Copyright notices to all gm2/tools-src
+     files.
+
    Revision 1.4  2005/11/21 12:09:59  gaius
    updated Copyright notices and dates
 
@@ -46,151 +57,30 @@
 
    ----------------------------------------------------------------------------
 *)
-
 IMPLEMENTATION MODULE Storage;
 
    FROM SYSTEM IMPORT WORD, ADDRESS, ADR, TSIZE;
-   FROM SysBreak IMPORT Sbreak;
+   FROM libc IMPORT malloc, free ;
    FROM SysPanic IMPORT Panic;
 
-   (* see "The C Programming Language", Page 173 *)
-
-   TYPE
-      FreePtr = POINTER TO FreeNode;
-      FreeNode =
-         RECORD
-            size: CARDINAL; (* in units *)
-            next: FreePtr;
-         END;
    VAR
-      FreeList: FreePtr; (* circular ordered list *)
-      base: FreeNode;
-      ign: BOOLEAN;
       Mode: (returnNIL, abort);
 
-   (* ask system for memory *)
-
-   PROCEDURE MoreCore(nu: CARDINAL) : FreePtr;
-      CONST Nalloc = 1024; (* #units to allocate at once *)
-      VAR rnu: CARDINAL; (* rounded number of units *)
-	  adr: ADDRESS;
-	  fp: FreePtr;
-   BEGIN
-      INC(nu); (* allocate an additional unit to support 8-byte-accesses
-		  even on the last 4 bytes of an allocated area *)
-      rnu := Nalloc * ((nu+Nalloc-1) DIV Nalloc);
-      adr := Sbreak(stob(rnu));
-      IF adr = NIL THEN
-	 adr := Sbreak(stob(nu));
-	 IF adr = NIL THEN
-	    RETURN NIL;
-	 ELSE
-	    rnu := nu;
-	 END;
-      END;
-      fp := FreePtr(adr);
-      (* make the new allocated area available with the exception of
-	 the last 8 bytes
-      *)
-      DEALLOCATE(fp, (* size in bytes = *) (rnu-1) * TSIZE(FreeNode));
-      RETURN FreeList;
-   END MoreCore;
-
-   (* bytes to units *)
-
-   PROCEDURE btou(nb: CARDINAL) : CARDINAL;
-   BEGIN
-      nb := TSIZE(FreeNode) * ((nb+TSIZE(FreeNode)-1) DIV TSIZE(FreeNode));
-      RETURN nb DIV TSIZE(FreeNode);
-   END btou;
-
-   (* size to bytecount *)
-
-   PROCEDURE stob(size: CARDINAL) : CARDINAL;
-   BEGIN
-      RETURN size * TSIZE(FreeNode);
-   END stob;
-
    PROCEDURE DEALLOCATE(VAR ptr: ADDRESS; size: CARDINAL);
-      (* size in words *)
-      VAR free: FreePtr;
-	  fptr: FreePtr;
    BEGIN
-      size := btou(size); (* now size in units *)
-
-      free := FreeList;
-      LOOP
-	 IF (ptr > ADDRESS(free)) AND (ptr < ADDRESS(free^.next)) THEN
-	    EXIT
-	 END;
-	 IF (free >= free^.next) AND
-	    ((ptr > ADDRESS(free)) OR (ptr < ADDRESS(free^.next))) THEN
-	    EXIT (* at one end or other *)
-	 END;
-	 free := free^.next;
-      END; (* LOOP *)
-
-      fptr := FreePtr(ptr);
-      fptr^.size := size;
-      IF ptr + VAL(ADDRESS, stob(fptr^.size)) = free^.next
-      THEN (* join to upper nbr *)
-	 fptr^.size := size + free^.next^.size;
-	 fptr^.next := free^.next^.next;
-      ELSE
-	 fptr^.next := free^.next;
-      END;
-      IF ADDRESS(free) + VAL(ADDRESS, stob(free^.size)) = ptr
-      THEN (* join to lower nbr *)
-	 free^.size := free^.size + fptr^.size;
-	 free^.next := fptr^.next;
-      ELSE
-	 free^.next := fptr;
-      END;
-      FreeList := free;
-
-      ptr := NIL;
+      free(ptr)
    END DEALLOCATE;
 
    PROCEDURE ALLOCATE(VAR ptr: ADDRESS; size: CARDINAL);
-      VAR free: FreePtr;
-          dummy: ADDRESS;
-          old: FreePtr;
    BEGIN
-      size := btou(size); (* now size in units *)
-      old := FreeList;
-      free := FreeList^.next;
-      LOOP
-         IF free^.size >= size THEN
-
-	    (* free block found *)
-
-	    ptr := free;
-            IF free^.size > size THEN
-	       free^.size := free^.size - size;
-	       INC(ptr, stob(free^.size));
-	    ELSE
-               IF old^.next = FreeList THEN
-                  FreeList := old;
-               END;
-     	       old^.next := free^.next;
-	    END;
-            RETURN;
-         END;
-         old := free;
-	 free := free^.next;
-	 IF free = FreeList^.next THEN
-	    free := MoreCore(size);
-	    IF free = NIL THEN
-	       EXIT
-	    END;
-	 END;
-      END; (* LOOP *)
-
-      IF Mode = returnNIL THEN
-         ptr := NIL;
-      ELSE
-         Panic("No space available.");
-      END;
+      ptr := malloc(size);
+      IF ptr=NIL
+      THEN
+         IF Mode#returnNIL
+         THEN
+            Panic("No space available.")
+         END
+      END
    END ALLOCATE;
 
    PROCEDURE Setmode(m: CARDINAL);
@@ -204,8 +94,5 @@ IMPLEMENTATION MODULE Storage;
    END Setmode;
 
 BEGIN
-   FreeList := ADR(base);
-   base.next := FreeList;
-   base.size := 0;
-   Mode := abort;
+   Mode := abort
 END Storage.

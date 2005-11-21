@@ -1,4 +1,4 @@
-/* Copyright (C) 2000, 2001, 2002, 2003, 2004
+/* Copyright (C) 2002, 2003, 2004, 2005
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.

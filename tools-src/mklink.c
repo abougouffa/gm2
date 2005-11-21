@@ -1,13 +1,45 @@
+/* Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+ * Free Software Foundation, Inc.
+ * This file is part of GNU Modula-2.
+ *
+ * GNU Modula-2 is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ * 
+ * GNU Modula-2 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with GNU Modula-2; see the file COPYING.  If not, write to the
+ * Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA. 
+ */
+
 /*
- * Author     : Gaius Mulley
+ * Gaius Mulley <gaius@glam.ac.uk> constructed this file.
+ *
  * Title      : mklink
  * Description: creates startup code and link command line given a list of files.
- * Date       : 9/6/93
+ * Start date : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.2 2003/04/29 15:27:28 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.3 2005/11/21 21:50:38 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.3  2005/11/21 21:50:38  gaius
+ * * fixed many Copyright dates and GPL, LGPL and FDL license
+ *   issues.
+ * * modified gm2/ulm-lib-gm2/std/Storage.mod to use malloc and
+ *   free. This in turn fixes a runtime regression test (hello world)
+ *   now works with the Ulm libraries.
+ * * fixed gm2/gm2.texi to include FDL notice and also fixed all
+ *   included texi files in the same way.
+ * * added GPL, Modula-2 and Copyright notices to all gm2/tools-src
+ *   files.
+ *
  * Revision 1.2  2003/04/29 15:27:28  gaius
  * many changes made which relate to the introduction of ISO SYSTEM:
  *

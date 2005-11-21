@@ -3,9 +3,6 @@
 /* the path to target archiver */
 #undef AR_PATH
 
-/* the path to target ranlib */
-#undef RANLIB_PATH
-
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
@@ -20,3 +17,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
+
+/* the path to target ranlib */
+#undef RANLIB_PATH
