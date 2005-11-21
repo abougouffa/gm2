@@ -13,13 +13,16 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: StrSpec.mod,v 1.6 2005/06/03 08:41:24 gaius Exp $
+   $Id: StrSpec.mod,v 1.7 2005/11/21 12:09:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: StrSpec.mod,v $
+   Revision 1.7  2005/11/21 12:09:59  gaius
+   updated Copyright notices and dates
+
    Revision 1.6  2005/06/03 08:41:24  gaius
    * reverted some of the changes made to the ulm libraries
      in the light of fixing arrays with huge indices.

@@ -19,7 +19,7 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    ----------------------------------------------------------------------------
    Copyright (c) 1985, 1993
         The Regents of the University of California.  All rights reserved.
@@ -54,9 +54,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.mod,v 1.4 2004/08/26 19:08:07 gaius Exp $
+   $Id: MathLib.mod,v 1.5 2005/11/21 12:09:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.mod,v $
+   Revision 1.5  2005/11/21 12:09:59  gaius
+   updated Copyright notices and dates
+
    Revision 1.4  2004/08/26 19:08:07  gaius
    * implemented type PROCESS for SYSTEM in the pim library
      directory (gm2/gm2-libs-coroutines).

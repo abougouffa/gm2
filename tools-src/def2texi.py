@@ -242,5 +242,14 @@ def displayModules(up, dir):
     else:
         print "directory " + dir + " not found"
 
+def displayCopyright ():
+    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc."
+    print """
+@c Permission is granted to copy, distribute and/or modify this document
+@c under the terms of the GNU Free Documentation License, Version 1.2 or
+@c any later version published by the Free Software Foundation.
+"""
+
+displayCopyright()
 displayMenu()
 displayLibraryClass()

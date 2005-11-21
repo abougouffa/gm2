@@ -13,13 +13,16 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: SysBreak.mod,v 1.2 2004/04/05 10:42:46 gaius Exp $
+   $Id: SysBreak.mod,v 1.3 2005/11/21 12:09:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: SysBreak.mod,v $
+   Revision 1.3  2005/11/21 12:09:59  gaius
+   updated Copyright notices and dates
+
    Revision 1.2  2004/04/05 10:42:46  gaius
    made gm2 64 bit clean, essentially this means a clear separation between
    int/word objects and pointer objects.

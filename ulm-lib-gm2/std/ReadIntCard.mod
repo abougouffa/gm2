@@ -13,13 +13,16 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: ReadIntCard.mod,v 1.2 2004/06/29 08:51:42 gaius Exp $
+   $Id: ReadIntCard.mod,v 1.3 2005/11/21 12:09:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: ReadIntCard.mod,v $
+   Revision 1.3  2005/11/21 12:09:59  gaius
+   updated Copyright notices and dates
+
    Revision 1.2  2004/06/29 08:51:42  gaius
    * made flex lexical analysers ignore carriage return
    * fixed bug in M2Quads.mod checking parameter of

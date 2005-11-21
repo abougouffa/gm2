@@ -110,7 +110,7 @@ diff -aruN p2c-orig/src/lex.c p2c/src/lex.c
 --- p2c-orig/src/lex.c	Wed Apr 24 21:30:40 1991
 +++ p2c/src/lex.c	Wed Jul 26 11:56:50 2000
 @@ -16,6 +16,7 @@
- the Free Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. */
+ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
  
  
 +#include <time.h>

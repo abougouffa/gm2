@@ -13,13 +13,16 @@
 
    You should have received a copy of the GNU Library General Public
    License along with this library; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: Functions.mod,v 1.3 2005/07/06 22:32:53 gaius Exp $
+   $Id: Functions.mod,v 1.4 2005/11/21 12:09:59 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: Functions.mod,v $
+   Revision 1.4  2005/11/21 12:09:59  gaius
+   updated Copyright notices and dates
+
    Revision 1.3  2005/07/06 22:32:53  gaius
    * fixed a number of bugs relating to gm2 failuring to compile
      gm2/ulm-lib-gm2/std/TimeIO.mod. Nested modules within
