@@ -485,8 +485,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
   (if m2-assign-future
       (let ((type (read-string "which kind of license (g)GPL or (l)LGPL? ")))
 	(if (string-equal type "l")
-	    (m2-fsf-lgpl-notice ())
-	  (m2-fsf-gpl-notice ())))))
+	    (m2-fsf-lgpl-notice)
+	  (m2-fsf-gpl-notice)))))
   
 (defun m2-definition ()
   "Build skeleton DEFINITION MODULE, prompting for the <module name>."
