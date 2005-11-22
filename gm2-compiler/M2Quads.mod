@@ -2857,9 +2857,9 @@ BEGIN
    PutVar(FinalValue, GetType(IdSym)) ;
 
    PushTF(FinalValue, GetType(FinalValue)) ;
-   PushTF(e1, GetType(e1)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
+   PushTF(e2, GetType(e2)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
    PushT(MinusTok) ;
-   PushTF(e2, GetType(e2)) ;
+   PushTF(e1, GetType(e1)) ;
    BuildBinaryOp ;
    PushT(DivideTok) ;
    PushTF(BySym, ByType) ;
