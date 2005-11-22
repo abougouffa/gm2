@@ -1,5 +1,8 @@
 (* Ulm's Modula-2 Library
-   Copyright (C) 1984-1997 by University of Ulm, SAI, D-89069 Ulm, Germany
+   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992,
+   1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+   2004, 2005
+   by University of Ulm, SAI, D-89069 Ulm, Germany
    ----------------------------------------------------------------------------
    Ulm's Modula-2 Library is free software; you can redistribute it
    and/or modify it under the terms of the GNU Library General Public
@@ -17,9 +20,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: modula@mathematik.uni-ulm.de
    ----------------------------------------------------------------------------
-   $Id: SysFcntl.mod,v 1.2 2005/11/21 12:09:59 gaius Exp $
+   $Id: SysFcntl.mod,v 1.3 2005/11/22 15:05:41 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: SysFcntl.mod,v $
+   Revision 1.3  2005/11/22 15:05:41  gaius
+   fixed Copyright dates
+
    Revision 1.2  2005/11/21 12:09:59  gaius
    updated Copyright notices and dates
 
