@@ -1,10 +1,17 @@
+2005-11-22	Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified ppg to take an extra parameter -f which emits the
+	  Free Documentation License header when producing texinfo
+	  ebnf rules.
+	* fixed many dates on source files.
+
 2005-11-21	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed many Copyright dates and GPL, LGPL and FDL license
 	  issues.
-	* modified gm2/ulm-lib-gm2/std/Storage.mod to use malloc and
-	  free. This in turn fixes a runtime regression test (hello world)
-	  now works with the Ulm libraries.
+	* replaced gm2/ulm-lib-gm2/std/Storage.mod with an implementation
+	  which uses malloc and free. This in turn fixes a runtime regression
+	  test (hello world) now works with the Ulm libraries.
 	* fixed gm2/gm2.texi to include FDL notice and also fixed all
 	  included texi files in the same way.
 	* added GPL, Modula-2 and Copyright notices to all gm2/tools-src

@@ -174,7 +174,7 @@ $(srcdir)/gm2/gm2-libs.texi:
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py > gm2-libs.texi
 
 $(srcdir)/gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
-	./gm2/ppg$(exeext) -c -p -t $(srcdir)/gm2/bnf/m2.bnf > $(srcdir)/gm2/gm2-ebnf.texi
+	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > $(srcdir)/gm2/gm2-ebnf.texi
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@

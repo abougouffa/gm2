@@ -299,6 +299,7 @@ VAR
    PrettyPrint,
    EmitCode,
    Texinfo,
+   FreeDocLicense,
    Debugging,
    WasNoError         : BOOLEAN ;
    LinePrologue,
@@ -4641,11 +4642,30 @@ END EmptyProduction ;
 
 
 (*
+   EmitFDLNotice - 
+*)
+
+PROCEDURE EmitFDLNotice ;
+BEGIN
+   WriteString('@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005') ; WriteLn ;
+   WriteString('@c Free Software Foundation, Inc.') ; WriteLn ;
+   WriteLn ;
+   WriteString('@c Permission is granted to copy, distribute and/or modify this document') ; WriteLn ;
+   WriteString('@c under the terms of the GNU Free Documentation License, Version 1.2 or') ; WriteLn ;
+   WriteString('@c any later version published by the Free Software Foundation.') ; WriteLn
+END EmitFDLNotice ;
+
+
+(*
    EmitRules - generates the BNF rules.
 *)
 
 PROCEDURE EmitRules ;
 BEGIN
+   IF Texinfo AND FreeDocLicense
+   THEN
+      EmitFDLNotice
+   END ;
    ForeachRuleDo(EmitRule)
 END EmitRules ;
 
@@ -5349,6 +5369,9 @@ BEGIN
          ELSIF StrEqual(FileName, '-t')
          THEN
             Texinfo := TRUE
+         ELSIF StrEqual(FileName, '-f')
+         THEN
+            FreeDocLicense := TRUE
          ELSIF OpenSource(FileName)
          THEN
             AdvanceToken
@@ -5360,7 +5383,7 @@ BEGIN
    END ;
    IF n=1
    THEN
-      WriteString('Usage: ppg [-l] [-c] [-d] [-e] filename') ; WriteLn ;
+      WriteString('Usage: ppg [-l] [-c] [-d] [-e] [-t] [-p] [-t] [-f] filename') ; WriteLn ;
       WriteString('   -l             suppress file and line source information') ; WriteLn ;
       WriteString('   -c             do not generate any Modula-2 code within the parser rules') ; WriteLn ;
       WriteString('   -h or --help   generate this help message') ; WriteLn ;
@@ -5368,6 +5391,7 @@ BEGIN
       WriteString('   -d             generate internal debugging information') ; WriteLn ;
       WriteString('   -p             only display the ebnf rules') ; WriteLn ;
       WriteString('   -t             generate texinfo formating for pretty printing (-p)') ; WriteLn ;
+      WriteString('   -f             generate GNU Free Documentation header before pretty printing in texinfo') ; WriteLn ;
       HALT
    END
 END ParseArgs ;
@@ -5381,6 +5405,7 @@ PROCEDURE Init ;
 BEGIN
    WasNoError        := TRUE ;
    Texinfo           := FALSE ;
+   FreeDocLicense    := FALSE ;
    EmitCode          := TRUE ;
    LargestValue      := 0 ;
    HeadProduction    := NIL ;
