@@ -1,6 +1,7 @@
 (* Ulm's Modula-2 Library
    Copyright (C) 1983-1996 by University of Ulm, SAI, D-89069 Ulm, Germany,
-             (C) 1992 Free Software Foundation, Inc.,
+             (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.,
 	     (C) 1985, 1993 The Regents of the University of California
    ----------------------------------------------------------------------------
    Note that parts of this module have been derived from the GNU C Library
@@ -54,9 +55,12 @@
    ----------------------------------------------------------------------------
    E-mail contact: gm2@glam.ac.uk
    ----------------------------------------------------------------------------
-   $Id: MathLib.mod,v 1.5 2005/11/21 12:09:59 gaius Exp $
+   $Id: MathLib.mod,v 1.6 2005/11/22 15:13:20 gaius Exp $
    ----------------------------------------------------------------------------
    $Log: MathLib.mod,v $
+   Revision 1.6  2005/11/22 15:13:20  gaius
+   fixed Copyright dates
+
    Revision 1.5  2005/11/21 12:09:59  gaius
    updated Copyright notices and dates
 
