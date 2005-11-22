@@ -14,17 +14,17 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
-(* line 1 *)
-(* line 2 *)
-(* line 3
+(* line 17 *)
+(* line 18 *)
+(* line 19
 
-   line 5 *)
+   line 21 *)
 MODULE line ;
-(* line 7 *)
+(* line 23 *)
 
-(* line 9 *)
+(* line 25 *)
 BEGIN
-   IF __LINE__#11
+   IF __LINE__#27
    THEN
       HALT
    END
