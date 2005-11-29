@@ -77,7 +77,7 @@ FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
 
 FROM M2Printf IMPORT printf0, printf2, printf4 ;
 
-FROM M2Base IMPORT MixTypes, ActivationPointer, IsMathType, IsRealType,
+FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
                    ArrayHigh, ArrayAddress, Cardinal, Char, Integer,
                    Unbounded, Trunc, CheckAssignmentCompatible ;
@@ -289,6 +289,7 @@ PROCEDURE stop ; FORWARD ;
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
 PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
@@ -1952,8 +1953,32 @@ END LValueToGenericPtr ;
 
 
 (*
+   LValueToGenericPtrOrConvert - if sym is an lvalue then convert to pointer type
+                                 else convert to type, type. Return the converted tree.
+*)
+
+PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ;
+VAR
+   n: Tree ;
+BEGIN
+   n := Mod2Gcc(sym) ;
+   IF n=NIL
+   THEN
+      InternalError('expecting symbol to be resolved', __FILE__, __LINE__)
+   END ;
+   IF GetMode(sym)=LeftValue
+   THEN
+      n := BuildConvert(GetPointerType(), n, FALSE)
+   ELSE
+      n := BuildConvert(type, n, FALSE)
+   END ;
+   RETURN( n )
+END LValueToGenericPtrOrConvert ;
+
+
+(*
    ZConstToTypedConst - checks whether op1 and op2 are constants and
-                 coerces, t, appropriately.
+                        coerces, t, appropriately.
 *)
 
 PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
@@ -3033,8 +3058,11 @@ BEGIN
                   ZConstToTypedConst := GetM2ZRealType()
                END
             END ;
-            PutConst(op1, FindType(op3)) ;
-            tv := unop(LValueToGenericPtr(op3), FALSE) ;
+            IF GetType(op1)=NulSym
+            THEN
+               PutConst(op1, NegateType(GetType(op3), tokenno))
+            END ;
+            tv := unop(LValueToGenericPtrOrConvert(op3, ZConstToTypedConst), FALSE) ;
             CheckOverflow(tokenno, tv) ;
 
             AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv)) ;
@@ -3234,7 +3262,6 @@ BEGIN
       RETURN( sym )
    END
 END DetermineFieldOf ;
-
 
 
 (*

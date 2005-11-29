@@ -62,7 +62,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  IsMathType,
                  IsRealType,
                  IsOrdinalType,
-                 MixTypes,
+                 MixTypes, NegateType,
                  TemplateProcedure,
                  ActivationPointer,
                  IsNeededAtRunTime ;
@@ -218,6 +218,15 @@ PROCEDURE CheckAssignmentCompatible (t1, t2: CARDINAL) ;
 *)
 
 PROCEDURE MixTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
+
+
+(*
+   NegateType - if the type, t, is unsigned then returns the
+                signed equivalent. NearTok is used to identify the
+                source position if a type incompatability occurs.
+*)
+
+PROCEDURE NegateType (t: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
 
 
 (*

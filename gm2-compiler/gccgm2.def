@@ -927,9 +927,10 @@ PROCEDURE BuildLogicalDifference (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
 (*
    BuildConvert - build and return tree VAL(op1, op2)
                   where op1 is the type to which op2 is to be converted.
+                  checkOverflow determines whether to suppress any overflow.
 *)
 
-PROCEDURE BuildConvert (op1, op2: Tree; needconvert: BOOLEAN) : Tree ;
+PROCEDURE BuildConvert (op1, op2: Tree; checkOverflow: BOOLEAN) : Tree ;
 
 
 (*

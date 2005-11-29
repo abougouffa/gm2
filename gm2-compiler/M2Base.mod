@@ -1091,6 +1091,31 @@ END MixTypes ;
 
 
 (*
+   NegateType - if the type, t, is unsigned then returns the
+                signed equivalent. NearTok is used to identify the
+                source position if a type incompatability occurs.
+*)
+
+PROCEDURE NegateType (t: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
+VAR
+   l: CARDINAL ;
+BEGIN
+   IF t#NulSym
+   THEN
+      l := GetLowestType(t) ;
+      IF l=LongCard
+      THEN
+         RETURN( LongInt )
+      ELSIF (l=Cardinal)
+      THEN
+         RETURN( Integer )
+      END
+   END ;
+   RETURN( t )
+END NegateType ;
+
+
+(*
    IsMathType - returns TRUE if the type is a mathematical type.
                 A mathematical type has a range larger than INTEGER.
                 (Typically SHORTREAL/REAL/LONGREAL/LONGINT/LONGCARD)

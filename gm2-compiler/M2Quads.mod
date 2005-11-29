@@ -106,7 +106,7 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    Real, LongReal, ShortReal, Nil,
-                   MixTypes,
+                   MixTypes, NegateType,
                    IsAssignmentCompatible, AssignmentRequiresWarning,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    Unbounded, ArrayAddress, ArrayHigh,
@@ -2759,19 +2759,18 @@ END BuildPseudoBy ;
 
 
                     x := e1 ;
+                    LASTVALUE := ((e2-e1) DIV BySym) * BySym + e1
                     IF BySym<0
                     THEN
                        IF e1<e2
                        THEN
                           goto exit
-                       END ;
-                       LASTVALUE := ((e1-e2) DIV BySym) * BySym + e1
+                       END
                     ELSE
                        IF e1>e2
                        THEN
                           goto exit
-                       END ;
-                       LASTVALUE := ((e2-e1) DIV BySym) * BySym + e1
+                       END
                     END ;
                     LOOP
                        body
@@ -2785,15 +2784,16 @@ END BuildPseudoBy ;
                     Quadruples:
 
                     q     BecomesOp  IdentSym  _  e1
+                    q+    LastValue  := ((e1-e2) DIV by) * by + e1
                     q+1   if >=      by        0  q+..2
                     q+2   GotoOp                  q+3
                     q+3   If >=      e1  e2       q+5
                     q+4   GotoOp                  exit
-                    q+5   LastValue  := ((e1-e2) DIV by) * by + e1
+                    q+5   ..
                     q+..1 Goto                    q+..5
                     q+..2 If >=      e2  e1       q+..4
                     q+..3 GotoOp                  exit
-                    q+..4 LastValue  := ((e2-e1) DIV by) * by + e1
+                    q+..4 ..
 
                     The For Loop is regarded:
 
@@ -2834,24 +2834,6 @@ BEGIN
    BuildAssignment ;
 
    UseLineNote(l2) ;
-   (* q+1 if >=      by        0  q+..2 *)
-   (* q+2 GotoOp                  q+3   *)
-   PushT(BySym) ;           (* BuildRelOp  1st parameter *)
-   PushT(GreaterEqualTok) ; (*             2nd parameter *)
-   PushT(MakeConstLit(MakeKey('0'))) ;  (* 3rd parameter *)
-   BuildRelOp ;
-   PopBool(t, f) ;
-   BackPatch(f, NextQuad) ;
-   (* q+3 If >=       e1  e2      q+5  *)
-   (* q+4 GotoOp                  Exit *)
-   PushT(e1) ;              (* BuildRelOp  1st parameter *)
-   PushT(GreaterEqualTok) ; (*             2nd parameter *)
-   PushT(e2) ;              (*             3rd parameter *)
-   BuildRelOp ;
-   PopBool(t1, exit1) ;
-   BackPatch(t1, NextQuad) ;
-   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
-
    FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
                                            IsConst(BySym))) ;
    PutVar(FinalValue, GetType(IdSym)) ;
@@ -2871,42 +2853,40 @@ BEGIN
    PushTF(e1, GetType(e1)) ;
    BuildBinaryOp ;
    BuildAssignment ;
+
+   (* q+1 if >=      by        0  q+..2 *)
+   (* q+2 GotoOp                  q+3   *)
+   PushTF(BySym, ByType) ;  (* BuildRelOp  1st parameter *)
+   PushT(GreaterEqualTok) ; (*             2nd parameter *)
+                                        (* 3rd parameter *)
+   PushTF(MakeConstLit(MakeKey('0')), ByType) ;
+
+   BuildRelOp ;
+   PopBool(t, f) ;
+   BackPatch(f, NextQuad) ;
+   (* q+3 If >=       e1  e2      q+5  *)
+   (* q+4 GotoOp                  Exit *)
+   PushTF(e1, GetType(e1)) ; (* BuildRelOp  1st parameter *)
+   PushT(GreaterEqualTok) ;  (*             2nd parameter *)
+   PushTF(e2, GetType(e2)) ; (*             3rd parameter *)
+   BuildRelOp ;
+   PopBool(t1, exit1) ;
+   BackPatch(t1, NextQuad) ;
+   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
+
    GenQuad(GotoOp, NulSym, NulSym, 0) ;
    ForLoop := NextQuad-1 ;
 
    (* ELSE *)
 
    BackPatch(t, NextQuad) ;
-   PushT(e2) ;              (* BuildRelOp  1st parameter *)
-   PushT(GreaterEqualTok) ; (*             2nd parameter *)
-   PushT(e1) ;              (*             3rd parameter *)
+   PushTF(e2, GetType(e2)) ; (* BuildRelOp  1st parameter *)
+   PushT(GreaterEqualTok) ;  (*             2nd parameter *)
+   PushTF(e1, GetType(e1)) ; (*             3rd parameter *)
    BuildRelOp ;
    PopBool(t1, exit1) ;
    BackPatch(t1, NextQuad) ;
    PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
-
-   (* we must use another temporary for this FinalValue rather than
-      the one we created earlier, as the quadruple rules
-      expect constants to be assigned only once
-   *)
-   FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
-                                           IsConst(BySym))) ;
-   PutVar(FinalValue, GetType(IdSym)) ;
-   PushTF(FinalValue, GetType(FinalValue)) ;
-   PushTF(e2, GetType(e2)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
-   PushT(MinusTok) ;
-   PushTF(e1, GetType(e1)) ;
-   BuildBinaryOp ;
-   PushT(DivideTok) ;
-   PushTF(BySym, ByType) ;
-   BuildBinaryOp ;
-   PushT(TimesTok) ;
-   PushTF(BySym, ByType) ;
-   BuildBinaryOp ;
-   PushT(PlusTok) ;
-   PushTF(e1, GetType(e1)) ;
-   BuildBinaryOp ;
-   BuildAssignment ;
 
    BackPatch(ForLoop, NextQuad) ; (* fixes the start of the for loop *)
    ForLoop := NextQuad ;
@@ -9595,7 +9575,7 @@ BEGIN
    PopT(Tok) ;
    IF Tok=MinusTok
    THEN
-      type := MixTypes(GetType(Sym), NulSym, GetTokenNo()) ;
+      type := NegateType(GetType(Sym), GetTokenNo()) ;
       t := MakeTemporary(AreConstant(IsConst(Sym))) ;
       PutVar(t, type) ;
 

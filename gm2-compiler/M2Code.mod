@@ -313,6 +313,18 @@ END BasicBlockVariableAnalysis ;
 
 
 (*
+   DisplayQuadsInScope - 
+*)
+
+PROCEDURE DisplayQuadsInScope (sb: ScopeBlock) ;
+BEGIN
+   printf0('Quads in scope\n') ;
+   ForeachScopeBlockDo(sb, DisplayQuadRange) ;
+   printf0('===============\n')
+END DisplayQuadsInScope ;
+
+
+(*
    OptimizeScopeBlock - 
 *)
 

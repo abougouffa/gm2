@@ -1,3 +1,15 @@
+2005-11-29	Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed bug reported by John Wallace concerning FOR loops
+	  with negative step values.
+	* Added new runtime regression tests gm2/pim/run/pass/For[78].mod
+	  to test these new changes.
+	* changes to gm2/gm2-compiler/M2Base.mod, gm2-compiler/M2Code.mod,
+          gm2/gm2-compiler/M2GenGCC.mod, gm2/gm2-compiler/M2Quads.mod
+	  to ensure that the Negate operator works on large data types
+	  LONGCARD contants are changed into LONGINT and overflow is
+	  checked.
+
 2005-11-22	Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified ppg to take an extra parameter -f which emits the

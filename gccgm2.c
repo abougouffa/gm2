@@ -510,7 +510,7 @@ static tree                   finish_build_pointer_type                   PARAMS
        tree                   gccgm2_BuildModFloor       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLSL 		       	 	  PARAMS ((tree op1, tree op2, int needconvert));
        tree                   gccgm2_BuildLSR                             PARAMS ((tree op1, tree op2, int needconvert));
-       tree                   gccgm2_BuildConvert 	       	 	  PARAMS ((tree op1, tree op2));
+       tree                   gccgm2_BuildConvert 	       	 	  PARAMS ((tree op1, tree op2, int checkOverflow));
        tree                   gccgm2_BuildTrunc 		       	  PARAMS ((tree op1));
        tree                   gccgm2_BuildNegate 	       	 	  PARAMS ((tree op1, int needconvert));
        tree                   gccgm2_BuildSetNegate 	       	 	  PARAMS ((tree op1, int needconvert));
@@ -9039,7 +9039,7 @@ gccgm2_BuildReturnValueCode (fndecl, value)
   else
     expand_return( build (MODIFY_EXPR, void_type_node,
                           DECL_RESULT (fndecl),
-                          gccgm2_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value)) );
+                          gccgm2_BuildConvert (TREE_TYPE (DECL_RESULT (fndecl)), value, FALSE)) );
 }
 
 /*
@@ -9552,13 +9552,19 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3,
  *  BuildConvert - build and return tree VAL(op1, op2)
  *                 where op1 is the type to which op2
  *                 is to be converted.
+ *                 checkOverflow determines whether we
+ *                 should suppress overflow checking.
  */
 
 tree
-gccgm2_BuildConvert (op1, op2)
+gccgm2_BuildConvert (op1, op2, checkOverflow)
      tree op1, op2;
+     int checkOverflow;
 {
-  return convert_and_check (skip_type_decl (op1), op2);
+  if (checkOverflow)
+    return convert (skip_type_decl (op1), op2);
+  else
+    return convert_and_check (skip_type_decl (op1), op2);
 }
 
 #if 0
@@ -9842,7 +9848,7 @@ gccgm2_BuildSetNegate (op1, needconvert)
      int  needconvert;
 {
   return build_binary_op (BIT_XOR_EXPR,
-			  gccgm2_BuildConvert(gccgm2_GetWordType (), op1),
+			  gccgm2_BuildConvert(gccgm2_GetWordType (), op1, FALSE),
 			  set_full_complement,
 			  needconvert);
 }
@@ -10048,14 +10054,16 @@ gccgm2_BuildOffset (record, field, needconvert)
 						 gccgm2_BuildDivTrunc (DECL_FIELD_BIT_OFFSET (field),
 								       gccgm2_BuildIntegerConstant (BITS_PER_UNIT),
 								       FALSE),
-						 FALSE));
+						 FALSE),
+				FALSE);
   else {
     tree r1 = DECL_CONTEXT (field);
     tree r2 = determinePenultimateField (record, field);
     return gccgm2_BuildConvert (gccgm2_GetIntegerType (),
 				gccgm2_BuildAdd (gccgm2_BuildOffset (r1, field, needconvert),
 						 gccgm2_BuildOffset (record, r2, needconvert),
-						 FALSE));
+						 FALSE),
+				FALSE);
   }
 }
 
@@ -10081,8 +10089,8 @@ gccgm2_BuildLogicalOr (op1, op2, needconvert)
      int  needconvert;
 {
   return build_binary_op (BIT_IOR_EXPR,
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1, FALSE),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2, FALSE), needconvert);
 }
 
 /*
@@ -10095,8 +10103,8 @@ gccgm2_BuildLogicalAnd (op1, op2, needconvert)
      int  needconvert;
 {
   return build_binary_op (BIT_AND_EXPR,
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1, FALSE),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2, FALSE), needconvert);
 }
 
 /*
@@ -10109,8 +10117,8 @@ gccgm2_BuildSymmetricDifference (op1, op2, needconvert)
      int  needconvert;
 {
   return build_binary_op (BIT_XOR_EXPR,
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2), needconvert);
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1, FALSE),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op2, FALSE), needconvert);
 }
 
 
@@ -10126,7 +10134,7 @@ gccgm2_BuildLogicalDifference (op1, op2, needconvert)
      int  needconvert;
 {
   return build_binary_op (BIT_AND_EXPR,
-			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1),
+			  gccgm2_BuildConvert (gccgm2_GetWordType (), op1, FALSE),
 			  gccgm2_BuildSetNegate (op2, needconvert),
 			  needconvert);
 }
@@ -10316,10 +10324,10 @@ do_jump_if_bit (code, word, bit, label)
 {
   gccgm2_DoJump (build_binary_op (code,
 				  build_binary_op (BIT_AND_EXPR,
-						   gccgm2_BuildConvert (gccgm2_GetWordType (), word),
+						   gccgm2_BuildConvert (gccgm2_GetWordType (), word, FALSE),
 						   gccgm2_BuildConvert (gccgm2_GetWordType (), gccgm2_BuildLSL (gccgm2_GetWordOne(),
-														gccgm2_BuildConvert (gccgm2_GetWordType (), bit),
-														FALSE)),
+														gccgm2_BuildConvert (gccgm2_GetWordType (), bit, FALSE),
+														FALSE), FALSE),
 						   FALSE),
 				  integer_zero_node, FALSE),
 		 NULL, label);
@@ -10399,8 +10407,8 @@ gccgm2_BuildIfVarInVar (type, varset, varel, is_lvalue, low, high, label)
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
     /* which word do we need to fetch? */
     tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
@@ -10438,8 +10446,8 @@ gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType (), varel),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType (), low), FALSE);
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType (), varel, FALSE),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType (), low, FALSE), FALSE);
     /* which word do we need to fetch? */
     tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
@@ -10482,8 +10490,8 @@ gccgm2_BuildIfConstSetEquVar (type, constset, varset, is_lvalue, label)
       error ("constant set has a different number of fields than the set variable");
       return;
     }
-    gccgm2_DoJump (gccgm2_BuildEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue),
-					gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue)),
+    gccgm2_DoJump (gccgm2_BuildEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue, FALSE),
+					gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue, FALSE)),
 		   NULL, label);
     constfield = TREE_CHAIN (constfield);
   }
@@ -10513,8 +10521,8 @@ gccgm2_BuildIfNotConstSetEquVar (type, constset, varset, is_lvalue, label)
       error ("constant set has a different number of fields than the set variable");
       return;
     }
-    gccgm2_DoJump (gccgm2_BuildNotEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue),
-					   gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue)),
+    gccgm2_DoJump (gccgm2_BuildNotEqualTo (gccgm2_BuildConvert (gccgm2_GetWordType (), fieldvalue, FALSE),
+					   gccgm2_BuildConvert (gccgm2_GetWordType (), constvalue, FALSE)),
 		   NULL, label);
     constfield = TREE_CHAIN (constfield);
   }
@@ -11111,7 +11119,7 @@ convertToPtr (t)
   if (TREE_CODE (TREE_TYPE (t)) == POINTER_TYPE)
     return t;
   else
-    return gccgm2_BuildConvert (ptr_type_node, t);
+    return gccgm2_BuildConvert (ptr_type_node, t, FALSE);
 }
 
 /*
@@ -11360,8 +11368,8 @@ gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
     /* which word do we need to fetch? */
     tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
@@ -11438,8 +11446,8 @@ gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low), FALSE);
+    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
     /* which word do we need to fetch? */
     tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
@@ -11869,7 +11877,7 @@ tree
 gccgm2_ToWord (expr)
      tree expr;
 {
-  return gccgm2_BuildConvert (gccgm2_GetWordType(), expr);
+  return gccgm2_BuildConvert (gccgm2_GetWordType(), expr, FALSE);
 }
 
 /*
