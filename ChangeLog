@@ -1,8 +1,8 @@
 2005-11-29	Gaius Mulley <gaius@glam.ac.uk>
 
-	* fixed bug reported by John Wallace concerning FOR loops
-	  with negative step values.
-	* Added new runtime regression tests gm2/pim/run/pass/For[78].mod
+	* fixed bug reported by John Wallace and Juan Reyes
+	  concerning FOR loops with negative step values.
+	* added new runtime regression tests gm2/pim/run/pass/For[78].mod
 	  to test these new changes.
 	* changes to gm2/gm2-compiler/M2Base.mod, gm2-compiler/M2Code.mod,
           gm2/gm2-compiler/M2GenGCC.mod, gm2/gm2-compiler/M2Quads.mod
