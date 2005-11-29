@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE For7 ;
+MODULE For8 ;
 
 FROM libc IMPORT exit, printf ;
 FROM SYSTEM IMPORT ADR ;
@@ -43,12 +43,12 @@ BEGIN
    res := 0 ;
    n := 4 ;
    c := 0 ;
-   FOR i := -256 TO 256 BY 64 DO
+   FOR i := -256000000000 TO 256000000000 BY 64000000000 DO
       j := i ;
       Assert(c<10, __FILE__,  __LINE__, "for loop executed too many times") ;
       INC(c)
    END ;
    Assert(c=9, __FILE__,  __LINE__, "for loop executed too few times") ;
-   Assert(i=256, __FILE__,  __LINE__, "for loop index") ;
+   Assert(i=256000000000, __FILE__,  __LINE__, "for loop index") ;
    exit(res)
-END For7.
+END For8.
