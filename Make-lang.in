@@ -140,7 +140,10 @@ gm2.all.cross: $(GM2)-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
 gm2.start.encap: $(GM2)$(exeext)
 gm2.rest.encap:
 gm2.info: $(srcdir)/gm2/gm2.info
-gm2.generated-manpages:
+gm2.generated-manpages: gm2/man/gm2.1
+
+gm2/man/gm2.1: $(srcdir)/gm2/man/gm2.man
+	@cd gm2/man ; make gm2.1
 
 gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi \
@@ -380,7 +383,18 @@ gm2.install-info: installdirs
 	  else true; fi; \
 	else true; fi
 
-gm2.install-man:
+gm2.install-man: gm2/man/gm2.1 $(GENERATED_MANPAGES) installdirs
+	-if [ -f $(GM2)$(exeext) ] ; then \
+	  if [ -f $(GM2)-cross$(exeext) ] ; then \
+	    rm -f $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
+	    $(INSTALL_DATA) $(srcdir)/gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
+	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
+	  else \
+	    rm -f $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
+	    $(INSTALL_DATA) $(srcdir)/gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
+	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
+	  fi; \
+	else true; fi
 
 gm2.install-normal: gm2.install-common gm2.install-info gm2.install-man
 

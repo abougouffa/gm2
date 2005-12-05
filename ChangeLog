@@ -1,3 +1,8 @@
+2005-12-05      Peter P. Eiserloh <peter@eiserloh.org>
+
+	* contributed the gm2 manual page and associated Makefile
+	  in the new subdirectory: gm2/man.
+	
 2005-11-29	Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed bug reported by John Wallace and Juan Reyes
