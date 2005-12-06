@@ -1,8 +1,14 @@
+/*
+ * This file is now part of GNU Modula-2 and is not restricted by
+ * the licence used by GNU Modula-2 or "p2c". See below:
+ */
 
 /* Run-time library for use with "p2c", the Pascal to C translator */
 
-/* "p2c"  Copyright (C) 1989, 1990, 1991 Free Software Foundation.
- * By Dave Gillespie, daveg@csvax.cs.caltech.edu.  Version --VERSION--.
+/* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997,
+ *               1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+ * Free Software Foundation.
+ * By Dave Gillespie, daveg@csvax.cs.caltech.edu.
  * This file may be copied, modified, etc. in any way.  It is not restricted
  * by the licence agreement accompanying p2c itself.
  */

@@ -1,6 +1,6 @@
 /* ANSI and traditional C compatability macros
-   Copyright 1991, 1992, 1996, 1999 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+   Copyright 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   This file is part of the GNU Modula-2.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

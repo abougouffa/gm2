@@ -1,36 +1,27 @@
+# Makefile.in for "p2c", the Pascal to C translator.
+#
 # Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
-
+#
 # GNU Modula-2 is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free
 # Software Foundation; either version 2, or (at your option) any later
 # version.
-
+# 
 # GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
 # WARRANTY; without even the implied warranty of MERCHANTABILITY or
 # FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
 # for more details.
-
+# 
 # You should have received a copy of the GNU General Public License along
 # with gm2; see the file COPYING.  If not, write to the Free Software
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-# Makefile for "p2c", the Pascal to C translator.
-#  Copyright (C) 1989, 1990, 1991 Free Software Foundation.
+#
+# It originated from p2c-1.20 another GNU Project "p2c" file: src/Makefile
+
+#  Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation.
 #  Author: Dave Gillespie.
 #  Author's address: daveg@csvax.caltech.edu; 256-80 Caltech/Pasadena CA 91125.
-
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation (any version).
-
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-
-# You should have received a copy of the GNU General Public License
-# along with this program; see the file COPYING.  If not, write to
-# the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 srcdir = @srcdir@
 VPATH = @srcdir@
@@ -43,18 +34,12 @@ RM = rm -f
 HOMEDIR = ../home
 INCDIR = ../home/p2c
 LIBDIR = ../home
-MANDIR = ../home
-MANFILE = p2c.cat          # human-readable manual (for cat.1)
-#MANFILE = p2c.man.inst    # uncompressed nroff source (for man.1)
-#MANFILE = p2c.man.Z       # compressed nroff source (for man.1.Z)
 
 # Directories (public version)
 # HOMEDIR = /usr/lib/p2c
 # INCDIR = /usr/include/p2c
 # BINDIR = /usr/bin
 # LIBDIR = /usr/lib
-# MANDIR = /usr/man/man1
-# MANFILE = p2c.man.inst
 
 # Compiler options
 CC = gcc -Wall             # you may wish to use gcc here instead
@@ -181,7 +166,7 @@ p2c.cat: p2c.man.inst
 
 # Initially installing p2c:
 #  First, make sure $(HOMEDIR) and $(INCDIR) exist and are writable;
-#  Second, make sure $(LIBDIR), $(BINDIR) and $(MANDIR) are writable;
+#  Second, make sure $(LIBDIR) and $(BINDIR) are writable;
 #  Third, execute "make install" to compile and set things up.
 # (You may need to have a system operator do these steps for you.)
 
@@ -201,14 +186,12 @@ install: proto \
 	$(HOMEDIR)/system.m2  \
 	$(HOMEDIR)/turbo.imp  \
 	$(HOMEDIR)/string.pas
-#	$(MANDIR)/p2c.1
 
 SHELL=/bin/sh
 makedirs:
 	if [ ! -d $(HOMEDIR) ]; then mkdir $(HOMEDIR); fi
 	if [ ! -d $(BINDIR) ]; then mkdir $(BINDIR); fi
 	if [ ! -d $(LIBDIR) ]; then mkdir $(LIBDIR); fi
-	if [ ! -d $(MANDIR) ]; then mkdir $(MANDIR); fi
 	if [ ! -d $(INCDIR) ]; then mkdir $(INCDIR); fi
 
 $(BINDIR)/p2c: p2c
@@ -217,9 +200,6 @@ $(BINDIR)/p2c: p2c
 $(LIBDIR)/libp2c.a: libp2c.a
 	$(COPY)  libp2c.a     $(LIBDIR)/libp2c.a
 	if [ -f /usr/bin/ranlib -o -f /bin/ranlib ]; then ranlib $(LIBDIR)/libp2c.a; fi
-
-$(MANDIR)/p2c.1: $(MANFILE)
-	$(COPY)  $(MANFILE)   $(MANDIR)/p2c.1
 
 $(INCDIR)/p2c.h: p2c.h
 	$(COPY)  $(srcdir)/p2c.h        $(INCDIR)/p2c.h
