@@ -1,68 +1,30 @@
-(* Ulm's Modula-2 Library
-   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992,
-   1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-   2004, 2005
-   by University of Ulm, SAI, D-89069 Ulm, Germany
-   ----------------------------------------------------------------------------
-   Ulm's Modula-2 Library is free software; you can redistribute it
-   and/or modify it under the terms of the GNU Library General Public
-   License as published by the Free Software Foundation; either version
-   2 of the License, or (at your option) any later version.
+(* Copyright (C) 2004, 2005 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
 
-   Ulm's Modula-2 Library is distributed in the hope that it will be
-   useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+GNU Modula-2 is free software; you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free
+Software Foundation; either version 2, or (at your option) any later
+version.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this library; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
-   ----------------------------------------------------------------------------
-   E-mail contact: gm2@glam.ac.uk
-   ----------------------------------------------------------------------------
-   $Id: Conversions.mod,v 1.4 2005/11/22 15:13:20 gaius Exp $
-   ----------------------------------------------------------------------------
-   $Log: Conversions.mod,v $
-   Revision 1.4  2005/11/22 15:13:20  gaius
-   fixed Copyright dates
+GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or
+FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+for more details.
 
-   Revision 1.3  2005/11/21 12:09:59  gaius
-   updated Copyright notices and dates
+You should have received a copy of the GNU General Public License along
+with gm2; see the file COPYING.  If not, write to the Free Software
+Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
-   Revision 1.2  2004/06/29 08:51:41  gaius
-   * made flex lexical analysers ignore carriage return
-   * fixed bug in M2Quads.mod checking parameter of
-     a const var before value was known.
-   * fixed local MODULEs so that they can FROM mod IMPORT
-   * tidied up some ulm implementation modules in ulm-lib-gm2/std
-
-   Revision 1.1  2003/12/27 00:16:05  gaius
-   added ulm libraries into the gm2 tree. Currently these
-   are only used when regression testing, but later they
-   will be accessible by users of gm2.
-
-   Revision 0.2  1997/02/28  15:49:57  borchert
-   header fixed
-
-   Revision 0.1  1997/02/21  19:18:22  borchert
-   Initial revision
-
-   ----------------------------------------------------------------------------
+This file was originally part of the University of Ulm library
 *)
 
-(****************************************
-*                                       *
-*     Conversions:                      *
-*                                       * 
-*     Number to string conversion       *
-*                                       * 
-*     Version of 26.02.81               *
-*                                       *
-*     Institut fuer Informatik          *
-*     ETH-Zuerich                       *
-*     CH-8092 Zuerich                   *
-*                                       *
-****************************************)
+
+(* Ulm's Modula-2 Library
+   Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991,
+   1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+   2002, 2003, 2004, 2005
+   by University of Ulm, SAI, D-89069 Ulm, Germany
+*)
 
 IMPLEMENTATION MODULE Conversions;      (* LG *)
 
