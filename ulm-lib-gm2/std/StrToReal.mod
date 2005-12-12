@@ -61,39 +61,3 @@ IMPLEMENTATION MODULE StrToReal;
    END StrToReal;
 
 END StrToReal.
-
-IMPLEMENTATION MODULE StrToReal;
-
-   FROM RealConv IMPORT Done, ReadReal;
-   FROM Strings IMPORT StrCpy;
-
-   CONST
-      buflen = 512;
-   VAR
-      readbuf: ARRAY [0..buflen-1] OF CHAR;
-      index: [0..buflen];
-
-   PROCEDURE Read(VAR ch: CHAR);
-      (* return characters from read buffer *)
-   BEGIN
-      IF index <= HIGH(readbuf) THEN
-	 ch := readbuf[index]; INC(index);
-      ELSE
-	 ch := 0C;
-      END;
-   END Read;
-
-   PROCEDURE StrToReal(str: ARRAY OF CHAR; VAR real: REAL) : BOOLEAN;
-      (* converts str to the REAL real, leading white space is
-	 ignored, returns FALSE if str does not conform to following
-	 syntax:
-	    ["+" | "-"] digit { digit } ["." digit { digit } ]
-	    ["E" ["+" | "-"] digit [digit] ]
-      *)
-   BEGIN
-      StrCpy(readbuf, str); index := 0; (* setup read buffer *)
-      ReadReal(Read, real);
-      RETURN Done
-   END StrToReal;
-
-END StrToReal.

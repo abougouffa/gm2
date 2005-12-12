@@ -107,7 +107,8 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    Real, LongReal, ShortReal, Nil,
                    MixTypes, NegateType,
-                   IsAssignmentCompatible, AssignmentRequiresWarning,
+                   IsAssignmentCompatible, IsExpressionCompatible,
+                   AssignmentRequiresWarning,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    Unbounded, ArrayAddress, ArrayHigh,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
@@ -2732,7 +2733,16 @@ BEGIN
    THEN
       t := GetType(e)
    END ;
-   PushTF(MakeConstLit(MakeKey('1')), t)
+   IF t=NulSym
+   THEN
+      PushTF(MakeConstLit(MakeKey('1')), t)
+   ELSE
+      PushTF(Convert, NulSym) ;
+      PushT(t) ;
+      PushT(MakeConstLit(MakeKey('1'))) ;
+      PushT(2) ;          (* Two parameters *)
+      BuildConvertFunction
+   END
 END BuildPseudoBy ;
 
 
@@ -2825,9 +2835,19 @@ BEGIN
    PopT(e1) ;
    PopT(Id) ;
    IdSym := RequestSym(Id) ;
-   IF ByType=NulSym
+   IF NOT IsExpressionCompatible(GetType(e1), GetType(e2))
    THEN
-      ByType := GetType(BySym)
+      WriteFormat0('incompatible types found in FOR loop header') ;
+      CheckExpressionCompatible(GetType(e1), GetType(e2))
+   END ;
+   IF NOT IsExpressionCompatible(GetType(e1), ByType)
+   THEN
+      WriteFormat0('incompatible types found in FOR loop header') ;
+      CheckExpressionCompatible(GetType(e1), ByType)
+   ELSIF NOT IsExpressionCompatible(GetType(e2), ByType)
+   THEN
+      WriteFormat0('incompatible types found in FOR loop header') ;
+      CheckExpressionCompatible(GetType(e2), ByType)
    END ;
    PushT(IdSym) ;
    PushT(e1) ;

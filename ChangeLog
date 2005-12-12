@@ -1,6 +1,15 @@
 2005-12-10      Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed Copyright in gm2/gm2-libs-pim library modules
+	* gm2/gm2-compiler/M2Quads.mod:BuildForToByDo allowed Z type by value.
+	* gm2/gm2-compiler/M2Quads.mod:BuildPseudoBy converted by value if type
+	  is known.
+	* fixes a bug reported by: James V. Cox example given in
+	  testsuite/gm2/pim/run/pass/EnumTest.mod
+
+2005-12-10      Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed Copyright in gm2/gm2-libs-pim library modules
 
 2005-12-06      Gaius Mulley <gaius@glam.ac.uk>
 
