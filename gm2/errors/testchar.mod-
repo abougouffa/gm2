@@ -1,8 +1,0 @@
-MODULE testchar ;
-
-
-VAR
-   i: CARDINAL ;
-BEGIN
-   i := '0'
-END testchar.
