@@ -14,11 +14,6 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
-(*
-* Program written by lprice
-* Created on Fri Nov 15 13:04:33 GMT 1996
-* SE107 Coursework 2
-*)
 
 MODULE prog23;
 
