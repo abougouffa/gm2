@@ -649,14 +649,14 @@ PROCEDURE ABS (i: <any signed type>) : <any signed type> ;
 @example
 
 (*
-   VAL - converts data, i, of <any simple data type 1> to
-         <any simple data type 2> and returns this value.
+   VAL - converts data, i, of <any simple data type 2> to
+         <any simple data type 1> and returns this value.
          No range checking is performed during this conversion.
 *)
 
 @findex VAL
-PROCEDURE VAL (i: <any simple data type 1>,
-               <any simple data type 2>) : <any simple data type 2> ;
+PROCEDURE VAL (<any simple data type 1>,
+               i: <any simple data type 2>) : <any simple data type 1> ;
 
 @end example
 

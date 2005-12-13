@@ -3977,7 +3977,11 @@ default_conversion (exp)
 {
   tree orig_exp;
   tree type = TREE_TYPE (exp);
+#if defined(GM2)
+  enum tree_code code = TREE_CODE (base_type (type));
+#else
   enum tree_code code = TREE_CODE (type);
+#endif
 
   if (code == FUNCTION_TYPE || code == ARRAY_TYPE)
     return default_function_array_conversion (exp);
@@ -4022,15 +4026,6 @@ default_conversion (exp)
 
       return convert (type, exp);
     }
-
-#if 0
-  if (base_type (type) == m2_char_type_node)
-    return convert (char_type_node, exp);
-  if (base_type (type) == m2_integer_type_node)
-    return convert (integer_type_node, exp);
-  if (base_type (type) == m2_cardinal_type_node)
-    return convert (unsigned_type_node, exp);
-#endif
 
   if (TREE_CODE (exp) == COMPONENT_REF
       && DECL_C_BIT_FIELD (TREE_OPERAND (exp, 1))
@@ -8723,8 +8718,8 @@ tree
 gccgm2_BuildArrayIndexType (low, high)
      tree low, high;
 {
-  tree sizelow = convert (m2_z_type_node, default_conversion(low));
-  tree sizehigh = convert (m2_z_type_node, default_conversion(high));
+  tree sizelow = convert (m2_z_type_node, default_conversion (low));
+  tree sizehigh = convert (m2_z_type_node, default_conversion (high));
 
   if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh))
     error("array bounds are too large or too small");

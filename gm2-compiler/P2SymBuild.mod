@@ -752,7 +752,7 @@ BEGIN
    PutIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
                               (* its bounds during pass 3.                  *)
    PutIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
-   CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
+   CheckForExportedImplementation(Type) ; (* May be an exported hidden type *)
    PushT(name) ;
    PushT(Type)
 END BuildSubrange ;

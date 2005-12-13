@@ -1,3 +1,9 @@
+2005-12-13      Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gccgm2.c:default_conversion now checks the base type.
+	* gm2/gm2-compiler/M2GCCDeclare.mod: add Subrange types onto the
+	  to do list, if they are not yet resolved.
+
 2005-12-10      Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed Copyright in gm2/gm2-libs-pim library modules

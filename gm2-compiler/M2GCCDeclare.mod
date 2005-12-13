@@ -748,7 +748,7 @@ VAR
    n1 : Name ;
    gcc: Tree ;
 BEGIN
-   IF Sym=467
+   IF Sym=468
    THEN
       mystop
    END ;
@@ -2572,6 +2572,10 @@ BEGIN
             PutSubrange(Sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(Sym)))
             (* previously we forced subranges to Integer *)
          END
+      END ;
+      IF NOT GccKnowsAbout(Sym)
+      THEN
+         IncludeItemIntoList(ToDoList, Sym)
       END ;
       type := GetType(Sym) ;
       IF (type#NulSym) AND (NOT GccKnowsAbout(type))
