@@ -748,7 +748,7 @@ VAR
    n1 : Name ;
    gcc: Tree ;
 BEGIN
-   IF Sym=846
+   IF Sym=467
    THEN
       mystop
    END ;
