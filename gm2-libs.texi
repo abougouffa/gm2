@@ -1982,7 +1982,7 @@ PROCEDURE REALLOCATE (VAR a: ADDRESS; Size: CARDINAL) ;
 *)
 
 @findex Available
-PROCEDURE Available (Size: CARDINAL) : BOOLEAN;
+PROCEDURE Available (Size: CARDINAL) : BOOLEAN ;
 
 
 END Storage.
@@ -3227,10 +3227,12 @@ routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
 
 The following libraries are contained within the base GNU Modula-2
-libraries but are also Logitech-3.0 compatible: ASCII and MathLib0.
+libraries but are also Logitech-3.0 compatible: ASCII, Storage
+and MathLib0.
 
 @menu
 * gm2-libs/ASCII::ASCII.def
+* gm2-libs/Storage::Storage.def
 * gm2-libs/MathLib0::MathLib0.def
 @end menu
 
@@ -3244,7 +3246,7 @@ libraries but are also Logitech-3.0 compatible: ASCII and MathLib0.
 * gm2-libs-pim/Display::Display.def
 * gm2-libs-pim/ErrorCode::ErrorCode.def
 * gm2-libs-pim/FileSystem::FileSystem.def
-* gm2-libs-pim/FloatingUtilies::FloatingUtilies.def
+* gm2-libs-pim/FloatingUtilities::FloatingUtilities.def
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
 * gm2-libs-pim/LongIO::LongIO.def
@@ -3631,7 +3633,7 @@ END ErrorCode.
 @page
 
 
-@node gm2-libs-pim/FileSystem, gm2-libs-pim/FloatingUtilies, gm2-libs-pim/ErrorCode, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/FileSystem, gm2-libs-pim/FloatingUtilities, gm2-libs-pim/ErrorCode, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/FileSystem
 
 @example
@@ -3911,8 +3913,8 @@ END FileSystem.
 @page
 
 
-@node gm2-libs-pim/FloatingUtilies, gm2-libs-pim/InOut, gm2-libs-pim/FileSystem, PIM and Logitech 3.0 Compatible
-@subsection gm2-libs-pim/FloatingUtilies
+@node gm2-libs-pim/FloatingUtilities, gm2-libs-pim/InOut, gm2-libs-pim/FileSystem, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/FloatingUtilities
 
 @example
 DEFINITION MODULE FloatingUtilies ;
@@ -4012,7 +4014,7 @@ END FloatingUtilies.
 @page
 
 
-@node gm2-libs-pim/InOut, gm2-libs-pim/Keyboard, gm2-libs-pim/FloatingUtilies, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/InOut, gm2-libs-pim/Keyboard, gm2-libs-pim/FloatingUtilities, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/InOut
 
 @example
