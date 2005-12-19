@@ -13,13 +13,13 @@ Here is an outline of the module layering:
 @example
 
 InOut  RealInOut  LongIO CardinalIO
-    \     |     /        /
-       Terminal
----------------------------
-          |
-       Termbase
-       /      \
-Keyboard      Display
+    \     |       |      /
+           Terminal
+-----------------------------------
+              |
+           Termbase
+           /      \
+    Keyboard      Display
 
 @end example
 
@@ -31,3 +31,12 @@ a number of these features were MS-DOS related. Essentially the
 basic input/output, file system, string manipulation and conversion
 routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
+
+The following libraries are contained within the base GNU Modula-2
+libraries but are also Logitech-3.0 compatible: ASCII and MathLib0.
+
+@menu
+* gm2-libs/ASCII::ASCII.def
+* gm2-libs/MathLib0::MathLib0.def
+@end menu
+

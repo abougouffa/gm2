@@ -5,6 +5,10 @@
           gm2/gm2-libs-pim/RealConversions.mod
 	* added regression test for RealConversions
 	  testsuite/gm2/pimlib/logitech/run/pass/realconv.mod
+	* fixed regression test expect script to set the
+	  library path correctly.
+	* updated gm2/gm2-libs.texi to reflect addition of
+	  RealConversions.mods
 	
 2005-12-13      Gaius Mulley <gaius@glam.ac.uk>
 

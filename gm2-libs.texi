@@ -235,6 +235,20 @@ PROCEDURE __BUILTIN__ fabs (x: REAL) : REAL ;
 @findex fabsl
 PROCEDURE __BUILTIN__ fabsl (x: LONGREAL) : LONGREAL ;
 
+@findex logf
+PROCEDURE __BUILTIN__ logf (x: SHORTREAL) : SHORTREAL ;
+@findex log
+PROCEDURE __BUILTIN__ log (x: REAL) : REAL ;
+@findex logl
+PROCEDURE __BUILTIN__ logl (x: LONGREAL) : LONGREAL ;
+
+@findex expf
+PROCEDURE __BUILTIN__ expf (x: SHORTREAL) : SHORTREAL ;
+@findex exp
+PROCEDURE __BUILTIN__ exp (x: REAL) : REAL ;
+@findex expl
+PROCEDURE __BUILTIN__ expl (x: LONGREAL) : LONGREAL ;
+
 @findex alloca
 PROCEDURE __BUILTIN__ alloca (i: CARDINAL) : ADDRESS ;
 @findex memcpy
@@ -2581,11 +2595,12 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    cosf, cosl, cos,
                    sqrtf, sqrtl, sqrt,
                    fabsf, fabsl, fabs,
+                   logf, logl, log,
+                   expf, expl, exp,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
-                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr,
-                   huge_val, huge_vall, huge_valf ;
+                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
 
 @findex alloca
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
@@ -2615,6 +2630,18 @@ PROCEDURE fabsf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE fabs (x: REAL) : REAL ;
 @findex fabsl
 PROCEDURE fabsl (x: LONGREAL) : LONGREAL ;
+@findex logf
+PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
+@findex log
+PROCEDURE log (x: REAL) : REAL ;
+@findex logl
+PROCEDURE logl (x: LONGREAL) : LONGREAL ;
+@findex expf
+PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
+@findex exp
+PROCEDURE exp (x: REAL) : REAL ;
+@findex expl
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
 @findex index
 PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex rindex
@@ -2649,12 +2676,6 @@ PROCEDURE strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex strrchr
 PROCEDURE strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
-@findex huge_val
-PROCEDURE huge_val (r: REAL) : REAL ;
-@findex huge_vall
-PROCEDURE huge_vall (l: LONGREAL) : LONGREAL ;
-@findex huge_valf
-PROCEDURE huge_valf (s: SHORTREAL) : SHORTREAL ;
 
 END cbuiltin.
 @end example
@@ -3005,33 +3026,89 @@ DEFINITION MODULE FOR "C" libm ;
                  be generated.
 *)
 
-EXPORT UNQUALIFIED sin, cos, tan, sqrt,
-                   asin, acos, atan, exp, log, pow ;
+EXPORT UNQUALIFIED sin, sinl, sinf,
+                   cos, cosl, cosf,
+                   tan, tanl, tanf,
+                   sqrt, sqrtl, sqrtf,
+                   asin, asinl, asinf,
+                   acos, acosl, acosf,
+                   atan, atanl, atanf,
+                   exp, expl, expf,
+                   log, logl, logf,
+                   pow, powl, powf ;
 
 @findex sin
 PROCEDURE sin (x: REAL) : REAL ;
+@findex sinl
+PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
+@findex sinf
+PROCEDURE sinf (x: SHORTREAL) : SHORTREAL ;
 @findex cos
 PROCEDURE cos (x: REAL) : REAL ;
+@findex cosl
+PROCEDURE cosl (x: LONGREAL) : LONGREAL ;
+@findex cosf
+PROCEDURE cosf (x: SHORTREAL) : SHORTREAL ;
 @findex tan
 PROCEDURE tan (x: REAL) : REAL ;
+@findex tanl
+PROCEDURE tanl (x: LONGREAL) : LONGREAL ;
+@findex tanf
+PROCEDURE tanf (x: SHORTREAL) : SHORTREAL ;
 @findex sqrt
 PROCEDURE sqrt (x: REAL) : REAL ;
+@findex sqrtl
+PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;
+@findex sqrtf
+PROCEDURE sqrtf (x: SHORTREAL) : SHORTREAL ;
 @findex asin
 PROCEDURE asin (x: REAL) : REAL ;
+@findex asinl
+PROCEDURE asinl (x: LONGREAL) : LONGREAL ;
+@findex asinf
+PROCEDURE asinf (x: SHORTREAL) : SHORTREAL ;
 @findex acos
 PROCEDURE acos (x: REAL) : REAL ;
+@findex acosl
+PROCEDURE acosl (x: LONGREAL) : LONGREAL ;
+@findex acosf
+PROCEDURE acosf (x: SHORTREAL) : SHORTREAL ;
 @findex atan
 PROCEDURE atan (x: REAL) : REAL ;
+@findex atanl
+PROCEDURE atanl (x: LONGREAL) : LONGREAL ;
+@findex atanf
+PROCEDURE atanf (x: SHORTREAL) : SHORTREAL ;
 @findex exp
 PROCEDURE exp (x: REAL) : REAL ;
+@findex expl
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
+@findex expf
+PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
 @findex log
 PROCEDURE log (x: REAL) : REAL ;
+@findex logl
+PROCEDURE logl (x: LONGREAL) : LONGREAL ;
+@findex logf
+PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
 @findex pow
 PROCEDURE pow (x, y: REAL) : REAL ;
+@findex powl
+PROCEDURE powl (x, y: LONGREAL) : LONGREAL ;
+@findex powf
+PROCEDURE powf (x, y: SHORTREAL) : SHORTREAL ;
 @findex floor
 PROCEDURE floor (x: REAL) : REAL ;
+@findex floorl
+PROCEDURE floorl (x: LONGREAL) : LONGREAL ;
+@findex floorf
+PROCEDURE floorf (x: SHORTREAL) : SHORTREAL ;
 @findex ceil
 PROCEDURE ceil (x: REAL) : REAL ;
+@findex ceill
+PROCEDURE ceill (x: LONGREAL) : LONGREAL ;
+@findex ceilf
+PROCEDURE ceilf (x: SHORTREAL) : SHORTREAL ;
 
 END libm.
 @end example
@@ -3130,13 +3207,13 @@ Here is an outline of the module layering:
 @example
 
 InOut  RealInOut  LongIO CardinalIO
-    \     |     /        /
-       Terminal
----------------------------
-          |
-       Termbase
-       /      \
-Keyboard      Display
+    \     |       |      /
+           Terminal
+-----------------------------------
+              |
+           Termbase
+           /      \
+    Keyboard      Display
 
 @end example
 
@@ -3148,6 +3225,15 @@ a number of these features were MS-DOS related. Essentially the
 basic input/output, file system, string manipulation and conversion
 routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
+
+The following libraries are contained within the base GNU Modula-2
+libraries but are also Logitech-3.0 compatible.
+
+@menu
+* gm2-libs/ASCII::ASCII.def
+* gm2-libs/MathLib0::MathLib0.def
+@end menu
+
 @menu
 * gm2-libs-pim/Break::Break.def
 * gm2-libs-pim/CardinalIO::CardinalIO.def
@@ -3161,6 +3247,7 @@ are not as these were constrained by the limitations of MS-DOS.
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
 * gm2-libs-pim/LongIO::LongIO.def
+* gm2-libs-pim/RealConversions::RealConversions.def
 * gm2-libs-pim/RealInOut::RealInOut.def
 * gm2-libs-pim/Termbase::Termbase.def
 * gm2-libs-pim/Terminal::Terminal.def
@@ -4050,7 +4137,7 @@ END Keyboard.
 @page
 
 
-@node gm2-libs-pim/LongIO, gm2-libs-pim/RealInOut, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/LongIO, gm2-libs-pim/RealConversions, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/LongIO
 
 @example
@@ -4076,7 +4163,106 @@ END LongIO.
 @page
 
 
-@node gm2-libs-pim/RealInOut, gm2-libs-pim/Termbase, gm2-libs-pim/LongIO, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/RealConversions, gm2-libs-pim/RealInOut, gm2-libs-pim/LongIO, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/RealConversions
+
+@example
+DEFINITION MODULE RealConversions ;
+
+(*
+    Description: provides a Logitech-3.0 compatible module.
+*)
+
+EXPORT QUALIFIED RealToString, StringToReal,
+                 LongRealToString, StringToLongReal ;
+
+
+(*
+   RealToString - converts a real, r, into a right justified string, str.
+                  The number of digits to the right of the decimal point
+                  is given in, digits. The value, width, represents the
+                  maximum number of characters to be used in the string,
+                  str.
+
+                  If digits is negative then exponent notation is used
+                  whereas if digits is positive then fixed point notation
+                  is used.
+
+                  If, r, is less than 0.0 then a '-' preceeds the value,
+                  str. However, if, r, is >= 0.0 a '+' is not added.
+
+                  If the conversion of, r, to a string requires more
+                  than, width, characters then the string, str, is set
+                  to a nul string and, ok is assigned FALSE.
+
+                  For fixed point notation the minimum width required is
+                  ABS(width)+8
+
+                  For exponent notation the minimum width required is
+                  ABS(width)+2+ the number of digits to the left of the
+                  decimal point.
+*)
+
+@findex RealToString
+PROCEDURE RealToString (r: REAL; digits: INTEGER; width : CARDINAL;
+                        VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
+
+
+(*
+   LongRealToString - converts a real, r, into a right justified string, str.
+                      The number of digits to the right of the decimal point
+                      is given in, digits. The value, width, represents the
+                      maximum number of characters to be used in the string,
+                      str.
+
+                      If digits is negative then exponent notation is used
+                      whereas if digits is positive then fixed point notation
+                      is used.
+
+                      If, r, is less than 0.0 then a '-' preceeds the value,
+                      str. However, if, r, is >= 0.0 a '+' is not added.
+
+                      If the conversion of, r, to a string requires more
+                      than, width, characters then the string, str, is set
+                      to a nul string and, ok is assigned FALSE.
+
+                      For fixed point notation the minimum width required is
+                      ABS(width)+8
+
+                      For exponent notation the minimum width required is
+                      ABS(width)+2+ the number of digits to the left of the
+                      decimal point.
+*)
+
+@findex LongRealToString
+PROCEDURE LongRealToString (r: LONGREAL; digits: INTEGER; width : CARDINAL;
+                            VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
+
+
+(*
+   StringToReal - converts, str, into a REAL, r. The parameter, ok, is
+                  set to TRUE if the conversion was successful.
+*)
+
+@findex StringToReal
+PROCEDURE StringToReal (str: ARRAY OF CHAR; VAR r: REAL; VAR ok: BOOLEAN) ;
+
+
+(*
+   StringToLongReal - converts, str, into a LONGREAL, r. The parameter, ok, is
+                      set to TRUE if the conversion was successful.
+*)
+
+@findex StringToLongReal
+PROCEDURE StringToLongReal (str: ARRAY OF CHAR; VAR r: LONGREAL; VAR ok: BOOLEAN) ;
+
+
+END RealConversions.
+@end example
+@page
+
+
+@node gm2-libs-pim/RealInOut, gm2-libs-pim/Termbase, gm2-libs-pim/RealConversions, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/RealInOut
 
 @example
