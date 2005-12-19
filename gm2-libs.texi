@@ -3227,7 +3227,7 @@ routines are provided. Access to DOSCALL, graphics, time and date
 are not as these were constrained by the limitations of MS-DOS.
 
 The following libraries are contained within the base GNU Modula-2
-libraries but are also Logitech-3.0 compatible.
+libraries but are also Logitech-3.0 compatible: ASCII and MathLib0.
 
 @menu
 * gm2-libs/ASCII::ASCII.def
@@ -3244,6 +3244,7 @@ libraries but are also Logitech-3.0 compatible.
 * gm2-libs-pim/Display::Display.def
 * gm2-libs-pim/ErrorCode::ErrorCode.def
 * gm2-libs-pim/FileSystem::FileSystem.def
+* gm2-libs-pim/FloatingUtilies::FloatingUtilies.def
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
 * gm2-libs-pim/LongIO::LongIO.def
@@ -3630,7 +3631,7 @@ END ErrorCode.
 @page
 
 
-@node gm2-libs-pim/FileSystem, gm2-libs-pim/InOut, gm2-libs-pim/ErrorCode, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/FileSystem, gm2-libs-pim/FloatingUtilies, gm2-libs-pim/ErrorCode, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/FileSystem
 
 @example
@@ -3910,7 +3911,108 @@ END FileSystem.
 @page
 
 
-@node gm2-libs-pim/InOut, gm2-libs-pim/Keyboard, gm2-libs-pim/FileSystem, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/FloatingUtilies, gm2-libs-pim/InOut, gm2-libs-pim/FileSystem, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/FloatingUtilies
+
+@example
+DEFINITION MODULE FloatingUtilies ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library
+*)
+
+EXPORT QUALIFIED Frac, Round, Float, Trunc,
+                 Fracl, Roundl, Floatl, Truncl ;
+
+
+(*
+   Frac - returns the fractional component of, r.
+*)
+
+@findex Frac
+PROCEDURE Frac (r: REAL) : REAL ;
+
+
+(*
+   Int - returns the integer part of r. It rounds the value towards zero.
+*)
+
+@findex Int
+PROCEDURE Int (r: REAL) : INTEGER ;
+
+
+(*
+   Round - returns the number rounded to the nearest integer.
+*)
+
+@findex Round
+PROCEDURE Round (r: REAL) : REAL ;
+
+
+(*
+   Float - returns a REAL value corresponding to, i.
+*)
+
+@findex Float
+PROCEDURE Float (i: INTEGER) : REAL ;
+
+
+(*
+   Trunc - round to the nearest integer not larger in absolute
+           value.
+*)
+
+@findex Trunc
+PROCEDURE Trunc (r: REAL) : INTEGER ;
+
+
+(*
+   Fracl - returns the fractional component of, r.
+*)
+
+@findex Fracl
+PROCEDURE Fracl (r: LONGREAL) : LONGREAL ;
+
+
+(*
+   Intl - returns the integer part of r. It rounds the value towards zero.
+*)
+
+@findex Intl
+PROCEDURE Intl (r: LONGREAL) : LONGINT ;
+
+
+(*
+   Roundl - returns the number rounded to the nearest integer.
+*)
+
+@findex Roundl
+PROCEDURE Roundl (r: LONGREAL) : LONGREAL ;
+
+
+(*
+   Floatl - returns a REAL value corresponding to, i.
+*)
+
+@findex Floatl
+PROCEDURE Floatl (i: INTEGER) : LONGREAL ;
+
+
+(*
+   Truncl - round to the nearest integer not larger in absolute
+            value.
+*)
+
+@findex Truncl
+PROCEDURE Truncl (r: LONGREAL) : LONGINT ;
+
+
+END FloatingUtilies.
+@end example
+@page
+
+
+@node gm2-libs-pim/InOut, gm2-libs-pim/Keyboard, gm2-libs-pim/FloatingUtilies, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/InOut
 
 @example

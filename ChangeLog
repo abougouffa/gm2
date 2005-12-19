@@ -9,6 +9,8 @@
 	  library path correctly.
 	* updated gm2/gm2-libs.texi to reflect addition of
 	  RealConversions.mods
+	* added gm2/gm2-libs-pim/FloatingUtilities.def
+	* added gm2/gm2-libs-pim/FloatingUtilities.mod
 	
 2005-12-13      Gaius Mulley <gaius@glam.ac.uk>
 

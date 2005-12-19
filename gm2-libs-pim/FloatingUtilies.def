@@ -1,0 +1,105 @@
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE FloatingUtilies ;
+
+(*
+    Title      : FloatingUtilies
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Dec 19 19:11:11 2005
+    Revision   : $Version$ 
+    Description: provides a Logitech-3.0 compatible library
+*)
+
+EXPORT QUALIFIED Frac, Round, Float, Trunc,
+                 Fracl, Roundl, Floatl, Truncl ;
+
+
+(*
+   Frac - returns the fractional component of, r.
+*)
+
+PROCEDURE Frac (r: REAL) : REAL ;
+
+
+(*
+   Int - returns the integer part of r. It rounds the value towards zero.
+*)
+
+PROCEDURE Int (r: REAL) : INTEGER ;
+
+
+(*
+   Round - returns the number rounded to the nearest integer.
+*)
+
+PROCEDURE Round (r: REAL) : REAL ;
+
+
+(*
+   Float - returns a REAL value corresponding to, i.
+*)
+
+PROCEDURE Float (i: INTEGER) : REAL ;
+
+
+(*
+   Trunc - round to the nearest integer not larger in absolute
+           value.
+*)
+
+PROCEDURE Trunc (r: REAL) : INTEGER ;
+
+
+(*
+   Fracl - returns the fractional component of, r.
+*)
+
+PROCEDURE Fracl (r: LONGREAL) : LONGREAL ;
+
+
+(*
+   Intl - returns the integer part of r. It rounds the value towards zero.
+*)
+
+PROCEDURE Intl (r: LONGREAL) : LONGINT ;
+
+
+(*
+   Roundl - returns the number rounded to the nearest integer.
+*)
+
+PROCEDURE Roundl (r: LONGREAL) : LONGREAL ;
+
+
+(*
+   Floatl - returns a REAL value corresponding to, i.
+*)
+
+PROCEDURE Floatl (i: INTEGER) : LONGREAL ;
+
+
+(*
+   Truncl - round to the nearest integer not larger in absolute
+            value.
+*)
+
+PROCEDURE Truncl (r: LONGREAL) : LONGINT ;
+
+
+END FloatingUtilies.
