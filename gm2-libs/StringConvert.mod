@@ -633,7 +633,7 @@ BEGIN
          DEC(i)
       END
    END ;
-   RETURN( VAL(REAL, v) )
+   RETURN( v )
 END ToThePower10 ;
 
 

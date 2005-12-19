@@ -103,7 +103,12 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_fabsf",   BT_FN_FLOAT_FLOAT, BUILT_IN_FABSF, BUILT_IN_NORMAL, "fabsf", NULL, NULL},
 { "__builtin_fabs",    BT_FN_DOUBLE_DOUBLE, BUILT_IN_FABS, BUILT_IN_NORMAL, "fabs", NULL, NULL},
 { "__builtin_fabsl",   BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_FABSL, BUILT_IN_NORMAL, "fabsl", NULL, NULL},
-
+{ "__builtin_logf",    BT_FN_FLOAT_FLOAT, BUILT_IN_LOGF, BUILT_IN_NORMAL, "logf", NULL, NULL},
+{ "__builtin_log",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_LOG, BUILT_IN_NORMAL, "log", NULL, NULL},
+{ "__builtin_logl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_LOGL, BUILT_IN_NORMAL, "logl", NULL, NULL},
+{ "__builtin_expf",    BT_FN_FLOAT_FLOAT, BUILT_IN_EXPF, BUILT_IN_NORMAL, "expf", NULL, NULL},
+{ "__builtin_exp",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_EXP, BUILT_IN_NORMAL, "exp", NULL, NULL},
+{ "__builtin_expl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_EXPL, BUILT_IN_NORMAL, "expl", NULL, NULL},
 
 
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},

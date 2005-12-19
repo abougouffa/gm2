@@ -4005,30 +4005,26 @@ BEGIN
       ELSIF IsArray(Type)
       THEN
          s := InitString('ARRAY [') ;
-         i := 1 ;
-         REPEAT
-            Subscript := GetNth(Type, i) ;
-            IF Subscript#NulSym
+         Subscript := GetArraySubscript(Type) ;
+         IF Subscript#NulSym
+         THEN
+            Assert(IsSubscript(Subscript)) ;
+            Subrange := GetType(Subscript) ;
+            IF NOT IsSubrange(Subrange)
             THEN
-               Assert(IsSubscript(Subscript)) ;
-               Subrange := GetType(Subscript) ;
-               IF NOT IsSubrange(Subrange)
-               THEN
-                  n1 := GetSymName(Sym) ;
-                  n2 := GetSymName(Subrange) ;
-                  WriteFormat3('error in definition of array (%a) in subscript (%d) which has no subrange, instead type given is (%a)',
-                               n1, i, n2)
-               END ;
-               Assert(IsSubrange(Subrange)) ;
-               GetSubrange(Subrange, High, Low) ;
-               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Low)))) ;
-               s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(High)))) ;
-               s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s..%s')),
-                                            s1, s2)))
+               n1 := GetSymName(Sym) ;
+               n2 := GetSymName(Subrange) ;
+               WriteFormat3('error in definition of array (%a) in subscript (%d) which has no subrange, instead type given is (%a)',
+                            n1, i, n2)
             END ;
-            INC(i)
-         UNTIL Subscript=NulSym ;
-         s1 := Mark(DescribeType(GetType(Type))) ;
+            Assert(IsSubrange(Subrange)) ;
+            GetSubrange(Subrange, High, Low) ;
+            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Low)))) ;
+            s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(High)))) ;
+            s := ConCat(s, Mark(Sprintf2(Mark(InitString('%s..%s')),
+                                         s1, s2)))
+         END ;
+         s1 := Mark(DescribeType(Type)) ;
          s := ConCat(ConCat(s, Mark(InitString('] OF '))), s1)
       ELSE
          IF IsUnknown(Type)

@@ -35,11 +35,12 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    cosf, cosl, cos,
                    sqrtf, sqrtl, sqrt,
                    fabsf, fabsl, fabs,
+                   logf, logl, log,
+                   expf, expl, exp,
                    index, rindex,
                    memcmp, memset,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
-                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr,
-                   huge_val, huge_vall, huge_valf ;
+                   strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
 
 PROCEDURE alloca (i: CARDINAL) : ADDRESS ;
 PROCEDURE memcpy (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;
@@ -55,6 +56,12 @@ PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;
 PROCEDURE fabsf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE fabs (x: REAL) : REAL ;
 PROCEDURE fabsl (x: LONGREAL) : LONGREAL ;
+PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE log (x: REAL) : REAL ;
+PROCEDURE logl (x: LONGREAL) : LONGREAL ;
+PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE exp (x: REAL) : REAL ;
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
 PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
@@ -72,8 +79,5 @@ PROCEDURE strspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strcspn (s, accept: ADDRESS) : CARDINAL ;
 PROCEDURE strchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
-PROCEDURE huge_val (r: REAL) : REAL ;
-PROCEDURE huge_vall (l: LONGREAL) : LONGREAL ;
-PROCEDURE huge_valf (s: SHORTREAL) : SHORTREAL ;
 
 END cbuiltin.

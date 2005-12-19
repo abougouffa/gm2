@@ -638,11 +638,11 @@ stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2
 # Compiling object files from source files.
   
 gm2/gccgm2.o : $(GM2_DIRS) $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
-# No rule here?
+
 gm2/gm2builtins.o : $(GM2_DIRS) $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
-# No rule here?
+
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
-# No rule here?
+
 gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 	$(CC) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
@@ -837,7 +837,8 @@ GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
               Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
               Delay.mod     ErrorCode.mod   DebugTrace.mod \
-              Conversions.mod               DebugPMD.mod  LongIO.mod
+              Conversions.mod               DebugPMD.mod  LongIO.mod \
+              RealConversions.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \

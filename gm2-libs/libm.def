@@ -30,20 +30,52 @@ DEFINITION MODULE FOR "C" libm ;
                  be generated.
 *)
 
-EXPORT UNQUALIFIED sin, cos, tan, sqrt,
-                   asin, acos, atan, exp, log, pow ;
+EXPORT UNQUALIFIED sin, sinl, sinf,
+                   cos, cosl, cosf,
+                   tan, tanl, tanf,
+                   sqrt, sqrtl, sqrtf,
+                   asin, asinl, asinf,
+                   acos, acosl, acosf,
+                   atan, atanl, atanf,
+                   exp, expl, expf,
+                   log, logl, logf,
+                   pow, powl, powf ;
 
 PROCEDURE sin (x: REAL) : REAL ;
+PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
+PROCEDURE sinf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE cos (x: REAL) : REAL ;
+PROCEDURE cosl (x: LONGREAL) : LONGREAL ;
+PROCEDURE cosf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE tan (x: REAL) : REAL ;
+PROCEDURE tanl (x: LONGREAL) : LONGREAL ;
+PROCEDURE tanf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE sqrt (x: REAL) : REAL ;
+PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;
+PROCEDURE sqrtf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE asin (x: REAL) : REAL ;
+PROCEDURE asinl (x: LONGREAL) : LONGREAL ;
+PROCEDURE asinf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE acos (x: REAL) : REAL ;
+PROCEDURE acosl (x: LONGREAL) : LONGREAL ;
+PROCEDURE acosf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE atan (x: REAL) : REAL ;
+PROCEDURE atanl (x: LONGREAL) : LONGREAL ;
+PROCEDURE atanf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE exp (x: REAL) : REAL ;
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
+PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE log (x: REAL) : REAL ;
+PROCEDURE logl (x: LONGREAL) : LONGREAL ;
+PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE pow (x, y: REAL) : REAL ;
+PROCEDURE powl (x, y: LONGREAL) : LONGREAL ;
+PROCEDURE powf (x, y: SHORTREAL) : SHORTREAL ;
 PROCEDURE floor (x: REAL) : REAL ;
+PROCEDURE floorl (x: LONGREAL) : LONGREAL ;
+PROCEDURE floorf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE ceil (x: REAL) : REAL ;
+PROCEDURE ceill (x: LONGREAL) : LONGREAL ;
+PROCEDURE ceilf (x: SHORTREAL) : SHORTREAL ;
 
 END libm.

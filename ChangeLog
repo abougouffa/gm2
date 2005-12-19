@@ -1,3 +1,11 @@
+2005-12-19      Gaius Mulley <gaius@glam.ac.uk>
+
+	* implemented logitech compatible library
+	  gm2/gm2-libs-pim/RealConversions.def and
+          gm2/gm2-libs-pim/RealConversions.mod
+	* added regression test for RealConversions
+	  testsuite/gm2/pimlib/logitech/run/pass/realconv.mod
+	
 2005-12-13      Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/gccgm2.c:default_conversion now checks the base type.

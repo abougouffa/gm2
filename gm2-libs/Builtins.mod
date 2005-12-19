@@ -95,6 +95,36 @@ BEGIN
    RETURN cbuiltin.fabsl (x)
 END fabsl ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_log)) log (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.log (x)
+END log ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_logf)) logf (x: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.logf (x)
+END logf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_logl)) logl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.logl (x)
+END logl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_exp)) exp (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.exp (x)
+END exp ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_expf)) expf (x: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.expf (x)
+END expf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_expl)) expl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.expl (x)
+END expl ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.index (s, c)
@@ -182,17 +212,17 @@ END strrchr ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_val)) huge_val (r: REAL) : REAL ;
 BEGIN
-   RETURN cbuiltin.huge_val (r)
+   RETURN -1.0
 END huge_val ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_vall)) huge_vall (l: LONGREAL) : LONGREAL ;
 BEGIN
-   RETURN cbuiltin.huge_vall (l)
+   RETURN -1.0
 END huge_vall ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_valf)) huge_valf (s: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN cbuiltin.huge_valf (s)
+   RETURN -1.0
 END huge_valf ;
 
 END Builtins.
