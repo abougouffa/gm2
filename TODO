@@ -15,6 +15,6 @@
 *  complete implementation of the following Logitech-3.0 libraries:
    BitBlockOps, BitByteOps, BitWordOps, BlockOps, Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage, FileSystem,
-   LogiFile, NumberConversion, Options, Processes, Random, SimpleTerm, Strings,
+   LogiFile, NumberConversion, Options, Processes, Random, SimpleTerm,
    Timedate.
 
