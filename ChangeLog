@@ -1,3 +1,8 @@
+2005-12-21      Gaius Mulley <gaius@glam.ac.uk>
+
+	* added gm2/gm2-libs-pim/Strings.def and
+          gm2/gm2-libs-pim/Strings.mod
+
 2005-12-19      Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented logitech compatible library
@@ -11,6 +16,7 @@
 	  RealConversions.mods
 	* added gm2/gm2-libs-pim/FloatingUtilities.def
 	* added gm2/gm2-libs-pim/FloatingUtilities.mod
+	* increased number of builtin functions accessible to GNU Modula-2.
 	
 2005-12-13      Gaius Mulley <gaius@glam.ac.uk>
 
