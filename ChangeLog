@@ -2,6 +2,7 @@
 
 	* added gm2/gm2-libs-pim/Strings.def and
           gm2/gm2-libs-pim/Strings.mod
+ 	* modified gm2/Make-lang.in to install new module.
 
 2005-12-19      Gaius Mulley <gaius@glam.ac.uk>
 
