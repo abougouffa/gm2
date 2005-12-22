@@ -397,6 +397,23 @@ void libc_memset (void *s, long c, unsigned long size)
   memset(s, c, size);
 }
 
+/*
+ *  srand - initialize the random number seed.
+ */
+
+void libc_srand (int seed)
+{
+  srand(seed);
+}
+
+/*
+ *  rand - return a random integer.
+ */
+
+int libc_rand (void)
+{
+  return rand();
+}
 
 void _M2_libc_init (void)
 {

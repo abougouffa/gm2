@@ -146,8 +146,9 @@ int Selective_FdIsSet (int fd, fd_set *s)
 }
 
 /*
-   GetTimeOfDay - returns a record, Timeval, filled in with the
+   GetTimeOfDay - fills in a record, Timeval, filled in with the
                   current system time in seconds and microseconds.
+                  It returns zero (see man 3p gettimeofday)
 */
 
 int Selective_GetTimeOfDay (struct timeval *t)

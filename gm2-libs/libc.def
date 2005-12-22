@@ -35,7 +35,8 @@ EXPORT UNQUALIFIED write, read,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
-                   memcpy, memset, printf, realloc ;
+                   memcpy, memset, printf, realloc,
+                   rand, srand ;
 
 
 (*
@@ -308,6 +309,20 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
 *)
 
 PROCEDURE printf (format: ARRAY OF CHAR; ...) : INTEGER ;
+
+
+(*
+   srand - initialize the random number seed.
+*)
+
+PROCEDURE srand (seed: INTEGER) ;
+
+
+(*
+   rand - return a random integer.
+*)
+
+PROCEDURE rand () : INTEGER ;
 
 
 END libc.

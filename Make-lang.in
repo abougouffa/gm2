@@ -839,7 +839,7 @@ GM2-LIBS-PIM-MODS  = \
               Delay.mod     ErrorCode.mod   DebugTrace.mod \
               Conversions.mod               DebugPMD.mod  LongIO.mod \
               RealConversions.mod           FloatingUtilities.mod \
-              Strings.mod
+              Strings.mod                   Random.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \

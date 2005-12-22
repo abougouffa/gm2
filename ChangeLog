@@ -1,3 +1,10 @@
+2005-12-22      Gaius Mulley <gaius@glam.ac.uk>
+
+	* added gm2/gm2-libs-pim/Random.def and
+          gm2/gm2-libs-pim/Random.mod and
+	* modified gm2/Make-lang.in to install new module.
+	* remove Random from the TODO list.
+
 2005-12-21      Gaius Mulley <gaius@glam.ac.uk>
 
 	* added gm2/gm2-libs-pim/Strings.def and
