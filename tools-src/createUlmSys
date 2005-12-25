@@ -22,8 +22,7 @@
 
 LIBS_H=$1
 
-PROTOTYPE_LIST=(i ii iii ip ipi ipp iipi \
-                ippp ipii iiip iip lp lili END)
+PROTOTYPE_LIST=(i ii iii ip ipi ipp iipi ippp ipii iiip iip lp lili END)
 
 #
 #  createUlmSys - creates the Sys.def and SYSTEM.c files for the ulm

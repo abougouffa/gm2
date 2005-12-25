@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 DEFINITION MODULE FOR "C" libc ;
 
 (*
@@ -25,7 +26,8 @@ DEFINITION MODULE FOR "C" libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT UNQUALIFIED write, read,
+EXPORT UNQUALIFIED tm,
+                   write, read,
                    system, abort,
                    malloc, free,
                    exit, isatty,
@@ -36,7 +38,22 @@ EXPORT UNQUALIFIED write, read,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
                    memcpy, memset, printf, realloc,
-                   rand, srand ;
+                   rand, srand, time ;
+
+TYPE
+   tm = RECORD
+           tm_sec: INTEGER ;     (* Seconds.     [0-60] (1 leap second) *)
+           tm_min: INTEGER ;     (* Minutes.     [0-59]   *)
+           tm_hour: INTEGER ;    (* Hours.       [0-23]   *)
+           tm_mday: INTEGER ;    (* Day.         [1-31]   *)
+           tm_mon: INTEGER ;     (* Month.       [0-11]   *)
+           tm_year: INTEGER ;    (* Year - 1900.          *)
+           tm_wday: INTEGER ;    (* Day of week. [0-6]    *)
+           tm_yday: INTEGER ;    (* Days in year.[0-365]  *)
+           tm_isdst: INTEGER ;   (* DST.         [-1/0/1] *)
+           tm_gmtoff: LONGINT ;  (* Seconds east of UTC.  *)
+           tm_zone: ADDRESS ;    (* char * zone name      *)
+        END ;
 
 
 (*
@@ -323,6 +340,16 @@ PROCEDURE srand (seed: INTEGER) ;
 *)
 
 PROCEDURE rand () : INTEGER ;
+
+
+(*
+   time - returns a pointer to the tm structure which defines the
+          current time. If, a, is NIL then the address of the libc
+          tm structure is returned. If, a, is not NIL then the libc
+          tm structure is copied into memory at address, a.
+*)
+
+PROCEDURE time (a: ADDRESS) : ADDRESS ;
 
 
 END libc.

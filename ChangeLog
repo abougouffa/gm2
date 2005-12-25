@@ -1,3 +1,13 @@
+2005-12-24      Gaius Mulley <gaius@glam.ac.uk>
+
+	* joined lines in gm2/tools-src/createUlmSys as
+	  requested by Christoph <modula2@myrealbox.com>
+	  so that gm2 will build on netbsd 2.1.
+	* added time and tm to gm2/gm2-libs/libc.def.
+	* added partial implementation of
+	  gm2/gm2-libs-pim/TimeDate.def
+          gm2/gm2-libs-pim/TimeDate.mod
+
 2005-12-22      Gaius Mulley <gaius@glam.ac.uk>
 
 	* added gm2/gm2-libs-pim/Random.def and

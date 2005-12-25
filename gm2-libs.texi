@@ -1848,8 +1848,9 @@ PROCEDURE WriteCharRaw (fd: INTEGER; ch: CHAR) ;
 PROCEDURE ReadCharRaw (fd: INTEGER) : CHAR ;
 
 (*
-   GetTimeOfDay - returns a record, Timeval, filled in with the
+   GetTimeOfDay - fills in a record, Timeval, filled in with the
                   current system time in seconds and microseconds.
+                  It returns zero (see man 3p gettimeofday)
 *)
 
 @findex GetTimeOfDay
@@ -2694,7 +2695,8 @@ DEFINITION MODULE FOR "C" libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT UNQUALIFIED write, read,
+EXPORT UNQUALIFIED tm,
+                   write, read,
                    system, abort,
                    malloc, free,
                    exit, isatty,
@@ -2704,7 +2706,23 @@ EXPORT UNQUALIFIED write, read,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
-                   memcpy, memset, printf, realloc ;
+                   memcpy, memset, printf, realloc,
+                   rand, srand, time ;
+
+TYPE
+   tm = RECORD
+           tm_sec: INTEGER ;     (* Seconds.     [0-60] (1 leap second) *)
+           tm_min: INTEGER ;     (* Minutes.     [0-59]   *)
+           tm_hour: INTEGER ;    (* Hours.       [0-23]   *)
+           tm_mday: INTEGER ;    (* Day.         [1-31]   *)
+           tm_mon: INTEGER ;     (* Month.       [0-11]   *)
+           tm_year: INTEGER ;    (* Year - 1900.          *)
+           tm_wday: INTEGER ;    (* Day of week. [0-6]    *)
+           tm_yday: INTEGER ;    (* Days in year.[0-365]  *)
+           tm_isdst: INTEGER ;   (* DST.         [-1/0/1] *)
+           tm_gmtoff: LONGINT ;  (* Seconds east of UTC.  *)
+           tm_zone: ADDRESS ;    (* char * zone name      *)
+        END ;
 
 
 (*
@@ -3007,6 +3025,33 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
 PROCEDURE printf (format: ARRAY OF CHAR; ...) : INTEGER ;
 
 
+(*
+   srand - initialize the random number seed.
+*)
+
+@findex srand
+PROCEDURE srand (seed: INTEGER) ;
+
+
+(*
+   rand - return a random integer.
+*)
+
+@findex rand
+PROCEDURE rand () : INTEGER ;
+
+
+(*
+   time - returns a pointer to the tm structure which defines the
+          current time. If, a, is NIL then the address of the libc
+          tm structure is returned. If, a, is not NIL then the libc
+          tm structure is copied into memory at address, a.
+*)
+
+@findex time
+PROCEDURE time (a: ADDRESS) : ADDRESS ;
+
+
 END libc.
 @end example
 @page
@@ -3250,10 +3295,13 @@ and MathLib0.
 * gm2-libs-pim/InOut::InOut.def
 * gm2-libs-pim/Keyboard::Keyboard.def
 * gm2-libs-pim/LongIO::LongIO.def
+* gm2-libs-pim/Random::Random.def
 * gm2-libs-pim/RealConversions::RealConversions.def
 * gm2-libs-pim/RealInOut::RealInOut.def
+* gm2-libs-pim/Strings::Strings.def
 * gm2-libs-pim/Termbase::Termbase.def
 * gm2-libs-pim/Terminal::Terminal.def
+* gm2-libs-pim/TimeDate::TimeDate.def
 @end menu
 
 
@@ -3917,7 +3965,7 @@ END FileSystem.
 @subsection gm2-libs-pim/FloatingUtilities
 
 @example
-DEFINITION MODULE FloatingUtilies ;
+DEFINITION MODULE FloatingUtilities ;
 
 (*
     Description: provides a Logitech-3.0 compatible library
@@ -4009,7 +4057,7 @@ PROCEDURE Floatl (i: INTEGER) : LONGREAL ;
 PROCEDURE Truncl (r: LONGREAL) : LONGINT ;
 
 
-END FloatingUtilies.
+END FloatingUtilities.
 @end example
 @page
 
@@ -4241,7 +4289,7 @@ END Keyboard.
 @page
 
 
-@node gm2-libs-pim/LongIO, gm2-libs-pim/RealConversions, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/LongIO, gm2-libs-pim/Random, gm2-libs-pim/Keyboard, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/LongIO
 
 @example
@@ -4267,7 +4315,84 @@ END LongIO.
 @page
 
 
-@node gm2-libs-pim/RealConversions, gm2-libs-pim/RealInOut, gm2-libs-pim/LongIO, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Random, gm2-libs-pim/RealConversions, gm2-libs-pim/LongIO, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/Random
+
+@example
+DEFINITION MODULE Random ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library
+*)
+
+FROM SYSTEM IMPORT BYTE ;
+EXPORT QUALIFIED Randomize, RandomInit, RandomCard, RandomInt, RandomReal ;
+
+
+
+(*
+   Randomize - initialize the random number generator with a seed
+               based on the microseconds.
+*)
+
+@findex Randomize
+PROCEDURE Randomize ;
+
+
+(*
+   RandomInit - initialize the random number generator with value, seed.
+*)
+
+@findex RandomInit
+PROCEDURE RandomInit (seed: CARDINAL) ;
+
+
+(*
+   RandomBytes - fills in an array with random values.
+*)
+
+@findex RandomBytes
+PROCEDURE RandomBytes (a: ARRAY OF BYTE) ;
+
+
+(*
+   RandomInt - return an INTEGER in the range 0..bound-1
+*)
+
+@findex RandomInt
+PROCEDURE RandomInt (bound: INTEGER) : INTEGER ;
+
+
+(*
+   RandomCard - return a CARDINAL in the range 0..bound-1
+*)
+
+@findex RandomCard
+PROCEDURE RandomCard (bound: CARDINAL) : CARDINAL ;
+
+
+(*
+   RandomReal - return a REAL number in the range 0.0..1.0
+*)
+
+@findex RandomReal
+PROCEDURE RandomReal () : REAL ;
+
+
+(*
+   RandomLongReal - return a LONGREAL number in the range 0.0..1.0
+*)
+
+@findex RandomLongReal
+PROCEDURE RandomLongReal () : LONGREAL ;
+
+
+END Random.
+@end example
+@page
+
+
+@node gm2-libs-pim/RealConversions, gm2-libs-pim/RealInOut, gm2-libs-pim/Random, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/RealConversions
 
 @example
@@ -4366,7 +4491,7 @@ END RealConversions.
 @page
 
 
-@node gm2-libs-pim/RealInOut, gm2-libs-pim/Termbase, gm2-libs-pim/RealConversions, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/RealInOut, gm2-libs-pim/Strings, gm2-libs-pim/RealConversions, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/RealInOut
 
 @example
@@ -4468,7 +4593,93 @@ END RealInOut.
 @page
 
 
-@node gm2-libs-pim/Termbase, gm2-libs-pim/Terminal, gm2-libs-pim/RealInOut, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Strings, gm2-libs-pim/Termbase, gm2-libs-pim/RealInOut, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/Strings
+
+@example
+DEFINITION MODULE Strings ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library
+*)
+
+EXPORT QUALIFIED Assign, Insert, Delete, Pos, Copy, ConCat, Length,
+                 CompareStr ;
+
+(*
+   Assign - source := dest.
+*)
+
+@findex Assign
+PROCEDURE Assign (VAR source: ARRAY OF CHAR; dest: ARRAY OF CHAR) ;
+
+
+(*
+   Insert - insert the string, substr, into str at position, index.
+            substr, is added to the end of, str, if, index >= length(str)
+*)
+
+@findex Insert
+PROCEDURE Insert (substr: ARRAY OF CHAR; VAR str: ARRAY OF CHAR;
+                  index: CARDINAL) ;
+
+
+(*
+   Delete - delete len characters from, str, starting at, index.
+*)
+
+@findex Delete
+PROCEDURE Delete (VAR str: ARRAY OF CHAR; index: CARDINAL; length: CARDINAL) ;
+
+
+(*
+   Pos - return the first position of, substr, in, str.
+*)
+
+@findex Pos
+PROCEDURE Pos (substr, str: ARRAY OF CHAR) : CARDINAL ;
+
+
+(*
+   Copy - copy at most, length, characters in, substr, to, str,
+          starting at position, index.
+*)
+
+@findex Copy
+PROCEDURE Copy (str: ARRAY OF CHAR;
+                index, length: CARDINAL; VAR result: ARRAY OF CHAR) ;
+
+(*
+   ConCat - concatenates two strings, s1, and, s2
+            and places the result into, dest.
+*)
+
+@findex ConCat
+PROCEDURE ConCat (s1, s2: ARRAY OF CHAR; VAR dest: ARRAY OF CHAR) ;
+
+
+(*
+   Length - return the length of string, s.
+*)
+
+@findex Length
+PROCEDURE Length (s: ARRAY OF CHAR) : CARDINAL ;
+
+
+(*
+   CompareStr - compare two strings, left, and, right.
+*)
+
+@findex CompareStr
+PROCEDURE CompareStr (left, right: ARRAY OF CHAR) : INTEGER ;
+
+
+END Strings.
+@end example
+@page
+
+
+@node gm2-libs-pim/Termbase, gm2-libs-pim/Terminal, gm2-libs-pim/Strings, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Termbase
 
 @example
@@ -4566,7 +4777,7 @@ END Termbase.
 @page
 
 
-@node gm2-libs-pim/Terminal, , gm2-libs-pim/Termbase, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/Terminal, gm2-libs-pim/TimeDate, gm2-libs-pim/Termbase, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Terminal
 
 @example
@@ -4643,6 +4854,29 @@ PROCEDURE WriteLn ;
 
 
 END Terminal.
+@end example
+@page
+
+
+@node gm2-libs-pim/TimeDate, , gm2-libs-pim/Terminal, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/TimeDate
+
+@example
+DEFINITION MODULE TimeDate ;
+
+(*
+    Description: provides a Logitech-3.0 compatible library module.
+                 Advised to use cleaner designed modules based on 'man 3 strtime'
+                 and friends for new projects as the day value here is ugly
+                 [maybe it mapped onto MSDOS].
+*)
+
+EXPORT QUALIFIED Time, GetTime, SetTime, CompareTime, TimeToZero,
+                 TimeToString ;
+
+
+
+END TimeDate.
 @end example
 @page
 
