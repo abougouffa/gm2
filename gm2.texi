@@ -102,7 +102,9 @@ Software Foundation raise funds for GNU development.''
 @end menu
 
 This document contains the user and design issues relevant to the
-Modula-2 front end to gcc.  It corresponds to GCC version
+Modula-2 front end to gcc.  Throughout this document the GNU Modula-2
+front end is often referred to as @{samp{gm2-@value{version-GM2}} or
+@samp{gm2} for short.  This corresponds to GCC version
 @value{version-GCC} and GNU Modula-2 version @value{version-GM2}.
 
 @node What is GNU Modula-2, Why use GNU Modula-2, , Using
@@ -159,7 +161,7 @@ GNU Modula-2 also has the advantage of being closely tied to GCC.  Not
 only does this produce excellent code and excellent architectural and
 operating system coverage but it also utilises many of the GCC
 features. For example GNU Modula-2 can invoke the C preprocessor to
-manage conditional compilation; inlining of @code{SYSTEM} procedures,
+manage conditional compilation; in-lining of @code{SYSTEM} procedures,
 intrinsic functions, memory copying routines are also exploited;
 access to assembly language using GCC syntax is also provided.  GNU
 Modula-2 also support sets of any ordinal type (memory permitting).
@@ -225,7 +227,7 @@ complex types or @samp{FINALLY} is implemented).
 @node Compiler options, Example usage, Release map, Using
 @section Compiler options
 
-This section describe the compiler options specific to GNU Modula-2 for
+This section describes the compiler options specific to GNU Modula-2 for
 generic flags details see
 @xref{Invoking GCC, , ,gcc}.
 
@@ -287,7 +289,7 @@ necessary in ISO or PIM versions of Modula-2, but it can be
 extremely useful, as long as code is intentionally
 written in this way.
 
-@item -Wpedentic-cast
+@item -Wpedantic-cast
 warns if the ISO system function is used and if the size of
 the variable is different from that of the type. This is legal
 in ISO Modula-2, however it can be dangerous. Some users may prefer
@@ -427,7 +429,7 @@ when the -O option is specified.
 @node Example usage, Elementary data types, Compiler options, Using
 @section Example compile and link
 
-This section describes how to compiler and link a simple hello world
+This section describes how to compile and link a simple hello world
 program.  It provides a few examples of using the different options
 mentioned in @xref{Compiler options, , ,gm2}.  Assuming that you have
 a file called @file{hello.mod} in your current directory which
@@ -445,13 +447,18 @@ END hello.
 
 You should be able to compile it by: @samp{gm2 -c -g -I. hello.mod}
 and link via: @samp{gm2 -g -I. hello.mod}.  The result should be an
-@samp{a.out} file created in your directory.  @footnote{The @samp{-v}
-displays the subprocesses initiated by @samp{gm2} which can be useful
-when trouble shooting.}
+@samp{a.out} file created in your directory.
 
 Alternatively it may be compiled by:
 
 @samp{gm2 -g -I. -Wmakeall hello.mod}
+@footnote{To see all the compile actions taken by @samp{gm2} users can also
+add the @samp{-v} flag at the command line, for example:
+
+@samp{gm2 -v -g -I. -Wmakeall hello.mod}
+
+This displays the subprocesses initiated by @samp{gm2} which can be useful
+when trouble shooting.}
 
 @node Elementary data types, Standard procedures, Example usage, Using
 @section Elementary data types
@@ -1280,11 +1287,11 @@ END Builtins.
 @end example
 
 Although this module exists and will result in the generation of
-inline code if optimization flags are passed to GNU Modula-2, users
+in-line code if optimization flags are passed to GNU Modula-2, users
 are advised to utilize the same functions from more generic libraries.
 The built-in mechanism will be applied to these generic
 libraries where appropriate. Note for the mathematical routines to
-be inlined you need to specify the @samp{-ffast-math -O} options.
+be in-lined you need to specify the @samp{-ffast-math -O} options.
 
 @node The PIM system module, The ISO system module, Built-ins, Using
 @section The PIM system module
@@ -1426,7 +1433,7 @@ PROCEDURE TSIZE (<type>; ... ): CARDINAL;
 (*
    ShiftVal - is a runtime procedure whose job is to implement
               the SHIFT procedure of ISO SYSTEM. GNU Modula-2 will
-              inline a SHIFT of a single WORD sized set and will only
+              in-line a SHIFT of a single WORD sized set and will only
               call this routine for larger sets.
 *)
 
@@ -1461,7 +1468,7 @@ PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
 (*
    RotateVal - is a runtime procedure whose job is to implement
                the ROTATE procedure of ISO SYSTEM. GNU Modula-2 will
-               inline a ROTATE of a single WORD (or less)
+               in-line a ROTATE of a single WORD (or less)
                sized set and will only call this routine for larger sets.
 *)
 
@@ -1518,8 +1525,8 @@ Prebuilt binary packages are also available at
 @uref{http://www.unet.univie.ac.at/~a9406973/modula2/downl.html}.
 
 Alternatively the development sources can be downloaded via CVS.
-Please be aware that as gm2 is in
-development it might fail to compile with the current version of gcc.
+Please be aware that as gm2 is in development it might fail to compile
+with a more recent version of gcc than @samp{gcc-@value{version-GCC}}.
 
 @section Easiest method of building the GNU Modula-2 source
 
@@ -1548,7 +1555,7 @@ make install
 The first @code{make} downloads, constructs the source tree, builds
 the code and runs the regression tests. The second @code{make}
 installs GNU Modula-2. Note that GNU Modula-2 is still in development
-and so it is likely that some of the regression tests may fail.
+and so it is possible that some of the regression tests may fail.
 
 The @code{gm2-harness} package automates the steps outlined in the
 next three sections. Note that the option @samp{--with-gdb} will
@@ -1810,11 +1817,12 @@ Please do. But also please read the GNU Emacs info under
 * Contributions::               Accepting Contributions
 @end example
 
-You might consider joining the GM2 Mailing list:
-see URL:
-@uref{http://floppsie.comp.glam.ac.uk/mailman/listinfo/gm2}
-or mail: @uref{mail:gm2-request@@glam.ac.uk}
-before you start coding.
+You might consider joining the GM2 Mailing list available via
+a web brouser at
+
+@uref{http://floppsie.comp.glam.ac.uk/mailman/listinfo/gm2} or
+available via email: @uref{mail:gm2-request@@glam.ac.uk} before you
+start coding.
 
 Many thanks and enjoy your coding!
 
