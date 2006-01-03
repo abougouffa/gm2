@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE FpuIOBug;
 
 (*
@@ -56,19 +57,31 @@ BEGIN
 
    s := WriteLongInt(MAX(LONGINT), 0) ;
    r := printf('result of MAX(LONGINT) = %s\n', string(s)) ;
+#if defined(__ppc__)
+   Assert(EqualArray(s, '2147483647'), __FILE__, __LINE__,
+#else
    Assert(EqualArray(s, '9223372036854775807'), __FILE__, __LINE__,
+#endif
           'MAX(LONGINT) in LongIntegerToString') ;
    s := KillString(s) ;
 
    s := WriteLongInt(MIN(LONGINT), 0) ;
    r := printf('result of MIN(LONGINT) = %s\n', string(s)) ;
+#if defined(__ppc__)
+   Assert(EqualArray(s, '-2147483648'), __FILE__, __LINE__,
+#else
    Assert(EqualArray(s, '-9223372036854775808'), __FILE__, __LINE__,
+#endif
           'MIN(LONGINT) in LongIntegerToString') ;
    s := KillString(s) ;
 
    s := WriteLongInt(MIN(LONGINT)+1, 0) ;
    r := printf('result of MIN(LONGINT)+1 = %s\n', string(s)) ;
+#if defined(__ppc__)
+   Assert(EqualArray(s, '-2147483647'), __FILE__, __LINE__,
+#else
    Assert(EqualArray(s, '-9223372036854775807'), __FILE__, __LINE__,
+#endif
           'MIN(LONGINT)+1 in itos') ;
    s := KillString(s) ;
    exit(res)
