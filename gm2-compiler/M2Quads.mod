@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutVarWritten,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
-                        PutPriority,
+                        PutPriority, GetPriority,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
                         IsVarAParam,
@@ -356,7 +356,9 @@ PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
 PROCEDURE PushTFA (True, False, Array: WORD) ; FORWARD ;
-PROCEDURE EnsureImported (n: Name) : CARDINAL ; FORWARD ;
+PROCEDURE EnsureImportedFrom (n, module: Name) : CARDINAL ; FORWARD ;
+PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
+PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1438,6 +1440,73 @@ END DisposeQuad ;
 
 
 (*
+   CheckNeedPriorityBegin - checks to see whether we need to save the old
+                            module priority and change to another module
+                            priority.
+                            The current module initialization or procedure
+                            being built is defined by, scope. The module whose
+                            priority will be used is defined by, module.
+*)
+
+PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ;
+VAR
+   ProcSym, old, return: CARDINAL ;
+BEGIN
+   IF GetPriority(module)#NulSym
+   THEN
+      (* module has been given a priority *)
+      ProcSym := EnsureImportedFrom(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      IF ProcSym#NulSym
+      THEN
+         old := MakeTemporary(RightValue) ;
+         PutVar(old, Cardinal) ;
+
+         PushTF(ProcSym, Cardinal) ;
+         PushT(GetPriority(module)) ;
+         PushT(1) ;
+         BuildFunctionCall ;
+         PopT(return) ;
+         PushT(old) ;
+         PushT(return) ;
+         BuildAssignment ;
+         PushWord(PriorityStack, old)
+      END
+   END
+END CheckNeedPriorityBegin ;
+
+
+(*
+   CheckNeedPriorityEnd - checks to see whether we need to restore the old
+                          module priority.
+                          The current module initialization or procedure
+                          being built is defined by, scope.
+*)
+
+PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ;
+VAR
+   ProcSym, old, return: CARDINAL ;
+BEGIN
+   IF GetPriority(module)#NulSym
+   THEN
+      (* module has been given a priority *)
+      ProcSym := EnsureImportedFrom(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      IF ProcSym#NulSym
+      THEN
+         old := PopWord(PriorityStack) ;
+         PushTF(ProcSym, Cardinal) ;
+         PushT(old) ;
+         PushT(1) ;
+         BuildFunctionCall ;
+         PopT(return) ;
+         PushT(old) ;
+         PushT(return) ;
+         BuildAssignment
+      END
+   END
+END CheckNeedPriorityEnd ;
+
+
+(*
    StartBuildDefFile - generates a StartFileDefOp quadruple indicating the file
                        that has produced the subsequent quadruples.
                        The code generator uses the StartDefFileOp quadruples
@@ -1544,7 +1613,8 @@ BEGIN
    PutModuleStartQuad(ModuleSym, NextQuad) ;
    GenQuad(StartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
    PushWord(ReturnStack, 0) ;
-   PushT(name)
+   PushT(name) ;
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
 END StartBuildInit ;
  
  
@@ -1554,9 +1624,10 @@ END StartBuildInit ;
  
 PROCEDURE EndBuildInit ;
 BEGIN
+   BackPatch(PopWord(ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
-   BackPatch(PopWord(ReturnStack), NextQuad) ;
    GenQuad(EndOp, GetPreviousTokenLineNo(), GetFileModule(),
            GetCurrentModule())
 END EndBuildInit ;
@@ -1582,7 +1653,8 @@ PROCEDURE StartBuildInnerInit ;
 BEGIN
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
    GenQuad(StartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
-   PushWord(ReturnStack, 0)
+   PushWord(ReturnStack, 0) ;
+   CheckNeedPriorityBegin(GetCurrentModule(), GetCurrentModule())
 END StartBuildInnerInit ;
  
  
@@ -1595,6 +1667,7 @@ BEGIN
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    GenQuad(EndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
 END EndBuildInnerInit ;
 
@@ -3436,7 +3509,6 @@ BEGIN
       QuadrupleGeneration := TRUE
    END
 END BuildSizeCheckEnd ;
-
 
 
 (*
@@ -6308,22 +6380,35 @@ END BuildHighFromChar ;
 
 
 (*
-   EnsureImported - checks to see whether the symbol, n, is already present
-                    and if absent then it imports the symbol from M2RTS.
+   EnsureImportedFrom - checks to see whether the symbol, n, is already present
+                        and if absent then it imports the symbol from, module.
 *)
 
-PROCEDURE EnsureImported (n: Name) : CARDINAL ;
+PROCEDURE EnsureImportedFrom (n: Name; module: Name) : CARDINAL ;
 VAR
    ProcSym: CARDINAL ;
 BEGIN
    ProcSym := GetSym(n) ;
    IF ProcSym=NulSym
    THEN
-      PutImported(GetExported(MakeDefinitionSource(MakeKey('M2RTS')), n)) ;
+      IF MakeDefinitionSource(module)=NulSym
+      THEN
+         WriteFormat2('module %a cannot be found and is needed to import %a', module, n) ;
+         FlushErrors ;
+         RETURN( NulSym )
+      END ;
+      IF (GetExported(MakeDefinitionSource(module), n)=NulSym) OR
+         IsUnknown(GetExported(MakeDefinitionSource(module), n))
+      THEN
+         WriteFormat2('module %a does not export procedure %a which is a necessary component of the runtime system, hint check the path and library/language variant', module, n) ;
+         FlushErrors ;
+         RETURN( NulSym )
+      END ;
+      PutImported(GetExported(MakeDefinitionSource(module), n)) ;
       ProcSym := GetSym(n)
    END ;
    RETURN( ProcSym )
-END EnsureImported ;
+END EnsureImportedFrom ;
 
 
 (*
@@ -6382,7 +6467,7 @@ BEGIN
          PopN(NoOfParam+1) ;
          PushT(ReturnVar)
       ELSE
-         ProcSym := EnsureImported(MakeKey('Length')) ;
+         ProcSym := EnsureImportedFrom(MakeKey('Length'), MakeKey('M2RTS')) ;
          IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
          THEN
             PopT(NoOfParam) ;
@@ -7904,7 +7989,8 @@ BEGIN
    GenQuad(NewLocalVarOp, GetPreviousTokenLineNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
    PushWord(ReturnStack, 0) ;
-   PushT(ProcSym)
+   PushT(ProcSym) ;
+   CheckNeedPriorityBegin(ProcSym, GetCurrentModule())
 END BuildProcedureBegin ;
 
 
@@ -7952,6 +8038,7 @@ BEGIN
       BuildProcedureCall    (* call M2RTS_FunctionReturnError *)
    END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
    CurrentProc := NulSym ;
    GenQuad(KillLocalVarOp, GetPreviousTokenLineNo(), NulSym, ProcSym) ;
    PutProcedureEndQuad(ProcSym, NextQuad) ;
