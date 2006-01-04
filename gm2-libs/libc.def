@@ -26,7 +26,7 @@ DEFINITION MODULE FOR "C" libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT UNQUALIFIED tm,
+EXPORT UNQUALIFIED time_t, tm, ptrToTM,
                    write, read,
                    system, abort,
                    malloc, free,
@@ -38,9 +38,12 @@ EXPORT UNQUALIFIED tm,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
                    memcpy, memset, printf, realloc,
-                   rand, srand, time ;
+                   rand, srand, time, localtime ;
 
 TYPE
+   time_t = LONGINT ;
+
+   ptrToTM = POINTER TO tm ;
    tm = RECORD
            tm_sec: INTEGER ;     (* Seconds.     [0-60] (1 leap second) *)
            tm_min: INTEGER ;     (* Minutes.     [0-59]   *)
@@ -343,13 +346,20 @@ PROCEDURE rand () : INTEGER ;
 
 
 (*
-   time - returns a pointer to the tm structure which defines the
-          current time. If, a, is NIL then the address of the libc
-          tm structure is returned. If, a, is not NIL then the libc
-          tm structure is copied into memory at address, a.
+   time - returns a pointer to the time_t value. If, a,
+          is not NIL then the libc value is copied into
+          memory at address, a.
 *)
 
-PROCEDURE time (a: ADDRESS) : ADDRESS ;
+PROCEDURE time (a: ADDRESS) : time_t ;
+
+
+(*
+   localtime - returns a pointer to the libc copy of the tm
+               structure.
+*)
+
+PROCEDURE localtime (VAR t: time_t) : ADDRESS ;
 
 
 END libc.

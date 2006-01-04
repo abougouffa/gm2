@@ -1,6 +1,12 @@
 2006-01-04	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented module priorities.
+	* implemented gm2/gm2-libs-pim/TimeDate.mod
+	* added testsuite/gm2/pimlib/coroutines/pass/priority.mod,
+          testsuite/gm2/pimlib/coroutines/pass/priority2.mod and
+          testsuite/gm2/pimlib/logitech/run/pass/timedate.mod
+	* included TimeDate to be installed as part of the pim
+	  libraries.
 
 2006-01-03	 Gaius Mulley <gaius@glam.ac.uk>
 

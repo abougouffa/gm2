@@ -18,12 +18,39 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE TimeDate ;
 
 
-FROM libc IMPORT tm, time ;
+FROM SYSTEM IMPORT ADDRESS, ADR, TSIZE ;
+FROM libc IMPORT tm, time, time_t, memcpy, localtime ;
+FROM DynamicStrings IMPORT String, Mark, ConCat, InitString, KillString, CopyOut ;
+FROM FormatStrings IMPORT Sprintf3 ;
+
+IMPORT Selective ;
 
 
-PROCEDURE TimeToString () ;
+(*
+   TimeToString - convert time, t, to a string.
+                  The string, s, should be at least 19 characters
+                  long and the returned string will be
+
+                  yyyy-mm-dd hh:mm:ss
+*)
+
+PROCEDURE TimeToString (t: Time; VAR s: ARRAY OF CHAR) ;
+VAR
+   q              : String ;
+   y, m, d, h, sec: CARDINAL ;
 BEGIN
-   
+   WITH t DO
+      y := day DIV 512 + 1900 ;
+      m := (day DIV 32) MOD 16 ;
+      d := day MOD 32 ;
+      q := Sprintf3(Mark(InitString('%04d-%02d-%02d')), y, m, d) ;
+      h := minute DIV 60 ;
+      m := minute MOD 60 ;
+      sec := millisec DIV 1000 ;
+      q := ConCat(q, Mark(Sprintf3(Mark(InitString(' %02d:%02d:%02d')), h, m, sec))) ;
+      CopyOut(s, q) ;
+      q := KillString(q) ;
+   END
 END TimeToString ;
 
 
@@ -75,21 +102,29 @@ END SetTime ;
 
 PROCEDURE GetTime (VAR curTime: Time) ;
 VAR
+   l   : time_t ;
+   r   : INTEGER ;
    t   : tm ;
    a   : ADDRESS ;
-   tv  : Timeval ;
+   tv  : Selective.Timeval ;
    s, u: CARDINAL ;
 BEGIN
-   a := time(ADR(t)) ;
-   tv := InitTime(0, 0) ;
-   GetTimeOfDay(tv) ;
-   WITH curTime DO
-      day := t.tm_mday+t.tm_mon*32+t.tm_year*512 ;
-      minute := t.tm_min+t.tm_hour*60 ;
-      GetTime(tv, s, u) ;
-      millisec := u DIV 1000
+   tv := Selective.InitTime(0, 0) ;
+   r := Selective.GetTimeOfDay(tv) ;
+   l := time(NIL) ;
+   IF l#-1
+   THEN
+      a := localtime(l) ;
+      a := memcpy(ADR(t), a, TSIZE(t)) ;
+      WITH curTime DO
+         day := t.tm_mday+(t.tm_mon+1)*32+t.tm_year*512 ;
+         minute := t.tm_min+t.tm_hour*60 ;
+         Selective.GetTime(tv, s, u) ;
+         (* s MOD 61, to allow for leap seconds *)
+         millisec := (u DIV 1000) MOD (60 * 1000) + ((s MOD 61) * 1000)
+      END
    END ;
-   tv := KillTime(tv)
+   tv := Selective.KillTime(tv)
 END GetTime ;
 
 
