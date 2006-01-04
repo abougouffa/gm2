@@ -89,7 +89,6 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        StartBuildProcedure,
                        EndBuildProcedure,
                        BuildFunction,
-                       BuildPriority,
 
                        BuildPointerType,
                        BuildRecord, BuildFieldRecord,
@@ -522,7 +521,7 @@ ProgramModule := "MODULE"
                                                                            
                                                                            
                                                                            
-                  [ Priority                                               % BuildPriority ; %
+                  [ Priority
                   ]                                             
                   ";"							   
                                                                            
@@ -538,7 +537,7 @@ ProgramModule := "MODULE"
 ImplementationModule := "IMPLEMENTATION" "MODULE"                          
                          Ident                                             % P2StartBuildImplementationModule ; %
                                                                            
-                         [ Priority                                        % BuildPriority %
+                         [ Priority
                          ] ";"                                  
                          { Import                                          % BuildImportOuterModule %
                            }                                               
@@ -977,7 +976,7 @@ FormalType := "ARRAY" "OF"                                                 % Pus
 
 ModuleDeclaration := "MODULE"
                      Ident                                                 % StartBuildInnerModule %
-                     [ Priority                                            % BuildPriority %
+                     [ Priority
                                 ] ";"
                      { Import                                              % BuildImportInnerModule %
                         } [ Export                                         % BuildExportInnerModule %

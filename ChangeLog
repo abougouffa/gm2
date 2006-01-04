@@ -1,3 +1,7 @@
+2006-01-03	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed typo in gm2/gm2.texi
+	
 2006-01-03	 Michael H Lambert <lambert@psc.edu>
 
 	* added __ppc__ ifdefs into testsuite/gm2/iso/pass/realbitscast.mod
@@ -5,7 +9,7 @@
 	* added __ppc__ ifdefs into testsuite/gm2/switches/pim4/run/pass/FpuIOBug.mod
 
 2005-12-29      Gaius Mulley <gaius@glam.ac.uk>
-
+		
 	* corrections made to gm2/gm2.texi
 
 2005-12-24      Gaius Mulley <gaius@glam.ac.uk>

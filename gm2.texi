@@ -103,7 +103,7 @@ Software Foundation raise funds for GNU development.''
 
 This document contains the user and design issues relevant to the
 Modula-2 front end to gcc.  Throughout this document the GNU Modula-2
-front end is often referred to as @{samp{gm2-@value{version-GM2}} or
+front end is often referred to as @samp{gm2-@value{version-GM2}} or
 @samp{gm2} for short.  This corresponds to GCC version
 @value{version-GCC} and GNU Modula-2 version @value{version-GM2}.
 

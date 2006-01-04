@@ -41,6 +41,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE P3Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
@@ -101,6 +102,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildBooleanVariable,
                     CheckWithReference,
                     CheckOuterScopeProcedureVariable,
+                    BuildModulePriority,
                     DumpStack,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
@@ -1185,7 +1187,10 @@ ModuleDeclaration := "MODULE"                                              % Pus
                                                                            % PopAuto ; PopAuto ; PopAuto %
                      =:
 
-Priority := "[" ConstExpression "]" =:
+Priority := "["                                                            % PushAutoOn %
+                ConstExpression                                            % BuildModulePriority ;
+                                                                             PopAuto %
+                                "]" =:
 
 Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |

@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE SymbolTable ;
 
 
@@ -3077,6 +3078,47 @@ BEGIN
       END
    END
 END GetStringLength ;
+
+
+(*
+   PutPriority - places a interrupt, priority, value into module, module.
+*)
+
+PROCEDURE PutPriority (module: CARDINAL; priority: CARDINAL) ;
+BEGIN
+   Assert(module#NulSym) ;
+   WITH Symbols[module] DO
+      CASE SymbolType OF
+
+      DefImpSym:  DefImp.Priority := priority |
+      ModuleSym:  Module.Priority := priority
+
+      ELSE
+         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
+      END
+   END
+END PutPriority ;
+
+
+(*
+   GetPriority - returns the interrupt priority which was assigned to
+                 module, module.
+*)
+
+PROCEDURE GetPriority (module: CARDINAL) : CARDINAL ;
+BEGIN
+   Assert(module#NulSym) ;
+   WITH Symbols[module] DO
+      CASE SymbolType OF
+
+      DefImpSym:  RETURN( DefImp.Priority ) |
+      ModuleSym:  RETURN( Module.Priority )
+
+      ELSE
+         InternalError('expecting DefImp or Module symbol', __FILE__, __LINE__)
+      END
+   END
+END GetPriority ;
 
 
 (*

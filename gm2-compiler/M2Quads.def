@@ -48,6 +48,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildProcedureStart, BuildProcedureEnd,
                  BuildProcedureBegin,
                  BuildReturn,
+                 BuildModulePriority,
                  BuildBooleanVariable,
                  BuildSizeCheckStart,
                  StartBuildWith, EndBuildWith, CheckWithReference,
@@ -133,7 +134,8 @@ TYPE
                    OptimizeOnOp, OptimizeOffOp,
                    InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
-                   BuiltinConstOp, StandardFunctionOp) ;
+                   BuiltinConstOp, StandardFunctionOp,
+                   GetModulePriorityOp, SetModulePriorityOp) ;
 
 
 VAR
@@ -1350,6 +1352,23 @@ PROCEDURE BuildProcedureEnd ;
 *)
 
 PROCEDURE BuildReturn ;
+
+
+(*
+   BuildModulePriority - assigns the current module with a priority
+                         from the top of stack.
+
+                         Entry                   Exit
+                         =====                   ====
+
+
+                  Ptr ->                         Empty
+                         +------------+
+                         | Priority   |
+                         |------------|
+*)
+
+PROCEDURE BuildModulePriority ;
 
 
 (*

@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2GenGCC ;
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -62,6 +63,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetRegInterface,
                         GetProcedureQuads,
                         GetProcedureBuiltin,
+                        GetPriority,
                         PutConstString,
                         PutConst, PutConstSet,
                         NulSym ;
@@ -395,6 +397,9 @@ PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
 PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeGetModulePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldGetModulePriority (tokenno: CARDINAL; l: List;
+                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -512,6 +517,8 @@ BEGIN
    CoerceOp           : CodeCoerce(q, op1, op2, op3) |
    CastOp             : CodeCast(q, op1, op2, op3) |
    StandardFunctionOp : CodeStandardFunction(q, op1, op2, op3) |
+   SetModulePriorityOp: |
+   GetModulePriorityOp: CodeGetModulePriority(q, op1, op2, op3) |
 
    InlineOp           : CodeInline(q, op1, op2, op3) |
    LineNumberOp       : CodeLineNumber(q, op1, op2, op3) |
@@ -642,7 +649,8 @@ BEGIN
          IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3) |
          LogicalShiftOp     : FoldSetShift(tokenno, l, quad, op1, op2, op3) |
          LogicalRotateOp    : FoldSetRotate(tokenno, l, quad, op1, op2, op3) |
-         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3)
+         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3) |
+         GetModulePriorityOp: FoldGetModulePriority(tokenno, l, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
@@ -2456,6 +2464,30 @@ BEGIN
                     __FILE__, __LINE__)
    END
 END CodeStandardFunction ;
+
+
+(*
+   FoldGetModulePriority - assigns op1 with the value of the module, op3, priority.
+*)
+
+PROCEDURE FoldGetModulePriority (tokenno: CARDINAL; l: List;
+                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   IF IsConst(GetPriority(op3)) AND IsConst(op1)
+   THEN
+      FoldBecomes(tokenno, l, quad, op1, op2, GetPriority(op3))
+   END
+END FoldGetModulePriority ;
+
+
+(*
+   CodeGetModulePriority - assigns op1 with the value of the module, op3, priority.
+*)
+
+PROCEDURE CodeGetModulePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   CodeBecomes(quad, op1, op2, GetPriority(op3))
+END CodeGetModulePriority ;
 
 
 (*

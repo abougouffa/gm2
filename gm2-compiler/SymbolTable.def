@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 DEFINITION MODULE SymbolTable ;
 
 (*
@@ -196,6 +197,8 @@ EXPORT QUALIFIED NulSym,
                  UsesOptArg,
                  PutOptArgInit,
                  GetOptArgInit,
+                 PutPriority,
+                 GetPriority,
 
                  NoOfElements,
                  NoOfParam,
@@ -535,6 +538,21 @@ PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
 *)
 
 PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
+
+
+(*
+   PutPriority - places a interrupt, priority, value into module, module.
+*)
+
+PROCEDURE PutPriority (module: CARDINAL; priority: CARDINAL) ;
+
+
+(*
+   GetPriority - returns the interrupt priority which was assigned to
+                 module, module.
+*)
+
+PROCEDURE GetPriority (module: CARDINAL) : CARDINAL ;
 
 
 (*

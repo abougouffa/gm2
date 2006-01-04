@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2Quads ;
 
 
@@ -51,6 +52,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
                         PutVarWritten,
                         PutVarReadQuad, RemoveVarReadQuad,
                         PutVarWriteQuad, RemoveVarWriteQuad,
+                        PutPriority,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
                         IsVarAParam,
@@ -204,6 +206,7 @@ VAR
    AutoStack,
    ExitStack,
    ReturnStack          : StackOfWord ;   (* Return quadruple of the procedure.      *)
+   PriorityStack        : StackOfWord ;   (* temporary variable holding old priority *)
    SuppressWith         : BOOLEAN ;
 
    Quads                : ARRAY [1..MaxQuad] OF QuadFrame ;
@@ -1594,6 +1597,56 @@ BEGIN
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    GenQuad(EndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
 END EndBuildInnerInit ;
+
+
+(*
+   BuildModulePriority - assigns the current module with a priority
+                         from the top of stack.
+
+                         Entry                   Exit
+                         =====                   ====
+
+
+                  Ptr ->                         Empty
+                         +------------+
+                         | Priority   |
+                         |------------|
+*)
+
+PROCEDURE BuildModulePriority ;
+VAR
+   Priority: CARDINAL ;
+BEGIN
+   PopT(Priority) ;
+   GenQuad(SetModulePriorityOp, GetCurrentModule(), NulSym, Priority) ;
+   PutPriority(GetCurrentModule(), Priority)
+END BuildModulePriority ;
+
+
+(*
+   CollectModulePriority - assigns a variable with the current module priority.
+
+                           Entry                   Exit
+                           =====                   ====
+
+                    Empty                                         <- Ptr
+                                                   +------------+
+                                                   | ConstVar   |
+                                                   |------------|
+
+                    Quadruples:
+
+                           GetModulePriorityOp  Var   _   ModulePriority
+*)
+
+PROCEDURE CollectModulePriority ;
+VAR
+   Var: CARDINAL ;
+BEGIN
+   Var := MakeTemporary(ImmediateValue) ;
+   GenQuad(GetModulePriorityOp, Var, NulSym, GetCurrentModule()) ;
+   PushT(Var)
+END CollectModulePriority ;
 
 
 (*
@@ -10210,6 +10263,8 @@ BEGIN
       printf1('  [%d]    ', NoOfTimesReferenced) ;
       CASE Operator OF
 
+      SetModulePriorityOp,
+      GetModulePriorityOp,
       SubrangeLowOp,
       SubrangeHighOp,
       BecomesOp,
@@ -10322,70 +10377,72 @@ PROCEDURE WriteOperator (Operator: QuadOperator) ;
 BEGIN
    CASE Operator OF
 
-   LogicalOrOp              : printf0('Or               ') |
-   LogicalAndOp             : printf0('And              ') |
-   LogicalXorOp             : printf0('Xor              ') |
-   LogicalDiffOp            : printf0('Ldiff            ') |
-   LogicalShiftOp           : printf0('Shift            ') |
-   LogicalRotateOp          : printf0('Rotate           ') |
-   BecomesOp                : printf0('Becomes          ') |
-   IndrXOp                  : printf0('IndrXOp          ') |
-   XIndrOp                  : printf0('XIndrOp          ') |
-   BaseOp                   : printf0('Base             ') |
-   ElementSizeOp            : printf0('ElementSize      ') |
-   AddrOp                   : printf0('Addr             ') |
-   SizeOp                   : printf0('Size             ') |
-   OffsetOp                 : printf0('Offset           ') |
-   IfInOp                   : printf0('If IN            ') |
-   IfNotInOp                : printf0('If NOT IN        ') |
-   IfNotEquOp               : printf0('If <>            ') |
-   IfEquOp                  : printf0('If =             ') |
-   IfLessEquOp              : printf0('If <=            ') |
-   IfGreEquOp               : printf0('If >=            ') |
-   IfGreOp                  : printf0('If >             ') |
-   IfLessOp                 : printf0('If <             ') |
-   GotoOp                   : printf0('Goto             ') |
-   DummyOp                  : printf0('Dummy            ') |
-   ModuleScopeOp            : printf0('ModuleScopeOp    ') |
-   StartDefFileOp           : printf0('StartDefFile     ') |
-   StartModFileOp           : printf0('StartModFile     ') |
-   EndFileOp                : printf0('EndFileOp        ') |
-   StartOp                  : printf0('Start            ') |
-   EndOp                    : printf0('End              ') |
-   AddOp                    : printf0('+                ') |
-   SubOp                    : printf0('-                ') |
-   DivFloorOp               : printf0('DIV floor        ') |
-   ModFloorOp               : printf0('MOD floor        ') |
-   DivTruncOp               : printf0('DIV trunc        ') |
-   ModTruncOp               : printf0('MOD trunc        ') |
-   MultOp                   : printf0('*                ') |
-   NegateOp                 : printf0('Negate           ') |
-   InclOp                   : printf0('Incl             ') |
-   ExclOp                   : printf0('Excl             ') |
-   ReturnOp                 : printf0('Return           ') |
-   ReturnValueOp            : printf0('ReturnValue      ') |
-   FunctValueOp             : printf0('FunctValue       ') |
-   CallOp                   : printf0('Call             ') |
-   ParamOp                  : printf0('Param            ') |
-   OptParamOp               : printf0('OptParam         ') |
-   NewLocalVarOp            : printf0('NewLocalVar      ') |
-   KillLocalVarOp           : printf0('KillLocalVar     ') |
-   ProcedureScopeOp         : printf0('ProcedureScope   ') |
-   UnboundedOp              : printf0('Unbounded        ') |
-   CoerceOp                 : printf0('Coerce           ') |
-   ConvertOp                : printf0('Convert          ') |
-   CastOp                   : printf0('Cast             ') |
-   HighOp                   : printf0('High             ') |
-   CodeOnOp                 : printf0('CodeOn           ') |
-   CodeOffOp                : printf0('CodeOff          ') |
-   ProfileOnOp              : printf0('ProfileOn        ') |
-   ProfileOffOp             : printf0('ProfileOff       ') |
-   OptimizeOnOp             : printf0('OptimizeOn       ') |
-   OptimizeOffOp            : printf0('OptimizeOff      ') |
-   InlineOp                 : printf0('Inline           ') |
-   LineNumberOp             : printf0('LineNumber       ') |
-   BuiltinConstOp           : printf0('BuiltinConst     ') |
-   StandardFunctionOp       : printf0('StandardFunction ') |
+   LogicalOrOp              : printf0('Or                ') |
+   LogicalAndOp             : printf0('And               ') |
+   LogicalXorOp             : printf0('Xor               ') |
+   LogicalDiffOp            : printf0('Ldiff             ') |
+   LogicalShiftOp           : printf0('Shift             ') |
+   LogicalRotateOp          : printf0('Rotate            ') |
+   BecomesOp                : printf0('Becomes           ') |
+   IndrXOp                  : printf0('IndrXOp           ') |
+   XIndrOp                  : printf0('XIndrOp           ') |
+   BaseOp                   : printf0('Base              ') |
+   ElementSizeOp            : printf0('ElementSize       ') |
+   AddrOp                   : printf0('Addr              ') |
+   SizeOp                   : printf0('Size              ') |
+   OffsetOp                 : printf0('Offset            ') |
+   IfInOp                   : printf0('If IN             ') |
+   IfNotInOp                : printf0('If NOT IN         ') |
+   IfNotEquOp               : printf0('If <>             ') |
+   IfEquOp                  : printf0('If =              ') |
+   IfLessEquOp              : printf0('If <=             ') |
+   IfGreEquOp               : printf0('If >=             ') |
+   IfGreOp                  : printf0('If >              ') |
+   IfLessOp                 : printf0('If <              ') |
+   GotoOp                   : printf0('Goto              ') |
+   DummyOp                  : printf0('Dummy             ') |
+   ModuleScopeOp            : printf0('ModuleScopeOp     ') |
+   StartDefFileOp           : printf0('StartDefFile      ') |
+   StartModFileOp           : printf0('StartModFile      ') |
+   EndFileOp                : printf0('EndFileOp         ') |
+   StartOp                  : printf0('Start             ') |
+   EndOp                    : printf0('End               ') |
+   AddOp                    : printf0('+                 ') |
+   SubOp                    : printf0('-                 ') |
+   DivFloorOp               : printf0('DIV floor         ') |
+   ModFloorOp               : printf0('MOD floor         ') |
+   DivTruncOp               : printf0('DIV trunc         ') |
+   ModTruncOp               : printf0('MOD trunc         ') |
+   MultOp                   : printf0('*                 ') |
+   NegateOp                 : printf0('Negate            ') |
+   InclOp                   : printf0('Incl              ') |
+   ExclOp                   : printf0('Excl              ') |
+   ReturnOp                 : printf0('Return            ') |
+   ReturnValueOp            : printf0('ReturnValue       ') |
+   FunctValueOp             : printf0('FunctValue        ') |
+   CallOp                   : printf0('Call              ') |
+   ParamOp                  : printf0('Param             ') |
+   OptParamOp               : printf0('OptParam          ') |
+   NewLocalVarOp            : printf0('NewLocalVar       ') |
+   KillLocalVarOp           : printf0('KillLocalVar      ') |
+   ProcedureScopeOp         : printf0('ProcedureScope    ') |
+   UnboundedOp              : printf0('Unbounded         ') |
+   CoerceOp                 : printf0('Coerce            ') |
+   ConvertOp                : printf0('Convert           ') |
+   CastOp                   : printf0('Cast              ') |
+   HighOp                   : printf0('High              ') |
+   CodeOnOp                 : printf0('CodeOn            ') |
+   CodeOffOp                : printf0('CodeOff           ') |
+   ProfileOnOp              : printf0('ProfileOn         ') |
+   ProfileOffOp             : printf0('ProfileOff        ') |
+   OptimizeOnOp             : printf0('OptimizeOn        ') |
+   OptimizeOffOp            : printf0('OptimizeOff       ') |
+   InlineOp                 : printf0('Inline            ') |
+   LineNumberOp             : printf0('LineNumber        ') |
+   BuiltinConstOp           : printf0('BuiltinConst      ') |
+   StandardFunctionOp       : printf0('StandardFunction  ') |
+   SetModulePriorityOp      : printf0('SetModulePriority ') |
+   GetModulePriorityOp      : printf0('GetModulePriority ')
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)
@@ -11048,6 +11105,7 @@ BEGIN
    WithStack := InitStackAddress() ;
    ReturnStack := InitStackWord() ;
    LineStack := InitStackAddress() ;
+   PriorityStack := InitStackWord() ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;

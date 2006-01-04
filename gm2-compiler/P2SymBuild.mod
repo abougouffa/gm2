@@ -2247,33 +2247,6 @@ END BuildFormalType ;
 
 
 (*
-   BuildPriority - give a module a constant priority.
-
-                   The Stack:
-
-                   Entry                 Exit
-
-            Ptr ->
-                   +------------+
-                   | ConstSym   |                         <- Ptr
-                   |------------|        +--------------+
-                   | ModuleName |        | ModuleName   |
-                   |------------|        |--------------|
-*)
-
-PROCEDURE BuildPriority ;
-VAR
-   ModuleName: Name ;
-   ConstSym  : CARDINAL ;
-BEGIN
-   PopT(ConstSym) ;
-   PopT(ModuleName) ;
-   PushT(ModuleName) ;
-   WarnStringAt(InitString('module priority is not implemented yet, ignoring priority'), GetTokenNo())
-END BuildPriority ;
-
-
-(*
    SeenUnknown - sets the operand type to unknown.
 *)
 

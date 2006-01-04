@@ -72,7 +72,6 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildFieldArray,
                  BuildProcedureType,
                  BuildFormalType,
-                 BuildPriority,
 
                  SeenSet,
                  SeenUnknown,
@@ -1041,24 +1040,6 @@ PROCEDURE BuildProcedureType ;
 *)
 
 PROCEDURE BuildFormalType ;
-
-
-(*
-   BuildPriority - give a module a constant priority.
-
-                   The Stack:
-
-                   Entry                 Exit
-
-            Ptr ->
-                   +------------+
-                   | ConstSym   |                         <- Ptr
-                   |------------|        +--------------+
-                   | ModuleName |        | ModuleName   |
-                   |------------|        |--------------|
-*)
-
-PROCEDURE BuildPriority ;
 
 
 (*
