@@ -21,10 +21,11 @@
 #
 
 # builds the pg.bnf from ppg.mod
-# usage buildpg ppg.mod [-e]
+# usage buildpg ppg.mod destination [-e]
 #    -e   build without error recovery
 #
 PPGSRC=$1
+PPGDST=$2
 
 includeNonErrorChecking () {
    sed -e "1,/StartNonErrorChecking/d" < $PPGSRC |\
@@ -37,27 +38,27 @@ includeErrorChecking () {
 }
 
 
-echo "% module pg begin"
-sed -e "1,/% declaration/!d" < $PPGSRC | sed -e "s/ppg/pg/g"
+echo "% module" $PPGDST "begin"
+sed -e "1,/% declaration/!d" < $PPGSRC | sed -e "s/ppg/${PPGDST}/g"
 
-echo "% declaration pg begin"
+echo "% declaration" $PPGDST "begin"
 
-sed -e "1,/% declaration/d" < $PPGSRC | sed -e "1,/% rules/!d" | sed -e "s/ppg/pg/g"
+sed -e "1,/% declaration/d" < $PPGSRC | sed -e "1,/% rules/!d" | sed -e "s/ppg/${PPGDST}/g"
 
-if [ "$2" = "-e" ] ; then
+if [ "$3" = "-e" ] ; then
    includeNonErrorChecking
-   echo "% module pg end"
-   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/pg/g"
+   echo "% module" $PPGDST "end"
+   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/${PPGDST}/g"
 else
    includeErrorChecking
-   echo "% module pg end"
-   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/pg/g" |\
+   echo "% module" $PPGDST "end"
+   sed -e "1,/% module pg end/d" < $PPGSRC | sed -e "s/ppg/${PPGDST}/g" |\
    sed -e "s/WasNoError := Main() ;/Main({eoftok}) ;/"
 fi
 
 echo "% rules"
 
-cat << EOFEOF  | sed -e "s/ppg/pg/g"
+cat << EOFEOF  | sed -e "s/ppg/${PPGDST}/g"
 error       'WarnError' 'WarnString'
 tokenfunc   'GetCurrentTokenType()'
 

@@ -532,7 +532,8 @@ gm2.paranoid: stage3/gm2/cc1gm2$(exeext) gm2.verifyparanoid
 # start here 1->2
 # we need to ensure that the C compiler and headers are configured correctly
 #
-cc1gm2$(exeext): $(GM2_DIRS) force
+cc1gm2$(exeext): force
+	mkdir -p $(GM2_DIRS)
 	if [ -f stage3_build ] ; then \
             true ; \
 	else \
@@ -637,9 +638,9 @@ stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2
   
 # Compiling object files from source files.
   
-gm2/gccgm2.o : $(GM2_DIRS) $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
+gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
 
-gm2/gm2builtins.o : $(GM2_DIRS) $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 
@@ -880,7 +881,7 @@ gm2/gm2-libs-boot/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-libs/$*.def $(srcdir)/gm2/gm2-libs/$*.mod -o gm2/gm2-libs-boot/$*.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) gm2/gm2-libs-boot/$*.c -o $@
 
-gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(objdir)/gm2/gm2-libs-boot $(srcdir)/gm2/gm2-libs/%.def
+gm2/gm2-libs-boot/$(SRC_PREFIX)%.h: $(srcdir)/gm2/gm2-libs/%.def
 	$(P2C) $(srcdir)/gm2/gm2-libs/$*.def -h $@
 
 gm2/gm2-libs-boot/SYSTEM.o: $(srcdir)/gm2/gm2-libs/SYSTEM.mod
@@ -1287,6 +1288,10 @@ gm2/gm2-auto/pg.o: gm2/gm2-auto/pg.mod
 	$(P2C) gm2/gm2-auto/pg.mod -o gm2/gm2-auto/pg.c ; \
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/pg.c -o $@
 
+gm2/gm2-auto/pge.o: gm2/gm2-auto/pge.mod
+	$(P2C) gm2/gm2-auto/pge.mod -o gm2/gm2-auto/pge.c ; \
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot $(INCLUDES) gm2/gm2-auto/pge.c -o $@
+
 gm2/gm2-auto/%.o: gm2/gm2-auto/%.mod
 	if [ -f $(srcdir)/gm2/gm2-compiler-boot/$*.def ] ; then \
           $(P2C) -s $(srcdir)/gm2/gm2-compiler-boot/$*.def gm2/gm2-auto/$*.mod -o gm2/gm2-auto/$*.c ; \
@@ -1559,27 +1564,28 @@ gm2/pg-e$(exeext): gm2/pg$(exeext)
 	mv gm2/pg$(exeext) gm2/pg-e$(exeext)
 
 gm2/gm2-auto/pg.mod: gm2/gm2-auto gm2/ppg$(exeext)
-	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod -e > gm2/gm2-auto/pg.bnf
+	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pg -e > gm2/gm2-auto/pg.bnf
 	./gm2/ppg$(exeext) -e -l gm2/gm2-auto/pg.bnf > gm2/gm2-auto/pg.mod
 
 verifypg-e: gm2/pg-e$(exeext)
-	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod -e > gm2/gm2-auto/pg.bnf
-	./gm2/pg-e$(exeext) -e -l gm2/gm2-auto/pg.bnf > gm2/gm2-auto/t.mod
+	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pg -e > gm2/gm2-auto/t.bnf
+	./gm2/pg-e$(exeext) -e -l gm2/gm2-auto/t.bnf | sed -e 's/t\.bnf/pg\.bnf/' > gm2/gm2-auto/t.mod
 	$(QUIAT)if ! diff gm2/gm2-auto/t.mod gm2/gm2-auto/pg.mod > /dev/null ; then \
            echo "pg failed during self build" ; \
            exit 1 ; \
         fi
+	$(RM) gm2/gm2-auto/t.bnf gm2/gm2-auto/t.mod
 
 buildpge: verifypg-e
-	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod > gm2/gm2-auto/pg.bnf
-	./gm2/pg-e$(exeext) -l gm2/gm2-auto/pg.bnf > gm2/gm2-auto/pg.mod
-	$(MAKE) gm2/gm2-auto/pg.o
-	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
+	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod pge > gm2/gm2-auto/pge.bnf
+	./gm2/pg-e$(exeext) -l gm2/gm2-auto/pge.bnf > gm2/gm2-auto/pge.mod
+	$(MAKE) gm2/gm2-auto/pge.o
+	sed -e 's/ppg/pge/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pgeinit
 	$(QUIAT)cd gm2 ; \
-	../$(M2LINK) -s gm2-auto/pginit ; \
+	../$(M2LINK) -s gm2-auto/pgeinit ; \
 	$(CC) $(CFLAGS) -c mod_init.c -o mod_init.o ; \
 	M2PATH="gm2-auto . gm2-libs-boot gm2-compiler-boot" ; export M2PATH ; \
-	../$(M2LINK) -l -p2c p2c/p2c-src/src/libp2c.a gm2-auto/pginit ; \
+	../$(M2LINK) -l -p2c p2c/p2c-src/src/libp2c.a gm2-auto/pgeinit ; \
 	$(SHELL) linkcommand ; \
 	$(RM) linkcommand ; \
 	if [ -x a$(exeext) ] ; then \
@@ -1590,19 +1596,19 @@ buildpge: verifypg-e
             echo "failed to link pge" ; \
             exit 1; \
         fi
-	$(RM) gm2/gm2-auto/pg.bnf gm2/gm2-auto/pg.mod
+	$(RM) gm2/gm2-auto/pge.bnf gm2/gm2-auto/pge.mod
 	$(RM) gm2/mod_init.o
 
 gm2/pge$(exeext): buildpge
-	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod > gm2/gm2-auto/pg.bnf
-	./gm2/pge$(exeext) gm2/gm2-auto/pg.bnf > gm2/gm2-auto/t.mod
-	./gm2/pg-e$(exeext) gm2/gm2-auto/pg.bnf > gm2/gm2-auto/t1.mod
-	$(QUIAT)if ! diff gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod > /dev/null ; then \
+	$(srcdir)/gm2/tools-src/buildpg $(srcdir)/gm2/gm2-compiler/ppg.mod t > gm2/gm2-auto/t.bnf
+	./gm2/pge$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t1.mod
+	./gm2/pg-e$(exeext) gm2/gm2-auto/t.bnf > gm2/gm2-auto/t2.mod
+	$(QUIAT)if ! diff gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod > /dev/null ; then \
            echo "failure: pg (with error recovery) failed" ; \
            $(RM) gm2/pge$(exeext) ; \
            exit 1 ; \
         fi
-	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/pg.bnf
+	$(RM) gm2/gm2-auto/t.mod gm2/gm2-auto/t1.mod gm2/gm2-auto/t2.mod
 
 $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 	$(MAKE) gm2/pge$(exeext)

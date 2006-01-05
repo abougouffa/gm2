@@ -7,7 +7,6 @@
 *  port GM2 to the latest version of GCC
 *  introduce shared library support [Iztok]
 *  fix bugs in h2def
-*  implement module priorities using System.TurnInterrupts maybe
 *  fix bug in varient record found in SysVec.mod
 *  fix bug (no export qualified leads to unqualified assembler names)
 *  finish documentation (p2, p3, p4 description) and scope behaviour
@@ -15,6 +14,5 @@
 *  complete implementation of the following Logitech-3.0 libraries:
    BitBlockOps, BitByteOps, BitWordOps, BlockOps, Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage, FileSystem,
-   LogiFile, NumberConversion, Options, Processes, SimpleTerm,
-   Timedate.
+   LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 

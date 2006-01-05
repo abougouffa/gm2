@@ -1,3 +1,9 @@
+2006-01-05	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/Make-lang.in: removed GM2_DIRS from the dependancies of
+	  various rules, which in turn removed a number of "build loops"
+	* gm2/config-lang.in: removed reference to gm2/p2c/p2c-src/examples/Makefile 
+	
 2006-01-04	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* implemented module priorities.
