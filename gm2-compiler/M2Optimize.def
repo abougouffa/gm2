@@ -43,7 +43,7 @@ PROCEDURE FoldBranches (start, end: CARDINAL) ;
                       by the quadruples.
 *)
 
-PROCEDURE RemoveProcedures ;
+PROCEDURE RemoveProcedures (scope: CARDINAL) ;
 
 
 END M2Optimize.

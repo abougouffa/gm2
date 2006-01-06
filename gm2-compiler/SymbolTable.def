@@ -199,6 +199,8 @@ EXPORT QUALIFIED NulSym,
                  GetOptArgInit,
                  PutPriority,
                  GetPriority,
+                 PutNeedSavePriority,
+                 GetNeedSavePriority,
 
                  NoOfElements,
                  NoOfParam,
@@ -553,6 +555,22 @@ PROCEDURE PutPriority (module: CARDINAL; priority: CARDINAL) ;
 *)
 
 PROCEDURE GetPriority (module: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutNeedSavePriority - set a boolean flag indicating that this procedure
+                         needs to save and restore interrupts.
+*)
+
+PROCEDURE PutNeedSavePriority (sym: CARDINAL) ;
+
+
+(*
+   GetNeedSavePriority - returns the boolean flag indicating whether this procedure
+                         needs to save and restore interrupts.
+*)
+
+PROCEDURE GetNeedSavePriority (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

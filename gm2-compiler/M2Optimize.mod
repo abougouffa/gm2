@@ -35,18 +35,22 @@ FROM NumberIO IMPORT WriteCard ;
 FROM M2Error IMPORT InternalError, NewError, ErrorFormat0 ;
 FROM M2Batch IMPORT GetModuleNo ;
 FROM M2Quiet IMPORT qprintf1 ;
+FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 
 FROM SymbolTable IMPORT GetSymName,
                         GetProcedureQuads, GetModuleQuads,
                         GetModule, GetNthProcedure,
-                        GetSubrange,
+                        GetSubrange, GetModuleScope,
                         PutProcedureReachable, IsProcedureReachable,
                         PutProcedureStartQuad, PutProcedureEndQuad,
                         PutProcedureScopeQuad,
-                        IsProcedure,
+                        PutNeedSavePriority,
+                        IsProcedure, GetPriority,
                         GetDeclared, GetFirstUsed,
                         GetType,
-                        IsExportQualified, IsExportUnQualified,
+                        IsExportQualified, IsExportUnQualified, IsExported,
+                        ForeachProcedureDo, ForeachInnerModuleDo,
+                        IsModuleWithinProcedure,
                         NulSym ;
 
 FROM M2Quads IMPORT QuadOperator, Head, GetQuad, GetNextQuad, PutQuad, SubQuad,
@@ -68,7 +72,7 @@ PROCEDURE ReduceGoto (CurrentQuad, CurrentOperand3, NextQuad: CARDINAL;
 PROCEDURE KnownReachableInitCode(Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE MakeExportedProceduresReachable ; FORWARD ;
 PROCEDURE KnownReachable (Start, End: CARDINAL) ; FORWARD ;
-PROCEDURE KnownReach (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE KnownReach (sym: CARDINAL) ; FORWARD ;
 PROCEDURE Delete (Start, End: CARDINAL) ; FORWARD ;
 PROCEDURE DeleteUnReachableProcedures ; FORWARD ;
    %%%FORWARD%%% *)
@@ -294,129 +298,59 @@ END FoldMultipleGoto ;
 
 
 (*
+   CheckNeedSavePriority - 
+*)
+
+PROCEDURE CheckNeedSavePriority (sym: CARDINAL) ;
+BEGIN
+   IF IsProcedure(sym) AND (GetPriority(GetModuleScope(sym))#NulSym)
+   THEN
+      PutNeedSavePriority(sym)
+   END
+END CheckNeedSavePriority ;
+
+
+(*
+   CheckExportedReachable - checks to see whether procedure, sym, was
+                            exported and if so it calls RemoveProcedures.
+*)
+
+PROCEDURE CheckExportedReachable (sym: CARDINAL) ;
+BEGIN
+   IF IsExported(GetModuleScope(sym), sym)
+   THEN
+      RemoveProcedures(sym) ;
+      CheckNeedSavePriority(sym)
+   END
+END CheckExportedReachable ;
+
+
+(*
    RemoveProcedures - removes any procedures that are never referenced
                       by the quadruples.
 *)
 
-PROCEDURE RemoveProcedures ;
+PROCEDURE RemoveProcedures (scope: CARDINAL) ;
 VAR
-   Start,
-   End   : CARDINAL ;
-   n,
-   Module: CARDINAL ;
+   sb: ScopeBlock ;
 BEGIN
-   (* DisplayReachable ; *)
-   n := 1 ;
-   REPEAT
-      Module := GetModuleNo(n) ;
-      (* Should be at least one module *)
-      IF Module#NulSym
-      THEN
-         (* WriteString('Module ') ; WriteKey(GetSymName(Module)) ; *)
-         GetModuleQuads(Module, Start, End) ;
-         IF Start#End
-         THEN
-            (* Module does have some initialization code *)
-            (*
-            WriteString(' has initialization code  ') ;
-            WriteCard(Start, 0) ; WriteString('..') ; WriteCard(End, 0) ;
-            WriteLn ;
-            *)
-            KnownReachableInitCode(Start, End)
-         ELSE
-            (* WriteString(' has no initialization code') ; WriteLn *)
-         END ;
-         INC(n)
-      END
-   UNTIL Module=NulSym ;
-   MakeExportedProceduresReachable ;
-   DeleteUnReachableProcedures
-END RemoveProcedures ;
-
-
-(*
-   MakeExportedProceduresReachable - make all exported procedures
-                                     reachable
-*)
-
-PROCEDURE MakeExportedProceduresReachable ;
-VAR
-   Scope,
-   Start,
-   End,
-   n, m,
-   Module,
-   Proc  : CARDINAL ;
-BEGIN
-   m := 1 ;
-   REPEAT
-      Module := GetModuleNo(m) ;
-      IF Module#NulSym
-      THEN
-         n := 1 ;
-         Proc := GetNthProcedure(Module, n) ;
-         WHILE Proc#NulSym DO
-            IF (IsExportQualified(Proc) OR IsExportUnQualified(Proc)) AND
-               (NOT IsProcedureReachable(Proc))
-            THEN
-               PutProcedureReachable(Proc) ;
-               GetProcedureQuads(Proc, Scope, Start, End) ;
-               KnownReachable(Start, End)
-            END ;
-            INC(n) ;
-            Proc := GetNthProcedure(Module, n)
-         END ;
-         INC(m)
-      END
-   UNTIL Module=NulSym
-END MakeExportedProceduresReachable ;
-
-
-(*
-   KnownReachableInitCode - All quadruples between "Start..End-1" and
-                            non procedural code are reachable.
-*)
-
-PROCEDURE KnownReachableInitCode(Start, End: CARDINAL) ;
-VAR
-   Op           : QuadOperator ;
-   Op1, Op2, Op3: CARDINAL ;
-BEGIN
-   IF Start#0
+   sb := InitScopeBlock(scope) ;
+   IF IsProcedure(scope)
    THEN
-      REPEAT
-         GetQuad(Start, Op, Op1, Op2, Op3) ;
-         IF Op=NewLocalVarOp
-         THEN
-            (* Skip all procedural code of a Modules Initialization Code *)
-            REPEAT
-               Start := GetNextQuad(Start) ;
-               GetQuad(Start, Op, Op1, Op2, Op3)
-            UNTIL (Start=End) OR (Op=ReturnOp)
-         ELSE
-            (* Can be sure that quads are at a base level Zero, outside procedures *)
-            CASE Op OF
-
-            AddrOp,
-            CallOp,
-            ParamOp,
-            XIndrOp,
-            BecomesOp: KnownReach(Op3)
-
-            ELSE
-            END ;
-            IF Op=DummyOp
-            THEN
-               (* Start been deleted therefore just increment *)
-               INC(Start)
-            ELSE
-               (* Follow the quad list *)
-               Start := GetNextQuad(Start)
-            END
-         END
-      UNTIL Start=End
-   END
-END KnownReachableInitCode ;
+      PutProcedureReachable(scope) ;
+      ForeachScopeBlockDo(sb, KnownReachable)
+   ELSIF IsModuleWithinProcedure(scope)
+   THEN
+      ForeachScopeBlockDo(sb, KnownReachable) ;
+      ForeachProcedureDo(scope, CheckExportedReachable)
+   ELSE
+      ForeachScopeBlockDo(sb, KnownReachable) ;
+      ForeachProcedureDo(scope, CheckExportedReachable)
+   END ;
+   ForeachInnerModuleDo(scope, RemoveProcedures) ;
+   sb := KillScopeBlock(sb) ;
+   (* DeleteUnReachableProcedures *)
+END RemoveProcedures ;  
 
 
 PROCEDURE KnownReachable (Start, End: CARDINAL) ;
@@ -430,42 +364,26 @@ BEGIN
          GetQuad(Start, Op, Op1, Op2, Op3) ;
          CASE Op OF
 
+         CallOp   : KnownReach(Op3) |
          AddrOp,
-         CallOp,
          ParamOp,
          XIndrOp,
-         BecomesOp: KnownReach(Op3)
+         BecomesOp: KnownReach(Op3) ;
+                    CheckNeedSavePriority(Op3)
 
          ELSE
          END ;
-         IF Op=DummyOp
-         THEN
-            (* Start been deleted therefore just increment *)
-            INC(Start)
-         ELSE
-            (* Follow the quad list *)
-            Start := GetNextQuad(Start)
-         END
-      UNTIL Start=End
+         Start := GetNextQuad(Start)
+      UNTIL (Start>End) OR (Start=0)
    END
 END KnownReachable ;
 
 
-PROCEDURE KnownReach (Sym: CARDINAL) ;
-VAR
-   Scope,
-   Start,
-   End  : CARDINAL ;
+PROCEDURE KnownReach (sym: CARDINAL) ;
 BEGIN
-   IF IsProcedure(Sym)
+   IF IsProcedure(sym) AND (NOT IsProcedureReachable(sym))
    THEN
-      IF NOT IsProcedureReachable(Sym)
-      THEN
-         (* Not reachable at present - therefore make it reachable *)
-         PutProcedureReachable(Sym) ;
-         GetProcedureQuads(Sym, Scope, Start, End) ;
-         KnownReachable(Start, End)
-      END
+      RemoveProcedures(sym)
    END
 END KnownReach ;
 

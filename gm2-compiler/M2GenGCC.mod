@@ -38,7 +38,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetLocalSym, GetVarWritten,
                         GetVarient,
                         NoOfParam, GetScope, GetParent,
-                        IsModule, IsType, IsModuleWithinProcedure,
+                        IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
                         IsProcedureNested,
@@ -63,7 +63,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetRegInterface,
                         GetProcedureQuads,
                         GetProcedureBuiltin,
-                        GetPriority,
+                        GetPriority, GetNeedSavePriority,
                         PutConstString,
                         PutConst, PutConstSet,
                         NulSym ;
@@ -397,9 +397,8 @@ PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
 PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeGetModulePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldGetModulePriority (tokenno: CARDINAL; l: List;
-                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -517,8 +516,8 @@ BEGIN
    CoerceOp           : CodeCoerce(q, op1, op2, op3) |
    CastOp             : CodeCast(q, op1, op2, op3) |
    StandardFunctionOp : CodeStandardFunction(q, op1, op2, op3) |
-   SetModulePriorityOp: |
-   GetModulePriorityOp: CodeGetModulePriority(q, op1, op2, op3) |
+   SavePriorityOp     : CodeSavePriority(q, op1, op2, op3) |
+   RestorePriorityOp  : CodeRestorePriority(q, op1, op2, op3) |
 
    InlineOp           : CodeInline(q, op1, op2, op3) |
    LineNumberOp       : CodeLineNumber(q, op1, op2, op3) |
@@ -649,8 +648,7 @@ BEGIN
          IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3) |
          LogicalShiftOp     : FoldSetShift(tokenno, l, quad, op1, op2, op3) |
          LogicalRotateOp    : FoldSetRotate(tokenno, l, quad, op1, op2, op3) |
-         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3) |
-         GetModulePriorityOp: FoldGetModulePriority(tokenno, l, quad, op1, op2, op3)
+         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
@@ -2467,27 +2465,71 @@ END CodeStandardFunction ;
 
 
 (*
-   FoldGetModulePriority - assigns op1 with the value of the module, op3, priority.
+   CodeSavePriority - checks to see whether op2 is reachable and is directly accessible
+                      externally. If so then it saves the current interrupt priority
+                      in op1 and sets the current priority to that determined by
+                      appropriate module.
+
+                      op1 := op3(GetModuleScope(op2))
 *)
 
-PROCEDURE FoldGetModulePriority (tokenno: CARDINAL; l: List;
-                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t  : Tree ;
+   mod: CARDINAL ;
 BEGIN
-   IF IsConst(GetPriority(op3)) AND IsConst(op1)
+   IF IsModule(op2) OR IsDefImp(op2) OR
+      (IsProcedure(op2) AND GetNeedSavePriority(op2))
    THEN
-      FoldBecomes(tokenno, l, quad, op1, op2, GetPriority(op3))
+      IF IsProcedure(op2)
+      THEN
+         mod := GetModuleScope(op2) ;
+      ELSE
+         Assert(IsModule(op2) OR IsDefImp(op2)) ;
+         mod := op2
+      END ;
+      IF GetPriority(mod)#NulSym
+      THEN
+         DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
+         BuildParam(Mod2Gcc(GetPriority(mod))) ;
+         t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+         BuildFunctValue(Mod2Gcc(op1))
+      END
    END
-END FoldGetModulePriority ;
+END CodeSavePriority ;
 
 
 (*
-   CodeGetModulePriority - assigns op1 with the value of the module, op3, priority.
+   CodeRestorePriority - checks to see whether op2 is reachable and is directly accessible
+                         externally. If so then it restores the previous interrupt priority
+                         held in op1.
+
+                         op1 := op3(op1)
 *)
 
-PROCEDURE CodeGetModulePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t  : Tree ;
+   mod: CARDINAL ;
 BEGIN
-   CodeBecomes(quad, op1, op2, GetPriority(op3))
-END CodeGetModulePriority ;
+   IF IsModule(op2) OR IsDefImp(op2) OR
+      (IsProcedure(op2) AND GetNeedSavePriority(op2))
+   THEN
+      IF IsProcedure(op2)
+      THEN
+         mod := GetModuleScope(op2) ;
+      ELSE
+         Assert(IsModule(op2) OR IsDefImp(op2)) ;
+         mod := op2
+      END ;
+      IF GetPriority(mod)#NulSym
+      THEN
+         BuildParam(Mod2Gcc(op1)) ;
+         t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+         BuildFunctValue(Mod2Gcc(op1))
+      END
+   END
+END CodeRestorePriority ;
 
 
 (*

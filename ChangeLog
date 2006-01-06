@@ -1,3 +1,12 @@
+2006-01-06	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* improved implementation of module priorities so that
+	  only externally accessible procedures save and restore
+	  interrupts.
+	* added testsuite/gm2/pimlib/coroutines/pass/priority3.mod and
+          testsuite/gm2/pimlib/coroutines/pass/priority3.def to test exporting
+	  of procedures which need to save and restore interrupt priorities.
+
 2006-01-05	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* gm2/Make-lang.in: removed GM2_DIRS from the dependancies of
@@ -14,12 +23,9 @@
 	* included TimeDate to be installed as part of the pim
 	  libraries.
 
-2006-01-03	 Gaius Mulley <gaius@glam.ac.uk>
-
-	* fixed typo in gm2/gm2.texi
-	
 2006-01-03	 Michael H Lambert <lambert@psc.edu>
 
+	* fixed typo in gm2/gm2.texi
 	* added __ppc__ ifdefs into testsuite/gm2/iso/pass/realbitscast.mod
           so that it ignores the REAL96 test on the G5
 	* added __ppc__ ifdefs into testsuite/gm2/switches/pim4/run/pass/FpuIOBug.mod

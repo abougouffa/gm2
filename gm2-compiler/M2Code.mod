@@ -166,7 +166,8 @@ BEGIN
    InitGlobalContext ;
    InitDeclarations ;
 
-   
+   RemoveProcedures(GetMainModule()) ;
+
    StartDeclareScope(GetMainModule()) ;
    CodeBlock(GetMainModule()) ;
 
@@ -190,15 +191,6 @@ BEGIN
    FoldBranches(start, end) ;
    Jump := Count - CountQuads(Head) ;
    Count := CountQuads(Head) ;
-
-   IF OptimizeUncalledProcedures
-   THEN
-      RemoveProcedures ;
-      bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
-
-      Proc := Count - CountQuads(Head) ;
-      Count := CountQuads(Head)
-   END
 END InitialDeclareAndOptimize ;
 
 
@@ -228,15 +220,6 @@ BEGIN
       bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
       INC(DeltaBasicB, Count - CountQuads(Head)) ;
       Count := CountQuads(Head) ;
-
-      IF OptimizeUncalledProcedures
-      THEN
-         bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
-         RemoveProcedures ;
-
-         DeltaProc := Count - CountQuads(Head) ;
-         Count := CountQuads(Head)
-      END ;
 
       IF FALSE AND OptimizeCommonSubExpressions
       THEN

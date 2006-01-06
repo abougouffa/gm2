@@ -1461,14 +1461,7 @@ BEGIN
          old := MakeTemporary(RightValue) ;
          PutVar(old, Cardinal) ;
 
-         PushTF(ProcSym, Cardinal) ;
-         PushT(GetPriority(module)) ;
-         PushT(1) ;
-         BuildFunctionCall ;
-         PopT(return) ;
-         PushT(old) ;
-         PushT(return) ;
-         BuildAssignment ;
+         GenQuad(SavePriorityOp, old, scope, ProcSym) ;
          PushWord(PriorityStack, old)
       END
    END
@@ -1484,7 +1477,7 @@ END CheckNeedPriorityBegin ;
 
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ;
 VAR
-   ProcSym, old, return: CARDINAL ;
+   ProcSym, old: CARDINAL ;
 BEGIN
    IF GetPriority(module)#NulSym
    THEN
@@ -1493,14 +1486,7 @@ BEGIN
       IF ProcSym#NulSym
       THEN
          old := PopWord(PriorityStack) ;
-         PushTF(ProcSym, Cardinal) ;
-         PushT(old) ;
-         PushT(1) ;
-         BuildFunctionCall ;
-         PopT(return) ;
-         PushT(old) ;
-         PushT(return) ;
-         BuildAssignment
+         GenQuad(RestorePriorityOp, old, scope, ProcSym)
       END
    END
 END CheckNeedPriorityEnd ;
@@ -1691,35 +1677,8 @@ VAR
    Priority: CARDINAL ;
 BEGIN
    PopT(Priority) ;
-   GenQuad(SetModulePriorityOp, GetCurrentModule(), NulSym, Priority) ;
    PutPriority(GetCurrentModule(), Priority)
 END BuildModulePriority ;
-
-
-(*
-   CollectModulePriority - assigns a variable with the current module priority.
-
-                           Entry                   Exit
-                           =====                   ====
-
-                    Empty                                         <- Ptr
-                                                   +------------+
-                                                   | ConstVar   |
-                                                   |------------|
-
-                    Quadruples:
-
-                           GetModulePriorityOp  Var   _   ModulePriority
-*)
-
-PROCEDURE CollectModulePriority ;
-VAR
-   Var: CARDINAL ;
-BEGIN
-   Var := MakeTemporary(ImmediateValue) ;
-   GenQuad(GetModulePriorityOp, Var, NulSym, GetCurrentModule()) ;
-   PushT(Var)
-END CollectModulePriority ;
 
 
 (*
@@ -10350,8 +10309,8 @@ BEGIN
       printf1('  [%d]    ', NoOfTimesReferenced) ;
       CASE Operator OF
 
-      SetModulePriorityOp,
-      GetModulePriorityOp,
+      SavePriorityOp,
+      RestorePriorityOp,
       SubrangeLowOp,
       SubrangeHighOp,
       BecomesOp,
@@ -10528,8 +10487,8 @@ BEGIN
    LineNumberOp             : printf0('LineNumber        ') |
    BuiltinConstOp           : printf0('BuiltinConst      ') |
    StandardFunctionOp       : printf0('StandardFunction  ') |
-   SetModulePriorityOp      : printf0('SetModulePriority ') |
-   GetModulePriorityOp      : printf0('GetModulePriority ')
+   SavePriorityOp           : printf0('SavePriority      ') |
+   RestorePriorityOp        : printf0('RestorePriority   ')
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)

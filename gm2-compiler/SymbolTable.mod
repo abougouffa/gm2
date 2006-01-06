@@ -242,6 +242,8 @@ TYPE
                Reachable     : BOOLEAN ;    (* Defines if procedure will     *)
                                             (* ever be called by the main    *)
                                             (* Module.                       *)
+               SavePriority  : BOOLEAN ;    (* Does procedure need to save   *)
+                                            (* and restore interrupts?       *)
                ReturnType    : CARDINAL ;   (* Return type for function.     *)
                Offset        : CARDINAL ;   (* Location of procedure used    *)
                                             (* in Pass 2 and if procedure    *)
@@ -2526,6 +2528,8 @@ BEGIN
             EndQuad := 0 ;
             Reachable := FALSE ;         (* Procedure not known to be     *)
                                          (* reachable.                    *)
+            SavePriority := FALSE ;      (* Does procedure need to save   *)
+                                         (* and restore interrupts?       *)
             ReturnType := NulSym ;       (* Not a function yet!           *)
             Offset := 0 ;                (* Location of procedure.        *)
             InitTree(LocalSymbols) ;
@@ -3119,6 +3123,44 @@ BEGIN
       END
    END
 END GetPriority ;
+
+
+(*
+   PutNeedSavePriority - set a boolean flag indicating that this procedure
+                         needs to save and restore interrupts.
+*)
+
+PROCEDURE PutNeedSavePriority (sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.SavePriority := TRUE
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutNeedSavePriority ;
+
+
+(*
+   GetNeedSavePriority - returns the boolean flag indicating whether this procedure
+                         needs to save and restore interrupts.
+*)
+
+PROCEDURE GetNeedSavePriority (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: RETURN( Procedure.SavePriority )
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END GetNeedSavePriority ;
 
 
 (*
