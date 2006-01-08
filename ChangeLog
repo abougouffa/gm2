@@ -1,3 +1,7 @@
+2006-01-08	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* modified examples to utilize the module priority mechanism.
+
 2006-01-06	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* improved implementation of module priorities so that
