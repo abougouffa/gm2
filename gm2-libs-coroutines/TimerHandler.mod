@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 
-IMPLEMENTATION MODULE TimerHandler ;
+IMPLEMENTATION MODULE TimerHandler[MAX(PRIORITY)] ;
 
 
 FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
@@ -74,9 +74,9 @@ VAR
    ToOldState : PRIORITY ;
    CopyOfTicks: CARDINAL ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(*   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *) *)
    CopyOfTicks := TotalTicks ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(*   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( CopyOfTicks )
 END GetTicks ;
 
@@ -90,14 +90,14 @@ PROCEDURE Sleep (t: CARDINAL) ;
 VAR
    ToOldState  : PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;               (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;               (* disable interrupts *) *)
 
    (* your code needs to go here *)
    IF WaitOn(ArmEvent(t))                            (* remove for student *)
    THEN                                              (* remove for student *)
    END ;                                             (* remove for student *)
 
-   ToOldState := TurnInterrupts(ToOldState)          (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)          (* restore interrupts *) *)
 END Sleep ;
  
  
@@ -119,7 +119,7 @@ VAR
    ToOldState: PRIORITY ;
    Ticks     : CARDINAL ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    e := CreateSolo() ;
 
    (* your code needs to go here *)
@@ -131,7 +131,7 @@ BEGIN
       WasCancelled := FALSE ;       (* has not been cancelled               *)      (* remove for student *)
    END ;                                                                            (* remove for student *)
 
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( e )
 END ArmEvent ;
 
@@ -149,7 +149,7 @@ VAR
    ToOldState: PRIORITY ;
    Cancelled : BOOLEAN ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    IF e=NIL
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -178,7 +178,7 @@ BEGIN
       END
    END ;
    OnDeadQueue(e) ;              (* now it is safe to throw this event away *)
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( Cancelled )
 END WaitOn ;
 
@@ -197,7 +197,7 @@ VAR
    Cancelled : BOOLEAN ;
    Private   : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    IF IsOnActiveQueue(e)
    THEN
       WITH e^ DO
@@ -224,7 +224,7 @@ BEGIN
    ELSE
       Cancelled := FALSE
    END ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( Cancelled )
 END Cancel ;
 
@@ -242,7 +242,7 @@ VAR
    ToOldState: PRIORITY ;
    ReArmed   : BOOLEAN ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    WITH e^ DO
       IF WasCancelled
       THEN
@@ -258,7 +258,7 @@ BEGIN
               'ReArm should not be asked to ReArm a dead event')
       END
    END ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( ReArmed )
 END ReArmEvent ;
 
@@ -304,7 +304,7 @@ VAR
    TimerIntNo  : CARDINAL ;
    r           : INTEGER ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
    ScrollLED := FALSE ;
    TimerIntNo := InitTimeVector(BaseTicks DIV TicksPerSecond, 0,
                                 MAX(PRIORITY)) ;

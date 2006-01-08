@@ -77,7 +77,7 @@ FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, Err
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim ;
 
-FROM M2Printf IMPORT printf0, printf2, printf4 ;
+FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
@@ -2477,6 +2477,7 @@ PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t  : Tree ;
    mod: CARDINAL ;
+   n1 : Name ;
 BEGIN
    IF IsModule(op2) OR IsDefImp(op2) OR
       (IsProcedure(op2) AND GetNeedSavePriority(op2))
@@ -2490,6 +2491,8 @@ BEGIN
       END ;
       IF GetPriority(mod)#NulSym
       THEN
+         n1 := GetSymName(op2) ;
+         printf1('procedure <%a> needs to save interrupts\n', n1) ;
          DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
          BuildParam(Mod2Gcc(GetPriority(mod))) ;
          t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
@@ -2511,6 +2514,7 @@ PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t  : Tree ;
    mod: CARDINAL ;
+   n1 : Name ;
 BEGIN
    IF IsModule(op2) OR IsDefImp(op2) OR
       (IsProcedure(op2) AND GetNeedSavePriority(op2))
@@ -2524,6 +2528,8 @@ BEGIN
       END ;
       IF GetPriority(mod)#NulSym
       THEN
+         n1 := GetSymName(op2) ;
+         printf1('procedure <%a> needs to restore interrupts\n', n1) ;
          BuildParam(Mod2Gcc(op1)) ;
          t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
          BuildFunctValue(Mod2Gcc(op1))

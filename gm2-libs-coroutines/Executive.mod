@@ -15,7 +15,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
 
-IMPLEMENTATION MODULE Executive ;
+IMPLEMENTATION MODULE Executive[MAX(PRIORITY)] ;
 
 
 FROM SYSTEM IMPORT ADDRESS, PROCESS, LISTEN, ADR,
@@ -117,7 +117,7 @@ VAR
    ToOldState: PRIORITY ;
    db        : ARRAY [0..80] OF CHAR ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    NEW(d) ;
    WITH d^ DO
       Size        := StackSize ;
@@ -133,7 +133,7 @@ BEGIN
       RunPriority := lo ;        (* all processes start off at lo priority  *)
       Debugged    := FALSE ;     (* no need to debug deadlock yet!          *)
    END ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( d )                   (* and return a descriptor to the caller   *)
 END InitProcess ;
 
@@ -150,12 +150,12 @@ PROCEDURE KillProcess ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;    (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;    (* disable interrupts *) *)
    SubFromReady(CurrentProcess) ;
    SubFromExists(ExistsQueue, CurrentProcess) ;
    GarbageItem := CurrentProcess ;
    Reschedule ;
-   ToOldState := TurnInterrupts(ToOldState)         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)         (* restore interrupts *) *)
 END KillProcess ;
 
 
@@ -168,7 +168,7 @@ PROCEDURE Resume (d: DESCRIPTOR) : DESCRIPTOR ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
 
    (* your code needs to go here *)
    WITH d^ DO                                                                  (* remove for student *)
@@ -186,7 +186,7 @@ BEGIN
          RETURN( NIL )        (* not held in a Suspended state - error      *) (* remove for student *)
       END                                                                      (* remove for student *)
    END ;                                                                       (* remove for student *)
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( d )
 END Resume ;
 
@@ -201,13 +201,13 @@ PROCEDURE Suspend ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    WITH CurrentProcess^ DO
       Status := Suspended
    END ;
    SubFromReady(CurrentProcess) ;
    Reschedule ;
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END Suspend ;
 
 
@@ -221,7 +221,7 @@ VAR
    s         : SEMAPHORE ;
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    NEW(s) ;
    WITH s^ DO
       Value := v ;                  (* initial value of semaphore           *)
@@ -229,7 +229,7 @@ BEGIN
       Who := NIL ;                  (* no one waiting on this semaphore yet *)
       AddToSemaphoreExists(s) ;     (* add semaphore to exists list         *)
    END ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( s )
 END InitSemaphore ;
 
@@ -245,7 +245,7 @@ PROCEDURE Wait (s: SEMAPHORE) ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
 
    (* your code needs to go here *)
    WITH s^ DO                                                                  (* remove for student *)
@@ -265,7 +265,7 @@ BEGIN
          Reschedule                                   (* find next process  *) (* remove for student *)
       END                                                                      (* remove for student *)
    END ;                                                                       (* remove for student *)
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END Wait ;
 
 
@@ -280,7 +280,7 @@ VAR
    ToOldState: PRIORITY ;
    d         : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    WITH s^ DO
       IF Who=NIL
       THEN
@@ -294,7 +294,7 @@ BEGIN
                                         (* higher priority to run.          *)
       END
    END ;
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END Signal ;
 
 
@@ -309,7 +309,7 @@ VAR
    ToOldState: PRIORITY ;
    r         : INTEGER ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
 (*
    DebugString('inside WaitForIO ') ;
    DebugString(CurrentProcess^.RunName) ;
@@ -355,7 +355,7 @@ BEGIN
    DebugString(' finishing WaitForIO\n') ;
 *)
 
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END WaitForIO ;
 
 
@@ -370,7 +370,7 @@ VAR
    s         : SEMAPHORE ;
    a         : ARRAY [0..5] OF CHAR ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    p := ExistsQueue ;
    IF p#NIL
    THEN
@@ -393,7 +393,7 @@ BEGIN
          s := s^.ExistsQ.Right
       UNTIL s=AllSemaphores
    END ;
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END Ps ;
 
 
@@ -452,9 +452,9 @@ VAR
    ToOldState: PRIORITY ;
    p         : DESCRIPTOR ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *) *)
    p := CurrentProcess ;
-   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( p )
 END GetCurrentProcess ;
 
@@ -467,7 +467,7 @@ PROCEDURE RotateRunQueue ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *)
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
    (* we only need to rotate the lo priority processes as:
       idle - should only have one process (the idle process)
       hi   - are the device drivers which most of the time are performing
@@ -477,7 +477,7 @@ BEGIN
    THEN
       RunQueue[lo] := RunQueue[lo]^.ReadyQ.Right
    END ;
-   ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *)
+(* ToOldState := TurnInterrupts(ToOldState)           (* restore interrupts *) *)
 END RotateRunQueue ;
 
 
@@ -500,7 +500,7 @@ PROCEDURE DebugProcess (d: DESCRIPTOR) ;
 VAR
    ToOldState: PRIORITY ;
 BEGIN
-   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;
+(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
    WITH d^ DO
       IF Status=WaitOnSem
       THEN
@@ -520,7 +520,7 @@ BEGIN
          DebugString(') which are waiting on a semaphore\n')
       END
    END ;
-   ToOldState := TurnInterrupts(ToOldState)
+(* ToOldState := TurnInterrupts(ToOldState) *)
 END DebugProcess ;
 
 
@@ -860,6 +860,7 @@ END Idle ;
                      The Idle process should be the only process which
                      has the priority idle.
 *)
+
 VAR
    IdleProcess: DESCRIPTOR ;              (* Idle process always runnable  *)
 
