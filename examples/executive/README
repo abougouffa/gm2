@@ -25,6 +25,11 @@ contineously. Any keyboard input will cause the third window (process)
 to display text. 'p' displays a simple process status.  Type ^C to
 terminate this example.
 
+  ./testexecutive
+
+creates two processes and context switches between them. Type ^C to
+terminate this example.
+
 Overview
 ========
 
