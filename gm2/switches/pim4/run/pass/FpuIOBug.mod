@@ -26,7 +26,7 @@ MODULE FpuIOBug;
 FROM StringConvert IMPORT LongIntegerToString ;
 FROM DynamicStrings IMPORT String, InitString, EqualArray, KillString, string ;
 FROM libc IMPORT exit, printf ;
-FROM SYSTEM IMPORT ADR ;
+FROM SYSTEM IMPORT ADR, TSIZE ;
 
 
 PROCEDURE Assert (v: BOOLEAN; f: ARRAY OF CHAR; l: CARDINAL; e: ARRAY OF CHAR) ;
@@ -57,32 +57,41 @@ BEGIN
 
    s := WriteLongInt(MAX(LONGINT), 0) ;
    r := printf('result of MAX(LONGINT) = %s\n', string(s)) ;
-#if defined(__ppc__)
-   Assert(EqualArray(s, '2147483647'), __FILE__, __LINE__,
-#else
-   Assert(EqualArray(s, '9223372036854775807'), __FILE__, __LINE__,
-#endif
-          'MAX(LONGINT) in LongIntegerToString') ;
+   IF TSIZE(LONGINT)=4
+   THEN
+      Assert(EqualArray(s, '2147483647'), __FILE__, __LINE__,
+             'MAX(LONGINT) in LongIntegerToString')
+   ELSE
+      Assert(EqualArray(s, '9223372036854775807'), __FILE__, __LINE__,
+             'MAX(LONGINT) in LongIntegerToString')
+   END ;
+
    s := KillString(s) ;
 
    s := WriteLongInt(MIN(LONGINT), 0) ;
    r := printf('result of MIN(LONGINT) = %s\n', string(s)) ;
-#if defined(__ppc__)
-   Assert(EqualArray(s, '-2147483648'), __FILE__, __LINE__,
-#else
-   Assert(EqualArray(s, '-9223372036854775808'), __FILE__, __LINE__,
-#endif
-          'MIN(LONGINT) in LongIntegerToString') ;
+   IF TSIZE(LONGINT)=4
+   THEN
+      Assert(EqualArray(s, '-2147483648'), __FILE__, __LINE__,
+             'MIN(LONGINT) in LongIntegerToString')
+   ELSE
+      Assert(EqualArray(s, '-9223372036854775808'), __FILE__, __LINE__,
+             'MIN(LONGINT) in LongIntegerToString')
+   END ;
+
    s := KillString(s) ;
 
    s := WriteLongInt(MIN(LONGINT)+1, 0) ;
    r := printf('result of MIN(LONGINT)+1 = %s\n', string(s)) ;
-#if defined(__ppc__)
-   Assert(EqualArray(s, '-2147483647'), __FILE__, __LINE__,
-#else
-   Assert(EqualArray(s, '-9223372036854775807'), __FILE__, __LINE__,
-#endif
-          'MIN(LONGINT)+1 in itos') ;
+   IF TSIZE(LONGINT)=4
+   THEN
+      Assert(EqualArray(s, '-2147483647'), __FILE__, __LINE__,
+             'MIN(LONGINT)+1 in itos')
+   ELSE
+      Assert(EqualArray(s, '-9223372036854775807'), __FILE__, __LINE__,
+             'MIN(LONGINT)+1 in itos')
+   END ;
+
    s := KillString(s) ;
    exit(res)
 END FpuIOBug.
