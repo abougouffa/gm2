@@ -1,3 +1,10 @@
+2006-01-09	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed LONGINT/LONGCARD bugs so that
+	  testsuite/gm2/switches/pim4/run/pass/FpuIOBug.mod now passes.
+	  LONGINT and LONGCARD are declared as long long int and
+	  long long unsigned int respectively.
+
 2006-01-08	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* modified examples to utilize the module priority mechanism.

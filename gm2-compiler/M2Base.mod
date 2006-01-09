@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2Base ;
 
 (*
@@ -67,12 +68,13 @@ FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
-FROM gccgm2 IMPORT GetSizeOf, GetIntegerType, GetM2CharType,
+FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
+                   GetM2IntegerType, GetM2CharType,
                    GetMaxFrom, GetMinFrom, GetRealType,
-                   GetLongIntType, GetLongRealType, GetProcType,
+                   GetM2LongIntType, GetLongRealType, GetProcType,
                    GetM2ShortRealType, GetM2RealType,
                    GetM2LongRealType, GetM2LongCardType,
-                   GetShortIntType, GetM2ShortCardType,
+                   GetM2ShortIntType, GetM2ShortCardType,
                    GetM2CardinalType, GetPointerType, GetWordType,
                    GetByteType, GetISOWordType, GetISOByteType,
                    GetISOLocType ;
@@ -203,7 +205,7 @@ VAR
 BEGIN
    Integer := MakeType(MakeKey('INTEGER')) ;
    PutType(Integer, NulSym) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetIntegerType())) ;
+   PushIntegerTree(GetSizeOf(GetM2IntegerType())) ;
    PopSize(Integer) ;
 
    Zero := MakeConstLit(MakeKey('0')) ;
@@ -217,7 +219,7 @@ BEGIN
 
    LongInt := MakeType(MakeKey('LONGINT')) ;
    PutType(LongInt, NulSym) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetLongIntType())) ;
+   PushIntegerTree(GetSizeOf(GetM2LongIntType())) ;
    PopSize(LongInt) ;
 
    LongCard := MakeType(MakeKey('LONGCARD')) ;
@@ -227,7 +229,7 @@ BEGIN
 
    ShortInt := MakeType(MakeKey('SHORTINT')) ;
    PutType(ShortInt, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetShortIntType())) ;
+   PushIntegerTree(GetSizeOf(GetM2ShortIntType())) ;
    PopSize(ShortInt) ;
 
    ShortCard := MakeType(MakeKey('SHORTCARD')) ;
@@ -284,13 +286,13 @@ BEGIN
 
    (* MinInteger *)
    MinInteger := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetIntegerType())) ;
+   PushIntegerTree(GetMinFrom(GetM2IntegerType())) ;
    PopValue(MinInteger) ;
    PutVar(MinInteger, Integer) ;
 
    (* MaxInteger *)
    MaxInteger := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetIntegerType())) ;
+   PushIntegerTree(GetMaxFrom(GetM2IntegerType())) ;
    PopValue(MaxInteger) ;
    PutVar(MaxInteger, Integer) ;
 
@@ -308,13 +310,13 @@ BEGIN
 
    (* MinLongInt *)
    MinLongInt := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMinFrom(GetLongIntType())) ;
+   PushIntegerTree(GetMinFrom(GetM2LongIntType())) ;
    PopValue(MinLongInt) ;
    PutVar(MinLongInt, LongInt) ;
 
    (* MaxLongInt *)
    MaxLongInt := MakeTemporary(ImmediateValue) ;
-   PushIntegerTree(GetMaxFrom(GetLongIntType())) ;
+   PushIntegerTree(GetMaxFrom(GetM2LongIntType())) ;
    PopValue(MaxLongInt) ;
    PutVar(MaxLongInt, LongInt) ;
 
@@ -1153,9 +1155,9 @@ BEGIN
                 END |
    address  :   PushIntegerTree(GetSizeOf(GetPointerType())) |
    chr      :   PushIntegerTree(GetSizeOf(GetM2CharType())) |
-   normint  :   PushIntegerTree(GetSizeOf(GetIntegerType())) |
-   shortint :   PushIntegerTree(GetSizeOf(GetShortIntType())) |
-   longint  :   PushIntegerTree(GetSizeOf(GetLongIntType())) |
+   normint  :   PushIntegerTree(GetSizeOf(GetM2IntegerType())) |
+   shortint :   PushIntegerTree(GetSizeOf(GetM2ShortIntType())) |
+   longint  :   PushIntegerTree(GetSizeOf(GetM2LongIntType())) |
    normcard :   PushIntegerTree(GetSizeOf(GetM2CardinalType())) |
    shortcard:   PushIntegerTree(GetSizeOf(GetM2ShortCardType())) |
    longcard :   PushIntegerTree(GetSizeOf(GetM2LongCardType())) |

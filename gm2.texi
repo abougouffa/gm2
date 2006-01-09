@@ -478,10 +478,10 @@ An equivalence table is given below:
 GNU Modula-2              GNU C
 ======================================
 INTEGER                   int
-LONGINT                   long int
+LONGINT                   long long int
 SHORTINT                  short int
 CARDINAL                  unsigned int
-LONGCARD                  long unsigned int
+LONGCARD                  long long unsigned int
 SHORTCARD                 short unsigned int
 BOOLEAN                   int
 REAL                      double
