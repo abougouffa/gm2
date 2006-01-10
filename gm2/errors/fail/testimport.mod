@@ -17,6 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE testimport ;
 
 FROM testimport2 IMPORT foo, bar ;
+FROM testimport2 IMPORT bar ;
 
 BEGIN
    foo ;
