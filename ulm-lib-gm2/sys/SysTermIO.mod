@@ -141,8 +141,8 @@ IMPLEMENTATION MODULE SysTermIO;
 
    BEGIN
       IF NOT Ioctl(fd, tcgeta, ctermio) THEN RETURN FALSE END;
-      WITH termio DO
-	 WITH ctermio DO
+      WITH termio DO 
+         WITH ctermio DO
 	    Convert(iflag1, iflag2, inputmodes);
 	    Convert(oflag1, oflag2, outputmodes);
 	    Convert(cflag1, cflag2, controlmodes);
