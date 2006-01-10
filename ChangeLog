@@ -14,6 +14,8 @@
 	* M2GenGCC.mod::CodeRestorePriority: introduced PriorityDebugging and turned
 	  off debugging messages
 	* all regression tests now pass on GNU/Linux i386 (Debian Sarge)
+	* gm2/gm2-compiler/M2Quads.mod::LoopAnalysis:fixed bug in while loop
+	* corrected testsuite/gm2/errors/fail/testimport.mod to include a double import.
 
 2006-01-09	 Gaius Mulley <gaius@glam.ac.uk>
 

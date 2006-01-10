@@ -8201,7 +8201,7 @@ VAR
 BEGIN
    IF Pedantic
    THEN
-      WHILE Current<=End DO
+      WHILE (Current<=End) AND (Current#0) DO
          GetQuad(Current, op, op1, op2, op3) ;
          IF (op=GotoOp) OR IsConditional(Current)
          THEN
