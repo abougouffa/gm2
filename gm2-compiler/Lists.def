@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,8 +22,8 @@ DEFINITION MODULE Lists ;
    Date       : Tue Dec 12 20:53:36 EST 1989
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Provides an unordered list manipulation package.
-   Last update: $Date: 2005/11/21 12:09:52 $
-   Version    : $Revision: 1.4 $
+   Last update: $Date: 2006/01/10 23:51:19 $
+   Version    : $Revision: 1.5 $
 *)
 
 FROM SYSTEM IMPORT WORD ;
