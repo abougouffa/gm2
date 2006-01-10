@@ -719,6 +719,7 @@ static int                    append_m2_digit                             PARAMS
        int                    gccgm2_Overflow                             PARAMS ((tree t));
        tree                   gccgm2_GetM2ZType                           PARAMS ((void));
        tree                   gccgm2_GetM2ZRealType                       PARAMS ((void));
+       tree                   gccgm2_RemoveOverflow                       PARAMS ((tree t));
 
 /* PROTOTYPES: ADD HERE */
 
@@ -7162,7 +7163,7 @@ gccgm2_GetMaxFrom (type)
   if (type == m2_short_real_type_node || type == gccgm2_GetShortRealType())
     return fold (gm2builtins_BuiltInHugeValShort ());
   if (type == ptr_type_node)
-    return fold (gccgm2_BuildSub( gccgm2_GetPointerZero (),
+    return fold (gccgm2_BuildSub (gccgm2_GetPointerZero (),
 				  gccgm2_GetPointerOne (),
 				  FALSE));
 
@@ -9557,9 +9558,9 @@ gccgm2_BuildConvert (op1, op2, checkOverflow)
      int checkOverflow;
 {
   if (checkOverflow)
-    return convert (skip_type_decl (op1), op2);
-  else
     return convert_and_check (skip_type_decl (op1), op2);
+  else
+    return convert (skip_type_decl (op1), op2);
 }
 
 #if 0
@@ -9784,6 +9785,30 @@ gccgm2_TreeOverflow (t)
     return TRUE;
   else
     return FALSE;
+}
+
+/*
+ *  RemoveOverflow - if tree, t, is a constant expression it removes
+ *                   any overflow flag and returns, t.
+ */
+
+tree
+gccgm2_RemoveOverflow (t)
+     tree t;
+{
+  if (TREE_CODE (t) == INTEGER_CST
+      || (TREE_CODE (t) == COMPLEX_CST
+	  && TREE_CODE (TREE_REALPART (t)) == INTEGER_CST)) {
+    TREE_OVERFLOW (t) = 0;
+    TREE_CONSTANT_OVERFLOW (t) = 0;
+  }
+  else if (TREE_CODE (t) == REAL_CST
+	   || (TREE_CODE (t) == COMPLEX_CST
+	       && TREE_CODE (TREE_REALPART (t)) == REAL_CST)) {
+    TREE_OVERFLOW (t) = 0;
+    TREE_CONSTANT_OVERFLOW (t) = 0;
+  }
+  return t;
 }
 
 /*

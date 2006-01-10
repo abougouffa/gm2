@@ -168,14 +168,15 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2ZRealType,
-                   GetBitsPerBitset, GetSizeOfInBits,
+                   GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
                    BuildIntegerConstant, BuildStringConstant,
-                   RememberConstant, FoldAndStrip ;
+                   RememberConstant, FoldAndStrip, RemoveOverflow ;
 
 FROM SYSTEM IMPORT WORD ;
 
 CONST
-   Debugging = FALSE ;
+   Debugging         = FALSE ;
+   PriorityDebugging = FALSE ;
 
 TYPE
    DoProcedure      = PROCEDURE (CARDINAL) ;
@@ -2491,8 +2492,11 @@ BEGIN
       END ;
       IF GetPriority(mod)#NulSym
       THEN
-         n1 := GetSymName(op2) ;
-         printf1('procedure <%a> needs to save interrupts\n', n1) ;
+         IF PriorityDebugging
+         THEN
+            n1 := GetSymName(op2) ;
+            printf1('procedure <%a> needs to save interrupts\n', n1)
+         END ;
          DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
          BuildParam(Mod2Gcc(GetPriority(mod))) ;
          t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
@@ -2528,8 +2532,11 @@ BEGIN
       END ;
       IF GetPriority(mod)#NulSym
       THEN
-         n1 := GetSymName(op2) ;
-         printf1('procedure <%a> needs to restore interrupts\n', n1) ;
+         IF PriorityDebugging
+         THEN
+            n1 := GetSymName(op2) ;
+            printf1('procedure <%a> needs to restore interrupts\n', n1)
+         END ;
          BuildParam(Mod2Gcc(op1)) ;
          t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
          BuildFunctValue(Mod2Gcc(op1))
@@ -3592,7 +3599,7 @@ END AreSubrangesKnown ;
 
 PROCEDURE CalculateBase (array: CARDINAL) : Tree ;
 VAR
-   offset  : Tree ;
+   offset,
    size    : Tree ;
    High,
    Low     : CARDINAL ;
@@ -3606,7 +3613,12 @@ BEGIN
       size     := BuildSize(Mod2Gcc(Subscript), FALSE) ;  (* Size for element *)
       Subrange := SkipType(GetType(Subscript)) ;
       GetSubrange(Subrange, High, Low) ;
-      offset   := BuildSub(offset, BuildMult(size, Mod2Gcc(Low), FALSE), FALSE)
+      offset   := BuildSub(BuildConvert(GetM2ZType(), offset, FALSE),
+                           BuildConvert(GetM2ZType(),
+                                        BuildMult(size, Mod2Gcc(Low), FALSE),
+                                        FALSE),
+                           FALSE) ;
+      offset   := RemoveOverflow(BuildConvert(GetPointerType(), offset, FALSE))
    END ;
    RETURN( offset )
 END CalculateBase ;
@@ -3816,9 +3828,10 @@ BEGIN
                                                          TRUE))) ;
                   PopValue(op1)
                ELSE
+                  (* we let CheckOverflow catch a potential overflow rather than BuildConvert *)
                   PushIntegerTree(FoldAndStrip(BuildConvert(tl,
                                                             PopIntegerTree(),
-                                                            TRUE))) ;
+                                                            FALSE))) ;
                   PopValue(op1) ;
                   PushValue(op1) ;
                   CheckOverflow(tokenno, PopIntegerTree())
@@ -4414,8 +4427,8 @@ BEGIN
    IF CompareTrees(FindSize(settype), FindSize(Word)) <= 0
    THEN
       (* word size sets *)
-      DoJump(BuildEqualTo(BuildConvert(GetIntegerType(), Mod2Gcc(op1), FALSE),
-                          BuildConvert(GetIntegerType(), Mod2Gcc(op2), FALSE)),
+      DoJump(BuildEqualTo(BuildConvert(GetWordType(), Mod2Gcc(op1), FALSE),
+                          BuildConvert(GetWordType(), Mod2Gcc(op2), FALSE)),
              NIL, string(CreateLabelName(op3)))
    ELSE
       falselabel := string(Sprintf1(Mark(InitString('.Lset%dcomp')), quad)) ;

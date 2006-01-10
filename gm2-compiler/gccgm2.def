@@ -115,7 +115,8 @@ EXPORT QUALIFIED Tree,
                  DetermineSizeOfConstant,
                  ToWord,
                  ExpandExpressionStatement,
-                 InitGlobalContext, GarbageCollect, TreeOverflow ;
+                 InitGlobalContext, GarbageCollect, TreeOverflow,
+                 RemoveOverflow ;
 
 
 TYPE
@@ -1226,6 +1227,14 @@ PROCEDURE GarbageCollect ;
 *)
 
 PROCEDURE TreeOverflow (t: Tree) : BOOLEAN ;
+
+
+(*
+   RemoveOverflow - if tree, t, is a constant expression it removes
+                    any overflow flag and returns, t.
+*)
+
+PROCEDURE RemoveOverflow (t: Tree) : Tree ;
 
 
 END gccgm2.

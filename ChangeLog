@@ -1,9 +1,27 @@
+2006-01-10	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* fixed INTEGER, SHORTINT and LONGINT so that they all
+	  call upon gccgm2_GetM2<type> rather than their C counterparts.
+	* fixed constant overflow on 32 bit address architectures when
+	  compiling arrayhuge.mod and arrayhuge2.mod (as reported by
+	  Michael H Lambert <lambert@psc.edu>)
+	* M2Code.mod::Code: call FlushWarnings and FlushErrors after StartDeclareScope
+	  which flushes errors before code generation starts. This fixes
+	  a bug timeout bug in the regression tests reported by
+	  (John B Wallace Jr <wallacjb@enter.net>).
+	* M2GenGCC.mod::CodeSavePriority: introduced PriorityDebugging and turned
+	  off debugging messages
+	* M2GenGCC.mod::CodeRestorePriority: introduced PriorityDebugging and turned
+	  off debugging messages
+	* all regression tests now pass on GNU/Linux i386 (Debian Sarge)
+
 2006-01-09	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed LONGINT/LONGCARD bugs so that
 	  testsuite/gm2/switches/pim4/run/pass/FpuIOBug.mod now passes.
 	  LONGINT and LONGCARD are declared as long long int and
 	  long long unsigned int respectively.
+	* updated gm2/gm2.texi to reflect changes in LONGINT and LONGCARD.
 
 2006-01-08	 Gaius Mulley <gaius@glam.ac.uk>
 

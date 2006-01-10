@@ -56,6 +56,7 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 FROM gccgm2 IMPORT InitGlobalContext ;
+FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 
 
 CONST
@@ -169,6 +170,8 @@ BEGIN
    RemoveProcedures(GetMainModule()) ;
 
    StartDeclareScope(GetMainModule()) ;
+   FlushWarnings ;
+   FlushErrors ;
    CodeBlock(GetMainModule()) ;
 
    OptimizationAnalysis
