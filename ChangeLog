@@ -7,7 +7,7 @@
 	  Michael H Lambert <lambert@psc.edu>)
 	* M2Code.mod::Code: call FlushWarnings and FlushErrors after StartDeclareScope
 	  which flushes errors before code generation starts. This fixes
-	  a bug timeout bug in the regression tests reported by
+	  a timeout bug in the regression tests reported by
 	  (John B Wallace Jr <wallacjb@enter.net>).
 	* M2GenGCC.mod::CodeSavePriority: introduced PriorityDebugging and turned
 	  off debugging messages
