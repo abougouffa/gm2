@@ -1,4 +1,4 @@
-(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -23,6 +23,9 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 (****************************************************************
 $Log: Strings.mod,v $
+Revision 1.3  2006/01/11 00:12:52  gaius
+added 2006 to all Copyright dates
+
 Revision 1.2  2005/11/18 21:54:50  gaius
 fixed Copyright dates and added GPL notices to all files.
 
