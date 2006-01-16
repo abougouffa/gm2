@@ -2,6 +2,7 @@
 
 	* gm2/gccgm2.c: altered INCL, EXCL and bit tests so that they subtract the
 	  low value of the subrange before performing the bit operation.
+	* testsuite/gm2/pim/run/pass/setcritical.mod to test bugfix.
 
 2006-01-10	 Gaius Mulley <gaius@glam.ac.uk>
 
