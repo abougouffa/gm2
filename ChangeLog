@@ -1,3 +1,8 @@
+2006-01-16	 Gaius Mulley <gaius@glam.ac.uk>
+
+	* gm2/gccgm2.c: altered INCL, EXCL and bit tests so that they subtract the
+	  low value of the subrange before performing the bit operation.
+
 2006-01-10	 Gaius Mulley <gaius@glam.ac.uk>
 
 	* fixed INTEGER, SHORTINT and LONGINT so that they all

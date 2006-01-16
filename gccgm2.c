@@ -1,19 +1,3 @@
-/* Copyright (C) 2006 Free Software Foundation, Inc. */
-/* This file is part of GNU Modula-2.
-
-GNU Modula-2 is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
-version.
-
-GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or
-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-for more details.
-
-You should have received a copy of the GNU General Public License along
-with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 /* Copyright (C) 2002, 2003, 2004, 2005, 2006
  * Free Software Foundation, Inc.
  *
@@ -10436,19 +10420,19 @@ gccgm2_BuildIfVarInVar (type, varset, varel, is_lvalue, low, high, label)
      char *label;
 {
   tree size = gccgm2_GetSizeOf (type);
+  /* calculate the index from the first bit, ie bit 0 represents low value */
+  tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
-    do_jump_if_bit (NE_EXPR, get_rvalue (varset, type, is_lvalue), varel, label);
+    do_jump_if_bit (NE_EXPR, get_rvalue (varset, type, is_lvalue), index, label);
   else {
     tree p1               = get_set_address (varset, is_lvalue);
-    /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -10475,19 +10459,21 @@ gccgm2_BuildIfNotVarInVar (type, varset, varel, is_lvalue, low, high, label)
      char *label;
 {
   tree size = gccgm2_GetSizeOf (type);
+  /* calculate the index from the first bit, ie bit 0 represents low value */
+  tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
-    do_jump_if_bit (EQ_EXPR, get_rvalue (varset, type, is_lvalue), varel, label);
+    do_jump_if_bit (EQ_EXPR, get_rvalue (varset, type, is_lvalue), index, label);
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType (), varel, FALSE),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType (), low, FALSE), FALSE);
+
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -11393,23 +11379,25 @@ gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
      tree  low;
 {
   tree size = gccgm2_GetSizeOf (type);
+  /* calculate the index from the first bit, ie bit 0 represents low value */
+  tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (varset, type, is_lvalue),
 			    gccgm2_BuildLogicalAnd (get_rvalue (varset, type, is_lvalue),
-						    gccgm2_BuildSetNegate (gccgm2_BuildLSL (gccgm2_GetWordOne(), varel, FALSE),
+						    gccgm2_BuildSetNegate (gccgm2_BuildLSL (gccgm2_GetWordOne(), index, FALSE),
 									   FALSE),
 						    FALSE));
   else {
     tree p1               = get_set_address (varset, is_lvalue);
     /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
+
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
@@ -11472,22 +11460,22 @@ gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
      tree  low;
 {
   tree size = gccgm2_GetSizeOf (type);
+  /* calculate the index from the first bit, ie bit 0 represents low value */
+  tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
+				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (varset, type, is_lvalue),
 			    gccgm2_BuildLogicalOr (get_rvalue (varset, type, is_lvalue),
-						   gccgm2_BuildLSL (gccgm2_GetWordOne(), varel, FALSE),
+						   gccgm2_BuildLSL (gccgm2_GetWordOne(), index, FALSE),
 						   FALSE));
   else {
     tree p1               = get_set_address (varset, is_lvalue);
-    /* calculate the index from the first bit */
-    tree index_0          = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
-					     gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
     /* which word do we need to fetch? */
-    tree word_index       = gccgm2_BuildDivTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree word_index       = gccgm2_BuildDivTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
     /* calculate the bit in this word */
-    tree offset_into_word = gccgm2_BuildModTrunc (index_0, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
+    tree offset_into_word = gccgm2_BuildModTrunc (index, gccgm2_BuildIntegerConstant (SET_WORD_SIZE), FALSE);
 
     /* calculate the address of the word we are interested in */
     p1 = gccgm2_BuildAdd (convertToPtr (p1),
