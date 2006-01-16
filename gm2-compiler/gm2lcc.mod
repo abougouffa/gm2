@@ -66,6 +66,7 @@ VAR
    UseAr         : BOOLEAN ;    (* use 'ar' and create archive     *)
    UseRanlib     : BOOLEAN ;    (* use 'ranlib' to index archive   *)
    IgnoreMain    : BOOLEAN ;    (* ignore main module when linking *)
+   Compiler,
    RanlibProgram,
    ArProgram,
    Archives,
@@ -119,7 +120,7 @@ BEGIN
          exit(1)
       END
    ELSE
-      Command := InitString('gcc ') ;
+      Command := ConCatChar(Compiler, ' ') ;
       IF DebugFound
       THEN
          Command := ConCat(Command, Mark(InitString('-g ')))
@@ -378,7 +379,7 @@ END IsALibrary ;
 
 
 (*
-   ScanArguments - scans arguments for flags: -I -g
+   ScanArguments - scans arguments for flags: -I -g and -B
 *)
 
 PROCEDURE ScanArguments ;
@@ -405,6 +406,9 @@ BEGIN
             Close(StdErr) ;
             exit(1)
          END
+      ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-B')
+      THEN
+         Compiler := ConCat(Slice(s, 2, 0), Mark(Compiler))
       ELSIF EqualArray(s, '-p')
       THEN
          ProfileFound := TRUE
@@ -488,6 +492,7 @@ BEGIN
    fo            := StdOut ;
    ExecCommand   := FALSE ;
 
+   Compiler      := InitString('gcc') ;
    Archives      := NIL ;
    Path          := NIL ;
    Libraries     := NIL ;

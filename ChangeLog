@@ -3,6 +3,8 @@
 	* gm2/gccgm2.c: altered INCL, EXCL and bit tests so that they subtract the
 	  low value of the subrange before performing the bit operation.
 	* testsuite/gm2/pim/run/pass/setcritical.mod to test bugfix.
+	* gm2/gm2-compiler/gm2lcc.mod: added -B option
+	* gm2/lang-specs.h: pass -B option to gm2lcc
 
 2006-01-10	 Gaius Mulley <gaius@glam.ac.uk>
 
