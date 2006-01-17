@@ -25,9 +25,11 @@ TYPE
     BITS96 = SET OF [0..95] ;
     REAL32 = SHORTREAL;
     REAL64 = REAL;
-#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64)
+#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
+    !(defined(__alpha__) && defined(__arch64__))
     REAL96 = LONGREAL ;  (* on the __sparc__ SIZE(LONGREAL) = SIZE(REAL) *)
     (* and on the x86_64 LONGREAL is 128 bits *)
+    (* this is also true for at least some alphas *)
     (* for __ppc__, LONGREAL is 64 bits in gcc-3.3 *)
 #endif
 
@@ -36,7 +38,8 @@ VAR
     b64 : BITS64;
     r32 : REAL32;
     r64 : REAL64;
-#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64)
+#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
+    !(defined(__alpha__) && defined(__arch64__))
     b96 : BITS96 ;
     r96 : REAL96 ;
 #endif
@@ -45,7 +48,8 @@ BEGIN
    r32 := 1.0 ;
    b32 := CAST(BITS32,r32) ;
    b64 := CAST(BITS64,r64) ;
-#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64)
+#if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
+    !(defined(__alpha__) && defined(__arch64__))
    b96 := CAST(BITS96,r96)
 #endif
 END realbitscast.

@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE subaddr;
 
 FROM SYSTEM IMPORT ADDRESS;
@@ -22,7 +23,7 @@ VAR
    x, y: ADDRESS;
    i   : CARDINAL;
 BEGIN
-#if !defined(__x86_64) && !defined(__ia64)
+#if !(defined(__x86_64) || (defined(__alpha__) && defined(__arch64__)))
    i := CARDINAL(x - y)
 #endif
 END subaddr.
