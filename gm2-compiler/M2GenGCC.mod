@@ -88,7 +88,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
-FROM M2System IMPORT Address, Word, System, MakeAdr ;
+FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -1319,14 +1319,14 @@ BEGIN
    THEN
       IF GetStringLength(str)=0
       THEN
-         s := InitStringCharStar('') ;
+         s := InitString('') ;
          t := BuildCharConstant(s) ;
          s := KillString(s) ;
       ELSIF GetStringLength(str)>1
       THEN
          n := GetSymName(str) ;
          WriteFormat1("type incompatibility, attempting to use a string ('%a') when a CHAR is expected", n) ;
-         s := InitStringCharStar('') ;  (* do something safe *)
+         s := InitString('') ;  (* do something safe *)
          t := BuildCharConstant(s)
       END ;
       s := InitStringCharStar(KeyToCharStar(GetString(str))) ;
@@ -1383,7 +1383,8 @@ BEGIN
    THEN
       RETURN( DeclareKnownConstant(Mod2Gcc(ParamType),
                                    Mod2Gcc(op3)) )
-   ELSIF IsConst(op3) AND IsOrdinalType(ParamType)
+   ELSIF IsConst(op3) AND
+         (IsOrdinalType(ParamType) OR IsSystemType(ParamType))
    THEN
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            StringToChar(Mod2Gcc(op3), ParamType, op3),

@@ -11100,6 +11100,9 @@ CONST
 VAR
    n, i, j: CARDINAL ;
 BEGIN
+   PushT(1) ;
+   PopT(i) ;
+   Assert(i=1) ;
    FOR n := 1 TO Maxtries DO
       FOR i := n TO 1 BY -1 DO
          PushT(i)
@@ -11152,7 +11155,7 @@ BEGIN
    ReturnStack := InitStackWord() ;
    LineStack := InitStackAddress() ;
    PriorityStack := InitStackWord() ;
-   (* StressStack ; *)
+   StressStack ;
    SuppressWith := FALSE ;
    Head := 1 ;
    LastQuadNo := 0 ;
