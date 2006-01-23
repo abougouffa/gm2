@@ -11155,7 +11155,7 @@ BEGIN
    ReturnStack := InitStackWord() ;
    LineStack := InitStackAddress() ;
    PriorityStack := InitStackWord() ;
-   StressStack ;
+   (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;
    LastQuadNo := 0 ;

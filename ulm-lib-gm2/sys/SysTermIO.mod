@@ -22,7 +22,7 @@ This file was originally part of the University of Ulm library
 (* Ulm's Modula-2 Library
    Copyright (C) 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991,
    1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-   2002, 2003, 2004, 2005
+   2002, 2003, 2004, 2005, 2006
    by University of Ulm, SAI, D-89069 Ulm, Germany
 *)
 
