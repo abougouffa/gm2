@@ -1113,7 +1113,8 @@ build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
 
 build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \
-                gm2/ulm-lib-gm2/sys/SYSTEM.o
+                gm2/ulm-lib-gm2/sys/SYSTEM.o \
+                gm2/ulm-lib-gm2/sys/termios.o
 
 build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
                 gm2/gm2-libs-pim/Break.o
@@ -1126,6 +1127,9 @@ gm2/gm2-libs-pim/Break.o: gm2/gm2-libs-pim/Break.c
 
 gm2/gm2-libs-coroutines/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
+
+gm2/ulm-lib-gm2/sys/termios.o: gm2/ulm-lib-gm2/sys/termios.c
+	$(CC) -c $(INCLUDES) $(ALL_CPPFLAGS) $(ALL_CFLAGS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@

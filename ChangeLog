@@ -1,3 +1,14 @@
+2006-02-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/ulm-lib-gm2/std/GetPass.mod: modified to work with:
+	* gm2/ulm-lib-gm2/sys/termios.def: new definition module for C
+	* gm2/ulm-lib-gm2/sys/termios.c: portable implmentation module for termios
+	  interface
+	* gm2/ulm-lib-gm2/sys/SysTermIO.def: Modula-2 interface to the underlying
+	  termios library.
+	* gm2/ulm-lib-gm2/sys/SysTermIO.mod: Modula-2 interface to termios.c.
+	* all regression tests pass on LP64
+
 2006-02-07	 Gaius Mulley <gaius@gnu.org>
 
 	* fixed copyright notices for all ISO definition modules in

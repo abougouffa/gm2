@@ -28,194 +28,329 @@ This file was originally part of the University of Ulm library
 
 IMPLEMENTATION MODULE SysTermIO;
 
-   FROM SYSTEM IMPORT UNIXCALL, ADR, BYTE;
-   FROM Sys IMPORT ioctl;
-   FROM Errno IMPORT errno;
+IMPORT termios ;
 
-   (* (* exported from definition module *)
-   TYPE
-      ControlChars = (vintr, vquit, verase, vkill, veof, veol, veol2, vswtch);
-      ControlCharsRange = [MIN(ControlChars)..MAX(ControlChars)];
-      InputModes = BITSET;
-      OutputModes = BITSET;
-      ControlModes = BITSET;
-      LineModes = BITSET;
-      TermIO =
-	 RECORD
-	    inputmodes: InputModes;
-	    outputmodes: OutputModes;
-	    controlmodes: ControlModes;
-	    linemodes: LineModes;
-	    linedisc: CHAR;
-	    cc: ARRAY ControlCharsRange OF CHAR;
-	 END;
-      Winsize =
-	 RECORD
-	    rows, cols: CARDINAL;
-	    xpixels, ypixels: CARDINAL;
-	 END;
-   *)
 
-   TYPE
-      CTermIO =
-	 RECORD
-	    iflag1, iflag2: CHAR;
-	    oflag1, oflag2: CHAR;
-	    cflag1, cflag2: CHAR;
-	    lflag1, lflag2: CHAR;
-	    line: CHAR;
-	    c1, c2, c3, c4, c5, c6, c7, c8: CHAR;
-	 END;
-      CWinSize =
-	 RECORD
-	    row1, row2: CHAR;
-	    col1, col2: CHAR;
-	    xpixel1, xpixel2: CHAR;
-	    ypixel1, ypixel2: CHAR;
-	 END;
+PROCEDURE SetTermIO (fd: CARDINAL; termio: TermIO) : BOOLEAN ;
+VAR
+   t: termios.TERMIOS ;
+   b: BOOLEAN ;
+   r: INTEGER ;
+   c: ControlChar ;
+   f: termios.Flag ;
+BEGIN
+   t := termios.InitTermios() ;
+   WITH termio DO
+      FOR f := MIN(termios.Flag) TO MAX(termios.Flag) DO
+         b := termios.SetFlag(t, f, f IN modes)
+      END ;
 
-   TYPE
-      RequestType = CARDINAL;
-   CONST
-      tcgeta  = 00005401H;
-      tcseta  = 00005402H;
-      tcsetaw = 00005403H;
-      tcsbrk  = 00005405H;
-      tcxonc  = 00005406H;
-      tcflsh  = 00005407H;
-      tiocgwinsz = 00005468H;
-      tiocswinsz = 00005467H;
+      (* clear all baud bits *)
+      b := termios.SetFlag(t, termios.b0, FALSE) ;
+      b := termios.SetFlag(t, termios.b50, FALSE) ;
+      b := termios.SetFlag(t, termios.b75, FALSE) ;
+      b := termios.SetFlag(t, termios.b110, FALSE) ;
+      b := termios.SetFlag(t, termios.b135, FALSE) ;
+      b := termios.SetFlag(t, termios.b150, FALSE) ;
+      b := termios.SetFlag(t, termios.b200, FALSE) ;
+      b := termios.SetFlag(t, termios.b300, FALSE) ;
+      b := termios.SetFlag(t, termios.b600, FALSE) ;
+      b := termios.SetFlag(t, termios.b1200, FALSE) ;
+      b := termios.SetFlag(t, termios.b1800, FALSE) ;
+      b := termios.SetFlag(t, termios.b2400, FALSE) ;
+      b := termios.SetFlag(t, termios.b4800, FALSE) ;
+      b := termios.SetFlag(t, termios.b9600, FALSE) ;
+      b := termios.SetFlag(t, termios.b19200, FALSE) ;
+      b := termios.SetFlag(t, termios.b38400, FALSE) ;
+      b := termios.SetFlag(t, termios.b57600, FALSE) ;
+      b := termios.SetFlag(t, termios.b115200, FALSE) ;
+      b := termios.SetFlag(t, termios.b240400, FALSE) ;
+      b := termios.SetFlag(t, termios.b460800, FALSE) ;
+      b := termios.SetFlag(t, termios.b500000, FALSE) ;
+      b := termios.SetFlag(t, termios.b576000, FALSE) ;
+      b := termios.SetFlag(t, termios.b921600, FALSE) ;
+      b := termios.SetFlag(t, termios.b1000000, FALSE) ;
+      b := termios.SetFlag(t, termios.b1152000, FALSE) ;
+      b := termios.SetFlag(t, termios.b1500000, FALSE) ;
+      b := termios.SetFlag(t, termios.b2000000, FALSE) ;
+      b := termios.SetFlag(t, termios.b2500000, FALSE) ;
+      b := termios.SetFlag(t, termios.b3000000, FALSE) ;
+      b := termios.SetFlag(t, termios.b3500000, FALSE) ;
+      b := termios.SetFlag(t, termios.b4000000, FALSE) ;
+      b := termios.SetFlag(t, termios.maxbaud, FALSE) ;
 
-   PROCEDURE Ioctl(fd: CARDINAL; request: RequestType;
-                   VAR argp: ARRAY OF BYTE) : BOOLEAN;
-      VAR
-	 r0, r1: CARDINAL;
-   BEGIN
-      IF NOT UNIXCALL(ioctl, r0, r1, fd, request, ADR(argp)) THEN
-         errno := r0;
-         RETURN FALSE;
+      (* now set the single bit *)
+     
+      CASE baud OF
+
+      0:  b := termios.SetFlag(t, termios.b0, TRUE) |
+      50: b := termios.SetFlag(t, termios.b50, TRUE) |
+      75: b := termios.SetFlag(t, termios.b75, TRUE) |
+      110: b := termios.SetFlag(t, termios.b110, TRUE) |
+      135: b := termios.SetFlag(t, termios.b135, TRUE) |
+      150: b := termios.SetFlag(t, termios.b150, TRUE) |
+      200: b := termios.SetFlag(t, termios.b200, TRUE) |
+      300: b := termios.SetFlag(t, termios.b300, TRUE) |
+      600: b := termios.SetFlag(t, termios.b600, TRUE) |
+      1200: b := termios.SetFlag(t, termios.b1200, TRUE) |
+      1800: b := termios.SetFlag(t, termios.b1800, TRUE) |
+      2400: b := termios.SetFlag(t, termios.b2400, TRUE) |
+      4800: b := termios.SetFlag(t, termios.b4800, TRUE) |
+      9600: b := termios.SetFlag(t, termios.b9600, TRUE) |
+      19200: b := termios.SetFlag(t, termios.b19200, TRUE) |
+      38400: b := termios.SetFlag(t, termios.b38400, TRUE) |
+      57600: b := termios.SetFlag(t, termios.b57600, TRUE) |
+      115200: b := termios.SetFlag(t, termios.b115200, TRUE) |
+      240400: b := termios.SetFlag(t, termios.b240400, TRUE) |
+      460800: b := termios.SetFlag(t, termios.b460800, TRUE) |
+      500000: b := termios.SetFlag(t, termios.b500000, TRUE) |
+      576000: b := termios.SetFlag(t, termios.b576000, TRUE) |
+      921600: b := termios.SetFlag(t, termios.b921600, TRUE) |
+      1000000: b := termios.SetFlag(t, termios.b1000000, TRUE) |
+      1152000: b := termios.SetFlag(t, termios.b1152000, TRUE) |
+      1500000: b := termios.SetFlag(t, termios.b1500000, TRUE) |
+      2000000: b := termios.SetFlag(t, termios.b2000000, TRUE) |
+      2500000: b := termios.SetFlag(t, termios.b2500000, TRUE) |
+      3000000: b := termios.SetFlag(t, termios.b3000000, TRUE) |
+      3500000: b := termios.SetFlag(t, termios.b3500000, TRUE) |
+      4000000: b := termios.SetFlag(t, termios.b4000000, TRUE) |
+      maxbaud: b := termios.SetFlag(t, termios.maxbaud, TRUE)
+
       ELSE
-         RETURN TRUE;
-      END;
-   END Ioctl;
+         t := termios.KillTermios(t) ;
+         RETURN FALSE
+      END ;
 
-   PROCEDURE SetTermIO(fd: CARDINAL; termio: TermIO) : BOOLEAN;
-      VAR
-	 ctermio: CTermIO;
+      FOR c := MIN(ControlChar) TO MAX(ControlChar) DO
+         b := termios.SetChar(t, c, cc[c])
+      END
+   END ;
 
-      PROCEDURE Convert(VAR flag1, flag2: CHAR; bs: BITSET);
-      BEGIN
-	 flag1 := CHR(CARDINAL(bs) DIV 100H);
-	 flag2 := CHR(CARDINAL(bs) MOD 100H);
-      END Convert;
+   r := termios.tcsetattr(fd, termios.tcsnow(), t) ;
+   t := termios.KillTermios(t) ;
+   RETURN r=0
+END SetTermIO;
 
-   BEGIN
-      WITH termio DO
-	 WITH ctermio DO
-	    Convert(iflag1, iflag2, inputmodes);
-	    Convert(oflag1, oflag2, outputmodes);
-	    Convert(cflag1, cflag2, controlmodes);
-	    Convert(lflag1, lflag2, linemodes);
-	    line := linedisc;
-	    c1 := cc[vintr];
-	    c2 := cc[vquit];
-	    c3 := cc[verase];
-	    c4 := cc[vkill];
-	    c5 := cc[veof];
-	    c6 := cc[veol];
-	    c7 := cc[veol2];
-	    c8 := cc[vswtch];
-	 END;
-      END;
-      RETURN Ioctl(fd, tcseta, ctermio);
-   END SetTermIO;
 
-   PROCEDURE GetTermIO(fd: CARDINAL; VAR termio: TermIO) : BOOLEAN;
-      VAR
-	 ctermio: CTermIO;
+PROCEDURE doFlag (VAR m: Modes; f: Flag; v: BOOLEAN) ;
+BEGIN
+   IF v
+   THEN
+      INCL(m, f)
+   ELSE
+      EXCL(m, f)
+   END
+END doFlag ;
 
-      PROCEDURE Convert(flag1, flag2: CHAR; VAR bs: BITSET);
-      BEGIN
-	 bs := BITSET( ORD(flag1)*100H + ORD(flag2) );
-      END Convert;
 
-   BEGIN
-      IF NOT Ioctl(fd, tcgeta, ctermio) THEN RETURN FALSE END;
-      WITH termio DO 
-         WITH ctermio DO
-	    Convert(iflag1, iflag2, inputmodes);
-	    Convert(oflag1, oflag2, outputmodes);
-	    Convert(cflag1, cflag2, controlmodes);
-	    Convert(lflag1, lflag2, linemodes);
-	    linedisc := line;
-	    cc[vintr] := c1;
-	    cc[vquit] := c2;
-	    cc[verase] := c3;
-	    cc[vkill] := c4;
-	    cc[veof] := c5;
-	    cc[veol] := c6;
-	    cc[veol2] := c7;
-	    cc[vswtch] := c8;
-	 END;
-      END;
-      RETURN TRUE
-   END GetTermIO;
+PROCEDURE GetTermIO (fd: CARDINAL; VAR termio: TermIO) : BOOLEAN ;
+VAR
+   t: termios.TERMIOS ;
+   b, v: BOOLEAN ;
+   r: INTEGER ;
+   c: ControlChar ;
+   f: termios.Flag ;
+BEGIN
+   t := termios.InitTermios() ;
+   r := termios.tcgetattr(fd, t) ;
+   IF r#0
+   THEN
+      RETURN FALSE
+   END ;
+   WITH termio DO
+      modes := Modes{} ;
+      FOR f := MIN(termios.Flag) TO MAX(termios.Flag) DO
+         b := termios.GetFlag(t, f, v) ;
+         doFlag(modes, f, v)
+      END ;
 
-   PROCEDURE GetWinsize(fd: CARDINAL; VAR winbuf: Winsize) : BOOLEAN;
-      VAR
-	 crec: CWinSize;
+      (* now find the baud bit and set baud *)
 
-      PROCEDURE Convert(byte1, byte2: CHAR; VAR cardinal: CARDINAL);
-      BEGIN
-	 cardinal := ORD(byte1) * 100H + ORD(byte2);
-      END Convert;
+      baud := 0 ;
 
-   BEGIN
-      IF NOT Ioctl(fd, tiocgwinsz, crec) THEN RETURN FALSE END;
-      WITH crec DO
-	 WITH winbuf DO
-	    Convert(row1, row2, rows);
-	    Convert(col1, col2, cols);
-	    Convert(xpixel1, xpixel2, xpixels);
-	    Convert(ypixel1, ypixel2, ypixels);
-	 END;
-      END;
-      RETURN TRUE
-   END GetWinsize;
+      b := termios.GetFlag(t, termios.b0, v) ;
+      IF v
+      THEN
+         baud := 0
+      END ;
+      b := termios.GetFlag(t, termios.b50, v) ;
+      IF v
+      THEN
+         baud := 50
+      END ;
+      b := termios.GetFlag(t, termios.b75, v) ;
+      IF v
+      THEN
+         baud := 75
+      END ;
+      b := termios.GetFlag(t, termios.b110, v) ;
+      IF v
+      THEN
+         baud := 110
+      END ;
+      b := termios.GetFlag(t, termios.b135, v) ;
+      IF v
+      THEN
+         baud := 135
+      END ;
+      b := termios.GetFlag(t, termios.b150, v) ;
+      IF v
+      THEN
+         baud := 150
+      END ;
+      b := termios.GetFlag(t, termios.b200, v) ;
+      IF v
+      THEN
+         baud := 200
+      END ;
+      b := termios.GetFlag(t, termios.b300, v) ;
+      IF v
+      THEN
+         baud := 300
+      END ;
+      b := termios.GetFlag(t, termios.b600, v) ;
+      IF v
+      THEN
+         baud := 600
+      END ;
+      b := termios.GetFlag(t, termios.b1200, v) ;
+      IF v
+      THEN
+         baud := 1200
+      END ;
+      b := termios.GetFlag(t, termios.b1800, v) ;
+      IF v
+      THEN
+         baud := 1800
+      END ;
+      b := termios.GetFlag(t, termios.b2400, v) ;
+      IF v
+      THEN
+         baud := 2400
+      END ;
+      b := termios.GetFlag(t, termios.b4800, v) ;
+      IF v
+      THEN
+         baud := 4800
+      END ;
+      b := termios.GetFlag(t, termios.b9600, v) ;
+      IF v
+      THEN
+         baud := 9600
+      END ;
+      b := termios.GetFlag(t, termios.b19200, v) ;
+      IF v
+      THEN
+         baud := 19200
+      END ;
+      b := termios.GetFlag(t, termios.b38400, v) ;
+      IF v
+      THEN
+         baud := 38400
+      END ;
+      b := termios.GetFlag(t, termios.b57600, v) ;
+      IF v
+      THEN
+         baud := 57600
+      END ;
+      b := termios.GetFlag(t, termios.b115200, v) ;
+      IF v
+      THEN
+         baud := 115200
+      END ;
+      b := termios.GetFlag(t, termios.b240400, v) ;
+      IF v
+      THEN
+         baud := 240400
+      END ;
+      b := termios.GetFlag(t, termios.b460800, v) ;
+      IF v
+      THEN
+         baud := 460800
+      END ;
+      b := termios.GetFlag(t, termios.b500000, v) ;
+      IF v
+      THEN
+         baud := 500000
+      END ;
+      b := termios.GetFlag(t, termios.b576000, v) ;
+      IF v
+      THEN
+         baud := 576000
+      END ;
+      b := termios.GetFlag(t, termios.b921600, v) ;
+      IF v
+      THEN
+         baud := 921600
+      END ;
+      b := termios.GetFlag(t, termios.b1000000, v) ;
+      IF v
+      THEN
+         baud := 1000000
+      END ;
+      b := termios.GetFlag(t, termios.b1152000, v) ;
+      IF v
+      THEN
+         baud := 1152000
+      END ;
+      b := termios.GetFlag(t, termios.b1500000, v) ;
+      IF v
+      THEN
+         baud := 1500000
+      END ;
+      b := termios.GetFlag(t, termios.b2000000, v) ;
+      IF v
+      THEN
+         baud := 2000000
+      END ;
+      b := termios.GetFlag(t, termios.b2500000, v) ;
+      IF v
+      THEN
+         baud := 2500000
+      END ;
+      b := termios.GetFlag(t, termios.b3000000, v) ;
+      IF v
+      THEN
+         baud := 3000000
+      END ;
+      b := termios.GetFlag(t, termios.b3500000, v) ;
+      IF v
+      THEN
+         baud := 3500000
+      END ;
+      b := termios.GetFlag(t, termios.b4000000, v) ;
+      IF v
+      THEN
+         baud := 4000000
+      END ;
+      b := termios.GetFlag(t, termios.maxbaud, v) ;
+      IF v
+      THEN
+         baud := 4000000
+      END ;
+      
+      FOR c := MIN(ControlChar) TO MAX(ControlChar) DO
+         b := termios.SetChar(t, c, cc[c])
+      END
+   END ;
 
-   PROCEDURE Baudrate(termio: TermIO) : CARDINAL;
-      VAR
-	 baudrate: ControlModes;
-   BEGIN
-      WITH termio DO
-	 baudrate := controlmodes * cbaud;
-	 IF    baudrate = b0     THEN RETURN     0
-	 ELSIF baudrate = b50    THEN RETURN    50
-	 ELSIF baudrate = b75    THEN RETURN    75
-	 ELSIF baudrate = b110   THEN RETURN   110
-	 ELSIF baudrate = b134   THEN RETURN   134
-	 ELSIF baudrate = b150   THEN RETURN   150
-	 ELSIF baudrate = b200   THEN RETURN   200
-	 ELSIF baudrate = b300   THEN RETURN   300
-	 ELSIF baudrate = b600   THEN RETURN   600
-	 ELSIF baudrate = b1200  THEN RETURN  1200
-	 ELSIF baudrate = b1800  THEN RETURN  1800
-	 ELSIF baudrate = b2400  THEN RETURN  2400
-	 ELSIF baudrate = b4800  THEN RETURN  4800
-	 ELSIF baudrate = b9600  THEN RETURN  9600
-	 ELSIF baudrate = b19200 THEN RETURN 19200
-	 ELSIF baudrate = b38400 THEN RETURN 38400
-	 ELSE
-	    RETURN 0
-	 END;
-      END;
-   END Baudrate;
+   t := termios.KillTermios(t) ;
+   RETURN r=0
+END GetTermIO;
 
-   PROCEDURE Isatty(fd: CARDINAL) : BOOLEAN;
-      VAR
-	 termio: TermIO;
-   BEGIN
-      RETURN GetTermIO(fd, termio)
-   END Isatty;
+
+PROCEDURE Baudrate (termio: TermIO) : CARDINAL ;
+BEGIN
+   RETURN termio.baud
+END Baudrate;
+
+
+PROCEDURE Isatty (fd: CARDINAL) : BOOLEAN ;
+VAR
+   termio: TermIO;
+BEGIN
+   RETURN GetTermIO(fd, termio)
+END Isatty;
+
 
 END SysTermIO.

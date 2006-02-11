@@ -1,4 +1,4 @@
-(* Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2004, 2005 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -28,8 +28,7 @@ This file was originally part of the University of Ulm library
 
 IMPLEMENTATION MODULE GetPass;
 
-   FROM SysTermIO IMPORT SetTermIO, GetTermIO, TermIO, vmin, vtime, echo,
-      icanon, tab1, tab2, opost, parmrk, ignpar, inpck, istrip, ixon, icrnl;
+   FROM SysTermIO IMPORT SetTermIO, GetTermIO, TermIO, ControlChar, Flag, Modes ;
    FROM SysOpen IMPORT Open;
    FROM FtdIO IMPORT FreadChar, FwriteChar, FwriteString, FwriteLn;
    FROM ASCII IMPORT nl, nak, bs, cr, bell;
@@ -78,9 +77,8 @@ IMPLEMENTATION MODULE GetPass;
       oldterm := term;
       WITH term DO
 	 cc[vmin] := 1C; cc[vtime] := 1C;
-	 linemodes := linemodes - echo - icanon;
-	 inputmodes := inputmodes - parmrk + ignpar - inpck + istrip - icrnl;
-	 outputmodes := outputmodes - tab1 - tab2 - opost;
+         modes := modes + Modes{ignpar, istrip} ;
+         modes := modes - Modes{lecho, licanon, iparmrk, inpck, ignpar, istrip, icrnl, opost}
       END;
       IF ~SetTermIO(termfdin, term) THEN RETURN END;
       index := 0;
