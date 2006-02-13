@@ -184,7 +184,7 @@ This section attempts to give an idea of which releases points are
 likely in the future. Clearly this is a fairly fluid release map but
 hopefully it is more helpful than omitting it altogether. Please note
 that this is not set in stone and if you (the users) wish to see
-something different please email @email{gaius@@glam.ac.uk} with your
+something different please email @email{gaius@@gnu.org} with your
 ideas. Also please note that the actual release numbers do not have
 any correlation to the estimated time of release. For example please
 do not misunderstand that GM2-1.0 will take twice as long as GM2-0.5
@@ -1624,25 +1624,23 @@ arrays are also not yet recognised.
 To get the latest sources to GNU Modula-2 type the following:
 
 @example
-export CVSROOT=:pserver:anoncvs@@floppsie.comp.glam.ac.uk:/usr/src/cvs
-cvs login
-cvs -z9 checkout GM2
+cvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2
 @end example
 
-(note the capital GM2 in the checkout, GM2 is the project module within cvs).
-This will checkout a copy of GNU Modula-2 into one subdirectory:
+This will checkout a copy of GNU Modula-2 into one subdirectory,
 @file{gm2}.
 
 This version of GNU Modula-2 needs to be placed inside the GCC source
-tree in the position gcc-@value{version-GCC}/gcc before GNU Modula-2 can be
-built. Please check the GNU Modula-2 homepage
-@uref{http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/GNUModula-2.html}
-for details about which GCC releases are supported by GNU Modula-2.
+tree in the position gcc-@value{version-GCC}/gcc before GNU Modula-2
+can be built. Please check the GNU Modula-2 homepage
+@uref{http://www.nongnu.org/gm2} for details about which GCC releases
+are supported by GNU Modula-2.
 
 Once you have downloaded the correct GCC release from
-@uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC archive.
-Assuming that both the @file{gcc-@value{version-GCC}} and @file{gm2} dicectories
-are at the same level, you can graft @file{gm2} onto @file{gcc-@value{version-GCC}} by:
+@uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC
+archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
+@file{gm2} dicectories are at the same level, you can graft @file{gm2}
+onto @file{gcc-@value{version-GCC}} by:
 
 @example   
 mv gm2 gcc-@value{version-GCC}/gcc
@@ -2272,7 +2270,7 @@ when wishing to shift and rotate multi-word set types.
 
 This section describes my understanding of the Modula-2 scope rules
 with respect to enumerated types.  If they are incorrect please
-correct me by email @email{gaius@@glam.ac.uk}. They also serve to
+correct me by email @email{gaius@@gnu.org}. They also serve to
 document the behaviour of GNU Modula-2 in these cirumstances.
 
 In GNU Modula-2 the syntax for a type declaration is defined as:

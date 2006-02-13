@@ -6,6 +6,7 @@
 	* gm2/Make-lang.in: updated version number
 	* gm2/gm2.texi: updated gm2 release number to 0.50 and gm2-harness number to 0.7
 	  and improved install section.
+	* gm2/www: added
 
 2006-02-10       Gaius Mulley <gaius@gnu.org>
 

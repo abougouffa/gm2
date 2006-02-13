@@ -1,0 +1,75 @@
+#   Copyright (C) 2006
+#   Free Software Foundation, Inc.
+
+# This file is part of GNU Modula-2.
+
+# GNU Modula-2 is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# GNU Modula-2 is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Modula-2; see the file COPYING.  If not, write to
+# the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
+objdir = @objdir@
+srcdir = @srcdir@
+
+WWWDIR=../../../../www/gm2
+
+
+all: GNUModula2.html gm2-logo.png gnu-mini.png ../../gm2.html
+
+%.pdf: %.ps
+	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
+
+%.ps: %.ms
+	groff -s -e -t -Tps -ms -mwww $< > $@
+
+%.html: %.ms
+	groff -P-b -e -t -U -Thtml -ms $< > $@
+
+GNUModula2.html: $(srcdir)/GNUModula2.ms gm2-logo.png gnubw.eps \
+                 gnu-mini.png
+	groff -P-Igm2- -M. -P-jGNUModula2 -P-r -P-b -p -e -t -Thtml -U -ms -mwww $(srcdir)/GNUModula2.ms > $@
+
+gnubw.eps: $(srcdir)/../images/gnupng
+	pngtopnm $< | pnmtops -noturn > $@
+
+gnu-mini.png: $(srcdir)/../images/gnupng
+	pngtopnm $< | pnmscale .5 | pnmtopng > $@
+
+gm2-logo.png: gm2-logo.eps
+	pstopnm -nocrop -stdout $< | pnmcrop | pnmscale .4 | pnmtopng > $@
+
+gm2-logo.eps: $(srcdir)/gm2-logo.ms
+	groff -P-b16 $< > gm2-logo.ps
+	gs -dNOPAUSE -sDEVICE=bbox -- gm2-logo.ps 2> gm2-logo.bbox
+	cat gm2-logo.ps | sed -e '/%%Orientation/rgm2-logo.bbox' > gm2-logo.eps
+	rm gm2-logo.bbox
+
+../../gm2.html: force
+	( cd ../.. ; make gm2.html )
+
+install: all force
+	if [ "$(srcdir)/$(WWWDIR)" = "" ] ; then \
+            echo "you must set $(WWWDIR)" ; \
+            exit 1 ; \
+        fi
+	if [ ! -d $(srcdir)/$(WWWDIR) ] ; then \
+            echo "you must set $(WWWDIR) to point to a directory" ; \
+            exit 1 ; \
+        fi
+	cp ../../*.html *.html *.png $(WWWDIR)
+	cp $(srcdir)/*.css $(WWWDIR)
+
+clean: force
+	$(RM) *.eps *.ps *.html *.png *~
+
+force:

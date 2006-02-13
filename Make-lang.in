@@ -119,15 +119,6 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/gm2-libs-coroutines \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
-check_cross: stage1/gm2 force
-	for i in x $(INTERNAL_CFLAGS) ; do \
-            echo $$i ; \
-            if [ "x$$i" = "x-DCROSS_COMPILE" ] ; then \
-                echo "cross compiling Modula-2, we skip stage1, and build using the native Modula-2" ; \
-                cp -pr /usr/local/lib/gcc-lib/i686-pc-linux-gnu/3.2/* stage1/gm2 ; \
-            fi \
-        done
-
 gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h : s-gtype; @true
 
 # Build hooks:
