@@ -1,0 +1,112 @@
+This file describes recent user-visible changes in gm2.  Bug fixes are not
+described.  There are more details in the man and info pages.
+
+VERSION 0.50
+============
+
+* all regression tests pass on LP64 and i386 GNU/Linux, i386, Mac OS X.3 G5
+
+* gm2-harness 0.7 will download, patch and build gcc, gdb, gm2 with the
+  SET and TYPE enhancements below. gm2-harness-0.7 also honours the
+   --prefix= option.
+
+* Much better dwarf-2 debugging support and when used with
+  a patched gdb-6.3 the programmer can display RECORDs,
+  ARRAYs, SETs, subranges and constant char literals in
+  Modula-2 syntax.
+
+* it currently complies with Programming in Modula-2 Edition 2, 3 and 4.
+  Users can switch on specific mutually exclusive features by using
+  -Wpim or -Wpim2.
+
+* gm2 supports full PIM Modula-2 (except variables located at
+  particular addresses).
+
+VERSION 0.49
+============
+
+* supports sets of any ordinal size (memory permitting).
+
+* implements ISO Modula-2 SYSTEM which can be switched on via: -Wiso.
+
+* easy interface to C, and varargs can be passed to C routines.
+
+* University of Ulm libraries are installed together with the compiler
+  and can be accessed via: -Wlibs=ulm
+
+* some Logitech libraries have been implemented and can be accessed via:
+  -Wlibs=logitech
+
+* coroutines have been implemented in the PIM style and these are accessible
+  from SYSTEM. A number of supporting libraries (executive and file descriptor
+  mapping to interrupt vector libraries are available through the
+  -Wlibs=pim-coroutines switch).
+
+
+VERSION 0.42
+============
+
+* MinGW cross compilation port released.
+  Please see http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/web/gm2-mingw.html
+  for building details.
+
+VERSION 0.41
+============
+
+* native sparc port passes make gm2.paranoid and make check-gm2
+
+* native i386  port passes make gm2.paranoid and make check-gm2
+
+* passes all 1350 regression tests
+
+* builds with gcc-3.3.2
+
+VERSION 0.40
+============
+
+* brought GM2 up to date with gcc-3.3.1
+
+* many, many bug fixes and no patch is now required in the garbage collection
+  of gcc-3.3.1
+
+* builds under Redhat 9.0 and Suse 9.0
+
+* added the LONGCARD data type.
+
+* LENGTH is now mapped onto M2RTS.Length if the parameter is not a constant
+  at compile time.
+
+* standard procedures can be called inside constant expressions.
+
+* introduced examples/pthread
+
+* introduced a tool, h2def, to aid production of DEFINITION MODULE FOR "C" modules
+  from C header files.
+
+* added MathLib0 module, added svga example.
+
+* added access to thirty one gcc built-in functions.
+
+
+VERSION 0.33
+============
+
+* implemented large sets.
+
+* implemented ISO compliant sets.
+
+* when gm2 is invoked with -gstabs a patched gdb will
+  display set contents. This also works well with SET OF CHAR.
+
+* definition modules no longer have to explicitly export
+  identifiers.
+
+VERSION 0.32
+============
+
+* gm2 can be built as a native or as a strongarm cross compiler.
+
+* the C preprocessor can be invoked and it processes both definition and
+  implementation modules.
+
+* error reporting understands preprocessed Modula-2 source.
