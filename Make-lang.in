@@ -494,7 +494,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GM2-VERSION=0.49
+GM2-VERSION=0.50
 GM2_O=
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+

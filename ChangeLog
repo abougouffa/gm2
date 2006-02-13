@@ -1,6 +1,11 @@
 2006-02-13       Gaius Mulley <gaius@gnu.org>
 
+	* GM2 Release 0.50
+	* tagged CVS using gm2_0_50
 	* gm2/NEWS: added, which contains news of user visible changes.
+	* gm2/Make-lang.in: updated version number
+	* gm2/gm2.texi: updated gm2 release number to 0.50 and gm2-harness number to 0.7
+	  and improved install section.
 
 2006-02-10       Gaius Mulley <gaius@gnu.org>
 

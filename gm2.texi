@@ -14,9 +14,9 @@
 @c
 
 @setfilename gm2.info
-@set version-GM2     0.49
+@set version-GM2     0.50
 @set version-GCC     3.3.6
-@set version-HARNESS 0.6
+@set version-HARNESS 0.7
 @set version-GDB     6.3
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
@@ -1546,9 +1546,8 @@ using the traditional GNU method.
 @example
 tar zxf gm2-harness-@value{version-HARNESS}.tar.gz
 cd gm2-harness-@value{version-HARNESS}
-./configure --with-gdb
+./configure --with-gdb --prefix=$HOME/opt
 make
-su
 make install
 @end example
 
@@ -1556,6 +1555,17 @@ The first @code{make} downloads, constructs the source tree, builds
 the code and runs the regression tests. The second @code{make}
 installs GNU Modula-2. Note that GNU Modula-2 is still in development
 and so it is possible that some of the regression tests may fail.
+
+Once the installation has completed you should set your path so
+that it includes the install directory. For example if you are using
+the @code{bash} shell could type:
+
+@example
+export PATH=$HOME/opt/bin:$PATH
+@end example
+
+Thereafter you will reference the new gm2, gcc and gdb programs and
+libraries.
 
 The @code{gm2-harness} package automates the steps outlined in the
 next three sections. Note that the option @samp{--with-gdb} will
