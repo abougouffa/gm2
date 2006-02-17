@@ -24,7 +24,7 @@ srcdir = @srcdir@
 WWWDIR=../../../../www/gm2
 
 
-all: GNUModula2.html gm2-logo.png gnu-mini.png ../../gm2.html
+all: index.html gm2-logo.png gnu-mini.png ../../gm2.html
 
 %.pdf: %.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
@@ -35,9 +35,8 @@ all: GNUModula2.html gm2-logo.png gnu-mini.png ../../gm2.html
 %.html: %.ms
 	groff -P-b -e -t -U -Thtml -ms $< > $@
 
-GNUModula2.html: $(srcdir)/GNUModula2.ms gm2-logo.png gnubw.eps \
-                 gnu-mini.png
-	groff -P-Igm2- -M. -P-jGNUModula2 -P-r -P-b -p -e -t -Thtml -U -ms -mwww $(srcdir)/GNUModula2.ms > $@
+index.html: $(srcdir)/index.ms gm2-logo.png gnubw.eps gnu-mini.png
+	groff -P-Igm2- -M$(srcdir) -P-jindex -P-r -P-b -p -e -t -Thtml -U -ms -mswww $(srcdir)/index.ms > $@
 
 gnubw.eps: $(srcdir)/../images/gnupng
 	pngtopnm $< | pnmtops -noturn > $@
@@ -46,7 +45,7 @@ gnu-mini.png: $(srcdir)/../images/gnupng
 	pngtopnm $< | pnmscale .5 | pnmtopng > $@
 
 gm2-logo.png: gm2-logo.eps
-	pstopnm -nocrop -stdout $< | pnmcrop | pnmscale .4 | pnmtopng > $@
+	pstopnm -nocrop -stdout $< | pnmcrop | pnmscale .4 | pnmrotate -90 | pnmtopng > $@
 
 gm2-logo.eps: $(srcdir)/gm2-logo.ms
 	groff -P-b16 $< > gm2-logo.ps
