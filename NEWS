@@ -22,6 +22,18 @@ VERSION 0.50
 * gm2 supports full PIM Modula-2 (except variables located at
   particular addresses).
 
+* profiling (-p) option is now available.
+
+* module priorities now implemented.
+
+* Logitech compatible libraries: Break.def, CardinalIO.def,
+  Conversions.def, DebugPMD.def, DebugTrace.def, Delay.def, Display.def,
+  ErrorCode.def, FloatingUtilities.def, InOut.def, Keyboard.def,
+  LongIO.def, Random.def, RealConversions.def, RealInOut.def,
+  Strings.def, Termbase.def, Terminal.def, TimeDate.def have been implemented.
+
+* all Ulm libraries are available.
+
 VERSION 0.49
 ============
 
