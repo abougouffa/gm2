@@ -1624,7 +1624,7 @@ arrays are also not yet recognised.
 To get the latest sources to GNU Modula-2 type the following:
 
 @example
-cvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2
+cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
 @end example
 
 This will checkout a copy of GNU Modula-2 into one subdirectory,
@@ -1733,9 +1733,7 @@ working directory you can use the following commands to install
 the test suite:
 
 @example
-export CVSROOT=:pserver:anoncvs@@floppsie.comp.glam.ac.uk:/usr/src/cvs
-cvs login
-cvs -z9 checkout testsuite
+cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co testsuite
 tar cf - testsuite | ( cd gcc-@var{version}/gcc ; tar xf - )
 @end example
 
@@ -1828,8 +1826,8 @@ Please do. But also please read the GNU Emacs info under
 You might consider joining the GM2 Mailing list available via
 a web brouser at
 
-@uref{http://floppsie.comp.glam.ac.uk/mailman/listinfo/gm2} or
-available via email: @uref{mail:gm2-request@@glam.ac.uk} before you
+@uref{http://lists.nongnu.org/mailman/listinfo/gm2}
+available via email: @uref{mail:gm2-subscribe@@nongnu.org} before you
 start coding.
 
 Many thanks and enjoy your coding!

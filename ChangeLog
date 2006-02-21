@@ -1,5 +1,9 @@
 2006-02-20       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2.texi: fixed new urls and added missing escaped @
+
+2006-02-20       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/NEWS updated
 
 2006-02-13       Gaius Mulley <gaius@gnu.org>
