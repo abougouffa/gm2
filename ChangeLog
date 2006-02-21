@@ -1,6 +1,8 @@
-2006-02-20       Gaius Mulley <gaius@gnu.org>
+2006-02-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi: fixed new urls and added missing escaped @
+	* gm2/gm2-libs.texi: rebuilt
+	* gm2/gm2-iso/README.texi: fixed typo
 
 2006-02-20       Gaius Mulley <gaius@gnu.org>
 

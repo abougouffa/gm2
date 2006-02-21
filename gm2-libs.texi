@@ -2695,7 +2695,7 @@ DEFINITION MODULE FOR "C" libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT UNQUALIFIED tm,
+EXPORT UNQUALIFIED time_t, tm, ptrToTM,
                    write, read,
                    system, abort,
                    malloc, free,
@@ -2707,9 +2707,12 @@ EXPORT UNQUALIFIED tm,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
                    memcpy, memset, printf, realloc,
-                   rand, srand, time ;
+                   rand, srand, time, localtime ;
 
 TYPE
+   time_t = LONGINT ;
+
+   ptrToTM = POINTER TO tm ;
    tm = RECORD
            tm_sec: INTEGER ;     (* Seconds.     [0-60] (1 leap second) *)
            tm_min: INTEGER ;     (* Minutes.     [0-59]   *)
@@ -3042,14 +3045,22 @@ PROCEDURE rand () : INTEGER ;
 
 
 (*
-   time - returns a pointer to the tm structure which defines the
-          current time. If, a, is NIL then the address of the libc
-          tm structure is returned. If, a, is not NIL then the libc
-          tm structure is copied into memory at address, a.
+   time - returns a pointer to the time_t value. If, a,
+          is not NIL then the libc value is copied into
+          memory at address, a.
 *)
 
 @findex time
-PROCEDURE time (a: ADDRESS) : ADDRESS ;
+PROCEDURE time (a: ADDRESS) : time_t ;
+
+
+(*
+   localtime - returns a pointer to the libc copy of the tm
+               structure.
+*)
+
+@findex localtime
+PROCEDURE localtime (VAR t: time_t) : ADDRESS ;
 
 
 END libc.
@@ -4874,6 +4885,68 @@ DEFINITION MODULE TimeDate ;
 EXPORT QUALIFIED Time, GetTime, SetTime, CompareTime, TimeToZero,
                  TimeToString ;
 
+TYPE
+(*
+   day holds:  bits 0..4 = day of month (1..31)
+                    5..8 = month of year (1..12)
+                    9..  = year - 1900
+   minute holds:    hours * 60 + minutes
+   millisec holds:  seconds * 1000 + millisec
+                    which is reset to 0 every minute
+*)
+
+   Time = RECORD
+             day, minute, millisec: CARDINAL ;
+          END ;
+
+
+(*
+   GetTime - returns the current date and time.
+*)
+
+@findex GetTime
+PROCEDURE GetTime (VAR curTime: Time) ;
+
+
+(*
+   SetTime - does nothing, but provides compatibility with
+             the Logitech-3.0 library.
+*)
+
+@findex SetTime
+PROCEDURE SetTime (curTime: Time) ;
+
+
+(*
+   CompareTime - compare two dates and time which returns:
+
+                 -1  if t1 < t2
+                  0  if t1 = t2
+                  1  if t1 > t2
+*)
+
+@findex CompareTime
+PROCEDURE CompareTime (t1, t2: Time) : INTEGER ;
+
+
+(*
+   TimeToZero - initializes, t, to zero.
+*)
+
+@findex TimeToZero
+PROCEDURE TimeToZero (VAR t: Time) ;
+
+
+(*
+   TimeToString - convert time, t, to a string.
+                  The string, s, should be at least 19 characters
+                  long and the returned string will be
+
+                  yyyy-mm-dd hh:mm:ss
+*)
+
+@findex TimeToString
+PROCEDURE TimeToString (t: Time; VAR s: ARRAY OF CHAR) ;
 
 
 END TimeDate.
@@ -5978,14 +6051,27 @@ END pth.
 @node M2 ISO Libraries, ULM System Libraries, PIM coroutine support, Libraries
 @section M2 ISO Libraries
 
-@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006
+@c Free Software Foundation, Inc.
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or
 @c any later version published by the Free Software Foundation.
 
-This directory contains the ISO definition modules and some corresponding
-implementation modules. Currently this is work in progress and the code
-is incomplete and probably highly buggy.
+This directory contains the ISO definition modules and some
+corresponding implementation modules. All definition files except
+M2RTS.def were defined by the International Standard Information
+technology - programming languages BS ISO/IEC 10514-1:1996E Part 1:
+Modula-2, Base Language. The Copyright to the definition files (except
+M2RTS.def) belong to ISO/IEC (International Organization for
+Standardization and International Electrotechnical
+Commission). However the implementation modules and M2RTS.def are
+Copyright of the FSF and are held under the LGPL.
+
+The definition modules are allowed to be distributed together with
+the compiler.
+
+Currently this is work in progress and the code is incomplete and
+probably highly buggy.
 
 The following implementation modules are complete:
 
@@ -9541,6 +9627,7 @@ END WholeStr.
 * ulm-lib-gm2/sys/SysWrite::SysWrite.def
 * ulm-lib-gm2/sys/SystemTypes::SystemTypes.def
 * ulm-lib-gm2/sys/UnixString::UnixString.def
+* ulm-lib-gm2/sys/termios::termios.def
 @end menu
 
 
@@ -10327,138 +10414,30 @@ END SysStat.
 @example
 DEFINITION MODULE SysTermIO;
 
-FROM SYSTEM IMPORT BITSET ;
-
-   (* see termio(7) for explanations *)
-
-   CONST
-      (* add ``x-'' globally for big-endian representation of SETs *)
-      x = 31;
-      (* input modes *)
-      ignbrk = @{ 31 @};
-      brkint = @{ 30 @};
-      ignpar = @{ 29 @};
-      parmrk = @{ 28 @};
-      inpck = @{ 27 @};
-      istrip = @{ 26 @};
-      inlcr = @{ 25 @};
-      igncr = @{ 24 @};
-      icrnl = @{ 23 @};
-      iuclc = @{ 22 @};
-      ixon = @{ 21 @};
-      ixany = @{ 20 @};
-      ixoff = @{ 19 @};
-      (* output modes *)
-      opost = @{ 31 @};
-      olcuc = @{ 30 @};
-      onlcr = @{ 29 @};
-      ocrnl = @{ 28 @};
-      onocr = @{ 27 @};
-      onlret = @{ 26 @};
-      ofill = @{ 25 @};
-      ofdel = @{ 24 @};
-      (* delays for newline *)
-      nldly = @{ 23 @};		(* mask *)
-      nl0 = @{ @};
-      nl1 = @{ 23 @};
-      (* delays for carriage return *)
-      crdly = @{ 21, x-22 @};	(* mask *)
-      cr0 = @{ @};
-      cr1 = @{ 22 @};
-      cr2 = @{ 21 @};
-      cr3 = @{ 21, x-22 @};
-      (* delays for tabs *)
-      tabdly = @{ 19, x-20 @};	(* mask *)
-      tab1 = @{ 20 @};
-      tab2 = @{ 19 @};
-      tab3 = @{ 19, x-20 @};	(* expand tabs to spaces *)
-      (* delays for backspaces *)
-      bsdly = @{ 18 @};		(* mask *)
-      bs0 = @{ @};
-      bs1 = @{ 18 @};
-      (* delays for vertical tabs *)
-      vtdly = @{ 17 @};		(* mask *)
-      vt0 = @{ @};
-      vt1 = @{ 17 @};
-      (* delays for form feeds *)
-      ffdly = @{ 16 @};
-      ff0 = @{ @};
-      ff1 = @{ 16 @};
-
-      (* control modes *)
-      cbaud = @{ 28, x-29, x-30, x-31 @};	(* mask *)
-      b0 = @{@};
-      b50 = @{ 31 @};
-      b75 = @{ 30 @};
-      b110 = @{ 29, x-30 @};
-      b134 = @{ 29 @};
-      b150 = @{ 29, x-31 @};
-      b200 = @{ 29, x-30 @};
-      b300 = @{ 29, x-30, x-31 @};
-      b600 = @{ 28 @};
-      b1200 = @{ 28, x-31 @};
-      b1800 = @{ 28, x-30 @};
-      b2400 = @{ 28, x-30, x-31 @};
-      b4800 = @{ 28, x-29 @};
-      b9600 = @{ 28, x-29, x-31 @};
-      b19200 = @{ 28, x-29, x-30 @};
-      b38400 = @{ 28, x-29, x-30, x-31 @};
-      csize = @{ 26, x-27 @};	(* mask *)
-      cs5 = @{@};
-      cs6 = @{ 27 @};
-      cs7 = @{ 26 @};
-      cs8 = @{ 26, x-27 @};
-      cstopb = @{ 25 @};
-      cread = @{ 24 @};
-      parenb = @{ 23 @};
-      parodd = @{ 22 @};
-      hupcl = @{ 21 @};
-      clocal = @{ 20 @};
-
-      (* line modes *)
-      isig = @{ 31 @};
-      icanon = @{ 30 @};
-      xcase = @{ 29 @};
-      echo = @{ 28 @};
-      echoe = @{ 27 @};
-      echok = @{ 26 @};
-      echonl = @{ 25 @};
-      noflsh = @{ 24 @};
-   TYPE
-      ControlChars = (vintr, vquit, verase, vkill, veof, veol, veol2, vswtch);
-   CONST
-      vmin = veof; vtime = veol;
+   IMPORT termios ;
 
    TYPE
-      ControlCharsRange = [MIN(ControlChars)..MAX(ControlChars)];
-      InputModes = BITSET;
-      OutputModes = BITSET;
-      ControlModes = BITSET;
-      LineModes = BITSET;
-      TermIO =
-	 RECORD
-	    inputmodes: InputModes;
-	    outputmodes: OutputModes;
-	    controlmodes: ControlModes;
-	    linemodes: LineModes;
-	    linedisc: CHAR;
-	    cc: ARRAY ControlCharsRange OF CHAR;
-	 END;
+      ControlChar = termios.ControlChar ;
+      Flag = termios.Flag ;
 
-      Winsize =
-	 RECORD
-	    rows, cols: CARDINAL;
-	    xpixels, ypixels: CARDINAL;
-	 END;
+      ControlCharRange = [MIN(ControlChar)..MAX(ControlChar)];
+
+      Modes = SET OF Flag ;
+
+      TermIO = RECORD
+                  modes   : Modes ;
+                  baud    : CARDINAL ;
+                  cc      : ARRAY ControlCharRange OF CHAR ;
+                  rows,
+                  columns,
+                  line    : CARDINAL ;
+               END;
 
 @findex SetTermIO
    PROCEDURE SetTermIO(fd: CARDINAL; termio: TermIO) : BOOLEAN;
 
 @findex GetTermIO
    PROCEDURE GetTermIO(fd: CARDINAL; VAR termio: TermIO) : BOOLEAN;
-
-@findex GetWinsize
-   PROCEDURE GetWinsize(fd: CARDINAL; VAR winbuf: Winsize) : BOOLEAN;
 
 @findex Baudrate
    PROCEDURE Baudrate(termio: TermIO) : CARDINAL;
@@ -10589,7 +10568,7 @@ END SystemTypes.
 @page
 
 
-@node ulm-lib-gm2/sys/UnixString, , ulm-lib-gm2/sys/SystemTypes, ULM System Libraries
+@node ulm-lib-gm2/sys/UnixString, ulm-lib-gm2/sys/termios, ulm-lib-gm2/sys/SystemTypes, ULM System Libraries
 @subsection ulm-lib-gm2/sys/UnixString
 
 @example
@@ -10607,6 +10586,243 @@ DEFINITION MODULE UnixString;
       *)
 
 END UnixString.
+@end example
+@page
+
+
+@node ulm-lib-gm2/sys/termios, , ulm-lib-gm2/sys/UnixString, ULM System Libraries
+@subsection ulm-lib-gm2/sys/termios
+
+@example
+DEFINITION MODULE termios ;
+
+(*
+    Description: provides a procedural interface to termios.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+TYPE
+   TERMIOS = ADDRESS ;
+
+   ControlChar = (vintr, vquit, verase, vkill, veof, vtime, vmin,
+                  vswtc, vstart, vstop, vsusp, veol, vreprint, vdiscard,
+                  vwerase, vlnext, veol2) ;
+
+   Flag = (
+           (* input flag bits *)
+           ignbrk, ibrkint, ignpar, iparmrk, inpck, istrip, inlcr,
+           igncr, icrnl, iuclc, ixon, ixany, ixoff, imaxbel,
+           (* output flag bits *)
+           opost, olcuc, onlcr, ocrnl, onocr, onlret, ofill, ofdel,
+           onl0, onl1, ocr0, ocr1, ocr2, ocr3,
+           otab0, otab1, otab2, otab3, obs0, obs1, off0, off1, ovt0, ovt1,
+           (* baud rate *)
+           b0, b50, b75, b110, b135, b150, b200, b300, b600, b1200,
+           b1800, b2400, b4800, b9600, b19200, b38400,
+           b57600, b115200, b240400, b460800, b500000, b576000,
+           b921600, b1000000, b1152000, b1500000, b2000000, b2500000,
+           b3000000, b3500000, b4000000, maxbaud, crtscts,
+           (* character size *)
+           cs5, cs6, cs7, cs8, cstopb, cread, parenb, parodd, hupcl, clocal,
+           (* local flags *)
+           lisig, licanon, lxcase, lecho, lechoe, lechok, lechonl, lnoflsh,
+           ltopstop, lechoctl, lechoprt, lechoke, lflusho, lpendin, liexten) ;
+
+
+(*
+   InitTermios - new data structure.
+*)
+
+@findex InitTermios
+PROCEDURE InitTermios () : TERMIOS ;
+
+
+(*
+   KillTermios - delete data structure.
+*)
+
+@findex KillTermios
+PROCEDURE KillTermios (t: TERMIOS) : TERMIOS ;
+
+
+(*
+   cfgetospeed - return output baud rate.
+*)
+
+@findex cfgetospeed
+PROCEDURE cfgetospeed (t: TERMIOS) : INTEGER ;
+
+
+(*
+   cfgetispeed - return input baud rate.
+*)
+
+@findex cfgetispeed
+PROCEDURE cfgetispeed (t: TERMIOS) : INTEGER ;
+
+
+(*
+   cfsetospeed - set output baud rate.
+*)
+
+@findex cfsetospeed
+PROCEDURE cfsetospeed (t: TERMIOS; b: CARDINAL) : INTEGER ;
+
+
+(*
+   cfsetispeed - set input baud rate.
+*)
+
+@findex cfsetispeed
+PROCEDURE cfsetispeed (t: TERMIOS; b: CARDINAL) : INTEGER ;
+
+
+(*
+   cfsetspeed - set input and output baud rate.
+*)
+
+@findex cfsetspeed
+PROCEDURE cfsetspeed (t: TERMIOS; b: CARDINAL) : INTEGER ;
+
+
+(*
+   tcgetattr - get state of, fd, into, t.
+*)
+
+@findex tcgetattr
+PROCEDURE tcgetattr (fd: INTEGER; t: TERMIOS) : INTEGER ;
+
+
+(*
+   The following three functions return the different option values.
+*)
+
+@findex tcsnow
+PROCEDURE tcsnow () : INTEGER ;   (* alter fd now *)
+@findex tcsdrain
+PROCEDURE tcsdrain () : INTEGER ; (* alter when all output has been sent *)
+@findex tcsflush
+PROCEDURE tcsflush () : INTEGER ; (* like drain, except discard any pending input *)
+
+
+(*
+   tcsetattr - set state of, fd, to, t, using option.
+*)
+
+@findex tcsetattr
+PROCEDURE tcsetattr (fd: INTEGER; option: INTEGER; t: TERMIOS) : INTEGER ;
+
+
+(*
+   tcsendbreak - send zero bits for duration.
+*)
+
+@findex tcsendbreak
+PROCEDURE tcsendbreak (fd: INTEGER; duration: INTEGER) : INTEGER ;
+
+
+(*
+   tcdrain - waits for pending output to be written on, fd.
+*)
+
+@findex tcdrain
+PROCEDURE tcdrain (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflushi - flush input.
+*)
+
+@findex tcflushi
+PROCEDURE tcflushi (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflusho - flush output.
+*)
+
+@findex tcflusho
+PROCEDURE tcflusho (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflushio - flush input and output.
+*)
+
+@findex tcflushio
+PROCEDURE tcflushio (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflowoni - restart input on, fd.
+*)
+
+@findex tcflowoni
+PROCEDURE tcflowoni (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflowoffi - stop input on, fd.
+*)
+
+@findex tcflowoffi
+PROCEDURE tcflowoffi (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflowono - restart output on, fd.
+*)
+
+@findex tcflowono
+PROCEDURE tcflowono (fd: INTEGER) : INTEGER ;
+
+
+(*
+   tcflowoffo - stop output on, fd.
+*)
+
+@findex tcflowoffo
+PROCEDURE tcflowoffo (fd: INTEGER) : INTEGER ;
+
+
+(*
+   GetFlag - sets a flag value from, t, in, b, and returns TRUE
+             if, t, supports, f.
+*)
+
+@findex GetFlag
+PROCEDURE GetFlag (t: TERMIOS; f: Flag; VAR b: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetFlag - sets a flag value in, t, to, b, and returns TRUE if
+             this flag value is supported.
+*)
+
+@findex SetFlag
+PROCEDURE SetFlag (t: TERMIOS; f: Flag; b: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   GetChar - sets a CHAR, ch, value from, t, and returns TRUE if
+             this value is supported.
+*)
+
+@findex GetChar
+PROCEDURE GetChar (t: TERMIOS; c: ControlChar; VAR ch: CHAR) : BOOLEAN ;
+
+
+(*
+   SetChar - sets a CHAR value in, t, and returns TRUE if, c,
+             is supported.
+*)
+
+@findex SetChar
+PROCEDURE SetChar (t: TERMIOS; c: ControlChar; ch: CHAR) : BOOLEAN ;
+
+
+END termios.
 @end example
 @page
 
