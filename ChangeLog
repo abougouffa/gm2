@@ -1,3 +1,7 @@
+2006-03-25       Gaius Mulley <gaius@gnu.org>
+
+	* added testsuite/gm2/pim/pass/sets4.mod
+
 2006-03-17       Gaius Mulley <gaius@gnu.org>
 
 	* added successful build reports to the web page
