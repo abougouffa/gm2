@@ -866,6 +866,9 @@ BEGIN
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
       PushTF(Type, name)
+   ELSIF IsError(Type)
+   THEN
+      PushTF(Sym, name)
    ELSIF GetSymName(Type)=name
    THEN
       IF IsUnknown(Type) OR (NOT IsDeclaredIn(GetCurrentScope(), Type))

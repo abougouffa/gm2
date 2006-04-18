@@ -1607,7 +1607,10 @@ VAR
 BEGIN
    sym := GetItemFromList(l, i) ;
    n := GetSymName(sym) ;
-   IF IsDefImp(sym)
+   IF IsError(sym)
+   THEN
+      printf2('sym %d IsError (%a)', sym, n)
+   ELSIF IsDefImp(sym)
    THEN
       printf2('sym %d IsDefImp (%a)', sym, n) ;
       IF IsDefinitionForC(sym)
@@ -1730,9 +1733,6 @@ BEGIN
    ELSIF IsGnuAsmVolatile(sym)
    THEN
       printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
-   ELSIF IsError(sym)
-   THEN
-      printf2('sym %d IsError (%a)', sym, n)
    END ;
 
    IF IsHiddenType(sym)

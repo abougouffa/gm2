@@ -1,6 +1,8 @@
 2006-03-25       Gaius Mulley <gaius@gnu.org>
 
 	* added testsuite/gm2/pim/pass/sets4.mod
+	* gm2/gm2-compiler/P2SymBuild.mod: added more robust error detection
+	* gm2/gm2-compiler/M2GenGCC.mod: added more robust error detection
 
 2006-03-17       Gaius Mulley <gaius@gnu.org>
 
