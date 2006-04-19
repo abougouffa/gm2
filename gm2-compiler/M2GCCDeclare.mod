@@ -2820,6 +2820,7 @@ END IsArrayDependantsWritten ;
 PROCEDURE IsSetDependantsWritten (sym: CARDINAL) : BOOLEAN ;
 VAR
    type, low, high: CARDINAL ;
+   solved         : BOOLEAN ;
 BEGIN
    Assert(IsSet(sym)) ;
 
@@ -2833,21 +2834,29 @@ BEGIN
          RETURN( IsSubrangeDependantsWritten(type) )
       END
    ELSE
+      solved := TRUE ;
+      IF NOT IsSymTypeKnown(sym, type)
+      THEN
+         IncludeItemIntoList(ToDoList, type) ;
+         solved := FALSE
+      END ;
+
       IF IsSymTypeKnown(sym, type)
       THEN
          low  := GetTypeMin(type) ;
          high := GetTypeMax(type) ;
          IF NOT GccKnowsAbout(low)
          THEN
-            IncludeItemIntoList(ToDoConstants, low)
+            IncludeItemIntoList(ToDoConstants, low) ;
+            solved := FALSE
          END ;
          IF NOT GccKnowsAbout(high)
          THEN
-            IncludeItemIntoList(ToDoConstants, high)
-         END ;
-         RETURN( GccKnowsAbout(low) AND GccKnowsAbout(high) )
+            IncludeItemIntoList(ToDoConstants, high) ;
+            solved := FALSE
+         END
       END ;
-      RETURN( FALSE )
+      RETURN( solved )
    END
 END IsSetDependantsWritten ;
 

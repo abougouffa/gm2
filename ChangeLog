@@ -1,3 +1,15 @@
+2006-04-19       Gaius Mulley <gaius@gnu.org>
+
+	* added testsuite/gm2/pim/pass/sets5.mod
+	* fixed bug report by John O Goyo <jgoyo@ca.inter.net>
+	* (testsuite/gm2/pim/pass/sets5.mod and testsuite/gm2/pim/pass/sets4.mod)
+
+2006-04-19       Gaius Mulley <gaius@gnu.org>
+
+	* added testsuite/gm2/pim/pass/sets5.mod
+	* fixed bug report by John O Goyo <jgoyo@ca.inter.net>
+	* (testsuite/gm2/pim/pass/sets5.mod and testsuite/gm2/pim/pass/sets4.mod)
+
 2006-03-25       Gaius Mulley <gaius@gnu.org>
 
 	* added testsuite/gm2/pim/pass/sets4.mod

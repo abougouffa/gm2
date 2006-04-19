@@ -714,7 +714,11 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
-SetType := "SET" "OF" SimpleType =:
+SetType :=                                                                 % VAR Name: CARDINAL ; %
+
+           "SET" "OF"                                                      % BuildNulName ; %
+                      SimpleType                                           % PopT(Name) ; %
+         =:
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %
                               Type =:
