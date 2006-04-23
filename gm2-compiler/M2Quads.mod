@@ -26,7 +26,7 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, 
                            ConCat, InitStringCharStar, Dup, Mark ;
 
-FROM SymbolTable IMPORT ModeOfAddr, GetMode, GetSymName, IsUnknown,
+FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporary, MakeConstLit, MakeConstLitString,
                         RequestSym,
                         GetType, GetLowestType, SkipType,
@@ -1679,6 +1679,31 @@ BEGIN
    PopT(Priority) ;
    PutPriority(GetCurrentModule(), Priority)
 END BuildModulePriority ;
+
+
+(*
+   BuildVarAtAddress - assigns the address of a LeftValue variable to that explicitly
+                       requested by the programmer.
+*)
+
+PROCEDURE BuildVarAtAddress ;
+VAR
+   name      : Name ;
+   Sym, SType,
+   Exp, EType: CARDINAL ;
+BEGIN
+   PopTF(Exp, EType) ;
+   PopTF(name, SType) ;
+   PushTF(name, SType) ;
+   Sym := RequestSym(name) ;
+   IF GetMode(Sym)=LeftValue
+   THEN
+      GenQuad(XIndrOp, Sym, Address, Exp)
+   ELSE
+      InternalError('expecting lvalue for this variable which is declared at an explicit address',
+                    __FILE__, __LINE__)
+   END
+END BuildVarAtAddress ;
 
 
 (*

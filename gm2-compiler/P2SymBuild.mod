@@ -108,7 +108,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
 
 FROM M2Quads IMPORT PushT, PopT,
                     PushTF, PopTF,
-                    OperandT, PopN, DisplayStack ;
+                    OperandT, OperandF, OperandA, PopN, DisplayStack ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -787,16 +787,22 @@ END BuildSubrange ;
 
 PROCEDURE BuildVariable ;
 VAR
-   name: Name ;
+   name     : Name ;
+   AtAddress,
    Type,
    Var,
-   i, n: CARDINAL ;
+   i, n     : CARDINAL ;
 BEGIN
    PopTF(Type, name) ;
    PopT(n) ;
    i := 1 ;
    WHILE i<=n DO
       Var := MakeVar(OperandT(n+1-i)) ;
+      AtAddress := OperandA(n+1-i) ;
+      IF AtAddress#NulSym
+      THEN
+         PutMode(Var, LeftValue)
+      END ;
       PutVar(Var, Type) ;
       INC(i)
    END ;

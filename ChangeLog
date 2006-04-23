@@ -1,3 +1,14 @@
+2006-04-22       Gaius Mulley <gaius@gnu.org>
+
+	* implemented the declaration of a variable at an address.
+	* modified gm2/bnf/m2-3.bnf, gm2/bnf/m2-2.bnf, gm2/gm2-compiler/M2Quads.mod
+
+2006-04-21       Gaius Mulley <gaius@gnu.org>
+
+	* added testsuite/gm2/pim/pass/varaddress.mod
+	* modified gm2/bnf/m2.bnf, gm2/bnf/m2-2.bnf, gm2/bnf/m2-3.bnf,
+	  gm2/bnf/m2-h.bnf to allow parsing of variables declared at addresses.
+
 2006-04-19       Gaius Mulley <gaius@gnu.org>
 
 	* added testsuite/gm2/pim/pass/sets5.mod

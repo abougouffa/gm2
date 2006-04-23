@@ -48,7 +48,7 @@ FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatC
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
 
-FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT,
+FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
                     StartBuildInit,
                     EndBuildInit,
                     BuildProcedureStart,
@@ -766,7 +766,37 @@ ProcedureParameter :=  "..."                                                % Bu
                        FormalType                                           % BuildFormalType ; %
                     =:
 
-VariableDeclaration := IdentList ":"                                       % BuildNulName %
+VarIdent := Ident                                                          % VAR
+                                                                                on       : BOOLEAN ;
+                                                                                Sym, Type: CARDINAL ; %
+                  [ "["                                                    % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                 PopTF(Sym, Type) ;
+                                                                                 PushTFA(Sym, Type, Sym)
+                                                                             END %
+                        ConstExpression "]" ]
+         =:
+
+VarIdentList := VarIdent                                                   % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                n := 1
+                                                                             END %
+             { "," VarIdent                                                % IF on
+                                                                             THEN
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
+
+VariableDeclaration := VarIdentList ":"                                    % BuildNulName %
                        Type                                                % BuildVariable %
                     =:
 

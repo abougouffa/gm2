@@ -278,7 +278,7 @@ CONST
 *)
 
 TYPE
-   ModeOfAddr       = (NoValue, ImmediateValue, RightValue, LeftValue) ;
+   ModeOfAddr = (NoValue, ImmediateValue, RightValue, LeftValue) ;
 
 
 (*

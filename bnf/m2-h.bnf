@@ -874,7 +874,30 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
-VariableDeclaration := IdentList ":"
+VarIdent :=                                                                % VAR Sym, Type: CARDINAL ; %
+            Ident [ "[" ConstExpression                                    % PopTF(Sym, Type) %
+                                        "]" ]
+         =:
+
+VarIdentList := VarIdent                                                   % VAR
+                                                                                on: BOOLEAN ;
+                                                                                n : CARDINAL ; %
+                                                                           % on := IsAutoPushOn() ;
+                                                                             IF on
+                                                                             THEN
+                                                                                n := 1
+                                                                             END %
+             { "," VarIdent                                                % IF on
+                                                                             THEN
+                                                                                INC(n)
+                                                                             END %
+             }                                                             % IF on
+                                                                             THEN
+                                                                                PushT(n)
+                                                                             END %
+             =:
+
+VariableDeclaration := VarIdentList ":"
                        Type
                     =:
 

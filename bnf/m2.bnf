@@ -735,12 +735,15 @@ ProcedureParameters := ProcedureParameter
 
 ProcedureParameter := "..." | "VAR" FormalType | FormalType =:
 
+VarIdent := PossiblyExportIdent [ "[" ConstExpression "]" ]
+         =:
+
 VariableDeclaration :=
                        ( VarIdentList ":"                                  % BuildNulName %
                          Type )
                     =:
 
-VarIdentList := PossiblyExportIdent                                        % VAR
+VarIdentList := VarIdent                                                   % VAR
                                                                                 on: BOOLEAN ;
                                                                                 n : CARDINAL ; %
                                                                            % on := IsAutoPushOn() ;
@@ -748,7 +751,7 @@ VarIdentList := PossiblyExportIdent                                        % VAR
                                                                              THEN
                                                                                 n := 1
                                                                              END %
-             { "," PossiblyExportIdent                                     % IF on
+             { "," VarIdent                                                % IF on
                                                                              THEN
                                                                                 INC(n)
                                                                              END %

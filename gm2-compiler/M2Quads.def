@@ -51,6 +51,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildReturn,
                  BuildModulePriority,
                  BuildBooleanVariable,
+                 BuildVarAtAddress,
                  BuildSizeCheckStart,
                  StartBuildWith, EndBuildWith, CheckWithReference,
                  CheckOuterScopeProcedureVariable,
@@ -66,8 +67,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildBinaryOp,
                  BuildUnaryOp,
                  RecordOp,
-                 PopTF, PushTF, PopT, PushT, PopNothing, PopN,
-                 OperandT, OperandF,
+                 PopTF, PushTF, PushTFA, PopT, PushT, PopNothing, PopN,
+                 OperandT, OperandF, OperandA,
                  DisplayStack,
 
                  BuildCodeOn, BuildCodeOff,
@@ -1795,10 +1796,34 @@ PROCEDURE PopN (n: CARDINAL) ;
 
 
 (*
+   PushTFA - Push True, False and Array numbers onto the True/False stack.
+             True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFA (True, False, Array: WORD) ;
+
+
+(*
+   OperandA - returns possible array symbol associated with the ident
+              operand stored on the boolean stack.
+*)
+
+PROCEDURE OperandA (pos: CARDINAL) : WORD ;
+
+
+(*
    DisplayStack - displays the compile time symbol stack.
 *)
 
 PROCEDURE DisplayStack ;
+
+
+(*
+   BuildVarAtAddress - assigns the address of a LeftValue variable to that explicitly
+                       requested by the programmer.
+*)
+
+PROCEDURE BuildVarAtAddress ;
 
 
 (*
