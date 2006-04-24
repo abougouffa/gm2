@@ -1,7 +1,4 @@
 set lang modula-2
-break _M2_setchar4_init
+break _M2_varaddress3_init
 run
-next
-print s
-ptype s
-quit
+ptype var
