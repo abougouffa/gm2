@@ -103,7 +103,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     CheckWithReference,
                     CheckOuterScopeProcedureVariable,
                     BuildModulePriority,
-                    BuildVarAtAddress,
                     DumpStack,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
@@ -122,6 +121,7 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        StartBuildProcedure,
                        BuildProcedureHeading,
                        EndBuildProcedure,
+                       BuildVarAtAddress,
                        BuildConst,
                        BuildSubrange,
                        BuildNulName,
@@ -1175,7 +1175,6 @@ ProcedureBlock :=                                                          % Bui
                 =:
 
 Block := { Declaration }
-                                                                           % (* StartBuildModFile *) %
                                                                            % StartBuildInit %
                          [ "BEGIN" StatementSequence ] "END"               % EndBuildInit %
        =:

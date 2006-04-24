@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE P3SymBuild ;
 
 
@@ -21,7 +22,7 @@ FROM NameKey IMPORT Name, WriteKey, NulName ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
-FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors ;
+FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError ;
 
 FROM SymbolTable IMPORT NulSym,
                         StartScope, EndScope, GetScope, GetCurrentScope,
@@ -34,6 +35,7 @@ FROM SymbolTable IMPORT NulSym,
                         CheckForUnknownInModule,
                         GetFromOuterModule,
                         CheckForEnumerationInCurrentModule,
+                        GetMode, PutVariableAtAddress, ModeOfAddr,
                         PutSubrange,
                         GetSymName ;
 
@@ -41,7 +43,7 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -617,6 +619,43 @@ BEGIN
    Sym := RequestSym(name) ;
    PushT(Sym)
 END BuildConst ;
+
+
+(*
+   BuildVarAtAddress - updates the symbol table entry of, variable sym, to be declared
+                       at address, address.
+
+                       Stack
+
+                       Entry                 Exit
+
+                Ptr ->
+                       +--------------+
+                       | Expr | EType |                         <- Ptr
+                       |--------------+        +--------------+
+                       | name | SType |        | name | SType |
+                       |--------------+        |--------------|
+*)
+
+PROCEDURE BuildVarAtAddress ;
+VAR
+   name      : Name ;
+   Sym, SType,
+   Exp, EType: CARDINAL ;
+BEGIN
+   PopTF(Exp, EType) ;
+   PopTF(name, SType) ;
+   PushTF(name, SType) ;
+   Sym := RequestSym(name) ;
+   IF GetMode(Sym)=LeftValue
+   THEN
+      PutVariableAtAddress(Sym, Exp)
+   ELSE
+      InternalError('expecting lvalue for this variable which is declared at an explicit address',
+                    __FILE__, __LINE__)
+   END
+END BuildVarAtAddress ;
+
 
 
 (*

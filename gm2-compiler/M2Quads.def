@@ -51,7 +51,6 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildReturn,
                  BuildModulePriority,
                  BuildBooleanVariable,
-                 BuildVarAtAddress,
                  BuildSizeCheckStart,
                  StartBuildWith, EndBuildWith, CheckWithReference,
                  CheckOuterScopeProcedureVariable,
@@ -1816,14 +1815,6 @@ PROCEDURE OperandA (pos: CARDINAL) : WORD ;
 *)
 
 PROCEDURE DisplayStack ;
-
-
-(*
-   BuildVarAtAddress - assigns the address of a LeftValue variable to that explicitly
-                       requested by the programmer.
-*)
-
-PROCEDURE BuildVarAtAddress ;
 
 
 (*

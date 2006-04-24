@@ -49,6 +49,7 @@ EXPORT QUALIFIED P3StartBuildDefModule,
                  BuildConst,
                  BuildImportOuterModule,
                  BuildImportInnerModule,
+                 BuildVarAtAddress,
                  BuildOptArgInitializer ;
 
 
@@ -379,6 +380,25 @@ PROCEDURE BuildNulName ;
 *)
 
 PROCEDURE BuildConst ;
+
+
+(*
+   BuildVarAtAddress - updates the symbol table entry of, variable sym, to be declared
+                       at address, address.
+
+                       Stack
+
+                       Entry                 Exit
+
+                Ptr ->
+                       +--------------+
+                       | Expr | EType |                         <- Ptr
+                       |--------------+        +--------------+
+                       | name | SType |        | name | SType |
+                       |--------------+        |--------------|
+*)
+
+PROCEDURE BuildVarAtAddress ;
 
 
 (*

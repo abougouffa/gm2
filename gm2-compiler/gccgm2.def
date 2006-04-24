@@ -59,7 +59,8 @@ EXPORT QUALIFIED Tree,
                  BuildSubrangeType, BuildArrayIndexType,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
-                 BuildPointerType, BuildArrayType, BuildSetType,
+                 BuildConstPointerType, BuildPointerType,
+                 BuildArrayType, BuildSetType,
                  BuildStartSetConstructor, BuildSetConstructorElement,
                  BuildEndSetConstructor,
                  BuildStartFunctionType, BuildEndFunctionType,
@@ -638,6 +639,13 @@ PROCEDURE AddStringToTreeList (list, string: Tree) : Tree ;
 *)
 
 PROCEDURE BuildPointerType (totype: Tree) : Tree ;
+
+
+(*
+   BuildConstPointerType - returns a new type which is declared as a pointer to totype.
+*)
+
+PROCEDURE BuildConstPointerType (totype: Tree) : Tree ;
 
 
 (*

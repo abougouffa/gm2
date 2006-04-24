@@ -71,7 +71,9 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsAModula2Type,
                         PutVarTypeAndSize,
                         PushSize, PushValue, PopValue,
-                        ForeachFieldEnumerationDo,
+                        GetVariableAtAddress, IsVariableAtAddress,
+                        
+                        ForeachFieldEnumerationDo, ForeachLocalSymDo,
                         GetExported, PutImported, GetSym,
                         NulSym ;
 
@@ -359,6 +361,8 @@ PROCEDURE PushTFA (True, False, Array: WORD) ; FORWARD ;
 PROCEDURE EnsureImportedFrom (n, module: Name) : CARDINAL ; FORWARD ;
 PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
+PROCEDURE CheckVariablesAt (scope: CARDINAL) ; FORWARD ;
+PROCEDURE CheckVariableAt (sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1440,6 +1444,36 @@ END DisposeQuad ;
 
 
 (*
+   CheckVariableAt - checks to see whether, sym, was declared at a particular address.
+*)
+
+PROCEDURE CheckVariableAt (sym: CARDINAL) ;
+BEGIN
+   IF IsVar(sym) AND IsVariableAtAddress(sym)
+   THEN
+      IF GetMode(sym)=LeftValue
+      THEN
+         GenQuad(BecomesOp, sym, Address, GetVariableAtAddress(sym))
+      ELSE
+         InternalError('expecting lvalue for this variable which is declared at an explicit address',
+                       __FILE__, __LINE__)
+      END
+   END
+END CheckVariableAt ;
+
+
+(*
+   CheckVariablesAt - checks to see whether we need to initialize any pointers
+                      which point to variable declared at addresses.
+*)
+
+PROCEDURE CheckVariablesAt (scope: CARDINAL) ;
+BEGIN
+   ForeachLocalSymDo(scope, CheckVariableAt)
+END CheckVariablesAt ;
+
+
+(*
    CheckNeedPriorityBegin - checks to see whether we need to save the old
                             module priority and change to another module
                             priority.
@@ -1600,6 +1634,7 @@ BEGIN
    GenQuad(StartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
+   CheckVariablesAt(ModuleSym) ;
    CheckNeedPriorityBegin(ModuleSym, ModuleSym)
 END StartBuildInit ;
  
@@ -1679,31 +1714,6 @@ BEGIN
    PopT(Priority) ;
    PutPriority(GetCurrentModule(), Priority)
 END BuildModulePriority ;
-
-
-(*
-   BuildVarAtAddress - assigns the address of a LeftValue variable to that explicitly
-                       requested by the programmer.
-*)
-
-PROCEDURE BuildVarAtAddress ;
-VAR
-   name      : Name ;
-   Sym, SType,
-   Exp, EType: CARDINAL ;
-BEGIN
-   PopTF(Exp, EType) ;
-   PopTF(name, SType) ;
-   PushTF(name, SType) ;
-   Sym := RequestSym(name) ;
-   IF GetMode(Sym)=LeftValue
-   THEN
-      GenQuad(XIndrOp, Sym, Address, Exp)
-   ELSE
-      InternalError('expecting lvalue for this variable which is declared at an explicit address',
-                    __FILE__, __LINE__)
-   END
-END BuildVarAtAddress ;
 
 
 (*
@@ -7974,6 +7984,7 @@ BEGIN
    CurrentProc := ProcSym ;
    PushWord(ReturnStack, 0) ;
    PushT(ProcSym) ;
+   CheckVariablesAt(ProcSym) ;
    CheckNeedPriorityBegin(ProcSym, GetCurrentModule())
 END BuildProcedureBegin ;
 

@@ -84,6 +84,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetDeclared,
                         GetString, GetStringLength, IsConstString,
                         IsModuleWithinProcedure,
+                        IsVariableAtAddress,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
                         ForeachInnerModuleDo, ForeachImportedDo,
@@ -130,7 +131,7 @@ FROM gccgm2 IMPORT Tree,
                    BuildArrayIndexType, BuildArrayType, BuildSetType,
                    DebugTree,
                    ChainOn,
-                   BuildPointerType,
+                   BuildPointerType, BuildConstPointerType,
                    BuildStartFunctionType, BuildEndFunctionType,
                    InitFunctionTypeParameters,
                    BuildParameterDeclaration,
@@ -1329,13 +1330,24 @@ BEGIN
       IF GetMode(Son)=LeftValue
       THEN
          (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
-         AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                             BuildPointerType(Mod2Gcc(GetType(Son))),
-                                             IsExported(ModSym, Son),
-                                             IsEffectivelyImported(ModSym, Son),
-                                             IsTemporary(Son),
-                                             TRUE,
-                                             scope))
+         IF IsVariableAtAddress(Son)
+         THEN
+            AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
+                                                BuildConstPointerType(Mod2Gcc(GetType(Son))),
+                                                IsExported(ModSym, Son),
+                                                IsEffectivelyImported(ModSym, Son),
+                                                IsTemporary(Son),
+                                                TRUE,
+                                                scope))            
+         ELSE
+            AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
+                                                BuildPointerType(Mod2Gcc(GetType(Son))),
+                                                IsExported(ModSym, Son),
+                                                IsEffectivelyImported(ModSym, Son),
+                                                IsTemporary(Son),
+                                                TRUE,
+                                                scope))
+         END
       ELSE
          AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
                                              Mod2Gcc(GetType(Son)),

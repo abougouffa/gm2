@@ -1,3 +1,13 @@
+2006-04-24       Gaius Mulley <gaius@gnu.org>
+
+	* GM2 Release 0.51
+	* tagged CVS using gm2_0_51
+	* gm2/NEWS updated
+	* rebuilt configure
+	* finished implementing declaration of variables at addresses.
+	* modified gm2/bnf/m2-3.bnf, gm2/gm2-compiler/M2Quads,
+	  gm2/gm2-compiler/SymbolTable.mod, gm2-compiler/P3SymBuild.mod
+
 2006-04-22       Gaius Mulley <gaius@gnu.org>
 
 	* implemented the declaration of a variable at an address.

@@ -16,8 +16,8 @@
 .ds GCCVERSION 3.3.6
 .ds GM2HARNESS 0.7
 .ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20051118.tar.gz
-.ds CURRENTDATE "Mon Feb 13 11:41:33 GMT 2006
-.ds CURRENTGM2 0.50
+.ds CURRENTDATE "Mon Apr 24 14:47:25 BST 2006
+.ds CURRENTGM2 0.51
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -225,9 +225,6 @@ ISO Modula-2 is not implemented in full yet.
 .LI
 ISO library implementation has started but is not useable yet.
 The module SYSTEM has been completely implemented.
-.LI
-Full PIM Modula-2 has been implemented with the exception that
-(currently) variables cannot be declared at particular addresses.
 .LI
 Logitech compatibility library is incomplete (FileSystem.mod has not
 yet been implemented, nevertheless a number of common libraries have

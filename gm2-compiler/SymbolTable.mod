@@ -333,6 +333,8 @@ TYPE
                Offset        : PtrToValue ;   (* Offset at runtime of symbol *)
                AddrMode      : ModeOfAddr ;   (* Type of Addressing mode.    *)
                Scope         : CARDINAL ;     (* Scope of declaration.       *)
+               AtAddress     : BOOLEAN ;      (* Is declared at address?     *)
+               Address       : CARDINAL ;     (* Address at which declared   *)
                IsTemp        : BOOLEAN ;      (* Is variable a temporary?    *)
                IsParam       : BOOLEAN ;      (* Is variable a parameter?    *)
                IsPointerCheck: BOOLEAN ;      (* Is variable used to         *)
@@ -2631,12 +2633,14 @@ BEGIN
             Offset := InitValue() ;
             AddrMode := RightValue ;
             Scope := GetCurrentScope() ;  (* Procedure or Module ? *)
+            AtAddress := FALSE ;
+            Address := NulSym ;           (* Address at which declared   *)
             IsTemp := FALSE ;
             IsParam := FALSE ;
             IsPointerCheck := FALSE ;
             IsWritten := FALSE ;
             InitWhereDeclared(At) ;
-            InitWhereFirstUsed(At) ;          (* Where symbol first used.      *)
+            InitWhereFirstUsed(At) ;      (* Where symbol first used.      *)
             InitList(ReadUsageList) ;
             InitList(WriteUsageList)
          END
@@ -3082,6 +3086,66 @@ BEGIN
       END
    END
 END GetStringLength ;
+
+
+(*
+   PutVariableAtAddress - determines that a variable, sym, is declared at
+                          a specific address.
+*)
+
+PROCEDURE PutVariableAtAddress (sym: CARDINAL; address: CARDINAL) ;
+BEGIN
+   Assert(sym#NulSym) ;
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      VarSym:  Var.AtAddress := TRUE ;
+               Var.Address := address
+
+      ELSE
+         InternalError('expecting a variable symbol', __FILE__, __LINE__)
+      END
+   END
+END PutVariableAtAddress ;
+
+
+(*
+   GetVariableAtAddress - returns the address at which variable, sym, is declared.
+*)
+
+PROCEDURE GetVariableAtAddress (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   Assert(sym#NulSym) ;
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      VarSym:  RETURN( Var.Address )
+
+      ELSE
+         InternalError('expecting a variable symbol', __FILE__, __LINE__)
+      END
+   END
+END GetVariableAtAddress ;
+
+
+(*
+   IsVariableAtAddress - returns TRUE if a variable, sym, was declared at
+                         a specific address.
+*)
+
+PROCEDURE IsVariableAtAddress (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   Assert(sym#NulSym) ;
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      VarSym:  RETURN( Var.AtAddress )
+
+      ELSE
+         InternalError('expecting a variable symbol', __FILE__, __LINE__)
+      END
+   END
+END IsVariableAtAddress ;
 
 
 (*

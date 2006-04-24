@@ -103,6 +103,7 @@ EXPORT QUALIFIED NulSym,
                  GetFirstUsed,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
                  GetRegInterface,
+                 GetVariableAtAddress,
 
                  PutVar,
                  PutVarTypeAndSize,
@@ -140,6 +141,7 @@ EXPORT QUALIFIED NulSym,
                  PutVarWriteQuad, RemoveVarWriteQuad,
                  PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash, PutGnuAsmVolatile,
                  PutRegInterface,
+                 PutVariableAtAddress,
 
                  IsDefImp,
                  IsModule,
@@ -182,6 +184,7 @@ EXPORT QUALIFIED NulSym,
                  IsProcedureNested,
                  IsProcedureBuiltin,
                  IsModuleWithinProcedure,
+                 IsVariableAtAddress,
 
                  ForeachProcedureDo,
                  ProcedureParametersDefined,
@@ -571,6 +574,29 @@ PROCEDURE PutNeedSavePriority (sym: CARDINAL) ;
 *)
 
 PROCEDURE GetNeedSavePriority (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutVariableAtAddress - determines that a variable, sym, is declared at
+                          a specific address.
+*)
+
+PROCEDURE PutVariableAtAddress (sym: CARDINAL; address: CARDINAL) ;
+
+
+(*
+   GetVariableAtAddress - returns the address at which variable, sym, is declared.
+*)
+
+PROCEDURE GetVariableAtAddress (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsVariableAtAddress - returns TRUE if a variable, sym, was declared at
+                         a specific address.
+*)
+
+PROCEDURE IsVariableAtAddress (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

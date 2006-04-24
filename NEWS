@@ -1,6 +1,14 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are not
 described.  There are more details in the man and info pages.
 
+VERSION 0.51
+============
+
+* all regression tests pass on LP64 and i386 GNU/Linux
+
+* declaration of variables at particular addresses is now implemented.
+  Now gm2 is a full PIM Modula-2 compiler and hence the formal release.
+
 VERSION 0.50
 ============
 

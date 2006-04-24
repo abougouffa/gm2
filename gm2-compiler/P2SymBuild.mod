@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE P2SymBuild ;
 
 
@@ -78,6 +79,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
                         MakeConstVar,
+                        PutVariableAtAddress, IsVariableAtAddress,
                         MakeUnbounded, PutUnbounded,
                         NoOfParam,
                         PutParamName,
@@ -801,6 +803,7 @@ BEGIN
       AtAddress := OperandA(n+1-i) ;
       IF AtAddress#NulSym
       THEN
+         PutVariableAtAddress(Var, NulSym) ;
          PutMode(Var, LeftValue)
       END ;
       PutVar(Var, Type) ;

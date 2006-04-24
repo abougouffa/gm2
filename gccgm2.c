@@ -470,6 +470,7 @@ static int                    default_valid_lang_attribute                PARAMS
        tree                   gccgm2_BuildEndEnumeration        	  PARAMS ((tree enumtype));
        tree                   gccgm2_BuildEnumerator 	       	 	  PARAMS ((char *name, tree value));
        tree                   gccgm2_BuildPointerType 	       	 	  PARAMS ((tree totype));
+       tree                   gccgm2_BuildConstPointerType    	          PARAMS ((tree totype));
        tree                   gccgm2_BuildArrayType 	       	 	  PARAMS ((tree elementtype, tree indextype));
        tree                   build_set_type                              PARAMS ((tree domain, tree type, int allow_void));
        tree                   gccgm2_BuildSetTypeFromSubrange             PARAMS ((char *, tree, tree, tree));
@@ -8438,6 +8439,18 @@ gccgm2_BuildPointerType (totype)
   return build_pointer_type (skip_type_decl (totype));
 }
 
+/*
+ *  BuildConstPointerType - returns a type which is a const pointer to, totype.
+ */
+
+tree
+gccgm2_BuildConstPointerType (totype)
+     tree totype;
+{
+  tree t = build_pointer_type (skip_type_decl (totype));
+  TYPE_READONLY (t) = TRUE;
+  return t;
+}
 
 /*
  *  BuildArrayType - returns a type which is an array indexed by IndexType
