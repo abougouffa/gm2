@@ -66,6 +66,8 @@ It has the following characteristics:
 .sp
 .ULS
 .LI
+variables can now be declared at addresses.
+.LI
 gm2-harness 0.7 has been released which will download, patch and build
 \fCgcc\fP, \fCgdb\fP, \fCgm2\fP with the SET and TYPE enhancements below.
 It also honours the \fC--prefix=\fP option.
@@ -143,6 +145,26 @@ and then wait and see whether it completes successfully.
 Operating       | Architecture   | gcc and gm2   (or)
 System          | Host           | gcc + latest cvs
 ================+================+=====================
+Debian Pure 64  | Opteron 64bit  | gcc-3.3.6 + gm2-0.51
+----------------+----------------+---------------------\fP
+.CDE
+.sp
+Other combinations almost certainly work, if you successfully
+build gm2 on a different platform please email
+.MTO "gaius@gnu.org" "me"
+or the
+.MTO "gm2@nongnu.org" "GNU Modula-2"
+mailing list. You will need to subscribe to send email to
+the mailing list.
+.SH
+Older builds
+.LP
+Prior to the release of GNU Modula-2 0.51 this table
+was constructed.
+.CDS
+Operating       | Architecture   | gcc and gm2   (or)
+System          | Host           | gcc + latest cvs
+================+================+=====================
 Debian Pure 64  | Opteron 64bit  | gcc-3.3.6 + gm2-0.50
 ----------------+----------------+---------------------
 Debian Sarge    | 686            | gcc-3.3.6 + gm2-0.50
@@ -160,60 +182,6 @@ GNU/Linux       | 2800+          |
 ----------------+----------------+---------------------
 MacOSX-10.3.9   | G4 eMac        | gcc-3.3.6 + gm2-0.50
 Panther         |                | 3 regressions fail
-----------------+----------------+---------------------\fP
-.CDE
-.sp
-Other combinations almost certainly work, if you successfully
-build gm2 on a different platform please email
-.MTO "gaius@gnu.org" "me"
-or the
-.MTO "gm2@nongnu.org" "GNU Modula-2"
-mailing list. You will need to subscribe to send email to
-the mailing list.
-.SH
-Older builds
-.LP
-Prior to the release of GNU Modula-2 0.50 this table
-was constructed.
-.CDS
-Operating       | Architecture   | gcc and gm2   (or)
-System          | Host           | gcc + latest cvs
-================+================+=====================
-Debian Pure 64  | Opteron 64bit  | gcc-3.3.6 + gm2-0.49
-----------------+----------------+---------------------
-Debian Unstable | Athlon 32bit   | gcc-3.3.6 + gm2-0.49
-----------------+----------------+---------------------
-FreeBSD 5.3     | Pentium III    | gcc-3.3.6 + cvs
-----------------+----------------+---------------------
-Slackware 10    | 32bit x86      | gcc-3.3.6 + gm2-0.49
-----------------+----------------+---------------------
-Solaris 10      | Sparc          | gcc-3.3.6 + gm2-0.49
-                | i32lp64        | [nb. ilp32 fails]
-----------------+----------------+---------------------
-Suse 9.2        | 64bit Athlon 64| gcc-3.3.6 + gm2-0.49
-                |                | 22Jul05
-----------------+----------------+---------------------
-Suse 9.3        | 32bit          | gcc-3.3.6 + gm2-0.49
-                | 64bit Athlon 64| 22Jul05
-----------------+----------------+---------------------
-FEDORA Core 3   | 32 bit         | gcc-3.3.6 + gm2-0.49
-                |                | 22Jul05 build and
-                |                | paranoid pass but
-                |                | regressions fail
-----------------+----------------+---------------------
-FEDORA Core 4   | 32 and 64 bit  | build fails
-----------------+----------------+---------------------
-Tru64 v5.1      | Alpha (64 bit) | gcc-3.3.6 + gm2
-                |                | 16Jan06
-----------------+----------------+---------------------
-FreeBSD 4.11    | i386           | gcc-3.3.6 + gm2
-                |                | 11Jan06
-----------------+----------------+---------------------
-GNU/Linux stable| Itanium 64 bit | gcc-3.3.6 + gm2
-                |                | 16Jan06
-----------------+----------------+---------------------
-Apple Darwin    | ppc G4 and G5  | gcc-3.3.6 + gm2
-                |                | 18Jan06
 ----------------+----------------+---------------------\fP
 .CDE
 .SH
