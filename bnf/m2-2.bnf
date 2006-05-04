@@ -487,6 +487,7 @@ token   '__LINE__'        linetok
 token   '__FILE__'        filetok
 token   '__ATTRIBUTE__'   attributetok
 token   '__BUILTIN__'     builtintok
+token   '__INLINE__'      inlinetok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok
@@ -879,10 +880,10 @@ ProcedureDeclaration := ProcedureHeading                                   % Ass
 
                       =:
 
-DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__"
-                            "(" "("                                        % PushAutoOff %
+DefineBuiltinProcedure :=  [ "__ATTRIBUTE__" "__BUILTIN__"
+                              "(" "("                                      % PushAutoOff %
                                     Ident                                  % PopAuto %
-                                          ")" ")" ]
+                                          ")" ")" | "__INLINE__" ]
                       =:
 
 ProcedureHeading := "PROCEDURE"
@@ -897,7 +898,7 @@ ProcedureHeading := "PROCEDURE"
                      )
                      =:
 
-Builtin := [ "__BUILTIN__" ] =:
+Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
 
 DefProcedureHeading := "PROCEDURE"
                         Builtin

@@ -46,7 +46,7 @@ EXPORT QUALIFIED IsReserved, tokToTok,
 
    (* additional tokens which extend PIM Modula-2 slightly *)
    EofTok, AsmTok, VolatileTok, DateTok, LineTok, FileTok,
-   AttributeTok, BuiltinTok,
+   AttributeTok, BuiltinTok, InlineTok,
 
    toktype ;
 
@@ -68,7 +68,7 @@ TYPE
               totok, typetok, untiltok, vartok, whiletok, withtok,
               asmtok, volatiletok, periodperiodperiodtok,
               datetok, linetok, filetok,
-              attributetok, builtintok,
+              attributetok, builtintok, inlinetok,
               integertok, identtok, realtok, stringtok) ;
 
 VAR
@@ -89,7 +89,7 @@ VAR
 
    EofTok, AsmTok, VolatileTok,
    DateTok, LineTok, FileTok,
-   AttributeTok, BuiltinTok: Name ;
+   AttributeTok, BuiltinTok, InlineTok: Name ;
 
 
 (*

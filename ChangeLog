@@ -1,3 +1,14 @@
+2006-05-04       Gaius Mulley <gaius@gnu.org>
+
+	* implemented __INLINE__
+	* gm2/gccgm2.c:  modified to inline procedures if requested.
+	* gm2/m2.flex: added new keyword __INLINE__
+	* gm2/gm2-compiler/M2Reserved.def
+	* gm2/gm2-compiler/M2Reserved.mod: added new keyword __INLINE__
+	* gm2/gm2-compiler/P1SymBuild.mod: builds inlined procedure
+	* gm2/gm2-compiler/M2GenGCC.mod: passes front end inlined procedure
+	  to gccgm2.
+
 2006-04-24       Gaius Mulley <gaius@gnu.org>
 
 	* GM2 Release 0.51

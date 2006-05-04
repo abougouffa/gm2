@@ -497,7 +497,8 @@ static tree                   finish_build_pointer_type                   PARAMS
 										   tree returntype,
 										   int isexternal,
 										   int isnested));
-       void                   gccgm2_BuildStartFunctionCode     	  PARAMS ((tree fndecl, int isexported));
+
+       void                   gccgm2_BuildStartFunctionCode     	  PARAMS ((tree fndecl, int isexported, int isinline));
        void                   gccgm2_BuildEndFunctionCode       	  PARAMS ((tree fndecl));
        void                   iterative_factorial 	       	 	  PARAMS ((void));
        void                   gccgm2_BuildReturnValueCode       	  PARAMS ((tree fndecl, tree value));
@@ -8956,9 +8957,10 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal, isnested)
  */
 
 void
-gccgm2_BuildStartFunctionCode (fndecl, isexported)
+gccgm2_BuildStartFunctionCode (fndecl, isexported, isinline)
      tree fndecl;
      int  isexported;
+     int  isinline;
 {
   tree param_decl, next_param;
 
@@ -8996,7 +8998,9 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported)
      (This does not mean `static' in the C sense!)  */
   TREE_STATIC (fndecl)     = 1;
   TREE_PUBLIC (fndecl)     = isexported;
-  TREE_ADDRESSABLE(fndecl) = 1;   /* could be improved, if we want to inline it make this a 0 */
+  TREE_ADDRESSABLE(fndecl) = 1;  /* (--fixme-- not sure about this) could be improved,
+				    if we want to inline it make this a 0 */
+  DECL_INLINE (fndecl)     = isinline;
 
   init_function_start (fndecl, input_filename, lineno);
   expand_function_start (fndecl, 0);
@@ -11957,6 +11961,7 @@ gccgm2_BuildStart (name, line, inner_module)
   TREE_STATIC (fndecl)   = 1;
   DECL_RESULT (fndecl)   = build_decl (RESULT_DECL, NULL_TREE, integer_type_node);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
+  TREE_ADDRESSABLE(fndecl) = 1;
 
   rest_of_decl_compilation (fndecl, NULL, 1, 0);
 

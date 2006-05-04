@@ -236,6 +236,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 \_\_FUNCTION\_\_           { updatepos(); handleFunction(); return; }
 \_\_ATTRIBUTE\_\_          { updatepos(); M2LexBuf_AddTok(M2Reserved_attributetok); return; }
 \_\_BUILTIN\_\_            { updatepos(); M2LexBuf_AddTok(M2Reserved_builtintok); return; }
+\_\_INLINE\_\_             { updatepos(); M2LexBuf_AddTok(M2Reserved_inlinetok); return; }
 
 
 (([0-9]*\.[0-9]+)(E[+-]?[0-9]+)?) { updatepos(); M2LexBuf_AddTokCharStar(M2Reserved_realtok, yytext); return; }

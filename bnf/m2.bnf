@@ -39,7 +39,7 @@ IMPLEMENTATION MODULE P1SyntaxCheck ;
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
 FROM M2Error IMPORT ErrorStringAt ;
 FROM M2Quads IMPORT PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto, DisplayStack ;
-FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok ;
+FROM M2Reserved IMPORT tokToTok, toktype, NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok, BuiltinTok, InlineTok ;
 FROM NameKey IMPORT Name, NulName, makekey ;
 FROM StrLib IMPORT StrCopy, StrConCat, StrEqual ;
 FROM P2SymBuild IMPORT BuildString, BuildNumber ;
@@ -501,6 +501,7 @@ token   '__LINE__'        linetok
 token   '__FILE__'        filetok
 token   '__ATTRIBUTE__'   attributetok
 token   '__BUILTIN__'     builtintok
+token   '__INLINE__'      inlinetok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok
@@ -834,6 +835,7 @@ ProcedureDeclaration := ProcedureHeading ";" ( ProcedureBlock              % Pus
                       =:
 
 DefineBuiltinProcedure := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")"
+                          | "__INLINE__"                                   % PushT(InlineTok) %
                           |                                                % PushT(NulTok) %
                        =:
 
@@ -848,6 +850,7 @@ ProcedureHeading := "PROCEDURE"                                            % Pus
                      =:
 
 Builtin := "__BUILTIN__"                                                   % PushT(BuiltinTok) %
+            | "__INLINE__"                                                 % PushT(InlineTok) %
             |                                                              % PushT(NulTok) %
         =:
 

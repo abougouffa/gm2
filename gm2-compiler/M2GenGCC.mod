@@ -50,7 +50,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsExportQualified,
                         IsExported,
                         IsSubrange,
-                        IsProcedureBuiltin,
+                        IsProcedureBuiltin, IsProcedureInline,
                         IsValueSolved, IsSizeSolved,
                         ForeachExportedDo,
                         ForeachImportedDo,
@@ -940,7 +940,7 @@ BEGIN
       IF IsModuleWithinProcedure(op3)
       THEN
          CurrentModuleInitFunction := Mod2Gcc(op3) ;
-         BuildStartFunctionCode(CurrentModuleInitFunction, FALSE)
+         BuildStartFunctionCode(CurrentModuleInitFunction, FALSE, FALSE)
       ELSE
          CurrentModuleInitFunction := BuildStart(KeyToCharStar(GetModuleInitName(op3)), op1, op2#op3) ;
          AddModGcc(op3, CurrentModuleInitFunction)
@@ -1174,7 +1174,8 @@ BEGIN
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
    SetFileNameAndLineNo(string(FileName), LineNo) ;
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
-                          IsExported(GetMainModule(), CurrentProcedure)) ;
+                          IsExported(GetMainModule(), CurrentProcedure),
+                          IsProcedureInline(CurrentProcedure)) ;
    StartDeclareScope(CurrentProcedure)
 END CodeProcedureScope ;
 

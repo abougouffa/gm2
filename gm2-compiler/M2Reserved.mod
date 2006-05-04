@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2Reserved ;
 
 
@@ -281,6 +282,9 @@ BEGIN
 
    BuiltinTok := MakeKey('__BUILTIN__') ; (* GCC extension incorporated into gm2 *)
    AddKeyword(BuiltinTok, ORD(builtintok)) ;
+
+   InlineTok := MakeKey('__INLINE__') ; (* GCC extension incorporated into gm2 *)
+   AddKeyword(InlineTok, ORD(inlinetok)) ;
 
    a[0] := eof ;
    a[1] := nul ;

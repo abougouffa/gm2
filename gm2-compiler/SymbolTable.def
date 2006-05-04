@@ -130,7 +130,7 @@ EXPORT QUALIFIED NulSym,
                  PutPointer,
                  PutSubscript,
                  PutUnbounded,
-                 PutProcedureBuiltin,
+                 PutProcedureBuiltin, PutProcedureInline,
                  PutModuleStartQuad,
                  PutModuleEndQuad,
                  PutProcedureStartQuad,
@@ -182,7 +182,7 @@ EXPORT QUALIFIED NulSym,
                  IsProcedureReachable,
                  IsProcedureVariable,
                  IsProcedureNested,
-                 IsProcedureBuiltin,
+                 IsProcedureBuiltin, IsProcedureInline,
                  IsModuleWithinProcedure,
                  IsVariableAtAddress,
 
@@ -905,6 +905,20 @@ PROCEDURE PutProcedureBuiltin (Sym: CARDINAL; name: Name) ;
 *)
 
 PROCEDURE IsProcedureBuiltin (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutProcedureInline - determines that procedure, Sym, has been requested to be inlined.
+*)
+
+PROCEDURE PutProcedureInline (Sym: CARDINAL) ;
+
+
+(*
+   IsProcedureBuiltin - returns TRUE if this procedure was declared as inlined.
+*)
+
+PROCEDURE IsProcedureInline (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

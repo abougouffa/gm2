@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE P1SymBuild ;
 
 
@@ -27,7 +28,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2Options IMPORT Iso ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
-                       NulTok, VarTok, ArrayTok, BuiltinTok ;
+                       NulTok, VarTok, ArrayTok, BuiltinTok, InlineTok ;
 
 FROM FifoQueue IMPORT PutIntoFifoQueue ;
 
@@ -71,7 +72,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutArray, GetType, IsArray,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
-                        PutProcedureBuiltin,
+                        PutProcedureBuiltin, PutProcedureInline,
                         MakeUnbounded, PutUnbounded,
                         GetSymName,
                         ResolveImports,
@@ -873,6 +874,8 @@ END BuildHiddenType ;
                          +------------+        +------------+
                          | Name       |        | ProcSym    |
                          |------------|        |------------|
+                         | inlinetok  |        |            |
+                         | or         |        |            |
                          | builtintok |        |            |
                          | or name or |        | Name       |
                          | NulTok     |        |            |
@@ -904,6 +907,9 @@ BEGIN
       IF builtin=BuiltinTok
       THEN
          PutProcedureBuiltin(ProcSym, name)
+      ELSIF builtin=InlineTok
+      THEN
+         PutProcedureInline(ProcSym)
       ELSE
          PutProcedureBuiltin(ProcSym, builtin)
       END

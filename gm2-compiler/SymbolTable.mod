@@ -232,6 +232,7 @@ TYPE
                OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
                IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
                BuiltinName   : Name ;       (* name of equivalent builtin    *)
+               IsInline      : BOOLEAN ;    (* Was is declared __INLINE__ ?  *)
                Unresolved    : SymbolTree ; (* All symbols currently         *)
                                             (* unresolved in this procedure. *)
                ScopeQuad     : CARDINAL ;   (* Index into quads for scope    *)
@@ -2523,6 +2524,7 @@ BEGIN
             OptArgInit := NulSym ;       (* The optarg initial value.     *)
             IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
             BuiltinName := NulName ;     (* name of equivalent builtin    *)
+            IsInline := FALSE ;          (* Was is declared __INLINE__ ?  *)
             Scope := GetCurrentScope() ; (* Scope of procedure.           *)
             InitTree(Unresolved) ;       (* All symbols currently         *)
                                          (* unresolved in this procedure. *)
@@ -3282,6 +3284,42 @@ BEGIN
       END
    END
 END IsProcedureBuiltin ;
+
+
+(*
+   PutProcedureInline - determines that procedure, Sym, has been requested to be inlined.
+*)
+
+PROCEDURE PutProcedureInline (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym   : Procedure.IsInline := TRUE ;
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END PutProcedureInline ;
+
+
+(*
+   IsProcedureBuiltin - returns TRUE if this procedure was declared as inlined.
+*)
+
+PROCEDURE IsProcedureInline (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym   : RETURN( Procedure.IsInline )
+
+      ELSE
+         InternalError('expecting procedure symbol', __FILE__, __LINE__)
+      END
+   END
+END IsProcedureInline ;
 
 
 (*
