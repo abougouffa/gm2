@@ -142,11 +142,16 @@ make gm2.paranoid
 and then wait and see whether it completes successfully.
 .sp
 .CDS
-Operating       | Architecture   | gcc and gm2   (or)
-System          | Host           | gcc + latest cvs
-================+================+=====================
-Debian Pure 64  | Opteron 64bit  | gcc-3.3.6 + gm2-0.51
-----------------+----------------+---------------------\fP
+Operating               | Architecture   | gcc and gm2   (or)
+System                  | Host           | gcc + latest cvs
+========================+================+=====================
+Debian Pure 64          | Opteron 64bit  | gcc-3.3.6 + gm2-0.51
+------------------------+----------------+---------------------
+sparcv9-sun-solaris2.10 | Sparc 64 bit   | gcc-3.3.6 + gm2-0.51
+sparc64-sun-solaris2.10 |                | 
+------------------------+----------------+---------------------
+sparc-sun-solaris2.10   | Sparc 32 bit   | gcc-3.3.6 + gm2-0.51
+------------------------+----------------+---------------------\fP
 .CDE
 .sp
 Other combinations almost certainly work, if you successfully
