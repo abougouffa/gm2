@@ -1,3 +1,9 @@
+2006-06-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/www/index.ms: updated to reflect release of gdb-6.5 which
+	  contains enhanced Modula-2 language support.  It also
+          documents that gm2-harness-0.8 has been released.
+
 2006-05-22       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms: updated to reflect sparc build success from

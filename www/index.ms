@@ -14,9 +14,9 @@
 .\" Software Foundation raise funds for GNU development.''
 .\" 
 .ds GCCVERSION 3.3.6
-.ds GM2HARNESS 0.7
+.ds GM2HARNESS 0.8
 .ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20051118.tar.gz
-.ds CURRENTDATE "Mon Apr 24 14:47:25 BST 2006
+.ds CURRENTDATE "Fri Jun 23 11:53:31 BST 2006
 .ds CURRENTGM2 0.51
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
@@ -68,12 +68,12 @@ It has the following characteristics:
 .LI
 variables can now be declared at addresses.
 .LI
-gm2-harness 0.7 has been released which will download, patch and build
+gm2-harness 0.8 has been released which will download, patch and build
 \fCgcc\fP, \fCgdb\fP, \fCgm2\fP with the SET and TYPE enhancements below.
 It also honours the \fC--prefix=\fP option.
 .LI
 much better \fCdwarf-2\fP debugging support and when used with
-a patched \fCgdb-6.3\fP the programmer can display \f[C]RECORD\f[P]s,
+\fCgdb-6.5\fP the programmer can display \f[C]RECORD\f[P]s,
 \f[C]ARRAY\f[P]s, \f[C]SET\f[P]s, subranges and constant char literals
 in Modula-2 syntax.
 .LI
