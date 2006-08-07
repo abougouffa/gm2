@@ -14,9 +14,9 @@
 .\" Software Foundation raise funds for GNU development.''
 .\" 
 .ds GCCVERSION 3.3.6
-.ds GM2HARNESS 0.8
+.ds GM2HARNESS 0.9
 .ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20051118.tar.gz
-.ds CURRENTDATE "Fri Jun 23 11:53:31 BST 2006
+.ds CURRENTDATE "Mon Aug  7 16:52:31 BST 2006
 .ds CURRENTGM2 0.51
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
@@ -68,7 +68,7 @@ It has the following characteristics:
 .LI
 variables can now be declared at addresses.
 .LI
-gm2-harness 0.8 has been released which will download, patch and build
+gm2-harness 0.9 has been released which will download, patch and build
 \fCgcc\fP, \fCgdb\fP, \fCgm2\fP with the SET and TYPE enhancements below.
 It also honours the \fC--prefix=\fP option.
 .LI
@@ -222,7 +222,7 @@ make install
 \fP
 .fi
 .LI
-This simple package, downloads the latest gm2 from CVS, the
+This simple package, downloads gm2 from CVS, the
 latest supported gcc, gdb and the testsuite. It puts all source
 components in the correct place and proceeds to build
 gdb, gm2 and run the regression tests.
@@ -259,9 +259,13 @@ GM2 development download via CVS
 The sources of GNU Modula-2 can be obtained via cvs using the commands:
 .sp
 .nf
-\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2 testsuite\fP
+\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co -D 20060623 gm2 testsuite\fP
 .fi
 .LP
+Notice that it is recommended to download the sources as from 20060623 as
+this is highly stable with gcc-3.3.6.  The cvs head is currently undergoing
+active development.
+.PP
 The source code in the CVS can be
 .URL http://cvs.savannah.nongnu.org/viewcvs/?root=gm2 "browsed here" .
 .SH
