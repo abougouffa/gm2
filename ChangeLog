@@ -1,3 +1,11 @@
+2006-08-08       Gaius Mulley <gaius@gnu.org>
+
+	* GM2 Release 0.52
+	* tagged CVS using gm2_0_52
+	* gm2/NEWS updated
+	* changed release number in configure.in, gm2.texi, Make-lang.in
+	* rebuilt configure
+
 2006-08-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms: updated to reflect release of gm2-harness-0.9

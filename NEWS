@@ -1,6 +1,12 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are not
 described.  There are more details in the man and info pages.
 
+VERSION 0.52
+============
+
+* tagged ready for branch for gcc-3.3.6 so that the head
+  can be developed with gcc-4.1.0
+
 VERSION 0.51
 ============
 

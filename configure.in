@@ -19,7 +19,7 @@
 # Boston, MA 02110-1301, USA.  */
 
 # Process this file with autoconf to produce a configure script.
-AC_INIT(gccgm2.c, 0.51, gm2@glam.ac.uk)
+AC_INIT(gccgm2.c, 0.52, gm2@glam.ac.uk)
 AC_CONFIG_HEADER(gm2config.h:gm2config.h.in)
 AC_PATH_PROGS(AR_PATH, ${AR}, ar)
 AC_DEFINE_UNQUOTED(AR_PATH, "$AR_PATH", the path to target archiver)
