@@ -21,9 +21,7 @@ PROCEDURE do ;
 BEGIN
 END do ;
 
-
-VAR
-   ch: CHAR ;
+PROCEDURE foo (ch: CHAR) ;
 BEGIN
    CASE ch OF
 
@@ -34,4 +32,8 @@ BEGIN
    ELSE
       do
    END
+END foo ;
+
+BEGIN
+   foo('1')
 END testcase1.

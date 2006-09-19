@@ -21,10 +21,11 @@ PROCEDURE one ;
    PROCEDURE Convert (VAR y: CHAR) ;
    BEGIN
       y := 'b'
-   END Convert;
+   END Convert ;
 BEGIN
 
 END one ;
+
 
 PROCEDURE two ;
    PROCEDURE Convert (VAR x: INTEGER) ;
@@ -34,6 +35,7 @@ PROCEDURE two ;
 BEGIN
 
 END two ;
+
 
 BEGIN
 END convert.
