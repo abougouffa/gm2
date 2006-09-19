@@ -22,26 +22,37 @@ Boston, MA 02110-1301, USA.  */
 #if !defined(GM2_COMMON_H)
 #   define GM2_COMMON_H
 
-EXTERN const char *gm2_init		PARAMS ((const char *));
-EXTERN int  gm2_decode_option		PARAMS ((int, char **));
-EXTERN int  gm2_parse_file              PARAMS ((void));
-EXTERN void gm2_print_decl		PARAMS ((FILE *, tree, int));
-EXTERN void gm2_print_type		PARAMS ((FILE *, tree, int));
-EXTERN void gm2_init_decl_processing	PARAMS ((void));
-EXTERN bool gm2_mark_addressable        PARAMS ((tree));
-EXTERN tree gm2_truthvalue_conversion   PARAMS ((tree expr));
-EXTERN tree gm2_type_for_size           PARAMS ((unsigned precision, int unsignedp));
-EXTERN tree gm2_type_for_mode           PARAMS ((enum machine_mode mode, int unsignedp));
-EXTERN tree gm2_unsigned_type           PARAMS ((tree type_node));
-EXTERN tree gm2_signed_type             PARAMS ((tree type_node));
-EXTERN tree gm2_signed_or_unsigned_type PARAMS ((int unsignedp, tree type));
-EXTERN tree pushdecl                    PARAMS ((tree x));
-EXTERN tree poplevel                    PARAMS ((int keep, int reverse, int functionbody));
-EXTERN void set_block                   PARAMS ((tree block));
-EXTERN tree getdecls                    PARAMS ((void));
-EXTERN rtx  gm2_expand_expr             PARAMS ((tree exp, rtx target, enum machine_mode, int modifier));
-EXTERN void pushlevel                   PARAMS ((int tag_transparent));
-EXTERN int  global_bindings_p           PARAMS ((void));
-EXTERN void insert_block                PARAMS ((tree block));
+EXTERN bool gm2_init                    (void);
+EXTERN unsigned int  gm2_init_options   (unsigned int argc, const char **argv);
+EXTERN int  gm2_handle_option           (size_t scode, const char *arg, int value);
+EXTERN void gm2_parse_file              (int debug_flag);
+EXTERN void gm2_print_decl		(FILE *, tree, int);
+EXTERN void gm2_print_type		(FILE *, tree, int);
+EXTERN void gm2_init_decl_processing	(void);
+EXTERN bool gm2_mark_addressable        (tree);
+EXTERN tree gm2_truthvalue_conversion   (tree expr);
+EXTERN tree gm2_type_for_size           (unsigned precision, int unsignedp);
+EXTERN tree gm2_type_for_mode           (enum machine_mode mode, int unsignedp);
+EXTERN tree gm2_unsigned_type           (tree type_node);
+EXTERN tree gm2_signed_type             (tree type_node);
+EXTERN tree gm2_signed_or_unsigned_type (int unsignedp, tree type);
+EXTERN tree pushdecl                    (tree x);
+EXTERN tree poplevel                    (int keep, int reverse, int functionbody);
+EXTERN void set_block                   (tree block);
+EXTERN tree getdecls                    (void);
+EXTERN rtx  gm2_expand_expr             (tree exp, rtx target,
+					 enum machine_mode tmode ATTRIBUTE_UNUSED,
+					 int modifier ATTRIBUTE_UNUSED,
+					 rtx *alt_rtl ATTRIBUTE_UNUSED);
+EXTERN void pushlevel                   (int tag_transparent);
+EXTERN int  global_bindings_p           (void);
+EXTERN void insert_block                (tree block);
+EXTERN tree builtin_function            (const char *name, tree type, int function_code,
+					 enum built_in_class class,
+					 const char *library_name,
+					 tree attrs ATTRIBUTE_UNUSED);
+EXTERN void gm2_expand_function         (tree fndecl);
+EXTERN void gm2_enter_nested            (struct function *f);
+EXTERN void gm2_leave_nested            (struct function *f);
 
 #endif

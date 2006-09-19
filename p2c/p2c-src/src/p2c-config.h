@@ -18,9 +18,30 @@ along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
+
 #include "auto-host.h"
 #include "ansidecl.h"
-#include "system.h"
+#include <stdio.h>
+
+#if defined(HAVE_STDLIB_H)
+#  include <stdlib.h>
+#endif
+
+#if defined(HAVE_UNISTD_H)
+#  include <unistd.h>
+#endif
+
+#if defined(HAVE_STRINGS_H)
+#  include <strings.h>
+#endif
+
+#if defined(HAVE_STRING_H)
+#  include <string.h>
+#endif
+
+#if defined(HAVE_TIME_H)
+#  include <time.h>
+#endif
 
 
 #ifdef FILE       /* a #define in BSD, a typedef in SYSV (hp-ux, at least) */

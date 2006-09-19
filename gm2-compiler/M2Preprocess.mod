@@ -103,8 +103,8 @@ BEGIN
       THEN
          commandLine := Slice(commandLine, 0, pos)
       END ;
-      commandLine := ConCat(ConCatChar(ConCat(ConCatChar(Dup(commandLine), ' '), filename),
-                                       ' '),
+      commandLine := ConCat(ConCat(ConCat(ConCatChar(Dup(commandLine), ' '), filename),
+                                   Mark(InitString(' -o '))),
                             tempfile) ;
 (*  use pexecute in the future
       res := pexecute(string(Slice(commandLine, 0, Index(commandLine, ' ', 0))), etc etc );

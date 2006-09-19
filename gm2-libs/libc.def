@@ -26,7 +26,7 @@ DEFINITION MODULE FOR "C" libc ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT UNQUALIFIED time_t, tm, ptrToTM,
+EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    write, read,
                    system, abort,
                    malloc, free,
@@ -38,7 +38,8 @@ EXPORT UNQUALIFIED time_t, tm, ptrToTM,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
                    memcpy, memset, printf, realloc,
-                   rand, srand, time, localtime ;
+                   rand, srand, time, localtime, ftime,
+                   shutdown ;
 
 TYPE
    time_t = LONGINT ;
@@ -57,6 +58,13 @@ TYPE
            tm_gmtoff: LONGINT ;  (* Seconds east of UTC.  *)
            tm_zone: ADDRESS ;    (* char * zone name      *)
         END ;
+
+   timeb = RECORD
+              time    : time_t ;
+              millitm : SHORTCARD ;
+              timezone: SHORTCARD ;
+              dstflag : SHORTCARD ;
+           END ;
 
 
 (*
@@ -216,10 +224,10 @@ PROCEDURE lseek (fd: INTEGER; offset: INTEGER; whence: INTEGER) : INTEGER ;
 
 
 (* 
-   perror - writes errno and string 
+   perror - writes errno and string. (ARRAY OF CHAR is translated onto ADDRESS).
 *)
 
-PROCEDURE perror (string: ADDRESS);
+PROCEDURE perror (string: ARRAY OF CHAR);
 
 
 (*
@@ -360,6 +368,23 @@ PROCEDURE time (a: ADDRESS) : time_t ;
 *)
 
 PROCEDURE localtime (VAR t: time_t) : ADDRESS ;
+
+
+(*
+   ftime - return date and time.
+*)
+
+PROCEDURE ftime (VAR t: timeb) : INTEGER ;
+
+
+(*
+   shutdown - shutdown a socket, s.
+              if how = 0, then no more reads are allowed.
+              if how = 1, then no more writes are allowed.
+              if how = 2, then mo more reads or writes are allowed.
+*)
+
+PROCEDURE shutdown (s: INTEGER; how: INTEGER) : INTEGER ;
 
 
 END libc.

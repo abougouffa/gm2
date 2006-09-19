@@ -29,6 +29,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #   define FALSE (1==0)
 #endif
 
+#include <stdlib.h>
 
 static int fd;
 static int initialized = FALSE;

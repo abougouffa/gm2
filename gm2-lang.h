@@ -43,9 +43,19 @@ struct lang_identifier GTY(())
   tree limbo_value;
 };
 
+/* Structure giving our language-specific hooks.  */
 
-EXTERN void  objc_check_decl PARAMS((tree decl));
-EXTERN int   objc_comptypes  PARAMS((tree lhs, tree rhs, int reflexive));
+struct language_function GTY(())
+{
+  /* While we are parsing the function, this contains information
+     about the statement-tree that we are building.  */
+/* struct stmt_tree_s stmt_tree; */
+    tree stmt_tree;
+};
+
+EXTERN void  objc_check_decl (tree decl);
+EXTERN int   objc_comptypes  (tree lhs, tree rhs, int reflexive);
+EXTERN enum gimplify_status  gm2_gimplify_expr (tree *, tree *, tree *);
 
 #endif
 

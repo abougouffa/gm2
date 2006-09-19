@@ -37,9 +37,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #  define FALSE (1==0)
 #endif
 
-#define ERROR(X)   { printf("%s:%d:%s - %s\n", __FILE__, __LINE__, \
-                                X, strerror(errno)); \
-                                exit(1); }
+#define ERROR(X)   { printf("%s:%d:%s\n", __FILE__, __LINE__, X); \
+                     localExit(1); }
 
 #define ASSERT(X)  { if (! (X)) { printf("%s:%d: assert(%s) failed\n", \
 					 __FILE__, __LINE__, #X ); exit(1); }}
@@ -53,6 +52,10 @@ typedef struct {
   int                 portNo;
 } tcpServerState;
 
+
+int localExit (int i)
+{
+}
 
 /*
  *  tcpServerEstablishPort - returns a tcpState containing the relevant
@@ -158,12 +161,76 @@ int tcpServerSocketFd (tcpServerState *s)
 }
 
 /*
+ *  getLocalIP - returns the IP address of this machine.
+ */
+
+unsigned int getLocalIP (tcpServerState *s)
+{
+  char hostname[1024];
+  struct hostent *hp;
+  struct sockaddr_in sa;
+  unsigned int ip;
+  int ret = gethostname (hostname, sizeof (hostname));
+
+  if (ret == -1) {
+    ERROR("gethostname");
+    return 0;
+  }
+
+  hp = gethostbyname(hostname);
+  if (hp == NULL) {
+    ERROR("gethostbyname");
+    return 0;
+  }
+
+  if (sizeof (unsigned int) != sizeof (in_addr_t)) {
+    ERROR("bad ip length");
+    return 0;
+  }
+
+  memset (&sa, sizeof (struct sockaddr_in), 0);
+  sa.sin_family = AF_INET;
+  sa.sin_port = htons (80);
+  if (hp->h_length == sizeof(unsigned int)) {
+    memcpy (&ip, hp->h_addr_list[0], hp->h_length);
+    return ip;
+  }
+
+  return 0;
+}
+
+/*
  *  tcpServerIP - returns the IP address from structure, s.
  */
 
 int tcpServerIP (tcpServerState *s)
 {
-  return s->sa.sin_addr.s_addr;
+  return *((int *)s->hp->h_addr_list[0]);
+}
+
+/*
+ *  tcpServerClientIP - returns the IP address of the client who
+ *                      has connected to server, s.
+ */
+
+unsigned int tcpServerClientIP (tcpServerState *s)
+{
+  unsigned int ip;
+
+  ASSERT(s->isa.sin_family == AF_INET);
+  ASSERT(sizeof(ip) == 4);
+  memcpy(&ip, &s->isa.sin_addr, sizeof(ip));
+  return ip;
+}
+
+/*
+ *  tcpServerClientPortNo - returns the port number of the client who
+ *                          has connected to server, s.
+ */
+
+unsigned int tcpServerClientPortNo (tcpServerState *s)
+{
+  return s->isa.sin_port;
 }
 
 /*
@@ -217,6 +284,35 @@ tcpClientState *tcpClientSocket (char *serverName, int portNo)
 }
 
 /*
+ *  tcpClientSocketIP - returns a file descriptor (socket) which has
+ *                      connected to, ip:portNo.
+ */
+
+tcpClientState *tcpClientSocketIP (unsigned int ip, int portNo)
+{
+  tcpClientState *s = (tcpClientState *)malloc(sizeof(tcpClientState));
+
+  if (s == NULL)
+    ERROR("no more memory");
+
+  /* remove SIGPIPE which is raised on the server if the client is killed */
+  signal(SIGPIPE, SIG_IGN);
+
+  bzero((char *)&s->sa, sizeof(s->sa));
+  s->sa.sin_family = AF_INET;
+  bcopy((char *)&ip, (char *)&s->sa.sin_addr, sizeof(ip));
+  s->portNo        = portNo;
+  s->sa.sin_port   = htons(portNo);
+
+  /*
+   * Open a TCP socket (an Internet stream socket)
+   */
+
+  s->sockFd = socket(PF_INET, SOCK_STREAM, 0);
+  return s;
+}
+
+/*
  *  tcpClientConnect - returns the file descriptor associated with, s,
  *                     once a connect has been performed.
  */
@@ -253,5 +349,6 @@ int tcpClientSocketFd (tcpClientState *s)
 
 int tcpClientIP (tcpClientState *s)
 {
+  printf("client ip = %s\n", inet_ntoa (s->sa.sin_addr.s_addr));
   return s->sa.sin_addr.s_addr;
 }

@@ -28,11 +28,12 @@ It originated from p2c-1.20 another GNU Project "p2c" file: src/makeproto.c
 
 /* Program to scan old-style source files and make prototypes */
 
-#include "p2c-config.h"
+#include <p2c-config.h>
 
-int  readline        PARAMS ((char *buf, FILE *inf));
-int  strbeginsword   PARAMS ((char *s1, const char *s2));
-void usage           PARAMS ((void));
+
+int  readline        (char *buf, FILE *inf);
+int  strbeginsword   (char *s1, const char *s2);
+void usage           (void);
 
 #define isidchar(x)    (isalnum(x) || (x) == '_')
 

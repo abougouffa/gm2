@@ -21,10 +21,14 @@ Boston, MA 02110-1301, USA.  */
 
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 #include "tree.h"
 #include "toplev.h"
 #include "langhooks.h"
 #include "langhooks-def.h"
+#include "tree-inline.h"
+#include "diagnostic.h"
 #include "ggc.h"
 #include "c-common.h"
 
@@ -36,29 +40,24 @@ Boston, MA 02110-1301, USA.  */
 
 static HOST_WIDE_INT gm2_get_alias_set PARAMS ((tree));
 
-
-/* Structure giving our language-specific hooks.  */
-
-struct language_function GTY(())
-{
-  int unused;
-};
-
-#undef  LANG_HOOKS_NAME
+#undef LANG_HOOKS_NAME
 #define LANG_HOOKS_NAME			   "GNU Modula-2"
-#undef  LANG_HOOKS_INIT
-#define LANG_HOOKS_INIT			   gm2_init
-#undef  LANG_HOOKS_DECODE_OPTION
-#define LANG_HOOKS_DECODE_OPTION	   gm2_decode_option
+#undef LANG_HOOKS_INIT
+#define LANG_HOOKS_INIT                    gm2_init
+#undef LANG_HOOKS_GIMPLIFY_EXPR 
+#define LANG_HOOKS_GIMPLIFY_EXPR           gm2_gimplify_expr
+#undef LANG_HOOKS_HANDLE_OPTION
+#define LANG_HOOKS_HANDLE_OPTION           gm2_handle_option
+#undef LANG_HOOKS_FUNCTION_LEAVE_NESTED
+#define LANG_HOOKS_FUNCTION_LEAVE_NESTED   gm2_leave_nested
+#undef LANG_HOOKS_FUNCTION_ENTER_NESTED
+#define LANG_HOOKS_FUNCTION_ENTER_NESTED   gm2_enter_nested
 #undef LANG_HOOKS_HONOR_READONLY
-#define LANG_HOOKS_HONOR_READONLY	   1
+#define LANG_HOOKS_HONOR_READONLY          1
 #undef LANG_HOOKS_GET_ALIAS_SET
-#define LANG_HOOKS_GET_ALIAS_SET	   gm2_get_alias_set
-
+#define LANG_HOOKS_GET_ALIAS_SET           gm2_get_alias_set
 #undef LANG_HOOKS_MARK_ADDRESSABLE
 #define LANG_HOOKS_MARK_ADDRESSABLE        gm2_mark_addressable
-#undef LANG_HOOKS_TRUTHVALUE_CONVERSION
-#define LANG_HOOKS_TRUTHVALUE_CONVERSION   gm2_truthvalue_conversion
 #undef LANG_HOOKS_TYPE_FOR_MODE
 #define LANG_HOOKS_TYPE_FOR_MODE           gm2_type_for_mode
 #undef LANG_HOOKS_TYPE_FOR_SIZE
@@ -73,6 +72,10 @@ struct language_function GTY(())
 #define LANG_HOOKS_EXPAND_EXPR             gm2_expand_expr
 #undef LANG_HOOKS_PARSE_FILE
 #define LANG_HOOKS_PARSE_FILE              gm2_parse_file
+#undef LANG_HOOKS_INIT_OPTIONS
+#define LANG_HOOKS_INIT_OPTIONS            gm2_init_options
+#undef LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION
+#define LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION gm2_expand_function
 
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 
@@ -80,10 +83,12 @@ const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 
 #define DEFTREECODE(SYM, NAME, TYPE, LENGTH) TYPE,
 
-const char tree_code_type[] = {
+const enum tree_code_class tree_code_type[] = {
 #include "tree.def"
-  'x',
+  tcc_exceptional,
 #include "c-common.def"
+  tcc_exceptional,
+#include "gm2-tree.def"
 };
 #undef DEFTREECODE
 
@@ -97,6 +102,8 @@ const unsigned char tree_code_length[] = {
 #include "tree.def"
   0,
 #include "c-common.def"
+  0,
+#include "gm2-tree.def"
 };
 #undef DEFTREECODE
 
@@ -108,6 +115,8 @@ const char *const tree_code_name[] = {
 #include "tree.def"
   "@@dummy",
 #include "c-common.def"
+  "@@dummy",
+#include "gm2-tree.def"
 };
 #undef DEFTREECODE
 
@@ -136,3 +145,49 @@ objc_comptypes (lhs, rhs, reflexive)
   return -1;
 }
 
+/* Mark EXP saying that we need to be able to take the
+   address of it; it should not be allocated in a register.
+   Returns true if successful.  */
+
+bool
+gm2_mark_addressable (tree exp)
+{
+  tree x = exp;
+
+  while (1)
+    switch (TREE_CODE (x))
+      {
+      case COMPONENT_REF:
+	if (DECL_C_BIT_FIELD (TREE_OPERAND (x, 1)))
+	  {
+	    error
+	      ("cannot take address of bit-field %qD", TREE_OPERAND (x, 1));
+	    return false;
+	  }
+
+	/* ... fall through ...  */
+
+      case ADDR_EXPR:
+      case ARRAY_REF:
+      case REALPART_EXPR:
+      case IMAGPART_EXPR:
+	x = TREE_OPERAND (x, 0);
+	break;
+
+      case COMPOUND_LITERAL_EXPR:
+      case CONSTRUCTOR:
+	TREE_ADDRESSABLE (x) = 1;
+	return true;
+
+      case VAR_DECL:
+      case CONST_DECL:
+      case PARM_DECL:
+      case RESULT_DECL:
+	/* drops in */
+      case FUNCTION_DECL:
+	TREE_ADDRESSABLE (x) = 1;
+	/* drops out */
+      default:
+	return true;
+    }
+}

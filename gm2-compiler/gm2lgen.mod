@@ -42,8 +42,8 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1 ;
 
 (* %%%FORWARD%%%
 PROCEDURE BuildFunctionList ; FORWARD ;
-PROCEDURE GenInitializationCalls (ApuFound: BOOLEAN) ; FORWARD ;
-PROCEDURE GenExternals (ApuFound: BOOLEAN) ; FORWARD ;
+PROCEDURE GenInitializationCalls ; FORWARD ;
+PROCEDURE GenExternals ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -52,8 +52,7 @@ CONST
 
 VAR
    NeedTerminate,
-   ExitNeeded,
-   ApuFound     : BOOLEAN ;
+   ExitNeeded   : BOOLEAN ;
    MainName     : String ;
    FunctionList : Index ;
    fi, fo       : File ;
@@ -98,18 +97,14 @@ VAR
    i: CARDINAL ;
    s: String ;
 BEGIN
-   i              := 1 ;
-   NeedTerminate  := TRUE ;
-   ApuFound       := FALSE ;
-   ExitNeeded     := TRUE ;
-   MainName       := InitString('main') ;
-   fi             := StdIn ;
-   fo             := StdOut ;
+   i             := 1 ;
+   NeedTerminate := TRUE ;
+   ExitNeeded    := TRUE ;
+   MainName      := InitString('main') ;
+   fi            := StdIn ;
+   fo            := StdOut ;
    WHILE GetArg(s, i) DO
-      IF EqualArray(s, '-apu')
-      THEN
-         ApuFound := TRUE
-      ELSIF EqualArray(s, '-exit')
+      IF EqualArray(s, '-exit')
       THEN
          ExitNeeded := FALSE
       ELSIF EqualArray(s, '-terminate')
@@ -117,7 +112,7 @@ BEGIN
          NeedTerminate := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-main function] [-o outputfile] [ inputfile ] [-apu] [-exit] [-terminate]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
          exit(0)
       ELSIF EqualArray(s, '-o')
       THEN
@@ -143,7 +138,7 @@ BEGIN
          OpenInputFile(s)
       END ;
       INC(i)
-   END ;
+   END
 END ScanArgs ;
 
 
@@ -157,42 +152,23 @@ BEGIN
    FunctionList := InitIndex(1) ;
    ScanArgs ;
    BuildFunctionList ;
-   GenExternals(ApuFound) ;
-   IF ApuFound
+   GenExternals ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int \n')))))) ;
+   Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('%s (argc, argv)\n')), MainName)))) ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int   argc ;\n')))))) ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('char  *argv[];\n')))))) ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
+   GenInitializationCalls ;
+   IF NeedTerminate
    THEN
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    .global _%s\n')), MainName)))) ;
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('_%s:\n')), MainName)))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    load.d.d   %%ra\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    load.d.d   %%ra\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    load.d.d   %%sp\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    store.d.d  %%ra\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    load.d.d   %%rb\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    load.d.d   %%rc\n')))))) ;  (* so gdb can get hold of this function *)
-      GenInitializationCalls(ApuFound) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    store.d.d  %%rc\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    store.d.d  %%rb\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    store.d.d  %%ra\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    store.d.d  %%pc\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    nop\n')))))) ; (* this ensures our PC never goes out of range *)
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    .end\n'))))))
-   ELSE
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int \n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('%s (argc, argv)\n')), MainName)))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int   argc ;\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('char  *argv[];\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
-      GenInitializationCalls(ApuFound) ;
-      IF NeedTerminate
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate();\n'))))))
-      END ;
-      IF ExitNeeded
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit(0);\n'))))))
-      END ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return(0);\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))
-   END;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate();\n'))))))
+   END ;
+   IF ExitNeeded
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit(0);\n'))))))
+   END ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return(0);\n')))))) ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n')))))) ;
    Close(fo)
 END GenMain ;
 
@@ -201,32 +177,26 @@ END GenMain ;
    GenExternals - writes out the external prototypes for each module initializer.
 *)
 
-PROCEDURE GenExternals (ApuFound: BOOLEAN) ;
+PROCEDURE GenExternals ;
 VAR
    funcname,
    s       : String ;
    i, n    : CARDINAL ;
 BEGIN
+   IF ExitNeeded
+   THEN
+      Fin(WriteS(fo, Mark(InitString('void exit(int);'))))
+   END ;
    n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
-      IF ApuFound
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('  .extern __M2_%s_init\n')), funcname))))
-      ELSE
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), funcname))))
-      END ;
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), funcname)))) ;
       INC(i)
    END ;
    IF NeedTerminate
    THEN
-      IF ApuFound
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  .extern _M2RTS_Terminate\n'))))))
-      ELSE
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern M2RTS_Terminate(void);\n'))))))
-      END
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern M2RTS_Terminate(void);\n'))))))
    END
 END GenExternals ;
 
@@ -236,7 +206,7 @@ END GenExternals ;
                             in the application suit.
 *)
 
-PROCEDURE GenInitializationCalls (ApuFound: BOOLEAN) ;
+PROCEDURE GenInitializationCalls ;
 VAR
    funcname,
    s       : String ;
@@ -246,26 +216,13 @@ BEGIN
    i := LowIndice(FunctionList) ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
-      IF ApuFound
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('  load.d.d $__M2_%s_init\n')),
-                                      funcname)))) ;
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  call\n'))))))
-      ELSE
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init(argc, argv);\n')),
-                                      funcname))))
-      END ;
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init(argc, argv);\n')),
+                                   funcname)))) ;
       INC(i)
    END ;
    IF NeedTerminate
    THEN
-      IF ApuFound
-      THEN
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  load.d.d $_M2RTS_Terminate\n')))))) ;
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  call\n'))))))
-      ELSE
-         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  M2RTS_Terminate();\n'))))))
-      END
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  M2RTS_Terminate();\n'))))))
    END
 END GenInitializationCalls ;
 

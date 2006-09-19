@@ -1,0 +1,216 @@
+; Options for the Modula-2 front end.
+; Copyright (C) 2006 Free Software Foundation, Inc.
+;
+; This file is part of GCC.
+;
+; GNU Modula-2 is free software; you can redistribute it and/or modify it under
+; the terms of the GNU General Public License as published by the Free
+; Software Foundation; either version 2, or (at your option) any later
+; version.
+; 
+; GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+; WARRANTY; without even the implied warranty of MERCHANTABILITY or
+; FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+; for more details.
+; 
+; You should have received a copy of the GNU General Public License
+; along with GCC; see the file COPYING.  If not, write to the Free
+; Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
+; 02110-1301, USA.
+
+; See the GCC internals manual for a description of this file's format.
+
+; Please try to keep this file in ASCII collating order.
+
+Language
+Modula-2
+
+I
+Modula-2 Joined
+; Documented for C
+
+M
+Modula-2
+; Documented for C
+
+Wiso
+Modula-2
+use ISO dialect of Modula-2
+
+Wpim
+Modula-2
+use PIM [234] dialect of Modula-2
+
+Wpim2
+Modula-2
+use PIM 2 dialect of Modula-2
+
+Wpim3
+Modula-2
+use PIM 3 dialect of Modula-2
+
+Wpim4
+Modula-2
+use PIM 4 dialect of Modula-2
+
+Wpositive-mod-floor-div
+Modula-2
+force positive result from MOD and DIV result floor
+
+Wlibs=ulm
+Modula-2
+use the University of Ulm libraries and PIM dialect of Modula-2
+
+Wlibs=logitech
+Modula-2
+use the Logitech compatible (PIM dialect) set of libraries
+
+Wlibs=pim-coroutine
+Modula-2
+use the PIM dialect libraries which include coroutine support
+
+Wbounds
+Modula-2
+turns on runtime subrange, array index and indirection via NIL pointer checking
+
+Wreturn
+Modula-2
+turns on runtime checking for functions which finish without executing a RETURN statement
+
+Wnil
+Modula-2
+turns on runtime checking to detect accessing data through a NIL value pointer
+
+Wcase
+Modula-2
+turns on runtime checking to check whether a CASE statement requires an ELSE clause when on was not specified
+
+Wcheck-all
+Modula-2
+turns on all runtime checking (an abbreviation for -Wcase -Wbounds -Wreturn -Wnil)
+
+Wstudents
+Modula-2
+extra compile time semantic checking, typically tries to catch bad style
+
+Wpedantic
+Modula-2
+compiler checks nested WITH statements (referencing same type) and multiple identical imports
+
+Wpedantic-param-names
+Modula-2
+compiler checks to force definition module procedure parameter names with their implementation module counterpart
+
+Wpedantic-cast
+Modula-2
+compiler warns if a cast is being used on types of differing sizes
+
+Wextended-opaque
+Modula-2
+allows opaque types to be implemented as any type (a GNU Modula-2 extension)
+
+Wverbose-unbounded
+Modula-2
+inform user which parameters will be passed by reference
+
+Wuselist
+Modula-2
+use ordered list of modules when linking
+
+Wmakelist
+Modula-2
+created ordered list of modules
+
+Wmodules
+Modula-2
+display list of modules and location
+
+Wmakeall
+Modula-2
+build a project using make
+
+Wmakeall0
+Modula-2
+do not build a project using make (internal)
+
+Wmake-I=
+Modula-2 Joined
+build project path (internal)
+
+Wtarget-ar=
+Modula-2 Joined
+full path to target archiver
+
+Wtarget-ranlib=
+Modula-2 Joined
+full path to target ranlib
+
+Wcpp
+Modula-2
+use cpp to preprocess the module
+
+Wq
+Modula-2
+debugging information - dump the list of quadruples
+
+Wsources
+Modula-2
+display the location of module source files as they are compiled
+
+funbounded-by-reference
+Modula-2
+optimize non var unbounded parameters by passing it by reference, providing it is not written to within the callee procedure.
+
+Wdef=
+Modula-2 Joined
+recognise the specified suffix as a definition module filename
+
+Wmod=
+Modula-2 Joined
+recognise the specified suffix as implementation and module filenames
+
+version
+Modula-2
+display the version of the GNU Modula-2 front end
+
+O
+Modula-2
+optimize code
+
+v
+Modula-2
+show the invocation of GNU Modula-2 subprograms
+
+lang-asm
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+traditional-cpp
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+iprefix
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+isystem
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+Wcppend
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+Wcppbegin
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+E
+Modula-2
+passed to the preprocessor if -Wcpp is used
+
+D
+Modula-2
+define preprocessor symbol
+
+; This comment is to ensure we retain the blank line above.

@@ -20,12 +20,14 @@ IMPLEMENTATION MODULE M2Options ;
 
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
-FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray, ConCatChar, ConCat ;
 FROM M2Search IMPORT PrependSearchPath, SetDefExtension, SetModExtension ;
 FROM M2Version IMPORT WriteVersion ;
 FROM M2Printf IMPORT printf0, printf1 ;
 FROM libc IMPORT exit ;
 FROM Debug IMPORT Halt ;
+
+FROM DynamicStrings IMPORT String, Length, InitString, Mark, Slice, EqualArray,
+                           InitStringCharStar, ConCatChar, ConCat ;
 
 
 VAR
@@ -145,6 +147,130 @@ END ScanForInitialOptions ;
 
 
 (*
+   SetReturnCheck -
+*)
+
+PROCEDURE SetReturnCheck (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   ReturnChecking := value ;
+   RETURN( TRUE )
+END SetReturnCheck ;
+
+
+(*
+   SetNilCheck -
+*)
+
+PROCEDURE SetNilCheck (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   NilChecking := value ;
+   RETURN( TRUE )
+END SetNilCheck ;
+
+
+(*
+   SetCaseCheck - set else case checking to, value.
+*)
+
+PROCEDURE SetCaseCheck (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   CaseElseChecking := value ;
+   RETURN( TRUE )
+END SetCaseCheck ;
+
+
+(*
+   SetCheckAll - set all runtime checking to, value.
+*)
+
+PROCEDURE SetCheckAll (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   BoundsChecking := value ;
+   ReturnChecking := value ;
+   NilChecking := value ;
+   CaseElseChecking := value ;
+   RETURN( TRUE )
+END SetCheckAll ;
+
+
+(*
+   SetVerboseUnbounded - sets the VerboseUnbounded flag to, value.
+*)
+
+PROCEDURE SetVerboseUnbounded (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   VerboseUnbounded := value ;
+   RETURN( TRUE )
+END SetVerboseUnbounded ;
+
+
+(*
+   SetQuiet - sets the quiet flag to, value.
+*)
+
+PROCEDURE SetQuiet (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   Quiet := value ;
+   RETURN( TRUE )
+END SetQuiet ;
+
+
+(*
+   SetCpp -
+*)
+
+PROCEDURE SetCpp (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   CPreProcessor := value ;
+   LineDirectives := value ;
+   RETURN( TRUE )
+END SetCpp ;
+
+
+(*
+   SetMakeall -
+*)
+
+PROCEDURE SetMakeall (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   (* value is unused *)
+   RETURN( TRUE )
+END SetMakeall ;
+
+
+(*
+   SetMakeall0 -
+*)
+
+PROCEDURE SetMakeall0 (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   (* value is unused *)
+   RETURN( TRUE )
+END SetMakeall0 ;
+
+
+(*
+   SetIncludePath -
+*)
+
+PROCEDURE SetIncludePath (arg: ADDRESS) : BOOLEAN ;
+BEGIN
+   RETURN( TRUE )
+END SetIncludePath ;
+
+
+(*
+   SetUnboundedByReference -
+*)
+
+PROCEDURE SetUnboundedByReference (value: BOOLEAN) : BOOLEAN ;
+BEGIN
+   UnboundedByReference := value ;
+   RETURN( TRUE )
+END SetUnboundedByReference ;
+
+
+(*
    IsAnOption - returns TRUE if the option, s, was legal for gm2.
 *)
 
@@ -227,12 +353,10 @@ BEGIN
       Legal := TRUE
    ELSIF EqualArray(s, '-funbounded-by-reference')
    THEN
-      UnboundedByReference := TRUE ;
-      Legal := TRUE
+      Legal := SetUnboundedByReference(TRUE)
    ELSIF EqualArray(s, '-Wverbose-unbounded')
    THEN
-      VerboseUnbounded := TRUE ;
-      Legal := TRUE
+      Legal := SetVerboseUnbounded(TRUE)
    ELSIF EqualArray(s, '-Wpedantic-param-names')
    THEN
       PedanticParamNames := TRUE ;
@@ -243,11 +367,7 @@ BEGIN
       Legal := TRUE
    ELSIF EqualArray(s, '-Wcheck-all')
    THEN
-      BoundsChecking := TRUE ;
-      ReturnChecking := TRUE ;
-      NilChecking := TRUE ;
-      CaseElseChecking := TRUE ;
-      Legal := TRUE
+      Legal := SetCheckAll(TRUE)
    ELSIF EqualArray(s, '-Wbounds')
    THEN
       BoundsChecking := TRUE ;
@@ -262,9 +382,7 @@ BEGIN
       Legal := TRUE
    ELSIF EqualArray(s, '-Wcpp') OR EqualArray(s, '-Wcppbegin')
    THEN
-      Legal := TRUE ;
-      CPreProcessor := TRUE ;
-      LineDirectives := TRUE
+      Legal := SetCpp(TRUE)
    ELSIF EqualArray(s, '-Wreturn')
    THEN
       ReturnChecking := TRUE ;

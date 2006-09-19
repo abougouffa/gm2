@@ -26,19 +26,34 @@
 # compilers	- value to add to $(COMPILERS)
 # stagestuff	- files to add to $(STAGESTUFF)
 
-version=`grep version_string "$srcdir/version.c" | sed -e 's/[^"]*"//;s/[ "].*//'`
+if [ -f $srcdir/version.c ] ; then
+   version=`grep version_string "$srcdir/version.c" | sed -e 's/[^"]*"//;s/[ "].*//'`
+elif [ -f $srcdir/gcc/version.c ] ; then
+   version=`grep version_string "$srcdir/gcc/version.c" | sed -e 's/[^"]*"//;s/[ "].*//'`
+else
+   version="unknown"
+fi
+
 echo -n "checking GCC release $version is... "
 touch gcc-version.h
-if echo $version | grep '^3.3' > /dev/null; then
+if true; then
+   echo "#define GCC_4_1_X" >> gcc-version.h
+   echo "supported"
+   mainversion=4_1_0
+elif echo $version | grep '^3.4' > /dev/null; then
+   echo "#define GCC_3_4_X" >> gcc-version.h
+   echo "supported"
+   mainversion=3_4_6
+elif echo $version | grep '^3.3' > /dev/null; then
    echo "#define GCC_3_3_X" >> gcc-version.h
    echo "supported"
    mainversion=3_3_3
 elif echo $version | grep '^3.2' > /dev/null; then
    echo "#define GCC_3_2_X" >> gcc-version.h
-   echo "not supported. You need to use a gcc-3.3 series source tree"
+   echo "not supported. You need to use a gcc-3.3 or 3.4 series source tree"
    exit 1
 else
-   echo "not supported. You need to use a gcc-3.3 series source tree"
+   echo "not supported. You need to use a gcc-3.3 or 3.4 series source tree"
    exit 1
 fi
 

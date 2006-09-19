@@ -14,7 +14,7 @@
 .\" Software Foundation raise funds for GNU development.''
 .\" 
 .ds GCCVERSION 3.3.6
-.ds GM2HARNESS 0.9
+.ds GM2HARNESS 0.91
 .ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20051118.tar.gz
 .ds CURRENTDATE "Mon Aug  7 16:52:31 BST 2006
 .ds CURRENTGM2 0.51
@@ -66,11 +66,13 @@ It has the following characteristics:
 .sp
 .ULS
 .LI
-variables can now be declared at addresses.
-.LI
-gm2-harness 0.9 has been released which will download, patch and build
+gm2-harness 0.91 has been released which will download, patch and build
 \fCgcc\fP, \fCgdb\fP, \fCgm2\fP with the SET and TYPE enhancements below.
-It also honours the \fC--prefix=\fP option.
+It also honours the \fC--prefix=\fP, \fC--with-cvs\fP, \fC--with-gdb\fP
+and \fC--with-gcc=\fP options.  See the \fCgm2-harness-0.91/README\fP
+for details.
+.LI
+variables can now be declared at addresses.
 .LI
 much better \fCdwarf-2\fP debugging support and when used with
 \fCgdb-6.5\fP the programmer can display \f[C]RECORD\f[P]s,

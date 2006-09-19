@@ -22,7 +22,7 @@ FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
 FROM SYSTEM IMPORT PRIORITY ;
-FROM libc IMPORT printf ;
+FROM libc IMPORT printf, perror ;
 FROM Assertion IMPORT Assert ;
 
 FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
@@ -496,17 +496,21 @@ VAR
    bs, bm: CARDINAL ;
 BEGIN
    GetTime(a, as, am) ;
+   Assert(am<Microseconds) ;
    GetTime(b, bs, bm) ;
+   Assert(bm<Microseconds) ;
    IF IsGreaterEqual(a, b)
    THEN
       s := as-bs ;
       IF am>=bm
       THEN
-         m := am-bm
+         m := am-bm ;
+         Assert(m<Microseconds) ;
       ELSE
          Assert(s>0) ;
          DEC(s) ;
-         m := (Microseconds + am) - bm
+         m := (Microseconds + am) - bm ;
+         Assert(m<Microseconds)
       END
    ELSE
       s := 0 ;
@@ -553,7 +557,7 @@ BEGIN
       t := NIL ;
       i := NIL ;
       o := NIL ;
-      t := InitTime(MAX(CARDINAL), MAX(CARDINAL)) ;
+      t := InitTime(MAX(INTEGER), 0) ;
       p := MAX(PRIORITY) ;
       found := FALSE ;
       WHILE p>pri DO
@@ -606,9 +610,32 @@ BEGIN
          SetTime(t, s, m) ;
          IF Debugging
          THEN
-            r := printf("select waiting for %d.%d seconds\n", s, m)
+            r := printf("select waiting for %u.%u seconds\n", s, m)
          END ;
-         r := pth_select(maxFd+1, i, o, NIL, t)
+         REPEAT
+            r := pth_select(maxFd+1, i, o, NIL, t) ;
+            IF r=-1
+            THEN
+               perror("pth_select") ;
+               r := pth_select(maxFd+1, i, o, NIL, NIL) ;
+               IF r=-1
+               THEN
+                  perror("pth_select timeout argument is faulty")
+               END ;
+               r := pth_select(maxFd+1, i, NIL, NIL, t) ;
+               IF r=-1
+               THEN
+                  perror("pth_select output fd argument is faulty")
+               END ;
+               r := pth_select(maxFd+1, NIL, o, NIL, t) ;
+               IF r=-1
+               THEN
+                  perror("pth_select input fd argument is faulty")
+               ELSE
+                  perror("pth_select maxFD+1 argument is faulty")
+               END
+            END
+         UNTIL r#-1
       END ;
       p := MAX(PRIORITY) ;
       WHILE p>pri DO

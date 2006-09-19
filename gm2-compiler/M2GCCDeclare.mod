@@ -138,7 +138,8 @@ FROM gccgm2 IMPORT Tree,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildStartMainModule, BuildEndMainModule,
                    RememberType,
-                   AssignBooleanTrueFalse, BuildSize ;
+                   GetBooleanType, GetBooleanFalse, GetBooleanTrue,
+                   BuildSize ;
 
 (* %%%FORWARD%%%
 PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
@@ -1200,8 +1201,9 @@ END DeclareDefaultType ;
 
 PROCEDURE DeclareBoolean ;
 BEGIN
-   AddModGcc(Boolean, DeclareEnumeration(Boolean)) ;
-   AssignBooleanTrueFalse(Mod2Gcc(Boolean), Mod2Gcc(True), Mod2Gcc(False))
+   AddModGcc(Boolean, GetBooleanType()) ;
+   AddModGcc(True, GetBooleanTrue()) ;
+   AddModGcc(False, GetBooleanFalse())
 END DeclareBoolean ;
 
 
@@ -1795,7 +1797,10 @@ VAR
    n: Name ;
 BEGIN
    n := GetSymName(sym) ;
-   IF IsDefImp(sym)
+   IF IsError(sym)
+   THEN
+      printf2('sym %d IsError (%a)', sym, n)
+   ELSIF IsDefImp(sym)
    THEN
       printf2('sym %d IsDefImp (%a)', sym, n) ;
       IF IsDefinitionForC(sym)
@@ -1904,9 +1909,6 @@ BEGIN
    ELSIF IsGnuAsmVolatile(sym)
    THEN
       printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
-   ELSIF IsError(sym)
-   THEN
-      printf2('sym %d IsError (%a)', sym, n)
    END ;
 
    IF IsHiddenType(sym)

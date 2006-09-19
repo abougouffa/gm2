@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 DEFINITION MODULE ASCII ;
 
 (*
@@ -43,6 +44,6 @@ CONST
      fs =034C; gs =035C; rs =036C; us =037C;
      sp =040C; (* All the above are in order *)
      lf =nl  ; ff =np  ; eof=eot ; tab=ht  ;
-     del=177C; EOL=cr  ;
+     del=177C; EOL=nl  ;
 
 END ASCII.

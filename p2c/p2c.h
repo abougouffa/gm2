@@ -83,6 +83,7 @@ typedef void *Anyptr;
 extern Anyptr __MallocTemp__;
 #    define Malloc(n)  ((__MallocTemp__ = malloc(n)) ? __MallocTemp__ : (Anyptr)_OutMem())
 #  endif
+#  undef abort
 #  define FreeR(p)    (free((Anyptr)(p)))    /* used if arg is an rvalue */
 #  define Free(p)     (free((Anyptr)(p)), (p)=NULL)
 #endif

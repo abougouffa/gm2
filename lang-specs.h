@@ -22,16 +22,14 @@ Boston, MA 02110-1301, USA.  */
 /* This is the contribution to the `default_compilers' array in gcc.c for
    GNU Modula-2.  */
 
-  {".mod", "@modula-2", 0},
+  {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{Wuselist:%{!Wmodules:%eGNU Modula-2 does not know what to do with -Wuselist given these arguments}} \
            %{!Wmakelist:%{!Wmodules:%{!gm2gcc:%{Wcpp:cc1gm2 -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend \
                                                      %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
-                                                     as %(asm_options) %{!pipe:%g.s} %A }}} \n\
+                                                     %{!fsyntax-only:%(invoke_as)}} \n\
                                                %{!Wcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
-                                                     %{!fsyntax-only:%{!S:-o %{|!pipe:%g.s} |\n\
-                                                     as %(asm_options) %{!pipe:%g.s} %A }}}}}} \n\
+                                                     %{!fsyntax-only:%(invoke_as)}}}}} \n\
            %{Wmakelist:%{Wcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
                               gm2l %{I*} %{Wdef=*} %{Wmod=*} -o %b.lst %g.mod} \n\
                        %{!Wcpp:gm2l %{I*} %{Wdef=*} %{Wmod=*} -o %b.lst %i}} \n\
@@ -66,4 +64,4 @@ Boston, MA 02110-1301, USA.  */
                                       gcc %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
                                       rm -f %w%d%g.a \n\
                                       gm2lcc %{B*} %{Wtarget-ar=*} %{Wtarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
-    ", 0},
+    ", 0, 0, 0},

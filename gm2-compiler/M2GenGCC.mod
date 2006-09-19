@@ -985,7 +985,7 @@ BEGIN
       EmitLineNote(string(FileName), op1) ;
       IF IsModuleWithinProcedure(op3)
       THEN
-         BuildEndFunctionCode(Mod2Gcc(op3))
+         BuildEndFunctionCode(Mod2Gcc(op3), FALSE)
       ELSE
          BuildEnd(Mod2Gcc(op3))
       END
@@ -1159,7 +1159,8 @@ PROCEDURE CodeKillLocalVar (quad: CARDINAL;
                             LineNo, op2, CurrentProcedure: CARDINAL) ;
 BEGIN
    SetFileNameAndLineNo(string(FileName), LineNo) ;
-   BuildEndFunctionCode(Mod2Gcc(CurrentProcedure)) ;
+   BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
+                        IsProcedureNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)
 END CodeKillLocalVar ;
 
@@ -3617,7 +3618,11 @@ BEGIN
       GetSubrange(Subrange, High, Low) ;
       offset   := BuildSub(BuildConvert(GetM2ZType(), offset, FALSE),
                            BuildConvert(GetM2ZType(),
-                                        BuildMult(size, Mod2Gcc(Low), FALSE),
+                                        BuildMult(size,
+                                                  BuildConvert(GetM2ZType(),
+                                                               Mod2Gcc(Low),
+                                                               FALSE),
+                                                  FALSE),
                                         FALSE),
                            FALSE) ;
       offset   := RemoveOverflow(BuildConvert(GetPointerType(), offset, FALSE))
@@ -4089,13 +4094,11 @@ END CodeGoto ;
 *)
 
 PROCEDURE CheckReferenced (q: CARDINAL; op: QuadOperator) ;
-VAR
-   t: Tree ;
 BEGIN
    (* we do not create labels for procedure entries *)
    IF (op#ProcedureScopeOp) AND (op#NewLocalVarOp) AND IsReferenced(q)
    THEN
-      t := DeclareLabel(string(CreateLabelName(q)))
+      DeclareLabel(string(CreateLabelName(q)))
    END
 END CheckReferenced ;
 
@@ -4106,7 +4109,6 @@ END CheckReferenced ;
 
 PROCEDURE CodeIfSetLess (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
@@ -4138,7 +4140,7 @@ BEGIN
                                     falselabel) ;
 
       BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END CodeIfSetLess ;
 
@@ -4182,7 +4184,6 @@ END CodeIfLess ;
 
 PROCEDURE CodeIfSetGre (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
@@ -4214,7 +4215,7 @@ BEGIN
                                     falselabel) ;
 
       BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END CodeIfSetGre ;
 
@@ -4258,7 +4259,6 @@ END CodeIfGre ;
 
 PROCEDURE CodeIfSetLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
@@ -4290,7 +4290,7 @@ BEGIN
                                     falselabel) ;
 
       BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END CodeIfSetLessEqu ;
 
@@ -4334,7 +4334,6 @@ END CodeIfLessEqu ;
 
 PROCEDURE CodeIfSetGreEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
@@ -4366,7 +4365,7 @@ BEGIN
                                     falselabel) ;
 
       BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END CodeIfSetGreEqu ;
 
@@ -4412,7 +4411,6 @@ END CodeIfGreEqu ;
 
 PROCEDURE CodeIfSetEqu (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t         : Tree ;
    settype   : CARDINAL ;
    falselabel: ADDRESS ;
 BEGIN
@@ -4444,7 +4442,7 @@ BEGIN
                                     falselabel) ;
 
       BuildGoto(string(CreateLabelName(op3))) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END CodeIfSetEqu ;
 
@@ -4580,7 +4578,6 @@ END BuildIfVarInConstValue ;
 
 PROCEDURE BuildIfNotVarInConstValue (quad: CARDINAL; constsetvalue: PtrToValue; var, trueexit: CARDINAL) ;
 VAR
-   t           : Tree ;
    low, high, n: CARDINAL ;
    falselabel,
    truelabel   : String ;
@@ -4602,7 +4599,7 @@ BEGIN
          INC(n)
       END ;
       BuildGoto(truelabel) ;
-      t := DeclareLabel(falselabel)
+      DeclareLabel(falselabel)
    END
 END BuildIfNotVarInConstValue ;
 

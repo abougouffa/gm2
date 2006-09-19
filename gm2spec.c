@@ -71,10 +71,7 @@ extern char *find_executable PARAMS ((const char *));
  *                    gm2lcc where to pick up the `ar' utility.
  */
 
-void add_exec_prefix(pos, in_argc, in_argv)
-     int pos;
-     int *in_argc;
-     char ***in_argv;
+void add_exec_prefix(int pos, int *in_argc, char ***in_argv)
 {
   char *prefix;
   const char *ar = AR_PATH;
@@ -98,10 +95,7 @@ void add_exec_prefix(pos, in_argc, in_argv)
 }
 
 void
-add_arg (incl, in_argv, str)
-  int incl;
-  char ***in_argv;
-  const char *str;
+add_arg (int incl, char ***in_argv, const char *str)
 {
   if ((*in_argv)[incl] == NULL)
       (*in_argv)[incl] = xstrdup(str);
@@ -116,10 +110,7 @@ add_arg (incl, in_argv, str)
  */
 
 void
-add_default_directories (incl, in_argv, which_lib)
-     int incl;
-     char ***in_argv;
-     libs which_lib;
+add_default_directories (int incl, char ***in_argv, libs which_lib)
 {
   char *gm2libs;
   char  sepstr[2];
@@ -173,10 +164,7 @@ add_default_directories (incl, in_argv, which_lib)
  */
 
 void
-insert_arg (incl, in_argc, in_argv)
-     int  incl;
-     int *in_argc;
-     char ***in_argv;
+insert_arg (int  incl, int *in_argc, char ***in_argv)
 {
   int i=0;
   char **new_argv = (char **)xmalloc(sizeof(char *) * ((*in_argc) + 1));
@@ -203,10 +191,8 @@ insert_arg (incl, in_argc, in_argv)
  */
 
 void
-lang_specific_driver (in_argc, in_argv, in_added_libraries)
-     int *in_argc;
-     const char *const **in_argv;
-     int *in_added_libraries ATTRIBUTE_UNUSED;
+lang_specific_driver (int *in_argc, const char *const **in_argv,
+		      int *in_added_libraries ATTRIBUTE_UNUSED)
 {
   int i=1;
   int incl=-1;

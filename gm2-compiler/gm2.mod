@@ -19,11 +19,11 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2006/01/10 23:51:20 $]
+   Date       : 1987  [$Date: 2006/09/19 20:08:34 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.9 $
+   Version    : $Revision: 1.10 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
@@ -89,6 +89,5 @@ END StartParsing ;
 
 
 BEGIN
-   StartParsing ;
-   Terminate
+   StartParsing
 END gm2.

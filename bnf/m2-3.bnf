@@ -149,8 +149,8 @@ FROM M2Batch IMPORT IsModuleKnown ;
 CONST
    Debugging = FALSE ;
    Pass1     = FALSE ;          (* permanently disabled for the time being *)
-   Pass2     =  TRUE ;
-   Pass3     = FALSE ;          (* permanently disabled for the time being *)
+   Pass2     = FALSE ;
+   Pass3     =  TRUE ;          (* permanently disabled for the time being *)
 
 VAR
    WasNoError: BOOLEAN ;

@@ -26,9 +26,12 @@
  * Start date : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.4 2006/01/11 00:04:44 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.5 2006/09/19 20:08:34 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.5  2006/09/19 20:08:34  gaius
+ * *** empty log message ***
+ *
  * Revision 1.4  2006/01/11 00:04:44  gaius
  * added 2006 to all Copyright dates
  *
@@ -110,6 +113,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 
 
 typedef struct functlist {
@@ -352,6 +356,7 @@ static void ParseFileStartup (void)
       printf("extern void _M2_%s_init(int argc, char *argv[]);\n", p->functname);
       p = p->next;
     }
+    printf("extern void exit(int);\n");
 
     p = head;
     printf("\n\nint %s(int argc, char *argv[])\n", NameOfMain);

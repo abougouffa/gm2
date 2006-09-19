@@ -29,10 +29,11 @@ DEFINITION MODULE FOR "C" sckt ;
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED tcpServerState,
                    tcpServerEstablish, tcpServerEstablishPort,
-                   tcpServerAccept,
+                   tcpServerAccept, getLocalIP,
                    tcpServerPortNo, tcpServerIP, tcpServerSocketFd,
+                   tcpServerClientIP, tcpServerClientPortNo,
                    tcpClientState,
-                   tcpClientSocket, tcpClientConnect,
+                   tcpClientSocket, tcpClientSocketIP, tcpClientConnect,
                    tcpClientPortNo, tcpClientIP, tcpClientSocketFd ;
 
 TYPE
@@ -42,7 +43,7 @@ TYPE
 
 (*
    tcpServerEstablish - returns a tcpState containing the relevant
-                        information about a socket declared to recieve
+                        information about a socket declared to receive
                         tcp connections.
 *)
 
@@ -82,10 +83,33 @@ PROCEDURE tcpServerSocketFd (s: tcpServerState) : INTEGER ;
 
 
 (*
+   getLocalIP - returns the IP address of this machine.
+*)
+
+PROCEDURE getLocalIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
    tcpServerIP - returns the IP address from structure, s.
 *)
 
 PROCEDURE tcpServerIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpClientIP - returns the IP address of the client who
+                 has connected to server, s.
+*)
+
+PROCEDURE tcpServerClientIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpClientPortNo - returns the port number of the client who
+                     has connected to server, s.
+*)
+
+PROCEDURE tcpServerClientPortNo (s: tcpServerState) : CARDINAL ;
 
 
 (*
@@ -94,6 +118,14 @@ PROCEDURE tcpServerIP (s: tcpServerState) : CARDINAL ;
 *)
 
 PROCEDURE tcpClientSocket (serverName: ADDRESS; portNo: CARDINAL) : tcpClientState ;
+
+
+(*
+   tcpClientSocketIP - returns a file descriptor (socket) which has
+                       connected to, ip:portNo.
+*)
+
+PROCEDURE tcpClientSocketIP (ip: CARDINAL; portNo: CARDINAL) : tcpClientState ;
 
 
 (*

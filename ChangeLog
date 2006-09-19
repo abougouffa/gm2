@@ -1,3 +1,46 @@
+2006-09-19       Gaius Mulley <gaius@gnu.org>
+
+	* huge amount of changes to bring gm2 up to gcc-4.1.0 and
+	  also make it build with gcc-4.1.0.
+	* modified gm2/
+          Make-lang.in config-lang.in configure.in gccgm2.c 
+          gm2-common.h gm2-lang.c gm2-lang.h gm2-tree.h gm2.texi 
+          gm2builtins.c gm2spec.c lang-specs.h bnf/m2-3.bnf 
+          examples/server/sckt.c examples/server/sckt.def 
+          gm2-compiler/M2Comp.mod gm2-compiler/M2GCCDeclare.mod 
+          gm2-compiler/M2GenGCC.mod gm2-compiler/M2Options.def 
+          gm2-compiler/M2Options.mod gm2-compiler/M2Preprocess.mod 
+          gm2-compiler/gccgm2.def gm2-compiler/gm2.mod 
+          gm2-compiler/gm2lgen.mod gm2-libs/ASCII.def gm2-libs/ASCII.mod 
+          gm2-libs/Args.def gm2-libs/Debug.def gm2-libs/IO.mod 
+          gm2-libs/SYSTEM.mod gm2-libs/StdIO.mod gm2-libs/StrLib.mod 
+          gm2-libs/StringConvert.def gm2-libs/libc.def 
+          gm2-libs-coroutines/KeyBoardLEDs.c 
+          gm2-libs-coroutines/Makefile gm2-libs-coroutines/SysVec.mod 
+          gm2-libs-coroutines/TimerHandler.mod p2c/p2c.h 
+          p2c/p2c-src/src/makeproto.c p2c/p2c-src/src/p2c-config.h 
+          p2c/p2c-src/src/p2clib.c tools-src/mklink.c www/index.ms 
+        * added files:
+          gm2/gm2-common.c gm2/gm2-tree.def gm2/lang.opt 
+
+2006-08-31       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/ASCII.def: changed EOL to equal to nl rather
+	  than cr.
+
+2006-08-10       Gaius Mulley <gaius@gnu.org>
+
+	* fixed ASM statement.
+	* gm2/bnf/m2-3.bnf: fixed Pass3 and Pass2 const
+	* gm2/gccgm2.c: modified gccgm2_BuildAsm to use add_stmt
+	  rather than expand_asm_expr.
+
+2006-08-09       Gaius Mulley <gaius@gnu.org>
+
+	* GM2 Release 0.53
+	* changed release number in configure.in, gm2.texi, Make-lang.in
+	* builds with gcc-4.1.0
+	
 2006-08-08       Gaius Mulley <gaius@gnu.org>
 
 	* GM2 Release 0.52

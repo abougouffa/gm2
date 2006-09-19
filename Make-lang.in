@@ -485,7 +485,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GM2-VERSION=0.52
+GM2-VERSION=0.53
 GM2_O=
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
@@ -509,6 +509,7 @@ GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
                   # the C implementation module bridging the Modula-2 -> GCC
 GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o \
                     gm2/stor-layout.o
+                  #  gm2/gm2-common.o
 GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
                     gm2/gm2-libs-boot/libgm2.a \
@@ -638,6 +639,7 @@ gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
 	$(CC) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
+gm2/gm2-common.o: $(srcdir)/gm2-common.c
 
 #
 #  the following tables define the source files which are translated into C using p2c
@@ -1057,7 +1059,7 @@ gm2/gm2-libs/gm2-libs-host.h:
             export CPP ; \
             echo "CC = $(CC)" ; \
             echo "CPP = $(CPP)" ; \
-            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --host=@host@ --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
         else \
             echo "Configuring to build libraries using native compiler" ; \
             cd gm2/gm2-libs ; \
@@ -1088,7 +1090,7 @@ build-compiler: $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
 gm2/gm2-libs/libgm2.a: build-libs
 	$(AR_FOR_TARGET) cr $@ $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
                     $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
 	cd gm2 ; \
@@ -1098,7 +1100,7 @@ gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
 	$(AR_FOR_TARGET) cr $@ gm2/gm2-compiler/mod_init.o $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                     gm2/gm2-compiler/M2Version.o \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
 
@@ -1143,7 +1145,7 @@ gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
                     $(GM2-LIBS-BOOT-C:%.c=gm2/gm2-libs-boot/%.o)
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2/gm2-compiler-boot/gm2.a: gm2/boot-bin/p2c$(exeext) gm2/boot-bin/mklink$(exeext) \
                          $(BUILD-LIBS-BOOT) $(BUILD-COMPILER-BOOT)
@@ -1155,7 +1157,7 @@ gm2/gm2-compiler-boot/gm2.a: gm2/boot-bin/p2c$(exeext) gm2/boot-bin/mklink$(exee
                     $(GM2-COMP-BOOT-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
                     gm2/gm2-compiler-boot/M2Version.o
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2-compiler-boot:
 	$(srcdir)/tools-src/makeversion $(GM2-VERSION)a
@@ -1261,7 +1263,7 @@ gm2/p2c/p2c-src/src/libp2c.a: $(P2C_LIBOBJS)
 	$(RM) gm2/p2c/p2c-src/src/libp2c.a
 	echo $(P2C_LIBOBJS)
 	ar cr $@ $(P2C_LIBOBJS)
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2/boot-bin/p2clib.o: $(srcdir)/gm2/p2c/p2c-src/src/p2clib.c
 	mkdir -p  $(GM2_DIRS)
@@ -1342,7 +1344,7 @@ gm2/gm2-libs-paranoid/libgm2.a: $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o)
 	                    $(GM2-LIBS-C:%.c=gm2/gm2-libs-paranoid/%.o)
 	$(AR) cr $@ $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs-paranoid/%.o) \
                     $(GM2-LIBS-C:%.c=gm2/gm2-libs-paranoid/%.o)
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2/gm2-compiler-paranoid/gm2.a: gm2/gm2-compiler-paranoid/mod_init.o \
                              $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
@@ -1353,7 +1355,7 @@ gm2/gm2-compiler-paranoid/gm2.a: gm2/gm2-compiler-paranoid/mod_init.o \
                     $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler-paranoid/%.o) \
                     gm2/gm2-compiler-paranoid/M2Version.o
-	if $(RANLIB_TEST_FOR_TARGET) ; then $(RANLIB) $@ ; else true ; fi
+	$(RANLIB) $@
 
 gm2/gm2-compiler-paranoid/mod_init.o: $(srcdir)/gm2/init/gm2-gccinit
 	$(M2LINK) -s -exit -main gccgm2front $(srcdir)/gm2/init/gm2-gccinit

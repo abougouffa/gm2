@@ -111,7 +111,7 @@ EXPORT QUALIFIED Tree,
                  BuildCap, BuildAbs,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
-                 AssignBooleanTrueFalse,
+                 GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                  ConvertConstantAndCheck,
                  DetermineSizeOfConstant,
                  ToWord,
@@ -547,12 +547,26 @@ PROCEDURE DetermineSizeOfConstant (str: ADDRESS; base: INTEGER;
 
 PROCEDURE ToWord (expr: Tree) : Tree ;
 
+
 (*
-   AssignBooleanTrueFalse - assigns the tree nodes to the internal gcc types.
-                            This allows gm2 to declare boolean as an enumerated type.
+   GetBooleanType - returns the GCC boolean type, tree.
 *)
 
-PROCEDURE AssignBooleanTrueFalse (booleanid, trueid, falseid: Tree) ;
+PROCEDURE GetBooleanType () : Tree ;
+
+
+(*
+   GetBooleanFalse - returns the GCC tree representing false.
+*)
+
+PROCEDURE GetBooleanFalse () : Tree ;
+
+
+(*
+   GetBooleanTrue - returns the GCC tree representing true.
+*)
+
+PROCEDURE GetBooleanTrue () : Tree ;
 
 
 (*
@@ -747,7 +761,7 @@ PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported, isinline: BOOLEAN) ;
    BuildEndFunctionCode - generates the function epilogue.
 *)
 
-PROCEDURE BuildEndFunctionCode (fndecl: Tree) ;
+PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: BOOLEAN) ;
 
 
 (*
@@ -974,10 +988,10 @@ PROCEDURE BuildGoto (name: ADDRESS) ;
 
 
 (*
-   DeclareLabel - create a label, name, and return the tree.
+   DeclareLabel - create a label, name.
 *)
 
-PROCEDURE DeclareLabel (name: ADDRESS) : Tree ;
+PROCEDURE DeclareLabel (name: ADDRESS) ;
 
 
 (*

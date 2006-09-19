@@ -17,6 +17,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 #include "tree.h"
 #include "toplev.h"
 #include "tm_p.h"
@@ -46,9 +48,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #define ASSERT(X,Y)   { if (!(X)) { debug_tree(Y); internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
 #define ERROR(X)      { internal_error("[%s:%d]:%s",               __FILE__, __LINE__, X); }
-
-extern tree last_function;  /* declared in gccgm2.c */
-extern tree param_list;     /* declared in gccgm2.c */
 
 
 typedef enum {
@@ -152,26 +151,55 @@ static tree gm2_huge_valf_node, gm2_huge_val_node, gm2_huge_vall_node;
 
 /* prototypes go here */
 /* imports */
-extern tree                   convertToPtr   		       	 	  PARAMS ((tree t));
-extern tree                   gccgm2_BuildIntegerConstant                 PARAMS ((int value));
+extern tree                   convertToPtr   		       	 	  (tree t);
+extern tree                   gccgm2_BuildIntegerConstant                 (int value);
+extern void                   gccgm2_SetLastFunction                      (tree t);
+extern tree                   gccgm2_GetLastFunction                      (void);
+extern void                   gccgm2_SetParamList                         (tree t);
+extern tree                   gccgm2_GetParamList                         (void);
 
 /* locally defined functions */
-static tree                   DoBuiltinAlloca                             PARAMS ((tree params));
-static tree                   DoBuiltinMemCopy                            PARAMS ((tree params));
-       tree                   gm2builtins_BuildBuiltinTree                PARAMS ((char *name));
-       tree                   gm2builtins_GetBuiltinConst                 PARAMS ((char *name));
-       int                    gm2builtins_GetBuiltinConstType             PARAMS ((char *name));
-       int                    gm2builtins_BuiltinExists                   PARAMS ((char *name));
-       tree                   gm2builtins_BuildBuiltinTree                PARAMS ((char *name));
-       tree                   gm2builtins_BuiltInMemCopy                  PARAMS ((tree, tree, tree));
-       tree                   gm2builtins_BuiltInAlloca                   PARAMS ((tree));
-       tree                   gm2builtins_BuiltInHugeVal                  PARAMS ((void));
-static void                   create_function_prototype                   PARAMS ((struct builtin_function_entry *fe));
-       void                   gm2builtins_init                            PARAMS ((void));
-
+static tree                   DoBuiltinAlloca                             (tree params);
+static tree                   DoBuiltinMemCopy                            (tree params);
+       tree                   gm2builtins_BuildBuiltinTree                (char *name);
+       tree                   gm2builtins_GetBuiltinConst                 (char *name);
+       int                    gm2builtins_GetBuiltinConstType             (char *name);
+       int                    gm2builtins_BuiltinExists                   (char *name);
+       tree                   gm2builtins_BuildBuiltinTree                (char *name);
+       tree                   gm2builtins_BuiltInMemCopy                  (tree, tree, tree);
+       tree                   gm2builtins_BuiltInAlloca                   (tree);
+       tree                   gm2builtins_BuiltInHugeVal                  (void);
+static void                   create_function_prototype                   (struct builtin_function_entry *fe);
+       void                   gm2builtins_init                            (void);
+       tree                   gm2builtins_BuiltInHugeValShort             (void);
+       tree                   gm2builtins_BuiltInHugeValLong              (void);
 
 /* prototypes finish here */
 
+
+/* Given a chain CHAIN of tree nodes,
+   construct and return a list of those nodes.  */
+
+static tree
+listify (tree chain)
+{
+  tree result = NULL_TREE;
+  tree in_tail = chain;
+  tree out_tail = NULL_TREE;
+
+  while (in_tail)
+    {
+      tree next = tree_cons (NULL_TREE, in_tail, NULL_TREE);
+      if (out_tail)
+	TREE_CHAIN (out_tail) = next;
+      else
+	result = next;
+      out_tail = next;
+      in_tail = TREE_CHAIN (in_tail);
+    }
+
+  return result;
+}
 
 /* Return a definition for a builtin function named NAME and whose data type
    is TYPE.  TYPE should be a function type with argument types.
@@ -307,20 +335,21 @@ gm2builtins_BuildBuiltinTree (name)
      char *name;
 {
   struct builtin_function_entry *fe;
-  last_function = NULL_TREE;
 
+  gccgm2_SetLastFunction(NULL_TREE);
   for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
     if (strcmp(name, fe->name) == 0) {
       tree functype = TREE_TYPE (fe->function_node);
       tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), fe->function_node);
-      last_function = build (CALL_EXPR, fe->return_node, funcptr, param_list, NULL_TREE);
+      gccgm2_SetLastFunction(build (CALL_EXPR, fe->return_node,
+				    funcptr, gccgm2_GetParamList (), NULL_TREE));
 
-      param_list = NULL_TREE;
-      return last_function;
+      gccgm2_SetParamList (NULL_TREE);
+      return gccgm2_GetLastFunction ();
     }
   
-  param_list = NULL_TREE;
-  return last_function;
+  gccgm2_SetParamList(NULL_TREE);
+  return gccgm2_GetLastFunction ();
 }
 
 static tree

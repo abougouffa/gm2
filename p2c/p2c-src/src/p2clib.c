@@ -22,7 +22,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 /* Run-time library for use with "p2c", the Pascal to C translator */
 
 /* Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997,
- *               1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+ *               1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006
  * Free Software Foundation.
  * By Dave Gillespie, daveg@csvax.cs.caltech.edu.
  * This file may be copied, modified, etc. in any way.  It is not restricted
@@ -70,10 +70,6 @@ char **argv;
     LOCAL_INIT();
 #endif
 }
-
-
-
-
 
 /* In case your system lacks these... */
 

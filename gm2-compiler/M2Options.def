@@ -20,14 +20,22 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2006/01/10 23:51:19 $]
+   Date       : 27/5/87  [$Date: 2006/09/19 20:08:34 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.17 $
+   Version    : $Revision: 1.18 $
 *)
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions, ScanCppArgs,
+
+EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
+                 ScanCppArgs,
+
+                 SetReturnCheck, SetNilCheck, SetCaseCheck,
+                 SetCheckAll, SetVerboseUnbounded, SetQuiet, SetCpp,
+                 SetMakeall, SetMakeall0, SetIncludePath,
+                 SetUnboundedByReference,
 
                  Iso, Pim, Pim2, Pim3, Pim4,
                  PositiveModFloorDiv,
@@ -123,6 +131,83 @@ PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE CppCommandLine () : String ;
+
+
+(*
+   SetReturnCheck -
+*)
+
+PROCEDURE SetReturnCheck (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetNilCheck -
+*)
+
+PROCEDURE SetNilCheck (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetCaseCheck - set else case checking to, value.
+*)
+
+PROCEDURE SetCaseCheck (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetCheckAll - set all runtime checking to, value.
+*)
+
+PROCEDURE SetCheckAll (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetVerboseUnbounded - sets the VerboseUnbounded flag to, value.
+*)
+
+PROCEDURE SetVerboseUnbounded (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetQuiet - sets the quiet flag to, value.
+*)
+
+PROCEDURE SetQuiet (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetCpp -
+*)
+
+PROCEDURE SetCpp (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetMakeall -
+*)
+
+PROCEDURE SetMakeall (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetMakeall0 -
+*)
+
+PROCEDURE SetMakeall0 (value: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SetIncludePath -
+*)
+
+PROCEDURE SetIncludePath (arg: ADDRESS) : BOOLEAN ;
+
+
+(*
+   SetUnboundedByReference -
+*)
+
+PROCEDURE SetUnboundedByReference (value: BOOLEAN) : BOOLEAN ;
 
 
 END M2Options.

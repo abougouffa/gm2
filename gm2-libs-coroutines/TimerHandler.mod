@@ -306,7 +306,7 @@ VAR
 BEGIN
 (* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
    ScrollLED := FALSE ;
-   TimerIntNo := InitTimeVector(BaseTicks DIV TicksPerSecond, 0,
+   TimerIntNo := InitTimeVector(0, BaseTicks DIV TicksPerSecond,
                                 MAX(PRIORITY)) ;
    LOOP
       WaitForIO(TimerIntNo) ;
