@@ -1,3 +1,7 @@
+2006-09-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/4.1.0/01.gaius_patch: added.
+
 2006-09-19       Gaius Mulley <gaius@gnu.org>
 
 	* huge amount of changes to bring gm2 up to gcc-4.1.0 and
