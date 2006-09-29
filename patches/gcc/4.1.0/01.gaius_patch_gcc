@@ -11,8 +11,6 @@ diff -ru gcc-4.1.0/gcc/config/avr/avr.h ../../graft-4.1.0/gcc-4.1.0/gcc/config/a
  /* Names to predefine in the preprocessor for this target machine.  */
  
  #define TARGET_CPU_CPP_BUILTINS()		\
-Only in ../../graft-4.1.0/gcc-4.1.0/gcc: c-semantics.c~
-Only in ../../graft-4.1.0/gcc-4.1.0/gcc: c-typeck.c~
 diff -ru gcc-4.1.0/gcc/dwarf2out.c ../../graft-4.1.0/gcc-4.1.0/gcc/dwarf2out.c
 --- gcc-4.1.0/gcc/dwarf2out.c	2006-02-04 22:13:20.000000000 +0000
 +++ ../../graft-4.1.0/gcc-4.1.0/gcc/dwarf2out.c	2006-06-16 11:38:50.000000000 +0100
@@ -46,7 +44,7 @@ diff -ru gcc-4.1.0/gcc/dwarf2out.c ../../graft-4.1.0/gcc-4.1.0/gcc/dwarf2out.c
  }
  
 +static inline bool
-+is_modula2 ()
++is_modula2 (void)
 +{
 +  unsigned lang = get_AT_unsigned (comp_unit_die, DW_AT_language);
 +

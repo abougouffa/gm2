@@ -1,3 +1,9 @@
+2006-09-29       Gaius Mulley <gaius@gnu.org>
+
+	* removed execute permissions for source files.
+	* gm2/patches/gcc/4.1.0/01.gaius_patch_gcc: improved.
+	* gm2/gccgm2.c:  fixed comment.
+	
 2006-09-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/4.1.0/01.gaius_patch_gcc: added.

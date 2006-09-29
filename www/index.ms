@@ -128,6 +128,10 @@ Currently some GNU Modula-2
 documentation exists, albeit incomplete,
 but it does contain a fully indexed list of all library procedures,
 a release map, and full building and downloading instructions.
+.PP
+A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
+if you are interested a copy can be found
+.URL http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf "here (pdf)" .
 .SH
 Successful \*[CURRENTGM2] builds
 .LP

@@ -23,7 +23,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with GNU Modula-2; see the file COPYING.  If not, write to the
 Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
-02110-1301, USA.  */
+02110-1301, USA.
+*/
 
 /*
  * IMPLEMENTATION MODULE gccgm2
@@ -284,11 +285,11 @@ static int label_count = 0;
 
 /* A list (chain of TREE_LIST nodes) of all LABEL_DECLs in the function
    that have names.  Here so we can clear out their names' definitions
-   at the end of the function.  */
+   at the end of the function. */
 
 static GTY(()) tree named_labels;
 
-/* A list of LABEL_DECLs from outer contexts that are currently shadowed.  */
+/* A list of LABEL_DECLs from outer contexts that are currently shadowed. */
 
 static GTY(()) tree shadowed_labels;
 
