@@ -1,3 +1,9 @@
+2006-09-30       Waldek Hebisch <hebisch@math.uni.wroc.pl>
+
+	* gm2/gccgm2.c: (gccgm2_BuildEndFunctionCode) only
+	  call gimplify_function_tree and cgraph_finalize_function
+	  if the procedure is not nested.
+
 2006-09-29       Gaius Mulley <gaius@gnu.org>
 
 	* removed execute permissions for source files.

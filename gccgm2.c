@@ -550,7 +550,7 @@ tree                   gccgm2_BuildCharConstant 	       	 	  (char *string);
 tree                   gccgm2_ConvertConstantAndCheck    	  (tree type, tree expr);
 tree                   gccgm2_RealToTree 		       	  (char *name);
 tree                   gccgm2_BuildStart 		       	  (char *name, int line, int inner_module);
-void                   gccgm2_BuildEnd 		       	 	  (tree fndecl);
+void                   gccgm2_BuildEnd 		       	 	  (tree fndecl, int nested);
 void                   gccgm2_BuildCallInnerInit 	       	  (tree fndecl);
 void                   gccgm2_BuildStartMainModule       	  (void);
 void                   gccgm2_BuildEndMainModule 	       	  (void);
@@ -7968,11 +7968,17 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
 				     BLOCK_VARS (block),
 				     cur_stmt_list, block);
 
-  gimplify_function_tree (fndecl);
+  if (nested) {
+    (void) cgraph_node (fndecl);
+    current_function_decl = DECL_CONTEXT (fndecl);
+  }
+  else {
+    gimplify_function_tree (fndecl);
 
-  current_function_decl = fndecl;
-  cgraph_finalize_function (fndecl, nested);
-  current_function_decl = NULL;
+    current_function_decl = fndecl;
+    cgraph_finalize_function (fndecl, nested);
+    current_function_decl = NULL;
+  }
   cur_stmt_list = NULL;
 
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
@@ -10975,8 +10981,7 @@ gccgm2_BuildStart (name, line, inner_module)
 }
 
 void
-gccgm2_BuildEnd (fndecl)
-     tree fndecl;
+gccgm2_BuildEnd (tree fndecl, int nested)
 {
   tree block;
 
@@ -10996,11 +11001,12 @@ gccgm2_BuildEnd (fndecl)
 				     BLOCK_VARS (block),
 				     cur_stmt_list, block);
 
-  current_function_decl = fndecl;
+  if (! nested) {
+    current_function_decl = fndecl;
+    gimplify_function_tree (fndecl);
+    cgraph_finalize_function (fndecl, false);
+  }
 
-  gimplify_function_tree (fndecl);
-
-  cgraph_finalize_function (fndecl, false);
   current_function_decl = NULL;
   cur_stmt_list = NULL;
   cfun = NULL;
