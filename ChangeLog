@@ -1,3 +1,9 @@
+2006-09-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  modified BuildEnd
+	  to taken an extra parameter, nested, and set it
+	  accordingly.
+
 2006-09-30       Waldek Hebisch <hebisch@math.uni.wroc.pl>
 
 	* gm2/gccgm2.c: (gccgm2_BuildEndFunctionCode) only

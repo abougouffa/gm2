@@ -985,9 +985,9 @@ BEGIN
       EmitLineNote(string(FileName), op1) ;
       IF IsModuleWithinProcedure(op3)
       THEN
-         BuildEndFunctionCode(Mod2Gcc(op3), FALSE)
+         BuildEndFunctionCode(Mod2Gcc(op3), TRUE)
       ELSE
-         BuildEnd(Mod2Gcc(op3))
+         BuildEnd(Mod2Gcc(op3), FALSE)
       END
    END
 END CodeEnd ;

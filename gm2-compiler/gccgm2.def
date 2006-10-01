@@ -436,7 +436,7 @@ PROCEDURE BuildStart (name: ADDRESS; line: CARDINAL; inner: BOOLEAN) : Tree ;
    BuildStart - ends the module prologue.
 *)
 
-PROCEDURE BuildEnd (t: Tree) ;
+PROCEDURE BuildEnd (t: Tree; nested: BOOLEAN) ;
 
 
 (*
