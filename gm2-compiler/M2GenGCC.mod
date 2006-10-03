@@ -41,7 +41,6 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
-                        IsProcedureNested,
                         IsVar, IsVarParam, IsTemporary,
                         IsUnbounded, IsArray, IsSet,
                         IsProcedureVariable,
@@ -70,7 +69,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
 
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
-FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax ;
+FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax, IsProcedureGccNested ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
 
@@ -1160,7 +1159,7 @@ PROCEDURE CodeKillLocalVar (quad: CARDINAL;
 BEGIN
    SetFileNameAndLineNo(string(FileName), LineNo) ;
    BuildEndFunctionCode(Mod2Gcc(CurrentProcedure),
-                        IsProcedureNested(CurrentProcedure)) ;
+                        IsProcedureGccNested(CurrentProcedure)) ;
    PoisonSymbols(CurrentProcedure)
 END CodeKillLocalVar ;
 

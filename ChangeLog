@@ -1,3 +1,10 @@
+2006-09-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed BuildEnd
+	  to use IsProcedureGccNested in CodeKillLocalVar.
+	* gm2/gm2-compiler/M2GCCDeclare.def:
+	  export IsProcedureGccNested.
+	
 2006-09-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  modified BuildEnd

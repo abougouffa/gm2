@@ -31,7 +31,7 @@ FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED FoldConstants,
                  DeclareConstant, DeclareLocalVariables, PromoteToString,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
-                 DeclareModuleVariables,
+                 DeclareModuleVariables, IsProcedureGccNested,
                  DeclareProcedure, PoisonSymbols,
                  CompletelyResolved,
                  GetTypeMin, GetTypeMax ;
@@ -87,6 +87,17 @@ PROCEDURE DeclareProcedure (Sym: WORD) ;
 *)
 
 PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ;
+
+
+(*
+   IsProcedureGccNested - returns TRUE if procedure, sym, will be considered
+                          as nested by GCC.
+                          This will occur if either its outer defining scope
+                          is a procedure or is a module which is inside a
+                          procedure.
+*)
+
+PROCEDURE IsProcedureGccNested (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
