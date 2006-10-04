@@ -697,7 +697,7 @@ static void                   readonly_error                              (tree,
        tree                   gccgm2_GetBooleanFalse                      (void);
        tree                   gccgm2_GetBooleanTrue                       (void);
        tree                   gccgm2_BuildConstPointerType                (tree totype);
-
+       void                   gccgm2_printStmt                            (void);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -7968,6 +7968,8 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
 				     BLOCK_VARS (block),
 				     cur_stmt_list, block);
 
+  cur_stmt_list = NULL;
+
   if (nested) {
     (void) cgraph_node (fndecl);
     current_function_decl = DECL_CONTEXT (fndecl);
@@ -7979,7 +7981,6 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
     cgraph_finalize_function (fndecl, nested);
     current_function_decl = NULL;
   }
-  cur_stmt_list = NULL;
 
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
@@ -11001,6 +11002,8 @@ gccgm2_BuildEnd (tree fndecl, int nested)
 				     BLOCK_VARS (block),
 				     cur_stmt_list, block);
 
+  cur_stmt_list = NULL;
+
   if (! nested) {
     current_function_decl = fndecl;
     gimplify_function_tree (fndecl);
@@ -11008,7 +11011,6 @@ gccgm2_BuildEnd (tree fndecl, int nested)
   }
 
   current_function_decl = NULL;
-  cur_stmt_list = NULL;
   cfun = NULL;
   ggc_collect();  /* stress testing */
 }
@@ -11062,6 +11064,13 @@ gccgm2_DebugTreeChain (t)
 {
   for (; t; t = TREE_CHAIN (t))
     debug_tree(t);
+}
+
+void
+gccgm2_printStmt (void)
+{
+  if (cur_stmt_list != NULL)
+    debug_tree(cur_stmt_list);
 }
 
 /*

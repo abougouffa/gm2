@@ -1,3 +1,7 @@
+2006-09-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm.2c:  added debugging stub.
+
 2006-09-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed BuildEnd
