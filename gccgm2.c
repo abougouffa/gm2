@@ -3969,19 +3969,28 @@ convert_set (type, expr)
    not permitted by the language being compiled.  */
 
 tree
-convert (type, expr)
-     tree type, expr;
+convert (tree type, tree expr)
 {
   tree e = expr;
   enum tree_code code = TREE_CODE (type);
 
+  if (type == error_mark_node
+      || expr == error_mark_node
+      || TREE_TYPE (expr) == error_mark_node)
+    return error_mark_node;
+
+  if (type == TREE_TYPE (expr))
+    return expr;
+#if 0
+  /* was */
   if (type == TREE_TYPE (expr)
       || TREE_CODE (expr) == ERROR_MARK
       || code == ERROR_MARK || TREE_CODE (TREE_TYPE (expr)) == ERROR_MARK)
     return expr;
+#endif
 
   if (TYPE_MAIN_VARIANT (type) == TYPE_MAIN_VARIANT (TREE_TYPE (expr)))
-    return fold (build1 (NOP_EXPR, type, expr));
+    return fold_build1 (NOP_EXPR, type, expr);
   if (TREE_CODE (TREE_TYPE (expr)) == ERROR_MARK)
     return error_mark_node;
   if (TREE_CODE (TREE_TYPE (expr)) == VOID_TYPE)
@@ -4009,12 +4018,13 @@ convert (type, expr)
   if (code == BOOLEAN_TYPE)
     {
       tree t = gm2_truthvalue_conversion (expr);
+
       /* If it returns a NOP_EXPR, we must fold it here to avoid
 	 infinite recursion between fold () and convert ().  */
       if (TREE_CODE (t) == NOP_EXPR)
-	return fold (build1 (NOP_EXPR, type, TREE_OPERAND (t, 0)));
+	return fold_build1 (NOP_EXPR, type, TREE_OPERAND (t, 0));
       else
-	return fold (build1 (NOP_EXPR, type, t));
+	return fold_build1 (NOP_EXPR, type, t);
     }
   if (code == POINTER_TYPE || code == REFERENCE_TYPE)
     return fold (convert_to_pointer (type, e));
@@ -6841,7 +6851,7 @@ chainon_stmt_list (void)
 
 /* from c-semantic.c import */
 
-#if 0
+#if 1
 /* Create an empty statement tree rooted at T.  */
 
 tree
@@ -6861,8 +6871,10 @@ pop_stmt_list (tree t)
 {
   tree u = cur_stmt_list, chain;
 
+#if 0
 #if defined(GM2)
   return cur_stmt_list;
+#endif
 #endif
 
   /* Pop statement lists until we reach the target level.  The extra
@@ -7772,8 +7784,7 @@ finish_build_pointer_type (tree t, tree to_type,
  */
 
 tree
-gccgm2_BuildEndFunctionType (func, type)
-     tree func, type;
+gccgm2_BuildEndFunctionType (tree func, tree type)
 {
   if (type == NULL_TREE)
     type = void_type_node;
@@ -8828,8 +8839,7 @@ gccgm2_RemoveOverflow (t)
  */
 
 tree
-gccgm2_BuildCoerce (des, type, expr)
-     tree des, type, expr;
+gccgm2_BuildCoerce (tree des, tree type, tree expr)
 {
   tree copy = copy_node (expr);
   TREE_TYPE (copy) = type;
@@ -9221,6 +9231,7 @@ gccgm2_DeclareLabel (name)
     DECL_SOURCE_LINE (decl) = getLineNo();
   }
   DECL_CONTEXT (decl) = current_function_decl;
+
   add_stmt (build1 (LABEL_EXPR, void_type_node, decl));
 }
 
@@ -9694,20 +9705,22 @@ gccgm2_DoJump (tree exp, char *falselabel, char *truelabel)
     exp = convert (boolean_type_node, exp);
 
   if ((falselabel != NULL) && (truelabel == NULL)) {
-      tree l = create_label_from_name (falselabel);
-
-      TREE_USED (l) = 1;
-      c = build3 (COND_EXPR, void_type_node, exp,
-		  build1 (GOTO_EXPR, void_type_node, l),
-		  build_empty_stmt ());
+    tree stmt = cur_stmt_list;
+    cur_stmt_list = alloc_stmt_list ();
+    
+    gccgm2_BuildGoto (falselabel);
+    c = build3 (COND_EXPR, void_type_node, exp,
+		cur_stmt_list, alloc_stmt_list ());
+    cur_stmt_list = stmt;
   }
   else if ((falselabel == NULL) && (truelabel != NULL)) {
-    tree l = create_label_from_name (truelabel);
-
-    TREE_USED (l) = 1;
+    tree stmt = cur_stmt_list;
+    cur_stmt_list = alloc_stmt_list ();
+    
+    gccgm2_BuildGoto (truelabel);
     c = build3 (COND_EXPR, void_type_node, exp,
-		build1 (GOTO_EXPR, void_type_node, l),
-		build_empty_stmt ());
+		cur_stmt_list, alloc_stmt_list ());
+    cur_stmt_list = stmt;
   }
   else
     error ("expecting one and only one label to be declared");

@@ -1,15 +1,19 @@
-2006-09-04       Gaius Mulley <gaius@gnu.org>
+2006-10-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm.2c:  fixed conditional goto expressions.
+
+2006-10-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm.2c:  added debugging stub.
 
-2006-09-03       Gaius Mulley <gaius@gnu.org>
+2006-10--03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed BuildEnd
 	  to use IsProcedureGccNested in CodeKillLocalVar.
 	* gm2/gm2-compiler/M2GCCDeclare.def:
 	  export IsProcedureGccNested.
 	
-2006-09-01       Gaius Mulley <gaius@gnu.org>
+2006-10-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  modified BuildEnd
 	  to taken an extra parameter, nested, and set it
