@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,21 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE nested ;
+MODULE nestedif ;
 
-
-PROCEDURE outer (o1, o2, o3: CARDINAL) : CARDINAL ;
-   PROCEDURE inner (i1, i2: CARDINAL) : CARDINAL ;
+PROCEDURE outer ;
+   PROCEDURE inner ;
+   VAR
+      x, y: CARDINAL ;
    BEGIN
-      RETURN( i1+i2+o3 )
+      x := 1 ;
+      y := 2 ;
+      IF x=y
+      THEN
+         HALT
+      END
    END inner ;
 
 BEGIN
-   RETURN( inner(o1, o2) )
+   inner
 END outer ;
 
-VAR
-   g: CARDINAL ;
 BEGIN
-   g := outer(1, 2, 3)
-END nested.
+   outer
+END nestedif.
