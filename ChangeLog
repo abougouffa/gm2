@@ -1,3 +1,7 @@
+2006-10-12       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/gcc/4.1.1/01.gaius_patch_gcc: added.
+
 2006-10-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm.2c:  fixed conditional goto expressions.
