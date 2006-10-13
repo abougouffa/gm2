@@ -1,3 +1,8 @@
+2006-10-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  call gimplify_function on all
+          functions.
+
 2006-10-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.1.1/01.gaius_patch_gcc: added.

@@ -1344,39 +1344,12 @@ make_binding_level (void)
 			  ((CONST_P) ? TYPE_QUAL_CONST : 0) |	  \
 			  ((VOLATILE_P) ? TYPE_QUAL_VOLATILE : 0))
 
-/* FROM ../c-decl.c IMPORT */
-/* Remove a binding level from a list and add it to the level chain.  */
-
-#if 0
-static void
-pop_binding_level (lp)
-     struct binding_level **lp;
-{
-  struct binding_level *l = *lp;
-  *lp = l->level_chain;
-  
-  memset (l, 0, sizeof (struct binding_level));
-  l->level_chain = free_binding_level;
-  free_binding_level = l;
-}
-#endif
-
-/* Look for the special case of OBJC_TYPE_REF with the address of
-   a function in OBJ_TYPE_REF_EXPR (presumably objc_msgSend or one
-   of its cousins).  */
-
 enum gimplify_status
 gm2_gimplify_expr (tree *expr_p,
 		   tree *pre_p ATTRIBUTE_UNUSED,
 		   tree *post_p ATTRIBUTE_UNUSED)
 {
-  enum tree_code code = TREE_CODE (*expr_p);
-
-  switch (code)
-    {
-    default:
-      return GS_UNHANDLED;
-    }
+  return GS_UNHANDLED;
 }
 
 /* FROM ../c-decl.c IMPORT */
@@ -6489,24 +6462,20 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
   if (! converted)
     {
       if (TREE_TYPE (op0) != result_type)
-	op0 = convert (result_type, op0); 
+	op0 = convert (result_type, op0);
       if (TREE_TYPE (op1) != result_type)
-	op1 = convert (result_type, op1); 
+	op1 = convert (result_type, op1);
     }
 
   if (build_type == NULL_TREE)
     build_type = result_type;
 
   {
-    tree result = build (resultcode, build_type, op0, op1);
-    tree folded;
+    tree result = fold_build2 (resultcode, build_type, op0, op1);
 
-    folded = fold (result);
-    if (folded == result)
-      TREE_CONSTANT (folded) = TREE_CONSTANT (op0) & TREE_CONSTANT (op1);
     if (final_type != 0)
-      return convert (final_type, folded);
-    return folded;
+      result = convert (final_type, result);
+    return result;
   }
 }
 
@@ -7955,7 +7924,6 @@ gccgm2_BuildStartFunctionCode (fndecl, isexported, isinline)
   pushlevel (0);   /* outer nesting level contains parameters and inner contains local variables */
   cur_stmt_list = chainon_stmt_list ();
 
-  // expand_start_bindings (0);
   // printf("starting scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
 }
 
@@ -7981,13 +7949,15 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
 
   cur_stmt_list = NULL;
 
+  // dump_function (TDI_original, fndecl);
+  gimplify_function_tree (fndecl);
+  // dump_function (TDI_generic, fndecl);
+
   if (nested) {
     (void) cgraph_node (fndecl);
     current_function_decl = DECL_CONTEXT (fndecl);
   }
   else {
-    gimplify_function_tree (fndecl);
-
     current_function_decl = fndecl;
     cgraph_finalize_function (fndecl, nested);
     current_function_decl = NULL;
@@ -8056,7 +8026,6 @@ gm2_enter_nested (struct function *f)
   p = GGC_NEW (struct language_function);
   f->language = p;
 
-//  p->stmt_tree = c_stmt_tree;
   p->stmt_tree = cur_stmt_list;
   cur_stmt_list = NULL_TREE;
 }
@@ -8104,9 +8073,7 @@ gccgm2_BuildAssignment (des, expr)
  */
 
 tree
-gccgm2_BuildAdd (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildAdd (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (PLUS_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8119,9 +8086,7 @@ gccgm2_BuildAdd (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildSub (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildSub (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (MINUS_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8134,9 +8099,7 @@ gccgm2_BuildSub (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildMult (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildMult (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (MULT_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8149,9 +8112,7 @@ gccgm2_BuildMult (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildDivTrunc (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildDivTrunc (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (TRUNC_DIV_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8164,9 +8125,7 @@ gccgm2_BuildDivTrunc (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildModTrunc (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildModTrunc (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (TRUNC_MOD_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8179,9 +8138,7 @@ gccgm2_BuildModTrunc (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildDivFloor (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildDivFloor (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (FLOOR_DIV_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8194,9 +8151,7 @@ gccgm2_BuildDivFloor (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildModFloor (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildModFloor (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (FLOOR_MOD_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8209,9 +8164,7 @@ gccgm2_BuildModFloor (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildLSL (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildLSL (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (LSHIFT_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8223,9 +8176,7 @@ gccgm2_BuildLSL (op1, op2, needconvert)
  */
 
 tree
-gccgm2_BuildLSR (op1, op2, needconvert)
-     tree op1, op2;
-     int  needconvert;
+gccgm2_BuildLSR (tree op1, tree op2, int needconvert)
 {
   return build_binary_op (RSHIFT_EXPR,
 			  gccgm2_FoldAndStrip (op1),
@@ -8261,10 +8212,9 @@ createUniqueLabel ()
  */
 
 void
-gccgm2_BuildLogicalShift (op1, op2, op3, nBits, needconvert)
-     tree op1, op2, op3;
-     tree nBits ATTRIBUTE_UNUSED;
-     int needconvert;
+gccgm2_BuildLogicalShift (tree op1, tree op2, tree op3,
+			  tree nBits ATTRIBUTE_UNUSED,
+			  int needconvert)
 {
   tree res;
 
@@ -8413,10 +8363,9 @@ gccgm2_BuildLRRn (op1, op2, nBits, needconvert)
  */
 
 void
-gccgm2_BuildLogicalRotate (op1, op2, op3, nBits, needconvert)
-     tree op1, op2, op3;
-     tree nBits;
-     int needconvert;
+gccgm2_BuildLogicalRotate (tree op1, tree op2, tree op3,
+			   tree nBits,
+			   int needconvert)
 {
   tree res;
 
@@ -8456,8 +8405,7 @@ gccgm2_BuildLogicalRotate (op1, op2, op3, nBits, needconvert)
  */
 
 tree
-buildUnboundedArrayOf (unbounded, contentsPtr, high)
-     tree unbounded, contentsPtr, high;
+buildUnboundedArrayOf (tree unbounded, tree contentsPtr, tree high)
 {
   tree fields     = TYPE_FIELDS (unbounded);
   tree field_list = NULL_TREE;
@@ -8575,9 +8523,7 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3,
  */
 
 tree
-gccgm2_BuildConvert (op1, op2, checkOverflow)
-     tree op1, op2;
-     int checkOverflow;
+gccgm2_BuildConvert (tree op1, tree op2, int checkOverflow)
 {
   if (checkOverflow)
     return convert_and_check (skip_type_decl (op1), op2);
@@ -8792,8 +8738,7 @@ build_m2_cast (type, expr)
  */
 
 int
-gccgm2_TreeOverflow (t)
-     tree t;
+gccgm2_TreeOverflow (tree t)
 {
   if ((TREE_CODE (t) == INTEGER_CST
        || (TREE_CODE (t) == COMPLEX_CST
@@ -8815,8 +8760,7 @@ gccgm2_TreeOverflow (t)
  */
 
 tree
-gccgm2_RemoveOverflow (t)
-     tree t;
+gccgm2_RemoveOverflow (tree t)
 {
   if (TREE_CODE (t) == INTEGER_CST
       || (TREE_CODE (t) == COMPLEX_CST
@@ -8843,10 +8787,8 @@ gccgm2_BuildCoerce (tree des, tree type, tree expr)
 {
   tree copy = copy_node (expr);
   TREE_TYPE (copy) = type;
-  
+
   return build_modify_expr (des, NOP_EXPR, copy);
-  /* return copy; */
-  /*  return build_m2_cast (type, expr); */
 }
 
 /*
@@ -8854,8 +8796,7 @@ gccgm2_BuildCoerce (tree des, tree type, tree expr)
  */
 
 tree
-gccgm2_BuildTrunc (op1)
-     tree op1;
+gccgm2_BuildTrunc (tree op1)
 {
   return convert_to_integer (gccgm2_GetIntegerType (), op1);
 }
@@ -8884,9 +8825,7 @@ gccgm2_BuildNegate (op1, needconvert)
  */
 
 tree
-gccgm2_BuildSetNegate (op1, needconvert)
-     tree op1;
-     int  needconvert;
+gccgm2_BuildSetNegate (tree op1, int needconvert)
 {
   return build_binary_op (BIT_XOR_EXPR,
 			  gccgm2_BuildConvert(gccgm2_GetWordType (), op1, FALSE),
@@ -8899,8 +8838,7 @@ gccgm2_BuildSetNegate (op1, needconvert)
  */
 
 tree
-gccgm2_GetSizeOfInBits (type)
-     tree type;
+gccgm2_GetSizeOfInBits (tree type)
 {
   enum tree_code code = TREE_CODE (type);
 
@@ -8938,8 +8876,7 @@ gccgm2_GetSizeOfInBits (type)
  */
 
 tree
-gccgm2_GetSizeOf (type)
-     tree type;
+gccgm2_GetSizeOf (tree type)
 {
   enum tree_code code = TREE_CODE (type);
 
@@ -8984,9 +8921,7 @@ gccgm2_GetSizeOf (type)
  */
 
 tree
-gccgm2_BuildSize (op1, needconvert)
-     tree op1;
-     int  needconvert ATTRIBUTE_UNUSED;
+gccgm2_BuildSize (tree op1, int needconvert ATTRIBUTE_UNUSED)
 {
   return gccgm2_GetSizeOf(op1);
 }
@@ -8997,9 +8932,7 @@ gccgm2_BuildSize (op1, needconvert)
  */
 
 tree
-gccgm2_BuildAddr (op1, needconvert)
-     tree op1;
-     int  needconvert;
+gccgm2_BuildAddr (tree op1, int needconvert)
 {
   return build_unary_op (ADDR_EXPR, op1, needconvert);
 }
@@ -9189,7 +9122,6 @@ create_label_from_name (char *name)
 {
   tree id   = get_identifier (name);   /* name must never conflict with the scope universe */
   tree decl = lookup_label (id);
-//   tree decl = define_label (input_location, id);
   
   if (decl == 0)
     error ("problems trying to create a label");
@@ -10910,8 +10842,7 @@ gccgm2_BuildCharConstant (string)
  */
 
 tree
-gccgm2_ConvertConstantAndCheck (type, expr)
-     tree type, expr;
+gccgm2_ConvertConstantAndCheck (tree type, tree expr)
 {
   expr = fold (expr);
   STRIP_NOPS (expr);
@@ -10924,8 +10855,7 @@ gccgm2_ConvertConstantAndCheck (type, expr)
  */
 
 tree
-gccgm2_ToWord (expr)
-     tree expr;
+gccgm2_ToWord (tree expr)
 {
   return gccgm2_BuildConvert (gccgm2_GetWordType(), expr, FALSE);
 }
@@ -10935,8 +10865,7 @@ gccgm2_ToWord (expr)
  */
 
 tree
-gccgm2_RealToTree (name)
-     char *name;
+gccgm2_RealToTree (char *name)
 {
   return build_real (gccgm2_GetLongRealType(),
 		     REAL_VALUE_ATOF (name, TYPE_MODE (gccgm2_GetLongRealType ())));
@@ -10990,7 +10919,6 @@ gccgm2_BuildStart (name, line, inner_module)
   make_decl_rtl (fndecl);
 
   init_function_start (fndecl);
-  // expand_start_bindings (0);
   return fndecl;
 }
 
@@ -11032,7 +10960,6 @@ void
 gccgm2_BuildCallInnerInit (fndecl)
      tree fndecl;
 {
-  // expand_expr_stmt (build_function_call (fndecl, NULL_TREE));
   add_stmt (build_function_call (fndecl, NULL_TREE));
 }
 
@@ -11125,17 +11052,17 @@ gccgm2_BuildCap (t)
 
   if (TREE_CODE(tt) == CHAR_TYPE ||
       TREE_CODE(tt) == INTEGER_TYPE) {
-    less_than = build_binary_op( LT_EXPR, t,
+    less_than = build_binary_op (LT_EXPR, t,
 				 build_int_2_type( 'a', 0,
 						   char_type_node), 0);
-    greater_than = build_binary_op( GT_EXPR, t,
+    greater_than = build_binary_op (GT_EXPR, t,
 				    build_int_2_type( 'z', 0,
 						      char_type_node), 0);
-    out_of_range = build_binary_op( TRUTH_ORIF_EXPR,
+    out_of_range = build_binary_op (TRUTH_ORIF_EXPR,
 				    less_than, greater_than, 0);
     
-    translated = fold( build( MINUS_EXPR, char_type_node, t,
-			      build_int_2_type( 'a'-'A', 0,
+    translated = fold( build (MINUS_EXPR, char_type_node, t,
+			      build_int_2_type ('a'-'A', 0,
 						char_type_node)));
     
     return fold( build_conditional_expr (out_of_range, t, translated));
@@ -11152,8 +11079,7 @@ gccgm2_BuildCap (t)
  */
 
 tree
-gccgm2_BuildAbs (t)
-     tree t;
+gccgm2_BuildAbs (tree t)
 {
   return build_unary_op (ABS_EXPR, t, 0);
 }
@@ -12335,7 +12261,6 @@ gccgm2_ExpandExpressionStatement (t)
      tree t;
 {
   add_stmt (t);
-  // expand_expr_stmt (t);
 }
 
 /*
@@ -12358,7 +12283,6 @@ gccgm2_GarbageCollect (void)
   ggc_collect();
 }
 
-// #include "gt-gm2-gm2-lang.h"
 #include "gtype-gm2.h"
 #include "gt-gm2-gccgm2.h"
 
