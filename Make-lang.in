@@ -63,12 +63,21 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
             stage1/gm2/cpp$(exeext)
 
+ulmlib=@ulmlib@
+
+ifeq ($(ulmlib),yes)
+BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
+                   build-libs-pim build-libs-coroutines
+else
+BUILD-ALL-LIBS :=  build-libs build-libs-iso \
+                   build-libs-pim build-libs-coroutines
+endif
+
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
                  $(GM2_TARGET_INDEPENDENT_BIN_TOOLS) \
-                 build-libs build-libs-iso build-libs-ulm \
-                 build-libs-pim build-libs-coroutines
+                 $(BUILD-ALL-LIBS)
 
 TEXI2HTML=texi2html
 
@@ -131,10 +140,11 @@ gm2.all.cross: $(GM2)-cross$(exeext) stage1/gm2/cc1gm2$(exeext) \
 gm2.start.encap: $(GM2)$(exeext)
 gm2.rest.encap:
 gm2.info: $(srcdir)/gm2/gm2.info
-gm2.generated-manpages: gm2/man/gm2.1
+gm2.generated-manpages: gm2.man
 
-gm2/man/gm2.1: $(srcdir)/gm2/man/gm2.man
-	@cd gm2/man ; make gm2.1
+gm2.man: $(srcdir)/gm2/man/gm2.man
+	cd gm2/man ; make gm2.1
+	mv gm2/man/gm2.1 $@
 
 gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi \

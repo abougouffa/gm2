@@ -1,7 +1,13 @@
+2006-10-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  minor fixes to build manual pages.
+
 2006-10-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  call gimplify_function on all
           functions.
+	* gm2/Make-lang.in:  added ability to optionally build
+	  the ulm libraries which matches gm2-harness-0.94.
 
 2006-10-12       Gaius Mulley <gaius@gnu.org>
 

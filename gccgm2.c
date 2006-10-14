@@ -10949,11 +10949,11 @@ gccgm2_BuildEnd (tree fndecl, int nested)
     current_function_decl = fndecl;
     gimplify_function_tree (fndecl);
     cgraph_finalize_function (fndecl, false);
+    // ggc_collect();  /* stress testing */
   }
 
   current_function_decl = NULL;
   cfun = NULL;
-  ggc_collect();  /* stress testing */
 }
 
 void

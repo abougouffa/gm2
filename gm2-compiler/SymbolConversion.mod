@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE SymbolConversion ;
 
 FROM NameKey IMPORT Name ;
@@ -56,6 +57,10 @@ VAR
 BEGIN
    IF USEPOISON
    THEN
+      IF sym=711
+      THEN
+         mystop2
+      END ;
       IF InBounds(mod2gcc, sym)
       THEN
          t := PtrToInteger(GetIndice(mod2gcc, sym)) ;
