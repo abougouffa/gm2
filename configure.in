@@ -25,6 +25,4 @@ AC_PATH_PROGS(AR_PATH, ${AR}, ar)
 AC_DEFINE_UNQUOTED(AR_PATH, "$AR_PATH", the path to target archiver)
 AC_PATH_PROGS(RANLIB_PATH, ${RANLIB}, ranlib)
 AC_DEFINE_UNQUOTED(RANLIB_PATH, "$RANLIB_PATH", the path to target ranlib)
-GM2_ULMLIB_OPTION
-AC_CONFIG_FILES([gm2-config:gm2-config.in])
 AC_OUTPUT

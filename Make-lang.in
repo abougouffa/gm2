@@ -63,13 +63,11 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
             stage1/gm2/cpp$(exeext)
 
-include gm2/gm2-config
-
-ifeq ($(ulmlib),yes)
-BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
+ifeq ($(ULMLIB),no)
+BUILD-ALL-LIBS :=  build-libs build-libs-iso \
                    build-libs-pim build-libs-coroutines
 else
-BUILD-ALL-LIBS :=  build-libs build-libs-iso \
+BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
                    build-libs-pim build-libs-coroutines
 endif
 
