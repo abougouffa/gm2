@@ -63,7 +63,7 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
             stage1/gm2/cpp$(exeext)
 
-ulmlib=@ulmlib@
+include gm2/gm2-config
 
 ifeq ($(ulmlib),yes)
 BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
