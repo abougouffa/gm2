@@ -2,6 +2,7 @@
 
 	* gm2/gm2-config.in:  added.
 	* gm2/Make-lang.in:  include gm2/gm2-config.
+	* gm2/config-lang.in:  generate gm2/gm2-config.
 
 2006-10-17       Gaius Mulley <gaius@gnu.org>
 
