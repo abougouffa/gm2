@@ -58,11 +58,11 @@ gm2-logo.eps: $(srcdir)/gm2-logo.ms
 
 install: all force
 	if [ "$(srcdir)/$(WWWDIR)" = "" ] ; then \
-            echo "you must set $(WWWDIR)" ; \
+            echo "you must set WWWDIR" ; \
             exit 1 ; \
         fi
 	if [ ! -d $(srcdir)/$(WWWDIR) ] ; then \
-            echo "you must set $(WWWDIR) to point to a directory" ; \
+            echo "you must set WWWDIR to point to a directory" ; \
             exit 1 ; \
         fi
 	cp ../../*.html *.html *.png $(WWWDIR)

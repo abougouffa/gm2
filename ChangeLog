@@ -1,3 +1,7 @@
+2006-10-19       Gaius Mulley <gaius@gnu.org>
+
+	* www/index.ms:  updated gm2-harness release to 0.96.
+
 2006-10-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-config.in:  added.
