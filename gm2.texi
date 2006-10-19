@@ -15,9 +15,9 @@
 
 @setfilename gm2.info
 @set version-GM2     0.53
-@set version-GCC     4.1.0
-@set version-HARNESS 0.9
-@set version-GDB     6.3
+@set version-GCC     4.1.1
+@set version-HARNESS 0.96
+@set version-GDB     6.5
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
 

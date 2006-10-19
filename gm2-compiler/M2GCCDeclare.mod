@@ -619,6 +619,11 @@ PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    size: CARDINAL ;
 BEGIN
+   IF sym=711
+   THEN
+      mystop
+   END ;
+
    IF sym=NulSym
    THEN
       InternalError('trying to declare the NulSym', __FILE__, __LINE__)
@@ -751,10 +756,6 @@ VAR
    n1 : Name ;
    gcc: Tree ;
 BEGIN
-   IF Sym=468
-   THEN
-      mystop
-   END ;
    IF IsVarient(Sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
@@ -902,11 +903,6 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
-   IF Sym=131
-   THEN
-      mystop
-   END ;
-
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsEffectivelyImported(GetMainModule(), Sym) OR
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
@@ -1992,11 +1988,6 @@ VAR
    FieldList,
    RecordType  : Tree ;
 BEGIN
-   IF Sym=300
-   THEN
-      stop
-   END ;
-
    i := 1 ;
    FieldList := Tree(NIL) ;
    RecordType := DoStartDeclaration(Sym, BuildStartRecord) ;
@@ -2128,8 +2119,7 @@ BEGIN
          printf2('// declaring %a = ARRAY [%a', n1, n2) ;
          n1 := GetSymName(High) ;
          n2 := GetSymName(GetType(Sym)) ;
-         printf2('..%a] OF %a\n', n1, n2) ;
-         stop
+         printf2('..%a] OF %a\n', n1, n2)
       END
    END ;
    RETURN( GccArray )

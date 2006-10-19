@@ -256,7 +256,7 @@ static GTY(()) struct stmt_tree_s c_stmt_tree;
 
 */
 
-extern tree current_function_decl;
+extern GTY(()) tree current_function_decl;
 
 
 /* While defining an enum type, this is 1 plus the last enumerator
@@ -302,6 +302,7 @@ static GTY(()) tree constructor_fields = NULL_TREE;
 static GTY(()) tree constructor_element_list = NULL_TREE;
 
 tree c_global_trees[CTI_MAX];
+
 enum c_language_kind c_language = clk_c;
 
 static tree qualify_type                PARAMS ((tree, tree));
@@ -367,9 +368,6 @@ enum impl_conv {
 #define EXTERN extern
 #include "gm2-lang.h"
 #undef EXTERN
-
-  #include "gm2-lang.h"
-  #undef EXTERN
   
 tree                   finish_enum                                 (tree, tree, tree);
 void                   gccgm2_EndTemporaryAllocation               (void);
@@ -721,8 +719,7 @@ extern int M2Options_SetUnboundedByReference(int value);
 void stop (void) {}
   
 tree
-maybe_apply_renaming_pragma (decl, asmname)
-     tree decl ATTRIBUTE_UNUSED, asmname;
+maybe_apply_renaming_pragma (tree decl ATTRIBUTE_UNUSED, tree asmname)
 {
   return asmname;
 }
@@ -735,9 +732,7 @@ maybe_apply_renaming_pragma (decl, asmname)
  */
 
 void
-gccgm2_SetFileNameAndLineNo (fn, line)
-     char *fn;
-     int   line;
+gccgm2_SetFileNameAndLineNo (char *fn, int line)
 {
   /* remember that both these variables are actually external to this file */
 #if defined(GCC_3_3_X)
@@ -775,9 +770,7 @@ getLineNo (void)
  */
 
 void
-gccgm2_EmitLineNote (fn, line)
-     char *fn;
-     int   line;
+gccgm2_EmitLineNote (char *fn, int line)
 {
 #if defined(GCC_3_4_X) || defined(GCC_4_1_X)
   if (cfun && fn) {
@@ -6665,30 +6658,26 @@ static int                    is_var                                      PARAMS
 static void                   debug_watch                                 PARAMS ((tree));
 static int                    is_array                                    PARAMS ((tree));
 
-static void debug_watch (t)
-     tree t;
+static void debug_watch (tree t)
 {
   watch = t;
 }
 
 static int
-is_var (var)
-     tree var;
+is_var (tree var)
 {
   return TREE_CODE(var) == VAR_DECL;
 }
 
 static int
-is_array (array)
-     tree array;
+is_array (tree array)
 {
   return TREE_CODE(array) == ARRAY_TYPE;
 }
 #endif
 
 static int
-is_type (type)
-     tree type;
+is_type (tree type)
 {
   switch (TREE_CODE(type)) {
 
@@ -6717,14 +6706,9 @@ is_type (type)
  */
 
 tree
-gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglobal, scope)
-     char *name;
-     tree type;
-     int  exported;
-     int  imported;
-     int  istemporary ATTRIBUTE_UNUSED;
-     int  isglobal;
-     tree scope;
+gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
+			     int imported, int istemporary ATTRIBUTE_UNUSED,
+			     int isglobal, tree scope)
 {
   tree id;
   tree decl;
@@ -6789,8 +6773,7 @@ gccgm2_DeclareKnownVariable (name, type, exported, imported, istemporary, isglob
  */
 
 tree
-gccgm2_DeclareKnownConstant (type, value)
-     tree type, value;
+gccgm2_DeclareKnownConstant (tree type, tree value)
 {
     tree id = make_node (IDENTIFIER_NODE);  /* ignore the name of the constant */
     tree decl;
@@ -7351,8 +7334,7 @@ gccgm2_BuildEnumerator (char *name, tree value)
  */
 
 tree
-gccgm2_BuildPointerType (totype)
-     tree totype;
+gccgm2_BuildPointerType (tree totype)
 {
   return build_pointer_type (skip_type_decl (totype));
 }
@@ -7362,8 +7344,7 @@ gccgm2_BuildPointerType (totype)
  */
 
 tree
-gccgm2_BuildConstPointerType (totype)
-     tree totype;
+gccgm2_BuildConstPointerType (tree totype)
 {
   tree t = build_pointer_type (skip_type_decl (totype));
   TYPE_READONLY (t) = TRUE;
@@ -7391,10 +7372,7 @@ gccgm2_BuildArrayType (tree elementtype, tree indextype)
  */
 
 tree
-build_set_type (domain, range_type, allow_void)
-     tree domain;
-     tree range_type;
-     int allow_void;
+build_set_type (tree domain, tree range_type, int allow_void)
 {
   tree type;
 
@@ -7423,8 +7401,7 @@ build_set_type (domain, range_type, allow_void)
  */
 
 tree
-convert_type_to_range (type)
-     tree type;
+convert_type_to_range (tree type)
 {
   tree min, max;
   tree itype;
@@ -7489,11 +7466,8 @@ build_bitset_type (void)
  */
 
 tree
-gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
-     char *name;
-     tree subrangeType;
-     tree lowval;
-     tree highval;
+gccgm2_BuildSetTypeFromSubrange (char *name, tree subrangeType,
+				 tree lowval, tree highval)
 {
   lowval = gccgm2_FoldAndStrip (lowval);
   highval = gccgm2_FoldAndStrip (highval);
@@ -7540,9 +7514,7 @@ gccgm2_BuildSetTypeFromSubrange (name, subrangeType, lowval, highval)
  */
 
 tree
-gccgm2_BuildSetType (name, type, lowval, highval)
-     char *name;
-     tree type, lowval, highval;
+gccgm2_BuildSetType (char *name, tree type, tree lowval, tree highval)
 {
   tree range = build_range_type (skip_type_decl (type),
 				 gccgm2_FoldAndStrip (lowval),
@@ -7559,8 +7531,7 @@ gccgm2_BuildSetType (name, type, lowval, highval)
  */
 
 void
-gccgm2_BuildStartSetConstructor (type)
-     tree type;
+gccgm2_BuildStartSetConstructor (tree type)
 {
   constructor_type = type;
   layout_type (type);
@@ -7573,8 +7544,7 @@ gccgm2_BuildStartSetConstructor (type)
  */
 
 void
-gccgm2_BuildSetConstructorElement (value)
-     tree value;
+gccgm2_BuildSetConstructorElement (tree value)
 {
   if (value == NULL_TREE) {
     internal_error ("set type cannot be initialized with a NULL_TREE");
@@ -7595,7 +7565,7 @@ gccgm2_BuildSetConstructorElement (value)
  */
 
 tree
-gccgm2_BuildEndSetConstructor ()
+gccgm2_BuildEndSetConstructor (void)
 {
   tree constructor;
   tree link;
@@ -7619,9 +7589,7 @@ gccgm2_BuildEndSetConstructor ()
  */
 
 tree
-gccgm2_BuildSubrangeType (name, type, lowval, highval)
-     char *name;
-     tree type, lowval, highval;
+gccgm2_BuildSubrangeType (char *name, tree type, tree lowval, tree highval)
 {
   tree id = build_range_type (skip_type_decl (type),
 			      gccgm2_FoldAndStrip (lowval),
@@ -7645,8 +7613,7 @@ gccgm2_BuildSubrangeType (name, type, lowval, highval)
  */
 
 tree
-gccgm2_BuildArrayIndexType (low, high)
-     tree low, high;
+gccgm2_BuildArrayIndexType (tree low, tree high)
 {
   tree sizelow = convert (m2_z_type_node, default_conversion (low));
   tree sizehigh = convert (m2_z_type_node, default_conversion (high));
@@ -7664,10 +7631,8 @@ gccgm2_BuildArrayIndexType (low, high)
  */
 
 tree
-gccgm2_BuildVariableArrayAndDeclare (elementtype, high, name, scope)
-     tree elementtype, high;
-     char *name;
-     tree scope;
+gccgm2_BuildVariableArrayAndDeclare (tree elementtype, tree high, char *name,
+				     tree scope)
 {
   tree indextype = build_index_type (variable_size(high));
   tree arraytype = build_array_type (elementtype, indextype);
@@ -7711,8 +7676,7 @@ gccgm2_InitFunctionTypeParameters (int uses_varargs)
  */
 
 tree
-gccgm2_BuildStartFunctionType (name)
-     char *name ATTRIBUTE_UNUSED;
+gccgm2_BuildStartFunctionType (char *name ATTRIBUTE_UNUSED)
 {
   tree n = make_node (POINTER_TYPE);
 //  TYPE_SIZE (n) = 0;
@@ -7774,10 +7738,7 @@ gccgm2_BuildEndFunctionType (tree func, tree type)
  */
 
 tree
-gccgm2_BuildParameterDeclaration (name, type, isreference)
-     char *name;
-     tree  type;
-     int   isreference;
+gccgm2_BuildParameterDeclaration (char *name, tree type, int isreference)
 {
   tree parm_decl;
 
@@ -7826,11 +7787,8 @@ tree gm2_debugging_func;
  */
 
 tree
-gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal, isnested)
-     char *name;
-     tree  returntype;
-     int   isexternal;
-     int   isnested;
+gccgm2_BuildEndFunctionDeclaration (char *name, tree returntype,
+				    int isexternal, int isnested)
 {
   tree fntype;
   tree fndecl;
@@ -7873,10 +7831,7 @@ gccgm2_BuildEndFunctionDeclaration (name, returntype, isexternal, isnested)
  */
 
 void
-gccgm2_BuildStartFunctionCode (fndecl, isexported, isinline)
-     tree fndecl;
-     int  isexported;
-     int  isinline;
+gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 {
   tree param_decl, next_param;
 
@@ -8057,8 +8012,7 @@ gm2_leave_nested (struct function *f)
  */
 
 tree
-gccgm2_BuildAssignment (des, expr)
-     tree des, expr;
+gccgm2_BuildAssignment (tree des, tree expr)
 {
   if (TREE_CODE (expr) == FUNCTION_DECL)
     expr = build_unary_op (ADDR_EXPR, expr, 0);

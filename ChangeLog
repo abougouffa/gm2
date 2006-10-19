@@ -1,6 +1,9 @@
 2006-10-19       Gaius Mulley <gaius@gnu.org>
 
 	* www/index.ms:  updated gm2-harness release to 0.96.
+	* gm2/gm2-compiler/SymbolConversion.mod:   Poison must
+	  not check for gcc poisoning as it is called after a
+	  function has been emitted and potentially poisoned.
 
 2006-10-18       Gaius Mulley <gaius@gnu.org>
 

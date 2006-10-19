@@ -39,7 +39,8 @@ TYPE
 
 VAR
    mod2gcc       : Index ;
-   PoisonedSymbol: ADDRESS ;   
+   badSymbol,
+   PoisonedSymbol: ADDRESS ;
 
 
 PROCEDURE mystop2 ; BEGIN END mystop2 ;
@@ -98,11 +99,6 @@ BEGIN
    IF gcc=GetErrorNode()
    THEN
       InternalError('error node generated during symbol conversion', __FILE__, __LINE__)
-   END ;
-
-   IF sym=840
-   THEN
-      mystop2
    END ;
 
    IF USEPOISON
@@ -189,6 +185,34 @@ END RemoveTemporaryKnown ;
 
 
 (*
+   Mod2GccWithoutGCCPoison - given a modula-2 symbol, sym, return
+                             the gcc equivalent, it does not check to see
+                             whether the gcc symbol has been poisoned.
+*)
+
+PROCEDURE Mod2GccWithoutGCCPoison (sym: CARDINAL) : Tree ;
+VAR
+   n : Name ;
+   tr: Tree ;
+BEGIN
+   IF InBounds(mod2gcc, sym)
+   THEN
+      tr := Tree(GetIndice(mod2gcc, sym)) ;
+      IF tr=PoisonedSymbol
+      THEN
+         n := GetSymName(sym) ;
+         printf1('name of poisoned symbol was (%a)\n', n) ;
+         InternalError('attempting to use a gcc symbol which is no longer in scope',
+                       __FILE__, __LINE__)
+      END ;
+      RETURN( tr )
+   ELSE
+      RETURN( NIL )
+   END
+END Mod2GccWithoutGCCPoison ;
+
+
+(*
    Poison - poisons a symbol.
 *)
 
@@ -196,7 +220,7 @@ PROCEDURE Poison (sym: WORD) ;
 VAR
    a: ADDRESS ;
 BEGIN
-   a := Mod2Gcc(sym) ;
+   a := Mod2GccWithoutGCCPoison(sym) ;
    IF a#NIL
    THEN
       PutIndice(mod2gcc, sym, PoisonedSymbol)
