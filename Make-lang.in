@@ -802,6 +802,10 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod
 
+GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.mod     \
+                     gm2l.mod          gm2m.mod        pg.mod
+
+
 #
 # the ISO implementation modules are still being written
 #
@@ -1690,6 +1694,23 @@ gm2.verifystage12: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
                echo " " ; \
            fi ; \
            echo " " ; \
+        done
+	$(QUIAT)echo "now verifying automatically built modules"
+	$(QUIAT)for i in x $(GM2-VERIFY-AUTO) ; do \
+           if [ -f gm2/gm2-auto/$$i ] ; then \
+              echo -n "$$i " ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
+              echo -n "[1]" ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
+              echo -n "[2]" ; \
+              if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
+                  echo -n " [stage 1 and stage 2 differ]" ; \
+                  cp gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.1.lst ; \
+                  cp gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.2.lst ; \
+                  echo " " ; \
+              fi ; \
+              echo " " ; \
+           fi ; \
         done ; \
 	$(RM) -f gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/2_3.diff gm2/gm2-compiler-verify/1_2.diff
 

@@ -3,6 +3,11 @@
 	* gm2/gccgm2.c:  fixed building of constants strings.
 	  Constants are also placed into the global scope so
 	  that they are not garbage collected.
+	* gm2/M2GenGCC.mod:  CodeXIndr handle special case of
+	  null string.
+	* gm2/Make-lang.in:  add automatically generated modules
+	  to the verify12 rule.
+	* added a string assignment regression test.
 
 2006-10-19       Gaius Mulley <gaius@gnu.org>
 

@@ -10755,10 +10755,14 @@ gccgm2_BuildStringConstant (char *string, int length)
 
   /* +1 ensures that we always nul terminate our strings */
   id = build_string (length+1, string);
+#if 0
+  TREE_TYPE (id) = char_array_type_node;
+#else
   elem = build_type_variant (char_type_node, 1, 0);
-  index = build_index_type (build_int_cst (NULL_TREE, length - 1));
+  index = build_index_type (build_int_cst (NULL_TREE, length+1));
   type = build_array_type (elem, index);
   TREE_TYPE (id) = type;
+#endif
   TREE_CONSTANT (id) = 1;
   TREE_INVARIANT (id) = 1;
   TREE_READONLY (id) = 1;

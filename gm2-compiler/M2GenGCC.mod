@@ -4781,6 +4781,16 @@ BEGIN
    IF IsProcType(op2)
    THEN
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
+   ELSIF IsConstString(op3) AND (GetStringLength(op3)=0) AND (GetMode(op1)=LeftValue)
+   THEN
+      (*
+         no need to check for type errors,
+         but we handle nul string as a special case as back end
+         complains if we pass through a "" and ask it to copy the
+         contents.
+      *)
+      t := BuildAssignment(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
+                           StringToChar(Mod2Gcc(op3), Char, op3))
    ELSE
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
                            StringToChar(Mod2Gcc(op3), op2, op3))
