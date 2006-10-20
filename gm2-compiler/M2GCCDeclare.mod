@@ -619,7 +619,7 @@ PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    size: CARDINAL ;
 BEGIN
-   IF sym=711
+   IF sym=1329
    THEN
       mystop
    END ;

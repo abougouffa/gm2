@@ -2616,14 +2616,13 @@ gm2_init_decl_processing ()
  */
 
 static int
-is_a_constant (t)
-     tree t;
+is_a_constant (tree t)
 {
-  return((TREE_CODE (t) == INTEGER_CST) ||
+  return (TREE_CODE (t) == INTEGER_CST) ||
 	 (TREE_CODE (t) == REAL_CST) ||
 	 (TREE_CODE (t) == REAL_CST) ||
-	 (TREE_CODE (t) == COMPLEX_CST) ||   /* front end doesn't use COMPLEX_CST yet, here for completeness */
-	 (TREE_CODE (t) == STRING_CST));
+	 (TREE_CODE (t) == COMPLEX_CST) ||
+	 (TREE_CODE (t) == STRING_CST);
 }
 
 /*
@@ -2634,12 +2633,10 @@ is_a_constant (t)
  */
 
 tree
-gccgm2_RememberConstant (t)
-     tree t;
+gccgm2_RememberConstant (tree t)
 {
-  if ((t != NULL) && (is_a_constant(t))) {
+  if ((t != NULL) && (is_a_constant(t)))
     return global_constant(t);
-  }
   return t;
 }
 
@@ -10425,7 +10422,7 @@ gccgm2_BuildIntegerConstant (int value)
   case 1:  return integer_one_node;
 
   default:
-    return build_int_cst (NULL_TREE, value);
+    return gccgm2_RememberConstant (build_int_cst (NULL_TREE, value));
   }
 }
 
@@ -10488,7 +10485,7 @@ gccgm2_BuildConstLiteralNumber (str, base)
   if (gccgm2_TreeOverflow (value))
     error("constant too large");
 
-  return value;
+  return gccgm2_RememberConstant (value);
 }
 
 /*
@@ -10746,24 +10743,28 @@ build_set_full_complement (void)
   return value;
 }
 
-tree mystr;
-
 /*
  *  BuildStringConstant - creates a string constant given a, string,
  *                        and, length.
  */
 
 tree
-gccgm2_BuildStringConstant (string, length)
-     char *string;
-     int   length;
+gccgm2_BuildStringConstant (char *string, int length)
 {
-  tree id;
+  tree id, elem, index, type;
 
-  id = build_string (length+1, string);  /* +1 ensures that we always nul terminate our strings */
-  TREE_TYPE (id) = char_array_type_node;
-  mystr = id;
-  return id;
+  /* +1 ensures that we always nul terminate our strings */
+  id = build_string (length+1, string);
+  elem = build_type_variant (char_type_node, 1, 0);
+  index = build_index_type (build_int_cst (NULL_TREE, length - 1));
+  type = build_array_type (elem, index);
+  TREE_TYPE (id) = type;
+  TREE_CONSTANT (id) = 1;
+  TREE_INVARIANT (id) = 1;
+  TREE_READONLY (id) = 1;
+  TREE_STATIC (id) = 1;
+
+  return gccgm2_RememberConstant (id);
 }
 
 /*
@@ -10771,8 +10772,7 @@ gccgm2_BuildStringConstant (string, length)
  */
 
 tree
-gccgm2_BuildCharConstant (string)
-     char *string;
+gccgm2_BuildCharConstant (char *string)
 {
   unsigned num_bits = TYPE_PRECISION (char_type_node) * strlen(string);
   int result        = (int) string[0];
@@ -10786,7 +10786,8 @@ gccgm2_BuildCharConstant (string)
     id = build_int_cst (integer_type_node,
 			result | ~((unsigned HOST_WIDE_INT) ~0
 				   >> (HOST_BITS_PER_WIDE_INT - num_bits)));
-  return id;
+
+  return gccgm2_RememberConstant (id);
 }
 
 /*
