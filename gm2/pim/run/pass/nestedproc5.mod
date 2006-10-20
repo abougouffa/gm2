@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE nestedproc5 ;
 
 FROM StrIO IMPORT WriteString, WriteLn ;
@@ -28,14 +29,17 @@ VAR
       t: CHAR ;
    BEGIN
       t := a[i] ;
+(*
       a[i] := a[j] ;
       a[j] := t
+*)
    END flip ;
 
    PROCEDURE inner ;
    VAR
       h, l, k: CARDINAL ;
    BEGIN
+(*
       h := HIGH(a) ;  (* test it.. *)
       IF h#80
       THEN
@@ -44,6 +48,7 @@ VAR
       k := 0 ;
       l := StrLen(a)-1 ;
       flip(3, 8)
+*)
    END inner ;
 BEGIN
    StrCopy('0128456739', a) ;
