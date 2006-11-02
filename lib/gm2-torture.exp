@@ -1,4 +1,4 @@
-# Copyright (C) 2003 Free Software Foundation, Inc.
+# Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -34,18 +34,22 @@ if ![info exists TORTURE_OPTIONS] {
     # Also note that -finline-functions is explicitly included in one of the
     # items below, even though -O3 is also specified, because some ports may
     # choose to disable inlining functions by default, even when optimizing.
-#    set TORTURE_OPTIONS [list \
-#	{ -O0 } \
-#	{ -O1 } \
-#	{ -O2 } \
-#	{ -O3 -fomit-frame-pointer } \
-#	{ -O3 -fomit-frame-pointer -finline-functions } \
-#	{ -O3 -g } \
-#	{ -Os } ]
     set TORTURE_OPTIONS [list \
 			     { -g } \
+			     { -Os } \
+			     { -Os -g } \
+                             { -O0 } \
+                             { -O0 -g } \
+                             { -O1 } \
+                             { -O1 -g } \
 			     { -O } \
-			     { -g -O } ]
+			     { -O -g } \
+                             { -O2 } \
+                             { -O2 -g } \
+                             { -O3 } \
+                             { -O3 -g } \
+			     { -O3 -fomit-frame-pointer } \
+			     { -O3 -fomit-frame-pointer -finline-functions } ]
 }
 
 
@@ -76,7 +80,6 @@ proc gm2-torture-compile { src option } {
     # Run the compiler and analyze the results.
     set options ""
     lappend options "additional_flags=$option"
-    set options $option
 
     set comp_output [gm2_target_compile "$src" "$output" object $options];
     gm2_check_compile $testcase $option $output $comp_output
