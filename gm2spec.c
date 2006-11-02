@@ -198,6 +198,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int incl=-1;
   int libraries=pim;
   int x=-1;
+  const char *language = NULL;
   int moduleExtension = -1;
 
 #if defined(DEBUGGING)
@@ -224,10 +225,15 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       libraries = pimcoroutine;
     if (strncmp((*in_argv)[i], "-Wmod=", 6) == 0)
       moduleExtension = i;
-    if (strcmp((*in_argv)[i], "-x") == 0)
+    if (strcmp((*in_argv)[i], "-x") == 0) {
       x = i;
+      if (i+1 < *in_argc)
+	language = (*in_argv[i+1]);
+    }
     i++;
   }
+  if (language != NULL && (strcmp (language, "modula-2") != 0))
+    return;
 #if defined(DEBUGGING)
   i=1;
   while (i<*in_argc) {

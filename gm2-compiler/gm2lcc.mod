@@ -493,7 +493,7 @@ BEGIN
    fo            := StdOut ;
    ExecCommand   := FALSE ;
 
-   Compiler      := InitString('gm2') ;
+   Compiler      := InitString('gm2cc') ;
    Archives      := NIL ;
    Path          := NIL ;
    Libraries     := NIL ;

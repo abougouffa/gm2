@@ -47,16 +47,19 @@ GM2_INSTALL_NAME = `echo gm2|sed '$(program_transform_name)'`
 GM2_CROSS_NAME = `echo gm2|sed '$(program_transform_cross_name)'`
 
 GM2 = xgm2
+GM2CC = gm2cc
 
 # Define the name of target independent tools to be installed in $(bindir)
 # Names are subject to changes
 
 GM2_TARGET_INDEPENDENT_BIN_TOOLS = stage1/gm2/gm2m$(exeext) stage1/gm2/h2def$(exeext)
 
-GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) gm2lsub$(exeext)
+GM2_LINK_TOOLS = gm2lcc$(exeext) gm2l$(exeext) gm2lgen$(exeext) gm2lsub$(exeext) \
+                 gm2cc$(exeext)
 
 GM2_LINK_TOOLS_BOOT = stage1/gm2/gm2lcc$(exeext) stage1/gm2/gm2l$(exeext) \
-                      stage1/gm2/gm2lgen$(exeext) stage1/gm2/gm2lsub$(exeext)
+                      stage1/gm2/gm2lgen$(exeext) stage1/gm2/gm2lsub$(exeext) \
+                      stage1/gm2/gm2cc$(exeext)
 
 GCC_TOOLS_FOR_GM2 = \
             $(GCC_PASSES) $(GCC_PARTS) \
@@ -616,6 +619,23 @@ gm2lsub$(exeext): force
                    $(MAKE) stage1/gm2/$@ ; \
                    cp -f stage1/gm2/$@ $@ ; \
                fi \
+            fi \
+        fi
+
+gm2cc$(exeext): force
+	if [ -f stage3_build ] ; then \
+            true ; \
+	else \
+            if [ -f stage2_build ] ; then \
+                true ; \
+            else \
+                if [ -f stage1_build ] ; then \
+                    $(MAKE) stage2/gm2/$@ ; \
+                    cp -f stage2/gm2/$@ $@ ; \
+                else \
+                    $(MAKE) stage1/gm2/$@ ; \
+                    cp -f stage1/gm2/$@ $@ ; \
+                fi \
             fi \
         fi
   
@@ -1454,6 +1474,9 @@ stage1/gm2/gm2m$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
               gm2/gm2-compiler-boot/m2flex.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS)
 
+stage1/gm2/gm2cc$(exeext): xgcc$(exeext)
+	cp -p xgcc$(exeext) $@
+
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
 	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
@@ -1494,6 +1517,9 @@ stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
                -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
                 gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
+
+stage2/gm2/gm2cc$(exeext): xgcc$(exeext)
+	cp -p xgcc$(exeext) $@
 
 stage1/gm2/h2def$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/p2c$(exeext) \

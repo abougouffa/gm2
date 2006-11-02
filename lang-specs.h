@@ -51,17 +51,17 @@ Boston, MA 02110-1301, USA.  */
                                              gm2l -Wcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -Wcppend %{I*} %{Wdef=*} %{Wmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\
-                                             gm2 %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{B*} %{Wtarget-ar=*} %{Wtarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst} \n\
                                       %{!Wcpp:gm2l %{I*} %{Wdef=*} %{Wmod=*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\
-                                             gm2 %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{B*} %{Wtarget-ar=*} %{Wtarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst}} \n\
                            %{Wuselist:gm2lgen %b.lst -o %g.c \n\
-                                      gm2 %{v*} %{B*} %{g*} -c -o %d%w%g%O %g.c \n\
+                                      gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
                                       rm -f %w%d%g.a \n\
                                       gm2lcc %{B*} %{Wtarget-ar=*} %{Wtarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
     ", 0, 0, 0},

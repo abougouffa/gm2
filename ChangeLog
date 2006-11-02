@@ -1,10 +1,14 @@
 2006-11-02       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/lang-specs.h:  use the gm2 rather than gcc driver.
-	* gm2/gm2-compiler/gm2lcc.mod:  also use gm2 rather
+	* gm2/lang-specs.h:  use gm2cc rather than the gcc driver.
+	* gm2/gm2-compiler/gm2lcc.mod:  also use gm2cc rather
 	  than gcc.
 	* gm2/gm2-compiler/gm2lcc.mod:  corrected extern
 	  declaration of exit.
+	* gm2/Make-lang.in:  generate gm2cc from xgcc and install
+          it correcly.
+        * testsuite/gm2/pim/options/optimize/run/pass/gm2.exp: fixed
+          library module build.
 
 2006-10-20       Gaius Mulley <gaius@gnu.org>
 

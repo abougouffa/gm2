@@ -331,14 +331,6 @@ BEGIN
    THEN
       CompilerDebugging := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-O') OR EqualArray(s, '-O1') OR EqualArray(s, '-O2') OR
-         EqualArray(s, '-O3')
-   THEN
-      Optimizing := TRUE ;
-      OptimizeUncalledProcedures := TRUE ;
-      OptimizeBasicBlock := TRUE ;
-      OptimizeCommonSubExpressions := TRUE ;
-      Legal := TRUE
    ELSIF EqualArray(s, '-Obb')
    THEN
       OptimizeBasicBlock := TRUE ;
@@ -350,6 +342,13 @@ BEGIN
    ELSIF EqualArray(s, '-Ocse')
    THEN
       OptimizeCommonSubExpressions := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-O')
+   THEN
+      Optimizing := TRUE ;
+      OptimizeUncalledProcedures := TRUE ;
+      OptimizeBasicBlock := TRUE ;
+      OptimizeCommonSubExpressions := TRUE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-funbounded-by-reference')
    THEN
