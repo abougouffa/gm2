@@ -28,9 +28,10 @@ gm2_init "-I$srcdir/gm2/pim/options/optimize/run/pass:.:$srcdir/../gm2/gm2-libs:
 #  compile library file
 #
 
-set comp_output [gm2_target_compile "$srcdir/$subdir/addition.mod" "addition.o" object "-O2 -c"]
+set comp_output [gm2_target_compile "$srcdir/$subdir/addition.mod" "addition.o" object "additional_flags=-O2 -c"]
 gm2_check_compile "$srcdir/$subdir/addition.mod compilation" "-O2 -c" "addition.o" $comp_output
-
+set output [exec ls -ltr]
+verbose "$output" 1
 
 #
 #  now compile test cases and link to library file
@@ -45,4 +46,4 @@ foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/testadd.mod]] {
     gm2-torture-execute $testcase "" "pass"
 }
 
-# set output [exec rm -f addition.o]
+set output [exec rm -f addition.o]
