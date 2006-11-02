@@ -1,3 +1,8 @@
+2006-11-02       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/lang-specs.h:  use the gm2 rather than gcc driver.
+	* gm2/gm2-compiler/gm2lcc.mod:  also use gm2 rather than gcc.
+
 2006-10-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  fixed building of constants strings.
