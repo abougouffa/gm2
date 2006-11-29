@@ -36,18 +36,18 @@ if ![info exists TORTURE_OPTIONS] {
     # choose to disable inlining functions by default, even when optimizing.
     set TORTURE_OPTIONS [list \
 			     { -g } \
+                             { -O } \
+			     { -O -g } \
 			     { -Os } \
 			     { -Os -g } \
-                             { -O0 } \
-                             { -O0 -g } \
-                             { -O1 } \
-                             { -O1 -g } \
-			     { -O } \
-			     { -O -g } \
-                             { -O2 } \
-                             { -O2 -g } \
-                             { -O3 } \
-                             { -O3 -g } \
+			     { -O0 } \
+			     { -O0 -g } \
+			     { -O1 } \
+			     { -O1 -g } \
+			     { -O2 } \
+			     { -O2 -g } \
+			     { -O3 } \
+			     { -O3 -g } \
 			     { -O3 -fomit-frame-pointer } \
 			     { -O3 -fomit-frame-pointer -finline-functions } ]
 }

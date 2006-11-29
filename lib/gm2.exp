@@ -57,7 +57,18 @@ proc gcc_version { } {
 # make some enhancements without having to go back and rewrite the scripts.
 #
 
-set gm2_initialized 0
+set gm2_initialized 0;
+set gm2_compile_method "default";
+
+proc gm2_set_compile_method { arg } {
+    global gm2_compile_method;
+
+    send_log "********************************************\n"
+    send_log "**** setting gm2_compile_method to $arg ****\n"
+    send_log "********************************************\n"
+    set gm2_compile_method $arg;
+}
+
 
 proc gm2_init { args } {
     global tmpdir
@@ -92,14 +103,14 @@ proc gm2_init { args } {
 }
 
 #
-# gm2_target_compile -- compile a source file
+# gm2_target_compile_default -- compile a source file
 #
 
-proc gm2_target_compile { source dest type options } {
+proc gm2_target_compile_default { source dest type options } {
     global tmpdir;
     global gluefile wrap_flags;
-    global GCC_UNDER_TEST
-    global TOOL_OPTIONS
+    global GCC_UNDER_TEST;
+    global TOOL_OPTIONS;
 	
     if {[target_info needs_status_wrapper] != "" && \
 	    [target_info needs_status_wrapper] != "0" && \
@@ -126,6 +137,17 @@ proc gm2_target_compile { source dest type options } {
     lappend options "compiler=$GCC_UNDER_TEST"
     send_log "about to call target_compile with $source $dest $type $options\n"
     return [target_compile $source $dest $type $options]
+}
+
+
+#
+# gm2_target_compile -- compile a source file
+#
+
+proc gm2_target_compile { source dest type options } {
+    global gm2_compile_method;
+
+    return [gm2_target_compile_${gm2_compile_method} $source $dest $type $options]
 }
 
 #
