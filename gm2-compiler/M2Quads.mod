@@ -7129,7 +7129,7 @@ BEGIN
          n := GetSymName(Type) ;
          WriteFormat1('undeclared type found in CAST (%a)', n)
       ELSIF IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR
-            IsPointer(Type)
+            IsPointer(Type) OR IsArray(Type)
       THEN
          IF IsConst(Var)
          THEN

@@ -10,16 +10,17 @@ DEFINITION MODULE COROUTINES;
 
 (* Facilities for coroutines and the handling of interrupts *)
 
-IMPORT SYSTEM;
+IMPORT SYSTEM ;
+IMPORT pth ;
 
 CONST
-   UnassignedPriority = PTH_PRIO_MIN - 1 ;
+   UnassignedPriority = pth.PTH_PRIO_MIN - 1 ;
 
 TYPE
   COROUTINE; (* Values of this type are created dynamically by NEWCOROUTINE 
                 and identify the coroutine in subsequent operations *)
   INTERRUPTSOURCE;
-  PROTECTION = [UnassignedPriority..PTH_PRIO_MAX]
+  PROTECTION = [UnassignedPriority..pth.PTH_PRIO_MAX]
 
 
 PROCEDURE NEWCOROUTINE (procBody: PROC;
