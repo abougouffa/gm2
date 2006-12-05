@@ -3,6 +3,9 @@
         * gm2/gm2-compiler/M2Quads.mod:  BuildCastFunction allow arrays
           to be cast.
 	* testsuite/gm2/iso/stringchar.mod:  fixed typos.
+	* gm2/gm2-compiler/M2Quads.mod:  BuildDynamicArray,
+	  BuildStaticArray, BuildDesignatorArray all SkipType to allow
+	  type equivalence between arrays.
 
 2006-11-02       Gaius Mulley <gaius@gnu.org>
 

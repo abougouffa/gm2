@@ -8619,7 +8619,7 @@ BEGIN
       ErrorStringAt2(Mark(InitString('can only access arrays using variables or formal parameters')),
                      GetDeclared(OperandT(2)), GetTokenNo())
    END ;
-   Sym := GetType(OperandT(2)) ;
+   Sym := SkipType(GetType(OperandT(2))) ;
    IF Sym=NulSym
    THEN
       IF GetSymName(Sym)=NulName
@@ -8672,7 +8672,7 @@ VAR
 BEGIN
    Op1  := OperandT(1) ;
    Sym  := OperandT(2) ;
-   Type := OperandF(2) ;
+   Type := SkipType(OperandF(2)) ;
    Offset := MakeTemporary(ImmediateValue) ;
    GenQuad(BaseOp, Offset, Type, Sym) ;
    (* Base has address type since it points to the start of the array in memory *)
@@ -8764,7 +8764,7 @@ VAR
 BEGIN
    DumpStack ;
    Sym  := OperandT(2) ;
-   Type := OperandF(2) ;
+   Type := SkipType(OperandF(2)) ;
    (*
       Base has type address because
       BuildDesignatorRecord references by address.
