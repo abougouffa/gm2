@@ -17,12 +17,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE stringchar ;
 
-FROM SYSTEM IMPORT TSIZE,CAST;
-
+FROM SYSTEM IMPORT TSIZE, CAST ;
 
 TYPE
-   MinStringType = ARRAY[0..0] OF CHAR ;
-
+   MinStringType = ARRAY [0..0] OF CHAR ;
 VAR
    C: CHAR;
    S: MinStringType;
@@ -40,5 +38,4 @@ BEGIN
     n := MAX(CARDINAL) ;
     n := SIZE(S) ;
     n := TSIZE(MinStringType)
-END E8.
-
+END stringchar.
