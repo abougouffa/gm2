@@ -49,6 +49,14 @@ GM2_CROSS_NAME = `echo gm2|sed '$(program_transform_cross_name)'`
 GM2 = xgm2
 GM2CC = gm2cc
 
+# XGM2_1 = /home/gaius/GM2/gm2-harness-0.96/build/gcc/xgm2
+# XGM2BUILD1 = /home/gaius/GM2/gm2-harness-0.96/build/gcc/stage1/gm2 -g -gdwarf-2
+
+XGM2_1 = /home/gaius/GM2/gm2-harness/build/gcc/xgm2
+XGM2BUILD1 = /home/gaius/GM2/gm2-harness/build/gcc/stage1/gm2 -g -gdwarf-2
+XGM2_1 = ./xgm2
+XGM2BUILD1 = ./stage1/gm2  -g -gdwarf-2
+
 # Define the name of target independent tools to be installed in $(bindir)
 # Names are subject to changes
 
@@ -652,10 +660,10 @@ stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o
                               gm2/gm2-compiler/m2flex.o $(BACKEND) $(LIBS)
   
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
+                           $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_BOOT) \
-                              gm2/gm2-compiler-boot/m2flex.o $(BACKEND) $(LIBS)
-  
+                             gm2/gm2-compiler-boot/m2flex.o $(BACKEND) $(LIBS)
+
 # Compiling object files from source files.
   
 gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
@@ -1033,10 +1041,10 @@ gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
-	./xgm2 $(GM2_FLAGS) -g -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/m2flex.o: gm2/gm2-compiler/m2flex.c
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
@@ -1046,34 +1054,34 @@ gm2/gm2-compiler/cflex.o: gm2/gm2-compiler/cflex.c gm2/gm2-compiler-boot/$(SRC_P
 	$(GCC_FOR_TARGET) -c $(CFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
 gm2/gm2-compiler/gm2l.o: $(objdir)/gm2/gm2-auto/gm2l.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/gm2m.o: $(objdir)/gm2/gm2-auto/gm2m.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P1SyntaxCheck.o: $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P2Build.o: $(objdir)/gm2/gm2-auto/P2Build.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P3Build.o: $(objdir)/gm2/gm2-auto/P3Build.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/PHBuild.o: $(objdir)/gm2/gm2-auto/PHBuild.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.mod:
 	cd gm2/gm2-compiler ; ../../$(srcdir)/gm2/tools-src/makeversion $(GM2-VERSION)b
 
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
-	./xgm2 $(GM2_FLAGS) -Wiso -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -Wiso -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 
 #
@@ -1163,16 +1171,16 @@ gm2/ulm-lib-gm2/sys/SYSTEM.c:
 	$(SHELL) $(srcdir)/gm2/tools-src/createUlmSys gm2/gm2-libs/gm2-libs-host.h > $@
 
 gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
-	./xgm2 $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \

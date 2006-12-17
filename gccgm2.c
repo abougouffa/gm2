@@ -5657,16 +5657,14 @@ binary_op_error (enum tree_code code)
 
 static
 int
-is_pointer (code)
-     enum tree_code code;
+is_pointer (enum tree_code code)
 {
   return (code == POINTER_TYPE) || (code == REFERENCE_TYPE);
 }
 
 static
 int
-is_integer (code)
-     enum tree_code code;
+is_integer (enum tree_code code)
 {
   return (code == INTEGER_TYPE);
 }
@@ -6474,8 +6472,7 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
  */
 
 tree
-skip_type_decl (type)
-     tree type;
+skip_type_decl (tree type)
 {
   if (type == error_mark_node)
     return error_mark_node;
@@ -6493,8 +6490,7 @@ skip_type_decl (type)
  */
 
 tree
-skip_const_decl (exp)
-     tree exp;
+skip_const_decl (tree exp)
 {
   if (exp == error_mark_node)
     return error_mark_node;
@@ -6514,9 +6510,7 @@ skip_const_decl (exp)
  */
 
 tree
-gccgm2_DeclareKnownType (name, type)
-     char *name;
-     tree type;
+gccgm2_DeclareKnownType (char *name, tree type)
 {
   tree id = get_identifier (name);
   tree decl, tem;
@@ -6548,9 +6542,7 @@ gccgm2_DeclareKnownType (name, type)
  */
 
 tree
-gccgm2_GetDefaultType (name, type)
-     char *name;
-     tree type;
+gccgm2_GetDefaultType (char *name, tree type)
 {
   tree id = maybe_get_identifier (name);
 
@@ -6583,8 +6575,7 @@ void setId (tree t)
  */
 
 tree
-gccgm2_GetMinFrom (type)
-     tree type;
+gccgm2_GetMinFrom (tree type)
 {
   if (type == m2_real_type_node || type == gccgm2_GetRealType())
     return fold (gccgm2_BuildNegate (fold (gm2builtins_BuiltInHugeVal ()),
@@ -6607,8 +6598,7 @@ gccgm2_GetMinFrom (type)
  */
 
 tree
-gccgm2_GetMaxFrom (type)
-     tree type;
+gccgm2_GetMaxFrom (tree type)
 {
   if (type == m2_real_type_node || type == gccgm2_GetRealType ())
     return fold (gm2builtins_BuiltInHugeVal ());
@@ -6625,25 +6615,25 @@ gccgm2_GetMaxFrom (type)
 }
 
 int
-gccgm2_GetBitsPerWord ()
+gccgm2_GetBitsPerWord (void)
 {
   return BITS_PER_WORD;
 }
 
 int
-gccgm2_GetBitsPerInt ()
+gccgm2_GetBitsPerInt (void)
 {
   return INT_TYPE_SIZE;
 }
 
 int
-gccgm2_GetBitsPerBitset ()
+gccgm2_GetBitsPerBitset (void)
 {
   return SET_WORD_SIZE;
 }
 
 int
-gccgm2_GetBitsPerUnit ()
+gccgm2_GetBitsPerUnit (void)
 {
   return BITS_PER_UNIT;
 }
@@ -7898,6 +7888,9 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
   DECL_SAVED_TREE (fndecl) = build3 (BIND_EXPR, void_type_node,
 				     BLOCK_VARS (block),
 				     cur_stmt_list, block);
+
+  if (cfun != NULL)
+    cfun->function_end_locus = input_location;
 
   cur_stmt_list = NULL;
 
@@ -9616,8 +9609,7 @@ gccgm2_DoJump (tree exp, char *falselabel, char *truelabel)
  */
 
 void
-gccgm2_BuildParam (param)
-     tree param;
+gccgm2_BuildParam (tree param)
 {
 #if 0
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
@@ -9639,8 +9631,7 @@ gccgm2_BuildParam (param)
  */
 
 tree
-gccgm2_BuildProcedureCall (procedure, rettype)
-     tree procedure, rettype;
+gccgm2_BuildProcedureCall (tree procedure, tree rettype)
 {
   tree functype = TREE_TYPE (procedure);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), procedure);
@@ -9682,8 +9673,7 @@ gccgm2_BuildProcedureCall (procedure, rettype)
  */
 
 tree
-gccgm2_BuildIndirectProcedureCall (procedure, rettype)
-     tree procedure, rettype;
+gccgm2_BuildIndirectProcedureCall (tree procedure, tree rettype)
 {
   tree call;
 
@@ -10165,13 +10155,10 @@ get_set_field_rhs (p, field)
  */
 
 void
-gccgm2_BuildBinaryForeachWordDo (type, op1, op2, op3, binop,
-				 is_op1lvalue, is_op2lvalue, is_op3lvalue,
-				 is_op1const, is_op2const, is_op3const)
-     tree  type, op1, op2, op3;
-     tree  (*binop)(tree, tree, int);
-     int   is_op1lvalue, is_op2lvalue, is_op3lvalue;
-     int   is_op1const, is_op2const, is_op3const;
+gccgm2_BuildBinaryForeachWordDo (tree type, tree op1, tree op2, tree op3,
+				 tree  (*binop)(tree, tree, int),
+				 int is_op1lvalue, int is_op2lvalue, int is_op3lvalue,
+				 int is_op1const, int is_op2const, int is_op3const)
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10217,13 +10204,10 @@ gccgm2_BuildBinaryForeachWordDo (type, op1, op2, op3, binop,
  */
 
 void
-gccgm2_BuildUnaryForeachWordDo (type, op1, op2, unop,
-				is_op1lvalue, is_op2lvalue,
-				is_op1const, is_op2const)
-     tree  type, op1, op2;
-     tree  (*unop)(tree, int);
-     int   is_op1lvalue, is_op2lvalue;
-     int   is_op1const, is_op2const;
+gccgm2_BuildUnaryForeachWordDo (tree type, tree op1, tree op2,
+				tree (*unop)(tree, int),
+				int is_op1lvalue, int is_op2lvalue,
+				int is_op1const, int is_op2const)
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10261,9 +10245,8 @@ gccgm2_BuildUnaryForeachWordDo (type, op1, op2, unop,
  */
 
 void
-gccgm2_BuildExcludeVarConst (type, op1, op2, is_lvalue, fieldno)
-     tree type, op1, op2;
-     int  is_lvalue, fieldno;
+gccgm2_BuildExcludeVarConst (tree type, tree op1, tree op2,
+			     int is_lvalue, int fieldno)
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10295,10 +10278,8 @@ gccgm2_BuildExcludeVarConst (type, op1, op2, is_lvalue, fieldno)
  */
 
 void
-gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
-     tree  type, varset, varel;
-     int   is_lvalue;
-     tree  low;
+gccgm2_BuildExcludeVarVar (tree type, tree varset, tree varel,
+			   int is_lvalue, tree low)
 {
   tree size = gccgm2_GetSizeOf (type);
   /* calculate the index from the first bit, ie bit 0 represents low value */
@@ -10344,9 +10325,8 @@ gccgm2_BuildExcludeVarVar (type, varset, varel, is_lvalue, low)
  */
 
 void
-gccgm2_BuildIncludeVarConst (type, op1, op2, is_lvalue, fieldno)
-     tree type, op1, op2;
-     int  is_lvalue, fieldno;
+gccgm2_BuildIncludeVarConst (tree type, tree op1, tree op2,
+			     int is_lvalue, int fieldno)
 {
   tree size = gccgm2_GetSizeOf (type);
 
@@ -10376,10 +10356,8 @@ gccgm2_BuildIncludeVarConst (type, op1, op2, is_lvalue, fieldno)
  */
 
 void
-gccgm2_BuildIncludeVarVar (type, varset, varel, is_lvalue, low)
-     tree  type, varset, varel;
-     int   is_lvalue;
-     tree  low;
+gccgm2_BuildIncludeVarVar (tree type, tree varset, tree varel,
+			   int is_lvalue, tree low)
 {
   tree size = gccgm2_GetSizeOf (type);
   /* calculate the index from the first bit, ie bit 0 represents low value */
@@ -10432,11 +10410,8 @@ gccgm2_BuildIntegerConstant (int value)
  */
 
 void
-gccgm2_DetermineSizeOfConstant (str, base, needsLong, needsUnsigned)
-     const char *str;
-     unsigned int base;
-     int *needsLong;
-     int *needsUnsigned;
+gccgm2_DetermineSizeOfConstant (const char *str, unsigned int base,
+				int *needsLong, int *needsUnsigned)
 {
   int low;
   int high;
@@ -10455,9 +10430,7 @@ gccgm2_DetermineSizeOfConstant (str, base, needsLong, needsUnsigned)
  */
 
 tree
-gccgm2_BuildConstLiteralNumber (str, base)
-     const char *str;
-     unsigned int base;
+gccgm2_BuildConstLiteralNumber (const char *str, unsigned int base)
 {
   tree value, type;
   unsigned HOST_WIDE_INT low;

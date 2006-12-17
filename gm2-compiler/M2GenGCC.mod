@@ -1172,7 +1172,7 @@ PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProc
 BEGIN
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
-   SetFileNameAndLineNo(string(FileName), LineNo) ;
+   (* SetFileNameAndLineNo(string(FileName), LineNo) ; *)
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
                           IsExported(GetMainModule(), CurrentProcedure),
                           IsProcedureInline(CurrentProcedure)) ;

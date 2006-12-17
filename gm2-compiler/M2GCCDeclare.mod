@@ -29,7 +29,7 @@ IMPLEMENTATION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT ADDRESS, ADR, WORD ;
 FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
-FROM M2Quads IMPORT DisplayQuadRange ;
+FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
 
 FROM M2Options IMPORT DisplayQuadruples,
                       GenerateDebugging, GenerateLineDebug, Iso ;
@@ -77,7 +77,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
-                        GetProcedureScope,
+                        GetProcedureScope, GetProcedureQuads,
                         GetVarient,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName,
@@ -142,6 +142,7 @@ FROM gccgm2 IMPORT Tree,
                    BuildSize ;
 
 (* %%%FORWARD%%%
+PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
 PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareFileName ; FORWARD ;
 PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
@@ -619,11 +620,6 @@ PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    size: CARDINAL ;
 BEGIN
-   IF sym=1329
-   THEN
-      mystop
-   END ;
-
    IF sym=NulSym
    THEN
       InternalError('trying to declare the NulSym', __FILE__, __LINE__)
@@ -894,6 +890,34 @@ END IsProcedureGccNested ;
 
 
 (*
+   AlignProcedureWithSource - tells the gcc backend the source file and line
+                              number associated with the start of the procedure.
+*)
+
+PROCEDURE AlignProcedureWithSource (sym: CARDINAL) ;
+VAR
+   scope,
+   start,
+   end  : CARDINAL ;
+   file : String ;
+   t,
+   line : CARDINAL ;
+BEGIN
+   IF GenerateDebugging
+   THEN
+      GetProcedureQuads(sym, scope, start, end) ;
+      IF start>0
+      THEN
+         t := QuadToTokenNo(start) ;
+         line := TokenToLineNo(t, 0) ;
+         file := FindFileNameFromToken(t, 0) ;
+         SetFileNameAndLineNo(string(file), line)
+      END
+   END
+END AlignProcedureWithSource ;
+
+
+(*
    DeclareProcedureToGcc - traverses all parameters and interfaces to gm2gcc.
 *)
 
@@ -903,6 +927,10 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
+   IF Sym=160
+   THEN
+      mystop
+   END ;
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsEffectivelyImported(GetMainModule(), Sym) OR
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
@@ -911,6 +939,7 @@ BEGIN
        IsExported(GetModuleWhereDeclared(Sym), Sym))
    THEN
       Assert(PushParametersLeftToRight) ;
+      AlignProcedureWithSource(Sym) ;
       BuildStartFunctionDeclaration(UsesVarArgs(Sym)) ;
       p := NoOfParam(Sym) ;
       i := p ;
