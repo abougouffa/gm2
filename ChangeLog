@@ -1,3 +1,9 @@
+2006-12-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/www/index.ms:  updated web page to reflect G5 successful
+	  make gm2.paranoid using gcc-3.3.6 and CVS
+	  tag D2006.06.23.04.00.00
+
 2006-12-17       Gaius Mulley <gaius@gnu.org>
 
 	* fixed line number debugging information at the end of a
