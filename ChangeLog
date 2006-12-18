@@ -3,6 +3,10 @@
 	* gm2/www/index.ms:  updated web page to reflect G5 successful
 	  make gm2.paranoid using gcc-3.3.6 and CVS
 	  tag D2006.06.23.04.00.00
+	* gm2/gccgm2.c:  use integer_type_node instead of boolean_type_node
+	  as the size of boolean_type_node can differ from the
+	  size of an integer_type_node.
+	* make gm2.paranoid works on LP64 opteron with a patched gcc-4.1.0
 
 2006-12-17       Gaius Mulley <gaius@gnu.org>
 

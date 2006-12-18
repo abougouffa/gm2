@@ -36,6 +36,7 @@ EXPORT QUALIFIED (* types *)
                  WriteCardinal, ReadCardinal,
                  UnReadChar,
                  WriteNBytes, ReadNBytes,
+                 FlushBuffer,
                  GetUnixFileDescriptor,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
@@ -112,6 +113,13 @@ PROCEDURE exists        (fname: ADDRESS; flength: CARDINAL) : BOOLEAN ;
 PROCEDURE openToRead    (fname: ADDRESS; flength: CARDINAL) : File ;
 PROCEDURE openToWrite   (fname: ADDRESS; flength: CARDINAL) : File ;
 PROCEDURE openForRandom (fname: ADDRESS; flength: CARDINAL; towrite: BOOLEAN) : File ;
+
+
+(*
+   FlushBuffer - flush contents of the FIO file, f, to libc.
+*)
+
+PROCEDURE FlushBuffer (f: File) ;
 
 
 (*

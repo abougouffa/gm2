@@ -1713,7 +1713,7 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
 #
 # gm2.verifystage12 - diffs the output of the stage1 and stage2 compilers with the compiler source code
 #
-gm2.verifystage12: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
+gm2.verifystage12: force # stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext)
 	@echo "verifying stage1 and stage2 generations of GNU Modula-2 compilers - it may take some time.."
 	$(QUIAT)for i in $(GM2-VERIFY-MODS) ; do \
            echo -n "$$i " ; \

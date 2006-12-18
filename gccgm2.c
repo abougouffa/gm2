@@ -82,6 +82,11 @@ static int broken_set_debugging_info = TRUE;
 #define ASSERT(X,Y)   { if (!(X)) { debug_tree(Y); internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
 
+
+#define ASSERT_BOOL(X)   { if ((X != 0) && (X != 1)) { internal_error("[%s:%d]:the value `%s' is not a BOOLEAN, it's value was %d", \
+                                                                   __FILE__, __LINE__, #X, X); } }
+
+
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
             A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
             A_UNUSED, A_FORMAT, A_FORMAT_ARG, A_WEAK, A_ALIAS};
@@ -2830,7 +2835,11 @@ gm2_init (void)
 tree
 gm2_truthvalue_conversion (tree expr)
 {
+#if defined(USE_BOOLEAN)
   return expr;
+#else
+  return convert (integer_type_node, expr);
+#endif
 }
 
 /* Print any language-specific compilation statistics.  */
@@ -6700,10 +6709,8 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   tree id;
   tree decl;
 
-  if (strcmp(name, "varin_var") == 0)
-    stop();
-
-  ASSERT(is_type(type), type);
+  ASSERT (is_type(type), type);
+  ASSERT_BOOL (isglobal);
 
   id   = get_identifier (name);
   type = skip_type_decl (type);
@@ -7729,6 +7736,7 @@ gccgm2_BuildParameterDeclaration (char *name, tree type, int isreference)
 {
   tree parm_decl;
 
+  ASSERT_BOOL (isreference);
   type = skip_type_decl(type);
   layout_type (type);
   if (isreference) {
@@ -7780,6 +7788,8 @@ gccgm2_BuildEndFunctionDeclaration (char *name, tree returntype,
   tree fntype;
   tree fndecl;
 
+  ASSERT_BOOL (isexternal);
+  ASSERT_BOOL (isnested);
   returntype = skip_type_decl (returntype);
   /*
    *  the function type depends on the return type and type of args,
@@ -7822,6 +7832,8 @@ gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 {
   tree param_decl, next_param;
 
+  ASSERT_BOOL (isexported);
+  ASSERT_BOOL (isinline);
   /* Announce we are compiling this function.  */
   announce_function (fndecl);
 
@@ -8390,6 +8402,10 @@ gccgm2_BuildBinarySetDo (settype, op1, op2, op3,
   tree size     = gccgm2_GetSizeOf (settype);
   int  is_const = FALSE;
   int  is_left  = FALSE;
+
+  ASSERT_BOOL (is_op1lvalue);
+  ASSERT_BOOL (is_op2lvalue);
+  ASSERT_BOOL (is_op3lvalue);
 
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
@@ -9288,6 +9304,7 @@ gccgm2_BuildIfConstInVar (type, varset, constel, is_lvalue, fieldno, label)
 {
   tree size = gccgm2_GetSizeOf (type);
 
+  ASSERT_BOOL (is_lvalue);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     do_jump_if_bit (NE_EXPR, get_rvalue (varset, type, is_lvalue), constel, label);
@@ -9315,6 +9332,7 @@ gccgm2_BuildIfNotConstInVar (type, varset, constel, is_lvalue, fieldno, label)
 {
   tree size = gccgm2_GetSizeOf (type);
 
+  ASSERT_BOOL (is_lvalue);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     do_jump_if_bit (EQ_EXPR, get_rvalue (varset, type, is_lvalue), constel, label);
@@ -9441,6 +9459,7 @@ static
 tree
 get_field_no (tree type, tree op, int is_const, unsigned int fieldNo)
 {
+  ASSERT_BOOL (is_const);
   if (is_const)
     return op;
   else {
@@ -9462,6 +9481,7 @@ static
 tree
 get_set_value (tree p, tree field, int is_const, tree op, unsigned int fieldNo)
 {
+  ASSERT_BOOL (is_const);
   if (is_const) {
     gcc_assert( !VEC_empty (constructor_elt, CONSTRUCTOR_ELTS (op)));
     unsigned int size = VEC_length (constructor_elt, CONSTRUCTOR_ELTS (op));
@@ -9791,19 +9811,31 @@ gccgm2_BuildAsm (instr, IsVolatile, inputs, outputs, trash)
 tree
 gccgm2_GetBooleanType (void)
 {
+#if defined(USE_BOOLEAN)
   return boolean_type_node;
+#else
+  return integer_type_node;
+#endif
 }
 
 tree
 gccgm2_GetBooleanFalse (void)
 {
+#if defined(USE_BOOLEAN)
   return boolean_false_node;
+#else
+  return gccgm2_GetIntegerZero ();
+#endif
 }
 
 tree
 gccgm2_GetBooleanTrue (void)
 {
+#if defined(USE_BOOLEAN)
   return boolean_true_node;
+#else
+  return gccgm2_GetIntegerOne ();
+#endif
 }
 
 tree
@@ -10162,6 +10194,13 @@ gccgm2_BuildBinaryForeachWordDo (tree type, tree op1, tree op2, tree op3,
 {
   tree size = gccgm2_GetSizeOf (type);
 
+
+  ASSERT_BOOL (is_op1lvalue);
+  ASSERT_BOOL (is_op2lvalue);
+  ASSERT_BOOL (is_op3lvalue);
+  ASSERT_BOOL (is_op1const);
+  ASSERT_BOOL (is_op2const);
+  ASSERT_BOOL (is_op3const);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (op1, type, is_op1lvalue),
@@ -10211,6 +10250,10 @@ gccgm2_BuildUnaryForeachWordDo (tree type, tree op1, tree op2,
 {
   tree size = gccgm2_GetSizeOf (type);
 
+  ASSERT_BOOL (is_op1lvalue);
+  ASSERT_BOOL (is_op2lvalue);
+  ASSERT_BOOL (is_op1const);
+  ASSERT_BOOL (is_op2const);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant (SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (op1, type, is_op1lvalue),
@@ -10250,6 +10293,7 @@ gccgm2_BuildExcludeVarConst (tree type, tree op1, tree op2,
 {
   tree size = gccgm2_GetSizeOf (type);
 
+  ASSERT_BOOL (is_lvalue);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (op1, type, is_lvalue),
@@ -10282,6 +10326,8 @@ gccgm2_BuildExcludeVarVar (tree type, tree varset, tree varel,
 			   int is_lvalue, tree low)
 {
   tree size = gccgm2_GetSizeOf (type);
+
+  ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
 				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);
@@ -10330,6 +10376,7 @@ gccgm2_BuildIncludeVarConst (tree type, tree op1, tree op2,
 {
   tree size = gccgm2_GetSizeOf (type);
 
+  ASSERT_BOOL (is_lvalue);
   if (gccgm2_CompareTrees (size, gccgm2_BuildIntegerConstant(SET_WORD_SIZE/BITS_PER_UNIT)) <= 0)
     /* small set size <= TSIZE(WORD) */
     gccgm2_BuildAssignment (get_rvalue (op1, type, is_lvalue),
@@ -10360,6 +10407,8 @@ gccgm2_BuildIncludeVarVar (tree type, tree varset, tree varel,
 			   int is_lvalue, tree low)
 {
   tree size = gccgm2_GetSizeOf (type);
+
+  ASSERT_BOOL (is_lvalue);
   /* calculate the index from the first bit, ie bit 0 represents low value */
   tree index = gccgm2_BuildSub (gccgm2_BuildConvert (gccgm2_GetIntegerType(), varel, FALSE),
 				gccgm2_BuildConvert (gccgm2_GetIntegerType(), low, FALSE), FALSE);

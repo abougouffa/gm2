@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2Error ;
 FROM ASCII IMPORT nul, nl ;
 FROM NameKey IMPORT Name, KeyToCharStar ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCatChar, Mark, string, KillString, Dup ;
-FROM FIO IMPORT StdOut, WriteNBytes, Close ;
+FROM FIO IMPORT StdOut, WriteNBytes, Close, FlushBuffer ;
 FROM StrLib IMPORT StrLen, StrEqual ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, GetTokenNo ;
@@ -133,6 +133,7 @@ BEGIN
    THEN
       StdIO.Write(nl)
    END ;
+   FlushBuffer(StdOut) ;
    IF NOT Debugging
    THEN
       s      := KillString(s) ;

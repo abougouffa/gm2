@@ -96,7 +96,6 @@ TYPE
 (* %%%FORWARD%%%
 PROCEDURE FormatError (a: ARRAY OF CHAR) ; FORWARD ;
 PROCEDURE FormatError1 (a: ARRAY OF CHAR; w: ARRAY OF BYTE) ; FORWARD ;
-PROCEDURE FlushBuffer (f: File) ; FORWARD ;
 PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ; FORWARD ;
 PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
