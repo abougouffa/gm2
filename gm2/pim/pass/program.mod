@@ -42,6 +42,37 @@ TYPE
 VAR
    currenttoken: tokenset ;
 
+
+PROCEDURE ProgramModule (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
+BEGIN
+   Expect(moduletok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
+(*
+   PushAutoOn  ;
+   Ident(stopset0 + SetOfStop0{semicolontok, lsbratok}, stopset1, stopset2) ;
+   P3StartBuildProgModule  ;
+   PushAutoOff  ;
+   IF currenttoken=lsbratok
+   THEN
+      Priority(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
+   END ;
+   Expect(semicolontok, stopset0 + SetOfStop0{begintok}, stopset1 + SetOfStop1{importtok, fromtok, endtok, consttok, proceduretok, moduletok}, stopset2 + SetOfStop2{typetok, vartok}) ;
+   WHILE ((currenttoken>=bytok) AND (currenttoken<totok) AND (currenttoken IN SetOfStop1 {fromtok, importtok})) DO
+      Import(stopset0 + SetOfStop0{begintok}, stopset1 + SetOfStop1{endtok, fromtok, importtok, consttok, moduletok, proceduretok}, stopset2 + SetOfStop2{vartok, typetok}) ;
+   END (* while *) ;
+   StartBuildInit  ;
+   Block(stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
+   PushAutoOn  ;
+   Ident(stopset0 + SetOfStop0{periodtok}, stopset1, stopset2) ;
+   EndBuildFile  ;
+   P3EndBuildProgModule  ;
+   Expect(periodtok, stopset0, stopset1, stopset2) ;
+   PopAuto ;
+   EndBuildInit ;
+   PopAuto
+*)
+END ProgramModule ;
+
+
 PROCEDURE PushAutoOn ; BEGIN END PushAutoOn ;
 PROCEDURE PushAutoOff ; BEGIN END PushAutoOff ;
 PROCEDURE PopAuto ; BEGIN END PopAuto ;
@@ -72,35 +103,6 @@ PROCEDURE Block (s0: SetOfStop0; s1: SetOfStop1; s2: SetOfStop2) ;
 BEGIN
 END Block ;
 
-
-PROCEDURE ProgramModule (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: SetOfStop2) ;
 BEGIN
-   Expect(moduletok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-   PushAutoOn  ;
-   Ident(stopset0 + SetOfStop0{semicolontok, lsbratok}, stopset1, stopset2) ;
-   P3StartBuildProgModule  ;
-   PushAutoOff  ;
-   IF currenttoken=lsbratok
-   THEN
-      Priority(stopset0 + SetOfStop0{semicolontok}, stopset1, stopset2) ;
-   END ;
-   Expect(semicolontok, stopset0 + SetOfStop0{begintok}, stopset1 + SetOfStop1{importtok, fromtok, endtok, consttok, proceduretok, moduletok}, stopset2 + SetOfStop2{typetok, vartok}) ;
-   WHILE ((currenttoken>=bytok) AND (currenttoken<totok) AND (currenttoken IN SetOfStop1 {fromtok, importtok})) DO
-      Import(stopset0 + SetOfStop0{begintok}, stopset1 + SetOfStop1{endtok, fromtok, importtok, consttok, moduletok, proceduretok}, stopset2 + SetOfStop2{vartok, typetok}) ;
-   END (* while *) ;
-   StartBuildInit  ;
-   Block(stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-   PushAutoOn  ;
-   Ident(stopset0 + SetOfStop0{periodtok}, stopset1, stopset2) ;
-   EndBuildFile  ;
-   P3EndBuildProgModule  ;
-   Expect(periodtok, stopset0, stopset1, stopset2) ;
-   PopAuto ;
-   EndBuildInit ;
-   PopAuto
-END ProgramModule ;
-
-
-BEGIN
-
+   ProgramModule(SetOfStop0{}, SetOfStop1{}, SetOfStop2{})
 END program.
