@@ -1,3 +1,12 @@
+2006-12-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-min:  added
+	* gm2/gm2spec.c:  modified to relect introduction of -Wlibs=min
+	* gm2/gm2.texi:  document -Wlibs=min
+	* gm2/config-lang.in:   include gm2cc to be installed
+	* GNU Modula-2 can be built as a cross compiler for the avr
+	  microprocessor.
+
 2006-12-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  updated web page to reflect G5 successful

@@ -74,12 +74,16 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
             stage1/gm2/cpp$(exeext)
 
+ifeq ($(MINLIB),no)
 ifeq ($(ULMLIB),no)
 BUILD-ALL-LIBS :=  build-libs build-libs-iso \
                    build-libs-pim build-libs-coroutines
 else
 BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
                    build-libs-pim build-libs-coroutines
+endif
+else
+BUILD-ALL-LIBS :=  build-libs-min
 endif
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
@@ -123,6 +127,7 @@ GM2_LIB_DIR_PIM= $(libsubdir)/gm2/pim
 GM2_LIB_DIR_LOG= $(libsubdir)/gm2/logitech
 GM2_LIB_DIR_PCO= $(libsubdir)/gm2/pim-coroutine
 GM2_LIB_DIR_ISO= $(libsubdir)/gm2/iso
+GM2_LIB_DIR_MIN= $(libsubdir)/gm2/min
 GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/gm2-libiberty $(objdir)/gm2/gm2-auto \
                  $(objdir)/gm2/gm2-compiler $(objdir)/gm2/gm2-libs \
@@ -135,6 +140,7 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
                  $(objdir)/gm2/ulm-lib-gm2/std \
                  $(objdir)/gm2/gm2-libs-pim \
                  $(objdir)/gm2/gm2-libs-coroutines \
+                 $(objdir)/gm2/gm2-libs-min \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
 gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h : s-gtype; @true
@@ -210,6 +216,9 @@ $(objdir)/gm2/gm2-libs:
 $(objdir)/gm2/gm2-libs-iso:
 	mkdir $@
 
+$(objdir)/gm2/gm2-libs-min:
+	mkdir $@
+
 $(objdir)/gm2/gm2-compiler-paranoid:
 	mkdir $@
 
@@ -262,6 +271,9 @@ $(GM2_LIB_DIR_ISO):
 $(GM2_LIB_DIR_ULM):
 	-mkdir -p $(GM2_LIB_DIR_ULM)
 
+$(GM2_LIB_DIR_MIN):
+	-mkdir -p $(GM2_LIB_DIR_MIN)
+
 $(GM2_LIB_DIR_LOG):
 	-mkdir -p $(GM2_LIB_DIR_LOG)
 
@@ -269,17 +281,12 @@ $(GM2_LIB_DIR_PCO):
 	-mkdir -p $(GM2_LIB_DIR_PCO)
 
 gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
-                    $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_PCO)
+                    $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_PCO) \
+                    $(GM2_LIB_DIR_MIN)
 	-if [ -f $(GM2)$(exeext) ]; then \
-	  if [ -f $(GM2)-cross$(exeext) ]; then \
-	    rm -f $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
-	    $(INSTALL_PROGRAM) $(GM2)-cross$(exeext) $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
-	    chmod a+x $(DESTDIR)$(bindir)/$(GM2_CROSS_NAME)$(exeext); \
-	  else \
-	    rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-	    $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-	    chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
-	  fi ; \
+          rm -f $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+          $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
+          chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           for tool in stage1/gm2/cc1gm2$(exeext) \
                       $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
             toolbase=`basename $$tool` ; \
@@ -288,6 +295,8 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
               rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
               $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
               chmod a+x $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
+            else \
+              echo "odd cannot find $$tool$(exeext)" ; \
             fi ; \
           done ; \
 	fi ; \
@@ -371,6 +380,20 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
                  $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_ULM) ; \
+              fi ; \
+           fi ; \
+        done
+	for i in $(srcdir)/gm2/gm2-libs-min/*.def $(srcdir)/gm2/gm2-libs-min/*.mod ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(DESTDIR)$(GM2_LIB_DIR_MIN)/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_MIN) ; \
+           fi ; \
+        done
+	for i in x gm2/gm2-libs-min/*.o ; do \
+           rm -f $(DESTDIR)$(GM2_LIB_DIR_MIN)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(DESTDIR)$(GM2_LIB_DIR_MIN) ; \
               fi ; \
            fi ; \
         done
@@ -512,6 +535,10 @@ GM2_G=-g
 GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -Wverbose-unbounded -Wpim \
  -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
+GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
+ -funbounded-by-reference -Wverbose-unbounded \
+ -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
+
 
 # Language-specific object files for the gm2 compiler.
 
@@ -879,6 +906,11 @@ GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \
               Executive.mod SysVec.mod
 
+GM2-LIBS-MIN-DEFS = M2RTS.def SYSTEM.def
+GM2-LIBS-MIN-MODS = M2RTS.mod SYSTEM.mod
+GM2-LIBS-MIN-C    = libc.c
+
+
 BUILD-LIBS-BOOT-H = $(GM2-LIBS-BOOT-DEFS:%.def=gm2/gm2-libs-boot/$(SRC_PREFIX)%.h)
 
 BUILD-LIBS-BOOT = $(BUILD-LIBS-BOOT-H) \
@@ -902,6 +934,12 @@ BUILD-BOOT-H = gm2/boot-bin/p2c$(exeext) \
 
 
 P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
+
+gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.c
+	$(CC) $(GM2_O) -c -g -Wall $< -o $@
+
+gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.mod
+	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
 
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
 	$(CC) $(GM2_O) -c -g -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
@@ -1093,13 +1131,13 @@ gm2/gm2-libs/gm2-libs-host.h:
 	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             echo "Configuring to build libraries using cross compiler" ; \
             cd gm2/gm2-libs ; \
-            CC=`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
+            CC=../.`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
             export CC ; \
             CPP="$(CC) -E" ; \
             export CPP ; \
             echo "CC = $(CC)" ; \
             echo "CPP = $(CPP)" ; \
-            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --host=@host@ --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --host=$(host) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
         else \
             echo "Configuring to build libraries using native compiler" ; \
             cd gm2/gm2-libs ; \
@@ -1117,6 +1155,9 @@ gm2/gm2config.h:
         else \
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
+
+build-libs-min: $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
+                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
@@ -1707,6 +1748,31 @@ gm2.verifyparanoid: stage1/gm2/cc1gm2$(exeext) stage2/gm2/cc1gm2$(exeext) stage3
                cp gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.3.lst ; \
            fi ; \
            echo " " ; \
+        done
+	$(QUIAT)echo "now verifying automatically built modules"
+	$(QUIAT)for i in x $(GM2-VERIFY-AUTO) ; do \
+           if [ -f gm2/gm2-auto/$$i ] ; then \
+              echo -n "$$i " ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/1.s ; \
+              echo -n "[1]" ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/2.s ; \
+              echo -n "[2]" ; \
+              ./xgm2 -S $(GM2_FLAGS) -c -B./stage3/gm2 -I$(srcdir)/gm2/gm2-compiler:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libiberty gm2/gm2-auto/$$i -o gm2/gm2-compiler-verify/3.s ; \
+              echo -n "[3]" ; \
+              if ! diff gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s > gm2/gm2-compiler-verify/1_2.diff 2>&1 ; then \
+                  echo -n " [stage 1 and stage 2 differ]" ; \
+                  cp gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.1.lst ; \
+                  cp gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.2.lst ; \
+                  echo " " ; \
+                  exit 1 ; \
+              fi ; \
+              if ! diff gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/3.s > gm2/gm2-compiler-verify/2_3.diff 2>&1 ; then \
+                  echo -n " [stage 2 and stage 3 differ]" ; \
+                  cp gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.2.lst ; \
+                  cp gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/t.s | as -ahl gm2/gm2-compiler-verify/t.s > gm2/gm2-compiler-verify/$$i.3.lst ; \
+              fi ; \
+              echo " " ; \
+           fi ; \
         done ; \
 	$(RM) -f gm2/gm2-compiler-verify/1.s gm2/gm2-compiler-verify/2.s gm2/gm2-compiler-verify/3.s gm2/gm2-compiler-verify/2_3.diff gm2/gm2-compiler-verify/1_2.diff
 

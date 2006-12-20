@@ -75,7 +75,7 @@ fi
 language="gm2"
 
 compilers="cc1gm2\$(exeext) gm2l\$(exeext) gm2lcc\$(exeext) \
-           gm2lgen\$(exeext) gm2lsub\$(exeext)"
+           gm2lgen\$(exeext) gm2lsub\$(exeext) gm2cc\$(exeext)"
 
 stagestuff="gm2\$(exeext) cc1gm2\$(exeext) gm2l\$(exeext) \
             gm2lcc\$(exeext) gm2lgen\$(exeext) gm2lsub\$(exeext) cc1gm2-cross\$(exeext)"

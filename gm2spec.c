@@ -53,11 +53,11 @@ int lang_specific_extra_outfiles = 0;
 
 #undef DEBUGGING
 
-typedef enum { iso, pim, ulm, logitech, pimcoroutine, maxlib } libs;
+typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 
 /* the last entry in libraryName must be the longest string in the list */
-static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "logitech",
-				       "pim-coroutine", "pim-coroutine" };
+static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
+					     "pim-coroutine", "pim-coroutine" };
 
 void add_default_directories (int incl, char ***in_argv, libs which_lib);
 void add_arg (int incl, char ***in_argv, const char *str);
@@ -219,6 +219,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       libraries = pim;
     if (strncmp((*in_argv)[i], "-Wlibs=ulm", 10) == 0)
       libraries = ulm;
+    if (strncmp((*in_argv)[i], "-Wlibs=min", 10) == 0)
+      libraries = min;
     if (strncmp((*in_argv)[i], "-Wlibs=logitech", 15) == 0)
       libraries = logitech;
     if (strncmp((*in_argv)[i], "-Wlibs=pim-coroutine", 20) == 0)
