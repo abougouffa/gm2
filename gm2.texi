@@ -366,6 +366,11 @@ libraries are searched before the other PIM libraries.
 modifies the default library search path so that the PIM libraries
 are searched before any others (the default).
 
+@item -Wlibs=min
+modifies the default library search path so that the absolute minimum
+of Modula-2 runtime libraries are loaded (a stripped down M2RTS, SYSTEM
+and libc).
+
 @item -Wlibs=iso
 modifies the default library search path so that the ISO libraries are
 searched before any others (not needed if @samp{-Wiso} was specified).
