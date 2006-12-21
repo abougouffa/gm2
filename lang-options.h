@@ -41,6 +41,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("force positive result from MOD and DIV result floor") },
   { "-Wlibs=ulm",
       N_("use the University of Ulm libraries and PIM dialect of Modula-2") },
+  { "-Wlibs=min",
+      N_("use a minimal SYSTEM, M2RTS and libc and no other system libraries") },
   { "-Wlibs=logitech",
       N_("use the Logitech compatible (PIM dialect) set of libraries") },
   { "-Wlibs=pim-coroutine",

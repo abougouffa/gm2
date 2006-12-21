@@ -159,7 +159,7 @@ gm2.generated-manpages: gm2.man
 
 gm2.man: $(srcdir)/gm2/man/gm2.man
 	cd gm2/man ; make gm2.1
-	mv gm2/man/gm2.1 $@
+	cp gm2/man/gm2.1 $@
 
 gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(srcdir)/gm2/gm2-libs.texi \
@@ -416,15 +416,15 @@ gm2.install-info: installdirs
 	  else true; fi; \
 	else true; fi
 
-gm2.install-man: gm2/man/gm2.1 $(GENERATED_MANPAGES) installdirs
+gm2.install-man: $(GENERATED_MANPAGES) installdirs
 	-if [ -f $(GM2)$(exeext) ] ; then \
 	  if [ -f $(GM2)-cross$(exeext) ] ; then \
 	    rm -f $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
-	    $(INSTALL_DATA) $(srcdir)/gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
+	    $(INSTALL_DATA) gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
 	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_CROSS_NAME)$(man1ext); \
 	  else \
 	    rm -f $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
-	    $(INSTALL_DATA) $(srcdir)/gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
+	    $(INSTALL_DATA) gm2/man/gm2.1 $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
 	    chmod a-x $(DESTDIR)$(man1dir)/$(GM2_INSTALL_NAME)$(man1ext); \
 	  fi; \
 	else true; fi

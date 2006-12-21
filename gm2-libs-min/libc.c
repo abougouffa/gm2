@@ -1,7 +1,7 @@
-void abort (void);
+void abort (int);
 void exit  (int);
 
-void abort (void)
+void abort (int i)
 {
 }
 
