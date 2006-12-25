@@ -1,3 +1,8 @@
+2006-12-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-file.in:  fixed conditional building of library files.
+          Bug reported by Michael Lambert <lambert@psc.edu>.
+
 2006-12-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  fixed manual page installation.

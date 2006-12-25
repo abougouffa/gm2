@@ -74,7 +74,9 @@ GCC_TOOLS_FOR_GM2 = \
             stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
             stage1/gm2/cpp$(exeext)
 
-ifeq ($(MINLIB),no)
+ifeq ($(MINLIB),yes)
+BUILD-ALL-LIBS :=  build-libs-min
+else
 ifeq ($(ULMLIB),no)
 BUILD-ALL-LIBS :=  build-libs build-libs-iso \
                    build-libs-pim build-libs-coroutines
@@ -82,8 +84,6 @@ else
 BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
                    build-libs-pim build-libs-coroutines
 endif
-else
-BUILD-ALL-LIBS :=  build-libs-min
 endif
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
