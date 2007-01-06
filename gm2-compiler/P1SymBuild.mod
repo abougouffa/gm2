@@ -887,6 +887,7 @@ VAR
    builtin,
    name    : Name ;
    ProcSym : CARDINAL ;
+   n       : Name ;
 BEGIN
    PopT(name) ;
    PopT(builtin) ; (* was this procedure defined as a builtin?        *)
@@ -899,8 +900,12 @@ BEGIN
          compiled before corresponding DEF module.
       *)
       ProcSym := MakeProcedure(name)
-   ELSE
-      Assert(IsProcedure(ProcSym))
+   ELSIF NOT IsProcedure(ProcSym)
+   THEN
+      n := GetSymName(ProcSym) ;
+      WriteFormat1('expecting a procedure name and symbol (%a) has been declared otherwise', n) ;
+      PushT(ProcSym) ;
+      RETURN
    END ;
    IF builtin#NulTok
    THEN

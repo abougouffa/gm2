@@ -1,3 +1,19 @@
+2007-01-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-file.in:  added FileSystem.mod to the gm2-libs-pim
+	  set of libraries.
+	* gm2/TODO:  removed FileSystem.mod from the list
+	* gm2/gm2-compiler/P1SymBuild.mod:  added error message
+	* gm2/gm2-libs/FIO.mod:  fixed copyright message
+	* gm2/gm2-libs/M2RTS.def:  fixed typo.
+	* gm2/gm2-libs/libc.def:  added rename function.
+	* gm2/gm2-libs/wrapc.def:  modified filesize so that it modifies
+	  two unsigned ints as the size, rather than return a long unsigned.
+	* gm2/gm2/gm2-libs-ch/libc.c:  added unlink function.
+	* gm2/gm2/gm2-libs-ch/wrapc.c:  implemented filesize.
+	* gm2/gm2/gm2-libs-pim/FileSystem.def:  improved comments and added
+	  more file state to the File record.
+
 2006-12-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-file.in:  fixed conditional building of library files.

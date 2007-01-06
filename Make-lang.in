@@ -897,10 +897,11 @@ GM2-LIBS-ULM-MODS-SYS  = \
 GM2-LIBS-PIM-MODS  = \
               CardinalIO.mod                Display.mod   InOut.mod \
               Keyboard.mod  RealInOut.mod   Termbase.mod  Terminal.mod \
-              Delay.mod     ErrorCode.mod   DebugTrace.mod \
-              Conversions.mod               DebugPMD.mod  LongIO.mod \
-              RealConversions.mod           FloatingUtilities.mod \
-              Strings.mod   Random.mod      TimeDate.mod
+              Delay.mod     ErrorCode.mod   FileSystem.mod \
+              DebugTrace.mod                Conversions.mod \
+              DebugPMD.mod  LongIO.mod      RealConversions.mod \
+              FloatingUtilities.mod         Strings.mod   \
+              Random.mod    TimeDate.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \

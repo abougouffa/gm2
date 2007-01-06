@@ -39,7 +39,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    unlink,
                    memcpy, memset, printf, realloc,
                    rand, srand, time, localtime, ftime,
-                   shutdown ;
+                   shutdown, rename ;
 
 TYPE
    time_t = LONGINT ;
@@ -385,6 +385,13 @@ PROCEDURE ftime (VAR t: timeb) : INTEGER ;
 *)
 
 PROCEDURE shutdown (s: INTEGER; how: INTEGER) : INTEGER ;
+
+
+(*
+   rename - change the name or location of a file
+*)
+
+PROCEDURE rename (oldpath, newpath: ADDRESS) : INTEGER ;
 
 
 END libc.

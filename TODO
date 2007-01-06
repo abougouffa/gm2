@@ -1,9 +1,9 @@
+*  port GM2 to the latest version of GCC
 *  complete cygwin port
 *  finish ISO libraries
 *  finish ISO language support
 *  finish optimizer support (-O)
 *  back port gm2 to previous releases of gcc
-*  port GM2 to the latest version of GCC
 *  introduce shared library support [Iztok]
 *  fix bugs in h2def
 *  fix bug in varient record found in SysVec.mod
@@ -12,6 +12,6 @@
 *  implement EXCEPT and FINALLY implemented [Christoph Schlegel <modula2@myrealbox.com>]
 *  complete implementation of the following Logitech-3.0 libraries:
    BitBlockOps, BitByteOps, BitWordOps, BlockOps, Calandar, Chronometer,
-   DateFormat, Decimals, Directories, DiskDirectory, FileMessage, FileSystem,
+   DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
    LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 

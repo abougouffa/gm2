@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 DEFINITION MODULE wrapc ;
 
 (*
@@ -22,7 +23,6 @@ DEFINITION MODULE wrapc ;
    Date       : 93
    Description: Provides a Modula-2 interface to the C
                 library functionality.
-   Last update: 20/1/96
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -40,10 +40,11 @@ PROCEDURE strtime () : ADDRESS ;
 
 
 (*
-   filesize - returns the size of a file, f.
+   filesize - assigns the size of a file, f, into low, high and
+              returns zero if successful.
 *)
 
-PROCEDURE filesize (f: INTEGER) : CARDINAL ;
+PROCEDURE filesize (f: INTEGER; VAR low, high: CARDINAL) : INTEGER ;
 
 
 (*

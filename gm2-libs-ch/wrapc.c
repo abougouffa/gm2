@@ -37,14 +37,16 @@ char *wrapc_strtime (void)
 }
 
 
-int wrapc_filesize (int f)
+int wrapc_filesize (int f, unsigned int *low, unsigned int *high)
 {
   struct stat s;
+  int res = fstat(f, (struct stat *) &s);
 
-  if (fstat(f, (struct stat *) &s) == 0)
-    return s.st_size;
-  else
-    return -1;
+  if (res == 0) {
+    *low = (unsigned int) s.st_size ;
+    *high = (unsigned int) (s.st_size >> (sizeof(unsigned int)*8));
+  }
+  return res;
 }
 
 

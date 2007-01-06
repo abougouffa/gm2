@@ -110,7 +110,7 @@ PROCEDURE ExitOnHalt (e: INTEGER) ;
 (*
    InstallTerminationProcedure - installs a procedure, p, which will
                                  be called when the procedure Terminate
-                                 is ionvoked.
+                                 is invoked.
 *)
 
 PROCEDURE InstallTerminationProcedure (p: PROC) ;

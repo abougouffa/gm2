@@ -376,7 +376,7 @@ void libc_strncpy (void *dest, void *src, unsigned long n)
 
 long libc_unlink (void *file)
 {
-  return( unlink(file) );
+  return unlink(file);
 }
 
 /*
@@ -413,6 +413,15 @@ void libc_srand (int seed)
 int libc_rand (void)
 {
   return rand();
+}
+
+/*
+ *  rename - change the name or location of a file
+ */
+
+int libc_rename (const char *oldpath, const char *newpath)
+{
+  return rename (oldpath, newpath);
 }
 
 void _M2_libc_init (void)
