@@ -7816,6 +7816,10 @@ gccgm2_BuildEndFunctionDeclaration (char *name, tree returntype,
   DECL_SOURCE_FILE (fndecl) = input_filename;
   DECL_SOURCE_LINE (fndecl) = getLineNo();
 
+  /* Prevent the optimizer from removing it if it is public. */
+  if (TREE_PUBLIC (fndecl))
+    gm2_mark_addressable (fndecl);
+
   pushdecl (fndecl);
 
   rest_of_decl_compilation (fndecl, 1, 0);
@@ -10880,7 +10884,10 @@ gccgm2_BuildStart (name, line, inner_module)
   TREE_STATIC (fndecl)   = 1;
   DECL_RESULT (fndecl)   = build_decl (RESULT_DECL, NULL_TREE, integer_type_node);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
-  TREE_ADDRESSABLE(fndecl) = 1;
+
+  /* Prevent the optimizer from removing it if it is public. */
+  if (TREE_PUBLIC (fndecl))
+    gm2_mark_addressable (fndecl);
 
   rest_of_decl_compilation (fndecl, 1, 0);
 

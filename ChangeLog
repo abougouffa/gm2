@@ -1,3 +1,8 @@
+2007-01-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  use gm2_mark_addressable rather than
+	  the TREE_ADDRESSABLE macro for consistency.
+
 2007-01-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-file.in:  added FileSystem.mod to the gm2-libs-pim
