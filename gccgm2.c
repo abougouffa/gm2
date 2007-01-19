@@ -2825,6 +2825,8 @@ internal_error_function (msgid, ap)
 bool
 gm2_init (void)
 {
+  flag_unit_at_a_time = 0;  /* currently debugging optimization,
+			       when optimization works - remove this.. */
   input_line = 0;
   gm2_init_decl_processing ();
   global_dc->internal_error = &internal_error_function;
@@ -12259,6 +12261,17 @@ void gccgm2_InitGlobalContext (void)
 {
   if (cfun == NULL)
     init_dummy_function_start ();
+}
+
+/*
+ *  FinishBackend - flushes all outstanding functions held in the GCC backend
+ *                  out to the assembly file.
+ */
+
+void gccgm2_FinishBackend (void)
+{
+  /* We're done parsing; proceed to optimize and emit assembly. */
+  cgraph_optimize ();
 }
 
 /*

@@ -116,8 +116,8 @@ EXPORT QUALIFIED Tree,
                  DetermineSizeOfConstant,
                  ToWord,
                  ExpandExpressionStatement,
-                 InitGlobalContext, GarbageCollect, TreeOverflow,
-                 RemoveOverflow ;
+                 InitGlobalContext, FinishBackend, GarbageCollect,
+                 TreeOverflow, RemoveOverflow ;
 
 
 TYPE
@@ -1233,6 +1233,14 @@ PROCEDURE BuildAbs (t: Tree) : Tree ;
 *)
 
 PROCEDURE InitGlobalContext ;
+
+
+(*
+   FinishBackend - flushes all outstanding functions held in the GCC backend
+                   out to the assembly file.
+*)
+
+PROCEDURE FinishBackend ;
 
 
 (*

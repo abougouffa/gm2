@@ -1,3 +1,11 @@
+2007-01-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/FileSystem.mod:  added.
+	* gm2/Make-lang.in:  introduced GM2_O_S3 variable so that
+	  optimization can be introduced into stage3 only.
+        * gm2/gccgm2.c:  added gccgm2_FinishBackend.
+	* gm2/gm2-compiler/M2Code.mod:  use gccgm2_FinishBackend.
+
 2007-01-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  use gm2_mark_addressable rather than

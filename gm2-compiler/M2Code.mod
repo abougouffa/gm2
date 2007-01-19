@@ -55,7 +55,7 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareModuleVariables ;
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
-FROM gccgm2 IMPORT InitGlobalContext ;
+FROM gccgm2 IMPORT InitGlobalContext, FinishBackend ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 
 
@@ -173,6 +173,7 @@ BEGIN
    FlushWarnings ;
    FlushErrors ;
    CodeBlock(GetMainModule()) ;
+   FinishBackend ;
 
    OptimizationAnalysis
 END Code ;
