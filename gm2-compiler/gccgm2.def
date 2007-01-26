@@ -117,7 +117,8 @@ EXPORT QUALIFIED Tree,
                  ToWord,
                  ExpandExpressionStatement,
                  InitGlobalContext, FinishBackend, GarbageCollect,
-                 TreeOverflow, RemoveOverflow ;
+                 TreeOverflow, RemoveOverflow,
+                 SetFlagUnitAtATime, MarkFunctionReferenced ;
 
 
 TYPE
@@ -1265,6 +1266,20 @@ PROCEDURE TreeOverflow (t: Tree) : BOOLEAN ;
 *)
 
 PROCEDURE RemoveOverflow (t: Tree) : Tree ;
+
+
+(*
+   SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
+*)
+
+PROCEDURE SetFlagUnitAtATime (b: BOOLEAN) ;
+
+
+(*
+   MarkFunctionReferenced - marks function tree, t, as referenced.
+*)
+
+PROCEDURE MarkFunctionReferenced (t: Tree) ;
 
 
 END gccgm2.

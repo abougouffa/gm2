@@ -1,3 +1,14 @@
+2007-01-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c: mark_function_addresses_referenced added.
+	* gm2/gccgm2.c: gccgm2_MarkFunctionReferenced added.
+	* gm2/gccgm2.c: gccgm2_SetFlagUnitAtATime added.
+	* gm2/gm2-compiler/M2Code.mod: MarkExported used.
+	* gm2-compiler/M2GCCDeclare.def: MakeExported defined.
+	* gm2-compiler/M2GCCDeclare.mod: MakeExported added.
+	* gm2/gm2-compiler/gccgm2.def:  SetFlagUnitAtATime,
+	  MarkFunctionReferenced, defined.
+
 2007-01-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/FileSystem.mod:  added.

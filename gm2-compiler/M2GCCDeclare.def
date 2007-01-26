@@ -34,7 +34,7 @@ EXPORT QUALIFIED FoldConstants,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
                  DeclareModuleVariables, IsProcedureGccNested,
                  DeclareProcedure, PoisonSymbols,
-                 CompletelyResolved,
+                 CompletelyResolved, MarkExported,
                  GetTypeMin, GetTypeMax ;
 
 
@@ -126,6 +126,13 @@ PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 *)
 
 PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   MarkExported - tell GCC to mark all exported procedures in module sym.
+*)
+
+PROCEDURE MarkExported (sym: CARDINAL) ;
 
 
 (*

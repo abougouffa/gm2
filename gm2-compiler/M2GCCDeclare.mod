@@ -139,7 +139,7 @@ FROM gccgm2 IMPORT Tree,
                    BuildStartMainModule, BuildEndMainModule,
                    RememberType,
                    GetBooleanType, GetBooleanFalse, GetBooleanTrue,
-                   BuildSize ;
+                   BuildSize, MarkFunctionReferenced ;
 
 (* %%%FORWARD%%%
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
@@ -200,6 +200,20 @@ VAR
 
 
 PROCEDURE mystop ; BEGIN END mystop ;
+
+
+(*
+   MarkExported - tell GCC to mark all exported procedures in module sym.
+*)
+
+PROCEDURE MarkExported (sym: CARDINAL) ;
+BEGIN
+   MarkFunctionReferenced(Mod2Gcc(sym)) ;
+   IF IsDefImp(sym) OR IsModule(sym)
+   THEN
+      ForeachExportedDo(sym, MarkExported)
+   END
+END MarkExported ;
 
 
 (*

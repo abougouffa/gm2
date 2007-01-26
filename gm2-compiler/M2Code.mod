@@ -23,7 +23,8 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 
 FROM M2Options IMPORT Statistics, DisplayQuadruples, OptimizeUncalledProcedures,
-                      (* OptimizeDynamic, *) OptimizeCommonSubExpressions, StudentChecking ;
+                      (* OptimizeDynamic, *) OptimizeCommonSubExpressions,
+                      StudentChecking, Optimizing ;
 
 FROM M2Students IMPORT StudentVariableCheck ;
 
@@ -52,10 +53,10 @@ FROM M2GenGCC IMPORT InitGNUM2, ConvertQuadsToTree ;
 
 FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareProcedure, InitDeclarations,
-                         DeclareModuleVariables ;
+                         DeclareModuleVariables, MarkExported ;
 
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
-FROM gccgm2 IMPORT InitGlobalContext, FinishBackend ;
+FROM gccgm2 IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
 
 
@@ -164,6 +165,7 @@ BEGIN
    END ;
 
    InitGNUM2(Head) ;
+   SetFlagUnitAtATime(Optimizing) ;
    InitGlobalContext ;
    InitDeclarations ;
 
@@ -173,6 +175,7 @@ BEGIN
    FlushWarnings ;
    FlushErrors ;
    CodeBlock(GetMainModule()) ;
+   MarkExported(GetMainModule()) ;
    FinishBackend ;
 
    OptimizationAnalysis

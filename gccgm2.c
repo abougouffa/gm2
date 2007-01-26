@@ -2825,8 +2825,6 @@ internal_error_function (msgid, ap)
 bool
 gm2_init (void)
 {
-  flag_unit_at_a_time = 0;  /* currently debugging optimization,
-			       when optimization works - remove this.. */
   input_line = 0;
   gm2_init_decl_processing ();
   global_dc->internal_error = &internal_error_function;
@@ -12263,6 +12261,33 @@ void gccgm2_InitGlobalContext (void)
     init_dummy_function_start ();
 }
 
+static void mark_function_addresses_referenced (void)
+{
+  /* @@@@@ cgraphunit do not notice if address of a routine is
+     referenced from static global variable */
+  tree decl = getdecls();
+  while (decl) 
+    {
+      if (TREE_CODE (decl) == FUNCTION_DECL && TREE_ADDRESSABLE (decl)) {
+	printf("about to mark this as referenced\n");
+	debug_tree(decl);
+	mark_decl_referenced (decl);
+      }
+      decl = TREE_CHAIN (decl);
+    }
+}
+
+/*
+ *  MarkFunctionReferenced - marks a function as referenced.
+ */
+
+void
+gccgm2_MarkFunctionReferenced (tree f)
+{
+  if (TREE_CODE (f) == FUNCTION_DECL)
+    mark_decl_referenced (f);
+}
+
 /*
  *  FinishBackend - flushes all outstanding functions held in the GCC backend
  *                  out to the assembly file.
@@ -12271,7 +12296,17 @@ void gccgm2_InitGlobalContext (void)
 void gccgm2_FinishBackend (void)
 {
   /* We're done parsing; proceed to optimize and emit assembly. */
+  /* cgraph_finalize_compilation_unit (); */
   cgraph_optimize ();
+}
+
+/*
+ *  SetFlagUnitAtATime - sets GCC flag_unit_at_a_time to b.
+ */
+
+void gccgm2_SetFlagUnitAtATime (int b)
+{
+  flag_unit_at_a_time = b;
 }
 
 /*
