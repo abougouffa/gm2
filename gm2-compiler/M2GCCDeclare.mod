@@ -32,7 +32,7 @@ FROM M2Debug IMPORT Assert ;
 FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
 
 FROM M2Options IMPORT DisplayQuadruples,
-                      GenerateDebugging, GenerateLineDebug, Iso ;
+                      GenerateDebugging, GenerateLineDebug, Iso, Optimizing ;
 
 FROM NameKey IMPORT Name, MakeKey, NulName, KeyToCharStar, makekey ;
 FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
@@ -208,10 +208,13 @@ PROCEDURE mystop ; BEGIN END mystop ;
 
 PROCEDURE MarkExported (sym: CARDINAL) ;
 BEGIN
-   MarkFunctionReferenced(Mod2Gcc(sym)) ;
-   IF IsDefImp(sym) OR IsModule(sym)
+   IF Optimizing
    THEN
-      ForeachExportedDo(sym, MarkExported)
+      MarkFunctionReferenced(Mod2Gcc(sym)) ;
+      IF IsDefImp(sym) OR IsModule(sym)
+      THEN
+         ForeachExportedDo(sym, MarkExported)
+      END
    END
 END MarkExported ;
 
@@ -1378,7 +1381,7 @@ BEGIN
                                                 IsExported(ModSym, Son),
                                                 IsEffectivelyImported(ModSym, Son),
                                                 IsTemporary(Son),
-                                                TRUE,
+                                                GetMainModule()=GetScope(Son),
                                                 scope))            
          ELSE
             AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
@@ -1386,7 +1389,7 @@ BEGIN
                                                 IsExported(ModSym, Son),
                                                 IsEffectivelyImported(ModSym, Son),
                                                 IsTemporary(Son),
-                                                TRUE,
+                                                GetMainModule()=GetScope(Son),
                                                 scope))
          END
       ELSE
@@ -1395,7 +1398,7 @@ BEGIN
                                              IsExported(ModSym, Son),
                                              IsEffectivelyImported(ModSym, Son),
                                              IsTemporary(Son),
-                                             TRUE,
+                                             GetMainModule()=GetScope(Son),
                                              scope))
       END
    END

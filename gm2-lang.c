@@ -41,41 +41,45 @@ Boston, MA 02110-1301, USA.  */
 static HOST_WIDE_INT gm2_get_alias_set PARAMS ((tree));
 
 #undef LANG_HOOKS_NAME
-#define LANG_HOOKS_NAME			   "GNU Modula-2"
+#define LANG_HOOKS_NAME			     "GNU Modula-2"
 #undef LANG_HOOKS_INIT
-#define LANG_HOOKS_INIT                    gm2_init
+#define LANG_HOOKS_INIT                      gm2_init
 #undef LANG_HOOKS_GIMPLIFY_EXPR 
-#define LANG_HOOKS_GIMPLIFY_EXPR           gm2_gimplify_expr
+#define LANG_HOOKS_GIMPLIFY_EXPR             gm2_gimplify_expr
 #undef LANG_HOOKS_HANDLE_OPTION
-#define LANG_HOOKS_HANDLE_OPTION           gm2_handle_option
+#define LANG_HOOKS_HANDLE_OPTION             gm2_handle_option
 #undef LANG_HOOKS_FUNCTION_LEAVE_NESTED
-#define LANG_HOOKS_FUNCTION_LEAVE_NESTED   gm2_leave_nested
+#define LANG_HOOKS_FUNCTION_LEAVE_NESTED     gm2_leave_nested
 #undef LANG_HOOKS_FUNCTION_ENTER_NESTED
-#define LANG_HOOKS_FUNCTION_ENTER_NESTED   gm2_enter_nested
+#define LANG_HOOKS_FUNCTION_ENTER_NESTED     gm2_enter_nested
 #undef LANG_HOOKS_HONOR_READONLY
-#define LANG_HOOKS_HONOR_READONLY          1
+#define LANG_HOOKS_HONOR_READONLY            1
 #undef LANG_HOOKS_GET_ALIAS_SET
-#define LANG_HOOKS_GET_ALIAS_SET           gm2_get_alias_set
+#define LANG_HOOKS_GET_ALIAS_SET             gm2_get_alias_set
 #undef LANG_HOOKS_MARK_ADDRESSABLE
-#define LANG_HOOKS_MARK_ADDRESSABLE        gm2_mark_addressable
+#define LANG_HOOKS_MARK_ADDRESSABLE          gm2_mark_addressable
 #undef LANG_HOOKS_TYPE_FOR_MODE
-#define LANG_HOOKS_TYPE_FOR_MODE           gm2_type_for_mode
+#define LANG_HOOKS_TYPE_FOR_MODE             gm2_type_for_mode
 #undef LANG_HOOKS_TYPE_FOR_SIZE
-#define LANG_HOOKS_TYPE_FOR_SIZE           gm2_type_for_size
+#define LANG_HOOKS_TYPE_FOR_SIZE             gm2_type_for_size
 #undef LANG_HOOKS_SIGNED_TYPE
-#define LANG_HOOKS_SIGNED_TYPE             gm2_signed_type
+#define LANG_HOOKS_SIGNED_TYPE               gm2_signed_type
 #undef LANG_HOOKS_UNSIGNED_TYPE
-#define LANG_HOOKS_UNSIGNED_TYPE           gm2_unsigned_type
+#define LANG_HOOKS_UNSIGNED_TYPE             gm2_unsigned_type
 #undef LANG_HOOKS_SIGNED_OR_UNSIGNED_TYPE
-#define LANG_HOOKS_SIGNED_OR_UNSIGNED_TYPE gm2_signed_or_unsigned_type
+#define LANG_HOOKS_SIGNED_OR_UNSIGNED_TYPE   gm2_signed_or_unsigned_type
 #undef LANG_HOOKS_EXPAND_EXPR
-#define LANG_HOOKS_EXPAND_EXPR             gm2_expand_expr
+#define LANG_HOOKS_EXPAND_EXPR               gm2_expand_expr
 #undef LANG_HOOKS_PARSE_FILE
-#define LANG_HOOKS_PARSE_FILE              gm2_parse_file
+#define LANG_HOOKS_PARSE_FILE                gm2_parse_file
 #undef LANG_HOOKS_INIT_OPTIONS
-#define LANG_HOOKS_INIT_OPTIONS            gm2_init_options
+#define LANG_HOOKS_INIT_OPTIONS              gm2_init_options
 #undef LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION
 #define LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION gm2_expand_function
+#if 0
+#undef LANG_HOOKS_WRITE_GLOBALS
+#define LANG_HOOKS_WRITE_GLOBALS             gm2_write_global_declarations
+#endif
 
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
 

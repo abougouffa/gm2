@@ -47,6 +47,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "toplev.h"
 #include "tm_p.h"
 #include "flags.h"
+#include "tree-inline.h"
 #include "output.h"
 
 #include <stdio.h>
@@ -701,6 +702,7 @@ static void                   readonly_error                              (tree,
        tree                   gccgm2_GetBooleanTrue                       (void);
        tree                   gccgm2_BuildConstPointerType                (tree totype);
        void                   gccgm2_printStmt                            (void);
+static void                   gm2_write_global_declarations_2             (tree globals);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -2208,6 +2210,38 @@ gm2_expand_expr (tree exp, rtx target, enum machine_mode tmode ATTRIBUTE_UNUSED,
       fancy_abort (__FILE__, __LINE__, __FUNCTION__);
       return target;
     }
+}
+
+/* A subroutine of gm2_write_global_declarations Emit debug information for each
+   of the declarations in GLOBALS.  */
+
+static void
+gm2_write_global_declarations_2 (tree globals)
+{
+  tree decl;
+
+  for (decl = globals; decl ; decl = TREE_CHAIN (decl))
+    debug_hooks->global_decl (decl);
+}
+
+void
+gm2_write_global_declarations (void)
+{
+  /* Don't waste time on further processing if -fsyntax-only or we've
+     encountered errors.  */
+  if (flag_syntax_only || errorcount || sorrycount)
+    return;
+
+  /* We're done parsing; proceed to optimize and emit assembly.
+     FIXME: shouldn't be the front end's responsibility to call this.  */
+  cgraph_optimize ();
+
+#if 0
+  /* After cgraph has had a chance to emit everything that's going to
+     be emitted, output debug information for globals.  */
+  if (errorcount == 0 && sorrycount == 0)
+    gm2_write_global_declarations_2 (BLOCK_VARS (global_binding_level->names));
+#endif
 }
 
 /* gm2 expand function langhook.  */
@@ -6712,6 +6746,9 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   ASSERT (is_type(type), type);
   ASSERT_BOOL (isglobal);
 
+  if (strcmp (name, "testproc2_x") == 0)
+    stop();
+
   id   = get_identifier (name);
   type = skip_type_decl (type);
   decl = build_decl (VAR_DECL, id, type);
@@ -6723,12 +6760,20 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
     TREE_PUBLIC   (decl)  = exported;
     TREE_STATIC   (decl)  = isglobal;           /* declaration and definition */
   } 
-  else
-    TREE_PUBLIC   (decl)  = 1;
+  else if (imported) {
+    TREE_STATIC   (decl)  = 0;
+    TREE_PUBLIC   (decl)  = 1; /* imported;   /* was 1 */
+  }
+  else {
+    TREE_STATIC   (decl)  = 0;
+    TREE_PUBLIC   (decl)  = 0;
+  }
 
   DECL_CONTEXT  (decl)    = scope;
+#if 0
   TREE_USED     (type)    = 1;
   TREE_USED     (decl)    = 1;
+#endif
 
   /* now for the id */
 
@@ -6737,19 +6782,31 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   else
     TREE_STATIC   (id)    = 1;           /* declaration and definition */
 
+#if 0
   if (isglobal)
     TREE_PUBLIC   (id)    = exported;
-
+#endif
+  TREE_PUBLIC   (id)      = TREE_PUBLIC (decl);
+#if 0
   TREE_USED     (id)      = 1;
-
+#endif
   pushdecl (decl);
 
   if (DECL_SIZE(decl) == 0)
     error ("storage size of %q+D' hasn't been resolved", decl);
 
-  expand_decl (decl);
+  if ((TREE_PUBLIC (decl) == 0) && DECL_EXTERNAL (decl))
+    internal_error ("inconsistant because PUBLIC_DECL(decl) == 0   DECL_EXTERNAL(decl) == 1");
+
+#if 0
+  if (! flag_unit_at_a_time)
+    expand_decl (decl);
+#endif
   if (isglobal) {
-    layout_decl (decl, 0);
+#if 0
+    if (! flag_unit_at_a_time)
+      layout_decl (decl, 0);
+#endif
     rest_of_decl_compilation (decl, 1, 0);
   }
 
@@ -7069,9 +7126,7 @@ finish_decl (tree decl, tree init, tree asmspec_tree)
 #if !defined(GM2)
   /* If #pragma weak was used, mark the decl weak now.  */
   maybe_apply_pragma_weak (decl);
-#endif
 
-#if !defined(GM2)
   /* If this is a variable definition, determine its ELF visibility.  */
   if (TREE_CODE (decl) == VAR_DECL 
       && TREE_STATIC (decl) 
@@ -7199,9 +7254,7 @@ finish_decl (tree decl, tree init, tree asmspec_tree)
      computing them in the following function definition.  */
   if (current_scope == file_scope)
     get_pending_sizes ();
-#endif
 
-#if !defined(GM2)
   /* Install a cleanup (aka destructor) if one was given.  */
   if (TREE_CODE (decl) == VAR_DECL && !TREE_STATIC (decl))
     {
@@ -7645,8 +7698,10 @@ gccgm2_BuildVariableArrayAndDeclare (tree elementtype, tree high, char *name,
 
   C_DECL_VARIABLE_SIZE (decl) = TRUE;
   pushdecl (decl);
+#if 0
   expand_decl (decl);
   layout_decl (decl, 0);
+#endif
   return decl;
 }
 
@@ -7874,7 +7929,7 @@ gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
   TREE_PUBLIC (fndecl)     = isexported;
   TREE_ADDRESSABLE(fndecl) = 1;  /* (--fixme-- not sure about this) could be improved,
 				    if we want to inline it make this a 0 */
-  DECL_INLINE (fndecl)     = isinline;
+  DECL_INLINE (fndecl)     = 1; /* isinline; */
 
   init_function_start (fndecl);
 
@@ -12295,9 +12350,11 @@ gccgm2_MarkFunctionReferenced (tree f)
 
 void gccgm2_FinishBackend (void)
 {
+#if 1
   /* We're done parsing; proceed to optimize and emit assembly. */
-  /* cgraph_finalize_compilation_unit (); */
+  cgraph_finalize_compilation_unit ();
   cgraph_optimize ();
+#endif
 }
 
 /*
@@ -12307,6 +12364,7 @@ void gccgm2_FinishBackend (void)
 void gccgm2_SetFlagUnitAtATime (int b)
 {
   flag_unit_at_a_time = b;
+  flag_inline_trees = b;
 }
 
 /*

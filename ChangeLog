@@ -1,3 +1,12 @@
+2007-02-06       Gaius Mulley <gaius@gnu.org>
+
+	* interim checkin, due to optimization fixes.
+	* gm2/gccgm2.c:  changes to the way variables are declared.
+	  Removed calls to expand_decl.
+	* gm2-compiler/M2GCCDeclare.mod:  passes boolean to
+	  DeclareKnownVariable indicating whether the variable was
+	  declared in the outer global scope.
+
 2007-01-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c: mark_function_addresses_referenced added.
