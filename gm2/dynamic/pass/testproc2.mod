@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2007 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,31 +15,18 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE testcse4 ;
+IMPLEMENTATION MODULE testproc2 ;
 
-FROM StrIO IMPORT WriteString, WriteLn ;
-
-CONST
-   nul = 0C ;
-
-PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
+PROCEDURE bar () : CARDINAL ;
 VAR
-   High,
-   Len : CARDINAL ;
+   c1: CARDINAL ;
 BEGIN
-   Len := 0 ;
-   High := HIGH( a ) ;
-   WHILE (Len<=High) AND (a[Len]#nul) DO
-      INC( Len ) ;
-   END ;
-   RETURN( Len )
-END StrLen ;
+   INC(x) ;
+   c1 := x ;  (* xxxxxx *)
+   RETURN c1
+END bar ;
 
 
 BEGIN
-   IF StrLen('hello')=5
-   THEN
-      WriteString('works')
-   END ;
-   WriteLn
-END testcse4.
+   x := 1
+END testproc2.
