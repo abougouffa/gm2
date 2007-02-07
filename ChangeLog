@@ -1,3 +1,11 @@
+2007-02-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  added FindOuterModule
+	  to determine whether a symbol should be declared in the
+	  GCC global scope.
+	* fixes ulm library building problem introduced by the previous
+	  interim checkin.
+
 2007-02-06       Gaius Mulley <gaius@gnu.org>
 
 	* interim checkin, due to optimization fixes.

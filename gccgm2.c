@@ -6746,7 +6746,7 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   ASSERT (is_type(type), type);
   ASSERT_BOOL (isglobal);
 
-  if (strcmp (name, "testproc2_x") == 0)
+  if (strcmp (name, "TimePattern_TimeIO_head") == 0)
     stop();
 
   id   = get_identifier (name);

@@ -1359,17 +1359,47 @@ END IsEffectivelyImported ;
 
 
 (*
+   FindOuterModule - returns the out most module where, sym,
+                     was declared.  It returns NulSym if the
+                     symbol or the module was declared inside
+                     a procedure.
+*)
+
+PROCEDURE FindOuterModule (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   sym := GetScope(sym) ;
+   WHILE (NOT IsDefImp(sym)) DO
+      IF IsModule(sym)
+      THEN
+         IF GetScope(sym)=NulSym
+         THEN
+            RETURN( sym )
+         ELSE
+            sym := GetScope(sym)
+         END
+      ELSIF IsProcedure(sym)
+      THEN
+         sym := GetScope(sym)
+      END
+   END ;
+   RETURN( sym )
+END FindOuterModule ;
+
+
+(*
    DeclareVariable - declares a global variable to GCC.
 *)
 
 PROCEDURE DeclareVariable (ModSym, Son: CARDINAL) ;
 VAR
    scope: Tree ;
+   decl : CARDINAL ;
 BEGIN
    IF NOT GccKnowsAbout(Son)
    THEN
       AlignDeclarationWithSource(Son) ;
       scope := FindTreeScope(ModSym) ;
+      decl := FindOuterModule(Son) ;
       Assert(AllDependantsWritten(GetType(Son))) ;
       IF GetMode(Son)=LeftValue
       THEN
@@ -1381,7 +1411,7 @@ BEGIN
                                                 IsExported(ModSym, Son),
                                                 IsEffectivelyImported(ModSym, Son),
                                                 IsTemporary(Son),
-                                                GetMainModule()=GetScope(Son),
+                                                GetMainModule()=decl,
                                                 scope))            
          ELSE
             AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
@@ -1389,7 +1419,7 @@ BEGIN
                                                 IsExported(ModSym, Son),
                                                 IsEffectivelyImported(ModSym, Son),
                                                 IsTemporary(Son),
-                                                GetMainModule()=GetScope(Son),
+                                                GetMainModule()=decl,
                                                 scope))
          END
       ELSE
@@ -1398,7 +1428,7 @@ BEGIN
                                              IsExported(ModSym, Son),
                                              IsEffectivelyImported(ModSym, Son),
                                              IsTemporary(Son),
-                                             GetMainModule()=GetScope(Son),
+                                             GetMainModule()=decl,
                                              scope))
       END
    END
