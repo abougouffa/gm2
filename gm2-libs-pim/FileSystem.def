@@ -36,7 +36,7 @@ EXPORT QUALIFIED File, Response, Flag, FlagSet,
 
                  Create, Close, Lookup, Rename, Delete,
                  SetRead, SetWrite, SetModify, SetOpen,
-                 Doio, SetPos, GetPos, Length,
+                 Doio, SetPos, GetPos, Length, Reset,
 
                  ReadWord, ReadChar, ReadByte, ReadNBytes,
                  WriteWord, WriteChar, WriteByte, WriteNBytes ;

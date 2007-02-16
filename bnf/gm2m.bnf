@@ -39,7 +39,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2006/01/10 23:56:08 $]
+   Date       : 3/4/86  [$Date: 2007/02/16 15:06:27 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1247,10 +1247,10 @@ BEGIN
                name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
                IF NOT FindSourceModFile(name, s)
                THEN
-                  fprintf1(StdErr, 'cannot find source file %s\n', a) ;
+                  fprintf1(StdErr, 'cannot find source file %s\n', name) ;
                   exit(1)
                END ;
-               a := KillString(a)
+               name := KillString(name)
             END ;
             FormatS(s) ;
             FormatLn
@@ -1279,10 +1279,10 @@ BEGIN
             name := InitStringCharStar(KeyToCharStar(n^.Source^.ModName)) ;
             IF NOT FindSourceModFile(name, s)
             THEN
-               fprintf1(StdErr, 'cannot find source file %s\n', a) ;
+               fprintf1(StdErr, 'cannot find source file %s\n', name) ;
                exit(1)
             END ;
-            a := KillString(a)
+            name := KillString(name)
          END ;
          FormatS(s) ;
          FormatLn

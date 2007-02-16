@@ -420,10 +420,10 @@ BEGIN
          END ;
          IF read IN flags
          THEN
-            fio := SFIO.OpenToRead(string(name))
+            fio := SFIO.OpenToRead(name)
          ELSIF write IN flags
          THEN
-            fio := SFIO.OpenToWrite(string(name))
+            fio := SFIO.OpenToWrite(name)
          END ;
          INCL(flags, opened) ;
          r := libc.lseek(fio, lowpos, highpos)
@@ -551,12 +551,12 @@ BEGIN
       END ;
       IF read IN flags
       THEN
-         fio := SFIO.OpenToRead(string(name)) ;
+         fio := SFIO.OpenToRead(name) ;
          INCL(flags, opened) ;
          SetPos(f, lowpos, highpos)
       ELSIF write IN flags
       THEN
-         fio := SFIO.OpenToWrite(string(name)) ;
+         fio := SFIO.OpenToWrite(name) ;
          INCL(flags, opened) ;
          SetPos(f, lowpos, highpos)
       END

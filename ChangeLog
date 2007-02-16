@@ -1,3 +1,9 @@
+2007-02-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/gm2m.bnf:  fixed string deallocation bug.
+	* gm2/gm2-libs-pim/FileSystem.{def,mod}:  exported Reset
+	  and fixed filename and string conversion.
+
 2007-02-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  added FindOuterModule
