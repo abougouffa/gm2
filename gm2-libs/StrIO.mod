@@ -1,19 +1,3 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
-(* This file is part of GNU Modula-2.
-
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 2.1 of the License, or (at your option) any later version.
-
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
-
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -30,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 IMPLEMENTATION MODULE StrIO ;
 
 
@@ -76,30 +61,30 @@ VAR
    high : CARDINAL ;
    ch   : CHAR ;
 BEGIN
-   high := HIGH( a ) ;
+   high := HIGH(a) ;
    n := 0 ;
    REPEAT
-      Read( ch ) ;
+      Read(ch) ;
       IF (ch=del) OR (ch=bs)
       THEN
          IF n=0
          THEN
-            Write( bel )
+            Write(bel)
          ELSE
             Erase ;
-            DEC( n )
+            DEC(n)
          END
       ELSIF ch=nak    (* Ctrl U *)
       THEN
          WHILE n>0 DO
             Erase ;
-            DEC( n )
+            DEC(n)
          END
       ELSIF ch=etb    (* Ctrl W *)
       THEN
          IF n=0
          THEN
-            Echo( bel )
+            Echo(bel)
          ELSIF AlphaNum(a[n-1])
          THEN
             REPEAT
@@ -110,12 +95,12 @@ BEGIN
             Erase ;
             DEC(n)
          END
-      ELSIF n <= high
+      ELSIF n<=high
       THEN
-         IF ch = cr
+         IF (ch=cr) OR (ch=lf)
          THEN
             a[n] := nul ;
-            INC( n )
+            INC(n)
          ELSIF ch=ff
          THEN
             a[0] := ch ;
@@ -126,13 +111,13 @@ BEGIN
             ch := cr
          ELSIF ch>=' '
          THEN
-            Echo( ch ) ;
+            Echo(ch) ;
             a[n] := ch ;
-            INC( n )
+            INC(n)
          ELSIF ch=eof
          THEN
             a[n] := ch ;
-            INC( n ) ;
+            INC(n) ;
             ch := cr;
             IF n<=high
             THEN
@@ -141,9 +126,9 @@ BEGIN
          END
       ELSIF ch#cr
       THEN
-         Echo( bel )
+         Echo(bel)
       END
-   UNTIL ch = cr
+   UNTIL (ch=cr) OR (ch=lf)
 END ReadString ;
 
 

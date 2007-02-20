@@ -22,7 +22,7 @@ FROM StrLib IMPORT StrCopy ;
 FROM SYSTEM IMPORT ADR, SIZE ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM libc IMPORT read, write, system, isatty ;
-FROM FIO IMPORT StdIn, StdOut, StdErr, WriteChar, ReadChar, GetUnixFileDescriptor ;
+FROM FIO IMPORT StdIn, StdOut, StdErr, WriteChar, ReadChar, GetUnixFileDescriptor, FlushBuffer ;
 FROM ASCII IMPORT cr, eof, nl;
 
 
@@ -41,6 +41,8 @@ BEGIN
          ch := eof
       END
    ELSE
+      FlushBuffer(StdOut) ;
+      FlushBuffer(StdErr) ;
       ch := ReadChar(StdIn)
    END
 END Read ;
