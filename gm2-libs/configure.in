@@ -102,6 +102,6 @@ HAVE_TIMEVAL=yes,HAVE_TIMEVAL=no,)])
 if test x"$HAVE_TIMEVAL" = x"yes"; then
     AC_DEFINE(HAVE_TIMEVAL, 1, [have found timeval in sys/time.h])
 fi
-AC_CHECK_TYPES(time_t)
+# AC_CHECK_TYPES(time_t)
 
 AC_OUTPUT

@@ -1,3 +1,7 @@
+2007-04-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs:  regenerated configure
+
 2007-02-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/gm2m.bnf:  fixed string deallocation bug.
