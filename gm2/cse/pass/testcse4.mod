@@ -22,7 +22,7 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 CONST
    nul = 0C ;
 
-PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
+PROCEDURE StrLen (VAR a: ARRAY OF CHAR) : CARDINAL ;
 VAR
    High,
    Len : CARDINAL ;
@@ -35,9 +35,8 @@ BEGIN
    RETURN( Len )
 END StrLen ;
 
-
 BEGIN
-   IF StrLen('hello')=5
+   IF StrLen('works')=5
    THEN
       WriteString('works')
    END ;

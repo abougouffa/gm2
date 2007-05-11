@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,26 +15,34 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE teststring ;
+MODULE testcse49 ;
 
-FROM StrIO IMPORT ReadString, WriteString, WriteLn ;
+FROM StrIO IMPORT WriteLn ;
+FROM SYSTEM IMPORT ADR ;
 
 TYPE
-   MINE = ARRAY [0..40] OF CHAR ;
+   string = ARRAY [0..10] OF CHAR ;
+   STRING = RECORD
+               c: POINTER TO string ;
+               h: CARDINAL ;
+            END ;
 
-PROCEDURE foo (VAR a: MINE) ;
+PROCEDURE StrLen (a: STRING) : CARDINAL ;
 BEGIN
-   a := "hello world" ;
-   LOOP
-      WriteString('> ') ;
-      ReadString(a) ; WriteLn ;
-      WriteString('String was: ') ; WriteString(a) ; WriteLn
-   END
-END foo ;
+   a.c^[4] := 'a' ;
+   RETURN 5
+END StrLen ;
 
 VAR
-   b: MINE ;
+   l: CARDINAL ;
+   t: STRING ;
+   b: string ;
 BEGIN
-   foo(b) ;
-   b := "and again"
-END teststring.
+   b := 'hello' ;
+   t.c := ADR(b) ;
+   t.h := 5 ;
+   IF StrLen(t)=5
+   THEN
+      WriteLn
+   END
+END testcse49.
