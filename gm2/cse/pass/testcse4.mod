@@ -22,7 +22,7 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 CONST
    nul = 0C ;
 
-PROCEDURE StrLen (VAR a: ARRAY OF CHAR) : CARDINAL ;
+PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
 VAR
    High,
    Len : CARDINAL ;
