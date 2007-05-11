@@ -158,7 +158,9 @@ BEGIN
       DisplayQuadList(Head)
    END ;
 
-   (* now is a suitable time to check for student errors as we know all the front end symbols must be resolved *)
+   (* now is a suitable time to check for student errors as *)
+   (* we know all the front end symbols must be resolved.   *)
+
    IF StudentChecking
    THEN
       StudentVariableCheck      
@@ -197,7 +199,7 @@ BEGIN
 
    FoldBranches(start, end) ;
    Jump := Count - CountQuads(Head) ;
-   Count := CountQuads(Head) ;
+   Count := CountQuads(Head)
 END InitialDeclareAndOptimize ;
 
 

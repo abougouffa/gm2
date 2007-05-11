@@ -48,7 +48,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsRecordField, IsFieldVarient, IsVarient, IsRecord,
                         IsExportQualified,
                         IsExported,
-                        IsSubrange,
+                        IsSubrange, IsPointer,
                         IsProcedureBuiltin, IsProcedureInline,
                         IsValueSolved, IsSizeSolved,
                         ForeachExportedDo,
@@ -57,6 +57,8 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         ForeachInnerModuleDo,
                         GetType, GetNth, GetNthParam,
                         SkipType, SkipTypeAndSubrange,
+                        GetUnboundedHighOffset,
+                        GetUnboundedAddressOffset,
                         GetSubrange, NoOfElements, GetArraySubscript,
                         GetFirstUsed, GetDeclared,
                         GetRegInterface,
@@ -69,7 +71,6 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
 
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
-FROM M2GCCDeclare IMPORT PoisonSymbols, GetTypeMin, GetTypeMax, IsProcedureGccNested ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
 
@@ -80,8 +81,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
-                   ArrayHigh, ArrayAddress, Cardinal, Char, Integer,
-                   Unbounded, Trunc, CheckAssignmentCompatible ;
+                   Cardinal, Char, Integer, Trunc, CheckAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
@@ -114,7 +114,9 @@ FROM M2ALU IMPORT PtrToValue,
 FROM M2GCCDeclare IMPORT DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
                          DeclareLocalVariables, PromoteToString,
-                         CompletelyResolved ;
+                         CompletelyResolved,
+                         PoisonSymbols, GetTypeMin, GetTypeMax,
+                         IsProcedureGccNested, DeclareParameters ;
 
 FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                         GetBuiltinConst,
@@ -1008,22 +1010,24 @@ END CodeEnd ;
 
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ;
 VAR
-   ArrayType: CARDINAL ;
+   UnboundedType,
+   ArrayType    : CARDINAL ;
    t,
    Addr,
    High,
    GccIndex,
    GccArray,
    NewArray,
-   Type     : Tree ;
+   Type         : Tree ;
 BEGIN
-   Assert(IsUnbounded(GetType(param))) ;
-   ArrayType := GetType(GetType(param)) ;
+   UnboundedType := GetType(param) ;
+   Assert(IsUnbounded(UnboundedType)) ;
+   ArrayType := GetType(UnboundedType) ;
    (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
 
    High      := BuildMult(BuildAdd(
                                    BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                                   BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayHigh)), FALSE),
+                                                                   BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
                                                                    FALSE),
                                                           GetIntegerType()),
                                             GetIntegerOne(),
@@ -1033,7 +1037,7 @@ BEGIN
                           FindSize(ArrayType), FALSE) ;
 
    Addr      := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                       BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                       BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
                                        FALSE),
                               GetPointerType()) ;
 
@@ -1045,7 +1049,7 @@ BEGIN
    (* now assign  param.Addr := ADR(NewArray) *)
 
    t         := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                       BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                                       BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
                                                        FALSE),
                                               GetPointerType()), NewArray)
 END MakeCopyAndUse ;
@@ -1168,7 +1172,8 @@ END CodeKillLocalVar ;
    CodeProcedureScope -
 *)
 
-PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
+PROCEDURE CodeProcedureScope (quad: CARDINAL;
+                              LineNo, PreviousScope, CurrentProcedure: CARDINAL) ;
 BEGIN
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(GetMainModule()))) ;
@@ -1176,7 +1181,8 @@ BEGIN
    BuildStartFunctionCode(Mod2Gcc(CurrentProcedure),
                           IsExported(GetMainModule(), CurrentProcedure),
                           IsProcedureInline(CurrentProcedure)) ;
-   StartDeclareScope(CurrentProcedure)
+   StartDeclareScope(CurrentProcedure) ;
+   (* DeclareParameters(CurrentProcedure) *)
 END CodeProcedureScope ;
 
 
@@ -1214,9 +1220,11 @@ BEGIN
    *)
    IF IsProcedure(op3)
    THEN
+      DeclareParameters(op3) ;
       CodeDirectCall(op3)
    ELSIF IsProcType(GetType(op3))
    THEN
+      DeclareParameters(GetType(op3)) ;
       CodeIndirectCall(op3)
    ELSE
       InternalError('Expecting Procedure or ProcType', __FILE__, __LINE__)
@@ -2640,6 +2648,7 @@ PROCEDURE CodeBinarySetShift (binop: BuildSetProcedure;
                               op1, op2, op3: CARDINAL) ;
 VAR
    nBits,
+   unbounded,
    leftproc,
    rightproc,
    varproc  : Tree ;
@@ -2667,6 +2676,7 @@ BEGIN
       varproc := Mod2Gcc(FromModuleGetSym(var, System)) ;
       leftproc := Mod2Gcc(FromModuleGetSym(left, System)) ;
       rightproc := Mod2Gcc(FromModuleGetSym(right, System)) ;
+      unbounded := Mod2Gcc(GetType(GetNthParam(FromModuleGetSym(var, System), 1))) ;
       PushValue(GetTypeMax(SkipType(GetType(op1)))) ;
       PushValue(GetTypeMin(SkipType(GetType(op1)))) ;
       Sub ;
@@ -2682,7 +2692,7 @@ BEGIN
                        GetMode(op2)=LeftValue,
                        GetMode(op3)=LeftValue,
                        nBits,
-                       Mod2Gcc(Unbounded),
+                       unbounded,
                        varproc, leftproc, rightproc)
    END
 END CodeBinarySetShift ;
@@ -3550,7 +3560,7 @@ BEGIN
    ELSIF IsUnbounded(GetType(op3))
    THEN
       Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
-                                     BuildOffset1(Mod2Gcc(GetLocalSym(Unbounded, ArrayAddress)), FALSE),
+                                     BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(GetType(op3))), FALSE),
                                      FALSE),
                             GetPointerType()) ;
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)
@@ -4753,7 +4763,13 @@ BEGIN
       (*
          Mem[op1] := Mem[Mem[op3]]
       *)
-      t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
+      IF IsPointer(SkipType(op2))
+      THEN
+         (* t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2))) *)
+         t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), GetPointerType()))
+      ELSE
+         t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
+      END
    END
 END CodeIndrX ;
 
@@ -4792,8 +4808,14 @@ BEGIN
       t := BuildAssignment(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
                            StringToChar(Mod2Gcc(op3), Char, op3))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
-                           StringToChar(Mod2Gcc(op3), op2, op3))
+      IF IsPointer(SkipType(op2))
+      THEN
+         t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
+                              StringToChar(Mod2Gcc(op3), op2, op3))
+      ELSE
+         t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
+                              StringToChar(Mod2Gcc(op3), op2, op3))
+      END
    END
 END CodeXIndr ;
 

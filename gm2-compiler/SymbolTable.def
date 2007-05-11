@@ -94,6 +94,9 @@ EXPORT QUALIFIED NulSym,
                  GetProcedureBuiltin,
                  GetNthParam,
                  GetNthProcedure,
+                 GetUnboundedRecordType,
+                 GetUnboundedAddressOffset,
+                 GetUnboundedHighOffset,
                  GetModuleQuads,
                  GetProcedureQuads,
                  GetVarQuads,
@@ -1908,6 +1911,32 @@ PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsUnbounded (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetUnboundedRecordType - returns the record type used to
+                            implement the unbounded array.
+*)
+
+PROCEDURE GetUnboundedRecordType (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetUnboundedAddressOffset - returns the offset of the address field
+                               inside the record used to implement the
+                               unbounded type.
+*)
+
+PROCEDURE GetUnboundedAddressOffset (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetUnboundedHighOffset - returns the offset of the high field
+                            inside the record used to implement the
+                            unbounded type.
+*)
+
+PROCEDURE GetUnboundedHighOffset (Sym: CARDINAL) : CARDINAL ;
 
 
 (*

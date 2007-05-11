@@ -72,6 +72,10 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutVarTypeAndSize,
                         PushSize, PushValue, PopValue,
                         GetVariableAtAddress, IsVariableAtAddress,
+
+                        GetUnboundedRecordType,
+                        GetUnboundedAddressOffset,
+                        GetUnboundedHighOffset,
                         
                         ForeachFieldEnumerationDo, ForeachLocalSymDo,
                         GetExported, PutImported, GetSym,
@@ -114,7 +118,6 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsAssignmentCompatible, IsExpressionCompatible,
                    AssignmentRequiresWarning,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
-                   Unbounded, ArrayAddress, ArrayHigh,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
                    Ord, Chr, Convert, Val, Float, Trunc, Min, Max,
@@ -4578,9 +4581,10 @@ END ConvertStringToC ;
 
 PROCEDURE ManipulateParameters (IsForC: BOOLEAN) ;
 VAR
-   np         : CARDINAL ;
-   n          : Name ;
-   s          : String ;
+   np           : CARDINAL ;
+   n            : Name ;
+   s            : String ;
+   UnboundedType,
    ParamType,
    NoOfParameters,
    i, pi,
@@ -4588,8 +4592,8 @@ VAR
    Proc,
    t,
    true, false,
-   Des        : CARDINAL ;
-   f          : BoolFrame ;
+   Des          : CARDINAL ;
+   f            : BoolFrame ;
 BEGIN
    PopT(NoOfParameters) ;
    ProcSym := OperandT(NoOfParameters+1) ;
@@ -4666,8 +4670,9 @@ BEGIN
       ELSIF IsUnboundedParam(Proc, i)
       THEN
          t := MakeTemporary(RightValue) ;
-         PutVar(t, Unbounded) ;
-         ParamType := GetType(GetType(GetParam(Proc, i))) ;
+         UnboundedType := GetType(GetParam(Proc, i)) ;
+         PutVar(t, UnboundedType) ;
+         ParamType := GetType(UnboundedType) ;
          IF IsVarParam(Proc, i)
          THEN
             MarkArrayWritten(OperandT(pi)) ;
@@ -4734,7 +4739,7 @@ BEGIN
          (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
          PushT(UnboundedSym) ;
          PushT(Sym) ;
-         BuildAssignmentWithoutBounds ;
+         BuildAssignmentWithoutBounds
       ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
       THEN
          UnboundedVarLinkToArray(Sym, UnboundedSym, ParamType)
@@ -4812,7 +4817,8 @@ VAR
 BEGIN
    (* Unbounded.ArrayAddress := ??? runtime *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetLocalSym(Unbounded, ArrayAddress) ;
+
+   Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
@@ -4823,7 +4829,7 @@ BEGIN
 
    (* Unbounded.ArrayHigh := HIGH(ArraySym)   *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetLocalSym(Unbounded, ArrayHigh) ;
+   Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
@@ -4891,7 +4897,7 @@ VAR
 BEGIN
    (* Unbounded.ArrayAddress := ADR(Sym) *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetLocalSym(Unbounded, ArrayAddress) ;
+   Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
@@ -4902,7 +4908,7 @@ BEGIN
    BuildAssignmentWithoutBounds ;
    (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetLocalSym(Unbounded, ArrayHigh) ;
+   Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
@@ -6259,9 +6265,10 @@ END BuildHighFromArray ;
 
 PROCEDURE BuildHighFromUnbounded ;
 VAR
+   UnboundedType,
    NoOfParam,
    Param1,
-   ReturnVar: CARDINAL ;
+   ReturnVar    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    Param1 := OperandT(1) ;
@@ -6270,9 +6277,10 @@ BEGIN
    *)
    Assert(NoOfParam=1) ;
    PopN(NoOfParam+1) ;
+   UnboundedType := GetType(Param1) ;
    PushTF(Param1, GetType(Param1)) ;
-   PushTF(GetLocalSym(Unbounded, ArrayHigh),
-          GetType(GetLocalSym(Unbounded, ArrayHigh))) ;
+   PushTF(GetUnboundedHighOffset(UnboundedType),
+          GetType(GetUnboundedHighOffset(UnboundedType))) ;
    PushT(1) ;             (* 1 field for Param1._ArrayHigh *)
    BuildDesignatorRecord  (* Now the generate quadruples   *)
 END BuildHighFromUnbounded ;
@@ -7704,7 +7712,7 @@ BEGIN
          (* we will reference the address field of the unbounded structure *)
          UnboundedSym := OperandT(1) ;
          PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-         Field := GetLocalSym(Unbounded, ArrayAddress) ;
+         Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
          PushTF(Field, GetType(Field)) ;
          PushT(1) ;
          BuildDesignatorRecord ;
@@ -7773,7 +7781,7 @@ BEGIN
          (* eg. SIZE(a)  ; where a is unbounded dereference HIGH and multiply by the TYPE *)
          UnboundedSym := OperandT(1) ;
          PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-         Field := GetLocalSym(Unbounded, ArrayHigh) ;
+         Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
          PushTF(Field, GetType(Field)) ;
          PushT(1) ;
          BuildDesignatorRecord ;
@@ -8758,9 +8766,10 @@ VAR
    Sym,
    idx,
    Type, Adr,
+   UnboundedType,
    PtrToBase,
    Base,
-   ti, tj, tk    : CARDINAL ;
+   ti, tj, tk   : CARDINAL ;
 BEGIN
    DumpStack ;
    Sym  := OperandT(2) ;
@@ -8778,9 +8787,10 @@ BEGIN
       Build above current current info needed for array.
       Note that, n, has gone by now.
    *)
-   PushTF(Sym, Unbounded) ;
-   PushTF(GetLocalSym(Unbounded, ArrayAddress),
-          GetType(GetLocalSym(Unbounded, ArrayAddress))) ;
+   UnboundedType := GetUnboundedRecordType(GetType(Sym)) ;
+   PushTF(Sym, UnboundedType) ;
+   PushTF(GetUnboundedAddressOffset(GetType(Sym)),
+          GetType(GetUnboundedAddressOffset(GetType(Sym)))) ;
    PushT(1) ;  (* One record field to dereference *)
    BuildDesignatorRecord ;
    PopT(PtrToBase) ;

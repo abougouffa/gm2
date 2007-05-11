@@ -33,7 +33,7 @@ EXPORT QUALIFIED FoldConstants,
                  DeclareConstant, DeclareLocalVariables, PromoteToString,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
                  DeclareModuleVariables, IsProcedureGccNested,
-                 DeclareProcedure, PoisonSymbols,
+                 DeclareProcedure, PoisonSymbols, DeclareParameters,
                  CompletelyResolved, MarkExported,
                  GetTypeMin, GetTypeMax ;
 
@@ -57,6 +57,13 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 *)
 
 PROCEDURE EndDeclareScope ;
+
+
+(*
+   DeclareParameters -
+*)
+
+PROCEDURE DeclareParameters (sym: CARDINAL) ;
 
 
 (*

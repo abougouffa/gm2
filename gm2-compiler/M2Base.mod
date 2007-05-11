@@ -492,27 +492,14 @@ END InitBaseProcedures ;
 
 
 (*
-   InitBaseFunctions - initialises the base function,
-                       HIGH and its associated Unbounded record structure.
+   InitBaseFunctions - initialises the base function, HIGH.
 *)
 
 PROCEDURE InitBaseFunctions ;
 BEGIN
-   (* Now declare the dynamic array components, HIGH and _Unbounded *)
+   (* Now declare the dynamic array components, HIGH *)
    High := MakeProcedure(MakeKey('HIGH')) ;  (* Pseudo Base function HIGH *)
    PutFunction(High, Cardinal) ;
-
-   (*
-     Unbounded = RECORD
-                    _ArrayAddress: ADDRESS ;
-                    _ArrayHigh   : CARDINAL ;
-                 END ;
-   *)
-   Unbounded := MakeRecord(MakeKey('_Unbounded')) ;
-   ArrayAddress := MakeKey('address') ;
-   ArrayHigh := MakeKey('HIGH') ;
-   PutFieldRecord(Unbounded, ArrayAddress, Address, NulSym) ;
-   PutFieldRecord(Unbounded, ArrayHigh, Cardinal, NulSym) ;
 
    (*
      _TemplateProcedure is a procedure which has a local variable _ActivationPointer

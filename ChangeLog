@@ -1,3 +1,28 @@
+2007-05-11       Gaius Mulley <gaius@gnu.org>
+	
+	* gm2/Make-lang.in:  added -O for paranoid
+	* gm2/gccgm2.c:  
+	* gm2/gm2-compiler/M2Base.def:  removed generic Unbounded type
+	* gm2/gm2-compiler/M2Base.mod:  removed generic Unbounded type
+	  creation.
+	* gm2/gm2-compiler/M2Code.mod:  tidied up comments and semicolon.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  export DeclareParameters.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  implement
+	  DeclareParameters and new unbounded type mechanism.
+	* gm2/gm2-compiler/M2GenGCC.mod:  modified references
+	  to unbounded fields.  Fixed two major optimization bugs
+	  in CodeXIndr and CodeIndrX pointer types
+	  now use generic pointer types when building indirect GCC
+	  trees.
+	* gm2/gm2-compiler/M2Quads:  now create a specific unbounded type
+	  rather than cast to a generic unbounded record.  Again this fixes
+	  bugs in Tree construction which were exposed by the back end
+	  when -O was enabled.
+	* gm2/gm2-compiler/SymbolTable.def:  declared Unbounded record and
+	  field operators.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement Unbounded record and
+	  field operators.
+
 2007-04-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs:  regenerated configure

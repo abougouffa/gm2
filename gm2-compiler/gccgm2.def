@@ -92,7 +92,7 @@ EXPORT QUALIFIED Tree,
                  DoJump,
                  BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
-                 BuildAsm, BuildExpand, DebugTree,
+                 BuildAsm, DebugTree,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
                  RememberConstant,
@@ -108,7 +108,7 @@ EXPORT QUALIFIED Tree,
                  BuildIfInRangeGoto, BuildIfNotInRangeGoto,
                  BuildBinarySetDo,
                  BuildPushFunctionContext, BuildPopFunctionContext,
-                 BuildCap, BuildAbs,
+                 BuildCap, BuildAbs, BuildTypeDeclaration,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
@@ -1143,13 +1143,6 @@ PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tr
 
 
 (*
-   BuildExpand - a test procedure.
-*)
-
-PROCEDURE BuildExpand () : Tree ;
-
-
-(*
    DebugTree - display the tree, t.
 *)
 
@@ -1227,6 +1220,14 @@ PROCEDURE BuildCap (t: Tree) : Tree ;
 *)
 
 PROCEDURE BuildAbs (t: Tree) : Tree ;
+
+
+(*
+   BuildTypeDeclaration - adds the, type, to the current statement list
+                          (if current statement list exists).
+*)
+
+PROCEDURE BuildTypeDeclaration (type: Tree) ;
 
 
 (*

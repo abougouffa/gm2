@@ -37,9 +37,6 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Real,
                  LongReal,
                  ShortReal,
-                 Unbounded,             (* Not directly used by    *)
-                 ArrayAddress,          (* users.                  *)
-                 ArrayHigh,             (* Implement ARRAY OF Type *)
                  High,                  (* Base function           *)
                  LengthS,
                  Convert,
@@ -67,20 +64,6 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ActivationPointer,
                  IsNeededAtRunTime ;
 
-
-(*
-   _Unbounded is a pseudo type and should not be directly used
-    by user programs, the M2 compiler uses it when coearsing
-    ARRAY OF TYPE to an _Unbounded record which provides an
-    eligant implementation.
-
-   _Unbounded = RECORD
-                   _ArrayAddress: ADDRESS ;
-                   _ArrayHigh   : CARDINAL ;
-                END ;
-*)
-
-
 VAR
    TemplateProcedure,
    ActivationPointer,
@@ -103,7 +86,6 @@ VAR
    New, Dispose,
    Inc, Dec,
    Incl, Excl             : CARDINAL ;
-   ArrayAddress, ArrayHigh: Name ;
 
 
 (*

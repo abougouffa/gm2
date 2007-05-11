@@ -1265,7 +1265,8 @@ END FindPosition ;
 *)
 
 PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
-                         state: FileStatus; use: FileUsage; towrite: BOOLEAN; bufsize: CARDINAL) ;
+                         state: FileStatus; use: FileUsage;
+                         towrite: BOOLEAN; bufsize: CARDINAL) ;
 BEGIN
    IF InitializeFile(f, ADR(fname), StrLen(fname), state, use, towrite, bufsize)=f
    THEN

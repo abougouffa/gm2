@@ -61,9 +61,24 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
 
 
 CONST
-   MaxScopes     =     50 ; (* Maximum number of scopes at any one time.     *)
-   MaxSymbols    = 100000 ; (* Maximum number of symbols.                    *)
-   DebugUnknowns =  FALSE ;
+   MaxScopes             =     50 ; (* Maximum number of scopes at any one   *)
+                                    (* time.                                 *)
+   MaxSymbols           = 100000 ;  (* Maximum number of symbols.            *)
+   DebugUnknowns        =  FALSE ;
+
+   (*
+      The Unbounded is a pseudo type used within the compiler
+      to implement dynamic parameter arrays.  It is implmented
+      as a record structure which has the following fields:
+
+      RECORD
+         _m2_contents: POINTER TO type ;
+         _m2_high    : CARDINAL ;
+      END ;
+   *)
+
+   UnboundedAddressName = "_m2_contents" ;
+   UnboundedHighName    = "_m2_high" ;
 
 TYPE
    (* TypeOfSymbol denotes the type of symbol.                               *)
@@ -201,6 +216,8 @@ TYPE
                      Type       : CARDINAL ;  (* Index to Simple type symbol *)
                      Size       : PtrToValue ;(* Max No of words ever        *)
                                               (* passed to this type.        *)
+                     RecordType : CARDINAL ;  (* Record type used to         *)
+                                              (* implement the unbounded.    *)
                      Scope      : CARDINAL ;  (* Scope of declaration.       *)
                      At         : Where ;     (* Where was sym declared/used *)
                   END ;
@@ -7090,7 +7107,8 @@ BEGIN
       WITH Unbounded DO
          Type := NulSym ;               (* Index to a simple type.     *)
          Size := InitValue() ;          (* Size in bytes for this sym  *)
-         Scope := GetCurrentScope() ;   (* Which scope created it *)
+         RecordType := NulSym ;         (* Record which implements it  *)
+         Scope := GetCurrentScope() ;   (* Which scope created it      *)
          InitWhereDeclared(At)          (* Declared here               *)
       END
    END ;
@@ -7103,18 +7121,107 @@ END MakeUnbounded ;
 *)
 
 PROCEDURE PutUnbounded (Sym: CARDINAL; SimpleType: CARDINAL) ;
+VAR
+   Contents: CARDINAL ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ErrorSym: |
       UnboundedSym: Unbounded.Type := SimpleType ;
+                    IF Unbounded.RecordType=NulSym
+                    THEN
+                       Unbounded.RecordType := MakeRecord(NulName) ;
+                       Contents := MakePointer(NulName) ;
+                       PutPointer(Contents, SimpleType) ;
+                       PutFieldRecord(Unbounded.RecordType,
+                                      MakeKey(UnboundedAddressName),
+                                      Contents, NulSym) ;
+                       PutFieldRecord(Unbounded.RecordType,
+                                      MakeKey(UnboundedHighName),
+                                      Cardinal, NulSym)
+                    END
 
       ELSE
          InternalError('expecting an UnBounded symbol', __FILE__, __LINE__)
       END
    END
 END PutUnbounded ;
+
+
+(*
+   GetUnboundedRecordType - returns the record type used to
+                            implement the unbounded array.
+*)
+
+PROCEDURE GetUnboundedRecordType (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      UnboundedSym: RETURN( Unbounded.RecordType )
+
+      ELSE
+         InternalError('expecting an UnBounded symbol', __FILE__, __LINE__)
+      END
+   END
+END GetUnboundedRecordType ;
+
+
+(*
+   GetUnboundedAddressOffset - returns the offset of the address field
+                               inside the record used to implement the
+                               unbounded type.
+*)
+
+PROCEDURE GetUnboundedAddressOffset (Sym: CARDINAL) : CARDINAL ;
+VAR
+   field,
+   rec  : CARDINAL ;
+BEGIN
+   rec := GetUnboundedRecordType(Sym) ;
+   IF rec=NulSym
+   THEN
+      InternalError('expecting record type to be declared', __FILE__, __LINE__)
+   ELSE
+      field := GetLocalSym(rec, MakeKey(UnboundedAddressName)) ;
+      IF field=NulSym
+      THEN
+         InternalError('expecting address field to be present inside unbounded record',
+                       __FILE__, __LINE__)
+      ELSE
+         RETURN( field )
+      END
+   END
+END GetUnboundedAddressOffset ;
+
+
+(*
+   GetUnboundedHighOffset - returns the offset of the high field
+                            inside the record used to implement the
+                            unbounded type.
+*)
+
+PROCEDURE GetUnboundedHighOffset (Sym: CARDINAL) : CARDINAL ;
+VAR
+   field,
+   rec  : CARDINAL ;
+BEGIN
+   rec := GetUnboundedRecordType(Sym) ;
+   IF rec=NulSym
+   THEN
+      InternalError('expecting record type to be declared', __FILE__, __LINE__)
+   ELSE
+      field := GetLocalSym(rec, MakeKey(UnboundedHighName)) ;
+      IF field=NulSym
+      THEN
+         InternalError('expecting high field to be present inside unbounded record',
+                       __FILE__, __LINE__)
+      ELSE
+         RETURN( field )
+      END
+   END
+END GetUnboundedHighOffset ;
 
 
 (*

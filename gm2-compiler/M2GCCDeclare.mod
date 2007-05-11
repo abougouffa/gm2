@@ -83,6 +83,8 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName,
                         GetDeclared,
                         GetString, GetStringLength, IsConstString,
+                        GetUnboundedAddressOffset, GetUnboundedHighOffset,
+                        GetUnboundedRecordType,
                         IsModuleWithinProcedure,
                         IsVariableAtAddress,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
@@ -92,10 +94,9 @@ FROM SymbolTable IMPORT NulSym,
 
 FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    GetBaseTypeMinMax, MixTypes,
-                   Cardinal, Char, Proc, Integer, Unbounded,
+                   Cardinal, Char, Proc, Integer,
                    LongInt, LongCard, ShortCard, ShortInt,
                    Real, LongReal, ShortReal, Boolean, True, False,
-                   ArrayAddress, ArrayHigh,
                    IsRealType, IsNeededAtRunTime ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
@@ -137,7 +138,7 @@ FROM gccgm2 IMPORT Tree,
                    BuildParameterDeclaration,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildStartMainModule, BuildEndMainModule,
-                   RememberType,
+                   RememberType, BuildTypeDeclaration,
                    GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                    BuildSize, MarkFunctionReferenced ;
 
@@ -170,6 +171,7 @@ PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -688,6 +690,37 @@ END DeclareConstant ;
 
 
 (*
+   DeclareParameters -
+*)
+
+PROCEDURE DeclareParameters (sym: CARDINAL) ;
+VAR
+   son,
+   type,
+   p, i: CARDINAL ;
+BEGIN
+   DeclareUnboundedProcedureParameters(sym)
+(*
+
+
+
+   IF IsProcedure(sym)
+   THEN
+      p := NoOfParam(sym) ;
+      i := p ;
+      WHILE i>0 DO
+         son := GetNth(sym, i) ;
+         type := GetType(son) ;
+         (* BuildTypeDeclaration(Mod2Gcc(type)) ; *)  (* this breaks the compiler if enabled *)
+         (* BuildTypeDeclaration(Mod2Gcc(son)) ; *)
+         DEC(i)
+      END
+   END
+*)
+END DeclareParameters ;
+
+
+(*
    IsSymTypeKnown - returns TRUE if the, type, of symbol, sym is known to GCC.
                     It adds all of syms dependants to the ToDoList if they are unknown.
 *)
@@ -823,6 +856,10 @@ BEGIN
                AddModGcc(type, DeclareOrFindKindOfType(type)) ;
                RemoveItemFromList(ToFinishList, type) ;
                IncludeItemIntoList(DefinedList, type)
+            END ;
+            IF GccKnowsAbout(type) AND AllDependantsWritten(type)
+            THEN
+               BuildTypeDeclaration(Mod2Gcc(type))
             END
          ELSE
             son := GetNth(Sym, i) ;
@@ -1506,6 +1543,7 @@ BEGIN
                                              FALSE,
                                              Mod2Gcc(Sym)))
       END ;
+      (* BuildTypeDeclaration(Mod2Gcc(Var)) ; *)
       INC(i) ;
       Var := GetNth(Sym, i)
    END
@@ -1548,6 +1586,7 @@ BEGIN
                                              FALSE,
                                              scope))
       END ;
+      (* BuildTypeDeclaration(Mod2Gcc(Var)) ; *)
       INC(i) ;
       Var := GetNth(Sym, i)
    END
@@ -2126,21 +2165,25 @@ VAR
    FieldList,
    GccFieldType,
    RecordType  : Tree ;
+   ArrayName,
+   HighName    : Name ;
 BEGIN
+   ArrayName := GetSymName(GetUnboundedAddressOffset(Sym)) ;
+   HighName  := GetSymName(GetUnboundedHighOffset(Sym)) ;
    IF GetType(Sym)=Char
    THEN
       RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
-      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayAddress),
+      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayName),
                                              BuildPointerType(GetCharType())),
-                            BuildFieldRecord(KeyToCharStar(ArrayHigh),
+                            BuildFieldRecord(KeyToCharStar(HighName),
                                              Mod2Gcc(Cardinal))) ;
       RETURN( BuildEndRecord(RecordType, FieldList) )
    ELSE
       (* was RETURN( Mod2Gcc(Unbounded) ) *)
       RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
-      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayAddress),
+      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayName),
                                              BuildPointerType(Mod2Gcc(GetType(Sym)))),
-                            BuildFieldRecord(KeyToCharStar(ArrayHigh),
+                            BuildFieldRecord(KeyToCharStar(HighName),
                                              Mod2Gcc(Cardinal))) ;
       RETURN( BuildEndRecord(RecordType, FieldList) )
    END
@@ -2986,6 +3029,10 @@ VAR
    solved: BOOLEAN ;
 BEGIN
    solved := TRUE ;
+   IF NOT IsSymTypeKnown(Sym, GetUnboundedRecordType(Sym))
+   THEN
+      solved := FALSE
+   END ;
    IF GetType(Sym)=Char
    THEN
       IF NOT IsSymTypeKnown(Sym, Cardinal)
@@ -2997,10 +3044,6 @@ BEGIN
          solved := FALSE
       END
    ELSE
-      IF NOT IsSymTypeKnown(Sym, Unbounded)
-      THEN
-         solved := FALSE
-      END ;
       IF NOT IsSymTypeKnown(Sym, GetType(Sym))
       THEN
          solved := FALSE
