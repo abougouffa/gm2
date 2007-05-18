@@ -1,3 +1,7 @@
+2007-05-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed -O for paranoid
+
 2007-05-11       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/Make-lang.in:  added -O for paranoid
