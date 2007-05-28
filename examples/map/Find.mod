@@ -33,7 +33,6 @@ VAR
    Xoffset,
    Yoffset: CARDINAL ;
 
-
 (*
    FindOptimumRoute - finds the optimum route between two points,
                       x1, y1, x2, y2. The directions are returned
@@ -295,8 +294,12 @@ BEGIN
    WriteString('Creating distance map between points 0,0 and MaxX, MaxY') ;
    WriteLn ;
    MyDist := ScanBackwards(0, 0, MaxX, MaxY, 1) ;
-   WriteString('Distance is') ; WriteCard(MapDist[0,0], 6) ; WriteLn ;
-   DisplayMap ;
+
+   WriteString('Distance is') ;
+
+   WriteCard(MapDist[0,0], 6) ;
+   WriteLn ;
+   DisplayMap
 END TestDistance ;
 
 

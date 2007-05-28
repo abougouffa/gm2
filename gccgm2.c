@@ -1351,7 +1351,32 @@ gm2_gimplify_expr (tree *expr_p,
 		   tree *pre_p ATTRIBUTE_UNUSED,
 		   tree *post_p ATTRIBUTE_UNUSED)
 {
+#if 1
   return GS_UNHANDLED;
+#else
+  tree expr = *expr_p;
+  tree op0, op1;
+
+  switch (TREE_CODE (expr))
+    {
+    case INDIRECT_REF:
+      op0 = TREE_OPERAND (expr, 0);
+      if (TREE_TYPE (op0) == ADDR_EXPR)
+	TREE_TYPE (op0) = ptr_type_node;
+      break;
+    case ADDR_EXPR:
+      op0 = TREE_OPERAND (expr, 0);
+      if (TREE_TYPE (op0) == ARRAY_TYPE) {
+	debug_tree (op0);
+	stop();
+	TREE_TYPE (expr) = ptr_type_node;
+      }
+      break;
+    default:
+      break;
+    }
+  return GS_UNHANDLED;
+#endif
 }
 
 void find_arg0 (tree t);
@@ -7303,7 +7328,6 @@ gccgm2_BuildTypeDeclaration (tree type)
 {
   if (cur_stmt_list != NULL) {
     enum tree_code code = TREE_CODE (type);
-    stop();
 
     if (code == TYPE_DECL || code == RECORD_TYPE || code == POINTER_TYPE) {
       // debug_tree(type);
@@ -8769,9 +8793,9 @@ gccgm2_BuildSize (tree op1, int needconvert ATTRIBUTE_UNUSED)
   return gccgm2_GetSizeOf(op1);
 }
 
-
 /*
- *  BuildAddr - builds an expression which calculates the address of op1 and returns the tree.
+ *  BuildAddr - builds an expression which calculates the address of
+ *              op1 and returns the tree.
  */
 
 tree
@@ -8779,7 +8803,6 @@ gccgm2_BuildAddr (tree op1, int needconvert)
 {
   return build_unary_op (ADDR_EXPR, op1, needconvert);
 }
-
 
 #if defined(DEBUGGING)
 static void debug_print_value (t)

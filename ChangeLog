@@ -1,3 +1,14 @@
+2007-05-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2-compiler/M2Quads.mod:  replaced PutVarTypeAndSize with
+	  PutLeftValueFrontBackType.
+	* gm2-compiler/SymbolTable.mod:  implemented
+	  PutLeftValueFrontBackType and GetLeftValueFrontBackType.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  rationalised variable
+	  creation by introducing function:  DoVariableDeclaration.
+	  All variables are created via this function.
+	  Use GetLeftValueFrontBackType.
+
 2007-05-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed -O for paranoid

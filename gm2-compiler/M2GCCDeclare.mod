@@ -81,7 +81,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetVarient,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName,
-                        GetDeclared,
+                        GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
                         GetUnboundedAddressOffset, GetUnboundedHighOffset,
                         GetUnboundedRecordType,
@@ -807,7 +807,11 @@ BEGIN
       InternalError('why have we reached here?', __FILE__, __LINE__)
    ELSIF IsVar(Sym)
    THEN
-      DeclareTypeInfo(GetType(Sym))
+      DeclareTypeInfo(GetType(Sym)) ;
+      IF GetVarBackEndType(Sym)#NulSym
+      THEN
+         DeclareTypeInfo(GetVarBackEndType(Sym))
+      END
    ELSIF (NOT GccKnowsAbout(Sym)) AND IsAModula2Type(Sym)
    THEN
       IncludeItemIntoList(ToDoList, Sym) ;
@@ -1424,6 +1428,48 @@ END FindOuterModule ;
 
 
 (*
+   DoVariableDeclaration - 
+*)
+
+PROCEDURE DoVariableDeclaration (var: CARDINAL; name: ADDRESS;
+                                 isImported, isExported,
+                                 isTemporary, isGlobal: BOOLEAN;
+                                 scope: Tree) ;
+VAR
+   type   : Tree ;
+   varType: CARDINAL ;
+BEGIN
+   IF GetMode(var)=LeftValue
+   THEN
+      (*
+        There are two issues to deal with:
+
+        (i)   LeftValue is really a pointer to GetType(Son)
+        (ii)  Front end might have specified the back end use a particular
+              data type - in which case we might tell gcc exactly this.
+      *)
+      varType := GetVarBackEndType(var) ;
+      IF varType=NulSym
+      THEN
+         varType := GetType(var)
+      END ;
+      Assert(AllDependantsWritten(varType)) ;
+      IF IsVariableAtAddress(var)
+      THEN
+         type := BuildConstPointerType(Mod2Gcc(varType))
+      ELSE
+         type := BuildPointerType(Mod2Gcc(varType))
+      END
+   ELSE
+      type := Mod2Gcc(GetType(var))
+   END ;
+   AddModGcc(var, DeclareKnownVariable(name, type,
+                                       isExported, isImported, isTemporary,
+                                       isGlobal, scope))
+END DoVariableDeclaration ;
+
+
+(*
    DeclareVariable - declares a global variable to GCC.
 *)
 
@@ -1438,36 +1484,13 @@ BEGIN
       scope := FindTreeScope(ModSym) ;
       decl := FindOuterModule(Son) ;
       Assert(AllDependantsWritten(GetType(Son))) ;
-      IF GetMode(Son)=LeftValue
-      THEN
-         (* really a pointer to GetType(Son) - we will tell gcc exactly this *)
-         IF IsVariableAtAddress(Son)
-         THEN
-            AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                                BuildConstPointerType(Mod2Gcc(GetType(Son))),
-                                                IsExported(ModSym, Son),
-                                                IsEffectivelyImported(ModSym, Son),
-                                                IsTemporary(Son),
-                                                GetMainModule()=decl,
-                                                scope))            
-         ELSE
-            AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                                BuildPointerType(Mod2Gcc(GetType(Son))),
-                                                IsExported(ModSym, Son),
-                                                IsEffectivelyImported(ModSym, Son),
-                                                IsTemporary(Son),
-                                                GetMainModule()=decl,
-                                                scope))
-         END
-      ELSE
-         AddModGcc(Son, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Son)),
-                                             Mod2Gcc(GetType(Son)),
-                                             IsExported(ModSym, Son),
-                                             IsEffectivelyImported(ModSym, Son),
-                                             IsTemporary(Son),
-                                             GetMainModule()=decl,
-                                             scope))
-      END
+      DoVariableDeclaration(Son,
+                            KeyToCharStar(GetFullSymName(Son)),
+                            IsEffectivelyImported(ModSym, Son),
+                            IsExported(ModSym, Son),
+                            IsTemporary(Son),
+                            GetMainModule()=decl,
+                            scope)
    END
 END DeclareVariable ;
 
@@ -1524,26 +1547,13 @@ BEGIN
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
       Assert(AllDependantsWritten(GetType(Var))) ;
-      IF GetMode(Var)=LeftValue
-      THEN
-         (* really a pointer to GetType(Var) - we will tell gcc exactly this *)
-         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
-                                             BuildPointerType(Mod2Gcc(GetType(Var))),
-                                             FALSE,  (* local variables cannot be imported *)
-                                             FALSE,  (* local variables cannot be exported *)
-                                             IsTemporary(Var),
-                                             FALSE,
-                                             Mod2Gcc(Sym)))
-      ELSE
-         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
-                                             Mod2Gcc(GetType(Var)),
-                                             FALSE,  (* local variables cannot be imported *)
-                                             FALSE,  (* local variables cannot be exported *)
-                                             IsTemporary(Var),
-                                             FALSE,
-                                             Mod2Gcc(Sym)))
-      END ;
-      (* BuildTypeDeclaration(Mod2Gcc(Var)) ; *)
+      DoVariableDeclaration(Var,
+                            KeyToCharStar(GetFullSymName(Var)),
+                            FALSE,  (* local variables cannot be imported *)
+                            FALSE,  (* or exported *)
+                            IsTemporary(Var),
+                            FALSE,  (* and are not global *)
+                            Mod2Gcc(Sym)) ;
       INC(i) ;
       Var := GetNth(Sym, i)
    END
@@ -1567,26 +1577,13 @@ BEGIN
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
       Assert(AllDependantsWritten(GetType(Var))) ;
-      IF GetMode(Var)=LeftValue
-      THEN
-         (* really a pointer to GetType(Var) - we will tell gcc exactly this *)
-         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
-                                             BuildPointerType(Mod2Gcc(GetType(Var))),
-                                             FALSE,  (* local variables cannot be imported *)
-                                             FALSE,  (* local variables cannot be exported *)
-                                             IsTemporary(Var),
-                                             FALSE,
-                                             scope))
-      ELSE
-         AddModGcc(Var, DeclareKnownVariable(KeyToCharStar(GetFullSymName(Var)),
-                                             Mod2Gcc(GetType(Var)),
-                                             FALSE,  (* local variables cannot be imported *)
-                                             FALSE,  (* local variables cannot be exported *)
-                                             IsTemporary(Var),
-                                             FALSE,
-                                             scope))
-      END ;
-      (* BuildTypeDeclaration(Mod2Gcc(Var)) ; *)
+      DoVariableDeclaration(Var,
+                            KeyToCharStar(GetFullSymName(Var)),
+                            FALSE,   (* inner module variables cannot be imported *)
+                            FALSE,   (* or exported (as far as GCC is concerned)  *)
+                            IsTemporary(Var),
+                            FALSE,   (* and are not global *)
+                            scope) ;
       INC(i) ;
       Var := GetNth(Sym, i)
    END
@@ -1604,9 +1601,11 @@ BEGIN
    IF (GetModuleWhereDeclared(Sym)=NulSym) OR
       (GetModuleWhereDeclared(Sym)=GetMainModule())
    THEN
-      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)), PopIntegerTree()))
+      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)),
+                                     PopIntegerTree()))
    ELSE
-      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)), PopIntegerTree()))
+      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)),
+                                     PopIntegerTree()))
    END
 END DeclareFieldEnumeration ;
 

@@ -28,7 +28,7 @@ FROM DynamicStrings IMPORT String, string, InitString, KillString,
 
 FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporary, MakeConstLit, MakeConstLitString,
-                        RequestSym,
+                        RequestSym, MakePointer, PutPointer,
                         GetType, GetLowestType, SkipType,
                         GetScope, GetCurrentScope,
                         GetSubrange,
@@ -69,7 +69,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsSubscript,
                         IsTemporary,
                         IsAModula2Type,
-                        PutVarTypeAndSize,
+                        PutLeftValueFrontBackType,
                         PushSize, PushValue, PopValue,
                         GetVariableAtAddress, IsVariableAtAddress,
 
@@ -8588,7 +8588,7 @@ BEGIN
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   PutVarTypeAndSize(Res, Type, Address) ;
+   PutLeftValueFrontBackType(Res, Type, NulSym) ;
    GenQuad(AddOp, Res, adr, t1) ;
    PopN(n+1) ;
    PushTF(Res, Type)
@@ -8672,11 +8672,12 @@ PROCEDURE BuildStaticArray ;
 VAR
    Sym,
    Op1,
+   BackEndType,
    Type, Adr,
    Base,
    Offset,
    ti, tj,
-   tk, ta   : CARDINAL ;
+   tk, ta     : CARDINAL ;
 BEGIN
    Op1  := OperandT(1) ;
    Sym  := OperandT(2) ;
@@ -8729,7 +8730,9 @@ BEGIN
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   PutVarTypeAndSize(Adr, GetType(Type), Address) ;
+   BackEndType := MakePointer(NulName) ;
+   PutPointer(BackEndType, GetType(Type)) ;
+   PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
 
    GenQuad(AddOp, Adr, Base, tk) ;
    PopN(2) ;   (* remove all parameters to this procedure *)
@@ -8766,6 +8769,7 @@ VAR
    Sym,
    idx,
    Type, Adr,
+   BackEndType,
    UnboundedType,
    PtrToBase,
    Base,
@@ -8843,7 +8847,9 @@ BEGIN
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   PutVarTypeAndSize(Adr, GetType(Type), Address) ;
+   BackEndType := MakePointer(NulName) ;
+   PutPointer(BackEndType, GetType(Type)) ;
+   PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
 
    GenQuad(AddOp, Adr, Base, tk) ;
    PopN(2) ;
@@ -8888,7 +8894,7 @@ BEGIN
          Ok must reference by address
          - but we contain the type of the referenced entity
       *)
-      PutVarTypeAndSize(Sym2, Type2, Address) ;
+      PutLeftValueFrontBackType(Sym2, Type2, NulSym) ;
 
       IF GetMode(Sym1)=LeftValue
       THEN
@@ -8929,7 +8935,7 @@ BEGIN
    PopTF(Sym, Type) ;
    Type := SkipType(Type) ;
    adr := MakeTemporary(LeftValue) ;
-   PutVarTypeAndSize(adr, Type, Address) ;
+   PutLeftValueFrontBackType(adr, Type, NulSym) ;
 
    IF GetMode(Sym)=LeftValue
    THEN
@@ -9121,7 +9127,7 @@ BEGIN
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   PutVarTypeAndSize(Res, Type1, Address) ;
+   PutLeftValueFrontBackType(Res, Type1, NulSym) ;
    GenQuad(AddOp, Res, Adr, t1) ;
    PushTF(Res, Type1) ;
    SuppressWith := OldSuppressWith
@@ -9209,7 +9215,7 @@ BEGIN
 
                (* now we create a new variable, sym, which will contain the address of the variable *)
                Sym := MakeTemporary(LeftValue) ;
-               PutVarTypeAndSize(Sym, Type, Address) ;
+               PutLeftValueFrontBackType(Sym, Type, NulSym) ;
                GenQuad(BecomesOp, Sym, NulSym, t1)
             ELSE
                InternalError('we should have found symbol in a procedure scope', __FILE__, __LINE__)

@@ -347,6 +347,7 @@ TYPE
                name          : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
                Type          : CARDINAL ;     (* Index to a type symbol.     *)
+               BackType      : CARDINAL ;     (* specific back end symbol.   *)
                Size          : PtrToValue ;   (* Runtime size of symbol.     *)
                Offset        : PtrToValue ;   (* Offset at runtime of symbol *)
                AddrMode      : ModeOfAddr ;   (* Type of Addressing mode.    *)
@@ -2648,6 +2649,8 @@ BEGIN
          SymbolType := VarSym ;
          WITH Var DO
             name := VarName ;
+            Type := NulSym ;
+            BackType := NulSym ;
             Size := InitValue() ;
             Offset := InitValue() ;
             AddrMode := RightValue ;
@@ -3807,31 +3810,45 @@ END PutVar ;
 
 
 (*
-   PutVarTypeAndSize - gives the variable symbol a type VarType but with a size
-                       TypeSize. TypeSize is a symbol from which we copy the size.
-
-                       NOTE - that the variable need NOT have the same size
-                              as its corresponding type.
-                              The only time this exception is used should
-                              be with Temporary variables which have a
-                              ModeOfAddr = LeftValue ie pointers to a
-                              record structure.
+   PutLeftValueFrontBackType - gives the variable symbol a front and backend type.
+                               The variable must be a LeftValue.
 *)
 
-PROCEDURE PutVarTypeAndSize (Sym: CARDINAL; VarType: CARDINAL; TypeSize: CARDINAL) ;
+PROCEDURE PutLeftValueFrontBackType (Sym: CARDINAL; FrontType, BackType: CARDINAL) ;
 BEGIN
+   Assert(GetMode(Sym)=LeftValue) ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym : Var.Type := VarType ;
-               PushSize(TypeSize) ;
+      VarSym : Var.Type := FrontType ;
+               Var.BackType := BackType ;
+               PushSize(Address) ;
                PopInto(Var.Size)
 
       ELSE
          InternalError('expecting VarSym', __FILE__, __LINE__)
       END
    END
-END PutVarTypeAndSize ;
+END PutLeftValueFrontBackType ;
+
+
+(*
+   GetVarBackEndType - returns the back end type if specified.
+*)
+
+PROCEDURE GetVarBackEndType (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   Assert(Sym#NulSym) ;
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      VarSym: RETURN( Var.BackType )
+
+      ELSE
+         RETURN( NulSym )
+      END
+   END
+END GetVarBackEndType ;
 
 
 (*
@@ -4453,7 +4470,9 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := NulSym ;
-   IF CompilingImplementationModule() AND IsHiddenTypeDeclared(CurrentModule)
+   IF CompilingImplementationModule() AND
+      IsHiddenTypeDeclared(CurrentModule) AND
+      (TypeName#NulName)
    THEN
       (* Check to see whether we are declaring a HiddenType. *)
       WITH Symbols[CurrentModule] DO
@@ -6803,7 +6822,7 @@ BEGIN
 
          PointerSym: Pointer.Type := NulSym ;
                      Pointer.name := PointerName ;
-                     Pointer.Scope := GetCurrentScope() ;      (* Which scope created it *)
+                     Pointer.Scope := GetCurrentScope() ;   (* Which scope created it *)
                      Pointer.Size := InitValue()
 
          ELSE

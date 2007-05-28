@@ -109,7 +109,8 @@ EXPORT QUALIFIED NulSym,
                  GetVariableAtAddress,
 
                  PutVar,
-                 PutVarTypeAndSize,
+                 PutLeftValueFrontBackType,
+                 GetVarBackEndType,
                  PutVarPointerCheck,
                  GetVarPointerCheck,
                  PutVarWritten,
@@ -932,19 +933,18 @@ PROCEDURE PutVar (Sym: CARDINAL; VarType: CARDINAL) ;
 
 
 (*
-   PutVarTypeAndSize - gives the variable symbol a type VarType but with a size
-                       TypeSize. TypeSize is a symbol from which we copy the size.
-
-                       NOTE - that the variable need NOT have the same size
-                              as its corresponding type.
-                              The only time this exception is used should
-                              be with Temporary variables which have a
-                              ModeOfAddr = LeftValue ie pointers to a
-                              record structure.
+   PutLeftValueFrontBackType - gives the variable symbol a front and backend type.
+                               The variable must be a LeftValue.
 *)
 
-PROCEDURE PutVarTypeAndSize (Sym: CARDINAL;
-                             VarType: CARDINAL; TypeSize: CARDINAL) ;
+PROCEDURE PutLeftValueFrontBackType (Sym: CARDINAL; FrontType, BackType: CARDINAL) ;
+
+
+(*
+   GetVarBackEndType - returns the back end type if specified.
+*)
+
+PROCEDURE GetVarBackEndType (Sym: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -1662,7 +1662,8 @@ BEGIN
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
       t := BuildAssignment(Mod2Gcc(op1),
-                           BuildAddr(Mod2Gcc(op3), FALSE))
+                           BuildConvert(GetPointerType(),
+                                        BuildAddr(Mod2Gcc(op3), FALSE), FALSE))
    END
 END CodeAddr ;
 
@@ -4763,13 +4764,15 @@ BEGIN
       (*
          Mem[op1] := Mem[Mem[op3]]
       *)
-      IF IsPointer(SkipType(op2))
+      t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
+(*
+      IF IsPointer(SkipType(op2)) OR (IsTemporary(op3) AND (GetMode(op3)=LeftValue))
       THEN
-         (* t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2))) *)
          t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), GetPointerType()))
       ELSE
          t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
       END
+*)
    END
 END CodeIndrX ;
 
@@ -4808,6 +4811,9 @@ BEGIN
       t := BuildAssignment(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
                            StringToChar(Mod2Gcc(op3), Char, op3))
    ELSE
+      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
+                           StringToChar(Mod2Gcc(op3), op2, op3))
+(*
       IF IsPointer(SkipType(op2))
       THEN
          t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
@@ -4816,6 +4822,7 @@ BEGIN
          t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
                               StringToChar(Mod2Gcc(op3), op2, op3))
       END
+*)
    END
 END CodeXIndr ;
 
