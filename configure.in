@@ -22,6 +22,7 @@
 AC_INIT(gccgm2.c, 0.53, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2config.h:gm2config.h.in)
 AC_PATH_PROGS(AR_PATH, ${AR}, ar)
+AC_PROG_LEX
 AC_DEFINE_UNQUOTED(AR_PATH, "$AR_PATH", the path to target archiver)
 AC_PATH_PROGS(RANLIB_PATH, ${RANLIB}, ranlib)
 AC_DEFINE_UNQUOTED(RANLIB_PATH, "$RANLIB_PATH", the path to target ranlib)
