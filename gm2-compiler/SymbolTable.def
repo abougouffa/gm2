@@ -94,6 +94,7 @@ EXPORT QUALIFIED NulSym,
                  GetProcedureBuiltin,
                  GetNthParam,
                  GetNthProcedure,
+                 GetUnbounded,
                  GetUnboundedRecordType,
                  GetUnboundedAddressOffset,
                  GetUnboundedHighOffset,
@@ -133,7 +134,6 @@ EXPORT QUALIFIED NulSym,
                  PutProcTypeParam, PutProcTypeVarParam,
                  PutPointer,
                  PutSubscript,
-                 PutUnbounded,
                  PutProcedureBuiltin, PutProcedureInline,
                  PutModuleStartQuad,
                  PutModuleEndQuad,
@@ -1914,6 +1914,14 @@ PROCEDURE IsUnbounded (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
+   GetUnbounded - returns the unbounded symbol associated with
+                  SimpleType.
+*)
+
+PROCEDURE GetUnbounded (SimpleType: CARDINAL) : CARDINAL ;
+
+
+(*
    GetUnboundedRecordType - returns the record type used to
                             implement the unbounded array.
 *)
@@ -1959,14 +1967,7 @@ PROCEDURE PutSubscript (Sym: CARDINAL; SimpleType: CARDINAL) ;
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded () : CARDINAL ;
-
-
-(*
-   PutUnbounded - gives an unbounded symbol a type, SimpleType.
-*)
-
-PROCEDURE PutUnbounded (Sym: CARDINAL; SimpleType: CARDINAL) ;
+PROCEDURE MakeUnbounded (SimpleType: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -156,6 +156,7 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
+                  Unbounded    : CARDINAL ;   (* The unbounded sym for this  *)
                   Parent       : CARDINAL ;   (* Points to the parent symbol *)
                   Scope        : CARDINAL ;   (* Scope of declaration.       *)
                   At           : Where ;      (* Where was sym declared/used *)
@@ -169,6 +170,7 @@ TYPE
                     Size       : PtrToValue ; (* Size of subrange type.      *)
                     Type       : CARDINAL ;   (* Index to type symbol for    *)
                                               (* the type of subrange.       *)
+                    Unbounded  : CARDINAL ;   (* The unbounded sym for this  *)
                     Scope      : CARDINAL ;   (* Scope of declaration.       *)
                     At         : Where ;      (* Where was sym declared/used *)
                  END ;
@@ -181,6 +183,7 @@ TYPE
                    LocalSymbols: SymbolTree ; (* Contains all enumeration    *)
                                               (* fields.                     *)
                    Size        : PtrToValue ; (* Size at runtime of symbol.  *)
+                   Unbounded   : CARDINAL ;   (* The unbounded sym for this  *)
                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                 END ;
@@ -193,6 +196,7 @@ TYPE
                  Size        : PtrToValue ;   (* Size at runtime of symbol.  *)
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
+                 Unbounded   : CARDINAL ;     (* The unbounded sym for this  *)
                  Scope       : CARDINAL ;     (* Scope of declaration.       *)
                  At          : Where ;        (* Where was sym declared/used *)
               END ;
@@ -299,6 +303,7 @@ TYPE
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                TotalParamSize: PtrToValue ; (* size of all parameters.       *)
+               Unbounded     : CARDINAL ;   (* The unbounded sym for this  *)
                At            : Where ;      (* Where was sym declared/used   *)
             END ;
 
@@ -370,6 +375,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 IsHidden : BOOLEAN ;          (* Was it declared as hidden?  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -380,6 +386,7 @@ TYPE
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -438,6 +445,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -741,6 +749,7 @@ PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -2677,6 +2686,32 @@ END MakeVar ;
 
 
 (*
+   FillInRecordFields - given a new symbol, sym, make it a record symbol
+                        and initialize its fields.
+*)
+
+PROCEDURE FillInRecordFields (Sym: CARDINAL; RecordName: Name; scope: CARDINAL) ;
+BEGIN
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := RecordSym ;
+         WITH Record DO
+            name := RecordName ;
+            InitTree(LocalSymbols) ;
+            Size := InitValue() ;
+            InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
+            Unbounded := NulSym ;
+            Parent := NulSym ;
+            Scope := GetCurrentScope() ;
+            InitWhereDeclared(At)
+         END
+      END
+   END
+END FillInRecordFields ;
+
+
+(*
    MakeRecord - makes the a Record symbol with name RecordName.
 *)
 
@@ -2694,21 +2729,7 @@ BEGIN
          AddSymToScope(Sym, RecordName)
       END
    END ;
-   IF NOT IsError(Sym)
-   THEN
-      WITH Symbols[Sym] DO
-         SymbolType := RecordSym ;
-         WITH Record DO
-            name := RecordName ;
-            InitTree(LocalSymbols) ;
-            Size := InitValue() ;
-            InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
-            Parent := NulSym ;
-            Scope := GetCurrentScope() ;
-            InitWhereDeclared(At)
-         END
-      END
-   END ;
+   FillInRecordFields(Sym, RecordName, GetCurrentScope()) ;
    RETURN( Sym )
 END MakeRecord ;
 
@@ -2807,7 +2828,8 @@ BEGIN
                                            (* enumeration type.      *)
             Size := InitValue() ;          (* Size at runtime of sym *)
             InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
-            Scope := GetCurrentScope() ;  (* Which scope created it *)
+            Unbounded := NulSym ;          (* The unbounded for this *)
+            Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)          (* Declared here          *)
          END
       END ;
@@ -2845,6 +2867,7 @@ BEGIN
             Type := NulSym ;          (* Index to a type symbol.     *)
             IsHidden := FALSE ;       (* Was it declared as hidden?  *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
+            Unbounded := NulSym ;          (* The unbounded for this *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)     (* Declared here               *)
          END
@@ -3419,7 +3442,8 @@ BEGIN
             Type := NulSym ;            (* Index to a type. Determines   *)
                                         (* the type of subrange.         *)
             Size := InitValue() ;       (* Size determines the type size *)
-            Scope := GetCurrentScope() ;      (* Which scope created it *)
+            Unbounded := NulSym ;       (* The unbounde sym for this     *)
+            Scope := GetCurrentScope() ;      (* Which scope created it  *)
             InitWhereDeclared(At)       (* Declared here                 *)
          END
       END
@@ -3456,7 +3480,8 @@ BEGIN
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
-            Scope := GetCurrentScope() ;        (* Which scope created it *)
+            Unbounded := NulSym ;   (* The unbounded for this array        *)
+            Scope := GetCurrentScope() ;        (* Which scope created it  *)
             InitWhereDeclared(At)   (* Declared here                       *)
          END
       END
@@ -4471,6 +4496,7 @@ VAR
 BEGIN
    Sym := NulSym ;
    IF CompilingImplementationModule() AND
+      IsDefImp(CurrentModule) AND
       IsHiddenTypeDeclared(CurrentModule) AND
       (TypeName#NulName)
    THEN
@@ -6797,6 +6823,33 @@ END AreParametersDefinedInImplementation ;
 
 
 (*
+   FillInPointerFields - given a new symbol, sym, make it a pointer symbol
+                         and initialize its fields.
+*)
+
+PROCEDURE FillInPointerFields (Sym: CARDINAL; PointerName: Name; scope: CARDINAL) ;
+BEGIN
+   IF NOT IsError(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         SymbolType := PointerSym ;
+         CASE SymbolType OF
+
+         PointerSym: Pointer.Type := NulSym ;
+                     Pointer.name := PointerName ;
+                     Pointer.Unbounded := NulSym ;          (* The unbounded for this *)
+                     Pointer.Scope := scope ;               (* Which scope created it *)
+                     Pointer.Size := InitValue()
+
+         ELSE
+            InternalError('expecting a Pointer symbol', __FILE__, __LINE__)
+         END
+      END
+   END
+END FillInPointerFields ;
+
+
+(*
    MakePointer - returns a pointer symbol with PointerName.
 *)
 
@@ -6814,22 +6867,7 @@ BEGIN
          AddSymToScope(Sym, PointerName)
       END
    END ;
-   IF NOT IsError(Sym)
-   THEN
-      WITH Symbols[Sym] DO
-         SymbolType := PointerSym ;
-         CASE SymbolType OF
-
-         PointerSym: Pointer.Type := NulSym ;
-                     Pointer.name := PointerName ;
-                     Pointer.Scope := GetCurrentScope() ;   (* Which scope created it *)
-                     Pointer.Size := InitValue()
-
-         ELSE
-            InternalError('expecting a Pointer symbol', __FILE__, __LINE__)
-         END
-      END
-   END ;
+   FillInPointerFields(Sym, PointerName, GetCurrentScope()) ;
    RETURN( Sym )
 END MakePointer ;
 
@@ -7070,6 +7108,7 @@ BEGIN
             name := SetName ;          (* The name of the set.        *)
             Type := NulSym ;           (* Index to a subrange symbol. *)
             Size := InitValue() ;      (* Size of this set            *)
+            Unbounded := NulSym ;      (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclared(At)      (* Declared here               *)
          END
@@ -7116,53 +7155,91 @@ END IsSet ;
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded () : CARDINAL ;
+PROCEDURE MakeUnbounded (SimpleType: CARDINAL) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   Contents,
+   Sym     : CARDINAL ;
 BEGIN
-   NewSym(Sym) ;
-   WITH Symbols[Sym] DO
-      SymbolType := UnboundedSym ;
-      WITH Unbounded DO
-         Type := NulSym ;               (* Index to a simple type.     *)
-         Size := InitValue() ;          (* Size in bytes for this sym  *)
-         RecordType := NulSym ;         (* Record which implements it  *)
-         Scope := GetCurrentScope() ;   (* Which scope created it      *)
-         InitWhereDeclared(At)          (* Declared here               *)
-      END
+   Sym := GetUnbounded(SimpleType) ;
+   IF Sym=NulSym
+   THEN
+      NewSym(Sym) ;
+      WITH Symbols[Sym] DO
+         SymbolType := UnboundedSym ;
+         WITH Unbounded DO
+            Type := SimpleType ;            (* Index to a simple type.     *)
+            Size := InitValue() ;           (* Size in bytes for this sym  *)
+            Scope := GetScope(SimpleType) ; (* Which scope will create it  *)
+            InitWhereDeclared(At) ;         (* Declared here               *)
+            NewSym(RecordType) ;
+            FillInRecordFields(RecordType, NulName, GetScope(SimpleType)) ;
+            NewSym(Contents) ;
+            FillInPointerFields(Contents, NulName, GetScope(SimpleType)) ;
+            PutPointer(Contents, SimpleType) ;
+            PutFieldRecord(RecordType,
+                           MakeKey(UnboundedAddressName),
+                           Contents, NulSym) ;
+            PutFieldRecord(RecordType,
+                           MakeKey(UnboundedHighName),
+                           Cardinal, NulSym)
+         END
+      END ;
+      PutUnbounded(SimpleType, Sym)
    END ;
    RETURN( Sym )
 END MakeUnbounded ;
 
 
 (*
-   PutUnbounded - gives an unbounded symbol a type, SimpleType.
+   GetUnbounded - returns the unbounded symbol associated with
+                  SimpleType.
 *)
 
-PROCEDURE PutUnbounded (Sym: CARDINAL; SimpleType: CARDINAL) ;
-VAR
-   Contents: CARDINAL ;
+PROCEDURE GetUnbounded (SimpleType: CARDINAL) : CARDINAL ;
 BEGIN
-   WITH Symbols[Sym] DO
+   WITH Symbols[SimpleType] DO
       CASE SymbolType OF
 
-      ErrorSym: |
-      UnboundedSym: Unbounded.Type := SimpleType ;
-                    IF Unbounded.RecordType=NulSym
-                    THEN
-                       Unbounded.RecordType := MakeRecord(NulName) ;
-                       Contents := MakePointer(NulName) ;
-                       PutPointer(Contents, SimpleType) ;
-                       PutFieldRecord(Unbounded.RecordType,
-                                      MakeKey(UnboundedAddressName),
-                                      Contents, NulSym) ;
-                       PutFieldRecord(Unbounded.RecordType,
-                                      MakeKey(UnboundedHighName),
-                                      Cardinal, NulSym)
-                    END
+      ErrorSym      :  RETURN( NulSym ) |
+      RecordSym     :  RETURN( Record.Unbounded ) |
+      SubrangeSym   :  RETURN( Subrange.Unbounded ) |
+      EnumerationSym:  RETURN( Enumeration.Unbounded ) |
+      ArraySym      :  RETURN( Array.Unbounded ) |
+      ProcTypeSym   :  RETURN( ProcType.Unbounded ) |
+      TypeSym       :  RETURN( Type.Unbounded ) |
+      PointerSym    :  RETURN( Pointer.Unbounded ) |
+      SetSym        :  RETURN( Set.Unbounded )
 
       ELSE
-         InternalError('expecting an UnBounded symbol', __FILE__, __LINE__)
+         RETURN( NulSym )
+      END
+   END
+END GetUnbounded ;
+
+
+(*
+   PutUnbounded - associates the unbounded symbol, Sym, with
+                  SimpleType.
+*)
+
+PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[SimpleType] DO
+      CASE SymbolType OF
+
+      ErrorSym      :  RETURN |
+      RecordSym     :  Record.Unbounded := Sym |
+      SubrangeSym   :  Subrange.Unbounded := Sym |
+      EnumerationSym:  Enumeration.Unbounded := Sym |
+      ArraySym      :  Array.Unbounded := Sym |
+      ProcTypeSym   :  ProcType.Unbounded := Sym |
+      TypeSym       :  Type.Unbounded := Sym |
+      PointerSym    :  Pointer.Unbounded := Sym |
+      SetSym        :  Set.Unbounded := Sym
+
+      ELSE
+         InternalError('cannot associate an unbounded type with this symbol',
+                       __FILE__, __LINE__)
       END
    END
 END PutUnbounded ;
@@ -7617,7 +7694,8 @@ BEGIN
                                                        (* scope of procedure.           *)
                       ProcType.Size := InitValue() ;
                       ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
-                      InitWhereDeclared(ProcType.At)  (* Declared here *)
+                      ProcType.Unbounded := NulSym ;   (* The unbounded for this *)
+                      InitWhereDeclared(ProcType.At)   (* Declared here *)
 
          ELSE
             InternalError('expecting ProcType symbol', __FILE__, __LINE__)

@@ -2174,7 +2174,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Des)) ;
             CheckPointerThroughNil(Exp) ;
-            GenQuad(IndrXOp, t, GetType(Des), Exp) ;
+            GenQuad(IndrXOp, t, GetType(t), Exp) ;
             CheckPointerThroughNil(Des) ;
             GenQuad(XIndrOp, Des, GetType(Des), t)
          ELSE
@@ -3098,7 +3098,7 @@ BEGIN
       tsym := MakeTemporary(RightValue) ;
       PutVar(tsym, GetType(IdSym)) ;
       CheckPointerThroughNil(IdSym) ;
-      GenQuad(IndrXOp, tsym, GetType(IdSym), IdSym) ;
+      GenQuad(IndrXOp, tsym, GetType(tsym), IdSym) ;
       IncQuad := NextQuad ;
       GenQuad(AddOp, tsym, tsym, BySym) ;
       CheckPointerThroughNil(IdSym) ;
@@ -4416,10 +4416,12 @@ BEGIN
          RETURN( Sym )   (* already a RightValue with desired type *)
       ELSE
          (*
-            type change or mode change, type changes are a pain, but I've left them here as it is
-            perhaps easier to remove them later inside M2SubExp (ideally I'd like to identify fix
-            this here and in the type checking routines, but it is likely to become too complex.
-            So currently we are stuck with sometimes creating tempories just to change type)
+            type change or mode change, type changes are a pain, but I've
+            left them here as it is perhaps easier to remove them later
+            inside M2SubExp (ideally I'd like to identify a fix here and
+            in the type checking routines, but it is likely to become too
+            complex.  So currently we are stuck with sometimes creating
+            temporaries just to change type)
          *)
          t := MakeTemporary(RightValue) ;
          PutVar(t, type) ;
@@ -4454,10 +4456,12 @@ BEGIN
          RETURN( Sym )
       ELSE
          (*
-            type change or mode change, type changes are a pain, but I've left them here as it is
-            perhaps easier to remove them later inside M2SubExp (ideally I'd like to identify fix
-            this here and in the type checking routines, but it is likely to become too complex.
-            So currently we are stuck with sometimes creating tempories just to change type)
+            type change or mode change, type changes are a pain, but I've
+            left them here as it is perhaps easier to remove them later
+            inside M2SubExp (ideally I'd like to identify a fix here and
+            in the type checking routines, but it is likely to become too
+            complex.  So currently we are stuck with sometimes creating
+            temporaries just to change type)
          *)
          t := MakeTemporary(with) ;
          PutVar(t, type) ;
@@ -4653,7 +4657,7 @@ BEGIN
                t := MakeTemporary(RightValue) ;
                PutVar(t, GetType(OperandT(pi))) ;
                CheckPointerThroughNil(OperandT(pi)) ;
-               GenQuad(IndrXOp, t, GetType(OperandT(pi)), OperandT(pi)) ;
+               GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
                f^.TrueExit := t
             END
          ELSE
@@ -4700,7 +4704,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(OperandT(pi))) ;
          CheckPointerThroughNil(OperandT(pi)) ;
-         GenQuad(IndrXOp, t, GetType(OperandT(pi)), OperandT(pi)) ;
+         GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
          f^.TrueExit := t
       END ;
       INC(i) ;
@@ -7239,7 +7243,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Var)) ;
             CheckPointerThroughNil(Var) ;
-            GenQuad(IndrXOp, t, GetType(Var), Var) ;
+            GenQuad(IndrXOp, t, GetType(t), Var) ;
             Var := t
          END ;
 
@@ -8588,7 +8592,7 @@ BEGIN
       Ok must reference by address
       - but we contain the type of the referenced entity
    *)
-   PutLeftValueFrontBackType(Res, Type, NulSym) ;
+   PutLeftValueFrontBackType(Res, Type, Address) ;
    GenQuad(AddOp, Res, adr, t1) ;
    PopN(n+1) ;
    PushTF(Res, Type)
@@ -8875,6 +8879,7 @@ END BuildDynamicArray ;
 PROCEDURE BuildDesignatorPointer ;
 VAR
    n1, n2     : Name ;
+   BackEndType,
    Sym1, Type1,
    Sym2, Type2: CARDINAL ;
 BEGIN
@@ -8894,13 +8899,13 @@ BEGIN
          Ok must reference by address
          - but we contain the type of the referenced entity
       *)
-      PutLeftValueFrontBackType(Sym2, Type2, NulSym) ;
-
       IF GetMode(Sym1)=LeftValue
       THEN
          CheckPointerThroughNil(Sym1) ;
-         GenQuad(IndrXOp, Sym2, Address, Sym1)           (* Sym2 := *Sym1 *)
+         PutLeftValueFrontBackType(Sym2, Type2, Type1) ;
+         GenQuad(IndrXOp, Sym2, Type1, Sym1)            (* Sym2 := *Sym1 *)
       ELSE
+         PutLeftValueFrontBackType(Sym2, Type2, NulSym) ;
          GenQuad(BecomesOp, Sym2, NulSym, Sym1)         (* Sym2 :=  Sym1 *)
       END ;
 
@@ -9442,7 +9447,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(el)) ;
          CheckPointerThroughNil(el) ;
-         GenQuad(IndrXOp, t, GetType(el), el) ;
+         GenQuad(IndrXOp, t, GetType(t), el) ;
          el := t
       END ;
       IF IsConst(value)
@@ -9763,7 +9768,7 @@ BEGIN
             SymT := MakeTemporary(RightValue) ;
             PutVar(SymT, GetType(Sym)) ;
             CheckPointerThroughNil(Sym) ;
-            GenQuad(IndrXOp, SymT, GetType(Sym), Sym) ;
+            GenQuad(IndrXOp, SymT, GetType(SymT), Sym) ;
             Sym := SymT
          END
       END ;
@@ -10081,7 +10086,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e1)) ;
          CheckPointerThroughNil(e1) ;
-         GenQuad(IndrXOp, t, GetType(e1), e1) ;
+         GenQuad(IndrXOp, t, GetType(t), e1) ;
          e1 := t
       END ;
       IF GetMode(e2)=LeftValue
@@ -10089,7 +10094,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e2)) ;
          CheckPointerThroughNil(e2) ;
-         GenQuad(IndrXOp, t, GetType(e2), e2) ;
+         GenQuad(IndrXOp, t, GetType(t), e2) ;
          e2 := t
       END ;
       GenQuad(MakeOp(Op), e2, e1, 0) ;      (* True  Exit *)

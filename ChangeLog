@@ -1,3 +1,32 @@
+2007-07-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added interactive debugging module
+	  gm2/m2pp.o to link targets.
+	* gm2/gccgm2.c:  rewritten pushdecl and friends and vastly
+	  simplified and reduced the code.  Modified all parameters
+	  to use ANSI C rather than K&R C.  Rewritten create
+          gccgm2_BuildStartFunctionCode and gccgm2_BuildEndFunctionCode.
+          Also ensured that all variables are added to the statement list
+	  via DECL_EXPR and ensured that BIND_EXPR and BLOCKs are created
+	  in exactly the same way as their C counterparts.
+	  Fixed important bug in creating TREEs which represent parameters.
+	* gm2/m2pp.c:  new interactive debugging module will print a GCC
+	  tree using Modula-2 syntax.
+	* gm2/m2pp.h:  prototype for the above.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  unbounded types are now uniquely
+	  created from their basic type.  Improved debugging of unbounded type.
+	* gm2/gm2-compiler/M2GenGCC.mod:  DoCopyString new function which is
+	  used by CodeBecomes and CodeXIndr.  Simplified CodeIndrX and CodeXIndr
+	  in light of bugs fixed in gm2/gccgm2.c.
+	* gm2/gm2-compiler/M2Quads.mod:  made the type following more accurate
+	  during the construction of array arithmetic and indirection.  This
+	  in turn allows -O to be used in GCC's backend.
+	* gm2/gm2-compiler/SymbolTable.def:  modified interface to unbounded
+	  symbols.
+	* gm2/gm2-compiler/SymbolTable.def:  implemented above.
+	* GM2 now builds when -O is suppled to stage2 or stage3.
+	* GM2 now builds with (a patched) gcc-4.1.2
+
 2007-05-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2-compiler/M2Quads.mod:  replaced PutVarTypeAndSize with

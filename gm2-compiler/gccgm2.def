@@ -730,7 +730,8 @@ PROCEDURE InitFunctionTypeParameters (usesVarArgs: BOOLEAN) ;
                                type declaration and we ignore names.
 *)
 
-PROCEDURE BuildParameterDeclaration (name: ADDRESS; type: Tree; isreference: BOOLEAN) : Tree ;
+PROCEDURE BuildParameterDeclaration (name: ADDRESS; type: Tree;
+                                     isreference: BOOLEAN) : Tree ;
 
 
 (*

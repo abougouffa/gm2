@@ -401,6 +401,7 @@ PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1880,6 +1881,51 @@ END FoldConstBecomes ;
 
 
 (*
+   DoCopyString - returns trees:
+                  t    number of bytes to be copied
+                  op3t the string with the extra nul character
+                       providing it fits.
+*)
+
+PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ;
+BEGIN
+   Assert(IsArray(SkipType(op1t))) ;
+   (* handle string assignments:
+      VAR
+         str: ARRAY [0..10] OF CHAR ;
+         ch : CHAR ;
+
+         str := 'abcde' but not ch := 'a'
+   *)
+   PushIntegerTree(FindSize(op3)) ;
+   PushIntegerTree(FindSize(op1t)) ;
+   IF GetType(op3)=Char
+   THEN
+      (* create string from char and add nul to the end *)
+      op3t := BuildStringConstant(KeyToCharStar(GetString(op3)), 2)
+   ELSE
+      op3t := Mod2Gcc(op3)
+   END ;
+   IF Less(CurrentQuadToken)
+   THEN
+      (* there is room for the extra <nul> character *)
+      t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
+   ELSE
+      PushIntegerTree(FindSize(op3)) ;
+      PushIntegerTree(FindSize(op1t)) ;
+      IF Gre(CurrentQuadToken)
+      THEN
+         WarnStringAt(InitString('string constant is too large to be assigned to the array'),
+                      CurrentQuadToken) ;
+         t := FindSize(op1t)
+      ELSE
+         t := FindSize(op3)
+      END
+   END
+END DoCopyString ;
+
+
+(*
 ------------------------------------------------------------------------------
    := Operator
 ------------------------------------------------------------------------------
@@ -1897,39 +1943,7 @@ BEGIN
       AddModGcc(op1, CheckConstant(op1, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      Assert(IsArray(SkipType(GetType(op1)))) ;
-      (* handle string assignments:
-         VAR
-            str: ARRAY [0..10] OF CHAR ;
-            ch : CHAR ;
-
-         str := 'abcde' but not ch := 'a'
-      *)
-      PushIntegerTree(FindSize(op3)) ;
-      PushIntegerTree(FindSize(op1)) ;
-      IF GetType(op3)=Char
-      THEN
-         (* create string from char and add nul to the end *)
-         op3t := BuildStringConstant(KeyToCharStar(GetString(op3)), 2)
-      ELSE
-         op3t := Mod2Gcc(op3)
-      END ;
-      IF Less(CurrentQuadToken)
-      THEN
-         (* there is room for the extra <nul> character *)
-         t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
-      ELSE
-         PushIntegerTree(FindSize(op3)) ;
-         PushIntegerTree(FindSize(op1)) ;
-         IF Gre(CurrentQuadToken)
-         THEN
-            WarnStringAt(InitString('string constant is too large to be assigned to the array'),
-                         CurrentQuadToken) ;
-            t := FindSize(op1)
-         ELSE
-            t := FindSize(op3)
-         END
-      END ;
+      DoCopyString(t, op3t, GetType(op1), op2, op3) ;
       ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                                BuildAddr(op3t, FALSE),
                                                t))
@@ -4765,14 +4779,6 @@ BEGIN
          Mem[op1] := Mem[Mem[op3]]
       *)
       t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
-(*
-      IF IsPointer(SkipType(op2)) OR (IsTemporary(op3) AND (GetMode(op3)=LeftValue))
-      THEN
-         t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), GetPointerType()))
-      ELSE
-         t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
-      END
-*)
    END
 END CodeIndrX ;
 
@@ -4789,7 +4795,7 @@ END CodeIndrX ;
 
 PROCEDURE CodeXIndr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   op3t, t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    (*
@@ -4810,19 +4816,15 @@ BEGIN
       *)
       t := BuildAssignment(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
                            StringToChar(Mod2Gcc(op3), Char, op3))
+   ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
+   THEN
+      DoCopyString(t, op3t, op2, op2, op3) ;
+      ExpandExpressionStatement(BuiltInMemCopy(Mod2Gcc(op1),
+                                               BuildAddr(op3t, FALSE),
+                                               t))
    ELSE
       t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
                            StringToChar(Mod2Gcc(op3), op2, op3))
-(*
-      IF IsPointer(SkipType(op2))
-      THEN
-         t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
-                              StringToChar(Mod2Gcc(op3), op2, op3))
-      ELSE
-         t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
-                              StringToChar(Mod2Gcc(op3), op2, op3))
-      END
-*)
    END
 END CodeXIndr ;
 

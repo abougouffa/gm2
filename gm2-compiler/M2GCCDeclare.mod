@@ -53,7 +53,7 @@ FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         GetMode,
                         GetScope,
-                        GetNth, GetType, SkipType,
+                        GetNth, GetType, SkipType, GetVarBackEndType,
                         MakeType, PutType, MakeConstLit,
       	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
@@ -78,7 +78,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
                         GetProcedureScope, GetProcedureQuads,
-                        GetVarient,
+                        GetVarient, GetUnbounded,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName,
                         GetDeclared, GetVarBackEndType,
@@ -172,6 +172,9 @@ PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ; FORWARD ;
+PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ; FORWARD ;
+PROCEDURE DeclareAssociatedUnbounded (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -231,7 +234,7 @@ PROCEDURE DoStartDeclaration (sym: CARDINAL; p: StartProcedure) : Tree ;
 BEGIN
    IF NOT GccKnowsAbout(sym)
    THEN
-      AddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym)))) ;
+      PreAddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym)))) ;
       IncludeItemIntoList(ToFinishList, sym) ;
       IncludeItemIntoList(ToDoList, sym)
    END ;
@@ -292,7 +295,7 @@ BEGIN
          IF t#DeclareKindOfType(Sym)
          THEN
             InternalError('gcc has returned a different symbol on completion of a type', __FILE__, __LINE__)
-            (* the solution is to allow:          AddModGcc(Sym, DeclareKindOfType(Sym)) *)
+            (* the solution is to allow:          PreAddModGcc(Sym, DeclareKindOfType(Sym)) *)
          END ;
          RemoveItemFromList(ToFinishList, Sym) ;
          n := NoOfItemsInList(ToFinishList) ;
@@ -364,7 +367,7 @@ BEGIN
       	    IF AllDependantsWritten(Sym)
       	    THEN
                (* add relationship between gccSym and Sym *)
-               AddModGcc(Sym, DeclareKindOfType(Sym)) ;
+               PreAddModGcc(Sym, DeclareKindOfType(Sym)) ;
                IncludeItemIntoList(DefinedList, Sym) ;
                RemoveItemFromList(ToDoList, Sym) ;
                i := 0 ;
@@ -536,7 +539,7 @@ END DeclareType ;
 
 PROCEDURE DeclareIntegerConstant (sym: CARDINAL; value: INTEGER) ;
 BEGIN
-   AddModGcc(sym, BuildIntegerConstant(value))
+   PreAddModGcc(sym, BuildIntegerConstant(value))
 END DeclareIntegerConstant ;
 
 
@@ -546,7 +549,7 @@ END DeclareIntegerConstant ;
 
 PROCEDURE DeclareConstantFromTree (sym: CARDINAL; value: Tree) ;
 BEGIN
-   AddModGcc(sym, value)
+   PreAddModGcc(sym, value)
 END DeclareConstantFromTree ;
 
 
@@ -556,7 +559,7 @@ END DeclareConstantFromTree ;
 
 PROCEDURE DeclareCharConstant (sym: CARDINAL) ;
 BEGIN
-   AddModGcc(sym, BuildCharConstant(KeyToCharStar(GetString(sym))))
+   PreAddModGcc(sym, BuildCharConstant(KeyToCharStar(GetString(sym))))
 END DeclareCharConstant ;
 
 
@@ -566,7 +569,7 @@ END DeclareCharConstant ;
 
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 BEGIN
-   AddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
+   PreAddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
                                       GetStringLength(sym)))
 END DeclareStringConstant ;
 
@@ -824,7 +827,7 @@ BEGIN
             gcc := DeclareOrFindKindOfType(Sym)
          END ;
          RemoveItemFromList(ToDoList, Sym) ;
-         AddModGcc(Sym, gcc) ;
+         PreAddModGcc(Sym, gcc) ;
          IF Debugging
          THEN
             n1 := GetSymName(Sym) ;
@@ -852,8 +855,11 @@ BEGIN
       WHILE i>0 DO
          IF IsUnboundedParam(Sym, i)
          THEN
-            son := GetNth(Sym, i) ;
+            son := GetNthParam(Sym, i) ;
             type := GetType(son) ;
+            Assert(AllDependantsWritten(type)) ;
+            Assert(GccKnowsAbout(type)) ;
+(*
             DeclareTypeInfo(type) ;
             IF (NOT GccKnowsAbout(type)) AND AllDependantsWritten(type)
       	    THEN
@@ -864,7 +870,9 @@ BEGIN
             IF GccKnowsAbout(type) AND AllDependantsWritten(type)
             THEN
                BuildTypeDeclaration(Mod2Gcc(type))
-            END
+            END ;
+*)
+            BuildTypeDeclaration(Mod2Gcc(type))
          ELSE
             son := GetNth(Sym, i) ;
             type := GetType(son) ;
@@ -1010,21 +1018,23 @@ BEGIN
          IF IsUnboundedParam(Sym, i)
          THEN
             GccParam := BuildParameterDeclaration(KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)), FALSE)
+                                                  Mod2Gcc(GetType(Son)),
+                                                  FALSE)
          ELSE
             GccParam := BuildParameterDeclaration(KeyToCharStar(GetSymName(Son)),
-                                                  Mod2Gcc(GetType(Son)), IsVarParam(Sym, i))
+                                                  Mod2Gcc(GetType(Son)),
+                                                  IsVarParam(Sym, i))
          END ;
-         AddModGcc(Son, GccParam) ;
+         PreAddModGcc(Son, GccParam) ;
          DEC(i)
       END ;
       IF GetType(Sym)=NulSym
       THEN
-         AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
                                                     NIL, IsEffectivelyImported(GetMainModule(), Sym),
                                                     IsProcedureGccNested(Sym)))
       ELSE
-         AddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
+         PreAddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
                                                     Mod2Gcc(GetType(Sym)), IsEffectivelyImported(GetMainModule(), Sym),
                                                     IsProcedureGccNested(Sym)))
       END
@@ -1152,7 +1162,7 @@ BEGIN
       BuildStartFunctionDeclaration(FALSE) ;
       t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(sym)),
                                        NIL, FALSE, TRUE) ;
-      AddModGcc(sym, t)
+      PreAddModGcc(sym, t)
    END
 END DeclareModuleInit ;
 
@@ -1228,6 +1238,39 @@ END EndDeclareScope ;
 
 
 (*
+   PreAddModGcc - adds a relationship between sym and t.
+                  It also determines whether an unbounded
+                  for sym is required and if so this is also
+                  created.
+*)
+
+PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ;
+BEGIN
+   AddModGcc(sym, t) ;
+   DeclareAssociatedUnbounded(sym)
+END PreAddModGcc ;
+
+
+(*
+   DeclareAssociatedUnbounded - if an unbounded symbol exists then
+                                declare it.
+*)
+
+PROCEDURE DeclareAssociatedUnbounded (Sym: CARDINAL) ;
+VAR
+   unbounded: CARDINAL ;
+BEGIN
+   unbounded := GetUnbounded(Sym) ;
+   IF unbounded#NulSym
+   THEN
+      AddModGcc(unbounded, DeclareUnbounded(unbounded)) ;
+      IncludeItemIntoList(DefinedList, unbounded) ;
+      RemoveItemFromList(ToDoList, unbounded) ;
+   END
+END DeclareAssociatedUnbounded ;
+
+
+(*
    DeclareDefaultType - declares a default type, sym, with, name.
 *)
 
@@ -1284,9 +1327,9 @@ END DeclareDefaultType ;
 
 PROCEDURE DeclareBoolean ;
 BEGIN
-   AddModGcc(Boolean, GetBooleanType()) ;
-   AddModGcc(True, GetBooleanTrue()) ;
-   AddModGcc(False, GetBooleanFalse())
+   PreAddModGcc(Boolean, GetBooleanType()) ;
+   PreAddModGcc(True, GetBooleanTrue()) ;
+   PreAddModGcc(False, GetBooleanFalse()) ;
 END DeclareBoolean ;
 
 
@@ -1308,6 +1351,80 @@ END DeclareFileName ;
 
 
 (*
+   DeclareDefaultSimpleTypes - declares the simple types.
+*)
+
+PROCEDURE DeclareDefaultSimpleTypes ;
+BEGIN
+   DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
+   DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
+   DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
+
+   IF Iso
+   THEN
+      DeclareDefaultType(Loc   , "LOC"      , GetISOLocType()) ;
+      DeclareDefaultType(Byte  , "BYTE"     , GetISOByteType()) ;
+      DeclareDefaultType(Word  , "WORD"     , GetISOWordType())
+   ELSE
+      DeclareDefaultType(Byte  , "BYTE"     , GetByteType()) ;
+      DeclareDefaultType(Word  , "WORD"     , GetWordType())
+   END ;
+   
+   DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
+   DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
+   DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
+   DeclareDefaultType(LongCard , "LONGCARD" , GetM2LongCardType()) ;
+   DeclareDefaultType(ShortInt , "SHORTINT" , GetM2ShortIntType()) ;
+   DeclareDefaultType(ShortCard, "SHORTCARD", GetM2ShortCardType()) ;
+   DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
+   DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
+   DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
+   DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
+   DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
+   DeclareBoolean
+
+END DeclareDefaultSimpleTypes ;
+
+
+(*
+   DeclareDefaultUnboundedTypes - declare the unbounded types associated with
+                                  the default simple types.
+*)
+
+PROCEDURE DeclareDefaultUnboundedTypes ;
+BEGIN
+   DeclareAssociatedUnbounded(Integer) ;
+   DeclareAssociatedUnbounded(Char) ;
+   DeclareAssociatedUnbounded(Cardinal) ;
+
+   IF Iso
+   THEN
+      DeclareAssociatedUnbounded(Loc) ;
+      DeclareAssociatedUnbounded(Byte) ;
+      DeclareAssociatedUnbounded(Word) ;
+   ELSE
+      DeclareAssociatedUnbounded(Byte) ;
+      DeclareAssociatedUnbounded(Word) ;
+   END ;
+   
+   DeclareAssociatedUnbounded(Proc) ;
+   DeclareAssociatedUnbounded(Address) ;
+   DeclareAssociatedUnbounded(LongInt) ;
+   DeclareAssociatedUnbounded(LongCard) ;
+   DeclareAssociatedUnbounded(ShortInt) ;
+   DeclareAssociatedUnbounded(ShortCard) ;
+   DeclareAssociatedUnbounded(ShortReal) ;
+   DeclareAssociatedUnbounded(Real) ;
+   DeclareAssociatedUnbounded(LongReal) ;
+   DeclareAssociatedUnbounded(Bitnum) ;
+   DeclareAssociatedUnbounded(Bitset) ;
+   DeclareAssociatedUnbounded(Boolean)
+   
+END DeclareDefaultUnboundedTypes ;
+
+
+
+(*
    DeclareDefaultTypes - makes default types known to GCC
 *)
 
@@ -1317,32 +1434,8 @@ BEGIN
    THEN
       HaveInitDefaultTypes := TRUE ;
 
-      DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
-      DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
-      DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
-
-      IF Iso
-      THEN
-         DeclareDefaultType(Loc   , "LOC"      , GetISOLocType()) ;
-         DeclareDefaultType(Byte  , "BYTE"     , GetISOByteType()) ;
-         DeclareDefaultType(Word  , "WORD"     , GetISOWordType())
-      ELSE
-         DeclareDefaultType(Byte  , "BYTE"     , GetByteType()) ;
-         DeclareDefaultType(Word  , "WORD"     , GetWordType())
-      END ;
-
-      DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
-      DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
-      DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
-      DeclareDefaultType(LongCard , "LONGCARD" , GetM2LongCardType()) ;
-      DeclareDefaultType(ShortInt , "SHORTINT" , GetM2ShortIntType()) ;
-      DeclareDefaultType(ShortCard, "SHORTCARD", GetM2ShortCardType()) ;
-      DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
-      DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
-      DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
-      DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
-      DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
-      DeclareBoolean
+      DeclareDefaultSimpleTypes ;
+      DeclareDefaultUnboundedTypes
    END
 END DeclareDefaultTypes ;
 
@@ -1447,23 +1540,27 @@ BEGIN
         (i)   LeftValue is really a pointer to GetType(Son)
         (ii)  Front end might have specified the back end use a particular
               data type - in which case we might tell gcc exactly this.
+              We do not add an extra pointer if this is the case.
       *)
       varType := GetVarBackEndType(var) ;
       IF varType=NulSym
       THEN
-         varType := GetType(var)
-      END ;
-      Assert(AllDependantsWritten(varType)) ;
-      IF IsVariableAtAddress(var)
-      THEN
-         type := BuildConstPointerType(Mod2Gcc(varType))
+         (* we have not explicity told back end the type, so build it *)
+         varType := GetType(var) ;
+         IF IsVariableAtAddress(var)
+         THEN
+            type := BuildConstPointerType(Mod2Gcc(varType))
+         ELSE
+            type := BuildPointerType(Mod2Gcc(varType))
+         END
       ELSE
-         type := BuildPointerType(Mod2Gcc(varType))
-      END
+         type := Mod2Gcc(varType)
+      END ;
+      Assert(AllDependantsWritten(varType))
    ELSE
       type := Mod2Gcc(GetType(var))
    END ;
-   AddModGcc(var, DeclareKnownVariable(name, type,
+   PreAddModGcc(var, DeclareKnownVariable(name, type,
                                        isExported, isImported, isTemporary,
                                        isGlobal, scope))
 END DoVariableDeclaration ;
@@ -1601,10 +1698,10 @@ BEGIN
    IF (GetModuleWhereDeclared(Sym)=NulSym) OR
       (GetModuleWhereDeclared(Sym)=GetMainModule())
    THEN
-      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)),
+      PreAddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)),
                                      PopIntegerTree()))
    ELSE
-      AddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)),
+      PreAddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)),
                                      PopIntegerTree()))
    END
 END DeclareFieldEnumeration ;
@@ -1677,7 +1774,15 @@ BEGIN
       printf0(' type [') ;
       PrintTerse(t) ;
       IncludeItemIntoList(l, t) ;
-      printf0(']')
+      printf0(']') ;
+      t := GetVarBackEndType(sym) ;
+      IF t#NulSym
+      THEN
+         printf0(' gcc type [') ;
+         PrintTerse(t) ;
+         IncludeItemIntoList(l, t) ;
+         printf0(']')
+      END
    END
 END IncludeType ;
 
@@ -1718,6 +1823,19 @@ BEGIN
       IncludeItemIntoList(l, GetVarient(sym))
    END
 END IncludeGetVarient ;
+
+
+(*
+   IncludeUnbounded - includes the record component of an unbounded type.
+*)
+
+PROCEDURE IncludeUnbounded (l: List; sym: CARDINAL) ;
+BEGIN
+   IF GetUnboundedRecordType(sym)#NulSym
+   THEN
+      IncludeItemIntoList(l, GetUnboundedRecordType(sym))
+   END
+END IncludeUnbounded ;
 
 
 (*
@@ -1807,7 +1925,8 @@ BEGIN
       IncludeType(l, sym)
    ELSIF IsUnbounded(sym)
    THEN
-      printf2('sym %d IsUnbounded (%a)', sym, n)
+      printf2('sym %d IsUnbounded (%a)', sym, n) ;
+      IncludeUnbounded(l, sym)
    ELSIF IsRecordField(sym)
    THEN
       printf2('sym %d IsRecordField (%a)', sym, n) ;
@@ -1819,7 +1938,15 @@ BEGIN
    ELSIF IsVar(sym)
    THEN
       n2 := GetSymName(GetScope(sym)) ;
-      printf3('sym %d IsVar (%a) declared in scope %a', sym, n, n2) ;
+      printf3('sym %d IsVar (%a) declared in scope %a mode ', sym, n, n2) ;
+      CASE GetMode(sym) OF
+
+      LeftValue     : printf0('l ') |
+      RightValue    : printf0('r ') |
+      ImmediateValue: printf0('i ') |
+      NoValue       : printf0('n ')
+
+      END ;
       IncludeType(l, sym)
    ELSIF IsConst(sym)
    THEN
@@ -2071,13 +2198,13 @@ BEGIN
                END ;
                GccField  := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field2)), GccFieldType) ;
                FieldList := ChainOn(FieldList, GccField) ;
-               AddModGcc(Field2, GccField) ;
+               PreAddModGcc(Field2, GccField) ;
       	       INC(j)
       	    END
       	 UNTIL Field2=NulSym ;
          GccFieldType := BuildEndRecord(RecordType, FieldList) ;
          GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field1)), GccFieldType) ;
-         AddModGcc(Field1, GccField) ;
+         PreAddModGcc(Field1, GccField) ;
          VarientList := ChainOn(VarientList, GccField)
       END ;
       INC(i)
@@ -2113,7 +2240,7 @@ BEGIN
          THEN
             GccFieldType := Mod2Gcc(Field) ;
             GccField     := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
-            AddModGcc(Field, GccField)
+            PreAddModGcc(Field, GccField)
          ELSE
             IF IsVarient(Field)
             THEN
@@ -2128,7 +2255,7 @@ BEGIN
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;
             GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
-            AddModGcc(Field, GccField)
+            PreAddModGcc(Field, GccField)
          END ;
          FieldList := ChainOn(FieldList, GccField)
       END ;
@@ -2161,12 +2288,41 @@ END DeclarePointer ;
 
 PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ;
 VAR
+   record: CARDINAL ;
+BEGIN
+   Assert(IsUnbounded(Sym)) ;
+   IF GccKnowsAbout(Sym)
+   THEN
+      RETURN( Mod2Gcc(Sym) )
+   ELSE
+      record := GetUnboundedRecordType(Sym) ;
+      Assert(IsRecord(record)) ;
+      Assert(AllDependantsWritten(record)) ;
+      IF (NOT GccKnowsAbout(record))
+      THEN
+         AddModGcc(record, DeclareOrFindKindOfType(record)) ;
+         IncludeItemIntoList(DefinedList, record) ;
+         RemoveItemFromList(ToDoList, record)
+      END ;
+      RETURN( Mod2Gcc(record) )
+   END
+END DeclareUnbounded ;
+
+
+(* ******************************************************************
+(*
+   DeclareUnbounded - builds an unbounded type and returns the gcc tree.
+*)
+
+PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ;
+VAR
    FieldList,
    GccFieldType,
    RecordType  : Tree ;
    ArrayName,
    HighName    : Name ;
 BEGIN
+   Assert(IsUnbounded(Sym)) ;
    ArrayName := GetSymName(GetUnboundedAddressOffset(Sym)) ;
    HighName  := GetSymName(GetUnboundedHighOffset(Sym)) ;
    IF GetType(Sym)=Char
@@ -2187,6 +2343,7 @@ BEGIN
       RETURN( BuildEndRecord(RecordType, FieldList) )
    END
 END DeclareUnbounded ;
+ ****************************************************************** *)
 
 
 (*
@@ -2210,7 +2367,7 @@ BEGIN
    IF Subscript#NulSym
    THEN
       Assert(IsSubscript(Subscript)) ;
-      AddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
+      PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
       PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
       PopSize(Subscript) ;
       Subrange := SkipType(GetType(Subscript)) ;
@@ -2264,7 +2421,7 @@ BEGIN
    WHILE i>0 DO
       Son := GetNthParam(Sym, i) ;
       GccParam := BuildParameterDeclaration(NIL, DeclareOrFindKindOfType(GetType(Son)), IsVarParam(Sym, i)) ;
-      AddModGcc(Son, GccParam) ;
+      PreAddModGcc(Son, GccParam) ;
       DEC(i)
    END ;
    IF ReturnType=NulSym
@@ -2541,7 +2698,7 @@ BEGIN
       END ;
       RemoveItemFromList(ToFinishList, sym)
    END ;
-   AddModGcc(sym, t1) ;
+   PreAddModGcc(sym, t1) ;
    RETURN( t1 )
 END ForceDeclareType ;
 

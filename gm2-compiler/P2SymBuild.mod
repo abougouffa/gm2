@@ -80,7 +80,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcTypeVarParam, PutProcTypeParam,
                         MakeConstVar,
                         PutVariableAtAddress, IsVariableAtAddress,
-                        MakeUnbounded, PutUnbounded,
+                        MakeUnbounded,
                         NoOfParam,
                         PutParamName,
                         GetParam,
@@ -1282,8 +1282,7 @@ BEGIN
    Assert( (Var=VarTok) OR (Var=NulTok) ) ;
    IF Array=ArrayTok
    THEN
-      UnBoundedSym := MakeUnbounded() ;
-      PutUnbounded(UnBoundedSym, TypeSym) ;
+      UnBoundedSym := MakeUnbounded(TypeSym) ;
       TypeSym := UnBoundedSym
    END ;
    i := 1 ;
@@ -2242,8 +2241,7 @@ BEGIN
 
    IF Array=ArrayTok
    THEN
-      UnboundedSym := MakeUnbounded() ;
-      PutUnbounded(UnboundedSym, TypeSym) ;
+      UnboundedSym := MakeUnbounded(TypeSym) ;
       TypeSym := UnboundedSym
    END ;
    IF Var=VarTok

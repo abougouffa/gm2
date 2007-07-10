@@ -73,7 +73,6 @@ FROM SymbolTable IMPORT NulSym,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
                         PutProcedureBuiltin, PutProcedureInline,
-                        MakeUnbounded, PutUnbounded,
                         GetSymName,
                         ResolveImports,
                         DisplayTrees ;

@@ -528,8 +528,8 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
 GM2-VERSION=0.53
-GM2_O=
-GM2_O_S3=
+GM2_O=-O
+GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
@@ -555,7 +555,7 @@ GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
 
                   # the C implementation module bridging the Modula-2 -> GCC
 GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o \
-                    gm2/stor-layout.o
+                    gm2/stor-layout.o gm2/m2pp.o
                   #  gm2/gm2-common.o
 GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
 GM2_LIBS_BOOT     = gm2/gm2-compiler-boot/gm2.a \
@@ -704,6 +704,10 @@ gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcd
 	$(CC) -c -DSET_WORD_SIZE=INT_TYPE_SIZE $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 gm2/gm2-common.o: $(srcdir)/gm2-common.c
+
+gm2/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
+
+
 
 #
 #  the following tables define the source files which are translated into C using p2c
