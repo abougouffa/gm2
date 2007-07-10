@@ -13,13 +13,9 @@ VAR
    i   : CARDINAL ;
    Addr: POINTER TO CHAR ;
 BEGIN
-   Addr := getenv(ADR(Env)) ;
-(*
    i := 0 ;
    High := HIGH(a) ;
    Addr := getenv(ADR(Env)) ;
-*)
-(*
    WHILE (i<High) AND (Addr#NIL) AND (Addr^#nul) DO
       a[i] := Addr^ ;
       INC(Addr) ;
@@ -30,9 +26,12 @@ BEGIN
       a[i] := nul
    END ;
    RETURN( Addr#NIL )
-*)
-   RETURN FALSE
 END GetEnvironment ;
 
-
+VAR
+   a: ARRAY [0..10] OF CHAR ;
+BEGIN
+   IF GetEnvironment('foobar', a)
+   THEN
+   END
 END testcse50.

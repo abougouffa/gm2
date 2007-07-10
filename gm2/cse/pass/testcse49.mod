@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE testcse49 ;
 
 FROM StrIO IMPORT WriteLn ;
-FROM SYSTEM IMPORT ADR ;
+FROM SYSTEM IMPORT ADR, ADDRESS ;
 
 TYPE
    string = ARRAY [0..10] OF CHAR ;
@@ -33,8 +33,9 @@ BEGIN
    RETURN 5
 END StrLen ;
 
+
+PROCEDURE foo ;
 VAR
-   l: CARDINAL ;
    t: STRING ;
    b: string ;
 BEGIN
@@ -45,4 +46,8 @@ BEGIN
    THEN
       WriteLn
    END
+END foo ;
+
+BEGIN
+   foo
 END testcse49.
