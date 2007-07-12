@@ -1,5 +1,5 @@
 GCC=@gccrelease@
-GDB=6.5
+GDB=6.6
 CVSROOT=/usr/src/cvs
 # CVSROOT=:pserver:anoncvs@floppsie.comp.glam.ac.uk:/usr/src/cvs
 # CVSROOT=:pserver:anoncvs@merlin:/usr/src/cvs
