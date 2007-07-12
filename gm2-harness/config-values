@@ -1,4 +1,4 @@
-GCC=4.1.2
+GCC=3.3.6
 GDB=6.5
 CVSROOT=/usr/src/cvs
 # CVSROOT=:pserver:anoncvs@floppsie.comp.glam.ac.uk:/usr/src/cvs
@@ -11,6 +11,6 @@ DOWNLOADDIR=download
 SOURCEDIR=sources
 GCCURL=ftp://ftp.mirrorservice.org/sites/sources.redhat.com/pub/gcc/releases/
 GDBURL=ftp://ftp.mirrorservice.org/sites/sources.redhat.com/pub/gdb/releases/
-PREFIX=/home/gaius/opt
+PREFIX=/usr/local
 ULMLIB=yes
 
