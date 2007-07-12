@@ -1,5 +1,9 @@
 2007-07-06       Gaius Mulley <gaius@gnu.org>
 
+	* added gm2/gm2-harness.
+
+2007-07-06       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  added interactive debugging module
 	  gm2/m2pp.o to link targets.
 	* gm2/gccgm2.c:  rewritten pushdecl and friends and vastly

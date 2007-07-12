@@ -1,0 +1,20 @@
+#!/bin/sh
+
+source config-values
+
+if [ -d ${BUILDGDBDIR} ] ; then
+   rm -rf ${BUILDGDBDIR}
+fi
+
+if [ ! -d ${PREFIX} ] ; then
+    mkdir ${PREFIX}
+fi
+
+mkdir ${BUILDGDBDIR}
+cd ${BUILDGDBDIR}
+mv ../${DOWNLOADDIR}/gdb-${GDB} .
+cd gdb-${GDB}
+./configure --prefix=${PREFIX}
+time make
+make install
+cd ../..
