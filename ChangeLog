@@ -1,9 +1,16 @@
+2007-07-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_BuildSubrangeType switched over to using
+	  the implementation of the subrange type as opposed to the base
+	  INTEGER type.
+	* gm2/gm2-compiler/M2Quads.mod:   CheckSubrange converts the
+	  Exp into an INTEGER type before generating the range checking
+	  quadruples.  This in turn allows M2SubExp.mod to be built with
+	  optimization.  make gm2.paranoid with -O works against gcc-4.1.2.
+
 2007-07-06       Gaius Mulley <gaius@gnu.org>
 
 	* added gm2/gm2-harness.
-
-2007-07-06       Gaius Mulley <gaius@gnu.org>
-
 	* gm2/Make-lang.in:  added interactive debugging module
 	  gm2/m2pp.o to link targets.
 	* gm2/gccgm2.c:  rewritten pushdecl and friends and vastly

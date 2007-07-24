@@ -1875,6 +1875,7 @@ END CheckPointerThroughNil ;
 PROCEDURE CheckSubrange (Des, Exp: CARDINAL) ;
 VAR
    num      : String ;
+   expi,
    line,
    low, high,
    t, f,
@@ -1907,17 +1908,28 @@ BEGIN
          PutVar(high, type) ;
          GenQuad(SubrangeLowOp , low, NulSym, type) ;
          GenQuad(SubrangeHighOp, high, NulSym, type) ;
-         (* q+0  if exp < low        q+4  *)
+
+         (* cannot test against exp as it has 'type' subrange.
+            We therefore drop back to Integer base type.
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Integer) ;
+         PushT(Exp) ;
+         PushT(2) ;
+         BuildConvertFunction ;
+         PopT(expi) ;
+
+         (* q+0  if expi < low       q+4  *)
          (* q+1  goto                q+2  *)
-         PushT(Exp) ;        (* BuildRelOp   1st parameter *)
+         PushT(expi) ;       (* BuildRelOp   1st parameter *)
          PushT(LessTok) ;    (*              2nd parameter *)
          PushT(low) ;        (*              3rd parameter *)
          BuildRelOp ;
          PopBool(t, f) ;     (*              return value  *)
          BackPatch(f, NextQuad) ;
-         (* q+2  if exp > high       q+4  *)
+         (* q+2  if expi > high      q+4  *)
          (* q+3  goto                q+   *)
-         PushT(Exp) ;        (* BuildRelOp   1st parameter *)
+         PushT(expi) ;       (* BuildRelOp   1st parameter *)
          PushT(GreaterTok) ; (*              2nd parameter *)
          PushT(high) ;       (*              3rd parameter *)
          BuildRelOp ;

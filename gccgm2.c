@@ -6943,7 +6943,7 @@ gccgm2_BuildEndSetConstructor (void)
 tree
 gccgm2_BuildSubrangeType (char *name, tree type, tree lowval, tree highval)
 {
-#if 1
+#if 0
   return m2_integer_type_node;
 #else
   tree btype = skip_type_decl (type);
