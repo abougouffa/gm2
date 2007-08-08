@@ -1,3 +1,8 @@
+2007-08-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  fixes to enable avr cross compile to
+	  build (use cross gcc and add -B./ when building libraries).
+
 2007-07-23       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  gccgm2_BuildSubrangeType switched over to using

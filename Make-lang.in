@@ -942,10 +942,10 @@ BUILD-BOOT-H = gm2/boot-bin/p2c$(exeext) \
 P2C_INCLUDE_TRANSLATE=-I$(srcdir)/gm2 -Igm2 -I. -I$(srcdir)/../include -Igm2/gm2-libs-boot $(INCLUDES) 
 
 gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.c
-	$(CC) $(GM2_O) -c -g -Wall $< -o $@
+	$(GCC_FOR_TARGET) $(GM2_O) -B./ -c -g -Wall $< -o $@
 
 gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.mod
-	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
+	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
 
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
 	$(CC) $(GM2_O) -c -g -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
@@ -1085,7 +1085,7 @@ gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1125,7 +1125,7 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -Wiso -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -Wiso -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 
 #
@@ -1218,16 +1218,16 @@ gm2/ulm-lib-gm2/sys/SYSTEM.c:
 	$(SHELL) $(srcdir)/gm2/tools-src/createUlmSys gm2/gm2-libs/gm2-libs-host.h > $@
 
 gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
