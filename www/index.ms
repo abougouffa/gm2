@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (C) 2006 Free Software Foundation, Inc.
+.\" Copyright (C) 2006, 2007 Free Software Foundation, Inc.
 .\" 
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -13,11 +13,11 @@
 .\" this GNU Manual, like GNU software.  Copies published by the Free
 .\" Software Foundation raise funds for GNU development.''
 .\" 
-.ds GCCVERSION 3.3.6
+.ds GCCVERSION 4.1.2
 .ds GM2HARNESS 0.96
-.ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20051118.tar.gz
-.ds CURRENTDATE "Mon Aug  7 16:52:31 BST 2006
-.ds CURRENTGM2 0.51
+.ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20070818.tar.gz
+.ds CURRENTDATE "Fri Sep 14 16:34:06 BST 2007
+.ds CURRENTGM2 0.60
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -29,11 +29,24 @@
 ..
 .de CDE
 .   fi
-.   ft P
+.   ft R
 ..
 .de GM2URL
 .   URL "http://floppsie.comp.glam.ac.uk/download/c/\\$1" \\$2 \\$3
 ..
+.de PRG
+.   nop \f[C]\\$1\f[P]\\$2
+..
+.de CMD
+.   nop \f[C]$ \f[CB]\\$*\f[C]
+..
+.de RCMD
+.   nop \f[C]# \f[CB]\\$*\f[C]
+..
+.de KEY
+.   nop \f[CB]\\$*\f[R]
+..
+.
 .LP
 .NHR
 .defcolor darkred rgb 0.65f 0.1f 0.2f
@@ -66,11 +79,8 @@ It has the following characteristics:
 .sp
 .ULS
 .LI
-gm2-harness 0.96 has been released which will download, patch and build
-\fCgcc\fP, \fCgdb\fP, \fCgm2\fP with the SET and TYPE enhancements below.
-It also honours the \fC--prefix=\fP, \fC--with-cvs\fP, \fC--with-gdb\fP
-and \fC--with-gcc=\fP options.  See the \fCgm2-harness-0.96/README\fP
-for details.
+0.60 has been released.  Also gm2 has been released as .deb packages.
+See binary
 .LI
 variables can now be declared at addresses.
 .LI
@@ -148,19 +158,15 @@ make gm2.paranoid
 and then wait and see whether it completes successfully.
 .sp
 .CDS
-Operating               | Architecture   | gcc and gm2   (or)
-System                  | Host           | gcc + latest cvs
-========================+================+=====================
-Debian Pure 64          | Opteron 64bit  | gcc-3.3.6 + gm2-0.51
-------------------------+----------------+---------------------
-sparcv9-sun-solaris2.10 | Sparc 64 bit   | gcc-3.3.6 + gm2-0.51
-sparc64-sun-solaris2.10 |                | 
-------------------------+----------------+---------------------
-sparc-sun-solaris2.10   | Sparc 32 bit   | gcc-3.3.6 + gm2-0.51
-------------------------+----------------+---------------------
-MacOS X 10.4.8          | PPC G5         | gcc-3.3.6 + cvs tag
-compiled by gcc-3.3     |                | D2006.06.23.04.00.00
-------------------------+----------------+---------------------\fP
+Operating             | Architecture     | gm2 release or
+System                | Host             | gcc + latest cvs
+======================+==================+=====================
+Debian Etch Pure 64   | Opteron 64bit    | 0.60 (deb)
+----------------------+------------------+---------------------
+Debian Etch i386      | Intel i386 32bit | 0.60 (deb)
+----------------------+------------------+---------------------
+PS3 Debian Etch       | PPC 64 bit       | 0.60 (deb)
+----------------------+------------------+---------------------\fP
 .CDE
 .sp
 Other combinations almost certainly work, if you successfully
@@ -218,8 +224,13 @@ Building GNU Modula-2
 Currently GNU Modula-2 is grafted onto the GCC \*[GCCVERSION] source tree.
 .ULS
 .LI
-The easiest way to build gm2 is to download the build harness
+The easiest way to build gm2 is to download combined gcc/gm2 tarball
+which is outlined in a future section.  If you want to build the
+from the latest CVS repository then it is advised that you
+download the build harness and let this script configure and build gm2
+for you.  The harness is found here:
 .GM2URL gm2-harness-\*[GM2HARNESS].tar.gz gm2-harness-\*[GM2HARNESS].tar.gz .
+The command line instructions are:
 .LI
 .nf
 \fC
@@ -251,7 +262,7 @@ needs to be grafted onto the gcc source tree, configured and built.
 tar zxf gcc-\*[GCCVERSION].tar.gz
 mv gm2 gcc-\*[GCCVERSION]/gcc
 cd gcc-\*[GCCVERSION]
-for i in gcc/gm2/patches/gcc/3.3.6/* ; do
+for i in gcc/gm2/patches/gcc/\*[GCCVERSION]/* ; do
    patch -p1 < $i
 done
 mkdir host-build
@@ -262,6 +273,11 @@ make install
 \fP
 .fi
 .ULE
+.sp
+Finally take a look at
+.URL http://freepages.modula2.org/gnum2.html "this page"
+for more information about GNU Modula-2.
+.
 .SH
 GM2 development download via CVS
 .LP
@@ -278,13 +294,33 @@ active development.
 The source code in the CVS can be
 .URL http://cvs.savannah.nongnu.org/viewcvs/?root=gm2 "browsed here" .
 .SH
-GNU Modula-2 binaries
+GNU Modula-2 Debian binaries
 .LP
-Can be found
-.URL http://freepages.modula2.org/downl.html here .
-There are also some useful building tips
-.URL http://freepages.modula2.org/gnum2.html described .
-Many thanks to Christoph for making these available.
+GNU Modula-2 (0.60) binaries are now available for PPC, i386 and AMD64
+architecture debian Etch based distributions.  Add these lines to your
+.PRG /etc/apt/sources.list :
+.sp
+.CDS
+#
+#  GNU Modula-2 repo
+#
+
+deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+.CDE
+.sp
+Then as root type:
+.sp
+.CDS
+.RCMD apt-get update
+.RCMD apt-get install gm2 gm2-doc
+.CDE
+.sp
+You can obtain source to these binaries as a normal user by the following command:
+.sp
+.CDS
+.CMD apt-get source gm2
+.CDE
 .SH
 GM2 and GCC tarball download
 .LP
