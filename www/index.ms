@@ -80,7 +80,7 @@ It has the following characteristics:
 .ULS
 .LI
 0.60 has been released.  Also gm2 has been released as .deb packages.
-See binary
+See the section: GNU Modula-2 Debian binaries.
 .LI
 variables can now be declared at addresses.
 .LI
