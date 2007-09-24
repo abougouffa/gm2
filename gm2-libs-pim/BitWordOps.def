@@ -1,0 +1,78 @@
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE BitWordOps ;
+
+(*
+    Title      : BitWordOps
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Mon Jul 30 07:40:23 2007
+    Revision   : $Version$ 
+    Description: provides a Logitech-3.0 compatible library for GNU Modula-2.
+*)
+
+FROM SYSTEM IMPORT WORD ;
+
+
+(*
+   GetBits - returns the bits firstBit..lastBit from source.
+             Bit 0 of word maps onto the firstBit of source.
+*)
+
+PROCEDURE GetBits (source: WORD; firstBit, lastBit: CARDINAL) : WORD ;
+
+
+(*
+   SetBits - 
+*)
+
+PROCEDURE SetBits (VAR word: WORD; firstBit, lastBit: CARDINAL;
+                   pattern: WORD) ;
+
+
+(*
+   WordAnd - returns a bitwise (left AND right)
+*)
+
+PROCEDURE WordAnd (left, right: WORD) : WORD ;
+
+
+(*
+   WordOr - returns a bitwise (left OR right)
+*)
+
+PROCEDURE WordOr (left, right: WORD) : WORD ;
+
+
+(*
+   WordXor - returns a bitwise (left XOR right)
+*)
+
+PROCEDURE WordXor (left, right: WORD) : WORD ;
+
+
+(*
+   WordNot - returns a word with all bits inverted.
+*)
+
+PROCEDURE WordNot (word: WORD) : WORD ;
+
+
+
+
+END BitWordOps.
