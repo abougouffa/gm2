@@ -1,4 +1,5 @@
-/* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. */
+/* Copyright (C) 2003, 2004, 2005, 2006, 2007
+ * Free Software Foundation, Inc.  */
 /* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -210,13 +211,9 @@ listify (tree chain)
    the name to be called if we can't opencode the function.  */
 
 tree
-builtin_function (name, type, function_code, class, library_name, attrs)
-     const char *name;
-     tree type;
-     int function_code;
-     enum built_in_class class;
-     const char *library_name;
-     tree attrs ATTRIBUTE_UNUSED;
+builtin_function (const char *name, tree type, int function_code,
+		  enum built_in_class class, const char *library_name,
+		  tree attrs ATTRIBUTE_UNUSED)
 {
   tree decl = build_decl (FUNCTION_DECL, get_identifier (name), type);
 
@@ -243,8 +240,7 @@ builtin_function (name, type, function_code, class, library_name, attrs)
  */
 
 tree
-gm2builtins_GetBuiltinConst (name)
-     char *name;
+gm2builtins_GetBuiltinConst (char *name)
 {
   if (strcmp(name, "BITS_PER_UNIT") == 0)
     return gccgm2_BuildIntegerConstant (BITS_PER_UNIT);
@@ -267,8 +263,7 @@ gm2builtins_GetBuiltinConst (name)
  */
 
 int
-gm2builtins_GetBuiltinConstType (name)
-     char *name;
+gm2builtins_GetBuiltinConstType (char *name)
 {
   if (strcmp(name, "BITS_PER_UNIT") == 0)
     return 1;
@@ -283,12 +278,12 @@ gm2builtins_GetBuiltinConstType (name)
 }
 
 /*
- *  BuiltInMemCopy - copy n bytes of memory efficiently from address src to dest.
+ *  BuiltInMemCopy - copy n bytes of memory efficiently from address
+ *                   src to dest.
  */
 
 tree
-gm2builtins_BuiltInMemCopy (dest, src, n)
-     tree dest, src, n;
+gm2builtins_BuiltInMemCopy (tree dest, tree src, tree n)
 {
   tree params   = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
 				    build_tree_list (NULL_TREE, convertToPtr (src))),
@@ -302,8 +297,7 @@ gm2builtins_BuiltInMemCopy (dest, src, n)
  */
 
 tree
-gm2builtins_BuiltInAlloca (n)
-     tree n;
+gm2builtins_BuiltInAlloca (tree n)
 {
   return DoBuiltinAlloca (listify (n));
 }
@@ -314,8 +308,7 @@ gm2builtins_BuiltInAlloca (n)
  */
 
 int
-gm2builtins_BuiltinExists (name)
-     char *name;
+gm2builtins_BuiltinExists (char *name)
 {
   struct builtin_function_entry *fe;
 
@@ -331,8 +324,7 @@ gm2builtins_BuiltinExists (name)
  */
 
 tree
-gm2builtins_BuildBuiltinTree (name)
-     char *name;
+gm2builtins_BuildBuiltinTree (char *name)
 {
   struct builtin_function_entry *fe;
 
@@ -353,8 +345,7 @@ gm2builtins_BuildBuiltinTree (name)
 }
 
 static tree
-DoBuiltinMemCopy (params)
-     tree params;
+DoBuiltinMemCopy (tree params)
 {
   tree functype = TREE_TYPE (gm2_memcpy_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_memcpy_node);
@@ -370,8 +361,7 @@ DoBuiltinMemCopy (params)
 }
 
 static tree
-DoBuiltinAlloca (params)
-     tree params;
+DoBuiltinAlloca (tree params)
 {
   tree functype = TREE_TYPE (gm2_alloca_node);
   tree funcptr  = build1 (ADDR_EXPR, build_pointer_type (functype), gm2_alloca_node);
@@ -408,8 +398,7 @@ gm2builtins_BuiltInHugeValLong (void)
 }
 
 static void
-create_function_prototype (fe)
-     struct builtin_function_entry *fe;
+create_function_prototype (struct builtin_function_entry *fe)
 {
   tree ftype;
 
@@ -527,7 +516,7 @@ find_builtin_tree (const char *name)
 }
 
 void
-gm2builtins_init ()
+gm2builtins_init (void)
 {
   int i;
 
