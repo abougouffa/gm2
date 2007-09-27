@@ -43,6 +43,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #include "debug.h"
 #include "diagnostic.h"
 
+
 #define GM2
 #define GM2_BUG_REPORT "Please report this crash to the GNU Modula-2 mailing list <gm2@glam.ac.uk>\n"
 
@@ -110,12 +111,9 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_exp",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_EXP, BUILT_IN_NORMAL, "exp", NULL, NULL},
 { "__builtin_expl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_EXPL, BUILT_IN_NORMAL, "expl", NULL, NULL},
 
-
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
 { "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
 { "__builtin_huge_vall",  BT_FN_LONG_DOUBLE, BUILT_IN_HUGE_VALL, BUILT_IN_NORMAL, "hughe_vall", NULL, NULL},
-
-
 
 { "__builtin_index",   BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
 { "__builtin_rindex",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_RINDEX, BUILT_IN_NORMAL, "rindex", NULL, NULL},
@@ -141,7 +139,7 @@ static struct builtin_function_entry list_of_builtins[] = {
 { NULL, 0, 0, 0, "", NULL, NULL} };
 
 
-static tree sizetype_endlink;
+static tree sizetype_endlink, unsigned_endlink;
 static tree endlink, math_endlink, int_endlink;
 static tree ptr_endlink, const_ptr_endlink;
 static tree double_ftype_void, float_ftype_void, ldouble_ftype_void;
@@ -526,6 +524,7 @@ gm2builtins_init (void)
   int_endlink =  tree_cons (NULL_TREE, integer_type_node, NULL_TREE);
   ptr_endlink =  tree_cons (NULL_TREE, ptr_type_node, NULL_TREE);
   const_ptr_endlink =  tree_cons (NULL_TREE, const_ptr_type_node, NULL_TREE);
+  unsigned_endlink = tree_cons (NULL_TREE, unsigned_type_node, NULL_TREE);
 
   float_ftype_void = build_function_type (float_type_node, math_endlink);
   double_ftype_void = build_function_type (double_type_node, math_endlink);

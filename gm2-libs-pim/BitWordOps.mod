@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE BitWordOps ;
 
-FROM SYSTEM IMPORT BITSET ;
+FROM SYSTEM IMPORT BITSET, BYTE, ADR, SHIFT, ROTATE, TSIZE ;
 
 
 (*
@@ -49,13 +49,30 @@ END GetBits ;
 
 
 (*
-   SetBits - 
+   SetBits - sets bits in, word, starting at, firstBit, and ending at,
+             lastBit, with, pattern.  The bit zero of, pattern, will
+             be placed into, word, at position, firstBit.
 *)
 
 PROCEDURE SetBits (VAR word: WORD; firstBit, lastBit: CARDINAL;
                    pattern: WORD) ;
+VAR
+   pw, pp: BITSET ;
+   i, j  : CARDINAL ;
 BEGIN
-   
+   pw := VAL(BITSET, word) ;
+   pp := VAL(BITSET, pattern) ;
+   j := 0 ;
+   FOR i := firstBit TO lastBit DO
+      IF j IN pp
+      THEN
+         INCL(pw, i)
+      ELSE
+         EXCL(pw, i)
+      END ;
+      INC(j)
+   END ;
+   word := VAL(WORD, pw)
 END SetBits ;
 
 
@@ -105,13 +122,114 @@ END WordNot ;
 *)
 
 PROCEDURE WordShr (word: WORD; count: CARDINAL) : WORD ;
-VAR
-   c: CARDINAL ;
 BEGIN
-   c := VAL(CARDINAL, word) ;
-   RETURN VAL(CARDINAL, word)
+   RETURN SHIFT(VAL(BITSET, word), count)
 END WordShr ;
 
+
+(*
+   WordShl - returns a, word, which has been shifted, count
+             bits to the left.
+*)
+
+PROCEDURE WordShl (word: WORD; count: CARDINAL) : WORD ;
+BEGIN
+   RETURN SHIFT(VAL(BITSET, word), -VAL(INTEGER, count))
+END WordShl ;
+
+
+(*
+   WordSar - shift word arthemetic right.  Preserves the top
+             end bit and as the value is shifted right.
+*)
+
+PROCEDURE WordSar (word: WORD; count: CARDINAL) : WORD ;
+VAR
+   w: WORD ;
+BEGIN
+   IF MAX(BITSET) IN VAL(BITSET, word)
+   THEN
+      w := VAL(WORD, SHIFT(VAL(BITSET, word), count)) ;
+      SetBits(w, MAX(BITSET)-count, MAX(BITSET), -BITSET{}) ;
+      RETURN w
+   ELSE
+      RETURN SHIFT(VAL(BITSET, word), count)
+   END
+END WordSar ;
+
+
+(*
+   WordRor - returns a, word, which has been rotated, count
+             bits to the right.
+*)
+
+PROCEDURE WordRor (word: WORD; count: CARDINAL) : WORD ;
+BEGIN
+   RETURN ROTATE(VAL(BITSET, word), count)
+END WordRor ;
+
+
+(*
+   WordRol - returns a, word, which has been rotated, count
+             bits to the left.
+*)
+
+PROCEDURE WordRol (word: WORD; count: CARDINAL) : WORD ;
+BEGIN
+   RETURN ROTATE(VAL(BITSET, word), -VAL(INTEGER, count))
+END WordRol ;
+
+
+(*
+   HighByte - returns the top byte only from, word.
+              The byte is returned in the bottom byte
+              in the return value.
+*)
+
+PROCEDURE HighByte (word: WORD) : WORD ;
+VAR
+   p: POINTER TO ARRAY [0..TSIZE(WORD)-1] OF BYTE ;
+BEGIN
+   p := ADR(word) ;
+   RETURN VAL(WORD, p^[TSIZE(WORD)-1])
+END HighByte ;
+
+
+(*
+   LowByte - returns the low byte only from, word.
+             The byte is returned in the bottom byte
+             in the return value.
+*)
+
+PROCEDURE LowByte (word: WORD) : WORD ;
+VAR
+   p: POINTER TO ARRAY [0..TSIZE(WORD)-1] OF BYTE ;
+BEGIN
+   p := ADR(word) ;
+   RETURN VAL(WORD, p^[0])
+END LowByte ;
+
+
+(*
+   Swap - byte flips the contents of word.
+*)
+
+PROCEDURE Swap (word: WORD) : WORD ;
+VAR
+   p   : POINTER TO ARRAY [0..TSIZE(WORD)-1] OF BYTE ;
+   i, j: CARDINAL ;
+   b   : BYTE ;
+BEGIN
+   p := ADR(word) ;
+   j := TSIZE(WORD)-1 ;
+   FOR i := 0 TO (TSIZE(WORD) DIV 2)-1 DO
+      b := p^[i] ;
+      p^[i] := p^[j] ;
+      p^[j] := b ;
+      DEC(j)
+   END ;
+   RETURN word
+END Swap ;
 
 
 END BitWordOps.

@@ -249,7 +249,6 @@ struct                     { updatepos(); CLexBuf_AddTok(CLexBuf_structtok); ret
 \&                         { updatepos(); CLexBuf_AddTok(CLexBuf_ambersandtok); return; }
 "<<"                       { updatepos(); CLexBuf_AddTok(CLexBuf_shiftlefttok); return; }
 ">>"                       { updatepos(); CLexBuf_AddTok(CLexBuf_shiftrighttok); return; }
-"/"                        { updatepos(); CLexBuf_AddTok(CLexBuf_divtok); return; }
 "%"                        { updatepos(); CLexBuf_AddTok(CLexBuf_modtok); return; }
 sizeof                     { updatepos(); CLexBuf_AddTok(CLexBuf_sizeoftok); return; }
 defined                    { updatepos(); CLexBuf_AddTok(CLexBuf_definedtok); return; }

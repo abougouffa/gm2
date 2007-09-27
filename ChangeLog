@@ -1,3 +1,12 @@
+2006-09-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/SYSTEM.mod:  added SHIFT, ROTATE and their
+	  support counterparts.
+	* gm2/gm2-libs-pim/BitByteOps.{def,mod}:  added.
+	* gm2/gm2-libs-pim/BitWordOps.{def,mod}:  completed.
+	* gm2/gm2.texi:  updated to reflect the addition of SHIFT,
+	  ROTATE procedures in PIM SYSTEM.mod.
+
 2006-09-14       Gaius Mulley <gaius@gnu.org>
 
 	* www/index.ms:  updated web pages to reflect 0.60 release

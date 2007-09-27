@@ -292,7 +292,7 @@ END IsISOPseudoSystemFunction ;
 
 PROCEDURE IsPIMPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (NOT Iso) AND (Sym=Size) )
+   RETURN( (NOT Iso) AND ((Sym=Size) OR (Sym=Shift) OR (Sym=Rotate)) )
 END IsPIMPseudoSystemFunction ;
 
 
@@ -316,9 +316,8 @@ END IsPseudoSystemFunction ;
 PROCEDURE IsPseudoSystemFunctionConstExpression (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym=Size) OR (Sym=TSize) OR
-          (Iso AND ((Sym=Cast) OR (Sym=MakeAdr) OR
-                    (Sym=Rotate) OR (Sym=Shift)))
+          (Sym=Size) OR (Sym=TSize) OR (Sym=Rotate) OR (Sym=Shift) OR
+          (Iso AND ((Sym=Cast) OR (Sym=MakeAdr)))
          )
 END IsPseudoSystemFunctionConstExpression ;
 

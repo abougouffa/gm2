@@ -14,7 +14,7 @@
 @c
 
 @setfilename gm2.info
-@set version-GM2     0.60
+@set version-GM2     0.61
 @set version-GCC     4.1.2
 @set version-HARNESS 0.96
 @set version-GDB     6.6
@@ -1305,7 +1305,116 @@ be in-lined you need to specify the @samp{-ffast-math -O} options.
 DEFINITION MODULE SYSTEM ;
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
-                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE ;
+                 ADDRESS, WORD, BYTE, BITSET,
+                 ADR, TSIZE, SIZE, ROTATE, SHIFT ;
+
+(*
+   all the procedures below are declared internally to gm2
+   ======================================================
+
+PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
+  (* Returns the address of variable v. *)
+
+PROCEDURE SIZE (v: <type>) : CARDINAL;
+  (* Returns the number of BYTES used to store a v of
+     any specified <type>.
+  *)
+
+PROCEDURE TSIZE (<type>) : CARDINAL;
+  (* Returns the number of BYTES used to store a value of the
+     specified <type>.
+  *)
+
+PROCEDURE ROTATE (val: <a set type>;
+                  num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by rotating up or down
+     (left or right) by the absolute value of num.  The direction is
+     down if the sign of num is negative, otherwise the direction is up.
+  *)
+
+PROCEDURE SHIFT (val: <a set type>;
+                 num: INTEGER): <type of first parameter>;
+  (* Returns a bit sequence obtained from val by shifting up or down
+     (left or right) by the absolute value of num, introducing
+     zeros as necessary.  The direction is down if the sign of
+     num is negative, otherwise the direction is up.
+  *)
+*)
+
+(* The following procedures are invoked by GNU Modula-2 to
+   shift non word sized set types. They are not part of PIM Modula-2
+   but are used by GNU Modula-2 to implement the SHIFT procedure
+   defined above. *)
+
+(*
+   ShiftVal - is a runtime procedure whose job is to implement
+              the SHIFT procedure of ISO SYSTEM. GNU Modula-2 will
+              inline a SHIFT of a single WORD sized set and will only
+              call this routine for larger sets.
+*)
+
+PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
+                    SetSizeInBits: CARDINAL;
+                    ShiftCount: INTEGER) ;
+
+
+(*
+   ShiftLeft - performs the shift left for a multi word set.
+               This procedure might be called by the back end of
+               GNU Modula-2 depending whether amount is known at compile
+               time.
+*)
+
+PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
+                     SetSizeInBits: CARDINAL;
+                     ShiftCount: INTEGER) ;
+
+(*
+   ShiftRight - performs the shift left for a multi word set.
+                This procedure might be called by the back end of
+                GNU Modula-2 depending whether amount is known at compile
+                time.
+*)
+
+PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
+                     SetSizeInBits: CARDINAL;
+                     ShiftCount: INTEGER) ;
+
+
+(*
+   RotateVal - is a runtime procedure whose job is to implement
+               the ROTATE procedure of ISO SYSTEM. GNU Modula-2 will
+               inline a ROTATE of a single WORD (or less)
+               sized set and will only call this routine for larger sets.
+*)
+
+PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
+                     SetSizeInBits: CARDINAL;
+                     RotateCount: INTEGER) ;
+
+
+(*
+   RotateLeft - performs the rotate left for a multi word set.
+                This procedure might be called by the back end of
+                GNU Modula-2 depending whether amount is known at compile
+                time.
+*)
+
+PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
+                      SetSizeInBits: CARDINAL;
+                      RotateCount: INTEGER) ;
+
+
+(*
+   RotateRight - performs the rotate right for a multi word set.
+                 This procedure might be called by the back end of
+                 GNU Modula-2 depending whether amount is known at compile
+                 time.
+*)
+
+PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
+                       SetSizeInBits: CARDINAL;
+                       RotateCount: INTEGER) ;
 
 END SYSTEM.
 @end example
@@ -1526,8 +1635,9 @@ Patches and development volunteers highly welcome!
 Currently you have several options, you could either download a source
 tar ball from @uref{ftp://floppsie.comp.glam.ac.uk/pub/c} and
 search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
-Prebuilt binary packages are also available at
-@uref{http://www.unet.univie.ac.at/~a9406973/modula2/downl.html}.
+Prebuilt binary packages are also available from
+@uref{http://www.nongnu.org/gm2/}
+in debian @code{.deb} package format.
 
 Alternatively the development sources can be downloaded via CVS.
 Please be aware that as gm2 is in development it might fail to compile

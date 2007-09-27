@@ -1,4 +1,4 @@
-(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* Copyright (C) 2007 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -38,7 +38,9 @@ PROCEDURE GetBits (source: WORD; firstBit, lastBit: CARDINAL) : WORD ;
 
 
 (*
-   SetBits - 
+   SetBits - sets bits in, word, starting at, firstBit, and ending at,
+             lastBit, with, pattern.  The bit zero of, pattern, will
+             be placed into, word, at position, firstBit.
 *)
 
 PROCEDURE SetBits (VAR word: WORD; firstBit, lastBit: CARDINAL;
@@ -73,6 +75,69 @@ PROCEDURE WordXor (left, right: WORD) : WORD ;
 PROCEDURE WordNot (word: WORD) : WORD ;
 
 
+(*
+   WordShr - returns a, word, which has been shifted, count
+             bits to the right.
+*)
+
+PROCEDURE WordShr (word: WORD; count: CARDINAL) : WORD ;
+
+
+(*
+   WordShl - returns a, word, which has been shifted, count
+             bits to the left.
+*)
+
+PROCEDURE WordShl (word: WORD; count: CARDINAL) : WORD ;
+
+
+(*
+   WordSar - shift word arthemetic right.  Preserves the top
+             end bit and as the value is shifted right.
+*)
+
+PROCEDURE WordSar (word: WORD; count: CARDINAL) : WORD ;
+
+
+(*
+   WordRor - returns a, word, which has been rotated, count
+             bits to the right.
+*)
+
+PROCEDURE WordRor (word: WORD; count: CARDINAL) : WORD ;
+
+
+(*
+   WordRol - returns a, word, which has been rotated, count
+             bits to the left.
+*)
+
+PROCEDURE WordRol (word: WORD; count: CARDINAL) : WORD ;
+
+
+(*
+   HighByte - returns the top byte only from, word.
+              The byte is returned in the bottom byte
+              in the return value.
+*)
+
+PROCEDURE HighByte (word: WORD) : WORD ;
+
+
+(*
+   LowByte - returns the low byte only from, word.
+             The byte is returned in the bottom byte
+             in the return value.
+*)
+
+PROCEDURE LowByte (word: WORD) : WORD ;
+
+
+(*
+   Swap - byte flips the contents of word.
+*)
+
+PROCEDURE Swap (word: WORD) : WORD ;
 
 
 END BitWordOps.
