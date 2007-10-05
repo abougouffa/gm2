@@ -1,3 +1,40 @@
+2006-10-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  updated version to 0.62
+	* gm2/Make-lang.in:  altered all -W options to their new
+	  -f counterparts
+	* gm2/README:  modified the advised build command
+	* gm2/gccgm2.c:  removed all section of code inside #if 0
+	  blocks (which were not part of the orig gcc source).
+	* gm2/gccgm2.c:  modified OPT_W to OPT_f to reflect change
+	  of -W flags to -f flags.
+	* gm2/gccgm2.c:  reintroduced the -fcpp handling code.
+	* gm2/gm2.texi:  updated version number to 0.62
+	* gm2/gm2.texi:  altered all -W options to -f options
+	  for code generation options.  Left warning options
+	  to use -W to mirror the gcc paradigm.
+	* gm2/gm2/gm2builtins.c:  memmove introduced.
+	* gm2/gm2spec.c:  changed all -W options to -f.
+	* gm2/lang-specs.h:  changed all -W options to -f.
+	* gm2/lang.opt:  changed all -W options to -f.
+	* gm2/bnf/gm2l.bnf:  changed all -W options to -f.
+	* gm2/bnf/gm2m.bnf:  changed all -W options to -f.
+	* gm2/gm2-libs-pim/BlockOps.{def,mod}:  added to repository.
+	* gm2/examples/map/Makefile:  changed all -W options to -f and
+	  added -O3.
+	* gm2/gm2/gm2-compiler/M2Options.def:  changed comments.
+	* gm2/gm2-compiler/M2Options.mod:  changed all -W options to -f.
+	* gm2/gm2-compiler/M2Quads.mod:  changed all -W options to -f.
+	* gm2/gm2-compiler/SymbolTable.mod:  changed all -W options to -f.
+	* gm2/gm2-compiler/gm2.mod:  changed all -W options to -f.
+	* gm2/gm2-compiler/gm2lcc.mod:  changed all -W options to -f.
+	* gm2/gm2/gm2-compiler/ppg.mod:  modified compile-command.
+	* gm2/gm2-libs/Builtins.def:  added memmove to the list of
+	  builtins.
+	* gm2/gm2-libs/Builtins.mod:  implemented M2 wrapper for memmove.
+	* gm2/gm2-libs/cbuiltin.def:  added access to C memmove.
+	* gm2/man/gm2.man:  changed all -W options to -f.
+	
 2006-09-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/SYSTEM.mod:  added SHIFT, ROTATE and their
@@ -6,6 +43,26 @@
 	* gm2/gm2-libs-pim/BitWordOps.{def,mod}:  completed.
 	* gm2/gm2.texi:  updated to reflect the addition of SHIFT,
 	  ROTATE procedures in PIM SYSTEM.mod.
+	* gm2/gm2/Make-lang.in:  
+	* gm2/gm2/README:  
+	* gm2/gm2/gccgm2.c:  
+	* gm2/gm2/gm2.texi:  
+	* gm2/gm2/gm2spec.c:  
+	* gm2/gm2/lang-options.h:  
+	* gm2/gm2/lang-specs.h:  
+	* gm2/gm2/lang.opt:  
+	* gm2/gm2/bnf/gm2l.bnf:  
+	* gm2/gm2/bnf/gm2m.bnf:  
+	* gm2/gm2/gm2-compiler/M2Options.def:  
+	* gm2/gm2/gm2-compiler/M2Options.mod:  
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  
+	* gm2/gm2/gm2-compiler/SymbolTable.mod:  
+	* gm2/gm2/gm2-compiler/gm2.mod:  
+	* gm2/gm2/gm2-compiler/gm2lcc.mod:  
+	* gm2/gm2/gm2-compiler/ppg.mod:  all changed to reflect moving
+	  -W switches to -f switches as per gcc.  Only using -W for
+	  compile time warnings, -f for language features including
+	  runtime checking.
 
 2006-09-14       Gaius Mulley <gaius@gnu.org>
 

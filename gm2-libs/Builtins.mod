@@ -146,6 +146,11 @@ BEGIN
    RETURN cbuiltin.memset (s, c, n)
 END memset ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_memmove)) memmove (s1, s2: ADDRESS; n: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN cbuiltin.memmove (s1, s2, n)
+END memmove ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_strcat)) strcat (dest, src: ADDRESS) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.strcat (dest, src)

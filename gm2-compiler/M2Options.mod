@@ -58,11 +58,11 @@ PROCEDURE ScanCppArgs (i: CARDINAL) : CARDINAL ;
 VAR
    s: String ;
 BEGIN
-   IF GetArg(s, i) AND EqualArray(s, '-Wcppbegin')
+   IF GetArg(s, i) AND EqualArray(s, '-fcppbegin')
    THEN
       INC(i) ;
       WHILE GetArg(s, i) DO
-         IF EqualArray(s, '-Wcppend')
+         IF EqualArray(s, '-fcppend')
          THEN
             RETURN( i )
          ELSIF NOT EqualArray(CppAndArgs, '')
@@ -97,13 +97,13 @@ BEGIN
             IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=')
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
             THEN
                SetDefExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
             THEN
                SetModExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(s, '-Wcppbegin')
+            ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
             ELSIF EqualArray(s, '-version')
@@ -278,10 +278,7 @@ PROCEDURE IsAnOption (s: String) : BOOLEAN ;
 VAR
    Legal: BOOLEAN ;
 BEGIN
-   IF EqualArray(Mark(Slice(s, 0, 2)), '-f')
-   THEN
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-g')
+   IF EqualArray(Mark(Slice(s, 0, 2)), '-g')
    THEN
       GenerateDebugging := TRUE ;
       Legal := TRUE
@@ -289,45 +286,45 @@ BEGIN
    THEN
       (* profiling *)
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wiso')
+   ELSIF EqualArray(s, '-fiso')
    THEN
       Iso := TRUE ;
       Pim := FALSE ;
       Pim2 := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wpim')
+   ELSIF EqualArray(s, '-fpim')
    THEN
       Pim := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wpim2')
+   ELSIF EqualArray(s, '-fpim2')
    THEN
       Pim := TRUE ;
       Pim2 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wpim3')
+   ELSIF EqualArray(s, '-fpim3')
    THEN
       Pim := TRUE ;
       Pim3 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wpim4')
+   ELSIF EqualArray(s, '-fpim4')
    THEN
       Pim := TRUE ;
       Pim4 := TRUE ;
       Iso := FALSE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wpositive-mod-floor-div')
+   ELSIF EqualArray(s, '-fpositive-mod-floor-div')
    THEN
       PositiveModFloorDiv := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-Wlibs=')
+   ELSIF EqualArray(Mark(Slice(s, 0, 7)), '-flibs=')
    THEN
       (* at present this switch just modifies the default library
          search path *)
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wd')
+   ELSIF EqualArray(s, '-fd')
    THEN
       CompilerDebugging := TRUE ;
       Legal := TRUE
@@ -364,41 +361,33 @@ BEGIN
    THEN
       PedanticCast := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wcheck-all')
+   ELSIF EqualArray(s, '-fcheck-all')
    THEN
       Legal := SetCheckAll(TRUE)
-   ELSIF EqualArray(s, '-Wbounds')
+   ELSIF EqualArray(s, '-fbounds')
    THEN
       BoundsChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wnil')
+   ELSIF EqualArray(s, '-fnil')
    THEN
       NilChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wcase')
+   ELSIF EqualArray(s, '-fcase')
    THEN
       CaseElseChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wcpp') OR EqualArray(s, '-Wcppbegin')
+   ELSIF EqualArray(s, '-fcpp') OR EqualArray(s, '-fcppbegin')
    THEN
       Legal := SetCpp(TRUE)
-   ELSIF EqualArray(s, '-Wreturn')
+   ELSIF EqualArray(s, '-freturn')
    THEN
       ReturnChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wstatistics')
+   ELSIF EqualArray(s, '-fstatistics')
    THEN
       Statistics := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wstudents')
-   THEN
-      StudentChecking := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Wpedantic')
-   THEN
-      Pedantic := TRUE ;
-      Legal := TRUE
-   ELSIF EqualArray(s, '-Wextended-opaque')
+   ELSIF EqualArray(s, '-fextended-opaque')
    THEN
       ExtendedOpaque := TRUE ;
       Legal := TRUE
@@ -406,7 +395,7 @@ BEGIN
    THEN
       Verbose := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wsources')
+   ELSIF EqualArray(s, '-fsources')
    THEN
       Quiet := FALSE ;
       SeenSources := TRUE ;
@@ -418,13 +407,13 @@ BEGIN
          Quiet := TRUE    (* Quiet is automatically set by the front end *)
       END ;
       Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-Wtarget-ar=')
+   ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-ftarget-ar=')
    THEN
       Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-Wtarget-ranlib=')
+   ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-ftarget-ranlib=')
    THEN
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wq')
+   ELSIF EqualArray(s, '-fq')
    THEN
       DisplayQuadruples := TRUE ;
       Legal := TRUE
@@ -435,17 +424,29 @@ BEGIN
    THEN
       (* gcc passes this to us, we ignore it *)
       Legal := TRUE
+   ELSIF EqualArray(s, '-fmakeall') OR EqualArray(s, '-fmakeall0') OR
+         EqualArray(Mark(Slice(s, 0, 9)), '-fmake-I=')
+   THEN
+      Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=') OR
+         EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
+   THEN
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wstudents')
+   THEN
+      StudentChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-Wpedantic')
+   THEN
+      Pedantic := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-m')
    THEN
       (* if gcc passes architectural flags to us, we ignore it *)
       Legal := TRUE
-   ELSIF EqualArray(s, '-Wmakeall') OR EqualArray(s, '-Wmakeall0') OR
-         EqualArray(Mark(Slice(s, 0, 9)), '-Wmake-I=')
+   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
    THEN
-      Legal := TRUE
-   ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=') OR
-         EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
-   THEN
+      (* if gcc passes architectural flags to us, we ignore it *)
       Legal := TRUE
    ELSE
       Legal := FALSE

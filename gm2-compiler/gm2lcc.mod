@@ -429,11 +429,11 @@ BEGIN
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
       THEN
          PrependSearchPath(Slice(s, 2, 0))
-      ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-Wtarget-ar=')
+      ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-ftarget-ar=')
       THEN
          ArProgram := KillString(ArProgram) ;
          ArProgram := Slice(s, 12, 0)
-      ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-Wtarget-ranlib=')
+      ELSIF EqualArray(Mark(Slice(s, 0, 16)), '-ftarget-ranlib=')
       THEN
          RanlibProgram := KillString(RanlibProgram) ;
          RanlibProgram := Slice(s, 16, 0)

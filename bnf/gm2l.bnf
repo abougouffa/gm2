@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2006/01/10 23:56:08 $]
+              : [$Date: 2007/10/05 19:08:22 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -751,7 +751,7 @@ BEGIN
    n := SArgs.Narg() ;
    IF n=1
    THEN
-      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-Wdef=extension] [-Wmod=extension] [-o outputfile] modulefile\n')
+      printf0('Usage: gm2l [-M2RTS] [-Isearchpath] [-fdef=extension] [-fmod=extension] [-o outputfile] modulefile\n')
    ELSE
       i := 1 ;
       REPEAT
@@ -760,13 +760,13 @@ BEGIN
             IF EqualArray(Mark(Slice(s, 0, 2)), '-I')
             THEN
                PrependSearchPath(Slice(s, 2, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wdef=')
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fdef=')
             THEN
                SetDefExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-Wmod=')
+            ELSIF EqualArray(Mark(Slice(s, 0, 6)), '-fmod=')
             THEN
                SetModExtension(Slice(s, 6, 0))
-            ELSIF EqualArray(s, '-Wcppbegin')
+            ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
             ELSIF EqualArray(s, '-M2RTS')

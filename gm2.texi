@@ -14,7 +14,7 @@
 @c
 
 @setfilename gm2.info
-@set version-GM2     0.61
+@set version-GM2     0.62
 @set version-GCC     4.1.2
 @set version-HARNESS 0.96
 @set version-GDB     6.6
@@ -197,16 +197,16 @@ complete.
 @item 0.50
 compatible with gcc-3.3.6. GNU Modula-2 is stable and passes all
 regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.  The
-compiler is PIM-234 compatible (use @samp{-Wpim2}, @samp{-Wpim3} and
-@samp{-Wpim4} to force mutually exclusive PIM features).
+compiler is PIM-234 compatible (use @samp{-fpim2}, @samp{-fpim3} and
+@samp{-fpim4} to force mutually exclusive PIM features).
 
 It is also able to compile the University of Ulm libraries which
 are now distributed as part of GNU Modula-2. To reference these
-libraries use the @samp{-Wlibs=ulm} compiler switch.
+libraries use the @samp{-flibs=ulm} compiler switch.
 
 @item 0.60
 many Logitech compatible libraries will be provided, which will
-be available when invoked by @samp{-Wpim}.
+be available when invoked by @samp{-fpim}.
 
 @item 0.80
 a full set of ISO libraries will have been implemented. GNU Modula-2
@@ -233,37 +233,170 @@ generic flags details see
 
 @table @code
 
-@item -Wmakeall
+@item -fmakeall
 generate a temporary makefile and build all dependent modules and
 link.
 
-@item -Wbounds
+@item -fbounds
 generate code to check the bounds of subranges and array indexes.
 
-@item -Wreturn
+@item -freturn
 generate code to check that functions always exit with a @code{RETURN}
 and do not fall out at the end.
 
-@item -Wnil
+@item -fnil
 turns on runtime checking to detect accessing data through a
 @code{NIL} value pointer.
 
-@item -Wcase
+@item -fcase
 turns on runtime checking to check whether a @code{CASE} statement
 requires an @code{ELSE} clause when on was not specified.
 
-@item -Wcheck-all
+@item -fcheck-all
 turns on all runtime checks. This is the same as invoking
 GNU Modula-2 using the command options
-@code{-Wbounds} @code{-Wreturn} @code{-Wnil} @code{-Wcase}.
+@code{-fbounds} @code{-freturn} @code{-fnil} @code{-fcase}.
 
 @item -v
 display all calls to subsidiary programs, such as the C preprocessor,
 the GNU Modula-2 linker and compiler.
 
-@item -Wstatistics
+@item -fstatistics
 generates quadruple information: number of quadruples generated,
 number of quadruples remaining after optimisation.
+
+@item -fmakelist
+this option is only applicable when linking a program module.  The
+compiler will generate a @file{modulename.lst} file which contains a
+list indicating the initialisation order of all modules which are to
+be linked. The actual link does not occur.  The GNU Modula-2 linker
+scans all @code{IMPORT}s, generates a list of dependencies and
+produces an ordered list for initialisation. It will probably get the
+order wrong if your project has cyclic dependencies, but the
+@file{.lst} file is plain text and can be modified if required.  Once
+the @file{.lst} file is created it can be used by the compiler to link
+your project via the @samp{-fuselist} option.  It has no effect if the
+@samp{-c} option is present.
+
+@item -fuselist
+providing @samp{gm2} has been told to link the program module this
+option uses the file @file{modulename.lst} for the initialisation
+order of modules.
+
+@item -fcpp
+preprocess the source with @samp{cpp -lang-asm -traditional-cpp}
+For further details about these options see @xref{Invocation, , ,cpp}.
+If @samp{-fcpp} is supplied then all definition modules and
+implementation modules which are parsed will be preprocessed by
+@samp{cpp}.
+
+@item -fiso
+turn on ISO standard features. Currently this enables the ISO
+@code{SYSTEM} module and alters the default library search path so
+that the ISO libraries are searched before the PIM libraries.  It also
+effects the behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -fpim
+turn on PIM standard features. Currently this enables the PIM
+@code{SYSTEM} module and determines which identifiers are pervasive
+(declared in the base module). If no other @samp{-fpim[234]} switch is
+used then division and modulus operators behave as defined in PIM4.
+See @xref{Dialect, , ,gm2}.
+
+@item -fpim2
+turn on PIM-2 standard features. Currently this removes @code{SIZE}
+from being a pervasive identifier (declared in the base module).  It
+places @code{SIZE} in the @code{SYSTEM} module.  It also effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -fpim3
+turn on PIM-3 standard features. Currently this only effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -fpim4
+turn on PIM-4 standard features. Currently this only effects the
+behaviour of @code{DIV} and @code{MOD} operators.
+See @xref{Dialect, , ,gm2}.
+
+@item -fpositive-mod-floor-div
+forces the @code{DIV} and @code{MOD} operators to behave as defined by PIM4.
+All modulus results are positive and the results from the division are
+rounded to the floor.
+See @xref{Dialect, , ,gm2}.
+
+@item -flibs=ulm
+modifies the default library search path so that the University of Ulm
+libraries are searched before the other PIM libraries.
+
+@item -flibs=pim
+modifies the default library search path so that the PIM libraries
+are searched before any others (the default).
+
+@item -flibs=min
+modifies the default library search path so that the absolute minimum
+of Modula-2 runtime libraries are loaded (a stripped down M2RTS, SYSTEM
+and libc).
+
+@item -flibs=iso
+modifies the default library search path so that the ISO libraries are
+searched before any others (not needed if @samp{-fiso} was specified).
+
+@item -flibs=logitech
+modifies the default library search path so that the Logitech compatible
+libraries are searched before the base PIM libraries.
+
+@item -flibs=pim-coroutine
+modifies the default libraries search path so that the PIM @code{SYSTEM}
+module providing coroutine support is searched before the base PIM libraries.
+This directory also includes many coroutine related libraries.
+
+@item -fextended-opaque
+allows opaque types to be implemented as any type. This is a GNU
+Modula-2 extension and it requires that the implementation module
+defining the opaque type is available so that it can be resolved when
+compiling the module which imports the opaque type.
+
+@item -fsources
+displays the path to the source of each module.
+
+@item -fdef=
+recognise the specified suffix as a definition module filename.
+The default implmentation and module filename suffix is @file{.def}.
+If this option is used GNU Modula-2 will still fall back to this
+default if a requested definition module is not found.
+
+@item -fmod=
+recognise the specified suffix as implementation and module filenames.
+The default implmentation and module filename suffix is @file{.mod}.
+If this option is used GNU Modula-2 will still fall back to this
+default if it needs to read an implmentation module and the specified
+suffixed filename does not exist.
+Both this option and @code{-fdef=} also work with the @code{-fmakeall}
+option.
+
+@item -funbounded-by-reference
+enable optimization of unbounded parameters by attempting to pass non
+@code{VAR} unbounded parameters by reference.  This optimization
+avoids the implicit copy inside the callee procedure. GNU Modula-2
+will only allow unbounded parameters to be passed by reference if,
+inside the callee procedure, they are not written to, no address is
+calculated on the array and it is not passed as a @code{VAR}
+parameter.  Note that it is possible to write code to break this
+optimization, therefore this option should be used carefully.
+For example it would be possible to take the address of an array, pass
+the address and the array to a procedure, read from the array in
+the procedure and write to the location using the address parameter.
+
+Due to the dangerous nature of this option it is not enabled
+when the -O option is specified.
+
+@item -Wverbose-unbounded
+inform the user which non @code{VAR} unbounded parameters will be
+passed by reference.  This only produces output if the option
+@samp{-funbounded-by-reference} is also supplied on the command line.
 
 @item -Wstudents
 checks for bad programming style. This option is aimed at new users of
@@ -296,139 +429,6 @@ in ISO Modula-2, however it can be dangerous. Some users may prefer
 to use @code{VAL} instead in these situations and use @code{CAST}
 exclusively for changes in type on objects which have the same size.
 
-@item -Wmakelist
-this option is only applicable when linking a program module.  The
-compiler will generate a @file{modulename.lst} file which contains a
-list indicating the initialisation order of all modules which are to
-be linked. The actual link does not occur.  The GNU Modula-2 linker
-scans all @code{IMPORT}s, generates a list of dependencies and
-produces an ordered list for initialisation. It will probably get the
-order wrong if your project has cyclic dependencies, but the
-@file{.lst} file is plain text and can be modified if required.  Once
-the @file{.lst} file is created it can be used by the compiler to link
-your project via the @samp{-Wuselist} option.  It has no effect if the
-@samp{-c} option is present.
-
-@item -Wuselist
-providing @samp{gm2} has been told to link the program module this
-option uses the file @file{modulename.lst} for the initialisation
-order of modules.
-
-@item -Wcpp
-preprocess the source with @samp{cpp -lang-asm -traditional-cpp}
-For further details about these options see @xref{Invocation, , ,cpp}.
-If @samp{-Wcpp} is supplied then all definition modules and
-implementation modules which are parsed will be preprocessed by
-@samp{cpp}.
-
-@item -Wiso
-turn on ISO standard features. Currently this enables the ISO
-@code{SYSTEM} module and alters the default library search path so
-that the ISO libraries are searched before the PIM libraries.  It also
-effects the behaviour of @code{DIV} and @code{MOD} operators.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wpim
-turn on PIM standard features. Currently this enables the PIM
-@code{SYSTEM} module and determines which identifiers are pervasive
-(declared in the base module). If no other @samp{-Wpim[234]} switch is
-used then division and modulus operators behave as defined in PIM4.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wpim2
-turn on PIM-2 standard features. Currently this removes @code{SIZE}
-from being a pervasive identifier (declared in the base module).  It
-places @code{SIZE} in the @code{SYSTEM} module.  It also effects the
-behaviour of @code{DIV} and @code{MOD} operators.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wpim3
-turn on PIM-3 standard features. Currently this only effects the
-behaviour of @code{DIV} and @code{MOD} operators.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wpim4
-turn on PIM-4 standard features. Currently this only effects the
-behaviour of @code{DIV} and @code{MOD} operators.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wpositive-mod-floor-div
-forces the @code{DIV} and @code{MOD} operators to behave as defined by PIM4.
-All modulus results are positive and the results from the division are
-rounded to the floor.
-See @xref{Dialect, , ,gm2}.
-
-@item -Wlibs=ulm
-modifies the default library search path so that the University of Ulm
-libraries are searched before the other PIM libraries.
-
-@item -Wlibs=pim
-modifies the default library search path so that the PIM libraries
-are searched before any others (the default).
-
-@item -Wlibs=min
-modifies the default library search path so that the absolute minimum
-of Modula-2 runtime libraries are loaded (a stripped down M2RTS, SYSTEM
-and libc).
-
-@item -Wlibs=iso
-modifies the default library search path so that the ISO libraries are
-searched before any others (not needed if @samp{-Wiso} was specified).
-
-@item -Wlibs=logitech
-modifies the default library search path so that the Logitech compatible
-libraries are searched before the base PIM libraries.
-
-@item -Wlibs=pim-coroutine
-modifies the default libraries search path so that the PIM @code{SYSTEM}
-module providing coroutine support is searched before the base PIM libraries.
-This directory also includes many coroutine related libraries.
-
-@item -Wextended-opaque
-allows opaque types to be implemented as any type. This is a GNU
-Modula-2 extension and it requires that the implementation module
-defining the opaque type is available so that it can be resolved when
-compiling the module which imports the opaque type.
-
-@item -Wsources
-displays the path to the source of each module.
-
-@item -Wdef=
-recognise the specified suffix as a definition module filename.
-The default implmentation and module filename suffix is @file{.def}.
-If this option is used GNU Modula-2 will still fall back to this
-default if a requested definition module is not found.
-
-@item -Wmod=
-recognise the specified suffix as implementation and module filenames.
-The default implmentation and module filename suffix is @file{.mod}.
-If this option is used GNU Modula-2 will still fall back to this
-default if it needs to read an implmentation module and the specified
-suffixed filename does not exist.
-Both this option and @code{-Wdef=} also work with the @code{-Wmakeall}
-option.
-
-@item -Wverbose-unbounded
-inform the user which non @code{VAR} unbounded parameters will be
-passed by reference.  This only produces output if the option
-@samp{-funbounded-by-reference} is also supplied on the command line.
-
-@item -funbounded-by-reference
-enable optimization of unbounded parameters by attempting to pass non
-@code{VAR} unbounded parameters by reference.  This optimization
-avoids the implicit copy inside the callee procedure. GNU Modula-2
-will only allow unbounded parameters to be passed by reference if,
-inside the callee procedure, they are not written to, no address is
-calculated on the array and it is not passed as a @code{VAR}
-parameter.  Note that it is possible to write code to break this
-optimization, therefore this option should be used carefully.
-For example it would be possible to take the address of an array, pass
-the address and the array to a procedure, read from the array in
-the procedure and write to the location using the address parameter.
-
-Due to the dangerous nature of this option it is not enabled
-when the -O option is specified.
-
 @end table
 
 @node Example usage, Elementary data types, Compiler options, Using
@@ -456,11 +456,11 @@ and link via: @samp{gm2 -g -I. hello.mod}.  The result should be an
 
 Alternatively it may be compiled by:
 
-@samp{gm2 -g -I. -Wmakeall hello.mod}
+@samp{gm2 -g -I. -fmakeall hello.mod}
 @footnote{To see all the compile actions taken by @samp{gm2} users can also
 add the @samp{-v} flag at the command line, for example:
 
-@samp{gm2 -v -g -I. -Wmakeall hello.mod}
+@samp{gm2 -v -g -I. -fmakeall hello.mod}
 
 This displays the subprocesses initiated by @samp{gm2} which can be useful
 when trouble shooting.}
@@ -752,21 +752,21 @@ features and GNU Modula-2 extensions. Currently GNU Modula-2
 (@value{version-GM2}) implements all PIM dialects of the language,
 eventually GNU Modula-2 will be fully compliant with ISO Modula-2.
 
-The command line switches @samp{-Wpim2}, @samp{-Wpim3},
-@samp{-Wpim4} and @samp{-Wiso} can be used to force mutually
+The command line switches @samp{-fpim2}, @samp{-fpim3},
+@samp{-fpim4} and @samp{-fiso} can be used to force mutually
 exclusive features. However by default the compiler will not
 agressively fail if a non mutually exclusive feature is used
 from another dialect. For example it is possible to specify
-@samp{-Wpim2} and still utilise @samp{DEFINITION} @samp{MODULES}
+@samp{-fpim2} and still utilise @samp{DEFINITION} @samp{MODULES}
 which have no export list.
 
 Some dialect differences will force a compile time error, for example
 in PIM2 the user must @code{IMPORT} @code{SIZE} from the module
 @code{SYSTEM}, whereas in PIM3 and PIM4 @code{SIZE} is a pervasive
-function. Thus compiling PIM4 source code with the @samp{-Wpim2}
+function. Thus compiling PIM4 source code with the @samp{-fpim2}
 switch will cause a compile time error. This can be fixed quickly
 with an additional @code{IMPORT} or alternatively by compiling with
-the @samp{-Wpim4} switch.
+the @samp{-fpim4} switch.
 
 However there are some very important differences between the dialects
 which are mutually exclusive and therefore it is vital that users
@@ -807,7 +807,7 @@ is a temporary implementation situation.
 This section introduces the GNU Modula-2 language extensions.
 The GNU Modula-2 compiler allows abstract data types to be any type,
 not just restricted to a pointer type providing the
-@samp{-Wextended-opaque} option is supplied
+@samp{-fextended-opaque} option is supplied
 @xref{Compiler options, , ,gm2}.
 
 Declarations can be made in any order, whether they are
@@ -819,7 +819,7 @@ assembly language.
 
 GNU Modula-2 provides support for the special tokens @code{__LINE__},
 @code{__FILE__}, @code{__FUNCTION__} and @code{__DATE__}. Support for
-these tokens will occur even if the @samp{-Wcpp} option is not
+these tokens will occur even if the @samp{-fcpp} option is not
 supplied. A table of these identifiers and their data type and values
 is given below:
 
@@ -853,7 +853,7 @@ anywhere    __DATE__                Constant string compatible
 
 @end example
 
-The preprocessor @samp{cpp} can be invoked via the @samp{-Wcpp}
+The preprocessor @samp{cpp} can be invoked via the @samp{-fcpp}
 command line option. This in turn invokes @samp{cpp} with the
 following arguments @samp{-traditional -lang-asm}.  These options
 preserve comments and all quotations.  @samp{gm2} treats a @samp{#}
@@ -992,7 +992,7 @@ END hello.
 
 and it can be compiled by:
 
-@samp{gm2 -Wmakeall -g -I. hello.mod -lc}
+@samp{gm2 -fmakeall -g -I. hello.mod -lc}
 
 In reality the @samp{-lc} is redundant as libc is always included in the
 linking process. It is shown here to emphasize that the C library or
@@ -1426,7 +1426,7 @@ base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module
 (as shown above).
 
 GNU Modula-2 allows users to specify the dialect of Modula-2
-by using the @code{-Wiso} and @code{-Wpim2} command line switches.
+by using the @code{-fiso} and @code{-fpim2} command line switches.
 
 @node The ISO system module, , The PIM system module, Using
 @section The ISO system module
@@ -1804,8 +1804,34 @@ cd gcc-@value{version-GCC}/gcc/gm2/examples/hello
 make
 @end example
 
-which will create an @file{a.out} for the infamous hello
-world example.
+which will create an @file{a.out} for the infamous hello world
+example.  Alternatively if you would rather install binaries, they are
+available in Debian package format.  To install these binary and
+source packages append these repository descriptions to your
+@file{/etc/apt/sources.list} file.
+
+@example
+#
+#  GNU Modula-2 repo
+#
+
+deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+@end example
+
+Now as root type:
+
+@example
+apt-get update
+apt-get install gm2-doc gm2
+@end example
+
+The repository has binaries for the amd64, ps3 (ppc64) and i386
+processors.  As a normal user you can obtain the source code via:
+
+@example
+apt-get source gm2
+@end example
 
 @section Stress testing GM2
 
@@ -2366,7 +2392,7 @@ The @code{M2RTS} module contains many of the base runtime features
 required by the GNU Modula-2 compiler. For example @code{M2RTS}
 contains the exception handling routines which are called if a pointer
 whose value is @code{NIL} is dereferenced or an array index goes out
-of bounds. If the @samp{-Wbounds} options is specified then the GNU
+of bounds. If the @samp{-fbounds} options is specified then the GNU
 Modula-2 compiler will call the procedure @code{ArraySubscriptError}
 or @code{SubrangeAssignmentError} when an illegal reference or illegal
 assignment is about to be performed. @code{M2RTS} also contains
@@ -2657,7 +2683,7 @@ to C. Also added varargs handling in C definition modules.
 cpp can be run on definition and implementation modules.
 
 @item
-@samp{-Wmakell} generates a temporary @code{Makefile} and
+@samp{-fmakell} generates a temporary @code{Makefile} and
 will build all dependant modules.
 
 @item
@@ -2722,7 +2748,7 @@ ISO library implementation needs to be completed
 (use FIO.mod as the underlying substructure).
 
 @item
-Easy access to other libraries using @code{-Wlibs=} so that libraries
+Easy access to other libraries using @code{-flibs=} so that libraries
 can be added into the @file{/usr/.../gcc-lib/gm2/...} structure. ISO
 language complience.
 

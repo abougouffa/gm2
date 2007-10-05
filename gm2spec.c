@@ -67,7 +67,7 @@ void add_exec_prefix(int, int *in_argc, char ***in_argv);
 extern char *find_executable PARAMS ((const char *));
 
 /*
- *  add_exec_prefix - adds the -Wtarget-ar= option so that we can tell
+ *  add_exec_prefix - adds the -ftarget-ar= option so that we can tell
  *                    gm2lcc where to pick up the `ar' utility.
  */
 
@@ -79,17 +79,17 @@ void add_exec_prefix(int pos, int *in_argc, char ***in_argv)
 
   /* insert ar */
   insert_arg(pos, in_argc, in_argv);
-  prefix = (char *) alloca(strlen("-Wtarget-ar=") +
+  prefix = (char *) alloca(strlen("-ftarget-ar=") +
 				    strlen(ar) + 1);
-  strcpy(prefix, "-Wtarget-ar=");
+  strcpy(prefix, "-ftarget-ar=");
   strcat(prefix, ar);
   (*in_argv)[pos] = xstrdup(prefix);
 
   /* and now insert ranlib */
   insert_arg(pos, in_argc, in_argv);
-  prefix = (char *) alloca(strlen("-Wtarget-ranlib=") +
+  prefix = (char *) alloca(strlen("-ftarget-ranlib=") +
 				    strlen(ranlib) + 1);
-  strcpy(prefix, "-Wtarget-ranlib=");
+  strcpy(prefix, "-ftarget-ranlib=");
   strcat(prefix, ranlib);
   (*in_argv)[pos] = xstrdup(prefix);
 }
@@ -213,19 +213,19 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
       incl = i;
-    if (strncmp((*in_argv)[i], "-Wiso", 5) == 0)
+    if (strncmp((*in_argv)[i], "-fiso", 5) == 0)
       libraries = iso;
-    if (strncmp((*in_argv)[i], "-Wlibs=pim", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=pim", 10) == 0)
       libraries = pim;
-    if (strncmp((*in_argv)[i], "-Wlibs=ulm", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=ulm", 10) == 0)
       libraries = ulm;
-    if (strncmp((*in_argv)[i], "-Wlibs=min", 10) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=min", 10) == 0)
       libraries = min;
-    if (strncmp((*in_argv)[i], "-Wlibs=logitech", 15) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=logitech", 15) == 0)
       libraries = logitech;
-    if (strncmp((*in_argv)[i], "-Wlibs=pim-coroutine", 20) == 0)
+    if (strncmp((*in_argv)[i], "-flibs=pim-coroutine", 20) == 0)
       libraries = pimcoroutine;
-    if (strncmp((*in_argv)[i], "-Wmod=", 6) == 0)
+    if (strncmp((*in_argv)[i], "-fmod=", 6) == 0)
       moduleExtension = i;
     if (strcmp((*in_argv)[i], "-x") == 0) {
       x = i;

@@ -1,5 +1,5 @@
 # Top level -*- makefile -*- fragment for GNU GM2.
-#   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+#   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
 #   Free Software Foundation, Inc.
 
 #This file is part of GNU CC.
@@ -527,18 +527,18 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GM2-VERSION=0.60
+GM2-VERSION=0.62
 GM2_O=-O
 GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
-GM2_FLAGS=-Wnil -Wcase -Wbounds -Wreturn $(GM2_G) $(GM2_O) \
- -funbounded-by-reference -Wverbose-unbounded -Wpim \
- -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
+GM2_FLAGS=-fnil -fcase -fbounds -freturn $(GM2_G) $(GM2_O) \
+ -funbounded-by-reference -fpim -fextended-opaque \
+ -Wpedantic-cast -Wpedantic-param-names
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
- -funbounded-by-reference -Wverbose-unbounded \
- -Wpedantic-param-names -Wextended-opaque -Wpedantic-cast
+ -funbounded-by-reference -fextended-opaque \
+ -Wpedantic-cast -Wpedantic-param-names
 
 
 # Language-specific object files for the gm2 compiler.
@@ -907,7 +907,7 @@ GM2-LIBS-PIM-MODS  = \
               DebugPMD.mod  LongIO.mod      RealConversions.mod \
               FloatingUtilities.mod         Strings.mod   \
               Random.mod    TimeDate.mod    BitWordOps.mod \
-              BitByteOps.mod
+              BitByteOps.mod                BlockOps.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \
@@ -1126,7 +1126,7 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -Wiso -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -fiso -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 
 #
@@ -1535,43 +1535,43 @@ stage1/gm2/gm2cc$(exeext): xgcc$(exeext)
 
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2/ -B./ gm2/gm2-auto/gm2l.mod
 	./xgm2 -v -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2/ -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/gm2l.mod $(LIBS)
+               -fuselist gm2/gm2-auto/gm2l.mod $(LIBS)
 
 stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lcc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lccinit > gm2lcc.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lcc.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist $(srcdir)/gm2/gm2-compiler/gm2lcc.mod $(LIBS)
+               -fuselist $(srcdir)/gm2/gm2-compiler/gm2lcc.mod $(LIBS)
 
 stage2/gm2/gm2lgen$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lgen.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lgeninit > gm2lgen.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lgen.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist $(srcdir)/gm2/gm2-compiler/gm2lgen.mod $(LIBS)
+               -fuselist $(srcdir)/gm2/gm2-compiler/gm2lgen.mod $(LIBS)
 
 stage2/gm2/gm2lsub$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lsub.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lsubinit > gm2lsub.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lsub.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist $(srcdir)/gm2/gm2-compiler/gm2lsub.mod $(LIBS)
+               -fuselist $(srcdir)/gm2/gm2-compiler/gm2lsub.mod $(LIBS)
 
 stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2minit > gm2m.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/gm2m.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
+               -fuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
                 gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 
 stage2/gm2/gm2cc$(exeext): xgcc$(exeext)
@@ -1597,11 +1597,11 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
                            gm2/gm2-compiler/CLexBuf.o \
                            gm2/gm2-compiler/h2def.o
 	grep -v mod_init $(srcdir)/gm2/init/h2definit > h2def.lst
-	./xgm2 -Wuselist -Wmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/h2def.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -B./stage1/gm2 -B./ -o $@ \
-               -Wuselist gm2/gm2-auto/h2def.mod $(LIBS)
+               -fuselist gm2/gm2-auto/h2def.mod $(LIBS)
 
 gm2/ppg: gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \

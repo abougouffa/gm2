@@ -20,10 +20,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2006/09/19 20:08:34 $]
+   Date       : 27/5/87  [$Date: 2007/10/05 19:08:22 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.18 $
+   Version    : $Revision: 1.19 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -54,11 +54,11 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
 
 
 VAR
-   Iso,                          (* -Wiso use ISO SYSTEM.def                 *)
-   Pim,                          (* -Wpim use PIM [234] SYSTEM.def           *)
-   Pim2,                         (* -Wpim2 use strict rules.                 *)
-   Pim3,                         (* -Wpim3 use strict rules.                 *)
-   Pim4,                         (* -Wpim4 use strict rules.                 *)
+   Iso,                          (* -fiso use ISO SYSTEM.def                 *)
+   Pim,                          (* -fpim use PIM [234] SYSTEM.def           *)
+   Pim2,                         (* -fpim2 use strict rules.                 *)
+   Pim3,                         (* -fpim3 use strict rules.                 *)
+   Pim4,                         (* -fpim4 use strict rules.                 *)
    PositiveModFloorDiv,          (* force PIM4 behaviour for DIV and MOD     *)
    CompilerDebugging,            (* -d internal debugging messages           *)
    GenerateDebugging,            (* -g option to generate info for gdb/dbx   *)
@@ -67,24 +67,24 @@ VAR
    Pedantic,                     (* -pedantic be pedantic on error checking. *)
    PedanticParamNames,           (* -Wpedantic-param-names                   *)
    PedanticCast,                 (* -Wpedantic-cast warns if sizes differ.   *)
-   Statistics,                   (* -statistics information about code       *)
-   StudentChecking,              (* -students checks for common student errs *)
-   DisplayQuadruples,            (* -q option will display quadruples.       *)
-   UnboundedByReference,         (* -Wunbounded-by-reference                 *)
+   Statistics,                   (* -fstatistics information about code      *)
+   StudentChecking,              (* -Wstudents checks for common student errs*)
+   DisplayQuadruples,            (* -Wq option will display quadruples.      *)
+   UnboundedByReference,         (* -funbounded-by-reference                 *)
    VerboseUnbounded,             (* -Wverbose-unbounded                      *)
    OptimizeUncalledProcedures,   (* -Ouncalled removes uncalled procedures   *)
    OptimizeBasicBlock,           (* -Obb create basic blocks and optimize.   *)
    OptimizeCommonSubExpressions, (* -Ocse optimize common subexpressions     *)
-   BoundsChecking,               (* -bounds makes compiler generate runtime  *)
+   BoundsChecking,               (* -fbounds makes compiler generate runtime *)
                                  (* checks. Subranges and array bounds.      *)
-   ReturnChecking,               (* -return checks that functions always     *)
+   ReturnChecking,               (* -freturn checks that functions always    *)
                                  (* exit with a RETURN statement.            *)
-   NilChecking,                  (* -Wnil makes compiler test for pointer    *)
+   NilChecking,                  (* -fnil makes compiler test for pointer    *)
                                  (* NIL                                      *)
-   CaseElseChecking,             (* -Wcase checks program does not need an   *)
+   CaseElseChecking,             (* -fcase checks program does not need an   *)
                                  (* else statement within an case statement  *)
                                  (* when the user omits one                  *)
-   Quiet,                        (* -quiet option specified.                 *)
+   Quiet,                        (* -fquiet option specified.                *)
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)

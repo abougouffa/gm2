@@ -4589,7 +4589,7 @@ BEGIN
          e := NewError(GetDeclared(sym)) ;
          ErrorFormat1(e, 'opaque type (%a) should be equivalent to a POINTER or an ADDRESS', name) ;
          e := NewError(GetDeclared(sym)) ;
-         ErrorFormat0(e, 'if you really need a non POINTER type use the -Wextended-opaque switch')
+         ErrorFormat0(e, 'if you really need a non POINTER type use the -fextended-opaque switch')
       END ;
       INC(i)
    END

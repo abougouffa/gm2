@@ -38,7 +38,7 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    logf, logl, log,
                    expf, expl, exp,
                    index, rindex,
-                   memcmp, memset,
+                   memcmp, memset, memmove,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
                    strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
 
@@ -65,6 +65,7 @@ PROCEDURE expl (x: LONGREAL) : LONGREAL ;
 PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+PROCEDURE memmove (s1, s2: ADDRESS; n: CARDINAL) : ADDRESS ;
 PROCEDURE memset (s: ADDRESS; c: INTEGER; n: CARDINAL) : ADDRESS ;
 PROCEDURE strcat (dest, src: ADDRESS) : ADDRESS ;
 PROCEDURE strncat (dest, src: ADDRESS; n: CARDINAL) : ADDRESS ;

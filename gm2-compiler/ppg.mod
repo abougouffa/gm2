@@ -5459,6 +5459,6 @@ BEGIN
 END ppg.
 (*
  * Local variables:
- *  compile-command: "gm2 -I../gm2-libs:. -Wbounds -Wreturn -c -g ppg.mod"
+ *  compile-command: "gm2 -I../gm2-libs:. -fbounds -freturn -c -g ppg.mod"
  * End:
  *)

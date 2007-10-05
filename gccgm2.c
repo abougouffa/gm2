@@ -54,6 +54,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #undef DEBUG_PROCEDURE_CALLS
 static int broken_set_debugging_info = TRUE;
+static int insideCppArgs = FALSE;
 
 /*
  *  utilize some of the C build routines
@@ -2077,76 +2078,44 @@ gm2_handle_option (size_t scode, const char *arg, int value)
   if (code == N_OPTS)
     return 1;
 
+#if 0
+  if (insideCppArgs) {
+    if (code == OPT_fcppend)
+      insideCppArgs = FALSE;
+    return 1;
+  }
+#endif
+
   switch (code) {
 
-  case OPT_Wreturn:
+  case OPT_freturn:
     return M2Options_SetReturnCheck(value);
-  case OPT_Wnil:
+  case OPT_fnil:
     return M2Options_SetNilCheck(value);
-  case OPT_Wcase:
+  case OPT_fcase:
     return M2Options_SetCaseCheck(value);
-  case OPT_Wcheck_all:
+  case OPT_fcheck_all:
     return M2Options_SetCheckAll(value);
   case OPT_Wverbose_unbounded:
     return M2Options_SetVerboseUnbounded(value);
   case OPT_quiet:
     return M2Options_SetQuiet(value);
-  case OPT_Wcpp:
+  case OPT_fcpp:
     return M2Options_SetCpp(value);
-  case OPT_Wmakeall:
+  case OPT_fmakeall:
     return M2Options_SetMakeall(value);
-  case OPT_Wmakeall0:
+  case OPT_fmakeall0:
     return M2Options_SetMakeall0(value);
-  case OPT_Wmake_I_:
+  case OPT_fmake_I_:
     return M2Options_SetIncludePath(arg);
   case OPT_funbounded_by_reference:
     return M2Options_SetUnboundedByReference(value);
+  case OPT_fcppbegin:
+    insideCppArgs = TRUE;
+    return 1;
   default:
     return 1;
   }
-#if 0
-  if (insideCppArgs) {
-    if (arg[0] == '-') {
-      if (strcmp(arg, "-Wcppend") == 0)
-        insideCppArgs = 0;
-      return 1;
-    } else
-      return 0;
-  } else if (strcmp(arg, "-Wreturn") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wbounds") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wnil") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wcase") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wcheck-all") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wverbose-unbounded") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wquiet") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wcpp") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wcppbegin") == 0) {
-    insideCppArgs = 1;
-    return 1;
-  } else if (strcmp(arg, "-Wmakeall") == 0) {
-    return 1;
-  } else if (strcmp(arg, "-Wmakeall0") == 0) {
-    return 1;
-  } else if (strncmp(arg, "-Wmake-I=", 9) == 0) {
-    return 1;
-  } else if (strncmp(arg, "-gstabs", 7) == 0) {
-    /* we just note that -gstabs is being used and unset this flag */
-#if 0
-    broken_set_debugging_info = FALSE;
-#endif
-    /* note we do not return 1, as this is not really a front end option */
-  } else if (strcmp(arg, "-funbounded-by-reference") == 0) {
-    return 1;
-  }
-#endif
   return 0;
 }
 
@@ -7045,7 +7014,6 @@ tree
 gccgm2_BuildStartFunctionType (char *name ATTRIBUTE_UNUSED)
 {
   tree n = make_node (POINTER_TYPE);
-//  TYPE_SIZE (n) = 0;
 
   return n;
 }
@@ -7289,19 +7257,7 @@ gccgm2_RememberVariables (tree l)
 void
 gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
 {
-#if 0
-  tree local = poplevel (1, 1, 0);   /* shutdown local variables */
-#endif
   tree block = poplevel (1, 0, 1);   /* shutdown parameters and function */
-
-#if 0
-  tree old_stmt_list = cur_stmt_list;
-  pf(old_stmt_list);
-  cur_stmt_list = alloc_stmt_list ();
-  gccgm2_RememberVariables (BLOCK_VARS (block));
-  pf(cur_stmt_list);
-  cur_stmt_list = chainon (cur_stmt_list, old_stmt_list);
-#endif
 
   BLOCK_SUPERCONTEXT (block) = fndecl;
 
@@ -7311,12 +7267,9 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
   /* And attach it to the function.  */
   DECL_INITIAL (fndecl) = block;
 
-#if 1
   DECL_SAVED_TREE (fndecl) = build3 (BIND_EXPR, void_type_node,
                                      BLOCK_VARS (block),   /* was BLOCK_VARS(local) */
                                      cur_stmt_list, block);
-#endif
-
   if (cfun != NULL)
     cfun->function_end_locus = input_location;
 
@@ -9998,70 +9951,12 @@ gccgm2_BuildStart (char *name, int line ATTRIBUTE_UNUSED, int inner_module)
     gm2_mark_addressable (fndecl);
 
   gccgm2_BuildStartFunctionCode (fndecl, !inner_module, inner_module);
-#if 0
-  rest_of_decl_compilation (fndecl, 1, 0);
-
-  /* Announce we are compiling this function.  */
-  announce_function (fndecl);
-
-  /* fix exposed on opendarwin to fix MathLib.mod */
-  gccgm2_RememberInitModuleFunction (fndecl);
-
-  /* Set up to compile the function and enter it.  */
-  current_function_decl = fndecl;
-  DECL_INITIAL (fndecl) = error_mark_node;
-
-  cur_stmt_list = chainon_stmt_list ();
-
-  pushlevel (0);
-  make_decl_rtl (fndecl);
-
-  init_function_start (fndecl);
-#endif
   return fndecl;
 }
 
 void
 gccgm2_BuildEnd (tree fndecl, int nested)
 {
-#if 0
-  tree block;
-
-  if (DECL_INITIAL (fndecl) && DECL_INITIAL (fndecl) != error_mark_node)
-    BLOCK_SUPERCONTEXT (DECL_INITIAL (fndecl)) = fndecl;
-
-  /* Must mark the RESULT_DECL as being in this function.  */
-  if (DECL_RESULT (fndecl) && DECL_RESULT (fndecl) != error_mark_node)
-    DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
-
-  /* Now get back out of the function and compile it.  */
-  /* pop the block level */
-  block = poplevel (1, 0, 1);
-
-  BLOCK_SUPERCONTEXT (block) = fndecl;
-
-  /* And attach it to the function.  */
-  DECL_INITIAL (fndecl) = block;
-  DECL_SAVED_TREE (fndecl) = cur_stmt_list;
-
-#if 1
-  /* And attach it to the function.  */
-  DECL_SAVED_TREE (fndecl) = build3 (BIND_EXPR, void_type_node,
-                                     BLOCK_VARS (block),
-                                     cur_stmt_list, block);
-#endif
-
-  cur_stmt_list = NULL;
-
-  if (! nested) {
-    current_function_decl = fndecl;
-    gimplify_function_tree (fndecl);
-    cgraph_finalize_function (fndecl, false);
-    // ggc_collect();  /* stress testing */
-  }
-
-  pf(fndecl);
-#endif
   gccgm2_BuildEndFunctionCode (fndecl, nested);
   current_function_decl = NULL;
   cfun = NULL;

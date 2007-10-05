@@ -1823,7 +1823,7 @@ END GetCurrentFunctionName ;
 
 
 (*
-   CheckPointerThroughNil - providing the user has requested -Wnil
+   CheckPointerThroughNil - providing the user has requested -fnil
                             then we check that sym is not NIL.
                             This procedure treats variables as LValues.
 *)
@@ -1866,7 +1866,7 @@ END CheckPointerThroughNil ;
 
 
 (*
-   CheckSubrange - providing that the user has requested -Wbounds and
+   CheckSubrange - providing that the user has requested -fbounds and
                    GetType(Des) is a subrange
                    then this function emits quadruples to check that
                    Exp lies in this subrange.

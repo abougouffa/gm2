@@ -262,6 +262,8 @@ PROCEDURE __BUILTIN__ rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE __BUILTIN__ memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
 @findex memset
 PROCEDURE __BUILTIN__ memset (s: ADDRESS; c: INTEGER; n: CARDINAL) : ADDRESS ;
+@findex memmove
+PROCEDURE __BUILTIN__ memmove (s1, s2: ADDRESS; n: CARDINAL) : ADDRESS ;
 @findex strcat
 PROCEDURE __BUILTIN__ strcat (dest, src: ADDRESS) : ADDRESS ;
 @findex strncat
@@ -2730,7 +2732,7 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    logf, logl, log,
                    expf, expl, exp,
                    index, rindex,
-                   memcmp, memset,
+                   memcmp, memset, memmove,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
                    strlen, strstr, strpbrk, strspn, strcspn, strchr, strrchr ;
 
@@ -2780,6 +2782,8 @@ PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;
 @findex memcmp
 PROCEDURE memcmp (s1, s2: ADDRESS; n: CARDINAL) : INTEGER ;
+@findex memmove
+PROCEDURE memmove (s1, s2: ADDRESS; n: CARDINAL) : ADDRESS ;
 @findex memset
 PROCEDURE memset (s: ADDRESS; c: INTEGER; n: CARDINAL) : ADDRESS ;
 @findex strcat
@@ -3486,6 +3490,7 @@ and MathLib0.
 @menu
 * gm2-libs-pim/BitByteOps::BitByteOps.def
 * gm2-libs-pim/BitWordOps::BitWordOps.def
+* gm2-libs-pim/BlockOps::BlockOps.def
 * gm2-libs-pim/Break::Break.def
 * gm2-libs-pim/CardinalIO::CardinalIO.def
 * gm2-libs-pim/Conversions::Conversions.def
@@ -3653,7 +3658,7 @@ END BitByteOps.
 @page
 
 
-@node gm2-libs-pim/BitWordOps, gm2-libs-pim/Break, gm2-libs-pim/BitByteOps, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/BitWordOps, gm2-libs-pim/BlockOps, gm2-libs-pim/BitByteOps, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/BitWordOps
 
 @example
@@ -3796,7 +3801,90 @@ END BitWordOps.
 @page
 
 
-@node gm2-libs-pim/Break, gm2-libs-pim/CardinalIO, gm2-libs-pim/BitWordOps, PIM and Logitech 3.0 Compatible
+@node gm2-libs-pim/BlockOps, gm2-libs-pim/Break, gm2-libs-pim/BitWordOps, PIM and Logitech 3.0 Compatible
+@subsection gm2-libs-pim/BlockOps
+
+@example
+DEFINITION MODULE BlockOps ;
+
+(*
+    Description: provides a Logitech compatible module for moving blocks
+                 of memory.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+
+(*
+   MoveBlockForward - moves, n, bytes from, src, to, dest.
+                      Starts copying from src and keep copying
+                      until, n, bytes have been copied.
+*)
+
+@findex BlockMoveForward
+PROCEDURE BlockMoveForward (dest, src: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   MoveBlockBackward - moves, n, bytes from, src, to, dest.
+                       Starts copying from src+n and keeps copying
+                       until, n, bytes have been copied.
+                       The last datum to be copied will be the byte
+                       at address, src.
+*)
+
+@findex BlockMoveBackward
+PROCEDURE BlockMoveBackward (dest, src: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   BlockClear - fills, block..block+n-1, with zero's.
+*)
+
+@findex BlockClear
+PROCEDURE BlockClear (block: ADDRESS; n: CARDINAL) ;
+
+
+(*
+   BlockSet - fills, n, bytes starting at, block, with a pattern
+              defined at address pattern..pattern+patternSize-1.
+*)
+
+@findex BlockSet
+PROCEDURE BlockSet (block: ADDRESS; n: CARDINAL;
+                    pattern: ADDRESS; patternSize: CARDINAL) ;
+
+
+(*
+   BlockEqual - returns TRUE if the blocks defined, a..a+n-1, and,
+                b..b+n-1 contain the same bytes.
+*)
+
+@findex BlockEqual
+PROCEDURE BlockEqual (a, b: ADDRESS; n: CARDINAL) : BOOLEAN ;
+
+
+(*
+   BlockPosition - searches for a pattern as defined by
+                   pattern..patternSize-1 in the block,
+                   block..block+blockSize-1.  It returns
+                   the offset from block indicating the
+                   first occurence of, pattern.
+                   MAX(CARDINAL) is returned if no match
+                   is detected.
+*)
+
+@findex BlockPosition
+PROCEDURE BlockPosition (block: ADDRESS; blockSize: CARDINAL;
+                         pattern: ADDRESS; patternSize: CARDINAL) : CARDINAL ;
+
+
+END BlockOps.
+@end example
+@page
+
+
+@node gm2-libs-pim/Break, gm2-libs-pim/CardinalIO, gm2-libs-pim/BlockOps, PIM and Logitech 3.0 Compatible
 @subsection gm2-libs-pim/Break
 
 @example

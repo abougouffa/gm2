@@ -118,6 +118,7 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_index",   BT_FN_STRING_CONST_STRING_INT, BUILT_IN_INDEX, BUILT_IN_NORMAL, "index", NULL, NULL},
 { "__builtin_rindex",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_RINDEX, BUILT_IN_NORMAL, "rindex", NULL, NULL},
 { "__builtin_memcmp",  BT_FN_INT_CONST_PTR_CONST_PTR_SIZE, BUILT_IN_MEMCMP, BUILT_IN_NORMAL, "memcmp", NULL, NULL},
+{ "__builtin_memmove", BT_FN_TRAD_PTR_PTR_CONST_PTR_SIZE, BUILT_IN_MEMMOVE, BUILT_IN_NORMAL, "memmove", NULL, NULL},
 { "__builtin_memset",  BT_FN_TRAD_PTR_PTR_INT_SIZE, BUILT_IN_MEMSET, BUILT_IN_NORMAL, "memset", NULL, NULL},
 { "__builtin_strcat",  BT_FN_STRING_STRING_CONST_STRING, BUILT_IN_STRCAT, BUILT_IN_NORMAL, "strcat", NULL, NULL},
 { "__builtin_strncat", BT_FN_STRING_STRING_CONST_STRING_SIZE, BUILT_IN_STRNCAT, BUILT_IN_NORMAL, "strncat", NULL, NULL},

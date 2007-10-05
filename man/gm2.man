@@ -1,4 +1,4 @@
-.\" Copyright (C) 2005 Free Software Foundation, Inc.
+.\" Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
 .\" Contributed by Peter P. Eiserloh <peter@eiserloh.org>
 .\"
 .\" Permission is granted to copy, distribute and/or modify this document
@@ -122,7 +122,7 @@ can be told to search for those extension first
 , before defaulting
 to the standard extensions.
 For example, use the command line options:
-.RI ' "-Wdef=.d2 -Wmod=.m2" '.
+.RI ' "-fdef=.d2 -fmod=.m2" '.
 
 .I GNU Modula-2
 imports definition modules by reading the definition module file
@@ -205,7 +205,7 @@ on to the various processes invoked by
 .BR gm2 ,
 so that they can display the command line options they accept.
 If the 
-.I -W 
+.I -f 
 option is also specified then command line options which
 have no documentation associated with them will also be displayed.
 
@@ -301,17 +301,17 @@ Also print the version of the compiler, and which
 file it is using.
 
 .TP
-.I -Wcpp
+.I -fcpp
 Preprocess the source with 
 .RI ` "cpp -lang-asm -traditional-cpp" '.
 If 
-.I -Wcpp
+.I -fcpp
 is supplied then all definition modules and implementation modules
 which are parsed will be preprocessed by 
 .RI ` cpp '.
 
 .TP
-.I -Wdef=
+.I -fdef=
 Recognize the specified suffix as a definition module filename.
 The default definition module filename suffix is `.def'.
 If this option is used 
@@ -320,7 +320,7 @@ will still fall back to this default if a requested definition
 module is not found.
 
 .TP
-.I -Wmod=
+.I -fmod=
 Recognize the specified suffix as implementation and module
 filenames.  The default implementation and module filename suffix
 is `.mod'.  If this option is used 
@@ -328,13 +328,13 @@ is `.mod'.  If this option is used
 will still fall back to this default if it needs to read an
 implementation module and the specified suffixed filename does
 not exist.  Both this option and 
-.I -Wdef=
+.I -fdef=
 also work with the
-.I -Wmakeall
+.I -fmakeall
 option.
 
 .TP
-.I -Wextended-opaque
+.I -fextended-opaque
 Allows opaque types to be implemented as any type. This is a
 .I GNU Modula-2
 extension and it requires that the implementation module
@@ -342,12 +342,12 @@ defining the opaque type is available so that it can be resolved
 when compiling the module which imports the opaque type.
 
 .TP
-.I -Wmakeall
+.I -fmakeall
 Generate a temporary makefile and build all dependent modules and
 link.
 
 .TP
-.I -Wmakelist
+.I -fmakelist
 This option is only applicable when linking a program module.  The
 compiler will generate a `modulename.lst' file which contains a
 list indicating the initialization order of all modules which are
@@ -360,17 +360,17 @@ initialization. It will probably get the order wrong if your project
 has cyclic dependencies, but the `.lst' file is plain text and can
 be modified if required.  Once the `.lst' file is created it can be
 used by the compiler to link your project via the
-.RI ` -Wuselist '
+.RI ` -fuselist '
 option. It has no effect if the 
 .RI ` -c '
 option is present.
 
 .TP
-.I -Wsources
+.I -fsources
 Displays the path to the source of each module.
 
 .TP
-.I -Wstatistics
+.I -fstatistics
 Generates quadruple information: number of quadruples generated,
 number of quadruples remaining after optimization.
 Quadruples are the intermediate language used internally by the
@@ -378,7 +378,7 @@ Quadruples are the intermediate language used internally by the
 compiler.
 
 .TP
-.I -Wuselist
+.I -fuselist
 Providing 
 .RI ` gm2 '
 has been told to link the program module this
@@ -426,24 +426,24 @@ option is specified.
 .SS "Runtime Checking Options"
 
 .TP
-.I -Wbounds
+.I -fbounds
 Generate code to check the bounds of subranges and array indexes.
 
 .TP
-.I -Wreturn
+.I -freturn
 Generate code to check that functions always exit with a 
 .RB ' RETURN '
 and do not fall out at the end.
 
 .TP
-.I -Wnil
+.I -fnil
 Generate code to detect at runtime any attempt to access data
 through a
 .RB ' NIL '
 value pointer.
 
 .TP
-.I -Wcase
+.I -fcase
 Generate code to detect at runtime whether a 
 .RB ' CASE '
 statement
@@ -458,11 +458,11 @@ statements which do not define one.
 It simply prints an error message, and exits with an error code.
 
 .TP
-.I -Wcheck-all
+.I -fcheck-all
 Turns on all runtime checks. This is the same as invoking
 .I GNU Modula-2
 using the command options
-.IR -Wbounds ", " -Wreturn ", " -Wnil ", " -Wcase .
+.IR -fbounds ", " -freturn ", " -fnil ", " -fcase .
 
 .SS "Style Checking Options"
 
@@ -516,7 +516,7 @@ exclusively for changes in type on objects which have the same size.
 .SS Language Dialect Options
 
 .TP
-.I -Wiso
+.I -fiso
 Turn on ISO standard features. Currently this enables the
 .I ISO
 .B SYSTEM
@@ -529,7 +529,7 @@ and
 operators.
 
 .TP
-.I -Wpim
+.I -fpim
 Turn on
 .I PIM
 standard features. Currently this enables the
@@ -537,13 +537,13 @@ standard features. Currently this enables the
 .B SYSTEM
 module and determines which identifiers are pervasive
 (declared in the base module). If no other
-.I -Wpim[234]
+.I -fpim[234]
 switch is used then division and modulus operators behave as
 defined in PIM4.  (See 
 .BR "LANGUAGE DIALECTS" .)
 
 .TP
-.I -Wpim2
+.I -fpim2
 Turn on
 .I PIM-2
 standard features. Currently this removes
@@ -558,7 +558,7 @@ behavior of
 .RB ' DIV "' and '" MOD "' operators."
 
 .TP
-.I -Wpim3
+.I -fpim3
 Turn on 
 .I PIM-3
 standard features. Currently this only effects the
@@ -566,7 +566,7 @@ behavior of
 .RB ` DIV "' and `" MOD "' operators."
 
 .TP
-.I -Wpim4
+.I -fpim4
 Turn on 
 .I PIM-4
 standard features. Currently this only effects the
@@ -574,7 +574,7 @@ behavior of
 .RB ` DIV "' and `" MOD "' operators."
 
 .TP
-.I -Wpositive-mod-floor-div
+.I -fpositive-mod-floor-div
 Forces the 
 .RB ` DIV "' and `" MOD '
 operators to behave as defined by
@@ -590,17 +590,17 @@ for a table describing these results.
 .SS Library Search Path Options
 
 .TP
-.I -Wlibs=ulm
+.I -flibs=ulm
 Modifies the default library search path so that the University of
 Ulm libraries are searched before the other PIM libraries.
 
 .TP
-.I -Wlibs=pim
+.I -flibs=pim
 Modifies the default library search path so that the PIM libraries
 are searched before any others (the default).
 
 .TP
-.I -Wlibs=pim-coroutine
+.I -flibs=pim-coroutine
 Modifies the default libraries search path so that the
 .I PIM
 .RB ` SYSTEM '
@@ -609,16 +609,22 @@ libraries.  This directory also includes many coroutine related
 libraries.
 
 .TP
-.I -Wlibs=iso
+.I -flibs=iso
 Modifies the default library search path so that the ISO libraries
 are searched before any others (not needed if 
-.RI ` -Wiso '
+.RI ` -fiso '
 was specified).
 
 .TP
-.I -Wlibs=logitech
+.I -flibs=logitech
 Modifies the default library search path so that the Logitech
 compatible libraries are searched before the base PIM libraries.
+
+.TP
+.I -flibs=min
+Modifies the default library search path so that the minimal
+set of runtime libraries are searched before any others.
+Useful if targetting a small memory embedded device.
 
 
 .SH LANGUAGE DIALECTS
@@ -661,12 +667,12 @@ nor ISO Object Oriented Modula-2.
 .PP
 
 The command line switches
-.IR -Wpim2 ", " -Wpim3 ", " -Wpim4 ", and " -Wiso
+.IR -fpim2 ", " -fpim3 ", " -fpim4 ", and " -fiso
 can be used to force mutually exclusive features. However by default
 the compiler will not aggressively fail if a non mutually exclusive
 feature is used from another dialect. For example it is possible to
 specify 
-.I -Wpim2
+.I -fpim2
 and still utilize 
 .B DEFINITION MODULES
 which have no export list.
@@ -684,13 +690,13 @@ from the module
 is a pervasive function. Thus compiling 
 .I PIM4
 source code with the
-.I -Wpim2
+.I -fpim2
 switch will cause a compile time error.
 This can be fixed quickly with an additional
 .B IMPORT
 or alternatively
 by compiling with the
-.I -Wpim4
+.I -fpim4
 switch.
 
 However there are some very important differences between the
@@ -946,7 +952,7 @@ The
 .I GNU Modula-2
 compiler allows abstract data types to be any type, not just
 restricted to a pointer type providing the 
-.I -Wextended-opaque
+.I -fextended-opaque
 command line option is supplied.
 
 .SS Declaration Order
@@ -1025,7 +1031,7 @@ The hello world program can be rewritten as:
 .Ve
 
 and it can be compiled by:
-.IR "gm2 -Wmakeall -g -I. hello.mod -lc" .
+.IR "gm2 -fmakeall -g -I. hello.mod -lc" .
 
 In reality the `-lc' is redundant as libc is always included in the
 linking process. It is shown here to emphasize that the C library or
@@ -1066,7 +1072,7 @@ result.
 provides support for the special tokens 
 .IR __LINE__ ", " __FILE__ ",  " __FUNCTION__ ", and " __DATE__ .
 Support for these tokens will occur even if the 
-.I -Wcpp
+.I -fcpp
 option is not supplied. A table of these identifiers and their
 data type and values is given below:
 
@@ -1103,7 +1109,7 @@ data type and values is given below:
 The preprocessor
 .I cpp
 can be invoked via the 
-.I -Wcpp
+.I -fcpp
 command line option. This in turn invokes
 .I cpp
 with the following arguments
@@ -1358,7 +1364,7 @@ You should be able to compile it by:
 The result should be an `a.out' file created in your directory.
 
 Alternatively it may be compiled by:
-.BR "gm2 -g -I. -Wmakeall hello.mod" .
+.BR "gm2 -g -I. -fmakeall hello.mod" .
 
 
 
@@ -1412,4 +1418,4 @@ The many fine books about Modula-2.
 The 
 .I GNU Modula-2
 web site at
-.URL http://floppsie.comp.glam.ac.uk/Glamorgan/gaius/web/GNUModula2.html
+.URL http://www.nongnu.org/gm2

@@ -19,11 +19,11 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2006/09/19 20:08:34 $]
+   Date       : 1987  [$Date: 2007/10/05 19:08:22 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.10 $
+   Version    : $Revision: 1.11 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
@@ -65,14 +65,14 @@ BEGIN
          INC(n)
       ELSIF EqualArray(s, '-version')
       THEN
-      ELSIF EqualArray(s, '-Wcppbegin')
+      ELSIF EqualArray(s, '-fcppbegin')
       THEN
          REPEAT
             INC(n)
-         UNTIL (NOT GetArg(s, n)) OR (s=NIL) OR EqualArray(s, '-Wcppend') ;
-         IF NOT EqualArray(s, '-Wcppend')
+         UNTIL (NOT GetArg(s, n)) OR (s=NIL) OR EqualArray(s, '-fcppend') ;
+         IF NOT EqualArray(s, '-fcppend')
          THEN
-            fprintf0(StdErr, 'expecting -Wcppend argument after a -Wcppbegin\n') ;
+            fprintf0(StdErr, 'expecting -fcppend argument after a -fcppbegin\n') ;
             exit(1)
          END
       END ;
