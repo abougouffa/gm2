@@ -1,4 +1,13 @@
-2006-10-05       Gaius Mulley <gaius@gnu.org>
+2007-10-05       Gaius Mulley <gaius@gnu.org>
+
+	* fixed bug reported by Dmitry Shatrov <shatrov@gmail.com>
+	* gm2/gm2-compiler/M2Quads.mod:  added CheckNotConstAndVar
+	  procedure.  BuildAssignment use CheckNotConstAndVar.
+	* gm2/testsuite/gm2/pim/fail/constvar.mod:  added new
+	  regression test.
+	* gm2/gm2.texi:  updated the last update field.
+
+2007-10-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  updated version to 0.62
 	* gm2/Make-lang.in:  altered all -W options to their new
@@ -35,7 +44,7 @@
 	* gm2/gm2-libs/cbuiltin.def:  added access to C memmove.
 	* gm2/man/gm2.man:  changed all -W options to -f.
 	
-2006-09-27       Gaius Mulley <gaius@gnu.org>
+2007-09-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/SYSTEM.mod:  added SHIFT, ROTATE and their
 	  support counterparts.
@@ -64,7 +73,7 @@
 	  compile time warnings, -f for language features including
 	  runtime checking.
 
-2006-09-14       Gaius Mulley <gaius@gnu.org>
+2007-09-14       Gaius Mulley <gaius@gnu.org>
 
 	* www/index.ms:  updated web pages to reflect 0.60 release
 	  and availability of debian packages.

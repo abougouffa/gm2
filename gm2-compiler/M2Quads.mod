@@ -2241,6 +2241,28 @@ END BuildBuiltinConst ;
 
 
 (*
+   CheckNotConstAndVar - checks to make sure that we are not
+                         assigning a variable to a constant.
+*)
+
+PROCEDURE CheckNotConstAndVar (Des, Exp: CARDINAL) ;
+VAR
+   e: Error ;
+   n: Name ;
+BEGIN
+   IF IsConst(Des) AND IsVar(Exp)
+   THEN
+      e := NewError(GetTokenNo()) ;
+      ErrorFormat0(e, 'error in assignment, cannot assign a variable to a constant') ;
+      n := GetSymName(Des) ;
+      e := ChainError(GetDeclared(Des), e) ;
+      ErrorFormat1(e, 'designator (%a) is declared as a CONST whereas the expression is a variable',
+                   n) ;
+   END
+END CheckNotConstAndVar ;
+
+
+(*
    BuildAssignment - Builds an assignment from the values given on the
                      quad stack. Either an assignment to an
                      arithmetic expression or an assignment to a
@@ -2349,6 +2371,7 @@ BEGIN
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
       CheckSubrange(Des, Exp) ;
+      CheckNotConstAndVar(Des, Exp) ;
       (* Traditional Assignment *)
       MoveWithMode(Des, Exp, Array) ;
       (*
