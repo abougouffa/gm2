@@ -22,7 +22,7 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
-gm2_init "-I$srcdir/../gm2/gm2-libs:$srcdir/gm2/switches/pedantic-params/fail" -Wiso -Wpedantic-param-names
+gm2_init "-I$srcdir/../gm2/gm2-libs:$srcdir/gm2/switches/pedantic-params/fail" -fiso -Wpedantic-param-names
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.

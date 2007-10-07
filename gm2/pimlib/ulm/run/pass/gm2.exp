@@ -22,7 +22,7 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
-gm2_init "-I$srcdir/../gm2/pimlib/ulm/run/pass:$srcdir/../gm2/ulm-lib-gm2/std:$srcdir/../gm2/ulm-lib-gm2/sys:$srcdir/../gm2/gm2-libs:../gm2/ulm-lib-gm2/std:../gm2/ulm-lib-gm2/sys:../gm2/gm2-libs" -Wpim
+gm2_init "-I$srcdir/../gm2/pimlib/ulm/run/pass:$srcdir/../gm2/ulm-lib-gm2/std:$srcdir/../gm2/ulm-lib-gm2/sys:$srcdir/../gm2/gm2-libs:../gm2/ulm-lib-gm2/std:../gm2/ulm-lib-gm2/sys:../gm2/gm2-libs" -fpim
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.

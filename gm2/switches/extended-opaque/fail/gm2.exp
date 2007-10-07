@@ -24,7 +24,7 @@ load_lib gm2-torture.exp
 
 #
 #  here we test to ensure that gm2 fail because the user has not supplied
-#  the -Wextended-opaque parameter but is using a non pointer opaque type.
+#  the -fextended-opaque parameter but is using a non pointer opaque type.
 #
 
 gm2_init "-I$srcdir/../gm2/gm2-libs:$srcdir/gm2/switches/extended-opaque/fail" 
