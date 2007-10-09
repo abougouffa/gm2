@@ -20,9 +20,7 @@ Development sources
 
 To get the latest sources to GM2 type the following:
 
-   export CVSROOT=:pserver:anoncvs@floppsie.comp.glam.ac.uk:/usr/src/cvs
-   cvs login
-   cvs -z9 checkout GM2
+   cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
 
 (note the capital GM2 in the checkout, GM2 is the project module within cvs).
 This will checkout a copy of GNU Modula-2 into one subdirectory: gm2
@@ -94,8 +92,7 @@ Please do. But also please read the GNU Emacs info under
 * Contributions::               Accepting Contributions
 
 you might consider joining the GM2 Mailing list:
-see URL: floppsie.comp.glam.ac.uk/mailman/listinfo/gm2
-or mail: gm2-request@glam.ac.uk
+see URL: http://lists.nongnu.org/mailman/listinfo/gm2
 
 before you start coding
 

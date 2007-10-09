@@ -1,4 +1,9 @@
-2007-10-05       Gaius Mulley <gaius@gnu.org>
+2007-10-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/README:  updated to reflect new homepage and mailing
+	  list address.
+
+2007-10-07       Gaius Mulley <gaius@gnu.org>
 
 	* fixed bug reported by Dmitry Shatrov <shatrov@gmail.com>
 	* gm2/gm2-compiler/M2Quads.mod:  added CheckNotConstAndVar
