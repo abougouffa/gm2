@@ -1138,17 +1138,20 @@ gm2/gm2-libs/gm2-libs-host.h:
 	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             echo "Configuring to build libraries using cross compiler" ; \
             cd gm2/gm2-libs ; \
-            CC=../.`echo $(GCC_FOR_TARGET) | sed -e "s/^ //"` ; \
-            export CC ; \
-            CPP="$(CC) -E" ; \
-            export CPP ; \
-            echo "CC = $(CC)" ; \
-            echo "CPP = $(CPP)" ; \
-            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --host=$(host) --program-suffix=$(exeext) --includedir=$(SYSTEM_HEADER_DIR)' ; \
+            $(SHELL) -c 'CC="../../xgcc" CPP="../../xgcc -E" \
+               ../../$(srcdir)/gm2/gm2-libs/configure \
+                  --srcdir=../../$(srcdir)/gm2/gm2-libs \
+                  --target=$(target) \
+                  --host=$(host) \
+                  --program-suffix=$(exeext) \
+                  --includedir=${gcc_tooldir}/include' ; \
         else \
             echo "Configuring to build libraries using native compiler" ; \
             cd gm2/gm2-libs ; \
-            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure --srcdir=../../$(srcdir)/gm2/gm2-libs --target=$(target) --program-suffix=$(exeext)' ; \
+            $(SHELL) -c '../../$(srcdir)/gm2/gm2-libs/configure \
+               --srcdir=../../$(srcdir)/gm2/gm2-libs \
+               --target=$(target) \
+               --program-suffix=$(exeext)' ; \
         fi
 
 gm2/gm2config.h:

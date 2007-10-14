@@ -1,3 +1,8 @@
+2007-10-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  fixed bug in gm2/gm2-libs/gm2-libs-host.h
+	  target so that configure uses the correct CC and CPP.
+
 2007-10-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  updated to reflect new homepage and mailing
