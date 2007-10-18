@@ -1645,97 +1645,6 @@ Alternatively the development sources can be downloaded via CVS.
 Please be aware that as gm2 is in development it might fail to compile
 with a more recent version of gcc than @samp{gcc-@value{version-GCC}}.
 
-@section Easiest method of building the GNU Modula-2 source
-
-The easiest and quickest method to obtain the development CVS source
-code for GNU Modula-2 and a compatible GCC release and the appropriate
-testsuite is to download the build harness:
-@uref{ftp://floppsie.comp.glam.ac.uk/pub/c/gm2-harness-@value{version-HARNESS}.tar.gz}.
-This will download the latest gm2 from the CVS repository, graft it
-onto the appropriate GCC release, graft the gcc testsuite onto the GCC
-tree and graft the GNU Modula-2 regression tests onto the tree. After
-all the source has been placed into the correct position it builds GNU
-Modula-2, runs the regression tests and finally installs gm2.
-
-The @code{gm2-harness} is a normal tarball package and is built
-using the traditional GNU method.
-
-@example
-tar zxf gm2-harness-@value{version-HARNESS}.tar.gz
-cd gm2-harness-@value{version-HARNESS}
-./configure --with-gdb --prefix=$HOME/opt
-make
-make install
-@end example
-
-The first @code{make} downloads, constructs the source tree, builds
-the code and runs the regression tests. The second @code{make}
-installs GNU Modula-2.  Note that GNU Modula-2 is still in development
-and so it is possible that some of the regression tests may fail.
-
-Once the installation has completed you should set your path so
-that it includes the install directory. For example if you are using
-the @code{bash} shell could type:
-
-@example
-export PATH=$HOME/opt/bin:$PATH
-@end example
-
-Thereafter you will reference the new gm2, gcc and gdb programs and
-libraries.
-
-The @code{gm2-harness} package automates the steps outlined in the
-next three sections. Note that the option @samp{--with-gdb} will
-download @code{gdb-@value{version-GDB}} and patch it so that it
-understands Modula-2. Note that it is not manditory to patch
-@code{gcc} and @code{gdb} to build GNU Modula-2. But if the patches
-are applied (@code{gm2-harness} will do this automatically) then
-debugging executables produced by GNU Modula-2 is easier.
-The patches provide @code{gdb} with knowledge about subranges and
-sets. So for example:
-
-@example
-VAR
-   s: SET OF CHAR ;
-   r: [20..40] ;
-@end example
-
-will be understood and the debugger can be asked to print the values
-and types of variables. For example here is a typical @code{gdb} session:
-
-@example
-(gdb) print s
-@{'A'..'C', 'Z'@}
-(gdb) ptype s
-SET OF CHAR
-(gdb) print r
-21
-(gdb) ptype r
-[20..40]
-@end example
-
-The debugger also has better knowledge of Modula-2 arrays. For example
-in this code fragment the declaration of @code{s} is described.
-
-@example
-VAR
-   s: ARRAY [-10..10] OF CHAR ;
-@end example
-
-and this information is now seen by @code{gdb}
-
-@example
-(gdb) ptype s
-ARRAY [-10..10] OF CHAR
-@end example
-
-Note that the following compile flags need to be present on the
-@code{gm2} command line @code{-g -gdwarf-2}. Also note that the array
-handling is not yet complete and although the type is printed
-correctly, the expression handling still assumes that all arrays have a
-lower bound of zero and not @code{-10} in the case above. Unbounded
-arrays are also not yet recognised.
-
 @section Development sources via CVS
 
 To get the latest sources to GNU Modula-2 type the following:
@@ -1745,11 +1654,9 @@ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
 @end example
 
 This will checkout a copy of GNU Modula-2 into one subdirectory,
-@file{gm2}.
-
-This version of GNU Modula-2 needs to be placed inside the GCC source
-tree in the position gcc-@value{version-GCC}/gcc before GNU Modula-2
-can be built. Please check the GNU Modula-2 homepage
+@file{gm2}.  This version of GNU Modula-2 needs to be placed inside
+the GCC source tree in the position gcc-@value{version-GCC}/gcc before
+GNU Modula-2 can be built. Please check the GNU Modula-2 homepage
 @uref{http://www.nongnu.org/gm2} for details about which GCC releases
 are supported by GNU Modula-2.
 
@@ -1765,17 +1672,24 @@ mv gm2 gcc-@value{version-GCC}/gcc
 
 If the directory
 @samp{gcc-@value{version-GCC}/gcc/gm2/patches/gcc/@value{version-GCC}}
-exists then the patch file inside that directory can be applied to the
+exists then the patch files inside that directory can be applied to the
 @samp{gcc-@value{version-GCC}} tree. This is done via:
 
 @example
 cd gcc-@value{version-GCC}
-patch -p1 < gcc/gm2/patches/gcc/@value{version-GCC}/gm2/gcc-gm2.patch
+if [ -d gcc/gm2/patches/gcc/@value{version-GCC}/gm2 ] ; then
+   for i in gcc/gm2/patches/gcc/@value{version-GCC}/gm2/* ; do
+      if [ -f $i ] ; then
+         patch -p1 < $i
+      fi
+   done
+fi
 @end example
 
-Note that this patch is optional as it enables better @samp{dwarf-2}
-debugging information which in turn allows a patched @samp{gdb} to
-understand set types and subrange types.
+Note that if you download a tarball from
+@url{http://floppsie.comp.glam.ac.uk} as described in @xref{Getting
+GNU Modula-2, , ,} then any patching will have already
+been applied.
 
 @section Building GNU Modula-2
 
@@ -1809,8 +1723,7 @@ make
 
 which will create an @file{a.out} for the infamous hello world
 example.  Alternatively if you would rather install precompiled
-binaries, they are available in Debian package format for the PS3
-(ppc64), amd64 and i386 architectures under Debian Stable.  To install
+binaries, they are available in Debian package format.  To install
 these binary and source packages append these repository descriptions
 to your @file{/etc/apt/sources.list} file.
 
