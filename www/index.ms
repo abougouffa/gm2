@@ -16,8 +16,8 @@
 .ds GCCVERSION 4.1.2
 .ds GM2HARNESS 0.96
 .ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20070818.tar.gz
-.ds CURRENTDATE "Fri Sep 14 16:34:06 BST 2007
-.ds CURRENTGM2 0.60
+.ds CURRENTDATE "Thu Oct 18 12:39:49 BST 2007
+.ds CURRENTGM2 0.61
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -79,8 +79,11 @@ It has the following characteristics:
 .sp
 .ULS
 .LI
-0.60 has been released.  Also gm2 has been released as .deb packages.
+0.61 has been released.  Also gm2 has been released as .deb packages.
 See the section: GNU Modula-2 Debian binaries.
+.LI
+support for dynamic ARRAYs has been added into the \f[C]gdb\f[P] CVS
+(October 2007).
 .LI
 variables can now be declared at addresses.
 .LI
@@ -99,9 +102,9 @@ supports sets of any ordinal size (memory permitting).
 .LI
 implements ISO Modula-2 SYSTEM which can be switched on via:
 .OPT -Wiso .
-Several ISO features are implemented and it is the goal that eventually
-GNU Modula-2 will be fully ISO complient (see the release map for details in the
-documentation).
+Several ISO features are implemented and it is the goal that
+eventually GNU Modula-2 will be fully ISO complient (see the release
+map for details in the documentation).
 .LI
 easy interface to C, and varargs can be passed to C routines.
 .LI
@@ -112,9 +115,10 @@ and can be accessed via:
 some Logitech libraries have been implemented and can be accessed via:
 .OPT -Wlibs=logitech
 .LI
-coroutines have been implemented in the PIM style and these are accessible
-from SYSTEM. A number of supporting libraries (executive and file descriptor
-mapping to interrupt vector libraries are available through the
+coroutines have been implemented in the PIM style and these are
+accessible from SYSTEM. A number of supporting libraries (executive
+and file descriptor mapping to interrupt vector libraries are
+available through the
 .OPT -Wlibs=pim-coroutines
 switch).
 .ULE
@@ -127,17 +131,17 @@ GNU Modula-2 is free software, the compiler is held under the
 .URL http://www.gnu.org/licenses/gpl.txt GPL ,
 its libraries (pim, iso, Logitech compatible) are under the
 .URL http://www.gnu.org/licenses/lgpl.txt LGPL
-whereas the Ulm libraries are under the GPL.
-For more information on how these licences work
+whereas the Ulm libraries are under the GPL.  For more information on
+how these licences work
 .URL http://www.gnu.org/licenses/licenses.html "please see" .
 .SH
 Documentation
 .LP
 Currently some GNU Modula-2
 .URL gm2.html documentation
-documentation exists, albeit incomplete,
-but it does contain a fully indexed list of all library procedures,
-a release map, and full building and downloading instructions.
+documentation exists, albeit incomplete, but it does contain a fully
+indexed list of all library procedures, a release map, and full
+building and downloading instructions.
 .PP
 A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
 if you are interested a copy can be found
@@ -161,11 +165,11 @@ and then wait and see whether it completes successfully.
 Operating             | Architecture     | gm2 release or
 System                | Host             | gcc + latest cvs
 ======================+==================+=====================
-Debian Etch Pure 64   | Opteron 64bit    | 0.60 (deb)
+Debian Etch Pure 64   | Opteron 64bit    | 0.61 (deb)
 ----------------------+------------------+---------------------
-Debian Etch i386      | Intel i386 32bit | 0.60 (deb)
+Debian Etch i386      | Intel i386 32bit | 0.61 (deb)
 ----------------------+------------------+---------------------
-PS3 Debian Etch       | PPC 64 bit       | 0.60 (deb)
+PS3 Debian Etch       | PPC 64 bit       | 0.61 (deb)
 ----------------------+------------------+---------------------\fP
 .CDE
 .sp
@@ -218,85 +222,47 @@ Logitech compatibility library is incomplete (FileSystem.mod has not
 yet been implemented, nevertheless a number of common libraries have
 been implemented: Terminal, Display, InOut, RealInOut and others.
 .ULE
+.sp
+.
 .SH
 Building GNU Modula-2
 .LP
-Currently GNU Modula-2 is grafted onto the GCC \*[GCCVERSION] source tree.
-.ULS
-.LI
-The easiest way to build gm2 is to download combined gcc/gm2 tarball
-which is outlined in a future section.  If you want to build the
-from the latest CVS repository then it is advised that you
-download the build harness and let this script configure and build gm2
-for you.  The harness is found here:
-.GM2URL gm2-harness-\*[GM2HARNESS].tar.gz gm2-harness-\*[GM2HARNESS].tar.gz .
-The command line instructions are:
-.LI
-.nf
-\fC
-tar zxf gm2-harness-\*[GM2HARNESS].tar.gz
-cd gm2-harness-\*[GM2HARNESS]
-\&./configure --with-gdb --prefix=$HOME/opt
-make
-make install
-\fP
-.fi
-.LI
-This simple package, downloads gm2 from CVS, the
-latest supported gcc, gdb and the testsuite. It puts all source
-components in the correct place and proceeds to build
-gdb, gm2 and run the regression tests.
-.ULE
-.sp
-you can do manually graft the gm2 source tree onto
-gcc by following these instructions:
-.ULS
-.LI
-firstly you need to download gcc-\*[GCCVERSION].tar.gz
-.LI
-then the gm2 directory (as obtained via the CVS)
-needs to be grafted onto the gcc source tree, configured and built.
-.sp
-.nf
-\fC
-tar zxf gcc-\*[GCCVERSION].tar.gz
-mv gm2 gcc-\*[GCCVERSION]/gcc
-cd gcc-\*[GCCVERSION]
-for i in gcc/gm2/patches/gcc/\*[GCCVERSION]/* ; do
-   patch -p1 < $i
-done
-mkdir host-build
-cd host-build
-\&../gcc-\*[GCCVERSION]/configure --enable-languages=c,gm2 --prefix=$HOME/opt
-make
-make install
-\fP
-.fi
-.ULE
+Rather than duplicate building instructions here, please see the
+appropriate section in the
+.URL http://www.nongnu.org/gm2/gm2.html "gm2 texinfo documentation" .
 .sp
 Finally take a look at
 .URL http://freepages.modula2.org/gnum2.html "this page"
 for more information about GNU Modula-2.
+.sp
 .
 .SH
 GM2 development download via CVS
 .LP
-The sources of GNU Modula-2 can be obtained via cvs using the commands:
+The latest sources of GNU Modula-2 can be obtained via cvs using the commands:
 .sp
 .nf
-\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co -D 20060623 gm2 testsuite\fP
+\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2 testsuite\fP
 .fi
-.LP
-Notice that it is recommended to download the sources as from 20060623 as
-this is highly stable with gcc-3.3.6.  The cvs head is currently undergoing
-active development.
-.PP
+.sp
 The source code in the CVS can be
 .URL http://cvs.savannah.nongnu.org/viewcvs/?root=gm2 "browsed here" .
+.sp
+If you require a GNU Modula-2 which is compatible with gcc-3.3.6 then you
+can checkout the older sources using:
+.sp
+.nf
+\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 -D20050523 co gm2 testsuite\fP
+.fi
+.sp
+However the current gm2 based on 4.1.2 is just as stable - the only
+disadvantage is that it does not produce debugging information for
+\f[C]SET TYPE\fPs.
+.sp
 .SH
 GNU Modula-2 Debian binaries
 .LP
-GNU Modula-2 (0.60) binaries are now available for PPC, i386 and AMD64
+GNU Modula-2 (0.61) binaries are now available for PPC, i386 and AMD64
 architecture debian Etch based distributions.  Add these lines to your
 .PRG /etc/apt/sources.list :
 .sp
