@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE BitBlockOps ;
 
 
-FROM SYSTEM IMPORT BITSPERBYTE, BYTE, BITSET, TSIZE ;
+FROM SYSTEM IMPORT BITSPERBYTE, SHIFT, BYTE, BITSET, TSIZE ;
 FROM Builtins IMPORT memmove, memset ;
 
 
@@ -177,11 +177,11 @@ BEGIN
       IF bitOffset>0
       THEN
          (* some real shifting is necessary *)
-         p := dest+ADDRESS(byteOffset+1) ;
+         p := dest+VAL(ADDRESS, byteOffset+1) ;
          hi := BYTE(0) ;
          WHILE size>byteOffset DO
-            lo := SHIFT(p^, bitOffset) ;
-            carry := SHIFT(p^, -(BITSPERBYTE - bitOffset)) ;
+            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), bitOffset)) ;
+            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), -(BITSPERBYTE - bitOffset))) ;
             p^ := VAL(BYTE, VAL(BITSET, lo) + VAL(BITSET, hi)) ;
             INC(p) ;
             hi := carry ;

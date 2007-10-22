@@ -28,10 +28,16 @@ DEFINITION MODULE SYSTEM ;
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  ADDRESS, WORD, BYTE, BITSET,
-                 ADR, TSIZE, SIZE, ROTATE, SHIFT ;
+                 ADR, TSIZE, SIZE, ROTATE, SHIFT,
+                 BITSPERBYTE, BYTESPERWORD ;
+
+CONST
+  BITSPERBYTE   = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+  BYTESPERWORD  = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+
 
 (*
-   all the objects below are declared internally to gm2
+   all the functions below are declared internally to gm2
    ====================================================
 
 PROCEDURE ADR (VAR v: <anytype>): ADDRESS;

@@ -3,6 +3,7 @@
 	* gm2/gm2-libs-pim/BitBlockOps.{def,mod}:  added.
 	* gm2/Make-lang.in:  added BitBlockOps to the Logitech list
           of modules.
+	* gm2/gm2.texi:  improved building documentation.
 
 2007-10-18       Gaius Mulley <gaius@gnu.org>
 

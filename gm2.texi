@@ -1634,20 +1634,60 @@ Patches and development volunteers highly welcome!
 
 @section Getting GNU Modula-2
 
-Currently you have several options, you could either download a source
-tar ball from @uref{ftp://floppsie.comp.glam.ac.uk/pub/c} and
-search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
-Prebuilt binary packages are also available from
-@uref{http://www.nongnu.org/gm2/}
-in debian @code{.deb} package format.
+The easiest way to obtain GNU Modula-2 is to install i386, amd64 or
+ppc64 Debian GNU/Linux and then add these repository descriptions to
+your @file{/etc/apt/sources.list} file.
 
-Alternatively the development sources can be downloaded via CVS.
-Please be aware that as gm2 is in development it might fail to compile
-with a more recent version of gcc than @samp{gcc-@value{version-GCC}}.
+@example
+#
+#  GNU Modula-2 repo
+#
+
+deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+@end example
+
+Now as root type:
+
+@example
+apt-get update
+apt-get install gm2-doc gm2
+@end example
+
+As a normal user you can obtain the source code via:
+
+@example
+apt-get source gm2
+@end example
+
+If you are not running Debian GNU/Linux then your can either download
+the source tarball and build it manually or checkout the latest sources
+using CVS and combine them with the appropriate gcc tarball and then
+finally build it manually.
+
+Combined GNU Modula-2 and patched GCC tarballs exist at
+@uref{ftp://floppsie.comp.glam.ac.uk/pub/c}.
+
+Search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
+For example you should be able to download the latest version of
+GNU Modula-2 and GCC using these commands.
+
+@example
+
+@end example
+
+On a GNU/Linux system you should also be able to build it using these
+commands.
+
+@example
+
+@end example
 
 @section Development sources via CVS
 
-To get the latest sources to GNU Modula-2 type the following:
+Development sources can be downloaded via CVS.  However please be
+aware that the cutting edge sources to gm2 may fail to compile.  To
+get the latest sources to GNU Modula-2 type the following:
 
 @example
 cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
@@ -1687,9 +1727,8 @@ fi
 @end example
 
 Note that if you download a tarball from
-@url{http://floppsie.comp.glam.ac.uk} as described in @xref{Getting
-GNU Modula-2, , ,} then any patching will have already
-been applied.
+@url{http://floppsie.comp.glam.ac.uk} as described in @xref{Obtaining,
+, ,} then any patching will have already been applied.
 
 @section Building GNU Modula-2
 
@@ -1722,33 +1761,7 @@ make
 @end example
 
 which will create an @file{a.out} for the infamous hello world
-example.  Alternatively if you would rather install precompiled
-binaries, they are available in Debian package format.  To install
-these binary and source packages append these repository descriptions
-to your @file{/etc/apt/sources.list} file.
-
-@example
-#
-#  GNU Modula-2 repo
-#
-
-deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
-deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
-@end example
-
-Now as root type:
-
-@example
-apt-get update
-apt-get install gm2-doc gm2
-@end example
-
-The repository has binaries for the amd64, ps3 (ppc64) and i386
-processors.  As a normal user you can obtain the source code via:
-
-@example
-apt-get source gm2
-@end example
+example.
 
 @section Stress testing GM2
 

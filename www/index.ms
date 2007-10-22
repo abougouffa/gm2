@@ -218,9 +218,10 @@ ISO Modula-2 is not implemented in full yet.
 ISO library implementation has started but is not useable yet.
 The module SYSTEM has been completely implemented.
 .LI
-Logitech compatibility library is incomplete (FileSystem.mod has not
-yet been implemented, nevertheless a number of common libraries have
-been implemented: Terminal, Display, InOut, RealInOut and others.
+Logitech compatibility library is incomplete (nevertheless a number of
+common libraries have been implemented: Terminal, Display, InOut,
+RealInOut, FileSystem, BlockOps, BitWordOps, BitByteOps, BitBlockOps
+and others.
 .ULE
 .sp
 .
