@@ -907,7 +907,8 @@ GM2-LIBS-PIM-MODS  = \
               DebugPMD.mod  LongIO.mod      RealConversions.mod \
               FloatingUtilities.mod         Strings.mod   \
               Random.mod    TimeDate.mod    BitWordOps.mod \
-              BitByteOps.mod                BlockOps.mod
+              BitByteOps.mod                BitBlockOps.mod \
+              BlockOps.mod
 
 GM2-LIBS-PIM-COR-MODS = \
               Debug.mod     SYSTEM.mod      TimerHandler.mod \
