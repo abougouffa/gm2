@@ -1,3 +1,7 @@
+2007-10-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/BitBlockOps.{def,mod}:  added.
+
 2007-10-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  rationalised the building instructions
