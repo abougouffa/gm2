@@ -1650,17 +1650,17 @@ deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
 Now as root type:
 
 @example
-apt-get update
-apt-get install gm2-doc gm2
+$ apt-get update
+$ apt-get install gm2-doc gm2
 @end example
 
 As a normal user you can obtain the source code via:
 
 @example
-apt-get source gm2
+$ apt-get source gm2
 @end example
 
-If you are not running Debian GNU/Linux then your can either download
+If you are not running Debian GNU/Linux then you can either download
 the source tarball and build it manually or checkout the latest sources
 using CVS and combine them with the appropriate gcc tarball and then
 finally build it manually.
@@ -1673,24 +1673,55 @@ For example you should be able to download the latest version of
 GNU Modula-2 and GCC using these commands.
 
 @example
-
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz
+$ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @end example
 
 On a GNU/Linux system you should also be able to build it using these
-commands.
+commands.  The following commands assume your shell is @file{/bin/bash}.
+To build GNU Modula-2 type:
 
 @example
-
+$ mkdir -p $HOME/opt
+$ mkdir -p build-@value{version-GCC}
+$ cd build-@value{version-GCC}
+$ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,gm2 \
+     --disable-multilib --enable-checking=all --prefix=$HOME/opt
+$ make
 @end example
+
+To install GNU Modula-2, after a successful build, type:
+
+@example
+$ make install
+$ cd ..
+@end example
+
+Now you should be able to perform:
+
+@example
+$ export PATH=$HOME/opt/bin:$PATH
+$ cd gcc-@value{version-GCC}/gcc/gm2/examples/hello
+$ make
+@end example
+
+which will create an @file{a.out} for the infamous hello world
+example.
 
 @section Development sources via CVS
 
-Development sources can be downloaded via CVS.  However please be
-aware that the cutting edge sources to gm2 may fail to compile.  To
-get the latest sources to GNU Modula-2 type the following:
+Development sources can be downloaded via CVS but they must be grafted
+carefully onto an existing GCC release.  The notes in this section
+document how this is achieved, however a prepared CVS and GCC release
+is available here
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz}
+and it is created each night.
+
+If you want to obtain the latest sources via CVS then type the
+following:
 
 @example
-cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
+$ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
 @end example
 
 This will checkout a copy of GNU Modula-2 into one subdirectory,
@@ -1707,7 +1738,7 @@ archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
 onto @file{gcc-@value{version-GCC}} by:
 
 @example   
-mv gm2 gcc-@value{version-GCC}/gcc
+$ mv gm2 gcc-@value{version-GCC}/gcc
 @end example
 
 If the directory
@@ -1716,52 +1747,19 @@ exists then the patch files inside that directory can be applied to the
 @samp{gcc-@value{version-GCC}} tree. This is done via:
 
 @example
-cd gcc-@value{version-GCC}
-if [ -d gcc/gm2/patches/gcc/@value{version-GCC}/gm2 ] ; then
-   for i in gcc/gm2/patches/gcc/@value{version-GCC}/gm2/* ; do
-      if [ -f $i ] ; then
-         patch -p1 < $i
-      fi
-   done
-fi
+$ cd gcc-@value{version-GCC}
+$ if [ -d gcc/gm2/patches/gcc/@value{version-GCC}/gm2 ] ; then
+     for i in gcc/gm2/patches/gcc/@value{version-GCC}/gm2/* ; do
+        if [ -f $i ] ; then
+           patch -p1 < $i
+        fi
+     done
+  fi
 @end example
 
 Note that if you download a tarball from
 @url{http://floppsie.comp.glam.ac.uk} as described in @xref{Obtaining,
 , ,} then any patching will have already been applied.
-
-@section Building GNU Modula-2
-
-This section assumes you are building on a GNU/Linux system and that
-your shell is @file{/bin/bash}.  To build GNU Modula-2 type:
-
-@example
-mkdir -p $HOME/opt
-mkdir -p host-build
-cd host-build
-../gcc-@value{version-GCC}/configure --enable-languages=c,gm2 \
-  --enable-checking=all --disable-multilib --prefix=$HOME/opt
-make
-cd ..
-@end example
-
-Installing GNU Modula-2 is achieved by:
-
-@example
-cd host-build
-make install
-@end example
-
-Now you should be able to perform:
-
-@example
-export PATH=$HOME/opt/bin:$PATH
-cd gcc-@value{version-GCC}/gcc/gm2/examples/hello
-make
-@end example
-
-which will create an @file{a.out} for the infamous hello world
-example.
 
 @section Stress testing GM2
 
@@ -1773,7 +1771,7 @@ that this test can take some time to execute.
 This test is invoked by:
 
 @example
-cd host-build/gcc ; make gm2.paranoid
+$ cd host-build/gcc ; make gm2.paranoid
 @end example
 
 The second method used to test GNU Modula-2 is to run the regression
@@ -1793,19 +1791,20 @@ Framework version is	1.4.4
 
 otherwise some of the tests may not run.
 
-You also need to have downloaded the gcc testsuite and
-grafted it onto the GCC source tree. Finally you need to graft the GNU
-Modula-2 testsuite onto the gcc testsuite. To ease this process there
-are pre grafted versions available from
-@uref{ftp://floppsie.comp.glam.ac.uk/pub/c}.
+If you have downloaded the combined GCC and GNU Modula-2 tarball
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz}
+then this will also contain the GNU Modula-2 testsuite.  In this case
+you can skip over the following @file{cvs} and @file{tar} commands.
 
+However if you have downloaded GNU Modula-2 using CVS then you will
+also need to download and position the testsuite.
 Assuming that the root of the GCC source tree is in the current
 working directory you can use the following commands to install
 the test suite:
 
 @example
-cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co testsuite
-tar cf - testsuite | ( cd gcc-@var{version}/gcc ; tar xf - )
+$ cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co testsuite
+$ tar cf - testsuite | ( cd gcc-@var{version}/gcc ; tar xf - )
 @end example
 
 Do not simply move the directory @file{testsuite} into
@@ -1815,14 +1814,16 @@ tests have to be overlaid on top of the gcc testsuite.
 Thereafter you can run the GNU Modula-2 testsuite by:
 
 @example
-cd host-build/gcc
-make check-gm2
+$ cd host-build/gcc
+$ make check-gm2
 @end example
 
 Depending on the speed of your computer these tests may take a while
 to complete.
 
 @section Building GNU Modula-2 under FreeBSD
+
+[This section is out of date].
 
 When building GNU Modula-2 under FreeBSD, there are essentially three
 issues that need to be addressed.
