@@ -229,12 +229,9 @@ and others.
 Building GNU Modula-2
 .LP
 Rather than duplicate building instructions here, please see the
-appropriate section in the
-.URL http://www.nongnu.org/gm2/gm2.html "gm2 texinfo documentation" .
-.sp
-Finally take a look at
-.URL http://freepages.modula2.org/gnum2.html "this page"
-for more information about GNU Modula-2.
+\f[B]Obtaining GNU Modula-2\f[P] section in the
+.URL http://www.nongnu.org/gm2/gm2.html "gm2 texinfo documentation"
+which matches the CVS.
 .sp
 .
 .SH
