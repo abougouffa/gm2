@@ -21,7 +21,7 @@
 objdir = @objdir@
 srcdir = @srcdir@
 
-WWWDIR=../../../../www/gm2
+WWWDIR=../../../../../www/gm2
 
 
 all: index.html gm2-logo.png gnu-mini.png ../../gm2.html
