@@ -102,7 +102,7 @@ PROCEDURE BlockShl (dest: ADDRESS; size, count: CARDINAL) ;
               Where the block is defined as:
               [dest..dest+size-1].
               The block is considered to be an ARRAY OF BYTEs
-              which is shifted, bit at a time over each byte in
+              which is rotated, bit at a time over each byte in
               turn.  The left most byte is considered the byte
               located at the lowest address.
               If you require an endianness ROTATE use
@@ -118,7 +118,7 @@ PROCEDURE BlockRor (dest: ADDRESS; size, count: CARDINAL) ;
               Where the block is defined as:
               [dest..dest+size-1].
               The block is considered to be an ARRAY OF BYTEs
-              which is shifted, bit at a time over each byte in
+              which is rotated, bit at a time over each byte in
               turn.  The left most byte is considered the byte
               located at the lowest address.
               If you require an endianness ROTATE use

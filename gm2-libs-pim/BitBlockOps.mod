@@ -165,7 +165,7 @@ BEGIN
       p := dest ;
       dest := memset(p, 0, size)
    ELSE
-      bitOffset := bitOffset MOD BITSPERBYTE ;
+      bitOffset := count MOD BITSPERBYTE ;
       IF byteOffset>0
       THEN
          (* move whole bytes using memmove *)
@@ -177,11 +177,11 @@ BEGIN
       IF bitOffset>0
       THEN
          (* some real shifting is necessary *)
-         p := dest+VAL(ADDRESS, byteOffset+1) ;
+         p := dest+VAL(ADDRESS, byteOffset) ;
          hi := BYTE(0) ;
          WHILE size>byteOffset DO
-            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), bitOffset)) ;
-            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), -(BITSPERBYTE - bitOffset))) ;
+            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), -bitOffset)) ;
+            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), (BITSPERBYTE - bitOffset))) ;
             p^ := VAL(BYTE, VAL(BITSET, lo) + VAL(BITSET, hi)) ;
             INC(p) ;
             hi := carry ;

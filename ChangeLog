@@ -1,3 +1,9 @@
+2007-10-25       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gccgm2.c:  CHAR is now declared as an unsigned char.
+	* testsuite/gm2/pimlib/logitech/run/pass/bbits.mod:  new file.
+	* testsuite/gm2/pimlib/logitech/run/pass/intb.mod:  new file.
+
 2007-10-23       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2.texi:  more building documentation fixes.

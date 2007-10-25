@@ -1656,24 +1656,17 @@ build_m2_char_node (void)
 {
   tree c;
 
-  /* Define `CHAR', which is like either `signed char' or `unsigned char'
-     but not the same as either.  */
+  /* Define `CHAR', to be an unsigned char. */
 
-  /* Modula-2 CHAR type, borrowed from GNU Pascal */
+  /* Modula-2 CHAR type, borrowed from GNU Pascal and modified
+     so that we only use unsigned char */
   c = make_node (CHAR_TYPE);
   TYPE_PRECISION (c) = CHAR_TYPE_SIZE;
   TYPE_SIZE (c) = 0;
 
-  if (flag_signed_char)
-    {
-      fixup_signed_type (c);
-      TYPE_UNSIGNED (c) = 0;
-    }
-  else
-    {
-      fixup_unsigned_type (c);
-      TYPE_UNSIGNED (c) = 1;
-    }
+  fixup_unsigned_type (c);
+  TYPE_UNSIGNED (c) = TRUE;
+
   return c;
 }
 
@@ -7539,6 +7532,8 @@ gccgm2_BuildLogicalShift (tree op1, tree op2, tree op3,
 {
   tree res;
 
+  op2 = gccgm2_FoldAndStrip (op2);
+  op3 = gccgm2_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
     if (tree_int_cst_sgn (op3) < 0)
       res = gccgm2_BuildLSR (op2,
@@ -7682,6 +7677,8 @@ gccgm2_BuildLogicalRotate (tree op1, tree op2, tree op3,
 {
   tree res;
 
+  op2 = gccgm2_FoldAndStrip (op2);
+  op3 = gccgm2_FoldAndStrip (op3);
   if (TREE_CODE (op3) == INTEGER_CST) {
     if (tree_int_cst_sgn (op3) < 0)
       res = gccgm2_BuildLRRn (op2,
@@ -10470,8 +10467,7 @@ start_struct (enum tree_code code, tree name)
 
 
 tree
-gccgm2_BuildStartRecord (name)
-     char *name;
+gccgm2_BuildStartRecord (char *name)
 {
   tree id;
 
@@ -10485,8 +10481,7 @@ gccgm2_BuildStartRecord (name)
 
 
 tree
-gccgm2_BuildStartVarientRecord (name)
-     char *name;
+gccgm2_BuildStartVarientRecord (char *name)
 {
   tree id;
 
@@ -10502,8 +10497,7 @@ gccgm2_BuildStartVarientRecord (name)
 /* Lay out the type T, and its element type, and so on.  */
 
 static void
-layout_array_type (t)
-     tree t;
+layout_array_type (tree t)
 {
   if (TREE_CODE (TREE_TYPE (t)) == ARRAY_TYPE)
     layout_array_type (TREE_TYPE (t));
@@ -10519,9 +10513,7 @@ layout_array_type (t)
    are ultimately passed to `build_struct' to make the RECORD_TYPE node.  */
 
 tree
-gccgm2_BuildFieldRecord (name, type)
-     char *name;
-     tree type;
+gccgm2_BuildFieldRecord (char *name, tree type)
 {
   tree field, declarator;
   
@@ -10543,8 +10535,7 @@ gccgm2_BuildFieldRecord (name, type)
  */
 
 tree
-gccgm2_ChainOn (t1, t2)
-     tree t1, t2;
+gccgm2_ChainOn (tree t1, tree t2)
 {
   return chainon (t1, t2);
 }
@@ -10554,8 +10545,7 @@ gccgm2_ChainOn (t1, t2)
  */
 
 tree
-gccgm2_ChainOnParamValue (list, parm, value)
-     tree list, parm, value;
+gccgm2_ChainOnParamValue (tree list, tree parm, tree value)
 {
   return chainon (list, build_tree_list(parm, value));
 }
@@ -10565,8 +10555,7 @@ gccgm2_ChainOnParamValue (list, parm, value)
  */
 
 tree
-gccgm2_AddStringToTreeList (list, string)
-     tree list, string;
+gccgm2_AddStringToTreeList (tree list, tree string)
 {
   return tree_cons (NULL_TREE, string, list);
 }
@@ -10575,8 +10564,7 @@ gccgm2_AddStringToTreeList (list, string)
    or a union containing such a structure (possibly recursively).  */
 
 static bool
-flexible_array_type_p (type)
-     tree type;
+flexible_array_type_p (tree type)
 {
   tree x;
   switch (TREE_CODE (type))
