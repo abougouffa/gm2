@@ -16,7 +16,7 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 all: force
-	gm2 -Wmakeall -Wcpp -DVALUE=999 -g -I.:../callingC b.mod
+	gm2 -fmakeall -fcpp -DVALUE=999 -g -I.:../callingC b.mod
 
 clean:
 	$(RM) *.o a.out *~

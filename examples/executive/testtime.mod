@@ -1,4 +1,4 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+
 MODULE testtime ;
 
 
@@ -47,6 +48,7 @@ END LocalWrite ;
 PROCEDURE TenSeconds ;
 BEGIN
    OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   WriteString('.') ;
    LOOP
       Sleep(10*TicksPerSecond) ;
       WriteString('..10..') ;
@@ -61,6 +63,7 @@ END TenSeconds ;
 PROCEDURE FifteenSeconds ;
 BEGIN
    OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   WriteString('.') ;
    LOOP
       Sleep(15*TicksPerSecond) ;
       WriteString('..15..') ;
@@ -75,6 +78,7 @@ END FifteenSeconds ;
 PROCEDURE SixtySeconds ;
 BEGIN
    OldInts := TurnInterrupts(MAX(PRIORITY)) ;
+   WriteString('.') ;
    LOOP
       Timeout := ArmEvent(60*TicksPerSecond) ;
       IF WaitOn(Timeout)

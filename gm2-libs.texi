@@ -75,6 +75,7 @@ building the GNU Modula-2 compiler.
 * gm2-libs/errno::errno.def
 * gm2-libs/libc::libc.def
 * gm2-libs/libm::libm.def
+* gm2-libs/sckt::sckt.def
 * gm2-libs/wrapc::wrapc.def
 @end menu
 
@@ -3268,7 +3269,7 @@ END libc.
 @page
 
 
-@node gm2-libs/libm, gm2-libs/wrapc, gm2-libs/libc, Base libraries
+@node gm2-libs/libm, gm2-libs/sckt, gm2-libs/libc, Base libraries
 @subsection gm2-libs/libm
 
 @example
@@ -3371,7 +3372,168 @@ END libm.
 @page
 
 
-@node gm2-libs/wrapc, , gm2-libs/libm, Base libraries
+@node gm2-libs/sckt, gm2-libs/wrapc, gm2-libs/libm, Base libraries
+@subsection gm2-libs/sckt
+
+@example
+DEFINITION MODULE FOR "C" sckt ;
+
+(*
+    Description: provides a minimal interface to tcp sockets.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+EXPORT UNQUALIFIED tcpServerState,
+                   tcpServerEstablish, tcpServerEstablishPort,
+                   tcpServerAccept, getLocalIP,
+                   tcpServerPortNo, tcpServerIP, tcpServerSocketFd,
+                   tcpServerClientIP, tcpServerClientPortNo,
+                   tcpClientState,
+                   tcpClientSocket, tcpClientSocketIP, tcpClientConnect,
+                   tcpClientPortNo, tcpClientIP, tcpClientSocketFd ;
+
+TYPE
+   tcpServerState = ADDRESS ;
+   tcpClientState = ADDRESS ;
+
+
+(*
+   tcpServerEstablish - returns a tcpState containing the relevant
+                        information about a socket declared to receive
+                        tcp connections.
+*)
+
+@findex tcpServerEstablish
+PROCEDURE tcpServerEstablish () : tcpServerState ;
+
+
+(*
+   tcpServerEstablishPort - returns a tcpState containing the relevant
+                            information about a socket declared to recieve
+                            tcp connections. This method attempts to use
+                            the port specified by the parameter.
+*)
+
+@findex tcpServerEstablishPort
+PROCEDURE tcpServerEstablishPort (port: CARDINAL) : tcpServerState ;
+
+
+(*
+   tcpServerAccept - returns a file descriptor once a client has connected and
+                     been accepted.
+*)
+
+@findex tcpServerAccept
+PROCEDURE tcpServerAccept (s: tcpServerState) : INTEGER ;
+
+
+(*
+   tcpServerPortNo - returns the portNo from structure, s.
+*)
+
+@findex tcpServerPortNo
+PROCEDURE tcpServerPortNo (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpSocketFd - returns the sockFd from structure, s.
+*)
+
+@findex tcpServerSocketFd
+PROCEDURE tcpServerSocketFd (s: tcpServerState) : INTEGER ;
+
+
+(*
+   getLocalIP - returns the IP address of this machine.
+*)
+
+@findex getLocalIP
+PROCEDURE getLocalIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpServerIP - returns the IP address from structure, s.
+*)
+
+@findex tcpServerIP
+PROCEDURE tcpServerIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpClientIP - returns the IP address of the client who
+                 has connected to server, s.
+*)
+
+@findex tcpServerClientIP
+PROCEDURE tcpServerClientIP (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpClientPortNo - returns the port number of the client who
+                     has connected to server, s.
+*)
+
+@findex tcpServerClientPortNo
+PROCEDURE tcpServerClientPortNo (s: tcpServerState) : CARDINAL ;
+
+
+(*
+   tcpClientSocket - returns a file descriptor (socket) which has
+                     connected to, serverName:portNo.
+*)
+
+@findex tcpClientSocket
+PROCEDURE tcpClientSocket (serverName: ADDRESS; portNo: CARDINAL) : tcpClientState ;
+
+
+(*
+   tcpClientSocketIP - returns a file descriptor (socket) which has
+                       connected to, ip:portNo.
+*)
+
+@findex tcpClientSocketIP
+PROCEDURE tcpClientSocketIP (ip: CARDINAL; portNo: CARDINAL) : tcpClientState ;
+
+
+(*
+   tcpClientConnect - returns the file descriptor associated with, s,
+                      once a connect has been performed.
+*)
+
+@findex tcpClientConnect
+PROCEDURE tcpClientConnect (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientPortNo - returns the portNo from structure, s.
+*)
+
+@findex tcpClientPortNo
+PROCEDURE tcpClientPortNo (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientSocketFd - returns the sockFd from structure, s.
+*)
+
+@findex tcpClientSocketFd
+PROCEDURE tcpClientSocketFd (s: tcpClientState) : INTEGER ;
+
+
+(*
+   tcpClientIP - returns the IP address from structure, s.
+*)
+
+@findex tcpClientIP
+PROCEDURE tcpClientIP (s: tcpClientState) : CARDINAL ;
+
+
+END sckt.
+@end example
+@page
+
+
+@node gm2-libs/wrapc, , gm2-libs/sckt, Base libraries
 @subsection gm2-libs/wrapc
 
 @example
@@ -3614,7 +3776,7 @@ PROCEDURE BlockShl (dest: ADDRESS; size, count: CARDINAL) ;
               Where the block is defined as:
               [dest..dest+size-1].
               The block is considered to be an ARRAY OF BYTEs
-              which is shifted, bit at a time over each byte in
+              which is rotated, bit at a time over each byte in
               turn.  The left most byte is considered the byte
               located at the lowest address.
               If you require an endianness ROTATE use
@@ -3631,7 +3793,7 @@ PROCEDURE BlockRor (dest: ADDRESS; size, count: CARDINAL) ;
               Where the block is defined as:
               [dest..dest+size-1].
               The block is considered to be an ARRAY OF BYTEs
-              which is shifted, bit at a time over each byte in
+              which is rotated, bit at a time over each byte in
               turn.  The left most byte is considered the byte
               located at the lowest address.
               If you require an endianness ROTATE use

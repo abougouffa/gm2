@@ -21,7 +21,7 @@ DEBUGGING=-g
 all: testtransfer testiotransfer 
 
 testtransfer: force
-	gm2 -g -Wmakeall -I.:../gm2-libs $(DEBUGGING) testtransfer.mod -lpth
+	gm2 -g -fmakeall -I.:../gm2-libs $(DEBUGGING) testtransfer.mod -lpth
 	@if ./a.out ; then \
             echo "transfer ok" ; \
          else \
@@ -30,7 +30,7 @@ testtransfer: force
          fi
 
 testiotransfer: force
-	gm2 -g -Wmakeall -I.:../gm2-libs $(DEBUGGING) testiotransfer.mod -lpth
+	gm2 -g -fmakeall -I.:../gm2-libs $(DEBUGGING) testiotransfer.mod -lpth
 	@if ./a.out ; then \
             echo "iotransfer ok" ; \
          else \

@@ -25,6 +25,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #include <errno.h>
 #include <malloc.h>
 #include <signal.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define PORTSTART     7000
 #define NOOFTRIES      100
@@ -351,4 +353,12 @@ int tcpClientIP (tcpClientState *s)
 {
   printf("client ip = %s\n", inet_ntoa (s->sa.sin_addr.s_addr));
   return s->sa.sin_addr.s_addr;
+}
+
+/*
+ *  GNU Modula-2 link fodder.
+ */
+
+void _M2_sckt_init (void)
+{
 }

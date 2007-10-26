@@ -1,4 +1,5 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -196,6 +197,7 @@ VAR
 BEGIN
    NEW(v) ;
    INC(VecNo) ;
+   Assert(micro<Microseconds) ;
    WITH v^ DO
       type     := time ;
       priority := pri ;
@@ -261,6 +263,7 @@ PROCEDURE ReArmTimeVector (vec: CARDINAL;
 VAR
    v: Vector ;
 BEGIN
+   Assert(micro<Microseconds) ;
    v := FindVectorNo(vec) ;
    IF v=NIL
    THEN
@@ -292,7 +295,8 @@ BEGIN
            'cannot find vector supplied')
    ELSE
       WITH v^ DO
-         GetTime(rel, secs, micro)
+         GetTime(rel, secs, micro) ;
+         Assert(micro<Microseconds)
       END
    END
 END GetTimeVector ;
@@ -328,8 +332,9 @@ END AttachVector ;
 
 PROCEDURE IncludeVector (vec: CARDINAL) ;
 VAR
-   r: INTEGER ;
-   v: Vector ;
+   r   : INTEGER ;
+   v   : Vector ;
+   m, s: CARDINAL ;
 BEGIN
    v := FindPendingVector(vec) ;
    IF v=NIL
@@ -348,7 +353,11 @@ BEGIN
             v^.queued := TRUE ;
             r := GetTimeOfDay(v^.abs) ;
             Assert(r=0) ;
-            AddTime(v^.abs, v^.rel)
+            GetTime(v^.abs, s, m) ;
+            Assert(m<Microseconds) ;
+            AddTime(v^.abs, v^.rel) ;
+            GetTime(v^.abs, s, m) ;
+            Assert(m<Microseconds)
          END
       END 
    ELSE
@@ -437,6 +446,7 @@ BEGIN
          ELSIF v^.type=time
          THEN
             GetTime(v^.rel, s, m) ;
+            Assert(m<Microseconds) ;
             r := printf("time (%d.%6d secs)\n", s, m)
          END ;
          v := v^.pending
@@ -460,12 +470,14 @@ VAR
    a, b, s, m: CARDINAL ;
 BEGIN
    GetTime(t1, s, m) ;
+   Assert(m<Microseconds) ;
    GetTime(t2, a, b) ;
+   Assert(b<Microseconds) ;
    INC(a, s) ;
    INC(b, m) ;
-   IF m>Microseconds
+   IF b>=Microseconds
    THEN
-      DEC(m, Microseconds) ;
+      DEC(b, Microseconds) ;
       INC(a)
    END ;
    SetTime(t1, a, b)
@@ -481,7 +493,9 @@ VAR
    as, am, bs, bm: CARDINAL ;
 BEGIN
    GetTime(a, as, am) ;
+   Assert(am<Microseconds) ;
    GetTime(b, bs, bm) ;
+   Assert(bm<Microseconds) ;
    RETURN( (as>bs) OR ((as=bs) AND (am>=bm)) )
 END IsGreaterEqual ;
 
@@ -571,6 +585,7 @@ BEGIN
                time  :  IF IsGreaterEqual(t, abs)
                         THEN
                            GetTime(abs, s, m) ;
+                           Assert(m<Microseconds) ;
                            IF Debugging
                            THEN
                               r := printf("shortest delay is %d.%d\n", s, m)
@@ -602,6 +617,7 @@ BEGIN
          RETURN
       ELSE
          GetTime(t, s, m) ;
+         Assert(m<Microseconds) ;
          b4 := InitTime(0, 0) ;
          after := InitTime(0, 0) ;
          r := GetTimeOfDay(b4) ;
@@ -669,8 +685,11 @@ BEGIN
                            IF Debugging
                            THEN
                               GetTime(t, s, m) ;
+                              Assert(m<Microseconds) ;
                               GetTime(after, afs, afm) ;
+                              Assert(afm<Microseconds) ;
                               GetTime(b4, b4s, b4m) ;
+                              Assert(b4m<Microseconds) ;
                               r := printf("waited %d.%d + %d.%d now is %d.%d\n",
                                           s, m, b4s, b4m, afs, afm) ;
                            END ;

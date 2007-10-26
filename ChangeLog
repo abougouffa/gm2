@@ -1,3 +1,16 @@
+2007-10-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/sckt.def:  moved here from examples/server.
+	* gm2/gm2-libs-ch/sckt.c:  moved here from examples/server.
+	* gm2/examples/ncurses/Makefile:  changed switches from -W
+	  to -f
+	* gm2/gm2-libs-coroutines/Makefile:  changed switches from -W
+	  to -f
+	* gm2/gm2-libs-coroutines/SysVec.mod:  added many Asserts and
+          fixed some bugs relating to microseconds.
+	* gm2/gm2-libs-coroutines/TimerHandler.mod:  fixed bug relating
+	  to time vector.
+
 2007-10-25       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gccgm2.c:  CHAR is now declared as an unsigned char.

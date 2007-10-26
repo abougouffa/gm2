@@ -1,4 +1,5 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -264,7 +265,7 @@ END ReArmEvent ;
 
 
 (*
-   StartClock - 
+   StartClock - ticks is milli seconds.
 *)
 
 PROCEDURE StartClock (vec: CARDINAL; ticks: CARDINAL) ;
@@ -274,7 +275,7 @@ END StartClock ;
 
 
 (*
-   LoadClock - 
+   LoadClock - returns the number of milli seconds.
 *)
 
 PROCEDURE LoadClock (vec: CARDINAL) : CARDINAL ;
@@ -306,7 +307,8 @@ VAR
 BEGIN
 (* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
    ScrollLED := FALSE ;
-   TimerIntNo := InitTimeVector(0, BaseTicks DIV TicksPerSecond,
+   TimerIntNo := InitTimeVector((BaseTicks DIV TicksPerSecond) MOD BaseTicks,
+                                (BaseTicks DIV TicksPerSecond) DIV BaseTicks,
                                 MAX(PRIORITY)) ;
    LOOP
       WaitForIO(TimerIntNo) ;
