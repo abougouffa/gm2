@@ -1,3 +1,12 @@
+2007-10-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  fixed @xref punctuation requirement.
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed unbounded-by-reference
+	  so that it works out whether two parameters might contain
+	  the same contents.  Further optimization is possible via
+	  runtime checking of unbounded addresses.
+	* gm2/gm2-compiler/SymbolTable.mod:  factored out some code.
+
 2007-10-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/sckt.def:  moved here from examples/server.

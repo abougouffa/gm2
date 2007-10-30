@@ -100,9 +100,9 @@ EXPORT QUALIFIED NulSym,
                  GetUnboundedHighOffset,
                  GetModuleQuads,
                  GetProcedureQuads,
-                 GetVarQuads,
-                 GetVarReadQuads, GetVarWriteQuads,
-                 GetVarReadLimitQuads, GetVarWriteLimitQuads,
+                 GetQuads,
+                 GetReadQuads, GetWriteQuads,
+                 GetReadLimitQuads, GetWriteLimitQuads,
                  GetDeclared,
                  GetFirstUsed,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
@@ -141,8 +141,8 @@ EXPORT QUALIFIED NulSym,
                  PutProcedureEndQuad,
                  PutProcedureScopeQuad,
                  PutProcedureReachable,
-                 PutVarReadQuad, RemoveVarReadQuad,
-                 PutVarWriteQuad, RemoveVarWriteQuad,
+                 PutReadQuad, RemoveReadQuad,
+                 PutWriteQuad, RemoveWriteQuad,
                  PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash, PutGnuAsmVolatile,
                  PutRegInterface,
                  PutVariableAtAddress,
@@ -1210,75 +1210,75 @@ PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR scope, start, end: CARDINAL) ;
 
 
 (*
-   GetVarQuads - assigns Start and End to the beginning and end of
-                 symbol, Sym, usage.
+   GetQuads - assigns Start and End to the beginning and end of
+              symbol, Sym, usage.
 *)
 
-PROCEDURE GetVarQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 
 
 (*
-   GetVarReadQuads - assigns Start and End to the beginning and end of
-                     symbol, Sym, usage.
+   GetReadQuads - assigns Start and End to the beginning and end of
+                  symbol, Sym, usage.
 *)
 
-PROCEDURE GetVarReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 
 
 (*
-   GetVarWriteQuads - assigns Start and End to the beginning and end of
-                      symbol, Sym, usage.
+   GetWriteQuads - assigns Start and End to the beginning and end of
+                   symbol, Sym, usage.
 *)
 
-PROCEDURE GetVarWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 
 
 (*
-   PutVarReadQuad - places Quad into the list of symbol usage.
+   PutReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutVarReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 
 
 (*
-   RemoveVarReadQuad - places Quad into the list of symbol usage.
+   RemoveReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveVarReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 
 
 (*
-   PutVarWriteQuad - places Quad into the list of symbol usage.
+   PutWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutVarWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 
 
 (*
-   RemoveVarWriteQuad - places Quad into the list of symbol usage.
+   RemoveWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveVarWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 
 
 (*
-   GetVarReadLimitQuads - returns Start and End which have been assigned
+   GetReadLimitQuads - returns Start and End which have been assigned
                           the start and end of when the symbol was read
                           to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetVarReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
-                                VAR Start, End: CARDINAL) ;
+PROCEDURE GetReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+                             VAR Start, End: CARDINAL) ;
 
 
 (*
-   GetVarWriteLimitQuads - returns Start and End which have been assigned
-                           the start and end of when the symbol was written
-                           to within: StartLimit..EndLimit.
+   GetWriteLimitQuads - returns Start and End which have been assigned
+                        the start and end of when the symbol was written
+                        to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetVarWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
-                                 VAR Start, End: CARDINAL) ;
+PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+                              VAR Start, End: CARDINAL) ;
 
 
 (*

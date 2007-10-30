@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -87,9 +87,9 @@ VAR
    Len : CARDINAL ;
 BEGIN
    Len := 0 ;
-   High := HIGH( a ) ;
+   High := HIGH(a) ;
    WHILE (Len<=High) AND (a[Len]#nul) DO
-      INC( Len )
+      INC(Len)
    END ;
    RETURN( Len )
 END StrLen ;
@@ -102,11 +102,11 @@ VAR
    n    : CARDINAL ;
 BEGIN
    n := 0 ;
-   Higha := StrLen( a ) ;
-   Highb := HIGH( b ) ;
+   Higha := StrLen(a) ;
+   Highb := HIGH(b) ;
    WHILE (n<Higha) AND (n<=Highb) DO
       b[n] := a[n] ;
-      INC( n )
+      INC(n)
    END ;
    IF n<=Highb
    THEN
@@ -115,16 +115,16 @@ BEGIN
 END StrCopy ;
 
 
-PROCEDURE StrConCat (a: ARRAY OF CHAR ; b: ARRAY OF CHAR ; VAR c: ARRAY OF CHAR) ;
+PROCEDURE StrConCat (a: ARRAY OF CHAR; b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 VAR
    Highb,
    Highc,
    i, j : CARDINAL ;
 BEGIN
-   Highb := StrLen( b ) ;
-   Highc := HIGH( c ) ;
-   StrCopy( a, c ) ;
-   i := StrLen( c ) ;
+   Highb := StrLen(b) ;
+   Highc := HIGH(c) ;
+   StrCopy(a, c) ;
+   i := StrLen(c) ;
    j := 0 ;
    WHILE (j<Highb) AND (i<=Highc) DO
       c[i] := b[j] ;

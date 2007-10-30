@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -35,7 +36,9 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
+                        GetLowestType,
                         GetLocalSym, GetVarWritten,
+                        IsParamWritten, IsParamRead,
                         GetVarient,
                         NoOfParam, GetScope, GetParent,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
@@ -50,6 +53,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsExported,
                         IsSubrange, IsPointer,
                         IsProcedureBuiltin, IsProcedureInline,
+                        IsParameter,
                         IsValueSolved, IsSizeSolved,
                         ForeachExportedDo,
                         ForeachImportedDo,
@@ -81,7 +85,8 @@ FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
-                   Cardinal, Char, Integer, Trunc, CheckAssignmentCompatible ;
+                   Cardinal, Char, Integer, Trunc,
+                   CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
@@ -95,7 +100,9 @@ FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2StackWord IMPORT InitStackWord, StackOfWord, PeepWord, ReduceWord,
                         PushWord, PopWord ;
 
-FROM Lists IMPORT RemoveItemFromList, IncludeItemIntoList,
+FROM Lists IMPORT InitList, KillList,
+                  PutItemIntoList,
+                  RemoveItemFromList, IncludeItemIntoList,
                   NoOfItemsInList, GetItemFromList ;
 
 FROM M2ALU IMPORT PtrToValue,
@@ -1097,22 +1104,103 @@ END IsUnboundedWrittenTo ;
                                    then
                                       make a copy of the contents of this parameter
                                       and use the copy
+                                   else if param
+                                      is type compatible with any parameter, symv
+                                      and at runtime its address matches symv
+                                   then
+                                      make a copy of the contents of this parameter
+                                      and use the copy
                                    fi
-
 *)
 
-PROCEDURE CheckUnboundedNonVarParameter (proc, param, i: CARDINAL) ;
+PROCEDURE CheckUnboundedNonVarParameter (trashed: List;
+                                         proc, param, i: CARDINAL) ;
+VAR
+   mustCheck   : List ;
+   paramTrashed,
+   n, j        : CARDINAL ;
+   f           : String ;
+   l           : CARDINAL ;
+   n1, n2      : Name ;
 BEGIN
    IF IsUnboundedWrittenTo(proc, param)
    THEN
       MakeCopyAndUse(proc, param, i)
+   ELSE
+      InitList(mustCheck) ;
+      n := NoOfItemsInList(trashed) ;
+      j := 1 ;
+      WHILE j<=n DO
+         paramTrashed := GetItemFromList(trashed, j) ;
+         IF IsAssignmentCompatible(GetLowestType(param), GetLowestType(paramTrashed))
+         THEN
+            (* we must check whether this unbounded parameter has the same
+               address as the trashed parameter *)
+            IF VerboseUnbounded
+            THEN
+               n1 := GetSymName(paramTrashed) ;
+               n2 := GetSymName(proc) ;
+               f := FindFileNameFromToken(GetDeclared(paramTrashed), 0) ;
+               l := TokenToLineNo(GetDeclared(paramTrashed), 0) ;
+               printf4('%s:%d:must check address of parameter, %a, in procedure, %a, whose contents will be trashed\n',
+                       f, l, n1, n2) ;
+               n1 := GetSymName(param) ;
+               n2 := GetSymName(paramTrashed) ;
+               printf4('%s:%d:against address of parameter, %a, possibly resulting in a copy of parameter, %a\n',
+                       f, l, n1, n2)
+            END ;
+            PutItemIntoList(mustCheck, paramTrashed)
+         END ;
+         INC(j)
+      END ;
+      (* now we build a sequence of if then { elsif then } end to check addresses *)
+      IF NoOfItemsInList(mustCheck)>0
+      THEN
+         (* this can be improved by introducing the cascaded if then elsif as mentioned above *)
+         MakeCopyAndUse(proc, param, i)
+      END ;
+      KillList(mustCheck)
    END
 END CheckUnboundedNonVarParameter ;
 
 
 (*
-   SaveNonVarUnboundedParameters - for each parameter of procedure, sym, do
+   IsParameterWritten - returns TRUE if a parameter, sym, is written to.
+*)
+
+PROCEDURE IsParameterWritten (proc: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsParameter(sym)
+   THEN
+      sym := GetLocalSym(proc, GetSymName(sym))
+   END ;
+   IF IsVar(sym)
+   THEN
+      (* unbounded arrays will appear as vars *)
+      RETURN GetVarWritten(sym)
+   END ;
+   InternalError('expecting IsVar to return TRUE', __FILE__, __LINE__)
+END IsParameterWritten ;
+
+
+(*
+   SaveNonVarUnboundedParameters - for each var parameter, symv, do
+                                      (* not just unbounded var parameters, but _all_
+                                         parameters *)
+                                      if symv is written to
+                                      then
+                                         add symv to a compile list
+                                      fi
+                                   done
+
+                                   for each parameter of procedure, symu, do
                                       if non var unbounded parameter is written to
+                                      then
+                                         make a copy of the contents of this parameter
+                                         and use the copy
+                                      else if
+                                         symu is type compatible with any parameter, symv
+                                         and at runtime its address matches symv
                                       then
                                          make a copy of the contents of this parameter
                                          and use the copy
@@ -1122,17 +1210,44 @@ END CheckUnboundedNonVarParameter ;
 
 PROCEDURE SaveNonVarUnboundedParameters (proc: CARDINAL) ;
 VAR
-   i, p: CARDINAL ;
+   i, p   : CARDINAL ;
+   trashed: List ;
+   f      : String ;
+   sym    : CARDINAL ;
+   l      : CARDINAL ;
+   n1, n2 : Name ;
 BEGIN
+   InitList(trashed) ;
+   i := 1 ;
+   p := NoOfParam(proc) ;
+   WHILE i<=p DO
+      sym := GetNthParam(proc, i) ;
+      IF IsParameterWritten(proc, sym)
+      THEN
+         IF VerboseUnbounded
+         THEN
+            n1 := GetSymName(sym) ;
+            n2 := GetSymName(proc) ;
+            f := FindFileNameFromToken(GetDeclared(sym), 0) ;
+            l := TokenToLineNo(GetDeclared(sym), 0) ;
+            printf4('%s:%d:parameter, %a, in procedure, %a, is trashed\n',
+                    f, l, n1, n2)
+         END ;
+         PutItemIntoList(trashed, sym)
+      END ;
+      INC(i)
+   END ;
+   (* now see whether we need to copy any unbounded array parameters *)
    i := 1 ;
    p := NoOfParam(proc) ;
    WHILE i<=p DO
       IF IsUnboundedParam(proc, i) AND (NOT IsVarParam(proc, i))
       THEN
-         CheckUnboundedNonVarParameter(proc, GetNth(proc, i), i)
+         CheckUnboundedNonVarParameter(trashed, proc, GetNth(proc, i), i)
       END ;
       INC(i)
-   END
+   END ;
+   KillList(trashed)
 END SaveNonVarUnboundedParameters ;
 
 

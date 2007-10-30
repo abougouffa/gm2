@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE M2SubExp ;
 
 
 FROM SymbolTable IMPORT NulSym, ModeOfAddr, GetMode, GetSymName, IsVar, IsTemporary,
-                        MakeConstLit, IsModule, IsExported, GetScope, GetVarQuads, PushSize,
+                        MakeConstLit, IsModule, IsExported, GetScope, GetQuads, PushSize,
                         IsProcedure, GetVarScope, IsConst, IsConstLit, MakeConstVar, PushValue, PopValue,
                         IsValueSolved ;
 
@@ -2571,7 +2571,7 @@ BEGIN
    THEN
       RETURN( TRUE )
    ELSE
-      GetVarQuads(Sym, UsedStart, UsedEnd) ;
+      GetQuads(Sym, UsedStart, UsedEnd) ;
       IF (UsedStart#0) AND (UsedEnd#0) AND ((UsedStart<Start) OR (End<UsedEnd))
       THEN
          (* is used outside *)

@@ -303,22 +303,22 @@ TYPE
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                TotalParamSize: PtrToValue ; (* size of all parameters.       *)
-               Unbounded     : CARDINAL ;   (* The unbounded sym for this  *)
+               Unbounded     : CARDINAL ;   (* The unbounded sym for this    *)
                At            : Where ;      (* Where was sym declared/used   *)
             END ;
 
    SymParam = RECORD
-                 name        : Name ;         (* Index into name array, name *)
+                 name          : Name ;       (* Index into name array, name *)
                                               (* of param.                   *)
-                 Type        : CARDINAL ;     (* Index to the type of param. *)
-                 At          : Where ;        (* Where was sym declared/used *)
+                 Type          : CARDINAL ;   (* Index to the type of param. *)
+                 At            : Where ;      (* Where was sym declared/used *)
               END ;
 
    SymVarParam = RECORD
-                    name     : Name ;         (* Index into name array, name *)
+                    name          : Name ;    (* Index into name array, name *)
                                               (* of param.                   *)
-                    Type     : CARDINAL ;     (* Index to the type of param. *)
-                    At       : Where ;        (* Where was sym declared/used *)
+                    Type          : CARDINAL ;(* Index to the type of param. *)
+                    At            : Where ;   (* Where was sym declared/used *)
                  END ;
 
    SymConstString
@@ -3932,10 +3932,13 @@ END PutVarWritten ;
 
 PROCEDURE GetVarWritten (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF IsVar(sym)
-   THEN
-      WITH Symbols[sym].Var DO
-         RETURN( IsWritten )
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      VarSym: RETURN( Var.IsWritten )
+
+      ELSE
+         InternalError('expecting VarSym', __FILE__, __LINE__)
       END
    END
 END GetVarWritten ;
@@ -7925,25 +7928,25 @@ END GetProcedureQuads ;
 
 
 (*
-   GetVarReadQuads - assigns Start and End to the beginning and end of
-                     symbol, Sym, read history usage.
+   GetReadQuads - assigns Start and End to the beginning and end of
+                  symbol, Sym, read history usage.
 *)
 
-PROCEDURE GetVarReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 BEGIN
-   GetVarReadLimitQuads(Sym, 0, 0, Start, End)
-END GetVarReadQuads ;
+   GetReadLimitQuads(Sym, 0, 0, Start, End)
+END GetReadQuads ;
 
 
 (*
-   GetVarWriteQuads - assigns Start and End to the beginning and end of
-                      symbol, Sym, usage.
+   GetWriteQuads - assigns Start and End to the beginning and end of
+                   symbol, Sym, usage.
 *)
 
-PROCEDURE GetVarWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 BEGIN
-   GetVarWriteLimitQuads(Sym, 0, 0, Start, End)
-END GetVarWriteQuads ;
+   GetWriteLimitQuads(Sym, 0, 0, Start, End)
+END GetWriteQuads ;
 
 
 (*
@@ -7977,17 +7980,17 @@ END Min ;
 
 
 (*
-   GetVarQuads - assigns Start and End to the beginning and end of
-                 symbol, Sym, usage.
+   GetQuads - assigns Start and End to the beginning and end of
+              symbol, Sym, usage.
 *)
 
-PROCEDURE GetVarQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
 VAR
    StartRead, EndRead,
    StartWrite, EndWrite: CARDINAL ;
 BEGIN
-   GetVarReadQuads(Sym, StartRead, EndRead) ;
-   GetVarWriteQuads(Sym, StartWrite, EndWrite) ;
+   GetReadQuads(Sym, StartRead, EndRead) ;
+   GetWriteQuads(Sym, StartWrite, EndWrite) ;
    IF StartRead=0
    THEN
       Start := StartWrite
@@ -8006,14 +8009,14 @@ BEGIN
    ELSE
       End := Max(EndRead, EndWrite)
    END
-END GetVarQuads ;
+END GetQuads ;
 
 
 (*
-   PutVarQuad - places Quad into the list of symbol usage.
+   PutReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutVarReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -8024,14 +8027,14 @@ BEGIN
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END PutVarReadQuad ;
+END PutReadQuad ;
 
 
 (*
-   RemoveVarReadQuad - places Quad into the list of symbol usage.
+   RemoveReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveVarReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -8042,14 +8045,14 @@ BEGIN
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END RemoveVarReadQuad ;
+END RemoveReadQuad ;
 
 
 (*
-   PutVarWriteQuad - places Quad into the list of symbol usage.
+   PutWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutVarWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -8060,14 +8063,14 @@ BEGIN
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END PutVarWriteQuad ;
+END PutWriteQuad ;
 
 
 (*
-   RemoveVarWriteQuad - places Quad into the list of symbol usage.
+   RemoveWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveVarWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -8078,85 +8081,84 @@ BEGIN
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END RemoveVarWriteQuad ;
+END RemoveWriteQuad ;
 
 
 (*
-   GetVarReadLimitQuads - returns Start and End which have been assigned
-                          the start and end of when the symbol was read
-                          to within: StartLimit..EndLimit.
+   DoFindLimits - assigns, Start, and, End, to the start and end
+                  limits contained in the list, l.  It ensures that
+                  Start and End are within StartLimit..EndLimit.
+                  If StartLimit or EndLimit are 0 then Start is
+                  is set to the first value and End to the last.
 *)
 
-PROCEDURE GetVarReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
-                                VAR Start, End: CARDINAL) ;
+PROCEDURE DoFindLimits (StartLimit, EndLimit: CARDINAL;
+                        VAR Start, End: CARDINAL; l: List) ;
 VAR
    i, j, n: CARDINAL ;
+BEGIN
+   End := 0 ;
+   Start := 0 ;
+   i := 1 ;
+   n := NoOfItemsInList(l) ;
+   WHILE i<=n DO
+      j := GetItemFromList(l, i) ;
+      IF (j>End) AND (j>=StartLimit) AND ((j<=EndLimit) OR (EndLimit=0))
+      THEN
+         End := j
+      END ;
+      IF ((Start=0) OR (j<Start)) AND (j#0) AND (j>=StartLimit) AND
+         ((j<=EndLimit) OR (EndLimit=0))
+      THEN
+         Start := j
+      END ;
+      INC(i)
+   END
+END DoFindLimits ;
+
+
+(*
+   GetReadLimitQuads - returns Start and End which have been assigned
+                       the start and end of when the symbol was read
+                       to within: StartLimit..EndLimit.
+*)
+
+PROCEDURE GetReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+                             VAR Start, End: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: End := 0 ;
-              Start := 0 ;
-              i := 1 ;
-              n := NoOfItemsInList(Var.ReadUsageList) ;
-              WHILE i<=n DO
-                 j := GetItemFromList(Var.ReadUsageList, i) ;
-                 IF (j>End) AND (j>=StartLimit) AND ((j<=EndLimit) OR (EndLimit=0))
-                 THEN
-                    End := j
-                 END ;
-                 IF ((Start=0) OR (j<Start)) AND (j#0) AND (j>=StartLimit) AND
-                    ((j<=EndLimit) OR (EndLimit=0))
-                 THEN
-                    Start := j
-                 END ;
-                 INC(i)
-              END
+      VarSym: DoFindLimits(StartLimit, EndLimit, Start, End,
+                           Var.ReadUsageList)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END GetVarReadLimitQuads ;
+END GetReadLimitQuads ;
 
 
 (*
-   GetVarWriteLimitQuads - returns Start and End which have been assigned
-                           the start and end of when the symbol was written
-                           to within: StartLimit..EndLimit.
+   GetWriteLimitQuads - returns Start and End which have been assigned
+                        the start and end of when the symbol was written
+                        to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetVarWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
-                                 VAR Start, End: CARDINAL) ;
-VAR
-   i, j, n: CARDINAL ;
+PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+                              VAR Start, End: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: End := 0 ;
-              Start := 0 ;
-              i := 1 ;
-              n := NoOfItemsInList(Var.WriteUsageList) ;
-              WHILE i<=n DO
-                 j := GetItemFromList(Var.WriteUsageList, i) ;
-                 IF (j>End) AND (j>=StartLimit) AND ((j<=EndLimit) OR (EndLimit=0))
-                 THEN
-                    End := j
-                 END ;
-                 IF ((Start=0) OR (j<Start)) AND (j#0) AND (j>=StartLimit) AND
-                    ((j<=EndLimit) OR (EndLimit=0))
-                 THEN
-                    Start := j
-                 END ;
-                 INC(i)
-              END
+      VarSym     : DoFindLimits(StartLimit, EndLimit, Start, End,
+                                Var.WriteUsageList)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
       END
    END
-END GetVarWriteLimitQuads ;
+END GetWriteLimitQuads ;
 
 
 (*

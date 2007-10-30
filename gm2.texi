@@ -1758,9 +1758,8 @@ $ if [ -d gcc/gm2/patches/gcc/@value{version-GCC}/gm2 ] ; then
 @end example
 
 Note that if you download a tarball from
-@url{http://floppsie.comp.glam.ac.uk} as described elsewhere
-(@xref{Obtaining, , ,}) then any patching will have already been
-applied.
+@url{http://floppsie.comp.glam.ac.uk} then any patching will have
+already been applied.  @xref{Obtaining, , ,}.
 
 @section Stress testing GM2
 

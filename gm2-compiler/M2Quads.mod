@@ -39,8 +39,8 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetParam,
                         GetNth, GetNthParam,
                         GetFirstUsed, GetDeclared,
-                        GetVarQuads, GetVarReadQuads, GetVarWriteQuads,
-                        GetVarWriteLimitQuads, GetVarReadLimitQuads,
+                        GetQuads, GetReadQuads, GetWriteQuads,
+                        GetWriteLimitQuads, GetReadLimitQuads,
                         GetVarScope,
                         GetModuleQuads, GetProcedureQuads,
                         PutConstString,
@@ -50,8 +50,8 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutVar, PutConstSet,
                         GetVarPointerCheck, PutVarPointerCheck,
                         PutVarWritten,
-                        PutVarReadQuad, RemoveVarReadQuad,
-                        PutVarWriteQuad, RemoveVarWriteQuad,
+                        PutReadQuad, RemoveReadQuad,
+                        PutWriteQuad, RemoveWriteQuad,
                         PutPriority, GetPriority,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
@@ -1063,30 +1063,31 @@ END EraseQuad ;
 
 
 (*
-   CheckAddVariableRead - checks to see whether symbol, Sym, is a variable and
-                          if so it then adds this quadruple to the variable list.
+   CheckAddVariableRead - checks to see whether symbol, Sym, is a variable or
+                          a parameter and if so it then adds this quadruple
+                          to the variable list.
 *)
 
 PROCEDURE CheckAddVariableRead (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      PutVarReadQuad(Sym, Quad)
+      PutReadQuad(Sym, Quad)
    END
 END CheckAddVariableRead ;
 
 
 (*
-   CheckRemoveVariableRead - checks to see whether, Sym, is a variable and
-                             if so then it removes the quadruple from the
-                             variable list.
+   CheckRemoveVariableRead - checks to see whether, Sym, is a variable or
+                             a parameter and if so then it removes the
+                             quadruple from the variable list.
 *)
 
 PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      RemoveVarReadQuad(Sym, Quad)
+      RemoveReadQuad(Sym, Quad)
    END
 END CheckRemoveVariableRead ;
 
@@ -1100,7 +1101,7 @@ PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      PutVarWriteQuad(Sym, Quad)
+      PutWriteQuad(Sym, Quad)
    END
 END CheckAddVariableWrite ;
 
@@ -1115,7 +1116,7 @@ PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      RemoveVarWriteQuad(Sym, Quad)
+      RemoveWriteQuad(Sym, Quad)
    END
 END CheckRemoveVariableWrite ;
 
@@ -1780,7 +1781,7 @@ VAR
    WriteStart, WriteEnd: CARDINAL ;
    s                   : String ;
 BEGIN
-   GetVarWriteLimitQuads(IndexSym, Start, End, WriteStart, WriteEnd) ;
+   GetWriteLimitQuads(IndexSym, Start, End, WriteStart, WriteEnd) ;
    IF (WriteStart<Omit) AND (WriteStart>Start)
    THEN
       s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
@@ -1788,8 +1789,8 @@ BEGIN
                             s),
                    QuadToTokenNo(WriteStart))
    END ;
-   GetVarWriteLimitQuads(IndexSym, End, 0, WriteStart, WriteEnd) ;
-   GetVarReadLimitQuads(IndexSym, End, 0, ReadStart, ReadEnd) ;
+   GetWriteLimitQuads(IndexSym, End, 0, WriteStart, WriteEnd) ;
+   GetReadLimitQuads(IndexSym, End, 0, ReadStart, ReadEnd) ;
    IF (ReadStart#0) AND ((ReadStart<WriteStart) OR (WriteStart=0))
    THEN
       s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
@@ -8108,8 +8109,8 @@ BEGIN
       n := GetNth(ProcSym, i) ;
       IF (n#NulSym) AND (NOT IsTemporary(n))
       THEN
-         GetVarReadQuads(n, ReadStart, ReadEnd) ;
-         GetVarWriteQuads(n, WriteStart, WriteEnd) ;
+         GetReadQuads(n, ReadStart, ReadEnd) ;
+         GetWriteQuads(n, WriteStart, WriteEnd) ;
          IF i>ParamNo
          THEN
             (* n is a not a parameter thus we can check *)
@@ -8166,7 +8167,7 @@ PROCEDURE IsNeverAltered (sym: CARDINAL; Start, End: CARDINAL) : BOOLEAN ;
 VAR
    WriteStart, WriteEnd: CARDINAL ;
 BEGIN
-   GetVarWriteLimitQuads(sym, Start, End, WriteStart, WriteEnd) ;
+   GetWriteLimitQuads(sym, Start, End, WriteStart, WriteEnd) ;
    RETURN( (WriteStart=0) AND (WriteEnd=0) )
 END IsNeverAltered ;
 
@@ -8333,8 +8334,8 @@ BEGIN
          (IsProcedure(BlockSym) OR (((IsDefImp(BlockSym) AND (GetMainModule()=BlockSym)) OR IsModule(BlockSym)) AND
                                     (NOT IsExported(BlockSym, n))))
       THEN
-         GetVarReadQuads(n, ReadStart, ReadEnd) ;
-         GetVarWriteQuads(n, WriteStart, WriteEnd) ;
+         GetReadQuads(n, ReadStart, ReadEnd) ;
+         GetWriteQuads(n, WriteStart, WriteEnd) ;
          IF i<=ParamNo
          THEN
             (* n is a parameter *)
