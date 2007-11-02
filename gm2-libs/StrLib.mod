@@ -29,6 +29,33 @@ PROCEDURE IsSubString (a, b: ARRAY OF CHAR) : BOOLEAN ; FORWARD ;
 
 
 (*
+   StrConCat - combines a and b into c.
+*)
+
+PROCEDURE StrConCat (a: ARRAY OF CHAR; b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
+VAR
+   Highb,
+   Highc,
+   i, j : CARDINAL ;
+BEGIN
+   Highb := StrLen(b) ;
+   Highc := HIGH(c) ;
+   StrCopy(a, c) ;
+   i := StrLen(c) ;
+   j := 0 ;
+   WHILE (j<Highb) AND (i<=Highc) DO
+      c[i] := b[j] ;
+      INC(i) ;
+      INC(j)
+   END ;
+   IF i<=Highc
+   THEN
+      c[i] := nul
+   END
+END StrConCat ;
+
+
+(*
    StrLess - returns TRUE if string, a, alphabetically occurs before
              string, b.
 *)
@@ -113,29 +140,6 @@ BEGIN
       b[n] := nul
    END
 END StrCopy ;
-
-
-PROCEDURE StrConCat (a: ARRAY OF CHAR; b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
-VAR
-   Highb,
-   Highc,
-   i, j : CARDINAL ;
-BEGIN
-   Highb := StrLen(b) ;
-   Highc := HIGH(c) ;
-   StrCopy(a, c) ;
-   i := StrLen(c) ;
-   j := 0 ;
-   WHILE (j<Highb) AND (i<=Highc) DO
-      c[i] := b[j] ;
-      INC(i) ;
-      INC(j)
-   END ;
-   IF i<=Highc
-   THEN
-      c[i] := nul
-   END
-END StrConCat ;
 
 
 (*

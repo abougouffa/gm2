@@ -93,6 +93,7 @@ Software Foundation raise funds for GNU development.''
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
 * Extensions::            GNU Modula-2 language extensions.
+* Unbounded by reference::Explanation of a language optimization.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
 * Assembly language::     Interface to assembly language.
@@ -803,7 +804,7 @@ above, apart from the exception calling in the ISO dialect. Instead of
 exception handling the results are the same as the PIM4 dialect. This
 is a temporary implementation situation.
 
-@node Extensions, Interface to C, Dialect, Using
+@node Extensions, Unbounded by reference, Dialect, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
@@ -941,13 +942,105 @@ Local procedures can be declared to have an optional final parameter
 in which case the initializer is mandatory in the implementation or
 program module.
 
-@node Interface to C, h2def, Extensions, Using
+@node Unbounded by reference, Interface to C, Extensions, Using
+@section Unbounded by reference
+
+This section documents a GNU Modula-2 compiler switch which implements
+a language optimisation surrounding the implementation of unbounded
+arrays.  In GNU Modula-2 the unbounded array is implemented by
+utilizing an internal structure @code{struct @{dataType *address,
+unsigned int high@}}.  So given the Modula-2 procedure declaration:
+
+@example
+PROCEDURE foo (VAR a: ARRAY OF dataType) ;
+BEGIN
+   IF a[2]= (* etc *)
+END foo ;
+@end example
+
+it is translated into GCC @code{tree}s, which can be represented
+in their C form thus:
+
+@example
+void foo (struct @{dataType *address, unsigned int high@} a)
+@{
+   if (a.address[2] == /* etc */
+@}
+@end example
+
+Whereas if the procedure @code{foo} was declared as:
+
+@example
+PROCEDURE foo (a: ARRAY OF dataType) ;
+BEGIN
+   IF a[2]= (* etc *)
+END foo ;
+@end example
+
+then it is implemented by being translated into the following
+GCC @code{tree}s, which can be represented in their C form thus:
+
+@example
+void foo (struct @{dataType *address, unsigned int high@} a)
+@{
+   dataType *copyContents = (dataType *)alloca (a.high+1);
+   memcpy(copyContents, a.address, a.high+1);
+   a.address = copyContents;
+
+   if (a.address[2] == /* etc */
+@}
+@end example
+
+This implementation works, but it makes a copy of each non VAR
+unbounded array when a procedure is entered.  If the unbounded array
+is not changed during procedure @code{foo} then this implementation
+will be very inefficient.  In effect Modula-2 lacks the @code{REF}
+keyword of Ada.  Consequently the programmer maybe tempted to
+sacrifice semantic clarity for greater efficiency by declaring using
+the @code{VAR} keyword in place of @code{REF}.
+
+The @code{-funbounded-by-reference} switch instructs the compiler to
+check and see if the programmer is modifying the content of any
+unbounded array.  If it is modified then a copy will be made upon
+entry into the procedure.  Conversly if the content is only read and
+never modified then this non @code{VAR} unbounded array is a candidate
+for being passed by reference.  It is only a candidate as it is still
+possible that passing this parameter by reference could alter the
+meaning of the source code.  For example consider the following case:
+
+@example
+PROCEDURE StrConCat (VAR a: ARRAY OF CHAR; b, c: ARRAY OF CHAR) ;
+BEGIN
+   (* code which performs string a := b + c *)
+END StrConCat ;
+
+PROCEDURE foo ;
+VAR
+   a: ARRAY [0..3] OF CHAR ;
+BEGIN
+   a := 'q' ;
+   StrConCat(a, a, a)
+END foo ;
+@end example
+
+In the code above we see that the same parmeter, @code{a}, is being
+passed three times to @code{StrConCat}.  Clearly even though parameters
+@code{b} and @code{c} are never modified it would be incorrect to
+implement them as pass by reference.  Therefore the compiler checks to
+see if any non @code{VAR} parameter is type compatible with any
+@code{VAR} parameter and if so it generates runtime procedure entry
+checks to determine whether the contents of parameters @code{b} or
+@code{c} matches the contents of @code{a}.  If a match is detected
+then a copy is made and the @code{address} in the unbounded
+@code{struct}ure is modified.
+
+@node Interface to C, h2def, Unbounded by reference, Using
 @section Interfacing GNU Modula-2 to C
 
 The GNU Modula-2 compiler tries to use the C calling convention wherever
 possible however some parameters have no C equivalent and
 thus a language specific method is used. For example unbounded
-arrays are passed as a @code{struct void *address, unsigned int high}
+arrays are passed as a @code{struct @{void *address, unsigned int high@}}
 and the contents of these arrays are copied by callee functions
 when they are declared as non @code{VAR} parameters.
 The @code{VAR} equivalent unbounded array parameters need no copy,
@@ -1661,19 +1754,19 @@ $ apt-get source gm2
 @end example
 
 If you are not running Debian GNU/Linux then you can either download
-the source tarball and build it manually or checkout the latest sources
-using CVS and combine them with the appropriate gcc tarball and then
-finally build it manually.
+the source tarball and build it manually or checkout the latest
+sources using CVS and combine them with the appropriate gcc tarball
+and then finally build it manually.
 
 Combined GNU Modula-2 and patched GCC tarballs exist at
 @uref{ftp://floppsie.comp.glam.ac.uk/pub/c}.
 
 Search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
-For example you should be able to download the latest version of
-GNU Modula-2 and GCC using these commands.
+For example you should be able to download the latest version of GNU
+Modula-2 and GCC using these commands.
 
 @example
-$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz
+$ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 $ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @end example
 
@@ -1714,7 +1807,7 @@ Development sources can be downloaded via CVS but they must be grafted
 carefully onto an existing GCC release.  The notes in this section
 document how this is achieved, however a prepared CVS and GCC release
 is available here
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz}
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz}
 and it is created each night.
 
 If you want to obtain the latest sources via CVS then type the
@@ -1792,7 +1885,7 @@ Framework version is	1.4.4
 otherwise some of the tests may not run.
 
 If you have downloaded the combined GCC and GNU Modula-2 tarball
-@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-latest.tar.gz}
+@uref{http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz}
 then this will also contain the GNU Modula-2 testsuite.  In this case
 you can skip over the following @file{cvs} and @file{tar} commands.
 

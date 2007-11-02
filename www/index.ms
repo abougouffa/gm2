@@ -94,14 +94,14 @@ in Modula-2 syntax.
 .LI
 it currently complies with Programming in Modula-2 Edition 2, 3 and 4.
 Users can switch on specific mutually exclusive features by
-.OPT -Wpim
+.OPT -fpim
 or
-.OPT -Wpim2 .
+.OPT -fpim2 .
 .LI
 supports sets of any ordinal size (memory permitting).
 .LI
 implements ISO Modula-2 SYSTEM which can be switched on via:
-.OPT -Wiso .
+.OPT -fiso .
 Several ISO features are implemented and it is the goal that
 eventually GNU Modula-2 will be fully ISO complient (see the release
 map for details in the documentation).
@@ -110,16 +110,16 @@ easy interface to C, and varargs can be passed to C routines.
 .LI
 University of Ulm libraries are installed together with the compiler
 and can be accessed via:
-.OPT -Wlibs=ulm
+.OPT -flibs=ulm
 .LI
 some Logitech libraries have been implemented and can be accessed via:
-.OPT -Wlibs=logitech
+.OPT -flibs=logitech
 .LI
 coroutines have been implemented in the PIM style and these are
 accessible from SYSTEM. A number of supporting libraries (executive
 and file descriptor mapping to interrupt vector libraries are
 available through the
-.OPT -Wlibs=pim-coroutines
+.OPT -flibs=pim-coroutines
 switch).
 .ULE
 \mP

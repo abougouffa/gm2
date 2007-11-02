@@ -38,7 +38,6 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLowestType,
                         GetLocalSym, GetVarWritten,
-                        IsParamWritten, IsParamRead,
                         GetVarient,
                         NoOfParam, GetScope, GetParent,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
@@ -91,7 +90,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealTy
 FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
-FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
@@ -185,12 +184,14 @@ FROM SYSTEM IMPORT WORD ;
 CONST
    Debugging         = FALSE ;
    PriorityDebugging = FALSE ;
+   CascadedDebugging = FALSE ;
 
 TYPE
    DoProcedure      = PROCEDURE (CARDINAL) ;
    DoUnaryProcedure = PROCEDURE (CARDINAL) ;
 
 VAR
+   UnboundedLabelNo         : CARDINAL ;
    CurrentQuadToken         : CARDINAL ;
    AbsoluteHead             : CARDINAL ;
    LastLine                 : CARDINAL ;(* The Last Line number emitted with the  *)
@@ -409,6 +410,8 @@ PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CreateLabelProcedureN (proc: CARDINAL; unboundedCount, n: CARDINAL) : String ; FORWARD ;
+PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1003,6 +1006,25 @@ END CodeEnd ;
 
 
 (*
+   GetAddressOfUnbounded - returns the address of the unbounded array contents.
+*)
+
+PROCEDURE GetAddressOfUnbounded (param: CARDINAL) : Tree ;
+VAR
+   UnboundedType: CARDINAL ;
+BEGIN
+   UnboundedType := GetType(param) ;
+   Assert(IsUnbounded(UnboundedType)) ;
+
+   RETURN BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                 BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)),
+                                              FALSE),
+                                 FALSE),
+                        GetPointerType())
+END GetAddressOfUnbounded ;
+
+
+(*
    MakeCopyAndUse - make a copy of the unbounded array and alter all references
                     from the old unbounded array to the new unbounded array.
                     The parameter, param, contains a RECORD
@@ -1044,11 +1066,7 @@ BEGIN
                                    FALSE),
                           FindSize(ArrayType), FALSE) ;
 
-   Addr      := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                       BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
-                                       FALSE),
-                              GetPointerType()) ;
-
+   Addr      := GetAddressOfUnbounded(param) ;
    Type      := Tree(Mod2Gcc(GetType(param))) ;
    
    NewArray  := BuiltInAlloca(High) ;
@@ -1064,8 +1082,37 @@ END MakeCopyAndUse ;
 
 
 (*
+   GetParamAddress - returns the address of parameter, param.
+*)
+
+PROCEDURE GetParamAddress (proc, param: CARDINAL) : Tree ;
+VAR
+   sym,
+   type: CARDINAL ;
+BEGIN
+   IF IsParameter(param)
+   THEN
+      type := GetType(param) ;
+      sym := GetLocalSym(proc, GetSymName(param)) ;
+      IF IsUnbounded(type)
+      THEN
+         RETURN( GetAddressOfUnbounded(sym) )
+      ELSE
+         Assert(GetMode(sym)=LeftValue) ;
+         RETURN( Mod2Gcc(sym) )
+      END
+   ELSE
+      Assert(IsVar(param)) ;
+      Assert(GetMode(param)=LeftValue) ;
+      RETURN( Mod2Gcc(param) )
+   END
+END GetParamAddress ;
+
+
+(*
    IsUnboundedWrittenTo - returns TRUE if the unbounded parameter
-                          might be written to.
+                          might be written to, or if -funbounded-by-reference
+                          was _not_ specified.
 *)
 
 PROCEDURE IsUnboundedWrittenTo (proc, param: CARDINAL) : BOOLEAN ;
@@ -1097,6 +1144,81 @@ BEGIN
       END
    END
 END IsUnboundedWrittenTo ;
+
+
+(*
+   BuildCascadedIfThenElsif - mustCheck contains a list of variables which
+                              must be checked against the address of (proc, param, i).
+                              If the address matches we make a copy of the unbounded
+                              parameter (proc, param, i) and quit further checking.
+*)
+
+PROCEDURE BuildCascadedIfThenElsif (mustCheck: List;
+                                    proc, param, i: CARDINAL) ;
+VAR
+   tl, tr: Tree ;
+   n, j  : CARDINAL ;
+   s     : String ;
+BEGIN
+   n := NoOfItemsInList(mustCheck) ;
+   (* want a sequence of if then elsif statements *)
+   IF n>0
+   THEN
+      INC(UnboundedLabelNo) ;
+      j := 1 ;
+      tr := GetAddressOfUnbounded(param) ;
+      WHILE j<=n DO
+         IF j>1
+         THEN
+            s := CreateLabelProcedureN(proc, UnboundedLabelNo, j) ;
+            IF CascadedDebugging
+            THEN
+               printf1('label %s\n', s)
+            END ;
+            DeclareLabel(string(s))
+         END ;
+         tl := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
+         s := InitStringCharStar(KeyToCharStar(GetSymName(GetItemFromList(mustCheck, j)))) ;
+         IF CascadedDebugging
+         THEN
+            printf1('if %s # ', s)
+         END ;
+         s := InitStringCharStar(KeyToCharStar(GetSymName(param))) ;
+         IF CascadedDebugging
+         THEN
+            printf1('%s', s)
+         END ;
+         s := CreateLabelProcedureN(proc, UnboundedLabelNo, j+1) ;
+         IF CascadedDebugging
+         THEN
+            printf1(' then goto %s\n', s)
+         END ;
+         DoJump(BuildNotEqualTo(tl, tr), NIL, string(s)) ;
+         s := InitStringCharStar(KeyToCharStar(GetSymName(param))) ;
+         IF CascadedDebugging
+         THEN
+            printf1('make copy of %s\n', s)
+         END ;
+         MakeCopyAndUse(proc, param, i) ;
+         IF j<n
+         THEN
+            s := CreateLabelProcedureN(proc, UnboundedLabelNo, n+1) ;
+            IF CascadedDebugging
+            THEN
+               printf1('goto exit %s\n', s)
+            END ;
+            BuildGoto(string(s))
+         END ;
+         INC(j)
+      END ;
+      s := CreateLabelProcedureN(proc, UnboundedLabelNo, n+1) ;
+      IF CascadedDebugging
+      THEN
+         printf1('label %s\n', s)
+      END ;
+      DeclareLabel(string(s)) ;
+   END
+END BuildCascadedIfThenElsif ;
 
 
 (*
@@ -1142,7 +1264,7 @@ BEGIN
                n2 := GetSymName(proc) ;
                f := FindFileNameFromToken(GetDeclared(paramTrashed), 0) ;
                l := TokenToLineNo(GetDeclared(paramTrashed), 0) ;
-               printf4('%s:%d:must check address of parameter, %a, in procedure, %a, whose contents will be trashed\n',
+               printf4('%s:%d:must check at runtime the address of parameter, %a, in procedure, %a, whose contents will be trashed\n',
                        f, l, n1, n2) ;
                n1 := GetSymName(param) ;
                n2 := GetSymName(paramTrashed) ;
@@ -1154,11 +1276,7 @@ BEGIN
          INC(j)
       END ;
       (* now we build a sequence of if then { elsif then } end to check addresses *)
-      IF NoOfItemsInList(mustCheck)>0
-      THEN
-         (* this can be improved by introducing the cascaded if then elsif as mentioned above *)
-         MakeCopyAndUse(proc, param, i)
-      END ;
+      BuildCascadedIfThenElsif(mustCheck, proc, param, i) ;
       KillList(mustCheck)
    END
 END CheckUnboundedNonVarParameter ;
@@ -4208,6 +4326,22 @@ END CodeMath ;
 
 
 (*
+   CreateLabelProcedureN - creates a label using procedure name and
+                           an integer.
+*)
+
+PROCEDURE CreateLabelProcedureN (proc: CARDINAL;
+                                 unboundedCount, n: CARDINAL) : String ;
+VAR
+   n1: String ;
+BEGIN
+   n1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(proc)))) ;
+   (* prefixed by .L unboundedCount and n to ensure that no Modula-2 identifiers clash *)
+   RETURN( Sprintf3(Mark(InitString('.L%d.%d.unbounded.%s')), unboundedCount, n, n1) )
+END CreateLabelProcedureN ;
+
+
+(*
    CreateLabelName - creates a namekey from quadruple, q.
 *)
 
@@ -4947,6 +5081,7 @@ END CodeXIndr ;
 BEGIN
    ModuleName := NIL ;
    FileName := NIL ;
+   UnboundedLabelNo := 0 ;
    CompilingMainModule := InitStackWord()
 END M2GenGCC.
 (*

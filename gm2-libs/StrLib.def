@@ -24,8 +24,15 @@ DEFINITION MODULE StrLib ;
    Description: Provides string manipulation
 *)
 
-EXPORT QUALIFIED StrLen, StrCopy, StrEqual, StrConCat, StrLess,
+EXPORT QUALIFIED StrConCat, StrLen, StrCopy, StrEqual, StrLess,
       	       	 IsSubString, StrRemoveWhitePrefix ;
+
+
+(*
+   StrConCat - combines a and b into c.
+*)
+
+PROCEDURE StrConCat (a, b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 
 
 (*
@@ -55,13 +62,6 @@ PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
 *)
 
 PROCEDURE StrCopy (a: ARRAY OF CHAR ; VAR b: ARRAY OF CHAR) ;
-
-
-(*
-   StrConCat - combines a and b into c.
-*)
-
-PROCEDURE StrConCat (a, b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 
 
 (*
