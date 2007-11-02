@@ -948,7 +948,7 @@ program module.
 This section documents a GNU Modula-2 compiler switch which implements
 a language optimisation surrounding the implementation of unbounded
 arrays.  In GNU Modula-2 the unbounded array is implemented by
-utilizing an internal structure @code{struct @{dataType *address,
+utilising an internal structure @code{struct @{dataType *address,
 unsigned int high@}}.  So given the Modula-2 procedure declaration:
 
 @example
@@ -1002,7 +1002,7 @@ the @code{VAR} keyword in place of @code{REF}.
 The @code{-funbounded-by-reference} switch instructs the compiler to
 check and see if the programmer is modifying the content of any
 unbounded array.  If it is modified then a copy will be made upon
-entry into the procedure.  Conversly if the content is only read and
+entry into the procedure.  Conversely if the content is only read and
 never modified then this non @code{VAR} unbounded array is a candidate
 for being passed by reference.  It is only a candidate as it is still
 possible that passing this parameter by reference could alter the
@@ -1023,7 +1023,7 @@ BEGIN
 END foo ;
 @end example
 
-In the code above we see that the same parmeter, @code{a}, is being
+In the code above we see that the same parameter, @code{a}, is being
 passed three times to @code{StrConCat}.  Clearly even though parameters
 @code{b} and @code{c} are never modified it would be incorrect to
 implement them as pass by reference.  Therefore the compiler checks to
@@ -1033,6 +1033,34 @@ checks to determine whether the contents of parameters @code{b} or
 @code{c} matches the contents of @code{a}.  If a match is detected
 then a copy is made and the @code{address} in the unbounded
 @code{struct}ure is modified.
+
+The compiler will check the address of each candidate against the
+address of any @code{VAR} parameter, providing they are type
+compatible.  For example consider:
+
+@example
+PROCEDURE foo (a: ARRAY OF BYTE; VAR f: REAL) ;
+BEGIN
+   f := 3.14 ;
+   IF a[0]=BYTE(0)
+   THEN
+      (* etc *)
+   END
+END foo ;
+
+PROCEDURE bar ;
+BEGIN
+   r := 2.0 ;
+   foo(r, r)
+END bar ;
+@end example
+
+Here we see that although parameter, @code{a}, is a candidate for the
+passing by reference, it would be incorrect for to use this
+transformation.  Thus the compiler detects that parameters, @code{a}
+and @code{f} are type compatible and will produce runtime checking
+code to test whether the addresses of their respective contents are
+the same.
 
 @node Interface to C, h2def, Unbounded by reference, Using
 @section Interfacing GNU Modula-2 to C

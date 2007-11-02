@@ -1,3 +1,15 @@
+2007-11-02       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  completed the further
+	  optimization of unbounded addresses.  It checks to
+	  see if the contents of a type compatible unbounded
+	  ARRAY matches the contents of a VAR parameter.
+	  It checks against any VAR parameter (not just
+	  unbounded VAR parameters - consider ARRAY OF BYTE).
+	* gm2/gm2.texi:  documented the implementation of
+	  the -funbounded-by-reference optimization flag
+	  giving examples.
+
 2007-10-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  fixed @xref punctuation requirement.
