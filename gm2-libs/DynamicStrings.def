@@ -31,7 +31,9 @@ EXPORT QUALIFIED String,
                  Index, RIndex,
                  Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
                  Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
-                 CopyOut, Mult, Slice, RemoveWhitePrefix, char, string ;
+                 CopyOut, Mult, Slice,
+                 RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment,
+                 char, string ;
 
 TYPE
    String ;
@@ -176,7 +178,6 @@ PROCEDURE Slice (s: String; low, high: INTEGER) : String ;
    Index - returns the indice of the first occurance of, ch, in
            String, s. -1 is returned if, ch, does not exist.
            The search starts at position, o.
-           -1 is returned if, ch, is not found.
 *)
 
 PROCEDURE Index (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
@@ -192,11 +193,30 @@ PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
 
 
 (*
+   RemoveComment - assuming that, comment, is a comment delimiter
+                   which indicates anything to its right is a comment
+                   then strip off the comment and also any white space
+                   on the remaining right hand side.
+                   It leaves any white space on the left hand side alone.
+*)
+
+PROCEDURE RemoveComment (s: String; comment: CHAR) : String ;
+
+
+(*
    RemoveWhitePrefix - removes any leading white space from String, s.
                        A new string is returned.
 *)
 
 PROCEDURE RemoveWhitePrefix (s: String) : String ;
+
+
+(*
+   RemoveWhitePostfix - removes any leading white space from String, s.
+                        A new string is returned.
+*)
+
+PROCEDURE RemoveWhitePostfix (s: String) : String ;
 
 
 (*

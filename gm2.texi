@@ -14,7 +14,7 @@
 @c
 
 @setfilename gm2.info
-@set version-GM2     0.62
+@set version-GM2     0.63
 @set version-GCC     4.1.2
 @set version-HARNESS 0.96
 @set version-GDB     6.6
@@ -1034,8 +1034,8 @@ checks to determine whether the contents of parameters @code{b} or
 then a copy is made and the @code{address} in the unbounded
 @code{struct}ure is modified.
 
-The compiler will check the address of each candidate against the
-address of any @code{VAR} parameter, providing they are type
+The compiler will check the address range of each candidate against
+the address range of any @code{VAR} parameter, providing they are type
 compatible.  For example consider:
 
 @example
@@ -1059,20 +1059,20 @@ Here we see that although parameter, @code{a}, is a candidate for the
 passing by reference, it would be incorrect for to use this
 transformation.  Thus the compiler detects that parameters, @code{a}
 and @code{f} are type compatible and will produce runtime checking
-code to test whether the addresses of their respective contents are
-the same.
+code to test whether the address range of their respective contents
+intersect.
 
 @node Interface to C, h2def, Unbounded by reference, Using
 @section Interfacing GNU Modula-2 to C
 
-The GNU Modula-2 compiler tries to use the C calling convention wherever
-possible however some parameters have no C equivalent and
-thus a language specific method is used. For example unbounded
-arrays are passed as a @code{struct @{void *address, unsigned int high@}}
-and the contents of these arrays are copied by callee functions
-when they are declared as non @code{VAR} parameters.
-The @code{VAR} equivalent unbounded array parameters need no copy,
-but still use the @code{struct} representation.
+The GNU Modula-2 compiler tries to use the C calling convention
+wherever possible however some parameters have no C equivalent and
+thus a language specific method is used. For example unbounded arrays
+are passed as a @code{struct @{void *address, unsigned int high@}} and
+the contents of these arrays are copied by callee functions when they
+are declared as non @code{VAR} parameters.  The @code{VAR} equivalent
+unbounded array parameters need no copy, but still use the
+@code{struct} representation.
 
 The recommended method of interfacing GNU Modula-2 to C is by telling
 the definition module that the implementation is in the C language.

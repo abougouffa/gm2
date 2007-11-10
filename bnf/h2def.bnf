@@ -1,4 +1,5 @@
--- Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+-- Copyright (C) 2003, 2004, 2005, 2006, 2007
+-- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -19,7 +20,8 @@
 --
 % module h2def begin
 MODULE h2def ;
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -60,19 +62,20 @@ FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey, NulKey ;
 FROM Lists IMPORT List, InitList, IncludeItemIntoList, NoOfItemsInList, GetItemFromList,
                   IsItemInList, RemoveItemFromList, KillList, DuplicateList, PutItemIntoList ;
 
-FROM Indexing IMPORT Index, InitIndex, KillIndex, GetIndice, IncludeIndiceInIndex, RemoveIndiceFromIndex, HighIndex ;
+FROM Indexing IMPORT Index, InitIndex, KillIndex, GetIndice, IncludeIndiceIntoIndex, RemoveIndiceFromIndex, HighIndice ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark,
-                           string, Dup, Equal, Slice, char, ConCatChar, ConCat, Index, RIndex, Mult, InitStringChar ;
+                           string, Dup, Equal, Slice, char, ConCatChar, ConCat, Mult, InitStringChar ;
 
 FROM StringConvert IMPORT hstoi ;
 FROM StrLib IMPORT StrLen ;
-FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
+FROM FIO IMPORT File, IsNoError, FlushBuffer, WriteChar, StdOut, StdErr ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Options IMPORT ScanCppArgs ;
 FROM libc IMPORT exit, memset ;
 FROM SYSTEM IMPORT ADDRESS, WORD, TSIZE, BYTE ;
 IMPORT cflex ;
+IMPORT DynamicStrings ;
 
 TYPE
    nodeType = (ndchain, nderror, nddefined,
@@ -1644,8 +1647,8 @@ BEGIN
          ndmult      : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') * (') ; PrintNode(bin.right, t) ; hprintf0(')') |
          nddiv       : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') DIV (') ; PrintNode(bin.right, t) ; hprintf0(')') |
          ndmod       : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') MOD (') ; PrintNode(bin.right, t) ; hprintf0(')') |
-         ndshiftleft : hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') << (') ; PrintNode(bin.right, t) ; hprintf0(')') |
-         ndshiftright: hprintf0('(') ; PrintNode(bin.left, t) ; hprintf0(') >> (') ; PrintNode(bin.right, t) ; hprintf0(')') |
+         ndshiftleft : hprintf0('SHIFT(') ; PrintNode(bin.left, t) ; hprintf0(', ') ; PrintNode(bin.right, t) ; hprintf0(')') |
+         ndshiftright: hprintf0('SHIFT(') ; PrintNode(bin.left, t) ; hprintf0(', -') ; PrintNode(bin.right, t) ; hprintf0(')') |
          nddummy     : PrintNode(un.operand, t) |
          ndsizeof    : hprintf0('SIZE(') ; PrintNode(un.operand, t) ; hprintf0(')') |
          ndnegate    : hprintf0('-(') ; PrintNode(un.operand, t) ; hprintf0(')') |
@@ -2174,7 +2177,7 @@ VAR
    i: CARDINAL ;
 BEGIN
    i := 0 ;
-   WHILE (i<HIGH(to)) AND (i<HIGH(from)) DO
+   WHILE (i<=HIGH(to)) AND (i<=HIGH(from)) DO
       to[i] := from[i] ;
       INC(i)
    END
@@ -2396,7 +2399,10 @@ PROCEDURE ErrorString (s: String) ;
 BEGIN
    IF DisplayErrors
    THEN
-      cflex.CError(string(s))
+      WriteChar(StdOut, lf) ;
+      FlushBuffer(StdOut) ;
+      cflex.CError(string(s)) ;
+      hprintf0('\n')
    END
 END ErrorString ;
 
@@ -2650,12 +2656,12 @@ PROCEDURE BaseName (s: String) : String ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := RIndex(s, '/', 0) ;
+   i := DynamicStrings.RIndex(s, '/', 0) ;
    IF i>0
    THEN
       s := Slice(s, i+1, 0)
    END ;
-   i := Index(s, '.', 0) ;
+   i := DynamicStrings.Index(s, '.', 0) ;
    IF i>0
    THEN
       RETURN( Slice(s, 0, i) )
@@ -2673,7 +2679,7 @@ PROCEDURE GetDirectory (s: String) : String ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := RIndex(s, '/', 0) ;
+   i := DynamicStrings.RIndex(s, '/', 0) ;
    IF i=-1
    THEN
       RETURN( InitString('./') )
@@ -2805,8 +2811,8 @@ BEGIN
    Debugging := FALSE ;
    InitList(CompileTimeList) ;
    InitList(DoneList) ;
+   InitList(ConstList) ;
    ToDoList := InitIndex(1) ;
-   ConstList := InitIndex(1) ;
    Indent := 0 ;
    CurColumn := 0 ;
    ParamName := InitString('p') ;
@@ -2920,7 +2926,7 @@ CppLine := 'start#'                                               % inCpp := TRU
 define := 'define'                                                % VAR t: CARDINAL ; %
                                                                   % PoisonNode := FALSE %
                                                                   % EnableMacroSubstitutions(FALSE) %
-              Ident                                               % t := GetTokenNo() %
+              CppIdent                                            % t := GetTokenNo() %
                                                                   % IncludeItemIntoList(ConstList, LastIdent) %
                                                                   % IF currenttoken=endhashtok
                                                                     THEN
@@ -2935,13 +2941,13 @@ define := 'define'                                                % VAR t: CARDI
                                                                     EnableMacroSubstitutions(TRUE) %
           =:
 
-undef := 'undef' Ident                                            % BuildUndef %
+undef := 'undef' CppIdent                                         % BuildUndef %
        =:
 if    := 'if' ConstExpression                                     % BuildIf %
        =:
-ifdef := 'ifdef' Ident                                            % BuildIfDef(TRUE) %
+ifdef := 'ifdef' CppIdent                                         % BuildIfDef(TRUE) %
        =:
-ifndef := 'ifndef' Ident                                          % BuildIfDef(FALSE) %
+ifndef := 'ifndef' CppIdent                                       % BuildIfDef(FALSE) %
         =:
 else := 'else'                                                    % BuildElse %
        =:
@@ -3176,30 +3182,29 @@ ConstExpression := LogicalOrExpression =:
 
 LogicalOrExpression :=                                            % VAR n1, n2: Node ; %
                        LogicalAndExpression
-                       { '||' LogicalAndExpression                % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndor, n1, n2)) %
+                       { '||' LogicalAndExpression                % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndor, n2, n1)) %
                        } =:
 
 LogicalAndExpression := InclusiveOrExpression                     % VAR n1, n2: Node ; %
-                        { '&&' InclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndand, n1, n2)) %
+                        { '&&' InclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndand, n2, n1)) %
                         } =:
 
 InclusiveOrExpression := ExclusiveOrExpression                    % VAR n1, n2: Node ; %
-                         { '|' ExclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlor, n1, n2)) %
+                         { '|' ExclusiveOrExpression              % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlor, n2, n1)) %
                          } =:
 
 ExclusiveOrExpression := AndExpression                            % VAR n1, n2: Node ; %
-                         { '^' AndExpression                      % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlxor, n1, n2)) %
+                         { '^' AndExpression                      % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndlxor, n2, n1)) %
                          } =:
 
 AndExpression := EqualityExpression                               % VAR n1, n2: Node ; %
-                 { '&' EqualityExpression                         % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndland, n1, n2)) %
+                 { '&' EqualityExpression                         % Pop(n1) ; Pop(n2) ; PushNode(MakeBinaryNode(ndland, n2, n1)) %
                  } =:
 
 EqualityExpression := RelationalExpression
-                      { EqualityOperator RelationalExpression     % VAR l, m, n: Node ; nd: nodeType ; %
-                                                                  % Pop(l) ; Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
-                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
+                      { EqualityOperator RelationalExpression     % VAR m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(n) ; Pop(nd) %
+                                                                  % Pop(m) ; PushNode(MakeBinaryNode(nd, m, n)) %
                       } =:
 
 EqualityOperator := '=='                                          % PushType(ndequal) %
@@ -3207,10 +3212,9 @@ EqualityOperator := '=='                                          % PushType(nde
                   =:
 
 RelationalExpression := ShiftExpression
-                        { RelationalOperator ShiftExpression      % VAR l, m, n: Node ; nd: nodeType ; %
-                                                                  % Pop(l) ; Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
-                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
+                        { RelationalOperator ShiftExpression      % VAR m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(n) ; Pop(nd) %
+                                                                  % Pop(m) ; PushNode(MakeBinaryNode(nd, m, n)) %
                         } =:
 
 RelationalOperator := '>'                                         % PushType(ndgre) %
@@ -3220,10 +3224,9 @@ RelationalOperator := '>'                                         % PushType(ndg
                    =:
 
 ShiftExpression := AdditiveExpression
-                   { ShiftOperator AdditiveExpression             % VAR l, m, n: Node ; nd: nodeType ; %
-                                                                  % Pop(l) ; Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
-                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
+                   { ShiftOperator AdditiveExpression             % VAR m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(n) ; Pop(nd) %
+                                                                  % Pop(m) ; PushNode(MakeBinaryNode(nd, m, n)) %
                    } =:
 
 ShiftOperator := '<<'                                             % PushType(ndshiftleft) %
@@ -3231,10 +3234,9 @@ ShiftOperator := '<<'                                             % PushType(nds
                =:
 
 AdditiveExpression := MultiplicativeExpression
-                      { AddOperator MultiplicativeExpression      % VAR l, m, n: Node ; nd: nodeType ; %
-                                                                  % Pop(l) ; Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
-                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
+                      { AddOperator MultiplicativeExpression      % VAR m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(n) ; Pop(nd) %
+                                                                  % Pop(m) ; PushNode(MakeBinaryNode(nd, m, n)) %
                       } =:
 
 AddOperator := '+'                                                % PushType(ndplus) %
@@ -3242,10 +3244,9 @@ AddOperator := '+'                                                % PushType(ndp
              =:
 
 MultiplicativeExpression := CastExpression
-                            { MultOperator CastExpression         % VAR l, m, n: Node ; nd: nodeType ; %
-                                                                  % Pop(l) ; Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
-                                                                  % Pop(n) ; PushNode(MakeBinaryNode(nd, l, n)) %
+                            { MultOperator CastExpression         % VAR m, n: Node ; nd: nodeType ; %
+                                                                  % Pop(n) ; Pop(nd) %
+                                                                  % Pop(m) ; PushNode(MakeBinaryNode(nd, m, n)) %
                             } =:
 
 MultOperator := '*'                                               % PushType(ndmult) %
@@ -3263,17 +3264,15 @@ CastExpression := '('
 
 UnaryExpression := PostfixExpression |
                    UnaryOperator CastExpression                   % VAR nd: nodeType ;
-                                                                         n, m: Node ; %
-                                                                  % Pop(n) ;
-                                                                    Pop(m) ;
-                                                                    nd := VAL(nodeType, m) %
+                                                                         n: Node ; %
+                                                                  % Pop(n) ; Pop(nd) %
                                                                   % PushNode(MakeUnaryNode(nd, n)) %
                    | SizeofExpression
                    | DefinedExpression
                    =:
 
-DefinedExpression :=  'defined' ( '(' Ident ')'                   % PushNode(MakeCppNode(nddefined, LastIdent)) %
-                                | Ident                           % PushNode(MakeCppNode(nddefined, LastIdent)) %
+DefinedExpression :=  'defined' ( '(' CppIdent ')'                % PushNode(MakeCppNode(nddefined, LastIdent)) %
+                                | CppIdent                        % PushNode(MakeCppNode(nddefined, LastIdent)) %
                                 )
                    =:
 
@@ -3307,5 +3306,28 @@ IntegerConstant := DecimalInteger                                 % PushNode(Mak
                  =:
 
 EnumerationConstant := Ident =:
+
+
+CppIdent := Ident
+          | "sizeof"                                              % LastIdent := MakeKey("sizeof") %
+          | "long"                                                % LastIdent := MakeKey("long") %
+          | "int"                                                 % LastIdent := MakeKey("int") %
+          | "char"                                                % LastIdent := MakeKey("char") %
+          | "enum"                                                % LastIdent := MakeKey("enum") %
+          | "typedef"                                             % LastIdent := MakeKey("typedef") %
+          | "float"                                               % LastIdent := MakeKey("float") %
+          | "double"                                              % LastIdent := MakeKey("double") %
+          | "unsigned"                                            % LastIdent := MakeKey("unsigned") %
+          | "const"                                               % LastIdent := MakeKey("const") %
+          | "extern"                                              % LastIdent := MakeKey("extern") %
+          | "static"                                              % LastIdent := MakeKey("static") %
+          | "auto"                                                % LastIdent := MakeKey("auto") %
+          | "register"                                            % LastIdent := MakeKey("register") %
+          | "void"                                                % LastIdent := MakeKey("void") %
+          | "short"                                               % LastIdent := MakeKey("short") %
+          | "signed"                                              % LastIdent := MakeKey("signed") %
+          | "union"                                               % LastIdent := MakeKey("union") %
+          | "volatile"                                            % LastIdent := MakeKey("volatile") %
+          =:
 
 FNB

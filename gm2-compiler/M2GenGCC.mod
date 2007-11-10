@@ -90,7 +90,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealTy
 FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
-FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
@@ -410,7 +410,7 @@ PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CreateLabelProcedureN (proc: CARDINAL; unboundedCount, n: CARDINAL) : String ; FORWARD ;
+PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unboundedCount, n: CARDINAL) : String ; FORWARD ;
 PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
@@ -1025,6 +1025,36 @@ END GetAddressOfUnbounded ;
 
 
 (*
+   GetHighFromUnbounded - returns a Tree containing the value of
+                          param.HIGH * sizeof(unboundedType).
+                          The number of legal bytes this array
+                          occupies.
+*)
+
+PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
+VAR
+   UnboundedType,
+   ArrayType    : CARDINAL ;
+BEGIN
+   UnboundedType := GetType(param) ;
+   Assert(IsUnbounded(UnboundedType)) ;
+   ArrayType := GetType(UnboundedType) ;
+   (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
+
+   RETURN( BuildMult(BuildAdd(
+                              BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                                              BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
+                                                              FALSE),
+                                                     GetIntegerType()),
+                                       GetIntegerOne(),
+                                       FALSE),
+                              GetIntegerOne(),
+                              FALSE),
+                     FindSize(ArrayType), FALSE) )
+END GetHighFromUnbounded ;
+
+
+(*
    MakeCopyAndUse - make a copy of the unbounded array and alter all references
                     from the old unbounded array to the new unbounded array.
                     The parameter, param, contains a RECORD
@@ -1052,32 +1082,20 @@ VAR
 BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
-   ArrayType := GetType(UnboundedType) ;
-   (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
 
-   High      := BuildMult(BuildAdd(
-                                   BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                                   BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
-                                                                   FALSE),
-                                                          GetIntegerType()),
-                                            GetIntegerOne(),
-                                            FALSE),
-                                   GetIntegerOne(),
-                                   FALSE),
-                          FindSize(ArrayType), FALSE) ;
-
-   Addr      := GetAddressOfUnbounded(param) ;
-   Type      := Tree(Mod2Gcc(GetType(param))) ;
+   High := GetHighFromUnbounded(param) ;
+   Addr := GetAddressOfUnbounded(param) ;
+   Type := Tree(Mod2Gcc(GetType(param))) ;
    
-   NewArray  := BuiltInAlloca(High) ;
-   NewArray  := BuiltInMemCopy(NewArray, Addr, High) ;
+   NewArray := BuiltInAlloca(High) ;
+   NewArray := BuiltInMemCopy(NewArray, Addr, High) ;
 
    (* now assign  param.Addr := ADR(NewArray) *)
 
-   t         := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                       BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
-                                                       FALSE),
-                                              GetPointerType()), NewArray)
+   t        := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                                      BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
+                                                      FALSE),
+                                             GetPointerType()), NewArray)
 END MakeCopyAndUse ;
 
 
@@ -1147,11 +1165,6 @@ END IsUnboundedWrittenTo ;
 
 
 (*
-   BuildCascadedIfThenElsif - mustCheck contains a list of variables which
-                              must be checked against the address of (proc, param, i).
-                              If the address matches we make a copy of the unbounded
-                              parameter (proc, param, i) and quit further checking.
-*)
 
 PROCEDURE BuildCascadedIfThenElsif (mustCheck: List;
                                     proc, param, i: CARDINAL) ;
@@ -1217,6 +1230,105 @@ BEGIN
          printf1('label %s\n', s)
       END ;
       DeclareLabel(string(s)) ;
+   END
+END BuildCascadedIfThenElsif ;
+*)
+
+
+(*
+   GetParamSize - returns the size in bytes of, param.
+*)
+
+PROCEDURE GetParamSize (param: CARDINAL) : Tree ;
+BEGIN
+   Assert(IsVar(param) OR IsParameter(param)) ;
+   IF IsUnbounded(param)
+   THEN
+      RETURN GetHighFromUnbounded(param)
+   ELSE
+      RETURN BuildSize(Mod2Gcc(GetType(param)), FALSE)
+   END
+END GetParamSize ;
+
+
+(*
+   DoIsIntersection - jumps to, tLabel, if the ranges i1..i2  j1..j2 overlap
+                      else jump to, fLabel.
+*)
+
+PROCEDURE DoIsIntersection(ta, tb, tc, td: Tree; tLabel, fLabel: String) ;
+BEGIN
+   (*
+     if (ta>td) OR (tb<tc)
+     then
+        goto fLabel
+     else
+        goto tLabel
+     fi
+   *)
+   DoJump(BuildGreaterThan(ta, td), NIL, string(fLabel)) ;
+   DoJump(BuildLessThan(tb, tc), NIL, string(fLabel)) ;
+   BuildGoto(string(tLabel))
+END DoIsIntersection ;
+
+
+(*
+   BuildCascadedIfThenElsif - mustCheck contains a list of variables which
+                              must be checked against the address of (proc, param, i).
+                              If the address matches we make a copy of the unbounded
+                              parameter (proc, param, i) and quit further checking.
+*)
+
+PROCEDURE BuildCascadedIfThenElsif (mustCheck: List;
+                                    proc, param, i: CARDINAL) ;
+VAR
+   ta, tb,
+   tc, td: Tree ;
+   n, j  : CARDINAL ;
+   s,
+   tLabel,
+   fLabel,
+   nLabel: String ;
+BEGIN
+   n := NoOfItemsInList(mustCheck) ;
+   (* want a sequence of if then elsif statements *)
+   IF n>0
+   THEN
+      INC(UnboundedLabelNo) ;
+      j := 1 ;
+      ta := GetAddressOfUnbounded(param) ;
+      tb := BuildConvert(GetPointerType(),
+                         BuildAdd(ta, GetHighFromUnbounded(param), FALSE),
+                         FALSE) ;
+      WHILE j<=n DO
+         IF j>1
+         THEN
+            nLabel := CreateLabelProcedureN(proc, "n", UnboundedLabelNo, j) ;
+            IF CascadedDebugging
+            THEN
+               printf1('label %s\n', nLabel)
+            END ;
+            DeclareLabel(string(nLabel))
+         END ;
+         tc := GetParamAddress(proc, GetItemFromList(mustCheck, j)) ;
+         td := BuildConvert(GetPointerType(),
+                            BuildAdd(tc, GetParamSize(param), FALSE),
+                            FALSE) ;
+         tLabel := CreateLabelProcedureN(proc, "t", UnboundedLabelNo, j+1) ;
+         fLabel := CreateLabelProcedureN(proc, "f", UnboundedLabelNo, j+1) ;
+         DoIsIntersection(ta, tb, tc, td, tLabel, fLabel) ;
+         DeclareLabel(string(tLabel)) ;
+         MakeCopyAndUse(proc, param, i) ;
+         IF j<n
+         THEN
+            nLabel := CreateLabelProcedureN(proc, "n", UnboundedLabelNo, n+1) ;
+            BuildGoto(string(nLabel))
+         END ;
+         DeclareLabel(string(fLabel)) ;
+         INC(j)
+      END ;
+      nLabel := CreateLabelProcedureN(proc, "fin", UnboundedLabelNo, n+1) ;
+      DeclareLabel(string(nLabel))
    END
 END BuildCascadedIfThenElsif ;
 
@@ -4330,14 +4442,15 @@ END CodeMath ;
                            an integer.
 *)
 
-PROCEDURE CreateLabelProcedureN (proc: CARDINAL;
+PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR;
                                  unboundedCount, n: CARDINAL) : String ;
 VAR
-   n1: String ;
+   n1, n2: String ;
 BEGIN
    n1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(proc)))) ;
+   n2 := Mark(InitString(leader)) ;
    (* prefixed by .L unboundedCount and n to ensure that no Modula-2 identifiers clash *)
-   RETURN( Sprintf3(Mark(InitString('.L%d.%d.unbounded.%s')), unboundedCount, n, n1) )
+   RETURN( Sprintf4(Mark(InitString('.L%d.%d.unbounded.%s.%s')), unboundedCount, n, n1, n2) )
 END CreateLabelProcedureN ;
 
 

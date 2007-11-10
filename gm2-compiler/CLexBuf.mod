@@ -253,6 +253,7 @@ END PushMacroDefinition ;
 
 (*   e n d    o f    M A C R O    r o u t i n e s   *)
 
+PROCEDURE stop ; BEGIN END stop ;
 
 (*
    Init - initializes the token list and source list.
@@ -526,11 +527,14 @@ END ResetForNewPass ;
 *)
 
 PROCEDURE DisplayToken ;
+VAR
+   n: Name ;
 BEGIN
    cflex.CError(string(InitString('current token'))) ;
    IF currenttoken=identtok
    THEN
-      printf1('currenttoken = %a\n', currentstring)
+      n := makekey(currentstring) ;
+      printf1('currenttoken = %a\n', n)
    ELSE
       CASE currenttoken OF
 
@@ -566,7 +570,7 @@ BEGIN
       starthashtok         : printf0('start#\n') |
       endhashtok           : printf0('end#\n') |
       definetok            : printf0('define\n') |
-      definedtok           : printf0('defined\n') |
+      definedtok           : stop ; printf0('defined\n') |
       undeftok             : printf0('undef\n') |
       iftok                : printf0('if\n') |
       elsetok              : printf0('else\n') |

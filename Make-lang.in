@@ -528,7 +528,7 @@ P2C=gm2/boot-bin/p2c$(exeext) -c $(srcdir)/gm2/p2crc \
  -I$(srcdir)/gm2/gm2-compiler/%s.def \
  -I$(srcdir)/gm2/gm2-libiberty/%s.def -M0 -q
 M2LINK=gm2/boot-bin/mklink$(exeext)
-GM2-VERSION=0.62
+GM2-VERSION=0.63
 GM2_O=
 GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
@@ -1556,7 +1556,8 @@ stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
 
 stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lcc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lccinit > gm2lcc.lst
-	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lcc.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
@@ -1564,7 +1565,8 @@ stage2/gm2/gm2lcc$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/
 
 stage2/gm2/gm2lgen$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lgen.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lgeninit > gm2lgen.lst
-	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lgen.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
@@ -1572,7 +1574,8 @@ stage2/gm2/gm2lgen$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler
 
 stage2/gm2/gm2lsub$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2lsub.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2lsubinit > gm2lsub.lst
-	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ $(srcdir)/gm2/gm2-compiler/gm2lsub.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
@@ -1580,7 +1583,8 @@ stage2/gm2/gm2lsub$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler
 
 stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2m.o gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2minit > gm2m.lst
-	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/gm2m.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
                -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -g -B./stage1/gm2 -B./ -o $@ \
@@ -1610,10 +1614,12 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
                            gm2/gm2-compiler/CLexBuf.o \
                            gm2/gm2-compiler/h2def.o
 	grep -v mod_init $(srcdir)/gm2/init/h2definit > h2def.lst
-	./xgm2 -fuselist -fmodules -c -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+	./xgm2 -fuselist -fmodules -c -Igm2/gm2-libs -Igm2/gm2-compiler \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
                -g -B./stage1/gm2 -B./ gm2/gm2-auto/h2def.mod
 	./xgm2 -Igm2/gm2-libs -Igm2/gm2-compiler \
-               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler -B./stage1/gm2 -B./ -o $@ \
+               -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-compiler \
+               -g -B./stage1/gm2 -B./ -o $@ \
                -fuselist gm2/gm2-auto/h2def.mod $(LIBS)
 
 gm2/ppg: gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
@@ -1740,7 +1746,7 @@ $(objdir)/gm2/gm2-auto/gm2m.mod: $(srcdir)/gm2/bnf/gm2m.bnf
 
 $(objdir)/gm2/gm2-auto/h2def.mod: $(srcdir)/gm2/bnf/h2def.bnf
 	$(MAKE) gm2/pge$(exeext)
-	./gm2/pge$(exeext) $< > $@
+	./gm2/pge$(exeext) -l $< > $@
 
 #
 # gm2.verifyparanoid - diffs the output of all three compilers with the compiler source code

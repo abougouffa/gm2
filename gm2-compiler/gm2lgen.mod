@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -35,7 +36,8 @@ FROM FIO IMPORT File, StdIn, StdOut, StdErr, WriteChar,
                 ReadString, WriteString, EOF, IsNoError, WriteLine, Close ;
 
 FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, RemoveWhitePrefix,
-                    EqualArray, Mark, Assign, Fin, InitStringChar, Length, Slice, Equal ;
+                    EqualArray, Mark, Assign, Fin, InitStringChar, Length, Slice, Equal,
+                    RemoveComment ;
 
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2 ;
 FROM SFIO IMPORT OpenToWrite, WriteS, ReadS, OpenToRead ;
@@ -237,7 +239,7 @@ VAR
    s: String ;
 BEGIN
    REPEAT
-      s := RemoveWhitePrefix(ReadS(fi)) ;
+      s := RemoveComment(RemoveWhitePrefix(ReadS(fi)), Comment) ;
       IF (NOT Equal(Mark(InitStringChar(Comment)),
                     Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1)))) AND
          (NOT EqualArray(s, ''))

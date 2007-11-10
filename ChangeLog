@@ -1,3 +1,28 @@
+2007-11-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  now build h2def during stage2.
+	* gm2/gm2/c.flex:  modified so that it ignores tabs.
+	* gm2/bnf/h2def.bnf:  many bugfixes, still broken though.
+	* gm2/gm2-compiler/CLexBuf.mod:  improved Debugging support.
+	* gm2/gm2-compiler/gm2lcc.mod:  refactored comment handling
+	  code to use the RemoveComment, RemoveWhiteSuffix and
+          RemoveWhitePrefix procedures in DynamicStrings module.
+	* gm2/gm2-compiler/gm2lgen.mod:  likewise handle comments.
+	* gm2/gm2-libs/DynamicStrings.def:  export 
+          RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment.
+	* gm2/gm2-libs/DynamicStrings.mod:  implement above.
+	
+2007-11-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  updated version to 0.63
+	* gm2/gm2.texi:  updated version to 0.63 and updated
+	  unbounded-by-reference documentation.
+	* gm2/gm2-compiler/M2GenGCC.mod:  modified optimization
+	  of unbounded addresses to test the memory range of
+	  each unbounded parameter against a type compatible
+	  var parameter, any overlapping addresses results in
+	  a alloca and memcpy of the non var unbounded array.
+
 2007-11-02       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  completed the further

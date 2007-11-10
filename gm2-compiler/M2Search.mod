@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -18,10 +19,11 @@ IMPLEMENTATION MODULE M2Search ;
 
 
 FROM SFIO IMPORT Exists ;
+FROM M2FileName IMPORT CalculateFileName ;
 
 FROM DynamicStrings IMPORT InitString, InitStringChar,
-                           KillString, ConCat, ConCatChar, Index, Slice, Add, EqualArray, Dup, Mark ;
-FROM M2FileName IMPORT CalculateFileName ;
+                           KillString, ConCat, ConCatChar, Index, Slice,
+                           Add, EqualArray, Dup, Mark ;
 
  
 CONST

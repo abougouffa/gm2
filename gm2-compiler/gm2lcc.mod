@@ -35,8 +35,8 @@ FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, IsNoError, EOF, WriteString,
 FROM SFIO IMPORT OpenToRead, WriteS, ReadS ;
 FROM ASCII IMPORT nul ;
 FROM M2FileName IMPORT ExtractExtension ;
-FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, string, Mark, InitStringChar, Dup, Mult, Assign, char ;
-FROM FormatStrings IMPORT Sprintf1 ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Index, Assign, char ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 
 
@@ -194,9 +194,8 @@ BEGIN
    Command := ConCat(Command, Mark(Sprintf1(Mark(InitString('%s.o')),
                                             StartupFile))) ;
    REPEAT
-      s := RemoveWhitePrefix(ReadS(fi)) ;
-      IF (NOT Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment))))))) AND
-         (NOT (IgnoreMain AND Equal(s, MainModule))) AND (NOT EqualArray(s, ''))
+      s := RemoveComment(RemoveWhitePrefix(ReadS(fi)), Comment) ;
+      IF (NOT EqualArray(s, '')) AND (NOT (IgnoreMain AND Equal(s, MainModule)))
       THEN
          s := RemoveLinkOnly(s) ;
          t := Dup(s) ;
@@ -275,32 +274,30 @@ VAR
 BEGIN
    Error := 0 ;
    REPEAT
-      s := RemoveWhitePrefix(ReadS(fi)) ;
-      IF Equal(Mark(InitStringChar(Comment)), Mark(Slice(s, 0, Length(Mark(InitStringChar(Comment)))-1))) AND
-         (NOT EqualArray(s, ''))
+      s := RemoveComment(RemoveWhitePrefix(ReadS(fi)), Comment) ;
+      IF NOT EqualArray(s, '')
       THEN
          s := RemoveLinkOnly(s) ;
          t := Dup(s) ;
          t := CalculateFileName(s, Mark(InitString('o'))) ;
          IF FindSourceFile(t, u)
          THEN
-            IF KillString(WriteS(fo, Mark(Sprintf1(Mark(InitString(' : %s\n')), u))))=NIL
+            IF KillString(WriteS(fo, Mark(Sprintf2(Mark(InitString('%-20s : %s\n')), t, u))))=NIL
             THEN
             END ;
             u := KillString(u)
          ELSE
             t := KillString(t) ;
             (* try finding .a archive *)
-            t := Assign(t, s) ;
             t := CalculateFileName(s, Mark(InitString('a'))) ;
             IF FindSourceFile(t, u)
             THEN
-               IF KillString(WriteS(fo, Mark(Sprintf1(Mark(InitString(' : %s\n')), u))))=NIL
+               IF KillString(WriteS(fo, Mark(Sprintf2(Mark(InitString('%-20s : %s\n')), t, u))))=NIL
                THEN
                END ;
                u := KillString(u)
             ELSE
-               IF KillString(WriteS(fo, Mark(InitString(' : Not found\n'))))=NIL
+               IF KillString(WriteS(fo, Mark(Sprintf1(InitString('%-20s : Not found\n'), t))))=NIL
                THEN
                END ;
                Error := 1

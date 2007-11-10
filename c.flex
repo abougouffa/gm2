@@ -149,7 +149,7 @@ static  int  isTypeDef    (char *a);
 \n.*                       { handleNewline(FALSE, 1); }
 ^#.*                       { consumeLine(0); hash=TRUE; BEGIN LINE0; }
 <LINE0>\#                  { updatepos(); CLexBuf_AddTok(CLexBuf_starthashtok); return; }
-<LINE0>[ \t]*              { currentLine->tokenpos += yyleng; return; }
+<LINE0>[ \t]*              { }
 <LINE0>define              { updatepos(); CLexBuf_AddTok(CLexBuf_definetok); BEGIN DEFINE; return; }
 <LINE0>undef               { updatepos(); CLexBuf_AddTok(CLexBuf_undeftok); BEGIN INITIAL; return; }
 <LINE0>include             { updatepos(); CLexBuf_AddTok(CLexBuf_includetok); BEGIN INCLUDE; return; }
@@ -176,7 +176,7 @@ static  int  isTypeDef    (char *a);
 <LINE2>1[ \t]*\n           { /* CLexBuf_PushFile(filename); */ updatepos(); BEGIN INITIAL; }
 <LINE2><<EOF>>             { if (! handleEof()) return; }
 
-<INCLUDE>[ \\t]*           { updatepos(); } /* eat the whitespace */
+<INCLUDE>[ \t]*            { updatepos(); } /* eat the whitespace */
 <INCLUDE>[^ \t\n]+         { /* got the include file name */
                               if (includeNo >= MAX_INCLUDE_DEPTH) {
 				fprintf( stderr, "too many nested include statements" );
@@ -211,7 +211,7 @@ static  int  isTypeDef    (char *a);
 			      BEGIN(INITIAL);
 			      checkEndHash();
                            }
-<DEFINE>[ \\t]*            { updatepos(); }
+<DEFINE>[ \t]*             { updatepos(); }
 <DEFINE>[^ \t\n]+          { updatepos(); CLexBuf_AddTokCharStar(CLexBuf_identtok, yytext); BEGIN(INITIAL); return; }
 
 \"[^\"\n]*\"               { updatepos(); CLexBuf_AddTokCharStar (CLexBuf_conststringtok, yytext); return; }

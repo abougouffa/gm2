@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -725,7 +726,6 @@ END Slice ;
    Index - returns the indice of the first occurance of, ch, in
            String, s. -1 is returned if, ch, does not exist.
            The search starts at position, o.
-           -1 is returned if, ch, is not found.
 *)
 
 PROCEDURE Index (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
@@ -803,6 +803,31 @@ BEGIN
    END ;
    RETURN( j )
 END RIndex ;
+
+
+(*
+   RemoveComment - assuming that, comment, is a comment delimiter
+                   which indicates anything to its right is a comment
+                   then strip off the comment and also any white space
+                   on the remaining right hand side.
+                   It leaves any white space on the left hand side alone.
+*)
+
+PROCEDURE RemoveComment (s: String; comment: CHAR) : String ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := Index(s, comment, 0) ;
+   IF i=0
+   THEN
+      RETURN( InitString('') )
+   ELSIF i>0
+   THEN
+      RETURN( RemoveWhitePostfix(Slice(Mark(s), 0, i)) )
+   ELSE
+      RETURN( s )
+   END
+END RemoveComment ;
 
 
 (*
@@ -906,6 +931,23 @@ BEGIN
    END ;
    RETURN( Slice(s, INTEGER(i), 0) )
 END RemoveWhitePrefix ;
+
+
+(*
+   RemoveWhitePostfix - removes any leading white space from String, s.
+                        A new string is returned.
+*)
+
+PROCEDURE RemoveWhitePostfix (s: String) : String ;
+VAR
+   i: INTEGER ;
+BEGIN
+   i := Length(s)-1 ;
+   WHILE (i>=0) AND IsWhite(char(s, i)) DO
+      DEC(i)
+   END ;
+   RETURN( Slice(s, 0, i+1) )
+END RemoveWhitePostfix ;
 
 
 (*
