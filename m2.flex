@@ -311,7 +311,7 @@ static void handleDate (void)
 static void handleFunction (void)
 {
   if (currentFunction == NULL)
-    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, "\"\"");
+    M2LexBuf_AddTokCharStar(M2Reserved_stringtok, (char *)"\"\"");
   else if (currentFunction->module) {
     char *s = (char *) alloca(strlen(yytext) +
 			      strlen("\"module  initialization\"") + 1);

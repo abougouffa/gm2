@@ -1,5 +1,6 @@
 2007-11-10       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/m2.flex:  added explicit cast.
 	* gm2/Make-lang.in:  now build h2def during stage2.
 	* gm2/gm2/c.flex:  modified so that it ignores tabs.
 	* gm2/bnf/h2def.bnf:  many bugfixes, still broken though.
