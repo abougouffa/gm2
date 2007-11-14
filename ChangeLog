@@ -1,3 +1,8 @@
+2007-11-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  corrected urls and last edit.
+	* gm2/gm2-libs.texi:  recreated.
+
 2007-11-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/m2.flex:  added explicit cast.

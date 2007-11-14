@@ -398,7 +398,9 @@ EXPORT QUALIFIED String,
                  Index, RIndex,
                  Mark, Length, ConCat, ConCatChar, Assign, Dup, Add,
                  Equal, EqualCharStar, EqualArray, ToUpper, ToLower,
-                 CopyOut, Mult, Slice, RemoveWhitePrefix, char, string ;
+                 CopyOut, Mult, Slice,
+                 RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment,
+                 char, string ;
 
 TYPE
    String ;
@@ -560,7 +562,6 @@ PROCEDURE Slice (s: String; low, high: INTEGER) : String ;
    Index - returns the indice of the first occurance of, ch, in
            String, s. -1 is returned if, ch, does not exist.
            The search starts at position, o.
-           -1 is returned if, ch, is not found.
 *)
 
 @findex Index
@@ -578,12 +579,33 @@ PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
 
 
 (*
+   RemoveComment - assuming that, comment, is a comment delimiter
+                   which indicates anything to its right is a comment
+                   then strip off the comment and also any white space
+                   on the remaining right hand side.
+                   It leaves any white space on the left hand side alone.
+*)
+
+@findex RemoveComment
+PROCEDURE RemoveComment (s: String; comment: CHAR) : String ;
+
+
+(*
    RemoveWhitePrefix - removes any leading white space from String, s.
                        A new string is returned.
 *)
 
 @findex RemoveWhitePrefix
 PROCEDURE RemoveWhitePrefix (s: String) : String ;
+
+
+(*
+   RemoveWhitePostfix - removes any leading white space from String, s.
+                        A new string is returned.
+*)
+
+@findex RemoveWhitePostfix
+PROCEDURE RemoveWhitePostfix (s: String) : String ;
 
 
 (*
@@ -2242,8 +2264,16 @@ DEFINITION MODULE StrLib ;
    Description: Provides string manipulation
 *)
 
-EXPORT QUALIFIED StrLen, StrCopy, StrEqual, StrConCat, StrLess,
+EXPORT QUALIFIED StrConCat, StrLen, StrCopy, StrEqual, StrLess,
       	       	 IsSubString, StrRemoveWhitePrefix ;
+
+
+(*
+   StrConCat - combines a and b into c.
+*)
+
+@findex StrConCat
+PROCEDURE StrConCat (a, b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 
 
 (*
@@ -2277,14 +2307,6 @@ PROCEDURE StrLen (a: ARRAY OF CHAR) : CARDINAL ;
 
 @findex StrCopy
 PROCEDURE StrCopy (a: ARRAY OF CHAR ; VAR b: ARRAY OF CHAR) ;
-
-
-(*
-   StrConCat - combines a and b into c.
-*)
-
-@findex StrConCat
-PROCEDURE StrConCat (a, b: ARRAY OF CHAR; VAR c: ARRAY OF CHAR) ;
 
 
 (*
@@ -3376,7 +3398,7 @@ END libm.
 @subsection gm2-libs/sckt
 
 @example
-DEFINITION MODULE FOR "C" sckt ;
+DEFINITION MODULE sckt ;
 
 (*
     Description: provides a minimal interface to tcp sockets.
