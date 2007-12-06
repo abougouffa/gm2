@@ -73,7 +73,11 @@ This compiler is still in development.
 The compiler has undergone quite a number of changes recently
 and the current release is gm2-\*[CURRENTGM2].
 It can build all of the University of Ulm libraries.
-It has the following characteristics:
+The result of the GNU Modula-2 regression tests for the current
+CVS snapshot can be found
+.URL http://floppsie.comp.glam.ac.uk/gm2-results/regression-tests.html here .
+.PP
+Recent news in GNU Modula-2:
 .sp
 \m[darkblue]
 .sp
