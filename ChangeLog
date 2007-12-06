@@ -1,3 +1,7 @@
+2007-12-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/tools-src/gensum.py:  new file.
+	
 2007-11-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  corrected urls and last edit.
