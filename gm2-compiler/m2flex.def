@@ -22,14 +22,16 @@ DEFINITION MODULE m2flex ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2006/01/10 23:51:20 $ 
+    Last edit  : $Date: 2007/12/07 16:35:56 $ 
     Revision   : $Version$ 
     Description: provides a Modula-2 definition module for the C lexical
                  analysis flex file m2.flex
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo ;
+
+EXPORT QUALIFIED GetToken, M2Error, OpenSource, CloseSource, GetLineNo,
+                 GetColumnNo ;
 
 
 (*
@@ -59,6 +61,13 @@ PROCEDURE GetToken () : ADDRESS ;
 *)
 
 PROCEDURE GetLineNo () : CARDINAL ;
+
+
+(*
+   GetColumnNo - returns the column where the current token starts.
+*)
+
+PROCEDURE GetColumnNo () : CARDINAL ;
 
 
 (*

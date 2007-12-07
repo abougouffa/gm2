@@ -40,6 +40,7 @@ TYPE
                               right: SourceList ;
                               name : String ;
                               line : CARDINAL ;
+                              col  : CARDINAL ;
                            END ;
 
    TokenDesc = RECORD
@@ -47,6 +48,7 @@ TYPE
                   str  : Name ;
                   int  : INTEGER ;
                   line : CARDINAL ;
+                  col  : CARDINAL ;
                   file : SourceList ;
                END ;
 
@@ -72,7 +74,7 @@ VAR
 
 (* %%%FORWARD%%%
 PROCEDURE AddTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; f: SourceList) ; FORWARD ;
+                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList) ; FORWARD ;
 PROCEDURE SyncOpenWithBuffer ; FORWARD ;
 PROCEDURE FindTokenBucket (VAR TokenNo: CARDINAL) : TokenBucket ; FORWARD ;
 PROCEDURE IsLastTokenEof () : BOOLEAN ; FORWARD ;
@@ -104,7 +106,10 @@ BEGIN
    l^.left  := CurrentSource^.left ;
    CurrentSource^.left^.right := l ;
    CurrentSource^.left := l ;
-   l^.left^.line := m2flex.GetLineNo()
+   WITH l^.left^ DO
+      line := m2flex.GetLineNo() ;
+      col  := m2flex.GetColumnNo()
+   END
 END AddTo ;
 
 
@@ -198,7 +203,7 @@ BEGIN
       THEN
          l := CurrentSource ;
          REPEAT
-            printf2('name = %s, line = %d\n', l^.name, l^.line) ;
+            printf3('name = %s, line = %d, col = %d\n', l^.name, l^.line, l^.col) ;
             l := l^.right
          UNTIL l=CurrentSource
       END
@@ -460,6 +465,7 @@ BEGIN
          currenttoken   := token ;
          currentstring  := KeyToCharStar(str) ;
          currentinteger := int ;
+         currentcolumn  := col ;
          IF Debugging
          THEN
             l := line
@@ -486,6 +492,7 @@ BEGIN
             WITH buf[CurrentTokNo-ListOfTokens.LastBucketOffset] DO
                currenttoken   := token ;
                currentstring  := KeyToCharStar(str) ;
+               currentcolumn  := col ;
                currentinteger := int
             END ;
             IF Debugging
@@ -534,7 +541,8 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0,
+                   GetLineNo(), GetColumnNo(), CurrentSource) ;
       GetToken
    END
 END InsertToken ;
@@ -555,7 +563,8 @@ BEGIN
             buf[len-1].token := token
          END
       END ;
-      AddTokToList(currenttoken, NulName, 0, GetLineNo(), CurrentSource) ;
+      AddTokToList(currenttoken, NulName, 0,
+                   GetLineNo(), GetColumnNo(), CurrentSource) ;
       currenttoken := token
    END
 END InsertTokenAndRewind ;
@@ -593,6 +602,22 @@ BEGIN
       RETURN( TokenToLineNo(GetTokenNo(), 0) )
    END
 END GetLineNo ;
+
+
+(*
+   GetColumnNo - returns the current column where the symbol occurs in
+                 the source file.
+*)
+
+PROCEDURE GetColumnNo () : CARDINAL ;
+BEGIN
+   IF CurrentTokNo=0
+   THEN
+      RETURN( 0 )
+   ELSE
+      RETURN( TokenToColumnNo(GetTokenNo(), 0) )
+   END
+END GetColumnNo ;
 
 
 (*
@@ -672,6 +697,43 @@ END TokenToLineNo ;
 
 
 (*
+   TokenToColumnNo - returns the column number of the current file for the
+                     TokenNo. The depth refers to the include depth.
+                     A depth of 0 is the current file, depth of 1 is the file
+                     which included the current file. Zero is returned if the
+                     depth exceeds the file nesting level.
+*)
+
+PROCEDURE TokenToColumnNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
+VAR
+   b: TokenBucket ;
+   l: SourceList ;
+BEGIN
+   b := FindTokenBucket(TokenNo) ;
+   IF b=NIL
+   THEN
+      RETURN( 0 )
+   ELSE
+      IF depth=0
+      THEN
+         RETURN( b^.buf[TokenNo].col )
+      ELSE
+         l := b^.buf[TokenNo].file^.left ;
+         WHILE depth>0 DO
+            l := l^.left ;
+            IF l=b^.buf[TokenNo].file^.left
+            THEN
+               RETURN( 0 )
+            END ;
+            DEC(depth)
+         END ;
+         RETURN( l^.col )
+      END
+   END
+END TokenToColumnNo ;
+
+
+(*
    FindFileNameFromToken - returns the complete FileName for the appropriate
                            source file yields the token number, TokenNo.
                            The, Depth, indicates the include level: 0..n
@@ -721,7 +783,7 @@ PROCEDURE stop ; BEGIN END stop ;
 *)
 
 PROCEDURE AddTokToList (t: toktype; n: Name;
-                        i: INTEGER; l: CARDINAL; f: SourceList) ;
+                        i: INTEGER; l: CARDINAL; c: CARDINAL; f: SourceList) ;
 VAR
    b: TokenBucket ;
 BEGIN
@@ -758,6 +820,7 @@ BEGIN
          str   := n ;
          int   := i ;
          line  := l ;
+         col   := c ;
          file  := f
       END ;
       INC(len)
@@ -812,7 +875,8 @@ PROCEDURE AddTok (t: toktype) ;
 BEGIN
    IF NOT ((t=eoftok) AND IsLastTokenEof())
    THEN
-      AddTokToList(t, NulName, 0, m2flex.GetLineNo(), CurrentSource) ;
+      AddTokToList(t, NulName, 0,
+                   m2flex.GetLineNo(), m2flex.GetColumnNo(), CurrentSource) ;
       CurrentUsed := TRUE
    END
 END AddTok ;
@@ -825,7 +889,8 @@ END AddTok ;
 
 PROCEDURE AddTokCharStar (t: toktype; s: ADDRESS) ;
 BEGIN
-   AddTokToList(t, makekey(s), 0, m2flex.GetLineNo(), CurrentSource) ;
+   AddTokToList(t, makekey(s), 0, m2flex.GetLineNo(),
+                m2flex.GetColumnNo(), CurrentSource) ;
    CurrentUsed := TRUE
 END AddTokCharStar ;
 
@@ -837,11 +902,13 @@ END AddTokCharStar ;
 PROCEDURE AddTokInteger (t: toktype; i: INTEGER) ;
 VAR
    s: String ;
+   c,
    l: CARDINAL ;
 BEGIN
    l := m2flex.GetLineNo() ;
+   c := m2flex.GetColumnNo() ;
    s := Sprintf1(Mark(InitString('%d')), l) ;
-   AddTokToList(t, makekey(string(s)), i, l, CurrentSource) ;
+   AddTokToList(t, makekey(string(s)), i, l, c, CurrentSource) ;
    s := KillString(s) ;
    CurrentUsed := TRUE
 END AddTokInteger ;

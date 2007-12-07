@@ -109,10 +109,10 @@ BEGIN
       IF IsNotADuplicate(s1, s2)
       THEN
          n3 := GetSymName(previous) ;
-         WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
+         WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
                                n3, n1), GetDeclared(s1)) ;
          n3 := GetSymName(newblock) ;
-         WarnStringAt(Sprintf2(Mark(InitString('idential symbol name in two different scopes, scope (%s) has symbol called (%s)')),
+         WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
                                n3, n2), GetDeclared(s2))
       END
    ELSIF IsSameExcludingCase(n1, n2)

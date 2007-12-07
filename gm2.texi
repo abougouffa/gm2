@@ -380,6 +380,9 @@ suffixed filename does not exist.
 Both this option and @code{-fdef=} also work with the @code{-fmakeall}
 option.
 
+@item -fxcode
+issues all errors and warnings in the @file{Xcode} format.
+
 @item -funbounded-by-reference
 enable optimization of unbounded parameters by attempting to pass non
 @code{VAR} unbounded parameters by reference.  This optimization
@@ -996,8 +999,8 @@ unbounded array when a procedure is entered.  If the unbounded array
 is not changed during procedure @code{foo} then this implementation
 will be very inefficient.  In effect Modula-2 lacks the @code{REF}
 keyword of Ada.  Consequently the programmer maybe tempted to
-sacrifice semantic clarity for greater efficiency by declaring using
-the @code{VAR} keyword in place of @code{REF}.
+sacrifice semantic clarity for greater efficiency by declaring the
+parameter using the @code{VAR} keyword in place of @code{REF}.
 
 The @code{-funbounded-by-reference} switch instructs the compiler to
 check and see if the programmer is modifying the content of any

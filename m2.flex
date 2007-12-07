@@ -627,6 +627,19 @@ int m2flex_GetLineNo (void)
 }
 
 /*
+ *  m2flex_GetColumnNo - returns the column where the current
+ *                       token starts.
+ */
+
+int m2flex_GetColumnNo (void)
+{
+  if (currentLine != NULL)
+    return currentLine->tokenpos;
+  else
+    return 0;
+}
+
+/*
  *  yywrap is called when end of file is seen. We push an eof token
  *         and tell the lexical analysis to stop.
  */

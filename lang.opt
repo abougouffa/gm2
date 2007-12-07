@@ -149,6 +149,10 @@ fmod=
 Modula-2 Joined
 recognise the specified suffix as implementation and module filenames
 
+fxcode
+Modula-2
+issue all errors and warnings in the Xcode format
+
 Wstudents
 Modula-2
 extra compile time semantic checking, typically tries to catch bad style

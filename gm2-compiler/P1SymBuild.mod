@@ -956,7 +956,15 @@ BEGIN
    PopT(NameStart) ;
    IF NameEnd#NameStart
    THEN
-      WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
+      IF NameEnd=NulName
+      THEN
+         WriteFormat1('procedure name at end does not match name at beginning (%a)', NameStart)
+      ELSIF NameStart=NulName
+      THEN
+         WriteFormat1('procedure name at end (%a) does not match name at beginning', NameEnd)
+      ELSE
+         WriteFormat2('procedure name at end (%a) does not match name at beginning (%a)', NameEnd, NameStart)
+      END
    END ;
    EndScope
 END EndBuildProcedure ;

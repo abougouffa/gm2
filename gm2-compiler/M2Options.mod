@@ -387,6 +387,10 @@ BEGIN
    THEN
       Statistics := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fxcode')
+   THEN
+      Xcode := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-fextended-opaque')
    THEN
       ExtendedOpaque := TRUE ;
@@ -510,5 +514,6 @@ BEGIN
    VerboseUnbounded             := FALSE ;
    PedanticParamNames           := FALSE ;
    PedanticCast                 := FALSE ;
+   Xcode                        := FALSE ;
    ScanForInitialOptions
 END M2Options.

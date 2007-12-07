@@ -4377,7 +4377,7 @@ BEGIN
       ErrorSym: |
       VarSym : (* IF Var.AddrMode#NoValue
                THEN
-                  WriteError('Warning altering ModeOfAddr') ; HALT
+                  WriteError('altering ModeOfAddr') ; HALT
                END ; *)
                Var.AddrMode := SymMode
 

@@ -1,3 +1,29 @@
+2007-12-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/NEWS:  updated.
+	* gm2/gm2.texi:  documented new -fxcode option and minor
+	  fixes.
+	* gm2/lang-options.h:  added -fxcode to list of options.
+	* gm2/lang.opt:  added -fxcode to list of options.
+	* gm2/m2.flex:  added m2flex_GetColumnNo.
+	* gm2/gm2-compiler/M2Error.mod:  OutString modified to
+	  use column and produce GNU and Xcode format errors.
+	* gm2/gm2-compiler/M2LexBuf.def:  export column
+	  related procedures.
+	* gm2/gm2-compiler/M2LexBuf.mod:  introduced recording
+	  of the column position.  GetColumnNo, TokenToColumnNo
+	  new procedures.
+	* gm2/gm2-compiler/M2Options.def:  added Xcode.
+	* gm2/gm2-compiler/M2Options.mod:  set Xcode accordingly.
+	* gm2/gm2/gm2-compiler/M2Students.mod:  fixed spelling
+	  mistake.
+	* gm2/gm2-compiler/P1SymBuild.mod:  tidied up error
+	  message.
+	* gm2/gm2-compiler/SymbolTable.mod:  ditto.
+	* gm2/gm2-compiler/m2flex.def:  added GetColumnNo
+	  procedure.
+	* gm2/gm2-libs-pim/BitBlockOps.mod:  intemediate checkin.
+
 2007-12-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/tools-src/gensum.py:  new file.

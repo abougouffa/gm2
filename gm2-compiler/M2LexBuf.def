@@ -30,7 +30,8 @@ FROM M2Reserved IMPORT toktype ;
 FROM DynamicStrings IMPORT String ;
 EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
                  InsertTokenAndRewind, GetPreviousTokenLineNo, GetLineNo,
-                 GetTokenNo, TokenToLineNo, FindFileNameFromToken, GetFileName,
+                 GetColumnNo, GetTokenNo, TokenToLineNo, TokenToColumnNo,
+                 FindFileNameFromToken, GetFileName,
                  ResetForNewPass,
                  currenttoken, currentstring, currentinteger,
                  AddTok, AddTokCharStar, AddTokInteger,
@@ -39,6 +40,7 @@ EXPORT QUALIFIED OpenSource, CloseSource, ReInitialize, GetToken, InsertToken,
 VAR
    currenttoken  : toktype ;
    currentstring : ADDRESS ;
+   currentcolumn : CARDINAL ;
    currentinteger: INTEGER ;
 
 
@@ -126,6 +128,25 @@ PROCEDURE GetTokenNo () : CARDINAL ;
 *)
 
 PROCEDURE TokenToLineNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetColumnNo - returns the current column where the symbol occurs in
+                 the source file.
+*)
+
+PROCEDURE GetColumnNo () : CARDINAL ;
+
+
+(*
+   TokenToColumnNo - returns the column number of the current file for the
+                     TokenNo. The depth refers to the include depth.
+                     A depth of 0 is the current file, depth of 1 is the file
+                     which included the current file. Zero is returned if the
+                     depth exceeds the file nesting level.
+*)
+
+PROCEDURE TokenToColumnNo (TokenNo: CARDINAL; depth: CARDINAL) : CARDINAL ;
 
 
 (*

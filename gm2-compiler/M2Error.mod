@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE M2Error ;
 
 FROM ASCII IMPORT nul, nl ;
@@ -22,9 +23,10 @@ FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, ConCat, ConCa
 FROM FIO IMPORT StdOut, WriteNBytes, Close, FlushBuffer ;
 FROM StrLib IMPORT StrLen, StrEqual ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
-FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, GetTokenNo ;
+FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo, TokenToColumnNo, GetTokenNo ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM M2Printf IMPORT printf0, printf2 ;
+FROM M2Printf IMPORT printf0, printf1, printf2 ;
+FROM M2Options IMPORT Xcode ;
 FROM M2RTS IMPORT ExitOnHalt ;
 FROM SYSTEM IMPORT BITSET, ADDRESS ;
 IMPORT StdIO ;
@@ -107,15 +109,23 @@ END TranslateNameToCharStar ;
                The string, s, is destroyed.
 *)
 
-PROCEDURE OutString (file: String; line: CARDINAL; s: String) ;
+PROCEDURE OutString (file: String; line, col: CARDINAL; s: String) ;
 VAR
    leader : String ;
    p, q   : POINTER TO CHAR ;
+   space,
    newline: BOOLEAN ;
 BEGIN
-   leader := Sprintf2(Mark(InitString('%s:%d:')), file, line) ;
+   INC(col) ;
+   IF Xcode
+   THEN
+      leader := Sprintf2(Mark(InitString('%s:%d:')), file, line)
+   ELSE
+      leader := Sprintf3(Mark(InitString('%s:%d:%d:')), file, line, col)
+   END ;
    p := string(s) ;
    newline := TRUE ;
+   space := FALSE ;
    WHILE (p#NIL) AND (p^#nul) DO
       IF newline
       THEN
@@ -125,12 +135,25 @@ BEGIN
             INC(q)
          END
       END ;
-      StdIO.Write(p^) ;
       newline := (p^=nl) ;
+      space := (p^=' ') ;
+      IF newline AND Xcode
+      THEN
+         printf1('(pos: %d)', col)
+      END ;
+      StdIO.Write(p^) ;
       INC(p)
    END ;
    IF NOT newline
    THEN
+      IF Xcode
+      THEN
+         IF NOT space
+         THEN
+            StdIO.Write(' ')
+         END ;
+         printf1('(pos: %d)', col)
+      END ;
       StdIO.Write(nl)
    END ;
    FlushBuffer(StdOut) ;
@@ -156,9 +179,11 @@ BEGIN
       InInternal := TRUE ;
       FlushErrors ;
       OutString(FindFileNameFromToken(GetTokenNo(), 0),
-                TokenToLineNo(GetTokenNo(), 0), Mark(InitString('*** fatal error ***')))
+                TokenToLineNo(GetTokenNo(), 0),
+                TokenToColumnNo(GetTokenNo(), 0),
+                Mark(InitString('*** fatal error ***')))
    END ;
-   OutString(Mark(InitString(file)), line,
+   OutString(Mark(InitString(file)), line, 0,
              ConCat(Mark(InitString('*** internal error *** ')), Mark(InitString(a)))) ;
    HALT
 END InternalError ;
@@ -555,7 +580,14 @@ BEGIN
             IF FatalStatus=fatal
             THEN
                CheckIncludes(token, 0) ;
-               OutString(FindFileNameFromToken(token, 0), TokenToLineNo(token, 0), s) ;
+               IF fatal
+               THEN
+                  s := ConCat(InitString(' error: '), Mark(s))
+               ELSE
+                  s := ConCat(InitString(' warning: '), Mark(s))
+               END ;
+               OutString(FindFileNameFromToken(token, 0),
+                         TokenToLineNo(token, 0), TokenToColumnNo(token, 0), s) ;
                IF (child#NIL) AND FlushAll(child, FatalStatus)
                THEN
                END ;

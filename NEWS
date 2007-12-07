@@ -1,6 +1,20 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are not
 described.  There are more details in the man and info pages.
 
+VERSION 0.62
+============
+
+* all language options changed to -f.  Warning options are
+  still -W.  Introduced memmove to Builtins.def.
+* Introduced gm2/gm2-libs-pim/BlockOps.{def,mod}
+* gm2/gm2-libs-pim/BitByteOps.{def,mod}:  added.
+* -O now works on compiler and passes make gm2.paranoid.
+
+VERSION 0.61
+============
+
+* builds when grafted onto gcc-4.1.2
+
 VERSION 0.52
 ============
 

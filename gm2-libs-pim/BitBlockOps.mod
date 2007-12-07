@@ -206,8 +206,44 @@ END BlockShr ;
 *)
 
 PROCEDURE BlockShl (dest: ADDRESS; size, count: CARDINAL) ;
+VAR
+   p         : POINTER TO BYTE ;
+   carry,
+   hi, lo    : BYTE ;
+   byteOffset,
+   bitOffset : CARDINAL ;
 BEGIN
-   (* not yet implemented *)
+   byteOffset := count DIV BITSPERBYTE ;
+   IF byteOffset>=size
+   THEN
+      (* shifted all data out, nothing left *)
+      p := dest ;
+      dest := memset(p, 0, size)
+   ELSE
+      bitOffset := count MOD BITSPERBYTE ;
+      IF byteOffset>0
+      THEN
+         (* move whole bytes using memmove *)
+         p := dest ;
+         dest := memmove(dest, dest+VAL(ADDRESS, byteOffset), size-byteOffset) ;
+         (* zero leading bytes *)
+         dest := memset(p, 0, byteOffset)
+      END ;
+      IF bitOffset>0
+      THEN
+         (* some real shifting is necessary *)
+         p := dest+VAL(ADDRESS, byteOffset) ;
+         hi := BYTE(0) ;
+         WHILE size>byteOffset DO
+            lo := VAL(BYTE, SHIFT(VAL(BITSET, p^), -bitOffset)) ;
+            carry := VAL(BYTE, SHIFT(VAL(BITSET, p^), (BITSPERBYTE - bitOffset))) ;
+            p^ := VAL(BYTE, VAL(BITSET, lo) + VAL(BITSET, hi)) ;
+            INC(p) ;
+            hi := carry ;
+            DEC(size)
+         END
+      END
+   END
 END BlockShl ;
 
 

@@ -20,10 +20,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2007/10/05 19:08:22 $]
+   Date       : 27/5/87  [$Date: 2007/12/07 16:35:55 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.19 $
+   Version    : $Revision: 1.20 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -46,7 +46,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  OptimizeCommonSubExpressions,
                  StudentChecking,
                  BoundsChecking, ReturnChecking, NilChecking, CaseElseChecking,
-                 Quiet, LineDirectives, CPreProcessor, ExtendedOpaque,
+                 Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
@@ -89,6 +89,7 @@ VAR
    LineDirectives,               (* should compiler understand preprocessor  *)
                                  (* # linenumber "filename" markers?         *)
    CPreProcessor,                (* must we run the cpp on the source?       *)
+   Xcode,                        (* should errors follow Xcode format?       *)
    ExtendedOpaque,               (* do we allow non pointer opaque types?    *)
    Optimizing,
    Coding,
