@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 # Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -38,6 +38,10 @@ libraryClassifications = [['gm2-libs','Base libraries',
                           ['ulm-lib-gm2/std','ULM Standard Libraries',
                            'ULM Standard libraries']]
 
+def initState ():
+    global inVar, inType, inConst
+    inVar, inType, inConst = False, False, False
+
 
 #
 #  displayLibraryClass - displays a node for a library directory and invokes
@@ -56,7 +60,7 @@ def displayLibraryClass():
     i = 0
     l = libraryClassifications[i]
 
-    while 1:
+    while True:
         print "@node " + l[1] + ", " + next + ", " + previous + ", " + up
         print "@section " + l[1]
         print ""
@@ -64,7 +68,7 @@ def displayLibraryClass():
         print ""
         print "@c ---------------------------------------------------------------------"
         previous = l[1]
-        i = i+1
+        i += 1
         if i == len(libraryClassifications):
             break
         l = libraryClassifications[i]
@@ -133,13 +137,66 @@ def removeFields (file, line):
 #
 
 def checkIndex (line):
+    global inVar, inType, inConst
+    
     words = string.split(line)
     procedure = ""
     if (len(words)>1) and (words[0] == "PROCEDURE"):
+        inConst = False
+        inType = False
+        inVar = False
         if (words[1] == "__BUILTIN__") and (len(words)>2):
             procedure = words[2]
         else:
             procedure = words[1]
+
+    if line[0:2] == '(*':
+        inConst = False
+        inType = False
+        inVar = False
+    elif line == "VAR":
+        inConst = False
+        inVar = True
+        inType = False
+        return
+    elif line == "TYPE":
+        inConst = False
+        inType = True
+        inVar = False
+        return
+    elif line == "CONST":
+        inConst = True
+        inType = False
+        inVar = False
+
+    if inVar:
+        words = string.split(line, ',')
+        for word in words:
+            word = string.lstrip(word)
+            if word != "":
+                if string.find(word, ':') == -1:
+                    print "@findex " + word + " (var)"
+                elif len(word)>0:
+                    var = string.split(word, ':')
+                    if len(var)>0:
+                        print "@findex " + var[0] + " (var)"
+
+    if inType:
+        words = string.lstrip(line)
+        if string.find(words, '=') != -1:
+            word = string.split(words, "=")
+            if (len(word[0])>0) and (word[0][0] != '_'):
+                print "@findex " + string.rstrip(word[0]) + " (type)"
+
+    if inConst:
+        words = string.split(line, ';')
+        for word in words:
+            word = string.lstrip(word)
+            if word != "":
+                if string.find(word, '=') != -1:
+                    var = string.split(word, '=')
+                    if len(var)>0:
+                        print "@findex " + var[0] + " (const)"
 
     if procedure != "":
         name = string.split(procedure, "(")
@@ -158,6 +215,7 @@ def checkIndex (line):
 def parseDefinition (dir, file):
     print ""
     f = open(os.path.join(dir, file), 'r')
+    initState()
     line = f.readline()
     while (string.find(line, "(*") != -1):
         removeInitialComments(f, line)
@@ -179,13 +237,13 @@ def parseDefinition (dir, file):
             print string.rstrip(line)
     else:
         print string.rstrip(line)
-    
-    while 1:
-        line = f.readline()
-        if not line: break
+
+    line = f.readline()
+    while line:
 	line = string.rstrip(line)
 	checkIndex(line)
         print string.replace(string.replace(line, "{", "@{"), "}", "@}")
+        line = f.readline()
     print "@end example"
     print "@page"
     f.close()
@@ -263,7 +321,8 @@ def displayModules(up, dir):
         print "directory " + dir + " not found"
 
 def displayCopyright ():
-    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc."
+    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007"
+    print "@c Free Software Foundation, Inc."
     print """
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or

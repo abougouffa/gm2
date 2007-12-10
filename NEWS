@@ -1,5 +1,9 @@
-This file describes recent user-visible changes in gm2.  Bug fixes are not
-described.  There are more details in the man and info pages.
+This file describes recent user-visible changes in gm2.  Bug fixes are
+not described.  There are more details in the man and info pages.
+
+
+* all errors now include column information.  Also added -fxcode
+  option which issues errors in Apple Xcode format.
 
 VERSION 0.62
 ============

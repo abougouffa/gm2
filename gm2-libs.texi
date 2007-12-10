@@ -1,4 +1,5 @@
-@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+@c Free Software Foundation, Inc.
 
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -100,16 +101,55 @@ EXPORT QUALIFIED
      lf, ff, eof, del, tab, EOL ;
 
 CONST
+@findex nul (const)
+@findex soh (const)
+@findex stx (const)
+@findex etx (const)
      nul=000C; soh=001C; stx=002C; etx=003C;
+@findex eot (const)
+@findex enq (const)
+@findex ack (const)
+@findex bel (const)
      eot=004C; enq=005C; ack=006C; bel=007C;
+@findex bs  (const)
+@findex ht  (const)
+@findex nl  (const)
+@findex vt  (const)
      bs =010C; ht =011C; nl =012C; vt =013C;
+@findex np  (const)
+@findex cr  (const)
+@findex so  (const)
+@findex si  (const)
      np =014C; cr =015C; so =016C; si =017C;
+@findex dle (const)
+@findex dc1 (const)
+@findex dc2 (const)
+@findex dc3 (const)
      dle=020C; dc1=021C; dc2=022C; dc3=023C;
+@findex dc4 (const)
+@findex nak (const)
+@findex syn (const)
+@findex etb (const)
      dc4=024C; nak=025C; syn=026C; etb=027C;
+@findex can (const)
+@findex em  (const)
+@findex sub (const)
+@findex esc (const)
      can=030C; em =031C; sub=032C; esc=033C;
+@findex fs  (const)
+@findex gs  (const)
+@findex rs  (const)
+@findex us  (const)
      fs =034C; gs =035C; rs =036C; us =037C;
+@findex sp  (const)
      sp =040C; (* All the above are in order *)
+@findex lf  (const)
+@findex ff  (const)
+@findex eof (const)
+@findex tab (const)
      lf =nl  ; ff =np  ; eof=eot ; tab=ht  ;
+@findex del (const)
+@findex EOL (const)
      del=177C; EOL=nl  ;
 
 END ASCII.
@@ -723,10 +763,14 @@ EXPORT QUALIFIED (* types *)
                  StdIn, StdOut, StdErr ;
 
 TYPE
+@findex File (type)
    File = CARDINAL ;
 
 (* the following variables are initialized to their UNIX equivalents *)
 VAR
+@findex StdIn (var)
+@findex StdOut (var)
+@findex StdErr (var)
    StdIn, StdOut, StdErr: File ;
 
 
@@ -1270,7 +1314,9 @@ DEFINITION MODULE MathLib0 ;
 *)
 
 CONST
+@findex pi    (const)
    pi   = 3.1415926535897932384626433832795028841972;
+@findex exp1  (const)
    exp1 = 2.7182818284590452353602874713526624977572;
 
 
@@ -1747,7 +1793,9 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
                  BITSPERBYTE, BYTESPERWORD ;
 
 CONST
+@findex BITSPERBYTE    (const)
   BITSPERBYTE   = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+@findex BYTESPERWORD   (const)
   BYTESPERWORD  = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
 
 
@@ -1971,7 +2019,9 @@ EXPORT QUALIFIED SetOfFd, Timeval,
                  GetTimeOfDay ;
 
 TYPE
+@findex SetOfFd (type)
    SetOfFd = ADDRESS ;    (* Hidden type in Selective.c *)
+@findex Timeval (type)
    Timeval = ADDRESS ;    (* Hidden type in Selective.c *)
 
 
@@ -2040,7 +2090,9 @@ EXPORT QUALIFIED ProcRead, ProcWrite,
 
 
 TYPE
+@findex ProcWrite (type)
    ProcWrite = PROCEDURE (CHAR) ;
+@findex ProcRead (type)
    ProcRead  = PROCEDURE (VAR CHAR) ;
 
 
@@ -2730,10 +2782,13 @@ EXPORT QUALIFIED ArgC, ArgV ;
 
 
 VAR
+@findex ArgC (var)
    ArgC: CARDINAL ;
+@findex ArgV (var)
    ArgV: ADDRESS ;
 
 
+@findex END UnixArgs. (var)
 END UnixArgs.
 @end example
 @page
@@ -2860,6 +2915,7 @@ DEFINITION MODULE errno ;
 EXPORT QUALIFIED EINTR, geterrno ;
 
 CONST
+@findex EINTR  (const)
     EINTR = 4 ;
 
 @findex geterrno
@@ -2899,9 +2955,12 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    shutdown, rename ;
 
 TYPE
+@findex time_t (type)
    time_t = LONGINT ;
 
+@findex ptrToTM (type)
    ptrToTM = POINTER TO tm ;
+@findex tm (type)
    tm = RECORD
            tm_sec: INTEGER ;     (* Seconds.     [0-60] (1 leap second) *)
            tm_min: INTEGER ;     (* Minutes.     [0-59]   *)
@@ -2916,6 +2975,7 @@ TYPE
            tm_zone: ADDRESS ;    (* char * zone name      *)
         END ;
 
+@findex timeb (type)
    timeb = RECORD
               time    : time_t ;
               millitm : SHORTCARD ;
@@ -3415,7 +3475,9 @@ EXPORT UNQUALIFIED tcpServerState,
                    tcpClientPortNo, tcpClientIP, tcpClientSocketFd ;
 
 TYPE
+@findex tcpServerState (type)
    tcpServerState = ADDRESS ;
+@findex tcpClientState (type)
    tcpClientState = ADDRESS ;
 
 
@@ -4275,6 +4337,7 @@ EXPORT QUALIFIED Done,
 
 
 VAR
+@findex Done (var)
    Done: BOOLEAN ;
 
 
@@ -4604,6 +4667,7 @@ EXPORT QUALIFIED File, Response, Flag, FlagSet,
                  WriteWord, WriteChar, WriteByte, WriteNBytes ;
 
 TYPE
+@findex File (type)
    File = RECORD
              res     : Response ;
              flags   : FlagSet ;
@@ -4616,6 +4680,7 @@ TYPE
              name    : String ;
           END ;
 
+@findex Flag (type)
    Flag = (
            read,        (* read access mode *)
            write,       (* write access mode *)
@@ -4626,12 +4691,15 @@ TYPE
            opened       (* file has been opened *)
           );
 
+@findex FlagSet (type)
    FlagSet = SET OF Flag;
 
+@findex Response (type)
    Response = (done, notdone, notsupported, callerror,
                unknownfile, paramerror, toomanyfiles,
                userdeverror) ;
 
+@findex Command (type)
    Command = (create, close, lookup, rename, delete,
               setread, setwrite, setmodify, setopen,
               doio, setpos, getpos, length) ;
@@ -4982,10 +5050,13 @@ EXPORT QUALIFIED EOL, Done, termCH, OpenInput, CloseInput, CloseOutput,
                  ReadS, WriteS ;
 
 CONST
+@findex EOL  (const)
    EOL = ASCII.EOL ;
 
 VAR
+@findex Done   (var)
    Done  : BOOLEAN ;
+@findex termCH (var)
    termCH: CHAR ;
 
 
@@ -5203,6 +5274,7 @@ DEFINITION MODULE LongIO ;
 EXPORT QUALIFIED Done, ReadLongInt, WriteLongInt ;
 
 VAR
+@findex Done (var)
    Done: BOOLEAN ;
 
 @findex ReadLongInt
@@ -5420,9 +5492,13 @@ DEFINITION MODULE RealInOut ;
     Description: provides a compatible RealInOut PIM 234 module.
 *)
 
-EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct, Done ;
+EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct,
+                 ReadLongReal, WriteLongReal, WriteLongRealOct,
+                 ReadShortReal, WriteShortReal, WriteShortRealOct,
+                 Done ;
 
 VAR
+@findex Done (var)
    Done: BOOLEAN ;
 
 
@@ -5617,8 +5693,11 @@ EXPORT QUALIFIED ReadProcedure, StatusProcedure, WriteProcedure,
                  Read, KeyPressed, Write ;
 
 TYPE
+@findex ReadProcedure (type)
    ReadProcedure = PROCEDURE (VAR CHAR) ;
+@findex WriteProcedure (type)
    WriteProcedure = PROCEDURE (CHAR) ;
+@findex StatusProcedure (type)
    StatusProcedure = PROCEDURE () : BOOLEAN ;
 
 
@@ -5938,6 +6017,7 @@ DEFINITION MODULE Debug ;
 EXPORT QUALIFIED Halt, DebugString, PushOutput ;
 
 TYPE
+@findex WriteP (type)
    WriteP = PROCEDURE (CHAR) ;
 
 
@@ -6216,11 +6296,13 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
 
 
 TYPE
+@findex PROCESS (type)
    PROCESS  = RECORD
                  context: ADDRESS ;
                  ints   : PRIORITY ;
               END ;
 
+@findex PRIORITY (type)
    PRIORITY = [0..7] ;
 
 
@@ -6329,6 +6411,7 @@ EXPORT QUALIFIED InitInputVector, InitOutputVector, InitTimeVector,
                  Listen, IncludeVector, ExcludeVector, DespatchVector ;
 
 TYPE
+@findex DespatchVector (type)
    DespatchVector = PROCEDURE (CARDINAL, CARDINAL, ADDRESS) ;
 
 
@@ -6446,6 +6529,7 @@ EXPORT QUALIFIED TicksPerSecond, GetTicks,
 
 
 CONST
+@findex TicksPerSecond  (const)
    TicksPerSecond =   25 ;  (* Number of ticks per second.         *)
 
 TYPE
@@ -6529,146 +6613,228 @@ DEFINITION MODULE FOR "C" pth ;
 FROM SYSTEM IMPORT ADDRESS, BITSET ;
 
 CONST
+@findex PTH_VERSION_STR  (const)
      PTH_VERSION_STR =  "1.4.1 (27-Jan-2002)" ;
+@findex PTH_VERSION_HEX  (const)
      PTH_VERSION_HEX =  1065473 ;
+@findex PTH_VERSION  (const)
      PTH_VERSION =  PTH_VERSION_HEX ;
 
 TYPE
+@findex fd_set (type)
      fd_set =  ADDRESS ;
      __time_t =   INTEGER ;
      __useconds_t =   CARDINAL ;
      __suseconds_t =   INTEGER ;
+@findex size_t (type)
      size_t =   CARDINAL ;
+@findex timeval (type)
     timeval = RECORD
                  tv_sec : __time_t ;
                  tv_usec: __suseconds_t ;
               END ;
 
+@findex sockaddr (type)
     sockaddr = RECORD
                END ;
+@findex sigset_t (type)
      sigset_t =  ADDRESS ;
+@findex pth_uctx_t (type)
      pth_uctx_t =  POINTER TO   pth_uctx_st ;
+@findex pth_uctx_st (type)
     pth_uctx_st = RECORD
                   END ;
+@findex pid_t (type)
      pid_t =   INTEGER ;
+@findex ssize_t (type)
      ssize_t =   CARDINAL ;
+@findex socklen_t (type)
      socklen_t =   CARDINAL ;
+@findex off_t (type)
      off_t =   INTEGER ;
+@findex sig_atomic_t (type)
      sig_atomic_t =   INTEGER ;
+@findex nfds_t (type)
      nfds_t =   LONGCARD ;
 
 CONST
+@findex PTH_KEY_MAX  (const)
      PTH_KEY_MAX =  256 ;
+@findex PTH_ATFORK_MAX  (const)
      PTH_ATFORK_MAX =  128 ;
+@findex PTH_DESTRUCTOR_ITERATIONS  (const)
      PTH_DESTRUCTOR_ITERATIONS =  4 ;
+@findex PTH_SYSCALL_HARD  (const)
      PTH_SYSCALL_HARD =  0 ;
+@findex PTH_SYSCALL_SOFT  (const)
      PTH_SYSCALL_SOFT =  0 ;
 
 TYPE
+@findex pth_time_t (type)
      pth_time_t =  ADDRESS ;
+@findex pth_t (type)
      pth_t =  ADDRESS ;
+@findex pth_state_t (type)
      pth_state_t =   pth_state_en ;
+@findex pth_state_en (type)
      pth_state_en =  ( PTH_STATE_SCHEDULER, PTH_STATE_NEW, PTH_STATE_READY, PTH_STATE_WAITING, PTH_STATE_DEAD) ;
 
 CONST
+@findex PTH_PRIO_MAX  (const)
      PTH_PRIO_MAX =   5 ;
+@findex PTH_PRIO_STD  (const)
      PTH_PRIO_STD =  0 ;
+@findex PTH_PRIO_MIN  (const)
      PTH_PRIO_MIN =  -( 5) ;
 
 TYPE
+@findex pth_attr_t (type)
      pth_attr_t =  ADDRESS ;
 
 CONST
+@findex PTH_ATTR_PRIO  (const)
      PTH_ATTR_PRIO = 0 ;
+@findex PTH_ATTR_NAME  (const)
      PTH_ATTR_NAME = 1 ;
+@findex PTH_ATTR_JOINABLE  (const)
      PTH_ATTR_JOINABLE = 2 ;
+@findex PTH_ATTR_CANCEL_STATE  (const)
      PTH_ATTR_CANCEL_STATE = 3 ;
+@findex PTH_ATTR_STACK_SIZE  (const)
      PTH_ATTR_STACK_SIZE = 4 ;
+@findex PTH_ATTR_STACK_ADDR  (const)
      PTH_ATTR_STACK_ADDR = 5 ;
+@findex PTH_ATTR_TIME_SPAWN  (const)
      PTH_ATTR_TIME_SPAWN = 6 ;
+@findex PTH_ATTR_TIME_LAST  (const)
      PTH_ATTR_TIME_LAST = 7 ;
+@findex PTH_ATTR_TIME_RAN  (const)
      PTH_ATTR_TIME_RAN = 8 ;
+@findex PTH_ATTR_START_FUNC  (const)
      PTH_ATTR_START_FUNC = 9 ;
+@findex PTH_ATTR_START_ARG  (const)
      PTH_ATTR_START_ARG = 10 ;
+@findex PTH_ATTR_STATE  (const)
      PTH_ATTR_STATE = 11 ;
+@findex PTH_ATTR_EVENTS  (const)
      PTH_ATTR_EVENTS = 12 ;
+@findex PTH_ATTR_BOUND  (const)
      PTH_ATTR_BOUND = 13 ;
+@findex PTH_ATTR_DEFAULT  (const)
      PTH_ATTR_DEFAULT =  0 ;
 
 
 
     (* event subject classes *)
+@findex PTH_EVENT_FD     (const)
     PTH_EVENT_FD    =  BITSET @{1@} ;
+@findex PTH_EVENT_SELECT (const)
     PTH_EVENT_SELECT=  BITSET @{2@} ;
+@findex PTH_EVENT_SIGS   (const)
     PTH_EVENT_SIGS  =  BITSET @{3@} ;
+@findex PTH_EVENT_TIME   (const)
     PTH_EVENT_TIME  =  BITSET @{4@} ;
+@findex PTH_EVENT_MSG    (const)
     PTH_EVENT_MSG   =  BITSET @{5@} ;
+@findex PTH_EVENT_MUTEX  (const)
     PTH_EVENT_MUTEX =  BITSET @{6@} ;
+@findex PTH_EVENT_COND   (const)
     PTH_EVENT_COND  =  BITSET @{7@} ;
+@findex PTH_EVENT_TID    (const)
     PTH_EVENT_TID   =  BITSET @{8@} ;
+@findex PTH_EVENT_FUNC   (const)
     PTH_EVENT_FUNC  =  BITSET @{9@} ;
 
     (* event occurange restrictions *)
+@findex PTH_UNTIL_OCCURRED      (const)
     PTH_UNTIL_OCCURRED     =  BITSET @{11@} ;
+@findex PTH_UNTIL_FD_READABLE   (const)
     PTH_UNTIL_FD_READABLE  =  BITSET @{12@} ;
+@findex PTH_UNTIL_FD_WRITEABLE  (const)
     PTH_UNTIL_FD_WRITEABLE =  BITSET @{13@} ;
+@findex PTH_UNTIL_FD_EXCEPTION  (const)
     PTH_UNTIL_FD_EXCEPTION =  BITSET @{14@} ;
+@findex PTH_UNTIL_TID_NEW       (const)
     PTH_UNTIL_TID_NEW      =  BITSET @{15@} ;
+@findex PTH_UNTIL_TID_READY     (const)
     PTH_UNTIL_TID_READY    =  BITSET @{16@} ;
+@findex PTH_UNTIL_TID_WAITING   (const)
     PTH_UNTIL_TID_WAITING  =  BITSET @{17@} ;
+@findex PTH_UNTIL_TID_DEAD      (const)
     PTH_UNTIL_TID_DEAD     =  BITSET @{18@} ;
 
     (* event structure handling modes *)
+@findex PTH_MODE_REUSE   (const)
     PTH_MODE_REUSE  =  BITSET @{20@} ;
+@findex PTH_MODE_CHAIN   (const)
     PTH_MODE_CHAIN  =  BITSET @{21@} ;
+@findex PTH_MODE_STATIC  (const)
     PTH_MODE_STATIC =  BITSET @{22@} ;
 
 TYPE
+@findex pth_event_t (type)
      pth_event_t =  ADDRESS ;
 
 CONST
+@findex PTH_FREE_THIS  (const)
      PTH_FREE_THIS = 0 ;
+@findex PTH_FREE_ALL  (const)
      PTH_FREE_ALL = 1 ;
 
 TYPE
+@findex pth_key_t (type)
      pth_key_t =   INTEGER ;
 
 CONST
+@findex PTH_KEY_INIT  (const)
      PTH_KEY_INIT =  -( 1) ;
 
 TYPE
+@findex pth_once_t (type)
      pth_once_t =   INTEGER ;
 
 CONST
+@findex PTH_ONCE_INIT  (const)
      PTH_ONCE_INIT =  FALSE ;
 
 TYPE
+@findex pth_ringnode_t (type)
      pth_ringnode_t =   pth_ringnode_st ;
+@findex pth_ringnode_st (type)
     pth_ringnode_st = RECORD
                          rn_next: POINTER TO  pth_ringnode_t ;
                          rn_prev: POINTER TO  pth_ringnode_t ;
                       END ;
+@findex pth_ring_t (type)
      pth_ring_t =   pth_ring_st ;
+@findex pth_ring_st (type)
     pth_ring_st = RECORD
                      r_hook: POINTER TO  pth_ringnode_t ;
                      r_nodes: CARDINAL ;
                   END ;
+@findex pth_msgport_t (type)
      pth_msgport_t =  ADDRESS ;
+@findex pth_message_t (type)
      pth_message_t =   pth_message_st ;
+@findex pth_message_st (type)
     pth_message_st = RECORD
                         m_node: pth_ringnode_t ;
                         m_replyport: pth_msgport_t ;
                         m_size: CARDINAL ;
                         m_data: ADDRESS ;
                      END ;
+@findex pth_mutex_t (type)
      pth_mutex_t =   pth_mutex_st ;
+@findex pth_mutex_st (type)
     pth_mutex_st = RECORD
                       mx_node: pth_ringnode_t ;
                       mx_state: INTEGER ;
                       mx_owner: pth_t ;
                       mx_count: CARDINAL ;
                    END ;
+@findex pth_rwlock_t (type)
      pth_rwlock_t =   pth_rwlock_st ;
+@findex pth_rwlock_st (type)
     pth_rwlock_st = RECORD
                        rw_state: INTEGER ;
                        rw_mode: CARDINAL ;
@@ -6676,12 +6842,16 @@ TYPE
                        rw_mutex_rd: pth_mutex_t ;
                        rw_mutex_rw: pth_mutex_t ;
                     END ;
+@findex pth_cond_t (type)
      pth_cond_t =   pth_cond_st ;
+@findex pth_cond_st (type)
     pth_cond_st = RECORD
                      cn_state: CARDINAL ;
                      cn_waiters: CARDINAL ;
                   END ;
+@findex pth_barrier_t (type)
      pth_barrier_t =   pth_barrier_st ;
+@findex pth_barrier_st (type)
     pth_barrier_st = RECORD
                         br_state: CARDINAL ;
                         br_threshold: INTEGER ;
@@ -6692,32 +6862,48 @@ TYPE
                      END ;
 
 CONST
+@findex POLLIN  (const)
      POLLIN =  1 ;
+@findex POLLPRI  (const)
      POLLPRI =  2 ;
+@findex POLLOUT  (const)
      POLLOUT =  4 ;
+@findex POLLERR  (const)
      POLLERR =  8 ;
+@findex POLLHUP  (const)
      POLLHUP =  16 ;
+@findex POLLNVAL  (const)
      POLLNVAL =  32 ;
+@findex POLLRDNORM  (const)
      POLLRDNORM =  POLLIN ;
+@findex POLLRDBAND  (const)
      POLLRDBAND =  POLLIN ;
+@findex POLLWRNORM  (const)
      POLLWRNORM =  POLLOUT ;
+@findex POLLWRBAND  (const)
      POLLWRBAND =  POLLOUT ;
+@findex INFTIM  (const)
      INFTIM =  -( 1) ;
 
 CONST
+@findex PTH_FAKE_RWV  (const)
      PTH_FAKE_RWV =  0 ;
 
 TYPE
+@findex iovec (type)
     iovec = RECORD
                iov_base: ADDRESS ;
                iov_len: size_t ;
             END ;
 
 CONST
+@findex UIO_MAXIOV  (const)
      UIO_MAXIOV =  1024 ;
+@findex PTH_EXT_SFIO  (const)
      PTH_EXT_SFIO =  0 ;
 
 TYPE
+@findex Sfdisc_t (type)
      Sfdisc_t =  ADDRESS ;
 
 @findex pth_init
@@ -6744,12 +6930,14 @@ TYPE
  PROCEDURE pth_spawn (p2: pth_attr_t; p1: t1; p3: ADDRESS) : pth_t;
 
 TYPE
+@findex t1 (type)
      t1 =    PROCEDURE (ADDRESS) : ADDRESS ;
 
 @findex pth_once
 PROCEDURE pth_once (p2: ADDRESS; p1: t2; p3: ADDRESS) : INTEGER;
 
 TYPE
+@findex t2 (type)
      t2 =    PROCEDURE (ADDRESS) ;
 
 @findex pth_self
@@ -6804,6 +6992,7 @@ TYPE
  PROCEDURE pth_key_create (p2: ADDRESS; p1: t3) : INTEGER;
 
 TYPE
+@findex t3 (type)
      t3 =    PROCEDURE (ADDRESS) ;
 
 @findex pth_key_delete
@@ -6830,12 +7019,14 @@ TYPE
  PROCEDURE pth_cleanup_push (p1: t4; p2: ADDRESS) : INTEGER;
 
 TYPE
+@findex t4 (type)
      t4 =    PROCEDURE (ADDRESS) ;
 
 @findex pth_cleanup_pop
  PROCEDURE pth_cleanup_pop (p1: INTEGER) : INTEGER ;
 
 TYPE
+@findex t5 (type)
      t5 =    PROCEDURE (ADDRESS);
 
 @findex pth_atfork_pop
@@ -6870,6 +7061,7 @@ TYPE
  PROCEDURE pth_uctx_make (p2: pth_uctx_t; p3: ADDRESS; p4: size_t; p5: ADDRESS; p1: t8; p6: ADDRESS; p7: pth_uctx_t) : INTEGER;
 
 TYPE
+@findex t8 (type)
      t8 =    PROCEDURE (ADDRESS) ;
 
 @findex pth_uctx_save
@@ -7050,12 +7242,14 @@ IMPORT SYSTEM ;
 IMPORT pth ;
 
 CONST
+@findex UnassignedPriority  (const)
    UnassignedPriority = pth.PTH_PRIO_MIN - 1 ;
 
 TYPE
   COROUTINE; (* Values of this type are created dynamically by NEWCOROUTINE
                 and identify the coroutine in subsequent operations *)
   INTERRUPTSOURCE;
+@findex PROTECTION (type)
   PROTECTION = [UnassignedPriority..pth.PTH_PRIO_MAX]
 
 
@@ -7140,6 +7334,7 @@ DEFINITION MODULE ChanConsts;
   (* Common types and values for channel open requests and results *)
 
 TYPE
+@findex ChanFlags (type)
   ChanFlags =        (* Request flags possibly given when a channel is opened *)
   ( readFlag,        (* input operations are requested/available *)
     writeFlag,       (* output operations are requested/available *)
@@ -7151,21 +7346,30 @@ TYPE
                         stream requested/applies *)
   );
 
+@findex FlagSet (type)
   FlagSet = SET OF ChanFlags;
 
   (* Singleton values of FlagSet, to allow for example, read + write *)
 
 CONST
+@findex read  (const)
   read = FlagSet@{readFlag@};   (* input operations are requested/available *)
+@findex write  (const)
   write = FlagSet@{writeFlag@}; (* output operations are requested/available *)
+@findex old  (const)
   old = FlagSet@{oldFlag@};     (* a file may/must/did exist before the channel is opened *)
+@findex text  (const)
   text = FlagSet@{textFlag@};   (* text operations are requested/available *)
+@findex raw  (const)
   raw = FlagSet@{rawFlag@};     (* raw operations are requested/available *)
+@findex interactive  (const)
   interactive = FlagSet@{interactiveFlag@}; (* interactive use is requested/applies *)
+@findex echo  (const)
   echo = FlagSet@{echoFlag@};   (* echoing by interactive device on removal of characters from
                                  input stream requested/applies *)
 
 TYPE
+@findex OpenResults (type)
   OpenResults =        (* Possible results of open requests *)
     (opened,           (* the open succeeded as requested *)
      wrongNameFormat,  (* given name is in the wrong format for the implementation *)
@@ -7239,8 +7443,11 @@ DEFINITION MODULE ComplexMath;
   (* Mathematical functions for the type COMPLEX *)
 
 CONST
+@findex i  (const)
   i =    CMPLX (0.0, 1.0);
+@findex one  (const)
   one =  CMPLX (1.0, 0.0);
+@findex zero  (const)
   zero = CMPLX (0.0, 0.0);
 
 @findex abs
@@ -7325,6 +7532,7 @@ DEFINITION MODULE ConvTypes;
   (* Common types used in the string conversion modules *)
 
 TYPE
+@findex ConvResults (type)
   ConvResults =     (* Values of this type are used to express the format of a string *)
   (
     strAllRight,    (* the string format is correct for the corresponding conversion *)
@@ -7333,6 +7541,7 @@ TYPE
     strEmpty        (* the given string is empty *)
   );
 
+@findex ScanClass (type)
   ScanClass =  (* Values of this type are used to classify input to finite state scanners *)
   (
     padding,   (* a leading or padding character at this point in the scan - ignore it *)
@@ -7341,6 +7550,7 @@ TYPE
     terminator (* a terminating character at this point in the scan (not part of token) *)
   );
 
+@findex ScanState (type)
   ScanState =  (* The type of lexical scanning control procedures *)
     PROCEDURE (CHAR, VAR ScanClass, VAR ScanState);
 
@@ -7364,6 +7574,7 @@ TYPE
   ExceptionSource;                (* values of this type are used within library modules to
                                      identify the source of raised exceptions
  *)
+@findex ExceptionNumber (type)
   ExceptionNumber = CARDINAL;
 
 @findex AllocateSource
@@ -7416,6 +7627,7 @@ DEFINITION MODULE GeneralUserExceptions;
 (* Provides facilities for general user-defined exceptions *)
 
 TYPE
+@findex GeneralExceptions (type)
   GeneralExceptions = (problem, disaster);
 
 @findex RaiseGeneralException
@@ -7584,6 +7796,7 @@ PROCEDURE CurrentFlags (cid: ChanId): ChanConsts.FlagSet;
   (* The following exceptions are defined for this module and its clients *)
 
 TYPE
+@findex ChanExceptions (type)
   ChanExceptions =
     (wrongDevice,      (* device specific operation on wrong device *)
      notAvailable,     (* operation attempted that is not available on that
@@ -7620,6 +7833,7 @@ PROCEDURE ChanException (): ChanExceptions;
   *)
 
 TYPE
+@findex DeviceErrNum (type)
   DeviceErrNum = INTEGER;
 
 @findex DeviceError
@@ -7643,6 +7857,7 @@ DEFINITION MODULE IOConsts;
   (* Types and constants for input/output modules *)
 
 TYPE
+@findex ReadResults (type)
   ReadResults =  (* This type is used to classify the result of an input operation *)
   (
     notKnown,    (* no read result is set *)
@@ -7694,29 +7909,44 @@ PROCEDURE UnMakeChan (did: DeviceId; VAR cid: IOChan.ChanId);
   *)
 
 TYPE
+@findex DeviceTablePtr (type)
   DeviceTablePtr = POINTER TO DeviceTable;
     (* Values of this type are used to refer to device tables *)
 
 TYPE
+@findex LookProc (type)
   LookProc =      PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults);
+@findex SkipProc (type)
   SkipProc =      PROCEDURE (DeviceTablePtr);
+@findex SkipLookProc (type)
   SkipLookProc =  PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults);
+@findex WriteLnProc (type)
   WriteLnProc =   PROCEDURE (DeviceTablePtr);
+@findex TextReadProc (type)
   TextReadProc =  PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL);
+@findex TextWriteProc (type)
   TextWriteProc = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL);
+@findex RawReadProc (type)
   RawReadProc =   PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL);
+@findex RawWriteProc (type)
   RawWriteProc =  PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL);
+@findex GetNameProc (type)
   GetNameProc =   PROCEDURE (DeviceTablePtr, VAR ARRAY OF CHAR);
+@findex ResetProc (type)
   ResetProc =     PROCEDURE (DeviceTablePtr);
+@findex FlushProc (type)
   FlushProc =     PROCEDURE (DeviceTablePtr);
+@findex FreeProc (type)
   FreeProc =      PROCEDURE (DeviceTablePtr);
       (* Carry out the operations involved in closing the corresponding channel, including
          flushing buffers, but do not unmake the channel.
       *)
 
 TYPE
+@findex DeviceData (type)
   DeviceData = SYSTEM.ADDRESS;
 
+@findex DeviceTable (type)
   DeviceTable =
     RECORD                         (* Initialized by MakeChan to: *)
       cd: DeviceData;              (* the value NIL *)
@@ -7760,6 +7990,7 @@ PROCEDURE IsDevice (cid: IOChan.ChanId; did: DeviceId) : BOOLEAN;
 
 
 TYPE
+@findex DevExceptionRange (type)
   DevExceptionRange = [IOChan.notAvailable ..  IOChan.textParseError];
 
 @findex RAISEdevException
@@ -7801,9 +8032,11 @@ DEFINITION MODULE IOResult;
 IMPORT IOConsts, IOChan;
 
 TYPE
+@findex ReadResults (type)
   ReadResults = IOConsts.ReadResults;
 
   (*
+@findex ReadResults (type)
     ReadResults =  (* This type is used to classify the result of an input operation *)
     (
       notKnown,    (* no read result is set *)
@@ -7834,8 +8067,11 @@ DEFINITION MODULE LongComplexMath;
   (* Mathematical functions for the type LONGCOMPLEX *)
 
 CONST
+@findex i  (const)
   i =    CMPLX (0.0, 1.0);
+@findex one  (const)
   one =  CMPLX (1.0, 0.0);
+@findex zero  (const)
   zero = CMPLX (0.0, 0.0);
 
 @findex abs
@@ -7923,6 +8159,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 @findex ScanReal
@@ -8042,7 +8279,9 @@ DEFINITION MODULE LongMath;
   (* Mathematical functions for the type LONGREAL *)
 
 CONST
+@findex pi    (const)
   pi   = 3.1415926535897932384626433832795028841972;
+@findex exp1  (const)
   exp1 = 2.7182818284590452353602874713526624977572;
 
 @findex sqrt
@@ -8116,6 +8355,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 (* the string form of a signed fixed-point real number is
@@ -8176,21 +8416,35 @@ DEFINITION MODULE LowLong;
   (* Access to underlying properties of the type LONGREAL *)
 
 CONST
+@findex radix  (const)
   radix =      <implementation-defined whole number value>;
+@findex places  (const)
   places =     <implementation-defined whole number value>;
+@findex expoMin  (const)
   expoMin =    <implementation-defined whole number value>;
+@findex expoMax  (const)
   expoMax =    <implementation-defined whole number value>;
+@findex large  (const)
   large =      <implementation-defined real number value>;
+@findex small  (const)
   small =      <implementation-defined real number value>;
+@findex IEEE  (const)
   IEEE =       <implementation-defined BOOLEAN value>;
+@findex ISO  (const)
   ISO =        <implementation-defined BOOLEAN value>;
+@findex rounds  (const)
   rounds =     <implementation-defined BOOLEAN value>;
+@findex gUnderflow  (const)
   gUnderflow = <implementation-defined BOOLEAN value>;
+@findex exception  (const)
   exception =  <implementation-defined BOOLEAN value>;
+@findex extend  (const)
   extend =     <implementation-defined BOOLEAN value>;
+@findex nModes  (const)
   nModes =     <implementation-defined whole number value>;
 
 TYPE
+@findex Modes (type)
   Modes = PACKEDSET OF [0 .. nModes-1];
 
 @findex exponent
@@ -8271,21 +8525,35 @@ DEFINITION MODULE LowReal;
   (* Access to underlying properties of the type REAL *)
 
 CONST
+@findex radix  (const)
   radix =      <implementation-defined whole number value>;
+@findex places  (const)
   places =     <implementation-defined whole number value>;
+@findex expoMin  (const)
   expoMin =    <implementation-defined whole number value>;
+@findex expoMax  (const)
   expoMax =    <implementation-defined whole number value>;
+@findex large  (const)
   large =      <implementation-defined real number value>;
+@findex small  (const)
   small =      <implementation-defined real number value>;
+@findex IEEE  (const)
   IEEE =       <implementation-defined BOOLEAN value>;
+@findex ISO  (const)
   ISO =        <implementation-defined BOOLEAN value>;
+@findex rounds  (const)
   rounds =     <implementation-defined BOOLEAN value>;
+@findex gUnderflow  (const)
   gUnderflow = <implementation-defined BOOLEAN value>;
+@findex exception  (const)
   exception =  <implementation-defined BOOLEAN value>;
+@findex extend  (const)
   extend =     <implementation-defined BOOLEAN value>;
+@findex nModes  (const)
   nModes =     <implementation-defined whole number value>;
 
 TYPE
+@findex Modes (type)
   Modes = SET OF [0 .. nModes-1];
 
 @findex exponent
@@ -8366,6 +8634,7 @@ DEFINITION MODULE M2EXCEPTION;
 (* Provides facilities for identifying language exceptions *)
 
 TYPE
+@findex M2Exceptions (type)
   M2Exceptions =
     (indexException,     rangeException,         caseSelectException,  invalidLocation,
      functionException,  wholeValueException,    wholeDivException,    realValueException,
@@ -8541,10 +8810,15 @@ IMPORT SYSTEM;
 
 TYPE
   ProcessId;                      (* Used to identify processes *)
+@findex Parameter (type)
   Parameter     = SYSTEM.ADDRESS; (* Used to pass data between processes *)
+@findex Body (type)
   Body          = PROC;           (* Used as the type of a process body *)
+@findex Urgency (type)
   Urgency       = INTEGER;        (* Used by the internal scheduler *)
+@findex Sources (type)
   Sources       = CARDINAL;       (* Used to identify event sources *)
+@findex ProcessesExceptions (type)
   ProcessesExceptions =           (* Exceptions raised by this module *)
     (passiveProgram, processError);
 
@@ -8683,6 +8957,7 @@ DEFINITION MODULE ProgramArgs;
 IMPORT IOChan;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
 
 @findex ArgChan
@@ -8748,6 +9023,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 @findex ScanReal
@@ -8868,7 +9144,9 @@ DEFINITION MODULE RealMath;
   (* Mathematical functions for the type REAL *)
 
 CONST
+@findex pi    (const)
   pi   = 3.1415926535897932384626433832795028841972;
+@findex exp1  (const)
   exp1 = 2.7182818284590452353602874713526624977572;
 
 @findex sqrt
@@ -8942,6 +9220,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 (* the string form of a signed fixed-point real number is
@@ -9004,18 +9283,26 @@ DEFINITION MODULE RndFile;
 IMPORT IOChan, ChanConsts, SYSTEM;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
+@findex FlagSet (type)
   FlagSet = ChanConsts.FlagSet;
+@findex OpenResults (type)
   OpenResults = ChanConsts.OpenResults;
 
   (* Accepted singleton values of FlagSet *)
 
 CONST
+@findex read  (const)
   read = FlagSet@{ChanConsts.readFlag@};   (* input operations are requested/available *)
+@findex write  (const)
   write = FlagSet@{ChanConsts.writeFlag@}; (* output operations are requested/available *)
+@findex old  (const)
   old = FlagSet@{ChanConsts.oldFlag@};     (* a file may/must/did exist before the channel is
                                             opened *)
+@findex text  (const)
   text = FlagSet@{ChanConsts.textFlag@};   (* text operations are requested/available *)
+@findex raw  (const)
   raw = FlagSet@{ChanConsts.rawFlag@};     (* raw operations are requested/available *)
 
 @findex OpenOld
@@ -9054,9 +9341,11 @@ PROCEDURE IsRndFileException (): BOOLEAN;
   *)
 
 CONST
+@findex FilePosSize  (const)
   FilePosSize = <implementation-defined whole number greater than zero>;
 
 TYPE
+@findex FilePos (type)
   FilePos = ARRAY [1 .. FilePosSize] OF SYSTEM.LOC;
 
 @findex StartPos
@@ -9118,9 +9407,11 @@ DEFINITION MODULE SIOResult;
 IMPORT IOConsts;
 
 TYPE
+@findex ReadResults (type)
   ReadResults = IOConsts.ReadResults;
 
   (*
+@findex ReadResults (type)
     ReadResults =   (* This type is used to classify the result of an input operation *)
     (
       notKnown,     (* no read result is set *)
@@ -9433,10 +9724,13 @@ EXPORT QUALIFIED BITSPERLOC, LOCSPERWORD,
 
 CONST
                   (* <implementation-defined constant> ; *)
+@findex BITSPERLOC     (const)
   BITSPERLOC    = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
                   (* <implementation-defined constant> ; *)
+@findex LOCSPERWORD    (const)
   LOCSPERWORD   = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
                   (* <implementation-defined constant> ; *)
+@findex LOCSPERBYTE  (const)
   LOCSPERBYTE = 8 DIV BITSPERLOC ;
 
 (*
@@ -9446,12 +9740,15 @@ CONST
 TYPE
   LOC; (* A system basic type. Values are the uninterpreted
           contents of the smallest addressable unit of storage *)
+@findex ADDRESS (type)
   ADDRESS = POINTER TO LOC;
+@findex WORD (type)
   WORD = ARRAY [0 .. LOCSPERWORD-1] OF LOC;
 
   (* BYTE and LOCSPERBYTE are provided if appropriate for machine *)
 
 TYPE
+@findex BYTE (type)
   BYTE = ARRAY [0 .. LOCSPERBYTE-1] OF LOC;
 
 @findex ADDADR
@@ -9678,18 +9975,26 @@ DEFINITION MODULE SeqFile;
 IMPORT IOChan, ChanConsts;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
+@findex FlagSet (type)
   FlagSet = ChanConsts.FlagSet;
+@findex OpenResults (type)
   OpenResults = ChanConsts.OpenResults;
 
   (* Accepted singleton values of FlagSet *)
 
 CONST
+@findex read  (const)
   read = FlagSet@{ChanConsts.readFlag@};   (* input operations are requested/available *)
+@findex write  (const)
   write = FlagSet@{ChanConsts.writeFlag@}; (* output operations are requested/available *)
+@findex old  (const)
   old = FlagSet@{ChanConsts.oldFlag@};     (* a file may/must/did exist before the channel is
                                             opened *)
+@findex text  (const)
   text = FlagSet@{ChanConsts.textFlag@};   (* text operations are requested/available *)
+@findex raw  (const)
   raw = FlagSet@{ChanConsts.rawFlag@};     (* raw operations are requested/available *)
 
 @findex OpenWrite
@@ -9777,6 +10082,7 @@ DEFINITION MODULE StdChans;
 IMPORT IOChan;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
     (* Values of this type are used to identify channels *)
 
@@ -9865,6 +10171,7 @@ PROCEDURE DEALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL);
   *)
 
 TYPE
+@findex StorageExceptions (type)
   StorageExceptions = (
     nilDeallocation,             (* first argument to DEALLOCATE is NIL *)
     pointerToUnallocatedStorage, (* storage to deallocate not allocated by ALLOCATE *)
@@ -9901,18 +10208,26 @@ DEFINITION MODULE StreamFile;
 IMPORT IOChan, ChanConsts;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
+@findex FlagSet (type)
   FlagSet = ChanConsts.FlagSet;
+@findex OpenResults (type)
   OpenResults = ChanConsts.OpenResults;
 
   (* Accepted singleton values of FlagSet *)
 
 CONST
+@findex read  (const)
   read = FlagSet@{ChanConsts.readFlag@};   (* input operations are requested/available *)
+@findex write  (const)
   write = FlagSet@{ChanConsts.writeFlag@}; (* output operations are requested/available *)
+@findex old  (const)
   old = FlagSet@{ChanConsts.oldFlag@};     (* a file may/must/did exist before the channel is
                                             opened *)
+@findex text  (const)
   text = FlagSet@{ChanConsts.textFlag@};   (* text operations are requested/available *)
+@findex raw  (const)
   raw = FlagSet@{ChanConsts.rawFlag@};     (* raw operations are requested/available *)
 
 
@@ -9953,6 +10268,7 @@ DEFINITION MODULE Strings;
   (* Facilities for manipulating strings *)
 
 TYPE
+@findex String1 (type)
   String1 = ARRAY [0..0] OF CHAR;
     (* String1 is provided for constructing a value of a single-character string type from a
        single character value in order to pass CHAR values to ARRAY OF CHAR parameters.
@@ -10067,6 +10383,7 @@ PROCEDURE CanConcatAll (source1Length, source2Length: CARDINAL;
 *)
 
 TYPE
+@findex CompareResults (type)
   CompareResults = (less, equal, greater);
 
 @findex Compare
@@ -10127,16 +10444,25 @@ DEFINITION MODULE SysClock;
 (* Facilities for accessing a system clock that records the date and time of day *)
 
 CONST
+@findex maxSecondParts  (const)
   maxSecondParts = <implementation-defined integral value>;
 
 TYPE
+@findex Month (type)
   Month    = [1 .. 12];
+@findex Day (type)
   Day      = [1 .. 31];
+@findex Hour (type)
   Hour     = [0 .. 23];
+@findex Min (type)
   Min      = [0 .. 59];
+@findex Sec (type)
   Sec      = [0 .. 59];
+@findex Fraction (type)
   Fraction = [0 .. maxSecondParts];
+@findex UTCDiff (type)
   UTCDiff  = [-780 .. 720];
+@findex DateTime (type)
   DateTime =
     RECORD
       year:      CARDINAL;
@@ -10212,17 +10538,25 @@ DEFINITION MODULE TermFile;
 IMPORT IOChan, ChanConsts;
 
 TYPE
+@findex ChanId (type)
   ChanId = IOChan.ChanId;
+@findex FlagSet (type)
   FlagSet = ChanConsts.FlagSet;
+@findex OpenResults (type)
   OpenResults = ChanConsts.OpenResults;
 
   (* Accepted singleton values of FlagSet *)
 
 CONST
+@findex read  (const)
   read = FlagSet@{ChanConsts.readFlag@};   (* input operations are requested/available *)
+@findex write  (const)
   write = FlagSet@{ChanConsts.writeFlag@}; (* output operations are requested/available *)
+@findex text  (const)
   text = FlagSet@{ChanConsts.textFlag@};   (* text operations are requested/available *)
+@findex raw  (const)
   raw = FlagSet@{ChanConsts.rawFlag@};     (* raw operations are requested/available *)
+@findex echo  (const)
   echo = FlagSet@{ChanConsts.echoFlag@};   (* echoing by interactive device on reading of
                                             characters from input stream requested/applies
                                          *)
@@ -10339,6 +10673,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 @findex ScanInt
@@ -10457,6 +10792,7 @@ IMPORT
   ConvTypes;
 
 TYPE
+@findex ConvResults (type)
   ConvResults = ConvTypes.ConvResults; (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
 
 (* the string form of a signed whole number is
@@ -10680,35 +11016,65 @@ DEFINITION MODULE Sys;
 *)
 
 CONST
+@findex access  (const)
     access = 0 ;
+@findex brk  (const)
     brk = 1 ;
+@findex close  (const)
     close = 2 ;
+@findex creat  (const)
     creat = 3 ;
+@findex dup  (const)
     dup = 4 ;
+@findex execve  (const)
     execve = 5 ;
+@findex exit  (const)
     exit = 6 ;
+@findex fcntl  (const)
     fcntl = 7 ;
+@findex fstat  (const)
     fstat = 8 ;
+@findex getdents  (const)
     getdents = 9 ;
+@findex getgid  (const)
     getgid = 10 ;
+@findex getpid  (const)
     getpid = 11 ;
+@findex gettimeofday  (const)
     gettimeofday = 12 ;
+@findex getuid  (const)
     getuid = 13 ;
+@findex ioctl  (const)
     ioctl = 14 ;
+@findex kill  (const)
     kill = 15 ;
+@findex link  (const)
     link = 16 ;
+@findex lseek  (const)
     lseek = 17 ;
+@findex open  (const)
     open = 18 ;
+@findex pause  (const)
     pause = 19 ;
+@findex pipe  (const)
     pipe = 20 ;
+@findex read  (const)
     read = 21 ;
+@findex setitimer  (const)
     setitimer = 22 ;
+@findex setgid  (const)
     setgid = 23 ;
+@findex setuid  (const)
     setuid = 24 ;
+@findex stat  (const)
     stat = 25 ;
+@findex times  (const)
     times = 26 ;
+@findex unlink  (const)
     unlink = 27 ;
+@findex wait  (const)
     wait = 28 ;
+@findex write  (const)
     write = 29 ;
 
 END Sys.
@@ -11512,12 +11878,15 @@ DEFINITION MODULE termios ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
+@findex TERMIOS (type)
    TERMIOS = ADDRESS ;
 
+@findex ControlChar (type)
    ControlChar = (vintr, vquit, verase, vkill, veof, vtime, vmin,
                   vswtc, vstart, vstop, vsusp, veol, vreprint, vdiscard,
                   vwerase, vlnext, veol2) ;
 
+@findex Flag (type)
    Flag = (
            (* input flag bits *)
            ignbrk, ibrkint, ignpar, iparmrk, inpck, istrip, inlcr,

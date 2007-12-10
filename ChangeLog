@@ -1,3 +1,10 @@
+2007-12-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/NEWS:  updated.
+	* gm2/tools-src/def2texi.py:  modified so that references
+	  to types, variables and constants are added to the index
+	  at the end of the documentation.
+
 2007-12-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/NEWS:  updated.

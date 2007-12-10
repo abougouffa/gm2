@@ -99,8 +99,8 @@ END ReadLongReal ;
 
 (*
    WriteLongReal - writes a real to the terminal. The real number
-               is right justified and, n, is the minimum field
-               width.
+                   is right justified and, n, is the minimum field
+                   width.
 *)
 
 PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;

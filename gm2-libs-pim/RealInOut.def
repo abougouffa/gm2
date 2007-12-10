@@ -25,7 +25,10 @@ DEFINITION MODULE RealInOut ;
     Description: provides a compatible RealInOut PIM 234 module.
 *)
 
-EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct, Done ;
+EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct,
+                 ReadLongReal, WriteLongReal, WriteLongRealOct,
+                 ReadShortReal, WriteShortReal, WriteShortRealOct,
+                 Done ;
 
 VAR
    Done: BOOLEAN ;
