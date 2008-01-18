@@ -88,6 +88,8 @@ static int insideCppArgs = FALSE;
 
 #define ASSERT_BOOL(X)   { if ((X != 0) && (X != 1)) { internal_error("[%s:%d]:the value `%s' is not a BOOLEAN, it's value was %d", \
                                                                    __FILE__, __LINE__, #X, X); } }
+#define ASSERT_CONDITION(X)   { if (!(X)) { internal_error("[%s:%d]:condition `%s' failed", \
+                                                                   __FILE__, __LINE__, #X); } }
 
 
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
@@ -301,14 +303,6 @@ static GTY(()) tree named_labels;
 
 static GTY(()) tree shadowed_labels;
 
-/* constructor globals used by BuildStartSetConstructor
- * (constant set creation)
- */
-
-static GTY(()) tree constructor_type = NULL_TREE;
-static GTY(()) tree constructor_fields = NULL_TREE;
-static GTY(()) tree constructor_element_list = NULL_TREE;
-
 tree c_global_trees[CTI_MAX];
 
 enum c_language_kind c_language = clk_c;
@@ -376,6 +370,37 @@ enum impl_conv {
 #define EXTERN extern
 #include "gm2-lang.h"
 #undef EXTERN
+
+
+struct struct_constructor GTY(())
+{
+  /*
+   *  constructor_type, the type that we are constructing
+   */
+  tree constructor_type;
+  /*
+   *  constructor_fields, the list of fields belonging to
+   *  constructor_type.  Used by SET and RECORD constructors.
+   */
+  tree constructor_fields;
+  /*
+   *  constructor_element_list, the list of constants
+   *  used by SET and RECORD constructors.
+   */
+  tree constructor_element_list;
+  /*
+   *  constructor_elements, used by an ARRAY initializer all
+   *  elements are held in reverse order.
+   */
+  VEC(constructor_elt,gc) *constructor_elements;
+  /*
+   *  level, the next level down in the constructor stack.
+   */
+  struct struct_constructor *level;
+};
+
+static GTY(()) struct struct_constructor *top_constructor = NULL;
+
   
 tree                   finish_enum                                (tree, tree, tree);
 void                   gccgm2_EndTemporaryAllocation              (void);
@@ -613,11 +638,17 @@ static tree                   build_m2_short_card_node                     (void
 static tree                   build_m2_iso_loc_node                       (void);
 static tree                   build_m2_iso_byte_node                      (void);
 static tree                   build_m2_iso_word_node                      (void);
-tree                   convert_type_to_range                       (tree type);
-tree                   gccgm2_GetDefaultType                       (char *name, tree type);
-void                   gccgm2_BuildStartSetConstructor             (tree type);
-void                   gccgm2_BuildSetConstructorElement           (tree value);
-tree                   gccgm2_BuildEndSetConstructor               (void);
+       tree                   convert_type_to_range                       (tree type);
+       tree                   gccgm2_GetDefaultType                       (char *name, tree type);
+struct struct_constructor*    gccgm2_BuildStartSetConstructor             (tree type);
+       void                   gccgm2_BuildSetConstructorElement           (struct struct_constructor*, tree);
+       tree                   gccgm2_BuildEndSetConstructor               (struct struct_constructor *p);
+struct struct_constructor*    gccgm2_BuildStartRecordConstructor          (tree t);
+       tree                   gccgm2_BuildEndRecordConstructor            (struct struct_constructor *p);
+       void                   gccgm2_BuildRecordConstructorElement        (struct struct_constructor *p, tree value);
+struct struct_constructor*    gccgm2_BuildStartArrayConstructor           (tree t);
+       tree                   gccgm2_BuildEndArrayConstructor             (struct struct_constructor *p);
+       void                   gccgm2_BuildArrayConstructorElement         (struct struct_constructor *p, tree value, tree indice);
 tree                   gccgm2_GetM2CharType                        (void);
 tree                   gccgm2_GetM2IntegerType                     (void);
 tree                   gccgm2_GetM2ShortRealType                   (void);
@@ -6840,17 +6871,49 @@ gccgm2_BuildSetType (char *name, tree type, tree lowval, tree highval)
 }
 
 /*
+ *  push_constructor - returns a new compound constructor frame.
+ */
+
+static
+struct struct_constructor *
+push_constructor (void)
+{
+  struct struct_constructor *p =
+    (struct struct_constructor *) xmalloc (sizeof (struct struct_constructor));
+
+  p->level = top_constructor;
+  top_constructor = p;
+  return p;
+}
+
+/*
+ *  pop_constructor - throws away the top constructor frame on the stack.
+ */
+
+static
+void
+pop_constructor (struct struct_constructor *p)
+{
+  ASSERT_CONDITION (p == top_constructor);  /* p should be the top_constructor */
+  top_constructor = top_constructor->level;
+}
+
+/*
  *  BuildStartSetConstructor - starts to create a set constant.
  *                             Remember that type is really a record type.
  */
 
-void
+struct struct_constructor*
 gccgm2_BuildStartSetConstructor (tree type)
 {
-  constructor_type = type;
+  struct struct_constructor *p = push_constructor ();
+
   layout_type (type);
-  constructor_fields = TYPE_FIELDS (type);
-  constructor_element_list = NULL_TREE;
+  p->constructor_type = type;
+  p->constructor_fields = TYPE_FIELDS (type);
+  p->constructor_element_list = NULL_TREE;
+  p->constructor_elements = NULL;
+  return p;
 }
 
 /*
@@ -6858,20 +6921,20 @@ gccgm2_BuildStartSetConstructor (tree type)
  */
 
 void
-gccgm2_BuildSetConstructorElement (tree value)
+gccgm2_BuildSetConstructorElement (struct struct_constructor *p, tree value)
 {
   if (value == NULL_TREE) {
     internal_error ("set type cannot be initialized with a NULL_TREE");
     return;
   }
 
-  if (constructor_fields == NULL) {
+  if (p->constructor_fields == NULL) {
     internal_error ("set type does not take another integer value");
     return;
   }
   
-  constructor_element_list = tree_cons (constructor_fields, value, constructor_element_list);
-  constructor_fields = TREE_CHAIN (constructor_fields);
+  p->constructor_element_list = tree_cons (p->constructor_fields, value, p->constructor_element_list);
+  p->constructor_fields = TREE_CHAIN (p->constructor_fields);
 }
 
 /*
@@ -6879,23 +6942,142 @@ gccgm2_BuildSetConstructorElement (tree value)
  */
 
 tree
-gccgm2_BuildEndSetConstructor (void)
+gccgm2_BuildEndSetConstructor (struct struct_constructor *p)
 {
   tree constructor;
   tree link;
 
-  for (link = constructor_element_list; link; link = TREE_CHAIN (link))
+  for (link = p->constructor_element_list; link; link = TREE_CHAIN (link))
     {
       tree field = TREE_PURPOSE (link);
       DECL_SIZE (field) = bitsize_int (SET_WORD_SIZE);
       DECL_BIT_FIELD (field) = 1;
     }
 
-  constructor = build_constructor_from_list (constructor_type,
-                                             nreverse (constructor_element_list));
+  constructor = build_constructor_from_list (p->constructor_type,
+					     nreverse (p->constructor_element_list));
   TREE_CONSTANT (constructor) = 1;
   TREE_STATIC (constructor) = 1;
+
+  pop_constructor (p);
+
   return constructor;
+}
+
+/*
+ *  BuildStartRecordConstructor - initializes a record compound
+ *                                constructor frame.
+ */
+
+struct struct_constructor*
+gccgm2_BuildStartRecordConstructor (tree type)
+{
+  struct struct_constructor *p = push_constructor ();
+
+  layout_type (type);
+  p->constructor_type = type;
+  p->constructor_fields = TYPE_FIELDS (type);
+  p->constructor_element_list = NULL_TREE;
+  p->constructor_elements = NULL;
+  return p;
+}
+
+/*
+ *  BuildEndRecordConstructor - returns a tree containing the record compound literal.
+ */
+
+tree
+gccgm2_BuildEndRecordConstructor (struct struct_constructor *p)
+{
+  tree constructor = build_constructor_from_list (p->constructor_type,
+						  nreverse (p->constructor_element_list));
+  TREE_CONSTANT (constructor) = 1;
+  TREE_STATIC (constructor) = 1;
+
+  pop_constructor (p);
+
+  return constructor;
+}
+
+/*
+ *  BuildRecordConstructorElement - adds, value, to the constructor_element_list.
+ */
+
+void
+gccgm2_BuildRecordConstructorElement (struct struct_constructor *p, tree value)
+{
+  gccgm2_BuildSetConstructorElement (p, value);
+}
+
+/*
+ *  BuildStartArrayConstructor - initializes an array compound
+ *                               constructor frame.
+ */
+
+struct struct_constructor*
+gccgm2_BuildStartArrayConstructor (tree type)
+{
+  struct struct_constructor *p = push_constructor ();
+
+  layout_type (type);
+  p->constructor_type = type;
+  p->constructor_fields = TREE_TYPE (type);
+  p->constructor_element_list = NULL_TREE;
+  p->constructor_elements = NULL;
+  return p;
+}
+
+/*
+ *  BuildEndArrayConstructor - returns a tree containing the array
+ *                             compound literal.
+ */
+
+tree
+gccgm2_BuildEndArrayConstructor (struct struct_constructor *p)
+{
+  tree constructor;
+  
+  constructor = build_constructor (p->constructor_type, p->constructor_elements);
+  TREE_CONSTANT (constructor) = TRUE;
+  TREE_INVARIANT (constructor) = TRUE;
+#if 0
+  TREE_STATIC (constructor) = p->constructor_simple;
+#endif
+  TREE_STATIC (constructor) = TRUE;
+
+  pop_constructor (p);
+
+  return constructor;
+}
+
+/*
+ *  BuildArrayConstructorElement - adds, value, to the constructor_element_list.
+ */
+
+void
+gccgm2_BuildArrayConstructorElement (struct struct_constructor *p, tree value,
+				     tree indice)
+{
+  constructor_elt *celt;
+
+  if (value == NULL_TREE) {
+    internal_error ("array cannot be initialized with a NULL_TREE");
+    return;
+  }
+
+  if (p->constructor_fields == NULL_TREE) {
+    internal_error ("array type must be initialized");
+    return;
+  }
+
+  if (p->constructor_fields != TREE_TYPE (value)) {
+    internal_error ("array element value must be the same as its declaration");
+    return;
+  }
+
+  celt = VEC_safe_push (constructor_elt, gc, p->constructor_elements, NULL);
+  celt->index = indice;
+  celt->value = value;
 }
 
 /*
@@ -6905,9 +7087,6 @@ gccgm2_BuildEndSetConstructor (void)
 tree
 gccgm2_BuildSubrangeType (char *name, tree type, tree lowval, tree highval)
 {
-#if 0
-  return m2_integer_type_node;
-#else
   tree btype = skip_type_decl (type);
   tree lo = copy_node (gccgm2_BuildConvert (btype, gccgm2_FoldAndStrip (lowval), FALSE));
   tree hi = copy_node (gccgm2_BuildConvert (btype, gccgm2_FoldAndStrip (highval), FALSE));
@@ -6929,7 +7108,6 @@ gccgm2_BuildSubrangeType (char *name, tree type, tree lowval, tree highval)
     layout_type (skip_type_decl (id));
     return id;
   }
-#endif
 }
 
 /*

@@ -17,46 +17,126 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE FifoQueue ;
 
-
 FROM Lists IMPORT List, InitList, PutItemIntoList, GetItemFromList ;
 
+TYPE
+   Fifo = RECORD
+             Queue: List ;
+             Out  : CARDINAL ;
+          END ;
+
 VAR
-   Queue: List ;
-   Out  : CARDINAL ;
+   subrange,
+   enumeration,
+   constructor: Fifo ;
 
 
 (*
-   PutIntoFifoQueue - places a CARDINAL number, c, into a fifo queue.
+   PutInto - places a CARDINAL number, c, into a fifo queue.
 *)
 
-PROCEDURE PutIntoFifoQueue (c: CARDINAL) ;
+PROCEDURE PutInto (VAR f: Fifo; c: CARDINAL) ;
 BEGIN
-   PutItemIntoList(Queue, c)
-END PutIntoFifoQueue ;
+   WITH f DO
+      PutItemIntoList(Queue, c)
+   END
+END PutInto ;
 
 
 (*
-   GetFromFifoQueue - retrieves a CARDINAL number, c, from a fifo queue.
+   GetFrom - retrieves a CARDINAL number, c, from a fifo queue.
 *)
 
-PROCEDURE GetFromFifoQueue (VAR c: CARDINAL) ;
+PROCEDURE GetFrom (VAR f: Fifo; VAR c: CARDINAL) ;
 BEGIN
-   INC(Out) ;
-   c := GetItemFromList(Queue, Out)
-END GetFromFifoQueue ;
+   WITH f DO
+      INC(Out) ;
+      c := GetItemFromList(Queue, Out)
+   END
+END GetFrom ;
 
 
 (*
-   InitFifoQueue - initialize the fifo queue.
+   PutEnumerationIntoFifoQueue - places an enumeration symbol, c,
+                                 into a fifo queue.
 *)
 
-PROCEDURE InitFifoQueue ;
+PROCEDURE PutEnumerationIntoFifoQueue (c: CARDINAL) ;
 BEGIN
-   InitList(Queue) ;
-   Out := 0
-END InitFifoQueue ;
+   PutInto(enumeration, c)
+END PutEnumerationIntoFifoQueue ;
+
+
+(*
+   GetEnumerationFromFifoQueue - retrieves an enumeration symbol,
+                                 c, from a fifo queue.
+*)
+
+PROCEDURE GetEnumerationFromFifoQueue (VAR c: CARDINAL) ;
+BEGIN
+   GetFrom(enumeration, c)
+END GetEnumerationFromFifoQueue ;
+
+
+(*
+   PutSubrangeIntoFifoQueue - places a subrange symbol into a fifo
+                              queue.
+*)
+
+PROCEDURE PutSubrangeIntoFifoQueue (c: CARDINAL) ;
+BEGIN
+   PutInto(subrange, c)
+END PutSubrangeIntoFifoQueue ;
+
+
+(*
+   GetSubrangeFromFifoQueue - retrieves a subrange symbol from a
+                              fifo queue.
+*)
+
+PROCEDURE GetSubrangeFromFifoQueue (VAR c: CARDINAL) ;
+BEGIN
+   GetFrom(subrange, c)
+END GetSubrangeFromFifoQueue ;
+
+
+(*
+   PutConstructorIntoFifoQueue - places a constructor symbol
+                                 into a fifo queue.
+*)
+
+PROCEDURE PutConstructorIntoFifoQueue (c: CARDINAL) ;
+BEGIN
+   PutInto(constructor, c)
+END PutConstructorIntoFifoQueue ;
+
+
+(*
+   GetConstructorFromFifoQueue - retrieves a constructor symbol
+                                 from a fifo queue.
+*)
+
+PROCEDURE GetConstructorFromFifoQueue (VAR c: CARDINAL) ;
+BEGIN
+   GetFrom(constructor, c)
+END GetConstructorFromFifoQueue ;
+
+
+(*
+   Init - initialize the fifo queue.
+*)
+
+PROCEDURE Init (VAR f: Fifo) ;
+BEGIN
+   WITH f DO
+      InitList(Queue) ;
+      Out := 0
+   END
+END Init ;
 
 
 BEGIN
-   InitFifoQueue
+   Init(enumeration) ;
+   Init(subrange) ;
+   Init(constructor)
 END FifoQueue.

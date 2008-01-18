@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -64,7 +65,8 @@ FROM SymbolTable IMPORT NulSym,
                         IsProcedure, IsProcedureNested, IsModule,
                         IsDefImp,
       	       	     	IsSubscript, IsVarient, IsFieldVarient,
-      	       	     	IsType, IsProcType, IsSet, IsConst, IsConstSet,
+      	       	     	IsType, IsProcType, IsSet,
+                        IsConst, IsConstSet, IsConstructor,
                         IsFieldEnumeration,
                         IsExported, IsImported,
                         IsVarParam, IsRecordField, IsUnboundedParam,
@@ -110,9 +112,9 @@ FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBloc
 
 FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
-                  CollectSetDependants ;
+                  CollectConstructorDependants, PopConstructorTree ;
 
-FROM gccgm2 IMPORT Tree,
+FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
                    DeclareKnownType, DeclareKnownVariable,
                    GetDefaultType, GetCopyOfType,
@@ -570,7 +572,7 @@ END DeclareCharConstant ;
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 BEGIN
    PreAddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
-                                      GetStringLength(sym)))
+                                         GetStringLength(sym)))
 END DeclareStringConstant ;
 
 
@@ -602,10 +604,10 @@ END PromoteToString ;
 
 
 (*
-   ResolveConstSet - 
+   ResolveConstructor - 
 *)
 
-PROCEDURE ResolveConstSet (tokenno: CARDINAL; sym: CARDINAL) ;
+PROCEDURE ResolveConstructor (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    n1, n2: Name ;
    type,
@@ -619,19 +621,19 @@ BEGIN
       THEN
          n1 := GetSymName(sym) ;
          n2 := GetSymName(type) ;
-         printf2('declaring const %a = SET OF %a\n', n1, n2)
+         printf2('declaring const %a = %a { ... }\n', n1, n2)
       END ;
-      IF AllDependantsWritten(type) AND CollectSetDependants(tokenno, sym)
+      IF AllDependantsWritten(type) AND CollectConstructorDependants(tokenno, sym)
       THEN
          IF Debugging
          THEN
             n1 := GetSymName(sym) ;
             n2 := GetSymName(type) ;
-            printf2('dependants are all known for %a = SET OF %a\n', n1, n2)
+            printf2('dependants are all known for %a = %a { ... }\n', n1, n2)
          END
       END
    END
-END ResolveConstSet ;
+END ResolveConstructor ;
 
 
 (*
@@ -648,7 +650,7 @@ BEGIN
    END ;
    IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
    THEN
-      IF IsConstSet(sym) OR IsFieldEnumeration(sym)
+      IF IsConstSet(sym) OR IsFieldEnumeration(sym) OR IsConstructor(sym)
       THEN
          IF GccKnowsAbout(GetType(sym))
          THEN
@@ -659,9 +661,9 @@ BEGIN
          END
       END ;
 
-      IF IsConstSet(sym)
+      IF IsConstSet(sym) OR IsConstructor(sym)
       THEN
-         ResolveConstSet(tokenno, sym)
+         ResolveConstructor(tokenno, sym)
       END ;
 
       IF IsConstString(sym)
@@ -679,6 +681,9 @@ BEGIN
          IF IsConstSet(sym)
          THEN
             DeclareConstantFromTree(sym, PopSetTree(tokenno))
+         ELSIF IsConstructor(sym)
+         THEN
+            DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
          ELSIF IsRealType(GetType(sym))
          THEN
             DeclareConstantFromTree(sym, PopRealTree())
@@ -697,29 +702,8 @@ END DeclareConstant ;
 *)
 
 PROCEDURE DeclareParameters (sym: CARDINAL) ;
-VAR
-   son,
-   type,
-   p, i: CARDINAL ;
 BEGIN
    DeclareUnboundedProcedureParameters(sym)
-(*
-
-
-
-   IF IsProcedure(sym)
-   THEN
-      p := NoOfParam(sym) ;
-      i := p ;
-      WHILE i>0 DO
-         son := GetNth(sym, i) ;
-         type := GetType(son) ;
-         (* BuildTypeDeclaration(Mod2Gcc(type)) ; *)  (* this breaks the compiler if enabled *)
-         (* BuildTypeDeclaration(Mod2Gcc(son)) ; *)
-         DEC(i)
-      END
-   END
-*)
 END DeclareParameters ;
 
 
@@ -1095,8 +1079,9 @@ BEGIN
       IF DeclaredOutstandingTypes(FALSE, start, end)
       THEN
       END ;
-   UNTIL (NOT ResolveConstantExpressions(ToDoConstants, start, end)) AND (n=NoOfItemsInList(ToDoConstants)) AND
-         (m=NoOfItemsInList(ToDoConstants)) ;
+   UNTIL (NOT ResolveConstantExpressions(ToDoConstants, start, end)) AND
+         (n=NoOfItemsInList(ToDoConstants)) AND
+         (m=NoOfItemsInList(ToDoConstants))
 END DeclareTypesAndConstantsInRange ;
 
 
@@ -1950,7 +1935,15 @@ BEGIN
       IncludeType(l, sym)
    ELSIF IsConst(sym)
    THEN
-      printf2('sym %d IsConst (%a)', sym, n)
+      printf2('sym %d IsConst (%a)', sym, n) ;
+      IF IsConstructor(sym)
+      THEN
+         printf0(' constructor ')
+      ELSIF IsConstSet(sym)
+      THEN
+         printf0(' constructor set ')
+      END ;
+      IncludeType(l, sym)
    ELSIF IsConstString(sym)
    THEN
       printf2('sym %d IsConstString (%a)', sym, n)

@@ -1,3 +1,61 @@
+2008-01-17       Gaius Mulley <gaius@gnu.org>
+
+	* ISO conformant compound literal constructors have been
+	  implemented.
+	* gm2/TODO:  updated.
+	* gm2/gccgm2.c:  added constructor type and build
+	  functions to create ARRAY, RECORD and SET compound
+	  constructors.
+	* gm2/bnf/m2-2.bnf:  modified grammer to include compound
+	  constructors and associated type build functions.  Limited
+	  compound literal type checking is also implemented.
+	* gm2/bnf/m2-3.bnf:  modified grammer to include compound
+	  constructors and to appropriate quadruple generation.
+	* gm2/bnf/m2-h.bnf:  modified grammer to include compound
+	  constructors during the hidden pass.
+	* gm2/gm2/bnf/m2.bnf:  modified grammer to include compound
+	  constructors.
+	* gm2/FifoQueue.def:  extended to allow enumerations and
+	  subranges to be stored and retrieved.
+	* gm2/FifoQueue.mod:  implemented appropriately.
+	* gm2/gm2-compiler/M2ALU.def:  major alterations to allow
+	  constructors (ARRAY, RECORD and SET) constants to be
+	  created at compile time and also be translated into GCC trees.
+	* gm2/gm2-compiler/M2ALU.mod:  implemented above, more checking
+	  to ensure that a RECORDs and ARRAYs cannot have bits included.
+	  SETs cannot have fields initialized etc.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  resolves all dependants
+	  of compound literals and declares Modula-2 constructors to
+	  their gcc tree counterpart.
+	* gm2/gm2-compiler/M2Quads.def:  BuildConstructorStart,
+	  BuildConstructorEnd, CollectConstructor, BuildComponentValue
+	  added.
+	* gm2/gm2-compiler/M2Quads.mod:  BuildConstructorStart,
+	  BuildConstructorEnd, CollectConstructor, BuildComponentValue,
+	  AddFieldTo implemented.
+	* gm2/gm2-compiler/P1SymBuild.mod:  use
+	  PutEnumerationIntoFifoQueue.
+	* gm2/gm2-compiler/P2SymBuild.mod:  use
+	  GetEnumerationFromFifoQueue and PutSubrangeInfoFifoQueue.
+	  Implement constructor type checking and add error messages.
+	  Implement constructor symbol creation.
+	* gm2/gm2-compiler/P3SymBuild.mod:  use
+	  GetSubrangeFromFifoQueue.
+	* gm2/gm2-compiler/SymbolTable.def:  export IsConstructor
+	  and PutConstructor.
+	* gm2/gm2-compiler/SymbolTable.mod:  add IsConstructor
+	  field to SymConstVar and SymConstLit record in symbol
+	  table.  Implement procedures IsConstructor and
+	  PutConstructor.
+	* gm2/gm2-compiler/gccgm2.def:  declare and export
+	  new versions of BuildStartSetConstructor,
+	  BuildSetConstructorElement, BuildEndSetConstructor.
+	  Also export BuildStartRecordConstructor,
+	  BuildEndRecordConstructor, BuildRecordConstructorElement,
+	  BuildStartArrayConstructor, BuildEndArrayConstructor and
+          BuildArrayConstructorElement.  Also export Constructor
+	  hidden type.
+	
 2007-12-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/NEWS:  updated.

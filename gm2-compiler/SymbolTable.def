@@ -119,6 +119,7 @@ EXPORT QUALIFIED NulSym,
                  PutConst,
                  PutConstString,
                  PutConstSet,
+                 PutConstructor,
                  PutFieldRecord,
                  PutFieldVarient,
                  GetVarient,
@@ -171,6 +172,7 @@ EXPORT QUALIFIED NulSym,
                  IsConstString,
                  IsConstLit,
                  IsConstSet,
+                 IsConstructor,
                  IsDummy,
                  IsTemporary, IsVarAParam,
                  IsSubscript,
@@ -1009,6 +1011,14 @@ PROCEDURE PutConstSet (Sym: CARDINAL) ;
 *)
 
 PROCEDURE IsConstSet (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutConstructor - informs the symbol, sym, that this will be
+                    a constructor constant.
+*)
+
+PROCEDURE PutConstructor (Sym: CARDINAL) ;
 
 
 (*
@@ -2113,6 +2123,13 @@ PROCEDURE IsConstString (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsConstLit (Sym: CARDINAL) : BOOLEAN ;
+
+(*
+   IsConstructor - returns TRUE if the constant is declared as a
+                   constant set, array or record.
+*)
+
+PROCEDURE IsConstructor (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

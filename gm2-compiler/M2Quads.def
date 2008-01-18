@@ -74,6 +74,10 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildProfileOn, BuildProfileOff,
                  BuildOptimizeOn, BuildOptimizeOff,
                  BuildInline, BuildLineNo, PushLineNo,
+                 BuildConstructorStart,
+                 BuildConstructorEnd,
+                 CollectConstructor,
+                 BuildComponentValue,
 
                  SetOptionOptimizing, SetOptionCoding, SetOptionProfiling,
 
@@ -1607,6 +1611,62 @@ PROCEDURE BuildInclRange ;
 *)
 
 PROCEDURE BuildInclBit ;
+
+
+(*
+   BuildConstructorStart - builds a constructor.
+                           Stack
+
+                           Entry                 Exit
+
+                    Ptr ->                                      <- Ptr
+                           +------------+        +------------+
+                           | Name       |        | Sym        |
+                           |------------+        |------------|
+*)
+
+PROCEDURE BuildConstructorStart ;
+
+
+(*
+   BuildConstructorEnd - builds a constructor.
+                         Stack
+
+                         Entry                 Exit
+
+                  Ptr ->                                      <- Ptr
+                         +------------+        +------------+
+                         | Name       |        | Sym        |
+                         |------------+        |------------|
+*)
+
+PROCEDURE BuildConstructorEnd ;
+
+
+(*
+   CollectConstructor - collects a constructor from the
+                        fifo queue and ignores it.
+*)
+
+PROCEDURE CollectConstructor ;
+
+
+(*
+   BuildComponentValue -  builds a component value.
+
+                          Entry                 Exit
+
+                   Ptr ->                                      <- Ptr
+
+
+                          +------------+        +------------+
+                          | const      |        | const      |
+                          |------------|        |------------|
+
+                          (this is incomplete (fixme))
+*)
+
+PROCEDURE BuildComponentValue ;
 
 
 (*

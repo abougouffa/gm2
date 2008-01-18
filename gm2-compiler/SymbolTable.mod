@@ -26,6 +26,7 @@ FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
                   IsSolved ;
+
 FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
                     WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
@@ -331,21 +332,23 @@ TYPE
                  END ;
 
    SymConstLit = RECORD
-                    name     : Name ;         (* Index into name array, name *)
+                    name         : Name ;         (* Index into name array, name *)
                                               (* of const.                   *)
-                    Value    : PtrToValue ;   (* Value of the constant.      *)
-                    Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
-                    IsSet    : BOOLEAN ;      (* is the constant a set?      *)
-                    At       : Where ;        (* Where was sym declared/used *)
+                    Value        : PtrToValue ;   (* Value of the constant.      *)
+                    Type         : CARDINAL ;     (* TYPE of constant, char etc  *)
+                    IsSet        : BOOLEAN ;      (* is the constant a set?      *)
+                    IsConstructor: BOOLEAN ;      (* is the constant a set?      *)
+                    At           : Where ;        (* Where was sym declared/used *)
                  END ;
 
    SymConstVar = RECORD
-                    name     : Name ;         (* Index into name array, name *)
+                    name         : Name ;     (* Index into name array, name *)
                                               (* of const.                   *)
-                    Value    : PtrToValue ;   (* Value of the constant       *)
-                    Type     : CARDINAL ;     (* TYPE of constant, char etc  *)
-                    IsSet    : BOOLEAN ;      (* is the constant a set?      *)
-                    At       : Where ;        (* Where was sym declared/used *)
+                    Value        : PtrToValue ; (* Value of the constant       *)
+                    Type         : CARDINAL ; (* TYPE of constant, char etc  *)
+                    IsSet        : BOOLEAN ;  (* is the constant a set?      *)
+                    IsConstructor: BOOLEAN ;  (* is the constant a set?      *)
+                    At           : Where ;    (* Where was sym declared/used *)
                  END ;
 
    SymVar = RECORD
@@ -799,10 +802,6 @@ BEGIN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
       Sym := FreeSymbol ;
-      IF Sym=153
-      THEN
-         stop
-      END ;
       Symbols[Sym].SymbolType := DummySym ;
       INC(FreeSymbol)
    END
@@ -2954,6 +2953,7 @@ BEGIN
                        PopInto(ConstLit.Value) ;
                        ConstLit.Type := GetConstLitType(Sym) ;
                        ConstLit.IsSet := FALSE ;
+                       ConstLit.IsConstructor := FALSE ;
                        InitWhereDeclared(ConstLit.At)
 
          ELSE
@@ -2984,6 +2984,7 @@ BEGIN
             Value := InitValue() ;
             Type  := NulSym ;
             IsSet := FALSE ;
+            IsConstructor := FALSE ;
             InitWhereDeclared(At)
          END
       END ;
@@ -3402,6 +3403,48 @@ BEGIN
       END
    END
 END IsConstSet ;
+
+
+(*
+   PutConstructor - informs the const var symbol, sym, that it is or
+                    will contain a constructor (record, set or array)
+                    value.
+*)
+
+PROCEDURE PutConstructor (Sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ConstVarSym:  ConstVar.IsConstructor := TRUE |
+      ConstLitSym:  ConstLit.IsConstructor := TRUE
+
+      ELSE
+         InternalError('expecting ConstVar or ConstLit symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END PutConstructor ;
+
+
+(*
+   IsConstructor - returns TRUE if the constant is declared as a
+                   constant set, array or record.
+*)
+
+PROCEDURE IsConstructor (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ConstVarSym:  RETURN( ConstVar.IsConstructor ) |
+      ConstLitSym:  RETURN( ConstLit.IsConstructor )
+
+      ELSE
+         RETURN( FALSE )
+      END
+   END
+END IsConstructor ;
 
 
 (*
@@ -3950,6 +3993,10 @@ END GetVarWritten ;
 
 PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
 BEGIN
+   IF Sym=684
+   THEN
+      stop
+   END ;
    WITH Symbols[Sym] DO
       CASE Symbols[Sym].SymbolType OF
 

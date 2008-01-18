@@ -1,15 +1,14 @@
+*  finish ISO language support (constant constructors, exception
+   handling, complex types, EXCEPT and FINALLY)
 *  port GM2 to the latest version of GCC
 *  complete cygwin port
-*  finish ISO libraries
-*  finish ISO language support
-*  finish optimizer support (-O)
+*  finish ISO libraries (processes)
 *  back port gm2 to previous releases of gcc
 *  introduce shared library support [Iztok]
 *  fix bugs in h2def
 *  fix bug in varient record found in SysVec.mod
 *  fix bug (no export qualified leads to unqualified assembler names)
 *  finish documentation (p2, p3, p4 description) and scope behaviour
-*  implement EXCEPT and FINALLY implemented [Christoph Schlegel <modula2@myrealbox.com>]
 *  complete implementation of the following Logitech-3.0 libraries:
    BitBlockOps, BitByteOps, BitWordOps, BlockOps, Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,

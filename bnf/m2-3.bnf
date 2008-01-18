@@ -1,4 +1,5 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+-- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -25,7 +26,8 @@
 -- and parse with actions constant declarations.
 --
 % module P3Build begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -56,7 +58,8 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        EqualTok, HashTok, LessGreaterTok, LessTok, LessEqualTok,
                        GreaterTok, GreaterEqualTok, InTok, PlusTok, MinusTok,
-                       OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok, AndTok, AmbersandTok ;
+                       OrTok, TimesTok, DivTok, DivideTok, ModTok, RemTok,
+                       AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildModuleStart,
@@ -94,6 +97,10 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseEndStatementSequence,
                     BuildCaseList,
                     BuildCaseRange, BuildCaseEquality,
+                    BuildConstructorStart,
+                    BuildConstructorEnd,
+                    BuildComponentValue,
+                    CollectConstructor,
                     RecordOp,
                     BuildNulParam,
                     BuildDesignatorRecord,
@@ -669,18 +676,33 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString :=
-                string
-             =:
+ConstString := string =:
 
-ConstSetOrQualidentOrFunction := Qualident [ SimpleSet
-                                             | ActualParameters            % BuildConstFunctionCall %
-                                                                ]
+ComponentElement := ConstExpression ( ".." ConstExpression                 % PushT(PeriodPeriodTok) %
+                                      |                                    % PushT(NulTok) %
+                                    )
+                  =:
+
+ComponentValue := ComponentElement ( 'BY' ConstExpression                  % PushT(ByTok) %
+                                     
+                                     |                                     % PushT(NulTok) %
+                                   )
+                =:
+
+ArraySetRecordValue := ComponentValue                                      % BuildComponentValue %
+                                      { ',' ComponentValue                 % BuildComponentValue %
+                                                           }
+                     =:
+
+Constructor := '{'                                                         % BuildConstructorStart %
+                  [ ArraySetRecordValue ]
+               '}' =:
+
+ConstSetOrQualidentOrFunction := Qualident
+                                 [ Constructor | ActualParameters          % BuildConstFunctionCall %
+                                                                       ]
                                  |                                         % BuildSetStart %
-                                   SimpleSet =:
-
-QualidentOrSet := SimpleSet                                                % BuildSetStart %
-                  | Qualident [ SimpleSet ] =:
+                                   SimpleSet =:                                   
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
                   Ident                                                    % BuildBuiltinConst ;
@@ -821,8 +843,18 @@ SilentConstString := string =:
 
 SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
-SilentConstSetOrQualidentOrFunction := Qualident [ SilentSimpleSet | SilentActualParameters ] |
-                                       SilentSimpleSet =:
+
+SilentComponentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
+
+SilentComponentValue := SilentComponentElement [ 'BY' SilentConstExpression ] =:
+
+SilentArraySetRecordValue := SilentComponentValue { ',' SilentComponentValue } =:
+
+SilentConstructor := '{'                                                   % CollectConstructor %
+                         [ SilentArraySetRecordValue ] '}' =:
+
+SilentConstSetOrQualidentOrFunction := SilentSimpleSet | Qualident
+                                       [ SilentConstructor | SilentActualParameters ] =:
 
 SilentSimpleSet := "{"  [ SilentElement { "," SilentElement } ] "}" =:
 
@@ -994,7 +1026,7 @@ SimpleSet := "{"                                                           % Bui
 
 SetOrDesignatorOrFunction := Qualident                                     % CheckWithReference %
                                                                            % CheckOuterScopeProcedureVariable %
-                              [ SimpleSet |
+                              [ Constructor |
                                 SimpleDes [ ActualParameters               % BuildFunctionCall %
                                                              ]
                               ]                                |

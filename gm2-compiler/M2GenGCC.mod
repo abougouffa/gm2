@@ -69,7 +69,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetProcedureBuiltin,
                         GetPriority, GetNeedSavePriority,
                         PutConstString,
-                        PutConst, PutConstSet,
+                        PutConst, PutConstSet, PutConstructor,
                         NulSym ;
 
 FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
@@ -106,6 +106,7 @@ FROM Lists IMPORT InitList, KillList,
 
 FROM M2ALU IMPORT PtrToValue,
                   IsValueTypeReal, IsValueTypeSet,
+                  IsValueTypeConstructor, IsValueTypeArray, IsValueTypeRecord,
                   PushIntegerTree, PopIntegerTree,
                   PushSetTree, PopSetTree,
                   PopRealTree, PushCard,
@@ -2074,9 +2075,11 @@ BEGIN
                   ELSIF IsValueTypeSet()
                   THEN
                      PopValue(op1) ;
-                     (* PushValue(op1) ; *)
                      PutConstSet(op1)
-                     (* AddModGcc(op1, PopSetTree(tokenno)) *)
+                  ELSIF IsValueTypeConstructor() OR IsValueTypeArray() OR IsValueTypeRecord()
+                  THEN
+                     PopValue(op1) ;
+                     PutConstructor(op1)
                   ELSE
                      CheckOverflow(tokenno, PopIntegerTree()) ;
                      PushValue(op3) ;
@@ -3205,7 +3208,7 @@ BEGIN
       THEN
          (* fine, we can take advantage of this and fold constants *)
          PushValue(op1) ;
-         AddBit(op3) ;
+         AddBit(tokenno, op3) ;
          AddModGcc(op1, PopSetTree(tokenno)) ;
          RemoveItemFromList(l, op1) ;
          SubQuad(quad)

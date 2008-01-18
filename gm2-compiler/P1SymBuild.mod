@@ -30,7 +30,7 @@ FROM M2Options IMPORT Iso ;
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok, BuiltinTok, InlineTok ;
 
-FROM FifoQueue IMPORT PutIntoFifoQueue ;
+FROM FifoQueue IMPORT PutEnumerationIntoFifoQueue ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -751,7 +751,7 @@ BEGIN
       PutFieldEnumeration(Type, OperandT(n-i+1)) ;
       INC(i)
    END ;
-   PutIntoFifoQueue(Type) ;  (* store enumeration away for pass 2 *)
+   PutEnumerationIntoFifoQueue(Type) ;  (* store enumeration away for pass 2 *)
    PopN(n+1) ;
    PushT(name) ;
    PushT(Type)

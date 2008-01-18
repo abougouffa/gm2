@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -23,8 +24,9 @@ FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2Error IMPORT WriteFormat0, WriteFormat1, WriteFormat2, FlushErrors, InternalError ;
+FROM M2LexBuf IMPORT GetTokenNo ;
 
-FROM SymbolTable IMPORT NulSym,
+FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         StartScope, EndScope, GetScope, GetCurrentScope,
                         GetModuleScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
@@ -35,7 +37,11 @@ FROM SymbolTable IMPORT NulSym,
                         CheckForUnknownInModule,
                         GetFromOuterModule,
                         CheckForEnumerationInCurrentModule,
-                        GetMode, PutVariableAtAddress, ModeOfAddr,
+                        GetMode, PutVariableAtAddress, ModeOfAddr, SkipType,
+                        IsSet, PutConstSet,
+                        IsConst, IsConstructor, PutConst, PutConstructor,
+                        PopValue, PushValue,
+                        MakeTemporary, PutVar,
                         PutSubrange,
                         GetSymName ;
 
@@ -49,8 +55,9 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM FifoQueue IMPORT GetFromFifoQueue ;
-FROM M2Reserved IMPORT ImportTok ;
+FROM FifoQueue IMPORT GetSubrangeFromFifoQueue, GetConstructorFromFifoQueue ;
+FROM M2Reserved IMPORT NulTok, ImportTok ;
+FROM M2ALU IMPORT AddElements, AddField, AddBitRange, ChangeToConstructor ;
 
 
 (*
@@ -566,9 +573,9 @@ VAR
 BEGIN
    PopT(High) ;
    PopT(Low) ;
-   GetFromFifoQueue(Type) ;  (* Collect subrange type from pass 2 and fill in *)
-                             (* bounds.                                       *)
-   GetFromFifoQueue(Base) ;  (* Get base of subrange (maybe NulSym)           *)
+   GetSubrangeFromFifoQueue(Type) ;  (* Collect subrange type from pass 2 and fill in *)
+                                     (* bounds.                                       *)
+   GetSubrangeFromFifoQueue(Base) ;  (* Get base of subrange (maybe NulSym)           *)
 (*
    WriteString('Subrange type name is: ') ; WriteKey(GetSymName(Type)) ; WriteLn ;
    WriteString('Subrange High is: ') ; WriteKey(GetSymName(High)) ;
@@ -655,7 +662,6 @@ BEGIN
                     __FILE__, __LINE__)
    END
 END BuildVarAtAddress ;
-
 
 
 (*

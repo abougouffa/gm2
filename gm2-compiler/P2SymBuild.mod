@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -23,7 +24,7 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Base IMPORT Char, MixTypes ;
-FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt ;
+FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt, ErrorStringAt ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -33,7 +34,8 @@ FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
 
-FROM FifoQueue IMPORT GetFromFifoQueue, PutIntoFifoQueue ;
+FROM FifoQueue IMPORT GetEnumerationFromFifoQueue, PutSubrangeIntoFifoQueue,
+                      PutConstructorIntoFifoQueue ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -42,13 +44,14 @@ FROM SymbolTable IMPORT NulSym,
                         IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         GetCurrentModule, GetMainModule,
+                        MakeTemporary,
                         MakeConstLit,
                         MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
                         MakeVar, MakeType, PutType,
                         PutMode,
                         PutFieldEnumeration, PutSubrange, PutVar, PutConst,
-                        PutConstSet,
+                        PutConstSet, PutConstructor,
                         IsDefImp, IsType,
                         IsSubrange, IsEnumeration, IsConstString,
                         IsError,
@@ -133,12 +136,14 @@ CONST
    Debugging = FALSE ;
 
 TYPE
-   constType = (unknown, set, str) ;
+   constType = (unknown, set, str, constructor, array) ;
 
 VAR
-   AnonymousName: CARDINAL ;
-   type         : constType ;
-   TypeStack    : StackOfWord ;
+   AnonymousName     : CARDINAL ;
+   type              : constType ;
+   RememberedConstant: CARDINAL ;
+   RememberStack,
+   TypeStack         : StackOfWord ;
 
 
 (*
@@ -678,11 +683,12 @@ END BuildString ;
 PROCEDURE BuildConst ;
 VAR
    name: Name ;
-   Sym : CARDINAL ;
+   sym : CARDINAL ;
 BEGIN
    PopT(name) ;
-   Sym := MakeConstVar(name) ;
-   PushT(Sym)
+   sym := MakeConstVar(name) ;
+   PushT(sym) ;
+   RememberConstant(sym)
 END BuildConst ;
 
 
@@ -720,7 +726,7 @@ VAR
 BEGIN
    PopT(n) ;       (* n := # *)
    name := OperandT(n+1) ;
-   GetFromFifoQueue(Type) ;
+   GetEnumerationFromFifoQueue(Type) ;
    CheckForExportedImplementation(Type) ;   (* May be an exported hidden type *)
    PopN(n) ;
    PushT(Type)
@@ -751,9 +757,9 @@ VAR
 BEGIN
    PopT(name) ;
    Type := MakeSubrange(name) ;
-   PutIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
-                              (* its bounds during pass 3.                  *)
-   PutIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
+   PutSubrangeIntoFifoQueue(Type) ;   (* Store Subrange away so that we can fill in *)
+                                      (* its bounds during pass 3.                  *)
+   PutSubrangeIntoFifoQueue(Base) ;   (* store Base type of subrange away as well.  *)
    CheckForExportedImplementation(Type) ; (* May be an exported hidden type *)
    PushT(name) ;
    PushT(Type)
@@ -2246,7 +2252,7 @@ BEGIN
    END ;
    IF Var=VarTok
    THEN
-      (* VAR pamarater *)
+      (* VAR parameter *)
       PutProcTypeVarParam(ProcTypeSym, TypeSym)
    ELSE
       (* Non VAR parameter *)
@@ -2254,6 +2260,73 @@ BEGIN
    END ;
    PushT(ProcTypeSym)
 END BuildFormalType ;
+
+
+(*
+   SaveRememberedConstructor - 
+*)
+
+PROCEDURE SaveRememberedConstructor ;
+BEGIN
+(*
+   IF RememberedConstant=NulSym
+   THEN
+      RememberedConstant := MakeTemporary(ImmediateValue)
+   END ;
+   PutConstructorIntoFifoQueue(RememberedConstant)
+*)
+
+END SaveRememberedConstructor ;
+
+
+(*
+   GetSeenString - returns a string corresponding to, s.
+*)
+
+PROCEDURE GetSeenString (s: constType) : String ;
+BEGIN
+   CASE s OF
+
+   unknown    : RETURN( InitString('unknown') ) |
+   set        : RETURN( InitString('SET') ) |
+   str        : RETURN( InitString('string') ) |
+   constructor: RETURN( InitString('constructor') ) |
+   array      : RETURN( InitString('ARRAY') )
+
+   ELSE
+      InternalError('unexpected value of type', __FILE__, __LINE__)
+   END ;
+   RETURN( NIL )
+END GetSeenString ;
+
+
+(*
+   SetTypeTo - attempts to set, type, to, s.
+*)
+
+PROCEDURE SetTypeTo (s: constType) ;
+VAR
+   s1, s2, s3: String ;
+BEGIN
+   IF type=unknown
+   THEN
+      type := s
+   ELSIF (type=constructor) AND (s#str)
+   THEN
+      type := s
+   ELSIF (s=constructor) AND ((type=array) OR (type=set))
+   THEN
+      (* leave it alone *)
+   ELSIF type#s
+   THEN
+      s1 := GetSeenString(type) ;
+      s2 := GetSeenString(s) ;
+      s3 := Sprintf2(InitString('cannot create a %s constant together with a %s constant'), s1, s2) ;
+      ErrorStringAt(s3, GetTokenNo()) ;
+      s1 := KillString(s1) ;
+      s2 := KillString(s2)
+   END
+END SetTypeTo ;
 
 
 (*
@@ -2272,8 +2345,30 @@ END SeenUnknown ;
 
 PROCEDURE SeenSet ;
 BEGIN
-   type := set
+   SetTypeTo(set) ;
+   SaveRememberedConstructor
 END SeenSet ;
+
+
+(*
+   SeenArray - sets the operand type to array.
+*)
+
+PROCEDURE SeenArray ;
+BEGIN
+   SetTypeTo(array)
+END SeenArray ;
+
+
+(*
+   SeenConstructor - sets the operand type to constructor.
+*)
+
+PROCEDURE SeenConstructor ;
+BEGIN
+   SetTypeTo(constructor) ;
+   SaveRememberedConstructor
+END SeenConstructor ;
 
 
 (*
@@ -2282,7 +2377,7 @@ END SeenSet ;
 
 PROCEDURE SeenString ;
 BEGIN
-   type := str
+   SetTypeTo(str)
 END SeenString ;
 
 
@@ -2298,9 +2393,11 @@ BEGIN
    Sym := OperandT(1) ;
    CASE type OF
 
-   set    :  PutConstSet(Sym) |
-   str    :  PutConstString(Sym, MakeKey('')) |
-   unknown:
+   set        :  PutConstSet(Sym) |
+   str        :  PutConstString(Sym, MakeKey('')) |
+   array,
+   constructor:  PutConstructor(Sym) |
+   unknown    :  
 
    ELSE
    END
@@ -2327,6 +2424,38 @@ BEGIN
 END PopType ;
 
 
+(*
+   PushRememberConstant - 
+*)
+
+PROCEDURE PushRememberConstant ;
 BEGIN
-   TypeStack := InitStackWord()
+   PushWord(RememberStack, RememberedConstant) ;
+   RememberConstant(NulSym)
+END PushRememberConstant ;
+
+
+(*
+   PopRememberConstant - 
+*)
+
+PROCEDURE PopRememberConstant ;
+BEGIN
+   RememberedConstant := PopWord(RememberStack)
+END PopRememberConstant ;
+
+
+(*
+   RememberConstant - 
+*)
+
+PROCEDURE RememberConstant (sym: CARDINAL) ;
+BEGIN
+   RememberedConstant := sym
+END RememberConstant ;
+
+
+BEGIN
+   TypeStack := InitStackWord() ;
+   RememberStack := InitStackWord()
 END P2SymBuild.

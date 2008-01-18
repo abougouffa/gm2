@@ -27,7 +27,7 @@ DEFINITION MODULE gccgm2 ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-EXPORT QUALIFIED Tree,
+EXPORT QUALIFIED Tree, Constructor,
 
                  BuildBinProcedure, BuildUnaryProcedure,
                  BuildSetProcedure,
@@ -63,6 +63,10 @@ EXPORT QUALIFIED Tree,
                  BuildArrayType, BuildSetType,
                  BuildStartSetConstructor, BuildSetConstructorElement,
                  BuildEndSetConstructor,
+                 BuildStartRecordConstructor, BuildEndRecordConstructor,
+                 BuildRecordConstructorElement,
+                 BuildStartArrayConstructor, BuildEndArrayConstructor,
+                 BuildArrayConstructorElement,
                  BuildStartFunctionType, BuildEndFunctionType,
                  InitFunctionTypeParameters,
                  BuildParameterDeclaration,
@@ -123,6 +127,7 @@ EXPORT QUALIFIED Tree,
 
 TYPE
    Tree                = ADDRESS ;
+   Constructor         = ADDRESS ;
    BuildBinProcedure   = PROCEDURE (Tree, Tree, BOOLEAN) : Tree ;
    BuildUnaryProcedure = PROCEDURE (Tree, BOOLEAN) : Tree ;
    BuildExprProcedure  = PROCEDURE (Tree, Tree) : Tree ;
@@ -684,21 +689,66 @@ PROCEDURE BuildSetType (name: ADDRESS; type, low, high: Tree) : Tree ;
                               Remember that type is really a record type.
 *)
 
-PROCEDURE BuildStartSetConstructor (type: Tree) ;
+PROCEDURE BuildStartSetConstructor (type: Tree) : Constructor ;
 
 
 (*
    BuildSetConstructorElement - adds, value, to the constructor_element_list.
 *)
 
-PROCEDURE BuildSetConstructorElement (value: Tree) ;
+PROCEDURE BuildSetConstructorElement (p: Constructor; value: Tree) ;
 
 
 (*
    BuildEndSetConstructor - finishes building a set constant.
 *)
 
-PROCEDURE BuildEndSetConstructor () : Tree ;
+PROCEDURE BuildEndSetConstructor (p: Constructor) : Tree ;
+
+
+(*
+   BuildStartRecordConstructor - initializes a record compound
+                                 constructor frame.
+*)
+
+PROCEDURE BuildStartRecordConstructor (t: Tree) : Constructor ;
+
+
+(*
+   BuildEndRecordConstructor - returns a tree containing the record compound literal.
+*)
+
+PROCEDURE BuildEndRecordConstructor (p: Constructor) : Tree ;
+
+
+(*
+   BuildRecordConstructorElement - adds, value, to the constructor_element_list.
+*)
+
+PROCEDURE BuildRecordConstructorElement (p: Constructor; value: Tree) ;
+
+
+(*
+   BuildStartArrayConstructor - initializes an array compound
+                                constructor frame.
+*)
+
+PROCEDURE BuildStartArrayConstructor (t: Tree) : Constructor ;
+
+
+(*
+   BuildEndArrayConstructor - returns a tree containing the array
+                              compound literal.
+*)
+
+PROCEDURE BuildEndArrayConstructor (p: Constructor) : Tree ;
+
+
+(*
+   BuildArrayConstructorElement - adds, value, to the constructor_element_list.
+*)
+
+PROCEDURE BuildArrayConstructorElement (p: Constructor; value, indice: Tree) ;
 
 
 (*

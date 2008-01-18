@@ -1,4 +1,5 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+-- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +23,8 @@
 --  pg takes this file and produces a top down parser for Modula-2.
 --
 % module P2Build begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -38,6 +40,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE P2Build ;
 
 FROM M2LexBuf IMPORT currentstring, currenttoken, GetToken, InsertToken, InsertTokenAndRewind, GetTokenNo ;
@@ -104,7 +107,8 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
                        DetermineType, PushType, PopType,
-                       SeenUnknown, SeenSet, SeenString ;
+                       SeenUnknown, SeenSet, SeenString, SeenArray, SeenConstructor,
+                       PushRememberConstant, PopRememberConstant ;
 
 FROM M2Reserved IMPORT ArrayTok, VarTok ;
 
@@ -575,17 +579,21 @@ Qualident :=                                                               % VAR
              { "." Ident }                                                 % END %
            =:
 
-ConstantDeclaration := Ident "="                                           % BuildConst ;
-                                                                             SeenUnknown %
-                       ConstExpression                                     % DetermineType ;
+ConstantDeclaration := Ident "="                                           % SeenUnknown ;
+                                                                             BuildConst %
+                       ConstExpressionInitial                              % DetermineType ;
                                                                              PopNothing %
                      =:
 
-ConstExpression :=                                                         % PushAutoOff %
+ConstExpressionInitial :=                                                  % PushAutoOff %
                    SimpleConstExpr [ Relation SimpleConstExpr ]            % PopAuto %
                 =:
 
-Relation :=                                                                % SeenUnknown (* actually it will be a BOOLEAN, but this is not a SET and not a string *) %
+ConstExpression :=                                                         % PushType ; SeenUnknown ; PushAutoOff %
+                   SimpleConstExpr [ Relation SimpleConstExpr ]            % PopAuto ; PopType %
+                =:
+
+Relation :=                                                                % SeenUnknown (* actually it will be a BOOLEAN, but this is not a constructor and not a string *) %
             "=" | "#" | "<>" | "<" | "<=" | ">" | ">=" | "IN" =:
 
 SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
@@ -593,17 +601,17 @@ SimpleConstExpr := UnaryOrConstTerm { AddOperator ConstTerm } =:
 UnaryOrConstTerm := "+" ConstTerm | "-" ConstTerm | ConstTerm =:
 
 AddOperator := "+" | "-" |
-               "OR"                                                     % SeenUnknown (* actually it will be a BOOLEAN, but this is not a SET and not a string *) %
+               "OR"                                                        % SeenUnknown (* actually it will be a BOOLEAN, but this is not a constructor and not a string *) %
  =:
 
 ConstTerm := ConstFactor { MulOperator ConstFactor } =:
 
 MulOperator := "*" | "/"
-               | "DIV"                                                    % SeenUnknown %
-               | "MOD"                                                    % SeenUnknown %
-               | "REM"                                                    % SeenUnknown %
-               | "AND"                                                    % SeenUnknown %
-               | "&"                                                      % SeenUnknown %
+               | "DIV"                                                     % SeenUnknown %
+               | "MOD"                                                     % SeenUnknown %
+               | "REM"                                                     % SeenUnknown %
+               | "AND"                                                     % SeenUnknown %
+               | "&"                                                       % SeenUnknown %
               =:
 
 ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
@@ -612,20 +620,32 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString :=  string                                                     % SeenString %
+ConstString := string                                                      % SeenString %
              =:
 
-ConstSetOrQualidentOrFunction := SimpleSet                                 % SeenSet %
-                                 | Qualident [ SimpleSet                   % SeenSet %
-                                               | ConstActualParameters ]  =:
+ComponentElement := ConstExpression [ ".."                                 % PopType ; SeenSet ; PushType ; SeenUnknown %
+                                           ConstExpression ] =:
 
-ConstActualParameters :=                                                   % PushType %
+ComponentValue :=                                                          % PushType ; SeenUnknown ; PushRememberConstant %
+                  ComponentElement [ 'BY'                                  % PopType ; SeenArray ; PushType ; SeenUnknown %
+                                          ConstExpression ]
+                                                                           % PopType (* double check position, it must balance PushType *) %
+                                                                           % PopRememberConstant %
+                =:
+
+ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
+
+Constructor := '{'                                                         % SeenConstructor %
+                   [ ArraySetRecordValue ] '}' =:
+
+ConstSetOrQualidentOrFunction := SimpleSet | Qualident
+                                 [ Constructor | ConstActualParameters ] =:
+
+ConstActualParameters :=                                                   % PushType ; SeenUnknown %
                          "(" [ ExpList ] ")"                               % PopType %
                        =:
 
 -- to help satisfy LL1
-
-QualidentOrSet := SimpleSet | Qualident [ SimpleSet ] =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
@@ -807,8 +827,8 @@ SubDesignator := "." Ident | "[" ExpList "]" | "^" =:
 
 ExpList := Expression { "," Expression } =:
 
-Expression :=                                                              % PushAutoOff %
-              SimpleExpression [ Relation SimpleExpression ]               % PopAuto %
+Expression :=                                                              % PushType ; SeenUnknown ; PushAutoOff %
+              SimpleExpression [ Relation SimpleExpression ]               % PopAuto ; PopType %
            =:
 
 SimpleExpression := UnaryOrTerm { AddOperator Term } =:
@@ -822,9 +842,10 @@ Factor := Number | string | SetOrDesignatorOrFunction |
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident
 
-SimpleSet := "{" [ Element { "," Element } ] "}" =:
+SimpleSet := "{"                                                          % SeenSet %
+                 [ Element { "," Element } ] "}" =:
 
-SetOrDesignatorOrFunction := ( Qualident [ SimpleSet |
+SetOrDesignatorOrFunction := ( Qualident [ Constructor |
                                            SimpleDes [ ActualParameters ]
                                          ] | SimpleSet
                              )

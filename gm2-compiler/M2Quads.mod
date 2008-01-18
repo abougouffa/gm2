@@ -65,7 +65,8 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
-                        IsSet, IsConstSet,
+                        IsSet, IsConstSet, IsConstructor, PutConst,
+                        PutConstructor,
                         IsSubscript,
                         IsTemporary,
                         IsAModula2Type,
@@ -110,6 +111,7 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
                        LessTok, GreaterTok, HashTok, LessGreaterTok,
                        InTok,
                        UpArrowTok, RParaTok, LParaTok, CommaTok,
+                       NulTok, ByTok,
                        SemiColonTok, toktype ;
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
@@ -134,7 +136,8 @@ FROM M2Size IMPORT Size ;
 FROM M2Bitset IMPORT Bitset ;
 
 FROM M2ALU IMPORT PushInt, Gre, Less, PushNulSet, AddBitRange, AddBit,
-                  IsGenericNulSet, IsValueAndTreeKnown ;
+                  IsGenericNulSet, IsValueAndTreeKnown, AddField,
+                  AddElements, ChangeToConstructor ;
 
 FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoList,
                   IsItemInList, KillList, IncludeItemIntoList ;
@@ -2419,6 +2422,18 @@ BEGIN
    THEN
    ELSIF (DesL#NulSym) AND IsArray(DesL)
    THEN
+   ELSIF IsConstructor(Exp)
+   THEN
+      IF ExpT=NulSym
+      THEN
+         (* ignore type checking *)
+      ELSIF (DesT=NulSym) AND IsConst(Des) AND (IsConstructor(Des) OR IsConstSet(Des))
+      THEN
+         PutConst(Des, ExpT)
+      ELSIF SkipType(DesT)#SkipType(ExpT)
+      THEN
+         WriteFormat0('constructor is not compatible during assignment')
+      END
    ELSIF IsConst(Exp) AND (ExpT#Address) AND (NOT IsConst(Des)) AND
          (DesL#NulSym) AND ((DesL=Cardinal) OR (NOT IsSubrange(DesL))) AND
          (NOT IsEnumeration(DesL))
@@ -9431,7 +9446,7 @@ BEGIN
    IF IsConst(el1) AND IsConst(el2)
    THEN
       PushValue(value) ;  (* onto ALU stack *)
-      AddBitRange(el1, el2) ;
+      AddBitRange(GetTokenNo(), el1, el2) ;
       PopValue(value)     (* ALU -> symboltable *)
    ELSE
       IF NOT IsConst(el1)
@@ -9475,7 +9490,7 @@ BEGIN
    IF IsConst(el)
    THEN
       PushValue(value) ;  (* onto ALU stack *)
-      AddBit(el) ;
+      AddBit(GetTokenNo(), el) ;
       PopValue(value)    (* ALU -> symboltable *)
    ELSE
       IF GetMode(el)=LeftValue
@@ -9498,6 +9513,183 @@ BEGIN
    END ;
    PushT(value)
 END BuildInclBit ;
+
+
+(*
+   BuildConstructorStart - builds a constructor.
+                           Stack
+
+                           Entry                 Exit
+
+                    Ptr ->                                          <- Ptr
+                           +------------+        +----------------+
+                           | Type       |        | ConstructorSym |
+                           |------------+        |----------------|
+*)
+
+PROCEDURE BuildConstructorStart ;
+VAR
+   name      : Name ;
+   constValue,
+   type,
+   const     : CARDINAL ;
+BEGIN
+   PopT(type) ;
+(*
+   GetConstructorFromFifoQueue(const) ;
+   Assert(IsConstructor(const) OR IsConst(const)) ;
+   PutConst(const, type) ;
+   PutConstructor(const) ;
+*)
+
+   constValue := MakeTemporary(ImmediateValue) ;
+   PutVar(constValue, type) ;
+   PutConstructor(constValue) ;
+   PushValue(constValue) ;
+   ChangeToConstructor(GetTokenNo(), type) ;
+   IF IsSet(SkipType(type))
+   THEN
+      PutConstSet(constValue)
+   END ;
+   PopValue(constValue) ;
+   PushT(constValue)
+END BuildConstructorStart ;
+
+
+(*
+   BuildConstructorEnd - builds a constructor.
+                         Stack
+
+                         Entry                 Exit
+
+                  Ptr ->                                      <- Ptr
+                         +------------+        +------------+
+                         | const      |        | const      |
+                         |------------|        |------------|
+*)
+
+PROCEDURE BuildConstructorEnd ;
+BEGIN
+END BuildConstructorEnd ;
+
+
+(*
+   AddFieldTo - adds field, e, to, value.
+*)
+
+PROCEDURE AddFieldTo (value, e: CARDINAL) : CARDINAL ;
+BEGIN
+   IF IsConst(value)
+   THEN
+      IF IsConst(e)
+      THEN
+         (* value, might not be a set, so we use AddField rather than AddBit *)
+         PushValue(value) ;
+         AddField(GetTokenNo(), e) ;
+         PopValue(value)
+      ELSE
+         IF IsSet(SkipType(GetType(value)))
+         THEN
+            PutConstSet(value) ;
+            PushT(value) ;
+            PushT(e) ;
+            BuildInclBit ;
+            PopT(value)
+         ELSE
+            ErrorFormat0(NewError(GetTokenNo()),
+                         'can only include a variable bit to a set')
+         END
+      END
+   ELSE
+      IF IsSet(SkipType(GetType(value)))
+      THEN
+         PushT(value) ;
+         PushT(e) ;
+         BuildInclBit ;
+         PopT(value)
+      ELSE
+         ErrorFormat0(NewError(GetTokenNo()),
+                      'can only include a variable bit to a set')
+      END
+   END ;
+   RETURN( value )
+END AddFieldTo ;
+
+
+(*
+   BuildComponentValue -  builds a component value.
+
+                          Entry                 Exit
+
+                   Ptr ->                                      <- Ptr
+
+
+                          +------------+        +------------+
+                          | const      |        | const      |
+                          |------------|        |------------|
+*)
+
+PROCEDURE BuildComponentValue ;
+VAR
+   const,
+   e1, e2   : CARDINAL ;
+   nuldotdot,
+   nulby    : Name ;
+BEGIN
+   PopT(nulby) ;
+   IF nulby=NulTok
+   THEN
+      PopT(nuldotdot) ;
+      IF nuldotdot=NulTok
+      THEN
+         PopT(e1) ;
+         PopT(const) ;
+         PushT(AddFieldTo(const, e1))
+      ELSE
+         PopT(e2) ;
+         PopT(e1) ;
+         PopT(const) ;
+         PushValue(const) ;
+         AddBitRange(GetTokenNo(), e1, e2) ;
+         PopValue(const) ;
+         PushT(const)
+      END
+   ELSE
+      PopT(e1) ;
+      PopT(nuldotdot) ;
+      IF nuldotdot=NulTok
+      THEN
+         PopT(e2) ;
+         PopT(const) ;
+         PushValue(const) ;
+         AddElements(GetTokenNo(), e2, e1) ;
+         PopValue(const) ;
+         PushT(const)
+      ELSE
+         PopT(e2) ;
+         PopT(e1) ;
+         PopT(const) ;
+         WriteFormat0('either the constant must be an array constructor or a set constructor but not both') ;
+         PushT(const)
+      END
+   END
+END BuildComponentValue ;
+
+
+(*
+   CollectConstructor - collects a constructor from the
+                        fifo queue and ignores it.
+*)
+
+PROCEDURE CollectConstructor ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+(*
+   GetConstructorFromFifoQueue(sym) ;
+   Assert(IsConstructor(sym) OR IsConst(sym))
+*)
+END CollectConstructor ;
 
 
 (*
@@ -10107,7 +10299,7 @@ BEGIN
       THEN
          CheckAssignmentCompatible(t1, t2)
       ELSE
-         IF IsConst(e1) AND IsConstSet(e1)
+         IF IsConst(e1) AND (IsConstructor(e1) OR IsConstSet(e1))
          THEN
             (* ignore type checking for now *)
          ELSE
@@ -10265,6 +10457,10 @@ BEGIN
          Next := 0 ;
          LineNo := GetLineNo() ;
          TokenNo := GetTokenNo()
+      END ;
+      IF NextQuad=5706
+      THEN
+         stop
       END ;
       (* DisplayQuad(NextQuad) ; *)
       NewQuad(NextQuad)

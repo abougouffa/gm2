@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -30,28 +31,30 @@ IMPLEMENTATION MODULE M2ALU ;
 
 FROM ASCII IMPORT nul ;
 FROM SYSTEM IMPORT WORD ;
-FROM NameKey IMPORT KeyToCharStar ;
-FROM M2Error IMPORT InternalError, WriteFormat0, ErrorStringAt, FlushErrors ;
+FROM NameKey IMPORT KeyToCharStar, MakeKey ;
+FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, ErrorStringAt, FlushErrors ;
 FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareConstant ;
 FROM M2Bitset IMPORT Bitset ;
-FROM SymbolConversion IMPORT Mod2Gcc ;
+FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes ;
-FROM DynamicStrings IMPORT InitString ;
+FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
-                        IsSet, SkipType,
-                        GetSubrange, GetSymName,
+                        MakeConstLit, GetArraySubscript,
+                        IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
+                        GetSubrange, GetSymName, GetNth,
                         ModeOfAddr ;
 
 IMPORT DynamicStrings ;
 
-FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
+FROM gccgm2 IMPORT Tree, Constructor,
+                   BuildIntegerConstant,
                    CompareTrees, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
                    GetIntegerOne, GetIntegerZero,
                    GetWordOne, ToWord,
@@ -65,10 +68,15 @@ FROM gccgm2 IMPORT Tree, BuildIntegerConstant,
                    RealToTree, RememberConstant, BuildConstLiteralNumber,
                    BuildStartSetConstructor, BuildSetConstructorElement,
                    BuildEndSetConstructor,
+                   BuildStartRecordConstructor, BuildRecordConstructorElement,
+                   BuildEndRecordConstructor,
+                   BuildStartArrayConstructor, BuildArrayConstructorElement,
+                   BuildEndArrayConstructor,
                    FoldAndStrip, TreeOverflow,
                    DebugTree ;
 
-
+TYPE
+   cellType   = (none, integer, real, set, constructor, array, record) ;
 
 (* %%%FORWARD%%%
 PROCEDURE DupConst (tokenno: CARDINAL; sym: CARDINAL; offset: INTEGER) : CARDINAL ; FORWARD ;
@@ -89,32 +97,52 @@ PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree
 PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE Val (tokenno: CARDINAL; type: CARDINAL; value: Tree) : CARDINAL ; FORWARD ;
+PROCEDURE AddElements (tokenno: CARDINAL; el, by: CARDINAL) ; FORWARD ;
+PROCEDURE CoerseTo (tokenno: CARDINAL; t: cellType; v: PtrToValue) : PtrToValue ; FORWARD ;
+PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
+PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
    %%%FORWARD%%% *)
+
 
 CONST
    Debugging    = FALSE ;
-   DebugGarbage = TRUE ;
+   DebugGarbage =  TRUE ;
 
 TYPE
-   cellType   = (none, integer, real, set) ;
-
    listOfRange = POINTER TO rList ;
    rList       = RECORD
                     low, high: CARDINAL ;  (* symbol table *)
                     next     : listOfRange ;
                  END ;
 
+   listOfFields = POINTER TO fList ;
+   fList        = RECORD
+                     field   : CARDINAL ;  (* symbol table *)
+                     next    : listOfFields ;
+                  END ;
+
+   listOfElements = POINTER TO eList ;
+   eList          = RECORD
+                       element : CARDINAL ;  (* symbol table *)
+                       by      : CARDINAL ;  (* symbol table *)
+                       next    : listOfElements ;
+                    END ;
+
    PtrToValue = POINTER TO cell ;
    cell       = RECORD
-                   solved : BOOLEAN ;
-                   setType: CARDINAL ;
-                   next   : PtrToValue ;
+                   solved         : BOOLEAN ;
+                   constructorType: CARDINAL ;
+                   next           : PtrToValue ;
 
                    CASE type: cellType OF
 
                    none,
                    integer, real: numberValue: Tree |
-                   set          : setValue   : listOfRange
+                   set          : setValue   : listOfRange |
+                   constructor,
+                   record       : fieldValues: listOfFields |
+                   array        : arrayValues: listOfElements
 
                    END
                 END ;
@@ -125,9 +153,12 @@ TYPE
 PROCEDURE SortElements (tokenno: CARDINAL; h: listOfRange) ; FORWARD ;
 PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
 PROCEDURE DisplayElements (i: listOfRange) ; FORWARD ;
+PROCEDURE AddElement (v: listOfElements; e, b: CARDINAL) : listOfElements ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
+   ElementFreeList : listOfElements ;
+   FieldFreeList   : listOfFields ;
    RangeFreeList   : listOfRange ;
    FreeList,
    TopOfStack      : PtrToValue ;
@@ -156,6 +187,26 @@ END New ;
 
 
 (*
+   NewRange - assigns, v, to a new area of memory.
+*)
+
+PROCEDURE NewRange (VAR v: listOfRange) ;
+BEGIN
+   IF RangeFreeList=NIL
+   THEN
+      NEW(v) ;
+      IF v=NIL
+      THEN
+         InternalError('out of memory error', __FILE__, __LINE__)
+      END
+   ELSE
+      v := RangeFreeList ;
+      RangeFreeList := RangeFreeList^.next
+   END
+END NewRange ;
+
+
+(*
    DisposeRange - adds the list, v, to the free list.
 *)
 
@@ -163,17 +214,147 @@ PROCEDURE DisposeRange (VAR v: listOfRange) ;
 VAR
    r: listOfRange ;
 BEGIN
-   r := RangeFreeList ;
-   WHILE (r#NIL) AND (r^.next#NIL) DO
-      r := r^.next
-   END ;
-   IF r#NIL
+   IF v#NIL
    THEN
-      r^.next := RangeFreeList
-   END ;
-   RangeFreeList := v ;
-   v := NIL
+      r := v ;
+      WHILE (r#NIL) AND (r^.next#NIL) DO
+         r := r^.next
+      END ;
+      IF r#NIL
+      THEN
+         r^.next := RangeFreeList
+      END ;
+      RangeFreeList := v ;
+      v := NIL
+   END
 END DisposeRange ;
+
+
+(*
+   IsOnFieldFreeList - returns TRUE if, r, is on the FieldFreeList.
+*)
+
+PROCEDURE IsOnFieldFreeList (r: listOfFields) : BOOLEAN ;
+VAR
+   s: listOfFields ;
+BEGIN
+   s := FieldFreeList ;
+   WHILE s#NIL DO
+      IF s=r
+      THEN
+         RETURN( TRUE )
+      ELSE
+         s := s^.next
+      END
+   END ;
+   RETURN( FALSE )
+END IsOnFieldFreeList ;
+
+
+(*
+   IsOnElementFreeList - returns TRUE if, r, is on the ElementFreeList.
+*)
+
+PROCEDURE IsOnElementFreeList (r: listOfElements) : BOOLEAN ;
+VAR
+   s: listOfElements ;
+BEGIN
+   s := ElementFreeList ;
+   WHILE s#NIL DO
+      IF s=r
+      THEN
+         RETURN( TRUE )
+      ELSE
+         s := s^.next
+      END
+   END ;
+   RETURN( FALSE )
+END IsOnElementFreeList ;
+
+
+(*
+   DisposeFields - adds the list, v, to the free list.
+*)
+
+PROCEDURE DisposeFields (VAR v: listOfFields) ;
+VAR
+   r: listOfFields ;
+BEGIN
+   IF v#NIL
+   THEN
+      r := v ;
+      WHILE r^.next#NIL DO
+         Assert(NOT IsOnFieldFreeList(r)) ;
+         r := r^.next
+      END ;
+      r^.next := FieldFreeList ;
+      FieldFreeList := v ;
+      v := NIL
+   END
+END DisposeFields ;
+
+
+(*
+   NewField - adds the list, v, to the free list.
+*)
+
+PROCEDURE NewField (VAR v: listOfFields) ;
+BEGIN
+   IF FieldFreeList=NIL
+   THEN
+      NEW(v) ;
+      IF v=NIL
+      THEN
+         InternalError('out of memory error', __FILE__, __LINE__)
+      END
+   ELSE
+      v := FieldFreeList ;
+      FieldFreeList := FieldFreeList^.next
+   END
+END NewField ;
+
+
+(*
+   NewElement - returns a new element record.
+*)
+
+PROCEDURE NewElement (VAR e: listOfElements) ;
+BEGIN
+   IF ElementFreeList=NIL
+   THEN
+      NEW(e) ;
+      IF e=NIL
+      THEN
+         InternalError('out of memory error', __FILE__, __LINE__)
+      END
+   ELSE
+      e := ElementFreeList ;
+      ElementFreeList := ElementFreeList^.next
+   END
+END NewElement ;
+
+
+(*
+   DisposeElements - returns the list, e, to the free list.
+*)
+
+PROCEDURE DisposeElements (VAR e: listOfElements) ;
+VAR
+   r: listOfElements ;
+BEGIN
+   IF e#NIL
+   THEN
+      r := e ;
+      WHILE r^.next#NIL DO
+         Assert(NOT IsOnElementFreeList(r)) ;
+         r := r^.next
+      END ;
+      r^.next := ElementFreeList ;
+      ElementFreeList := e ;
+      e := NIL
+   END
+END DisposeElements ;
+
 
 PROCEDURE stop ; BEGIN END stop ;
 
@@ -232,9 +413,14 @@ PROCEDURE Dispose (v: PtrToValue) ;
 BEGIN
    CheckNotAlreadyOnFreeList(v) ;
    CheckNotOnStack(v) ;
-   IF v^.type=set
-   THEN
-      DisposeRange(v^.setValue)
+   CASE v^.type OF
+
+   set        :  DisposeRange(v^.setValue) |
+   constructor,
+   record     :  DisposeFields(v^.fieldValues) |
+   array      :  DisposeElements(v^.arrayValues)
+
+   ELSE
    END ;
    v^.next := FreeList ;
    FreeList := v
@@ -249,11 +435,7 @@ PROCEDURE AddRange (head: listOfRange; l, h: CARDINAL) : listOfRange ;
 VAR
    r: listOfRange ;
 BEGIN
-   NEW(r) ;
-   IF r=NIL
-   THEN
-      InternalError('out of memory', __FILE__, __LINE__)
-   END ;
+   NewRange(r) ;
    WITH r^ DO
       low  := l ;
       high := h ;
@@ -294,10 +476,10 @@ BEGIN
       InternalError('out of memory error', __FILE__, __LINE__)
    ELSE
       WITH v^ DO
-         type    := none ;
-         solved  := FALSE ;
-         next    := NIL ;
-         setType := NulSym
+         type            := none ;
+         solved          := FALSE ;
+         next            := NIL ;
+         constructorType := NulSym
       END ;
       RETURN( v )
    END
@@ -393,6 +575,75 @@ END IsValueTypeSet ;
 
 
 (*
+   IsValueTypeConstructor - returns TRUE if the value on the top
+                            stack is a constructor.
+*)
+
+PROCEDURE IsValueTypeConstructor () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=constructor
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeConstructor ;
+
+
+(*
+   IsValueTypeArray - returns TRUE if the value on the top stack is
+                      an array.
+*)
+
+PROCEDURE IsValueTypeArray () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=array
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeArray ;
+
+
+(*
+   IsValueTypeRecord - returns TRUE if the value on the top stack is
+                       a record.
+*)
+
+PROCEDURE IsValueTypeRecord () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=record
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeRecord ;
+
+
+(*
    GetSetValueType - returns the set type on top of the ALU stack.
 *)
 
@@ -405,7 +656,7 @@ BEGIN
    WITH v^ DO
       IF type=set
       THEN
-         RETURN( setType )
+         RETURN( constructorType )
       ELSE
          InternalError('expecting set type', __FILE__, __LINE__)
       END
@@ -530,7 +781,7 @@ BEGIN
    v := New() ;
    WITH v^ DO
       type := set ;
-      setType := sym ;
+      constructorType := sym ;
       setValue := r
    END ;
    Eval(tokenno, v) ;
@@ -564,6 +815,39 @@ BEGIN
    Dispose(v) ;
    RETURN( t )
 END PopSetTree ;
+
+
+(*
+   PopConstructorTree - returns a tree containing the compound literal.
+*)
+
+PROCEDURE PopConstructorTree (tokenno: CARDINAL) : Tree ;
+VAR
+   v: PtrToValue ;
+   t: Tree ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      Eval(tokenno, v) ;
+      IF NOT v^.solved
+      THEN
+         InternalError('the constructor has not been resolved', __FILE__, __LINE__)
+      END ;
+      CASE type OF
+
+      constructor:  InternalError('expecting constructor to be resolved into specific type',
+                                  __FILE__, __LINE__) |
+      array      :  t := ConstructArrayConstant(tokenno, v) |
+      record     :  t := ConstructRecordConstant(tokenno, v) |
+      set        :  t := ConstructSetConstant(tokenno, v)
+
+      ELSE
+         InternalError('expecting type to be a constructor', __FILE__, __LINE__)
+      END
+   END ;
+   Dispose(v) ;
+   RETURN( t )
+END PopConstructorTree ;
 
 
 (*
@@ -619,6 +903,65 @@ END PrintValue ;
 
 
 (*
+   DupFields - duplicates the field list in order.
+*)
+
+PROCEDURE DupFields (f: listOfFields) : listOfFields ;
+VAR
+   p, q, l: listOfFields ;
+BEGIN
+   p := NIL ;
+   l := NIL ;
+   WHILE f#NIL DO
+      NewField(q) ;
+      IF p=NIL
+      THEN
+         p := q
+      END ;
+      q^.field := f^.field ;
+      q^.next := NIL ;
+      IF l#NIL
+      THEN
+         l^.next := q
+      END ;
+      l := q ;
+      f := f^.next
+   END ;
+   RETURN( p )
+END DupFields ;
+
+
+(*
+   DupElements - duplicates the array list in order.
+*)
+
+PROCEDURE DupElements (f: listOfElements) : listOfElements ;
+VAR
+   p, q, l: listOfElements ;
+BEGIN
+   p := NIL ;
+   l := NIL ;
+   WHILE f#NIL DO
+      NewElement(q) ;
+      IF p=NIL
+      THEN
+         p := q
+      END ;
+      q^.element := f^.element ;
+      q^.by := f^.by ;
+      q^.next := NIL ;
+      IF l#NIL
+      THEN
+         l^.next := q
+      END ;
+      l := q ;
+      f := f^.next
+   END ;
+   RETURN( p )
+END DupElements ;
+
+
+(*
    PushFrom - pushes a copy of the contents of, v, onto stack.
 *)
 
@@ -629,9 +972,14 @@ BEGIN
    CheckNotAlreadyOnFreeList(v) ;
    t := New() ;     (* as it is a copy *)
    t^ := v^ ;
-   IF v^.type=set
-   THEN
-      t^.setValue := DupRange(v^.setValue)
+   CASE v^.type OF
+
+   set        :  t^.setValue := DupRange(v^.setValue) |
+   constructor,
+   record     :  t^.fieldValues := DupFields(v^.fieldValues) |
+   array      :  t^.arrayValues := DupElements(v^.arrayValues)
+
+   ELSE
    END ;
    Push(t)
 END PushFrom ;
@@ -647,11 +995,18 @@ VAR
 BEGIN
    t := Pop() ;
    v^ := t^ ;
-   IF v^.type=set
-   THEN
-      t^.setValue := NIL
+   CASE v^.type OF
+
+   set        :  t^.setValue := NIL |
+   record,
+   constructor:  t^.fieldValues := NIL |
+   array      :  t^.arrayValues := NIL |
+   none,
+   integer,
+   real       :  v^.numberValue := RememberConstant(FoldAndStrip(t^.numberValue))
+
    ELSE
-      v^.numberValue := RememberConstant(FoldAndStrip(t^.numberValue))
+      InternalError('not expecting this value', __FILE__, __LINE__)
    END ;
    Dispose(t)
 END PopInto ;
@@ -1628,7 +1983,7 @@ VAR
 BEGIN
    v := Pop() ;
    WITH v^ DO
-      r := (type=set) AND (setValue=NIL) AND (setType=NulSym)
+      r := (type=set) AND (setValue=NIL) AND (constructorType=NulSym)
    END ;
    Push(v) ;
    RETURN( r )
@@ -1637,7 +1992,8 @@ END IsGenericNulSet ;
 
 (*
    PushNulSet - pushes an empty set {} onto the ALU stack. The subrange type used
-                to construct the set is defined by, setType. If this is NulSym then
+                to construct the set is defined by, constructorType.
+                If this is NulSym then
                 the set is generic and compatible with all sets.
 
                 The Stack:
@@ -1657,14 +2013,335 @@ VAR
 BEGIN
    v := InitValue() ;
    WITH v^ DO
-      type     := set ;
-      setType  := settype ;
-      solved   := CompletelyResolved(settype) ;
-      setValue := NIL ;
-      next     := NIL ;
+      type            := set ;
+      constructorType := settype ;
+      solved          := CompletelyResolved(settype) ;
+      setValue        := NIL ;
+      next            := NIL ;
    END ;
    Push(v)
 END PushNulSet ;
+
+
+(*
+   PushEmptyConstructor - pushes an empty constructor {} onto the ALU stack.
+                          This is expected to be filled in by subsequent
+                          calls to AddElements, AddRange or AddField.
+
+                          The Stack:
+
+                          Entry             Exit
+
+                                                       <- Ptr
+                                        +------------+
+                                        | {}         |
+                   Ptr ->               |------------|
+                                  
+*)
+
+PROCEDURE PushEmptyConstructor (constype: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := InitValue() ;
+   WITH v^ DO
+      type            := constructor ;
+      constructorType := constype ;
+      solved          := CompletelyResolved(constype) ;
+      fieldValues     := NIL ;
+      next            := NIL ;
+   END ;
+   Push(v)
+END PushEmptyConstructor ;
+
+
+(*
+   PushEmptyArray - pushes an empty array {} onto the ALU stack.
+                    This is expected to be filled in by subsequent
+                    calls to AddElements.
+
+                    The Stack:
+
+                    Entry             Exit
+
+                                                     <- Ptr
+                                      +------------+
+                                      | {}         |
+             Ptr ->                   |------------|
+                                  
+*)
+
+PROCEDURE PushEmptyArray (arraytype: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := InitValue() ;
+   WITH v^ DO
+      type            := array ;
+      constructorType := arraytype ;
+      solved          := CompletelyResolved(arraytype) ;
+      arrayValues     := NIL ;
+      next            := NIL ;
+   END ;
+   Push(v)
+END PushEmptyArray ;
+
+
+(*
+   PushEmptyRecord - pushes an empty record {} onto the ALU stack.
+                     This is expected to be filled in by subsequent
+                     calls to AddField.
+
+                     The Stack:
+
+                     Entry             Exit
+
+                                                      <- Ptr
+                                       +------------+
+                                       | {}         |
+              Ptr ->                   |------------|
+                                  
+*)
+
+PROCEDURE PushEmptyRecord (recordtype: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := InitValue() ;
+   WITH v^ DO
+      type            := record ;
+      constructorType := recordtype ;
+      solved          := CompletelyResolved(recordtype) ;
+      arrayValues     := NIL ;
+      next            := NIL ;
+   END ;
+   Push(v)
+END PushEmptyRecord ;
+
+
+(*
+   AddElements - adds the elements, el BY, by, to the array constant.
+
+                 Ptr ->
+                                                           <- Ptr
+                        +------------+      +------------+
+                        | Array      |      | Array      |
+                        |------------|      |------------|
+
+*)
+
+PROCEDURE AddElements (tokenno: CARDINAL; el, by: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   v := CoerseTo(tokenno, array, v) ;
+   IF v^.type=array
+   THEN
+      WITH v^ DO
+         arrayValues := AddElement(arrayValues, el, by) ;
+         solved      := solved AND IsValueSolved(el) AND IsValueSolved(by)
+      END
+   ELSE
+      InternalError('expecting array type', __FILE__, __LINE__)
+   END ;
+   Push(v)
+END AddElements ;
+
+
+(*
+   AddElement - 
+*)
+
+PROCEDURE AddElement (v: listOfElements;
+                      e, b: CARDINAL) : listOfElements ;
+VAR
+   el: listOfElements ;
+BEGIN
+   NEW(el) ;
+   IF el=NIL
+   THEN
+      InternalError('out of memory', __FILE__, __LINE__)
+   END ;
+   (* held in reverse order here *)
+   WITH el^ DO
+      element := e ;
+      by      := b ;
+      next    := v^.next
+   END ;
+   v^.next := el ;
+   RETURN( v )
+END AddElement ;
+
+
+(*
+   cellTypeString - returns a string corresponding to, s.
+*)
+
+PROCEDURE cellTypeString (s: cellType) : String ;
+BEGIN
+   CASE s OF
+
+   none       : RETURN( InitString('none') ) |
+   integer    : RETURN( InitString('integer') ) |
+   real       : RETURN( InitString('real') ) |
+   set        : RETURN( InitString('set') ) |
+   constructor: RETURN( InitString('constructor') ) |
+   array      : RETURN( InitString('array') ) |
+   record     : RETURN( InitString('record') )
+
+   ELSE
+      InternalError('unexpected value of s', __FILE__, __LINE__)
+   END ;
+   RETURN( NIL )
+END cellTypeString ;
+
+
+(*
+   ToSetValue - converts a list of fields into a list of ranges.
+                In effect it turns a generic constructor into
+                a set type.
+*)
+
+PROCEDURE ToSetValue (f: listOfFields) : listOfRange ;
+VAR
+   g   : listOfFields ;
+   r, s: listOfRange ;
+BEGIN
+   g := f ;
+   r := NIL ;
+   WHILE f#NIL DO
+      NewRange(s) ;
+      WITH s^ DO
+         low  := f^.field ;
+         high := low ;
+         next := r
+      END ;
+      IF r=NIL
+      THEN
+         r := s
+      END ;
+      f := f^.next
+   END ;
+   DisposeFields(g) ;
+   RETURN( r )
+END ToSetValue ;
+
+
+(*
+   ToArrayValue - converts a list of fields into an array initialiser.
+                  In effect it turns a generic constructor into
+                  an array type.
+*)
+
+PROCEDURE ToArrayValue (f: listOfFields) : listOfRange ;
+VAR
+   g   : listOfFields ;
+   r, s: listOfElements ;
+BEGIN
+   g := f ;
+   r := NIL ;
+   WHILE f#NIL DO
+      NewElement(s) ;
+      WITH s^ DO
+         element := f^.field ;
+         by      := MakeConstLit(MakeKey('1')) ;
+         next    := r
+      END ;
+      IF r=NIL
+      THEN
+         r := s
+      END ;
+      f := f^.next
+   END ;
+   DisposeFields(g) ;
+   RETURN( r )
+END ToArrayValue ;
+
+
+(*
+   ChangeToConstructor - change the top of stack value to a constructor, type.
+                         (Constructor, Set, Array or Record).
+*)
+
+PROCEDURE ChangeToConstructor (tokenno: CARDINAL; constype: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   IF IsValueTypeConstructor() OR IsValueTypeSet() OR
+      IsValueTypeArray() OR IsValueTypeRecord()
+   THEN
+      RETURN
+   ELSIF IsValueTypeNone()
+   THEN
+      v := Pop() ;
+      WITH v^ DO
+         type            := constructor ;
+         constructorType := constype ;
+         solved          := CompletelyResolved(constype) ;
+         fieldValues     := NIL ;
+         next            := NIL ;
+      END ;
+      IF IsSet(SkipType(constype))
+      THEN
+         v := CoerseTo(tokenno, set, v)
+      ELSIF IsRecord(SkipType(constype))
+      THEN
+         v := CoerseTo(tokenno, record, v)
+      ELSIF IsArray(SkipType(constype))
+      THEN
+         v := CoerseTo(tokenno, array, v)
+      END ;
+      Push(v)
+   ELSE
+      InternalError('cannot change constant to a constructor type',
+                    __FILE__, __LINE__)
+   END
+END ChangeToConstructor ;
+
+
+(*
+   CoerseTo - attempts to coerses a cellType, v, into, type, t.
+              Normally this will be a generic constructors converting
+              into set or array.
+*)
+
+PROCEDURE CoerseTo (tokenno: CARDINAL;
+                    t: cellType; v: PtrToValue) : PtrToValue ;
+VAR
+   s1, s2, s3: DynamicStrings.String ;
+BEGIN
+   WITH v^ DO
+      IF t=type
+      THEN
+         RETURN( v )
+      ELSIF (type=constructor) AND (t=set)
+      THEN
+         type := set ;
+         setValue := ToSetValue(fieldValues) ;
+         RETURN( v )
+      ELSIF (type=constructor) AND (t=array)
+      THEN
+         type := array ;
+         arrayValues := ToArrayValue(fieldValues) ;
+         RETURN( v )
+      ELSIF (type=constructor) AND (t=record)
+      THEN
+         (* nothing to do other than change tag *)
+         type := record ;
+         RETURN( v )
+      ELSE
+         s1 := cellTypeString(t) ;
+         s2 := cellTypeString(type) ;
+         s3 := ConCat(InitString('cannot mix construction of a '),
+                      Mark(ConCat(Mark(s1),
+                                  Mark(ConCat(InitString(' with a '),
+                                              (Mark(s2))))))) ;
+         ErrorStringAt(s3, tokenno) ;
+         RETURN( v )
+      END
+   END
+END CoerseTo ;
 
 
 (*
@@ -1686,13 +2363,13 @@ VAR
 BEGIN
    v := Pop() ;
    Eval(tokenno, v) ;
-   IF v^.setType=NulSym
+   IF v^.constructorType=NulSym
    THEN
       WriteFormat0('cannot negate a generic set, set should be prefixed by a simple type')
    END ;
    r := NIL ;
-   min := GetTypeMin(GetType(v^.setType)) ;
-   max := GetTypeMax(GetType(v^.setType)) ;
+   min := GetTypeMin(GetType(v^.constructorType)) ;
+   max := GetTypeMax(GetType(v^.constructorType)) ;
    i := min ;
    s := v^.setValue ;
    IF Debugging
@@ -1752,19 +2429,18 @@ END SetNegate ;
 
 *)
 
-PROCEDURE AddBitRange (op1, op2: CARDINAL) ;
+PROCEDURE AddBitRange (tokenno: CARDINAL; op1, op2: CARDINAL) ;
 VAR
    v: PtrToValue ;
 BEGIN
    v := Pop() ;
+   v := CoerseTo(tokenno, set, v) ;
    IF v^.type=set
    THEN
       WITH v^ DO
          setValue := AddRange(setValue, op1, op2) ;
          solved   := solved AND IsValueSolved(op1) AND IsValueSolved(op2)
       END
-   ELSE
-      InternalError('expecting set type constant', __FILE__, __LINE__)
    END ;
    Push(v)
 END AddBitRange ;
@@ -1780,10 +2456,103 @@ END AddBitRange ;
                    |------------|      |------------|
 *)
 
-PROCEDURE AddBit (op1: CARDINAL) ;
+PROCEDURE AddBit (tokenno: CARDINAL; op1: CARDINAL) ;
 BEGIN
-   AddBitRange(op1, op1)
+   AddBitRange(tokenno, op1, op1)
 END AddBit ;
+
+
+(*
+   AddElementToEnd - appends, e, to the end of list, v.
+*)
+
+PROCEDURE AddElementToEnd (v: PtrToValue; e: listOfElements) ;
+VAR
+   a: listOfElements ;
+BEGIN
+   IF v^.arrayValues=NIL
+   THEN
+      v^.arrayValues := e
+   ELSE
+      a := v^.arrayValues ;
+      WHILE a^.next#NIL DO
+         a := a^.next
+      END ;
+      a^.next := e
+   END
+END AddElementToEnd ;
+
+
+(*
+   AddFieldToEnd - appends, f, to the end of list, v.
+*)
+
+PROCEDURE AddFieldToEnd (v: PtrToValue; f: listOfFields) ;
+VAR
+   a: listOfFields ;
+BEGIN
+   IF v^.fieldValues=NIL
+   THEN
+      v^.fieldValues := f
+   ELSE
+      a := v^.fieldValues ;
+      WHILE a^.next#NIL DO
+         a := a^.next
+      END ;
+      a^.next := f
+   END
+END AddFieldToEnd ;
+
+
+(*
+   AddField - adds the field op1 to the underlying constructor.
+
+                 Ptr ->
+                                                           <- Ptr
+                        +------------+      +------------+
+                        | const      |      | const      |
+                        |------------|      |------------|
+
+*)
+
+PROCEDURE AddField (tokenno: CARDINAL; op1: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+   f: listOfFields ;
+   e: listOfElements ;
+BEGIN
+   v := Pop() ;
+   CASE v^.type OF
+
+   set        : Push(v) ;
+                AddBit(tokenno, op1) ;
+                RETURN |
+   array      : WITH v^ DO
+                   solved := solved AND IsValueSolved(op1)
+                END ;
+                NewElement(e) ;
+                WITH e^ DO
+                   element := op1 ;
+                   by      := MakeConstLit(MakeKey('1')) ;
+                   next    := NIL
+                END ;
+                AddElementToEnd(v, e) |
+   constructor,
+   record     : WITH v^ DO
+                   solved := solved AND IsValueSolved(op1)
+                END ;
+                NewField(f) ;
+                WITH f^ DO
+                   field := op1 ;
+                   next  := NIL
+                END ;
+                AddFieldToEnd(v, f)
+
+   ELSE
+      InternalError('not expecting this constant type', __FILE__, __LINE__)
+   END ;
+   Push(v)
+END AddField ;
 
 
 (*
@@ -1803,6 +2572,44 @@ BEGIN
    END ;
    RETURN( TRUE )
 END ElementsSolved ;
+
+
+(*
+   ArrayElementsSolved - returns TRUE if all ranges in the set have been solved.
+*)
+
+PROCEDURE ArrayElementsSolved (e: listOfElements) : BOOLEAN ;
+BEGIN
+   WHILE e#NIL DO
+      WITH e^ DO
+         IF NOT (IsValueSolved(element) AND IsValueSolved(by))
+         THEN
+            RETURN( FALSE )
+         END
+      END ;
+      e := e^.next
+   END ;
+   RETURN( TRUE )
+END ArrayElementsSolved ;
+
+
+(*
+   EvalFieldValues - returns TRUE if all ranges in the set have been solved.
+*)
+
+PROCEDURE EvalFieldValues (e: listOfFields) : BOOLEAN ;
+BEGIN
+   WHILE e#NIL DO
+      WITH e^ DO
+         IF NOT IsValueSolved(field)
+         THEN
+            RETURN( FALSE )
+         END
+      END ;
+      e := e^.next
+   END ;
+   RETURN( TRUE )
+END EvalFieldValues ;
 
 
 (*
@@ -1910,10 +2717,10 @@ END CombineElements ;
 
 
 (*
-   EvalElements - returns TRUE if all elements in this set have been resolved.
+   EvalSetValues - returns TRUE if all elements in this set have been resolved.
 *)
 
-PROCEDURE EvalElements (tokenno: CARDINAL; r: listOfRange) : BOOLEAN ;
+PROCEDURE EvalSetValues (tokenno: CARDINAL; r: listOfRange) : BOOLEAN ;
 BEGIN
    IF ElementsSolved(r)
    THEN
@@ -1923,7 +2730,7 @@ BEGIN
    ELSE
       RETURN( FALSE )
    END
-END EvalElements ;
+END EvalSetValues ;
 
 
 (*
@@ -1934,49 +2741,137 @@ PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ;
 BEGIN
    CheckNotAlreadyOnFreeList(v) ;
    WITH v^ DO
-      IF type=set
+      IF IsSet(SkipType(constructorType))
       THEN
-         Assert((setType=NulSym) OR IsSet(setType)) ;
-         solved := CompletelyResolved(setType) AND EvalElements(tokenno, setValue)
+         v := CoerseTo(tokenno, set, v)
+      ELSIF IsRecord(SkipType(constructorType))
+      THEN
+         v := CoerseTo(tokenno, record, v)
+      ELSIF IsArray(SkipType(constructorType))
+      THEN
+         v := CoerseTo(tokenno, array, v)
+      END ;
+      CASE type OF
+                       
+      set   :   Assert((constructorType=NulSym) OR IsSet(SkipType(constructorType))) ;
+                solved := CompletelyResolved(constructorType) AND EvalSetValues(tokenno, setValue) |
+      array :   Assert((constructorType=NulSym) OR IsArray(SkipType(constructorType))) ;
+                solved := CompletelyResolved(constructorType) AND ArrayElementsSolved(arrayValues) |
+      record:   Assert((constructorType=NulSym) OR IsRecord(SkipType(constructorType))) ;
+                solved := CompletelyResolved(constructorType) AND EvalFieldValues(fieldValues)
+
+      ELSE
+         (* do nothing *)
       END
    END
 END Eval ;
 
 
 (*
-   CollectSetDependants - traverse the set, sym, declaring all constants which define the set value.
-                          TRUE is returned if all constants and the set type has been declared to GCC.
+   CollectSetValueDependants - 
 *)
 
-PROCEDURE CollectSetDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+PROCEDURE CollectSetValueDependants (tokenno: CARDINAL; r: listOfRange) : BOOLEAN ;
+VAR
+   resolved: BOOLEAN ;
+BEGIN
+   resolved := TRUE ;
+   WHILE r#NIL DO
+      WITH r^ DO
+         DeclareConstant(tokenno, low) ;
+         DeclareConstant(tokenno, high) ;
+         resolved := resolved AND CompletelyResolved(low) AND CompletelyResolved(high)
+      END ;
+      r := r^.next
+   END ;
+   RETURN( resolved )
+END CollectSetValueDependants ;
+
+
+(*
+   CollectFieldValueDependants - 
+*)
+
+PROCEDURE CollectFieldValueDependants (tokenno: CARDINAL; f: listOfFields) : BOOLEAN ;
+VAR
+   resolved: BOOLEAN ;
+BEGIN
+   resolved := TRUE ;
+   WHILE f#NIL DO
+      WITH f^ DO
+         DeclareConstant(tokenno, field) ;
+         resolved := resolved AND CompletelyResolved(field)
+      END ;
+      f := f^.next
+   END ;
+   RETURN( resolved )
+END CollectFieldValueDependants ;
+
+
+(*
+   CollectArrayValueDependants - 
+*)
+
+PROCEDURE CollectArrayValueDependants (tokenno: CARDINAL; a: listOfElements) : BOOLEAN ;
+VAR
+   resolved: BOOLEAN ;
+BEGIN
+   resolved := TRUE ;
+   WHILE a#NIL DO
+      WITH a^ DO
+         DeclareConstant(tokenno, element) ;
+         DeclareConstant(tokenno, by) ;
+         resolved := resolved AND CompletelyResolved(element) AND CompletelyResolved(by)
+      END ;
+      a := a^.next
+   END ;
+   RETURN( resolved )
+END CollectArrayValueDependants ;
+
+
+(*
+   CollectConstructorDependants - traverse the constructor, sym, declaring all constants
+                                  which define the constructor value.
+                                  TRUE is returned if all constants and the constructor
+                                  type has been declared to GCC.
+*)
+
+PROCEDURE CollectConstructorDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
 VAR
    v       : PtrToValue ;
    r       : listOfRange ;
    resolved: BOOLEAN ;
 BEGIN
-   resolved := TRUE ;
    PushValue(sym) ;
-   v := Pop() ;
-   WITH v^ DO
-      IF (type=set) AND (NOT solved)
-      THEN
-         resolved := CompletelyResolved(setType) ;
-         r := setValue ;
-         WHILE r#NIL DO
-            WITH r^ DO
-               DeclareConstant(tokenno, low) ;
-               DeclareConstant(tokenno, high) ;
-               resolved := resolved AND CompletelyResolved(low) AND CompletelyResolved(high)
+   IF IsValueTypeNone()
+   THEN
+      resolved := FALSE
+   ELSE
+      v := Pop() ;
+      WITH v^ DO
+         IF NOT solved
+         THEN
+            resolved := CompletelyResolved(constructorType) ;
+            CASE type OF
+
+            none       :  solved := FALSE |
+            set        :  solved := CollectSetValueDependants(tokenno, setValue) |
+            constructor,
+            record     :  solved := CollectFieldValueDependants(tokenno, fieldValues) |
+            array      :  solved := CollectArrayValueDependants(tokenno, arrayValues)
+
+            ELSE
+               InternalError('not expecting this type', __FILE__, __LINE__)
             END ;
-            r := r^.next
-         END ;
-         solved := resolved
-      END
+            resolved := resolved AND solved ;
+            solved := resolved
+         END
+      END ;
+      Push(v)
    END ;
-   Push(v) ;
    PopValue(sym) ;
    RETURN( resolved )
-END CollectSetDependants ;
+END CollectConstructorDependants ;
 
 
 (*
@@ -2318,10 +3213,11 @@ BEGIN
    END ;
    Result := New() ;
    WITH Result^ DO
-      type     := set ;
-      setValue := doOp(tokenno, Set1^.setValue, Set2^.setValue) ;
-      setType  := MixTypes(Set1^.setType, Set2^.setType, tokenno) ;
-      solved   := FALSE
+      type            := set ;
+      setValue        := doOp(tokenno, Set1^.setValue, Set2^.setValue) ;
+      constructorType := MixTypes(Set1^.constructorType,
+                                  Set2^.constructorType, tokenno) ;
+      solved          := FALSE
    END ;
    (* Set1 and Set2 have given their range lists to the Result *)
    Set1^.setValue := NIL ;
@@ -2756,9 +3652,9 @@ BEGIN
             INC(n)
          END ;
          Push(res) ;
-         IF setType#NulSym
+         IF constructorType#NulSym
          THEN
-            PushNulSet(setType) ;
+            PushNulSet(constructorType) ;
             SetNegate(tokenno) ;
             SetAnd(tokenno)
          END
@@ -2818,7 +3714,7 @@ BEGIN
    THEN
       Push(Set)
    ELSE
-      type := Set^.setType ;
+      type := Set^.constructorType ;
       IF type=NulSym
       THEN
          ErrorStringAt(InitString('cannot perform a ROTATE on a generic set'), tokenno) ;
@@ -2903,6 +3799,7 @@ VAR
    BitsInSet,
    GccField  : Tree ;
    bpw       : CARDINAL ;
+   cons      : Constructor ;
 BEGIN
    PushIntegerTree(low) ;
    ConvertToInt ;
@@ -2919,7 +3816,7 @@ BEGIN
    Addn ;
    BitsInSet := PopIntegerTree() ;
 
-   BuildStartSetConstructor(Mod2Gcc(v^.setType)) ;
+   cons := BuildStartSetConstructor(Mod2Gcc(v^.constructorType)) ;
 
    PushIntegerTree(BitsInSet) ;
    PushCard(0) ;
@@ -2932,7 +3829,7 @@ BEGIN
          PushCard(bpw-1) ;
          Addn ;
 
-         BuildSetConstructorElement(BuildBitset(tokenno, v, low, PopIntegerTree())) ;
+         BuildSetConstructorElement(cons, BuildBitset(tokenno, v, low, PopIntegerTree())) ;
 
          PushIntegerTree(low) ;
          PushCard(bpw) ;
@@ -2945,7 +3842,7 @@ BEGIN
       ELSE
          (* printf2('range is %a..%a\n', GetSymName(low), GetSymName(high)) ; *)
 
-         BuildSetConstructorElement(BuildBitset(tokenno, v, low, high)) ;
+         BuildSetConstructorElement(cons, BuildBitset(tokenno, v, low, high)) ;
 
          PushCard(0) ;
          BitsInSet := PopIntegerTree()
@@ -2953,7 +3850,7 @@ BEGIN
       PushIntegerTree(BitsInSet) ;
       PushCard(0)
    END ;
-   RETURN( BuildEndSetConstructor() )
+   RETURN( BuildEndSetConstructor(cons) )
 END BuildStructBitset ;
 
 
@@ -2997,14 +3894,14 @@ VAR
    high, low: CARDINAL ;
 BEGIN
    WITH v^ DO
-      IF setType=NulSym
+      IF constructorType=NulSym
       THEN
          InternalError('set type must be known in order to generate a constant', __FILE__, __LINE__)
       ELSE
-         baseType := GetType(setType) ;
+         baseType := SkipType(GetType(constructorType)) ;
          IF Debugging
          THEN
-            n1 := GetSymName(setType) ;
+            n1 := GetSymName(constructorType) ;
             n2 := GetSymName(baseType) ;
             printf2('ConstructSetConstant of type %a and baseType %a\n', n1, n2)
          END ;
@@ -3019,6 +3916,203 @@ BEGIN
       END
    END
 END ConstructSetConstant ;
+
+
+(*
+   ConstructRecordConstant - builds a struct initializer, as defined by, v.
+*)
+
+PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
+VAR
+   n1, n2      : Name ;
+   GccFieldType,
+   gccsym      : Tree ;
+   i,
+   Field,
+   baseType,
+   high, low   : CARDINAL ;
+   cons        : Constructor ;
+BEGIN
+   WITH v^ DO
+      IF constructorType=NulSym
+      THEN
+         InternalError('record type must be known in order to generate a constant', __FILE__, __LINE__)
+      ELSE
+         baseType := SkipType(constructorType) ;
+         IF Debugging
+         THEN
+            n1 := GetSymName(constructorType) ;
+            n2 := GetSymName(baseType) ;
+            printf2('ConstructRecordConstant of type %a and baseType %a\n', n1, n2)
+         END ;
+         cons := BuildStartRecordConstructor(Mod2Gcc(baseType)) ;
+         i := 1 ;
+         REPEAT
+            Field := GetNth(baseType, i) ;
+            IF Field#NulSym
+            THEN
+               IF GccKnowsAbout(GetType(Field))
+               THEN
+                  GccFieldType := Mod2Gcc(GetType(Field)) ;
+                  BuildRecordConstructorElement(cons, ConvertConstantAndCheck(GccFieldType, GetConstructorField(v, i)))
+               ELSE
+                  ErrorStringAt(InitString('trying to construct a compound literal and using a record field which does not exist'),
+                                tokenno)
+               END
+            END ;
+            INC(i)
+         UNTIL Field=NulSym ;
+         RETURN( BuildEndRecordConstructor(cons) )
+      END
+   END
+END ConstructRecordConstant ;
+
+
+(*
+   GetConstructorField - returns a tree containing the constructor field, i.
+*)
+
+PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ;
+VAR
+   j: CARDINAL ;
+   f: listOfFields ;
+BEGIN
+   WITH v^ DO
+      IF type#record
+      THEN
+         InternalError('constructor type must be a record in order to push a field',
+                       __FILE__, __LINE__)
+      ELSE
+         IF constructorType=NulSym
+         THEN
+            InternalError('constructor type must be a record in order to push a field',
+                          __FILE__, __LINE__)
+         ELSE
+            j := 1 ;
+            f := fieldValues ;
+            WHILE (j<i) AND (f#NIL) DO
+               f := f^.next ;
+               INC(j)
+            END ;
+            IF f=NIL
+            THEN
+               WriteFormat1('element %d does not exist in the constant compound literal', i)
+            ELSE
+               RETURN( Mod2Gcc(f^.field) )
+            END
+         END
+      END
+   END
+END GetConstructorField ;
+
+
+(*
+   GetConstructorElement - returns a symbol containing the array constructor element, i.
+*)
+
+PROCEDURE GetConstructorElement (tokenno: CARDINAL; v: PtrToValue; i: CARDINAL) : CARDINAL ;
+VAR
+   j: Tree ;
+   e: listOfElements ;
+BEGIN
+   WITH v^ DO
+      IF type#array
+      THEN
+         InternalError('constructor type must be an array',
+                       __FILE__, __LINE__)
+      ELSE
+         IF constructorType=NulSym
+         THEN
+            InternalError('constructor type must be an array',
+                          __FILE__, __LINE__)
+         ELSE
+            PushCard(i) ;
+            j := PopIntegerTree() ;
+            e := arrayValues ;
+            WHILE e#NIL DO
+               PushValue(e^.by) ;
+               PushIntegerTree(j) ;
+               IF GreEqu(tokenno)
+               THEN
+                  RETURN( e^.element )
+               END ;
+               PushIntegerTree(j) ;
+               PushValue(e^.by) ;
+               Sub ;
+               j := PopIntegerTree() ;
+               e := e^.next
+            END ;
+            IF e=NIL
+            THEN
+               WriteFormat1('element %d does not exist in the array declaration used by the compound literal', i)
+            END
+         END
+      END
+   END
+END GetConstructorElement ;
+
+
+(*
+   ConstructArrayConstant - builds a struct initializer, as defined by, v.
+*)
+
+PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
+VAR
+   n1, n2      : Name ;
+   gccsym      : Tree ;
+   i, el,
+   baseType,
+   Subrange,
+   Subscript,
+   arrayType,
+   high, low   : CARDINAL ;
+   cons        : Constructor ;
+BEGIN
+   WITH v^ DO
+      IF constructorType=NulSym
+      THEN
+         InternalError('array type must be known in order to generate a constant', __FILE__, __LINE__)
+      ELSE
+         baseType := SkipType(constructorType) ;
+         IF Debugging
+         THEN
+            n1 := GetSymName(constructorType) ;
+            n2 := GetSymName(baseType) ;
+            printf2('ConstructArrayConstant of type %a and baseType %a\n', n1, n2)
+         END ;
+         cons := BuildStartArrayConstructor(Mod2Gcc(baseType)) ;
+
+         Subscript := GetArraySubscript(baseType) ;
+         Subrange := SkipType(GetType(Subscript)) ;
+         GetSubrange(Subrange, high, low) ;
+         arrayType := GetType(baseType) ;
+
+         i := 0 ;
+         REPEAT
+            INC(i) ;
+            el := GetConstructorElement(tokenno, v, i) ;
+            PushValue(low) ;
+            PushCard(i) ;
+            Addn ;
+            IF IsConst(el) AND IsConstructor(el)
+            THEN
+               BuildArrayConstructorElement(cons, Mod2Gcc(el), PopIntegerTree())
+            ELSE
+               BuildArrayConstructorElement(cons,
+                                            ConvertConstantAndCheck(Mod2Gcc(arrayType),
+                                                                    Mod2Gcc(el)),
+                                            PopIntegerTree())
+            END ;
+            PushValue(low) ;
+            PushCard(i) ;
+            Addn ;
+            PushValue(high)
+         UNTIL Gre(tokenno) ;
+
+         RETURN( BuildEndArrayConstructor(cons) )
+      END
+   END
+END ConstructArrayConstant ;
 
 
 (*
@@ -3060,11 +4154,12 @@ END BuildRange ;
 
 
 (*
-   BuildBitset - given a set, v, construct the bitmask for its constant value which
-                 lie in the range low..high.
+   BuildBitset - given a set, v, construct the bitmask for its
+                 constant value which lie in the range low..high.
 *)
 
-PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree ;
+PROCEDURE BuildBitset (tokenno: CARDINAL;
+                       v: PtrToValue; low, high: Tree) : Tree ;
 VAR
    tl, th,
    t      : Tree ;
@@ -3156,9 +4251,11 @@ END CheckOverflow ;
 
 PROCEDURE Init ;
 BEGIN
-   FreeList      := NIL ;
-   TopOfStack    := NIL ;
-   RangeFreeList := NIL ;
+   FreeList        := NIL ;
+   TopOfStack      := NIL ;
+   RangeFreeList   := NIL ;
+   FieldFreeList   := NIL ;
+   ElementFreeList := NIL
 END Init ;
 
 
