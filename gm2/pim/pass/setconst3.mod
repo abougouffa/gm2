@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,16 +15,16 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE sets ;
+MODULE setconst3 ;
+
+VAR
+   mem: ARRAY [0..CARDINAL(addressLines)] OF CARDINAL ;
 
 TYPE
-   colours = (red, blue, yellow, orange, green) ;
-   myset   = SET OF colours ;
+   Lines = SET OF [0..16] ;
 
-PROCEDURE testing (first: myset) ;
-BEGIN
-END testing ;
+CONST
+   addressLines = Lines{1, 4, 13} ;
 
 BEGIN
-   testing({blue, green})
-END sets.
+END setconst3.
