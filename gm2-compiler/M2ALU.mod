@@ -97,7 +97,7 @@ PROCEDURE BuildBitset (tokenno: CARDINAL; v: PtrToValue; low, high: Tree) : Tree
 PROCEDURE IsSuperset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE IsSubset (tokenno: CARDINAL; s1, s2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE Val (tokenno: CARDINAL; type: CARDINAL; value: Tree) : CARDINAL ; FORWARD ;
-PROCEDURE AddElements (tokenno: CARDINAL; el, by: CARDINAL) ; FORWARD ;
+PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ; FORWARD ;
 PROCEDURE CoerseTo (tokenno: CARDINAL; t: cellType; v: PtrToValue) : PtrToValue ; FORWARD ;
 PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
 PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ; FORWARD ;
@@ -154,6 +154,7 @@ PROCEDURE SortElements (tokenno: CARDINAL; h: listOfRange) ; FORWARD ;
 PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
 PROCEDURE DisplayElements (i: listOfRange) ; FORWARD ;
 PROCEDURE AddElement (v: listOfElements; e, b: CARDINAL) : listOfElements ; FORWARD ;
+PROCEDURE AddElementToEnd (v: PtrToValue; e: listOfElements) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
@@ -2120,7 +2121,7 @@ END PushEmptyRecord ;
 
 
 (*
-   AddElements - adds the elements, el BY, by, to the array constant.
+   AddElements - adds the elements, el BY, n, to the array constant.
 
                  Ptr ->
                                                            <- Ptr
@@ -2130,17 +2131,24 @@ END PushEmptyRecord ;
 
 *)
 
-PROCEDURE AddElements (tokenno: CARDINAL; el, by: CARDINAL) ;
+PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ;
 VAR
    v: PtrToValue ;
+   e: listOfElements ;
 BEGIN
    v := Pop() ;
    v := CoerseTo(tokenno, array, v) ;
    IF v^.type=array
    THEN
+      NewElement(e) ;
+      WITH e^ DO
+         element := el ;
+         by      := n ;
+         next    := NIL
+      END ;
+      AddElementToEnd(v, e) ;
       WITH v^ DO
-         arrayValues := AddElement(arrayValues, el, by) ;
-         solved      := solved AND IsValueSolved(el) AND IsValueSolved(by)
+         solved := solved AND IsValueSolved(el) AND IsValueSolved(n)
       END
    ELSE
       InternalError('expecting array type', __FILE__, __LINE__)

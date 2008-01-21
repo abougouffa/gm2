@@ -1,3 +1,11 @@
+2008-01-21       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.def:  renamed parameters to
+	  procedure AddElements.
+	* gm2/gm2-compiler/M2ALU.mod:  AddElements uses AddElementToEnd
+	  which fixes a bug in array element ordering during compound
+	  constant literal construction.
+
 2008-01-17       Gaius Mulley <gaius@gnu.org>
 
 	* ISO conformant compound literal constructors have been

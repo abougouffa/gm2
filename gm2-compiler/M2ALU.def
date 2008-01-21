@@ -813,7 +813,7 @@ PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
 
 
 (*
-   AddElements - adds the elements, el BY, by, to the array constant.
+   AddElements - adds the elements, el BY, n, to the array constant.
 
                  Ptr ->
                                                            <- Ptr
@@ -823,7 +823,7 @@ PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
 
 *)
 
-PROCEDURE AddElements (tokenno: CARDINAL; el, by: CARDINAL) ;
+PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ;
 
 
 (*
