@@ -140,13 +140,8 @@ END CloseOutput ;
 
 PROCEDURE LocalRead (VAR ch: CHAR) ;
 BEGIN
-   IF inUsed
-   THEN
-      ch := FIO.ReadChar(in) ;
-      Done := FIO.IsNoError(in)
-   ELSE
-      Done := (read(stdin, ADR(ch), 1) = 1)
-   END
+   ch := FIO.ReadChar(in) ;
+   Done := FIO.IsNoError(in)
 END LocalRead ;
 
 
@@ -252,6 +247,9 @@ END WriteString ;
 
 PROCEDURE LocalWrite (ch: CHAR) ;
 BEGIN
+   FIO.WriteChar(out, ch) ;
+   Done := FIO.IsNoError(out)
+(*
    IF outUsed
    THEN
       FIO.WriteChar(out, ch) ;
@@ -259,6 +257,7 @@ BEGIN
    ELSE
       Done := (write(stdout, ADR(ch), 1) = 1)
    END
+*)
 END LocalWrite ;
 
 

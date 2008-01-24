@@ -1,3 +1,10 @@
+2008-01-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/InOut.mod:  fixed bug reported by
+	  Steve Giess, data written by InOut and FpuIO did not
+	  appear in order.  Modified InOut.mod so that all reads
+	  and writes go through FIO.mod.
+
 2008-01-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.def:  renamed parameters to
