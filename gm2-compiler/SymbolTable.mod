@@ -52,7 +52,7 @@ FROM SymbolKey IMPORT NulKey, SymbolTree,
                       DoesTreeContainAny, ForeachNodeDo ;
 
 FROM M2Base IMPORT InitBase, Char, Integer, LongReal,
-                   Cardinal, LongInt, LongCard ;
+                   Cardinal, LongInt, LongCard, ZRealType ;
 
 FROM M2System IMPORT Address ;
 FROM gccgm2 IMPORT DetermineSizeOfConstant ;
@@ -333,7 +333,7 @@ TYPE
 
    SymConstLit = RECORD
                     name         : Name ;         (* Index into name array, name *)
-                                              (* of const.                   *)
+                                                  (* of const.                   *)
                     Value        : PtrToValue ;   (* Value of the constant.      *)
                     Type         : CARDINAL ;     (* TYPE of constant, char etc  *)
                     IsSet        : BOOLEAN ;      (* is the constant a set?      *)
@@ -3737,7 +3737,7 @@ BEGIN
       IF Index(s, '.', 0)#-1   (* found a '.' in our constant *)
       THEN
          s := KillString(s) ;
-         RETURN( LongReal )
+         RETURN( ZRealType )
       END ;
       CASE char(s, -1) OF
 

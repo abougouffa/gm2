@@ -39,8 +39,6 @@ FROM SymbolTable IMPORT NulSym,
                         IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         MakeInnerModule,
-                        MakeConstLit,
-                        MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
                         MakeVar, MakeType, PutType,
                         MakeHiddenType,
@@ -86,9 +84,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, OperandT, PopN ;
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
-
-FROM M2Base IMPORT MixTypes ;
-
 
 CONST
    Debugging = FALSE ;

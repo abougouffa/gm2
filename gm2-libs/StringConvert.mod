@@ -927,7 +927,7 @@ END LongCardinalToString ;
 PROCEDURE StringToLongCardinal (s: String; base: CARDINAL; VAR found: BOOLEAN) : LONGCARD ;
 VAR
    n, l: CARDINAL ;
-   c   : CARDINAL ;
+   c   : LONGCARD ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
    l := Length(s) ;
@@ -1004,7 +1004,7 @@ PROCEDURE StringToShortCardinal (s: String; base: CARDINAL;
                                  VAR found: BOOLEAN) : SHORTCARD ;
 VAR
    n, l: CARDINAL ;
-   c   : CARDINAL ;
+   c   : SHORTCARD ;
 BEGIN
    s := RemoveWhitePrefix(s) ;    (* returns a new string, s *)
    l := Length(s) ;

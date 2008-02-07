@@ -98,7 +98,8 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    GetBaseTypeMinMax, MixTypes,
                    Cardinal, Char, Proc, Integer,
                    LongInt, LongCard, ShortCard, ShortInt,
-                   Real, LongReal, ShortReal, Boolean, True, False,
+                   Real, LongReal, ShortReal, ZRealType,
+                   Boolean, True, False,
                    IsRealType, IsNeededAtRunTime ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
@@ -1366,7 +1367,8 @@ BEGIN
    DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
    DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
    DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
-   DeclareBoolean
+   DeclareBoolean ;
+   AddModGcc(ZRealType, GetM2LongRealType())
 
 END DeclareDefaultSimpleTypes ;
 
@@ -2837,7 +2839,7 @@ BEGIN
          END
       ELSIF IsValueSolved(low)
       THEN
-         IF GetType(low)=LongReal
+         IF IsRealType(GetType(low))
          THEN
             n := GetSymName(Sym) ;
             WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', n)

@@ -1,3 +1,27 @@
+2008-02-07       Gaius Mulley <gaius@gnu.org>
+
+	* fixed REAL/LONGREAL bugs as reported by:
+	  Ivan F. Villanueva B and Steve Giess.
+	* gm2/gm2-compiler/M2Base.def:  ZRealType added and
+	  exported.
+	* gm2/gm2-compiler/M2Base.mod:  ZRealType implemented.
+	  Added parameter checking meta type matrix.
+	  Added ZRealType to expression, assignment and
+	  parameter type checking matrices.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  tell GCC about
+	  the front end ZRealType type.
+	* gm2/gm2-compiler/M2Quads.mod:  improved type incompatible
+	  error message.
+	* gm2-compiler/SymbolTable.mod:  floating point literals
+	  use the ZRealType.
+	* gm2/gm2-libs/FpuIO.mod:  explicitly cast REAL to LONGREAL.
+	* gm2/gm2-libs/StringConvert.mod:  explicitly cast CARDINAL
+	  to LONGCARD.
+	* gm2/gm2-libs-pim/RealInOut.mod:  explicitly cast LONGREAL
+	  to REAL and visa versa.
+	* gm2/ulm-lib-gm2/std/Directories.mod:  cast blocksize
+	  (LONGCARD) to CARDINAL.
+
 2008-01-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/InOut.mod:  fixed bug reported by

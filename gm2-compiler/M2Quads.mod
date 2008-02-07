@@ -118,6 +118,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    Real, LongReal, ShortReal, Nil,
                    MixTypes, NegateType,
                    IsAssignmentCompatible, IsExpressionCompatible,
+                   IsParameterCompatible,
                    AssignmentRequiresWarning,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
@@ -2443,7 +2444,7 @@ BEGIN
          CheckAssignmentCompatible(ExpT, DesT)
       ELSE
          n := GetSymName(Des) ;
-         WriteFormat1('assignment of a constant (%a) can only be made to a variable which has a Modula-2 reserved type as its base',
+         WriteFormat1('assignment of a constant (%a) can only be made to a variable whose type is equivalent to a Modula-2 base type',
                       n)
       END
    ELSIF (DesT#NulSym) AND IsSet(DesT) AND IsConst(Exp)
@@ -4075,7 +4076,7 @@ BEGIN
             WarnParameter('the return result of the procedure variable parameter may not be compatible on other targets with the return result of the item being passed',
                           Call, Param, ProcSym, i) ;
             RETURN
-         ELSIF NOT IsAssignmentCompatible(GetType(CallType), GetType(ParamType))
+         ELSIF NOT IsParameterCompatible(GetType(CallType), GetType(ParamType))
          THEN
             FailParameter('the return result of the procedure variable parameter is not compatible with the return result of the item being passed',
                           Call, Param, ProcSym, i) ;
@@ -4107,7 +4108,7 @@ BEGIN
          IF ((ParamType=Word) OR (CallType=Word)) OR
             ((ParamType=Byte) OR (CallType=Byte)) OR
             ((ParamType=Loc)  OR (CallType=Loc))  OR
-            IsAssignmentCompatible(ParamType, CallType) OR IsTemporary(Call)
+            IsParameterCompatible(ParamType, CallType)
          THEN
             (* it is legal *)
          ELSE
@@ -4121,7 +4122,7 @@ BEGIN
          THEN
             WarnParameter('identifier being passed to this procedure may contain a possibly incompatible type when compiling for a different target',
                           Call, Param, ProcSym, i)
-         ELSIF IsAssignmentCompatible(ParamType, CallType) OR IsTemporary(Call)
+         ELSIF IsParameterCompatible(ParamType, CallType)
          THEN
             (* it is legal *)
          ELSE

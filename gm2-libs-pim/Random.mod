@@ -116,7 +116,7 @@ END RandomReal ;
 
 PROCEDURE RandomLongReal () : LONGREAL ;
 VAR
-   l: REAL ;
+   l: LONGREAL ;
 BEGIN
    RandomBytes(l) ;
    RETURN Fracl(l)

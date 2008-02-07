@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 DEFINITION MODULE M2Base ;
 
 (*
@@ -34,9 +35,8 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Proc,
                  LongInt, LongCard,
                  ShortInt, ShortCard,
-                 Real,
-                 LongReal,
-                 ShortReal,
+                 ZRealType, Real,
+                 LongReal, ShortReal,
                  High,                  (* Base function           *)
                  LengthS,
                  Convert,
@@ -54,7 +54,10 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  InitBase,
                  CheckExpressionCompatible,
                  CheckAssignmentCompatible,
-                 IsAssignmentCompatible, IsExpressionCompatible,
+                 CheckParameterCompatible,
+                 IsAssignmentCompatible,
+                 IsExpressionCompatible,
+                 IsParameterCompatible,
                  AssignmentRequiresWarning,
                  IsMathType,
                  IsRealType,
@@ -74,7 +77,7 @@ VAR
    Char, Proc,
    LongInt, LongCard,
    ShortInt, ShortCard,
-   Real,
+   ZRealType, Real,
    LongReal, ShortReal,
    Unbounded,
    High, LengthS,
@@ -174,6 +177,14 @@ PROCEDURE IsExpressionCompatible (t1, t2: CARDINAL) : BOOLEAN ;
 
 
 (*
+   IsParameterCompatible - returns TRUE if t1 and t2 are expression
+                            compatible.
+*)
+
+PROCEDURE IsParameterCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+
+
+(*
    CheckExpressionCompatible - returns if t1 and t2 are compatible types for
                                +, -, *, DIV, >, <, =, etc.
                                If t1 and t2 are not compatible then an error
@@ -191,6 +202,14 @@ PROCEDURE CheckExpressionCompatible (t1, t2: CARDINAL) ;
 *)
 
 PROCEDURE CheckAssignmentCompatible (t1, t2: CARDINAL) ;
+
+
+(*
+   CheckParameterCompatible - checks to see if types, t1, and, t2, are
+                              compatible for parameter passing.
+*)
+
+PROCEDURE CheckParameterCompatible (t1, t2: CARDINAL) ;
 
 
 (*

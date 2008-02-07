@@ -5895,7 +5895,7 @@ gccgm2_GetDefaultType (char *name, tree type)
         TYPE_NAME (prev) = get_identifier (name);
       prev = TREE_TYPE (prev);
     } 
-    t  = gccgm2_DeclareKnownType(name, type);
+    t  = gccgm2_DeclareKnownType (name, type);
     return t;
   }
   else

@@ -58,7 +58,7 @@ VAR
    lr: LONGREAL ;
 BEGIN
    StrToLongReal(a, lr) ;  (* let StrToLongReal do the work and we convert the result back to REAL *)
-   x := lr
+   x := VAL(REAL, lr)
 END StrToReal ;
 
 
@@ -105,7 +105,7 @@ PROCEDURE RealToStr (x: REAL; TotalWidth, FractionWidth: CARDINAL; VAR a: ARRAY 
 VAR
    lr: LONGREAL ;
 BEGIN
-   lr := x ;
+   lr := VAL(LONGREAL, x) ;
    LongRealToStr(lr, TotalWidth, FractionWidth, a)
 END RealToStr ;
 

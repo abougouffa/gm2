@@ -86,7 +86,7 @@ IMPLEMENTATION MODULE Directories;
 	 WITH dirp^ DO
 	    fd := filedesc;
 	    blocksize := statbuf.blksize;
-	    ALLOCATE(block, blocksize);
+	    ALLOCATE(block, VAL(CARDINAL, blocksize));
 	    entry := NIL;
 	    basep := 0;
 	 END;
@@ -167,7 +167,7 @@ IMPLEMENTATION MODULE Directories;
    BEGIN
       WITH dirp^ DO
 	 IF NOT Close(fd) THEN END;
-	 DEALLOCATE(block, blocksize);
+	 DEALLOCATE(block, VAL(CARDINAL, blocksize));
       END;
       DISPOSE(dirp);
    END CloseDir;

@@ -35,7 +35,7 @@ BEGIN
    s := InOut.ReadS() ;
    IF InOut.Done
    THEN
-      x := StringToLongreal(s, Done)
+      x := VAL(REAL, StringToLongreal(s, Done))
    ELSE
       Done := FALSE
    END ;
@@ -53,7 +53,7 @@ PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(x, n, n))) ;
+   s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n))) ;
    Done := TRUE
 END WriteReal ;
 
@@ -143,7 +143,7 @@ BEGIN
    s := InOut.ReadS() ;
    IF InOut.Done
    THEN
-      x := StringToLongreal(s, Done)
+      x := VAL(SHORTREAL, StringToLongreal(s, Done))
    ELSE
       Done := FALSE
    END ;
@@ -161,7 +161,7 @@ PROCEDURE WriteShortReal (x: SHORTREAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(x, n, n))) ;
+   s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n))) ;
    Done := TRUE
 END WriteShortReal ;
 
