@@ -116,7 +116,7 @@ PROCEDURE IsDecimalDigitValidLong (ch: CHAR; base: CARDINAL;
 BEGIN
    IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('0')) ;
+      c := c * VAL(LONGCARD, base + (ORD(ch)-ORD('0'))) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -133,11 +133,11 @@ PROCEDURE IsHexidecimalDigitValidLong (ch: CHAR; base:  CARDINAL; VAR c: LONGCAR
 BEGIN
    IF (ch>='a') AND (ch<='f') AND (ORD(ch)-ORD('a')+10<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('a')+10) ;
+      c := c * VAL(LONGCARD, base + (ORD(ch)-ORD('a')+10)) ;
       RETURN( TRUE )
    ELSIF (ch>='A') AND (ch<='F') AND (ORD(ch)-ORD('F')+10<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('A')+10) ;
+      c := c * VAL(LONGCARD, base + (ORD(ch)-ORD('A')+10)) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -154,7 +154,7 @@ PROCEDURE IsDecimalDigitValidShort (ch: CHAR; base: CARDINAL; VAR c: SHORTCARD) 
 BEGIN
    IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('0')) ;
+      c := c * VAL(SHORTCARD, base + (ORD(ch)-ORD('0'))) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -171,11 +171,11 @@ PROCEDURE IsHexidecimalDigitValidShort (ch: CHAR; base: CARDINAL; VAR c: SHORTCA
 BEGIN
    IF (ch>='a') AND (ch<='f') AND (ORD(ch)-ORD('a')+10<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('a')+10) ;
+      c := c * VAL(SHORTCARD, base + (ORD(ch)-ORD('a')+10)) ;
       RETURN( TRUE )
    ELSIF (ch>='A') AND (ch<='F') AND (ORD(ch)-ORD('F')+10<base)
    THEN
-      c := c*base + (ORD(ch)-ORD('A')+10) ;
+      c := c * VAL(SHORTCARD, base + (ORD(ch)-ORD('A')+10)) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -340,18 +340,18 @@ BEGIN
          s := InitString('')
       END
    END ;
-   IF i>base-1
+   IF i>VAL(LONGINT, base-1)
    THEN
       s := ConCat(ConCat(s, LongIntegerToString(i DIV 10, 0, ' ', FALSE, base, lower)),
                   LongIntegerToString(i MOD 10, 0, ' ', FALSE, base, lower))
    ELSE
       IF i<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(i+ORD('0'))))
+         s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('0'))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(i+ORD('a')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('a')-10)))
          ELSE
             s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('A')-10)))
          END
@@ -726,7 +726,7 @@ BEGIN
    END ;
 
    (* and add leading spaces *)
-   IF IntegerWidth-Length(Result)>0
+   IF IntegerWidth>Length(Result)
    THEN
       Result := ConCat(Mult(InitString(' '),
                             IntegerWidth-Length(Result)),
@@ -891,20 +891,20 @@ VAR
    s: String ;
 BEGIN
    s := InitString('') ;
-   IF c>base-1
+   IF c>VAL(LONGCARD, base-1)
    THEN
       s := ConCat(ConCat(s, LongCardinalToString(c DIV 10, 0, ' ', base, lower)),
                   LongCardinalToString(c MOD 10, 0, ' ', base, lower))
    ELSE
       IF c<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(c+ORD('0'))))
+         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('0'))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(c+ORD('a')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('a')-10)))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(c+ORD('A')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('A')-10)))
          END
       END
    END ;
@@ -967,20 +967,20 @@ VAR
    s: String ;
 BEGIN
    s := InitString('') ;
-   IF c>base-1
+   IF VAL(CARDINAL, c)>base-1
    THEN
       s := ConCat(ConCat(s, ShortCardinalToString(c DIV 10, 0, ' ', base, lower)),
                   ShortCardinalToString(c MOD 10, 0, ' ', base, lower))
    ELSE
       IF c<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(c+ORD('0'))))
+         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('0'))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(c+ORD('a')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('a')-10)))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(c+ORD('A')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, c)+ORD('A')-10)))
          END
       END
    END ;
