@@ -1,3 +1,15 @@
+2008-02-09       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Makefile.in:  replaced references of gm2/pg? to
+	  gm2/pg?$(exeext) to enable building in a cygwin
+	  environment as reported by David Moreno
+	  <jose_david_moreno@yahoo.es>.
+
+2008-02-08       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2-libs/StringConvert.mod:  fixed CARDINAL
+	  overflow bug.
+
 2008-02-07       Gaius Mulley <gaius@gnu.org>
 
 	* fixed REAL/LONGREAL bugs as reported by:
