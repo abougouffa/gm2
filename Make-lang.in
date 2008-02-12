@@ -1622,11 +1622,11 @@ stage2/gm2/h2def$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) \
                -g -B./stage1/gm2 -B./ -o $@ \
                -fuselist gm2/gm2-auto/h2def.mod $(LIBS)
 
-gm2/ppg: gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
+gm2/ppg$(exeext): gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
      gm2/gm2-libs-boot/libgm2.a $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o) \
      gm2/gm2-compiler-boot/ppg.o
 	$(QUIAT)echo "building gm2/ppg" ; \
-	if [ -f gm2/ppg ] ; then \
+	if [ -f gm2/ppg$(exeext) ] ; then \
             echo "hmm already built" ; \
         fi ; \
 	cd gm2 ; \
@@ -1648,7 +1648,7 @@ gm2/ppg: gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/boot-bin/p2c \
 gm2/gm2-auto:
 	mkdir gm2/gm2-auto
 
-gm2/pg: gm2/gm2-auto gm2/ppg gm2/gm2-auto/pg.mod \
+gm2/pg$(exeext): gm2/gm2-auto gm2/ppg$(exeext) gm2/gm2-auto/pg.mod \
     gm2/p2c/p2c-src/src/libp2c.a gm2/boot-bin/mklink gm2/gm2-libs-boot \
     $(GM2-PPG-MODS:%.mod=gm2/gm2-compiler-boot/%.o)
 	sed -e 's/ppg/pg/' < $(srcdir)/gm2/init/ppginit > gm2/gm2-auto/pginit
