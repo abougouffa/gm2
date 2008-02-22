@@ -15,18 +15,48 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 
+#include <p2c/p2c.h>
+
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
+
+#if defined(HAVE_SYS_TYPES_H)
+#   include <sys/types.h>
+#endif
+
+#if defined(HAVE_SYS_SOCKET_H)
+#   include <sys/socket.h>
+#endif
+
 #include <netinet/in.h>
 #include <netdb.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <malloc.h>
-#include <signal.h>
-#include <string.h>
-#include <stdlib.h>
+
+#if defined(HAVE_UNISTD_H)
+#  include <unistd.h>
+#endif
+
+#if defined(HAVE_SIGNAL_H)
+#  include <signal.h>
+#endif
+
+#if defined(HAVE_SYS_ERRNO_H)
+#  include <errno.h>
+#endif
+
+#if defined(HAVE_MALLOC_H)
+#  include <malloc.h>
+#endif
+
+#if defined(HAVE_MALLOC_H)
+#  include <signal.h>
+#endif
+
+#if defined(HAVE_STRING_H)
+#  include <string.h>
+#endif
+
+#if defined(HAVE_STDLIB_H)
+#  include <stdlib.h>
+#endif
 
 #define PORTSTART     7000
 #define NOOFTRIES      100
@@ -278,7 +308,7 @@ tcpClientState *tcpClientSocket (char *serverName, int portNo)
   s->sa.sin_port   = htons(portNo);
 
   /*
-   * Open a TCP socket (an Internet stream socket)
+   *  Open a TCP socket (an Internet stream socket)
    */
 
   s->sockFd = socket(s->hp->h_addrtype, SOCK_STREAM, 0);

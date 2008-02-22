@@ -1,6 +1,13 @@
+2008-02-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  fixed build rule for gm2/gm2-libs/sckt.c
+	  to include the p2c header (containing configure results).
+	* gm2/gm2-libs-ch/sckt.c:  prefixed most includes with
+	  tests based on configure results.
+
 2008-02-09       Gaius Mulley <gaius@gnu.org>
 
-        * gm2/Makefile.in:  replaced references of gm2/pg? to
+        * gm2/Make-lang.in:  replaced references of gm2/pg? to
 	  gm2/pg?$(exeext) to enable building in a cygwin
 	  environment as reported by David Moreno
 	  <jose_david_moreno@yahoo.es>.
