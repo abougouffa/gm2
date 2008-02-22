@@ -4,6 +4,8 @@
 	  to include the p2c header (containing configure results).
 	* gm2/gm2-libs-ch/sckt.c:  prefixed most includes with
 	  tests based on configure results.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed declaration of
+	  user defined unbounded parameters.
 
 2008-02-09       Gaius Mulley <gaius@gnu.org>
 
