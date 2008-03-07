@@ -98,7 +98,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    GetBaseTypeMinMax, MixTypes,
                    Cardinal, Char, Proc, Integer,
                    LongInt, LongCard, ShortCard, ShortInt,
-                   Real, LongReal, ShortReal, ZType, RType,
+                   Real, LongReal, ShortReal, ZRealType,
                    Boolean, True, False,
                    IsRealType, IsNeededAtRunTime ;
 
@@ -119,7 +119,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
                    DeclareKnownType, DeclareKnownVariable,
                    GetDefaultType, GetCopyOfType,
-                   GetIntegerType, GetCharType, GetM2CharType, GetM2ZType, GetM2RType,
+                   GetIntegerType, GetCharType, GetM2CharType,
                    GetVoidType, GetIntegerZero, GetIntegerOne, GetCurrentFunction,
                    GetPointerType, GetM2LongIntType, GetM2LongCardType,
                    GetM2ShortIntType, GetM2ShortCardType,
@@ -1100,7 +1100,6 @@ BEGIN
    REPEAT
       s := NoOfItemsInList(ToDoList) ;
       n := NoOfItemsInList(ToDoConstants) ;
-      ForeachLocalSymDo(scope, DeclareTypeInfo) ;
       ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
       t := NoOfItemsInList(ToDoList) ;
       m := NoOfItemsInList(ToDoConstants)
@@ -1187,8 +1186,8 @@ BEGIN
       DeclareModuleInit(scope) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSE
-      DeclareTypesAndConstants(scope) ;
       ForeachModuleDo(DeclareTypesInModule) ;
+      DeclareTypesAndConstants(scope) ;
       ForeachModuleDo(DeclareProcedure) ;
       (*
          now that all types have been resolved it is safe to declare
@@ -1369,8 +1368,7 @@ BEGIN
    DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
    DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
    DeclareBoolean ;
-   AddModGcc(ZType, GetM2ZType()) ;
-   AddModGcc(RType, GetM2RType())
+   AddModGcc(ZRealType, GetM2LongRealType())
 
 END DeclareDefaultSimpleTypes ;
 
