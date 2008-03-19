@@ -125,6 +125,8 @@ FROM M2GCCDeclare IMPORT DeclareConstant,
                          PoisonSymbols, GetTypeMin, GetTypeMax,
                          IsProcedureGccNested, DeclareParameters ;
 
+FROM M2Range IMPORT CodeRangeCheck, FoldRangeCheck, CodeErrorCheck ;
+
 FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
                         GetBuiltinConst,
                         BuiltinExists, BuildBuiltinTree ;
@@ -175,7 +177,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildCap, BuildAbs,
                    ExpandExpressionStatement,
                    GetPointerType, GetPointerZero,
-                   GetWordType, GetM2ZType, GetM2ZRealType,
+                   GetWordType, GetM2ZType, GetM2RType,
                    GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
                    BuildIntegerConstant, BuildStringConstant,
                    RememberConstant, FoldAndStrip, RemoveOverflow ;
@@ -299,6 +301,10 @@ VAR
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
+PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
+                     q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ; FORWARD ;
@@ -540,7 +546,9 @@ BEGIN
    ProfileOnOp        : |
    ProfileOffOp       : |
    OptimizeOnOp       : |
-   OptimizeOffOp      :
+   OptimizeOffOp      : |
+   RangeCheckOp       : CodeRange(q, op1, op2, op3) |
+   ErrorOp            : CodeError(q, op1, op2, op3)
 
    ELSE
       WriteFormat1('quadruple %d not yet implemented', q) ;
@@ -662,7 +670,8 @@ BEGIN
          IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3) |
          LogicalShiftOp     : FoldSetShift(tokenno, l, quad, op1, op2, op3) |
          LogicalRotateOp    : FoldSetRotate(tokenno, l, quad, op1, op2, op3) |
-         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3)
+         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3) |
+         RangeCheckOp       : FoldRange(tokenno, l, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
@@ -844,6 +853,45 @@ BEGIN
       EmitLineNote(string(FileName), op3)
    END
 END CodeLineNumber ;
+
+
+(*
+   FoldRange - attempts to fold the range test.
+               --fixme-- complete this
+*)
+
+PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
+                     q: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   FoldRangeCheck(tokenno, l, q, op3)
+END FoldRange ;
+
+
+(*
+   CodeRange - encode the range test associated with op3.
+*)
+
+PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   t := CodeRangeCheck(op3, NulName)  (* --fixme-- find name of scope *)
+END CodeRange ;
+
+
+(*
+   CodeError - encode the error test associated with op3.
+*)
+
+PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   (* would like to test whether this position is in the same basicblock
+      as any known entry point.  If so we could emit an error message.
+   *)
+   t := CodeErrorCheck(op3, NulName)  (* --fixme-- find name of scope *)
+END CodeError ;
 
 
 (*
@@ -3327,8 +3375,7 @@ END GetSetLimits ;
 
 PROCEDURE GetFieldNo (tokenno: CARDINAL; element: CARDINAL; set: CARDINAL; VAR offset: Tree) : INTEGER ;
 VAR
-   type, low, high, bpw: CARDINAL ;
-   i                   : INTEGER ;
+   type, low, high, bpw, c: CARDINAL ;
 BEGIN
    bpw := GetBitsPerBitset() ;
    GetSetLimits(set, low, high) ;
@@ -3354,15 +3401,15 @@ BEGIN
 
    PushValue(low) ;
    offset := PopIntegerTree() ;
-   i := 0 ;
+   c := 0 ;
    PushValue(element) ;
    PushValue(low) ;
    PushCard(bpw) ;
    Addn ;
    WHILE GreEqu(tokenno) DO
-      INC(i) ;   (* move onto next field *)
+      INC(c) ;   (* move onto next field *)
       PushValue(element) ;
-      PushCard((i+1)*bpw) ;
+      PushCard((c+1)*bpw) ;
       PushValue(low) ;
       Addn ;
       PushIntegerTree(offset) ;
@@ -3370,7 +3417,7 @@ BEGIN
       Addn ;
       offset := PopIntegerTree() ;
    END ;
-   RETURN( i )
+   RETURN( VAL(INTEGER, c) )
 END GetFieldNo ;
 
 
@@ -3517,7 +3564,7 @@ BEGIN
                   ZConstToTypedConst := GetM2ZType()
                ELSIF IsRealType(GetType(op3))
                THEN
-                  ZConstToTypedConst := GetM2ZRealType()
+                  ZConstToTypedConst := GetM2RType()
                END
             END ;
             IF GetType(op1)=NulSym

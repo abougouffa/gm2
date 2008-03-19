@@ -91,6 +91,7 @@ static int insideCppArgs = FALSE;
 #define ASSERT_CONDITION(X)   { if (!(X)) { internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
 
+#define USE_BOOLEAN
 
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
             A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
@@ -584,10 +585,10 @@ void                   gccgm2_BuildEnd                            (tree fndecl, 
 void                   gccgm2_BuildCallInnerInit                  (tree fndecl);
 void                   gccgm2_BuildStartMainModule                (void);
 void                   gccgm2_BuildEndMainModule                  (void);
-tree                   gccgm2_BuildCap                             (tree t);
-tree                   gccgm2_BuildAbs                             (tree t);
-void                   gccgm2_DebugTree                                   (tree t);
-void                   gccgm2_DebugTreeChain                       (tree t);
+tree                   gccgm2_BuildCap                            (tree t);
+tree                   gccgm2_BuildAbs                            (tree t);
+void                   gccgm2_DebugTree                           (tree t);
+void                   gccgm2_DebugTreeChain                      (tree t);
 tree                   build_function_call                        (tree function, tree params);
 tree                   start_enum                                 (tree name);
 void                   pushtag                                    (tree name, tree type);
@@ -709,7 +710,7 @@ static int                    append_m2_digit                             (unsig
 void                   gccgm2_DetermineSizeOfConstant              (const char *str, unsigned int base, int *needsLong, int *needsUnsigned);
 int                    gccgm2_Overflow                             (tree t);
 tree                   gccgm2_GetM2ZType                           (void);
-tree                   gccgm2_GetM2ZRealType                       (void);
+tree                   gccgm2_GetM2RType                           (void);
 tree                   gccgm2_RemoveOverflow                       (tree t);
 static int                    getLineNo                                   (void);
        void                   gm2_register_builtin_type                   (tree type, const char* name);
@@ -1696,7 +1697,6 @@ build_m2_char_node (void)
   TYPE_SIZE (c) = 0;
 
   fixup_unsigned_type (c);
-  TYPE_UNSIGNED (c) = TRUE;
 
   return c;
 }
@@ -1863,27 +1863,6 @@ build_m2_iso_word_node (void)
                                                                              FALSE))));
   return c;
 }
-
-#if 0
-/* Return the global value of T as a symbol.  */
-
-tree
-identifier_global_value	(tree t)
-{
-/* This represents the value which the identifier has in the
-   file-scope namespace.  */
-#define IDENTIFIER_GLOBAL_VALUE(NODE)   \
-  (((struct lang_identifier *) (NODE))->global_value)
-
-  struct c_binding *b;
-
-  for (b = I_SYMBOL_BINDING (t); b; b = b->shadowed)
-    if (B_IN_FILE_SCOPE (b) || B_IN_EXTERNAL_SCOPE (b))
-      return b->decl;
-
-  return 0;
-}
-#endif
 
 /* Create the predefined scalar types such as `integer_type_node' needed 
    in the gcc back-end and initialize the global binding level.  */
@@ -3397,14 +3376,7 @@ gm2_unsigned_conversion_error (tree result, tree operand, tree totype)
       && TYPE_UNSIGNED (type)
       && skip_evaluation == 0
       && !int_fits_type_p (operand, type))
-    {
-      if (!int_fits_type_p (operand, gm2_signed_type (type)))
-        /* This detects cases like converting -129 or 256 to unsigned char.  */
-        error ("constant overflow when attempting to convert value into, %qT ", totype);
-      else
-        error ("negative INTEGER constant should not converted into non negative type, %qT ",
-               totype);
-    }
+    error ("constant overflow");
 }
 
 /* Nonzero if constant C has a value that is permissible
@@ -7960,6 +7932,7 @@ gccgm2_BuildBinarySetDo (tree settype, tree op1, tree op2, tree op3,
         op3 = gccgm2_BuildNegate (op3, FALSE);
       else
         is_left = TRUE;
+      op3 = gccgm2_BuildConvert (gccgm2_GetM2CardinalType (), op3, FALSE);
     }
 
     /*
@@ -9287,7 +9260,7 @@ gccgm2_GetM2ZType (void)
 }
 
 tree
-gccgm2_GetM2ZRealType (void)
+gccgm2_GetM2RType (void)
 {
   return long_double_type_node;
 }

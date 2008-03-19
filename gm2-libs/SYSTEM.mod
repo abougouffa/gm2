@@ -83,7 +83,7 @@ END ShiftVal ;
 
 PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
-                     ShiftCount: INTEGER) ;
+                     ShiftCount: CARDINAL) ;
 VAR
    lo, hi : BITSET ;
    i, j, h: CARDINAL ;
@@ -118,7 +118,7 @@ END ShiftLeft ;
 
 PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
                       SetSizeInBits: CARDINAL;
-                      ShiftCount: INTEGER) ;
+                      ShiftCount: CARDINAL) ;
 VAR
    lo, hi : BITSET ;
    j      : INTEGER ;
@@ -175,7 +175,7 @@ END RotateVal ;
 
 PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
                       SetSizeInBits: CARDINAL;
-                      RotateCount: INTEGER) ;
+                      RotateCount: CARDINAL) ;
 VAR
    lo, hi : BITSET ;
    b, i, j, h: CARDINAL ;
@@ -218,7 +218,7 @@ END RotateLeft ;
 
 PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
                        SetSizeInBits: CARDINAL;
-                       RotateCount: INTEGER) ;
+                       RotateCount: CARDINAL) ;
 BEGIN
    RotateLeft(s, d, SetSizeInBits, SetSizeInBits-RotateCount)
 END RotateRight ;

@@ -30,6 +30,7 @@ IMPLEMENTATION MODULE M2Base ;
 FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
+FROM SYSTEM IMPORT WORD ;
 
 FROM M2Error IMPORT Error, NewError, NewWarning,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
@@ -53,20 +54,23 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         GetType, GetLowestType, GetDeclared, SkipType,
                         SetCurrentModule,
                         StartScope, EndScope, PseudoScope,
+                        ForeachFieldEnumerationDo,
                         RequestSym, GetSymName, NulSym,
                         PutImported, GetExported,
-                        PopSize, PopValue,
+                        PopSize, PopValue, PushValue,
                         FromModuleGetSym,
                         IsExportQualified, IsExportUnQualified ;
 
-FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ ;
+FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ, Gre, Less ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
+FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
+FROM M2Size IMPORT Size, MakeSize ;
+FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem;
+
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
                       Iso, Pim, Pim2 ;
-FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem ;
-FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
-FROM M2Size IMPORT Size, MakeSize ;
+
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
                    GetM2IntegerType, GetM2CharType,
@@ -77,7 +81,7 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
                    GetM2ShortIntType, GetM2ShortCardType,
                    GetM2CardinalType, GetPointerType, GetWordType,
                    GetByteType, GetISOWordType, GetISOByteType,
-                   GetISOLocType, GetM2ZRealType ;
+                   GetISOLocType, GetM2RType, GetM2ZType ;
 
 TYPE
    Compatability = (expression, assignment, parameter) ;
@@ -86,7 +90,8 @@ TYPE
                     normcard, shortcard, longcard,
                     pointer, enum,
                     real, shortreal, longreal,
-                    set, opaque, loc, zreal, unknown) ;
+                    set, opaque, loc, rtype, ztype,
+                    unknown) ;
    Compatible    = (uninitialized, no, warnfirst, warnsecond,
                     first, second) ;
 
@@ -126,7 +131,10 @@ VAR
    MinCardinal,
    MaxCardinal,
    MinInteger,
-   MaxInteger : CARDINAL ;
+   MaxInteger,
+   MaxEnum,
+   MinEnum    : CARDINAL ;
+
 
 
 (*
@@ -204,6 +212,16 @@ VAR
    Zero,
    MaxCard: CARDINAL ;
 BEGIN
+   ZType := MakeType(MakeKey('_M2_Ztype')) ;
+   PutType(ZType, NulSym) ;                   (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2ZType())) ;
+   PopSize(ZType) ;
+
+   RType := MakeType(MakeKey('_M2_Rtype')) ;
+   PutType(RType, NulSym) ;                   (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2RType())) ;
+   PopSize(RType) ;
+
    Integer := MakeType(MakeKey('INTEGER')) ;
    PutType(Integer, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2IntegerType())) ;
@@ -252,11 +270,6 @@ BEGIN
    PutType(LongReal, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2LongRealType())) ;
    PopSize(LongReal) ;
-
-   ZRealType := MakeType(MakeKey('_M2_ZREAL')) ;
-   PutType(ZRealType, NulSym) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetM2ZRealType())) ;
-   PopSize(ZRealType) ;
 
    Char := MakeType(MakeKey('CHAR')) ;
    PutType(Char, NulSym) ;                    (* Base Type       *)
@@ -378,10 +391,40 @@ END InitBaseSimpleTypes ;
 
 
 (*
+   FindMinMaxEnum - finds the minimum and maximum enumeration fields.
+*)
+
+PROCEDURE FindMinMaxEnum (field: WORD) ;
+BEGIN
+   IF MaxEnum=NulSym
+   THEN
+      MaxEnum := field
+   ELSE
+      PushValue(field) ;
+      PushValue(MaxEnum) ;
+      IF Gre(GetTokenNo())
+      THEN
+         MaxEnum := field
+      END
+   END ;
+   IF MinEnum=NulSym
+   THEN
+      MinEnum := field
+   ELSE
+      PushValue(field) ;
+      PushValue(MinEnum) ;
+      IF Less(GetTokenNo())
+      THEN
+         MinEnum := field
+      END
+   END
+END FindMinMaxEnum ;
+
+
+(*
    GetBaseTypeMinMax - returns the minimum and maximum values for a
-                       given system type. This procedure should only
-                       be called if the type is NOT a subrange and NOT
-                       an enumeration.
+                       given base type. This procedure should only
+                       be called if the type is NOT a subrange.
 *)
 
 PROCEDURE GetBaseTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
@@ -431,6 +474,13 @@ BEGIN
    THEN
       min := MinLongReal ;
       max := MaxLongReal
+   ELSIF IsEnumeration(type)
+   THEN
+      MinEnum := NulSym ;
+      MaxEnum := NulSym ;
+      ForeachFieldEnumerationDo(type, FindMinMaxEnum) ;
+      min := MinEnum ;
+      max := MaxEnum
    ELSE
       n := GetSymName(type) ;
       WriteFormat1('unable to find MIN or MAX for the base type %a', n)
@@ -615,13 +665,48 @@ END IsBaseType ;
 PROCEDURE IsOrdinalType (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym=Cardinal) OR (Sym=Integer)  OR (Sym=Boolean) OR
-          (Sym=Char)     OR 
-          (Sym=LongInt)  OR (Sym=LongCard) OR
-          (Sym=ShortInt) OR (Sym=ShortCard) OR
+          (Sym=Cardinal)  OR (Sym=Integer)   OR
+          (Sym=Char)      OR (Sym=Boolean)   OR
+          (Sym=LongInt)   OR (Sym=LongCard)  OR
+          (Sym=ShortInt)  OR (Sym=ShortCard) OR
+          (Sym=ZType)     OR
           IsSubrange(Sym) OR IsEnumeration(Sym)
          )
 END IsOrdinalType ;
+
+
+(*
+   EmitTypeIncompatibleWarning - emit a type incompatibility warning.
+*)
+
+PROCEDURE EmitTypeIncompatibleWarning (e: Error; kind: Compatability) ;
+BEGIN
+   CASE kind OF
+
+   expression:  ErrorFormat0(e, 'warning type incompatibility found in an expression, hint one of the expressions should be converted') |
+   assignment:  ErrorFormat0(e, 'warning type incompatibility found during assignment, hint the expression should be converted') |
+   parameter :  ErrorFormat0(e, 'warning type incompatibility found while passing a parameter, hint the parameter should be converted')
+
+   ELSE
+   END
+END EmitTypeIncompatibleWarning ;
+
+
+(*
+   EmitTypeIncompatibleError - emit a type incompatibility error.
+*)
+
+PROCEDURE EmitTypeIncompatibleError (e: Error; kind: Compatability) ;
+BEGIN
+   CASE kind OF
+
+   expression:  ErrorFormat0(e, 'type incompatibility found in an expression, hint one of the expressions should be converted') |
+   assignment:  ErrorFormat0(e, 'type incompatibility found during assignment, hint the expression should be converted') |
+   parameter :  ErrorFormat0(e, 'type incompatibility found while passing a parameter, hint the parameter should be converted')
+
+   ELSE
+   END
+END EmitTypeIncompatibleError ;
 
 
 (*
@@ -653,9 +738,9 @@ BEGIN
       ELSE
          IF (r=warnfirst) OR (r=warnsecond)
          THEN
-            ErrorFormat0(e, 'warning type incompatibility, hint the types should be converted')
+            EmitTypeIncompatibleWarning(e, kind)
          ELSE
-            ErrorFormat0(e, 'type incompatibility, hint the types should be converted or coerced')
+            EmitTypeIncompatibleError(e, kind)
          END
       END ;
 
@@ -772,9 +857,12 @@ BEGIN
    ELSIF IsEnumeration(sym)
    THEN
       RETURN( enum )
-   ELSIF sym=ZRealType
+   ELSIF sym=ZType
    THEN
-      RETURN( zreal )
+      RETURN( ztype )
+   ELSIF sym=RType
+   THEN
+      RETURN( rtype )
    ELSIF sym=Real
    THEN
       RETURN( real )
@@ -839,7 +927,7 @@ END IsBaseCompatible ;
 
 PROCEDURE IsRealType (t: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (t=Real) OR (t=LongReal) OR (t=ShortReal) OR (t=ZRealType) )
+   RETURN( (t=Real) OR (t=LongReal) OR (t=ShortReal) OR (t=RType) )
 END IsRealType ;
 
 
@@ -943,94 +1031,6 @@ BEGIN
           (IsCompatible(t1, t2, parameter)=second)
          )
 END IsParameterCompatible ;
-
-
-(*
-   IsIntCard - returns TRUE if, t, is of an INTEGER or CARDINAL type.
-*)
-
-PROCEDURE IsIntCard (t: CARDINAL) : BOOLEAN ;
-BEGIN
-   RETURN(
-          (t=Integer) OR (t=Cardinal) OR
-          (t=LongCard) OR (t=ShortCard) OR
-          (t=LongInt) OR (t=ShortInt)
-         )
-END IsIntCard ;
-
-
-(*
-   IsXor - returns TRUE if (a1=b1 and a2=b2) or
-                           (a2=b1 and a1=b2)
-*)
-
-PROCEDURE IsXor (a1, a2, b1, b2: CARDINAL) : BOOLEAN ;
-BEGIN
-   RETURN( ((a1=b1) AND (a2=b2)) OR ((a2=b1) AND (a1=b2)) )
-END IsXor ;
-
-
-(*
-   MixIntCard - promotes INTEGER and CARDINAL types.
-*)
-
-PROCEDURE MixIntCard (t1, t2: CARDINAL) : CARDINAL ;
-BEGIN
-   IF IsXor(t1, t2, Integer, Cardinal)
-   THEN
-      RETURN( Integer )
-   ELSIF IsXor(t1, t2, Integer, LongCard)
-   THEN
-      RETURN( LongCard )
-   ELSIF IsXor(t1, t2, Integer, ShortCard)
-   THEN
-      RETURN( Integer )
-   ELSIF IsXor(t1, t2, Integer, LongInt)
-   THEN
-      RETURN( LongInt )
-   ELSIF IsXor(t1, t2, Integer, ShortInt)
-   THEN
-      RETURN( Integer )
-   ELSIF IsXor(t1, t2, Cardinal, LongCard)
-   THEN
-      RETURN( LongCard )
-   ELSIF IsXor(t1, t2, Cardinal, ShortCard)
-   THEN
-      RETURN( Cardinal )
-   ELSIF IsXor(t1, t2, Cardinal, LongInt)
-   THEN
-      RETURN( LongInt )
-   ELSIF IsXor(t1, t2, Cardinal, ShortInt)
-   THEN
-      RETURN( Integer )
-   ELSIF IsXor(t1, t2, ShortInt, Cardinal)
-   THEN
-      RETURN( Integer )
-   ELSIF IsXor(t1, t2, ShortInt, LongCard)
-   THEN
-      RETURN( LongInt )
-   ELSIF IsXor(t1, t2, ShortInt, ShortCard)
-   THEN
-      RETURN( ShortInt )
-   ELSIF IsXor(t1, t2, ShortInt, LongInt)
-   THEN
-      RETURN( LongInt )
-   ELSIF IsXor(t1, t2, ShortCard, Cardinal)
-   THEN
-      RETURN( Cardinal )
-   ELSIF IsXor(t1, t2, ShortCard, LongCard)
-   THEN
-      RETURN( LongCard )
-   ELSIF IsXor(t1, t2, ShortCard, LongInt)
-   THEN
-      RETURN( LongInt )
-   ELSIF IsXor(t1, t2, LongInt, LongCard)
-   THEN
-      RETURN( LongInt )
-   ELSE
-      InternalError('not expecting these types', __FILE__, __LINE__)
-   END
-END MixIntCard ;
 
 
 (*
@@ -1156,7 +1156,8 @@ PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (type=LongCard) OR (type=LongInt) OR (type=Real) OR
-          (type=LongReal) OR (type=ShortReal) OR (type=ZRealType)
+          (type=LongReal) OR (type=ShortReal) OR
+          (type=RType) OR (type=ZType)
          )
 END IsMathType ;
 
@@ -1198,7 +1199,8 @@ BEGIN
    set      :   InternalError('do not know the size of a set', __FILE__, __LINE__) |
    opaque   :   InternalError('do not know the size of an opaque', __FILE__, __LINE__) |
    loc      :   PushIntegerTree(GetSizeOf(GetISOLocType())) |
-   zreal    :   PushIntegerTree(GetSizeOf(GetM2ZRealType())) |
+   rtype    :   PushIntegerTree(GetSizeOf(GetM2RType())) |
+   ztype    :   PushIntegerTree(GetSizeOf(GetM2ZType())) |
    unknown  :   InternalError('should not get here', __FILE__, __LINE__)
 
    ELSE
@@ -1380,40 +1382,41 @@ BEGIN
    (*
                                      1 p w
 
-                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  Z
-                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  r
-                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  e
-                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     a
-                 y        e     g  t  i  i  t  c           t  r     u     l
+                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  R  Z
+                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  t  t
+                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  y  y
+                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     p  p
+                 y        e     g  t  i  i  t  c           t  r     u     e  e
                  m        s     e  i  n  n  c  a           r  e     e
                           s     r  n  t  a  a  r           e  a
                                    t     l  r  d           a  l
                                             d              l
-      ---------------------------------------------------------------------
+      ------------------------------------------------------------------------
    2
    P
    W
    *)
-   A(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F') ;
-   A(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  F  W  W  T  T  F  W') ;
-   A(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
-   A(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2  2  F') ;
-   A(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  2  F') ;
-   A(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F  F  F') ;
-   A(shortint , '.  .  .  .  .  .  T  1  1  2  1  F  F  F  F  F  F  F  F  F') ;
-   A(longint  , '.  .  .  .  .  .  .  T  2  2  2  F  F  F  F  F  F  F  F  F') ;
-   A(normcard , '.  .  .  .  .  .  .  .  T  2  1  F  F  F  F  F  F  F  F  F') ;
-   A(shortcard, '.  .  .  .  .  .  .  .  .  T  1  F  F  F  F  F  F  F  F  F') ;
-   A(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
-   A(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
-   A(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F') ;
-   A(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  T  T  F  F  F  2') ;
-   A(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  T  F  F  F  2') ;
-   A(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2') ;
-   A(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
-   A(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
-   A(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
-   A(zreal    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
+   A(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F  T') ;
+   A(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  F  W  W  T  T  F  W  T') ;
+   A(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  T') ;
+   A(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2  2  F  T') ;
+   A(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  2  F  F') ;
+   A(normint  , '.  .  .  .  .  T  T  T  T  T  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(shortint , '.  .  .  .  .  .  T  T  T  T  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(longint  , '.  .  .  .  .  .  .  T  T  T  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(normcard , '.  .  .  .  .  .  .  .  T  T  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(shortcard, '.  .  .  .  .  .  .  .  .  T  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  T') ;
+   A(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
+   A(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
+   A(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  T  T  F  F  F  2  F') ;
+   A(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  T  F  F  F  2  F') ;
+   A(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2  F') ;
+   A(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F') ;
+   A(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
+   A(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
+   A(rtype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
+   A(ztype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
 
 
    (* Expression compatibility *)
@@ -1422,80 +1425,81 @@ BEGIN
    (*
                                         1 p w
 
-                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  Z
-                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  r
-                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  e
-                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     a
-                 y        e     g  t  i  i  t  c           t  r     u     l
+                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  R  Z
+                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  t  t
+                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  y  y
+                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     p  p
+                 y        e     g  t  i  i  t  c           t  r     u     e  e
                  m        s     e  i  n  n  c  a           r  e     e
                           s     r  n  t  a  a  r           e  a
                                    t     l  r  d           a  l
                                             d              l
-      ---------------------------------------------------------------------
+      ------------------------------------------------------------------------
    2
    P
    W
    *)
 
-   E(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F  F') ;
-   E(word     , '.  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  W') ;
-   E(byte     , '.  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
-   E(address  , '.  .  .  T  F  P  F  F  P  F  F  T  F  F  F  F  F  F  F  F') ;
-   E(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
-   E(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F  F  F') ;
-   E(shortint , '.  .  .  .  .  .  T  1  1  2  1  F  F  F  F  F  F  F  F  F') ;
-   E(longint  , '.  .  .  .  .  .  .  T  2  2  2  F  F  F  F  F  F  F  F  F') ;
-   E(normcard , '.  .  .  .  .  .  .  .  T  2  1  F  F  F  F  F  F  F  F  F') ;
-   E(shortcard, '.  .  .  .  .  .  .  .  .  T  1  F  F  F  F  F  F  F  F  F') ;
-   E(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
-   E(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
-   E(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F') ;
-   E(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  2  1  F  F  F  2') ;
-   E(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  1  F  F  F  2') ;
-   E(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2') ;
-   E(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
-   E(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
-   E(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  F  F') ;
-   E(zreal    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
+   E(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F  F  T') ;
+   E(word     , '.  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  W  F') ;
+   E(byte     , '.  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   E(address  , '.  .  .  T  F  P  F  F  P  F  F  T  F  F  F  F  F  F  F  F  F') ;
+   E(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   E(normint  , '.  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  F  2') ;
+   E(shortint , '.  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  2') ;
+   E(longint  , '.  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  2') ;
+   E(normcard , '.  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  2') ;
+   E(shortcard, '.  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  2') ;
+   E(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  2') ;
+   E(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
+   E(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
+   E(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  2  F') ;
+   E(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  2  F') ;
+   E(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2  F') ;
+   E(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F') ;
+   E(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
+   E(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  F  F  F') ;
+   E(rtype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
+   E(ztype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
 
    (*
                                      1 p w
 
-                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  Z
-                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  r
-                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  e
-                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     a
-                 y        e     g  t  i  i  t  c           t  r     u     l
+                 N  W  B  A  C  I  S  L  C  S  L  P  E  R  S  L  S  O  L  R  Z
+                 u  o  y  d  h  n  h  o  a  h  o  t  n  e  h  o  e  p  o  t  t
+                 l  r  t  d  a  t  o  n  r  o  n  r  u  a  o  n  t  a  c  y  y
+                 S  d  e  r  r  e  r  g  d  r  g     m  l  r  g     q     p  p
+                 y        e     g  t  i  i  t  c           t  r     u     e  e
                  m        s     e  i  n  n  c  a           r  e     e
                           s     r  n  t  a  a  r           e  a
                                    t     l  r  d           a  l
                                             d              l
-      ---------------------------------------------------------------------
+      ------------------------------------------------------------------------
    2
    P
    W
    *)
-   P(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F') ;
-   P(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  W  W  W  T  T  F  W') ;
-   P(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
-   P(address  , '.  .  .  T  F  F  F  F  F  F  F  2  F  F  F  F  F  2  2  F') ;
-   P(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  2  F') ;
-   P(normint  , '.  .  .  .  .  T  2  1  2  2  1  F  F  F  F  F  F  F  F  F') ;
-   P(shortint , '.  .  .  .  .  .  T  F  F  T  F  F  F  F  F  F  F  F  F  F') ;
-   P(longint  , '.  .  .  .  .  .  .  T  F  F  2  F  F  F  F  F  F  F  F  F') ;
-   P(normcard , '.  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F') ;
-   P(shortcard, '.  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F') ;
-   P(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
-   P(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
-   P(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F') ;
-   P(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  2') ;
-   P(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  2') ;
-   P(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2') ;
-   P(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
-   P(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
-   P(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
-   P(zreal    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T') ;
-
+   P(const    , 'T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  T  F  T') ;
+   P(word     , '.  T  F  W  F  2  W  W  2  W  W  W  2  W  W  W  T  T  F  W  F') ;
+   P(byte     , '.  .  T  F  2  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   P(address  , '.  .  .  T  F  F  F  F  F  F  F  T  F  F  F  F  F  T  T  F  F') ;
+   P(chr      , '.  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  F  F  T  F  F') ;
+   P(normint  , '.  .  .  .  .  T  F  F  T  F  F  F  F  F  F  F  F  F  F  F  F') ;
+   P(shortint , '.  .  .  .  .  .  T  F  F  T  F  F  F  F  F  F  F  F  F  F  T') ;
+   P(longint  , '.  .  .  .  .  .  .  T  F  F  T  F  F  F  F  F  F  F  F  F  T') ;
+   P(normcard , '.  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  F  T') ;
+   P(shortcard, '.  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  F  T') ;
+   P(longcard , '.  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F  T') ;
+   P(pointer  , '.  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F  F') ;
+   P(enum     , '.  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  F  F  F') ;
+   P(real     , '.  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  F  2  F') ;
+   P(shortreal, '.  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F  2  F') ;
+   P(longreal , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  2  F') ;
+   P(set      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F  F') ;
+   P(opaque   , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F  F') ;
+   P(loc      , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F  F') ;
+   P(rtype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T  F') ;
+   P(ztype    , '.  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  .  T')
 
 END InitCompatibilityMatrices ;
 

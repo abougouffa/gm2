@@ -130,10 +130,6 @@ VAR
    father,
    child : SymbolTree ;
 BEGIN
-   IF SymKey=138
-   THEN
-      stop
-   END ;
    FindNodeAndParentInTree(t, NameKey, child, father) ;
    IF child=NIL
    THEN

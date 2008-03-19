@@ -115,7 +115,7 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
                        SemiColonTok, toktype ;
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
-                   Real, LongReal, ShortReal, Nil,
+                   Real, LongReal, ShortReal, Nil, ZType,
                    MixTypes, NegateType,
                    IsAssignmentCompatible, IsExpressionCompatible,
                    IsParameterCompatible,
@@ -125,7 +125,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    Cap, Abs, Odd,
                    Ord, Chr, Convert, Val, Float, Trunc, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
-                   IsMathType,
+                   IsMathType, IsOrdinalType,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
@@ -162,6 +162,22 @@ FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PushWord, PopWord, PeepWord,
                         IsEmptyWord, NoOfItemsInStackWord ;
 
+FROM M2Range IMPORT InitAssignmentRangeCheck,
+                    InitSubrangeRangeCheck,
+                    InitStaticArraySubscriptRangeCheck,
+                    InitDynamicArraySubscriptRangeCheck,
+                    InitIncRangeCheck,
+                    InitDecRangeCheck,
+                    InitForLoopBeginRangeCheck,
+                    InitForLoopToRangeCheck,
+                    InitForLoopEndRangeCheck,
+                    InitPointerRangeCheck,
+                    InitNoReturnRangeCheck,
+                    InitNoElseRangeCheck,
+                    CheckRangeAddVariableRead,
+                    CheckRangeRemoveVariableRead,
+                    WriteRangeCheck ;
+                 
 
 CONST
    MaxQuad        = 100000 ;
@@ -233,7 +249,6 @@ VAR
    LogicalDifferenceTok : Name ;      (* Internal _LDIFF token.                  *)
    NoOfDynamic          : CARDINAL ;
    IsAutoOn,                          (* should parser automatically push idents *)
-   MustNotCheckNil,
    MustNotCheckBounds   : BOOLEAN ;
    ForInfo              : ForLoopInfo ;  (* start and end of all FOR loops       *)
    GrowInitialization   : CARDINAL ;  (* upper limit of where the initialized    *)
@@ -255,6 +270,8 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE BuildError (r: CARDINAL) ; FORWARD ;
 PROCEDURE PushLineNote (l: LineNote) ; FORWARD ;
 PROCEDURE PopLineNo () : LineNote ; FORWARD ;
 PROCEDURE UseLineNote (l: LineNote) ; FORWARD ;
@@ -944,7 +961,9 @@ BEGIN
                        CheckAddVariableRead(Oper3, QuadNo) |
 
    IndrXOp           : CheckAddVariableWrite(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo)
+                       CheckAddVariableRead(Oper3, QuadNo) |
+
+   RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo)
 
    ELSE
    END
@@ -962,6 +981,10 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Op: QuadOperator;
                    Oper1, Oper2, Oper3: CARDINAL) ;
 BEGIN
+   IF QuadNo=162
+   THEN
+      stop
+   END ;
    IF QuadrupleGeneration
    THEN
       EraseQuad(QuadNo) ;
@@ -1054,7 +1077,9 @@ BEGIN
       ModFloorOp,
       DivFloorOp        : CheckRemoveVariableWrite(Operand1, QuadNo) ;
                           CheckRemoveVariableRead(Operand2, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo)
+                          CheckRemoveVariableRead(Operand3, QuadNo) |
+
+      RangeCheckOp      : CheckRangeRemoveVariableRead(Operand3, QuadNo)
 
       ELSE
       END ;
@@ -1244,7 +1269,9 @@ BEGIN
                           CheckRemoveVariableRead(Operand3, QuadNo) |
 
       IndrXOp           : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo)
+                          CheckRemoveVariableRead(Operand3, QuadNo) |
+
+      RangeCheckOp      : CheckRangeRemoveVariableRead(Operand3, QuadNo)
 
       ELSE
       END
@@ -1828,205 +1855,98 @@ END GetCurrentFunctionName ;
 
 
 (*
-   CheckPointerThroughNil - providing the user has requested -fnil
-                            then we check that sym is not NIL.
-                            This procedure treats variables as LValues.
+   BuildRange - generates a RangeCheckOp quad with, r, as its operand.
+*)
+
+PROCEDURE BuildRange (r: CARDINAL) ;
+BEGIN
+   GenQuad(RangeCheckOp, WORD(GetLineNo()), NulSym, r)
+END BuildRange ;
+
+
+(*
+   BuildError - generates a ErrorOp quad, indicating that if this
+                quadruple is reachable, then a runtime error would
+                occur.
+*)
+
+PROCEDURE BuildError (r: CARDINAL) ;
+BEGIN
+   GenQuad(ErrorOp, WORD(GetLineNo()), NulSym, r)
+END BuildError ;
+
+
+(*
+   CheckPointerThroughNil - builds a range quadruple, providing, sym, is
+                            a candidate for checking against NIL.
+                            This range quadruple is only expanded into
+                            code during the code generation phase
+                            thus allowing limited compile time checking.
 *)
 
 PROCEDURE CheckPointerThroughNil (sym: CARDINAL) ;
-VAR
-   line: CARDINAL ;
-   num : String ;
-   addr: CARDINAL ;
 BEGIN
-   IF (NOT MustNotCheckNil) AND IsVar(sym) AND GetVarPointerCheck(sym)
+   IF IsVar(sym) AND GetVarPointerCheck(sym)
    THEN
-      PutVarPointerCheck(sym, FALSE) ;  (* so we can detect this again *)
-      MustNotCheckNil := TRUE ;
-      addr := MakeTemporary(RightValue) ;
-      PutVar(addr, Address) ;
-      GenQuad(ConvertOp, addr, Address, sym) ;
-      (* IF sym=NIL *)
-      GenQuad(IfEquOp, addr, Nil, 0) ;       (* True  Exit *)
-      GenQuad(GotoOp, NulSym, NulSym, 0) ;   (* False Exit *)
-      PushBool(NextQuad-2, NextQuad-1) ;
-      BuildThenIf ;
-      (* THEN *)
-      PushTF(RequestSym(MakeKey('NilPointerError')),
-             GetType(RequestSym(MakeKey('NilPointerError')))) ;
-      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
-      line := GetLineNo() ;
-      num := Sprintf1(Mark(InitString('%d')), line) ;
-      PushT(MakeConstLit(makekey(string(num)))) ;
-      num := KillString(num) ;
-      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
-      PushT(3) ;
-      (* call error function *)
-      BuildProcedureCall ;
-      (* END *)
-      BuildEndIf ;
-      MustNotCheckNil := FALSE
+      (* PutVarPointerCheck(sym, FALSE) ;  (* so we do not detect this again *) *)
+      BuildRange(InitPointerRangeCheck(sym, GetMode(sym)=LeftValue))
    END
 END CheckPointerThroughNil ;
 
 
 (*
-   CheckSubrange - providing that the user has requested -fbounds and
-                   GetType(Des) is a subrange
-                   then this function emits quadruples to check that
-                   Exp lies in this subrange.
+   GetTypeMinMax - fills in, min, and, max, for a given SYSTEM or
+                   base type.  It returns FALSE if, min, and, max,
+                   cannot be found.
 *)
 
-PROCEDURE CheckSubrange (Des, Exp: CARDINAL) ;
-VAR
-   num      : String ;
-   expi,
-   line,
-   low, high,
-   t, f,
-   type     : CARDINAL ;
-   old      : BOOLEAN ;
+PROCEDURE GetTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF BoundsChecking AND
-      (Des#NulSym) AND (NOT IsConst(Des)) AND (NOT IsUnknown(Des)) AND
-      (NOT MustNotCheckBounds)
+   IF IsSystemType(type)
    THEN
-      old := MustNotCheckBounds ;
-      MustNotCheckBounds := TRUE ;  (* stop recursive checking *)
-      type := GetType(Des) ;
-      IF (type#NulSym) AND IsSubrange(type)
-      THEN
-         (*
-            we cannot yet GetSubrange for low and high as these entities
-            may not yet have been evaluated. P3SymBuild evaluates them,
-            possibly after this procedure.
+      GetSystemTypeMinMax(type, min, max) ;
+      RETURN( TRUE )
+   ELSIF IsBaseType(type)
+   THEN
+      GetBaseTypeMinMax(type, min, max) ;
+      RETURN( TRUE )
+   ELSIF IsSubrange(type)
+   THEN
+      (*
+         we cannot yet GetSubrange for low and high as these entities
+         may not yet have been evaluated. P3SymBuild evaluates them,
+         possibly after this procedure.
 
-            GetSubrange(type, high, low) ;  (* high, low may not be defined yet *)
+         GetSubrange(type, max, min) ;  (* max, min, may not be defined yet *)
 
-            To work around this problem we use the SubrangeLowOp and SubrangeHighOp
-            which we substitute for BecomesOp once we have resolved the subrange types
-            and the limits are known.
-         *)
-         low := MakeTemporary(ImmediateValue) ;
-         PutVar(low, type) ;
-         high := MakeTemporary(ImmediateValue) ;
-         PutVar(high, type) ;
-         GenQuad(SubrangeLowOp , low, NulSym, type) ;
-         GenQuad(SubrangeHighOp, high, NulSym, type) ;
+         To work around this problem we use the SubrangeLowOp and SubrangeHighOp
+         which we substitute for BecomesOp once we have resolved the subrange types
+         and the limits are known.
+      *)
 
-         (* cannot test against exp as it has 'type' subrange.
-            We therefore drop back to Integer base type.
-         *)
-         PushTF(Convert, NulSym) ;
-         PushT(Integer) ;
-         PushT(Exp) ;
-         PushT(2) ;
-         BuildConvertFunction ;
-         PopT(expi) ;
-
-         (* q+0  if expi < low       q+4  *)
-         (* q+1  goto                q+2  *)
-         PushT(expi) ;       (* BuildRelOp   1st parameter *)
-         PushT(LessTok) ;    (*              2nd parameter *)
-         PushT(low) ;        (*              3rd parameter *)
-         BuildRelOp ;
-         PopBool(t, f) ;     (*              return value  *)
-         BackPatch(f, NextQuad) ;
-         (* q+2  if expi > high      q+4  *)
-         (* q+3  goto                q+   *)
-         PushT(expi) ;       (* BuildRelOp   1st parameter *)
-         PushT(GreaterTok) ; (*              2nd parameter *)
-         PushT(high) ;       (*              3rd parameter *)
-         BuildRelOp ;
-         BackPatch(t, NextQuad) ;
-         PopBool(t, f) ;
-         BackPatch(t, NextQuad) ;
-         (* now call the error routine *)
-         IF IsSubscript(Des)
-         THEN
-            (* array index is out of bounds *)
-            (* assignment to a subrange variable is out of bounds *)
-            PushTF(RequestSym(MakeKey('ArraySubscriptError')),
-                   GetType(RequestSym(MakeKey('ArraySubscriptError'))))
-         ELSE
-            (* assignment to a subrange variable is out of bounds *)
-            PushTF(RequestSym(MakeKey('SubrangeAssignmentError')),
-                   GetType(RequestSym(MakeKey('SubrangeAssignmentError'))))
-         END ;
-         PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
-         line := GetLineNo() ;
-         num := Sprintf1(Mark(InitString('%d')), line) ;
-         PushT(MakeConstLit(makekey(string(num)))) ;
-         num := KillString(num) ;
-         PushT(MakeConstLitString(GetCurrentFunctionName())) ;
-         PushT(3) ;
-         BuildProcedureCall ;
-         (* call error function           *)
-         BackPatch(f, NextQuad) ;   (* no range error *)
-      END ;
-      MustNotCheckBounds := old   (* stop recursive checking *)
+      min := MakeTemporary(ImmediateValue) ;
+      PutVar(min, type) ;
+      max := MakeTemporary(ImmediateValue) ;
+      PutVar(max, type) ;
+      GenQuad(SubrangeLowOp , min, NulSym, type) ;
+      GenQuad(SubrangeHighOp, max, NulSym, type) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
    END
-END CheckSubrange ;
+END GetTypeMinMax ;
 
 
 (*
-   CheckDynamicArray - providing that the user has requested -bounds then this function
-                       emits quadruples to check that Exp is legal: 0..HIGH(Sym).
+   CheckDynamicArray - providing that the user has requested -fbounds
+                       then this function emits quadruples to check
+                       that Exp is legal: 0..HIGH(Sym).
                        We assume that Sym is an unbounded array.
 *)
 
 PROCEDURE CheckDynamicArray (Sym, Exp: CARDINAL) ;
-VAR
-   num      : String ;
-   line,
-   t, f,
-   high     : CARDINAL ;
-   old      : BOOLEAN ;
 BEGIN
-   IF BoundsChecking AND (NOT MustNotCheckBounds)
-   THEN
-      old := MustNotCheckBounds ;
-      MustNotCheckBounds := TRUE ;  (* stop recursive checking *)
-      (* q+0  if exp < low        q+4  *)
-      (* q+1  goto                q+2  *)
-      PushT(Exp) ;            (* BuildRelOp   1st parameter *)
-      PushT(LessTok) ;        (*              2nd parameter *)
-      PushT(MakeConstLit(MakeKey('0'))) ;  (* 3rd parameter *)
-      BuildRelOp ;
-      PopBool(t, f) ;     (*              return value  *)
-      BackPatch(f, NextQuad) ;
-
-      PushTF(High, Cardinal) ;             (* High function *)
-      PushT(Sym) ;                       (* unbounded array *)
-      PushT(1) ;                     (* 1 parameter to HIGH *)
-      BuildFunctionCall ;
-      PopT(high) ;
-
-      (* q+2  if exp > high       q+4  *)
-      (* q+3  goto                q+   *)
-      PushT(Exp) ;           (* BuildRelOp   1st parameter *)
-      PushT(GreaterTok) ;    (*              2nd parameter *)
-      PushT(high) ;          (*              3rd parameter *)
-      BuildRelOp ;
-      BackPatch(t, NextQuad) ;
-      PopBool(t, f) ;
-      BackPatch(t, NextQuad) ;
-
-      (* now call the error routine as the array index is out of bounds *)
-      PushTF(RequestSym(MakeKey('ArraySubscriptError')),
-             GetType(RequestSym(MakeKey('ArraySubscriptError')))) ;
-      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
-      line := GetLineNo() ;
-      num := Sprintf1(Mark(InitString('%d')), line) ;
-      PushT(MakeConstLit(makekey(string(num)))) ;
-      num := KillString(num) ;
-      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
-      PushT(3) ;
-      BuildProcedureCall ;
-      (* call error function           *)
-      BackPatch(f, NextQuad) ;   (* no range error *)
-      MustNotCheckBounds := old   (* stop recursive checking *)
-   END
+   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, Exp))
 END CheckDynamicArray ;
 
 
@@ -2375,7 +2295,7 @@ BEGIN
       Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
-      CheckSubrange(Des, Exp) ;
+      BuildRange(InitAssignmentRangeCheck(Des, Exp)) ;
       CheckNotConstAndVar(Des, Exp) ;
       (* Traditional Assignment *)
       MoveWithMode(Des, Exp, Array) ;
@@ -2922,6 +2842,24 @@ END BuildPseudoBy ;
 
 
 (*
+   BuildForLoopToRangeCheck - builds the 
+*)
+
+PROCEDURE BuildForLoopToRangeCheck ;
+VAR
+   d, dt,
+   e, et: CARDINAL ;
+BEGIN
+   PopTF(e, et) ;
+   PopTF(d, dt) ;
+   BuildRange(InitForLoopToRangeCheck(d, e)) ;
+   PushTF(d, dt) ;
+   PushTF(e, et)
+END BuildForLoopToRangeCheck ;
+
+
+
+(*
    BuildForToByDo - Builds the For To By Do part of the For statement
                     from the quad stack.
                     The Stack is expected to contain:
@@ -3024,9 +2962,10 @@ BEGIN
       WriteFormat0('incompatible types found in FOR loop header') ;
       CheckExpressionCompatible(GetType(e2), ByType)
    END ;
+   BuildRange(InitForLoopBeginRangeCheck(IdSym, e1)) ;
    PushT(IdSym) ;
    PushT(e1) ;
-   BuildAssignment ;
+   BuildAssignmentWithoutBounds ;
 
    UseLineNote(l2) ;
    FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
@@ -3047,7 +2986,8 @@ BEGIN
    PushT(PlusTok) ;
    PushTF(e1, GetType(e1)) ;
    BuildBinaryOp ;
-   BuildAssignment ;
+   BuildForLoopToRangeCheck ;
+   BuildAssignmentWithoutBounds ;
 
    (* q+1 if >=      by        0  q+..2 *)
    (* q+2 GotoOp                  q+3   *)
@@ -3085,7 +3025,6 @@ BEGIN
 
    BackPatch(ForLoop, NextQuad) ; (* fixes the start of the for loop *)
    ForLoop := NextQuad ;
-   CheckSubrange(IdSym, IdSym) ;
 
    (* and set up the stack *)
 
@@ -3151,15 +3090,16 @@ BEGIN
       PutVar(tsym, GetType(IdSym)) ;
       CheckPointerThroughNil(IdSym) ;
       GenQuad(IndrXOp, tsym, GetType(tsym), IdSym) ;
+      BuildRange(InitForLoopEndRangeCheck(tsym, BySym)) ;
       IncQuad := NextQuad ;
       GenQuad(AddOp, tsym, tsym, BySym) ;
       CheckPointerThroughNil(IdSym) ;
       GenQuad(XIndrOp, IdSym, GetType(IdSym), tsym)
    ELSE
+      BuildRange(InitForLoopEndRangeCheck(IdSym, BySym)) ;
       IncQuad := NextQuad ;
       GenQuad(AddOp, IdSym, IdSym, BySym)
    END ;
-   CheckSubrange(IdSym, IdSym) ;
    GenQuad(GotoOp, NulSym, NulSym, ForQuad) ;
    BackPatch(PopExit(), NextQuad) ;
    AddForInfo(ForQuad, NextQuad-1, IncQuad, IdSym)
@@ -3475,24 +3415,8 @@ END BuildCaseEnd ;
 *)
 
 PROCEDURE BuildCaseCheck ;
-VAR
-   line: CARDINAL ;
-   num : String ;
 BEGIN
-   IF CaseElseChecking
-   THEN
-      PushTF(RequestSym(MakeKey('CaseElseError')),
-             GetType(RequestSym(MakeKey('CaseElseError')))) ;
-      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
-      line := GetLineNo() ;
-      num := Sprintf1(Mark(InitString('%d')), line) ;
-      PushT(MakeConstLit(makekey(string(num)))) ;
-      num := KillString(num) ;
-      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
-      PushT(3) ;
-      (* call error function *)
-      BuildProcedureCall ;
-   END
+   BuildError(InitNoElseRangeCheck())
 END BuildCaseCheck ;
 
 
@@ -5275,6 +5199,71 @@ END BuildDisposeProcedure ;
 
 
 (*
+   CheckRangeIncDec - performs des := des <tok> expr
+                      with range checking (if enabled).
+
+                               Stack
+                      Entry              Exit
+
+                                     +------------+
+                      empty          | des + expr |
+                                     |------------|
+*)
+
+PROCEDURE CheckRangeIncDec (des, expr: CARDINAL; tok: Name) ;
+VAR
+   num         : String ;
+   line,
+   t, f,
+   dtype, etype,
+   dlow, dhigh : CARDINAL ;
+BEGIN
+   dtype := SkipType(GetType(des)) ;
+   etype := SkipType(GetType(expr)) ;
+   IF BoundsChecking AND (NOT MustNotCheckBounds)
+   THEN
+      IF tok=PlusTok
+      THEN
+         BuildRange(InitIncRangeCheck(des, expr))
+      ELSE
+         BuildRange(InitDecRangeCheck(des, expr))
+      END
+   END ;
+
+   IF IsExpressionCompatible(dtype, etype)
+   THEN
+      (* the easy case simulate a straightforward macro *)
+      PushTF(des, dtype) ;
+      PushT(tok) ;
+      PushTF(expr, etype) ;
+      BuildBinaryOp
+   ELSE
+      IF (IsOrdinalType(dtype) OR (dtype=Address) OR IsPointer(dtype)) AND
+         (IsOrdinalType(etype) OR (etype=Address) OR IsPointer(etype))
+      THEN
+         PushTF(Convert, NulSym) ;
+         PushT(dtype) ;
+         PushT(expr) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction ;
+
+         PushT(tok) ;
+         PushTF(des, dtype) ;
+         BuildBinaryOp
+      ELSE
+         IF tok=PlusTok
+         THEN
+            WriteFormat0('cannot perform INC using non ordinal types')
+         ELSE
+            WriteFormat0('cannot perform DEC using non ordinal types')
+         END ;
+         PushTF(MakeConstLit(MakeKey('0')), NulSym)
+      END
+   END
+END CheckRangeIncDec ;
+
+
+(*
    BuildIncProcedure - builds the pseudo procedure call INC.
                        INC is a procedure which increments a variable.
                        It takes one or two parameters:
@@ -5310,8 +5299,7 @@ VAR
    OperandSym,
    VarSym,
    TempSym,
-   ProcSym,
-   Ptr       : CARDINAL ;
+   ProcSym   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF (NoOfParam=1) OR (NoOfParam=2)
@@ -5319,35 +5307,17 @@ BEGIN
       VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
       IF IsVar(VarSym)
       THEN
-         TempSym := MakeTemporary(RightValue) ;
-         PutVar(TempSym, GetType(VarSym)) ;
          IF NoOfParam=2
          THEN
-            OperandSym := OperandT(1)
+            OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1')) ;
-            PushT(GetType(VarSym)) ;
-            PushT(OperandSym) ;
-            PushT(1) ;
-            BuildTypeCoercion ;
-            PopT(OperandSym)
+            OperandSym := MakeConstLit(MakeKey('1'))
          END ;
 
-         PushT(TempSym) ;
          PushT(VarSym) ;
-         BuildAssignmentWithoutBounds ;
-
-         PushTF(TempSym, GetType(TempSym)) ;
-
-         PushT(PlusTok) ;
-         PushTF(OperandSym, GetType(OperandSym)) ;
-         BuildBinaryOp ;
-         PopT(TempSym) ;
-
-         PutVar(TempSym, GetType(VarSym)) ;   (* now alter the type of the temporary *)
-         PushT(VarSym) ;
-         PushT(TempSym) ;   (* inefficient, but understandable *)
-         BuildAssignment
+         TempSym := DereferenceLValue(VarSym) ;
+         CheckRangeIncDec(TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
+         BuildAssignmentWithoutBounds   (* VarSym := TempSym + OperandSym *)
       ELSE
          ExpectVariable('base procedure INC expects a variable as a parameter',
                         VarSym)
@@ -5397,45 +5367,23 @@ VAR
    TempSym,
    ProcSym   : CARDINAL ;
 BEGIN
-   DumpStack ;
    PopT(NoOfParam) ;
    IF (NoOfParam=1) OR (NoOfParam=2)
    THEN
-      VarSym := OperandT(NoOfParam) ;   (* bottom/first parameter *)
+      VarSym := OperandT(NoOfParam) ;  (* bottom/first parameter *)
       IF IsVar(VarSym)
       THEN
-         TempSym := MakeTemporary(RightValue) ;
-         PutVar(TempSym, GetType(VarSym)) ;
          IF NoOfParam=2
          THEN
-            OperandSym := OperandT(1)
+            OperandSym := DereferenceLValue(OperandT(1))
          ELSE
-            OperandSym := MakeConstLit(MakeKey('1')) ;
-            PushT(GetType(VarSym)) ;
-            PushT(OperandSym) ;
-            PushT(1) ;
-            BuildTypeCoercion ;
-            PopT(OperandSym)
+            OperandSym := MakeConstLit(MakeKey('1'))
          END ;
 
-         PushT(TempSym) ;
          PushT(VarSym) ;
-         BuildAssignmentWithoutBounds ;
-         DumpStack ;
-
-         PushTF(TempSym, GetType(TempSym)) ;
-         DumpStack ;
-
-         PushT(MinusTok) ;
-         PushTF(OperandSym, GetType(OperandSym)) ;
-         BuildBinaryOp ;
-         PopT(TempSym) ;
-         DumpStack ;
-
-         PutVar(TempSym, GetType(VarSym)) ;   (* now alter the type of the temporary *)
-         PushT(VarSym) ;
-         PushT(TempSym) ;   (* inefficient, but understandable *)
-         BuildAssignment
+         TempSym := DereferenceLValue(VarSym) ;
+         CheckRangeIncDec(TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
+         BuildAssignmentWithoutBounds   (* VarSym := TempSym - OperandSym *)
       ELSE
          ExpectVariable('base procedure DEC expects a variable as a parameter',
                         VarSym)
@@ -5443,9 +5391,7 @@ BEGIN
    ELSE
       WriteFormat0('base procedure DEC expects 1 or 2 parameters')
    END ;
-   DumpStack ;
-   PopN(NoOfParam+1) ;
-   DumpStack ;
+   PopN(NoOfParam+1)
 END BuildDecProcedure ;
 
 
@@ -7348,44 +7294,6 @@ BEGIN
 END CheckBaseTypeValue ;
 
 
-VAR
-   MaxEnumerationField,
-   MinEnumerationField: CARDINAL ;
-
-
-(*
-   FindMinMaxEnum - finds the minimum and maximum enumeration fields.
-*)
-
-PROCEDURE FindMinMaxEnum (field: WORD) ;
-VAR
-   i: CARDINAL ;
-BEGIN
-   IF MaxEnumerationField=NulSym
-   THEN
-      MaxEnumerationField := field
-   ELSE
-      PushValue(field) ;
-      PushValue(MaxEnumerationField) ;
-      IF Gre(GetTokenNo())
-      THEN
-         MaxEnumerationField := field
-      END
-   END ;
-   IF MinEnumerationField=NulSym
-   THEN
-      MinEnumerationField := field
-   ELSE
-      PushValue(field) ;
-      PushValue(MinEnumerationField) ;
-      IF Less(GetTokenNo())
-      THEN
-         MinEnumerationField := field
-      END
-   END
-END FindMinMaxEnum ;
-
-
 (*
    GetTypeMin - 
 *)
@@ -7404,13 +7312,7 @@ BEGIN
    ELSIF IsSet(SkipType(type))
    THEN
       RETURN( GetTypeMin(GetType(SkipType(type))) )
-   ELSIF IsEnumeration(type)
-   THEN
-      MinEnumerationField := NulSym ;
-      MaxEnumerationField := NulSym ;
-      ForeachFieldEnumerationDo(type, FindMinMaxEnum) ;
-      RETURN( MinEnumerationField )
-   ELSIF IsBaseType(type)
+   ELSIF IsBaseType(type) OR IsEnumeration(type)
    THEN
       GetBaseTypeMinMax(type, min, max) ;
       min := CheckBaseTypeValue(type, min, 'MIN') ;
@@ -7447,13 +7349,7 @@ BEGIN
    ELSIF IsSet(SkipType(type))
    THEN
       RETURN( GetTypeMax(GetType(SkipType(type))) )
-   ELSIF IsEnumeration(type)
-   THEN
-      MinEnumerationField := NulSym ;
-      MaxEnumerationField := NulSym ;
-      ForeachFieldEnumerationDo(type, FindMinMaxEnum) ;
-      RETURN( MaxEnumerationField )
-   ELSIF IsBaseType(type)
+   ELSIF IsBaseType(type) OR IsEnumeration(type)
    THEN
       GetBaseTypeMinMax(type, min, max) ;
       max := CheckBaseTypeValue(type, max, 'MAX') ;
@@ -7491,7 +7387,7 @@ END GetTypeMax ;
 
 PROCEDURE BuildMinFunction ;
 VAR
-   min, max,
+   min,
    NoOfParam,
    Var,
    ProcSym,
@@ -7505,7 +7401,7 @@ BEGIN
       IF IsAModula2Type(Var)
       THEN
          min := GetTypeMin(Var) ;
-         PushTF(min, GetType(Var))
+         PushTF(min, GetType(min))
       ELSIF IsVar(Var)
       THEN
          min := GetTypeMin(GetType(Var)) ;
@@ -7540,7 +7436,7 @@ END BuildMinFunction ;
 
 PROCEDURE BuildMaxFunction ;
 VAR
-   min, max,
+   max,
    NoOfParam,
    Var,
    ProcSym,
@@ -7554,7 +7450,7 @@ BEGIN
       IF IsAModula2Type(Var)
       THEN
          max := GetTypeMax(Var) ;
-         PushTF(max, GetType(Var))
+         PushTF(max, GetType(max))
       ELSIF IsVar(Var)
       THEN
          max := GetTypeMax(GetType(Var)) ;
@@ -8077,24 +7973,12 @@ END BuildProcedureBegin ;
 
 PROCEDURE BuildProcedureEnd ;
 VAR
-   l,
    ProcSym : CARDINAL ;
-   num     : String ;
 BEGIN
    PopT(ProcSym) ;
-   IF (GetType(ProcSym)#NulSym) AND ReturnChecking
+   IF GetType(ProcSym)#NulSym
    THEN
-      (* function - therefore there must be a return *)
-      PushTF(RequestSym(MakeKey('FunctionReturnError')),
-             GetType(RequestSym(MakeKey('FunctionReturnError')))) ;
-      PushT(MakeConstLitString(makekey(string(GetFileName())))) ;
-      l := GetLineNo() ;
-      num := Sprintf1(Mark(InitString("%d")), l) ;
-      PushT(MakeConstLit(makekey(string(num)))) ;
-      num := KillString(num) ;
-      PushT(MakeConstLitString(GetCurrentFunctionName())) ;
-      PushT(3) ;
-      BuildProcedureCall    (* call M2RTS_FunctionReturnError *)
+      BuildError(InitNoReturnRangeCheck())
    END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(ProcSym, GetCurrentModule()) ;
@@ -8772,7 +8656,7 @@ BEGIN
    PutVar(tj, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
    tk := MakeTemporary(RightValue) ;
    PutVar(tk, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
-   CheckSubrange(GetArraySubscript(Type), Op1) ;
+   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Op1)) ;
 
    PushT(tj) ;
    PushT(Op1) ;
@@ -8961,8 +8845,8 @@ BEGIN
          GenQuad(BecomesOp, Sym2, NulSym, Sym1)         (* Sym2 :=  Sym1 *)
       END ;
 
-      PutVarPointerCheck(Sym2, NilChecking) ;   (* we should check this for *)
-                                                (* pointer via NIL          *)
+      PutVarPointerCheck(Sym2, TRUE) ;       (* we should check this for *)
+                                             (* pointer via NIL          *)
       PushTF(Sym2, Type2)
    ELSE
       n1 := GetSymName(Sym1) ;
@@ -9929,12 +9813,7 @@ BEGIN
       ELSE
          (* CheckForGenericNulSet(e1, e2, t1, t2) *)
       END ;
-      IF (Tok=EqualTok) OR (Tok=HashTok)
-      THEN
-         CheckAssignmentCompatible(t1, t2)
-      ELSE
-         CheckExpressionCompatible(t1, t2)
-      END ;
+      CheckExpressionCompatible(t1, t2) ;
       t := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2))) ;
       PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;
       GenQuad(MakeOp(NewTok), t, e2, e1) ;
@@ -10696,7 +10575,10 @@ BEGIN
                           printf0('  ') ;
                           WriteOperand(Operand2) ;
                           printf0('  ') ;
-                          WriteOperand(Operand3) ;
+                          WriteOperand(Operand3) |
+
+      RangeCheckOp,
+      ErrorOp           : WriteRangeCheck(Operand3)
 
       ELSE
          InternalError('quadruple not recognised', __FILE__, __LINE__)
@@ -10778,13 +10660,19 @@ BEGIN
    BuiltinConstOp           : printf0('BuiltinConst      ') |
    StandardFunctionOp       : printf0('StandardFunction  ') |
    SavePriorityOp           : printf0('SavePriority      ') |
-   RestorePriorityOp        : printf0('RestorePriority   ')
+   RestorePriorityOp        : printf0('RestorePriority   ') |
+   RangeCheckOp             : printf0('RangeCheck        ') |
+   ErrorOp                  : printf0('Error             ')
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)
    END
 END WriteOperator ;
 
+
+(*
+   WriteOperand - displays the operands name, symbol id and mode of addressing.
+*)
 
 PROCEDURE WriteOperand (Sym: CARDINAL) ;
 VAR
@@ -11450,7 +11338,6 @@ BEGIN
    Head := 1 ;
    LastQuadNo := 0 ;
    MustNotCheckBounds := FALSE ;
-   MustNotCheckNil := FALSE ;
    InitQuad := 0 ;
    GrowInitialization := 0 ;
    WITH ForInfo DO

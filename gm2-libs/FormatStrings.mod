@@ -137,7 +137,7 @@ BEGIN
       END ;
       width := 0 ;
       WHILE IsDigit(ch) DO
-         width := (width*10)+ORD(ch)-ORD('0') ;
+         width := (width*10)+VAL(INTEGER, ORD(ch)-ORD('0')) ;
          INC(j) ;
          ch := char(s, j+1)
       END ;
@@ -151,16 +151,16 @@ BEGIN
             Cast(p, w) ;
             p := Dup(p)
          END ;
-         IF (width>0) AND (Length(p)<width)
+         IF (width>0) AND (VAL(INTEGER, Length(p))<width)
          THEN
             IF left
             THEN
                (* place trailing spaces after, p *)
                p := ConCat(p,
-                           Mark(Mult(Mark(InitString(' ')), width-Length(p))))
+                           Mark(Mult(Mark(InitString(' ')), width-VAL(INTEGER, Length(p)))))
             ELSE
                (* padd string, p, with leading spaces *)
-               p := ConCat(Mult(Mark(InitString(' ')), width-Length(p)),
+               p := ConCat(Mult(Mark(InitString(' ')), width-VAL(INTEGER, Length(p))),
                            Mark(p))
             END
          END ;

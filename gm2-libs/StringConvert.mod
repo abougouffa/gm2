@@ -227,20 +227,20 @@ BEGIN
          s := InitString('')
       END
    END ;
-   IF i>base-1
+   IF i>VAL(INTEGER, base)-1
    THEN
       s := ConCat(ConCat(s, IntegerToString(i DIV 10, 0, ' ', FALSE, base, lower)),
                   IntegerToString(i MOD 10, 0, ' ', FALSE, base, lower))
    ELSE
       IF i<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(i+ORD('0'))))
+         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0'))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(i+ORD('a')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10)))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(i+ORD('A')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10)))
          END
       END
    END ;
@@ -347,13 +347,13 @@ BEGIN
    ELSE
       IF i<=9
       THEN
-         s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('0'))))
+         s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('0'))))
       ELSE
          IF lower
          THEN
-            s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('a')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('a')-10)))
          ELSE
-            s := ConCat(s, InitStringChar(CHR(VAL(INTEGER, i)+ORD('A')-10)))
+            s := ConCat(s, InitStringChar(CHR(VAL(CARDINAL, i)+ORD('A')-10)))
          END
       END
    END ;
@@ -694,7 +694,7 @@ BEGIN
    REPEAT
       (* keep dividing x by 10.0 until we can safely use the TRUNC operator *)
       NonTruncedDigits := 0 ;
-      WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOAT(MAX(INTEGER) DIV 10) DO
+      WHILE x/ToThePower10(1.0, NonTruncedDigits) >= VAL(LONGREAL, MAX(INTEGER) DIV 10) DO
          INC(NonTruncedDigits)
       END ;
       IF NonTruncedDigits>0
@@ -786,7 +786,7 @@ BEGIN
 
       (* firstly deal with the non fractional component, just like integer conversion *)
       WHILE (i<l) AND (char(s, i)>='0') AND (char(s, i)<='9') DO
-         x := x*10.0+FLOAT(ORD(char(s, i))-ORD('0')) ;
+         x := x*10.0+VAL(LONGREAL, ORD(char(s, i))-ORD('0')) ;
          found := TRUE ;
          INC(i)
       END ;
@@ -798,7 +798,7 @@ BEGIN
          Fraction := 0.0 ;
          INC(i) ;  (* move over '.' *)
          WHILE (i<l) AND (char(s, i)>='0') AND (char(s, i)<='9') DO
-            Fraction := Fraction+FLOAT(ORD(char(s, i))-ORD('0'))/Exponent ;
+            Fraction := Fraction+VAL(LONGREAL, ORD(char(s, i))-ORD('0'))/Exponent ;
             found := TRUE ;
             Exponent := Exponent*10.0 ;
             INC(i)

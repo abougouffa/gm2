@@ -79,8 +79,7 @@ END Delete ;
 
 PROCEDURE Pos (substr, str: ARRAY OF CHAR) : CARDINAL ;
 VAR
-   i         : INTEGER ;
-   k, l      : CARDINAL ;
+   i, k, l   : INTEGER ;
    s1, s2, s3: DynamicStrings.String ;
 BEGIN
    s1 := DynamicStrings.InitString(str) ;

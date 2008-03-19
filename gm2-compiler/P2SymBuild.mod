@@ -53,7 +53,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutConstSet, PutConstructor,
                         IsDefImp, IsType,
                         IsSubrange, IsEnumeration, IsConstString,
-                        IsError,
+                        IsError, IsAModula2Type,
                         GetSym, RequestSym, IsUnknown, RenameSym,
                         GetLocalSym, GetParent, IsRecord,
                         GetFromOuterModule,
@@ -135,10 +135,11 @@ CONST
    Debugging = FALSE ;
 
 TYPE
-   constType = (unknown, set, str, constructor, array) ;
+   constType = (unknown, set, str, constructor, array, cast) ;
 
 VAR
    AnonymousName     : CARDINAL ;
+   castType          : CARDINAL ;
    type              : constType ;
    RememberedConstant: CARDINAL ;
    RememberStack,
@@ -2290,7 +2291,8 @@ BEGIN
    set        : RETURN( InitString('SET') ) |
    str        : RETURN( InitString('string') ) |
    constructor: RETURN( InitString('constructor') ) |
-   array      : RETURN( InitString('ARRAY') )
+   array      : RETURN( InitString('ARRAY') ) |
+   cast       : RETURN( InitStringCharStar(KeyToCharStar(GetSymName(castType))) ) |
 
    ELSE
       InternalError('unexpected value of type', __FILE__, __LINE__)
@@ -2336,6 +2338,18 @@ PROCEDURE SeenUnknown ;
 BEGIN
    type := unknown
 END SeenUnknown ;
+
+
+(*
+   SeenCast - sets the operand type to cast.
+*)
+
+PROCEDURE SeenCast (sym: CARDINAL) ;
+BEGIN
+   type := cast ;
+   castType := sym ;
+   Assert(IsAModula2Type(sym)) ;
+END SeenCast ;
 
 
 (*
@@ -2396,6 +2410,7 @@ BEGIN
    str        :  PutConstString(Sym, MakeKey('')) |
    array,
    constructor:  PutConstructor(Sym) |
+   cast       :  PutConst(Sym, castType) |
    unknown    :  
 
    ELSE
@@ -2456,5 +2471,6 @@ END RememberConstant ;
 
 BEGIN
    TypeStack := InitStackWord() ;
-   RememberStack := InitStackWord()
+   RememberStack := InitStackWord() ;
+   castType := NulSym
 END P2SymBuild.

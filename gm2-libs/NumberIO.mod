@@ -338,10 +338,10 @@ BEGIN
       REPEAT
          IF (a[i]>='0') AND (a[i]<='9')
          THEN
-            x := 010H*x + (ORD(a[i])-ORD('0'))
+            x := 010H*x + VAL(INTEGER, (ORD(a[i])-ORD('0')))
          ELSIF (a[i]>='A') AND (a[i]<='F')
          THEN
-            x := 010H*x + (ORD(a[i])-ORD('A')+10)
+            x := 010H*x + VAL(INTEGER, (ORD(a[i])-ORD('A')+10))
          END ;
          IF i<higha
          THEN
@@ -431,7 +431,7 @@ BEGIN
    THEN
       ok := TRUE ;
       REPEAT
-         x := 8*x + (ORD(a[i])-ORD('0')) ;
+         x := 8*x + VAL(INTEGER, (ORD(a[i])-ORD('0'))) ;
          IF i<higha
          THEN
             INC(i) ;
@@ -520,7 +520,7 @@ BEGIN
    THEN
       ok := TRUE ;
       REPEAT
-         x := 2*x + (ORD(a[i])-ORD('0')) ;
+         x := 2*x + VAL(INTEGER, (ORD(a[i])-ORD('0'))) ;
          IF i<higha
          THEN
             INC(i) ;

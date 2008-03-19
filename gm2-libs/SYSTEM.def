@@ -95,7 +95,7 @@ PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
 
 PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
-                     ShiftCount: INTEGER) ;
+                     ShiftCount: CARDINAL) ;
 
 (*
    ShiftRight - performs the shift left for a multi word set.
@@ -106,7 +106,7 @@ PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
 
 PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
-                     ShiftCount: INTEGER) ;
+                     ShiftCount: CARDINAL) ;
 
 
 (*
@@ -130,7 +130,7 @@ PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
 
 PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
                       SetSizeInBits: CARDINAL;
-                      RotateCount: INTEGER) ;
+                      RotateCount: CARDINAL) ;
 
 
 (*
@@ -142,7 +142,7 @@ PROCEDURE RotateLeft (VAR s, d: ARRAY OF BITSET;
 
 PROCEDURE RotateRight (VAR s, d: ARRAY OF BITSET;
                        SetSizeInBits: CARDINAL;
-                       RotateCount: INTEGER) ;
+                       RotateCount: CARDINAL) ;
 
 
 END SYSTEM.

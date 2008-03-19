@@ -75,6 +75,7 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildProcedureType,
                  BuildFormalType,
 
+                 SeenCast,
                  SeenSet,
                  SeenArray,
                  SeenConstructor,
@@ -1054,6 +1055,13 @@ PROCEDURE BuildFormalType ;
 *)
 
 PROCEDURE SeenUnknown ;
+
+
+(*
+   SeenCast - sets the operand type to cast.
+*)
+
+PROCEDURE SeenCast (sym: CARDINAL) ;
 
 
 (*

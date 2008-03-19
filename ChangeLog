@@ -1,8 +1,80 @@
-2008-07-03       Gaius Mulley <gaius@gnu.org>
+2008-03-18       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2/Make-lang.in:  added M2Range.{def, mod}
+	* gm2/gm2/TODO:  updated.
+	* gm2/gm2/gccgm2.c:  replaced gccgm2_GetM2ZRealType with
+	  gccgm2_GetM2RType and removed dead code.
+	* gm2/gm2/bnf/m2-2.bnf:  fixed bug in ConstSetOrQualidentOrFunction
+	  which was pushing a non type symbol as a type cast.
+	* gm2/gm2/el/g-mode.el:  updated Copyright dates.
+	* gm2/gm2/gm2-compiler/M2ALU.def:  fixed header comment for function
+	  Less.
+	* gm2/gm2/gm2-compiler/M2Base.def:  exports ZType, RType.
+	* gm2/gm2/gm2-compiler/M2Base.mod:  removed dead code and also type
+	  mixing code.  Updated expression, assignment and parameter compatibilty
+	  matrices to include Ztype and Rtype as per ISO standard.  Improved
+	  error messages.
+	* gm2/gm2/gm2-compiler/M2Error.mod:  fixed bug, warning messages
+	  were emitted twice.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  declare ZType, RType
+	  and also call DeclareTypeInfo during block scope.
+	* gm2/gm2/gm2-compiler/M2GenGCC.mod:  import and use range
+	  checking code during code generation and quadruple folding.
+	* gm2/gm2/gm2-compiler/M2Quads.def:  export debugging procedure,
+	  WriteOperand.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  import range checking
+	  constructors.  Removed huge amount of quadruple based range
+	  checking code and replaced it by specific RangeCheck and Error
+	  quadruples.
+	  Make calls to M2Range which define specific range checking to
+	  be done during code generation.  This in turn allows limited
+	  error based static analysis to be done when all constants
+	  and type are resolved.
+	* gm2/gm2/gm2-compiler/M2SubExp.mod:  fixed casts as the
+	  compiler is now stricter when passing parameters.
+	* gm2/gm2/gm2-compiler/P2SymBuild.def:  export SeenCast.
+	* gm2/gm2/gm2-compiler/P2SymBuild.mod:  implemented SeenCast
+	  and improved error message.
+	* gm2/gm2/gm2-compiler/SymbolKey.mod:  removed debugging code.
+	* gm2/gm2/gm2-compiler/SymbolTable.mod:  import ZType and RType,
+	  tidied up GetLowestType and made const literal types comply
+	  with ZType and RType.
+	* gm2/gm2/gm2-compiler/bnflex.mod:  changed types of local
+	  variables to avoid INTEGER, CARDINAL incompatibilities.
+	* gm2/gm2/gm2-compiler/gccgm2.def:  provided GetM2RType function.
+	* gm2/gm2/gm2-libs/DynamicStrings.mod:  fixed many INTEGER, CARDINAL
+	  incompatibilities.
+	* gm2/gm2/gm2-libs/FormatStrings.mod:  fixed many INTEGER, CARDINAL
+	  incompatibilities.
+	* gm2/gm2/gm2-libs/NumberIO.mod:  fixed many INTEGER, CARDINAL
+	  incompatibilities.
+	* gm2/gm2/gm2-libs/SYSTEM.def:  changed parameter types to
+	  avoid CARDINAL, INTEGER problems.
+	* gm2/gm2/gm2-libs/SYSTEM.mod:  likewise.
+	* gm2/gm2/gm2-libs/StringConvert.mod:  fixed many INTEGER, CARDINAL
+	  incompatibilities.
+	* gm2/gm2/gm2-libs-pim/Strings.mod:  fixed a few INTEGER, CARDINAL
+	  incompatibilities.
+	* gm2/gm2/init/gm2-gccinit:  added M2Range.
+
+2008-03-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  reverted patch as
 	  it also included some unfinished changes due to appear
 	  soon.
+
+2008-03-01       Gaius Mulley <gaius@gnu.org>
+
+	* an interim checkin of many changes which will
+	  initially cause many regression test failures.
+	  A huge amount of assignment, expression and parameter
+	  compile time and runtime checking has been added.
+	* gm2/Make-lang.in:  new module M2Range.{def,mod} added.
+	* gm2/TODO:  suggested future GCC modifications.
+	* gm2/gccgm2.c:  renamed GetM2ZRealType as GetM2RType
+	  as per ISO documentation.
+	* gm2/el/g-mode.el:  corrected dates.
+	* gm2/gm2-compiler/M2Base.def:  introduced ZType, RType types.
 
 2008-02-22       Gaius Mulley <gaius@gnu.org>
 

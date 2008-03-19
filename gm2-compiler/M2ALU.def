@@ -437,8 +437,7 @@ PROCEDURE NotEqu (tokenno: CARDINAL) : BOOLEAN ;
 
 
 (*
-   Less - returns true if Op2 > Op1
-          are not identical.
+   Less - returns true if Op2 < Op1.
 
           The Stack:
 

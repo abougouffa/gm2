@@ -577,7 +577,7 @@ BEGIN
    THEN
       REPEAT
          WITH e^ DO
-            IF FatalStatus=fatal
+            IF (FatalStatus=fatal) AND (s#NIL)
             THEN
                CheckIncludes(token, 0) ;
                IF fatal
@@ -591,10 +591,7 @@ BEGIN
                IF (child#NIL) AND FlushAll(child, FatalStatus)
                THEN
                END ;
-               IF NOT Debugging
-               THEN
-                  s := NIL  (* s is destroyed by the OutString *)
-               END ;
+               s := NIL ;
                written := TRUE
             END
          END ;

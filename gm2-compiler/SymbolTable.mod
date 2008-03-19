@@ -52,7 +52,7 @@ FROM SymbolKey IMPORT NulKey, SymbolTree,
                       DoesTreeContainAny, ForeachNodeDo ;
 
 FROM M2Base IMPORT InitBase, Char, Integer, LongReal,
-                   Cardinal, LongInt, LongCard, ZRealType ;
+                   Cardinal, LongInt, LongCard, ZType, RType ;
 
 FROM M2System IMPORT Address ;
 FROM gccgm2 IMPORT DetermineSizeOfConstant ;
@@ -3585,13 +3585,15 @@ BEGIN
    IF (Symbols[Sym].SymbolType=TypeSym) AND (type=NulSym)
    THEN
       type := Sym             (* Base Type *)
-   ELSIF (type#NulSym) AND
-         (IsType(type) OR IsSet(type))
+   ELSIF type#NulSym
    THEN
-      (* ProcType is an inbuilt base type *)
-      IF Symbols[type].SymbolType#ProcTypeSym
+      IF (IsType(type) OR IsSet(type))
       THEN
-         type := GetLowestType(type)   (* Type def *)
+         (* ProcType is an inbuilt base type *)
+         IF Symbols[type].SymbolType#ProcTypeSym
+         THEN
+            type := GetLowestType(type)   (* Type def *)
+         END
       END
    END ;
    IF type>MaxSymbols
@@ -3737,7 +3739,7 @@ BEGIN
       IF Index(s, '.', 0)#-1   (* found a '.' in our constant *)
       THEN
          s := KillString(s) ;
-         RETURN( ZRealType )
+         RETURN( RType )
       END ;
       CASE char(s, -1) OF
 
@@ -3759,11 +3761,8 @@ BEGIN
       ELSIF (needsLong=1) AND (needsUnsigned=0)
       THEN
          RETURN( LongInt )
-      ELSIF (needsLong=0) AND (needsUnsigned=1)
-      THEN
-         RETURN( Cardinal )
       END ;
-      RETURN( Integer )
+      RETURN( ZType )
    END
 END GetConstLitType ;
 
@@ -3993,7 +3992,7 @@ END GetVarWritten ;
 
 PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
 BEGIN
-   IF Sym=684
+   IF ConstType=199
    THEN
       stop
    END ;

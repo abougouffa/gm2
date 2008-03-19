@@ -2229,10 +2229,10 @@ BEGIN
                Write('[') ; WriteCard(m, 0) ; Write(']')
             END
          END ;
-         CheckEntList(Nodes(m), index, Start, End) ;    (* save aliases for both leaves and nodes *)
+         CheckEntList(VAL(Nodes, m), index, Start, End) ;    (* save aliases for both leaves and nodes *)
          IF NOT NodeList[m].IsLeaf
          THEN
-            UseQuadAtNode(Nodes(m), index, Start, End)
+            UseQuadAtNode(VAL(Nodes, m), index, Start, End)
          END ;
          DEC(n)
       END ;
@@ -3145,7 +3145,7 @@ BEGIN
                IF Debugging
                THEN
                   WriteString('problems with node (entity[1] should be clean): ') ; WriteCard(i, 4) ; WriteLn ;
-                  WriteNode(Nodes(i)) ; WriteLn
+                  WriteNode(VAL(Nodes, i)) ; WriteLn
                END ;
                InternalError('this entity should be clean', __FILE__, __LINE__)
             END

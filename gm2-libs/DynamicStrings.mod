@@ -662,7 +662,7 @@ END Mult ;
 PROCEDURE Slice (s: String; low, high: INTEGER) : String ;
 VAR
    d, t         : String ;
-   start, end, o: CARDINAL ;
+   start, end, o: INTEGER ;
 BEGIN
    IF PoisonOn
    THEN
@@ -670,11 +670,11 @@ BEGIN
    END ;
    IF low<0
    THEN
-      low := Length(s)+low
+      low := VAL(INTEGER, Length(s))+low
    END ;
    IF high<=0
    THEN
-      high := Length(s)+high
+      high := VAL(INTEGER, Length(s))+high
    ELSE
       (* make sure high is <= Length(s) *)
       high := Min(Length(s), high)
@@ -683,7 +683,7 @@ BEGIN
    o := 0 ;
    t := d ;
    WHILE s#NIL DO
-      IF low<o+s^.contents.len
+      IF low<o+VAL(INTEGER, s^.contents.len)
       THEN
          IF o>high
          THEN
@@ -730,7 +730,7 @@ END Slice ;
 
 PROCEDURE Index (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
 VAR
-   i, k: INTEGER ;
+   i, k: CARDINAL ;
 BEGIN
    IF PoisonOn
    THEN
@@ -769,7 +769,8 @@ END Index ;
 
 PROCEDURE RIndex (s: String; ch: CHAR; o: CARDINAL) : INTEGER ;
 VAR
-   i, j, k: INTEGER ;
+   i, k: CARDINAL ;
+   j   : INTEGER ;
 BEGIN
    IF PoisonOn
    THEN
@@ -835,6 +836,8 @@ END RemoveComment ;
 *)
 
 PROCEDURE char (s: String; i: INTEGER) : CHAR ;
+VAR
+   c: CARDINAL ;
 BEGIN
    IF PoisonOn
    THEN
@@ -842,17 +845,19 @@ BEGIN
    END ;
    IF i<0
    THEN
-      i := Length(s)+i
+      c := VAL(CARDINAL, VAL(INTEGER, Length(s))+i)
+   ELSE
+      c := i
    END ;
-   WHILE (s#NIL) AND (i>s^.contents.len) DO
-      DEC(i, s^.contents.len) ;
+   WHILE (s#NIL) AND (c>s^.contents.len) DO
+      DEC(c, s^.contents.len) ;
       s := s^.contents.next
    END ;
-   IF (s=NIL) OR (i>=s^.contents.len)
+   IF (s=NIL) OR (c>=s^.contents.len)
    THEN
       RETURN( nul )
    ELSE
-      RETURN( s^.contents.buf[i] )
+      RETURN( s^.contents.buf[c] )
    END
 END char ;
 

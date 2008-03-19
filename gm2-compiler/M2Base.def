@@ -35,7 +35,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Proc,
                  LongInt, LongCard,
                  ShortInt, ShortCard,
-                 ZRealType, Real,
+                 ZType, RType, Real,
                  LongReal, ShortReal,
                  High,                  (* Base function           *)
                  LengthS,
@@ -77,7 +77,7 @@ VAR
    Char, Proc,
    LongInt, LongCard,
    ShortInt, ShortCard,
-   ZRealType, Real,
+   ZType, RType, Real,
    LongReal, ShortReal,
    Unbounded,
    High, LengthS,
@@ -100,9 +100,9 @@ PROCEDURE InitBase (VAR Sym: CARDINAL) ;
 
 
 (*
-   GetBaseTypeMinMax - returns the minimum and maximum values for a given system type.
-                       This procedure should only be called if the type is NOT a subrange
-                       and NOT an enumeration.
+   GetBaseTypeMinMax - returns the minimum and maximum values for a
+                       given base type.  This procedure should only
+                       be called if the type is NOT a subrange.
 *)
 
 PROCEDURE GetBaseTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;

@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 IMPLEMENTATION MODULE bnflex ;
 
 
@@ -184,24 +185,24 @@ END IsEqual ;
 
 PROCEDURE IsString (a: ARRAY OF CHAR) : BOOLEAN ;
 VAR
-   i     : INTEGER ;
-   j,
-   Length: CARDINAL ;
+   i        : INTEGER ;
+   c, Length: CARDINAL ;
 BEGIN
    Length := StrLen(a) ;
-   i      := 0 ;
+   c      := 0 ;
 
-   WHILE ((i<Length) AND (PutChar(Lower(GetChar()))=a[i])) DO
-      IF GetChar()#a[i]
+   WHILE ((c<Length) AND (PutChar(Lower(GetChar()))=a[c])) DO
+      IF GetChar()#a[c]
       THEN
          Halt('assert failed', __LINE__, __FILE__)
       END ;
-      INC(i)
+      INC(c)
    END ;
-   IF i=Length
+   IF c=Length
    THEN
       RETURN( TRUE )
    ELSE
+      i := c ;
       DEC(i) ;
       WHILE i>=0 DO
          IF PutChar(a[i])#a[i]

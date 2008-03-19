@@ -68,7 +68,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  RecordOp,
                  PopTF, PushTF, PushTFA, PopT, PushT, PopNothing, PopN,
                  OperandT, OperandF, OperandA,
-                 DisplayStack,
+                 DisplayStack, WriteOperand,
 
                  BuildCodeOn, BuildCodeOff,
                  BuildProfileOn, BuildProfileOff,
@@ -140,7 +140,8 @@ TYPE
                    InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
                    BuiltinConstOp, StandardFunctionOp,
-                   SavePriorityOp, RestorePriorityOp) ;
+                   SavePriorityOp, RestorePriorityOp,
+                   RangeCheckOp, ErrorOp) ;
 
 
 VAR
@@ -1876,6 +1877,12 @@ PROCEDURE OperandA (pos: CARDINAL) : WORD ;
 
 PROCEDURE DisplayStack ;
 
+
+(*
+   WriteOperand - displays the operands name, symbol id and mode of addressing.
+*)
+
+PROCEDURE WriteOperand (Sym: CARDINAL) ;
 
 (*
    BuildCodeOn - generates a quadruple declaring that code should be

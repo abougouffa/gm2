@@ -108,6 +108,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildFormalType, BuildFunction, BuildProcedureType,
                        DetermineType, PushType, PopType,
                        SeenUnknown, SeenSet, SeenString, SeenArray, SeenConstructor,
+                       SeenCast,
                        PushRememberConstant, PopRememberConstant ;
 
 FROM M2Reserved IMPORT ArrayTok, VarTok ;
@@ -121,7 +122,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         StartScope, EndScope,
                         PutIncluded,
                         IsVarParam, IsProcedure, IsDefImp, IsModule,
-                        IsRecord,
+                        IsRecord, IsAModula2Type,
                         RequestSym ;
 
 CONST
@@ -638,8 +639,25 @@ ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 Constructor := '{'                                                         % SeenConstructor %
                    [ ArraySetRecordValue ] '}' =:
 
-ConstSetOrQualidentOrFunction := SimpleSet | Qualident
-                                 [ Constructor | ConstActualParameters ] =:
+ConstSetOrQualidentOrFunction := SimpleSet |
+                                                                           % VAR t: CARDINAL ;
+                                                                                 b: BOOLEAN ; %
+                                                                           % PushAutoOn %
+                                   Qualident
+                                                                           % PopT(t) ;
+                                                                             IF IsAModula2Type(t)
+                                                                             THEN
+                                                                                b := TRUE
+                                                                             ELSE
+                                                                                b := FALSE
+                                                                             END %
+                                                                           % PopAuto %
+                                   [ Constructor | ConstActualParameters ]
+                                                                           % IF b
+                                                                             THEN
+                                                                                SeenCast(t)
+                                                                             END %
+                               =:
 
 ConstActualParameters :=                                                   % PushType ; SeenUnknown %
                          "(" [ ExpList ] ")"                               % PopType %

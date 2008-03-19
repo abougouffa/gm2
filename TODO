@@ -14,3 +14,17 @@
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
    LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 
+--
+
+*  request that GCC has two call back mechanisms:
+   -  if a tree is reachable (then a runtime error will occur).
+      Then the back end should call back the front end to
+      issue an appropriate error/warning message.
+   -  word type node needs a call back such that
+      just before the back end emits this data type
+      it can call back to the front end to fix up the
+      debugging type.  For example this way we can implement
+      set types, which can be treated by gimple as word type
+      but just at the end, before the dwarf-2 or whatever
+      debugging info is written, it can call back to the
+      front end and this can be fixed up.
