@@ -1,3 +1,24 @@
+2008-03-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gccgm2.c:  do not use GCC boolean type.
+	* gm2/gm2-compiler/M2Base.def:  export IsOrd
+	  remove Ord variable.  Define IsOrd.
+	* gm2/gm2-compiler/M2Base.mod:  implement IsOrd, add
+	  OrdL, OrdS.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  add debugging.
+	  Fix bug in StartDeclareScope which failed to declare
+	  subranges in definition modules.
+	* gm2/gm2-compiler/M2Quads.mod:  allow BuildOrdFunction
+	  to return SHORTCARD, LONGCARD, CARDINAL depending upon
+	  which version of ORD[SL] is called.  Suppress range
+	  checking of sets during assignment.
+	* gm2/gm2/gm2-libs-pim/RealConversions.mod:  fix INTEGER
+	  CARDINAL expression.
+	* gm2/ulm-lib-gm2/std/Archive.mod:  fix LONGINT, INTEGER
+	  expression.
+	* gm2/ulm-lib-gm2/std/Calendar.mod:  fix LONGINT, INTEGER
+	  expression.
+
 2008-03-18       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2/Make-lang.in:  added M2Range.{def, mod}

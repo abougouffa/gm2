@@ -885,7 +885,14 @@ END DeclareTypesInProcedure ;
 *)
 
 PROCEDURE DeclareTypesInModule (Sym: WORD) ;
+VAR
+   n: Name ;
 BEGIN
+   IF Debugging
+   THEN
+      n := GetSymName(Sym) ;
+      printf1('Declaring types in MODULE %a\n', n)
+   END ;
    ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
    ForeachLocalSymDo(Sym, DeclareUnboundedProcedureParameters) ;
    ForeachInnerModuleDo(Sym, DeclareTypesInModule)
@@ -1187,8 +1194,9 @@ BEGIN
       DeclareModuleInit(scope) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSE
-      DeclareTypesAndConstants(scope) ;
-      ForeachModuleDo(DeclareTypesInModule) ;
+      ForeachModuleDo(DeclareTypesInModule) ;  (* will populate the TYPE and CONST ToDo lists *)
+      DeclareTypesAndConstants(scope) ;        (* will resolved (and flush) the TYPE and      *)
+                                               (* CONST ToDo lists.                           *)
       ForeachModuleDo(DeclareProcedure) ;
       (*
          now that all types have been resolved it is safe to declare

@@ -178,7 +178,7 @@ IMPLEMENTATION MODULE Calendar;
     *	without changing this.
     *)
    BEGIN
-      RETURN VAL(Weekday, (date + ORD(Mon)) MOD 7)
+      RETURN VAL(Weekday, (date + ORDL(Mon)) MOD 7)
    END CWeekday;
 
    PROCEDURE ConvertTime(time: Time; VAR date: Date; VAR daytime: Daytime);
@@ -227,7 +227,7 @@ IMPLEMENTATION MODULE Calendar;
       BEGIN
 	 RETURN
 	    newyear + 3
-	    - (ORD(CWeekday(newyear)) + 10 - ORD(firstofweek)) MOD 7
+	    - (ORDL(CWeekday(newyear)) + 10 - ORDL(firstofweek)) MOD 7
       END FirstWeek;
 
       VAR today, lastnewyear, firstweek: Date;

@@ -155,7 +155,7 @@ END RealToString ;
                       decimal point.
 *)
 
-PROCEDURE LongRealToString (r: LONGREAL; digits: INTEGER; width : CARDINAL;
+PROCEDURE LongRealToString (r: LONGREAL; digits: INTEGER; width: CARDINAL;
                             VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
 VAR
    s, e      : String ;
@@ -203,7 +203,7 @@ BEGIN
                i := printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
                            p, powerOfTen, k, k-p)
             END ;
-            WHILE (p<k) AND (k-p>digits) AND (width>3+j+p+logi10(powerOfTen-p+1)+1) DO
+            WHILE (p<k) AND (k-p>digits) AND (INTEGER(width)>3+j+p+logi10(powerOfTen-p+1)+1) DO
                INC(p) ;
                IF Debugging
                THEN

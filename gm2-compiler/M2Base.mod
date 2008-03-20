@@ -111,6 +111,8 @@ VAR
    Param,
    Expr,
    Ass        : CompatibilityArray ;
+   Ord,
+   OrdS, OrdL,
    m2rts,
    MinReal,
    MaxReal,
@@ -548,6 +550,32 @@ END InitBaseProcedures ;
 
 
 (*
+   IsOrd - returns TRUE if, sym, is ORD or its typed counterparts
+           ORDL, ORDS.
+*)
+
+PROCEDURE IsOrd (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN (sym=Ord) OR (sym=OrdS) OR (sym=OrdL)
+END IsOrd ;
+
+
+(*
+   BuildOrdFunctions - creates ORD, ORDS, ORDL.
+*)
+
+PROCEDURE BuildOrdFunctions ;
+BEGIN
+   Ord := MakeProcedure(MakeKey('ORD')) ;
+   PutFunction(Ord, Cardinal) ;
+   OrdS := MakeProcedure(MakeKey('ORDS')) ;
+   PutFunction(OrdS, ShortCard) ;
+   OrdL := MakeProcedure(MakeKey('ORDL')) ;
+   PutFunction(OrdL, LongCard)
+END BuildOrdFunctions ;
+
+
+(*
    InitBaseFunctions - initialises the base function, HIGH.
 *)
 
@@ -581,7 +609,7 @@ BEGIN
    Cap     := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
    Odd     := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
    Val     := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
-   Ord     := MakeProcedure(MakeKey('ORD')) ;      (* Pseudo Base function ORD     *)
+   BuildOrdFunctions ;
    Chr     := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
    Float   := MakeProcedure(MakeKey('FLOAT')) ;    (* Pseudo Base function FLOAT   *)
    Trunc   := MakeProcedure(MakeKey('TRUNC')) ;    (* Pseudo Base function TRUNC   *)
@@ -617,7 +645,7 @@ END IsPIMPseudoBaseFunction ;
 PROCEDURE IsPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR (Sym=Ord) OR
+          (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR IsOrd(Sym) OR
           (Sym=Chr) OR (Sym=Float) OR (Sym=Trunc) OR (Sym=Min) OR
           (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap) OR
           IsISOPseudoBaseFunction(Sym) OR IsPIMPseudoBaseFunction(Sym)

@@ -123,7 +123,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
-                   Ord, Chr, Convert, Val, Float, Trunc, Min, Max,
+                   IsOrd, Chr, Convert, Val, Float, Trunc, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    IsMathType, IsOrdinalType,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
@@ -338,7 +338,7 @@ PROCEDURE BuildIncProcedure ; FORWARD ;
 PROCEDURE BuildNewProcedure ; FORWARD ;
 PROCEDURE BuildInclProcedure ; FORWARD ;
 PROCEDURE BuildExclProcedure ; FORWARD ;
-PROCEDURE BuildOrdFunction ; FORWARD ;
+PROCEDURE BuildOrdFunction (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE ManipulatePseudoCallParameters ; FORWARD ;
 PROCEDURE BuildPseudoFunctionCall ; FORWARD ;
 PROCEDURE BuildPseudoProcedureCall ; FORWARD ;
@@ -2295,7 +2295,10 @@ BEGIN
       Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
-      BuildRange(InitAssignmentRangeCheck(Des, Exp)) ;
+      IF (GetType(Des)#NulSym) AND (NOT IsSet(SkipType(GetType(Des))))
+      THEN
+         BuildRange(InitAssignmentRangeCheck(Des, Exp))
+      END ;
       CheckNotConstAndVar(Des, Exp) ;
       (* Traditional Assignment *)
       MoveWithMode(Des, Exp, Array) ;
@@ -5862,9 +5865,9 @@ BEGIN
    ELSIF ProcSym=Chr
    THEN
       BuildChrFunction
-   ELSIF ProcSym=Ord
+   ELSIF IsOrd(ProcSym)
    THEN
-      BuildOrdFunction
+      BuildOrdFunction(ProcSym)
    ELSIF ProcSym=Trunc
    THEN
       BuildTruncFunction
@@ -6546,7 +6549,7 @@ BEGIN
          (* compute (x MOD 2) *)
          PushTF(Var, GetType(Var)) ;
          PushT(ModTok) ;
-         PushTF(MakeConstLit(MakeKey('2')), Integer) ;
+         PushTF(MakeConstLit(MakeKey('2')), ZType) ;
          BuildBinaryOp ;
          PopT(Res) ;
 
@@ -6758,7 +6761,7 @@ END BuildChrFunction ;
 (*
    BuildOrdFunction - builds the pseudo procedure call ORD.
                       This procedure is actually a "macro" for
-                      ORD(x) --> CONVERT(CARDINAL, x)
+                      ORD(x) --> CONVERT(GetType(sym), x)
                       However we cannot push tokens back onto the input stack
                       because the compiler is currently building a function
                       call and expecting a ReturnVar on the stack.
@@ -6788,10 +6791,11 @@ END BuildChrFunction ;
                       |----------------|
 *)
 
-PROCEDURE BuildOrdFunction ;
+PROCEDURE BuildOrdFunction (Sym: CARDINAL) ;
 VAR
+   n        : Name ;
    NoOfParam,
-   Var      : CARDINAL ;
+   Type, Var: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    IF NoOfParam=1
@@ -6799,20 +6803,23 @@ BEGIN
       Var := OperandT(1) ;
       IF IsVar(Var) OR IsConst(Var)
       THEN
+         Type := GetType(Sym) ;
          PopN(NoOfParam+1) ;
          (*
             Build macro: CONVERT( CARDINAL, Var )
          *)
          PushTF(Convert, NulSym) ;
-         PushT(Cardinal) ;
+         PushT(Type) ;
          PushT(Var) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
-         WriteFormat0('argument to ORD must be a variable or constant')
+         n := GetSymName(Sym) ;
+         WriteFormat1('argument to %a must be a variable or constant', n)
       END
    ELSE
-      WriteFormat0('the pseudo procedure ORD only has one parameter')
+      n := GetSymName(Sym) ;
+      WriteFormat1('the pseudo procedure %a only has one parameter', n)
    END
 END BuildOrdFunction ;
 

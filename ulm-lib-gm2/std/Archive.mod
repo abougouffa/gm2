@@ -182,7 +182,7 @@ IMPLEMENTATION MODULE Archive; (* AFB 3/84 *)
       (* in case of an error "a" will be closed *)
       (* filename = "": open next file *)
       VAR
-         offset: INTEGER;
+         offset: LONGINT;
    BEGIN
       IF filename[0] = 0C THEN
          offset := a^.nextfile;

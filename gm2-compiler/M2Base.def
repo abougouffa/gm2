@@ -37,11 +37,11 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ShortInt, ShortCard,
                  ZType, RType, Real,
                  LongReal, ShortReal,
-                 High,                  (* Base function           *)
+                 High, IsOrd,           (* Base functions          *)
                  LengthS,
                  Convert,
                  Cap, Abs, Odd,
-                 Chr, Ord, Val,
+                 Chr, Val,
                  Trunc, Float,
                  Min, Max,
                  New, Dispose,          (* Base procedures         *)
@@ -84,7 +84,7 @@ VAR
    Cap, Abs, Odd,
    Convert, Val,
    Trunc, Float,
-   Chr, Ord,
+   Chr,
    Min, Max,
    New, Dispose,
    Inc, Dec,
@@ -147,6 +147,14 @@ PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsOrdinalType (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsOrd - returns TRUE if, sym, is ORD or its typed counterparts
+           ORDL, ORDS.
+*)
+
+PROCEDURE IsOrd (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

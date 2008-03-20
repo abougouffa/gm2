@@ -91,7 +91,7 @@ static int insideCppArgs = FALSE;
 #define ASSERT_CONDITION(X)   { if (!(X)) { internal_error("[%s:%d]:condition `%s' failed", \
                                                                    __FILE__, __LINE__, #X); } }
 
-#define USE_BOOLEAN
+#undef USE_BOOLEAN
 
 enum attrs {A_PACKED, A_NOCOMMON, A_COMMON, A_NORETURN, A_CONST, A_T_UNION,
             A_CONSTRUCTOR, A_DESTRUCTOR, A_MODE, A_SECTION, A_ALIGNED,
