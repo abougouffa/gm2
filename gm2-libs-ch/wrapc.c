@@ -25,7 +25,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 char *wrapc_strtime (void)
 {
 #if defined(HAVE_CTIME)
-  void *clock = time((void *)0) ;
+  time_t clock = time((void *)0) ;
   char *string = ctime(&clock);
 
   string[24] = (char) 0;
