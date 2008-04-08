@@ -1871,8 +1871,8 @@ exists then the patch files inside that directory can be applied to the
 
 @example
 $ cd gcc-@value{version-GCC}
-$ if [ -d gcc/gm2/patches/gcc/@value{version-GCC}/gm2 ] ; then
-     for i in gcc/gm2/patches/gcc/@value{version-GCC}/gm2/* ; do
+$ if [ -d gcc/gm2/patches/gcc/@value{version-GCC} ] ; then
+     for i in gcc/gm2/patches/gcc/@value{version-GCC}/* ; do
         if [ -f $i ] ; then
            patch -p1 < $i
         fi
