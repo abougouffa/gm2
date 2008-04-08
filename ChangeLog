@@ -1,3 +1,10 @@
+2008-04-08       Peter Eiserloh <eiserlohpp@yahoo.com>
+
+	* gm2/gm2.texi:  patch to correct directory name
+	  in example script within building documentation.
+	* gm2/gm2-libs-ch/wrapc.c:  patch to define the
+	  clock variable as time_t, rather than void *.
+
 2008-03-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/gccgm2.c:  do not use GCC boolean type.
