@@ -17,6 +17,8 @@
 # 
 # Initialization order
 # 
+RTExceptions
+M2EXCEPTION
 M2RTS
 StrLib
 IO

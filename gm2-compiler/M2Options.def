@@ -20,10 +20,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2007/12/07 16:35:55 $]
+   Date       : 27/5/87  [$Date: 2008/04/10 23:38:23 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.20 $
+   Version    : $Revision: 1.21 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -50,7 +50,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
                  CompilerDebugging, GenerateDebugging, GenerateLineDebug,
-                 CppCommandLine ;
+                 CppCommandLine, DumpSystemExports ;
 
 
 VAR
@@ -91,6 +91,7 @@ VAR
    CPreProcessor,                (* must we run the cpp on the source?       *)
    Xcode,                        (* should errors follow Xcode format?       *)
    ExtendedOpaque,               (* do we allow non pointer opaque types?    *)
+   DumpSystemExports,            (* print all inbuilt system items?          *)
    Optimizing,
    Coding,
    Profiling         : BOOLEAN ;

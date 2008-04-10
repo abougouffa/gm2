@@ -21,13 +21,16 @@ IMPLEMENTATION MODULE M2RTS ;
 FROM libc IMPORT abort, exit, write ;
 FROM NumberIO IMPORT CardToStr ;
 FROM StrLib IMPORT StrCopy, StrLen, StrEqual ;
-FROM SYSTEM IMPORT ADDRESS, ADR, BITSET ;
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
+FROM RTExceptions IMPORT Raise ;
+
+IMPORT M2EXCEPTION ;
+
 
 
 CONST
-   MaxProcedures =   20 ;
-   MaxLength     = 4096 ;
+   MaxProcedures = 1024 ;
 
 
 VAR
@@ -77,16 +80,14 @@ END HALT ;
 
 PROCEDURE ErrorString (a: ARRAY OF CHAR) ;
 VAR
-   buf: ARRAY [0..MaxLength] OF CHAR ;
-   n  : INTEGER ;
+   n: INTEGER ;
 BEGIN
-   StrCopy(a, buf) ;
-   n := write(2, ADR(buf), StrLen(buf))
+   n := write(2, ADR(a), StrLen(a))
 END ErrorString ;
 
 
 (*
-   ErrorMessage - emits an error message to the stderr
+   ErrorMessage - emits an error message to stderr
 *)
 
 PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
@@ -126,69 +127,103 @@ END Halt ;
 
 
 (*
-   SubrangeAssignmentError - part of the runtime checking, called if a
-                             subrange variable is just about to be assigned an illegal value.
+   The following are the runtime exception handler routines.
 *)
 
-PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
-                                   line: CARDINAL;
-                                   function: ARRAY OF CHAR) ;
+PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   ErrorMessage('variable exceeds subrange', file, line, function)
-END SubrangeAssignmentError ;
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("variable exceeds range during assignment"))
+END AssignmentException ;
 
 
-(*
-   ArraySubscriptError -  part of the runtime checking, called if an
-                          array indice is out of range.
-*)
-
-PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
-                               line: CARDINAL;
-                               function: ARRAY OF CHAR) ;
+PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   ErrorMessage('array index out of bounds', file, line, function)
-END ArraySubscriptError ;
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("variable exceeds range during INC statement"))
+END IncException ;
 
 
-(*
-   FunctionReturnError -  part of the runtime checking, called if a
-                          function exits without a RETURN statement.
-*)
-
-PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
-                               line: CARDINAL;
-                               function: ARRAY OF CHAR) ;
+PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   ErrorMessage('function is attempting to exit without a formal RETURN statement', file, line, function)
-END FunctionReturnError ;
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("variable exceeds range during DEC statement"))
+END DecException ;
 
 
-(*
-   NilPointerError -  part of the runtime checking, called if a
-                      the code is about to dereference NIL.
-*)
-
-PROCEDURE NilPointerError (file: ARRAY OF CHAR;
-                           line: CARDINAL;
-                           function: ARRAY OF CHAR) ;
+PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   ErrorMessage('attempted to dereference a value through a NIL pointer', file, line, function)
-END NilPointerError ;
+   Raise(M2EXCEPTION.indexException,
+         filename, line, column, scope,
+         ADR("array index out of bounds during static array access"))
+END StaticArraySubscriptException ;
 
 
-(*
-   CaseElseError - part of the runtime checking, called if a
-                   CASE statement falls into an ELSE statement
-                   (which was not declared by the programmer).
-*)
-
-PROCEDURE CaseElseError (file: ARRAY OF CHAR;
-                         line: CARDINAL;
-                         function: ARRAY OF CHAR) ;
+PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   ErrorMessage('needs an ELSE clause to this CASE statement as none of the selection clauses match the expression', file, line, function)
-END CaseElseError ;
+   Raise(M2EXCEPTION.indexException,
+         filename, line, column, scope,
+         ADR("array index out of bounds during dynamic array access"))
+END DynamicArraySubscriptException ;
+
+
+PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("iterator variable exceeds range during FOR loop initial assignment"))
+END ForLoopBeginException ;
+
+
+PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("iterator variable exceeds range when calculating final value in FOR loop"))
+END ForLoopToException ;
+
+
+PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.rangeException,
+         filename, line, column, scope,
+         ADR("iterator variable exceeds range during increment at the end of a FOR loop"))
+END ForLoopEndException ;
+
+
+PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.invalidLocation,
+         filename, line, column, scope,
+         ADR("attempting to dereference a NIL valued pointer"))
+END PointerNilException ;
+
+
+PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.functionException,
+         filename, line, column, scope,
+         ADR("about to finish a PROCEDURE without executing a RETURN statement"))
+END NoReturnException ;
+
+
+PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.caseSelectException,
+         filename, line, column, scope,
+         ADR("the expression in the CASE statement cannot be selected"))
+END CaseException ;
+
+
+PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   Raise(M2EXCEPTION.exException,
+         filename, line, column, scope,
+         ADR("M2Expection was called when no there was no outstanding exception to be returned"))
+END NoException ;
 
 
 (*

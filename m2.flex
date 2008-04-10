@@ -71,9 +71,11 @@ static  void handleDate        (void);
 static  void handleLine        (void);
 static  void handleFile        (void);
 static  void handleFunction    (void);
+static  void handleColumn      (void);
 static  void pushFunction      (char *function, int module);
 static  void popFunction       (void);
 static  void checkFunction     (void);
+        int  m2flex_GetColumnNo(void);
 	int  m2flex_OpenSource (char *s);
 	int  m2flex_GetLineNo  (void);
 	void m2flex_CloseSource(void);
@@ -234,6 +236,7 @@ VOLATILE                   { updatepos(); M2LexBuf_AddTok(M2Reserved_volatiletok
 \_\_LINE\_\_               { updatepos(); handleLine(); return; }
 \_\_FILE\_\_               { updatepos(); handleFile(); return; }
 \_\_FUNCTION\_\_           { updatepos(); handleFunction(); return; }
+\_\_COLUMN\_\_             { updatepos(); handleColumn(); return; }
 \_\_ATTRIBUTE\_\_          { updatepos(); M2LexBuf_AddTok(M2Reserved_attributetok); return; }
 \_\_BUILTIN\_\_            { updatepos(); M2LexBuf_AddTok(M2Reserved_builtintok); return; }
 \_\_INLINE\_\_             { updatepos(); M2LexBuf_AddTok(M2Reserved_inlinetok); return; }
@@ -279,6 +282,16 @@ static void handleFile (void)
 static void handleLine (void)
 {
   M2LexBuf_AddTokInteger(M2Reserved_integertok, lineno);
+}
+
+/*
+ *  handleColumn - handles the __COLUMN__ construct by passing an integer to
+ *                 the token buffer.
+ */
+
+static void handleColumn (void)
+{
+  M2LexBuf_AddTokInteger(M2Reserved_integertok, m2flex_GetColumnNo());
 }
 
 /*

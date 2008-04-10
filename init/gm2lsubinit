@@ -21,6 +21,8 @@ Assertion
 FormatStrings
 StringConvert
 StrLib
+RTExceptions
+M2EXCEPTION
 M2RTS
 Environment
 SEnvironment

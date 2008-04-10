@@ -20,6 +20,8 @@ DynamicStrings
 Assertion
 FormatStrings
 StringConvert
+RTExceptions
+M2EXCEPTION
 M2RTS
 Environment
 SEnvironment

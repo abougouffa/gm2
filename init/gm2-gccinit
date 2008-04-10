@@ -19,6 +19,8 @@ M2Bitset
 Debug
 M2Defaults
 Environment
+RTExceptions
+M2EXCEPTION
 M2RTS
 DynamicStrings
 Assertion

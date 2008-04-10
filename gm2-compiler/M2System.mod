@@ -44,27 +44,145 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	PutSet, PutVar,
       	       	     	PutSubrange,
                         PutExportQualified,
-                        GetSym,
+                        GetSym, GetSymName,
+                        GetCurrentModule, SetCurrentModule,
                         PopValue,
                         PopSize ;
 
-FROM M2Options IMPORT Iso, Pim2, Pedantic ;
-FROM NameKey IMPORT MakeKey, NulName ;
+FROM M2Options IMPORT Iso, Pim2, Pedantic, DumpSystemExports ;
+FROM NameKey IMPORT Name, MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2Base IMPORT Cardinal ;
 FROM M2Size IMPORT Size, MakeSize ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, DivTrunc ;
 FROM M2Error IMPORT InternalError ;
-FROM gccgm2 IMPORT GetMaxFrom, GetMinFrom,
+FROM Lists IMPORT List, InitList, IsItemInList, PutItemIntoList, GetItemFromList, NoOfItemsInList ;
+FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey ;
+FROM StrLib IMPORT StrEqual ;
+FROM M2Printf IMPORT printf1 ;
+
+FROM gccgm2 IMPORT Tree,
+                   GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
-                   GetBitsPerUnit, GetSizeOf, BuildSize ;
+                   GetBitsPerUnit, GetSizeOf, BuildSize,
+                   GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
+                   GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
+                   GetM2Word16, GetM2Word32, GetM2Word64, GetM2Real32,
+                   GetM2Real64, GetM2Real96, GetM2Real128 ;
+
 
 VAR
-   MinWord   , MaxWord,
-   MinAddress, MaxAddress,
-   MinLoc    , MaxLoc,
-   MinByte   , MaxByte   : CARDINAL ;
+   MinValues,
+   MaxValues  : SymbolTree ;
+   SystemTypes: List ;
+
+
+(*
+   Init - 
+*)
+
+PROCEDURE Init ;
+BEGIN
+   InitList(SystemTypes) ;
+   InitTree(MinValues) ;
+   InitTree(MaxValues)
+END Init ;
+
+
+(*
+   CreateMinMaxFor - creates the min and max values for, type, given gccType.
+*)
+
+PROCEDURE CreateMinMaxFor (type: CARDINAL; min, max: ARRAY OF CHAR; gccType: Tree) ;
+VAR
+   maxval, minval: CARDINAL ;
+BEGIN
+   maxval := MakeConstVar(MakeKey(max)) ;
+   PushIntegerTree(GetMaxFrom(gccType)) ;
+   PopValue(maxval) ;
+   PutVar(maxval, type) ;
+   PutSymKey(MaxValues, GetSymName(type), maxval) ;
+
+   minval := MakeConstVar(MakeKey(min)) ;
+   PushIntegerTree(GetMinFrom(gccType)) ;
+   PopValue(minval) ;
+   PutVar(minval, type) ;
+   PutSymKey(MinValues, GetSymName(type), minval)
+END CreateMinMaxFor ;
+
+
+(*
+   AttemptToCreateType - 
+*)
+
+PROCEDURE AttemptToCreateType (name, min, max: ARRAY OF CHAR;
+                               needsExporting: BOOLEAN; t: Tree) : CARDINAL ;
+VAR
+   minval,
+   maxval,
+   type  : CARDINAL ;
+   n     : Name ;
+BEGIN
+   IF t=NIL
+   THEN
+      (* GCC backend does not support this type *)
+      RETURN( NulSym )
+   ELSE
+      (* create base type *)
+      type := MakeType(MakeKey(name)) ;
+      PutType(type, NulSym) ;  (* a Base Type *)
+      PushIntegerTree(BuildSize(t, FALSE)) ;
+      PopSize(type) ;
+      IF IsItemInList(SystemTypes, type)
+      THEN
+         InternalError('not expecting system type to already be declared', __FILE__, __LINE__)
+      END ;
+      PutItemIntoList(SystemTypes, type) ;
+
+      (* create min, max constants if type is ordinal *)
+      IF (NOT StrEqual(min, '')) AND (NOT StrEqual(max, ''))
+      THEN
+         CreateMinMaxFor(type, min, max, t)
+      END ;
+      IF needsExporting AND DumpSystemExports
+      THEN
+         n := GetSymName(type) ;
+         printf1('SYSTEM module exports: %a\n', n)
+      END ;
+      RETURN( type )
+   END
+END AttemptToCreateType ;
+
+
+(*
+   MakeFixedSizedTypes - creates the SYSTEM fixed sized types providing the
+                         gcc backend supports them.
+*)
+
+PROCEDURE MakeFixedSizedTypes ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   type := AttemptToCreateType('INTEGER8', 'MinInteger8', 'MaxInteger8', TRUE, GetM2Integer8()) ;
+   type := AttemptToCreateType('INTEGER16', 'MinInteger16', 'MaxInteger16', TRUE, GetM2Integer16()) ;
+   type := AttemptToCreateType('INTEGER32', 'MinInteger32', 'MaxInteger32', TRUE, GetM2Integer32()) ;
+   type := AttemptToCreateType('INTEGER64', 'MinInteger64', 'MaxInteger64', TRUE, GetM2Integer64()) ;
+
+   type := AttemptToCreateType('CARDINAL8', 'MinCardinal8', 'MaxCardinal8', TRUE, GetM2Cardinal8()) ;
+   type := AttemptToCreateType('CARDINAL16', 'MinCardinal16', 'MaxCardinal16', TRUE, GetM2Cardinal16()) ;
+   type := AttemptToCreateType('CARDINAL32', 'MinCardinal32', 'MaxCardinal32', TRUE, GetM2Cardinal32()) ;
+   type := AttemptToCreateType('CARDINAL64', 'MinCardinal64', 'MaxCardinal64', TRUE, GetM2Cardinal64()) ;
+
+   type := AttemptToCreateType('WORD16', '', '', TRUE, GetM2Word16()) ;
+   type := AttemptToCreateType('WORD32', '', '', TRUE, GetM2Word32()) ;
+   type := AttemptToCreateType('WORD64', '', '', TRUE, GetM2Word64()) ;
+
+   type := AttemptToCreateType('REAL32', '', '', TRUE, GetM2Real32()) ;
+   type := AttemptToCreateType('REAL64', '', '', TRUE, GetM2Real64()) ;
+   type := AttemptToCreateType('REAL96', '', '', TRUE, GetM2Real96()) ;
+   type := AttemptToCreateType('REAL128', '', '', TRUE, GetM2Real128())
+END MakeFixedSizedTypes ;
 
 
 (*
@@ -72,13 +190,20 @@ VAR
 *)
 
 PROCEDURE InitPIMTypes ;
+VAR
+   min, max: CARDINAL ;
 BEGIN
-   Loc := NulSym ;
+   Loc := MakeType(MakeKey('LOC')) ;
+   PutType(Loc, NulSym) ;                     (* Base Type       *)
+   PushCard(1) ;
+   PopSize(Loc) ;
+   PutItemIntoList(SystemTypes, Loc) ;
 
    Word := MakeType(MakeKey('WORD')) ;
    PutType(Word, NulSym) ;                    (* Base Type       *)
    PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
    PopSize(Word) ;
+   PutItemIntoList(SystemTypes, Word) ;
 
    Byte := MakeType(MakeKey('BYTE')) ;
    PutType(Byte, NulSym) ;                    (* Base Type       *)
@@ -86,6 +211,7 @@ BEGIN
    PushCard(8) ;
    DivTrunc ;
    PopSize(Byte) ;
+   PutItemIntoList(SystemTypes, Byte) ;
 
    (* ADDRESS = POINTER TO BYTE *)
 
@@ -93,10 +219,15 @@ BEGIN
    PutPointer(Address, Byte) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetPointerType())) ;
    PopSize(Address) ;
+   PutItemIntoList(SystemTypes, Address) ;
 
    IF NOT Iso
    THEN
-      MakeBitset
+      MakeBitset ;
+      PutItemIntoList(SystemTypes, Bitset) ;
+      GetBitsetMinMax(min, max) ;
+      PutSymKey(MaxValues, GetSymName(Bitset), max) ;
+      PutSymKey(MinValues, GetSymName(Bitset), min)
    END
 END InitPIMTypes ;
 
@@ -106,16 +237,20 @@ END InitPIMTypes ;
 *)
 
 PROCEDURE InitISOTypes ;
+VAR
+   MinLoc, MaxLoc: CARDINAL ;
 BEGIN
    Loc := MakeType(MakeKey('LOC')) ;
    PutType(Loc, NulSym) ;                     (* Base Type       *)
    PushCard(1) ;
    PopSize(Loc) ;
+   PutItemIntoList(SystemTypes, Loc) ;
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Loc) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetPointerType())) ;
    PopSize(Address) ;
+   PutItemIntoList(SystemTypes, Address) ;
 
    Byte := MakeType(MakeKey('BYTE')) ;
    PutType(Byte, NulSym) ;                    (* Base Type       *)
@@ -123,24 +258,15 @@ BEGIN
    PushCard(8) ;
    DivTrunc ;
    PopSize(Byte) ;
+   PutItemIntoList(SystemTypes, Byte) ;
 
    Word := MakeType(MakeKey('WORD')) ;
    PutType(Word, NulSym) ;                    (* Base Type       *)
    PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
    PopSize(Word) ;
+   PutItemIntoList(SystemTypes, FALSE) ;
 
-   (* MaxLoc *)
-   MaxLoc := MakeConstVar(MakeKey('MaxLoc')) ;
-   PushIntegerTree(GetMaxFrom(GetISOLocType())) ;
-   PopValue(MaxLoc) ;
-   PutVar(MaxLoc, Loc) ;
-
-   (* MinLoc *)
-   MinLoc := MakeConstVar(MakeKey('MinLoc')) ;
-   PushIntegerTree(GetMinFrom(GetISOLocType())) ;
-   PopValue(MinLoc) ;
-   PutVar(MinLoc, Loc) ;
-
+   CreateMinMaxFor(Loc, 'MinLoc', 'MaxLoc', GetISOLocType())
 END InitISOTypes ;
 
 
@@ -154,11 +280,19 @@ END InitISOTypes ;
 
 PROCEDURE InitSystem ;
 VAR
-   Previous: CARDINAL ;
+   Previous              : CARDINAL ;
+   MinWord   , MaxWord,
+   MinAddress, MaxAddress,
+   MinLoc    , MaxLoc,
+   MinByte   , MaxByte   : CARDINAL ;
 BEGIN
+   Init ;
+
    (* create SYSTEM module *)
    System := MakeDefinitionSource(MakeKey('SYSTEM')) ;
    StartScope(System) ;
+   Previous := GetCurrentModule() ;
+   SetCurrentModule(System) ;
 
    IF Iso
    THEN
@@ -203,43 +337,14 @@ BEGIN
    Shift := MakeProcedure(MakeKey('SHIFT')) ;     (* Function        *)
    Cast := MakeProcedure(MakeKey('CAST')) ;       (* Function        *)
 
-   (* MaxWord *)
-   MaxWord := MakeConstVar(MakeKey('MaxWord')) ;
-   PushIntegerTree(GetMaxFrom(GetWordType())) ;
-   PopValue(MaxWord) ;
-   PutVar(MaxWord, Word) ;
+   CreateMinMaxFor(Word, 'MinWord', 'MaxWord', GetWordType()) ;
+   CreateMinMaxFor(Address, 'MinAddress', 'MaxAddress', GetPointerType()) ;
+   CreateMinMaxFor(Byte, 'MinByte', 'MaxByte', GetByteType()) ;
 
-   (* MinWord *)
-   MinWord := MakeConstVar(MakeKey('MinWord')) ;
-   PushIntegerTree(GetMinFrom(GetWordType())) ;
-   PopValue(MinWord) ;
-   PutVar(MinWord, Word) ;
+   MakeFixedSizedTypes ;
 
-   (* MaxAddress *)
-   MaxAddress := MakeConstVar(MakeKey('MaxAddress')) ;
-   PushIntegerTree(GetMaxFrom(GetPointerType())) ;
-   PopValue(MaxAddress) ;
-   PutVar(MaxAddress, Address) ;
-
-   (* MinAddress *)
-   MinAddress := MakeConstVar(MakeKey('MinAddress')) ;
-   PushIntegerTree(GetMinFrom(GetPointerType())) ;
-   PopValue(MinAddress) ;
-   PutVar(MinAddress, Address) ;
-
-   (* MaxByte *)
-   MaxByte := MakeConstVar(MakeKey('MaxByte')) ;
-   PushIntegerTree(GetMaxFrom(GetByteType())) ;
-   PopValue(MaxByte) ;
-   PutVar(MaxByte, Byte) ;
-
-   (* MinByte *)
-   MinByte := MakeConstVar(MakeKey('MinByte')) ;
-   PushIntegerTree(GetMinFrom(GetByteType())) ;
-   PopValue(MinByte) ;
-   PutVar(MinByte, Byte) ;
-
-   EndScope
+   EndScope ;
+   SetCurrentModule(Previous)
 END InitSystem ;
 
 
@@ -249,25 +354,10 @@ END InitSystem ;
 
 PROCEDURE GetSystemTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
 BEGIN
-   IF type=Word
+   IF IsItemInList(SystemTypes, type)
    THEN
-      min := MinWord ;
-      max := MaxWord
-   ELSIF type=Byte
-   THEN
-      min := MinByte ;
-      max := MaxByte
-   ELSIF type=Address
-   THEN
-      min := MinAddress ;
-      max := MaxAddress
-   ELSIF (type=Bitset) AND (NOT Iso)
-   THEN
-      GetBitsetMinMax(min, max)
-   ELSIF (type=Loc) AND Iso
-   THEN
-      min := MinLoc ;
-      max := MaxLoc
+      min := GetSymKey(MinValues, GetSymName(type)) ;
+      max := GetSymKey(MaxValues, GetSymName(type))
    ELSE
       InternalError('system does not know about this type', __FILE__, __LINE__)
    END
@@ -330,12 +420,110 @@ END IsPseudoSystemFunctionConstExpression ;
 
 PROCEDURE IsSystemType (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN(
-          (Sym=Word)    OR (Sym=Byte) OR
-          (Sym=Address) OR ((Sym=Bitset) AND (NOT Iso)) OR
-          ((Sym=Loc) AND Iso)
-         )
+   RETURN( IsItemInList(SystemTypes, Sym) )
 END IsSystemType ;
+
+
+(*
+   GetSafeSystem - 
+*)
+
+PROCEDURE GetSafeSystem (name: Name) : CARDINAL ;
+VAR
+   sym,
+   i, n: CARDINAL ;
+BEGIN
+   n := NoOfItemsInList(SystemTypes) ;
+   i := 1 ;
+   WHILE i<=n DO
+      sym := GetItemFromList(SystemTypes, i) ;
+      IF GetSymName(sym)=name
+      THEN
+         RETURN( sym )
+      END ;
+      INC(i)
+   END ;
+   RETURN( NulSym )
+END GetSafeSystem ;
+
+
+(*
+   IntegerN - returns the symbol associated with INTEGER[N].
+              NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE IntegerN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   8 :  RETURN( GetSafeSystem(MakeKey('INTEGER8')) ) |
+   16:  RETURN( GetSafeSystem(MakeKey('INTEGER16')) ) |
+   32:  RETURN( GetSafeSystem(MakeKey('INTEGER32')) ) |
+   64:  RETURN( GetSafeSystem(MakeKey('INTEGER64')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END IntegerN ;
+
+
+(*
+   CardinalN - returns the symbol associated with CARDINAL[N].
+               NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE CardinalN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   8 :  RETURN( GetSafeSystem(MakeKey('CARDINAL8')) ) |
+   16:  RETURN( GetSafeSystem(MakeKey('CARDINAL16')) ) |
+   32:  RETURN( GetSafeSystem(MakeKey('CARDINAL32')) ) |
+   64:  RETURN( GetSafeSystem(MakeKey('CARDINAL64')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END CardinalN ;
+
+
+(*
+   WordN - returns the symbol associated with WORD[N].
+           NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE WordN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   16:  RETURN( GetSafeSystem(MakeKey('WORD16')) ) |
+   32:  RETURN( GetSafeSystem(MakeKey('WORD32')) ) |
+   64:  RETURN( GetSafeSystem(MakeKey('WORD64')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END WordN ;
+
+
+(*
+   RealN - returns the symbol associated with REAL[N].
+           NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE RealN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   32 :  RETURN( GetSafeSystem(MakeKey('REAL32')) ) |
+   64 :  RETURN( GetSafeSystem(MakeKey('REAL64')) ) |
+   96 :  RETURN( GetSafeSystem(MakeKey('REAL96')) ) |
+   128:  RETURN( GetSafeSystem(MakeKey('REAL128')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END RealN ;
 
 
 END M2System.

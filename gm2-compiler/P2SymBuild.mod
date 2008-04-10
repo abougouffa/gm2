@@ -77,7 +77,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeSubscript, PutSubscript,
                         PutConstString, GetString,
                         PutArray, IsArray,
-                        GetType,
+                        GetType, SkipType,
                         IsProcType, MakeProcType,
                         PutProcTypeVarParam, PutProcTypeParam,
                         MakeConstVar,
@@ -1309,13 +1309,13 @@ BEGIN
       IF Var=VarTok
       THEN
          (* VAR parameter *)
-         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym)
+         IF NOT PutVarParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
          THEN
             InternalError('problems adding a VarParameter - wrong param #?', __FILE__, __LINE__)
          END
       ELSE
          (* Non VAR parameter *)
-         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym)
+         IF NOT PutParam(ProcSym, ParamTotal+i, ParamName, TypeSym, Array=ArrayTok)
          THEN
             InternalError('problems adding a Parameter - wrong param #?', __FILE__, __LINE__)
          END
@@ -1396,13 +1396,13 @@ BEGIN
       THEN
          IF Unbounded AND (NOT IsUnboundedParam(ProcSym, ParamTotal+i))
          THEN
-            FailParameter('the parameter was declared as an ARRAY OF CHAR',
-                          'the parameter was not declared as an ARRAY OF CHAR',
+            FailParameter('the parameter was declared as an ARRAY OF type',
+                          'the parameter was not declared as an ARRAY OF type',
                           NulName, ParamTotal+i, ProcSym)
          ELSIF (NOT Unbounded) AND IsUnboundedParam(ProcSym, ParamTotal+i)
          THEN
-            FailParameter('the parameter was not declared as an ARRAY OF CHAR',
-                          'the parameter was declared as an ARRAY OF CHAR',
+            FailParameter('the parameter was not declared as an ARRAY OF type',
+                          'the parameter was declared as an ARRAY OF type',
                           NulName, ParamTotal+i, ProcSym)
          END ;
          IF (Var=VarTok) AND (NOT IsVarParam(ProcSym, ParamTotal+i))
@@ -1436,12 +1436,16 @@ BEGIN
          END ;
          IF Unbounded
          THEN
-            (* GetType(ParamI) yields an UnboundedSym *)
+            (* GetType(ParamI) yields an UnboundedSym or a PartialUnboundedSym,
+               depending whether it has been resolved.. *)
             ParamIType := GetType(GetType(ParamI))
          ELSE
             ParamIType := GetType(ParamI)
          END ;
-         IF ParamIType#TypeSym
+         IF ((SkipType(ParamIType)#SkipType(TypeSym)) OR
+             (PedanticParamNames AND (ParamIType#TypeSym))) AND
+            (NOT IsUnknown(SkipType(TypeSym))) AND
+            (NOT IsUnknown(SkipType(ParamIType)))
          THEN
             (* different parameter types *)
             FailParameter('',

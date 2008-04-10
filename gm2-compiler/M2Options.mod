@@ -395,6 +395,10 @@ BEGIN
    THEN
       ExtendedOpaque := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fdump-system-exports')
+   THEN
+      DumpSystemExports := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
    THEN
       Verbose := TRUE ;
@@ -515,5 +519,6 @@ BEGIN
    PedanticParamNames           := FALSE ;
    PedanticCast                 := FALSE ;
    Xcode                        := FALSE ;
+   DumpSystemExports            := FALSE ;
    ScanForInitialOptions
 END M2Options.

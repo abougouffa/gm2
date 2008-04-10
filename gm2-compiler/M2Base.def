@@ -42,7 +42,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Convert,
                  Cap, Abs, Odd,
                  Chr, Val,
-                 Trunc, Float,
+                 IsTrunc, IsFloat,
                  Min, Max,
                  New, Dispose,          (* Base procedures         *)
                  Inc, Dec,
@@ -65,7 +65,19 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  MixTypes, NegateType,
                  TemplateProcedure,
                  ActivationPointer,
-                 IsNeededAtRunTime ;
+                 IsNeededAtRunTime,
+                 ExceptionAssign,
+                 ExceptionInc,
+                 ExceptionDec,
+                 ExceptionStaticArray,
+                 ExceptionDynamicArray,
+                 ExceptionForLoopBegin,
+                 ExceptionForLoopTo,
+                 ExceptionForLoopEnd,
+                 ExceptionPointerNil,
+                 ExceptionNoReturn,
+                 ExceptionCase,
+                 ExceptionNo ;
 
 VAR
    TemplateProcedure,
@@ -83,12 +95,23 @@ VAR
    High, LengthS,
    Cap, Abs, Odd,
    Convert, Val,
-   Trunc, Float,
    Chr,
    Min, Max,
    New, Dispose,
    Inc, Dec,
-   Incl, Excl             : CARDINAL ;
+   Incl, Excl,
+   ExceptionAssign,
+   ExceptionInc,
+   ExceptionDec,
+   ExceptionStaticArray,
+   ExceptionDynamicArray,
+   ExceptionForLoopBegin,
+   ExceptionForLoopTo,
+   ExceptionForLoopEnd,
+   ExceptionPointerNil,
+   ExceptionNoReturn,
+   ExceptionCase,
+   ExceptionNo          : CARDINAL ;
 
 
 (*
@@ -155,6 +178,22 @@ PROCEDURE IsOrdinalType (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsOrd (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsTrunc - returns TRUE if, sym, is TRUNC or its typed counterparts
+             TRUNCL, TRUNCS.
+*)
+
+PROCEDURE IsTrunc (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsFloat - returns TRUE if, sym, is FLOAT or its typed counterparts
+             FLOATL, FLOATS.
+*)
+
+PROCEDURE IsFloat (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

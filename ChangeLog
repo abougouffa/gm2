@@ -1,3 +1,95 @@
+2008-04-10       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2/Make-lang.in:  added M2EXCEPTION.def RTExceptions.def
+	  M2EXCEPTION.mod RTExceptions.mod to the list of library modules.
+        * gm2/gm2/README:  fixed CVS command instruction.
+        * gm2/gm2/gccgm2.c:  added gccgm2_GetM2Integer8, gccgm2_GetM2Integer16,
+	  gccgm2_GetM2Integer32, gccgm2_GetM2Integer64, gccgm2_GetM2Cardinal8,
+	  gccgm2_GetM2Cardinal16, gccgm2_GetM2Cardinal32, gccgm2_GetM2Cardinal64,
+	  gccgm2_GetM2Word16, gccgm2_GetM2Word32, gccgm2_GetM2Word64,
+	  gccgm2_GetM2Real32, gccgm2_GetM2Real64, gccgm2_GetM2Real96,
+	  gccgm2_GetM2Real128, gccgm2_BuildIfThenDoEnd, gccgm2_BuildIfThenElseEnd,
+	  gccgm2_IsTrue, gccgm2_IsFalse, gccgm2_GetTreeType, gccgm2_AddStatement,
+          build_m2_specific_size_type, build_m2_integer8_type_node,
+	  build_m2_integer16_type_node, build_m2_integer32_type_node,
+	  build_m2_integer64_type_node, build_m2_cardinal8_type_node,
+	  build_m2_cardinal16_type_node, build_m2_cardinal32_type_node,
+	  build_m2_cardinal64_type_node, build_m2_word16_type_node,
+	  build_m2_word32_type_node, build_m2_word64_type_node,
+	  build_m2_real32_type_node, build_m2_real64_type_node,
+	  build_m2_real96_type_node and build_m2_real128_type_node.
+        * gm2/gm2/lang-options.h:  introduced -fdump-system-exports.
+        * gm2/gm2/m2.flex:  added the token __COLUMN__ to gm2 (m2flex_GetColumnNo).
+        * gm2/gm2/m2pp.c:  updated copyright dates.
+        * gm2/gm2/gm2-compiler/Lists.def:  tidied up spacing.
+        * gm2/gm2/gm2-compiler/M2Base.def:  added IsTrunc, IsFloat, ExceptionAssign,
+	  ExceptionInc, ExceptionDec, ExceptionStaticArray, ExceptionDynamicArray,
+	  ExceptionForLoopBegin, ExceptionForLoopTo, ExceptionForLoopEnd,
+	  ExceptionPointerNil, ExceptionNoReturn, ExceptionCase, ExceptionNo.
+        * gm2/gm2/gm2-compiler/M2Base.mod:  implemented above procedures and also
+	  introduced assignment, expression and parameter passing matrices for
+	  the new system types.
+        * gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  declare new fixed sized types.
+        * gm2/gm2/gm2-compiler/M2GenGCC.def:  export GetHighFromUnbounded.
+        * gm2/gm2/gm2-compiler/M2GenGCC.mod:  fixed the --fixme-- requests
+	  surrounding scope naming for error messages.  Refactored
+	  GetHighFromUnbounded.  Renamed ExpandExpressionStatement to
+	  AddStatement.  Renamed BuildAssignment to BuildAssignmentTree.
+	  use IsTrunc rather than comparing symbol to Trunc.
+	  Introduced scope stack to identify scope name for better error
+	  messages.
+        * gm2/gm2/gm2-compiler/M2Options.def:  export DumpSystemExports.
+        * gm2/gm2/gm2-compiler/M2Options.mod:  detect DumpSystemExports.
+        * gm2/gm2/gm2-compiler/M2Quads.mod:  utilise IsFloat, IsTrunc,
+	  removed GetTypeMinMax, use M2Range functions instead of
+	  M2Quads versions.  Allow ADR("string").
+        * gm2/gm2/gm2-compiler/M2Range.def:  modify CodeRangeCheck and
+	  CodeErrorCheck.
+        * gm2/gm2/gm2-compiler/M2Range.mod:  finished implementation.
+        * gm2/gm2/gm2-compiler/M2System.def:  export IntegerN, CardinalN
+	  WordN, RealN.
+        * gm2/gm2/gm2-compiler/M2System.mod:  implemented above and also
+	  implemented many support procedures.  Heavily refactored code.
+        * gm2/gm2/gm2-compiler/P2SymBuild.mod:  fixed bug reported by
+	  Scott Iverson (ARRAY OF importedType).  Type checking of
+	  parameter types extended to embrace PedanticParamNames for
+	  type names as well.
+        * gm2/gm2/gm2-compiler/SymbolKey.def:  tidied up spacing.
+        * gm2/gm2/gm2-compiler/SymbolKey.mod:  improved error message.
+        * gm2/gm2/gm2-compiler/SymbolTable.def:  introduced isUnbounded
+	  parameter into PutVarParam and PutParam.
+        * gm2/gm2/gm2-compiler/SymbolTable.mod:  introduced PartialUnbounded
+	  to fix the ARRAY OF importedType bug above.  New procedures,
+	  PutPartialUnbounded, HandleHiddenOrDeclare, FillInUnboundedFields,
+	  FillInUnknownFields.  Fixed bug to allow ARRAY OF proctype.
+	  Refactored to utilise HandleHiddenOrDeclare.
+        * gm2/gm2/gm2-compiler/gccgm2.def:  exported new data type functions.
+	  Define IsTrue, IsFalse, BuildIfThenDoEnd,
+	  BuildIfThenElseEnd, GetTreeType.
+	  Renamed BuildAssignment to BuildAssignmentTree
+	  and BuildProcedureCall to BuildProcedureCallTree
+	  and ExpandExpressionStatement to AddStatement.
+        * gm2/gm2/gm2-libs/M2RTS.def:  export new Exception handlers,
+	  AssignmentException, IncException, DecException,
+	  StaticArraySubscriptException, DynamicArraySubscriptException,
+	  ForLoopBeginException, ForLoopToException, ForLoopEndException,
+	  PointerNilException, NoReturnException, CaseException,
+	  NoException.
+	  Removed old exception handlers.
+        * gm2/gm2/gm2-libs/M2RTS.mod:  implemented above by using
+	  M2EXCEPTION and RTExceptions.
+        * gm2/gm2/gm2-libs/SysStorage.mod:  tidied up spacing.
+        * gm2/gm2/gm2-libs-boot/SYSTEM.def:  tidied up spacing.
+        * gm2/gm2/init/gm2-gccinit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/gm2lccinit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/gm2lgeninit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/gm2linit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/gm2lsubinit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/gm2minit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/h2definit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/init/ppginit:  added RTExceptions and M2EXCEPTION.
+        * gm2/gm2/p2c/p2c-src/src/lex.c:  introduced __COLUMN__ to p2c.
+
 2008-04-08       Peter Eiserloh <eiserlohpp@yahoo.com>
 
 	* gm2/gm2.texi:  patch to correct directory name

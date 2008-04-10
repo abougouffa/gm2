@@ -20,11 +20,6 @@ IMPLEMENTATION MODULE M2GenGCC ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 
-FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
-                    SubQuad, PutQuad,
-                    QuadToTokenNo,
-                    DisplayQuadList ;
-
 FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PushVarSize,
                         PushSumOfLocalVarSize,
@@ -32,14 +27,14 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         MakeConstLit,
                         RequestSym, FromModuleGetSym,
                         StartScope, EndScope,
-                        GetMainModule, GetScope, GetModuleScope,
+                        GetMainModule, GetModuleScope,
                         GetSymName, ModeOfAddr, GetMode,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLowestType,
                         GetLocalSym, GetVarWritten,
                         GetVarient,
-                        NoOfParam, GetScope, GetParent,
+                        NoOfParam, GetParent,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
@@ -54,6 +49,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsProcedureBuiltin, IsProcedureInline,
                         IsParameter,
                         IsValueSolved, IsSizeSolved,
+                        IsProcedureNested, IsInnerModule,
                         ForeachExportedDo,
                         ForeachImportedDo,
                         ForeachProcedureDo,
@@ -84,7 +80,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
-                   Cardinal, Char, Integer, Trunc,
+                   Cardinal, Char, Integer, IsTrunc,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
@@ -97,7 +93,7 @@ FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 
 FROM M2StackWord IMPORT InitStackWord, StackOfWord, PeepWord, ReduceWord,
-                        PushWord, PopWord ;
+                        PushWord, PopWord, IsEmptyWord ;
 
 FROM Lists IMPORT InitList, KillList,
                   PutItemIntoList,
@@ -140,7 +136,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
                    BuildCallInnerInit,
                    BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
-                   BuildAssignment, DeclareKnownConstant,
+                   BuildAssignmentTree, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLogicalOrAddress,
@@ -169,18 +165,23 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ConvertConstantAndCheck,
                    AreConstantsEqual, CompareTrees,
                    DoJump,
-                   BuildProcedureCall, BuildIndirectProcedureCall,
+                   BuildProcedureCallTree, BuildIndirectProcedureCallTree,
                    BuildParam, BuildFunctValue,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
                    BuildCap, BuildAbs,
-                   ExpandExpressionStatement,
+                   AddStatement,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2RType,
                    GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
                    BuildIntegerConstant, BuildStringConstant,
                    RememberConstant, FoldAndStrip, RemoveOverflow ;
+
+FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
+                    SubQuad, PutQuad,
+                    QuadToTokenNo,
+                    DisplayQuadList ;
 
 FROM SYSTEM IMPORT WORD ;
 
@@ -204,7 +205,8 @@ VAR
    FileName                 : String ;
    CompilingMainModule      : StackOfWord ; (* Determines whether the main module     *)
                                             (* quadrules are being processed.         *)
-   
+   ScopeStack               : StackOfWord ; (* keeps track of the current scope       *)
+                                            (* under translation.                     *)
 
 
 (*
@@ -868,14 +870,75 @@ END FoldRange ;
 
 
 (*
+   PushScope - 
+*)
+
+PROCEDURE PushScope (sym: CARDINAL) ;
+BEGIN
+   PushWord(ScopeStack, sym)
+END PushScope ;
+
+
+(*
+   PopScope - 
+*)
+
+PROCEDURE PopScope ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   sym := PopWord(ScopeStack)
+END PopScope ;
+
+
+(*
+   GetCurrentScopeDescription - returns a description of the current scope.
+*)
+
+PROCEDURE GetCurrentScopeDescription () : String ;
+VAR
+   sym : CARDINAL ;
+   s, n: String ;
+BEGIN
+   IF IsEmptyWord(ScopeStack)
+   THEN
+      InternalError('not expecting scope stack to be empty', __FILE__, __LINE__)
+   ELSE
+      sym := PeepWord(ScopeStack, 1) ;
+      n := Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))) ;
+      IF IsDefImp(sym)
+      THEN
+         RETURN( Sprintf1(Mark(InitString('implementation module %s')), n) )
+      ELSIF IsModule(sym)
+      THEN
+         IF IsInnerModule(sym)
+         THEN
+            RETURN( Sprintf1(Mark(InitString('inner module %s')), n) )
+         ELSE
+            RETURN( Sprintf1(Mark(InitString('program module %s')), n) )
+         END
+      ELSIF IsProcedure(sym)
+      THEN
+         IF IsProcedureNested(sym)
+         THEN
+            RETURN( Sprintf1(Mark(InitString('nested procedure %s')), n) )
+         ELSE
+            RETURN( Sprintf1(Mark(InitString('procedure %s')), n) )
+         END
+      ELSE
+         InternalError('unexpected scope symbol', __FILE__, __LINE__)
+      END
+   END
+END GetCurrentScopeDescription ;
+
+
+(*
    CodeRange - encode the range test associated with op3.
 *)
 
 PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
-VAR
-   t: Tree ;
 BEGIN
-   t := CodeRangeCheck(op3, NulName)  (* --fixme-- find name of scope *)
+   CodeRangeCheck(op3, GetCurrentScopeDescription())
 END CodeRange ;
 
 
@@ -890,7 +953,7 @@ BEGIN
    (* would like to test whether this position is in the same basicblock
       as any known entry point.  If so we could emit an error message.
    *)
-   t := CodeErrorCheck(op3, NulName)  (* --fixme-- find name of scope *)
+   t := CodeErrorCheck(op3, GetCurrentScopeDescription())
 END CodeError ;
 
 
@@ -907,6 +970,7 @@ END CodeError ;
 
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   PushScope(op3) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
    SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
@@ -928,6 +992,7 @@ END CodeModuleScope ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    LastLine := 1 ;
+   PushScope(op3) ;
    PushWord(CompilingMainModule, GetMainModule()=op3) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
@@ -952,6 +1017,7 @@ END CodeStartModFile ;
 
 PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
+   PushScope(op3) ;
    LastLine := 1 ;
    PushWord(CompilingMainModule, FALSE) ;
    ModuleName := KillString(ModuleName) ;
@@ -1065,19 +1131,17 @@ BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
 
-   RETURN BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                 BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)),
-                                              FALSE),
-                                 FALSE),
-                        GetPointerType())
+   RETURN( BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                  BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)),
+                                               FALSE),
+                                  FALSE),
+                         GetPointerType()) )
 END GetAddressOfUnbounded ;
 
 
 (*
    GetHighFromUnbounded - returns a Tree containing the value of
-                          param.HIGH * sizeof(unboundedType).
-                          The number of legal bytes this array
-                          occupies.
+                          param.HIGH.
 *)
 
 PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
@@ -1088,19 +1152,39 @@ BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
    ArrayType := GetType(UnboundedType) ;
+
+   RETURN( BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                  BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
+                                  FALSE),
+                         GetIntegerType()) )
+END GetHighFromUnbounded ;
+
+
+(*
+   GetSizeOfHighFromUnbounded - returns a Tree containing the value of
+                          param.HIGH * sizeof(unboundedType).
+                          The number of legal bytes this array
+                          occupies.
+*)
+
+PROCEDURE GetSizeOfHighFromUnbounded (param: CARDINAL) : Tree ;
+VAR
+   UnboundedType,
+   ArrayType    : CARDINAL ;
+BEGIN
+   UnboundedType := GetType(param) ;
+   Assert(IsUnbounded(UnboundedType)) ;
+   ArrayType := GetType(UnboundedType) ;
    (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
 
-   RETURN( BuildMult(BuildAdd(
-                              BuildAdd(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                              BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
-                                                              FALSE),
-                                                     GetIntegerType()),
+   RETURN( BuildMult(BuildAdd(BuildAdd(GetHighFromUnbounded(param),
                                        GetIntegerOne(),
                                        FALSE),
                               GetIntegerOne(),
                               FALSE),
-                     FindSize(ArrayType), FALSE) )
-END GetHighFromUnbounded ;
+                     FindSize(ArrayType),
+                     FALSE) )
+END GetSizeOfHighFromUnbounded ;
 
 
 (*
@@ -1132,19 +1216,20 @@ BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
 
-   High := GetHighFromUnbounded(param) ;
+   High := GetSizeOfHighFromUnbounded(param) ;
    Addr := GetAddressOfUnbounded(param) ;
-   Type := Tree(Mod2Gcc(GetType(param))) ;
+   Type := Mod2Gcc(GetType(param)) ;
    
    NewArray := BuiltInAlloca(High) ;
    NewArray := BuiltInMemCopy(NewArray, Addr, High) ;
 
    (* now assign  param.Addr := ADR(NewArray) *)
 
-   t        := BuildAssignment(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                                      BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
-                                                      FALSE),
-                                             GetPointerType()), NewArray)
+   t := BuildAssignmentTree(BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
+                                                   BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(UnboundedType)), FALSE),
+                                                   FALSE),
+                                          GetPointerType()), NewArray)
+
 END MakeCopyAndUse ;
 
 
@@ -1293,7 +1378,7 @@ BEGIN
    Assert(IsVar(param) OR IsParameter(param)) ;
    IF IsUnbounded(param)
    THEN
-      RETURN GetHighFromUnbounded(param)
+      RETURN GetSizeOfHighFromUnbounded(param)
    ELSE
       RETURN BuildSize(Mod2Gcc(GetType(param)), FALSE)
    END
@@ -1347,7 +1432,7 @@ BEGIN
       j := 1 ;
       ta := GetAddressOfUnbounded(param) ;
       tb := BuildConvert(GetPointerType(),
-                         BuildAdd(ta, GetHighFromUnbounded(param), FALSE),
+                         BuildAdd(ta, GetSizeOfHighFromUnbounded(param), FALSE),
                          FALSE) ;
       WHILE j<=n DO
          IF j>1
@@ -1670,9 +1755,10 @@ BEGIN
    ELSE
       IF GetType(procedure)=NulSym
       THEN
-         tree := BuildProcedureCall(Mod2Gcc(procedure), NIL)
+         AddStatement(BuildProcedureCallTree(Mod2Gcc(procedure), NIL))
       ELSE
-         tree := BuildProcedureCall(Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
+         (* leave tree alone - it will be picked up when processing FunctValue *)
+         tree := BuildProcedureCallTree(Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
       END
    END
 END CodeDirectCall ;
@@ -1700,10 +1786,10 @@ BEGIN
 
    IF GetMode(ProcVar)=LeftValue
    THEN
-      tree := BuildIndirectProcedureCall(BuildIndirect(Mod2Gcc(ProcVar), Mod2Gcc(proc)),
+      tree := BuildIndirectProcedureCallTree(BuildIndirect(Mod2Gcc(ProcVar), Mod2Gcc(proc)),
                                          ReturnType)
    ELSE
-      tree := BuildIndirectProcedureCall(Mod2Gcc(ProcVar), ReturnType)
+      tree := BuildIndirectProcedureCallTree(Mod2Gcc(ProcVar), ReturnType)
    END
 END CodeIndirectCall ;
 
@@ -1873,7 +1959,7 @@ BEGIN
                     QuadToTokenNo(q))
    END ;
    SubQuad(n) ;
-   res := BuildAssignment(res, val)
+   res := BuildAssignmentTree(res, val)
 END CodeMakeAdr ;
 
 
@@ -2056,9 +2142,9 @@ BEGIN
                     CurrentQuadToken)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
-      t := BuildAssignment(Mod2Gcc(op1),
-                           BuildConvert(GetPointerType(),
-                                        BuildAddr(Mod2Gcc(op3), FALSE), FALSE))
+      t := BuildAssignmentTree(Mod2Gcc(op1),
+                               BuildConvert(GetPointerType(),
+                                            BuildAddr(Mod2Gcc(op3), FALSE), FALSE))
    END
 END CodeAddr ;
 
@@ -2244,7 +2330,7 @@ BEGIN
                           IsSet(SkipType(GetType(op3))))
    THEN
       (* we have not checked set compatibility in
-         M2Quads.mod:BuildAssignment so we do it here.
+         M2Quads.mod:BuildAssignmentTree so we do it here.
       *)
 (*
       IF (Iso AND (SkipType(GetType(op1))#SkipType(GetType(op3)))) OR
@@ -2255,7 +2341,7 @@ BEGIN
       IF SkipType(GetTypeMode(op1))#SkipType(GetTypeMode(op3))
       THEN
          DescribeTypeError(CurrentQuadToken, op1, op3) ;
-         RETURN( Mod2Gcc(op1) ) (* we might crash if we execute the BuildAssignment with op3 *)
+         RETURN( Mod2Gcc(op1) ) (* we might crash if we execute the BuildAssignmentTree with op3 *)
       END
    END ;
    DeclareConstant(tokenno, op3) ;
@@ -2340,19 +2426,19 @@ BEGIN
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(t, op3t, GetType(op1), op2, op3) ;
-      ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
+      AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                                BuildAddr(op3t, FALSE),
                                                t))
    ELSE
       IF (SkipType(GetType(op1))=Word) AND Iso AND
          (SkipType(GetType(op3))#SkipType(GetType(op1)))
       THEN
-         t := BuildAssignment(BuildIndirect(BuildAddr(Mod2Gcc(op1), FALSE),
-                                            GetWordType()),
-                              BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE))
+         t := BuildAssignmentTree(BuildIndirect(BuildAddr(Mod2Gcc(op1), FALSE),
+                                                GetWordType()),
+                                  BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE))
       ELSE
-         t := BuildAssignment(Mod2Gcc(op1),
-                              FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
+         t := BuildAssignmentTree(Mod2Gcc(op1),
+                                  FoldConstBecomes(QuadToTokenNo(quad), op1, op3))
       END
    END
 END CodeBecomes ;
@@ -2513,7 +2599,7 @@ BEGIN
       PutConst(op1, MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)) ;
       AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), tv)
+      t := BuildAssignmentTree(Mod2Gcc(op1), tv)
    END
 END CodeBinary ;
 
@@ -2843,18 +2929,18 @@ BEGIN
          ELSIF IsUnbounded(GetType(op3))
          THEN
             BuildParam(Mod2Gcc(op3)) ;
-            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            t := BuildProcedureCallTree(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
          ELSIF GetMode(op3)=RightValue
          THEN
             BuildParam(ResolveHigh(quad, op3)) ;
             BuildParam(BuildAddr(Mod2Gcc(op3), FALSE)) ;
-            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            t := BuildProcedureCallTree(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
          ELSE
             BuildParam(ResolveHigh(quad, op3)) ;
             BuildParam(Mod2Gcc(op3)) ;
-            t := BuildProcedureCall(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
+            t := BuildProcedureCallTree(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
          END
       ELSE
@@ -2868,7 +2954,7 @@ BEGIN
          InternalError('CAP function should already have been folded',
                        __FILE__, __LINE__)
       ELSE
-         t := BuildAssignment(Mod2Gcc(op1), BuildCap(Mod2Gcc(op3)))
+         t := BuildAssignmentTree(Mod2Gcc(op1), BuildCap(Mod2Gcc(op3)))
       END
    ELSIF (op2#NulSym) AND (GetSymName(op2)=MakeKey('ABS'))
    THEN
@@ -2877,7 +2963,7 @@ BEGIN
          InternalError('ABS function should already have been folded',
                        __FILE__, __LINE__)
       ELSE
-         t := BuildAssignment(Mod2Gcc(op1), BuildAbs(Mod2Gcc(op3)))
+         t := BuildAssignmentTree(Mod2Gcc(op1), BuildAbs(Mod2Gcc(op3)))
       END
    ELSE
       InternalError('expecting LENGTH, CAP or ABS as a standard function',
@@ -2920,7 +3006,7 @@ BEGIN
          END ;
          DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
          BuildParam(Mod2Gcc(GetPriority(mod))) ;
-         t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+         t := BuildProcedureCallTree(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
          BuildFunctValue(Mod2Gcc(op1))
       END
    END
@@ -2959,7 +3045,7 @@ BEGIN
             printf1('procedure <%a> needs to restore interrupts\n', n1)
          END ;
          BuildParam(Mod2Gcc(op1)) ;
-         t := BuildProcedureCall(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+         t := BuildProcedureCallTree(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
          BuildFunctValue(Mod2Gcc(op1))
       END
    END
@@ -3640,7 +3726,7 @@ BEGIN
       PutConst(op1, FindType(op3)) ;
       AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), tv)
+      t := BuildAssignmentTree(Mod2Gcc(op1), tv)
    END
 END CodeUnary ;
 
@@ -3716,7 +3802,7 @@ BEGIN
                 DeclareKnownConstant(GetIntegerType(),
                                      PopIntegerTree()))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), PopIntegerTree())
+      t := BuildAssignmentTree(Mod2Gcc(op1), PopIntegerTree())
    END
 END CodeSize ;
 
@@ -3849,7 +3935,7 @@ BEGIN
                                            t))
          ELSE
             (* ok, use assignment *)
-            t := BuildAssignment(Mod2Gcc(op1), t)
+            t := BuildAssignmentTree(Mod2Gcc(op1), t)
          END
       ELSE
          InternalError('symbol type should have been declared by now..', __FILE__, __LINE__)
@@ -3945,8 +4031,8 @@ BEGIN
                 DeclareKnownConstant(GetM2ZType(),
                                      ResolveHigh(quad, op3)))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1),
-                           ResolveHigh(quad, op3))
+      t := BuildAssignmentTree(Mod2Gcc(op1),
+                               ResolveHigh(quad, op3))
    END
 END CodeHigh ;
 
@@ -3964,21 +4050,21 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    IF IsConstString(op3)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
-                           BuildAddr(PromoteToString(CurrentQuadToken, op3),
-                                     FALSE))
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
+                               BuildAddr(PromoteToString(CurrentQuadToken, op3),
+                                         FALSE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
       Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),
                                      BuildOffset1(Mod2Gcc(GetUnboundedAddressOffset(GetType(op3))), FALSE),
                                      FALSE),
                             GetPointerType()) ;
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Addr)
    ELSIF GetMode(op3)=RightValue
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), BuildAddr(Mod2Gcc(op3), FALSE))
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), BuildAddr(Mod2Gcc(op3), FALSE))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    END
 END CodeUnbounded ;
 
@@ -4104,7 +4190,7 @@ BEGIN
          InternalError('subranges not yet resolved', __FILE__, __LINE__)
       END
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), CalculateBase(op2))
+      t := BuildAssignmentTree(Mod2Gcc(op1), CalculateBase(op2))
    END
 END CodeBase ;
 
@@ -4295,7 +4381,7 @@ BEGIN
       AddModGcc(op1,
                 BuildConvert(tl, Mod2Gcc(op3), TRUE))
    ELSE
-      t := BuildAssignment(Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
+      t := BuildAssignmentTree(Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
    END
 END CodeConvert ;
 
@@ -4324,7 +4410,7 @@ BEGIN
          THEN
             AddModGcc(op1, CheckConstant(op1, op3))
          ELSE
-            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
+            t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
          ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
@@ -4341,10 +4427,10 @@ BEGIN
          Assert(GccKnowsAbout(op2)) ;
          IF IsConst(op3)
          THEN
-            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
+            t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          ELSE
             (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
-            ExpandExpressionStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
+            AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                                      BuildAddr(Mod2Gcc(op3), FALSE),
                                                      FindSize(op2)))
          END
@@ -4416,7 +4502,7 @@ BEGIN
          THEN
             AddModGcc(op1, CheckConstant(op1, op3))
          ELSE
-            t := BuildAssignment(Mod2Gcc(op1), Mod2Gcc(op3))
+            t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          END
       ELSE
          ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'),
@@ -4478,9 +4564,9 @@ VAR
    t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
-   IF op1=Trunc
+   IF IsTrunc(op1)
    THEN
-      t := BuildAssignment(Mod2Gcc(op2), BuildTrunc(Mod2Gcc(op3)))
+      t := BuildAssignmentTree(Mod2Gcc(op2), BuildTrunc(Mod2Gcc(op3)))
    ELSE
       InternalError('unknown math operator', __FILE__, __LINE__)
    END ;
@@ -5190,7 +5276,7 @@ BEGIN
       (*
          Mem[op1] := Mem[Mem[op3]]
       *)
-      t := BuildAssignment(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
+      t := BuildAssignmentTree(Mod2Gcc(op1), BuildIndirect(Mod2Gcc(op3), Mod2Gcc(op2)))
    END
 END CodeIndrX ;
 
@@ -5217,7 +5303,7 @@ BEGIN
    *)
    IF IsProcType(op2)
    THEN
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    ELSIF IsConstString(op3) AND (GetStringLength(op3)=0) AND (GetMode(op1)=LeftValue)
    THEN
       (*
@@ -5226,17 +5312,15 @@ BEGIN
          complains if we pass through a "" and ask it to copy the
          contents.
       *)
-      t := BuildAssignment(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
-                           StringToChar(Mod2Gcc(op3), Char, op3))
+      t := BuildAssignmentTree(BuildIndirect(LValueToGenericPtr(op1), Mod2Gcc(Char)),
+                               StringToChar(Mod2Gcc(op3), Char, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(t, op3t, op2, op2, op3) ;
-      ExpandExpressionStatement(BuiltInMemCopy(Mod2Gcc(op1),
-                                               BuildAddr(op3t, FALSE),
-                                               t))
+      AddStatement(BuiltInMemCopy(Mod2Gcc(op1), BuildAddr(op3t, FALSE), t))
    ELSE
-      t := BuildAssignment(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
-                           StringToChar(Mod2Gcc(op3), op2, op3))
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),
+                               StringToChar(Mod2Gcc(op3), op2, op3))
    END
 END CodeXIndr ;
 
@@ -5245,7 +5329,8 @@ BEGIN
    ModuleName := NIL ;
    FileName := NIL ;
    UnboundedLabelNo := 0 ;
-   CompilingMainModule := InitStackWord()
+   CompilingMainModule := InitStackWord() ;
+   ScopeStack := InitStackWord()
 END M2GenGCC.
 (*
  * Local variables:

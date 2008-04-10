@@ -20,7 +20,7 @@ Development sources
 
 To get the latest sources to GM2 type the following:
 
-   cvs -z3 -d:pserver:anoncvs@@cvs.sv.gnu.org:/sources/gm2 co gm2
+   cvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 co gm2
 
 (note the capital GM2 in the checkout, GM2 is the project module within cvs).
 This will checkout a copy of GNU Modula-2 into one subdirectory: gm2

@@ -36,7 +36,7 @@ DEFINITION MODULE M2Range ;
 
 FROM gccgm2 IMPORT Tree ;
 FROM Lists IMPORT List ;
-FROM NameKey IMPORT Name ;
+FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitSubrangeRangeCheck,
@@ -175,11 +175,11 @@ PROCEDURE InitNoElseRangeCheck () : CARDINAL ;
 
 
 (*
-   CodeRangeCheck - returns a Tree representing the code for a
+   CodeRangeCheck - creates a sequence of Trees representing the code for a
                     range test defined by, r.
 *)
 
-PROCEDURE CodeRangeCheck (r: CARDINAL; scopeName: Name) : Tree ;
+PROCEDURE CodeRangeCheck (r: CARDINAL; scopeDesc: String) ;
 
 
 (*
@@ -194,7 +194,7 @@ PROCEDURE FoldRangeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) 
    CodeErrorCheck - returns a Tree calling the approprate exception handler.
 *)
 
-PROCEDURE CodeErrorCheck (op3: CARDINAL; scopeName: Name) : Tree ;
+PROCEDURE CodeErrorCheck (r: CARDINAL; scopeDesc: String) : Tree ;
 
 
 (*

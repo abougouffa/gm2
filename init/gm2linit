@@ -16,6 +16,8 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 m2flex
+RTExceptions
+M2EXCEPTION
 M2RTS
 DynamicStrings
 Assertion

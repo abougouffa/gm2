@@ -104,7 +104,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
-                     System ;
+                     System, IntegerN, CardinalN, WordN, RealN ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
@@ -143,7 +143,11 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartMainModule, BuildEndMainModule,
                    RememberType, BuildTypeDeclaration,
                    GetBooleanType, GetBooleanFalse, GetBooleanTrue,
-                   BuildSize, MarkFunctionReferenced ;
+                   BuildSize, MarkFunctionReferenced,
+                   GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
+                   GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
+                   GetM2Word16, GetM2Word32, GetM2Word64,
+                   GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128 ;
 
 (* %%%FORWARD%%%
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
@@ -1346,6 +1350,21 @@ END DeclareFileName ;
 
 
 (*
+   DeclareFixedSizedType - declares the GNU Modula-2 fixed types
+                           (if the back end support such a type).
+*)
+
+PROCEDURE DeclareFixedSizedType (name: ARRAY OF CHAR; type: CARDINAL; t: Tree) ;
+BEGIN
+   IF type#NulSym
+   THEN
+      (* gcc back end supports, type *)
+      DeclareDefaultType(type, name, t)
+   END
+END DeclareFixedSizedType ;
+
+
+(*
    DeclareDefaultSimpleTypes - declares the simple types.
 *)
 
@@ -1354,10 +1373,10 @@ BEGIN
    DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
    DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
    DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
+   DeclareDefaultType(Loc      , "LOC"      , GetISOLocType()) ;
 
    IF Iso
    THEN
-      DeclareDefaultType(Loc   , "LOC"      , GetISOLocType()) ;
       DeclareDefaultType(Byte  , "BYTE"     , GetISOByteType()) ;
       DeclareDefaultType(Word  , "WORD"     , GetISOWordType())
    ELSE
@@ -1378,8 +1397,23 @@ BEGIN
    DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
    DeclareBoolean ;
    AddModGcc(ZType, GetM2ZType()) ;
-   AddModGcc(RType, GetM2RType())
+   AddModGcc(RType, GetM2RType()) ;
 
+   DeclareFixedSizedType("INTEGER8"  , IntegerN(8)  , GetM2Integer8()) ;
+   DeclareFixedSizedType("INTEGER16" , IntegerN(16) , GetM2Integer16()) ;
+   DeclareFixedSizedType("INTEGER32" , IntegerN(32) , GetM2Integer32()) ;
+   DeclareFixedSizedType("INTEGER64" , IntegerN(64) , GetM2Integer64()) ;
+   DeclareFixedSizedType("CARDINAL8" , CardinalN(8) , GetM2Cardinal8()) ;
+   DeclareFixedSizedType("CARDINAL16", CardinalN(16), GetM2Cardinal16()) ;
+   DeclareFixedSizedType("CARDINAL32", CardinalN(32), GetM2Cardinal32()) ;
+   DeclareFixedSizedType("CARDINAL64", CardinalN(64), GetM2Cardinal64()) ;
+   DeclareFixedSizedType("WORD16"    , WordN(16)    , GetM2Word16()) ;
+   DeclareFixedSizedType("WORD32"    , WordN(32)    , GetM2Word32()) ;
+   DeclareFixedSizedType("WORD64"    , WordN(64)    , GetM2Word64()) ;
+   DeclareFixedSizedType("REAL32"    , RealN(32)    , GetM2Real32()) ;
+   DeclareFixedSizedType("REAL64"    , RealN(64)    , GetM2Real64()) ;
+   DeclareFixedSizedType("REAL96"    , RealN(96)    , GetM2Real96()) ;
+   DeclareFixedSizedType("REAL128"   , RealN(128)   , GetM2Real128())
 END DeclareDefaultSimpleTypes ;
 
 

@@ -51,6 +51,10 @@ EXPORT QUALIFIED Tree, Constructor,
                  GetErrorNode,
                  GetBitsPerWord, GetBitsPerUnit, GetBitsPerInt,
                  GetBitsPerBitset,
+                 GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
+                 GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
+                 GetM2Word16, GetM2Word32, GetM2Word64,
+                 GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -72,7 +76,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                  BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
-                 BuildAssignment,
+                 BuildAssignmentTree,
                  BuildAdd, BuildSub, BuildMult,
                  BuildDivTrunc, BuildModTrunc,
                  BuildDivFloor, BuildModFloor,
@@ -94,7 +98,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildIfVarInVar, BuildIfNotVarInVar,
                  BuildIndirect,
                  DoJump,
-                 BuildProcedureCall, BuildIndirectProcedureCall, BuildParam, BuildFunctValue,
+                 BuildProcedureCallTree, BuildIndirectProcedureCallTree, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
                  BuildAsm, DebugTree,
                  BuildVariableArrayAndDeclare,
@@ -113,13 +117,15 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildBinarySetDo,
                  BuildPushFunctionContext, BuildPopFunctionContext,
                  BuildCap, BuildAbs, BuildTypeDeclaration,
+                 BuildIfThenElseEnd, BuildIfThenDoEnd,
+                 IsTrue, IsFalse,
 
                  AreConstantsEqual, DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                  ConvertConstantAndCheck,
                  DetermineSizeOfConstant,
                  ToWord,
-                 ExpandExpressionStatement,
+                 AddStatement, GetTreeType,
                  InitGlobalContext, FinishBackend, GarbageCollect,
                  TreeOverflow, RemoveOverflow,
                  SetFlagUnitAtATime, MarkFunctionReferenced ;
@@ -195,6 +201,22 @@ PROCEDURE GetProcType            () : Tree ;
 PROCEDURE GetISOLocType          () : Tree ;
 PROCEDURE GetISOByteType         () : Tree ;
 PROCEDURE GetISOWordType         () : Tree ;
+
+PROCEDURE GetM2Integer8          () : Tree ;
+PROCEDURE GetM2Integer16         () : Tree ;
+PROCEDURE GetM2Integer32         () : Tree ;
+PROCEDURE GetM2Integer64         () : Tree ;
+PROCEDURE GetM2Cardinal8         () : Tree ;
+PROCEDURE GetM2Cardinal16        () : Tree ;
+PROCEDURE GetM2Cardinal32        () : Tree ;
+PROCEDURE GetM2Cardinal64        () : Tree ;
+PROCEDURE GetM2Word16            () : Tree ;
+PROCEDURE GetM2Word32            () : Tree ;
+PROCEDURE GetM2Word64            () : Tree ;
+PROCEDURE GetM2Real32            () : Tree ;
+PROCEDURE GetM2Real64            () : Tree ;
+PROCEDURE GetM2Real96            () : Tree ;
+PROCEDURE GetM2Real128           () : Tree ;
 
 PROCEDURE GetIntegerZero         () : Tree ;
 PROCEDURE GetIntegerOne          () : Tree ;
@@ -824,10 +846,24 @@ PROCEDURE BuildReturnValueCode (fndecl, value: Tree) ;
 
 
 (*
-   BuildAssignment - generates code for, des := expr and returns, des.
+   BuildAssignmentTree - generates code for, des := expr and returns, des.
 *)
 
-PROCEDURE BuildAssignment (des, expr: Tree) : Tree ;
+PROCEDURE BuildAssignmentTree (des, expr: Tree) : Tree ;
+
+
+(*
+   IsTrue - returns TRUE if, t, is known to be TRUE.
+*)
+
+PROCEDURE IsTrue (t: Tree) : BOOLEAN ;
+
+
+(*
+   IsFalse - returns FALSE if, t, is known to be FALSE.
+*)
+
+PROCEDURE IsFalse (t: Tree) : BOOLEAN ;
 
 
 (*
@@ -1164,19 +1200,19 @@ PROCEDURE BuildParam (param: Tree) ;
 
 
 (*
-   BuildProcedureCall - creates a procedure call from a procedure and
+   BuildProcedureCallTree - creates a procedure call from a procedure and
                         parameter list and the return type, rettype.
 *)
 
-PROCEDURE BuildProcedureCall (procedure, rettype: Tree) : Tree ;
+PROCEDURE BuildProcedureCallTree (procedure, rettype: Tree) : Tree ;
 
 
 (*
-   BuildIndirectProcedureCall - creates a procedure call from a procedure and
+   BuildIndirectProcedureCallTree - creates a procedure call from a procedure and
                                 parameter list and the return type, rettype.
 *)
 
-PROCEDURE BuildIndirectProcedureCall (procedure, rettype: Tree) : Tree ;
+PROCEDURE BuildIndirectProcedureCallTree (procedure, rettype: Tree) : Tree ;
 
 
 (*
@@ -1184,6 +1220,23 @@ PROCEDURE BuildIndirectProcedureCall (procedure, rettype: Tree) : Tree ;
 *)
 
 PROCEDURE BuildFunctValue (value: Tree) ;
+
+
+(*
+   BuildIfThenDoEnd - returns a tree which will only execute
+                      statement, thenblock, if, condition, is true.
+*)
+
+PROCEDURE BuildIfThenDoEnd (condition, thenblock: Tree) : Tree ;
+
+
+(*
+   BuildIfThenElseEnd - returns a tree which will execute
+                        thenblock or elseblock depending upon,
+                        condition.
+*)
+
+PROCEDURE BuildIfThenElseEnd (condition, thenblock, elseblock: Tree) : Tree ;
 
 
 (*
@@ -1201,10 +1254,10 @@ PROCEDURE DebugTree (t: Tree) ;
 
 
 (*
-   ExpandExpressionStatement - maps onto expand_expr_stmt in stmt.c
+   AddStatement - maps onto add_stmt.
 *)
 
-PROCEDURE ExpandExpressionStatement (t: Tree) ;
+PROCEDURE AddStatement (t: Tree) ;
 
 
 (*
@@ -1279,6 +1332,13 @@ PROCEDURE BuildAbs (t: Tree) : Tree ;
 *)
 
 PROCEDURE BuildTypeDeclaration (type: Tree) ;
+
+
+(*
+   GetTreeType - returns TREE_TYPE (t).
+*)
+
+PROCEDURE GetTreeType (t: Tree) : Tree ;
 
 
 (*

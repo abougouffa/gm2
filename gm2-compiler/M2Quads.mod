@@ -123,9 +123,9 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
-                   IsOrd, Chr, Convert, Val, Float, Trunc, Min, Max,
+                   IsOrd, Chr, Convert, Val, IsFloat, IsTrunc, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
-                   IsMathType, IsOrdinalType,
+                   IsMathType, IsOrdinalType, IsRealType,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType, GetSystemTypeMinMax,
@@ -293,8 +293,8 @@ PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAddVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE ConvertBooleanToVariable (i: CARDINAL) ; FORWARD ;
-PROCEDURE BuildFloatFunction ; FORWARD ;
-PROCEDURE BuildTruncFunction ; FORWARD ;
+PROCEDURE BuildFloatFunction (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE BuildTruncFunction (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ; FORWARD ;
 PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
@@ -1895,62 +1895,6 @@ END CheckPointerThroughNil ;
 
 
 (*
-   GetTypeMinMax - fills in, min, and, max, for a given SYSTEM or
-                   base type.  It returns FALSE if, min, and, max,
-                   cannot be found.
-*)
-
-PROCEDURE GetTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) : BOOLEAN ;
-BEGIN
-   IF IsSystemType(type)
-   THEN
-      GetSystemTypeMinMax(type, min, max) ;
-      RETURN( TRUE )
-   ELSIF IsBaseType(type)
-   THEN
-      GetBaseTypeMinMax(type, min, max) ;
-      RETURN( TRUE )
-   ELSIF IsSubrange(type)
-   THEN
-      (*
-         we cannot yet GetSubrange for low and high as these entities
-         may not yet have been evaluated. P3SymBuild evaluates them,
-         possibly after this procedure.
-
-         GetSubrange(type, max, min) ;  (* max, min, may not be defined yet *)
-
-         To work around this problem we use the SubrangeLowOp and SubrangeHighOp
-         which we substitute for BecomesOp once we have resolved the subrange types
-         and the limits are known.
-      *)
-
-      min := MakeTemporary(ImmediateValue) ;
-      PutVar(min, type) ;
-      max := MakeTemporary(ImmediateValue) ;
-      PutVar(max, type) ;
-      GenQuad(SubrangeLowOp , min, NulSym, type) ;
-      GenQuad(SubrangeHighOp, max, NulSym, type) ;
-      RETURN( TRUE )
-   ELSE
-      RETURN( FALSE )
-   END
-END GetTypeMinMax ;
-
-
-(*
-   CheckDynamicArray - providing that the user has requested -fbounds
-                       then this function emits quadruples to check
-                       that Exp is legal: 0..HIGH(Sym).
-                       We assume that Sym is an unbounded array.
-*)
-
-PROCEDURE CheckDynamicArray (Sym, Exp: CARDINAL) ;
-BEGIN
-   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, Exp))
-END CheckDynamicArray ;
-
-
-(*
    CollectLow - returns the low of the subrange value.
 *)
 
@@ -2859,7 +2803,6 @@ BEGIN
    PushTF(d, dt) ;
    PushTF(e, et)
 END BuildForLoopToRangeCheck ;
-
 
 
 (*
@@ -5868,12 +5811,12 @@ BEGIN
    ELSIF IsOrd(ProcSym)
    THEN
       BuildOrdFunction(ProcSym)
-   ELSIF ProcSym=Trunc
+   ELSIF IsTrunc(ProcSym)
    THEN
-      BuildTruncFunction
-   ELSIF ProcSym=Float
+      BuildTruncFunction(ProcSym)
+   ELSIF IsFloat(ProcSym)
    THEN
-      BuildFloatFunction
+      BuildFloatFunction(ProcSym)
    ELSIF ProcSym=Min
    THEN
       BuildMinFunction
@@ -7506,36 +7449,38 @@ END BuildMaxFunction ;
                         |----------------|
 *)
 
-PROCEDURE BuildTruncFunction ;
+PROCEDURE BuildTruncFunction (Sym: CARDINAL) ;
 VAR
-   NoOfParam,
+   NoOfParam: CARDINAL ;
+   Type,
    Var,
    ReturnVar,
    ProcSym  : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   Assert(OperandT(NoOfParam+1)=Trunc) ;
+   Assert(IsTrunc(OperandT(NoOfParam+1))) ;
    IF NoOfParam=1
    THEN
       ProcSym := RequestSym(MakeKey('CONVERT')) ;
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
          Var := OperandT(1) ;
+         Type := GetType(Sym) ;
          IF IsVar(Var) OR IsConst(Var)
          THEN
-            IF (GetType(Var)=LongReal) OR (GetType(Var)=Real) OR (GetType(Var)=ShortReal)
+            IF IsRealType(GetType(Var))
             THEN
                PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
                (*
                   Build macro: CONVERT( INTEGER, Var )
                *)
                PushTF(ProcSym, NulSym) ;
-               PushT(Integer) ;
+               PushT(Type) ;
                PushT(Var) ;
                PushT(2) ;          (* Two parameters *)
                BuildConvertFunction
             ELSE
-               WriteFormat0('argument to TRUNC must have type REAL or LONGREAL')
+               WriteFormat0('argument to TRUNC must be a float point type')
             END
          ELSE
             WriteFormat0('argument to TRUNC must be a variable or constant')
@@ -7582,9 +7527,10 @@ END BuildTruncFunction ;
                         |----------------|
 *)
 
-PROCEDURE BuildFloatFunction ;
+PROCEDURE BuildFloatFunction (Sym: CARDINAL) ;
 VAR
-   NoOfParam,
+   NoOfParam: CARDINAL ;
+   Type,
    Var,
    ProcSym  : CARDINAL ;
 BEGIN
@@ -7597,12 +7543,13 @@ BEGIN
          Var := OperandT(1) ;
          IF IsVar(Var) OR IsConst(Var)
          THEN
+            Type := GetType(Sym) ;
             PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
             (*
                Build macro: CONVERT( REAL, Var )
             *)
             PushTF(ProcSym, NulSym) ;
-            PushT(Real) ;
+            PushT(Type) ;
             PushT(Var) ;
             PushT(2) ;          (* Two parameters *)
             BuildConvertFunction
@@ -7659,9 +7606,14 @@ BEGIN
    IF NoOfParam#1
    THEN
       WriteFormat0('SYSTEM procedure ADR expects 1 parameter')
+   ELSIF IsConstString(OperandT(1))
+   THEN
+      ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
+      PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
+      PushTF(ReturnVar, GetType(ReturnVar))
    ELSIF NOT IsVar(OperandT(1))
    THEN
-      WriteFormat0('SYSTEM procedure ADR expects a variable as its parameter')
+      WriteFormat0('SYSTEM procedure ADR expects a variable or a constant string as its parameter')
    ELSE
       Type := GetType(OperandT(1)) ;
       MarkArrayWritten(OperandT(1)) ;
@@ -8782,7 +8734,7 @@ BEGIN
       tk := MakeTemporary(RightValue) ;
       PutVar(tk, Cardinal)
    END ;
-   CheckDynamicArray(Sym, idx) ;
+   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, idx)) ;
 
    PushT(tj) ;
    PushT(idx) ;

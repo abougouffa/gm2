@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 DEFINITION MODULE M2GenGCC ;
 
 (*
@@ -27,7 +28,9 @@ DEFINITION MODULE M2GenGCC ;
 *)
 
 FROM Lists IMPORT List ;
+FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
+                 GetHighFromUnbounded,
                  InitGNUM2 ;
 
 
@@ -53,6 +56,14 @@ PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 *)
 
 PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetHighFromUnbounded - returns a Tree containing the value of
+                          param.HIGH.
+*)
+
+PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
 
 
 END M2GenGCC.

@@ -99,6 +99,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("recognise the specified suffix as a definition module filename") },
   { "-fmod=",
       N_("recognise the specified suffix as implementation and module filenames") },
+  { "-fdump-system-exports",
+      N_("display all inbuilt system items") },
   { "-version",
       N_("display the version of the GNU Modula-2 front end") },
   { "-O",
