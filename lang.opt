@@ -131,7 +131,7 @@ use cpp to preprocess the module
 
 fq
 Modula-2
-debugging information - dump the list of quadruples
+internal compiler debugging information, dump the list of quadruples
 
 fsources
 Modula-2
@@ -152,6 +152,10 @@ recognise the specified suffix as implementation and module filenames
 fxcode
 Modula-2
 issue all errors and warnings in the Xcode format
+
+fdump-system-exports
+Modula-2
+display all inbuilt system items
 
 Wstudents
 Modula-2

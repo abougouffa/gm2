@@ -9148,8 +9148,8 @@ gccgm2_BuildProcedureCallTree (tree procedure, tree rettype)
     last_function = NULL_TREE;
     return call;
   } else {
-    param_list = NULL_TREE;   /* ready for the next time we call a procedure */
     last_function = build (CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
+    param_list = NULL_TREE;   /* ready for the next time we call a procedure */
     return last_function;
   }
 }

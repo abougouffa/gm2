@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 # Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -24,6 +24,7 @@ import sys
 import os
 import glob
 import string
+import getopt
 
 libraryClassifications = [['gm2-libs','Base libraries',
                            'Basic M2F compatible libraries'],
@@ -49,6 +50,7 @@ def initState ():
 #
 
 def displayLibraryClass():
+    global buildDir
     up = "Libraries"
     previous = ""
 
@@ -64,7 +66,7 @@ def displayLibraryClass():
         print "@node " + l[1] + ", " + next + ", " + previous + ", " + up
         print "@section " + l[1]
         print ""
-        displayModules(l[1], l[0])
+        displayModules(l[1], l[0], os.path.join(buildDir, l[0]))
         print ""
         print "@c ---------------------------------------------------------------------"
         previous = l[1]
@@ -212,9 +214,12 @@ def checkIndex (line):
 #  parseDefinition
 #
 
-def parseDefinition (dir, file):
+def parseDefinition (dir, build, file):
     print ""
-    f = open(os.path.join(dir, file), 'r')
+    if os.path.exists(os.path.join(build, file)):
+        f = open(os.path.join(build, file), 'r')
+    else:
+        f = open(os.path.join(dir, file), 'r')
     initState()
     line = f.readline()
     while (string.find(line, "(*") != -1):
@@ -248,7 +253,7 @@ def parseDefinition (dir, file):
     print "@page"
     f.close()
 
-def parseModules (up, dir, listOfModules):
+def parseModules (up, dir, build, listOfModules):
     previous = ""
     i = 0
     if len(listOfModules)>1:
@@ -259,7 +264,7 @@ def parseModules (up, dir, listOfModules):
     while i<len(listOfModules):
        print "@node " + dir + "/" + listOfModules[i][:-4] + ", " + next + ", " + previous + ", " + up
        print "@subsection " + dir + "/" + listOfModules[i][:-4]
-       parseDefinition(dir, listOfModules[i])
+       parseDefinition(dir, build, listOfModules[i])
        print "\n"
        previous = dir + "/" + listOfModules[i][:-4]
        i = i + 1
@@ -303,25 +308,33 @@ def moduleMenu (dir):
 #                   definition modules and includes README.texi
 #
 
-def displayModules(up, dir):
+def displayModules(up, dir, build):
     if os.path.isdir(dir):
         if os.path.exists(os.path.join(dir, "README.texi")):
             doCat(dir, "README.texi")
 
         moduleMenu(dir)
         listOfModules = []
-        listOfFiles = os.listdir(dir)
+        if not os.path.exists(build):
+            build = dir
+            listOfFiles = os.listdir(build)
+        else:
+            listOfFiles = os.listdir(dir) + os.listdir(build)
         listOfFiles.sort()
+        dict.fromkeys(listOfFiles).keys()
         for file in listOfFiles:
-            if os.path.isfile(os.path.join(dir, file)):
+            if os.path.isfile(os.path.join(build, file)):
                 if (len(file)>4) and (file[-4:] == '.def'):
                     listOfModules = listOfModules + [file]
-        parseModules(up, dir, listOfModules)
+            elif os.path.isfile(os.path.join(dir, file)):
+                if (len(file)>4) and (file[-4:] == '.def'):
+                    listOfModules = listOfModules + [file]
+        parseModules(up, dir, build, listOfModules)
     else:
         print "directory " + dir + " not found"
 
 def displayCopyright ():
-    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007"
+    print "@c Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008"
     print "@c Free Software Foundation, Inc."
     print """
 @c Permission is granted to copy, distribute and/or modify this document
@@ -329,6 +342,25 @@ def displayCopyright ():
 @c any later version published by the Free Software Foundation.
 """
 
+def Usage():
+    print "def2texi.py [-h][-bbuilddir]"
+    
+def collectArgs():
+    buildDir="."
+    try:
+        optlist, list = getopt.getopt(sys.argv[1:],':hb:')
+    except getopt.GetoptError:
+        Usage()
+        os.exit(1)
+    for opt in optlist:
+        if opt[0] == '-h':
+            Usage()
+        if opt[0] == '-b':
+            buildDir = opt[1]
+    return buildDir
+
+
+buildDir = collectArgs()
 displayCopyright()
 displayMenu()
 displayLibraryClass()

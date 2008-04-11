@@ -1,3 +1,18 @@
+2008-04-11       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-ch/sckt.c:  use memset, memcpy to avoid using
+	  bcopy and bzero which were poisoned during make gm2.paranoid.
+	* gm2/gccgm2.c:  fixed major bug in function call handling.
+	* gm2/tools-src/makeSystem:  new file which creates SYSTEM.def
+	  for the target which contains an export list of all supported
+	  datatypes.
+	* gm2/gm2-libs.texi:  removed as it will be built in the build
+	  directory.
+	* gm2/gm2-ebnf.texi:  removed as it will be built in the build
+	  directory.
+	* gm2/Make-lang.in:  build gm2/gm2-libs/SYSTEM.def,
+	  gm2/gm2-ebnf.texi and gm2/gm2-libs.texi.
+
 2008-04-10       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2/Make-lang.in:  added M2EXCEPTION.def RTExceptions.def

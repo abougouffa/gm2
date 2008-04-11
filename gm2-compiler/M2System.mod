@@ -69,7 +69,8 @@ FROM gccgm2 IMPORT Tree,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Word16, GetM2Word32, GetM2Word64, GetM2Real32,
-                   GetM2Real64, GetM2Real96, GetM2Real128 ;
+                   GetM2Real64, GetM2Real96, GetM2Real128,
+                   GetBitsetType, GetISOByteType, GetISOWordType ;
 
 
 VAR
@@ -113,16 +114,46 @@ END CreateMinMaxFor ;
 
 
 (*
+   MapType - 
+*)
+
+PROCEDURE MapType (type: CARDINAL;
+                   name, min, max: ARRAY OF CHAR;
+                   needsExporting: BOOLEAN; t: Tree) ;
+VAR
+   minval,
+   maxval: CARDINAL ;
+   n     : Name ;
+BEGIN
+   PushIntegerTree(BuildSize(t, FALSE)) ;
+   PopSize(type) ;
+   IF IsItemInList(SystemTypes, type)
+   THEN
+      InternalError('not expecting system type to already be declared', __FILE__, __LINE__)
+   END ;
+   PutItemIntoList(SystemTypes, type) ;
+
+   (* create min, max constants if type is ordinal *)
+   IF (NOT StrEqual(min, '')) AND (NOT StrEqual(max, ''))
+   THEN
+      CreateMinMaxFor(type, min, max, t)
+   END ;
+   IF needsExporting AND DumpSystemExports
+   THEN
+      n := GetSymName(type) ;
+      printf1('SYSTEM module creates type: %a\n', n)
+   END
+END MapType ;
+
+
+(*
    AttemptToCreateType - 
 *)
 
 PROCEDURE AttemptToCreateType (name, min, max: ARRAY OF CHAR;
                                needsExporting: BOOLEAN; t: Tree) : CARDINAL ;
 VAR
-   minval,
-   maxval,
-   type  : CARDINAL ;
-   n     : Name ;
+   type: CARDINAL ;
 BEGIN
    IF t=NIL
    THEN
@@ -132,24 +163,7 @@ BEGIN
       (* create base type *)
       type := MakeType(MakeKey(name)) ;
       PutType(type, NulSym) ;  (* a Base Type *)
-      PushIntegerTree(BuildSize(t, FALSE)) ;
-      PopSize(type) ;
-      IF IsItemInList(SystemTypes, type)
-      THEN
-         InternalError('not expecting system type to already be declared', __FILE__, __LINE__)
-      END ;
-      PutItemIntoList(SystemTypes, type) ;
-
-      (* create min, max constants if type is ordinal *)
-      IF (NOT StrEqual(min, '')) AND (NOT StrEqual(max, ''))
-      THEN
-         CreateMinMaxFor(type, min, max, t)
-      END ;
-      IF needsExporting AND DumpSystemExports
-      THEN
-         n := GetSymName(type) ;
-         printf1('SYSTEM module exports: %a\n', n)
-      END ;
+      MapType(type, name, min, max, needsExporting, t) ;
       RETURN( type )
    END
 END AttemptToCreateType ;
@@ -193,38 +207,20 @@ PROCEDURE InitPIMTypes ;
 VAR
    min, max: CARDINAL ;
 BEGIN
-   Loc := MakeType(MakeKey('LOC')) ;
-   PutType(Loc, NulSym) ;                     (* Base Type       *)
-   PushCard(1) ;
-   PopSize(Loc) ;
-   PutItemIntoList(SystemTypes, Loc) ;
-
-   Word := MakeType(MakeKey('WORD')) ;
-   PutType(Word, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
-   PopSize(Word) ;
-   PutItemIntoList(SystemTypes, Word) ;
-
-   Byte := MakeType(MakeKey('BYTE')) ;
-   PutType(Byte, NulSym) ;                    (* Base Type       *)
-   PushCard(GetBitsPerUnit()) ;
-   PushCard(8) ;
-   DivTrunc ;
-   PopSize(Byte) ;
-   PutItemIntoList(SystemTypes, Byte) ;
+   Loc := AttemptToCreateType('LOC', '', '', TRUE, GetISOLocType()) ;
+   Word := AttemptToCreateType('WORD', '', '', TRUE, GetWordType()) ;
+   Byte := AttemptToCreateType('BYTE', '', '', TRUE, GetByteType()) ;
 
    (* ADDRESS = POINTER TO BYTE *)
 
    Address := MakePointer(MakeKey('ADDRESS')) ;
    PutPointer(Address, Byte) ;                (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetPointerType())) ;
-   PopSize(Address) ;
-   PutItemIntoList(SystemTypes, Address) ;
+   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType()) ;
 
    IF NOT Iso
    THEN
       MakeBitset ;
-      PutItemIntoList(SystemTypes, Bitset) ;
+      MapType(Bitset, 'BITSET', '', '', TRUE, GetBitsetType()) ;
       GetBitsetMinMax(min, max) ;
       PutSymKey(MaxValues, GetSymName(Bitset), max) ;
       PutSymKey(MinValues, GetSymName(Bitset), min)
@@ -240,33 +236,13 @@ PROCEDURE InitISOTypes ;
 VAR
    MinLoc, MaxLoc: CARDINAL ;
 BEGIN
-   Loc := MakeType(MakeKey('LOC')) ;
-   PutType(Loc, NulSym) ;                     (* Base Type       *)
-   PushCard(1) ;
-   PopSize(Loc) ;
-   PutItemIntoList(SystemTypes, Loc) ;
+   Loc := AttemptToCreateType('LOC', 'MinLoc', 'MaxLoc', TRUE, GetISOLocType()) ;
+   Address := AttemptToCreateType('ADDRESS', '', '', TRUE, GetPointerType()) ;
 
-   Address := MakePointer(MakeKey('ADDRESS')) ;
-   PutPointer(Address, Loc) ;                 (* Base Type       *)
-   PushIntegerTree(GetSizeOf(GetPointerType())) ;
-   PopSize(Address) ;
-   PutItemIntoList(SystemTypes, Address) ;
+   Byte := AttemptToCreateType('BYTE', '', '', TRUE, GetISOByteType()) ;
+   Word := AttemptToCreateType('WORD', '', '', TRUE, GetISOWordType()) ;
 
-   Byte := MakeType(MakeKey('BYTE')) ;
-   PutType(Byte, NulSym) ;                    (* Base Type       *)
-   PushCard(GetBitsPerUnit()) ;
-   PushCard(8) ;
-   DivTrunc ;
-   PopSize(Byte) ;
-   PutItemIntoList(SystemTypes, Byte) ;
-
-   Word := MakeType(MakeKey('WORD')) ;
-   PutType(Word, NulSym) ;                    (* Base Type       *)
-   PushIntegerTree(BuildSize(GetWordType(), FALSE)) ;
-   PopSize(Word) ;
-   PutItemIntoList(SystemTypes, FALSE) ;
-
-   CreateMinMaxFor(Loc, 'MinLoc', 'MaxLoc', GetISOLocType())
+   (* CreateMinMaxFor(Loc, 'MinLoc', 'MaxLoc', GetISOLocType()) *)
 END InitISOTypes ;
 
 

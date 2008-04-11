@@ -162,14 +162,14 @@ gm2.man: $(srcdir)/gm2/man/gm2.man
 	cp gm2/man/gm2.1 $@
 
 gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
-         $(srcdir)/gm2/gm2-libs.texi \
-	 $(srcdir)/gm2/gm2-ebnf.texi
-	$(TEXI2DVI) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
+         $(objdir)/gm2/gm2-libs.texi \
+	 $(objdir)/gm2/gm2-ebnf.texi
+	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
-         $(srcdir)/gm2/gm2-libs.texi \
-	 $(srcdir)/gm2/gm2-ebnf.texi
-	$(TEXI2HTML) -I $(srcdir)/gm2 $(srcdir)/gm2/gm2.texi
+         $(objdir)/gm2/gm2-libs.texi \
+	 $(objdir)/gm2/gm2-ebnf.texi
+	$(TEXI2HTML) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
 	dvips -o gm2.ps gm2.dvi
@@ -177,9 +177,9 @@ gm2.ps: gm2.dvi
 gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
-$(srcdir)/gm2/gm2.info: $(objdir)/gm2/images/gnu.eps \
-         $(srcdir)/gm2/gm2.texi $(srcdir)/gm2/gm2-libs.texi $(srcdir)/gm2/gm2-ebnf.texi
-	$(MAKEINFO) -I$(srcdir)/gm2 -o $(srcdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
+$(objdir)/gm2/gm2.info: $(objdir)/gm2/images/gnu.eps \
+         $(srcdir)/gm2/gm2.texi $(objdir)/gm2/gm2-libs.texi $(objdir)/gm2/gm2-ebnf.texi
+	$(MAKEINFO) -I$(objdir)/gm2 -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
 	mkdir -p gm2/images
@@ -189,11 +189,11 @@ $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
            pngtopnm $< | pnmtops -noturn > $@ ; \
         fi
 
-$(srcdir)/gm2/gm2-libs.texi:
-	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py > gm2-libs.texi
+$(objdir)/gm2/gm2-libs.texi:
+	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b$(objdir)/gm2 > $(objdir)/gm2/gm2-libs.texi
 
-$(srcdir)/gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
-	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > $(srcdir)/gm2/gm2-ebnf.texi
+$(objdir)/gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
+	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > $@
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
@@ -310,12 +310,14 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
           fi ; \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ ! -d $$i ] ; then \
-              rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
-              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
+           if [ "$$i" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
+              fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs/*.o ; do \
+	for i in x gm2/gm2-libs/*.o gm2/gm2-libs/*.def ; do \
            rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -1097,7 +1099,7 @@ gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1137,7 +1139,7 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -fiso -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -fiso -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-iso-libs:$(srcdir)/gm2/gm2-iso-libs -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 
 #
@@ -1177,10 +1179,18 @@ gm2/gm2config.h:
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
 
+$(objdir)/gm2/gm2-libs/SYSTEM.def: 
+	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fpim \
+                 $(srcdir)/gm2/gm2-libs/SYSTEM.def \
+                 $(srcdir)/gm2/gm2-libs/SYSTEM.mod \
+                 -I$(srcdir)/gm2/gm2-libs \
+                 "./xgm2 -B./stage1/gm2" > $@
+
 build-libs-min: $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
+            $(objdir)/gm2/gm2-libs/SYSTEM.def \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
             $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
 

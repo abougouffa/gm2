@@ -106,7 +106,7 @@ BEGIN
             ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
-            ELSIF EqualArray(s, '-version')
+            ELSIF EqualArray(s, '-fversion')
             THEN
                DisplayVersion
             ELSIF IsAnOptionAndArg(s)
@@ -455,6 +455,10 @@ BEGIN
    ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
    THEN
       (* if gcc passes architectural flags to us, we ignore it *)
+      Legal := TRUE
+   ELSIF EqualArray(s, '--version')
+   THEN
+      (* gcc passes this to us, we handle it *)
       Legal := TRUE
    ELSE
       Legal := FALSE

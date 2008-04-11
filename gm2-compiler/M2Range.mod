@@ -997,8 +997,8 @@ BEGIN
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
       inc                  : s := InitString('if the INC is ever executed it will cause an overflow error') |
       dec                  : s := InitString('if the DEC is ever executed it will cause an underflow error') |
-      staticarraysubscript : s := InitString('if the static array acces is ever made the index will be out of bounds') |
-      dynamicarraysubscript: s := InitString('if the dynamic array acces is ever made the index will be out of bounds') |
+      staticarraysubscript : s := InitString('if the static array access is ever made the index will be out of bounds') |
+      dynamicarraysubscript: s := InitString('if the dynamic array access is ever made the index will be out of bounds') |
       forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed it will be out of bounds') |
       forloopto            : s := InitString('the final value in this FOR loop will be out of bounds if ever executed') |
       forloopend           : s := InitString('the increment/decrement at the end of this FOR loop will be out of bounds if ever executed') |

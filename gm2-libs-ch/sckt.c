@@ -125,8 +125,8 @@ tcpServerState *tcpServerEstablishPort (int portNo)
     s->sockFd = socket(s->hp->h_addrtype, SOCK_STREAM, 0);
     if (s->sockFd < 0)
       ERROR("socket");
-    
-    bzero((char *)&s->sa, sizeof(s->sa));
+
+    memset((void *)&s->sa, 0, sizeof(s->sa));
     ASSERT((s->hp->h_addrtype == AF_INET));
     s->sa.sin_family      = s->hp->h_addrtype;
     s->sa.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -301,9 +301,9 @@ tcpClientState *tcpClientSocket (char *serverName, int portNo)
     exit(1);
   }
 
-  bzero((char *)&s->sa, sizeof(s->sa));
+  memset((void *)&s->sa, 0, sizeof(s->sa));
   s->sa.sin_family = AF_INET;
-  bcopy((char *)s->hp->h_addr, (char *)&s->sa.sin_addr, s->hp->h_length);
+  memcpy((void *)&s->sa.sin_addr, (void *)s->hp->h_addr, s->hp->h_length);
   s->portNo        = portNo;
   s->sa.sin_port   = htons(portNo);
 
@@ -330,9 +330,9 @@ tcpClientState *tcpClientSocketIP (unsigned int ip, int portNo)
   /* remove SIGPIPE which is raised on the server if the client is killed */
   signal(SIGPIPE, SIG_IGN);
 
-  bzero((char *)&s->sa, sizeof(s->sa));
+  memset((void *)&s->sa, 0, sizeof(s->sa));
   s->sa.sin_family = AF_INET;
-  bcopy((char *)&ip, (char *)&s->sa.sin_addr, sizeof(ip));
+  memcpy((void *)&s->sa.sin_addr, (void *)&ip, sizeof(ip));
   s->portNo        = portNo;
   s->sa.sin_port   = htons(portNo);
 

@@ -26,9 +26,9 @@ DEFINITION MODULE SYSTEM ;
                 in the Modula-2 compiler.
 *)
 
-EXPORT QUALIFIED (* the following are built into the compiler: *)
-                 ADDRESS, WORD, BYTE, BITSET,
-                 ADR, TSIZE, SIZE, ROTATE, SHIFT,
+EXPORT QUALIFIED (* the types following are built into the compiler *)
+                 ADDRESS, WORD, BYTE, BITSET, (* @SYSTEM_DATATYPES@ *)
+                 ADR, TSIZE, SIZE, ROTATE, SHIFT, (* SYSTEM_PROCEDURES *)
                  BITSPERBYTE, BYTESPERWORD ;
 
 CONST
@@ -70,9 +70,12 @@ PROCEDURE SHIFT (val: <a set type>;
 *)
 
 (* The following procedures are invoked by GNU Modula-2 to
-   shift non word sized set types. They are not part of PIM Modula-2
-   but are used by GNU Modula-2 to implement the SHIFT procedure
-   defined above. *)
+   shift non word sized set types. They are not strictly part
+   of the core PIM Modula-2, however they are used by
+   GNU Modula-2 to implement the SHIFT procedure defined above,
+   which are in turn used by the Logitech compatible libraries.
+   In any event users may find them useful.
+*)
 
 (*
    ShiftVal - is a runtime procedure whose job is to implement

@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# Copyright (C) 2008
+#   Free Software Foundation, Inc.
+# This file is part of GNU Modula-2.
+#
+# GNU Modula-2 is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free
+# Software Foundation; either version 2, or (at your option) any later
+# version.
+# 
+# GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or
+# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+# 
+# You should have received a copy of the GNU General Public License along
+# with gm2; see the file COPYING.  If not, write to the Free Software
+# Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
+
+function Usage () {
+   echo "Usage: makesystem dialectflag SYSTEM.def SYSTEM.mod librarypath compiler"
+}
+
+if [ $# -lt 5 ] ; then
+   Usage
+   exit 1
+fi
+
+DIALECT=$1
+SYSTEMDEF=$2
+SYSTEMMOD=$3
+LIBRARY=$4
+COMPILER=$5
+
+if [ "$DIALECT" != "-fiso" -a "$DIALECT" != "-fpim" ] ; then
+   Usage
+   echo "dialect must be -fiso or -fpim"
+   exit 1
+fi
+
+function displayBuiltinTypes () {
+   output=`${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} -o /dev/null | cut -f5 -d' '`
+   n=1
+   c=0
+   for i in ${output} ; do
+      if [ $n -eq 1 ] ; then
+          n=0
+          echo -n "                 "
+      fi
+      echo -n "$i, "
+      if [ $c -eq 4 ] ; then
+          echo " "
+          n=1
+         c=0
+      fi
+      c=`expr $c + 1`
+   done
+   echo " "
+}
+
+function displayStart () {
+   sed -e "1,/@SYSTEM_DATATYPES@/!d" < ${SYSTEMDEF} | \
+   sed -e "/@SYSTEM_DATATYPES@/d" -
+   echo "                 (* SYSTEM DATATYPES *)"
+}
+
+function displayEnd () {
+   sed -e "1,/@SYSTEM_DATATYPES@/d" < ${SYSTEMDEF}
+}
+
+displayStart
+displayBuiltinTypes
+displayEnd
+
