@@ -12,6 +12,10 @@
 	  directory.
 	* gm2/Make-lang.in:  build gm2/gm2-libs/SYSTEM.def,
 	  gm2/gm2-ebnf.texi and gm2/gm2-libs.texi.
+	* gm2/gm2-libs/RTExceptions.mod:  fixed circular list
+	  initialization bug.
+	* gm2/gm2-compiler/M2Range.mod:  fixed parameter order and type
+	  when calling an exception handler.
 
 2008-04-10       Gaius Mulley <gaius@gnu.org>
 

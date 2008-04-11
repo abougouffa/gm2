@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE RTExceptions ;
 
-FROM ASCII IMPORT nul ;
+FROM ASCII IMPORT nul, nl ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
@@ -180,9 +180,13 @@ BEGIN
    addChar(':', i) ;
    addNum(column, i) ;
    addChar(':', i) ;
-   addStr(function, i) ;
-   addChar(':', i) ;
    addStr(message, i) ;
+   addChar(' ', i) ;
+   addChar('i', i) ;
+   addChar('n', i) ;
+   addChar(' ', i) ;
+   addStr(function, i) ;
+   addChar(nl, i) ;
    InvokeHandler
 END Raise ;
 
@@ -269,7 +273,8 @@ BEGIN
    WITH e^ DO
       number := MAX(CARDINAL) ;
       handlers := NewHandler() ;   (* add the dummy onto the head *)
-      right := NIL
+      handlers^.right := handlers ;
+      right := e
    END ;
    RETURN( e )
 END InitExceptionBlock ;
@@ -397,7 +402,7 @@ PROCEDURE Init ;
 BEGIN
    freeHandler := NIL ;
    freeEHB := NIL ;
-   currentEHB := NIL
+   currentEHB := InitExceptionBlock()
 END Init ;
 
 

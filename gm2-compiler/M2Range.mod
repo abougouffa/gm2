@@ -49,6 +49,7 @@ FROM NameKey IMPORT Name ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded ;
+FROM M2System IMPORT Address ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    Cardinal,
@@ -948,6 +949,19 @@ END DeReferenceLValue ;
 
 
 (*
+   BuildStringParam - builds a C style string parameter which will be passed
+                      as an ADDRESS type.
+*)
+
+PROCEDURE BuildStringParam (s: String) ;
+BEGIN
+   BuildParam(BuildConvert(Mod2Gcc(Address),
+                           BuildAddr(BuildStringConstant(string(s), Length(s)),
+                                     FALSE), FALSE))
+END BuildStringParam ;
+
+
+(*
    CodeErrorCheck - returns a Tree calling the approprate exception handler.
 *)
 
@@ -967,10 +981,10 @@ BEGIN
          line := TokenToLineNo(tokenNo, 0) ;
          column := TokenToColumnNo(tokenNo, 0) ;
          f := Mod2Gcc(lookupExceptionHandler(type)) ;
-         BuildParam(BuildStringConstant(string(filename), Length(filename))) ;
-         BuildParam(BuildIntegerConstant(line)) ;
+         BuildStringParam(scopeDesc) ;
          BuildParam(BuildIntegerConstant(column)) ;
-         BuildParam(BuildStringConstant(string(scopeDesc), Length(scopeDesc))) ;
+         BuildParam(BuildIntegerConstant(line)) ;
+         BuildStringParam(filename) ;
          RETURN( BuildProcedureCallTree(f, NIL) )
       END
    ELSE
