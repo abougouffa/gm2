@@ -226,6 +226,6 @@ END RotateRight ;
 END SYSTEM.
 (*
  * Local variables:
- *  compile-command: "gm2 -Wiso -c -g -I. SYSTEM.mod"
+ *  compile-command: "gm2 -fiso -c -g -I. SYSTEM.mod"
  * End:
  *)

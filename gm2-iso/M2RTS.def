@@ -24,13 +24,15 @@ DEFINITION MODULE M2RTS ;
    Description: Implements the run time system facilities of Modula-2.
 *)
 
-FROM SYSTEM IMPORT BITSET ;
+FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
-                 SubrangeAssignmentError, ArraySubscriptError,
-                 FunctionReturnError, NilPointerError,
-                 CaseElseError,
                  InstallTerminationProcedure, Terminate,
-                 ExitOnHalt, Length ;
+                 ExitOnHalt, Length,
+                 AssignmentException, IncException, DecException,
+                 StaticArraySubscriptException, DynamicArraySubscriptException,
+                 ForLoopBeginException, ForLoopToException, ForLoopEndException,
+                 PointerNilException, NoReturnException,
+                 CaseException, NoException ;
 
 
 (*
@@ -49,57 +51,6 @@ PROCEDURE HALT ;
 
 PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
                 function: ARRAY OF CHAR; description: ARRAY OF CHAR) ;
-
-
-(*
-   SubrangeAssignmentError - part of the runtime checking, called if a
-                             subrange variable is just about to be assigned an illegal value.
-*)
-
-PROCEDURE SubrangeAssignmentError (file: ARRAY OF CHAR;
-                                   line: CARDINAL;
-                                   function: ARRAY OF CHAR) ;
-
-
-(*
-   ArraySubscriptError -  part of the runtime checking, called if an
-                          array indice is out of range.
-*)
-
-PROCEDURE ArraySubscriptError (file: ARRAY OF CHAR;
-                               line: CARDINAL;
-                               function: ARRAY OF CHAR) ;
-
-
-(*
-   FunctionReturnError -  part of the runtime checking, called if a
-                          function exits without a RETURN statement.
-*)
-
-PROCEDURE FunctionReturnError (file: ARRAY OF CHAR;
-                               line: CARDINAL;
-                               function: ARRAY OF CHAR) ;
-
-
-(*
-   NilPointerError -  part of the runtime checking, called if a
-                      the code is about to dereference NIL.
-*)
-
-PROCEDURE NilPointerError (file: ARRAY OF CHAR;
-                           line: CARDINAL;
-                           function: ARRAY OF CHAR) ;
-
-
-(*
-   CaseElseError - part of the runtime checking, called if a
-                   CASE statement falls into an ELSE statement
-                   (which was not declared by the programmer).
-*)
-
-PROCEDURE CaseElseError (file: ARRAY OF CHAR;
-                         line: CARDINAL;
-                         function: ARRAY OF CHAR) ;
 
 
 (*
@@ -132,6 +83,24 @@ PROCEDURE Terminate ;
 *)
 
 PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
+
+
+(*
+   The following are the runtime exception handler routines.
+*)
+
+PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 
 
 END M2RTS.

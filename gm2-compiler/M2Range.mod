@@ -515,7 +515,8 @@ BEGIN
    IF GccKnowsAbout(t) AND (NOT IsPointer(t)) AND
       (NOT IsArray(t)) AND (NOT IsRecord(t)) AND
       (NOT IsRecord(t)) AND (NOT IsUnbounded(t)) AND
-      (NOT IsProcType(t)) AND (NOT IsRealType(t))
+      (NOT IsProcType(t)) AND (NOT IsRealType(t)) AND
+      (t#Address)
    THEN
       IF IsSubrange(t)
       THEN
