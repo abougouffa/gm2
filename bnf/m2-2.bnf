@@ -639,25 +639,34 @@ ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 Constructor := '{'                                                         % SeenConstructor %
                    [ ArraySetRecordValue ] '}' =:
 
-ConstSetOrQualidentOrFunction := SimpleSet |
-                                                                           % VAR t: CARDINAL ;
-                                                                                 b: BOOLEAN ; %
-                                                                           % PushAutoOn %
-                                   Qualident
-                                                                           % PopT(t) ;
-                                                                             IF IsAModula2Type(t)
-                                                                             THEN
-                                                                                b := TRUE
-                                                                             ELSE
-                                                                                b := FALSE
-                                                                             END %
-                                                                           % PopAuto %
-                                   [ Constructor | ConstActualParameters ]
-                                                                           % IF b
-                                                                             THEN
-                                                                                SeenCast(t)
-                                                                             END %
-                               =:
+-- breaks testsuite/gm2/pim/pass/impf.mod
+
+-- ConstSetOrQualidentOrFunction := SimpleSet |
+--                                                                            % VAR t: CARDINAL ;
+--                                                                                  b: BOOLEAN ; %
+--                                                                            % PushAutoOn %
+--                                    Qualident
+--                                                                            % PopT(t) ;
+--                                                                              IF IsAModula2Type(t)
+--                                                                              THEN
+--                                                                                 b := TRUE
+--                                                                              ELSE
+--                                                                                 b := FALSE
+--                                                                              END %
+--                                                                            % PopAuto %
+--                                    [ Constructor | ConstActualParameters ]
+--                                                                            % IF b
+--                                                                              THEN
+--                                                                                 SeenCast(t)
+--                                                                              END %
+--                                =:
+-- 
+
+-- works
+
+ConstSetOrQualidentOrFunction := SimpleSet | Qualident
+                                 [ Constructor | ConstActualParameters ] =:
+
 
 ConstActualParameters :=                                                   % PushType ; SeenUnknown %
                          "(" [ ExpList ] ")"                               % PopType %

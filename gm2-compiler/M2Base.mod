@@ -71,7 +71,7 @@ FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
-                      Iso, Pim, Pim2 ;
+                      Iso, Pim, Pim2, Pim3 ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
                    GetM2IntegerType, GetM2CharType,
@@ -634,12 +634,22 @@ END IsTrunc ;
 
 PROCEDURE BuildTruncFunctions ;
 BEGIN
-   Trunc := MakeProcedure(MakeKey('TRUNC')) ;
-   PutFunction(Trunc, Cardinal) ;
-   TruncS := MakeProcedure(MakeKey('TRUNCS')) ;
-   PutFunction(TruncS, ShortCard) ;
-   TruncL := MakeProcedure(MakeKey('TRUNCL')) ;
-   PutFunction(TruncL, LongCard)
+   IF Pim2 OR Pim3 OR Iso
+   THEN
+      Trunc := MakeProcedure(MakeKey('TRUNC')) ;
+      PutFunction(Trunc, Cardinal) ;
+      TruncS := MakeProcedure(MakeKey('TRUNCS')) ;
+      PutFunction(TruncS, ShortCard) ;
+      TruncL := MakeProcedure(MakeKey('TRUNCL')) ;
+      PutFunction(TruncL, LongCard)
+   ELSE
+      Trunc := MakeProcedure(MakeKey('TRUNC')) ;
+      PutFunction(Trunc, Integer) ;
+      TruncS := MakeProcedure(MakeKey('TRUNCS')) ;
+      PutFunction(TruncS, ShortInt) ;
+      TruncL := MakeProcedure(MakeKey('TRUNCL')) ;
+      PutFunction(TruncL, LongInt)
+   END
 END BuildTruncFunctions ;
 
 

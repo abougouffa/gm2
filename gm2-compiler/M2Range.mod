@@ -32,7 +32,7 @@ FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
                    GetIntegerZero, GetIntegerOne, GetIntegerType, GetTreeType,
                    CompareTrees, BuildIndirect, BuildParam, BuildStringConstant,
                    BuildIntegerConstant, AddStatement, BuildGreaterThan, BuildLessThan,
-                   BuildNegate, BuildEqualTo, GetPointerType, GetPointerZero ;
+                   BuildNegate, BuildEqualTo, GetPointerType, GetPointerZero, BuildAddr ;
 
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
@@ -1069,12 +1069,12 @@ BEGIN
             THEN
                IF IsGreater(desMin, exprMin)
                THEN
-                  condition := BuildLessThan(Mod2Gcc(expr), BuildConvert(Mod2Gcc(exprLowestType), desMin, FALSE)) ;
+                  condition := BuildLessThan(DeReferenceLValue(expr), BuildConvert(Mod2Gcc(exprLowestType), desMin, FALSE)) ;
                   AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END ;
                IF IsGreater(exprMax, desMax)
                THEN
-                  condition := BuildGreaterThan(Mod2Gcc(expr), BuildConvert(Mod2Gcc(exprLowestType), desMax, FALSE)) ;
+                  condition := BuildGreaterThan(DeReferenceLValue(expr), BuildConvert(Mod2Gcc(exprLowestType), desMax, FALSE)) ;
                   AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END
             ELSE
@@ -1105,9 +1105,9 @@ BEGIN
       THEN
          IF GetMinMax(desLowestType, desMin, desMax)
          THEN
-            condition := BuildLessThan(BuildConvert(Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE), desMin) ;
+            condition := BuildLessThan(BuildConvert(Mod2Gcc(desLowestType), DeReferenceLValue(expr), FALSE), desMin) ;
             AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE)) ;
-            condition := BuildGreaterThan(BuildConvert(Mod2Gcc(desLowestType), Mod2Gcc(expr), FALSE), desMax) ;
+            condition := BuildGreaterThan(BuildConvert(Mod2Gcc(desLowestType), DeReferenceLValue(expr), FALSE), desMax) ;
             AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
          END
       ELSE

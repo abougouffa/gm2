@@ -1,3 +1,17 @@
+2008-04-12       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-2.bnf:  reverted patch from 2008-03-18
+	  so that testsuite/pim/pass/impf.mod and
+	  ulm-lib-gm2/std/GetPass.mod compile.
+	* gm2/gm2-compiler/M2Base.mod:  TRUNC, TRUNCS and TRUNCL
+	  are declared to return an unsigned value if -fpim2,
+	  -fpim3 or -fiso are specified.  They return signed
+	  values if -fpim4 is specified.
+	* gm2/gm2-compiler/M2Range.mod:  dereferences L values
+	  correctly in CodeAssignment.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  updated to export the
+	  new exception handler procedures expected by gm2.
+
 2008-04-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/sckt.c:  use memset, memcpy to avoid using
