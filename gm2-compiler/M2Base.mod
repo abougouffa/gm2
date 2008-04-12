@@ -750,7 +750,7 @@ PROCEDURE IsPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (Sym=High) OR (Sym=Val) OR (Sym=Convert) OR IsOrd(Sym) OR
-          (Sym=Chr) OR (Sym=Float) OR (Sym=Trunc) OR (Sym=Min) OR
+          (Sym=Chr) OR IsFloat(Sym) OR IsTrunc(Sym) OR (Sym=Min) OR
           (Sym=Max) OR (Sym=Abs) OR (Sym=Odd) OR (Sym=Cap) OR
           IsISOPseudoBaseFunction(Sym) OR IsPIMPseudoBaseFunction(Sym)
          )

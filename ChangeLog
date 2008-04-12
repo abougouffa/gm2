@@ -11,6 +11,9 @@
 	  correctly in CodeAssignment.
 	* gm2/ulm-lib-gm2/std/M2RTS.mod:  updated to export the
 	  new exception handler procedures expected by gm2.
+	* gm2/gm2-compiler/M2Base.mod:  use IsFloat and IsTrunc
+	  rather compare Sym to function symbols in
+	  IsPseudoBaseFunction.  Fixes six regression tests.
 
 2008-04-11       Gaius Mulley <gaius@gnu.org>
 
