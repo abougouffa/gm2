@@ -40,11 +40,10 @@ if [ "$DIALECT" != "-fiso" -a "$DIALECT" != "-fpim" ] ; then
    exit 1
 fi
 
-function displayBuiltinTypes () {
-   output=`${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} -o /dev/null | cut -f5 -d' '`
+function displayExportedTypes () {
    n=1
    c=0
-   for i in ${output} ; do
+   for i in ${types} ; do
       if [ $n -eq 1 ] ; then
           n=0
           echo -n "                 "
@@ -53,24 +52,38 @@ function displayBuiltinTypes () {
       if [ $c -eq 4 ] ; then
           echo " "
           n=1
-         c=0
+          c=0
       fi
       c=`expr $c + 1`
    done
    echo " "
 }
 
+function displayBuiltinTypes () {
+   for i in ${types} ; do
+      echo "   $i ; "
+   done
+}
+
 function displayStart () {
    sed -e "1,/@SYSTEM_DATATYPES@/!d" < ${SYSTEMDEF} | \
    sed -e "/@SYSTEM_DATATYPES@/d" -
-   echo "                 (* SYSTEM DATATYPES *)"
+}
+
+function displayMiddle () {
+   sed -e "1,/@SYSTEM_DATATYPES@/d" < ${SYSTEMDEF} | \
+   sed -e "1,/@SYSTEM_TYPES@/!d" | \
+   sed -e "/@SYSTEM_TYPES@/d" -
 }
 
 function displayEnd () {
-   sed -e "1,/@SYSTEM_DATATYPES@/d" < ${SYSTEMDEF}
+   sed -e "1,/@SYSTEM_TYPES@/d" < ${SYSTEMDEF}
 }
 
+types=`${COMPILER} ${DIALECT} ${LIBRARY} -c -fdump-system-exports ${SYSTEMMOD} -o /dev/null | cut -f5 -d' '`
 displayStart
+displayExportedTypes
+displayMiddle
 displayBuiltinTypes
 displayEnd
 

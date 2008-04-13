@@ -1,3 +1,18 @@
+2008-04-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-iso:  moved to
+	* gm2/gm2-libs-iso:  instead
+	* gm2/Make-lang.in:  altered source rules to reflect
+	  changes in directory.
+	* gm2/gm2/gm2-libs/SYSTEM.def:  added @SYSTEM_TYPES@
+	  as a marker for gm2/tools-src/makeSystem to add
+	  inbuilt types.
+	* gm2/gm2/tools-src/def2texi.py:  modified to reflect
+	  new directory.  Also allowed indices to be created
+	  from opaque types.  Fixed unique module list bug.
+	* gm2/tools-src/makeSystem:  adds opaque types to
+	  SYSTEM.def
+
 2008-04-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-2.bnf:  reverted patch from 2008-03-18

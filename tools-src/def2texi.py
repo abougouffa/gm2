@@ -32,7 +32,7 @@ libraryClassifications = [['gm2-libs','Base libraries',
                            'PIM and Logitech 3.0 compatible libraries'],
                           ['gm2-libs-coroutines','PIM coroutine support',
                            'PIM compatible process support'],
-                          ['gm2-iso','M2 ISO Libraries',
+                          ['gm2-libs-iso','M2 ISO Libraries',
                            'ISO defined libraries'],
                           ['ulm-lib-gm2/sys','ULM System Libraries',
                            'ULM System libraries'],
@@ -152,7 +152,7 @@ def checkIndex (line):
         else:
             procedure = words[1]
 
-    if line[0:2] == '(*':
+    if (len(line)>1) and (line[0:2] == '(*'):
         inConst = False
         inType = False
         inVar = False
@@ -189,6 +189,12 @@ def checkIndex (line):
             word = string.split(words, "=")
             if (len(word[0])>0) and (word[0][0] != '_'):
                 print "@findex " + string.rstrip(word[0]) + " (type)"
+        else:
+            word = string.split(words)
+            if (len(word)>1) and (word[1] == ';'):
+                # hidden type
+                if (len(word[0])>0) and (word[0][0] != '_'):
+                    print "@findex " + string.rstrip(word[0]) + " (type)"
 
     if inConst:
         words = string.split(line, ';')
@@ -321,7 +327,7 @@ def displayModules(up, dir, build):
         else:
             listOfFiles = os.listdir(dir) + os.listdir(build)
         listOfFiles.sort()
-        dict.fromkeys(listOfFiles).keys()
+        listOfFiles = dict.fromkeys(listOfFiles).keys()
         for file in listOfFiles:
             if os.path.isfile(os.path.join(build, file)):
                 if (len(file)>4) and (file[-4:] == '.def'):
