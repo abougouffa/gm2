@@ -86,6 +86,14 @@ BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
 endif
 endif
 
+TEXISRC = $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
+          $(objdir)/gm2/gm2-libs.texi \
+          $(objdir)/gm2/gm2-ebnf.texi \
+          $(objdir)/gm2/SYSTEM-pim.texi \
+          $(objdir)/gm2/SYSTEM-iso.texi \
+          $(objdir)/gm2/Builtins.texi
+
+
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
 gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
                  $(GCC_TOOLS_FOR_GM2) $(GM2_LINK_TOOLS) \
@@ -161,18 +169,10 @@ gm2.man: $(srcdir)/gm2/man/gm2.man
 	cd gm2/man ; make gm2.1
 	cp gm2/man/gm2.1 $@
 
-gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
-         $(objdir)/gm2/gm2-libs.texi \
-	 $(objdir)/gm2/gm2-ebnf.texi \
-         $(objdir)/gm2/SYSTEM-pim.texi \
-         $(objdir)/gm2/SYSTEM-iso.texi
+gm2.dvi: $(TEXISRC)
 	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
-gm2.html: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
-         $(objdir)/gm2/gm2-libs.texi \
-	 $(objdir)/gm2/gm2-ebnf.texi \
-         $(objdir)/gm2/SYSTEM-pim.texi \
-         $(objdir)/gm2/SYSTEM-iso.texi
+gm2.html: $(TEXISRC)
 	$(TEXI2HTML) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
@@ -181,11 +181,7 @@ gm2.ps: gm2.dvi
 gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
-$(objdir)/gm2/gm2.info: $(objdir)/gm2/images/gnu.eps \
-         $(srcdir)/gm2/gm2.texi $(objdir)/gm2/gm2-libs.texi \
-         $(objdir)/gm2/gm2-ebnf.texi \
-         $(objdir)/gm2/SYSTEM-pim.texi \
-         $(objdir)/gm2/SYSTEM-iso.texi
+$(objdir)/gm2/gm2.info: $(TEXISRC)
 	$(MAKEINFO) -I$(objdir)/gm2 -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
@@ -207,6 +203,9 @@ $(objdir)/gm2/SYSTEM-pim.texi: $(BUILD-ALL-LIBS)
 
 $(objdir)/gm2/SYSTEM-iso.texi: $(BUILD-ALL-LIBS)
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b$(objdir)/gm2 -fgm2-libs-iso/SYSTEM.def > $(objdir)/gm2/SYSTEM-iso.texi
+
+$(objdir)/gm2/Builtins.texi: $(BUILD-ALL-LIBS)
+	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b./ -fgm2-libs/Builtins.def > $(objdir)/gm2/Builtins.texi
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
