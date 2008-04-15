@@ -163,12 +163,16 @@ gm2.man: $(srcdir)/gm2/man/gm2.man
 
 gm2.dvi: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(objdir)/gm2/gm2-libs.texi \
-	 $(objdir)/gm2/gm2-ebnf.texi
+	 $(objdir)/gm2/gm2-ebnf.texi \
+         $(objdir)/gm2/SYSTEM-pim.texi \
+         $(objdir)/gm2/SYSTEM-iso.texi
 	$(TEXI2DVI) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.html: $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
          $(objdir)/gm2/gm2-libs.texi \
-	 $(objdir)/gm2/gm2-ebnf.texi
+	 $(objdir)/gm2/gm2-ebnf.texi \
+         $(objdir)/gm2/SYSTEM-pim.texi \
+         $(objdir)/gm2/SYSTEM-iso.texi
 	$(TEXI2HTML) -I $(objdir)/gm2 $(srcdir)/gm2/gm2.texi
 
 gm2.ps: gm2.dvi
@@ -178,7 +182,10 @@ gm2.pdf: gm2.ps
 	gs -q -dBATCH -dNOPAUSE -sDEVICE=pdfwrite -sOutputFile=$@ $<
 
 $(objdir)/gm2/gm2.info: $(objdir)/gm2/images/gnu.eps \
-         $(srcdir)/gm2/gm2.texi $(objdir)/gm2/gm2-libs.texi $(objdir)/gm2/gm2-ebnf.texi
+         $(srcdir)/gm2/gm2.texi $(objdir)/gm2/gm2-libs.texi \
+         $(objdir)/gm2/gm2-ebnf.texi \
+         $(objdir)/gm2/SYSTEM-pim.texi \
+         $(objdir)/gm2/SYSTEM-iso.texi
 	$(MAKEINFO) -I$(objdir)/gm2 -o $(objdir)/gm2/gm2.info $(srcdir)/gm2/gm2.texi
 
 $(objdir)/gm2/images/gnu.eps: $(srcdir)/gm2/images/gnupng
@@ -194,6 +201,12 @@ $(objdir)/gm2/gm2-libs.texi: $(BUILD-ALL-LIBS)
 
 $(objdir)/gm2/gm2-ebnf.texi: gm2/gm2-auto gm2/ppg$(exeext) $(srcdir)/gm2/bnf/m2.bnf
 	./gm2/ppg$(exeext) -c -p -t -f $(srcdir)/gm2/bnf/m2.bnf > $@
+
+$(objdir)/gm2/SYSTEM-pim.texi: $(BUILD-ALL-LIBS)
+	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b$(objdir)/gm2 -fgm2-libs/SYSTEM.def > $(objdir)/gm2/SYSTEM-pim.texi
+
+$(objdir)/gm2/SYSTEM-iso.texi: $(BUILD-ALL-LIBS)
+	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b$(objdir)/gm2 -fgm2-libs-iso/SYSTEM.def > $(objdir)/gm2/SYSTEM-iso.texi
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@

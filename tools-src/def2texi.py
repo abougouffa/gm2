@@ -220,7 +220,7 @@ def checkIndex (line):
 #  parseDefinition
 #
 
-def parseDefinition (dir, build, file):
+def parseDefinition (dir, build, file, needPage):
     print ""
     if os.path.exists(os.path.join(build, file)):
         f = open(os.path.join(build, file), 'r')
@@ -256,7 +256,8 @@ def parseDefinition (dir, build, file):
         print string.replace(string.replace(line, "{", "@{"), "}", "@}")
         line = f.readline()
     print "@end example"
-    print "@page"
+    if needPage:
+        print "@page"
     f.close()
 
 def parseModules (up, dir, build, listOfModules):
@@ -270,7 +271,7 @@ def parseModules (up, dir, build, listOfModules):
     while i<len(listOfModules):
        print "@node " + dir + "/" + listOfModules[i][:-4] + ", " + next + ", " + previous + ", " + up
        print "@subsection " + dir + "/" + listOfModules[i][:-4]
-       parseDefinition(dir, build, listOfModules[i])
+       parseDefinition(dir, build, listOfModules[i], True)
        print "\n"
        previous = dir + "/" + listOfModules[i][:-4]
        i = i + 1
@@ -349,12 +350,13 @@ def displayCopyright ():
 """
 
 def Usage():
-    print "def2texi.py [-h][-bbuilddir]"
+    print "def2texi.py [-h][-bbuilddir][-ffilename]"
     
 def collectArgs():
     buildDir="."
+    filename=""
     try:
-        optlist, list = getopt.getopt(sys.argv[1:],':hb:')
+        optlist, list = getopt.getopt(sys.argv[1:],':hb:f:')
     except getopt.GetoptError:
         Usage()
         os.exit(1)
@@ -363,10 +365,16 @@ def collectArgs():
             Usage()
         if opt[0] == '-b':
             buildDir = opt[1]
-    return buildDir
+        if opt[0] == '-f':
+            filename = opt[1]
+    return buildDir, filename
 
 
-buildDir = collectArgs()
-displayCopyright()
-displayMenu()
-displayLibraryClass()
+buildDir, filename = collectArgs()
+if filename == "":
+    displayCopyright()
+    displayMenu()
+    displayLibraryClass()
+else:
+    parseDefinition(buildDir, buildDir, filename, False)
+

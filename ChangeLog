@@ -1,3 +1,10 @@
+2008-04-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added rules to build SYSTEM-pim.texi
+	  and SYSTEM-iso.texi.
+	* gm2/gm2.texi:  include SYSTEM-pim.texi and SYSTEM-iso.texi.
+	* gm2/tools-src/def2texi.py:  extended to build individual files.
+
 2008-04-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-iso:  moved to
