@@ -5,6 +5,7 @@
 	* gm2/gm2.texi:  include SYSTEM-pim.texi, SYSTEM-iso.texi and
 	  Builtins.texi.
 	* gm2/tools-src/def2texi.py:  extended to build individual files.
+          Also extended to implement '-u', '-f' options.
 
 2008-04-13       Gaius Mulley <gaius@gnu.org>
 

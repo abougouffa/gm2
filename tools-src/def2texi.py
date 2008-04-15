@@ -50,13 +50,8 @@ def initState ():
 #
 
 def displayLibraryClass():
-    global buildDir
-    up = "Libraries"
+    global buildDir, up
     previous = ""
-
-    if len(sys.argv)>1:
-        up=sys.argv[1]
-
 
     next=libraryClassifications[1][1]
     i = 0
@@ -350,13 +345,14 @@ def displayCopyright ():
 """
 
 def Usage():
-    print "def2texi.py [-h][-bbuilddir][-ffilename]"
+    print "def2texi.py [-h][-bbuilddir][-uupnode][-ffilename]"
     
 def collectArgs():
     buildDir="."
     filename=""
+    up=""
     try:
-        optlist, list = getopt.getopt(sys.argv[1:],':hb:f:')
+        optlist, list = getopt.getopt(sys.argv[1:],':hb:f:u:')
     except getopt.GetoptError:
         Usage()
         os.exit(1)
@@ -367,14 +363,16 @@ def collectArgs():
             buildDir = opt[1]
         if opt[0] == '-f':
             filename = opt[1]
-    return buildDir, filename
+        if opt[0] == '-u':
+            up = opt[1]
+    return buildDir, filename, up
 
 
-buildDir, filename = collectArgs()
+buildDir, filename, up = collectArgs()
+
 if filename == "":
     displayCopyright()
     displayMenu()
     displayLibraryClass()
 else:
     parseDefinition(buildDir, buildDir, filename, False)
-
