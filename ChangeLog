@@ -1,3 +1,8 @@
+2008-04-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified rules relating to gm2.info
+	  so that it is built in the $(objdir) directory.
+
 2008-04-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added rules to build SYSTEM-pim.texi and
