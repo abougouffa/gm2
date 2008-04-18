@@ -857,6 +857,10 @@ anywhere    __DATE__                Constant string compatible
                                     length. Example
                                     "Thu Apr 29 10:07:16 BST 2004"
 
+anywhere   __COLUMN__               Gives a contant literal number
+                                    determining the column of the
+                                    first token on the line.
+
 @end example
 
 The preprocessor @samp{cpp} can be invoked via the @samp{-fcpp}
@@ -1059,7 +1063,7 @@ END bar ;
 @end example
 
 Here we see that although parameter, @code{a}, is a candidate for the
-passing by reference, it would be incorrect for to use this
+passing by reference, it would be incorrect to use this
 transformation.  Thus the compiler detects that parameters, @code{a}
 and @code{f} are type compatible and will produce runtime checking
 code to test whether the address range of their respective contents
@@ -1354,11 +1358,12 @@ function (for example if the programmer requested the address of
 implemented in the @code{IMPLEMENTATION} @code{MODULE}.
 
 Sometimes a function exported from the @code{DEFINITION} @code{MODULE}
-will have a different name from the built-in function within gcc. In such
-cases the mapping between the GNU Modula-2 function name and the gcc name
-is expressed using the keywords @code{__ATTRIBUTE__} @code{__BUILTIN__}
-@code{((Ident))}. For example the function @code{sqrt} in @code{LongMath.def}
-maps onto the gcc built-in function @code{sqrtl} and this is expressed as:
+will have a different name from the built-in function within gcc. In
+such cases the mapping between the GNU Modula-2 function name and the
+gcc name is expressed using the keywords @code{__ATTRIBUTE__}
+@code{__BUILTIN__} @code{((Ident))}. For example the function
+@code{sqrt} in @code{LongMath.def} maps onto the gcc built-in function
+@code{sqrtl} and this is expressed as:
 
 @example
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((sqrtl)) sqrt
@@ -1366,9 +1371,9 @@ PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((sqrtl)) sqrt
   (* Returns the positive square root of x *)
 @end example
 
-The following module @code{Builtins.def} enumerates the list of built-in functions
-which can be accessed in GNU Modula-2. It also serves to define the parameter
-and return value for each function:
+The following module @code{Builtins.def} enumerates the list of
+built-in functions which can be accessed in GNU Modula-2. It also
+serves to define the parameter and return value for each function:
 
 @include Builtins.texi
 
@@ -1390,8 +1395,8 @@ Modula-2 declare @code{SIZE} as a pervasive function (declared in the
 base module).  PIM-2 defined @code{SIZE} in the @code{SYSTEM} module
 (as shown above).
 
-GNU Modula-2 allows users to specify the dialect of Modula-2
-by using the @code{-fiso} and @code{-fpim2} command line switches.
+GNU Modula-2 allows users to specify the dialect of Modula-2 by using
+the @code{-fiso} and @code{-fpim2} command line switches.
 
 @node The ISO system module, , The PIM system module, Using
 @section The ISO system module

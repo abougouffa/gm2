@@ -907,7 +907,7 @@ VAR
 BEGIN
    l := m2flex.GetLineNo() ;
    c := m2flex.GetColumnNo() ;
-   s := Sprintf1(Mark(InitString('%d')), l) ;
+   s := Sprintf1(Mark(InitString('%d')), i) ;
    AddTokToList(t, makekey(string(s)), i, l, c, CurrentSource) ;
    s := KillString(s) ;
    CurrentUsed := TRUE

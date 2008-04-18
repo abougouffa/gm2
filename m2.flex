@@ -37,6 +37,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
     int              toklen;           /* a copy of yylen (length of token) */
     int              nextpos;          /* position after token */
     int              actualline;       /* line number of this line */
+    int              column;           /* first column number of token on this line */
     int              inuse;            /* do we need to keep this line info? */
     struct lineInfo *next;
   };
@@ -444,6 +445,7 @@ static void consumeLine (void)
   currentLine->actualline = lineno;
   currentLine->tokenpos=0;
   currentLine->nextpos=0;
+  currentLine->column=0;
   yyless(1);                  /* push back all but the \n */
 }
 
@@ -459,6 +461,8 @@ static void updatepos (void)
   seenModuleStart      = FALSE;
   currentLine->nextpos = currentLine->tokenpos+yyleng;
   currentLine->toklen  = yyleng;
+  if (currentLine->column == 0)
+    currentLine->column = currentLine->tokenpos;
 }
 
 /*
@@ -508,6 +512,7 @@ static void initLine (void)
   currentLine->toklen     = 0;
   currentLine->nextpos    = 0;
   currentLine->actualline = lineno;
+  currentLine->column     = 0;
   currentLine->inuse      = TRUE;
   currentLine->next       = NULL;
 }
@@ -647,7 +652,7 @@ int m2flex_GetLineNo (void)
 int m2flex_GetColumnNo (void)
 {
   if (currentLine != NULL)
-    return currentLine->tokenpos;
+    return currentLine->column;
   else
     return 0;
 }

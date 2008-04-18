@@ -1,3 +1,15 @@
+2008-04-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  included __COLUMN__ into documentation.
+	* gm2/m2.flex:   added column field to lineInfo.
+          Use column field to hold first token column position.
+	  There by allowing testsuite/gm2/extensions/run/pass/column.mod
+	  to pass.
+	* testsuite/gm2/extensions/run/pass/gm2.exp:  fixed include path
+	  which allows all these tests to pass.
+	* testsuite/gm2/extensions/pass/gm2.exp:  fixed include path
+	  which allows all these tests to pass.
+
 2008-04-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/tools-src/makeSystem:  removed '-' from sed command
