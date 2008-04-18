@@ -502,4 +502,64 @@ BEGIN
 END RealN ;
 
 
+(*
+   IsIntegerN - returns the TRUE if, Sym, is one of the SYSTEM
+                INTEGER types (not the base INTEGER type).
+*)
+
+PROCEDURE IsIntegerN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=IntegerN(8)) OR (Sym=IntegerN(16)) OR
+           (Sym=IntegerN(32)) OR (Sym=IntegerN(64)))
+         )
+END IsIntegerN ;
+
+
+(*
+   IsCardinalN - returns the TRUE if, Sym, is one of the SYSTEM
+                 CARDINAL types (not the base CARDINAL type).
+*)
+
+PROCEDURE IsCardinalN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=CardinalN(8)) OR (Sym=CardinalN(16)) OR
+           (Sym=CardinalN(32)) OR (Sym=CardinalN(64)))
+         )
+END IsCardinalN ;
+
+
+(*
+   IsWordN - returns the TRUE if, Sym, is one of the SYSTEM
+             WORD[n] types (not the default SYSTEM WORD type).
+*)
+
+PROCEDURE IsWordN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=WordN(16)) OR
+           (Sym=WordN(32)) OR (Sym=WordN(64)))
+         )
+END IsWordN ;
+
+
+(*
+   IsRealN - returns the TRUE if, Sym, is one of the SYSTEM
+             REAL[n] types (not the default base REAL type).
+*)
+
+PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=RealN(16)) OR
+           (Sym=RealN(32)) OR (Sym=RealN(64)))
+         )
+END IsRealN ;
+
+
 END M2System.

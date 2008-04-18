@@ -355,7 +355,7 @@ def collectArgs():
         optlist, list = getopt.getopt(sys.argv[1:],':hb:f:u:')
     except getopt.GetoptError:
         Usage()
-        os.exit(1)
+        os.sys.exit(1)
     for opt in optlist:
         if opt[0] == '-h':
             Usage()

@@ -52,6 +52,7 @@ EXPORT QUALIFIED
                  IsPseudoSystemFunctionConstExpression,
 
                  IntegerN, CardinalN, WordN, RealN,
+                 IsIntegerN, IsCardinalN, IsWordN, IsRealN,
 
                  InitSystem ;
 
@@ -138,6 +139,38 @@ PROCEDURE WordN (bitlength: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE RealN (bitlength: CARDINAL) : CARDINAL ;
+
+
+(*
+   IsIntegerN - returns the TRUE if, Sym, is one of the SYSTEM
+                INTEGER types (not the base INTEGER type).
+*)
+
+PROCEDURE IsIntegerN (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsCardinalN - returns the TRUE if, Sym, is one of the SYSTEM
+                 CARDINAL types (not the base CARDINAL type).
+*)
+
+PROCEDURE IsCardinalN (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsWordN - returns the TRUE if, Sym, is one of the SYSTEM
+             WORD[n] types (not the default SYSTEM WORD type).
+*)
+
+PROCEDURE IsWordN (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsRealN - returns the TRUE if, Sym, is one of the SYSTEM
+             REAL[n] types (not the default base REAL type).
+*)
+
+PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
 
 
 END M2System.

@@ -67,7 +67,8 @@ FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
 FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
-                     IntegerN, CardinalN, WordN, RealN ;
+                     IntegerN, CardinalN, WordN, RealN,
+                     IsCardinalN, IsIntegerN ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
@@ -802,7 +803,8 @@ BEGIN
           (Sym=LongInt)   OR (Sym=LongCard)  OR
           (Sym=ShortInt)  OR (Sym=ShortCard) OR
           (Sym=ZType)     OR
-          IsSubrange(Sym) OR IsEnumeration(Sym)
+          IsSubrange(Sym) OR IsEnumeration(Sym) OR
+          IsIntegerN(Sym) OR IsCardinalN(Sym)
          )
 END IsOrdinalType ;
 
