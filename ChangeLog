@@ -1,4 +1,15 @@
+2008-04-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  fixed bug so that GetMinMax
+	  returns FALSE if the type is a WORD or BYTE, LOC, WORD16 etc
+	  and also returns FALSE if the type is a set.  This fixes
+	  the bug in testsuite/gm2/iso/pass/testiso2.mod.
+	* gm2/gm2-compiler/M2GenGCC.mod:  use AddStatement to connect
+	  the case range check to the list of trees.  This fixes
+	  testsuite/gm2/pim/run/fail/case.mod.
+
 2008-04-18       Gaius Mulley <gaius@gnu.org>
+	
 
 	* gm2/gm2.texi:  included __COLUMN__ into documentation.
 	* gm2/m2.flex:   added column field to lineInfo.

@@ -947,13 +947,11 @@ END CodeRange ;
 *)
 
 PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
-VAR
-   t: Tree ;
 BEGIN
    (* would like to test whether this position is in the same basicblock
       as any known entry point.  If so we could emit an error message.
    *)
-   t := CodeErrorCheck(op3, GetCurrentScopeDescription())
+   AddStatement(CodeErrorCheck(op3, GetCurrentScopeDescription()))
 END CodeError ;
 
 

@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Range ;
 
 FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsVar, IsConst, PushValue, GetSubrange, GetType,
-                        IsSubrange, GetSymName, IsTemporary,
+                        IsSubrange, GetSymName, IsTemporary, IsSet,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
                         ModeOfAddr ;
@@ -49,7 +49,7 @@ FROM NameKey IMPORT Name ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded ;
-FROM M2System IMPORT Address ;
+FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    Cardinal,
@@ -516,7 +516,8 @@ BEGIN
       (NOT IsArray(t)) AND (NOT IsRecord(t)) AND
       (NOT IsRecord(t)) AND (NOT IsUnbounded(t)) AND
       (NOT IsProcType(t)) AND (NOT IsRealType(t)) AND
-      (t#Address)
+      (t#Address) AND (NOT IsSet(t)) AND
+      (t#Word) AND (t#Loc) AND (t#Byte) AND (NOT IsWordN(t))
    THEN
       IF IsSubrange(t)
       THEN
