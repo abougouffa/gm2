@@ -51,8 +51,9 @@ EXPORT QUALIFIED
                  IsSystemType,
                  IsPseudoSystemFunctionConstExpression,
 
-                 IntegerN, CardinalN, WordN, RealN,
-                 IsIntegerN, IsCardinalN, IsWordN, IsRealN,
+                 IntegerN, CardinalN, WordN, RealN, SetN,
+                 IsIntegerN, IsCardinalN, IsWordN,
+                 IsRealN, IsSetN,
 
                  InitSystem ;
 
@@ -134,6 +135,14 @@ PROCEDURE WordN (bitlength: CARDINAL) : CARDINAL ;
 
 
 (*
+   SetN - returns the symbol associated with SET[N].
+          NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE SetN (bitlength: CARDINAL) : CARDINAL ;
+
+
+(*
    RealN - returns the symbol associated with REAL[N].
            NulSym is returned if the type does not exist.
 *)
@@ -163,6 +172,14 @@ PROCEDURE IsCardinalN (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsWordN (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsSetN - returns the TRUE if, Sym, is one of the SYSTEM
+            SET[n] types (not the default SYSTEM BITSET type).
+*)
+
+PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

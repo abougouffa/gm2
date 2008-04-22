@@ -104,7 +104,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
-                     System, IntegerN, CardinalN, WordN, RealN ;
+                     System, IntegerN, CardinalN, WordN, RealN, SetN ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
@@ -146,6 +146,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildSize, MarkFunctionReferenced,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
+                   GetM2Set8, GetM2Set16, GetM2Set32,
                    GetM2Word16, GetM2Word32, GetM2Word64,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128 ;
 
@@ -1355,9 +1356,19 @@ END DeclareFileName ;
 *)
 
 PROCEDURE DeclareFixedSizedType (name: ARRAY OF CHAR; type: CARDINAL; t: Tree) ;
+VAR
+   low, high: CARDINAL ;
 BEGIN
    IF type#NulSym
    THEN
+      IF IsSet(type) AND (NOT GccKnowsAbout(GetType(type)))
+      THEN
+         GetSubrange(GetType(type), high, low) ;
+         DeclareConstant(GetDeclared(type), high) ;
+         DeclareConstant(GetDeclared(type), low) ;
+         PreAddModGcc(GetType(type), BuildSubrangeType(KeyToCharStar(GetFullSymName(type)),
+                                                       Mod2Gcc(GetType(GetType(type))), Mod2Gcc(low), Mod2Gcc(high)))
+      END ;
       (* gcc back end supports, type *)
       DeclareDefaultType(type, name, t)
    END
@@ -1410,6 +1421,9 @@ BEGIN
    DeclareFixedSizedType("WORD16"    , WordN(16)    , GetM2Word16()) ;
    DeclareFixedSizedType("WORD32"    , WordN(32)    , GetM2Word32()) ;
    DeclareFixedSizedType("WORD64"    , WordN(64)    , GetM2Word64()) ;
+   DeclareFixedSizedType("SET8"      , SetN(8)      , GetM2Set8()) ;
+   DeclareFixedSizedType("SET16"     , SetN(16)     , GetM2Set16()) ;
+   DeclareFixedSizedType("SET32"     , SetN(32)     , GetM2Set32()) ;
    DeclareFixedSizedType("REAL32"    , RealN(32)    , GetM2Real32()) ;
    DeclareFixedSizedType("REAL64"    , RealN(64)    , GetM2Real64()) ;
    DeclareFixedSizedType("REAL96"    , RealN(96)    , GetM2Real96()) ;

@@ -67,7 +67,7 @@ FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
 FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
-                     IntegerN, CardinalN, WordN, RealN,
+                     IntegerN, CardinalN, WordN, SetN, RealN,
                      IsCardinalN, IsIntegerN ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
@@ -98,6 +98,7 @@ TYPE
                     card8, card16, card32, card64,
                     word16, word32, word64,
                     real32, real64, real96, real128,
+                    set8, set16, set32,
                     unknown) ;
    Compatible    = (uninitialized, no, warnfirst, warnsecond,
                     first, second) ;
@@ -1045,6 +1046,15 @@ BEGIN
    ELSIF sym=WordN(64)
    THEN
       RETURN( word64 )
+   ELSIF sym=SetN(8)
+   THEN
+      RETURN( set8 )
+   ELSIF sym=SetN(16)
+   THEN
+      RETURN( set16 )
+   ELSIF sym=SetN(32)
+   THEN
+      RETURN( set32 )
    ELSIF sym=RealN(32)
    THEN
       RETURN( real32 )
@@ -1381,12 +1391,15 @@ BEGIN
    rtype    :   PushIntegerTree(GetSizeOf(GetM2RType())) |
    ztype    :   PushIntegerTree(GetSizeOf(GetM2ZType())) |
    int8,
-   card8    :   PushIntegerTree(BuildIntegerConstant(1)) |
+   card8,
+   set8     :   PushIntegerTree(BuildIntegerConstant(1)) |
    word16,
+   set16,
    card16,
    int16    :   PushIntegerTree(BuildIntegerConstant(2)) |
    real32,
    word32,
+   set32,
    card32,
    int32    :   PushIntegerTree(BuildIntegerConstant(4)) |
    real64,
@@ -1577,56 +1590,59 @@ BEGIN
    (*
                                      1 p w
 
-                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R
-                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e
-                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a
-                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l
-                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1
+                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R S S S
+                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e e e e
+                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a t t t
+                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l 8 1 3
+                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1   6 2
                  m     s   e i n n c a       r e   e                 6 2 4 6 2 4 2 4 6 2
                        s   r n t a a r       e a                                       8
                              t   l r d       a l                                                  
                                    d         l                                                      
-      ----------------------------------------------------------------------------------
+      ----------------------------------------------------------------------------------------
    2
    P
    W
    *)
-   A(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F') ;
-   A(word     , '. T F W F 2 W W 2 W W W 2 F W W T T F W T F F F F F F F F F F F F F F F') ;
-   A(byte     , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F') ;
-   A(address  , '. . . T F F F F F F F 2 F F F F F 2 2 F T F F F F F F F F F F F F F F F') ;
-   A(chr      , '. . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F') ;
-   A(normint  , '. . . . . T T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(shortint , '. . . . . . T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(longint  , '. . . . . . . T T T T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(normcard , '. . . . . . . . T T T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(shortcard, '. . . . . . . . . T T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(longcard , '. . . . . . . . . . T F F F F F F F F F T T T T T T T T T F F F F F F F') ;
-   A(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   A(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F T T F F') ;
-   A(real     , '. . . . . . . . . . . . . T T T F F F 2 F F F F F F F F F F F F T T T T') ;
-   A(shortreal, '. . . . . . . . . . . . . . T T F F F 2 F F F F F F F F F F F F T T T T') ;
-   A(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F T T T T') ;
-   A(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F') ;
-   A(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F') ;
-   A(loc      , '. . . . . . . . . . . . . . . . . . T F F T F F F T F F F F F F F F F F') ;
-   A(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1') ;
-   A(ztype    , '. . . . . . . . . . . . . . . . . . . . T T T T T T T T T T T T F F F F') ;
-   A(int8     , '. . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F') ;
-   A(int16    , '. . . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F') ;
-   A(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T T T T T T F T T F F F F') ;
-   A(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F') ;
-   A(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F') ;
-   A(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T T T F F F F F F F') ;
-   A(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T T F T F F F F F') ;
-   A(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F T F F F F') ;
-   A(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
-   A(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F') ;
-   A(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F') ;
-   A(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
-   A(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
-   A(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
-   A(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
+   A(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F') ;
+   A(word     , '. T F W F 2 W W 2 W W W 2 F W W T T F W T F F F F F F F F F F F F F F F F F F') ;
+   A(byte     , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F S F F') ;
+   A(address  , '. . . T F F F F F F F 2 F F F F F 2 2 F T F F F F F F F F F F F F F F F F F F') ;
+   A(chr      , '. . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F F F') ;
+   A(normint  , '. . . . . T T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(shortint , '. . . . . . T T T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(longint  , '. . . . . . . T T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(normcard , '. . . . . . . . T T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(shortcard, '. . . . . . . . . T T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(longcard , '. . . . . . . . . . T F F F F F F F F F T T T T T T T T T F F F F F F F F F F') ;
+   A(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   A(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F T T F F F F F') ;
+   A(real     , '. . . . . . . . . . . . . T T T F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   A(shortreal, '. . . . . . . . . . . . . . T T F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   A(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   A(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F') ;
+   A(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F') ;
+   A(loc      , '. . . . . . . . . . . . . . . . . . T F F T F F F T F F F F F F F F F F S F F') ;
+   A(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1 F F F') ;
+   A(ztype    , '. . . . . . . . . . . . . . . . . . . . T T T T T T T T T T T T F F F F F F F') ;
+   A(int8     , '. . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F F F F') ;
+   A(int16    , '. . . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F F F') ;
+   A(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T T T T T T F T T F F F F F F F') ;
+   A(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F F F F') ;
+   A(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F F F') ;
+   A(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T T T F F F F F F F F F F') ;
+   A(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T T F T F F F F F F F F') ;
+   A(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F T F F F F F F F') ;
+   A(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F') ;
+   A(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F F F F') ;
+   A(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F F F') ;
+   A(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
+   A(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F') ;
+   A(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F') ;
+   A(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
+   A(set8     , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
+   A(set16    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
+   A(set32    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
 
    (* Expression compatibility *)
 
@@ -1634,111 +1650,117 @@ BEGIN
    (*
                                         1 p w
 
-                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R
-                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e
-                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a
-                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l
-                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1
+                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R S S S
+                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e e e e
+                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a t t t
+                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l 8 1 3
+                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1   6 2
                  m     s   e i n n c a       r e   e                 6 2 4 6 2 4 2 4 6 2
                        s   r n t a a r       e a                                       8
-                             t   l r d       a l                                                  
+                             t   l r d       a l                                             
                                    d         l                                                      
-      -----------------------------------------------------------------------------------
+      ----------------------------------------------------------------------------------------
    2
    P
    W
    *)
 
-   E(const    , 'T T T T T T T T T T T T T T T T T T F F T T T T T T T T T T T T T T T T') ;
-   E(word     , '. T F F F F F F F F F F F F F F F F F W F F F F F F F F F F F F F F F F') ;
-   E(byte     , '. . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(address  , '. . . T F P F F P F F T F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(chr      , '. . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(normint  , '. . . . . T F F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(shortint , '. . . . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(longint  , '. . . . . . . T F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(normcard , '. . . . . . . . T F F F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(shortcard, '. . . . . . . . . T F F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(longcard , '. . . . . . . . . . T F F F F F F F F F 2 F F F F F F F F F F F F F F F') ;
-   E(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(real     , '. . . . . . . . . . . . . T F F F F F 2 F F F F F F F F F F F F F F F F') ;
-   E(shortreal, '. . . . . . . . . . . . . . T F F F F 2 F F F F F F F F F F F F F F F F') ;
-   E(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F F F F F') ;
-   E(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F') ;
-   E(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F') ;
-   E(loc      , '. . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F F') ;
-   E(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1') ;
-   E(ztype    , '. . . . . . . . . . . . . . . . . . . . T 1 1 1 1 1 1 1 1 1 1 1 F F F F') ;
-   E(int8     , '. . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F') ;
-   E(int16    , '. . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F') ;
-   E(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F') ;
-   E(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F') ;
-   E(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F') ;
-   E(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F') ;
-   E(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F') ;
-   E(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F') ;
-   E(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
-   E(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F') ;
-   E(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F') ;
-   E(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
-   E(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
-   E(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
-   E(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
+   E(const    , 'T T T T T T T T T T T T T T T T T T F F T T T T T T T T T T T T T T T T F F F') ;
+   E(word     , '. T F F F F F F F F F F F F F F F F F W F F F F F F F F F F F F F F F F F F F') ;
+   E(byte     , '. . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(address  , '. . . T F P F F P F F T F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(chr      , '. . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(normint  , '. . . . . T F F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(shortint , '. . . . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(longint  , '. . . . . . . T F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(normcard , '. . . . . . . . T F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(shortcard, '. . . . . . . . . T F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(longcard , '. . . . . . . . . . T F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
+   E(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(real     , '. . . . . . . . . . . . . T F F F F F 2 F F F F F F F F F F F F F F F F F F F') ;
+   E(shortreal, '. . . . . . . . . . . . . . T F F F F 2 F F F F F F F F F F F F F F F F F F F') ;
+   E(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F F F F F F F F') ;
+   E(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F') ;
+   E(loc      , '. . . . . . . . . . . . . . . . . . F F F F F F F F F F F F F F F F F F F F F') ;
+   E(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1 F F F') ;
+   E(ztype    , '. . . . . . . . . . . . . . . . . . . . T 1 1 1 1 1 1 1 1 1 1 1 F F F F F F F') ;
+   E(int8     , '. . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F') ;
+   E(int16    , '. . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F') ;
+   E(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F') ;
+   E(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F') ;
+   E(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F') ;
+   E(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F') ;
+   E(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F') ;
+   E(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F F') ;
+   E(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F') ;
+   E(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F') ;
+   E(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F') ;
+   E(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
+   E(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F') ;
+   E(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F') ;
+   E(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
+   E(set8     , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
+   E(set16    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
+   E(set32    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
 
    (*
                                      1 p w
 
-                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R
-                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e
-                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a
-                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l
-                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1
+                 N W B A C I S L C S L P E R S L S O L R Z I I I I C C C C W W W R R R R S S S
+                 u o y d h n h o a h o t n e h o e p o t t n n n n a a a a o o o e e e e e e e
+                 l r t d a t o n r o n r u a o n t a c y y t t t t r r r r r r r a a a a t t t
+                 S d e r r e r g d r g   m l r g   q   p p 8 1 3 6 d d d d d d d l l l l 8 1 3
+                 y     e   g t i i t c       t r   u   e e   6 2 4 8 1 3 6 1 3 6 3 6 9 1   6 2
                  m     s   e i n n c a       r e   e                 6 2 4 6 2 4 2 4 6 2
                        s   r n t a a r       e a                                       8
-                             t   l r d       a l                                                  
-                                   d         l                                                      
-      -----------------------------------------------------------------------------------
+                             t   l r d       a l
+                                   d         l                                           
+      ----------------------------------------------------------------------------------------
    2
    P
    W
    *)
-   P(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F') ;
-   P(word     , '. T F W F 2 W W 2 W W W 2 W W W T T F W F F F F F F F F F F F F F F F F') ;
-   P(byte     , '. . T F 2 F F F F F F F F F F F F F F F F S F F F S F F F F F F F F F F') ;
-   P(address  , '. . . T F F F F F F F T F F F F F T T F F F F F F F F F F F F F F F F F') ;
-   P(chr      , '. . . . T F F F F F F F F F F F F F T F F F F F F F F F F F F F F F F F') ;
-   P(normint  , '. . . . . T F F T F F F F F F F F F F F F T T T T T T T T F F F F F F F') ;
-   P(shortint , '. . . . . . T F F T F F F F F F F F F F 2 T T T T T T T T F F F F F F F') ;
-   P(longint  , '. . . . . . . T F F T F F F F F F F F F 2 T T T T T T T T F F F F F F F') ;
-   P(normcard , '. . . . . . . . T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F') ;
-   P(shortcard, '. . . . . . . . . T F F F F F F F F F F 2 T T T T T T T T F F F F F F F') ;
-   P(longcard , '. . . . . . . . . . T F F F F F F F F F 2 T T T T T T T T F F F F F F F') ;
-   P(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   P(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F T T F F') ;
-   P(real     , '. . . . . . . . . . . . . T F F F F F 2 F F F F F F F F F F F F T T T T') ;
-   P(shortreal, '. . . . . . . . . . . . . . T F F F F 2 F F F F F F F F F F F F T T T T') ;
-   P(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F T T T T') ;
-   P(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F') ;
-   P(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F') ;
-   P(loc      , '. . . . . . . . . . . . . . . . . . T F F T F F F T F F F F F F F F F F') ;
-   P(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1') ;
-   P(ztype    , '. . . . . . . . . . . . . . . . . . . . T 1 1 1 1 1 1 1 1 1 1 1 F F F F') ;
-   P(int8     , '. . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F') ;
-   P(int16    , '. . . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F') ;
-   P(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T T T T T T F T T F F F F') ;
-   P(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F') ;
-   P(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F') ;
-   P(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T T T F F F F F F F') ;
-   P(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T T F T F F F F F') ;
-   P(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F T F F F F') ;
-   P(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
-   P(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F') ;
-   P(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F') ;
-   P(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
-   P(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
-   P(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
-   P(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
+   P(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F') ;
+   P(word     , '. T F W F 2 W W 2 W W W 2 W W W T T F W F F F F F F F F F F F F F F F F F F F') ;
+   P(byte     , '. . T F 2 F F F F F F F F F F F F F F F F S F F F S F F F F F F F F F F S F F') ;
+   P(address  , '. . . T F F F F F F F T F F F F F T T F F F F F F F F F F F F F F F F F F F F') ;
+   P(chr      , '. . . . T F F F F F F F F F F F F F T F F F F F F F F F F F F F F F F F F F F') ;
+   P(normint  , '. . . . . T F F T F F F F F F F F F F F F T T T T T T T T F F F F F F F F F F') ;
+   P(shortint , '. . . . . . T F F T F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
+   P(longint  , '. . . . . . . T F F T F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
+   P(normcard , '. . . . . . . . T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
+   P(shortcard, '. . . . . . . . . T F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
+   P(longcard , '. . . . . . . . . . T F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
+   P(pointer  , '. . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   P(enum     , '. . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F T T F F F F F') ;
+   P(real     , '. . . . . . . . . . . . . T F F F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   P(shortreal, '. . . . . . . . . . . . . . T F F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   P(longreal , '. . . . . . . . . . . . . . . T F F F 2 F F F F F F F F F F F F T T T T F F F') ;
+   P(set      , '. . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F F') ;
+   P(opaque   , '. . . . . . . . . . . . . . . . . T F F F F F F F F F F F F F F F F F F F F F') ;
+   P(loc      , '. . . . . . . . . . . . . . . . . . T F F T F F F T F F F F F F F F F F F F F') ;
+   P(rtype    , '. . . . . . . . . . . . . . . . . . . T F F F F F F F F F F F F 1 1 1 1 F F F') ;
+   P(ztype    , '. . . . . . . . . . . . . . . . . . . . T 1 1 1 1 1 1 1 1 1 1 1 F F F F F F F') ;
+   P(int8     , '. . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F F F F') ;
+   P(int16    , '. . . . . . . . . . . . . . . . . . . . . . T T T T T T T T F F F F F F F F F') ;
+   P(int32    , '. . . . . . . . . . . . . . . . . . . . . . . T T T T T T F T T F F F F F F F') ;
+   P(int64    , '. . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F F F F') ;
+   P(card8    , '. . . . . . . . . . . . . . . . . . . . . . . . . T T T T T F F F F F F F F F') ;
+   P(card16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . T T T F F F F F F F F F F') ;
+   P(card32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . T T F T F F F F F F F F') ;
+   P(card64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F T F F F F F F F') ;
+   P(word16   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F F F F') ;
+   P(word32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F F F F') ;
+   P(word64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F T F F F F F') ;
+   P(real32   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F F') ;
+   P(real64   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F F') ;
+   P(real96   , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F F') ;
+   P(real128  , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F F') ;
+   P(set8     , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F F') ;
+   P(set16    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T F') ;
+   P(set32    , '. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . T') ;
 
 END InitCompatibilityMatrices ;
 

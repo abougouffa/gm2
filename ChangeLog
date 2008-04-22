@@ -1,3 +1,18 @@
+2008-04-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2System.mod:  implement SET8, SET16, SET32
+	  fixed sized types.  Also implemented is AttemptToCreateSetType.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare fixed sized types.
+	* gm2/gccgm2.c:  added build_m2_set8_type_node,
+	  build_m2_set16_type_node and build_m2_set32_type_node.
+	  Added ability to create fixed sized SET_TYPE types.
+	  Added gccgm2_GetM2Set8, gccgm2_GetM2Set16 and gccgm2_GetM2Set32.
+	* gm2/gm2-compiler/M2Base.mod:  added set8, set16, set32 and
+	  included these into the assignment, expression and parameter
+	  matrices.
+	* gm2/gm2-compiler/gccgm2.def:  export GetM2Set8, GetM2Set16
+	  and GetM2Set32.
+
 2008-04-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  fixed bug so that GetMinMax
@@ -10,7 +25,6 @@
 
 2008-04-18       Gaius Mulley <gaius@gnu.org>
 	
-
 	* gm2/gm2.texi:  included __COLUMN__ into documentation.
 	* gm2/m2.flex:   added column field to lineInfo.
           Use column field to hold first token column position.

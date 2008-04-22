@@ -170,6 +170,36 @@ END AttemptToCreateType ;
 
 
 (*
+   AttemptToCreateSetType - 
+*)
+
+PROCEDURE AttemptToCreateSetType (name, bits: ARRAY OF CHAR;
+                                  needsExporting: BOOLEAN; t: Tree) : CARDINAL ;
+VAR
+   low,
+   high,
+   subrange,
+   type    : CARDINAL ;
+BEGIN
+   IF t=NIL
+   THEN
+      (* GCC backend does not support this type *)
+      RETURN( NulSym )
+   ELSE
+      (* create base type *)
+      type := MakeSet(MakeKey(name)) ;
+      low := MakeConstLit(MakeKey('0')) ;
+      high := MakeConstLit(MakeKey(bits)) ;
+      subrange := MakeSubrange(NulName) ;
+      PutSubrange(subrange, low, high, Cardinal) ;
+      PutSet(type, subrange) ;
+      MapType(type, name, '', '', needsExporting, t) ;
+      RETURN( type )
+   END
+END AttemptToCreateSetType ;
+
+
+(*
    MakeFixedSizedTypes - creates the SYSTEM fixed sized types providing the
                          gcc backend supports them.
 *)
@@ -191,6 +221,10 @@ BEGIN
    type := AttemptToCreateType('WORD16', '', '', TRUE, GetM2Word16()) ;
    type := AttemptToCreateType('WORD32', '', '', TRUE, GetM2Word32()) ;
    type := AttemptToCreateType('WORD64', '', '', TRUE, GetM2Word64()) ;
+
+   type := AttemptToCreateSetType('SET8' , '8' , TRUE, GetISOLocType()) ;
+   type := AttemptToCreateSetType('SET16', '16', TRUE, GetM2Word16()) ;
+   type := AttemptToCreateSetType('SET32', '32', TRUE, GetM2Word32()) ;
 
    type := AttemptToCreateType('REAL32', '', '', TRUE, GetM2Real32()) ;
    type := AttemptToCreateType('REAL64', '', '', TRUE, GetM2Real64()) ;
@@ -483,6 +517,25 @@ END WordN ;
 
 
 (*
+   SetN - returns the symbol associated with SET[N].
+          NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE SetN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   8 :  RETURN( GetSafeSystem(MakeKey('SET8')) ) |
+   16:  RETURN( GetSafeSystem(MakeKey('SET16')) ) |
+   32:  RETURN( GetSafeSystem(MakeKey('SET32')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END SetN ;
+
+
+(*
    RealN - returns the symbol associated with REAL[N].
            NulSym is returned if the type does not exist.
 *)
@@ -545,6 +598,21 @@ BEGIN
            (Sym=WordN(32)) OR (Sym=WordN(64)))
          )
 END IsWordN ;
+
+
+(*
+   IsSetN - returns the TRUE if, Sym, is one of the SYSTEM
+            SET[n] types (not the default SYSTEM BITSET type).
+*)
+
+PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=SetN(8)) OR (Sym=SetN(16)) OR
+           (Sym=SetN(32)) OR (Sym=SetN(64)))
+         )
+END IsSetN ;
 
 
 (*

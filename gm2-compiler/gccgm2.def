@@ -54,6 +54,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                  GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                  GetM2Word16, GetM2Word32, GetM2Word64,
+                 GetM2Set8, GetM2Set16, GetM2Set32,
                  GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
 
                  BuildStart, BuildEnd, BuildCallInnerInit,
@@ -210,6 +211,9 @@ PROCEDURE GetM2Cardinal8         () : Tree ;
 PROCEDURE GetM2Cardinal16        () : Tree ;
 PROCEDURE GetM2Cardinal32        () : Tree ;
 PROCEDURE GetM2Cardinal64        () : Tree ;
+PROCEDURE GetM2Set8              () : Tree ;
+PROCEDURE GetM2Set16             () : Tree ;
+PROCEDURE GetM2Set32             () : Tree ;
 PROCEDURE GetM2Word16            () : Tree ;
 PROCEDURE GetM2Word32            () : Tree ;
 PROCEDURE GetM2Word64            () : Tree ;

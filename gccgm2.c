@@ -181,6 +181,9 @@ static GTY(()) tree m2_cardinal64_type_node;
 static GTY(()) tree m2_word16_type_node;
 static GTY(()) tree m2_word32_type_node;
 static GTY(()) tree m2_word64_type_node;
+static GTY(()) tree m2_set8_type_node;
+static GTY(()) tree m2_set16_type_node;
+static GTY(()) tree m2_set32_type_node;
 static GTY(()) tree m2_real32_type_node;
 static GTY(()) tree m2_real64_type_node;
 static GTY(()) tree m2_real96_type_node;
@@ -665,6 +668,9 @@ static tree                   build_m2_cardinal64_type_node               (void)
 static tree                   build_m2_word16_type_node                   (void);
 static tree                   build_m2_word32_type_node                   (void);
 static tree                   build_m2_word64_type_node                   (void);
+static tree                   build_m2_set8_type_node                     (void);
+static tree                   build_m2_set16_type_node                    (void);
+static tree                   build_m2_set32_type_node                    (void);
 static tree                   build_m2_real32_type_node                   (void);
 static tree                   build_m2_real64_type_node                   (void);
 static tree                   build_m2_real96_type_node                   (void);
@@ -787,6 +793,11 @@ static void                   readonly_error                              (tree,
        int                    gccgm2_IsFalse                              (tree t);
        tree                   gccgm2_GetTreeType                          (tree t);
        void                   gccgm2_AddStatement                         (tree t);
+static tree                   build_m2_size_set_type                      (int precision);
+static tree                   build_m2_set32_type_node                    (void);
+static tree                   build_m2_set16_type_node                    (void);
+static tree                   build_m2_set8_type_node                     (void);
+
 #if 0
 static void                   gccgm2_RememberVariables                    (tree l);
 static void                   gm2_write_global_declarations_2             (tree globals);
@@ -1687,6 +1698,9 @@ init_m2_builtins (void)
   m2_word16_type_node = build_m2_word16_type_node ();
   m2_word32_type_node = build_m2_word32_type_node ();
   m2_word64_type_node = build_m2_word64_type_node ();
+  m2_set8_type_node = build_m2_set8_type_node ();
+  m2_set16_type_node = build_m2_set16_type_node ();
+  m2_set32_type_node = build_m2_set32_type_node ();
   m2_real32_type_node = build_m2_real32_type_node ();
   m2_real64_type_node = build_m2_real64_type_node ();
   m2_real96_type_node = build_m2_real96_type_node ();
@@ -1938,6 +1952,8 @@ build_m2_specific_size_type (enum tree_code base, int precision, int is_signed)
 
   if (base == REAL_TYPE)
     layout_type (c);
+  else if (base == SET_TYPE)
+    return build_m2_size_set_type (precision);
   else {
     TYPE_SIZE (c) = 0;
 
@@ -2035,6 +2051,36 @@ build_m2_word64_type_node (void)
   return gccgm2_BuildArrayType (gccgm2_GetISOLocType (),
 				gccgm2_BuildArrayIndexType (gccgm2_GetIntegerZero (),
 							    gccgm2_BuildIntegerConstant (7)));
+}
+
+static
+tree
+build_m2_set8_type_node (void)
+{
+  if (broken_set_debugging_info)
+    return build_m2_specific_size_type (INTEGER_TYPE, 8, FALSE);
+  else
+    return build_m2_specific_size_type (SET_TYPE, 8, FALSE);
+}
+
+static
+tree
+build_m2_set16_type_node (void)
+{
+  if (broken_set_debugging_info)
+    return build_m2_specific_size_type (INTEGER_TYPE, 16, FALSE);
+  else
+    return build_m2_specific_size_type (SET_TYPE, 16, FALSE);
+}
+
+static
+tree
+build_m2_set32_type_node (void)
+{
+  if (broken_set_debugging_info)
+    return build_m2_specific_size_type (INTEGER_TYPE, 32, FALSE);
+  else
+    return build_m2_specific_size_type (SET_TYPE, 32, FALSE);
 }
 
 static
@@ -6883,7 +6929,6 @@ gccgm2_BuildArrayType (tree elementtype, tree indextype)
     return build_array_type (skip_type_decl (elementtype), indextype);
 }
 
-
 /*
  *  build_set_type - creates a set type from the, domain, [low..high]. The
  *                   values low..high all have type, range_type.
@@ -6977,6 +7022,24 @@ build_bitset_type (void)
   return gccgm2_BuildSetTypeFromSubrange (NULL, bitnum_type_node,
                                           gccgm2_BuildIntegerConstant (0),
                                           gccgm2_BuildIntegerConstant (gccgm2_GetBitsPerBitset()-1));
+}
+
+static tree
+build_m2_size_set_type (int precision)
+{
+  tree bitnum_type_node = build_range_type (skip_type_decl (gccgm2_GetCardinalType()),
+					    gccgm2_BuildIntegerConstant (0),
+					    gccgm2_BuildIntegerConstant (precision-1));
+  layout_type (bitnum_type_node);
+
+  if (broken_set_debugging_info)
+    return unsigned_type_node;
+
+  ASSERT((COMPLETE_TYPE_P (bitnum_type_node)), bitnum_type_node);
+
+  return gccgm2_BuildSetTypeFromSubrange (NULL, bitnum_type_node,
+                                          gccgm2_BuildIntegerConstant (0),
+                                          gccgm2_BuildIntegerConstant (precision-1));
 }
 
 /*
@@ -9597,6 +9660,24 @@ tree
 gccgm2_GetM2Word64 (void)
 {
   return m2_word64_type_node;
+}
+
+tree
+gccgm2_GetM2Set8 (void)
+{
+  return m2_set8_type_node;
+}
+
+tree
+gccgm2_GetM2Set16 (void)
+{
+  return m2_set16_type_node;
+}
+
+tree
+gccgm2_GetM2Set32 (void)
+{
+  return m2_set32_type_node;
 }
 
 tree
