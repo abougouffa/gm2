@@ -30,7 +30,7 @@ BEGIN
       v := v * 10.0 ;
       INC(i)
    END ;
-   RETURN( VAL(LONGREAL, v) )
+   RETURN( v )
 END ToThePower10 ;
 
 VAR
@@ -39,7 +39,7 @@ VAR
    i               : CARDINAL ;
 BEGIN
    i := 99999 ;
-   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOAT(i) DO
+   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOATL(i) DO
       INC(NonTruncedDigits)
    END
 END testfloat4.

@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,19 +15,25 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE case ;
+MODULE longtypes10 ;
+
+FROM libc IMPORT exit ;
+
+PROCEDURE x (r: LONGCARD) : LONGCARD ;
+BEGIN
+   RETURN r
+END x ;
 
 VAR
-   i: CARDINAL ;
+   y: LONGCARD ;
 BEGIN
-   i := 3 ;
-   CASE i OF
-
-   1: |
-   2:
-
+   y := 5 ;
+   IF x(y+1+1)#7
+   THEN
+      exit(1)
+   END ;
+   IF x(1+1+y)#7
+   THEN
+      exit(1)
    END
-END case.
-(*
- *  options: "-fcase"
- *)
+END longtypes10.

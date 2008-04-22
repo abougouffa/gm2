@@ -24,7 +24,7 @@ TYPE
 
 VAR
    s: set ;
-   p: POINTER TO ARRAY [0..2] OF INTEGER ;
+   p: POINTER TO ARRAY [0..7] OF INTEGER ;
 BEGIN
    p := ADR(s) ;
    p^[0] := 3 ;
