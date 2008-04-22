@@ -68,7 +68,8 @@ FROM gccgm2 IMPORT Tree,
                    GetBitsPerUnit, GetSizeOf, BuildSize,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
-                   GetM2Word16, GetM2Word32, GetM2Word64, GetM2Real32,
+                   GetM2Word16, GetM2Word32, GetM2Word64,
+                   GetM2Bitset8, GetM2Bitset16, GetM2Bitset32, GetM2Real32,
                    GetM2Real64, GetM2Real96, GetM2Real128,
                    GetBitsetType, GetISOByteType, GetISOWordType ;
 
@@ -222,9 +223,9 @@ BEGIN
    type := AttemptToCreateType('WORD32', '', '', TRUE, GetM2Word32()) ;
    type := AttemptToCreateType('WORD64', '', '', TRUE, GetM2Word64()) ;
 
-   type := AttemptToCreateSetType('SET8' , '8' , TRUE, GetISOLocType()) ;
-   type := AttemptToCreateSetType('SET16', '16', TRUE, GetM2Word16()) ;
-   type := AttemptToCreateSetType('SET32', '32', TRUE, GetM2Word32()) ;
+   type := AttemptToCreateSetType('BITSET8' , '8' , TRUE, GetM2Bitset8()) ;
+   type := AttemptToCreateSetType('BITSET16', '16', TRUE, GetM2Bitset16()) ;
+   type := AttemptToCreateSetType('BITSET32', '32', TRUE, GetM2Bitset32()) ;
 
    type := AttemptToCreateType('REAL32', '', '', TRUE, GetM2Real32()) ;
    type := AttemptToCreateType('REAL64', '', '', TRUE, GetM2Real64()) ;

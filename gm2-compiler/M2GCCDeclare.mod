@@ -146,7 +146,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildSize, MarkFunctionReferenced,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
-                   GetM2Set8, GetM2Set16, GetM2Set32,
+                   GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                    GetM2Word16, GetM2Word32, GetM2Word64,
                    GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128 ;
 
@@ -1421,9 +1421,9 @@ BEGIN
    DeclareFixedSizedType("WORD16"    , WordN(16)    , GetM2Word16()) ;
    DeclareFixedSizedType("WORD32"    , WordN(32)    , GetM2Word32()) ;
    DeclareFixedSizedType("WORD64"    , WordN(64)    , GetM2Word64()) ;
-   DeclareFixedSizedType("SET8"      , SetN(8)      , GetM2Set8()) ;
-   DeclareFixedSizedType("SET16"     , SetN(16)     , GetM2Set16()) ;
-   DeclareFixedSizedType("SET32"     , SetN(32)     , GetM2Set32()) ;
+   DeclareFixedSizedType("BITSET8"   , SetN(8)      , GetM2Bitset8()) ;
+   DeclareFixedSizedType("BITSET16"  , SetN(16)     , GetM2Bitset16()) ;
+   DeclareFixedSizedType("BITSET32"  , SetN(32)     , GetM2Bitset32()) ;
    DeclareFixedSizedType("REAL32"    , RealN(32)    , GetM2Real32()) ;
    DeclareFixedSizedType("REAL64"    , RealN(64)    , GetM2Real64()) ;
    DeclareFixedSizedType("REAL96"    , RealN(96)    , GetM2Real96()) ;

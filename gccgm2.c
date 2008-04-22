@@ -181,9 +181,9 @@ static GTY(()) tree m2_cardinal64_type_node;
 static GTY(()) tree m2_word16_type_node;
 static GTY(()) tree m2_word32_type_node;
 static GTY(()) tree m2_word64_type_node;
-static GTY(()) tree m2_set8_type_node;
-static GTY(()) tree m2_set16_type_node;
-static GTY(()) tree m2_set32_type_node;
+static GTY(()) tree m2_bitset8_type_node;
+static GTY(()) tree m2_bitset16_type_node;
+static GTY(()) tree m2_bitset32_type_node;
 static GTY(()) tree m2_real32_type_node;
 static GTY(()) tree m2_real64_type_node;
 static GTY(()) tree m2_real96_type_node;
@@ -668,9 +668,9 @@ static tree                   build_m2_cardinal64_type_node               (void)
 static tree                   build_m2_word16_type_node                   (void);
 static tree                   build_m2_word32_type_node                   (void);
 static tree                   build_m2_word64_type_node                   (void);
-static tree                   build_m2_set8_type_node                     (void);
-static tree                   build_m2_set16_type_node                    (void);
-static tree                   build_m2_set32_type_node                    (void);
+static tree                   build_m2_bitset8_type_node                  (void);
+static tree                   build_m2_bitset16_type_node                 (void);
+static tree                   build_m2_bitset32_type_node                 (void);
 static tree                   build_m2_real32_type_node                   (void);
 static tree                   build_m2_real64_type_node                   (void);
 static tree                   build_m2_real96_type_node                   (void);
@@ -710,6 +710,9 @@ tree                   gccgm2_GetM2Cardinal64                      (void);
 tree                   gccgm2_GetM2Word16                          (void);
 tree                   gccgm2_GetM2Word32                          (void);
 tree                   gccgm2_GetM2Word64                          (void);
+tree                   gccgm2_GetM2Bitset8                         (void);
+tree                   gccgm2_GetM2Bitset16                        (void);
+tree                   gccgm2_GetM2Bitset32                        (void);
 tree                   gccgm2_GetM2Real32                          (void);
 tree                   gccgm2_GetM2Real64                          (void);
 tree                   gccgm2_GetM2Real96                          (void);
@@ -794,9 +797,9 @@ static void                   readonly_error                              (tree,
        tree                   gccgm2_GetTreeType                          (tree t);
        void                   gccgm2_AddStatement                         (tree t);
 static tree                   build_m2_size_set_type                      (int precision);
-static tree                   build_m2_set32_type_node                    (void);
-static tree                   build_m2_set16_type_node                    (void);
-static tree                   build_m2_set8_type_node                     (void);
+static tree                   build_m2_bitset32_type_node                 (void);
+static tree                   build_m2_bitset16_type_node                 (void);
+static tree                   build_m2_bitset8_type_node                  (void);
 
 #if 0
 static void                   gccgm2_RememberVariables                    (tree l);
@@ -1698,9 +1701,9 @@ init_m2_builtins (void)
   m2_word16_type_node = build_m2_word16_type_node ();
   m2_word32_type_node = build_m2_word32_type_node ();
   m2_word64_type_node = build_m2_word64_type_node ();
-  m2_set8_type_node = build_m2_set8_type_node ();
-  m2_set16_type_node = build_m2_set16_type_node ();
-  m2_set32_type_node = build_m2_set32_type_node ();
+  m2_bitset8_type_node = build_m2_bitset8_type_node ();
+  m2_bitset16_type_node = build_m2_bitset16_type_node ();
+  m2_bitset32_type_node = build_m2_bitset32_type_node ();
   m2_real32_type_node = build_m2_real32_type_node ();
   m2_real64_type_node = build_m2_real64_type_node ();
   m2_real96_type_node = build_m2_real96_type_node ();
@@ -2055,7 +2058,7 @@ build_m2_word64_type_node (void)
 
 static
 tree
-build_m2_set8_type_node (void)
+build_m2_bitset8_type_node (void)
 {
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (INTEGER_TYPE, 8, FALSE);
@@ -2065,7 +2068,7 @@ build_m2_set8_type_node (void)
 
 static
 tree
-build_m2_set16_type_node (void)
+build_m2_bitset16_type_node (void)
 {
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (INTEGER_TYPE, 16, FALSE);
@@ -2075,7 +2078,7 @@ build_m2_set16_type_node (void)
 
 static
 tree
-build_m2_set32_type_node (void)
+build_m2_bitset32_type_node (void)
 {
   if (broken_set_debugging_info)
     return build_m2_specific_size_type (INTEGER_TYPE, 32, FALSE);
@@ -9663,21 +9666,21 @@ gccgm2_GetM2Word64 (void)
 }
 
 tree
-gccgm2_GetM2Set8 (void)
+gccgm2_GetM2Bitset8 (void)
 {
-  return m2_set8_type_node;
+  return m2_bitset8_type_node;
 }
 
 tree
-gccgm2_GetM2Set16 (void)
+gccgm2_GetM2Bitset16 (void)
 {
-  return m2_set16_type_node;
+  return m2_bitset16_type_node;
 }
 
 tree
-gccgm2_GetM2Set32 (void)
+gccgm2_GetM2Bitset32 (void)
 {
-  return m2_set32_type_node;
+  return m2_bitset32_type_node;
 }
 
 tree

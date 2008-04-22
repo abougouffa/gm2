@@ -1,5 +1,7 @@
 2008-04-22       Gaius Mulley <gaius@gnu.org>
 
+	* renamed SET8 to BITSET8, SET16 to BITSET16 and SET32 to
+	  BITSET32.
 	* gm2/gm2-compiler/M2System.mod:  implement SET8, SET16, SET32
 	  fixed sized types.  Also implemented is AttemptToCreateSetType.
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare fixed sized types.
