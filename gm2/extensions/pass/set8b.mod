@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -14,12 +14,20 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
-DEFINITION MODULE libc ;
 
-FROM SYSTEM IMPORT ADDRESS ;
-EXPORT UNQUALIFIED write, exit ;
+MODULE set8b ;
 
-PROCEDURE write (fd: INTEGER; a: ADDRESS; bytes: CARDINAL) : INTEGER ;
-PROCEDURE exit (e: INTEGER) ;
+FROM SYSTEM IMPORT SET8, BYTE ;
+FROM libc IMPORT exit ;
 
-END libc.
+VAR
+   b: BYTE ;
+   s: SET8 ;
+BEGIN
+   b := 127 ;
+   s := b ;
+   IF s#SET8{0,1,2,3,4,5,6}
+   THEN
+      exit(1)
+   END
+END set8b.
