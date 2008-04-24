@@ -24,6 +24,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsSubrange, GetSymName, IsTemporary, IsSet,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
+                        IsConstString,
                         ModeOfAddr ;
 
 FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
@@ -37,7 +38,7 @@ FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
-FROM M2ALU IMPORT Equ, PushIntegerTree, Gre, Less ;
+FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
 FROM M2Error IMPORT Error, InternalError, NewWarning, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString ;
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
@@ -48,7 +49,7 @@ FROM Lists IMPORT List ;
 FROM NameKey IMPORT Name ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
-FROM M2GenGCC IMPORT GetHighFromUnbounded ;
+FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar ;
 FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
@@ -545,15 +546,19 @@ END GetMinMax ;
    OutOfRange - returns TRUE if expr lies outside min..max.
 *)
 
-PROCEDURE OutOfRange (tokenno: CARDINAL; min, expr, max: Tree) : BOOLEAN ;
+PROCEDURE OutOfRange (tokenno: CARDINAL;
+                      min: Tree;
+                      expr: CARDINAL;
+                      max: Tree;
+                      type: CARDINAL) : BOOLEAN ;
 BEGIN
-   PushIntegerTree(expr) ;
+   PushIntegerTree(StringToChar(Mod2Gcc(expr), type, expr)) ;
    PushIntegerTree(min) ;
    IF Less(tokenno)
    THEN
       RETURN( TRUE )
    END ;
-   PushIntegerTree(expr) ;
+   PushIntegerTree(StringToChar(Mod2Gcc(expr), type, expr)) ;
    PushIntegerTree(max) ;
    IF Gre(tokenno)
    THEN
@@ -615,7 +620,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;
@@ -658,7 +663,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;
@@ -708,7 +713,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;
@@ -757,7 +762,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;
@@ -799,7 +804,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;
@@ -842,7 +847,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, Mod2Gcc(expr), max)
+            IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
                n1 := GetSymName(GetType(des)) ;

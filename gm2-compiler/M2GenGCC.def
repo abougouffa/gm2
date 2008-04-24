@@ -30,7 +30,7 @@ DEFINITION MODULE M2GenGCC ;
 FROM Lists IMPORT List ;
 FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
-                 GetHighFromUnbounded,
+                 GetHighFromUnbounded, StringToChar,
                  InitGNUM2 ;
 
 
@@ -64,6 +64,14 @@ PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
+
+
+(*
+   StringToChar - if type=Char and str is a string (of size <= 1)
+                     then convert the string into a character constant.
+*)
+
+PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;
 
 
 END M2GenGCC.

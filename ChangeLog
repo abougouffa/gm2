@@ -8,6 +8,13 @@
 	* gm2/gm2-compiler/M2Range.mod:  removed REALs from being
 	  range checked.
 	* gm2/gm2-compiler/M2System.mod:  fixed bug in IsRealN
+	* gm2/gm2-compiler/M2GenGCC.def:  export StrToChar
+	* gm2/gm2-compiler/M2Range.mod:  import StringToChar
+	  and use it in OutOfRange.  Modify OutOfRange to
+	  take the Modula-2 expr and type so we can catch
+	  CHAR constants or one character ConstLitStrings and
+	  convert them to integers.
+	  Fixes testsuite/gm2/pim/pass/arraychar.mod
 
 2008-04-22       Gaius Mulley <gaius@gnu.org>
 
