@@ -49,7 +49,7 @@ FROM NameKey IMPORT Name ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded ;
-FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN ;
+FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    Cardinal,
@@ -516,6 +516,7 @@ BEGIN
       (NOT IsArray(t)) AND (NOT IsRecord(t)) AND
       (NOT IsRecord(t)) AND (NOT IsUnbounded(t)) AND
       (NOT IsProcType(t)) AND (NOT IsRealType(t)) AND
+      (NOT IsRealN(t)) AND
       (t#Address) AND (NOT IsSet(t)) AND
       (t#Word) AND (t#Loc) AND (t#Byte) AND (NOT IsWordN(t))
    THEN

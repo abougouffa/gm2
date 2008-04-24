@@ -847,22 +847,13 @@ BEGIN
          THEN
             son := GetNthParam(Sym, i) ;
             type := GetType(son) ;
-            Assert(AllDependantsWritten(type)) ;
-            Assert(GccKnowsAbout(type)) ;
-(*
-            DeclareTypeInfo(type) ;
-            IF (NOT GccKnowsAbout(type)) AND AllDependantsWritten(type)
-      	    THEN
-               AddModGcc(type, DeclareOrFindKindOfType(type)) ;
-               RemoveItemFromList(ToFinishList, type) ;
-               IncludeItemIntoList(DefinedList, type)
+            IF AllDependantsWritten(type)
+            THEN
             END ;
-            IF GccKnowsAbout(type) AND AllDependantsWritten(type)
+            IF GccKnowsAbout(type)
             THEN
                BuildTypeDeclaration(Mod2Gcc(type))
-            END ;
-*)
-            BuildTypeDeclaration(Mod2Gcc(type))
+            END
          ELSE
             son := GetNth(Sym, i) ;
             type := GetType(son) ;

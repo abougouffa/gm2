@@ -7197,6 +7197,7 @@ BEGIN
 
          ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
          PutVar(ReturnVar, Type) ;
+(*
          IF (GetType(Var)#Integer) AND (GetType(Var)#Cardinal) AND
             (GetType(Var)#Word) AND (GetType(Var)#Address) AND
             (IsMathType(Type) OR IsMathType(GetType(Var))) AND
@@ -7211,6 +7212,8 @@ BEGIN
             (* if we are converting from LONGINT to LONGREAL then we must not convert via INTEGER *)
             GenQuad(ConvertOp, ReturnVar, Type, Var)
          END ;
+*)
+         GenQuad(ConvertOp, ReturnVar, Type, Var) ;
          PushTF(ReturnVar, Type)
       ELSE
          WriteFormat0('base procedure CONVERT expects 2 parameters, a type and a variable')

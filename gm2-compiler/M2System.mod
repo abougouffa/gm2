@@ -625,8 +625,8 @@ PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (Sym#NulSym) AND
-          ((Sym=RealN(16)) OR
-           (Sym=RealN(32)) OR (Sym=RealN(64)))
+          ((Sym=RealN(32)) OR (Sym=RealN(64)) OR
+           (Sym=RealN(96)) OR (Sym=RealN(128)))
          )
 END IsRealN ;
 

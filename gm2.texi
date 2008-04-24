@@ -93,6 +93,7 @@ Software Foundation raise funds for GNU development.''
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
 * Extensions::            GNU Modula-2 language extensions.
+* Next::                  Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
@@ -157,7 +158,7 @@ code will either have to be translated into another high level
 language or alternatively a Modula-2 compiler which can target these
 new generation of microprocessors will have to be acquired. GNU
 Modula-2 builds and passes all its regression tests on Debian Pure 64
-(LP64 architecture), 64 bit Solaris, 32 bit x86 GNU/Linux (Suse 9.1,
+(LP64 architecture), 64 bit Solaris, 32 bit x86 GNU/Linux (Suse,
 Debian, stable and unstable) and 32 bit x86 FreeBSD.
 
 GNU Modula-2 also has the advantage of being closely tied to GCC.  Not
@@ -501,6 +502,11 @@ SHORTREAL                 float
 CHAR                      char
 @end example
 
+Note that GNU Modula-2 also supports fixed sized data types which are
+exported from the @code{SYSTEM} module.
+@xref{The PIM system module, , ,gm2}.
+@xref{The ISO system module, , ,gm2}.
+
 @node Standard procedures, Dialect, Elementary data types, Using
 @section Permanently accessible base procedures.
 
@@ -807,7 +813,7 @@ above, apart from the exception calling in the ISO dialect. Instead of
 exception handling the results are the same as the PIM4 dialect. This
 is a temporary implementation situation.
 
-@node Extensions, Unbounded by reference, Dialect, Using
+@node Extensions, Next, Dialect, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
@@ -949,7 +955,124 @@ Local procedures can be declared to have an optional final parameter
 in which case the initializer is mandatory in the implementation or
 program module.
 
-@node Unbounded by reference, Interface to C, Extensions, Using
+GNU Modula-2 also provides additional fixed sized data types which
+are all exported from the @code{SYSTEM} module.
+@xref{The PIM system module, , ,gm2}.
+@xref{The ISO system module, , ,gm2}.
+
+@node Next, Unbounded by reference, Extensions, Using
+@section GNU Modula-2 language extensions
+
+This section discuss the issues surrounding assignment, expression
+and parameter compatibility, their effect of the additional
+fixed sized datatypes and also their effect of runtime checking.
+The data types supported by the compiler are:
+
+@example
+GNU Modula-2              scope      switches
+=============================================
+INTEGER                   pervasive
+LONGINT                   pervasive
+SHORTINT                  pervasive
+CARDINAL                  pervasive
+LONGCARD                  pervasive
+SHORTCARD                 pervasive
+BOOLEAN                   pervasive
+REAL                      pervasive
+LONGREAL                  pervasive
+SHORTREAL                 pervasive
+CHAR                      pervasive
+
+BITSET                    SYSTEM
+LOC                       SYSTEM     -fiso
+BYTE                      SYSTEM
+WORD                      SYSTEM
+ADDRESS                   SYSTEM
+
+The following extensions are supported for
+most architectures (please check SYSTEM.def).
+=============================================
+INTEGER8                  SYSTEM
+INTEGER16                 SYSTEM
+INTEGER32                 SYSTEM
+INTEGER64                 SYSTEM
+CARDINAL8                 SYSTEM
+CARDINAL16                SYSTEM
+CARDINAL32                SYSTEM
+CARDINAL64                SYSTEM
+BITSET8                   SYSTEM
+BITSET16                  SYSTEM
+BITSET32                  SYSTEM
+WORD16                    SYSTEM
+WORD32                    SYSTEM
+WORD64                    SYSTEM
+REAL32                    SYSTEM
+REAL64                    SYSTEM
+REAL96                    SYSTEM
+REAL128                   SYSTEM
+@end example
+
+The compiler categorises compatibility between all these types
+into three components: assignment, parameter and expression.
+
+@subsection Assignment compatibility
+
+Same types are compatible.  Same types of different sizes are also
+compatible as long as the @code{MAX(}type@code{)} and
+@code{MIN(}type@code{)} is known.  So for example this includes the
+@code{INTEGER} family, @code{CARDINAL} family and the @code{REAL}
+family.  The reason for this is that when the assignment is performed
+the compiler will check to see that the expression (on the right of
+the @code{:=}) lies within the bounds of the designator type (on the
+left hand side of the @code{:=}).  Thus these ordinal types can be
+assignment compatible.  However it does mean that @code{WORD32} is not
+compatible with @code{WORD16} as @code{WORD32} does not have a minimum
+or maximum value and therefore cannot be checked.  The compiler does
+not know which of the two bytes from @code{WORD32} should be copied
+into @code{WORD16} and which two should be ignored.  Currently the
+types @code{BITSET8}, @code{BITSET16} and @code{BITSET32} are
+assignment incompatible.  However this restriction maybe lifted when
+further runtime checking is achieved.
+
+Modula-2 does allow @code{INTEGER} to be assignment compatible with
+@code{WORD} as they are the same size.  Likewise GNU Modula-2 allows
+@code{INTEGER16} to be compatible with @code{WORD16} and the same for
+the other fixed sized types and their sized equivalent in either
+@code{WORD}n, @code{BYTE} or @code{LOC} types.  However it prohibits
+assignment between @code{WORD} and @code{WORD32} even though on many
+systems these sizes will be the same.  The reasoning behind this rule
+is that the extended fixed sized types are meant to be used by
+applications requiring fixed sized data types and it is more portable
+to forbid the bluring of the boundaries between fixed sized and
+machine dependant sized types.
+
+Intemediate code runtime checking is always generated by the front
+end.  However this intemediate code is only translated into actual
+code if the appropriate command line switches are specified.  This
+allows the compiler to perform limited range checking at compile time.
+In the future it will allow the extensive GCC optimisations to
+propagate constant values through to the range checks which if they
+are found to exceed the type bounds will result in a compile time
+error message.
+
+@subsection Expression compatible
+
+According to the various Modula-2 standards @code{INTEGER} and
+@code{CARDINAL} types are not expression compatible
+(@uref{http://freepages.modula2.org/report4/modula-2.html} and ISO
+Modula-2).  This is rule is also extended across the fixed sized
+data types.
+
+@subsection Parameter compatible
+
+Parameter compatibility is divided into two arenas, pass by value and
+pass by reference (@code{VAR}).  In the first case the rules are
+exactly the same as assignment.  However in the second case the actual
+parameter and ... must be the same size.  Furthermore @code{INTEGER}
+and @code{CARDINAL}s are not treated as compatible in the pass by
+reference case.
+
+@node Unbounded by reference, Interface to C, Next, Using
 @section Unbounded by reference
 
 This section documents a GNU Modula-2 compiler switch which implements

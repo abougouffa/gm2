@@ -1,3 +1,14 @@
+2008-04-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug reported
+	  by Scott Iverson (unbounded array type was undeclared).
+	* gm2/gm2.texi:  added draft section describing type
+	  compatibility rules.
+	* gm2/gm2-compiler/M2Quads.mod:  simplified BuildConvert
+	* gm2/gm2-compiler/M2Range.mod:  removed REALs from being
+	  range checked.
+	* gm2/gm2-compiler/M2System.mod:  fixed bug in IsRealN
+
 2008-04-22       Gaius Mulley <gaius@gnu.org>
 
 	* renamed SET8 to BITSET8, SET16 to BITSET16 and SET32 to
@@ -913,7 +924,7 @@
 
 	* gm2/gccgm.2c:  added debugging stub.
 
-2006-10--03       Gaius Mulley <gaius@gnu.org>
+2006-10-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed BuildEnd
 	  to use IsProcedureGccNested in CodeKillLocalVar.
