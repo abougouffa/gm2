@@ -37,7 +37,7 @@ VAR
    x: LONGREAL ;
    NonTruncedDigits: CARDINAL ;
 BEGIN
-   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOAT(99999) DO
+   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= VAL(LONGREAL, 99999) DO
       INC(NonTruncedDigits)
    END
 END testfloat3.
