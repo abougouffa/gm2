@@ -17,10 +17,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE set8 ;
 
-FROM SYSTEM IMPORT SET8 ;
+FROM SYSTEM IMPORT BITSET8 ;
 
 VAR
-   s8: SET8 ;
+   s8: BITSET8 ;
 BEGIN
-   s8 := SET8{}
+   s8 := BITSET8{}
 END set8.

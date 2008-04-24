@@ -17,16 +17,16 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE set8b ;
 
-FROM SYSTEM IMPORT SET8, BYTE ;
+FROM SYSTEM IMPORT BITSET8, BYTE ;
 FROM libc IMPORT exit ;
 
 VAR
    b: BYTE ;
-   s: SET8 ;
+   s: BITSET8 ;
 BEGIN
    b := 127 ;
    s := b ;
-   IF s#SET8{0,1,2,3,4,5,6}
+   IF s#BITSET8{0,1,2,3,4,5,6}
    THEN
       exit(1)
    END
