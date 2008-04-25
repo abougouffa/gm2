@@ -39,18 +39,33 @@ if ![info exists TORTURE_OPTIONS] {
                              { -O } \
 			     { -O -g } \
 			     { -Os } \
-			     { -Os -g } \
-			     { -O0 } \
-			     { -O0 -g } \
-			     { -O1 } \
-			     { -O1 -g } \
-			     { -O2 } \
-			     { -O2 -g } \
-			     { -O3 } \
-			     { -O3 -g } \
 			     { -O3 -fomit-frame-pointer } \
 			     { -O3 -fomit-frame-pointer -finline-functions } ]
 }
+
+#
+#  very costly options follow
+#
+#     set TORTURE_OPTIONS [list \
+\#			     { -g } \
+\#                             { -O } \
+\#			     { -O -g } \
+\#			     { -Os } \
+\#			     { -Os -g } \
+\#			     { -O0 } \
+\#			     { -O0 -g } \
+\#			     { -O1 } \
+\#			     { -O1 -g } \
+\#			     { -O2 } \
+\#			     { -O2 -g } \
+\#			     { -O3 } \
+\#			     { -O3 -g } \
+\#			     { -O3 -fomit-frame-pointer } \
+\#			     { -O3 -fomit-frame-pointer -finline-functions } ]
+#
+#
+#
+
 
 
 #
@@ -86,6 +101,7 @@ proc gm2-torture-compile { src option } {
     remote_file build delete $output
     verbose "$comp_output" 1
 }
+
 
 #
 # gm2_check_compile_fail -- Reports and returns pass/fail for a compilation
