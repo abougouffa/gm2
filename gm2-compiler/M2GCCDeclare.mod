@@ -2397,8 +2397,7 @@ END DeclareUnbounded ;
 PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ;
 VAR
    n1, n2   : Name ;
-   Subscript,
-   Subrange : CARDINAL ;
+   Subscript: CARDINAL ;
    High, Low: CARDINAL ;
    Type     : CARDINAL ;
    GccArray,
@@ -2414,15 +2413,9 @@ BEGIN
       PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
       PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
       PopSize(Subscript) ;
-      Subrange := SkipType(GetType(Subscript)) ;
-      IF NOT IsSubrange(Subrange)
-      THEN
-         n1 := GetSymName(Sym) ;
-         n2 := GetSymName(Subrange) ;
-         WriteFormat2('error with array (%a) no subrange for this subscript, instead the type given was %a', n1, n2)
-      END ;
-      Assert(IsSubrange(Subrange)) ;
-      GetSubrange(Subrange, High, Low) ;
+      Type := SkipType(GetType(Subscript)) ;
+      Low := GetTypeMin(Type) ;
+      High := GetTypeMax(Type) ;
       GccIndex := BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) ;
       GccArray := BuildArrayType(GccArray, GccIndex)
    END ;
@@ -3090,8 +3083,7 @@ PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
 VAR
    n1, n2   : Name ;
    solved   : BOOLEAN ;
-   Subscript,
-   Subrange : CARDINAL ;
+   Subscript: CARDINAL ;
    High, Low: CARDINAL ;
    Type     : CARDINAL ;
 BEGIN
@@ -3116,19 +3108,23 @@ BEGIN
    IF Subscript#NulSym
    THEN
       Assert(IsSubscript(Subscript)) ;
-      Subrange := SkipType(GetType(Subscript)) ;
-      IF NOT IsSubrange(Subrange)
+      Type := SkipType(GetType(Subscript)) ;
+      IF NOT AllDependantsWritten(Type)
       THEN
-         n1 := GetSymName(Sym) ;
-         n2 := GetSymName(Subrange) ;
-         WriteFormat2('error with array (%a) no subrange for this subscript, instead the type given was %a', n1, n2)
+         solved := FALSE
       END ;
-      Assert(IsSubrange(Subrange)) ;
-      GetSubrange(Subrange, High, Low) ;
-
-      IF NOT IsSubrangeDependantsWritten(Subrange)
+      (* the array might be declared as ARRAY type OF foo *)
+      Low  := GetTypeMin(Type) ;
+      High := GetTypeMax(Type) ;
+      IF NOT GccKnowsAbout(Low)
       THEN
-         RETURN( FALSE )
+         IncludeItemIntoList(ToDoConstants, Low) ;
+         solved := FALSE
+      END ;
+      IF NOT GccKnowsAbout(High)
+      THEN
+         IncludeItemIntoList(ToDoConstants, High) ;
+         solved := FALSE
       END
    END ;
    RETURN( solved )
