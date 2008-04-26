@@ -30,10 +30,10 @@ Boston, MA 02110-1301, USA.  */
                                                      %{!fsyntax-only:%(invoke_as)}} \n\
                                                %{!fcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%(invoke_as)}}}}} \n\
-           %{fmakelist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
+           %{fmakelist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                               gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %g.mod} \n\
                        %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %i}} \n\
-           %{fmodules:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
+           %{fmodules:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                          gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -c %g.lst} \n\
@@ -47,7 +47,7 @@ Boston, MA 02110-1301, USA.  */
                                      make -r -f %g.m } \n\
                                    %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                    make -r -f %g.m }}}} \n\
-      %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) %g.mod \n\
+      %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                              gm2l -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %g.lst -o %g.c \n\

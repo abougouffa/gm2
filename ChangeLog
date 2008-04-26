@@ -1,3 +1,17 @@
+2008-04-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/lang-specs.h:  fixed cpp invocation by adding -o to
+	  the command line.  This allows -fcpp to work again.
+	* fixes all regression tests in
+	  testsuite/gm2/switches/pim4/run/pass.
+
+2008-04-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug to
+	  allow declaration such as ARRAY CHAR OF foo.
+	  (Bug reported by Scott Iverson).
+	* gm2/TODO:  updated.
+
 2008-04-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug reported
