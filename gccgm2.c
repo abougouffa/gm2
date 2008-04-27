@@ -2129,7 +2129,7 @@ gm2_init_decl_processing ()
   pushlevel (0);        /* make the binding_level structure for global names */
   global_binding_level  = current_binding_level;
 
-  build_common_tree_nodes (flag_signed_char, false);
+  build_common_tree_nodes (false, false);
 
   /* Define `int' and `char' first so that dbx will output them first.  */
   pushdecl (build_decl (TYPE_DECL, get_identifier("int"),
@@ -5312,6 +5312,7 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
 
   /* The expression codes of the data types of the arguments tell us
      whether the arguments are integers, floating, pointers, etc.  */
+
 #if defined(GM2)
   if (base_type (type0) == m2_char_type_node)
     type0 = char_type_node;

@@ -4073,26 +4073,22 @@ END CodeUnbounded ;
 
 PROCEDURE AreSubrangesKnown (array: CARDINAL) : BOOLEAN ;
 VAR
-   i,
+   type,
    subscript,
-   subrange,
    low, high: CARDINAL ;
 BEGIN
    IF GccKnowsAbout(array)
    THEN
       subscript := GetArraySubscript(array) ;
-      IF subscript#NulSym
+      IF subscript=NulSym
       THEN
-         subrange := SkipType(GetType(subscript)) ;
-         GetSubrange(subrange, high, low) ;
-         IF GccKnowsAbout(low) AND GccKnowsAbout(high)
-         THEN
-            RETURN( TRUE )
-         ELSE
-            RETURN( FALSE )
-         END
-      END ;
-      RETURN( TRUE )
+         InternalError('not expecting a NulSym as a subscript', __FILE__, __LINE__)
+      ELSE
+         type := SkipType(GetType(subscript)) ;
+         low  := GetTypeMin(type) ;
+         high := GetTypeMax(type) ;
+         RETURN( GccKnowsAbout(low) AND GccKnowsAbout(high) )
+      END
    ELSE
       RETURN( FALSE )
    END
@@ -4110,15 +4106,16 @@ VAR
    High,
    Low     : CARDINAL ;
    Subscript,
-   Subrange: CARDINAL ;
+   type    : CARDINAL ;
 BEGIN
    offset    := GetPointerZero() ;
    Subscript := GetArraySubscript(array) ;
    IF Subscript#NulSym
    THEN
       size     := BuildSize(Mod2Gcc(Subscript), FALSE) ;  (* Size for element *)
-      Subrange := SkipType(GetType(Subscript)) ;
-      GetSubrange(Subrange, High, Low) ;
+      type     := SkipType(GetType(Subscript)) ;
+      Low      := GetTypeMin(type) ;
+      High     := GetTypeMax(type) ;
       offset   := BuildSub(BuildConvert(GetM2ZType(), offset, FALSE),
                            BuildConvert(GetM2ZType(),
                                         BuildMult(size,

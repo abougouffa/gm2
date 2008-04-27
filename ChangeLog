@@ -1,3 +1,16 @@
+2008-04-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  build_common_tree_nodes requesting
+	  unsigned char type.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CalculateBase
+	  must not assume GetType(Subscript) will always yield
+	  a subrange.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  likewise
+	  must not assume GetType(Subscript) will always yield
+	  a subrange (the array might be declared as ARRAY CHAR
+	  OF CHAR).
+	* testsuite/gm2/pim/run/pass/For9.mod:  new file.
+	
 2008-04-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/lang-specs.h:  fixed cpp invocation by adding -o to

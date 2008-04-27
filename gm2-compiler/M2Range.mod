@@ -1270,7 +1270,6 @@ BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       DeclareConstant(tokenNo, expr) ;
-      Assert(IsSubrange(desLowestType)) ;
       IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
       THEN
          IF GetMinMax(desLowestType, desMin, desMax)
