@@ -838,6 +838,29 @@ END DisposeSym ;
 
 
 (*
+   IsPartialUnbounded - returns TRUE if, sym, is a partially unbounded symbol.
+*)
+
+PROCEDURE IsPartialUnbounded (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF sym>0
+   THEN
+      WITH Symbols[sym] DO
+         CASE SymbolType OF
+         
+         PartialUnboundedSym:  RETURN( TRUE )
+      
+         ELSE
+            RETURN( FALSE )
+         END
+      END
+   ELSE
+      RETURN( FALSE )
+   END
+END IsPartialUnbounded ;
+
+
+(*
    PutPartialUnbounded -
 *)
 
@@ -4400,7 +4423,8 @@ BEGIN
          SubrangeSym         : n := Subrange.name |
       	 SetSym              : n := Set.name |
          SubscriptSym        : n := NulName |
-         DummySym            : n := NulName
+         DummySym            : n := NulName |
+         PartialUnboundedSym : n := GetSymName(PartialUnbounded.Type)
 
          ELSE
             InternalError('unexpected symbol type', __FILE__, __LINE__)
@@ -8323,7 +8347,8 @@ BEGIN
       SetSym             : RETURN( Set.At.Declared ) |
       DefImpSym          : RETURN( DefImp.At.Declared ) |
       ModuleSym          : RETURN( Module.At.Declared ) |
-      UndefinedSym       : RETURN( GetFirstUsed(Sym) )
+      UndefinedSym       : RETURN( GetFirstUsed(Sym) ) |
+      PartialUnboundedSym: RETURN( GetDeclared(PartialUnbounded.Type) )
 
       ELSE
          InternalError('not expecting this type of symbol', __FILE__, __LINE__)

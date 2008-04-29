@@ -65,6 +65,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
+                        IsPartialUnbounded,
                         IsSet, IsConstSet, IsConstructor, PutConst,
                         PutConstructor,
                         IsSubscript,
@@ -7787,13 +7788,80 @@ END BuildTSizeFunction ;
 
 
 (*
+   ExpectingParameterType - 
+                              *)
+
+PROCEDURE ExpectingParameterType (BlockSym, Type: CARDINAL) ;
+VAR
+   s1, s2: String ;
+BEGIN
+   IF NOT IsAModula2Type(Type)
+   THEN
+      IF Type=NulSym
+      THEN
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf1(Mark(InitString('the type used in the formal parameter in procedure (%s) is unknown')),
+                                 s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
+      THEN
+         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf2(Mark(InitString('the type in the formal parameter is unknown (%s) in procedure (%s)')),
+                                 s1, s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      ELSE
+         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) specified as the formal parameter in procedure (%s) was not declared as a type')),
+                                 s1, s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      END
+   END
+END ExpectingParameterType ;
+
+
+(*
+   ExpectingVariableType - 
+*)
+
+PROCEDURE ExpectingVariableType (BlockSym, Type: CARDINAL) ;
+VAR
+   s1, s2: String ;
+BEGIN
+   IF NOT IsAModula2Type(Type)
+   THEN
+      IF Type=NulSym
+      THEN
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf1(Mark(InitString('the type used during the variable declaration section in procedure (%s) is unknown')),
+                                 s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      ELSIF IsPartialUnbounded(Type) OR IsUnknown(Type)
+      THEN
+         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf2(Mark(InitString('the type (%s) used during variable declaration section in procedure (%s) is unknown')),
+                                 s1, s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      ELSE
+         s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(Type)))) ;
+         s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
+         ErrorStringAt2(Sprintf2(Mark(InitString('the symbol (%s) is not a type and therefore cannot be used to declare a variable in procedure (%s)')),
+                                 s1, s2),
+                        GetDeclared(BlockSym), GetDeclared(Type))
+      END
+   END
+END ExpectingVariableType ;
+
+
+(*
    CheckVariablesAndParameterTypesInBlock - checks to make sure that block, BlockSym, has
                                             parameters types and variable types which are legal.
 *)
 
 PROCEDURE CheckVariablesAndParameterTypesInBlock (BlockSym: CARDINAL) ;
 VAR
-   s1, s2 : String ;
    i, n,
    ParamNo: CARDINAL ;
 BEGIN
@@ -7812,23 +7880,10 @@ BEGIN
          IF i<=ParamNo
          THEN
             (* n is a parameter *)
-            IF NOT IsAModula2Type(GetType(n))
-            THEN
-               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(n))))) ;
-               s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-               ErrorStringAt2(Sprintf2(Mark(InitString('the parameter type specified (%s) in procedure (%s) was not declared as a type')),
-                                       s1, s2),
-                              GetDeclared(BlockSym), GetDeclared(GetType(n)))
-            END
+            ExpectingParameterType(BlockSym, GetType(n))
          ELSE
             (* n is a local variable *)
-            IF NOT IsAModula2Type(GetType(n))
-            THEN
-               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(n))))) ;
-               ErrorStringAt(Sprintf1(Mark(InitString('the variable type specified (%s) was not declared as a type')),
-                                      s1),
-                             GetDeclared(GetType(n)))
-            END
+            ExpectingVariableType(BlockSym, GetType(n))
          END
       END ;
       INC(i)

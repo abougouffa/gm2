@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE M2GenGCC ;
 
-FROM SYSTEM IMPORT ADDRESS ;
+FROM SYSTEM IMPORT ADDRESS, WORD ;
 
 FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         PushVarSize,
@@ -87,7 +87,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType ;
+FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -182,8 +182,6 @@ FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
                     SubQuad, PutQuad,
                     QuadToTokenNo,
                     DisplayQuadList ;
-
-FROM SYSTEM IMPORT WORD ;
 
 CONST
    Debugging         = FALSE ;
@@ -2425,15 +2423,27 @@ BEGIN
    THEN
       DoCopyString(t, op3t, GetType(op1), op2, op3) ;
       AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                               BuildAddr(op3t, FALSE),
-                                               t))
+                                  BuildAddr(op3t, FALSE),
+                                  t))
    ELSE
-      IF (SkipType(GetType(op1))=Word) AND Iso AND
-         (SkipType(GetType(op3))#SkipType(GetType(op1)))
+      IF ((IsGenericSystemType(SkipType(GetType(op1))) #
+           IsGenericSystemType(SkipType(GetType(op3)))) OR
+          (IsUnbounded(SkipType(GetType(op1))) AND
+           IsUnbounded(SkipType(GetType(op3))) AND
+           (IsGenericSystemType(SkipType(GetType(GetType(op1)))) #
+            IsGenericSystemType(SkipType(GetType(GetType(op3))))))) AND
+         (NOT IsConst(op3))
       THEN
+         AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
+                                     BuildAddr(Mod2Gcc(op3), FALSE),
+                                     BuildSize(Mod2Gcc(op1), FALSE)))
+      ELSIF (SkipType(GetType(op1))=Word) AND Iso AND
+            (SkipType(GetType(op3))#SkipType(GetType(op1)))
+      THEN
+         (* in ISO the WORD type is defined as an ARRAY of BYTEs *)
          t := BuildAssignmentTree(BuildIndirect(BuildAddr(Mod2Gcc(op1), FALSE),
                                                 GetWordType()),
-                                  BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE))
+                                  BuildConvert(GetWordType(), Mod2Gcc(op3), FALSE)) ;
       ELSE
          t := BuildAssignmentTree(Mod2Gcc(op1),
                                   FoldConstBecomes(QuadToTokenNo(quad), op1, op3))

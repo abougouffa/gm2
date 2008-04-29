@@ -7148,6 +7148,7 @@ gccgm2_BuildStartSetConstructor (tree type)
 {
   struct struct_constructor *p = push_constructor ();
 
+  type = skip_type_decl (type);
   layout_type (type);
   p->constructor_type = type;
   p->constructor_fields = TYPE_FIELDS (type);
@@ -7214,6 +7215,7 @@ gccgm2_BuildStartRecordConstructor (tree type)
 {
   struct struct_constructor *p = push_constructor ();
 
+  type = skip_type_decl (type);
   layout_type (type);
   p->constructor_type = type;
   p->constructor_fields = TYPE_FIELDS (type);
@@ -7259,6 +7261,7 @@ gccgm2_BuildStartArrayConstructor (tree type)
 {
   struct struct_constructor *p = push_constructor ();
 
+  type = skip_type_decl (type);
   layout_type (type);
   p->constructor_type = type;
   p->constructor_fields = TREE_TYPE (type);

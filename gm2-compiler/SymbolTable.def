@@ -152,6 +152,7 @@ EXPORT QUALIFIED NulSym,
                  IsModule,
                  IsInnerModule,
                  IsUnknown,
+                 IsPartialUnbounded,
                  IsType,
                  IsProcedure,
                  IsParameter,
@@ -1413,6 +1414,13 @@ PROCEDURE RenameSym (Sym: CARDINAL; SymName: Name) ;
 *)
 
 PROCEDURE IsUnknown (Sym: WORD) : BOOLEAN ;
+
+
+(*
+   IsPartialUnbounded - returns TRUE if, sym, is a partially unbounded symbol.
+*)
+
+PROCEDURE IsPartialUnbounded (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

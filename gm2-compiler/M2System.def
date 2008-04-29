@@ -53,7 +53,7 @@ EXPORT QUALIFIED
 
                  IntegerN, CardinalN, WordN, RealN, SetN,
                  IsIntegerN, IsCardinalN, IsWordN,
-                 IsRealN, IsSetN,
+                 IsRealN, IsSetN, IsGenericSystemType,
 
                  InitSystem ;
 
@@ -188,6 +188,14 @@ PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsRealN (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsGenericSystemType - returns TRUE if, sym, is of type
+                         BYTE, WORD or any other length.
+*)
+
+PROCEDURE IsGenericSystemType (sym: CARDINAL) : BOOLEAN ;
 
 
 END M2System.

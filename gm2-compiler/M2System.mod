@@ -631,4 +631,18 @@ BEGIN
 END IsRealN ;
 
 
+(*
+   IsGenericSystemType - returns TRUE if, sym, is of type
+                         BYTE, WORD or any other length.
+*)
+
+PROCEDURE IsGenericSystemType (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (sym#NulSym) AND
+          (IsWordN(sym) OR (sym=Word) OR (sym=Byte) OR (sym=Loc))
+         )
+END IsGenericSystemType ;
+
+
 END M2System.

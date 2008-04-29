@@ -1824,6 +1824,25 @@ END IncludeType ;
 
 
 (*
+   IncludeSubscript - 
+*)
+
+PROCEDURE IncludeSubscript (l: List; sym: CARDINAL) ;
+VAR
+   t: CARDINAL ;
+BEGIN
+   t := GetArraySubscript(sym) ;
+   IF t#NulSym
+   THEN
+      printf0(' subrange [') ;
+      PrintTerse(t) ;
+      IncludeItemIntoList(l, t) ;
+      printf0(']') ;
+   END
+END IncludeSubscript ;
+
+
+(*
    PrintLocalSymbol - 
 *)
 
@@ -1951,6 +1970,7 @@ BEGIN
    ELSIF IsArray(sym)
    THEN
       printf2('sym %d IsArray (%a)', sym, n) ;
+      IncludeSubscript(l, sym) ;
       IncludeType(l, sym)
    ELSIF IsEnumeration(sym)
    THEN

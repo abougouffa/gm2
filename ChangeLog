@@ -1,3 +1,25 @@
+2008-04-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  skip_type_decl in build constructor
+	  functions.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  handle subscripts
+	  in PrintVerbose routines.
+	* gm2/gm2-compiler/M2GenGCC.mod:  detect unbounded
+	  arrays of generic type and use memcpy rather than
+	  assignment.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  improved error
+	  messages for unknown types at the end of functions.
+	* gm2/gm2/gm2-compiler/M2System.def:  export
+	  IsGenericSystemType.
+	* gm2/gm2/gm2-compiler/M2System.mod:  implement
+	  IsGenericSystemType.
+	* gm2/gm2-compiler/SymbolTable.def:  export
+	  IsPartialUnbounded.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement
+	  IsPartialUnbounded and added PartialUnbounded
+	  cases to GetSymName and GetDeclared.
+	* fixed bug reported by James Cox.
+
 2008-04-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  build_common_tree_nodes requesting
