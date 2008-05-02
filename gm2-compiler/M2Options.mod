@@ -399,6 +399,10 @@ BEGIN
    THEN
       DumpSystemExports := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fswig')
+   THEN
+      GenerateSwig := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
    THEN
       Verbose := TRUE ;
@@ -524,5 +528,6 @@ BEGIN
    PedanticCast                 := FALSE ;
    Xcode                        := FALSE ;
    DumpSystemExports            := FALSE ;
+   GenerateSwig                 := FALSE ;
    ScanForInitialOptions
 END M2Options.

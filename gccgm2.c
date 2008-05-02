@@ -9794,7 +9794,7 @@ gccgm2_AreConstantsEqual (tree e1, tree e2)
 int
 gccgm2_DetermineSign (tree e)
 {
-  return tree_int_cst_sgn(e);
+  return tree_int_cst_sgn (e);
 }
 
 /*

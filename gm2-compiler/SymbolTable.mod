@@ -6749,17 +6749,34 @@ END NoOfLocalVar ;
 
 
 (*
-   IsUnboundedParam - Returns a conditional depending whether parameter
-                      ParamNo is an unbounded array procedure parameter.
+   IsParameterVar - returns true if parameter symbol Sym
+                    was declared as a VAR.
 *)
 
-PROCEDURE IsUnboundedParam (Sym: CARDINAL; ParamNo: CARDINAL) : BOOLEAN ;
-VAR
-   param: CARDINAL ;
+PROCEDURE IsParameterVar (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   Assert(IsProcedure(Sym) OR IsProcType(Sym)) ;
-   param := GetNthParam(Sym, ParamNo) ;
-   WITH Symbols[param] DO
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ParamSym   :  RETURN( FALSE ) |
+      VarParamSym:  RETURN( TRUE )
+
+      ELSE
+         InternalError('expecting Param or VarParam symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END IsParameterVar ;
+
+
+(*
+   IsParameterUnbounded - returns TRUE if parameter, Sym, is
+                          unbounded.
+*)
+
+PROCEDURE IsParameterUnbounded (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ParamSym   :  RETURN( Param.IsUnbounded ) |
@@ -6770,6 +6787,21 @@ BEGIN
                        __FILE__, __LINE__)
       END
    END
+END IsParameterUnbounded ;
+
+
+(*
+   IsUnboundedParam - Returns a conditional depending whether parameter
+                      ParamNo is an unbounded array procedure parameter.
+*)
+
+PROCEDURE IsUnboundedParam (Sym: CARDINAL; ParamNo: CARDINAL) : BOOLEAN ;
+VAR
+   param: CARDINAL ;
+BEGIN
+   Assert(IsProcedure(Sym) OR IsProcType(Sym)) ;
+   param := GetNthParam(Sym, ParamNo) ;
+   RETURN( IsParameterUnbounded(param) )
 END IsUnboundedParam ;
 
 

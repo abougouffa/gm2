@@ -157,6 +157,10 @@ fdump-system-exports
 Modula-2
 display all inbuilt system items
 
+fswig
+Modula-2
+create a swig interface file for the module
+
 Wstudents
 Modula-2
 extra compile time semantic checking, typically tries to catch bad style

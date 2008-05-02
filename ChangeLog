@@ -1,3 +1,32 @@
+2008-05-02       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Make-lang.in:  added rules for M2Swig.def and
+	  M2Swig.mod.
+	* gm2/lang.opt:  added new option -fswig.
+	* gm2/gm2-compiler/M2Code.mod:  import GenerateSwigFile
+	  and call it appropriately.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  improved debugging
+	  of subranges.
+	* gm2/gm2-compiler/M2Options.def:  added GenerateSwig.
+	* gm2/gm2-compiler/M2Options.mod:  implemented case to
+	  test for -fswig which sets GenerateSwig to TRUE.
+	* gm2/gm2-compiler/SymbolTable.def:  export
+	  IsParameterUnbounded, IsParameterVar.
+	* gm2/gm2-compiler/SymbolTable.mod:  implemented above
+	  procedures.
+	* gm2/init/gm2-gccinit:  added reference to M2Swig.
+	* gm2/examples/swig/{full-strlib,strlen,strlib}:  new
+	  directories.
+	* gm2/examples/swig/full-strlib/{Makefile,testcopy.py,
+	  testequ.py,testlen.py}:  new files.
+	* gm2/examples/swig/strlen/{Makefile,StrLib.def,StrLib.i,
+	  StrLib.mod,testlen.py}:  new files.
+	* gm2/examples/swig/strlib/{Makefile,StrLib.def,
+	  StrLib.mod,testlen.py}:  new files.
+	* gm2/gm2-compiler/M2Swig.{def,mod}:  new files which
+	  implement an automatic way of producing swig interface
+	  files from an implementation module.
+	
 2008-04-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  skip_type_decl in build constructor

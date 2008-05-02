@@ -78,5 +78,6 @@ SymbolConversion
 M2GCCDeclare
 M2GenGCC
 M2Range
+M2Swig
 gm2
 mod_init

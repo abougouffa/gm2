@@ -58,6 +58,7 @@ FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
 FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBlockDo ;
 FROM gccgm2 IMPORT InitGlobalContext, FinishBackend, SetFlagUnitAtATime ;
 FROM M2Error IMPORT FlushErrors, FlushWarnings ;
+FROM M2Swig IMPORT GenerateSwigFile ;
 
 
 CONST
@@ -178,6 +179,7 @@ BEGIN
    FlushErrors ;
    CodeBlock(GetMainModule()) ;
    MarkExported(GetMainModule()) ;
+   GenerateSwigFile(GetMainModule()) ;
    FinishBackend ;
 
    OptimizationAnalysis

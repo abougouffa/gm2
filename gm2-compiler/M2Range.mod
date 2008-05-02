@@ -18,7 +18,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Range ;
 
 
-
 FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsVar, IsConst, PushValue, GetSubrange, GetType,
                         IsSubrange, GetSymName, IsTemporary, IsSet,

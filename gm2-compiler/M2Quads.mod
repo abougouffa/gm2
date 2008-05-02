@@ -982,7 +982,7 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Op: QuadOperator;
                    Oper1, Oper2, Oper3: CARDINAL) ;
 BEGIN
-   IF QuadNo=162
+   IF QuadNo=5521
    THEN
       stop
    END ;

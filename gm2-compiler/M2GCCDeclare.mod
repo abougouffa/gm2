@@ -1899,6 +1899,9 @@ END IncludeUnbounded ;
 
 PROCEDURE PrintVerboseFromList (l: List; i: CARDINAL) ;
 VAR
+   type,
+   low,
+   high,
    sym  : CARDINAL ;
    n, n2: Name ;
 BEGIN
@@ -2035,7 +2038,21 @@ BEGIN
       printf2('sym %d IsSubscript (%a)', sym, n)
    ELSIF IsSubrange(sym)
    THEN
-      printf2('sym %d IsSubrange (%a)', sym, n)
+      GetSubrange(sym, high, low) ;
+      printf2('sym %d IsSubrange (%a)', sym, n) ;
+      IF (low#NulSym) AND (high#NulSym)
+      THEN
+         type := GetType(sym) ;
+         IF type#NulSym
+         THEN
+            IncludeType(l, sym) ;
+            n := GetSymName(type) ;
+            printf1(' %a', n)
+         END ;
+         n := GetSymName(low) ;
+         n2 := GetSymName(high) ;
+         printf2('[%a..%a]', n, n2)
+      END
    ELSIF IsProcedureVariable(sym)
    THEN
       printf2('sym %d IsProcedureVariable (%a)', sym, n)
@@ -3128,11 +3145,12 @@ BEGIN
    IF Subscript#NulSym
    THEN
       Assert(IsSubscript(Subscript)) ;
-      Type := SkipType(GetType(Subscript)) ;
+      Type := GetType(Subscript) ;
       IF NOT AllDependantsWritten(Type)
       THEN
          solved := FALSE
       END ;
+      Type := SkipType(Type) ;
       (* the array might be declared as ARRAY type OF foo *)
       Low  := GetTypeMin(Type) ;
       High := GetTypeMax(Type) ;

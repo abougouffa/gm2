@@ -156,6 +156,8 @@ EXPORT QUALIFIED NulSym,
                  IsType,
                  IsProcedure,
                  IsParameter,
+                 IsParameterUnbounded,
+                 IsParameterVar,
                  IsVarParam,
                  IsUnboundedParam,
                  IsPointer,
@@ -1351,6 +1353,22 @@ PROCEDURE IsVarParam (Sym: CARDINAL; ParamNo: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsUnboundedParam (Sym: CARDINAL; ParamNo: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsParameterUnbounded - returns TRUE if parameter, Sym, is
+                          unbounded.
+*)
+
+PROCEDURE IsParameterUnbounded (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsParameterVar - returns true if parameter symbol Sym
+                    was declared as a VAR.
+*)
+
+PROCEDURE IsParameterVar (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
