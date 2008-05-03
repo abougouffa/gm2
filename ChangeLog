@@ -1,5 +1,12 @@
 2008-05-02       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2Swig.{def,mod}:  new files.
+	  Checked in this time.
+	* gm2/gm2-compiler/gm2lgen.mod:  added and implemented
+	  the -shared option.
+
+2008-05-02       Gaius Mulley <gaius@gnu.org>
+
         * gm2/Make-lang.in:  added rules for M2Swig.def and
 	  M2Swig.mod.
 	* gm2/lang.opt:  added new option -fswig.

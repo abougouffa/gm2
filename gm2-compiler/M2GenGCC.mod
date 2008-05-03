@@ -1783,7 +1783,7 @@ BEGIN
    IF GetMode(ProcVar)=LeftValue
    THEN
       tree := BuildIndirectProcedureCallTree(BuildIndirect(Mod2Gcc(ProcVar), Mod2Gcc(proc)),
-                                         ReturnType)
+                                             ReturnType)
    ELSE
       tree := BuildIndirectProcedureCallTree(Mod2Gcc(ProcVar), ReturnType)
    END
@@ -2080,7 +2080,7 @@ END FoldBuiltinFunction ;
 
 PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   n1: Name ;
+   n: Name ;
 BEGIN
    IF op1=0
    THEN
@@ -2089,9 +2089,9 @@ BEGIN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
-         n1 := GetSymName(op3) ;
+         n := GetSymName(op3) ;
          ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
-                                n1), CurrentQuadToken)
+                                n), CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
          BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
@@ -2127,14 +2127,14 @@ END CodeFunctValue ;
 
 PROCEDURE CodeAddr (q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t : Tree ;
-   s1: String ;
+   t: Tree ;
+   s: String ;
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
       ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%s)')),
-                             s1),
+                             s),
                     CurrentQuadToken)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
@@ -2164,8 +2164,8 @@ END CheckStop ;
 
 PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s1: String ;
-   t : Tree ;
+   s: String ;
+   t: Tree ;
 BEGIN
    DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    IF IsConst(op1) AND IsConst(op3)
@@ -2176,9 +2176,9 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(op1)
          THEN
-            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1)))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1)))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('constant, %s, should not be reassigned')),
-                                   s1),
+                                   s),
                           tokenno)
          ELSE
             IF IsConstString(op3)
@@ -2823,15 +2823,15 @@ END CodeModFloor ;
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List;
                             quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t : Tree ;
-   s1: String ;
+   t: Tree ;
+   s: String ;
 BEGIN
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
    THEN
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3))))) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3))))) ;
       ErrorStringAt(Sprintf1(Mark(InitString('unknown built in constant (%s)')),
-                             s1), tokenno)
+                             s), tokenno)
    ELSE
       AddModGcc(op1, t) ;
       RemoveItemFromList(l, op1) ;
@@ -2848,7 +2848,7 @@ PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List;
                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t     : Tree ;
-   s, s1 : String ;
+   s     : String ;
    d,
    result: CARDINAL ;
 BEGIN
@@ -2866,9 +2866,9 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
-               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
+               s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
                ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%s)')),
-                                      s1), QuadToTokenNo(quad))
+                                      s), QuadToTokenNo(quad))
             END
          ELSE
             (* rewrite the quad to use becomes *)
@@ -2894,9 +2894,9 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
-               s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
+               s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
                ErrorStringAt(Sprintf1(Mark(InitString('parameter to CAP must be a single character (%s)')),
-                                      s1), QuadToTokenNo(quad))
+                                      s), QuadToTokenNo(quad))
             END
          END
       END
@@ -2993,7 +2993,7 @@ PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t  : Tree ;
    mod: CARDINAL ;
-   n1 : Name ;
+   n  : Name ;
 BEGIN
    IF IsModule(op2) OR IsDefImp(op2) OR
       (IsProcedure(op2) AND GetNeedSavePriority(op2))
@@ -3009,8 +3009,8 @@ BEGIN
       THEN
          IF PriorityDebugging
          THEN
-            n1 := GetSymName(op2) ;
-            printf1('procedure <%a> needs to save interrupts\n', n1)
+            n := GetSymName(op2) ;
+            printf1('procedure <%a> needs to save interrupts\n', n)
          END ;
          DeclareConstant(CurrentQuadToken, GetPriority(mod)) ;
          BuildParam(Mod2Gcc(GetPriority(mod))) ;
@@ -3033,7 +3033,7 @@ PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t  : Tree ;
    mod: CARDINAL ;
-   n1 : Name ;
+   n  : Name ;
 BEGIN
    IF IsModule(op2) OR IsDefImp(op2) OR
       (IsProcedure(op2) AND GetNeedSavePriority(op2))
@@ -3049,8 +3049,8 @@ BEGIN
       THEN
          IF PriorityDebugging
          THEN
-            n1 := GetSymName(op2) ;
-            printf1('procedure <%a> needs to restore interrupts\n', n1)
+            n := GetSymName(op2) ;
+            printf1('procedure <%a> needs to restore interrupts\n', n)
          END ;
          BuildParam(Mod2Gcc(op1)) ;
          t := BuildProcedureCallTree(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
@@ -3522,7 +3522,7 @@ END GetFieldNo ;
 
 PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s1     : String ;
+   s      : String ;
    low,
    high   : CARDINAL ;
    offset : Tree ;
@@ -3551,9 +3551,9 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s1), CurrentQuadToken)
+                                   s), CurrentQuadToken)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -3595,7 +3595,7 @@ END FoldExcl ;
 
 PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s1      : String ;
+   s       : String ;
    low,
    high    : CARDINAL ;
    offset  : Tree ;
@@ -3619,9 +3619,9 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s1), CurrentQuadToken)
+                                   s), CurrentQuadToken)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -5137,7 +5137,7 @@ END BuildIfNotVarInConstValue ;
 
 PROCEDURE CodeIfIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s1      : String ;
+   s       : String ;
    low,
    high    : CARDINAL ;
    lowtree,
@@ -5165,9 +5165,9 @@ BEGIN
                               GetMode(op2)=LeftValue, fieldno,
                               string(CreateLabelName(op3)))
          ELSE
-            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s1),
+                                   s),
                           CurrentQuadToken)
          END
       ELSIF IsConst(op2)
@@ -5199,7 +5199,7 @@ END CodeIfIn ;
 
 PROCEDURE CodeIfNotIn (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   s1      : String ;
+   s       : String ;
    operator: QuadOperator ;
    low,
    high    : CARDINAL ;
@@ -5228,9 +5228,9 @@ BEGIN
                                  GetMode(op2)=LeftValue, fieldno,
                                  string(CreateLabelName(op3)))
          ELSE
-            s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))) ;
+            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))) ;
             ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s1),
+                                   s),
                           CurrentQuadToken)
          END
       ELSIF IsConst(op2)

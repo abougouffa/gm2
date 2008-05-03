@@ -1597,8 +1597,8 @@ BEGIN
       type := Mod2Gcc(GetType(var))
    END ;
    PreAddModGcc(var, DeclareKnownVariable(name, type,
-                                       isExported, isImported, isTemporary,
-                                       isGlobal, scope))
+                                          isExported, isImported, isTemporary,
+                                          isGlobal, scope))
 END DoVariableDeclaration ;
 
 

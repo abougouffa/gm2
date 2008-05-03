@@ -46,6 +46,7 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1 ;
 (* %%%FORWARD%%%
 PROCEDURE BuildFunctionList ; FORWARD ;
 PROCEDURE GenInitializationCalls ; FORWARD ;
+PROCEDURE GenFinalizationCalls ; FORWARD ;
 PROCEDURE GenExternals ; FORWARD ;
    %%%FORWARD%%% *)
 
@@ -54,6 +55,7 @@ CONST
    Comment = '#'  ; (* Comment leader      *)
 
 VAR
+   SharedLibrary,
    NeedTerminate,
    ExitNeeded   : BOOLEAN ;
    MainName     : String ;
@@ -103,6 +105,7 @@ BEGIN
    i             := 1 ;
    NeedTerminate := TRUE ;
    ExitNeeded    := TRUE ;
+   SharedLibrary := FALSE ;
    MainName      := InitString('main') ;
    fi            := StdIn ;
    fo            := StdOut ;
@@ -115,8 +118,11 @@ BEGIN
          NeedTerminate := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-shared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
          exit(0)
+      ELSIF EqualArray(s, '-shared')
+      THEN
+         SharedLibrary := TRUE
       ELSIF EqualArray(s, '-o')
       THEN
          INC(i) ;
@@ -146,6 +152,44 @@ END ScanArgs ;
 
 
 (*
+   GenInit - 
+*)
+
+PROCEDURE GenInit ;
+BEGIN
+   IF SharedLibrary
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nvoid __attribute__ ((constructor)) init (void);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nvoid __attribute__ ((constructor)) init (void)\n'))))))
+   ELSE
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nstatic void init (int argc, char *argv[])\n')))))) ;
+   END ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n'))))));
+   GenInitializationCalls ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))));
+END GenInit ;
+
+
+(*
+   GenFinish - 
+*)
+
+PROCEDURE GenFinish ;
+BEGIN
+   IF SharedLibrary
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nvoid __attribute__ ((destructor)) finish (void);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nvoid __attribute__ ((destructor)) finish (void)\n'))))))
+   ELSE
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nstatic void finish (void)\n'))))))
+   END ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
+   GenFinalizationCalls ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))
+END GenInit ;
+
+
+(*
    GenMain - writes out the main() function together with module initialization
              calls.
 *)
@@ -156,22 +200,17 @@ BEGIN
    ScanArgs ;
    BuildFunctionList ;
    GenExternals ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int \n')))))) ;
-   Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('%s (argc, argv)\n')), MainName)))) ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('int   argc ;\n')))))) ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('char  *argv[];\n')))))) ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
-   GenInitializationCalls ;
-   IF NeedTerminate
+   GenInit ;
+   GenFinish ;
+   IF NOT SharedLibrary
    THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate();\n'))))))
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('\nint %s (int argc, char *argv[])\n')), MainName)))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   init (argc, argv);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   finish (argc, argv);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return (0);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))
    END ;
-   IF ExitNeeded
-   THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit(0);\n'))))))
-   END ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return(0);\n')))))) ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n')))))) ;
    Close(fo)
 END GenMain ;
 
@@ -188,18 +227,19 @@ VAR
 BEGIN
    IF ExitNeeded
    THEN
-      Fin(WriteS(fo, Mark(InitString('extern void exit(int);'))))
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern void exit(int);\n\n'))))))
    END ;
    n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern _M2_%s_init(int argc, char *argv[]);\n')), funcname)))) ;
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern void _M2_%s_init (int argc, char *argv[]);\n')), funcname)))) ;
+      (* Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern void _M2_%s_finish (void);\n')), funcname)))) ; *)
       INC(i)
    END ;
    IF NeedTerminate
    THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern M2RTS_Terminate(void);\n'))))))
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nextern void M2RTS_Terminate(void);\n'))))))
    END
 END GenExternals ;
 
@@ -219,15 +259,49 @@ BEGIN
    i := LowIndice(FunctionList) ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init(argc, argv);\n')),
-                                   funcname)))) ;
+      IF SharedLibrary
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, NULL);\n')),
+                                      funcname))))
+      ELSE
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (argc, argv);\n')),
+                                      funcname))))
+      END ;
       INC(i)
-   END ;
-   IF NeedTerminate
-   THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('  M2RTS_Terminate();\n'))))))
    END
 END GenInitializationCalls ;
+
+
+(*
+   GenFinalizationCalls - writes out the finalization calls for the modules
+                          in the application suit.
+*)
+
+PROCEDURE GenFinalizationCalls ;
+VAR
+   funcname,
+   s       : String ;
+   i, n    : CARDINAL ;
+BEGIN
+   IF NeedTerminate
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate ();\n'))))))
+   END ;
+   n := HighIndice(FunctionList) ;
+   i := LowIndice(FunctionList) ;
+   WHILE i<=n DO
+      funcname := GetIndice(FunctionList, n) ;
+(*
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('   _M2_%s_finish ();\n')),
+                                   funcname)))) ;
+*)
+      DEC(n)
+   END ;
+   IF ExitNeeded
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit (0);\n'))))))
+   END
+END GenFinalizationCalls ;
 
 
 (*
