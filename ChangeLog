@@ -4,6 +4,8 @@
 	  Checked in this time.
 	* gm2/gm2-compiler/gm2lgen.mod:  added and implemented
 	  the -shared option.
+	* gm2/gm2-compiler/gm2lgen.mod:  fixed finish function
+	  parameter mismatch.
 
 2008-05-02       Gaius Mulley <gaius@gnu.org>
 

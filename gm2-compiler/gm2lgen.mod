@@ -207,7 +207,7 @@ BEGIN
       Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('\nint %s (int argc, char *argv[])\n')), MainName)))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   init (argc, argv);\n')))))) ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   finish (argc, argv);\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   finish ();\n')))))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   return (0);\n')))))) ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))
    END ;

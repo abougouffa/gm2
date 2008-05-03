@@ -38,6 +38,6 @@ numberio: force
 	python testnum.py
 
 clean: force
-	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* StrLib.py *.i
+	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* StrLib.py NumberIO.py *.i
 
 force:
