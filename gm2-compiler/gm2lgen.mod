@@ -261,7 +261,7 @@ BEGIN
       funcname := GetIndice(FunctionList, i) ;
       IF SharedLibrary
       THEN
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, NULL);\n')),
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, (void *)0);\n')),
                                       funcname))))
       ELSE
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (argc, argv);\n')),
