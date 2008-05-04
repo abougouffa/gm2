@@ -186,7 +186,7 @@ BEGIN
    Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('{\n')))))) ;
    GenFinalizationCalls ;
    Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('}\n'))))))
-END GenInit ;
+END GenFinish ;
 
 
 (*
