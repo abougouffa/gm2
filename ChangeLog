@@ -1,3 +1,8 @@
+2008-05-06       Michael Lambert <lambert@psc.edu>
+
+	* gm2/patches/gcc/4.1.2/03.michael_i386:  new file
+	  which patches gcc/config/i386/i386.c.
+
 2008-05-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gm2lgen.mod:  fixed name at end of
