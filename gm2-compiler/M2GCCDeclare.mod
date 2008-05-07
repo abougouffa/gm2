@@ -85,6 +85,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName,
                         GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
+                        GetParameterShadowVar,
                         GetUnboundedAddressOffset, GetUnboundedHighOffset,
                         GetUnboundedRecordType,
                         IsModuleWithinProcedure,
@@ -1947,7 +1948,15 @@ BEGIN
       END
    ELSIF IsParameter(sym)
    THEN
-      printf2('sym %d IsParameter (%a)', sym, n)
+      printf2('sym %d IsParameter (%a)', sym, n) ;
+      IF GetParameterShadowVar(sym)=NulSym
+      THEN
+         printf0(' no shadow local variable')
+      ELSE
+         printf0(' shadow ') ;
+         PrintVerboseFromList(l, GetParameterShadowVar(sym))
+      END ;
+      IncludeType(l, sym)
    ELSIF IsPointer(sym)
    THEN
       printf2('sym %d IsPointer (%a)', sym, n) ;

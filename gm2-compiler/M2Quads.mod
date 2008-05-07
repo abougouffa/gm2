@@ -288,11 +288,11 @@ PROCEDURE BuildShiftFunction ; FORWARD ;
 PROCEDURE BuildRotateFunction ; FORWARD ;
 PROCEDURE BuildMakeAdrFunction ; FORWARD ;
 PROCEDURE CheckVariablesInBlock (BlockSym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE CheckFunctionReturn (ProcSym: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
-PROCEDURE CheckAddVariableRead (Sym: CARDINAL; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
+PROCEDURE CheckAddVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ; FORWARD ;
 PROCEDURE ConvertBooleanToVariable (i: CARDINAL) ; FORWARD ;
 PROCEDURE BuildFloatFunction (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE BuildTruncFunction (Sym: CARDINAL) ; FORWARD ;
@@ -388,6 +388,8 @@ PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckVariablesAt (scope: CARDINAL) ; FORWARD ;
 PROCEDURE CheckVariableAt (sym: CARDINAL) ; FORWARD ;
+PROCEDURE CheckAddVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
+PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -903,40 +905,41 @@ BEGIN
    IfLessEquOp,
    IfGreOp,
    IfGreEquOp : ManipulateReference(QuadNo, Oper3) ;
-                CheckAddVariableRead(Oper1, QuadNo) ;
-                CheckAddVariableRead(Oper2, QuadNo) |
+                CheckAddVariableRead(Oper1, FALSE, QuadNo) ;
+                CheckAddVariableRead(Oper2, FALSE, QuadNo) |
 
    GotoOp     : ManipulateReference(QuadNo, Oper3) |
 
    (* variable references *)
 
    InclOp,
-   ExclOp            : CheckAddVariableRead(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) ;
-                       CheckAddVariableWrite(Oper1, QuadNo) |
+   ExclOp            : CheckAddVariableRead(Oper3, FALSE, QuadNo) ;
+                       CheckAddVariableWrite(Oper1, TRUE, QuadNo) |
    UnboundedOp,
    HighOp,
    FunctValueOp,
    NegateOp,
    BecomesOp,
-   SizeOp            : CheckAddVariableWrite(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) |
-   AddrOp            : CheckAddVariableWrite(Oper1, QuadNo) ;   (* Addr is peculiar as we might in the future read/write *)
-                       CheckAddVariableRead(Oper3, QuadNo) ;
-                       CheckAddVariableWrite(Oper3, QuadNo) |
-   ReturnValueOp     : CheckAddVariableRead(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) |
+   SizeOp            : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckAddVariableRead(Oper3, FALSE, QuadNo) |
+   AddrOp            : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+                       (* CheckAddVariableReadLeftValue(Oper3, QuadNo) *)
+                       (* the next line is a kludge and assumes we _will_
+                          write to the variable as we have taken its address *)
+                       CheckRemoveVariableWrite(Oper1, TRUE, QuadNo) |
+   ReturnValueOp     : CheckAddVariableRead(Oper1, FALSE, QuadNo) |
    ReturnOp,
-   CallOp,
    NewLocalVarOp,
-   KillLocalVarOp    : CheckAddVariableRead(Oper3, QuadNo) |
+   KillLocalVarOp    : |
+   CallOp            : CheckAddVariableRead(Oper3, TRUE, QuadNo) |
 
-   ParamOp           : CheckAddVariableRead(Oper2, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) ;
+   ParamOp           : CheckAddVariableRead(Oper2, FALSE, QuadNo) ;
+                       CheckAddVariableRead(Oper3, FALSE, QuadNo) ;
                        IF (Oper1>0) AND (Oper1<=NoOfParam(Oper2)) AND
                           IsVarParam(Oper2, Oper1)
                        THEN
-                          CheckAddVariableWrite(Oper3, QuadNo)    (* may also write to a var parameter *)
+                          (* _may_ also write to a var parameter, although we dont know *)
+                          CheckAddVariableWrite(Oper3, TRUE, QuadNo)
                        END |
    OffsetOp,
    BaseOp,
@@ -954,15 +957,15 @@ BEGIN
    ModFloorOp,
    DivFloorOp,
    ModTruncOp,
-   DivTruncOp        : CheckAddVariableWrite(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper2, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) |
+   DivTruncOp        : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckAddVariableRead(Oper2, FALSE, QuadNo) ;
+                       CheckAddVariableRead(Oper3, FALSE, QuadNo) |
 
-   XIndrOp           : CheckAddVariableRead(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) |
+   XIndrOp           : CheckAddVariableWrite(Oper1, TRUE, QuadNo) ;
+                       CheckAddVariableRead(Oper3, FALSE, QuadNo) |
 
-   IndrXOp           : CheckAddVariableWrite(Oper1, QuadNo) ;
-                       CheckAddVariableRead(Oper3, QuadNo) |
+   IndrXOp           : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckAddVariableRead(Oper3, TRUE, QuadNo) |
 
    RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo)
 
@@ -1001,89 +1004,103 @@ END PutQuad ;
 
 
 (*
+   UndoReadWriteInfo - 
+*)
+
+PROCEDURE UndoReadWriteInfo (QuadNo: CARDINAL;
+                             Op: QuadOperator;
+                             Oper1, Oper2, Oper3: CARDINAL) ;
+BEGIN
+   CASE Op OF
+
+   (* jumps, calls and branches *)
+   IfInOp,
+   IfNotInOp,
+   IfEquOp,
+   IfNotEquOp,
+   IfLessOp,
+   IfLessEquOp,
+   IfGreOp,
+   IfGreEquOp        : RemoveReference(QuadNo) ;
+                       CheckRemoveVariableRead(Oper1, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper2, FALSE, QuadNo) |
+
+   GotoOp            : RemoveReference(QuadNo) |
+
+   (* variable references *)
+
+   InclOp,
+   ExclOp            : CheckRemoveVariableRead(Oper1, FALSE, QuadNo) ;
+                       CheckRemoveVariableWrite(Oper1, TRUE, QuadNo) |
+
+   UnboundedOp,
+   HighOp,
+   FunctValueOp,
+   NegateOp,
+   BecomesOp,
+   SizeOp            : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper3, FALSE, QuadNo) |
+   AddrOp            : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
+                       (* CheckRemoveVariableReadLeftValue(Oper3, QuadNo) ; *)
+                       (* the next line is a kludge and assumes we _will_
+                          write to the variable as we have taken its address *)
+                       CheckRemoveVariableWrite(Oper1, TRUE, QuadNo) |
+   ReturnValueOp     : CheckRemoveVariableRead(Oper1, FALSE, QuadNo) |
+   ReturnOp,
+   CallOp,
+   NewLocalVarOp,
+   KillLocalVarOp    : |
+   ParamOp           : CheckRemoveVariableRead(Oper2, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper3, FALSE, QuadNo) ;
+                       IF (Oper1>0) AND (Oper1<=NoOfParam(Oper2)) AND
+                          IsVarParam(Oper2, Oper1)
+                       THEN
+                          (* _may_ also write to a var parameter, although we dont know *)
+                          CheckRemoveVariableWrite(Oper3, TRUE, QuadNo)
+                       END |
+
+   OffsetOp,
+   BaseOp,
+   LogicalShiftOp,
+   LogicalRotateOp,
+   LogicalOrOp,
+   LogicalAndOp,
+   LogicalXorOp,
+   CoerceOp,
+   ConvertOp,
+   CastOp,
+   AddOp,
+   SubOp,
+   MultOp,
+   ModFloorOp,
+   DivFloorOp,
+   ModTruncOp,
+   DivTruncOp        : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper2, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper3, FALSE, QuadNo) |
+
+   XIndrOp           : CheckRemoveVariableWrite(Oper1, TRUE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper3, FALSE, QuadNo) |
+
+   IndrXOp           : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
+                       CheckRemoveVariableRead(Oper3, TRUE, QuadNo) |
+
+   RangeCheckOp      : CheckRangeRemoveVariableRead(Oper3, QuadNo)
+
+   ELSE
+   END
+END UndoReadWriteInfo ;
+
+
+(*
    EraseQuad - erases a quadruple QuadNo, the quadruple is still in the list
                but wiped clean.
 *)
 
 PROCEDURE EraseQuad (QuadNo: CARDINAL) ;
-VAR
-   i: CARDINAL ;
 BEGIN
    WITH Quads[QuadNo] DO
-      CASE Operator OF
-
-      (* jumps, calls and branches *)
-      IfInOp,
-      IfNotInOp,
-      IfEquOp,
-      IfNotEquOp,
-      IfLessOp,
-      IfLessEquOp,
-      IfGreOp,
-      IfGreEquOp        : RemoveReference(QuadNo) ;
-                          CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand2, QuadNo) |
-
-      GotoOp            : RemoveReference(QuadNo) |
-
-      (* variable references *)
-
-      InclOp,
-      ExclOp            : CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          CheckRemoveVariableWrite(Operand1, QuadNo) |
-
-      UnboundedOp,
-      HighOp,
-      FunctValueOp,
-      NegateOp,
-      BecomesOp,
-      XIndrOp,
-      IndrXOp,
-      SizeOp            : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-      AddrOp            : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          CheckRemoveVariableWrite(Operand3, QuadNo) |
-      ReturnValueOp     : CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-      ReturnOp,
-      CallOp,
-      NewLocalVarOp,
-      KillLocalVarOp    : CheckRemoveVariableRead(Operand3, QuadNo) |
-      ParamOp           : CheckRemoveVariableRead(Operand2, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          IF (Operand1>0) AND
-                             (Operand1<=NoOfParam(Operand2)) AND
-                             IsVarParam(Operand2, Operand1)
-                          THEN
-                             CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
-                          END |
-
-      OffsetOp,
-      BaseOp,
-      LogicalShiftOp,
-      LogicalRotateOp,
-      LogicalOrOp,
-      LogicalAndOp,
-      LogicalXorOp,
-      CoerceOp,
-      ConvertOp,
-      CastOp,
-      AddOp,
-      SubOp,
-      MultOp,
-      DivTruncOp,
-      ModTruncOp,
-      ModFloorOp,
-      DivFloorOp        : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand2, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-
-      RangeCheckOp      : CheckRangeRemoveVariableRead(Operand3, QuadNo)
-
-      ELSE
-      END ;
+      UndoReadWriteInfo(QuadNo, Operator, Operand1, Operand2, Operand3) ;
       Operator := DummyOp ;   (* finally blank it out *)
       Operand1 := 0 ;
       Operand2 := 0 ;
@@ -1093,16 +1110,46 @@ END EraseQuad ;
 
 
 (*
+   CheckAddVariableReadLeftValue - 
+*)
+
+PROCEDURE CheckAddVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      PutReadQuad(sym, LeftValue, q)
+   END
+END CheckAddVariableReadLeftValue ;
+
+
+(*
+   CheckRemoveVariableReadLeftValue - 
+*)
+
+PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ;
+BEGIN
+   IF IsVar(sym)
+   THEN
+      RemoveReadQuad(sym, LeftValue, q)
+   END
+END CheckRemoveVariableReadLeftValue ;
+
+
+(*
    CheckAddVariableRead - checks to see whether symbol, Sym, is a variable or
                           a parameter and if so it then adds this quadruple
                           to the variable list.
 *)
 
-PROCEDURE CheckAddVariableRead (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE CheckAddVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      PutReadQuad(Sym, Quad)
+      PutReadQuad(Sym, GetMode(Sym), Quad) ;
+      IF (GetMode(Sym)=LeftValue) AND canDereference
+      THEN
+         PutReadQuad(Sym, RightValue, Quad)
+      END
    END
 END CheckAddVariableRead ;
 
@@ -1113,11 +1160,15 @@ END CheckAddVariableRead ;
                              quadruple from the variable list.
 *)
 
-PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE CheckRemoveVariableRead (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      RemoveReadQuad(Sym, Quad)
+      RemoveReadQuad(Sym, GetMode(Sym), Quad) ;
+      IF (GetMode(Sym)=LeftValue) AND canDereference
+      THEN
+         RemoveReadQuad(Sym, RightValue, Quad)
+      END
    END
 END CheckRemoveVariableRead ;
 
@@ -1127,11 +1178,17 @@ END CheckRemoveVariableRead ;
                            if so it then adds this quadruple to the variable list.
 *)
 
-PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE CheckAddVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      PutWriteQuad(Sym, Quad)
+      IF (GetMode(Sym)=LeftValue) AND canDereference
+      THEN
+         PutReadQuad(Sym, LeftValue, Quad) ;
+         PutWriteQuad(Sym, RightValue, Quad)
+      ELSE
+         PutWriteQuad(Sym, GetMode(Sym), Quad)
+      END
    END
 END CheckAddVariableWrite ;
 
@@ -1142,11 +1199,17 @@ END CheckAddVariableWrite ;
                               variable list.
 *)
 
-PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE CheckRemoveVariableWrite (Sym: CARDINAL; canDereference: BOOLEAN; Quad: CARDINAL) ;
 BEGIN
    IF IsVar(Sym)
    THEN
-      RemoveWriteQuad(Sym, Quad)
+      IF (GetMode(Sym)=LeftValue) AND canDereference
+      THEN
+         RemoveReadQuad(Sym, LeftValue, Quad) ;
+         RemoveWriteQuad(Sym, RightValue, Quad)
+      ELSE
+         RemoveWriteQuad(Sym, GetMode(Sym), Quad)
+      END
    END
 END CheckRemoveVariableWrite ;
 
@@ -1200,82 +1263,7 @@ VAR
 BEGIN
    AlterReference(Head, QuadNo, Quads[QuadNo].Next) ;
    WITH Quads[QuadNo] DO
-      CASE Operator OF
-
-      (* jumps, calls and branches *)
-      IfInOp,
-      IfNotInOp,
-      IfEquOp,
-      IfNotEquOp,
-      IfLessOp,
-      IfLessEquOp,
-      IfGreOp,
-      IfGreEquOp        : RemoveReference(QuadNo) ;
-                          CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand2, QuadNo) |
-
-      GotoOp            : RemoveReference(QuadNo) |
-
-      (* variable references *)
-
-      InclOp,
-      ExclOp            : CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          CheckRemoveVariableWrite(Operand1, QuadNo) |
-      UnboundedOp,
-      HighOp,
-      FunctValueOp,
-      NegateOp,
-      BecomesOp,
-      SizeOp            : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-      AddrOp            : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          CheckRemoveVariableWrite(Operand3, QuadNo) |
-      ReturnValueOp     : CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-      ReturnOp,
-      CallOp,
-      NewLocalVarOp,
-      KillLocalVarOp    : CheckRemoveVariableRead(Operand3, QuadNo) |
-      ParamOp           : CheckRemoveVariableRead(Operand2, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) ;
-                          IF (Operand1>0) AND
-                             (Operand1<=NoOfParam(Operand2)) AND
-                             IsVarParam(Operand2, Operand1)
-                          THEN
-                             CheckRemoveVariableWrite(Operand3, QuadNo)    (* may also write to a var parameter *)
-                          END |
-      OffsetOp,
-      BaseOp,
-      LogicalShiftOp,
-      LogicalRotateOp,
-      LogicalOrOp,
-      LogicalAndOp,
-      LogicalXorOp,
-      CoerceOp,
-      ConvertOp,
-      CastOp,
-      AddOp,
-      SubOp,
-      MultOp,
-      ModFloorOp,
-      DivFloorOp,
-      ModTruncOp,
-      DivTruncOp        : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand2, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-
-      XIndrOp           : CheckRemoveVariableRead(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-
-      IndrXOp           : CheckRemoveVariableWrite(Operand1, QuadNo) ;
-                          CheckRemoveVariableRead(Operand3, QuadNo) |
-
-      RangeCheckOp      : CheckRangeRemoveVariableRead(Operand3, QuadNo)
-
-      ELSE
-      END
+      UndoReadWriteInfo(QuadNo, Operator, Operand1, Operand2, Operand3)
    END ;
    IF Head=QuadNo
    THEN
@@ -1813,7 +1801,7 @@ VAR
    WriteStart, WriteEnd: CARDINAL ;
    s                   : String ;
 BEGIN
-   GetWriteLimitQuads(IndexSym, Start, End, WriteStart, WriteEnd) ;
+   GetWriteLimitQuads(IndexSym, RightValue, Start, End, WriteStart, WriteEnd) ;
    IF (WriteStart<Omit) AND (WriteStart>Start)
    THEN
       s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
@@ -1821,8 +1809,8 @@ BEGIN
                             s),
                    QuadToTokenNo(WriteStart))
    END ;
-   GetWriteLimitQuads(IndexSym, End, 0, WriteStart, WriteEnd) ;
-   GetReadLimitQuads(IndexSym, End, 0, ReadStart, ReadEnd) ;
+   GetWriteLimitQuads(IndexSym, RightValue, End, 0, WriteStart, WriteEnd) ;
+   GetReadLimitQuads(IndexSym, RightValue, End, 0, ReadStart, ReadEnd) ;
    IF (ReadStart#0) AND ((ReadStart<WriteStart) OR (WriteStart=0))
    THEN
       s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(IndexSym)))) ;
@@ -8026,8 +8014,8 @@ BEGIN
       n := GetNth(ProcSym, i) ;
       IF (n#NulSym) AND (NOT IsTemporary(n))
       THEN
-         GetReadQuads(n, ReadStart, ReadEnd) ;
-         GetWriteQuads(n, WriteStart, WriteEnd) ;
+         GetReadQuads(n, RightValue, ReadStart, ReadEnd) ;
+         GetWriteQuads(n, RightValue, WriteStart, WriteEnd) ;
          IF i>ParamNo
          THEN
             (* n is a not a parameter thus we can check *)
@@ -8084,7 +8072,7 @@ PROCEDURE IsNeverAltered (sym: CARDINAL; Start, End: CARDINAL) : BOOLEAN ;
 VAR
    WriteStart, WriteEnd: CARDINAL ;
 BEGIN
-   GetWriteLimitQuads(sym, Start, End, WriteStart, WriteEnd) ;
+   GetWriteLimitQuads(sym, GetMode(sym), Start, End, WriteStart, WriteEnd) ;
    RETURN( (WriteStart=0) AND (WriteEnd=0) )
 END IsNeverAltered ;
 
@@ -8251,8 +8239,8 @@ BEGIN
          (IsProcedure(BlockSym) OR (((IsDefImp(BlockSym) AND (GetMainModule()=BlockSym)) OR IsModule(BlockSym)) AND
                                     (NOT IsExported(BlockSym, n))))
       THEN
-         GetReadQuads(n, ReadStart, ReadEnd) ;
-         GetWriteQuads(n, WriteStart, WriteEnd) ;
+         GetReadQuads(n, RightValue, ReadStart, ReadEnd) ;
+         GetWriteQuads(n, RightValue, WriteStart, WriteEnd) ;
          IF i<=ParamNo
          THEN
             (* n is a parameter *)

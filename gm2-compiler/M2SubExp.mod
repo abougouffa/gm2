@@ -2571,7 +2571,7 @@ BEGIN
    THEN
       RETURN( TRUE )
    ELSE
-      GetQuads(Sym, UsedStart, UsedEnd) ;
+      GetQuads(Sym, RightValue, UsedStart, UsedEnd) ;
       IF (UsedStart#0) AND (UsedEnd#0) AND ((UsedStart<Start) OR (End<UsedEnd))
       THEN
          (* is used outside *)

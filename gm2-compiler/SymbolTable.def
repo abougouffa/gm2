@@ -94,6 +94,7 @@ EXPORT QUALIFIED NulSym,
                  GetProcedureBuiltin,
                  GetNthParam,
                  GetNthProcedure,
+                 GetParameterShadowVar,
                  GetUnbounded,
                  GetUnboundedRecordType,
                  GetUnboundedAddressOffset,
@@ -1229,7 +1230,8 @@ PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR scope, start, end: CARDINAL) ;
               symbol, Sym, usage.
 *)
 
-PROCEDURE GetQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetQuads (Sym: CARDINAL; m: ModeOfAddr;
+                    VAR Start, End: CARDINAL) ;
 
 
 (*
@@ -1237,7 +1239,8 @@ PROCEDURE GetQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
                   symbol, Sym, usage.
 *)
 
-PROCEDURE GetReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetReadQuads (Sym: CARDINAL; m: ModeOfAddr;
+                        VAR Start, End: CARDINAL) ;
 
 
 (*
@@ -1245,44 +1248,46 @@ PROCEDURE GetReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
                    symbol, Sym, usage.
 *)
 
-PROCEDURE GetWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetWriteQuads (Sym: CARDINAL; m: ModeOfAddr;
+                         VAR Start, End: CARDINAL) ;
 
 
 (*
    PutReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 
 
 (*
    RemoveReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 
 
 (*
    PutWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 
 
 (*
    RemoveWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 
 
 (*
    GetReadLimitQuads - returns Start and End which have been assigned
-                          the start and end of when the symbol was read
-                          to within: StartLimit..EndLimit.
+                       the start and end of when the symbol was read
+                       to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+PROCEDURE GetReadLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
+                             StartLimit, EndLimit: CARDINAL;
                              VAR Start, End: CARDINAL) ;
 
 
@@ -1292,7 +1297,8 @@ PROCEDURE GetReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
                         to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
+                              StartLimit, EndLimit: CARDINAL;
                               VAR Start, End: CARDINAL) ;
 
 
@@ -1369,6 +1375,14 @@ PROCEDURE IsParameterUnbounded (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsParameterVar (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetParameterShadowVar - returns the local variable associated with the
+                           parameter symbol, sym.
+*)
+
+PROCEDURE GetParameterShadowVar (sym: CARDINAL) : CARDINAL ;
 
 
 (*

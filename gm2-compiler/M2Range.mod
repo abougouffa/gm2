@@ -1455,7 +1455,7 @@ PROCEDURE AddVarRead (sym: CARDINAL; quadNo: CARDINAL) ;
 BEGIN
    IF (sym#NulSym) AND IsVar(sym)
    THEN
-      PutReadQuad(sym, quadNo)
+      PutReadQuad(sym, GetMode(sym), quadNo)
    END
 END AddVarRead ;
 
@@ -1471,7 +1471,7 @@ PROCEDURE SubVarRead (sym: CARDINAL; quadNo: CARDINAL) ;
 BEGIN
    IF (sym#NulSym) AND IsVar(sym)
    THEN
-      RemoveReadQuad(sym, quadNo)
+      RemoveReadQuad(sym, GetMode(sym), quadNo)
    END
 END SubVarRead ;
 
@@ -1489,8 +1489,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      AddVarRead(des, quadNo) ;
-      AddVarRead(expr, quadNo)
+      (* AddVarRead(des, quadNo) ; *)
+      (* AddVarRead(expr, quadNo) *)
    END
 END CheckRangeAddVariableRead ;
 
@@ -1507,8 +1507,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      SubVarRead(des, quadNo) ;
-      SubVarRead(expr, quadNo)
+      (* SubVarRead(des, quadNo) ; *)
+      (* SubVarRead(expr, quadNo) *)
    END
 END CheckRangeRemoveVariableRead ;
 

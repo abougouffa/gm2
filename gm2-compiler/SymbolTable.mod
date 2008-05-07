@@ -82,7 +82,7 @@ CONST
    UnboundedHighName    = "_m2_high" ;
 
 TYPE
-   (* TypeOfSymbol denotes the type of symbol.                               *)
+   LRLists = ARRAY [RightValue..LeftValue] OF List ;
 
    TypeOfSymbol = (RecordSym, VarientSym, DummySym,
                    VarSym, EnumerationSym, SubrangeSym, ArraySym,
@@ -318,6 +318,8 @@ TYPE
                                               (* of param.                   *)
                  Type          : CARDINAL ;   (* Index to the type of param. *)
                  IsUnbounded   : BOOLEAN ;    (* ARRAY OF Type?              *)
+                 ShadowVar     : CARDINAL ;   (* The local variable used to  *)
+                                              (* shadow this parameter.      *)
                  At            : Where ;      (* Where was sym declared/used *)
               END ;
 
@@ -326,6 +328,8 @@ TYPE
                                               (* of param.                   *)
                     Type          : CARDINAL ;(* Index to the type of param. *)
                     IsUnbounded   : BOOLEAN ; (* ARRAY OF Type?              *)
+                    ShadowVar     : CARDINAL ;(* The local variable used to  *)
+                                              (* shadow this parameter.      *)
                     At            : Where ;   (* Where was sym declared/used *)
                  END ;
 
@@ -375,8 +379,8 @@ TYPE
                                               (* dereference a pointer?      *)
                IsWritten     : BOOLEAN ;      (* Is variable written to?     *)
                At            : Where ;        (* Where was sym declared/used *)
-               ReadUsageList : List ;         (* list of var read quads      *)
-               WriteUsageList: List ;         (* list of var write quads     *)
+               ReadUsageList,                 (* list of var read quads      *)
+               WriteUsageList: LRLists ;      (* list of var write quads     *)
             END ;
 
    SymType = RECORD
@@ -2728,8 +2732,10 @@ BEGIN
             IsWritten := FALSE ;
             InitWhereDeclared(At) ;
             InitWhereFirstUsed(At) ;      (* Where symbol first used.      *)
-            InitList(ReadUsageList) ;
-            InitList(WriteUsageList)
+            InitList(ReadUsageList[RightValue]) ;
+            InitList(WriteUsageList[RightValue]) ;
+            InitList(ReadUsageList[LeftValue]) ;
+            InitList(WriteUsageList[LeftValue])
          END
       END ;
       (* Add Var to Procedure or Module variable list *)
@@ -6363,16 +6369,19 @@ BEGIN
             name := ParamName ;
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
+            ShadowVar := NulSym ;
             InitWhereDeclared(At)
          END
       END ;
       AddParameter(Sym, ParSym) ;
-      IF ParamName#NulSym
+      IF ParamName#NulName
       THEN
          VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
+         ELSE
+            Symbols[ParSym].Param.ShadowVar := VariableSym
          END
       END
    END ;
@@ -6409,16 +6418,19 @@ BEGIN
             name := ParamName ;
             Type := ParamType ;
             IsUnbounded := isUnbounded ;
+            ShadowVar := NulSym ;
             InitWhereDeclared(At)
          END
       END ;
       AddParameter(Sym, ParSym) ;
-      IF ParamName#NulSym
+      IF ParamName#NulName
       THEN
          VariableSym := MakeVariableForParam(ParamName, Sym, ParamNo) ;
          IF VariableSym=NulSym
          THEN
             RETURN( FALSE )
+         ELSE
+            Symbols[ParSym].VarParam.ShadowVar := VariableSym
          END
       END ;
       RETURN( TRUE )
@@ -6433,8 +6445,7 @@ END PutVarParam ;
 
 PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
 VAR
-   VariableSym,
-   ParSym     : CARDINAL ;
+   ParSym: CARDINAL ;
 BEGIN
    WITH Symbols[ProcSym] DO
       CASE SymbolType OF
@@ -6453,7 +6464,7 @@ BEGIN
       ParamSym:    IF Param.name=NulName
                    THEN
                       Param.name := name ;
-                      VariableSym := MakeVariableForParam(name, ProcSym, no)
+                      Param.ShadowVar := MakeVariableForParam(name, ProcSym, no)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
@@ -6461,7 +6472,7 @@ BEGIN
       VarParamSym: IF VarParam.name=NulName
                    THEN
                       VarParam.name := name ;
-                      VariableSym := MakeVariableForParam(name, ProcSym, no)
+                      VarParam.ShadowVar := MakeVariableForParam(name, ProcSym, no)
                    ELSE
                       InternalError('name of parameter has already been assigned',
                                     __FILE__, __LINE__)
@@ -6822,6 +6833,27 @@ BEGIN
       END
    END
 END IsParameter ;
+
+
+(*
+   GetParameterShadowVar - returns the local variable associated with the
+                           parameter symbol, sym.
+*)
+
+PROCEDURE GetParameterShadowVar (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ParamSym   :  RETURN( Param.ShadowVar ) |
+      VarParamSym:  RETURN( VarParam.ShadowVar )
+
+      ELSE
+         InternalError('expecting a ParamSym or VarParamSym',
+                       __FILE__, __LINE__)
+      END
+   END
+END GetParameterShadowVar ;
 
 
 (*
@@ -8097,9 +8129,10 @@ END GetProcedureQuads ;
                   symbol, Sym, read history usage.
 *)
 
-PROCEDURE GetReadQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetReadQuads (Sym: CARDINAL; m: ModeOfAddr;
+                        VAR Start, End: CARDINAL) ;
 BEGIN
-   GetReadLimitQuads(Sym, 0, 0, Start, End)
+   GetReadLimitQuads(Sym, m, 0, 0, Start, End)
 END GetReadQuads ;
 
 
@@ -8108,9 +8141,10 @@ END GetReadQuads ;
                    symbol, Sym, usage.
 *)
 
-PROCEDURE GetWriteQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetWriteQuads (Sym: CARDINAL; m: ModeOfAddr;
+                         VAR Start, End: CARDINAL) ;
 BEGIN
-   GetWriteLimitQuads(Sym, 0, 0, Start, End)
+   GetWriteLimitQuads(Sym, m, 0, 0, Start, End)
 END GetWriteQuads ;
 
 
@@ -8149,13 +8183,13 @@ END Min ;
               symbol, Sym, usage.
 *)
 
-PROCEDURE GetQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetQuads (Sym: CARDINAL; m: ModeOfAddr; VAR Start, End: CARDINAL) ;
 VAR
    StartRead, EndRead,
    StartWrite, EndWrite: CARDINAL ;
 BEGIN
-   GetReadQuads(Sym, StartRead, EndRead) ;
-   GetWriteQuads(Sym, StartWrite, EndWrite) ;
+   GetReadQuads(Sym, m, StartRead, EndRead) ;
+   GetWriteQuads(Sym, m, StartWrite, EndWrite) ;
    IF StartRead=0
    THEN
       Start := StartWrite
@@ -8181,12 +8215,12 @@ END GetQuads ;
    PutReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: IncludeItemIntoList(Var.ReadUsageList, Quad)
+      VarSym: IncludeItemIntoList(Var.ReadUsageList[m], Quad)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -8199,12 +8233,12 @@ END PutReadQuad ;
    RemoveReadQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveReadQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: RemoveItemFromList(Var.ReadUsageList, Quad)
+      VarSym: RemoveItemFromList(Var.ReadUsageList[m], Quad)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -8217,12 +8251,12 @@ END RemoveReadQuad ;
    PutWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE PutWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE PutWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: IncludeItemIntoList(Var.WriteUsageList, Quad)
+      VarSym: IncludeItemIntoList(Var.WriteUsageList[m], Quad)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -8235,12 +8269,12 @@ END PutWriteQuad ;
    RemoveWriteQuad - places Quad into the list of symbol usage.
 *)
 
-PROCEDURE RemoveWriteQuad (Sym: CARDINAL; Quad: CARDINAL) ;
+PROCEDURE RemoveWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: RemoveItemFromList(Var.WriteUsageList, Quad)
+      VarSym: RemoveItemFromList(Var.WriteUsageList[m], Quad)
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -8288,14 +8322,15 @@ END DoFindLimits ;
                        to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetReadLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+PROCEDURE GetReadLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
+                             StartLimit, EndLimit: CARDINAL;
                              VAR Start, End: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       VarSym: DoFindLimits(StartLimit, EndLimit, Start, End,
-                           Var.ReadUsageList)
+                           Var.ReadUsageList[m])
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)
@@ -8310,14 +8345,15 @@ END GetReadLimitQuads ;
                         to within: StartLimit..EndLimit.
 *)
 
-PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; StartLimit, EndLimit: CARDINAL;
+PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
+                              StartLimit, EndLimit: CARDINAL;
                               VAR Start, End: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       VarSym     : DoFindLimits(StartLimit, EndLimit, Start, End,
-                                Var.WriteUsageList)
+                                Var.WriteUsageList[m])
 
       ELSE
          InternalError('expecting a Var symbol', __FILE__, __LINE__)

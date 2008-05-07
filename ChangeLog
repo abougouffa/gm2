@@ -1,3 +1,27 @@
+2008-05-07       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/examples/swig/full-strlib/Makefile:  added new
+	  example rules.
+        * gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  improve
+	  debugging information.
+        * gm2/gm2/gm2-compiler/M2Quads.mod:  separated out
+	  knowledge of read, write of LeftValues and RightValues.
+	  Refactored EraseQuad and SubQuad.
+        * gm2/gm2/gm2-compiler/M2Range.mod:  modified read, write
+	  symbol information to determine whether LeftValue or RightValue.
+        * gm2/gm2/gm2-compiler/M2SubExp.mod:  ditto.
+        * gm2/gm2/gm2-compiler/M2Swig.mod:  ditto and also introduced
+	  CalculateVarDirective which attempts to determine whether
+	  a VAR paramete is used for INPUT, OUTPUT or INOUT.
+        * gm2/gm2/gm2-compiler/SymbolTable.def:  provide symbol
+	  read write quad procedure calls with LeftValue or RightValue
+	  information.
+        * gm2/gm2/gm2-compiler/SymbolTable.mod:  implement above.
+        * gm2/gm2/gm2-libs/NumberIO.mod:  tidied up comments and
+	  spacing.
+        * gm2/gm2/gm2-libs/TimeString.mod:  tidied up comments.
+
+
 2008-05-06       Michael Lambert <lambert@psc.edu>
 
 	* gm2/patches/gcc/4.1.2/03.michael_i386:  new file
