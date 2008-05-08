@@ -36,7 +36,7 @@
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 14th November 2007
+@center Last updated 7th May 2008
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
@@ -46,7 +46,8 @@
 @c@end quotation
 @c
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -93,7 +94,7 @@ Software Foundation raise funds for GNU development.''
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
 * Extensions::            GNU Modula-2 language extensions.
-* Next::                  Data type compatibility.
+* Type compatibility::    Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
@@ -813,7 +814,7 @@ above, apart from the exception calling in the ISO dialect. Instead of
 exception handling the results are the same as the PIM4 dialect. This
 is a temporary implementation situation.
 
-@node Extensions, Next, Dialect, Using
+@node Extensions, Type compatibility, Dialect, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.
@@ -960,7 +961,7 @@ are all exported from the @code{SYSTEM} module.
 @xref{The PIM system module, , ,gm2}.
 @xref{The ISO system module, , ,gm2}.
 
-@node Next, Unbounded by reference, Extensions, Using
+@node Type compatibility, Unbounded by reference, Extensions, Using
 @section GNU Modula-2 language extensions
 
 This section discuss the issues surrounding assignment, expression
@@ -1017,8 +1018,10 @@ into three components: assignment, parameter and expression.
 
 @subsection Assignment compatibility
 
-Same types are compatible.  Same types of different sizes are also
-compatible as long as the @code{MAX(}type@code{)} and
+This section discusses the assignment issues surrounding assignment
+compatibility of fundamental types.  Obviously compatibility exists
+between the same sized types.  Same type family of different sizes are
+also compatible as long as the @code{MAX(}type@code{)} and
 @code{MIN(}type@code{)} is known.  So for example this includes the
 @code{INTEGER} family, @code{CARDINAL} family and the @code{REAL}
 family.  The reason for this is that when the assignment is performed
@@ -1055,7 +1058,7 @@ propagate constant values through to the range checks which if they
 are found to exceed the type bounds will result in a compile time
 error message.
 
-@subsection Expression compatible
+@subsection Expression compatibility
 
 According to the various Modula-2 standards @code{INTEGER} and
 @code{CARDINAL} types are not expression compatible
@@ -1063,16 +1066,21 @@ According to the various Modula-2 standards @code{INTEGER} and
 Modula-2).  This is rule is also extended across the fixed sized
 data types.
 
-@subsection Parameter compatible
+@subsection Parameter compatibility
 
 Parameter compatibility is divided into two arenas, pass by value and
-pass by reference (@code{VAR}).  In the first case the rules are
-exactly the same as assignment.  However in the second case the actual
-parameter and ... must be the same size.  Furthermore @code{INTEGER}
-and @code{CARDINAL}s are not treated as compatible in the pass by
+pass by reference (@code{VAR}).  In the case of pass by value the
+rules are exactly the same as assignment.  However in the second case,
+pass by reference, the actual parameter and formal parameter must be
+the same size and family.  Furthermore @code{INTEGER} and
+@code{CARDINAL}s are not treated as compatible in the pass by
 reference case.
 
-@node Unbounded by reference, Interface to C, Next, Using
+The types @code{BYTE}, @code{LOC} and @code{WORD} and sized
+their derivitives are assignment and parameter compatible with any
+data type of the same size.
+
+@node Unbounded by reference, Interface to C, Type compatibility, Using
 @section Unbounded by reference
 
 This section documents a GNU Modula-2 compiler switch which implements
