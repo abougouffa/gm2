@@ -1,3 +1,13 @@
+2008-05-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  tidied up English and fixed a node
+	  label.
+	* gm2/gm2-compiler/P2SymBuild.mod:  fixed bug reported
+	  by Scott Iverson involving
+	  ARRAY BOOLEAN OF ARRAY BOOLEAN OF BITSET.
+	* gm2/gm2-compiler/SymbolTable.mod:  modified some of
+	  the debugging hooks.
+
 2008-05-07       Gaius Mulley <gaius@gnu.org>
 
         * gm2/examples/swig/full-strlib/Makefile:  added new

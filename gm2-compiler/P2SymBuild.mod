@@ -2129,31 +2129,16 @@ BEGIN
    PopT(Array) ;
    Assert(IsArray(Array)) ;
    Subscript := MakeSubscript() ;
-   IF IsEnumeration(Type)
-   THEN
-      (* We must now create a subrange type based upon the enumeration type *)
-      Subrange := MakeSubrange(NulName) ;
-      IF NoOfElements(Type)=0
-      THEN
-         WriteFormat0('cannot create an array with 0 elements')
-      ELSE
-         d := NoOfElements(Type)-1 ;
-         s := Sprintf1(Mark(InitString('%d')), d) ;
-         PutSubrange(Subrange,
-                     MakeConstLit(MakeKey('0')), MakeConstLit(makekey(string(s))),
-                     Type) ;
-         s := KillString(s) ;
-         PutSubscript(Subscript, Subrange)
-      END
-   ELSE
-      (*
-         Would like to Assert(IsSubrange(Type)) - but unfortunately
-         the subrange type might be declared later on in the file.
-         Hence we take it in 'faith' at this point - check later in
-         the M2SymBuild and M2CodeGen pass.
-      *)
-      PutSubscript(Subscript, Type)
-   END ;
+   (*
+      We cannot Assert(IsSubrange(Type)) as the subrange type might be
+      declared later on in the file.
+      We also note it could be an ordinal type or enumerated type.
+      Therefore we must save this information and deal with the
+      different cases in M2GCCDeclare.mod and M2GenGCC.mod.
+      However this works to our advantage as it preserves the
+      actual declaration as specified by the source file.
+   *)
+   PutSubscript(Subscript, Type) ;
    PutArraySubscript(Array, Subscript) ;
    PushT(Array)
 (* ; WriteString('Field Placed in Array') ; WriteLn *)

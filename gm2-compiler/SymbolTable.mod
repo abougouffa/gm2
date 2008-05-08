@@ -3536,6 +3536,10 @@ VAR
    unbounded: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(SubrangeName, unbounded) ;
+   IF sym=1901
+   THEN
+      stop
+   END ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -4058,10 +4062,6 @@ END GetVarWritten ;
 
 PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
 BEGIN
-   IF ConstType=199
-   THEN
-      stop
-   END ;
    WITH Symbols[Sym] DO
       CASE Symbols[Sym].SymbolType OF
 
