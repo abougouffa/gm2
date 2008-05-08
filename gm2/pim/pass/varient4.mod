@@ -40,7 +40,7 @@ BEGIN
    hmm.bar := TRUE ;
 *)
    hmm.bt  := -1 ;
-   hmm.bf  := -2 ;
+   hmm.bf  := 2 ;
    hmm.an  := 1.0 ;
    j := SIZE(this)
 END varient4.
