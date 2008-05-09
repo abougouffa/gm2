@@ -63,11 +63,11 @@ proc gm2_target_compile_options_optimize { source dest type options } {
     lappend options "compiler=$GCC_UNDER_TEST"
 
     # firstly we compile the library file
-    send_log "about to call target_compile with $srcdir/$subdir/addition.mod dest = $dest type = $type options = $options\n"
+    send_log "about to call target_compile with $srcdir/$subdir/addition.mod dest = $dest type = $type options = $options -c\n"
 
-    set comp_output [target_compile "$srcdir/$subdir/addition.mod" addition.o $type $options]
-    set comp_output [exec file addition.o]
-    gm2_check_compile "$srcdir/$subdir/addition.mod compilation" "-O2 -c" "addition.o" $comp_output
+    set comp_output [target_compile "$srcdir/$subdir/addition.mod" addition.o $type "$options -c"]
+    gm2_check_compile "$srcdir/$subdir/addition.mod compilation" "$options -c" "addition.o" $comp_output
+    send_log "$comp_output\n"
     set comp_output [exec file addition.o]
     send_log "$comp_output\n"
 
