@@ -1265,14 +1265,14 @@ Now it is possible to run the following Python script
 @example
 import NumberIO
 
-print NumberIO.NumberIO_StrToInt("1234")
+print "1234 x 2 =", NumberIO.NumberIO_StrToInt("1234")*2
 @end example
 
 like this:
 
 @example
 $ python testnum.py
-1234
+1234 x 2 = 2468
 @end example
 
 This example can be found in the directory

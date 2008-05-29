@@ -1,5 +1,7 @@
 2008-05-29       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/patches/gcc/4.1.2/04.gaius_patch_gcc:  new file.
+        * gm2/examples/swig/full-strlib/testnum.py:  modified print.
 	* gm2/Make-lang.in:  tidied up formatting and added
 	  ability to generate and install shared library
 	  versions of the pim libraries.
