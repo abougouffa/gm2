@@ -2,47 +2,19 @@
 all: strlib numberio
 
 strlib: force
-	gm2 -fsources -I. -c -fPIC -g -fswig -I../../../gm2-libs \
-            ../../../gm2-libs/StrLib.mod
+	gm2 -fshared -I. -c -fPIC -g -fswig -I../../../gm2-libs ../../../gm2-libs/StrLib.mod
 	swig -python StrLib.i
 	gcc -c -fPIC StrLib_wrap.c -I/usr/include/python2.4
-	gcc -shared StrLib.o StrLib_wrap.o -o _StrLib.so
+	gm2 -fPIC -fshared -shared ../../../gm2-libs/StrLib.mod StrLib_wrap.o -o _StrLib.so
 	python testlen.py
 	python testequ.py
 	python testcopy.py
 
 numberio: force
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/M2RTS.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/RTExceptions.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/ASCII.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/M2EXCEPTION.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/Assertion.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/StrIO.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/StdIO.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/IO.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/FIO.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/Storage.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/SysStorage.mod
-	gm2 -I. -c -fPIC -g -I../../../gm2-libs \
-            ../../../gm2-libs/Debug.mod
-	gm2 -I. -c -fPIC -g -fswig -I../../../gm2-libs \
-            ../../../gm2-libs/NumberIO.mod
-	gm2 -I. -c -fPIC -g -fswig -I../../../gm2-libs \
-            ../../../gm2-libs/DynamicStrings.mod
+	gm2 -fshared -I. -c -fPIC -g -fswig -I../../../gm2-libs ../../../gm2-libs/NumberIO.mod
 	swig -python NumberIO.i
 	gcc -c -fPIC NumberIO_wrap.c -I/usr/include/python2.4
-	gcc -shared NumberIO.o NumberIO_wrap.o StrLib.o FIO.o IO.o Debug.o StrIO.o SysStorage.o Storage.o StdIO.o RTExceptions.o M2RTS.o -o _NumberIO.so
+	gm2 -shared -fshared -fPIC ../../../gm2-libs/NumberIO.mod NumberIO_wrap.o -o _NumberIO.so
 	python testnum.py
 
 clean: force

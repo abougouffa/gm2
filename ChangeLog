@@ -1,3 +1,67 @@
+2008-05-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  tidied up formatting and added
+	  ability to generate and install shared library
+	  versions of the pim libraries.
+	* gm2/gm2-lang.c:  corrected dates.
+	* gm2/gm2-lang.h:  corrected dates.
+	* gm2/gm2.texi:  new section index, how to produce
+	  swig interface files.  Documented -I, -fobject-path=
+	  and -fmodules flags.  Added new section
+          "How to produce swig interface files".
+	* gm2/gm2spec.c:  corrected dates and added ability
+	  to force no linking to be done by ld/collect.
+	  Also added ability to collect all object files.
+	  Introduced styles of libraries (shared libraries,
+	  libraries compiled with debugging and optimization
+	  switches turned on/off).  Front end will now
+	  generate a -fobject-path= option if one is not
+	  provided.  Fixed several warnings.
+	* gm2/gm2spec.c:get_objects.  new function.
+	* gm2/gm2spec.c:get_style.  new function.
+	* gm2/gm2spec.c:no_link.  new function.
+	* gm2/lang-options.h:  -fshared, -fmakeinit, -fobject-path=
+	  all introduced.
+	* gm2/lang-specs.h:  modified to enable position independant
+	  code to be created and linked against.  Also modified to
+	  reflect change in arguments needed in subsidiary linking
+	  programs.
+	* gm2/lang.opt:  list of options includes:  fshared, fmakeinit
+	  and fobject-path=.
+	* gm2/examples/executive/Makefile:  modified to utilise
+	  -fobject-path=.
+	* gm2/examples/ncurses/ColorText.mod:  fixed bug caught by the
+	  new stricter compatibility rules.
+	* gm2/examples/ncurses/WindowDevice.mod:  fixed another bug
+	  caught by the new stricter compatibility rules.
+	* gm2/examples/pthread/Makefile:  changed -Wmakeall to -fmakeall.
+	* gm2/examples/svga/Makefile:  changed -Wmakeall to -fmakeall.
+	* gm2/examples/swig/full-strlib/Makefile:  removed many rules
+	  now that automatic linking has been implemented.
+	* gm2/examples/swig/strlen/Makefile:  changed StrLib to
+	  MyStrLib to avoid a name clash.
+        * gm2/examples/swig/strlen/testlen.py:  changed StrLib to
+	  MyStrLib.
+	* gm2/examples/swig/strlib/MyStrLib.{def,mod}:  new files.
+	* gm2/examples/swig/strlib/StrLib.{def,mod}:  removed.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  fixed dates.
+	* gm2/gm2-compiler/M2Quads.mod:  implemented
+          IsProcedureScope.
+	* gm2/gm2-compiler/M2Quads.def:  defined
+          IsProcedureScope.
+        * gm2/gm2-compiler/M2Swig.mod:  now explores basic blocks
+	  of each external procedure to see if parameters are
+	  in, out or inout.  It also states whether a parameter
+	  direction is unknown or likely to be in, out or inout.
+        * gm2/gm2-compiler/gm2lcc.mod:  now understands -shared
+	  and -fshared and passes all -f options to gcc.
+        * gm2/gm2-compiler/gm2lgen.mod:  fixed dates and understands
+	  -fshared.
+        * gm2/gm2-libs/FIO.{def,mod}:  improved comment.
+	* gm2/gm2-libs/FpuIO.def:  fixed date and comments.
+	* gm2/www/index.ms:  updated web page to say documentation
+	  is built nightly.
+	
 2008-05-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  tidied up English and fixed a node

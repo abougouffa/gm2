@@ -24,7 +24,7 @@ Boston, MA 02110-1301, USA.  */
 
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
-      "%{c|S:%{fuselist:%{!fmodules:%eGNU Modula-2 does not know what to do with -fuselist given these arguments}} \
+      "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
            %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend \
                                                      %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%(invoke_as)}} \n\
@@ -33,16 +33,18 @@ Boston, MA 02110-1301, USA.  */
            %{fmakelist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                               gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %g.mod} \n\
                        %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %i}} \n\
+           %{fmakeinit:gm2lgen %{fshared} %{fshared:-terminate -exit} %b.lst -o _m2_%b.c} \n\
            %{fmodules:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                          gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -c %g.lst} \n\
+                                         gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst} \n\
                                  %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
                                          gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                         gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -c %g.lst}} \n\
-                       %{fuselist:gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -c %b.lst}}} \n\
+                                         gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*}  %{v} -c %g.lst}} \n\
+                       %{fuselist:gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %b.lst}}} \n\
       %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
       %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
+      %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
       %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                      make -r -f %g.m } \n\
                                    %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
@@ -50,18 +52,27 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                              gm2l -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                             gm2lgen %g.lst -o %g.c \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
+                                             gm2lgen %{fshared} %{fshared:-terminate -exit} %g.lst -o %g.c \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.c \n\
                                              rm -f %w%d%g.a \n\
-                                             gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst} \n\
+                                             gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
+                                                    %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
+                                                    %{!fshared:-ar -o %w%d%g.a} \
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %g.lst } \n\
                                       %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lsub %{!pipe:%g.l} -o %g.lst \n\
-                                             gm2lgen %g.lst -o %g.c \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
+                                             gm2lgen %{fshared} %{fshared:-terminate -exit} %g.lst -o %g.c \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.c \n\
                                              rm -f %w%d%g.a \n\
-                                             gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %g.lst}} \n\
-                           %{fuselist:gm2lgen %b.lst -o %g.c \n\
-                                      gm2cc %{v*} %{B*} %{g*} %{O*} -c -o %d%w%g%O %g.c \n\
-                                      rm -f %w%d%g.a \n\
-                                      gm2lcc %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{I*} %{v} -exec -ar -startup %w%g%O -o %w%d%g.a %b.lst}}}} \n\
+                                             gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
+                                                    %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
+                                                    %{!fshared:-ar -o %w%d%g.a} \
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %g.lst }} \n\
+                           %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} %b.lst -o %g.c \n\
+                                      gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.c \n\
+                                      rm -f %Ustart%d.a \n\
+                                      gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
+                                             %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
+                                             %{!fshared:-ar -o %w%d%g.a} \
+                                             %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %b.lst }}}} \n\
     ", 0, 0, 0},

@@ -35,7 +35,7 @@ FROM FIO IMPORT File, StdIn, StdErr, StdOut, Close, IsNoError, EOF, WriteString,
 FROM SFIO IMPORT OpenToRead, WriteS, ReadS ;
 FROM ASCII IMPORT nul ;
 FROM M2FileName IMPORT ExtractExtension ;
-FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Index, Assign, char ;
+FROM DynamicStrings IMPORT String, InitString, KillString, ConCat, ConCatChar, Length, Slice, Equal, EqualArray, RemoveWhitePrefix, RemoveWhitePostfix, RemoveComment, string, Mark, InitStringChar, Dup, Mult, Index, RIndex, Assign, char ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Printf IMPORT fprintf0, fprintf1, fprintf2, fprintf3, fprintf4 ;
 
@@ -67,12 +67,16 @@ VAR
    UseAr         : BOOLEAN ;    (* use 'ar' and create archive     *)
    UseRanlib     : BOOLEAN ;    (* use 'ranlib' to index archive   *)
    IgnoreMain    : BOOLEAN ;    (* ignore main module when linking *)
+   Shared        : BOOLEAN ;    (* is a shared library required?   *)
+   FOptions,
    Compiler,
+   CompilerDir,
    RanlibProgram,
    ArProgram,
    Archives,
    Path,
    StartupFile,
+   Objects,
    Libraries,
    MainModule,
    Command,
@@ -121,7 +125,12 @@ BEGIN
          exit(1)
       END
    ELSE
-      Command := ConCatChar(Compiler, ' ') ;
+      IF EqualArray(Slice(CompilerDir, -1, 0), '/')
+      THEN
+         Command := ConCat(CompilerDir, ConCatChar(Compiler, ' '))
+      ELSE
+         Command := ConCat(ConCatChar(CompilerDir, '/'), ConCatChar(Compiler, ' '))
+      END ;
       IF DebugFound
       THEN
          Command := ConCat(Command, Mark(InitString('-g ')))
@@ -129,6 +138,11 @@ BEGIN
       IF ProfileFound
       THEN
          Command := ConCat(Command, Mark(InitString('-p ')))
+      END ;
+      Command := ConCat(Command, FOptions) ;
+      IF Shared
+      THEN
+         Command := ConCat(Command, Mark(InitString('-shared ')))
       END ;
       IF TargetFound
       THEN
@@ -222,6 +236,10 @@ BEGIN
       END
    UNTIL EOF(fi) ;
    Command := ConCat(Command, Archives) ;
+   IF Objects#NIL
+   THEN
+      Command := ConCat(Command, Objects)
+   END ;
    IF LibrariesFound
    THEN
       Command := ConCat(ConCatChar(Command, ' '), Libraries)
@@ -368,7 +386,7 @@ BEGIN
    IF EqualArray(Mark(Slice(s, 0, 1)), '-l')
    THEN
       LibrariesFound := TRUE ;
-      Libraries := ConCat(Libraries, s) ;
+      Libraries := ConCat(ConCatChar(Libraries, ' '), s) ;
       RETURN( TRUE )
    ELSE
       RETURN( FALSE )
@@ -377,7 +395,36 @@ END IsALibrary ;
 
 
 (*
-   ScanArguments - scans arguments for flags: -I -g and -B
+   IsAnObject - returns TRUE if, a, is a library. If TRUE we add it to the
+                Libraries string.
+*)
+
+PROCEDURE IsAnObject (s: String) : BOOLEAN ;
+BEGIN
+   IF ((Length(s)>2) AND EqualArray(Mark(Slice(s, -2, 0)), '.o')) OR
+      ((Length(s)>4) AND EqualArray(Mark(Slice(s, -4, 0)), '.obj'))
+   THEN
+      Objects := ConCat(ConCatChar(Objects, ' '), s) ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsAnObject ;
+
+
+(*
+   AdditionalFOptions - add an -f option to the compiler.
+*)
+
+PROCEDURE AdditionalFOptions (s: String) ;
+BEGIN
+   FOptions := ConCat(FOptions, Mark(s)) ;
+   FOptions := ConCatChar(FOptions, ' ')
+END AdditionalFOptions ;
+
+
+(*
+   ScanArguments - scans arguments for flags: -fobject-path= -g and -B
 *)
 
 PROCEDURE ScanArguments ;
@@ -406,7 +453,8 @@ BEGIN
          END
       ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-B')
       THEN
-         Compiler := ConCat(Slice(s, 2, 0), Mark(Compiler))
+         CompilerDir := KillString(CompilerDir) ;
+         CompilerDir := Slice(s, 2, 0)
       ELSIF EqualArray(s, '-p')
       THEN
          ProfileFound := TRUE
@@ -416,6 +464,9 @@ BEGIN
       ELSIF EqualArray(s, '-exec')
       THEN
          ExecCommand := TRUE
+      ELSIF EqualArray(s, '-fshared')
+      THEN
+         Shared := TRUE
       ELSIF EqualArray(s, '-ignoremain')
       THEN
          IgnoreMain := TRUE
@@ -423,9 +474,9 @@ BEGIN
       THEN
          UseAr := TRUE ;
          UseRanlib := TRUE
-      ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-I')
+      ELSIF EqualArray(Mark(Slice(s, 0, 14)), '-fobject-path=')
       THEN
-         PrependSearchPath(Slice(s, 2, 0))
+         PrependSearchPath(Slice(s, 14, 0))
       ELSIF EqualArray(Mark(Slice(s, 0, 12)), '-ftarget-ar=')
       THEN
          ArProgram := KillString(ArProgram) ;
@@ -442,7 +493,10 @@ BEGIN
       THEN
          INC(i) ;                 (* Target found *)
          ProcessStartupFile(i)
-      ELSIF IsALibrary(s)
+      ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
+      THEN
+         AdditionalFOptions(s)
+      ELSIF IsALibrary(s) OR IsAnObject(s)
       THEN
       ELSE
          IF FoundFile
@@ -482,6 +536,7 @@ BEGIN
    UseAr         := FALSE ;
    UseRanlib     := FALSE ;
    VerboseFound  := FALSE ;
+   Shared        := FALSE ;
    ArProgram     := InitString('ar') ;
    RanlibProgram := InitString('ranlib') ;
    MainModule    := InitString('') ;
@@ -491,9 +546,23 @@ BEGIN
    ExecCommand   := FALSE ;
 
    Compiler      := InitString('gm2cc') ;
+   IF GetArg(CompilerDir, 0)
+   THEN
+      IF RIndex(CompilerDir, '/', 0)=-1
+      THEN
+         CompilerDir := KillString(CompilerDir) ;
+         CompilerDir := InitString('')
+      ELSE
+         CompilerDir := Slice(CompilerDir, 0, RIndex(CompilerDir, '/', 0))
+      END
+   ELSE
+      CompilerDir := InitString('')
+   END ;
+   FOptions      := InitString('') ;
    Archives      := NIL ;
    Path          := NIL ;
-   Libraries     := NIL ;
+   Libraries     := InitString('') ;
+   Objects       := InitString('') ;
    Command       := NIL ;
    Target        := NIL ;
 

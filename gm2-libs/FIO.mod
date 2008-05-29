@@ -1149,7 +1149,8 @@ END WriteChar ;
 
 (*
    WriteCardinal - writes a CARDINAL to file, f.
-                   (here for compatibility - suggest that WriteAny be used instead)
+                   It writes the binary image of the cardinal
+                   to file, f.
 *)
 
 PROCEDURE WriteCardinal (f: File; c: CARDINAL) ;
@@ -1160,7 +1161,8 @@ END WriteCardinal ;
 
 (*
    ReadCardinal - reads a CARDINAL from file, f.
-                  (here for compatibility - suggest that ReadAny be used instead)
+                  It reads a binary image of a CARDINAL
+                  from a file, f.
 *)
 
 PROCEDURE ReadCardinal (f: File) : CARDINAL ;

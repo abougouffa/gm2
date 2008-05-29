@@ -76,6 +76,7 @@ It can build all of the University of Ulm libraries.
 The result of the GNU Modula-2 regression tests for the current
 CVS snapshot can be found
 .URL http://floppsie.comp.glam.ac.uk/gm2-results/regression-tests.html here .
+The pure64 results are generated nightly from the CVS sources.
 .PP
 Recent news in GNU Modula-2:
 .sp
@@ -146,6 +147,11 @@ Currently some GNU Modula-2
 documentation exists, albeit incomplete, but it does contain a fully
 indexed list of all library procedures, a release map, and full
 building and downloading instructions.
+A 
+.URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf (pdf)
+version can be found
+.URL http://floppsie.comp.glam.ac.uk/download/m2/gm2.pdf here.
+The pdf version is built nightly.
 .PP
 A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
 if you are interested a copy can be found

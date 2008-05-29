@@ -35,9 +35,11 @@ FROM Lists IMPORT List, InitList, KillList, IsItemInList,
                   ForeachItemInListDo, NoOfItemsInList,
                   GetItemFromList ;
 
+FROM M2Quads IMPORT IsProcedureScope ;
 FROM M2System IMPORT IsSystemType, Address, Byte, Loc, Word ;
 FROM M2Bitset IMPORT Bitset ;
 FROM Indexing IMPORT Index, InitIndex, KillIndex, HighIndice, PutIndice, GetIndice ;
+FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock ;
 
 FROM M2Base IMPORT IsBaseType, Char, Cardinal, Integer, Real, LongReal, ShortReal,
                    LongCard, ShortCard, LongInt, ShortInt, Boolean ;
@@ -49,6 +51,10 @@ FROM SymbolTable IMPORT GetSymName, IsType, IsProcedure, IsConst, IsVar,
                         IsParameter, IsParameterUnbounded, IsParameterVar,
                         GetParameterShadowVar, GetReadQuads, GetWriteQuads,
                         NulSym ;
+
+FROM M2BasicBlock IMPORT BasicBlock, InitBasicBlocks, KillBasicBlocks,
+                         ForeachBasicBlockDo ;
+
 
 
 (* %%%FORWARD%%%
@@ -508,59 +514,212 @@ BEGIN
 END DoUnbounded ;
 
 
+VAR
+   FirstBasicBlock,
+   Input,
+   Output,
+   InOut,
+   CanGuess,
+   IsKnown        : BOOLEAN ;
+   rs, ws         : CARDINAL ;
+
+
+(*
+   DoBasicBlock - 
+*)
+
+PROCEDURE DoBasicBlock (start, end: CARDINAL) ;
+BEGIN
+   IF IsProcedureScope(start)
+   THEN
+      (* skip this basic block, as this will not modify the parameter *)
+      RETURN
+   ELSIF IsKnown OR CanGuess
+   THEN
+      (* already resolved *)
+      RETURN
+   ELSE
+      IF (ws=0) AND (rs=0)
+      THEN
+         FirstBasicBlock := FALSE
+      ELSIF rs=0
+      THEN
+         (* only written *)
+         IF ws<=end
+         THEN
+            Output := TRUE ;
+            IF FirstBasicBlock
+            THEN
+               IsKnown := TRUE
+            ELSE
+               CanGuess := TRUE
+            END ;
+            FirstBasicBlock := FALSE
+         END
+      ELSIF ws=0
+      THEN
+         (* only read *)
+         Input := TRUE ;
+         IF (rs<=end) AND FirstBasicBlock
+         THEN
+            IsKnown := TRUE
+         ELSE
+            CanGuess := TRUE
+         END ;
+         FirstBasicBlock := FALSE
+      ELSIF rs<=ws
+      THEN
+         (* read before write *)
+         InOut := TRUE ;
+         IF (rs<=end) AND (ws<=end) AND FirstBasicBlock
+         THEN
+            IsKnown := TRUE
+         ELSE
+            CanGuess := TRUE
+         END ;
+         FirstBasicBlock := FALSE
+      ELSE
+         (* must be written before read *)
+         Output := TRUE ;
+         IF (rs<=end) AND (ws<=end) AND FirstBasicBlock
+         THEN
+            IsKnown := TRUE
+         ELSE
+            CanGuess := TRUE
+         END ;
+         FirstBasicBlock := FALSE
+      END
+   END
+END DoBasicBlock ;
+
+
+(*
+   DetermineParameter - 
+*)
+
+PROCEDURE DetermineParameter (procedure, param: CARDINAL; annotate: BOOLEAN) ;
+VAR
+   sb: ScopeBlock ;
+   bb: BasicBlock ;
+   we,
+   re: CARDINAL ;
+BEGIN
+   sb := InitScopeBlock(procedure) ;
+   bb := InitBasicBlocks(sb) ;
+   Input := FALSE ;
+   Output := FALSE ;
+   InOut := FALSE ;
+   CanGuess := FALSE ;
+   IsKnown := FALSE ;
+   FirstBasicBlock := TRUE ;
+   GetReadQuads(param, RightValue, rs, re) ;
+   GetWriteQuads(param, RightValue, ws, we) ;
+   ForeachBasicBlockDo(bb, DoBasicBlock) ;
+   bb := KillBasicBlocks(bb) ;
+   sb := KillScopeBlock(sb)
+END DetermineParameter ;
+
+
+(*
+   PrintDirection - 
+*)
+
+PROCEDURE PrintDirection ;
+BEGIN
+   IF Input
+   THEN
+      fprintf0(f, 'INPUT')
+   ELSIF Output
+   THEN
+      fprintf0(f, 'OUTPUT')
+   ELSE
+      fprintf0(f, 'INOUT')
+   END
+END PrintDirection ;
+
+
 (*
    CalculateVarDirective -
 *)
 
-PROCEDURE CalculateVarDirective (son: CARDINAL) ;
+PROCEDURE CalculateVarDirective (procedure, param: CARDINAL; annotate: BOOLEAN) ;
 VAR
-   sym   : CARDINAL ;
-   rs, re,
-   ws, we: CARDINAL ;
+   sym: CARDINAL ;
 BEGIN
-   sym := GetParameterShadowVar(son) ;
+   sym := GetParameterShadowVar(param) ;
    IF sym=NulSym
    THEN
-      InternalError('why did we get here', __FILE__, __LINE__) ;
-      fprintf0(f, '*') ;
-      DoParamName(son)
+      InternalError('why did we get here', __FILE__, __LINE__)
    ELSE
-      GetReadQuads(sym, RightValue, rs, re) ;
-      GetWriteQuads(sym, RightValue, ws, we) ;
-      IF (ws=0) AND (rs=0)
+      DetermineParameter(procedure, sym, annotate) ;
+      IF annotate
       THEN
-         (* unused, ignore directive and use name *)
-         fprintf0(f, '*') ;
-         DoParamName(sym)
-      ELSIF rs=0
-      THEN
-         (* only written *)
-         fprintf0(f, '*OUTPUT')
-      ELSIF ws=0
-      THEN
-         (* only read *)
-         fprintf0(f, '*INPUT')
-      ELSIF rs<=ws
-      THEN
-         (* read before write *)
-         fprintf0(f, '*INOUT')
+         DoParamName(sym) ;
+         IF IsKnown
+         THEN
+            fprintf0(f, ' is known to be an ') ;
+            PrintDirection
+         ELSIF CanGuess
+         THEN
+            fprintf0(f, ' is guessed to be an ') ;
+            PrintDirection
+         ELSE
+            fprintf0(f, ' is unknown')
+         END
       ELSE
-         (* must be written before read *)
-         fprintf0(f, '*OUTPUT')
+         fprintf0(f, '*') ;
+         IF IsKnown OR CanGuess
+         THEN
+            PrintDirection
+         ELSE
+            DoParamName(sym)
+         END
       END
    END
 END CalculateVarDirective ;
 
 
 (*
+   AnnotateProcedure - 
+*)
+
+PROCEDURE AnnotateProcedure (sym: CARDINAL) ;
+VAR
+   son, p, i: CARDINAL ;
+   needComma: BOOLEAN ;
+BEGIN
+   fprintf0(f, '/*  parameter: ') ;
+   p := NoOfParam(sym) ;
+   i := 1 ;
+   needComma := FALSE ;
+   WHILE i<=p DO
+      son := GetNthParam(sym, i) ;
+      IF IsParameterVar(son)
+      THEN
+         IF needComma
+         THEN
+            fprintf0(f, ', ')
+         END ;
+         CalculateVarDirective(sym, son, TRUE) ;
+         needComma := TRUE
+      END ;
+      INC(i)
+   END ;
+   fprintf0(f, ' */\n\n')
+END AnnotateProcedure ;
+
+
+(*
    DoProcedure - 
 *)
 
-PROCEDURE DoProcedure (sym: CARDINAL) ;
+PROCEDURE DoProcedure (sym: CARDINAL) : BOOLEAN ;
 VAR
    son,
-   p, i: CARDINAL ;
+   p, i : CARDINAL ;
+   found: BOOLEAN ;
 BEGIN
+   found := FALSE ;
    fprintf0(f, 'extern ') ;
    IF GetType(sym)=NulSym
    THEN
@@ -587,7 +746,8 @@ BEGIN
             fprintf0(f, ' ') ;
             IF IsParameterVar(son)
             THEN
-               CalculateVarDirective(son)
+               found := TRUE ;
+               CalculateVarDirective(sym, son, FALSE)
             ELSE
                DoParamName(son)
             END
@@ -599,7 +759,8 @@ BEGIN
          INC(i)
       END
    END ;
-   fprintf0(f, ');\n')
+   fprintf0(f, ');\n') ;
+   RETURN( found )
 END DoProcedure ;
 
 
@@ -617,7 +778,10 @@ BEGIN
    THEN
    ELSIF IsProcedure(sym)
    THEN
-      DoProcedure(sym)
+      IF DoProcedure(sym)
+      THEN
+         AnnotateProcedure(sym)
+      END
    ELSIF IsConstString(sym)
    THEN
    ELSIF IsConstLit(sym)

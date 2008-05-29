@@ -30,7 +30,7 @@ testtime: force
 
 winexec: force
 	( cd ../ncurses ; make clean ; make all )
-	gm2 -I.:../ncurses $(DEBUGGING) -fmakeall -flibs=pim-coroutine winexec.mod -lncurses -lpth
+	gm2 -I.:../ncurses -fobject-path=.:../ncurses $(DEBUGGING) -fmakeall -flibs=pim-coroutine winexec.mod -lncurses -lpth
 	mv a.out $@
 
 clean: force

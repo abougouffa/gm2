@@ -90,6 +90,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsConditional, IsBackReferenceConditional,
                  IsCall,
                  IsReturn,
+                 IsProcedureScope,
                  IsNewLocalVar,
                  IsKillLocalVar,
 
@@ -227,6 +228,13 @@ PROCEDURE IsCall (QuadNo: CARDINAL) : BOOLEAN ;
 *) 
  
 PROCEDURE IsReturn (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsProcedureScope - returns true if QuadNo is a ProcedureScope operation.
+*) 
+ 
+PROCEDURE IsProcedureScope (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (* 

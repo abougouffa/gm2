@@ -1,5 +1,6 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
 
@@ -48,6 +49,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 int lang_specific_extra_outfiles = 0;
+extern int force_no_linker;
 
 #include "gm2/gm2config.h"
 
@@ -59,19 +61,61 @@ typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
 					     "pim-coroutine", "pim-coroutine" };
 
-void add_default_directories (int incl, char ***in_argv, libs which_lib);
+typedef enum { LIB, LIB_SO, LIB_O2, LIB_SO_O2, LIB_MAX } styles;
+
+typedef struct {
+  int shared;
+  int o2;
+} flag_set;
+
+typedef struct {
+  const char *directory;
+  flag_set flags;
+} style_sig;
+
+/*                                          dir   -fshared     -O2
+ */
+static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
+					    {"SO",    {  TRUE,    FALSE}},
+					    {"O2",    { FALSE,     TRUE}},
+					    {"SO_O2", {  TRUE,     TRUE}},
+					    {"",      { FALSE,    FALSE}}};
+
+void add_default_directories (int incl, char ***in_argv,
+			      const char *option, libs which_lib, styles s);
 void add_arg (int incl, char ***in_argv, const char *str);
 void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
 void add_exec_prefix(int, int *in_argc, char ***in_argv);
-extern char *find_executable PARAMS ((const char *));
+extern char *find_executable (const char *);
+static const char *get_objects (int argc, const char *argv[]);
+void remove_arg (int i, int *in_argc, const char ***in_argv);
+int is_object (const char *s);
+void remember_object (const char *s);
+static styles get_style (flag_set flags);
+
+
+typedef struct object_list {
+  const char *name;
+  struct object_list *next;
+} object_list;
+
+static object_list *head_objects = NULL;
+
+/* By default, the suffix for target object files is ".o".  */
+#ifdef TARGET_OBJECT_SUFFIX
+#define HAVE_TARGET_OBJECT_SUFFIX
+#else
+#define TARGET_OBJECT_SUFFIX ".o"
+#endif
+
 
 /*
  *  add_exec_prefix - adds the -ftarget-ar= option so that we can tell
  *                    gm2lcc where to pick up the `ar' utility.
  */
 
-void add_exec_prefix(int pos, int *in_argc, char ***in_argv)
+void add_exec_prefix (int pos, int *in_argc, char ***in_argv)
 {
   char *prefix;
   const char *ar = AR_PATH;
@@ -103,6 +147,33 @@ add_arg (int incl, char ***in_argv, const char *str)
      fprintf(stderr, "internal error not adding to an empty space\n");
 }
 
+void
+remove_arg (int i, int *in_argc, const char ***in_argv)
+{
+  while (i<(*in_argc)) {
+    (*in_argv)[i] = (*in_argv)[i+1];
+    i++;
+  }
+  (*in_argc)--;
+}
+
+int
+is_object (const char *s)
+{
+  return (strlen(s)>strlen(TARGET_OBJECT_SUFFIX) &&
+	  (strcmp(s+strlen(s)-strlen(TARGET_OBJECT_SUFFIX),
+		  TARGET_OBJECT_SUFFIX) == 0));
+}
+
+void
+remember_object (const char *s)
+{
+  object_list *n = (object_list *)xmalloc (sizeof (object_list));
+  n->name = s;
+  n->next = head_objects;
+  head_objects = n;
+}
+
 /*
  *  add_default_directories - add the current working
  *                            directory and the GM2 default library
@@ -110,24 +181,30 @@ add_arg (int incl, char ***in_argv, const char *str)
  */
 
 void
-add_default_directories (int incl, char ***in_argv, libs which_lib)
+add_default_directories (int incl, char ***in_argv,
+			 const char *option, libs which_lib, styles s)
 {
   char *gm2libs;
   char  sepstr[2];
+  const char *style_name = libraryStyle[s].directory;
+  int   style_len = strlen(style_name);
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
 
+  if (style_len > 0)
+    style_len += strlen(sepstr);
+
   if ((*in_argv)[incl] == NULL) {
-    gm2libs = (char *) alloca(strlen("-I") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1 +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1);
-    strcpy(gm2libs, "-I");
+    gm2libs = (char *) alloca(strlen(option) +
+			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
+			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
+    strcpy(gm2libs, option);
   }
   else {
     gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1 +
-			      strlen(LIBSUBDIR) + strlen(sepstr) + strlen("gm2") + strlen(sepstr) + strlen(libraryName[maxlib]) + 1);
+			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
+			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
     strcpy(gm2libs, (*in_argv)[incl]);
     strcat(gm2libs, ":");
   }
@@ -135,8 +212,11 @@ add_default_directories (int incl, char ***in_argv, libs which_lib)
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
-
   strcat(gm2libs, libraryName[which_lib]);
+  if (style_len > 0) {
+    strcat(gm2libs, sepstr);
+    strcat(gm2libs, style_name);
+  }
 
   strcat(gm2libs, ":");
   strcat(gm2libs, LIBSUBDIR);
@@ -151,9 +231,13 @@ add_default_directories (int incl, char ***in_argv, libs which_lib)
     strcat(gm2libs, libraryName[logitech]);
   else
     strcat(gm2libs, "pim");   /* all other libraries fall back to pim */
+  if (style_len > 0) {
+    strcat(gm2libs, sepstr);
+    strcat(gm2libs, style_name);
+  }
 
 #if defined(DEBUGGING)
-  fprintf(stderr, "adding -I. and %s\n", gm2libs);
+  fprintf(stderr, "adding %s and %s\n", option, gm2libs);
 #endif
   (*in_argv)[incl] = xstrdup(gm2libs);
 }
@@ -164,7 +248,7 @@ add_default_directories (int incl, char ***in_argv, libs which_lib)
  */
 
 void
-insert_arg (int  incl, int *in_argc, char ***in_argv)
+insert_arg (int incl, int *in_argc, char ***in_argv)
 {
   int i=0;
   char **new_argv = (char **)xmalloc(sizeof(char *) * ((*in_argc) + 1));
@@ -184,6 +268,21 @@ insert_arg (int  incl, int *in_argc, char ***in_argv)
 }
 
 /*
+ *  get_style - returns the style of libraries required.
+ */
+
+static styles get_style (flag_set flags)
+{
+  styles s;
+
+  for (s=LIB; s<LIB_MAX; s++)
+    if (flags.shared == libraryStyle[s].flags.shared &&
+	flags.o2 == libraryStyle[s].flags.o2)
+      return s;
+  return LIB_MAX;
+}
+
+/*
  *  lang_specific_driver - is invoked if we are compiling/linking a
  *                         Modula-2 file. It checks for module paths
  *                         and linking requirements which are language
@@ -196,10 +295,13 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 {
   int i=1;
   int incl=-1;
+  int link=-1;
   int libraries=pim;
   int x=-1;
   const char *language = NULL;
   int moduleExtension = -1;
+  flag_set seen_flags = {FALSE, FALSE};
+  styles s;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -213,6 +315,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
       incl = i;
+    if (strncmp((*in_argv)[i], "-fobject-path=", 15) == 0)
+      link = i;
     if (strncmp((*in_argv)[i], "-fiso", 5) == 0)
       libraries = iso;
     if (strncmp((*in_argv)[i], "-flibs=pim", 10) == 0)
@@ -232,6 +336,15 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       if (i+1 < *in_argc)
 	language = (*in_argv[i+1]);
     }
+    if (strcmp((*in_argv)[i], "-fshared") == 0)
+      seen_flags.shared = TRUE;
+    if ((strcmp((*in_argv)[i], "-O2") == 0) ||
+	(strcmp((*in_argv)[i], "-O3") == 0))
+      seen_flags.o2 = FALSE;  /* alter this when we build the libraries with -O2 */
+    if (strcmp((*in_argv)[i], "-o") == 0)
+      i += 2;
+    else if (is_object((*in_argv)[i]))
+      remember_object ((*in_argv)[i]);
     i++;
   }
   if (language != NULL && (strcmp (language, "modula-2") != 0))
@@ -247,8 +360,16 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     incl = 1;
     insert_arg(incl, in_argc, (char ***)in_argv);
   }
-  add_default_directories(incl, (char ***)in_argv, libraries);
+  s = get_style(seen_flags);
+  add_default_directories(incl, (char ***)in_argv, "-I", libraries, s);
   add_exec_prefix(1, in_argc, (char ***)in_argv);
+
+  if (link == -1) {
+    link = 1;
+    insert_arg(link, in_argc, (char ***)in_argv);
+  }
+  add_default_directories(link, (char ***)in_argv, "-fobject-path=", libraries, s);
+
   if (x == -1 && moduleExtension != -1) {
     insert_arg(1, in_argc, (char ***)in_argv);
     add_arg(1, (char ***)in_argv, "modula-2");
@@ -256,12 +377,11 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     add_arg(1, (char ***)in_argv, "-x");
   }
 #if defined(DEBUGGING)
-  i=1;
+  i = 1;
   while (i<*in_argc) {
     printf("in lang specific driver %s\n", (*in_argv)[i]);
     i++;
   }
-  i=1;
 #endif
 }
 
@@ -270,13 +390,52 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
  */
 
 int
-lang_specific_pre_link ()
+lang_specific_pre_link (void)
 {
   return 0;
+}
+
+/*
+ *  get_objects - returns a string containing all objects
+ *                specified on the command line.
+ */
+
+static const char *get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+{
+  char *result = (char *)xmalloc (1);
+  int len = 0;
+  int flen, i;
+  object_list *o;
+
+  *result = (char)0;
+
+  for (o = head_objects; o != NULL; o = o->next) {
+    flen = strlen(o->name);
+    result = (char *)xrealloc (result, len+flen+1);
+    len += flen;
+    strcat(result, o->name);
+    strcat(result, " ");
+  }
+  for (i = 0; i < n_infiles; i++)
+    outfiles[i] = NULL;
+
+  return result;
+}
+
+/*
+ *  no_link - tell gcc.c not to invoke its linker.
+ */
+
+static const char *no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+{
+  force_no_linker = TRUE;
+  return "";
 }
 
 /* Table of language-specific spec functions.  */ 
 const struct spec_function lang_specific_spec_functions[] =
 {
-  { 0, 0 }
+  { "objects", get_objects},
+  { "nolink", no_link},
+  { NULL, NULL }
 };

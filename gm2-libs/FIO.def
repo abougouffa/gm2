@@ -229,8 +229,8 @@ PROCEDURE ReadString (f: File; VAR a: ARRAY OF CHAR) ;
 
 (*
    WriteCardinal - writes a CARDINAL to file, f.
-                   (Suggest that WriteAny be used instead -
-                    here for compatibility)
+                   It writes the binary image of the CARDINAL.
+                   to file, f.
 *)
 
 PROCEDURE WriteCardinal (f: File; c: CARDINAL) ;
@@ -238,8 +238,8 @@ PROCEDURE WriteCardinal (f: File; c: CARDINAL) ;
 
 (*
    ReadCardinal - reads a CARDINAL from file, f.
-                  (Suggest that ReadAny be used instead -
-                   here for compatibility)
+                  It reads a bit image of a CARDINAL
+                  from file, f.
 *)
 
 PROCEDURE ReadCardinal (f: File) : CARDINAL ;

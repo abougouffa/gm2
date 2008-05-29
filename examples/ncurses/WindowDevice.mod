@@ -54,7 +54,7 @@ TYPE
                Ycursor : CARDINAL ;   (* y position of cursor in window  *)
                BgCol   : CARDINAL ;
                FgCol   : CARDINAL ;
-               Attrib  : ATTRIBUTE ;  (* Attribute made from Bg and Fg   *)
+               Attrib  : COLORPAIR ;  (* Attribute made from Bg and Fg   *)
                Up      : Window ;     (* Pointer to upwards visability   *)
                Down    : Window ;     (* Pointer to downwards visability *)
                Cur     : CursorType ;
@@ -1063,7 +1063,7 @@ END WriteCharAt ;
    WriteCharAbs - the interface to the colour text subsystem.
 *)
 
-PROCEDURE WriteCharAbs (ch: CHAR; col: ATTRIBUTE; x, y: CARDINAL) ;
+PROCEDURE WriteCharAbs (ch: CHAR; col: COLORPAIR; x, y: CARDINAL) ;
 BEGIN
 (*
    StrIO.WriteString('x  =') ; WriteCard(x, 4) ;

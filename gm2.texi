@@ -96,6 +96,7 @@ Software Foundation raise funds for GNU development.''
 * Extensions::            GNU Modula-2 language extensions.
 * Type compatibility::    Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
+* Interface for Python::  How to produce swig interface files.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * h2def::                 Semi-automatic translation of C header files.
 * Assembly language::     Interface to assembly language.
@@ -238,6 +239,19 @@ generic flags details see
 
 @table @code
 
+@item -I
+used to specify the search path for definition and implementation
+modules.  An example is:  @code{gm2 -g -c -I.:../../libs foo.mod}.
+
+@item -fobject-path=
+used to specify the path for objects during the linking stage.  An
+example is: @code{gm2 -g -fobject-path=.:../../libs/O2 -I.:../../libs
+foo.mod}.  The combination of @code{-I} and @code{-fobject-path=}
+allows projects to keep various styles of objects separate from their
+source counterparts.  For example it would be possible to compile
+implementation modules with different levels of optimization and
+with/without debugging and keep them in separate directories.
+
 @item -fmakeall
 generate a temporary makefile and build all dependent modules and
 link.
@@ -365,7 +379,14 @@ defining the opaque type is available so that it can be resolved when
 compiling the module which imports the opaque type.
 
 @item -fsources
-displays the path to the source of each module.
+displays the path to the source of each module.  This option
+can be used at compile time to check the correct definition module
+is being used.
+
+@item -fmodules
+displays the path to each modules object file.  This option
+is used at link time to check the correct object file is being
+linked.
 
 @item -fdef=
 recognise the specified suffix as a definition module filename.
@@ -1080,7 +1101,7 @@ The types @code{BYTE}, @code{LOC} and @code{WORD} and sized
 their derivitives are assignment and parameter compatible with any
 data type of the same size.
 
-@node Unbounded by reference, Interface to C, Type compatibility, Using
+@node Unbounded by reference, Interface for Python, Type compatibility, Using
 @section Unbounded by reference
 
 This section documents a GNU Modula-2 compiler switch which implements
@@ -1200,8 +1221,125 @@ and @code{f} are type compatible and will produce runtime checking
 code to test whether the address range of their respective contents
 intersect.
 
-@node Interface to C, h2def, Unbounded by reference, Using
+@node Interface for Python, Interface to C, Unbounded by reference, Using
+@section How to produce swig interface files
+
+This section describes how your Modula-2 implementation modules can be
+called from Python (and other scripting languages such as TCL and
+Perl).  GNU Modula-2 can be instructed to create a swig interface when
+it is compiling an implementation module.  Swig then uses the
+interface file to generate all the necessary wrapping to that the
+desired scripting language may access your implementation module.
+
+Here is an example of how you might call upon the services of the
+Modula-2 library module @code{NumberIO} from Python.  Firstly you
+should compile the @code{NumberIO} module as a shared library.
+This can be achieved by using the following commands:
+
+@example
+$ gm2 -fshared -I. -c -fPIC -g -fswig -I../../../gm2-libs \
+    ../../../gm2-libs/NumberIO.mod
+$ swig -python NumberIO.i
+$ gcc -c -fPIC NumberIO_wrap.c -I/usr/include/python2.4
+@end example
+
+The example assumes that the source code for @file{NumberIO.mod} can
+be found in directory @file{../../../gm2-libs}.  The first command
+produces two files: @file{NumberIO.i} and @file{NumberIO.o}.  The file
+@file{NumberIO.o} is a position independant code object file whereas
+the file @file{NumberIO.i} is a swig interface file and contains a
+swig interpretation of the @file{NumberIO.def}.  The swig command line
+generates the necessary Python and C interface files using the
+interface file.  The C interface file is also compiled into position
+independant code.  Finally the module @code{NumberIO} is linked with
+all its dependants and @file{NumberIO_wrap.o}.
+
+@example
+$ gm2 -shared -fshared -fPIC -g \
+     ../../../gm2-libs/NumberIO.mod NumberIO_wrap.o -o _NumberIO.so
+@end example
+
+Now it is possible to run the following Python script
+(called @file{testnum.py}):
+
+@example
+import NumberIO
+
+print NumberIO.NumberIO_StrToInt("1234")
+@end example
+
+like this:
+
+@example
+$ python testnum.py
+1234
+@end example
+
+This example can be found in the directory
+@file{gm2/examples/swig/full-strlib} and can be run using the commands:
+
+@example
+$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
+$ make numberio
+@end example
+
+@subsection Limitations of automatic generated of Swig files
+
+This section discusses the limitations of automatically generating
+swig files.  From the previous example we see that the module
+@code{NumberIO} had a swig interface file @file{NumberIO.i}
+automatically generated by the compiler.  If we consider three of the
+procedure definitions in @file{NumberIO.def} we can see the
+success and limitations of the automatic interface generation.
+
+@example
+PROCEDURE StrToHex (a: ARRAY OF CHAR; VAR x: CARDINAL) ;
+PROCEDURE StrToInt (a: ARRAY OF CHAR; VAR x: INTEGER) ;
+PROCEDURE ReadInt (VAR x: CARDINAL) ;
+@end example
+
+Below are the swig interface prototypes:
+
+@example
+extern void NumberIO_StrToHex (char *_m2_address_a,
+                               int _m2_high_a, unsigned int *OUTPUT);
+/*  parameters: x is known to be an OUTPUT */
+extern void NumberIO_StrToInt (char *_m2_address_a,
+                               int _m2_high_a, int *OUTPUT);
+/*  parameters: x is guessed to be an OUTPUT */
+extern void NumberIO_ReadInt (int *x);
+/*  parameters: x is unknown */
+@end example
+
+In the case of @code{StrToHex} it can be seen that the compiler
+detects that the last parameter is an output.  It explicitly tells
+swig this by using the parameter name @code{OUTPUT} and in the
+following comment it informs the user that it knows this to be an
+output parameter.  In the second procedure @code{StrToInt} it marks
+the final parameter as an output, but it tells the user that this is
+only a guess.  Finally in @code{ReadInt} it informs the user that
+it does not know whether the parameter, @code{x}, is an output, input
+or an inout parameter.
+
+The compiler decides whether to mark a parameter as either:
+@code{INPUT}, @code{OUTPUT} or @code{INOUT} if it is read before
+written or visa versa in the first basic block.  At this point
+it will write output that the parameter is known.  If it is not
+read or written in the first basic block then subsequent basic blocks
+are searched and the result is commented as a guess.  Finally if
+no read or write occurs then the parameter is commented as unknown.
+However, clearly it is possible to fool this mechanism.  Nevertheless
+automatic generation of implementation module into swig interface files
+was thought sufficiently useful despite these limitations.
+
+In conclusion it would be wise to check all parameters in any
+automatically generated swig interface file.  Furthermore you can
+force the automatic mechanism to generate correct interface files by
+reading or writing to the @code{VAR} parameter in the first basic
+block of a procedure.
+
 @section Interfacing GNU Modula-2 to C
+@node Interface to C, h2def, Interface for Python, Using
 
 The GNU Modula-2 compiler tries to use the C calling convention
 wherever possible however some parameters have no C equivalent and

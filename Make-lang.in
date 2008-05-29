@@ -1,5 +1,5 @@
 # Top level -*- makefile -*- fragment for GNU GM2.
-#   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+#   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 #   Free Software Foundation, Inc.
 
 #This file is part of GNU CC.
@@ -86,7 +86,8 @@ BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
 endif
 endif
 
-TEXISRC = $(objdir)/gm2/images/gnu.eps $(srcdir)/gm2/gm2.texi \
+TEXISRC = $(objdir)/gm2/images/gnu.eps \
+          $(srcdir)/gm2/gm2.texi \
           $(objdir)/gm2/gm2-libs.texi \
           $(objdir)/gm2/gm2-ebnf.texi \
           $(objdir)/gm2/SYSTEM-pim.texi \
@@ -136,11 +137,16 @@ GM2_LIB_DIR_LOG= $(DESTDIR)$(libsubdir)/gm2/logitech
 GM2_LIB_DIR_PCO= $(DESTDIR)$(libsubdir)/gm2/pim-coroutine
 GM2_LIB_DIR_ISO= $(DESTDIR)$(libsubdir)/gm2/iso
 GM2_LIB_DIR_MIN= $(DESTDIR)$(libsubdir)/gm2/min
-GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot $(objdir)/gm2/gm2-libs-boot \
-                 $(objdir)/gm2/gm2-libiberty $(objdir)/gm2/gm2-auto \
-                 $(objdir)/gm2/gm2-compiler $(objdir)/gm2/gm2-libs \
+GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
+                 $(objdir)/gm2/gm2-libs-boot \
+                 $(objdir)/gm2/gm2-libiberty \
+                 $(objdir)/gm2/gm2-auto \
+                 $(objdir)/gm2/gm2-compiler \
+                 $(objdir)/gm2/gm2-libs \
+                 $(objdir)/gm2/gm2-libs/SO \
                  $(objdir)/gm2/gm2-libs-iso \
-                 $(objdir)/gm2/gm2-compiler-paranoid $(objdir)/gm2/gm2-libs-paranoid \
+                 $(objdir)/gm2/gm2-compiler-paranoid \
+                 $(objdir)/gm2/gm2-libs-paranoid \
                  $(objdir)/gm2/gm2-compiler-verify \
                  $(objdir)/gm2/boot-bin \
                  $(objdir)/gm2/ulm-lib-gm2 \
@@ -225,6 +231,9 @@ $(objdir)/gm2/gm2-compiler:
 $(objdir)/gm2/gm2-libs:
 	mkdir $@
 
+$(objdir)/gm2/gm2-libs/SO:
+	mkdir -p $@
+
 $(objdir)/gm2/gm2-libs-iso:
 	mkdir $@
 
@@ -277,6 +286,9 @@ stage4/gm2:
 $(GM2_LIB_DIR_PIM):
 	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)
 
+$(GM2_LIB_DIR_PIM)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_PIM)/SO
+
 $(GM2_LIB_DIR_ISO):
 	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)
 
@@ -292,7 +304,7 @@ $(GM2_LIB_DIR_LOG):
 $(GM2_LIB_DIR_PCO):
 	$(mkinstalldirs) $(GM2_LIB_DIR_PCO)
 
-gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
+gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_PIM)/SO $(GM2_LIB_DIR_ISO) \
                     $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_PCO) \
                     $(GM2_LIB_DIR_MIN)
 	-if [ -f $(GM2)$(exeext) ]; then \
@@ -334,6 +346,22 @@ gm2.install-common: installdirs $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_ISO) \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
+           if [ "$$i" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PIM)/SO/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs/SO/*.o gm2/gm2-libs/*.def ; do \
+           rm -f $(GM2_LIB_DIR_PIM)/SO/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO ; \
               fi ; \
            fi ; \
         done ; \
@@ -1154,6 +1182,37 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -fiso -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $< -o $@
 
+#############################################################################
+#  rules to build shared libraries
+#############################################################################
+
+gm2/gm2-libs/SO/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/UnixArgs.o: $(srcdir)/gm2/gm2-libs-ch/UnixArgs.c gm2/gm2-libs-boot/$(SRC_PREFIX)UnixArgs.h
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-boot/$(SRC_PREFIX)Selective.h
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
+	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+
+gm2/gm2-libiberty/SO/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.c
+	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.mod
+	$(XGM2_1) -fPIC $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $< -o $@
+
+##############################################################
+#  end of shared library rules
+##############################################################
 
 #
 #  we build the cc1gm2$(exeext) from the boot stage and then proceed to build it again using
@@ -1213,7 +1272,9 @@ build-libs: gm2/gm2-libs/gm2-libs-host.h \
             $(objdir)/gm2/gm2-libs/SYSTEM.def \
             $(objdir)/gm2/gm2-libs-iso/SYSTEM.def \
             $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/%.o) \
-            $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o)
+            $(GM2-LIBS-C:%.c=gm2/gm2-libs/%.o) \
+            $(GM2-LIBS-MODS:%.mod=gm2/gm2-libs/SO/%.o) \
+            $(GM2-LIBS-C:%.c=gm2/gm2-libs/SO/%.o)
 
 build-compiler: $(GM2-COMP-MODS:%.mod=gm2/gm2-compiler/%.o) \
                 $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o) \

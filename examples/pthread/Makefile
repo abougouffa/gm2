@@ -16,7 +16,7 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 all: libcwrap.o force
-	gm2 -Wmakeall -I. testselect.mod -lpth
+	gm2 -fmakeall -I. testselect.mod -lpth
 
 libcwrap.o: libcwrap.c
 	$(CC) -g -c -o $@ $<

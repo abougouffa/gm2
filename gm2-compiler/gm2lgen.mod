@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -118,9 +118,9 @@ BEGIN
          NeedTerminate := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-shared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-fshared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
          exit(0)
-      ELSIF EqualArray(s, '-shared')
+      ELSIF EqualArray(s, '-fshared')
       THEN
          SharedLibrary := TRUE
       ELSIF EqualArray(s, '-o')

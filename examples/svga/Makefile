@@ -16,7 +16,7 @@
 # Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 all: force
-	gm2 -O -ffast-math -I.:../../gm2-libs:../../gm2-iso -Wmakeall testbox.mod -lvga -lm
+	gm2 -O -ffast-math -I.:../../gm2-libs:../../gm2-iso -fmakeall testbox.mod -lvga -lm
 
 clean:
 	$(RM) *.o a.out *~

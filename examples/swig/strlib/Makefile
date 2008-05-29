@@ -1,12 +1,13 @@
 
 all: force
-	gm2 -fsources -I. -c -fPIC -g -fswig StrLib.mod
-	swig -python StrLib.i
-	gcc -c -fPIC StrLib_wrap.c -I/usr/include/python2.4
-	gcc -shared StrLib.o StrLib_wrap.o -o _StrLib.so
+	gm2 -fshared -fsources -I. -c -fPIC -g -fswig MyStrLib.mod
+	swig -python MyStrLib.i
+	gcc -c -fPIC MyStrLib_wrap.c -I/usr/include/python2.4
+	gm2 -fshared -c -fPIC -g -fmakelist MyStrLib.mod
+	gm2 -fuselist -fobject-path=. -fPIC -g -shared -fshared MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
 	python testlen.py
 
 clean: force
-	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* StrLib.py *.i
+	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* MyStrLib.py *.i *.lst
 
 force:

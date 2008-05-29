@@ -670,6 +670,18 @@ BEGIN
 END IsKillLocalVar ;
 
 
+(* 
+   IsProcedureScope - returns true if QuadNo is a ProcedureScope operation.
+*) 
+ 
+PROCEDURE IsProcedureScope (QuadNo: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Quads[QuadNo] DO
+      RETURN( Operator=ProcedureScopeOp )
+   END
+END IsProcedureScope ;
+
+
 (*
    IsOptimizeOn - returns true if the Optimize flag was true at QuadNo.
 *)

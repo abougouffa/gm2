@@ -105,7 +105,7 @@ PROCEDURE AddColorPairToChar (ch: CHAR; p: COLORPAIR) : chtype ;
 VAR
    c: chtype ;
 BEGIN
-   c := p * 0100H + ORD(ch) ;
+   c := VAL(CARDINAL, p) * 0100H + ORD(ch) ;
    RETURN( c )
 END AddColorPairToChar ;
 
