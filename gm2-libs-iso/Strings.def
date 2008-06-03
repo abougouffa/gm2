@@ -149,5 +149,6 @@ PROCEDURE FindDiff (stringVal1, stringVal2: ARRAY OF CHAR;
 PROCEDURE Capitalize (VAR stringVar: ARRAY OF CHAR);
   (* Applies the function CAP to each character of the string value in stringVar. *)
 
+
 END Strings.
 

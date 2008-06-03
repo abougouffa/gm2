@@ -1,3 +1,20 @@
+2008-06-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-file.in:  introduce GM2_ISO_FLAGS.  Fixed spelling
+	  for GM2-LIBS-ISO-MODS, modified ISO library building rule.
+	* gm2/gm2.texi:  updated documentation date stamp.
+	* gm2/gm2-libs-iso/ChanConsts.mod:  fixed date.
+	* gm2/gm2-libs-iso/CharClass.mod:  fixed import bug.
+	* gm2/gm2-libs-iso/ConvTypes.mod:  fixed date.
+	* gm2/gm2/gm2-libs-iso/LongMath.mod:  fixed date.
+	* gm2/gm2/gm2-libs-iso/RealMath.mod:  fixed date.
+	* gm2/gm2-libs-iso/M2RTS.def:  export HasHalted, IsTerminating.
+	* gm2/gm2-libs-iso/M2RTS.mod:  implemented HasHalted, IsTerminating
+	  and use CardToStr rather than ConvertCardinal.
+	* gm2/gm2-libs-iso/README.texi:  updated dates and also which modules
+	  are complete.
+	* gm2/gm2-libs-iso/Strings.mod:  new file.
+
 2008-05-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.1.2/04.gaius_patch_gcc:  new file.

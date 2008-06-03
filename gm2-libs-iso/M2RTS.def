@@ -27,6 +27,7 @@ DEFINITION MODULE M2RTS ;
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, Terminate,
+                 HasHalted, IsTerminating,
                  ExitOnHalt, Length,
                  AssignmentException, IncException, DecException,
                  StaticArraySubscriptException, DynamicArraySubscriptException,
@@ -74,6 +75,22 @@ PROCEDURE InstallTerminationProcedure (p: PROC) ;
 *)
 
 PROCEDURE Terminate ;
+
+
+(*
+   IsTerminating - Returns true if any coroutine has started program termination
+                   and false otherwise.
+*)
+
+PROCEDURE IsTerminating () : BOOLEAN ;
+
+
+(*
+   HasHalted - Returns true if a call to HALT has been made and false
+               otherwise.
+*)
+
+PROCEDURE HasHalted () : BOOLEAN ;
 
 
 (*

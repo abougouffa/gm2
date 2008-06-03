@@ -579,6 +579,9 @@ GM2_G=-g
 GM2_FLAGS=-fnil -fcase -fbounds -freturn $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names
+GM2_ISO_FLAGS=-fnil -fcase -fbounds -freturn $(GM2_G) $(GM2_O) \
+ -funbounded-by-reference -fiso -fextended-opaque \
+ -Wpedantic-cast -Wpedantic-param-names
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names
@@ -920,9 +923,9 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 # the ISO implementation modules are still being written
 #
 
-GM2_LIBS_ISO_MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
-                     LongMath.mod \
-                     RealMath.mod      Storage.mod     TERMINATION.mod
+GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
+                     Strings.mod       SYSTEM.mod      \
+                     TERMINATION.mod   M2RTS.mod
 
 GM2-LIBS-ULM-MODS-STD  = \
               Plot.mod      Archive.mod    EtcGroup.mod   Strings.mod \
@@ -1180,7 +1183,7 @@ gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -fiso -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $< -o $@
 
 #############################################################################
 #  rules to build shared libraries

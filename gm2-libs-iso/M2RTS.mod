@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -22,20 +22,22 @@ IMPLEMENTATION MODULE M2RTS ;
 FROM libc IMPORT abort, exit, write ;
 FROM NumberIO IMPORT CardToStr ;
 FROM StrLib IMPORT StrCopy, StrLen, StrEqual ;
-FROM SYSTEM IMPORT ADDRESS, ADR, BITSET ;
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
 
 
 CONST
-   MaxProcedures =   20 ;
+   MaxProcedures = 1024 ;
    MaxLength     = 4096 ;
 
 
 VAR
-   Ptr      : CARDINAL ;
-   List     : ARRAY [0..MaxProcedures] OF PROC ;
-   ExitValue: INTEGER ;
-   CallExit : BOOLEAN ;
+   Ptr          : CARDINAL ;
+   List         : ARRAY [0..MaxProcedures] OF PROC ;
+   ExitValue    : INTEGER ;
+   CallExit     : BOOLEAN ;
+   isTerminating,
+   isHalting    : BOOLEAN ;
 
 
 (*
@@ -62,6 +64,7 @@ END Terminate ;
 
 PROCEDURE HALT ;
 BEGIN
+   isTerminating := TRUE ;
    Terminate ;
    IF CallExit
    THEN
@@ -70,6 +73,28 @@ BEGIN
       abort
    END
 END HALT ;
+
+
+(*
+   IsTerminating - Returns true if any coroutine has started program termination
+                   and false otherwise.
+*)
+
+PROCEDURE IsTerminating () : BOOLEAN ;
+BEGIN
+   RETURN isTerminating
+END IsTerminating ;
+
+
+(*
+   HasHalted - Returns true if a call to HALT has been made and false
+               otherwise.
+*)
+
+PROCEDURE HasHalted () : BOOLEAN ;
+BEGIN
+   RETURN isHalting
+END HasHalted ;
 
 
 (*
@@ -145,9 +170,9 @@ VAR
    LineNo: ARRAY [0..10] OF CHAR ;
 BEGIN
    ErrorCharStar(filename) ; ErrorString(':') ;
-   ConvertCardinal(line, 0, LineNo) ;
+   CardToStr(line, 0, LineNo) ;
    ErrorString(LineNo) ; ErrorString(':') ;
-   ConvertCardinal(column, 0, LineNo) ;
+   CardToStr(column, 0, LineNo) ;
    ErrorString(LineNo) ; ErrorString(':') ;
    ErrorCharStar(scope) ; ErrorString(':') ;
    ErrorCharStar(message) ;
@@ -319,6 +344,8 @@ END NoException ;
 
 
 BEGIN
+   isTerminating := FALSE ;
+   isHalting := FALSE ;
    Ptr := 0 ;
    ExitValue := 0 ;
    CallExit := FALSE   (* default by calling abort *)
