@@ -1,3 +1,18 @@
+2008-06-04       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2/Make-lang.in:  added RealMath to the
+	  GM2-LIBS-ISO-MODS list.
+      	* gm2/gm2/gm2.texi:  added description of
+	  -fdump-system-exports, -fswig, -fmakeinit and
+	  modified description of -I and -fobject-path to
+	  reflect changes.
+	* gm2/gm2/gm2spec.c:  add -fobject-path if user has
+	  omitted it.
+	* gm2/gm2/gm2-libs-iso/RealMath.def:  use builtins
+	  if possible.
+	* gm2/gm2/gm2-libs-iso/RealMath.mod:  implementation
+	  to use builtins if possible.  Implemented ln.
+
 2008-06-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-file.in:  introduce GM2_ISO_FLAGS.  Fixed spelling

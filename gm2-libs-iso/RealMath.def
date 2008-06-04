@@ -17,10 +17,10 @@ CONST
 PROCEDURE __BUILTIN__ sqrt (x: REAL): REAL;
   (* Returns the positive square root of x *)
 
-PROCEDURE exp (x: REAL): REAL;
+PROCEDURE __BUILTIN__ exp (x: REAL): REAL;
   (* Returns the exponential of x *)
 
-PROCEDURE ln (x: REAL): REAL;
+PROCEDURE __BUILTIN__ ln (x: REAL): REAL;
   (* Returns the natural logarithm of x *)
 
   (* The angle in all trigonometric functions is measured in radians *)
@@ -43,13 +43,13 @@ PROCEDURE arccos (x: REAL): REAL;
 PROCEDURE arctan (x: REAL): REAL;
   (* Returns the arctangent of x *)
 
-PROCEDURE power (base, exponent: REAL): REAL;
+PROCEDURE power (base, exponent: REAL) : REAL;
   (* Returns the value of the number base raised to the power exponent *)
 
-PROCEDURE round (x: REAL): INTEGER;
+PROCEDURE round (x: REAL) : INTEGER;
   (* Returns the value of x rounded to the nearest integer *)
 
-PROCEDURE IsRMathException (): BOOLEAN;
+PROCEDURE IsRMathException () : BOOLEAN;
   (* Returns TRUE if the current coroutine is in the exceptional execution state
      because of the raising of an exception in a routine from this module; otherwise
      returns FALSE.

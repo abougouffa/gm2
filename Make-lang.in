@@ -925,7 +925,8 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
                      Strings.mod       SYSTEM.mod      \
-                     TERMINATION.mod   M2RTS.mod
+                     TERMINATION.mod   M2RTS.mod       \
+                     RealMath.mod
 
 GM2-LIBS-ULM-MODS-STD  = \
               Plot.mod      Archive.mod    EtcGroup.mod   Strings.mod \

@@ -73,7 +73,7 @@ typedef struct {
   flag_set flags;
 } style_sig;
 
-/*                                          dir   -fshared     -O2
+/*                                           dir      -fshared    -O2
  */
 static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 					    {"SO",    {  TRUE,    FALSE}},
@@ -93,6 +93,8 @@ void remove_arg (int i, int *in_argc, const char ***in_argv);
 int is_object (const char *s);
 void remember_object (const char *s);
 static styles get_style (flag_set flags);
+static void add_link_from_include (int link, char **in_argv[],
+                                   int incl, const char *option);
 
 
 typedef struct object_list {
@@ -101,6 +103,8 @@ typedef struct object_list {
 } object_list;
 
 static object_list *head_objects = NULL;
+static int inclPos=-1;
+static int linkPos=-1;
 
 /* By default, the suffix for target object files is ".o".  */
 #ifdef TARGET_OBJECT_SUFFIX
@@ -243,28 +247,48 @@ add_default_directories (int incl, char ***in_argv,
 }
 
 /*
- *  insert_arg - inserts an empty argument at position, incl.
+ *  add_link_from_include - adds option to (**in_argv)[pos] using the
+ *                          include path.
+ */
+
+static void
+add_link_from_include (int pos, char **in_argv[], int include, const char *option)
+{
+  int l=strlen("-I");
+  char *new_opt = (char *)xmalloc(strlen(option)+strlen((*in_argv)[include])-l+1);
+
+  strcpy(new_opt, option);
+  strcat(new_opt, (*in_argv)[include]+l);
+  (*in_argv)[pos] = new_opt;
+}
+
+/*
+ *  insert_arg - inserts an empty argument at position, pos.
  *               in_argv and in_argc are updated accordingly.
  */
 
 void
-insert_arg (int incl, int *in_argc, char ***in_argv)
+insert_arg (int pos, int *in_argc, char ***in_argv)
 {
   int i=0;
   char **new_argv = (char **)xmalloc(sizeof(char *) * ((*in_argc) + 1));
   (*in_argc)++;
 
-  while (i < incl) {
+  while (i < pos) {
     new_argv[i] = (*in_argv)[i];
     i++;
   }
-  new_argv[incl] = NULL;
-  i = incl+1;
+  new_argv[pos] = NULL;
+  i = pos+1;
   while (i < *in_argc) {
     new_argv[i] = (*in_argv)[i-1];
     i++;
   }
   *in_argv = new_argv;
+  if (linkPos >= pos)
+    linkPos++;
+  if (inclPos >= pos)
+    inclPos++;
 }
 
 /*
@@ -294,8 +318,6 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 		      int *in_added_libraries ATTRIBUTE_UNUSED)
 {
   int i=1;
-  int incl=-1;
-  int link=-1;
   int libraries=pim;
   int x=-1;
   const char *language = NULL;
@@ -314,9 +336,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   while (i<*in_argc) {
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
-      incl = i;
+      inclPos = i;
     if (strncmp((*in_argv)[i], "-fobject-path=", 15) == 0)
-      link = i;
+      linkPos = i;
     if (strncmp((*in_argv)[i], "-fiso", 5) == 0)
       libraries = iso;
     if (strncmp((*in_argv)[i], "-flibs=pim", 10) == 0)
@@ -356,19 +378,24 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     i++;
   }
 #endif
-  if (incl == -1) {
-    incl = 1;
-    insert_arg(incl, in_argc, (char ***)in_argv);
+  if (inclPos != -1 && linkPos == -1) {
+    insert_arg(1, in_argc, (char ***)in_argv);
+    linkPos = 1;
+    add_link_from_include(linkPos, (char ***)in_argv, inclPos, "-fobject-path=");
+  }
+  if (inclPos == -1) {
+    insert_arg(1, in_argc, (char ***)in_argv);
+    inclPos = 1;
   }
   s = get_style(seen_flags);
-  add_default_directories(incl, (char ***)in_argv, "-I", libraries, s);
+  add_default_directories(inclPos, (char ***)in_argv, "-I", libraries, s);
   add_exec_prefix(1, in_argc, (char ***)in_argv);
 
-  if (link == -1) {
-    link = 1;
-    insert_arg(link, in_argc, (char ***)in_argv);
+  if (linkPos == -1) {
+    insert_arg(1, in_argc, (char ***)in_argv);
+    linkPos = 1;
   }
-  add_default_directories(link, (char ***)in_argv, "-fobject-path=", libraries, s);
+  add_default_directories(linkPos, (char ***)in_argv, "-fobject-path=", libraries, s);
 
   if (x == -1 && moduleExtension != -1) {
     insert_arg(1, in_argc, (char ***)in_argv);

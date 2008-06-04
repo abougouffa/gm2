@@ -242,6 +242,9 @@ generic flags details see
 @item -I
 used to specify the search path for definition and implementation
 modules.  An example is:  @code{gm2 -g -c -I.:../../libs foo.mod}.
+If this option is not specified then the default path is added
+which consists of the current directory followed by the appropriate
+language dialect library directories.
 
 @item -fobject-path=
 used to specify the path for objects during the linking stage.  An
@@ -250,7 +253,26 @@ foo.mod}.  The combination of @code{-I} and @code{-fobject-path=}
 allows projects to keep various styles of objects separate from their
 source counterparts.  For example it would be possible to compile
 implementation modules with different levels of optimization and
-with/without debugging and keep them in separate directories.
+with/without debugging and keep them in separate directories.  If the
+@code{-fobject-path=} option is not specified then it is set
+internally by using the path as specified by the @code{-I} option.  If
+the @code{-I} was also not specified then it uses the current
+directory.  In all cases the appropriate language dialect library
+directories are appended to the end of the path.
+
+@item -fdump-system-exports
+display all inbuilt system items.
+This is an internal command line option.
+
+@item -fswig
+generate a swig interface file.
+
+@item -fshared
+generate a shared library from the module.
+
+@item -fmakeinit
+generate the start up C code for the module, a file @file{_m2_modulename.c} is created.
+This is an internal command line option.
 
 @item -fmakeall
 generate a temporary makefile and build all dependent modules and

@@ -27,16 +27,16 @@ BEGIN
    RETURN cbuiltin.sqrt(x)
 END sqrt ;
 
-PROCEDURE exp (x: REAL): REAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_exp)) exp (x: REAL): REAL;
   (* Returns the exponential of x *)
 BEGIN
-   RETURN libm.exp(VAL(LONGREAL, x))
+   RETURN cbuiltin.exp(x)
 END exp ;
 
-PROCEDURE ln (x: REAL): REAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_log)) ln (x: REAL): REAL;
   (* Returns the natural logarithm of x *)
 BEGIN
-   RETURN 0.0  (* libm.help(x) *)
+   RETURN cbuiltin.log(x)
 END ln ;
 
   (* The angle in all trigonometric functions is measured in radians *)
