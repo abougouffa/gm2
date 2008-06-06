@@ -908,6 +908,7 @@ Meaning *mp;
     mp->volatilequal = 0;
     mp->constqual = 0;
     mp->language_C = 0;
+    mp->isfinially = 0;
     mp->warnifused = (warnnames > 0);
     mp->constdefn = NULL;
     mp->val.i = 0;

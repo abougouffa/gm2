@@ -468,6 +468,7 @@ token   'ELSIF'           elsiftok
 token   'END'             endtok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
+token   'FINALLY'         finallytok
 token   'FOR'             fortok
 token   'FROM'            fromtok
 token   'IF'              iftok
@@ -879,7 +880,11 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 
 ProcedureBlock := { Declaration } [ "BEGIN" StatementSequence ] "END" =:
 
-Block := { Declaration } [ "BEGIN" StatementSequence ] "END" =:
+Block := { Declaration } InitialBlock FinalBlock "END" =:
+
+InitialBlock := [ "BEGIN" StatementSequence ] =:
+
+FinalBlock := [ "FINALLY" StatementSequence ] =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
                "TYPE" { TypeDeclaration ";" } |

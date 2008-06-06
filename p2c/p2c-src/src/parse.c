@@ -413,6 +413,8 @@ Meaning *mp;
 #define SF_FIRST   0x4
 #define SF_IF	   0x8
 #define SF_CASE    0x10
+#define SF_INIT    0x20
+#define SF_FINI    0x40
 
 Static Stmt *p_stmt(slist, sflags)
 Stmt *slist;
@@ -420,7 +422,7 @@ int sflags;
 {
     Stmt *sbase = NULL, **spp = &sbase, **spp2, **spp3, **savespp;
     Stmt *defsp, **defsphook;
-    register Stmt *sp;
+    Stmt *sp;
     Stmt *sp2;
     long li1, li2, firstserial = 0, saveserial = 0, saveserial2;
     int i, forfixed, offset, line1, line2, toobig, isunsafe;
@@ -452,10 +454,10 @@ again:
 	    goto stmtSeq;
     }
     switch (curtok) {
-
         case TOK_BEGIN:
+        case TOK_FINALLY:
         stmtSeq:
-	    if (sflags & (SF_FUNC|SF_SAVESER)) {
+	    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
 		saveserial = curserial;
 		cmt = grabcomment(CMT_ONBEGIN);
 		if (sflags & SF_FUNC)
@@ -463,12 +465,21 @@ again:
 		strlist_mix(&curcomments, cmt);
 	    }
 	    i = sflags & SF_FIRST;
+	    /*
+	     *  skip over block start token
+	     */
+	    if (modula2) {
+	      if (curtok == TOK_BEGIN)
+		gettok();
+	      else if ((sflags & SF_FINI) && (curtok == TOK_FINALLY))
+		gettok();
+	    }
             do {
 		if (modula2) {
-		    if (curtok == TOK_BEGIN || curtok == TOK_SEMI)
+		    if (curtok == TOK_SEMI)
 			gettok();
 		    checkkeyword(TOK_ELSIF);
-		    if (curtok == TOK_ELSE || curtok == TOK_ELSIF)
+		    if (curtok == TOK_ELSE || curtok == TOK_ELSIF || curtok == TOK_FINALLY)
 			break;
 		} else
 		    gettok();
@@ -477,13 +488,13 @@ again:
                 while (*spp)
                     spp = &((*spp)->next);
             } while (curtok == TOK_SEMI);
-	    if (sflags & (SF_FUNC|SF_SAVESER)) {
+	    if (sflags & (SF_FUNC|SF_SAVESER|SF_INIT|SF_FINI)) {
 		cmt = grabcomment(CMT_ONEND);
 		changecomments(cmt, -1, -1, -1, saveserial);
-		if (sflags & SF_FUNC)
+		if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
 		    cmt = fixbeginendcomment(cmt);
 		strlist_mix(&curcomments, cmt);
-		if (sflags & SF_FUNC)
+		if (sflags & (SF_FUNC|SF_INIT|SF_FINI))
 		    changecomments(curcomments, -1, saveserial, -1, 10000);
 		curserial = saveserial;
 	    }
@@ -496,6 +507,10 @@ again:
 	    if (modula2 && (sflags & SF_CASE)) {
 		break;
 	    }
+	    if (modula2 && (sflags & SF_INIT) && (curtok == TOK_FINALLY))
+	      break;
+	    if (modula2 && (sflags & (SF_INIT|SF_FINI)) && (curtok == TOK_END))
+	      break;
             if (!wneedtok(TOK_END))
 		skippasttoken(TOK_END);
             break;
@@ -1163,11 +1178,6 @@ again:
 }
 
 
-
-
-
-
-
 #define BR_NEVER        0x1     /* never use braces */
 #define BR_FUNCTION     0x2     /* function body */
 #define BR_THENPART     0x4     /* before an "else" */
@@ -1391,10 +1401,15 @@ int opts, serial;
 			output("argv);\n");
 #endif
                     } else {
+		      if (ctx->isfinially) {
+                        output("static int _was_finalized = 0;\n");
+                        output("if (_was_finalized++)\n");
+		      } else {
                         output("static int _was_initialized = 0;\n");
                         output("if (_was_initialized++)\n");
-			singleindent(tabsize);
-                        output("return;\n");
+		      }
+		      singleindent(tabsize);
+		      output("return;\n");
                     }
 		    while (initialcalls) {
 			output(initialcalls->s);
@@ -3199,10 +3214,8 @@ Expr *exbase;
 }
 
 
-
-
-
-Static Stmt *p_body()
+Static Stmt *p_body(sflags)
+     int sflags;
 {
     Stmt *sp, **spp, *spbody, **sppbody, *spbase, *thereturn;
     Meaning *mp;
@@ -3219,22 +3232,21 @@ Static Stmt *p_body()
     addstmt(SK_HEADER);
     sp->exp1 = makeexpr_var(curctx);
     checkkeyword(TOK_INLINE);
-    if (curtok != TOK_END && curtok != TOK_BEGIN && curtok != TOK_INLINE) {
+    if (curtok != TOK_END && curtok != TOK_BEGIN && curtok != TOK_INLINE && curtok != TOK_FINALLY) {
 	if (curctx->kind == MK_FUNCTION || curctx->anyvarflag)
 	    wexpecttok(TOK_BEGIN);
 	else
 	    wexpecttok(TOK_END);
 	skiptotoken2(TOK_BEGIN, TOK_END);
     }
-    if (curtok == TOK_END) {
-	gettok();
-	spbody = NULL;
-    } else {
-	spbody = p_stmt(NULL, SF_FUNC);  /* parse the procedure/program body */
-    }
-    if (curtok == TOK_IDENT && curtokmeaning == curctx) {
+    if (curtok == TOK_END)
+      spbody = NULL;
+    else
+      spbody = p_stmt(NULL, SF_FUNC|sflags);  /* parse the procedure/program body */
+
+    if (! (sflags & (SF_INIT|SF_FINI)))
+      if (curtok == TOK_IDENT && curtokmeaning == curctx)
 	gettok();    /* Modula-2 */
-    }
     notephase = 2;
     saveserial = curserial;
     curserial = 10000;
@@ -3658,7 +3670,7 @@ Static void p_function(isfunc, ismodule)
             p_block(TOK_FUNCTION);
             echoprocname(func);
 	    changecomments(curcomments, -1, curserial, -1, 10000);
-            sp = p_body();
+            sp = p_body(0);
             func->ctx->needvarstruct = 0;
             func->val.i = (long)sp;
 	    strlist_mix(&func->comments, curcomments);
@@ -4079,6 +4091,84 @@ Meaning *mod;
 }
 
 
+/*
+ *  generateFinish - generates the finalization code for a module.
+ */
+
+Static void generateFinish (mod)
+Meaning *mod;
+{
+    Strlist *sl;
+
+    strlist_mix(&mod->comments, curcomments);
+    curcomments = NULL;
+
+    if (fullprototyping && ansiC) {
+      output("void ");
+      output(format_s(name_UNITFINISH, mod->name));
+      if (void_args)
+	output("(void);\n\n");
+      else
+	output("();\n\n");
+    }
+    if (ansiC != 0)
+	    output("void ");
+    output(format_s(name_UNITFINISH, mod->name));
+    if (void_args)
+	    output("(void)\n");
+    else
+	    output("()\n");
+    output("{\n");
+    output("}\n");
+    outcontext = mod;
+
+    /* The following must come after out_block! */
+    sl = strlist_append(&initialcalls,
+			format_s("%s()",
+				 format_s(name_UNITFINISH, mod->name)));
+    sl->value = 1;
+}
+
+
+Static void p_modulefinish(mod)
+Meaning *mod;
+{
+    Stmt *sp;
+    Strlist *sl;
+
+    if (curtok != TOK_FINALLY && curtok != TOK_END)
+	skiptotoken2(TOK_FINALLY, TOK_END);
+
+    if (curtok == TOK_FINALLY || initialcalls) {
+	echoprocname(mod);
+	sp = p_body(SF_FINI);
+	mod->isfinially = 1;
+	output("\n\n");
+	strlist_mix(&mod->comments, curcomments);
+	curcomments = NULL;
+	if (ansiC != 0)
+	    output("void ");
+	output(format_s(name_UNITFINISH, mod->name));
+	if (void_args)
+	    output("(void)\n");
+	else
+	    output("()\n");
+	outcontext = mod;
+	out_block(sp, BR_FUNCTION, 10000);
+	free_stmt(sp);
+	initialcalls = NULL;
+#if 0
+	/* The following must come after out_block! */
+	sl = strlist_append(&initialcalls,
+			    format_s("%s()",
+				     format_s(name_UNITFINISH, mod->name)));
+	sl->value = 1;
+#endif
+    } else
+      generateFinish(mod);
+}
+
+
 Static void p_moduleinit(mod)
 Meaning *mod;
 {
@@ -4091,7 +4181,8 @@ Meaning *mod;
     }
     if (curtok == TOK_BEGIN || initialcalls) {
 	echoprocname(mod);
-	sp = p_body();
+	sp = p_body(SF_INIT);
+	mod->isfinially = 0;
 	strlist_mix(&mod->comments, curcomments);
 	curcomments = NULL;
 	if (ansiC != 0)
@@ -4110,7 +4201,6 @@ Meaning *mod;
 				     format_s(name_UNITINIT, mod->name)));
 	sl->value = 1;
     } else {
-	wneedtok(TOK_END);
 	if (modula2 && (edition == 2)) {
 	  /* make p2c generate an initialization body even if the
 	     implementation module does not require it.
@@ -4142,6 +4232,11 @@ Static void p_nested_module()
     wneedtok(TOK_SEMI);
     p_block(TOK_IMPLEMENT);
     p_moduleinit(mp);
+    initialcalls = NULL;
+    if (modula2)
+      p_modulefinish(mp);
+    if (!wneedtok(TOK_END))
+      skippasttoken(TOK_END);
     if (curtok == TOK_IDENT)
 	gettok();
     wneedtok(TOK_SEMI);
@@ -4332,12 +4427,15 @@ int isdefn;
         p_block(TOK_IMPLEMENT);
 	flushcomments(NULL, -1, -1);
 	p_moduleinit(mod);
+	initialcalls = NULL;
+	if (modula2)
+	  p_modulefinish(mod);
         kind = 1;
-    } else {
+    } else
         kind = 0;
-        if (!wneedtok(TOK_END))
-	    skippasttoken(TOK_END);
-    }
+    if (!wneedtok(TOK_END))
+      skippasttoken(TOK_END);
+
     if (curtok == TOK_IDENT)
 	gettok();
     if (curtok == TOK_SEMI)
@@ -4557,7 +4655,7 @@ void p_program()
             echoprocname(prog);
 	    flushcomments(NULL, -1, -1);
 	    if (curtok != TOK_EOF) {
-		sp = p_body();
+		sp = p_body(0);
 		strlist_mix(&prog->comments, curcomments);
 		curcomments = NULL;
 		if (modula2) {

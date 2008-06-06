@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 DEFINITION MODULE M2Reserved ;
 
 (*
@@ -38,11 +39,12 @@ EXPORT QUALIFIED IsReserved, tokToTok,
 
    AndTok, ArrayTok, BeginTok, ByTok, CaseTok, ConstTok,
    DefinitionTok, DivTok, DoTok, ElseTok, ElsifTok, EndTok,
-   ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
-   ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
-   OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
-   UnQualifiedTok, RecordTok, RemTok, RepeatTok, ReturnTok, SetTok,
-   ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
+   ExitTok, ExportTok, FinallyTok, ForTok, FromTok, IfTok,
+   ImplementationTok, ImportTok, InTok, LoopTok, ModTok,
+   ModuleTok, NotTok, OfTok, OrTok, PointerTok, ProcedureTok,
+   QualifiedTok, UnQualifiedTok, RecordTok, RemTok, RepeatTok,
+   ReturnTok, SetTok, ThenTok, ToTok, TypeTok, UntilTok, VarTok,
+   WhileTok, WithTok,
 
    (* additional tokens which extend PIM Modula-2 slightly *)
    EofTok, AsmTok, VolatileTok, DateTok, LineTok, FileTok,
@@ -60,8 +62,9 @@ TYPE
               colontok, doublequotestok, bartok, andtok,
               arraytok, begintok, bytok, casetok, consttok,
               definitiontok, divtok, dotok, elsetok, elsiftok,
-              endtok, exittok, exporttok, fortok, fromtok, iftok,
-              implementationtok, importtok, intok, looptok, modtok,
+              endtok, exittok, exporttok, finallytok,
+              fortok, fromtok, iftok, implementationtok,
+              importtok, intok, looptok, modtok,
               moduletok, nottok, oftok, ortok, pointertok,
               proceduretok, qualifiedtok, unqualifiedtok,
               recordtok, remtok, repeattok, returntok, settok, thentok,
@@ -81,11 +84,12 @@ VAR
 
    AndTok, ArrayTok, BeginTok, ByTok, CaseTok, ConstTok,
    DefinitionTok, DivTok, DoTok, ElseTok, ElsifTok, EndTok,
-   ExitTok, ExportTok, ForTok, FromTok, IfTok, ImplementationTok,
-   ImportTok, InTok, LoopTok, ModTok, ModuleTok, NotTok,
-   OfTok, OrTok, PointerTok, ProcedureTok, QualifiedTok,
-   UnQualifiedTok, RecordTok, RemTok, RepeatTok, ReturnTok, SetTok,
-   ThenTok, ToTok, TypeTok, UntilTok, VarTok, WhileTok, WithTok,
+   ExitTok, ExportTok, FinallyTok, ForTok, FromTok, IfTok,
+   ImplementationTok, ImportTok, InTok, LoopTok, ModTok,
+   ModuleTok, NotTok, OfTok, OrTok, PointerTok, ProcedureTok,
+   QualifiedTok, UnQualifiedTok, RecordTok, RemTok, RepeatTok,
+   ReturnTok, SetTok, ThenTok, ToTok, TypeTok, UntilTok,
+   VarTok, WhileTok, WithTok,
 
    EofTok, AsmTok, VolatileTok,
    DateTok, LineTok, FileTok,

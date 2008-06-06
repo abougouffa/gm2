@@ -274,6 +274,7 @@ Static void makePascalwords()
       Pkeyword("PROC", TOK_PROC);
       Pkeyword("...", TOK_VARARG);
       Pkeywordposs("UNQUALIFIED", TOK_UNQUALIFIED);   /* really an extension to Modula-2 */
+      Pkeyword("FINALLY", TOK_FINALLY);
     }
     Pkeyword("PROGRAM", TOK_PROGRAM);
     Pkeywordposs("QUALIFIED", TOK_QUALIFIED);

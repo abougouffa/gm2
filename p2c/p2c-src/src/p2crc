@@ -1091,10 +1091,11 @@ EnumFormat			# Format for enumeration constants;
 				# %s=enum type name.  If not specified,
 				# default is ConstFormat, else SymbolFormat.
 
-ReturnValueName   %s_Result    # Return value holding variable; [%s=func name]
-UnitInitName      _M2_%s_init      # Turbo Pascal unit initializer; %s=unit name
-HSymbolName       %sH          # Name of "_H" symbol, if any; %s=unit name
-GSymbolName       %sG          # Name of "_G" symbol; [%s=unit name]
+ReturnValueName   %s_Result     # Return value holding variable; [%s=func name]
+UnitInitName      _M2_%s_init   # Turbo Pascal unit initializer; %s=unit name
+UnitFinishName    _M2_%s_fini   # Modula-2 FINISH function name
+HSymbolName       %sH           # Name of "_H" symbol, if any; %s=unit name
+GSymbolName       %sG           # Name of "_G" symbol; [%s=unit name]
 StringMaxName     MAX_%s        # VAR STRING hidden variable; %s=param name
 ArrayMinName	  %s_LOW	# Lower bound hidden variable; %s=param name
 ArrayMaxName	  %s_HIGH	# Upper bound hidden variable; %s=param name

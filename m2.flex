@@ -201,6 +201,7 @@ END                        { updatepos(); seenEnd=TRUE;
                              M2LexBuf_AddTok(M2Reserved_endtok); return; }
 EXIT                       { updatepos(); M2LexBuf_AddTok(M2Reserved_exittok); return; }
 EXPORT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_exporttok); return; }
+FINALLY                    { updatepos(); M2LexBuf_AddTok(M2Reserved_finallytok); return; }
 FOR                        { updatepos(); M2LexBuf_AddTok(M2Reserved_fortok); return; }
 FROM                       { updatepos(); M2LexBuf_AddTok(M2Reserved_fromtok); return; }
 IF                         { updatepos(); M2LexBuf_AddTok(M2Reserved_iftok); return; }

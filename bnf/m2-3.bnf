@@ -484,6 +484,7 @@ token   'ELSIF'           elsiftok
 token   'END'             endtok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
+token   'FINALLY'         finallytok
 token   'FOR'             fortok
 token   'FROM'            fromtok
 token   'IF'              iftok
@@ -1207,10 +1208,14 @@ ProcedureBlock :=                                                          % Bui
                                                             "END"
                 =:
 
-Block := { Declaration }
-                                                                           % StartBuildInit %
-                         [ "BEGIN" StatementSequence ] "END"               % EndBuildInit %
+Block := { Declaration }                                                   % StartBuildInit %
+                         InitialBlock FinalBlock
+                                                 "END"                     % EndBuildInit %
        =:
+
+InitialBlock := [ "BEGIN" StatementSequence ] =:
+
+FinalBlock := [ "FINALLY" StatementSequence ] =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
                "TYPE" { TypeDeclaration ";" } |

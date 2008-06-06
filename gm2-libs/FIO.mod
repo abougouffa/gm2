@@ -1327,4 +1327,8 @@ END Init ;
 
 BEGIN
    Init
+(*
+FINALLY
+   CloseOutErr
+*)
 END FIO.

@@ -1,3 +1,26 @@
+2008-06-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/m2.flex:  added FINALLY keyword.
+	* gm2/gm2/p2crc:  added _M2_%s_fini function template name.
+	* gm2/gm2/bnf/m2-2.bnf:  added FINALLY keyword and altered grammar.
+	* gm2/gm2/bnf/m2-3.bnf:  added FINALLY keyword and altered grammar.
+	* gm2/gm2/bnf/m2-h.bnf:  added FINALLY keyword and altered grammar.
+	* gm2/gm2/bnf/m2.bnf:  added FINALLY keyword and altered grammar.
+	* gm2/gm2/gm2-compiler/M2Reserved.def:  added FINALLY keyword.
+	* gm2/gm2/gm2-compiler/M2Reserved.mod:  added FINALLY to the set of
+	  keywords.
+	* gm2/gm2/gm2-libs/FIO.mod:   added commented code to use the
+	  FINALLY construct.  This will be enabled once all the changes are
+	  complete.
+	* gm2/gm2/p2c/p2c-src/src/decl.c:  set new field isfinally to FALSE.
+	* gm2/gm2/p2c/p2c-src/src/lex.c:  add new FINALLY keyword.
+	* gm2/gm2/p2c/p2c-src/src/p2crc:  also added skeleton function name.
+	* gm2/gm2/p2c/p2c-src/src/parse.c:  added new flags to determine
+	  whether the block is in the initialization or finalization section.
+	  Modified p_body accordingly.  Added routines to generate the
+	  finally function.
+	* gm2/gm2/p2c/p2c-src/src/trans.h: added FINALLY as a keyword to p2c.
+
 2008-06-04       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2/Make-lang.in:  added RealMath to the

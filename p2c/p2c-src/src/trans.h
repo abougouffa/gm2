@@ -197,7 +197,7 @@ typedef enum E_token {
     /* Modula-2 tokens */
     TOK_BY, TOK_DEFINITION, TOK_ELSIF, TOK_FROM, TOK_LOOP,
     TOK_POINTER, TOK_QUALIFIED, TOK_UNQUALIFIED, TOK_RETURN,
-    TOK_PROC, TOK_VARARG,
+    TOK_PROC, TOK_VARARG, TOK_FINALLY,
 
     /* UCSD Pascal tokens */
     TOK_SEGMENT,
@@ -241,7 +241,7 @@ const char *toknames[(int)TOK_LAST] = { "",
     "a '**'",
 
     "BY", "DEFINITION", "ELSIF", "FROM", "LOOP",
-    "POINTER", "QUALIFIED", "RETURN", "PROC", "...",
+    "POINTER", "QUALIFIED", "RETURN", "PROC", "...", "FINALLY",
 
     "SEGMENT"
 } ;
@@ -322,6 +322,8 @@ typedef struct S_symbol {
  *    mp->language   = 0   if modula2/pascal
  *    mp->language_C = 1   if C (ie interfacing to a C implementation module via
  *                         a DEFINITION FOR "C" foobar ; definition module).
+ *    mp->isfinially = 0   building initialization section.
+ *    mp->isfinially = 1   building finalization section.
  *
  * MK_CONST:  Pascal CONST.
  *    mp->type => Type of constant, same as mp->constdefn->type & mp->val.type.
@@ -918,7 +920,8 @@ typedef struct S_meaning {
              volatilequal:1,   /* Object has C "volatile" qualifier */
              constqual:1,      /* Object has C "const" qualifier */
              language_C:1,     /* module is implemented in C */
-             dummy18:1, dummy19:1, 
+             isfinially:1,     /* are we building the finally section? */
+             dummy19:1, 
 	     dummy20:1, dummy21:1, dummy22:1, dummy23:1, dummy24:1, dummy25:1, 
 	     dummy26:1, dummy27:1, dummy28:1, dummy29:1, dummy30:1, dummy31:1;
     Value val;		       /* (above) */
@@ -1150,7 +1153,7 @@ extern char name_FAKESTRUCT[40], name_AHIGH[40], name_ALOW[40];
 extern char name_UNION[40], name_VARIANT[40], name_LABEL[40], name_LABVAR[40];
 extern char name_WITH[40], name_FOR[40], name_ENUM[40];
 extern char name_PTR[40], name_STRING[40], name_SET[40];
-extern char name_PROCEDURE[40], name_MAIN[40], name_UNITINIT[40];
+extern char name_PROCEDURE[40], name_MAIN[40], name_UNITINIT[40], name_UNITFINISH[40];
 extern char name_HSYMBOL[40], name_GSYMBOL[40];
 extern char name_SETBITS[40], name_UCHAR[40], name_SCHAR[40];
 extern char name_BOOLEAN[40], name_TRUE[40], name_FALSE[40], name_NULL[40];
@@ -1386,6 +1389,7 @@ struct rcstruct {
      {  'C', 'V', "ENUMFORMAT",      (anyptr)  enumformat,       40, },
      {  'C', 'V', "RETURNVALUENAME", (anyptr)  name_RETV,        40, },
      {  'C', 'V', "UNITINITNAME",    (anyptr)  name_UNITINIT,    40, },
+     {  'C', 'V', "UNITFINISHNAME",  (anyptr)  name_UNITFINISH,  40, },
      {  'C', 'V', "HSYMBOLNAME",     (anyptr)  name_HSYMBOL,     40, },
      {  'C', 'V', "GSYMBOLNAME",     (anyptr)  name_GSYMBOL,     40, },
      {  'C', 'V', "STRINGMAXNAME",   (anyptr)  name_STRMAX,      40, },

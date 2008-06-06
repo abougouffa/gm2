@@ -178,6 +178,9 @@ BEGIN
    ExportTok := MakeKey('EXPORT') ;
    AddKeyword(ExportTok, ORD(exporttok)) ;
 
+   FinallyTok := MakeKey('FINALLY') ;
+   AddKeyword(FinallyTok, ORD(finallytok)) ;
+
    ForTok := MakeKey('FOR') ;
    AddKeyword(ForTok, ORD(fortok)) ;
 
