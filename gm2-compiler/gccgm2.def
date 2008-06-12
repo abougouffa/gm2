@@ -57,7 +57,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                  GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
 
-                 BuildStart, BuildEnd, BuildCallInnerInit,
+                 BuildStart, BuildEnd, BuildCallInner,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                  BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                  BuildConstLiteralNumber,
@@ -472,11 +472,12 @@ PROCEDURE BuildEnd (t: Tree; nested: BOOLEAN) ;
 
 
 (*
-   BuildCallInnerInit - builds a call to a function, funct. This function
-                        has no return type and no parameters.
+   BuildCallInner - builds a call to an init or finalization
+                    function, funct. This function
+                    has no return type and no parameters.
 *)
 
-PROCEDURE BuildCallInnerInit (funct: Tree) ;
+PROCEDURE BuildCallInner (funct: Tree) ;
 
 
 (*

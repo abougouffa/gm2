@@ -122,7 +122,7 @@ BEGIN
       END ;
       end := i ;
       GetQuad(end, op, op1, op2, op3) ;
-      WHILE (op#EndOp) OR (op3#scope) DO
+      WHILE (op#FinallyEndOp) OR (op3#scope) DO
          end := GetNextQuad(end) ;
          GetQuad(end, op, op1, op2, op3)
       END
@@ -202,7 +202,7 @@ BEGIN
             First := FALSE
          END ;
          PushWord(s,  op3)
-      ELSIF (op=ReturnOp) OR (op=EndOp)
+      ELSIF (op=ReturnOp) OR (op=FinallyEndOp)
       THEN
          op3 := PopWord(s) ;
          IF PeepWord(s, 1)=proc

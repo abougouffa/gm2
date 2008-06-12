@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -29,6 +30,7 @@ FROM SYSTEM IMPORT WORD ;
 EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildModuleStart,
                  StartBuildInit, EndBuildInit,
+                 StartBuildFinally, EndBuildFinally,
                  BuildBuiltinConst,
                  BuildAssignment,
                  BuildRepeat, BuildUntil,
@@ -127,7 +129,8 @@ TYPE
                    NewLocalVarOp, KillLocalVarOp,
                    ProcedureScopeOp, ModuleScopeOp,
                    DummyOp,
-                   GotoOp, EndOp, StartOp,
+                   GotoOp, InitEndOp, InitStartOp,
+                   FinallyStartOp, FinallyEndOp,
                    NegateOp, AddOp, SubOp, MultOp,
                    DivFloorOp, ModFloorOp, DivTruncOp, ModTruncOp,
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
@@ -509,6 +512,20 @@ PROCEDURE StartBuildInit ;
 *)
 
 PROCEDURE EndBuildInit ;
+
+
+(*
+   StartBuildFinally - Builds the start finalisation code of a module.
+*)
+
+PROCEDURE StartBuildFinally ;
+
+
+(*
+   EndBuildFinally - Builds the end finalisation code of a module.
+*)
+
+PROCEDURE EndBuildFinally ;
 
 
 (*

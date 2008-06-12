@@ -55,7 +55,7 @@ FROM M2Base IMPORT InitBase, Char, Integer, LongReal,
                    Cardinal, LongInt, LongCard, ZType, RType ;
 
 FROM M2System IMPORT Address ;
-FROM gccgm2 IMPORT DetermineSizeOfConstant ;
+FROM gccgm2 IMPORT DetermineSizeOfConstant, Tree ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule ;
@@ -535,6 +535,10 @@ TYPE
                                             (* code.                         *)
                EndQuad       : CARDINAL ;   (* EndQuad should point to a     *)
                                             (* goto quad.                    *)
+               StartFinishQuad: CARDINAL ;  (* Signify the finalization      *)
+                                            (* code.                         *)
+               EndFinishQuad : CARDINAL ;   (* should point to a finish      *)
+               FinallyFunction: Tree ;      (* The GCC function for finally  *)
                ContainsHiddenType: BOOLEAN ;(* True if this module           *)
                                             (* implements a hidden type.     *)
                ForC          : BOOLEAN ;    (* Is it a definition for "C"    *)
@@ -597,6 +601,10 @@ TYPE
                                             (* code.                         *)
                EndQuad       : CARDINAL ;   (* EndQuad should point to a     *)
                                             (* goto quad.                    *)
+               StartFinishQuad: CARDINAL ;  (* Signify the finalization      *)
+                                            (* code.                         *)
+               EndFinishQuad : CARDINAL ;   (* should point to a finish      *)
+               FinallyFunction: Tree ;      (* The GCC function for finally  *)
                ListOfVars    : List ;       (* List of variables in this     *)
                                             (* scope.                        *)
                ListOfProcs   : List ;       (* List of all procedures        *)
@@ -2342,6 +2350,10 @@ BEGIN
                                             (* code.                         *)
          EndQuad := 0 ;                     (* EndQuad should point to a     *)
                                             (* goto quad.                    *)
+         StartFinishQuad := 0 ;             (* Signify the finalization      *)
+                                            (* code.                         *)
+         EndFinishQuad := 0 ;               (* should point to a finish      *)
+         FinallyFunction := NIL ;           (* The GCC function for finally  *)
          InitList(ListOfVars) ;             (* List of variables in this     *)
                                             (* scope.                        *)
          InitList(ListOfProcs) ;            (* List of all procedures        *)
@@ -2443,6 +2455,10 @@ BEGIN
                                             (* code.                         *)
             EndQuad := 0 ;                  (* EndQuad should point to a     *)
                                             (* goto quad.                    *)
+            StartFinishQuad := 0 ;          (* Signify the finalization      *)
+                                            (* code.                         *)
+            EndFinishQuad := 0 ;            (* should point to a finish      *)
+            FinallyFunction := NIL ;        (* The GCC function for finally  *)
             InitList(ListOfVars) ;          (* List of variables in this     *)
                                             (* scope.                        *)
             InitList(ListOfProcs) ;         (* List of all procedures        *)
@@ -2554,6 +2570,10 @@ BEGIN
                                       (* code.                         *)
          EndQuad := 0 ;               (* EndQuad should point to a     *)
                                       (* goto quad.                    *)
+         StartFinishQuad := 0 ;       (* Signify the finalization      *)
+                                      (* code.                         *)
+         EndFinishQuad := 0 ;         (* should point to a finish      *)
+         FinallyFunction := NIL ;     (* The GCC function for finally  *)
          ContainsHiddenType := FALSE ;(* True if this module           *)
                                       (* implements a hidden type.     *)
          ForC := FALSE ;              (* Is it a definition for "C"    *)
@@ -8015,23 +8035,74 @@ END PutModuleEndQuad ;
 
 
 (*
-   GetModuleQuads - Returns, Start and End, Quads of a Module, Sym.
+   PutModuleFinallyStartQuad - Places QuadNumber into the Module symbol, Sym.
+                               QuadNumber is the finally start quad of
+                               Module, Sym.
+*)
+
+PROCEDURE PutModuleFinallyStartQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ModuleSym: Module.StartFinishQuad := QuadNumber |
+      DefImpSym: DefImp.StartFinishQuad := QuadNumber
+
+      ELSE
+         InternalError('expecting a Module or DefImp symbol',
+                        __FILE__, __LINE__)
+      END
+   END
+END PutModuleFinallyStartQuad ;
+
+
+(*
+   PutModuleFinallyEndQuad - Places QuadNumber into the Module symbol, Sym.
+                             QuadNumber is the end quad of the finally block
+                             in Module, Sym.
+*)
+
+PROCEDURE PutModuleFinallyEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ModuleSym: Module.EndFinishQuad := QuadNumber |
+      DefImpSym: DefImp.EndFinishQuad := QuadNumber
+
+      ELSE
+         InternalError('expecting a Module or DefImp symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END PutModuleFinallyEndQuad ;
+
+
+(*
+   GetModuleQuads - Returns, StartInit EndInit StartFinish EndFinish,
+                    Quads of a Module, Sym.
                     Start and End represent the initialization code
                     of the Module, Sym.
 *)
 
-PROCEDURE GetModuleQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetModuleQuads (Sym: CARDINAL;
+                          VAR StartInit, EndInit,
+                          StartFinish, EndFinish: CARDINAL) ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
       ModuleSym: WITH Module DO
-                    Start := StartQuad ;
-                    End := EndQuad
+                    StartInit := StartQuad ;
+                    EndInit := EndQuad ;
+                    StartFinish := StartFinishQuad ;
+                    EndFinish := EndFinishQuad
                  END |
       DefImpSym: WITH DefImp DO
-                    Start := StartQuad ;
-                    End := EndQuad
+                    StartInit := StartQuad ;
+                    EndInit := EndQuad ;
+                    StartFinish := StartFinishQuad ;
+                    EndFinish := EndFinishQuad
                  END
 
       ELSE
@@ -8040,6 +8111,46 @@ BEGIN
       END
    END
 END GetModuleQuads ;
+
+
+(*
+   PutModuleFinallyFunction - Places Tree, finally, into the Module symbol, Sym.
+*)
+
+PROCEDURE PutModuleFinallyFunction (Sym: CARDINAL; finally: Tree) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ModuleSym: Module.FinallyFunction := finally |
+      DefImpSym: DefImp.FinallyFunction := finally
+
+      ELSE
+         InternalError('expecting a Module or DefImp symbol',
+                        __FILE__, __LINE__)
+      END
+   END
+END PutModuleFinallyFunction ;
+
+
+(*
+   GetModuleFinallyFunction - returns the finally tree from the Module symbol, Sym.
+*)
+
+PROCEDURE GetModuleFinallyFunction (Sym: CARDINAL) : Tree ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ModuleSym: RETURN( Module.FinallyFunction) |
+      DefImpSym: RETURN( DefImp.FinallyFunction)
+
+      ELSE
+         InternalError('expecting a Module or DefImp symbol',
+                        __FILE__, __LINE__)
+      END
+   END
+END GetModuleFinallyFunction ;
 
 
 (*

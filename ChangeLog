@@ -1,3 +1,54 @@
+2008-06-12       Gaius Mulley <gaius@gnu.org>
+
+	* examples/swig/tiny:  new examples showing the
+	  behaviour of FINALLY within a shared library.
+	* gm2/gm2/gccgm2.c:  modify gccgm2_BuildCallInnerInit
+	  to gccgm2_BuildCallInner.
+	* gm2/gm2/bnf/gm2l.bnf:  modify grammer to
+	  understand the keyword FINALLY.
+	* gm2/gm2/bnf/gm2m.bnf:  modify grammer to
+	  understand the keyword FINALLY.
+	* gm2/gm2/bnf/m2-3.bnf:  modify grammer to
+	  support FINALLY.
+	* gm2/gm2/examples/swig/strio/teststrio.py:
+	  fix bug when calling WriteLn
+	* gm2/gm2/gm2-compiler/M2AsmUtil.def:  export
+          GetModuleFinallyName.
+	* gm2/gm2/gm2-compiler/M2AsmUtil.mod:  implement
+	  GetModuleFinallyName.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  declare
+	  finally function for each module.
+	* gm2/gm2/gm2-compiler/M2GenGCC.mod:  CodeFinallyStart,
+	  CodeFinallyEnd new functions.
+	* gm2/gm2/gm2-compiler/M2Optimize.mod:  make optimizer
+	  understand new quadruples.
+	* gm2/gm2/gm2-compiler/M2Quads.def:  added
+	  InitStartOp, InitEndOp, FinallyStartOp and FinallyEndOp.
+	  Export StartBuildFinally, EndBuildFinally.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  introduced
+          InitStartOp, InitEndOp, FinallyStartOp and FinallyEndOp.
+	  Modified StartBuildInit, EndBuildInit to use InitStartOp
+	  and InitEndOp.  StartBuildFinally, EndBuildFinally new
+	  procedures.  Modified AsmStartementsInBlock.
+	* gm2/gm2/gm2-compiler/M2Scope.mod:  modified to search
+	  for blocks using InitStartOp, InitEndOp, FinallyStartOp
+	  and FinallyEndOp as markers.
+	* gm2/gm2/gm2-compiler/M2SubExp.mod:  modified EndOp, StartOp
+	  to InitStartOp, InitEndOp, FinallyStartOp and FinallyEndOp.
+	* gm2/gm2/gm2-compiler/SymbolTable.def:  exported
+	  PutModuleFinallyStartQuad, GetModuleFinallyStartQuad.
+	  Modified GetModuleQuads to return finally range.
+	* gm2/gm2/gm2-compiler/SymbolTable.mod:  added StartFinishQuad,
+	  EndFinishQuad and FinallyFunction to module fields.
+	* gm2/gm2/gm2-compiler/gccgm2.def:  modified BuildCallInnerInit
+	  to BuildCallInner.
+	* gm2/gm2/gm2-compiler/gm2lgen.mod:  uncommented the
+	  calls to the final function in each module.
+	* gm2/gm2/gm2-libs/FIO.mod:  uncommented the FINALLY
+	  clause.
+	* gm2/gm2/gm2-libs/StrIO.mod:  tidied up formatting and
+	  updated dates.
+
 2008-06-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/m2.flex:  added FINALLY keyword.

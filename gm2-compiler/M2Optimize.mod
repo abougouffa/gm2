@@ -483,10 +483,12 @@ PROCEDURE DisplayReachable ;
 VAR
    n, m,
    Scope,
-   Start,
-   End,
+   StartInit,
+   EndInit,
+   StartFinish,
+   EndFinish,
    Module,
-   Proc  : CARDINAL ;
+   Proc       : CARDINAL ;
 BEGIN
    m := 1 ;
    REPEAT
@@ -494,14 +496,19 @@ BEGIN
       IF Module#NulSym
       THEN
          WriteString('Module') ; WriteCard(m, 3) ; WriteKey(GetSymName(Module)) ;
-         GetModuleQuads(Module, Start, End) ; WriteString(' Reachable ') ;
-         WriteCard(Start, 4) ; WriteCard(End, 4) ; WriteLn ;
+         GetModuleQuads(Module, StartInit, EndInit, StartFinish, EndFinish) ;
+         WriteString(' Reachable initialization') ;
+         WriteCard(StartInit, 6) ; WriteCard(EndInit, 6) ; WriteLn ;
+         WriteString('Module') ; WriteCard(m, 3) ; WriteKey(GetSymName(Module)) ;
+         GetModuleQuads(Module, StartInit, EndInit, StartFinish, EndFinish) ;
+         WriteString(' Reachable finalization') ;
+         WriteCard(StartFinish, 6) ; WriteCard(EndFinish, 6) ; WriteLn ;
          n := 1 ;
          Proc := GetNthProcedure(Module, n) ;
          WHILE Proc#NulSym DO
             WriteString('Procedure ') ; WriteKey(GetSymName(Proc)) ;
-            GetProcedureQuads(Proc, Scope, Start, End) ;
-            WriteString(' Quads: ') ; WriteCard(Start, 6) ; WriteCard(End, 6) ;
+            GetProcedureQuads(Proc, Scope, StartInit, EndInit) ;
+            WriteString(' Quads: ') ; WriteCard(StartInit, 6) ; WriteCard(EndInit, 6) ;
             IF NOT IsProcedureReachable(Proc)
             THEN
                WriteString(' UN reachable')

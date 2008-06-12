@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -44,8 +45,8 @@ VAR
 
 PROCEDURE WriteLn ;
 BEGIN
-   Echo( cr ) ;
-   Write( lf )
+   Echo(cr) ;
+   Write(lf)
 END WriteLn ;
 
 
@@ -141,11 +142,11 @@ VAR
    n    ,
    high : CARDINAL ;
 BEGIN
-   high := HIGH( a ) ;
+   high := HIGH(a) ;
    n := 0 ;
    WHILE (n <= high) AND (a[n] # nul) DO
-      Write( a[n] ) ;
-      INC( n )
+      Write(a[n]) ;
+      INC(n)
    END
 END WriteString ;
 
@@ -157,9 +158,9 @@ END WriteString ;
 
 PROCEDURE Erase ;
 BEGIN
-   Echo( bs ) ;
+   Echo(bs) ;
    Echo(' ') ;
-   Echo( bs )
+   Echo(bs)
 END Erase ;
 
 

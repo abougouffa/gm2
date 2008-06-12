@@ -291,10 +291,8 @@ BEGIN
    i := LowIndice(FunctionList) ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, n) ;
-(*
       Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('   _M2_%s_finish ();\n')),
                                    funcname)))) ;
-*)
       DEC(n)
    END ;
    IF ExitNeeded

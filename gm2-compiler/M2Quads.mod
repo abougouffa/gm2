@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -45,6 +46,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetModuleQuads, GetProcedureQuads,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
+                        PutModuleFinallyStartQuad, PutModuleFinallyEndQuad,
                         PutProcedureStartQuad, PutProcedureEndQuad,
                         PutProcedureScopeQuad,
                         PutVar, PutConstSet,
@@ -266,8 +268,10 @@ VAR
    StartDefFileOp  - indicates that this definition module has produced
                      this code.
    EndFileOp       - indicates that a module has finished
-   StartOp         - the start of the initialization code of a module
-   EndOp           - the end of the above
+   InitStartOp     - the start of the initialization code of a module
+   InitEndOp       - the end of the above
+   FinallyStartOp  - the start of the finalization code of a module
+   FinallyEndOp    - the end of the above
 *)
 
 (* %%%FORWARD%%%
@@ -507,8 +511,10 @@ BEGIN
 
       NewLocalVarOp,
       KillLocalVarOp,
-      EndOp,
-      StartOp,
+      FinallyStartOp,
+      FinallyEndOp,
+      InitEndOp,
+      InitStartOp,
       EndFileOp,
       StartDefFileOp,
       StartModFileOp:  RETURN( FALSE ) |       (* run into end of procedure or module *)
@@ -596,8 +602,10 @@ BEGIN
 
       NewLocalVarOp,
       KillLocalVarOp,
-      EndOp,
-      StartOp,
+      FinallyStartOp,
+      FinallyEndOp,
+      InitEndOp,
+      InitStartOp,
       EndFileOp,
       StartDefFileOp,
       StartModFileOp:  RETURN( FALSE ) |       (* run into end of procedure or module *)
@@ -794,7 +802,7 @@ BEGIN
       RETURN( (Operator=CodeOnOp) OR (Operator=CodeOffOp) OR
               (Operator=ProfileOnOp) OR (Operator=ProfileOffOp) OR
               (Operator=OptimizeOnOp) OR (Operator=OptimizeOffOp) OR
-              (Operator=EndFileOp) OR (Operator=EndOp) OR
+              (Operator=EndFileOp) OR
               (Operator=StartDefFileOp) OR (Operator=StartModFileOp)
             )
    END
@@ -1300,14 +1308,7 @@ PROCEDURE GetRealQuad (QuadNo: CARDINAL) : CARDINAL ;
 BEGIN
    WHILE QuadNo#0 DO
       WITH Quads[QuadNo] DO
-         IF Operator=EndOp
-         THEN
-            (*
-               EndOp is not a real quadruple - but it marks the end
-               of the quadruple list. So we stop here.
-            *)
-            RETURN( QuadNo )
-         ELSIF (NOT IsPseudoQuad(QuadNo)) AND
+         IF (NOT IsPseudoQuad(QuadNo)) AND
             (Operator#DummyOp) AND (Operator#LineNumberOp)
          THEN
             RETURN( QuadNo )
@@ -1667,7 +1668,7 @@ BEGIN
    Assert(IsModule(ModuleSym) OR IsDefImp(ModuleSym)) ;
    Assert(GetSymName(ModuleSym)=name) ;
    PutModuleStartQuad(ModuleSym, NextQuad) ;
-   GenQuad(StartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
+   GenQuad(InitStartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    CheckVariablesAt(ModuleSym) ;
@@ -1685,9 +1686,47 @@ BEGIN
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
-   GenQuad(EndOp, GetPreviousTokenLineNo(), GetFileModule(),
+   GenQuad(InitEndOp, GetPreviousTokenLineNo(), GetFileModule(),
            GetCurrentModule())
 END EndBuildInit ;
+
+
+(*
+   StartBuildFinally - Sets the start of finalization code of the
+                       current module to the next quadruple.
+*)
+ 
+PROCEDURE StartBuildFinally ;
+VAR
+   name     : Name ;
+   ModuleSym: CARDINAL ;
+BEGIN
+   PopT(name) ;
+   ModuleSym := GetCurrentModule() ;
+   Assert(IsModule(ModuleSym) OR IsDefImp(ModuleSym)) ;
+   Assert(GetSymName(ModuleSym)=name) ;
+   PutModuleFinallyStartQuad(ModuleSym, NextQuad) ;
+   GenQuad(FinallyStartOp, GetPreviousTokenLineNo(), GetFileModule(), ModuleSym) ;
+   PushWord(ReturnStack, 0) ;
+   PushT(name) ;
+   (* CheckVariablesAt(ModuleSym) ; *)
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
+END StartBuildFinally ;
+ 
+ 
+(*
+   EndBuildFinally - Sets the end finalization code of a module.
+*)
+ 
+PROCEDURE EndBuildFinally ;
+BEGIN
+   BackPatch(PopWord(ReturnStack), NextQuad) ;
+   CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
+   PutModuleFinallyEndQuad(GetCurrentModule(), NextQuad) ;
+   CheckVariablesInBlock(GetCurrentModule()) ;
+   GenQuad(FinallyEndOp, GetPreviousTokenLineNo(), GetFileModule(),
+           GetCurrentModule())
+END EndBuildFinally ;
 
 
 (*
@@ -1709,7 +1748,7 @@ END BuildModuleStart ;
 PROCEDURE StartBuildInnerInit ;
 BEGIN
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
-   GenQuad(StartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
+   GenQuad(InitStartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
    PushWord(ReturnStack, 0) ;
    CheckNeedPriorityBegin(GetCurrentModule(), GetCurrentModule())
 END StartBuildInnerInit ;
@@ -1725,7 +1764,7 @@ BEGIN
    CheckVariablesInBlock(GetCurrentModule()) ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
-   GenQuad(EndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
+   GenQuad(InitEndOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule())
 END EndBuildInnerInit ;
 
 
@@ -8312,31 +8351,48 @@ END CheckUninitializedVariablesAreUsed ;
 
 
 (*
+   IsInlineWithinBlock - returns TRUE if an InlineOp is found
+                         within start..end.
+*)
+
+PROCEDURE IsInlineWithinBlock (start, end: CARDINAL) : BOOLEAN ;
+VAR
+   op           : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
+BEGIN
+   WHILE (start#end) AND (start#0) DO
+      GetQuad(start, op, op1, op2, op3) ;
+      IF op=InlineOp
+      THEN
+         RETURN( TRUE )
+      END ;
+      start := GetNextQuad(start)
+   END ;
+   RETURN( FALSE )
+END IsInlineWithinBlock ;
+
+
+(*
    AsmStatementsInBlock - returns TRUE if an ASM statement is found within a block, BlockSym.
 *)
 
 PROCEDURE AsmStatementsInBlock (BlockSym: CARDINAL) : BOOLEAN ;
 VAR
    Scope,
-   Start, End   : CARDINAL ;
-   op           : QuadOperator ;
-   op1, op2, op3: CARDINAL ;
+   StartInit,
+   EndInit,
+   StartFinish,
+   EndFinish    : CARDINAL ;
 BEGIN
    IF IsProcedure(BlockSym)
    THEN
-      GetProcedureQuads(BlockSym, Scope, Start, End)
+      GetProcedureQuads(BlockSym, Scope, StartInit, EndInit) ;
+      RETURN( IsInlineWithinBlock(StartInit, EndInit) )
    ELSE
-      GetModuleQuads(BlockSym, Start, End)
-   END ;
-   WHILE (Start#End) AND (Start#0) DO
-      GetQuad(Start, op, op1, op2, op3) ;
-      IF op=InlineOp
-      THEN
-         RETURN( TRUE )
-      END ;
-      Start := GetNextQuad(Start)
-   END ;
-   RETURN( FALSE )
+      GetModuleQuads(BlockSym, StartInit, EndInit, StartFinish, EndFinish) ;
+      RETURN( IsInlineWithinBlock(StartInit, EndInit) OR
+              IsInlineWithinBlock(StartFinish, EndFinish) )
+   END
 END AsmStatementsInBlock ;
 
 
@@ -10538,8 +10594,10 @@ BEGIN
 
       ProcedureScopeOp,
       NewLocalVarOp,
-      EndOp,
-      StartOp           : n1 := GetSymName(Operand2) ;
+      FinallyStartOp,
+      FinallyEndOp,
+      InitEndOp,
+      InitStartOp       : n1 := GetSymName(Operand2) ;
                           n2 := GetSymName(Operand3) ;
                           printf3('  %4d  %a  %a', Operand1, n1, n2) |
 
@@ -10640,8 +10698,10 @@ BEGIN
    StartDefFileOp           : printf0('StartDefFile      ') |
    StartModFileOp           : printf0('StartModFile      ') |
    EndFileOp                : printf0('EndFileOp         ') |
-   StartOp                  : printf0('Start             ') |
-   EndOp                    : printf0('End               ') |
+   InitStartOp              : printf0('InitStart         ') |
+   InitEndOp                : printf0('InitEnd           ') |
+   FinallyStartOp           : printf0('FinallyStart      ') |
+   FinallyEndOp             : printf0('FinallyEnd        ') |
    AddOp                    : printf0('+                 ') |
    SubOp                    : printf0('-                 ') |
    DivFloorOp               : printf0('DIV floor         ') |

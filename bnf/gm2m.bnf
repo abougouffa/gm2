@@ -39,7 +39,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2007/10/05 19:08:22 $]
+   Date       : 3/4/86  [$Date: 2008/06/12 18:14:28 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1718,6 +1718,7 @@ token   'ELSIF'           elsiftok
 token   'END'             endtok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
+token   'FINALLY'         finallytok
 token   'FOR'             fortok
 token   'FROM'            fromtok
 token   'IF'              iftok

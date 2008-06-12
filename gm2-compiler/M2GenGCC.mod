@@ -32,6 +32,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetGnuAsm, IsGnuAsmVolatile,
                         GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash,
                         GetLowestType,
+                        GetModuleFinallyFunction, PutModuleFinallyFunction,
                         GetLocalSym, GetVarWritten,
                         GetVarient,
                         NoOfParam, GetParent,
@@ -89,7 +90,7 @@ FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCha
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
 FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType ;
 FROM M2FileName IMPORT CalculateFileName ;
-FROM M2AsmUtil IMPORT GetModuleInitName ;
+FROM M2AsmUtil IMPORT GetModuleInitName, GetModuleFinallyName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 
 FROM M2StackWord IMPORT InitStackWord, StackOfWord, PeepWord, ReduceWord,
@@ -134,7 +135,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildSetProcedure,
                    ChainOnParamValue, AddStringToTreeList,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
-                   BuildCallInnerInit,
+                   BuildCallInner,
                    BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
                    BuildAssignmentTree, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
@@ -310,8 +311,8 @@ PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
 PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE CodeStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
-PROCEDURE CodeEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
+PROCEDURE CodeInitStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
+PROCEDURE CodeInitEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -419,6 +420,8 @@ PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWAR
 PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unboundedCount, n: CARDINAL) : String ; FORWARD ;
 PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
+PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
+PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -486,8 +489,10 @@ BEGIN
    StartModFileOp     : CodeStartModFile(q, op1, op2, op3) |
    ModuleScopeOp      : CodeModuleScope(q, op1, op2, op3) |
    EndFileOp          : CodeEndFile(q, op1, op2, op3) |
-   StartOp            : CodeStart(q, op1, op2, op3, IsCompilingMainModule(op3)) |
-   EndOp              : CodeEnd(q, op1, op2, op3, IsCompilingMainModule(op3)) |
+   InitStartOp        : CodeInitStart(q, op1, op2, op3, IsCompilingMainModule(op3)) |
+   InitEndOp          : CodeInitEnd(q, op1, op2, op3, IsCompilingMainModule(op3)) |
+   FinallyStartOp     : CodeFinallyStart(q, op1, op2, op3, IsCompilingMainModule(op3)) |
+   FinallyEndOp       : CodeFinallyEnd(q, op1, op2, op3, IsCompilingMainModule(op3)) |
    NewLocalVarOp      : CodeNewLocalVar(q, op1, op2, op3) |
    KillLocalVarOp     : CodeKillLocalVar(q, op1, op2, op3) |
    ProcedureScopeOp   : CodeProcedureScope(q, op1, op2, op3) |
@@ -1043,17 +1048,27 @@ END CodeEndFile ;
 
 PROCEDURE CallInnerInit (Sym: WORD) ;
 BEGIN
-   BuildCallInnerInit(Mod2Gcc(Sym))
+   BuildCallInner(Mod2Gcc(Sym))
 END CallInnerInit ;
 
 
 (*
-   CodeStart - emits starting code before the main BEGIN END of the
-               current module.
+   CallInnerFinally - produce a call to inner module finalization routine.
 *)
 
-PROCEDURE CodeStart (quad: CARDINAL; op1, op2, op3: CARDINAL;
-                     CompilingMainModule: BOOLEAN) ;
+PROCEDURE CallInnerFinally (Sym: WORD) ;
+BEGIN
+   BuildCallInner(GetModuleFinallyFunction(Sym))
+END CallInnerFinally ;
+
+
+(*
+   CodeInitStart - emits starting code before the main BEGIN END of the
+                   current module.
+*)
+
+PROCEDURE CodeInitStart (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                         CompilingMainModule: BOOLEAN) ;
 VAR
    CurrentModuleInitFunction: Tree ;
 BEGIN
@@ -1071,7 +1086,7 @@ BEGIN
       EmitLineNote(string(FileName), op1) ;
       ForeachInnerModuleDo(op3, CallInnerInit)
    END
-END CodeStart ;
+END CodeInitStart ;
 
 
 (*
@@ -1095,12 +1110,12 @@ END BuildTerminationCall ;
 *)
 
 (*
-   CodeEnd - emits terminating code after the main BEGIN END of the
-             current module.
+   CodeInitEnd - emits terminating code after the main BEGIN END of the
+                 current module.
 *)
 
-PROCEDURE CodeEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
-                   CompilingMainModule: BOOLEAN) ;
+PROCEDURE CodeInitEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                       CompilingMainModule: BOOLEAN) ;
 BEGIN
    IF CompilingMainModule
    THEN
@@ -1113,7 +1128,56 @@ BEGIN
          BuildEnd(Mod2Gcc(op3), FALSE)
       END
    END
-END CodeEnd ;
+END CodeInitEnd ;
+
+
+(*
+   CodeFinallyStart - emits starting code before the main BEGIN END of the
+                      current module.
+*)
+
+PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                            CompilingMainModule: BOOLEAN) ;
+VAR
+   CurrentModuleFinallyFunction: Tree ;
+BEGIN
+   IF CompilingMainModule
+   THEN
+      SetFileNameAndLineNo(string(FileName), op1) ;
+      IF IsModuleWithinProcedure(op3)
+      THEN
+         CurrentModuleFinallyFunction := GetModuleFinallyFunction(op3) ;
+         BuildStartFunctionCode(CurrentModuleFinallyFunction, FALSE, FALSE)
+      ELSE
+         CurrentModuleFinallyFunction := BuildStart(KeyToCharStar(GetModuleFinallyName(op3)), op1, op2#op3) ;
+         PutModuleFinallyFunction(op3, CurrentModuleFinallyFunction)
+      END ;
+      EmitLineNote(string(FileName), op1) ;
+      ForeachInnerModuleDo(op3, CallInnerFinally)
+   END
+END CodeFinallyStart ;
+
+
+(*
+   CodeFinallyEnd - emits terminating code after the main BEGIN END of the
+                    current module.
+*)
+
+PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL;
+                          CompilingMainModule: BOOLEAN) ;
+BEGIN
+   IF CompilingMainModule
+   THEN
+      SetFileNameAndLineNo(string(FileName), op1) ;
+      EmitLineNote(string(FileName), op1) ;
+      IF IsModuleWithinProcedure(op3)
+      THEN
+         BuildEndFunctionCode(GetModuleFinallyFunction(op3), TRUE)
+      ELSE
+         BuildEnd(GetModuleFinallyFunction(op3), FALSE)
+      END
+   END
+END CodeFinallyEnd ;
 
 
 (*

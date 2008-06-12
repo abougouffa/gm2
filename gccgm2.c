@@ -600,7 +600,7 @@ tree                   gccgm2_ConvertConstantAndCheck             (tree type, tr
 tree                   gccgm2_RealToTree                          (char *name);
 tree                   gccgm2_BuildStart                          (char *name, int line, int inner_module);
 void                   gccgm2_BuildEnd                            (tree fndecl, int nested);
-void                   gccgm2_BuildCallInnerInit                  (tree fndecl);
+void                   gccgm2_BuildCallInner                      (tree fndecl);
 void                   gccgm2_BuildStartMainModule                (void);
 void                   gccgm2_BuildEndMainModule                  (void);
 tree                   gccgm2_BuildCap                            (tree t);
@@ -10557,7 +10557,7 @@ gccgm2_BuildEnd (tree fndecl, int nested)
 }
 
 void
-gccgm2_BuildCallInnerInit (fndecl)
+gccgm2_BuildCallInner (fndecl)
      tree fndecl;
 {
   add_stmt (build_function_call (fndecl, NULL_TREE));

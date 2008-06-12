@@ -1412,8 +1412,10 @@ BEGIN
    StartDefFileOp,
    StartModFileOp,
    EndFileOp,
-   EndOp,
-   StartOp           : (* WriteKey(GetSymName(Operand3)) *) |
+   FinallyStartOp,
+   FinallyEndOp,
+   InitEndOp,
+   InitStartOp       : (* WriteKey(GetSymName(Operand3)) *) |
 
    CallOp            : MakeCall(q, Start, End, op1, op2, op3) |
 

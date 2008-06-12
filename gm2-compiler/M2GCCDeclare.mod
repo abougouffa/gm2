@@ -35,8 +35,11 @@ FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
 FROM M2Options IMPORT DisplayQuadruples,
                       GenerateDebugging, GenerateLineDebug, Iso, Optimizing ;
 
+FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName,
+                      UnderScoreString, GetModuleInitName, GetModuleFinallyName,
+                      GetFullScopeAsmName ;
+
 FROM NameKey IMPORT Name, MakeKey, NulName, KeyToCharStar, makekey ;
-FROM M2AsmUtil IMPORT WriteAsmName, WriteName, GetAsmName, GetFullSymName, UnderScoreString, GetModuleInitName, GetFullScopeAsmName ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
@@ -79,6 +82,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
+                        PutModuleFinallyFunction,
                         GetProcedureScope, GetProcedureQuads,
                         GetVarient, GetUnbounded,
                         IsAModula2Type, UsesVarArgs,
@@ -1153,7 +1157,11 @@ BEGIN
       BuildStartFunctionDeclaration(FALSE) ;
       t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(sym)),
                                        NIL, FALSE, TRUE) ;
-      PreAddModGcc(sym, t)
+      PreAddModGcc(sym, t) ;
+      BuildStartFunctionDeclaration(FALSE) ;
+      t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleFinallyName(sym)),
+                                       NIL, FALSE, TRUE) ;
+      PutModuleFinallyFunction(sym, t)
    END
 END DeclareModuleInit ;
 

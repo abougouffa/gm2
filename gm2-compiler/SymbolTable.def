@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -28,6 +29,7 @@ DEFINITION MODULE SymbolTable ;
 FROM SYSTEM IMPORT WORD ;
 FROM SymbolKey IMPORT PerformOperation ;
 FROM NameKey IMPORT Name ;
+FROM gccgm2 IMPORT Tree ;
 
 EXPORT QUALIFIED NulSym,
                  FinalSymbol,
@@ -100,6 +102,7 @@ EXPORT QUALIFIED NulSym,
                  GetUnboundedAddressOffset,
                  GetUnboundedHighOffset,
                  GetModuleQuads,
+                 PutModuleFinallyFunction, GetModuleFinallyFunction,
                  GetProcedureQuads,
                  GetQuads,
                  GetReadQuads, GetWriteQuads,
@@ -139,6 +142,8 @@ EXPORT QUALIFIED NulSym,
                  PutProcedureBuiltin, PutProcedureInline,
                  PutModuleStartQuad,
                  PutModuleEndQuad,
+                 PutModuleFinallyStartQuad,
+                 PutModuleFinallyEndQuad,
                  PutProcedureStartQuad,
                  PutProcedureEndQuad,
                  PutProcedureScopeQuad,
@@ -1183,12 +1188,46 @@ PROCEDURE PutModuleEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
 
 
 (*
-   GetModuleQuads - Returns, Start and End, Quads of a Module, Sym.
+   PutModuleFinallyStartQuad - Places QuadNumber into the Module symbol, Sym.
+                               QuadNumber is the finally start quad of
+                               Module, Sym.
+*)
+
+PROCEDURE PutModuleFinallyStartQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+
+
+(*
+   PutModuleFinallyEndQuad - Places QuadNumber into the Module symbol, Sym.
+                             QuadNumber is the end quad of the finally block
+                             in Module, Sym.
+*)
+
+PROCEDURE PutModuleFinallyEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+
+
+(*
+   GetModuleQuads - Returns, StartInit EndInit StartFinish EndFinish,
+                    Quads of a Module, Sym.
                     Start and End represent the initialization code
                     of the Module, Sym.
 *)
 
-PROCEDURE GetModuleQuads (Sym: CARDINAL; VAR Start, End: CARDINAL) ;
+PROCEDURE GetModuleQuads (Sym: CARDINAL;
+                          VAR StartInit, EndInit,
+                          StartFinish, EndFinish: CARDINAL) ;
+
+(*
+   PutModuleFinallyFunction - Places Tree, finally, into the Module symbol, Sym.
+*)
+
+PROCEDURE PutModuleFinallyFunction (Sym: CARDINAL; finally: Tree) ;
+
+
+(*
+   GetModuleFinallyFunction - returns the finally tree from the Module symbol, Sym.
+*)
+
+PROCEDURE GetModuleFinallyFunction (Sym: CARDINAL) : Tree ;
 
 
 (*
