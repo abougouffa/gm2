@@ -1,3 +1,9 @@
+2008-06-14       Michael Lambert <lambert@psc.edu>
+
+	* gm2/Make-lang.in:  invoke bash explicity due to
+	  Ubuntu Hardy Heron (and others) using /bin/dash
+	  as /bin/sh rather than /bin/bash.
+
 2008-06-12       Gaius Mulley <gaius@gnu.org>
 
 	* examples/swig/tiny:  new examples showing the

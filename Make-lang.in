@@ -1117,7 +1117,7 @@ gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
 gm2/gm2-compiler-boot/M2Version.mod:
-	cd gm2/gm2-compiler-boot ; ../../$(srcdir)/gm2/tools-src/makeversion $(GM2-VERSION)a
+	cd gm2/gm2-compiler-boot ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion $(GM2-VERSION)a
 
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
