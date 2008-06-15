@@ -392,3 +392,7 @@ int tcpClientIP (tcpClientState *s)
 void _M2_sckt_init (void)
 {
 }
+
+void _M2_sckt_finish (void)
+{
+}

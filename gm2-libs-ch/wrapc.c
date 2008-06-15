@@ -114,7 +114,8 @@ void wrapc_getnameuidgid (char *name, int *uid, int *gid)
 
 
 /*
-   init - init function for the module
+   init - init/finish functions for the module
 */
 
 void _M2_wrapc_init() {}
+void _M2_wrapc_finish() {}

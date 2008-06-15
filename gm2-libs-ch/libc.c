@@ -427,3 +427,7 @@ int libc_rename (const char *oldpath, const char *newpath)
 void _M2_libc_init (void)
 {
 }
+
+void _M2_libc_finish (void)
+{
+}

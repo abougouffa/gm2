@@ -115,3 +115,8 @@ void _M2_StdIO_init()
   TEMP = IO_Write;
   StdIO_PushOutput(TEMP);
 }
+
+
+void _M2_StdIO_finish()
+{
+}

@@ -1,3 +1,17 @@
+2008-06-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-ch/Selective.c:  added finish function.
+	* gm2/examples/svga/Transform.mod:  tidied up comment.
+	* gm2/examples/svga/testbox.mod:  tidied up formatting.
+	* gm2/gm2-libs/UnixArgs.def:  fixed dates.
+	* gm2/gm2-libs-ch/StdIO.c:  added finish function.
+	* gm2/gm2-libs-ch/Storage.c:  added finish function.
+	* gm2/gm2-libs-ch/UnixArgs.c:  added finish function.
+	* gm2/gm2-libs-ch/choosetemp.c:  added finish function.
+	* gm2/gm2-libs-ch/libc.c:  added finish function.
+	* gm2/gm2-libs-ch/sckt.c:  added finish function.
+	* gm2/gm2-libs-ch/wrapc.c:  added finish function.
+
 2008-06-14       Michael Lambert <lambert@psc.edu>
 
 	* gm2/Make-lang.in:  invoke bash explicity due to

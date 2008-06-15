@@ -14,6 +14,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE testbox ;
 
 FROM vga IMPORT TEXT, G640x480x2, G320x200x256, vga_init, vga_setmode, vga_hasmode, vga_getch, vga_white ;
@@ -158,7 +159,7 @@ END SetPoint ;
 
 VAR
    i       : INTEGER ;
-   ch  : CHAR ;
+   ch      : CHAR ;
    Rotation,
    Movement: Matrix ;
    Colour,

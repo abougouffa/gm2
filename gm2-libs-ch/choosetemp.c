@@ -29,3 +29,8 @@ void *choosetemp_make_temp_file(void *suffix)
 /* to satisfy the GM2 linker */
 void
 _M2_choosetemp_init (void) {}
+
+
+/* to satisfy the GM2 linker */
+void
+_M2_choosetemp_finish (void) {}

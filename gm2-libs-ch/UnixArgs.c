@@ -21,10 +21,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 int	UnixArgs_ArgC ;
 char	**UnixArgs_ArgV ;
 
-void _M2_UnixArgs_init(argc, argv)
-int   argc ;
-char  *argv[];
+void _M2_UnixArgs_init(int argc, char *argv[])
 {
 	UnixArgs_ArgC = argc ;
 	UnixArgs_ArgV = argv ;
 }
+
+void _M2_UnixArgs_finish(int argc, char *argv[])
+{
+}
+
