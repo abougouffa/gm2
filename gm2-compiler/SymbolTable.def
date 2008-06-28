@@ -2160,7 +2160,8 @@ PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
                       ParamType into ProcType Sym.
 *)
 
-PROCEDURE PutProcTypeParam (Sym: CARDINAL; ParamType: CARDINAL) ;
+PROCEDURE PutProcTypeParam (Sym: CARDINAL;
+                            ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 
 
 (*
@@ -2168,7 +2169,8 @@ PROCEDURE PutProcTypeParam (Sym: CARDINAL; ParamType: CARDINAL) ;
                          ParamType into ProcType Sym.
 *)
 
-PROCEDURE PutProcTypeVarParam (Sym: CARDINAL; ParamType: CARDINAL) ;
+PROCEDURE PutProcTypeVarParam (Sym: CARDINAL;
+                               ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 
 
 (*

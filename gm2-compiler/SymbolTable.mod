@@ -7933,7 +7933,8 @@ END MakeProcType ;
                       ParamType into ProcType Sym.
 *)
 
-PROCEDURE PutProcTypeParam (Sym: CARDINAL; ParamType: CARDINAL) ;
+PROCEDURE PutProcTypeParam (Sym: CARDINAL;
+                            ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 VAR
    ParSym: CARDINAL ;
 BEGIN
@@ -7942,7 +7943,10 @@ BEGIN
       SymbolType := ParamSym ;
       WITH Param DO
          name := NulName ;
-         Type := ParamType
+         Type := ParamType ;
+         IsUnbounded := isUnbounded ;
+         ShadowVar := NulSym ;
+         InitWhereDeclared(At)
       END
    END ;
    AddParameter(Sym, ParSym)
@@ -7954,7 +7958,8 @@ END PutProcTypeParam ;
                          ParamType into ProcType Sym.
 *)
 
-PROCEDURE PutProcTypeVarParam (Sym: CARDINAL; ParamType: CARDINAL) ;
+PROCEDURE PutProcTypeVarParam (Sym: CARDINAL;
+                               ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 VAR
    ParSym: CARDINAL ;
 BEGIN
@@ -7963,7 +7968,10 @@ BEGIN
       SymbolType := VarParamSym ;
       WITH Param DO
          name := NulName ;
-         Type := ParamType
+         Type := ParamType ;
+         IsUnbounded := isUnbounded ;
+         ShadowVar := NulSym ;
+         InitWhereDeclared(At)
       END
    END ;
    AddParameter(Sym, ParSym)

@@ -82,7 +82,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcTypeVarParam, PutProcTypeParam,
                         MakeConstVar,
                         PutVariableAtAddress, IsVariableAtAddress,
-                        MakeUnbounded,
+                        MakeUnbounded, IsUnbounded,
                         NoOfParam,
                         PutParamName,
                         GetParam,
@@ -2242,10 +2242,10 @@ BEGIN
    IF Var=VarTok
    THEN
       (* VAR parameter *)
-      PutProcTypeVarParam(ProcTypeSym, TypeSym)
+      PutProcTypeVarParam(ProcTypeSym, TypeSym, IsUnbounded(TypeSym))
    ELSE
       (* Non VAR parameter *)
-      PutProcTypeParam(ProcTypeSym, TypeSym)
+      PutProcTypeParam(ProcTypeSym, TypeSym, IsUnbounded(TypeSym))
    END ;
    PushT(ProcTypeSym)
 END BuildFormalType ;
