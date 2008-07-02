@@ -1,6 +1,6 @@
 2008-07-02       Gaius Mulley <gaius@gnu.org>
 
-	* fixed bugs reported by:  Eric <eirsch@yahoo.de>.
+	* fixed bugs reported by:  Erik Irsch <eirsch@yahoo.de>.
 	* gm2/gm2-libs/FIO.mod::ReadNBytes:  changed local
 	  variable to INTEGER from CARDINAL.
 	* gm2/gm2-libs-pim/FileSystem.mod:  modified all read
