@@ -1,3 +1,40 @@
+2008-07-02       Gaius Mulley <gaius@gnu.org>
+
+	* fixed bugs reported by:  Eric <eirsch@yahoo.de>.
+	* gm2/gm2-libs/FIO.mod::ReadNBytes:  changed local
+	  variable to INTEGER from CARDINAL.
+	* gm2/gm2-libs-pim/FileSystem.mod:  modified all read
+	  routines to set eof if res is notdone.  Also modified
+	  so that lastByte is only set if res = done.
+
+2008-06-28       Gaius Mulley <gaius@gnu.org>
+
+	* fixed bug reported by Jim Cox which was exposed by
+	  using unbounded arrays inside proc types.
+	* gm2/gm2-compiler/SymbolTable.def:  add isUnbounded
+	  as a parameter to PutProcTypeParam.
+	* gm2/gm2-compiler/SymbolTable.mod:  use isUnbounded
+	  when creating a ParamType.
+	* gm2/gm2-compiler/P2SymBuild.mod:  pass a boolean
+	  as the third parameter indicating whether parameter
+	  was declared as an unbounded array.
+
+2008-06-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  fixed auto indentation for the keyword
+	  EXCEPT.
+	* gm2/gm2builtins.c:  added support for setjmp and longjmp.
+	* gm2/gm2-compiler/gm2builtins.def:  added definitions for
+	  setjmp and longjmp.
+	* gm2/gm2-libs/Builtins.{def,mod}:  added definitions for
+	  setjmp and longjmp.
+
+2008-06-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  fixed auto indentation for the keyword
+	  FINALLY.
+	* gm2/gm2spec.c:  enabled -O2 -fshared options.
+
 2008-06-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/Selective.c:  added finish function.

@@ -537,7 +537,7 @@ END ReadFromBuffer ;
 
 PROCEDURE ReadNBytes (f: File; nBytes: CARDINAL; a: ADDRESS) : CARDINAL ;
 VAR
-   n: CARDINAL ;
+   n: INTEGER ;
 BEGIN
    IF f<MaxNoOfFiles
    THEN

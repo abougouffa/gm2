@@ -204,7 +204,8 @@ BEGIN
          THEN
             res := done
          ELSE
-            res := notdone
+            res := notdone ;
+            eof := TRUE
          END
       END
    END
@@ -249,11 +250,12 @@ BEGIN
          ReadNBytes(f, ADR(ch), SIZE(ch), n) ;
          IF n=SIZE(ch)
          THEN
-            res := done
+            res := done ;
+            lastByte := BYTE(ch)
          ELSE
-            res := notdone
-         END ;
-         lastByte := BYTE(ch)
+            res := notdone ;
+            eof := TRUE
+         END
       END
    END
 END ReadChar ;
@@ -298,11 +300,12 @@ BEGIN
          ReadNBytes(f, ADR(b), SIZE(b), n) ;
          IF n=SIZE(b)
          THEN
-            res := done
+            res := done ;
+            lastByte := b
          ELSE
-            res := notdone
-         END ;
-         lastByte := b
+            res := notdone ;
+            eof := TRUE
+         END
       END
    END
 END ReadByte ;
@@ -349,7 +352,8 @@ BEGIN
             END ;
             INC(lowpos, actuallyRead)
          ELSE
-            res := notdone
+            res := notdone ;
+            eof := TRUE
          END
       END
    END
