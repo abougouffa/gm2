@@ -1815,11 +1815,16 @@ BEGIN
    ELSE
       IF GetType(procedure)=NulSym
       THEN
-         AddStatement(BuildProcedureCallTree(Mod2Gcc(procedure), NIL))
+         tree := BuildProcedureCallTree(Mod2Gcc(procedure), NIL)
       ELSE
-         (* leave tree alone - it will be picked up when processing FunctValue *)
          tree := BuildProcedureCallTree(Mod2Gcc(procedure), Mod2Gcc(GetType(procedure)))
       END
+   END ;
+   IF GetType(procedure)=NulSym
+   THEN
+      AddStatement(tree)
+   ELSE
+      (* leave tree alone - as it will be picked up when processing FunctValue *)
    END
 END CodeDirectCall ;
 

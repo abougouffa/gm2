@@ -50,6 +50,13 @@
 	  module.
 	* gm2/ulm-lib-gm2/sys/termios.c:  added a
 	  _M2_termios_finish section.
+	* gm2/gm2builtins.c:  fixed bug in longjump prototype and
+	  included setjmp into the table of builtins.  Also fixed
+	  gm2builtins_BuildBuiltinTree to set the last function
+	  to NULL_TREE if the function returns void.
+	* gm2/gm2-compiler/M2GenGCC.mod:  refactored CodeDirectCall.
+	* gm2/gm2-libs/Builtins.def:  added comment about internal
+	  longjmp's restriction.
 
 2008-07-02       Gaius Mulley <gaius@gnu.org>
 

@@ -83,6 +83,10 @@ PROCEDURE __BUILTIN__ huge_val (r: REAL) : REAL ;
 PROCEDURE __BUILTIN__ huge_valf (s: SHORTREAL) : SHORTREAL ;
 PROCEDURE __BUILTIN__ huge_vall (l: LONGREAL) : LONGREAL ;
 
+(*
+   longjmp - this GCC builtin restricts the val to always 1.
+*)
+
 PROCEDURE __BUILTIN__ longjmp (env: ADDRESS; val: INTEGER) ;
 PROCEDURE __BUILTIN__ setjmp (env: ADDRESS) : INTEGER ;
 

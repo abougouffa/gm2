@@ -72,8 +72,8 @@ typedef enum {
   BT_FN_STRING_CONST_STRING_CONST_STRING,
   BT_FN_SIZE_CONST_STRING_CONST_STRING,
   BT_FN_PTR_UNSIGNED,
-  BT_FN_VOID_PTR_INT,  /* new for BUILT_IN_LONGJMP */
-  BT_FN_INT_PTR,       /* new for BUILT_IN_SETJMP */
+  BT_FN_VOID_PTR_INT,
+  BT_FN_INT_PTR,
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -140,6 +140,7 @@ static struct builtin_function_entry list_of_builtins[] = {
   //{ "__builtin_return_address", BT_FN_PTR_UNSIGNED, BUILT_IN_RETURN_ADDRESS, BUILT_IN_NORMAL, "return_address", NULL, NULL},
   //{ "__builtin_aggregate_incoming_address", BT_FN_PTR_VAR, BUILT_IN_AGGREGATE_INCOMING_ADDRESS, BUILT_IN_NORMAL, "aggregate_incoming_address", NULL, NULL},
 { "__builtin_longjmp", BT_FN_VOID_PTR_INT, BUILT_IN_LONGJMP, BUILT_IN_NORMAL, "longjmp", NULL, NULL},
+{ "__builtin_setjmp", BT_FN_INT_PTR, BUILT_IN_SETJMP, BUILT_IN_NORMAL, "setjmp", NULL, NULL},
 { NULL, 0, 0, 0, "", NULL, NULL} };
 
 
@@ -329,6 +330,7 @@ tree
 gm2builtins_BuildBuiltinTree (char *name)
 {
   struct builtin_function_entry *fe;
+  tree t;
 
   gccgm2_SetLastFunction(NULL_TREE);
   for (fe=&list_of_builtins[0]; fe->name != NULL; fe++)
@@ -339,7 +341,10 @@ gm2builtins_BuildBuiltinTree (char *name)
 				    funcptr, gccgm2_GetParamList (), NULL_TREE));
 
       gccgm2_SetParamList (NULL_TREE);
-      return gccgm2_GetLastFunction ();
+      t = gccgm2_GetLastFunction ();
+      if (fe->return_node == void_type_node)
+	gccgm2_SetLastFunction(NULL_TREE);
+      return t;
     }
   
   gccgm2_SetParamList(NULL_TREE);
