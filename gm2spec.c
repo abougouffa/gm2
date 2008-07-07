@@ -362,7 +362,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       seen_flags.shared = TRUE;
     if ((strcmp((*in_argv)[i], "-O2") == 0) ||
 	(strcmp((*in_argv)[i], "-O3") == 0))
-      seen_flags.o2 = FALSE;  /* alter this when we build the libraries with -O2 */
+      seen_flags.o2 = TRUE;
     if (strcmp((*in_argv)[i], "-o") == 0)
       i += 2;
     else if (is_object((*in_argv)[i]))

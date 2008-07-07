@@ -31,6 +31,9 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildModuleStart,
                  StartBuildInit, EndBuildInit,
                  StartBuildFinally, EndBuildFinally,
+                 BuildExceptInitial, BuildExceptFinally,
+                 BuildExceptProcedure,
+                 BuildRetry,
                  BuildBuiltinConst,
                  BuildAssignment,
                  BuildRepeat, BuildUntil,
@@ -131,6 +134,7 @@ TYPE
                    DummyOp,
                    GotoOp, InitEndOp, InitStartOp,
                    FinallyStartOp, FinallyEndOp,
+                   RetryOp,
                    NegateOp, AddOp, SubOp, MultOp,
                    DivFloorOp, ModFloorOp, DivTruncOp, ModTruncOp,
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
@@ -526,6 +530,37 @@ PROCEDURE StartBuildFinally ;
 *)
 
 PROCEDURE EndBuildFinally ;
+
+
+(*
+   BuildExceptInitial - adds an ExceptOp quadruple in a modules
+                        initial block.
+*)
+ 
+PROCEDURE BuildExceptInitial ;
+
+
+(*
+   BuildExceptFinally - adds an ExceptOp quadruple in a modules
+                        finally block.
+*)
+ 
+PROCEDURE BuildExceptFinally ;
+
+
+(*
+   BuildExceptProcedure - adds an ExceptOp quadruple in a procedure
+                          block.
+*)
+ 
+PROCEDURE BuildExceptProcedure ;
+
+
+(*
+   BuildRetry - adds an RetryOp quadruple.
+*)
+ 
+PROCEDURE BuildRetry ;
 
 
 (*

@@ -1,3 +1,56 @@
+2008-07-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  add new rules for building shared
+	  libraries with -O2 and -O0.  They are now stored in
+	  separate directories and gm2 will link against the
+	  appropriate variety given the command line options.
+	* gm2/NEWS:  updated to reflect 0.63 and the new features.
+	* gm2/TODO:  updated and removed completed tasks and introduced
+	  new tasks.
+	* gm2/gm2.texi:  updated internal runtime section which
+	  now matches the new exception handling code.  Also
+	  introduced a section on how exception handling is implemented
+	  in GNU Modula-2 (using the setjmp/longjmp mechanism).
+	* gm2/gm2builtins.c:  added setjmp, longjmp to the builtins.
+	* gm2/gm2spec.c:  detect -O2 and modify the link path accordingly.
+	* gm2/m2.flex:  add RETRY and EXCEPT keywords.
+	* gm2/m2pp.c:  fixed pretty printing of GCC Trees (in Modula-2
+	  syntax) so that nested procedures are displayed correctly.
+	* gm2/bnf/gm2l.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/bnf/gm2m.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/bnf/m2-2.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/bnf/m2-3.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/bnf/m2-h.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/bnf/m2.bnf:  add RETRY and EXCEPT keywords.
+	* gm2/el/g-mode.el:  add indent support for EXCEPT block.
+	* gm2/gm2-compiler/M2ALU.def:  fixed date in comment.
+	* gm2/gm2-compiler/M2ALU.mod:  fixed date in comment.
+	* gm2/gm2-compiler/M2GCCDeclare.def:  fixed date in comment.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed date in comment.
+	* gm2/gm2-compiler/M2GenGCC.def:  fixed date in comment.
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed date in comment.
+	* gm2/gm2-compiler/M2Quads.def:  introduced BuildExcept
+	  procedures.
+	* gm2/gm2-compiler/M2Quads.mod:  implement BuildExcept
+	  procedures.  Fixed GetNextQuad to do this and not skip
+	  a DummyOp quadruple.   Except block builds a local
+	  nested procedure for the exception block.  The
+	  retry code is currently broken.
+	* gm2/gm2-compiler/M2Reserved.def:  added RetryTok and
+	  ExceptTok.
+	* gm2/gm2-compiler/NameKey.def:  fixed spacing.
+	* gm2/gm2-libs/Break.mod:  fixed comment.
+	* gm2/gm2-libs/Builtins.def:  define and export longjmp
+	  and setjmp.
+	* gm2/gm2-libs/M2EXCEPTION.def:  fixed comment dates.
+	* gm2/gm2-libs/M2RTS.def:  fixed comment dates.
+	* gm2/gm2-libs/RTExceptions.def:  fixed indentation.
+	* gm2/tools-src/createUlmSys:  now creates a
+	  _M2_SYSTEM_finish section to the C SYSTEM implementation
+	  module.
+	* gm2/ulm-lib-gm2/sys/termios.c:  added a
+	  _M2_termios_finish section.
+
 2008-07-02       Gaius Mulley <gaius@gnu.org>
 
 	* fixed bugs reported by:  Erik Irsch <eirsch@yahoo.de>.

@@ -67,6 +67,7 @@ CALL_LIST=(access          ipi
 function createPrototypes () {
    echo "int SYSTEM_UNIXCALL (int code, int *r0, int *r1, ...);"
    echo "void _M2_SYSTEM_init ();"
+   echo "void _M2_SYSTEM_finish ();"
    count=0
    proto=1
    while [ "${CALL_LIST[$count]}" != "END" ] ; do
@@ -238,6 +239,10 @@ EOFEOF
        count=`expr $count + 1`
        count=`expr $count + 1`
    done
+   echo "}"
+   echo " "
+   echo "void _M2_SYSTEM_finish (void)"
+   echo "{"
    echo "}"
 }
 

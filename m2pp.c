@@ -86,6 +86,7 @@ typedef struct pretty_t {
  */
 
 static pretty *initPretty (void);
+static pretty *dupPretty (pretty *s);
 static int getindent (pretty *s);
 static void setindent (pretty *s, int n);
 static int getcurpos (pretty *s);
@@ -264,6 +265,18 @@ pv (tree t)
 	  killPretty (state);
 	}
     }
+}
+
+/*
+ *  dupPretty - duplicate and return a copy of state, s.
+ */
+
+static pretty *
+dupPretty (pretty *s)
+{
+  pretty *p = initPretty ();
+  *p = *s;
+  return p;
 }
 
 /*
@@ -477,7 +490,7 @@ m2pp_function (pretty *s, tree t)
   if (TREE_CODE (t) == FUNCTION_DECL)
     {
       m2pp_begin (s);
-      setindent (s, 0);
+      setindent (s, getindent (s)-3);
       m2pp_print (s, "END");
       m2pp_needspace (s);
       m2pp_identifier (s, t);
@@ -563,8 +576,19 @@ static void
 m2pp_var_list (pretty *s, tree t)
 {
   if (t != NULL_TREE)
-    for (; t; t = TREE_CHAIN (t))
-      m2pp_var_type_decl (s, t);
+    for (; t; t = TREE_CHAIN (t)) {
+      if (TREE_CODE (t) == FUNCTION_DECL)
+	{
+	  pretty *p = dupPretty (s);
+	  printf("\n");
+	  p->in_vars = FALSE;
+	  m2pp_function (p, t);
+	  killPretty (p);
+	  printf("\n");
+	}
+      else
+	m2pp_var_type_decl (s, t);
+    }
 }
 
 /*

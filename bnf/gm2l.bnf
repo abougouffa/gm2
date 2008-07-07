@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2008/06/12 18:14:28 $]
+              : [$Date: 2008/07/07 09:19:13 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -847,6 +847,7 @@ token   'DO'              dotok
 token   'ELSE'            elsetok
 token   'ELSIF'           elsiftok
 token   'END'             endtok
+token   'EXCEPT'          excepttok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
 token   'FINALLY'         finallytok
@@ -869,6 +870,7 @@ token   'UNQUALIFIED'     unqualifiedtok
 token   'RECORD'          recordtok
 token   'REM'             remtok
 token   'REPEAT'          repeattok
+token   'RETRY'           retrytok
 token   'RETURN'          returntok
 token   'SET'             settok
 token   'THEN'            thentok
@@ -886,6 +888,7 @@ token   '__LINE__'        linetok
 token   '__FILE__'        filetok
 token   '__ATTRIBUTE__'   attributetok
 token   '__BUILTIN__'     builtintok
+token   '__INLINE__'      inlinetok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok

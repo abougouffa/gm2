@@ -2,8 +2,25 @@ This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
 
+VERSION 0.63
+============
+
 * all errors now include column information.  Also added -fxcode
   option which issues errors in Apple Xcode format.
+* shared libraries are now implemented, to link against the shared
+  libraries use the new option -fshared.  Likewise to generate a
+  shared library use the -fshared option.
+* the keyword FINALLY is now implemented and both the initialization
+  and finalization blocks map onto GNU/Linux shared library
+  constructor and deconstructors.
+* the PIM libraries are built with -O0, -O2, -O2 -fshared, -fshared.
+* a new option -fswig automatically generates a swig interface file
+  corresponding to the definition module being compiled.
+* new options, -fobject-path, allows users to specify the path for
+  all objects whereas -I specifies the path for the library sources.
+* -fmakeinit option introduced which will generate a file
+  _m2_modulename.c in the current directory.
+* introduced fixed sized types in the SYSTEM module.
 
 VERSION 0.62
 ============

@@ -1867,3 +1867,7 @@ int EXPORT(SetChar) (struct termios *t, ControlChar c, char ch)
 void _M2_termios_init (void)
 {
 }
+
+void _M2_termios_finish (void)
+{
+}

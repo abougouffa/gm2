@@ -199,6 +199,7 @@ ELSE                       { updatepos(); M2LexBuf_AddTok(M2Reserved_elsetok); r
 ELSIF                      { updatepos(); M2LexBuf_AddTok(M2Reserved_elsiftok); return; }
 END                        { updatepos(); seenEnd=TRUE;
                              M2LexBuf_AddTok(M2Reserved_endtok); return; }
+EXCEPT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_excepttok); return; }
 EXIT                       { updatepos(); M2LexBuf_AddTok(M2Reserved_exittok); return; }
 EXPORT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_exporttok); return; }
 FINALLY                    { updatepos(); M2LexBuf_AddTok(M2Reserved_finallytok); return; }
@@ -223,6 +224,7 @@ UNQUALIFIED                { updatepos(); M2LexBuf_AddTok(M2Reserved_unqualified
 RECORD                     { updatepos(); M2LexBuf_AddTok(M2Reserved_recordtok); return; }
 REM                        { updatepos(); M2LexBuf_AddTok(M2Reserved_remtok); return; }
 REPEAT                     { updatepos(); M2LexBuf_AddTok(M2Reserved_repeattok); return; }
+RETRY                      { updatepos(); M2LexBuf_AddTok(M2Reserved_retrytok); return; }
 RETURN                     { updatepos(); M2LexBuf_AddTok(M2Reserved_returntok); return; }
 SET                        { updatepos(); M2LexBuf_AddTok(M2Reserved_settok); return; }
 THEN                       { updatepos(); M2LexBuf_AddTok(M2Reserved_thentok); return; }

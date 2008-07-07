@@ -39,7 +39,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2008/06/12 18:14:28 $]
+   Date       : 3/4/86  [$Date: 2008/07/07 09:19:13 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1716,6 +1716,7 @@ token   'DO'              dotok
 token   'ELSE'            elsetok
 token   'ELSIF'           elsiftok
 token   'END'             endtok
+token   'EXCEPT'          excepttok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
 token   'FINALLY'         finallytok
@@ -1738,6 +1739,7 @@ token   'UNQUALIFIED'     unqualifiedtok
 token   'RECORD'          recordtok
 token   'REM'             remtok
 token   'REPEAT'          repeattok
+token   'RETRY'           retrytok
 token   'RETURN'          returntok
 token   'SET'             settok
 token   'THEN'            thentok
@@ -1755,6 +1757,7 @@ token   '__LINE__'        linetok
 token   '__FILE__'        filetok
 token   '__ATTRIBUTE__'   attributetok
 token   '__BUILTIN__'     builtintok
+token   '__INLINE__'      inlinetok
 token   'integer number'  integertok
 token   'identifier'      identtok
 token   'real number'     realtok

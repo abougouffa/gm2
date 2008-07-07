@@ -2394,19 +2394,230 @@ also exist.
 
 The @code{M2RTS} module contains many of the base runtime features
 required by the GNU Modula-2 compiler. For example @code{M2RTS}
-contains the exception handling routines which are called if a pointer
-whose value is @code{NIL} is dereferenced or an array index goes out
-of bounds. If the @samp{-fbounds} options is specified then the GNU
-Modula-2 compiler will call the procedure @code{ArraySubscriptError}
-or @code{SubrangeAssignmentError} when an illegal reference or illegal
-assignment is about to be performed. @code{M2RTS} also contains
-the exception handlers @code{FunctionReturnError},
-@code{NilPointerError} and @code{CaseElseError}.
-
+contains the all the low level exception handling routines.  These
+include exception handlers for run time range checks for:
+assignments, increments, decrements, static array access,
+dynamic array access, for loop begin,
+for loop to, for loop increment, pointer via nil,
+function without return, case value not specified and no exception.
 The @code{M2RTS} module also contains the @code{HALT} and @code{LENGTH}
 procedure. The ISO @code{SYSTEM} module contains a number of
 @code{SHIFT} and @code{ROTATE} procedures which GNU Modula-2 will call
 when wishing to shift and rotate multi-word set types.
+
+@subsection Exception handling
+
+This section describes how exception handling is implemented in GNU
+Modula-2.  We begin by including a simple Modula-2 program which uses
+exception handling and provide the same program written in C.  The
+compiler will translate the Modula-2 into the equivalent trees, just
+like the C frontend.  This ensures that the Modula-2 frontend will not
+do anything that the middle and backend cannot process, which ensures
+that migration through the later gcc releases will be smooth.  It is
+also interesting to note that this has little (maybe even zero) effect
+on efficiency since the C constructs (setjmp/longjmp) are compiler
+builtins.
+
+Here is an example of Modula-2 using exception handling:
+
+@example
+MODULE except ;
+
+FROM libc IMPORT printf ;
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
+
+PROCEDURE fly ;
+VAR
+   r: INTEGER ;
+BEGIN
+   r := printf("fly main body\n") ;
+   IF 4 DIV ip^ = 4
+   THEN
+      r := printf("yes it worked\n")
+   ELSE
+      r := printf("no it failed\n")
+   END
+END fly ;
+
+PROCEDURE tryFlying ;
+VAR
+   r: INTEGER ;
+BEGIN
+   r := printf("tryFlying main body\n");  
+   fly ;
+EXCEPT
+   r := printf("inside tryFlying exception routine\n") ;
+   IF (ip#NIL) AND (ip^=0)
+   THEN
+      ip^ := 1 ;
+      RETRY
+   END
+END tryFlying ;
+
+PROCEDURE keepFlying ;
+VAR
+   t: INTEGER ;
+BEGIN
+   r := printf("keepFlying main body\n") ;
+   tryFlying ;
+EXCEPT
+   r := printf("inside keepFlying exception routine\n") ;
+   IF ip=NIL
+   THEN
+      NEW(ip) ;
+      ip^ := 0 ;
+      RETRY
+   END
+END keepFlying ;
+
+VAR
+   r : INTEGER ;
+   ip: POINTER TO INTEGER ;
+BEGIN
+   ip := NIL ;
+   keepFlying ;
+   r := printf("all done\n")
+END except.
+@end example
+
+Now the same program implemented in GNU C (which allows nested
+functions).
+
+@example
+#include <setjmp.h>
+#include <malloc.h>
+#include <stdio.h>
+
+typedef enum jmpstatus @{
+  jmp_normal,
+  jmp_retry,
+  jmp_exception,
+@} jmp_status;
+
+struct setjmp_stack @{
+  jmp_buf  env;
+  struct setjmp_stack *next;
+@} *head = NULL;
+
+void pushsetjmp (void)
+@{
+  struct setjmp_stack *p = (struct setjmp_stack *)
+                           malloc (sizeof (struct setjmp_stack));
+
+  p->next = head;
+  head = p;
+@}
+
+void exception (void)
+@{
+  printf("invoking exception handler\n");
+  longjmp (head->env, jmp_exception);
+@}
+
+void retry (void)
+@{
+  printf("retry\n");
+  longjmp (head->env, jmp_retry);
+@}
+
+void popsetjmp (void)
+@{
+  struct setjmp_stack *p = head;
+
+  head = head->next;
+  free (p);
+@}
+
+static int *ip = NULL;
+
+void fly (void)
+@{
+  printf("fly main body\n");
+  if (ip == NULL) @{
+    printf("ip == NULL\n");
+    exception();
+  @}
+  if ((*ip) == 0) @{
+    printf("*ip == 0\n");
+    exception();
+  @}
+  if ((4 / (*ip)) == 4)
+    printf("yes it worked\n");
+  else
+    printf("no it failed\n");
+@}
+
+void tryFlying (void)
+@{
+  void tryFlying_m2_exception () @{
+    printf("inside tryFlying exception routine\n");
+    if ((ip != NULL) && ((*ip) == 0)) @{
+      (*ip) = 1;
+      retry();
+    @}
+  @}
+
+  int t;
+
+  pushsetjmp ();
+  do @{
+    t = setjmp (head->env);
+  @} while (t == jmp_retry);
+
+  if (t == jmp_exception) @{
+    /* exception called */
+    tryFlying_m2_exception ();
+    /* exception has not been handled, invoke previous handler */
+    printf("exception not handled here\n");
+    popsetjmp();
+    exception();
+  @}
+
+  printf("tryFlying main body\n");  
+  fly();
+  popsetjmp();
+@}
+
+void keepFlying (void)
+@{
+  void keepFlying_m2_exception () @{
+    printf("inside keepFlying exception routine\n");
+    if (ip == NULL) @{
+      ip = (int *)malloc (sizeof (int));
+      *ip = 0;
+      retry();
+    @}
+  @}
+  int t;
+
+  pushsetjmp ();
+  do @{
+    t = setjmp (head->env);
+  @} while (t == jmp_retry);
+  
+  if (t == jmp_exception) @{
+    /* exception called */
+    keepFlying_m2_exception ();
+    /* exception has not been handled, invoke previous handler */
+    popsetjmp();
+    exception();
+  @}
+  printf("keepFlying main body\n");
+  tryFlying();
+  popsetjmp();
+@}
+
+main ()
+@{
+  keepFlying();
+  printf("all done\n");
+@}
+@end example
+
+From the above implementation we see that a number of runtime
+support routines are needed in the Modula-2 library.  The
+equivalent of @code{pushsetjmp}, @code{popsetjmp}, @code{exception}
+and @code{head} need to be implemented and accessible.
 
 @node Scope rules, Done list, Run time, Internals
 @section Scope rules

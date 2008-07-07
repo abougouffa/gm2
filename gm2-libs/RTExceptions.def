@@ -31,10 +31,10 @@ DEFINITION MODULE RTExceptions ;
 
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED EHBlock,
-                  Raise, SetExceptionBlock, GetExceptionBlock,
-                  GetTextBuffer, GetTextBufferSize, GetNumber,
-                  InitExceptionBlock, KillExceptionBlock,
-                  PushHandler, PopHandler ;
+                 Raise, SetExceptionBlock, GetExceptionBlock,
+                 GetTextBuffer, GetTextBufferSize, GetNumber,
+                 InitExceptionBlock, KillExceptionBlock,
+                 PushHandler, PopHandler ;
 
 TYPE
    EHBlock ;

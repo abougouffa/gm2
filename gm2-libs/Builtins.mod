@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc.  *)
 (* This file is part of GNU Modula-2.
 
@@ -230,5 +230,17 @@ PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_huge_valf)) huge_valf (s: SHORT
 BEGIN
    RETURN -1.0
 END huge_valf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_longjmp)) longjmp (env: ADDRESS; val: INTEGER) ;
+BEGIN
+   (* empty, replaced internally by gcc *)
+END longjmp ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_setjmp)) setjmp (env: ADDRESS) : INTEGER ;
+BEGIN
+   (* empty, replaced internally by gcc *)
+   RETURN 0   (* keeps gm2 happy *)
+END setjmp ;
+
 
 END Builtins.

@@ -44,6 +44,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetWriteLimitQuads, GetReadLimitQuads,
                         GetVarScope,
                         GetModuleQuads, GetProcedureQuads,
+                        MakeProcedure,
                         PutConstString,
                         PutModuleStartQuad, PutModuleEndQuad,
                         PutModuleFinallyStartQuad, PutModuleFinallyEndQuad,
@@ -231,11 +232,13 @@ VAR
    LineStack,
    BoolStack,
    WithStack            : StackOfAddress ;
+   ExceptStack,
    AutoStack,
    ExitStack,
    ReturnStack          : StackOfWord ;   (* Return quadruple of the procedure.      *)
    PriorityStack        : StackOfWord ;   (* temporary variable holding old priority *)
    SuppressWith         : BOOLEAN ;
+   ExceptBlock          : CARDINAL ;  (* current exception block (if any)        *)
 
    Quads                : ARRAY [1..MaxQuad] OF QuadFrame ;
    NextQuad             : CARDINAL ;  (* Next quadruple number to be created.    *)
@@ -1240,11 +1243,14 @@ END CheckRemoveVariableWrite ;
 
 PROCEDURE GetNextQuad (QuadNo: CARDINAL) : CARDINAL ;
 BEGIN
+(*
    QuadNo := Quads[QuadNo].Next ;
    WHILE (QuadNo#0) AND (Quads[QuadNo].Operator=DummyOp) DO
       QuadNo := Quads[QuadNo].Next
    END ;
    RETURN( QuadNo )
+*)
+   RETURN( Quads[QuadNo].Next )
 END GetNextQuad ;
 
 
@@ -1672,7 +1678,8 @@ BEGIN
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    CheckVariablesAt(ModuleSym) ;
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
+   ExceptBlock := NulSym
 END StartBuildInit ;
  
  
@@ -1682,6 +1689,12 @@ END StartBuildInit ;
  
 PROCEDURE EndBuildInit ;
 BEGIN
+   IF ExceptBlock#NulSym
+   THEN
+      ExceptBlock := PopWord(ExceptStack) ;
+      Assert(ExceptBlock=NulSym) ;
+      BuildProcedureEnd
+   END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
@@ -1710,7 +1723,8 @@ BEGIN
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    (* CheckVariablesAt(ModuleSym) ; *)
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
+   ExceptBlock := NulSym
 END StartBuildFinally ;
  
  
@@ -1720,6 +1734,12 @@ END StartBuildFinally ;
  
 PROCEDURE EndBuildFinally ;
 BEGIN
+   IF ExceptBlock#NulSym
+   THEN
+      ExceptBlock := PopWord(ExceptStack) ;
+      Assert(ExceptBlock=NulSym) ;
+      BuildProcedureEnd
+   END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleFinallyEndQuad(GetCurrentModule(), NextQuad) ;
@@ -1727,6 +1747,67 @@ BEGIN
    GenQuad(FinallyEndOp, GetPreviousTokenLineNo(), GetFileModule(),
            GetCurrentModule())
 END EndBuildFinally ;
+
+
+(*
+   BuildExceptInitial - adds an ExceptOp quadruple in a modules
+                        initial block.
+*)
+ 
+PROCEDURE BuildExceptInitial ;
+VAR
+   exceptionProcedure: CARDINAL ;
+   s                 : String ;
+BEGIN
+   GenQuad(DummyOp, NulSym, NulSym, NulSym) ;   (* to ensure we do not GotoOp a ProcedureScopeOp *)
+   PushWord(ExceptStack, ExceptBlock) ;
+   s := ConCat(InitStringCharStar(KeyToCharStar(GetSymName(GetCurrentScope()))),
+               InitString('_M2_except')) ;
+   exceptionProcedure := MakeProcedure(makekey(string(s))) ;
+   s := KillString(s) ;
+   PushT(exceptionProcedure) ;
+   BuildProcedureStart ;
+   BuildProcedureBegin ;
+   ExceptBlock := GetCurrentScope()
+END BuildExceptInitial ;
+
+
+(*
+   BuildExceptFinally - adds an ExceptOp quadruple in a modules
+                        finally block.
+*)
+ 
+PROCEDURE BuildExceptFinally ;
+BEGIN
+   BuildExceptInitial
+END BuildExceptFinally ;
+
+
+(*
+   BuildExceptProcedure - adds an ExceptOp quadruple in a procedure
+                          block.
+*)
+ 
+PROCEDURE BuildExceptProcedure ;
+BEGIN
+   BuildExceptInitial
+END BuildExceptProcedure ;
+
+
+(*
+   BuildRetry - adds an RetryOp quadruple.
+*)
+ 
+PROCEDURE BuildRetry ;
+BEGIN
+   IF GetCurrentScope()=ExceptBlock
+   THEN
+      GenQuad(RetryOp, GetPreviousTokenLineNo(), NulSym, ExceptBlock)
+   ELSE
+      ErrorFormat0(NewError(GetTokenNo()),
+                   'RETRY statement must correspond to an EXCEPT statement in the same block')
+   END
+END BuildRetry ;
 
 
 (*
@@ -7998,6 +8079,7 @@ BEGIN
    PutProcedureStartQuad(ProcSym, NextQuad) ;
    GenQuad(NewLocalVarOp, GetPreviousTokenLineNo(), GetScope(ProcSym), ProcSym) ;
    CurrentProc := ProcSym ;
+   ExceptBlock := NulSym ;
    PushWord(ReturnStack, 0) ;
    PushT(ProcSym) ;
    CheckVariablesAt(ProcSym) ;
@@ -8044,7 +8126,13 @@ BEGIN
    GenQuad(ReturnOp, NulSym, NulSym, ProcSym) ;
    CheckFunctionReturn(ProcSym) ;
    CheckVariablesInBlock(ProcSym) ;
-   PushT(ProcSym)
+   PushT(ProcSym) ;
+   IF ExceptBlock#NulSym
+   THEN
+      ExceptBlock := PopWord(ExceptStack) ;
+      PopT(ProcSym) ;
+      BuildProcedureEnd
+   END
 END BuildProcedureEnd ;
 
 
@@ -10702,6 +10790,7 @@ BEGIN
    InitEndOp                : printf0('InitEnd           ') |
    FinallyStartOp           : printf0('FinallyStart      ') |
    FinallyEndOp             : printf0('FinallyEnd        ') |
+   RetryOp                  : printf0('Retry             ') |
    AddOp                    : printf0('+                 ') |
    SubOp                    : printf0('-                 ') |
    DivFloorOp               : printf0('DIV floor         ') |
@@ -11410,6 +11499,8 @@ BEGIN
    ReturnStack := InitStackWord() ;
    LineStack := InitStackAddress() ;
    PriorityStack := InitStackWord() ;
+   ExceptStack := InitStackWord() ;
+   ExceptBlock := NulSym ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;

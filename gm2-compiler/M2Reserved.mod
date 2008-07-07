@@ -175,6 +175,9 @@ BEGIN
    ExitTok := MakeKey('EXIT') ;
    AddKeyword(ExitTok, ORD(exittok)) ;
 
+   ExceptTok := MakeKey('EXCEPT') ;
+   AddKeyword(ExceptTok, ORD(excepttok)) ;
+
    ExportTok := MakeKey('EXPORT') ;
    AddKeyword(ExportTok, ORD(exporttok)) ;
 
@@ -237,6 +240,9 @@ BEGIN
 
    RepeatTok := MakeKey('REPEAT') ;
    AddKeyword(RepeatTok, ORD(repeattok)) ;
+
+   RetryTok := MakeKey('RETRY') ;
+   AddKeyword(RetryTok, ORD(retrytok)) ;
 
    ReturnTok := MakeKey('RETURN') ;
    AddKeyword(ReturnTok, ORD(returntok)) ;

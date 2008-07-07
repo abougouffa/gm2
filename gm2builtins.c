@@ -1,4 +1,4 @@
-/* Copyright (C) 2003, 2004, 2005, 2006, 2007
+/* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
  * Free Software Foundation, Inc.  */
 /* This file is part of GNU Modula-2.
 
@@ -72,6 +72,8 @@ typedef enum {
   BT_FN_STRING_CONST_STRING_CONST_STRING,
   BT_FN_SIZE_CONST_STRING_CONST_STRING,
   BT_FN_PTR_UNSIGNED,
+  BT_FN_VOID_PTR_INT,  /* new for BUILT_IN_LONGJMP */
+  BT_FN_INT_PTR,       /* new for BUILT_IN_SETJMP */
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -137,6 +139,7 @@ static struct builtin_function_entry list_of_builtins[] = {
   //{ "__builtin_frame_address", BT_FN_PTR_UNSIGNED, BUILT_IN_FRAME_ADDRESS, BUILT_IN_NORMAL, "frame_address", NULL, NULL},
   //{ "__builtin_return_address", BT_FN_PTR_UNSIGNED, BUILT_IN_RETURN_ADDRESS, BUILT_IN_NORMAL, "return_address", NULL, NULL},
   //{ "__builtin_aggregate_incoming_address", BT_FN_PTR_VAR, BUILT_IN_AGGREGATE_INCOMING_ADDRESS, BUILT_IN_NORMAL, "aggregate_incoming_address", NULL, NULL},
+{ "__builtin_longjmp", BT_FN_VOID_PTR_INT, BUILT_IN_LONGJMP, BUILT_IN_NORMAL, "longjmp", NULL, NULL},
 { NULL, 0, 0, 0, "", NULL, NULL} };
 
 
@@ -494,6 +497,16 @@ create_function_prototype (struct builtin_function_entry *fe)
 				 tree_cons (NULL_TREE, const_ptr_type_node,
 					    const_ptr_endlink));
     fe->return_node = sizetype;
+    break;
+  case BT_FN_INT_PTR:
+    ftype = build_function_type (integer_type_node, ptr_endlink);
+    fe->return_node = integer_type_node;
+    break;
+  case BT_FN_VOID_PTR_INT:
+    ftype = build_function_type (void_type_node,
+				 tree_cons (NULL_TREE, ptr_type_node,
+					    int_endlink));
+    fe->return_node = void_type_node;
     break;
   default:
     ERROR("enum has no case");

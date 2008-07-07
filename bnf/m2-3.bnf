@@ -69,6 +69,9 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     EndBuildInit,
                     StartBuildFinally,
                     EndBuildFinally,
+                    BuildExceptInitial,
+                    BuildExceptFinally,
+                    BuildExceptProcedure,
                     BuildProcedureStart,
                     BuildProcedureBegin,
                     BuildProcedureEnd,
@@ -484,6 +487,7 @@ token   'DO'              dotok
 token   'ELSE'            elsetok
 token   'ELSIF'           elsiftok
 token   'END'             endtok
+token   'EXCEPT'          excepttok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
 token   'FINALLY'         finallytok
@@ -506,6 +510,7 @@ token   'UNQUALIFIED'     unqualifiedtok
 token   'RECORD'          recordtok
 token   'REM'             remtok
 token   'REPEAT'          repeattok
+token   'RETRY'           retrytok
 token   'RETURN'          returntok
 token   'SET'             settok
 token   'THEN'            thentok
@@ -1057,7 +1062,7 @@ Statement :=                                                               % Pus
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               ExitStatement | ReturnStatement 
+               ExitStatement | ReturnStatement | "RETRY"
              ]                                                             % PopAuto ; %
           =:
 
@@ -1206,8 +1211,8 @@ DefProcedureHeading := "PROCEDURE"                                         % Pus
 ProcedureBlock :=                                                          % BuildProcedureStart %
                   { Declaration }                                          % BuildProcedureBegin %
                                   [ "BEGIN"
-                                            StatementSequence ]            % BuildLineNo %
-                                                            "END"
+                                            ProcedureBlockBody ]           % BuildLineNo %
+                                                                 "END"
                 =:
 
 Block := { Declaration }                                                   % StartBuildInit %
@@ -1217,9 +1222,25 @@ Block := { Declaration }                                                   % Sta
                                                  "END"
        =:
 
-InitialBlock := [ "BEGIN" StatementSequence ] =:
+InitialBlock := [ "BEGIN" InitialBlockBody ] =:
 
-FinalBlock := [ "FINALLY" StatementSequence ] =:
+FinalBlock := [ "FINALLY" FinalBlockBody ] =:
+
+InitialBlockBody := NormalPart [
+                                 "EXCEPT"                                  % BuildExceptInitial %
+                                          ExceptionalPart ] =:
+
+FinalBlockBody := NormalPart [
+                               "EXCEPT"                                    % BuildExceptFinally %
+                                        ExceptionalPart ] =:
+
+ProcedureBlockBody := NormalPart [
+                                   "EXCEPT"                                % BuildExceptProcedure %
+                                            ExceptionalPart ] =:
+
+NormalPart := StatementSequence =:
+
+ExceptionalPart := StatementSequence =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
                "TYPE" { TypeDeclaration ";" } |

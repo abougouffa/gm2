@@ -338,7 +338,7 @@
 		    m2-continue
 		    (not (m2-indent-commencer)))
 	  (progn
-	    (if (re-search-forward "[ ;\n\t]\\(BEGIN\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE\\)" nil t)
+	    (if (re-search-forward "[ ;\n\t]\\(BEGIN\\|FINALLY\\|EXCEPT\\|CONST\\|TYPE\\|VAR\\|FROM\\|PROCEDURE\\)" nil t)
 		(progn
 		  (forward-char -1)
 		  (while (looking-at "[A-Za-z0-9]")
@@ -1169,6 +1169,8 @@ FROM StdIO IMPORT Write, Read ;
        (not m2-if-then-same-line)
        (looking-at "THEN"))
       (looking-at "BEGIN")
+      (looking-at "FINALLY")
+      (looking-at "EXCEPT")
       (looking-at "RECORD")
       (looking-at "FOR")
       (looking-at "CONST")
@@ -1184,6 +1186,8 @@ FROM StdIO IMPORT Write, Read ;
   "returns true if a token representing the end of an indent sequence was found."
   (or (looking-at "END")
       (looking-at "BEGIN")
+      (looking-at "FINALLY")
+      (looking-at "EXCEPT")
       (looking-at "CONST")
       (looking-at "TYPE")
       (looking-at "VAR")

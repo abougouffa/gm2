@@ -454,6 +454,7 @@ token   'DO'              dotok
 token   'ELSE'            elsetok
 token   'ELSIF'           elsiftok
 token   'END'             endtok
+token   'EXCEPT'          excepttok
 token   'EXIT'            exittok
 token   'EXPORT'          exporttok
 token   'FINALLY'         finallytok
@@ -476,6 +477,7 @@ token   'UNQUALIFIED'     unqualifiedtok
 token   'RECORD'          recordtok
 token   'REM'             remtok
 token   'REPEAT'          repeattok
+token   'RETRY'           retrytok
 token   'RETURN'          returntok
 token   'SET'             settok
 token   'THEN'            thentok
@@ -887,7 +889,7 @@ Statement :=                                                              % Push
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               "EXIT" | "RETURN" [ Expression ] ]                         % PopAuto ; %
+               "EXIT" | "RETURN" [ Expression ] | "RETRY" ]               % PopAuto ; %
           =:
 
 AssignmentOrProcedureCall := Designator ( ":=" Expression |
@@ -967,14 +969,20 @@ DefProcedureHeading := "PROCEDURE"
 ProcedureBlock :=                                                          % Assert(IsProcedure(OperandT(1))) %
                   {                                                        % Assert(IsProcedure(OperandT(1))) %
                     Declaration                                            % Assert(IsProcedure(OperandT(1))) %
-                                } [ "BEGIN" StatementSequence ] "END"      % Assert(IsProcedure(OperandT(1))) %
+                                } [ "BEGIN" BlockBody ] "END"              % Assert(IsProcedure(OperandT(1))) %
                =:
 
 Block := { Declaration } InitialBlock FinalBlock "END" =:
 
-InitialBlock := [ "BEGIN" StatementSequence ] =:
+InitialBlock := [ "BEGIN" BlockBody ] =:
 
-FinalBlock := [ "FINALLY" StatementSequence ] =:
+FinalBlock := [ "FINALLY" BlockBody ] =:
+
+BlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+
+NormalPart := StatementSequence =:
+
+ExceptionalPart := StatementSequence =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
                "TYPE" { TypeDeclaration ";" } |
