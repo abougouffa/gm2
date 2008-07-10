@@ -18,12 +18,12 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE except ;
 
 FROM libc IMPORT printf ;
-FROM Builtins IMPORT longjmp, setjmp ;
+FROM libc IMPORT longjmp, setjmp ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM SYSTEM IMPORT ADR, WORD ;
 
 TYPE
-   jmp_env    = ARRAY [0..10] OF WORD ;
+   jmp_env    = ARRAY [0..100] OF WORD ;
    jmp_status = (jmp_normal, jmp_retry, jmp_exception) ;
 
    setjmp_stack = POINTER TO RECORD
