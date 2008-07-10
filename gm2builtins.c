@@ -136,8 +136,8 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_strchr",  BT_FN_STRING_CONST_STRING_INT, BUILT_IN_STRCHR, BUILT_IN_NORMAL, "strchr", NULL, NULL},
 { "__builtin_strrchr", BT_FN_STRING_CONST_STRING_INT, BUILT_IN_STRCHR, BUILT_IN_NORMAL, "strrchr", NULL, NULL},
   //{ "__builtin_constant_p", BT_FN_INT_VAR, BUILT_IN_CONSTANT_P, BUILT_IN_NORMAL, "constant_p", NULL, NULL},
-  //{ "__builtin_frame_address", BT_FN_PTR_UNSIGNED, BUILT_IN_FRAME_ADDRESS, BUILT_IN_NORMAL, "frame_address", NULL, NULL},
-  //{ "__builtin_return_address", BT_FN_PTR_UNSIGNED, BUILT_IN_RETURN_ADDRESS, BUILT_IN_NORMAL, "return_address", NULL, NULL},
+{ "__builtin_frame_address", BT_FN_PTR_UNSIGNED, BUILT_IN_FRAME_ADDRESS, BUILT_IN_NORMAL, "frame_address", NULL, NULL},
+{ "__builtin_return_address", BT_FN_PTR_UNSIGNED, BUILT_IN_RETURN_ADDRESS, BUILT_IN_NORMAL, "return_address", NULL, NULL},
   //{ "__builtin_aggregate_incoming_address", BT_FN_PTR_VAR, BUILT_IN_AGGREGATE_INCOMING_ADDRESS, BUILT_IN_NORMAL, "aggregate_incoming_address", NULL, NULL},
 { "__builtin_longjmp", BT_FN_VOID_PTR_INT, BUILT_IN_LONGJMP, BUILT_IN_NORMAL, "longjmp", NULL, NULL},
 { "__builtin_setjmp", BT_FN_INT_PTR, BUILT_IN_SETJMP, BUILT_IN_NORMAL, "setjmp", NULL, NULL},
@@ -503,15 +503,19 @@ create_function_prototype (struct builtin_function_entry *fe)
 					    const_ptr_endlink));
     fe->return_node = sizetype;
     break;
-  case BT_FN_INT_PTR:
-    ftype = build_function_type (integer_type_node, ptr_endlink);
-    fe->return_node = integer_type_node;
+  case BT_FN_PTR_UNSIGNED:
+    ftype = build_function_type (ptr_type_node, unsigned_endlink);
+    fe->return_node = ptr_type_node;
     break;
   case BT_FN_VOID_PTR_INT:
     ftype = build_function_type (void_type_node,
 				 tree_cons (NULL_TREE, ptr_type_node,
 					    int_endlink));
     fe->return_node = void_type_node;
+    break;
+  case BT_FN_INT_PTR:
+    ftype = build_function_type (integer_type_node, ptr_endlink);
+    fe->return_node = integer_type_node;
     break;
   default:
     ERROR("enum has no case");

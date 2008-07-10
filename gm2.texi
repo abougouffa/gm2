@@ -2413,10 +2413,11 @@ exception handling and provide the same program written in C.  The
 compiler will translate the Modula-2 into the equivalent trees, just
 like the C frontend.  This ensures that the Modula-2 frontend will not
 do anything that the middle and backend cannot process, which ensures
-that migration through the later gcc releases will be smooth.  It is
-also interesting to note that this has little (maybe even zero) effect
-on efficiency since the C constructs (setjmp/longjmp) are compiler
-builtins.
+that migration through the later gcc releases will be smooth.  In the
+fullness of time it would be neat if the @code{__builtin_setjmp} and
+@code{__builtin_longjmp} were to behave similar to their libc
+counterparts as then the Modula-2 exception handling overhead would be
+near zero.
 
 Here is an example of Modula-2 using exception handling:
 

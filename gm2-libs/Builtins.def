@@ -86,8 +86,31 @@ PROCEDURE __BUILTIN__ huge_vall (l: LONGREAL) : LONGREAL ;
 (*
    longjmp - this GCC builtin restricts the val to always 1.
 *)
-
+(* do not use these two builtins, as gcc, only really
+   anticipates that the Ada front end should use them
+   and it only uses them in its runtime exception handling.
+   We leave them here in the hope that someday they will
+   behave more like their libc counterparts. *)
 PROCEDURE __BUILTIN__ longjmp (env: ADDRESS; val: INTEGER) ;
 PROCEDURE __BUILTIN__ setjmp (env: ADDRESS) : INTEGER ;
+
+(*
+   frame_address - returns the address of the frame.
+                   The current frame is obtained if level is 0,
+                   the next level up if level is 1 etc.
+*)
+
+PROCEDURE __BUILTIN__ frame_address (level: CARDINAL) : ADDRESS ;
+
+
+(*
+   return_address - returns the return address of function.
+                    The current function return address is
+                    obtained if level is 0,
+                    the next level up if level is 1 etc.
+*)
+
+PROCEDURE __BUILTIN__ return_address (level: CARDINAL) : ADDRESS ;
+
 
 END Builtins.

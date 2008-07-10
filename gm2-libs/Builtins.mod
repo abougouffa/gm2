@@ -243,4 +243,33 @@ BEGIN
 END setjmp ;
 
 
+(*
+   frame_address - returns the address of the frame.
+                   The current frame is obtained if level is 0,
+                   the next level up is level is 1 etc.
+*)
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__
+         ((__builtin_frame_address))
+         frame_address (level: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN NIL
+END frame_address ;
+
+
+(*
+   return_address - returns the return address of function.
+                    The current function return address is
+                    obtained if level is 0,
+                    the next level up is level is 1 etc.
+*)
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__
+         ((__builtin_return_address))
+         return_address (level: CARDINAL) : ADDRESS ;
+BEGIN
+   RETURN NIL
+END return_address ;
+
+
 END Builtins.

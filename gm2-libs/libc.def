@@ -39,7 +39,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    unlink,
                    memcpy, memset, printf, realloc,
                    rand, srand, time, localtime, ftime,
-                   shutdown, rename ;
+                   shutdown, rename, setjmp, longjmp ;
 
 TYPE
    time_t = LONGINT ;
@@ -392,6 +392,27 @@ PROCEDURE shutdown (s: INTEGER; how: INTEGER) : INTEGER ;
 *)
 
 PROCEDURE rename (oldpath, newpath: ADDRESS) : INTEGER ;
+
+
+(*
+   setjmp - returns 0 if returning directly, and non-zero
+            when returning from longjmp using the saved
+            context.
+*)
+
+PROCEDURE setjmp (env: ADDRESS) : INTEGER ;
+
+
+(*
+   longjmp - restores the environment saved by the last call
+             of setjmp with the corresponding env argument.
+             After longjmp is completed, program execution
+             continues as if the corresponding call of setjmp
+             had just returned the value val.  The value of
+             val must not be zero.
+*)
+
+PROCEDURE longjmp (env: ADDRESS; val: INTEGER) ;
 
 
 END libc.

@@ -1,3 +1,13 @@
+2008-07-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2builtins.c:  added support for return_address
+	  and frame_address as builtins.
+	* gm2/gm2-libs/Builtins.def:  defined return_address
+	  and frame_address.
+	* gm2/gm2-libs/Builtins.mod:  defined return_address
+	  and frame_address to their GCC builtin counterparts.
+	* gm2/gm2-tree.def:  defined THROW_EXPR node for Modula-2.
+	
 2008-07-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  add new rules for building shared
@@ -57,6 +67,7 @@
 	* gm2/gm2-compiler/M2GenGCC.mod:  refactored CodeDirectCall.
 	* gm2/gm2-libs/Builtins.def:  added comment about internal
 	  longjmp's restriction.
+	* gm2/gm2-libs/libc.def:  added setjmp/longjmp definitions.
 
 2008-07-02       Gaius Mulley <gaius@gnu.org>
 
