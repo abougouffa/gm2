@@ -26,9 +26,9 @@ void fly (void)
 {
   printf("fly main body\n") ;
   if (ip == NULL)
-    throw(1);
+    throw;
   if (*ip == 0)
-    throw(1);
+    throw;
   if (4 / (*ip) == 4)
     printf("yes it worked\n");
   else
@@ -51,7 +51,7 @@ void tryFlying (void)
   try {
     fly() ;
   }
-  catch (int val) {
+  catch (...) {
     printf("inside tryFlying exception routine\n") ;
     if ((ip != NULL) && ((*ip) == 0)) {
       *ip = 1;
@@ -59,7 +59,7 @@ void tryFlying (void)
       goto again_tryFlying;
     }
     printf("did't handle exception here so we will call the next exception routine\n") ;
-    throw(1);  // unhandled therefore call previous exception handler
+    throw;  // unhandled therefore call previous exception handler
   }
 }
 
@@ -70,14 +70,14 @@ void keepFlying (void)
   try {
     tryFlying();
   }
-  catch (int val) {
+  catch (...) {
     printf("inside keepFlying exception routine\n");
     if (ip == NULL) {
       ip = (int *)malloc(sizeof(int));
       *ip = 0;
       goto again_keepFlying;
     }
-    throw(1);  // unhandled therefore call previous exception handler
+    throw;  // unhandled therefore call previous exception handler
   }
 }
 
