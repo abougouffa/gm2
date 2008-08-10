@@ -29,6 +29,7 @@ FROM M2Options IMPORT OptimizeBasicBlock ;
 FROM M2Quads IMPORT Head,
                     IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
+                    IsCatchBegin, IsCatchEnd,
                     IsPseudoQuad, IsDefOrModFile,
                     GetNextQuad, GetQuad, QuadOperator,
                     SubQuad ;
@@ -200,9 +201,9 @@ BEGIN
          (* Add Quad to the Last BB since Pseudo Quads - compiler directives *)
          (* must not be thrown away.                                         *)
          EndBB(LastBB, Quad)
-      ELSIF IsReturn(Quad) OR IsKillLocalVar(Quad)
+      ELSIF IsReturn(Quad) OR IsKillLocalVar(Quad) OR IsCatchEnd(Quad) OR IsCatchBegin(Quad)
       THEN
-         (* we must leave the ReturnOp alone as it indictes end of procedure *)
+         (* we must leave these quads alone *)
          EndBB(LastBB, Quad)
       ELSE
          (* remove this Quad since it will never be reached *)

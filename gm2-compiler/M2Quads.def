@@ -98,6 +98,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsProcedureScope,
                  IsNewLocalVar,
                  IsKillLocalVar,
+                 IsCatchBegin,
+                 IsCatchEnd,
 
                  IsCodeOn,          (* Compiler flag testing routines *)
                  IsProfileOn,
@@ -134,7 +136,7 @@ TYPE
                    DummyOp,
                    GotoOp, InitEndOp, InitStartOp,
                    FinallyStartOp, FinallyEndOp,
-                   RetryOp,
+                   RetryOp, TryOp, CatchBeginOp, CatchEndOp, ThrowOp,
                    NegateOp, AddOp, SubOp, MultOp,
                    DivFloorOp, ModFloorOp, DivTruncOp, ModTruncOp,
       	       	   LogicalOrOp, LogicalAndOp, LogicalXorOp, LogicalDiffOp,
@@ -256,6 +258,20 @@ PROCEDURE IsNewLocalVar (QuadNo: CARDINAL) : BOOLEAN ;
 *) 
  
 PROCEDURE IsKillLocalVar (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsCatchBegin - returns true if QuadNo is a catch begin quad.
+*) 
+ 
+PROCEDURE IsCatchBegin (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsCatchEnd - returns true if QuadNo is a catch end quad.
+*) 
+ 
+PROCEDURE IsCatchEnd (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*

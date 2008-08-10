@@ -1,3 +1,73 @@
+2008-08-09       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Make-lang.in:  added gt dependancies for gm2builtins.h
+	  and gm2except.h.  Added rules and dependancies to build
+	  gm2except.c and link it to cc1gm2.  Updated GM2DISTFILES.
+        * gm2/config-lang.in:  updated gtfiles to include gm2except.c
+	  and gm2builtins.c.
+        * gm2/gccgm2.c:  updated dates.  Updated prototype (removed
+	  PARAMS).  (gimplify_expr_stmt) new function.
+	  (genericize_try_block) new function.  (genericize_catch_block)
+	  new function.  (init_m2_builtins) call gm2except_InitExceptions.
+        * gm2/gm2-tree.def:  define TRY_BLOCK, HANDLER, EXPR_STMT nodes.
+        * gm2/gm2-tree.h:  (TRY_STMTS), (TRY_HANDLERS), (FN_TRY_BLOCK_P),
+	  (HANDLER_PARMS), (HANDLER_BODY), (HANDLER_TYPE),
+	  (STMT_EXPR_STMT), (EXPR_STMT_EXPR) new macros.
+        * gm2/gm2.texi:  minor cosmetic changes.  Also heavily altered
+	  exception handling internal section to reflect using C++
+	  tree nodes rather than setjmp/longjmp mechanism.
+        * gm2/gm2builtins.c:  added GTY(()) clauses to global tree
+	  variables and imported appropriate GTY related header files.
+	  This has probably fixed a number of garbage collection bugs.
+        * gm2/m2pp.c:  major changes to allow this file to be built and
+	  linked to cc1plus as well as cc1gm2.  (m2pp_print_char),
+	  (m2pp_try_block), (m2pp_cleanup_point_expr), (m2pp_handler),
+	  (m2pp_try_catch_expr), (m2pp_throw), (m2pp_catch_expr),
+	  (m2pp_try_finally_expr), (m2pp_if_stmt),
+	  (m2pp_compound_expression), (m2pp_target_expression) new
+	  functions.
+        * gm2/bnf/m2-2.bnf:  (PutExceptionFinally), (PutExceptionBlock),
+	  (GetCurrentScope) call these building functions when parsing
+	  source.  (RetryStatement) new separate rule.
+	  (InitialBlock), (FinalBlock) new rules.
+        * gm2/bnf/m2-3.bnf:  (RetryStatement) new separate rule.
+        * gm2/bnf/m2-h.bnf:  (RetryStatement) new separate rule.
+        * gm2/bnf/m2-2.bnf:  (RetryStatement) new separate rule.
+        * gm2/gm2-compiler/M2Base.def:  added space.
+        * gm2/gm2-compiler/M2BasicBlock.mod:  (ConvertQuads2BasicBlock)
+	  updated to understand about CatchBegin and CatchEnd quads.
+        * gm2/gm2-compiler/M2GenGCC.mod:  (CodeTry), (CodeCatchBegin),
+	  (CodeCatchEnd), (CodeRetry), (CodeThrow) new procedures.
+        * gm2/gm2-compiler/M2Optimize.def:  fixed dates.
+        * gm2/gm2-compiler/M2Optimize.mod:  fixed dates.
+        * gm2/gm2-compiler/M2Quads.def:  (IsCatchBegin), (IsCatchEnd)
+	  new functions defined and exported.
+        * gm2/gm2-compiler/M2Quads.mod:  (BuildThrowProcedure) new
+	  procedure.  (IsUnConditional)  understands ThrowOp and RetryOp.
+          (WriteQuad) displays ThrowOp.  (IsQuadA) new function which
+	  allows (IsCall), (IsReturn), (IsNewLocalVar), (IsKillLocalVar),
+	  (ProcedureScope) to be refactored.  (IsCatchBegin),
+	  (IsCatchEnd), new functions.  (BuildExceptInitial) new
+	  procedure.  (BuildExceptFinally) new procedure.
+	  (BuildExceptProcedure) new procedure.  (BuildRetry) new
+	  procedure.
+        * gm2/gm2-compiler/M2System.def:  fixed dates.  (Throw) exported.
+	  (IsPseudoSystemProcedure) exported.
+        * gm2/gm2-compiler/M2System.mod:  initialize Throw, implement
+	  IsPseudoSystemProcedure.
+        * gm2/gm2-compiler/SymbolTable.def:  (PutExceptionBlock),
+	  (HasExceptionBlock), (PutExceptionFinally),
+	  (HasExceptionFinally) defined and export new procedures.
+        * gm2/gm2-compiler/SymbolTable.mod:  (PutExceptionBlock),
+	  (HasExceptionBlock), (PutExceptionFinally),
+	  (HasExceptionFinally) new procedures implemented.
+        * gm2/gm2-compiler/gccgm2.def:  (BuildTryCatch),
+	  (BuildThrow) new functions defined.
+        * gm2/gm2-libs/M2RTS.mod:  explicitly qualify RTExceptions.Raise.
+        * gm2/gm2-libs/SYSTEM.def:  export new internal procedure THROW.
+	  (THROW) defined.
+        * gm2/tools-src/createUlmSys:  fixed dates.
+	
 2008-07-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2builtins.c:  added support for return_address

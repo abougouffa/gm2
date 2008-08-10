@@ -19,19 +19,20 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #include "config.h"
 #include "system.h"
 #include "coretypes.h"
+#include "input.h"
 #include "tm.h"
 #include "tree.h"
 #include "toplev.h"
 #include "tm_p.h"
 #include "flags.h"
-#include <stdio.h>
+#include "tree-inline.h"
 
+#include <stdio.h>
 
 /*
  *  utilize some of the C build routines
  */
 
-#include "c-tree.h"
 #include "rtl.h"
 #include "function.h"
 #include "expr.h"
@@ -42,6 +43,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #include "target.h"
 #include "debug.h"
 #include "diagnostic.h"
+#include "langhooks.h"
+
+extern tree builtin_function (const char *, tree, int, enum built_in_class,
+			      const char *, tree);
+extern tree pushdecl (tree);
 
 
 #define GM2
@@ -144,13 +150,24 @@ static struct builtin_function_entry list_of_builtins[] = {
 { NULL, 0, 0, 0, "", NULL, NULL} };
 
 
-static tree sizetype_endlink, unsigned_endlink;
-static tree endlink, math_endlink, int_endlink;
-static tree ptr_endlink, const_ptr_endlink;
-static tree double_ftype_void, float_ftype_void, ldouble_ftype_void;
-static tree float_ftype_float, double_ftype_double, ldouble_ftype_ldouble;
-static tree gm2_alloca_node, gm2_memcpy_node;
-static tree gm2_huge_valf_node, gm2_huge_val_node, gm2_huge_vall_node;
+static GTY(()) tree sizetype_endlink;
+static GTY(()) tree unsigned_endlink;
+static GTY(()) tree endlink;
+static GTY(()) tree math_endlink;
+static GTY(()) tree int_endlink;
+static GTY(()) tree ptr_endlink;
+static GTY(()) tree const_ptr_endlink;
+static GTY(()) tree double_ftype_void;
+static GTY(()) tree float_ftype_void;
+static GTY(()) tree ldouble_ftype_void;
+static GTY(()) tree float_ftype_float;
+static GTY(()) tree double_ftype_double;
+static GTY(()) tree ldouble_ftype_ldouble;
+static GTY(()) tree gm2_alloca_node;
+static GTY(()) tree gm2_memcpy_node;
+static GTY(()) tree gm2_huge_valf_node;
+static GTY(()) tree gm2_huge_val_node;
+static GTY(()) tree gm2_huge_vall_node;
 
 
 /* prototypes go here */
@@ -288,9 +305,9 @@ gm2builtins_GetBuiltinConstType (char *name)
 tree
 gm2builtins_BuiltInMemCopy (tree dest, tree src, tree n)
 {
-  tree params   = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
-				    build_tree_list (NULL_TREE, convertToPtr (src))),
-			   build_tree_list (NULL_TREE, n));
+  tree params = chainon (chainon (build_tree_list (NULL_TREE, convertToPtr (dest)),
+				  build_tree_list (NULL_TREE, convertToPtr (src))),
+			 build_tree_list (NULL_TREE, n));
   return DoBuiltinMemCopy (params);
 }
 
@@ -576,3 +593,7 @@ gm2builtins_init (void)
   gm2_huge_val_node = find_builtin_tree ("__builtin_huge_val");
   gm2_huge_vall_node = find_builtin_tree ("__builtin_huge_vall");
 }
+
+#include "gt-gm2-gm2builtins.h"
+
+/* END gm2builtins. */

@@ -1,4 +1,4 @@
-/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -48,7 +48,6 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tm_p.h"
 #include "flags.h"
 #include "tree-inline.h"
-#include "output.h"
 
 #include <stdio.h>
 
@@ -360,11 +359,13 @@ int want_warnings = 0;
 static unsigned int gm2_argc;
 static const char **gm2_argv;
 
-extern void gccgm2front                     PARAMS((unsigned int argc, const char *argv[]));
-extern void gm2builtins_init                PARAMS((void));
-extern tree gm2builtins_BuiltInHugeVal      PARAMS((void));
-extern tree gm2builtins_BuiltInHugeValShort PARAMS((void));
-extern tree gm2builtins_BuiltInHugeValLong  PARAMS((void));
+extern void gccgm2front                     (unsigned int argc, const char *argv[]);
+extern void gm2builtins_init                (void);
+extern tree gm2builtins_BuiltInHugeVal      (void);
+extern tree gm2builtins_BuiltInHugeValShort (void);
+extern tree gm2builtins_BuiltInHugeValLong  (void);
+extern void gm2except_InitExceptions        (void);
+
 
 /* Global Variables Expected by gcc: */
 
@@ -507,9 +508,7 @@ tree                   gccgm2_BuildParameterDeclaration           (char *name, t
 tree                   completeParameterDeclaration               (char *name, tree actual_type, tree parm_type);
 tree                   gccgm2_BuildParameterDeclaration           (char *name, tree type, int isreference);
 void                   gccgm2_BuildStartFunctionDeclaration       (int uses_varargs);
-tree                   gccgm2_BuildEndFunctionDeclaration         (char *name, tree returntype,
-  int isexternal,
-  int isnested);
+tree                   gccgm2_BuildEndFunctionDeclaration         (char *name, tree returntype, int isexternal, int isnested);
 void                   gccgm2_BuildStartFunctionCode              (tree fndecl, int isexported, int isinline);
 void                   gccgm2_BuildEndFunctionCode                (tree fndecl, int nested);
 void                   iterative_factorial                        (void);
@@ -800,6 +799,8 @@ static tree                   build_m2_size_set_type                      (int p
 static tree                   build_m2_bitset32_type_node                 (void);
 static tree                   build_m2_bitset16_type_node                 (void);
 static tree                   build_m2_bitset8_type_node                  (void);
+       void                   sl                                          (void);
+
 
 #if 0
 static void                   gccgm2_RememberVariables                    (tree l);
@@ -1502,34 +1503,72 @@ pushdecl (tree decl)
 #define NULL_BINDING_LEVEL (struct binding_level *) NULL                        
 
 
+/*  Gimplify an EXPR_STMT node.  (taken from ../cp-gimplify.c and reduced) */
 
+static void
+gimplify_expr_stmt (tree *stmt_p)
+{
+  tree stmt = EXPR_STMT_EXPR (*stmt_p);
 
+  if (stmt == error_mark_node)
+    stmt = NULL;
+
+  /* Gimplification of a statement expression will nullify the
+     statement if all its side effects are moved to *PRE_P and *POST_P.
+
+     In this case we will not want to emit the gimplified statement.
+  */
+
+  if (stmt == NULL_TREE)
+    stmt = alloc_stmt_list ();
+
+  *stmt_p = stmt;
+}
+
+/* Genericize a TRY_BLOCK.  */
+
+static void
+genericize_try_block (tree *stmt_p)
+{
+  tree body = TRY_STMTS (*stmt_p);
+  tree cleanup = TRY_HANDLERS (*stmt_p);
+
+  gimplify_stmt (&body);
+  gimplify_stmt (&cleanup);
+#if 0
+  if (CLEANUP_P (*stmt_p))
+    /* A cleanup is an expression, so it doesn't need to be genericized.  */;
+  else
+    gimplify_stmt (&cleanup);
+#endif
+
+  *stmt_p = build2 (TRY_CATCH_EXPR, void_type_node, body, cleanup);
+}
+
+/* Genericize a HANDLER by converting to a CATCH_EXPR.  */
+
+static void
+genericize_catch_block (tree *stmt_p)
+{
+  tree type = HANDLER_TYPE (*stmt_p);
+  tree body = HANDLER_BODY (*stmt_p);
+
+  gimplify_stmt (&body);
+
+  /* FIXME should the caught type go in TREE_TYPE?  */
+  *stmt_p = build2 (CATCH_EXPR, void_type_node, type, body);
+}
 
 enum gimplify_status
 gm2_gimplify_expr (tree *expr_p,
                    tree *pre_p,
                    tree *post_p ATTRIBUTE_UNUSED)
 {
-#if 0
-  return GS_UNHANDLED;
-#else
   tree expr = *expr_p;
   tree op0;
 
   switch (TREE_CODE (expr))
     {
-#if 0
-    case BIND_EXPR:
-
-      stop();
-      gimplify_stmt (&BIND_EXPR_VARS (expr));
-
-      break;
-
-    case BLOCK:
-      stop();
-      break;
-#endif
     case INDIRECT_REF:
       op0 = TREE_OPERAND (expr, 0);
       if (! SSA_VAR_P (op0)) {
@@ -1537,9 +1576,6 @@ gm2_gimplify_expr (tree *expr_p,
 	tree mod = build (MODIFY_EXPR, TREE_TYPE (op0), var, op0);
 	gimplify_and_add (mod, pre_p);
 	TREE_OPERAND (expr, 0) = var;
-#if 0
-	debug_tree(expr);
-#endif
 	op0 = var;
       }
       gimplify_type_sizes (TREE_TYPE (expr), pre_p);
@@ -1552,11 +1588,28 @@ gm2_gimplify_expr (tree *expr_p,
       gimplify_type_sizes (TREE_TYPE (expr), pre_p);
       return GS_OK;
       break;
+    case THROW_EXPR:
+      /* FIXME communicate throw type to backend, probably by moving
+	 THROW_EXPR into ../tree.def.  */
+      *expr_p = TREE_OPERAND (*expr_p, 0);
+      return GS_OK;
+      break;
+    case TRY_BLOCK:
+      genericize_try_block (expr_p);
+      return GS_OK;
+      break;
+    case EXPR_STMT:
+      gimplify_expr_stmt (expr_p);
+      return GS_OK;
+      break;
+    case HANDLER:
+      genericize_catch_block (expr_p);
+      return GS_OK;
+      break;
     default:
       break;
     }
   return GS_UNHANDLED;
-#endif
 }
 
 void find_arg0 (tree t);
@@ -1718,6 +1771,7 @@ init_m2_builtins (void)
   use_gnu_debug_info_extensions = 1;
 
   gm2builtins_init ();
+  gm2except_InitExceptions ();
 }
 
 /* Build the void_list_node (void_type_node having been created).  */
@@ -2227,7 +2281,7 @@ gm2_init_decl_processing ()
   truthvalue_true_node = integer_one_node;
   truthvalue_false_node = integer_zero_node;
 
-  init_m2_builtins();
+  init_m2_builtins ();
 }
 
 /*
@@ -2392,6 +2446,7 @@ bool
 gm2_init (void)
 {
   input_line = 0;
+
   gm2_init_decl_processing ();
   global_dc->internal_error = &internal_error_function;
 
@@ -6415,6 +6470,26 @@ pop_stmt_list (tree t)
   return t;
 }
 
+void
+sl (void)
+{
+  tree u = cur_stmt_list;
+  tree chain;
+  int level = 0;
+
+  /* Print statement lists until we reach the outer level.  */
+  while (1)
+    {
+      printf("begin level %d statement list\n", level);
+      pf(u);
+      printf("end of level %d statement list\n", level);
+      chain = TREE_CHAIN (u);
+      level++;
+      if (chain == NULL_TREE)
+        return;
+      u = chain;
+    }
+}
 
 /* Build a generic statement based on the given type of node and
    arguments. Similar to `build_nt', except that we set
@@ -11878,8 +11953,4 @@ gccgm2_GarbageCollect (void)
 #include "gtype-gm2.h"
 #include "gt-gm2-gccgm2.h"
 
-/*
- * Local variables:
- *  compile-command: "gcc -c  -DIN_GCC    -g -W -Wall -Wwrite-strings -Wtraditional -Wstrict-prototypes -Wmissing-prototypes -pedantic -Wno-long-long  -W -Wall -DGM2 -I. -I.. -I. -I./.. -I./../config -I./../../include gccgm2.c"
- * End:
- */
+/* END gccgm2. */

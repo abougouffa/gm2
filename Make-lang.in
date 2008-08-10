@@ -159,7 +159,8 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs-min \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
-gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h : s-gtype; @true
+gt-gm2-gm2-lang.h gtype-gm2.h gt-gm2-gccgm2.h gt-gm2-gm2builtins.h \
+gt-gm2-gm2except.h : s-gtype; @true
 
 # Build hooks:
 
@@ -651,7 +652,7 @@ SO=-O0 -g
 # directly to the Modula-2 source.
 
                   # the C implementation module bridging the Modula-2 -> GCC
-GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o \
+GM2_OBJS          = gm2/gccgm2.o gm2/gm2builtins.o gm2/gm2-lang.o gm2/gm2except.o \
                     gm2/stor-layout.o gm2/m2pp.o
                   #  gm2/gm2-common.o
 GM2_LIBS          = gm2/gm2-compiler/gm2.a gm2/gm2-libs/libgm2.a         # the final Modula-2 front end
@@ -793,7 +794,9 @@ stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2
   
 gm2/gccgm2.o : $(srcdir)/gm2/gccgm2.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
 
-gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h
+gm2/gm2builtins.o : $(srcdir)/gm2/gm2builtins.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gm2builtins.h
+
+gm2/gm2except.o : $(srcdir)/gm2/gm2except.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gm2except.h
 
 gm2/gm2-lang.o: $(srcdir)/gm2/gm2-lang.c $(CONFIG_H) gt-gm2-gm2-lang.h
 
@@ -803,7 +806,7 @@ gm2/stor-layout.o: $(srcdir)/stor-layout.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcd
 gm2/gm2-common.o: $(srcdir)/gm2-common.c
 
 gm2/m2pp.o : $(srcdir)/gm2/m2pp.c $(CONFIG_H) $(TREE_H) $(RTL_H) $(srcdir)/flags.h gtype-gm2.h gt-gm2-gccgm2.h
-
+	$(CC) -c -g -DGM2 $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
 
 
 #
@@ -1033,7 +1036,8 @@ BUILD-LIBS-BOOT = $(BUILD-LIBS-BOOT-H) \
 BUILD-COMPILER-BOOT-H = $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
                         $(GM2-LIBIBERTY-DEFS:%.def=gm2/gm2-libiberty/$(SRC_PREFIX)%.h) \
                         gm2/gm2-compiler-boot/$(SRC_PREFIX)gccgm2.h \
-                        gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2builtins.h
+                        gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2builtins.h \
+                        gm2/gm2-compiler-boot/$(SRC_PREFIX)gm2except.h
                
 BUILD-COMPILER-BOOT = $(BUILD-COMPILER-BOOT-H) \
                       $(GM2-COMP-BOOT-DEFS:%.def=gm2/gm2-compiler-boot/$(SRC_PREFIX)%.h) \
@@ -2088,7 +2092,8 @@ gm2.maintainer-clean: force
 	-rm -f $(srcdir)/gm2/images/gnu.eps
 
 GM2DISTFILES = CVS ChangeLog gm2/Make-lang.in README bnf config-lang.in \
-            el gccgdbinit gccgm2.c gm2builtins.c gm2-auto gm2-compiler gm2-compiler-boot \
+            el gccgdbinit gccgm2.c gm2builtins.c gm2except.c \
+            gm2-auto gm2-compiler gm2-compiler-boot \
             gm2-gccinit gm2-libs gm2-libs-boot gm2-libs-ch gm2.texi gm2spec.c \
             lang-options.h lang-specs.h loc.p2crc m2 m2.flex \
             m2f-src p2c p2crc \

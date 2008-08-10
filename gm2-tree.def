@@ -28,3 +28,15 @@ DEFTREECODE (SET_TYPE, "set_type", tcc_type, 0)
 /* Throw statement.
    Operand 0 is the throw expression.  Which will be void in Modula-2 */
 DEFTREECODE (THROW_EXPR, "throw", tcc_unary, 1)
+
+DEFTREECODE (TRY_BLOCK, "try_block", tcc_statement, 2)
+
+/* A HANDLER wraps a catch handler for the HANDLER_TYPE.  If this is
+   CATCH_ALL_TYPE, then the handler catches all types.  The declaration of
+   the catch variable is in HANDLER_PARMS, and the body block in
+   HANDLER_BODY.  */
+DEFTREECODE (HANDLER, "handler", tcc_statement, 2)
+
+/* Used to represent an expression statement.  Use `EXPR_STMT_EXPR' to
+   obtain the expression.  */
+DEFTREECODE (EXPR_STMT, "expr_stmt", tcc_expression, 1)

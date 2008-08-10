@@ -65,10 +65,17 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tree-iterator.h"
 #include "tree-gimple.h"
 #include "cgraph.h"
-#include "gm2-tree.h"
+
+#if defined(GM2)
+#  include "gm2-tree.h"
+#endif
+#if defined(CPP)
+#  include "cp-tree.h"
+#endif
+
 
 #define M2PP_C
-#include "m2pp.h"
+#include "gm2/m2pp.h"
 
 
 typedef struct pretty_t {
@@ -97,6 +104,7 @@ static void m2pp_function_header (pretty *s, tree t);
 static void m2pp_function_vars (pretty *s, tree t);
 static void m2pp_statement_sequence (pretty *s, tree t);
 static void m2pp_print (pretty *s, const char *p);
+static void m2pp_print_char (pretty *s, char ch);
 static void m2pp_parameter (pretty *s, tree t);
 static void m2pp_type (pretty *s, tree t);
 static void m2pp_ident_pointer (pretty *s, tree t);
@@ -142,6 +150,9 @@ static void m2pp_type_list (pretty *s, tree t);
 static void m2pp_bind_expr (pretty *s, tree t);
 static void m2pp_return_expr (pretty *s, tree t);
 static void m2pp_result_decl (pretty *s, tree t);
+static void m2pp_try_block (pretty *s, tree t);
+static void m2pp_cleanup_point_expr (pretty *s, tree t);
+static void m2pp_handler (pretty *s, tree t);
 static void m2pp_component_ref (pretty *s, tree t);
 static void m2pp_array_ref (pretty *s, tree t);
 static void m2pp_begin (pretty *s);
@@ -153,8 +164,14 @@ static void m2pp_non_lvalue_expr (pretty *s, tree t);
 static void m2pp_procedure_type (pretty *s, tree t);
 static void m2pp_param_type (pretty *s, tree t);
 static void m2pp_type_lowlevel (pretty *s, tree t);
+static void m2pp_try_catch_expr (pretty *s, tree t);
+static void m2pp_throw (pretty *s, tree t);
+static void m2pp_catch_expr (pretty *s, tree t);
+static void m2pp_try_finally_expr (pretty *s, tree t);
+static void m2pp_if_stmt (pretty *s, tree t);
 static void killPretty (pretty *s);
-
+static void m2pp_compound_expression (s, t);
+static void m2pp_target_expression (s, t);
 extern void stop (void);
 
 
@@ -899,6 +916,39 @@ m2pp_print (pretty *s, const char *p)
 }
 
 /*
+ *  m2pp_print_char - prints out a character, ch, obeying
+ *                    needs_space and needs_indent.
+ */
+
+static
+void
+m2pp_print_char (pretty *s, char ch)
+{
+  if (s->needs_space)
+    {
+      printf(" ");
+      s->needs_space = FALSE;
+      s->curpos++;
+    }
+  if (s->needs_indent)
+    {
+      if (s->indent > 0)
+	printf("%*c", s->indent, ' ');
+      s->needs_indent = FALSE;
+      s->curpos += s->indent;
+    }
+  if (ch == '\n')
+    {
+      s->curpos++;
+      putchar('\\');
+      putchar('n');
+    }
+  else
+    putchar(ch);
+  s->curpos++;
+}
+
+/*
  *  m2pp_type - prints a full type.
  */
 
@@ -940,9 +990,11 @@ m2pp_type (pretty *s, tree t)
     case POINTER_TYPE:
       m2pp_pointer_type (s, t);
       break;
+#if defined(GM2)
     case SET_TYPE:
       m2pp_set_type (s, t);
       break;
+#endif
     case VOID_TYPE:
       m2pp_print (s, "ADDRESS");
       break;
@@ -1170,6 +1222,58 @@ m2pp_relop (pretty *s, tree t, const char *p)
 }
 
 /*
+ *  m2pp_compound_expression - handle compound expression tree.
+ */
+
+static void
+m2pp_compound_expression (s, t)
+{
+  m2pp_print (s, "compound expression {");
+  m2pp_expression (s, TREE_OPERAND (t, 0));
+  m2pp_print (s, " (* result ignored *), ");
+  m2pp_expression (s, TREE_OPERAND (t, 1));
+  m2pp_print (s, "}");
+  m2pp_needspace (s);
+}
+
+/*
+ *  m2pp_target_expression - handle target expression tree.
+ */
+
+static void
+m2pp_target_expression (s, t)
+{
+  m2pp_print (s, "{");
+  m2pp_needspace (s);
+  if (TREE_OPERAND (t, 0) != NULL_TREE) {
+    m2pp_print (s, "(* target *) ");
+    m2pp_expression (s, TREE_OPERAND (t, 0));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+  }
+  if (TREE_OPERAND (t, 1) != NULL_TREE) {
+    m2pp_print (s, "(* initializer *) ");
+    m2pp_expression (s, TREE_OPERAND (t, 1));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+  }
+  if (TREE_OPERAND (t, 2) != NULL_TREE) {
+    m2pp_print (s, "(* cleanup *) ");
+    m2pp_expression (s, TREE_OPERAND (t, 2));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+  }
+  if (TREE_OPERAND (t, 3) != NULL_TREE) {
+    m2pp_print (s, "(* saved initializer *) ");
+    m2pp_expression (s, TREE_OPERAND (t, 3));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+  }
+  m2pp_print (s, "}");
+  m2pp_needspace (s);
+}
+
+/*
  *  m2pp_simple_expression - handle GCC expression tree.
  */
 
@@ -1269,6 +1373,24 @@ m2pp_simple_expression (pretty *s, tree t)
       break;
     case NON_LVALUE_EXPR:
       m2pp_non_lvalue_expr (s, t);
+      break;
+    case EXPR_STMT:
+      m2pp_expression (s, EXPR_STMT_EXPR (t));
+      break;
+    case EXC_PTR_EXPR:
+      m2pp_print (s, "GCC_EXCEPTION_OBJECT");
+      break;
+    case MODIFY_EXPR:
+      m2pp_assignment (s, t);
+      break;
+    case COMPOUND_EXPR:
+      m2pp_compound_expression (s, t);
+      break;
+    case TARGET_EXPR:
+      m2pp_target_expression (s, t);
+      break;
+    case THROW_EXPR:
+      m2pp_throw (s, t);
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);
@@ -1374,8 +1496,14 @@ m2pp_real_cst (pretty *s, tree t ATTRIBUTE_UNUSED)
 static void
 m2pp_string_cst (pretty *s, tree t)
 {
+  const char *p = TREE_STRING_POINTER (t);
+  int i=0;
+  
   m2pp_print (s, "\"");
-  m2pp_print (s, TREE_STRING_POINTER (t));
+  while (p[i] != '\0') {
+    m2pp_print_char (s, p[i]);
+    i++;
+  }
   m2pp_print (s, "\"");
 }
 
@@ -1414,6 +1542,89 @@ m2pp_unknown (pretty *s, const char *s1, const char *s2)
   m2pp_needspace (s);
   m2pp_print (s, s2);
   m2pp_needspace (s);
+}
+
+/*
+ *  m2pp_throw - displays a throw statement.
+ */
+
+static void
+m2pp_throw (pretty *s, tree t)
+{
+  tree expr = TREE_OPERAND (t, 0);
+
+  if (expr == NULL_TREE)
+    m2pp_print (s, "THROW ;\n");
+  else
+    {
+      m2pp_print (s, "THROW (");
+      m2pp_expression (s, TREE_OPERAND (t, 0));
+      m2pp_print (s, ")\n");
+    }
+}
+
+/*
+ *  m2pp_catch_expr - attempts to reconstruct a catch expr.
+ */
+
+static void
+m2pp_catch_expr (pretty *s, tree t)
+{
+  tree types = CATCH_TYPES (t);
+  tree body = CATCH_BODY (t);
+
+  m2pp_print (s, "(* CATCH expression ");
+  if (types != NULL_TREE)
+    {
+      m2pp_print (s, "(");
+      m2pp_expression (s, types);
+      m2pp_print (s, ")");
+    }
+  m2pp_print (s, "*)\n");
+  m2pp_print (s, "(* catch body *)\n");
+  m2pp_statement_sequence (s, body);
+  m2pp_print (s, "(* end catch body *)\n");
+}
+
+/*
+ *  m2pp_try_finally_expr - attemts to reconstruct a try finally expr.
+ */
+
+static void
+m2pp_try_finally_expr (pretty *s, tree t)
+{
+  m2pp_begin (s);
+  m2pp_print (s, "(* try_finally_expr *)\n");
+  setindent (s, getindent (s)+3);
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 0));
+  setindent (s, getindent (s)-3);
+  m2pp_print (s, "(* finally (cleanup which is executed after the above) *)\n");
+  setindent (s, getindent (s)+3);
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 1));
+  setindent (s, getindent (s)-3);
+  m2pp_print (s, "(* end try_finally_expr *)\n");
+}
+
+/*
+ *  m2pp_if_stmt - pretty print a C++ if_stmt.
+ */
+
+static void
+m2pp_if_stmt (pretty *s, tree t)
+{
+  m2pp_print (s, "(* only C++ uses if_stmt nodes *)\n");
+  m2pp_print (s, "IF ");
+  m2pp_expression (s, TREE_OPERAND (t, 0));
+  m2pp_print (s, "\n");
+  m2pp_print (s, "THEN\n");
+  setindent (s, getindent (s)+3);
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 1));
+  setindent (s, getindent (s)-3);
+  m2pp_print (s, "ELSE\n");
+  setindent (s, getindent (s)+3);
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 2));
+  setindent (s, getindent (s)-3);
+  m2pp_print (s, "END\n");
 }
 
 /*
@@ -1457,9 +1668,64 @@ m2pp_statement (pretty *s, tree t)
     case DECL_EXPR:
       m2pp_decl_expr (s, t);
       break;
+    case TRY_BLOCK:
+      m2pp_try_block (s, t);
+      break;
+    case HANDLER:
+      m2pp_handler (s, t);
+      break;
+    case CLEANUP_POINT_EXPR:
+      m2pp_cleanup_point_expr (s, t);
+      break;
+    case THROW_EXPR:
+      m2pp_throw (s, t);
+      break;
+    case TRY_CATCH_EXPR:
+      m2pp_try_catch_expr (s, t);
+      break;
+    case TRY_FINALLY_EXPR:
+      m2pp_try_finally_expr (s, t);
+      break;
+    case CATCH_EXPR:
+      m2pp_catch_expr (s, t);
+      break;
+#if defined(CPP)
+    case IF_STMT:
+      m2pp_if_stmt (s, t);
+      break;
+#endif
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
     }
+}
+
+/*
+ *  m2pp_try_catch_expr - is used after gimplification.
+ */
+
+static void
+m2pp_try_catch_expr (pretty *s, tree t)
+{
+  m2pp_print (s, "(* try_catch_expr (post gimplification) *)\n");
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 0));
+  setindent (s, 0);
+  m2pp_print (s, "EXCEPT\n");
+  setindent (s, 3);
+  m2pp_statement_sequence (s, TREE_OPERAND (t, 1));
+  m2pp_print (s, "(* end of try_catch_expr (post gimplification) *)\n");
+}
+
+/*
+ *  m2pp_cleanup_point_expr - emits a comment indicating
+ *                            a GCC cleanup_point_expr is present.
+ */
+
+static void
+m2pp_cleanup_point_expr (pretty *s, tree t)
+{
+  m2pp_print (s, "(* cleanup point,  expression = ");
+  m2pp_expression (s, TREE_OPERAND (t, 0));
+  m2pp_print (s, " *)\n");
 }
 
 /*
@@ -1542,6 +1808,50 @@ m2pp_return_expr (pretty *s, tree t)
     }
   m2pp_needspace (s);
   m2pp_print (s, ";\n");
+}
+
+/*
+ *  m2pp_try_block - displays the try block.
+ */
+
+static void
+m2pp_try_block (pretty *s, tree t)
+{
+  tree stmts = TRY_STMTS (t);
+  tree handlers = TRY_HANDLERS (t);
+
+  m2pp_begin (s);
+  m2pp_print (s, "(* TRY *)\n");
+  m2pp_statement_sequence (s, stmts);
+  setindent (s, 0);
+  m2pp_print (s, "EXCEPT\n");
+  setindent (s, 3);
+  m2pp_statement_sequence (s, handlers);
+  m2pp_print (s, "(* END TRY *)\n");
+}
+
+/*
+ *  m2pp_try_block - displays the handler block.
+ */
+
+static void
+m2pp_handler (pretty *s, tree t)
+{
+  tree parms = HANDLER_PARMS (t);
+  tree body = HANDLER_BODY (t);
+  tree type = HANDLER_TYPE (t);
+
+  m2pp_print (s, "(* handler *)\n");
+  if (parms != NULL_TREE)
+    {
+      m2pp_print (s, "(* handler parameter has a type (should be NULL_TREE) in Modula-2 *)\n");
+      m2pp_print (s, "CATCH (");
+      m2pp_expression (s, parms);
+      m2pp_print (s, ")\n");
+    }
+  if (type != NULL_TREE)
+    m2pp_print (s, "(* handler type (should be NULL_TREE) in Modula-2 *)\n");
+  m2pp_statement_sequence (s, body);
 }
 
 /*

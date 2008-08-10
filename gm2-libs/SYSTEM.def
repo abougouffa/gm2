@@ -28,7 +28,7 @@ DEFINITION MODULE SYSTEM ;
 
 EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
                  ADDRESS, WORD, BYTE, BITSET, (* @SYSTEM_DATATYPES@ *)
-                 ADR, TSIZE, SIZE, ROTATE, SHIFT ;
+                 ADR, TSIZE, SIZE, ROTATE, SHIFT, THROW ;
 
 CONST
   BITSPERBYTE   = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
@@ -72,6 +72,18 @@ PROCEDURE SHIFT (val: <a set type>;
      zeros as necessary.  The direction is down if the sign of
      num is negative, otherwise the direction is up.
   *)
+
+PROCEDURE THROW (i: INTEGER) ;
+  (*
+     THROW is a GNU extension and was not part of the PIM or ISO
+     standards.  It throws an exception which will be caught by the EXCEPT
+     block (assuming it exists).  This is a compiler builtin function which
+     interfaces to the GCC exception handling runtime system.
+     GCC uses the term throw, hence the naming distinction between
+     the GCC builtin and the Modula-2 runtime library procedure Raise.
+     The later library procedure Raise will call SYSTEM.THROW after
+     performing various housekeeping activities.
+  *)
 *)
 
 (* The following procedures are invoked by GNU Modula-2 to
@@ -79,7 +91,10 @@ PROCEDURE SHIFT (val: <a set type>;
    of the core PIM Modula-2, however they are used by
    GNU Modula-2 to implement the SHIFT procedure defined above,
    which are in turn used by the Logitech compatible libraries.
-   In any event users may find them useful.
+
+   Users will access these procedures by using the procedure
+   SHIFT above and GNU Modula-2 will map SHIFT onto one of
+   the following procedures.
 *)
 
 (*

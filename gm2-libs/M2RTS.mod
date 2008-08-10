@@ -23,10 +23,8 @@ FROM NumberIO IMPORT CardToStr ;
 FROM StrLib IMPORT StrCopy, StrLen, StrEqual ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM ASCII IMPORT nl, nul ;
-FROM RTExceptions IMPORT Raise ;
-
+IMPORT RTExceptions ;
 IMPORT M2EXCEPTION ;
-
 
 
 CONST
@@ -132,97 +130,97 @@ END Halt ;
 
 PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("variable exceeds range during assignment"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("variable exceeds range during assignment"))
 END AssignmentException ;
 
 
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("variable exceeds range during INC statement"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("variable exceeds range during INC statement"))
 END IncException ;
 
 
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("variable exceeds range during DEC statement"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("variable exceeds range during DEC statement"))
 END DecException ;
 
 
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.indexException,
-         filename, line, column, scope,
-         ADR("array index out of bounds during static array access"))
+   RTExceptions.Raise(M2EXCEPTION.indexException,
+                      filename, line, column, scope,
+                      ADR("array index out of bounds during static array access"))
 END StaticArraySubscriptException ;
 
 
 PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.indexException,
-         filename, line, column, scope,
-         ADR("array index out of bounds during dynamic array access"))
+   RTExceptions.Raise(M2EXCEPTION.indexException,
+                      filename, line, column, scope,
+                      ADR("array index out of bounds during dynamic array access"))
 END DynamicArraySubscriptException ;
 
 
 PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("iterator variable exceeds range during FOR loop initial assignment"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("iterator variable exceeds range during FOR loop initial assignment"))
 END ForLoopBeginException ;
 
 
 PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("iterator variable exceeds range when calculating final value in FOR loop"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("iterator variable exceeds range when calculating final value in FOR loop"))
 END ForLoopToException ;
 
 
 PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.rangeException,
-         filename, line, column, scope,
-         ADR("iterator variable exceeds range during increment at the end of a FOR loop"))
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("iterator variable exceeds range during increment at the end of a FOR loop"))
 END ForLoopEndException ;
 
 
 PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.invalidLocation,
-         filename, line, column, scope,
-         ADR("attempting to dereference a NIL valued pointer"))
+   RTExceptions.Raise(M2EXCEPTION.invalidLocation,
+                      filename, line, column, scope,
+                      ADR("attempting to dereference a NIL valued pointer"))
 END PointerNilException ;
 
 
 PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.functionException,
-         filename, line, column, scope,
-         ADR("about to finish a PROCEDURE without executing a RETURN statement"))
+   RTExceptions.Raise(M2EXCEPTION.functionException,
+                      filename, line, column, scope,
+                      ADR("about to finish a PROCEDURE without executing a RETURN statement"))
 END NoReturnException ;
 
 
 PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.caseSelectException,
-         filename, line, column, scope,
-         ADR("the expression in the CASE statement cannot be selected"))
+   RTExceptions.Raise(M2EXCEPTION.caseSelectException,
+                      filename, line, column, scope,
+                      ADR("the expression in the CASE statement cannot be selected"))
 END CaseException ;
 
 
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   Raise(M2EXCEPTION.exException,
-         filename, line, column, scope,
-         ADR("M2Expection was called when no there was no outstanding exception to be returned"))
+   RTExceptions.Raise(M2EXCEPTION.exException,
+                      filename, line, column, scope,
+                      ADR("M2Expection was called when no there was no outstanding exception to be returned"))
 END NoException ;
 
 

@@ -115,6 +115,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     CheckWithReference,
                     CheckOuterScopeProcedureVariable,
                     BuildModulePriority,
+                    BuildRetry,
                     DumpStack,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
@@ -1062,9 +1063,12 @@ Statement :=                                                               % Pus
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               ExitStatement | ReturnStatement | "RETRY"
+               ExitStatement | ReturnStatement | RetryStatement
              ]                                                             % PopAuto ; %
           =:
+
+RetryStatement := "RETRY"                                                  % BuildRetry %
+                =:
 
 AssignmentOrProcedureCall :=                                               % BuildLineNo ; DumpStack %
                              Designator

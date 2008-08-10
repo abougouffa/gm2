@@ -103,6 +103,8 @@ EXPORT QUALIFIED NulSym,
                  GetUnboundedHighOffset,
                  GetModuleQuads,
                  PutModuleFinallyFunction, GetModuleFinallyFunction,
+                 PutExceptionBlock, HasExceptionBlock,
+                 PutExceptionFinally, HasExceptionFinally,
                  GetProcedureQuads,
                  GetQuads,
                  GetReadQuads, GetWriteQuads,
@@ -934,6 +936,42 @@ PROCEDURE PutProcedureInline (Sym: CARDINAL) ;
 *)
 
 PROCEDURE IsProcedureInline (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutExceptionBlock - sets a BOOLEAN in block module/procedure/defimp,
+                       sym, indicating that this block as an EXCEPT
+                       statement sequence.
+*)
+
+PROCEDURE PutExceptionBlock (sym: CARDINAL) ;
+
+
+(*
+   HasExceptionBlock - returns a BOOLEAN determining whether
+                       module/procedure/defimp, sym, has
+                       an EXCEPT statement sequence.
+*)
+
+PROCEDURE HasExceptionBlock (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutExceptionFinally - sets a BOOLEAN in block module/defimp,
+                         sym, indicating that this FINALLY block
+                         as an EXCEPT statement sequence.
+*)
+
+PROCEDURE PutExceptionFinally (sym: CARDINAL) ;
+
+
+(*
+   HasExceptionFinally - returns a BOOLEAN determining whether
+                         module/defimp, sym, has
+                         an EXCEPT statement sequence.
+*)
+
+PROCEDURE HasExceptionFinally (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

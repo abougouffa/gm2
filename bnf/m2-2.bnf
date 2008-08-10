@@ -121,6 +121,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         NulSym,
                         StartScope, EndScope,
                         PutIncluded,
+                        PutExceptionFinally, PutExceptionBlock, GetCurrentScope,
                         IsVarParam, IsProcedure, IsDefImp, IsModule,
                         IsRecord, IsAModula2Type,
                         RequestSym ;
@@ -889,8 +890,10 @@ Statement :=                                                              % Push
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               "EXIT" | "RETURN" [ Expression ] | "RETRY" ]               % PopAuto ; %
+               "EXIT" | "RETURN" [ Expression ] | RetryStatement ]        % PopAuto ; %
           =:
+
+RetryStatement := "RETRY" =:
 
 AssignmentOrProcedureCall := Designator ( ":=" Expression |
                                            ActualParameters |             % (* epsilon *) %
@@ -969,16 +972,23 @@ DefProcedureHeading := "PROCEDURE"
 ProcedureBlock :=                                                          % Assert(IsProcedure(OperandT(1))) %
                   {                                                        % Assert(IsProcedure(OperandT(1))) %
                     Declaration                                            % Assert(IsProcedure(OperandT(1))) %
-                                } [ "BEGIN" BlockBody ] "END"              % Assert(IsProcedure(OperandT(1))) %
+                                } [ "BEGIN" ProcedureBlockBody ] "END"     % Assert(IsProcedure(OperandT(1))) %
                =:
 
 Block := { Declaration } InitialBlock FinalBlock "END" =:
 
-InitialBlock := [ "BEGIN" BlockBody ] =:
+InitialBlock := [ "BEGIN" InitialBlockBody ] =:
 
-FinalBlock := [ "FINALLY" BlockBody ] =:
+FinalBlock := [ "FINALLY" FinalBlockBody ] =:
 
-BlockBody := NormalPart [ "EXCEPT" ExceptionalPart ] =:
+InitialBlockBody := NormalPart [ "EXCEPT"                                 % PutExceptionBlock(GetCurrentScope()) %
+                                          ExceptionalPart ] =:
+
+FinalBlockBody := NormalPart [ "EXCEPT"                                   % PutExceptionFinally(GetCurrentScope()) %
+                                        ExceptionalPart ] =:
+
+ProcedureBlockBody := NormalPart [ "EXCEPT"                               % PutExceptionBlock(GetCurrentScope()) %
+                                            ExceptionalPart ] =:
 
 NormalPart := StatementSequence =:
 

@@ -291,6 +291,8 @@ TYPE
                NamedObjects  : SymbolTree ; (* Names of all items declared.  *)
                Size          : PtrToValue ; (* Activation record size.       *)
                TotalParamSize: PtrToValue ; (* size of all parameters.       *)
+               ExceptionFinally,
+               ExceptionBlock: BOOLEAN ;    (* does it have an exception?    *)
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                ListOfModules : List ;       (* List of all inner modules.    *)
                At            : Where ;      (* Where was sym declared/used   *)
@@ -539,6 +541,8 @@ TYPE
                                             (* code.                         *)
                EndFinishQuad : CARDINAL ;   (* should point to a finish      *)
                FinallyFunction: Tree ;      (* The GCC function for finally  *)
+               ExceptionFinally,
+               ExceptionBlock: BOOLEAN ;    (* does it have an exception?    *)
                ContainsHiddenType: BOOLEAN ;(* True if this module           *)
                                             (* implements a hidden type.     *)
                ForC          : BOOLEAN ;    (* Is it a definition for "C"    *)
@@ -605,6 +609,8 @@ TYPE
                                             (* code.                         *)
                EndFinishQuad : CARDINAL ;   (* should point to a finish      *)
                FinallyFunction: Tree ;      (* The GCC function for finally  *)
+               ExceptionFinally,
+               ExceptionBlock: BOOLEAN ;    (* does it have an exception?    *)
                ListOfVars    : List ;       (* List of variables in this     *)
                                             (* scope.                        *)
                ListOfProcs   : List ;       (* List of all procedures        *)
@@ -2354,6 +2360,8 @@ BEGIN
                                             (* code.                         *)
          EndFinishQuad := 0 ;               (* should point to a finish      *)
          FinallyFunction := NIL ;           (* The GCC function for finally  *)
+         ExceptionFinally := FALSE ;        (* does it have an exception?    *)
+         ExceptionBlock := FALSE ;          (* does it have an exception?    *)
          InitList(ListOfVars) ;             (* List of variables in this     *)
                                             (* scope.                        *)
          InitList(ListOfProcs) ;            (* List of all procedures        *)
@@ -2459,6 +2467,8 @@ BEGIN
                                             (* code.                         *)
             EndFinishQuad := 0 ;            (* should point to a finish      *)
             FinallyFunction := NIL ;        (* The GCC function for finally  *)
+            ExceptionFinally := FALSE ;     (* does it have an exception?    *)
+            ExceptionBlock := FALSE ;       (* does it have an exception?    *)
             InitList(ListOfVars) ;          (* List of variables in this     *)
                                             (* scope.                        *)
             InitList(ListOfProcs) ;         (* List of all procedures        *)
@@ -2574,6 +2584,8 @@ BEGIN
                                       (* code.                         *)
          EndFinishQuad := 0 ;         (* should point to a finish      *)
          FinallyFunction := NIL ;     (* The GCC function for finally  *)
+         ExceptionFinally := FALSE ;  (* does it have an exception?    *)
+         ExceptionBlock := FALSE ;    (* does it have an exception?    *)
          ContainsHiddenType := FALSE ;(* True if this module           *)
                                       (* implements a hidden type.     *)
          ForC := FALSE ;              (* Is it a definition for "C"    *)
@@ -2656,6 +2668,8 @@ BEGIN
                                          (* declared within this          *)
                                          (* procedure.                    *)
             InitList(ListOfModules) ;    (* List of all inner modules.    *)
+            ExceptionFinally := FALSE ;  (* does it have an exception?    *)
+            ExceptionBlock := FALSE ;    (* does it have an exception?    *)
             Size := InitValue() ;        (* Activation record size.       *)
             TotalParamSize
                        := InitValue() ;  (* size of all parameters.       *)
@@ -2765,6 +2779,98 @@ BEGIN
    END ;
    RETURN( Sym )
 END MakeVar ;
+
+
+(*
+   PutExceptionBlock - sets a BOOLEAN in block module/procedure/defimp,
+                       sym, indicating that this block as an EXCEPT
+                       statement sequence.
+*)
+
+PROCEDURE PutExceptionBlock (sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.ExceptionBlock := TRUE |
+      ModuleSym   : Module.ExceptionBlock := TRUE |
+      DefImpSym   : DefImp.ExceptionBlock := TRUE
+
+      ELSE
+         InternalError('expecting Procedure, DefImp or Module symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END PutExceptionBlock ;
+
+
+(*
+   HasExceptionBlock - returns a BOOLEAN determining whether
+                       module/procedure/defimp, sym, has
+                       an EXCEPT statement sequence.
+*)
+
+PROCEDURE HasExceptionBlock (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: RETURN( Procedure.ExceptionBlock ) |
+      ModuleSym   : RETURN( Module.ExceptionBlock ) |
+      DefImpSym   : RETURN( DefImp.ExceptionBlock )
+
+      ELSE
+         InternalError('expecting Procedure, DefImp or Module symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END HasExceptionBlock ;
+
+
+(*
+   PutExceptionFinally - sets a BOOLEAN in block module/defimp,
+                         sym, indicating that this FINALLY block
+                         as an EXCEPT statement sequence.
+*)
+
+PROCEDURE PutExceptionFinally (sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.ExceptionFinally := TRUE |
+      ModuleSym   : Module.ExceptionFinally := TRUE |
+      DefImpSym   : DefImp.ExceptionFinally := TRUE
+
+      ELSE
+         InternalError('expecting DefImp or Module symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END PutExceptionFinally ;
+
+
+(*
+   HasExceptionFinally - returns a BOOLEAN determining whether
+                         module/defimp, sym, has
+                         an EXCEPT statement sequence.
+*)
+
+PROCEDURE HasExceptionFinally (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: RETURN( Procedure.ExceptionFinally ) |
+      ModuleSym   : RETURN( Module.ExceptionFinally ) |
+      DefImpSym   : RETURN( DefImp.ExceptionFinally )
+
+      ELSE
+         InternalError('expecting DefImp or Module symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END HasExceptionFinally ;
 
 
 (*

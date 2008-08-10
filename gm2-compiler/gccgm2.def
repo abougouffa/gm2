@@ -127,6 +127,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  DetermineSizeOfConstant,
                  ToWord,
                  AddStatement, GetTreeType,
+                 BuildTryCatch, BuildThrow,
                  InitGlobalContext, FinishBackend, GarbageCollect,
                  TreeOverflow, RemoveOverflow,
                  SetFlagUnitAtATime, MarkFunctionReferenced ;
@@ -1344,6 +1345,22 @@ PROCEDURE BuildTypeDeclaration (type: Tree) ;
 *)
 
 PROCEDURE GetTreeType (t: Tree) : Tree ;
+
+
+(*
+   BuildTryCatch - builds and returns a tree which
+                   represents a try_block and a
+                   catch statement list.
+*)
+
+PROCEDURE BuildTryCatch (tryBlock, catchBlock: Tree) : Tree ;
+
+
+(*
+   BuildThrow - builds a throw expression and return the tree.
+*)
+
+PROCEDURE BuildThrow (exp: Tree) : Tree ;
 
 
 (*

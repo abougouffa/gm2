@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +23,6 @@ IMPLEMENTATION MODULE M2Optimize ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Sat Aug 14 15:07:47 1999
-    Last edit  : Thurs July 13 2000
     Description: removes redundant quadruples, redundant GotoOps, redundant procedures.
 *)
 

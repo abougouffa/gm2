@@ -809,7 +809,9 @@ ActualParameters := "(" [ ExpList ] ")" =:
 Statement := [ AssignmentOrProcedureCall | IfStatement | CaseStatement |
                WhileStatement | RepeatStatement | LoopStatement |
                ForStatement | WithStatement | AsmStatement |
-               "EXIT" | "RETURN" [ Expression ] | "RETRY" ] =:
+               "EXIT" | "RETURN" [ Expression ] | RetryStatement ] =:
+
+RetryStatement := "RETRY" =:
 
 AssignmentOrProcedureCall := Designator ( ":=" Expression |
                                            ActualParameters |              % (* epsilon *) %

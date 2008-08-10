@@ -36,7 +36,7 @@
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 29th May 2008
+@center Last updated 15th July 2008
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
@@ -206,16 +206,16 @@ regression tests on LP64 Opteron and 32 bit x86 GNU/Linux.  The
 compiler is PIM-234 compatible (use @samp{-fpim2}, @samp{-fpim3} and
 @samp{-fpim4} to force mutually exclusive PIM features).
 
-It is also able to compile the University of Ulm libraries which
-are now distributed as part of GNU Modula-2. To reference these
-libraries use the @samp{-flibs=ulm} compiler switch.
+It is also able to compile the University of Ulm libraries which are
+now distributed as part of GNU Modula-2.  To reference these libraries
+use the @samp{-flibs=ulm} compiler switch.
 
 @item 0.60
 many Logitech compatible libraries will be provided, which will
 be available when invoked by @samp{-fpim}.
 
 @item 0.80
-a full set of ISO libraries will have been implemented. GNU Modula-2
+a full set of ISO libraries will have been implemented.  GNU Modula-2
 will be sufficiently ISO compliant to compile the libraries but will
 not yet be able to fully conform to the ISO Modula-2 standard.
 
@@ -226,7 +226,7 @@ GNU Modula-2 will be fully ISO compliant.
 There will be releases inbetween those outlined above and these releases
 may occur when GNU Modula-2 builds using a different GCC source tree.
 It is a goal that backward compatibility to gcc-3.3.6 will be provided
-as far as it is possible. Releases will also occur if a key component
+as far as it is possible.  Releases will also occur if a key component
 of ISO Modula-2 is implemented (for example exception handling,
 complex types or @samp{FINALLY} is implemented).
 
@@ -2409,15 +2409,11 @@ when wishing to shift and rotate multi-word set types.
 
 This section describes how exception handling is implemented in GNU
 Modula-2.  We begin by including a simple Modula-2 program which uses
-exception handling and provide the same program written in C.  The
+exception handling and provide the same program written in C++.  The
 compiler will translate the Modula-2 into the equivalent trees, just
-like the C frontend.  This ensures that the Modula-2 frontend will not
-do anything that the middle and backend cannot process, which ensures
-that migration through the later gcc releases will be smooth.  In the
-fullness of time it would be neat if the @code{__builtin_setjmp} and
-@code{__builtin_longjmp} were to behave similar to their libc
-counterparts as then the Modula-2 exception handling overhead would be
-near zero.
+like the C++ frontend.  This ensures that the Modula-2 frontend will
+not do anything that the middle and backend cannot process, which
+ensures that migration through the later gcc releases will be smooth.
 
 Here is an example of Modula-2 using exception handling:
 
@@ -2481,8 +2477,85 @@ BEGIN
 END except.
 @end example
 
-Now the same program implemented in GNU C (which allows nested
-functions).
+Now the same program implemented in GNU C++
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+
+// a c++ example of Modula-2 exception handling
+
+static int *ip = NULL;
+
+void fly (void)
+@{
+  printf("fly main body\n") ;
+  if (ip == NULL)
+    throw;
+  if (*ip == 0)
+    throw;
+  if (4 / (*ip) == 4)
+    printf("yes it worked\n");
+  else
+    printf("no it failed\n");
+@}
+
+/*
+ *   a C++ version of the Modula-2 example given in the ISO standard.
+ */
+
+void tryFlying (void)
+@{
+ again_tryFlying:
+  printf("tryFlying main body\n");  
+  try @{
+    fly() ;
+  @}
+  catch (...) @{
+    printf("inside tryFlying exception routine\n") ;
+    if ((ip != NULL) && ((*ip) == 0)) @{
+      *ip = 1;
+      // retry
+      goto again_tryFlying;
+    @}
+    printf("did't handle exception here so we will call the next exception routine\n") ;
+    throw;  // unhandled therefore call previous exception handler
+  @}
+@}
+
+void keepFlying (void)
+@{
+ again_keepFlying:
+  printf("keepFlying main body\n") ;
+  try @{
+    tryFlying();
+  @}
+  catch (...) @{
+    printf("inside keepFlying exception routine\n");
+    if (ip == NULL) @{
+      ip = (int *)malloc(sizeof(int));
+      *ip = 0;
+      goto again_keepFlying;
+    @}
+    throw;  // unhandled therefore call previous exception handler
+  @}
+@}
+
+main ()
+@{
+  keepFlying();
+  printf("all done\n");
+@}
+@end example
+
+The equivalent program in GNU C is given below.  However the
+use of @code{setjmp} and @code{longjmp} in creating an exception
+handler mechanism is not used used by GNU C++ and GNU Java.
+The GNU exception handling ABI uses @code{TRY_CATCH_EXPR} tree
+nodes.  Thus GNU Modula-2 generates trees which model the C++
+code above, rather than the C code shown below.  The code here
+serves as a mental model (for readers who are familiar with C
+but not of C++) of what is happening in the C++ code above.
 
 @example
 #include <setjmp.h>
@@ -2614,11 +2687,6 @@ main ()
   printf("all done\n");
 @}
 @end example
-
-From the above implementation we see that a number of runtime
-support routines are needed in the Modula-2 library.  The
-equivalent of @code{pushsetjmp}, @code{popsetjmp}, @code{exception}
-and @code{head} need to be implemented and accessible.
 
 @node Scope rules, Done list, Run time, Internals
 @section Scope rules

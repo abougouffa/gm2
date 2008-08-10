@@ -1000,9 +1000,11 @@ Statement :=
                "EXIT"
                | "RETURN"
                  ( Expression |                                             % (* in epsilon *) %
-                               ) | "RETRY"
+                               ) | RetryStatement
              ]
           =:
+
+RetryStatement := "RETRY" =:
 
 AssignmentOrProcedureCall := Designator ( ":=" SilentExpression |
                                            SilentActualParameters |         % (* in epsilon *) %

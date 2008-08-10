@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +23,6 @@ IMPLEMENTATION MODULE M2System ;
     Author     : Gaius Mulley
     System     : UNIX (gm2)
     Date       : Mon Jul 10 20:24:31 2000
-    Last edit  : Mon Jul 10 20:24:31 2000
     Description: gcc version of M2System. It defines the builtin types within the
                  SYSTEM.def module. Remember that these modules (SYSTEM.def, SYSTEM.mod)
                  really exist, but not all type definitions are expressed in this file.
@@ -348,6 +348,8 @@ BEGIN
    Shift := MakeProcedure(MakeKey('SHIFT')) ;     (* Function        *)
    Cast := MakeProcedure(MakeKey('CAST')) ;       (* Function        *)
 
+   Throw := MakeProcedure(MakeKey('THROW')) ;     (* Procedure       *)
+
    CreateMinMaxFor(Word, 'MinWord', 'MaxWord', GetWordType()) ;
    CreateMinMaxFor(Address, 'MinAddress', 'MaxAddress', GetPointerType()) ;
    CreateMinMaxFor(Byte, 'MinByte', 'MaxByte', GetByteType()) ;
@@ -422,6 +424,16 @@ BEGIN
           (Iso AND ((Sym=Cast) OR (Sym=MakeAdr)))
          )
 END IsPseudoSystemFunctionConstExpression ;
+
+
+(*
+   IsPseudoSystemProcedure - returns true if Sym is a SYSTEM pseudo procedure.
+*)
+
+PROCEDURE IsPseudoSystemProcedure (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( Sym=Throw )
+END IsPseudoSystemProcedure ;
 
 
 (*

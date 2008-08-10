@@ -179,6 +179,9 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIntegerConstant, BuildStringConstant,
                    RememberConstant, FoldAndStrip, RemoveOverflow ;
 
+FROM gm2except IMPORT BuildThrow, BuildTryBegin, BuildTryEnd,
+                      BuildCatchBegin, BuildCatchEnd ;
+
 FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
                     SubQuad, PutQuad,
                     QuadToTokenNo,
@@ -323,6 +326,10 @@ PROCEDURE CodeKillLocalVar (quad: CARDINAL; LineNo, op2, CurrentProcedure: CARDI
 PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL); FORWARD ;
 PROCEDURE CodeReturn (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeProcedureScope (quad: CARDINAL; LineNo, PreviousScope, CurrentProcedure: CARDINAL); FORWARD ;
+PROCEDURE CodeTry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeCatchBegin (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeCatchEnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeRetry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldAdd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -422,6 +429,7 @@ PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unbounde
 PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
 PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
 PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
+PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -498,6 +506,11 @@ BEGIN
    ProcedureScopeOp   : CodeProcedureScope(q, op1, op2, op3) |
    ReturnOp           : CodeReturn(q, op1, op2, op3) |
    ReturnValueOp      : CodeReturnValue(q, op1, op2, op3) |
+   TryOp              : CodeTry(q, op1, op2, op3) |
+   ThrowOp            : CodeThrow(q, op1, op2, op3) |
+   CatchBeginOp       : CodeCatchBegin(q, op1, op2, op3) |
+   CatchEndOp         : CodeCatchEnd(q, op1, op2, op3) |
+   RetryOp            : CodeRetry(q, op1, op2, op3) |
    DummyOp            : |
    BecomesOp          : CodeBecomes(q, op1, op2, op3) |
    AddOp              : CodeAdd(q, op1, op2, op3) |
@@ -2300,6 +2313,54 @@ BEGIN
       END
    END
 END FoldBecomes ;
+
+VAR
+   tryBlock: Tree ;    (* this must be placed into gccgm2 and it must follow the
+                          current function scope - ie it needs work with nested procedures *)
+   handlerBlock: Tree ;
+
+
+(*
+   CodeTry - starts building a GCC 'try' node.
+*)
+
+PROCEDURE CodeTry (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   handlerBlock := NIL ;
+   tryBlock := BuildTryBegin()
+END CodeTry ;
+
+
+(*
+   CodeThrow - builds a GCC 'throw' node.
+*)
+
+PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   AddStatement(BuildThrow(BuildConvert(GetIntegerType(),
+                                        Mod2Gcc(op3), FALSE)))
+END CodeThrow ;
+
+
+PROCEDURE CodeRetry (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   BuildGoto(string(CreateLabelName(op3)))
+END CodeRetry ;
+
+
+PROCEDURE CodeCatchBegin (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   BuildTryEnd(tryBlock) ;
+   handlerBlock := BuildCatchBegin()
+END CodeCatchBegin ;
+
+
+PROCEDURE CodeCatchEnd (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   tryBlock := BuildCatchEnd(handlerBlock, tryBlock) ;
+   AddStatement(tryBlock)
+END CodeCatchEnd ;
 
 
 (*

@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -45,9 +46,10 @@ EXPORT QUALIFIED
                  Rotate,           (* ISO specific System Function *)
                  Shift,            (* ISO specific System Function *)
                  Cast,             (* ISO specific System Function *)
+                 Throw,            (* GNU Modula-2 extension *)
 
                  GetSystemTypeMinMax,
-                 IsPseudoSystemFunction,
+                 IsPseudoSystemFunction, IsPseudoSystemProcedure,
                  IsSystemType,
                  IsPseudoSystemFunctionConstExpression,
 
@@ -69,7 +71,7 @@ VAR
    AddAdr, SubAdr,
    DifAdr, MakeAdr,
    Rotate, Shift,
-   Cast            : CARDINAL ;
+   Cast, Throw    : CARDINAL ;
 
 
 (*
@@ -92,6 +94,13 @@ PROCEDURE GetSystemTypeMinMax (type: CARDINAL; VAR min, max: CARDINAL) ;
 *)
 
 PROCEDURE IsPseudoSystemFunction (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsPseudoSystemProcedure - returns true if Sym is a SYSTEM pseudo procedure.
+*)
+
+PROCEDURE IsPseudoSystemProcedure (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
