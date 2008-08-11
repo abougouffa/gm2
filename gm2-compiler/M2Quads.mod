@@ -5166,6 +5166,18 @@ END BuildThrowProcedure ;
 
 
 (*
+   BuildReThrow - creates a ThrowOp _ _ NulSym, indicating that
+                  the exception needs to be rethrown.  The stack
+                  is unaltered.
+*)
+
+PROCEDURE BuildReThrow ;
+BEGIN
+   GenQuad(ThrowOp, NulSym, NulSym, NulSym)
+END BuildReThrow ;
+
+
+(*
    BuildNewProcedure - builds the pseudo procedure call NEW.
                        This procedure is traditionally a "macro" for
                        NEW(x) --> ALLOCATE(x, SIZE(x^))
@@ -10932,13 +10944,18 @@ PROCEDURE WriteOperand (Sym: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
-   n := GetSymName(Sym) ;
-   printf1('%a', n) ;
-   IF IsVar(Sym) OR IsConst(Sym)
+   IF Sym=NulSym
    THEN
-      printf0('[') ; WriteMode(GetMode(Sym)) ; printf0(']')
-   END ;
-   printf1('(%d)', Sym)
+      printf0('<nulsym>')
+   ELSE
+      n := GetSymName(Sym) ;
+      printf1('%a', n) ;
+      IF IsVar(Sym) OR IsConst(Sym)
+      THEN
+         printf0('[') ; WriteMode(GetMode(Sym)) ; printf0(']')
+      END ;
+      printf1('(%d)', Sym)
+   END
 END WriteOperand ;
 
 

@@ -72,6 +72,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildExceptInitial,
                     BuildExceptFinally,
                     BuildExceptProcedure,
+                    BuildReThrow,
                     BuildProcedureStart,
                     BuildProcedureBegin,
                     BuildProcedureEnd,
@@ -1244,7 +1245,8 @@ ProcedureBlockBody := NormalPart [
 
 NormalPart := StatementSequence =:
 
-ExceptionalPart := StatementSequence =:
+ExceptionalPart := StatementSequence                                       % BuildReThrow %
+                 =:
 
 Declaration := "CONST" { ConstantDeclaration ";" } |
                "TYPE" { TypeDeclaration ";" } |

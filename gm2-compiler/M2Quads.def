@@ -34,6 +34,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildExceptInitial, BuildExceptFinally,
                  BuildExceptProcedure,
                  BuildRetry,
+                 BuildReThrow,
                  BuildBuiltinConst,
                  BuildAssignment,
                  BuildRepeat, BuildUntil,
@@ -577,6 +578,15 @@ PROCEDURE BuildExceptProcedure ;
 *)
  
 PROCEDURE BuildRetry ;
+
+
+(*
+   BuildReThrow - creates a ThrowOp _ _ NulSym, indicating that
+                  the exception needs to be rethrown.  The stack
+                  is unaltered.
+*)
+
+PROCEDURE BuildReThrow ;
 
 
 (*

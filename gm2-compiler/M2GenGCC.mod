@@ -2337,9 +2337,14 @@ END CodeTry ;
 
 PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
-   AddStatement(BuildThrow(BuildConvert(GetIntegerType(),
-                                        Mod2Gcc(op3), FALSE)))
+   IF op3=NulSym
+   THEN
+      AddStatement(BuildThrow(Tree(NIL)))
+   ELSE
+      DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+      AddStatement(BuildThrow(BuildConvert(GetIntegerType(),
+                                           Mod2Gcc(op3), FALSE)))
+   END
 END CodeThrow ;
 
 
