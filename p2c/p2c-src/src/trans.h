@@ -1158,7 +1158,7 @@ extern char name_HSYMBOL[40], name_GSYMBOL[40];
 extern char name_SETBITS[40], name_UCHAR[40], name_SCHAR[40];
 extern char name_BOOLEAN[40], name_TRUE[40], name_FALSE[40], name_NULL[40];
 extern char name_ESCAPECODE[40], name_IORESULT[40];
-extern char name_HALT[40];
+extern char name_HALT[40], name_THROW[40];
 extern char name_ARGC[40], name_ARGV[40];
 extern char name_ESCAPE[40], name_ESCIO[40], name_CHKIO[40], name_SETIO[40];
 extern char name_OUTMEM[40], name_CASECHECK[40], name_NILCHECK[40];
@@ -1549,6 +1549,7 @@ struct rcstruct {
      {  'C', 'V', "MAINNAME",        (anyptr)  name_MAIN,        40, },
      {  'C', 'V', "ESCAPENAME",      (anyptr)  name_ESCAPE,      40, },
      {  'C', 'V', "HALTNAME",        (anyptr)  name_HALT,        40, },
+     {  'C', 'V', "THROWNAME",       (anyptr)  name_THROW,       40, },
      {  'C', 'V', "ESCIONAME",       (anyptr)  name_ESCIO,       40, },
      {  'C', 'V', "CHECKIONAME",     (anyptr)  name_CHKIO,       40, },
      {  'C', 'V', "SETIONAME",       (anyptr)  name_SETIO,       40, },

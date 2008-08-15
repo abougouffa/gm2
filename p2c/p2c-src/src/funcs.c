@@ -1809,6 +1809,15 @@ Static Stmt *proc_halt(arg)
     return makestmt_call(makeexpr_bicall_0(name_HALT, tp_int));
 }
 
+Static Stmt *proc_throw(arg)
+     Expr *arg ATTRIBUTE_UNUSED;
+{
+  Expr *ex = p_expr(NULL);
+
+  return makestmt_call(makeexpr_bicall_0(name_THROW, tp_int));
+}
+
+
 Static Stmt *proc_excl(arg)
      Expr *arg ATTRIBUTE_UNUSED;
 {
@@ -5306,6 +5315,7 @@ void decl_builtins()
     makespecialproc( "INCL",          proc_incl);
     makespecialproc( "NEW",           proc_new);
     makespecialproc( "HALT",          proc_halt);
+    makespecialproc( "THROW",         proc_throw);
     makespecialfunc( "MAX",	      func_max);
     makespecialfunc( "MIN",	      func_min);
   } else {

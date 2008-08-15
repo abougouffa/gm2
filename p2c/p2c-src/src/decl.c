@@ -5679,6 +5679,3 @@ Meaning *tvar;
  */
 
 /* End. */
-
-
-

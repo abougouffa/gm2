@@ -34,7 +34,8 @@ EXPORT QUALIFIED EHBlock,
                  Raise, SetExceptionBlock, GetExceptionBlock,
                  GetTextBuffer, GetTextBufferSize, GetNumber,
                  InitExceptionBlock, KillExceptionBlock,
-                 PushHandler, PopHandler ;
+                 PushHandler, PopHandler,
+                 BaseExceptionsThrow, DefaultErrorCatch ;
 
 TYPE
    EHBlock ;
@@ -116,6 +117,26 @@ PROCEDURE PushHandler (e: EHBlock; number: CARDINAL; p: ProcedureHandler) ;
 *)
 
 PROCEDURE PopHandler (e: EHBlock; number: CARDINAL) ;
+
+
+(*
+   DefaultErrorCatch - displays the current error message in
+                       the current exception block and then
+                       calls HALT.
+*)
+
+PROCEDURE DefaultErrorCatch ;
+
+
+(*
+   BaseExceptionsThrow - configures the Modula-2 exceptions to call
+                         THROW which in turn can be caught by an
+                         exception block.  If this is not called then
+                         a Modula-2 exception will simply call an
+                         error message routine and then HALT.
+*)
+
+PROCEDURE BaseExceptionsThrow ;
 
 
 END RTExceptions.

@@ -55,6 +55,7 @@ CONST
    Comment = '#'  ; (* Comment leader      *)
 
 VAR
+   CPlusPlus,
    SharedLibrary,
    NeedTerminate,
    ExitNeeded   : BOOLEAN ;
@@ -103,6 +104,7 @@ VAR
    s: String ;
 BEGIN
    i             := 1 ;
+   CPlusPlus     := FALSE ;
    NeedTerminate := TRUE ;
    ExitNeeded    := TRUE ;
    SharedLibrary := FALSE ;
@@ -118,11 +120,14 @@ BEGIN
          NeedTerminate := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
-         fprintf0(StdErr, 'gm2lgen [-fshared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate]\n') ;
+         fprintf0(StdErr, 'gm2lgen [-fshared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate] [-cpp]\n') ;
          exit(0)
       ELSIF EqualArray(s, '-fshared')
       THEN
          SharedLibrary := TRUE
+      ELSIF EqualArray(s, '-cpp')
+      THEN
+         CPlusPlus := TRUE
       ELSIF EqualArray(s, '-o')
       THEN
          INC(i) ;
@@ -227,19 +232,45 @@ VAR
 BEGIN
    IF ExitNeeded
    THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('extern void exit(int);\n\n'))))))
+      Fin(WriteS(fo, Mark(InitString('extern ')))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void exit(int);\n\n')))))) ;
+      Fin(WriteS(fo, Mark(InitString('extern ')))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void RTExceptions_DefaultErrorCatch(void);\n'))))))
    END ;
    n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
-      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern void _M2_%s_init (int argc, char *argv[]);\n')), funcname)))) ;
-      (* Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('extern void _M2_%s_finish (void);\n')), funcname)))) ; *)
+      Fin(WriteS(fo, Mark(InitString('extern ')))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString(' void _M2_%s_init (int argc, char *argv[]);\n')), funcname)))) ;
+      Fin(WriteS(fo, Mark(InitString('extern ')))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString(' void _M2_%s_finish (void);\n')), funcname)))) ;
       INC(i)
    END ;
    IF NeedTerminate
    THEN
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nextern void M2RTS_Terminate(void);\n'))))))
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nextern ')))))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void M2RTS_Terminate(void);\n'))))))
    END
 END GenExternals ;
 
@@ -257,8 +288,16 @@ VAR
 BEGIN
    n := HighIndice(FunctionList) ;
    i := LowIndice(FunctionList) ;
+   IF CPlusPlus
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   try {\n'))))))
+   END ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('   '))))
+      END ;
       IF SharedLibrary
       THEN
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, (void *)0);\n')),
@@ -268,7 +307,14 @@ BEGIN
                                       funcname))))
       END ;
       INC(i)
-   END
+   END ;
+   IF CPlusPlus
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    }\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    catch (...) {\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('       RTExceptions_DefaultErrorCatch();\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    }\n'))))))
+   END ;
 END GenInitializationCalls ;
 
 
@@ -283,21 +329,44 @@ VAR
    s       : String ;
    i, n    : CARDINAL ;
 BEGIN
+   IF CPlusPlus
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   try {\n'))))))
+   END ;
    IF NeedTerminate
    THEN
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
+      END ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate ();\n'))))))
    END ;
    n := HighIndice(FunctionList) ;
    i := LowIndice(FunctionList) ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, n) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
+      END ;
       Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('   _M2_%s_finish ();\n')),
                                    funcname)))) ;
       DEC(n)
    END ;
    IF ExitNeeded
    THEN
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
+      END ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   exit (0);\n'))))))
+   END ;
+   IF CPlusPlus
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    }\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    catch (...) {\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('       RTExceptions_DefaultErrorCatch();\n')))))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('    }\n'))))))
    END
 END GenFinalizationCalls ;
 

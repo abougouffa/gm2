@@ -27,7 +27,6 @@ FROM ASCII IMPORT nl, nul ;
 IMPORT RTExceptions ;
 IMPORT M2EXCEPTION ;
 
-
 CONST
    MaxProcedures = 1024 ;
 

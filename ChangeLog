@@ -1,3 +1,29 @@
+2008-08-15       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2/Make-lang.in:  include gm2/config-make for TARGET_SUBDIR
+	  macro.  Link stage2 and stage3 cc1gm2 against libstdc++.a.
+        * gm2/config-lang.in:  require target-libstdc++-v3.  Also generate
+	  gm2/config-make during configure.
+	* gm2/gm2spec.c:  (add_lstdcpp) new function which is called if
+	  linking.
+	* gm2/lang-specs.h:  gm2lgen enable generation of C++ main via -cpp.
+	  Change references to %g.c to %g.cpp.
+	* gm2/p2crc:  define ThrowName.
+	* gm2/gm2-compiler/gm2lcc.mod:  correctly initialise LibrariesFound
+	  to FALSE.
+	* gm2/gm2-compiler/gm2lgen.mod:  introduced new switch -cpp which
+	  informs gm2lgen to generate a C++ main with a try catch dispatcher.
+	* gm2/gm2-libs/M2RTS.mod:  fixed space.
+	* gm2/gm2-libs/RTExceptions.def:  define BaseExceptionsThrow and
+	  DefaultErrorCatch.
+	* gm2/gm2-libs/RTExceptions.mod:  implement BaseExceptionsThrow and
+	  DefaultErrorCatch.  Also fixed PushHandler and PopHandler.
+	* gm2/gm2-libs-boot/SYSTEM.def:  tidied up header comment.
+	* gm2/p2c/p2c-src/src/decl.c:  removed spaces.
+	* gm2/p2c/p2c-src/src/funcs.c:  (proc_throw) new function.
+	* gm2/p2c/p2c-src/src/trans.h:  define name_THROW.
+	* gm2/make-config.in:  new file.
+	
 2008-08-11       Gaius Mulley <gaius@gnu.org>
 
         * gm2/bnf/m2-3.bnf:  call BuildReThrow after statement sequence

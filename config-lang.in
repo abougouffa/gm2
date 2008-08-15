@@ -80,8 +80,10 @@ compilers="cc1gm2\$(exeext) gm2l\$(exeext) gm2lcc\$(exeext) \
 stagestuff="gm2\$(exeext) cc1gm2\$(exeext) gm2l\$(exeext) \
             gm2lcc\$(exeext) gm2lgen\$(exeext) gm2lsub\$(exeext) cc1gm2-cross\$(exeext)"
 
+target_libs="target-libstdc++-v3"
+
 gtfiles="\$(srcdir)/gm2/gccgm2.c \$(srcdir)/gm2/gm2-lang.c \
          \$(srcdir)/gm2/gm2-lang.h \$(srcdir)/c-common.h \
          \$(srcdir)/gm2/gm2except.c \$(srcdir)/gm2/gm2builtins.c"
 
-outputs="gm2/Makefile gm2/p2c/Makefile gm2/p2c/p2c-src/Makefile gm2/p2c/p2c-src/src/Makefile gm2/man/Makefile gm2/www/Makefile"
+outputs="gm2/Makefile gm2/p2c/Makefile gm2/p2c/p2c-src/Makefile gm2/p2c/p2c-src/src/Makefile gm2/man/Makefile gm2/www/Makefile gm2/config-make"

@@ -95,6 +95,7 @@ void remember_object (const char *s);
 static styles get_style (flag_set flags);
 static void add_link_from_include (int link, char **in_argv[],
                                    int incl, const char *option);
+static void add_lstdcpp (int *in_argc, const char *const **in_argv);
 
 
 typedef struct object_list {
@@ -148,7 +149,7 @@ add_arg (int incl, char ***in_argv, const char *str)
   if ((*in_argv)[incl] == NULL)
       (*in_argv)[incl] = xstrdup(str);
   else
-     fprintf(stderr, "internal error not adding to an empty space\n");
+     fprintf(stderr, "internal error not adding to a non empty space\n");
 }
 
 void
@@ -307,6 +308,18 @@ static styles get_style (flag_set flags)
 }
 
 /*
+ *  add_lstdcpp - add -lstdc++ to the command line.
+ */
+
+static
+void
+add_lstdcpp (int *in_argc, const char *const **in_argv)
+{
+  insert_arg (1, in_argc, (char ***)in_argv);
+  add_arg (1, (char ***)in_argv, "-lstdc++");
+}
+
+/*
  *  lang_specific_driver - is invoked if we are compiling/linking a
  *                         Modula-2 file. It checks for module paths
  *                         and linking requirements which are language
@@ -322,6 +335,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int x=-1;
   const char *language = NULL;
   int moduleExtension = -1;
+  int linking = TRUE;
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
 
@@ -334,6 +348,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 #endif
 
   while (i<*in_argc) {
+    if (strcmp((*in_argv)[i], "-c") == 0)
+      linking = FALSE;
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))
       inclPos = i;
@@ -403,6 +419,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     insert_arg(1, in_argc, (char ***)in_argv);
     add_arg(1, (char ***)in_argv, "-x");
   }
+  if (linking)
+    add_lstdcpp(in_argc, in_argv);
 #if defined(DEBUGGING)
   i = 1;
   while (i<*in_argc) {

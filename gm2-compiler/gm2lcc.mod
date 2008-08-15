@@ -561,6 +561,7 @@ BEGIN
    FOptions      := InitString('') ;
    Archives      := NIL ;
    Path          := NIL ;
+   LibrariesFound:= FALSE ;
    Libraries     := InitString('') ;
    Objects       := InitString('') ;
    Command       := NIL ;

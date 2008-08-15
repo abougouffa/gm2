@@ -20,8 +20,11 @@ IMPLEMENTATION MODULE RTExceptions ;
 FROM ASCII IMPORT nul, nl ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE ;
-FROM SYSTEM IMPORT ADDRESS, ADR ;
+FROM SYSTEM IMPORT ADDRESS, ADR, THROW ;
 FROM libc IMPORT write ;
+FROM M2RTS IMPORT HALT ;
+
+IMPORT M2EXCEPTION ;
 
 CONST
    MaxBuffer = 4096 ;
@@ -102,12 +105,52 @@ BEGIN
    h := findHandler(currentEHB, currentEHB^.number) ;
    IF h=NIL
    THEN
-      ErrorString(currentEHB^.buffer) ;
-      HALT
+      DefaultErrorCatch
    ELSE
       h^.p
    END
 END InvokeHandler ;
+
+
+(*
+   DefaultErrorCatch - displays the current error message in
+                       the current exception block and then
+                       calls HALT.
+*)
+
+PROCEDURE DefaultErrorCatch ;
+BEGIN
+   ErrorString(currentEHB^.buffer) ;
+   HALT
+END DefaultErrorCatch ;
+
+
+(*
+   DoThrow - throw the exception number in the exception block.
+*)
+
+PROCEDURE DoThrow ;
+BEGIN
+   THROW(GetNumber(GetExceptionBlock()))
+END DoThrow ;
+
+
+(*
+   BaseExceptionsThrow - configures the Modula-2 exceptions to call
+                         THROW which in turn can be caught by an
+                         exception block.  If this is not called then
+                         a Modula-2 exception will simply call an
+                         error message routine and then HALT.
+*)
+
+PROCEDURE BaseExceptionsThrow ;
+VAR
+   i: M2EXCEPTION.M2Exceptions ;
+BEGIN
+   FOR i := MIN(M2EXCEPTION.M2Exceptions) TO MAX(M2EXCEPTION.M2Exceptions) DO
+      PushHandler(GetExceptionBlock(), VAL(CARDINAL, i), DoThrow)
+   END
+END BaseExceptionsThrow ;
 
 
 (*
@@ -274,6 +317,7 @@ BEGIN
       number := MAX(CARDINAL) ;
       handlers := NewHandler() ;   (* add the dummy onto the head *)
       handlers^.right := handlers ;
+      handlers^.left := handlers ;
       right := e
    END ;
    RETURN( e )
@@ -354,21 +398,49 @@ END InitHandler ;
 
 
 (*
+   SubHandler - 
+*)
+
+PROCEDURE SubHandler (h: Handler) ;
+BEGIN
+   h^.right^.left := h^.left ;
+   h^.left^.right := h^.right ;
+END SubHandler ;
+
+
+(*
+   AddHandler - add, e, to the end of the list of handlers.
+*)
+
+PROCEDURE AddHandler (e: EHBlock; h: Handler) ;
+BEGIN
+   h^.right := e^.handlers ;
+   h^.left := e^.handlers^.left ;
+   e^.handlers^.left^.right := h ;
+   e^.handlers^.left := h
+END AddHandler ;
+
+
+(*
    PushHandler - install a handler in EHB, e.
 *)
 
 PROCEDURE PushHandler (e: EHBlock; number: CARDINAL; p: ProcedureHandler) ;
 VAR
-   h: Handler ;
+   h, i: Handler ;
 BEGIN
    h := findHandler(e, number) ;
-   IF h#NIL
+   IF h=NIL
    THEN
+      i := InitHandler(NewHandler(), NIL, NIL, NIL, number, p) ;
+   ELSE
       (* remove, h, *)
-      h^.right^.left := h^.left ;
-      h^.left^.right := h^.right
+      SubHandler(h) ;
+      (* stack it onto a new handler *)
+      i := InitHandler(NewHandler(), NIL, NIL, h, number, p) ;
    END ;
-   e^.handlers := InitHandler(NewHandler(), e^.handlers, e^.handlers^.right, h, number, p)
+   (* add new handler *)
+   AddHandler(e, i)
 END PushHandler ;
 
 
@@ -385,11 +457,12 @@ BEGIN
    IF h#NIL
    THEN
       (* remove, h, *)
-      h^.right^.left := h^.left ;
-      h^.left^.right := h^.right ;
-      i := h^.stack ;
-      h := KillHandler(h) ;
-      e^.handlers := InitHandler(i, e^.handlers, e^.handlers^.right, i^.stack, number, i^.p)
+      SubHandler(h) ;
+      IF h^.stack#NIL
+      THEN
+         AddHandler(e, h^.stack)
+      END ;
+      h := KillHandler(h)
    END
 END PopHandler ;
 
@@ -402,7 +475,8 @@ PROCEDURE Init ;
 BEGIN
    freeHandler := NIL ;
    freeEHB := NIL ;
-   currentEHB := InitExceptionBlock()
+   currentEHB := InitExceptionBlock() ;
+   BaseExceptionsThrow
 END Init ;
 
 

@@ -103,6 +103,9 @@ gm2 m2 modula-2 modula2: $(GM2)$(exeext) xgcc$(exeext) cc1gm2$(exeext) \
 
 TEXI2HTML=texi2html
 
+include gm2/config-make
+LIBSTDCXX=../$(TARGET_SUBDIR)/libstdc++-v3/src/.libs/libstdc++.a
+
 SRC_PREFIX=G
 
 .PHONY: gm2 m2 modula-2 modula2 GM2 M2 Modula-2 Modula2 MODULA-2 MODULA2
@@ -776,14 +779,18 @@ gm2cc$(exeext): force
 # end here
   
 stage3/gm2/cc1gm2$(exeext): stage2/gm2/cc1gm2$(exeext) gm2/gm2-compiler-paranoid/m2flex.o \
-                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID)
+                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_PARANOID) \
+                            $(LIBSTDCXX)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS_PARANOID) \
-                              gm2/gm2-compiler-paranoid/m2flex.o $(BACKEND) $(LIBS)
+                              gm2/gm2-compiler-paranoid/m2flex.o $(BACKEND) $(LIBS) \
+                              $(LIBSTDCXX)
   
 stage2/gm2/cc1gm2$(exeext): stage1/gm2/cc1gm2$(exeext) gm2/gm2-compiler/m2flex.o $(P) \
-                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS)
+                            $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS) \
+                            $(LIBSTDCXX)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(GM2_OBJS) $(GM2_LIBS) \
-                              gm2/gm2-compiler/m2flex.o $(BACKEND) $(LIBS)
+                              gm2/gm2-compiler/m2flex.o $(BACKEND) $(LIBS) \
+                              $(LIBSTDCXX)
   
 stage1/gm2/cc1gm2$(exeext): $(GM2_DIRS) $(GM2)$(exeext) gm2/gm2-compiler-boot/m2flex.o \
                            $(P) $(GM2_OBJS) $(BACKEND) $(LIBDEPS) $(GM2_LIBS_BOOT)
