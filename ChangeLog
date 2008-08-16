@@ -1,3 +1,18 @@
+2008-08-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  set linking to false if -S flag was seen.
+	* gm2/examples/cpp/Makefile:  altered flag from -Wcpp to -fcpp.
+	* gm2/examples/pthread/libcwrap.c:  (_M2_libcwrap_finish) new
+	  function stub.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  preserve InitStart, InitEnd,
+	  FinallyStart, FinallyEnd quadruples during basic block elimination.
+	* gm2/gm2-compiler/M2Quads.def:  (IsInitStart) (IsInitEnd)
+	  (IsFinallyStart) (IsFinallyEnd) new functions defined and exported.
+        * gm2/gm2-compiler/M2Quads.mod:  (IsInitStart) (IsInitEnd)
+	  (IsFinallyStart) (IsFinallyEnd) new functions implemented.
+        * gm2/gm2-libs-coroutines/KeyBoardLEDs.c:  (_M2_KeyBoardLEDs_init)
+	  (_M2_KeyBoardLEDs_finish)  new functions.
+
 2008-08-15       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2/Make-lang.in:  include gm2/config-make for TARGET_SUBDIR

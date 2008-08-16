@@ -723,6 +723,46 @@ BEGIN
 END IsCatchEnd ;
 
 
+(* 
+   IsInitStart - returns true if QuadNo is a init start quad.
+*) 
+ 
+PROCEDURE IsInitStart (QuadNo: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsQuadA(QuadNo, InitStartOp) )
+END IsInitStart ;
+
+
+(* 
+   IsInitEnd - returns true if QuadNo is a init end quad.
+*) 
+ 
+PROCEDURE IsInitEnd (QuadNo: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsQuadA(QuadNo, InitEndOp) )
+END IsInitEnd ;
+
+
+(* 
+   IsFinallyStart - returns true if QuadNo is a finally start quad.
+*) 
+ 
+PROCEDURE IsFinallyStart (QuadNo: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsQuadA(QuadNo, FinallyStartOp) )
+END IsFinallyStart ;
+
+
+(* 
+   IsFinallyEnd - returns true if QuadNo is a finally end quad.
+*) 
+ 
+PROCEDURE IsFinallyEnd (QuadNo: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsQuadA(QuadNo, FinallyEndOp) )
+END IsFinallyEnd ;
+
+
 (*
    IsOptimizeOn - returns true if the Optimize flag was true at QuadNo.
 *)

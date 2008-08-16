@@ -101,7 +101,10 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsKillLocalVar,
                  IsCatchBegin,
                  IsCatchEnd,
-
+                 IsInitStart,
+                 IsInitEnd,
+                 IsFinallyStart,
+                 IsFinallyEnd,
                  IsCodeOn,          (* Compiler flag testing routines *)
                  IsProfileOn,
                  IsOptimizeOn,
@@ -273,6 +276,34 @@ PROCEDURE IsCatchBegin (QuadNo: CARDINAL) : BOOLEAN ;
 *) 
  
 PROCEDURE IsCatchEnd (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsInitStart - returns true if QuadNo is a init start quad.
+*) 
+ 
+PROCEDURE IsInitStart (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsInitEnd - returns true if QuadNo is a init end quad.
+*) 
+ 
+PROCEDURE IsInitEnd (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsFinallyStart - returns true if QuadNo is a finally start quad.
+*) 
+ 
+PROCEDURE IsFinallyStart (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(* 
+   IsFinallyEnd - returns true if QuadNo is a finally end quad.
+*) 
+ 
+PROCEDURE IsFinallyEnd (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*

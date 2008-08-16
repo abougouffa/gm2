@@ -26,3 +26,7 @@ void _M2_libcwrap_init (void)
 {
 }
 
+void _M2_libcwrap_finish (void)
+{
+}
+

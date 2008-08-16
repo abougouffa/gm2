@@ -30,6 +30,7 @@ FROM M2Quads IMPORT Head,
                     IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
                     IsCatchBegin, IsCatchEnd,
+                    IsInitStart, IsInitEnd, IsFinallyStart, IsFinallyEnd,
                     IsPseudoQuad, IsDefOrModFile,
                     GetNextQuad, GetQuad, QuadOperator,
                     SubQuad ;
@@ -201,7 +202,10 @@ BEGIN
          (* Add Quad to the Last BB since Pseudo Quads - compiler directives *)
          (* must not be thrown away.                                         *)
          EndBB(LastBB, Quad)
-      ELSIF IsReturn(Quad) OR IsKillLocalVar(Quad) OR IsCatchEnd(Quad) OR IsCatchBegin(Quad)
+      ELSIF IsReturn(Quad) OR IsKillLocalVar(Quad) OR
+            IsCatchEnd(Quad) OR IsCatchBegin(Quad) OR
+            IsInitStart(Quad) OR IsInitEnd(Quad) OR
+            IsFinallyStart(Quad) OR IsFinallyEnd(Quad)
       THEN
          (* we must leave these quads alone *)
          EndBB(LastBB, Quad)

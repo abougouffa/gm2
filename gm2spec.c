@@ -348,7 +348,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 #endif
 
   while (i<*in_argc) {
-    if (strcmp((*in_argv)[i], "-c") == 0)
+    if ((strcmp((*in_argv)[i], "-c") == 0) || (strcmp((*in_argv)[i], "-S") == 0))
       linking = FALSE;
     if ((strncmp((*in_argv)[i], "-I", 2) == 0) &&
 	(strcmp((*in_argv)[i], "-I-") != 0))

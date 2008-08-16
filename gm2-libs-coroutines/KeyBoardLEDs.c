@@ -103,4 +103,13 @@ void SwitchNum (int numlock)
 void SwitchCaps (int capslock)
 {
 }
+
+void _M2_KeyBoardLEDs_init (void)
+{
+}
+
 #endif
+
+void _M2_KeyBoardLEDs_finish (void)
+{
+}
