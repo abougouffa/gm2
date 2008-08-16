@@ -1758,7 +1758,7 @@ To build GNU Modula-2 type:
 $ mkdir -p $HOME/opt
 $ mkdir -p build-@value{version-GCC}
 $ cd build-@value{version-GCC}
-$ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,gm2 \
+$ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
 $ make
 @end example

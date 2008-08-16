@@ -12,6 +12,8 @@
 	  (IsFinallyStart) (IsFinallyEnd) new functions implemented.
         * gm2/gm2-libs-coroutines/KeyBoardLEDs.c:  (_M2_KeyBoardLEDs_init)
 	  (_M2_KeyBoardLEDs_finish)  new functions.
+	* gm2/gm2.texi:  changed configure example to include the build of
+	  c++.
 
 2008-08-15       Gaius Mulley <gaius@gnu.org>
 
