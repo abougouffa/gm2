@@ -23,7 +23,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsSubrange, GetSymName, IsTemporary, IsSet,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
-                        IsConstString,
+                        IsConstString, MakeConstLit, SkipType,
                         ModeOfAddr ;
 
 FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
@@ -32,7 +32,8 @@ FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
                    GetIntegerZero, GetIntegerOne, GetIntegerType, GetTreeType,
                    CompareTrees, BuildIndirect, BuildParam, BuildStringConstant,
                    BuildIntegerConstant, AddStatement, BuildGreaterThan, BuildLessThan,
-                   BuildNegate, BuildEqualTo, GetPointerType, GetPointerZero, BuildAddr ;
+                   BuildNegate, BuildEqualTo, GetPointerType, GetPointerZero, BuildAddr,
+                   BuildLessThanOrEqual ;
 
 FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
@@ -45,10 +46,10 @@ FROM M2GCCDeclare IMPORT DeclareConstant ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
-FROM NameKey IMPORT Name ;
+FROM NameKey IMPORT Name, MakeKey ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
-FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar ;
+FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar, LValueToGenericPtr, ZConstToTypedConst ;
 FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
@@ -57,6 +58,8 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionStaticArray, ExceptionDynamicArray,
                    ExceptionForLoopBegin, ExceptionForLoopTo, ExceptionForLoopEnd,
                    ExceptionPointerNil, ExceptionNoReturn, ExceptionCase,
+                   ExceptionNonPosDiv, ExceptionNonPosMod,
+                   ExceptionZeroDiv, ExceptionZeroRem,
                    ExceptionNo ;
 
 
@@ -66,7 +69,8 @@ TYPE
                   dynamicarraysubscript,
                   forloopbegin, forloopto, forloopend,
                   pointernil, noreturn, noelse,
-                  none) ;
+                  wholenonposdiv, wholenonposmod,
+                  wholezerodiv, wholezerorem, none) ;
 
    Range = POINTER TO range ;   (* to help p2c *)
    range =            RECORD
@@ -108,6 +112,70 @@ END IsGreater ;
 
 
 (*
+   IsGreaterOrEqual - returns TRUE if a>=b.
+*)
+
+PROCEDURE IsGreaterOrEqual (a, b: Tree) : BOOLEAN ;
+BEGIN
+   RETURN( CompareTrees(a, b)>=0 )
+END IsGreaterOrEqual ;
+
+
+(*
+   IsEqual - returns TRUE if a=b.
+*)
+
+PROCEDURE IsEqual (a, b: Tree) : BOOLEAN ;
+BEGIN
+   RETURN( CompareTrees(a, b)=0 )
+END IsEqual ;
+
+
+(*
+   IsGreaterOrEqualConversion - tests whether t>=e
+*)
+
+PROCEDURE IsGreaterOrEqualConversion (l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF GetType(d)=NulSym
+   THEN
+      IF GetType(e)=NulSym
+      THEN
+         RETURN( IsGreaterOrEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
+      ELSE
+         RETURN( IsGreaterOrEqual(BuildConvert(Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
+                                  LValueToGenericPtr(e)) )
+      END
+   ELSE
+      RETURN( IsGreaterOrEqual(BuildConvert(Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
+                               LValueToGenericPtr(e)) )
+   END
+END IsGreaterOrEqualConversion ;
+
+
+(*
+   IsEqualConversion - returns TRUE if a=b.
+*)
+
+PROCEDURE IsEqualConversion (l: CARDINAL; d, e: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF GetType(d)=NulSym
+   THEN
+      IF GetType(e)=NulSym
+      THEN
+         RETURN( IsEqual(Mod2Gcc(l), LValueToGenericPtr(e)) )
+      ELSE
+         RETURN( IsEqual(BuildConvert(Mod2Gcc(SkipType(GetType(e))), Mod2Gcc(l), FALSE),
+                         LValueToGenericPtr(e)) )
+      END
+   ELSE
+      RETURN( IsEqual(BuildConvert(Mod2Gcc(SkipType(GetType(d))), Mod2Gcc(l), FALSE),
+                      LValueToGenericPtr(e)) )
+   END
+END IsEqualConversion ;
+
+
+(*
    lookupExceptionHandler - 
 *)
 
@@ -127,6 +195,10 @@ BEGIN
    pointernil           : RETURN( ExceptionPointerNil ) |
    noreturn             : RETURN( ExceptionNoReturn ) |
    noelse               : RETURN( ExceptionCase ) |
+   wholenonposdiv       : RETURN( ExceptionNonPosDiv ) |
+   wholenonposmod       : RETURN( ExceptionNonPosMod ) |
+   wholezerodiv         : RETURN( ExceptionZeroDiv ) |
+   wholezerorem         : RETURN( ExceptionZeroRem ) |
    none                 : RETURN( ExceptionNo )
 
    ELSE
@@ -223,6 +295,28 @@ BEGIN
    END ;
    RETURN( p )
 END PutRangeNoEval ;
+
+
+(*
+   PutRange - initializes contents of, p, to
+              d, e and its lowest type.
+              It also fills in the current token no
+              and returns, p.
+*)
+
+PROCEDURE PutRangeUnary (p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
+BEGIN
+   WITH p^ DO
+      type           := t ;
+      des            := d ;
+      expr           := e ;
+      desLowestType  := GetLowestType(d) ;
+      exprLowestType := NulSym ;
+      isLeftValue    := FALSE ;
+      tokenNo        := GetTokenNo()
+   END ;
+   RETURN( p )
+END PutRangeUnary ;
 
 
 (*
@@ -440,6 +534,70 @@ END InitNoElseRangeCheck ;
 
 
 (*
+   InitWholeNonPosDivCheck - creates a check expression for non positive
+                             or zero 2nd operand to division.
+*)
+
+PROCEDURE InitWholeNonPosDivCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeUnary(GetIndice(RangeIndex, r), wholenonposdiv, d, e) ;
+   RETURN( r )
+END InitWholeNonPosDivCheck ;
+
+
+(*
+   InitWholeNonPosModCheck - creates a check expression for non positive
+                             or zero 2nd operand to modulus.
+*)
+
+PROCEDURE InitWholeNonPosModCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeUnary(GetIndice(RangeIndex, r), wholenonposmod, d, e) ;
+   RETURN( r )
+END InitWholeNonPosModCheck ;
+
+
+(*
+   InitWholeZeroDivisionCheck - creates a check expression for zero 2nd
+                                operand for division.
+*)
+
+PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeUnary(GetIndice(RangeIndex, r), wholezerodiv, d, e) ;
+   RETURN( r )
+END InitWholeZeroDivisionCheck ;
+
+
+(*
+   InitWholeZeroRemainderCheck - creates a check expression for zero 2nd
+                                 operand for remainder.
+*)
+
+PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeUnary(GetIndice(RangeIndex, r), wholezerorem, d, e) ;
+   RETURN( r )
+END InitWholeZeroRemainderCheck ;
+
+
+(*
    FoldNil - attempts to fold the pointer against nil comparison.
 *)
 
@@ -591,6 +749,10 @@ BEGIN
       pointernil           : RETURN( ExceptionPointerNil#NulSym ) |
       noreturn             : RETURN( ExceptionNoReturn#NulSym ) |
       noelse               : RETURN( ExceptionCase#NulSym ) |
+      wholenonposdiv       : RETURN( ExceptionNonPosDiv#NulSym ) |
+      wholenonposmod       : RETURN( ExceptionNonPosMod#NulSym ) |
+      wholezerodiv         : RETURN( ExceptionZeroDiv#NulSym ) |
+      wholezerorem         : RETURN( ExceptionZeroRem#NulSym ) |
       none                 : RETURN( FALSE )
 
       ELSE
@@ -871,7 +1033,6 @@ PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; l: List; q: CARDINAL; r:
 VAR
    p          : Range ;
    e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -884,8 +1045,6 @@ BEGIN
             IF IsGreater(GetIntegerZero(), BuildConvert(GetIntegerType(), Mod2Gcc(expr), FALSE))
             THEN
                e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
                ErrorFormat0(e, 'index out of range found while attempting to access an element of a dynamic array') ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
@@ -895,6 +1054,106 @@ BEGIN
       END
    END
 END FoldDynamicArraySubscript ;
+
+
+(*
+   FoldNonPosDiv - attempts to fold the bound checking for a divide expression.
+*)
+
+PROCEDURE FoldNonPosDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+   e: Error ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF GccKnowsAbout(expr) AND IsConst(expr)
+      THEN
+         IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         THEN
+            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
+            ErrorFormat0(e, 'the divisor in this division expression is less than or equal to zero') ;
+            PutQuad(q, ErrorOp, NulSym, NulSym, r)
+         END
+      END
+   END
+END FoldNonPosDiv ;
+
+
+(*
+   FoldNonPosMod - attempts to fold the bound checking for a modulus expression.
+*)
+
+PROCEDURE FoldNonPosMod (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+   e: Error ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF GccKnowsAbout(expr) AND IsConst(expr)
+      THEN
+         IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         THEN
+            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
+            ErrorFormat0(e, 'the divisor in this modulus expression is less than or equal to zero') ;
+            PutQuad(q, ErrorOp, NulSym, NulSym, r)
+         END
+      END
+   END
+END FoldNonPosMod ;
+
+
+(*
+   FoldZeroDiv - 
+*)
+
+PROCEDURE FoldZeroDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+   e: Error ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF GccKnowsAbout(expr) AND IsConst(expr)
+      THEN
+         IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         THEN
+            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
+            ErrorFormat0(e, 'the divisor in this division expression is equal to zero') ;
+            PutQuad(q, ErrorOp, NulSym, NulSym, r)
+         END
+      END
+   END
+END FoldZeroDiv ;
+
+
+(*
+   FoldZeroRem - 
+*)
+
+PROCEDURE FoldZeroRem (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+   e: Error ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF GccKnowsAbout(expr) AND IsConst(expr)
+      THEN
+         IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
+         THEN
+            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
+            ErrorFormat0(e, 'the divisor in this remainder expression is equal to zero') ;
+            PutQuad(q, ErrorOp, NulSym, NulSym, r)
+         END
+      END
+   END
+END FoldZeroRem ;
 
 
 (*
@@ -927,6 +1186,10 @@ BEGIN
       pointernil           :  FoldNil(tokenno, l, q, r) |
       noreturn             :  RETURN (* nothing to fold *) |
       noelse               :  RETURN (* nothing to fold *) |
+      wholenonposdiv       :  FoldNonPosDiv(tokenno, l, q, r) |
+      wholenonposmod       :  FoldNonPosMod(tokenno, l, q, r) |
+      wholezerodiv         :  FoldZeroDiv(tokenno, l, q, r) |
+      wholezerorem         :  FoldZeroRem(tokenno, l, q, r) |
       none                 :  SubQuad(q)
 
       ELSE
@@ -1026,6 +1289,10 @@ BEGIN
       pointernil           : s := InitString('the pointer value is NIL, if it is ever dereferenced it will cause an exception') |
       noreturn             : s := InitString('this function will exit without executing a RETURN statement') |
       noelse               : s := InitString('this CASE statement does not have an ELSE statement') |
+      wholenonposdiv       : s := InitString('this division expression will cause an exception as this divisor is less than or equal to zero') |
+      wholenonposmod       : s := InitString('this modulus expression will cause an exception as this divisor is less than or equal to zero') |
+      wholezerodiv         : s := InitString('this division expression will cause an exception as the divisor is zero') |
+      wholezerorem         : s := InitString('this remainder expression will cause an exception as the divisor is zero') |
       none                 : InternalError('unexpected value', __FILE__, __LINE__)
 
       ELSE
@@ -1411,6 +1678,62 @@ END CodeNil ;
 
 
 (*
+   CodeWholeNonPos - generates range check code for expr<=0.
+*)
+
+PROCEDURE CodeWholeNonPos (tokenno: CARDINAL;
+                           r: CARDINAL; scopeDesc: String) ;
+VAR
+   UnboundedType: CARDINAL ;
+   p            : Range ;
+   condition,
+   high, e      : Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenNo, expr) ;
+      IF GccKnowsAbout(expr)
+      THEN
+         e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
+         condition := BuildLessThanOrEqual(e, BuildConvert(Mod2Gcc(SkipType(GetType(des))),
+                                                           Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
+         AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+      ELSE
+         InternalError('should have resolved expr', __FILE__, __LINE__)
+      END
+   END
+END CodeWholeNonPos ;
+
+
+(*
+   CodeWholeZero - generates range check code for expr=0.
+*)
+
+PROCEDURE CodeWholeZero (tokenno: CARDINAL;
+                         r: CARDINAL; scopeDesc: String) ;
+VAR
+   UnboundedType: CARDINAL ;
+   p            : Range ;
+   condition,
+   high, e      : Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenNo, expr) ;
+      IF GccKnowsAbout(expr)
+      THEN
+         e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
+         condition := BuildEqualTo(e, BuildConvert(Mod2Gcc(SkipType(GetType(des))),
+                                                   Mod2Gcc(MakeConstLit(MakeKey('0'))), FALSE)) ;
+         AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+      ELSE
+         InternalError('should have resolved expr', __FILE__, __LINE__)
+      END
+   END
+END CodeWholeZero ;
+
+
+(*
    CodeRangeCheck - returns a Tree representing the code for a
                     range test defined by, r.
 *)
@@ -1435,6 +1758,10 @@ BEGIN
       pointernil           :  CodeNil(tokenNo, r, scopeDesc) |
       noreturn             :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
       noelse               :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
+      wholenonposdiv       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
+      wholenonposmod       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
+      wholezerodiv         :  CodeWholeZero(tokenNo, r, scopeDesc) |
+      wholezerorem         :  CodeWholeZero(tokenNo, r, scopeDesc) |
       none                 :
 
       ELSE
@@ -1537,6 +1864,10 @@ BEGIN
       pointernil           :  WriteString('pointernil(') ; WriteOperand(des) |
       noreturn             :  WriteString('noreturn(') |
       noelse               :  WriteString('noelse(') |
+      wholenonposdiv       :  WriteString('wholenonposdiv(') ; WriteOperand(expr) |
+      wholenonposmod       :  WriteString('wholenonposmod(') ; WriteOperand(expr) |
+      wholezerodiv         :  WriteString('wholezerodiv(') ; WriteOperand(expr) |
+      wholezerorem         :  WriteString('wholezerorem(') ; WriteOperand(expr) |
       none                 :  WriteString('none(') |
       
       ELSE

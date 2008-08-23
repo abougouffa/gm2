@@ -189,6 +189,7 @@ BEGIN
    ReturnChecking := value ;
    NilChecking := value ;
    CaseElseChecking := value ;
+   DivModRemChecking := value ;
    RETURN( TRUE )
 END SetCheckAll ;
 
@@ -376,6 +377,10 @@ BEGIN
    THEN
       CaseElseChecking := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fdiv-mod-rem')
+   THEN
+      DivModRemChecking := TRUE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-fcpp') OR EqualArray(s, '-fcppbegin')
    THEN
       Legal := SetCpp(TRUE)
@@ -519,6 +524,7 @@ BEGIN
    OptimizeCommonSubExpressions := FALSE ;
    BoundsChecking               := FALSE ;
    ReturnChecking               := FALSE ;
+   DivModRemChecking            := FALSE ;
    CPreProcessor                := FALSE ;
    LineDirectives               := FALSE ;
    ExtendedOpaque               := FALSE ;

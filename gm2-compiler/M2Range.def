@@ -50,6 +50,10 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitPointerRangeCheck,
                  InitNoReturnRangeCheck,
                  InitNoElseRangeCheck,
+                 InitWholeNonPosDivCheck,
+                 InitWholeNonPosModCheck,
+                 InitWholeZeroDivisionCheck,
+                 InitWholeZeroRemainderCheck,
                  CodeRangeCheck, FoldRangeCheck, CodeErrorCheck,
                  CheckRangeAddVariableRead,
                  CheckRangeRemoveVariableRead,
@@ -172,6 +176,38 @@ PROCEDURE InitNoReturnRangeCheck () : CARDINAL ;
 *)
 
 PROCEDURE InitNoElseRangeCheck () : CARDINAL ;
+
+
+(*
+   InitWholeNonPosDivCheck - creates a check expression for non positive
+                             or zero 2nd operand to division.
+*)
+
+PROCEDURE InitWholeNonPosDivCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitWholeNonPosModCheck - creates a check expression for non positive
+                             or zero 2nd operand to modulus.
+*)
+
+PROCEDURE InitWholeNonPosModCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitWholeZeroDivisionCheck - creates a check expression for zero 2nd
+                                operand for division.
+*)
+
+PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitWholeZeroRemainderCheck - creates a check expression for zero 2nd
+                                 operand for remainder.
+*)
+
+PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*

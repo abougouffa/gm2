@@ -216,6 +216,38 @@ BEGIN
 END CaseException ;
 
 
+PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+                      filename, line, column, scope,
+                      ADR("the division expression has a divisor which is less than or equal to zero"))
+END WholeNonPosDivException ;
+
+
+PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+                      filename, line, column, scope,
+                      ADR("the modulus expression has a divisor which is less than or equal to zero"))
+END WholeNonPosModException ;
+
+
+PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+                      filename, line, column, scope,
+                      ADR("the division expression has a divisor which is equal to zero"))
+END WholeZeroDivException ;
+
+
+PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+                      filename, line, column, scope,
+                      ADR("the remainder expression has a divisor which is equal to zero"))
+END WholeZeroRemException ;
+
+
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(M2EXCEPTION.exException,

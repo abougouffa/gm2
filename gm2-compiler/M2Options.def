@@ -20,10 +20,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2008/05/02 16:16:09 $]
+   Date       : 27/5/87  [$Date: 2008/08/23 21:52:34 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.22 $
+   Version    : $Revision: 1.23 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -46,6 +46,7 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  OptimizeCommonSubExpressions,
                  StudentChecking,
                  BoundsChecking, ReturnChecking, NilChecking, CaseElseChecking,
+                 DivModRemChecking,
                  Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
@@ -84,6 +85,8 @@ VAR
    CaseElseChecking,             (* -fcase checks program does not need an   *)
                                  (* else statement within an case statement  *)
                                  (* when the user omits one                  *)
+   DivModRemChecking,            (* -fdiv-mod-rem produces code to raise an  *)
+                                 (* exception if a divide by zero occurs.    *)
    Quiet,                        (* -fquiet option specified.                *)
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)

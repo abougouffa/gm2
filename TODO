@@ -18,7 +18,7 @@
 --
 
 *  implement the following in GCC (two call back mechanisms):
-   -  if a tree is reachable (then a runtime error will occur).
+   -  if a tree is reachable (and a runtime error will occur).
       Then the back end should call back the front end to
       issue an appropriate error/warning message.
    -  word type node needs a call back such that

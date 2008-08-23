@@ -55,6 +55,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("turns on runtime checking to detect accessing data through a NIL value pointer") },
   { "-fcase",
       N_("turns on runtime checking to check whether a CASE statement requires an ELSE clause when on was not specified") },
+  { "-fdiv-mod-rem",
+      N_("turns on runtime checking to check whether a division or modulus or remainder is about to occur with an illegal divisor") },
   { "-fcheck-all",
       N_("turns on all runtime checking (an abbreviation for -fcase -fbounds -freturn -fnil)") },
   { "-Wstudents",

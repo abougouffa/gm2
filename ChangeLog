@@ -1,3 +1,48 @@
+2008-08-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  replaces list of checking flags with
+	  -fcheck-all.
+	* gm2/TODO:  corrected sentance.
+	* gm2/lang-options.h:  introduced new option, -fdiv-mod-rem.
+	* gm2/gm2-compiler/M2Base.def:  ExceptionNonPosDiv,
+	  ExceptionNonPosMod, ExceptionZeroDiv, ExceptionZeroRem new
+	  exception handlers defined.
+	* gm2/gm2-compiler/M2Base.mod:  ExceptionNonPosDiv,
+	  ExceptionNonPosMod, ExceptionZeroDiv, ExceptionZeroRem new
+	  exception handlers implemented.
+        * gm2/gm2-compiler/M2GenGCC.def:  export
+	  LValueToGenericPtr and ZConstToTypedConst.
+	* gm2/gm2-compiler/M2GenGCC.mod:  removed (p2c) forward
+	  declarations for LValueToGenericPtr and ZConstToTypedConst.
+	* gm2/gm2-compiler/M2Options.def:  defined and export
+	  DivModRemChecking.
+	* gm2/gm2-compiler/M2Options.mod:  implement detection of
+	  -fdiv-mod-rem.
+	* gm2/gm2-compiler/M2Quads.mod:  (CheckDivModRem) new procedure.
+	  (BuildBinaryOp) call CheckDivModRem.
+	* gm2/gm2-compiler/M2Range.def:  define InitWholeNonPosDivCheck,
+          InitWholeNonPosModCheck, InitWholeZeroDivisionCheck and
+          InitWholeZeroRemainderCheck.
+        * gm2/gm2-compiler/M2Range.mod:  implement InitWholeNonPosDivCheck,
+          InitWholeNonPosModCheck, InitWholeZeroDivisionCheck and
+          InitWholeZeroRemainderCheck.
+	* gm2/gm2-libs/M2RTS.def:  define new exception handlers:
+          WholeNonPosDivException, WholeNonPosModException,
+          WholeZeroDivException and WholeZeroRemException.
+        * gm2/gm2-libs/M2RTS.mod:  implement new exception handlers:
+          WholeNonPosDivException, WholeNonPosModException,
+          WholeZeroDivException and WholeZeroRemException.
+	* gm2/gm2-libs-iso/M2RTS.def:  defined new exception handlers:
+          WholeNonPosDivException, WholeNonPosModException,
+          WholeZeroDivException and WholeZeroRemException.
+	* gm2/gm2-libs-iso/M2RTS.mod:  implemented new exception
+	  handlers WholeNonPosDivException, WholeNonPosModException,
+          WholeZeroDivException and WholeZeroRemException.
+        * gm2/gm2-libs-iso/SYSTEM.def:  export THROW.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  implement new exception
+	  handlers WholeNonPosDivException, WholeNonPosModException,
+          WholeZeroDivException and WholeZeroRemException.
+
 2008-08-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  set linking to false if -S flag was seen.

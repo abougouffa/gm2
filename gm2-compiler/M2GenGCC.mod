@@ -310,8 +310,6 @@ PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
                      q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
 PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE CodeInitStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;

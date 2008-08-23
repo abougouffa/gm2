@@ -629,10 +629,10 @@ GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
-GM2_FLAGS=-fnil -fcase -fbounds -freturn $(GM2_G) $(GM2_O) \
+GM2_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names
-GM2_ISO_FLAGS=-fnil -fcase -fbounds -freturn $(GM2_G) $(GM2_O) \
+GM2_ISO_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fiso -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \

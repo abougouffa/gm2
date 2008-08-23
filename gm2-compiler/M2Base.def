@@ -77,6 +77,10 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  ExceptionPointerNil,
                  ExceptionNoReturn,
                  ExceptionCase,
+                 ExceptionNonPosDiv,
+                 ExceptionNonPosMod,
+                 ExceptionZeroDiv,
+                 ExceptionZeroRem,
                  ExceptionNo ;
 
 
@@ -112,6 +116,10 @@ VAR
    ExceptionPointerNil,
    ExceptionNoReturn,
    ExceptionCase,
+   ExceptionNonPosDiv,
+   ExceptionNonPosMod,
+   ExceptionZeroDiv,
+   ExceptionZeroRem,
    ExceptionNo          : CARDINAL ;
 
 

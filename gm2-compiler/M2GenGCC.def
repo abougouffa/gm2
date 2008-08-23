@@ -32,6 +32,7 @@ FROM Lists IMPORT List ;
 FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
+                 LValueToGenericPtr, ZConstToTypedConst,
                  InitGNUM2 ;
 
 
@@ -73,6 +74,22 @@ PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
 *)
 
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;
+
+
+(*
+   LValueToGenericPtr - returns a Tree representing symbol, sym.
+                        It coerces a lvalue into an internal pointer type
+*)
+
+PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ;
+
+
+(*
+   ZConstToTypedConst - checks whether op1 and op2 are constants and
+                        coerces, t, appropriately.
+*)
+
+PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
 
 
 END M2GenGCC.

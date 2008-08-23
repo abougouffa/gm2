@@ -181,6 +181,9 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitPointerRangeCheck,
                     InitNoReturnRangeCheck,
                     InitNoElseRangeCheck,
+                    InitWholeZeroDivisionCheck,
+                    InitWholeZeroDivisionCheck,
+                    InitWholeZeroRemainderCheck,
                     CheckRangeAddVariableRead,
                     CheckRangeRemoveVariableRead,
                     WriteRangeCheck ;
@@ -9994,6 +9997,26 @@ END CheckForGenericNulSet ;
 
 
 (*
+   CheckDivModRem - initiates calls to check the divisor for DIV, MOD, REM
+                    expressions.
+*)
+
+PROCEDURE CheckDivModRem (tok: Name; d, e: CARDINAL) ;
+BEGIN
+   IF tok=DivTok
+   THEN
+      BuildRange(InitWholeZeroDivisionCheck(d, e))
+   ELSIF tok=ModTok
+   THEN
+      BuildRange(InitWholeZeroDivisionCheck(d, e))
+   ELSIF tok=RemTok
+   THEN
+      BuildRange(InitWholeZeroRemainderCheck(d, e))
+   END
+END CheckDivModRem ;
+
+
+(*
    BuildBinaryOp   - Builds a binary operation from the quad stack.
                      Be aware that this procedure will check for
                      the overloading of the bitset operators + - \ *.
@@ -10108,6 +10131,7 @@ BEGIN
       CheckExpressionCompatible(t1, t2) ;
       t := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2))) ;
       PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;
+      CheckDivModRem(NewTok, t, e1) ;
       GenQuad(MakeOp(NewTok), t, e2, e1) ;
       PushTF(t, GetType(t))
    END

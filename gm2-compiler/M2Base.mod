@@ -72,6 +72,7 @@ FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
+                      DivModRemChecking,
                       Iso, Pim, Pim2, Pim3 ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
@@ -564,6 +565,10 @@ BEGIN
    ExceptionPointerNil   := NulSym ;
    ExceptionNoReturn     := NulSym ;
    ExceptionCase         := NulSym ;
+   ExceptionNonPosDiv    := NulSym ;
+   ExceptionNonPosMod    := NulSym ;
+   ExceptionZeroDiv      := NulSym ;
+   ExceptionZeroRem      := NulSym ;
    ExceptionNo           := NulSym ;
 
    IF BoundsChecking
@@ -588,6 +593,13 @@ BEGIN
    IF CaseElseChecking
    THEN
       ExceptionCase := ImportFrom(m2rts, 'CaseException')
+   END ;
+   IF DivModRemChecking
+   THEN
+      ExceptionNonPosDiv := ImportFrom(m2rts, 'WholeNonPosDivException') ;
+      ExceptionNonPosMod := ImportFrom(m2rts, 'WholeNonPosModException') ;
+      ExceptionZeroDiv := ImportFrom(m2rts, 'WholeZeroDivException') ;
+      ExceptionZeroRem := ImportFrom(m2rts, 'WholeZeroRemException')
    END ;
    ExceptionNo := ImportFrom(m2rts, 'NoException')
 END InitBaseProcedures ;

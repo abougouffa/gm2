@@ -33,6 +33,8 @@ EXPORT QUALIFIED HALT, Halt,
                  StaticArraySubscriptException, DynamicArraySubscriptException,
                  ForLoopBeginException, ForLoopToException, ForLoopEndException,
                  PointerNilException, NoReturnException,
+                 WholeNonPosDivException, WholeNonPosModException,
+                 WholeZeroDivException, WholeZeroRemException,
                  CaseException, NoException ;
 
 
@@ -117,6 +119,10 @@ PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope:
 PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 
 
