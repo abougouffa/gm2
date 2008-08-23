@@ -15,64 +15,26 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE except8 ;
+MODULE except ;
 
+FROM Storage IMPORT ALLOCATE ;
 FROM libc IMPORT printf ;
-FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM SYSTEM IMPORT ADR, WORD, THROW ;
-
-
-PROCEDURE fly ;
-VAR
-   r: INTEGER ;
-BEGIN
-   r := printf("fly main body\n") ;
-   IF 4 DIV ip^ = 4
-   THEN
-      r := printf("yes it worked\n")
-   ELSE
-      r := printf("no it failed\n")
-   END
-END fly ;
-
-(*
- *   a GNU M2 version of the Modula-2 example given in the ISO standard.
- *)
-
-PROCEDURE tryFlying ;
-VAR
-   r: INTEGER ;
-BEGIN
-   r := printf("tryFlying main body\n");  
-   fly ;
-EXCEPT
-   r := printf("inside tryFlying exception routine\n") ;
-   IF (ip#NIL) AND (ip^=0)
-   THEN
-      r := printf("set value\n") ;
-      ip^ := 1 ;
-      RETRY
-   END
-END tryFlying ;
-
 
 PROCEDURE keepFlying ;
 VAR
    t: INTEGER ;
 BEGIN
    r := printf("keepFlying main body\n") ;
-   tryFlying ;
+   RETRY
 EXCEPT
    r := printf("inside keepFlying exception routine\n") ;
    IF ip=NIL
    THEN
-      r := printf("allocate memory\n") ;
       NEW(ip) ;
       ip^ := 0 ;
       RETRY
    END
 END keepFlying ;
-
 
 VAR
    r : INTEGER ;
@@ -81,4 +43,4 @@ BEGIN
    ip := NIL ;
    keepFlying ;
    r := printf("all done\n")
-END except8.
+END except.
