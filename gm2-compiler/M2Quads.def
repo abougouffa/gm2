@@ -155,6 +155,7 @@ TYPE
                    SubrangeLowOp, SubrangeHighOp,
                    BuiltinConstOp, StandardFunctionOp,
                    SavePriorityOp, RestorePriorityOp,
+                   SaveExceptionOp, RestoreExceptionOp,
                    RangeCheckOp, ErrorOp) ;
 
 

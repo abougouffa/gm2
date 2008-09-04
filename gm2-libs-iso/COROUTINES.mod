@@ -1,4 +1,5 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -223,7 +224,7 @@ BEGIN
 END LISTEN ;
 
 
-PROCEDURE PROT (): PROTECTION;
+PROCEDURE PROT () : PROTECTION;
   (* Returns the protection of the calling coroutine. *)
 BEGIN
    RETURN currentCoRoutine^.protection

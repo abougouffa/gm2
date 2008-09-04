@@ -79,6 +79,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("created ordered list of modules") },
   { "-fmodules",
       N_("display list of modules and location") },
+  { "-fruntime-modules=",
+      N_("specify the list of runtime modules and their initialization order") },
   { "-fmakeall",
       N_("build a project using make") },
   { "-fmakeall0",

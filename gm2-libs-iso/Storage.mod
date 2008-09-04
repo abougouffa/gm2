@@ -19,8 +19,13 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE Storage ;
 
 FROM libc IMPORT malloc, free ;
-FROM EXCEPTIONS IMPORT ExceptionNumber, RAISE, AllocateSource ;
+FROM M2RTS IMPORT Halt ;
+FROM SYSTEM IMPORT TSIZE ;
 FROM M2EXCEPTION IMPORT M2Exceptions ;
+
+FROM EXCEPTIONS IMPORT ExceptionNumber, RAISE,
+                       AllocateSource, ExceptionSource, IsCurrentSource,
+                       IsExceptionalExecution ;
 
 
 TYPE
@@ -42,7 +47,7 @@ BEGIN
 END InitTree ;
 
 
-PROCEDURE GetSymKey (t: BinaryTree; a: ADDRESS) : CARDINAL ;
+PROCEDURE GetSymKey (t: BinaryTree; a: SYSTEM.ADDRESS) : CARDINAL ;
 VAR
    father,
    child : BinaryTree ;
@@ -58,7 +63,7 @@ BEGIN
 END GetSymKey ;
 
 
-PROCEDURE PutSymKey (t: BinaryTree; a: ADDRESS; amount: CARDINAL) ;
+PROCEDURE PutSymKey (t: BinaryTree; a: SYSTEM.ADDRESS; amount: CARDINAL) ;
 VAR
    father,
    child : BinaryTree ;
@@ -66,18 +71,18 @@ BEGIN
    FindNodeAndParentInTree (t, a, child, father) ;
    IF child=NIL
    THEN
-      (* no child found, now is NameKey less than father or greater? *)
+      (* no child found, now is, a, less than father or greater? *)
       IF father=t
       THEN
          (* empty tree, add it to the left branch of t *)
          child := malloc (TSIZE (child^)) ;
          father^.Left := child
       ELSE
-         IF NameKey<father^.KeyName
+         IF a<father^.Address
          THEN
             child := malloc (TSIZE (child^)) ;
             father^.Left := child
-         ELSIF NameKey>father^.KeyName
+         ELSIF a>father^.Address
          THEN
             child := malloc (TSIZE (child^)) ;
             father^.Right := child
@@ -90,8 +95,8 @@ BEGIN
          Amount  := amount
       END
    ELSE
-      HALT
-      (* Halt ('storage component already stored', __LINE__, __FILE__) *)
+      Halt (__FILE__, __LINE__, __FUNCTION__,
+            'storage component already stored')
    END
 END PutSymKey ;
 
@@ -103,7 +108,7 @@ END PutSymKey ;
                both Left and Right to NIL.
 *)
 
-PROCEDURE DelSymKey (t: SymbolTree; a: ADDRESS) ;
+PROCEDURE DelSymKey (t: BinaryTree; a: SYSTEM.ADDRESS) ;
 VAR
    i, child, father: BinaryTree ;
 BEGIN
@@ -157,11 +162,8 @@ BEGIN
          free (child)
       END
    ELSE
-      HALT
-      (*
-      Halt('trying to delete a storage component that is not in the tree',
-            __LINE__, __FILE__)
-       *)
+      Halt(__FILE__, __LINE__, __FUNCTION__,
+           'trying to delete a storage component that is not in the tree')
    END
 END DelSymKey ;
 
@@ -171,15 +173,15 @@ END DelSymKey ;
                              if an entry is found, father is set to the node above child.
 *)
 
-PROCEDURE FindNodeAndParentInTree (t: SymbolTree; a: SYSTEM.ADDRESS;
-                                   VAR child, father: SymbolTree) ;
+PROCEDURE FindNodeAndParentInTree (t: BinaryTree; a: SYSTEM.ADDRESS;
+                                   VAR child, father: BinaryTree) ;
 BEGIN
    (* remember to skip the sentinal value and assign father and child *)
    father := t ;
    IF t=NIL
    THEN
-      HALT
-      (* Halt ('parameter t should never be NIL', __LINE__, __FILE__) *)
+      Halt (__FILE__, __LINE__, __FUNCTION__,
+            'parameter t should never be NIL')
    END ;
    child := t^.Left ;
    IF child#NIL
@@ -201,7 +203,11 @@ END FindNodeAndParentInTree ;
 
 PROCEDURE ALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL) ;
 BEGIN
-   addr := malloc (amount)
+   addr := malloc (amount) ;
+   IF addr#NIL
+   THEN
+      PutSymKey (storageTree, addr, amount)
+   END
 END ALLOCATE ;
 
 
@@ -214,13 +220,13 @@ BEGIN
 END DEALLOCATE ;
 
 
-PROCEDURE IsStorageException (): BOOLEAN;
+PROCEDURE IsStorageException () : BOOLEAN;
 BEGIN
-   RETURN (storageRaised)
+   RETURN(IsCurrentSource (storageException) )
 END IsStorageException ;
 
 
-PROCEDURE StorageException (): StorageExceptions ;
+PROCEDURE StorageException () : StorageExceptions ;
 BEGIN
    IF NOT IsExceptionalExecution ()
    THEN
@@ -240,20 +246,17 @@ VAR
 BEGIN
    IF addr=NIL
    THEN
-      storageRaised := TRUE ;
       RAISE (storageException, ORD(nilDeallocation), 'deallocating pointer whose value is NIL') ;
       RETURN (FALSE)
    ELSE
       a := GetSymKey (storageTree, addr) ;
       IF a=0
       THEN
-         storageRaised := TRUE ;
          RAISE (storageException, ORD(pointerToUnallocatedStorage), 'trying to deallocate memory which has never been allocated') ;
          RETURN (FALSE)
       END ;
       IF a#amount
       THEN
-         storageRaised := TRUE ;
          RAISE (storageException, ORD(wrongStorageToUnallocate), 'wrong amount of storage being deallocated') ;
          RETURN (FALSE)
       END
@@ -270,7 +273,6 @@ END VerifyDeallocate ;
 PROCEDURE Init ;
 BEGIN
    AllocateSource (storageException) ;
-   storageRaised := FALSE ;
    InitTree (storageTree)
 END Init ;
 
@@ -279,7 +281,6 @@ VAR
    storageException: ExceptionSource ;
    currentException: StorageExceptions ;
    storageTree     : BinaryTree ;
-   storageRaised   : BOOLEAN ;
 BEGIN
    Init
 END Storage.

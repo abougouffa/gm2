@@ -1,5 +1,6 @@
 /* Definitions for specs for GNU Modula-2.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc.
    Contributed by Gaius Mulley.
 
 This file is part of GNU Modula-2.
@@ -36,10 +37,10 @@ Boston, MA 02110-1301, USA.  */
            %{fmakeinit:gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %b.lst -o _m2_%b.cpp} \n\
            %{fmodules:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                          gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
-                                         gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                         gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %g.lst} \n\
                                  %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
-                                         gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                         gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
                                          gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*}  %{v} -c %g.lst}} \n\
                        %{fuselist:gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} %{fobject-path=*} %{v} -c %b.lst}}} \n\
       %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
@@ -51,28 +52,28 @@ Boston, MA 02110-1301, USA.  */
                                    make -r -f %g.m }}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                              gm2l -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
-                                             gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                             gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %g.lst -o %g.cpp \n\
                                              gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.cpp \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                                     %{!fshared:-ar -o %w%d%g.a} \
-                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %g.lst } \n\
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst } \n\
                                       %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
-                                             gm2lsub %{!pipe:%g.l} -o %g.lst \n\
+                                             gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %g.lst -o %g.cpp \n\
                                              gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.cpp \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                                     %{!fshared:-ar -o %w%d%g.a} \
-                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %g.lst }} \n\
+                                                    %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst }} \n\
                            %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %b.lst -o %g.cpp \n\
                                       gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.cpp \n\
                                       rm -f %Ustart%d.a \n\
                                       gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                              %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                              %{!fshared:-ar -o %w%d%g.a} \
-                                             %{fshared:%w%{o:%{o*}}%:nolink() %:objects() } %b.lst }}}} \n\
+                                             %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %b.lst }}}} \n\
     ", 0, 0, 0},

@@ -22,7 +22,7 @@ FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADDRESS, ADR, THROW ;
 FROM libc IMPORT write ;
-FROM M2RTS IMPORT HALT ;
+FROM M2RTS IMPORT HALT, Halt ;
 
 IMPORT M2EXCEPTION ;
 
@@ -55,6 +55,7 @@ PROCEDURE KillHandlers (h: Handler) : Handler ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
+   inException: BOOLEAN ;
    freeHandler: Handler ;
    freeEHB,
    currentEHB : EHBlock ;
@@ -468,11 +469,68 @@ END PopHandler ;
 
 
 (*
+   IsInExceptionState - returns TRUE if the program is currently
+                        in the exception state.
+*)
+
+PROCEDURE IsInExceptionState () : BOOLEAN ;
+BEGIN
+   RETURN( inException )
+END IsInExceptionState ;
+
+
+(*
+   SetExceptionState - returns the current exception state and
+                       then sets the current exception state to,
+                       to.
+*)
+
+PROCEDURE SetExceptionState (to: BOOLEAN) : BOOLEAN ;
+VAR
+   old: BOOLEAN ;
+BEGIN
+   old := inException ;
+   inException := to ;
+   RETURN( old )
+END SetExceptionState ;
+
+
+(*
+   SwitchExceptionState - assigns, from, with the current exception
+                          state and then assigns the current exception
+                          to, to.
+*)
+
+PROCEDURE SwitchExceptionState (VAR from: BOOLEAN; to: BOOLEAN) ;
+BEGIN
+   from := inException ;
+   inException := to
+END SwitchExceptionState ;
+
+
+(*
+   GetBaseExceptionBlock - returns the initial language exception block
+                           created.
+*)
+
+PROCEDURE GetBaseExceptionBlock () : EHBlock ;
+BEGIN
+   IF currentEHB=NIL
+   THEN
+      Halt(__FILE__, __LINE__, __FUNCTION__, 'currentEHB has not been initialized yet')
+   ELSE
+      RETURN( currentEHB )
+   END
+END GetBaseExceptionBlock ;
+
+
+(*
    Init - initialises this module.
 *)
 
 PROCEDURE Init ;
 BEGIN
+   inException := FALSE ;
    freeHandler := NIL ;
    freeEHB := NIL ;
    currentEHB := InitExceptionBlock() ;

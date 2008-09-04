@@ -1,3 +1,55 @@
+2008-09-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  replaced gm2lsub with gm2lorder.
+	  now build and install M2 ISO modules, M2EXCEPTION.mod,
+	  EXCEPTIONS.mod and Storage.mod.
+	* gm2/Makefile.in:  replaced gm2lsub with gm2lorder.
+	* gm2/gm2spec.c:  tidied up static function declarations.
+	  Added ability to remember link arguments and return these
+	  as a string to lang-specs.h.
+	* gm2/lang-specs.h:  replaced gm2lsub with gm2lorder.
+	  Tidied up dates.  pass linkargs to gm2lorder.  Also pass
+	  -fruntime-modules= to gm2lorder.
+	* gm2/gm2-compiler/Indexing.def:  tidied up dates.
+	* gm2/gm2-compiler/Indexing.mod:  tidied up dates.
+	* gm2/gm2-compiler/M2Base.mod:  ensure that the runtime
+	  module (RTExceptions) is parsed.
+	* gm2/gm2-compiler/M2GenGCC.mod:  implement (CodeSaveException)
+	  and (CodeRestoreException).  Call these procedures
+	  appropriately.
+	* gm2/gm2-compiler/M2Quads.mod:  add SaveExceptionOp and
+	  RestoreExceptionOp to the repetoir of quadruples.
+	  (BuildRTExceptEnter) new function.  (BuildRTExceptLeave)
+	  new function.
+	* gm2/gm2-compiler/gm2lcc.mod:  tidied up dates.  Fixed off
+	  by one bug when testing for '-l'.  Added test for '-L'.
+	* gm2/gm2-compiler/gm2lgen.mod:  fixed bug in writing out
+	  DefaultErrorCatch prototype.  Fixed cast bugs.
+	* gm2/gm2-libs/RTExceptions.def:  (IsInExceptionState),
+	  (SetExecptionState), (SwitchExceptionState),
+	  (GetBaseExceptionBlock) new procedures defined.
+	* gm2/gm2-libs/RTExceptions.mod:  (IsInExceptionState),
+	  (SetExecptionState), (SwitchExceptionState),
+	  (GetBaseExceptionBlock) new procedures implemented.
+        * gm2/gm2-libs/SYSTEM.def:  fixed dates.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  added THROW
+	  to export list.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  fixed dates.
+        * gm2/gm2-libs-iso/EXCEPTIONS.mod:  fixed dates.
+	  Completed implementing the module.
+        * gm2/gm2-libs-iso/M2EXCEPTION.mod:  completed implementing
+	  the module.
+	* gm2/gm2-libs-iso/M2RTS.def:  fixed dates.
+	* gm2/gm2-libs-iso/Storage.mod:  completed implementing
+	  the module.
+	* gm2/gm2-libs-min/SYSTEM.def:  added THROW
+	  to export list.
+	* gm2/ulm-lib-gm2/sys/SYSTEM.def:  fixed dates and added THROW
+	  to export list.
+	* gm2/gm2-compiler/gm2lsub.mod:   removed file.
+	* gm2/gm2-compiler/gm2lorder.mod:   new file (a placement for
+	  gm2lsub.mod).
+	
 2008-08-23       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  replaces list of checking flags with

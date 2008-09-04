@@ -82,6 +82,7 @@ FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
+                   True,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
@@ -305,6 +306,8 @@ VAR
 (* %%%FORWARD%%%
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
+PROCEDURE CodeSaveException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE CodeRestoreException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
@@ -564,7 +567,9 @@ BEGIN
    OptimizeOnOp       : |
    OptimizeOffOp      : |
    RangeCheckOp       : CodeRange(q, op1, op2, op3) |
-   ErrorOp            : CodeError(q, op1, op2, op3)
+   ErrorOp            : CodeError(q, op1, op2, op3) |
+   SaveExceptionOp    : CodeSaveException(q, op1, op2, op3) |
+   RestoreExceptionOp : CodeRestoreException(q, op1, op2, op3)
 
    ELSE
       WriteFormat1('quadruple %d not yet implemented', q) ;
@@ -881,6 +886,34 @@ PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
 BEGIN
    FoldRangeCheck(tokenno, l, q, op3)
 END FoldRange ;
+
+
+(*
+   CodeSaveException - op1 := op3(TRUE)
+*)
+
+PROCEDURE CodeSaveException (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   BuildParam(Mod2Gcc(True)) ;
+   t := BuildProcedureCallTree(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+   BuildFunctValue(Mod2Gcc(op1))
+END CodeSaveException ;
+
+
+(*
+   CodeRestoreException - op1 := op3(op1)
+*)
+
+PROCEDURE CodeRestoreException (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   BuildParam(Mod2Gcc(op1)) ;
+   t := BuildProcedureCallTree(Mod2Gcc(op3), Mod2Gcc(GetType(op3))) ;
+   BuildFunctValue(Mod2Gcc(op1))
+END CodeRestoreException ;
 
 
 (*

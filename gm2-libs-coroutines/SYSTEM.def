@@ -30,7 +30,7 @@ DEFINITION MODULE SYSTEM ;
 
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
-                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE,
+                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE, THROW,
 
                  (* and the rest are implemented in SYSTEM.mod *)
                  PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,

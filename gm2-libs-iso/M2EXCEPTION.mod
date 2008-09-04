@@ -17,20 +17,37 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE M2EXCEPTION ;
 
-PROCEDURE M2Exception (): M2Exceptions;
+IMPORT RTExceptions ;
+FROM SYSTEM IMPORT ADR ;
+
+
+PROCEDURE M2Exception () : M2Exceptions ;
   (* If the current coroutine is in the exceptional execution state because of the raising
      of a language exception, returns the corresponding enumeration value, and otherwise
      raises an exception.
   *)
 BEGIN
-   
+   IF IsM2Exception()
+   THEN
+      RETURN( VAL(M2Exceptions, RTExceptions.GetNumber(RTExceptions.GetExceptionBlock())) )
+   ELSE
+      RTExceptions.Raise(exException,
+                         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+                         ADR('current coroutine is not in the exceptional execution state'))
+   END
 END M2Exception ;
 
 
-PROCEDURE IsM2Exception (): BOOLEAN;
+PROCEDURE IsM2Exception () : BOOLEAN ;
   (* If the current coroutine is in the exceptional execution state because of the raising
      of a language exception, returns TRUE, and otherwise returns FALSE.
   *)
+BEGIN
+   RETURN(
+          RTExceptions.IsInExceptionState() AND
+          (RTExceptions.GetBaseExceptionBlock()=RTExceptions.GetExceptionBlock())
+         )
+END IsM2Exception ;
 
 
 END M2EXCEPTION.

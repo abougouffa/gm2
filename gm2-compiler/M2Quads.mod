@@ -240,6 +240,7 @@ VAR
    WithStack            : StackOfAddress ;
    TryStack,
    CatchStack,
+   ExceptStack,
    AutoStack,
    ExitStack,
    ReturnStack          : StackOfWord ;   (* Return quadruple of the procedure.      *)
@@ -1065,7 +1066,9 @@ BEGIN
    IndrXOp           : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, TRUE, QuadNo) |
 
-   RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo)
+   RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo) |
+   SaveExceptionOp   : CheckAddVariableWrite(Oper1, FALSE, QuadNo) |
+   RestoreExceptionOp: CheckAddVariableRead(Oper1, FALSE, QuadNo)
 
    ELSE
    END
@@ -1185,7 +1188,9 @@ BEGIN
    IndrXOp           : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckRemoveVariableRead(Oper3, TRUE, QuadNo) |
 
-   RangeCheckOp      : CheckRangeRemoveVariableRead(Oper3, QuadNo)
+   RangeCheckOp      : CheckRangeRemoveVariableRead(Oper3, QuadNo) |
+   SaveExceptionOp   : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) |
+   RestoreExceptionOp: CheckRemoveVariableRead(Oper1, FALSE, QuadNo)
 
    ELSE
    END
@@ -1815,6 +1820,55 @@ END EndBuildFinally ;
 
 
 (*
+   BuildRTExceptEnter - informs RTExceptions that we are about to enter the except state.
+*)
+
+PROCEDURE BuildRTExceptEnter ;
+VAR
+   old,
+   ProcSym: CARDINAL ;
+BEGIN
+   (* now inform the Modula-2 runtime we are in the exception state *)
+   ProcSym := EnsureImportedFrom(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+   IF ProcSym=NulSym
+   THEN
+      ErrorString(NewWarning(GetTokenNo()),
+                  InitString('no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling'))
+   ELSE
+      old := MakeTemporary(RightValue) ;
+      PutVar(old, Boolean) ;
+      GenQuad(SaveExceptionOp, old, NulSym, ProcSym) ;
+      PushWord(ExceptStack, old)
+   END
+END BuildRTExceptEnter ;
+
+
+(*
+   BuildRTExceptLeave - informs RTExceptions that we are about to leave the except state.
+                        If, destroy, is TRUE then pop the ExceptStack.
+*)
+
+PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ;
+VAR
+   old,
+   ProcSym: CARDINAL ;
+BEGIN
+   (* now inform the Modula-2 runtime we are in the exception state *)
+   ProcSym := EnsureImportedFrom(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+   IF ProcSym#NulSym
+   THEN
+      IF destroy
+      THEN
+         old := PopWord(ExceptStack)
+      ELSE
+         old := PeepWord(ExceptStack, 1)
+      END ;
+      GenQuad(RestoreExceptionOp, old, NulSym, ProcSym)
+   END
+END BuildRTExceptLeave ;
+
+
+(*
    BuildExceptInitial - adds an CatchBeginOp, CatchEndOp quadruple
                         in the current block.
 *)
@@ -1839,7 +1893,8 @@ BEGIN
       ErrorFormat0(NewError(GetTokenNo()),
                    'only allowed one EXCEPT statement in a procedure or module')
    END ;
-   PushWord(CatchStack, NextQuad-1)
+   PushWord(CatchStack, NextQuad-1) ;
+   BuildRTExceptEnter
 END BuildExceptInitial ;
 
 
@@ -1876,6 +1931,7 @@ BEGIN
       ErrorFormat0(NewError(GetTokenNo()),
                    'RETRY statement must occur after an EXCEPT statement in the same module or procedure block')
    ELSE
+      BuildRTExceptLeave(FALSE) ;
       GenQuad(RetryOp, NulSym, NulSym, PeepWord(TryStack, 1))
    END
 END BuildRetry ;
@@ -8250,6 +8306,7 @@ BEGIN
    PopT(ProcSym) ;
    IF HasExceptionBlock(ProcSym)
    THEN
+      BuildRTExceptLeave(TRUE) ;
       GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
    END ;
    IF GetType(ProcSym)#NulSym
@@ -10901,7 +10958,11 @@ BEGIN
       CatchEndOp        : |
 
       RangeCheckOp,
-      ErrorOp           : WriteRangeCheck(Operand3)
+      ErrorOp           : WriteRangeCheck(Operand3) |
+      SaveExceptionOp,
+      RestoreExceptionOp: WriteOperand(Operand1) ;
+                          printf0('  ') ;
+                          WriteOperand(Operand3)
 
       ELSE
          InternalError('quadruple not recognised', __FILE__, __LINE__)
@@ -10992,7 +11053,9 @@ BEGIN
    SavePriorityOp           : printf0('SavePriority      ') |
    RestorePriorityOp        : printf0('RestorePriority   ') |
    RangeCheckOp             : printf0('RangeCheck        ') |
-   ErrorOp                  : printf0('Error             ')
+   ErrorOp                  : printf0('Error             ') |
+   SaveExceptionOp          : printf0('SaveException     ') |
+   RestoreExceptionOp       : printf0('RestoreException  ')
 
    ELSE
       InternalError('operator not expected', __FILE__, __LINE__)
@@ -11670,6 +11733,7 @@ BEGIN
    PriorityStack := InitStackWord() ;
    TryStack := InitStackWord() ;
    CatchStack := InitStackWord() ;
+   ExceptStack := InitStackWord() ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;

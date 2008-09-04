@@ -521,6 +521,8 @@ END ImportFrom ;
 *)
 
 PROCEDURE InitBaseProcedures ;
+VAR
+   rtexceptions: CARDINAL ;
 BEGIN
    (*
       The pseudo procedures NEW and DISPOSE are in fact "macro"
@@ -601,7 +603,10 @@ BEGIN
       ExceptionZeroDiv := ImportFrom(m2rts, 'WholeZeroDivException') ;
       ExceptionZeroRem := ImportFrom(m2rts, 'WholeZeroRemException')
    END ;
-   ExceptionNo := ImportFrom(m2rts, 'NoException')
+   ExceptionNo := ImportFrom(m2rts, 'NoException') ;
+
+   (* ensure that this module is included *)
+   rtexceptions := MakeDefinitionSource(MakeKey('RTExceptions')) ;
 END InitBaseProcedures ;
 
 

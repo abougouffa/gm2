@@ -36,7 +36,7 @@ all:
 
 clean: force
 	-rm -f *.o *.html *.ps *.dvi *.log *.aux *.info *.ps *.aux *~
-	-rm -f gm2l gm2lcc gm2lgen gm2lsub linkcommand mod_init.c
+	-rm -f gm2l gm2lcc gm2lgen gm2lorder linkcommand mod_init.c
 	( cd p2c/p2c-src ; $(MAKE) "QUIAT=$(QUIAT)" clean )
 	-rm -f gm2-libs-boot/*.[aoch] gm2-compiler-boot/*.[aoch] gm2-libs/*.[oa] gm2-compiler/*.[oa] */*~ *~
 	-rm -f gm2-libs-paranoid/*  gm2-compiler-paranoid/*

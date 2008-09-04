@@ -125,6 +125,10 @@ ftarget-ranlib=
 Modula-2 Joined
 full path to target ranlib
 
+fruntime-modules=
+Modula-2 Joined
+specify the list of runtime modules and their initialization order
+
 fcpp
 Modula-2
 use cpp to preprocess the module

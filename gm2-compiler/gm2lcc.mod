@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -383,7 +384,8 @@ END ProcessStartupFile ;
 
 PROCEDURE IsALibrary (s: String) : BOOLEAN ;
 BEGIN
-   IF EqualArray(Mark(Slice(s, 0, 1)), '-l')
+   IF EqualArray(Mark(Slice(s, 0, 2)), '-l') OR
+      EqualArray(Mark(Slice(s, 0, 2)), '-L')
    THEN
       LibrariesFound := TRUE ;
       Libraries := ConCat(ConCatChar(Libraries, ' '), s) ;

@@ -238,13 +238,13 @@ BEGIN
          Fin(WriteS(fo, Mark(InitString('"C"'))))
       END ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void exit(int);\n\n')))))) ;
-      Fin(WriteS(fo, Mark(InitString('extern ')))) ;
-      IF CPlusPlus
-      THEN
-         Fin(WriteS(fo, Mark(InitString('"C"'))))
-      END ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void RTExceptions_DefaultErrorCatch(void);\n'))))))
    END ;
+   Fin(WriteS(fo, Mark(InitString('extern ')))) ;
+   IF CPlusPlus
+   THEN
+      Fin(WriteS(fo, Mark(InitString('"C"'))))
+   END ;
+   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void RTExceptions_DefaultErrorCatch(void);\n')))))) ;
    n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO
@@ -300,7 +300,7 @@ BEGIN
       END ;
       IF SharedLibrary
       THEN
-         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, (void *)0);\n')),
+         Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (0, (char **)0);\n')),
                                       funcname))))
       ELSE
          Fin(WriteS(fo, Mark(Sprintf1(Mark(InitString('    _M2_%s_init (argc, argv);\n')),

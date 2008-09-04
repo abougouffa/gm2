@@ -81,17 +81,21 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 					    {"SO_O2", {  TRUE,     TRUE}},
 					    {"",      { FALSE,    FALSE}}};
 
-void add_default_directories (int incl, char ***in_argv,
-			      const char *option, libs which_lib, styles s);
-void add_arg (int incl, char ***in_argv, const char *str);
-void insert_arg (int incl, int *in_argc, char ***in_argv);
+static void add_default_directories (int incl, char ***in_argv,
+				     const char *option, libs which_lib, styles s);
+static void add_arg (int incl, char ***in_argv, const char *str);
+static void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
-void add_exec_prefix(int, int *in_argc, char ***in_argv);
+static void add_exec_prefix(int, int *in_argc, char ***in_argv);
 extern char *find_executable (const char *);
 static const char *get_objects (int argc, const char *argv[]);
-void remove_arg (int i, int *in_argc, const char ***in_argv);
-int is_object (const char *s);
-void remember_object (const char *s);
+static const char *get_link_args (int argc, const char *argv[]);
+static void remove_arg (int i, int *in_argc, const char ***in_argv);
+static int is_object (const char *s);
+static void remember_object (const char *s);
+static int is_link_arg (const char *s);
+static void remember_link_arg (const char *s);
+static void scan_for_link_args (int *in_argc, const char *const **in_argv);
 static styles get_style (flag_set flags);
 static void add_link_from_include (int link, char **in_argv[],
                                    int incl, const char *option);
@@ -104,6 +108,7 @@ typedef struct object_list {
 } object_list;
 
 static object_list *head_objects = NULL;
+static object_list *head_link_args = NULL;
 static int inclPos=-1;
 static int linkPos=-1;
 
@@ -120,6 +125,7 @@ static int linkPos=-1;
  *                    gm2lcc where to pick up the `ar' utility.
  */
 
+static
 void add_exec_prefix (int pos, int *in_argc, char ***in_argv)
 {
   char *prefix;
@@ -143,7 +149,7 @@ void add_exec_prefix (int pos, int *in_argc, char ***in_argv)
   (*in_argv)[pos] = xstrdup(prefix);
 }
 
-void
+static void
 add_arg (int incl, char ***in_argv, const char *str)
 {
   if ((*in_argv)[incl] == NULL)
@@ -152,7 +158,7 @@ add_arg (int incl, char ***in_argv, const char *str)
      fprintf(stderr, "internal error not adding to a non empty space\n");
 }
 
-void
+static void
 remove_arg (int i, int *in_argc, const char ***in_argv)
 {
   while (i<(*in_argc)) {
@@ -162,7 +168,7 @@ remove_arg (int i, int *in_argc, const char ***in_argv)
   (*in_argc)--;
 }
 
-int
+static int
 is_object (const char *s)
 {
   return (strlen(s)>strlen(TARGET_OBJECT_SUFFIX) &&
@@ -170,7 +176,7 @@ is_object (const char *s)
 		  TARGET_OBJECT_SUFFIX) == 0));
 }
 
-void
+static void
 remember_object (const char *s)
 {
   object_list *n = (object_list *)xmalloc (sizeof (object_list));
@@ -179,13 +185,29 @@ remember_object (const char *s)
   head_objects = n;
 }
 
+static int
+is_link_arg (const char *s)
+{
+  return ((strlen(s)>2) &&
+	  ((strncmp(s, "-l", 2) == 0) || (strncmp(s, "-L", 2) == 0)));
+}
+
+static void
+remember_link_arg (const char *s)
+{
+  object_list *n = (object_list *)xmalloc (sizeof (object_list));
+  n->name = s;
+  n->next = head_link_args;
+  head_link_args = n;
+}
+
 /*
  *  add_default_directories - add the current working
  *                            directory and the GM2 default library
  *                            directory to the end of the search path.
  */
 
-void
+static void
 add_default_directories (int incl, char ***in_argv,
 			 const char *option, libs which_lib, styles s)
 {
@@ -268,7 +290,7 @@ add_link_from_include (int pos, char **in_argv[], int include, const char *optio
  *               in_argv and in_argc are updated accordingly.
  */
 
-void
+static void
 insert_arg (int pos, int *in_argc, char ***in_argv)
 {
   int i=0;
@@ -296,7 +318,8 @@ insert_arg (int pos, int *in_argc, char ***in_argv)
  *  get_style - returns the style of libraries required.
  */
 
-static styles get_style (flag_set flags)
+static styles
+get_style (flag_set flags)
 {
   styles s;
 
@@ -311,12 +334,23 @@ static styles get_style (flag_set flags)
  *  add_lstdcpp - add -lstdc++ to the command line.
  */
 
-static
-void
+static void
 add_lstdcpp (int *in_argc, const char *const **in_argv)
 {
   insert_arg (1, in_argc, (char ***)in_argv);
   add_arg (1, (char ***)in_argv, "-lstdc++");
+}
+
+static void
+scan_for_link_args (int *in_argc, const char *const **in_argv)
+{
+  int i=0;
+
+  while (i<(*in_argc)) {
+    if ((in_argv != NULL) && ((*in_argv)[i] != NULL) && is_link_arg ((*in_argv)[i]))
+      remember_link_arg ((*in_argv)[i]);
+    i++;
+  }
 }
 
 /*
@@ -421,6 +455,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
   if (linking)
     add_lstdcpp(in_argc, in_argv);
+  scan_for_link_args(in_argc, in_argv);
 #if defined(DEBUGGING)
   i = 1;
   while (i<*in_argc) {
@@ -445,7 +480,8 @@ lang_specific_pre_link (void)
  *                specified on the command line.
  */
 
-static const char *get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+static const char *
+get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 {
   char *result = (char *)xmalloc (1);
   int len = 0;
@@ -468,10 +504,37 @@ static const char *get_objects (int argc ATTRIBUTE_UNUSED, const char *argv[] AT
 }
 
 /*
+ *  get_link_args - returns a string containing all arguments
+ *                  related to the link stage.
+ */
+
+static const char *
+get_link_args (int argc ATTRIBUTE_UNUSED,
+	       const char *argv[] ATTRIBUTE_UNUSED)
+{
+  char *result = (char *)xmalloc (1);
+  int len = 0;
+  int alen;
+  object_list *o;
+
+  *result = (char)0;
+
+  for (o = head_link_args; o != NULL; o = o->next) {
+    alen = strlen(o->name);
+    result = (char *)xrealloc (result, len+alen+1);
+    len += alen;
+    strcat(result, o->name);
+    strcat(result, " ");
+  }
+  return result;
+}
+
+/*
  *  no_link - tell gcc.c not to invoke its linker.
  */
 
-static const char *no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
+static const char *
+no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
 {
   force_no_linker = TRUE;
   return "";
@@ -482,5 +545,6 @@ const struct spec_function lang_specific_spec_functions[] =
 {
   { "objects", get_objects},
   { "nolink", no_link},
+  { "linkargs", get_link_args},
   { NULL, NULL }
 };

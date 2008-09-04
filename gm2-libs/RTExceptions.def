@@ -35,7 +35,9 @@ EXPORT QUALIFIED EHBlock,
                  GetTextBuffer, GetTextBufferSize, GetNumber,
                  InitExceptionBlock, KillExceptionBlock,
                  PushHandler, PopHandler,
-                 BaseExceptionsThrow, DefaultErrorCatch ;
+                 BaseExceptionsThrow, DefaultErrorCatch,
+                 IsInExceptionState, SetExceptionState,
+                 SwitchExceptionState, GetBaseExceptionBlock ;
 
 TYPE
    EHBlock ;
@@ -137,6 +139,40 @@ PROCEDURE DefaultErrorCatch ;
 *)
 
 PROCEDURE BaseExceptionsThrow ;
+
+
+(*
+   IsInExceptionState - returns TRUE if the program is currently
+                        in the exception state.
+*)
+
+PROCEDURE IsInExceptionState () : BOOLEAN ;
+
+
+(*
+   SetExceptionState - returns the current exception state and
+                       then sets the current exception state to,
+                       to.
+*)
+
+PROCEDURE SetExceptionState (to: BOOLEAN) : BOOLEAN ;
+
+
+(*
+   SwitchExceptionState - assigns, from, with the current exception
+                          state and then assigns the current exception
+                          to, to.
+*)
+
+PROCEDURE SwitchExceptionState (VAR from: BOOLEAN; to: BOOLEAN) ;
+
+
+(*
+   GetBaseExceptionBlock - returns the initial language exception block
+                           created.
+*)
+
+PROCEDURE GetBaseExceptionBlock ;
 
 
 END RTExceptions.
