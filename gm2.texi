@@ -278,6 +278,12 @@ This is an internal command line option.
 generate a temporary makefile and build all dependent modules and
 link.
 
+@item -fruntime-modules=
+specify, using a comma separated list, the runtime modules and their
+order.  These modules will initialized first before any other modules
+in the application dependancy.  By default the runtime modules list is
+set to @code{Storage,SYSTEM,M2RTS,RTExceptions}.
+
 @item -fbounds
 generate code to check the bounds of subranges and array indexes.
 

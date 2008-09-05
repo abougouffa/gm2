@@ -1,3 +1,15 @@
+2008-09-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/gm2lorder.mod:  Usage now writes
+	  out the default list of system modules.
+	* gm2/gm2.texi:  documented new flag (-fruntime-modules=).
+        * gm2/gm2-compiler/M2Quads.mod:  added prototypes for
+	  BuildRTExceptEnter and BuildRTExceptLeave.  Also
+	  added exception handling for module initialization
+	  and finalization blocks.
+        * gm2/gm2-compiler/gm2lorder.mod:  Usage now prints
+	  the default settings.
+	
 2008-09-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  replaced gm2lsub with gm2lorder.

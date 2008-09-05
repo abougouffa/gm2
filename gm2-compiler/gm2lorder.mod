@@ -182,6 +182,8 @@ BEGIN
    WriteString(StdOut, 'gm2lorder [-h] [-o outputfile] [-fruntime-modules=] inputfile') ; WriteLine(StdOut) ;
    WriteString(StdOut, '    inputfile is a file containing a list of modules, each module on a separate line') ; WriteLine(StdOut) ;
    WriteString(StdOut, '    the list of runtime modules can be specified as follows -fruntime-modules=module1,module2,module3') ; WriteLine(StdOut) ;
+   WriteString(StdOut, '    the default for this flag is -fruntime-modules=') ;
+   WriteString(StdOut, DefaultRuntimeModules) ; WriteLine(StdOut) ;
    FlushBuffer(StdOut) ;
    exit(0)
 END Usage ;

@@ -405,6 +405,8 @@ PROCEDURE CheckVariableAt (sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckAddVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
 PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWARD ;
 PROCEDURE BuildThrowProcedure ; FORWARD ;
+PROCEDURE BuildRTExceptEnter ; FORWARD ;
+PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1762,7 +1764,13 @@ BEGIN
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    CheckVariablesAt(ModuleSym) ;
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
+   PushWord(TryStack, NextQuad) ;
+   PushWord(CatchStack, 0) ;
+   IF HasExceptionBlock(ModuleSym)
+   THEN
+      GenQuad(TryOp, NulSym, NulSym, 0)
+   END
 END StartBuildInit ;
  
  
@@ -1772,6 +1780,11 @@ END StartBuildInit ;
  
 PROCEDURE EndBuildInit ;
 BEGIN
+   IF HasExceptionBlock(GetCurrentModule())
+   THEN
+      BuildRTExceptLeave(TRUE) ;
+      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+   END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
@@ -1800,7 +1813,13 @@ BEGIN
    PushWord(ReturnStack, 0) ;
    PushT(name) ;
    (* CheckVariablesAt(ModuleSym) ; *)
-   CheckNeedPriorityBegin(ModuleSym, ModuleSym)
+   CheckNeedPriorityBegin(ModuleSym, ModuleSym) ;
+   PushWord(TryStack, NextQuad) ;
+   PushWord(CatchStack, 0) ;
+   IF HasExceptionFinally(ModuleSym)
+   THEN
+      GenQuad(TryOp, NulSym, NulSym, 0)
+   END
 END StartBuildFinally ;
  
  
@@ -1810,6 +1829,11 @@ END StartBuildFinally ;
  
 PROCEDURE EndBuildFinally ;
 BEGIN
+   IF HasExceptionFinally(GetCurrentModule())
+   THEN
+      BuildRTExceptLeave(TRUE) ;
+      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+   END ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
    CheckNeedPriorityEnd(GetCurrentModule(), GetCurrentModule()) ;
    PutModuleFinallyEndQuad(GetCurrentModule(), NextQuad) ;
@@ -1958,7 +1982,13 @@ BEGIN
    PutModuleStartQuad(GetCurrentModule(), NextQuad) ;
    GenQuad(InitStartOp, GetPreviousTokenLineNo(), NulSym, GetCurrentModule()) ;
    PushWord(ReturnStack, 0) ;
-   CheckNeedPriorityBegin(GetCurrentModule(), GetCurrentModule())
+   CheckNeedPriorityBegin(GetCurrentModule(), GetCurrentModule()) ;
+   PushWord(TryStack, NextQuad) ;
+   PushWord(CatchStack, 0) ;
+   IF HasExceptionFinally(GetCurrentModule())
+   THEN
+      GenQuad(TryOp, NulSym, NulSym, 0)
+   END
 END StartBuildInnerInit ;
  
  
@@ -1968,6 +1998,11 @@ END StartBuildInnerInit ;
  
 PROCEDURE EndBuildInnerInit ;
 BEGIN
+   IF HasExceptionBlock(GetCurrentModule())
+   THEN
+      BuildRTExceptLeave(TRUE) ;
+      GenQuad(CatchEndOp, NulSym, NulSym, NulSym)
+   END ;
    PutModuleEndQuad(GetCurrentModule(), NextQuad) ;
    CheckVariablesInBlock(GetCurrentModule()) ;
    BackPatch(PopWord(ReturnStack), NextQuad) ;
