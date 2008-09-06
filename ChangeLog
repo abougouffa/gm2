@@ -1,3 +1,18 @@
+2008-09-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Swig.mod:  modified so that it
+	  produces a C++ style swig interface.  Also modified
+	  to include the language independent exception code.
+        * gm2/examples/swig/full-strlib/Makefile:  modified
+	  swig command line to use C++ style interface.
+        * gm2/examples/swig/strlib/Makefile:  modified
+	  swig command line to use C++ style interface.
+	* gm2/examples/swig/tiny/Makefile:  modified
+	  swig command line to use C++ style interface.
+	* gm2/examples/swig/exceptions:  new example which
+	  demostrates Python catching a GNU Modula-2
+	  exception.
+	
 2008-09-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gm2lorder.mod:  Usage now writes

@@ -1,8 +1,8 @@
 
 all: force
 	gm2 -fshared -fsources -I. -c -fPIC -g -fswig MyStrLib.mod
-	swig -python MyStrLib.i
-	gcc -c -fPIC MyStrLib_wrap.c -I/usr/include/python2.4
+	swig -c++ -python MyStrLib.i
+	gcc -c -fPIC MyStrLib_wrap.cxx -I/usr/include/python2.4
 	gm2 -fshared -c -fPIC -g -fmakelist MyStrLib.mod
 	gm2 -fuselist -fobject-path=. -fPIC -g -shared -fshared MyStrLib.mod MyStrLib_wrap.o -o _MyStrLib.so
 	python testlen.py

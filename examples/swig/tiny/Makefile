@@ -1,8 +1,8 @@
 
 all: force
 	gm2 -fshared -fswig -I. -c -fPIC -g -fswig tiny.mod
-	swig -python tiny.i
-	gcc -c -fPIC tiny_wrap.c -I/usr/include/python2.4
+	swig -c++ -python tiny.i
+	gcc -c -fPIC tiny_wrap.cxx -I/usr/include/python2.4
 	gm2 -fshared -c -fPIC -g -fmakelist tiny.mod
 	gm2 -fuselist -fobject-path=. -fPIC -g -shared -fshared tiny.mod tiny_wrap.o -o _tiny.so
 	python testtiny.py
