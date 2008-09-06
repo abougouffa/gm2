@@ -10,7 +10,7 @@
 	* gm2/examples/swig/tiny/Makefile:  modified
 	  swig command line to use C++ style interface.
 	* gm2/examples/swig/exceptions:  new example which
-	  demostrates Python catching a GNU Modula-2
+	  demonstrates Python catching a GNU Modula-2
 	  exception.
 	
 2008-09-05       Gaius Mulley <gaius@gnu.org>
