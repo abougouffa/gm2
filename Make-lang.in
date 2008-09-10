@@ -988,7 +988,9 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
                      Strings.mod       SYSTEM.mod      \
                      TERMINATION.mod   M2RTS.mod       \
                      M2EXCEPTION.mod   EXCEPTIONS.mod  Storage.mod \
-                     RealMath.mod
+                     RealMath.mod      IOChan.mod      RTio.mod
+
+GM2-LIBS-ISO-C     = ErrnoCategory.c
 
 GM2-LIBS-ULM-MODS-STD  = \
               Plot.mod      Archive.mod    EtcGroup.mod   Strings.mod \
@@ -1246,6 +1248,9 @@ gm2/gm2-compiler/M2Version.mod:
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
+gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $< -o $@
 
@@ -1431,7 +1436,8 @@ gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
                     $(GM2-AUTO-MODS:%.mod=gm2/gm2-compiler/%.o)
 	$(RANLIB) $@
 
-build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o)
+build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o) \
+                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/%.o)
 
 build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \

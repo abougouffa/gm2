@@ -260,6 +260,7 @@ TYPE
                IsBuiltin     : BOOLEAN ;    (* Was it declared __BUILTIN__ ? *)
                BuiltinName   : Name ;       (* name of equivalent builtin    *)
                IsInline      : BOOLEAN ;    (* Was is declared __INLINE__ ?  *)
+               ReturnOptional: BOOLEAN ;    (* Is the return value optional? *)
                Unresolved    : SymbolTree ; (* All symbols currently         *)
                                             (* unresolved in this procedure. *)
                ScopeQuad     : CARDINAL ;   (* Index into quads for scope    *)
@@ -308,6 +309,7 @@ TYPE
                HasOptArg     : BOOLEAN ;    (* Does this procedure use [ ] ? *)
                OptArgInit    : CARDINAL ;   (* The optarg initial value.     *)
                ReturnType    : CARDINAL ;   (* Return type for function.     *)
+               ReturnOptional: BOOLEAN ;    (* Is the return value optional? *)
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                TotalParamSize: PtrToValue ; (* size of all parameters.       *)
@@ -2644,6 +2646,7 @@ BEGIN
             IsBuiltin := FALSE ;         (* Was it declared __BUILTIN__ ? *)
             BuiltinName := NulName ;     (* name of equivalent builtin    *)
             IsInline := FALSE ;          (* Was is declared __INLINE__ ?  *)
+            ReturnOptional := FALSE ;    (* Is the return value optional? *)
             Scope := GetCurrentScope() ; (* Scope of procedure.           *)
             InitTree(Unresolved) ;       (* All symbols currently         *)
                                          (* unresolved in this procedure. *)
@@ -6411,6 +6414,81 @@ END IsType ;
 
 
 (*
+   IsReturnOptional - returns TRUE if the return value for, sym, is
+                      optional.
+*)
+
+PROCEDURE IsReturnOptional (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: RETURN( Procedure.ReturnOptional ) |
+      ProcTypeSym : RETURN( ProcType.ReturnOptional )
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END IsReturnOptional ;
+
+
+(*
+   SetReturnOptional - sets the ReturnOptional field in the Procedure or
+                       ProcType symboltable entry.
+*)
+
+PROCEDURE SetReturnOptional (sym: CARDINAL; isopt: BOOLEAN) ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ProcedureSym: Procedure.ReturnOptional := isopt |
+      ProcTypeSym : ProcType.ReturnOptional := isopt
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END SetReturnOptional ;
+
+
+(*
+   CheckOptFunction - checks to see whether the optional return value
+                      has been set before and if it differs it will
+                      generate an error message.  It will set the
+                      new value to, isopt.
+*)
+
+PROCEDURE CheckOptFunction (sym: CARDINAL; isopt: BOOLEAN) ;
+VAR
+   n: Name ;
+   e: Error ;
+BEGIN
+   IF GetType(sym)#NulSym
+   THEN
+      IF IsReturnOptional(sym) AND (NOT isopt)
+      THEN
+         n := GetSymName(sym) ;
+         e := NewError(GetTokenNo()) ;
+         ErrorFormat1(e, 'function (%a) has no optional return value here', n) ;
+         e := ChainError(GetDeclared(sym), e) ;
+         ErrorFormat1(e, 'whereas the same function (%a) was declared to have an optional return value at this point', n)
+      ELSIF (NOT IsReturnOptional(sym)) AND isopt
+      THEN
+         n := GetSymName(sym) ;
+         e := NewError(GetTokenNo()) ;
+         ErrorFormat1(e, 'function (%a) has an optional return value', n) ;
+         e := ChainError(GetDeclared(sym), e) ;
+         ErrorFormat1(e, 'whereas the same function (%a) was declared to have no optional return value at this point', n)
+      END
+   END ;
+   SetReturnOptional(sym, isopt)
+END CheckOptFunction ;
+
+
+(*
    PutFunction - Places a TypeSym as the return type to a procedure Sym.
 *)
 
@@ -6420,14 +6498,34 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym: |
-      ProcedureSym: Procedure.ReturnType := TypeSym |
-      ProcTypeSym : ProcType.ReturnType := TypeSym
+      ProcedureSym: CheckOptFunction(Sym, FALSE) ; Procedure.ReturnType := TypeSym |
+      ProcTypeSym : CheckOptFunction(Sym, FALSE) ; ProcType.ReturnType := TypeSym
 
       ELSE
          InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
       END
    END
 END PutFunction ;
+
+
+(*
+   PutOptFunction - places a TypeSym as the optional return type to a procedure Sym.
+*)
+
+PROCEDURE PutOptFunction (Sym: CARDINAL; TypeSym: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ErrorSym: |
+      ProcedureSym: CheckOptFunction(Sym, TRUE) ; Procedure.ReturnType := TypeSym |
+      ProcTypeSym : CheckOptFunction(Sym, TRUE) ; ProcType.ReturnType := TypeSym
+
+      ELSE
+         InternalError('expecting a Procedure or ProcType symbol', __FILE__, __LINE__)
+      END
+   END
+END PutOptFunction ;
 
 
 (*
@@ -8015,15 +8113,16 @@ BEGIN
          ProcTypeSym: ProcType.ReturnType := NulSym ;
                       ProcType.name := ProcTypeName ;
                       InitList(ProcType.ListOfParam) ;
-                      ProcType.HasVarArgs := FALSE ;   (* Does this proc type use ... ? *)
-                      ProcType.HasOptArg  := FALSE ;   (* Does this proc type use [ ] ? *)
-                      ProcType.OptArgInit := NulSym ;  (* The optarg initial value.     *)
+                      ProcType.HasVarArgs := FALSE ;     (* Does this proc type use ... ? *)
+                      ProcType.HasOptArg  := FALSE ;     (* Does this proc type use [ ] ? *)
+                      ProcType.OptArgInit := NulSym ;    (* The optarg initial value.     *)
+                      ProcType.ReturnOptional := FALSE ; (* Is the return value optional? *)
                       ProcType.Scope := GetCurrentScope() ;
-                                                       (* scope of procedure.           *)
+                                                         (* scope of procedure.           *)
                       ProcType.Size := InitValue() ;
                       ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
-                      ProcType.Unbounded := unbounded ;   (* The unbounded for this *)
-                      InitWhereDeclared(ProcType.At)   (* Declared here *)
+                      ProcType.Unbounded := unbounded ;  (* The unbounded for this *)
+                      InitWhereDeclared(ProcType.At)     (* Declared here *)
 
          ELSE
             InternalError('expecting ProcType symbol', __FILE__, __LINE__)

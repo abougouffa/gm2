@@ -91,7 +91,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        BuildProcedureHeading,
                        StartBuildProcedure,
                        EndBuildProcedure,
-                       BuildFunction,
+                       BuildFunction, BuildOptFunction,
 
                        BuildPointerType,
                        BuildRecord, BuildFieldRecord,
@@ -805,17 +805,20 @@ FormalTypeList := "(" ( ")" FormalReturn |
                         ProcedureParameters 
                   ")" FormalReturn ) =:
 
-FormalReturn := [ ":" Qualident                                            % BuildFunction ; %
-                ] =:
+FormalReturn := [ ":" OptReturnType ] =:
+
+OptReturnType := "[" Qualident                                             % BuildOptFunction %
+                               "]" | Qualident                             % BuildFunction %
+               =:
 
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
 
-ProcedureParameter :=  "..."                                                % BuildFormalVarArgs %
-                       | "VAR"                                              % PushT(VarTok) ; %
-                       FormalType                                           % BuildFormalType ; %
-                       |                                                    % PushT(NulTok) ; %
-                       FormalType                                           % BuildFormalType ; %
+ProcedureParameter :=  "..."                                               % BuildFormalVarArgs %
+                       | "VAR"                                             % PushT(VarTok) ; %
+                       FormalType                                          % BuildFormalType ; %
+                       |                                                   % PushT(NulTok) ; %
+                       FormalType                                          % BuildFormalType ; %
                     =:
 
 VarIdent := Ident                                                          % VAR
@@ -1004,10 +1007,8 @@ DefFormalParameters := "("
                         [ DefMultiFPSection ]                              % VAR n: CARDINAL; %
                                                                            % PopT(n) ; (* remove param count *) %
                         ")"
-                        [ ":" Qualident                                    % BuildFunction %
-                                        ]
-                                                                           % PushT(n) ; (* restore param count *) %
-                      =:
+                        FormalReturn                                       % PushT(n) ; (* restore param count *) %
+                     =:
 
 DefMultiFPSection := DefExtendedFP |
                      FPSection [ ";" DefMultiFPSection ] =:
@@ -1016,16 +1017,14 @@ FormalParameters := "("
                     [ MultiFPSection ]                                     % VAR n: CARDINAL; %
                                                                            % PopT(n) ; (* remove param count *) %
                     ")"
-                    [ ":" Qualident                                        % BuildFunction %
-                                    ]
-                                                                           % PushT(n) ; (* restore param count *) %
-                    =:
+                    FormalReturn                                           % PushT(n) ; (* restore param count *) %
+                  =:
 
 MultiFPSection := ExtendedFP |
                   FPSection [ ";" MultiFPSection ] =:
 
 FPSection := NonVarFPSection | VarFPSection
-          =:
+           =:
 
 DefExtendedFP := DefOptArg | "..."                                         % BuildVarArgs %
                =:

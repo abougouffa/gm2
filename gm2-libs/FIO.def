@@ -41,6 +41,7 @@ EXPORT QUALIFIED (* types *)
                  WriteNBytes, ReadNBytes,
                  FlushBuffer,
                  GetUnixFileDescriptor,
+                 GetFileName,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
 
@@ -267,6 +268,13 @@ PROCEDURE SetPositionFromBeginning (f: File; pos: CARDINAL) ;
 *)
 
 PROCEDURE FindPosition (f: File) : CARDINAL ;
+
+
+(*
+   GetFileName - assigns, a, with the filename associated with, f.
+*)
+
+PROCEDURE GetFileName (f: File; VAR a: ARRAY OF CHAR) ;
 
 
 END FIO.

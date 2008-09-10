@@ -136,7 +136,7 @@ EXPORT QUALIFIED NulSym,
                  PutArraySubscript, GetArraySubscript,
                  PutArray,
                  PutType,
-                 PutFunction,
+                 PutFunction, PutOptFunction,
                  PutParam, PutVarParam, PutParamName,
                  PutProcTypeParam, PutProcTypeVarParam,
                  PutPointer,
@@ -202,6 +202,7 @@ EXPORT QUALIFIED NulSym,
                  IsProcedureBuiltin, IsProcedureInline,
                  IsModuleWithinProcedure,
                  IsVariableAtAddress,
+                 IsReturnOptional,
 
                  ForeachProcedureDo,
                  ProcedureParametersDefined,
@@ -1154,6 +1155,21 @@ PROCEDURE PutType (Sym: CARDINAL; TypeSymbol: CARDINAL) ;
 *)
 
 PROCEDURE PutFunction (Sym: CARDINAL; TypeSym: CARDINAL) ;
+
+
+(*
+   PutOptFunction - places a TypeSym as the optional return type to a procedure Sym.
+*)
+
+PROCEDURE PutOptFunction (Sym: CARDINAL; TypeSym: CARDINAL) ;
+
+
+(*
+   IsReturnOptional - returns TRUE if the return value for, sym, is
+                      optional.
+*)
+
+PROCEDURE IsReturnOptional (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

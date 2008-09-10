@@ -51,6 +51,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildCaseElse, BuildCaseEnd, BuildCaseCheck,
                  BuildCaseRange, BuildCaseEquality,
                  BuildNulParam, BuildProcedureCall,
+                 CheckBuildFunction,
                  BuildFunctionCall, BuildConstFunctionCall,
                  BuildProcedureStart, BuildProcedureEnd,
                  BuildProcedureBegin,
@@ -1308,6 +1309,33 @@ PROCEDURE BuildNulParam ;
 *)
 
 PROCEDURE BuildProcedureCall ;
+
+
+(*
+   CheckBuildFunction - checks to see whether ProcSym is a function
+                        and if so it adds a TempSym value which will
+                        hold the return value once the function finishes.
+                        This procedure also generates an error message
+                        if the user is calling a function and ignoring
+                        the return result.  The additional TempSym
+                        is not created if ProcSym is a procedure
+                        and the stack is unaltered.
+
+                        The Stack:
+
+
+                       Entry                      Exit
+
+                Ptr ->
+
+                                                  +----------------+
+                                                  | ProcSym | Type |
+                       +----------------+         |----------------|
+                       | ProcSym | Type |         | TempSym | Type |
+                       |----------------|         |----------------|
+*)
+
+PROCEDURE CheckBuildFunction () : BOOLEAN ;
 
 
 (*

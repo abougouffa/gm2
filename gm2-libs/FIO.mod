@@ -1263,6 +1263,41 @@ END FindPosition ;
 
 
 (*
+   GetFileName - assigns, a, with the filename associated with, f.
+*)
+
+PROCEDURE GetFileName (f: File; VAR a: ARRAY OF CHAR) ;
+VAR
+   i: CARDINAL ;
+   p: POINTER TO CHAR ;
+BEGIN
+   IF f<MaxNoOfFiles
+   THEN
+      IF FileInfo[f]=NIL
+      THEN
+         FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n') ;
+         HALT
+      ELSE
+         WITH FileInfo[f]^.name DO
+            IF address=NIL
+            THEN
+               StrCopy('', a)
+            ELSE
+               p := address ;
+               i := 0 ;
+               WHILE (p^#nul) AND (i<=HIGH(a)) DO
+                  a[i] := p^ ;
+                  INC(p) ;
+                  INC(i)
+               END
+            END
+         END
+      END
+   END
+END GetFileName ;
+
+
+(*
    PreInitialize - preinitialize the file descriptor.
 *)
 
@@ -1314,11 +1349,11 @@ BEGIN
       FileInfo[f] := NIL
    END ;
    StdIn := 0 ;
-   PreInitialize(StdIn       , 'stdin' , successful      , openedforread , FALSE, MaxBufferLength) ;
+   PreInitialize(StdIn       , '<stdin>' , successful      , openedforread , FALSE, MaxBufferLength) ;
    StdOut := 1 ;
-   PreInitialize(StdOut      , 'stdout', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
+   PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
    StdErr := 2 ;
-   PreInitialize(StdErr      , 'stderr', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
+   PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
    (* and now for the error file descriptor *)
    PreInitialize(MaxNoOfFiles, 'error' , toomanyfilesopen, unused        , FALSE, 0) ;
    InstallTerminationProcedure(CloseOutErr)

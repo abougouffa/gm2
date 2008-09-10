@@ -888,8 +888,9 @@ ProcedureType := "PROCEDURE"
 FormalTypeList := "(" ( ")" FormalReturn |
                         ProcedureParameters ")" FormalReturn ) =:
 
-FormalReturn := [ ":" Qualident
-                ] =:
+FormalReturn := [ ":" OptReturnType ] =:
+
+OptReturnType := "[" Qualident "]" | Qualident =:
 
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
@@ -1071,12 +1072,20 @@ Statement :=                                                               % Pus
 RetryStatement := "RETRY"                                                  % BuildRetry %
                 =:
 
-AssignmentOrProcedureCall :=                                               % BuildLineNo ; DumpStack %
+AssignmentOrProcedureCall :=                                               % VAR isFunc: BOOLEAN ; %
+                                                                           % BuildLineNo ; DumpStack %
                              Designator
                              ( ":=" Expression                             % BuildAssignment %
-                                |                                          % BuildLineNo %
+                                |                                          % BuildLineNo ;
+                                                                             isFunc := CheckBuildFunction() %
                                   ( ActualParameters |                     % BuildNulParam (* in epsilon *) %
-                                  )                                        % BuildProcedureCall %
+                                  )                                        % IF isFunc
+                                                                             THEN
+                                                                                BuildFunctionCall ;
+                                                                                BuildAssignment
+                                                                             ELSE
+                                                                                BuildProcedureCall
+                                                                             END %
                              )                                             % DumpStack %
                            =:
 
@@ -1254,12 +1263,12 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-DefFormalParameters := "(" [ DefMultiFPSection ] ")" [ ":" Qualident ] =:
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" FormalReturn =:
 
 DefMultiFPSection := DefExtendedFP |
                      FPSection [ ";" DefMultiFPSection ] =:
 
-FormalParameters := "(" [ MultiFPSection ] ")" [ ":" Qualident ] =:
+FormalParameters := "(" [ MultiFPSection ] ")" FormalReturn =:
 
 MultiFPSection := ExtendedFP |
                   FPSection [ ";" MultiFPSection ] =:

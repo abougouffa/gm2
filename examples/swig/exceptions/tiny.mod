@@ -21,10 +21,8 @@ FROM SYSTEM IMPORT THROW ;
 FROM libc IMPORT printf ;
 
 PROCEDURE doSomething (i: INTEGER) ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("doSomething %d\n", i) ;
+   printf("doSomething %d\n", i) ;
    IF i#0
    THEN
       THROW(i)

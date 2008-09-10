@@ -1,3 +1,70 @@
+2008-09-10       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Make-lang.in:  added entries for IOChan.mod,
+	  RTio.mod and ErrnoCategory.c.  Also added rule
+	  to build ErrnoCategory.o.
+        * gm2/bnf/gm2m.bnf:  moved FIO import list before
+	  M2LexBuf to avoid getting the wrong definition of
+	  GetFileName during p2c bootstrap phase.
+        * gm2/bnf/m2-2.bnf:  added OptReturnType for
+	  procedures (functions).  Rationalized function
+	  return values via OptReturnType.
+        * gm2/bnf/m2-3.bnf:  added OptReturnType for
+	  procedures (functions).  Rationalized function
+	  return values via OptReturnType.  Also added
+	  productions to implement functions using
+	  an optional return type.
+        * gm2/bnf/m2-h.bnf:  added OptReturnType for
+	  procedures (functions).  Rationalized function
+	  return values via OptReturnType.
+        * gm2/bnf/m2.bnf:  added OptReturnType for
+	  procedures (functions).  Rationalized function
+	  return values via OptReturnType.
+        * gm2/examples/server/server.mod:  modified code
+	  to exploit calling printf and ignoring its return
+	  value.
+        * gm2/examples/swig/exceptions/tiny.mod:  ignore
+	  return result for printf.
+        * gm2/gm2-compiler/M2Quads.def:  define
+	  CheckBuildFunction.
+        * gm2/gm2-compiler/M2Quads.mod:  implement
+	  CheckBuildFunction.
+        * gm2/gm2-compiler/P2SymBuild.def:  corrected dates.
+	  Added new procedure definition
+	  BuildOptFunction.
+        * gm2/gm2-compiler/P2SymBuild.mod:  corrected dates
+	  and implemented BuildOptFunction.
+        * gm2/gm2-compiler/SymbolTable.def:  PutOptFunction
+	  (new definition).  IsReturnOptional (new definition).
+        * gm2/gm2-compiler/SymbolTable.mod:  ReturnOptional
+	  new field for ProcedureSym and ProcTypeSym.
+	  Implemented IsReturnOptional, SetReturnOptional,
+	  CheckOptFunction and PutOptFunction.
+	  Set ReturnOptional appropriately.
+        * gm2/gm2-libs/FIO.mod:  implemented GetFileName.
+	  Modified names of stdin, stdout and stderr to
+	  <stdin>, <stdout>, <stderr> respectively.
+        * gm2/gm2-libs/errno.c:  added init and finish
+	  functions.
+        * gm2/gm2-libs/libc.def:  declare printf to have
+	  an optional return value.
+        * gm2/gm2-libs-iso/ChanConsts.def:  fixed dates.
+        * gm2/gm2-libs-iso/IOChan.mod:  fixed dates
+	  and reimplemented this module.
+        * gm2/gm2-libs-iso/RndFile.def:  fixed dates.
+        * gm2/gm2-libs-iso/TextIO.def:  fixed dates.
+        * gm2/p2c/p2c-src/src/decl.c:  handle new syntax
+	  for optional function return value.
+
+2008-09-07       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/examples/cplusplus/cppcatchm2:  new directory
+	  containing an example of C++ catching a Modula-2
+	  exception.
+        * gm2/examples/cplusplus/m2catchcpp:  new directory
+	  containing an example of Modula-2 catching a C++
+	  exception.
+
 2008-09-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Swig.mod:  modified so that it

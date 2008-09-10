@@ -4383,7 +4383,21 @@ int *isfunc, istype;
     }
     if (*isfunc) {
         if (wneedtok(TOK_COLON)) {
-	    retmp->type = type->basetype = p_type(NULL);
+            /*
+	     *  parse the GNU Modula-2 extension for optional return value
+	     *  and treat it as a normal return value for a normal function.
+	     *  This needs to be extended if GM2 is ever to use this feature
+	     *  the compiler itself.
+	     */
+            if (modula2 && (curtok == TOK_LBR)) {
+	      gettok();
+	      retmp->type = type->basetype = p_type(NULL);
+	      if (curtok == TOK_RBR)
+		gettok();
+	    }
+	    else
+	      retmp->type = type->basetype = p_type(NULL);
+
 	    switch (retmp->type->kind) {
 		
 	      case TK_RECORD:

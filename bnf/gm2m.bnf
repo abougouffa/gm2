@@ -39,13 +39,14 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2008/07/07 09:19:13 $]
+   Date       : 3/4/86  [$Date: 2008/09/10 17:44:57 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
  
 FROM ASCII IMPORT nul, tab ;
 FROM Storage IMPORT ALLOCATE ;
+FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
 FROM M2LexBuf IMPORT OpenSource, CloseSource, GetToken, ReInitialize,
                      InsertToken, InsertTokenAndRewind, GetLineNo, GetFileName,
                      currenttoken, currentstring ;
@@ -67,7 +68,6 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, IsIndiceInIndex,
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Add, Length, EqualArray, Mark, string, Dup, Equal, Slice, char, ConCatChar, ConCat ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
-FROM FIO IMPORT File, IsNoError, StdOut, StdErr ;
 FROM SFIO IMPORT WriteS, OpenToWrite, Exists ;
 FROM M2Preprocess IMPORT PreprocessModule ;
 FROM M2Configure IMPORT UsingGCCBackend ;

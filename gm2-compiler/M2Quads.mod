@@ -61,6 +61,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsVarAParam,
                         UsesVarArgs, UsesOptArg,
                         GetOptArgInit,
+                        IsReturnOptional,
                         NoOfElements,
                         NoOfParam,
                         StartScope, EndScope,
@@ -5821,6 +5822,78 @@ END BuildExclProcedure ;
 
 
 (*
+   CheckBuildFunction - checks to see whether ProcSym is a function
+                        and if so it adds a TempSym value which will
+                        hold the return value once the function finishes.
+                        This procedure also generates an error message
+                        if the user is calling a function and ignoring
+                        the return result.  The additional TempSym
+                        is not created if ProcSym is a procedure
+                        and the stack is unaltered.
+
+                        The Stack:
+
+
+                       Entry                      Exit
+
+                Ptr ->
+
+                                                  +----------------+
+                                                  | ProcSym | Type |
+                       +----------------+         |----------------|
+                       | ProcSym | Type |         | TempSym | Type |
+                       |----------------|         |----------------|
+*)
+
+PROCEDURE CheckBuildFunction () : BOOLEAN ;
+VAR
+   n            : Name ;
+   TempSym,
+   ProcSym, Type: CARDINAL ;
+BEGIN
+   PopTF(ProcSym, Type) ;
+   IF IsVar(ProcSym) AND IsProcType(Type)
+   THEN
+      IF GetType(Type)#NulSym
+      THEN
+         TempSym := MakeTemporary(RightValue) ;
+         PutVar(TempSym, GetType(Type)) ;
+         PushTF(TempSym, GetType(Type)) ;
+         PushTF(ProcSym, Type) ;
+         IF NOT IsReturnOptional(Type)
+         THEN
+            IF IsTemporary(ProcSym)
+            THEN
+               ErrorFormat0(NewError(GetTokenNo()),
+                            'function is being called but its return value is ignored')
+            ELSE
+               n := GetSymName(ProcSym) ;
+               ErrorFormat1(NewError(GetTokenNo()),
+                            'function (%a) is being called but its return value is ignored', n)
+            END
+         END ;
+         RETURN( TRUE )
+      END
+   ELSIF IsProcedure(ProcSym) AND (Type#NulSym)
+   THEN
+      TempSym := MakeTemporary(RightValue) ;
+      PutVar(TempSym, Type) ;
+      PushTF(TempSym, Type) ;
+      PushTF(ProcSym, Type) ;
+      IF NOT IsReturnOptional(ProcSym)
+      THEN
+         n := GetSymName(ProcSym) ;
+         ErrorFormat1(NewError(GetTokenNo()),
+                      'function (%a) is being called but its return value is ignored', n)
+      END ;
+      RETURN( TRUE )
+   END ;
+   PushTF(ProcSym, Type) ;
+   RETURN( FALSE )
+END CheckBuildFunction ;
+
+
+(*
    BuildFunctionCall - builds a function call.
                        The Stack:
 
@@ -5843,7 +5916,6 @@ END BuildExclProcedure ;
                        |----------------|         +------------+
                        | ProcSym | Type |         | ReturnVar  |
                        |----------------|         |------------|
-
 *)
 
 PROCEDURE BuildFunctionCall ;

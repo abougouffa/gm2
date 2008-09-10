@@ -106,12 +106,11 @@ VAR
    fd: INTEGER ;
    v : CARDINAL ;
    ch: CHAR ;
-   r : INTEGER ;
 BEGIN
    fd := NextFd ;
    Signal(ToBeTaken) ;
    v := InitInputVector(fd, MAX(PRIORITY)) ;
-   r := printf("inside `theServer' using fd=%d\n", fd);
+   printf("inside `theServer' using fd=%d\n", fd);
    LOOP
       WaitForIO(v) ;
       ch := localRead(fd) ;
@@ -124,7 +123,6 @@ END theServer ;
 
 PROCEDURE handleAccepts ;
 VAR
-   r: INTEGER ;
    v: CARDINAL ;
    fd: INTEGER ;
    s: tcpServerState ;
@@ -134,13 +132,13 @@ BEGIN
    ToBeTaken := InitSemaphore(1, 'ToBeTaken') ;
    v := InitInputVector(tcpServerSocketFd(s), MAX(PRIORITY)) ;
    LOOP
-      r := printf("before WaitForIO\n");
+      printf("before WaitForIO\n");
       WaitForIO(v) ;
       fd := tcpServerAccept(s) ;
-      r := printf("before InitProcess\n");
+      printf("before InitProcess\n");
       p := InitProcess(theServer, StackSize, 'theServer') ;
       NextFd := fd ;
-      r := printf("before Resume\n");
+      printf("before Resume\n");
       p := Resume(p) ;
       Wait(ToBeTaken)
    END

@@ -891,8 +891,9 @@ ProcedureType := "PROCEDURE"
 FormalTypeList := "(" ( ")" FormalReturn |
                         ProcedureParameters ")" FormalReturn ) =:
 
-FormalReturn := [ ":" Qualident
-                ] =:
+FormalReturn := [ ":" OptReturnType ] =:
+
+OptReturnType := "[" Qualident "]" | Qualident =:
 
 ProcedureParameters := ProcedureParameter
                        { "," ProcedureParameter } =:
@@ -1123,12 +1124,12 @@ Declaration := "CONST" { ConstantDeclaration ";" } |
                ProcedureDeclaration ";" |
                ModuleDeclaration ";" =:
 
-DefFormalParameters := "(" [ DefMultiFPSection ] ")" [ ":" Qualident ] =:
+DefFormalParameters := "(" [ DefMultiFPSection ] ")" FormalReturn =:
 
 DefMultiFPSection := DefExtendedFP |
                      FPSection [ ";" DefMultiFPSection ] =:
 
-FormalParameters := "(" [ MultiFPSection ] ")" [ ":" Qualident ] =:
+FormalParameters := "(" [ MultiFPSection ] ")" FormalReturn =:
 
 MultiFPSection := ExtendedFP |
                   FPSection [ ";" MultiFPSection ] =:

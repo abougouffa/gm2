@@ -336,7 +336,7 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
    int printf(const char *format, ...);
 *)
 
-PROCEDURE printf (format: ARRAY OF CHAR; ...) : INTEGER ;
+PROCEDURE printf (format: ARRAY OF CHAR; ...) : [ INTEGER ] ;
 
 
 (*

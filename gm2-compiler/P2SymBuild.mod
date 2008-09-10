@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -1638,6 +1638,42 @@ BEGIN
 *)
    PushT(ProcSym)
 END BuildFunction ;
+
+
+(*
+   BuildOptFunction - Builds a procedures optional return type.
+                      Procedure becomes a function and the user
+                      can either call it as a function or a procedure.
+
+                      The Stack:
+
+                      Entry                 Exit
+
+               Ptr ->
+                      +------------+
+                      | TypeSym    |                       <- Ptr
+                      |------------|        +------------+
+                      | ProcSym    |        | ProcSym    |
+                      |------------|        |------------|
+*)
+
+PROCEDURE BuildOptFunction ;
+VAR
+   TypeSym,
+   ProcSym : CARDINAL ;
+BEGIN
+   PopT(TypeSym) ;
+   PopT(ProcSym) ;
+   PutOptFunction(ProcSym, TypeSym) ;
+(*
+   WriteString('Procedure ') ; WriteKey(GetSymName(ProcSym)) ;
+   WriteString(' has a return argument ') ;
+   WriteKey(GetSymName(TypeSym)) ;
+   WriteString(' checking ') ; WriteKey(GetSymName(GetType(ProcSym))) ;
+   WriteLn ;
+*)
+   PushT(ProcSym)
+END BuildOptFunction ;
 
 
 (*

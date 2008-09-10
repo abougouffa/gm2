@@ -1,4 +1,5 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -17,17 +18,104 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE IOChan ;
 
-IMPORT FIO ;
+IMPORT FIO, EXCEPTIONS, M2EXCEPTION, RTio, IOConsts, errno, ErrnoCategory ;
+
+FROM EXCEPTIONS IMPORT ExceptionSource, RAISE, AllocateSource,
+                       IsCurrentSource, IsExceptionalExecution ;
+FROM Storage IMPORT ALLOCATE ;
+
 
 TYPE
-  ChanId = FIO.File ; (* Values of this type are used to identify channels *)
+   ChanId = RTio.ChanId ;
+
+VAR
+   iochan: ExceptionSource ;
 
 
-PROCEDURE InvalidChan (): ChanId;
+PROCEDURE InvalidChan () : ChanId ;
   (* Returns the value identifying the invalid channel. *)
 BEGIN
-   RETURN -1
+   RETURN( RTio.NilChanId() )
 END InvalidChan ;
+
+
+PROCEDURE CheckValid (cid: ChanId) ;
+  (* internal routine to check whether we have a valid channel *)
+BEGIN
+   IF cid=InvalidChan()
+   THEN
+      RAISE(iochan, ORD(notAChannel), 'ChanId specified is invalid')
+   END
+END CheckValid ;
+
+
+PROCEDURE CheckErrno (cid: ChanId) ;
+  (* internal routine to check a number of error conditions *)
+VAR
+   e: INTEGER ;
+BEGIN
+   CheckValid(cid) ;
+   IF NOT FIO.IsNoError(RTio.GetFile(cid))
+   THEN
+      e := errno.geterrno() ;
+      IF ErrnoCategory.IsErrnoHard(e)
+      THEN
+         RTio.SetError(cid, e) ;
+         RAISE(iochan, ORD(hardDeviceError), 'unrecoverable (errno)')
+      ELSIF ErrnoCategory.UnAvailable(e)
+      THEN
+         RTio.SetError(cid, e) ;
+         RAISE(iochan, ORD(notAvailable), 'unavailable (errno)')
+      ELSIF e>0
+      THEN
+         RTio.SetError(cid, e) ;
+         RAISE(iochan, ORD(softDeviceError), 'recoverable (errno)')
+      END
+   END
+END CheckErrno ;
+
+
+PROCEDURE CheckPreRead (cid: ChanId) ;
+BEGIN
+   CheckValid(cid) ;
+   IF FIO.EOLN(RTio.GetFile(cid))
+   THEN
+      RTio.SetRead(cid, IOConsts.endOfLine)
+   ELSIF FIO.EOF(RTio.GetFile(cid))
+   THEN
+      RTio.SetRead(cid, IOConsts.endOfInput) ;
+      RAISE(iochan, ORD(skipAtEnd), 'attempting to read beyond end of file')
+   END
+END CheckPreRead ;
+
+
+PROCEDURE CheckPostRead (cid: ChanId) ;
+BEGIN
+   CheckValid(cid) ;
+   CheckErrno(cid) ;
+   IF FIO.EOLN(RTio.GetFile(cid))
+   THEN
+      RTio.SetRead(cid, IOConsts.endOfLine)
+   ELSIF FIO.EOF(RTio.GetFile(cid))
+   THEN
+      RTio.SetRead(cid, IOConsts.endOfInput)
+   ELSE
+      RTio.SetRead(cid, IOConsts.allRight)
+   END
+END CheckPostRead ;
+
+
+PROCEDURE CheckPreWrite (cid: ChanId) ;
+BEGIN
+   CheckValid(cid)
+END CheckPreWrite ;
+
+
+PROCEDURE CheckPostWrite (cid: ChanId) ;
+BEGIN
+   CheckValid(cid) ;
+   CheckErrno(cid)   
+END CheckPostWrite ;
 
 
   (* For each of the following operations, if the device supports the
@@ -42,7 +130,7 @@ END InvalidChan ;
      the internal and external representation of text.
   *)
 
-PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
+PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
   (* If there is a character as the next item in the input stream cid,
      assigns its value to ch without removing it from the stream;
      otherwise the value of ch is not defined.
@@ -50,47 +138,39 @@ PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
      allRight, endOfLine, or endOfInput.
   *)
 VAR
-   f: File ;
+   f: FIO.File ;
 BEGIN
-   f := File(cid) ;
-   ch := ReadChar(f) ;
-   IF FIO.IsNoError(f)
+   CheckValid(cid) ;
+   f := RTio.GetFile(cid) ;
+   IF FIO.EOF(f)
    THEN
+      RTio.SetRead(cid, IOConsts.endOfInput)
+   ELSE
+      ch := FIO.ReadChar(f) ;
       FIO.UnReadChar(f, ch) ;
-      res := IOConsts.allRight
+      CheckPostRead(cid)
    END ;
-   IF FIO.EOLN(f)
-   THEN
-      res := IOConsts.eofOfLine
-   ELSIF FIO.EOF(f)
-   THEN
-      res := IOConsts.endOfInput
-   END
+   res := RTio.GetRead(cid)
 END Look ;
 
 
-PROCEDURE Skip (cid: ChanId);
+PROCEDURE Skip (cid: ChanId) ;
   (* If the input stream cid has ended, the exception skipAtEnd is raised;
      otherwise the next character or line mark in cid is removed,
      and the stored read result is set to the value allRight.
   *)
 VAR
-   f: File ;
+   f : FIO.File ;
+   ch: CHAR ;
 BEGIN
-   f := File(cid) ;
-   IF EOF(f)
-   THEN
-      (* raise exception skipAtEnd *)
-   END ;
-   ch := ReadChar(f) ;
-   IF FIO.IsNoError(f)
-   THEN
-      res := IOConsts.allRight
-   END
+   CheckPreRead(cid) ;
+   f := RTio.GetFile(cid) ;
+   ch := FIO.ReadChar(f) ;
+   CheckPostRead(cid)
 END Skip ;
 
 
-PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
+PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
   (* If the input stream cid has ended, the exception skipAtEnd is raised;
      otherwise the next character or line mark in cid is removed.
      If there is a character as the next item in cid stream,
@@ -100,36 +180,31 @@ PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults);
      endOfLine, or endOfInput.
   *)
 VAR
-   f: File ;
+   f: FIO.File ;
 BEGIN
-   f := File(cid) ;
-   IF EOF(f)
-   THEN
-      (* raise exception skipAtEnd *)
-   END ;
-   ch := ReadChar(f) ;
+   CheckPreRead(cid) ;
+   f := RTio.GetFile(cid) ;
+   ch := FIO.ReadChar(f) ;
    IF FIO.IsNoError(f)
    THEN
       FIO.UnReadChar(f, ch) ;
-      res := IOConsts.allRight
+      CheckPostRead(cid)
    END ;
-   IF FIO.EOLN(f)
-   THEN
-      res := IOConsts.eofOfLine
-   ELSIF FIO.EOF(f)
-   THEN
-      res := IOConsts.endOfInput
-   END
+   res := RTio.GetRead(cid)
 END SkipLook ;
 
-PROCEDURE WriteLn (cid: ChanId);
+
+PROCEDURE WriteLn (cid: ChanId) ;
   (* Writes a line mark over the channel cid. *)
 VAR
-   f: File ;
+   f: FIO.File ;
 BEGIN
-   f := File(cid) ;
-   FIO.WriteLine(f)
+   CheckPreWrite(cid) ;
+   f := RTio.GetFile(cid) ;
+   FIO.WriteLine(f) ;
+   CheckPostWrite(cid)
 END WriteLn ;
+
 
 PROCEDURE TextRead (cid: ChanId; to: SYSTEM.ADDRESS; maxChars: CARDINAL;
                     VAR charsRead: CARDINAL);
@@ -141,7 +216,9 @@ PROCEDURE TextRead (cid: ChanId; to: SYSTEM.ADDRESS; maxChars: CARDINAL;
      endOfLine, or endOfInput.
   *)
 BEGIN
-   (* --fixme-- complete it *)
+   CheckPreRead(cid) ;
+   charsRead := FIO.ReadNBytes(RTio.GetFile(cid), maxChars, to) ;
+   CheckPostRead(cid)
 END TextRead ;
 
 PROCEDURE TextWrite (cid: ChanId; from: SYSTEM.ADDRESS;
@@ -151,7 +228,15 @@ PROCEDURE TextWrite (cid: ChanId; from: SYSTEM.ADDRESS;
      the address of the first component is from, to the channel cid.
   *)
 BEGIN
-   (* --fixme-- complete it *)
+   CheckPreWrite(cid) ;
+   IF charsToWrite#FIO.WriteNBytes(RTio.GetFile(cid), charsToWrite, from)
+   THEN
+      (* this error will be caught by checking errno  *)
+      CheckErrno(cid) ;
+      (* if our target system does not support errno then we *)
+      RAISE(iochan, ORD(hardDeviceError), 'unrecoverable errno')
+   END ;
+   CheckPostWrite(cid)
 END TextWrite ;
 
   (* Direct raw operations - these do not effect translation between
@@ -167,7 +252,9 @@ PROCEDURE RawRead (cid: ChanId; to: SYSTEM.ADDRESS; maxLocs: CARDINAL;
      is set to the value allRight, or endOfInput.
   *)
 BEGIN
-   locsRead := FIO.ReadNBytes(File(cid), maxLocs, to)
+   CheckPreRead(cid) ;
+   locsRead := FIO.ReadNBytes(RTio.GetFile(cid), maxLocs, to) ;
+   CheckPostRead(cid)
 END RawRead ;
 
 PROCEDURE RawWrite (cid: ChanId; from: SYSTEM.ADDRESS; locsToWrite: CARDINAL);
@@ -176,11 +263,15 @@ PROCEDURE RawWrite (cid: ChanId; from: SYSTEM.ADDRESS; locsToWrite: CARDINAL);
      which the address of the first component is from, to the channel cid.
   *)
 BEGIN
-   IF locsToWrite#FIO.WriteNBytes(File(cid), from, locsToWrite)
+   CheckPreWrite(cid) ;
+   IF locsToWrite#FIO.WriteNBytes(RTio.GetFile(cid), locsToWrite, from)
    THEN
-      (* should we raise an exception, perhaps not,
-         but something has gone wrong *)
-   END
+      (* this error will be caught by checking errno  *)
+      CheckErrno(cid) ;
+      (* if our target system does not support errno then we *)
+      RAISE(iochan, ORD(hardDeviceError), 'unrecoverable errno')
+   END ;
+   CheckPostWrite(cid)
 END RawWrite ;
 
   (* Common operations *)
@@ -189,48 +280,64 @@ PROCEDURE GetName (cid: ChanId; VAR s: ARRAY OF CHAR);
   (* Copies to s a name associated with the channel cid, possibly truncated
      (depending on the capacity of s).
   *)
+BEGIN
+   CheckValid(cid) ;
+   FIO.GetFileName(RTio.GetFile(cid), s)
+END GetName ;
 
 PROCEDURE Reset (cid: ChanId);
   (* Resets the channel cid to a state defined by the device module. *)
+BEGIN
+   CheckValid(cid) ;
+   RTio.SetError(cid, 0)
+END Reset ;
 
 PROCEDURE Flush (cid: ChanId);
   (* Flushes any data buffered by the device module out to the channel cid. *)
+BEGIN
+   CheckValid(cid) ;
+   FIO.FlushBuffer(RTio.GetFile(cid)) ;
+   CheckErrno(cid)
+END Flush ;
 
   (* Access to read results *)
 
 PROCEDURE SetReadResult (cid: ChanId; res: IOConsts.ReadResults);
   (* Sets the read result value for the channel cid to the value res. *)
+BEGIN
+   CheckValid(cid) ;
+   RTio.SetRead(cid, res)
+END SetReadResult ;
 
 PROCEDURE ReadResult (cid: ChanId): IOConsts.ReadResults;
   (* Returns the stored read result value for the channel cid.
      (This is initially the value notKnown).
   *)
+BEGIN
+   CheckValid(cid) ;
+   RETURN( RTio.GetRead(cid) )
+END ReadResult ;
 
   (* Users can discover which flags actually apply to a channel *)
 
 PROCEDURE CurrentFlags (cid: ChanId): ChanConsts.FlagSet;
   (* Returns the set of flags that currently apply to the channel cid. *)
+BEGIN
+   CheckValid(cid) ;
+   RETURN( RTio.GetFlags(cid) )
+END CurrentFlags ;
 
   (* The following exceptions are defined for this module and its clients *)
-
-TYPE
-  ChanExceptions =
-    (wrongDevice,      (* device specific operation on wrong device *)
-     notAvailable,     (* operation attempted that is not available on that channel *)
-     skipAtEnd,        (* attempt to skip data from a stream that has ended *)
-     softDeviceError,  (* device specific recoverable error *)
-     hardDeviceError,  (* device specific non-recoverable error *)
-     textParseError,   (* input data does not correspond to a character
-                          or line mark - optional detection *)
-     notAChannel       (* given value does not identify a channel
-                          - optional detection *)
-    );
 
 PROCEDURE IsChanException (): BOOLEAN;
   (* Returns TRUE if the current coroutine is in the exceptional
      execution state because of the raising of an exception from
      ChanExceptions; otherwise returns FALSE.
   *)
+BEGIN
+   RETURN( IsExceptionalExecution() AND IsCurrentSource(iochan) )
+END IsChanException ;
+
 
 PROCEDURE ChanException (): ChanExceptions;
   (* If the current coroutine is in the exceptional execution state
@@ -238,6 +345,15 @@ PROCEDURE ChanException (): ChanExceptions;
      returns the corresponding enumeration value, and otherwise
      raises an exception.
   *)
+BEGIN
+   IF IsChanException()
+   THEN
+      RETURN( VAL(ChanExceptions, EXCEPTIONS.CurrentNumber(iochan)) )
+   ELSE
+      RAISE(iochan, ORD(M2EXCEPTION.exException),
+            'coroutine is not in the exceptional state caused by IOChan')
+   END
+END ChanException ;
 
   (* When a device procedure detects a device error, it raises the
      exception softDeviceError or hardDeviceError.  If these exceptions
@@ -245,12 +361,16 @@ PROCEDURE ChanException (): ChanExceptions;
      an implementation-defined error number for the channel.
   *)
 
-TYPE
-  DeviceErrNum = INTEGER;
-
 PROCEDURE DeviceError (cid: ChanId): DeviceErrNum;
   (* If a device error exception has been raised for the channel cid,
      returns the error number stored by the device module.
   *)
+BEGIN
+   CheckValid(cid) ;
+   RETURN( RTio.GetError(cid) )
+END DeviceError ;
 
+
+BEGIN
+   AllocateSource(iochan)
 END IOChan.
