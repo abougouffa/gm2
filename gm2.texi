@@ -937,11 +937,9 @@ FROM libc IMPORT exit, printf, malloc ;
 PROCEDURE FatalError (a, file: ARRAY OF CHAR;
                          line: CARDINAL;
                          func: ARRAY OF CHAR) ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("%s:%d:fatal error, %s, in %s\n",
-               ADR(file), line, ADR(a), ADR(func)) ;
+   printf("%s:%d:fatal error, %s, in %s\n",
+           ADR(file), line, ADR(a), ADR(func)) ;
    exit(1)
 END FatalError ;
 
@@ -1260,15 +1258,23 @@ interface file to generate all the necessary wrapping to that the
 desired scripting language may access your implementation module.
 
 Here is an example of how you might call upon the services of the
-Modula-2 library module @code{NumberIO} from Python.  Firstly you
-should compile the @code{NumberIO} module as a shared library.
-This can be achieved by using the following commands:
+Modula-2 library module @code{NumberIO} from Python.
+This example can be found in the directory
+@file{gm2/examples/swig/full-strlib} and can be run using the commands:
 
 @example
+$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
+$ make numberio
+@end example
+
+If you wanted to do this step by step without the @file{Makefile} then
+firstly you should compile the @code{NumberIO} module as a shared
+library.  This can be achieved by using the following commands:
+
+@example
+$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
 $ gm2 -fshared -I. -c -fPIC -g -fswig -I../../../gm2-libs \
     ../../../gm2-libs/NumberIO.mod
-$ swig -python NumberIO.i
-$ gcc -c -fPIC NumberIO_wrap.c -I/usr/include/python2.4
 @end example
 
 The example assumes that the source code for @file{NumberIO.mod} can
@@ -1276,11 +1282,22 @@ be found in directory @file{../../../gm2-libs}.  The first command
 produces two files: @file{NumberIO.i} and @file{NumberIO.o}.  The file
 @file{NumberIO.o} is a position independant code object file whereas
 the file @file{NumberIO.i} is a swig interface file and contains a
-swig interpretation of the @file{NumberIO.def}.  The swig command line
-generates the necessary Python and C interface files using the
-interface file.  The C interface file is also compiled into position
-independant code.  Finally the module @code{NumberIO} is linked with
-all its dependants and @file{NumberIO_wrap.o}.
+swig interpretation of the @file{NumberIO.def}.  GNU Modula-2 uses
+the same mechanism for handling exceptions as GNU C++.  The
+file @file{NumberIO.i} contains exception handling information therefore
+we need to ask @code{swig} to generate C++ wrappers for @file{NumberIO.mod}.
+This is achieved by:
+
+@example
+$ swig -c++ -python NumberIO.i
+$ gcc -c -fPIC NumberIO_wrap.cxx -I/usr/include/python2.4
+@end example
+
+The swig command line generates the necessary Python and C++ interface
+files using the interface file.  The C++ interface file is also
+compiled into position independant code.  Finally the module
+@code{NumberIO} is linked with all its dependants and
+@file{NumberIO_wrap.o}.
 
 @example
 $ gm2 -shared -fshared -fPIC -g \
@@ -1301,14 +1318,6 @@ like this:
 @example
 $ python testnum.py
 1234 x 2 = 2468
-@end example
-
-This example can be found in the directory
-@file{gm2/examples/swig/full-strlib} and can be run using the commands:
-
-@example
-$ cd gcc-@value{version-GCC}/gcc/gm2/examples/swig/full-strlib
-$ make numberio
 @end example
 
 @subsection Limitations of automatic generated of Swig files
@@ -1389,7 +1398,7 @@ DEFINITION MODULE FOR "C" libprintf ;
 
 EXPORT UNQUALIFIED printf ;
 
-PROCEDURE printf (a: ARRAY OF CHAR; ...) ;
+PROCEDURE printf (a: ARRAY OF CHAR; ...) : [ INTEGER ] ;
 
 END libprintf.
 @end example
@@ -1398,12 +1407,13 @@ the @code{UNQUALIFIED} keyword in the definition module informs
 GNU Modula-2 not to prefix the module name to exported references
 in the object file.
 
-The @code{printf} declaration states that the first parameter semantically
-matches @code{ARRAY OF CHAR} but since the module is for the C language
-it will be mapped onto @code{char *}. The token @code{...} indicates
-a variable number of arguments (varargs) and all parameters passed
-here are mapped onto their C equivalents. Arrays and constant strings
-are passed as pointers.
+The @code{printf} declaration states that the first parameter
+semantically matches @code{ARRAY OF CHAR} but since the module is for
+the C language it will be mapped onto @code{char *}. The token
+@code{...} indicates a variable number of arguments (varargs) and all
+parameters passed here are mapped onto their C equivalents. Arrays and
+constant strings are passed as pointers.  Lastly the @code{[ INTEGER ]}
+states that the caller can ignore the function return result if desired.
 
 The hello world program can be rewritten as:
 
@@ -2430,26 +2440,22 @@ FROM libc IMPORT printf ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 PROCEDURE fly ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("fly main body\n") ;
+   printf("fly main body\n") ;
    IF 4 DIV ip^ = 4
    THEN
-      r := printf("yes it worked\n")
+      printf("yes it worked\n")
    ELSE
-      r := printf("no it failed\n")
+      printf("no it failed\n")
    END
 END fly ;
 
 PROCEDURE tryFlying ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("tryFlying main body\n");  
+   printf("tryFlying main body\n");  
    fly ;
 EXCEPT
-   r := printf("inside tryFlying exception routine\n") ;
+   printf("inside tryFlying exception routine\n") ;
    IF (ip#NIL) AND (ip^=0)
    THEN
       ip^ := 1 ;
@@ -2458,13 +2464,11 @@ EXCEPT
 END tryFlying ;
 
 PROCEDURE keepFlying ;
-VAR
-   t: INTEGER ;
 BEGIN
-   r := printf("keepFlying main body\n") ;
+   printf("keepFlying main body\n") ;
    tryFlying ;
 EXCEPT
-   r := printf("inside keepFlying exception routine\n") ;
+   printf("inside keepFlying exception routine\n") ;
    IF ip=NIL
    THEN
       NEW(ip) ;
@@ -2474,12 +2478,11 @@ EXCEPT
 END keepFlying ;
 
 VAR
-   r : INTEGER ;
    ip: POINTER TO INTEGER ;
 BEGIN
    ip := NIL ;
    keepFlying ;
-   r := printf("all done\n")
+   printf("all done\n")
 END except.
 @end example
 

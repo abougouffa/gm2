@@ -1,5 +1,8 @@
 2008-09-10       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2.texi:  modified many examples to reflect
+	  optional return value for printf.   Also updated
+	  the swig examples to use -c++.
         * gm2/Make-lang.in:  added entries for IOChan.mod,
 	  RTio.mod and ErrnoCategory.c.  Also added rule
 	  to build ErrnoCategory.o.
