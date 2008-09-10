@@ -189,12 +189,12 @@ matched.
 This section attempts to give an idea of which releases points are
 likely in the future. Clearly this is a fairly fluid release map but
 hopefully it is more helpful than omitting it altogether. Please note
-that this is not set in stone and if you (the users) wish to see
-something different please email @email{gaius@@gnu.org} with your
-ideas. Also please note that the actual release numbers do not have
-any correlation to the estimated time of release. For example please
-do not misunderstand that GM2-1.0 will take twice as long as GM2-0.5
-to appear. It is worthing noting that some of the later points in the
+that this is not set in stone and if you wish to see something
+different please email @email{gaius@@gnu.org} with your ideas. Also
+please note that the actual release numbers do not have any
+correlation to the estimated time of release. For example please do
+not misunderstand that GM2-1.0 will take twice as long as GM2-0.5 to
+appear. It is worthing noting that some of the later points in the
 release life have already been addressed (in part) but are not yet
 complete.
 
@@ -214,10 +214,19 @@ use the @samp{-flibs=ulm} compiler switch.
 many Logitech compatible libraries will be provided, which will
 be available when invoked by @samp{-fpim}.
 
+@item 0.70
+ISO exception handling working.  Core exception handling ISO modules
+completed.  Basic ISO IO libraries implemented.
+
 @item 0.80
 a full set of ISO libraries will have been implemented.  GNU Modula-2
 will be sufficiently ISO compliant to compile the libraries but will
 not yet be able to fully conform to the ISO Modula-2 standard.
+COMPLEX types implemented.
+
+@item 0.90
+Multi-dimensional dynamic arrays complete.  This release marks the
+porting and bug fixing and rapid releasing count down towards..
 
 @item 1.0
 GNU Modula-2 will be fully ISO compliant.
