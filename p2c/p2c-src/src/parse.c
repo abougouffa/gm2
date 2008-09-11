@@ -3579,8 +3579,6 @@ Static void p_function(isfunc, ismodule)
         gettok();
         func->val.i = 0;
         pushctx(func);
-	if (strcmp(func->name, "ConcatContents") == 0)
-	  stop();
         func->type = type = p_funcdecl(&isfunc, 0);
         func->isfunction = isfunc;
 	func->namedfile = isinline;

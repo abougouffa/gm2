@@ -1,0 +1,153 @@
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE RTio ;
+
+(*
+    Title      : RTio
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Sun Sep  7 16:32:48 2008
+    Revision   : $Version$ 
+    Description: provides low level routines for creating and destroying
+                 ChanIds.  This is necessary to allow multiple modules
+                 to create, ChanId values, where ChanId is an opaque
+                 type.
+*)
+
+IMPORT FIO, ChanConsts, IOConsts ;
+
+TYPE
+   ChanId ;
+
+
+(*
+   InitChanId - return a new ChanId.
+*)
+
+PROCEDURE InitChanId () : ChanId ;
+
+
+(*
+   InitChanId - deallocate a ChanId.
+*)
+
+PROCEDURE KillChanId (c: ChanId) : ChanId ;
+
+
+(*
+   NilChanId - return a NIL pointer.
+*)
+
+PROCEDURE NilChanId () : ChanId ;
+
+
+(*
+   SetChanId - assign all fields in ChanId.
+*)
+
+PROCEDURE SetChanId (c: ChanId;
+                     f: FIO.File;
+                     s: ChanConsts.FlagSet;
+                     o: ChanConsts.OpenResults;
+                     r: IOConsts.ReadResults;
+                     e: INTEGER) : ChanId ;
+
+
+(*
+   GetChanId - assign all fields in ChanId.
+*)
+
+PROCEDURE GetChanId (c: ChanId;
+                     VAR f: FIO.File;
+                     VAR s: ChanConsts.FlagSet;
+                     VAR o: ChanConsts.OpenResults;
+                     VAR r: IOConsts.ReadResults;
+                     VAR e: INTEGER) ;
+
+
+(*
+   GetFile - returns the file field from, c.
+*)
+
+PROCEDURE GetFile (c: ChanId) : FIO.File ;
+
+
+(*
+   SetFile - sets the file field in, c.
+*)
+
+PROCEDURE SetFile (c: ChanId; f: FIO.File) ;
+
+
+(*
+   GetFlags - returns the flags field from, c.
+*)
+
+PROCEDURE GetFlags (c: ChanId) : ChanConsts.FlagSet ;
+
+
+(*
+   SetFlags - sets the flags field in, c.
+*)
+
+PROCEDURE SetFlags (c: ChanId; s: ChanConsts.FlagSet) ;
+
+
+(*
+   GetOpen - returns the open field from, c.
+*)
+
+PROCEDURE GetOpen (c: ChanId) : ChanConsts.OpenResults ;
+
+
+(*
+   SetOpen - sets the flags field in, c.
+*)
+
+PROCEDURE SetOpen (c: ChanId; o: ChanConsts.OpenResults) ;
+
+
+(*
+   GetRead - returns the read field in ChanId.
+*)
+
+PROCEDURE GetRead (c: ChanId) : IOConsts.ReadResults ;
+
+
+(*
+   SetRead - assign the read field in ChanId.
+*)
+
+PROCEDURE SetRead (c: ChanId; r: IOConsts.ReadResults) ;
+
+
+(*
+   GetError - return error field in ChanId.
+*)
+
+PROCEDURE GetError (c: ChanId) : INTEGER ;
+
+
+(*
+   SetError - assign error field in ChanId.
+*)
+
+PROCEDURE SetError (c: ChanId; e: INTEGER) ;
+
+
+END RTio.

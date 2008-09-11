@@ -913,7 +913,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      RTExceptions.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
-                     sckt.c
+                     sckt.c            errno.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
@@ -988,7 +988,9 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
                      Strings.mod       SYSTEM.mod      \
                      TERMINATION.mod   M2RTS.mod       \
                      M2EXCEPTION.mod   EXCEPTIONS.mod  Storage.mod \
-                     RealMath.mod      IOChan.mod      RTio.mod
+                     RealMath.mod      IOChan.mod      RTio.mod \
+                     TextIO.mod        STextIO.mod     StdChans.mod \
+                     IOConsts.mod
 
 GM2-LIBS-ISO-C     = ErrnoCategory.c
 
@@ -1202,6 +1204,9 @@ gm2/gm2-libs/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c gm2/gm2-libs-boot/$(SRC_PR
 gm2/gm2-libs/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/$(SRC_PREFIX)choosetemp.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
+gm2/gm2-libs/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+
 gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
@@ -1270,6 +1275,9 @@ gm2/gm2-libs/O2/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-
 gm2/gm2-libs/O2/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
 	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $(O2) $< -o $@
 
+gm2/gm2-libs/O2/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
+	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $(O2) $< -o $@
+
 gm2/gm2-libiberty/O2/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
 	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
 
@@ -1302,6 +1310,9 @@ gm2/gm2-libs/SO/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-libs-
 gm2/gm2-libs/SO/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
 	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $(SO) $< -o $@
 
+gm2/gm2-libs/SO/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
+	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $(SO) $< -o $@
+
 gm2/gm2-libiberty/SO/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
 	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(SO) $< -o $@
 
@@ -1332,6 +1343,9 @@ gm2/gm2-libs/SO_O2/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c gm2/gm2-li
 	$(GCC_FOR_TARGET) -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(SO_O2) $< -o $@
 
 gm2/gm2-libs/SO_O2/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
+	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
+
+gm2/gm2-libs/SO_O2/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
 	$(GCC_FOR_TARGET) -Igm2/gm2-libs -fPIC -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-libiberty/SO_O2/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
@@ -1666,6 +1680,10 @@ gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
 
 gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
+                                   gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
 	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c \

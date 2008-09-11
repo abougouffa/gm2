@@ -6,7 +6,9 @@
    and International Electrotechnical Commission) 1996, 1997, 1998,
    1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 *)
 
-DEFINITION MODULE STextIO;
+IMPLEMENTATION MODULE STextIO;
+
+IMPORT StdChans, TextIO ;
 
   (* Input and output of character and string types over default channels. The read result
      is of the type IOConsts.ReadResults.
@@ -19,18 +21,30 @@ PROCEDURE ReadChar (VAR ch: CHAR);
      corresponding value to ch.  The read result is set to allRight, endOfLine or
      endOfInput.
   *)
+BEGIN
+   TextIO.ReadChar(StdChans.StdInChan(), ch)
+END ReadChar ;
+
 
 PROCEDURE ReadRestLine (VAR s: ARRAY OF CHAR);
   (* Removes any remaining characters from the default input stream before the next line
      mark, copying to s as many as can be accommodated as a string value.  The read result
      is set to the value allRight, outOfRange, endOfLine, or endOfInput.
   *)
+BEGIN
+   TextIO.ReadRestLine(StdChans.StdInChan(), s)
+END ReadRestLine ;
+
 
 PROCEDURE ReadString (VAR s: ARRAY OF CHAR);
   (* Removes only those characters from the default input stream before the next line mark
      that can be accommodated in s as a string value, and copies them to s. The read result
      is set to the value allRight, endOfLine, or endOfInput.
   *)
+BEGIN
+   TextIO.ReadString(StdChans.StdInChan(), s)
+END ReadString ;
+
 
 PROCEDURE ReadToken (VAR s: ARRAY OF CHAR);
   (* Skips leading spaces, and then removes characters from the default input stream before
@@ -38,6 +52,10 @@ PROCEDURE ReadToken (VAR s: ARRAY OF CHAR);
      value.  The read result is set to the value allRight, outOfRange, endOfLine, or
      endOfInput.
   *)
+BEGIN
+   TextIO.ReadToken(StdChans.StdInChan(), s)
+END ReadToken ;
+
 
   (* The following procedure reads past the next line mark *)
 
@@ -46,17 +64,32 @@ PROCEDURE SkipLine;
      line mark or until the end of input is reached. The read result is set to the value
      allRight, or endOfInput.
   *)
+BEGIN
+   TextIO.SkipLine(StdChans.StdInChan())
+END SkipLine ;
 
 
   (* Output procedures *)
 
 PROCEDURE WriteChar (ch: CHAR);
   (* Writes the value of ch to the default output stream. *)
+BEGIN
+   TextIO.WriteChar(StdChans.StdOutChan(), ch)
+END WriteChar ;
+
 
 PROCEDURE WriteLn;
   (* Writes a line mark to the default output stream. *)
+BEGIN
+   TextIO.WriteLn(StdChans.StdOutChan())
+END WriteLn ;
+
 
 PROCEDURE WriteString (s: ARRAY OF CHAR);
   (* Writes the string value of s to the default output stream. *)
+BEGIN
+   TextIO.WriteString(StdChans.StdOutChan(), s)
+END WriteString ;
+
 
 END STextIO.

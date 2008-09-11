@@ -181,7 +181,7 @@ BEGIN
    IF t=NIL
    THEN
       Halt (__FILE__, __LINE__, __FUNCTION__,
-            'parameter t should never be NIL')
+            'storageTree is either corrupt or the module storage has not been initialized yet')
    END ;
    child := t^.Left ;
    IF child#NIL
@@ -272,8 +272,8 @@ END VerifyDeallocate ;
 
 PROCEDURE Init ;
 BEGIN
-   AllocateSource (storageException) ;
-   InitTree (storageTree)
+   InitTree (storageTree) ;
+   AllocateSource (storageException)
 END Init ;
 
 

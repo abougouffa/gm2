@@ -39,6 +39,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #endif
 
 #if defined(HAVE_SYS_ERRNO_H)
+#  include <sys/errno.h>
+#endif
+
+#if defined(HAVE_ERRNO_H)
 #  include <errno.h>
 #endif
 

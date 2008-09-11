@@ -2,6 +2,11 @@
 
 	* gm2/gm2.texi:  added more information to the
 	  release map.
+	* gm2/gm2-libs-iso/TextIO.mod:  new file.
+	* gm2/gm2-libs-iso/STextIO.mod:  new file.
+	* gm2/gm2-libs-iso/StdChans.mod:  new file.
+	* testsuite/gm2/isolib/run/pass/hello.mod:  new file.
+	* testsuite/gm2/isolib/run/pass/gm2.exp:  new file.
 
 2008-09-10       Gaius Mulley <gaius@gnu.org>
 
