@@ -2853,6 +2853,7 @@ BEGIN
    PushValue(sym) ;
    IF IsValueTypeNone()
    THEN
+      v := Pop() ;
       resolved := FALSE
    ELSE
       v := Pop() ;
@@ -2875,9 +2876,9 @@ BEGIN
             solved := resolved
          END
       END ;
-      Push(v)
+      Push(v) ;
+      PopValue(sym)
    END ;
-   PopValue(sym) ;
    RETURN( resolved )
 END CollectConstructorDependants ;
 

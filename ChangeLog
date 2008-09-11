@@ -7,6 +7,9 @@
 	* gm2/gm2-libs-iso/StdChans.mod:  new file.
 	* testsuite/gm2/isolib/run/pass/hello.mod:  new file.
 	* testsuite/gm2/isolib/run/pass/gm2.exp:  new file.
+	* gm2/gm2-compiler/M2ALU.mod:  fixed bug in
+          CollectConstructorDependants in which a unknown
+	  value might be saved as a constant.
 
 2008-09-10       Gaius Mulley <gaius@gnu.org>
 
