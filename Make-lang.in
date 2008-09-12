@@ -1253,7 +1253,7 @@ gm2/gm2-compiler/M2Version.mod:
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
-gm2/gm2-libs-iso/ErrnoCategory.o: $(srcdir)/gm2/gm2-libs-iso/ErrnoCategory.c
+gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
