@@ -43,7 +43,7 @@ PROCEDURE InitChanId () : ChanId ;
 
 
 (*
-   InitChanId - deallocate a ChanId.
+   KillChanId - deallocate a ChanId.
 *)
 
 PROCEDURE KillChanId (c: ChanId) : ChanId ;
