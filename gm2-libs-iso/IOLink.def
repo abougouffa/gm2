@@ -4,7 +4,7 @@
 
    Copyright ISO/IEC (International Organization for Standardization
    and International Electrotechnical Commission) 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
+   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 *)
 
 DEFINITION MODULE IOLink;
 
@@ -98,7 +98,16 @@ PROCEDURE IsDevice (cid: IOChan.ChanId; did: DeviceId) : BOOLEAN;
 
 
 TYPE
+  DevExceptionRange = IOChan.ChanExceptions;
+
+(*
+  ISO standard states defines
+
   DevExceptionRange = [IOChan.notAvailable ..  IOChan.textParseError];
+
+  however this must be a bug as other modules need to raise
+  IOChan.wrongDevice exceptions.
+*)
 
 PROCEDURE RAISEdevException (cid: IOChan.ChanId; did: DeviceId;
                              x: DevExceptionRange; s: ARRAY OF CHAR);

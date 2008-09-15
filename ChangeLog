@@ -1,3 +1,8 @@
+2008-09-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/m2pp.c:  corrected prototypes and fixed format
+	  specifier for snprintf.
+
 2008-09-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  added more information to the

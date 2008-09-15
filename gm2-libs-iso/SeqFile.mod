@@ -1,4 +1,4 @@
-(* Copyright (C) 2005 Free Software Foundation, Inc. *)
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -17,21 +17,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE SeqFile ;
 
-FROM DynamicString IMPORT String, InitString, KillString ;
-FROM SFIO IMPORT OpenToWrite, Close, OpenForRead ;
+IMPORT FIO, IOChan, RTio, errno, ErrnoCategory ;
 
-
-TYPE
-   cidInfo = RECORD
-                name: String ;
-                used: BOOLEAN ;
-                flag: FlagSet ;
-                file: FIO.File ;
-             END ;
+FROM EXCEPTIONS IMPORT ExceptionSource, RAISE, AllocateSource,
+                       IsCurrentSource, IsExceptionalExecution ;
 
 VAR
-   cidIndex: ARRAY [0..MaxCid] OF cidInfo ;
-   usedCid : CARDINAL ;
+   source: ExceptionSource ;
 
 
 (*
@@ -40,30 +32,31 @@ VAR
 *)
 
 PROCEDURE newCid (fname: ARRAY OF CHAR; flags: FlagSet;
-                  VAR res: OpenResults; toWrite: BOOLEAN) : ChanId ;
+                  VAR res: OpenResults;
+                  toRead, toWrite: BOOLEAN) : ChanId ;
 VAR
-   i: ChanId ;
+   c   : RTio.ChanId ;
+   file: FIO.File ;
+   e   : INTEGER ;
 BEGIN
-   i := 0 ;
-   WHILE i<=usedCid DO
-      IF NOT cidIndex[i].used
-      THEN
-         WITH cidIndex[i] DO
-            name := InitString(fname) ;
-            used := TRUE ;
-            flag := flags ;
-            IF toWrite
-            THEN
-               file := OpenToWrite(name)
-            ELSE
-               file := OpenToRead(name)
-            END
-         END
-      END ;
-      INC(i)
+   IF toRead AND toWrite
+   THEN
+      file := FIO.OpenForRandom(name)
+   ELSIF toWrite
+   THEN
+      file := FIO.OpenToWrite(name)
+   ELSE
+      file := FIO.OpenToRead(name)
    END ;
-   res := outOfChans ;
-   RETURN 0
+   e := errno.geterrno() ;
+   res := ErrnoCategory.GetOpenResults(e) ;
+   IF FIO.IsNoError(file)
+   THEN
+      c := RTio.SetChanId(RTio.InitChanId(), file, s, res, flags, e) ;
+      RETURN( IOChan.ChanId(c) )
+   ELSE
+      RETURN( IOChan.InvalidChan() )
+   END
 END newCid ;
 
 
@@ -81,24 +74,34 @@ END newCid ;
 PROCEDURE OpenWrite (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet;
                      VAR res: OpenResults) ;
 BEGIN
-   cid := newCid(name, flags, res, FALSE)
+   INCL(flags, ChanConsts.write) ;
+   IF NOT ChanConsts.rawFlag IN flags
+   THEN
+      INCL(flags, ChanConsts.textFlag)
+   END ;
+   cid := newCid(name, flags, res, ChanConst.read IN flags, TRUE)
 END OpenWrite ;
 
 
 (*
-   OpenRead - Attempts to obtain and open a channel connected to a stored rewindable
- file of the given name.  The read and old flags are implied; without
- the raw flag, text is implied.  If successful, assigns to cid the
- identity of the opened channel, assigns the value opened to res, and
- selects input mode, with the read position corresponding to the start
- of the file.  If a channel cannot be opened as required, the value of
- res indicates the reason, and cid identifies the invalid channel.
+   Attempts to obtain and open a channel connected to a stored rewindable
+   file of the given name.  The read and old flags are implied; without
+   the raw flag, text is implied.  If successful, assigns to cid the
+   identity of the opened channel, assigns the value opened to res, and
+   selects input mode, with the read position corresponding to the start
+   of the file.  If a channel cannot be opened as required, the value of
+   res indicates the reason, and cid identifies the invalid channel.
 *)
 
 PROCEDURE OpenRead (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet;
                     VAR res: OpenResults) ;
 BEGIN
-   cid := newCid(name, flags, res, TRUE)   
+   flags := flags + ChanConsts.read + ChanConsts.old ;
+   IF NOT ChanConsts.rawFlag IN flags
+   THEN
+      INCL(flags, ChanConsts.textFlag)
+   END ;
+   cid := newCid(name, flags, res, TRUE, ChanConst.write IN flags)
 END OpenRead ;
 
 
@@ -109,14 +112,11 @@ END OpenRead ;
 
 PROCEDURE IsSeqFile (cid: ChanId) : BOOLEAN ;
 BEGIN
-   IF cid=0
-   THEN
-      RETURN FALSE
-   ELSE
-      WITH cidIndex[cid] DO
-         RETURN used AND (readFlag IN flag)
-      END
-   END
+   RETURN(
+          (cid # NIL) AND (IOChan.InvalidChan() # cid) AND
+          (ChanConsts.readFlag IN IOChan.CurrentFlags(cid)) AND
+          (ChanConsts.opened = RTio.GetOpen(RTio.ChanId(c)))
+         )
 END IsSeqFile ;
 
 
@@ -131,13 +131,14 @@ END IsSeqFile ;
 
 PROCEDURE Reread (cid: ChanId) ;
 BEGIN
-   WITH cidIndex[cid] DO
-      IF used AND (NOT (writeFlag IN flag))
-      THEN
-         SetPositionFromBeginning(file, 0)
-      ELSE
-         RaiseException (* --fixme-- finish this code *)
-      END
+   IF IsSeqFile(cid)
+   THEN
+      FIO.SetPositionFromBeginning(RTio.GetFile(cid), 0)
+   ELSE
+      IOLink.RAISEdevException(cid,
+                               --fixme-- got to here
+                               ORD(IOChan.wrongDevice),
+                               'performing a reread on a file which is not sequentially readable')
    END
 END Reread ;
 
@@ -150,20 +151,18 @@ END Reread ;
     If the operation cannot be performed (perhaps because of
     insufficient permissions) neither input mode nor output
     mode is selected.
-  *)
+*)
 
 PROCEDURE Rewrite (cid: ChanId) ;
 BEGIN
    IF IsSeqFile(cid)
    THEN
-      WITH cidIndex[cid] DO
-         FIO.Close(file) ;
-         EXCL(flag, readFlag) ;
-         INCL(flag, writeFlag) ;
-         file := OpenToWrite(name)
-      END         
+      FIO.SetPositionFromBeginning(RTio.GetFile(cid), 0)
    ELSE
-      RaiseException(wrongDevice)
+      IOLink.RAISEdevException(cid,
+                               --fixme-- got to here
+                               ORD(IOChan.wrongDevice),
+                               'performing a reread on a file which is not sequentially readable')
    END
 END Rewrite ;
 
@@ -176,20 +175,25 @@ END Rewrite ;
 *)
 
 PROCEDURE Close (VAR cid: ChanId) ;
+VAR
+   f: FIO.File ;
 BEGIN
    IF IsSeqFile(cid)
    THEN
-      WITH cidIndex[cid] DO
-         IF used
-         THEN
-            name := KillString(name) ;
-            used := FALSE
-         END
-      END
+      f := RTio.GetFile(RTio.ChanId(cid)) ;
+      FIO.FlushBuffer(f) ;
+      IF FIO.IsNoError(f)
+      THEN
+         FIO.Close(f) ;
+      END ;
+      CheckError(errno) ;
+      cid := IOChan.Id(KillChanId(RTio.ChanId(cid)))
    ELSE
-      RaiseException(wrongDevice)
-   END ;
-   cid := 0
+      IOLink.RAISEdevException(cid,
+                               --fixme-- got to here
+                               ORD(IOChan.wrongDevice),
+                               'performing a Close on a file which was not open for sequential access')
+   END
 END Close ;
 
 
@@ -199,9 +203,8 @@ END Close ;
 
 PROCEDURE Init ;
 BEGIN
-   usedCid := 0
+   AllocateSource(source)
 END Init ;
-
 
 
 BEGIN

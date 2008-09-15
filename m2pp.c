@@ -170,8 +170,8 @@ static void m2pp_catch_expr (pretty *s, tree t);
 static void m2pp_try_finally_expr (pretty *s, tree t);
 static void m2pp_if_stmt (pretty *s, tree t);
 static void killPretty (pretty *s);
-static void m2pp_compound_expression (s, t);
-static void m2pp_target_expression (s, t);
+static void m2pp_compound_expression (pretty *s, tree t);
+static void m2pp_target_expression (pretty *s, tree t);
 extern void stop (void);
 
 
@@ -1226,7 +1226,7 @@ m2pp_relop (pretty *s, tree t, const char *p)
  */
 
 static void
-m2pp_compound_expression (s, t)
+m2pp_compound_expression (pretty *s, tree t)
 {
   m2pp_print (s, "compound expression {");
   m2pp_expression (s, TREE_OPERAND (t, 0));
@@ -1241,7 +1241,7 @@ m2pp_compound_expression (s, t)
  */
 
 static void
-m2pp_target_expression (s, t)
+m2pp_target_expression (pretty *s, tree t)
 {
   m2pp_print (s, "{");
   m2pp_needspace (s);
@@ -1475,7 +1475,7 @@ m2pp_integer_cst (pretty *s, tree t)
 {
   char val[100];
 
-  snprintf(val, 100, "%ld", TREE_INT_CST_LOW (t));
+  snprintf(val, 100, "%lld", TREE_INT_CST_LOW (t));
   m2pp_print (s, val);
 }
 

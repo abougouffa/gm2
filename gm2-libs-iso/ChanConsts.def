@@ -48,7 +48,7 @@ TYPE
      noSuchFile,       (* a needed file does not exist *)
      fileExists,       (* a file of the given name already exists when a new one is required *)
      wrongFileType,    (* the file is of the wrong type to support the required operations *)
-      noTextOperations, (* text operations have been requested, but are not supported *)
+     noTextOperations, (* text operations have been requested, but are not supported *)
      noRawOperations,  (* raw operations have been requested, but are not supported *)
      noMixedOperations,(* text and raw operations have been requested, but they
                           are not supported in combination *)
