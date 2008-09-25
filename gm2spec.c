@@ -99,7 +99,7 @@ static void scan_for_link_args (int *in_argc, const char *const **in_argv);
 static styles get_style (flag_set flags);
 static void add_link_from_include (int link, char **in_argv[],
                                    int incl, const char *option);
-static void add_lstdcpp (int *in_argc, const char *const **in_argv);
+static void add_lib (int *in_argc, const char *const **in_argv, const char *lib);
 
 
 typedef struct object_list {
@@ -331,14 +331,14 @@ get_style (flag_set flags)
 }
 
 /*
- *  add_lstdcpp - add -lstdc++ to the command line.
+ *  add_lib - add, lib, to the front of the command line.
  */
 
 static void
-add_lstdcpp (int *in_argc, const char *const **in_argv)
+add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 {
   insert_arg (1, in_argc, (char ***)in_argv);
-  add_arg (1, (char ***)in_argv, "-lstdc++");
+  add_arg (1, (char ***)in_argv, lib);
 }
 
 static void
@@ -453,8 +453,10 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     insert_arg(1, in_argc, (char ***)in_argv);
     add_arg(1, (char ***)in_argv, "-x");
   }
-  if (linking)
-    add_lstdcpp(in_argc, in_argv);
+  if (linking) {
+    add_lib(in_argc, in_argv, "-lstdc++");
+    add_lib(in_argc, in_argv, "-lgcc_eh");
+  }
   scan_for_link_args(in_argc, in_argv);
 #if defined(DEBUGGING)
   i = 1;

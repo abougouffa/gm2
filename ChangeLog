@@ -1,3 +1,7 @@
+2008-09-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  add -lgcc_eh to the link command line.
+
 2008-09-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/m2pp.c:  corrected prototypes and fixed format
