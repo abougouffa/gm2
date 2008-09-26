@@ -28,14 +28,16 @@ CONST
   raw = FlagSet{ChanConsts.rawFlag};     (* raw operations are requested/available *)
 
 
-PROCEDURE Open (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet; VAR res: OpenResults);
-  (* Attempts to obtain and open a channel connected to a sequential stream of the given
-     name.
-     The read flag implies old; without the raw flag, text is implied.
-     If successful, assigns to cid the identity of the opened channel, and assigns the value
-     opened to res.
-     If a channel cannot be opened as required, the value of res indicates the reason, and
-     cid identifies the invalid channel.
+PROCEDURE Open (VAR cid: ChanId; name: ARRAY OF CHAR;
+                flags: FlagSet; VAR res: OpenResults);
+  (* Attempts to obtain and open a channel connected to a
+     sequential stream of the given name.
+     The read flag implies old; without the raw flag, text is
+     implied.  If successful, assigns to cid the identity of
+     the opened channel, and assigns the value opened to res.
+     If a channel cannot be opened as required, the value of
+     res indicates the reason, and cid identifies the invalid
+     channel.
   *)
 
 PROCEDURE IsStreamFile (cid: ChanId): BOOLEAN;

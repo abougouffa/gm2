@@ -25,8 +25,9 @@ FROM DynamicStrings IMPORT String, InitString, ConCat, ConCatChar, KillString, s
 FROM FormatStrings IMPORT Sprintf2 ;
 
 CONST
-   TMPDIR = '/tmp' ;
-   DIRSEP = '/' ;
+   TMPDIR   = '/tmp' ;
+   DIRSEP   = '/' ;
+   SEEK_SET = 0 ;   (* seek relative to from beginning of the file *)
 
 TYPE
    FileList = POINTER TO RECORD
@@ -430,7 +431,9 @@ BEGIN
             fio := SFIO.OpenToWrite(name)
          END ;
          INCL(flags, opened) ;
-         r := libc.lseek(fio, lowpos, highpos)
+         r := libc.lseek(fio,
+                         VAL(LONGCARD, lowpos) + VAL(LONGCARD, highpos)*VAL(LONGCARD, MAX(CARDINAL)),
+                         SEEK_SET)
       END
    END
 END doModeChange ;
@@ -505,7 +508,9 @@ VAR
    r: INTEGER ;
 BEGIN
    WITH f DO
-      r := libc.lseek(fio, low, high) ;
+      r := libc.lseek(fio, VAL(LONGCARD, low) +
+                      (VAL(LONGCARD, MAX(CARDINAL)) * VAL(LONGCARD, high)),
+                      SEEK_SET) ;
       highpos := high ;
       lowpos := low ;
    END

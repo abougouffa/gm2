@@ -4139,6 +4139,14 @@ BEGIN
    THEN
       RETURN( BuildSize(Mod2Gcc(Type), FALSE) )
    END ;
+   IF ((NOT IsVar(operand)) AND (NOT IsConstString(operand)) AND
+       ((NOT IsConst(operand)) AND (GetType(operand)=Char))) OR
+      (IsVar(operand) AND (NOT IsArray(Type)))
+   THEN
+      ErrorStringAt(InitString('base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter'),
+                    QuadToTokenNo(quad)) ;
+      RETURN( GetIntegerZero() )
+   END ;
    Subscript := GetArraySubscript(Type) ;
    Subrange := SkipType(GetType(Subscript)) ;
    GetSubrange(Subrange, High, Low) ;

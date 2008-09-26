@@ -39,6 +39,7 @@ FROM M2RTS IMPORT InstallTerminationProcedure ;
 
 CONST
    SEEK_SET            =       0 ;   (* relative from beginning of the file *)
+   SEEK_END            =       2 ;   (* relative to the end of the file     *)
    UNIXREADONLY        =       0 ;
    CreatePermissions   =     666B;
    MaxNoOfFiles        =     100 ;
@@ -72,7 +73,7 @@ TYPE
                                      usage : FileUsage ;
                                      output: BOOLEAN ;     (* is this file going to write data *)
                                      buffer: Buffer ;
-                                     abspos: CARDINAL ;    (* absolute position into file.     *)
+                                     abspos: LONGCARD ;    (* absolute position into file.     *)
                                   END ;
 
    PtrToChar         = POINTER TO CHAR ;
@@ -279,8 +280,10 @@ END exists ;
    InitializeFile - initialize a file descriptor
 *)
 
-PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
-                          fstate: FileStatus; use: FileUsage; towrite: BOOLEAN; buflength: CARDINAL) : File ;
+PROCEDURE InitializeFile (f: File; fname: ADDRESS;
+                          flength: CARDINAL; fstate: FileStatus;
+                          use: FileUsage;
+                          towrite: BOOLEAN; buflength: CARDINAL) : File ;
 VAR
    p: PtrToChar ;
 BEGIN
@@ -1211,7 +1214,9 @@ END ReadString ;
    SetPositionFromBeginning - sets the position from the beginning of the file.
 *)
 
-PROCEDURE SetPositionFromBeginning (f: File; pos: CARDINAL) ;
+PROCEDURE SetPositionFromBeginning (f: File; pos: LONGINT) ;
+VAR
+   offset: LONGINT ;
 BEGIN
    IF f<MaxNoOfFiles
    THEN
@@ -1234,9 +1239,11 @@ BEGIN
                   filled   := 0
                END
             END ;
-            abspos := pos ;
-            IF lseek(unixfd, INTEGER(pos), SEEK_SET)#INTEGER(pos)
+            offset := lseek(unixfd, pos, SEEK_SET) ;
+            IF (offset>=0) AND (pos=offset)
             THEN
+               abspos := pos
+            ELSE
                state  := failed ;
                abspos := 0
             END
@@ -1247,10 +1254,48 @@ END SetPositionFromBeginning ;
 
 
 (*
+   SetPositionFromEnd - sets the position from the end of the file.
+*)
+
+PROCEDURE SetPositionFromEnd (f: File; pos: LONGINT) ;
+VAR
+   offset: LONGINT ;
+BEGIN
+   IF f<MaxNoOfFiles
+   THEN
+      WITH FileInfo[f]^ DO
+         FlushBuffer(f) ;
+         IF buffer#NIL
+         THEN
+            WITH buffer^ DO
+               IF output
+               THEN
+                  left := size
+               ELSE
+                  left := 0
+               END ;
+               position := 0 ;
+               filled   := 0
+            END
+         END ;
+         offset := lseek(unixfd, pos, SEEK_END) ;
+         IF offset>=0
+         THEN
+            abspos := offset
+         ELSE
+            state  := failed ;
+            abspos := 0
+         END
+      END
+   END
+END SetPositionFromEnd ;
+
+
+(*
    FindPosition - returns the current absolute position in file, f.
 *)
 
-PROCEDURE FindPosition (f: File) : CARDINAL ;
+PROCEDURE FindPosition (f: File) : LONGCARD ;
 BEGIN
    IF f<MaxNoOfFiles
    THEN
@@ -1356,7 +1401,7 @@ BEGIN
    StdErr := 2 ;
    PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
    (* and now for the error file descriptor *)
-   PreInitialize(MaxNoOfFiles, 'error' , toomanyfilesopen, unused        , FALSE, 0) ;
+   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
    InstallTerminationProcedure(CloseOutErr)
 END Init ;
 

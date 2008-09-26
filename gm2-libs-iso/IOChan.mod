@@ -18,7 +18,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE IOChan ;
 
-IMPORT FIO, EXCEPTIONS, M2EXCEPTION, RTio, IOConsts, errno, ErrnoCategory ;
+IMPORT FIO, EXCEPTIONS, M2EXCEPTION, RTio, IOConsts,
+       RTentity, errno, ErrnoCategory, IOLink, StdChans, M2RTS ;
 
 FROM EXCEPTIONS IMPORT ExceptionSource, RAISE, AllocateSource,
                        IsCurrentSource, IsExceptionalExecution ;
@@ -29,13 +30,14 @@ TYPE
    ChanId = RTio.ChanId ;
 
 VAR
-   iochan: ExceptionSource ;
+   iochan :  ExceptionSource ;
+   invalid:  ChanId ;
 
 
 PROCEDURE InvalidChan () : ChanId ;
   (* Returns the value identifying the invalid channel. *)
 BEGIN
-   RETURN( RTio.NilChanId() )
+   RETURN( invalid )
 END InvalidChan ;
 
 
@@ -44,90 +46,21 @@ PROCEDURE CheckValid (cid: ChanId) ;
 BEGIN
    IF cid=InvalidChan()
    THEN
-      RAISE(iochan, ORD(notAChannel), 'ChanId specified is invalid')
+      RAISE(iochan, ORD(notAChannel), 'IOChan: ChanId specified is invalid')
    END
 END CheckValid ;
-
-
-PROCEDURE CheckErrno (cid: ChanId) ;
-  (* internal routine to check a number of error conditions *)
-VAR
-   e: INTEGER ;
-BEGIN
-   CheckValid(cid) ;
-   IF NOT FIO.IsNoError(RTio.GetFile(cid))
-   THEN
-      e := errno.geterrno() ;
-      IF ErrnoCategory.IsErrnoHard(e)
-      THEN
-         RTio.SetError(cid, e) ;
-         RAISE(iochan, ORD(hardDeviceError), 'unrecoverable (errno)')
-      ELSIF ErrnoCategory.UnAvailable(e)
-      THEN
-         RTio.SetError(cid, e) ;
-         RAISE(iochan, ORD(notAvailable), 'unavailable (errno)')
-      ELSIF e>0
-      THEN
-         RTio.SetError(cid, e) ;
-         RAISE(iochan, ORD(softDeviceError), 'recoverable (errno)')
-      END
-   END
-END CheckErrno ;
-
-
-PROCEDURE CheckPreRead (cid: ChanId) ;
-BEGIN
-   CheckValid(cid) ;
-   IF FIO.EOLN(RTio.GetFile(cid))
-   THEN
-      RTio.SetRead(cid, IOConsts.endOfLine)
-   ELSIF FIO.EOF(RTio.GetFile(cid))
-   THEN
-      RTio.SetRead(cid, IOConsts.endOfInput) ;
-      RAISE(iochan, ORD(skipAtEnd), 'attempting to read beyond end of file')
-   END
-END CheckPreRead ;
-
-
-PROCEDURE CheckPostRead (cid: ChanId) ;
-BEGIN
-   CheckValid(cid) ;
-   CheckErrno(cid) ;
-   IF FIO.EOLN(RTio.GetFile(cid))
-   THEN
-      RTio.SetRead(cid, IOConsts.endOfLine)
-   ELSIF FIO.EOF(RTio.GetFile(cid))
-   THEN
-      RTio.SetRead(cid, IOConsts.endOfInput)
-   ELSE
-      RTio.SetRead(cid, IOConsts.allRight)
-   END
-END CheckPostRead ;
-
-
-PROCEDURE CheckPreWrite (cid: ChanId) ;
-BEGIN
-   CheckValid(cid)
-END CheckPreWrite ;
-
-
-PROCEDURE CheckPostWrite (cid: ChanId) ;
-BEGIN
-   CheckValid(cid) ;
-   CheckErrno(cid)   
-END CheckPostWrite ;
 
 
   (* For each of the following operations, if the device supports the
      operation on the channel, the behaviour of the procedure conforms
      with the description below.  The full behaviour is defined for
      each device module.  If the device does not support the operation
-     on the channel, the behaviour of the procedure is to raise the exception
-     notAvailable.
+     on the channel, the behaviour of the procedure is to raise the
+     exception notAvailable.
   *)
 
-  (* Text operations - these perform any required translation between
-     the internal and external representation of text.
+  (* Text operations - these perform any required translation
+     between the internal and external representation of text.
   *)
 
 PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
@@ -138,19 +71,31 @@ PROCEDURE Look (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
      allRight, endOfLine, or endOfInput.
   *)
 VAR
-   f: FIO.File ;
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   f := RTio.GetFile(cid) ;
-   IF FIO.EOF(f)
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
    THEN
-      RTio.SetRead(cid, IOConsts.endOfInput)
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.Look: device table ptr is NIL')
    ELSE
-      ch := FIO.ReadChar(f) ;
-      FIO.UnReadChar(f, ch) ;
-      CheckPostRead(cid)
-   END ;
-   res := RTio.GetRead(cid)
+      WITH dtp^ DO
+         IF cid=StdChans.NullChan()
+         THEN
+            result := IOConsts.endOfInput
+         ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            doLook(dtp, ch, result)
+         ELSE
+            result := notAvailable
+         END ;
+         res := result
+      END
+   END
 END Look ;
 
 
@@ -160,17 +105,39 @@ PROCEDURE Skip (cid: ChanId) ;
      and the stored read result is set to the value allRight.
   *)
 VAR
-   f : FIO.File ;
-   ch: CHAR ;
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreRead(cid) ;
-   f := RTio.GetFile(cid) ;
-   ch := FIO.ReadChar(f) ;
-   CheckPostRead(cid)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.Skip: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF (cid=StdChans.NullChan()) OR (result=IOConsts.endOfInput)
+         THEN
+            RAISE(iochan, ORD(skipAtEnd),
+                  'IOChan.Skip: attempt to skip data from a stream that has ended')
+         ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            doSkip(dtp) ;
+            result := IOConsts.allRight
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.SkipLook: attempt to skip data from a channel which is not configured as read and text')
+         END
+      END
+   END
 END Skip ;
 
 
-PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
+PROCEDURE SkipLook (cid: ChanId;
+                    VAR ch: CHAR;
+                    VAR res: IOConsts.ReadResults) ;
   (* If the input stream cid has ended, the exception skipAtEnd is raised;
      otherwise the next character or line mark in cid is removed.
      If there is a character as the next item in cid stream,
@@ -180,34 +147,71 @@ PROCEDURE SkipLook (cid: ChanId; VAR ch: CHAR; VAR res: IOConsts.ReadResults) ;
      endOfLine, or endOfInput.
   *)
 VAR
-   f: FIO.File ;
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreRead(cid) ;
-   f := RTio.GetFile(cid) ;
-   ch := FIO.ReadChar(f) ;
-   IF FIO.IsNoError(f)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
    THEN
-      FIO.UnReadChar(f, ch) ;
-      CheckPostRead(cid)
-   END ;
-   res := RTio.GetRead(cid)
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.SkipLook: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF (cid=StdChans.NullChan()) OR (result=IOConsts.endOfInput)
+         THEN
+            RAISE(iochan, ORD(skipAtEnd),
+                  'IOChan.SkipLook: attempt to skip data from a stream that has ended')
+         ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            doSkipLook(dtp, ch, result)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.SkipLook: attempt to skip data from a channel which is not configured as read and text')
+         END ;
+         res := result
+      END
+   END
 END SkipLook ;
 
 
 PROCEDURE WriteLn (cid: ChanId) ;
   (* Writes a line mark over the channel cid. *)
 VAR
-   f: FIO.File ;
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreWrite(cid) ;
-   f := RTio.GetFile(cid) ;
-   FIO.WriteLine(f) ;
-   CheckPostWrite(cid)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.WriteLn: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF cid=StdChans.NullChan()
+         THEN
+            (* do nothing *)
+         ELSIF (ChanConsts.writeFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            dtp^.doLnWrite(dtp)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.WriteLn: attempting to write to a channel which is not configured as write and text')
+         END
+      END
+   END
 END WriteLn ;
 
 
-PROCEDURE TextRead (cid: ChanId; to: SYSTEM.ADDRESS; maxChars: CARDINAL;
-                    VAR charsRead: CARDINAL);
+PROCEDURE TextRead (cid: ChanId;
+                    to: SYSTEM.ADDRESS;
+                    maxChars: CARDINAL;
+                    VAR charsRead: CARDINAL) ;
   (* Reads at most maxChars characters from the current line in cid,
      and assigns corresponding values to successive components of an
      ARRAY OF CHAR variable for which the address of the first
@@ -215,121 +219,283 @@ PROCEDURE TextRead (cid: ChanId; to: SYSTEM.ADDRESS; maxChars: CARDINAL;
      to charsRead. The stored read result is set to allRight, 
      endOfLine, or endOfInput.
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreRead(cid) ;
-   charsRead := FIO.ReadNBytes(RTio.GetFile(cid), maxChars, to) ;
-   CheckPostRead(cid)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.TextRead: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF (cid=StdChans.NullChan()) OR (result=IOConsts.endOfInput)
+         THEN
+            charsRead := 0 ;
+            result := IOConsts.endOfInput
+         ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            doTextRead(dtp, to, maxChars, charsRead)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.TextRead: attempt to read data from a channel which is not configured as read and text')
+         END
+      END
+   END
 END TextRead ;
 
-PROCEDURE TextWrite (cid: ChanId; from: SYSTEM.ADDRESS;
-                     charsToWrite: CARDINAL);
+
+PROCEDURE TextWrite (cid: ChanId;
+                     from: SYSTEM.ADDRESS;
+                     charsToWrite: CARDINAL) ;
   (* Writes a number of characters given by the value of charsToWrite,
      from successive components of an ARRAY OF CHAR variable for which
      the address of the first component is from, to the channel cid.
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreWrite(cid) ;
-   IF charsToWrite#FIO.WriteNBytes(RTio.GetFile(cid), charsToWrite, from)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
    THEN
-      (* this error will be caught by checking errno  *)
-      CheckErrno(cid) ;
-      (* if our target system does not support errno then we *)
-      RAISE(iochan, ORD(hardDeviceError), 'unrecoverable errno')
-   END ;
-   CheckPostWrite(cid)
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.TextWrite: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF cid=StdChans.NullChan()
+         THEN
+            (* do nothing *)
+         ELSIF (ChanConsts.writeFlag IN flags) AND (ChanConsts.textFlag IN flags)
+         THEN
+            doTextWrite(dtp, from, charsToWrite)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.TextWrite: attempt to write data to a channel which is not configured as write and text')
+         END
+      END
+   END
 END TextWrite ;
+
 
   (* Direct raw operations - these do not effect translation between
      the internal and external representation of data
   *)
 
-PROCEDURE RawRead (cid: ChanId; to: SYSTEM.ADDRESS; maxLocs: CARDINAL;
-                   VAR locsRead: CARDINAL);
+PROCEDURE RawRead (cid: ChanId;
+                   to: SYSTEM.ADDRESS;
+                   maxLocs: CARDINAL;
+                   VAR locsRead: CARDINAL) ;
   (* Reads at most maxLocs items from cid, and assigns corresponding
      values to successive components of an ARRAY OF LOC variable for
      which the address of the first component is to. The number of
-     characters read is assigned to charsRead. The stored read result
+     characters read is assigned to locsRead. The stored read result
      is set to the value allRight, or endOfInput.
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreRead(cid) ;
-   locsRead := FIO.ReadNBytes(RTio.GetFile(cid), maxLocs, to) ;
-   CheckPostRead(cid)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.RawRead: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF (cid=StdChans.NullChan()) OR (result=IOConsts.endOfInput)
+         THEN
+            locsRead := 0 ;
+            result := IOConsts.endOfInput
+         ELSIF (ChanConsts.readFlag IN flags) AND (ChanConsts.rawFlag IN flags)
+         THEN
+            doRawRead(dtp, to, maxLocs, locsRead)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.RawRead: attempt to read data from a channel which is not configured as read and raw')
+         END
+      END
+   END
 END RawRead ;
 
-PROCEDURE RawWrite (cid: ChanId; from: SYSTEM.ADDRESS; locsToWrite: CARDINAL);
+
+PROCEDURE RawWrite (cid: ChanId; from: SYSTEM.ADDRESS; locsToWrite: CARDINAL) ;
   (* Writes a number of items given by the value of charsToWrite,
      from successive components of an ARRAY OF LOC variable for
      which the address of the first component is from, to the channel cid.
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
-   CheckPreWrite(cid) ;
-   IF locsToWrite#FIO.WriteNBytes(RTio.GetFile(cid), locsToWrite, from)
+   CheckValid(cid) ;
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
    THEN
-      (* this error will be caught by checking errno  *)
-      CheckErrno(cid) ;
-      (* if our target system does not support errno then we *)
-      RAISE(iochan, ORD(hardDeviceError), 'unrecoverable errno')
-   END ;
-   CheckPostWrite(cid)
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.RawWrite: device table ptr is NIL')
+   ELSE
+      WITH dtp^ DO
+         IF (cid=StdChans.NullChan()) OR (result=IOConsts.endOfInput)
+         THEN
+            result := IOConsts.endOfInput
+         ELSIF (ChanConsts.writeFlag IN flags) AND (ChanConsts.rawFlag IN flags)
+         THEN
+            doRawWrite(dtp, from, locsToWrite)
+         ELSE
+            RAISE(iochan, ORD(notAvailable),
+                  'IOChan.RawWrite: attempt to write data to a channel which is not configured as write and raw')
+         END
+      END
+   END
 END RawWrite ;
+
 
   (* Common operations *)
 
-PROCEDURE GetName (cid: ChanId; VAR s: ARRAY OF CHAR);
+PROCEDURE GetName (cid: ChanId; VAR s: ARRAY OF CHAR) ;
   (* Copies to s a name associated with the channel cid, possibly truncated
      (depending on the capacity of s).
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   FIO.GetFileName(RTio.GetFile(cid), s)
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.GetName: device table ptr is NIL')
+   ELSE
+      dtp^.doGetName(dtp, s)
+   END
 END GetName ;
 
-PROCEDURE Reset (cid: ChanId);
+
+PROCEDURE Reset (cid: ChanId) ;
   (* Resets the channel cid to a state defined by the device module. *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   RTio.SetError(cid, 0)
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.Reset: device table ptr is NIL')
+   ELSE
+      dtp^.doReset(dtp)
+   END
 END Reset ;
 
-PROCEDURE Flush (cid: ChanId);
+
+PROCEDURE Flush (cid: ChanId) ;
   (* Flushes any data buffered by the device module out to the channel cid. *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   FIO.FlushBuffer(RTio.GetFile(cid)) ;
-   CheckErrno(cid)
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.Flush: device table ptr is NIL')
+   ELSE
+      dtp^.doFlush(dtp)
+   END
 END Flush ;
+
 
   (* Access to read results *)
 
-PROCEDURE SetReadResult (cid: ChanId; res: IOConsts.ReadResults);
+PROCEDURE SetReadResult (cid: ChanId; res: IOConsts.ReadResults) ;
   (* Sets the read result value for the channel cid to the value res. *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   RTio.SetRead(cid, res)
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.SetReadResult: device table ptr is NIL')
+   ELSE
+      dtp^.result := res
+   END
 END SetReadResult ;
 
-PROCEDURE ReadResult (cid: ChanId): IOConsts.ReadResults;
+
+PROCEDURE ReadResult (cid: ChanId) : IOConsts.ReadResults ;
   (* Returns the stored read result value for the channel cid.
      (This is initially the value notKnown).
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   RETURN( RTio.GetRead(cid) )
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.SetReadResult: device table ptr is NIL')
+   ELSE
+      RETURN( dtp^.result )
+   END
 END ReadResult ;
+
 
   (* Users can discover which flags actually apply to a channel *)
 
-PROCEDURE CurrentFlags (cid: ChanId): ChanConsts.FlagSet;
+PROCEDURE CurrentFlags (cid: ChanId) : ChanConsts.FlagSet ;
   (* Returns the set of flags that currently apply to the channel cid. *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   RETURN( RTio.GetFlags(cid) )
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.SetReadResult: device table ptr is NIL')
+   ELSE
+      RETURN( dtp^.flags )
+   END
 END CurrentFlags ;
+
 
   (* The following exceptions are defined for this module and its clients *)
 
-PROCEDURE IsChanException (): BOOLEAN;
+PROCEDURE IsChanException () : BOOLEAN ;
   (* Returns TRUE if the current coroutine is in the exceptional
      execution state because of the raising of an exception from
      ChanExceptions; otherwise returns FALSE.
@@ -339,7 +505,7 @@ BEGIN
 END IsChanException ;
 
 
-PROCEDURE ChanException (): ChanExceptions;
+PROCEDURE ChanException () : ChanExceptions ;
   (* If the current coroutine is in the exceptional execution state
      because of the raising of an exception from ChanExceptions,
      returns the corresponding enumeration value, and otherwise
@@ -350,10 +516,11 @@ BEGIN
    THEN
       RETURN( VAL(ChanExceptions, EXCEPTIONS.CurrentNumber(iochan)) )
    ELSE
-      RAISE(iochan, ORD(M2EXCEPTION.exException),
-            'coroutine is not in the exceptional state caused by IOChan')
+      M2RTS.NoException(SYSTEM.ADR(__FILE__), __LINE__,
+                        __COLUMN__, SYSTEM.ADR(__FUNCTION__))
    END
 END ChanException ;
+
 
   (* When a device procedure detects a device error, it raises the
      exception softDeviceError or hardDeviceError.  If these exceptions
@@ -361,16 +528,29 @@ END ChanException ;
      an implementation-defined error number for the channel.
   *)
 
-PROCEDURE DeviceError (cid: ChanId): DeviceErrNum;
+PROCEDURE DeviceError (cid: ChanId) : DeviceErrNum ;
   (* If a device error exception has been raised for the channel cid,
      returns the error number stored by the device module.
   *)
+VAR
+   did: IOLink.DeviceId ;
+   dtp: IOLink.DeviceTablePtr ;
 BEGIN
    CheckValid(cid) ;
-   RETURN( RTio.GetError(cid) )
+   did := RTio.GetDeviceId(cid) ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
+                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   IF dtp=NIL
+   THEN
+      RAISE(iochan, ORD(hardDeviceError),
+            'IOChan.DeviceError: device table ptr is NIL')
+   ELSE
+      RETURN( dtp^.errNum )
+   END
 END DeviceError ;
 
 
 BEGIN
-   AllocateSource(iochan)
+   AllocateSource(iochan) ;
+   invalid := ChanId(RTio.InitChanId())
 END IOChan.

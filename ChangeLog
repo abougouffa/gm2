@@ -1,6 +1,53 @@
 2008-09-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  add -lgcc_eh to the link command line.
+	* gm2/Make-lang.in:  added many new implementation and
+	  definition modules to be installed as part of the ISO
+	  library.
+	* gm2/TODO:  added more outstanding bug reports.
+	* gm2/gm2-compiler/M2ALU.mod:  flush non recoverable
+	  errors.  Fixed bug during generation of constant array
+	  if the subrange was an enumerated type.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug which
+	  manifested itself if an implementation module imported
+	  itself.  The symbols were not emitted and incorrectly
+	  defined as extern.
+	* gm2/gm2-compiler/M2GenGCC.mod:  added more error checking
+	  when constructing HIGH.
+	* gm2/gm2-compiler/M2Quads.mod:  fixed bug in HIGH if the
+	  operand is a constant string which has been concatenated.
+	* gm2/gm2-libs/FIO.def:  changed all seek positions to
+	  LONGINT.
+	* gm2/gm2-libs/FIO.mod:  (SetPositionFromEnd) new procedure.
+	* gm2/gm2-libs/PushBackInput.def:  tidied up code.
+	* gm2/gm2-libs/PushBackInput.mod:  tidied up comments.
+	* gm2/gm2-libs/Selective.def:  tidied up comments.
+	* gm2/gm2-libs/libc.def:  changed seek offset from INTEGER
+	  to LONGINT.
+	* gm2/gm2-libs-ch/libc.c:  changed seek long offset to
+	  long int offset.
+	* gm2/gm2-libs-iso/ErrnoCategory.c:  (GetOpenResults) new
+	  procedure.
+	* gm2/gm2-libs-iso/ErrnoCategory.def:  (GetOpenResults) new
+	  procedure.
+	* gm2/gm2-libs-iso/IOChan.def:  tidied up comments.
+	* gm2/gm2-libs-iso/IOChan.mod:  major rewrite.
+	* gm2/gm2-libs-iso/IOLink.def:  tidied up comments.
+	* gm2/gm2-libs-iso/README.texi:  updated README with list
+	  of completed modules.
+	* gm2/gm2-libs-iso/RTio.def:  major rewrite.
+	* gm2/gm2-libs-iso/RTio.mod:  major rewrite.
+	* gm2/gm2-libs-iso/SeqFile.def:  tidied up comments.
+	* gm2/gm2-libs-iso/SeqFile.mod:  major rewrite.
+	* gm2/gm2-libs-iso/StdChans.def:  tidied up comments.
+	* gm2/gm2-libs-iso/StdChans.mod:  major rewrite.
+	* gm2/gm2-libs-iso/Storage.mod:  major rewrite using
+	  RTentity.
+	* gm2/gm2-libs-iso/StreamFile.def:  tidied up comments.
+	* gm2/gm2-libs-iso/TextIO.def:  tidied up comments.
+	* gm2/gm2-libs-iso/TextIO.mod:  major rewrite.
+	* gm2/gm2-libs-pim/FileSystem.mod:  fixed calls to
+	  lseek to use LONGCARD rather than CARDINAL.
 
 2008-09-15       Gaius Mulley <gaius@gnu.org>
 

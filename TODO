@@ -29,3 +29,18 @@
       but just at the end, before the dwarf-2 or whatever
       debugging info is written, it can call back to the
       front end and this can be fixed up.
+
+--
+
+Improve error messages
+
+*  catch
+        IF GetChar()    (* PROCEDURE GetChar () : CHAR *)
+        THEN
+   in a more friendly way.  
+*  catch
+        PROCEDURE foo (a: IOChan.ChanId) ;
+   (where IOChan has not been imported using a better message).
+*  improve absent
+        IMPORT IOChan
+   (reword the error message)

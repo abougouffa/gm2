@@ -18,15 +18,111 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE StdChans ;
 
-IMPORT FIO, RTio, ChanConsts, IOConsts ;
+IMPORT FIO, IOLink, ChanConsts, SYSTEM, RTio ;
+
+FROM RTio IMPORT SetFile, GetFile, GetDevicePtr ;
+FROM IOConsts IMPORT ReadResults ;
+FROM ChanConsts IMPORT read, write, text, FlagSet ;
+FROM RTgenif IMPORT GenDevIF, InitGenDevIF ;
+
+FROM RTfio IMPORT doreadchar, dounreadchar,
+                  dogeterrno, dorbytes, dowbytes,
+                  dowriteln,
+                  iseof, iseoln, iserror ;
+
+FROM RTgen IMPORT ChanDev, DeviceType,
+                  InitChanDev, doLook, doSkip, doSkipLook, doWriteLn,
+                  doReadText, doWriteText, doReadLocs, doWriteLocs,
+                  checkErrno ;
+
 
 VAR
-   stdin, stdout,
-   stderr, stdnull,
-   in, out, err   : ChanId ;
+   in,
+   out,
+   err,
+   stdin,
+   stdout,
+   stderr,
+   stdnull: ChanId ;
+   gen    : GenDevIF ;
+   dev    : ChanDev ;
+   did    : IOLink.DeviceId ;
 
 
-PROCEDURE StdInChan (): ChanId;
+PROCEDURE look (d: IOLink.DeviceTablePtr;
+                VAR ch: CHAR; VAR r: ReadResults) ;
+BEGIN
+   doLook(dev, d, ch, r)
+END look ;
+
+
+PROCEDURE skip (d: IOLink.DeviceTablePtr) ;
+BEGIN
+   doSkip(dev, d)
+END skip ;
+
+
+PROCEDURE skiplook (d: IOLink.DeviceTablePtr;
+                    VAR ch: CHAR; VAR r: ReadResults) ;
+BEGIN
+   doSkipLook(dev, d, ch, r)
+END skiplook ;
+
+
+PROCEDURE lnwrite (d: IOLink.DeviceTablePtr) ;
+BEGIN
+   doWriteLn(dev, d)
+END lnwrite ;
+
+
+PROCEDURE textread (d: IOLink.DeviceTablePtr;
+                    to: SYSTEM.ADDRESS;
+                    maxChars: CARDINAL;
+                    VAR charsRead: CARDINAL) ;
+BEGIN
+   doReadText(dev, d, to, maxChars, charsRead)
+END textread ;
+
+
+PROCEDURE textwrite (d: IOLink.DeviceTablePtr;
+                     from: SYSTEM.ADDRESS;
+                     charsToWrite: CARDINAL);
+BEGIN
+   doWriteText(dev, d, from, charsToWrite)
+END textwrite ;
+
+
+PROCEDURE rawread (d: IOLink.DeviceTablePtr;
+                   to: SYSTEM.ADDRESS;
+                   maxLocs: CARDINAL;
+                   VAR locsRead: CARDINAL) ;
+BEGIN
+   doReadLocs(dev, d, to, maxLocs, locsRead)
+END rawread ;
+
+
+PROCEDURE rawwrite (d: IOLink.DeviceTablePtr;
+                    from: SYSTEM.ADDRESS;
+                    locsToWrite: CARDINAL) ;
+BEGIN
+   doWriteLocs(dev, d, from, locsToWrite)
+END rawwrite ;
+
+
+PROCEDURE getname (d: IOLink.DeviceTablePtr;
+                   VAR a: ARRAY OF CHAR) ;
+BEGIN
+   FIO.GetFileName(GetFile(d^.cid), a)
+END getname ;
+
+
+PROCEDURE flush (d: IOLink.DeviceTablePtr) ;
+BEGIN
+   FIO.FlushBuffer(GetFile(d^.cid))
+END flush ;
+
+
+PROCEDURE StdInChan () : ChanId ;
   (* Returns the identity of the implementation-defined standard source for
      program input.
   *)
@@ -35,7 +131,7 @@ BEGIN
 END StdInChan ;
 
 
-PROCEDURE StdOutChan (): ChanId;
+PROCEDURE StdOutChan () : ChanId ;
   (* Returns the identity of the implementation-defined standard source for program
      output.
   *)
@@ -44,7 +140,7 @@ BEGIN
 END StdOutChan ;
 
 
-PROCEDURE StdErrChan (): ChanId;
+PROCEDURE StdErrChan () : ChanId ;
   (* Returns the identity of the implementation-defined standard destination for program
      error messages.
   *)
@@ -53,7 +149,7 @@ BEGIN
 END StdErrChan ;
 
 
-PROCEDURE NullChan (): ChanId;
+PROCEDURE NullChan () : ChanId ;
   (* Returns the identity of a channel open to the null device. *)
 BEGIN
    RETURN( stdnull )
@@ -62,21 +158,21 @@ END NullChan ;
 
   (* The following functions return the default channel values *)
 
-PROCEDURE InChan (): ChanId;
+PROCEDURE InChan () : ChanId ;
   (* Returns the identity of the current default input channel. *)
 BEGIN
    RETURN( in )
 END InChan ;
 
 
-PROCEDURE OutChan (): ChanId;
+PROCEDURE OutChan () : ChanId ;
   (* Returns the identity of the current default output channel. *)
 BEGIN
    RETURN( out )
 END OutChan ;
 
 
-PROCEDURE ErrChan (): ChanId;
+PROCEDURE ErrChan () : ChanId ;
   (* Returns the identity of the current default error message channel. *)
 BEGIN
    RETURN( err )
@@ -84,21 +180,21 @@ END ErrChan ;
 
   (* The following procedures allow for redirection of the default channels *)
 
-PROCEDURE SetInChan (cid: ChanId);
+PROCEDURE SetInChan (cid: ChanId) ;
   (* Sets the current default input channel to that identified by cid. *)
 BEGIN
    in := cid
 END SetInChan ;
 
 
-PROCEDURE SetOutChan (cid: ChanId);
+PROCEDURE SetOutChan (cid: ChanId) ;
   (* Sets the current default output channel to that identified by cid. *)
 BEGIN
    out := cid
 END SetOutChan ;
 
 
-PROCEDURE SetErrChan (cid: ChanId);
+PROCEDURE SetErrChan (cid: ChanId) ;
   (* Sets the current default error channel to that identified by cid. *)
 BEGIN
    err := cid
@@ -106,49 +202,103 @@ END SetErrChan ;
 
 
 (*
-   SafeClose - closes the channel, c, if it is open.
+   handlefree - 
 *)
 
-PROCEDURE SafeClose (c: ChanId) ;
+PROCEDURE handlefree (d: IOLink.DeviceTablePtr) ;
+VAR
+   f: FIO.File ;
 BEGIN
-   IF (c#ChanId(RTio.NilChanId())) AND (ChanConsts.opened=RTio.GetOpen(c))
+   WITH d^ DO
+      doFlush(d) ;
+      checkErrno(dev, d) ;
+      f := RTio.GetFile(RTio.ChanId(cid)) ;
+      IF FIO.IsNoError(f)
+      THEN
+         FIO.Close(f) ;
+      END ;
+      checkErrno(dev, d)
+   END
+END handlefree ;
+
+
+(*
+   SafeClose - only closes a channel if it was a StdChan.
+*)
+
+PROCEDURE SafeClose (VAR cid: ChanId) ;
+BEGIN
+   IF (cid#NIL) AND (cid#IOChan.InvalidChan()) AND IOLink.IsDevice(cid, did)
    THEN
-      FIO.Close(RTio.GetFile(c)) ;
-      RTio.SetOpen(c, ChanConsts.noSuchFile)
+      IOLink.UnMakeChan(did, cid) ;
+      cid := IOChan.InvalidChan()
    END
 END SafeClose ;
 
 
+(*
+   MapStdin - 
+*)
+
+PROCEDURE MapFile (f: FIO.File; fl: ChanConsts.FlagSet) : IOChan.ChanId ;
+VAR
+   c: IOChan.ChanId ;
+   d: IOLink.DeviceTablePtr ;
 BEGIN
-   stdin := ChanId(RTio.SetChanId(RTio.InitChanId(),
-                                  FIO.StdIn,
-                                  ChanConsts.read+ChanConsts.raw+ChanConsts.interactive,
-                                  ChanConsts.opened,
-                                  IOConsts.notKnown,
-                                  0)) ;
-   stdout := ChanId(RTio.SetChanId(RTio.InitChanId(),
-                                   FIO.StdOut,
-                                   ChanConsts.write+ChanConsts.raw+ChanConsts.interactive,
-                                   ChanConsts.opened,
-                                   IOConsts.notKnown,
-                                   0)) ;
-   stderr := ChanId(RTio.SetChanId(RTio.InitChanId(),
-                                   FIO.StdErr,
-                                   ChanConsts.write+ChanConsts.raw+ChanConsts.interactive,
-                                   ChanConsts.opened,
-                                   IOConsts.notKnown,
-                                   0)) ;
-   stdnull := ChanId(RTio.SetChanId(RTio.InitChanId(),
-                                    FIO.OpenForRandom('/dev/null', TRUE),
-                                    ChanConsts.read+ChanConsts.write+ChanConsts.raw,
-                                    ChanConsts.opened,
-                                    IOConsts.notKnown,
-                                    0)) ;
-   in := stdin ;
-   out := stdout ;
-   err := stderr
+   IOLink.MakeChan(did, c) ;
+   d := GetDevicePtr(c) ;
+   WITH d^ DO
+      result := ChanConsts.opened ;
+      SetFile(c, f) ;
+      flags := fl ;
+      doLook := look ;
+      doSkip := skip ;
+      doSkipLook := skiplook ;
+      doLnWrite := lnwrite ;
+      doTextRead := textread ;
+      doTextWrite := textwrite ;
+      doRawRead := rawread ;
+      doRawWrite := rawwrite ;
+      doGetName := getname ;
+      (* doReset := reset ; *)
+      doFlush := flush ;
+      doFree := handlefree
+   END ;
+   RETURN( c )
+END MapFile ;
+
+
+(*
+   Init - initializes the device and opens up the standard channels.
+*)
+
+PROCEDURE Init ;
+BEGIN
+   IOLink.AllocateDeviceId(did) ;
+   IOLink.MakeChan(did, stdnull) ;
+
+   gen := InitGenDevIF(did, doreadchar, dounreadchar,
+                       dogeterrno, dorbytes, dowbytes,
+                       dowriteln,
+                       iseof, iseoln, iserror) ;
+   dev := InitChanDev(stdchans, did, gen) ;
+
+   stdin := MapFile(FIO.StdIn, read+text) ;
+   stdout := MapFile(FIO.StdOut, write+text) ;
+   stderr := MapFile(FIO.StdErr, write+text) ;
+   SetInChan(stdin) ;
+   SetOutChan(stdout) ;
+   SetErrChan(stderr) ;
+END Init ;
+
+
+BEGIN
+   Init
 FINALLY
    SafeClose(in) ;
    SafeClose(out) ;
-   SafeClose(err)
+   SafeClose(err) ;
+   SafeClose(stdin) ;
+   SafeClose(stdout) ;
+   SafeClose(stderr)
 END StdChans.

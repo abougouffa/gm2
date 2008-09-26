@@ -986,7 +986,7 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
-   IF Sym=160
+   IF Sym=620
    THEN
       mystop
    END ;
@@ -1024,12 +1024,16 @@ BEGIN
       IF GetType(Sym)=NulSym
       THEN
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    NIL, IsEffectivelyImported(GetMainModule(), Sym),
-                                                    IsProcedureGccNested(Sym)))
+                                                       NIL,
+                                                       IsEffectivelyImported(GetMainModule(), Sym) AND
+                                                       (GetModuleWhereDeclared(Sym)#GetMainModule()),
+                                                       IsProcedureGccNested(Sym)))
       ELSE
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
-                                                    Mod2Gcc(GetType(Sym)), IsEffectivelyImported(GetMainModule(), Sym),
-                                                    IsProcedureGccNested(Sym)))
+                                                       Mod2Gcc(GetType(Sym)),
+                                                       IsEffectivelyImported(GetMainModule(), Sym) AND
+                                                       (GetModuleWhereDeclared(Sym)#GetMainModule()),
+                                                       IsProcedureGccNested(Sym)))
       END
    END
 END DeclareProcedureToGcc ;
@@ -1628,7 +1632,8 @@ BEGIN
       Assert(AllDependantsWritten(GetType(Son))) ;
       DoVariableDeclaration(Son,
                             KeyToCharStar(GetFullSymName(Son)),
-                            IsEffectivelyImported(ModSym, Son),
+                            (* in Modula-2 we are allowed to import from ourselves, but we do not present this to GCC *)
+                            IsEffectivelyImported(ModSym, Son) AND (GetMainModule()#decl),
                             IsExported(ModSym, Son),
                             IsTemporary(Son),
                             GetMainModule()=decl,

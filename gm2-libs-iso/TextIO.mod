@@ -13,9 +13,11 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE TextIO ;
+
 
 IMPORT IOChan, IOConsts, CharClass, ASCII ;
 FROM SYSTEM IMPORT ADR ;
@@ -29,8 +31,9 @@ BEGIN
 END CanRead ;
 
 PROCEDURE ReadChar (cid: IOChan.ChanId; VAR ch: CHAR);
-  (* If possible, removes a character from the input stream cid and assigns the
-     corresponding value to ch.  The read result is set to the value allRight, endOfLine, or
+  (* If possible, removes a character from the input stream
+     cid and assigns the corresponding value to ch.  The
+     read result is set to the value allRight, endOfLine, or
      endOfInput.
   *)
 VAR
@@ -47,9 +50,11 @@ BEGIN
 END ReadChar ;
 
 PROCEDURE ReadRestLine (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
-  (* Removes any remaining characters from the input stream cid before the next line mark,
-     copying to s as many as can be accommodated as a string value. The read result is set
-     to the value allRight, outOfRange, endOfLine, or endOfInput.
+  (* Removes any remaining characters from the input stream
+     cid before the next line mark,  copying to s as many as
+     can be accommodated as a string value. The read result is
+     set to the value allRight, outOfRange, endOfLine, or
+     endOfInput.
   *)
 VAR
    i, h: CARDINAL ;
@@ -70,9 +75,10 @@ BEGIN
 END ReadRestLine ;
 
 PROCEDURE ReadString (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
-  (* Removes only those characters from the input stream cid before the next line mark that
-     can be accommodated in s as a string value, and copies them to s.  The read result is
-     set to the value allRight, endOfLine, or endOfInput.
+  (* Removes only those characters from the input stream cid
+     before the next line mark that can be accommodated in s
+     as a string value, and copies them to s.  The read result
+     is set to the value allRight, endOfLine, or endOfInput.
   *)
 VAR
    i, h: CARDINAL ;
@@ -90,9 +96,11 @@ BEGIN
 END ReadString ;
 
 PROCEDURE ReadToken (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
-  (* Skips leading spaces, and then removes characters from the input stream cid before the
-     next space or line mark, copying to s as many as can be accommodated as a string value.
-     The read result is set to the value allRight, outOfRange, endOfLine, or endOfInput.
+  (* Skips leading spaces, and then removes characters from
+     the input stream cid before the next space or line mark,
+     copying to s as many as can be accommodated as a string
+     value.  The read result is set to the value allRight,
+     outOfRange, endOfLine, or endOfInput.
   *)
 VAR
    i, h: CARDINAL ;
@@ -116,9 +124,10 @@ END ReadToken ;
   (* The following procedure reads past the next line mark *)
 
 PROCEDURE SkipLine (cid: IOChan.ChanId);
-  (* Removes successive items from the input stream cid up to and including the next line
-     mark, or until the end of input is reached.  The read result is set to the value
-     allRight, or endOfInput.
+  (* Removes successive items from the input stream cid up
+     to and including the next line mark, or until the end
+     of input is reached.  The read result is set to the
+     value allRight, or endOfInput.
   *)
 BEGIN
    WHILE CanRead(cid) DO
@@ -149,5 +158,6 @@ PROCEDURE WriteString (cid: IOChan.ChanId; s: ARRAY OF CHAR);
 BEGIN
    IOChan.TextWrite(cid, ADR(s), LENGTH(s))
 END WriteString ;
+
 
 END TextIO.

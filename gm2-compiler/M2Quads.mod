@@ -6521,8 +6521,9 @@ BEGIN
    IF NoOfParam#1
    THEN
       WriteFormat0('base procedure HIGH expects 1 parameter')
-   ELSIF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT (IsConst(Param) AND (GetType(Param)=Char)))
+   ELSIF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT IsConst(Param))
    THEN
+      (* we cannot test for IsConst(Param) AND (GetType(Param)=Char)  as the type might not be assigned yet *)
       WriteFormat0('base procedure HIGH expects a variable or string constant as its parameter')
    ELSIF IsConst(Param) AND (GetType(Param)=Char)
    THEN
@@ -6530,17 +6531,19 @@ BEGIN
    ELSIF IsConstString(Param)
    THEN
       BuildHighFromString
-   ELSIF IsArray(Type) OR IsUnbounded(Type)
+   ELSIF Type=NulSym
    THEN
-      IF IsArray(Type)
-      THEN
-         BuildHighFromArray
-      ELSIF IsUnbounded(Type)
-      THEN
-         BuildHighFromUnbounded
-      END
+      (* we build the quads here and check for errors in a future pass *)
+      BuildHighFromArray
+   ELSIF IsArray(Type)
+   THEN
+      BuildHighFromArray
+   ELSIF IsUnbounded(Type)
+   THEN
+      BuildHighFromUnbounded
    ELSE
-      WriteFormat0('base procedure HIGH expects a variable of type array as its parameter')
+      (* we build the quads here and check for errors in a future pass *)
+      BuildHighFromArray
    END
 END BuildHighFunction ;
 
@@ -10232,6 +10235,7 @@ END CheckDivModRem ;
 
 PROCEDURE BuildBinaryOp ;
 VAR
+   s     : String ;
    NewTok,
    Tok   : Name ;
    t1, f1,
@@ -10292,11 +10296,20 @@ BEGIN
       ELSE
          (* CheckForGenericNulSet(e1, e2, t1, t2) *)
       END ;
-      CheckExpressionCompatible(t1, t2) ;
-      t := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2))) ;
-      PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;
-      CheckDivModRem(NewTok, t, e1) ;
-      GenQuad(MakeOp(NewTok), t, e2, e1) ;
+      IF (Tok=PlusTok) AND IsConstString(e1) AND IsConstString(e2)
+      THEN
+         (* handle special addition for constant strings *)
+         s := InitStringCharStar(KeyToCharStar(GetString(e2))) ;
+         s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(e1))))) ;
+         t := MakeConstLitString(makekey(string(s))) ;
+         s := KillString(s)
+      ELSE
+         CheckExpressionCompatible(t1, t2) ;
+         t := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2))) ;
+         PutVar(t, MixTypes(t1, t2, GetTokenNo())) ;
+         CheckDivModRem(NewTok, t, e1) ;
+         GenQuad(MakeOp(NewTok), t, e2, e1)
+      END ;
       PushTF(t, GetType(t))
    END
 END BuildBinaryOp ;

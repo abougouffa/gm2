@@ -8,29 +8,32 @@
 
 DEFINITION MODULE IOLink;
 
-  (* Types and procedures for the standard implementation of channels *)
+(* Types and procedures for the standard implementation of channels *)
 
 IMPORT IOChan, IOConsts, ChanConsts, SYSTEM;
 
 TYPE
   DeviceId;
-    (* Values of this type are used to identify new device modules, and are normally
-       obtained by them during their initialization.
+    (* Values of this type are used to identify new device modules,
+       and are normally obtained by them during their initialization.
     *)
 
 PROCEDURE AllocateDeviceId (VAR did: DeviceId);
-  (* Allocates a unique value of type DeviceId, and assigns this value to did. *)
+  (* Allocates a unique value of type DeviceId, and assigns this
+     value to did. *)
 
 PROCEDURE MakeChan (did: DeviceId; VAR cid: IOChan.ChanId);
-  (* Attempts to make a new channel for the device module identified by did. If no more
-     channels can be made, the identity of the invalid channel is assigned to cid.
-     Otherwise, the identity of a new channel is assigned to cid.
+  (* Attempts to make a new channel for the device module identified
+     by did. If no more channels can be made, the identity of
+     the invalid channel is assigned to cid.  Otherwise, the identity
+     of a new channel is assigned to cid.
   *)
 
 PROCEDURE UnMakeChan (did: DeviceId; VAR cid: IOChan.ChanId);
-  (* If the device module identified by did is not the module that made the channel
-     identified by cid, the exception wrongDevice is raised; otherwise the channel is
-     deallocated, and the value identifying the invalid channel is assigned to cid.
+  (* If the device module identified by did is not the module that
+     made the channel identified by cid, the exception wrongDevice is
+     raised; otherwise the channel is deallocated, and the value
+     identifying the invalid channel is assigned to cid.
   *)
 
 TYPE
@@ -38,21 +41,23 @@ TYPE
     (* Values of this type are used to refer to device tables *)
 
 TYPE
-  LookProc =      PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults);
-  SkipProc =      PROCEDURE (DeviceTablePtr);
-  SkipLookProc =  PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults);
-  WriteLnProc =   PROCEDURE (DeviceTablePtr);
-  TextReadProc =  PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL);
-  TextWriteProc = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL);
-  RawReadProc =   PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL);
-  RawWriteProc =  PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL);
-  GetNameProc =   PROCEDURE (DeviceTablePtr, VAR ARRAY OF CHAR);
-  ResetProc =     PROCEDURE (DeviceTablePtr);
-  FlushProc =     PROCEDURE (DeviceTablePtr);
-  FreeProc =      PROCEDURE (DeviceTablePtr);
-      (* Carry out the operations involved in closing the corresponding channel, including
-         flushing buffers, but do not unmake the channel.
-      *)
+  LookProc      = PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults) ;
+  SkipProc      = PROCEDURE (DeviceTablePtr) ;
+  SkipLookProc  = PROCEDURE (DeviceTablePtr, VAR CHAR, VAR IOConsts.ReadResults) ;
+  WriteLnProc   = PROCEDURE (DeviceTablePtr) ;
+  TextReadProc  = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL) ;
+  TextWriteProc = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL) ;
+  RawReadProc   = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL, VAR CARDINAL) ;
+  RawWriteProc  = PROCEDURE (DeviceTablePtr, SYSTEM.ADDRESS, CARDINAL) ;
+  GetNameProc   = PROCEDURE (DeviceTablePtr, VAR ARRAY OF CHAR) ;
+  ResetProc     = PROCEDURE (DeviceTablePtr) ;
+  FlushProc     = PROCEDURE (DeviceTablePtr) ;
+  FreeProc      = PROCEDURE (DeviceTablePtr) ;
+     (* Carry out the operations involved in closing the corresponding
+        channel, including flushing buffers, but do not unmake the
+        channel.
+     *)
+
 
 TYPE
   DeviceData = SYSTEM.ADDRESS;
@@ -83,18 +88,23 @@ TYPE
   (* The pointer to the device table for a channel is obtained using the
      following procedure: *)
 
-PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId; did: DeviceId;
-                               x: DevExceptionRange; s:  ARRAY OF CHAR): DeviceTablePtr;
-  (* If the device module identified by did is not the module that made the channel 
-     identified by cid, the exception wrongDevice is raised; otherwise the given exception
-     is raised, and the string value in s is included in the exception message.
-  *)
+(*
+   If the device module identified by did is not the module that made
+   the channel identified by cid, the exception wrongDevice is raised;
+   otherwise the given exception is raised, and the string value in s
+   is included in the exception message.
+*)
 
+PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId; did: DeviceId;
+                               x: DevExceptionRange; s: ARRAY OF CHAR): DeviceTablePtr;
+
+
+(*
+   Tests if the device module identified by did is the module
+   that made the channel identified by cid.
+*)
 
 PROCEDURE IsDevice (cid: IOChan.ChanId; did: DeviceId) : BOOLEAN;
-  (* Tests if the device module identified by did is the module that made the channel
-     identified by cid.
-  *)
 
 
 TYPE

@@ -22,11 +22,9 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 
 TYPE
    ChanId = POINTER TO RECORD
+                          did  : IOLink.DeviceId ;
+                          dtp  : IOLink.DeviceTablePtr ;
                           file : FIO.File ;
-                          flags: ChanConsts.FlagSet ;
-                          open : ChanConsts.OpenResults ;
-                          read : IOConsts.ReadResults ;
-                          error: INTEGER ;
                        END ;
 
 
@@ -65,46 +63,42 @@ END NilChanId ;
 
 
 (*
-   SetChanId - assign all fields in ChanId.
+   GetDeviceId - returns the device id, from, c.
 *)
 
-PROCEDURE SetChanId (c: ChanId;
-                     f: FIO.File;
-                     s: ChanConsts.FlagSet;
-                     o: ChanConsts.OpenResults;
-                     r: IOConsts.ReadResults;
-                     e: INTEGER) : ChanId ;
+PROCEDURE GetDeviceId (c: ChanId) : IOLink.DeviceId ;
 BEGIN
-   WITH c^ DO
-      file := f ;
-      flags := s ;
-      open := o ;
-      read := r ;
-      error := e
-   END ;
-   RETURN( c )
-END SetChanId ;
+   RETURN( c^.did )
+END GetDeviceId ;
 
 
 (*
-   GetChanId - assign all fields in ChanId.
+   SetDeviceId - returns the device id, from, c.
 *)
 
-PROCEDURE GetChanId (c: ChanId;
-                     VAR f: FIO.File;
-                     VAR s: ChanConsts.FlagSet;
-                     VAR o: ChanConsts.OpenResults;
-                     VAR r: IOConsts.ReadResults;
-                     VAR e: INTEGER) ;
+PROCEDURE SetDeviceId (c: ChanId; d: IOLink.DeviceId) ;
 BEGIN
-   WITH c^ DO
-      f := file ;
-      s := flags ;
-      o := open ;
-      r := read ;
-      e := error
-   END
-END GetChanId ;
+   c^.did := d
+END SetDeviceId ;
+
+
+(*
+   GetDevicePtr - returns the device table ptr, from, c.
+*)
+
+PROCEDURE GetDevicePtr (c: ChanId) : IOLink.DeviceTablePtr ;
+BEGIN
+   RETURN( c^.dtp )
+END GetDevicePtr ;
+
+(*
+   SetDevicePtr - sets the device table ptr in, c.
+*)
+
+PROCEDURE SetDevicePtr (c: ChanId; p: IOLink.DeviceTablePtr) ;
+BEGIN
+   c^.dtp := p
+END SetDevicePtr ;
 
 
 (*
@@ -125,86 +119,6 @@ PROCEDURE SetFile (c: ChanId; f: FIO.File) ;
 BEGIN
    c^.file := f
 END SetFile ;
-
-
-(*
-   GetFile - returns the flags field from, c.
-*)
-
-PROCEDURE GetFlags (c: ChanId) : ChanConsts.FlagSet ;
-BEGIN
-   RETURN( c^.flags )
-END GetFlags ;
-
-
-(*
-   SetFile - sets the flags field in, c.
-*)
-
-PROCEDURE SetFlags (c: ChanId; s: ChanConsts.FlagSet) ;
-BEGIN
-   c^.flags := s
-END SetFlags ;
-
-
-(*
-   GetOpen - returns the open field from, c.
-*)
-
-PROCEDURE GetOpen (c: ChanId) : ChanConsts.OpenResults ;
-BEGIN
-   RETURN( c^.open )
-END GetOpen ;
-
-
-(*
-   SetOpen - sets the flags field in, c.
-*)
-
-PROCEDURE SetOpen (c: ChanId; o: ChanConsts.OpenResults) ;
-BEGIN
-   c^.open := o
-END SetOpen ;
-
-
-(*
-   GetRead - assign all fields in ChanId.
-*)
-
-PROCEDURE GetRead (c: ChanId) : IOConsts.ReadResults ;
-BEGIN
-   RETURN( c^.read )
-END GetRead ;
-
-
-(*
-   SetRead - assign all fields in ChanId.
-*)
-
-PROCEDURE SetRead (c: ChanId; r: IOConsts.ReadResults) ;
-BEGIN
-   c^.read := r
-END SetRead ;
-
-
-(*
-   GetError - return error field in ChanId.
-*)
-
-PROCEDURE GetError (c: ChanId) : INTEGER ;
-BEGIN
-   RETURN( c^.error )
-END GetError ;
-
-
-(*
-   SetError - assign error field in ChanId.
-*)
-
-PROCEDURE SetError (c: ChanId; e: INTEGER) ;
-BEGIN
-   c^.error := e
-END SetError ;
 
 
 END RTio.

@@ -201,7 +201,7 @@ long libc_open (void *filename, unsigned long flag, unsigned long mode)
    creat - creates a new file.
 */
 
-long libc_creat (void *filename, unsigned long mode)
+int libc_creat (void *filename, unsigned long mode)
 {
   return( creat(filename, mode) );
 }
@@ -211,7 +211,7 @@ long libc_creat (void *filename, unsigned long mode)
    lseek - seeks to a new position in a file.
 */
 
-long libc_lseek (long fd, long offset, long whence)
+long libc_lseek (int fd, long int offset, int whence)
 {
   return( lseek(fd, offset, whence) );
 }

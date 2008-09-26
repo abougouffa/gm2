@@ -33,7 +33,9 @@ EXPORT QUALIFIED (* types *)
                  OpenToRead, OpenToWrite, OpenForRandom, Close,
                  EOF, EOLN, IsNoError, Exists,
                  exists, openToRead, openToWrite, openForRandom,
-                 SetPositionFromBeginning, FindPosition,
+                 SetPositionFromBeginning,
+                 SetPositionFromEnd,
+                 FindPosition,
                  ReadChar, ReadString,
                  WriteChar, WriteString, WriteLine,
                  WriteCardinal, ReadCardinal,
@@ -260,7 +262,14 @@ PROCEDURE GetUnixFileDescriptor (f: File) : INTEGER ;
    SetPositionFromBeginning - sets the position from the beginning of the file.
 *)
 
-PROCEDURE SetPositionFromBeginning (f: File; pos: CARDINAL) ;
+PROCEDURE SetPositionFromBeginning (f: File; pos: LONGINT) ;
+
+
+(*
+   SetPositionFromEnd - sets the position from the end of the file.
+*)
+
+PROCEDURE SetPositionFromEnd (f: File; pos: LONGINT) ;
 
 
 (*

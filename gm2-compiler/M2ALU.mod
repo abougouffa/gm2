@@ -40,7 +40,7 @@ FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareCons
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
-FROM M2Base IMPORT MixTypes ;
+FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
@@ -1836,6 +1836,7 @@ BEGIN
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      FlushErrors ;
       result := FALSE
    ELSE
       result := (CompareTrees(v2^.numberValue, v1^.numberValue)=1)
@@ -1890,6 +1891,7 @@ BEGIN
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      FlushErrors ;
       result := FALSE
    ELSE
       result := (CompareTrees(v2^.numberValue, v1^.numberValue)<=0)
@@ -1945,6 +1947,7 @@ BEGIN
    ELSIF (v1^.type=set) OR (v2^.type=set)
    THEN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
+      FlushErrors ;
       result := FALSE
    ELSE
       result := (CompareTrees(v2^.numberValue, v1^.numberValue)>=0)
@@ -4093,7 +4096,12 @@ BEGIN
 
          Subscript := GetArraySubscript(baseType) ;
          Subrange := SkipType(GetType(Subscript)) ;
-         GetSubrange(Subrange, high, low) ;
+         IF IsEnumeration(Subrange)
+         THEN
+            GetBaseTypeMinMax(Subrange, low, high)
+         ELSE
+            GetSubrange(Subrange, high, low)
+         END ;
          arrayType := GetType(baseType) ;
 
          i := 0 ;

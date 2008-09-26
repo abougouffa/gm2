@@ -985,12 +985,17 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 #
 
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
-                     Strings.mod       SYSTEM.mod      \
-                     TERMINATION.mod   M2RTS.mod       \
-                     M2EXCEPTION.mod   EXCEPTIONS.mod  Storage.mod \
-                     RealMath.mod      IOChan.mod      RTio.mod \
-                     TextIO.mod        STextIO.mod     StdChans.mod \
-                     IOConsts.mod
+                     EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
+                     IOConsts.mod      IOLink.mod \
+                     M2EXCEPTION.mod   M2RTS.mod       RawIO.mod \
+                     RTentity.mod \
+                     RTgen.mod         RTgenif.mod     RTio.mod \
+                     RTfio.mod         \
+                     RealMath.mod      SeqFile.mod \
+                     StdChans.mod      \
+                     STextIO.mod       Storage.mod     StreamFile.mod \
+                     Strings.mod       \
+                     SYSTEM.mod        TERMINATION.mod TextIO.mod        
 
 GM2-LIBS-ISO-C     = ErrnoCategory.c
 

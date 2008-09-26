@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 DEFINITION MODULE PushBackInput ;
 
 (*
@@ -30,7 +31,8 @@ DEFINITION MODULE PushBackInput ;
 FROM FIO IMPORT File ;
 FROM DynamicStrings IMPORT String ;
 
-EXPORT QUALIFIED Open, PutCh, GetCh, Error, WarnError, WarnString, Close, SetDebug, GetExitStatus,
+EXPORT QUALIFIED Open, PutCh, GetCh, Error, WarnError, WarnString,
+                 Close, SetDebug, GetExitStatus,
                  PutString, GetColumnPosition, GetCurrentLine ;
 
 

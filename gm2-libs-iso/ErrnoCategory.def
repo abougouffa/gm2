@@ -31,6 +31,9 @@ DEFINITION MODULE ErrnoCategory ;
                  related to a device.
 *)
 
+IMPORT ChanConsts ;
+
+
 (*
    IsErrnoHard - returns TRUE if the value of errno is associated with
                  a hard device error.
@@ -54,6 +57,14 @@ PROCEDURE IsErrnoSoft (e: INTEGER) : BOOLEAN ;
 *)
 
 PROCEDURE UnAvailable (e: INTEGER) : BOOLEAN ;
+
+
+(*
+   GetOpenResults - maps errno onto the ISO Modula-2 enumerated
+                    type, OpenResults.
+*)
+
+PROCEDURE GetOpenResults (e: INTEGER) : ChanConsts.OpenResults ;
 
 
 END ErrnoCategory.

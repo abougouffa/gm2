@@ -29,7 +29,7 @@ DEFINITION MODULE RTio ;
                  type.
 *)
 
-IMPORT FIO, ChanConsts, IOConsts ;
+IMPORT FIO, IOLink ;
 
 TYPE
    ChanId ;
@@ -57,27 +57,31 @@ PROCEDURE NilChanId () : ChanId ;
 
 
 (*
-   SetChanId - assign all fields in ChanId.
+   GetDeviceId - returns the device id, from, c.
 *)
 
-PROCEDURE SetChanId (c: ChanId;
-                     f: FIO.File;
-                     s: ChanConsts.FlagSet;
-                     o: ChanConsts.OpenResults;
-                     r: IOConsts.ReadResults;
-                     e: INTEGER) : ChanId ;
+PROCEDURE GetDeviceId (c: ChanId) : IOLink.DeviceId ;
 
 
 (*
-   GetChanId - assign all fields in ChanId.
+   SetDeviceId - sets the device id in, c.
 *)
 
-PROCEDURE GetChanId (c: ChanId;
-                     VAR f: FIO.File;
-                     VAR s: ChanConsts.FlagSet;
-                     VAR o: ChanConsts.OpenResults;
-                     VAR r: IOConsts.ReadResults;
-                     VAR e: INTEGER) ;
+PROCEDURE SetDeviceId (c: ChanId; d: IOLink.DeviceId) ;
+
+
+(*
+   GetDevicePtr - returns the device table ptr, from, c.
+*)
+
+PROCEDURE GetDevicePtr (c: ChanId) : IOLink.DeviceId ;
+
+
+(*
+   SetDevicePtr - sets the device table ptr in, c.
+*)
+
+PROCEDURE SetDevicePtr (c: ChanId; p: IOLink.DeviceTablePtr) ;
 
 
 (*
@@ -92,62 +96,6 @@ PROCEDURE GetFile (c: ChanId) : FIO.File ;
 *)
 
 PROCEDURE SetFile (c: ChanId; f: FIO.File) ;
-
-
-(*
-   GetFlags - returns the flags field from, c.
-*)
-
-PROCEDURE GetFlags (c: ChanId) : ChanConsts.FlagSet ;
-
-
-(*
-   SetFlags - sets the flags field in, c.
-*)
-
-PROCEDURE SetFlags (c: ChanId; s: ChanConsts.FlagSet) ;
-
-
-(*
-   GetOpen - returns the open field from, c.
-*)
-
-PROCEDURE GetOpen (c: ChanId) : ChanConsts.OpenResults ;
-
-
-(*
-   SetOpen - sets the flags field in, c.
-*)
-
-PROCEDURE SetOpen (c: ChanId; o: ChanConsts.OpenResults) ;
-
-
-(*
-   GetRead - returns the read field in ChanId.
-*)
-
-PROCEDURE GetRead (c: ChanId) : IOConsts.ReadResults ;
-
-
-(*
-   SetRead - assign the read field in ChanId.
-*)
-
-PROCEDURE SetRead (c: ChanId; r: IOConsts.ReadResults) ;
-
-
-(*
-   GetError - return error field in ChanId.
-*)
-
-PROCEDURE GetError (c: ChanId) : INTEGER ;
-
-
-(*
-   SetError - assign error field in ChanId.
-*)
-
-PROCEDURE SetError (c: ChanId; e: INTEGER) ;
 
 
 END RTio.

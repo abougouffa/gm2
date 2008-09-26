@@ -62,4 +62,3 @@ PROCEDURE SetErrChan (cid: ChanId);
   (* Sets the current default error channel to that identified by cid. *)
 
 END StdChans.
-
