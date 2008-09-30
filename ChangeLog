@@ -1,3 +1,30 @@
+2008-09-30       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Make-lang.in:  added ProgramArgs, SimpleCipher,
+	  RTData modules to be installed as part of the ISO
+	  libraries.
+        * gm2/TODO:  updated TODO with outstanding bugs.
+        * gm2/gm2.texi:  updated modification date to reflect
+	  new modules.
+        * gm2/gm2-libs/Args.mod:  updated dates.
+        * gm2/gm2-libs-iso/M2RTS.mod:  fixed bug regarding
+	  whether an application is terminating.
+        * gm2/gm2-libs-iso/ProgramArgs.def:  updated dates.
+        * gm2/gm2-libs-iso/README.texi:  updated list of
+	  completed modules and their licence.
+        * gm2/gm2-libs-iso/RTgen.mod:  fixed bug when
+	  examining pre read status.
+        * gm2/gm2-libs-iso/RawIO.def:  tidied up comments.
+        * gm2/gm2-libs-iso/RawIO.mod:  fixed read results
+	  bug.
+        * gm2/gm2-libs-iso/STextIO.mod:  tidied up comments.
+        * gm2/gm2-libs-iso/SimpleCipher.{def,mod}:  new files.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  new file.
+	* gm2/examples/iso/hello:  new directory for example.
+	* gm2/examples/iso/hello/hello.mod:  new file.
+	* gm2/examples/iso/files:  new directory for example.
+	* gm2/examples/iso/files/rot13.mod:  new file.
+
 2008-09-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  add -lgcc_eh to the link command line.

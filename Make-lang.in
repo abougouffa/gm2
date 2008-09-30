@@ -987,11 +987,12 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
                      EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
                      IOConsts.mod      IOLink.mod \
-                     M2EXCEPTION.mod   M2RTS.mod       RawIO.mod \
-                     RTentity.mod \
+                     M2EXCEPTION.mod   M2RTS.mod       ProgramArgs.mod \
+                     RawIO.mod \
+                     RTdata.mod        RTentity.mod \
                      RTgen.mod         RTgenif.mod     RTio.mod \
                      RTfio.mod         \
-                     RealMath.mod      SeqFile.mod \
+                     RealMath.mod      SeqFile.mod     SimpleCipher.mod \
                      StdChans.mod      \
                      STextIO.mod       Storage.mod     StreamFile.mod \
                      Strings.mod       \

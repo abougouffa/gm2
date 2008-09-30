@@ -67,7 +67,7 @@ END Terminate ;
 
 PROCEDURE HALT ;
 BEGIN
-   isTerminating := TRUE ;
+   isHalting := TRUE ;
    Terminate ;
    IF CallExit
    THEN

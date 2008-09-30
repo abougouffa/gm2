@@ -28,7 +28,7 @@ FROM IOConsts IMPORT ReadResults ;
 
 (*
    Reads - storage units from cid, and assigns them to successive
-           components of to. The read result is set to the value
+           components of to.  The read result is set to the value
            allRight, wrongFormat, or endOfInput.
 *)
 
@@ -41,7 +41,9 @@ BEGIN
    n := HIGH(to)+1 ;
    LOOP
       RawRead(cid, a, n, i) ;
-      IF (n=0) OR (ReadResult(cid)#allRight)
+      IF (n=0) OR
+         (ReadResult(cid)=wrongFormat) OR
+         (ReadResult(cid)=endOfInput)
       THEN
          EXIT
       ELSE

@@ -142,16 +142,17 @@ BEGIN
    WITH d^ DO
       IF isEOLN(g^.genif, d)
       THEN
-         INCL(result, IOConsts.endOfLine)
+         result := IOConsts.endOfLine
       ELSIF isEOF(g^.genif, d)
       THEN
-         INCL(result, IOConsts.endOfInput) ;
-         EXCL(result, IOConsts.allRight) ;
+         result := IOConsts.endOfInput ;
          IF raise
          THEN
             RAISEdevException(cid, did, ORD(skipAtEnd),
                               'attempting to read beyond end of file')
          END
+      ELSE
+         result := IOConsts.allRight
       END
    END
 END checkPreRead ;
@@ -163,12 +164,12 @@ BEGIN
    WITH d^ DO
       IF isEOLN(g^.genif, d)
       THEN
-         INCL(result, IOConsts.endOfLine)
+         result := IOConsts.endOfLine
       ELSIF isEOF(g^.genif, d)
       THEN
-         INCL(result, IOConsts.endOfInput)
+         result := IOConsts.endOfInput
       ELSE
-         INCL(result, IOConsts.allRight)
+         result := IOConsts.allRight
       END
    END
 END checkPostRead ;
@@ -255,7 +256,8 @@ BEGIN
    WITH d^ DO
       checkErrno(g, d) ;
       checkPreRead(g, d, RaiseEOFinLook(g)) ;
-      IF (IOConsts.allRight=result) OR (IOConsts.notKnown=result)
+      IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
+         (result=IOConsts.endOfLine) 
       THEN
          ch := doReadChar(g^.genif, d) ;
          checkPostRead(g, d)
@@ -291,7 +293,8 @@ BEGIN
    checkValid(g, d) ;
    WITH d^ DO
       RTgen.doLook(g, d, ch, result) ;
-      IF (IOConsts.allRight=result) OR (IOConsts.notKnown=result)
+      IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
+         (result=IOConsts.endOfLine)
       THEN
          ch := doUnReadChar(g^.genif, d, ch) ;
          checkPostRead(g, d)

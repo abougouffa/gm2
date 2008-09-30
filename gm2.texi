@@ -36,7 +36,7 @@
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 15th July 2008
+@center Last updated 30th September 2008
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}

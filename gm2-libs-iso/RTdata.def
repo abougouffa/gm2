@@ -1,0 +1,69 @@
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
+
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
+DEFINITION MODULE RTdata ;
+
+(*
+    Title      : RTdata
+    Author     : Gaius Mulley
+    System     : GNU Modula-2
+    Date       : Fri Sep 26 17:19:15 2008
+    Revision   : $Version$ 
+    Description: provides a mechanism whereby devices can store
+                 data attached to a device.
+*)
+
+FROM SYSTEM IMPORT ADDRESS ;
+
+TYPE
+   ModuleId ;
+   FreeProcedure = PROCEDURE (ADDRESS) ;
+
+
+(*
+   MakeModuleId - creates a unique module Id.
+*)
+
+PROCEDURE MakeModuleId (VAR m: ModuleId) ;
+
+
+(*
+   InitData - adds, datum, to the device, d.  The datum
+              is associated with ModuleID, m.
+*)
+
+PROCEDURE InitData (d: DeviceTablePtr; m: ModuleId;
+                    datum: ADDRESS; f: FreeProcedure) ;
+
+
+(*
+   GetData - returns the datum assocated with ModuleId, m.
+*)
+
+PROCEDURE GetData (d: DeviceTablePtr; m: ModuleId) : ADDRESS ;
+
+
+(*
+   KillData - destroys the datum associated with ModuleId, m,
+              in device, d.  It invokes the free procedure
+              given during InitData.
+*)
+
+PROCEDURE KillData (d: DeviceTablePtr; m: ModuleId) ;
+
+
+END RTdata.
