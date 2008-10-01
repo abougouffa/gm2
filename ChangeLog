@@ -13,6 +13,8 @@
 	* gm2/gm2-libs-iso/SimpleCipher.def:  RemoveCipherLayer
 	  new function and fixed destructors.
 	* gm2/gm2-libs-iso/Strings.def:  tidied up comments.
+	* gm2/examples/iso/socket/Makefile:  new file.
+	* gm2/examples/iso/socket/client.mod:  new file.
 
 2008-09-30       Gaius Mulley <gaius@gnu.org>
 
