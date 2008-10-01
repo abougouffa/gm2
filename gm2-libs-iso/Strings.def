@@ -3,8 +3,9 @@
    BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
 
    Copyright ISO/IEC (International Organization for Standardization
-   and International Electrotechnical Commission) 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
+   and International Electrotechnical Commission) 1996, 1997,
+   1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+   2008 *)
 
 DEFINITION MODULE Strings;
 

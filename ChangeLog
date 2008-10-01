@@ -1,3 +1,19 @@
+2008-10-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/ClientSocket.def:  new file.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  new file.
+	* gm2/gm2-libs-iso/wrapsock.def:  new file.
+	* gm2/gm2-libs-iso/wrapsock.c:  new file.
+	* gm2/gm2-libs-iso/ChanConsts.h:  new file.
+	* gm2/Make-lang.in:  added wrapsock.c to list of
+	  GM2-LIBS-ISO-C files.  Also added ClientSocket.mod
+	  to GM2-LIBS-ISO-MODS.
+	* gm2/gm2-libs/sckt.def:  tidied up comments.
+	* gm2/gm2-libs-iso/ErrnoCategory.c:  use ChanConsts.h.
+	* gm2/gm2-libs-iso/SimpleCipher.def:  RemoveCipherLayer
+	  new function and fixed destructors.
+	* gm2/gm2-libs-iso/Strings.def:  tidied up comments.
+
 2008-09-30       Gaius Mulley <gaius@gnu.org>
 
         * gm2/Make-lang.in:  added ProgramArgs, SimpleCipher,

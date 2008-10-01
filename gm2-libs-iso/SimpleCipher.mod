@@ -374,8 +374,7 @@ BEGIN
       doReset := c^.lower.doReset ;
       doFlush := c^.lower.doFlush ;
       doFree := c^.lower.doFree
-   END ;
-   KillData(d, mid)
+   END
 END dofree ;
 
 
@@ -391,26 +390,53 @@ VAR
    c  : CipherInfo ;
 BEGIN
    did := GetDeviceId(cid) ;
-   NEW(c) ;
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'SimpleCipher.InsertCipherLayer') ;
-   c^.key := key ;
-   c^.lower := d^ ;
-   InitData(d, mid, c, freeData) ;
-   WITH d^ DO
-      doLook := dolook ;
-      doSkip := doskip ;
-      doSkipLook := doskiplook ;
-      doLnWrite := dowriteln ;
-      doTextRead := dotextread ;
-      doTextWrite := dotextwrite ;
-      doRawRead := dorawread ;
-      doRawWrite := dorawwrite ;
-      doGetName := dogetname ;
-      (* doReset := doreset ; no need for either of these *)
-      (* doFlush := doflush ; *)
-      doFree := dofree
+   d := DeviceTablePtrValue(cid, did, wrongDevice, 'SimpleCipher.' + __FUNCTION__ ) ;
+   IF GetData(d, mid)=NIL
+   THEN
+      NEW(c) ;
+      c^.key := key ;
+      c^.lower := d^ ;
+      InitData(d, mid, c, freeData) ;
+      WITH d^ DO
+         doLook := dolook ;
+         doSkip := doskip ;
+         doSkipLook := doskiplook ;
+         doLnWrite := dowriteln ;
+         doTextRead := dotextread ;
+         doTextWrite := dotextwrite ;
+         doRawRead := dorawread ;
+         doRawWrite := dorawwrite ;
+         doGetName := dogetname ;
+         (* doReset := doreset ; no need for either of these *)
+         (* doFlush := doflush ; *)
+         doFree := dofree
+      END
+   ELSE
+      RAISEdevException(cid, did, notAvailable,
+                        'SimpleCipher: unable to insert multiple cipher layers from the same module under a channel')
    END
 END InsertCipherLayer ;
+
+
+(*
+   RemoveCipherLayer - removes a Caesar cipher below channel, cid.
+*)
+
+PROCEDURE RemoveCipherLayer (cid: ChanId) ;
+VAR
+   did: DeviceId ;
+   d  : DeviceTablePtr ;
+BEGIN
+   did := GetDeviceId(cid) ;
+   d := DeviceTablePtrValue(cid, did, wrongDevice, 'SimpleCipher' + __FUNCTION__ ) ;
+   IF GetData(d, mid)=NIL
+   THEN
+      RAISEdevException(cid, did, notAvailable,
+                        'SimpleCipher: no cipher layer to remove from this channel')
+   ELSE
+      KillData(d, mid)
+   END
+END RemoveCipherLayer ;
 
 
 BEGIN

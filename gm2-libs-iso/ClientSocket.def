@@ -15,37 +15,45 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
 
-DEFINITION MODULE SimpleCipher ;
+DEFINITION MODULE ClientSocket ;
 
 (*
-    Title      : SimpleCipher
+    Title      : ClientSocket
     Author     : Gaius Mulley
     System     : GNU Modula-2
-    Date       : Mon Sep 29 11:02:56 2008
+    Date       : Wed Oct  1 05:15:04 2008
     Revision   : $Version$ 
-    Description: provides a simple Caesar cipher layer which
-                 can be attached to any channel device.  This,
-                 pedagogical, module is designed to show how
-                 it is possible to add further layers underneath
-                 the channel devices.
+    Description: provides a client TCP interface for ChanId's.
 *)
 
 FROM IOChan IMPORT ChanId ;
+FROM ChanConsts IMPORT FlagSet, OpenResults ;
 
 
 (*
-   InsertCipherLayer - inserts a caesar cipher below channel, cid.
-                       The encryption, key, is specified.
+   OpenSocket - opens a TCP client connection to host:port.
 *)
 
-PROCEDURE InsertCipherLayer (cid: ChanId; key: INTEGER) ;
+PROCEDURE OpenSocket (VAR cid: ChanId;
+                      host: ARRAY OF CHAR; port: CARDINAL;
+                      f: FlagSet; VAR res: OpenResults) ;
+
+(*
+   Close - if the channel identified by cid is not open to
+           a socket stream, the exception wrongDevice is
+           raised; otherwise closes the channel, and assigns
+           the value identifying the invalid channel to cid.
+*)
+
+PROCEDURE Close (VAR cid: ChanId) ;
 
 
 (*
-   RemoveCipherLayer - removes a Caesar cipher below channel, cid.
+   IsSocket - tests if the channel identified by cid is open as
+              a client socket stream.
 *)
 
-PROCEDURE RemoveCipherLayer (cid: ChanId) ;
+PROCEDURE IsSocket (cid: ChanId) : BOOLEAN ;
 
 
-END SimpleCipher.
+END ClientSocket.

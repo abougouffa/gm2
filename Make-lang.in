@@ -984,7 +984,8 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 # the ISO implementation modules are still being written
 #
 
-GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
+GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
+                     ConvTypes.mod  \
                      EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
                      IOConsts.mod      IOLink.mod \
                      M2EXCEPTION.mod   M2RTS.mod       ProgramArgs.mod \
@@ -998,7 +999,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ConvTypes.mod  \
                      Strings.mod       \
                      SYSTEM.mod        TERMINATION.mod TextIO.mod        
 
-GM2-LIBS-ISO-C     = ErrnoCategory.c
+GM2-LIBS-ISO-C     = ErrnoCategory.c wrapsock.c
 
 GM2-LIBS-ULM-MODS-STD  = \
               Plot.mod      Archive.mod    EtcGroup.mod   Strings.mod \

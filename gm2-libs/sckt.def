@@ -98,16 +98,16 @@ PROCEDURE tcpServerIP (s: tcpServerState) : CARDINAL ;
 
 
 (*
-   tcpClientIP - returns the IP address of the client who
-                 has connected to server, s.
+   tcpServerClientIP - returns the IP address of the client who
+                       has connected to server, s.
 *)
 
 PROCEDURE tcpServerClientIP (s: tcpServerState) : CARDINAL ;
 
 
 (*
-   tcpClientPortNo - returns the port number of the client who
-                     has connected to server, s.
+   tcpServerClientPortNo - returns the port number of the client who
+                           has connected to server, s.
 *)
 
 PROCEDURE tcpServerClientPortNo (s: tcpServerState) : CARDINAL ;
