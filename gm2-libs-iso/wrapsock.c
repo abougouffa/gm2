@@ -208,9 +208,12 @@ unsigned int wrapsock_getClientIP (clientInfo *c)
 
 unsigned int wrapsock_getPushBackChar (clientInfo *c, char *ch)
 {
-  if (c->hasChar)
+  if (c->hasChar) {
     *ch = c->pbChar;
-  return c->hasChar;
+    c->hasChar = FALSE;
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /*
@@ -223,6 +226,7 @@ unsigned int wrapsock_setPushBackChar (clientInfo *c, char ch)
   if (c->hasChar)
     return FALSE;
   c->pbChar = ch;
+  c->hasChar = TRUE;
   return TRUE;
 }
 

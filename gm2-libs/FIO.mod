@@ -167,7 +167,7 @@ VAR
 BEGIN
    f := 0 ;
    WHILE (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) DO
-      f := f+File(1)   (* --fixme-- compiler should allow INC(f) *)
+      INC(f)
    END ;
    RETURN( f )
 END GetNextFreeDescriptor ;
@@ -179,9 +179,7 @@ END GetNextFreeDescriptor ;
 
 PROCEDURE IsNoError (f: File) : BOOLEAN ;
 BEGIN
-   RETURN(
-          (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) AND (FileInfo[f]^.state=successful)
-         )
+   RETURN( (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) AND (FileInfo[f]^.state=successful) )
 END IsNoError ;
 
 
@@ -820,7 +818,10 @@ BEGIN
    THEN
       IF FileInfo[f]=NIL
       THEN
-         FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n') ;
+         IF f#StdErr
+         THEN
+            FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n')
+         END ;
          HALT
       ELSE
          WITH FileInfo[f]^ DO
@@ -1401,8 +1402,7 @@ BEGIN
    StdErr := 2 ;
    PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
    (* and now for the error file descriptor *)
-   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
-   InstallTerminationProcedure(CloseOutErr)
+   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0)
 END Init ;
 
 

@@ -21,15 +21,20 @@ FROM ClientSocket IMPORT OpenSocket, Close ;
 FROM IOChan IMPORT ChanId ;
 FROM ChanConsts IMPORT FlagSet, OpenResults, read, write, text ;
 FROM TextIO IMPORT WriteString, WriteLn, ReadString ;
+FROM ASCII IMPORT nul, lf, cr ;
 
 IMPORT STextIO ;
+
+CONST
+   serverName = "gcc.gnu.org" ;
+   portNo = 80 ;
 
 VAR
    cid  : ChanId ;
    reply: ARRAY [0..4095] OF CHAR ;
    res  : OpenResults ;
 BEGIN
-   OpenSocket(cid, 'www.google.com', 80, read+write+text, res) ;
+   OpenSocket(cid, serverName, portNo, read+write+text, res) ;
    IF res=opened
    THEN
       WriteString(cid, 'get index.html') ; WriteLn(cid) ;
@@ -37,6 +42,6 @@ BEGIN
       STextIO.WriteString(reply) ; STextIO.WriteLn ;
       Close(cid)
    ELSE
-      STextIO.WriteString('unable to open socket to www.google.com') ; STextIO.WriteLn
+      STextIO.WriteString('unable to open socket to ' + serverName) ; STextIO.WriteLn
    END
 END client.

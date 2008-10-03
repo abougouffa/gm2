@@ -158,9 +158,16 @@ BEGIN
 END checkPreRead ;
 
 
+(*
+   checkPostRead - only checks whether an error occurred.
+                   The result is not set as the result is
+                   set prior to a read occuring.
+*)
+
 PROCEDURE checkPostRead (g: ChanDev; d: DeviceTablePtr) ;
 BEGIN
    checkErrno(g, d) ;
+(*
    WITH d^ DO
       IF isEOLN(g^.genif, d)
       THEN
@@ -172,6 +179,7 @@ BEGIN
          result := IOConsts.allRight
       END
    END
+*)
 END checkPostRead ;
 
 
@@ -244,7 +252,12 @@ END RaiseEOFinSkip ;
 
 
 (*
-   doLook - 
+   doLook - if there is a character as the next item in
+            the input stream then it assigns its value
+            to ch without removing it from the stream;
+            otherwise the value of ch is not defined.
+            r and result are set to the value allRight,
+            endOfLine, or endOfInput.
 *)
 
 PROCEDURE doLook (g: ChanDev;
@@ -260,6 +273,7 @@ BEGIN
          (result=IOConsts.endOfLine) 
       THEN
          ch := doReadChar(g^.genif, d) ;
+         ch := doUnReadChar(g^.genif, d, ch) ;
          checkPostRead(g, d)
       END ;
       r := result

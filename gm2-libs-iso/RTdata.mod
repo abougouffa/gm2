@@ -137,7 +137,7 @@ BEGIN
          ELSE
             last^.right := md^.right
          END ;
-         DelKey(mids, md) ;
+         DelKey(mids, m) ;
          md^.free(md^.data) ;
          DISPOSE(md)
       ELSE

@@ -1,3 +1,22 @@
+2008-10-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/iso/socket/client.mod:  improved
+	  example program.
+	* gm2/gm2-libs/FIO.mod:  tidied up increment and
+	  removed InstallTerminationProcedure as the
+	  module uses FINALLY instead.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  bug fixes.
+	* gm2/gm2-libs-iso/IOLink.mod:  UnMakeChan
+	  call doFlush and doFree.
+	* gm2/gm2-libs-iso/RTdata.mod:  fixed typo bug
+	  md should be m.
+	* gm2/gm2-libs-iso/RTfio.mod:  iserror must not
+	  call EOF.
+	* gm2/gm2-libs-iso/RTgen.mod:  checkPostRead call
+	  checkErrno.  doLook call doUnReadChar.
+	* gm2/gm2-libs-iso/wrapsock.c:  fixed
+	  getPushBackChar and setPushBackChar.
+
 2008-10-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ClientSocket.def:  new file.

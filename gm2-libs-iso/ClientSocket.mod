@@ -18,7 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE ClientSocket ;
 
 
-FROM ASCII IMPORT nul, lf ;
+FROM ASCII IMPORT nul, lf, cr ;
 FROM ChanConsts IMPORT OpenResults, ChanFlags ;
 FROM RTio IMPORT GetDeviceId ;
 FROM RTgenif IMPORT GenDevIF, InitGenDevIF ;
@@ -122,6 +122,7 @@ END rawwrite ;
 
 PROCEDURE doreadchar (g: GenDevIF; d: DeviceTablePtr) : CHAR ;
 VAR
+   i : INTEGER ;
    fd: INTEGER ;
    c : ClientInfo ;
    ch: CHAR ;
@@ -132,8 +133,12 @@ BEGIN
       IF NOT getPushBackChar(c, ch)
       THEN
          REPEAT
-            errNum := read(fd, ADR(ch), SIZE(ch))
-         UNTIL errNum#0
+            i := read(fd, ADR(ch), SIZE(ch))
+         UNTIL i#0 ;
+         IF i<0
+         THEN
+            errNum := geterrno()
+         END
       END ;
       RETURN( ch )
    END
@@ -205,7 +210,7 @@ BEGIN
             actual := i ;
             RETURN( TRUE )
          ELSE
-            errNum := i ;
+            errNum := geterrno() ;
             actual := 0 ;
             RETURN( FALSE )
          END
@@ -236,7 +241,7 @@ BEGIN
          actual := i ;
          RETURN( TRUE )
       ELSE
-         errNum := i ;
+         errNum := geterrno() ;
          actual := 0 ;
          RETURN( FALSE )
       END
@@ -251,11 +256,12 @@ END dowbytes ;
 
 PROCEDURE dowriteln (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 VAR
-   ch: CHAR ;
-   i : CARDINAL ;
+   a: ARRAY [0..1] OF CHAR ;
+   i: CARDINAL ;
 BEGIN
-   ch := lf ;
-   RETURN( dowbytes(g, d, ADR(ch), SIZE(ch), i) AND (i=SIZE(ch)) )
+   a[0] := cr ;
+   a[1] := lf ;
+   RETURN( dowbytes(g, d, ADR(a), SIZE(a), i) AND (i=SIZE(a)) )
 END dowriteln ;
 
 

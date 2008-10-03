@@ -162,7 +162,7 @@ VAR
 BEGIN
    WITH d^ DO
       f := GetFile(cid) ;
-      RETURN( (NOT IsNoError(f)) AND (NOT EOF(f)) )
+      RETURN( NOT IsNoError(f) )
    END
 END iserror ;
 

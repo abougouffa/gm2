@@ -199,7 +199,10 @@ END InitDtp ;
 
 PROCEDURE KillDtp (p: DeviceTablePtr) : DeviceTablePtr ;
 BEGIN
-   (* --fixme-- should this call flush and then free ?? *)
+   WITH p^ DO
+      doFlush(p) ;
+      doFree(p)
+   END ;
    DISPOSE(p) ;
    RETURN( NIL )
 END KillDtp ;
