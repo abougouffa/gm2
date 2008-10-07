@@ -1,3 +1,10 @@
+2008-10-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FIO.mod:  reintroduced
+	  InstallTerminationProcedure as p2c does
+	  not use FINALLY.  Thus a boottrap error
+	  occurred when building gm2/gm2-auto/pg.
+
 2008-10-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/iso/socket/client.mod:  improved

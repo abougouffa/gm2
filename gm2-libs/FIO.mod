@@ -1402,7 +1402,8 @@ BEGIN
    StdErr := 2 ;
    PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
    (* and now for the error file descriptor *)
-   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0)
+   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
+   InstallTerminationProcedure(CloseOutErr)
 END Init ;
 
 
