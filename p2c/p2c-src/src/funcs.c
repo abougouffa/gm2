@@ -1830,14 +1830,15 @@ Static Stmt *proc_excl(arg)
 	return NULL;
     ex = p_expr(vex->val.type->indextype);
     skipcloseparen();
-    if (vex->val.type->kind == TK_SMALLSET)
-	return makestmt_assign(vex, makeexpr_bin(EK_BAND, vex->val.type,
-						 copyexpr(vex),
-						 makeexpr_un(EK_BNOT, vex->val.type,
-							     makeexpr_bin(EK_LSH, vex->val.type,
-									  makeexpr_longcast(makeexpr_long(1), 1),
-									  ex))));
-    else
+    if (vex->val.type->kind == TK_SMALLSET) {
+      Expr *i = makeexpr_minus (ex, get_min (vex->val.type->indextype));
+      return makestmt_assign(vex, makeexpr_bin(EK_BAND, vex->val.type,
+					       copyexpr(vex),
+					       makeexpr_un(EK_BNOT, vex->val.type,
+							   makeexpr_bin(EK_LSH, vex->val.type,
+									makeexpr_longcast(makeexpr_long(1), 1),
+									i))));
+    } else
 	return makestmt_call(makeexpr_bicall_2(setremname, tp_void, vex,
 					       makeexpr_arglong(enum_to_int(ex), 0)));
 }
@@ -2311,6 +2312,12 @@ Static Stmt *proc_inc(arg)
 }
 
 
+static Expr *get_min (tp)
+     Type *tp;
+{
+  return copyexpr(tp->smin);
+}
+
 
 Static Stmt *proc_incl(arg)
      Expr *arg ATTRIBUTE_UNUSED;
@@ -2324,13 +2331,14 @@ Static Stmt *proc_incl(arg)
 	return NULL;
     ex = p_expr(vex->val.type->indextype);
     skipcloseparen();
-    if (vex->val.type->kind == TK_SMALLSET)
-	return makestmt_assign(vex, makeexpr_bin(EK_BOR, vex->val.type,
-						 copyexpr(vex),
-						 makeexpr_bin(EK_LSH, vex->val.type,
-							      makeexpr_longcast(makeexpr_long(1), 1),
-							      ex)));
-    else
+    if (vex->val.type->kind == TK_SMALLSET) {
+      Expr *i = makeexpr_minus (ex, get_min (vex->val.type->indextype));
+      return makestmt_assign(vex, makeexpr_bin(EK_BOR, vex->val.type,
+					       copyexpr(vex),
+					       makeexpr_bin(EK_LSH, vex->val.type,
+							    makeexpr_longcast(makeexpr_long(1), 1),
+							    i)));
+    } else
 	return makestmt_call(makeexpr_bicall_2(setaddname, tp_void, vex,
 					       makeexpr_arglong(enum_to_int(ex), 0)));
 }

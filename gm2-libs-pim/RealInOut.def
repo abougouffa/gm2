@@ -84,7 +84,7 @@ PROCEDURE WriteLongRealOct (x: LONGREAL) ;
 
 (*
    ReadShortReal - reads a SHORTREAL number, legal syntaxes include:
-                  100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
+                   100, 100.0, 100e0, 100E0, 100E-1, E2, +1E+2, 1e+2
 *)
 
 PROCEDURE ReadShortReal (VAR x: SHORTREAL) ;
@@ -92,8 +92,8 @@ PROCEDURE ReadShortReal (VAR x: SHORTREAL) ;
 
 (*
    WriteShortReal - writes a SHORTREAL to the terminal. The real number
-                   is right justified and, n, is the minimum field
-                   width.
+                    is right justified and, n, is the minimum field
+                    width.
 *)
 
 PROCEDURE WriteShortReal (x: SHORTREAL; n: CARDINAL) ;

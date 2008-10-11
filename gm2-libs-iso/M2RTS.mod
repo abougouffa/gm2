@@ -278,6 +278,22 @@ BEGIN
 END DecException ;
 
 
+PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("bit exceeds set range during INCL statement"))
+END InclException ;
+
+
+PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(M2EXCEPTION.rangeException,
+                      filename, line, column, scope,
+                      ADR("bit exceeds set range during EXCL statement"))
+END ExclException ;
+
+
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(M2EXCEPTION.indexException,

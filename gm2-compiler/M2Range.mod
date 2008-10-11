@@ -39,22 +39,27 @@ FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
-FROM M2Error IMPORT Error, InternalError, NewWarning, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString ;
+FROM M2Error IMPORT Error, InternalError, NewWarning, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2GCCDeclare IMPORT DeclareConstant ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
-FROM NameKey IMPORT Name, MakeKey ;
+FROM NameKey IMPORT Name, MakeKey, KeyToCharStar ;
 FROM StdIO IMPORT Write ;
-FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark ;
+FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark, InitStringCharStar ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar, LValueToGenericPtr, ZConstToTypedConst ;
 FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN ;
+FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    Cardinal,
-                   ExceptionAssign, ExceptionInc, ExceptionDec,
+                   IsAssignmentCompatible,
+                   IsExpressionCompatible,
+                   ExceptionAssign,
+                   ExceptionInc, ExceptionDec,
+                   ExceptionIncl, ExceptionExcl,
                    ExceptionStaticArray, ExceptionDynamicArray,
                    ExceptionForLoopBegin, ExceptionForLoopTo, ExceptionForLoopEnd,
                    ExceptionPointerNil, ExceptionNoReturn, ExceptionCase,
@@ -62,10 +67,11 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionZeroDiv, ExceptionZeroRem,
                    ExceptionNo ;
 
-
 TYPE
    TypeOfRange = (assignment, subrangeassignment,
-                  inc, dec, staticarraysubscript,
+                  inc, dec, incl, excl,
+                  typeexpr, typeassign,
+                  staticarraysubscript,
                   dynamicarraysubscript,
                   forloopbegin, forloopto, forloopend,
                   pointernil, noreturn, noelse,
@@ -86,8 +92,8 @@ TYPE
 
 
 VAR
-   TopOfRange            : CARDINAL ;
-   RangeIndex            : Index ;
+   TopOfRange: CARDINAL ;
+   RangeIndex: Index ;
 
 
 (*
@@ -187,6 +193,10 @@ BEGIN
    subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
    inc                  : RETURN( ExceptionInc ) |
    dec                  : RETURN( ExceptionDec ) |
+   incl                 : RETURN( ExceptionIncl ) |
+   excl                 : RETURN( ExceptionExcl ) |
+   typeassign           : InternalError('not expecting this case value', __FILE__, __LINE__) |
+   typeexpr             : InternalError('not expecting this case value', __FILE__, __LINE__) |
    staticarraysubscript : RETURN( ExceptionStaticArray ) |
    dynamicarraysubscript: RETURN( ExceptionDynamicArray ) |
    forloopbegin         : RETURN( ExceptionForLoopBegin ) |
@@ -257,6 +267,27 @@ BEGIN
    END ;
    RETURN( p )
 END PutRange ;
+
+
+(*
+   PutRangeNoLow - initializes contents of, p.  It
+                   does not set lowest types as they may be
+                   unknown at this point.
+*)
+
+PROCEDURE PutRangeNoLow (p: Range; t: TypeOfRange; d, e: CARDINAL) : Range ;
+BEGIN
+   WITH p^ DO
+      type           := t ;
+      des            := d ;
+      expr           := e ;
+      desLowestType  := NulSym ;
+      exprLowestType := NulSym ;
+      isLeftValue    := FALSE ;
+      tokenNo        := GetTokenNo()
+   END ;
+   RETURN( p )
+END PutRangeNoLow ;
 
 
 (*
@@ -425,6 +456,70 @@ BEGIN
    p := PutRange(GetIndice(RangeIndex, r), inc, d, e) ;
    RETURN( r )
 END InitDecRangeCheck ;
+
+
+(*
+   InitInclCheck - checks to see that bit, e, is type compatible with
+                   e and also in range.
+*)
+
+PROCEDURE InitInclCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), incl, d, e) ;
+   RETURN( r )
+END InitInclCheck ;
+
+
+(*
+   InitExclCheck - checks to see that bit, e, is type compatible with
+                   e and also in range.
+*)
+
+PROCEDURE InitExclCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), excl, d, e) ;
+   RETURN( r )
+END InitExclCheck ;
+
+
+(*
+   InitTypesAssignmentCheck - checks to see that the types of, d, and, e,
+                              are assignment compatible.
+*)
+
+PROCEDURE InitTypesAssignmentCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), typeassign, d, e) ;
+   RETURN( r )
+END InitTypesAssignmentCheck ;
+
+
+(*
+   InitTypesExpressionCheck - checks to see that the types of, d, and, e,
+                              are expression compatible.
+*)
+
+PROCEDURE InitTypesExpressionCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), typeexpr, d, e) ;
+   RETURN( r )
+END InitTypesExpressionCheck ;
 
 
 (*
@@ -741,6 +836,10 @@ BEGIN
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
       inc                  : RETURN( ExceptionInc#NulSym ) |
       dec                  : RETURN( ExceptionDec#NulSym ) |
+      incl                 : RETURN( ExceptionIncl#NulSym ) |
+      excl                 : RETURN( ExceptionExcl#NulSym ) |
+      typeassign           : RETURN( FALSE ) |
+      typeexpr             : RETURN( FALSE ) |
       staticarraysubscript : RETURN( ExceptionStaticArray#NulSym ) |
       dynamicarraysubscript: RETURN( ExceptionDynamicArray#NulSym ) |
       forloopbegin         : RETURN( ExceptionForLoopBegin#NulSym ) |
@@ -902,6 +1001,169 @@ BEGIN
       END
    END
 END FoldDec ;
+
+
+(*
+   CheckSetAndBit - returns TRUE if des is a set type and expr is compatible with des.
+*)
+
+PROCEDURE CheckSetAndBit (tokenno: CARDINAL;
+                          des, expr: CARDINAL;
+                          name: ARRAY OF CHAR) : BOOLEAN ;
+VAR
+   n: Name ;
+   e: Error ;
+   s, t: String ;
+BEGIN
+   IF IsSet(des)
+   THEN
+      IF IsExpressionCompatible(GetType(des), GetType(expr))
+      THEN
+         RETURN( TRUE )
+      ELSE
+         e := NewError(tokenno) ;
+         s := Mark(InitString(name)) ;
+         s := Sprintf1(Mark(InitString('operands to %s are incompatible')), s) ;
+         ErrorString(e, s) ;
+         FlushErrors
+      END
+   ELSE
+      e := NewError(tokenno) ;
+      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(des)))) ;
+      t := Mark(InitString(name)) ;
+      s := Sprintf2(Mark(InitString('first operand to %s is not a set (%s)')), t, s) ;
+      ErrorString(e, s) ;
+      FlushErrors
+   END ;
+   RETURN( FALSE )
+END CheckSetAndBit ;
+
+
+(*
+   FoldIncl - folds an INCL statement if the operands are constant.
+*)
+
+PROCEDURE FoldIncl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p          : Range ;
+   e          : Error ;
+   n1, n2     : Name ;
+   t, min, max: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF CheckSetAndBit(tokenno, desLowestType, expr, "INCL")
+         THEN
+            IF GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(desLowestType, min, max)
+            THEN
+               IF OutOfRange(tokenno, min, expr, max, desLowestType)
+               THEN
+                  e := NewError(tokenNo) ;  (* use range tokenNo for warning *)
+                  n1 := GetSymName(GetType(des)) ;
+                  n2 := GetSymName(expr) ;
+                  ErrorFormat1(e, 'operand to INCL exceeds the range of type (%a)', n1) ;
+                  PutQuad(q, ErrorOp, NulSym, NulSym, r)
+               ELSE
+                  (* range check is unnecessary *)
+                  SubQuad(q)
+               END
+            END
+         END
+      END
+   END
+END FoldIncl ;
+
+
+(*
+   FoldExcl - folds an EXCL statement if the operands are constant.
+*)
+
+PROCEDURE FoldExcl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p          : Range ;
+   e          : Error ;
+   n1, n2     : Name ;
+   t, min, max: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF CheckSetAndBit(tokenno, desLowestType, expr, "EXCL")
+         THEN
+            IF GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(desLowestType, min, max)
+            THEN
+               IF OutOfRange(tokenno, min, expr, max, desLowestType)
+               THEN
+                  e := NewError(tokenNo) ;  (* use range tokenNo for warning *)
+                  n1 := GetSymName(GetType(des)) ;
+                  n2 := GetSymName(expr) ;
+                  ErrorFormat1(e, 'operand to EXCL exceeds the range of type (%a)', n1) ;
+                  PutQuad(q, ErrorOp, NulSym, NulSym, r)
+               ELSE
+                  (* range check is unnecessary *)
+                  SubQuad(q)
+               END
+            END
+         END
+      END
+   END
+END FoldExcl ;
+
+
+(*
+   FoldTypeCheck - folds a type check.  This is a no-op and it used
+                   for checking types which are resolved post pass 3.
+*)
+
+PROCEDURE FoldTypeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p     : Range ;
+   e     : Error ;
+   n1, n2: Name ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      CASE type OF
+
+      typeassign:  IF IsAssignmentCompatible(GetType(des), GetType(expr))
+                   THEN
+                      SubQuad(q)
+                   ELSE
+                      e := NewError(tokenNo) ;
+                      n1 := GetSymName(des) ;
+                      n2 := GetSymName(expr) ;
+                      ErrorFormat2(e, 'assignment designator and expression types are incompatible (%a) and (%a)', n1, n2) ;
+                      FlushErrors
+                   END |
+      typeexpr:    IF IsExpressionCompatible(GetType(des), GetType(expr))
+                   THEN
+                      SubQuad(q)
+                   ELSE
+                      e := NewError(tokenNo) ;
+                      n1 := GetSymName(des) ;
+                      n2 := GetSymName(expr) ;
+                      ErrorFormat2(e, 'expression operand types are incompatible (%a) and (%a)', n1, n2) ;
+                      FlushErrors
+                   END
+
+      ELSE
+         InternalError('not expecting to reach this point', __FILE__, __LINE__)
+      END
+   END
+END FoldTypeCheck ;
 
 
 (*
@@ -1178,6 +1440,10 @@ BEGIN
 (*      subrangeassignment   :  |  unused currently *)
       inc                  :  FoldInc(tokenno, l, q, r) |
       dec                  :  FoldDec(tokenno, l, q, r) |
+      incl                 :  FoldIncl(tokenno, l, q, r) |
+      excl                 :  FoldExcl(tokenno, l, q, r) |
+      typeassign           :  FoldTypeCheck(tokenno, l, q, r) |
+      typeexpr             :  FoldTypeCheck(tokenno, l, q, r) |
       staticarraysubscript :  FoldStaticArraySubscript(tokenno, l, q, r) |
       dynamicarraysubscript:  FoldDynamicArraySubscript(tokenno, l, q, r) |
       forloopbegin         :  FoldForLoopBegin(tokenno, l, q, r) |
@@ -1281,6 +1547,10 @@ BEGIN
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
       inc                  : s := InitString('if the INC is ever executed it will cause an overflow error') |
       dec                  : s := InitString('if the DEC is ever executed it will cause an underflow error') |
+      incl                 : s := InitString('if the INCL is ever executed it will cause an overflow error') |
+      excl                 : s := InitString('if the EXCL is ever executed it will cause an overflow error') |
+      typeassign           : s := InitString('') |
+      typeexpr             : s := InitString('') |
       staticarraysubscript : s := InitString('if the static array access is ever made the index will be out of bounds') |
       dynamicarraysubscript: s := InitString('if the dynamic array access is ever made the index will be out of bounds') |
       forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed it will be out of bounds') |
@@ -1524,6 +1794,45 @@ END CodeDec ;
 
 
 (*
+   CodeInclExcl -
+*)
+
+PROCEDURE CodeInclExcl (tokenno: CARDINAL;
+                        r: CARDINAL; scopeDesc: String) ;
+VAR
+   p             : Range ;
+   t, condition,
+   e,
+   desMin, desMax: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenNo, des) ;
+      DeclareConstant(tokenNo, expr) ;
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
+         THEN
+            IF GetMinMax(desLowestType, desMin, desMax)
+            THEN
+               e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(expr), FALSE) ;
+               IfOutsideLimitsDo(desMin, e, desMax, r, scopeDesc) ;
+               t := BuildSub(desMax,
+                             BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
+                             FALSE) ;
+               condition := BuildGreaterThan(Mod2Gcc(des), t) ;
+               AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+            END
+         ELSE
+            InternalError('should have resolved these types', __FILE__, __LINE__)
+         END
+      END
+   END
+END CodeInclExcl ;
+
+
+(*
    CodeStaticArraySubscript -
 *)
 
@@ -1750,6 +2059,10 @@ BEGIN
       subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
       inc                  :  CodeInc(tokenNo, r, scopeDesc) |
       dec                  :  CodeDec(tokenNo, r, scopeDesc) |
+      incl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
+      excl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
+      typeassign           :  |
+      typeexpr             :  |
       staticarraysubscript :  CodeStaticArraySubscript(tokenNo, r, scopeDesc) |
       dynamicarraysubscript:  CodeDynamicArraySubscript(tokenNo, r, scopeDesc) |
       forloopbegin         :  CodeForLoopBegin(tokenNo, r, scopeDesc) |
@@ -1856,6 +2169,10 @@ BEGIN
       subrangeassignment   :  WriteString('subrangeassignment(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       inc                  :  WriteString('inc(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       dec                  :  WriteString('dec(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      incl                 :  WriteString('incl(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      excl                 :  WriteString('excl(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      typeexpr             :  WriteString('expr compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      typeassign           :  WriteString('assignment compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       staticarraysubscript :  WriteString('staticarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       dynamicarraysubscript:  WriteString('dynamicarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       forloopbegin         :  WriteString('forloopbegin(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |

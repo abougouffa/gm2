@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -4905,12 +4905,16 @@ BEGIN
          ELSE
             m := (i+1)*MaxElementsInSet-1
          END ;
-         WriteString('SetOfStop') ; WriteCard(i, 0) ;
-         WriteString(' = SET OF [') ;
+         WriteString('stop') ; WriteCard(i, 0) ;
+         WriteString(' = [') ;
          WriteKey(GetSymKey(ReverseValues, WORD(j))) ;
          WriteString('..') ;
          WriteKey(GetSymKey(ReverseValues, WORD(m))) ;
          WriteString('] ;') ;
+         NewLine(3) ;
+         WriteString('SetOfStop') ; WriteCard(i, 0) ;
+         WriteString(' = SET OF stop') ; WriteCard(i, 0) ;
+         WriteString(' ;') ;
          NewLine(3) ;
          INC(i)
       END ;

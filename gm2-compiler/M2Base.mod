@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -36,6 +37,7 @@ FROM M2Error IMPORT Error, NewError, NewWarning,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
                     InternalError, ChainError, WriteFormat1, ErrorString, FlushErrors ;
 
+FROM M2Pass IMPORT IsPassCodeGeneration ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
 
@@ -111,6 +113,8 @@ PROCEDURE InitBaseFunctions ; FORWARD ;
 PROCEDURE InitBaseProcedures ; FORWARD ;
 PROCEDURE InitCompatibilityMatrices ; FORWARD ;
 PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
+PROCEDURE AfterResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
+PROCEDURE BeforeResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
    %%%FORWARD%%% *)
 
 TYPE
@@ -559,6 +563,8 @@ BEGIN
    ExceptionAssign       := NulSym ;
    ExceptionInc          := NulSym ;
    ExceptionDec          := NulSym ;
+   ExceptionIncl         := NulSym ;
+   ExceptionExcl         := NulSym ;
    ExceptionStaticArray  := NulSym ;
    ExceptionDynamicArray := NulSym ;
    ExceptionForLoopBegin := NulSym ;
@@ -578,6 +584,8 @@ BEGIN
       ExceptionAssign := ImportFrom(m2rts, 'AssignmentException') ;
       ExceptionInc := ImportFrom(m2rts, 'IncException') ;
       ExceptionDec := ImportFrom(m2rts, 'DecException') ;
+      ExceptionIncl := ImportFrom(m2rts, 'InclException') ;
+      ExceptionExcl := ImportFrom(m2rts, 'ExclException') ;
       ExceptionStaticArray := ImportFrom(m2rts, 'StaticArraySubscriptException') ;
       ExceptionDynamicArray := ImportFrom(m2rts, 'DynamicArraySubscriptException') ;
       ExceptionForLoopBegin := ImportFrom(m2rts, 'ForLoopBeginException') ;
@@ -1138,6 +1146,34 @@ END IsRealType ;
 
 
 (*
+   CannotCheckTypeInPass3 - returns TRUE if we are unable to check the
+                            type of, e, in pass 3.
+*)
+
+PROCEDURE CannotCheckTypeInPass3 (e: CARDINAL) : BOOLEAN ;
+VAR
+   t : CARDINAL ;
+   mt: MetaType ;
+BEGIN
+   t := SkipType(GetType(e)) ;
+   mt := FindMetaType(t) ;
+   CASE mt OF
+
+   pointer,
+   enum,
+   set,
+   set8,
+   set16,
+   set32,
+   opaque :  RETURN( TRUE )
+
+   ELSE
+      RETURN( FALSE )
+   END
+END CannotCheckTypeInPass3 ;
+
+
+(*
    IsCompatible - returns true if the types, t1, and, t2, are compatible.
 *)
 
@@ -1145,6 +1181,73 @@ PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ;
 BEGIN
    t1 := SkipType(t1) ;
    t2 := SkipType(t2) ;
+   IF IsPassCodeGeneration()
+   THEN
+      RETURN( AfterResolved(t1, t2, kind) )
+   ELSE
+      RETURN( BeforeResolved(t1, t2, kind) )
+   END
+END IsCompatible ;
+
+
+(*
+   AfterResolved - a though test for type compatibility.
+*)
+
+PROCEDURE AfterResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ;
+VAR
+   mt1, mt2: MetaType ;
+BEGIN
+   IF (t1=NulSym) OR (t2=NulSym)
+   THEN
+      RETURN( first )
+   ELSIF ((kind=parameter) OR (kind=assignment)) AND (t1=t2)
+   THEN
+      RETURN( first )
+   ELSIF IsSubrange(t1)
+   THEN
+      RETURN( IsCompatible(GetType(t1), t2, kind) )
+   ELSIF IsSubrange(t2)
+   THEN
+      RETURN( IsCompatible(t1, GetType(t2), kind) )
+   ELSE
+      mt1 := FindMetaType(t1) ;
+      mt2 := FindMetaType(t2) ;
+      IF mt1=mt2
+      THEN
+         CASE mt1 OF
+
+         set,
+         set8,
+         set16,
+         set32  :  RETURN( IsCompatible(GetType(t1), GetType(t2), kind) ) |
+         enum   :  IF t1=t2
+                   THEN
+                      RETURN( first )
+                   ELSE
+                      RETURN( no )
+                   END |
+         pointer,
+         opaque :  RETURN( no )
+
+         ELSE
+            (* fall through *)
+         END
+      END ;
+      RETURN( IsBaseCompatible(t1, t2, kind) )
+   END
+END AfterResolved ;
+
+
+(*
+   BeforeResolved - attempts to test for type compatibility before all types are
+                    completely resolved.  In particular set types and constructor
+                    types are not fully known before the end of pass 3.
+                    However we can test base types.
+*)
+
+PROCEDURE BeforeResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ;
+BEGIN
    IF (t1=NulSym) OR (t2=NulSym)
    THEN
       RETURN( first )
@@ -1156,8 +1259,9 @@ BEGIN
       RETURN( IsCompatible(t1, GetType(t2), kind) )
    ELSIF IsSet(t1) OR IsSet(t2)
    THEN
-      RETURN( first ) (* cannot test set compatibility at this point --fixme-- *)
-   ELSIF (IsHiddenType(t1) OR IsProcType(t1)) AND (kind=assignment)
+      (* cannot test set compatibility at this point so we do this again after pass 3 *)
+      RETURN( first )
+   ELSIF (IsHiddenType(t1) OR IsProcType(t1)) AND ((kind=assignment) OR (kind=parameter))
    THEN
       IF t1=t2
       THEN
@@ -1170,13 +1274,14 @@ BEGIN
    see M2Quads for the fixme comment at assignment.
 
    PIM2 says that CARDINAL and INTEGER are compatible with subranges of CARDINAL and INTEGER,
-        however we do not know the type to our subranges yet (GetType(SubrangeType)=NulSym).
-        An oversight which needs to be fixed...
+        however we do not know the type to our subranges yet as (GetType(SubrangeType)=NulSym).
+        So we add type checking in the range checking module which is done post pass 3,
+        when all is resolved.
 *)
 
       RETURN( IsBaseCompatible(t1, t2, kind) )
    END
-END IsCompatible ;
+END BeforeResolved ;
 
 
 (*
@@ -1227,7 +1332,7 @@ END IsExpressionCompatible ;
 
 (*
    IsParameterCompatible - returns TRUE if t1 and t2 are expression
-                            compatible.
+                           compatible.
 *)
 
 PROCEDURE IsParameterCompatible (t1, t2: CARDINAL) : BOOLEAN ;

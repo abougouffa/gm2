@@ -1,3 +1,55 @@
+2008-10-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gccgm2.c:  removed STRIP_NOPS from FoldAndStrip.
+	* gm2/gm2/bnf/gm2l.bnf:  InitStopSet changed to reflect p2c
+	  corrections to INCL and EXCL.
+	* gm2/gm2/bnf/gm2m.bnf:  InitStopSet changed to reflect p2c
+	  corrections to INCL and EXCL.
+	* gm2/gm2/gm2-compiler/M2Base.def:  CannotCheckTypeInPass3,
+	  ExceptionIncl, ExceptionExcl new procedures.
+	* gm2/gm2/gm2-compiler/M2Base.mod:  CannotCheckTypeInPass3,
+	  ExceptionIncl, ExceptionExcl implemented.
+	* gm2/gm2/gm2-compiler/M2Code.mod:  call ResolveConstructorTypes.
+	* gm2/gm2/gm2-compiler/M2Pass.def:  corrected dates.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  introduced additional
+	  range check markers to check type compatibility post pass 3.
+	  Removes many ugly hacks and makes type checking more resiliant.
+	* gm2/gm2/gm2-compiler/M2Range.def:  InitInclCheck, InitExclCheck,
+          InitTypesAssignmentCheck, InitTypesExpressionnCheck new
+	  procedures.
+	* gm2/gm2/gm2-compiler/M2Range.mod:  InitInclCheck, InitExclCheck,
+          InitTypesAssignmentCheck, InitTypesExpressionnCheck implement
+	  these procedures and flush errors should a type check fail.
+	* gm2/gm2/gm2-compiler/SymbolTable.def:  MakeTemporaryFromExpression,
+          MakeTemporaryFromExpressions, PutConstructorFrom,
+	  ResolveConstructorTypes new procedures.
+	* gm2/gm2/gm2-compiler/SymbolTable.mod:  MakeTemporaryFromExpression,
+          MakeTemporaryFromExpressions, PutConstructorFrom,
+	  ResolveConstructorTypes implement these new procedures.
+	* gm2/gm2/gm2-compiler/ppg.mod:  emit the stop subrange used to
+	  build the set.
+	* gm2/gm2/gm2-libs/M2RTS.def:  InclException, ExclException new
+	  procedures.
+	* gm2/gm2/gm2-libs/M2RTS.mod:  InclException, ExclException implement
+	  new procedures.
+	* gm2/gm2/gm2-libs-ch/sckt.c:  tidied up spacing.
+	* gm2/gm2/gm2-libs-iso/M2EXCEPTION.def:  corrected dates.
+	* gm2/gm2/gm2-libs-iso/M2RTS.def:  InclException, ExclException
+	  new procedures.
+	* gm2/gm2/gm2-libs-iso/M2RTS.mod:  InclException, ExclException
+	  implement new procedures.
+	* gm2/gm2/gm2-libs-iso/STextIO.mod:  corrected copyright notice.
+	* gm2/gm2/gm2-libs-iso/TextIO.def:  tidied up comment.
+	* gm2/gm2/gm2-libs-iso/WholeConv.def:  corrected dates and
+	  tidied up long lines.
+	* gm2/gm2/gm2-libs-pim/RealInOut.def:  tidied up spacing.
+	* gm2/gm2/gm2-libs-pim/RealInOut.mod:  corrected dates.
+	* gm2/gm2/p2c/p2c-src/src/decl.c:  added debugging.
+	* gm2/gm2/p2c/p2c-src/src/funcs.c:  corrected INCL and EXCL
+	  to subract low bound of subrange from bit value.
+	* gm2/gm2/ulm-lib-gm2/std/M2RTS.mod:  InclException, ExclException
+	  implement new procedures.
+	
 2008-10-11       Michael Lambert <lambert@psc.edu>
 
 	* gm2/Make-lang.in:  set XGM2BUILD1 flags for

@@ -29,7 +29,8 @@ FROM SYSTEM IMPORT BITSET, ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, Terminate,
                  ExitOnHalt, Length,
-                 AssignmentException, IncException, DecException,
+                 AssignmentException,
+                 IncException, DecException, InclException, ExclException,
                  StaticArraySubscriptException, DynamicArraySubscriptException,
                  ForLoopBeginException, ForLoopToException, ForLoopEndException,
                  PointerNilException, NoReturnException,
@@ -95,6 +96,8 @@ PROCEDURE Length (a: ARRAY OF CHAR) : CARDINAL ;
 PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

@@ -148,7 +148,6 @@ tcpServerState *tcpServerEstablishPort (int portNo)
   return s;
 }
 
-
 /*
  *  tcpServerEstablish - returns a tcpServerState containing the relevant
  *                       information about a socket declared to recieve

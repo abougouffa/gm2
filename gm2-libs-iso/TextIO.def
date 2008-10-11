@@ -27,8 +27,9 @@ PROCEDURE ReadChar (cid: IOChan.ChanId; VAR ch: CHAR);
 PROCEDURE ReadRestLine (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
   (* Removes any remaining characters from the input stream
      cid before the next line mark,  copying to s as many as
-     can be accommodated as a string value. The read result is set
-     to the value allRight, outOfRange, endOfLine, or endOfInput.
+     can be accommodated as a string value.  The read result is
+     set to the value allRight, outOfRange, endOfLine, or
+     endOfInput.
   *)
 
 PROCEDURE ReadString (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);

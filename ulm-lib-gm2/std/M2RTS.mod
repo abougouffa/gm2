@@ -198,6 +198,22 @@ BEGIN
 END DecException ;
 
 
+PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("bit exceeds set range during INCL statement"),
+                      line, column)
+END InclException ;
+
+
+PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("bit exceeds set range during EXCL statement"),
+                      line, column)
+END ExclException ;
+
+
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    ErrorMessageColumn(filename, scope,

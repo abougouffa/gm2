@@ -2365,7 +2365,9 @@ gccgm2_FoldAndStrip (tree t)
 {
   if (t != NULL) {
     t = fold (t);
+#if 0
     STRIP_NOPS (t);
+#endif
     if (TREE_CODE (t) == CONST_DECL)
       return gccgm2_FoldAndStrip (DECL_INITIAL (t));
   }
@@ -7150,8 +7152,8 @@ gccgm2_BuildSetTypeFromSubrange (char *name, tree subrangeType,
       TYPE_MAX_VALUE (settype) = TYPE_MAX_VALUE (gccgm2_GetWordType ());
     else
       TYPE_MAX_VALUE (settype) = gccgm2_FoldAndStrip (gccgm2_BuildSub (gccgm2_BuildLSL (gccgm2_GetWordOne(), noelements, FALSE),
-                                                  integer_one_node,
-                                                  FALSE));
+								       integer_one_node,
+								       FALSE));
     TYPE_MIN_VALUE (settype) = integer_zero_node;
 
     layout_type (settype);

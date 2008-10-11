@@ -1692,7 +1692,6 @@ int isheader, isforward;
                 name = (mp->othername && isheader) ? mp->othername : mp->name;
                 tp = (mp->othername) ? mp->rectype : mp->type;
 #if 1
-		stop2();
 		if ((mp->kind == MK_VARPARAM) && (tp->basetype->kind == TK_OPAQUE))
 		  tp = makepointertype(tp_anyptr);  /* force parameters to use void */
 		else if ((mp->kind == MK_PARAM) && (tp->kind == TK_OPAQUE))
@@ -2930,7 +2929,6 @@ Expr *smin, *smax;
 }
 
 
-
 Type *makesettype(setof)
 Type *setof;
 {
@@ -2944,8 +2942,11 @@ Type *setof;
     else
         tp = maketype(TK_SET);
 #else
-    if (ord_range(setof, &smin, &smax) && ((smax-smin) < setbits) && (smallsetconst >= 0))
+    if (ord_range(setof, &smin, &smax) && ((smax-smin) < setbits) && (smallsetconst >= 0)) {
         tp = maketype(TK_SMALLSET);
+	if (setof->smin->val.i != 0)
+	  stop();
+    }
     else
         tp = maketype(TK_SET);
 #endif
@@ -5205,7 +5206,6 @@ void p_typedecl()
 	mp = curtoksym->mbase;
 	mp->type->meaning = mp;
 	mp->wasdeclared = 0;
-	stop2();
       } else {
         mp = addmeaning(curtoksym, MK_TYPE);
 	mp->type = tp_integer;    /* in case of syntax errors */
@@ -5257,7 +5257,6 @@ void p_typedecl()
 	  if (pd->tp && (pd->tp->kind == TK_OPAQUE)) {
 	    /* now join the opaque type to the declared type */
 	    pd->tp->meaning->rectype   = makepointertype(pd->tp->meaning->type);
-	    stop2();
 	  }
 #endif
 	}

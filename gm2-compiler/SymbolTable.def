@@ -126,6 +126,7 @@ EXPORT QUALIFIED NulSym,
                  PutConstString,
                  PutConstSet,
                  PutConstructor,
+                 PutConstructorFrom,
                  PutFieldRecord,
                  PutFieldVarient,
                  GetVarient,
@@ -266,6 +267,8 @@ EXPORT QUALIFIED NulSym,
 
                  PutDoesNeedExportList, PutDoesNotNeedExportList,
                  DoesNotNeedExportList,
+                 ResolveConstructorTypes,
+                 MakeTemporaryFromExpression, MakeTemporaryFromExpressions,
 
                  IsSizeSolved,
                  IsOffsetSolved,
@@ -315,6 +318,31 @@ PROCEDURE FinalSymbol () : CARDINAL ;
 *)
 
 PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
+
+
+(*
+   MakeTemporaryFromExpression - makes a new temporary variable at the
+                                 highest real scope.  The addressing
+                                 mode of the temporary is set and the
+                                 type is determined by expressions, e.
+*)
+
+PROCEDURE MakeTemporaryFromExpression (e: CARDINAL;
+                                       tok: CARDINAL;
+                                       mode: ModeOfAddr) : CARDINAL ;
+
+(*
+   MakeTemporaryFromExpressions - makes a new temporary variable at the
+                                  highest real scope.  The addressing
+                                  mode of the temporary is set and the
+                                  type is determined by expressions,
+                                  e1 and e2.
+*)
+
+PROCEDURE MakeTemporaryFromExpressions (e1, e2: CARDINAL;
+                                        tok: CARDINAL;
+                                        mode: ModeOfAddr) : CARDINAL ;
+
 
 
 (*
@@ -1067,6 +1095,14 @@ PROCEDURE IsConstSet (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE PutConstructor (Sym: CARDINAL) ;
+
+
+(*
+   PutConstructorFrom - sets the from type field in constructor,
+                        Sym, to, from.
+*)
+
+PROCEDURE PutConstructorFrom (Sym: CARDINAL; from: CARDINAL) ;
 
 
 (*
@@ -2135,6 +2171,15 @@ PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
 *)
 
 PROCEDURE ResolveImports ;
+
+
+(*
+   ResolveConstructorTypes - to be called at the end of pass three.  Its
+                             purpose is to fix up all constructors whose
+                             types are unknown.
+*)
+
+PROCEDURE ResolveConstructorTypes ;
 
 
 (*

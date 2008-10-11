@@ -1,4 +1,5 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+-- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -39,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2008/09/10 17:44:57 $]
+   Date       : 3/4/86  [$Date: 2008/10/11 13:42:37 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -560,12 +561,12 @@ BEGIN
    s2 := SetOfStop2{} ;
    IF ORD(t)<32
    THEN
-      s0 := SetOfStop0{t}
+      s0 := SetOfStop0{VAL(stop0, t)}
    ELSIF ORD(t)<64
    THEN
-      s1 := SetOfStop1{t}
+      s1 := SetOfStop1{VAL(stop1, t)}
    ELSE
-      s2 := SetOfStop2{t}
+      s2 := SetOfStop2{VAL(stop2, t)}
    END ;
    str := DescribeStop(s0, s1, s2) ;
    
@@ -686,12 +687,12 @@ PROCEDURE InitStopSet (t: toktype; VAR stopset0: SetOfStop0; VAR stopset1: SetOf
 BEGIN
    IF ORD(t)<32
    THEN
-      INCL(stopset0, ORD(t))
+      INCL(stopset0, t)
    ELSIF ORD(t)<64
    THEN
-      INCL(stopset1, ORD(t)-32)
+      INCL(stopset1, t)
    ELSE
-      INCL(stopset2, ORD(t)-64)
+      INCL(stopset2, t)
    END
 END InitStopSet ;
 

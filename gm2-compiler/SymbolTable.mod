@@ -30,7 +30,7 @@ FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
 FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
                     WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
-                    ErrorAbort0 ;
+                    ErrorAbort0, FlushErrors ;
 
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM FormatStrings IMPORT Sprintf1 ;
@@ -51,7 +51,7 @@ FROM SymbolKey IMPORT NulKey, SymbolTree,
                       GetSymKey, PutSymKey, DelSymKey, IsEmptyTree,
                       DoesTreeContainAny, ForeachNodeDo ;
 
-FROM M2Base IMPORT InitBase, Char, Integer, LongReal,
+FROM M2Base IMPORT MixTypes, InitBase, Char, Integer, LongReal,
                    Cardinal, LongInt, LongCard, ZType, RType ;
 
 FROM M2System IMPORT Address ;
@@ -353,16 +353,20 @@ TYPE
                     Type         : CARDINAL ;     (* TYPE of constant, char etc  *)
                     IsSet        : BOOLEAN ;      (* is the constant a set?      *)
                     IsConstructor: BOOLEAN ;      (* is the constant a set?      *)
+                    FromType     : CARDINAL ;     (* type is determined FromType *)
+                    UnresFromType: BOOLEAN ;      (* is Type unresolved?         *)
                     At           : Where ;        (* Where was sym declared/used *)
                  END ;
 
    SymConstVar = RECORD
                     name         : Name ;     (* Index into name array, name *)
                                               (* of const.                   *)
-                    Value        : PtrToValue ; (* Value of the constant       *)
+                    Value        : PtrToValue ; (* Value of the constant     *)
                     Type         : CARDINAL ; (* TYPE of constant, char etc  *)
                     IsSet        : BOOLEAN ;  (* is the constant a set?      *)
                     IsConstructor: BOOLEAN ;  (* is the constant a set?      *)
+                    FromType     : CARDINAL ; (* type is determined FromType *)
+                    UnresFromType: BOOLEAN ;  (* is Type resolved?           *)
                     At           : Where ;    (* Where was sym declared/used *)
                  END ;
 
@@ -713,7 +717,8 @@ VAR
                                  (* be declared as ADDRESS or pointer  *)
    FreeFVarientList,             (* Lists used to maintain GC of field *)
    UsedFVarientList: List ;      (* varients.                          *)
-
+   UnresolvedConstructorType: List ;  (* all constructors whose type   *)
+                                 (* is not yet known.                  *)
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
@@ -783,6 +788,7 @@ PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL) ; FORWARD ;
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ; FORWARD ;
+PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1096,6 +1102,7 @@ BEGIN
    TemporaryNo       := 0 ;
    InitList(FreeFVarientList) ;             (* Lists used to maintain GC of field *)
    InitList(UsedFVarientList) ;             (* varients.                          *)
+   InitList(UnresolvedConstructorType) ;
 
    InitBase(BaseModule) ;
    StartScope(BaseModule) ;   (* BaseModule scope placed at the bottom of the stack *)
@@ -3161,6 +3168,8 @@ BEGIN
                        ConstLit.Type := GetConstLitType(Sym) ;
                        ConstLit.IsSet := FALSE ;
                        ConstLit.IsConstructor := FALSE ;
+                       ConstLit.FromType := NulSym ;     (* type is determined FromType *)
+                       ConstLit.UnresFromType := FALSE ; (* is Type resolved?           *)
                        InitWhereDeclared(ConstLit.At)
 
          ELSE
@@ -3192,6 +3201,8 @@ BEGIN
             Type  := NulSym ;
             IsSet := FALSE ;
             IsConstructor := FALSE ;
+            FromType := NulSym ;     (* type is determined FromType *)
+            UnresFromType := FALSE ; (* is Type resolved?           *)
             InitWhereDeclared(At)
          END
       END ;
@@ -3652,6 +3663,29 @@ BEGIN
       END
    END
 END IsConstructor ;
+
+
+(*
+   PutConstructorFrom - sets the from type field in constructor,
+                        Sym, to, from.
+*)
+
+PROCEDURE PutConstructorFrom (Sym: CARDINAL; from: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      ConstVarSym:  ConstVar.FromType := from ;
+                    ConstVar.UnresFromType := TRUE |
+      ConstLitSym:  ConstLit.FromType := from ;
+                    ConstLit.UnresFromType := TRUE
+
+      ELSE
+         InternalError('expecting ConstVar or ConstLit symbol', __FILE__, __LINE__)
+      END
+   END ;
+   IncludeItemIntoList(UnresolvedConstructorType, Sym)
+END PutConstructorFrom ;
 
 
 (*
@@ -4606,6 +4640,76 @@ END MakeTemporary ;
 
 
 (*
+   MakeTemporaryFromExpressions - makes a new temporary variable at the
+                                  highest real scope.  The addressing
+                                  mode of the temporary is set and the
+                                  type is determined by expressions,
+                                  e1 and e2.
+*)
+
+PROCEDURE MakeTemporaryFromExpressions (e1, e2: CARDINAL;
+                                        tok: CARDINAL;
+                                        mode: ModeOfAddr) : CARDINAL ;
+VAR
+   s  : String ;
+   t,
+   Sym: CARDINAL ;
+BEGIN
+   INC(TemporaryNo) ;
+   (* Make the name *)
+   s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
+   IF mode=ImmediateValue
+   THEN
+      Sym := MakeConstVar(makekey(string(s))) ;
+      IF IsConstructor(e1)
+      THEN
+         PutConstructor(Sym) ;
+         PutConstructorFrom(Sym, e1)
+      ELSIF IsConstructor(e2)
+      THEN
+         PutConstructor(Sym) ;
+         PutConstructorFrom(Sym, e2)
+      ELSE
+         PutVar(Sym, MixTypes(GetType(e1), GetType(e2), tok))
+      END
+   ELSE
+      Sym := MakeVar(makekey(string(s))) ;
+      WITH Symbols[Sym] DO
+         CASE SymbolType OF
+
+         VarSym : Var.AddrMode := mode ;
+                  Var.IsTemp := TRUE ;       (* Variable is a temporary var *)
+                  InitWhereDeclared(Var.At)  (* Declared here               *)
+
+         ELSE
+            InternalError('expecting a Var symbol', __FILE__, __LINE__)
+         END
+      END ;
+      t := MixTypes(GetType(e1), GetType(e2), tok) ;
+      Assert(NOT IsConstructor(t)) ;
+      PutVar(Sym, t)
+   END ;
+   s := KillString(s) ;
+   RETURN( Sym )
+END MakeTemporaryFromExpressions ;
+
+
+(*
+   MakeTemporaryFromExpression - makes a new temporary variable at the
+                                 highest real scope.  The addressing
+                                 mode of the temporary is set and the
+                                 type is determined by expressions, e.
+*)
+
+PROCEDURE MakeTemporaryFromExpression (e: CARDINAL;
+                                       tok: CARDINAL;
+                                       mode: ModeOfAddr) : CARDINAL ;
+BEGIN
+   RETURN( MakeTemporaryFromExpressions(e, e, tok, mode) )
+END MakeTemporaryFromExpression ;
+
+
+(*
    PutMode - Puts the addressing mode, SymMode, into symbol Sym.
              The mode may only be altered if the mode
              is None.
@@ -4617,11 +4721,7 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym: |
-      VarSym : (* IF Var.AddrMode#NoValue
-               THEN
-                  WriteError('altering ModeOfAddr') ; HALT
-               END ; *)
-               Var.AddrMode := SymMode
+      VarSym  : Var.AddrMode := SymMode
 
       ELSE
          InternalError('Expecting VarSym', __FILE__, __LINE__)
@@ -7763,6 +7863,150 @@ BEGIN
       END
    END
 END PutArray ;
+
+
+(*
+   ResolveConstructorType - if, sym, has an unresolved constructor type
+                            then attempt to resolve it by examining the
+                            from, type.
+*)
+
+PROCEDURE ResolveConstructorType (sym: CARDINAL;
+                                  VAR type: CARDINAL;
+                                  VAR from: CARDINAL;
+                                  VAR unres: BOOLEAN) ;
+BEGIN
+   IF unres
+   THEN
+      IF IsConstructor(from)
+      THEN
+         IF IsConstructorResolved(from)
+         THEN
+            unres := FALSE ;
+            type := GetType(from) ;
+            IF (type#NulSym) AND IsSet(SkipType(type))
+            THEN
+               PutConstSet(sym)
+            END
+         END
+      ELSIF (from#NulSym) AND IsSet(SkipType(from))
+      THEN
+         unres := FALSE ;
+         type := from ;
+         PutConstSet(sym)
+      ELSIF (from#NulSym) AND (IsRecord(SkipType(from)) OR IsArray(SkipType(from)))
+      THEN
+         unres := FALSE ;
+         type := from
+      END
+   END
+END ResolveConstructorType ;
+
+
+(*
+   IsConstructorResolved - returns TRUE if the constructor does not
+                           have an unresolved type.
+*)
+
+PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ConstVarSym:  RETURN( NOT ConstVar.UnresFromType ) |
+      ConstLitSym:  RETURN( NOT ConstLit.UnresFromType )
+
+      ELSE
+         InternalError('expecting ConstVar or ConstLit symbol',
+                      __FILE__, __LINE__)
+      END
+   END
+END IsConstructorResolved ;
+
+
+(*
+   CanResolveConstructor - returns TRUE if the type of the constructor,
+                           sym, is known.
+*)
+
+PROCEDURE CanResolveConstructor (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF NOT IsConstructorResolved(sym)
+   THEN
+      WITH Symbols[sym] DO
+         CASE SymbolType OF
+
+         ConstVarSym:  WITH ConstVar DO
+                          ResolveConstructorType(sym, Type, FromType, UnresFromType)
+                       END |
+         ConstLitSym:  WITH ConstLit DO
+                          ResolveConstructorType(sym, Type, FromType, UnresFromType)
+                       END |
+
+         ELSE
+            InternalError('expecting ConstVar or ConstLit symbol',
+                          __FILE__, __LINE__)
+         END
+      END
+   END ;
+   RETURN( IsConstructorResolved(sym) )
+END CanResolveConstructor ;
+
+
+(*
+   CheckAllConstructorsResolved - checks to see that the
+                                  UnresolvedConstructorType list is
+                                  empty and if it is not then it
+                                  generates error messages.
+*)
+
+PROCEDURE CheckAllConstructorsResolved ;
+VAR
+   i, n, s: CARDINAL ;
+   e      : Error ;
+BEGIN
+   n := NoOfItemsInList(UnresolvedConstructorType) ;
+   IF n>0
+   THEN
+      FOR i := 1 TO n DO
+         s := GetItemFromList(UnresolvedConstructorType, i) ;
+         e := NewError(GetDeclared(s)) ;
+         ErrorFormat0(e, 'constructor has an unknown type')
+      END ;
+      FlushErrors
+   END
+END CheckAllConstructorsResolved ;
+
+
+(*
+   ResolveConstructorTypes - to be called at the end of pass three.  Its
+                             purpose is to fix up all constructors whose
+                             types are unknown.
+*)
+
+PROCEDURE ResolveConstructorTypes ;
+VAR
+   finished: BOOLEAN ;
+   i, n, s : CARDINAL ;
+BEGIN
+   REPEAT
+      n := NoOfItemsInList(UnresolvedConstructorType) ;
+      finished := TRUE ;
+      i := 1 ;
+      WHILE i<=n DO
+         s := GetItemFromList(UnresolvedConstructorType, i) ;
+         Assert(IsConstructor(s)) ;
+         IF CanResolveConstructor(s)
+         THEN
+            finished := FALSE ;
+            RemoveItemFromList(UnresolvedConstructorType, s) ;
+            i := n
+         END ;
+         INC(i)
+      END
+   UNTIL finished ;
+   CheckAllConstructorsResolved
+END ResolveConstructorTypes ;
 
 
 (*

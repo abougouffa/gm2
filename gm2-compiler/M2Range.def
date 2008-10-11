@@ -44,6 +44,10 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitDynamicArraySubscriptRangeCheck,
                  InitIncRangeCheck,
                  InitDecRangeCheck,
+                 InitInclCheck,
+                 InitExclCheck,
+                 InitTypesExpressionCheck,
+                 InitTypesAssignmentCheck,
                  InitForLoopBeginRangeCheck,
                  InitForLoopToRangeCheck,
                  InitForLoopEndRangeCheck,
@@ -208,6 +212,38 @@ PROCEDURE InitWholeZeroDivisionCheck (d, e: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitInclCheck - checks to see that bit, e, is type compatible with
+                   e and also in range.
+*)
+
+PROCEDURE InitInclCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitExclCheck - checks to see that bit, e, is type compatible with
+                   e and also in range.
+*)
+
+PROCEDURE InitExclCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitTypesAssignmentCheck - checks to see that the types of, d, and, e,
+                              are assignment compatible.
+*)
+
+PROCEDURE InitTypesAssignmentCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitTypesExpressionCheck - checks to see that the types of, d, and, e,
+                              are expression compatible.
+*)
+
+PROCEDURE InitTypesExpressionCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*
