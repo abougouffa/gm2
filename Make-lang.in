@@ -49,13 +49,16 @@ GM2_CROSS_NAME = `echo gm2|sed '$(program_transform_cross_name)'`
 GM2 = xgm2
 GM2CC = gm2cc
 
-# XGM2_1 = /home/gaius/GM2/gm2-harness-0.96/build/gcc/xgm2
-# XGM2BUILD1 = /home/gaius/GM2/gm2-harness-0.96/build/gcc/stage1/gm2 -g -gdwarf-2
-
-XGM2_1 = /home/gaius/GM2/gm2-harness/build/gcc/xgm2
-XGM2BUILD1 = /home/gaius/GM2/gm2-harness/build/gcc/stage1/gm2 -g -gdwarf-2
 XGM2_1 = ./xgm2
 XGM2BUILD1 = ./stage1/gm2  -g -gdwarf-2
+
+ifeq ($(OSTYPE),darwin)
+  ifeq ($(VENDOR),apple)
+    ifeq ($(MACHTYPE),i386)
+	XGM2BUILD1 = ./stage1/gm2 -g
+    endif
+  endif
+endif
 
 # Define the name of target independent tools to be installed in $(bindir)
 # Names are subject to changes

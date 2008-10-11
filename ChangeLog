@@ -1,3 +1,8 @@
+2008-10-11       Michael Lambert <lambert@psc.edu>
+
+	* gm2/Make-lang.in:  set XGM2BUILD1 flags for
+	  darwin, apple, i386 (leave out -gdwarf-2)
+
 2008-10-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FIO.mod:  reintroduced
