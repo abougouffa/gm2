@@ -19,6 +19,13 @@
 	* gm2/gm2-libs-iso/wrapsock.c:  remove include <stdio.h>
 	* gm2/gm2-libs-pim/RealConversions.mod:  removed
 	  redundant return value from printf.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  removed unnecessary
+	  import.
+	* gm2/gm2-compiler/M2Code.mod:  call SetPassToCodeGeneration.
+	* gm2/gm2-compiler/M2Range.def:  introduce
+	  InitTypesParameterCheck.
+	* gm2/gm2-compiler/M2Range.mod:  implement InitTypesParameterCheck.
+	* gm2/gm2-libs-iso/WholeStr.def:  tidied up comments.
 
 2008-10-11       Gaius Mulley <gaius@gnu.org>
 

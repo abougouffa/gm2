@@ -20,7 +20,6 @@ IMPLEMENTATION MODULE M2BasicBlock ;
 
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
-FROM M2Pass IMPORT SetPassToCodeGeneration ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert ;

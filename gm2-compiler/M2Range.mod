@@ -56,6 +56,7 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    Cardinal,
                    IsAssignmentCompatible,
+                   IsParameterCompatible,
                    IsExpressionCompatible,
                    ExceptionAssign,
                    ExceptionInc, ExceptionDec,
@@ -70,7 +71,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
 TYPE
    TypeOfRange = (assignment, subrangeassignment,
                   inc, dec, incl, excl,
-                  typeexpr, typeassign,
+                  typeexpr, typeassign, typeparam,
                   staticarraysubscript,
                   dynamicarraysubscript,
                   forloopbegin, forloopto, forloopend,
@@ -196,6 +197,7 @@ BEGIN
    incl                 : RETURN( ExceptionIncl ) |
    excl                 : RETURN( ExceptionExcl ) |
    typeassign           : InternalError('not expecting this case value', __FILE__, __LINE__) |
+   typeparam            : InternalError('not expecting this case value', __FILE__, __LINE__) |
    typeexpr             : InternalError('not expecting this case value', __FILE__, __LINE__) |
    staticarraysubscript : RETURN( ExceptionStaticArray ) |
    dynamicarraysubscript: RETURN( ExceptionDynamicArray ) |
@@ -505,6 +507,22 @@ BEGIN
    RETURN( r )
 END InitTypesAssignmentCheck ;
 
+
+(*
+   InitTypesParameterCheck - checks to see that the types of, d,
+                             and, e, are parameter compatible.
+*)
+
+PROCEDURE InitTypesParameterCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRange(GetIndice(RangeIndex, r), typeparam, d, e) ;
+   RETURN( r )
+END InitTypesParameterCheck ;
+    
 
 (*
    InitTypesExpressionCheck - checks to see that the types of, d, and, e,
@@ -839,6 +857,7 @@ BEGIN
       incl                 : RETURN( ExceptionIncl#NulSym ) |
       excl                 : RETURN( ExceptionExcl#NulSym ) |
       typeassign           : RETURN( FALSE ) |
+      typeparam            : RETURN( FALSE ) |
       typeexpr             : RETURN( FALSE ) |
       staticarraysubscript : RETURN( ExceptionStaticArray#NulSym ) |
       dynamicarraysubscript: RETURN( ExceptionDynamicArray#NulSym ) |
@@ -1148,6 +1167,16 @@ BEGIN
                       ErrorFormat2(e, 'assignment designator and expression types are incompatible (%a) and (%a)', n1, n2) ;
                       FlushErrors
                    END |
+      typeparam:   IF IsParameterCompatible(GetType(des), GetType(expr))
+                   THEN
+                      SubQuad(q)
+                   ELSE
+                      e := NewError(tokenNo) ;
+                      n1 := GetSymName(des) ;
+                      n2 := GetSymName(expr) ;
+                      ErrorFormat2(e, 'actual parameter type is incompatible with the formal parameter type (%a) and (%a)', n1, n2) ;
+                      FlushErrors
+                   END |
       typeexpr:    IF IsExpressionCompatible(GetType(des), GetType(expr))
                    THEN
                       SubQuad(q)
@@ -1443,6 +1472,7 @@ BEGIN
       incl                 :  FoldIncl(tokenno, l, q, r) |
       excl                 :  FoldExcl(tokenno, l, q, r) |
       typeassign           :  FoldTypeCheck(tokenno, l, q, r) |
+      typeparam            :  FoldTypeCheck(tokenno, l, q, r) |
       typeexpr             :  FoldTypeCheck(tokenno, l, q, r) |
       staticarraysubscript :  FoldStaticArraySubscript(tokenno, l, q, r) |
       dynamicarraysubscript:  FoldDynamicArraySubscript(tokenno, l, q, r) |
@@ -1550,6 +1580,7 @@ BEGIN
       incl                 : s := InitString('if the INCL is ever executed it will cause an overflow error') |
       excl                 : s := InitString('if the EXCL is ever executed it will cause an overflow error') |
       typeassign           : s := InitString('') |
+      typeparam            : s := InitString('') |
       typeexpr             : s := InitString('') |
       staticarraysubscript : s := InitString('if the static array access is ever made the index will be out of bounds') |
       dynamicarraysubscript: s := InitString('if the dynamic array access is ever made the index will be out of bounds') |
@@ -2062,6 +2093,7 @@ BEGIN
       incl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
       excl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
       typeassign           :  |
+      typeparam            :  |
       typeexpr             :  |
       staticarraysubscript :  CodeStaticArraySubscript(tokenNo, r, scopeDesc) |
       dynamicarraysubscript:  CodeDynamicArraySubscript(tokenNo, r, scopeDesc) |
@@ -2173,6 +2205,7 @@ BEGIN
       excl                 :  WriteString('excl(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeexpr             :  WriteString('expr compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeassign           :  WriteString('assignment compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      typeparam            :  WriteString('parameter compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       staticarraysubscript :  WriteString('staticarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       dynamicarraysubscript:  WriteString('dynamicarraysubscript(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       forloopbegin         :  WriteString('forloopbegin(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |

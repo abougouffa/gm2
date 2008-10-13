@@ -48,6 +48,7 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitExclCheck,
                  InitTypesExpressionCheck,
                  InitTypesAssignmentCheck,
+                 InitTypesParameterCheck,
                  InitForLoopBeginRangeCheck,
                  InitForLoopToRangeCheck,
                  InitForLoopEndRangeCheck,
@@ -236,6 +237,14 @@ PROCEDURE InitExclCheck (d, e: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE InitTypesAssignmentCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitTypesParameterCheck - checks to see that the types of, d, and, e,
+                             are parameter compatible.
+*)
+
+PROCEDURE InitTypesParameterCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -37,14 +37,18 @@ PROCEDURE IntToStr (int: INTEGER; VAR str: ARRAY OF CHAR);
      decimal digit, {decimal digit}
 *)
 
-PROCEDURE StrToCard (str: ARRAY OF CHAR; VAR card: CARDINAL; VAR res: ConvResults);
-  (* Ignores any leading spaces in str. If the subsequent characters in str are in the
-     format of an unsigned whole number, assigns a corresponding value to card.
+PROCEDURE StrToCard (str: ARRAY OF CHAR;
+                     VAR card: CARDINAL;
+                     VAR res: ConvResults);
+  (* Ignores any leading spaces in str. If the subsequent
+     characters in str are in the format of an unsigned
+     whole number, assigns a corresponding value to card.
      Assigns a value indicating the format of str to res.
   *)
 
 PROCEDURE CardToStr (card: CARDINAL; VAR str: ARRAY OF CHAR);
-  (* Converts the value of card to string form and copies the possibly truncated result to str. *)
+  (* Converts the value of card to string form and copies the
+     possibly truncated result to str. *)
 
 END WholeStr.
 

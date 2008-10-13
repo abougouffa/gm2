@@ -42,7 +42,7 @@ FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubrangesAndOptParam, VariableAnalysis,
                     LoopAnalysis, ForLoopAnalysis ;
 
-FROM M2Pass IMPORT SetPassToNoPass ;
+FROM M2Pass IMPORT SetPassToNoPass, SetPassToCodeGeneration ;
 FROM M2SubExp IMPORT RemoveCommonSubExpressions ;
 
 FROM M2BasicBlock IMPORT BasicBlock,
@@ -169,6 +169,7 @@ BEGIN
       StudentVariableCheck      
    END ;
 
+   SetPassToCodeGeneration ;
    InitGNUM2(Head) ;
    SetFlagUnitAtATime(Optimizing) ;
    InitGlobalContext ;
