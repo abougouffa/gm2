@@ -1,3 +1,25 @@
+2008-10-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added RTExceptions.mod and
+	  M2EXCEPTION.mod to the build list of Ulm libraries
+	  as way of GNU Modula-2 compatible runtime support.
+	* gm2/gccgm2.c:  fixed bug in gccgm2_DetermineSizeOfConstant
+	  which incorrectly set needsUnsigned.
+	* gm2/gm2-compiler/M2Base.mod:  correct order of meta type
+	  testing.
+	* gm2/gm2-compiler/M2Quads.mod:  doBuildAssignment (new
+	  procedure).  Modified BuildAssignmentWithoutBounds to
+	  use a parameter which determines whether type checking
+	  should be done.
+	* gm2/gm2-compiler/M2System.mod:  corrected 'SET' with
+	  'BITSET' in fixed sized data type procedure.
+	* gm2/gm2-libs-pim/BitBlockOps.mod:  corrected pointer
+	  type casts.
+	* gm2/gm2-libs-pim/BlockOps.mod:  corrected pointer
+	  type casts.
+	* gm2/gm2-libs-pim/Termbase.mod:  corrected assignment
+	  typo caught by new stronger type checking.
+
 2008-10-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified rule to build ISO C files.

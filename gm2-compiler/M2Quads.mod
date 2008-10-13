@@ -294,6 +294,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ; FORWARD ;
 PROCEDURE doBuildBinaryOp (checkTypes: BOOLEAN) ; FORWARD ;
 PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE BuildError (r: CARDINAL) ; FORWARD ;
@@ -2294,13 +2295,13 @@ END CheckCompatibleWithBecomes ;
                                   check bounds.
 *)
 
-PROCEDURE BuildAssignmentWithoutBounds ;
+PROCEDURE BuildAssignmentWithoutBounds (checkTypes: BOOLEAN) ;
 VAR
    old: BOOLEAN ;
 BEGIN
    old := MustNotCheckBounds ;
    MustNotCheckBounds := TRUE ;
-   BuildAssignment ;
+   doBuildAssignment(checkTypes) ;
    MustNotCheckBounds := old
 END BuildAssignmentWithoutBounds ;
 
@@ -2494,6 +2495,18 @@ END CheckNotConstAndVar ;
 *)
 
 PROCEDURE BuildAssignment ;
+BEGIN
+   doBuildAssignment(TRUE)
+END BuildAssignment ;
+
+
+(*
+   doBuildAssignment - subsiduary procedure of BuildAssignment.
+                       It builds the assignment and optionally
+                       checks the types are compatible.
+*)
+
+PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ;
 VAR
    t, f,
    Array,
@@ -2532,10 +2545,13 @@ BEGIN
       Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
-      IF (CannotCheckTypeInPass3(Des) OR CannotCheckTypeInPass3(Exp))
+      IF checkTypes
       THEN
-         (* prompt post pass 3 to check the assignment once all types are resolved *)
-         BuildRange(InitTypesAssignmentCheck(Des, Exp))
+         IF (CannotCheckTypeInPass3(Des) OR CannotCheckTypeInPass3(Exp))
+         THEN
+            (* prompt post pass 3 to check the assignment once all types are resolved *)
+            BuildRange(InitTypesAssignmentCheck(Des, Exp))
+         END
       END ;
       IF (GetType(Des)#NulSym) AND (NOT IsSet(SkipType(GetType(Des))))
       THEN
@@ -2546,10 +2562,13 @@ BEGIN
       CheckNotConstAndVar(Des, Exp) ;
       (* Traditional Assignment *)
       MoveWithMode(Des, Exp, Array) ;
-      CheckAssignCompatible(Des, Exp)
+      IF checkTypes
+      THEN
+         CheckAssignCompatible(Des, Exp)
+      END
    END
  ; DumpStack ;
-END BuildAssignment ;
+END doBuildAssignment ;
 
 
 (*
@@ -3191,7 +3210,7 @@ BEGIN
    BuildRange(InitForLoopBeginRangeCheck(IdSym, e1)) ;
    PushT(IdSym) ;
    PushT(e1) ;
-   BuildAssignmentWithoutBounds ;
+   BuildAssignmentWithoutBounds(TRUE) ;
 
    UseLineNote(l2) ;
    FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
@@ -3213,7 +3232,7 @@ BEGIN
    PushTF(e1, GetType(e1)) ;
    doBuildBinaryOp(FALSE) ;
    BuildForLoopToRangeCheck ;
-   BuildAssignmentWithoutBounds ;
+   BuildAssignmentWithoutBounds(FALSE) ;
 
    (* q+1 if >=      by        0  q+..2 *)
    (* q+2 GotoOp                  q+3   *)
@@ -4945,7 +4964,7 @@ BEGIN
          (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
          PushT(UnboundedSym) ;
          PushT(Sym) ;
-         BuildAssignmentWithoutBounds
+         BuildAssignmentWithoutBounds(FALSE)
       ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
       THEN
          UnboundedVarLinkToArray(Sym, UnboundedSym, ParamType)
@@ -5087,7 +5106,7 @@ BEGIN
       PushT(1) ;                (* 1 parameter for HIGH()       *)
       BuildFunctionCall
    END ;
-   BuildAssignmentWithoutBounds
+   BuildAssignmentWithoutBounds(FALSE)
 END UnboundedNonVarLinkToArray ;
 
 
@@ -5111,7 +5130,7 @@ BEGIN
    PushT(ArraySym) ;
    PushT(1) ;               (* 1 parameter for ADR()        *)
    BuildFunctionCall ;
-   BuildAssignmentWithoutBounds ;
+   BuildAssignmentWithoutBounds(FALSE) ;
    (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
    Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
@@ -5166,7 +5185,7 @@ BEGIN
       PushT(1) ;                (* 1 parameter for HIGH()       *)
       BuildFunctionCall
    END ;
-   BuildAssignmentWithoutBounds
+   BuildAssignmentWithoutBounds(FALSE)
 END UnboundedVarLinkToArray ;
 
 
@@ -5600,7 +5619,7 @@ BEGIN
          PushT(VarSym) ;
          TempSym := DereferenceLValue(VarSym) ;
          CheckRangeIncDec(TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
-         BuildAssignmentWithoutBounds   (* VarSym := TempSym + OperandSym *)
+         BuildAssignmentWithoutBounds(FALSE)   (* VarSym := TempSym + OperandSym *)
       ELSE
          ExpectVariable('base procedure INC expects a variable as a parameter',
                         VarSym)
@@ -5666,7 +5685,7 @@ BEGIN
          PushT(VarSym) ;
          TempSym := DereferenceLValue(VarSym) ;
          CheckRangeIncDec(TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
-         BuildAssignmentWithoutBounds   (* VarSym := TempSym - OperandSym *)
+         BuildAssignmentWithoutBounds(FALSE)   (* VarSym := TempSym - OperandSym *)
       ELSE
          ExpectVariable('base procedure DEC expects a variable as a parameter',
                         VarSym)
@@ -5695,7 +5714,7 @@ BEGIN
 
       PushT(sym) ;
       PushT(operand) ;
-      BuildAssignmentWithoutBounds ;
+      BuildAssignmentWithoutBounds(FALSE) ;
       RETURN( sym )
    ELSE
       RETURN( operand )
@@ -8872,7 +8891,7 @@ BEGIN
       PutVar(Des, Boolean) ;
       PushTF(Des, Boolean) ;
       PushBool(t, f) ;
-      BuildAssignmentWithoutBounds ;
+      BuildAssignmentWithoutBounds(FALSE) ;
       PushTF(Des, Boolean)
    END ;
    PopTF(e1, t1) ;
@@ -9124,7 +9143,7 @@ BEGIN
 
    PushT(tj) ;
    PushT(Op1) ;
-   BuildAssignmentWithoutBounds ;
+   BuildAssignmentWithoutBounds(FALSE) ;
 
    GenQuad(MultOp, tk, ti, tj) ;
 
@@ -9243,7 +9262,7 @@ BEGIN
 
    PushT(tj) ;
    PushT(idx) ;
-   BuildAssignmentWithoutBounds ;
+   BuildAssignmentWithoutBounds(FALSE) ;
 
    GenQuad(MultOp, tk, ti, tj) ;
    Adr := MakeTemporary(LeftValue) ;
@@ -10316,10 +10335,13 @@ BEGIN
          t := MakeConstLitString(makekey(string(s))) ;
          s := KillString(s)
       ELSE
-         CheckExpressionCompatible(t1, t2) ;
-         IF checkTypes AND (CannotCheckTypeInPass3(e1) OR CannotCheckTypeInPass3(e2))
+         IF checkTypes
          THEN
-            BuildRange(InitTypesExpressionCheck(e1, e2))
+            CheckExpressionCompatible(t1, t2) ;
+            IF CannotCheckTypeInPass3(e1) OR CannotCheckTypeInPass3(e2)
+            THEN
+               BuildRange(InitTypesExpressionCheck(e1, e2))
+            END
          END ;
          t := MakeTemporaryFromExpressions(e1, e2, GetTokenNo(),
                                            AreConstant(IsConst(e1) AND IsConst(e2))) ;
@@ -10440,7 +10462,7 @@ BEGIN
    PushT(Des) ;   (* we have just increased the stack so we must use i+1 *)
    f := PeepAddress(BoolStack, i+1) ;
    PushBool(f^.TrueExit, f^.FalseExit) ;
-   BuildAssignmentWithoutBounds ;  (* restored stack *)
+   BuildAssignmentWithoutBounds(FALSE) ;  (* restored stack *)
    f := PeepAddress(BoolStack, i) ;
    WITH f^ DO
       TrueExit := Des ;  (* alter Stack(i) to contain the variable *)

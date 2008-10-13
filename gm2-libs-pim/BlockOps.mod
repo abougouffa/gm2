@@ -20,6 +20,10 @@ IMPLEMENTATION MODULE BlockOps ;
 FROM Builtins IMPORT memcpy, memmove, memset ;
 FROM SYSTEM IMPORT TSIZE, BYTE, WORD ;
 
+TYPE
+   ptrToByte = POINTER TO BYTE ;
+   ptrToWord = POINTER TO WORD ;
+
 
 (* 
    MoveBlockForward - moves, n, bytes from, src, to, dest.
@@ -50,7 +54,7 @@ END BlockMoveForward ;
 
 PROCEDURE BlockMoveBackward (dest, src: ADDRESS; n: CARDINAL) ;
 VAR
-   pbd, pbs: POINTER TO BYTE ;
+   pbd, pbs: ptrToByte ;
 BEGIN
    IF ((src<=dest) AND (src+n>=dest)) OR
       ((src>=dest) AND (src+n<=dest))
@@ -110,8 +114,8 @@ END BlockSet ;
 
 PROCEDURE BlockEqual (a, b: ADDRESS; n: CARDINAL) : BOOLEAN ;
 VAR
-   pwa, pwb: POINTER TO WORD ;
-   pba, pbb: POINTER TO BYTE ;
+   pwa, pwb: ptrToWord ;
+   pba, pbb: ptrToByte ;
 BEGIN
    pwa := a ;
    pwb := b ;
@@ -125,8 +129,8 @@ BEGIN
       DEC(n, TSIZE(WORD))
    END ;
    (* and check any remaining bytes *)
-   pba := pwa ;
-   pbb := pwb ;
+   pba := VAL(ptrToByte, pwa) ;
+   pbb := VAL(ptrToByte, pwb) ;
    WHILE n>0 DO
       IF pba^#pbb^
       THEN
@@ -154,7 +158,7 @@ PROCEDURE BlockPosition (block: ADDRESS; blockSize: CARDINAL;
                          pattern: ADDRESS; patternSize: CARDINAL) : CARDINAL ;
 VAR
    n, o    : CARDINAL ;
-   pba, pbb: POINTER TO BYTE ;
+   pba, pbb: ptrToByte ;
 BEGIN
    o := 0 ;
    pba := block ;

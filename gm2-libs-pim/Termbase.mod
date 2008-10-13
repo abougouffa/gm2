@@ -51,7 +51,7 @@ PROCEDURE AssignRead (rp: ReadProcedure; sp: StatusProcedure;
 VAR
    t: ReadMethods ;
 BEGIN
-   t := wStack ;
+   t := rStack ;
    NEW(rStack) ;
    IF rStack=NIL
    THEN

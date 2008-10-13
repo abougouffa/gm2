@@ -1011,12 +1011,6 @@ BEGIN
    ELSIF sym=LongCard
    THEN
       RETURN( longcard )
-   ELSIF IsPointer(sym)
-   THEN
-      RETURN( pointer )
-   ELSIF IsEnumeration(sym)
-   THEN
-      RETURN( enum )
    ELSIF sym=ZType
    THEN
       RETURN( ztype )
@@ -1032,12 +1026,6 @@ BEGIN
    ELSIF sym=LongReal
    THEN
       RETURN( longreal )
-   ELSIF IsSet(sym)
-   THEN
-      RETURN( set )
-   ELSIF IsHiddenType(sym)
-   THEN
-      RETURN( opaque )
    ELSIF sym=IntegerN(8)
    THEN
       RETURN( int8 )
@@ -1092,6 +1080,18 @@ BEGIN
    ELSIF sym=RealN(128)
    THEN
       RETURN( real128 )
+   ELSIF IsSet(sym)
+   THEN
+      RETURN( set )
+   ELSIF IsHiddenType(sym)
+   THEN
+      RETURN( opaque )
+   ELSIF IsPointer(sym)
+   THEN
+      RETURN( pointer )
+   ELSIF IsEnumeration(sym)
+   THEN
+      RETURN( enum )
    ELSIF IsType(sym)
    THEN
       RETURN( FindMetaType(GetType(sym)) )

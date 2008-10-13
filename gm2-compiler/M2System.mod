@@ -538,9 +538,9 @@ PROCEDURE SetN (bitlength: CARDINAL) : CARDINAL ;
 BEGIN
    CASE bitlength OF
 
-   8 :  RETURN( GetSafeSystem(MakeKey('SET8')) ) |
-   16:  RETURN( GetSafeSystem(MakeKey('SET16')) ) |
-   32:  RETURN( GetSafeSystem(MakeKey('SET32')) )
+   8 :  RETURN( GetSafeSystem(MakeKey('BITSET8')) ) |
+   16:  RETURN( GetSafeSystem(MakeKey('BITSET16')) ) |
+   32:  RETURN( GetSafeSystem(MakeKey('BITSET32')) )
 
    ELSE
       InternalError('system does not know about this type', __FILE__, __LINE__)

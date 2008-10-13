@@ -1,4 +1,4 @@
-(* Copyright (C) 2007 Free Software Foundation, Inc. *)
+(* Copyright (C) 2007, 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -21,6 +21,10 @@ IMPLEMENTATION MODULE BitBlockOps ;
 FROM SYSTEM IMPORT BITSPERBYTE, SHIFT, BYTE, BITSET, TSIZE ;
 FROM Builtins IMPORT memmove, memset ;
 
+TYPE
+   ptrToByte = POINTER TO BYTE ;
+   ptrToBitset = POINTER TO BITSET ;
+
 
 (*
    BlockAnd - performs a bitwise AND on blocks
@@ -30,8 +34,8 @@ FROM Builtins IMPORT memmove, memset ;
 
 PROCEDURE BlockAnd (dest, src: ADDRESS; size: CARDINAL) ;
 VAR
-   bitsetDest, bitsetSrc: POINTER TO BITSET ;
-   byteDest, byteSrc    : POINTER TO BYTE ;
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
 BEGIN
    bitsetDest := dest ;
    bitsetSrc  := src ;
@@ -41,8 +45,8 @@ BEGIN
       INC(bitsetSrc, TSIZE(BITSET)) ;
       DEC(size, TSIZE(BITSET))
    END ;
-   byteDest := bitsetDest ;
-   byteSrc  := bitsetSrc ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
    WHILE size>0 DO
       byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) * VAL(BITSET, byteSrc^)) ;
       INC(byteDest) ;
@@ -60,8 +64,8 @@ END BlockAnd ;
 
 PROCEDURE BlockOr (dest, src: ADDRESS; size: CARDINAL) ;
 VAR
-   bitsetDest, bitsetSrc: POINTER TO BITSET ;
-   byteDest, byteSrc    : POINTER TO BYTE ;
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
 BEGIN
    bitsetDest := dest ;
    bitsetSrc  := src ;
@@ -71,8 +75,8 @@ BEGIN
       INC(bitsetSrc, TSIZE(BITSET)) ;
       DEC(size, TSIZE(BITSET))
    END ;
-   byteDest := bitsetDest ;
-   byteSrc  := bitsetSrc ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
    WHILE size>0 DO
       byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) + VAL(BITSET, byteSrc^)) ;
       INC(byteDest) ;
@@ -90,8 +94,8 @@ END BlockOr ;
 
 PROCEDURE BlockXor (dest, src: ADDRESS; size: CARDINAL) ;
 VAR
-   bitsetDest, bitsetSrc: POINTER TO BITSET ;
-   byteDest, byteSrc    : POINTER TO BYTE ;
+   bitsetDest, bitsetSrc: ptrToBitset ;
+   byteDest, byteSrc    : ptrToByte ;
 BEGIN
    bitsetDest := dest ;
    bitsetSrc  := src ;
@@ -101,8 +105,8 @@ BEGIN
       INC(bitsetSrc, TSIZE(BITSET)) ;
       DEC(size, TSIZE(BITSET))
    END ;
-   byteDest := bitsetDest ;
-   byteSrc  := bitsetSrc ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
+   byteSrc  := VAL(ptrToByte, bitsetSrc) ;
    WHILE size>0 DO
       byteDest^ := VAL(BYTE, VAL(BITSET, byteDest^) - VAL(BITSET, byteSrc^)) ;
       INC(byteDest) ;
@@ -119,8 +123,8 @@ END BlockXor ;
 
 PROCEDURE BlockNot (dest: ADDRESS; size: CARDINAL) ;
 VAR
-   bitsetDest: POINTER TO BITSET ;
-   byteDest  : POINTER TO BYTE ;
+   bitsetDest: ptrToBitset ;
+   byteDest  : ptrToByte ;
 BEGIN
    bitsetDest := dest ;
    WHILE size>TSIZE(BITSET) DO
@@ -128,7 +132,7 @@ BEGIN
       INC(bitsetDest, TSIZE(BITSET)) ;
       DEC(size, TSIZE(BITSET))
    END ;
-   byteDest := bitsetDest ;
+   byteDest := VAL(ptrToByte, bitsetDest) ;
    WHILE size>0 DO
       byteDest^ := VAL(BYTE, -VAL(BITSET, byteDest^)) ;
       INC(byteDest) ;
@@ -263,6 +267,7 @@ END BlockShl ;
 PROCEDURE BlockRor (dest: ADDRESS; size, count: CARDINAL) ;
 BEGIN
    (* not yet implemented *)
+   HALT
 END BlockRor ;
 
 
@@ -282,6 +287,7 @@ END BlockRor ;
 PROCEDURE BlockRol (dest: ADDRESS; size, count: CARDINAL) ;
 BEGIN
    (* not yet implemented *)
+   HALT
 END BlockRol ;
 
 

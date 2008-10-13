@@ -1015,8 +1015,8 @@ GM2-LIBS-ULM-MODS-STD  = \
                             Terminal.mod   StdFuncs.mod   Passwd.mod \
                             Directories.mod               StdIO.mod \
               PipeIO.mod    Environment.mod               Storage.mod \
-              M2RTS.mod     RTErrors.mod   Functions.mod  \
-              TimeIO.mod    MathLib.mod
+              RTErrors.mod  Functions.mod  TimeIO.mod     MathLib.mod \
+              M2RTS.mod     RTExceptions.mod              M2EXCEPTION.mod 
 
 GM2-LIBS-ULM-MODS-SYS  = \
               Errno.mod     SysExec.mod     SysKill.mod   SysPause.mod \

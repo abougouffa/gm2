@@ -10223,7 +10223,10 @@ gccgm2_DetermineSizeOfConstant (const char *str, unsigned int base,
 
   overflow = interpret_m2_integer (str, base, (unsigned int *)&low, &high);
   *needsLong = (high != 0);
-  *needsUnsigned = ((low < 0) || (high < 0));
+  if (*needsLong)
+    *needsUnsigned = (high < 0);
+  else
+    *needsUnsigned = (low < 0);
 }
 
 /*
