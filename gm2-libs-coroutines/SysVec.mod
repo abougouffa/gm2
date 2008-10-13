@@ -1,4 +1,4 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -127,11 +127,10 @@ END FindVector ;
 PROCEDURE InitInputVector (fd: INTEGER; pri: CARDINAL) : CARDINAL ;
 VAR
    v: Vector ;
-   r: INTEGER ;
 BEGIN
    IF Debugging
    THEN
-      r := printf("InitInputVector fd = %d priority = %d\n", fd, pri)
+      printf("InitInputVector fd = %d priority = %d\n", fd, pri)
    END ;
    v := FindVector(fd, input) ;
    IF v=NIL
@@ -332,9 +331,9 @@ END AttachVector ;
 
 PROCEDURE IncludeVector (vec: CARDINAL) ;
 VAR
-   r   : INTEGER ;
    v   : Vector ;
    m, s: CARDINAL ;
+   r   : INTEGER ;
 BEGIN
    v := FindPendingVector(vec) ;
    IF v=NIL
@@ -345,7 +344,7 @@ BEGIN
          Halt(__FILE__, __LINE__, __FUNCTION__,
               'cannot find vector supplied') ;
       ELSE
-         (* r := printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
+         (* printf('including vector %d  (fd = %d)\n', vec, v^.File) ; *)
          v^.pending := Pending[v^.priority] ;
          Pending[v^.priority] := v ;
          IF (v^.type=time) AND (NOT v^.queued)
@@ -362,8 +361,8 @@ BEGIN
       END 
    ELSE
 (*
-      r := printf('odd vector %d (fd %d) is already attached to the pending queue\n',
-                  vec, v^.File) ;
+      printf('odd vector %d (fd %d) is already attached to the pending queue\n',
+             vec, v^.File) ;
 *)
       stop
    END
@@ -378,7 +377,6 @@ END IncludeVector ;
 PROCEDURE ExcludeVector (vec: CARDINAL) ;
 VAR
    v, u: Vector ;
-   r  : INTEGER ;
 BEGIN
    v := FindPendingVector(vec) ;
    IF v=NIL
@@ -386,7 +384,7 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'cannot find pending vector supplied')
    ELSE
-      (* r := printf('excluding vector %d\n', vec) ; *)
+      (* printf('excluding vector %d\n', vec) ; *)
       IF Pending[v^.priority]=v
       THEN
          Pending[v^.priority] := Pending[v^.priority]^.pending
@@ -410,8 +408,6 @@ END ExcludeVector ;
 *)
 
 PROCEDURE AddFd (VAR s: SetOfFd; VAR max: INTEGER; fd: INTEGER) ;
-VAR
-   r: INTEGER ;
 BEGIN
    max := Max(fd, max) ;
    IF s=NIL
@@ -420,7 +416,7 @@ BEGIN
       FdZero(s)
    END ;
    FdSet(fd, s)
-   (* r := printf('%d, ', fd) *)
+   (* printf('%d, ', fd) *)
 END AddFd ;
 
 
@@ -430,28 +426,27 @@ END AddFd ;
 
 PROCEDURE DumpPendingQueue ;
 VAR
-   r   : INTEGER ;
    p   : PRIORITY ;
    v   : Vector ;
    s, m: CARDINAL ;
 BEGIN
-   r := printf("Pending queue\n");
+   printf("Pending queue\n");
    FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
-      r := printf("[%d]  ", p);
+      printf("[%d]  ", p);
       v := Pending[p] ;
       WHILE v#NIL DO
          IF (v^.type=input) OR (v^.type=output)
          THEN
-            r := printf("(fd=%d) (vec=%d)", v^.File, v^.no)
+            printf("(fd=%d) (vec=%d)", v^.File, v^.no)
          ELSIF v^.type=time
          THEN
             GetTime(v^.rel, s, m) ;
             Assert(m<Microseconds) ;
-            r := printf("time (%d.%6d secs)\n", s, m)
+            printf("time (%d.%6d secs)\n", s, m)
          END ;
          v := v^.pending
       END ;
-      r := printf(" \n")
+      printf(" \n")
    END
 END DumpPendingQueue ;
 
@@ -588,7 +583,7 @@ BEGIN
                            Assert(m<Microseconds) ;
                            IF Debugging
                            THEN
-                              r := printf("shortest delay is %d.%d\n", s, m)
+                              printf("shortest delay is %d.%d\n", s, m)
                            END ;
                            SetTime(t, s, m) ;
                            found := TRUE
@@ -609,8 +604,8 @@ BEGIN
          Halt(__FILE__, __LINE__, __FUNCTION__,
               'deadlock found, no more processes to run and no interrupts active')
       END ;
-      (* r := printf('timeval = 0x%x\n', t) ; *)
-      (* r := printf('}\n') ; *)
+      (* printf('timeval = 0x%x\n', t) ; *)
+      (* printf('}\n') ; *)
       IF (NOT found) AND (maxFd=-1) AND (i=NIL) AND (o=NIL)
       THEN
          t := KillTime(t) ;
@@ -626,7 +621,7 @@ BEGIN
          SetTime(t, s, m) ;
          IF Debugging
          THEN
-            r := printf("select waiting for %u.%u seconds\n", s, m)
+            printf("select waiting for %u.%u seconds\n", s, m)
          END ;
          REPEAT
             r := pth_select(maxFd+1, i, o, NIL, t) ;
@@ -664,7 +659,7 @@ BEGIN
                         THEN
                            IF Debugging
                            THEN
-                              r := printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
+                              printf('read (fd=%d) is ready (vec=%d)\n', File, no) ;
                               DumpPendingQueue
                            END ;
                            call(no, priority, arg)
@@ -673,7 +668,7 @@ BEGIN
                         THEN
                            IF Debugging
                            THEN
-                              r := printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
+                              printf('write (fd=%d) is ready (vec=%d)\n', File, no) ;
                               DumpPendingQueue
                            END ;
                            call(no, priority, arg)
@@ -690,20 +685,20 @@ BEGIN
                               Assert(afm<Microseconds) ;
                               GetTime(b4, b4s, b4m) ;
                               Assert(b4m<Microseconds) ;
-                              r := printf("waited %d.%d + %d.%d now is %d.%d\n",
-                                          s, m, b4s, b4m, afs, afm) ;
+                              printf("waited %d.%d + %d.%d now is %d.%d\n",
+                                     s, m, b4s, b4m, afs, afm) ;
                            END ;
                            IF IsGreaterEqual(after, abs)
                            THEN
                               IF Debugging
                               THEN
                                  DumpPendingQueue ;
-                                 r := printf("time has expired calling despatcher\n")
+                                 printf("time has expired calling despatcher\n")
                               END ;
                               call(no, priority, arg)
                            ELSIF Debugging
                            THEN
-                              r := printf("must wait longer as time has not expired\n")
+                              printf("must wait longer as time has not expired\n")
                            END
                         END
 

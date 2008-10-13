@@ -5,6 +5,8 @@ not described.  There are more details in the man and info pages.
 VERSION 0.63
 ============
 
+* many ISO library modules are implemented.
+* Exception handling is complete and it can coexist with swig.
 * all errors now include column information.  Also added -fxcode
   option which issues errors in Apple Xcode format.
 * shared libraries are now implemented, to link against the shared
@@ -16,6 +18,8 @@ VERSION 0.63
 * the PIM libraries are built with -O0, -O2, -O2 -fshared, -fshared.
 * a new option -fswig automatically generates a swig interface file
   corresponding to the definition module being compiled.
+  This allows Python and other scripting languages to call Modula-2
+  modules.
 * new options, -fobject-path, allows users to specify the path for
   all objects whereas -I specifies the path for the library sources.
 * -fmakeinit option introduced which will generate a file

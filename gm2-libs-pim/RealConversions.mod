@@ -161,7 +161,6 @@ VAR
    s, e      : String ;
    p, k, j,
    powerOfTen: INTEGER ;
-   i         : INTEGER ;
 BEGIN
    IF digits>0
    THEN
@@ -184,7 +183,7 @@ BEGIN
          s := ConCat(s, Mark(RemoveWhitePrefix(Mark(LongrealToString(r, width+1, digits))))) ;
          IF Debugging
          THEN
-            i := printf('value returned was %s\n', string(s))
+            printf('value returned was %s\n', string(s))
          END ;
          p := Index(s, '.', 0) ;
          IF p>=0
@@ -194,21 +193,21 @@ BEGIN
             s := Slice(Mark(s), 0, width) ;
             IF Debugging
             THEN
-               i := printf('value returned was %s\n', string(s))
+               printf('value returned was %s\n', string(s))
             END ;
             p := powerOfTen ;
             k := Length(s) ;
             IF Debugging
             THEN
-               i := printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
-                           p, powerOfTen, k, k-p)
+               printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
+                      p, powerOfTen, k, k-p)
             END ;
             WHILE (p<k) AND (k-p>digits) AND (INTEGER(width)>3+j+p+logi10(powerOfTen-p+1)+1) DO
                INC(p) ;
                IF Debugging
                THEN
-                  i := printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
-                              p, powerOfTen, k, k-p)
+                  printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
+                         p, powerOfTen, k, k-p)
                END
             END ;
             s := ConCat(Slice(s, 0, p),
@@ -218,7 +217,7 @@ BEGIN
                                                 Mark(itos(powerOfTen-p+1, 0, ' ', TRUE))))))) ;
             IF Debugging
             THEN
-               i := printf('value returned was %s\n', string(s))
+               printf('value returned was %s\n', string(s))
             END
          ELSE
             s := ConCat(s, Mark(e))
@@ -235,7 +234,7 @@ BEGIN
       s := ConCat(Mult(InitStringChar(' '), width-Length(s)), Mark(s)) ;
       IF Debugging
       THEN
-         i := printf('value returned was %s\n', string(s))
+         printf('value returned was %s\n', string(s))
       END ;
       CopyOut(str, s) ;
       ok := TRUE

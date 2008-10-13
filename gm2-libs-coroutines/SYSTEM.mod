@@ -1,4 +1,4 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -143,7 +143,6 @@ PROCEDURE IOTransferHandler (InterruptNo: CARDINAL;
                              l: PtrToIOTransferState) ;
 VAR
    old: PtrToIOTransferState ;
-   r  : INTEGER ;
 BEGIN
    IF l=NIL
    THEN
@@ -161,7 +160,7 @@ BEGIN
          THEN
             ExcludeVector(InterruptNo)
          ELSE
-            r := printf('odd vector has been chained\n')
+            printf('odd vector has been chained\n')
          END ;
          ptrToSecond^.context := currentContext ;
          TRANSFER(ptrToSecond^, ptrToFirst^)

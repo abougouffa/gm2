@@ -29,41 +29,37 @@ CONST
 
 
 PROCEDURE p1 ;
-VAR
-   r: INTEGER ;
 BEGIN
    LOOP
       IF Debugging
       THEN
-         r := printf('hello world process 1\n')
+         printf('hello world process 1\n')
       END ;
       TRANSFER(P1, P2) ;
       IF Debugging
       THEN
-         r := printf('after TRANSFER in process 2\n')
+         printf('after TRANSFER in process 2\n')
       END
    END
 END p1 ;
 
 
 PROCEDURE p2 ;
-VAR
-   r: INTEGER ;
 BEGIN
    LOOP
       IF Debugging
       THEN
-         r := printf('hello world process 2  (%d)\n', count)
+         printf('hello world process 2  (%d)\n', count)
       END ;
       TRANSFER(P2, P1) ;
       IF Debugging
       THEN
-         r := printf('after TRANSFER in process 2\n')
+         printf('after TRANSFER in process 2\n')
       END ;
       INC(count) ;
       IF count=MaxCount
       THEN
-         r := printf('completed %d TRANSFERs successfully\n', count) ;
+         printf('completed %d TRANSFERs successfully\n', count) ;
          exit(0)
       END
    END

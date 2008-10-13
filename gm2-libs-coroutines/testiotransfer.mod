@@ -30,16 +30,15 @@ PROCEDURE Timer ;
 CONST
    MaxCount = 500 ;
 VAR
-   r: INTEGER ;
    v: CARDINAL ;
    c: CARDINAL ;
 BEGIN
-   r := printf('clock starting\n') ;
+   printf('clock starting\n') ;
    v := InitTimeVector(500, 0, MAX(PRIORITY)) ;
    c := 0 ;
    LOOP
       INC(c) ;
-      r := printf('%d\n', c) ;
+      printf('%d\n', c) ;
       IOTRANSFER(p2, p1, v) ;
       ReArmTimeVector(v, 500, 0) ;
       IF c=MaxCount
@@ -54,16 +53,15 @@ CONST
    MaxStack = 16 * 1024 * 1024 ;
 
 VAR
-   r      : INTEGER ;
    s1, s2 : ADDRESS ;
    p1, p2 : PROCESS ;
 BEGIN
    ALLOCATE(s1, MaxStack) ;
    ALLOCATE(s2, MaxStack) ;
    NEWPROCESS(Timer, s2, MaxStack, p2) ;
-   r := printf('now to TRANSFER...\n') ;
+   printf('now to TRANSFER...\n') ;
    TRANSFER(p1, p2) ;
-   r := printf('now to LISTEN\n') ;
+   printf('now to LISTEN\n') ;
    LOOP
       LISTEN
    END

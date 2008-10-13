@@ -1,4 +1,26 @@
-2008-10-07       Gaius Mulley <gaius@gnu.org>
+2008-10-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified rule to build ISO C files.
+	* gm2/NEWS:  updated to include implementation of
+	  exception handling and swig.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  corrected dates
+	  and removed redundant return value from printf.
+	* gm2/gm2-libs-coroutines/SysVec.mod:  corrected dates
+	  and removed redundant return value from printf.
+	* gm2/gm2-libs-coroutines/testiotransfer.mod:  removed
+	  redundant return value from printf.
+	* gm2/gm2-libs-coroutines/testtransfer.mod:  removed
+	  redundant return value from printf.
+	* gm2/gm2-libs-iso/ErrnoCategory.c:  include <p2c/p2c.h>
+	  rather than <stdio.h>.
+	* gm2/gm2-libs-iso/WholeConv.mod:  intemediate checkin.
+	* gm2/gm2-libs-iso/WholeStr.def:  corrected dates and
+	  tidied up comments.
+	* gm2/gm2-libs-iso/wrapsock.c:  remove include <stdio.h>
+	* gm2/gm2-libs-pim/RealConversions.mod:  removed
+	  redundant return value from printf.
+
+2008-10-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/gccgm2.c:  removed STRIP_NOPS from FoldAndStrip.
 	* gm2/gm2/bnf/gm2l.bnf:  InitStopSet changed to reflect p2c

@@ -100,11 +100,33 @@ END scanSpace ;
 
 PROCEDURE FormatInt (str: ARRAY OF CHAR) : ConvResults ;
 VAR
-   i, h: CARDINAL ;
+   proc   : ScanState ;
+   chClass: ScanClass ;
+   i, h   : CARDINAL ;
 BEGIN
    i := 0 ;
    h := LENGTH(str) ;
-   
+   ScanInt(str[0], chClass, proc) ;
+   REPEAT
+      proc(str[i], chClass, proc) ;
+      INC(i) ;
+   UNTIL (i>=h) OR (chClass#padding) ;
+   IF chClass=terminator
+   THEN
+      RETURN( strEmpty )
+   END ;
+   WHILE (i<h) AND (chClass=valid) DO
+      proc(str[i], chClass, proc) ;
+      INC(i)
+   END ;
+   CASE chClass OF
+
+   padding   :  RETURN( strWrongFormat ) |
+   terminator,
+   valid     :  RETURN( strAllRight ) |
+   invalid   :  RETURN( strWrongFormat )
+
+   END
 END FormatInt ;
 
 
@@ -114,7 +136,7 @@ END FormatInt ;
               otherwise raises the WholeConv exception.
 *)
 
-PROCEDURE ValueInt (str: ARRAY OF CHAR): INTEGER;
+PROCEDURE ValueInt (str: ARRAY OF CHAR) : INTEGER;
 BEGIN
    
 END ValueInt ;

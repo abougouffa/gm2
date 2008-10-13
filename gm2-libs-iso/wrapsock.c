@@ -17,8 +17,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 
 #include <p2c/p2c.h>
 
-#include <stdio.h>
-
 #if defined(HAVE_SYS_TYPES_H)
 #   include <sys/types.h>
 #endif
