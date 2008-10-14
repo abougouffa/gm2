@@ -8861,6 +8861,55 @@ END CheckFunctionReturn ;
 
 
 (*
+   CheckReturnType - checks to see that the return type from currentProc is
+                     assignment compatible with actualType.
+*)
+
+PROCEDURE CheckReturnType (currentProc, actualVal, actualType: CARDINAL) ;
+VAR
+   procType: CARDINAL ;
+   s1, s2  : String ;
+   n1, n2  : Name ;
+BEGIN
+   procType := GetType(currentProc) ;
+   IF procType=NulSym
+   THEN
+      n1 := GetSymName(currentProc) ;
+      WriteFormat1('attempting to RETURN a value from a procedure (%a) and not a function', n1)
+
+   ELSIF AssignmentRequiresWarning(actualType, GetType(currentProc))
+   THEN
+      s1 := InitStringCharStar(KeyToCharStar(GetSymName(actualType))) ;
+      s2 := InitStringCharStar(KeyToCharStar(GetSymName(procType))) ;
+      ErrorString(NewWarning(GetTokenNo()),
+                  Sprintf2(Mark(InitString('attempting to RETURN a value with a (possibly on other targets) incompatible type (%s) from a function which returns (%s)')),
+                           s1, s2))
+   ELSIF (NOT IsAssignmentCompatible(actualType, procType))
+   THEN
+      n1 := GetSymName(actualType) ;
+      n2 := GetSymName(procType) ;
+      WriteFormat2('attempting to RETURN a value with an incompatible type (%a) from a function which returns (%a)',
+                   n1, n2)
+   ELSIF IsProcedure(actualVal) AND (NOT IsAssignmentCompatible(actualVal, procType))
+   THEN
+      s1 := InitStringCharStar(KeyToCharStar(GetSymName(actualVal))) ;
+      s2 := InitStringCharStar(KeyToCharStar(GetSymName(procType))) ;
+      ErrorString(NewWarning(GetTokenNo()),
+                  Sprintf2(Mark(InitString('attempting to RETURN a value with a (possibly on other targets) incompatible type (%s) from a function which returns (%s)')),
+                           s1, s2))
+   ELSIF IsProcedure(actualVal) AND (NOT IsAssignmentCompatible(actualVal, GetType(CurrentProc)))
+   THEN
+      n1 := GetSymName(actualVal) ;
+      n2 := GetSymName(GetType(currentProc)) ;
+      WriteFormat2('attempting to RETURN a value with an incompatible type (%a) from a function which returns (%a)',
+                   n1, n2)
+   ELSE
+      BuildRange(InitTypesAssignmentCheck(currentProc, actualVal))
+   END  
+END CheckReturnType ;
+
+
+(*
    BuildReturn - Builds the Return part of the procedure.
                  The Stack is expected to contain:
 
@@ -8876,8 +8925,6 @@ END CheckFunctionReturn ;
 
 PROCEDURE BuildReturn ;
 VAR
-   s1, s2: String ;
-   n1, n2: Name ;
    e2, t2,
    e1, t1,
    t, f,
@@ -8897,37 +8944,7 @@ BEGIN
    PopTF(e1, t1) ;
    IF e1#NulSym
    THEN
-      IF GetType(CurrentProc)=NulSym
-      THEN
-         n1 := GetSymName(CurrentProc) ;
-         WriteFormat1('attempting to RETURN a value from a procedure (%a) and not a function', n1)
-      ELSIF AssignmentRequiresWarning(t1, GetType(CurrentProc))
-      THEN
-         s1 := InitStringCharStar(KeyToCharStar(GetSymName(t1))) ;
-         s2 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(CurrentProc)))) ;
-         ErrorString(NewWarning(GetTokenNo()),
-                     Sprintf2(Mark(InitString('attempting to RETURN a value with a (possibly on other targets) incompatible type (%s) from a function which returns (%s)')),
-                              s1, s2))
-      ELSIF (NOT IsAssignmentCompatible(t1, GetType(CurrentProc)))
-      THEN
-         n1 := GetSymName(t1) ;
-         n2 := GetSymName(GetType(CurrentProc)) ;
-         WriteFormat2('attempting to RETURN a value with an incompatible type (%a) from a function which returns (%a)',
-                      n1, n2)
-      ELSIF IsProcedure(e1) AND (NOT IsAssignmentCompatible(e1, GetType(CurrentProc)))
-      THEN
-         s1 := InitStringCharStar(KeyToCharStar(GetSymName(e1))) ;
-         s2 := InitStringCharStar(KeyToCharStar(GetSymName(GetType(CurrentProc)))) ;
-         ErrorString(NewWarning(GetTokenNo()),
-                     Sprintf2(Mark(InitString('attempting to RETURN a value with a (possibly on other targets) incompatible type (%s) from a function which returns (%s)')),
-                              s1, s2))
-      ELSIF IsProcedure(e1) AND (NOT IsAssignmentCompatible(e1, GetType(CurrentProc)))
-      THEN
-         n1 := GetSymName(e1) ;
-         n2 := GetSymName(GetType(CurrentProc)) ;
-         WriteFormat2('attempting to RETURN a value with an incompatible type (%a) from a function which returns (%a)',
-                      n1, n2)
-      END ;
+      CheckReturnType(CurrentProc, e1, t1) ;
       (* dereference LeftValue if necessary *)
       IF GetMode(e1)=LeftValue
       THEN

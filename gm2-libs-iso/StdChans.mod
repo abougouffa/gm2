@@ -248,7 +248,7 @@ BEGIN
    IOLink.MakeChan(did, c) ;
    d := GetDevicePtr(c) ;
    WITH d^ DO
-      result := ChanConsts.opened ;
+      result := notKnown ;
       SetFile(c, f) ;
       flags := fl ;
       doLook := look ;

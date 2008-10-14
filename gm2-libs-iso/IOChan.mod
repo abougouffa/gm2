@@ -91,7 +91,7 @@ BEGIN
          THEN
             doLook(dtp, ch, result)
          ELSE
-            result := notAvailable
+            result := IOConsts.wrongFormat
          END ;
          res := result
       END

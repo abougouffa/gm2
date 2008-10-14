@@ -3699,10 +3699,6 @@ VAR
    unbounded: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(SubrangeName, unbounded) ;
-   IF sym=1901
-   THEN
-      stop
-   END ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -4615,6 +4611,10 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
+   IF TemporaryNo=167
+   THEN
+      stop
+   END ;
    (* Make the name *)
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF Mode=ImmediateValue
@@ -4656,6 +4656,10 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
+   IF TemporaryNo=167
+   THEN
+      stop
+   END ;
    (* Make the name *)
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF mode=ImmediateValue

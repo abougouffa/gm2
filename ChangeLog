@@ -19,6 +19,18 @@
 	  type casts.
 	* gm2/gm2-libs-pim/Termbase.mod:  corrected assignment
 	  typo caught by new stronger type checking.
+	* gm2/gm2-compiler/M2Base.mod:  correct bug to test
+	  whether the types pointer to are the same.  MixTypes
+	  skips over type symbols.
+	* gm2/gm2-compiler/M2Quads.mod:  CheckReturnType (new
+	  procedure).   BuildFunctionReturn uses CheckReturnType.
+	* gm2/gm2-compiler/M2Range.mod:  generates return type
+	  error messages if, des, is a procedure.
+	* gm2/gm2-compiler/SymbolTable.mod:  added debugging.
+	* gm2/gm2-libs-iso/IOChan.mod:  fixed wrong enumeration
+	  bug, uncovered by new stricter assignment checks.
+	* gm2/gm2-libs-iso/StdChans.mod:  fixed wrong enumeration
+	  bug, uncovered by new stricter assignment checks.
 
 2008-10-13       Gaius Mulley <gaius@gnu.org>
 

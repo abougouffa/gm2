@@ -23,7 +23,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsSubrange, GetSymName, IsTemporary, IsSet,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
-                        IsConstString, MakeConstLit, SkipType,
+                        IsConstString, MakeConstLit, SkipType, IsProcedure,
                         ModeOfAddr ;
 
 FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
@@ -1164,7 +1164,12 @@ BEGIN
                       e := NewError(tokenNo) ;
                       n1 := GetSymName(des) ;
                       n2 := GetSymName(expr) ;
-                      ErrorFormat2(e, 'assignment designator and expression types are incompatible (%a) and (%a)', n1, n2) ;
+                      IF IsProcedure(des)
+                      THEN
+                         ErrorFormat1(e, 'procedure (%a) return type and the returned expression are incompatible', n1)
+                      ELSE
+                         ErrorFormat2(e, 'assignment designator and expression types are incompatible (%a) and (%a)', n1, n2)
+                      END ;
                       FlushErrors
                    END |
       typeparam:   IF IsParameterCompatible(GetType(des), GetType(expr))

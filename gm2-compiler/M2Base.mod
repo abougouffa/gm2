@@ -1227,7 +1227,12 @@ BEGIN
                    ELSE
                       RETURN( no )
                    END |
-         pointer,
+         pointer:  IF SkipType(GetType(t1))=SkipType(GetType(t2))
+                   THEN
+                      RETURN( first )
+                   ELSE
+                      RETURN( no )
+                   END |
          opaque :  RETURN( no )
 
          ELSE
@@ -1419,6 +1424,12 @@ BEGIN
    THEN
       RETURN( MixTypes(GetType(t1), t2, NearTok) )
    ELSIF IsSubrange(t2)
+   THEN
+      RETURN( MixTypes(t1, GetType(t2), NearTok) )
+   ELSIF IsType(t1)
+   THEN
+      RETURN( MixTypes(GetType(t1), t2, NearTok) )
+   ELSIF IsType(t2)
    THEN
       RETURN( MixTypes(t1, GetType(t2), NearTok) )
    ELSIF (t1=GetLowestType(t1)) AND (t2=GetLowestType(t2))
