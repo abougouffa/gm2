@@ -2245,7 +2245,7 @@ END ToSetValue ;
                   an array type.
 *)
 
-PROCEDURE ToArrayValue (f: listOfFields) : listOfRange ;
+PROCEDURE ToArrayValue (f: listOfFields) : listOfElements ;
 VAR
    g   : listOfFields ;
    r, s: listOfElements ;

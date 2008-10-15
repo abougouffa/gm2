@@ -40,6 +40,7 @@ FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
 FROM M2Error IMPORT Error, InternalError, NewWarning, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2, MetaErrorsT1, MetaErrorsT2, MetaErrorsT3 ;
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2GCCDeclare IMPORT DeclareConstant ;
@@ -1147,9 +1148,7 @@ END FoldExcl ;
 
 PROCEDURE FoldTypeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
-   p     : Range ;
-   e     : Error ;
-   n1, n2: Name ;
+   p: Range ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1161,14 +1160,16 @@ BEGIN
                    THEN
                       SubQuad(q)
                    ELSE
-                      e := NewError(tokenNo) ;
-                      n1 := GetSymName(des) ;
-                      n2 := GetSymName(expr) ;
                       IF IsProcedure(des)
                       THEN
-                         ErrorFormat1(e, 'procedure (%a) return type and the returned expression are incompatible', n1)
+                         MetaErrorsT2(tokenNo,
+                                      'the return type {%1taD} declared in procedure {%1Da}',
+                                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                                      des, expr) ;
                       ELSE
-                         ErrorFormat2(e, 'assignment designator and expression types are incompatible (%a) and (%a)', n1, n2)
+                         MetaErrorT2(tokenNo,
+                                     'assignment designator {%1a} {%1tad:of type {%1tad}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                                     des, expr)
                       END ;
                       FlushErrors
                    END |
@@ -1176,20 +1177,18 @@ BEGIN
                    THEN
                       SubQuad(q)
                    ELSE
-                      e := NewError(tokenNo) ;
-                      n1 := GetSymName(des) ;
-                      n2 := GetSymName(expr) ;
-                      ErrorFormat2(e, 'actual parameter type is incompatible with the formal parameter type (%a) and (%a)', n1, n2) ;
+                      MetaErrorT2(tokenNo,
+                                  'actual parameter type {%2ataD} is incompatible with the formal parameter type {%1ataD}',
+                                  des, expr) ;
                       FlushErrors
                    END |
       typeexpr:    IF IsExpressionCompatible(GetType(des), GetType(expr))
                    THEN
                       SubQuad(q)
                    ELSE
-                      e := NewError(tokenNo) ;
-                      n1 := GetSymName(des) ;
-                      n2 := GetSymName(expr) ;
-                      ErrorFormat2(e, 'expression operand types are incompatible (%a) and (%a)', n1, n2) ;
+                      MetaErrorT2(tokenNo,
+                                  'expression of type {%1taD} is incompatible with type {%2taD}',
+                                  des, expr) ;
                       FlushErrors
                    END
 

@@ -1,3 +1,22 @@
+2008-10-15       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/M2MetaError.{def,mod}:  new files.
+	* gm2/gm2/Make-lang.in:  added M2MetaError to be built.
+	* gm2/gm2/gm2-compiler/Indexing.mod:  use casts when
+	  assigning different pointers.
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  fixed return value
+	  declaration in ToArrayValue.
+	* gm2/gm2/gm2-compiler/M2MetaError.def:  export all
+	  MetaError procedures.
+	* gm2/gm2/gm2-compiler/M2MetaError.mod:  added end
+	  of case delimiter.
+	* gm2/gm2/gm2-compiler/M2Range.mod:  use MetaError
+	  rather than M2Error.
+	* gm2/gm2/gm2-libs/DynamicStrings.def:  corrected dates
+	  and tidied up comments.
+	* gm2/gm2/init/gm2-gccinit:  add M2MetaError to list
+	  of modules to be linked.
+
 2008-10-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added RTExceptions.mod and

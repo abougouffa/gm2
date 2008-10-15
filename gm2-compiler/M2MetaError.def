@@ -31,7 +31,8 @@ DEFINITION MODULE M2MetaError ;
 
 EXPORT QUALIFIED MetaError1, MetaError2, MetaError3,
                  MetaErrors1, MetaErrors2, MetaErrors3,
-                 MetaErrorT1, MetaErrorT2, MetaErrorT3 ;
+                 MetaErrorT1, MetaErrorT2, MetaErrorT3,
+                 MetaErrorsT1, MetaErrorsT2, MetaErrorsT3 ;
 
 
 (*

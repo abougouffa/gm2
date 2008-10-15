@@ -79,5 +79,6 @@ M2GCCDeclare
 M2GenGCC
 M2Range
 M2Swig
+M2MetaError
 gm2
 mod_init

@@ -584,7 +584,7 @@ BEGIN
             IF (i<l) AND (char(s, i)#'}')
             THEN
                InternalFormat(s, i, 'expecting to see }')
-            END
+            END |
       '}':  RETURN
 
       ELSE

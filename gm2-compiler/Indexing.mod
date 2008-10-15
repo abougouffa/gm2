@@ -198,7 +198,7 @@ BEGIN
          HALT
       END ;
       b := ArrayStart + ((n-Low)*TSIZE(ADDRESS)) ;
-      p := b ;
+      p := VAL(PtrToAddress, b) ;
       IF Debug
       THEN
          IF (n<32) AND (NOT (n IN Map)) AND (p^#NIL)
@@ -225,7 +225,7 @@ BEGIN
       j := Low ;
       b := ArrayStart ;
       WHILE j<=High DO
-         p := b ;
+         p := VAL(PtrToAddress, b) ;
          IF p^=a
          THEN
             RETURN( TRUE )
@@ -253,7 +253,7 @@ BEGIN
       j := Low ;
       b := ArrayStart ;
       WHILE j<=High DO
-         p := b ;
+         p := VAL(PtrToAddress, b) ;
          INC(b, TSIZE(ADDRESS)) ;
          IF p^=a
          THEN
