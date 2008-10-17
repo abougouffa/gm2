@@ -24,6 +24,10 @@ FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM NameKey IMPORT Name, NulName, MakeKey, GetKey, makekey, KeyToCharStar ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3 ;
 
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
+                        MetaErrors1, MetaErrors2, MetaErrors3,
+                        MetaErrorString1, MetaErrorString2 ;
+
 FROM DynamicStrings IMPORT String, string, InitString, KillString, 
                            ConCat, InitStringCharStar, Dup, Mark ;
 
@@ -184,6 +188,7 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitExclCheck,
                     InitTypesAssignmentCheck,
                     InitTypesExpressionCheck,
+                    InitTypesParameterCheck,
                     InitForLoopBeginRangeCheck,
                     InitForLoopToRangeCheck,
                     InitForLoopEndRangeCheck,
@@ -2409,18 +2414,11 @@ END BuildBuiltinConst ;
 *)
 
 PROCEDURE CheckNotConstAndVar (Des, Exp: CARDINAL) ;
-VAR
-   e: Error ;
-   n: Name ;
 BEGIN
    IF IsConst(Des) AND IsVar(Exp)
    THEN
-      e := NewError(GetTokenNo()) ;
-      ErrorFormat0(e, 'error in assignment, cannot assign a variable to a constant') ;
-      n := GetSymName(Des) ;
-      e := ChainError(GetDeclared(Des), e) ;
-      ErrorFormat1(e, 'designator (%a) is declared as a CONST whereas the expression is a variable',
-                   n) ;
+      MetaErrors2('error in assignment, cannot assign a variable {%2a} to a constant {%1a}',
+                  'designator {%1Da} is declared as a CONST', Des, Exp)
    END
 END CheckNotConstAndVar ;
 
@@ -3777,10 +3775,7 @@ BEGIN
       DumpStack ;
    ELSIF IsUnknown(ProcSym)
    THEN
-      n := GetSymName(ProcSym) ;
-      ErrorFormat1(NewError(GetFirstUsed(ProcSym)),
-                   '%a is not recognised as a procedure, check declaration or import',
-                   n) ;
+      MetaError1('{%1Ua} is not recognised as a procedure, check declaration or import', ProcSym) ;
       PopN(NoOfParam + 2)
    ELSE
       DumpStack ;
@@ -3887,18 +3882,17 @@ BEGIN
    THEN
       IF GetType(Proc)=NulSym
       THEN
-         n := GetSymName(Proc) ;
-         WriteFormat1('procedure %a does not have a return value - it is not a function', n)
+         MetaErrors1('procedure {%1a} cannot be used as a function',
+                     'procedure {%1Da} does not have a return type',
+                     Proc)
       END
    ELSE
       (* is being called as a procedure *)
       IF GetType(Proc)#NulSym
       THEN
-         n := GetSymName(Proc) ;
-         e := NewError(GetTokenNo()) ;
-         ErrorFormat1(e, 'trying to call function, %a, but ignoring its return value', n) ;
-         e := ChainError(GetDeclared(Proc), e) ;
-         ErrorFormat1(e, 'function, %a, is being called but its return value is ignored', n)
+         MetaErrors1('function {%1a} is being called but its return value is ignored',
+                     'function {%1Da} return a type {%1ta:of {%1ta}}',
+                     Proc)
       END
    END ;
    ManipulateParameters(IsForC) ;
@@ -4003,21 +3997,11 @@ BEGIN
    THEN
       IF IsUnknown(Proc)
       THEN
-         n1 := GetSymName(Proc) ;
-         ErrorFormat1(NewError(GetFirstUsed(Proc)),
-                      '%a is not recognised as a procedure, check declaration or import',
-                      n1)
-      ELSIF NOT IsTemporary(Proc)
-      THEN
-         e := NewError(GetTokenNo()) ;
-         n1 := GetSymName(Proc) ;
-         ErrorFormat1(e,
-                      '%a is not recognised as a procedure, check declaration or import',
-                      n1) ;
-         e := ChainError(GetFirstUsed(Proc), e) ;
-         ErrorFormat1(e,
-                      '%a is not recognised as a procedure, check declaration or import',
-                      n1)
+         MetaError1('{%1Ua} is not recognised as a procedure, check declaration or import', Proc)
+      ELSE
+         MetaErrors1('{%1a} is not recognised as a procedure, check declaration or import',
+                     '{%1Ua} is not recognised as a procedure, check declaration or import',
+                     Proc)
       END
    END ;
    IF CompilerDebugging
@@ -4104,6 +4088,7 @@ VAR
    i, n, t         : CARDINAL ;
    CheckedProcedure: CARDINAL ;
    e               : Error ;
+   s               : String ;
 BEGIN
    n := NoOfParam(ProcType) ;
    IF IsVar(call) OR IsTemporary(call) OR IsParameter(call)
@@ -4128,24 +4113,8 @@ BEGIN
       WHILE i<=n DO
          IF IsVarParam(ProcType, i) # IsVarParam(CheckedProcedure, i)
          THEN
-            e := NewError(GetDeclared(ProcType)) ;
-            n1 := GetSymName(ProcType) ;
-            IF IsVarParam(ProcType, i)
-            THEN
-               ErrorFormat2(e, 'parameter %d in procedure type (%a) causes a mismatch it was declared it as a VAR parameter',
-                            i, n1)
-            ELSE
-               ErrorFormat2(e, 'parameter %d in procedure type (%a) causes a mismatch it was declared it as a non VAR parameter',
-                            i, n1)
-            END ;
-            e := ChainError(GetDeclared(call), e) ;
-            n1 := GetSymName(call) ;
-            IF IsVarParam(call, i)
-            THEN
-               ErrorFormat1(e, 'whereas procedure (%a) has declared it as a VAR parameter', n1)
-            ELSE
-               ErrorFormat1(e, 'whereas procedure (%a) has declared it as a non VAR parameter', n1)
-            END ;
+            MetaError3('parameter {%3n} in {%1dD} causes a mismatch it was declared as a {%2d}', ProcType, GetNth(ProcType, i), i) ;
+            MetaError3('parameter {%3n} in {%1dD} causes a mismatch it was declared as a {%2d}', call, GetNth(call, i), i)
          END ;
          CheckParameter(GetParam(CheckedProcedure, i), GetParam(ProcType, i), call, i, TypeList) ;
          INC(i)
@@ -4279,7 +4248,8 @@ BEGIN
             ((ParamType=Loc)  OR (CallType=Loc))  OR
             IsParameterCompatible(ParamType, CallType)
          THEN
-            (* it is legal *)
+            (* we think it is legal, but we ask post pass 3 to check as
+               not all types are known at this point *)
          ELSE
             FailParameter('identifier with an incompatible type is being passed to this procedure',
                           Call, Param, ProcSym, i) ;
@@ -4293,7 +4263,8 @@ BEGIN
                           Call, Param, ProcSym, i)
          ELSIF IsParameterCompatible(ParamType, CallType)
          THEN
-            (* it is legal *)
+            (* we think it is legal, but we ask post pass 3 to check as
+               not all types are known at this point *)
          ELSE
             FailParameter('identifier with an incompatible type is being passed to this procedure',
                           Call, Param, ProcSym, i)

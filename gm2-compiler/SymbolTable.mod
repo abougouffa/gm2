@@ -56,6 +56,7 @@ FROM M2Base IMPORT MixTypes, InitBase, Char, Integer, LongReal,
 
 FROM M2System IMPORT Address ;
 FROM gccgm2 IMPORT DetermineSizeOfConstant, Tree ;
+FROM StrLib IMPORT StrEqual ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule ;
@@ -367,6 +368,7 @@ TYPE
                     IsConstructor: BOOLEAN ;  (* is the constant a set?      *)
                     FromType     : CARDINAL ; (* type is determined FromType *)
                     UnresFromType: BOOLEAN ;  (* is Type resolved?           *)
+                    IsTemp       : BOOLEAN ;  (* is it a temporary?          *)
                     At           : Where ;    (* Where was sym declared/used *)
                  END ;
 
@@ -719,6 +721,8 @@ VAR
    UsedFVarientList: List ;      (* varients.                          *)
    UnresolvedConstructorType: List ;  (* all constructors whose type   *)
                                  (* is not yet known.                  *)
+   AnonymousName     : CARDINAL ;(* anonymous type name unique id      *)
+
 
 (* %%%FORWARD%%%
 PROCEDURE stop ; FORWARD ;
@@ -790,6 +794,35 @@ PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL) ; FORWARD 
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ; FORWARD ;
 PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
+
+
+(*
+   CheckAnonymous - checks to see whether the name is NulName and if so
+                    it creates a unique anonymous name.
+*)
+
+PROCEDURE CheckAnonymous (name: Name) : Name ;
+BEGIN
+   IF name=NulName
+   THEN
+      INC(AnonymousName) ;
+      name := makekey(string(Mark(Sprintf1(Mark(InitString('$$%d')), AnonymousName))))
+   END ;
+   RETURN( name )
+END CheckAnonymous ;
+
+
+(*
+   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name.
+*)
+
+PROCEDURE IsNameAnonymous (sym: CARDINAL) : BOOLEAN ;
+VAR
+   a: ARRAY [0..1] OF CHAR ;
+BEGIN
+   GetKey(GetSymName(sym), a) ;
+   RETURN( StrEqual(a, '$$') )
+END IsNameAnonymous ;
 
 
 (*
@@ -1085,6 +1118,7 @@ END InitSymTable ;
 
 PROCEDURE Init ;
 BEGIN
+   AnonymousName := 0 ;
    CurrentError := NIL ;
    InitSymTable ;
    InitTree(ConstLitTree) ;
@@ -3203,6 +3237,7 @@ BEGIN
             IsConstructor := FALSE ;
             FromType := NulSym ;     (* type is determined FromType *)
             UnresFromType := FALSE ; (* is Type resolved?           *)
+            IsTemp := FALSE ;
             InitWhereDeclared(At)
          END
       END ;
@@ -4601,6 +4636,24 @@ END GetSymName ;
 
 
 (*
+   PutConstVarTemporary - indicates that constant, sym, is a temporary.
+*)
+
+PROCEDURE PutConstVarTemporary (sym: CARDINAL) ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      ConstVarSym:  ConstVar.IsTemp := TRUE
+
+      ELSE
+         InternalError('expecting a Var symbol', __FILE__, __LINE__)
+      END
+   END
+END PutConstVarTemporary ;
+
+
+(*
    MakeTemporary - Makes a new temporary variable at the highest real scope.
                    The addressing mode of the temporary is set to NoValue.
 *)
@@ -4619,7 +4672,8 @@ BEGIN
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF Mode=ImmediateValue
    THEN
-      Sym := MakeConstVar(makekey(string(s)))
+      Sym := MakeConstVar(makekey(string(s))) ;
+      PutConstVarTemporary(Sym)
    ELSE
       Sym := MakeVar(makekey(string(s))) ;
       WITH Symbols[Sym] DO
@@ -4675,7 +4729,8 @@ BEGIN
          PutConstructorFrom(Sym, e2)
       ELSE
          PutVar(Sym, MixTypes(GetType(e1), GetType(e2), tok))
-      END
+      END ;
+      PutConstVarTemporary(Sym)
    ELSE
       Sym := MakeVar(makekey(string(s))) ;
       WITH Symbols[Sym] DO
@@ -9209,7 +9264,8 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
-      VarSym: RETURN( Var.IsTemp )
+      VarSym     :  RETURN( Var.IsTemp ) |
+      ConstVarSym:  RETURN( ConstVar.IsTemp )
 
       ELSE
          RETURN( FALSE )

@@ -39,8 +39,12 @@ FROM M2Debug IMPORT Assert ;
 FROM Indexing IMPORT Index, InitIndex, InBounds, PutIndice, GetIndice ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
-FROM M2Error IMPORT Error, InternalError, NewWarning, NewError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2, MetaErrorsT1, MetaErrorsT2, MetaErrorsT3 ;
+FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
+
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2,
+                        MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
+                        MetaErrorStringT1, MetaErrorStringT2 ;
+
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2GCCDeclare IMPORT DeclareConstant ;
@@ -718,7 +722,6 @@ END InitWholeZeroRemainderCheck ;
 PROCEDURE FoldNil (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   e: Error ;
    n: Name ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -730,10 +733,9 @@ BEGIN
          PushValue(Nil) ;
          IF Equ(tokenno)
          THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            n := GetSymName(des) ;
-            ErrorFormat1(e, 'attempting to dereference a pointer (%a) whose value will be NIL',
-                         n) ;
+            MetaErrorT1(tokenNo,
+                        'attempting to dereference a pointer {%1a} whose value will be NIL',
+                        des) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          ELSE
             SubQuad(q)
@@ -741,38 +743,6 @@ BEGIN
       END
    END
 END FoldNil ;
-
-
-(*
-   FoldNoReturn - folds the no return range check.
-*)
-
-PROCEDURE FoldNoReturn (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
-VAR
-   p: Range ;
-   e: Error ;
-   n: Name ;
-BEGIN
-   p := GetIndice(RangeIndex, r) ;
-   WITH p^ DO
-      DeclareConstant(tokenno, des) ;  (* use quad tokenno, rather than the range tokenNo *)
-      IF GccKnowsAbout(des) AND IsConst(des)
-      THEN
-         PushValue(des) ;
-         PushValue(Nil) ;
-         IF Equ(tokenno)
-         THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            n := GetSymName(des) ;
-            ErrorFormat1(e, 'attempting to dereference a pointer (%a) whose value will be NIL',
-                         n) ;
-            PutQuad(q, ErrorOp, NulSym, NulSym, r)
-         ELSE
-            SubQuad(q)
-         END
-      END
-   END
-END FoldNoReturn ;
 
 
 (*
@@ -888,8 +858,6 @@ END HaveHandler ;
 PROCEDURE FoldAssignment (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
-   e       : Error ;
-   n1, n2  : Name ;
    min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -902,17 +870,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               IF IsConstLit(expr) OR (IsVar(expr) AND (NOT IsTemporary(expr)))
-               THEN
-                  ErrorFormat2(e, 'attempting to assign a value (%a) to a designator which will exceed the range of type (%a)',
-                               n2, n1) ;
-               ELSE
-                  ErrorFormat1(e, 'attempting to assign a value to a designator which will exceed the range of type (%a)',
-                               n1) ;
-               END ;
+               MetaErrorT2(tokenNo,
+                           'attempting to assign a value {%2Wa} to a designator {%1a} which will exceed the range of type {%1tad}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                SubQuad(q)
@@ -930,8 +890,6 @@ END FoldAssignment ;
 PROCEDURE FoldInc (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -945,10 +903,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               ErrorFormat1(e, 'operand to INC exceeds the range of type (%a)', n1) ;
+               MetaErrorT2(tokenNo,
+                           'operand to INC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSIF GccKnowsAbout(des) AND IsConst(des) AND GccKnowsAbout(desLowestType)
             THEN
@@ -959,8 +916,9 @@ BEGIN
                PushIntegerTree(t) ;
                IF Gre(tokenNo)
                THEN
-                  e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-                  ErrorFormat0(e, 'INC will cause a range error') ;
+                  MetaErrorT1(tokenNo,
+                              'the designator to INC {%1Wa} will exceed the range of type {%1ts}',
+                              des) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
                   (* range check is unnecessary *)
@@ -980,8 +938,6 @@ END FoldInc ;
 PROCEDURE FoldDec (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -995,10 +951,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               ErrorFormat1(e, 'operand to DEC exceeds the range of type (%a)', n1) ;
+               MetaErrorT2(tokenNo,
+                           'operand to DEC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSIF GccKnowsAbout(des) AND IsConst(des) AND GccKnowsAbout(desLowestType)
             THEN
@@ -1009,8 +964,9 @@ BEGIN
                PushIntegerTree(t) ;
                IF Less(tokenNo)
                THEN
-                  e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-                  ErrorFormat0(e, 'DEC will cause a range error') ;
+                  MetaErrorT1(tokenNo,
+                              'the designator to DEC {%1Wa} will exceed the range of type {%1ts}',
+                              des) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
                   (* range check is unnecessary *)
@@ -1031,9 +987,7 @@ PROCEDURE CheckSetAndBit (tokenno: CARDINAL;
                           des, expr: CARDINAL;
                           name: ARRAY OF CHAR) : BOOLEAN ;
 VAR
-   n: Name ;
-   e: Error ;
-   s, t: String ;
+   s: String ;
 BEGIN
    IF IsSet(des)
    THEN
@@ -1041,18 +995,17 @@ BEGIN
       THEN
          RETURN( TRUE )
       ELSE
-         e := NewError(tokenno) ;
-         s := Mark(InitString(name)) ;
-         s := Sprintf1(Mark(InitString('operands to %s are incompatible')), s) ;
-         ErrorString(e, s) ;
+         s := ConCat(ConCat(InitString('operands to '),
+                            Mark(InitString(name))),
+                     Mark(InitString(' {%1tsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
+         MetaErrorStringT2(tokenno, s, des, expr) ;
          FlushErrors
       END
    ELSE
-      e := NewError(tokenno) ;
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(des)))) ;
-      t := Mark(InitString(name)) ;
-      s := Sprintf2(Mark(InitString('first operand to %s is not a set (%s)')), t, s) ;
-      ErrorString(e, s) ;
+      s := ConCat(ConCat(InitString('first operand to '),
+                         Mark(InitString(name))),
+                  Mark(InitString(' is not a set {%1tasd}'))) ;
+      MetaErrorStringT1(tokenno, s, des) ;
       FlushErrors
    END ;
    RETURN( FALSE )
@@ -1066,8 +1019,6 @@ END CheckSetAndBit ;
 PROCEDURE FoldIncl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1084,10 +1035,9 @@ BEGIN
             THEN
                IF OutOfRange(tokenno, min, expr, max, desLowestType)
                THEN
-                  e := NewError(tokenNo) ;  (* use range tokenNo for warning *)
-                  n1 := GetSymName(GetType(des)) ;
-                  n2 := GetSymName(expr) ;
-                  ErrorFormat1(e, 'operand to INCL exceeds the range of type (%a)', n1) ;
+                  MetaErrorT2(tokenNo,
+                              'operand to INCL {%2a} exceeds the range of type {%1tasa}',
+                              des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
                   (* range check is unnecessary *)
@@ -1107,8 +1057,6 @@ END FoldIncl ;
 PROCEDURE FoldExcl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1125,10 +1073,9 @@ BEGIN
             THEN
                IF OutOfRange(tokenno, min, expr, max, desLowestType)
                THEN
-                  e := NewError(tokenNo) ;  (* use range tokenNo for warning *)
-                  n1 := GetSymName(GetType(des)) ;
-                  n2 := GetSymName(expr) ;
-                  ErrorFormat1(e, 'operand to EXCL exceeds the range of type (%a)', n1) ;
+                  MetaErrorT2(tokenNo,
+                              'operand to EXCL {%2a} exceeds the range of type {%1tasa}',
+                              des, expr) ;
                   PutQuad(q, ErrorOp, NulSym, NulSym, r)
                ELSE
                   (* range check is unnecessary *)
@@ -1163,12 +1110,12 @@ BEGIN
                       IF IsProcedure(des)
                       THEN
                          MetaErrorsT2(tokenNo,
-                                      'the return type {%1taD} declared in procedure {%1Da}',
+                                      'the return type {%1tad} declared in procedure {%1Da}',
                                       'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
                                       des, expr) ;
                       ELSE
                          MetaErrorT2(tokenNo,
-                                     'assignment designator {%1a} {%1tad:of type {%1tad}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
                                      des, expr)
                       END ;
                       FlushErrors
@@ -1178,7 +1125,7 @@ BEGIN
                       SubQuad(q)
                    ELSE
                       MetaErrorT2(tokenNo,
-                                  'actual parameter type {%2ataD} is incompatible with the formal parameter type {%1ataD}',
+                                  'actual parameter type {%2atasd} is incompatible with the formal parameter type {%1atasd}',
                                   des, expr) ;
                       FlushErrors
                    END |
@@ -1187,7 +1134,7 @@ BEGIN
                       SubQuad(q)
                    ELSE
                       MetaErrorT2(tokenNo,
-                                  'expression of type {%1taD} is incompatible with type {%2taD}',
+                                  'expression of type {%1tad} is incompatible with type {%2tad}',
                                   des, expr) ;
                       FlushErrors
                    END
@@ -1206,8 +1153,6 @@ END FoldTypeCheck ;
 PROCEDURE FoldForLoopBegin (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
-   e       : Error ;
-   n1, n2  : Name ;
    min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1220,17 +1165,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               IF IsConstLit(expr) OR (IsVar(expr) AND (NOT IsTemporary(expr)))
-               THEN
-                  ErrorFormat2(e, 'attempting to assign a value (%a) to a FOR loop designator which will exceed the range of type (%a)',
-                               n2, n1) ;
-               ELSE
-                  ErrorFormat1(e, 'attempting to assign a value to a FOR loop designator which will exceed the range of type (%a)',
-                               n1) ;
-               END ;
+               MetaErrorT2(tokenNo,
+                           'attempting to assign a value {%2Wa} to a FOR loop designator {%1a} which will exceed the range of type {%1tad}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                SubQuad(q)
@@ -1248,8 +1185,6 @@ END FoldForLoopBegin ;
 PROCEDURE FoldForLoopTo (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
-   e       : Error ;
-   n1, n2  : Name ;
    min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1262,17 +1197,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               IF IsConstLit(expr) OR (IsVar(expr) AND (NOT IsTemporary(expr)))
-               THEN
-                  ErrorFormat2(e, 'final value in FOR loop will exceed type range (%a) of designator (%a)',
-                               n2, n1) ;
-               ELSE
-                  ErrorFormat1(e, 'final value in FOR loop iterator will exceed type range of designator (%a)',
-                               n1) ;
-               END ;
+               MetaErrorT2(tokenNo,
+                           'final value in FOR loop will exceed type range {%1Wtasa} of designator {%2a}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                SubQuad(q)
@@ -1290,8 +1217,6 @@ END FoldForLoopTo ;
 PROCEDURE FoldStaticArraySubscript (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
-   n1, n2     : Name ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1305,10 +1230,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               n1 := GetSymName(GetType(des)) ;
-               n2 := GetSymName(expr) ;
-               ErrorFormat0(e, 'index out of range found while attempting to access an element of a static array') ;
+               MetaErrorT2(tokenNo,
+                           'index {%2Wa} out of range found while attempting to access an element of a static array {%1a}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                (* range check is unnecessary *)
@@ -1327,7 +1251,6 @@ END FoldStaticArraySubscript ;
 PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
-   e          : Error ;
    t, min, max: Tree ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
@@ -1339,8 +1262,9 @@ BEGIN
          THEN
             IF IsGreater(GetIntegerZero(), BuildConvert(GetIntegerType(), Mod2Gcc(expr), FALSE))
             THEN
-               e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-               ErrorFormat0(e, 'index out of range found while attempting to access an element of a dynamic array') ;
+               MetaErrorT2(tokenNo,
+                           'index {%2Wa} out of range found while attempting to access an element of a dynamic array {%1a}',
+                           des, expr) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                (* cannot fold high bounds, so leave that for the runtime *)
@@ -1358,7 +1282,6 @@ END FoldDynamicArraySubscript ;
 PROCEDURE FoldNonPosDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   e: Error ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1367,8 +1290,9 @@ BEGIN
       THEN
          IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
          THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            ErrorFormat0(e, 'the divisor in this division expression is less than or equal to zero') ;
+            MetaErrorT2(tokenNo,
+                        'the divisor {%2Wa} in this division expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
       END
@@ -1383,7 +1307,6 @@ END FoldNonPosDiv ;
 PROCEDURE FoldNonPosMod (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   e: Error ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1392,8 +1315,9 @@ BEGIN
       THEN
          IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
          THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            ErrorFormat0(e, 'the divisor in this modulus expression is less than or equal to zero') ;
+            MetaErrorT2(tokenNo,
+                        'the divisor {%2Wa} in this modulus expression is less than or equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
       END
@@ -1408,7 +1332,6 @@ END FoldNonPosMod ;
 PROCEDURE FoldZeroDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   e: Error ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1417,8 +1340,9 @@ BEGIN
       THEN
          IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
          THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            ErrorFormat0(e, 'the divisor in this division expression is equal to zero') ;
+            MetaErrorT2(tokenNo,
+                        'the divisor {%2Wa} in this division expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
       END
@@ -1433,7 +1357,6 @@ END FoldZeroDiv ;
 PROCEDURE FoldZeroRem (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
-   e: Error ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
@@ -1442,8 +1365,9 @@ BEGIN
       THEN
          IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
          THEN
-            e := NewWarning(tokenNo) ;  (* use range tokenNo for warning *)
-            ErrorFormat0(e, 'the divisor in this remainder expression is equal to zero') ;
+            MetaErrorT2(tokenNo,
+                        'the divisor {%2Wa} in this remainder expression is equal to zero, this would cause an exception to be raised before the result is assigned to the designator {%1a}',
+                        des, expr) ;
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          END
       END
@@ -1501,7 +1425,7 @@ END FoldRangeCheck ;
 
 (*
    DeReferenceLValue - returns a Tree which is either ModGcc(expr)
-                       or Mod2Gcc( *expr) depending whether, expr,
+                       or Mod2Gcc ( *expr) depending whether, expr,
                        is an LValue.
 *)
 
@@ -1564,48 +1488,48 @@ END CodeErrorCheck ;
 
 
 (*
-   IssueWarning - 
+   IssueWarning - issue a warning.  The compiler knows that this basic block can be reached
+                  and we are in scope, scopeDesc.
 *)
 
 PROCEDURE IssueWarning (scopeDesc: String; r: CARDINAL) ;
 VAR
    p: Range ;
    s: String ;
-   e: Error ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
       CASE type OF
 
-      assignment           : s := InitString('if the assignment is ever executed it will be out of bounds') |
+      assignment           : s := InitString('if the assignment is ever executed then the designator {%1Wa} will exceed the type range {%1ts:of {%1ts}}') |
       subrangeassignment   : InternalError('not expecting this case value', __FILE__, __LINE__) |
-      inc                  : s := InitString('if the INC is ever executed it will cause an overflow error') |
-      dec                  : s := InitString('if the DEC is ever executed it will cause an underflow error') |
-      incl                 : s := InitString('if the INCL is ever executed it will cause an overflow error') |
-      excl                 : s := InitString('if the EXCL is ever executed it will cause an overflow error') |
+      inc                  : s := InitString('if the INC is ever executed the expression {%2Wa} will cause an overflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
+      dec                  : s := InitString('if the DEC is ever executed the expression {%2Wa} will cause an underflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
+      incl                 : s := InitString('the expression {%2Wa} given in the INCL exceeds the type range {%1ts} of the designator {%1a}') |
+      excl                 : s := InitString('the expression {%2Wa} given in the EXCL exceeds the type range {%1ts} of the designator {%1a}') |
       typeassign           : s := InitString('') |
       typeparam            : s := InitString('') |
       typeexpr             : s := InitString('') |
-      staticarraysubscript : s := InitString('if the static array access is ever made the index will be out of bounds') |
-      dynamicarraysubscript: s := InitString('if the dynamic array access is ever made the index will be out of bounds') |
-      forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed it will be out of bounds') |
-      forloopto            : s := InitString('the final value in this FOR loop will be out of bounds if ever executed') |
-      forloopend           : s := InitString('the increment/decrement at the end of this FOR loop will be out of bounds if ever executed') |
-      pointernil           : s := InitString('the pointer value is NIL, if it is ever dereferenced it will cause an exception') |
-      noreturn             : s := InitString('this function will exit without executing a RETURN statement') |
-      noelse               : s := InitString('this CASE statement does not have an ELSE statement') |
-      wholenonposdiv       : s := InitString('this division expression will cause an exception as this divisor is less than or equal to zero') |
-      wholenonposmod       : s := InitString('this modulus expression will cause an exception as this divisor is less than or equal to zero') |
-      wholezerodiv         : s := InitString('this division expression will cause an exception as the divisor is zero') |
-      wholezerorem         : s := InitString('this remainder expression will cause an exception as the divisor is zero') |
+      staticarraysubscript : s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds') |
+      dynamicarraysubscript: s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds') |
+      forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
+      forloopto            : s := InitString('the final value {%W2a} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
+      forloopend           : s := InitString('the FOR loop will cause the designator {%W1a} to be out of bounds when the BY value {%2a} is added') |
+      pointernil           : s := InitString('if this pointer value {%1Wa} is ever dereferenced it will cause an exception') |
+      noreturn             : s := InitString('{%1W:}this function will exit without executing a RETURN statement') |
+      noelse               : s := InitString('{%1W:}this CASE statement does not have an ELSE statement') |
+      wholenonposdiv       : s := InitString('this division expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
+      wholenonposmod       : s := InitString('this modulus expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
+      wholezerodiv         : s := InitString('this division expression {%W2a} will cause an exception as the divisor is zero') |
+      wholezerorem         : s := InitString('this remainder expression {%W2a} will cause an exception as the divisor is zero') |
       none                 : InternalError('unexpected value', __FILE__, __LINE__)
 
       ELSE
          InternalError('enumeration value unknown', __FILE__, __LINE__)
       END ;
-      e := NewWarning(tokenNo) ;
       s := ConCat(ConCatChar(scopeDesc, ':'), Mark(s)) ;
-      ErrorString(e, s)
+      MetaErrorStringT2(tokenNo, s, des, expr) ;
+      FlushErrors
    END
 END IssueWarning ;
 
@@ -1657,7 +1581,7 @@ BEGIN
                   AddStatement(BuildIfCallHandler(condition, r, scopeDesc, TRUE))
                END
             ELSE
-               ErrorFormat0(NewError(tokenNo), message)
+               MetaErrorT2(tokenNo, message, des, expr)
             END
          END
       ELSE
@@ -1672,8 +1596,7 @@ END DoCodeAssignmentExprType ;
 *)
 
 PROCEDURE DoCodeAssignmentWithoutExprType (p: Range;
-                                           r: CARDINAL; scopeDesc: String;
-                                           message: ARRAY OF CHAR) ;
+                                           r: CARDINAL; scopeDesc: String) ;
 VAR
    condition,
    desMin, desMax,
@@ -1716,7 +1639,7 @@ BEGIN
          Assert(GccKnowsAbout(expr)) ;
          IF exprLowestType=NulSym
          THEN
-            DoCodeAssignmentWithoutExprType(p, r, scopeDesc, message)
+            DoCodeAssignmentWithoutExprType(p, r, scopeDesc)
          ELSE
             DoCodeAssignmentExprType(p, r, scopeDesc, message)
          END
@@ -1733,7 +1656,7 @@ PROCEDURE CodeAssignment (tokenno: CARDINAL;
                           r: CARDINAL; scopeDesc: String) ;
 BEGIN
    DoCodeAssignment(tokenno, r, scopeDesc,
-                    'assignment will cause a range error, as the two type ranges do not overlap')
+                    'assignment will cause a range error, as the range of {%1tad} does not overlap with {%2tad}')
 END CodeAssignment ;
 
 
@@ -1935,7 +1858,7 @@ PROCEDURE CodeForLoopBegin (tokenno: CARDINAL;
                             r: CARDINAL; scopeDesc: String) ;
 BEGIN
    DoCodeAssignment(tokenno, r, scopeDesc,
-                    'the initial assignment of the FOR loop will cause a range error, as the two type ranges do not overlap')
+                    'the initial assignment to {%1a} at the start of the FOR loop will cause a range error, as the type range of {%1taD} does not overlap with {%2tad}')
 END CodeForLoopBegin ;
 
 
@@ -1947,7 +1870,7 @@ PROCEDURE CodeForLoopTo (tokenno: CARDINAL;
                          r: CARDINAL; scopeDesc: String) ;
 BEGIN
    DoCodeAssignment(tokenno, r, scopeDesc,
-                    'the final TO value of the FOR loop will cause a range error with the iterator variable')
+                    'the final TO value {%2a} of the FOR loop will cause a range error with the iterator variable {%1a}')
 END CodeForLoopTo ;
 
 

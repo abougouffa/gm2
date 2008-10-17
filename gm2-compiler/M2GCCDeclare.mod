@@ -45,7 +45,8 @@ FROM M2Configure IMPORT PushParametersLeftToRight ;
 FROM DynamicStrings IMPORT String, string, InitString, KillString, InitStringCharStar, Mark ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
-FROM M2Error IMPORT Error, NewError, FlushErrors, ErrorFormat0, ErrorFormat1, InternalError, WriteFormat1, WriteFormat2, WriteFormat3 ;
+FROM M2MetaError IMPORT MetaError1 ;
+FROM M2Error IMPORT FlushErrors, InternalError ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
@@ -350,7 +351,6 @@ PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
                                     start, end: CARDINAL) : BOOLEAN ;
 VAR
    n1           : Name ;
-   e            : Error ;
    i, n         : CARDINAL ;
    NoMoreWritten: BOOLEAN ;
    Sym          : CARDINAL ;
@@ -449,15 +449,7 @@ BEGIN
             IF NOT AllDependantsWritten(Sym)
             THEN
                NoMoreWritten := TRUE ;
-               e := NewError(GetDeclared(Sym)) ;
-               IF GetSymName(Sym)=NulSym
-               THEN
-                  (* ErrorFormat0(e, 'circular dependancy found') *)
-               ELSE
-                  n1 := GetSymName(Sym) ;
-                  ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
-                               n1)
-               END
+               MetaError1('circular dependancy found when trying to resolve symbol {%1Da}', Sym)
             END
          END ;
          INC(i)
@@ -474,15 +466,7 @@ BEGIN
          END ;
          IF NOT AllDependantsWritten(Sym)
          THEN
-            e := NewError(GetDeclared(Sym)) ;
-            IF GetSymName(Sym)=NulSym
-            THEN
-               (* ErrorFormat0(e, 'circular dependancy found') *)
-            ELSE
-               n1 := GetSymName(Sym) ;
-               ErrorFormat1(e, 'circular dependancy found when trying to resolve symbol %a',
-                            n1)
-            END
+            MetaError1('circular dependancy found when trying to resolve symbol {%1Da}', Sym)
          END ;
          INC(i) ;
          NoMoreWritten := TRUE
@@ -526,13 +510,11 @@ END PrintType ;
 
 PROCEDURE DeclareType (Sym: CARDINAL) : Tree ;
 VAR
-   n1: Name ;
-   t : Tree ;
+   t: Tree ;
 BEGIN
    IF GetType(Sym)=NulSym
    THEN
-      n1 := GetSymName(Sym) ;
-      WriteFormat1('base type %a not understood', n1) ;
+      MetaError1('base type {%1Ua} not understood', Sym) ;
       InternalError('base type should have been declared', __FILE__, __LINE__)
    ELSE
       IF GetSymName(Sym)=NulName
@@ -1320,7 +1302,7 @@ BEGIN
    END ;
    IF NOT AllDependantsWritten(sym)
    THEN
-      WriteFormat1('defining a default type (%a) before its dependants are known', n)
+      MetaError1('defining a default type {%1ad} before its dependants are known', sym)
    END
 END DeclareDefaultType ;
 
@@ -2351,9 +2333,8 @@ BEGIN
                GccFieldType := DeclareVarient(Field)
             ELSIF IsFieldVarient(Field)
             THEN
-               n1 := GetSymName(Field) ;
-               WriteFormat1('found unexpected field varient name %a\n', n1) ;
-               InternalError('should not get here', __FILE__, __LINE__)
+               MetaError1('found unexpected field varient name {%1a}\n', Field) ;
+               InternalError('unexpected varient record data structure', __FILE__, __LINE__)
             ELSE
                GccFieldType := ForceDeclareType(GetType(Field))
             END ;
@@ -2599,8 +2580,7 @@ BEGIN
       RETURN( min )
    ELSIF GetType(type)=NulSym
    THEN
-      n := GetSymName(type) ;
-      WriteFormat1('unable to obtain the MIN value for type %a', n)
+      MetaError1('unable to obtain the MIN value for type {%1as}', type)
    ELSE
       RETURN( GetTypeMin(GetType(type)) )
    END
@@ -2639,8 +2619,7 @@ BEGIN
       RETURN( max )
    ELSIF GetType(type)=NulSym
    THEN
-      n := GetSymName(type) ;
-      WriteFormat1('unable to obtain the MAX value for type %a', n)
+      MetaError1('unable to obtain the MAX value for type {%1as}', type)
    ELSE
       RETURN( GetTypeMax(GetType(type)) )
    END
@@ -2926,8 +2905,7 @@ BEGIN
          THEN
             PutSubrange(Sym, low, high, Char)
          ELSE
-            n := GetSymName(Sym) ;
-            WriteFormat1('cannot have a subrange of a string type %a', n)
+            MetaError1('cannot have a subrange of a string type {%1a}', Sym)
          END
       ELSIF IsFieldEnumeration(low)
       THEN
@@ -2935,18 +2913,15 @@ BEGIN
          THEN
             PutSubrange(Sym, low, high, GetType(low))
          ELSE
-            n := GetSymName(Sym) ;
-            WriteFormat1('subrange limits must be of the same type %a', n)
+            MetaError1('subrange limits must be of the same type {%1a}', Sym)
          END
       ELSIF IsValueSolved(low)
       THEN
          IF IsRealType(GetType(low))
          THEN
-            n := GetSymName(Sym) ;
-            WriteFormat1('cannot have a subrange of a REAL or LONGREAL type %a', n)
+            MetaError1('{%1a} cannot have a subrange of a {%1tas} type', Sym)
          ELSE
             PutSubrange(Sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(Sym)))
-            (* previously we forced subranges to Integer *)
          END
       END ;
       IF NOT GccKnowsAbout(Sym)

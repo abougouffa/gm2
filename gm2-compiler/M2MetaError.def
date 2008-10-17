@@ -29,10 +29,14 @@ DEFINITION MODULE M2MetaError ;
                  information.
 *)
 
+FROM DynamicStrings IMPORT String ;
+
 EXPORT QUALIFIED MetaError1, MetaError2, MetaError3,
                  MetaErrors1, MetaErrors2, MetaErrors3,
                  MetaErrorT1, MetaErrorT2, MetaErrorT3,
-                 MetaErrorsT1, MetaErrorsT2, MetaErrorsT3 ;
+                 MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
+                 MetaErrorString1, MetaErrorString2, MetaErrorString3,
+                 MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
 
 
 (*
@@ -68,8 +72,8 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3,
            string "was incompatible with the return type of the procedure"
 
     Note all replaced names or descriptions are enclosed in quotes, like:
-    `foo', which matches the behaviour of gcc.  Also note temporary names
-    are treated as null.  Also note the order of format specifiers does
+    'foo', which matches the behaviour of gcc.  Also note temporary names
+    are treated as null.  Finally the order of format specifiers does
     matter, {%1td} means get type name and use it if non null, otherwise
     describe the symbol.
 *)
@@ -89,6 +93,14 @@ PROCEDURE MetaErrorT3 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 PROCEDURE MetaErrorsT1 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaErrorsT2 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorsT3 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+
+PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
+PROCEDURE MetaErrorString2 (m: String; s1, s2: CARDINAL) ;
+PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
+
+PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
+PROCEDURE MetaErrorStringT2 (tok: CARDINAL; m: String; s1, s2: CARDINAL) ;
+PROCEDURE MetaErrorStringT3 (tok: CARDINAL; m: String; s1, s2, s3: CARDINAL) ;
 
 
 END M2MetaError.

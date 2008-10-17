@@ -19,7 +19,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE P2SymBuild ;
 
 
-FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName ;
+FROM libc IMPORT strlen ;
+FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName, LengthKey ;
 FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
@@ -43,7 +44,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         GetCurrentModule, GetMainModule,
-                        MakeTemporary,
+                        MakeTemporary, CheckAnonymous,
                         MakeConstLit,
                         MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
@@ -139,27 +140,11 @@ TYPE
    constType = (unknown, set, str, constructor, array, cast) ;
 
 VAR
-   AnonymousName     : CARDINAL ;
    castType          : CARDINAL ;
    type              : constType ;
    RememberedConstant: CARDINAL ;
    RememberStack,
    TypeStack         : StackOfWord ;
-
-
-(*
-   CheckAnonymous - 
-*)
-
-PROCEDURE CheckAnonymous (name: Name) : Name ;
-BEGIN
-   IF name=NulName
-   THEN
-      INC(AnonymousName) ;
-      name := makekey(string(Mark(Sprintf1(Mark(InitString('$$%d')), AnonymousName))))
-   END ;
-   RETURN( name )
-END CheckAnonymous ;
 
 
 (*

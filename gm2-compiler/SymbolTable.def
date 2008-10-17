@@ -40,6 +40,7 @@ EXPORT QUALIFIED NulSym,
                  StartScope, EndScope, PseudoScope,
                  GetCurrentScope,
                  IsDeclaredIn,
+                 CheckAnonymous, IsNameAnonymous,
 
                  SetCurrentModule,
                  SetMainModule,
@@ -433,6 +434,21 @@ PROCEDURE SetFileModule (Sym: CARDINAL) ;
 *)
 
 PROCEDURE SetMainModule (Sym: CARDINAL) ;
+
+
+(*
+   CheckAnonymous - checks to see whether the name is NulName and if so
+                    it creates a unique anonymous name.
+*)
+
+PROCEDURE CheckAnonymous (name: Name) : Name ;
+
+
+(*
+   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name.
+*)
+
+PROCEDURE IsNameAnonymous (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

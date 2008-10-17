@@ -64,7 +64,7 @@ BEGIN
    p := KeyToCharStar(key) ;
    i := 0 ;
    higha := HIGH(a) ;
-   WHILE (i<higha) AND (p^#nul) DO
+   WHILE (i<=higha) AND (p^#nul) DO
       a[i] := p^ ;
       INC(p) ;
       INC(i)
@@ -188,7 +188,7 @@ BEGIN
    ELSE
       n := p ;
       i := 0 ;
-      WHILE (i<higha) DO
+      WHILE i<higha DO
          p^ := a[i] ;
          INC(i) ;
          INC(p)
@@ -228,7 +228,7 @@ BEGIN
          n  := p ;
          pa := a ;
          i  := 0 ;
-         WHILE (i<higha) DO
+         WHILE i<higha DO
             p^ := pa^ ;
             INC(i) ;
             INC(p) ;

@@ -1,3 +1,38 @@
+2008-10-18       Gaius Mulley <gaius@gnu.org>
+
+
+	* gm2/gm2/m2.flex:  corrected dates.
+	* gm2/gm2/gm2-compiler/M2Base.mod:  moved from M2Error
+	  handling to M2MetaError handling.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  moved from M2Error
+	  handling to M2MetaError handling.
+	* gm2/gm2/gm2-compiler/M2LexBuf.mod:  updated debugging
+	  code.
+	* gm2/gm2/gm2-compiler/M2MetaError.def:  MetaErrorString1,
+	  MetaErrorString2, MetaErrorString3, MetaErrorStringT1,
+	  MetaErrorStringT2, MetaErrorStringT3 (new procedures).
+	* gm2/gm2/gm2-compiler/M2MetaError.mod:  MetaErrorString1,
+	  MetaErrorString2, MetaErrorString3, MetaErrorStringT1,
+	  MetaErrorStringT2, MetaErrorStringT3  (implemented
+	  new procedures) and also the '!' operator and the '%n'
+	  specifier.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  migrated some of the
+	  M2Error calls onto the new M2MetaError mechanism.
+	* gm2/gm2/gm2-compiler/M2Range.mod:  moved from M2Error
+	  handling to M2MetaError handling.
+	* gm2/gm2/gm2-compiler/NameKey.mod:  corrected MakeKey
+	  off by one error when comparing against HIGH(a).
+	* gm2/gm2/gm2-compiler/P2SymBuild.mod:  removed
+	  procedure CheckAnonymous.
+	* gm2/gm2/gm2-compiler/SymbolTable.def:  added
+	  procedure CheckAnonymous and IsNameAnonymous.
+	* gm2/gm2/gm2-compiler/SymbolTable.mod:  implemented
+	  CheckAnonymous and IsNameAnonymous.  Also implemented
+	  PutConstVarTemporary and modified IsTemporary to
+	  test whether constants are also temporary.
+	* gm2/gm2/gm2-libs/DynamicStrings.mod:  fixed off by
+	  one error in procedure, char.
+	
 2008-10-15       Gaius Mulley <gaius@gnu.org>
 
         * gm2/M2MetaError.{def,mod}:  new files.

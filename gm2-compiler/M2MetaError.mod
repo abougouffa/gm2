@@ -19,10 +19,12 @@ IMPLEMENTATION MODULE M2MetaError ;
 
 
 FROM NameKey IMPORT Name, KeyToCharStar, NulName ;
+FROM StrLib IMPORT StrLen ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Error IMPORT Error, NewError, NewWarning, ErrorString, InternalError, ChainError, FlushErrors ;
 FROM FIO IMPORT StdOut, WriteLine ;
 FROM SFIO IMPORT WriteS ;
+FROM StringConvert IMPORT ctos ;
 
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
@@ -38,7 +40,8 @@ FROM SymbolTable IMPORT IsDefImp, IsModule, IsInnerModule,
                         IsConstructor, IsDummy, IsTemporary, IsVarAParam,
                         IsSubscript, IsSubrange, IsSet, IsHiddenType,
                         IsError, GetSymName, GetScope, IsExported,
-                        GetType, SkipType, GetDeclared, GetFirstUsed ;
+                        GetType, SkipType, GetDeclared, GetFirstUsed,
+                        IsNameAnonymous ;
 
 TYPE
    errorType = (error, warning, chained) ;
@@ -62,7 +65,7 @@ PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
    percent := '%' anych             % copy anych %
             =:
 
-   lbra := '{' percenttoken '}' =:
+   lbra := '{' [ '!' ] percenttoken '}' =:
 
    percenttoken := '%' (
                          '1'        % doOperand(1) %
@@ -105,6 +108,30 @@ END InternalFormat ;
 
 
 (*
+   x - checks to see that a=b.
+*)
+
+PROCEDURE x (a, b: String) : String ;
+BEGIN
+   IF a#b
+   THEN
+      InternalError('different string returned', __FILE__, __LINE__)
+   END ;
+   RETURN( a )
+END x ;
+
+
+(*
+   IsWhite - returns TRUE if, ch, is a space.
+*)
+
+PROCEDURE IsWhite (ch: CHAR) : BOOLEAN ;
+BEGIN
+   RETURN( ch=' ' )
+END IsWhite ;
+
+
+(*
    then := [ ':' ebnf ] =:
 *)
 
@@ -112,16 +139,26 @@ PROCEDURE then (VAR e: Error; VAR t: errorType;
                 VAR r: String; s: String;
                 sym: ARRAY OF CARDINAL; count: CARDINAL;
                 VAR i: INTEGER; l: INTEGER;
-                o: String) ;
+                o: String; positive: BOOLEAN) ;
 BEGIN
    IF char(s, i)=':'
    THEN
       INC(i) ;
-      IF Length(o)>0
+      IF positive
       THEN
-         ebnf(e, t, r, s, sym, count, i, l)
+         IF Length(o)>0
+         THEN
+            ebnf(e, t, r, s, sym, count, i, l)
+         ELSE
+            ebnf(e, t, r, s, sym, 0, i, l)
+         END
       ELSE
-         ebnf(e, t, r, s, sym, 0, i, l)
+         IF Length(o)=0
+         THEN
+            ebnf(e, t, r, s, sym, count, i, l)
+         ELSE
+            ebnf(e, t, r, s, sym, 0, i, l)
+         END
       END ;
       IF (i<l) AND (char(s, i)#'}')
       THEN
@@ -131,10 +168,26 @@ BEGIN
 END then ;
 
 
+(*
+   doNumber - 
+*)
+
+PROCEDURE doNumber (bol: CARDINAL; count: CARDINAL;
+                    sym: ARRAY OF CARDINAL; o: String) : String ;
+BEGIN
+   IF (Length(o)>0) OR (count=0)
+   THEN
+      RETURN( o )
+   ELSE
+      RETURN( ConCat(o, ctos(sym[bol], 0, TRUE)) )
+   END
+END doNumber ;
+
+
 PROCEDURE doAscii (bol: CARDINAL; count: CARDINAL;
                    sym: ARRAY OF CARDINAL; o: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
    THEN
       RETURN( o )
    ELSE
@@ -148,18 +201,18 @@ PROCEDURE doQualified (bol: CARDINAL; count: CARDINAL;
 VAR
    mod: ARRAY [0..1] OF CARDINAL ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
    THEN
       RETURN( o )
    ELSE
       mod[0] := GetScope(sym[bol]) ;
       IF IsDefImp(mod[0]) AND IsExported(mod[0], sym[bol])
       THEN
-         o := doAscii(0, 1, mod, o) ;
-         o := ConCatChar(o, '.') ;
-         o := ConCat(o, InitStringCharStar(KeyToCharStar(GetSymName(sym[bol]))))
+         o := x(o, doAscii(0, 1, mod, o)) ;
+         o := x(o, ConCatChar(o, '.')) ;
+         o := x(o, ConCat(o, InitStringCharStar(KeyToCharStar(GetSymName(sym[bol])))))
       ELSE
-         o := doAscii(bol, count, sym, o)
+         o := x(o, doAscii(bol, count, sym, o))
       END ;
       RETURN( o )
    END
@@ -180,18 +233,11 @@ BEGIN
       RETURN( o )
    ELSE
       sym[bol] := GetType(sym[bol]) ;
-      WHILE IsType(sym[bol]) AND (GetSymName(sym[bol])=NulName) DO
-         IF IsType(sym[bol])
-         THEN
-            sym[bol] := GetType(sym[bol])
-         END
+      WHILE IsType(sym[bol]) AND ((GetSymName(sym[bol])=NulName) OR
+                                  IsNameAnonymous(sym[bol])) DO
+         sym[bol] := GetType(sym[bol])
       END ;
-      IF GetSymName(sym[bol])=NulName
-      THEN
-         RETURN( o )
-      ELSE
-         RETURN( doAscii(bol, count, sym, o) )
-      END
+      RETURN( x(o, doAscii(bol, count, sym, o)) )
    END
 END doType ;
 
@@ -209,11 +255,12 @@ BEGIN
       RETURN( o )
    ELSE
       sym[bol] := SkipType(sym[bol]) ;
-      IF GetSymName(sym[bol])=NulName
+      IF (GetSymName(sym[bol])=NulName) OR
+         (IsNameAnonymous(sym[bol]))
       THEN
          RETURN( o )
       ELSE
-         RETURN( doAscii(bol, count, sym, o) )
+         RETURN( x(o, doAscii(bol, count, sym, o)) )
       END
    END
 END doSkipType ;
@@ -289,16 +336,16 @@ PROCEDURE ConCatWord (a, b: String) : String ;
 BEGIN
    IF (Length(a)=1) AND (char(a, 0)='a')
    THEN
-      a := ConCatChar(a, 'n')
-   ELSIF (Length(a)>1) AND (char(a, -1)='a') AND (char(a, -2)=' ')
+      a := x(a, ConCatChar(a, 'n'))
+   ELSIF (Length(a)>1) AND (char(a, -1)='a') AND IsWhite(char(a, -2))
    THEN
-      a := ConCatChar(a, 'n')
+      a := x(a, ConCatChar(a, 'n'))
    END ;
-   IF Length(a)>0
+   IF (Length(a)>0) AND (NOT IsWhite(char(a, -1)))
    THEN
-      a := ConCatChar(a, ' ')
+      a := x(a, ConCatChar(a, ' '))
    END ;
-   RETURN( ConCat(a, b) )
+   RETURN( x(a, ConCat(a, b)) )
 END ConCatWord ;
 
 
@@ -308,10 +355,7 @@ END ConCatWord ;
 
 PROCEDURE symDesc (sym: CARDINAL; o: String) : String ;
 BEGIN
-   IF IsTemporary(sym) OR IsDummy(sym) OR IsUnknown(sym)
-   THEN
-      RETURN( o )
-   ELSIF IsConstLit(sym)
+   IF IsConstLit(sym)
    THEN
       RETURN( ConCatWord(o, Mark(InitString('constant literal'))) )
    ELSIF IsConstSet(sym)
@@ -406,9 +450,13 @@ PROCEDURE addQuoted (r, o: String) : String ;
 BEGIN
    IF Length(o)>0
    THEN
-      r := ConCatChar(r, "'") ;
-      r := ConCat(r, o) ;
-      r := ConCatChar(r, "'")
+      IF NOT IsWhite(char(r, -1))
+      THEN
+         r := x(r, ConCatChar(r, " "))
+      END ;
+      r := x(r, ConCatChar(r, "'")) ;
+      r := x(r, ConCat(r, o)) ;
+      r := x(r, ConCatChar(r, "'"))
    END ;
    RETURN( r )
 END addQuoted ;
@@ -436,14 +484,14 @@ END copySym ;
 
 
 (*
-   op := {'a'|'q'|'t'|'d'|'s'|'D'|'U'|'E'|'W'} then =:
+   op := {'a'|'q'|'t'|'d'|'n'|'s'|'D'|'U'|'E'|'W'} then =:
 *)
 
 PROCEDURE op (VAR e: Error; VAR t: errorType;
               VAR r: String; s: String;
               sym: ARRAY OF CARDINAL; count: CARDINAL;
               VAR i: INTEGER; l: INTEGER;
-              bol: CARDINAL) ;
+              bol: CARDINAL; positive: BOOLEAN) ;
 VAR
    o: String ;
    c: ARRAY [0..2] OF CARDINAL ;
@@ -453,18 +501,20 @@ BEGIN
    WHILE (i<l) AND (char(s, i)#'}') DO
       CASE char(s, i) OF
 
-      'a':  o := doAscii(bol, count, sym, o) |
-      'q':  o := doQualified(bol, count, sym, o) |
-      't':  o := doType(bol, count, sym, o) |
-      'd':  o := doDesc(bol, count, sym, o) |
-      's':  o := doSkipType(bol, count, sym, o) |
+      'a':  o := x(o, doAscii(bol, count, sym, o)) |
+      'q':  o := x(o, doQualified(bol, count, sym, o)) |
+      't':  o := x(o, doType(bol, count, sym, o)) |
+      'd':  o := x(o, doDesc(bol, count, sym, o)) |
+      'n':  o := x(o, doNumber(bol, count, sym, o)) |
+      's':  o := x(o, doSkipType(bol, count, sym, o)) |
       'D':  e := doDeclared(e, t, bol, count, sym) |
       'U':  e := doUsed(e, t, bol, count, sym) |
       'E':  t := error |
       'W':  t := warning |
       ':':  copySym(c, sym, HIGH(sym)) ;
-            then(e, t, r, s, sym, count, i, l, o) ;
+            then(e, t, r, s, sym, count, i, l, o, positive) ;
             o := KillString(o) ;
+            o := InitString('') ;
             IF (i<l) AND (char(s, i)#'}')
             THEN
                InternalFormat(s, i, 'expecting to see }')
@@ -476,7 +526,7 @@ BEGIN
       END ;
       INC(i) ;
    END ;
-   r := addQuoted(r, o) ;
+   r := x(r, addQuoted(r, o)) ;
    o := KillString(o)
 END op ;
 
@@ -496,7 +546,7 @@ END op ;
 PROCEDURE percenttoken (VAR e: Error; VAR t: errorType;
                         VAR r: String; s: String;
                         sym: ARRAY OF CARDINAL; count: CARDINAL;
-                        VAR i: INTEGER; l: INTEGER) ;
+                        VAR i: INTEGER; l: INTEGER; positive: BOOLEAN) ;
 BEGIN
    IF char(s, i)='%'
    THEN
@@ -504,11 +554,11 @@ BEGIN
       CASE char(s, i) OF
 
       '1':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 0) |
+            op(e, t, r, s, sym, count, i, l, 0, positive) |
       '2':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 1) |
+            op(e, t, r, s, sym, count, i, l, 1, positive) |
       '3':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 2)
+            op(e, t, r, s, sym, count, i, l, 2, positive)
 
       ELSE
          InternalFormat(s, i, 'expecting one of [123]')
@@ -535,7 +585,7 @@ BEGIN
       INC(i) ;
       IF i<l
       THEN
-         r := ConCatChar(r, char(s, i)) ;
+         r := x(r, ConCatChar(r, char(s, i))) ;
          INC(i)
       END
    END
@@ -543,18 +593,30 @@ END percent ;
 
 
 (*
-   lbra := '{' percenttoken '}' =:
+   lbra := '{' [ '!' ] percenttoken '}' =:
 *)
 
 PROCEDURE lbra (VAR e: Error; VAR t: errorType;
                 VAR r: String; s: String;
                 sym: ARRAY OF CARDINAL; count: CARDINAL;
                 VAR i: INTEGER; l: INTEGER) ;
+VAR
+   positive: BOOLEAN ;
 BEGIN
    IF char(s, i)='{'
    THEN
+      positive := TRUE ;
       INC(i) ;
-      percenttoken(e, t, r, s, sym, count, i, l) ;
+      IF char(s, i)='!'
+      THEN
+         positive := FALSE ;
+         INC(i) ;
+      END ;
+      IF char(s, i)#'%'
+      THEN
+         InternalFormat(s, i, 'expecting to see %')
+      END ;
+      percenttoken(e, t, r, s, sym, count, i, l, positive) ;
       IF (i<l) AND (char(s, i)#'}')
       THEN
          InternalFormat(s, i, 'expecting to see }')
@@ -562,6 +624,8 @@ BEGIN
    END
 END lbra ;
 
+
+PROCEDURE stop ; BEGIN END stop ;
 
 (*
    ebnf := { percent
@@ -588,7 +652,11 @@ BEGIN
       '}':  RETURN
 
       ELSE
-         r := ConCatChar(r, char(s, i))
+         IF ((IsWhite(char(s, i)) AND (Length(r)>0) AND (NOT IsWhite(char(r, -1)))) OR
+            (NOT IsWhite(char(s, i)))) AND (count>0)
+         THEN
+            r := x(r, ConCatChar(r, char(s, i)))
+         END
       END ;
       INC(i)
    END
@@ -608,13 +676,13 @@ BEGIN
    r := InitString('') ;
    i := 0 ;
    l := Length(s) ;
-   ebnf(e, t, r, s, sym, 1, i, l) ;
+   ebnf(e, t, r, s, sym, HIGH(sym)+1, i, l) ;
    s := KillString(s) ;
    RETURN( r )
 END doFormat ;
 
 
-PROCEDURE MetaErrorT1 (tok: CARDINAL; m: ARRAY OF CHAR; s: CARDINAL) ;
+PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
 VAR
    str: String ;
    e  : Error ;
@@ -624,13 +692,19 @@ BEGIN
    e := NIL ;
    sym[0] := s ;
    t := error ;
-   str := doFormat(e, t, InitString(m), sym) ;
+   str := doFormat(e, t, m, sym) ;
    e := doError(e, t, tok) ;
    ErrorString(e, str)
+END MetaErrorStringT1 ;
+
+
+PROCEDURE MetaErrorT1 (tok: CARDINAL; m: ARRAY OF CHAR; s: CARDINAL) ;
+BEGIN
+   MetaErrorStringT1(tok, InitString(m), s)
 END MetaErrorT1 ;
 
 
-PROCEDURE MetaErrorT2 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
+PROCEDURE MetaErrorStringT2 (tok: CARDINAL; m: String; s1, s2: CARDINAL) ;
 VAR
    str: String ;
    e  : Error ;
@@ -641,13 +715,19 @@ BEGIN
    sym[0] := s1 ;
    sym[1] := s2 ;
    t := error ;
-   str := doFormat(e, t, InitString(m), sym) ;
+   str := doFormat(e, t, m, sym) ;
    e := doError(e, t, tok) ;
    ErrorString(e, str)
+END MetaErrorStringT2 ;
+
+
+PROCEDURE MetaErrorT2 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
+BEGIN
+   MetaErrorStringT2(tok, InitString(m), s1, s2)
 END MetaErrorT2 ;
 
 
-PROCEDURE MetaErrorT3 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrorStringT3 (tok: CARDINAL; m: String; s1, s2, s3: CARDINAL) ;
 VAR
    str: String ;
    e  : Error ;
@@ -659,9 +739,15 @@ BEGIN
    sym[1] := s2 ;
    sym[2] := s3 ;
    t := error ;
-   str := doFormat(e, t, InitString(m), sym) ;
+   str := doFormat(e, t, m, sym) ;
    e := doError(e, t, tok) ;
    ErrorString(e, str)
+END MetaErrorStringT3 ;
+
+
+PROCEDURE MetaErrorT3 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+BEGIN
+   MetaErrorStringT3(tok, InitString(m), s1, s2, s3) ;
 END MetaErrorT3 ;
 
 
@@ -758,6 +844,24 @@ PROCEDURE MetaErrors3 (m1, m2: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 BEGIN
    MetaErrorsT3(GetTokenNo(), m1, m2, s1, s2, s3)
 END MetaErrors3 ;
+
+
+PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
+BEGIN
+   MetaErrorStringT1(GetTokenNo(), m, s)
+END MetaErrorString1 ;
+
+
+PROCEDURE MetaErrorString2 (m: String; s1, s2: CARDINAL) ;
+BEGIN
+   MetaErrorStringT2(GetTokenNo(), m, s1, s2)
+END MetaErrorString2 ;
+
+
+PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
+BEGIN
+   MetaErrorStringT3(GetTokenNo(), m, s1, s2, s3)
+END MetaErrorString3 ;
 
 
 END M2MetaError.

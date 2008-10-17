@@ -19,6 +19,7 @@ IMPLEMENTATION MODULE M2LexBuf ;
 
 IMPORT m2flex ;
 
+FROM libc IMPORT strlen ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM DynamicStrings IMPORT string, InitString, InitStringCharStar, Equal, Mark, KillString ;
@@ -787,10 +788,6 @@ PROCEDURE AddTokToList (t: toktype; n: Name;
 VAR
    b: TokenBucket ;
 BEGIN
-   IF t=eoftok
-   THEN
-      stop
-   END ;
    IF ListOfTokens.head=NIL
    THEN
       NEW(ListOfTokens.head) ;
@@ -889,6 +886,10 @@ END AddTok ;
 
 PROCEDURE AddTokCharStar (t: toktype; s: ADDRESS) ;
 BEGIN
+   IF strlen(s)>80
+   THEN
+      stop
+   END ;
    AddTokToList(t, makekey(s), 0, m2flex.GetLineNo(),
                 m2flex.GetColumnNo(), CurrentSource) ;
    CurrentUsed := TRUE

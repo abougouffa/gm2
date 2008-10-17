@@ -475,6 +475,7 @@ BEGIN
    b[0] := ch ;
    b[1] := nul ;
    t := a ;
+   MarkInvalid(a) ;
    WHILE (t^.contents.len=MaxBuf) AND (t^.contents.next#NIL) DO
       t := t^.contents.next
    END ;
@@ -849,7 +850,7 @@ BEGIN
    ELSE
       c := i
    END ;
-   WHILE (s#NIL) AND (c>s^.contents.len) DO
+   WHILE (s#NIL) AND (c>=s^.contents.len) DO
       DEC(c, s^.contents.len) ;
       s := s^.contents.next
    END ;
@@ -947,7 +948,7 @@ PROCEDURE RemoveWhitePostfix (s: String) : String ;
 VAR
    i: INTEGER ;
 BEGIN
-   i := Length(s)-1 ;
+   i := VAL(INTEGER, Length(s))-1 ;
    WHILE (i>=0) AND IsWhite(char(s, i)) DO
       DEC(i)
    END ;
@@ -969,12 +970,8 @@ VAR
 BEGIN
    IF s#NIL
    THEN
+      MarkInvalid(s) ;
       t := s ;
-      IF PoisonOn
-      THEN
-         t := CheckPoisoned(t)
-      END ;
-      t^.head^.charStarValid := FALSE ;
       WHILE t#NIL DO
          WITH t^ DO
             i := 0 ;
@@ -1008,12 +1005,8 @@ VAR
 BEGIN
    IF s#NIL
    THEN
+      MarkInvalid(s) ;
       t := s ;
-      IF PoisonOn
-      THEN
-         t := CheckPoisoned(t)
-      END ;
-      t^.head^.charStarValid := FALSE ;
       WHILE t#NIL DO
          WITH t^ DO
             i := 0 ;

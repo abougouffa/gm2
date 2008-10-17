@@ -28,18 +28,16 @@ IMPLEMENTATION MODULE M2Base ;
                  base types and range of values from the gcc backend.
 *)
 
-FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar ;
+FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar, ConCat ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
 FROM SYSTEM IMPORT WORD ;
 
-FROM M2Error IMPORT Error, NewError, NewWarning,
-                    ErrorFormat0, ErrorFormat1, ErrorFormat2,
-                    InternalError, ChainError, WriteFormat1, ErrorString, FlushErrors ;
-
+FROM M2Error IMPORT InternalError, FlushErrors ;
 FROM M2Pass IMPORT IsPassCodeGeneration ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2, MetaErrorStringT2, MetaErrorStringT1 ;
 
 FROM SymbolTable IMPORT ModeOfAddr,
                         MakeModule, MakeType, PutType,
@@ -501,8 +499,7 @@ BEGIN
       min := MinEnum ;
       max := MaxEnum
    ELSE
-      n := GetSymName(type) ;
-      WriteFormat1('unable to find MIN or MAX for the base type %a', n)
+      MetaError1('unable to find MIN or MAX for the base type {%1as}', type)
    END
 END GetBaseTypeMinMax ;
 
@@ -839,13 +836,13 @@ END IsOrdinalType ;
    EmitTypeIncompatibleWarning - emit a type incompatibility warning.
 *)
 
-PROCEDURE EmitTypeIncompatibleWarning (e: Error; kind: Compatability) ;
+PROCEDURE EmitTypeIncompatibleWarning (kind: Compatability; t1, t2: CARDINAL) ;
 BEGIN
    CASE kind OF
 
-   expression:  ErrorFormat0(e, 'warning type incompatibility found in an expression, hint one of the expressions should be converted') |
-   assignment:  ErrorFormat0(e, 'warning type incompatibility found during assignment, hint the expression should be converted') |
-   parameter :  ErrorFormat0(e, 'warning type incompatibility found while passing a parameter, hint the parameter should be converted')
+   expression:  MetaError2('{%1W:} type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} in an expression, hint one of the expressions should be converted', t1, t2) |
+   assignment:  MetaError2('{%1W:} type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} during an assignment, hint maybe the expression should be converted', t1, t2) |
+   parameter :  MetaError2('{%1W:} type incompatibility found when passing a parameter {%1as:{%2as:between formal parameter and actual parameter types {%1as} {%2as}}}, hint the actual parameter {%2a} should be converted', t1, t2)
 
    ELSE
    END
@@ -856,13 +853,13 @@ END EmitTypeIncompatibleWarning ;
    EmitTypeIncompatibleError - emit a type incompatibility error.
 *)
 
-PROCEDURE EmitTypeIncompatibleError (e: Error; kind: Compatability) ;
+PROCEDURE EmitTypeIncompatibleError (kind: Compatability; t1, t2: CARDINAL) ;
 BEGIN
    CASE kind OF
 
-   expression:  ErrorFormat0(e, 'type incompatibility found in an expression, hint one of the expressions should be converted') |
-   assignment:  ErrorFormat0(e, 'type incompatibility found during assignment, hint the expression should be converted') |
-   parameter :  ErrorFormat0(e, 'type incompatibility found while passing a parameter, hint the parameter should be converted')
+   expression:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} in an expression, hint one of the expressions should be converted', t1, t2) |
+   assignment:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} during an assignment, hint maybe the expression should be converted', t1, t2) |
+   parameter :  MetaError2('type incompatibility found when passing a parameter {%1as:{%2as:between formal parameter and actual parameter types {%1as} {%2as}}}, hint the actual parameter should be converted', t1, t2)
 
    ELSE
    END
@@ -875,55 +872,38 @@ END EmitTypeIncompatibleError ;
 
 PROCEDURE CheckCompatible (t1, t2: CARDINAL; kind: Compatability) ;
 VAR
-   n        : Name ;
-   e        : Error ;
-   s, s1, s2: String ;
-   r        : Compatible ;
+   n: Name ;
+   s: String ;
+   r: Compatible ;
 BEGIN
    r := IsCompatible(t1, t2, kind) ;
    IF (r#first) AND (r#second)
    THEN
       IF (r=warnfirst) OR (r=warnsecond)
       THEN
-         e := NewWarning(GetTokenNo())
+         s := InitString('{%1W}')
       ELSE
-         e := NewError(GetTokenNo())
+         s := InitString('')
       END ;
       IF IsUnknown(t1) AND IsUnknown(t2)
       THEN
-         ErrorFormat0(e, 'two different unknown types must be resolved (declared or imported)')
-      ELSIF IsUnknown(t1) OR IsUnknown(t2)
+         s := ConCat(s, InitString('two different unknown types {%1a:{%2a:{%1a} and {%2a}}} must either be declared or imported)')) ;
+         MetaErrorStringT2(GetTokenNo(), s, t1, t2)
+      ELSIF IsUnknown(t1)
       THEN
-         ErrorFormat0(e, 'a type must be declared or imported')
+         s := ConCat(s, InitString('this type {%1a} is currently unknown, it must be declared or imported')) ;
+         MetaErrorStringT1(GetTokenNo(), s, t1)
+      ELSIF IsUnknown(t2)
+      THEN
+         s := ConCat(s, InitString('this type {%1a} is currently unknown, it must be declared or imported')) ;
+         MetaErrorStringT1(GetTokenNo(), s, t2)
       ELSE
          IF (r=warnfirst) OR (r=warnsecond)
          THEN
-            EmitTypeIncompatibleWarning(e, kind)
+            EmitTypeIncompatibleWarning(kind, t1, t2)
          ELSE
-            EmitTypeIncompatibleError(e, kind)
+            EmitTypeIncompatibleError(kind, t1, t2)
          END
-      END ;
-
-      e := ChainError(GetTokenNo(), e) ;
-      s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(t1)))) ;
-      s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(t2)))) ;
-      s := Sprintf2(Mark(InitString('the two types are: %s and %s\n')),
-                    s1, s2) ;
-      ErrorString(e, s) ;
-      IF IsUnknown(t1)
-      THEN
-         e := ChainError(GetDeclared(t1), e) ;
-         n := GetSymName(t1) ;
-         ErrorFormat1(e, 'hint, %a, is unknown and perhaps should be declared or imported',
-                      n)
-      END ;
-
-      IF IsUnknown(t2)
-      THEN
-         e := ChainError(GetDeclared(t2), e) ;
-         n := GetSymName(t2) ;
-         ErrorFormat1(e, 'hint, %a, is unknown and perhaps should be declared or imported',
-                      n)
       END
    END
 END CheckCompatible ;
@@ -1356,16 +1336,12 @@ END IsParameterCompatible ;
 PROCEDURE MixMetaTypes (t1, t2: CARDINAL; NearTok: CARDINAL) : CARDINAL ;
 VAR
    mt1, mt2: MetaType ;
-   n1, n2  : Name ;
 BEGIN
    mt1 := FindMetaType(t1) ;
    mt2 := FindMetaType(t2) ;
    CASE Expr[mt1, mt2] OF
 
-   no        :  n1 := GetSymName(t1) ;
-                n2 := GetSymName(t2) ;
-                ErrorFormat2(NewError(NearTok),
-                             'type incompatibility between (%a) and (%a)', n1, n2) ;
+   no        :  MetaErrorT2(NearTok, 'type incompatibility between {%1as} and {%2as}', t1, t2) ;
                 FlushErrors  (* unrecoverable at present *) |
    warnfirst,
    first     :  RETURN( t1 ) |
