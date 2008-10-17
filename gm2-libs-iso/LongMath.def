@@ -4,7 +4,7 @@
 
    Copyright ISO/IEC (International Organization for Standardization
    and International Electrotechnical Commission) 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
+   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 *)
 
 DEFINITION MODULE LongMath;
 
@@ -17,10 +17,10 @@ CONST
 PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
   (* Returns the positive square root of x *)
 
-PROCEDURE exp (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ exp (x: LONGREAL): LONGREAL;
   (* Returns the exponential of x *)
 
-PROCEDURE ln (x: LONGREAL): LONGREAL;
+PROCEDURE __BUILTIN__ ln (x: LONGREAL): LONGREAL;
   (* Returns the natural logarithm of x *)
 
   (* The angle in all trigonometric functions is measured in radians *)

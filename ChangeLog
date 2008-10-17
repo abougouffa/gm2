@@ -32,6 +32,15 @@
 	  test whether constants are also temporary.
 	* gm2/gm2/gm2-libs/DynamicStrings.mod:  fixed off by
 	  one error in procedure, char.
+	* gm2/gm2/Make-lang.in:  added LongMath.mod to the list
+	  of ISO modules.
+	* gm2/gm2/gm2-libs/libm.def:  export floor, floorl,
+	  floorf, ceil, ceill and ceilf.
+	* gm2/gm2/gm2-libs-iso/LongMath.def:  fixed dates.
+	  Use exp and ln builtins.
+	* gm2/gm2/gm2-libs-iso/LongMath.mod:  implement
+	  builtins.  Finish non builtin equivalents of the
+	  procedures.
 	
 2008-10-15       Gaius Mulley <gaius@gnu.org>
 

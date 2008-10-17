@@ -27,16 +27,16 @@ BEGIN
    RETURN cbuiltin.sqrtl(x)
 END sqrt ;
 
-PROCEDURE exp (x: LONGREAL): LONGREAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_expl)) exp (x: LONGREAL): LONGREAL;
   (* Returns the exponential of x *)
 BEGIN
-   RETURN libm.help(x)
+   RETURN cbuiltin.expl(x)
 END exp ;
 
-PROCEDURE ln (x: LONGREAL): LONGREAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_logl)) ln (x: LONGREAL): LONGREAL;
   (* Returns the natural logarithm of x *)
 BEGIN
-   RETURN libm.help(x)
+   RETURN cbuiltin.logl(x)
 END ln ;
 
   (* The angle in all trigonometric functions is measured in radians *)
@@ -56,37 +56,37 @@ END cos ;
 PROCEDURE tan (x: LONGREAL): LONGREAL;
   (* Returns the tangent of x *)
 BEGIN
-   RETURN libm.tan(x)
+   RETURN libm.tanl(x)
 END tan ;
 
 PROCEDURE arcsin (x: LONGREAL): LONGREAL;
   (* Returns the arcsine of x *)
 BEGIN
-   RETURN libm.asin(x)
+   RETURN libm.asinl(x)
 END arcsin ;
 
 PROCEDURE arccos (x: LONGREAL): LONGREAL;
   (* Returns the arccosine of x *)
 BEGIN
-   RETURN libm.acos(x)
+   RETURN libm.acosl(x)
 END arccos ;
 
 PROCEDURE arctan (x: LONGREAL): LONGREAL;
   (* Returns the arctangent of x *)
 BEGIN
-   RETURN libm.atan(x)
+   RETURN libm.atanl(x)
 END arctan ;
 
 PROCEDURE power (base, exponent: LONGREAL): LONGREAL;
   (* Returns the value of the number base raised to the power exponent *)
 BEGIN
-   RETURN libm.pow(base, exponent)
+   RETURN libm.powl(base, exponent)
 END power ;
 
-PROCEDURE round (x: LONGREAL): INTEGER;
+PROCEDURE round (x: LONGREAL) : INTEGER;
   (* Returns the value of x rounded to the nearest integer *)
 BEGIN
-   RETURN TRUNC(x)  (* hmm we could provide access to the GNU Modula-2 built-in *)
+   RETURN TRUNC(x)
 END round ;
 
 PROCEDURE IsRMathException (): BOOLEAN;

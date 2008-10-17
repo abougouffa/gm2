@@ -39,7 +39,9 @@ EXPORT UNQUALIFIED sin, sinl, sinf,
                    atan, atanl, atanf,
                    exp, expl, expf,
                    log, logl, logf,
-                   pow, powl, powf ;
+                   pow, powl, powf,
+                   floor, floorl, floorf,
+                   ceil, ceill, ceilf ;
 
 PROCEDURE sin (x: REAL) : REAL ;
 PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
