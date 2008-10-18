@@ -1,6 +1,5 @@
 2008-10-18       Gaius Mulley <gaius@gnu.org>
 
-
 	* gm2/gm2/m2.flex:  corrected dates.
 	* gm2/gm2/gm2-compiler/M2Base.mod:  moved from M2Error
 	  handling to M2MetaError handling.
@@ -41,6 +40,9 @@
 	* gm2/gm2/gm2-libs-iso/LongMath.mod:  implement
 	  builtins.  Finish non builtin equivalents of the
 	  procedures.
+	* gm2/gm2-compiler/M2Base.mod:  simplified expression
+	  in IsBaseCompatible and corrected parameter type
+	  matix (ZType and normint).
 	
 2008-10-15       Gaius Mulley <gaius@gnu.org>
 

@@ -1090,8 +1090,7 @@ PROCEDURE IsBaseCompatible (t1, t2: CARDINAL;
 VAR
    mt1, mt2: MetaType ;
 BEGIN
-   IF ((kind=assignment) AND (t1=t2)) OR
-      ((kind=parameter) AND (t1=t2))
+   IF (t1=t2) AND ((kind=assignment) OR (kind=parameter))
    THEN
       RETURN( first )
    ELSE
@@ -1836,7 +1835,7 @@ BEGIN
    P(byte     , '. . T F 2 F F F F F F F F F F F F F F F F S F F F S F F F F F F F F F F S F F') ;
    P(address  , '. . . T F F F F F F F T F F F F F T T F F F F F F F F F F F F F F F F F F F F') ;
    P(chr      , '. . . . T F F F F F F F F F F F F F T F F F F F F F F F F F F F F F F F F F F') ;
-   P(normint  , '. . . . . T F F T F F F F F F F F F F F F T T T T T T T T F F F F F F F F F F') ;
+   P(normint  , '. . . . . T F F T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
    P(shortint , '. . . . . . T F F T F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
    P(longint  , '. . . . . . . T F F T F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
    P(normcard , '. . . . . . . . T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
