@@ -1,3 +1,9 @@
+2008-10-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  AttemptToCreateSetType
+	  modified parameter name and altered calls to this
+	  function accordingly.  Corrected set sized types.
+	
 2008-10-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/m2.flex:  corrected dates.

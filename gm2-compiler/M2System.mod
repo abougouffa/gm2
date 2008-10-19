@@ -171,10 +171,11 @@ END AttemptToCreateType ;
 
 
 (*
-   AttemptToCreateSetType - 
+   AttemptToCreateSetType - creates and returns a, SET OF [0..highBit], type.
+                            It maps this type onto the GCC type, t.
 *)
 
-PROCEDURE AttemptToCreateSetType (name, bits: ARRAY OF CHAR;
+PROCEDURE AttemptToCreateSetType (name, highBit: ARRAY OF CHAR;
                                   needsExporting: BOOLEAN; t: Tree) : CARDINAL ;
 VAR
    low,
@@ -190,7 +191,7 @@ BEGIN
       (* create base type *)
       type := MakeSet(MakeKey(name)) ;
       low := MakeConstLit(MakeKey('0')) ;
-      high := MakeConstLit(MakeKey(bits)) ;
+      high := MakeConstLit(MakeKey(highBit)) ;
       subrange := MakeSubrange(NulName) ;
       PutSubrange(subrange, low, high, Cardinal) ;
       PutSet(type, subrange) ;
@@ -223,9 +224,9 @@ BEGIN
    type := AttemptToCreateType('WORD32', '', '', TRUE, GetM2Word32()) ;
    type := AttemptToCreateType('WORD64', '', '', TRUE, GetM2Word64()) ;
 
-   type := AttemptToCreateSetType('BITSET8' , '8' , TRUE, GetM2Bitset8()) ;
-   type := AttemptToCreateSetType('BITSET16', '16', TRUE, GetM2Bitset16()) ;
-   type := AttemptToCreateSetType('BITSET32', '32', TRUE, GetM2Bitset32()) ;
+   type := AttemptToCreateSetType('BITSET8' , '7' , TRUE, GetM2Bitset8()) ;
+   type := AttemptToCreateSetType('BITSET16', '15', TRUE, GetM2Bitset16()) ;
+   type := AttemptToCreateSetType('BITSET32', '31', TRUE, GetM2Bitset32()) ;
 
    type := AttemptToCreateType('REAL32', '', '', TRUE, GetM2Real32()) ;
    type := AttemptToCreateType('REAL64', '', '', TRUE, GetM2Real64()) ;
