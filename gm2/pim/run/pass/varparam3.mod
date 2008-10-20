@@ -55,8 +55,7 @@ FROM SYSTEM IMPORT BITSET ;
    BEGIN
       WITH termio DO 
          WITH ctermio DO
-            t := inputmodes ;
-	    Convert(iflag1, iflag2, t);
+	    Convert(iflag1, iflag2, inputmodes);
 	 END;
       END;
       RETURN TRUE
