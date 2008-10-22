@@ -173,15 +173,45 @@ END then ;
 *)
 
 PROCEDURE doNumber (bol: CARDINAL; count: CARDINAL;
-                    sym: ARRAY OF CARDINAL; o: String) : String ;
+                    sym: ARRAY OF CARDINAL; o: String;
+                    VAR quotes: BOOLEAN) : String ;
 BEGIN
    IF (Length(o)>0) OR (count=0)
    THEN
       RETURN( o )
    ELSE
-      RETURN( ConCat(o, ctos(sym[bol], 0, TRUE)) )
+      quotes := FALSE ;
+      RETURN( ConCat(o, ctos(sym[bol], 0, ' ')) )
    END
 END doNumber ;
+
+
+(*
+   doCount - 
+*)
+
+PROCEDURE doCount (bol: CARDINAL; count: CARDINAL;
+                   sym: ARRAY OF CARDINAL; o: String;
+                   VAR quotes: BOOLEAN) : String ;
+BEGIN
+   IF (Length(o)>0) OR (count=0)
+   THEN
+      RETURN( o )
+   ELSE
+      quotes := FALSE ;
+      o := ConCat(o, ctos(sym[bol], 0, ' ')) ;
+      CASE sym[bol] MOD 10 OF
+
+      1:  o := ConCat(o, Mark(InitString('st'))) |
+      2:  o := ConCat(o, Mark(InitString('nd'))) |
+      3:  o := ConCat(o, Mark(InitString('rd'))) |
+
+      ELSE
+         o := ConCat(o, Mark(InitString('th')))
+      END ;
+      RETURN( o )
+   END
+END doCount ;
 
 
 PROCEDURE doAscii (bol: CARDINAL; count: CARDINAL;
@@ -431,13 +461,20 @@ END symDesc ;
    doDesc - 
 *)
 
-PROCEDURE doDesc (bol: CARDINAL; count: CARDINAL; sym: ARRAY OF CARDINAL; o: String) : String ;
+PROCEDURE doDesc (bol: CARDINAL; count: CARDINAL;
+                  sym: ARRAY OF CARDINAL; o: String;
+                  VAR quotes: BOOLEAN) : String ;
 BEGIN
    IF (Length(o)>0) OR (count=0)
    THEN
       RETURN( o )
    ELSE
-      RETURN( symDesc(sym[bol], o) )
+      o := symDesc(sym[bol], o) ;
+      IF Length(o)>0
+      THEN
+         quotes := FALSE
+      END ;
+      RETURN( o )
    END
 END doDesc ;
 
@@ -446,7 +483,7 @@ END doDesc ;
    addQuoted - if, o, is not empty then add it to, r.
 *)
 
-PROCEDURE addQuoted (r, o: String) : String ;
+PROCEDURE addQuoted (r, o: String; quotes: BOOLEAN) : String ;
 BEGIN
    IF Length(o)>0
    THEN
@@ -454,9 +491,15 @@ BEGIN
       THEN
          r := x(r, ConCatChar(r, " "))
       END ;
-      r := x(r, ConCatChar(r, "'")) ;
+      IF quotes
+      THEN
+         r := x(r, ConCatChar(r, "'"))
+      END ;
       r := x(r, ConCat(r, o)) ;
-      r := x(r, ConCatChar(r, "'"))
+      IF quotes
+      THEN
+         r := x(r, ConCatChar(r, "'"))
+      END
    END ;
    RETURN( r )
 END addQuoted ;
@@ -493,19 +536,22 @@ PROCEDURE op (VAR e: Error; VAR t: errorType;
               VAR i: INTEGER; l: INTEGER;
               bol: CARDINAL; positive: BOOLEAN) ;
 VAR
-   o: String ;
-   c: ARRAY [0..2] OF CARDINAL ;
+   o     : String ;
+   c     : ARRAY [0..2] OF CARDINAL ;
+   quotes: BOOLEAN ;
 BEGIN
    copySym(sym, c, HIGH(sym)) ;
    o := InitString('') ;
+   quotes := TRUE ;
    WHILE (i<l) AND (char(s, i)#'}') DO
       CASE char(s, i) OF
 
       'a':  o := x(o, doAscii(bol, count, sym, o)) |
       'q':  o := x(o, doQualified(bol, count, sym, o)) |
       't':  o := x(o, doType(bol, count, sym, o)) |
-      'd':  o := x(o, doDesc(bol, count, sym, o)) |
-      'n':  o := x(o, doNumber(bol, count, sym, o)) |
+      'd':  o := x(o, doDesc(bol, count, sym, o, quotes)) |
+      'n':  o := x(o, doNumber(bol, count, sym, o, quotes)) |
+      'N':  o := x(o, doCount(bol, count, sym, o, quotes)) |
       's':  o := x(o, doSkipType(bol, count, sym, o)) |
       'D':  e := doDeclared(e, t, bol, count, sym) |
       'U':  e := doUsed(e, t, bol, count, sym) |
@@ -526,7 +572,7 @@ BEGIN
       END ;
       INC(i) ;
    END ;
-   r := x(r, addQuoted(r, o)) ;
+   r := x(r, addQuoted(r, o, quotes)) ;
    o := KillString(o)
 END op ;
 

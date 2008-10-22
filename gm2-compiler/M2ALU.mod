@@ -3657,7 +3657,7 @@ BEGIN
       WITH res^ DO
          setValue := NIL ;
          n := 1 ;
-         WHILE GetRange(Set^.setValue, n, r1, r2) DO
+         WHILE GetRange(Set, n, r1, r2) DO
             setValue := AddRange(setValue,
                                  DupConstAndAdd(tokenno, r1, Shift),
                                  DupConstAndAdd(tokenno, r2, Shift)) ;
@@ -3671,7 +3671,7 @@ BEGIN
             SetAnd(tokenno)
          END
       END ;
-      Dispose(set)
+      Dispose(Set)
    END
 END SetShift ;
 
@@ -3740,7 +3740,7 @@ BEGIN
       WITH res^ DO
          setValue := NIL ;
          n := 1 ;
-         WHILE GetRange(Set^.setValue, n, r1, r2) DO
+         WHILE GetRange(Set, n, r1, r2) DO
             setValue := AddRange(setValue,
                                  DupConstAndAddMod(tokenno, r1, Rotate, l, h),
                                  DupConstAndAddMod(tokenno, r2, Rotate, l, h)) ;
@@ -3748,7 +3748,7 @@ BEGIN
          END
       END ;
       Push(res) ;
-      Dispose(set)
+      Dispose(Set)
    END
 END SetRotate ;
 

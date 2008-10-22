@@ -3242,6 +3242,7 @@ ident:
 		      return;
                     } else if (!strcicmp(curtokbuf, "__FUNCTION__")) {
 		      strcpy(curtokbuf, "some function");
+		      curtokint = strlen(curtokbuf);
 		      curtok = TOK_STRLIT;
 		      return;
 		    } else if (*curtokbuf == '%') {

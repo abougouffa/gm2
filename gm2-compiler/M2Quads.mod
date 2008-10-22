@@ -4022,6 +4022,7 @@ BEGIN
             printf2('%a: %a', n1, n2)
          END ;
          CallParam := OperandT(pi) ;
+         BuildRange(InitTypesParameterCheck(Proc, i, ParamI, CallParam)) ;
          IF IsConst(CallParam)
          THEN
             IF IsVarParam(Proc, i)
@@ -4116,6 +4117,9 @@ BEGIN
             MetaError3('parameter {%3n} in {%1dD} causes a mismatch it was declared as a {%2d}', ProcType, GetNth(ProcType, i), i) ;
             MetaError3('parameter {%3n} in {%1dD} causes a mismatch it was declared as a {%2d}', call, GetNth(call, i), i)
          END ;
+         BuildRange(InitTypesParameterCheck(CheckedProcedure, i,
+                                            GetParam(CheckedProcedure, i),
+                                            GetParam(ProcType, i))) ;
          CheckParameter(GetParam(CheckedProcedure, i), GetParam(ProcType, i), call, i, TypeList) ;
          INC(i)
       END

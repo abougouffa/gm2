@@ -25,6 +25,10 @@ FROM Strings IMPORT StrCpy, StrLen, StrCmp ;
 FROM SYSTEM IMPORT ADDRESS, ADR, BITSET ;
 FROM ASCII IMPORT nl, nul ;
 
+(* RTExceptions is not used in this module - but it is a
+   runtime module and it is required during linking *)
+IMPORT RTExceptions ;
+
 
 CONST
    MaxProcedures =   20 ;

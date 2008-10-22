@@ -24,6 +24,7 @@ FROM SymbolTable IMPORT NulSym, GetLowestType, PutReadQuad, RemoveReadQuad,
                         IsRecord, IsPointer, IsArray, IsProcType, IsConstLit,
                         IsAModula2Type, IsUnbounded, IsEnumeration, GetMode,
                         IsConstString, MakeConstLit, SkipType, IsProcedure,
+                        IsParameter,
                         ModeOfAddr ;
 
 FROM gccgm2 IMPORT Tree, GetMinFrom, GetMaxFrom, BuildSub,
@@ -41,7 +42,8 @@ FROM Storage IMPORT ALLOCATE ;
 FROM M2ALU IMPORT PushIntegerTree, ConvertToInt, Equ, Gre, Less ;
 FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorFormat2, ErrorString, FlushErrors ;
 
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2,
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
+                        MetaErrorT1, MetaErrorT2, MetaErrorT3,
                         MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
                         MetaErrorStringT1, MetaErrorStringT2 ;
 
@@ -63,6 +65,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    IsAssignmentCompatible,
                    IsParameterCompatible,
                    IsExpressionCompatible,
+                   IsValidParameter,
                    ExceptionAssign,
                    ExceptionInc, ExceptionDec,
                    ExceptionIncl, ExceptionExcl,
@@ -91,6 +94,8 @@ TYPE
                          expr,
                          desLowestType,
                          exprLowestType: CARDINAL ;
+                         procedure     : CARDINAL ;
+                         paramNo       : CARDINAL ;
                          isLeftValue   : BOOLEAN ;  (* is des an LValue,
                                                        only used in pointernil *)
                          tokenNo       : CARDINAL ;
@@ -358,6 +363,31 @@ END PutRangeUnary ;
 
 
 (*
+   PutRangeParam - initializes contents of, p, to contain the parameter
+                   type checking information.
+                   It also fills in the current token no
+                   and returns, p.
+*)
+
+PROCEDURE PutRangeParam (p: Range; t: TypeOfRange; proc: CARDINAL;
+                         i: CARDINAL; formal, actual: CARDINAL) : Range ;
+BEGIN
+   WITH p^ DO
+      type           := t ;
+      des            := formal ;
+      expr           := actual ;
+      desLowestType  := NulSym ;
+      exprLowestType := NulSym ;
+      procedure      := proc ;
+      paramNo        := i ;
+      isLeftValue    := FALSE ;
+      tokenNo        := GetTokenNo()
+   END ;
+   RETURN( p )
+END PutRangeParam ;
+
+
+(*
    InitAssignmentRangeCheck - returns a range check node which
                               remembers the information necessary
                               so that a range check for d := e
@@ -518,13 +548,14 @@ END InitTypesAssignmentCheck ;
                              and, e, are parameter compatible.
 *)
 
-PROCEDURE InitTypesParameterCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitTypesParameterCheck (proc: CARDINAL; i: CARDINAL;
+                                   formal, actual: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), typeparam, d, e) ;
+   p := PutRangeParam(GetIndice(RangeIndex, r), typeparam, proc, i, formal, actual) ;
    RETURN( r )
 END InitTypesParameterCheck ;
     
@@ -1089,6 +1120,129 @@ END FoldExcl ;
 
 
 (*
+   FoldTypeAssign - 
+*)
+
+PROCEDURE FoldTypeAssign (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL) ;
+BEGIN
+   IF IsAssignmentCompatible(GetType(des), GetType(expr))
+   THEN
+      SubQuad(q)
+   ELSE
+      IF IsProcedure(des)
+      THEN
+         MetaErrorsT2(tokenNo,
+                      'the return type {%1tad} declared in procedure {%1Da}',
+                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                      des, expr) ;
+      ELSE
+         MetaErrorT2(tokenNo,
+                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                     des, expr)
+      END ;
+      FlushErrors
+   END
+END FoldTypeAssign ;
+
+
+(*
+   FoldTypeParam - 
+*)
+
+PROCEDURE FoldTypeParam (q: CARDINAL; tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL) ;
+BEGIN
+   IF IsValidParameter(formal, actual)
+   THEN
+      SubQuad(q)
+   ELSE
+      MetaErrorT3(tokenNo,
+                  '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                  formal, actual, paramNo) ;
+      MetaError3('{%3N} parameter in procedure {%1Da} {%2a} has a type of {%2tad}',
+                 procedure, formal, paramNo) ;
+      FlushErrors
+   END
+END FoldTypeParam ;
+
+
+(*
+   FoldTypeExpr - 
+*)
+
+PROCEDURE FoldTypeExpr (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL) ;
+BEGIN
+   IF IsExpressionCompatible(GetType(des), GetType(expr))
+   THEN
+      SubQuad(q)
+   ELSE
+      MetaErrorT2(tokenNo,
+                  'expression of type {%1tad} is incompatible with type {%2tad}',
+                  des, expr) ;
+      FlushErrors
+   END
+END FoldTypeExpr ;
+
+
+
+(*
+   CodeTypeAssign - 
+*)
+
+PROCEDURE CodeTypeAssign (tokenNo: CARDINAL; des, expr: CARDINAL) ;
+BEGIN
+   IF NOT IsAssignmentCompatible(GetType(des), GetType(expr))
+   THEN
+      IF IsProcedure(des)
+      THEN
+         MetaErrorsT2(tokenNo,
+                      'the return type {%1tad} declared in procedure {%1Da}',
+                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                      des, expr) ;
+      ELSE
+         MetaErrorT2(tokenNo,
+                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
+                     des, expr)
+      END ;
+      FlushErrors
+   END
+END CodeTypeAssign ;
+
+
+(*
+   CodeTypeParam - 
+*)
+
+PROCEDURE CodeTypeParam (tokenNo: CARDINAL; formal, actual, procedure: CARDINAL; paramNo: CARDINAL) ;
+BEGIN
+   IF NOT IsValidParameter(formal, actual)
+   THEN
+      MetaErrorT3(tokenNo,
+                  '{%3N} actual parameter type {%2tasd} is incompatible with the formal parameter type {%1tasd}',
+                  formal, actual, paramNo) ;
+      MetaError3('{%3N} parameter of procedure {%1Da} {%2a} has a type of {%2tad}',
+                 procedure, formal, paramNo) ;
+      FlushErrors
+   END
+END CodeTypeParam ;
+
+
+(*
+   CodeTypeExpr - 
+*)
+
+PROCEDURE CodeTypeExpr (tokenNo: CARDINAL; des, expr: CARDINAL) ;
+BEGIN
+   IF NOT IsExpressionCompatible(GetType(des), GetType(expr))
+   THEN
+      MetaErrorT2(tokenNo,
+                  'expression of type {%1tad} is incompatible with type {%2tad}',
+                  des, expr) ;
+      FlushErrors
+   END
+END CodeTypeExpr ;
+
+
+(*
    FoldTypeCheck - folds a type check.  This is a no-op and it used
                    for checking types which are resolved post pass 3.
 *)
@@ -1101,49 +1255,55 @@ BEGIN
    WITH p^ DO
       DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
       DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
-      CASE type OF
+      IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
+          GccKnowsAbout(expr)
+      THEN
+         CASE type OF
 
-      typeassign:  IF IsAssignmentCompatible(GetType(des), GetType(expr))
-                   THEN
-                      SubQuad(q)
-                   ELSE
-                      IF IsProcedure(des)
-                      THEN
-                         MetaErrorsT2(tokenNo,
-                                      'the return type {%1tad} declared in procedure {%1Da}',
-                                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
-                                      des, expr) ;
-                      ELSE
-                         MetaErrorT2(tokenNo,
-                                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
-                                     des, expr)
-                      END ;
-                      FlushErrors
-                   END |
-      typeparam:   IF IsParameterCompatible(GetType(des), GetType(expr))
-                   THEN
-                      SubQuad(q)
-                   ELSE
-                      MetaErrorT2(tokenNo,
-                                  'actual parameter type {%2atasd} is incompatible with the formal parameter type {%1atasd}',
-                                  des, expr) ;
-                      FlushErrors
-                   END |
-      typeexpr:    IF IsExpressionCompatible(GetType(des), GetType(expr))
-                   THEN
-                      SubQuad(q)
-                   ELSE
-                      MetaErrorT2(tokenNo,
-                                  'expression of type {%1tad} is incompatible with type {%2tad}',
-                                  des, expr) ;
-                      FlushErrors
-                   END
+         typeassign:  FoldTypeAssign(q, tokenNo, des, expr) |
+         typeparam:   FoldTypeParam(q, tokenNo, des, expr, procedure, paramNo) |
+         typeexpr:    FoldTypeExpr(q, tokenNo, des, expr)
 
-      ELSE
-         InternalError('not expecting to reach this point', __FILE__, __LINE__)
+         ELSE
+            InternalError('not expecting to reach this point', __FILE__, __LINE__)
+         END
       END
    END
 END FoldTypeCheck ;
+
+
+(*
+   CodeTypeCheck - folds a type check.  This is a no-op and it used
+                   for checking types which are resolved post pass 3.
+                   It does assume that both, des, and, expr, have been
+                   resolved at this point.
+*)
+
+PROCEDURE CodeTypeCheck (tokenno: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
+          GccKnowsAbout(expr)
+      THEN
+         CASE type OF
+
+         typeassign:  CodeTypeAssign(tokenNo, des, expr) |
+         typeparam:   CodeTypeParam(tokenNo, des, expr, procedure, paramNo) |
+         typeexpr:    CodeTypeExpr(tokenNo, des, expr)
+
+         ELSE
+            InternalError('not expecting to reach this point', __FILE__, __LINE__)
+         END
+      ELSE
+         InternalError('expecting des and expr to be resolved', __FILE__, __LINE__)
+      END
+   END
+END CodeTypeCheck ;
 
 
 (*
@@ -2019,9 +2179,9 @@ BEGIN
       dec                  :  CodeDec(tokenNo, r, scopeDesc) |
       incl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
       excl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
-      typeassign           :  |
-      typeparam            :  |
-      typeexpr             :  |
+      typeassign           :  CodeTypeCheck(tokenNo, r) |
+      typeparam            :  CodeTypeCheck(tokenNo, r) |
+      typeexpr             :  CodeTypeCheck(tokenNo, r) |
       staticarraysubscript :  CodeStaticArraySubscript(tokenNo, r, scopeDesc) |
       dynamicarraysubscript:  CodeDynamicArraySubscript(tokenNo, r, scopeDesc) |
       forloopbegin         :  CodeForLoopBegin(tokenNo, r, scopeDesc) |

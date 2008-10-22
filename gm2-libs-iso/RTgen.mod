@@ -89,17 +89,17 @@ BEGIN
    WITH d^ DO
       IF getDID(g^.genif)#did
       THEN
-         RAISEdevException(cid, did, ORD(wrongDevice),
+         RAISEdevException(cid, did, wrongDevice,
                            'operation attempted on an invalid channel')
       END ;
       IF (cid=InvalidChan()) OR (cid=NIL)
       THEN
-         RAISEdevException(cid, did, ORD(wrongDevice),
+         RAISEdevException(cid, did, wrongDevice,
                            'operation attempted on an invalid channel')
       END ;
       IF d#DeviceTablePtrValue(cid, did, wrongDevice, 'channel and device mismatch')
       THEN
-         RAISEdevException(cid, did, ORD(wrongDevice),
+         RAISEdevException(cid, did, wrongDevice,
                            'operation attempted on an invalid channel')
       END
    END
@@ -119,15 +119,15 @@ BEGIN
          errNum := doGetErrno(g^.genif, d) ;
          IF ErrnoCategory.IsErrnoHard(errNum)
          THEN
-            RAISEdevException(cid, did, ORD(notAvailable),
+            RAISEdevException(cid, did, notAvailable,
                               'unrecoverable (errno)')
          ELSIF ErrnoCategory.UnAvailable(errNum)
          THEN
-            RAISEdevException(cid, did, ORD(notAvailable),
+            RAISEdevException(cid, did, notAvailable,
                               'unavailable (errno)')
          ELSIF errNum>0
          THEN
-            RAISEdevException(cid, did, ORD(notAvailable),
+            RAISEdevException(cid, did, notAvailable,
                               'recoverable (errno)')
          END
       END
@@ -148,7 +148,7 @@ BEGIN
          result := IOConsts.endOfInput ;
          IF raise
          THEN
-            RAISEdevException(cid, did, ORD(skipAtEnd),
+            RAISEdevException(cid, did, skipAtEnd,
                               'attempting to read beyond end of file')
          END
       ELSE
@@ -204,22 +204,22 @@ BEGIN
    WITH d^ DO
       IF (readFlag IN f) AND (NOT (readFlag IN flags))
       THEN
-         RAISEdevException(cid, did, ORD(wrongDevice),
+         RAISEdevException(cid, did, wrongDevice,
                            'attempting to read from a channel which was configured to write')
       END ;
       IF (writeFlag IN f) AND (NOT (writeFlag IN flags))
       THEN
-         RAISEdevException(cid, did, ORD(wrongDevice),
+         RAISEdevException(cid, did, wrongDevice,
                            'attempting to write to a channel which was configured to read')
       END ;
       IF (rawFlag IN f) AND (NOT (rawFlag IN flags))
       THEN
          IF readFlag IN flags
          THEN
-            RAISEdevException(cid, did, ORD(notAvailable),
+            RAISEdevException(cid, did, notAvailable,
                               'attempting to read raw LOCs from a channel which was configured to read text')
          ELSE
-            RAISEdevException(cid, did, ORD(notAvailable),
+            RAISEdevException(cid, did, notAvailable,
                               'attempting to write raw LOCs from a channel which was configured to write text')
          END
       END
@@ -347,7 +347,7 @@ BEGIN
       THEN
          checkErrno(g, d) ;
          (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, ORD(notAvailable),
+         RAISEdevException(cid, did, notAvailable,
                            'textread unrecoverable errno')
       END ;
       checkPostRead(g, d)
@@ -375,7 +375,7 @@ BEGIN
       THEN
          checkErrno(g, d) ;
          (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, ORD(notAvailable),
+         RAISEdevException(cid, did, notAvailable,
                            'textwrite unrecoverable errno')
       END ;
       checkPostWrite(g, d)
@@ -398,7 +398,7 @@ BEGIN
       THEN
          checkErrno(g, d) ;
          (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, ORD(notAvailable),
+         RAISEdevException(cid, did, notAvailable,
                            'rawread unrecoverable errno')
       END ;
       checkPostRead(g, d)
@@ -426,7 +426,7 @@ BEGIN
       THEN
          checkErrno(g, d) ;
          (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, ORD(notAvailable),
+         RAISEdevException(cid, did, notAvailable,
                            'rawwrite unrecoverable errno')
       END ;
       checkPostWrite(g, d)

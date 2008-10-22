@@ -326,7 +326,7 @@ BEGIN
          END
       END
    ELSE
-      RAISEdevException(cid, did, ORD(IOChan.wrongDevice),
+      RAISEdevException(cid, did, IOChan.wrongDevice,
                         'SeqFile.' + __FUNCTION__ +
                         ': channel is not a sequential file')
    END
@@ -362,7 +362,7 @@ BEGIN
          END
       END
    ELSE
-      RAISEdevException(cid, did, ORD(IOChan.wrongDevice),
+      RAISEdevException(cid, did, IOChan.wrongDevice,
                         'SeqFile.' + __FUNCTION__ +
                         ': channel is not a sequential file')
    END
@@ -404,7 +404,7 @@ BEGIN
       UnMakeChan(did, cid) ;
       cid := IOChan.InvalidChan()
    ELSE
-      RAISEdevException(cid, did, ORD(IOChan.wrongDevice),
+      RAISEdevException(cid, did, IOChan.wrongDevice,
                         'SeqFile.' + __FUNCTION__ +
                         ': channel is not a sequential file')
    END

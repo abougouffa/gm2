@@ -184,6 +184,9 @@ BEGIN
    WriteString(StdOut, '    the list of runtime modules can be specified as follows -fruntime-modules=module1,module2,module3') ; WriteLine(StdOut) ;
    WriteString(StdOut, '    the default for this flag is -fruntime-modules=') ;
    WriteString(StdOut, DefaultRuntimeModules) ; WriteLine(StdOut) ;
+   WriteString(StdOut, '    Note that the list of runtime modules does not mean they will appear in the executable') ; WriteLine(StdOut) ;
+   WriteString(StdOut, '    a runtime module is only included into the final executable if it is required,') ; WriteLine(StdOut) ;
+   WriteString(StdOut, '    however gm2lorder will ensure the order of these modules.') ; WriteLine(StdOut) ;
    FlushBuffer(StdOut) ;
    exit(0)
 END Usage ;

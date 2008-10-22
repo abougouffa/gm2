@@ -429,7 +429,7 @@ BEGIN
       UnMakeChan(did, cid) ;
       cid := InvalidChan()
    ELSE
-      RAISEdevException(cid, did, ORD(wrongDevice),
+      RAISEdevException(cid, did, wrongDevice,
                         'ClientSocket.' + __FUNCTION__ +
                         ': channel is not a socket stream')
    END

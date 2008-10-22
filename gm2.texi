@@ -1955,7 +1955,7 @@ assumes that the bash shell has been installed (as described above).
   mkdir host-build
   cd host-build
   env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
-      --with-system-zlib --disable-nls --enable-languages=c,gm2
+      --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
   gmake
 @end example
 
@@ -1968,7 +1968,7 @@ section's full configure line:
 
 @example
   env CONFIG_SHELL=/usr/local/bin/bash CC=gcc32 ../gcc-@var{version}/configure
-      --with-system-zlib --disable-nls --enable-languages=c,gm2
+      --with-system-zlib --disable-nls --enable-languages=c,c++,gm2
       --program-prefix=m2 --host=i386-gm2bld-freebsd5.3
 @end example
 

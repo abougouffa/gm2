@@ -60,6 +60,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  IsAssignmentCompatible,
                  IsExpressionCompatible,
                  IsParameterCompatible,
+                 IsValidParameter,
                  AssignmentRequiresWarning,
                  IsMathType,
                  IsRealType,
@@ -239,11 +240,22 @@ PROCEDURE IsExpressionCompatible (t1, t2: CARDINAL) : BOOLEAN ;
 
 
 (*
-   IsParameterCompatible - returns TRUE if t1 and t2 are expression
-                            compatible.
+   IsParameterCompatible - returns TRUE if types t1 and t2 are parameter
+                           compatible.
 *)
 
 PROCEDURE IsParameterCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsValidParameter - returns TRUE if an, actual, parameter can be passed
+                      to the, formal, parameter.   This differs from
+                      IsParameterCompatible as this procedure includes checks
+                      for unbounded formal parameters, var parameters and
+                      constant actual parameters.
+*)
+
+PROCEDURE IsValidParameter (formal, actual: CARDINAL) : BOOLEAN ;
 
 
 (*

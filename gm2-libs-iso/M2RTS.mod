@@ -256,7 +256,7 @@ END Length ;
 
 PROCEDURE AssignmentException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("variable exceeds range during assignment"))
 END AssignmentException ;
@@ -264,7 +264,7 @@ END AssignmentException ;
 
 PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("variable exceeds range during INC statement"))
 END IncException ;
@@ -272,7 +272,7 @@ END IncException ;
 
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("variable exceeds range during DEC statement"))
 END DecException ;
@@ -280,7 +280,7 @@ END DecException ;
 
 PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("bit exceeds set range during INCL statement"))
 END InclException ;
@@ -288,7 +288,7 @@ END InclException ;
 
 PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("bit exceeds set range during EXCL statement"))
 END ExclException ;
@@ -296,7 +296,7 @@ END ExclException ;
 
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.indexException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.indexException),
                       filename, line, column, scope,
                       ADR("array index out of bounds during static array access"))
 END StaticArraySubscriptException ;
@@ -304,7 +304,7 @@ END StaticArraySubscriptException ;
 
 PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.indexException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.indexException),
                       filename, line, column, scope,
                       ADR("array index out of bounds during dynamic array access"))
 END DynamicArraySubscriptException ;
@@ -312,7 +312,7 @@ END DynamicArraySubscriptException ;
 
 PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("iterator variable exceeds range during FOR loop initial assignment"))
 END ForLoopBeginException ;
@@ -320,7 +320,7 @@ END ForLoopBeginException ;
 
 PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("iterator variable exceeds range when calculating final value in FOR loop"))
 END ForLoopToException ;
@@ -328,7 +328,7 @@ END ForLoopToException ;
 
 PROCEDURE ForLoopEndException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.rangeException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
                       ADR("iterator variable exceeds range during increment at the end of a FOR loop"))
 END ForLoopEndException ;
@@ -336,7 +336,7 @@ END ForLoopEndException ;
 
 PROCEDURE PointerNilException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.invalidLocation,
+   RTExceptions.Raise(ORD(M2EXCEPTION.invalidLocation),
                       filename, line, column, scope,
                       ADR("attempting to dereference a NIL valued pointer"))
 END PointerNilException ;
@@ -344,7 +344,7 @@ END PointerNilException ;
 
 PROCEDURE NoReturnException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.functionException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.functionException),
                       filename, line, column, scope,
                       ADR("about to finish a PROCEDURE without executing a RETURN statement"))
 END NoReturnException ;
@@ -352,7 +352,7 @@ END NoReturnException ;
 
 PROCEDURE CaseException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.caseSelectException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.caseSelectException),
                       filename, line, column, scope,
                       ADR("the expression in the CASE statement cannot be selected"))
 END CaseException ;
@@ -360,7 +360,7 @@ END CaseException ;
 
 PROCEDURE WholeNonPosDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.wholeDivException),
                       filename, line, column, scope,
                       ADR("the division expression has a divisor which is less than or equal to zero"))
 END WholeNonPosDivException ;
@@ -368,7 +368,7 @@ END WholeNonPosDivException ;
 
 PROCEDURE WholeNonPosModException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.wholeDivException),
                       filename, line, column, scope,
                       ADR("the modulus expression has a divisor which is less than or equal to zero"))
 END WholeNonPosModException ;
@@ -376,7 +376,7 @@ END WholeNonPosModException ;
 
 PROCEDURE WholeZeroDivException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.wholeDivException),
                       filename, line, column, scope,
                       ADR("the division expression has a divisor which is equal to zero"))
 END WholeZeroDivException ;
@@ -384,7 +384,7 @@ END WholeZeroDivException ;
 
 PROCEDURE WholeZeroRemException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.wholeDivException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.wholeDivException),
                       filename, line, column, scope,
                       ADR("the remainder expression has a divisor which is equal to zero"))
 END WholeZeroRemException ;
@@ -392,7 +392,7 @@ END WholeZeroRemException ;
 
 PROCEDURE NoException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
-   RTExceptions.Raise(M2EXCEPTION.exException,
+   RTExceptions.Raise(ORD(M2EXCEPTION.exException),
                       filename, line, column, scope,
                       ADR("M2Expection was called when no there was no outstanding exception to be returned"))
 END NoException ;

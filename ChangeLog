@@ -1,3 +1,52 @@
+2008-10-22       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/Make-lang.in:  include library build directory
+	  when building gm2-libs-pim libraries.
+	* gm2/gm2.texi:  corrected documentation to include
+	  c++ in the list of languages needed to build GNU
+	  Modula-2.
+	* gm2/gm2-compiler/M2ALU.mod:  corrected four parameter
+	  errors.
+	* gm2/gm2-compiler/M2Base.def:  IsValidParameter new
+	  procedure.
+	* gm2/gm2-compiler/M2Base.mod:  IsValidParameter implement
+	  it and produce better error messages.  Fixed parameter
+	  compatibility between ZType and BYTE, WORD and ADDRESS.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  correct debugging
+	  information.
+	* gm2/gm2-compiler/M2MetaError.mod:  give ability of the
+	  error routines to handle %N (count) and also only quote
+	  symbol names.
+	* gm2/gm2-compiler/M2Quads.mod:  produce range checks
+	  for parameter passing.
+	* gm2/gm2-compiler/M2Range.def:  InitTypesParameterCheck
+	  modify parameters to fully specify which parameter,
+	  procedure, formal, actual parameters are being checked.
+	* gm2/gm2-compiler/M2Range.mod:  implement above.
+	* gm2/gm2-compiler/M2Reserved.mod:  corrected parameter
+	  passing to AddKeyword.
+	* gm2/gm2-compiler/SymbolTable.def:  extended
+	  IsNameAnonymous.
+	* gm2/gm2-compiler/SymbolTable.mod:  extended
+	  IsNameAnonymous.
+	* gm2/gm2-compiler/gm2lorder.mod:  improved the help message.
+	* gm2/gm2-libs/Debug.mod:  tidied up comments.
+	* gm2/gm2-libs/M2RTS.mod:  corrected parameters.
+	* gm2/gm2-libs/StrIO.def:  tidied up comments.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/M2EXCEPTION.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/M2RTS.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/RTgen.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/SeqFile.mod:  corrected parameters.
+	* gm2/gm2-libs-iso/StreamFile.mod:  corrected parameters.
+	* gm2/gm2-libs-pim/BitByteOps.mod:  corrected type changes
+	  by using fixed sized types.
+	* gm2/p2c/p2c-src/src/lex.c:  fixed bug when implementing
+	  __FUNCTION__ in p2c.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  import RTExceptions to
+	  aid linker.
+
 2008-10-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  AttemptToCreateSetType

@@ -52,248 +52,248 @@ BEGIN
    NulTok := NulName ;
 
    PlusTok := MakeKey('+') ;
-   AddKeyword(PlusTok, ORD(plustok)) ;
+   AddKeyword(PlusTok, plustok) ;
 
    MinusTok := MakeKey('-') ;
-   AddKeyword(MinusTok, ORD(minustok)) ;
+   AddKeyword(MinusTok, minustok) ;
 
    TimesTok := MakeKey('*') ;
-   AddKeyword(TimesTok, ORD(timestok)) ;
+   AddKeyword(TimesTok, timestok) ;
 
    DivideTok := MakeKey('/') ;
-   AddKeyword(DivideTok, ORD(dividetok)) ;
+   AddKeyword(DivideTok, dividetok) ;
 
    BecomesTok := MakeKey(':=') ;
-   AddKeyword(BecomesTok, ORD(becomestok)) ;
+   AddKeyword(BecomesTok, becomestok) ;
 
    AmbersandTok := MakeKey('&') ;
-   AddKeyword(AmbersandTok, ORD(ambersandtok)) ;
+   AddKeyword(AmbersandTok, ambersandtok) ;
 
    PeriodTok := MakeKey('.') ;
-   AddKeyword(PeriodTok, ORD(periodtok)) ;
+   AddKeyword(PeriodTok, periodtok) ;
 
    CommaTok := MakeKey(',') ;
-   AddKeyword(CommaTok, ORD(commatok)) ;
+   AddKeyword(CommaTok, commatok) ;
 
    SemiColonTok := MakeKey(';') ;
-   AddKeyword(SemiColonTok, ORD(semicolontok)) ;
+   AddKeyword(SemiColonTok, semicolontok) ;
 
    LParaTok := MakeKey('(') ;
-   AddKeyword(LParaTok, ORD(lparatok)) ;
+   AddKeyword(LParaTok, lparatok) ;
 
    LSBraTok := MakeKey('[') ;
-   AddKeyword(LSBraTok, ORD(lsbratok)) ;
+   AddKeyword(LSBraTok, lsbratok) ;
 
    LCBraTok := MakeKey('{') ;
-   AddKeyword(LCBraTok, ORD(lcbratok)) ;
+   AddKeyword(LCBraTok, lcbratok) ;
 
    UpArrowTok := MakeKey('^') ;
-   AddKeyword(UpArrowTok, ORD(uparrowtok)) ;
+   AddKeyword(UpArrowTok, uparrowtok) ;
 
    SingleQuoteTok := MakeKey("'") ;
-   AddKeyword(SingleQuoteTok, ORD(singlequotetok)) ;
+   AddKeyword(SingleQuoteTok, singlequotetok) ;
 
    EqualTok := MakeKey('=') ;
-   AddKeyword(EqualTok, ORD(equaltok)) ;
+   AddKeyword(EqualTok, equaltok) ;
 
    HashTok := MakeKey('#') ;
-   AddKeyword(HashTok, ORD(hashtok)) ;
+   AddKeyword(HashTok, hashtok) ;
 
    LessTok := MakeKey('<') ;
-   AddKeyword(LessTok, ORD(lesstok)) ;
+   AddKeyword(LessTok, lesstok) ;
 
    GreaterTok := MakeKey('>') ;
-   AddKeyword(GreaterTok, ORD(greatertok)) ;
+   AddKeyword(GreaterTok, greatertok) ;
 
    LessGreaterTok := MakeKey('<>') ;
-   AddKeyword(LessGreaterTok, ORD(lessgreatertok)) ;
+   AddKeyword(LessGreaterTok, lessgreatertok) ;
 
    LessEqualTok := MakeKey('<=') ;
-   AddKeyword(LessEqualTok, ORD(lessequaltok)) ;
+   AddKeyword(LessEqualTok, lessequaltok) ;
 
    GreaterEqualTok := MakeKey('>=') ;
-   AddKeyword(GreaterEqualTok, ORD(greaterequaltok)) ;
+   AddKeyword(GreaterEqualTok, greaterequaltok) ;
 
    PeriodPeriodTok := MakeKey('..') ;
-   AddKeyword(PeriodPeriodTok, ORD(periodperiodtok)) ;
+   AddKeyword(PeriodPeriodTok, periodperiodtok) ;
 
    ColonTok := MakeKey(':') ;
-   AddKeyword(ColonTok, ORD(colontok)) ;
+   AddKeyword(ColonTok, colontok) ;
 
    RParaTok := MakeKey(')') ;
-   AddKeyword(RParaTok, ORD(rparatok)) ;
+   AddKeyword(RParaTok, rparatok) ;
 
    RSBraTok := MakeKey(']') ;
-   AddKeyword(RSBraTok, ORD(rsbratok)) ;
+   AddKeyword(RSBraTok, rsbratok) ;
 
    RCBraTok := MakeKey('}') ;
-   AddKeyword(RCBraTok, ORD(rcbratok)) ;
+   AddKeyword(RCBraTok, rcbratok) ;
 
    BarTok := MakeKey('|') ;
-   AddKeyword(BarTok, ORD(bartok)) ;
+   AddKeyword(BarTok, bartok) ;
 
    DoubleQuotesTok := MakeKey('"') ;
-   AddKeyword(DoubleQuotesTok, ORD(doublequotestok)) ;
+   AddKeyword(DoubleQuotesTok, doublequotestok) ;
 
 
    AndTok := MakeKey('AND') ;
-   AddKeyword(AndTok, ORD(andtok)) ;
+   AddKeyword(AndTok, andtok) ;
 
    ArrayTok := MakeKey('ARRAY') ;
-   AddKeyword(ArrayTok, ORD(arraytok)) ;
+   AddKeyword(ArrayTok, arraytok) ;
 
    BeginTok := MakeKey('BEGIN') ;
-   AddKeyword(BeginTok, ORD(begintok)) ;
+   AddKeyword(BeginTok, begintok) ;
 
    ByTok := MakeKey('BY') ;
-   AddKeyword(ByTok, ORD(bytok)) ;
+   AddKeyword(ByTok, bytok) ;
 
    CaseTok := MakeKey('CASE') ;
-   AddKeyword(CaseTok, ORD(casetok)) ;
+   AddKeyword(CaseTok, casetok) ;
 
    ConstTok := MakeKey('CONST') ;
-   AddKeyword(ConstTok, ORD(consttok)) ;
+   AddKeyword(ConstTok, consttok) ;
 
    DefinitionTok := MakeKey('DEFINITION') ;
-   AddKeyword(DefinitionTok, ORD(definitiontok)) ;
+   AddKeyword(DefinitionTok, definitiontok) ;
 
    DivTok := MakeKey('DIV') ;
-   AddKeyword(DivTok, ORD(divtok)) ;
+   AddKeyword(DivTok, divtok) ;
 
    DoTok := MakeKey('DO') ;
-   AddKeyword(DoTok, ORD(dotok)) ;
+   AddKeyword(DoTok, dotok) ;
 
    ElseTok := MakeKey('ELSE') ;
-   AddKeyword(ElseTok, ORD(elsetok)) ;
+   AddKeyword(ElseTok, elsetok) ;
 
    ElsifTok := MakeKey('ELSIF') ;
-   AddKeyword(ElsifTok, ORD(elsiftok)) ;
+   AddKeyword(ElsifTok, elsiftok) ;
 
    EndTok := MakeKey('END') ;
-   AddKeyword(EndTok, ORD(endtok)) ;
+   AddKeyword(EndTok, endtok) ;
 
    ExitTok := MakeKey('EXIT') ;
-   AddKeyword(ExitTok, ORD(exittok)) ;
+   AddKeyword(ExitTok, exittok) ;
 
    ExceptTok := MakeKey('EXCEPT') ;
-   AddKeyword(ExceptTok, ORD(excepttok)) ;
+   AddKeyword(ExceptTok, excepttok) ;
 
    ExportTok := MakeKey('EXPORT') ;
-   AddKeyword(ExportTok, ORD(exporttok)) ;
+   AddKeyword(ExportTok, exporttok) ;
 
    FinallyTok := MakeKey('FINALLY') ;
-   AddKeyword(FinallyTok, ORD(finallytok)) ;
+   AddKeyword(FinallyTok, finallytok) ;
 
    ForTok := MakeKey('FOR') ;
-   AddKeyword(ForTok, ORD(fortok)) ;
+   AddKeyword(ForTok, fortok) ;
 
    FromTok := MakeKey('FROM') ;
-   AddKeyword(FromTok, ORD(fromtok)) ;
+   AddKeyword(FromTok, fromtok) ;
 
    IfTok := MakeKey('IF') ;
-   AddKeyword(IfTok, ORD(iftok)) ;
+   AddKeyword(IfTok, iftok) ;
 
    ImplementationTok := MakeKey('IMPLEMENTATION') ;
-   AddKeyword(ImplementationTok, ORD(implementationtok)) ;
+   AddKeyword(ImplementationTok, implementationtok) ;
 
    ImportTok := MakeKey('IMPORT') ;
-   AddKeyword(ImportTok, ORD(importtok)) ;
+   AddKeyword(ImportTok, importtok) ;
 
    InTok := MakeKey('IN') ;
-   AddKeyword(InTok, ORD(intok)) ;
+   AddKeyword(InTok, intok) ;
 
    LoopTok := MakeKey('LOOP') ;
-   AddKeyword(LoopTok, ORD(looptok)) ;
+   AddKeyword(LoopTok, looptok) ;
 
    ModTok := MakeKey('MOD') ;
-   AddKeyword(ModTok, ORD(modtok)) ;
+   AddKeyword(ModTok, modtok) ;
 
    ModuleTok := MakeKey('MODULE') ;
-   AddKeyword(ModuleTok, ORD(moduletok)) ;
+   AddKeyword(ModuleTok, moduletok) ;
 
    NotTok := MakeKey('NOT') ;
-   AddKeyword(NotTok, ORD(nottok)) ;
+   AddKeyword(NotTok, nottok) ;
 
    OfTok := MakeKey('OF') ;
-   AddKeyword(OfTok, ORD(oftok)) ;
+   AddKeyword(OfTok, oftok) ;
 
    OrTok := MakeKey('OR') ;
-   AddKeyword(OrTok, ORD(ortok)) ;
+   AddKeyword(OrTok, ortok) ;
 
    PointerTok := MakeKey('POINTER') ;
-   AddKeyword(PointerTok, ORD(pointertok)) ;
+   AddKeyword(PointerTok, pointertok) ;
 
    ProcedureTok := MakeKey('PROCEDURE') ;
-   AddKeyword(ProcedureTok, ORD(proceduretok)) ;
+   AddKeyword(ProcedureTok, proceduretok) ;
 
    QualifiedTok := MakeKey('QUALIFIED') ;
-   AddKeyword(QualifiedTok, ORD(qualifiedtok)) ;
+   AddKeyword(QualifiedTok, qualifiedtok) ;
 
    UnQualifiedTok := MakeKey('UNQUALIFIED') ;
-   AddKeyword(UnQualifiedTok, ORD(unqualifiedtok)) ;
+   AddKeyword(UnQualifiedTok, unqualifiedtok) ;
 
    RecordTok := MakeKey('RECORD') ;
-   AddKeyword(RecordTok, ORD(recordtok)) ;
+   AddKeyword(RecordTok, recordtok) ;
 
    RemTok := MakeKey('REM') ;
-   AddKeyword(RemTok, ORD(remtok)) ;
+   AddKeyword(RemTok, remtok) ;
 
    RepeatTok := MakeKey('REPEAT') ;
-   AddKeyword(RepeatTok, ORD(repeattok)) ;
+   AddKeyword(RepeatTok, repeattok) ;
 
    RetryTok := MakeKey('RETRY') ;
-   AddKeyword(RetryTok, ORD(retrytok)) ;
+   AddKeyword(RetryTok, retrytok) ;
 
    ReturnTok := MakeKey('RETURN') ;
-   AddKeyword(ReturnTok, ORD(returntok)) ;
+   AddKeyword(ReturnTok, returntok) ;
 
    SetTok := MakeKey('SET') ;
-   AddKeyword(SetTok, ORD(settok)) ;
+   AddKeyword(SetTok, settok) ;
 
    ThenTok := MakeKey('THEN') ;
-   AddKeyword(ThenTok, ORD(thentok)) ;
+   AddKeyword(ThenTok, thentok) ;
 
    ToTok := MakeKey('TO') ;
-   AddKeyword(ToTok, ORD(totok)) ;
+   AddKeyword(ToTok, totok) ;
 
    TypeTok := MakeKey('TYPE') ;
-   AddKeyword(TypeTok, ORD(typetok)) ;
+   AddKeyword(TypeTok, typetok) ;
 
    UntilTok := MakeKey('UNTIL') ;
-   AddKeyword(UntilTok, ORD(untiltok)) ;
+   AddKeyword(UntilTok, untiltok) ;
 
    VarTok := MakeKey('VAR') ;
-   AddKeyword(VarTok, ORD(vartok)) ;
+   AddKeyword(VarTok, vartok) ;
 
    WhileTok := MakeKey('WHILE') ;
-   AddKeyword(WhileTok, ORD(whiletok)) ;
+   AddKeyword(WhileTok, whiletok) ;
 
    WithTok := MakeKey('WITH') ;
-   AddKeyword(WithTok, ORD(withtok)) ;
+   AddKeyword(WithTok, withtok) ;
 
    AsmTok := MakeKey('ASM') ;
-   AddKeyword(AsmTok, ORD(asmtok)) ;
+   AddKeyword(AsmTok, asmtok) ;
 
    VolatileTok := MakeKey('VOLATILE') ;
-   AddKeyword(VolatileTok, ORD(volatiletok)) ;
+   AddKeyword(VolatileTok, volatiletok) ;
 
    DateTok := MakeKey('__DATE__') ;     (* C compatible preprocessor primatives *)
-   AddKeyword(DateTok, ORD(datetok)) ;
+   AddKeyword(DateTok, datetok) ;
 
    LineTok := MakeKey('__LINE__') ;
-   AddKeyword(LineTok, ORD(linetok)) ;
+   AddKeyword(LineTok, linetok) ;
 
    FileTok := MakeKey('__FILE__') ;
-   AddKeyword(FileTok, ORD(filetok)) ;
+   AddKeyword(FileTok, filetok) ;
 
    AttributeTok := MakeKey('__ATTRIBUTE__') ; (* GCC extension incorporated into gm2 *)
-   AddKeyword(AttributeTok, ORD(attributetok)) ;
+   AddKeyword(AttributeTok, attributetok) ;
 
    BuiltinTok := MakeKey('__BUILTIN__') ; (* GCC extension incorporated into gm2 *)
-   AddKeyword(BuiltinTok, ORD(builtintok)) ;
+   AddKeyword(BuiltinTok, builtintok) ;
 
    InlineTok := MakeKey('__INLINE__') ; (* GCC extension incorporated into gm2 *)
-   AddKeyword(InlineTok, ORD(inlinetok)) ;
+   AddKeyword(InlineTok, inlinetok) ;
 
    a[0] := eof ;
    a[1] := nul ;

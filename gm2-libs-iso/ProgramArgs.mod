@@ -96,12 +96,12 @@ BEGIN
          DEC(currentPos) ;
          IF ch#currentPtr^
          THEN
-            RAISEdevException(did, cid, notAvailable,
+            RAISEdevException(cid, did, notAvailable,
                               'ProgramArgs.unreadchar:  not allowed to overwrite argument data')
          END ;
          d^.result := allRight
       ELSE
-         RAISEdevException(did, cid, notAvailable,
+         RAISEdevException(cid, did, notAvailable,
                            'ProgramArgs.unreadchar:  attempting to move back beyond the start of argument data')
       END ;
       RETURN( ch )
@@ -155,7 +155,7 @@ PROCEDURE dowbytes (g: GenDevIF; d: DeviceTablePtr;
                     nBytes: CARDINAL;
                     VAR actual: CARDINAL) : BOOLEAN ;
 BEGIN
-   RAISEdevException(did, cid, notAvailable,
+   RAISEdevException(cid, did, notAvailable,
                      'ProgramArgs.dowbytes:  not allowed to write to this channel') ;
    RETURN( FALSE )
 END dowbytes ;
@@ -168,7 +168,7 @@ END dowbytes ;
 
 PROCEDURE dowriteln (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 BEGIN
-   RAISEdevException(did, cid, notAvailable,
+   RAISEdevException(cid, did, notAvailable,
                      'ProgramArgs.dowbytes:  not allowed to write to this channel') ;
    RETURN( FALSE )
 END dowriteln ;
@@ -205,7 +205,7 @@ BEGIN
       ch := doreadchar(g, d) ;
       IF ch#dounreadchar(g, d, ch)
       THEN
-         RAISEdevException(did, cid, hardDeviceError,
+         RAISEdevException(cid, did, hardDeviceError,
                            'ProgramArgs.iseoln:  internal inconsistancy error')
       END ;
       RETURN( ch=lf )

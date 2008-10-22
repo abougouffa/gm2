@@ -1949,7 +1949,8 @@ BEGIN
          printf0(' no shadow local variable')
       ELSE
          printf0(' shadow ') ;
-         PrintVerboseFromList(l, GetParameterShadowVar(sym))
+         IncludeType(l, GetParameterShadowVar(sym))
+         (* PrintVerboseFromList(l, GetParameterShadowVar(sym)) *)
       END ;
       IncludeType(l, sym)
    ELSIF IsPointer(sym)

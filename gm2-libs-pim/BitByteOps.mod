@@ -1,4 +1,4 @@
-(* Copyright (C) 2007 Free Software Foundation, Inc. *)
+(* Copyright (C) 2007, 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 
 IMPLEMENTATION MODULE BitByteOps ;
 
-FROM SYSTEM IMPORT BITSET, BYTE, ADR, SHIFT, ROTATE, TSIZE ;
+FROM SYSTEM IMPORT BITSET, BYTE, ADR, SHIFT, ROTATE, TSIZE, BITSET8, CARDINAL8 ;
 
 
 (*
@@ -147,10 +147,9 @@ PROCEDURE ByteSar (byte: BYTE; count: CARDINAL) : BYTE ;
 VAR
    b: BYTE ;
 BEGIN
-   IF MAX(BITSET) IN VAL(BITSET, byte)
+   IF MAX(BITSET8) IN VAL(BITSET8, byte)
    THEN
-      b := VAL(BYTE, SHIFT(VAL(BITSET, byte), count)) ;
-      SetBits(b, MAX(BITSET)-count, MAX(BITSET), -BITSET{}) ;
+      b := VAL(BYTE, SHIFT(VAL(BITSET, byte), count)+BITSET{MAX(BITSET8)}) ;
       RETURN b
    ELSE
       RETURN VAL(BYTE, SHIFT(VAL(BITSET, byte), count))
@@ -181,15 +180,13 @@ END ByteRol ;
 
 
 (*
-   HighByte - returns the top byte only from, byte.
-              The byte is returned in the bottom byte
-              in the return value.
+   HighHibble - returns the top nibble only from, byte,
+                in the lowest nibble position.
 *)
 
 PROCEDURE HighNibble (byte: BYTE) : BYTE ;
 BEGIN
-   RETURN VAL(BYTE, VAL(CARDINAL,
-                        VAL(BITSET, byte) * BITSET{4..7}) DIV 16)
+   RETURN VAL(BYTE, VAL(CARDINAL8, byte) DIV 16)
 END HighNibble ;
 
 

@@ -445,7 +445,8 @@ PROCEDURE CheckAnonymous (name: Name) : Name ;
 
 
 (*
-   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name.
+   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name
+                     or no name.
 *)
 
 PROCEDURE IsNameAnonymous (sym: CARDINAL) : BOOLEAN ;

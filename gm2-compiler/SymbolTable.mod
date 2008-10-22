@@ -813,15 +813,23 @@ END CheckAnonymous ;
 
 
 (*
-   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name.
+   IsNameAnonymous - returns TRUE if the symbol, sym, has an anonymous name
+                     or no name.
 *)
 
 PROCEDURE IsNameAnonymous (sym: CARDINAL) : BOOLEAN ;
 VAR
    a: ARRAY [0..1] OF CHAR ;
+   n: Name ;
 BEGIN
-   GetKey(GetSymName(sym), a) ;
-   RETURN( StrEqual(a, '$$') )
+   n := GetSymName(sym) ;
+   IF n=NulName
+   THEN
+      RETURN( TRUE )
+   ELSE
+      GetKey(n, a) ;
+      RETURN( StrEqual(a, '$$') )
+   END
 END IsNameAnonymous ;
 
 

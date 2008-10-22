@@ -31,7 +31,7 @@ BEGIN
    THEN
       RETURN( VAL(M2Exceptions, RTExceptions.GetNumber(RTExceptions.GetExceptionBlock())) )
    ELSE
-      RTExceptions.Raise(exException,
+      RTExceptions.Raise(ORD(exException),
                          ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
                          ADR('current coroutine is not in the exceptional execution state'))
    END

@@ -142,7 +142,7 @@ BEGIN
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
       p := DeviceTablePtrValue(c, did,
-                               ORD(IOChan.wrongDevice),
+                               IOChan.wrongDevice,
                                'StreamFile: cannot obtain device table pointer') ;
       WITH p^ DO
          flags := f ;
@@ -238,7 +238,7 @@ BEGIN
       UnMakeChan(did, cid) ;
       cid := IOChan.InvalidChan()
    ELSE
-      RAISEdevException(cid, did, ORD(IOChan.wrongDevice),
+      RAISEdevException(cid, did, IOChan.wrongDevice,
                         'StreamFile.' + __FUNCTION__ +
                         ': channel is not a sequential file')
    END

@@ -1497,7 +1497,7 @@ gm2/ulm-lib-gm2/std/%.o: gm2/ulm-lib-gm2/std/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(srcdir)/gm2/ulm-lib-gm2/std:$(srcdir)/gm2/ulm-lib-gm2/sys:$(srcdir)/gm2/gm2-libs $< -o $@
 
 gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@

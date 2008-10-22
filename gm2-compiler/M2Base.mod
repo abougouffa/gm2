@@ -31,13 +31,17 @@ IMPLEMENTATION MODULE M2Base ;
 FROM DynamicStrings IMPORT InitString, String, Mark, InitStringCharStar, ConCat ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM NameKey IMPORT MakeKey, WriteKey, KeyToCharStar ;
+FROM M2Debug IMPORT Assert ;
 FROM SYSTEM IMPORT WORD ;
 
 FROM M2Error IMPORT InternalError, FlushErrors ;
 FROM M2Pass IMPORT IsPassCodeGeneration ;
 FROM FormatStrings IMPORT Sprintf2 ;
 FROM StrLib IMPORT StrLen ;
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorT1, MetaErrorT2, MetaErrorStringT2, MetaErrorStringT1 ;
+
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrors3,
+                        MetaErrorT1, MetaErrorT2,
+                        MetaErrorStringT2, MetaErrorStringT1 ;
 
 FROM SymbolTable IMPORT ModeOfAddr,
                         MakeModule, MakeType, PutType,
@@ -59,7 +63,14 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         PutImported, GetExported,
                         PopSize, PopValue, PushValue,
                         FromModuleGetSym, GetSym,
-                        IsExportQualified, IsExportUnQualified ;
+                        IsExportQualified, IsExportUnQualified,
+                        IsParameter, IsParameterVar, IsUnbounded,
+                        IsConst, IsUnboundedParam,
+                        IsParameterUnbounded,  GetSubrange,
+                        IsArray, IsProcedure, IsConstString,
+                        IsVarient, IsRecordField, IsFieldVarient,
+                        GetArraySubscript, IsRecord, NoOfParam,
+                        GetNthParam, IsVarParam, GetNth ;
 
 FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ, Gre, Less ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
@@ -68,7 +79,8 @@ FROM M2Size IMPORT Size, MakeSize ;
 
 FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
                      IntegerN, CardinalN, WordN, SetN, RealN,
-                     IsCardinalN, IsIntegerN ;
+                     IsCardinalN, IsIntegerN,
+                     IsGenericSystemType ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
@@ -113,6 +125,9 @@ PROCEDURE InitCompatibilityMatrices ; FORWARD ;
 PROCEDURE IsCompatible (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
 PROCEDURE AfterResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
 PROCEDURE BeforeResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; FORWARD ;
+PROCEDURE IsSameType (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE IsPointerSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 TYPE
@@ -1170,6 +1185,270 @@ END IsCompatible ;
 
 
 (*
+   IsPointerSame - returns TRUE if pointers, a, and, b, are the same.
+*)
+
+PROCEDURE IsPointerSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+BEGIN
+   RETURN( IsSameType(SkipType(GetType(a)), SkipType(GetType(b)), error) )
+END IsPointerSame ;
+
+
+(*
+   IsSubrangeSame - checks to see whether the subranges are the same.
+*)
+
+PROCEDURE IsSubrangeSame (a, b: CARDINAL) : BOOLEAN ;
+VAR
+   al, ah,
+   bl, bh: CARDINAL ;
+BEGIN
+   a := SkipType(a) ;
+   b := SkipType(b) ;
+   IF a#b
+   THEN
+      GetSubrange(a, ah, al) ;
+      GetSubrange(b, bh, bl) ;
+      PushValue(al) ;
+      PushValue(bl) ;
+      IF NOT Equ(GetDeclared(a))
+      THEN
+         RETURN( FALSE )
+      END ;
+      PushValue(ah) ;
+      PushValue(bh) ;
+      IF NOT Equ(GetDeclared(a))
+      THEN
+         RETURN( FALSE )
+      END
+   END ;
+   RETURN( TRUE )
+END IsSubrangeSame ;
+
+
+(*
+   IsVarientSame - returns TRUE if varient types, a, and, b, are identical.
+*)
+
+PROCEDURE IsVarientSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+VAR
+   i, j  : CARDINAL ;
+   ta, tb,
+   fa, fb,
+   ga, gb: CARDINAL ;
+BEGIN
+   i := 1 ;
+   REPEAT
+      fa := GetNth(a, i) ;
+      fb := GetNth(b, i) ;
+      IF (fa#NulSym) AND (fb#NulSym)
+      THEN
+         Assert(IsFieldVarient(fa)) ;
+         Assert(IsFieldVarient(fb)) ;
+         j := 1 ;
+         REPEAT
+            ga := GetNth(fa, j) ;
+            gb := GetNth(fb, j) ;
+            IF (ga#NulSym) AND (gb#NulSym)
+            THEN
+               IF NOT IsSameType(GetType(ga), GetType(gb), error)
+               THEN
+                  RETURN( FALSE )
+               END ;
+               INC(j)
+            END
+         UNTIL (ga=NulSym) OR (gb=NulSym) ;
+         IF ga#gb
+         THEN
+            RETURN( FALSE )
+         END
+      END ;
+      INC(i)
+   UNTIL (fa=NulSym) OR (fb=NulSym) ;
+   RETURN( ga=gb )
+END IsVarientSame ;
+
+
+(*
+   IsRecordSame - 
+*)
+
+PROCEDURE IsRecordSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+VAR
+   ta, tb,
+   fa, fb: CARDINAL ;
+   i     : CARDINAL ;
+BEGIN
+   i := 1 ;
+   REPEAT
+      fa := GetNth(a, i) ;
+      fb := GetNth(b, i) ;
+      IF (fa#NulSym) AND (fb#NulSym)
+      THEN
+         ta := GetType(fa) ;
+         tb := GetType(fb) ;
+         IF IsRecordField(fa) AND IsRecordField(fb)
+         THEN
+            IF NOT IsSameType(ta, tb, error)
+            THEN
+               RETURN( FALSE )
+            END
+         ELSIF IsVarient(fa) AND IsVarient(fb)
+         THEN
+            IF NOT IsVarientSame(ta, tb, error)
+            THEN
+               RETURN( FALSE )
+            END
+      	 ELSIF IsFieldVarient(fa) OR IsFieldVarient(fb)
+      	 THEN
+            InternalError('should not see a field varient', __FILE__, __LINE__)
+         ELSE
+            RETURN( FALSE )
+      	 END
+      END ;
+      INC(i)
+   UNTIL (fa=NulSym) OR (fb=NulSym) ;
+   RETURN( fa=fb )
+END IsRecordSame ;
+
+
+(*
+   IsArraySame - 
+*)
+
+PROCEDURE IsArraySame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+VAR
+   s1, s2: CARDINAL ;
+BEGIN
+   s1 := GetArraySubscript(t1) ;
+   s2 := GetArraySubscript(t2) ;
+   RETURN( IsSameType(GetType(s1), GetType(s2), error) AND
+           IsSameType(GetType(t1), GetType(t2), error) )
+END IsArraySame ;
+
+
+(*
+   IsEnumerationSame - 
+*)
+
+PROCEDURE IsEnumerationSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+BEGIN
+   RETURN( t1=t2 )
+END IsEnumerationSame ;
+
+
+(*
+   IsSetSame - 
+*)
+
+PROCEDURE IsSetSame (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+BEGIN
+   RETURN( IsSameType(GetType(t1), GetType(t2), error) )
+END IsSetSame ;
+
+
+(*
+   IsSameType - returns TRUE if
+*)
+
+PROCEDURE IsSameType (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+BEGIN
+   t1 := SkipType(t1) ;
+   t2 := SkipType(t2) ;
+   IF t1=t2
+   THEN
+      RETURN( TRUE )
+   ELSIF IsArray(t1) AND IsArray(t2)
+   THEN
+      RETURN( IsArraySame(t1, t2, error) )
+   ELSIF IsSubrange(t1) AND IsSubrange(t2)
+   THEN
+      RETURN( IsSubrangeSame(t1, t2) )
+   ELSIF IsProcType(t1) AND IsProcType(t2)
+   THEN
+      RETURN( IsProcTypeSame(t1, t2, error) )
+   ELSIF IsEnumeration(t1) AND IsEnumeration(t2)
+   THEN
+      RETURN( IsEnumerationSame(t1, t2, error) )
+   ELSIF IsRecord(t1) AND IsRecord(t2)
+   THEN
+      RETURN( IsRecordSame(t1, t2, error) )
+   ELSIF IsSet(t1) AND IsSet(t2)
+   THEN
+      RETURN( IsSetSame(t1, t2, error) )
+   ELSIF IsPointer(t1) AND IsPointer(t2)
+   THEN
+      RETURN( IsPointerSame(t1, t2, error) )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsSameType ;
+
+
+(*
+   IsProcTypeSame - 
+*)
+
+PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+VAR
+   pa, pb: CARDINAL ;
+   n, i  : CARDINAL ;
+BEGIN
+   n := NoOfParam(p1) ;
+   IF n#NoOfParam(p2)
+   THEN
+      IF error
+      THEN
+         MetaError2('parameter is incompatible as {%1Dd} was declared with {%2n} parameters', p1, NoOfParam(p1)) ;
+         MetaError2('whereas {%1Dd} was declared with {%2n} parameters', p2, NoOfParam(p2))
+      END ;
+      RETURN( FALSE )
+   END ;
+   i := 1 ;
+   WHILE i<=n DO
+      pa := GetNthParam(p1, i) ;
+      pb := GetNthParam(p2, i) ;
+      IF IsVarParam(p1, i)#IsVarParam(p2, i)
+      THEN
+         IF error
+         THEN
+            MetaErrors3('the {%1n} parameter is incompatible between {%2Dad} and {%3ad} as only one was declared as VAR',
+                        'the {%1n} parameter is incompatible between {%2ad} and {%3Dad} as only one was declared as VAR',
+                        i, p1, p2)
+         END ;
+         RETURN( FALSE )
+      END ;
+      IF NOT IsSameType(GetType(pa), GetType(pb), error)
+      THEN
+         RETURN( FALSE )
+      END ;
+      INC(i)
+   END ;
+   RETURN( IsSameType(GetType(p1), GetType(p2), error) )
+END IsProcTypeSame ;
+
+
+(*
+   doProcTypeCheck - 
+*)
+
+PROCEDURE doProcTypeCheck (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
+BEGIN
+   IF IsProcType(p1) AND IsProcType(p2)
+   THEN
+      IF p1=p2
+      THEN
+         RETURN( TRUE )
+      ELSE
+         RETURN( IsProcTypeSame(p1, p2, error) )
+      END
+   ELSE
+      RETURN( FALSE )
+   END
+END doProcTypeCheck ;
+
+
+(*
    AfterResolved - a though test for type compatibility.
 *)
 
@@ -1199,14 +1478,19 @@ BEGIN
          set,
          set8,
          set16,
-         set32  :  RETURN( IsCompatible(GetType(t1), GetType(t2), kind) ) |
-         enum   :  IF t1=t2
+         set32  :  IF IsSetSame(t1, t2, FALSE)
                    THEN
                       RETURN( first )
                    ELSE
                       RETURN( no )
                    END |
-         pointer:  IF SkipType(GetType(t1))=SkipType(GetType(t2))
+         enum   :  IF IsEnumerationSame(t1, t2, FALSE)
+                   THEN
+                      RETURN( first )
+                   ELSE
+                      RETURN( no )
+                   END |
+         pointer:  IF IsPointerSame(t1, t2, FALSE)
                    THEN
                       RETURN( first )
                    ELSE
@@ -1319,7 +1603,7 @@ END IsExpressionCompatible ;
                            compatible.
 *)
 
-PROCEDURE IsParameterCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+PROCEDURE IsParameterCompatible (t1, t2: CARDINAL (* ; tokenNo: CARDINAL *) ) : BOOLEAN ;
 BEGIN
    RETURN(
           (IsCompatible(t1, t2, parameter)=first) OR
@@ -1457,6 +1741,71 @@ BEGIN
           (type=RType) OR (type=ZType)
          )
 END IsMathType ;
+
+
+(*
+   IsValidParameter - returns TRUE if an, actual, parameter can be passed
+                      to the, formal, parameter.  This differs from
+                      IsParameterCompatible as this procedure includes checks
+                      for unbounded formal parameters, var parameters and
+                      constant actual parameters.
+*)
+
+PROCEDURE IsValidParameter (formal, actual: CARDINAL (* ; tokenNo: CARDINAL *) ) : BOOLEAN ;
+VAR
+   at, ft: CARDINAL ;
+BEGIN
+   Assert(IsParameter(formal)) ;
+   Assert(IsPassCodeGeneration()) ;
+   IF IsConst(actual) AND IsParameterVar(formal)
+   THEN
+      RETURN( FALSE )
+   ELSE
+      IF IsParameterUnbounded(formal)
+      THEN
+         ft := SkipType(GetType(GetType(formal))) ;    (* ARRAY OF ft *)
+         IF IsGenericSystemType(ft) OR (GetType(formal)=GetType(actual))
+         THEN
+            RETURN( TRUE )
+         ELSE
+            IF IsParameter(actual) AND IsParameterUnbounded(actual)
+            THEN
+               (* ARRAY OF ...      GetType(GetType(actual)) *)
+               RETURN( IsParameterCompatible(GetType(GetType(actual)), ft) )
+            ELSE
+               IF IsConstString(actual)
+               THEN
+                  RETURN( IsParameterCompatible(Char, ft) )
+               ELSE
+                  at := SkipType(GetType(actual)) ;
+                  IF IsArray(at)
+                  THEN
+                     RETURN( IsParameterCompatible(GetType(at), ft) )
+                  ELSE
+                     RETURN( FALSE )
+                  END
+               END
+            END
+         END
+      ELSE
+         ft := GetType(formal)
+      END ;
+      IF IsProcType(ft)
+      THEN
+         IF IsProcedure(actual)
+         THEN
+            (* we check this by calling IsValidProcedure for each and every
+               parameter of actual and formal *)
+            RETURN( TRUE )
+         ELSE
+            at := SkipType(GetType(actual)) ;
+            RETURN( doProcTypeCheck(at, ft, TRUE) )
+         END
+      ELSE
+         RETURN( IsParameterCompatible(GetType(actual), ft) )
+      END
+   END
+END IsValidParameter ;
 
 
 (*
@@ -1831,9 +2180,9 @@ BEGIN
    W
    *)
    P(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F') ;
-   P(word     , '. T F W F 2 W W 2 W W W 2 W W W T T F W F F F F F F F F F F F F F F F F F F F') ;
-   P(byte     , '. . T F 2 F F F F F F F F F F F F F F F F S F F F S F F F F F F F F F F S F F') ;
-   P(address  , '. . . T F F F F F F F T F F F F F T T F F F F F F F F F F F F F F F F F F F F') ;
+   P(word     , '. T F W F 2 W W 2 W W W 2 W W W T T F W T F F F F F F F F F F F F F F F F F F') ;
+   P(byte     , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F S F F') ;
+   P(address  , '. . . T F F F F F F F T F F F F F T T F T F F F F F F F F F F F F F F F F F F') ;
    P(chr      , '. . . . T F F F F F F F F F F F F F T F F F F F F F F F F F F F F F F F F F F') ;
    P(normint  , '. . . . . T F F T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
    P(shortint , '. . . . . . T F F T F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
