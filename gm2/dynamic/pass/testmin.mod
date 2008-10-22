@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -14,6 +15,7 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE testmin ;
 
 
@@ -36,7 +38,7 @@ BEGIN
    WriteString('INTEGER  ') ; WriteCard(TSIZE(INTEGER), 8) ; WriteLn ;
    WriteString('INTEGER  ') ; WriteInt(MAX(INTEGER), 12) ; WriteInt(MIN(INTEGER), 12) ; WriteLn ;
    WriteString('CARDINAL ') ; WriteCard(MAX(CARDINAL), 12) ; WriteCard(MIN(CARDINAL), 12) ; WriteLn ;
-   WriteString('BOOLEAN  ') ; WriteCard(MAX(BOOLEAN), 12) ; WriteCard(MIN(BOOLEAN), 12) ; WriteLn ;
+   WriteString('BOOLEAN  ') ; WriteCard(VAL(CARDINAL, MAX(BOOLEAN)), 12) ; WriteCard(VAL(CARDINAL, MIN(BOOLEAN)), 12) ; WriteLn ;
    WriteString('BITSET   ') ; WriteCard(MAX(BITSET), 12) ; WriteCard(MIN(BITSET), 12) ; WriteLn ;
    FOR t := MIN(ColourCodes) TO MAX(ColourCodes) DO
 

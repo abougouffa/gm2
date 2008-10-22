@@ -41,5 +41,5 @@ END testing ;
 VAR
    token: colours ;
 BEGIN
-   testing({blue, green})
+   testing(myset{blue, green})
 END sets2.

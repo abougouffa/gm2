@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,17 +15,24 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE set11 ;
-
-FROM SYSTEM IMPORT ADDRESS ;
+MODULE stressset ;
 
 TYPE
-   hidden = ADDRESS ;
+   range = [low..nrBits] ;
 
-PROCEDURE Call (s: setof) ;
+PROCEDURE func (b: myset) ;
 BEGIN
-END Call ;
+   
+END func ;
+
+TYPE
+   myset = SET OF range ;
+
+CONST
+   nrBits = 64-foo ;
+   low    = nrBits-nrBits ;
+   foo    = 32 ;
 
 BEGIN
-   Call(setof{foo})
-END set11.
+   func(myset{})
+END stressset.

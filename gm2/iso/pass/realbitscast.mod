@@ -26,7 +26,7 @@ TYPE
     REAL32 = SHORTREAL;
     REAL64 = REAL;
 #if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
-    !(defined(__alpha__) && defined(__arch64__))
+    !(defined(__alpha__) && defined(__arch64__)) && !(defined(__i386__) && defined(__APPLE__))
     REAL96 = LONGREAL ;  (* on the __sparc__ SIZE(LONGREAL) = SIZE(REAL) *)
     (* and on the x86_64 LONGREAL is 128 bits *)
     (* this is also true for at least some alphas *)
@@ -39,7 +39,7 @@ VAR
     r32 : REAL32;
     r64 : REAL64;
 #if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
-    !(defined(__alpha__) && defined(__arch64__))
+    !(defined(__alpha__) && defined(__arch64__)) && !(defined(__i386__) && defined(__APPLE__))
     b96 : BITS96 ;
     r96 : REAL96 ;
 #endif
@@ -49,7 +49,7 @@ BEGIN
    b32 := CAST(BITS32,r32) ;
    b64 := CAST(BITS64,r64) ;
 #if !defined(__sparc__) && !defined(__x86_64) && !defined(__ppc__) && !defined(__ia64) && \
-    !(defined(__alpha__) && defined(__arch64__))
+    !(defined(__alpha__) && defined(__arch64__)) && !(defined(__i386__) && defined(__APPLE__))
    b96 := CAST(BITS96,r96)
 #endif
 END realbitscast.

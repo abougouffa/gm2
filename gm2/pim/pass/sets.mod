@@ -26,5 +26,5 @@ BEGIN
 END testing ;
 
 BEGIN
-   testing({blue, green})
+   testing(myset{blue, green})
 END sets.

@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,17 +15,15 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE set11 ;
+MODULE settype ;
 
-FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
-   hidden = ADDRESS ;
+   foo = SET OF colour ;
+   colour = (red, green, blue) ;
 
-PROCEDURE Call (s: setof) ;
+VAR
+   s: foo ;
 BEGIN
-END Call ;
-
-BEGIN
-   Call(setof{foo})
-END set11.
+   s := {1, 2}
+END settype.
