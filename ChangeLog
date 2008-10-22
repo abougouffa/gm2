@@ -1,3 +1,9 @@
+2008-10-22       Michael Lambert <lambert@psc.edu>
+
+	* testsuite/gm2/iso/pass/realbitscast.mod:  patch to
+	  turn off 64 bit tests on an i386 and Apple OSX
+	  combination.
+
 2008-10-22       Gaius Mulley <gaius@gnu.org>
 
         * gm2/Make-lang.in:  include library build directory
