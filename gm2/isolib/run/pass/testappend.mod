@@ -1,5 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
-   Free Software Foundation, Inc. *)
+(* Copyright (C) 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -16,17 +15,18 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE arrayhuge ;
+MODULE testappend;
+
+IMPORT Strings ;
+FROM libc IMPORT exit ;
 
 VAR
-   a: ARRAY [MAX(CARDINAL)-4..MAX(CARDINAL)] OF CHAR ;
-   i: CARDINAL ;
+   a: ARRAY [0..80] OF CHAR ;
 BEGIN
-   a[MAX(CARDINAL)-1] := 'd' ;
-(*
-   a[MAX(CARDINAL)-4] := 'a' ;
-   FOR i := MAX(CARDINAL)-4 TO MAX(CARDINAL) DO
-      a[i] := 'z'
+   a[0]:= CHR(0) ;
+   Strings.Append("some static string", a) ;
+   IF NOT Strings.Equal("some static string", a)
+   THEN
+      exit(1)
    END
-*)
-END arrayhuge.
+END testappend.
