@@ -1,3 +1,10 @@
+2008-10-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (EnsureImportedFrom)
+	  replaced with (GetQualidentImport).  Fixes a bug
+	  reported by Scott Iverson which was shown in
+	  testsuite/gm2/isolib/run/pass/testappend.mod.
+	  
 2008-10-22       Michael Lambert <lambert@psc.edu>
 
 	* testsuite/gm2/iso/pass/realbitscast.mod:  patch to

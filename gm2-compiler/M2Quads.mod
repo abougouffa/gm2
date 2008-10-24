@@ -413,7 +413,7 @@ PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
 PROCEDURE PushTFA (True, False, Array: WORD) ; FORWARD ;
-PROCEDURE EnsureImportedFrom (n, module: Name) : CARDINAL ; FORWARD ;
+PROCEDURE GetQualidentImport (n, module: Name) : CARDINAL ; FORWARD ;
 PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckVariablesAt (scope: CARDINAL) ; FORWARD ;
@@ -1634,7 +1634,7 @@ BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := EnsureImportedFrom(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      ProcSym := GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
       IF ProcSym#NulSym
       THEN
          old := MakeTemporary(RightValue) ;
@@ -1661,7 +1661,7 @@ BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := EnsureImportedFrom(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      ProcSym := GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
       IF ProcSym#NulSym
       THEN
          old := PopWord(PriorityStack) ;
@@ -1869,7 +1869,7 @@ VAR
    ProcSym: CARDINAL ;
 BEGIN
    (* now inform the Modula-2 runtime we are in the exception state *)
-   ProcSym := EnsureImportedFrom(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+   ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
    IF ProcSym=NulSym
    THEN
       ErrorString(NewWarning(GetTokenNo()),
@@ -1894,7 +1894,7 @@ VAR
    ProcSym: CARDINAL ;
 BEGIN
    (* now inform the Modula-2 runtime we are in the exception state *)
-   ProcSym := EnsureImportedFrom(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+   ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
    IF ProcSym#NulSym
    THEN
       IF destroy
@@ -6741,35 +6741,32 @@ END BuildHighFromChar ;
 
 
 (*
-   EnsureImportedFrom - checks to see whether the symbol, n, is already present
-                        and if absent then it imports the symbol from, module.
+   GetQualidentImport - returns the symbol as if it were qualified from, module.n.
+                        This is used to reference runtime support procedures and an
+                        error is generated if the symbol cannot be obtained.
 *)
 
-PROCEDURE EnsureImportedFrom (n: Name; module: Name) : CARDINAL ;
+PROCEDURE GetQualidentImport (n: Name; module: Name) : CARDINAL ;
 VAR
-   ProcSym: CARDINAL ;
+   ProcSym,
+   ModSym : CARDINAL ;
 BEGIN
-   ProcSym := GetSym(n) ;
-   IF ProcSym=NulSym
+   ModSym := MakeDefinitionSource(module) ;
+   IF ModSym=NulSym
    THEN
-      IF MakeDefinitionSource(module)=NulSym
-      THEN
-         WriteFormat2('module %a cannot be found and is needed to import %a', module, n) ;
-         FlushErrors ;
-         RETURN( NulSym )
-      END ;
-      IF (GetExported(MakeDefinitionSource(module), n)=NulSym) OR
-         IsUnknown(GetExported(MakeDefinitionSource(module), n))
-      THEN
-         WriteFormat2('module %a does not export procedure %a which is a necessary component of the runtime system, hint check the path and library/language variant', module, n) ;
-         FlushErrors ;
-         RETURN( NulSym )
-      END ;
-      PutImported(GetExported(MakeDefinitionSource(module), n)) ;
-      ProcSym := GetSym(n)
+      WriteFormat2('module %a cannot be found and is needed to import %a', module, n) ;
+      FlushErrors ;
+      RETURN( NulSym )
    END ;
-   RETURN( ProcSym )
-END EnsureImportedFrom ;
+   Assert(IsDefImp(ModSym)) ;
+   IF (GetExported(ModSym, n)=NulSym) OR IsUnknown(GetExported(ModSym, n))
+   THEN
+      WriteFormat2('module %a does not export procedure %a which is a necessary component of the runtime system, hint check the path and library/language variant', module, n) ;
+      FlushErrors ;
+      RETURN( NulSym )
+   END ;
+   RETURN( GetExported(MakeDefinitionSource(module), n) )
+END GetQualidentImport ;
 
 
 (*
@@ -6828,7 +6825,7 @@ BEGIN
          PopN(NoOfParam+1) ;
          PushT(ReturnVar)
       ELSE
-         ProcSym := EnsureImportedFrom(MakeKey('Length'), MakeKey('M2RTS')) ;
+         ProcSym := GetQualidentImport(MakeKey('Length'), MakeKey('M2RTS')) ;
          IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
          THEN
             PopT(NoOfParam) ;
