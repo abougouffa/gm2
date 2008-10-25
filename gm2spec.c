@@ -87,9 +87,9 @@ static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
 static void add_exec_prefix(int, int *in_argc, char ***in_argv);
-extern char *find_executable (const char *);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
+static const char *add_exec_dir (int argc, const char *argv[]);
 static void remove_arg (int i, int *in_argc, const char ***in_argv);
 static int is_object (const char *s);
 static void remember_object (const char *s);
@@ -542,11 +542,24 @@ no_link (int argc ATTRIBUTE_UNUSED, const char *argv[] ATTRIBUTE_UNUSED)
   return "";
 }
 
+/*
+ *  add_exec_dir - prepends the exec path to the given executable filename.
+ */
+
+static const char *
+add_exec_dir (int argc, const char *argv[])
+{
+  if (argc == 1 && argv[0] != NULL)
+    return find_executable (argv[0]);
+  return "";
+}
+
 /* Table of language-specific spec functions.  */ 
 const struct spec_function lang_specific_spec_functions[] =
 {
   { "objects", get_objects},
   { "nolink", no_link},
   { "linkargs", get_link_args},
+  { "exec_prefix", add_exec_dir},
   { NULL, NULL }
 };

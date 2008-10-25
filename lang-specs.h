@@ -26,7 +26,7 @@ Boston, MA 02110-1301, USA.  */
   {".mod", "@modula-2", 0, 0, 0},
   {"@modula-2",
       "%{c|S:%{fuselist:%{fsources:%eGNU Modula-2 does not know what to do with -fsources and -fuselist}} \
-           %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend \
+           %{!fmakelist:%{!fmodules:%{!gm2gcc:%{fcpp:cc1gm2 -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend \
                                                      %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
                                                      %{!fsyntax-only:%(invoke_as)}} \n\
                                                %{!fcpp:cc1gm2 %(cc1_options) %{f*} %{+e*} %{I*} %{MD} %{MMD} %{M} %{MM} %{MA} %{MT*} %{MF*} %i \
@@ -46,12 +46,12 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
       %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
       %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
-      %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
+      %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                      make -r -f %g.m } \n\
                                    %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                    make -r -f %g.m }}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
-                                             gm2l -fcppbegin cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
+                                             gm2l -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
                                              gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %g.lst -o %g.cpp \n\
                                              gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %g.cpp \n\

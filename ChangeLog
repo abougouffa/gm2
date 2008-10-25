@@ -1,3 +1,15 @@
+2008-10-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gm2spec.c:  (add_exec_dir) new function,
+	  add new function to list of gm2 spec functions.
+	* gm2/gm2/lang-specs.h:  use exec_prefix to find
+	  the executable cc1 when -fcpp is specified on the
+	  command line.
+	* gm2/examples/swig/strlen:  StrLib.def StrLib.i
+	  removed both files.
+	* gm2/patches/gcc/4.1.2/05.gaius_patch_gcc:  new
+	  patch file.
+
 2008-10-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (EnsureImportedFrom)
