@@ -1,6 +1,12 @@
 This file describes recent user-visible changes in gm2.  Bug fixes are
 not described.  There are more details in the man and info pages.
 
+VERSION 0.68
+============
+
+* more ISO library modules are implemented.
+* many errors are much more informative and indicate what the
+  compiler has seen and what it expects.
 
 VERSION 0.63
 ============

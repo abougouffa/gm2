@@ -90,8 +90,9 @@ BEGIN
 END round ;
 
 PROCEDURE IsRMathException (): BOOLEAN;
-  (* Returns TRUE if the current coroutine is in the exceptional execution state
-     because of the raising of an exception in a routine from this module; otherwise
+  (* Returns TRUE if the current coroutine is in the
+     exceptional execution state because of the raising
+     of an exception in a routine from this module; otherwise
      returns FALSE.
   *)
 BEGIN

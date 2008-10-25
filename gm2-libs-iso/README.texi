@@ -10,15 +10,16 @@ corresponding implementation modules.  All definition files except
 defined by the International Standard Information technology -
 programming languages BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base
 Language.  The Copyright to the definition files (except
-@file{M2RTS.def}, @file{RTio.def}, @file{RTgen.def},
-@file{RTgenif.def}, @file{RTfio.def}, @file{RTentity.def}
-@file{SimpleCipher.def} and @file{ErrnoCategory.def}) belong to
-ISO/IEC (International Organization for Standardization and
-International Electrotechnical Commission).  All implementation
-modules and @file{M2RTS.def}, @file{RTio.def}, @file{RTgen.def},
-@file{RTgenif.def}, @file{RTfio.def}, @file{RTentity.def},
-@file{SimpleCipher.def} and @file{ErrnoCategory.def} are Copyright of
-the FSF and are held under the LGPL.
+@file{ClientSocket}, @file{M2RTS.def}, @file{RTio.def},
+@file{RTgen.def}, @file{RTgenif.def}, @file{RTfio.def},
+@file{RTentity.def} @file{SimpleCipher.def} and
+@file{ErrnoCategory.def}) belong to ISO/IEC (International
+Organization for Standardization and International Electrotechnical
+Commission).  All implementation modules and @file{M2RTS.def},
+@file{RTio.def}, @file{RTgen.def}, @file{RTgenif.def},
+@file{RTfio.def}, @file{RTentity.def}, @file{SimpleCipher.def} and
+@file{ErrnoCategory.def} are Copyright of the FSF and are held under
+the LGPL.
 
 The ISO definition modules are allowed to be distributed with
 the compiler.
@@ -26,6 +27,7 @@ the compiler.
 The following implementation modules are complete:
 @code{ChanConsts}
 @code{CharClass}
+@code{ClientSocket}
 @code{ConvTypes}
 @code{EXCEPTIONS}
 @code{IOChan}
@@ -33,19 +35,22 @@ The following implementation modules are complete:
 @code{IOLink}
 @code{M2EXCEPTION}
 @code{M2RTS}
+@code{ProgramArgs}
+@code{RawIO}
+@code{RealMath}
 @code{RTdata}
 @code{RTentity}
 @code{RTfio}
 @code{RTgen}
 @code{RTgenif}
 @code{RTio}
-@code{RealMath}
 @code{SimpleCipher}
 @code{SeqFile}
 @code{StdChans}
 @code{StreamFile}
 @code{STextIO}
 @code{Storage}
+@code{StreamFile}
 @code{Strings}
 @code{SYSTEM}
 @code{TERMINATION}

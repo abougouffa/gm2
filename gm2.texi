@@ -16,7 +16,6 @@
 @setfilename gm2.info
 @set version-GM2     0.63
 @set version-GCC     4.1.2
-@set version-HARNESS 0.96
 @set version-GDB     6.6
 
 @settitle The GNU Modula-2 front end to GCC (gm2-@value{version-GM2})
@@ -36,14 +35,14 @@
 @sp 2
 @center Gaius Mulley
 @sp 3
-@center Last updated 30th September 2008
+@center Last updated 24th October 2008
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
-@c@sp 10
-@c@quotation
-@c``And then one day you find ten years have got behind you'', Pink Floyd
-@c@end quotation
+@sp 10
+@quotation
+``And then one day you find ten years have got behind you'', Pink Floyd
+@end quotation
 @c
 @vskip 0pt plus 1filll
 Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
@@ -1447,6 +1446,13 @@ object file containing @code{printf} must be present.
 @node h2def, Assembly language, Interface to C, Using
 @section Semi-automatic translation of C header files
 
+Huge caveat: @samp{h2def} is extremely alpha code and it is very much
+a work in progress.  As such it is likely to be heavily changed in the
+future.  The documentation for @samp{h2def} is included here for
+consistancy and also as this tool was used to produce the
+@file{pth.def} and @file{vga.def} modules.  Nevertheless it currently
+crashes when attempting to translate @file{stdio.h}.
+
 The tool @samp{h2def} can be used to semi-automatically generate
 @code{DEFINITION MODULE FOR "C"} modules. The tool takes as input a C
 header file and generates as output a corresponding textual definition
@@ -1919,9 +1925,25 @@ $ make check-gm2
 Depending on the speed of your computer these tests may take a while
 to complete.
 
+@section Building GNU Modula-2 under Cygwin
+
+The cygwin version used was gcc version 3.4.4, gdc 0.12 using dmd 0.125.
+The following set of commands were used to build GNU Modula-2.
+
+@example
+$ mkdir build
+$ cd build
+$ ../gcc-4.1.2+gm2-cvs-latest/configure --prefix=/gm2/opt \
+  --disable-multilib --enable-checking=all \
+  --enable-languages=c,c++,gm2
+$ make
+@end example
+
 @section Building GNU Modula-2 under FreeBSD
 
-[This section is out of date].
+[This section is out of date and has not been verified against
+gcc-@value{version-GCC} and GNU Modula-2 release
+gm2-@value{version-GM2}].
 
 When building GNU Modula-2 under FreeBSD, there are essentially three
 issues that need to be addressed.

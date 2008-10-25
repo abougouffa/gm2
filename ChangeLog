@@ -1,3 +1,17 @@
+2008-10-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/LongMath.mod:  tidied up comments.
+	* gm2/gm2-libs-iso/README.texi:  brought list of
+	  completed ISO modules up to date.
+	* gm2/gm2/NEWS:  document 0.68 changes in readiness
+	  for a release.
+	* gm2/gm2/gm2.texi:  (Building GNU Modula-2 under Cygwin)
+	  new section.  Tidied up some text.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  corrected SIZE
+	  to return ZType constant rather than CARDINAL constant.
+	* gm2/gm2/gm2-libs/SYSTEM.def:  corrected definition
+	  of SIZE.
+
 2008-10-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/gm2spec.c:  (add_exec_dir) new function,

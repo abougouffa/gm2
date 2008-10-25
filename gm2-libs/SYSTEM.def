@@ -48,7 +48,7 @@ TYPE
 PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
   (* Returns the address of variable v. *)
 
-PROCEDURE SIZE (v: <type>) : CARDINAL;
+PROCEDURE SIZE (v: <type>) : ZType;
   (* Returns the number of BYTES used to store a v of
      any specified <type>.
   *)

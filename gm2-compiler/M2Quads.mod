@@ -8135,7 +8135,7 @@ BEGIN
       ReturnVar := MakeConstLit(MakeKey('0'))
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
-   PushTF(ReturnVar, GetType(ProcSym))
+   PushTF(ReturnVar, ZType)
 END BuildSizeFunction ;
 
 
