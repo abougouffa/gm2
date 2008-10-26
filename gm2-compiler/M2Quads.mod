@@ -8135,7 +8135,7 @@ BEGIN
       ReturnVar := MakeConstLit(MakeKey('0'))
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
-   PushTF(ReturnVar, ZType)
+   PushTF(ReturnVar, GetType(ProcSym))
 END BuildSizeFunction ;
 
 
@@ -9321,8 +9321,7 @@ BEGIN
                                              (* pointer via NIL          *)
       PushTF(Sym2, Type2)
    ELSE
-      n1 := GetSymName(Sym1) ;
-      WriteFormat1('%a is not a variable or is not a pointer type', n1)
+      MetaError2('{%1ad} is not a pointer type but a {%2d}', Sym1, Type1)
    END
 END BuildDesignatorPointer ;
 

@@ -339,12 +339,12 @@ gm2.install-common: installdirs \
                       $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
             toolbase=`basename $$tool` ; \
             tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
-            if [ -f $$tool$(exeext) ]; then \
+            if [ -f $$tool ]; then \
               rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name$(exeext); \
-              $(INSTALL_PROGRAM) $$tool$(exeext) $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
+              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
               chmod a+x $(DESTDIR)$(libsubdir)/$$tool_transformed_name$(exeext); \
             else \
-              echo "odd cannot find $$tool$(exeext)" ; \
+              echo "odd cannot find $$tool" ; \
             fi ; \
           done ; \
 	fi ; \

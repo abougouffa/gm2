@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT NulSym,
 FROM M2Options IMPORT Iso, Pim2, Pedantic, DumpSystemExports ;
 FROM NameKey IMPORT Name, MakeKey, NulName ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
-FROM M2Base IMPORT Cardinal ;
+FROM M2Base IMPORT Cardinal, ZType ;
 FROM M2Size IMPORT Size, MakeSize ;
 FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2ALU IMPORT PushCard, PushIntegerTree, DivTrunc ;
@@ -273,7 +273,10 @@ VAR
    MinLoc, MaxLoc: CARDINAL ;
 BEGIN
    Loc := AttemptToCreateType('LOC', 'MinLoc', 'MaxLoc', TRUE, GetISOLocType()) ;
-   Address := AttemptToCreateType('ADDRESS', '', '', TRUE, GetPointerType()) ;
+
+   Address := MakePointer(MakeKey('ADDRESS')) ;
+   PutPointer(Address, Loc) ;                (* Base Type       *)
+   MapType(Address, 'ADDRESS', '', '', TRUE, GetPointerType()) ;
 
    Byte := AttemptToCreateType('BYTE', '', '', TRUE, GetISOByteType()) ;
    Word := AttemptToCreateType('WORD', '', '', TRUE, GetISOWordType()) ;
@@ -325,8 +328,8 @@ BEGIN
                                                   (* Address         *)
 
    TSize := MakeProcedure(MakeKey('TSIZE')) ;     (* Function        *)
-   PutFunction(TSize, Cardinal) ;                 (* Return Type     *)
-                                                  (* Cardinal        *)
+   PutFunction(TSize, ZType) ;                    (* Return Type     *)
+                                                  (* ZType           *)
 
    (* and the ISO specific predefined pseudo functions *)
 

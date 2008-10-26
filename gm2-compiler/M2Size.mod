@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2Size ;
 
 FROM NameKey IMPORT MakeKey ;
-FROM M2Base IMPORT Cardinal ;
+FROM M2Base IMPORT ZType ;
 
 FROM SymbolTable IMPORT NulSym, MakeProcedure, PutFunction,
                         AddSymToModuleScope, GetCurrentScope ;
@@ -33,8 +33,8 @@ BEGIN
    IF Size=NulSym
    THEN
       Size := MakeProcedure(MakeKey('SIZE')) ;       (* Function        *)
-      PutFunction(Size, Cardinal)                    (* Return Type     *)
-                                                     (* Cardinal        *)
+      PutFunction(Size, ZType)                       (* Return Type     *)
+                                                     (* ZType           *)
    ELSE
       AddSymToModuleScope(GetCurrentScope(), Size)
    END

@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -32,6 +33,7 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
                     ErrorAbort0, FlushErrors ;
 
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
@@ -5870,7 +5872,7 @@ BEGIN
    THEN
       n := GetSymName(Sym) ;
       e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-      ErrorFormat1(e, 'unknown symbol (%a)', n)
+      ErrorFormat1(e, "unknown symbol '%a'", n)
    END
 END UnknownSymbolError ;
 
@@ -5890,7 +5892,7 @@ BEGIN
    THEN
       CurrentError := NewError(GetTokenNo()) ;
       n := MakeKey(a) ;
-      ErrorFormat2(CurrentError, 'the following unknown symbols in module %a were %a',
+      ErrorFormat2(CurrentError, "the following unknown symbols in module '%a' were '%a'",
                    name, n) ;
       ForeachNodeDo(Tree, UnknownSymbolError)
    END
@@ -5908,7 +5910,7 @@ VAR
 BEGIN
    n := GetSymName(Sym) ;
    e := ChainError(GetFirstUsed(Sym), CurrentError) ;
-   ErrorFormat1(e, 'unknown symbol (%a) found', n)
+   ErrorFormat1(e, "unknown symbol '%a' found", n)
 END SymbolError ;
 
 
@@ -5926,7 +5928,7 @@ BEGIN
    THEN
       n1 := GetSymName(MainModule) ;
       n2 := MakeKey(a) ;
-      WriteFormat2('the following symbols are unknown at the end of module %a when %a',
+      WriteFormat2("the following symbols are unknown at the end of module '%a' when %a",
                    n1, n2) ;
       ForeachNodeDo(Tree, SymbolError) ;
    END
@@ -8211,32 +8213,22 @@ END CollectUnknown ;
 
 PROCEDURE ResolveImport (o: WORD) ;
 VAR
-   e     : Error ;
-   n, m,
    n1, n2: Name ;
    sym   : CARDINAL ;
 BEGIN
    IF DebugUnknowns
    THEN
-      n := GetSymName(o) ;
-      printf1('attempting to find out where %a was declared\n', n)
-   END ;
-   n1 := GetSymName(ResolveModule) ;
-   n2 := GetSymName(GetScope(ResolveModule)) ;
-   IF DebugUnknowns
-   THEN
+      n1 := GetSymName(o) ;
+      printf1('attempting to find out where %a was declared\n', n1) ;
+      n1 := GetSymName(ResolveModule) ;
+      n2 := GetSymName(GetScope(ResolveModule)) ;
       printf2('scope of module %a is %a\n', n1, n2)
    END ;
    sym := CollectUnknown(GetScope(ResolveModule), GetSymName(o)) ;
    IF sym=NulSym
    THEN
-      (* could be a user semantic error (when all debugged..) *)
-      n := GetSymName(o) ;
-      e := NewError(GetFirstUsed(o)) ;
-      m := GetSymName(ResolveModule) ;
-      ErrorFormat2(e,
-                   'unknown symbol (%a) found in IMPORT list of module (%a)',
-                   n, m)
+      MetaError2('unknown symbol {%1Uad} found in import list of module {%2a}',
+                 o, ResolveModule)
    ELSE
       AddSymToModuleScope(ResolveModule, sym)
    END

@@ -872,9 +872,9 @@ PROCEDURE EmitTypeIncompatibleError (kind: Compatability; t1, t2: CARDINAL) ;
 BEGIN
    CASE kind OF
 
-   expression:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} in an expression, hint one of the expressions should be converted', t1, t2) |
-   assignment:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} {%2as}}} during an assignment, hint maybe the expression should be converted', t1, t2) |
-   parameter :  MetaError2('type incompatibility found when passing a parameter {%1as:{%2as:between formal parameter and actual parameter types {%1as} {%2as}}}, hint the actual parameter should be converted', t1, t2)
+   expression:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} and {%2as}}} in an expression, hint one of the expressions should be converted', t1, t2) |
+   assignment:  MetaError2('type incompatibility found {%1as:{%2as:between types {%1as} and {%2as}}} during an assignment, hint maybe the expression should be converted', t1, t2) |
+   parameter :  MetaError2('type incompatibility found when passing a parameter {%1as:{%2as:between formal parameter and actual parameter types {%1as} and {%2as}}}, hint the actual parameter should be converted', t1, t2)
 
    ELSE
    END
@@ -2125,7 +2125,7 @@ BEGIN
    E(const    , 'T T T T T T T T T T T T T T T T T T F F T T T T T T T T T T T T T T T T F F F') ;
    E(word     , '. T F F F F F F F F F F F F F F F F F W F F F F F F F F F F F F F F F F F F F') ;
    E(byte     , '. . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
-   E(address  , '. . . T F P F F P F F T F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
+   E(address  , '. . . T F P F F P F F T F F F F F F F F P F F F F F F F F F F F F F F F F F F') ;
    E(chr      , '. . . . T F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F F') ;
    E(normint  , '. . . . . T F F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
    E(shortint , '. . . . . . T F F F F F F F F F F F F F 2 F F F F F F F F F F F F F F F F F F') ;
@@ -2182,7 +2182,7 @@ BEGIN
    P(const    , 'T T T T T T T T T T T T T T T T T T T F T T T T T T T T T T T T F F F F F F F') ;
    P(word     , '. T F W F 2 W W 2 W W W 2 W W W T T F W T F F F F F F F F F F F F F F F F F F') ;
    P(byte     , '. . T F 2 F F F F F F F F F F F F F F F T S F F F S F F F F F F F F F F S F F') ;
-   P(address  , '. . . T F F F F F F F T F F F F F T T F T F F F F F F F F F F F F F F F F F F') ;
+   P(address  , '. . . T F F F F F F F T F F F F F T T F P F F F F F F F F F F F F F F F F F F') ;
    P(chr      , '. . . . T F F F F F F F F F F F F F T F F F F F F F F F F F F F F F F F F F F') ;
    P(normint  , '. . . . . T F F T F F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;
    P(shortint , '. . . . . . T F F T F F F F F F F F F F 2 T T T T T T T T F F F F F F F F F F') ;

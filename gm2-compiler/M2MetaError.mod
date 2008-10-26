@@ -18,6 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2MetaError ;
 
 
+FROM M2Base IMPORT ZType, RType ;
 FROM NameKey IMPORT Name, KeyToCharStar, NulName ;
 FROM StrLib IMPORT StrLen ;
 FROM M2LexBuf IMPORT GetTokenNo ;
@@ -226,6 +227,28 @@ BEGIN
 END doAscii ;
    
 
+PROCEDURE doName (bol: CARDINAL; count: CARDINAL;
+                  sym: ARRAY OF CARDINAL; o: String; VAR quotes: BOOLEAN) : String ;
+BEGIN
+   IF (Length(o)>0) OR (count=0) OR IsTemporary(sym[bol]) OR IsNameAnonymous(sym[bol])
+   THEN
+      RETURN( o )
+   ELSE
+      IF sym[bol]=ZType
+      THEN
+         quotes := FALSE ;
+         RETURN( ConCat(o, Mark(InitString('the ZType'))) )
+      ELSIF sym[bol]=RType
+      THEN
+         quotes := FALSE ;
+         RETURN( ConCat(o, Mark(InitString('the RType'))) )
+      ELSE
+         RETURN( doAscii(bol, count, sym, o) )
+      END
+   END
+END doName ;
+   
+
 PROCEDURE doQualified (bol: CARDINAL; count: CARDINAL;
                        sym: ARRAY OF CARDINAL; o: String) : String ;
 VAR
@@ -421,12 +444,14 @@ BEGIN
    ELSIF IsPointer(sym)
    THEN
       RETURN( ConCatWord(o, Mark(InitString('pointer'))) )
-   ELSIF IsParameterVar(sym)
-   THEN
-      RETURN( ConCatWord(o, Mark(InitString('var parameter'))) )
    ELSIF IsParameter(sym)
    THEN
-      RETURN( ConCatWord(o, Mark(InitString('parameter'))) )
+      IF IsParameterVar(sym)
+      THEN
+         RETURN( ConCatWord(o, Mark(InitString('var parameter'))) )
+      ELSE
+         RETURN( ConCatWord(o, Mark(InitString('parameter'))) )
+      END
    ELSIF IsType(sym)
    THEN
       RETURN( ConCatWord(o, Mark(InitString('type'))) )
@@ -546,7 +571,7 @@ BEGIN
    WHILE (i<l) AND (char(s, i)#'}') DO
       CASE char(s, i) OF
 
-      'a':  o := x(o, doAscii(bol, count, sym, o)) |
+      'a':  o := x(o, doName(bol, count, sym, o, quotes)) |
       'q':  o := x(o, doQualified(bol, count, sym, o)) |
       't':  o := x(o, doType(bol, count, sym, o)) |
       'd':  o := x(o, doDesc(bol, count, sym, o, quotes)) |
