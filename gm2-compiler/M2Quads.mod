@@ -39,7 +39,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         RequestSym, MakePointer, PutPointer,
                         GetType, GetLowestType, SkipType,
                         GetScope, GetCurrentScope,
-                        GetSubrange,
+                        GetSubrange, SkipTypeAndSubrange,
                         GetModule, GetMainModule,
                         GetCurrentModule, GetFileModule, GetLocalSym,
                         GetStringLength, GetString,
@@ -8927,7 +8927,18 @@ BEGIN
          GenQuad(IndrXOp, e2, t2, e1) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
       ELSE
-         GenQuad(ReturnValueOp, e1, NulSym, CurrentProc)
+         IF IsConstString(e1) AND (SkipTypeAndSubrange(GetType(CurrentProc))#Char)
+         THEN
+            t2 := GetType(CurrentProc) ;
+            e2 := MakeTemporary(RightValue) ;
+            PutVar(e2, t2) ;
+            PushTF(e2, t2) ;
+            PushTF(e1, t1) ;
+            BuildAssignmentWithoutBounds(FALSE) ;
+            GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
+         ELSE
+            GenQuad(ReturnValueOp, e1, NulSym, CurrentProc)
+         END
       END
    END ;
    GenQuad(GotoOp, NulSym, NulSym, PopWord(ReturnStack)) ;
