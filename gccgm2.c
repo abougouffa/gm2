@@ -364,6 +364,7 @@ extern void gm2builtins_init                (void);
 extern tree gm2builtins_BuiltInHugeVal      (void);
 extern tree gm2builtins_BuiltInHugeValShort (void);
 extern tree gm2builtins_BuiltInHugeValLong  (void);
+extern tree gm2builtins_BuiltInMemCopy      (tree dest, tree src, tree bytes);
 extern void gm2except_InitExceptions        (void);
 
 
@@ -461,7 +462,7 @@ tree                   convert                                    (tree type, tr
 tree                   gccgm2_BuildCoerce                         (tree op1, tree op2, tree op3);
 void                   constant_expression_warning                (tree value);
 void                   overflow_warning                           (tree value);
-void                   gm2_unsigned_conversion_error              (tree result, tree operand, tree totype);
+void                   gm2_unsigned_conversion_error              (tree result, tree operand, tree totype ATTRIBUTE_UNUSED);
 tree                   convert_and_check                          (tree type, tree expr);
 tree                   build_conditional_expr                     (tree ifexp, tree op1, tree op2);
 tree                   shorten_compare                            (tree *op0_ptr, tree *op1_ptr,
@@ -806,7 +807,7 @@ static tree                   build_m2_bitset8_type_node                  (void)
 static void                   gccgm2_RememberVariables                    (tree l);
 static void                   gm2_write_global_declarations_2             (tree globals);
 #endif
-
+       tree                   gccgm2_BuildArrayStringConstructor          (tree arrayType, tree str, tree length);
 
   /* PROTOTYPES: ADD HERE */
   
@@ -3674,7 +3675,7 @@ overflow_warning (tree value)
    converted to an unsigned type.  */
 
 void
-gm2_unsigned_conversion_error (tree result, tree operand, tree totype)
+gm2_unsigned_conversion_error (tree result, tree operand, tree totype ATTRIBUTE_UNUSED)
 {
   tree type = TREE_TYPE (result);
 
@@ -7783,6 +7784,32 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
   }
 
   // printf("ending scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
+}
+
+/*
+ *  BuildArrayStringConstructor - creates an array constructor for, arrayType,
+ *                                consisting of the character elements
+ *                                defined by, str, of, length, characters.
+ */
+
+tree
+gccgm2_BuildArrayStringConstructor (tree arrayType, tree str, tree length)
+{
+  tree n;
+  tree type, val;
+  int i=0;
+  const char *p = TREE_STRING_POINTER (str);
+
+  type = skip_type_decl (TREE_TYPE (arrayType));
+  struct struct_constructor *c = gccgm2_BuildStartArrayConstructor (arrayType);
+  n = gccgm2_GetIntegerZero ();
+  while (gccgm2_CompareTrees (n, length) < 0) {
+    val = gccgm2_BuildConvert (type, gccgm2_BuildCharConstant ((char *)&p[i]), FALSE);
+    gccgm2_BuildArrayConstructorElement (c, val, n);
+    i += 1;
+    n = gccgm2_BuildAdd (n, gccgm2_GetIntegerOne (), FALSE);
+  }
+  return gccgm2_BuildEndArrayConstructor (c);
 }
 
 /*

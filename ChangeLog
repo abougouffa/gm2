@@ -1,3 +1,21 @@
+2008-10-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  BuildArrayStringConstructor (new function).
+	* gm2/gm2-compiler/M2GenGCC.mod:  DoCopyString remove
+	  redundant parameter.  BuildReturnValue check to see whether
+	  we are returning a constant string and if so call
+	  BuildArrayStringConstructor.
+	* gm2/gm2-compiler/M2LexBuf.mod:  add Assert to ensure
+	  that the CurrentTokeNo>=ListOfTokens.LastBucketOffset.
+	* gm2/gm2-compiler/M2Quads.mod:  revoke yesterdays
+	  changes to this file in an attempt to allow GM2/GCC
+	  to propagate the constant string further.
+	* gm2/gm2-compiler/gccgm2.def:  add
+	  BuildArrayStringConstructor to definition module.
+	* gm2/gm2-compiler/M2LexBuf.mod:  UpdateFromBucket (new
+	  function).  GetToken uses UpdateFromBucket and fixes
+	  a buffer overrun bug reported by Scott Robinson.
+
 2008-10-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  modified BuildReturn

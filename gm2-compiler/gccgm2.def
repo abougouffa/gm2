@@ -76,7 +76,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  InitFunctionTypeParameters,
                  BuildParameterDeclaration,
                  BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
-                 BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
+                 BuildStartFunctionCode, BuildEndFunctionCode,
+                 BuildReturnValueCode, BuildArrayStringConstructor,
                  BuildAssignmentTree,
                  BuildAdd, BuildSub, BuildMult,
                  BuildDivTrunc, BuildModTrunc,
@@ -842,6 +843,14 @@ PROCEDURE BuildStartFunctionCode (fndecl: Tree; isexported, isinline: BOOLEAN) ;
 *)
 
 PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: BOOLEAN) ;
+
+
+(*
+   BuildArrayStringConstructor - generates an array constructor consisting
+                                 of the first, n, characters, of, str.
+*)
+
+PROCEDURE BuildArrayStringConstructor (arrayType, str, n: Tree) : Tree ;
 
 
 (*

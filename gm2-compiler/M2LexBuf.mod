@@ -448,6 +448,27 @@ END DisplayToken ;
 
 
 (*
+   UpdateFromBucket - updates the global variables:  currenttoken,
+                      currentstring, currentcolumn and currentinteger
+                      from TokenBucket, b, and, offset.
+*)
+
+PROCEDURE UpdateFromBucket (b: TokenBucket; offset: CARDINAL) ;
+BEGIN
+   WITH b^.buf[offset] DO
+      currenttoken   := token ;
+      currentstring  := KeyToCharStar(str) ;
+      currentcolumn  := col ;
+      currentinteger := int ;
+      IF Debugging
+      THEN
+         printf3('line %d (# %d  %d) ', line, offset, CurrentTokNo) ;
+      END
+   END
+END UpdateFromBucket ;
+
+
+(*
    GetToken - gets the next token into currenttoken.
 *)
 
@@ -456,28 +477,12 @@ VAR
    a: ADDRESS ;
    t: CARDINAL ;
    b: TokenBucket ;
-   l: CARDINAL ;
 BEGIN
    IF UseBufferedTokens
    THEN
       t := CurrentTokNo ;
       b := FindTokenBucket(t) ;
-      WITH b^.buf[t] DO
-         currenttoken   := token ;
-         currentstring  := KeyToCharStar(str) ;
-         currentinteger := int ;
-         currentcolumn  := col ;
-         IF Debugging
-         THEN
-            l := line
-         END
-      END ;
-      IF Debugging
-      THEN
-         printf3('line %d (# %d  %d) ', l, t, CurrentTokNo) ;
-         DisplayToken
-      END ;
-      INC(CurrentTokNo)
+      UpdateFromBucket(b, t)
    ELSE
       IF ListOfTokens.tail=NIL
       THEN
@@ -487,27 +492,30 @@ BEGIN
             HALT
          END
       END ;
-      WITH ListOfTokens.tail^ DO
-         IF CurrentTokNo-ListOfTokens.LastBucketOffset<len
+      IF CurrentTokNo>=ListOfTokens.LastBucketOffset
+      THEN
+         (* CurrentTokNo is in the last bucket or needs to be read *)
+         IF CurrentTokNo-ListOfTokens.LastBucketOffset<ListOfTokens.tail^.len
          THEN
-            WITH buf[CurrentTokNo-ListOfTokens.LastBucketOffset] DO
-               currenttoken   := token ;
-               currentstring  := KeyToCharStar(str) ;
-               currentcolumn  := col ;
-               currentinteger := int
-            END ;
-            IF Debugging
-            THEN
-               printf1('# %d ', CurrentTokNo) ;
-               DisplayToken
-            END ;
-            INC(CurrentTokNo)
+            UpdateFromBucket(ListOfTokens.tail,
+                             CurrentTokNo-ListOfTokens.LastBucketOffset)
          ELSE
+            (* call the lexical phase to place a new token into the last bucket *)
             a := m2flex.GetToken() ;
-            GetToken
+            GetToken ; (* and call ourselves again to collect the token from bucket *)
+            RETURN
          END
+      ELSE
+         t := CurrentTokNo ;
+         b := FindTokenBucket(t) ;
+         UpdateFromBucket(b, t)
       END
-   END
+   END ;
+   IF Debugging
+   THEN
+      DisplayToken
+   END ;
+   INC(CurrentTokNo)
 END GetToken ;
 
 

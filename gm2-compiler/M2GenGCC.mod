@@ -137,7 +137,8 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    ChainOnParamValue, AddStringToTreeList,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
                    BuildCallInner,
-                   BuildStartFunctionCode, BuildEndFunctionCode, BuildReturnValueCode,
+                   BuildStartFunctionCode, BuildEndFunctionCode,
+                   BuildReturnValueCode,
                    BuildAssignmentTree, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -165,6 +166,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIfInRangeGoto, BuildIfNotInRangeGoto,
                    BuildForeachWordInSetDoIfExpr,
                    ConvertConstantAndCheck,
+                   BuildArrayStringConstructor,
                    AreConstantsEqual, CompareTrees,
                    DoJump,
                    BuildProcedureCallTree, BuildIndirectProcedureCallTree,
@@ -425,7 +427,7 @@ PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unboundedCount, n: CARDINAL) : String ; FORWARD ;
 PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
 PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
@@ -1785,9 +1787,18 @@ END CodeReturn ;
 *)
 
 PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL) ;
+VAR
+   t, op3t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, res) ;  (* checks to see whether it is a constant and declares it *)
-   BuildReturnValueCode(Mod2Gcc(Procedure), Mod2Gcc(res))
+   IF IsConstString(res) AND (SkipTypeAndSubrange(GetType(Procedure))#Char)
+   THEN
+      DoCopyString(t, op3t, GetType(Procedure), res) ;
+      t := BuildArrayStringConstructor(Mod2Gcc(GetType(Procedure)), op3t, t)
+   ELSE
+      t := Mod2Gcc(res)
+   END ;
+   BuildReturnValueCode(Mod2Gcc(Procedure), t)
 END CodeReturnValue ;
 
 
@@ -2531,7 +2542,7 @@ END FoldConstBecomes ;
                        providing it fits.
 *)
 
-PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op2, op3: CARDINAL) ;
+PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op3: CARDINAL) ;
 BEGIN
    Assert(IsArray(SkipType(op1t))) ;
    (* handle string assignments:
@@ -2587,7 +2598,7 @@ BEGIN
       AddModGcc(op1, CheckConstant(op1, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      DoCopyString(t, op3t, GetType(op1), op2, op3) ;
+      DoCopyString(t, op3t, GetType(op1), op3) ;
       AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                   BuildAddr(op3t, FALSE),
                                   t))
@@ -5495,7 +5506,7 @@ BEGIN
                                StringToChar(Mod2Gcc(op3), Char, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      DoCopyString(t, op3t, op2, op2, op3) ;
+      DoCopyString(t, op3t, op2, op3) ;
       AddStatement(BuiltInMemCopy(Mod2Gcc(op1), BuildAddr(op3t, FALSE), t))
    ELSE
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), Mod2Gcc(op2)),

@@ -1290,11 +1290,11 @@ be found in directory @file{../../../gm2-libs}.  The first command
 produces two files: @file{NumberIO.i} and @file{NumberIO.o}.  The file
 @file{NumberIO.o} is a position independant code object file whereas
 the file @file{NumberIO.i} is a swig interface file and contains a
-swig interpretation of the @file{NumberIO.def}.  GNU Modula-2 uses
-the same mechanism for handling exceptions as GNU C++.  The
-file @file{NumberIO.i} contains exception handling information therefore
-we need to ask @code{swig} to generate C++ wrappers for @file{NumberIO.mod}.
-This is achieved by:
+swig interpretation of the @file{NumberIO.def}.  GNU Modula-2 uses the
+same mechanism for handling exceptions as GNU C++.  The file
+@file{NumberIO.i} contains exception handling information therefore we
+need to ask @code{swig} to generate C++ wrappers for
+@file{NumberIO.mod}.  This is achieved by:
 
 @example
 $ swig -c++ -python NumberIO.i
