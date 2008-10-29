@@ -2543,14 +2543,6 @@ BEGIN
       Array := OperandA(1) ;
       PopT(Des) ;
       CheckCompatibleWithBecomes(Des) ;
-      IF checkTypes
-      THEN
-         IF (CannotCheckTypeInPass3(Des) OR CannotCheckTypeInPass3(Exp))
-         THEN
-            (* prompt post pass 3 to check the assignment once all types are resolved *)
-            BuildRange(InitTypesAssignmentCheck(Des, Exp))
-         END
-      END ;
       IF (GetType(Des)#NulSym) AND (NOT IsSet(SkipType(GetType(Des))))
       THEN
          (* tell code generator to test runtime values of assignment so ensure we
@@ -2562,6 +2554,13 @@ BEGIN
       MoveWithMode(Des, Exp, Array) ;
       IF checkTypes
       THEN
+         IF (CannotCheckTypeInPass3(Des) OR CannotCheckTypeInPass3(Exp))
+         THEN
+            (* we must do this after the assignment to allow the Designator to be
+               resolved (if it is a constant) before the type checking is done *)
+            (* prompt post pass 3 to check the assignment once all types are resolved *)
+            BuildRange(InitTypesAssignmentCheck(Des, Exp))
+         END ;
          CheckAssignCompatible(Des, Exp)
       END
    END

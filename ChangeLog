@@ -6,6 +6,10 @@
 	  The set type was incorrectly declared as a subrange.
 	* gm2/gm2-compiler/SymbolTable.mod:  tidied up more
 	  error messages.
+	* gm2/gm2-compiler/M2Quads.mod:  moved the assignment
+	  check after the BecomesOp, to ensure that during
+	  code generation we can check the types after a
+	  constant designator has been resolved.
 
 2008-10-28       Gaius Mulley <gaius@gnu.org>
 
