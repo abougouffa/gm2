@@ -1,3 +1,12 @@
+2008-10-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug in
+	  DeclareDefaultType which caused a segfault when using
+	  BITSET8, BITSET16, BITSET32 (reported by Scott Iverson).
+	  The set type was incorrectly declared as a subrange.
+	* gm2/gm2-compiler/SymbolTable.mod:  tidied up more
+	  error messages.
+
 2008-10-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  BuildArrayStringConstructor (new function).

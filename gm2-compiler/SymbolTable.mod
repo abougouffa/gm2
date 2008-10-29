@@ -5841,14 +5841,14 @@ BEGIN
                     CheckForUnknowns( name, ExportUnQualifiedTree,
                                       'EXPORT UNQUALIFIED' ) ;
                     CheckForSymbols ( ExportRequest,
-                                      'requested by another modules import (symbols have not been EXPORTed by the appropriate definition module)' ) ;
+                                      'requested by another modules import (symbols have not been exported by the appropriate definition module)' ) ;
                     CheckForUnknowns( name, Unresolved, 'unresolved' ) ;
                     CheckForUnknowns( name, LocalSymbols, 'locally used' )
                  END |
       ModuleSym: WITH Module DO
                     CheckForUnknowns( name, Unresolved, 'unresolved' ) ;
-                    CheckForUnknowns( name, ExportUndeclared, 'EXPORTed but undeclared' ) ;
-                    CheckForUnknowns( name, ExportTree, 'EXPORTed but undeclared' ) ;
+                    CheckForUnknowns( name, ExportUndeclared, 'exported but undeclared' ) ;
+                    CheckForUnknowns( name, ExportTree, 'exported but undeclared' ) ;
                     CheckForUnknowns( name, LocalSymbols, 'locally used' )
                  END
 
@@ -6026,7 +6026,7 @@ END CheckForExportedDeclaration ;
 
 (*
    CheckForUndeclaredExports - displays an error and the offending symbols
-                               which have been EXPORTed but not declared
+                               which have been exported but not declared
                                from module, ModSym.
 *)
 
@@ -6206,7 +6206,7 @@ END CheckForExportedImplementation ;
 
 (*
    CheckForUnImplementedExports - displays an error and the offending symbols
-                                  which have been EXPORTed but not implemented
+                                  which have been exported but not implemented
                                   from the current compiled module.
 *)
 

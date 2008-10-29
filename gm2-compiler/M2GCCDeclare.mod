@@ -1343,17 +1343,20 @@ END DeclareFileName ;
 
 PROCEDURE DeclareFixedSizedType (name: ARRAY OF CHAR; type: CARDINAL; t: Tree) ;
 VAR
+   typetype,
    low, high: CARDINAL ;
 BEGIN
    IF type#NulSym
    THEN
       IF IsSet(type) AND (NOT GccKnowsAbout(GetType(type)))
       THEN
-         GetSubrange(GetType(type), high, low) ;
+         typetype := GetType(type) ;
+         GetSubrange(typetype, high, low) ;
          DeclareConstant(GetDeclared(type), high) ;
          DeclareConstant(GetDeclared(type), low) ;
-         PreAddModGcc(GetType(type), BuildSubrangeType(KeyToCharStar(GetFullSymName(type)),
-                                                       Mod2Gcc(GetType(GetType(type))), Mod2Gcc(low), Mod2Gcc(high)))
+         PreAddModGcc(typetype, BuildSubrangeType(KeyToCharStar(GetFullSymName(typetype)),
+                                                  Mod2Gcc(GetType(typetype)),
+                                                  Mod2Gcc(low), Mod2Gcc(high)))
       END ;
       (* gcc back end supports, type *)
       DeclareDefaultType(type, name, t)
