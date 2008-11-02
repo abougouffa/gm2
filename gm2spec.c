@@ -331,14 +331,17 @@ get_style (flag_set flags)
 }
 
 /*
- *  add_lib - add, lib, to the front of the command line.
+ *  add_lib - add, lib, to the end of the command line.
  */
 
 static void
 add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 {
-  insert_arg (1, in_argc, (char ***)in_argv);
-  add_arg (1, (char ***)in_argv, lib);
+  int end = *in_argc;
+
+  end = 1;
+  insert_arg (end, in_argc, (char ***)in_argv);
+  add_arg (end, (char ***)in_argv, lib);
 }
 
 static void
@@ -455,7 +458,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
   if (linking) {
     add_lib(in_argc, in_argv, "-lstdc++");
+#if defined(ENABLE_SHARED_LIBGCC)
     add_lib(in_argc, in_argv, "-lgcc_eh");
+#endif
   }
   scan_for_link_args(in_argc, in_argv);
 #if defined(DEBUGGING)
