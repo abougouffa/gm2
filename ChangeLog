@@ -5,6 +5,8 @@
 	* gm2/gm2/gm2spec.c:  append libraries at the end of the
 	  command line rather than at the beginning.  Only add
 	  -lgcc_eh if ENABLE_SHARED_LIBGCC is defined.
+	* gm2/ulm-lib-gm2/sys/termios.c:  added prototype for
+	  _M2_termios_finish.
 	
 2008-10-29       Gaius Mulley <gaius@gnu.org>
 

@@ -84,6 +84,7 @@ int EXPORT(tcsflush) (void);
 int EXPORT(tcsdrain) (void);
 int doSetUnset (unsigned int *bitset, unsigned int mask, int value);
 void _M2_termios_init (void);
+void _M2_termios_finish (void);
 
 
 /*
