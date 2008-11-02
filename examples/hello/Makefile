@@ -20,7 +20,7 @@ all: force
 	gm2 -g -I. hello.mod
 
 clean:
-	$(RM) *.o a.out
+	$(RM) *.o a.out a.exe
 
 force:
 

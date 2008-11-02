@@ -339,7 +339,6 @@ add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 {
   int end = *in_argc;
 
-  end = 1;
   insert_arg (end, in_argc, (char ***)in_argv);
   add_arg (end, (char ***)in_argv, lib);
 }
