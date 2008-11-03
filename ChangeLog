@@ -4,6 +4,13 @@
 	* gm2/lang.opt:  add -idirafter option which is used
 	  by the preprocessor.
 	* gm2/gm2.texi:  improved the cygwin build section.
+	* gm2/www/index.ms:  updated web pages
+	* gm2/gm2.texi:  modified version-GM2 to 0.68 to
+	  reflect the version number in the CVS being worked
+	  upon.
+	* gm2/Make-lang.in:  modified GM2-VERSION to 0.68 to
+	  reflect the version number in the CVS being worked
+	  upon.
 
 2008-11-02       Gaius Mulley <gaius@gnu.org>
 

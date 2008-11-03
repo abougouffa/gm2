@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+.\" Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
 .\" 
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -14,10 +14,9 @@
 .\" Software Foundation raise funds for GNU development.''
 .\" 
 .ds GCCVERSION 4.1.2
-.ds GM2HARNESS 0.96
-.ds LATESTGM2 gcc-\*[GCCVERSION]+gm2-20070818.tar.gz
-.ds CURRENTDATE "Thu Oct 18 12:39:49 BST 2007
-.ds CURRENTGM2 0.61
+.ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
+.ds CURRENTDATE "Mon Nov  3 20:02:31 GMT 2008
+.ds CURRENTGM2 0.68
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -71,26 +70,52 @@ The home of the GNU Modula-2 compiler.
 This compiler is still in development.
 .LP
 The compiler has undergone quite a number of changes recently
-and the current release is gm2-\*[CURRENTGM2].
-It can build all of the University of Ulm libraries.
-The result of the GNU Modula-2 regression tests for the current
-CVS snapshot can be found
-.URL http://floppsie.comp.glam.ac.uk/gm2-results/regression-tests.html here .
-The pure64 results are generated nightly from the CVS sources.
-.PP
-Recent news in GNU Modula-2:
+and the current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
+It can build all of the University of Ulm libraries, has a good selection
+of Logitech compability libraries, all the m2f libraries and some ISO libraries.
 .sp
+Recent news about GNU Modula-2:
 \m[darkblue]
 .sp
 .ULS
 .LI
-0.61 has been released.  Also gm2 has been released as .deb packages.
-See the section: GNU Modula-2 Debian binaries.
+now builds under Cygwin (caveat on this platform do not use -O3 and
+I've not seen swig and Modula-2 work together yet).
 .LI
-support for dynamic ARRAYs has been added into the \f[C]gdb\f[P] CVS
-(October 2007).
+many more ISO libraries have been completed.
 .LI
-variables can now be declared at addresses.
+the option
+.OPT -fswig
+will automatically create a swig interface file which corresponds to
+the definition module of the file being compiled.
+.LI
+fixed sized types are now available from \f[C]SYSTEM\f[P].
+.LI
+exception handling is now implemented and is compatible with C++
+and swig (and therefore also Python etc).
+.LI
+the keyword \f[C]FINALLY\f[P] has been implemented.
+.ULE
+.
+.SH
+GNU Modula-2 Features
+.LP
+.ULS
+.LI
+the option
+.OPT -fswig
+will automatically create a swig interface file which corresponds to
+the definition module of the file being compiled.
+.LI
+fixed sized types are now available from \f[C]SYSTEM\f[P].
+.LI
+exception handling is compatible with C++ and swig.
+.LI
+Python can call GNU Modula-2 modules via swig.
+.LI
+support for dynamic ARRAYs has been added into \f[C]gdb\f[P].
+.LI
+variables can be declared at addresses.
 .LI
 much better \fCdwarf-2\fP debugging support and when used with
 \fCgdb-6.5\fP the programmer can display \f[C]RECORD\f[P]s,
@@ -105,11 +130,9 @@ or
 .LI
 supports sets of any ordinal size (memory permitting).
 .LI
-implements ISO Modula-2 SYSTEM which can be switched on via:
-.OPT -fiso .
-Several ISO features are implemented and it is the goal that
-eventually GNU Modula-2 will be fully ISO complient (see the release
-map for details in the documentation).
+most of ISO M2 is implemented.  The missing features are
+dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P]
+and \f[C]SIZE\f[P] cannot yet specify a second parameter.
 .LI
 easy interface to C, and varargs can be passed to C routines.
 .LI
@@ -129,6 +152,7 @@ switch).
 .ULE
 \mP
 .LP
+.
 .SH
 Licence
 .LP
@@ -157,31 +181,11 @@ A paper was presented at the GCC 2006 conference on the state of GNU Modula-2,
 if you are interested a copy can be found
 .URL http://floppsie.comp.glam.ac.uk/Papers/paper15/mulley-proc.pdf "here (pdf)" .
 .SH
-Successful \*[CURRENTGM2] builds
+Regression tests for gm2-\*[CURRENTGM2] in the CVS
 .LP
-I have deliberately started a new table here to verify \*[CURRENTGM2].
-The test used to determine a successful build is the \fCmake gm2.paranoid\fP
-which should be issued inside the \fCbuild/gcc\fP directory. So for example
-suppose you had used the gm2-harness-\*[GM2HARNESS].tar.gz package, then you could:
-.sp
-.CDS
-cd gm2-harness-\*[GM2HARNESS]/build/gcc/
-make gm2.paranoid
-.CDE
-.sp
-and then wait and see whether it completes successfully.
-.sp
-.CDS
-Operating             | Architecture     | gm2 release or
-System                | Host             | gcc + latest cvs
-======================+==================+=====================
-Debian Etch Pure 64   | Opteron 64bit    | 0.61 (deb)
-----------------------+------------------+---------------------
-Debian Etch i386      | Intel i386 32bit | 0.61 (deb)
-----------------------+------------------+---------------------
-PS3 Debian Etch       | PPC 64 bit       | 0.61 (deb)
-----------------------+------------------+---------------------\fP
-.CDE
+The result of the GNU Modula-2 regression tests for the current
+CVS snapshot can be found
+.URL http://floppsie.comp.glam.ac.uk/gm2-results/regression-tests.html here .
 .sp
 Other combinations almost certainly work, if you successfully
 build gm2 on a different platform please email
@@ -299,10 +303,12 @@ You can obtain source to these binaries as a normal user by the following comman
 GM2 and GCC tarball download
 .LP
 At the time of writing: \*[CURRENTDATE]
-gm2-\*[CURRENTGM2] is the latest release and this works
-when grafted onto gcc-\*[GCCVERSION].
-You can download a combined gcc+gm2 and patched tarball from
-.GM2URL "\*[LATESTGM2]" \*[LATESTGM2] .
+gm2-\*[CURRENTGM2] is the latest release being worked on in the CVS
+and this works when grafted onto gcc-\*[GCCVERSION].
+You can download the latest CVS and patched gcc combination from
+.GM2URL "\*[LATESTCVSGM2]" \*[LATESTCVSGM2] .
+You can also browse for older releases
+.GM2URL "" "here" .
 .SH
 Contributing code
 .LP
