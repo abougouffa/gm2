@@ -1939,6 +1939,27 @@ $ ../gcc-4.1.2+gm2-cvs-latest/configure --prefix=/gm2/opt \
 $ make
 @end example
 
+GNU Modula-2 can be installed by:
+
+@example
+$ make install
+@end example
+
+You now need to modify your path to include @file{gm2}.  This is done
+by:
+
+@example
+$ export PATH=/gm2/opt/bin:$PATH
+@end example
+
+and now you can try out the @code{hello world} example:
+
+@example
+$ cd ../gcc-4.1.2+gm2-cvs-latest/gcc/gm2/examples/hello
+$ make
+$ ./a.exe
+@end example
+
 @section Building GNU Modula-2 under FreeBSD
 
 [This section is out of date and has not been verified against

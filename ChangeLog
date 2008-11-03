@@ -1,3 +1,10 @@
+2008-11-03       Gaius Mulley <gaius@gnu.org>
+
+	* Cygwin port builds and installs.
+	* gm2/lang.opt:  add -idirafter option which is used
+	  by the preprocessor.
+	* gm2/gm2.texi:  improved the cygwin build section.
+
 2008-11-02       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/Make-lang.in:  removed $(exeext) from all

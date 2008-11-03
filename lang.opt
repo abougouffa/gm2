@@ -225,6 +225,10 @@ isystem
 Modula-2
 passed to the preprocessor if -fcpp is used
 
+idirafter
+Modula-2
+passed to the preprocessor if -fcpp is used
+
 fcppend
 Modula-2
 passed to the preprocessor if -fcpp is used
