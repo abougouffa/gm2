@@ -72,7 +72,7 @@ This compiler is still in development.
 The compiler has undergone quite a number of changes recently
 and the current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
 It can build all of the University of Ulm libraries, has a good selection
-of Logitech compability libraries, all the m2f libraries and some ISO libraries.
+of Logitech compatibility libraries, all the m2f libraries and some ISO libraries.
 .sp
 Recent news about GNU Modula-2:
 \m[darkblue]
@@ -113,7 +113,7 @@ exception handling is compatible with C++ and swig.
 .LI
 Python can call GNU Modula-2 modules via swig.
 .LI
-support for dynamic ARRAYs has been added into \f[C]gdb\f[P].
+support for dynamic \f[C]ARRAY\f[P]s has been added into \f[C]gdb\f[P].
 .LI
 variables can be declared at addresses.
 .LI
@@ -227,15 +227,21 @@ Limitations
 .LP
 .ULS
 .LI
-ISO Modula-2 is not implemented in full yet.
+ISO Modula-2 is not implemented in full yet.  The missing features are
+dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P]
+and \f[C]SIZE\f[P] cannot yet specify a second parameter.
 .LI
-ISO library implementation has started but is not useable yet.
-The module SYSTEM has been completely implemented.
+ISO library implementation has started but only a few modules are useable.
+For a full list check the
+.URL gm2.html documentation .
 .LI
 Logitech compatibility library is incomplete (nevertheless a number of
 common libraries have been implemented: Terminal, Display, InOut,
 RealInOut, FileSystem, BlockOps, BitWordOps, BitByteOps, BitBlockOps
 and others.
+Again for a comprehensive list of completed modules
+please check the
+.URL gm2.html documentation .
 .ULE
 .sp
 .
