@@ -86,8 +86,8 @@ Recent news about GNU Modula-2:
 .sp
 .ULS
 .LI
-now builds under Cygwin (caveat on this platform do not use -O3 and
-I've not seen swig and Modula-2 work together yet).
+now builds under Cygwin (however at present -O3 does not work on this platform
+and also swig and Modula-2 have not been seen to work together yet).
 .LI
 many more ISO libraries have been completed.
 .LI
@@ -379,7 +379,8 @@ Why do you need to specify \f[C]--enable-languages=c,c++,gm2\f[P]?
 GNU Modula-2 uses the C++ compiler to compile the underlying main
 function which consists of a try catch clause.  The try clause
 calls each module in order and the catch clause calls the default
-exception handler.
+exception handler.  It needs the C compiler during the initial
+bootstrap.
 .Q
 Why use the C++ exception mechanism in GCC, rather than a bespoke
 Modula-2 mechanism?
@@ -396,16 +397,16 @@ function.
 .ULS
 .LI
 there appear to be differing versions of the exception
-handling code (we are using v3) and I didn't want to have to maintain
+handling code (we are using v3) and it would be expensive to maintain
 the gm2 version and keep it in sync with the particular version of
 gcc which is being used.
 .LI
-this would mean a duplication of code and would be frowned upon
+it would also mean a duplication of code and this would be frowned upon
 when GNU Modula-2 is grafted into the main GCC tree.
 .LI
-there is talk about \f[C]libbackend.a\f[P] (in gcc) being
-reimplemented in C++ and therefore in future releases we will have
-to build \f[C]-lstdc++\f[P] anyway.
+there is talk about the gcc \f[C]libbackend.a\f[P] being reimplemented
+in C++ and therefore in future releases it will be necessary to build
+\f[C]-lstdc++\f[P] anyway.
 .ULE
 .
 .Q
