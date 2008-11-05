@@ -35,18 +35,13 @@ if ![info exists TORTURE_OPTIONS] {
     # items below, even though -O3 is also specified, because some ports may
     # choose to disable inlining functions by default, even when optimizing.
     set TORTURE_OPTIONS [list \
-			     { -g } ]
+			     { -g } \
+                             { -O } \
+			     { -O -g } \
+			     { -Os } \
+			     { -O3 -fomit-frame-pointer } \
+			     { -O3 -fomit-frame-pointer -finline-functions } ]
 }
-
-
-#
-#                             { -O } \
-#			     { -O -g } \
-#			     { -Os } \
-#			     { -O3 -fomit-frame-pointer } \
-#			     { -O3 -fomit-frame-pointer -finline-functions }
-#
-#
 
 
 #
