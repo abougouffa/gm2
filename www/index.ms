@@ -52,7 +52,7 @@
 .de A
 .   br
 .   nop \m[default]\c
-.
+..
 .LP
 .NHR
 .defcolor darkred rgb 0.65f 0.1f 0.2f
