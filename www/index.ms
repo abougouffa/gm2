@@ -411,10 +411,9 @@ to build \f[C]-lstdc++\f[P] anyway.
 .Q
 When will release 1.0 be available?
 .A
-When it is ready :-), seriously though the most of the ISO language is
-completely implemented in the compiler and the libraries are being
-worked on currently.  Hopefully you will see rapid releases as the
-work nears completion.
+Most of the ISO language is implemented in the compiler and the
+libraries are under construction.  Hopefully the frequency of releases
+will increase as work nears completion.
 .
 .SH
 Mailing list
