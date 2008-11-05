@@ -1299,27 +1299,21 @@ END MakeAdd ;
 
 
 (*
-   MakeBase - makes a node in the forest which contains the BaseOp
+   MakeArray - makes a node in the forest which contains the ArrayOp
 *)
 
-PROCEDURE MakeBase (q, Start, End: CARDINAL;
-                    op1, op2, op3: CARDINAL) ;
+PROCEDURE MakeArray (q, Start, End: CARDINAL;
+                     op1, op2, op3: CARDINAL) ;
 BEGIN
-   (* if we reach here it is because the array type has not yet been
-      declared to GCC, thus we cannot optimize any further expressions
-      based on this result. We therefore flush the current forest
-      and let GCC handle these subexpressions once we have declared
-      the array type.
-   *)
    EraseQuad(q) ;
-   PutQuad(q, BaseOp, op1, op2, op3) ;
+   PutQuad(q, ArrayOp, op1, op2, op3) ;
    SaveQuad(q) ;
    Flush(Start, PreviousQuad(q, Start))
-END MakeBase ;
+END MakeArray ;
 
 
 (*
-   MakeElementSize - makes a node in the forest which contains the BaseOp
+   MakeElementSize - makes a node in the forest which contains the ElementSizeOp
 *)
 
 PROCEDURE MakeElementSize (q, Start, End: CARDINAL;
@@ -1431,7 +1425,7 @@ BEGIN
    SubOp             : MakeSub(q, Start, End, op1, op2, op3) |
    MultOp            : MakeMult(q, Start, End, op1, op2, op3) |
 
-   BaseOp            : MakeBase(q, Start, End, op1, op2, op3) |
+   ArrayOp           : MakeArray(q, Start, End, op1, op2, op3) |
 
    LogicalOrOp,
    LogicalAndOp,
@@ -3059,7 +3053,7 @@ BEGIN
       ConvertOp         : InternalError('CoerceOp, CastOp and ConvertOp should not be optimized', __FILE__, __LINE__) |
 
       OffsetOp,
-      BaseOp,
+      ArrayOp,
       AddOp,
       SubOp,
       MultOp,

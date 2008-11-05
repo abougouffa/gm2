@@ -292,7 +292,7 @@ BEGIN
       RETURN( MaxNoOfFiles )
    ELSE
       WITH FileInfo[f]^ DO
-         name.size := flength+1 ;  (* need to guarentee the nul for C *)
+         name.size := flength+1 ;  (* need to guarantee the nul for C *)
          usage     := use ;
          output    := towrite ;
          ALLOCATE(name.address, name.size) ;

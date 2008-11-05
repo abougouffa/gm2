@@ -34,7 +34,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetLowestType,
                         GetModuleFinallyFunction, PutModuleFinallyFunction,
                         GetLocalSym, GetVarWritten,
-                        GetVarient,
+                        GetVarient, GetVarBackEndType,
                         NoOfParam, GetParent,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
@@ -154,7 +154,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildIsSuperset, BuildIsNotSuperset,
                    BuildIsSubset, BuildIsNotSubset,
                    BuildIfIn, BuildIfNotIn,
-                   BuildIndirect,
+                   BuildIndirect, BuildArray,
                    BuildConvert, BuildTrunc, BuildCoerce,
                    BuildBinaryForeachWordDo,
                    BuildUnaryForeachWordDo,
@@ -386,8 +386,7 @@ PROCEDURE FoldOffset (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: 
 PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldHigh (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldBase (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE CodeBase (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
+PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ; FORWARD ;
 PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -551,7 +550,7 @@ BEGIN
    UnboundedOp        : CodeUnbounded(q, op1, op2, op3) |
    OffsetOp           : CodeOffset(q, op1, op2, op3) |
    HighOp             : CodeHigh(q, op1, op2, op3) |
-   BaseOp             : CodeBase(q, op1, op2, op3) |
+   ArrayOp            : CodeArray(q, op1, op2, op3) |
    ElementSizeOp      : CodeElementSize(q, op1, op2, op3) |
    ConvertOp          : CodeConvert(q, op1, op2, op3) |
    CoerceOp           : CodeCoerce(q, op1, op2, op3) |
@@ -681,7 +680,6 @@ BEGIN
          SizeOp             : FoldSize(tokenno, l, quad, op1, op2, op3) |
          OffsetOp           : FoldOffset(tokenno, l, quad, op1, op2, op3) |
          HighOp             : FoldHigh(tokenno, l, quad, op1, op2, op3) |
-         BaseOp             : FoldBase(tokenno, l, quad, op1, op2, op3) |
          ElementSizeOp      : FoldElementSize(tokenno, l, quad, op1, op2, op3) |
          ConvertOp          : FoldConvert(tokenno, l, quad, op1, op2, op3) |
          CoerceOp           : FoldCoerce(tokenno, l, quad, op1, op2, op3) |
@@ -4263,7 +4261,7 @@ END CodeUnbounded ;
 
 
 (*
-   AreSubrangesKnown - returns TRUE if all subranges values used within, array, are known.
+   AreSubrangesKnown - returns TRUE if the subranges values used within, array, are known.
 *)
 
 PROCEDURE AreSubrangesKnown (array: CARDINAL) : BOOLEAN ;
@@ -4327,62 +4325,50 @@ END CalculateBase ;
 
 
 (*
-   FoldBase - op1 is a constant and BaseOp will calculate the offset
-              of the virtual start of the array  ie a[0,0,0,0..,0]
-              from the address of the array &a.
-
-              op2 is the type of the array
-              op3 is the array
+   CodeArray - res is an lvalue which will point to the array element.
 *)
 
-PROCEDURE FoldBase (tokenno: CARDINAL; l: List;
-                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
-BEGIN
-   IF IsConst(op1)
-   THEN
-      IF (NOT GccKnowsAbout(op1)) AND AreSubrangesKnown(op2)
-      THEN
-         AddModGcc(op1,
-                   DeclareKnownConstant(GetPointerType(),
-                                        CalculateBase(op2))) ;
-         RemoveItemFromList(l, op1) ;
-         SubQuad(quad)
-      ELSE
-         (* we can still fold the expression, but not the assignment, however, we will
-            not do this here but in CodeBase
-         *)
-      END
-   END
-END FoldBase ;
-
-
-(*
-   CodeBase - op1 is a constant and BaseOp will calculate the offset
-              of the virtual start of the array  ie a[0,0,0,0..,0]
-              from the address of the array, a.
-
-              op2 is the type of the array
-              op3 is the array
-*)
-
-PROCEDURE CodeBase (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ;
 VAR
-   t: Tree ;
+   resType,
+   arrayDecl,
+   type, low,
+   subscript  : CARDINAL ;
+   elementSize,
+   t, a, ta   : Tree ;
 BEGIN
-   IF IsConst(op1)
+   arrayDecl := SkipType(GetType(array)) ;
+   IF AreSubrangesKnown(arrayDecl)
    THEN
-      IF AreSubrangesKnown(op2)
+      subscript := GetArraySubscript(arrayDecl) ;
+      type := SkipType(GetType(subscript)) ;
+      low  := GetTypeMin(type) ;
+      resType := GetVarBackEndType(res) ;
+      IF resType=NulSym
       THEN
-         AddModGcc(op1,
-                   DeclareKnownConstant(GetPointerType(),
-                                        CalculateBase(op2)))
+         resType := GetType(res)
+      END ;
+      elementSize := BuildSize(Mod2Gcc(GetType(arrayDecl)), FALSE) ;
+      ta := Mod2Gcc(SkipType(GetType(arrayDecl))) ;
+      IF GetMode(array)=LeftValue
+      THEN
+         a := BuildIndirect(Mod2Gcc(array), Mod2Gcc(SkipType(GetType(array))))
       ELSE
-         InternalError('subranges not yet resolved', __FILE__, __LINE__)
-      END
+         a := Mod2Gcc(array)
+      END ;
+      t := BuildAssignmentTree(Mod2Gcc(res),
+                               BuildConvert(Mod2Gcc(resType),
+                                            BuildAddr(BuildArray(ta, a,
+                                                                 Mod2Gcc(index),
+                                                                 Mod2Gcc(low),
+                                                                 elementSize),
+                                                      FALSE),
+                                            FALSE)) ;
+      AddStatement(t)
    ELSE
-      t := BuildAssignmentTree(Mod2Gcc(op1), CalculateBase(op2))
+      InternalError('subranges not yet resolved', __FILE__, __LINE__)
    END
-END CodeBase ;
+END CodeArray ;
 
 
 (*
@@ -4621,8 +4607,8 @@ BEGIN
          ELSE
             (* does not work t := BuildCoerce(Mod2Gcc(op1), Mod2Gcc(op2), Mod2Gcc(op3)) *)
             AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
-                                                     BuildAddr(Mod2Gcc(op3), FALSE),
-                                                     FindSize(op2)))
+                                        BuildAddr(Mod2Gcc(op3), FALSE),
+                                        FindSize(op2)))
          END
       END
    ELSE

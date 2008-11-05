@@ -1059,7 +1059,7 @@ BEGIN
                           CheckAddVariableWrite(Oper3, TRUE, QuadNo)
                        END |
    OffsetOp,
-   BaseOp,
+   ArrayOp,
    LogicalShiftOp,
    LogicalRotateOp,
    LogicalOrOp,
@@ -1181,7 +1181,7 @@ BEGIN
                        END |
 
    OffsetOp,
-   BaseOp,
+   ArrayOp,
    LogicalShiftOp,
    LogicalRotateOp,
    LogicalOrOp,
@@ -8979,19 +8979,7 @@ BEGIN
    GenQuad(OffsetOp, t1, PrevType, Sym) ;
    IF n>1
    THEN
-      InternalError('not expecting to see n>1', __FILE__, __LINE__) ;
-(*
-      FOR i := n-1 TO 1 BY -1 DO
-         (* no type for t2 since constant *)
-         t2 := MakeTemporary(ImmediateValue) ;
-         Type := OperandF(i) ;
-         GenQuad(OffsetOp, t2, Type, OperandT(i)) ;
-         t3 := t1 ;
-         (* No type for t1 since constant *)
-         t1 := MakeTemporary(ImmediateValue) ;
-         GenQuad(AddOp, t1, t3, t2)
-      END
-*)
+      InternalError('not expecting to see n>1', __FILE__, __LINE__)
    END ;
    (* Res will be an Address since it is LeftValue mode *)
    Res := MakeTemporary(LeftValue) ;
@@ -9081,73 +9069,35 @@ END BuildDesignatorArray ;
 
 PROCEDURE BuildStaticArray ;
 VAR
-   Sym,
-   Op1,
+   Array,
+   Index,
    BackEndType,
-   Type, Adr,
-   Base,
-   Offset,
-   ti, tj,
-   tk, ta     : CARDINAL ;
+   Type, Adr  : CARDINAL ;
 BEGIN
-   Op1  := OperandT(1) ;
-   Sym  := OperandT(2) ;
+   Index := OperandT(1) ;
+   Array  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
-   Offset := MakeTemporary(ImmediateValue) ;
-   GenQuad(BaseOp, Offset, Type, Sym) ;
-   (* Base has address type since it points to the start of the array in memory *)
-   Base := MakeTemporary(RightValue) ;
-   PutVar(Base, Address) ;
-   Adr := MakeLeftValue(Sym, RightValue, Address) ;
-   GenQuad(AddOp, Base, Adr, Offset) ;
-   (* ta should have type address as it points into memory *)
-   ta := MakeTemporary(RightValue) ;
-   PutVar(ta, Address) ;
-
-   (* now calculate the indices by converting through INTEGER *)
-
-   ti := MakeTemporary(ImmediateValue) ;
-   PutVar(ti, Integer) ;
-   GenQuad(ElementSizeOp, ti, Type, 1) ;
-
-   (* tj has Cardinal type since we have multiplied array indices *)
-   (* The problem is that OperandT(1) might be a CHAR (or any     *)
-   (* size < TSIZE(CARDINAL)) so we must coerse.                  *)
-
-   IF GetType(Op1)#Integer
+   IF GetMode(Index)=LeftValue
    THEN
-      PushTF(RequestSym(MakeKey('CONVERT')), NulSym) ;
-      PushT(Integer) ;
-      PushT(Op1) ;
-      PushT(2) ;          (* Two parameters *)
-      BuildConvertFunction ;
-      PopT(Op1)
+      Index := MakeRightValue(Index, GetType(Index))
    END ;
-   tj := MakeTemporary(RightValue) ;
-   PutVar(tj, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
-   tk := MakeTemporary(RightValue) ;
-   PutVar(tk, MixTypes(GetType(ti), GetType(Op1), GetTokenNo())) ;
-   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Op1)) ;
+   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Index)) ;
 
-   PushT(tj) ;
-   PushT(Op1) ;
-   BuildAssignmentWithoutBounds(FALSE) ;
-
-   GenQuad(MultOp, tk, ti, tj) ;
-
-   (* and finally add, ta, to Base *)
+   (* now make Adr point to the address of the indexed element *)
    Adr := MakeTemporary(LeftValue) ;
    (*
-      Ok must reference by address
+      Ok in the future must reference the array element by its lvalue
       - but we contain the type of the referenced entity
    *)
-   BackEndType := MakePointer(NulName) ;
-   PutPointer(BackEndType, GetType(Type)) ;
-   PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
 
-   GenQuad(AddOp, Adr, Base, tk) ;
+   BackEndType := MakePointer(NulName) ;
+   PutPointer(BackEndType, SkipType(GetType(Type))) ;
+   (* PutVar(Adr, BackEndType) ; *)
+   PutLeftValueFrontBackType(Adr, SkipType(GetType(Type)), BackEndType) ;
+
+   GenQuad(ArrayOp, Adr, Index, Array) ;
    PopN(2) ;   (* remove all parameters to this procedure *)
-   PushTF(Adr, GetType(Type))
+   PushTF(Adr, GetType(Adr))
 END BuildStaticArray ;
 
 
@@ -11064,7 +11014,7 @@ BEGIN
       OffsetOp,
       IndrXOp,
       XIndrOp,
-      BaseOp,
+      ArrayOp,
       LogicalShiftOp,
       LogicalRotateOp,
       LogicalOrOp,
@@ -11131,9 +11081,9 @@ BEGIN
    LogicalShiftOp           : printf0('Shift             ') |
    LogicalRotateOp          : printf0('Rotate            ') |
    BecomesOp                : printf0('Becomes           ') |
-   IndrXOp                  : printf0('IndrXOp           ') |
-   XIndrOp                  : printf0('XIndrOp           ') |
-   BaseOp                   : printf0('Base              ') |
+   IndrXOp                  : printf0('IndrX             ') |
+   XIndrOp                  : printf0('XIndr             ') |
+   ArrayOp                  : printf0('Array             ') |
    ElementSizeOp            : printf0('ElementSize       ') |
    AddrOp                   : printf0('Addr              ') |
    SizeOp                   : printf0('Size              ') |

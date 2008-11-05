@@ -1,3 +1,27 @@
+2008-11-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_BuildArray (new function).
+	  build_unary_op changed to handle Modula-2 array
+	  arithemetic rather than C pointer and indice
+	  computations.
+	* gm2/m2pp.c:  m2pp_array_type (new function).
+	* gm2/gm2-compiler/Lists.mod:  tidied up spacing.
+	* gm2/gm2-compiler/M2GenGCC.mod:  CodeArray (new
+	  procedure).  FoldBase and CodeBase removed.
+	* gm2/gm2-compiler/M2Quads.def:  ArrayOp replaces
+	  BaseOp.
+	* gm2/gm2-compiler/M2Quads.mod:  ArrayOp replaces
+	  BaseOp.  BuildStaticArray is reimplemented using
+	  ArrayOp.
+	* gm2/gm2-compiler/M2SubExp.mod:  ArrayOp replaces
+	  BaseOp.
+	* gm2/gm2-compiler/SymbolTable.mod:  modifications
+	  to the debugging hooks.
+	* gm2/gm2-compiler/gccgm2.def:  BuildArray (new
+	  definition).
+	* gm2/gm2-libs/FIO.mod:  tab space changes.	
+	* gm2/www/index.ms:  FAQ (new section).
+
 2008-11-03       Gaius Mulley <gaius@gnu.org>
 
 	* Cygwin port builds and installs.

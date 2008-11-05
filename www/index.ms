@@ -45,6 +45,13 @@
 .de KEY
 .   nop \f[CB]\\$*\f[R]
 ..
+.de Q
+.   sp
+.   nop \m[darkblue]\c
+..
+.de A
+.   br
+.   nop \m[default]\c
 .
 .LP
 .NHR
@@ -163,6 +170,7 @@ its libraries (pim, iso, Logitech compatible) are under the
 whereas the Ulm libraries are under the GPL.  For more information on
 how these licences work
 .URL http://www.gnu.org/licenses/licenses.html "please see" .
+.
 .SH
 Documentation
 .LP
@@ -222,6 +230,7 @@ MacOSX-10.3.9   | G4 eMac        | gcc-3.3.6 + gm2-0.50
 Panther         |                | 3 regressions fail
 ----------------+----------------+---------------------\fP
 .CDE
+.
 .SH
 Limitations
 .LP
@@ -277,6 +286,7 @@ However the current gm2 based on 4.1.2 is just as stable - the only
 disadvantage is that it does not produce debugging information for
 \f[C]SET TYPE\fPs.
 .sp
+.
 .SH
 GNU Modula-2 Debian binaries
 .LP
@@ -305,6 +315,7 @@ You can obtain source to these binaries as a normal user by the following comman
 .CDS
 .CMD apt-get source gm2
 .CDE
+.
 .SH
 GM2 and GCC tarball download
 .LP
@@ -315,6 +326,7 @@ You can download the latest CVS and patched gcc combination from
 .GM2URL "\*[LATESTCVSGM2]" \*[LATESTCVSGM2] .
 You can also browse for older releases
 .GM2URL "" "here" .
+.
 .SH
 Contributing code
 .LP
@@ -328,6 +340,7 @@ Please do. But also please read the GNU Emacs info under
 .CDE
 .sp
 before you start coding.
+.
 .SH
 Objectives
 .LP
@@ -356,6 +369,53 @@ Exploit the features of GCC.
 .LI
 Listen to the requests of the users.
 .ULE
+.
+.SH
+FAQ
+.LP
+.Q
+Why do you need to specify \f[C]--enable-languages=c,c++,gm2\f[P]?
+.A
+GNU Modula-2 uses the C++ compiler to compile the underlying main
+function which consists of a try catch clause.  The try clause
+calls each module in order and the catch clause calls the default
+exception handler.
+.Q
+Why use the C++ exception mechanism in GCC, rather than a bespoke
+Modula-2 mechanism?
+.A
+The C++ mechanism is tried and tested, it also provides GNU Modula-2
+with the ability to link with C++ modules and via swig it can raise
+Python exceptions.
+.Q
+Why not copy the C++ exception handing code into the Modula-2 runtime
+thus saving the necessity to build the C++ compiler?
+.A
+The C++ compiler is needed to compile the underlying \f[C]main()\f[P]
+function.
+.ULS
+.LI
+there appear to be differing versions of the exception
+handling code (we are using v3) and I didn't want to have to maintain
+the gm2 version and keep it in sync with the particular version of
+gcc which is being used.
+.LI
+this would mean a duplication of code and would be frowned upon
+when GNU Modula-2 is grafted into the main GCC tree.
+.LI
+there is talk about \f[C]libbackend.a\f[P] (in gcc) being
+reimplemented in C++ and therefore in future releases we will have
+to build \f[C]-lstdc++\f[P] anyway.
+.ULE
+.
+.Q
+When will release 1.0 be available?
+.A
+When it is ready :-), seriously though the most of the ISO language is
+completely implemented in the compiler and the libraries are being
+worked on currently.  Hopefully you will see rapid releases as the
+work nears completion.
+.
 .SH
 Mailing list
 .LP

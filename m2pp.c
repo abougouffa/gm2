@@ -172,6 +172,8 @@ static void m2pp_if_stmt (pretty *s, tree t);
 static void killPretty (pretty *s);
 static void m2pp_compound_expression (pretty *s, tree t);
 static void m2pp_target_expression (pretty *s, tree t);
+static void m2pp_array_type (pretty *s, tree t);
+
 extern void stop (void);
 
 

@@ -98,7 +98,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildIsSubset, BuildIsNotSubset,
                  BuildIfConstInVar, BuildIfNotConstInVar,
                  BuildIfVarInVar, BuildIfNotVarInVar,
-                 BuildIndirect,
+                 BuildIndirect, BuildArray,
                  DoJump,
                  BuildProcedureCallTree, BuildIndirectProcedureCallTree, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
@@ -850,7 +850,7 @@ PROCEDURE BuildEndFunctionCode (fndecl: Tree; nested: BOOLEAN) ;
                                  of the first, n, characters, of, str.
 *)
 
-PROCEDURE BuildArrayStringConstructor (arrayType, str, n: Tree) : Tree ;
+PROCEDURE BuildArrayStringConstructor (arrayType, str, length: Tree) : Tree ;
 
 
 (*
@@ -1190,6 +1190,14 @@ PROCEDURE BuildForeachWordInSetDoIfExpr (type, op1, op2: Tree;
 				         is_op1lvalue, is_op2lvalue,
 				         is_op1const, isop2const: BOOLEAN;
                                          expr: BuildExprProcedure; label: ADDRESS) ;
+
+
+(*
+   BuildArray - returns a tree which accesses array[index]
+                given, lowIndice, and, elementSize.
+*)
+
+PROCEDURE BuildArray (type, array, index, lowIndice, elementSize: Tree) : Tree ;
 
 
 (*

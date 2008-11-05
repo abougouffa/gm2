@@ -808,7 +808,7 @@ static void                   gccgm2_RememberVariables                    (tree 
 static void                   gm2_write_global_declarations_2             (tree globals);
 #endif
        tree                   gccgm2_BuildArrayStringConstructor          (tree arrayType, tree str, tree length);
-
+       tree                   gccgm2_BuildArray                           (tree type, tree array, tree index, tree lowIndice, tree elementSize);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -4253,10 +4253,12 @@ shorten_compare (tree *op0_ptr, tree *op1_ptr, tree *restype_ptr,
 
       if (TREE_CODE (primop0) != INTEGER_CST)
         {
+#if !defined(GM2)
           if (val == truthvalue_false_node)
             warning (0, "comparison is always false due to limited range of data type");
           if (val == truthvalue_true_node)
             warning (0, "comparison is always true due to limited range of data type");
+#endif
         }
 
       if (val != 0)
@@ -5141,22 +5143,38 @@ build_unary_op (enum tree_code code, tree xarg, int flag)
           return TREE_OPERAND (arg, 0);
         }
 
-      /* For &x[y], return x+y */
+/* #if !defined(GM2) */
+      /* Modula-2 address arithetic is not the same as C's! */
+
+      /* For &x[y], return x+y-l    (where l is the lower bound of the array) */
       if (TREE_CODE (arg) == ARRAY_REF)
         {
-          tree op0 = TREE_OPERAND (arg, 0);
-          if (!gm2_mark_addressable (op0))
+          tree array = TREE_OPERAND (arg, 0);
+	  tree index = TREE_OPERAND (arg, 1);
+	  tree low   = TREE_OPERAND (arg, 2);
+	  tree size  = TREE_OPERAND (arg, 3);
+
+          if (!gm2_mark_addressable (array))
             return error_mark_node;
-          return build_binary_op (PLUS_EXPR,
-                                  (TREE_CODE (TREE_TYPE (op0)) == ARRAY_TYPE
-                                   ? array_to_pointer_conversion (op0)
-                                   : op0),
-                                  TREE_OPERAND (arg, 1), 1);
+	  if (size == NULL_TREE)
+	    size = gccgm2_GetSizeOf (TREE_TYPE (TREE_TYPE (array)));
+	  else
+	    ASSERT (gccgm2_CompareTrees (gccgm2_GetSizeOf (TREE_TYPE (TREE_TYPE (array))),
+					 size) == 0,
+		    TREE_TYPE (TREE_TYPE (array)));
+	  if (low != NULL_TREE)
+	    index = gccgm2_BuildSub (index, low, TRUE);
+	  if (TREE_CODE (TREE_TYPE (array)) == ARRAY_TYPE)
+	    array = array_to_pointer_conversion (array);
+	  return build_binary_op (PLUS_EXPR, array,
+				  gccgm2_BuildMult (index, size, FALSE), TRUE);
         }
 
       /* Anything not already handled and not a true memory reference
          or a non-lvalue array is an error.  */
-      else if (typecode != FUNCTION_TYPE && !flag
+      else
+/* #endif */
+	if (typecode != FUNCTION_TYPE && !flag
                && !lvalue_or_else (arg, lv_addressof))
         return error_mark_node;
 
@@ -7442,8 +7460,10 @@ gccgm2_BuildArrayIndexType (tree low, tree high)
   tree sizelow = convert (m2_z_type_node, default_conversion (low));
   tree sizehigh = convert (m2_z_type_node, default_conversion (high));
 
-  if (gccgm2_TreeOverflow (sizelow) || gccgm2_TreeOverflow (sizehigh))
-    error("array bounds are too large or too small");
+  if (gccgm2_TreeOverflow (sizelow))
+    error("low bound for the array is outside the ztype limits");
+  if (gccgm2_TreeOverflow (sizehigh))
+    error("high bound for the array is outside the ztype limits");
   
   return build_range_type (m2_z_type_node, sizelow, sizehigh);
 }
@@ -9209,6 +9229,17 @@ gccgm2_BuildIfNotInRangeGoto (tree var, tree low, tree high, char *label)
                                     gccgm2_BuildLessThan (var, low),
                                     gccgm2_BuildGreaterThan (var, high), FALSE),
                    NULL, label);
+}
+
+/*
+ *  BuildArray - returns a tree which accesses array[index]
+ *               given, lowIndice.
+ */
+
+tree
+gccgm2_BuildArray (tree type, tree array, tree index, tree lowIndice, tree elementSize)
+{
+  return build4 (ARRAY_REF, type, array, index, lowIndice, elementSize);
 }
 
 /*

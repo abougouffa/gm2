@@ -880,6 +880,10 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
+      IF FreeSymbol=2766
+      THEN
+         stop
+      END ;
       Sym := FreeSymbol ;
       WITH Symbols[Sym] DO
          SymbolType := DummySym
@@ -4674,10 +4678,6 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
-   IF TemporaryNo=167
-   THEN
-      stop
-   END ;
    (* Make the name *)
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF Mode=ImmediateValue
@@ -4720,10 +4720,6 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
-   IF TemporaryNo=167
-   THEN
-      stop
-   END ;
    (* Make the name *)
    s := Sprintf1(Mark(InitString('_T%d')), TemporaryNo) ;
    IF mode=ImmediateValue
