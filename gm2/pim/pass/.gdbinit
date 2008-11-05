@@ -1,4 +1,2 @@
-set lang modula-2
-break _M2_varaddress3_init
+break _M2_arrayfio_init
 run
-ptype var
