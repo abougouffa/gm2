@@ -20,11 +20,16 @@ if $tracelevel then {
 }
 
 # load support procs
+load_lib libgloss.exp
+load_lib prune.exp
 load_lib gm2-torture.exp
 
+
+set XGPP [lookfor_file $tmpdir g++];
+
 set output [exec rm -f cpp.o mycpp.o]
-set output [exec g++ -g -c $srcdir/gm2/exceptions/run/pass/cpp.cpp]
-set output [exec g++ -g -c $srcdir/gm2/exceptions/run/pass/mycpp.cpp]
+set output [exec ${XGPP} -B[file dirname $tmpdir] -g -c $srcdir/gm2/exceptions/run/pass/cpp.cpp]
+set output [exec ${XGPP} -B[file dirname $tmpdir] -g -c $srcdir/gm2/exceptions/run/pass/mycpp.cpp]
 
 gm2_init "-I$srcdir/gm2/exceptions/run/pass:$srcdir/../gm2/gm2-libs:$srcdir/../gm2/pim/pass:$srcdir/../gm2/gm2-compiler:../gm2/gm2-libs:../gm2/gm2-compiler" 
 
