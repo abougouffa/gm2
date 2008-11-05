@@ -39,7 +39,7 @@
 @sp 10
 @c
 @center @image{gm2/images/gnu,,1.5in}
-@sp 10
+@sp 6
 @quotation
 ``And then one day you find ten years have got behind you'', Pink Floyd
 @end quotation

@@ -1,6 +1,18 @@
 2008-11-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  reworded some of the FAQs.
+	* gm2/gm2.texi:  fixed spacing
+	* testsuite/gm2/pim/options/optimize/run/pass/testadd.mod:
+	  fixed dates.
+	* testsuite/gm2/pim/options/optimize/run/pass/gm2.exp:
+	  fixed link command.
+	* testsuite/gm2/pim/options/optimize/run/pass/addition.mod:
+	  fixed dates.
+        * testsuite/gm2/pim/options/optimize/run/pass/addition.def:
+	  fixed dates.
+        * lib/gm2.exp:  fixed ability to configure link path -L.
+        * lib/gm2-torture.exp:  fixed ability to configure link
+	  path -L.
 
 2008-11-04       Gaius Mulley <gaius@gnu.org>
 
