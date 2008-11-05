@@ -35,13 +35,19 @@ if ![info exists TORTURE_OPTIONS] {
     # items below, even though -O3 is also specified, because some ports may
     # choose to disable inlining functions by default, even when optimizing.
     set TORTURE_OPTIONS [list \
-			     { -g } \
-                             { -O } \
-			     { -O -g } \
-			     { -Os } \
-			     { -O3 -fomit-frame-pointer } \
-			     { -O3 -fomit-frame-pointer -finline-functions } ]
+			     { -g } ]
 }
+
+
+#
+#                             { -O } \
+#			     { -O -g } \
+#			     { -Os } \
+#			     { -O3 -fomit-frame-pointer } \
+#			     { -O3 -fomit-frame-pointer -finline-functions }
+#
+#
+
 
 #
 #  very costly options follow
@@ -204,12 +210,13 @@ proc gm2-torture-compile-fail { src option } {
 # to more than 14 chars.
 #
 proc gm2-torture-execute { sources args success } {
-    global tmpdir tool srcdir output compiler_conditional_xfail_data
-    global TORTURE_OPTIONS
-    global gm2_link_libraries
+    global tmpdir tool srcdir output compiler_conditional_xfail_data;
+    global TORTURE_OPTIONS;
+    global gm2_link_libraries;
+    global gm2_link_path;
 
     # Use the first source filename given as the filename under test.
-    set src [lindex $sources 0]
+    set src [lindex $sources 0];
 
     if { [llength $args] > 0 } {
 	set additional_flags [lindex $args 0];
@@ -219,15 +226,15 @@ proc gm2-torture-execute { sources args success } {
     # Check for alternate driver.
     if [file exists [file rootname $src].x] {
 	verbose "Using alternate driver [file rootname [file tail $src]].x" 2
-	set done_p 0
+	set done_p 0;
 	catch "set done_p \[source [file rootname $src].x\]"
 	if { $done_p } {
 	    return
 	}
     }
 
-    set executable $tmpdir/[file tail [file rootname $src].x]
-    set objectfile $tmpdir/[file tail [file rootname $src].o]
+    set executable $tmpdir/[file tail [file rootname $src].x];
+    set objectfile $tmpdir/[file tail [file rootname $src].o];
 
     regsub "^$srcdir/?" $src "" testcase
     # If we couldn't rip $srcdir out of `src' then just do the best we can.
@@ -238,7 +245,7 @@ proc gm2-torture-execute { sources args success } {
 	set testcase "[file tail [file dirname $src]]/[file tail $src]"
     }
 
-    set option_list $TORTURE_OPTIONS
+    set option_list $TORTURE_OPTIONS;
 
     set count 0;
     set oldstatus "foo";
@@ -264,7 +271,7 @@ proc gm2-torture-execute { sources args success } {
 	remote_file build delete $execname;
 	verbose "Testing $testcase, $option" 1
 
-	set options $option
+	set options $option;
 	set comp_output [gm2_target_compile "$sources" "${objectfile}" object ${options}];
 
 	if ![gm2_check_compile "$testcase compilation" ${options} $objectfile $comp_output] {
@@ -274,21 +281,32 @@ proc gm2-torture-execute { sources args success } {
 	}
 
 	# now link the test
+	set options ${option};
 
-	if { [llength $args] > 0 } {
-	    set additional_flags [lindex $args 0];
-	} else {
-	    set additional_flags "";
+	if { [llength ${args}] > 0 } {
+	    lappend options "additional_flags=[lindex ${args} 0]"
 	}
-	set options $option
 
-	lappend options "libs=$gm2_link_libraries"
-	set comp_output [gm2_target_compile "$sources" "${execname}" executable $options];
+	lappend options "libs=${gm2_link_libraries}";
+	lappend options "ldflags=${gm2_link_path}";
+	set comp_output [gm2_target_compile "${sources}" "${execname}" executable ${options}];
+	# puts "Link libraries are: ${gm2_link_libraries}"
+	# puts "Link path is      : ${gm2_link_path}"
 
-	if ![gm2_check_compile "$testcase compilation" $option $execname $comp_output] {
-	    unresolved "$testcase execution, $option (link failed)"
-	    verbose "Link libraries are: $gm2_link_libraries" 0
-	    verbose "$comp_output" 0
+	if ![gm2_check_compile "${testcase} compilation" ${option} ${execname} ${comp_output}] {
+	    unresolved "${testcase} execution, ${option} (link failed)"
+            verbose "tried to link ${testcase} ${sources} ${execname} executable ${options}" 1
+	    verbose "Link libraries are: ${gm2_link_libraries}" 1
+	    verbose "Link path is      : ${gm2_link_path}" 1
+	    verbose "$comp_output" 1
+	    lappend options "additional_flags=-fsources"
+	    lappend options "additional_flags=-v"
+	    verbose "******  s t a r t *********" 1
+	    set comp_output [gm2_target_compile "$sources" "${objectfile}" object ${options}];
+	    verbose "$comp_output" 1
+	    set comp_output [gm2_target_compile "${sources}" "${execname}" executable ${options}];
+	    verbose "$comp_output" 1
+	    verbose "******    e n d   *********" 1
 	    remote_file build delete $execname
 	    remote_file build delete $objectfile
 	    continue

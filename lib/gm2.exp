@@ -2,6 +2,8 @@
 load_lib libgloss.exp
 load_lib prune.exp
 load_lib gcc-defs.exp
+load_lib target-libpath.exp
+
 
 #
 # GCC_UNDER_TEST is the compiler under test.
@@ -59,6 +61,8 @@ proc gcc_version { } {
 
 set gm2_initialized 0;
 set gm2_compile_method "default";
+set gm2_link_path "";
+
 
 proc gm2_set_compile_method { arg } {
     global gm2_compile_method;
@@ -71,13 +75,19 @@ proc gm2_set_compile_method { arg } {
 
 
 proc gm2_init { args } {
-    global tmpdir
-    global libdir
-    global gluefile wrap_flags
-    global gm2_initialized
-    global GCC_UNDER_TEST
-    global TOOL_EXECUTABLE
-    global gm2_link_libraries
+    global tmpdir;
+    global objdir;
+    global rootme;
+    global base_dir;
+    global tool_root_dir;
+    global gluefile wrap_flags;
+    global gm2_initialized;
+    global GCC_UNDER_TEST;
+    global TOOL_EXECUTABLE;
+    global gm2_link_libraries;
+    global gm2_link_path;
+    global HAVE_LIBSTDCXX_V3;
+
 
     if { $gm2_initialized == 1 } { return; }
 
@@ -86,7 +96,7 @@ proc gm2_init { args } {
     append GCC_UNDER_TEST " " -B[file dirname $tmpdir] " " $args;
 
     if ![info exists tmpdir] then {
-	set tmpdir /tmp
+	set tmpdir /tmp;
     }
     if {[target_info needs_status_wrapper] != "" && \
 	    [target_info needs_status_wrapper] != "0" && \
@@ -100,6 +110,8 @@ proc gm2_init { args } {
 	    unset gluefile
 	}
     }
+
+    set gm2_link_path "[gm2_link_flags [get_multilibs]]";
 }
 
 #
@@ -111,7 +123,7 @@ proc gm2_target_compile_default { source dest type options } {
     global gluefile wrap_flags;
     global GCC_UNDER_TEST;
     global TOOL_OPTIONS;
-	
+
     if {[target_info needs_status_wrapper] != "" && \
 	    [target_info needs_status_wrapper] != "0" && \
 	    [info exists gluefile] } {
@@ -158,4 +170,53 @@ proc gm2_link_with { libraries } {
     global gm2_link_libraries;
 
     set gm2_link_libraries $libraries;
+}
+
+
+#
+#  gm2_link_flags - detects the whereabouts of libraries (-lstdc++).
+#
+
+proc gm2_link_flags { paths } {
+    global srcdir;
+    global ld_library_path;
+
+    set gccpath ${paths}
+    set libio_dir ""
+    set flags ""
+    set ld_library_path "."
+
+    set shlib_ext [get_shlib_extension]
+    verbose "shared lib extension: $shlib_ext"
+
+    if { $gccpath == "" } {
+      global tool_root_dir
+
+      set libstdcpp [lookfor_file ${tool_root_dir} libstdc++]
+      if { $libstdcpp != "" } {
+          append flags "-L${libstdcpp} "
+          append ld_library_path ":${libstdcpp}"
+      }
+    } else {
+	if [file exists "${gccpath}/lib/libstdc++.a"] {
+	    append ld_library_path ":${gccpath}/lib"
+	}
+	if [file exists "${gccpath}/libstdc++/libstdc++.a"] {
+	    append flags "-L${gccpath}/libstdc++ "
+	    append ld_library_path ":${gccpath}/libstdc++"
+	}
+	if [file exists "${gccpath}/libstdc++-v3/src/.libs/libstdc++.a"] {
+	    append flags " -L${gccpath}/libstdc++-v3/src/.libs "
+	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
+	}
+	# Look for libstdc++.${shlib_ext}.
+	if [file exists "${gccpath}/libstdc++-v3/src/.libs/libstdc++.${shlib_ext}"] {
+	    append flags " -L${gccpath}/libstdc++-v3/src/.libs "
+	    append ld_library_path ":${gccpath}/libstdc++-v3/src/.libs"
+	}
+    }
+
+    set_ld_library_path_env_vars
+
+    return "$flags"
 }
