@@ -15,6 +15,10 @@
 	* tools-src/makeversion:  rewriten.
 	* gm2/gm2-compiler/M2Options.mod:  corrected licence
 	  version.
+	* gm2/gm2/gm2-libs-ch/sckt.c:  removed includes to
+	  stdio.h and p2c.h.
+	* gm2/gm2spec.c:  added test for source file and only
+	  enable linking if the source file found.
 	
 2008-11-05       Gaius Mulley <gaius@gnu.org>
 

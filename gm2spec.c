@@ -375,7 +375,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int linking = TRUE;
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
-  int zero_args = 1;
+  int seen_source = 0;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -419,13 +419,16 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     if ((strcmp((*in_argv)[i], "-O2") == 0) ||
 	(strcmp((*in_argv)[i], "-O3") == 0))
       seen_flags.o2 = TRUE;
+    if ((strcmp((*in_argv)[i], "-") == 0) ||
+	((*in_argv)[i][0] != '-'))
+      seen_source = 1;
     if (strcmp((*in_argv)[i], "-o") == 0)
       i += 2;
     else if (is_object((*in_argv)[i]))
       remember_object ((*in_argv)[i]);
     i++;
   }
-  if ((*in_argc) == zero_args)
+  if (linking && (! seen_source))
     linking = FALSE;
 
   if (language != NULL && (strcmp (language, "modula-2") != 0))
