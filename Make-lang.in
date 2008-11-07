@@ -95,7 +95,8 @@ TEXISRC = $(objdir)/gm2/images/gnu.eps \
           $(objdir)/gm2/gm2-ebnf.texi \
           $(objdir)/gm2/SYSTEM-pim.texi \
           $(objdir)/gm2/SYSTEM-iso.texi \
-          $(objdir)/gm2/Builtins.texi
+          $(objdir)/gm2/Builtins.texi \
+          $(objdir)/gm2/version.texi
 
 
 # Define the names for selecting GNU Modula-2 in LANGUAGES.
@@ -231,6 +232,9 @@ $(objdir)/gm2/SYSTEM-iso.texi: $(BUILD-ALL-LIBS)
 
 $(objdir)/gm2/Builtins.texi: $(BUILD-ALL-LIBS)
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b./ -fgm2-libs/Builtins.def > $(objdir)/gm2/Builtins.texi
+
+$(objdir)/gm2/version.texi: force
+	cd gm2 ; ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@

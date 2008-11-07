@@ -15,10 +15,20 @@
 	* tools-src/makeversion:  rewriten.
 	* gm2/gm2-compiler/M2Options.mod:  corrected licence
 	  version.
-	* gm2/gm2/gm2-libs-ch/sckt.c:  removed includes to
-	  stdio.h and p2c.h.
+	* gm2/gm2/gm2-libs-ch/sckt.c:  removed include to
+	  stdio.h.
 	* gm2/gm2spec.c:  added test for source file and only
 	  enable linking if the source file found.
+	* gm2/gm2-libs-host.h.in:  added HAVE_NETINET_IN_H
+	  and HAVE_NETDB_H macros.
+	* gm2/gm2-libs/configure.in:  added tests for netinet/in.h
+	  netdb.h.  Updated the version number and email address.
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/Make-lang.in:  added version.texi to the list of texi
+	  files.
+	* gm2/gm2.texi:  include version.texi.
+	* gm2/tools-src/makeversion:  added -t argument and made it
+	  test the version number in gm2/gm2-libs/configure.in.
 	
 2008-11-05       Gaius Mulley <gaius@gnu.org>
 

@@ -25,8 +25,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #   include <sys/socket.h>
 #endif
 
-#include <netinet/in.h>
-#include <netdb.h>
+#if defined(HAVE_NETINET_IN_H)
+#   include <netinet/in.h>
+#endif
+
+#if defined(HAVE_NETDB_H)
+#   include <netdb.h>
+#endif
 
 #if defined(HAVE_UNISTD_H)
 #  include <unistd.h>
