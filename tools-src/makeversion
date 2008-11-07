@@ -82,7 +82,7 @@ void gm2_version (void)
    printf("GNU Modula-2  ${GM2VERSION}  (`date '+%Y%m%d'`)\n");
    printf("  grafted onto GCC ${GCCVERSION}\n");
    printf("Copyright (C) `date '+%Y'` Free Software Foundation, Inc.\n");
-   printf("License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n") ;
+   printf("License GPLv2: GNU GPL version 2 or later <http://gnu.org/licenses/gpl.html>\n") ;
    printf("This is free software: you are free to change and redistribute it.\n") ;
    printf("There is NO WARRANTY, to the extent permitted by law.\n") ;
    exit(0);

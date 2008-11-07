@@ -12,6 +12,9 @@
 	  -fversion.
 	* gm2/gm2-compiler/M2Options.mod:  display version
 	  in cc1gm2.
+	* tools-src/makeversion:  rewriten.
+	* gm2/gm2-compiler/M2Options.mod:  corrected licence
+	  version.
 	
 2008-11-05       Gaius Mulley <gaius@gnu.org>
 
