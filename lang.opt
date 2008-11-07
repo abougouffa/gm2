@@ -177,6 +177,14 @@ fobject-path=
 Modula-2 Joined
 set the object path
 
+fversion
+Modula-2
+display the GNU Modula-2 version
+
+fgm2-version
+Modula-2
+display the GNU Modula-2 version
+
 Wstudents
 Modula-2
 extra compile time semantic checking, typically tries to catch bad style

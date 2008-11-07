@@ -52,6 +52,7 @@ int lang_specific_extra_outfiles = 0;
 extern int force_no_linker;
 
 #include "gm2/gm2config.h"
+#include "gm2/gm2version.h"
 
 #undef DEBUGGING
 
@@ -374,6 +375,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int linking = TRUE;
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
+  int zero_args = 1;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -382,7 +384,6 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
   i=1;
 #endif
-
   while (i<*in_argc) {
     if ((strcmp((*in_argv)[i], "-c") == 0) || (strcmp((*in_argv)[i], "-S") == 0))
       linking = FALSE;
@@ -405,6 +406,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       libraries = pimcoroutine;
     if (strncmp((*in_argv)[i], "-fmod=", 6) == 0)
       moduleExtension = i;
+    if ((strcmp((*in_argv)[i], "--version") == 0) ||
+	(strcmp((*in_argv)[i], "-fversion") == 0))
+      gm2_version();
     if (strcmp((*in_argv)[i], "-x") == 0) {
       x = i;
       if (i+1 < *in_argc)
@@ -421,6 +425,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       remember_object ((*in_argv)[i]);
     i++;
   }
+  if ((*in_argc) == zero_args)
+    linking = FALSE;
+
   if (language != NULL && (strcmp (language, "modula-2") != 0))
     return;
 #if defined(DEBUGGING)

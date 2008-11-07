@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Options ;
 IMPORT CmdArgs ;
 FROM SArgs IMPORT GetArg, Narg ;
 FROM M2Search IMPORT PrependSearchPath, SetDefExtension, SetModExtension ;
-FROM M2Version IMPORT WriteVersion ;
+FROM M2Version IMPORT GetGM2Version, GetGM2Date, GetGCCVersion, GetYear ;
 FROM M2Printf IMPORT printf0, printf1 ;
 FROM libc IMPORT exit ;
 FROM Debug IMPORT Halt ;
@@ -43,10 +43,18 @@ PROCEDURE DisplayVersion ;
 VAR
    s: String ;
 BEGIN
-   printf0('gm2  [') ;
-   WriteVersion ;
-   s := Mark(InitString(__DATE__)) ;
-   printf1('] [%s]\n', s)
+   s := Mark(GetGM2Version()) ;
+   printf1('GNU Modula-2  %s', s) ;
+   s := Mark(GetGM2Date()) ;
+   printf1('  (%s)\n', s) ;
+   s := Mark(GetGCCVersion()) ;
+   printf1('  grafted onto GCC %s\n', s) ;
+   s := Mark(GetYear()) ;
+   printf1('Copyright (C) %s Free Software Foundation, Inc.\n', s) ;
+   printf0('License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n') ;
+   printf0('This is free software: you are free to change and redistribute it.\n') ;
+   printf0('There is NO WARRANTY, to the extent permitted by law.\n') ;
+   exit(0)
 END DisplayVersion ;
 
 
@@ -106,7 +114,8 @@ BEGIN
             ELSIF EqualArray(s, '-fcppbegin')
             THEN
                i := ScanCppArgs(i)
-            ELSIF EqualArray(s, '-fversion')
+            ELSIF EqualArray(s, '-fversion') OR EqualArray(s, '--version') OR
+                  EqualArray(s, '-fgm2-version')
             THEN
                DisplayVersion
             ELSIF IsAnOptionAndArg(s)

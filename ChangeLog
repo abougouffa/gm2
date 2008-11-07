@@ -1,3 +1,18 @@
+2008-11-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  new rules to make gm2version.c
+	  and M2Version.mod.  New rule to compile gm2version.c
+	  and modified link of xgm2 to include gm2version.o
+	* gm2/gm2.texi:  removed entry to h2def.texi.
+	* gm2/gm2spec.c:  detect --version or -fversion and
+	  call gm2_version.
+	* gm2/lang-options.h:  add new options --version and
+	  -fversion.
+	* gm2/lang.opt:  add new options --version and
+	  -fversion.
+	* gm2/gm2-compiler/M2Options.mod:  display version
+	  in cc1gm2.
+	
 2008-11-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  reworded some of the FAQs.
