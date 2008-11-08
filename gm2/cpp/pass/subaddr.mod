@@ -21,9 +21,15 @@ FROM SYSTEM IMPORT ADDRESS;
 
 VAR
    x, y: ADDRESS;
+#if defined(__x86_64) || (defined(__alpha__) && defined(__arch64__)) || defined(__LP64__)
+   i   : LONGCARD ;
+#else
    i   : CARDINAL;
+#endif
 BEGIN
-#if !(defined(__x86_64) || (defined(__alpha__) && defined(__arch64__)))
+#if defined(__x86_64) || (defined(__alpha__) && defined(__arch64__)) || defined(__LP64__)
+   i := LONGCARD(x - y)
+#else
    i := CARDINAL(x - y)
 #endif
 END subaddr.
