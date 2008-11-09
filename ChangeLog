@@ -1,3 +1,25 @@
+2008-11-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/ChangeLog:  
+	* gm2/examples/svga/DisplayBuffer.def:  tidied up
+	  spacing.
+	* gm2/examples/svga/Matrix3D.def:  tidied up
+	  spacing.
+	* gm2/examples/svga/Matrix3D.mod:  tidied up
+	  spacing.
+	* gm2/examples/svga/Transform.def:  tidied up
+	  spacing.
+	* gm2/gm2-compiler/SymbolTable.mod:  introduced
+	  test to make it more robust in the face of
+	  erroneous code.
+
+2008-11-08       Michael Lambert <lambert@psc.edu>
+
+        * testsuite/gm2/iso/pass/realbitscast.mod:  added test
+	  against __LP64__.
+	* testsuite/gm2/cpp/pass/subaddr.mod:  added test
+	  against __LP64__.
+
 2008-11-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  new rules to make gm2version.c

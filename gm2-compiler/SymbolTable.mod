@@ -4751,8 +4751,11 @@ BEGIN
          END
       END ;
       t := MixTypes(GetType(e1), GetType(e2), tok) ;
-      Assert(NOT IsConstructor(t)) ;
-      PutVar(Sym, t)
+      IF t#NulSym
+      THEN
+         Assert(NOT IsConstructor(t)) ;
+         PutVar(Sym, t)
+      END
    END ;
    s := KillString(s) ;
    RETURN( Sym )
