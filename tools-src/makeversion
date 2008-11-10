@@ -77,6 +77,8 @@ cat <<EOF > gm2version.c
 #include "config.h"
 #include "system.h"
 
+void gm2_version (void);
+
 void gm2_version (void)
 {
    printf("GNU Modula-2  ${GM2VERSION}  (`date '+%Y%m%d'`)\n");

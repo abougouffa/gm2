@@ -51,7 +51,7 @@ END DEALLOCATE ;
 
 PROCEDURE IsStorageException () : BOOLEAN;
 BEGIN
-   RETURN(IsCurrentSource (storageException) )
+   RETURN( IsCurrentSource (storageException) )
 END IsStorageException ;
 
 

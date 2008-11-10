@@ -38,6 +38,7 @@ The following implementation modules are complete:
 @code{ProgramArgs}
 @code{RawIO}
 @code{RealMath}
+@code{RndFile}
 @code{RTdata}
 @code{RTentity}
 @code{RTfio}
@@ -47,11 +48,10 @@ The following implementation modules are complete:
 @code{SimpleCipher}
 @code{SeqFile}
 @code{StdChans}
-@code{StreamFile}
-@code{STextIO}
 @code{Storage}
 @code{StreamFile}
 @code{Strings}
+@code{STextIO}
 @code{SYSTEM}
 @code{TERMINATION}
 and
