@@ -22,6 +22,7 @@ Boston, MA 02110-1301, USA.  */
 #include "config.h"
 #include "system.h"
 #include "gcc.h"
+#include "defaults.h"
 
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -46,6 +47,11 @@ Boston, MA 02110-1301, USA.  */
 
 #ifndef DIR_SEPARATOR
 #define DIR_SEPARATOR '/'
+#endif
+
+/* Most every one is fine with LIBRARY_PATH.  For some, it conflicts.  */
+#ifndef LIBRARY_PATH_ENV
+#define LIBRARY_PATH_ENV "LIBRARY_PATH"
 #endif
 
 int lang_specific_extra_outfiles = 0;
@@ -83,6 +89,7 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 					    {"",      { FALSE,    FALSE}}};
 
 static void add_default_directories (int incl, char ***in_argv,
+				     const char *default_library_path,
 				     const char *option, libs which_lib, styles s);
 static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
@@ -210,6 +217,7 @@ remember_link_arg (const char *s)
 
 static void
 add_default_directories (int incl, char ***in_argv,
+			 const char *default_library_path,
 			 const char *option, libs which_lib, styles s)
 {
   char *gm2libs;
@@ -225,18 +233,18 @@ add_default_directories (int incl, char ***in_argv,
 
   if ((*in_argv)[incl] == NULL) {
     gm2libs = (char *) alloca(strlen(option) +
-			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
-			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
+			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
+			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
     strcpy(gm2libs, option);
   }
   else {
     gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
-			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
-			      strlen(LIBSUBDIR)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
+			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
+			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
     strcpy(gm2libs, (*in_argv)[incl]);
     strcat(gm2libs, ":");
   }
-  strcat(gm2libs, LIBSUBDIR);
+  strcat(gm2libs, default_library_path);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
@@ -247,7 +255,7 @@ add_default_directories (int incl, char ***in_argv,
   }
 
   strcat(gm2libs, ":");
-  strcat(gm2libs, LIBSUBDIR);
+  strcat(gm2libs, default_library_path);
   strcat(gm2libs, sepstr);
   strcat(gm2libs, "gm2");
   strcat(gm2libs, sepstr);
@@ -376,6 +384,11 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
   int seen_source = 0;
+  const char *libpath;
+
+  GET_ENVIRONMENT (libpath, LIBRARY_PATH_ENV);
+  if (libpath == NULL || (strcmp (libpath, "") == 0))
+    libpath = LIBSUBDIR;
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -450,14 +463,16 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     inclPos = 1;
   }
   s = get_style(seen_flags);
-  add_default_directories(inclPos, (char ***)in_argv, "-I", libraries, s);
+  add_default_directories(inclPos, (char ***)in_argv, libpath,
+			  "-I", libraries, s);
   add_exec_prefix(1, in_argc, (char ***)in_argv);
 
   if (linkPos == -1) {
     insert_arg(1, in_argc, (char ***)in_argv);
     linkPos = 1;
   }
-  add_default_directories(linkPos, (char ***)in_argv, "-fobject-path=", libraries, s);
+  add_default_directories(linkPos, (char ***)in_argv, libpath,
+			  "-fobject-path=", libraries, s);
 
   if (x == -1 && moduleExtension != -1) {
     insert_arg(1, in_argc, (char ***)in_argv);
