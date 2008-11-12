@@ -54,7 +54,8 @@ The following implementation modules are complete:
 @code{STextIO}
 @code{SYSTEM}
 @code{TERMINATION}
+@code{TextIO}
 and
-@code{TextIO}.
+@code{WholeConv}.
 
 

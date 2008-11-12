@@ -18,6 +18,17 @@ MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE WholeConv ;
 
+FROM CharClass IMPORT IsNumeric, IsWhiteSpace ;
+IMPORT EXCEPTIONS ;
+FROM ConvTypes IMPORT ScanClass ;
+
+
+TYPE
+   WholeConvException = (noException, invalidSigned, invalidUnsigned) ;
+
+VAR
+   wholeConv:  EXCEPTIONS.ExceptionSource ;
+
 
 (*
    ScanInt - represents the start state of a finite state scanner
@@ -50,8 +61,8 @@ END ScanInt ;
 
 
 PROCEDURE scanFirstDigit (ch: CHAR;
-                          VAR chClass: Convtypes.ScanClass;
-                          VAR nextState: ScanState) ;
+                          VAR chClass: ConvTypes.ScanClass;
+                          VAR nextState: ConvTypes.ScanState) ;
 BEGIN
    IF IsNumeric(ch)
    THEN
@@ -64,8 +75,8 @@ END scanFirstDigit ;
 
 
 PROCEDURE scanRemainingDigits (ch: CHAR;
-                               VAR chClass: Convtypes.ScanClass;
-                               VAR nextState: ScanState) ;
+                               VAR chClass: ConvTypes.ScanClass;
+                               VAR nextState: ConvTypes.ScanState) ;
 BEGIN
    IF IsNumeric(ch)
    THEN
@@ -77,8 +88,8 @@ END scanRemainingDigits ;
 
 
 PROCEDURE scanSpace (ch: CHAR;
-                     VAR chClass: Convtypes.ScanClass;
-                     VAR nextState: ScanState) ;
+                     VAR chClass: ConvTypes.ScanClass;
+                     VAR nextState: ConvTypes.ScanState) ;
 BEGIN
    IF IsWhiteSpace(ch)
    THEN
@@ -100,17 +111,17 @@ END scanSpace ;
 
 PROCEDURE FormatInt (str: ARRAY OF CHAR) : ConvResults ;
 VAR
-   proc   : ScanState ;
-   chClass: ScanClass ;
+   proc   : ConvTypes.ScanState ;
+   chClass: ConvTypes.ScanClass ;
    i, h   : CARDINAL ;
 BEGIN
-   i := 0 ;
+   i := 1 ;
    h := LENGTH(str) ;
    ScanInt(str[0], chClass, proc) ;
-   REPEAT
+   WHILE (i<h) AND (chClass=padding) DO
       proc(str[i], chClass, proc) ;
-      INC(i) ;
-   UNTIL (i>=h) OR (chClass#padding) ;
+      INC(i)
+   END ;
    IF chClass=terminator
    THEN
       RETURN( strEmpty )
@@ -137,8 +148,50 @@ END FormatInt ;
 *)
 
 PROCEDURE ValueInt (str: ARRAY OF CHAR) : INTEGER;
+VAR
+   proc   : ConvTypes.ScanState ;
+   chClass: ConvTypes.ScanClass ;
+   i, h   : CARDINAL ;
+   v      : INTEGER ;
+   value  : CARDINAL ;
+   neg    : BOOLEAN ;
 BEGIN
-   
+   IF FormatInt(str)=valid
+   THEN
+      value := 0 ;
+      neg := FALSE ;
+      i := 0 ;
+      h := LENGTH(str) ;
+      ScanInt(str[0], chClass, proc) ;
+      WHILE (i<h) AND (chClass=padding) DO
+         proc(str[i], chClass, proc) ;
+         INC(i)
+      END ;
+      WHILE (i<h) AND (chClass=valid) DO
+         IF str[i]='-'
+         THEN
+            neg := NOT neg
+         ELSIF str[i]='+'
+         THEN
+            (* ignore *)
+         ELSIF IsNumeric(str[i])
+         THEN
+            value := value*10+ORD(str[i])
+         END ;
+         proc(str[i], chClass, proc) ;
+         INC(i)
+      END ;
+      IF neg
+      THEN
+         v := -value
+      ELSE
+         v := value
+      END ;
+      RETURN( v )
+   ELSE
+      EXCEPTIONS.RAISE(wholeConv, ORD(invalidSigned),
+                       'WholeConv:' + __FUNCTION__ + ': signed number is invalid')
+   END
 END ValueInt ;
 
 
@@ -187,12 +240,16 @@ BEGIN
    THEN
       nextState := scanRemainingDigits ;
       chClass := valid
+   ELSIF inputCh='+'
+   THEN
+      nextState := scanFirstDigit ;
+      chClass := valid
    ELSIF IsWhiteSpace(inputCh)
    THEN
       nextState := scanSpace ;
       chClass := padding
    ELSE
-      nextState := ScanInt ;
+      nextState := ScanCard ;
       chClass := invalid
    END
 END ScanCard ;
@@ -204,8 +261,34 @@ END ScanCard ;
 *)
 
 PROCEDURE FormatCard (str: ARRAY OF CHAR) : ConvResults ;
+VAR
+   proc   : ConvTypes.ScanState ;
+   chClass: ConvTypes.ScanClass ;
+   i, h   : CARDINAL ;
 BEGIN
-   
+   i := 1 ;
+   h := LENGTH(str) ;
+   ScanCard(str[0], chClass, proc) ;
+   WHILE (i<h) AND (chClass=padding) DO
+      proc(str[i], chClass, proc) ;
+      INC(i)
+   END ;
+   IF chClass=terminator
+   THEN
+      RETURN( strEmpty )
+   END ;
+   WHILE (i<h) AND (chClass=valid) DO
+      proc(str[i], chClass, proc) ;
+      INC(i)
+   END ;
+   CASE chClass OF
+
+   padding   :  RETURN( strWrongFormat ) |
+   terminator,
+   valid     :  RETURN( strAllRight ) |
+   invalid   :  RETURN( strWrongFormat )
+
+   END
 END FormatCard ;
 
 
@@ -216,8 +299,38 @@ END FormatCard ;
 *)
 
 PROCEDURE ValueCard (str: ARRAY OF CHAR) : CARDINAL ;
+VAR
+   proc   : ConvTypes.ScanState ;
+   chClass: ConvTypes.ScanClass ;
+   i, h   : CARDINAL ;
+   value  : CARDINAL ;
 BEGIN
-   
+   IF FormatInt(str)=valid
+   THEN
+      value := 0 ;
+      i := 0 ;
+      h := LENGTH(str) ;
+      ScanInt(str[0], chClass, proc) ;
+      WHILE (i<h) AND (chClass=padding) DO
+         proc(str[i], chClass, proc) ;
+         INC(i)
+      END ;
+      WHILE (i<h) AND (chClass=valid) DO
+         IF str[i]='+'
+         THEN
+            (* ignore *)
+         ELSIF IsNumeric(str[i])
+         THEN
+            value := value*10+ORD(str[i])
+         END ;
+         proc(str[i], chClass, proc) ;
+         INC(i)
+      END ;
+      RETURN( value )
+   ELSE
+      EXCEPTIONS.RAISE(wholeConv, ORD(invalidUnsigned),
+                       'WholeConv:' + __FUNCTION__ + ': unsigned number is invalid')
+   END
 END ValueCard ;
 
 
@@ -248,8 +361,10 @@ END LengthCard ;
 
 PROCEDURE IsWholeConvException () : BOOLEAN ;
 BEGIN
-   
+   RETURN( EXCEPTIONS.IsCurrentSource(wholeConv) )
 END IsWholeConvException ;
 
 
+BEGIN
+   EXCEPTIONS.AllocateSource(wholeConv)
 END WholeConv.
