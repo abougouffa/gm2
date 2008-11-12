@@ -1766,8 +1766,9 @@ to complete.
 
 @section Building GNU Modula-2 under Cygwin
 
-The cygwin version used was gcc version 3.4.4, gdc 0.12 using dmd 0.125.
-The following set of commands were used to build GNU Modula-2.
+GNU Modula-2 now builds under Cygwin.  The Cygwin version used was gcc
+version 3.4.4, gdc 0.12 using dmd 0.125.  The following set of
+commands were used to build GNU Modula-2.
 
 @example
 $ mkdir build
@@ -1794,9 +1795,60 @@ $ export PATH=/gm2/opt/bin:$PATH
 and now you can try out the @code{hello world} example:
 
 @example
-$ cd ../gcc-4.1.2+gm2-cvs-latest/gcc/gm2/examples/hello
+$ cd ../gcc-@value{version-GCC}/gcc/gm2/examples/hello
 $ make
 $ ./a.exe
+@end example
+
+@section Moving the installation of GNU Modula-2 to another directory
+
+This section documents how you can configure GNU Modula-2 to install in
+one directory and at a later time move the installation to another
+completely different directory.  The example assumes the user has a
+bourne shell.
+
+Let us assume that the build was configured as such:
+
+@example
+$ mkdir build
+$ cd build
+$ ../gcc-@value{version-GCC}+gm2-cvs-latest/configure \
+   --prefix=$HOME/private \
+   --enable-languages=c,c++,gm2  --enable-checking \
+   --disable-multilib
+@end example
+
+in this example we see that the installation directory would normally
+be @file{$HOME/private}.  This is accomplished by the following
+commands:
+
+@example
+$ make
+$ make install
+@end example
+
+Now, assuming we have correct privileges, we may move the entire
+contents of @file{$HOME/private} to @file{/usr/local/public}:
+
+@example
+$ mv $HOME/private /usr/local/public
+@end example
+
+The new compiler and libraries can be referenced by modifying
+our @code{PATH} environment variable:
+
+@example
+$ PATH=/usr/local/public/bin:$PATH
+$ export PATH
+@end example
+
+Finally we can rebuild the @code{hello world} example found
+in @file{../gcc-@value{version-GCC}/gcc/gm2/examples/hello} by:
+
+@example
+$ cd ../gcc-@value{version-GCC}/gcc/gm2/examples/hello
+$ make
+$ ./a.out
 @end example
 
 @section Building GNU Modula-2 under FreeBSD

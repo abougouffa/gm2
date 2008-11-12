@@ -11,6 +11,10 @@
 	  and installed.
 	* gm2/gm2-libs-iso/README.texi:  updated list of completed
 	  modules.
+	* gm2/Make-lang.in:  added cc1plus to the tools to be
+	  installed as part of gm2.
+	* gm2/gm2.texi:  new section written explaining how
+	  to move an entire installation to a new directory.
 
 2008-11-11       Gaius Mulley <gaius@gnu.org>
 

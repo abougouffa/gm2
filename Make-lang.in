@@ -74,7 +74,9 @@ GM2_LINK_TOOLS_BOOT = stage1/gm2/gm2lcc$(exeext) stage1/gm2/gm2l$(exeext) \
 
 GCC_TOOLS_FOR_GM2 = \
             $(GCC_PASSES) $(GCC_PARTS) \
-            stage1/gm2/gcc$(exeext) stage1/gm2/cc1$(exeext) \
+            stage1/gm2/gcc$(exeext) \
+            stage1/gm2/cc1$(exeext) \
+            stage1/gm2/cc1plus$(exeext) \
             stage1/gm2/cpp$(exeext)
 
 ifeq ($(MINLIB),yes)
@@ -1763,6 +1765,9 @@ stage1/gm2/cc1$(exeext): cc1$(exeext)
 	cp -p $< $@
 
 stage1/gm2/cpp$(exeext): cpp$(exeext)
+	cp -p $< $@
+
+stage1/gm2/cc1plus$(exeext): cc1plus$(exeext)
 	cp -p $< $@
 
 stage1/gm2/gm2l$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
