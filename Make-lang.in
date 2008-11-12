@@ -1017,7 +1017,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      STextIO.mod       Storage.mod     StreamFile.mod \
                      Strings.mod       \
                      SYSTEM.mod        TERMINATION.mod TextIO.mod \
-                     WholeConv.mod
+                     WholeConv.mod     WholeStr.mod
 
 GM2-LIBS-ISO-C     = ErrnoCategory.c wrapsock.c
 
