@@ -33,8 +33,10 @@ Assuming that both GCC and gm2 are at the same directory level, type:
 Tarballs
 ========
 
-see ftp://floppsie.comp.glam.ac.uk/pub/c
-for files which look like gm2+gcc-version.tar.gz.
+The latest cvs snapshot and combined gcc can be obtained from:
+http://floppsie.comp.glam.ac.uk/download/c/gcc-4.1.2+gm2-cvs-latest.tar.gz.
+There are also older snapshots available from
+http://floppsie.comp.glam.ac.uk/download/c.
 
 Building GNU Modula-2
 =====================
@@ -44,7 +46,7 @@ To build gm2 type:
    mkdir host-build
    cd host-build
    ../gcc-version/configure --enable-languages=c,c++,gm2 --enable-checking=all \
-                            --disable-multilib
+                            --disable-multilib --prefix=$HOME/opt
    make
    cd ..
 
@@ -55,21 +57,21 @@ Installing GNU Modula-2
    make install
    cd ..
 
-   If you want to install _only_ the Modula-2 compiler (maybe you
-   already have the correct version of GCC installed), `cd' to the
-   `gcc' subdirectory of the build directory (e.g. cd host-build/gcc)
-   and run `make gm2.install'. This installation process does *not* 
-   overwrite existing copies of `libgcc.a' or `specs'.
-
 A simple test
 =============
 
 you should be able to perform:
 
+   PATH=$HOME/opt/bin:$PATH
+   export PATH
    cd gcc-version/gcc/gm2/examples/hello
    make
 
-this should result in creating an a.out for the infamous hello world example.
+this should result in creating an a.out for the infamous hello world
+example.  The directory $HOME/opt may be moved to a more public place
+and provided your PATH is altered appropriately (to reference the bin
+directory) all the libraries and subcomponents of GNU Modula-2 will be
+found.
 
 Stress testing GM2
 ==================
@@ -89,9 +91,6 @@ Please do. But also please read the GNU Emacs info under
 * Reading Non-Free Code::       Referring to Proprietary Programs
 * Contributions::               Accepting Contributions
 
-you might consider joining the GM2 Mailing list:
-see URL: http://lists.nongnu.org/mailman/listinfo/gm2
-
-before you start coding
-
-many thanks and enjoy your coding!
+you might consider joining the GM2 Mailing list: see URL:
+http://lists.nongnu.org/mailman/listinfo/gm2 before you start coding.
+Many thanks and enjoy your programming!
