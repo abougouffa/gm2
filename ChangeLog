@@ -4,8 +4,11 @@
 	  module.
 	* gm2/gm2-libs-iso/WholeStr.mod:  finished implementation
 	  module.
-	* gm2/Make-lang.in:  added WholeConv.mod and WholeStr.mod
-	  to the list of ISO modules to be built and installed.
+	* gm2/gm2-libs-iso/WholeIO.mod:  finished implementation
+	  module.
+	* gm2/Make-lang.in:  added WholeConv.mod, WholeStr.mod
+	  and WholeIO.mod to the list of ISO modules to be built
+	  and installed.
 	* gm2/gm2-libs-iso/README.texi:  updated list of completed
 	  modules.
 

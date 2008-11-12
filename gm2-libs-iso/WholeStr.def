@@ -51,4 +51,3 @@ PROCEDURE CardToStr (card: CARDINAL; VAR str: ARRAY OF CHAR);
      possibly truncated result to str. *)
 
 END WholeStr.
-

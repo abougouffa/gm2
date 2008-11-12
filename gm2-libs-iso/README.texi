@@ -56,5 +56,6 @@ The following implementation modules are complete:
 @code{TERMINATION}
 @code{TextIO}
 @code{WholeConv}
+@code{WholeIO}
 and
 @code{WholeStr}.
