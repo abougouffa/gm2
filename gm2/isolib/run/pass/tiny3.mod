@@ -15,34 +15,10 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE proc ;
+MODULE tiny3 ;
 
-PROCEDURE test2 (p: MyProcType) ;
-BEGIN
-END test2 ;
-
-PROCEDURE test3 (p: MyProcType) ;
-BEGIN
-END test3 ;
-
-TYPE
-   MyProcType = PROCEDURE (MyProcType) ;
-
-PROCEDURE bar ;
-VAR
-   h : POINTER TO CHAR ;
-   i : CARDINAL ;
-   j : MyProcType ;
-   k : MyProcType ;
-   l : CARDINAL ;
-BEGIN
-   i := 123 ;
-   j := test2 ;
-   k := test2 ;
-   l := 456
-(*   p2(test3) *)
-END bar ;
+IMPORT WholeConv ;
 
 BEGIN
-   bar
-END proc.
+
+END tiny3.
