@@ -31,7 +31,8 @@ FROM DynamicStrings IMPORT String, InitString, InitStringCharStar,
                            ConCat, ConCatChar, Mark, string, KillString,
                            Dup, char, Length, Mult ;
 
-FROM SymbolTable IMPORT IsDefImp, IsModule, IsInnerModule,
+FROM SymbolTable IMPORT NulSym,
+                        IsDefImp, IsModule, IsInnerModule,
                         IsUnknown, IsType, IsProcedure, IsParameter,
                         IsParameterUnbounded, IsParameterVar, IsVarParam,
                         IsUnboundedParam, IsPointer, IsRecord, IsVarient,
@@ -281,7 +282,7 @@ END doQualified ;
 PROCEDURE doType (bol: CARDINAL; count: CARDINAL;
                   VAR sym: ARRAY OF CARDINAL; o: String) : String ;
 BEGIN
-   IF (Length(o)>0) OR (count=0)
+   IF (Length(o)>0) OR (count=0) OR (GetType(sym[bol])=NulSym)
    THEN
       RETURN( o )
    ELSE

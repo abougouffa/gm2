@@ -1,3 +1,23 @@
+2008-11-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  prefixed invocation of makeversion
+	  with /bin/bash.  Changed rule to build the paranoid version
+	  of sckt.o.
+	* gm2/gccgm2.c:  reset TYPE_SIZE when building PROCEDURE
+	  types (this fixes a bug exposed by WholeConv.mod).
+	  PROCEDURE type variables were not allocated any space.
+	  General tidying up.
+	* gm2/m2pp.c:  detect and avoid print out recursive data
+	  structures.  Added function types to be printed.
+	* gm2/gm2-compiler/M2Base.mod:  completed type checking code
+	  to ensure that procedure types are fully type checked.
+	* gm2/gm2-compiler/M2MetaError.mod:  added test against NulSym.
+        * gm2/gm2-compiler/M2Quads.mod:  added call to MetaWarnings2.
+	* gm2/gm2-compiler/M2Range.mod:  tided up error messages if
+	  the procedure type causes a type mismatch.
+	* gm2/gm2-libs-iso/WholeConv.mod:  rewritten ValueInt and
+	  ValueCard.
+	
 2008-11-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/WholeConv.mod:  finished implementation

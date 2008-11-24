@@ -1124,8 +1124,17 @@ END FoldExcl ;
 *)
 
 PROCEDURE FoldTypeAssign (q: CARDINAL; tokenNo: CARDINAL; des, expr: CARDINAL) ;
+VAR
+   exprType: CARDINAL ;
 BEGIN
-   IF IsAssignmentCompatible(GetType(des), GetType(expr))
+   IF IsProcedure(expr)
+   THEN
+      exprType := expr
+   ELSE
+      exprType := GetType(expr)
+   END ;
+
+   IF IsAssignmentCompatible(GetType(des), exprType)
    THEN
       SubQuad(q)
    ELSE
@@ -1133,12 +1142,12 @@ BEGIN
       THEN
          MetaErrorsT2(tokenNo,
                       'the return type {%1tad} declared in procedure {%1Da}',
-                      'is incompatible with the returned expression {%2Ua} {%2tad:of type {%2tad}}',
+                      'is incompatible with the returned expression {%2ad}}',
                       des, expr) ;
       ELSE
-         MetaErrorT2(tokenNo,
-                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%2tad:of type {%2tad}} are incompatible',
-                     des, expr)
+         MetaErrorT3(tokenNo,
+                     'assignment designator {%1a} {%1ta:of type {%1ta}} {%1d:is a {%1d}} and expression {%2a} {%3ad:of type {%3ad}} are incompatible',
+                     des, expr, exprType)
       END ;
       FlushErrors
    END

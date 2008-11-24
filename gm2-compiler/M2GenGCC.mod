@@ -5477,7 +5477,7 @@ BEGIN
 
       Mem[Mem[Op1]] := Mem[Op3]
    *)
-   IF IsProcType(op2)
+   IF IsProcType(SkipType(op2))
    THEN
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()), Mod2Gcc(op3))
    ELSIF IsConstString(op3) AND (GetStringLength(op3)=0) AND (GetMode(op1)=LeftValue)

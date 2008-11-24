@@ -112,7 +112,7 @@ TYPE
                     word16, word32, word64,
                     real32, real64, real96, real128,
                     set8, set16, set32,
-                    unknown) ;
+                    procedure, unknown) ;
    Compatible    = (uninitialized, no, warnfirst, warnsecond,
                     first, second) ;
 
@@ -1090,6 +1090,9 @@ BEGIN
    ELSIF IsType(sym)
    THEN
       RETURN( FindMetaType(GetType(sym)) )
+   ELSIF IsProcedure(sym) OR IsProcType(sym)
+   THEN
+      RETURN( procedure )
    ELSE
       RETURN( unknown )
    END
@@ -1434,7 +1437,8 @@ END IsProcTypeSame ;
 
 PROCEDURE doProcTypeCheck (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ;
 BEGIN
-   IF IsProcType(p1) AND IsProcType(p2)
+   IF (IsProcType(p1) OR IsProcedure(p1)) AND
+      (IsProcType(p2) OR IsProcedure(p2))
    THEN
       IF p1=p2
       THEN
@@ -1478,25 +1482,31 @@ BEGIN
          set,
          set8,
          set16,
-         set32  :  IF IsSetSame(t1, t2, FALSE)
-                   THEN
-                      RETURN( first )
-                   ELSE
-                      RETURN( no )
-                   END |
-         enum   :  IF IsEnumerationSame(t1, t2, FALSE)
-                   THEN
-                      RETURN( first )
-                   ELSE
-                      RETURN( no )
-                   END |
-         pointer:  IF IsPointerSame(t1, t2, FALSE)
-                   THEN
-                      RETURN( first )
-                   ELSE
-                      RETURN( no )
-                   END |
-         opaque :  RETURN( no )
+         set32    :  IF IsSetSame(t1, t2, FALSE)
+                     THEN
+                        RETURN( first )
+                     ELSE
+                        RETURN( no )
+                     END |
+         enum     :  IF IsEnumerationSame(t1, t2, FALSE)
+                     THEN
+                        RETURN( first )
+                     ELSE
+                        RETURN( no )
+                     END |
+         pointer  :  IF IsPointerSame(t1, t2, FALSE)
+                     THEN
+                        RETURN( first )
+                     ELSE
+                        RETURN( no )
+                     END |
+         opaque   :  RETURN( no ) |
+         procedure:  IF doProcTypeCheck(t1, t2, FALSE)
+                     THEN
+                        RETURN( first )
+                     ELSE
+                        RETURN( no )
+                     END
 
          ELSE
             (* fall through *)
@@ -1528,6 +1538,11 @@ BEGIN
    ELSIF IsSet(t1) OR IsSet(t2)
    THEN
       (* cannot test set compatibility at this point so we do this again after pass 3 *)
+      RETURN( first )
+   ELSIF (IsProcType(t1) AND IsProcedure(t2)) OR
+         (IsProcedure(t1) AND IsProcType(t2))
+   THEN
+      (* we will perform checking during code generation *)
       RETURN( first )
    ELSIF (IsHiddenType(t1) OR IsProcType(t1)) AND ((kind=assignment) OR (kind=parameter))
    THEN

@@ -236,7 +236,7 @@ $(objdir)/gm2/Builtins.texi: $(BUILD-ALL-LIBS)
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b./ -fgm2-libs/Builtins.def > $(objdir)/gm2/Builtins.texi
 
 $(objdir)/gm2/version.texi: force
-	cd gm2 ; ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
+	cd gm2 ; /bin/bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
@@ -1277,7 +1277,7 @@ gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.mod:
-	cd gm2/gm2-compiler ; ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+	cd gm2/gm2-compiler ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1706,7 +1706,7 @@ gm2/gm2-libs-paranoid/Selective.o: $(srcdir)/gm2/gm2-libs-ch/Selective.c \
 
 gm2/gm2-libs-paranoid/sckt.o: $(srcdir)/gm2/gm2-libs-ch/sckt.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)sckt.h
-	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+	$(CC) -DBUILD_GM2_LIBS -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot -Igm2/gm2-libs -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c \
                                    gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
@@ -1746,7 +1746,7 @@ gm2/gm2-compiler-paranoid/mod_init.o: $(srcdir)/gm2/init/gm2-gccinit
 	$(CC) -c -g gm2/gm2-compiler-paranoid/mod_init.c -o gm2/gm2-compiler-paranoid/mod_init.o
 
 gm2/gm2-compiler-paranoid/M2Version.mod:
-	cd gm2/gm2-compiler-paranoid ; ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+	cd gm2/gm2-compiler-paranoid ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
 gm2/gm2-compiler-paranoid/M2Version.o: gm2/gm2-compiler-paranoid/M2Version.mod
 	./xgm2 $(GM2_FLAGS) -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs $< -o $@

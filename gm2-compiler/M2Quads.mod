@@ -8863,6 +8863,12 @@ BEGIN
                    n1, n2)
    ELSIF IsProcedure(actualVal) AND (NOT IsAssignmentCompatible(actualVal, procType))
    THEN
+(*
+      MetaWarnings2('attempting to RETURN a value with an incompatible type {%1ad} from function {%2a} which returns {%2ta}',
+                    actualVal, currentProc)
+
+      --fixme--  introduce MetaWarning, MetaWarning2, MetaWarning3 into M2MetaError
+*)
       s1 := InitStringCharStar(KeyToCharStar(GetSymName(actualVal))) ;
       s2 := InitStringCharStar(KeyToCharStar(GetSymName(procType))) ;
       ErrorString(NewWarning(GetTokenNo()),

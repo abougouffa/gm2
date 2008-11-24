@@ -88,6 +88,12 @@ typedef struct pretty_t {
   tree block;
 } pretty;
 
+typedef struct stack_t {
+  tree value;
+  struct stack_t *next;
+} stack;
+
+
 /*
  *  Prototypes
  */
@@ -173,8 +179,12 @@ static void killPretty (pretty *s);
 static void m2pp_compound_expression (pretty *s, tree t);
 static void m2pp_target_expression (pretty *s, tree t);
 static void m2pp_array_type (pretty *s, tree t);
-
+static void push (tree t);
+static void pop (void);
+static int  begin_printed (tree t);
 extern void stop (void);
+
+static stack *stackPtr = NULL;
 
 
 /*
@@ -284,6 +294,51 @@ pv (tree t)
 	  killPretty (state);
 	}
     }
+}
+
+/*
+ *  push - pushes tree, t, onto stack.
+ */
+
+static void
+push (tree t)
+{
+  stack *s = (stack *)xmalloc (sizeof (stack));
+
+  s->value = t;
+  s->next = stackPtr;
+  stackPtr = s;
+}
+
+/*
+ *  pop - pops a tree, from the stack.
+ */
+
+static void
+pop (void)
+{
+  stack *s = stackPtr;
+
+  stackPtr = stackPtr->next;
+  free (s);
+}
+
+/*
+ *  being_printed - returns TRUE if, t, is held on the stack.
+ */
+
+static int
+begin_printed (tree t)
+{
+  stack *s = stackPtr;
+
+  while (s != NULL) {
+    if (s->value == t)
+      return TRUE;
+    else
+      s = s->next;
+  }
+  return FALSE;
 }
 
 /*
@@ -710,6 +765,7 @@ m2pp_parameter (pretty *s, tree t)
 static void
 m2pp_param_type (pretty *s, tree t)
 {
+  push (t);
   if (t && (TREE_CODE (t) == REFERENCE_TYPE))
     {
       m2pp_print (s, "VAR");
@@ -718,6 +774,7 @@ m2pp_param_type (pretty *s, tree t)
     }
   else
     m2pp_simple_type (s, t);
+  pop ();
 }
 
 /*
@@ -727,6 +784,7 @@ m2pp_param_type (pretty *s, tree t)
 static void
 m2pp_procedure_type (pretty *s, tree t)
 {
+  push (t);
   if (TREE_CODE (t) == FUNCTION_TYPE)
     {
       tree i = TYPE_ARG_TYPES (t);
@@ -766,6 +824,7 @@ m2pp_procedure_type (pretty *s, tree t)
 	  m2pp_simple_type (s, returnType);
 	}
     }
+  pop ();
 }
 
 /*
@@ -775,6 +834,7 @@ m2pp_procedure_type (pretty *s, tree t)
 static void
 m2pp_function_header (pretty *s, tree t)
 {
+  push (t);
   if (TREE_CODE (t) == FUNCTION_DECL)
     {
       tree i = DECL_ARGUMENTS (t);
@@ -813,6 +873,7 @@ m2pp_function_header (pretty *s, tree t)
 	}
       m2pp_print (s, ";\n");
     }
+  pop ();
 }
 
 /*
@@ -957,6 +1018,10 @@ m2pp_print_char (pretty *s, char ch)
 void
 m2pp_type (pretty *s, tree t)
 {
+  if (begin_printed (t)) {
+    m2pp_print (s, "<...>");
+    return;
+  }
   m2pp_gimpified (s, t);
   switch (TREE_CODE (t))
     {
@@ -1012,9 +1077,11 @@ m2pp_type (pretty *s, tree t)
 static void
 m2pp_set_type (pretty *s, tree t)
 {
+  push (t);
   m2pp_print (s, "SET OF");
   m2pp_needspace (s);
   m2pp_type (s, TREE_TYPE (t));
+  pop ();
 }
 
 /*
@@ -1026,6 +1093,7 @@ m2pp_enum (pretty *s, tree t)
 {
   tree chain_p = TYPE_VALUES (t);
 
+  push (t);
   m2pp_print (s, "(");
   while (chain_p)
     {
@@ -1035,6 +1103,7 @@ m2pp_enum (pretty *s, tree t)
 	m2pp_print (s, ", ");
     }
   m2pp_print (s, ")");
+  pop ();
 }
 
 /*
@@ -1044,6 +1113,7 @@ m2pp_enum (pretty *s, tree t)
 static void
 m2pp_array (pretty *s, tree t)
 {
+  push (t);
   m2pp_print (s, "ARRAY");
   m2pp_needspace (s);
   m2pp_subrange (s, TYPE_DOMAIN (t));
@@ -1051,6 +1121,7 @@ m2pp_array (pretty *s, tree t)
   m2pp_print (s, "OF");
   m2pp_needspace (s);
   m2pp_type (s, TREE_TYPE (t));
+  pop ();
 }
 
 /*
@@ -1092,6 +1163,7 @@ m2pp_gimpified (pretty *s, tree t)
 static void
 m2pp_pointer_type (pretty *s, tree t)
 {
+  push (t);
   if (TREE_CODE (t) == POINTER_TYPE)
     {
       if (TREE_CODE (TREE_TYPE (t)) == FUNCTION_TYPE)
@@ -1103,6 +1175,7 @@ m2pp_pointer_type (pretty *s, tree t)
 	  m2pp_type (s, TREE_TYPE (t));
 	}
     }
+  pop ();
 }
 
 /*
@@ -1112,6 +1185,7 @@ m2pp_pointer_type (pretty *s, tree t)
 static void
 m2pp_record_type (pretty *s, tree t)
 {
+  push (t);
   if (TREE_CODE (t) == RECORD_TYPE)
     {
       tree i;
@@ -1131,6 +1205,7 @@ m2pp_record_type (pretty *s, tree t)
       m2pp_print(s, "END");
       setindent (s, o);
     }
+  pop ();
 }
 
 /*
@@ -1140,6 +1215,11 @@ m2pp_record_type (pretty *s, tree t)
 static void
 m2pp_simple_type (pretty *s, tree t)
 {
+  if (begin_printed (t)) {
+    m2pp_print (s, "<...>");
+    return;
+  }
+
   m2pp_gimpified (s, t);
   switch (TREE_CODE (t))
     {
@@ -1393,6 +1473,9 @@ m2pp_simple_expression (pretty *s, tree t)
       break;
     case THROW_EXPR:
       m2pp_throw (s, t);
+      break;
+    case FUNCTION_DECL:
+      m2pp_identifier (s, t);
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);

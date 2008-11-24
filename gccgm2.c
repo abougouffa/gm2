@@ -7551,7 +7551,7 @@ finish_build_pointer_type (tree t, tree to_type,
   TYPE_POINTER_TO (to_type) = t;
 
   /* Lay out the type. */
-  layout_type (t);
+  /* layout_type (t); */
 
   return t;
 }
@@ -7572,6 +7572,7 @@ gccgm2_BuildEndFunctionType (tree func, tree type)
   func = finish_build_pointer_type (func,
                                     build_function_type (type, param_type_list),
                                     ptr_mode, false);
+  TYPE_SIZE (func) = 0;
   layout_type (func);
   return func;
 }
@@ -7925,14 +7926,19 @@ gm2_leave_nested (struct function *f)
 tree
 gccgm2_BuildAssignmentTree (tree des, tree expr)
 {
+  tree result;
+
   if (TREE_CODE (expr) == FUNCTION_DECL)
     expr = build_unary_op (ADDR_EXPR, expr, 0);
 
-  if (TREE_TYPE (expr) != TREE_TYPE (des))
-    add_stmt (build2 (MODIFY_EXPR, TREE_TYPE (des), des,
-		      gccgm2_BuildConvert (TREE_TYPE (des), expr, FALSE)));
+  if (TREE_TYPE (expr) == TREE_TYPE (des))
+    result = build2 (MODIFY_EXPR, TREE_TYPE (des), des, expr);
   else
-    add_stmt (build2 (MODIFY_EXPR, TREE_TYPE (des), des, expr));
+    result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
+		     gccgm2_BuildConvert (TREE_TYPE (des), expr, FALSE));
+
+  TREE_SIDE_EFFECTS (result) = 1;
+  add_stmt (result);
   return des;
 }
 
@@ -8463,9 +8469,7 @@ gccgm2_BuildTrunc (tree op1)
  */
 
 tree
-gccgm2_BuildNegate (op1, needconvert)
-     tree op1;
-     int  needconvert;
+gccgm2_BuildNegate (tree op1, int needconvert)
 {
   tree type = TREE_TYPE (op1);
   enum tree_code code = TREE_CODE (type);
@@ -9313,8 +9317,10 @@ gccgm2_BuildParam (tree param)
   fprintf(stderr, "tree for parameter containing "); fflush(stderr);
   fprintf(stderr, "list of elements\n"); fflush(stderr);
 #endif
+#if 1
   if (TREE_CODE(param) == FUNCTION_DECL)
     param = build_unary_op (ADDR_EXPR, param, 0);
+#endif
 
   param_list = chainon (build_tree_list(NULL_TREE, param), param_list);
 #if 0
@@ -9342,7 +9348,7 @@ gccgm2_BuildProcedureCallTree (tree procedure, tree rettype)
     rettype = void_type_node;
     call = build (CALL_EXPR, rettype, funcptr, param_list, NULL_TREE);
     TREE_USED (call)         = TRUE;
-    TREE_SIDE_EFFECTS (call) = TRUE ;
+    TREE_SIDE_EFFECTS (call) = TRUE;
 
 #if defined(DEBUG_PROCEDURE_CALLS)
     fprintf(stderr, "built the modula-2 call, here is the tree\n"); fflush(stderr);
@@ -9354,6 +9360,8 @@ gccgm2_BuildProcedureCallTree (tree procedure, tree rettype)
     return call;
   } else {
     last_function = build (CALL_EXPR, skip_type_decl (rettype), funcptr, param_list, NULL_TREE);
+    TREE_USED (last_function) = TRUE;
+    TREE_SIDE_EFFECTS (last_function) = TRUE;
     param_list = NULL_TREE;   /* ready for the next time we call a procedure */
     return last_function;
   }
@@ -9370,6 +9378,7 @@ gccgm2_BuildIndirectProcedureCallTree (tree procedure, tree rettype)
   tree call;
 
   TREE_USED (procedure) = TRUE;
+  TREE_SIDE_EFFECTS (procedure) = TRUE;
 
   if (rettype == NULL_TREE) {
     rettype = void_type_node;
@@ -9388,9 +9397,12 @@ gccgm2_BuildIndirectProcedureCallTree (tree procedure, tree rettype)
 
     add_stmt (call);
     last_function = NULL_TREE;
-  } else
+  } else {
     last_function = build (CALL_EXPR, skip_type_decl (rettype),
                            procedure, param_list, NULL_TREE);
+    TREE_USED (last_function) = TRUE;
+    TREE_SIDE_EFFECTS (last_function) = TRUE;
+  }
 
   param_list = NULL_TREE;   /* ready for the next time we call a procedure */
   return last_function;

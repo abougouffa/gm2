@@ -20,6 +20,7 @@ IMPLEMENTATION MODULE WholeConv ;
 
 FROM CharClass IMPORT IsNumeric, IsWhiteSpace ;
 IMPORT EXCEPTIONS ;
+
 FROM ConvTypes IMPORT ScanClass ;
 
 
@@ -156,18 +157,15 @@ VAR
    value  : CARDINAL ;
    neg    : BOOLEAN ;
 BEGIN
-   IF FormatInt(str)=valid
+   IF FormatInt(str)=strAllRight
    THEN
       value := 0 ;
       neg := FALSE ;
       i := 0 ;
       h := LENGTH(str) ;
-      ScanInt(str[0], chClass, proc) ;
-      WHILE (i<h) AND (chClass=padding) DO
-         proc(str[i], chClass, proc) ;
-         INC(i)
-      END ;
-      WHILE (i<h) AND (chClass=valid) DO
+      proc := ScanInt ;
+      chClass := valid ;
+      WHILE (i<h) AND ((chClass=valid) OR (chClass=padding)) DO
          IF str[i]='-'
          THEN
             neg := NOT neg
@@ -176,7 +174,7 @@ BEGIN
             (* ignore *)
          ELSIF IsNumeric(str[i])
          THEN
-            value := value*10+ORD(str[i])
+            value := value*10+(ORD(str[i])-ORD('0'))
          END ;
          proc(str[i], chClass, proc) ;
          INC(i)
@@ -190,7 +188,7 @@ BEGIN
       RETURN( v )
    ELSE
       EXCEPTIONS.RAISE(wholeConv, ORD(invalidSigned),
-                       'WholeConv:' + __FUNCTION__ + ': signed number is invalid')
+                       'WholeConv.' + __FUNCTION__ + ': signed number is invalid')
    END
 END ValueInt ;
 
@@ -305,23 +303,21 @@ VAR
    i, h   : CARDINAL ;
    value  : CARDINAL ;
 BEGIN
-   IF FormatInt(str)=valid
+   IF FormatCard(str)=strAllRight
    THEN
       value := 0 ;
       i := 0 ;
       h := LENGTH(str) ;
-      ScanInt(str[0], chClass, proc) ;
-      WHILE (i<h) AND (chClass=padding) DO
-         proc(str[i], chClass, proc) ;
-         INC(i)
-      END ;
-      WHILE (i<h) AND (chClass=valid) DO
+      ScanCard(str[0], chClass, proc) ;
+      proc := ScanCard ;
+      chClass := valid ;
+      WHILE (i<h) AND ((chClass=valid) OR (chClass=padding)) DO
          IF str[i]='+'
          THEN
             (* ignore *)
          ELSIF IsNumeric(str[i])
          THEN
-            value := value*10+ORD(str[i])
+            value := value*10+(ORD(str[i])-ORD('0'))
          END ;
          proc(str[i], chClass, proc) ;
          INC(i)

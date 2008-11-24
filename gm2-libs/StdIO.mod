@@ -98,7 +98,7 @@ BEGIN
    END
 END GetCurrentOutput ;
 
- 
+
 BEGIN
    StackPtr := 0 ;
    PushOutput(IO.Write)
