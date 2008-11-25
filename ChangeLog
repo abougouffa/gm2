@@ -1,3 +1,9 @@
+2008-11-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  install all subsiduary binaries
+	  into $(DESTDIR)$(libexecsubdir) instead of
+          $(DESTDIR)$(libsubdir).
+
 2008-11-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  prefixed invocation of makeversion

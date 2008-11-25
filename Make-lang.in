@@ -356,9 +356,9 @@ gm2.install-common: installdirs \
             toolbase=`basename $$tool` ; \
             tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
             if [ -f $$tool ]; then \
-              rm -f $(DESTDIR)$(bindir)/$$tool_transformed_name; \
-              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libsubdir)/$$tool_transformed_name; \
-              chmod a+x $(DESTDIR)$(libsubdir)/$$tool_transformed_name; \
+              rm -f $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
+              $(INSTALL_PROGRAM) $$tool $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
+              chmod a+x $(DESTDIR)$(libexecsubdir)/$$tool_transformed_name; \
             else \
               echo "odd cannot find $$tool" ; \
             fi ; \
