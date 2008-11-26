@@ -352,7 +352,11 @@ gm2.install-common: installdirs \
           $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           for tool in stage1/gm2/cc1gm2$(exeext) \
-                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
+                      $(GM2_LINK_TOOLS_BOOT) \
+                      stage1/gm2/cc1$(exeext) \
+                      stage1/gm2/cc1plus$(exeext) \
+                      stage1/gm2/cpp$(exeext) \
+                      stage1/gm2/gm2m$(exeext) ; do \
             toolbase=`basename $$tool` ; \
             tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
             if [ -f $$tool ]; then \

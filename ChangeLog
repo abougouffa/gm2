@@ -1,3 +1,8 @@
+2008-11-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added cc1plus, cc1, cpp to the
+	  list of executables to be installed as part of gm2.
+
 2008-11-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  install all subsiduary binaries

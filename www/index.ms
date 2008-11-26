@@ -17,6 +17,7 @@
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
 .ds CURRENTDATE "Mon Nov  3 20:02:31 GMT 2008
 .ds CURRENTGM2 0.68
+.ds DEBIANGM2 0.6.8
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -315,6 +316,58 @@ You can obtain source to these binaries as a normal user by the following comman
 .CDS
 .CMD apt-get source gm2
 .CDE
+.
+.SH
+Creating a deb package for GNU Modula-2
+.LP
+If you are interested in building your own package for GNU Modula-2 then
+you might consider this information useful.   There are probably other ways to
+build Debian packages but this is the way the packages in the previous section
+were built.
+.ULS
+.LI
+firstly you need to create a pbuilder environment.  I used the excellent
+.URL http://people.connexer.com/~roberto/howtos/debcustomize "tutorial found here" .
+.LI
+before building GNU Modula-2 you should update your pbuilder environment by:
+.sp
+.CDS
+.CMD sudo pbuilder create
+.CDE
+.sp
+.LI
+now you can obtain the GNU Modula-2 source code.
+.sp
+.CDS
+.CMD apt-get source gm2
+.CDE
+.sp
+.LI
+before creating the package it is advisable to revise the version number.
+This is should be done semi automatically via the following commands:
+.sp
+.CDS
+.CMD cd gm2-\\*[DEBIANGM2]
+.CMD myrevdeb
+.CDE
+.sp
+the script
+.PRG myrevdeb
+can be found
+.URL http://floppsie.comp.glam.ac.uk/download/scripts/myrevdeb here .
+.LI
+finally the package can be built using the following script:
+.sp
+.CDS
+.CMD cd gm2-\\*[DEBIANGM2]
+.CMD mypdebbuild
+.CDE
+.sp
+and this script can be found
+.URL http://floppsie.comp.glam.ac.uk/download/scripts/mypdebbuild here .
+Once this completes you should have a binary package and a
+corresponding documentation package available in the directory above.
+.ULE
 .
 .SH
 GM2 and GCC tarball download
