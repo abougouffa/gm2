@@ -3,6 +3,8 @@
 	* gm2/gm2-compiler/M2Options.mod:  added ability for
 	  the Modula-2 frontend to ignore -d options.  The -d
 	  options are processed by gcc component of cc1gm2.
+	* gm2/gm2.texi:  added -d to the list of supported
+	  options.
 
 2008-11-26       Gaius Mulley <gaius@gnu.org>
 
