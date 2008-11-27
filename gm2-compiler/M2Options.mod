@@ -470,6 +470,10 @@ BEGIN
    THEN
       (* if gcc passes architectural flags to us, we ignore it *)
       Legal := TRUE
+   ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-d')
+   THEN
+      (* if gcc passes -d flags to us, we ignore them *)
+      Legal := TRUE
    ELSIF EqualArray(Mark(Slice(s, 0, 2)), '-f')
    THEN
       (* if gcc passes architectural flags to us, we ignore it *)

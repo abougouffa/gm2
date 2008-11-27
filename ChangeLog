@@ -1,3 +1,9 @@
+2008-11-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Options.mod:  added ability for
+	  the Modula-2 frontend to ignore -d options.  The -d
+	  options are processed by gcc component of cc1gm2.
+
 2008-11-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added cc1plus, cc1, cpp to the

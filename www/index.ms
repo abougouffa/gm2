@@ -356,6 +356,27 @@ the script
 can be found
 .URL http://floppsie.comp.glam.ac.uk/download/scripts/myrevdeb here .
 .LI
+if you just want to rebuild the rebuild the package with no
+alterations you should skip this bullet point.  However if you wish to
+introduce a later gcc/gm2 source tree into the package you need to
+download the desired version from
+.GM2URL "" "here"
+and extact and move it into gm2-\*[DEBIANGM2].
+Now you should remove the old source tree inside gm2-\*[DEBIANGM2]
+and then you will have to edit
+.PRG gm2-\\*[DEBIANGM2]/Makefile.in
+and
+.PRG gm2-\\*[DEBIANGM2]/debian/rules
+and change the references to the previous source tree to your source new tree.
+Once this is completed you must rebuild the
+.PRG Makefile
+by:
+.sp
+.CDS
+.CMD cd gm2-\\*[DEBIANGM2]
+.CMD ./configure
+.CDE
+.LI
 finally the package can be built using the following script:
 .sp
 .CDS
@@ -366,7 +387,8 @@ finally the package can be built using the following script:
 and this script can be found
 .URL http://floppsie.comp.glam.ac.uk/download/scripts/mypdebbuild here .
 Once this completes you should have a binary package and a
-corresponding documentation package available in the directory above.
+corresponding documentation package available in the directory
+.PRG /usr/local/src/results .
 .ULE
 .
 .SH
