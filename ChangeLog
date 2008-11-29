@@ -1,3 +1,9 @@
+2008-11-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  insert option "-shared-libgcc" onto
+	  command line to fix linking problem exposed Darwin.
+	* gm2/Make-lang.in:  use g++ as the gm2cc linker.
+
 2008-11-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Options.mod:  added ability for

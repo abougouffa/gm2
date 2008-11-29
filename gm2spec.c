@@ -21,6 +21,8 @@ Boston, MA 02110-1301, USA.  */
 
 #include "config.h"
 #include "system.h"
+#include "coretypes.h"
+#include "tm.h"
 #include "gcc.h"
 #include "defaults.h"
 
@@ -483,6 +485,8 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   if (linking) {
     add_lib(in_argc, in_argv, "-lstdc++");
 #if defined(ENABLE_SHARED_LIBGCC)
+    insert_arg(1, in_argc, (char ***)in_argv);
+    add_arg(1, (char ***)in_argv, "-shared-libgcc");
     add_lib(in_argc, in_argv, "-lgcc_eh");
 #endif
   }

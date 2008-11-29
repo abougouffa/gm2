@@ -352,11 +352,7 @@ gm2.install-common: installdirs \
           $(INSTALL_PROGRAM) $(GM2)$(exeext) $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           chmod a+x $(DESTDIR)$(bindir)/$(GM2_INSTALL_NAME)$(exeext); \
           for tool in stage1/gm2/cc1gm2$(exeext) \
-                      $(GM2_LINK_TOOLS_BOOT) \
-                      stage1/gm2/cc1$(exeext) \
-                      stage1/gm2/cc1plus$(exeext) \
-                      stage1/gm2/cpp$(exeext) \
-                      stage1/gm2/gm2m$(exeext) ; do \
+                      $(GM2_LINK_TOOLS_BOOT) stage1/gm2/gm2m$(exeext) ; do \
             toolbase=`basename $$tool` ; \
             tool_transformed_name=`echo $$toolbase|sed '$(program_transform_name)'`; \
             if [ -f $$tool ]; then \
@@ -1832,8 +1828,8 @@ stage1/gm2/gm2m$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
               gm2/gm2-compiler-boot/m2flex.o \
               gm2/gm2-compiler-boot/gm2m.o $(GM2_LIBS_BOOT) $(LIBS)
 
-stage1/gm2/gm2cc$(exeext): xgcc$(exeext)
-	cp -p xgcc$(exeext) $@
+stage1/gm2/gm2cc$(exeext): g++$(exeext)
+	cp -p g++$(exeext) $@
 
 stage2/gm2/gm2l$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm2l.o
 	grep -v mod_init $(srcdir)/gm2/init/gm2linit > gm2l.lst
@@ -1880,8 +1876,8 @@ stage2/gm2/gm2m$(exeext): $(GM2_LIBS) $(GM2_LINK_TOOLS_BOOT) gm2/gm2-compiler/gm
                -fuselist gm2/gm2-auto/gm2m.mod $(LIBS) \
                 gm2/gm2-compiler/m2flex.o gm2/gm2-libiberty/xlibc.o
 
-stage2/gm2/gm2cc$(exeext): xgcc$(exeext)
-	cp -p xgcc$(exeext) $@
+stage2/gm2/gm2cc$(exeext): g++$(exeext)
+	cp -p g++$(exeext) $@
 
 stage1/gm2/h2def$(exeext): gm2/p2c/p2c-src/src/libp2c.a \
      gm2/boot-bin/mklink$(exeext) gm2/boot-bin/p2c$(exeext) \
