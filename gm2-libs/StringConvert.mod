@@ -746,7 +746,7 @@ BEGIN
          (* add leading zero's *)
          IF Length(s)<LogPower
          THEN
-            s := Mult(InitString('0'), LogPower-Length(s)) ;
+            s := ConCat(Mult(InitString('0'), LogPower-Length(s)), Mark(s))
          END ;
          Result := ConCat(Result, Mark(s))
       END

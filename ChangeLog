@@ -1,3 +1,8 @@
+2008-12-01       "Nestor" <nestorac@gmail.com>
+
+	* gm2/gm2-libs/StringConvert.mod:  appended
+	  string to leading zeros.
+
 2008-11-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2spec.c:  insert option "-shared-libgcc" onto
