@@ -247,7 +247,7 @@ generic flags details see
 @table @code
 
 @item -d
-a GCC option (see @xref{Invoking GCC, , ,gcc}).  It allows users
+a GCC option @xref{Invoking GCC, , ,gcc}.  It allows users
 to specify how the rtl passes should dump their internal state.
 
 @item -I

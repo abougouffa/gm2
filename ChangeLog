@@ -1,3 +1,37 @@
+2008-12-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FormatStrings.mod:  tidied up comments.
+	* gm2/gm2-libs/MathLib0.def:  entierl (new function).
+	* gm2/gm2-libs/MathLib0.mod:  entierl implement
+	  (new function).
+	* gm2/gm2-libs/StringConvert.def:  added example of
+	  use to the comments.
+	* gm2/gm2-libs/StringConvert.mod:  DetermineSafeTruncation
+	  tidied up comments and added examples, fixed bugs.
+	* gm2/gm2-libs-pim/RealConversions.def:  tided up comments
+	  and added examples.  LongRealToString and ReadToString
+	  now take an INTEGER width which matches the Logitech
+	  definitions.
+	* gm2/gm2-libs-pim/RealConversions.mod:  RealToString and
+	  LongRealToString modified width parameter to take an INTEGER.
+	  Reimplemented much of LongRealToString and altered its
+	  definition to make it simpler to use.
+
+2008-12-05       Gaius Mulley <gaius@gnu.org>
+
+	* fixed bug reported by Steve Giess <scgiess@hotmail.com>
+	  which showed const+realvar was not converted to the
+	  required REAL/LONGREAL/SHORTREAL type when passed
+	  to a procedure.
+	* gm2/gm2-compiler/M2GenGCC.mod:  ensure that actual
+	  parameter are converted to formal parameter types if
+	  they are a member of the real type family.
+	* testsuite/gm2/pim/run/pass/mathconst.mod:  new file.
+	* testsuite/gm2/pim/run/pass/math.mod:  new file.
+	* testsuite/gm2/pim/run/pass/math2.mod:  new file.
+	* gm2/gm2-compiler/M2Base.mod:  fixed MixTypes to
+	  handle expressions of RType and (REAL|SHORTREAL|LONGREAL).
+
 2008-12-01       "Nestor" <nestorac@gmail.com>
 
 	* gm2/gm2-libs/StringConvert.mod:  appended

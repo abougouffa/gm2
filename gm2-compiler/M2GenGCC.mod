@@ -1981,10 +1981,10 @@ BEGIN
       OperandType := SkipType(GetType(op3)) ;
       ParamType := SkipType(GetType(GetNthParam(op2, op1)))
    END ;
-   IF IsConst(op3) AND IsRealType(OperandType) AND
-      IsRealType(ParamType) AND (ParamType#OperandType)
+   IF IsRealType(OperandType) AND IsRealType(ParamType) AND
+      (ParamType#OperandType)
    THEN
-      (* LONGREAL and REAL conversion during parameter passing *)
+      (* SHORTREAL, LONGREAL and REAL conversion during parameter passing *)
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            Mod2Gcc(op3), FALSE) )
    ELSIF (OperandType#NulSym) AND IsSet(OperandType)

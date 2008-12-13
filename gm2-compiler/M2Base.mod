@@ -1700,6 +1700,17 @@ BEGIN
    ELSIF IsSubrange(t2)
    THEN
       RETURN( MixTypes(t1, GetType(t2), NearTok) )
+   ELSIF IsRealType(t1) AND IsRealType(t2)
+   THEN
+      IF t1=RType
+      THEN
+         RETURN( t2 )
+      ELSIF t2=RType
+      THEN
+         RETURN( t1 )
+      ELSE
+         RETURN( RType )
+      END
    ELSIF IsType(t1)
    THEN
       RETURN( MixTypes(GetType(t1), t2, NearTok) )

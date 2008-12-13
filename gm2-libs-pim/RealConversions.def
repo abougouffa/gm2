@@ -1,4 +1,4 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -52,11 +52,10 @@ EXPORT QUALIFIED RealToString, StringToReal,
                   ABS(width)+8
 
                   For exponent notation the minimum width required is
-                  ABS(width)+2+ the number of digits to the left of the
-                  decimal point.
+                  ABS(digits)+2+log10(magnitude).
 *)
 
-PROCEDURE RealToString (r: REAL; digits: INTEGER; width : CARDINAL;
+PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
                         VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
 
 
@@ -82,11 +81,19 @@ PROCEDURE RealToString (r: REAL; digits: INTEGER; width : CARDINAL;
                       ABS(width)+8
 
                       For exponent notation the minimum width required is
-                      ABS(width)+2+ the number of digits to the left of the
-                      decimal point.
+                      ABS(digits)+2+log10(magnitude).
+
+                      Examples:
+                      RealToString(100.0, 10, 10, a, ok)       ->  '100.000000'
+                      RealToString(100.0, -5, 12, a, ok)       ->  '  1.00000E+2'
+
+                      RealToString(123.456789, 10, 10, a, ok)  ->  '123.456789'
+                      RealToString(123.456789, -5, 13, a, ok)  ->  '    1.23456E+2'
+
+                      RealToString(123.456789, -2, 15, a, ok)  ->  '          1.23E+2'
 *)
 
-PROCEDURE LongRealToString (r: LONGREAL; digits: INTEGER; width : CARDINAL;
+PROCEDURE LongRealToString (r: LONGREAL; digits, width: INTEGER;
                             VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
 
 

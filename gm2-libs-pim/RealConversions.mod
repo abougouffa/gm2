@@ -19,7 +19,7 @@ IMPLEMENTATION MODULE RealConversions ;
 
 FROM DynamicStrings IMPORT String, InitString, KillString, CopyOut, Length,
                            ConCat, ConCatChar, Mark, RemoveWhitePrefix,
-                           InitStringChar, Mult, Slice, Index, string ;
+                           InitStringChar, Mult, Slice, Index, char, string ;
 
 FROM StringConvert IMPORT LongrealToString, StringToLongreal,
                           StringToLongreal, StringToInteger, itos ;
@@ -30,7 +30,7 @@ FROM libc IMPORT printf ;
 
 
 CONST
-   Debugging = FALSE ;
+   Debugging = TRUE ;
 
 
 (*
@@ -115,11 +115,10 @@ END powl10 ;
                   ABS(width)+8
 
                   For exponent notation the minimum width required is
-                  ABS(width)+2+ the number of digits to the left of the
-                  decimal point.
+                  ABS(digits)+2+log10(magnitude).
 *)
 
-PROCEDURE RealToString (r: REAL; digits: INTEGER; width: CARDINAL;
+PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
                         VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
 VAR
    l: LONGREAL ;
@@ -151,16 +150,24 @@ END RealToString ;
                       ABS(width)+8
 
                       For exponent notation the minimum width required is
-                      ABS(width)+2+ the number of digits to the left of the
-                      decimal point.
+                      ABS(digits)+2+log10(magnitude).
+
+                      Examples:
+                      RealToString(100.0, 10, 10, a, ok)       ->  '100.000000'
+                      RealToString(100.0, -5, 12, a, ok)       ->  '  1.00000E+2'
+
+                      RealToString(123.456789, 10, 10, a, ok)  ->  '123.456789'
+                      RealToString(123.456789, -5, 13, a, ok)  ->  '    1.23456E+2'
+
+                      RealToString(123.456789, -2, 15, a, ok)  ->  '          1.23E+2'
 *)
 
-PROCEDURE LongRealToString (r: LONGREAL; digits: INTEGER; width: CARDINAL;
+PROCEDURE LongRealToString (r: LONGREAL; digits, width: INTEGER;
                             VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
 VAR
-   s, e      : String ;
-   p, k, j,
-   powerOfTen: INTEGER ;
+   s, e         : String ;
+   point, len, j,
+   powerOfTen   : INTEGER ;
 BEGIN
    IF digits>0
    THEN
@@ -178,47 +185,68 @@ BEGIN
          j := 1
       END ;
       r := r*powl10(-powerOfTen) ;
-      IF width>=Length(s)+2
+      IF width>=VAL(INTEGER, Length(s))+2
       THEN
-         s := ConCat(s, Mark(RemoveWhitePrefix(Mark(LongrealToString(r, width+1, digits))))) ;
+         s := ConCat(s, Mark(RemoveWhitePrefix(Mark(LongrealToString(r, width+1, width))))) ;
          IF Debugging
          THEN
             printf('value returned was %s\n', string(s))
          END ;
-         p := Index(s, '.', 0) ;
-         IF p>=0
+         point := Index(s, '.', 0) ;
+         IF point>=0
          THEN
             (* remove the '.' *)
-            s := ConCat(Slice(Mark(s), 0, p), Mark(Slice(Mark(s), p+1, 0))) ;
+            s := ConCat(Slice(Mark(s), 0, point), Mark(Slice(Mark(s), point+1, 0))) ;
             s := Slice(Mark(s), 0, width) ;
             IF Debugging
             THEN
                printf('value returned was %s\n', string(s))
             END ;
-            p := powerOfTen ;
-            k := Length(s) ;
+            point := powerOfTen ;
+            (* now strip off trailing '0's *)
+            WHILE (Length(s)>2) AND (char(s, -1)='0') DO
+               s := Slice(Mark(s), 0, -1)
+            END ;
+            len := Length(s) ;
             IF Debugging
             THEN
-               printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
-                      p, powerOfTen, k, k-p)
+               printf('point = %d, powerOfTen = %d, len = %d,  len-point = %d\n',
+                      point, powerOfTen, len, len-point) ;
+               printf('value returned was %s\n', string(s))
             END ;
-            WHILE (p<k) AND (k-p>digits) AND (INTEGER(width)>3+j+p+logi10(powerOfTen-p+1)+1) DO
-               INC(p) ;
+            WHILE len<2 DO
+               s := ConCat(s, Mark(InitString('0'))) ;
+               len := Length(s)
+            END ;
+            point := 1 ;
+            IF digits>width-point-2
+            THEN
+               (* need to round the result *)
+               digits := width-point-2
+            END ;
+            s := ConCat(Slice(s, 0, point),
+                        ConCat(InitStringChar('.'),
+                               Mark(Slice(Mark(s), point, point+digits)))) ;
+            IF Debugging
+            THEN
+               printf("value returned was '%s'\n", string(s))
+            END ;
+            (* and add trailing '0's if needed *)
+            IF VAL(INTEGER, Length(s))-point<digits+1
+            THEN
+               s := ConCat(s, Mult(Mark(InitString('0')), digits+1-(VAL(INTEGER, Length(s))-point))) ;
                IF Debugging
                THEN
-                  printf('p = %d, powerOfTen = %d, k = %d,  k-p = %d\n',
-                         p, powerOfTen, k, k-p)
+                  printf("value returned was '%s'\n", string(s))
                END
             END ;
-            s := ConCat(Slice(s, 0, p),
-                        Mark(ConCat(Mark(ConCat(InitStringChar('.'),
-                                                Slice(Mark(s), p, 0))),
-                                    Mark(ConCat(InitStringChar('E'),
-                                                Mark(itos(powerOfTen-p+1, 0, ' ', TRUE))))))) ;
+            e := ConCat(InitStringChar('E'),
+                        Mark(itos(powerOfTen-point+1, 0, ' ', TRUE))) ;
             IF Debugging
             THEN
-               printf('value returned was %s\n', string(s))
-            END
+               printf("value returned was '%s' and '%s'\n", string(s), string(e))
+            END ;
+            s := ConCat(s, Mark(e))
          ELSE
             s := ConCat(s, Mark(e))
          END
@@ -229,9 +257,9 @@ BEGIN
          RETURN
       END ;
    END ;
-   IF Length(s)<=width
+   IF VAL(INTEGER, Length(s))<=width
    THEN
-      s := ConCat(Mult(InitStringChar(' '), width-Length(s)), Mark(s)) ;
+      s := ConCat(Mult(InitStringChar(' '), width-VAL(INTEGER, Length(s))), Mark(s)) ;
       IF Debugging
       THEN
          printf('value returned was %s\n', string(s))

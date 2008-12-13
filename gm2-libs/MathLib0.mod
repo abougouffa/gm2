@@ -124,8 +124,13 @@ END entier ;
 
 PROCEDURE entiers (x: SHORTREAL) : INTEGER ;
 BEGIN
-   RETURN TRUNC (libm.floor (VAL(REAL, x)))
+   RETURN TRUNC (libm.floorf (x))
 END entiers ;
+
+PROCEDURE entierl (x: LONGREAL) : INTEGER ;
+BEGIN
+   RETURN TRUNC (libm.floorl (x))
+END entierl ;
 
 
 END MathLib0.

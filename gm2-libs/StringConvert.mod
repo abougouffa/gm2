@@ -638,8 +638,9 @@ END ToThePower10 ;
 
 
 (*
-   DetermineSafeTruncation - we wish to use TRUNC when converting REAL/LONGREAL into a string for
-                             the non fractional component. However we need a simple method to
+   DetermineSafeTruncation - we wish to use TRUNC when converting REAL/LONGREAL
+                             into a string for the non fractional component.
+                             However we need a simple method to
                              determine the maximum safe truncation value.
 *)
 
@@ -661,6 +662,24 @@ END DetermineSafeTruncation ;
 (*
    LongrealToString - converts a LONGREAL number, Real, which has,
                       TotalWidth, and FractionWidth into a string.
+
+                      So for example:
+
+                      LongrealToString(1.0, 4, 2)  -> '1.00'
+                      LongrealToString(12.3, 5, 2) -> '12.30'
+                      LongrealToString(12.3, 6, 2) -> ' 12.30'
+                      LongrealToString(12.3, 6, 3) -> '12.300'
+
+                      if total width is too small then the fraction
+                      becomes truncated.
+
+                      LongrealToString(12.3, 5, 3) -> '12.30'
+
+                      Positive numbers do not have a '+' prepended.
+                      Negative numbers will have a '-' prepended and
+                      the TotalWidth will need to be large enough
+                      to contain the sign, whole number, '.' and
+                      fractional components.
 *)
 
 PROCEDURE LongrealToString (x: LONGREAL;
@@ -668,14 +687,12 @@ PROCEDURE LongrealToString (x: LONGREAL;
 VAR
    TruncedX        : INTEGER;
    NonTruncedDigits: CARDINAL ;
-
    s, Result       : String ;
    IsNegative      : BOOLEAN;
    IntegerWidth    : CARDINAL ;
-   SignWidth       : CARDINAL ;
-
    LogPower        : CARDINAL ;
    MaxPower        : LONGREAL ;
+   point           : CARDINAL ;
 BEGIN
    Result   := InitString('') ;
    LogPower := DetermineSafeTruncation() ;
@@ -684,10 +701,8 @@ BEGIN
    IF x<0.0
    THEN
       x          := -x ;
-      SignWidth  := 1;
       IsNegative := TRUE
    ELSE
-      SignWidth  := 0;
       IsNegative := FALSE
    END ;
 
@@ -717,7 +732,7 @@ BEGIN
    UNTIL NonTruncedDigits = 0 ;
 
    IntegerWidth := Max(Length(Result),
-                       INTEGER(TotalWidth)-INTEGER(FractionWidth)) ;
+                       INTEGER(TotalWidth)-INTEGER(FractionWidth)-1) ;
 
    (* now add the sign *)
    IF IsNegative
@@ -725,16 +740,10 @@ BEGIN
       Result := ConCat(InitString('-'), Mark(Result))
    END ;
 
-   (* and add leading spaces *)
-   IF IntegerWidth>Length(Result)
+   IF (IntegerWidth+2<=TotalWidth) AND (FractionWidth>0)
    THEN
-      Result := ConCat(Mult(InitString(' '),
-                            IntegerWidth-Length(Result)),
-                       Mark(Result))
-   END ;
-
-   IF IntegerWidth<TotalWidth
-   THEN
+      (* room for '.0' and user wants fractional component *)
+      point := Length(Result) ;
       Result := ConCatChar(Result, '.') ;
       WHILE Length(Result)<=TotalWidth DO
          x := x * MaxPower ;
@@ -748,9 +757,27 @@ BEGIN
          THEN
             s := ConCat(Mult(InitString('0'), LogPower-Length(s)), Mark(s))
          END ;
-         Result := ConCat(Result, Mark(s))
+         Result := ConCat(Result, Mark(s)) ;
+      END ;
+
+      (* and trim fraction to desired length *)
+      IF Length(Result)-point>FractionWidth
+      THEN
+         Result := Slice(Mark(Result), 0, point+FractionWidth+1)
       END
    END ;
+
+   (* and trim complete number to correct length *)
+   IF Length(Result)>TotalWidth
+   THEN
+      Result := Slice(Mark(Result), 0, TotalWidth)
+   ELSIF Length(Result)<TotalWidth
+   THEN
+      (* or if necessary add leading spaces *)
+      Result := ConCat(Mult(InitString(' '), TotalWidth-Length(Result)),
+                       Mark(Result))
+   END ;
+
    RETURN( Result )
 END LongrealToString ;
 

@@ -1,4 +1,4 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006, 2007, 2008 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -17,7 +17,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE FormatStrings ;
 
-FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat, Slice, Index, char,
+FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark,
+                           ConCat, Slice, Index, char,
                            Assign, Length, Mult, Dup, ConCatChar ;
 
 FROM StringConvert IMPORT IntegerToString, CardinalToString ;
