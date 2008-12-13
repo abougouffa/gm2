@@ -1,5 +1,8 @@
 2008-12-13       Gaius Mulley <gaius@gnu.org>
 
+	* testsuite/gm2/pimlib/logitech/run/pass
+	  added runtime tests to check the values of REAL and
+	  LONGREALs once converted.
 	* gm2/gm2-libs/FormatStrings.mod:  tidied up comments.
 	* gm2/gm2-libs/MathLib0.def:  entierl (new function).
 	* gm2/gm2-libs/MathLib0.mod:  entierl implement
