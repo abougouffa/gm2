@@ -41,8 +41,14 @@ END exp ;
 
 PROCEDURE exps (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN VAL(SHORTREAL, libm.exp (VAL(REAL, x)))
+   RETURN libm.expf (x)
 END exps ;
+
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN libm.expl (x)
+END expl ;
+
 
 (*
                 log (b)
@@ -59,8 +65,13 @@ END ln ;
 
 PROCEDURE lns (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN VAL(SHORTREAL, libm.log (VAL(REAL, x)) / libm.log (exp1))
+   RETURN libm.logf (x) / libm.logf (exp1)
 END lns ;
+
+PROCEDURE lnl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN libm.logl (x) / libm.logl (exp1)
+END lnl ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sin)) sin (x: REAL) : REAL ;
 BEGIN
@@ -99,12 +110,12 @@ END tan ;
 
 PROCEDURE tanl (x: LONGREAL) : LONGREAL ;
 BEGIN
-   RETURN sinl (x) / cosl (x)
+   RETURN libm.tanl (x)
 END tanl ;
 
 PROCEDURE tans (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN VAL(SHORTREAL, libm.tan (VAL (REAL, x)))
+   RETURN libm.tanf (x)
 END tans ;
 
 PROCEDURE arctan (x: REAL) : REAL ;
@@ -114,8 +125,13 @@ END arctan ;
 
 PROCEDURE arctans (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN VAL(SHORTREAL, libm.atan (VAL (REAL, x)))
+   RETURN libm.atanf (x)
 END arctans ;
+
+PROCEDURE arctanl (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN libm.atanl (x)
+END arctanl ;
 
 PROCEDURE entier (x: REAL) : INTEGER ;
 BEGIN

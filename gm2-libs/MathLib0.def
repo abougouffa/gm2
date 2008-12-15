@@ -1,4 +1,5 @@
-(* Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -35,9 +36,11 @@ PROCEDURE __BUILTIN__ sqrtl (x: LONGREAL) : LONGREAL ;
 PROCEDURE __BUILTIN__ sqrts (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE exp (x: REAL) : REAL ;
+PROCEDURE expl (x: LONGREAL) : LONGREAL ;
 PROCEDURE exps (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE ln (x: REAL) : REAL ;
+PROCEDURE lnl (x: LONGREAL) : LONGREAL ;
 PROCEDURE lns (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE __BUILTIN__ sin (x: REAL) : REAL ;
@@ -49,13 +52,15 @@ PROCEDURE __BUILTIN__ cosl (x: LONGREAL) : LONGREAL ;
 PROCEDURE __BUILTIN__ coss (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE tan (x: REAL) : REAL ;
+PROCEDURE tanl (x: LONGREAL) : LONGREAL ;
 PROCEDURE tans (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE arctan (x: REAL) : REAL ;
+PROCEDURE arctanl (x: LONGREAL) : LONGREAL ;
 PROCEDURE arctans (x: SHORTREAL) : SHORTREAL ;
 
 PROCEDURE entier (x: REAL) : INTEGER ;
-PROCEDURE entiers (x: SHORTREAL) : INTEGER ;
 PROCEDURE entierl (x: LONGREAL) : INTEGER ;
+PROCEDURE entiers (x: SHORTREAL) : INTEGER ;
 
 END MathLib0.
