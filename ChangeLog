@@ -20,6 +20,11 @@
 	  log10, log10l, exp10, exp10l, exp10f.
 	* gm2/gm2-libs/libm.def:  new definitions exp10, exp10l,
 	  exp10f.
+	* gm2/Make-lang.in:  added -lm to all stage1 executables.
+	* gm2/gm2spec.c:  added MATH_LIBRARY to the list
+	  of base libraries on the final link command.
+	* gm2/gm2-libs/StringConvert.mod:  added forward declaration
+          to help p2c.
 
 2008-12-15       Gaius Mulley <gaius@gnu.org>
 

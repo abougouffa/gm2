@@ -22,6 +22,10 @@ FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
                            Slice, Index, char, Assign, Length, Mult,
                            RemoveWhitePrefix, ConCatChar, KillString ;
 
+(* %%%FORWARD%%%
+PROCEDURE doSigFig (s: String; n: CARDINAL) : String ; FORWARD ;
+PROCEDURE carryOne (s: String; i: CARDINAL) : String ; FORWARD ;
+   %%%FORWARD%%% *)
 
 (*
    Max - 

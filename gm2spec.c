@@ -483,6 +483,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     add_arg(1, (char ***)in_argv, "-x");
   }
   if (linking) {
+    add_lib(in_argc, in_argv, MATH_LIBRARY);
     add_lib(in_argc, in_argv, "-lstdc++");
 #if defined(ENABLE_SHARED_LIBGCC)
     insert_arg(1, in_argc, (char ***)in_argv);
