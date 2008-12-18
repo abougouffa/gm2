@@ -16,6 +16,10 @@
 	  minimise floating point operators.  LongrealToString
 	  now allows TotalWidth of zero in which case it keeps
 	  converting until the precision is exhausted.
+	* gm2/gm2-libs/cbuiltin.def:  new definitions log10f,
+	  log10, log10l, exp10, exp10l, exp10f.
+	* gm2/gm2-libs/libm.def:  new definitions exp10, exp10l,
+	  exp10f.
 
 2008-12-15       Gaius Mulley <gaius@gnu.org>
 
