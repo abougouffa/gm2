@@ -22,7 +22,7 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2008/12/13 19:37:49 $ 
+    Last edit  : $Date: 2008/12/18 16:03:44 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
@@ -33,7 +33,8 @@ EXPORT QUALIFIED IntegerToString, StringToInteger,
                  StringToCardinal, CardinalToString,
                  StringToLongCardinal, LongCardinalToString,
                  StringToShortCardinal, ShortCardinalToString,
-                 StringToLongreal, LongrealToString, 
+                 StringToLongreal, LongrealToString,
+                 ToSigFig,
                  stoi, itos, ctos, stoc, hstoi, ostoi, bstoi,
                  hstoc, ostoc, bstoc,
                  stor, stolr ;
@@ -266,6 +267,11 @@ PROCEDURE StringToLongreal (s: String; VAR found: BOOLEAN) : LONGREAL ;
                       becomes truncated.
 
                       LongrealToString(12.3, 5, 3) -> '12.30'
+
+                      If TotalWidth is 0 then the function
+                      will return the value of x which is converted
+                      into as a fixed point number with exhaustive
+                      precision.
 *)
 
 PROCEDURE LongrealToString (x: LONGREAL;
@@ -284,6 +290,14 @@ PROCEDURE stor (s: String) : REAL ;
 *)
 
 PROCEDURE stolr (s: String) : LONGREAL ;
+
+
+(*
+   ToSigFig - returns a floating point or base 10 integer
+              string which is accurate to, n, significat figures.
+*)
+
+PROCEDURE ToSigFig (s: String; n: CARDINAL) : String ;
 
 
 END StringConvert.

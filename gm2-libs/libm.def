@@ -39,6 +39,7 @@ EXPORT UNQUALIFIED sin, sinl, sinf,
                    atan, atanl, atanf,
                    exp, expl, expf,
                    log, logl, logf,
+                   exp10, exp10l, exp10f,
                    pow, powl, powf,
                    floor, floorl, floorf,
                    ceil, ceill, ceilf ;
@@ -70,6 +71,9 @@ PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE log (x: REAL) : REAL ;
 PROCEDURE logl (x: LONGREAL) : LONGREAL ;
 PROCEDURE logf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE exp10 (x: REAL) : REAL ;
+PROCEDURE exp10l (x: LONGREAL) : LONGREAL ;
+PROCEDURE exp10f (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE pow (x, y: REAL) : REAL ;
 PROCEDURE powl (x, y: LONGREAL) : LONGREAL ;
 PROCEDURE powf (x, y: SHORTREAL) : SHORTREAL ;

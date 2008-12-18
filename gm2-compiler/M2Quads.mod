@@ -2669,8 +2669,8 @@ BEGIN
       THEN
          IF GetType(OperandT(1))#Boolean
          THEN
-            n := GetSymName(OperandT(1)) ;
-            WriteFormat1('symbol %a is not a boolean and boolean expression is expected', n)
+            MetaError1('{%1Ua:is not a boolean expression}' +
+                       '{!%1Ua:boolean expression expected}', OperandT(1))
          END
       END ;
       PushT(EqualTok) ;
@@ -7876,11 +7876,11 @@ BEGIN
       THEN
          Var := OperandT(1) ;
          Type := GetType(Sym) ;
+         PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
          IF IsVar(Var) OR IsConst(Var)
          THEN
             IF IsRealType(GetType(Var))
             THEN
-               PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
                (*
                   Build macro: CONVERT( INTEGER, Var )
                *)
@@ -7890,10 +7890,12 @@ BEGIN
                PushT(2) ;          (* Two parameters *)
                BuildConvertFunction
             ELSE
-               WriteFormat0('argument to TRUNC must be a float point type')
+               WriteFormat0('argument to TRUNC must be a float point type') ;
+               PushTF(MakeConstLit(MakeKey('0')), Type)
             END
          ELSE
-            WriteFormat0('argument to TRUNC must be a variable or constant')
+            WriteFormat0('argument to TRUNC must be a variable or constant') ;
+            PushTF(MakeConstLit(MakeKey('0')), Type)
          END
       ELSE
          InternalError('CONVERT procedure not found for TRUNC substitution', __FILE__, __LINE__)
@@ -10542,23 +10544,20 @@ BEGIN
    type := GetType(sym) ;
    IF IsUnknown(sym)
    THEN
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym)))) ;
-      ErrorStringAt(Sprintf1(Mark(InitString('symbol (%s) has not been declared')),
-                             s),
-                    GetFirstUsed(sym))
+      MetaError1('{%1Uad} has not been declared', sym)
    ELSIF (NOT IsConst(sym)) AND (NOT IsVar(sym)) AND
          (NOT IsTemporary(sym)) AND (NOT MustNotCheckBounds)
    THEN
-      ErrorStringAt2(InitString('expecting a variable, constant or expression'),
-                     GetTokenNo(), GetDeclared(sym))
+      MetaErrors1('{%1Uad} expected a variable, constant or expression',
+                 'and it was declared as a {%1Dd}', sym) ;
    ELSIF (type#NulSym) AND IsArray(type)
    THEN
-      ErrorStringAt2(InitString('not expecting an array variable as an operand for either comparison or binary operation'),
-                     GetTokenNo(), GetDeclared(sym))
+      MetaErrors1('{%1U} not expecting an array variable as an operand for either comparison or binary operation',
+                 'it was declared as a {%1Dd}', sym)
    ELSIF IsConstString(sym) AND (GetStringLength(sym)>1)
    THEN
-      ErrorStringAt(InitString('not expecting a string constant as an operand for either comparison or binary operation'),
-                    GetTokenNo())
+      MetaError1('{%1U} not expecting a string constant as an operand for either comparison or binary operation',
+                 sym)
    END
 END CheckVariableOrConstant ;
 

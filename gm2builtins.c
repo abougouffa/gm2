@@ -118,6 +118,9 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_expf",    BT_FN_FLOAT_FLOAT, BUILT_IN_EXPF, BUILT_IN_NORMAL, "expf", NULL, NULL},
 { "__builtin_exp",     BT_FN_DOUBLE_DOUBLE, BUILT_IN_EXP, BUILT_IN_NORMAL, "exp", NULL, NULL},
 { "__builtin_expl",    BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_EXPL, BUILT_IN_NORMAL, "expl", NULL, NULL},
+{ "__builtin_log10f",  BT_FN_FLOAT_FLOAT, BUILT_IN_LOG10F, BUILT_IN_NORMAL, "log10f", NULL, NULL},
+{ "__builtin_log10",   BT_FN_DOUBLE_DOUBLE, BUILT_IN_LOG10, BUILT_IN_NORMAL, "log10", NULL, NULL},
+{ "__builtin_log10l",  BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_LOG10L, BUILT_IN_NORMAL, "log10l", NULL, NULL},
 
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
 { "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},

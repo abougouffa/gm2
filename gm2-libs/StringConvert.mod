@@ -17,7 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE StringConvert ;
 
-
+FROM libm IMPORT exp10l ;
 FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
                            Slice, Index, char, Assign, Length, Mult,
                            RemoveWhitePrefix, ConCatChar, KillString ;
@@ -69,13 +69,23 @@ END LongMin ;
 
 
 (*
+   IsDigit - returns TRUE if, ch, lies between '0'..'9'.
+*)
+
+PROCEDURE IsDigit (ch: CHAR) : BOOLEAN ;
+BEGIN
+   RETURN (ch>='0') AND (ch<='9')
+END IsDigit ;
+
+
+(*
    IsDecimalDigitValid - returns the TRUE if, ch, is a base legal decimal digit.
                          If legal then the value is appended numerically onto, c.
 *)
 
 PROCEDURE IsDecimalDigitValid (ch: CHAR; base: CARDINAL; VAR c: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
+   IF IsDigit(ch) AND (ORD(ch)-ORD('0')<base)
    THEN
       c := c*base + (ORD(ch)-ORD('0')) ;
       RETURN( TRUE )
@@ -114,7 +124,7 @@ END IsHexidecimalDigitValid ;
 PROCEDURE IsDecimalDigitValidLong (ch: CHAR; base: CARDINAL;
                                    VAR c: LONGCARD) : BOOLEAN ;
 BEGIN
-   IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
+   IF IsDigit(ch) AND (ORD(ch)-ORD('0')<base)
    THEN
       c := c * VAL(LONGCARD, base + (ORD(ch)-ORD('0'))) ;
       RETURN( TRUE )
@@ -152,7 +162,7 @@ END IsHexidecimalDigitValidLong ;
 
 PROCEDURE IsDecimalDigitValidShort (ch: CHAR; base: CARDINAL; VAR c: SHORTCARD) : BOOLEAN ;
 BEGIN
-   IF (ch>='0') AND (ch<='9') AND (ORD(ch)-ORD('0')<base)
+   IF IsDigit(ch) AND (ORD(ch)-ORD('0')<base)
    THEN
       c := c * VAL(SHORTCARD, base + (ORD(ch)-ORD('0'))) ;
       RETURN( TRUE )
@@ -731,8 +741,13 @@ BEGIN
       END
    UNTIL NonTruncedDigits = 0 ;
 
-   IntegerWidth := Max(Length(Result),
-                       INTEGER(TotalWidth)-INTEGER(FractionWidth)-1) ;
+   IF TotalWidth=0
+   THEN
+      IntegerWidth := Length(Result)
+   ELSE
+      IntegerWidth := Max(Length(Result),
+                          INTEGER(TotalWidth)-INTEGER(FractionWidth)-1)
+   END ;
 
    (* now add the sign *)
    IF IsNegative
@@ -740,12 +755,14 @@ BEGIN
       Result := ConCat(InitString('-'), Mark(Result))
    END ;
 
-   IF (IntegerWidth+2<=TotalWidth) AND (FractionWidth>0)
+   IF ((IntegerWidth+2<=TotalWidth) AND (FractionWidth>0)) OR
+      (TotalWidth=0)
    THEN
       (* room for '.0' and user wants fractional component *)
       point := Length(Result) ;
       Result := ConCatChar(Result, '.') ;
-      WHILE Length(Result)<=TotalWidth DO
+      WHILE ((TotalWidth#0) AND (Length(Result)<=TotalWidth)) OR
+            ((TotalWidth=0) AND (x#0.0)) DO
          x := x * MaxPower ;
          TruncedX := TRUNC(x) ;
          x := x - VAL(LONGREAL, TruncedX) ;
@@ -761,14 +778,14 @@ BEGIN
       END ;
 
       (* and trim fraction to desired length *)
-      IF Length(Result)-point>FractionWidth
+      IF (TotalWidth#0) AND (Length(Result)-point>FractionWidth)
       THEN
          Result := Slice(Mark(Result), 0, point+FractionWidth+1)
       END
    END ;
 
    (* and trim complete number to correct length *)
-   IF Length(Result)>TotalWidth
+   IF (TotalWidth>0) AND (Length(Result)>TotalWidth)
    THEN
       Result := Slice(Mark(Result), 0, TotalWidth)
    ELSIF Length(Result)<TotalWidth
@@ -783,22 +800,49 @@ END LongrealToString ;
 
 
 (*
+   exp10il - returns a LONGREAL of 10^e.
+*)
+
+PROCEDURE exp10il (p, e: CARDINAL) : LONGREAL ;
+VAR
+   l: LONGREAL ;
+   i: LONGINT ;
+BEGIN
+   IF e<p
+   THEN
+      i := 1 ;
+      WHILE e>0 DO
+         i := i*10 ;
+         DEC(e)
+      END ;
+      RETURN( VAL(LONGREAL, i) )
+   ELSE
+      RETURN( exp10l(VAL(LONGREAL, e)) )
+   END
+END exp10il ;
+
+
+(*
    StringToLongreal - returns a LONGREAL and sets found to TRUE if a legal number is seen.
 *)
 
 PROCEDURE StringToLongreal (s: String; VAR found: BOOLEAN) : LONGREAL ;
 VAR
+   count,
+   LogPower,
    i, l    : CARDINAL ;
    negative: BOOLEAN ;
    x,
    Fraction,
    Exponent: LONGREAL ;
+   fraction,
    exponent: INTEGER ;
 BEGIN
    s := RemoveWhitePrefix(s) ;   (* new string is created *)
    l := Length(s) ;
    i := 0 ;
    negative := FALSE ;
+   LogPower := DetermineSafeTruncation() ;
    x := 0.0 ;
    IF i<l
    THEN
@@ -812,7 +856,7 @@ BEGIN
       END ;
 
       (* firstly deal with the non fractional component, just like integer conversion *)
-      WHILE (i<l) AND (char(s, i)>='0') AND (char(s, i)<='9') DO
+      WHILE (i<l) AND IsDigit(char(s, i)) DO
          x := x*10.0+VAL(LONGREAL, ORD(char(s, i))-ORD('0')) ;
          found := TRUE ;
          INC(i)
@@ -821,14 +865,21 @@ BEGIN
       IF (i<l) AND (char(s, i)='.')
       THEN
          (* yes fractional component exists *)
-         Exponent := 10.0 ;
+         Exponent := 1.0 ;
+         exponent := 0 ;
          Fraction := 0.0 ;
          INC(i) ;  (* move over '.' *)
-         WHILE (i<l) AND (char(s, i)>='0') AND (char(s, i)<='9') DO
-            Fraction := Fraction+VAL(LONGREAL, ORD(char(s, i))-ORD('0'))/Exponent ;
-            found := TRUE ;
-            Exponent := Exponent*10.0 ;
-            INC(i)
+         WHILE (i<l) AND IsDigit(char(s, i)) DO
+            fraction := 0 ;
+            count := 1 ;
+            WHILE IsDigit(char(s, i)) AND (count<LogPower) DO
+               fraction := fraction*10+VAL(INTEGER, ORD(char(s, i))-ORD('0')) ;
+               INC(exponent) ;
+               INC(count) ;
+               INC(i)
+            END ;
+            Fraction := Fraction+(VAL(LONGREAL, fraction)/exp10il(VAL(CARDINAL, LogPower), exponent)) ;
+            found := TRUE
          END ;
          (* and combine both components *)
          x := x+Fraction
@@ -836,7 +887,11 @@ BEGIN
       IF (char(s, i)='E') OR (char(s, i)='e')
       THEN
          INC(i) ;
-         s := Slice(Mark(s), i, -1) ;
+         IF char(s, i)='+'
+         THEN
+            INC(i)
+         END ;
+         s := Slice(Mark(s), i, 0) ;
          exponent := StringToInteger(s, 10, found) ;
          IF found
          THEN
@@ -1052,6 +1107,102 @@ BEGIN
    s := KillString(s) ;
    RETURN( c )
 END StringToShortCardinal ;
+
+
+(*
+   ToSigFig - returns a floating point or base 10 integer
+              string which is accurate to, n, significant
+              figures.
+*)
+
+PROCEDURE ToSigFig (s: String; n: CARDINAL) : String ;
+BEGIN
+   s := doSigFig(s, n) ;
+   IF (Length(s)>0) AND (char(s, -1)='.')
+   THEN
+      RETURN( Slice(Mark(s), 0, -1) )
+   ELSE
+      RETURN( s )
+   END
+END ToSigFig ;
+
+
+(*
+   doSigFig - 
+*)
+
+PROCEDURE doSigFig (s: String; n: CARDINAL) : String ;
+VAR
+   i, l     : CARDINAL ;
+   tenths,
+   hundreths: String ;
+BEGIN
+   l := Length(s) ;
+   i := 0 ;
+   WHILE (i<l) AND (NOT IsDigit(char(s, i))) DO
+      INC(i)
+   END ;
+   IF (i<l) AND (n>0)
+   THEN
+      WHILE (n>0) AND (i<l) DO
+         DEC(n) ;
+         INC(i)
+      END
+   END ;
+   IF i+3<=l
+   THEN
+      hundreths := Slice(s, i+1, i+3) ;
+      IF stoc(hundreths)>=50
+      THEN
+         s := carryOne(Mark(s), i)
+      END ;
+      hundreths := KillString(hundreths)
+   ELSIF i+2<=l
+   THEN
+      tenths := Slice(s, i+1, i+2) ;
+      IF stoc(tenths)>=5
+      THEN
+         s := carryOne(Mark(s), i)
+      END ;
+      tenths := KillString(tenths)
+   END ;
+
+   IF i<l
+   THEN
+      RETURN Slice(Mark(s), 0, i+1)
+   END ;
+
+   RETURN s
+END doSigFig ;
+
+
+(*
+   carryOne - add a carry at position, i.
+*)
+
+PROCEDURE carryOne (s: String; i: CARDINAL) : String ;
+BEGIN
+   IF i>0
+   THEN
+      IF IsDigit(char(s, i))
+      THEN
+         IF char(s, i)='9'
+         THEN
+            s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
+                        Slice(Mark(s), i+1, 0)) ;
+            RETURN carryOne(s, i-1)
+         ELSE
+            s := ConCat(ConCatChar(Slice(s, 0, i),
+                                   CHR(ORD(char(s, i))+1)),
+                        Slice(Mark(s), i+1, 0))
+         END
+      ELSIF char(s, i)='.'
+      THEN
+         RETURN carryOne(s, i-1)
+      END
+   END ;
+   RETURN s
+END carryOne ;
 
 
 END StringConvert.

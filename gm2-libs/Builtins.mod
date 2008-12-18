@@ -126,6 +126,36 @@ BEGIN
    RETURN cbuiltin.expl (x)
 END expl ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_log10)) log10 (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.log10 (x)
+END log10 ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_log10f)) log10f (x: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.log10f (x)
+END log10f ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_log10l)) log10l (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.log10l (x)
+END log10l ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_exp10)) exp10 (x: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.exp10 (x)
+END exp10 ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_exp10f)) exp10f (x: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.exp10f (x)
+END exp10f ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_exp10l)) exp10l (x: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.exp10l (x)
+END exp10l ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.index (s, c)

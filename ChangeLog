@@ -1,3 +1,22 @@
+2008-12-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/Make-lang.in:  RealConv.mod new file.
+	* gm2/gm2/gm2builtins.c:  added __builtin_log10f,
+	  __builtin_log10 and __builtin_log10l.
+	* gm2-libs/Builtins.def:  added definitions for
+	  log10f, log10, log10l, exp10f, exp10, exp10l.
+	* gm2-libs/Builtins.mod:  new functions
+	  log10f, log10, log10l, exp10f, exp10, exp10l.
+	* gm2/gm2-compiler/M2Quads.mod:  migrated more error
+	  messages to use M2MetaError and also made
+	  BuildTruncFunction recover if operands are the wrong type.
+	* gm2/gm2-libs/StringConvert.def:  ToSigFig new function.
+	* gm2/gm2-libs/StringConvert.mod:  refactored to use IsDigit.
+	  Implemented ToSigFig.  StringToLongreal improved to
+	  minimise floating point operators.  LongrealToString
+	  now allows TotalWidth of zero in which case it keeps
+	  converting until the precision is exhausted.
+
 2008-12-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/MathLib0.def:  included definitions for

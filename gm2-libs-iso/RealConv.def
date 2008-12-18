@@ -56,4 +56,3 @@ PROCEDURE IsRConvException (): BOOLEAN;
   *)
 
 END RealConv.
-
