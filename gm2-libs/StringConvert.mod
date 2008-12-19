@@ -17,7 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE StringConvert ;
 
-FROM libm IMPORT exp10l ;
+FROM libm IMPORT powl ;
 FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
                            Slice, Index, char, Assign, Length, Mult,
                            RemoveWhitePrefix, ConCatChar, KillString ;
@@ -821,7 +821,7 @@ BEGIN
       END ;
       RETURN( VAL(LONGREAL, i) )
    ELSE
-      RETURN( exp10l(VAL(LONGREAL, e)) )
+      RETURN( powl(10.0, VAL(LONGREAL, e)) )
    END
 END exp10il ;
 
