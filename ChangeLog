@@ -1,3 +1,19 @@
+2008-12-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified SO, SO_O2 to contain -fPIC.
+	  Added dtoa.c and ldtoa.c.
+	* gm2/gm2-libs/StringConvert.mod:  corrected dates.
+	* gm2/gm2-libs/errno.def:  added ERANGE.
+	* gm2/gm2-libs-iso/README.texi:  added RealConv to list
+	  of completed modules.
+	* gm2/init/gm2-gccinit:  added dtoa and ldtoa.
+	* gm2/init/gm2lccinit:  added dtoa and ldtoa.
+	* gm2/init/gm2lgeninit:  added dtoa and ldtoa.
+	* gm2/init/gm2linit:  added dtoa and ldtoa.
+	* gm2/init/gm2lorderinit:  added dtoa and ldtoa.
+	* gm2/init/gm2minit:  added dtoa and ldtoa.
+	* gm2/init/h2definit:  added dtoa and ldtoa.
+	
 2008-12-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  used powl instead

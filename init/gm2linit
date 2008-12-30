@@ -54,5 +54,7 @@ M2Version
 FormatStrings
 StringConvert
 StdIO
+dtoa
+ldtoa
 gm2l
 mod_init

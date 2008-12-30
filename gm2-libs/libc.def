@@ -39,7 +39,8 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    getcwd, chown, strlen, strcpy, strncpy,
                    unlink,
                    memcpy, memset, printf, realloc,
-                   rand, srand, time, localtime, ftime,
+                   rand, srand,
+                   time, localtime, ftime,
                    shutdown, rename, setjmp, longjmp ;
 
 TYPE

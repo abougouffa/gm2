@@ -37,6 +37,7 @@ The following implementation modules are complete:
 @code{M2RTS}
 @code{ProgramArgs}
 @code{RawIO}
+@code{RealConv}
 @code{RealMath}
 @code{RndFile}
 @code{RTdata}

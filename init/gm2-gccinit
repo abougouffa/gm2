@@ -80,5 +80,7 @@ M2GenGCC
 M2Range
 M2Swig
 M2MetaError
+dtoa
+ldtoa
 gm2
 mod_init

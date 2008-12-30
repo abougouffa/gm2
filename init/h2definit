@@ -49,5 +49,7 @@ choosetemp
 M2FileName
 CLexBuf
 cflex
+dtoa
+ldtoa
 h2def
 mod_init

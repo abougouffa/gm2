@@ -45,5 +45,7 @@ NameKey
 Args
 SArgs
 M2Search
+dtoa
+ldtoa
 gm2lorder
 mod_init

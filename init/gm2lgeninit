@@ -46,4 +46,6 @@ Args
 SArgs
 M2Search
 gm2lgen
+dtoa
+ldtoa
 mod_init

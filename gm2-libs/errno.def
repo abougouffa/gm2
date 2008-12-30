@@ -30,6 +30,7 @@ EXPORT QUALIFIED EINTR, geterrno ;
 
 CONST
     EINTR = 4 ;
+    ERANGE = 34 ;   (* result is too large *)
 
 PROCEDURE geterrno () : INTEGER ;
 
