@@ -18,10 +18,18 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE StringConvert ;
 
+FROM SYSTEM IMPORT ADDRESS ;
+FROM libc IMPORT free ;
 FROM libm IMPORT powl ;
-FROM DynamicStrings IMPORT String, InitString, InitStringChar, Mark, ConCat,
+
+FROM DynamicStrings IMPORT String, InitString,
+                           InitStringChar, InitStringCharStar,
+                           Mark, ConCat, string,
                            Slice, Index, char, Assign, Length, Mult,
                            RemoveWhitePrefix, ConCatChar, KillString ;
+
+FROM ldtoa IMPORT Mode, strtold_string, ldtoa ;
+IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
 
 (* %%%FORWARD%%%
 PROCEDURE doSigFig (s: String; n: CARDINAL) : String ; FORWARD ;
@@ -677,6 +685,7 @@ END DetermineSafeTruncation ;
 (*
    LongrealToString - converts a LONGREAL number, Real, which has,
                       TotalWidth, and FractionWidth into a string.
+                      It uses decimal notation.
 
                       So for example:
 
@@ -700,131 +709,66 @@ END DetermineSafeTruncation ;
 PROCEDURE LongrealToString (x: LONGREAL;
                             TotalWidth, FractionWidth: CARDINAL) : String ;
 VAR
-   TruncedX        : INTEGER;
-   NonTruncedDigits: CARDINAL ;
-   s, Result       : String ;
-   IsNegative      : BOOLEAN;
-   IntegerWidth    : CARDINAL ;
-   LogPower        : CARDINAL ;
-   MaxPower        : LONGREAL ;
-   point           : CARDINAL ;
+   maxprecision: BOOLEAN ;
+   s           : String ;
+   r           : ADDRESS ;
+   point       : INTEGER ;
+   sign        : BOOLEAN ;
+   l           : INTEGER ;
 BEGIN
-   Result   := InitString('') ;
-   LogPower := DetermineSafeTruncation() ;
-   MaxPower := ToThePower10(1.0, LogPower) ;
-
-   IF x<0.0
-   THEN
-      x          := -x ;
-      IsNegative := TRUE
-   ELSE
-      IsNegative := FALSE
-   END ;
-
-   REPEAT
-      (* keep dividing x by 10.0 until we can safely use the TRUNC operator *)
-      NonTruncedDigits := 0 ;
-      WHILE x/ToThePower10(1.0, NonTruncedDigits) >= VAL(LONGREAL, MAX(INTEGER) DIV 10) DO
-         INC(NonTruncedDigits)
-      END ;
-      IF NonTruncedDigits>0
-      THEN
-         (* only divide x if we need, avoid rounding *)
-         x := x / ToThePower10(1.0, NonTruncedDigits)
-      END ;
-
-      (*  Now store the non-fractional digits *)
-      TruncedX := TRUNC(x) ;
-      x := x - VAL(LONGREAL, TruncedX) ;
-
-      Result := ConCat(Result, Mark(IntegerToString(TruncedX, 0, ' ',
-                                                    FALSE, 10, FALSE))) ;
-      IF NonTruncedDigits>0
-      THEN
-         (* now restore x to its original magnitude *)
-         x := ToThePower10(x, NonTruncedDigits)
-      END
-   UNTIL NonTruncedDigits = 0 ;
-
    IF TotalWidth=0
    THEN
-      IntegerWidth := Length(Result)
+      maxprecision := TRUE ;
+      r := ldtoa(x, decimaldigits, 100, point, sign) ;
    ELSE
-      IntegerWidth := Max(Length(Result),
-                          INTEGER(TotalWidth)-INTEGER(FractionWidth)-1)
+      r := ldtoa(x, decimaldigits, FractionWidth, point, sign) ;
    END ;
-
-   (* now add the sign *)
-   IF IsNegative
+   s := InitStringCharStar(r) ;
+   l := Length(s) ;
+   IF point>l
    THEN
-      Result := ConCat(InitString('-'), Mark(Result))
-   END ;
-
-   IF ((IntegerWidth+2<=TotalWidth) AND (FractionWidth>0)) OR
-      (TotalWidth=0)
-   THEN
-      (* room for '.0' and user wants fractional component *)
-      point := Length(Result) ;
-      Result := ConCatChar(Result, '.') ;
-      WHILE ((TotalWidth#0) AND (Length(Result)<=TotalWidth)) OR
-            ((TotalWidth=0) AND (x#0.0)) DO
-         x := x * MaxPower ;
-         TruncedX := TRUNC(x) ;
-         x := x - VAL(LONGREAL, TruncedX) ;
-
-         s := IntegerToString(TruncedX, 0, ' ', FALSE, 10, FALSE) ;
-
-         (* add leading zero's *)
-         IF Length(s)<LogPower
-         THEN
-            s := ConCat(Mult(InitString('0'), LogPower-Length(s)), Mark(s))
-         END ;
-         Result := ConCat(Result, Mark(s)) ;
-      END ;
-
-      (* and trim fraction to desired length *)
-      IF (TotalWidth#0) AND (Length(Result)-point>FractionWidth)
+      s := ConCat(s, Mark(Mult(InitStringChar('0'), point-l))) ;
+      s := ConCat(s, Mark(InitString('.0'))) ;
+      IF (NOT maxprecision) AND (FractionWidth>0)
       THEN
-         Result := Slice(Mark(Result), 0, point+FractionWidth+1)
+         DEC(FractionWidth) ;
+         IF VAL(INTEGER, FractionWidth)>point-l
+         THEN
+            s := ConCat(s, Mark(Mult(InitString('0'), FractionWidth)))
+         END
+      END
+   ELSIF point<0
+   THEN
+      s := ConCat(Mult(InitStringChar('0'), l-point), Mark(s)) ;
+      l := Length(s) ;
+      s := ConCat(InitString('0.'), Mark(s)) ;
+      IF (NOT maxprecision) AND (l<VAL(INTEGER, FractionWidth))
+      THEN
+         s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-l)))
+      END
+   ELSE
+      s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                  Slice(s, point, 0)) ;
+      IF (NOT maxprecision) AND (l-point<VAL(INTEGER, FractionWidth))
+      THEN
+         s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-(l-point))))
       END
    END ;
-
-   (* and trim complete number to correct length *)
-   IF (TotalWidth>0) AND (Length(Result)>TotalWidth)
+   IF sign
    THEN
-      Result := Slice(Mark(Result), 0, TotalWidth)
-   ELSIF Length(Result)<TotalWidth
-   THEN
-      (* or if necessary add leading spaces *)
-      Result := ConCat(Mult(InitString(' '), TotalWidth-Length(Result)),
-                       Mark(Result))
+      s := ConCat(InitStringChar('-'), Mark(s))
    END ;
-
-   RETURN( Result )
-END LongrealToString ;
-
-
-(*
-   exp10il - returns a LONGREAL of 10^e.
-*)
-
-PROCEDURE exp10il (p, e: CARDINAL) : LONGREAL ;
-VAR
-   l: LONGREAL ;
-   i: LONGINT ;
-BEGIN
-   IF e<p
+   IF Length(s)>TotalWidth
    THEN
-      i := 1 ;
-      WHILE e>0 DO
-         i := i*10 ;
-         DEC(e)
-      END ;
-      RETURN( VAL(LONGREAL, i) )
-   ELSE
-      RETURN( powl(10.0, VAL(LONGREAL, e)) )
-   END
-END exp10il ;
+      s := Slice(Mark(s), 0, TotalWidth)
+   END ;
+   (* free(r) ; *)
+   IF Length(s)<TotalWidth
+   THEN
+      s := ConCat(Mult(InitStringChar(' '), TotalWidth-Length(s)), Mark(s))
+   END ;
+   RETURN( s )
+END LongrealToString ;
 
 
 (*
@@ -833,85 +777,14 @@ END exp10il ;
 
 PROCEDURE StringToLongreal (s: String; VAR found: BOOLEAN) : LONGREAL ;
 VAR
-   count,
-   LogPower,
-   i, l    : CARDINAL ;
-   negative: BOOLEAN ;
-   x,
-   Fraction,
-   Exponent: LONGREAL ;
-   fraction,
-   exponent: INTEGER ;
+   error: BOOLEAN ;
+   value: LONGREAL ;
 BEGIN
    s := RemoveWhitePrefix(s) ;   (* new string is created *)
-   l := Length(s) ;
-   i := 0 ;
-   negative := FALSE ;
-   LogPower := DetermineSafeTruncation() ;
-   x := 0.0 ;
-   IF i<l
-   THEN
-      (* parse leading + and - *)
-      WHILE (char(s, i)='-') OR (char(s, i)='+') DO
-         IF char(s, i)='-'
-         THEN
-            negative := NOT negative
-         END ;
-         INC(i)
-      END ;
-
-      (* firstly deal with the non fractional component, just like integer conversion *)
-      WHILE (i<l) AND IsDigit(char(s, i)) DO
-         x := x*10.0+VAL(LONGREAL, ORD(char(s, i))-ORD('0')) ;
-         found := TRUE ;
-         INC(i)
-      END ;
-      (* test for fractional component *)
-      IF (i<l) AND (char(s, i)='.')
-      THEN
-         (* yes fractional component exists *)
-         Exponent := 1.0 ;
-         exponent := 0 ;
-         Fraction := 0.0 ;
-         INC(i) ;  (* move over '.' *)
-         WHILE (i<l) AND IsDigit(char(s, i)) DO
-            fraction := 0 ;
-            count := 1 ;
-            WHILE IsDigit(char(s, i)) AND (count<LogPower) DO
-               fraction := fraction*10+VAL(INTEGER, ORD(char(s, i))-ORD('0')) ;
-               INC(exponent) ;
-               INC(count) ;
-               INC(i)
-            END ;
-            Fraction := Fraction+(VAL(LONGREAL, fraction)/exp10il(VAL(CARDINAL, LogPower), exponent)) ;
-            found := TRUE
-         END ;
-         (* and combine both components *)
-         x := x+Fraction
-      END ;
-      IF (char(s, i)='E') OR (char(s, i)='e')
-      THEN
-         INC(i) ;
-         IF char(s, i)='+'
-         THEN
-            INC(i)
-         END ;
-         s := Slice(Mark(s), i, 0) ;
-         exponent := StringToInteger(s, 10, found) ;
-         IF found
-         THEN
-            x := ToThePower10(x, exponent)
-         END
-      END
-   END ;
+   value := strtold_string(string(s), error) ;
    s := KillString(s) ;
-   (* restore sign *)
-   IF negative
-   THEN
-      RETURN( -x )
-   ELSE
-      RETURN( x )
-   END
+   found := NOT error ;
+   RETURN value
 END StringToLongreal ;
 
 

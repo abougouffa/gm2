@@ -13,6 +13,11 @@
 	* gm2/init/gm2lorderinit:  added dtoa and ldtoa.
 	* gm2/init/gm2minit:  added dtoa and ldtoa.
 	* gm2/init/h2definit:  added dtoa and ldtoa.
+	* gm2/gm2-libs/StringConvert.mod:  replaced
+	  implementation of LongrealToString with a call
+	  to ldtoa.  Replaced implementation with a call
+	  to strtold.
+	* all regression tests pass on LP64.
 	
 2008-12-19       Gaius Mulley <gaius@gnu.org>
 
