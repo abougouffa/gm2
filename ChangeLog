@@ -15,6 +15,9 @@
 	* testsuite/gm2/pim/run/pass/bitsettest.def:  new file.
 	* testsuite/gm2/pim/run/pass/bitsettest.mod:  new file to
 	  test this bugfix never regresses.
+	* gm2/Make-file.in:  added dtoa.def and ldtoa.def to the
+	  list of definition modules in GM2-LIBS-BOOT-DEFS and
+	  GM2-LIBS-DEFS.
 
 2008-12-30       Gaius Mulley <gaius@gnu.org>
 

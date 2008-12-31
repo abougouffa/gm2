@@ -848,7 +848,8 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
                      FpuIO.def       Debug.def       SysStorage.def  DynamicStrings.def \
                      SFIO.def        SArgs.def       StdIO.def       \
                      FormatStrings.def PushBackInput.def Storage.def SEnvironment.def \
-                     StringConvert.def               M2EXCEPTION.def RTExceptions.def
+                     StringConvert.def               M2EXCEPTION.def RTExceptions.def \
+                     dtoa.def        ldtoa.def
 
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
@@ -918,7 +919,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      DynamicStrings.def                SFIO.def        SArgs.def \
                      PushBackInput.def StringConvert.def               FormatStrings.def \
                      Builtins.def      cbuiltin.def    MathLib0.def    M2EXCEPTION.def \
-                     RTExceptions.def
+                     RTExceptions.def  dtoa.def        ldtoa.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
