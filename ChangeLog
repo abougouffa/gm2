@@ -1,3 +1,14 @@
+2008-12-31       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-ch/dtoa.c:  new file.
+	* gm2/gm2-libs-ch/ldtoa.c:  new file.
+	* gm2/gm2-libs/dtoa.def:  new file.
+	* gm2/gm2-libs/ldtoa.def:  new file.
+	* gm2/gm2-libs/StringConvert.mod:  removed call to free.
+	* gm2/gm2-libs-iso/RealConv.mod:  reimplemented
+	  conversion routines using dtoa rather than
+	  StringConvert.
+
 2008-12-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified SO, SO_O2 to contain -fPIC.

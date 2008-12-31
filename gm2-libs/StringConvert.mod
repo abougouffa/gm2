@@ -724,6 +724,7 @@ BEGIN
       r := ldtoa(x, decimaldigits, FractionWidth, point, sign) ;
    END ;
    s := InitStringCharStar(r) ;
+   (* free(r) ; *)
    l := Length(s) ;
    IF point>l
    THEN
