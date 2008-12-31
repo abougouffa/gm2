@@ -30,7 +30,7 @@ BEGIN
    a := {0, 2, 3} ;
    b := {0, 4, 5} ;
    xorbitset(a, b, c) ;
-   IF c#{4, 5}
+   IF c#{2, 3, 4, 5}
    THEN
       exit(1)
    END
