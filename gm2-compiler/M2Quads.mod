@@ -10057,7 +10057,7 @@ END RecordOp ;
 
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ;
 BEGIN
-   IF (Tok=PlusTok) OR (Tok=TimesTok) OR (Tok=DivTok) OR (Tok=MinusTok)
+   IF (Tok=PlusTok) OR (Tok=TimesTok) OR (Tok=DivideTok) OR (Tok=MinusTok)
    THEN
       (* --fixme-- when we add complex arithmetic, we must check constructor is not a complex constant *)
       IF ((t2#NulSym) AND IsSet(SkipType(t2))) OR
@@ -10066,7 +10066,7 @@ BEGIN
          IF Tok=PlusTok
          THEN
             RETURN( LogicalOrTok )
-         ELSIF Tok=DivTok
+         ELSIF Tok=DivideTok
          THEN
             RETURN( LogicalXorTok )
          ELSIF Tok=TimesTok

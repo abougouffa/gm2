@@ -8,6 +8,13 @@
 	* gm2/gm2-libs-iso/RealConv.mod:  reimplemented
 	  conversion routines using dtoa rather than
 	  StringConvert.
+	* gm2/gm2-compiler/M2Quads.mod:  fixed bug reported by
+	  John O Goyo <jgoyo@ca.inter.net> set expressions using
+	  / did not reduce to xor.  Confusion between DivTok (DIV)
+	  and DivideTok (/) tokens.
+	* testsuite/gm2/pim/run/pass/bitsettest.def:  new file.
+	* testsuite/gm2/pim/run/pass/bitsettest.mod:  new file to
+	  test this bugfix never regresses.
 
 2008-12-30       Gaius Mulley <gaius@gnu.org>
 
