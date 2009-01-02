@@ -1750,6 +1750,14 @@ gm2/gm2-libs-paranoid/choosetemp.o: $(srcdir)/gm2/gm2-libs-ch/choosetemp.c \
 gm2/gm2-compiler-paranoid/m2flex.o: gm2/gm2-compiler/m2flex.c
 	$(CC) -c $(GM2_O_S3) $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) -I$(srcdir)/gm2 -Igm2/gm2-compiler-boot -Igm2/gm2-libs-boot $< -o $@
 
+gm2/gm2-libs-paranoid/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c \
+                              gm2/gm2-libs-boot/$(SRC_PREFIX)dtoa.h
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-paranoid/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c \
+                               gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 #
 #  now for rules which build the paranoid version of gm2
 #

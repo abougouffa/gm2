@@ -1,3 +1,8 @@
+2009-01-02       Michael Lambert <lambert@psc.edu>
+
+	* gm2/Make-lang.in:  patch to build dtoa and ldtoa
+	  for gm2.paranoid.
+
 2008-12-31       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/dtoa.c:  new file.
