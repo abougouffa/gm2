@@ -57,11 +57,11 @@ FROM NameKey IMPORT Name, MakeKey, KeyToCharStar ;
 FROM StdIO IMPORT Write ;
 FROM DynamicStrings IMPORT String, string, Length, InitString, ConCat, ConCatChar, Mark, InitStringCharStar ;
 FROM M2GenGCC IMPORT GetHighFromUnbounded, StringToChar, LValueToGenericPtr, ZConstToTypedConst ;
-FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN ;
+FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN, IsComplexN ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
-                   Cardinal,
+                   Cardinal, IsAComplexType,
                    IsAssignmentCompatible,
                    IsParameterCompatible,
                    IsExpressionCompatible,
@@ -789,7 +789,8 @@ BEGIN
       (NOT IsArray(t)) AND (NOT IsRecord(t)) AND
       (NOT IsRecord(t)) AND (NOT IsUnbounded(t)) AND
       (NOT IsProcType(t)) AND (NOT IsRealType(t)) AND
-      (NOT IsRealN(t)) AND
+      (NOT IsRealN(t)) AND (NOT IsAComplexType(t)) AND
+      (NOT IsComplexN(t)) AND
       (t#Address) AND (NOT IsSet(t)) AND
       (t#Word) AND (t#Loc) AND (t#Byte) AND (NOT IsWordN(t))
    THEN

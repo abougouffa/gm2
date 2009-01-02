@@ -6016,7 +6016,7 @@ BEGIN
          (* error issue message and fake return stack *)
          IF Iso
          THEN
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, LENGTH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC and VAL')
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, CMPLX, FLOAT, HIGH, IM, LENGTH, MAX, MIN, ODD, ORD, RE, SIZE, TSIZE, TRUNC and VAL')
          ELSE
             WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC and VAL')
          END ;
@@ -8147,7 +8147,8 @@ BEGIN
          ReturnVar := MakeTemporary(AreConstant(IsConst(l) AND IsConst(r))) ;
          PutVar(ReturnVar, CType) ;
          GenQuad(StandardFunctionOp, ReturnVar, Cmplx, Make2Tuple(l, r)) ;
-         PopN(NoOfParam+1)    (* destroy arguments to this function *)
+         PopN(NoOfParam+1) ;   (* destroy arguments to this function *)
+         PushTF(ReturnVar, CType)
       ELSE
          WriteFormat0('the pseudo procedure CMPLX requires two parameters') ;
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)

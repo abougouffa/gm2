@@ -1074,6 +1074,17 @@ END MakeObject ;
 
 
 (*
+   IsTuple - returns TRUE if the symbol is a tuple symbol.
+*)
+
+PROCEDURE IsTuple (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   RETURN( Symbols[Sym].SymbolType=TupleSym )
+END IsTuple ;
+
+
+(*
    IsObject - returns TRUE if the symbol is an object symbol.
 *)
 
@@ -9381,7 +9392,7 @@ BEGIN
       GnuAsmSym: RETURN( GnuAsm.Volatile )
 
       ELSE
-         InternalError('expecting PutGnuAsm symbol', __FILE__, __LINE__)
+         InternalError('expecting GnuAsm symbol', __FILE__, __LINE__)
       END
    END
 END IsGnuAsmVolatile ;
@@ -9470,7 +9481,7 @@ BEGIN
          nTuple := 2 ;
          list := Indexing.InitIndex(1) ;
          PutIntoIndex(list, 1, a) ;
-         PutIntoIndex(list, 1, b) ;
+         PutIntoIndex(list, 2, b) ;
          InitWhereDeclared(At) ;
          InitWhereFirstUsed(At)
       END

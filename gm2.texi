@@ -543,7 +543,8 @@ and the equivalent C data types.
 The following data types are supported: @code{INTEGER},
 @code{LONGINT}, @code{SHORTINT}, @code{CARDINAL}, @code{LONGCARD},
 @code{SHORTCARD}, @code{BOOLEAN}, @code{REAL}, @code{LONGREAL},
-@code{SHORTREAL}, and @code{CHAR}.
+@code{SHORTREAL}, @code{COMPLEX}, @code{LONGCOMPLEX},
+@code{SHORTCOMPLEX} and @code{CHAR}.
 
 An equivalence table is given below:
 
@@ -561,6 +562,9 @@ REAL                      double
 LONGREAL                  long double
 SHORTREAL                 float
 CHAR                      char
+SHORTCOMPLEX              _Complex float
+COMPLEX                   _Complex double
+LONGCOMPLEX               _Complex long double
 @end example
 
 Note that GNU Modula-2 also supports fixed sized data types which are
@@ -1041,6 +1045,9 @@ REAL                      pervasive
 LONGREAL                  pervasive
 SHORTREAL                 pervasive
 CHAR                      pervasive
+SHORTCOMPLEX              pervasive
+COMPLEX                   pervasive
+LONGCOMPLEX               pervasive
 
 BITSET                    SYSTEM
 LOC                       SYSTEM     -fiso
@@ -1069,6 +1076,10 @@ REAL32                    SYSTEM
 REAL64                    SYSTEM
 REAL96                    SYSTEM
 REAL128                   SYSTEM
+COMPLEX32                 SYSTEM
+COMPLEX64                 SYSTEM
+COMPLEX96                 SYSTEM
+COMPLEX128                SYSTEM
 @end example
 
 The compiler categorises compatibility between all these types

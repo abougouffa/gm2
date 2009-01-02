@@ -196,6 +196,8 @@ EXPORT QUALIFIED NulSym,
                  IsAModula2Type,
                  IsGnuAsmVolatile,
                  IsError,
+                 IsObject,
+                 IsTuple,
 
                  IsReallyPointer,
 
@@ -2530,6 +2532,20 @@ PROCEDURE PopOffset (Sym: CARDINAL) ;
 *)
 
 PROCEDURE PopSumOfParamSize (Sym: CARDINAL) ;
+
+
+(*
+   IsObject - returns TRUE if the symbol is an object symbol.
+*)
+
+PROCEDURE IsObject (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsTuple - returns TRUE if the symbol is a tuple symbol.
+*)
+
+PROCEDURE IsTuple (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

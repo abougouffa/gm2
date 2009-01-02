@@ -79,7 +79,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsInnerModule, IsUnknown,
                         IsProcedureReachable, IsParameter, IsConstLit,
                         IsDummy, IsVarAParam, IsProcedureVariable,
-                        IsGnuAsmVolatile,
+                        IsGnuAsmVolatile, IsObject, IsTuple,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
@@ -2083,6 +2083,12 @@ BEGIN
    ELSIF IsAModula2Type(sym)
    THEN
       printf2('sym %d IsAModula2Type (%a)', sym, n)
+   ELSIF IsObject(sym)
+   THEN
+      printf2('sym %d IsObject (%a)', sym, n)
+   ELSIF IsTuple(sym)
+   THEN
+      printf2('sym %d IsTuple (%a)', sym, n)
    ELSIF IsGnuAsmVolatile(sym)
    THEN
       printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)

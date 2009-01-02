@@ -50,6 +50,25 @@
 	  BuildCmplx, GetM2ComplexType, GetM2LongComplexType,
           GetM2ShortComplexType, GetM2CType, GetM2Complex32,
           GetM2Complex64, GetM2Complex96 and GetM2Complex128.
+	* gm2/gm2.texi:  updated documentation to include
+	  new complex types and their C equivalence.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import IsObject
+	  and IsTuple and extend the interactive debugging
+	  procedure PrintVerbose.
+	* gm2/gm2-compiler/M2GenGCC.mod:  attempt to declare
+	  constants prior to attempting to use them during
+	  FoldStandardFunction.  Fix bug when passing types of
+	  operands to GetCmplxReturnType.
+	* gm2/gm2-compiler/M2Quads.mod:  added missing line
+	  to BuildCmplx and fixed ISO error message in light
+	  of additional constant functions.
+	* gm2/gm2-compiler/M2Range.mod:  make sure that
+	  GetMinMax returns FALSE if a complex type is seen.
+	* gm2/gm2-compiler/SymbolTable.def:  export IsObject
+	  and IsTuple.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement
+	  IsTuple.  Fixed bug in Make2Tuple and corrected
+	  error message.
 	
 2009-01-02       Michael Lambert <lambert@psc.edu>
 

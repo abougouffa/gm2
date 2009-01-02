@@ -3030,9 +3030,9 @@ VAR
    d,
    result: CARDINAL ;
 BEGIN
-   DeclareConstant(tokenno, op3) ;
    IF GetSymName(op2)=MakeKey('Length')
    THEN
+      DeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3060,6 +3060,7 @@ BEGIN
       END
    ELSIF GetSymName(op2)=MakeKey('CAP')
    THEN
+      DeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3080,6 +3081,7 @@ BEGIN
       END
    ELSIF GetSymName(op2)=MakeKey('ABS')
    THEN
+      DeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3092,6 +3094,7 @@ BEGIN
       END
    ELSIF op2=Im
    THEN
+      DeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3104,6 +3107,7 @@ BEGIN
       END
    ELSIF op2=Re
    THEN
+      DeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3116,13 +3120,15 @@ BEGIN
       END
    ELSIF op2=Cmplx
    THEN
+      DeclareConstant(tokenno, GetNth(op3, 1)) ;
+      DeclareConstant(tokenno, GetNth(op3, 2)) ;
       IF IsConst(GetNth(op3, 1)) AND GccKnowsAbout(GetNth(op3, 1)) AND
          IsConst(GetNth(op3, 2)) AND GccKnowsAbout(GetNth(op3, 2))
       THEN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
          THEN
-            type := GetCmplxReturnType(GetNth(op3, 1), GetNth(op3, 2)) ;
+            type := GetCmplxReturnType(GetType(GetNth(op3, 1)), GetType(GetNth(op3, 2))) ;
             IF type=NulSym
             THEN
                MetaErrorT2(tokenno, 'real {%1atd} and imaginary {%2atd} types are incompatible',
@@ -3224,7 +3230,7 @@ BEGIN
          InternalError('CMPLX function should already have been folded',
                        __FILE__, __LINE__)
       ELSE
-         type := GetCmplxReturnType(GetNth(op3, 1), GetNth(op3, 2)) ;
+         type := GetCmplxReturnType(GetType(GetNth(op3, 1)), GetType(GetNth(op3, 2))) ;
          IF type=NulSym
          THEN
             MetaErrorT2(QuadToTokenNo(quad),
