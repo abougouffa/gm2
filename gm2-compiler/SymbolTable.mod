@@ -19,6 +19,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE SymbolTable ;
 
 
+FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
 
@@ -63,6 +64,8 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule ;
 
+IMPORT Indexing ;
+
 
 CONST
    MaxScopes             =     50 ; (* Maximum number of scopes at any one   *)
@@ -95,13 +98,19 @@ TYPE
                    RecordFieldSym, VarientFieldSym, EnumerationFieldSym,
                    DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
                    SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
-                   ObjectSym, PartialUnboundedSym,
+                   ObjectSym, PartialUnboundedSym, TupleSym,
                    ErrorSym) ;
 
    Where = RECORD
               Declared,
               FirstUsed: CARDINAL ;
            END ;
+
+   SymTuple = RECORD
+                 At    : Where ;
+                 nTuple: CARDINAL ;
+                 list  : Indexing.Index ;
+              END ;
 
    SymError     = RECORD
                      name      : Name ;
@@ -668,6 +677,7 @@ TYPE
                ProcTypeSym         : ProcType         : SymProcType |
                GnuAsmSym           : GnuAsm           : SymGnuAsm |
                InterfaceSym        : Interface        : SymInterface |
+               TupleSym            : Tuple            : SymTuple |
                DummySym            : Dummy            : SymDummy
 
                END
@@ -795,6 +805,7 @@ PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ; FORWARD ;
 PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL) ; FORWARD ;
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ; FORWARD ;
 PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE GetFromIndex (i: Indexing.Index; n: CARDINAL) : CARDINAL ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -3920,7 +3931,8 @@ BEGIN
       SetSym              : type := Set.Type |
       UnboundedSym        : type := Unbounded.Type |
       UndefinedSym        : type := NulSym |
-      PartialUnboundedSym : type := PartialUnbounded.Type
+      PartialUnboundedSym : type := PartialUnbounded.Type |
+      ObjectSym           : type := NulSym
 
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)
@@ -4092,7 +4104,8 @@ BEGIN
       VarientFieldSym : i := GetItemFromList(VarientField.ListOfSons, n) |
       ProcedureSym    : i := GetItemFromList(Procedure.ListOfVars, n) |
       DefImpSym       : i := GetItemFromList(DefImp.ListOfVars, n) |
-      ModuleSym       : i := GetItemFromList(Module.ListOfVars, n)
+      ModuleSym       : i := GetItemFromList(Module.ListOfVars, n) |
+      TupleSym        : i := GetFromIndex(Tuple.list, n)
 
       ELSE
          InternalError('cannot GetNth from this symbol', __FILE__, __LINE__)
@@ -4638,7 +4651,8 @@ BEGIN
       	 SetSym              : n := Set.name |
          SubscriptSym        : n := NulName |
          DummySym            : n := NulName |
-         PartialUnboundedSym : n := GetSymName(PartialUnbounded.Type)
+         PartialUnboundedSym : n := GetSymName(PartialUnbounded.Type) |
+         TupleSym            : n := NulName
 
          ELSE
             InternalError('unexpected symbol type', __FILE__, __LINE__)
@@ -9412,6 +9426,57 @@ BEGIN
       RETURN(GetNthParam(Sym, ParamNo))
    END
 END GetParam ;
+
+
+(*
+   GetFromIndex - return a value from list, i, at position, n.
+*)
+
+PROCEDURE GetFromIndex (i: Indexing.Index; n: CARDINAL) : CARDINAL ;
+VAR
+   p: POINTER TO CARDINAL ;
+BEGIN
+   p := Indexing.GetIndice(i, n) ;
+   RETURN( p^ )
+END GetFromIndex ;
+
+
+(*
+   PutIntoIndex - places value, v, into list, i, at position, n.
+*)
+
+PROCEDURE PutIntoIndex (VAR i: Indexing.Index; n: CARDINAL; v: CARDINAL) ;
+VAR
+   p: POINTER TO CARDINAL ;
+BEGIN
+   NEW(p) ;
+   p^ := v ;
+   Indexing.PutIndice(i, n, p)
+END PutIntoIndex ;
+
+
+(*
+   Make2Tuple - creates and returns a 2 tuple from, a, and, b.
+*)
+
+PROCEDURE Make2Tuple (a, b: CARDINAL) : CARDINAL ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   NewSym(Sym) ;
+   WITH Symbols[Sym] DO
+      SymbolType := TupleSym ;
+      WITH Tuple DO
+         nTuple := 2 ;
+         list := Indexing.InitIndex(1) ;
+         PutIntoIndex(list, 1, a) ;
+         PutIntoIndex(list, 1, b) ;
+         InitWhereDeclared(At) ;
+         InitWhereFirstUsed(At)
+      END
+   END ;
+   RETURN( Sym )
+END Make2Tuple ;
 
 
 (*

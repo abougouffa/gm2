@@ -78,8 +78,8 @@ FROM M2Bitset IMPORT Bitset, GetBitsetMinMax, MakeBitset ;
 FROM M2Size IMPORT Size, MakeSize ;
 
 FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
-                     IntegerN, CardinalN, WordN, SetN, RealN,
-                     IsCardinalN, IsIntegerN,
+                     IntegerN, CardinalN, WordN, SetN, RealN, ComplexN,
+                     IsCardinalN, IsIntegerN, IsRealN,
                      IsGenericSystemType ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
@@ -96,7 +96,10 @@ FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
                    GetM2ShortIntType, GetM2ShortCardType,
                    GetM2CardinalType, GetPointerType, GetWordType,
                    GetByteType, GetISOWordType, GetISOByteType,
-                   GetISOLocType, GetM2RType, GetM2ZType,
+                   GetISOLocType,
+                   GetM2ComplexType, GetM2LongComplexType,
+                   GetM2ShortComplexType,
+                   GetM2RType, GetM2ZType, GetM2CType,
                    BuildIntegerConstant ;
 
 TYPE
@@ -112,6 +115,8 @@ TYPE
                     word16, word32, word64,
                     real32, real64, real96, real128,
                     set8, set16, set32,
+                    complex, shortcomplex, longcomplex,
+                    complex32, complex64, complex96, complex128,
                     procedure, unknown) ;
    Compatible    = (uninitialized, no, warnfirst, warnsecond,
                     first, second) ;
@@ -128,6 +133,7 @@ PROCEDURE BeforeResolved (t1, t2: CARDINAL; kind: Compatability) : Compatible ; 
 PROCEDURE IsSameType (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE IsPointerSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
+PROCEDURE FindMetaType (sym: CARDINAL) : MetaType ; FORWARD ;
    %%%FORWARD%%% *)
 
 TYPE
@@ -254,6 +260,11 @@ BEGIN
    PushIntegerTree(GetSizeOf(GetM2RType())) ;
    PopSize(RType) ;
 
+   CType := MakeType(MakeKey('_M2_Ctype')) ;
+   PutType(CType, NulSym) ;                   (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2CType())) ;
+   PopSize(CType) ;
+
    Integer := MakeType(MakeKey('INTEGER')) ;
    PutType(Integer, NulSym) ;                 (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2IntegerType())) ;
@@ -302,6 +313,21 @@ BEGIN
    PutType(LongReal, NulSym) ;                (* Base Type       *)
    PushIntegerTree(GetSizeOf(GetM2LongRealType())) ;
    PopSize(LongReal) ;
+
+   Complex := MakeType(MakeKey('COMPLEX')) ;
+   PutType(Complex, NulSym) ;                 (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2ComplexType())) ;
+   PopSize(Complex) ;
+
+   LongComplex := MakeType(MakeKey('LONGCOMPLEX')) ;
+   PutType(LongComplex, NulSym) ;             (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2LongComplexType())) ;
+   PopSize(LongComplex) ;
+
+   ShortComplex := MakeType(MakeKey('SHORTCOMPLEX')) ;
+   PutType(ShortComplex, NulSym) ;            (* Base Type       *)
+   PushIntegerTree(GetSizeOf(GetM2ShortComplexType())) ;
+   PopSize(ShortComplex) ;
 
    Char := MakeType(MakeKey('CHAR')) ;
    PutType(Char, NulSym) ;                    (* Base Type       *)
@@ -748,13 +774,16 @@ BEGIN
    ELSE
       LengthS := NulSym
    END ;
-   Abs     := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
-   Cap     := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
-   Odd     := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
-   Val     := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
-   Chr     := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
-   Min     := MakeProcedure(MakeKey('MIN')) ;      (* Pseudo Base function MIN     *)
-   Max     := MakeProcedure(MakeKey('MAX')) ;      (* Pseudo Base function MIN     *)
+   Abs   := MakeProcedure(MakeKey('ABS')) ;      (* Pseudo Base function ABS     *)
+   Cap   := MakeProcedure(MakeKey('CAP')) ;      (* Pseudo Base function CAP     *)
+   Odd   := MakeProcedure(MakeKey('ODD')) ;      (* Pseudo Base function ODD     *)
+   Val   := MakeProcedure(MakeKey('VAL')) ;      (* Pseudo Base function VAL     *)
+   Chr   := MakeProcedure(MakeKey('CHR')) ;      (* Pseudo Base function CHR     *)
+   Min   := MakeProcedure(MakeKey('MIN')) ;      (* Pseudo Base function MIN     *)
+   Max   := MakeProcedure(MakeKey('MAX')) ;      (* Pseudo Base function MIN     *)
+   Re    := MakeProcedure(MakeKey('RE')) ;       (* Pseudo Base function RE      *)
+   Im    := MakeProcedure(MakeKey('IM')) ;       (* Pseudo Base function IM      *)
+   Cmplx := MakeProcedure(MakeKey('CMPLX')) ;    (* Pseudo Base function CMPLX   *)
    BuildFloatFunctions ;
    BuildTruncFunctions ;
    BuildOrdFunctions
@@ -767,7 +796,9 @@ END InitBaseFunctions ;
 
 PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (Iso AND (Sym#NulSym) AND ((Sym=LengthS) OR (Sym=Size))) )
+   RETURN( Iso AND (Sym#NulSym) AND
+           ((Sym=LengthS) OR (Sym=Size) OR
+            (Sym=Cmplx) OR (Sym=Re) OR (Sym=Im)) )
 END IsISOPseudoBaseFunction ;
 
 
@@ -821,6 +852,7 @@ BEGIN
           (Sym=LongInt)  OR (Sym=LongCard) OR
           (Sym=ShortInt) OR (Sym=ShortCard) OR
           (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
+           IsAComplexType(Sym) OR
           ((Sym=Bitset) AND Iso)
          )
 END IsBaseType ;
@@ -845,6 +877,126 @@ BEGIN
           IsIntegerN(Sym) OR IsCardinalN(Sym)
          )
 END IsOrdinalType ;
+
+
+(*
+   IsAComplexType - returns TRUE if, sym, is COMPLEX,
+                    LONGCOMPLEX or SHORTCOMPLEX.
+*)
+
+PROCEDURE IsAComplexType (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (sym=Complex) OR (sym=LongComplex) OR (sym=ShortComplex) )
+END IsAComplexType ;
+
+
+(*
+   ComplexToScalar - returns the scalar (or base type) of the complex type, sym.
+*)
+
+PROCEDURE ComplexToScalar (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF sym=Complex
+   THEN
+      RETURN( Real )
+   ELSIF sym=LongComplex
+   THEN
+      RETURN( LongReal )
+   ELSIF sym=ShortComplex
+   THEN
+      RETURN( ShortReal )
+   ELSIF sym=CType
+   THEN
+      RETURN( RType )
+   ELSIF sym=ComplexN(32)
+   THEN
+      RETURN( RealN(32) )
+   ELSIF sym=ComplexN(64)
+   THEN
+      RETURN( RealN(64) )
+   ELSIF sym=ComplexN(96)
+   THEN
+      RETURN( RealN(96) )
+   ELSIF sym=ComplexN(128)
+   THEN
+      RETURN( RealN(128) )
+   ELSE
+      MetaError1('{%1ad} must be a COMPLEX type', sym)
+   END
+END ComplexToScalar ;
+
+
+(*
+   ScalarToComplex - given a real type, t, return the equivalent complex type.
+*)
+
+PROCEDURE ScalarToComplex (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF sym=Real
+   THEN
+      RETURN( Complex )
+   ELSIF sym=LongReal
+   THEN
+      RETURN( LongComplex )
+   ELSIF sym=ShortReal
+   THEN
+      RETURN( ShortComplex )
+   ELSIF sym=RType
+   THEN
+      RETURN( CType )
+   ELSIF sym=RealN(32)
+   THEN
+      RETURN( ComplexN(32) )
+   ELSIF sym=RealN(64)
+   THEN
+      RETURN( ComplexN(64) )
+   ELSIF sym=RealN(96)
+   THEN
+      RETURN( ComplexN(96) )
+   ELSIF sym=RealN(128)
+   THEN
+      RETURN( ComplexN(128) )
+   ELSE
+      MetaError1('{%1ad} must be a REAL type', sym)
+   END
+END ScalarToComplex ;
+
+
+(*
+   GetCmplxReturnType - this code implements the table given in the
+                        ISO standard Page 293 with an addition for
+                        SHORTCOMPLEX.
+*)
+
+PROCEDURE GetCmplxReturnType (t1, t2: CARDINAL) : CARDINAL ;
+VAR
+   mt1, mt2: MetaType ;
+BEGIN
+   t1 := SkipType(t1) ;
+   t2 := SkipType(t2) ;
+   IF (IsRealType(t1) OR IsRealN(t1)) AND
+      (IsRealType(t2) OR IsRealN(t2))
+   THEN
+      mt1 := FindMetaType(t1) ;
+      mt2 := FindMetaType(t2) ;
+      IF mt1=mt2
+      THEN
+         RETURN( ScalarToComplex(t1) )
+      ELSE
+         IF mt1=rtype
+         THEN
+            RETURN( ScalarToComplex(t2) )
+         ELSIF mt2=rtype
+         THEN
+            RETURN( ScalarToComplex(t1) )
+         ELSE
+            RETURN( NulSym )
+         END
+      END
+   ELSE
+      RETURN( NulSym )
+   END
+END GetCmplxReturnType ;
 
 
 (*
@@ -1075,6 +1227,27 @@ BEGIN
    ELSIF sym=RealN(128)
    THEN
       RETURN( real128 )
+   ELSIF sym=Complex
+   THEN
+      RETURN( complex )
+   ELSIF sym=ShortComplex
+   THEN
+      RETURN( shortcomplex )
+   ELSIF sym=LongComplex
+   THEN
+      RETURN( longcomplex )
+   ELSIF sym=ComplexN(32)
+   THEN
+      RETURN( complex32 )
+   ELSIF sym=ComplexN(64)
+   THEN
+      RETURN( complex64 )
+   ELSIF sym=ComplexN(96)
+   THEN
+      RETURN( complex96 )
+   ELSIF sym=ComplexN(128)
+   THEN
+      RETURN( complex128 )
    ELSIF IsSet(sym)
    THEN
       RETURN( set )
@@ -1891,8 +2064,7 @@ BEGIN
    int64    :   PushIntegerTree(BuildIntegerConstant(8)) |
    real96   :   PushIntegerTree(BuildIntegerConstant(12)) |
    real128  :   PushIntegerTree(BuildIntegerConstant(16)) |
-   unknown  :   InternalError('should not get here', __FILE__, __LINE__) |
-
+   unknown  :   InternalError('should not get here', __FILE__, __LINE__)
 
    ELSE
       InternalError('should not get here', __FILE__, __LINE__)

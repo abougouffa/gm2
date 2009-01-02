@@ -56,6 +56,9 @@ EXPORT QUALIFIED Tree, Constructor,
                  GetM2Word16, GetM2Word32, GetM2Word64,
                  GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                  GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
+                 GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
+                 GetM2ComplexType, GetM2LongComplexType, GetM2ShortComplexType,
+                 GetM2CType,
 
                  BuildStart, BuildEnd, BuildCallInner,
                  BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
@@ -84,6 +87,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildDivFloor, BuildModFloor,
                  BuildLSL, BuildLSR, BuildLogicalShift,
                  BuildLRL, BuildLRR, BuildLogicalRotate,
+                 BuildRe, BuildIm, BuildCmplx,
                  BuildLogicalOrAddress,
                  BuildLogicalOr, BuildLogicalAnd,
                  BuildSymmetricDifference, BuildLogicalDifference,
@@ -223,6 +227,14 @@ PROCEDURE GetM2Real32            () : Tree ;
 PROCEDURE GetM2Real64            () : Tree ;
 PROCEDURE GetM2Real96            () : Tree ;
 PROCEDURE GetM2Real128           () : Tree ;
+PROCEDURE GetM2ComplexType       () : Tree ;
+PROCEDURE GetM2LongComplexType   () : Tree ;
+PROCEDURE GetM2ShortComplexType  () : Tree ;
+PROCEDURE GetM2CType             () : Tree ;
+PROCEDURE GetM2Complex32         () : Tree ;
+PROCEDURE GetM2Complex64         () : Tree ;
+PROCEDURE GetM2Complex96         () : Tree ;
+PROCEDURE GetM2Complex128        () : Tree ;
 
 PROCEDURE GetIntegerZero         () : Tree ;
 PROCEDURE GetIntegerOne          () : Tree ;
@@ -1081,6 +1093,27 @@ PROCEDURE BuildConvert (op1, op2: Tree; checkOverflow: BOOLEAN) : Tree ;
 *)
 
 PROCEDURE BuildCoerce (op1, op2, op3: Tree) : Tree ;
+
+
+(*
+   BuildRe - builds an expression for the function RE.
+*)
+
+PROCEDURE BuildRe (op1: Tree) : Tree ;
+
+
+(*
+   BuildIm - builds an expression for the function IM.
+*)
+
+PROCEDURE BuildIm (op1: Tree) : Tree ;
+
+
+(*
+   BuildCmplx - builds an expression for the function CMPLX.
+*)
+
+PROCEDURE BuildCmplx (type, real, imag: Tree) : Tree ;
 
 
 (*

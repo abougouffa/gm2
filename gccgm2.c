@@ -187,6 +187,14 @@ static GTY(()) tree m2_real32_type_node;
 static GTY(()) tree m2_real64_type_node;
 static GTY(()) tree m2_real96_type_node;
 static GTY(()) tree m2_real128_type_node;
+static GTY(()) tree m2_complex_type_node;
+static GTY(()) tree m2_long_complex_type_node;
+static GTY(()) tree m2_short_complex_type_node;
+static GTY(()) tree m2_c_type_node;
+static GTY(()) tree m2_complex32_type_node;
+static GTY(()) tree m2_complex64_type_node;
+static GTY(()) tree m2_complex96_type_node;
+static GTY(()) tree m2_complex128_type_node;
 static GTY(()) tree set_full_complement;
 
 /* The current statement tree.  */
@@ -675,6 +683,10 @@ static tree                   build_m2_real32_type_node                   (void)
 static tree                   build_m2_real64_type_node                   (void);
 static tree                   build_m2_real96_type_node                   (void);
 static tree                   build_m2_real128_type_node                  (void);
+static tree                   build_m2_complex32_type_node                (void);
+static tree                   build_m2_complex64_type_node                (void);
+static tree                   build_m2_complex96_type_node                (void);
+static tree                   build_m2_complex128_type_node               (void);
        tree                   convert_type_to_range                       (tree type);
        tree                   gccgm2_GetDefaultType                       (char *name, tree type);
 struct struct_constructor*    gccgm2_BuildStartSetConstructor             (tree type);
@@ -717,6 +729,10 @@ tree                   gccgm2_GetM2Real32                          (void);
 tree                   gccgm2_GetM2Real64                          (void);
 tree                   gccgm2_GetM2Real96                          (void);
 tree                   gccgm2_GetM2Real128                         (void);
+tree                   gccgm2_GetM2Complex32                       (void);
+tree                   gccgm2_GetM2Complex64                       (void);
+tree                   gccgm2_GetM2Complex96                       (void);
+tree                   gccgm2_GetM2Complex128                      (void);
 int                    gccgm2_CompareTrees                         (tree e1, tree e2);
 static int                    is_type                                     (tree type);
 void                   gccgm2_BuildBinaryForeachWordDo             (tree, tree, tree, tree, tree (*binop)(tree, tree, int), int, int, int, int, int, int);
@@ -809,6 +825,14 @@ static void                   gm2_write_global_declarations_2             (tree 
 #endif
        tree                   gccgm2_BuildArrayStringConstructor          (tree arrayType, tree str, tree length);
        tree                   gccgm2_BuildArray                           (tree type, tree array, tree index, tree lowIndice, tree elementSize);
+static tree                   build_m2_complex_type_node                  (void);
+static tree                   build_m2_long_complex_type_node             (void);
+static tree                   build_m2_short_complex_type_node            (void);
+static tree                   build_m2_complex_type_from                  (tree scalar_type);
+       tree                   gccgm2_GetM2ComplexType                     (void);
+       tree                   gccgm2_GetM2LongComplexType                 (void);
+       tree                   gccgm2_GetM2ShortComplexType                (void);
+       tree                   gccgm2_GetM2CType                           (void);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -1762,6 +1786,14 @@ init_m2_builtins (void)
   m2_real64_type_node = build_m2_real64_type_node ();
   m2_real96_type_node = build_m2_real96_type_node ();
   m2_real128_type_node = build_m2_real128_type_node ();
+  m2_complex_type_node = build_m2_complex_type_node ();
+  m2_long_complex_type_node = build_m2_long_complex_type_node ();
+  m2_short_complex_type_node = build_m2_short_complex_type_node ();
+  m2_c_type_node = build_m2_long_complex_type_node ();
+  m2_complex32_type_node = build_m2_complex32_type_node ();
+  m2_complex64_type_node = build_m2_complex64_type_node ();
+  m2_complex96_type_node = build_m2_complex96_type_node ();
+  m2_complex128_type_node = build_m2_complex128_type_node ();
 
   /*
    * --fixme-- this is a hack which allows us to generate correct stabs for CHAR and sets of CHAR
@@ -2167,6 +2199,75 @@ tree
 build_m2_real128_type_node (void)
 {
   return build_m2_specific_size_type (REAL_TYPE, 128, TRUE);
+}
+
+static
+tree
+build_m2_complex_type_node (void)
+{
+  return build_m2_complex_type_from (m2_real_type_node);
+}
+
+static
+tree
+build_m2_long_complex_type_node (void)
+{
+  return build_m2_complex_type_from (m2_long_real_type_node);
+}
+
+static
+tree
+build_m2_short_complex_type_node (void)
+{
+  return build_m2_complex_type_from (m2_short_real_type_node);
+}
+
+static tree
+build_m2_complex_type_from (tree scalar_type)
+{
+  tree new_type;
+
+  if (scalar_type == NULL)
+    return NULL;
+  if (scalar_type == float_type_node)
+    return complex_float_type_node;
+  if (scalar_type == double_type_node)
+    return complex_double_type_node;
+  if (scalar_type == long_double_type_node)
+    return complex_long_double_type_node;
+
+  new_type = make_node (COMPLEX_TYPE);
+  TREE_TYPE (new_type) = scalar_type;
+  layout_type (new_type);
+  return new_type;
+}
+
+static
+tree
+build_m2_complex32_type_node (void)
+{
+  return build_m2_complex_type_from (m2_real32_type_node);
+}
+
+static
+tree
+build_m2_complex64_type_node (void)
+{
+  return build_m2_complex_type_from (m2_real64_type_node);
+}
+
+static
+tree
+build_m2_complex96_type_node (void)
+{
+  return build_m2_complex_type_from (m2_real96_type_node);
+}
+
+static
+tree
+build_m2_complex128_type_node (void)
+{
+  return build_m2_complex_type_from (m2_real128_type_node);
 }
 
 /* Create the predefined scalar types such as `integer_type_node' needed 
@@ -6318,6 +6419,7 @@ is_type (tree type)
   case CHAR_TYPE:
   case UNION_TYPE:
   case BOOLEAN_TYPE:
+  case COMPLEX_TYPE:
     return TRUE;
   default:
     return FALSE;
@@ -9859,6 +9961,54 @@ gccgm2_GetM2Real128 (void)
 }
 
 tree
+gccgm2_GetM2ComplexType (void)
+{
+  return m2_complex_type_node;
+}
+
+tree
+gccgm2_GetM2LongComplexType (void)
+{
+  return m2_long_complex_type_node;
+}
+
+tree
+gccgm2_GetM2ShortComplexType (void)
+{
+  return m2_short_complex_type_node;
+}
+
+tree
+gccgm2_GetM2CType (void)
+{
+  return m2_c_type_node;
+}
+
+tree
+gccgm2_GetM2Complex32 (void)
+{
+  return m2_complex32_type_node;
+}
+
+tree
+gccgm2_GetM2Complex64 (void)
+{
+  return m2_complex64_type_node;
+}
+
+tree
+gccgm2_GetM2Complex96 (void)
+{
+  return m2_complex96_type_node;
+}
+
+tree
+gccgm2_GetM2Complex128 (void)
+{
+  return m2_complex128_type_node;
+}
+
+tree
 gccgm2_GetIntegerZero (void)
 {
   return integer_zero_node;
@@ -10823,6 +10973,36 @@ tree
 gccgm2_BuildAbs (tree t)
 {
   return build_unary_op (ABS_EXPR, t, 0);
+}
+
+/*
+ *  BuildRe - builds an expression for the function RE.
+ */
+
+tree
+gccgm2_BuildRe (tree op1)
+{
+  return build1 (REALPART_EXPR, TREE_TYPE (op1), op1);
+}
+
+/*
+ *  BuildIm - builds an expression for the function IM.
+ */
+
+tree
+gccgm2_BuildIm (tree op1)
+{
+  return build1 (IMAGPART_EXPR, TREE_TYPE (op1), op1);
+}
+
+/*
+ *  BuildCmplx - builds an expression for the function CMPLX.
+ */
+
+tree
+gccgm2_BuildCmplx (tree type, tree real, tree imag)
+{
+  return build_complex (type, real, imag);
 }
 
 /* taken from c-common.c:3614 and pruned */

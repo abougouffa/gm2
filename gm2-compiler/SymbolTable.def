@@ -67,6 +67,7 @@ EXPORT QUALIFIED NulSym,
                  MakeSubscript,
                  MakeUnbounded,
                  MakeProcType,
+                 Make2Tuple,
                  MakeGnuAsm,
                  MakeRegInterface,
                  MakeError,
@@ -2529,6 +2530,13 @@ PROCEDURE PopOffset (Sym: CARDINAL) ;
 *)
 
 PROCEDURE PopSumOfParamSize (Sym: CARDINAL) ;
+
+
+(*
+   Make2Tuple - creates and returns a 2 tuple from, a, and, b.
+*)
+
+PROCEDURE Make2Tuple (a, b: CARDINAL) : CARDINAL ;
 
 
 (*

@@ -105,12 +105,13 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    Cardinal, Char, Proc, Integer,
                    LongInt, LongCard, ShortCard, ShortInt,
                    Real, LongReal, ShortReal, ZType, RType,
+                   CType, Complex, LongComplex, ShortComplex,
                    Boolean, True, False,
                    IsRealType, IsNeededAtRunTime ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
-                     System, IntegerN, CardinalN, WordN, RealN, SetN ;
+                     System, IntegerN, CardinalN, WordN, RealN, SetN, ComplexN ;
 
 FROM M2Bitset IMPORT Bitset, Bitnum ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout, Poison, RemoveMod2Gcc ;
@@ -154,7 +155,10 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
                    GetM2Word16, GetM2Word32, GetM2Word64,
-                   GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128 ;
+                   GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
+                   GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
+                   GetM2ComplexType, GetM2LongComplexType, GetM2ShortComplexType,
+                   GetM2CType ;
 
 (* %%%FORWARD%%%
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
@@ -1370,34 +1374,39 @@ END DeclareFixedSizedType ;
 
 PROCEDURE DeclareDefaultSimpleTypes ;
 BEGIN
-   DeclareDefaultType(Integer  , "INTEGER"  , GetM2IntegerType()) ;
-   DeclareDefaultType(Char     , "CHAR"     , GetM2CharType()) ;
-   DeclareDefaultType(Cardinal , "CARDINAL" , GetM2CardinalType()) ;
-   DeclareDefaultType(Loc      , "LOC"      , GetISOLocType()) ;
+   DeclareDefaultType(Integer     , "INTEGER"     , GetM2IntegerType()) ;
+   DeclareDefaultType(Char        , "CHAR"        , GetM2CharType()) ;
+   DeclareDefaultType(Cardinal    , "CARDINAL"    , GetM2CardinalType()) ;
+   DeclareDefaultType(Loc         , "LOC"         , GetISOLocType()) ;
 
    IF Iso
    THEN
-      DeclareDefaultType(Byte  , "BYTE"     , GetISOByteType()) ;
-      DeclareDefaultType(Word  , "WORD"     , GetISOWordType())
+      DeclareDefaultType(Byte     , "BYTE"        , GetISOByteType()) ;
+      DeclareDefaultType(Word     , "WORD"        , GetISOWordType())
    ELSE
-      DeclareDefaultType(Byte  , "BYTE"     , GetByteType()) ;
-      DeclareDefaultType(Word  , "WORD"     , GetWordType())
+      DeclareDefaultType(Byte     , "BYTE"        , GetByteType()) ;
+      DeclareDefaultType(Word     , "WORD"        , GetWordType())
    END ;
    
-   DeclareDefaultType(Proc     , "PROC"     , GetProcType()) ;
-   DeclareDefaultType(Address  , "ADDRESS"  , GetPointerType()) ;
-   DeclareDefaultType(LongInt  , "LONGINT"  , GetM2LongIntType()) ;
-   DeclareDefaultType(LongCard , "LONGCARD" , GetM2LongCardType()) ;
-   DeclareDefaultType(ShortInt , "SHORTINT" , GetM2ShortIntType()) ;
-   DeclareDefaultType(ShortCard, "SHORTCARD", GetM2ShortCardType()) ;
-   DeclareDefaultType(ShortReal, "SHORTREAL", GetM2ShortRealType()) ;
-   DeclareDefaultType(Real     , "REAL"     , GetM2RealType()) ;
-   DeclareDefaultType(LongReal , "LONGREAL" , GetM2LongRealType()) ;
-   DeclareDefaultType(Bitnum   , "BITNUM"   , GetBitnumType()) ;
-   DeclareDefaultType(Bitset   , "BITSET"   , GetBitsetType()) ;
+   DeclareDefaultType(Proc        , "PROC"        , GetProcType()) ;
+   DeclareDefaultType(Address     , "ADDRESS"     , GetPointerType()) ;
+   DeclareDefaultType(LongInt     , "LONGINT"     , GetM2LongIntType()) ;
+   DeclareDefaultType(LongCard    , "LONGCARD"    , GetM2LongCardType()) ;
+   DeclareDefaultType(ShortInt    , "SHORTINT"    , GetM2ShortIntType()) ;
+   DeclareDefaultType(ShortCard   , "SHORTCARD"   , GetM2ShortCardType()) ;
+   DeclareDefaultType(ShortReal   , "SHORTREAL"   , GetM2ShortRealType()) ;
+   DeclareDefaultType(Real        , "REAL"        , GetM2RealType()) ;
+   DeclareDefaultType(LongReal    , "LONGREAL"    , GetM2LongRealType()) ;
+   DeclareDefaultType(Bitnum      , "BITNUM"      , GetBitnumType()) ;
+   DeclareDefaultType(Bitset      , "BITSET"      , GetBitsetType()) ;
+   DeclareDefaultType(Complex     , "COMPLEX"     , GetM2ComplexType()) ;
+   DeclareDefaultType(LongComplex , "LONGCOMPLEX" , GetM2LongComplexType()) ;
+   DeclareDefaultType(ShortComplex, "SHORTCOMPLEX", GetM2ShortComplexType()) ;
+
    DeclareBoolean ;
    AddModGcc(ZType, GetM2ZType()) ;
    AddModGcc(RType, GetM2RType()) ;
+   AddModGcc(CType, GetM2CType()) ;
 
    DeclareFixedSizedType("INTEGER8"  , IntegerN(8)  , GetM2Integer8()) ;
    DeclareFixedSizedType("INTEGER16" , IntegerN(16) , GetM2Integer16()) ;
@@ -1416,7 +1425,11 @@ BEGIN
    DeclareFixedSizedType("REAL32"    , RealN(32)    , GetM2Real32()) ;
    DeclareFixedSizedType("REAL64"    , RealN(64)    , GetM2Real64()) ;
    DeclareFixedSizedType("REAL96"    , RealN(96)    , GetM2Real96()) ;
-   DeclareFixedSizedType("REAL128"   , RealN(128)   , GetM2Real128())
+   DeclareFixedSizedType("REAL128"   , RealN(128)   , GetM2Real128()) ;
+   DeclareFixedSizedType("COMPLEX32" , ComplexN(32) , GetM2Complex32()) ;
+   DeclareFixedSizedType("COMPLEX64" , ComplexN(64) , GetM2Complex64()) ;
+   DeclareFixedSizedType("COMPLEX96" , ComplexN(96) , GetM2Complex96()) ;
+   DeclareFixedSizedType("COMPLEX128", ComplexN(128), GetM2Complex128())
 END DeclareDefaultSimpleTypes ;
 
 

@@ -1,3 +1,56 @@
+2009-01-02       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gccgm2.c:  added m2_complex_type_node,
+	  m2_long_complex_type_node, m2_short_complex_node,
+	  m2_c_type_node, m2_complex32_type_node,
+	  m2_complex64_type_node,
+	  m2_complex96_type_node,
+          m2_complex128_type_node,
+	  build_m2_complex32_type_node,
+          build_m2_complex64_type_node,
+	  build_m2_complex96_type_node,
+	  build_m2_complex128_type_node,
+	  gccgm2_GetM2Complex32,
+          gccgm2_GetM2Complex64,
+          gccgm2_GetM2Complex96,
+          gccgm2_GetM2Complex128,
+          build_m2_complex_type_node,
+          build_m2_long_complex_type_node,
+          build_m2_short_complex_type_node,
+          build_m2_complex_type_from,
+          gccgm2_GetM2ComplexType,
+          gccgm2_GetM2LongComplexType,
+          gccgm2_GetM2ShortComplexType,
+          gccgm2_GetM2CType, gccgm2_BuildRe,
+          gccgm2_BuildIm and gccgm2_BuildCmplx.
+	* gm2/el/g-mode.el:  updated dates.
+	* gm2/gm2-compiler/M2Base.def:  added Complex,
+	  LongComplex, ShortComplex, IsAComplexType,
+	  GetCmplxReturnType, ComplexToScalar and
+	  ScalarToComplex.
+	* gm2/gm2-compiler/M2Base.mod:  create and
+	  implement CType, Complex, LongComplex,
+	  ShortComplex, Re, Im, Cmplx.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  declare
+	  COMPLEX, LONGCOMPLEX, SHORTCOMPLEX, COMPLEX32,
+	  COMPLEX64, COMPLEX96 and COMPLEX128.
+	* gm2/gm2-compiler/M2GenGCC.mod:  implement
+	  IM, RE and CMPLX as standard functions and
+	  attempt to fold them if possible.
+	* gm2/gm2-compiler/M2Quads.mod:  BuildReFunction
+	  BuildImFunction, BuildCmplxFunction (new functions).
+	* gm2/gm2-compiler/M2System.def:  define IsComplexN
+	  and ComplexN.
+	* gm2/gm2-compiler/M2System.mod:  declare COMPLEX32,
+	  COMPLEX64, COMPLEX96, COMPLEX128.  New functions:
+	  ComplexN, IsComplexN.
+	* gm2/gm2-compiler/SymbolTable.def:  define Make2Tuple.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement Make2Tuple.
+	* gm2/gm2-compiler/gccgm2.def:  define BuildRe, BuildIm,
+	  BuildCmplx, GetM2ComplexType, GetM2LongComplexType,
+          GetM2ShortComplexType, GetM2CType, GetM2Complex32,
+          GetM2Complex64, GetM2Complex96 and GetM2Complex128.
+	
 2009-01-02       Michael Lambert <lambert@psc.edu>
 
 	* gm2/Make-lang.in:  patch to build dtoa and ldtoa

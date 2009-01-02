@@ -36,11 +36,16 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Proc,
                  LongInt, LongCard,
                  ShortInt, ShortCard,
-                 ZType, RType, Real,
+                 ZType, RType, CType,
+                 Real,
                  LongReal, ShortReal,
+                 Complex,
+                 LongComplex,
+                 ShortComplex,
                  High, IsOrd,           (* Base functions          *)
                  LengthS,
                  Convert,
+                 Re, Im, Cmplx,
                  Cap, Abs, Odd,
                  Chr, Val,
                  IsTrunc, IsFloat,
@@ -65,6 +70,10 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  IsMathType,
                  IsRealType,
                  IsOrdinalType,
+                 IsAComplexType,
+                 GetCmplxReturnType,
+                 ComplexToScalar,
+                 ScalarToComplex,
                  MixTypes, NegateType,
                  TemplateProcedure,
                  ActivationPointer,
@@ -99,13 +108,17 @@ VAR
    Char, Proc,
    LongInt, LongCard,
    ShortInt, ShortCard,
-   ZType, RType, Real,
+   ZType, RType, CType,
+   Real,
    LongReal, ShortReal,
+   Complex, LongComplex,
+   ShortComplex,
    Unbounded,
    High, LengthS,
    Cap, Abs, Odd,
    Convert, Val,
    Chr,
+   Re, Im, Cmplx,
    Min, Max,
    New, Dispose,
    Inc, Dec,
@@ -326,6 +339,39 @@ PROCEDURE IsMathType (type: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsRealType (t: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsAComplexType - returns TRUE if, sym, is COMPLEX,
+                    LONGCOMPLEX or SHORTCOMPLEX.
+*)
+
+PROCEDURE IsAComplexType (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   ComplexToScalar - returns the scalar (or base type) of the complex type, sym.
+*)
+
+PROCEDURE ComplexToScalar (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   ScalarToComplex - given a real type, t, return the equivalent complex type.
+*)
+
+PROCEDURE ScalarToComplex (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetCmplxReturnType - this code implements the table given in the
+                        ISO standard Page 293 with an addition for
+                        SHORTCOMPLEX and the fixed sized COMPLEX
+                        types found in the GNU Modula-2 SYSTEM
+                        Module.
+*)
+
+PROCEDURE GetCmplxReturnType (t1, t2: CARDINAL) : CARDINAL ;
 
 
 END M2Base.

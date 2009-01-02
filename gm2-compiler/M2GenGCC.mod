@@ -73,6 +73,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
+FROM M2MetaError IMPORT MetaErrorT2 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim ;
@@ -83,6 +84,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealTy
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
                    True,
+                   Im, Re, Cmplx, GetCmplxReturnType,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
@@ -174,7 +176,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildAsm, DebugTree,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
-                   BuildCap, BuildAbs,
+                   BuildCap, BuildAbs, BuildRe, BuildIm, BuildCmplx,
                    AddStatement,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2RType,
@@ -3024,6 +3026,7 @@ PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List;
 VAR
    t     : Tree ;
    s     : String ;
+   type,
    d,
    result: CARDINAL ;
 BEGIN
@@ -3087,8 +3090,55 @@ BEGIN
             SubQuad(quad)
          END
       END
+   ELSIF op2=Im
+   THEN
+      IF IsConst(op3) AND GccKnowsAbout(op3)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            AddModGcc(op1, BuildIm(Mod2Gcc(op3))) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
+         END
+      END
+   ELSIF op2=Re
+   THEN
+      IF IsConst(op3) AND GccKnowsAbout(op3)
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            AddModGcc(op1, BuildRe(Mod2Gcc(op3))) ;
+            RemoveItemFromList(l, op1) ;
+            SubQuad(quad)
+         END
+      END
+   ELSIF op2=Cmplx
+   THEN
+      IF IsConst(GetNth(op3, 1)) AND GccKnowsAbout(GetNth(op3, 1)) AND
+         IsConst(GetNth(op3, 2)) AND GccKnowsAbout(GetNth(op3, 2))
+      THEN
+         (* fine, we can take advantage of this and fold constants *)
+         IF IsConst(op1)
+         THEN
+            type := GetCmplxReturnType(GetNth(op3, 1), GetNth(op3, 2)) ;
+            IF type=NulSym
+            THEN
+               MetaErrorT2(tokenno, 'real {%1atd} and imaginary {%2atd} types are incompatible',
+                           GetNth(op3, 1), GetNth(op3, 2))
+            ELSE
+               AddModGcc(op1, BuildCmplx(Mod2Gcc(type),
+                                         Mod2Gcc(GetNth(op3, 1)),
+                                         Mod2Gcc(GetNth(op3, 2)))) ;
+               RemoveItemFromList(l, op1) ;
+               SubQuad(quad)
+            END
+         END
+      END
    ELSE
-      InternalError('only expecting LENGTH, CAP or ABS as a standard function', __FILE__, __LINE__)
+      InternalError('only expecting LENGTH, CAP, ABS, IM, RE or CMPLX as a standard function',
+                    __FILE__, __LINE__)
    END
 END FoldStandardFunction ;
 
@@ -3099,7 +3149,8 @@ END FoldStandardFunction ;
 
 PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
-   t: Tree ;
+   type: CARDINAL ;
+   t   : Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    IF (op2#NulSym) AND (GetSymName(op2)=MakeKey('Length'))
@@ -3148,8 +3199,45 @@ BEGIN
       ELSE
          t := BuildAssignmentTree(Mod2Gcc(op1), BuildAbs(Mod2Gcc(op3)))
       END
+   ELSIF op2=Im
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('IM function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         t := BuildAssignmentTree(Mod2Gcc(op1), BuildIm(Mod2Gcc(op3)))
+      END
+   ELSIF op2=Re
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('RE function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         t := BuildAssignmentTree(Mod2Gcc(op1), BuildRe(Mod2Gcc(op3)))
+      END
+   ELSIF op2=Cmplx
+   THEN
+      IF IsConst(op1)
+      THEN
+         InternalError('CMPLX function should already have been folded',
+                       __FILE__, __LINE__)
+      ELSE
+         type := GetCmplxReturnType(GetNth(op3, 1), GetNth(op3, 2)) ;
+         IF type=NulSym
+         THEN
+            MetaErrorT2(QuadToTokenNo(quad),
+                        'real {%1atd} and imaginary {%2atd} types are incompatible',
+                        GetNth(op3, 1), GetNth(op3, 2))
+         ELSE
+            t := BuildAssignmentTree(Mod2Gcc(op1), BuildCmplx(Mod2Gcc(type),
+                                                              Mod2Gcc(GetNth(op3, 1)),
+                                                              Mod2Gcc(GetNth(op3, 2))))
+         END
+      END
    ELSE
-      InternalError('expecting LENGTH, CAP or ABS as a standard function',
+      InternalError('expecting LENGTH, CAP, ABS, IM, RE or CMPLX as a standard function',
                     __FILE__, __LINE__)
    END
 END CodeStandardFunction ;

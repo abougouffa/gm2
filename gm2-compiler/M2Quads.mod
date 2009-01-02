@@ -36,6 +36,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         MakeTemporaryFromExpression,
                         MakeTemporaryFromExpressions,
                         MakeConstLit, MakeConstLitString,
+                        Make2Tuple,
                         RequestSym, MakePointer, PutPointer,
                         GetType, GetLowestType, SkipType,
                         GetScope, GetCurrentScope,
@@ -129,8 +130,10 @@ FROM M2Reserved IMPORT PlusTok, MinusTok, TimesTok, DivTok, ModTok,
                        SemiColonTok, toktype ;
 
 FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
-                   Real, LongReal, ShortReal, Nil, ZType,
-                   MixTypes, NegateType,
+                   Real, LongReal, ShortReal, Nil,
+                   ZType, RType, CType,
+                   Re, Im, Cmplx,
+                   MixTypes, NegateType, ComplexToScalar,
                    IsAssignmentCompatible, IsExpressionCompatible,
                    IsParameterCompatible,
                    AssignmentRequiresWarning,
@@ -423,6 +426,9 @@ PROCEDURE CheckRemoveVariableReadLeftValue (sym: CARDINAL; q: CARDINAL) ; FORWAR
 PROCEDURE BuildThrowProcedure ; FORWARD ;
 PROCEDURE BuildRTExceptEnter ; FORWARD ;
 PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ; FORWARD ;
+PROCEDURE BuildReFunction ; FORWARD ;
+PROCEDURE BuildImFunction ; FORWARD ;
+PROCEDURE BuildCmplxFunction ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -6251,6 +6257,15 @@ BEGIN
    ELSIF ProcSym=MakeAdr
    THEN
       BuildMakeAdrFunction
+   ELSIF ProcSym=Re
+   THEN
+      BuildReFunction
+   ELSIF ProcSym=Im
+   THEN
+      BuildImFunction
+   ELSIF ProcSym=Cmplx
+   THEN
+      BuildCmplxFunction
    ELSE
       InternalError('pseudo function not implemented yet', __FILE__, __LINE__)
    END
@@ -7975,6 +7990,173 @@ BEGIN
       WriteFormat0('the pseudo procedure FLOAT only has one parameter')
    END
 END BuildFloatFunction ;
+
+
+(*
+   BuildReFunction - builds the pseudo procedure call RE.
+
+                     The Stack:
+
+
+                         Entry                      Exit
+
+                 Ptr ->
+                        +----------------+
+                        | NoOfParam      |
+                        |----------------|
+                        | Param 1        |
+                        |----------------|
+                        | Param 2        |
+                        |----------------|
+                        .                .
+                        .                .
+                        .                .
+                        |----------------|
+                        | Param #        |
+                        |----------------|
+                        | ProcSym | Type |         Empty
+                        |----------------|
+*)
+
+PROCEDURE BuildReFunction ;
+VAR
+   NoOfParam: CARDINAL ;
+   Type,
+   ReturnVar,
+   Var,
+   ProcSym  : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
+         PutVar(ReturnVar, ComplexToScalar(GetType(Var))) ;
+         GenQuad(StandardFunctionOp, ReturnVar, Re, Var) ;
+         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF(ReturnVar, GetType(ReturnVar))
+      ELSE
+         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF(MakeConstLit(MakeKey('1.0')), RType)
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure RE only has one parameter')
+   END
+END BuildReFunction ;
+
+
+(*
+   BuildImFunction - builds the pseudo procedure call IM.
+
+                     The Stack:
+
+
+                         Entry                      Exit
+
+                 Ptr ->
+                        +----------------+
+                        | NoOfParam      |
+                        |----------------|
+                        | Param 1        |
+                        |----------------|
+                        | Param 2        |
+                        |----------------|
+                        .                .
+                        .                .
+                        .                .
+                        |----------------|
+                        | Param #        |
+                        |----------------|
+                        | ProcSym | Type |         Empty
+                        |----------------|
+*)
+
+PROCEDURE BuildImFunction ;
+VAR
+   NoOfParam: CARDINAL ;
+   Type,
+   ReturnVar,
+   Var,
+   ProcSym  : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
+         PutVar(ReturnVar, ComplexToScalar(GetType(Var))) ;
+         GenQuad(StandardFunctionOp, ReturnVar, Im, Var) ;
+         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF(ReturnVar, GetType(ReturnVar))
+      ELSE
+         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF( MakeConstLit(MakeKey('1.0')), RType )
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure IM only has one parameter')
+   END
+END BuildImFunction ;
+
+
+(*
+   BuildCmplxFunction - builds the pseudo procedure call CMPLX.
+
+                        The Stack:
+
+
+                        Entry                      Exit
+
+                 Ptr ->
+                        +----------------+
+                        | NoOfParam      |
+                        |----------------|
+                        | Param 1        |
+                        |----------------|
+                        | Param 2        |
+                        |----------------|
+                        .                .
+                        .                .
+                        .                .
+                        |----------------|
+                        | Param #        |
+                        |----------------|
+                        | ProcSym | Type |         Empty
+                        |----------------|
+*)
+
+PROCEDURE BuildCmplxFunction ;
+VAR
+   NoOfParam: CARDINAL ;
+   ReturnVar,
+   Type,
+   l, r,
+   ProcSym  : CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=2
+   THEN
+      l := OperandT(2) ;
+      r := OperandT(1) ;
+      IF (IsVar(l) OR IsConst(l)) AND
+         (IsVar(r) OR IsConst(r))
+      THEN
+         ReturnVar := MakeTemporary(AreConstant(IsConst(l) AND IsConst(r))) ;
+         PutVar(ReturnVar, CType) ;
+         GenQuad(StandardFunctionOp, ReturnVar, Cmplx, Make2Tuple(l, r)) ;
+         PopN(NoOfParam+1)    (* destroy arguments to this function *)
+      ELSE
+         WriteFormat0('the pseudo procedure CMPLX requires two parameters') ;
+         PopN(NoOfParam+1) ;  (* destroy arguments to this function *)
+         PushTF( MakeConstLit(MakeKey('1.0')), RType )
+      END
+   ELSE
+      WriteFormat0('the pseudo procedure CMPLX requires two parameters')
+   END
+END BuildCmplxFunction ;
 
 
 (*

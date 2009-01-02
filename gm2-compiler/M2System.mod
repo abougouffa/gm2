@@ -69,8 +69,9 @@ FROM gccgm2 IMPORT Tree,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Word16, GetM2Word32, GetM2Word64,
-                   GetM2Bitset8, GetM2Bitset16, GetM2Bitset32, GetM2Real32,
-                   GetM2Real64, GetM2Real96, GetM2Real128,
+                   GetM2Bitset8, GetM2Bitset16, GetM2Bitset32,
+                   GetM2Real32, GetM2Real64, GetM2Real96, GetM2Real128,
+                   GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
                    GetBitsetType, GetISOByteType, GetISOWordType ;
 
 
@@ -231,7 +232,12 @@ BEGIN
    type := AttemptToCreateType('REAL32', '', '', TRUE, GetM2Real32()) ;
    type := AttemptToCreateType('REAL64', '', '', TRUE, GetM2Real64()) ;
    type := AttemptToCreateType('REAL96', '', '', TRUE, GetM2Real96()) ;
-   type := AttemptToCreateType('REAL128', '', '', TRUE, GetM2Real128())
+   type := AttemptToCreateType('REAL128', '', '', TRUE, GetM2Real128()) ;
+
+   type := AttemptToCreateType('COMPLEX32', '', '', TRUE, GetM2Complex32()) ;
+   type := AttemptToCreateType('COMPLEX64', '', '', TRUE, GetM2Complex64()) ;
+   type := AttemptToCreateType('COMPLEX96', '', '', TRUE, GetM2Complex96()) ;
+   type := AttemptToCreateType('COMPLEX128', '', '', TRUE, GetM2Complex128())
 END MakeFixedSizedTypes ;
 
 
@@ -573,6 +579,26 @@ END RealN ;
 
 
 (*
+   ComplexN - returns the symbol associated with COMPLEX[N].
+              NulSym is returned if the type does not exist.
+*)
+
+PROCEDURE ComplexN (bitlength: CARDINAL) : CARDINAL ;
+BEGIN
+   CASE bitlength OF
+
+   32 :  RETURN( GetSafeSystem(MakeKey('COMPLEX32')) ) |
+   64 :  RETURN( GetSafeSystem(MakeKey('COMPLEX64')) ) |
+   96 :  RETURN( GetSafeSystem(MakeKey('COMPLEX96')) ) |
+   128:  RETURN( GetSafeSystem(MakeKey('COMPLEX128')) )
+
+   ELSE
+      InternalError('system does not know about this type', __FILE__, __LINE__)
+   END
+END ComplexN ;
+
+
+(*
    IsIntegerN - returns the TRUE if, Sym, is one of the SYSTEM
                 INTEGER types (not the base INTEGER type).
 *)
@@ -645,6 +671,22 @@ BEGIN
            (Sym=RealN(96)) OR (Sym=RealN(128)))
          )
 END IsRealN ;
+
+
+(*
+   IsComplexN - returns the TRUE if, Sym, is one of the SYSTEM
+                COMPLEX[n] types (not the default base COMPLEX,
+                LONGCOMPLEX or SHORTCOMPLEX types).
+*)
+
+PROCEDURE IsComplexN (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          (Sym#NulSym) AND
+          ((Sym=ComplexN(32)) OR (Sym=ComplexN(64)) OR
+           (Sym=ComplexN(96)) OR (Sym=ComplexN(128)))
+         )
+END IsComplexN ;
 
 
 (*
