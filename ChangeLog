@@ -1,3 +1,12 @@
+2009-01-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  extended FindMetaType
+	  to detect CType constants.  Extended assignment,
+	  expression and parameter matrices to contain the
+	  complex family of types.
+	* testsuite/gm2/complex/pass/arith.mod and
+          testsuite/gm2/complex/pass/arith2.mod new files.
+
 2009-01-02       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gccgm2.c:  added m2_complex_type_node,
