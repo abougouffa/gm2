@@ -80,7 +80,8 @@ FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
 
 FROM M2Printf IMPORT printf0, printf1, printf2, printf4 ;
 
-FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType, IsRealType,
+FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType,
+                   IsRealType, IsAComplexType,
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
                    True,
@@ -91,7 +92,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType ;
+FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName, GetModuleFinallyName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -179,7 +180,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildCap, BuildAbs, BuildRe, BuildIm, BuildCmplx,
                    AddStatement,
                    GetPointerType, GetPointerZero,
-                   GetWordType, GetM2ZType, GetM2RType,
+                   GetWordType, GetM2ZType, GetM2RType, GetM2CType,
                    GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
                    BuildIntegerConstant, BuildStringConstant,
                    RememberConstant, FoldAndStrip, RemoveOverflow ;
@@ -3925,9 +3926,12 @@ BEGIN
                IF (GetType(op3)=NulSym) OR IsOrdinalType(GetType(op3))
                THEN
                   ZConstToTypedConst := GetM2ZType()
-               ELSIF IsRealType(GetType(op3))
+               ELSIF IsRealType(GetType(op3)) OR IsRealN(GetType(op3))
                THEN
                   ZConstToTypedConst := GetM2RType()
+               ELSIF IsAComplexType(GetType(op3)) OR IsComplexN(GetType(op3))
+               THEN
+                  ZConstToTypedConst := GetM2CType()
                END
             END ;
             IF GetType(op1)=NulSym

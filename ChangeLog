@@ -1,3 +1,11 @@
+2009-01-05       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2-compiler/M2Base.mod:  IsComplesType includes
+	  CType.
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldUnary detects
+	  whether a complex type constant is being used and
+	  casts it to the CType.
+
 2009-01-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  extended FindMetaType

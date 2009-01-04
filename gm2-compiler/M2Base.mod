@@ -853,7 +853,7 @@ BEGIN
           (Sym=LongInt)  OR (Sym=LongCard) OR
           (Sym=ShortInt) OR (Sym=ShortCard) OR
           (Sym=Real)     OR (Sym=LongReal) OR (Sym=ShortReal) OR
-           IsAComplexType(Sym) OR
+          (Sym=Complex)  OR (Sym=LongComplex) OR (Sym=ShortComplex) OR
           ((Sym=Bitset) AND Iso)
          )
 END IsBaseType ;
@@ -887,7 +887,7 @@ END IsOrdinalType ;
 
 PROCEDURE IsAComplexType (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( (sym=Complex) OR (sym=LongComplex) OR (sym=ShortComplex) )
+   RETURN( (sym=Complex) OR (sym=LongComplex) OR (sym=ShortComplex) OR (sym=CType) )
 END IsAComplexType ;
 
 
