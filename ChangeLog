@@ -4,6 +4,10 @@
 	  variable which can override the --prefix option
 	  given to configure.
 	* gm2/gm2spec.c:  commented new functions.
+	* gm2/gm2spec.c:  introduced GM2IPATH and GM2OPATH
+	  environment variables.
+	* gm2/gm2.texi:  documented all new environment
+	  variables.
 
 2009-01-05       Gaius Mulley <gaius@gnu.org>
 

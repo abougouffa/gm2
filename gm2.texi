@@ -45,8 +45,8 @@
 @end quotation
 @c
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+2008, 2009 Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -89,6 +89,7 @@ Software Foundation raise funds for GNU development.''
 * Release map::           Future releases of GNU Modula-2.
 * Compiler options::      GNU Modula-2 compiler options.
 * Example usage::         Example compile and link.
+* Environment variables:: GNU Modula-2 related environment variables.
 * Elementary data types:: Data types supported by GNU Modula-2.
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
@@ -499,7 +500,7 @@ exclusively for changes in type on objects which have the same size.
 
 @end table
 
-@node Example usage, Elementary data types, Compiler options, Using
+@node Example usage, Environment variables, Compiler options, Using
 @section Example compile and link
 
 This section describes how to compile and link a simple hello world
@@ -533,7 +534,65 @@ add the @samp{-v} flag at the command line, for example:
 This displays the subprocesses initiated by @samp{gm2} which can be useful
 when trouble shooting.}
 
-@node Elementary data types, Standard procedures, Example usage, Using
+@node Environment variables, Elementary data types, Example usage, Using
+@section GNU Modula-2 related environment variables
+
+This section descibes the environment variables used by GNU Modula-2 and
+how they can be used to switch between releases of the compiler.  Other
+environment variables can be set to modify the default library path.
+Initially we will consider environment variables most likely used by
+the end user.  These two environment variables are @code{GM2IPATH}
+and @code{GM2OPATH}.
+
+For example suppose a compile and link on the command line looks like
+this:
+
+@example
+$ gm2 -g -c -I. -I../project:../project/unix foo.mod
+$ gm2 -g -I. -I../project:../project/unix \
+  -fobject-path=../project/obj:../project/unix/obj -I. foo.mod
+@end example
+
+they can be simplified by utilising two environment variables to do
+exactly the same compile and link.
+
+@example
+$ export GM2IPATH=../project:../project/unix
+$ export GM2OPATH=../project/obj:../project/unix/obj
+$ gm2 -g -c -I. foo.mod
+$ gm2 -g -I. foo.mod
+@end example
+
+It is important to note that the two environment variables
+@code{GM2IPATH} and @code{GM2OPATH} have a lower priority than any
+@code{-I} or @code{-fobject-path=} command line option.  The search
+order for compiling and linking is: command line switches followed by
+environment variable paths followed by default runtime libraries or
+Modula-2 dialect libraries.  If in doubt include the @code{-v} option
+to see the search path used between the compiler subcomponents.
+
+Lastly there is the @code{GM2_ROOT} environment variable which
+determines whether the compiler subcomponents reside in the
+filesystem.  This environment variable overrides the compiler time
+configure option @code{--prefix=}.  For example suppose the compiler
+was built to reside in @file{/usr/local} and the system administrator
+decided to move the entire compiler tree to
+@file{/architecture/i386/usr}.  Once the tree is moved then a system
+wide environment variable (@code{GM2ROOT}) could be set to:
+
+@example
+$ export GM2ROOT=/architecture/i386/usr
+@end example
+
+The system administrator needs to ensure that the front end binary
+@file{gm2} can be seen by the users path.  At that point a user can
+invoke @code{gm2 -g -c -I. hello.mod} from the command line and all
+subcomponents will be picked up from @file{/architecture/i386/usr}.
+This allows users to try out different GNU Modula-2 releases and also
+allows system administrators to install compiler binaries at different
+locations to where they were initially configured to reside.
+
+@node Elementary data types, Standard procedures, Environment variables, Using
 @section Elementary data types
 
 This section describes the elementary data types supported by GNU

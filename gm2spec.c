@@ -60,6 +60,14 @@ Boston, MA 02110-1301, USA.  */
 #define GM2_ROOT_ENV  "GM2_ROOT"
 #endif
 
+#ifndef GM2IPATH_ENV
+#define GM2IPATH_ENV  "GM2IPATH"
+#endif
+
+#ifndef GM2OPATH_ENV
+#define GM2OPATH_ENV  "GM2OPATH"
+#endif
+
 int lang_specific_extra_outfiles = 0;
 extern int force_no_linker;
 
@@ -96,7 +104,8 @@ static style_sig libraryStyle[LIB_MAX+1] = {{"",      { FALSE,    FALSE}},
 
 static void add_default_directories (int incl, char ***in_argv,
 				     const char *default_library_path,
-				     const char *option, libs which_lib, styles s);
+				     const char *option, libs which_lib,
+				     styles s, const char *env_path);
 static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
 int  lang_specific_pre_link (void);
@@ -225,30 +234,39 @@ remember_link_arg (const char *s)
 static void
 add_default_directories (int incl, char ***in_argv,
 			 const char *default_library_path,
-			 const char *option, libs which_lib, styles s)
+			 const char *option, libs which_lib,
+			 styles s, const char *env_path)
 {
   char *gm2libs;
   char  sepstr[2];
   const char *style_name = libraryStyle[s].directory;
   int   style_len = strlen(style_name);
+  int   env_length= 0;
 
   sepstr[0] = DIR_SEPARATOR;
   sepstr[1] = (char)0;
+
+  if (env_path != NULL && (strlen (env_path) > 0))
+    env_length = strlen (env_path) + 1;
 
   if (style_len > 0)
     style_len += strlen(sepstr);
 
   if ((*in_argv)[incl] == NULL) {
-    gm2libs = (char *) alloca(strlen(option) +
+    gm2libs = (char *) alloca(strlen(option) + env_length +
 			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
 			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
     strcpy(gm2libs, option);
   }
   else {
-    gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + strlen(":") +
+    gm2libs = (char *) alloca(strlen((*in_argv)[incl]) + env_length + strlen(":") +
 			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len+
 			      strlen(default_library_path)+strlen(sepstr)+strlen("gm2")+strlen(sepstr)+strlen(libraryName[maxlib])+1+style_len);
     strcpy(gm2libs, (*in_argv)[incl]);
+    strcat(gm2libs, ":");
+  }
+  if (env_length > 0) {
+    strcat(gm2libs, env_path);
     strcat(gm2libs, ":");
   }
   strcat(gm2libs, default_library_path);
@@ -487,11 +505,13 @@ check_gm2_root (void)
   GET_ENVIRONMENT (gm2_root, GM2_ROOT_ENV);
   if ((library_path == NULL || (strcmp (library_path, "") == 0)) && 
       (compiler_path == NULL || (strcmp (compiler_path, "") == 0))) {
+#if defined(DEBUGGING)
     fprintf(stderr, "STANDARD_LIBEXEC_PREFIX = %s\n", STANDARD_LIBEXEC_PREFIX);
     fprintf(stderr, "STANDARD_BINDIR_PREFIX = %s\n", STANDARD_BINDIR_PREFIX);
     fprintf(stderr, "TOOLDIR_BASE_PREFIX = %s\n", TOOLDIR_BASE_PREFIX);
     fprintf(stderr, "DEFAULT_TARGET_VERSION = %s\n", DEFAULT_TARGET_VERSION);
     fprintf(stderr, "DEFAULT_TARGET_MACHINE = %s\n", DEFAULT_TARGET_MACHINE);
+#endif
 
     if (gm2_root != NULL && (strcmp (gm2_root, "") != 0)) {
       build_path (gm2_root);
@@ -525,11 +545,16 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   styles s;
   int seen_source = 0;
   const char *libpath;
+  const char *gm2ipath;
+  const char *gm2opath;
 
   check_gm2_root ();
   GET_ENVIRONMENT (libpath, LIBRARY_PATH_ENV);
   if (libpath == NULL || (strcmp (libpath, "") == 0))
     libpath = LIBSUBDIR;
+
+  GET_ENVIRONMENT (gm2ipath, GM2IPATH_ENV);
+  GET_ENVIRONMENT (gm2opath, GM2OPATH_ENV);
 
 #if defined(DEBUGGING)
   while (i<*in_argc) {
@@ -595,42 +620,42 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
 #endif
   if (inclPos != -1 && linkPos == -1) {
-    insert_arg(1, in_argc, (char ***)in_argv);
+    insert_arg (1, in_argc, (char ***)in_argv);
     linkPos = 1;
-    add_link_from_include(linkPos, (char ***)in_argv, inclPos, "-fobject-path=");
+    add_link_from_include (linkPos, (char ***)in_argv, inclPos, "-fobject-path=");
   }
   if (inclPos == -1) {
-    insert_arg(1, in_argc, (char ***)in_argv);
+    insert_arg (1, in_argc, (char ***)in_argv);
     inclPos = 1;
   }
-  s = get_style(seen_flags);
-  add_default_directories(inclPos, (char ***)in_argv, libpath,
-			  "-I", libraries, s);
-  add_exec_prefix(1, in_argc, (char ***)in_argv);
+  s = get_style (seen_flags);
+  add_default_directories (inclPos, (char ***)in_argv, libpath,
+			   "-I", libraries, s, gm2ipath);
+  add_exec_prefix (1, in_argc, (char ***)in_argv);
 
   if (linkPos == -1) {
-    insert_arg(1, in_argc, (char ***)in_argv);
+    insert_arg (1, in_argc, (char ***)in_argv);
     linkPos = 1;
   }
-  add_default_directories(linkPos, (char ***)in_argv, libpath,
-			  "-fobject-path=", libraries, s);
+  add_default_directories (linkPos, (char ***)in_argv, libpath,
+			   "-fobject-path=", libraries, s, gm2opath);
 
   if (x == -1 && moduleExtension != -1) {
-    insert_arg(1, in_argc, (char ***)in_argv);
+    insert_arg (1, in_argc, (char ***)in_argv);
     add_arg(1, (char ***)in_argv, "modula-2");
-    insert_arg(1, in_argc, (char ***)in_argv);
+    insert_arg (1, in_argc, (char ***)in_argv);
     add_arg(1, (char ***)in_argv, "-x");
   }
   if (linking) {
-    add_lib(in_argc, in_argv, MATH_LIBRARY);
-    add_lib(in_argc, in_argv, "-lstdc++");
+    add_lib (in_argc, in_argv, MATH_LIBRARY);
+    add_lib (in_argc, in_argv, "-lstdc++");
 #if defined(ENABLE_SHARED_LIBGCC)
-    insert_arg(1, in_argc, (char ***)in_argv);
-    add_arg(1, (char ***)in_argv, "-shared-libgcc");
-    add_lib(in_argc, in_argv, "-lgcc_eh");
+    insert_arg (1, in_argc, (char ***)in_argv);
+    add_arg (1, (char ***)in_argv, "-shared-libgcc");
+    add_lib (in_argc, in_argv, "-lgcc_eh");
 #endif
   }
-  scan_for_link_args(in_argc, in_argv);
+  scan_for_link_args (in_argc, in_argv);
 #if defined(DEBUGGING)
   i = 1;
   while (i<*in_argc) {
