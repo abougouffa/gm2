@@ -1,3 +1,9 @@
+2009-01-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  introduced GM2_ROOT environment
+	  variable which can override the --prefix option
+	  given to configure.
+
 2009-01-05       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2-compiler/M2Base.mod:  IsComplesType includes

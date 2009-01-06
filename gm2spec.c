@@ -1,5 +1,5 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
-   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
@@ -56,6 +56,10 @@ Boston, MA 02110-1301, USA.  */
 #define LIBRARY_PATH_ENV "LIBRARY_PATH"
 #endif
 
+#ifndef GM2_ROOT_ENV
+#define GM2_ROOT_ENV  "GM2_ROOT"
+#endif
+
 int lang_specific_extra_outfiles = 0;
 extern int force_no_linker;
 
@@ -110,6 +114,7 @@ static styles get_style (flag_set flags);
 static void add_link_from_include (int link, char **in_argv[],
                                    int incl, const char *option);
 static void add_lib (int *in_argc, const char *const **in_argv, const char *lib);
+static void check_gm2_root (void);
 
 
 typedef struct object_list {
@@ -366,6 +371,111 @@ scan_for_link_args (int *in_argc, const char *const **in_argv)
   }
 }
 
+static void
+build_path (char *gm2_root)
+{
+  int l = strlen ("PATH=") + strlen (gm2_root) + 1 + strlen("bin:$PATH") + 1;
+  char *s = (char *) xmalloc (l);
+  char dir_sep[2];
+
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  strcpy (s, "PATH=");
+  strcat (s, gm2_root);
+  strcat (s, dir_sep);
+  strcat (s, "bin:$PATH");
+  putenv (s);
+}
+
+static void
+build_library_path (char *gm2_root)
+{
+  int l = strlen ("LIBRARY_PATH=") + strlen (gm2_root) + 1 +
+    strlen("lib") + 1 + strlen("gcc") + 1 +
+    strlen (DEFAULT_TARGET_MACHINE) + 1 +
+    strlen (DEFAULT_TARGET_VERSION) + 1;
+  char *s = (char *) xmalloc (l);
+  char dir_sep[2];
+
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  strcpy (s, "LIBRARY_PATH=");
+  strcat (s, gm2_root);
+  strcat (s, dir_sep);
+  strcat (s, "lib");
+  strcat (s, dir_sep);
+  strcat (s, "gcc");
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_MACHINE);
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_VERSION);
+  putenv (s);
+}
+
+static void
+build_compiler_path (char *gm2_root)
+{
+  int l = strlen ("COMPILER_PATH=") + strlen (gm2_root) + 1 +
+    strlen("libexec") + 1 + strlen("gcc") + 1 +
+    strlen (DEFAULT_TARGET_MACHINE) + 1 +
+    strlen (DEFAULT_TARGET_VERSION) + 1;
+  char *s = (char *) xmalloc (l);
+  char dir_sep[2];
+
+  dir_sep[0] = DIR_SEPARATOR;
+  dir_sep[1] = (char)0;
+
+  strcpy (s, "COMPILER_PATH=");
+  strcat (s, gm2_root);
+  strcat (s, dir_sep);
+  strcat (s, "libexec");
+  strcat (s, dir_sep);
+  strcat (s, "gcc");
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_MACHINE);
+  strcat (s, dir_sep);
+  strcat (s, DEFAULT_TARGET_VERSION);
+  putenv (s);
+}
+
+/*
+ *  check_gm2_root - checks to see whether GM2_ROOT has been defined,
+ *                   if it has and also COMPILER_PATH and LIBRARY_PATH
+ *                   are both unset then it sets COMPILER_PATH and
+ *                   LIBRARY_PATH using GM2_ROOT as its prefix.
+ */
+
+static void
+check_gm2_root (void)
+{
+  const char *library_path;
+  const char *compiler_path;
+  char *gm2_root;
+
+  GET_ENVIRONMENT (library_path, LIBRARY_PATH_ENV);
+  GET_ENVIRONMENT (compiler_path, "COMPILER_PATH");
+  GET_ENVIRONMENT (gm2_root, GM2_ROOT_ENV);
+  if ((library_path == NULL || (strcmp (library_path, "") == 0)) && 
+      (compiler_path == NULL || (strcmp (compiler_path, "") == 0))) {
+    fprintf(stderr, "STANDARD_LIBEXEC_PREFIX = %s\n", STANDARD_LIBEXEC_PREFIX);
+    fprintf(stderr, "STANDARD_BINDIR_PREFIX = %s\n", STANDARD_BINDIR_PREFIX);
+    fprintf(stderr, "TOOLDIR_BASE_PREFIX = %s\n", TOOLDIR_BASE_PREFIX);
+    fprintf(stderr, "DEFAULT_TARGET_VERSION = %s\n", DEFAULT_TARGET_VERSION);
+    fprintf(stderr, "DEFAULT_TARGET_MACHINE = %s\n", DEFAULT_TARGET_MACHINE);
+
+    if (gm2_root != NULL && (strcmp (gm2_root, "") != 0)) {
+      build_path (gm2_root);
+      build_library_path (gm2_root);
+      build_compiler_path (gm2_root);
+    }
+  }
+  else if (gm2_root != NULL)
+    fprintf(stderr, "warning it is not advisible to set " GM2_ROOT_ENV
+	    " as well as either " LIBRARY_PATH_ENV " or COMPILER_PATH\n");
+}
+
 /*
  *  lang_specific_driver - is invoked if we are compiling/linking a
  *                         Modula-2 file. It checks for module paths
@@ -388,6 +498,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int seen_source = 0;
   const char *libpath;
 
+  check_gm2_root ();
   GET_ENVIRONMENT (libpath, LIBRARY_PATH_ENV);
   if (libpath == NULL || (strcmp (libpath, "") == 0))
     libpath = LIBSUBDIR;
