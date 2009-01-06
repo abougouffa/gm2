@@ -371,6 +371,12 @@ scan_for_link_args (int *in_argc, const char *const **in_argv)
   }
 }
 
+/*
+ *  build_path - implements export PATH=$(gm2_root)/bin:$PATH
+ *
+ *               where gm2_root is a C variable.
+ */
+
 static void
 build_path (char *gm2_root)
 {
@@ -387,6 +393,17 @@ build_path (char *gm2_root)
   strcat (s, "bin:$PATH");
   putenv (s);
 }
+
+/*
+ *  build_library_path - implements export
+ *                       LIBRARY_PATH=$(gm2_root)/lib/gcc/\
+ *                       $(default_target_machine)/\
+ *                       $(default_target_version)
+ *
+ *                       where gm2_root, default_target_machine
+ *                       and default_target_version are C
+ *                       variables.
+ */
 
 static void
 build_library_path (char *gm2_root)
@@ -413,6 +430,17 @@ build_library_path (char *gm2_root)
   strcat (s, DEFAULT_TARGET_VERSION);
   putenv (s);
 }
+
+/*
+ *  build_compiler_path - implements export
+ *                        COMPILER_PATH=$(gm2_root)/libexec/gcc/\
+ *                        $(default_target_machine)/\
+ *                        $(default_target_version)
+ *
+ *                        where gm2_root, default_target_machine
+ *                        and default_target_version are C
+ *                        variables.
+ */
 
 static void
 build_compiler_path (char *gm2_root)

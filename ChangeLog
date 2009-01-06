@@ -3,6 +3,7 @@
 	* gm2/gm2spec.c:  introduced GM2_ROOT environment
 	  variable which can override the --prefix option
 	  given to configure.
+	* gm2/gm2spec.c:  commented new functions.
 
 2009-01-05       Gaius Mulley <gaius@gnu.org>
 
