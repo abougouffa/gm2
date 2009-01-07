@@ -550,7 +550,7 @@ void
 lang_specific_driver (int *in_argc, const char *const **in_argv,
 		      int *in_added_libraries ATTRIBUTE_UNUSED)
 {
-  int i=1;
+  int i;
   int libraries=pim;
   int x=-1;
   const char *language = NULL;
@@ -563,6 +563,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   const char *gm2ipath;
   const char *gm2opath;
 
+  i=1;
   while (i<*in_argc) {
     if (strcmp((*in_argv)[i], "-fmakeall0") == 0)
       seen_fmakeall0 = TRUE;
@@ -578,12 +579,13 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   GET_ENVIRONMENT (gm2opath, GM2OPATH_ENV);
 
 #if defined(DEBUGGING)
+  i=1;
   while (i<*in_argc) {
     printf("in lang specific driver %s\n", (*in_argv)[i]);
     i++;
   }
-  i=1;
 #endif
+  i=1;
   while (i<*in_argc) {
     if ((strcmp((*in_argv)[i], "-c") == 0) || (strcmp((*in_argv)[i], "-S") == 0))
       linking = FALSE;
@@ -678,7 +680,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
   scan_for_link_args (in_argc, in_argv);
 #if defined(DEBUGGING)
-  i = 1;
+  i=1;
   while (i<*in_argc) {
     printf("in lang specific driver %s\n", (*in_argv)[i]);
     i++;

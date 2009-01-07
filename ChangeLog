@@ -5,6 +5,7 @@
 	  pass old PATH appended to the new PATH.
 	* gm2/gm2spec.c:  only issue a warning message if
 	  -fmakeall0 is not present on the command line.
+	* gm2/gm2spec.c:  reset loop iterator variable.
 
 2009-01-06       Gaius Mulley <gaius@gnu.org>
 
