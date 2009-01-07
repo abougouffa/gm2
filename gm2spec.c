@@ -398,17 +398,26 @@ scan_for_link_args (int *in_argc, const char *const **in_argv)
 static void
 build_path (char *gm2_root)
 {
-  int l = strlen ("PATH=") + strlen (gm2_root) + 1 + strlen("bin:$PATH") + 1;
-  char *s = (char *) xmalloc (l);
+  int l = strlen ("PATH=") + strlen (gm2_root) + 1 + strlen("bin") + 1;
+  char *s;
   char dir_sep[2];
+  const char *path;
 
+  GET_ENVIRONMENT (path, "PATH");
+  if (path != NULL && (strcmp(path, "") != 0))
+    l += strlen(":") + strlen(path);
+  s = (char *) xmalloc (l);
   dir_sep[0] = DIR_SEPARATOR;
   dir_sep[1] = (char)0;
 
   strcpy (s, "PATH=");
   strcat (s, gm2_root);
   strcat (s, dir_sep);
-  strcat (s, "bin:$PATH");
+  strcat (s, "bin");
+  if (path != NULL && (strcmp(path, "") != 0)) {
+    strcat (s, ":");
+    strcat (s, path);
+  }
   putenv (s);
 }
 

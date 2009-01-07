@@ -578,10 +578,10 @@ configure option @code{--prefix=}.  For example suppose the compiler
 was built to reside in @file{/usr/local} and the system administrator
 decided to move the entire compiler tree to
 @file{/architecture/i386/usr}.  Once the tree is moved then a system
-wide environment variable (@code{GM2ROOT}) could be set to:
+wide environment variable (@code{GM2_ROOT}) could be set to:
 
 @example
-$ export GM2ROOT=/architecture/i386/usr
+$ export GM2_ROOT=/architecture/i386/usr
 @end example
 
 The system administrator needs to ensure that the front end binary
@@ -591,6 +591,12 @@ subcomponents will be picked up from @file{/architecture/i386/usr}.
 This allows users to try out different GNU Modula-2 releases and also
 allows system administrators to install compiler binaries at different
 locations to where they were initially configured to reside.
+
+The environment variable @code{GM2_ROOT} has no effect if either the
+@code{LIBRARY_PATH} or @code{COMPILE_PATH} is set.  The last two
+environment variables are used by @code{gcc}.  However if by mistake
+@code{GM2_ROOT} and either @code{LIBRARY_PATH} or @code{COMPILE_PATH}
+is set then an error message is issued.
 
 @node Elementary data types, Standard procedures, Environment variables, Using
 @section Elementary data types
