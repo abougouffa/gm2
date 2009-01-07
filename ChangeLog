@@ -3,6 +3,8 @@
 	* gm2/gm2.texi:  corrected GM2ROOT to GM2_ROOT.
 	* gm2/gm2spec.c:  corrected GM2ROOT to GM2_ROOT and
 	  pass old PATH appended to the new PATH.
+	* gm2/gm2spec.c:  only issue a warning message if
+	  -fmakeall0 is not present on the command line.
 
 2009-01-06       Gaius Mulley <gaius@gnu.org>
 

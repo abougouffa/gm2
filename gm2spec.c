@@ -108,7 +108,7 @@ static void add_default_directories (int incl, char ***in_argv,
 				     styles s, const char *env_path);
 static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
-int  lang_specific_pre_link (void);
+int lang_specific_pre_link (void);
 static void add_exec_prefix(int, int *in_argc, char ***in_argv);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
@@ -135,6 +135,7 @@ static object_list *head_objects = NULL;
 static object_list *head_link_args = NULL;
 static int inclPos=-1;
 static int linkPos=-1;
+static int seen_fmakeall0 = FALSE;
 
 /* By default, the suffix for target object files is ".o".  */
 #ifdef TARGET_OBJECT_SUFFIX
@@ -528,7 +529,12 @@ check_gm2_root (void)
       build_compiler_path (gm2_root);
     }
   }
-  else if (gm2_root != NULL)
+  else if (gm2_root != NULL && !seen_fmakeall0)
+    /*  
+     *  no need to issue a warning if seen_fmakeall0 as the parent will
+     *  have set COMPILER_PATH and LIBRARY_PATH because of GM2_ROOT and
+     *  users should not be using -fmakeall0 as it is an internal option.
+     */
     fprintf(stderr, "warning it is not advisible to set " GM2_ROOT_ENV
 	    " as well as either " LIBRARY_PATH_ENV " or COMPILER_PATH\n");
 }
@@ -556,6 +562,12 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   const char *libpath;
   const char *gm2ipath;
   const char *gm2opath;
+
+  while (i<*in_argc) {
+    if (strcmp((*in_argv)[i], "-fmakeall0") == 0)
+      seen_fmakeall0 = TRUE;
+    i++;
+  }
 
   check_gm2_root ();
   GET_ENVIRONMENT (libpath, LIBRARY_PATH_ENV);
