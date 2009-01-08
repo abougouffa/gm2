@@ -3923,13 +3923,14 @@ BEGIN
          THEN
             IF ZConstToTypedConst=Tree(NIL)
             THEN
-               IF (GetType(op3)=NulSym) OR IsOrdinalType(GetType(op3))
+               IF (GetType(op3)=NulSym) OR IsOrdinalType(SkipType(GetType(op3)))
                THEN
                   ZConstToTypedConst := GetM2ZType()
-               ELSIF IsRealType(GetType(op3)) OR IsRealN(GetType(op3))
+               ELSIF IsRealType(SkipType(GetType(op3))) OR IsRealN(SkipType(GetType(op3)))
                THEN
                   ZConstToTypedConst := GetM2RType()
-               ELSIF IsAComplexType(GetType(op3)) OR IsComplexN(GetType(op3))
+               ELSIF IsAComplexType(SkipType(GetType(op3))) OR
+                     IsComplexN(SkipType(GetType(op3)))
                THEN
                   ZConstToTypedConst := GetM2CType()
                END

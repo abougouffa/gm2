@@ -572,7 +572,7 @@ Modula-2 dialect libraries.  If in doubt include the @code{-v} option
 to see the search path used between the compiler subcomponents.
 
 Lastly there is the @code{GM2_ROOT} environment variable which
-determines whether the compiler subcomponents reside in the
+determines where the compiler subcomponents reside in the
 filesystem.  This environment variable overrides the compiler time
 configure option @code{--prefix=}.  For example suppose the compiler
 was built to reside in @file{/usr/local} and the system administrator

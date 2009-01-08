@@ -3,6 +3,9 @@
 	* gm2spec.c:  improved debugging arg dumps and also
 	  fixed bug (ignore a NULL string if it requested
 	  to be added to the command line).
+	* gm2/gm2.texi:  corrected word.
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldUnary skips type
+	  when checking for ZType, RType or CType constants.
 
 2009-01-07       Gaius Mulley <gaius@gnu.org>
 
