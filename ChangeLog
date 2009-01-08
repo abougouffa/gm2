@@ -1,3 +1,9 @@
+2009-01-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2spec.c:  improved debugging arg dumps and also
+	  fixed bug (ignore a NULL string if it requested
+	  to be added to the command line).
+
 2009-01-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  corrected GM2ROOT to GM2_ROOT.

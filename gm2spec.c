@@ -374,6 +374,8 @@ add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 {
   int end = *in_argc;
 
+  if (lib == NULL || (strcmp (lib, "") == 0))
+    return;
   insert_arg (end, in_argc, (char ***)in_argv);
   add_arg (end, (char ***)in_argv, lib);
 }
@@ -579,9 +581,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   GET_ENVIRONMENT (gm2opath, GM2OPATH_ENV);
 
 #if defined(DEBUGGING)
-  i=1;
+  i=0;
   while (i<*in_argc) {
-    printf("in lang specific driver %s\n", (*in_argv)[i]);
+    printf("in lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
     i++;
   }
 #endif
@@ -636,9 +638,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   if (language != NULL && (strcmp (language, "modula-2") != 0))
     return;
 #if defined(DEBUGGING)
-  i=1;
+  i=0;
   while (i<*in_argc) {
-    printf("out lang specific driver %s\n", (*in_argv)[i]);
+    printf("middle lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
     i++;
   }
 #endif
@@ -680,9 +682,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   }
   scan_for_link_args (in_argc, in_argv);
 #if defined(DEBUGGING)
-  i=1;
+  i=0;
   while (i<*in_argc) {
-    printf("in lang specific driver %s\n", (*in_argv)[i]);
+    printf("out lang specific driver argv[%d] = %s\n", i, (*in_argv)[i]);
     i++;
   }
 #endif
