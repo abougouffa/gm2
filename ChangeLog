@@ -1,3 +1,15 @@
+2009-01-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  fixed gccgm2_BuildRe, gccgm2_BuildIm
+	  to detect constants.
+	* gm2/gm2.texi:  added new section Build GNU Modula-2
+	  from source under GNU/Linux.  Added SHELL=/bin/bash.
+	  Also added GM2_ROOT in moving installation example.
+	* gm2/gm2-compiler/M2Base.mod:  MixTypes detects
+	  COMPLEX.
+	* gm2/gm2-libs-iso/RealStr.def:  tidied up comments.
+	* gm2/gm2.texi:  minor fixes.
+
 2009-01-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2spec.c:  improved debugging arg dumps and also

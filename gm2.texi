@@ -627,9 +627,9 @@ REAL                      double
 LONGREAL                  long double
 SHORTREAL                 float
 CHAR                      char
-SHORTCOMPLEX              _Complex float
-COMPLEX                   _Complex double
-LONGCOMPLEX               _Complex long double
+SHORTCOMPLEX              complex float
+COMPLEX                   complex double
+LONGCOMPLEX               complex long double
 @end example
 
 Note that GNU Modula-2 also supports fixed sized data types which are
@@ -1593,7 +1593,7 @@ PROCEDURE __BUILTIN__ sqrt (x: LONGREAL): LONGREAL;
 @end example
 
 This indicates that the function @code{sqrt} will be implemented using
-the gcc built-in maths library. If gcc cannot utilise the built-in
+the gcc built-in maths library.  If gcc cannot utilise the built-in
 function (for example if the programmer requested the address of
 @code{sqrt}) then code is generated to call the alternative function
 implemented in the @code{IMPLEMENTATION} @code{MODULE}.
@@ -1759,7 +1759,7 @@ are supported by GNU Modula-2.
 Once you have downloaded the correct GCC release from
 @uref{http://gcc.gnu.org} or a mirror site you should unpack the GCC
 archive.  Assuming that both the @file{gcc-@value{version-GCC}} and
-@file{gm2} dicectories are at the same level, you can graft @file{gm2}
+@file{gm2} directories are at the same level, you can graft @file{gm2}
 onto @file{gcc-@value{version-GCC}} by:
 
 @example   
