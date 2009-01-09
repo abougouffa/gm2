@@ -897,7 +897,11 @@ END IsAComplexType ;
 
 PROCEDURE ComplexToScalar (sym: CARDINAL) : CARDINAL ;
 BEGIN
-   IF sym=Complex
+   IF sym=NulSym
+   THEN
+      (* a const complex may have a NulSym type *)
+      RETURN( RType )
+   ELSIF sym=Complex
    THEN
       RETURN( Real )
    ELSIF sym=LongComplex
@@ -1887,6 +1891,17 @@ BEGIN
          RETURN( t1 )
       ELSE
          RETURN( RType )
+      END
+   ELSIF IsAComplexType(t1) AND IsAComplexType(t2)
+   THEN
+      IF t1=CType
+      THEN
+         RETURN( t2 )
+      ELSIF t2=CType
+      THEN
+         RETURN( t1 )
+      ELSE
+         RETURN( CType )
       END
    ELSIF IsType(t1)
    THEN

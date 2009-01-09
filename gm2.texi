@@ -1700,6 +1700,8 @@ $ wget http://floppsie.comp.glam.ac.uk/download/c/gcc-@value{version-GCC}+gm2-cv
 $ tar zxf gcc-@value{version-GCC}+gm2-cvs-latest.tar.gz
 @end example
 
+@section Building GNU Modula-2 from source under GNU/Linux
+
 On a GNU/Linux system you should also be able to build it using these
 commands.  The following commands assume your shell is @file{/bin/bash}.
 To build GNU Modula-2 type:
@@ -1710,13 +1712,13 @@ $ mkdir -p build-@value{version-GCC}
 $ cd build-@value{version-GCC}
 $ ../gcc-4.1.2+gm2-cvs-latest/configure --enable-languages=c,c++,gm2 \
      --disable-multilib --enable-checking=all --prefix=$HOME/opt
-$ make
+$ make "SHELL=/bin/bash"
 @end example
 
 To install GNU Modula-2, after a successful build, type:
 
 @example
-$ make install
+$ make "SHELL=/bin/bash" install
 $ cd ..
 @end example
 
@@ -1920,6 +1922,8 @@ our @code{PATH} environment variable:
 @example
 $ PATH=/usr/local/public/bin:$PATH
 $ export PATH
+$ GM2_ROOT=/usr/local/public
+$ export GM2_ROOT
 @end example
 
 Finally we can rebuild the @code{hello world} example found
