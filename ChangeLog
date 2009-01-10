@@ -1,3 +1,25 @@
+2009-01-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_AreRealOrComplexConstantsEqual
+	  (new function).  Call gccgm2_FoldAndStrip in BuildCmplx.
+	* gm2/gm2-compiler/M2ALU.def:  IsValueTypeComplex (new
+	  procedure).  PushComplexTree (new procedure).
+	  PopComplexTree (new procedure).
+	* gm2/gm2-compiler/M2ALU.mod:  EitherComplex (new
+	  procedure).  ComplexAdd (new procedure).
+	  ComplexSub (new procedure).  ComplexMult (new
+	  procedure).  ComplexDiv (new procedure).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  DeclareConstant
+	  test for type COMPLEX and call M2ALU.PopComplexTree.
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldBecomes
+	  check IsValueTypeComplex and call PopComplexTree if
+	  necessary.
+	* gm2/gm2-compiler/SymbolConversion.mod:  AddModGcc
+	  check for COMPLEX constant and push the appropriate
+	  tree.
+	* gm2/gm2-compiler/gccgm2.def:  AreRealOrComplexConstantsEqual
+	  (new procedure).
+	
 2009-01-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  fixed gccgm2_BuildRe, gccgm2_BuildIm

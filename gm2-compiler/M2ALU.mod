@@ -55,10 +55,12 @@ IMPORT DynamicStrings ;
 
 FROM gccgm2 IMPORT Tree, Constructor,
                    BuildIntegerConstant,
-                   CompareTrees, ConvertConstantAndCheck, GetIntegerType, GetLongRealType,
+                   CompareTrees, ConvertConstantAndCheck, GetIntegerType,
+                   GetLongRealType,
                    GetIntegerOne, GetIntegerZero,
                    GetWordOne, ToWord,
-                   AreConstantsEqual, GetBitsPerBitset,
+                   AreConstantsEqual, AreRealOrComplexConstantsEqual,
+                   GetBitsPerBitset,
                    BuildAdd, BuildSub, BuildMult,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLSL, BuildLSR,
@@ -76,7 +78,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    DebugTree ;
 
 TYPE
-   cellType   = (none, integer, real, set, constructor, array, record) ;
+   cellType   = (none, integer, real, complex, set, constructor, array, record) ;
 
 (* %%%FORWARD%%%
 PROCEDURE DupConst (tokenno: CARDINAL; sym: CARDINAL; offset: INTEGER) : CARDINAL ; FORWARD ;
@@ -102,6 +104,11 @@ PROCEDURE CoerseTo (tokenno: CARDINAL; t: cellType; v: PtrToValue) : PtrToValue 
 PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
 PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
+PROCEDURE EitherComplex (Op1, Op2: PtrToValue) : BOOLEAN ; FORWARD ;
+PROCEDURE ComplexAdd (Op1, Op2: PtrToValue) ; FORWARD ;
+PROCEDURE ComplexSub (Op1, Op2: PtrToValue) ; FORWARD ;
+PROCEDURE ComplexMult (Op1, Op2: PtrToValue) ; FORWARD ;
+PROCEDURE ComplexDiv (Op1, Op2: PtrToValue) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -138,7 +145,8 @@ TYPE
                    CASE type: cellType OF
 
                    none,
-                   integer, real: numberValue: Tree |
+                   integer, real,
+                   complex      : numberValue: Tree |
                    set          : setValue   : listOfRange |
                    constructor,
                    record       : fieldValues: listOfFields |
@@ -554,6 +562,28 @@ END IsValueTypeReal ;
 
 
 (*
+   IsValueTypeComplex - returns TRUE if the value on the top stack is a complex.
+*)
+
+PROCEDURE IsValueTypeComplex () : BOOLEAN ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=complex
+      THEN
+         Push(v) ;
+         RETURN( TRUE )
+      ELSE
+         Push(v) ;
+         RETURN( FALSE )
+      END
+   END
+END IsValueTypeComplex ;
+
+
+(*
    IsValueTypeSet - returns TRUE if the value on the top stack is a set.
 *)
 
@@ -745,6 +775,47 @@ BEGIN
    Dispose(v) ;
    RETURN( t )
 END PopRealTree ;
+
+
+(*
+   PushComplexTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushComplexTree (t: Tree) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := New() ;
+   WITH v^ DO
+      type        := complex ;
+      numberValue := t ;
+      solved      := TRUE
+   END ;
+   Push(v)
+END PushComplexTree ;
+
+
+(*
+   PopComplexTree - pops a gcc tree value from the ALU stack.
+*)
+
+PROCEDURE PopComplexTree () : Tree ;
+VAR
+   v: PtrToValue ;
+   t: Tree ;
+BEGIN
+   v := Pop() ;
+   WITH v^ DO
+      IF type=complex
+      THEN
+         t := numberValue
+      ELSE
+         InternalError('expecting type of constant to be a complex number', __FILE__, __LINE__)
+      END
+   END ;
+   Dispose(v) ;
+   RETURN( t )
+END PopComplexTree ;
 
 
 (*
@@ -1004,7 +1075,8 @@ BEGIN
    array      :  t^.arrayValues := NIL |
    none,
    integer,
-   real       :  v^.numberValue := RememberConstant(FoldAndStrip(t^.numberValue))
+   real,
+   complex    :  v^.numberValue := RememberConstant(FoldAndStrip(t^.numberValue))
 
    ELSE
       InternalError('not expecting this value', __FILE__, __LINE__)
@@ -1247,6 +1319,16 @@ END EitherReal ;
 
 
 (*
+   EitherComplex - returns TRUE if either, Op1, or, Op2, are Real.
+*)
+
+PROCEDURE EitherComplex (Op1, Op2: PtrToValue) : BOOLEAN ;
+BEGIN
+   RETURN( (Op1^.type=complex) OR (Op2^.type=complex) )
+END EitherComplex ;
+
+
+(*
    Add - adds the top two elements on the stack.
  
          The Stack:
@@ -1271,6 +1353,9 @@ BEGIN
    IF EitherReal(Op1, Op2)
    THEN
       RealAdd(Op1, Op2)
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      ComplexAdd(Op1, Op2)
    ELSE
       Temp := New() ;    (* as it is a temp *)
       WITH Temp^ DO
@@ -1316,6 +1401,29 @@ END RealAdd ;
 
 
 (*
+   ComplexAdd - adds two complex numbers.
+*)
+
+PROCEDURE ComplexAdd (Op1, Op2: PtrToValue) ;
+VAR
+   Temp: PtrToValue ;
+BEGIN
+   IF (Op1^.type=complex) AND (Op2^.type=complex)
+   THEN
+      Temp := New() ;
+      WITH Temp^ DO
+         numberValue := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
+         type        := complex ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   ELSE
+      InternalError('expecting both operands to be of type COMPLEX', __FILE__, __LINE__)
+   END
+END ComplexAdd ;
+
+
+(*
    Sub - subtracts the top two elements on the stack.
  
          The Stack:
@@ -1340,6 +1448,9 @@ BEGIN
    IF EitherReal(Op1, Op2)
    THEN
       RealSub(Op1, Op2)
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      ComplexSub(Op1, Op2)
    ELSE
       Temp := New() ;      (* as it is a temp *)
       WITH Temp^ DO
@@ -1385,6 +1496,29 @@ END RealSub ;
 
 
 (*
+   ComplexSub - subtracts two complex numbers.
+*)
+
+PROCEDURE ComplexSub (Op1, Op2: PtrToValue) ;
+VAR
+   Temp: PtrToValue ;
+BEGIN
+   IF (Op1^.type=complex) AND (Op2^.type=complex)
+   THEN
+      Temp := New() ;
+      WITH Temp^ DO
+         numberValue := BuildSub(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         type        := complex ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   ELSE
+      InternalError('expecting both operands to be of type COMPLEX', __FILE__, __LINE__)
+   END
+END ComplexSub ;
+
+
+(*
    Mult - multiplies the top two elements on the stack.
  
           The Stack:
@@ -1409,6 +1543,9 @@ BEGIN
    IF EitherReal(Op1, Op2)
    THEN
       RealMult(Op1, Op2)
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      ComplexMult(Op1, Op2)
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1454,6 +1591,29 @@ END RealMult ;
 
 
 (*
+   ComplexMult - multiplies two complex numbers.
+*)
+
+PROCEDURE ComplexMult (Op1, Op2: PtrToValue) ;
+VAR
+   Temp: PtrToValue ;
+BEGIN
+   IF (Op1^.type=complex) AND (Op2^.type=complex)
+   THEN
+      Temp := New() ;
+      WITH Temp^ DO
+         numberValue := BuildMult(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         type        := complex ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   ELSE
+      InternalError('expecting both operands to be of type COMPLEX', __FILE__, __LINE__)
+   END
+END ComplexMult ;
+
+
+(*
    DivTrunc - divides the top two elements on the stack.
 
               The Stack:
@@ -1478,6 +1638,9 @@ BEGIN
    IF EitherReal(Op1, Op2)
    THEN
       RealDiv(Op1, Op2)
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      ComplexDiv(Op1, Op2)
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1517,6 +1680,9 @@ BEGIN
    IF EitherReal(Op1, Op2)
    THEN
       RealDiv(Op1, Op2)
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      ComplexDiv(Op1, Op2)
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1562,6 +1728,29 @@ END RealDiv ;
 
 
 (*
+   ComplexDiv - divides two complex numbers.
+*)
+
+PROCEDURE ComplexDiv (Op1, Op2: PtrToValue) ;
+VAR
+   Temp: PtrToValue ;
+BEGIN
+   IF (Op1^.type=complex) AND (Op2^.type=complex)
+   THEN
+      Temp := New() ;
+      WITH Temp^ DO
+         numberValue := BuildDivTrunc(Op2^.numberValue, Op1^.numberValue, FALSE) ;
+         type        := complex ;
+         solved      := TRUE
+      END ;
+      Push(Temp)
+   ELSE
+      InternalError('expecting both operands to be of type COMPLEX', __FILE__, __LINE__)
+   END
+END ComplexDiv ;
+
+
+(*
    ModFloor - modulus of the top two elements on the stack.
 
               The Stack:
@@ -1585,7 +1774,10 @@ BEGIN
    Op2 := Pop() ;
    IF EitherReal(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on REALs')
+      WriteFormat0('cannot perform MOD on REAL types')
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      WriteFormat0('cannot perform MOD on COMPLEX types')
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1624,7 +1816,10 @@ BEGIN
    Op2 := Pop() ;
    IF EitherReal(Op1, Op2)
    THEN
-      WriteFormat0('cannot perform MOD on REALs')
+      WriteFormat0('cannot perform MOD on REAL types')
+   ELSIF EitherComplex(Op1, Op2)
+   THEN
+      WriteFormat0('cannot perform MOD on COMPLEX types')
    ELSE
       Temp := New() ;     (* as it is a temp *)
       WITH Temp^ DO
@@ -1726,7 +1921,16 @@ BEGIN
       ErrorStringAt(InitString('cannot perform a comparison between a number and a set'), tokenno) ;
       result := FALSE
    ELSE
-      result := AreConstantsEqual(Op1^.numberValue, Op2^.numberValue)
+      IF Op1^.type#Op2^.type
+      THEN
+         ErrorStringAt(InitString('cannot perform a comparison between a different type constants'), tokenno) ;
+         result := FALSE
+      ELSIF (Op1^.type=complex) OR (Op1^.type=real)
+      THEN
+         result := AreRealOrComplexConstantsEqual(Op1^.numberValue, Op2^.numberValue)
+      ELSE
+         result := AreConstantsEqual(Op1^.numberValue, Op2^.numberValue)
+      END
    END ;
    Dispose(Op1) ;
    Dispose(Op2) ;
@@ -2196,6 +2400,7 @@ BEGIN
    none       : RETURN( InitString('none') ) |
    integer    : RETURN( InitString('integer') ) |
    real       : RETURN( InitString('real') ) |
+   complex    : RETURN( InitString('complex') ) |
    set        : RETURN( InitString('set') ) |
    constructor: RETURN( InitString('constructor') ) |
    array      : RETURN( InitString('array') ) |
@@ -4228,11 +4433,13 @@ BEGIN
          THEN
             CASE type OF
 
-            integer, real:  IF numberValue=NIL
-                            THEN
-                               Dispose(v) ;
-                               RETURN( FALSE )
-                            END
+            integer,
+            real,
+            complex:  IF numberValue=NIL
+                      THEN
+                         Dispose(v) ;
+                         RETURN( FALSE )
+                      END
             ELSE
             END
          ELSE

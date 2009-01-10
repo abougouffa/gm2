@@ -22,10 +22,13 @@ FROM NameKey IMPORT Name ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds,
                      DebugIndex ;
 
+FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName,
+                        GetType, SkipType ;
+
 FROM M2Error IMPORT InternalError ;
-FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName ;
-FROM M2ALU IMPORT PushIntegerTree ;
+FROM M2ALU IMPORT PushIntegerTree, PushComplexTree ;
 FROM gccgm2 IMPORT GetErrorNode, RememberConstant, GarbageCollect ;
+FROM M2Base IMPORT IsAComplexType ;
 FROM M2Printf IMPORT printf1 ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADDRESS ;
@@ -132,7 +135,12 @@ BEGIN
 
    IF IsConst(sym) AND (NOT IsValueSolved(sym))
    THEN
-      PushIntegerTree(gcc) ;
+      IF IsAComplexType(SkipType(GetType(sym)))
+      THEN
+         PushComplexTree(gcc)
+      ELSE
+         PushIntegerTree(gcc)
+      END ;
       PopValue(sym)
    END
 END AddModGcc ;

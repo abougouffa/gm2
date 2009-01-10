@@ -36,6 +36,7 @@ EXPORT QUALIFIED PtrToValue,
                  IsValueTypeNone,
                  IsValueTypeInteger,
                  IsValueTypeReal,
+                 IsValueTypeComplex,
                  IsValueTypeSet,
                  IsValueTypeConstructor,
                  IsValueTypeArray,
@@ -44,6 +45,7 @@ EXPORT QUALIFIED PtrToValue,
                  PushIntegerTree, PopIntegerTree,
                  PushSetTree, PopSetTree,
                  PushRealTree, PopRealTree,
+                 PushComplexTree, PopComplexTree,
                  PopConstructorTree,
                  PushCard,
                  PushInt,
@@ -102,6 +104,13 @@ PROCEDURE IsValueTypeInteger () : BOOLEAN ;
 *)
 
 PROCEDURE IsValueTypeReal () : BOOLEAN ;
+
+
+(*
+   IsValueTypeComplex - returns TRUE if the value on the top stack is a complex.
+*)
+
+PROCEDURE IsValueTypeComplex () : BOOLEAN ;
 
 
 (*
@@ -168,6 +177,20 @@ PROCEDURE PushRealTree (t: Tree) ;
 *)
 
 PROCEDURE PopRealTree () : Tree ;
+
+
+(*
+   PushComplexTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushComplexTree (t: Tree) ;
+
+
+(*
+   PopComplexTree - pops a gcc tree value from the ALU stack.
+*)
+
+PROCEDURE PopComplexTree () : Tree ;
 
 
 (*

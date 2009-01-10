@@ -126,7 +126,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildIfThenElseEnd, BuildIfThenDoEnd,
                  IsTrue, IsFalse,
 
-                 AreConstantsEqual, DetermineSign, CompareTrees,
+                 AreConstantsEqual, AreRealOrComplexConstantsEqual,
+                 DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                  ConvertConstantAndCheck,
                  DetermineSizeOfConstant,
@@ -442,6 +443,18 @@ PROCEDURE BuildBinarySetDo (settype,
 *)
 
 PROCEDURE AreConstantsEqual (e1, e2: Tree) : BOOLEAN ;
+
+
+(*
+   AreRealOrComplexConstantsEqual - returns TRUE if constants,
+                                    e1 and e2 are equal according
+                                    to IEEE rules.  This does not
+                                    perform bit equivalence for
+                                    example IEEE states that
+                                    -0 == 0 and NaN != NaN.
+*)
+
+PROCEDURE AreRealOrComplexConstantsEqual (t1, t2: Tree) : BOOLEAN ;
 
 
 (*

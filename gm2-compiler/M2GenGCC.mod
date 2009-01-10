@@ -107,11 +107,13 @@ FROM Lists IMPORT InitList, KillList,
 
 FROM M2ALU IMPORT PtrToValue,
                   IsValueTypeReal, IsValueTypeSet,
-                  IsValueTypeConstructor, IsValueTypeArray, IsValueTypeRecord,
+                  IsValueTypeConstructor, IsValueTypeArray,
+                  IsValueTypeRecord, IsValueTypeComplex,
                   PushIntegerTree, PopIntegerTree,
                   PushSetTree, PopSetTree,
                   PopRealTree, PushCard,
                   PushRealTree,
+                  PopComplexTree,
                   Gre, Sub, Equ, NotEqu, LessEqu,
                   BuildRange, SetOr, SetAnd, SetNegate,
                   SetSymmetricDifference, SetDifference,
@@ -488,13 +490,11 @@ VAR
    op           : QuadOperator ;
    op1, op2, op3: CARDINAL ;
 BEGIN
-   IF q=1897
-   THEN
-      stop
-   END ;
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;
+
+   CheckStop(q) ;
 
    CASE op OF
 
@@ -656,13 +656,9 @@ BEGIN
       Last := Next ;
       WHILE (quad<=end) AND (quad#0) DO
          GetQuad(quad, op, op1, op2, op3) ;
-(*
-         IF quad=630
-         THEN
-            stop
-         END ;
-*)
          tokenno := QuadToTokenNo(quad) ;
+
+         (* CheckStop(quad) ; *)
 
          CASE op OF
 
@@ -2274,7 +2270,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=349
+   IF q=41
    THEN
       stop
    END
@@ -2335,6 +2331,11 @@ BEGIN
                   THEN
                      PopValue(op1) ;
                      PutConstructor(op1)
+                  ELSIF IsValueTypeComplex()
+                  THEN
+                     CheckOverflow(tokenno, PopComplexTree()) ;
+                     PushValue(op3) ;
+                     PopValue(op1)
                   ELSE
                      CheckOverflow(tokenno, PopIntegerTree()) ;
                      PushValue(op3) ;

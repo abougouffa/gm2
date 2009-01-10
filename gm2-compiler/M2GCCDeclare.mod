@@ -107,7 +107,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    Real, LongReal, ShortReal, ZType, RType,
                    CType, Complex, LongComplex, ShortComplex,
                    Boolean, True, False,
-                   IsRealType, IsNeededAtRunTime ;
+                   IsRealType, IsNeededAtRunTime, IsAComplexType ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
                      GetSystemTypeMinMax, Address, Word, Byte, Loc,
@@ -120,7 +120,7 @@ FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBloc
 
 FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
-                  CollectConstructorDependants, PopConstructorTree ;
+                  CollectConstructorDependants, PopConstructorTree, PopComplexTree ;
 
 FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
@@ -681,9 +681,12 @@ BEGIN
          ELSIF IsConstructor(sym)
          THEN
             DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
-         ELSIF IsRealType(GetType(sym))
+         ELSIF IsRealType(SkipType(GetType(sym)))
          THEN
             DeclareConstantFromTree(sym, PopRealTree())
+         ELSIF IsAComplexType(SkipType(GetType(sym)))
+         THEN
+            DeclareConstantFromTree(sym, PopComplexTree())
          ELSE
             DeclareConstantFromTree(sym, PopIntegerTree())
          END

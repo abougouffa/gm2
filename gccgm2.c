@@ -833,6 +833,8 @@ static tree                   build_m2_complex_type_from                  (tree 
        tree                   gccgm2_GetM2LongComplexType                 (void);
        tree                   gccgm2_GetM2ShortComplexType                (void);
        tree                   gccgm2_GetM2CType                           (void);
+       int                    gccgm2_AreRealOrComplexConstantsEqual       (tree e1, tree e2);
+
   /* PROTOTYPES: ADD HERE */
   
   
@@ -10081,6 +10083,25 @@ gccgm2_AreConstantsEqual (tree e1, tree e2)
 }
 
 /*
+ *  AreRealOrComplexConstantsEqual - returns TRUE if constants,
+ *                                   e1 and e2 are equal according
+ *                                   to IEEE rules.  This does not
+ *                                   perform bit equivalence for
+ *                                   example IEEE states that
+ *                                   -0 == 0 and NaN != NaN.
+ */
+
+int
+gccgm2_AreRealOrComplexConstantsEqual (tree e1, tree e2)
+{
+  if (TREE_CODE (e1) == COMPLEX_CST)
+    return (gccgm2_AreRealOrComplexConstantsEqual (TREE_REALPART (e1), TREE_REALPART (e2)) &&
+	    gccgm2_AreRealOrComplexConstantsEqual (TREE_IMAGPART (e1), TREE_IMAGPART (e2)));
+  else
+    return real_compare (EQ_EXPR, &TREE_REAL_CST (e1), &TREE_REAL_CST (e2));
+}
+
+/*
  *  DetermineSign - returns -1 if e<0
  *                           0 if e==0
  *                           1 if e>0
@@ -11010,6 +11031,8 @@ gccgm2_BuildIm (tree op1)
 tree
 gccgm2_BuildCmplx (tree type, tree real, tree imag)
 {
+  real = gccgm2_FoldAndStrip (real);
+  imag = gccgm2_FoldAndStrip (imag);
   return build_complex (type, real, imag);
 }
 
