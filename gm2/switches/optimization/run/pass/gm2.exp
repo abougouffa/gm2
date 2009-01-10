@@ -22,7 +22,7 @@ if $tracelevel then {
 # load support procs
 load_lib gm2-torture.exp
 
-gm2_init "-I$srcdir/../gm2/gm2-libs-iso:$srcdir/../gm2/gm2-libs:$srcdir/gm2/complex/run/pass:../gm2/gm2-libs-iso:../gm2/gm2-libs" -fiso
+gm2_init "-I$srcdir/../gm2/gm2-libs:$srcdir/gm2/switches/optimization/run/pass/" -O3
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.
@@ -30,5 +30,5 @@ foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
 	continue
     }
 
-    gm2-torture-execute $testcase "" "pass"
+    gm2-torture $testcase
 }
