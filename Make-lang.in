@@ -374,7 +374,7 @@ gm2.install-common: installdirs \
           fi ; \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "$$i" != "SYSTEM.def" ] ; then \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
               if [ ! -d $$i ] ; then \
                  rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM) ; \
@@ -390,7 +390,7 @@ gm2.install-common: installdirs \
            fi ; \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "$$i" != "SYSTEM.def" ] ; then \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
               if [ ! -d $$i ] ; then \
                  rm -f $(GM2_LIB_DIR_PIM)/SO/$$i ; \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO ; \
@@ -406,7 +406,7 @@ gm2.install-common: installdirs \
            fi ; \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "$$i" != "SYSTEM.def" ] ; then \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
               if [ ! -d $$i ] ; then \
                  rm -f $(GM2_LIB_DIR_PIM)/O2/$$i ; \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/O2 ; \
@@ -422,7 +422,7 @@ gm2.install-common: installdirs \
            fi ; \
         done ; \
 	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "$$i" != "SYSTEM.def" ] ; then \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
               if [ ! -d $$i ] ; then \
                  rm -f $(GM2_LIB_DIR_PIM)/SO_O2/$$i ; \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO_O2 ; \
@@ -473,12 +473,12 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
            fi ; \
         done
-	for i in x gm2/gm2-libs-iso/*.o ; do \
+	for i in x gm2/gm2-libs-iso/*.o gm2/gm2-libs-iso/*.def ; do \
            rm -f $(GM2_LIB_DIR_ISO)/$$i ; \
            if [ -f $$i ] ; then \
-              if [ ! -d $$i ] ; then \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
-              fi ; \
+               if [ ! -d $$i ] ; then \
+                   $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
+               fi ; \
            fi ; \
         done ; \
 	for i in $(srcdir)/gm2/ulm-lib-gm2/sys/*.def \
@@ -1006,7 +1006,7 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 #
 
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
-                     ConvTypes.mod \
+                     ConvStringReal.mod                ConvTypes.mod  \
                      EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
                      IOConsts.mod      IOLink.mod      LongMath.mod \
                      M2EXCEPTION.mod   M2RTS.mod       ProgramArgs.mod \
