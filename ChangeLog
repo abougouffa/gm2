@@ -27,6 +27,10 @@
 	  procedure).
 	* gm2/gm2-libs-iso/RealConv.mod:  reimplemented using
 	  ConvStringReal.
+	* gm2/gm2-compiler/M2ALU.mod:  DefinedByConstants (new
+	  procedure),  arrayConstants (new procedure),
+	  fieldsConstant (new procedure) and rangeConstant
+	  (new procedure).
 	
 2009-01-13       Gaius Mulley <gaius@gnu.org>
 

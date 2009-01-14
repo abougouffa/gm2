@@ -166,6 +166,10 @@ PROCEDURE CombineElements (tokenno: CARDINAL; r: listOfRange) ; FORWARD ;
 PROCEDURE DisplayElements (i: listOfRange) ; FORWARD ;
 PROCEDURE AddElement (v: listOfElements; e, b: CARDINAL) : listOfElements ; FORWARD ;
 PROCEDURE AddElementToEnd (v: PtrToValue; e: listOfElements) ; FORWARD ;
+PROCEDURE DefinedByConstants (v: PtrToValue) : BOOLEAN ; FORWARD ;
+PROCEDURE arrayConstant (e: listOfElements) : BOOLEAN ; FORWARD ;
+PROCEDURE fieldsConstant (f: listOfFields) : BOOLEAN ; FORWARD ;
+PROCEDURE rangeConstant (r: listOfRange) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
@@ -3007,6 +3011,7 @@ BEGIN
       THEN
          v := CoerseTo(tokenno, array, v)
       END ;
+      areAllConstants := DefinedByConstants(v) ;
       CASE type OF
                        
       set   :   Assert((constructorType=NulSym) OR IsSet(SkipType(constructorType))) ;
@@ -3129,6 +3134,85 @@ BEGIN
    END ;
    RETURN( resolved )
 END CollectConstructorDependants ;
+
+
+(*
+   DefinedByConstants - returns TRUE if the value, v, is defined by constants.
+                        It assigns, v^.areAllConstants, with the result.
+*)
+
+PROCEDURE DefinedByConstants (v: PtrToValue) : BOOLEAN ;
+BEGIN
+   WITH v^ DO
+      CASE type OF
+
+      none,
+      integer,
+      real,
+      complex    :  areAllConstants := TRUE |
+      set        :  areAllConstants := rangeConstant(setValue) |
+      constructor,
+      record     :  areAllConstants := fieldsConstant(fieldValues) |
+      array      :  areAllConstants := arrayConstant(arrayValues)
+
+      ELSE
+         InternalError('unexpected type', __FILE__, __LINE__)
+      END ;
+      RETURN( areAllConstants )
+   END
+END DefinedByConstants ;
+
+
+(*
+   rangeConstant - returns TRUE if all the range entities are constant.
+*)
+
+PROCEDURE rangeConstant (r: listOfRange) : BOOLEAN ;
+BEGIN
+   WHILE r#NIL DO
+      IF (NOT IsConst(r^.low)) OR (NOT IsConst(r^.high))
+      THEN
+         RETURN( FALSE )
+      END ;
+      r := r^.next ;
+   END ;
+   RETURN( TRUE )
+END rangeConstant ;
+
+
+(*
+   fieldsConstant - returns TRUE if all the field entities are constant.
+*)
+
+PROCEDURE fieldsConstant (f: listOfFields) : BOOLEAN ;
+BEGIN
+   WHILE f#NIL DO
+      IF NOT IsConst(f^.field)
+      THEN
+         RETURN( FALSE )
+      END ;
+      f := f^.next
+   END ;
+   RETURN( TRUE )
+END fieldsConstant ;
+
+
+(*
+   arrayConstant - returns TRUE if the, element, and, by, components
+                   of an array constructor are constant.
+*)
+
+PROCEDURE arrayConstant (e: listOfElements) : BOOLEAN ;
+BEGIN
+   WHILE e#NIL DO
+      IF (NOT IsConst(e^.element)) AND (NOT IsConst(e^.by))
+      THEN
+         RETURN( FALSE )
+      END ;
+      e := e^.next
+   END ;
+   RETURN( FALSE )
+END arrayConstant ;
 
 
 (*
