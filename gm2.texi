@@ -251,6 +251,10 @@ generic flags details see
 a GCC option @xref{Invoking GCC, , ,gcc}.  It allows users
 to specify how the rtl passes should dump their internal state.
 
+@item -g
+create debugging information so that debuggers such as @file{gdb}
+can inspect and control executables.
+
 @item -I
 used to specify the search path for definition and implementation
 modules.  An example is:  @code{gm2 -g -c -I.:../../libs foo.mod}.
