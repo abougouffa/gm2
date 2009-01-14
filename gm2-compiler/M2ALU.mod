@@ -37,10 +37,11 @@ FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareConstant ;
+FROM M2GenGCC IMPORT DoCopyString ;
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
-FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax ;
+FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
@@ -48,6 +49,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
                         MakeConstLit, GetArraySubscript,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
+                        IsConstString, SkipTypeAndSubrange,
                         GetSubrange, GetSymName, GetNth,
                         ModeOfAddr ;
 
@@ -102,7 +104,7 @@ PROCEDURE Val (tokenno: CARDINAL; type: CARDINAL; value: Tree) : CARDINAL ; FORW
 PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ; FORWARD ;
 PROCEDURE CoerseTo (tokenno: CARDINAL; t: cellType; v: PtrToValue) : PtrToValue ; FORWARD ;
 PROCEDURE ConstructRecordConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
-PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ; FORWARD ;
 PROCEDURE EitherComplex (Op1, Op2: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE ComplexAdd (Op1, Op2: PtrToValue) ; FORWARD ;
@@ -138,6 +140,7 @@ TYPE
 
    PtrToValue = POINTER TO cell ;
    cell       = RECORD
+                   areAllConstants,
                    solved         : BOOLEAN ;
                    constructorType: CARDINAL ;
                    next           : PtrToValue ;
@@ -486,6 +489,7 @@ BEGIN
    ELSE
       WITH v^ DO
          type            := none ;
+         areAllConstants := TRUE ;
          solved          := FALSE ;
          next            := NIL ;
          constructorType := NulSym
@@ -705,9 +709,10 @@ VAR
 BEGIN
    v := InitValue() ;
    WITH v^ DO
-      type        := integer ;
-      numberValue := t ;
-      solved      := TRUE
+      type            := integer ;
+      numberValue     := t ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushIntegerTree ;
@@ -746,9 +751,10 @@ VAR
 BEGIN
    v := New() ;
    WITH v^ DO
-      type        := real ;
-      numberValue := t ;
-      solved      := TRUE
+      type            := real ;
+      numberValue     := t ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushRealTree ;
@@ -787,9 +793,10 @@ VAR
 BEGIN
    v := New() ;
    WITH v^ DO
-      type        := complex ;
-      numberValue := t ;
-      solved      := TRUE
+      type            := complex ;
+      numberValue     := t ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushComplexTree ;
@@ -878,6 +885,10 @@ BEGIN
          IF NOT v^.solved
          THEN
             InternalError('the set has not been resolved', __FILE__, __LINE__)
+         END ;
+         IF NOT v^.areAllConstants
+         THEN
+            InternalError('the set must only contain constants', __FILE__, __LINE__)
          END ;
          t := ConstructSetConstant(tokenno, v)
       ELSE
@@ -1294,7 +1305,7 @@ END ConvertToInt ;
 
 (*
    IsSolved - returns true if the memory cell indicated by v
-              has a set value.
+              has a known value.
 *)
  
 PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
@@ -1306,6 +1317,23 @@ BEGIN
       RETURN( v^.solved )
    END
 END IsSolved ;
+
+
+(*
+   IsValueConst - returns true if the memory cell indicated by v
+                  is only defined by constants.  For example
+                  no variables are used in the constructor.
+*)
+ 
+PROCEDURE IsValueConst (v: PtrToValue) : BOOLEAN ;
+BEGIN
+   IF v=NIL
+   THEN
+      InternalError('uninitialized value', __FILE__, __LINE__)
+   ELSE
+      RETURN( v^.areAllConstants )
+   END
+END IsValueConst ;
 
 
 (*
@@ -2223,6 +2251,7 @@ BEGIN
    WITH v^ DO
       type            := set ;
       constructorType := settype ;
+      areAllConstants := TRUE ;
       solved          := CompletelyResolved(settype) ;
       setValue        := NIL ;
       next            := NIL ;
@@ -2255,6 +2284,7 @@ BEGIN
    WITH v^ DO
       type            := constructor ;
       constructorType := constype ;
+      areAllConstants := TRUE ;
       solved          := CompletelyResolved(constype) ;
       fieldValues     := NIL ;
       next            := NIL ;
@@ -2287,6 +2317,7 @@ BEGIN
    WITH v^ DO
       type            := array ;
       constructorType := arraytype ;
+      areAllConstants := TRUE ;
       solved          := CompletelyResolved(arraytype) ;
       arrayValues     := NIL ;
       next            := NIL ;
@@ -2319,6 +2350,7 @@ BEGIN
    WITH v^ DO
       type            := record ;
       constructorType := recordtype ;
+      areAllConstants := TRUE ;
       solved          := CompletelyResolved(recordtype) ;
       arrayValues     := NIL ;
       next            := NIL ;
@@ -2654,8 +2686,9 @@ BEGIN
    IF v^.type=set
    THEN
       WITH v^ DO
-         setValue := AddRange(setValue, op1, op2) ;
-         solved   := solved AND IsValueSolved(op1) AND IsValueSolved(op2)
+         setValue        := AddRange(setValue, op1, op2) ;
+         solved          := solved AND IsValueSolved(op1) AND IsValueSolved(op2) ;
+         areAllConstants := areAllConstants AND IsConst(op1) AND IsConst(op2)
       END
    END ;
    Push(v)
@@ -2744,7 +2777,8 @@ BEGIN
                 AddBit(tokenno, op1) ;
                 RETURN |
    array      : WITH v^ DO
-                   solved := solved AND IsValueSolved(op1)
+                   solved := solved AND IsValueSolved(op1) ;
+                   areAllConstants := areAllConstants AND IsConst(op1)
                 END ;
                 NewElement(e) ;
                 WITH e^ DO
@@ -2755,7 +2789,8 @@ BEGIN
                 AddElementToEnd(v, e) |
    constructor,
    record     : WITH v^ DO
-                   solved := solved AND IsValueSolved(op1)
+                   solved := solved AND IsValueSolved(op1) ;
+                   areAllConstants := areAllConstants AND IsConst(op1)
                 END ;
                 NewField(f) ;
                 WITH f^ DO
@@ -2810,16 +2845,21 @@ END ArrayElementsSolved ;
 
 
 (*
-   EvalFieldValues - returns TRUE if all ranges in the set have been solved.
+   EvalFieldValues - returns TRUE if all fields in the record have been solved.
 *)
 
 PROCEDURE EvalFieldValues (e: listOfFields) : BOOLEAN ;
 BEGIN
    WHILE e#NIL DO
       WITH e^ DO
-         IF NOT IsValueSolved(field)
+         IF IsConst(field)
          THEN
-            RETURN( FALSE )
+            IF NOT IsValueSolved(field)
+            THEN
+               RETURN( FALSE )
+            END
+         ELSE
+            (* RETURN( FALSE ) *)
          END
       END ;
       e := e^.next
@@ -2950,7 +2990,7 @@ END EvalSetValues ;
 
 
 (*
-   Eval - attempts to solve a set type.
+   Eval - attempts to solve a constructor type.
 *)
 
 PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ;
@@ -4136,6 +4176,28 @@ END ConstructSetConstant ;
 
 
 (*
+   ConvertConstToType - returns a Tree containing an initialiser,
+                        init, ready to be assigned to a record or
+                        array constructor.
+*)
+
+PROCEDURE ConvertConstToType (field: CARDINAL; init: CARDINAL) : Tree ;
+VAR
+   initT,
+   nBytes: Tree ;
+BEGIN
+   IF IsConstString(init) AND IsArray(SkipType(GetType(field))) AND
+      (SkipTypeAndSubrange(GetType(GetType(field)))=Char)
+   THEN
+      DoCopyString(nBytes, initT, GetType(field), init) ;
+      RETURN( initT )
+   ELSE
+      RETURN( ConvertConstantAndCheck(Mod2Gcc(GetType(field)), Mod2Gcc(init)) )
+   END
+END ConvertConstToType ;
+
+
+(*
    ConstructRecordConstant - builds a struct initializer, as defined by, v.
 *)
 
@@ -4170,8 +4232,7 @@ BEGIN
             THEN
                IF GccKnowsAbout(GetType(Field))
                THEN
-                  GccFieldType := Mod2Gcc(GetType(Field)) ;
-                  BuildRecordConstructorElement(cons, ConvertConstantAndCheck(GccFieldType, GetConstructorField(v, i)))
+                  BuildRecordConstructorElement(cons, ConvertConstToType(Field, GetConstructorField(v, i)))
                ELSE
                   ErrorStringAt(InitString('trying to construct a compound literal and using a record field which does not exist'),
                                 tokenno)
@@ -4186,10 +4247,10 @@ END ConstructRecordConstant ;
 
 
 (*
-   GetConstructorField - returns a tree containing the constructor field, i.
+   GetConstructorField - returns a symbol containing the constructor field, i.
 *)
 
-PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : Tree ;
+PROCEDURE GetConstructorField (v: PtrToValue; i: CARDINAL) : CARDINAL ;
 VAR
    j: CARDINAL ;
    f: listOfFields ;
@@ -4215,7 +4276,7 @@ BEGIN
             THEN
                WriteFormat1('element %d does not exist in the constant compound literal', i)
             ELSE
-               RETURN( Mod2Gcc(f^.field) )
+               RETURN( f^.field )
             END
          END
       END

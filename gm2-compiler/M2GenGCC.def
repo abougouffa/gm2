@@ -33,6 +33,7 @@ FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
                  LValueToGenericPtr, ZConstToTypedConst,
+                 DoCopyString,
                  InitGNUM2 ;
 
 
@@ -70,7 +71,7 @@ PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
 
 (*
    StringToChar - if type=Char and str is a string (of size <= 1)
-                     then convert the string into a character constant.
+                  then convert the string into a character constant.
 *)
 
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;
@@ -90,6 +91,16 @@ PROCEDURE LValueToGenericPtr (sym: CARDINAL) : Tree ;
 *)
 
 PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
+
+
+(*
+   DoCopyString - returns trees:
+                  t    number of bytes to be copied
+                  op3t the string with the extra nul character
+                       providing it fits.
+*)
+
+PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op3: CARDINAL) ;
 
 
 END M2GenGCC.

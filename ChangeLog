@@ -1,3 +1,37 @@
+2009-01-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.def:  IsValueConst (new function).
+	* gm2/gm2-compiler/M2ALU.mod:  GetConstructorField return
+	  symbol rather than Tree.  Add areAllConstants field
+	  to a constructor value.  IsValueConst (implement new
+	  function).  ConvertConstToType (new function).
+        * gm2/gm2-compiler/M2GCCDeclare.def:  DeclareConstructor
+	  (new procedure).
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  DeclareConstructor
+	  (implement new procedure).
+	* gm2/gm2-compiler/M2GenGCC.def:  DoCopyString exported.
+	* gm2/gm2-compiler/M2GenGCC.mod:  call DeclareConstructor
+	  before it is used.  Also check to see that Composite
+	  types do not occur in expressions.
+	* gm2/gm2-compiler/M2Quads.mod:  modified to allow non
+	  constant constructors to be used.  General tidying up.
+	* gm2/gm2-compiler/M2Range.mod:  call DeclareConstructor
+	  before possible assignment of constructor.
+	* gm2/gm2-compiler/SymbolTable.def:  IsConstructorConstant
+	  (new procedure).  IsComposite (new procedure).
+	* gm2/gm2-compiler/SymbolTable.mod:  IsConst checks to
+	  see if the constructor is constant.  IsConstructorConstant
+	  (implement new procedure).  IsComposite (implement new
+	  procedure).
+	* gm2/gm2-libs-iso/RealConv.mod:  reimplemented using
+	  ConvStringReal.
+	
+2009-01-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  only copy SYSTEM.def from the
+	  build directory.  Add ConvStringReal.mod to the list
+	  of ISO modules.
+
 2009-01-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  gccgm2_AreRealOrComplexConstantsEqual

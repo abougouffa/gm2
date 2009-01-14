@@ -35,7 +35,7 @@ EXPORT QUALIFIED FoldConstants,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
                  DeclareModuleVariables, IsProcedureGccNested,
                  DeclareProcedure, PoisonSymbols, DeclareParameters,
-                 CompletelyResolved, MarkExported,
+                 DeclareConstructor, CompletelyResolved, MarkExported,
                  GetTypeMin, GetTypeMax ;
 
 
@@ -72,6 +72,13 @@ PROCEDURE DeclareParameters (sym: CARDINAL) ;
 *)
 
 PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
+
+
+(*
+   DeclareConstructor - declares a constructor.
+*)
+
+PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
 
 
 (*

@@ -94,7 +94,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetUnboundedAddressOffset, GetUnboundedHighOffset,
                         GetUnboundedRecordType,
                         IsModuleWithinProcedure,
-                        IsVariableAtAddress,
+                        IsVariableAtAddress, IsConstructorConstant,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
       	       	     	ForeachProcedureDo, ForeachModuleDo,
                         ForeachInnerModuleDo, ForeachImportedDo,
@@ -193,6 +193,7 @@ PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ; FORWARD ;
 PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ; FORWARD ;
 PROCEDURE DeclareAssociatedUnbounded (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -634,6 +635,34 @@ END ResolveConstructor ;
 
 
 (*
+   DeclareConstructor - declares a constructor.
+*)
+
+PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
+VAR
+   tokenno: CARDINAL ;
+BEGIN
+   IF sym=NulSym
+   THEN
+      InternalError('trying to declare the NulSym', __FILE__, __LINE__)
+   END ;
+   IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
+   THEN
+      IF quad=0
+      THEN
+         tokenno := GetDeclared(sym)
+      ELSE
+         tokenno := QuadToTokenNo(quad)
+      END ;
+      ResolveConstructor(tokenno, sym) ;
+      DeclareTypesAndConstantsInRange(quad, quad) ;
+      PushValue(sym) ;
+      DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
+   END
+END DeclareConstructor ;
+
+
+(*
    DeclareConstant - checks to see whether, sym, is a constant and declares the constant to gcc.
 *)
 
@@ -644,6 +673,16 @@ BEGIN
    IF sym=NulSym
    THEN
       InternalError('trying to declare the NulSym', __FILE__, __LINE__)
+   END ;
+   IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
+   THEN
+      IF IsConstructor(sym)
+      THEN
+         IF NOT IsConstructorConstant(sym)
+         THEN
+            RETURN
+         END
+      END
    END ;
    IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
    THEN
@@ -2036,12 +2075,15 @@ BEGIN
       printf2('sym %d IsConst (%a)', sym, n) ;
       IF IsConstructor(sym)
       THEN
-         printf0(' constructor ')
+         printf0(' constant constructor ')
       ELSIF IsConstSet(sym)
       THEN
-         printf0(' constructor set ')
+         printf0(' constant constructor set ')
       END ;
       IncludeType(l, sym)
+   ELSIF IsConstructor(sym)
+   THEN
+      printf0(' constructor ')
    ELSIF IsConstString(sym)
    THEN
       printf2('sym %d IsConstString (%a)', sym, n)

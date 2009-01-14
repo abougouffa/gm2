@@ -198,6 +198,7 @@ EXPORT QUALIFIED NulSym,
                  IsError,
                  IsObject,
                  IsTuple,
+                 IsComposite,
 
                  IsReallyPointer,
 
@@ -277,6 +278,7 @@ EXPORT QUALIFIED NulSym,
                  IsSizeSolved,
                  IsOffsetSolved,
                  IsValueSolved,
+                 IsConstructorConstant,
                  IsSumOfParamSizeSolved,
                  PushSize,
                  PushOffset,
@@ -2438,6 +2440,22 @@ PROCEDURE IsOffsetSolved (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsValueSolved (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsConstructorConstant - returns TRUE if constructor, Sym, is
+                           defined by only constants.
+*)
+
+PROCEDURE IsConstructorConstant (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsComposite - returns TRUE if symbol, sym, is a composite
+                 type:  ie an ARRAY or RECORD.
+*)
+
+PROCEDURE IsComposite (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

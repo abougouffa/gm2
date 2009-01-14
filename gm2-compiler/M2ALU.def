@@ -55,7 +55,7 @@ EXPORT QUALIFIED PtrToValue,
                  ConvertRealToInt,
                  ConvertToInt,
                  GetSetValueType,
-                 IsSolved,
+                 IsSolved, IsValueConst,
 
                  IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
       	       	 SetOr, SetAnd, SetIn,
@@ -285,7 +285,7 @@ PROCEDURE ConvertToInt ;
 
 (*
    IsSolved - returns true if the memory cell indicated by v
-              has a set value.
+              has a known value.
 *)
 
 PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
@@ -851,11 +851,11 @@ PROCEDURE AddElements (tokenno: CARDINAL; el, n: CARDINAL) ;
 (*
    AddField - adds the field op1 to the underlying constructor.
 
-                 Ptr ->
-                                                           <- Ptr
-                        +------------+      +------------+
-                        | const      |      | const      |
-                        |------------|      |------------|
+              Ptr ->
+                                                        <- Ptr
+                     +------------+      +------------+
+                     | const      |      | const      |
+                     |------------|      |------------|
 
 *)
 
@@ -924,6 +924,15 @@ PROCEDURE PushEmptyRecord (recordtype: CARDINAL) ;
 *)
 
 PROCEDURE ChangeToConstructor (tokenno: CARDINAL; constype: CARDINAL) ;
+
+
+(*
+   IsValueConst - returns true if the memory cell indicated by v
+                  is only defined by constants.  For example
+                  no variables are used in the constructor.
+*)
+ 
+PROCEDURE IsValueConst (v: PtrToValue) : BOOLEAN ;
 
 
 END M2ALU.

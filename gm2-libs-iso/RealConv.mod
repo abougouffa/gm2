@@ -23,8 +23,8 @@ FROM ConvTypes IMPORT ScanClass ;
 FROM CharClass IMPORT IsNumeric, IsWhiteSpace ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Length, Slice, Mark, Index ;
 FROM dtoa IMPORT Mode, dtoa, strtod ;
+FROM ConvStringReal IMPORT RealToFloatString, RealToEngString, FixedRealToString ;
 FROM M2RTS IMPORT Halt ;
-FROM Builtins IMPORT log10, exp10 ;
 FROM libc IMPORT free ;
 IMPORT EXCEPTIONS ;
 
@@ -273,72 +273,19 @@ BEGIN
 END doValueReal ;
 
 
-(*
-   log10i - returns the rounded value of log10(real)
-*)
-
-PROCEDURE log10i (real: REAL) : INTEGER ;
-BEGIN
-   RETURN( VAL(INTEGER, log10(real)) )
-END log10i ;
-
-
-(*
-   exp10i - returns the real value of exp10(i)
-*)
-
-PROCEDURE exp10i (i: INTEGER) : REAL ;
-BEGIN
-   RETURN( exp10(FLOAT(i)) )
-END exp10i ;
-
-
-(*
-   log10ii - returns the log10 of, i.
-*)
-
-PROCEDURE log10ii (i: INTEGER) : INTEGER ;
-BEGIN
-   RETURN( TRUNC(log10(FLOAT(i))) )
-END log10ii ;
-
-
 (* Returns the number of characters in the floating-point string
    representation of real with sigFigs significant figures.
 *)
 
 PROCEDURE LengthFloatReal (real: REAL; sigFigs: CARDINAL) : CARDINAL ;
 VAR
-   point,
-   powerOfTen: INTEGER ;
-   s         : String ;
-   r         : ADDRESS ;
-   l         : CARDINAL ;
-   sign      : BOOLEAN ;
+   s: String ;
+   l: CARDINAL ;
 BEGIN
-   r := dtoa(real, maxsignificant, sigFigs, point, sign) ;
-   IF sigFigs>0
-   THEN
-      s := InitStringCharStar(r) ;
-      (* free(r) ; *)
-      l := Length(s) ;
-      s := KillString(s) ;
-      IF sigFigs<l
-      THEN
-         l := sigFigs
-      END ;
-
-      l := l+1+1+1+VAL(CARDINAL, log10ii(ABS(point))+1) ;   (* '.' + 'E' + 'sign' *)
-
-      IF sign
-      THEN
-         INC(l)
-      END ;
-      RETURN( l )
-   ELSE
-      (* free(r) ; *)
-      RETURN( 0 )
-   END
+   s := RealToFloatString(real, sigFigs) ;
+   l := Length(s) ;
+   s := KillString(s) ;
+   RETURN( l )
 END LengthFloatReal ;
 
 
@@ -348,49 +295,13 @@ END LengthFloatReal ;
 
 PROCEDURE LengthEngReal (real: REAL; sigFigs: CARDINAL) : CARDINAL ;
 VAR
-   r         : ADDRESS ;
-   sign      : BOOLEAN ;
-   powerOfTen,
-   l, point  : INTEGER ;
-   s         : String ;
+   s: String ;
+   l: CARDINAL ;
 BEGIN
-   r := dtoa(real, maxsignificant, sigFigs, point, sign) ;
-   s := InitStringCharStar(r) ;
-   (* free(r) ; *)
+   s := RealToEngString(real, sigFigs) ;
    l := Length(s) ;
    s := KillString(s) ;
-   IF point>=0
-   THEN
-      CASE point MOD 3 OF
-
-      0:  powerOfTen := point |
-      1:  powerOfTen := point-1 |
-      2:  powerOfTen := point-2
-
-      END
-   ELSE
-      CASE ABS(point) MOD 3 OF
-
-      0:  powerOfTen := point |
-      1:  powerOfTen := point+1 |
-      2:  powerOfTen := point+2
-
-      END
-   END ;
-   IF point>=l
-   THEN
-      INC(l, 2)  (* append '.0' *)
-   ELSE
-      INC(l)     (* insert '.' *)
-   END ;
-      
-   IF sigFigs>0
-   THEN
-      l := l+1+1+log10ii(powerOfTen)+1 ;   (* 'E' + 'sign' *)
-      RETURN( l )
-   ELSE
-      RETURN( 0 )
-   END
+   RETURN( l )
 END LengthEngReal ;
 
 
@@ -401,18 +312,13 @@ END LengthEngReal ;
 
 PROCEDURE LengthFixedReal (real: REAL; place: INTEGER) : CARDINAL ;
 VAR
-   point: INTEGER ;
-   sign : BOOLEAN ;
-   r    : ADDRESS ;
+   s: String ;
+   l: CARDINAL ;
 BEGIN
-   r := dtoa(real, maxsignificant, 100, point, sign) ;
-   (* free(r) ; *)
-   IF place>=0
-   THEN
-      RETURN( point+place+1 )   (* +1 to include '.' *)
-   ELSE
-      RETURN( point+2 )   (* need to append '.0' *)
-   END
+   s := FixedRealToString(real, place) ;
+   l := Length(s) ;
+   s := KillString(s) ;
+   RETURN( l )
 END LengthFixedReal ;
 
 

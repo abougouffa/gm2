@@ -49,7 +49,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
-FROM M2GCCDeclare IMPORT DeclareConstant ;
+FROM M2GCCDeclare IMPORT DeclareConstant, DeclareConstructor ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
@@ -1193,7 +1193,6 @@ BEGIN
 END FoldTypeExpr ;
 
 
-
 (*
    CodeTypeAssign - 
 *)
@@ -1793,10 +1792,8 @@ END DoCodeAssignmentWithoutExprType ;
    DoCodeAssignment - 
 *)
 
-PROCEDURE DoCodeAssignment (tokenno: CARDINAL;
-                            r: CARDINAL;
-                            scopeDesc: String;
-                            message: ARRAY OF CHAR) ;
+PROCEDURE DoCodeAssignment (tokenno: CARDINAL; r: CARDINAL;
+                            scopeDesc: String; message: ARRAY OF CHAR) ;
 VAR
    p: Range ;
 BEGIN
@@ -1804,6 +1801,7 @@ BEGIN
    WITH p^ DO
       DeclareConstant(tokenNo, des) ;
       DeclareConstant(tokenNo, expr) ;
+      DeclareConstructor(0, expr) ;
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;

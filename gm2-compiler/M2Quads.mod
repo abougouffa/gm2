@@ -10036,13 +10036,7 @@ BEGIN
    PutConstructor(constValue) ;
    PushValue(constValue) ;
    ChangeToConstructor(GetTokenNo(), type) ;
-(*
-   IF IsSet(SkipType(type))
-   THEN
-      PutConstSet(constValue)
-   END ;
-*)
-   PutConstructorFrom(constValue, type) ;   (* this line is new 7/10/2008 *)
+   PutConstructorFrom(constValue, type) ;
    PopValue(constValue) ;
    PushT(constValue)
 END BuildConstructorStart ;
@@ -10071,38 +10065,17 @@ END BuildConstructorEnd ;
 
 PROCEDURE AddFieldTo (value, e: CARDINAL) : CARDINAL ;
 BEGIN
-   IF IsConst(value)
+   IF IsSet(SkipType(GetType(value)))
    THEN
-      IF IsConst(e)
-      THEN
-         (* value, might not be a set, so we use AddField rather than AddBit *)
-         PushValue(value) ;
-         AddField(GetTokenNo(), e) ;
-         PopValue(value)
-      ELSE
-         IF IsSet(SkipType(GetType(value)))
-         THEN
-            PutConstSet(value) ;
-            PushT(value) ;
-            PushT(e) ;
-            BuildInclBit ;
-            PopT(value)
-         ELSE
-            ErrorFormat0(NewError(GetTokenNo()),
-                         'can only include a variable bit to a set')
-         END
-      END
+      PutConstSet(value) ;
+      PushT(value) ;
+      PushT(e) ;
+      BuildInclBit ;
+      PopT(value)
    ELSE
-      IF IsSet(SkipType(GetType(value)))
-      THEN
-         PushT(value) ;
-         PushT(e) ;
-         BuildInclBit ;
-         PopT(value)
-      ELSE
-         ErrorFormat0(NewError(GetTokenNo()),
-                      'can only include a variable bit to a set')
-      END
+      PushValue(value) ;
+      AddField(GetTokenNo(), e) ;
+      PopValue(value)
    END ;
    RETURN( value )
 END AddFieldTo ;
@@ -10244,7 +10217,7 @@ BEGIN
    THEN
       (* --fixme-- when we add complex arithmetic, we must check constructor is not a complex constant *)
       IF ((t2#NulSym) AND IsSet(SkipType(t2))) OR
-         (IsConst(e2) AND (IsConstSet(e2) OR IsConstructor(e2)))
+         IsConstSet(e2) OR IsConstructor(e2)
       THEN
          IF Tok=PlusTok
          THEN
@@ -10835,7 +10808,7 @@ BEGIN
       THEN
          CheckAssignmentCompatible(t1, t2)
       ELSE
-         IF IsConst(e1) AND (IsConstructor(e1) OR IsConstSet(e1))
+         IF IsConstructor(e1) OR IsConstSet(e1)
          THEN
             (* ignore type checking for now *)
          ELSE

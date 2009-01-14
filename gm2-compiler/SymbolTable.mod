@@ -27,7 +27,7 @@ FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 
 FROM M2ALU IMPORT InitValue, PtrToValue, PushCard, PopInto,
                   PushString, PushFrom, PushChar, PushInt,
-                  IsSolved ;
+                  IsSolved, IsValueConst ;
 
 FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     ErrorFormat0, ErrorFormat1, ErrorFormat2,
@@ -9229,10 +9229,11 @@ END IsVar ;
 
 
 (*
-   IsConst - returns true if Sym contains a constant value.
+   DoIsConst - returns TRUE if Sym is defined as a constant
+               or is an enumeration field or string.
 *)
 
-PROCEDURE IsConst (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE DoIsConst (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    WITH Symbols[Sym] DO
       RETURN( (SymbolType=ConstVarSym) OR
@@ -9241,6 +9242,21 @@ BEGIN
               ((SymbolType=VarSym) AND (Var.AddrMode=ImmediateValue)) OR
               (SymbolType=EnumerationFieldSym)
             )
+   END
+END DoIsConst ;
+
+
+(*
+   IsConst - returns true if Sym contains a constant value.
+*)
+
+PROCEDURE IsConst (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsConstructor(Sym)
+   THEN
+      RETURN( IsConstructorConstant(Sym) )
+   ELSE
+      RETURN( DoIsConst(Sym) )
    END
 END IsConst ;
 
@@ -9568,6 +9584,48 @@ BEGIN
       END
    END
 END IsValueSolved ;
+
+
+(*
+   IsConstructorConstant - returns TRUE if constructor, Sym, is
+                           defined by only constants.
+*)
+
+PROCEDURE IsConstructorConstant (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsConstructor(Sym)
+   THEN
+      WITH Symbols[Sym] DO
+         CASE SymbolType OF
+
+         ConstVarSym:  RETURN( IsValueConst(ConstVar.Value) ) |
+         ConstLitSym:  RETURN( IsValueConst(ConstLit.Value) )
+
+         ELSE
+            InternalError('expecting Constructor', __FILE__, __LINE__)
+         END
+      END
+   ELSE
+      InternalError('expecting Constructor', __FILE__, __LINE__)
+   END
+END IsConstructorConstant ;
+
+
+(*
+   IsComposite - returns TRUE if symbol, sym, is a composite
+                 type:  ie an ARRAY or RECORD.
+*)
+
+PROCEDURE IsComposite (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF sym=NulSym
+   THEN
+      RETURN( FALSE )
+   ELSE
+      sym := SkipType(sym) ;
+      RETURN( IsArray(sym) OR IsRecord(sym) )
+   END
+END IsComposite ;
 
 
 (*

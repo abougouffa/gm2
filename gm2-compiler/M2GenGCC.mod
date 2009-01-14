@@ -51,6 +51,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsParameter,
                         IsValueSolved, IsSizeSolved,
                         IsProcedureNested, IsInnerModule,
+                        IsComposite,
                         ForeachExportedDo,
                         ForeachImportedDo,
                         ForeachProcedureDo,
@@ -124,7 +125,7 @@ FROM M2ALU IMPORT PtrToValue,
 FROM M2GCCDeclare IMPORT DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
                          DeclareLocalVariables, PromoteToString,
-                         CompletelyResolved,
+                         CompletelyResolved, DeclareConstructor,
                          PoisonSymbols, GetTypeMin, GetTypeMax,
                          IsProcedureGccNested, DeclareParameters ;
 
@@ -431,7 +432,6 @@ PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModuleScope (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSavePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRestorePriority (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE DoCopyString (VAR t, op3t: Tree; op1t, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CreateLabelProcedureN (proc: CARDINAL; leader: ARRAY OF CHAR; unboundedCount, n: CARDINAL) : String ; FORWARD ;
 PROCEDURE CreateLabelName (q: CARDINAL) : String ; FORWARD ;
 PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
@@ -1788,6 +1788,7 @@ VAR
    t, op3t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, res) ;  (* checks to see whether it is a constant and declares it *)
+   DeclareConstructor(quad, res) ;
    IF IsConstString(res) AND (SkipTypeAndSubrange(GetType(Procedure))#Char)
    THEN
       DoCopyString(t, op3t, GetType(Procedure), res) ;
@@ -2215,6 +2216,7 @@ BEGIN
                                 n), CurrentQuadToken)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
+         DeclareConstructor(quad, op3) ;
          BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
       END
    END
@@ -2246,7 +2248,7 @@ END CodeFunctValue ;
    Sym1<X>   Addr   Sym2<X>     meaning     Mem[Sym1<I>] := Sym2<I>
 *)
 
-PROCEDURE CodeAddr (q: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
    s: String ;
@@ -2259,6 +2261,7 @@ BEGIN
                     CurrentQuadToken)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
+      DeclareConstructor(quad, op3) ;
       t := BuildAssignmentTree(Mod2Gcc(op1),
                                BuildConvert(GetPointerType(),
                                             BuildAddr(Mod2Gcc(op3), FALSE), FALSE))
@@ -2595,6 +2598,7 @@ VAR
    op3t, t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   DeclareConstructor(quad, op3) ;
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
       AddModGcc(op1, CheckConstant(op1, op3))
@@ -2797,14 +2801,15 @@ END CodeBinary ;
 *)
 
 PROCEDURE CodeBinarySet (binop: BuildBinProcedure; doOp: DoProcedure;
-                         q: CARDINAL;
-                         op1, op2, op3: CARDINAL) ;
+                         q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: CARDINAL ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(q, op3) ;
+   DeclareConstructor(q, op2) ;
    IF IsConst(op1)
    THEN
       IF IsValueSolved(op2) AND IsValueSolved(op3)
@@ -3161,6 +3166,7 @@ VAR
    t   : Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
    IF (op2#NulSym) AND (GetSymName(op2)=MakeKey('Length'))
    THEN
       IF IsProcedure(op2)
@@ -3420,7 +3426,7 @@ END CodeSetAnd ;
 PROCEDURE CodeBinarySetShift (binop: BuildSetProcedure;
                               doOp : DoProcedure;
                               var, left, right: Name;
-                              q    : CARDINAL;
+                              quad: CARDINAL;
                               op1, op2, op3: CARDINAL) ;
 VAR
    nBits,
@@ -3432,6 +3438,8 @@ BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op3) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1)
    THEN
       IF IsValueSolved(op2) AND IsValueSolved(op3)
@@ -3580,6 +3588,7 @@ PROCEDURE CodeUnarySet (unop: BuildUnaryProcedure; doOp: DoUnaryProcedure;
 BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
    IF IsConst(op1)
    THEN
       IF IsValueSolved(op3)
@@ -3997,6 +4006,7 @@ VAR
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
    tv := unop(LValueToGenericPtr(op3), FALSE) ;
    CheckOverflow(CurrentQuadToken, tv) ;
    IF IsConst(op1)
@@ -4198,7 +4208,6 @@ VAR
    t    : Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(CurrentQuadToken, op3) ;
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
       IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
@@ -4647,6 +4656,7 @@ VAR
 BEGIN
    (* firstly ensure that constant literals are declared *)
    DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
    tl := LValueToGenericPtr(op2) ;
    tr := LValueToGenericPtr(op3) ;
    IF IsConst(op1)
@@ -4678,6 +4688,7 @@ VAR
    t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   DeclareConstructor(quad, op3) ;
    IF IsProcedure(op3)
    THEN
       IF AreConstantsEqual(FindSize(op1), FindSize(Address))
@@ -4770,6 +4781,7 @@ VAR
    t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   DeclareConstructor(quad, op3) ;
    IF IsProcedure(op3)
    THEN
       IF AreConstantsEqual(FindSize(op1), FindSize(Address))
@@ -4840,6 +4852,7 @@ VAR
    t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   DeclareConstructor(quad, op3) ;
    IF IsTrunc(op1)
    THEN
       t := BuildAssignmentTree(Mod2Gcc(op2), BuildTrunc(Mod2Gcc(op3)))
@@ -4969,9 +4982,16 @@ BEGIN
    THEN
       CodeIfSetLess(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildLessThan(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildLessThan(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfLess ;
 
@@ -5029,6 +5049,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       PushValue(op1) ;
@@ -5044,9 +5066,16 @@ BEGIN
    THEN
       CodeIfSetGre(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildGreaterThan(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildGreaterThan(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfGre ;
 
@@ -5104,6 +5133,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       PushValue(op1) ;
@@ -5119,9 +5150,16 @@ BEGIN
    THEN
       CodeIfSetLessEqu(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildLessThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildLessThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfLessEqu ;
 
@@ -5179,6 +5217,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       PushValue(op1) ;
@@ -5194,9 +5234,16 @@ BEGIN
    THEN
       CodeIfSetGreEqu(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildGreaterThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildGreaterThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfGreEqu ;
 
@@ -5297,6 +5344,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       PushValue(op1) ;
@@ -5312,9 +5361,16 @@ BEGIN
    THEN
       CodeIfSetEqu(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(GetType(op1)) OR IsComposite(GetType(op2))
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'equality tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfEqu ;
 
@@ -5330,6 +5386,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       PushValue(op1) ;
@@ -5345,9 +5403,16 @@ BEGIN
    THEN
       CodeIfSetNotEqu(quad, op1, op2, op3)
    ELSE
-      tl := SafeConvert(op1, op2) ;
-      tr := SafeConvert(op2, op1) ;
-      DoJump(BuildNotEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
+      IF IsComposite(op1) OR IsComposite(op2)
+      THEN
+         MetaErrorT2(QuadToTokenNo(quad),
+                     'inequality tests between are composite types not allowed {%1atd} and {%2atd}',
+                     op1, op2)
+      ELSE
+         tl := SafeConvert(op1, op2) ;
+         tr := SafeConvert(op2, op1) ;
+         DoJump(BuildNotEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
+      END
    END
 END CodeIfNotEqu ;
 
@@ -5419,6 +5484,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('should not get to here (if we do we should consider calling FoldIfIn)', __FILE__, __LINE__)
@@ -5482,6 +5549,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    DeclareConstant(CurrentQuadToken, op1) ;
    DeclareConstant(CurrentQuadToken, op2) ;
+   DeclareConstructor(quad, op1) ;
+   DeclareConstructor(quad, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       InternalError('should not get to here (if we do we should consider calling FoldIfIn)', __FILE__, __LINE__)
@@ -5545,6 +5614,7 @@ BEGIN
       Follow the Quadruple rules:
    *)
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
+   DeclareConstructor(quad, op3) ;
    IF IsConstString(op3)
    THEN
       InternalError('not expecting to index through a constant string', __FILE__, __LINE__)
@@ -5572,6 +5642,7 @@ VAR
    op3t, t: Tree ;
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
    (*
       Follow the Quadruple rule:
 
