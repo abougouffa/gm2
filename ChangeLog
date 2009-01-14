@@ -1,5 +1,7 @@
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 
+	* new files RealStr.mod, ConvStringReal.def and
+	  ConvStringReal.mod.
 	* gm2/gm2-compiler/M2ALU.def:  IsValueConst (new function).
 	* gm2/gm2-compiler/M2ALU.mod:  GetConstructorField return
 	  symbol rather than Tree.  Add areAllConstants field
