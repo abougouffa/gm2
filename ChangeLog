@@ -12,6 +12,8 @@
 	  CMPLX based on the operand types rather than CType.
 	* gm2/configure.in:  added rule to detect the presence of
 	  flex.
+	* gm2/gccgm2.c:  gccgm2_BuildComplex test and convert
+	  operands if necessary.
 
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 

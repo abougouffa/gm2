@@ -11033,9 +11033,16 @@ gccgm2_BuildIm (tree op1)
 tree
 gccgm2_BuildCmplx (tree type, tree real, tree imag)
 {
+  tree scalor;
   real = gccgm2_FoldAndStrip (real);
   imag = gccgm2_FoldAndStrip (imag);
   type = skip_type_decl (type);
+  scalor = TREE_TYPE (type);
+
+  if (scalor != TREE_TYPE (real))
+    real = gccgm2_BuildConvert (scalor, real, FALSE);
+  if (scalor != TREE_TYPE (imag))
+    imag = gccgm2_BuildConvert (scalor, imag, FALSE);
 
   if (TREE_CONSTANT (real) && TREE_CONSTANT (imag))
     return build_complex (type, real, imag);
