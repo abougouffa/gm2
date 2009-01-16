@@ -10,6 +10,8 @@
 	* gm2/gm2-compiler/M2Quads.mod:  check compatibility of
 	  CMPLX operands and assign return value type for
 	  CMPLX based on the operand types rather than CType.
+	* gm2/configure.in:  added rule to detect the presence of
+	  flex.
 
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 

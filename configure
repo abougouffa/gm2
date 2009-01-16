@@ -563,82 +563,43 @@ test -n "$AR_PATH" && break
 done
 test -n "$AR_PATH" || AR_PATH="ar"
 
-# Extract the first word of "flex", so it can be a program name with args.
-set dummy flex; ac_word=$2
+
+for ac_prog in flex
+do
+# Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:570: checking for $ac_word" >&5
-if eval "test \"`echo '$''{'ac_cv_prog_LEX'+set}'`\" = set"; then
+echo "configure:573: checking for $ac_word" >&5
+if eval "test \"`echo '$''{'ac_cv_prog_regex_flex'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
-  if test -n "$LEX"; then
-  ac_cv_prog_LEX="$LEX" # Let the user override the test.
+  if test -n "$regex_flex"; then
+  ac_cv_prog_regex_flex="$regex_flex" # Let the user override the test.
 else
   IFS="${IFS= 	}"; ac_save_ifs="$IFS"; IFS=":"
   ac_dummy="$PATH"
   for ac_dir in $ac_dummy; do
     test -z "$ac_dir" && ac_dir=.
     if test -f $ac_dir/$ac_word; then
-      ac_cv_prog_LEX="flex"
+      ac_cv_prog_regex_flex="$ac_prog"
       break
     fi
   done
   IFS="$ac_save_ifs"
-  test -z "$ac_cv_prog_LEX" && ac_cv_prog_LEX="lex"
 fi
 fi
-LEX="$ac_cv_prog_LEX"
-if test -n "$LEX"; then
-  echo "$ac_t""$LEX" 1>&6
+regex_flex="$ac_cv_prog_regex_flex"
+if test -n "$regex_flex"; then
+  echo "$ac_t""$regex_flex" 1>&6
 else
   echo "$ac_t""no" 1>&6
 fi
 
-if test -z "$LEXLIB"
-then
-  case "$LEX" in
-  flex*) ac_lib=fl ;;
-  *) ac_lib=l ;;
-  esac
-  echo $ac_n "checking for yywrap in -l$ac_lib""... $ac_c" 1>&6
-echo "configure:604: checking for yywrap in -l$ac_lib" >&5
-ac_lib_var=`echo $ac_lib'_'yywrap | sed 'y%./+-%__p_%'`
-if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
-  echo $ac_n "(cached) $ac_c" 1>&6
-else
-  ac_save_LIBS="$LIBS"
-LIBS="-l$ac_lib  $LIBS"
-cat > conftest.$ac_ext <<EOF
-#line 612 "configure"
-#include "confdefs.h"
-/* Override any gcc2 internal prototype to avoid an error.  */
-/* We use char because int might match the return type of a gcc2
-    builtin and then its argument prototype would still apply.  */
-char yywrap();
+test -n "$regex_flex" && break
+done
 
-int main() {
-yywrap()
-; return 0; }
-EOF
-if { (eval echo configure:623: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest${ac_exeext}; then
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=yes"
-else
-  echo "configure: failed program was:" >&5
-  cat conftest.$ac_ext >&5
-  rm -rf conftest*
-  eval "ac_cv_lib_$ac_lib_var=no"
-fi
-rm -f conftest*
-LIBS="$ac_save_LIBS"
-
-fi
-if eval "test \"`echo '$ac_cv_lib_'$ac_lib_var`\" = yes"; then
-  echo "$ac_t""yes" 1>&6
-  LEXLIB="-l$ac_lib"
-else
-  echo "$ac_t""no" 1>&6
-fi
-
+if test x$regex_flex = "x" ; then
+    { echo "configure: error: flex is required to build GNU Modula-2 (hint install flex)." 1>&2; exit 1; }
 fi
 
 cat >> confdefs.h <<EOF
@@ -650,7 +611,7 @@ do
 # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
 echo $ac_n "checking for $ac_word""... $ac_c" 1>&6
-echo "configure:654: checking for $ac_word" >&5
+echo "configure:615: checking for $ac_word" >&5
 if eval "test \"`echo '$''{'ac_cv_path_RANLIB_PATH'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
 else
@@ -823,8 +784,7 @@ s%@oldincludedir@%$oldincludedir%g
 s%@infodir@%$infodir%g
 s%@mandir@%$mandir%g
 s%@AR_PATH@%$AR_PATH%g
-s%@LEX@%$LEX%g
-s%@LEXLIB@%$LEXLIB%g
+s%@regex_flex@%$regex_flex%g
 s%@RANLIB_PATH@%$RANLIB_PATH%g
 
 CEOF
