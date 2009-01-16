@@ -1,3 +1,16 @@
+2009-01-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/configure.in:  corrected version to 0.68
+	* gm2/gccgm2.c:  added prototypes for gccgm2_BuildCmplx,
+	  gccgm2_BuildIm and gccgm2_BuildRe.  gccgm2_BuildCmplx
+	  detect constant operands or variable operands and skip
+	  type decl.
+	* gm2/gm2-compiler/M2Base.mod:  ScalarToComplex
+	  return Complex even if error discovered.
+	* gm2/gm2-compiler/M2Quads.mod:  check compatibility of
+	  CMPLX operands and assign return value type for
+	  CMPLX based on the operand types rather than CType.
+
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 
 	* new files RealStr.mod, ConvStringReal.def and

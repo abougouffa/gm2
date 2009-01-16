@@ -962,7 +962,8 @@ BEGIN
    THEN
       RETURN( ComplexN(128) )
    ELSE
-      MetaError1('{%1ad} must be a REAL type', sym)
+      MetaError1('{%1ad} must be a REAL type', sym) ;
+      RETURN( Complex )
    END
 END ScalarToComplex ;
 

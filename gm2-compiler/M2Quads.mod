@@ -133,11 +133,11 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    Real, LongReal, ShortReal, Nil,
                    ZType, RType, CType,
                    Re, Im, Cmplx,
-                   MixTypes, NegateType, ComplexToScalar,
+                   MixTypes, NegateType, ComplexToScalar, GetCmplxReturnType,
                    IsAssignmentCompatible, IsExpressionCompatible,
                    IsParameterCompatible,
                    AssignmentRequiresWarning,
-                   CannotCheckTypeInPass3,
+                   CannotCheckTypeInPass3, ScalarToComplex,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
@@ -8144,11 +8144,12 @@ BEGIN
       IF (IsVar(l) OR IsConst(l)) AND
          (IsVar(r) OR IsConst(r))
       THEN
+         CheckExpressionCompatible(GetType(l), GetType(r)) ;
          ReturnVar := MakeTemporary(AreConstant(IsConst(l) AND IsConst(r))) ;
-         PutVar(ReturnVar, CType) ;
+         PutVar(ReturnVar, GetCmplxReturnType(SkipType(GetType(l)), SkipType(GetType(r)))) ;
          GenQuad(StandardFunctionOp, ReturnVar, Cmplx, Make2Tuple(l, r)) ;
          PopN(NoOfParam+1) ;   (* destroy arguments to this function *)
-         PushTF(ReturnVar, CType)
+         PushTF(ReturnVar, GetType(ReturnVar))
       ELSE
          WriteFormat0('the pseudo procedure CMPLX requires two parameters') ;
          PopN(NoOfParam+1) ;  (* destroy arguments to this function *)

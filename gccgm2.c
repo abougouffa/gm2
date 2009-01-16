@@ -834,7 +834,9 @@ static tree                   build_m2_complex_type_from                  (tree 
        tree                   gccgm2_GetM2ShortComplexType                (void);
        tree                   gccgm2_GetM2CType                           (void);
        int                    gccgm2_AreRealOrComplexConstantsEqual       (tree e1, tree e2);
-
+       tree                   gccgm2_BuildCmplx                           (tree type, tree real, tree imag);
+       tree                   gccgm2_BuildIm                              (tree op1);
+       tree                   gccgm2_BuildRe                              (tree op1);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -11033,7 +11035,12 @@ gccgm2_BuildCmplx (tree type, tree real, tree imag)
 {
   real = gccgm2_FoldAndStrip (real);
   imag = gccgm2_FoldAndStrip (imag);
-  return build_complex (type, real, imag);
+  type = skip_type_decl (type);
+
+  if (TREE_CONSTANT (real) && TREE_CONSTANT (imag))
+    return build_complex (type, real, imag);
+  else
+    return build2 (COMPLEX_EXPR, type, real, imag);
 }
 
 /* taken from c-common.c:3614 and pruned */
