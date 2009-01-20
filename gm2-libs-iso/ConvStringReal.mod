@@ -158,9 +158,9 @@ BEGIN
    THEN
       s := ToSigFig(t, l-point+place)
    ELSE
-      s := InitString('0')
+      s := InitString('0') ;
+      t := KillString(t)
    END ;
-   t := KillString(t) ;
    IF sign
    THEN
       s := ConCat(InitStringChar('-'), Mark(s))

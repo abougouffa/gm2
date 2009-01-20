@@ -18,6 +18,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE Strings ;
 
 IMPORT ASCII ;
+FROM libc IMPORT printf ;
+
+CONST
+   Debugging = FALSE ;
 
 
 (*
@@ -31,11 +35,14 @@ BEGIN
 END Length ;
 
 
-(* The following seven procedures construct a string value, and attempt to assign it to a
-   variable parameter.  They all have the property that if the length of the constructed string
-   value exceeds the capacity of the variable parameter, a truncated value is assigned, while
-   if the length of the constructed string value is less than the capacity of the variable
-   parameter, a string terminator is appended before assignment is performed.
+(* The following seven procedures construct a string value, and
+   attempt to assign it to a variable parameter.  They all have
+   the property that if the length of the constructed string
+   value exceeds the capacity of the variable parameter, a
+   truncated value is assigned, while if the length of the
+   constructed string value is less than the capacity of the
+   variable parameter, a string terminator is appended before
+   assignment is performed.
 *)
 
 (*
@@ -115,18 +122,51 @@ PROCEDURE Insert (source: ARRAY OF CHAR;
                   startIndex: CARDINAL;
                   VAR destination: ARRAY OF CHAR) ;
 VAR
-   i, j, sh, dh: CARDINAL ;
+   newEnd, endCopy,
+   i, j, sh, dh, dl: CARDINAL ;
 BEGIN
-   i := 0 ;
    sh := Length(source) ;
    dh := HIGH(destination) ;
+   dl := Length(destination) ;
    (* make space for source *)
-   j := dh ;
-   i := startIndex+sh ;
-   WHILE (i>startIndex) AND (j>0) DO
-      DEC(i) ;
-      DEC(j) ;
-      destination[j] := destination[i]
+   IF Debugging
+   THEN
+      printf("sh = %d   dh = %d   dl = %d\n",
+             sh, dh, dl);
+   END ;
+   newEnd := dl+sh ;
+   IF newEnd>dh
+   THEN
+      (* insert will truncate destination *)
+      newEnd := dh
+   END ;
+   IF newEnd>sh
+   THEN
+      endCopy := newEnd-sh
+   ELSE
+      endCopy := 0
+   END ;
+   IF Debugging
+   THEN
+      printf("\ndestination contains\n%s\nnewEnd = %d   endCopy = %d\n", destination, newEnd, endCopy) ;
+      printf("newEnd = %d\n", newEnd) ;
+      printf("endCopy = %d\n", endCopy) ;
+   END ;
+   INC(newEnd) ;
+   INC(endCopy) ;
+   WHILE endCopy>startIndex DO
+      DEC(newEnd) ;
+      DEC(endCopy) ;
+      IF Debugging
+      THEN
+         printf("copying dest %d to %d (%c) (startIndex=%d)\n",
+                endCopy, newEnd, destination[newEnd], startIndex)
+      END ;
+      destination[newEnd] := destination[endCopy]
+   END ;
+   IF Debugging
+   THEN
+      printf("destination now contains %s\n", destination)
    END ;
    (* copy source into destination *)
    j := startIndex ;
