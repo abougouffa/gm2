@@ -53,6 +53,7 @@ The following implementation modules are complete:
 @code{StreamFile}
 @code{Strings}
 @code{STextIO}
+@code{SWholeIO}
 @code{SYSTEM}
 @code{TERMINATION}
 @code{TextIO}

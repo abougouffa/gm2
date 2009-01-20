@@ -1,3 +1,15 @@
+2009-01-20       Michael Lambert <lambert@psc.edu>
+
+        * gm2/gm2-libs-iso/SWholeIO.mod:  (new file).
+	* gm2/gm2-libs-iso/README.texi:  updated complete
+	  module list.
+	* gm2/Make-lang.in:  add SWholeIO.mod to the list
+	  of iso modules to be compiled (GM2-LIBS-ISO-MODS).
+
+2009-01-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/Strings.mod:  Insert (reimplemented).
+
 2009-01-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/configure.in:  corrected version to 0.68
