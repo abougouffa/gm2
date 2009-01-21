@@ -1,3 +1,15 @@
+2009-01-21       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  boolean_to_unsigned changed to
+	  boolean_enum_to_unsigned and modified accordingly.
+	  Call boolean_enum_to_unsigned in comparison build
+	  functions.
+	* gm2/gm2.texi:  minor word change.
+	* gm2/gm2-compiler/M2Quads.mod:  removed redundant
+	  import.
+	* gm2-libs-iso/SWholeIO.def:  tidied up comments
+	  to fix normal page and screen width.
+
 2009-01-20       Michael Lambert <lambert@psc.edu>
 
         * gm2/gm2-libs-iso/SWholeIO.mod:  (new file).

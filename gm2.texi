@@ -1206,7 +1206,7 @@ data types.
 
 @subsection Parameter compatibility
 
-Parameter compatibility is divided into two arenas, pass by value and
+Parameter compatibility is divided into two areas, pass by value and
 pass by reference (@code{VAR}).  In the case of pass by value the
 rules are exactly the same as assignment.  However in the second case,
 pass by reference, the actual parameter and formal parameter must be
