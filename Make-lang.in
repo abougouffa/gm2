@@ -1018,7 +1018,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      SeqFile.mod       SimpleCipher.mod \
                      StdChans.mod      \
                      STextIO.mod       Storage.mod     StreamFile.mod \
-                     Strings.mod       \
+                     Strings.mod       SWholeIO.mod \
                      SYSTEM.mod        TERMINATION.mod TextIO.mod \
                      WholeConv.mod     WholeIO.mod     WholeStr.mod
 
