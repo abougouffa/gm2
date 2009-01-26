@@ -2211,9 +2211,7 @@ BEGIN
       IF (op1<=NoOfParam(op2)) AND
          IsVarParam(op2, op1) AND IsConst(op3)
       THEN
-         n := GetSymName(op3) ;
-         ErrorStringAt(Sprintf1(Mark(InitString('cannot pass a constant (%a) as a VAR parameter')),
-                                n), CurrentQuadToken)
+         MetaErrorT1(CurrentQuadToken, 'cannot pass a constant {%1ad} as a VAR parameter', op3)
       ELSE
          DeclareConstant(CurrentQuadToken, op3) ;
          DeclareConstructor(quad, op3) ;
@@ -2255,10 +2253,7 @@ VAR
 BEGIN
    IF IsConst(op3) AND (NOT IsConstString(op3))
    THEN
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
-      ErrorStringAt(Sprintf1(Mark(InitString('error in expression, trying to find the address of a constant (%s)')),
-                             s),
-                    CurrentQuadToken)
+      MetaErrorT1(CurrentQuadToken, 'error in expression, trying to find the address of a constant {%1ad}', op3)
    ELSE
       DeclareConstant(CurrentQuadToken, op3) ;  (* we might be asked to find the address of a constant string *)
       DeclareConstructor(quad, op3) ;
@@ -2300,10 +2295,7 @@ BEGIN
          (* great, now we can tell gcc about the relationship between, op1 and op3 *)
          IF GccKnowsAbout(op1)
          THEN
-            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op1)))) ;
-            ErrorStringAt(Sprintf1(Mark(InitString('constant, %s, should not be reassigned')),
-                                   s),
-                          tokenno)
+            MetaErrorT1(tokenno, 'constant {%1ad} should not be reassigned', op1)
          ELSE
             IF IsConstString(op3)
             THEN
@@ -3013,9 +3005,7 @@ BEGIN
    t := GetBuiltinConst(KeyToCharStar(Name(op3))) ;
    IF t=NIL
    THEN
-      s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op3))))) ;
-      ErrorStringAt(Sprintf1(Mark(InitString('unknown built in constant (%s)')),
-                             s), tokenno)
+      MetaErrorT1(tokenno, 'unknown built in constant {%1ad}', op3)
    ELSE
       AddModGcc(op1, t) ;
       RemoveItemFromList(l, op1) ;
@@ -3051,9 +3041,7 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
-               s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
-               ErrorStringAt(Sprintf1(Mark(InitString('parameter to LENGTH must be a string (%s)')),
-                                      s), QuadToTokenNo(quad))
+               MetaErrorT1(tokenno, 'parameter to LENGTH must be a string {%1ad}', op3)
             END
          ELSE
             (* rewrite the quad to use becomes *)
@@ -3080,9 +3068,7 @@ BEGIN
                RemoveItemFromList(l, op1) ;
                SubQuad(quad)
             ELSE
-               s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(op3)))) ;
-               ErrorStringAt(Sprintf1(Mark(InitString('parameter to CAP must be a single character (%s)')),
-                                      s), QuadToTokenNo(quad))
+               MetaErrorT1(tokenno, 'parameter to CAP must be a single character {%1ad}', op3)
             END
          END
       END
@@ -3831,9 +3817,7 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
-            ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s), CurrentQuadToken)
+            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -3899,9 +3883,7 @@ BEGIN
                                  Mod2Gcc(op1), PopIntegerTree(),
                                  GetMode(op1)=LeftValue, fieldno)
          ELSE
-            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
-            ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s), CurrentQuadToken)
+            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
          END
       ELSE
          GetSetLimits(GetType(op1), low, high) ;
@@ -4261,8 +4243,9 @@ BEGIN
        ((NOT IsConst(operand)) AND (GetType(operand)=Char))) OR
       (IsVar(operand) AND (NOT IsArray(Type)))
    THEN
-      ErrorStringAt(InitString('base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter'),
-                    QuadToTokenNo(quad)) ;
+      MetaErrorT1(QuadToTokenNo(quad),
+                  'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1tad}',
+                  operand) ;
       RETURN( GetIntegerZero() )
    END ;
    Subscript := GetArraySubscript(Type) ;
@@ -4752,7 +4735,7 @@ BEGIN
                SubQuad(quad)
             END
          ELSE
-            ErrorStringAt(InitString('procedure address can only be stored in a word size operand'), QuadToTokenNo(quad))
+            ErrorStringAt(InitString('procedure address can only be stored in a address sized operand'), QuadToTokenNo(quad))
          END
       ELSIF IsConst(op3)
       THEN
@@ -5503,10 +5486,7 @@ BEGIN
                               GetMode(op2)=LeftValue, fieldno,
                               string(CreateLabelName(op3)))
          ELSE
-            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op1))))) ;
-            ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s),
-                          CurrentQuadToken)
+            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op1)
          END
       ELSIF IsConst(op2)
       THEN
