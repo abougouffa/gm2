@@ -74,7 +74,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
-FROM M2MetaError IMPORT MetaErrorT2 ;
+FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim ;
@@ -5568,10 +5568,7 @@ BEGIN
                                  GetMode(op2)=LeftValue, fieldno,
                                  string(CreateLabelName(op3)))
          ELSE
-            s := Mark(InitStringCharStar(KeyToCharStar(GetSymName(GetType(op2))))) ;
-            ErrorStringAt(Sprintf1(Mark(InitString('bit exceeded the range of set (%s)')),
-                                   s),
-                          CurrentQuadToken)
+            MetaErrorT1(CurrentQuadToken, 'bit exceeded the range of set {%1atd}', op2)
          END
       ELSIF IsConst(op2)
       THEN
