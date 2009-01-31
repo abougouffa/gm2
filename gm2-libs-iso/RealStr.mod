@@ -18,18 +18,15 @@ MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE RealStr;
 
-  (* REAL/string conversions *)
+(* REAL/string conversions *)
 
 IMPORT RealConv ;
-FROM DynamicStrings IMPORT InitString, KillString, Length, CopyOut ;
 
-FROM ConvStringReal IMPORT RealToFixedString, RealToFixedString,
+FROM DynamicStrings IMPORT String, InitString, KillString, Length, CopyOut ;
+
+FROM ConvStringReal IMPORT RealToFixedString, RealToFloatString,
                            RealToEngString ;
 
-
-TYPE
-  (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
-  ConvResults = ConvTypes.ConvResults;
 
 (* the string form of a signed fixed-point real number is
      ["+" | "-"], decimal digit, {decimal digit}, [".",
@@ -67,7 +64,7 @@ VAR
    s: String ;
 BEGIN
    s := RealToFloatString(real, sigFigs) ;
-   CopyOut(s, str) ;
+   CopyOut(str, s) ;
    s := KillString(s)
 END RealToFloat ;
 
@@ -83,8 +80,8 @@ PROCEDURE RealToEng (real: REAL; sigFigs: CARDINAL;
 VAR
    s: String ;
 BEGIN
-   s := RealToEngString(read, sigFigs) ;
-   CopyOut(s, str) ;
+   s := RealToEngString(real, sigFigs) ;
+   CopyOut(str, s) ;
    s := KillString(s)
 END RealToEng ;
 
@@ -98,8 +95,8 @@ PROCEDURE RealToFixed (real: REAL; place: INTEGER;
 VAR
    s: String ;
 BEGIN
-   s := RealToFixedString(read, sigFigs) ;
-   CopyOut(s, str) ;
+   s := RealToFixedString(real, place) ;
+   CopyOut(str, s) ;
    s := KillString(s)
 END RealToFixed ;
 
@@ -112,16 +109,32 @@ PROCEDURE RealToStr (real: REAL; VAR str: ARRAY OF CHAR) ;
      are implementation-defined.
   *)
 VAR
-   s: String ;
+   s      : String ;
+   sigFigs: CARDINAL ;
 BEGIN
-   s := RealToFixedString(real, sigFigs) ;
-   IF Length(s)<=HIGH(str)
-   THEN
-      CopyOut(s, str) ;
-      s := KillString(s)
-   ELSE
+   sigFigs := HIGH(str) ;
+   WHILE sigFigs>1 DO
+      s := RealToFixedString(real, sigFigs) ;
+      IF Length(s)<=HIGH(str)
+      THEN
+         CopyOut(str, s) ;
+         s := KillString(s) ;
+         RETURN
+      END ;
       s := KillString(s) ;
-      RealToFixed(real, str)
+      DEC(sigFigs)
+   END ;
+   sigFigs := HIGH(str) ;
+   WHILE sigFigs#0 DO
+      s := RealToFloatString(real, sigFigs) ;
+      IF Length(s)<=HIGH(str)
+      THEN
+         CopyOut(str, s) ;
+         s := KillString(s) ;
+         RETURN
+      END ;
+      s := KillString(s) ;
+      DEC(sigFigs)
    END
 END RealToStr ;
 

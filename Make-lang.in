@@ -1010,11 +1010,12 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
                      IOConsts.mod      IOLink.mod      LongMath.mod \
                      M2EXCEPTION.mod   M2RTS.mod       ProgramArgs.mod \
-                     RawIO.mod \
+                     RawIO.mod         \
+                     RealConv.mod      \
+                     RealMath.mod      RealStr.mod     RndFile.mod \
                      RTdata.mod        RTentity.mod \
                      RTgen.mod         RTgenif.mod     RTio.mod \
-                     RTfio.mod         RealConv.mod \
-                     RealMath.mod      RndFile.mod \
+                     RTfio.mod         \
                      SeqFile.mod       SimpleCipher.mod \
                      StdChans.mod      \
                      STextIO.mod       Storage.mod     StreamFile.mod \

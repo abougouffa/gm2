@@ -28,6 +28,7 @@ The following implementation modules are complete:
 @code{ChanConsts}
 @code{CharClass}
 @code{ClientSocket}
+@code{ConvStringReal}
 @code{ConvTypes}
 @code{EXCEPTIONS}
 @code{IOChan}
@@ -39,6 +40,7 @@ The following implementation modules are complete:
 @code{RawIO}
 @code{RealConv}
 @code{RealMath}
+@code{RealStr}
 @code{RndFile}
 @code{RTdata}
 @code{RTentity}
