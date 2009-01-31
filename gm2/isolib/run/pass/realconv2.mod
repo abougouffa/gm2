@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE realconv ;
+MODULE realconv2 ;
 
 FROM RealConv IMPORT LengthFloatReal, LengthEngReal, LengthFixedReal ;
 FROM M2RTS IMPORT Halt ;
@@ -48,5 +48,4 @@ BEGIN
    (* LengthFloatReal *)
 
    Assert(LengthFloatReal(1234.56789, 3)=7, __LINE__) ;   (* 1.23E+3 *)
-
-END realconv.
+END realconv2.
