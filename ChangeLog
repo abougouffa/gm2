@@ -1,3 +1,36 @@
+2009-01-31       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/Make-lang.in:  new rules to build ldtoa.o
+	  and dtoa.o.
+        * gm2/gm2/gccgm2.c:  change boolean_to_unsigned to
+	  boolean_enum_to_unsigned and alter implementation
+	  accordingly.
+	* gm2/gm2/gm2-libs/StringConvert.mod:  use new ldtoa
+	  interface and fixed bugs in ToSigFigs.
+	* gm2/gm2/gm2-libs/configure.in:  check for strtod
+	  and strtold.
+	* gm2/gm2/gm2-libs/dtoa.def:  remove unused
+	  enumerated fields and modify procedure function
+	  names and parameters in light of the new dtoa
+	  implementation.
+	* gm2/gm2/gm2-libs/gm2-libs-host.h.in:  add entries
+	  for HAVE_STRTOD and HAVE_STRTOLD.
+	* gm2/gm2/gm2-libs/ldtoa.def:  remove unused
+	  enumerated fields and modify procedure function
+	  names and parameters in light of the new ldtoa
+	  implementation.
+	* gm2/gm2/gm2-libs-ch/dtoa.c:  new implementation
+	  (GPL) based on libc strtod, ecvt and fcvt.
+	* gm2/gm2/gm2-libs-ch/ldtoa.c:  new implementation
+	  (GPL) based on libc strtold, qecvt and qfcvt.
+	* gm2/gm2/gm2-libs-iso/ConvStringReal.def:  changed
+	  procedure function name.
+	* gm2/gm2/gm2-libs-iso/ConvStringReal.mod:
+	  fixed many bugs in the three real conversion
+	  routines.
+	* gm2/gm2/gm2-libs-iso/RealConv.mod:  use new procedure
+	  function name and modify parameters.
+
 2009-01-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  improved error

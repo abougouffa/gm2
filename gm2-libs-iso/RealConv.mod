@@ -21,9 +21,9 @@ IMPLEMENTATION MODULE RealConv ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM ConvTypes IMPORT ScanClass ;
 FROM CharClass IMPORT IsNumeric, IsWhiteSpace ;
-FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Length, Slice, Mark, Index ;
-FROM dtoa IMPORT Mode, dtoa, strtod ;
-FROM ConvStringReal IMPORT RealToFloatString, RealToEngString, FixedRealToString ;
+FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, KillString, Length, Slice, Mark, Index, string ;
+FROM dtoa IMPORT strtod ;
+FROM ConvStringReal IMPORT RealToFloatString, RealToEngString, RealToFixedString ;
 FROM M2RTS IMPORT Halt ;
 FROM libc IMPORT free ;
 IMPORT EXCEPTIONS ;
@@ -262,8 +262,11 @@ PROCEDURE doValueReal (str: ARRAY OF CHAR) : REAL ;
 VAR
    r    : REAL ;
    error: BOOLEAN ;
+   s    : String ;
 BEGIN
-   r := strtod(str, error) ;
+   s := InitString(str) ;
+   r := strtod(string(s), error) ;
+   s := KillString(s) ;
    IF error
    THEN
       EXCEPTIONS.RAISE(realConv, ORD(outofrange),
@@ -315,7 +318,7 @@ VAR
    s: String ;
    l: CARDINAL ;
 BEGIN
-   s := FixedRealToString(real, place) ;
+   s := RealToFixedString(real, place) ;
    l := Length(s) ;
    s := KillString(s) ;
    RETURN( l )

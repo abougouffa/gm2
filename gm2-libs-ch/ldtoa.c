@@ -1,14 +1,12 @@
 /*
- *   ldtoa.c - this is a hack to allow the libraries to compile and link.
- *             It will work as long as long double precision is not required.
- *             Its only purpose is to allow development of the libraries and
- *             the implementation of LONGCOMPLEX to continue without having to
- *             implement ldtoa yet..
+ *   ldtoa.c - 
  */
 
 #define GM2
 
 #include <p2c/p2c.h>
+
+#include "gm2-libs-host.h"
 
 #if defined(HAVE_STRINGS)
 #  include <strings.h>
@@ -26,29 +24,62 @@
 #  define FALSE (1==0)
 #endif
 
-extern double dtoa_strtod (const char *s, int high, int *error);
-extern char *dtoa_dtoa (double d, int mode, int ndigits, int *decpt, char *sign);
-extern void dtoa_bfree (void *v);
+#if defined(HAVE_STDLIB_H)
+#  if !defined(_ISOC99_SOURCE)
+#     define _ISOC99_SOURCE
+#  endif
+#  include <stdlib.h>
+#endif
+
+#define MAX_FP_DIGITS 500
+
+typedef enum Mode { maxsignicant, decimaldigits } Mode;
+
+/*
+ *  maxsignicant:  return a string containing max(1,ndigits) significant
+ *                 digits.  The return string contains the string produced
+ *                 by ecvt.
+ *  decimaldigits: return a string produced by fcvt.  The string will
+ *                 contain ndigits past the decimal point
+ *                 (ndigits may be negative).
+ */
 
 
-long double ldtoa_strtold (const char *s, int high, int *error)
+
+long double ldtoa_strtold (const char *s, int *error)
 {
-  return (long double)dtoa_strtod(s, high, error);
-}
+  char *endp;
+  long double d;
 
-long double ldtoa_strtold_string (const char *s, int *error)
-{
-  int len = strlen(s);
-
-  if (len>0)
-    return dtoa_strtod(s, len-1, error);
+#if defined(HAVE_STRTOLD)
+  errno = 0;
+  d = strtold (s, &endp);
+#else
+# error "you need to build on a system which can support strtold"
+#endif
+  if (endp != NULL && (*endp == '\0'))
+    *error = (errno != 0);
   else
     *error = TRUE;
+  return d;
 }
 
-char *ldtoa_ldtoa (long double d, int mode, int ndigits, int *decpt, char *sign)
+char *ldtoa_ldtoa (long double d, int mode, int ndigits, int *decpt, int *sign)
 {
-  return dtoa_dtoa((double)d, mode, ndigits, decpt, sign);
+  char *p;
+  switch (mode) {
+
+  case maxsignicant:
+    p = malloc (ndigits+1);
+    qecvt_r (d, ndigits, decpt, sign, p, ndigits+1);
+    return p;
+  case decimaldigits:
+    p = malloc (MAX_FP_DIGITS);
+    qfcvt_r (d, ndigits, decpt, sign, p, MAX_FP_DIGITS);
+    return p;
+  default:
+    abort();
+  }
 }
 
 #if defined(GM2)

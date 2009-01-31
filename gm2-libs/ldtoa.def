@@ -31,16 +31,15 @@ DEFINITION MODULE ldtoa ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
-   Mode = (shortest, stopping, maxsignicant, decimaldigits) ;
+   Mode = (maxsignicant, decimaldigits) ;
 
 
 (*
-   strtold - returns a LONGREAL given a string, s.  It will set
-             error to TRUE if the number is too large.
+   strtold - returns a LONGREAL given a C string, s.  It will set
+             error to TRUE if the number is too large or badly formed.
 *)
 
-PROCEDURE strtold (s: ARRAY OF CHAR; VAR error: BOOLEAN) : LONGREAL ;
-PROCEDURE strtold_string (s: ADDRESS; VAR error: BOOLEAN) : LONGREAL ;
+PROCEDURE strtold (s: ADDRESS; VAR error: BOOLEAN) : LONGREAL ;
 
 
 (*

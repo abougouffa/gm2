@@ -34,7 +34,7 @@ DEFINITION MODULE dtoa ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
-   Mode = (shortest, stopping, maxsignificant, decimaldigits) ;
+   Mode = (maxsignificant, decimaldigits) ;
 
 
 (*
@@ -42,8 +42,7 @@ TYPE
             error to TRUE if the number is too large.
 *)
 
-PROCEDURE strtod (s: ARRAY OF CHAR; VAR error: BOOLEAN) : REAL ;
-PROCEDURE strtod_string (s: ADDRESS; VAR error: BOOLEAN) : REAL ;
+PROCEDURE strtod (s: ADDRESS; VAR error: BOOLEAN) : REAL ;
 
 
 (*

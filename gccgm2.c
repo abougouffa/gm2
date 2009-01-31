@@ -796,7 +796,7 @@ static void                   readonly_error                              (tree,
        void                   gm2_enter_nested                            (struct function *f);
        void                   gm2_leave_nested                            (struct function *f);
        tree                   chainon_stmt_list                           (void);
-       tree                   boolean_to_unsigned                         (tree t);
+       tree                   boolean_enum_to_unsigned                    (tree t);
        tree                   gccgm2_GetBooleanType                       (void);
        tree                   gccgm2_GetBooleanFalse                      (void);
        tree                   gccgm2_GetBooleanTrue                       (void);
@@ -8932,13 +8932,24 @@ gccgm2_DeclareLabel (char *name)
   add_stmt (build1 (LABEL_EXPR, void_type_node, decl));
 }
 
+/*
+ *  boolean_enum_to_unsigned - converts BOOLEAN_TYPEs and
+ *                             ENUMERAL_TYPEs to unsigned int.
+ */
+
 tree
-boolean_to_unsigned (tree t)
+boolean_enum_to_unsigned (tree t)
 {
   tree type = TREE_TYPE (t);
 
+#if 0
   if (TREE_CODE (skip_type_decl (type)) == BOOLEAN_TYPE)
     return convert (integer_type_node, t);
+#endif
+  if (TREE_CODE (base_type (type)) == BOOLEAN_TYPE)
+    return gccgm2_BuildConvert (unsigned_type_node, t, FALSE);
+  else if (TREE_CODE (base_type (type)) == ENUMERAL_TYPE)
+    return gccgm2_BuildConvert (unsigned_type_node, t, FALSE);
   else
     return t;
 }
@@ -8951,8 +8962,8 @@ tree
 gccgm2_BuildLessThan (tree op1, tree op2)
 {
   return build_binary_op (LT_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), 0);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), 0);
 }
 
 /*
@@ -8963,8 +8974,8 @@ tree
 gccgm2_BuildGreaterThan (tree op1, tree op2)
 {
   return build_binary_op (GT_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), 0);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), 0);
 }
 
 
@@ -8976,8 +8987,8 @@ tree
 gccgm2_BuildLessThanOrEqual (tree op1, tree op2)
 {
   return build_binary_op (LE_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), TRUE);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), TRUE);
 }
 
 
@@ -8989,8 +9000,8 @@ tree
 gccgm2_BuildGreaterThanOrEqual (tree op1, tree op2)
 {
   return build_binary_op (GE_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), 0);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), 0);
 }
 
 
@@ -9002,8 +9013,8 @@ tree
 gccgm2_BuildEqualTo (tree op1, tree op2)
 {
   return build_binary_op (EQ_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), 0);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), 0);
 }
 
 
@@ -9015,8 +9026,8 @@ tree
 gccgm2_BuildNotEqualTo (tree op1, tree op2)
 {
   return build_binary_op (NE_EXPR,
-                          boolean_to_unsigned (op1),
-                          boolean_to_unsigned (op2), 0);
+                          boolean_enum_to_unsigned (op1),
+                          boolean_enum_to_unsigned (op2), 0);
 }
 
 /*

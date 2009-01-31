@@ -53,12 +53,12 @@ PROCEDURE RealToEngString (real: REAL; sigFigs: CARDINAL) : String ;
 
 
 (*
-   FixedRealToString - returns the number of characters in the fixed-point
+   RealToFixedString - returns the number of characters in the fixed-point
                        string representation of real rounded to the given
                        place relative to the decimal point.
 *)
 
-PROCEDURE FixedRealToString (real: REAL; place: INTEGER) : String ;
+PROCEDURE RealToFixedString (real: REAL; place: INTEGER) : String ;
 
 
 END ConvStringReal.

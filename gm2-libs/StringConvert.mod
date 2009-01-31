@@ -24,11 +24,11 @@ FROM libm IMPORT powl ;
 
 FROM DynamicStrings IMPORT String, InitString,
                            InitStringChar, InitStringCharStar,
-                           Mark, ConCat, string,
+                           Mark, ConCat, Dup, string,
                            Slice, Index, char, Assign, Length, Mult,
                            RemoveWhitePrefix, ConCatChar, KillString ;
 
-FROM ldtoa IMPORT Mode, strtold_string, ldtoa ;
+FROM ldtoa IMPORT Mode, strtold, ldtoa ;
 IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
 
 (* %%%FORWARD%%%
@@ -782,7 +782,7 @@ VAR
    value: LONGREAL ;
 BEGIN
    s := RemoveWhitePrefix(s) ;   (* new string is created *)
-   value := strtold_string(string(s), error) ;
+   value := strtold(string(s), error) ;
    s := KillString(s) ;
    found := NOT error ;
    RETURN value
@@ -991,46 +991,93 @@ END StringToShortCardinal ;
 (*
    ToSigFig - returns a floating point or base 10 integer
               string which is accurate to, n, significant
-              figures.
+              figures.  It will return a new String
+              and, s, will be destroyed.
 *)
 
 PROCEDURE ToSigFig (s: String; n: CARDINAL) : String ;
+VAR
+   point: INTEGER ;
+   poTen: CARDINAL ;
 BEGIN
+   point := Index(s, '.', 0) ;
+   IF point<0
+   THEN
+      poTen := Length(s)
+   ELSE
+      poTen := point
+   END ;
    s := doSigFig(s, n) ;
    IF (Length(s)>0) AND (char(s, -1)='.')
    THEN
       RETURN( Slice(Mark(s), 0, -1) )
    ELSE
+      IF poTen>Length(s)
+      THEN
+         s := ConCat(s, Mult(Mark(InitStringChar('0')), poTen-Length(s)))
+      END ;
       RETURN( s )
    END
 END ToSigFig ;
 
 
 (*
-   doSigFig - 
+   doSigFig - returns a string which is accurate to
+              n decimal places.  It returns a new String
+              and, s, will be destroyed.
 *)
 
 PROCEDURE doSigFig (s: String; n: CARDINAL) : String ;
 VAR
-   i, l     : CARDINAL ;
+   i, l, z,
+   point    : INTEGER ;
+   t,
    tenths,
    hundreths: String ;
 BEGIN
    l := Length(s) ;
    i := 0 ;
+   (* remove '.' *)
+   point := Index(s, '.', 0) ;
+   IF point>=0
+   THEN
+      IF point=0
+      THEN
+         s := Slice(Mark(s), 1, 0)
+      ELSIF point<l
+      THEN
+         s := ConCat(Slice(s, 0, point),
+                     Slice(Mark(s), point+1, 0))
+      ELSE
+         s := Slice(Mark(s), 0, point)
+      END
+   ELSE
+      s := Dup(Mark(s))
+   END ;
+   (* skip over any characters to our number *)
    WHILE (i<l) AND (NOT IsDigit(char(s, i))) DO
       INC(i)
    END ;
-   IF (i<l) AND (n>0)
+   (* add a leading zero in case we need to overflow the carry *)
+   z := i ;  (* remember where we inserted zero *)
+   IF z=0
    THEN
-      WHILE (n>0) AND (i<l) DO
-         DEC(n) ;
-         INC(i)
-      END
+      s := ConCat(InitStringChar('0'), Mark(s))
+   ELSE
+      s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
+                  Slice(Mark(s), i, 0))
+   END ;
+   INC(n) ;  (* and increase the number of sig figs needed *)
+   l := Length(s) ;
+   WHILE (n>1) AND (i<l) DO
+      DEC(n) ;
+      INC(i)
    END ;
    IF i+3<=l
    THEN
-      hundreths := Slice(s, i+1, i+3) ;
+      t := Dup(s) ;
+      hundreths := Slice(Mark(s), i+1, i+3) ;
+      s := t ;
       IF stoc(hundreths)>=50
       THEN
          s := carryOne(Mark(s), i)
@@ -1038,20 +1085,51 @@ BEGIN
       hundreths := KillString(hundreths)
    ELSIF i+2<=l
    THEN
-      tenths := Slice(s, i+1, i+2) ;
+      t := Dup(s) ;
+      tenths := Slice(Mark(s), i+1, i+2) ;
+      s := t ;
       IF stoc(tenths)>=5
       THEN
          s := carryOne(Mark(s), i)
       END ;
       tenths := KillString(tenths)
    END ;
-
+   (* check whether we need to remove the leading zero *)
+   IF char(s, z)='0'
+   THEN
+      IF z=0
+      THEN
+         s := Slice(Mark(s), z+1, 0)
+      ELSE
+         s := ConCat(Slice(s, 0, z),
+                     Slice(Mark(s), z+1, 0))
+      END ;
+      l := Length(s)
+   ELSE
+      INC(point)
+   END ;
    IF i<l
    THEN
-      RETURN Slice(Mark(s), 0, i+1)
+      s := Slice(Mark(s), 0, i) ;
+      l := Length(s) ;
+      IF l<point
+      THEN
+         s := ConCat(s, Mult(Mark(InitStringChar('0')), point-l))
+      END
+   END ;
+   (* re-insert the point *)
+   IF point>=0
+   THEN
+      IF point=0
+      THEN
+         s := ConCat(InitStringChar('.'), Mark(s))
+      ELSE
+         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                     Slice(Mark(s), point, 0))
+      END
    END ;
 
-   RETURN s
+   RETURN( s )
 END doSigFig ;
 
 
@@ -1075,9 +1153,6 @@ BEGIN
                                    CHR(ORD(char(s, i))+1)),
                         Slice(Mark(s), i+1, 0))
          END
-      ELSIF char(s, i)='.'
-      THEN
-         RETURN carryOne(s, i-1)
       END
    END ;
    RETURN s

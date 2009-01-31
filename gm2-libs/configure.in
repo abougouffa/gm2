@@ -49,6 +49,8 @@ AC_CHECK_FUNCS(rand)
 AC_CHECK_FUNCS(fstat)
 AC_CHECK_FUNCS(select)
 AC_CHECK_FUNCS(strsignal)
+AC_CHECK_FUNCS(strtod)
+AC_CHECK_FUNCS(strtold)
 
 #
 # library functions (used by gm2-libs and ulm-lib-gm2)
