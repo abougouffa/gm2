@@ -30,6 +30,8 @@
 	  routines.
 	* gm2/gm2/gm2-libs-iso/RealConv.mod:  use new procedure
 	  function name and modify parameters.
+	* gm2/gm2-libs-ch/dtoa.c:  added GPL header.
+	* gm2/gm2-libs-ch/ldtoa.c:  added GPL header.
 
 2009-01-26       Gaius Mulley <gaius@gnu.org>
 
