@@ -1139,19 +1139,31 @@ END doSigFig ;
 
 PROCEDURE carryOne (s: String; i: CARDINAL) : String ;
 BEGIN
-   IF i>0
+   IF i>=0
    THEN
       IF IsDigit(char(s, i))
       THEN
          IF char(s, i)='9'
          THEN
-            s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
-                        Slice(Mark(s), i+1, 0)) ;
-            RETURN carryOne(s, i-1)
+            IF i=0
+            THEN
+               s := ConCat(InitStringChar('1'), Mark(s)) ;
+               RETURN s
+            ELSE
+               s := ConCat(ConCatChar(Slice(s, 0, i), '0'),
+                           Slice(Mark(s), i+1, 0)) ;
+               RETURN carryOne(s, i-1)
+            END
          ELSE
-            s := ConCat(ConCatChar(Slice(s, 0, i),
-                                   CHR(ORD(char(s, i))+1)),
-                        Slice(Mark(s), i+1, 0))
+            IF i=0
+            THEN
+               s := ConCat(InitStringChar(CHR(ORD(char(s, i))+1)),
+                           Slice(Mark(s), i+1, 0))
+            ELSE
+               s := ConCat(ConCatChar(Slice(s, 0, i),
+                                      CHR(ORD(char(s, i))+1)),
+                           Slice(Mark(s), i+1, 0))
+            END
          END
       END
    END ;
