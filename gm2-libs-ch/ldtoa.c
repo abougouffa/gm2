@@ -53,16 +53,18 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 typedef enum Mode { maxsignicant, decimaldigits } Mode;
 
+extern int dtoa_calcmaxsig (char *p, int ndigits);
+extern int dtoa_calcdecimal (char *p, int str_size, int ndigits);
+extern int dtoa_calcsign (char *p, int str_size);
+
 /*
  *  maxsignicant:  return a string containing max(1,ndigits) significant
  *                 digits.  The return string contains the string produced
- *                 by ecvt.
+ *                 by snprintf.
  *  decimaldigits: return a string produced by fcvt.  The string will
  *                 contain ndigits past the decimal point
  *                 (ndigits may be negative).
  */
-
-
 
 long double ldtoa_strtold (const char *s, int *error)
 {
@@ -84,16 +86,25 @@ long double ldtoa_strtold (const char *s, int *error)
 
 char *ldtoa_ldtoa (long double d, int mode, int ndigits, int *decpt, int *sign)
 {
+  char format[50];
   char *p;
+  int r;
   switch (mode) {
 
   case maxsignicant:
-    p = malloc (ndigits+1);
-    qecvt_r (d, ndigits, decpt, sign, p, ndigits+1);
+    ndigits += 20;   /* enough for exponent */
+    p = malloc (ndigits);
+    snprintf(format, 50, "%s%d%s", "%.", ndigits-20, "LE");
+    snprintf(p, ndigits, format, d);
+    *sign = dtoa_calcsign(p, ndigits);
+    *decpt = dtoa_calcmaxsig(p, ndigits);
     return p;
   case decimaldigits:
-    p = malloc (MAX_FP_DIGITS);
-    qfcvt_r (d, ndigits, decpt, sign, p, MAX_FP_DIGITS);
+    p = malloc (MAX_FP_DIGITS+20);
+    snprintf(format, 50, "%s%d%s", "%.", MAX_FP_DIGITS, "LE");
+    snprintf(p, MAX_FP_DIGITS+20, format, d);
+    *sign = dtoa_calcsign(p, MAX_FP_DIGITS+20);
+    *decpt = dtoa_calcdecimal(p, MAX_FP_DIGITS+20, ndigits);
     return p;
   default:
     abort();

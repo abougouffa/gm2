@@ -181,7 +181,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildSetNegate,
                    BuildPushFunctionContext, BuildPopFunctionContext,
                    BuildCap, BuildAbs, BuildRe, BuildIm, BuildCmplx,
-                   AddStatement,
+                   AddStatement, ConvertString,
                    GetPointerType, GetPointerZero,
                    GetWordType, GetM2ZType, GetM2RType, GetM2CType,
                    GetBitsPerBitset, GetSizeOfInBits, GetMaxFrom,
@@ -2549,30 +2549,35 @@ BEGIN
 
          str := 'abcde' but not ch := 'a'
    *)
-   PushIntegerTree(FindSize(op3)) ;
-   PushIntegerTree(FindSize(op1t)) ;
    IF GetType(op3)=Char
    THEN
-      (* create string from char and add nul to the end *)
-      op3t := BuildStringConstant(KeyToCharStar(GetString(op3)), 2)
+      (*
+       *  create string from char and add nul to the end, nul is
+       *  added by BuildStringConstant
+       *)
+      op3t := BuildStringConstant(KeyToCharStar(GetString(op3)), 1)
    ELSE
       op3t := Mod2Gcc(op3)
    END ;
+   op3t := ConvertString(Mod2Gcc(op1t), op3t) ;
+(*
+   PushIntegerTree(FindSize(op3)) ;
+   PushIntegerTree(FindSize(op1t)) ;
    IF Less(CurrentQuadToken)
    THEN
       (* there is room for the extra <nul> character *)
       t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
    ELSE
-      PushIntegerTree(FindSize(op3)) ;
-      PushIntegerTree(FindSize(op1t)) ;
-      IF Gre(CurrentQuadToken)
-      THEN
-         WarnStringAt(InitString('string constant is too large to be assigned to the array'),
-                      CurrentQuadToken) ;
-         t := FindSize(op1t)
-      ELSE
-         t := FindSize(op3)
-      END
+*)
+   PushIntegerTree(FindSize(op3)) ;
+   PushIntegerTree(FindSize(op1t)) ;
+   IF Gre(CurrentQuadToken)
+   THEN
+      WarnStringAt(InitString('string constant is too large to be assigned to the array'),
+                   CurrentQuadToken) ;
+      t := FindSize(op1t)
+   ELSE
+      t := FindSize(op3)
    END
 END DoCopyString ;
 

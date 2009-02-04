@@ -1,3 +1,20 @@
+2009-02-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified include path when compiling
+	  ldtoa.c and dtoa.c.
+	* gm2/gccgm2.c:  gccgm2_ConvertString (new function).
+	  gccgm2_BuildStringConstantType (new function).
+	  Re-factored gccgm2_BuildString.
+	* gm2/gm2-compiler/M2GenGCC.mod:  convert string
+	  if used during a constant constructor.
+	* gm2/gm2-compiler/gccgm2.def:  export ConvertString.
+	* gm2/gm2-libs-ch/dtoa.c:  another new implementation,
+	  this time based on snprintf (due to lack of portability)
+	  with qecvt_r and qfcvt_r.
+	* gm2/gm2-libs-ch/ldtoa.c:  another new implementation,
+	  this time based on snprintf (due to lack of portability)
+	  with qecvt_r and qfcvt_r.
+
 2009-02-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  fixed carryOne

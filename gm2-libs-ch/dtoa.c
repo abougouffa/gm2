@@ -82,23 +82,98 @@ double dtoa_strtod (const char *s, int *error)
   return d;
 }
 
+/*
+ *  dtoa_calcmaxsig - calculates the position of the decimal point
+ *                    it also removes the decimal point and exponent
+ *                    from string, p.
+ */
+
+int dtoa_calcmaxsig (char *p, int ndigits)
+{
+  char *e;
+  char *o;
+  int x;
+
+  e = index (p, 'E');
+  if (e == NULL)
+    x = 0;
+  else {
+    *e = (char)0;
+    x = atoi(e+1);
+  }
+
+  o = index (p, '.');
+  if (o == NULL)
+    return strlen(p)+x;
+  else {
+    strncpy(o, o+1, ndigits-(o-p));
+    return o-p+x;
+  }
+}
+
+/*
+ *  dtoa_calcdecimal - calculates the position of the decimal point
+ *                     it also removes the decimal point and exponent
+ *                     from string, p.  It truncates the digits in p
+ *                     accordingly to ndigits.
+ */
+
+int dtoa_calcdecimal (char *p, int str_size, int ndigits)
+{
+  char *e;
+  char *o;
+  int x;
+
+  e = index (p, 'E');
+  if (e == NULL)
+    x = 0;
+  else {
+    *e = (char)0;
+    x = atoi(e+1);
+  }
+
+  o = index (p, '.');
+  if (o == NULL)
+    x += strlen(p);
+  else {
+    strncpy(o, o+1, ndigits-(o-p));
+    x += o-p;
+  }
+  if ((x+ndigits >= 0) && (x+ndigits < str_size))
+    p[x+ndigits] = (char)0;
+  return x;
+}
+
+int dtoa_calcsign (char *p, int str_size)
+{
+  if (p[0] == '-') {
+    strncpy(p, p+1, str_size-1);
+    return TRUE;
+  } else
+    return FALSE;
+}
+
 char *dtoa_dtoa (double d, int mode, int ndigits, int *decpt, int *sign)
 {
+  char format[50];
   char *p;
   int r;
   switch (mode) {
 
   case maxsignicant:
-    p = malloc (ndigits+2);
-    r = ecvt_r (d, ndigits, decpt, sign, p, ndigits+2);
-    if (r != 0)
-      perror("ecvt_r");
+    ndigits += 20;   /* enough for exponent */
+    p = malloc (ndigits);
+    snprintf(format, 50, "%s%d%s", "%.", ndigits-20, "E");
+    snprintf(p, ndigits, format, d);
+    *sign = dtoa_calcsign(p, ndigits);
+    *decpt = dtoa_calcmaxsig(p, ndigits);
     return p;
   case decimaldigits:
-    p = malloc (MAX_FP_DIGITS);
-    r = fcvt_r (d, ndigits, decpt, sign, p, MAX_FP_DIGITS);
-    if (r != 0)
-      perror("fcvt_r");
+    p = malloc (MAX_FP_DIGITS+20);
+    snprintf(format, 50, "%s%d%s", "%.", MAX_FP_DIGITS, "E");
+    snprintf(p, MAX_FP_DIGITS+20, format, d);
+    *sign = dtoa_calcsign(p, MAX_FP_DIGITS+20);
+    *decpt = dtoa_calcdecimal(p, MAX_FP_DIGITS+20, ndigits);
     return p;
   default:
     abort();

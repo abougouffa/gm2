@@ -129,7 +129,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  AreConstantsEqual, AreRealOrComplexConstantsEqual,
                  DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
-                 ConvertConstantAndCheck,
+                 ConvertConstantAndCheck, ConvertString,
                  DetermineSizeOfConstant,
                  ToWord,
                  AddStatement, GetTreeType,
@@ -590,6 +590,14 @@ PROCEDURE BuildLongRealConstant (value: LONGREAL) : Tree ;
 *)
 
 PROCEDURE ConvertConstantAndCheck (type, expr: Tree) : Tree ;
+
+
+(*
+   ConvertString - converts string, expr, into a string
+                   of type, type.
+*)
+
+PROCEDURE ConvertString (type: Tree; expr: Tree) : Tree ;
 
 
 (*

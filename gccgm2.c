@@ -603,6 +603,8 @@ tree                   convertToPtr                               (tree t);
 int                    gccgm2_AreConstantsEqual                   (tree e1, tree e2);
 int                    gccgm2_DetermineSign                       (tree e);
 tree                   gccgm2_BuildStringConstant                 (char *string, int length);
+tree                   gccgm2_BuildStringConstantType             (int length, const char *string, tree type);
+tree                   gccgm2_ConvertString                       (tree type, tree expr);
 tree                   gccgm2_BuildCharConstant                   (char *string);
 tree                   gccgm2_ConvertConstantAndCheck             (tree type, tree expr);
 tree                   gccgm2_RealToTree                          (char *name);
@@ -3249,7 +3251,7 @@ int
 is_string_type (tree string, int warn)
 {
   if (TREE_CODE (string) == STRING_CST)
-    return 1;
+    return TRUE;
 
   return is_of_string_type (TREE_TYPE (string), warn);
 }
@@ -3584,6 +3586,19 @@ comp_target_types (tree ttl, tree ttr)
   if (val == 2 && pedantic)
     pedwarn ("types are not quite compatible");
   return val;
+}
+
+/*
+ *  ConvertString - converts string, expr, into a string
+ *                  of type, type.
+ */
+
+tree
+gccgm2_ConvertString (tree type, tree expr)
+{
+  const char *str = TREE_STRING_POINTER (expr);
+  int len = TREE_STRING_LENGTH (expr);
+  return gccgm2_BuildStringConstantType (len, str, type);
 }
 
 /*
@@ -7516,7 +7531,7 @@ gccgm2_BuildArrayConstructorElement (struct struct_constructor *p, tree value,
   }
 
   if (p->constructor_fields != TREE_TYPE (value)) {
-    internal_error ("array element value must be the same as its declaration");
+    internal_error ("array element value must be the same type as its declaration");
     return;
   }
 
@@ -10767,22 +10782,29 @@ build_set_full_complement (void)
 tree
 gccgm2_BuildStringConstant (char *string, int length)
 {
-  tree id, elem, index, type;
+  tree elem, index, type;
 
   /* +1 ensures that we always nul terminate our strings */
-  id = build_string (length+1, string);
-#if 0
-  TREE_TYPE (id) = char_array_type_node;
-#else
   elem = build_type_variant (char_type_node, 1, 0);
   index = build_index_type (build_int_cst (NULL_TREE, length+1));
   type = build_array_type (elem, index);
+  return gccgm2_BuildStringConstantType (length+1, string, type);
+}
+
+/*
+ *  BuildStringConstantType - builds a string constant with a type.
+ */
+
+tree
+gccgm2_BuildStringConstantType (int length, const char *string, tree type)
+{
+  tree id = build_string (length, string);
+
   TREE_TYPE (id) = type;
-#endif
-  TREE_CONSTANT (id) = 1;
-  TREE_INVARIANT (id) = 1;
-  TREE_READONLY (id) = 1;
-  TREE_STATIC (id) = 1;
+  TREE_CONSTANT (id) = TRUE;
+  TREE_INVARIANT (id) = TRUE;
+  TREE_READONLY (id) = TRUE;
+  TREE_STATIC (id) = TRUE;
 
   return gccgm2_RememberConstant (id);
 }
