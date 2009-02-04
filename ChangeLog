@@ -14,6 +14,10 @@
 	* gm2/gm2-libs-ch/ldtoa.c:  another new implementation,
 	  this time based on snprintf (due to lack of portability)
 	  with qecvt_r and qfcvt_r.
+	* gm2/gm2-libs/FIO.def:  modified FindPosition to return
+	  LONGINT.
+	* gm2/gm2-libs/FIO.mod:  changed data type of abspos to
+	  LONGINT, to reflect change in FindPosition.
 
 2009-02-01       Gaius Mulley <gaius@gnu.org>
 

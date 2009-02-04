@@ -73,7 +73,7 @@ TYPE
                                      usage : FileUsage ;
                                      output: BOOLEAN ;     (* is this file going to write data *)
                                      buffer: Buffer ;
-                                     abspos: LONGCARD ;    (* absolute position into file.     *)
+                                     abspos: LONGINT ;     (* absolute position into file.     *)
                                   END ;
 
    PtrToChar         = POINTER TO CHAR ;
@@ -1296,7 +1296,7 @@ END SetPositionFromEnd ;
    FindPosition - returns the current absolute position in file, f.
 *)
 
-PROCEDURE FindPosition (f: File) : LONGCARD ;
+PROCEDURE FindPosition (f: File) : LONGINT ;
 BEGIN
    IF f<MaxNoOfFiles
    THEN
