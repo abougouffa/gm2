@@ -33,7 +33,7 @@ TYPE
                    o: ARRAY [0..maxString] OF CHAR ;
                    k: kind ;
                 END ;
-   realArray = ARRAY [0..40] OF floatTests ;
+   realArray = ARRAY [0..49] OF floatTests ;
    kind = (fixed, float, eng) ;
    kindArray = ARRAY kind OF BOOLEAN ;
 
@@ -85,10 +85,8 @@ BEGIN
                   floatTests{ 1, 3923009.0   , "3923009.0"   , "4E+6"        , eng},
                   floatTests{ 2, 3923009.0   , "3923009.0"   , "3.9E+6"      , eng},
                   floatTests{ 5, 3923009.0   , "3923009.0"   , "3.9230E+6"   , eng},
-(*
-                  floatTests{ 1, 39.23009    , "39.23009"    , "40"          , eng}
+                  floatTests{ 1, 39.23009    , "39.23009"    , "40"          , eng},
                   floatTests{ 2, 39.23009    , "39.23009"    , "39"          , eng},
-*)
                   floatTests{ 5, 39.23009    , "39.23009"    , "39.230"      , eng},
                   floatTests{ 1, 0.0003923009, "0.0003923009", "400E-6"      , eng},
                   floatTests{ 2, 0.0003923009, "0.0003923009", "390E-6"      , eng},
@@ -103,20 +101,16 @@ BEGIN
                   floatTests{ 0, 3923009.0   , "3923009.0"   , "3923009."    , fixed},
                   floatTests{ 1, 3923009.0   , "3923009.0"   , "3923009.0"   , fixed},
                   floatTests{ 4, 3923009.0   , "3923009.0"   , "3923009.0000", fixed},
-(*
                   floatTests{-5, 39.23009    , "39.23009"    , "0"           , fixed},
                   floatTests{-2, 39.23009    , "39.23009"    , "40"          , fixed},
                   floatTests{-1, 39.23009    , "39.23009"    , "39"          , fixed},
-*)
                   floatTests{ 0, 39.23009    , "39.23009"    , "39."         , fixed},
                   floatTests{ 1, 39.23009    , "39.23009"    , "39.2"        , fixed},
                   floatTests{ 4, 39.23009    , "39.23009"    , "39.2301"     , fixed},
-(*
                   floatTests{-5, 0.0003923009, "0.0003923009", "0"           , fixed},
                   floatTests{-2, 0.0003923009, "0.0003923009", "0"           , fixed},
                   floatTests{-1, 0.0003923009, "0.0003923009", "0"           , fixed},
                   floatTests{ 0, 0.0003923009, "0.0003923009", "0."          , fixed},
-*)                                                                                                                        
                   floatTests{ 1, 0.0003923009, "0.0003923009", "0.0"         , fixed},
                   floatTests{ 4, 0.0003923009, "0.0003923009", "0.0004"      , fixed}} ;
    (* t := kindArray{TRUE, TRUE, TRUE} ; *)
