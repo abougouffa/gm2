@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #include "gm2-libs-host.h"
 
+
 #if defined(HAVE_STRINGS)
 #  include <strings.h>
 #endif
@@ -136,7 +137,9 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
   if (o == NULL)
     x += strlen(p);
   else {
-    strncpy(o, o+1, ndigits-(o-p));
+    memcpy(o, o+1, ndigits-(o-p));
+    if (ndigits<str_size)
+      p[ndigits] = '0';
     x += o-p;
   }
   if ((x+ndigits >= 0) && (x+ndigits < str_size))

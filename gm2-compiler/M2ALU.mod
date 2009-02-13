@@ -4456,8 +4456,7 @@ BEGIN
 
          i := 0 ;
          REPEAT
-            INC(i) ;
-            el := GetConstructorElement(tokenno, v, i) ;
+            el := GetConstructorElement(tokenno, v, i+1) ;
             PushValue(low) ;
             PushCard(i) ;
             Addn ;
@@ -4473,8 +4472,9 @@ BEGIN
             PushValue(low) ;
             PushCard(i) ;
             Addn ;
-            PushValue(high)
-         UNTIL Gre(tokenno) ;
+            PushValue(high) ;
+            INC(i)
+         UNTIL GreEqu(tokenno) ;
 
          RETURN( BuildEndArrayConstructor(cons) )
       END

@@ -179,6 +179,7 @@ static void killPretty (pretty *s);
 static void m2pp_compound_expression (pretty *s, tree t);
 static void m2pp_target_expression (pretty *s, tree t);
 static void m2pp_array_type (pretty *s, tree t);
+static void m2pp_constructor (pretty *s, tree t);
 static void push (tree t);
 static void pop (void);
 static int  begin_printed (tree t);
@@ -1356,6 +1357,32 @@ m2pp_target_expression (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_constructor - print out a constructor.
+ */
+
+static void
+m2pp_constructor (pretty *s, tree t)
+{
+  tree purpose, value;
+  unsigned HOST_WIDE_INT ix;
+
+  m2pp_print (s, "{ ");
+  FOR_EACH_CONSTRUCTOR_ELT (CONSTRUCTOR_ELTS (t), ix, purpose, value) {
+    m2pp_print (s, "(index: ");
+    m2pp_simple_expression (s, purpose);
+    m2pp_print (s, ") ");
+    m2pp_simple_expression (s, value);
+    m2pp_print (s, ", ");
+  }
+  m2pp_print (s, "}");
+  m2pp_print (s, "(* type: ");
+  setindent (s, getindent (s)+8);
+  m2pp_type (s, TREE_TYPE (t));
+  setindent (s, getindent (s)-8);
+  m2pp_print (s, " *)\n");
+}
+
+/*
  *  m2pp_simple_expression - handle GCC expression tree.
  */
 
@@ -1368,6 +1395,9 @@ m2pp_simple_expression (pretty *s, tree t)
     {
     case ERROR_MARK:
       m2pp_print (s, "(* !!! ERROR NODE !!! *)");
+      break;
+    case CONSTRUCTOR:
+      m2pp_constructor (s, t);
       break;
     case IDENTIFIER_NODE:
       m2pp_ident_pointer (s, t);
@@ -1462,6 +1492,7 @@ m2pp_simple_expression (pretty *s, tree t)
     case EXC_PTR_EXPR:
       m2pp_print (s, "GCC_EXCEPTION_OBJECT");
       break;
+    case INIT_EXPR:
     case MODIFY_EXPR:
       m2pp_assignment (s, t);
       break;
@@ -1735,6 +1766,7 @@ m2pp_statement (pretty *s, tree t)
     case GOTO_EXPR:
       m2pp_goto (s, t);
       break;
+    case INIT_EXPR:
     case MODIFY_EXPR:
       m2pp_assignment (s, t);
       break;
@@ -1878,7 +1910,8 @@ m2pp_return_expr (pretty *s, tree t)
     {
       m2pp_print (s, "RETURN");
     }
-  else if (TREE_CODE (e) == MODIFY_EXPR)
+  else if (TREE_CODE (e) == MODIFY_EXPR ||
+	   (TREE_CODE (e) == INIT_EXPR))
     {
       m2pp_assignment (s, e);
       m2pp_print (s, "RETURN");

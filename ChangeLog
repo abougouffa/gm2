@@ -1,3 +1,14 @@
+2009-02-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  copy result of TREE_CODE into a variable
+	  to aid debugging.
+	* gm2/m2pp.c:  m2pp_constructor (new function).  Add
+	  INIT_EXPR as a pseudoname for MODIFY_EXPR.
+	* gm2/gm2-compiler/M2ALU.mod:  fixed off by one bug when
+	  constructing array constants.
+	* gm2/gm2-libs-ch/dtoa.c:  add '0' to the end of a copied
+	  string of significant digits.
+
 2009-02-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified include path when compiling

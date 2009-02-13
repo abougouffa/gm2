@@ -1595,10 +1595,11 @@ gm2_gimplify_expr (tree *expr_p,
                    tree *pre_p,
                    tree *post_p ATTRIBUTE_UNUSED)
 {
-  tree expr = *expr_p;
   tree op0;
+  tree expr = *expr_p;
+  enum tree_code code = TREE_CODE (expr);
 
-  switch (TREE_CODE (expr))
+  switch (code)
     {
     case INDIRECT_REF:
       op0 = TREE_OPERAND (expr, 0);
@@ -7500,9 +7501,6 @@ gccgm2_BuildEndArrayConstructor (struct struct_constructor *p)
   constructor = build_constructor (p->constructor_type, p->constructor_elements);
   TREE_CONSTANT (constructor) = TRUE;
   TREE_INVARIANT (constructor) = TRUE;
-#if 0
-  TREE_STATIC (constructor) = p->constructor_simple;
-#endif
   TREE_STATIC (constructor) = TRUE;
 
   pop_constructor (p);
