@@ -1,5 +1,13 @@
 2009-02-13       Gaius Mulley <gaius@gnu.org>
 
+        * gm2/gm2-compiler/M2GenGCC.def:  add comment about
+	  including the nul in the number of bytes copied.
+	* gm2/gm2-compiler/M2GenGCC.mod:  check if destination
+	  array type has enough room to contain the nul and if
+	  so increment the number of characters to be copied.
+
+2009-02-13       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gccgm2.c:  copy result of TREE_CODE into a variable
 	  to aid debugging.
 	* gm2/m2pp.c:  m2pp_constructor (new function).  Add

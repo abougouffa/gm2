@@ -2534,7 +2534,7 @@ END FoldConstBecomes ;
 
 (*
    DoCopyString - returns trees:
-                  t    number of bytes to be copied
+                  t    number of bytes to be copied (including the nul)
                   op3t the string with the extra nul character
                        providing it fits.
 *)
@@ -2560,7 +2560,7 @@ BEGIN
       op3t := Mod2Gcc(op3)
    END ;
    op3t := ConvertString(Mod2Gcc(op1t), op3t) ;
-(*
+
    PushIntegerTree(FindSize(op3)) ;
    PushIntegerTree(FindSize(op1t)) ;
    IF Less(CurrentQuadToken)
@@ -2568,16 +2568,17 @@ BEGIN
       (* there is room for the extra <nul> character *)
       t := BuildAdd(FindSize(op3), GetIntegerOne(), FALSE)
    ELSE
-*)
-   PushIntegerTree(FindSize(op3)) ;
-   PushIntegerTree(FindSize(op1t)) ;
-   IF Gre(CurrentQuadToken)
-   THEN
-      WarnStringAt(InitString('string constant is too large to be assigned to the array'),
-                   CurrentQuadToken) ;
-      t := FindSize(op1t)
-   ELSE
-      t := FindSize(op3)
+      PushIntegerTree(FindSize(op3)) ;
+      PushIntegerTree(FindSize(op1t)) ;
+      IF Gre(CurrentQuadToken)
+      THEN
+         WarnStringAt(InitString('string constant is too large to be assigned to the array'),
+                      CurrentQuadToken) ;
+         t := FindSize(op1t)
+      ELSE
+         (* equal so return max characters in the array *)
+         t := FindSize(op1t)
+      END
    END
 END DoCopyString ;
 

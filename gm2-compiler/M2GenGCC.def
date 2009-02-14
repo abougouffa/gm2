@@ -95,7 +95,7 @@ PROCEDURE ZConstToTypedConst (t: Tree; op1, op2: CARDINAL) : Tree ;
 
 (*
    DoCopyString - returns trees:
-                  t    number of bytes to be copied
+                  t    number of bytes to be copied (including the nul)
                   op3t the string with the extra nul character
                        providing it fits.
 *)
