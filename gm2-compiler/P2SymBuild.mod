@@ -25,6 +25,7 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt, ErrorStringAt ;
+FROM M2MetaError IMPORT MetaError1 ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -1609,11 +1610,21 @@ END EndBuildFormalParameters ;
 
 PROCEDURE BuildFunction ;
 VAR
+   PrevSym,
    TypeSym,
    ProcSym : CARDINAL ;
 BEGIN
    PopT(TypeSym) ;
    PopT(ProcSym) ;
+   IF IsProcedure(ProcSym) AND AreProcedureParametersDefined(ProcSym)
+   THEN
+      PrevSym := GetType(ProcSym) ;
+      IF (PrevSym#NulSym) AND (PrevSym#TypeSym)
+      THEN
+         MetaError1('the return type for procedure {%1a} is defined differently in the definition module and the implementation module',
+                    ProcSym)
+      END
+   END ;
    PutFunction(ProcSym, TypeSym) ;
 (*
    WriteString('Procedure ') ; WriteKey(GetSymName(ProcSym)) ;

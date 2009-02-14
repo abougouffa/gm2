@@ -1,4 +1,5 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006, 2007, 2008, 2009
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -48,7 +49,7 @@ PROCEDURE Int (r: REAL) : INTEGER ;
    Round - returns the number rounded to the nearest integer.
 *)
 
-PROCEDURE Round (r: REAL) : REAL ;
+PROCEDURE Round (r: REAL) : INTEGER ;
 
 
 (*
@@ -84,7 +85,7 @@ PROCEDURE Intl (r: LONGREAL) : LONGINT ;
    Roundl - returns the number rounded to the nearest integer.
 *)
 
-PROCEDURE Roundl (r: LONGREAL) : LONGREAL ;
+PROCEDURE Roundl (r: LONGREAL) : LONGINT ;
 
 
 (*

@@ -1,10 +1,20 @@
-2009-02-13       Gaius Mulley <gaius@gnu.org>
+2009-02-14       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2-compiler/M2GenGCC.def:  add comment about
 	  including the nul in the number of bytes copied.
 	* gm2/gm2-compiler/M2GenGCC.mod:  check if destination
 	  array type has enough room to contain the nul and if
 	  so increment the number of characters to be copied.
+	* gm2/gm2-libs/FIO.def:  corrected return type of
+	  FindPosition to be LONGINT.
+	* gm2/gm2-compiler/P2SymBuild.mod:  added procedure
+	  return type check between definition and implement
+	  modules.
+	* gm2/gm2-libs/FIO.def:  FindPosition returns LONGINT.
+	* gm2/gm2-libs-pim/FloatingUtilities.mod:  Round
+	  returns INTEGER and Roundl returns LONGINT.
+	* gm2/gm2-libs-pim/FloatingUtilities.def:  Roundl
+	  also returns LONGINT.
 
 2009-02-13       Gaius Mulley <gaius@gnu.org>
 

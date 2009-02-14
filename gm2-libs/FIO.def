@@ -276,7 +276,7 @@ PROCEDURE SetPositionFromEnd (f: File; pos: LONGINT) ;
    FindPosition - returns the current absolute position in file, f.
 *)
 
-PROCEDURE FindPosition (f: File) : LONGCARD ;
+PROCEDURE FindPosition (f: File) : LONGINT ;
 
 
 (*
