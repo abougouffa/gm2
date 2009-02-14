@@ -113,10 +113,7 @@ BEGIN
                   floatTests{ 0, 0.0003923009, "0.0003923009", "0."          , fixed},
                   floatTests{ 1, 0.0003923009, "0.0003923009", "0.0"         , fixed},
                   floatTests{ 4, 0.0003923009, "0.0003923009", "0.0004"      , fixed}} ;
-   (* t := kindArray{TRUE, TRUE, TRUE} ; *)
-   t[fixed] := TRUE ;
-   t[float] := TRUE ;
-   t[eng] := TRUE ;
+   t := kindArray{TRUE, TRUE, TRUE} ;
    FOR j := 0 TO HIGH(a) DO
       WITH a[j] DO
          CASE k OF

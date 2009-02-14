@@ -49,7 +49,7 @@ BEGIN
       END ;
       IF NOT StrEqual(o, "34")
       THEN
-         e := 1
+         e := 2
       END
    END ;
    WriteLn ;
@@ -60,11 +60,11 @@ BEGIN
       WriteLn ;
       IF NOT StrEqual(i, "56")
       THEN
-         e := 1
+         e := 3
       END ;
       IF NOT StrEqual(o, "78")
       THEN
-         e := 1
+         e := 4
       END
    END ;
    WriteLn ;
