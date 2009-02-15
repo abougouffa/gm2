@@ -143,7 +143,7 @@ BEGIN
                offset := 3-(ABS(powerOfTen) MOD 3)
             END
          ELSE
-            (* at this stage, point > sigFigs *)
+            (* at this stage, point >= sigFigs *)
             IF powerOfTen MOD 3#0
             THEN
                offset := -(3-(powerOfTen MOD 3))

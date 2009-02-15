@@ -1,3 +1,9 @@
+2009-02-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  fixed comment.
+	* gm2/gm2-libs-iso/RTio.def:  corrected return type
+	  of GetDevicePtr.
+
 2009-02-14       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2-compiler/M2GenGCC.def:  add comment about

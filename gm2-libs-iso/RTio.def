@@ -74,7 +74,7 @@ PROCEDURE SetDeviceId (c: ChanId; d: IOLink.DeviceId) ;
    GetDevicePtr - returns the device table ptr, from, c.
 *)
 
-PROCEDURE GetDevicePtr (c: ChanId) : IOLink.DeviceId ;
+PROCEDURE GetDevicePtr (c: ChanId) : IOLink.DeviceTablePtr ;
 
 
 (*
