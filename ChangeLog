@@ -13,6 +13,7 @@
 	* gm2/Make-lang.in:  added ConvStringLong.mod,
 	  LongConv.mod, LongMath.mod, LongStr.mod to be
 	  built and installed.
+	* gm2/gm2-libs/StringConvert.mod:  skip leading zeros.
 
 2009-02-15       Gaius Mulley <gaius@gnu.org>
 
