@@ -1058,6 +1058,10 @@ BEGIN
    WHILE (i<l) AND (NOT IsDigit(char(s, i))) DO
       INC(i)
    END ;
+   (* skip over leading zeros *)
+   WHILE (i<l) AND (char(s, i)='0') DO
+      INC(i)
+   END ;
    (* add a leading zero in case we need to overflow the carry *)
    z := i ;  (* remember where we inserted zero *)
    IF z=0

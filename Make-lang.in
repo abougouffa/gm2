@@ -1006,13 +1006,15 @@ GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.m
 #
 
 GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
-                     ConvStringReal.mod                ConvTypes.mod  \
+                     ConvStringReal.mod                ConvStringLong.mod \
+                     ConvTypes.mod  \
                      EXCEPTIONS.mod    IOChan.mod      IOLink.mod \
-                     IOConsts.mod      IOLink.mod      LongMath.mod \
+                     IOConsts.mod      IOLink.mod      \
+                     LongConv.mod      LongMath.mod    LongStr.mod \
                      M2EXCEPTION.mod   M2RTS.mod       ProgramArgs.mod \
                      RawIO.mod         \
-                     RealConv.mod      \
-                     RealMath.mod      RealStr.mod     RndFile.mod \
+                     RealConv.mod      RealMath.mod    RealStr.mod \
+                     RndFile.mod \
                      RTdata.mod        RTentity.mod \
                      RTgen.mod         RTgenif.mod     RTio.mod \
                      RTfio.mod         \

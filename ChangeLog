@@ -1,3 +1,19 @@
+2009-02-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/ConvStringLong.def:  new file.
+	* gm2/gm2-libs-iso/ConvStringLong.mod:  new file.
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  fixed bugs.
+	* gm2/gm2-libs-iso/LongConv.def:  tidied up comments.
+	* gm2/gm2-libs-iso/LongConv.mod:  new file.
+	* gm2/gm2-libs-iso/LongStr.def:  tidied up comments.
+	* gm2/gm2-libs-iso/LongStr.mod:  new file.
+	* gm2-libs-iso/README.texi:  updated list of
+	  completed modules.
+	* gm2/gm2-libs-iso/RealStr.def:  tidied up comments.
+	* gm2/Make-lang.in:  added ConvStringLong.mod,
+	  LongConv.mod, LongMath.mod, LongStr.mod to be
+	  built and installed.
+
 2009-02-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ConvStringReal.mod:  fixed comment.

@@ -31,7 +31,7 @@ DEFINITION MODULE ldtoa ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 TYPE
-   Mode = (maxsignicant, decimaldigits) ;
+   Mode = (maxsignificant, decimaldigits) ;
 
 
 (*
