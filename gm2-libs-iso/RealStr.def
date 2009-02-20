@@ -14,7 +14,7 @@ IMPORT
   ConvTypes;
 
 TYPE
- (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
+  (* strAllRight, strOutOfRange, strWrongFormat, strEmpty *)
   ConvResults = ConvTypes.ConvResults;
 
 (* the string form of a signed fixed-point real number is

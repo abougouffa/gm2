@@ -28,12 +28,16 @@ The following implementation modules are complete:
 @code{ChanConsts}
 @code{CharClass}
 @code{ClientSocket}
+@code{ConvStringLong}
 @code{ConvStringReal}
 @code{ConvTypes}
 @code{EXCEPTIONS}
 @code{IOChan}
 @code{IOConsts}
 @code{IOLink}
+@code{LongConv}
+@code{LongMath}
+@code{LongStr}
 @code{M2EXCEPTION}
 @code{M2RTS}
 @code{ProgramArgs}

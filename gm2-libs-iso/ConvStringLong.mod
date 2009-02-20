@@ -16,13 +16,13 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301 USA *)
 
-IMPLEMENTATION MODULE ConvStringReal ;
+IMPLEMENTATION MODULE ConvStringLong ;
 
 FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar,
                            Slice, Length, Mult, Mark, InitStringCharStar,
                            InitStringChar, Index ;
 FROM StringConvert IMPORT IntegerToString, ToSigFig ;
-FROM dtoa IMPORT dtoa, Mode ;
+FROM ldtoa IMPORT ldtoa, Mode ;
 FROM libc IMPORT free ;
 FROM SYSTEM IMPORT ADDRESS ;
 
@@ -32,7 +32,7 @@ FROM SYSTEM IMPORT ADDRESS ;
                        and returns the result as a string.
 *)
 
-PROCEDURE RealToFloatString (real: REAL; sigFigs: CARDINAL) : String ;
+PROCEDURE RealToFloatString (real: LONGREAL; sigFigs: CARDINAL) : String ;
 VAR
    point, l,
    powerOfTen: INTEGER ;
@@ -40,7 +40,7 @@ VAR
    r         : ADDRESS ;
    sign      : BOOLEAN ;
 BEGIN
-   r := dtoa(real, maxsignificant, 100, point, sign) ;
+   r := ldtoa(real, maxsignificant, 100, point, sign) ;
    s := InitStringCharStar(r) ;
    free(r) ;
    IF sigFigs>0
@@ -89,7 +89,7 @@ END RealToFloatString ;
                      that is a multiple of three.
 *)
 
-PROCEDURE RealToEngString (real: REAL; sigFigs: CARDINAL) : String ;
+PROCEDURE RealToEngString (real: LONGREAL; sigFigs: CARDINAL) : String ;
 VAR
    offset,
    point,
@@ -99,7 +99,7 @@ VAR
    r         : ADDRESS ;
    sign      : BOOLEAN ;
 BEGIN
-   r := dtoa(real, maxsignificant, 100, point, sign) ;
+   r := ldtoa(real, maxsignificant, 100, point, sign) ;
    s := InitStringCharStar(r) ;
    free(r) ;
    IF sigFigs>0
@@ -195,7 +195,7 @@ END RealToEngString ;
                        place relative to the decimal point.
 *)
 
-PROCEDURE RealToFixedString (real: REAL; place: INTEGER) : String ;
+PROCEDURE RealToFixedString (real: LONGREAL; place: INTEGER) : String ;
 VAR
    l,
    point: INTEGER ;
@@ -203,7 +203,7 @@ VAR
    r    : ADDRESS ;
    s    : String ;
 BEGIN
-   r := dtoa(real, maxsignificant, 100, point, sign) ;
+   r := ldtoa(real, maxsignificant, 100, point, sign) ;
    s := InitStringCharStar(r) ;
    free(r) ;
    l := Length(s) ;
@@ -261,4 +261,4 @@ BEGIN
 END RealToFixedString ;
 
 
-END ConvStringReal.
+END ConvStringLong.
