@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE stringreal2 ;
 
 FROM DynamicStrings IMPORT String, EqualArray, KillString, InitString ;
-FROM ConvStringReal IMPORT FixedRealToString ;
+FROM ConvStringReal IMPORT RealToFixedString ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM FIO IMPORT StdOut ;
 FROM SFIO IMPORT WriteS ;
@@ -33,7 +33,7 @@ VAR
 BEGIN
    FOR i := 3 TO 10 DO
       f := 3.141592653589793 ;
-      s := FixedRealToString(f, i) ;
+      s := RealToFixedString(f, i) ;
       s := WriteS(StdOut, s) ;
       WriteLn ;
       s := KillString(s)
