@@ -1,3 +1,10 @@
+2009-02-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/StringConvert.mod:  LongrealToString
+	  add test to see if the nonfraction component
+	  is empty.  Fixes a bug reported by Steve Giess
+	  <scgiess@hotmail.com>.
+
 2009-02-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/ConvStringLong.def:  new file.

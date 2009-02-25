@@ -748,8 +748,13 @@ BEGIN
          s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-l)))
       END
    ELSE
-      s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
-                  Slice(s, point, 0)) ;
+      IF point=0
+      THEN
+         s := ConCat(InitString('0.'), Slice(s, point, 0))
+      ELSE
+         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                     Slice(s, point, 0))
+      END ;
       IF (NOT maxprecision) AND (l-point<VAL(INTEGER, FractionWidth))
       THEN
          s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-(l-point))))
