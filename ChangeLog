@@ -19,6 +19,10 @@
 	* gm2/gm2-libs-iso/SWholeIO.mod:  tidied up comments.
 	* gm2/gm2-libs-iso/WholeIO.mod:  refactored to use
 	  writeString.
+	* gm2/gm2-libs-iso/SLongIO.mod:  new implementation.
+	* gm2/gm2-libs-iso/SRealIO.mod:  new implementation.
+	* gm2/gm2-libs-iso/IOResult.mod:  new implementation.
+	* gm2/gm2-libs-iso/SIOResult.mod:  new implementation.
 
 2009-02-20       Gaius Mulley <gaius@gnu.org>
 
