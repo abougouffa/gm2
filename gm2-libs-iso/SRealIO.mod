@@ -1,12 +1,24 @@
-(* Library module defined by the International Standard
-   Information technology - programming languages
-   BS ISO/IEC 10514-1:1996E Part 1: Modula-2, Base Language.
+(* Copyright (C) 2009 Free Software Foundation, Inc. *)
+(* This file is part of GNU Modula-2.
 
-   Copyright ISO/IEC (International Organization for Standardization
-   and International Electrotechnical Commission) 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
 
-DEFINITION MODULE SRealIO;
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA  02110-1301  USA *)
+
+IMPLEMENTATION MODULE SRealIO ;
+
+IMPORT StdChans, RealIO ;
 
   (* Input and output of real numbers in decimal text form over
      default channels.  The read result is of the type
@@ -29,24 +41,36 @@ PROCEDURE ReadReal (VAR real: REAL);
      is assigned to real.  The read result is set to the value
      allRight, outOfRange, wrongFormat, endOfLine, or endOfInput.
   *)
+BEGIN
+   RealIO.ReadReal(StdChans.StdInChan(), real)
+END ReadReal ;
 
 PROCEDURE WriteFloat (real: REAL; sigFigs: CARDINAL; width: CARDINAL);
   (* Writes the value of real to the default output channel in
      floating-point text form, with sigFigs significant figures,
      in a field of the given minimum width.
   *)
+BEGIN
+   RealIO.WriteFloat(StdChans.StdOutChan(), real, sigFigs, width)
+END WriteFloat ;
 
 PROCEDURE WriteEng (real: REAL; sigFigs: CARDINAL; width: CARDINAL);
   (* As for WriteFloat, except that the number is scaled with one to
      three digits in the whole number part, and with an exponent that
      is a multiple of three.
   *)
+BEGIN
+   RealIO.WriteFloat(StdChans.StdOutChan(), real, sigFigs, width)
+END WriteEng ;
 
 PROCEDURE WriteFixed (real: REAL; place: INTEGER; width: CARDINAL);
   (* Writes the value of real to the default output channel in
      fixed-point text form, rounded to the given place relative
      to the decimal point, in a field of the given minimum width.
   *)
+BEGIN
+   RealIO.WriteFixed(StdChans.StdOutChan(), real, place, width)
+END WriteFixed ;
 
 PROCEDURE WriteReal (real: REAL; width: CARDINAL);
   (* Writes the value of real to the default output channel, as
@@ -54,6 +78,8 @@ PROCEDURE WriteReal (real: REAL; width: CARDINAL);
      given width, or otherwise as WriteFloat. The number of
      places or significant digits depends on the given width.
   *)
+BEGIN
+   RealIO.WriteReal(StdChans.StdOutChan(), real, width)
+END WriteReal ;
 
 END SRealIO.
-

@@ -54,6 +54,8 @@ The following implementation modules are complete:
 @code{RTgen}
 @code{RTgenif}
 @code{RTio}
+@code{SLongIO.mod}
+@code{SRealIO.mod}
 @code{SimpleCipher}
 @code{SeqFile}
 @code{StdChans}
