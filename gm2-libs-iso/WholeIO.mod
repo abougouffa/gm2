@@ -23,6 +23,7 @@ FROM TextIO IMPORT WriteChar, ReadChar ;
 FROM DynamicStrings IMPORT String, char, KillString, Length ;
 FROM StringConvert IMPORT IntegerToString, CardinalToString ;
 FROM WholeConv IMPORT ScanInt, ScanCard ;
+FROM StringChan IMPORT writeString ;
 
 
 (* Input and output of whole numbers in decimal text form
@@ -98,16 +99,10 @@ PROCEDURE WriteInt (cid: IOChan.ChanId; int: INTEGER;
   (* Writes the value of int to cid in text form, in a field of
      the given minimum width. *)
 VAR
-   s   : String ;
-   i, h: CARDINAL ;
+   s: String ;
 BEGIN
    s := IntegerToString(int, width, ' ', TRUE, 10, FALSE) ;
-   h := Length(s) ;
-   i := 0 ;
-   WHILE i<h DO
-      WriteChar(cid, char(s, i)) ;
-      INC(i)
-   END ;
+   writeString(cid, s) ;
    s := KillString(s)
 END WriteInt ;
 
@@ -156,16 +151,10 @@ PROCEDURE WriteCard (cid: IOChan.ChanId; card: CARDINAL;
   (* Writes the value of card to cid in text form, in a field
      of the given minimum width. *)
 VAR
-   s   : String ;
-   i, h: CARDINAL ;
+   s: String ;
 BEGIN
    s := CardinalToString(card, width, ' ', 10, FALSE) ;
-   h := Length(s) ;
-   i := 0 ;
-   WHILE i<h DO
-      WriteChar(cid, char(s, i)) ;
-      INC(i)
-   END ;
+   writeString(cid, s) ;
    s := KillString(s)
 END WriteCard ;
 

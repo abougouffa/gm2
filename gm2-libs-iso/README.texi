@@ -36,6 +36,7 @@ The following implementation modules are complete:
 @code{IOConsts}
 @code{IOLink}
 @code{LongConv}
+@code{LongIO}
 @code{LongMath}
 @code{LongStr}
 @code{M2EXCEPTION}
@@ -43,6 +44,7 @@ The following implementation modules are complete:
 @code{ProgramArgs}
 @code{RawIO}
 @code{RealConv}
+@code{RealIO}
 @code{RealMath}
 @code{RealStr}
 @code{RndFile}

@@ -4,6 +4,21 @@
 	  add test to see if the nonfraction component
 	  is empty.  Fixes a bug reported by Steve Giess
 	  <scgiess@hotmail.com>.
+	* gm2/Make-lang.in:  LongIO.mod, RealIO.mod added
+	  to GM2-LIBS-ISO-MODS.
+	* gm2/gm2-libs-ch/dtoa.c:  removed conditional
+	  compilation on HAVE_STRTOLD.
+	* gm2/gm2-libs-ch/ldtoa.c:  fall back to using
+	  strtod if strtold is unavailable.
+	* gm2/gm2-libs-iso/IOChan.mod:  fixed error
+	  message.
+	* gm2/gm2-libs-iso/LongIO.mod:  tidied up comments.
+	* gm2/gm2-libs-iso/LongIO.mod:  new implementation.
+	* gm2/gm2-libs-iso/RealIO.def:  tidied up comments.
+	* gm2/gm2-libs-iso/RealIO.mod:  new implementation.
+	* gm2/gm2-libs-iso/SWholeIO.mod:  tidied up comments.
+	* gm2/gm2-libs-iso/WholeIO.mod:  refactored to use
+	  writeString.
 
 2009-02-20       Gaius Mulley <gaius@gnu.org>
 

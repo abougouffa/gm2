@@ -71,11 +71,12 @@ long double ldtoa_strtold (const char *s, int *error)
   char *endp;
   long double d;
 
-#if defined(HAVE_STRTOLD)
   errno = 0;
+#if defined(HAVE_STRTOLD)
   d = strtold (s, &endp);
 #else
-# error "you need to build on a system which can support strtold"
+  /* fall back to using strtod */
+  d = (long double)strtod (s, &endp);
 #endif
   if (endp != NULL && (*endp == '\0'))
     *error = (errno != 0);

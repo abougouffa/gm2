@@ -63,19 +63,13 @@ typedef enum Mode { maxsignicant, decimaldigits } Mode;
  *                 (ndigits may be negative).
  */
 
-
-
 double dtoa_strtod (const char *s, int *error)
 {
   char *endp;
   double d;
 
-#if defined(HAVE_STRTOLD)
   errno = 0;
   d = strtod (s, &endp);
-#else
-# error "you need to build on a system which can support strtod"
-#endif
   if (endp != NULL && (*endp == '\0'))
     *error = (errno != 0);
   else

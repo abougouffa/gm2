@@ -6,7 +6,7 @@
    and International Electrotechnical Commission) 1996, 1997, 1998,
    1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
 
-IMPLEMENTATION MODULE LongIO;
+IMPLEMENTATION MODULE RealIO;
 
   (* Input and output of real numbers in decimal text form
      over specified channels.  The read result is of the
@@ -18,15 +18,15 @@ FROM StringChan IMPORT writeString ;
 FROM IOChan IMPORT SetReadResult ;
 FROM IOConsts IMPORT ReadResults ;
 
-FROM ConvStringLong IMPORT RealToFixedString, RealToFloatString,
+FROM ConvStringReal IMPORT RealToFixedString, RealToFloatString,
                            RealToEngString ;
 
 FROM ConvTypes IMPORT ScanClass, ScanState ;
 FROM TextIO IMPORT WriteChar, ReadChar ;
 FROM DynamicStrings IMPORT String, char, KillString, Length, InitString, ConCatChar, string ;
-FROM LongConv IMPORT ScanReal ;
+FROM RealConv IMPORT ScanReal ;
 FROM StringChan IMPORT writeString, writeFieldWidth ;
-FROM ldtoa IMPORT strtold ;
+FROM dtoa IMPORT strtod ;
 
 
   (* The text form of a signed fixed-point real number is
@@ -38,7 +38,7 @@ FROM ldtoa IMPORT strtold ;
        "E", ["+" | "-"], decimal digit, {decimal digit}
   *)
 
-PROCEDURE ReadReal (cid: IOChan.ChanId; VAR real: LONGREAL);
+PROCEDURE ReadReal (cid: IOChan.ChanId; VAR real: REAL);
   (* Skips leading spaces, and removes any remaining characters
      from cid that form part of a signed fixed or floating
      point number.  The value of this number is assigned to real.
@@ -69,7 +69,7 @@ BEGIN
          ReadChar(cid, ch) ;
          nextState(ch, chClass, nextState)
       END ;
-      real := strtold(string(s), error) ;
+      real := strtod(string(s), error) ;
       s := KillString(s) ;
       IF error
       THEN
@@ -83,7 +83,7 @@ BEGIN
 END ReadReal ;
 
 
-PROCEDURE WriteFloat (cid: IOChan.ChanId; real: LONGREAL;
+PROCEDURE WriteFloat (cid: IOChan.ChanId; real: REAL;
                       sigFigs: CARDINAL; width: CARDINAL);
   (* Writes the value of real to cid in floating-point text form,
      with sigFigs significant figures, in a field of the given
@@ -98,7 +98,7 @@ BEGIN
 END WriteFloat ;
 
 
-PROCEDURE WriteEng (cid: IOChan.ChanId; real: LONGREAL;
+PROCEDURE WriteEng (cid: IOChan.ChanId; real: REAL;
                     sigFigs: CARDINAL; width: CARDINAL);
   (* As for WriteFloat, except that the number is scaled with
      one to three digits in the whole number part, and with an
@@ -113,7 +113,7 @@ BEGIN
 END WriteEng ;
 
 
-PROCEDURE WriteFixed (cid: IOChan.ChanId; real: LONGREAL;
+PROCEDURE WriteFixed (cid: IOChan.ChanId; real: REAL;
                       place: INTEGER; width: CARDINAL);
   (* Writes the value of real to cid in fixed-point text form,
      rounded to the given place relative to the decimal point,
@@ -129,7 +129,7 @@ END WriteFixed ;
 
 
 PROCEDURE WriteReal (cid: IOChan.ChanId;
-                     real: LONGREAL; width: CARDINAL);
+                     real: REAL; width: CARDINAL);
   (* Writes the value of real to cid, as WriteFixed if the sign
      and magnitude can be shown in the given width, or otherwise
      as WriteFloat.  The number of places or significant digits
@@ -166,4 +166,4 @@ BEGIN
 END WriteReal ;
 
 
-END LongIO.
+END RealIO.

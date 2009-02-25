@@ -128,7 +128,7 @@ BEGIN
             result := IOConsts.allRight
          ELSE
             RAISE(iochan, ORD(notAvailable),
-                  'IOChan.SkipLook: attempt to skip data from a channel which is not configured as read and text')
+                  'IOChan.Skip: attempt to skip data from a channel which is not configured as read and text')
          END
       END
    END
