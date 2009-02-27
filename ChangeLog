@@ -1,5 +1,7 @@
 2009-02-27       Gaius Mulley <gaius@gnu.org>
 
+	* Fixed compiler so that pervasive procedure functions
+	  can be redefined.
 	* gm2/Make-lang.in:  added IOResult.mod, SIOResult.mod,
 	  StringChan.mod to GM2-LIBS-ISO-MODS.
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  PrintDeclared
