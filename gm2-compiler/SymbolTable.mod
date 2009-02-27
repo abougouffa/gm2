@@ -5057,12 +5057,51 @@ BEGIN
 END GetLastMainScopeId ;
 
 
+(*
+   GetDeclareSym - searches for a symbol with a name SymName in the
+                   current and previous scopes.
+                   If the symbol is found then it is returned
+                   else an unknown symbol is returned.
+                   This procedure assumes that SymName is being
+                   declared at this point and therefore it does
+                   not examine the base scope (for pervasive
+                   identifiers).
+*)
+
+PROCEDURE GetDeclareSym (SymName: Name) : CARDINAL ;
+VAR
+   Sym: CARDINAL ;
+BEGIN
+   (*
+      WriteString('RequestSym for: ') ; WriteKey(SymName) ; WriteLn ;
+   *)
+   Sym := GetScopeSym(SymName) ;
+   IF Sym=NulSym
+   THEN
+      Sym := GetSymFromUnknownTree(SymName) ;
+      IF Sym=NulSym
+      THEN
+         (* Make unknown *)
+         NewSym(Sym) ;
+         FillInUnknownFields(Sym, SymName) ;
+         (* Add to unknown tree *)
+         AddSymToUnknownTree(ScopePtr, SymName, Sym)
+         (*
+           ; WriteKey(SymName) ; WriteString(' unknown demanded') ; WriteLn
+         *)
+      END
+   END ;
+   RETURN( Sym )
+END GetDeclareSym ;
+
 
 (*
    RequestSym - searches for a symbol with a name SymName in the
                 current and previous scopes.
                 If the symbol is found then it is returned
                 else an unknown symbol is returned.
+                This procedure does search the base scope (for
+                pervasive identifiers).
 *)
 
 PROCEDURE RequestSym (SymName: Name) : CARDINAL ;

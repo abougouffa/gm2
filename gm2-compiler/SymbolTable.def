@@ -87,7 +87,7 @@ EXPORT QUALIFIED NulSym,
                  GetType,
                  SkipType, SkipTypeAndSubrange,
                  GetLowestType,
-                 GetSym, GetLocalSym,
+                 GetSym, GetLocalSym, GetDeclareSym,
                  FromModuleGetSym,
                  GetNth,
                  GetVarScope,
@@ -873,6 +873,20 @@ PROCEDURE GetSym (name: Name) : CARDINAL ;
 
 
 (*
+   GetDeclareSym - searches for a symbol with a name SymName in the
+                   current and previous scopes.
+                   If the symbol is found then it is returned
+                   else an unknown symbol is returned.
+                   This procedure assumes that SymName is being
+                   declared at this point and therefore it does
+                   not examine the base scope (for pervasive
+                   identifiers).
+*)
+
+PROCEDURE GetDeclareSym (SymName: Name) : CARDINAL ;
+
+
+(*
    GetLocalSym - only searches the scope Sym for a symbol with Name
                  and returns the index to the symbol.
 *)
@@ -1611,6 +1625,8 @@ PROCEDURE IsPartialUnbounded (sym: CARDINAL) : BOOLEAN ;
                 current and previous scopes.
                 If the symbol is found then it is returned
                 else an unknown symbol is returned.
+                This procedure does search the base scope (for
+                pervasive identifiers).
 *)
 
 PROCEDURE RequestSym (SymName: Name) : CARDINAL ;

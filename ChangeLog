@@ -1,3 +1,17 @@
+2009-02-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added IOResult.mod, SIOResult.mod,
+	  StringChan.mod to GM2-LIBS-ISO-MODS.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  PrintDeclared
+	  (new procedure).  PrintVerboseFromList call
+	  PrintDeclared.
+	* gm2/gm2-compiler/P2SymBuild.mod:  replace RequestSym
+	  with GetDeclareSym.  Tidied up comments.
+	* gm2/gm2-compiler/SymbolTable.def:  export GetDeclareSym.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement GetDeclareSym.
+	* gm2/gm2-libs-iso/SysClock.def:  assign maxSecondParts to
+	  zero.
+
 2009-02-25       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  LongrealToString

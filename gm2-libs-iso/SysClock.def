@@ -11,7 +11,7 @@ DEFINITION MODULE SysClock;
 (* Facilities for accessing a system clock that records the date and time of day *)
 
 CONST
-  maxSecondParts = <implementation-defined integral value>;
+  maxSecondParts = 0 ;
 
 TYPE
   Month    = [1 .. 12];

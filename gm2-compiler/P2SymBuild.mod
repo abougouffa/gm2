@@ -56,7 +56,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDefImp, IsType,
                         IsSubrange, IsEnumeration, IsConstString,
                         IsError, IsAModula2Type,
-                        GetSym, RequestSym, IsUnknown, RenameSym,
+                        GetSym, GetDeclareSym, IsUnknown, RenameSym,
                         GetLocalSym, GetParent, IsRecord,
                         GetFromOuterModule,
                         GetExported,
@@ -147,6 +147,8 @@ VAR
    RememberStack,
    TypeStack         : StackOfWord ;
 
+
+PROCEDURE stop ; BEGIN END stop ;
 
 (*
    StartBuildDefinitionModule - Creates a definition module and starts
@@ -371,7 +373,7 @@ VAR
    ModuleSym: CARDINAL ;
 BEGIN
    PopT(name) ;
-   ModuleSym := RequestSym(name) ;
+   ModuleSym := GetDeclareSym(name) ;
    StartScope(ModuleSym) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
    PushT(name)
@@ -919,13 +921,18 @@ VAR
 BEGIN
    PopT(name) ;
    PushT(name) ;  (* name saved for the EndBuildProcedure name check *)
-   ProcSym := RequestSym(name) ;
+   ProcSym := GetDeclareSym(name) ;
+   IF MakeKey('ORDL')=name
+   THEN
+      stop
+   END ;
    IF IsUnknown(ProcSym)
    THEN
       (*
-         May have been compiled in DEF or IMP module, remember that IMP maybe
-         compiled before corresponding DEF module.
-         - no defs should always be compilied before implementation modules.
+         May have been compiled in the definition or implementation module,
+         remember that implementation maybe compiled before corresponding
+         definition module.
+         - no definition should always be compilied before implementation modules.
       *)
       ProcSym := MakeProcedure(name)
    ELSE

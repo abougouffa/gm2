@@ -1948,6 +1948,23 @@ END IncludeUnbounded ;
 
 
 (*
+   PrintDeclared - prints out where, sym, was declared.
+*)
+
+PROCEDURE PrintDeclared (sym: CARDINAL) ;
+VAR
+   filename: String ;
+   lineno,
+   tokenno : CARDINAL ;
+BEGIN
+   tokenno := GetDeclared(sym) ;
+   filename := FindFileNameFromToken(tokenno, 0) ;
+   lineno := TokenToLineNo(tokenno, 0) ;
+   printf2(" declared in %s:%d", filename, lineno)
+END PrintDeclared ;
+
+
+(*
    PrintVerboseFromList - prints the, i, th element in the list, l.
 *)
 
@@ -1998,7 +2015,8 @@ BEGIN
       IF IsProcedureReachable(sym)
       THEN
          printf0(' and IsProcedureReachable')
-      END
+      END ;
+      PrintDeclared(sym)
    ELSIF IsParameter(sym)
    THEN
       printf2('sym %d IsParameter (%a)', sym, n) ;
