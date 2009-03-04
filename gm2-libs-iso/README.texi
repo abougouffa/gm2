@@ -17,9 +17,9 @@ Language.  The Copyright to the definition files (except
 Organization for Standardization and International Electrotechnical
 Commission).  All implementation modules and @file{M2RTS.def},
 @file{RTio.def}, @file{RTgen.def}, @file{RTgenif.def},
-@file{RTfio.def}, @file{RTentity.def}, @file{SimpleCipher.def} and
-@file{ErrnoCategory.def} are Copyright of the FSF and are held under
-the LGPL.
+@file{RTfio.def}, @file{RTentity.def}, @file{SimpleCipher.def},
+@file{wraptime.def}, @file{wrapsock.def} and @file{ErrnoCategory.def}
+are Copyright of the FSF and are held under the LGPL.
 
 The ISO definition modules are allowed to be distributed with
 the compiler.
@@ -68,6 +68,8 @@ The following implementation modules are complete:
 @code{SYSTEM}
 @code{TERMINATION}
 @code{TextIO}
+@code{wrapsock}
+@code{wraptime}
 @code{WholeConv}
 @code{WholeIO}
 and
