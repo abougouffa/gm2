@@ -64,6 +64,7 @@ The following implementation modules are complete:
 @code{Strings}
 @code{STextIO}
 @code{SWholeIO}
+@code{SysClock}
 @code{SYSTEM}
 @code{TERMINATION}
 @code{TextIO}

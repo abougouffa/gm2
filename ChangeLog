@@ -1,3 +1,17 @@
+2009-03-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/SysClock.mod:  new file.
+	* gm2/gm2-libs-iso/wraptime.def:  new file.
+	* gm2/gm2-libs-iso/wraptime.c:  new file.
+	* gm2/gm2-libs-iso/README.texi:  updated list of
+	  completed ISO library modules.
+	* gm2/Make-lang.in:  added SysClock.mod to
+	  GM2-LIBS-ISO-MODS and added wraptime.c to
+          GM2-LIBS-ISO-C.
+	* gm2/gm2-compiler/P2SymBuild.mod:  use one
+	  call of MetaErrorsT2, rather than two calls to
+	  MetaErrorT1.
+
 2009-02-27       Gaius Mulley <gaius@gnu.org>
 
 	* Fixed compiler so that pervasive procedure functions
