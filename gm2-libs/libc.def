@@ -206,14 +206,14 @@ PROCEDURE close (d: INTEGER) : INTEGER ;
    open - open the file, filename with flag and mode.
 *)
 
-PROCEDURE open (filename: ADDRESS; flag, mode: CARDINAL) : INTEGER ;
+PROCEDURE open (filename: ADDRESS; oflag: INTEGER; ...) : INTEGER ;
 
 
 (* 
    creat - creates a new file 
 *)
 
-PROCEDURE creat (filename : ADDRESS; mode : CARDINAL) : INTEGER;
+PROCEDURE creat (filename: ADDRESS; mode: CARDINAL) : INTEGER;
 
 
 (*

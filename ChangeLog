@@ -23,6 +23,12 @@
 	* gm2/init/ppginit:  added errno and termios to the list
 	  of dependant modules.
 	* gm2/gm2-libs-iso/TermFile.mod:  new file.
+	* gm2/Make-lang.in:  removed rule to build
+          gm2/ulm-lib-gm2/sys/termios.o.
+	* gm2/gm2-libs/libc.def:  corrected open to use varargs.
+	* gm2/gm2-libs-iso/TermFile.mod:  initialize termios
+	  types when term is initialised.  RestoreTerminalSettings
+	  (new function).  Call new function.
 	
 2009-03-04       Gaius Mulley <gaius@gnu.org>
 

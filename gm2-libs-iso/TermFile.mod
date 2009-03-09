@@ -42,6 +42,9 @@ FROM RTgen IMPORT ChanDev, DeviceType, InitChanDev,
                   doReadText, doWriteText, doReadLocs, doWriteLocs,
                   checkErrno ;
 
+FROM termios IMPORT TERMIOS, InitTermios, KillTermios, tcgetattr,
+                    tcsetattr, cfmakeraw, tcsnow ;
+
 IMPORT libc ;
 
 CONST
@@ -54,6 +57,7 @@ TYPE
                               fd      : INTEGER ;
                               pushed  : CHAR ;
                               pushBack: BOOLEAN ;
+                              old, new: TERMIOS ;
                            END ;
 VAR
    mid           : ModuleId ;
@@ -73,6 +77,8 @@ BEGIN
    NEW(t) ;
    t^.fd := fd ;
    t^.pushBack := FALSE ;
+   t^.new := InitTermios() ;
+   t^.old := InitTermios() ;
    RETURN( t )
 END InitTermInfo ;
 
@@ -83,6 +89,10 @@ END InitTermInfo ;
 
 PROCEDURE KillTermInfo (t: TermInfo) : TermInfo ;
 BEGIN
+   WITH t^ DO
+      new := KillTermios(new) ;
+      old := KillTermios(old)
+   END ;
    DISPOSE(t) ;
    RETURN( NIL )
 END KillTermInfo ;
@@ -443,6 +453,8 @@ END handlefree ;
 *)
 
 PROCEDURE termOpen (t: TermInfo; VAR flagset: FlagSet; VAR e: INTEGER) : OpenResults ;
+VAR
+   filename: ARRAY [0..20] OF CHAR ;
 BEGIN
    WITH t^ DO
       IF NOT (rawFlag IN flagset)
@@ -459,14 +471,49 @@ BEGIN
       END ;
       IF writeFlag IN flagset
       THEN
-         fd := libc.open(ADR("/dev/tty"), O_RDONLY, 0)
-      ELSE
          fd := libc.open(ADR("/dev/tty"), O_WRONLY, 0600B)
+      ELSE
+         Assign("/dev/tty", filename) ;
+         (* fd := libc.open(ADR("/dev/tty"), O_RDONLY) *)
+         fd := libc.open(ADR(filename), O_RDONLY)
+      END ;
+      IF tcgetattr(fd, new)=0
+      THEN
+      END ;
+      IF tcgetattr(fd, old)=0
+      THEN
+         IF rawFlag IN flagset
+         THEN
+            cfmakeraw(new)
+         END ;
+         IF tcsetattr(fd, tcsnow(), new)=0
+         THEN
+         END
       END ;
       e := geterrno() ;
       RETURN( GetOpenResults(e) )
    END
 END termOpen ;
+
+
+(*
+   RestoreTerminalSettings - 
+*)
+
+PROCEDURE RestoreTerminalSettings (cid: ChanId) ;
+VAR
+   d: DeviceTablePtr ;
+   t: TermInfo ;
+   e: INTEGER ;
+BEGIN
+   d := DeviceTablePtrValue(cid, did, wrongDevice, 'TermFile.' + __FUNCTION__ ) ;
+   t := GetData(d, mid) ;
+   WITH t^ DO
+      IF tcsetattr(fd, tcsnow(), old)=0
+      THEN
+      END
+   END
+END RestoreTerminalSettings ;
 
 
 (*
@@ -534,6 +581,7 @@ PROCEDURE Close (VAR cid: ChanId) ;
 BEGIN
    IF IsTermFile(cid)
    THEN
+      RestoreTerminalSettings(cid) ;
       UnMakeChan(did, cid) ;
       cid := InvalidChan()
    ELSE

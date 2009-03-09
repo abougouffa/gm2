@@ -134,6 +134,7 @@ PROCEDURE tcsetattr (fd: INTEGER; option: INTEGER; t: TERMIOS) : INTEGER ;
 
 PROCEDURE cfmakeraw (t: TERMIOS) ;
 
+
 (*
    tcsendbreak - send zero bits for duration.
 *)
