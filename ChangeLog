@@ -1,3 +1,29 @@
+2009-03-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-file.in:  added termios.def to
+	  GM2-LIBS-BOOT-DEFS, GM2-LIBS-DEFS.  Added
+	  termios.c to GM2-LIBS-C and added rules to build
+	  gm2/gm2-libs-boot/termios.o, gm2/gm2-libs/termios.o,
+	  gm2/gm2-libs/O2/termios.o, gm2/gm2-libs/SO/termios.o,
+          gm2/gm2-libs/SO_O2/termios.o,
+	  gm2/gm2-libs-paranoid/termios.o.  Removed rule to
+	  build gm2/ulm-lib-gm2/sys/termios.o.  Added termios.c
+	  to GM2-LIBS-BOOT-C.  Removed termios.c from the ulm
+	  libraries.
+	* gm2/gm2-libs/IO.def:  UnBufferedMode, BufferedMode,
+	  EchoOn, EchoOff new declarations.
+	* gm2/gm2-libs/IO.mod:  mostly rewritten.
+	* gm2/gm2-libs/errno.def:  added constant EAGAIN.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  added
+	  port number to name now that IntToStr has been
+	  implemented.
+	* gm2/gm2-libs-iso/README.texi:  corrected dates and
+	  added TermFile to the list of completed modules.
+	* gm2/gm2-libs-iso/TermFile.def:  tidied up comments.
+	* gm2/init/ppginit:  added errno and termios to the list
+	  of dependant modules.
+	* gm2/gm2-libs-iso/TermFile.mod:  new file.
+	
 2009-03-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/SysClock.mod:  new file.

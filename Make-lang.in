@@ -849,7 +849,7 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
                      SFIO.def        SArgs.def       StdIO.def       \
                      FormatStrings.def PushBackInput.def Storage.def SEnvironment.def \
                      StringConvert.def               M2EXCEPTION.def RTExceptions.def \
-                     dtoa.def        ldtoa.def
+                     dtoa.def        ldtoa.def       termios.def     errno.def
 
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
@@ -861,7 +861,8 @@ GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.m
                      StringConvert.mod               M2EXCEPTION.mod RTExceptions.mod
 
 GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      StdIO.c         Storage.c       \
-                     choosetemp.c    dtoa.c          ldtoa.c
+                     choosetemp.c    dtoa.c          ldtoa.c         termios.c       \
+                     errno.c
 
 GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def   P3SymBuild.def  M2ALU.def       M2Depth.def     \
@@ -919,7 +920,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      DynamicStrings.def                SFIO.def        SArgs.def \
                      PushBackInput.def StringConvert.def               FormatStrings.def \
                      Builtins.def      cbuiltin.def    MathLib0.def    M2EXCEPTION.def \
-                     RTExceptions.def  dtoa.def        ldtoa.def
+                     RTExceptions.def  dtoa.def        ldtoa.def       termios.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -934,7 +935,8 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      RTExceptions.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
-                     sckt.c            errno.c         dtoa.c          ldtoa.c
+                     sckt.c            errno.c         dtoa.c          ldtoa.c         \
+                     termios.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
@@ -1025,8 +1027,9 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      SLongIO.mod       SRealIO.mod     \
                      STextIO.mod       Storage.mod     StreamFile.mod \
                      Strings.mod       StringChan.mod  SWholeIO.mod \
-                     SysClock.mod       \
+                     SysClock.mod      \
                      SYSTEM.mod        TERMINATION.mod TextIO.mod \
+                     TermFile.mod      \
                      WholeConv.mod     WholeIO.mod     WholeStr.mod
 
 GM2-LIBS-ISO-C     = ErrnoCategory.c wrapsock.c wraptime.c
@@ -1143,11 +1146,17 @@ gm2/gm2-libs-boot/Storage.o: gm2/gm2-libs-ch/Storage.c gm2/gm2-libs-boot/$(SRC_P
 gm2/gm2-libs-boot/choosetemp.o: gm2/gm2-libs-ch/choosetemp.c gm2/gm2-libiberty/Gchoosetemp.h
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-libiberty $(INCLUDES) $< -o $@
 
+gm2/gm2-libs-boot/errno.o: $(srcdir)/gm2/gm2-libs-ch/errno.c gm2/gm2-libs-boot/$(SRC_PREFIX)errno.h
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 gm2/gm2-libs-boot/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-boot/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-boot/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-compiler-boot/gm2.o: $(srcdir)/gm2/gm2-compiler/gm2.mod
 	$(P2C) $(srcdir)/gm2/gm2-compiler/gm2.mod -o gm2/gm2-compiler-boot/gm2.c
@@ -1256,6 +1265,9 @@ gm2/gm2-libs/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs/gm2-libs-host
 gm2/gm2-libs/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs/gm2-libs-host.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
+gm2/gm2-libs/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs/gm2-libs-host.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 gm2/gm2-libiberty/xlibc.o: $(srcdir)/gm2/gm2-libs-ch/xlibc.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
@@ -1339,6 +1351,9 @@ gm2/gm2-libs/O2/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs-boot/$(SRC
 gm2/gm2-libs/O2/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h gm2/gm2-libs/gm2-libs-host.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
 
+gm2/gm2-libs/O2/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h gm2/gm2-libs/gm2-libs-host.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
+
 gm2/gm2-libs/O2/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $(O2) $< -o $@
 
@@ -1380,6 +1395,9 @@ gm2/gm2-libs/SO/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs-boot/$(SRC
 gm2/gm2-libs/SO/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h gm2/gm2-libs/gm2-libs-host.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs -Igm2/gm2-libiberty $(INCLUDES) $(SO) $< -o $@
 
+gm2/gm2-libs/SO/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h gm2/gm2-libs/gm2-libs-host.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs -Igm2/gm2-libiberty $(INCLUDES) $(SO) $< -o $@
+
 gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $(SO) $< -o $@
 
@@ -1419,6 +1437,9 @@ gm2/gm2-libs/SO_O2/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c gm2/gm2-libs-boot/$(
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(C_SO_O2) $< -o $@
 
 gm2/gm2-libs/SO_O2/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h gm2/gm2-libs/gm2-libs-host.h
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(C_SO_O2) $< -o $@
+
+gm2/gm2-libs/SO_O2/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h gm2/gm2-libs/gm2-libs-host.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(C_SO_O2) $< -o $@
 
 gm2/gm2-libs/SO_O2/%.o: $(srcdir)/gm2/gm2-libs/%.c
@@ -1522,8 +1543,7 @@ build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o) \
 
 build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \
-                gm2/ulm-lib-gm2/sys/SYSTEM.o \
-                gm2/ulm-lib-gm2/sys/termios.o
+                gm2/ulm-lib-gm2/sys/SYSTEM.o
 
 build-libs-pim: $(GM2-LIBS-PIM-MODS:%.mod=gm2/gm2-libs-pim/%.o) \
                 gm2/gm2-libs-pim/Break.o
@@ -1764,6 +1784,11 @@ gm2/gm2-libs-paranoid/dtoa.o: $(srcdir)/gm2/gm2-libs-ch/dtoa.c \
 
 gm2/gm2-libs-paranoid/ldtoa.o: $(srcdir)/gm2/gm2-libs-ch/ldtoa.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)ldtoa.h \
+                               gm2/gm2-libs/gm2-libs-host.h
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
+
+gm2/gm2-libs-paranoid/termios.o: $(srcdir)/gm2/gm2-libs-ch/termios.c \
+                               gm2/gm2-libs-boot/$(SRC_PREFIX)termios.h \
                                gm2/gm2-libs/gm2-libs-host.h
 	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot -Igm2/gm2-libs $(INCLUDES) $< -o $@
 

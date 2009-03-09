@@ -66,6 +66,7 @@ int EXPORT(cfsetispeed) (struct termios *t, unsigned int b);
 int EXPORT(cfsetspeed) (struct termios *t, unsigned int b);
 int EXPORT(tcgetattr) (int fd, struct termios *t);
 int EXPORT(tcsetattr) (int fd, int option, struct termios *t);
+void EXPORT(cfmakeraw) (struct termios *t);
 int EXPORT(tcsendbreak) (int fd, int duration);
 int EXPORT(tcdrain) (int fd);
 int EXPORT(tcflushi) (int fd);
@@ -201,6 +202,15 @@ int EXPORT(tcgetattr) (int fd, struct termios *t)
 int EXPORT(tcsetattr) (int fd, int option, struct termios *t)
 {
   return tcsetattr (fd, option, t);
+}
+
+/*
+ *  cfmakeraw - sets the terminal to raw mode.
+ */
+
+void EXPORT(cfmakeraw) (struct termios *t)
+{
+  return cfmakeraw (t);
 }
 
 /*
