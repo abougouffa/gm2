@@ -18,7 +18,7 @@ MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE TermFile ;
 
-
+(* *)
 FROM ASCII IMPORT nul, lf, cr ;
 FROM ChanConsts IMPORT ChanFlags ;
 FROM RTio IMPORT GetDeviceId ;
@@ -33,7 +33,10 @@ FROM IOLink IMPORT DeviceId, DeviceTable, DeviceTablePtr, DeviceTablePtrValue, I
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Strings IMPORT Append ;
+(* *)
+
 FROM SYSTEM IMPORT ADDRESS, ADR, LOC ;
+(* *)
 FROM errno IMPORT geterrno ;
 FROM ErrnoCategory IMPORT GetOpenResults ;
 
@@ -41,11 +44,13 @@ FROM RTgen IMPORT ChanDev, DeviceType, InitChanDev,
                   doLook, doSkip, doSkipLook, doWriteLn,
                   doReadText, doWriteText, doReadLocs, doWriteLocs,
                   checkErrno ;
-
+(* *)
 FROM termios IMPORT TERMIOS, InitTermios, KillTermios, tcgetattr,
                     tcsetattr, cfmakeraw, tcsnow ;
 
+
 IMPORT libc ;
+
 
 CONST
    O_RDONLY = 0 ;
@@ -59,10 +64,11 @@ TYPE
                               pushBack: BOOLEAN ;
                               old, new: TERMIOS ;
                            END ;
+(*************)
 VAR
-   mid           : ModuleId ;
-   did           : DeviceId ;
-   dev           : ChanDev ;
+   mid: ModuleId ;
+   did: DeviceId ;
+   dev: ChanDev ;
 
 
 (*
@@ -444,7 +450,7 @@ BEGIN
    checkErrno(dev, d) ;
    KillData(d, mid)
 END handlefree ;
-
+(***********)
 
 (*
    termOpen - attempts to open up the terminal device.  It fills
@@ -454,8 +460,11 @@ END handlefree ;
 
 PROCEDURE termOpen (t: TermInfo; VAR flagset: FlagSet; VAR e: INTEGER) : OpenResults ;
 VAR
-   filename: ARRAY [0..20] OF CHAR ;
+   i: INTEGER ;
 BEGIN
+   i := libc.open(ADR("/dev/tty"), 0) ;
+   RETURN( opened )
+(*
    WITH t^ DO
       IF NOT (rawFlag IN flagset)
       THEN
@@ -473,9 +482,7 @@ BEGIN
       THEN
          fd := libc.open(ADR("/dev/tty"), O_WRONLY, 0600B)
       ELSE
-         Assign("/dev/tty", filename) ;
-         (* fd := libc.open(ADR("/dev/tty"), O_RDONLY) *)
-         fd := libc.open(ADR(filename), O_RDONLY)
+         fd := libc.open(ADR("/dev/tty"), O_RDONLY)
       END ;
       IF tcgetattr(fd, new)=0
       THEN
@@ -493,9 +500,10 @@ BEGIN
       e := geterrno() ;
       RETURN( GetOpenResults(e) )
    END
+*)
 END termOpen ;
 
-
+(**********)
 (*
    RestoreTerminalSettings - 
 *)
@@ -613,4 +621,5 @@ END Init ;
 
 BEGIN
    Init
+(* ********** *)
 END TermFile.

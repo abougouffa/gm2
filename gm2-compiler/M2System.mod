@@ -323,7 +323,8 @@ BEGIN
       (* SIZE is declared in SYSTEM.def in PIM-2 but not PIM-[34] *)
       IF Pim2
       THEN
-         MakeSize
+         MakeSize ;
+         PutExportQualified(MakeKey('SIZE'))
       END
    END ;
 

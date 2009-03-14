@@ -69,7 +69,7 @@ struct timeval *wraptime_KillTimeval (void *tv)
  *  InitTimezone - returns a newly created opaque type.
  */
 
-struct timezone *InitTimezone (void)
+struct timezone *wraptime_InitTimezone (void)
 {
   return (struct timezone *) malloc (sizeof (struct timezone));
 }
@@ -79,7 +79,7 @@ struct timezone *InitTimezone (void)
  *                 opaque type.
  */
 
-struct timezone *KillTimezone (struct timezone *tv)
+struct timezone *wraptime_KillTimezone (struct timezone *tv)
 {
   free (tv);
   return NULL;

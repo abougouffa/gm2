@@ -1,3 +1,19 @@
+2009-03-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  modified debugging
+	  catch.
+	* gm2/gm2-compiler/SymbolTable.mod:  changed RequestSym
+	  to GetDeclareSym in PutExportQualified and
+	  PutExportUnQualified.
+	* gm2/gm2-libs/SYSTEM.def:  removed export of SIZE.
+	  (It is only added if -fpim2 is enabled).
+	* gm2/gm2-libs-iso/TermFile.mod:  added debugging
+	  comments.
+        * gm2/gm2-libs-iso/wraptime.c:  added wraptime_
+	  prefixes to exported procedures.
+        * gm2/gm2-compiler/M2System.mod:  export SIZE if
+	  -fpim2 is used.
+
 2009-03-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-file.in:  added termios.def to

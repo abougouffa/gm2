@@ -1014,7 +1014,7 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
-   IF Sym=620
+   IF Sym=639
    THEN
       mystop
    END ;

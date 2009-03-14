@@ -5308,7 +5308,7 @@ BEGIN
                        PutSymKey(ExportQualifiedTree, SymName, Sym) ;
                        PutExportUndeclared(ModSym, Sym)
                     ELSE
-                       Sym := RequestSym(SymName) ;
+                       Sym := GetDeclareSym(SymName) ;
                        PutSymKey(ExportQualifiedTree, SymName, Sym) ;
                        PutExportUndeclared(ModSym, Sym)
                     END
@@ -5357,7 +5357,7 @@ BEGIN
                        PutSymKey(ExportUnQualifiedTree, SymName, Sym) ;
                        PutExportUndeclared(ModSym, Sym)
                     ELSE
-                       Sym := RequestSym(SymName) ;
+                       Sym := GetDeclareSym(SymName) ;
                        PutSymKey(ExportUnQualifiedTree, SymName, Sym) ;
                        PutExportUndeclared(ModSym, Sym)
                     END

@@ -28,7 +28,8 @@ DEFINITION MODULE SYSTEM ;
 
 EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
                  ADDRESS, WORD, BYTE, BITSET, (* @SYSTEM_DATATYPES@ *)
-                 ADR, TSIZE, SIZE, ROTATE, SHIFT, THROW ;
+                 ADR, TSIZE, ROTATE, SHIFT, THROW ;
+                 (* SIZE is also exported if -fpim2 is used *)
 
 CONST
   BITSPERBYTE   = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
@@ -50,7 +51,7 @@ PROCEDURE ADR (VAR v: <anytype>): ADDRESS;
 
 PROCEDURE SIZE (v: <type>) : ZType;
   (* Returns the number of BYTES used to store a v of
-     any specified <type>.
+     any specified <type>.  Only available if -fpim2 is used.
   *)
 
 PROCEDURE TSIZE (<type>) : CARDINAL;
