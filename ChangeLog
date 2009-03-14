@@ -14,6 +14,14 @@
         * gm2/gm2-compiler/M2System.mod:  export SIZE if
 	  -fpim2 is used (or -fpim but only if -fpedantic is not
 	  set).
+	* gm2/gm2-libs-iso/SYSTEM.def:  removed BITSET from export
+	  list as it is pervasive in ISO Modula-2.
+	* gm2/ulm-libs-gm2/sys/SYSTEM.def:  removed SIZE from export
+	  list as it is exported internally depending upon -fpim2
+	  and -fpedantic.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  removed SIZE from export
+	  list as it is exported internally depending upon -fpim2
+	  and -fpedantic.
 
 2009-03-09       Gaius Mulley <gaius@gnu.org>
 
