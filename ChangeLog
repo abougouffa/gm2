@@ -12,7 +12,8 @@
         * gm2/gm2-libs-iso/wraptime.c:  added wraptime_
 	  prefixes to exported procedures.
         * gm2/gm2-compiler/M2System.mod:  export SIZE if
-	  -fpim2 is used.
+	  -fpim2 is used (or -fpim but only if -fpedantic is not
+	  set).
 
 2009-03-09       Gaius Mulley <gaius@gnu.org>
 

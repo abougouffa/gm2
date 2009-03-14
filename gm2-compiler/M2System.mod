@@ -321,8 +321,14 @@ BEGIN
    ELSE
       InitPIMTypes ;
       (* SIZE is declared in SYSTEM.def in PIM-2 but not PIM-[34] *)
-      IF Pim2
+      IF Pedantic
       THEN
+         IF Pim2
+         THEN
+            MakeSize ;
+            PutExportQualified(MakeKey('SIZE'))
+         END
+      ELSE
          MakeSize ;
          PutExportQualified(MakeKey('SIZE'))
       END

@@ -5285,7 +5285,7 @@ VAR
 BEGIN
    ModSym := GetCurrentModule() ;
    Assert(IsDefImp(ModSym)) ;
-   Assert(CompilingDefinitionModule()) ;
+   Assert(CompilingDefinitionModule() OR (GetSymName(ModSym)=MakeKey('SYSTEM'))) ;
 (* printf2('module %a exporting %a\n', GetSymName(ModSym), SymName) ; *)
 (*
    WriteString('1st MODULE ') ; WriteKey(GetSymName(ModSym)) ;
@@ -5339,7 +5339,7 @@ VAR
 BEGIN
    ModSym := GetCurrentModule() ;
    Assert(IsDefImp(ModSym)) ;
-   Assert(CompilingDefinitionModule()) ;
+   Assert(CompilingDefinitionModule() OR (GetSymName(ModSym)=MakeKey('SYSTEM'))) ;
    WITH Symbols[ModSym] DO
       CASE SymbolType OF
 
