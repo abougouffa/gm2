@@ -1,3 +1,10 @@
+2009-03-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  fixed a critical bug
+	  in DEC.  Swapped operands for doBuildBinaryOp around
+          when building a DEC.
+	* gm2/gm2-libs-ch/sckt.c:  removed debugging printf's.
+
 2009-03-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  modified debugging

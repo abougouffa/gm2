@@ -5523,14 +5523,13 @@ BEGIN
       IF (IsOrdinalType(dtype) OR (dtype=Address) OR IsPointer(dtype)) AND
          (IsOrdinalType(etype) OR (etype=Address) OR IsPointer(etype))
       THEN
+         PushTF(des, dtype) ;
+         PushT(tok) ;
          PushTF(Convert, NulSym) ;
          PushT(dtype) ;
          PushT(expr) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction ;
-
-         PushT(tok) ;
-         PushTF(des, dtype) ;
          doBuildBinaryOp(FALSE)
       ELSE
          IF tok=PlusTok

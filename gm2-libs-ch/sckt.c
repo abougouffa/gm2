@@ -69,6 +69,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #define NOOFTRIES      100
 #define MAXHOSTNAME    256
 
+#undef  DEBUGGING
+
 #if !defined(TRUE)
 #  define TRUE  (1==1)
 #endif
@@ -146,7 +148,9 @@ tcpServerState *tcpServerEstablishPort (int portNo)
     ERROR("bind");
 
   s->portNo = portNo+p;
-  printf("The receiving host is: %s, the port is %d\n", s->hostname, s->portNo);
+#if defined(DEBUGGING)
+  printf("the receiving host is: %s, the port is %d\n", s->hostname, s->portNo);
+#endif
   listen(s->sockFd, 1);
   return s;
 }
@@ -172,11 +176,15 @@ int tcpServerAccept (tcpServerState *s)
   int i = sizeof(s->isa);
   int t;
 
+#if defined(DEBUGGING)
   printf("before accept\n");
+#endif
   t = accept(s->sockFd, (struct sockaddr *)&s->isa, &i);
   if (t < 0)
     ERROR("accept");
+#if defined(DEBUGGING)
   printf("sockFd = %d and accept returns %d\n", s->sockFd, t);
+#endif
   return t;
 }
 
@@ -387,7 +395,9 @@ int tcpClientSocketFd (tcpClientState *s)
 
 int tcpClientIP (tcpClientState *s)
 {
+#if defined(DEBUGGING)
   printf("client ip = %s\n", inet_ntoa (s->sa.sin_addr.s_addr));
+#endif
   return s->sa.sin_addr.s_addr;
 }
 

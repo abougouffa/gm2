@@ -1,15 +1,14 @@
 Pre 1.0
 
-*  replace StringConvert.mod:LongrealToString by a call to dtoa.
+*  fix RealInOut <input 3.14e4 and 3.14E5 - reported by Steve Giess
+   <scgiess@hotmail.com>
 *  finish ISO language:
-   + add type COMPLEX
    + add multidimensional unbounded arrays
 *  finish ISO libraries
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
    LogiFile, NumberConversion, Options, Processes, SimpleTerm.
-
 *  if at all possible try and make sure that it builds on cygwin
    and make gm2.paranoid also passes on the cygwin.
 
