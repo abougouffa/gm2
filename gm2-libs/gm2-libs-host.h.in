@@ -26,6 +26,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* Define to 1 if you have the function cfmakeraw */
+#undef HAVE_CFMAKERAW
+
 /* Define to 1 if you have the `access' function. */
 #undef HAVE_ACCESS
 

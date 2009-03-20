@@ -7,6 +7,10 @@
 	  error check to ensure types are not declared as
 	  themselves.
 	* gm2/gm2-libs-ch/sckt.c:  exit if an error occurs.
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/gm2-libs/configure.in:  added test code cfmakeraw.
+	* gm2/gm2-libs/gm2-libs-host.h.in:  added stub for
+	  cfmakeraw.
 
 2009-03-17       Gaius Mulley <gaius@gnu.org>
 
