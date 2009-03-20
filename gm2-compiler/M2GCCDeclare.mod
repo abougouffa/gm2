@@ -32,6 +32,8 @@ FROM ASCII IMPORT nul ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Quads IMPORT DisplayQuadRange, QuadToTokenNo ;
 
+IMPORT FIO ;
+
 FROM M2Options IMPORT DisplayQuadruples,
                       GenerateDebugging, GenerateLineDebug, Iso, Optimizing ;
 
@@ -202,6 +204,8 @@ CONST
 
 TYPE
    StartProcedure = PROCEDURE (ADDRESS) : Tree ;
+   ListType       = (tofinishlist, todolist, todoconstants,
+                     definedlist) ;
 
 VAR
    ToFinishList,                    (* those types which have need to *)
@@ -220,10 +224,135 @@ VAR
    AnotherType         : CARDINAL ; (* The number of AnotherTypes     *)
                                     (* that have been produced.       *)
    HaveInitDefaultTypes: BOOLEAN ;  (* have we initialized them yet?  *)
+   WatchList           : List ;     (* List of symbols being watched  *)
 
 
 
 PROCEDURE mystop ; BEGIN END mystop ;
+
+
+(*
+   AddSymToWatch - adds symbol, sym, to the list of symbols
+                   to watch and annotate their movement between
+                   lists.
+*)
+
+PROCEDURE AddSymToWatch (sym: CARDINAL) ;
+BEGIN
+   IncludeItemIntoList(WatchList, sym)
+END AddSymToWatch ;
+
+
+(*
+   WatchIncludeList - include a symbol onto the list first checking
+                      whether it is already on the list and
+                      displaying a debug message if the list is
+                      changed.
+*)
+
+PROCEDURE WatchIncludeList (sym: CARDINAL; lt: ListType) ;
+BEGIN
+   IF IsItemInList(WatchList, sym)
+   THEN
+      CASE lt OF
+
+      tofinishlist :  IF NOT IsItemInList(ToFinishList, sym)
+                      THEN
+                         printf1("symbol %d -> ToFinishList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         IncludeItemIntoList(ToFinishList, sym)
+                      END |
+      todolist     :  IF NOT IsItemInList(ToDoList, sym)
+                      THEN
+                         printf1("symbol %d -> ToDoList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         IncludeItemIntoList(ToDoList, sym)
+                      END |
+      todoconstants:  IF NOT IsItemInList(ToDoConstants, sym)
+                      THEN
+                         printf1("symbol %d -> ToDoConstants\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         IncludeItemIntoList(ToDoConstants, sym)
+                      END |
+      definedlist  :  IF NOT IsItemInList(DefinedList, sym)
+                      THEN
+                         printf1("symbol %d -> DefinedList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         IncludeItemIntoList(DefinedList, sym)
+                      END
+
+      ELSE
+         InternalError('unknown list', __FILE__, __LINE__)
+      END
+   ELSE
+      CASE lt OF
+
+      tofinishlist :  IncludeItemIntoList(ToFinishList, sym) |
+      todolist     :  IncludeItemIntoList(ToDoList, sym) |
+      todoconstants:  IncludeItemIntoList(ToDoConstants, sym) |
+      definedlist  :  IncludeItemIntoList(DefinedList, sym)
+
+      ELSE
+         InternalError('unknown list', __FILE__, __LINE__)
+      END
+   END
+END WatchIncludeList ;
+
+
+(*
+   WatchRemoveList - remove a symbol onto the list first checking
+                     whether it is already on the list and
+                     displaying a debug message if the list is
+                     changed.
+*)
+
+PROCEDURE WatchRemoveList (sym: CARDINAL; lt: ListType) ;
+BEGIN
+   IF IsItemInList(WatchList, sym)
+   THEN
+      CASE lt OF
+
+      tofinishlist :  IF IsItemInList(ToFinishList, sym)
+                      THEN
+                         printf1("symbol %d off ToFinishList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         RemoveItemFromList(ToFinishList, sym)
+                      END |
+      todolist     :  IF IsItemInList(ToDoList, sym)
+                      THEN
+                         printf1("symbol %d off ToDoList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         RemoveItemFromList(ToDoList, sym)
+                      END |
+      todoconstants:  IF IsItemInList(ToDoConstants, sym)
+                      THEN
+                         printf1("symbol %d off ToDoConstants\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         RemoveItemFromList(ToDoConstants, sym)
+                      END |
+      definedlist  :  IF IsItemInList(DefinedList, sym)
+                      THEN
+                         printf1("symbol %d off DefinedList\n", sym) ;
+                         FIO.FlushBuffer(FIO.StdOut) ;
+                         RemoveItemFromList(DefinedList, sym)
+                      END
+
+      ELSE
+         InternalError('unknown list', __FILE__, __LINE__)
+      END
+   ELSE
+      CASE lt OF
+
+      tofinishlist :  RemoveItemFromList(ToFinishList, sym) |
+      todolist     :  RemoveItemFromList(ToDoList, sym) |
+      todoconstants:  RemoveItemFromList(ToDoConstants, sym) |
+      definedlist  :  RemoveItemFromList(DefinedList, sym)
+
+      ELSE
+         InternalError('unknown list', __FILE__, __LINE__)
+      END
+   END
+END WatchRemoveList ;
 
 
 (*
@@ -254,8 +383,8 @@ BEGIN
    IF NOT GccKnowsAbout(sym)
    THEN
       PreAddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym)))) ;
-      IncludeItemIntoList(ToFinishList, sym) ;
-      IncludeItemIntoList(ToDoList, sym)
+      WatchIncludeList(sym, tofinishlist) ;
+      WatchIncludeList(sym, todolist)
    END ;
    RETURN( Mod2Gcc(sym) )
 END DoStartDeclaration ;
@@ -316,7 +445,7 @@ BEGIN
             InternalError('gcc has returned a different symbol on completion of a type', __FILE__, __LINE__)
             (* the solution is to allow:          PreAddModGcc(Sym, DeclareKindOfType(Sym)) *)
          END ;
-         RemoveItemFromList(ToFinishList, Sym) ;
+         WatchRemoveList(Sym, tofinishlist) ;
          n := NoOfItemsInList(ToFinishList) ;
          i := 0 ;
       END ;
@@ -386,8 +515,8 @@ BEGIN
       	    THEN
                (* add relationship between gccSym and Sym *)
                PreAddModGcc(Sym, DeclareKindOfType(Sym)) ;
-               IncludeItemIntoList(DefinedList, Sym) ;
-               RemoveItemFromList(ToDoList, Sym) ;
+               WatchIncludeList(Sym, definedlist) ;
+               WatchRemoveList(Sym, todolist) ;
                i := 0 ;
       	       NoMoreWritten := FALSE ;
                IF DebugFinishList
@@ -690,7 +819,7 @@ BEGIN
       THEN
          IF GccKnowsAbout(GetType(sym))
          THEN
-            IncludeItemIntoList(ToDoConstants, sym)
+            WatchIncludeList(sym, todoconstants)
          ELSE
             (* must wait for the type to be declared *)
             RETURN
@@ -730,7 +859,7 @@ BEGIN
             DeclareConstantFromTree(sym, PopIntegerTree())
          END
       ELSE
-         IncludeItemIntoList(ToDoConstants, sym)
+         WatchIncludeList(sym, todoconstants)
       END
    END
 END DeclareConstant ;
@@ -760,7 +889,7 @@ BEGIN
       THEN
          IF NOT IsVarient(sym)
          THEN
-            IncludeItemIntoList(ToDoList, sym)
+            WatchIncludeList(sym, todolist)
          END
       END ;
       RETURN( FALSE )
@@ -840,7 +969,7 @@ BEGIN
       END
    ELSIF (NOT GccKnowsAbout(Sym)) AND IsAModula2Type(Sym)
    THEN
-      IncludeItemIntoList(ToDoList, Sym) ;
+      WatchIncludeList(Sym, todolist) ;
       IF AllDependantsWritten(Sym)
       THEN
          (* add relationship between gccSym and Sym *)
@@ -849,7 +978,7 @@ BEGIN
          THEN
             gcc := DeclareOrFindKindOfType(Sym)
          END ;
-         RemoveItemFromList(ToDoList, Sym) ;
+         WatchRemoveList(Sym, todolist) ;
          PreAddModGcc(Sym, gcc) ;
          IF Debugging
          THEN
@@ -937,7 +1066,8 @@ VAR
    s: CARDINAL ;
 BEGIN
    s := GetScope(Sym) ;
-   IF (s=NulSym) OR IsDefImp(s) OR (IsModule(s) AND (GetScope(s)=NulSym))
+   IF (s=NulSym) OR IsDefImp(s) OR
+      (IsModule(s) AND (GetScope(s)=NulSym))
    THEN
       RETURN( s )
    ELSE
@@ -1296,8 +1426,8 @@ BEGIN
    IF unbounded#NulSym
    THEN
       AddModGcc(unbounded, DeclareUnbounded(unbounded)) ;
-      IncludeItemIntoList(DefinedList, unbounded) ;
-      RemoveItemFromList(ToDoList, unbounded) ;
+      WatchIncludeList(unbounded, definedlist) ;
+      WatchRemoveList(unbounded, todolist)
    END
 END DeclareAssociatedUnbounded ;
 
@@ -2380,7 +2510,7 @@ BEGIN
       END ;
       INC(i)
    UNTIL Field1=NulSym ;
-   RemoveItemFromList(ToFinishList, Sym) ;
+   WatchRemoveList(Sym, tofinishlist) ;
    RETURN( BuildEndRecord(VarientType, VarientList) )
 END DeclareVarient ;
 
@@ -2431,7 +2561,7 @@ BEGIN
       END ;
       INC(i)
    UNTIL Field=NulSym ;
-   RemoveItemFromList(ToFinishList, Sym) ;
+   WatchRemoveList(Sym, tofinishlist) ;
    RETURN( BuildEndRecord(RecordType, FieldList) )
 END DeclareRecord ;
 
@@ -2471,8 +2601,8 @@ BEGIN
       IF (NOT GccKnowsAbout(record))
       THEN
          AddModGcc(record, DeclareOrFindKindOfType(record)) ;
-         IncludeItemIntoList(DefinedList, record) ;
-         RemoveItemFromList(ToDoList, record)
+         WatchIncludeList(record, definedlist) ;
+         WatchRemoveList(record, todolist)
       END ;
       RETURN( Mod2Gcc(record) )
    END
@@ -2857,7 +2987,7 @@ BEGIN
          printf0('problems after completing the type definition (after)\n') ;
          DebugTree(t2)
       END ;
-      RemoveItemFromList(ToFinishList, sym)
+      WatchRemoveList(sym, tofinishlist)
    END ;
    PreAddModGcc(sym, t1) ;
    RETURN( t1 )
@@ -2980,7 +3110,7 @@ BEGIN
    THEN
       IF NOT GccKnowsAbout(type)
       THEN
-         IncludeItemIntoList(ToDoList, type)
+         WatchIncludeList(type, todolist)
       END
    ELSIF GccKnowsAbout(low) AND GccKnowsAbout(high)
    THEN
@@ -3012,12 +3142,12 @@ BEGIN
       END ;
       IF NOT GccKnowsAbout(Sym)
       THEN
-         IncludeItemIntoList(ToDoList, Sym)
+         WatchIncludeList(Sym, todolist)
       END ;
       type := GetType(Sym) ;
       IF (type#NulSym) AND (NOT GccKnowsAbout(type))
       THEN
-         IncludeItemIntoList(ToDoList, type)
+         WatchIncludeList(type, todolist)
       END
    END
 END CheckResolveSubrange ;
@@ -3037,13 +3167,13 @@ BEGIN
    (* low and high are not types but constants and they are resolved by M2GenGCC *)
    IF NOT GccKnowsAbout(low)
    THEN
-      IncludeItemIntoList(ToDoConstants, low) ;
-      IncludeItemIntoList(ToDoList, Sym)
+      WatchIncludeList(low, todoconstants) ;
+      WatchIncludeList(Sym, todolist)
    END ;
    IF NOT GccKnowsAbout(high)
    THEN
-      IncludeItemIntoList(ToDoConstants, high) ;
-      IncludeItemIntoList(ToDoList, Sym)
+      WatchIncludeList(high, todoconstants) ;
+      WatchIncludeList(Sym, todolist)
    END ;
    CheckResolveSubrange(Sym) ;
    RETURN(
@@ -3065,7 +3195,7 @@ VAR
 BEGIN
    IF NOT GccKnowsAbout(Sym)
    THEN
-      IncludeItemIntoList(ToDoList, Sym)
+      WatchIncludeList(Sym, todolist)
    END ;
    type := GetType(Sym) ;
    IF Debugging
@@ -3080,8 +3210,8 @@ BEGIN
       THEN
          printf0('no partially declared and nulname\n')
       END ;
-      IncludeItemIntoList(ToDoList, type) ;
-      IncludeItemIntoList(ToDoList, Sym) ;
+      WatchIncludeList(type, todolist) ;
+      WatchIncludeList(Sym, todolist) ;
       RETURN( FALSE )
    END ;
    IF IsSymTypeKnown(Sym, type)
@@ -3096,7 +3226,7 @@ BEGIN
       THEN
          printf0('no its type is unknown...\n')
       END ;
-      IncludeItemIntoList(ToDoList, type) ;
+      WatchIncludeList(type, todolist) ;
       RETURN( FALSE )
    END
 END IsPointerDependantsWritten ;
@@ -3178,8 +3308,14 @@ BEGIN
       	    Field2 := GetNth(Field1, j) ;
       	    IF Field2#NulSym
       	    THEN
+               IF IsVarient(Field2) AND (NOT IsVarientDependantsWritten(Field2))
+               THEN
+                  solved := FALSE
+               END ;
                type := GetType(Field2) ;
-       	       IF (NOT IsSymTypeKnown(Sym, type)) AND (NOT AllDependantsWritten(type))
+       	       IF (type#NulSym) AND
+                  (NOT IsSymTypeKnown(Sym, type)) AND
+                  (NOT AllDependantsWritten(type))
       	       THEN
       	       	  solved := FALSE
       	       END ;
@@ -3214,13 +3350,13 @@ BEGIN
  
    IF NOT IsSymTypeKnown(Sym, Type)
    THEN
-      IncludeItemIntoList(ToDoList, Sym) ;
-      IncludeItemIntoList(ToDoList, Type) ;
+      WatchIncludeList(Sym, todolist) ;
+      WatchIncludeList(Type, todolist) ;
       solved := FALSE
    END ;
    IF NOT AllDependantsWritten(Type)
    THEN
-      IncludeItemIntoList(ToDoList, Type) ;
+      WatchIncludeList(Type, todolist) ;
       solved := FALSE
    END ;
 
@@ -3239,12 +3375,12 @@ BEGIN
       High := GetTypeMax(Type) ;
       IF NOT GccKnowsAbout(Low)
       THEN
-         IncludeItemIntoList(ToDoConstants, Low) ;
+         WatchIncludeList(Low, todoconstants) ;
          solved := FALSE
       END ;
       IF NOT GccKnowsAbout(High)
       THEN
-         IncludeItemIntoList(ToDoConstants, High) ;
+         WatchIncludeList(High, todoconstants) ;
          solved := FALSE
       END
    END ;
@@ -3277,7 +3413,7 @@ BEGIN
       solved := TRUE ;
       IF NOT IsSymTypeKnown(sym, type)
       THEN
-         IncludeItemIntoList(ToDoList, type) ;
+         WatchIncludeList(type, todolist) ;
          solved := FALSE
       END ;
 
@@ -3287,12 +3423,12 @@ BEGIN
          high := GetTypeMax(type) ;
          IF NOT GccKnowsAbout(low)
          THEN
-            IncludeItemIntoList(ToDoConstants, low) ;
+            WatchIncludeList(low, todoconstants) ;
             solved := FALSE
          END ;
          IF NOT GccKnowsAbout(high)
          THEN
-            IncludeItemIntoList(ToDoConstants, high) ;
+            WatchIncludeList(high, todoconstants) ;
             solved := FALSE
          END
       END ;
@@ -3390,12 +3526,13 @@ BEGIN
    THEN
       IF NOT GccKnowsAbout(type)
       THEN
-         IncludeItemIntoList(ToDoList, type) ;
+         WatchIncludeList(type, todolist) ;
          solved := FALSE
       END ;
       IF NOT IsSymTypeKnown(type, GetType(type))
       THEN
-         IncludeItemIntoList(ToDoList, GetType(type))
+         WatchIncludeList(GetType(type), todolist) ;
+         solved := FALSE
       END
    END ;
    RETURN( solved )
@@ -3432,7 +3569,11 @@ BEGIN
    InitList(ToDoConstants) ;
    InitList(ToFinishList) ;
    InitList(DefinedList) ;
+   InitList(WatchList) ;
    HaveInitDefaultTypes := FALSE
+ ; AddSymToWatch(698)
+ ; AddSymToWatch(2913)
+ ; AddSymToWatch(147)
 END M2GCCDeclare.
 (*
  * Local variables:

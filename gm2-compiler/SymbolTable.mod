@@ -4570,6 +4570,11 @@ END PutFieldEnumeration ;
 
 PROCEDURE PutType (Sym: CARDINAL; TypeSymbol: CARDINAL) ;
 BEGIN
+   IF TypeSymbol=Sym
+   THEN
+      InternalError('not expecting a type to be declared as itself',
+                    __FILE__, __LINE__)
+   END ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 

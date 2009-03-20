@@ -1,3 +1,13 @@
+2009-03-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  tidied up formatting.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  introduced a
+	  debugging watch for the lists.
+	* gm2/gm2-compiler/P2SymBuild.mod:  added an
+	  error check to ensure types are not declared as
+	  themselves.
+	* gm2/gm2-libs-ch/sckt.c:  exit if an error occurs.
+
 2009-03-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  fixed a critical bug

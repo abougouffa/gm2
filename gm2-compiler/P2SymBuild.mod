@@ -875,15 +875,22 @@ BEGIN
       PushTF(Sym, name)
    ELSIF GetSymName(Type)=name
    THEN
-      IF IsUnknown(Type) OR (NOT IsDeclaredIn(GetCurrentScope(), Type))
+      IF IsUnknown(Type) OR
+         (NOT IsDeclaredIn(GetCurrentScope(), Type))
       THEN
          Sym := MakeType(name) ;
          IF NOT IsError(Sym)
          THEN
-            PutType(Sym, Type) ;
-            CheckForExportedImplementation(Sym) ;    (* May be an exported hidden type *)
-            (* if Type is an enumerated type then add its contents to the pseudo scope *)
-            CheckForEnumerationInCurrentModule(Type)
+            IF Sym=Type
+            THEN
+               MetaError1('attempting to declare a type {%1ad} as itself',
+                          Sym)
+            ELSE
+               PutType(Sym, Type) ;
+               CheckForExportedImplementation(Sym) ;    (* May be an exported hidden type *)
+               (* if Type is an enumerated type then add its contents to the pseudo scope *)
+               CheckForEnumerationInCurrentModule(Type)
+            END
          END ;
          PushTF(Sym, name)
       ELSE

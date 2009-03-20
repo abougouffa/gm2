@@ -96,6 +96,7 @@ typedef struct {
 
 int localExit (int i)
 {
+  exit(1);
 }
 
 /*

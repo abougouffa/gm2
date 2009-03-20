@@ -231,12 +231,12 @@ porting and bug fixing and rapid releasing count down towards..
 GNU Modula-2 will be fully ISO compliant.
 @end table
 
-There will be releases inbetween those outlined above and these releases
-may occur when GNU Modula-2 builds using a different GCC source tree.
-It is a goal that backward compatibility to gcc-3.3.6 will be provided
-as far as it is possible.  Releases will also occur if a key component
-of ISO Modula-2 is implemented (for example exception handling,
-complex types or @samp{FINALLY} is implemented).
+There will be releases inbetween those outlined above and these
+releases may occur when GNU Modula-2 builds using a different GCC
+source tree.  It is a goal that backward compatibility to gcc-3.3.6
+will be provided as far as it is possible.  Releases will also occur
+if a key component of ISO Modula-2 is implemented (for example
+exception handling, complex types or @samp{FINALLY} is implemented).
 
 @node Compiler options, Example usage, Release map, Using
 @section Compiler options
