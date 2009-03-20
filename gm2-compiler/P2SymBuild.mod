@@ -828,10 +828,11 @@ END BuildVariable ;
 
 PROCEDURE BuildType ;
 VAR
-   n1, n2: Name ;
+   isunknown: BOOLEAN ;
+   n1, n2   : Name ;
    Sym,
-   Type  : CARDINAL ;
-   name  : Name ;
+   Type     : CARDINAL ;
+   name     : Name ;
 BEGIN
    (*
       Two cases
@@ -875,7 +876,8 @@ BEGIN
       PushTF(Sym, name)
    ELSIF GetSymName(Type)=name
    THEN
-      IF IsUnknown(Type) OR
+      isunknown := IsUnknown(Type) ; 
+      IF isunknown OR
          (NOT IsDeclaredIn(GetCurrentScope(), Type))
       THEN
          Sym := MakeType(name) ;
@@ -883,8 +885,13 @@ BEGIN
          THEN
             IF Sym=Type
             THEN
-               MetaError1('attempting to declare a type {%1ad} as itself',
-                          Sym)
+               IF isunknown
+               THEN
+                  MetaError2('attempting to declare a type {%1ad} to a type which is itself unknown {%2ad}',
+                             Sym, Type)
+               ELSE
+                  MetaError1('attempting to declare a type {%1ad} as itself', Sym)
+               END
             ELSE
                PutType(Sym, Type) ;
                CheckForExportedImplementation(Sym) ;    (* May be an exported hidden type *)

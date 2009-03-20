@@ -11,7 +11,9 @@
 	* gm2/gm2-libs/configure.in:  added test code cfmakeraw.
 	* gm2/gm2-libs/gm2-libs-host.h.in:  added stub for
 	  cfmakeraw.
-
+	* gm2/gm2-compiler/P2SymBuild.mod:  catch if a type
+	  is being declared to itself.
+	
 2009-03-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  fixed a critical bug
