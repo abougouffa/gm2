@@ -1,3 +1,10 @@
+2009-04-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  simplified module by removing
+	  parameter compatibility array.  We now just use the assignment
+	  compatibility to test non var paramater types which avoids
+	  duplication of code.  Fixed a bug reported Jurgen Lerch.
+
 2009-03-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  tidied up formatting.
