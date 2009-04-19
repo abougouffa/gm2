@@ -2001,7 +2001,7 @@ BEGIN
    AddSymToWatch(1165) ;  (* watch goes here *)
    DebugLists ;
 *)
-   (* IncludeItemIntoList(WatchList, 7667) ; *)
+   (* IncludeItemIntoList(WatchList, 92) ; *)
    (* AddSymToWatch(6071) ; *)
    IF Debugging
    THEN
@@ -2207,7 +2207,8 @@ BEGIN
          DeclareConstant(GetDeclared(type), low) ;
          PreAddModGcc(typetype, BuildSubrangeType(KeyToCharStar(GetFullSymName(typetype)),
                                                   Mod2Gcc(GetType(typetype)),
-                                                  Mod2Gcc(low), Mod2Gcc(high)))
+                                                  Mod2Gcc(low), Mod2Gcc(high))) ;
+         IncludeItemIntoList(FullyDeclared, typetype)
       END ;
       (* gcc back end supports, type *)
       DeclareDefaultType(type, name, t)

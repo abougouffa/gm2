@@ -1,4 +1,10 @@
 2009-04-19       Gaius Mulley <gaius@gnu.org>
+	
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug which
+	  denied fixed sized set types from being correctly
+	  declared.
+	
+2009-04-19       Gaius Mulley <gaius@gnu.org>
 
 	* Huge amount of changes, most of which surround the new
 	  implementation of M2GCCDeclare.mod.  This uses a set of
