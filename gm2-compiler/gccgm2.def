@@ -68,7 +68,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildStartRecord, BuildStartVarientRecord, BuildEndRecord,
                  BuildFieldRecord, ChainOn, ChainOnParamValue, AddStringToTreeList,
                  BuildConstPointerType, BuildPointerType,
-                 BuildArrayType, BuildSetType,
+                 BuildStartArrayType, BuildEndArrayType, PutArrayType,
+                 BuildSetType,
                  BuildStartSetConstructor, BuildSetConstructorElement,
                  BuildEndSetConstructor,
                  BuildStartRecordConstructor, BuildEndRecordConstructor,
@@ -106,7 +107,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  DoJump,
                  BuildProcedureCallTree, BuildIndirectProcedureCallTree, BuildParam, BuildFunctValue,
                  BuildStartMainModule, BuildEndMainModule,
-                 BuildAsm, DebugTree,
+                 BuildAsm, DebugTree, GetDeclContext,
                  BuildVariableArrayAndDeclare,
                  RealToTree,
                  RememberConstant,
@@ -124,6 +125,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildPushFunctionContext, BuildPopFunctionContext,
                  BuildCap, BuildAbs, BuildTypeDeclaration,
                  BuildIfThenElseEnd, BuildIfThenDoEnd,
+                 BuildStartType, BuildEndType,
                  IsTrue, IsFalse,
 
                  AreConstantsEqual, AreRealOrComplexConstantsEqual,
@@ -174,6 +176,8 @@ PROCEDURE EmitLineNote (fn: ADDRESS; line: CARDINAL) ;
 *)
 
 PROCEDURE DeclareKnownType       (name: ADDRESS; type: Tree) : Tree ;
+PROCEDURE BuildStartType         (name: ADDRESS; type: Tree) : Tree ;
+PROCEDURE BuildEndType           (type: Tree) : Tree ;
 PROCEDURE DeclareKnownConstant   (type: Tree  ; value: Tree) : Tree ;
 PROCEDURE DeclareKnownVariable   (name: ADDRESS; type: Tree;
                                   isexported, isimported, istemporary, isglobal: BOOLEAN;
@@ -492,7 +496,7 @@ PROCEDURE BuildStart (name: ADDRESS; line: CARDINAL; inner: BOOLEAN) : Tree ;
 
 
 (*
-   BuildStart - ends the module prologue.
+   BuildEnd - ends the module prologue.
 *)
 
 PROCEDURE BuildEnd (t: Tree; nested: BOOLEAN) ;
@@ -532,18 +536,26 @@ PROCEDURE BuildStartEnumeration (name: ADDRESS) : Tree ;
 
 (*
    BuildEndEnumeration - finish building an enumerated type in gcc.
+                         enumvalues, is the chained list of enumerator
+                         fields.
                          The finished enumtype is returned.
 *)
 
-PROCEDURE BuildEndEnumeration (enumtype: Tree) : Tree ;
+PROCEDURE BuildEndEnumeration (enumtype: Tree; enumvalues: Tree) : Tree ;
 
 
 (*
    BuildEnumerator - builds an enumerator in the current enumerated type
                      and returns the enumerator.
+                     enumvalues is the current list of enumerator fields.
+                     This should be initially set to NULL_TREE by the
+                     caller and BuildEnumerator chains the enumerator
+                     fields one by one to this list.
 *)
 
-PROCEDURE BuildEnumerator (name: ADDRESS; value: Tree) : Tree ;
+PROCEDURE BuildEnumerator (name: ADDRESS;
+                           value: Tree;
+                           VAR enumvalues: Tree) : Tree ;
 
 
 (*
@@ -731,11 +743,26 @@ PROCEDURE BuildConstPointerType (totype: Tree) : Tree ;
 
 
 (*
-   BuildArrayType - creates an array which is indexed by IndexType and
-                    contains elements, ElementType.
+   BuildStartArrayType - creates an array with an indextype and elttype.
 *)
 
-PROCEDURE BuildArrayType (ElementType, IndexType: Tree) : Tree ;
+PROCEDURE BuildStartArrayType (indextype: Tree; elttype: Tree) : Tree ;
+
+
+(*
+   BuildEndArrayType - creates an array which is indexed by IndexType and
+                       contains elements, ElementType.
+*)
+
+PROCEDURE BuildEndArrayType (t: Tree; ElementType, IndexType: Tree) : Tree ;
+
+
+(*
+   PutArrayType - assigns the tree, type, to the array as:
+                  ARRAY [..] OF type
+*)
+
+PROCEDURE PutArrayType (array: Tree; type: Tree) ;
 
 
 (*
@@ -1328,6 +1355,13 @@ PROCEDURE BuildAsm (instr: Tree; IsVolatile: BOOLEAN; inputs, outputs, trash: Tr
 *)
 
 PROCEDURE DebugTree (t: Tree) ;
+
+
+(*
+   GetDeclContext - returns the DECL_CONTEXT of tree, t.
+*)
+
+PROCEDURE GetDeclContext (t: Tree) : Tree ;
 
 
 (*

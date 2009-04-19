@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -51,9 +51,12 @@ FROM M2MetaError IMPORT MetaError1 ;
 FROM M2Error IMPORT FlushErrors, InternalError ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3 ;
 
+FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, InBounds,
+                     DebugIndex ;
+
 FROM Lists IMPORT List, InitList, IncludeItemIntoList,
                   PutItemIntoList, GetItemFromList,
-                  RemoveItemFromList,
+                  RemoveItemFromList, ForeachItemInListDo,
       	       	  IsItemInList, NoOfItemsInList, KillList ;
 
 FROM SymbolTable IMPORT NulSym,
@@ -64,7 +67,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeType, PutType, MakeConstLit,
       	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
-                        PushValue, PopSize,
+                        PushValue, PopValue, PopSize,
                         IsTemporary, IsUnbounded, IsEnumeration, IsVar,
       	       	     	IsSubrange, IsPointer, IsRecord, IsArray,
                         IsFieldEnumeration,
@@ -122,7 +125,9 @@ FROM M2Scope IMPORT ScopeBlock, InitScopeBlock, KillScopeBlock, ForeachScopeBloc
 
 FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
-                  CollectConstructorDependants, PopConstructorTree, PopComplexTree ;
+                  IsConstructorDependants, WalkConstructorDependants,
+                  PopConstructorTree, PopComplexTree, PutConstructorSolved,
+                  ChangeToConstructor, EvaluateValue ;
 
 FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
@@ -141,8 +146,8 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
                    BuildSubrangeType,
                    BuildStartRecord, BuildEndRecord, BuildStartVarientRecord, BuildFieldRecord,
-                   BuildArrayIndexType, BuildArrayType, BuildSetType,
-                   DebugTree,
+                   BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
+                   DebugTree, GetDeclContext,
                    ChainOn,
                    BuildPointerType, BuildConstPointerType,
                    BuildStartFunctionType, BuildEndFunctionType,
@@ -150,7 +155,8 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildParameterDeclaration,
                    BuildStartFunctionDeclaration, BuildEndFunctionDeclaration,
                    BuildStartMainModule, BuildEndMainModule,
-                   RememberType, BuildTypeDeclaration,
+                   BuildStartType, BuildEndType, PutArrayType,
+                   RememberType, BuildTypeDeclaration, RememberConstant,
                    GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                    BuildSize, MarkFunctionReferenced,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
@@ -162,73 +168,143 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    GetM2ComplexType, GetM2LongComplexType, GetM2ShortComplexType,
                    GetM2CType ;
 
+TYPE
+   StartProcedure = PROCEDURE (ADDRESS) : Tree ;
+   ListType       = (fullydeclared, partiallydeclared, niltypedarrays,
+                     todolist, tobesolvedbyquads) ;
+
+
 (* %%%FORWARD%%%
 PROCEDURE AlignDeclarationWithSource (sym: CARDINAL) ; FORWARD ;
 PROCEDURE PrintTerse (sym: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareFileName ; FORWARD ;
-PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareImportedVariables (Sym: WORD) ; FORWARD ;
+PROCEDURE DeclareImportedVariables (sym: WORD) ; FORWARD ;
 PROCEDURE DeclareSet (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclarePointer (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareLocalVariables (Sym: CARDINAL; i: CARDINAL) ; FORWARD ;
+PROCEDURE DeclarePointer (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareLocalVariables (sym: CARDINAL; i: CARDINAL) ; FORWARD ;
 PROCEDURE DeclareDefaultTypes ; FORWARD ;
 PROCEDURE DeclareGlobalVariables (ModSym: WORD) ; FORWARD ;
-PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareType (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE DeclareOrFindKindOfType (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsEnumerationDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSubrangeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsPointerDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsRecordDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsVarientDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsSetDependantsWritten (sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE IsProcTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ; FORWARD ;
-PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ; FORWARD ;
-PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ; FORWARD ;
+PROCEDURE DeclareModuleVariables (sym: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareType (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE IsUnboundedDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsEnumerationDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsSubrangeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsRecordDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsVarientDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsArrayDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsSetDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsProcTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE DeclareEnumeration (sym: WORD) : Tree ; FORWARD ;
+PROCEDURE AllDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE DeclareVarient (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE PostDeclareVarient (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE IsEffectivelyImported (ModSym, sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE DeclareUnboundedProcedureParameters (sym: WORD) ; FORWARD ;
 PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ; FORWARD ;
-PROCEDURE DeclareAssociatedUnbounded (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareAssociatedUnbounded (sym: CARDINAL) ; FORWARD ;
+PROCEDURE DeclareUnbounded (sym: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE DeclareTypesAndConstantsInRange (start, end: CARDINAL) ; FORWARD ;
+PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE TypeConstFullyDeclared (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE CanCompleteDeclarationOf (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE TraverseDependants (sym: WORD) ; FORWARD ;
+PROCEDURE WalkEnumerationDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkSubrangeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE IsSubrangeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkPointerDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkRecordDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkVarientDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkArrayDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkSetDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkProcTypeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkUnboundedDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE WalkTypeDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE DeclareConst (tokenno: CARDINAL; sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE IsConstDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE DeclareRecord (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareProcType (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareTypeConstFully (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE WalkVarDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE BuildIndex (sym: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE IsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE IsNilTypedArrays (sym: CARDINAL) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE IsVarientFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
+PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
-   Debugging       = FALSE ;
-   DebugFinishList = FALSE ;
-
-TYPE
-   StartProcedure = PROCEDURE (ADDRESS) : Tree ;
-   ListType       = (tofinishlist, todolist, todoconstants,
-                     definedlist) ;
+   Debugging = FALSE ;
 
 VAR
-   ToFinishList,                    (* those types which have need to *)
+   ToBeSolvedByQuads,               (* constants which must be solved *)
+                                    (* by processing the quadruples.  *)
+   NilTypedArrays,                  (* arrays which have NIL as their *)
+                                    (* type.                          *)
+   FullyDeclared,                   (* those symbols which have been  *)
+                                    (* fully declared.                *)
+   PartiallyDeclared,               (* those types which have need to *)
                                     (* be finished (but already       *)
-                                    (* started: records & function    *)
-                                    (* types).                        *)
+                                    (* started: records, function,    *)
+                                    (* and array type).               *)
    ToDoList            : List ;     (* Contains a list of all         *)
                                     (* outstanding types that need to *)
                                     (* be declared to GCC once        *)
                                     (* its dependants have            *)
                                     (* been written.                  *)
-   ToDoConstants       : List ;     (* all unresolved constants go    *)
-                                    (* here, M2GenGCC resolves them.  *)
-   DefinedList         : List ;     (* those types which have been    *)
-                                    (* declared to GCC.               *)
    AnotherType         : CARDINAL ; (* The number of AnotherTypes     *)
                                     (* that have been produced.       *)
    HaveInitDefaultTypes: BOOLEAN ;  (* have we initialized them yet?  *)
    WatchList           : List ;     (* List of symbols being watched  *)
-
+   EnumerationIndex    : Index ;
+   action              : IsAction ;
+   enumDeps            : BOOLEAN ;
 
 
 PROCEDURE mystop ; BEGIN END mystop ;
+
+
+(*
+   PrintSym - 
+*)
+
+PROCEDURE PrintSym (sym: WORD) ;
+BEGIN
+   printf1('%d, ', sym)
+END PrintSym ;
+
+
+(*
+   DebugList - 
+*)
+
+PROCEDURE DebugList (a: ARRAY OF CHAR; l: List) ;
+BEGIN
+   printf0(a) ;
+   printf0(' {') ;
+   ForeachItemInListDo(l, PrintSym) ;
+   printf0('}\n')
+END DebugList ;
+
+
+(*
+   DebugLists - 
+*)
+
+PROCEDURE DebugLists ;
+BEGIN
+   DebugList('ToDoList', ToDoList) ;
+   DebugList('PartiallyDeclared', PartiallyDeclared) ;
+   DebugList('FullyDeclared', FullyDeclared) ;
+   DebugList('NilTypedArrays', NilTypedArrays)
+END DebugLists ;
 
 
 (*
@@ -237,9 +313,15 @@ PROCEDURE mystop ; BEGIN END mystop ;
                    lists.
 *)
 
-PROCEDURE AddSymToWatch (sym: CARDINAL) ;
+PROCEDURE AddSymToWatch (sym: WORD) ;
 BEGIN
-   IncludeItemIntoList(WatchList, sym)
+   IF NOT IsItemInList(WatchList, sym)
+   THEN
+      IncludeItemIntoList(WatchList, sym) ;
+      WalkDependants(sym, AddSymToWatch) ;
+      printf1("watching symbol %d\n", sym) ;
+      FIO.FlushBuffer(FIO.StdOut)
+   END
 END AddSymToWatch ;
 
 
@@ -256,30 +338,36 @@ BEGIN
    THEN
       CASE lt OF
 
-      tofinishlist :  IF NOT IsItemInList(ToFinishList, sym)
-                      THEN
-                         printf1("symbol %d -> ToFinishList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         IncludeItemIntoList(ToFinishList, sym)
-                      END |
-      todolist     :  IF NOT IsItemInList(ToDoList, sym)
-                      THEN
-                         printf1("symbol %d -> ToDoList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         IncludeItemIntoList(ToDoList, sym)
-                      END |
-      todoconstants:  IF NOT IsItemInList(ToDoConstants, sym)
-                      THEN
-                         printf1("symbol %d -> ToDoConstants\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         IncludeItemIntoList(ToDoConstants, sym)
-                      END |
-      definedlist  :  IF NOT IsItemInList(DefinedList, sym)
-                      THEN
-                         printf1("symbol %d -> DefinedList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         IncludeItemIntoList(DefinedList, sym)
-                      END
+      tobesolvedbyquads :  IF NOT IsItemInList(ToBeSolvedByQuads, sym)
+                           THEN
+                              printf1("symbol %d -> ToBeSolvedByQuads\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              IncludeItemIntoList(ToBeSolvedByQuads, sym)
+                           END |
+      fullydeclared     :  IF NOT IsItemInList(FullyDeclared, sym)
+                           THEN
+                              printf1("symbol %d -> FullyDeclared\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              IncludeItemIntoList(FullyDeclared, sym)
+                           END |
+      partiallydeclared :  IF NOT IsItemInList(PartiallyDeclared, sym)
+                           THEN
+                              printf1("symbol %d -> PartiallyDeclared\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              IncludeItemIntoList(PartiallyDeclared, sym)
+                           END |
+      todolist          :  IF NOT IsItemInList(ToDoList, sym)
+                           THEN
+                              printf1("symbol %d -> ToDoList\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              IncludeItemIntoList(ToDoList, sym)
+                           END |
+      niltypedarrays    :  IF NOT IsItemInList(NilTypedArrays, sym)
+                           THEN
+                              printf1("symbol %d -> NilTypedArrays\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              IncludeItemIntoList(NilTypedArrays, sym)
+                           END
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -287,10 +375,11 @@ BEGIN
    ELSE
       CASE lt OF
 
-      tofinishlist :  IncludeItemIntoList(ToFinishList, sym) |
-      todolist     :  IncludeItemIntoList(ToDoList, sym) |
-      todoconstants:  IncludeItemIntoList(ToDoConstants, sym) |
-      definedlist  :  IncludeItemIntoList(DefinedList, sym)
+      tobesolvedbyquads :  IncludeItemIntoList(ToBeSolvedByQuads, sym) |
+      fullydeclared     :  IncludeItemIntoList(FullyDeclared, sym) |
+      partiallydeclared :  IncludeItemIntoList(PartiallyDeclared, sym) |
+      todolist          :  IncludeItemIntoList(ToDoList, sym) |
+      niltypedarrays    :  IncludeItemIntoList(NilTypedArrays, sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -312,30 +401,36 @@ BEGIN
    THEN
       CASE lt OF
 
-      tofinishlist :  IF IsItemInList(ToFinishList, sym)
-                      THEN
-                         printf1("symbol %d off ToFinishList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         RemoveItemFromList(ToFinishList, sym)
-                      END |
-      todolist     :  IF IsItemInList(ToDoList, sym)
-                      THEN
-                         printf1("symbol %d off ToDoList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         RemoveItemFromList(ToDoList, sym)
-                      END |
-      todoconstants:  IF IsItemInList(ToDoConstants, sym)
-                      THEN
-                         printf1("symbol %d off ToDoConstants\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         RemoveItemFromList(ToDoConstants, sym)
-                      END |
-      definedlist  :  IF IsItemInList(DefinedList, sym)
-                      THEN
-                         printf1("symbol %d off DefinedList\n", sym) ;
-                         FIO.FlushBuffer(FIO.StdOut) ;
-                         RemoveItemFromList(DefinedList, sym)
-                      END
+      tobesolvedbyquads :  IF IsItemInList(ToBeSolvedByQuads, sym)
+                           THEN
+                              printf1("symbol %d off ToBeSolvedByQuads\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              RemoveItemFromList(ToBeSolvedByQuads, sym)
+                           END |
+      fullydeclared     :  IF IsItemInList(FullyDeclared, sym)
+                           THEN
+                              printf1("symbol %d off FullyDeclared\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              RemoveItemFromList(FullyDeclared, sym)
+                           END |
+      partiallydeclared :  IF IsItemInList(PartiallyDeclared, sym)
+                           THEN
+                              printf1("symbol %d off PartiallyDeclared\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              RemoveItemFromList(PartiallyDeclared, sym)
+                           END |
+      todolist          :  IF IsItemInList(ToDoList, sym)
+                           THEN
+                              printf1("symbol %d off ToDoList\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              RemoveItemFromList(ToDoList, sym)
+                           END |
+      niltypedarrays    :  IF IsItemInList(NilTypedArrays, sym)
+                           THEN
+                              printf1("symbol %d off NilTypedArrays\n", sym) ;
+                              FIO.FlushBuffer(FIO.StdOut) ;
+                              RemoveItemFromList(NilTypedArrays, sym)
+                           END
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -343,16 +438,42 @@ BEGIN
    ELSE
       CASE lt OF
 
-      tofinishlist :  RemoveItemFromList(ToFinishList, sym) |
-      todolist     :  RemoveItemFromList(ToDoList, sym) |
-      todoconstants:  RemoveItemFromList(ToDoConstants, sym) |
-      definedlist  :  RemoveItemFromList(DefinedList, sym)
+      tobesolvedbyquads :  RemoveItemFromList(ToBeSolvedByQuads, sym) |
+      fullydeclared     :  RemoveItemFromList(FullyDeclared, sym) |
+      partiallydeclared :  RemoveItemFromList(PartiallyDeclared, sym) |
+      todolist          :  RemoveItemFromList(ToDoList, sym) |
+      niltypedarrays    :  RemoveItemFromList(NilTypedArrays, sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
       END
    END
 END WatchRemoveList ;
+
+
+(*
+   GetEnumList - 
+*)
+
+PROCEDURE GetEnumList (sym: CARDINAL) : Tree ;
+BEGIN
+   IF InBounds(EnumerationIndex, sym)
+   THEN
+      RETURN( GetIndice(EnumerationIndex, sym) )
+   ELSE
+      RETURN( NIL )
+   END
+END GetEnumList ;
+
+
+(*
+   PutEnumList - 
+*)
+
+PROCEDURE PutEnumList (sym: CARDINAL; enumlist: Tree) ;
+BEGIN
+   PutIndice(EnumerationIndex, sym, enumlist)
+END PutEnumList ;
 
 
 (*
@@ -382,12 +503,168 @@ PROCEDURE DoStartDeclaration (sym: CARDINAL; p: StartProcedure) : Tree ;
 BEGIN
    IF NOT GccKnowsAbout(sym)
    THEN
-      PreAddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym)))) ;
-      WatchIncludeList(sym, tofinishlist) ;
-      WatchIncludeList(sym, todolist)
+      PreAddModGcc(sym, p(KeyToCharStar(GetFullSymName(sym))))
    END ;
    RETURN( Mod2Gcc(sym) )
 END DoStartDeclaration ;
+
+
+(*
+   ArrayComponentsDeclared - returns TRUE if array, sym,
+                             subscripts and type are known.
+*)
+
+PROCEDURE ArrayComponentsDeclared (sym: CARDINAL) : BOOLEAN ;
+VAR
+   Subscript      : CARDINAL ;
+   Type, High, Low: CARDINAL ;
+BEGIN
+   Subscript := GetArraySubscript(sym) ;
+   Assert(IsSubscript(Subscript)) ;
+   Type := SkipType(GetType(Subscript)) ;
+   Low := GetTypeMin(Type) ;
+   High := GetTypeMax(Type) ;
+   RETURN( IsFullyDeclared(Type) AND
+           IsFullyDeclared(Low) AND
+           IsFullyDeclared(High) )
+END ArrayComponentsDeclared ;
+
+
+(*
+   CanDeclareTypePartially - return TRUE if we are able to make a
+                             gcc partially created type.
+*)
+
+PROCEDURE CanDeclareTypePartially (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsProcType(sym) OR IsRecord(sym) OR
+           (IsType(sym) AND IsNilTypedArrays(GetType(sym))) )
+END CanDeclareTypePartially ;
+
+
+(*
+   DeclareTypePartially - create the gcc partial type symbol from, sym.
+*)
+
+PROCEDURE DeclareTypePartially (sym: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   IF IsRecord(sym)
+   THEN
+      t := DoStartDeclaration(sym, BuildStartRecord)
+   ELSIF IsProcType(sym)
+   THEN
+      t := DoStartDeclaration(sym, BuildStartFunctionType)
+   ELSIF IsType(sym)
+   THEN
+      IF NOT GccKnowsAbout(sym)
+      THEN
+         PreAddModGcc(sym, BuildStartType(KeyToCharStar(GetFullSymName(sym)),
+                                          Mod2Gcc(GetType(sym))))
+      END
+   ELSE
+      InternalError('do not know how to create a partial type from this symbol',
+                    __FILE__, __LINE__)
+   END ;
+   WatchIncludeList(sym, partiallydeclared) ;
+   WatchIncludeList(sym, todolist)
+END DeclareTypePartially ;
+
+
+(*
+   CanDeclareArrayAsNil - 
+*)
+
+PROCEDURE CanDeclareArrayAsNil (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsArray(sym) AND ArrayComponentsDeclared(sym) )
+END CanDeclareArrayAsNil ;
+
+
+(*
+   DeclareArrayAsNil - 
+*)
+
+PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
+BEGIN
+   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL)) ;
+   WatchIncludeList(sym, niltypedarrays)
+END DeclareArrayAsNil ;
+
+
+(*
+   CanDeclareArrayPartially - 
+*)
+
+PROCEDURE CanDeclareArrayPartially (sym: CARDINAL) : BOOLEAN ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   IF IsArray(sym)
+   THEN
+      type := GetType(sym) ;
+      IF IsPartiallyOrFullyDeclared(type) OR
+         (IsPointer(type) AND IsNilTypedArrays(type))
+      THEN
+         RETURN( TRUE )
+      END
+   END ;
+   RETURN( FALSE )
+END CanDeclareArrayPartially ;
+
+
+(*
+   DeclareArrayPartially - 
+*)
+
+PROCEDURE DeclareArrayPartially (sym: CARDINAL) ;
+BEGIN
+   Assert(IsArray(sym) AND GccKnowsAbout(sym)) ;
+   PutArrayType(Mod2Gcc(sym), Mod2Gcc(GetType(sym))) ;
+   WatchIncludeList(sym, partiallydeclared)
+END DeclareArrayPartially ;
+
+
+(*
+   CanDeclarePointerToNilArray - 
+*)
+
+PROCEDURE CanDeclarePointerToNilArray (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsPointer(sym) AND IsNilTypedArrays(GetType(sym)) )
+END CanDeclarePointerToNilArray ;
+
+
+(*
+   DeclarePointerToNilArray - 
+*)
+
+PROCEDURE DeclarePointerToNilArray (sym: CARDINAL) ;
+BEGIN
+   PreAddModGcc(sym, BuildPointerType(Mod2Gcc(GetType(sym)))) ;
+   WatchIncludeList(sym, niltypedarrays)
+END DeclarePointerToNilArray ;
+
+
+(*
+   CanPromotePointerFully - 
+*)
+
+PROCEDURE CanPromotePointerFully (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsPointer(sym) AND IsPartiallyOrFullyDeclared(GetType(sym)) )
+END CanPromotePointerFully ;
+
+
+(*
+   PromotePointerFully - 
+*)
+
+PROCEDURE PromotePointerFully (sym: CARDINAL) ;
+BEGIN
+   WatchIncludeList(sym, fullydeclared)
+END PromotePointerFully ;
 
 
 (*
@@ -397,244 +674,531 @@ END DoStartDeclaration ;
 
 PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( GccKnowsAbout(sym) AND (NOT IsItemInList(ToFinishList, sym)) )
+   RETURN( IsItemInList(FullyDeclared, sym) )
 END CompletelyResolved ;
 
 
 (*
-   CheckToFinishList - checks the ToFinishList to determine whether we can complete
-                       and partially built records or varient record.
+   IsTypeQ - returns TRUE if all q(dependants) of, sym,
+             return TRUE.
 *)
 
-PROCEDURE CheckToFinishList (MustBeResolved: BOOLEAN) ;
-VAR
-   t   : Tree ;
-   n1  : Name ;
-   Sym,
-   i, n: CARDINAL ;
+PROCEDURE IsTypeQ (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 BEGIN
-   IF DebugFinishList
+   IF IsEnumeration(sym)
    THEN
-      printf0('ToFinishList { ')
-   END ;
-   i := 1 ;
-   n := NoOfItemsInList(ToFinishList) ;
-   WHILE i<=n DO
-      Sym := GetItemFromList(ToFinishList, i) ;
-      IF DebugFinishList
-      THEN
-         n1 := GetSymName(Sym) ;
-         printf2('%d %a, ', Sym, n1)
-      END ;
-      INC(i)
-   END ;
-   IF DebugFinishList
+      RETURN( IsEnumerationDependants(sym, q) )
+   ELSIF IsFieldEnumeration(sym)
    THEN
-      printf0('}\n')
-   END ;
+      RETURN( TRUE )
+   ELSIF IsSubrange(sym)
+   THEN
+      RETURN( IsSubrangeDependants(sym, q) )
+   ELSIF IsPointer(sym)
+   THEN
+      RETURN( IsPointerDependants(sym, q) )
+   ELSIF IsRecord(sym)
+   THEN
+      RETURN( IsRecordDependants(sym, q) )
+   ELSIF IsRecordField(sym)
+   THEN
+      RETURN( IsRecordFieldDependants(sym, q) )
+   ELSIF IsVarient(sym)
+   THEN
+      RETURN( IsVarientDependants(sym, q) )
+   ELSIF IsFieldVarient(sym)
+   THEN
+      RETURN( IsVarientFieldDependants(sym, q) )
+   ELSIF IsArray(sym)
+   THEN
+      RETURN( IsArrayDependants(sym, q) )
+   ELSIF IsProcType(sym)
+   THEN
+      RETURN( IsProcTypeDependants(sym, q) )
+   ELSIF IsUnbounded(sym)
+   THEN
+      RETURN( IsUnboundedDependants(sym, q) )
+   ELSIF IsSet(sym)
+   THEN
+      RETURN( IsSetDependants(sym, q) )
+   ELSIF IsType(sym)
+   THEN
+      RETURN( IsTypeDependants(sym, q) )
+   ELSIF IsConst(sym)
+   THEN
+      RETURN( IsConstDependants(sym, q) )
+   ELSE
+      RETURN( TRUE )
+   END
+END IsTypeQ ;
 
-   i := 1 ;
-   n := NoOfItemsInList(ToFinishList) ;
-   WHILE i<=n DO
-      Sym := GetItemFromList(ToFinishList, i) ;
-      IF AllDependantsWritten(Sym)
-      THEN
-         t := Mod2Gcc(Sym) ;
-         IF t#DeclareKindOfType(Sym)
-         THEN
-            InternalError('gcc has returned a different symbol on completion of a type', __FILE__, __LINE__)
-            (* the solution is to allow:          PreAddModGcc(Sym, DeclareKindOfType(Sym)) *)
-         END ;
-         WatchRemoveList(Sym, tofinishlist) ;
-         n := NoOfItemsInList(ToFinishList) ;
-         i := 0 ;
-      END ;
-      INC(i)
-   END ;
-   IF MustBeResolved AND (NoOfItemsInList(ToFinishList)#0)
+
+(*
+   IsNilTypedArrays - returns TRUE if, sym, is dependant upon a NIL typed array
+*)
+
+PROCEDURE IsNilTypedArrays (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsItemInList(NilTypedArrays, sym) )
+END IsNilTypedArrays ;
+
+
+(*
+   IsFullyDeclared - returns TRUE if, sym, is fully declared.
+*)
+
+PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsItemInList(FullyDeclared, sym) )
+END IsFullyDeclared ;
+
+
+(*
+   AllDependantsFullyDeclared - returns TRUE if all dependants of,
+                                sym, are declared.
+*)
+
+PROCEDURE AllDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsTypeQ(sym, IsFullyDeclared) )
+END AllDependantsFullyDeclared ;
+
+
+(*
+   NotAllDependantsFullyDeclared - returns TRUE if any dependants of,
+                                   sym, are not declared.
+*)
+
+PROCEDURE NotAllDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( NOT IsTypeQ(sym, IsFullyDeclared) )
+END NotAllDependantsFullyDeclared ;
+
+
+(*
+   IsPartiallyDeclared - returns TRUE if, sym, is partially declared.
+*)
+
+PROCEDURE IsPartiallyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsItemInList(PartiallyDeclared, sym) )
+END IsPartiallyDeclared ;
+
+
+(*
+   AllDependantsPartiallyDeclared - returns TRUE if all dependants of,
+                                    sym, are partially declared.
+*)
+
+PROCEDURE AllDependantsPartiallyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsTypeQ(sym, IsPartiallyDeclared) )
+END AllDependantsPartiallyDeclared ;
+
+
+(*
+   NotAllDependantsPartiallyDeclared - returns TRUE if any dependants of,
+                                       sym, are not partially declared.
+*)
+
+PROCEDURE NotAllDependantsPartiallyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( NOT IsTypeQ(sym, IsPartiallyDeclared) )
+END NotAllDependantsPartiallyDeclared ;
+
+
+(*
+   IsPartiallyOrFullyDeclared - returns TRUE if, sym, is partially or fully declared.
+*)
+
+PROCEDURE IsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsItemInList(PartiallyDeclared, sym) OR
+           IsItemInList(FullyDeclared, sym) )
+END IsPartiallyOrFullyDeclared ;
+
+
+(*
+   AllDependantsPartiallyOrFullyDeclared - returns TRUE if all dependants of,
+                                           sym, are partially or fully declared.
+*)
+
+PROCEDURE AllDependantsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsTypeQ(sym, IsPartiallyOrFullyDeclared) )
+END AllDependantsPartiallyOrFullyDeclared ;
+
+
+(*
+   NotAllDependantsPartiallyOrFullyDeclared - returns TRUE if all dependants of,
+                                              sym, are not partially and not fully
+                                              declared.
+*)
+
+PROCEDURE NotAllDependantsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsTypeQ(sym, IsPartiallyOrFullyDeclared) )
+END NotAllDependantsPartiallyOrFullyDeclared ;
+
+
+(*
+   TypeConstDependantsFullyDeclared - returns TRUE if sym is a constant or
+                                      type and its dependants are fully
+                                      declared.
+*)
+
+PROCEDURE TypeConstDependantsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (NOT IsVar(sym)) AND
+           (NOT IsParameter(sym)) AND
+           AllDependantsFullyDeclared(sym) )
+END TypeConstDependantsFullyDeclared ;
+
+
+(*
+   CanBeDeclaredViaPartialDependants - returns TRUE if this symbol
+                                       can be declared by partial
+                                       dependants.  Such a symbol must
+                                       be a record, proctype or
+                                       an array.
+*)
+
+PROCEDURE CanBeDeclaredViaPartialDependants (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (IsPointer(sym) OR IsProcType(sym)) AND
+           AllDependantsPartiallyOrFullyDeclared(sym) )
+END CanBeDeclaredViaPartialDependants ;
+
+
+(*
+   DeclareConstFully - will add, sym, to the fully declared list and
+                       also remove it from the to do list.  This is
+                       called indirectly from M2GenGCC as it calculates
+                       constants during quadruple processing.
+*)
+
+PROCEDURE DeclareConstFully (sym: CARDINAL) ;
+BEGIN
+   WatchIncludeList(sym, fullydeclared) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchRemoveList(sym, partiallydeclared)
+END DeclareConstFully ;
+
+
+(*
+   PutToBeSolvedByQuads - places, sym, to this list and returns,
+                          sym.
+*)
+
+PROCEDURE PutToBeSolvedByQuads (sym: CARDINAL) ;
+BEGIN
+   WatchIncludeList(sym, tobesolvedbyquads)
+END PutToBeSolvedByQuads ;
+
+
+(*
+   DeclareTypeConstFully - declare the GCC type and add the double
+                           book keeping entry.
+*)
+
+PROCEDURE DeclareTypeConstFully (sym: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   IF NOT IsItemInList(ToBeSolvedByQuads, sym)
    THEN
-      printf0('cannot resolve the following: ') ;
-      i := 1 ;
-      n := NoOfItemsInList(ToFinishList) ;
-      WHILE i<=n DO
-         Sym := GetItemFromList(ToFinishList, i) ;
-         IF DebugFinishList
+      IF IsProcedure(sym) OR IsModule(sym) OR IsDefImp(sym)
+      THEN
+         WatchIncludeList(sym, fullydeclared) ;
+         WatchRemoveList(sym, partiallydeclared) ;
+         WatchRemoveList(sym, todolist)
+      ELSE
+         t := TypeConstFullyDeclared(sym) ;
+         IF t#NIL
          THEN
-            n1 := GetSymName(Sym) ;
-            printf2('%d %a, ', Sym, n1)
+            (* add relationship between gccsym and sym *)
+            PreAddModGcc(sym, t) ;
+            WatchIncludeList(sym, fullydeclared) ;
+            WatchRemoveList(sym, partiallydeclared) ;
+            WatchRemoveList(sym, todolist)
+         END
+      END
+   END
+END DeclareTypeConstFully ;
+
+
+(*
+   DeclareTypeFromPartial - declare the full GCC type from a partial type
+                            and add the double book keeping entry.
+*)
+
+PROCEDURE DeclareTypeFromPartial (sym: CARDINAL) ;
+VAR
+   t: Tree ;
+BEGIN
+   t := CanCompleteDeclarationOf(sym) ;
+   IF t=NIL
+   THEN
+      InternalError('expecting to be able to create a gcc type',
+                    __FILE__, __LINE__)
+   ELSE
+      AddModGcc(sym, t) ;
+      WatchIncludeList(sym, fullydeclared) ;
+      WatchRemoveList(sym, partiallydeclared) ;
+      DeclareAssociatedUnbounded(sym)
+   END
+END DeclareTypeFromPartial ;
+
+
+(*
+   DeclarePointerTypeFully - if, sym, is a pointer type then
+                             declare it.
+*)
+
+PROCEDURE DeclarePointerTypeFully (sym: CARDINAL) ;
+BEGIN
+   IF IsPointer(sym)
+   THEN
+      WatchIncludeList(sym, fullydeclared) ;
+      WatchRemoveList(sym, partiallydeclared) ;
+      WatchRemoveList(sym, todolist) ;
+      PreAddModGcc(sym, DeclarePointer(sym))
+   ELSE
+      WatchIncludeList(sym, todolist)
+   END
+END DeclarePointerTypeFully ;
+
+
+(*
+   CanBeDeclaredPartiallyViaPartialDependants - returns TRUE if, sym,
+                                                can be partially declared via
+                                                another partially declared type.
+*)
+
+PROCEDURE CanBeDeclaredPartiallyViaPartialDependants (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsType(sym) AND AllDependantsPartiallyDeclared(sym) )
+END CanBeDeclaredPartiallyViaPartialDependants ;
+
+
+(*
+   EmitCircularDependancyError - issue a dependancy error.
+*)
+
+PROCEDURE EmitCircularDependancyError (sym: CARDINAL) ;
+BEGIN
+   MetaError1('circular dependancy error found when trying to resolve {%1Uad}',
+              sym)
+END EmitCircularDependancyError ;
+
+
+(*
+   ForeachTryDeclare - while q(of one sym in l) is true
+                          for each symbol in, l,
+                          if q(sym)
+                          then
+                             p(sym)
+                          end
+                       end
+*)
+
+PROCEDURE ForeachTryDeclare (start, end: CARDINAL;
+                             t: ListType; l: List;
+                             q: IsAction ; p: WalkAction) : BOOLEAN ;
+VAR
+   oneResolved,
+   noMoreWritten: BOOLEAN ;
+   sym          : CARDINAL ;
+   n, i         : CARDINAL ;
+BEGIN
+   oneResolved := FALSE ;
+   REPEAT
+      noMoreWritten := TRUE ;
+      n := NoOfItemsInList(l) ;
+      i := 1 ;
+      WHILE i<=n DO
+      	 sym := GetItemFromList(l, i) ;
+         IF q(sym)
+         THEN
+            WatchRemoveList(sym, t) ;
+            p(sym) ;
+            (* p(sym) might have replaced sym into the list *)
+            IF NOT IsItemInList(l, sym)
+            THEN
+               i := 0 ;
+               noMoreWritten := FALSE ;
+               oneResolved := TRUE ;
+               DEC(n)
+            END
          END ;
          INC(i)
-      END ;
-      IF DebugFinishList
-      THEN
-         printf0('}\n')
-      END ;
-      InternalError('partially declared types are not all resolved',
-                    __FILE__, __LINE__)
+      END
+   UNTIL noMoreWritten ;
+   RETURN( oneResolved )
+END ForeachTryDeclare ;
+
+
+(*
+   testThis - 
+*)
+
+PROCEDURE testThis ;
+VAR
+   t      : Tree ;
+   type,
+   pointer,
+   array  : CARDINAL ;
+BEGIN
+   array := 628 ;
+   IF NOT GccKnowsAbout(array)
+   THEN
+      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL))
+   END ;
+   pointer := 626 ;
+   IF NOT GccKnowsAbout(pointer)
+   THEN
+      PreAddModGcc(pointer, BuildPointerType(Mod2Gcc(array)))
+   END ;
+   type := 627 ;
+   IF NOT GccKnowsAbout(type)
+   THEN
+      PreAddModGcc(type, BuildStartType(KeyToCharStar(GetFullSymName(type)),
+                                        Mod2Gcc(pointer))) ;
+      PutArrayType(Mod2Gcc(array), Mod2Gcc(type)) ;
+      t := BuildEndType(Mod2Gcc(type)) ;
+      WatchRemoveList(type, todolist) ;
+      WatchIncludeList(type, fullydeclared) ;
+      WatchRemoveList(pointer, todolist) ;
+      WatchIncludeList(pointer, fullydeclared) ;
+      t := DeclareArray(array) ;
+      WatchIncludeList(array, fullydeclared) ;
+      WatchRemoveList(array, todolist)
    END
-END CheckToFinishList ;
+END testThis ;
 
 
 (*
    DeclaredOutandingTypes - writes out any types that have their
-                            dependants solved. It returns TRUE if
+                            dependants solved.  It returns TRUE if
                             all outstanding types have been written.
 *)
 
 PROCEDURE DeclaredOutstandingTypes (MustHaveCompleted: BOOLEAN;
                                     start, end: CARDINAL) : BOOLEAN ;
 VAR
-   n1           : Name ;
-   i, n         : CARDINAL ;
-   NoMoreWritten: BOOLEAN ;
-   Sym          : CARDINAL ;
+   finished: BOOLEAN ;  (* p2c cannot handle LOOP EXIT END *)
 BEGIN
+   finished := FALSE ;
    REPEAT
-      NoMoreWritten := TRUE ;
-      n := NoOfItemsInList(ToDoList) ;
-      i := 1 ;
-      IF DebugFinishList
+      IF ForeachTryDeclare(start, end,
+                           todolist, ToDoList,
+                           CanDeclareTypePartially,
+                           DeclareTypePartially)
       THEN
-         printf0('ToDoList { ')
-      END ;
-      WHILE i<=n DO
-      	 Sym := GetItemFromList(ToDoList, i) ;
-         IF DebugFinishList
-         THEN
-            n1 := GetSymName(Sym) ;
-            printf2('%d %a, ', Sym, n1)
-         END ;
-      	 IF GccKnowsAbout(Sym)
-      	 THEN
-            IF DebugFinishList
-            THEN
-               printf0('<gccknows> ')
-            END
-         ELSE
-      	    IF AllDependantsWritten(Sym)
-      	    THEN
-               (* add relationship between gccSym and Sym *)
-               PreAddModGcc(Sym, DeclareKindOfType(Sym)) ;
-               WatchIncludeList(Sym, definedlist) ;
-               WatchRemoveList(Sym, todolist) ;
-               i := 0 ;
-      	       NoMoreWritten := FALSE ;
-               IF DebugFinishList
-               THEN
-                  printf0('<resolved> ')
-               END
-            ELSE
-               IF DebugFinishList
-               THEN
-                  printf0('<unresolved> ')
-               END
-       	    END ;
-            IF n#NoOfItemsInList(ToDoList)
-            THEN
-               i := 0 ;
-               n := NoOfItemsInList(ToDoList) ;
-               IF DebugFinishList
-               THEN
-                  printf0('}\nToDoList { ')
-               END
-            END
-      	 END ;
-         INC(i)
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              todolist, ToDoList,
+                              CanDeclareArrayAsNil,
+                              DeclareArrayAsNil)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              todolist, ToDoList,
+                              CanDeclarePointerToNilArray,
+                              DeclarePointerToNilArray)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              niltypedarrays, NilTypedArrays,
+                              CanDeclareArrayPartially,
+                              DeclareArrayPartially)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              niltypedarrays, NilTypedArrays,
+                              CanPromotePointerFully,
+                              PromotePointerFully)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              todolist, ToDoList,
+                              TypeConstDependantsFullyDeclared,
+                              DeclareTypeConstFully)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              todolist, ToDoList,
+                              AllDependantsPartiallyOrFullyDeclared,
+                              DeclarePointerTypeFully)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              partiallydeclared, PartiallyDeclared,
+                              CanBeDeclaredViaPartialDependants,
+                              DeclareTypeFromPartial)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              partiallydeclared, PartiallyDeclared,
+                              CanBeDeclaredPartiallyViaPartialDependants,
+                              DeclareTypePartially)
+      THEN
+         (* continue looping *)
+      ELSIF ForeachTryDeclare(start, end,
+                              partiallydeclared, PartiallyDeclared,
+                              TypeConstDependantsFullyDeclared,
+                              DeclareTypeConstFully)
+      THEN
+         (* continue looping *)
+      ELSE
+         (* nothing left to do (and constants are resolved elsewhere) *)
+         finished := TRUE
       END
-   UNTIL NoMoreWritten ;
-
-   IF DebugFinishList
-   THEN
-      printf0('}\n')
-   END ;
-
-   CheckToFinishList(MustHaveCompleted) ;
-
+   UNTIL finished ;
    IF MustHaveCompleted
    THEN
-      (*
-         self checking code
-      *)
-      NoMoreWritten := FALSE ;
-      n := NoOfItemsInList(ToDoList) ;
-      i := 1 ;
-      WHILE i<=n DO
-         Sym := GetItemFromList(ToDoList, i) ;
-         IF (NOT GccKnowsAbout(Sym)) OR IsItemInList(ToFinishList, Sym)
-         THEN
-            IF Debugging
-            THEN
-               n1 := GetSymName(Sym) ;
-               printf2('// need to solve %d %a ', Sym, n1)
-            END ;
-            IF IsItemInList(ToFinishList, Sym)
-            THEN
-               IF Debugging
-               THEN
-                  printf0('partially declared\n')
-               END ;
-            ELSE
-               IF Debugging
-               THEN
-                  printf0('not declared at all\n')
-               END
-            END ;
-            FoldConstants(start, end) ;
-            IF NOT AllDependantsWritten(Sym)
-            THEN
-               NoMoreWritten := TRUE ;
-               MetaError1('circular dependancy found when trying to resolve symbol {%1Da}', Sym)
-            END
-         END ;
-         INC(i)
-      END ;
-      i := 1 ;
-      n := NoOfItemsInList(ToFinishList) ;
-      WHILE i<=n DO
-         Sym := GetItemFromList(ToFinishList, i) ;
-         IF Debugging
-         THEN
-            n1 := GetSymName(Sym) ;
-            printf2('// symbol type (%a) %d has only been partically declared\n',
-                    n1, Sym)
-         END ;
-         IF NOT AllDependantsWritten(Sym)
-         THEN
-            MetaError1('circular dependancy found when trying to resolve symbol {%1Da}', Sym)
-         END ;
-         INC(i) ;
-         NoMoreWritten := TRUE
-      END ;
-      IF NoMoreWritten
+      IF ForeachTryDeclare(start, end,
+                           todolist, ToDoList,
+                           NotAllDependantsFullyDeclared,
+                           EmitCircularDependancyError)
       THEN
-         FlushErrors
+      ELSIF ForeachTryDeclare(start, end,
+                              partiallydeclared, PartiallyDeclared,
+                              NotAllDependantsPartiallyDeclared,
+                              EmitCircularDependancyError)
+      THEN
+      ELSIF ForeachTryDeclare(start, end,
+                              niltypedarrays, NilTypedArrays,
+                              NotAllDependantsPartiallyDeclared,
+                              EmitCircularDependancyError)
+      THEN
       END
    END ;
-
    RETURN( NoOfItemsInList(ToDoList)=0 )
 END DeclaredOutstandingTypes ;
 
 
 (*
-   PrintType - prints out the type, Sym, with a leading string
-      	       and its name followed by a boolean.
+   CanCompleteDeclarationOf - returns the GCC Tree for, sym, if it can
+                              be created from partially or fully declared
+                              dependents.
 *)
 
-PROCEDURE PrintType (a: ARRAY OF CHAR; Sym: CARDINAL; b: BOOLEAN) ;
+PROCEDURE CanCompleteDeclarationOf (sym: CARDINAL) : Tree ;
 BEGIN
-(*
-   WriteString('// ') ; WriteString(a) ;
-   WriteString(' : Sym #') ; WriteCard(Sym, 4) ;
-   WriteString(' Name: ') ; WriteKey(GetSymName(Sym)) ;
-   IF b
+   IF IsRecord(sym)
    THEN
-      WriteString(' TRUE')
+      RETURN( DeclareRecord(sym) )
+   ELSIF IsArray(sym)
+   THEN
+      RETURN( DeclareArray(sym) )
+   ELSIF IsProcType(sym)
+   THEN
+      RETURN( DeclareProcType(sym) )
    ELSE
-      WriteString('FALSE ')
-   END ;
-   WriteLn
-*)
-END PrintType ;
+      RETURN( NIL )
+   END
+END CanCompleteDeclarationOf ;
 
 
 (*
@@ -642,20 +1206,27 @@ END PrintType ;
                  we must tell GCC about it.
 *)
 
-PROCEDURE DeclareType (Sym: CARDINAL) : Tree ;
+PROCEDURE DeclareType (sym: CARDINAL) : Tree ;
 VAR
    t: Tree ;
 BEGIN
-   IF GetType(Sym)=NulSym
+   IF GetType(sym)=NulSym
    THEN
-      MetaError1('base type {%1Ua} not understood', Sym) ;
+      MetaError1('base type {%1Ua} not understood', sym) ;
       InternalError('base type should have been declared', __FILE__, __LINE__)
    ELSE
-      IF GetSymName(Sym)=NulName
+      IF GetSymName(sym)=NulName
       THEN
-         RETURN( Tree(Mod2Gcc(GetType(Sym))) )
+         RETURN( Tree(Mod2Gcc(GetType(sym))) )
       ELSE
-         t := DeclareKnownType(KeyToCharStar(GetFullSymName(Sym)), Mod2Gcc(GetType(Sym))) ;
+         IF GccKnowsAbout(sym)
+         THEN
+            t := Mod2Gcc(sym)
+         ELSE
+            (* not partially declared therefore start it *)
+            t := BuildStartType(KeyToCharStar(GetFullSymName(sym)), Mod2Gcc(GetType(sym)))
+         END ;
+         t := BuildEndType(t) ;  (* now finish it *)
          RETURN( t )
       END
    END
@@ -668,7 +1239,9 @@ END DeclareType ;
 
 PROCEDURE DeclareIntegerConstant (sym: CARDINAL; value: INTEGER) ;
 BEGIN
-   PreAddModGcc(sym, BuildIntegerConstant(value))
+   PreAddModGcc(sym, BuildIntegerConstant(value)) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchIncludeList(sym, fullydeclared)
 END DeclareIntegerConstant ;
 
 
@@ -678,7 +1251,9 @@ END DeclareIntegerConstant ;
 
 PROCEDURE DeclareConstantFromTree (sym: CARDINAL; value: Tree) ;
 BEGIN
-   PreAddModGcc(sym, value)
+   PreAddModGcc(sym, value) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchIncludeList(sym, fullydeclared)
 END DeclareConstantFromTree ;
 
 
@@ -688,7 +1263,9 @@ END DeclareConstantFromTree ;
 
 PROCEDURE DeclareCharConstant (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildCharConstant(KeyToCharStar(GetString(sym))))
+   PreAddModGcc(sym, BuildCharConstant(KeyToCharStar(GetString(sym)))) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchIncludeList(sym, fullydeclared)
 END DeclareCharConstant ;
 
 
@@ -699,7 +1276,9 @@ END DeclareCharConstant ;
 PROCEDURE DeclareStringConstant (sym: CARDINAL) ;
 BEGIN
    PreAddModGcc(sym, BuildStringConstant(KeyToCharStar(GetString(sym)),
-                                         GetStringLength(sym)))
+                                         GetStringLength(sym))) ;
+   WatchRemoveList(sym, todolist) ;
+   WatchIncludeList(sym, fullydeclared)
 END DeclareStringConstant ;
 
 
@@ -731,36 +1310,20 @@ END PromoteToString ;
 
 
 (*
-   ResolveConstructor - 
+   WalkConstructor - walks all dependants of, sym.
 *)
 
-PROCEDURE ResolveConstructor (tokenno: CARDINAL; sym: CARDINAL) ;
+PROCEDURE WalkConstructor (sym: CARDINAL; p: WalkAction) ;
 VAR
-   n1, n2: Name ;
-   type,
-   size  : CARDINAL ;
+   type: CARDINAL ;
 BEGIN
    type := GetType(sym) ;
-   (* ensure that all dependants are on the various to do lists *)
    IF type#NulSym
    THEN
-      IF Debugging
-      THEN
-         n1 := GetSymName(sym) ;
-         n2 := GetSymName(type) ;
-         printf2('declaring const %a = %a { ... }\n', n1, n2)
-      END ;
-      IF AllDependantsWritten(type) AND CollectConstructorDependants(tokenno, sym)
-      THEN
-         IF Debugging
-         THEN
-            n1 := GetSymName(sym) ;
-            n2 := GetSymName(type) ;
-            printf2('dependants are all known for %a = %a { ... }\n', n1, n2)
-         END
-      END
+      WalkDependants(type, p) ;
+      WalkConstructorDependants(sym, p)
    END
-END ResolveConstructor ;
+END WalkConstructor ;
 
 
 (*
@@ -783,7 +1346,7 @@ BEGIN
       ELSE
          tokenno := QuadToTokenNo(quad)
       END ;
-      ResolveConstructor(tokenno, sym) ;
+      WalkConstructor(sym, TraverseDependants) ;
       DeclareTypesAndConstantsInRange(quad, quad) ;
       PushValue(sym) ;
       DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
@@ -792,77 +1355,142 @@ END DeclareConstructor ;
 
 
 (*
+   WalkConst - walks all dependants of, sym.
+*)
+
+PROCEDURE WalkConst (sym: CARDINAL; p: WalkAction) ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   Assert(IsConst(sym)) ;
+   type := GetType(sym) ;
+   IF type#NulSym
+   THEN
+      p(type)
+   END ;
+   IF IsConstSet(sym) OR IsConstructor(sym)
+   THEN
+      WalkConstructor(sym, p)
+   END
+END WalkConst ;
+
+
+(*
+   IsConstDependants - returns TRUE if the symbol, sym,
+                       q(dependants) all return TRUE.
+*)
+
+PROCEDURE IsConstDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   Assert(IsConst(sym)) ;
+   type := GetType(sym) ;
+   IF type#NulSym
+   THEN
+      IF NOT q(type)
+      THEN
+         RETURN( FALSE )
+      END
+   END ;
+   IF IsConstSet(sym) OR IsConstructor(sym)
+   THEN
+      RETURN( IsConstructorDependants(sym, q) )
+   END ;
+   RETURN( IsValueSolved(sym) )
+END IsConstDependants ;
+
+
+(*
    DeclareConstant - checks to see whether, sym, is a constant and declares the constant to gcc.
 *)
 
 PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
+   type: CARDINAL ;
+   size: CARDINAL ;
+   t   : Tree ;
+BEGIN
+   IF IsConst(sym)
+   THEN
+      TraverseDependants(sym) ;
+      type := GetType(sym) ;
+      IF (type#NulSym) AND (NOT CompletelyResolved(type))
+      THEN
+         WatchIncludeList(sym, todolist) ;
+         WatchIncludeList(type, todolist) ;
+         RETURN
+      END ;
+      IF IsConstructor(sym) AND (NOT IsConstructorConstant(sym))
+      THEN
+         WatchIncludeList(sym, todolist) ;
+         RETURN
+      END ;
+      IF (IsConstructor(sym) OR IsConstSet(sym)) AND (type=NulSym)
+      THEN
+         WatchIncludeList(sym, todolist) ;
+         RETURN
+      END ;
+      t := DeclareConst(tokenno, sym) ;
+      IF t=NIL
+      THEN
+         WatchIncludeList(sym, todolist)
+      END
+   END 
+END DeclareConstant ;
+
+
+(*
+   DeclareConst - declares a const to gcc and returns a Tree.
+*)
+
+PROCEDURE DeclareConst (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
+VAR
    size: CARDINAL ;
 BEGIN
-   IF sym=NulSym
+   IF GccKnowsAbout(sym)
    THEN
-      InternalError('trying to declare the NulSym', __FILE__, __LINE__)
+      RETURN( Mod2Gcc(sym) )
    END ;
-   IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
+   IF IsConstructor(sym) OR IsConstSet(sym)
    THEN
-      IF IsConstructor(sym)
-      THEN
-         IF NOT IsConstructorConstant(sym)
-         THEN
-            RETURN
-         END
-      END
+      EvaluateValue(sym)
    END ;
-   IF IsConst(sym) AND (NOT GccKnowsAbout(sym))
+   IF IsConstString(sym)
    THEN
-      IF IsConstSet(sym) OR IsFieldEnumeration(sym) OR IsConstructor(sym)
+      size := GetStringLength(sym) ;
+      IF size=1
       THEN
-         IF GccKnowsAbout(GetType(sym))
-         THEN
-            WatchIncludeList(sym, todoconstants)
-         ELSE
-            (* must wait for the type to be declared *)
-            RETURN
-         END
-      END ;
-
-      IF IsConstSet(sym) OR IsConstructor(sym)
-      THEN
-         ResolveConstructor(tokenno, sym)
-      END ;
-
-      IF IsConstString(sym)
-      THEN
-         size := GetStringLength(sym) ;
-         IF size=1
-         THEN
-            DeclareCharConstant(sym)
-         ELSE
-            DeclareStringConstant(sym)
-         END
-      ELSIF IsValueSolved(sym)
-      THEN
-         PushValue(sym) ;
-         IF IsConstSet(sym)
-         THEN
-            DeclareConstantFromTree(sym, PopSetTree(tokenno))
-         ELSIF IsConstructor(sym)
-         THEN
-            DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
-         ELSIF IsRealType(SkipType(GetType(sym)))
-         THEN
-            DeclareConstantFromTree(sym, PopRealTree())
-         ELSIF IsAComplexType(SkipType(GetType(sym)))
-         THEN
-            DeclareConstantFromTree(sym, PopComplexTree())
-         ELSE
-            DeclareConstantFromTree(sym, PopIntegerTree())
-         END
+         DeclareCharConstant(sym)
       ELSE
-         WatchIncludeList(sym, todoconstants)
+         DeclareStringConstant(sym)
       END
+   ELSIF IsValueSolved(sym)
+   THEN
+      PushValue(sym) ;
+      IF IsConstSet(sym)
+      THEN
+         DeclareConstantFromTree(sym, PopSetTree(tokenno))
+      ELSIF IsConstructor(sym)
+      THEN
+         DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
+      ELSIF IsRealType(SkipType(GetType(sym)))
+      THEN
+         DeclareConstantFromTree(sym, PopRealTree())
+      ELSIF IsAComplexType(SkipType(GetType(sym)))
+      THEN
+         DeclareConstantFromTree(sym, PopComplexTree())
+      ELSE
+         DeclareConstantFromTree(sym, PopIntegerTree())
+      END
+   END ;
+   IF GccKnowsAbout(sym)
+   THEN
+      RETURN( Mod2Gcc(sym) )
+   ELSE
+      RETURN( NIL )
    END
-END DeclareConstant ;
+END DeclareConst ;
 
 
 (*
@@ -876,150 +1504,126 @@ END DeclareParameters ;
 
 
 (*
-   IsSymTypeKnown - returns TRUE if the, type, of symbol, sym is known to GCC.
-                    It adds all of syms dependants to the ToDoList if they are unknown.
+   WalkDependants - walks through all dependants of, Sym,
+                    calling, p, for each dependant.
 *)
 
-PROCEDURE IsSymTypeKnown (sym, type: CARDINAL) : BOOLEAN ;
+PROCEDURE WalkDependants (sym: CARDINAL; p: WalkAction) ;
 BEGIN
-   IF (type#NulSym) AND (NOT GccKnowsAbout(type))
+   IF IsEnumeration(sym)
    THEN
-      (* legal symbol which is unknown by gcc *)
-      IF NOT AllDependantsWritten(type)
-      THEN
-         IF NOT IsVarient(sym)
-         THEN
-            WatchIncludeList(sym, todolist)
-         END
-      END ;
-      RETURN( FALSE )
-   ELSE
-      RETURN( TRUE )
+      WalkEnumerationDependants(sym, p)
+   ELSIF IsSubrange(sym)
+   THEN
+      WalkSubrangeDependants(sym, p)
+   ELSIF IsPointer(sym)
+   THEN
+      WalkPointerDependants(sym, p)
+   ELSIF IsRecord(sym)
+   THEN
+      WalkRecordDependants(sym, p)
+   ELSIF IsVarient(sym)
+   THEN
+      WalkVarientDependants(sym, p)
+   ELSIF IsRecordField(sym)
+   THEN
+      WalkRecordFieldDependants(sym, p)
+   ELSIF IsFieldVarient(sym)
+   THEN
+      WalkVarientFieldDependants(sym, p)
+   ELSIF IsArray(sym)
+   THEN
+      WalkArrayDependants(sym, p)
+   ELSIF IsProcType(sym)
+   THEN
+      WalkProcTypeDependants(sym, p)
+   ELSIF IsUnbounded(sym)
+   THEN
+      WalkUnboundedDependants(sym, p)
+   ELSIF IsSet(sym)
+   THEN
+      WalkSetDependants(sym, p)
+   ELSIF IsType(sym)
+   THEN
+      WalkTypeDependants(sym, p)
+   ELSIF IsConst(sym)
+   THEN
+      WalkConst(sym, p)
+   ELSIF IsVar(sym)
+   THEN
+      WalkVarDependants(sym, p)
    END
-END IsSymTypeKnown ;
+END WalkDependants ;
 
 
 (*
-   AllDependantsWritten - returns true if the symbol, Sym, and
-      	       	     	  all its dependants have been written
-      	       	     	  out to the assembly file.
+   TraverseDependants - walks, sym, dependants.  But it checks
+                        to see that, sym, is not on the
+                        FullyDeclared and not on the ToDoList.
 *)
 
-PROCEDURE AllDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE TraverseDependants (sym: WORD) ;
 BEGIN
-   IF GccKnowsAbout(Sym) AND (NOT IsItemInList(ToFinishList, Sym))
+   IF (NOT IsItemInList(FullyDeclared, sym)) AND
+      (NOT IsItemInList(ToDoList, sym))
    THEN
-      RETURN( TRUE )
-   ELSIF IsEnumeration(Sym)
-   THEN
-      RETURN( IsEnumerationDependantsWritten(Sym) )
-   ELSIF IsSubrange(Sym)
-   THEN
-      RETURN( IsSubrangeDependantsWritten(Sym) )
-   ELSIF IsPointer(Sym)
-   THEN
-      RETURN( IsPointerDependantsWritten(Sym) )
-   ELSIF IsRecord(Sym)
-   THEN
-      RETURN( IsRecordDependantsWritten(Sym) )
-   ELSIF IsVarient(Sym)
-   THEN
-      RETURN( IsVarientDependantsWritten(Sym) )
-   ELSIF IsArray(Sym)
-   THEN
-      RETURN( IsArrayDependantsWritten(Sym) )
-   ELSIF IsProcType(Sym)
-   THEN
-      RETURN( IsProcTypeDependantsWritten(Sym) )
-   ELSIF IsUnbounded(Sym)
-   THEN
-      RETURN( IsUnboundedDependantsWritten(Sym) )
-   ELSIF IsSet(Sym)
-   THEN
-      RETURN( IsSetDependantsWritten(Sym) )
-   ELSIF IsType(Sym)
-   THEN
-      RETURN( IsTypeDependantsWritten(Sym) )
-   ELSE
-      RETURN( TRUE )
+      WatchIncludeList(sym, todolist) ;
+      WalkDependants(sym, TraverseDependants)
    END
-END AllDependantsWritten ;
+END TraverseDependants ;
 
 
 (*
-   DeclareTypeInfo - generates type information for a type symbol, Sym.
-                     A type symbol, Sym, will be transformed into its
-                     GCC equivalent.
+   WalkTypeInfo - walks type, sym, and its dependants.
 *)
 
-PROCEDURE DeclareTypeInfo (Sym: WORD) ;
-VAR
-   n1 : Name ;
-   gcc: Tree ;
+PROCEDURE WalkTypeInfo (sym: WORD) ;
 BEGIN
-   IF IsVarient(Sym)
+   IF IsVarient(sym)
    THEN
       InternalError('why have we reached here?', __FILE__, __LINE__)
-   ELSIF IsVar(Sym)
+   ELSIF IsVar(sym)
    THEN
-      DeclareTypeInfo(GetType(Sym)) ;
-      IF GetVarBackEndType(Sym)#NulSym
+      WalkTypeInfo(GetType(sym)) ;
+      IF GetVarBackEndType(sym)#NulSym
       THEN
-         DeclareTypeInfo(GetVarBackEndType(Sym))
+         WalkTypeInfo(GetVarBackEndType(sym))
       END
-   ELSIF (NOT GccKnowsAbout(Sym)) AND IsAModula2Type(Sym)
+   ELSIF IsAModula2Type(sym)
    THEN
-      WatchIncludeList(Sym, todolist) ;
-      IF AllDependantsWritten(Sym)
-      THEN
-         (* add relationship between gccSym and Sym *)
-         gcc := DeclareOrFindKindOfType(Sym) ;
-         IF gcc=Tree(NIL)
-         THEN
-            gcc := DeclareOrFindKindOfType(Sym)
-         END ;
-         WatchRemoveList(Sym, todolist) ;
-         PreAddModGcc(Sym, gcc) ;
-         IF Debugging
-         THEN
-            n1 := GetSymName(Sym) ;
-            printf2('// declaring %d %a\n', Sym, n1)
-         END
-      END
+      TraverseDependants(sym)
    END
-END DeclareTypeInfo ;
+END WalkTypeInfo ;
 
 
 (*
    DeclareUnboundedProcedureParameters - 
 *)
 
-PROCEDURE DeclareUnboundedProcedureParameters (Sym: WORD) ;
+PROCEDURE DeclareUnboundedProcedureParameters (sym: WORD) ;
 VAR
    son,
    type,
    p, i: CARDINAL ;
 BEGIN
-   IF IsProcedure(Sym)
+   IF IsProcedure(sym)
    THEN
-      p := NoOfParam(Sym) ;
+      p := NoOfParam(sym) ;
       i := p ;
       WHILE i>0 DO
-         IF IsUnboundedParam(Sym, i)
+         IF IsUnboundedParam(sym, i)
          THEN
-            son := GetNthParam(Sym, i) ;
+            son := GetNthParam(sym, i) ;
             type := GetType(son) ;
-            IF AllDependantsWritten(type)
-            THEN
-            END ;
+            TraverseDependants(type) ;
             IF GccKnowsAbout(type)
             THEN
                BuildTypeDeclaration(Mod2Gcc(type))
             END
          ELSE
-            son := GetNth(Sym, i) ;
+            son := GetNth(sym, i) ;
             type := GetType(son) ;
-            DeclareTypeInfo(type)
+            TraverseDependants(type)
          END ;
          DEC(i)
       END
@@ -1028,44 +1632,97 @@ END DeclareUnboundedProcedureParameters ;
 
 
 (*
-   DeclareTypesInProcedure - declare all types in procedure, Sym, to GCC.
+   WalkUnboundedProcedureParameters - 
 *)
 
-PROCEDURE DeclareTypesInProcedure (Sym: WORD) ;
+PROCEDURE WalkUnboundedProcedureParameters (sym: WORD) ;
+VAR
+   son,
+   type,
+   p, i: CARDINAL ;
 BEGIN
-   ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
-   ForeachLocalSymDo(Sym, DeclareUnboundedProcedureParameters)
-END DeclareTypesInProcedure ;
+   IF IsProcedure(sym)
+   THEN
+      p := NoOfParam(sym) ;
+      i := p ;
+      WHILE i>0 DO
+         IF IsUnboundedParam(sym, i)
+         THEN
+            son := GetNthParam(sym, i) ;
+            type := GetType(son) ;
+            WalkTypeInfo(type)
+         ELSE
+            son := GetNth(sym, i) ;
+            type := GetType(son) ;
+            WalkTypeInfo(type)
+         END ;
+         DEC(i)
+      END
+   END
+END WalkUnboundedProcedureParameters ;
 
 
 (*
-   DeclareTypesInModule - declare all types in module, Sym, to GCC.
+   WalkTypesInProcedure - walk all types in procedure, Sym.
 *)
 
-PROCEDURE DeclareTypesInModule (Sym: WORD) ;
+PROCEDURE WalkTypesInProcedure (sym: WORD) ;
+BEGIN
+   ForeachLocalSymDo(sym, TraverseDependants) ;
+   ForeachLocalSymDo(sym, WalkUnboundedProcedureParameters)
+END WalkTypesInProcedure ;
+
+
+(*
+   WalkTypesInModule - declare all types in module, Sym, to GCC.
+*)
+
+PROCEDURE WalkTypesInModule (sym: WORD) ;
 VAR
    n: Name ;
 BEGIN
    IF Debugging
    THEN
-      n := GetSymName(Sym) ;
+      n := GetSymName(sym) ;
       printf1('Declaring types in MODULE %a\n', n)
    END ;
-   ForeachLocalSymDo(Sym, DeclareTypeInfo) ;
-   ForeachLocalSymDo(Sym, DeclareUnboundedProcedureParameters) ;
-   ForeachInnerModuleDo(Sym, DeclareTypesInModule)
-END DeclareTypesInModule ;
+   ForeachLocalSymDo(sym, WalkTypeInfo) ;
+   ForeachLocalSymDo(sym, WalkUnboundedProcedureParameters) ;
+   ForeachInnerModuleDo(sym, WalkTypesInModule)
+END WalkTypesInModule ;
+
+
+(*
+   WalkRecordFieldDependants - 
+*)
+
+PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   Assert(IsRecordField(sym)) ;
+   p(GetType(sym))
+END WalkRecordFieldDependants ;
+
+
+(*
+   IsRecordFieldDependants - returns TRUE if the record field
+                             symbol, sym, p(dependants) all return TRUE.
+*)
+
+PROCEDURE IsRecordFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+BEGIN
+   RETURN( q(GetType(sym)) )
+END IsRecordFieldDependants ;
 
 
 (*
    GetModuleWhereDeclared - returns the module where, Sym, was created.
 *)
 
-PROCEDURE GetModuleWhereDeclared (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetModuleWhereDeclared (sym: CARDINAL) : CARDINAL ;
 VAR
    s: CARDINAL ;
 BEGIN
-   s := GetScope(Sym) ;
+   s := GetScope(sym) ;
    IF (s=NulSym) OR IsDefImp(s) OR
       (IsModule(s) AND (GetScope(s)=NulSym))
    THEN
@@ -1202,14 +1859,14 @@ END DeclareProcedureToGcc ;
                       module sym.
 *)
 
-PROCEDURE DeclareProcedure (Sym: WORD) ;
+PROCEDURE DeclareProcedure (sym: WORD) ;
 BEGIN
-   IF IsProcedure(Sym)
+   IF IsProcedure(sym)
    THEN
-      DeclareProcedureToGcc(Sym)
-   ELSIF IsModule(Sym) OR IsDefImp(Sym)
+      DeclareProcedureToGcc(sym)
+   ELSIF IsModule(sym) OR IsDefImp(sym)
    THEN
-      ForeachProcedureDo(Sym, DeclareProcedure)
+      ForeachProcedureDo(sym, DeclareProcedure)
    ELSE
       InternalError('expecting procedure, module or defimp symbol',
                     __FILE__, __LINE__)
@@ -1223,7 +1880,7 @@ END DeclareProcedure ;
 
 PROCEDURE FoldConstants (start, end: CARDINAL) ;
 BEGIN
-   IF ResolveConstantExpressions(ToDoConstants, start, end)
+   IF ResolveConstantExpressions(DeclareConstFully, start, end)
    THEN
    END
 END FoldConstants ;
@@ -1242,17 +1899,16 @@ BEGIN
       DisplayQuadRange(start, end)
    END ;
    REPEAT
-      n := NoOfItemsInList(ToDoConstants) ;
-      WHILE ResolveConstantExpressions(ToDoConstants, start, end) DO
+      n := NoOfItemsInList(ToDoList) ;
+      WHILE ResolveConstantExpressions(DeclareConstFully, start, end) DO
       END ;
-      m := NoOfItemsInList(ToDoConstants) ;
       (* we need to evaluate some constant expressions to resolve these types *)
       IF DeclaredOutstandingTypes(FALSE, start, end)
       THEN
       END ;
-   UNTIL (NOT ResolveConstantExpressions(ToDoConstants, start, end)) AND
-         (n=NoOfItemsInList(ToDoConstants)) AND
-         (m=NoOfItemsInList(ToDoConstants))
+      m := NoOfItemsInList(ToDoList)
+   UNTIL (NOT ResolveConstantExpressions(DeclareConstFully, start, end)) AND
+         (n=m)
 END DeclareTypesAndConstantsInRange ;
 
 
@@ -1262,19 +1918,16 @@ END DeclareTypesAndConstantsInRange ;
 
 PROCEDURE DeclareTypesAndConstants (scope: CARDINAL) ;
 VAR
-   s, t,
-   n, m: CARDINAL ;
+   s, t: CARDINAL ;
    sb  : ScopeBlock ;
 BEGIN
    sb := InitScopeBlock(scope) ;
    REPEAT
       s := NoOfItemsInList(ToDoList) ;
-      n := NoOfItemsInList(ToDoConstants) ;
-      ForeachLocalSymDo(scope, DeclareTypeInfo) ;
+      (* ForeachLocalSymDo(scope, DeclareTypeInfo) ; *)
       ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
       t := NoOfItemsInList(ToDoList) ;
-      m := NoOfItemsInList(ToDoConstants)
-   UNTIL (n=m) AND (s=t) ;
+   UNTIL (s=t) ;
    sb := KillScopeBlock(sb)
 END DeclareTypesAndConstants ;
 
@@ -1284,9 +1937,16 @@ END DeclareTypesAndConstants ;
 *)
 
 PROCEDURE AssertDeclareTypesAndConstantsInRange (start, end: CARDINAL) ;
+VAR
+   sym,
+   i, n: CARDINAL ;
 BEGIN
-   IF DeclaredOutstandingTypes(TRUE, start, end)
-   THEN
+   i := 1 ;
+   n := NoOfItemsInList(ToDoList) ;
+   WHILE i<=n DO
+      sym := GetItemFromList(ToDoList, i) ;
+      (* Assert(IsVar(sym)) ; *)
+      INC(i)
    END
 END AssertDeclareTypesAndConstantsInRange ;
 
@@ -1336,21 +1996,28 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
+(*
+   DebugLists ;
+   AddSymToWatch(1165) ;  (* watch goes here *)
+   DebugLists ;
+*)
+   (* IncludeItemIntoList(WatchList, 7667) ; *)
+   (* AddSymToWatch(6071) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
-      printf1('Declaring symbols in BLOCK %a\n', n)
+      printf1('declaring symbols in BLOCK %a\n', n)
    END ;
    IF IsProcedure(scope)
    THEN
+      WalkTypesInProcedure(scope) ;
       DeclareProcedure(scope) ;
-      DeclareTypesInProcedure(scope) ;
+      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
       DeclareTypesAndConstants(scope) ;
-      ForeachInnerModuleDo(scope, DeclareTypesInModule) ;
       ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
-      AssertAllTypesDeclared(scope) ;
       DeclareLocalVariables(scope) ;
       ForeachInnerModuleDo(scope, DeclareModuleVariables) ;
+      AssertAllTypesDeclared(scope) ;
       ForeachProcedureDo(scope, DeclareProcedure) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSIF scope#GetMainModule()
@@ -1361,21 +2028,27 @@ BEGIN
       DeclareModuleInit(scope) ;
       ForeachInnerModuleDo(scope, StartDeclareScope)
    ELSE
-      ForeachModuleDo(DeclareTypesInModule) ;  (* will populate the TYPE and CONST ToDo lists *)
-      DeclareTypesAndConstants(scope) ;        (* will resolved (and flush) the TYPE and      *)
-                                               (* CONST ToDo lists.                           *)
+      ForeachModuleDo(WalkTypesInModule) ;     (* will populate the TYPE and CONST ToDo list  *)
+      DeclareTypesAndConstants(scope) ;        (* will resolved TYPEs and CONSTs on the ToDo  *)
+                                               (* lists.                                      *)
       ForeachModuleDo(DeclareProcedure) ;
       (*
          now that all types have been resolved it is safe to declare
          variables
       *)
+(*
+      IF scope=148
+      THEN
+         testThis
+      END ;
+*)
       AssertAllTypesDeclared(scope) ;
       DeclareGlobalVariables(scope) ;
       ForeachImportedDo(scope, DeclareImportedVariables) ;
       (* now it is safe to declare all procedures *)
       ForeachProcedureDo(scope, DeclareProcedure) ;
       (* --testing-- *)
-      ForeachInnerModuleDo(scope, DeclareTypesInModule) ;
+      ForeachInnerModuleDo(scope, WalkTypesInModule) ;
       ForeachInnerModuleDo(scope, DeclareTypesAndConstants) ;
       (* --end of test-- *)
       ForeachInnerModuleDo(scope, DeclareProcedure) ;
@@ -1415,18 +2088,20 @@ END PreAddModGcc ;
 
 (*
    DeclareAssociatedUnbounded - if an unbounded symbol exists then
-                                declare it.
+                                walk its dependants and declare them.
 *)
 
-PROCEDURE DeclareAssociatedUnbounded (Sym: CARDINAL) ;
+PROCEDURE DeclareAssociatedUnbounded (sym: CARDINAL) ;
 VAR
    unbounded: CARDINAL ;
 BEGIN
-   unbounded := GetUnbounded(Sym) ;
+   unbounded := GetUnbounded(sym) ;
    IF unbounded#NulSym
    THEN
+      WalkTypeInfo(sym) ;
+      WalkTypeInfo(unbounded) ;
+      DeclareTypesAndConstantsInRange(0, 0) ;
       AddModGcc(unbounded, DeclareUnbounded(unbounded)) ;
-      WatchIncludeList(unbounded, definedlist) ;
       WatchRemoveList(unbounded, todolist)
    END
 END DeclareAssociatedUnbounded ;
@@ -1446,9 +2121,10 @@ BEGIN
       declared by gccgm2.c *)
    t := GetDefaultType(KeyToCharStar(MakeKey(name)), gcctype) ;
    AddModGcc(sym, t) ;
+   IncludeItemIntoList(FullyDeclared, sym) ;
    (*
       this is very simplistic and assumes that the caller only uses Subranges, Sets and GCC types.
-      We need to declare any constants with the types so that AllDependantsWritten works.
+      We need to declare any constants with the types so that AllDependantsFullyDeclared works.
    *)
    IF IsSubrange(sym)
    THEN
@@ -1475,10 +2151,6 @@ BEGIN
             InternalError('enumeration type within the set type must be declared before the set type', __FILE__, __LINE__)
          END
       END
-   END ;
-   IF NOT AllDependantsWritten(sym)
-   THEN
-      MetaError1('defining a default type {%1ad} before its dependants are known', sym)
    END
 END DeclareDefaultType ;
 
@@ -1492,6 +2164,9 @@ BEGIN
    PreAddModGcc(Boolean, GetBooleanType()) ;
    PreAddModGcc(True, GetBooleanTrue()) ;
    PreAddModGcc(False, GetBooleanFalse()) ;
+   IncludeItemIntoList(FullyDeclared, Boolean) ;
+   IncludeItemIntoList(FullyDeclared, True) ;
+   IncludeItemIntoList(FullyDeclared, False)
 END DeclareBoolean ;
 
 
@@ -1546,6 +2221,13 @@ END DeclareFixedSizedType ;
 
 PROCEDURE DeclareDefaultSimpleTypes ;
 BEGIN
+   AddModGcc(ZType, GetM2ZType()) ;
+   AddModGcc(RType, GetM2RType()) ;
+   AddModGcc(CType, GetM2CType()) ;
+   IncludeItemIntoList(FullyDeclared, ZType) ;
+   IncludeItemIntoList(FullyDeclared, RType) ;
+   IncludeItemIntoList(FullyDeclared, CType) ;
+
    DeclareDefaultType(Integer     , "INTEGER"     , GetM2IntegerType()) ;
    DeclareDefaultType(Char        , "CHAR"        , GetM2CharType()) ;
    DeclareDefaultType(Cardinal    , "CARDINAL"    , GetM2CardinalType()) ;
@@ -1576,9 +2258,6 @@ BEGIN
    DeclareDefaultType(ShortComplex, "SHORTCOMPLEX", GetM2ShortComplexType()) ;
 
    DeclareBoolean ;
-   AddModGcc(ZType, GetM2ZType()) ;
-   AddModGcc(RType, GetM2RType()) ;
-   AddModGcc(CType, GetM2CType()) ;
 
    DeclareFixedSizedType("INTEGER8"  , IntegerN(8)  , GetM2Integer8()) ;
    DeclareFixedSizedType("INTEGER16" , IntegerN(16) , GetM2Integer16()) ;
@@ -1702,11 +2381,11 @@ END FindTreeScope ;
                            effectively imported into ModSym.
 *)
 
-PROCEDURE IsEffectivelyImported (ModSym, Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsEffectivelyImported (ModSym, sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
-          IsImported(ModSym, Sym) OR
-          IsImported(ModSym, GetModuleWhereDeclared(Sym))
+          IsImported(ModSym, sym) OR
+          IsImported(ModSym, GetModuleWhereDeclared(sym))
          )
 END IsEffectivelyImported ;
 
@@ -1775,13 +2454,15 @@ BEGIN
       ELSE
          type := Mod2Gcc(varType)
       END ;
-      Assert(AllDependantsWritten(varType))
+      Assert(AllDependantsFullyDeclared(varType))
    ELSE
       type := Mod2Gcc(GetType(var))
    END ;
    PreAddModGcc(var, DeclareKnownVariable(name, type,
                                           isExported, isImported, isTemporary,
-                                          isGlobal, scope))
+                                          isGlobal, scope)) ;
+   WatchRemoveList(var, todolist) ;
+   WatchIncludeList(var, fullydeclared)
 END DoVariableDeclaration ;
 
 
@@ -1799,7 +2480,7 @@ BEGIN
       AlignDeclarationWithSource(Son) ;
       scope := FindTreeScope(ModSym) ;
       decl := FindOuterModule(Son) ;
-      Assert(AllDependantsWritten(GetType(Son))) ;
+      Assert(AllDependantsFullyDeclared(GetType(Son))) ;
       DoVariableDeclaration(Son,
                             KeyToCharStar(GetFullSymName(Son)),
                             (* in Modula-2 we are allowed to import from ourselves, but we do not present this to GCC *)
@@ -1838,14 +2519,14 @@ END DeclareGlobalVariables ;
    DeclareImportedVariables - declares all imported variables to GM2.
 *)
 
-PROCEDURE DeclareImportedVariables (Sym: WORD) ;
+PROCEDURE DeclareImportedVariables (sym: WORD) ;
 BEGIN
-   IF IsVar(Sym)
+   IF IsVar(sym)
    THEN
-      DeclareVariable(GetMainModule(), Sym)
-   ELSIF IsDefImp(Sym)
+      DeclareVariable(GetMainModule(), sym)
+   ELSIF IsDefImp(sym)
    THEN
-      ForeachExportedDo(Sym, DeclareImportedVariables)
+      ForeachExportedDo(sym, DeclareImportedVariables)
    END
 END DeclareImportedVariables ;
 
@@ -1854,25 +2535,24 @@ END DeclareImportedVariables ;
    DeclareLocalVariables - declares Local variables for procedure Sym.
 *)
 
-PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
+PROCEDURE DeclareLocalVariables (sym: CARDINAL) ;
 VAR
    i, Var: CARDINAL ;
 BEGIN
-   CheckToFinishList(TRUE) ;
-   i := NoOfParam(Sym)+1 ;
-   Var := GetNth(Sym, i) ;
+   i := NoOfParam(sym)+1 ;
+   Var := GetNth(sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
-      Assert(AllDependantsWritten(GetType(Var))) ;
+      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
       DoVariableDeclaration(Var,
                             KeyToCharStar(GetFullSymName(Var)),
                             FALSE,  (* local variables cannot be imported *)
                             FALSE,  (* or exported *)
                             IsTemporary(Var),
                             FALSE,  (* and are not global *)
-                            Mod2Gcc(Sym)) ;
+                            Mod2Gcc(sym)) ;
       INC(i) ;
-      Var := GetNth(Sym, i)
+      Var := GetNth(sym, i)
    END
 END DeclareLocalVariables ;
 
@@ -1882,18 +2562,17 @@ END DeclareLocalVariables ;
                             which was declared inside a procedure.
 *)
 
-PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ;
+PROCEDURE DeclareModuleVariables (sym: CARDINAL) ;
 VAR
    scope : Tree ;
    i, Var: CARDINAL ;
 BEGIN
-   CheckToFinishList(TRUE) ;
    i := 1 ;
-   scope := Mod2Gcc(GetProcedureScope(Sym)) ;
-   Var := GetNth(Sym, i) ;
+   scope := Mod2Gcc(GetProcedureScope(sym)) ;
+   Var := GetNth(sym, i) ;
    WHILE Var#NulSym DO
       AlignDeclarationWithSource(Var) ;
-      Assert(AllDependantsWritten(GetType(Var))) ;
+      Assert(AllDependantsFullyDeclared(GetType(Var))) ;
       DoVariableDeclaration(Var,
                             KeyToCharStar(GetFullSymName(Var)),
                             FALSE,   (* inner module variables cannot be imported *)
@@ -1902,7 +2581,7 @@ BEGIN
                             FALSE,   (* and are not global *)
                             scope) ;
       INC(i) ;
-      Var := GetNth(Sym, i)
+      Var := GetNth(sym, i)
    END
 END DeclareModuleVariables ;
 
@@ -1911,19 +2590,29 @@ END DeclareModuleVariables ;
    DeclareFieldEnumeration - declares an enumerator within the current enumeration type.
 *)
 
-PROCEDURE DeclareFieldEnumeration (Sym: WORD) ;
+PROCEDURE DeclareFieldEnumeration (sym: WORD) : Tree ;
+VAR
+   type    : CARDINAL ;
+   field,
+   enumlist: Tree ;
 BEGIN
-   (* add relationship between gccSym and Sym *)
-   PushValue(Sym) ;
-   IF (GetModuleWhereDeclared(Sym)=NulSym) OR
-      (GetModuleWhereDeclared(Sym)=GetMainModule())
+   (* add relationship between gccSym and sym *)
+   type := GetType(sym) ;
+   enumlist := GetEnumList(type) ;
+   PushValue(sym) ;
+   IF (GetModuleWhereDeclared(sym)=NulSym) OR
+      (GetModuleWhereDeclared(sym)=GetMainModule())
    THEN
-      PreAddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetSymName(Sym)),
-                                     PopIntegerTree()))
+      field := BuildEnumerator(KeyToCharStar(GetSymName(sym)),
+                               PopIntegerTree(),
+                               enumlist)
    ELSE
-      PreAddModGcc(Sym, BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(Sym)),
-                                     PopIntegerTree()))
-   END
+      field := BuildEnumerator(KeyToCharStar(GetFullScopeAsmName(sym)),
+                               PopIntegerTree(),
+                               enumlist)
+   END ;
+   PutEnumList(type, enumlist) ;
+   RETURN( field )
 END DeclareFieldEnumeration ;
 
 
@@ -1931,13 +2620,14 @@ END DeclareFieldEnumeration ;
    DeclareEnumeration - declare an enumerated type.
 *)
 
-PROCEDURE DeclareEnumeration (Sym: WORD) : Tree ;
+PROCEDURE DeclareEnumeration (sym: WORD) : Tree ;
 VAR
-   gccenum: Tree ;
+   enumlist,
+   gccenum : Tree ;
 BEGIN
-   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(Sym))) ;
-   ForeachFieldEnumerationDo(Sym, DeclareFieldEnumeration) ;
-   RETURN( BuildEndEnumeration(gccenum) )
+   gccenum := BuildStartEnumeration(KeyToCharStar(GetFullSymName(sym))) ;
+   enumlist := GetEnumList(sym) ;
+   RETURN( BuildEndEnumeration(gccenum, enumlist) )
 END DeclareEnumeration ;
 
 
@@ -2460,59 +3150,81 @@ PROCEDURE stop ; BEGIN END stop ;
 
 
 (*
-   DeclareVarient - declares a varient record to gcc and returns the gcc representation.
+   DeclareVarient - 
 *)
 
-PROCEDURE DeclareVarient (Sym: CARDINAL) : Tree ;
+PROCEDURE DeclareVarient (sym: CARDINAL) : Tree ;
 VAR
-   i, j        : CARDINAL ;
-   Field1,
-   Field2      : CARDINAL ;
+   GccFieldType: Tree ;
+BEGIN
+   IF IsVarient(sym)
+   THEN
+      GccFieldType := PostDeclareVarient(sym)
+   ELSE
+      GccFieldType := Mod2Gcc(GetType(sym))
+   END ;
+   RETURN( BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) )
+END DeclareVarient ;
+
+
+(*
+   DeclareFieldVarient - 
+*)
+
+PROCEDURE DeclareFieldVarient (sym: CARDINAL) : Tree ;
+VAR
+   i           : CARDINAL ;
+   Field       : CARDINAL ;
+   FieldList,
    GccFieldType,
    GccField,
-   VarientList,
-   FieldList,
-   VarientType,
    RecordType  : Tree ;
+BEGIN
+   RecordType := BuildStartRecord(NIL) ;
+   i := 1 ;
+   FieldList := Tree(NIL) ;
+   REPEAT
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
+      THEN
+         Assert(Mod2Gcc(Field)#NIL) ;
+         FieldList := ChainOn(FieldList, Mod2Gcc(Field)) ;
+         INC(i)
+      END
+   UNTIL Field=NulSym ;
+   GccFieldType := BuildEndRecord(RecordType, FieldList) ;
+   GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) ;
+   RETURN( GccField )
+END DeclareFieldVarient ;
+
+
+(*
+   PostDeclareVarient - declares a varient record to gcc and returns the gcc representation.
+*)
+
+PROCEDURE PostDeclareVarient (sym: CARDINAL) : Tree ;
+VAR
+   i           : CARDINAL ;
+   Field       : CARDINAL ;
+   VarientList,
+   VarientType : Tree ;
 BEGIN
    i := 1 ;
    VarientList := Tree(NIL) ;
-   VarientType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(Sym))) ;
-   (* no need to store the [Sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
+   VarientType := BuildStartVarientRecord(KeyToCharStar(GetFullSymName(sym))) ;
+   (* no need to store the [sym, RecordType] tuple as it is stored by DeclareRecord which calls us *)
    REPEAT
-      Field1 := GetNth(Sym, i) ;
-      IF Field1#NulSym
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
       THEN
-         FieldList := Tree(NIL) ;
-      	 Assert(IsFieldVarient(Field1)) ;
-         RecordType := BuildStartRecord(NIL) ;
-      	 j := 1 ;
-      	 REPEAT
-      	    Field2 := GetNth(Field1, j) ;
-      	    IF Field2#NulSym
-      	    THEN
-               IF IsVarient(Field2)
-               THEN
-                  GccFieldType := DeclareVarient(Field2)
-               ELSE
-                  GccFieldType := ForceDeclareType(GetType(Field2))
-               END ;
-               GccField  := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field2)), GccFieldType) ;
-               FieldList := ChainOn(FieldList, GccField) ;
-               PreAddModGcc(Field2, GccField) ;
-      	       INC(j)
-      	    END
-      	 UNTIL Field2=NulSym ;
-         GccFieldType := BuildEndRecord(RecordType, FieldList) ;
-         GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field1)), GccFieldType) ;
-         PreAddModGcc(Field1, GccField) ;
-         VarientList := ChainOn(VarientList, GccField)
+      	 Assert(IsFieldVarient(Field)) ;
+         VarientList := ChainOn(VarientList, Mod2Gcc(Field))
       END ;
       INC(i)
-   UNTIL Field1=NulSym ;
-   WatchRemoveList(Sym, tofinishlist) ;
+   UNTIL Field=NulSym ;
+   WatchRemoveList(sym, partiallydeclared) ;
    RETURN( BuildEndRecord(VarientType, VarientList) )
-END DeclareVarient ;
+END PostDeclareVarient ;
 
 
 (*
@@ -2522,11 +3234,8 @@ END DeclareVarient ;
 
 PROCEDURE DeclareRecord (Sym: CARDINAL) : Tree ;
 VAR
-   n1          : Name ;
    Field       : CARDINAL ;
    i           : CARDINAL ;
-   GccField,
-   GccFieldType,
    FieldList,
    RecordType  : Tree ;
 BEGIN
@@ -2537,48 +3246,45 @@ BEGIN
       Field := GetNth(Sym, i) ;
       IF Field#NulSym
       THEN
-         IF GccKnowsAbout(Field)
-         THEN
-            GccFieldType := Mod2Gcc(Field) ;
-            GccField     := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
-            PreAddModGcc(Field, GccField)
-         ELSE
-            IF IsVarient(Field)
-            THEN
-               Assert(AllDependantsWritten(Field)) ;
-               GccFieldType := DeclareVarient(Field)
-            ELSIF IsFieldVarient(Field)
-            THEN
-               MetaError1('found unexpected field varient name {%1a}\n', Field) ;
-               InternalError('unexpected varient record data structure', __FILE__, __LINE__)
-            ELSE
-               GccFieldType := ForceDeclareType(GetType(Field))
-            END ;
-            GccField := BuildFieldRecord(KeyToCharStar(GetFullSymName(Field)), GccFieldType) ;
-            PreAddModGcc(Field, GccField)
-         END ;
-         FieldList := ChainOn(FieldList, GccField)
+         FieldList := ChainOn(FieldList, Mod2Gcc(Field))
       END ;
       INC(i)
    UNTIL Field=NulSym ;
-   WatchRemoveList(Sym, tofinishlist) ;
+   WatchRemoveList(Sym, partiallydeclared) ;
    RETURN( BuildEndRecord(RecordType, FieldList) )
 END DeclareRecord ;
+
+
+(*
+   DeclareRecordField - 
+*)
+
+PROCEDURE DeclareRecordField (sym: CARDINAL) : Tree ;
+VAR
+   GccFieldType: Tree ;
+BEGIN
+   IF IsVarient(sym)
+   THEN
+      Assert(AllDependantsFullyDeclared(sym)) ;
+      GccFieldType := PostDeclareVarient(sym)
+   ELSIF IsFieldVarient(sym)
+   THEN
+      MetaError1('found unexpected field varient name {%1a}\n', sym) ;
+      InternalError('unexpected varient record data structure', __FILE__, __LINE__)
+   ELSE
+      GccFieldType := Mod2Gcc(GetType(sym))
+   END ;
+   RETURN( BuildFieldRecord(KeyToCharStar(GetFullSymName(sym)), GccFieldType) )
+END DeclareRecordField ;
 
 
 (*
    DeclarePointer - declares a pointer type to gcc and returns the Tree.
 *)
 
-PROCEDURE DeclarePointer (Sym: CARDINAL) : Tree ;
+PROCEDURE DeclarePointer (sym: CARDINAL) : Tree ;
 BEGIN
-   IF GetSymName(Sym)=NulName
-   THEN
-      RETURN( BuildPointerType(DeclareOrFindKindOfType(GetType(Sym))) )
-   ELSE
-      RETURN( DeclareKnownType(KeyToCharStar(GetFullSymName(Sym)),
-                               BuildPointerType(DeclareOrFindKindOfType(GetType(Sym)))) )
-   END
+   RETURN( BuildPointerType(Mod2Gcc(GetType(sym))) )
 END DeclarePointer ;
 
 
@@ -2586,22 +3292,21 @@ END DeclarePointer ;
    DeclareUnbounded - builds an unbounded type and returns the gcc tree.
 *)
 
-PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ;
+PROCEDURE DeclareUnbounded (sym: CARDINAL) : Tree ;
 VAR
    record: CARDINAL ;
 BEGIN
-   Assert(IsUnbounded(Sym)) ;
-   IF GccKnowsAbout(Sym)
+   Assert(IsUnbounded(sym)) ;
+   IF GccKnowsAbout(sym)
    THEN
-      RETURN( Mod2Gcc(Sym) )
+      RETURN( Mod2Gcc(sym) )
    ELSE
-      record := GetUnboundedRecordType(Sym) ;
+      record := GetUnboundedRecordType(sym) ;
       Assert(IsRecord(record)) ;
-      Assert(AllDependantsWritten(record)) ;
+      Assert(AllDependantsFullyDeclared(record)) ;
       IF (NOT GccKnowsAbout(record))
       THEN
-         AddModGcc(record, DeclareOrFindKindOfType(record)) ;
-         WatchIncludeList(record, definedlist) ;
+         DeclareTypeConstFully(record) ;
          WatchRemoveList(record, todolist)
       END ;
       RETURN( Mod2Gcc(record) )
@@ -2609,41 +3314,23 @@ BEGIN
 END DeclareUnbounded ;
 
 
-(* ******************************************************************
 (*
-   DeclareUnbounded - builds an unbounded type and returns the gcc tree.
+   BuildIndex - 
 *)
 
-PROCEDURE DeclareUnbounded (Sym: CARDINAL) : Tree ;
+PROCEDURE BuildIndex (sym: CARDINAL) : Tree ;
 VAR
-   FieldList,
-   GccFieldType,
-   RecordType  : Tree ;
-   ArrayName,
-   HighName    : Name ;
+   Subscript: CARDINAL ;
+   Type,
+   High, Low: CARDINAL ;
 BEGIN
-   Assert(IsUnbounded(Sym)) ;
-   ArrayName := GetSymName(GetUnboundedAddressOffset(Sym)) ;
-   HighName  := GetSymName(GetUnboundedHighOffset(Sym)) ;
-   IF GetType(Sym)=Char
-   THEN
-      RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
-      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayName),
-                                             BuildPointerType(GetCharType())),
-                            BuildFieldRecord(KeyToCharStar(HighName),
-                                             Mod2Gcc(Cardinal))) ;
-      RETURN( BuildEndRecord(RecordType, FieldList) )
-   ELSE
-      (* was RETURN( Mod2Gcc(Unbounded) ) *)
-      RecordType := BuildStartRecord(KeyToCharStar(GetSymName(Sym))) ;
-      FieldList  := ChainOn(BuildFieldRecord(KeyToCharStar(ArrayName),
-                                             BuildPointerType(Mod2Gcc(GetType(Sym)))),
-                            BuildFieldRecord(KeyToCharStar(HighName),
-                                             Mod2Gcc(Cardinal))) ;
-      RETURN( BuildEndRecord(RecordType, FieldList) )
-   END
-END DeclareUnbounded ;
- ****************************************************************** *)
+   Subscript := GetArraySubscript(sym) ;
+   Assert(IsSubscript(Subscript)) ;
+   Type := SkipType(GetType(Subscript)) ;
+   Low := GetTypeMin(Type) ;
+   High := GetTypeMax(Type) ;
+   RETURN( BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) )
+END BuildIndex ;
 
 
 (*
@@ -2652,44 +3339,30 @@ END DeclareUnbounded ;
 
 PROCEDURE DeclareArray (Sym: CARDINAL) : Tree ;
 VAR
-   n1, n2   : Name ;
-   Subscript: CARDINAL ;
-   High, Low: CARDINAL ;
-   Type     : CARDINAL ;
+   ArrayType,
    GccArray,
    GccIndex : Tree ;
+   Subscript: CARDINAL ;
 BEGIN
    Assert(IsArray(Sym)) ;
 
-   GccArray := ForceDeclareType(GetType(Sym)) ;
    Subscript := GetArraySubscript(Sym) ;
-   IF Subscript#NulSym
+   GccArray := Mod2Gcc(GetType(Sym)) ;
+   GccIndex := BuildIndex(Sym) ;
+
+   IF GccKnowsAbout(Sym)
    THEN
-      Assert(IsSubscript(Subscript)) ;
-      PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
-      PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
-      PopSize(Subscript) ;
-      Type := SkipType(GetType(Subscript)) ;
-      Low := GetTypeMin(Type) ;
-      High := GetTypeMax(Type) ;
-      GccIndex := BuildArrayIndexType(Mod2Gcc(Low), Mod2Gcc(High)) ;
-      GccArray := BuildArrayType(GccArray, GccIndex)
+      ArrayType := Mod2Gcc(Sym)
+   ELSE
+      ArrayType := BuildStartArrayType(GccIndex, ArrayType)
    END ;
-   IF Debugging
-   THEN
-      n1 := GetSymName(Sym) ;
-      IF Subscript=NulSym
-      THEN
-         n2 := GetSymName(GetType(Sym)) ;
-         printf2('// declaring %a = ARRAY OF %a\n', n1, n2)
-      ELSE
-         n2 := GetSymName(Low) ;
-         printf2('// declaring %a = ARRAY [%a', n1, n2) ;
-         n1 := GetSymName(High) ;
-         n2 := GetSymName(GetType(Sym)) ;
-         printf2('..%a] OF %a\n', n1, n2)
-      END
-   END ;
+
+   PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
+   PushIntegerTree(BuildSize(GccArray, FALSE)) ;  (* and the size of this array so far *)
+   PopSize(Subscript) ;
+
+   GccArray := BuildEndArrayType(ArrayType, GccArray, GccIndex) ;
+
    RETURN( GccArray )
 END DeclareArray ;
 
@@ -2713,7 +3386,7 @@ BEGIN
    Assert(PushParametersLeftToRight) ;
    WHILE i>0 DO
       Son := GetNthParam(Sym, i) ;
-      GccParam := BuildParameterDeclaration(NIL, DeclareOrFindKindOfType(GetType(Son)), IsVarParam(Sym, i)) ;
+      GccParam := BuildParameterDeclaration(NIL, Mod2Gcc(GetType(Son)), IsVarParam(Sym, i)) ;
       PreAddModGcc(Son, GccParam) ;
       DEC(i)
    END ;
@@ -2721,7 +3394,7 @@ BEGIN
    THEN
       RETURN( BuildEndFunctionType(func, NIL) )
    ELSE
-      RETURN( BuildEndFunctionType(func, DeclareOrFindKindOfType(ReturnType)) )
+      RETURN( BuildEndFunctionType(func, Mod2Gcc(ReturnType)) )
    END
 END DeclareProcType ;
 
@@ -2963,107 +3636,133 @@ END DeclareSet ;
 
 
 (*
-   ForceDeclareType - forces the declaration of a type and records the sym and gcc
-                      entities.
+   CheckResolveSubrange - checks to see whether we can determine
+                          the subrange type.  We are able to do
+                          this once low, high and the type are known.
 *)
 
-PROCEDURE ForceDeclareType (sym: CARDINAL) : Tree ;
+PROCEDURE CheckResolveSubrange (sym: CARDINAL) ;
 VAR
-   t1, t2: Tree ;
+   n                    : Name ;
+   size, high, low, type: CARDINAL ;
 BEGIN
-   IF IsVarient(sym)
+   GetSubrange(sym, high, low) ;
+   type := GetType(sym) ;
+   IF type=NulSym
    THEN
-      InternalError('caught a varient, it should never come through this procedure', __FILE__, __LINE__)
-   END ;
-   t1 := DeclareOrFindKindOfType(sym) ;
-   IF IsItemInList(ToFinishList, sym) AND AllDependantsWritten(sym)
-   THEN
-      (* complete half built type (record, varient record) *)
-      t2 := DeclareKindOfType(sym) ;
-      IF t1#t2
+      IF GccKnowsAbout(low) AND GccKnowsAbout(high)
       THEN
-         printf0('problems after completing the type definition (before)\n') ;
-         DebugTree(t1) ;
-         printf0('problems after completing the type definition (after)\n') ;
-         DebugTree(t2)
-      END ;
-      WatchRemoveList(sym, tofinishlist)
-   END ;
-   PreAddModGcc(sym, t1) ;
-   RETURN( t1 )
-END ForceDeclareType ;
-
-
-(*
-   DeclareOrFindKindOfType - firstly lookup the symbol, if it is known return this symbol
-                             otherwise declare the symbol. Remember that we have have
-                             partially declared symbols in the Mod2Gcc lookup facility.
-*)
-
-PROCEDURE DeclareOrFindKindOfType (Sym: CARDINAL) : Tree ;
-BEGIN
-   IF GccKnowsAbout(Sym)
-   THEN
-      RETURN( Mod2Gcc(Sym) )
-   ELSE
-      RETURN( DeclareKindOfType(Sym) )
+         IF IsConstString(low)
+         THEN
+            size := GetStringLength(low) ;
+            IF size=1
+            THEN
+               PutSubrange(sym, low, high, Char)
+            ELSE
+               MetaError1('cannot have a subrange of a string type {%1Uad}',
+                          sym)
+            END
+         ELSIF IsFieldEnumeration(low)
+         THEN
+            IF GetType(low)=GetType(high)
+            THEN
+               PutSubrange(sym, low, high, GetType(low))
+            ELSE
+               MetaError1('subrange limits must be of the same type {%1Uad}', sym)
+            END
+         ELSIF IsValueSolved(low)
+         THEN
+            IF GetType(low)=LongReal
+            THEN
+               MetaError1('cannot have a subrange of a SHORTREAL, REAL or LONGREAL type {%1Uad}', sym)
+            ELSE
+               PutSubrange(sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(sym)))
+            END
+         END
+      END
    END
-END DeclareOrFindKindOfType ;
+END CheckResolveSubrange ;
 
 
 (*
-   DeclareKindOfType - passes a symbol, sym, to GCC and returns the GCC equivelent symbol.
+   TypeConstFullyDeclared - all, sym, dependents are declared, so create and
+                            return the GCC Tree equivalent.
 *)
 
-PROCEDURE DeclareKindOfType (Sym: CARDINAL) : Tree ;
+PROCEDURE TypeConstFullyDeclared (sym: CARDINAL) : Tree ;
 VAR
    t: Tree ;
    n: Name ;
 BEGIN
-   IF IsEnumeration(Sym)
+   IF IsEnumeration(sym)
    THEN
-      t := DeclareEnumeration(Sym)
-   ELSIF IsSubrange(Sym)
+      t := DeclareEnumeration(sym)
+   ELSIF IsFieldEnumeration(sym)
    THEN
-      t := DeclareSubrange(Sym)
-   ELSIF IsRecord(Sym)
+      t := DeclareFieldEnumeration(sym)
+   ELSIF IsSubrange(sym)
    THEN
-      t := DeclareRecord(Sym)
-   ELSIF IsFieldVarient(Sym)
+      t := DeclareSubrange(sym)
+   ELSIF IsRecord(sym)
    THEN
-      t := DeclareVarient(Sym)
-   ELSIF IsVarient(Sym)
+      t := DeclareRecord(sym)
+   ELSIF IsRecordField(sym)
    THEN
-      InternalError('should not be solving varients here', __FILE__, __LINE__)
-   ELSIF IsPointer(Sym)
+      t := DeclareRecordField(sym)
+   ELSIF IsFieldVarient(sym)
    THEN
-      t := DeclarePointer(Sym)
-   ELSIF IsUnbounded(Sym)
+      t := DeclareFieldVarient(sym)
+   ELSIF IsVarient(sym)
    THEN
-      t := DeclareUnbounded(Sym)
-   ELSIF IsArray(Sym)
+      t := DeclareVarient(sym)
+   ELSIF IsPointer(sym)
    THEN
-      t := DeclareArray(Sym)
-   ELSIF IsProcType(Sym)
+      t := DeclarePointer(sym)
+   ELSIF IsUnbounded(sym)
    THEN
-      t := DeclareProcType(Sym)
-   ELSIF IsSet(Sym)
+      t := DeclareUnbounded(sym)
+   ELSIF IsArray(sym)
    THEN
-      t := DeclareSet(Sym)
+      t := DeclareArray(sym)
+   ELSIF IsProcType(sym)
+   THEN
+      t := DeclareProcType(sym)
+   ELSIF IsSet(sym)
+   THEN
+      t := DeclareSet(sym)
+   ELSIF IsConst(sym)
+   THEN
+      IF IsConstructor(sym)
+      THEN
+         PushValue(sym) ;
+         ChangeToConstructor(GetDeclared(sym), GetType(sym)) ;
+         PopValue(sym) ;
+         EvaluateValue(sym) ;
+         PutConstructorSolved(sym) ;
+      ELSIF IsConstSet(sym)
+      THEN
+         EvaluateValue(sym)
+      END ;
+      IF NOT IsValueSolved(sym)
+      THEN
+         RETURN( NIL )
+      END ;
+      t := DeclareConst(GetDeclared(sym), sym) ;
+      Assert(t#NIL)
    ELSE
-      t := DeclareType(Sym)
+      t := DeclareType(sym)
    END ;
-   IF GetSymName(Sym)#NulName
+   IF GetSymName(sym)#NulName
    THEN
       IF Debugging
       THEN
-         n := GetSymName(Sym) ;
-         printf1('Declaring type %a\n', n)
+         n := GetSymName(sym) ;
+         printf1('declaring type %a\n', n)
       END ;
       t := RememberType(t) ;
    END ;
    RETURN( t )
-END DeclareKindOfType ;
+END TypeConstFullyDeclared ;
 
 
 (*
@@ -3074,202 +3773,232 @@ END DeclareKindOfType ;
 
 PROCEDURE IsBaseType (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN(
-           (Sym=Cardinal) OR (Sym=Integer) OR
-           (Sym=Char)     OR (Sym=Proc)
-         )
+   RETURN( (Sym=Cardinal) OR (Sym=Integer) OR
+           (Sym=Char) OR (Sym=Proc) )
 END IsBaseType ;
 
 
 (*
-   IsEnumerationDependantsWritten - returns true if the enumeration
-                                    dependants have been written to
-                                    the assembly file.
+   IsFieldEnumerationDependants - sets enumDeps to FALSE if action(Sym)
+                                  is also FALSE.
 *)
 
-PROCEDURE IsEnumerationDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsFieldEnumerationDependants (Sym: WORD) ;
 BEGIN
-   PrintType('Enumeration', Sym, TRUE) ;
-   RETURN( TRUE )
-END IsEnumerationDependantsWritten ;
-
-
-(*
-   CheckResolveSubrange - checks to see whether we can resolve the subrange type.
-                          We are able to do this once low, high and the type are known.
-*)
-
-PROCEDURE CheckResolveSubrange (Sym: CARDINAL) ;
-VAR
-   n                    : Name ;
-   size, high, low, type: CARDINAL ;
-BEGIN
-   GetSubrange(Sym, high, low) ;
-   type := GetType(Sym) ;
-   IF type#NulSym
+   IF NOT action(Sym)
    THEN
-      IF NOT GccKnowsAbout(type)
-      THEN
-         WatchIncludeList(type, todolist)
-      END
-   ELSIF GccKnowsAbout(low) AND GccKnowsAbout(high)
-   THEN
-      IF IsConstString(low)
-      THEN
-         size := GetStringLength(low) ;
-         IF size=1
-         THEN
-            PutSubrange(Sym, low, high, Char)
-         ELSE
-            MetaError1('cannot have a subrange of a string type {%1a}', Sym)
-         END
-      ELSIF IsFieldEnumeration(low)
-      THEN
-         IF GetType(low)=GetType(high)
-         THEN
-            PutSubrange(Sym, low, high, GetType(low))
-         ELSE
-            MetaError1('subrange limits must be of the same type {%1a}', Sym)
-         END
-      ELSIF IsValueSolved(low)
-      THEN
-         IF IsRealType(GetType(low))
-         THEN
-            MetaError1('{%1a} cannot have a subrange of a {%1tas} type', Sym)
-         ELSE
-            PutSubrange(Sym, low, high, MixTypes(GetType(low), GetType(high), GetDeclared(Sym)))
-         END
-      END ;
-      IF NOT GccKnowsAbout(Sym)
-      THEN
-         WatchIncludeList(Sym, todolist)
-      END ;
-      type := GetType(Sym) ;
-      IF (type#NulSym) AND (NOT GccKnowsAbout(type))
-      THEN
-         WatchIncludeList(type, todolist)
-      END
+      enumDeps := FALSE
    END
-END CheckResolveSubrange ;
+END IsFieldEnumerationDependants ;
 
 
 (*
-   IsSubrangeDependantsWritten - returns true if the subrange
-                                 dependants have been written to the
-                                 assembly file.
+   IsEnumerationDependants - returns true if the enumeration
+                             p(dependants) all return true.
 *)
 
-PROCEDURE IsSubrangeDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsEnumerationDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+BEGIN
+   action := q ;
+   enumDeps := TRUE ;
+   ForeachFieldEnumerationDo(sym, IsFieldEnumerationDependants) ;
+   RETURN( enumDeps )
+END IsEnumerationDependants ;
+
+
+(*
+   WalkEnumerationDependants - returns walks all dependants of Sym.
+*)
+
+PROCEDURE WalkEnumerationDependants (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   ForeachFieldEnumerationDo(sym, p)
+END WalkEnumerationDependants ;
+
+
+(*
+   WalkSubrangeDependants - calls p(dependants) for each dependant of, sym.
+*)
+
+PROCEDURE WalkSubrangeDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
+   type,
    high, low: CARDINAL ;
 BEGIN
-   GetSubrange(Sym, high, low) ;
+   GetSubrange(sym, high, low) ;
+   CheckResolveSubrange(sym) ;
+   type := GetType(sym) ;
+   IF type#NulSym
+   THEN
+      p(type)
+   END ;
    (* low and high are not types but constants and they are resolved by M2GenGCC *)
-   IF NOT GccKnowsAbout(low)
-   THEN
-      WatchIncludeList(low, todoconstants) ;
-      WatchIncludeList(Sym, todolist)
-   END ;
-   IF NOT GccKnowsAbout(high)
-   THEN
-      WatchIncludeList(high, todoconstants) ;
-      WatchIncludeList(Sym, todolist)
-   END ;
-   CheckResolveSubrange(Sym) ;
-   RETURN(
-          ((GetType(Sym)=NulSym) OR GccKnowsAbout(GetType(Sym))) AND
-          GccKnowsAbout(low) AND GccKnowsAbout(high)
-         )
-END IsSubrangeDependantsWritten ;
+   p(low) ;
+   p(high)
+END WalkSubrangeDependants ;
 
 
 (*
-   IsPointerDependantsWritten - returns TRUE if the pointer symbol, Sym,
-      	       	                dependants have been solved.
+   IsSubrangeDependants - returns TRUE if the subrange
+                          q(dependants) all return TRUE.
 *)
 
-PROCEDURE IsPointerDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsSubrangeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
-   n   : Name ;
+   result   : BOOLEAN ;
+   type,
+   high, low: CARDINAL ;
+BEGIN
+   GetSubrange(sym, high, low) ;
+   (* low and high are not types but constants and they are resolved by M2GenGCC *)
+   CheckResolveSubrange(sym) ;
+   result := TRUE ;
+   type := GetType(sym) ;
+   IF (type=NulSym) OR (NOT q(type))
+   THEN
+      result := FALSE
+   END ;
+   IF NOT q(low)
+   THEN
+      result := FALSE
+   END ;
+   IF NOT q(high)
+   THEN
+      result := FALSE
+   END ;
+   RETURN( result )
+END IsSubrangeDependants ;
+
+
+(*
+   WalkVarDependants - walks all dependants of sym.
+*)
+
+PROCEDURE WalkVarDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
    type: CARDINAL ;
 BEGIN
-   IF NOT GccKnowsAbout(Sym)
+   p(GetType(sym)) ;
+   type := GetVarBackEndType(sym) ;
+   IF type#NulSym
    THEN
-      WatchIncludeList(Sym, todolist)
-   END ;
-   type := GetType(Sym) ;
-   IF Debugging
-   THEN
-      n := GetSymName(Sym) ;
-      printf2('// lets see about %d %a ', Sym, n)
-   END ;
-   (* is it partially known but has no name required for forward references *)
-   IF IsItemInList(ToFinishList, type) AND (GetSymName(type)=NulName)
-   THEN
-      IF Debugging
-      THEN
-         printf0('no partially declared and nulname\n')
-      END ;
-      WatchIncludeList(type, todolist) ;
-      WatchIncludeList(Sym, todolist) ;
-      RETURN( FALSE )
-   END ;
-   IF IsSymTypeKnown(Sym, type)
-   THEN
-      IF Debugging
-      THEN
-         printf0('yes...\n')
-      END ;
-      RETURN( TRUE )
-   ELSE
-      IF Debugging
-      THEN
-         printf0('no its type is unknown...\n')
-      END ;
-      WatchIncludeList(type, todolist) ;
-      RETURN( FALSE )
+      p(type)
    END
-END IsPointerDependantsWritten ;
+END WalkVarDependants ;
 
 
 (*
-   IsRecordDependantsWritten - returns TRUE if the symbol, Sym,
-      	       	               dependants have been written
-      	       	               to the assembly file.
+   IsVarDependants - returns TRUE if the pointer symbol, sym,
+                     p(dependants) all return TRUE.
 *)
 
-PROCEDURE IsRecordDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsVarDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
-   i     : CARDINAL ;
-   type,
-   Field : CARDINAL ;
-   solved: BOOLEAN ;
-   tree  : Tree ;
+   type  : CARDINAL ;
+   result: BOOLEAN ;
 BEGIN
+   result := TRUE ;
+   IF NOT q(GetType(sym))
+   THEN
+      result := FALSE
+   END ;
+   type := GetVarBackEndType(sym) ;
+   IF type#NulSym
+   THEN
+      IF NOT q(type)
+      THEN
+         result := FALSE
+      END
+   END ;
+   RETURN( result )
+END IsVarDependants ;
+
+
 (*
-   WriteString('// IsRecordDependantsWritten Sym=') ; WriteCard(Sym, 0) ;
-   WriteString(' name ') ; WriteKey(GetSymName(Sym)) ; WriteLn ;
+   WalkPointerDependants - walks all dependants of sym.
 *)
-   solved := TRUE ;
-   tree := DoStartDeclaration(Sym, BuildStartRecord) ;
+
+PROCEDURE WalkPointerDependants (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   p(GetType(sym))
+END WalkPointerDependants ;
+
+
+(*
+   IsPointerDependants - returns TRUE if the pointer symbol, sym,
+      	       	         p(dependants) all return TRUE.
+*)
+
+PROCEDURE IsPointerDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+BEGIN
+   RETURN( q(GetType(sym)) )
+END IsPointerDependants ;
+
+
+(*
+   IsRecordDependants - returns TRUE if the symbol, sym,
+                        q(dependants) all return TRUE.
+*)
+
+PROCEDURE IsRecordDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   result: BOOLEAN ;
+   i     : CARDINAL ;
+   field : CARDINAL ;
+BEGIN
+   result := TRUE ;
    i := 1 ;
    REPEAT
-      Field := GetNth(Sym, i) ;
+      field := GetNth(sym, i) ;
+      IF field#NulSym
+      THEN
+         IF IsRecordField(field)
+         THEN
+            IF NOT q(field)
+            THEN
+               result := FALSE
+      	    END
+         ELSIF IsVarient(field)
+         THEN
+            IF NOT q(field)
+            THEN
+               result := FALSE
+      	    END
+      	 ELSIF IsFieldVarient(field)
+      	 THEN
+            InternalError('should not see a field varient', __FILE__, __LINE__)
+         ELSE
+            InternalError('unknown symbol in record', __FILE__, __LINE__)
+      	 END
+      END ;
+      INC(i)
+   UNTIL field=NulSym ;
+   RETURN( result )
+END IsRecordDependants ;
+
+
+(*
+   WalkRecordDependants - walks symbol, sym, dependants.
+*)
+
+PROCEDURE WalkRecordDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   i    : CARDINAL ;
+   type,
+   Field: CARDINAL ;
+BEGIN
+   i := 1 ;
+   REPEAT
+      Field := GetNth(sym, i) ;
       IF Field#NulSym
       THEN
          type := GetType(Field) ;
          IF IsRecordField(Field)
          THEN
-      	    IF (NOT IsSymTypeKnown(Sym, type)) AND (NOT AllDependantsWritten(type))
-      	    THEN
-               solved := FALSE
-      	    END
+            p(Field)
          ELSIF IsVarient(Field)
          THEN
-      	    IF (NOT IsSymTypeKnown(Sym, Field)) AND (NOT AllDependantsWritten(Field))
-      	    THEN
-               solved := FALSE
-      	    END
+            p(Field)
       	 ELSIF IsFieldVarient(Field)
       	 THEN
             InternalError('should not see a field varient', __FILE__, __LINE__)
@@ -3278,265 +4007,386 @@ BEGIN
       	 END
       END ;
       INC(i)
-   UNTIL Field=NulSym ;
-   RETURN( solved )
-END IsRecordDependantsWritten ;
+   UNTIL Field=NulSym
+END WalkRecordDependants ;
 
 
 (*
-   IsVarientDependantsWritten - returns TRUE if all symbol, Sym, dependants
-      	       	                have been written to the assembly file.
+   IsVarientDependants - returns TRUE if the symbol, sym,
+                         q(dependants) all return TRUE.
 *)
 
-PROCEDURE IsVarientDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsVarientDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
-   i, j  : CARDINAL ;
-   type,
-   Field1,
-   Field2: CARDINAL ;
-   solved: BOOLEAN ;
+   result: BOOLEAN ;
+   i     : CARDINAL ;
+   Field : CARDINAL ;
 BEGIN
-   solved := TRUE ;
+   result := TRUE ;
    i := 1 ;
    REPEAT
-      Field1 := GetNth(Sym, i) ;
-      IF Field1#NulSym
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
       THEN
-      	 Assert(IsFieldVarient(Field1)) ;
-      	 j := 1 ;
-      	 REPEAT
-      	    Field2 := GetNth(Field1, j) ;
-      	    IF Field2#NulSym
-      	    THEN
-               IF IsVarient(Field2) AND (NOT IsVarientDependantsWritten(Field2))
-               THEN
-                  solved := FALSE
-               END ;
-               type := GetType(Field2) ;
-       	       IF (type#NulSym) AND
-                  (NOT IsSymTypeKnown(Sym, type)) AND
-                  (NOT AllDependantsWritten(type))
-      	       THEN
-      	       	  solved := FALSE
-      	       END ;
-      	       INC(j)
-      	    END
-      	 UNTIL Field2=NulSym
+      	 Assert(IsFieldVarient(Field)) ;
+         IF NOT q(Field)
+         THEN
+            result := FALSE
+         END
       END ;
       INC(i)
-   UNTIL Field1=NulSym ;
-   RETURN( solved )
-END IsVarientDependantsWritten ;
+   UNTIL Field=NulSym ;
+   RETURN( result )
+END IsVarientDependants ;
 
 
 (*
-   IsArrayDependantsWritten - returns TRUE if the symbol, Sym,
-      	       	              dependants have
-      	       	              been written into the assembly file.
+   WalkVarientDependants - walks symbol, sym, dependants.
 *)
 
-PROCEDURE IsArrayDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE WalkVarientDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
-   n1, n2   : Name ;
-   solved   : BOOLEAN ;
-   Subscript: CARDINAL ;
-   High, Low: CARDINAL ;
-   Type     : CARDINAL ;
+   i    : CARDINAL ;
+   Field: CARDINAL ;
 BEGIN
-   Assert(IsArray(Sym)) ;
-
-   solved := TRUE ;
-   Type := GetType(Sym) ;
- 
-   IF NOT IsSymTypeKnown(Sym, Type)
-   THEN
-      WatchIncludeList(Sym, todolist) ;
-      WatchIncludeList(Type, todolist) ;
-      solved := FALSE
-   END ;
-   IF NOT AllDependantsWritten(Type)
-   THEN
-      WatchIncludeList(Type, todolist) ;
-      solved := FALSE
-   END ;
-
-   Subscript := GetArraySubscript(Sym) ;
-   IF Subscript#NulSym
-   THEN
-      Assert(IsSubscript(Subscript)) ;
-      Type := GetType(Subscript) ;
-      IF NOT AllDependantsWritten(Type)
+   i := 1 ;
+   REPEAT
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
       THEN
-         solved := FALSE
+      	 Assert(IsFieldVarient(Field)) ;
+         p(Field)
       END ;
-      Type := SkipType(Type) ;
+      INC(i)
+   UNTIL Field=NulSym
+END WalkVarientDependants ;
+
+
+(*
+   IsVarientFieldDependants - returns TRUE if the symbol, sym,
+                              q(dependants) all return TRUE.
+*)
+
+PROCEDURE IsVarientFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   i     : CARDINAL ;
+   type,
+   Field : CARDINAL ;
+   result: BOOLEAN ;
+BEGIN
+   i := 1 ;
+   result := TRUE ;
+   REPEAT
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
+      THEN
+         IF NOT q(Field)
+         THEN
+            result := FALSE
+         END ;
+         type := GetType(Field) ;
+         IF type#NulSym
+         THEN
+            IF NOT q(type)
+            THEN
+               result := FALSE
+            END
+         END ;
+         INC(i)
+      END
+   UNTIL Field=NulSym ;
+   RETURN( result )
+END IsVarientFieldDependants ;
+
+
+(*
+   WalkVarientFieldDependants - 
+*)
+
+PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   i   :  CARDINAL ;
+   type,
+   Field: CARDINAL ;
+BEGIN
+   i := 1 ;
+   REPEAT
+      Field := GetNth(sym, i) ;
+      IF Field#NulSym
+      THEN
+         p(Field) ;
+         type := GetType(Field) ;
+         IF type#NulSym
+         THEN
+            p(type)
+         END ;
+         INC(i)
+      END
+   UNTIL Field=NulSym
+END WalkVarientFieldDependants ;
+
+
+(*
+   IsArrayDependants - returns TRUE if the symbol, sym,
+      	       	       q(dependants) all return TRUE.
+
+*)
+
+PROCEDURE IsArrayDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   result   : BOOLEAN ;
+   subscript: CARDINAL ;
+   high, low: CARDINAL ;
+   type     : CARDINAL ;
+BEGIN
+   result := TRUE ;
+   Assert(IsArray(sym)) ;
+   result := TRUE ;
+   type := GetType(sym) ;
+
+   IF NOT q(type)
+   THEN
+      result := FALSE
+   END ;
+   subscript := GetArraySubscript(sym) ;
+   IF subscript#NulSym
+   THEN
+      Assert(IsSubscript(subscript)) ;
+      type := GetType(subscript) ;
+      IF NOT q(type)
+      THEN
+         result := FALSE
+      END ;
+      type := SkipType(type) ;
       (* the array might be declared as ARRAY type OF foo *)
-      Low  := GetTypeMin(Type) ;
-      High := GetTypeMax(Type) ;
-      IF NOT GccKnowsAbout(Low)
+      low  := GetTypeMin(type) ;
+      high := GetTypeMax(type) ;
+      IF NOT q(low)
       THEN
-         WatchIncludeList(Low, todoconstants) ;
-         solved := FALSE
+         result := FALSE
       END ;
-      IF NOT GccKnowsAbout(High)
+      IF NOT q(high)
       THEN
-         WatchIncludeList(High, todoconstants) ;
-         solved := FALSE
+         result := FALSE
       END
    END ;
-   RETURN( solved )
-END IsArrayDependantsWritten ;
+   RETURN( result )
+END IsArrayDependants ;
 
 
 (*
-   IsSetDependantsWritten - returns TRUE if the symbol, Sym, dependants have
-                            been written into the assembly file.
+   WalkArrayDependants - walks symbol, sym, dependants.
 *)
 
-PROCEDURE IsSetDependantsWritten (sym: CARDINAL) : BOOLEAN ;
+PROCEDURE WalkArrayDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   subscript: CARDINAL ;
+   high, low: CARDINAL ;
+   type     : CARDINAL ;
+BEGIN
+   Assert(IsArray(sym)) ;
+   type := GetType(sym) ;
+   p(type) ;
+   subscript := GetArraySubscript(sym) ;
+   IF subscript#NulSym
+   THEN
+      Assert(IsSubscript(subscript)) ;
+      type := GetType(subscript) ;
+      p(type) ;
+      type := SkipType(type) ;
+      (* the array might be declared as ARRAY type OF foo *)
+      low  := GetTypeMin(type) ;
+      high := GetTypeMax(type) ;
+      p(low) ;
+      p(high)
+   END
+END WalkArrayDependants ;
+
+
+(*
+   IsSetDependants - returns TRUE if the symbol, sym,
+                     q(dependants) all return TRUE.
+*)
+
+PROCEDURE IsSetDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   result         : BOOLEAN ;
+   type, low, high: CARDINAL ;
+BEGIN
+   result := TRUE ;
+   Assert(IsSet(sym)) ;
+
+   type := SkipType(GetType(sym)) ;
+   IF NOT q(type)
+   THEN
+      result := FALSE
+   END ;
+   low  := GetTypeMin(type) ;
+   high := GetTypeMax(type) ;
+   IF NOT q(low)
+   THEN
+      result := FALSE
+   END ;
+   IF NOT q(high)
+   THEN
+      result := FALSE
+   END ;
+   RETURN( result )
+END IsSetDependants ;
+
+
+(*
+   WalkSetDependants - walks dependants, sym.
+*)
+
+PROCEDURE WalkSetDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
    type, low, high: CARDINAL ;
-   solved         : BOOLEAN ;
 BEGIN
    Assert(IsSet(sym)) ;
 
    type := SkipType(GetType(sym)) ;
-   IF IsSubrange(type)
-   THEN
-      IF IsSymTypeKnown(sym, type)
-      THEN
-         RETURN( TRUE )
-      ELSE
-         RETURN( IsSubrangeDependantsWritten(type) )
-      END
-   ELSE
-      solved := TRUE ;
-      IF NOT IsSymTypeKnown(sym, type)
-      THEN
-         WatchIncludeList(type, todolist) ;
-         solved := FALSE
-      END ;
-
-      IF IsSymTypeKnown(sym, type)
-      THEN
-         low  := GetTypeMin(type) ;
-         high := GetTypeMax(type) ;
-         IF NOT GccKnowsAbout(low)
-         THEN
-            WatchIncludeList(low, todoconstants) ;
-            solved := FALSE
-         END ;
-         IF NOT GccKnowsAbout(high)
-         THEN
-            WatchIncludeList(high, todoconstants) ;
-            solved := FALSE
-         END
-      END ;
-      RETURN( solved )
-   END
-END IsSetDependantsWritten ;
+   p(type) ;
+   low  := GetTypeMin(type) ;
+   p(low) ;
+   high := GetTypeMax(type) ;
+   p(high)
+END WalkSetDependants ;
 
 
 (*
-   IsProcTypeDependantsWritten - 
+   IsProcTypeDependants - 
 *)
 
-PROCEDURE IsProcTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsProcTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
-   i, p, Son : CARDINAL ;
+   i, p, son : CARDINAL ;
    ParamType,
    ReturnType: CARDINAL ;
-   solved    : BOOLEAN ;
-   tree      : Tree ;
+   result    : BOOLEAN ;
 BEGIN
-   solved := TRUE ;
-   Assert(IsProcType(Sym)) ;
-   tree := DoStartDeclaration(Sym, BuildStartFunctionType) ;
+   result := TRUE ;
+   Assert(IsProcType(sym)) ;
    i := 1 ;
-   ReturnType := GetType(Sym) ;
-   p := NoOfParam(Sym) ;
+   ReturnType := GetType(sym) ;
+   p := NoOfParam(sym) ;
    WHILE i<=p DO
-      Son := GetNthParam(Sym, i) ;
-      ParamType := GetType(Son) ;
-      IF (NOT IsSymTypeKnown(Sym, ParamType)) AND (NOT AllDependantsWritten(ParamType))
+      son := GetNthParam(sym, i) ;
+      ParamType := GetType(son) ;
+      IF NOT q(ParamType)
       THEN
-         solved := FALSE
+         result := FALSE
       END ;
       INC(i)
    END ;
-   IF (NOT IsSymTypeKnown(Sym, ReturnType)) AND (NOT AllDependantsWritten(ReturnType))
+   IF (ReturnType=NulSym) OR q(ReturnType)
    THEN
+      RETURN( result )
+   ELSE
       RETURN( FALSE )
-   ELSE
-      RETURN( solved )
    END
-END IsProcTypeDependantsWritten ;
+END IsProcTypeDependants ;
 
 
 (*
-   IsUnboundedDependantsWritten - returns TRUE if all dependants have been declared to GCC.
+   WalkProcTypeDependants - walks dependants, sym.
 *)
 
-PROCEDURE IsUnboundedDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE WalkProcTypeDependants (sym: CARDINAL; p: WalkAction) ;
 VAR
-   solved: BOOLEAN ;
+   i, n, son : CARDINAL ;
+   ParamType,
+   ReturnType: CARDINAL ;
 BEGIN
-   solved := TRUE ;
-   IF NOT IsSymTypeKnown(Sym, GetUnboundedRecordType(Sym))
-   THEN
-      solved := FALSE
+   Assert(IsProcType(sym)) ;
+   i := 1 ;
+   ReturnType := GetType(sym) ;
+   n := NoOfParam(sym) ;
+   WHILE i<=n DO
+      son := GetNthParam(sym, i) ;
+      ParamType := GetType(son) ;
+      p(ParamType) ;
+      INC(i)
    END ;
-   IF GetType(Sym)=Char
+   IF ReturnType#NulSym
    THEN
-      IF NOT IsSymTypeKnown(Sym, Cardinal)
-      THEN
-         solved := FALSE
-      END ;
-      IF NOT IsSymTypeKnown(Sym, Char)
-      THEN
-         solved := FALSE
-      END
-   ELSE
-      IF NOT IsSymTypeKnown(Sym, GetType(Sym))
-      THEN
-         solved := FALSE
-      END
-   END ;
-   RETURN( solved )
-END IsUnboundedDependantsWritten ;
+      p(ReturnType)
+   END
+END WalkProcTypeDependants ;
 
 
 (*
-   IsTypeDependantsWritten - returns TRUE if a type symbol, Sym, dependants
-      	       	             have been written to the assembly file.
-      	       	     	     If a symbol has no name then it will NOT
-                             be written out by itself but as part
-                             of another symbol who does have a name.
-                             Hence we can return TRUE for such symbols.
+   IsUnboundedDependants - returns TRUE if the symbol, sym,
+                           q(dependants) all return TRUE.
 *)
 
-PROCEDURE IsTypeDependantsWritten (Sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsUnboundedDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+VAR
+   result: BOOLEAN ;
+BEGIN
+   result := TRUE ;
+   IF NOT q(GetUnboundedRecordType(sym))
+   THEN
+      result := FALSE
+   END ;
+   IF NOT q(Cardinal)
+   THEN
+      result := FALSE
+   END ;
+   IF NOT q(GetType(sym))
+   THEN
+      result := FALSE
+   END ;
+   RETURN( result )
+END IsUnboundedDependants ;
+
+
+(*
+   WalkUnboundedDependants - walks the dependants of, sym.
+*)
+
+PROCEDURE WalkUnboundedDependants (sym: CARDINAL; p: WalkAction) ;
+BEGIN
+   p(GetUnboundedRecordType(sym)) ;
+   p(Cardinal) ;
+   p(GetType(sym))
+END WalkUnboundedDependants ;
+
+
+(*
+   IsTypeDependants - returns TRUE if all q(dependants) return
+                      TRUE.
+*)
+
+PROCEDURE IsTypeDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
    type  : CARDINAL ;
-   solved: BOOLEAN ;
+   result: BOOLEAN ;
 BEGIN
-   type := GetType(Sym) ;
-   solved := TRUE ;
+   type := GetType(sym) ;
+   result := TRUE ;
+   IF (type#NulSym) AND (NOT q(type))
+   THEN
+      result := FALSE
+   END ;
+   RETURN( result )
+END IsTypeDependants ;
+
+
+(*
+   WalkTypeDependants - walks all dependants of, sym.
+*)
+
+PROCEDURE WalkTypeDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   type := GetType(sym) ;
    IF type#NulSym
    THEN
-      IF NOT GccKnowsAbout(type)
-      THEN
-         WatchIncludeList(type, todolist) ;
-         solved := FALSE
-      END ;
-      IF NOT IsSymTypeKnown(type, GetType(type))
-      THEN
-         WatchIncludeList(GetType(type), todolist) ;
-         solved := FALSE
-      END
-   END ;
-   RETURN( solved )
-END IsTypeDependantsWritten ;
+      p(type)
+   END
+END WalkTypeDependants ;
 
 
 (*
@@ -3554,6 +4404,16 @@ END PoisonSymbols ;
 
 
 (*
+   ConstantKnownAndUsed - 
+*)
+
+PROCEDURE ConstantKnownAndUsed (sym: CARDINAL; t: Tree) ;
+BEGIN
+   DeclareConstantFromTree(sym, RememberConstant(t))
+END ConstantKnownAndUsed ;
+
+
+(*
    InitDeclarations - initializes default types and the source filename.
 *)
 
@@ -3566,14 +4426,13 @@ END InitDeclarations ;
 
 BEGIN
    InitList(ToDoList) ;
-   InitList(ToDoConstants) ;
-   InitList(ToFinishList) ;
-   InitList(DefinedList) ;
+   InitList(FullyDeclared) ;
+   InitList(PartiallyDeclared) ;
+   InitList(NilTypedArrays) ;
+   InitList(ToBeSolvedByQuads) ;
    InitList(WatchList) ;
+   EnumerationIndex := InitIndex(1) ;
    HaveInitDefaultTypes := FALSE
- ; AddSymToWatch(698)
- ; AddSymToWatch(2913)
- ; AddSymToWatch(147)
 END M2GCCDeclare.
 (*
  * Local variables:

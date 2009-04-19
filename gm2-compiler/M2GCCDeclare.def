@@ -36,7 +36,13 @@ EXPORT QUALIFIED FoldConstants,
                  DeclareModuleVariables, IsProcedureGccNested,
                  DeclareProcedure, PoisonSymbols, DeclareParameters,
                  DeclareConstructor, CompletelyResolved, MarkExported,
-                 GetTypeMin, GetTypeMax ;
+                 ConstantKnownAndUsed, PutToBeSolvedByQuads,
+                 GetTypeMin, GetTypeMax,
+                 WalkAction, IsAction ;
+
+TYPE
+   WalkAction = PROCEDURE (WORD) ;
+   IsAction   = PROCEDURE (WORD) : BOOLEAN ;
 
 
 (*
@@ -86,7 +92,7 @@ PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
                            together with their offset.
 *)
 
-PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
+PROCEDURE DeclareLocalVariables (sym: CARDINAL) ;
 
 
 (*
@@ -94,7 +100,7 @@ PROCEDURE DeclareLocalVariables (Sym: CARDINAL) ;
                       module sym.
 *)
 
-PROCEDURE DeclareProcedure (Sym: WORD) ;
+PROCEDURE DeclareProcedure (sym: WORD) ;
 
 
 (*
@@ -102,7 +108,7 @@ PROCEDURE DeclareProcedure (Sym: WORD) ;
                             which inside a procedure.
 *)
 
-PROCEDURE DeclareModuleVariables (Sym: CARDINAL) ;
+PROCEDURE DeclareModuleVariables (sym: CARDINAL) ;
 
 
 (*
@@ -137,10 +143,26 @@ PROCEDURE PromoteToString (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 
 (*
    CompletelyResolved - returns TRUE if a symbol has been completely resolved
-                        and is not partially declared (such as a record).
+                        and is not partially declared (such as a record,
+                        array or procedure type).
 *)
 
 PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   ConstantKnownAndUsed - 
+*)
+
+PROCEDURE ConstantKnownAndUsed (sym: CARDINAL; t: Tree) ;
+
+
+(*
+   PutToBeSolvedByQuads - places, sym, to this list and returns,
+                          sym.
+*)
+
+PROCEDURE PutToBeSolvedByQuads (sym: CARDINAL) ;
 
 
 (*

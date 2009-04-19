@@ -27,7 +27,8 @@ DEFINITION MODULE InOut ;
 
 IMPORT ASCII ;
 FROM DynamicStrings IMPORT String ;
-EXPORT QUALIFIED EOL, Done, termCH, OpenInput, CloseInput, CloseOutput,
+EXPORT QUALIFIED EOL, Done, termCH, OpenInput, OpenOutput,
+                 CloseInput, CloseOutput,
                  Read, ReadString, ReadInt, ReadCard,
                  Write, WriteLn, WriteString, WriteInt, WriteCard,
                  WriteOct, WriteHex,

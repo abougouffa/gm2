@@ -1,3 +1,47 @@
+2009-04-19       Gaius Mulley <gaius@gnu.org>
+
+	* Huge amount of changes, most of which surround the new
+	  implementation of M2GCCDeclare.mod.  This uses a set of
+	  traverse and walk procedures for each data type which
+	  allows cyclic data structures to be emitted to the
+	  GCC middleend from the gm2 frontend.
+	* gm2/patches/gcc/4.1.2/06.gaius_patch_tree:  new file.
+	* gm2/gm2/gccgm2.c:  gccgm2_BuildStartType, gccgm2_BuildEndType
+	  (New Functions).  gccgm2_DeclareKnownType build type from
+	  previous two functions.  gccgm2_BuildStartArrayType,
+	  gccgm2_PutArrayType, gccgm2_BuildEndArrayType,
+	  gccgm2_GetDeclContext  (New Functions).
+	* gm2/gm2/gm2-compiler/M2ALU.def:  PutConstructorSolved,
+	  EvaluateValue,  IsConstructorDependants,
+	  WalkConstructorDependants  (New procedures).
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  implement above
+	  changes.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.def:  ConstantKnownAndUsed,
+	  PutToBeSolvedByQuads (New Procedures).
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  Completely new
+	  algorithm used, too many changes to document here.
+	* gm2/gm2/gm2-compiler/M2GenGCC.def:  ResolveConstantExpressions
+	  first parameter is a WalkAction procedure.
+	* gm2/gm2/gm2-compiler/M2GenGCC.mod:  many changes to reflect
+	  the new walk algorithm of M2GCCDeclare.  All the Fold
+	  procedures now call the WalkAction procedure parameter
+	  if a symbol is resolved rather than removing it from
+	  a list.
+	* gm2/gm2/gm2-compiler/M2Range.def:  FoldRangeCheck
+	  modified in light of new M2GCCDeclare.
+	* gm2/gm2/gm2-compiler/M2Range.mod:  modified in light
+	  of new M2GCCDeclare.
+	* gm2/gm2/gm2-compiler/P2SymBuild.mod:  added commented
+	  out code, which needs to be tested and enabled once
+	  M2GCCDeclare stabalises.
+        * gm2/gm2/gm2-compiler/gccgm2.def:  export BuildStartType,
+	  BuildEndType.  Modified parameters to BuildEndEnumeration,
+	  BuildEnumerator.  Export BuildStartArrayType,
+	  BuildEndArrayType, PutArrayType, GetDeclContext.
+	* gm2/gm2/gm2-libs-pim/InOut.def:  export OpenOutput.
+	* gm2/gm2/p2c/p2c-src/src/decl.c:  changed implementation
+	  of word to unsigned rather than integer.
+	  
 2009-04-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  simplified module by removing

@@ -750,7 +750,7 @@ END InitWholeZeroRemainderCheck ;
    FoldNil - attempts to fold the pointer against nil comparison.
 *)
 
-PROCEDURE FoldNil (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldNil (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
    n: Name ;
@@ -887,7 +887,7 @@ END HaveHandler ;
    FoldAssignment - 
 *)
 
-PROCEDURE FoldAssignment (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldAssignment (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
    min, max: Tree ;
@@ -919,7 +919,7 @@ END FoldAssignment ;
    FoldInc - 
 *)
 
-PROCEDURE FoldInc (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldInc (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -967,7 +967,7 @@ END FoldInc ;
    FoldDec - 
 *)
 
-PROCEDURE FoldDec (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldDec (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -1048,7 +1048,7 @@ END CheckSetAndBit ;
    FoldIncl - folds an INCL statement if the operands are constant.
 *)
 
-PROCEDURE FoldIncl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldIncl (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -1086,7 +1086,7 @@ END FoldIncl ;
    FoldExcl - folds an EXCL statement if the operands are constant.
 *)
 
-PROCEDURE FoldExcl (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldExcl (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -1256,13 +1256,13 @@ END CodeTypeExpr ;
                    for checking types which are resolved post pass 3.
 *)
 
-PROCEDURE FoldTypeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldTypeCheck (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      (* DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *) *)
       DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
@@ -1319,7 +1319,7 @@ END CodeTypeCheck ;
    FoldForLoopBegin - 
 *)
 
-PROCEDURE FoldForLoopBegin (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldForLoopBegin (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
    min, max: Tree ;
@@ -1351,7 +1351,7 @@ END FoldForLoopBegin ;
    FoldForLoopTo - 
 *)
 
-PROCEDURE FoldForLoopTo (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldForLoopTo (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p       : Range ;
    min, max: Tree ;
@@ -1383,7 +1383,7 @@ END FoldForLoopTo ;
    FoldStaticArraySubscript - 
 *)
 
-PROCEDURE FoldStaticArraySubscript (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldStaticArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -1417,7 +1417,7 @@ END FoldStaticArraySubscript ;
    FoldDynamicArraySubscript - 
 *)
 
-PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldDynamicArraySubscript (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p          : Range ;
    t, min, max: Tree ;
@@ -1448,7 +1448,7 @@ END FoldDynamicArraySubscript ;
    FoldNonPosDiv - attempts to fold the bound checking for a divide expression.
 *)
 
-PROCEDURE FoldNonPosDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldNonPosDiv (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -1473,7 +1473,7 @@ END FoldNonPosDiv ;
    FoldNonPosMod - attempts to fold the bound checking for a modulus expression.
 *)
 
-PROCEDURE FoldNonPosMod (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldNonPosMod (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -1498,7 +1498,7 @@ END FoldNonPosMod ;
    FoldZeroDiv - 
 *)
 
-PROCEDURE FoldZeroDiv (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldZeroDiv (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -1523,7 +1523,7 @@ END FoldZeroDiv ;
    FoldZeroRem - 
 *)
 
-PROCEDURE FoldZeroRem (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldZeroRem (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -1554,7 +1554,7 @@ END FoldZeroRem ;
                        it is left alone
 *)
 
-PROCEDURE FoldRangeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldRangeCheck (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
    p: Range ;
 BEGIN
@@ -1562,27 +1562,27 @@ BEGIN
    WITH p^ DO
       CASE type OF
 
-      assignment           :  FoldAssignment(tokenno, l, q, r) |
+      assignment           :  FoldAssignment(tokenno, q, r) |
 (*      subrangeassignment   :  |  unused currently *)
-      inc                  :  FoldInc(tokenno, l, q, r) |
-      dec                  :  FoldDec(tokenno, l, q, r) |
-      incl                 :  FoldIncl(tokenno, l, q, r) |
-      excl                 :  FoldExcl(tokenno, l, q, r) |
-      typeassign           :  FoldTypeCheck(tokenno, l, q, r) |
-      typeparam            :  FoldTypeCheck(tokenno, l, q, r) |
-      typeexpr             :  FoldTypeCheck(tokenno, l, q, r) |
-      staticarraysubscript :  FoldStaticArraySubscript(tokenno, l, q, r) |
-      dynamicarraysubscript:  FoldDynamicArraySubscript(tokenno, l, q, r) |
-      forloopbegin         :  FoldForLoopBegin(tokenno, l, q, r) |
-      forloopto            :  FoldForLoopTo(tokenno, l, q, r) |
+      inc                  :  FoldInc(tokenno, q, r) |
+      dec                  :  FoldDec(tokenno, q, r) |
+      incl                 :  FoldIncl(tokenno, q, r) |
+      excl                 :  FoldExcl(tokenno, q, r) |
+      typeassign           :  FoldTypeCheck(tokenno, q, r) |
+      typeparam            :  FoldTypeCheck(tokenno, q, r) |
+      typeexpr             :  FoldTypeCheck(tokenno, q, r) |
+      staticarraysubscript :  FoldStaticArraySubscript(tokenno, q, r) |
+      dynamicarraysubscript:  FoldDynamicArraySubscript(tokenno, q, r) |
+      forloopbegin         :  FoldForLoopBegin(tokenno, q, r) |
+      forloopto            :  FoldForLoopTo(tokenno, q, r) |
       forloopend           :  RETURN (* unable to fold anything at this point, des, will be variable *) |
-      pointernil           :  FoldNil(tokenno, l, q, r) |
+      pointernil           :  FoldNil(tokenno, q, r) |
       noreturn             :  RETURN (* nothing to fold *) |
       noelse               :  RETURN (* nothing to fold *) |
-      wholenonposdiv       :  FoldNonPosDiv(tokenno, l, q, r) |
-      wholenonposmod       :  FoldNonPosMod(tokenno, l, q, r) |
-      wholezerodiv         :  FoldZeroDiv(tokenno, l, q, r) |
-      wholezerorem         :  FoldZeroRem(tokenno, l, q, r) |
+      wholenonposdiv       :  FoldNonPosDiv(tokenno, q, r) |
+      wholenonposmod       :  FoldNonPosMod(tokenno, q, r) |
+      wholezerodiv         :  FoldZeroDiv(tokenno, q, r) |
+      wholezerorem         :  FoldZeroRem(tokenno, q, r) |
       none                 :  SubQuad(q)
 
       ELSE

@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -101,7 +101,7 @@ FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
 FROM M2StackWord IMPORT InitStackWord, StackOfWord, PeepWord, ReduceWord,
                         PushWord, PopWord, IsEmptyWord ;
 
-FROM Lists IMPORT InitList, KillList,
+FROM Lists IMPORT List, InitList, KillList,
                   PutItemIntoList,
                   RemoveItemFromList, IncludeItemIntoList,
                   NoOfItemsInList, GetItemFromList ;
@@ -122,12 +122,14 @@ FROM M2ALU IMPORT PtrToValue,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn,
                   CheckOverflow, GetRange, GetValue ;
 
-FROM M2GCCDeclare IMPORT DeclareConstant,
+FROM M2GCCDeclare IMPORT WalkAction,
+                         DeclareConstant,
                          StartDeclareScope, EndDeclareScope,
                          DeclareLocalVariables, PromoteToString,
                          CompletelyResolved, DeclareConstructor,
                          PoisonSymbols, GetTypeMin, GetTypeMax,
-                         IsProcedureGccNested, DeclareParameters ;
+                         IsProcedureGccNested, DeclareParameters,
+                         ConstantKnownAndUsed ;
 
 FROM M2Range IMPORT CodeRangeCheck, FoldRangeCheck, CodeErrorCheck ;
 
@@ -218,6 +220,7 @@ VAR
                                             (* quadrules are being processed.         *)
    ScopeStack               : StackOfWord ; (* keeps track of the current scope       *)
                                             (* under translation.                     *)
+   NoChange                 : BOOLEAN ;     (* has any constant been resolved?        *)
 
 
 (*
@@ -318,7 +321,7 @@ PROCEDURE CodeSaveException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD 
 PROCEDURE CodeRestoreException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeError (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeRange (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
+PROCEDURE FoldRange (tokenno: CARDINAL; p: WalkAction;
                      q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
@@ -339,37 +342,37 @@ PROCEDURE CodeTry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeCatchBegin (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeCatchEnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeRetry (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBecomes (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBecomes (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldAdd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldAdd (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeAdd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSub (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSub (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSub (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldMult (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMult (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldDivTrunc (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeDivTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldModTrunc (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModTrunc (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldDivFloor (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldDivFloor (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeDivFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldModFloor (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldModFloor (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeModFloor (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldBitRange (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBit (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBitRange (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBit (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBit (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeGoto (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CheckReferenced (q: CARDINAL; op: QuadOperator) ; FORWARD ;
-PROCEDURE FoldSetOr (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetAnd (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSetOr (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSetAnd (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldNegate (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldNegate (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeNegate (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeAddr (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeStandardFunction (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIfLess (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIfLessEqu (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -388,18 +391,18 @@ PROCEDURE CodeParam (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeFunctValue (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeInline (quad: CARDINAL; op1, op2, GnuAsm: CARDINAL); FORWARD ;
 PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldOffset (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldHigh (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ; FORWARD ;
-PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldElementSize (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeElementSize (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldCoerce (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeCoerce (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldCast (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldCast (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeCast (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldConvert (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldConvert (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeConvert (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeMath (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetShift (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -410,22 +413,22 @@ PROCEDURE CodeSetAnd (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeSetSymmetricDifference (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeIncl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeExcl (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldIncl (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldExcl (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfIn (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfNotIn (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIncl (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldExcl (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIfIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldIfNotIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ; FORWARD ;
-PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
+PROCEDURE FoldIfLess (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetShift (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetShift (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldSetRotate (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetRotate (tokenno: CARDINAL; p: WalkAction;
                          quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; l: List;
+PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; p: WalkAction;
                                q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
+PROCEDURE FoldMakeAdr (tokenno: CARDINAL; p: WalkAction;
                        q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeBuiltinFunction (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeMakeAdr (q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -584,59 +587,13 @@ END CodeStatement ;
 
 
 (*
-   DeclareConstantLiterals - declares all constant literals in a list.
-*)
-
-PROCEDURE DeclareConstantLiterals (l: List) ;
-VAR
-   n1  : Name ;
-   i, n: CARDINAL ;
-   sym : CARDINAL ;
-BEGIN
-   n := NoOfItemsInList(l) ;
-   i := 1 ;
-   WHILE i<=n DO
-      sym := GetItemFromList(l, i) ;
-      IF Debugging
-      THEN
-         n1 := GetSymName(sym) ;
-         printf2('trying to declare constant %a <%d>', n1, sym)
-      END ;
-      IF (sym#NulSym) AND IsConst(sym)
-      THEN
-         IF (NOT IsValueSolved(sym)) AND IsConstSet(sym)
-         THEN
-            IF Debugging
-            THEN
-               printf0(' <unresolved const set>')
-            END ;
-            
-         END ;
-         IF IsValueSolved(sym)
-         THEN
-            DeclareConstant(GetDeclared(sym), sym) ;
-            RemoveItemFromList(l, sym) ;
-            IF Debugging
-            THEN
-               printf0(' done')
-            END
-         END
-      END ;
-      IF Debugging
-      THEN
-         printf0('\n')
-      END ;
-      INC(i)
-   END
-END DeclareConstantLiterals ;
-
-
-(*
    ResolveConstantExpressions - resolves constant expressions from the quadruple list.
                                 It returns TRUE if one or more constants were folded.
+                                When a constant symbol value is solved, the call back
+                                p(sym) is invoked.
 *)
 
-PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
+PROCEDURE ResolveConstantExpressions (p: WalkAction; start, end: CARDINAL) : BOOLEAN ;
 VAR
    tokenno: CARDINAL ;
    quad   : CARDINAL ;
@@ -644,16 +601,12 @@ VAR
    op1,
    op2,
    op3    : CARDINAL ;
-   Orig,
-   Next,
-   Last   : CARDINAL ;
+   Changed: BOOLEAN ;
 BEGIN
-   DeclareConstantLiterals(l) ;
-   Orig := NoOfItemsInList(l) ;
-   Next := Orig ;
+   Changed  := FALSE ;
    REPEAT
+      NoChange := TRUE ;
       quad := start ;
-      Last := Next ;
       WHILE (quad<=end) AND (quad#0) DO
          GetQuad(quad, op, op1, op2, op3) ;
          tokenno := QuadToTokenNo(quad) ;
@@ -662,50 +615,53 @@ BEGIN
 
          CASE op OF
 
-         StandardFunctionOp : FoldStandardFunction(tokenno, l, quad, op1, op2, op3) |
-         BuiltinConstOp     : FoldBuiltinConst(tokenno, l, quad, op1, op2, op3) |
-         LogicalOrOp        : FoldSetOr(tokenno, l, quad, op1, op2, op3) |
-         LogicalAndOp       : FoldSetAnd(tokenno, l, quad, op1, op2, op3) |
-         LogicalXorOp       : FoldSymmetricDifference(tokenno, l, quad, op1, op2, op3) |
-         BecomesOp          : FoldBecomes(tokenno, l, quad, op1, op2, op3) |
-         AddOp              : FoldAdd(tokenno, l, quad, op1, op2, op3) |
-         SubOp              : FoldSub(tokenno, l, quad, op1, op2, op3) |
-         MultOp             : FoldMult(tokenno, l, quad, op1, op2, op3) |
-         DivTruncOp         : FoldDivTrunc(tokenno, l, quad, op1, op2, op3) |
-         ModTruncOp         : FoldModTrunc(tokenno, l, quad, op1, op2, op3) |
-         DivFloorOp         : FoldDivFloor(tokenno, l, quad, op1, op2, op3) |
-         ModFloorOp         : FoldModFloor(tokenno, l, quad, op1, op2, op3) |
-         NegateOp           : FoldNegate(tokenno, l, quad, op1, op2, op3) |
-         SizeOp             : FoldSize(tokenno, l, quad, op1, op2, op3) |
-         OffsetOp           : FoldOffset(tokenno, l, quad, op1, op2, op3) |
-         HighOp             : FoldHigh(tokenno, l, quad, op1, op2, op3) |
-         ElementSizeOp      : FoldElementSize(tokenno, l, quad, op1, op2, op3) |
-         ConvertOp          : FoldConvert(tokenno, l, quad, op1, op2, op3) |
-         CoerceOp           : FoldCoerce(tokenno, l, quad, op1, op2, op3) |
-         CastOp             : FoldCast(tokenno, l, quad, op1, op2, op3) |
-         InclOp             : FoldIncl(tokenno, l, quad, op1, op2, op3) |
-         ExclOp             : FoldExcl(tokenno, l, quad, op1, op2, op3) |
-         IfLessOp           : FoldIfLess(tokenno, l, quad, op1, op2, op3) |
-         IfInOp             : FoldIfIn(tokenno, l, quad, op1, op2, op3) |
-         IfNotInOp          : FoldIfNotIn(tokenno, l, quad, op1, op2, op3) |
-         LogicalShiftOp     : FoldSetShift(tokenno, l, quad, op1, op2, op3) |
-         LogicalRotateOp    : FoldSetRotate(tokenno, l, quad, op1, op2, op3) |
-         ParamOp            : FoldBuiltinFunction(tokenno, l, quad, op1, op2, op3) |
-         RangeCheckOp       : FoldRange(tokenno, l, quad, op1, op2, op3)
+         StandardFunctionOp : FoldStandardFunction(tokenno, p, quad, op1, op2, op3) |
+         BuiltinConstOp     : FoldBuiltinConst(tokenno, p, quad, op1, op2, op3) |
+         LogicalOrOp        : FoldSetOr(tokenno, p, quad, op1, op2, op3) |
+         LogicalAndOp       : FoldSetAnd(tokenno, p, quad, op1, op2, op3) |
+         LogicalXorOp       : FoldSymmetricDifference(tokenno, p, quad, op1, op2, op3) |
+         BecomesOp          : FoldBecomes(tokenno, p, quad, op1, op2, op3) |
+         AddOp              : FoldAdd(tokenno, p, quad, op1, op2, op3) |
+         SubOp              : FoldSub(tokenno, p, quad, op1, op2, op3) |
+         MultOp             : FoldMult(tokenno, p, quad, op1, op2, op3) |
+         DivTruncOp         : FoldDivTrunc(tokenno, p, quad, op1, op2, op3) |
+         ModTruncOp         : FoldModTrunc(tokenno, p, quad, op1, op2, op3) |
+         DivFloorOp         : FoldDivFloor(tokenno, p, quad, op1, op2, op3) |
+         ModFloorOp         : FoldModFloor(tokenno, p, quad, op1, op2, op3) |
+         NegateOp           : FoldNegate(tokenno, p, quad, op1, op2, op3) |
+         SizeOp             : FoldSize(tokenno, p, quad, op1, op2, op3) |
+         OffsetOp           : FoldOffset(tokenno, p, quad, op1, op2, op3) |
+         HighOp             : FoldHigh(tokenno, p, quad, op1, op2, op3) |
+         ElementSizeOp      : FoldElementSize(tokenno, p, quad, op1, op2, op3) |
+         ConvertOp          : FoldConvert(tokenno, p, quad, op1, op2, op3) |
+         CoerceOp           : FoldCoerce(tokenno, p, quad, op1, op2, op3) |
+         CastOp             : FoldCast(tokenno, p, quad, op1, op2, op3) |
+         InclOp             : FoldIncl(tokenno, p, quad, op1, op2, op3) |
+         ExclOp             : FoldExcl(tokenno, p, quad, op1, op2, op3) |
+         IfLessOp           : FoldIfLess(tokenno, p, quad, op1, op2, op3) |
+         IfInOp             : FoldIfIn(tokenno, p, quad, op1, op2, op3) |
+         IfNotInOp          : FoldIfNotIn(tokenno, p, quad, op1, op2, op3) |
+         LogicalShiftOp     : FoldSetShift(tokenno, p, quad, op1, op2, op3) |
+         LogicalRotateOp    : FoldSetRotate(tokenno, p, quad, op1, op2, op3) |
+         ParamOp            : FoldBuiltinFunction(tokenno, p, quad, op1, op2, op3) |
+         RangeCheckOp       : FoldRange(tokenno, p, quad, op1, op2, op3)
 
          ELSE
             (* ignore quadruple as it is not associated with a constant expression *)
          END ;
          quad := GetNextQuad(quad)
       END ;
-      Next := NoOfItemsInList(l)
-   UNTIL Last=Next ;
+      IF NOT NoChange
+      THEN
+         Changed := TRUE
+      END
+   UNTIL NoChange ;
    IF Debugging AND DisplayQuadruples AND FALSE
    THEN
       printf0('after resolving expressions with gcc\n') ;
       DisplayQuadList(AbsoluteHead) ;
    END ;
-   RETURN( Orig#Last )
+   RETURN( Changed )
 END ResolveConstantExpressions ;
 
 
@@ -880,10 +836,10 @@ END CodeLineNumber ;
                --fixme-- complete this
 *)
 
-PROCEDURE FoldRange (tokenno: CARDINAL; l: List;
+PROCEDURE FoldRange (tokenno: CARDINAL; p: WalkAction;
                      q: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldRangeCheck(tokenno, l, q, op3)
+   FoldRangeCheck(tokenno, q, op3)
 END FoldRange ;
 
 
@@ -2099,7 +2055,7 @@ END CodeBuiltinFunction ;
    FoldMakeAdr - attempts to fold the function MAKEADR.
 *)
 
-PROCEDURE FoldMakeAdr (tokenno: CARDINAL; l: List;
+PROCEDURE FoldMakeAdr (tokenno: CARDINAL; p: WalkAction;
                        q: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    resolved: BOOLEAN ;
@@ -2164,7 +2120,8 @@ BEGIN
       END ;
       PutConst(r, Address) ;
       AddModGcc(r, DeclareKnownConstant(Mod2Gcc(Address), val)) ;
-      RemoveItemFromList(l, r) ;
+      p(r) ;
+      NoChange := FALSE ;
       SubQuad(n)
    END
 END FoldMakeAdr ;
@@ -2175,12 +2132,12 @@ END FoldMakeAdr ;
                          inlines the SYSTEM function MAKEADR.
 *)
 
-PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; l: List;
+PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; p: WalkAction;
                                q: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF (op1=0) AND (op3=MakeAdr)
    THEN
-      FoldMakeAdr(tokenno, l, q, op1, op2, op3)
+      FoldMakeAdr(tokenno, p, q, op1, op2, op3)
    END
 END FoldBuiltinFunction ;
 
@@ -2281,7 +2238,7 @@ END CheckStop ;
    Sym1<I> := Sym3<I>           := produces a constant
 *)
 
-PROCEDURE FoldBecomes (tokenno: CARDINAL; l: List; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+PROCEDURE FoldBecomes (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    s: String ;
    t: Tree ;
@@ -2343,7 +2300,8 @@ BEGIN
                                                  Mod2Gcc(op3)))
                END
             END ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad) ;
             t := RememberConstant(Mod2Gcc(op1))
          END
@@ -2599,7 +2557,7 @@ BEGIN
    DeclareConstructor(quad, op3) ;
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
-      AddModGcc(op1, CheckConstant(op1, op3))
+      ConstantKnownAndUsed(op1, CheckConstant(op1, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
       DoCopyString(t, op3t, GetType(op1), op3) ;
@@ -2721,7 +2679,7 @@ END ZConstToTypedConst ;
    FoldBinary - check whether we can fold the binop operation.
 *)
 
-PROCEDURE FoldBinary (tokenno: CARDINAL; l: List; binop: BuildBinProcedure;
+PROCEDURE FoldBinary (tokenno: CARDINAL; p: WalkAction; binop: BuildBinProcedure;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    tl, tr, tv: Tree ;
@@ -2749,7 +2707,8 @@ BEGIN
             ELSE
                AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op1)), tv))
             END ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment,
@@ -2786,7 +2745,7 @@ BEGIN
       Assert(MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)#NulSym) ;
 
       PutConst(op1, MixTypes(FindType(op3), FindType(op2), CurrentQuadToken)) ;
-      AddModGcc(op1, DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv))
+      ConstantKnownAndUsed(op1, DeclareKnownConstant(Mod2Gcc(GetType(op3)), tv))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1), tv)
    END
@@ -2840,7 +2799,7 @@ END CodeBinarySet ;
    FoldAdd - check addition for constant folding.
 *)
 
-PROCEDURE FoldAdd (tokenno: CARDINAL; l: List;
+PROCEDURE FoldAdd (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    s: String ;
@@ -2853,11 +2812,12 @@ BEGIN
       s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(op3))))) ;
       PutConstString(op1, makekey(string(s))) ;
       DeclareConstant(tokenno, op1) ;
-      RemoveItemFromList(l, op1) ;
+      p(op1) ;
+      NoChange := FALSE ;
       SubQuad(quad) ;
       s := KillString(s)
    ELSE
-      FoldBinary(tokenno, l, BuildAdd, quad, op1, op2, op3)
+      FoldBinary(tokenno, p, BuildAdd, quad, op1, op2, op3)
    END
 END FoldAdd ;
 
@@ -2876,10 +2836,10 @@ END CodeAdd ;
    FoldSub - check subtraction for constant folding.
 *)
 
-PROCEDURE FoldSub (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSub (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildSub, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildSub, quad, op1, op2, op3)
 END FoldSub ;
 
 
@@ -2897,10 +2857,10 @@ END CodeSub ;
    FoldMult - check multiplication for constant folding.
 *)
 
-PROCEDURE FoldMult (tokenno: CARDINAL; l: List;
+PROCEDURE FoldMult (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildMult, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildMult, quad, op1, op2, op3)
 END FoldMult ;
 
 
@@ -2918,10 +2878,10 @@ END CodeMult ;
    FoldDivTrunc - check division for constant folding.
 *)
 
-PROCEDURE FoldDivTrunc (tokenno: CARDINAL; l: List;
+PROCEDURE FoldDivTrunc (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildDivTrunc, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildDivTrunc, quad, op1, op2, op3)
 END FoldDivTrunc ;
 
 
@@ -2939,10 +2899,10 @@ END CodeDivTrunc ;
    FoldModTrunc - check modulus for constant folding.
 *)
 
-PROCEDURE FoldModTrunc (tokenno: CARDINAL; l: List;
+PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildModTrunc, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildModTrunc, quad, op1, op2, op3)
 END FoldModTrunc ;
 
 
@@ -2960,10 +2920,10 @@ END CodeModTrunc ;
    FoldDivFloor - check division for constant folding.
 *)
 
-PROCEDURE FoldDivFloor (tokenno: CARDINAL; l: List;
+PROCEDURE FoldDivFloor (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildDivFloor, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildDivFloor, quad, op1, op2, op3)
 END FoldDivFloor ;
 
 
@@ -2981,10 +2941,10 @@ END CodeDivFloor ;
    FoldModFloor - check modulus for constant folding.
 *)
 
-PROCEDURE FoldModFloor (tokenno: CARDINAL; l: List;
+PROCEDURE FoldModFloor (tokenno: CARDINAL; p: WalkAction;
                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinary(tokenno, l, BuildModFloor, quad, op1, op2, op3)
+   FoldBinary(tokenno, p, BuildModFloor, quad, op1, op2, op3)
 END FoldModFloor ;
 
 
@@ -3002,7 +2962,7 @@ END CodeModFloor ;
    FoldBuiltinConst - 
 *)
 
-PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; l: List;
+PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction;
                             quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
@@ -3014,7 +2974,8 @@ BEGIN
       MetaErrorT1(tokenno, 'unknown built in constant {%1ad}', op3)
    ELSE
       AddModGcc(op1, t) ;
-      RemoveItemFromList(l, op1) ;
+      p(op1) ;
+      NoChange := FALSE ;
       SubQuad(quad)
    END
 END FoldBuiltinConst ;
@@ -3024,7 +2985,7 @@ END FoldBuiltinConst ;
    FoldStandardFunction - attempts to fold a standard function.
 *)
 
-PROCEDURE FoldStandardFunction (tokenno: CARDINAL; l: List;
+PROCEDURE FoldStandardFunction (tokenno: CARDINAL; p: WalkAction;
                                 quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t     : Tree ;
@@ -3044,7 +3005,8 @@ BEGIN
             IF IsConstString(op3)
             THEN
                AddModGcc(op1, FindSize(op3)) ;
-               RemoveItemFromList(l, op1) ;
+               p(op1) ;
+               NoChange := FALSE ;
                SubQuad(quad)
             ELSE
                MetaErrorT1(tokenno, 'parameter to LENGTH must be a string {%1ad}', op3)
@@ -3071,7 +3033,8 @@ BEGIN
                (GetType(op3)=Char)
             THEN
                AddModGcc(op1, BuildCap(Mod2Gcc(op3))) ;
-               RemoveItemFromList(l, op1) ;
+               p(op1) ;
+               NoChange := FALSE ;
                SubQuad(quad)
             ELSE
                MetaErrorT1(tokenno, 'parameter to CAP must be a single character {%1ad}', op3)
@@ -3087,7 +3050,8 @@ BEGIN
          IF IsConst(op1)
          THEN
             AddModGcc(op1, BuildAbs(Mod2Gcc(op3))) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -3100,7 +3064,8 @@ BEGIN
          IF IsConst(op1)
          THEN
             AddModGcc(op1, BuildIm(Mod2Gcc(op3))) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -3113,7 +3078,8 @@ BEGIN
          IF IsConst(op1)
          THEN
             AddModGcc(op1, BuildRe(Mod2Gcc(op3))) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -3136,7 +3102,8 @@ BEGIN
                AddModGcc(op1, BuildCmplx(Mod2Gcc(type),
                                          Mod2Gcc(GetNth(op3, 1)),
                                          Mod2Gcc(GetNth(op3, 2)))) ;
-               RemoveItemFromList(l, op1) ;
+               p(op1) ;
+               NoChange := FALSE ;
                SubQuad(quad)
             END
          END
@@ -3333,7 +3300,7 @@ END CodeRestorePriority ;
    FoldBinarySet - attempts to fold set arithmetic it removes the quad if successful.
 *)
 
-PROCEDURE FoldBinarySet (tokenno: CARDINAL; l: List; op: DoProcedure;
+PROCEDURE FoldBinarySet (tokenno: CARDINAL; p: WalkAction; op: DoProcedure;
                          quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly try and ensure that constants are declared *)
@@ -3356,7 +3323,8 @@ BEGIN
          AddModGcc(op1,
                    DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(tokenno))) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       END
    END
@@ -3367,10 +3335,10 @@ END FoldBinarySet ;
    FoldSetOr - check whether we can fold a set arithmetic or.
 *)
 
-PROCEDURE FoldSetOr (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetOr (tokenno: CARDINAL; p: WalkAction;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetOr, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetOr, quad, op1, op2, op3)
 END FoldSetOr ;
 
 
@@ -3388,10 +3356,10 @@ END CodeSetOr ;
    FoldSetAnd - check whether we can fold a logical and.
 *)
 
-PROCEDURE FoldSetAnd (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetAnd (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetAnd, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetAnd, quad, op1, op2, op3)
 END FoldSetAnd ;
 
 
@@ -3478,10 +3446,10 @@ END CodeBinarySetShift ;
    FoldSetShift - check whether we can fold a logical shift.
 *)
 
-PROCEDURE FoldSetShift (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetShift (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetShift, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetShift, quad, op1, op2, op3)
 END FoldSetShift ;
 
 
@@ -3504,10 +3472,10 @@ END CodeSetShift ;
    FoldSetRotate - check whether we can fold a logical rotate.
 *)
 
-PROCEDURE FoldSetRotate (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetRotate (tokenno: CARDINAL; p: WalkAction;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetRotate, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetRotate, quad, op1, op2, op3)
 END FoldSetRotate ;
 
 
@@ -3530,10 +3498,10 @@ END CodeSetRotate ;
    FoldSetLogicalDifference - check whether we can fold a logical difference.
 *)
 
-PROCEDURE FoldSetLogicalDifference (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSetLogicalDifference (tokenno: CARDINAL; p: WalkAction;
                                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetDifference, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetDifference, quad, op1, op2, op3)
 END FoldSetLogicalDifference ;
 
 
@@ -3552,10 +3520,10 @@ END CodeSetLogicalDifference ;
    FoldSymmetricDifference - check whether we can fold a logical difference.
 *)
 
-PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSymmetricDifference (tokenno: CARDINAL; p: WalkAction;
                                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   FoldBinarySet(tokenno, l, SetSymmetricDifference, quad, op1, op2, op3)
+   FoldBinarySet(tokenno, p, SetSymmetricDifference, quad, op1, op2, op3)
 END FoldSymmetricDifference ;
 
 
@@ -3592,9 +3560,9 @@ BEGIN
          PopValue(op1) ;
          PushValue(op1) ;
          PutConstSet(op1) ;
-         AddModGcc(op1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(op3)),
-                                        PopSetTree(CurrentQuadToken)))
+         ConstantKnownAndUsed(op1,
+                              DeclareKnownConstant(Mod2Gcc(GetType(op3)),
+                                                   PopSetTree(CurrentQuadToken)))
       ELSE
          ErrorStringAt(InitString('constant expression cannot be evaluated'), CurrentQuadToken)
       END
@@ -3611,7 +3579,7 @@ END CodeUnarySet ;
               op1 := op1 + (1 << op3)
 *)
 
-PROCEDURE FoldIncl (tokenno: CARDINAL; l: List;
+PROCEDURE FoldIncl (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3624,7 +3592,8 @@ BEGIN
          PushValue(op1) ;
          AddBit(tokenno, op3) ;
          AddModGcc(op1, PopSetTree(tokenno)) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       END
    END
@@ -3636,7 +3605,7 @@ END FoldIncl ;
               if op1 in op2 then goto op3
 *)
 
-PROCEDURE FoldIfLess (tokenno: CARDINAL; l: List;
+PROCEDURE FoldIfLess (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3665,7 +3634,7 @@ END FoldIfLess ;
               if op1 in op2 then goto op3
 *)
 
-PROCEDURE FoldIfIn (tokenno: CARDINAL; l: List;
+PROCEDURE FoldIfIn (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3693,7 +3662,7 @@ END FoldIfIn ;
                  if not (op1 in op2) then goto op3
 *)
 
-PROCEDURE FoldIfNotIn (tokenno: CARDINAL; l: List;
+PROCEDURE FoldIfNotIn (tokenno: CARDINAL; p: WalkAction;
                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3839,7 +3808,7 @@ END CodeIncl ;
               op1 := op1 - (1 << op3)
 *)
 
-PROCEDURE FoldExcl (tokenno: CARDINAL; l: List;
+PROCEDURE FoldExcl (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
@@ -3851,7 +3820,8 @@ BEGIN
          PushValue(op1) ;
          SubBit(tokenno, op3) ;
          AddModGcc(op1, PopSetTree(tokenno)) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       END
    END
@@ -3904,7 +3874,7 @@ END CodeExcl ;
    FoldUnary - check whether we can fold the unop operation.
 *)
 
-PROCEDURE FoldUnary (tokenno: CARDINAL; l: List;
+PROCEDURE FoldUnary (tokenno: CARDINAL; p: WalkAction;
                      unop: BuildUnaryProcedure; ZConstToTypedConst: Tree;
                      quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
@@ -3941,7 +3911,8 @@ BEGIN
             CheckOverflow(tokenno, tv) ;
 
             AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv)) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment, however, we will
@@ -3957,7 +3928,7 @@ END FoldUnary ;
    FoldUnarySet - check whether we can fold the doOp operation.
 *)
 
-PROCEDURE FoldUnarySet (tokenno: CARDINAL; l: List; doOp: DoUnaryProcedure;
+PROCEDURE FoldUnarySet (tokenno: CARDINAL; p: WalkAction; doOp: DoUnaryProcedure;
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly try and ensure that constants are declared *)
@@ -3976,7 +3947,8 @@ BEGIN
          AddModGcc(op1,
                    DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                         PopSetTree(QuadToTokenNo(quad)))) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       END
    END
@@ -4005,7 +3977,7 @@ BEGIN
       END ;
       (* still have a constant which was not resolved, pass it to gcc *)
       PutConst(op1, FindType(op3)) ;
-      AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv))
+      ConstantKnownAndUsed(op1, DeclareKnownConstant(ZConstToTypedConst, tv))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1), tv)
    END
@@ -4016,14 +3988,14 @@ END CodeUnary ;
    FoldNegate - check unary negate for constant folding.
 *)
 
-PROCEDURE FoldNegate (tokenno: CARDINAL; l: List;
+PROCEDURE FoldNegate (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF IsConstSet(op3)
    THEN
-      FoldUnarySet(tokenno, l, SetNegate, quad, op1, op2, op3)
+      FoldUnarySet(tokenno, p, SetNegate, quad, op1, op2, op3)
    ELSE
-      FoldUnary(tokenno, l, BuildNegate, NIL, quad, op1, op2, op3)
+      FoldUnary(tokenno, p, BuildNegate, NIL, quad, op1, op2, op3)
    END
 END FoldNegate ;
 
@@ -4047,7 +4019,7 @@ END CodeNegate ;
    FoldSize - check unary SIZE for constant folding.
 *)
 
-PROCEDURE FoldSize (tokenno: CARDINAL; l: List;
+PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
@@ -4058,7 +4030,8 @@ BEGIN
       PushIntegerTree(t) ;
       PopValue(op1) ;
       PutConst(op1, Cardinal) ;
-      RemoveItemFromList(l, op1) ;
+      p(op1) ;
+      NoChange := FALSE ;
       SubQuad(quad) ;
       t := RememberConstant(t)
    END
@@ -4079,9 +4052,9 @@ BEGIN
       PopValue(op1) ;
       PutConst(op1, Cardinal) ;
       PushValue(op1) ;
-      AddModGcc(op1,
-                DeclareKnownConstant(GetIntegerType(),
-                                     PopIntegerTree()))
+      ConstantKnownAndUsed(op1,
+                           DeclareKnownConstant(GetIntegerType(),
+                                                PopIntegerTree()))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1), PopIntegerTree())
    END
@@ -4146,7 +4119,7 @@ END DetermineFieldOf ;
                 a few parameters to the gcc backend.
 *)
 
-PROCEDURE FoldOffset (tokenno: CARDINAL; l: List;
+PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    field: CARDINAL ;
@@ -4171,7 +4144,8 @@ BEGIN
             AddModGcc(op1,
                       DeclareKnownConstant(GetPointerType(),
                                            t)) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          ELSE
             (* we can still fold the expression, but not the assignment, however, we will
@@ -4210,9 +4184,9 @@ BEGIN
                PopValue(op1)
             END ;
             PutConst(op1, Address) ;
-            AddModGcc(op1,
-                      DeclareKnownConstant(GetPointerType(),
-                                           t))
+            ConstantKnownAndUsed(op1,
+                                 DeclareKnownConstant(GetPointerType(),
+                                                      t))
          ELSE
             (* ok, use assignment *)
             t := BuildAssignmentTree(Mod2Gcc(op1), t)
@@ -4272,7 +4246,7 @@ END ResolveHigh ;
               the known compile time HIGH(op3).
 *)
 
-PROCEDURE FoldHigh (tokenno: CARDINAL; l: List;
+PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t       : Tree ;
@@ -4292,7 +4266,8 @@ BEGIN
          AddModGcc(op1,
                    DeclareKnownConstant(GetIntegerType(),
                                         t)) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       ELSE
          (* we can still fold the expression, but not the assignment, however, we will
@@ -4316,9 +4291,9 @@ BEGIN
    IF IsConst(op1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
-      AddModGcc(op1,
-                DeclareKnownConstant(GetM2ZType(),
-                                     ResolveHigh(quad, op3)))
+      ConstantKnownAndUsed(op1,
+                           DeclareKnownConstant(GetM2ZType(),
+                                                ResolveHigh(quad, op3)))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1),
                                ResolveHigh(quad, op3))
@@ -4474,7 +4449,7 @@ END CodeArray ;
                              multiplier for the index op3.
 *)
 
-PROCEDURE FoldElementSizeForArray (quad: CARDINAL; l: List;
+PROCEDURE FoldElementSizeForArray (quad: CARDINAL; p: WalkAction;
                                    op1, type, op3: CARDINAL) ;
 VAR
    Subscript: CARDINAL ;
@@ -4489,7 +4464,8 @@ BEGIN
          AddModGcc(op1,
                    DeclareKnownConstant(GetIntegerType(),
                                         PopIntegerTree())) ;
-         RemoveItemFromList(l, op1) ;
+         p(op1) ;
+         NoChange := FALSE ;
          SubQuad(quad)
       END
    END
@@ -4503,7 +4479,7 @@ END FoldElementSizeForArray ;
                                  ARRAY OF Type.
 *)
 
-PROCEDURE FoldElementSizeForUnbounded (quad: CARDINAL; l: List;
+PROCEDURE FoldElementSizeForUnbounded (quad: CARDINAL; p: WalkAction;
                                        op1, ArrayType, op3: CARDINAL) ;
 VAR
    Type: CARDINAL ;
@@ -4522,7 +4498,8 @@ BEGIN
             AddModGcc(op1,
                       DeclareKnownConstant(GetIntegerType(),
                                            FindSize(Type))) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -4536,15 +4513,15 @@ END FoldElementSizeForUnbounded ;
                      multiplier to be multiplied by this element index.
 *)
 
-PROCEDURE FoldElementSize (tokenno: CARDINAL; l: List;
+PROCEDURE FoldElementSize (tokenno: CARDINAL; p: WalkAction;
                            quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    IF IsUnbounded(op2)
    THEN
-      FoldElementSizeForUnbounded(quad, l, op1, op2, op3)
+      FoldElementSizeForUnbounded(quad, p, op1, op2, op3)
    ELSIF IsArray(op2)
    THEN
-      FoldElementSizeForArray(quad, l, op1, op2, op3)
+      FoldElementSizeForArray(quad, p, op1, op2, op3)
    ELSE
       InternalError('expecting UnboundedSym or ArraySym', __FILE__, __LINE__)
    END
@@ -4568,7 +4545,7 @@ END CodeElementSize ;
                  of op3 to comply with TYPE op2.
 *)
 
-PROCEDURE FoldConvert (tokenno: CARDINAL; l: List;
+PROCEDURE FoldConvert (tokenno: CARDINAL; p: WalkAction;
                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 
 VAR
@@ -4623,7 +4600,8 @@ BEGIN
                   CheckOverflow(tokenno, PopIntegerTree())
                END
             END ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -4653,8 +4631,8 @@ BEGIN
       (* fine, we can take advantage of this and fold constant *)
       PutConst(op1, op2) ;
       tl := Mod2Gcc(SkipType(op2)) ;
-      AddModGcc(op1,
-                BuildConvert(tl, Mod2Gcc(op3), TRUE))
+      ConstantKnownAndUsed(op1,
+                           BuildConvert(tl, Mod2Gcc(op3), TRUE))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1), BuildConvert(tl, tr, TRUE))
    END
@@ -4684,7 +4662,7 @@ BEGIN
       THEN
          IF IsConst(op1)
          THEN
-            AddModGcc(op1, CheckConstant(op1, op3))
+            ConstantKnownAndUsed(op1, CheckConstant(op1, op3))
          ELSE
             t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          END
@@ -4696,9 +4674,9 @@ BEGIN
    THEN
       IF IsConst(op1)
       THEN
-         AddModGcc(op1,
-                   DeclareKnownConstant(Mod2Gcc(GetType(op1)),
-                                        Mod2Gcc(op3)))
+         ConstantKnownAndUsed(op1,
+                              DeclareKnownConstant(Mod2Gcc(GetType(op1)),
+                                                   Mod2Gcc(op3)))
       ELSE
          Assert(GccKnowsAbout(op2)) ;
          IF IsConst(op3)
@@ -4722,7 +4700,7 @@ END CodeCoerce ;
    FoldCoerce -
 *)
 
-PROCEDURE FoldCoerce (tokenno: CARDINAL; l: List;
+PROCEDURE FoldCoerce (tokenno: CARDINAL; p: WalkAction;
                       quad, op1, op2, op3: CARDINAL) ;
 BEGIN
    DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
@@ -4737,7 +4715,8 @@ BEGIN
                AddModGcc(op1,
                          DeclareKnownConstant(Mod2Gcc(GetType(op1)),
                                               Mod2Gcc(op3))) ;
-               RemoveItemFromList(l, op1) ;
+               p(op1) ;
+               NoChange := FALSE ;
                SubQuad(quad)
             END
          ELSE
@@ -4750,7 +4729,8 @@ BEGIN
             AddModGcc(op1,
                       DeclareKnownConstant(Mod2Gcc(GetType(op1)),
                                            Mod2Gcc(op3))) ;
-            RemoveItemFromList(l, op1) ;
+            p(op1) ;
+            NoChange := FALSE ;
             SubQuad(quad)
          END
       END
@@ -4777,7 +4757,7 @@ BEGIN
       THEN
          IF IsConst(op1)
          THEN
-            AddModGcc(op1, CheckConstant(op1, op3))
+            ConstantKnownAndUsed(op1, CheckConstant(op1, op3))
          ELSE
             t := BuildAssignmentTree(Mod2Gcc(op1), Mod2Gcc(op3))
          END
@@ -4803,7 +4783,7 @@ END CodeCast ;
    FoldCoerce -
 *)
 
-PROCEDURE FoldCast (tokenno: CARDINAL; l: List;
+PROCEDURE FoldCast (tokenno: CARDINAL; p: WalkAction;
                     quad, op1, op2, op3: CARDINAL) ;
 BEGIN
    DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
@@ -4813,13 +4793,13 @@ BEGIN
       THEN
          IF AreConstantsEqual(FindSize(op1), FindSize(Address))
          THEN
-            FoldCoerce(tokenno, l, quad, op1, op2, op3)
+            FoldCoerce(tokenno, p, quad, op1, op2, op3)
          ELSE
             ErrorStringAt(InitString('procedure address can only be stored in an address sized operand'), QuadToTokenNo(quad))
          END
       ELSIF IsConst(op3)
       THEN
-         FoldCoerce(tokenno, l, quad, op1, op2, op3)
+         FoldCoerce(tokenno, p, quad, op1, op2, op3)
       END
    END
 END FoldCast ;

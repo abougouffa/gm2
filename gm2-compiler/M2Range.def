@@ -35,7 +35,6 @@ DEFINITION MODULE M2Range ;
 *)
 
 FROM gccgm2 IMPORT Tree ;
-FROM Lists IMPORT List ;
 FROM DynamicStrings IMPORT String ;
 
 EXPORT QUALIFIED InitAssignmentRangeCheck,
@@ -269,7 +268,7 @@ PROCEDURE CodeRangeCheck (r: CARDINAL; scopeDesc: String) ;
                     range test defined by, r.
 *)
 
-PROCEDURE FoldRangeCheck (tokenno: CARDINAL; l: List; q: CARDINAL; r: CARDINAL) ;
+PROCEDURE FoldRangeCheck (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 
 
 (*

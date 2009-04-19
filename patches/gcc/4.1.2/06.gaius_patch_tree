@@ -1,0 +1,79 @@
+--- gcc-4.1.2-orig/gcc/tree.h	2007-02-09 02:52:53.000000000 +0000
++++ gcc-4.1.2/gcc/tree.h	2009-03-21 10:25:44.000000000 +0000
+@@ -3231,6 +3231,7 @@
+ extern tree build_index_type (tree);
+ extern tree build_index_2_type (tree, tree);
+ extern tree build_array_type (tree, tree);
++extern tree finish_build_array_type (tree, tree, tree);   /* gaius */
+ extern tree build_function_type (tree, tree);
+ extern tree build_function_type_list (tree, ...);
+ extern tree build_method_type_directly (tree, tree, tree);
+--- gcc-4.1.2-orig/gcc/tree.c	2007-01-05 20:59:15.000000000 +0000
++++ gcc-4.1.2/gcc/tree.c	2009-03-21 10:35:26.000000000 +0000
+@@ -5025,6 +5025,58 @@
+   return build_range_type (sizetype, lowval, highval);
+ }
+ 
++#if 1
++/* (gaius) new patch here */
++
++/* Construct, lay out and return the type of arrays of elements with ELT_TYPE
++   and number of elements specified by the range of values of INDEX_TYPE.
++   If such a type has already been constructed, reuse it.  */
++
++tree
++finish_build_array_type (tree t, tree elt_type, tree index_type)
++{
++  hashval_t hashcode = 0;
++
++  if (TREE_CODE (elt_type) == FUNCTION_TYPE)
++    {
++      error ("arrays of functions are not meaningful");
++      elt_type = integer_type_node;
++    }
++
++  TREE_TYPE (t) = elt_type;
++  TYPE_DOMAIN (t) = index_type;
++  
++  if (index_type == 0)
++    {
++      tree save = t;
++      hashcode = iterative_hash_object (TYPE_HASH (elt_type), hashcode);
++      t = type_hash_canon (hashcode, t);
++      if (save == t)
++	layout_type (t);
++      return t;
++    }
++
++  hashcode = iterative_hash_object (TYPE_HASH (elt_type), hashcode);
++  hashcode = iterative_hash_object (TYPE_HASH (index_type), hashcode);
++  t = type_hash_canon (hashcode, t);
++
++  if (!COMPLETE_TYPE_P (t))
++    layout_type (t);
++  return t;
++}
++
++/* Construct, lay out and return the type of arrays of elements with ELT_TYPE
++   and number of elements specified by the range of values of INDEX_TYPE.
++   If such a type has already been constructed, reuse it.  */
++
++tree
++build_array_type (tree elt_type, tree index_type)
++{
++  return finish_build_array_type (make_node (ARRAY_TYPE),
++				  elt_type, index_type);
++}
++#else
++
+ /* Construct, lay out and return the type of arrays of elements with ELT_TYPE
+    and number of elements specified by the range of values of INDEX_TYPE.
+    If such a type has already been constructed, reuse it.  */
+@@ -5063,6 +5115,7 @@
+     layout_type (t);
+   return t;
+ }
++#endif
+ 
+ /* Return the TYPE of the elements comprising
+    the innermost dimension of ARRAY.  */

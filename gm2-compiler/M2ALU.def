@@ -30,6 +30,7 @@ DEFINITION MODULE M2ALU ;
 
 FROM NameKey IMPORT Name ;
 FROM gccgm2 IMPORT Tree ;
+FROM M2GCCDeclare IMPORT WalkAction, IsAction ;
 
 EXPORT QUALIFIED PtrToValue,
                  InitValue,
@@ -56,6 +57,7 @@ EXPORT QUALIFIED PtrToValue,
                  ConvertToInt,
                  GetSetValueType,
                  IsSolved, IsValueConst,
+                 PutConstructorSolved, EvaluateValue,
 
                  IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
       	       	 SetOr, SetAnd, SetIn,
@@ -66,7 +68,7 @@ EXPORT QUALIFIED PtrToValue,
                  DivFloor, ModFloor, DivTrunc, ModTrunc,
                  Equ, NotEqu, Less, Gre, LessEqu, GreEqu,
                  GetValue, GetRange,  ConstructSetConstant, BuildRange,
-                 CollectConstructorDependants,
+                 IsConstructorDependants, WalkConstructorDependants,
                  AddField, AddElements,
 
                  PushEmptyConstructor, PushEmptyArray, PushEmptyRecord,
@@ -289,6 +291,20 @@ PROCEDURE ConvertToInt ;
 *)
 
 PROCEDURE IsSolved (v: PtrToValue) : BOOLEAN ;
+
+
+(*
+   PutConstructorSolved - records that this constructor is solved.
+*)
+
+PROCEDURE PutConstructorSolved (sym: CARDINAL) ;
+
+
+(*
+   EvaluateValue - attempts to evaluate the symbol, sym, value.
+*)
+
+PROCEDURE EvaluateValue (sym: CARDINAL) ;
 
 
 (*
@@ -801,11 +817,19 @@ PROCEDURE BuildRange (tokenno: CARDINAL; e1, e2: Tree) : Tree ;
 
 
 (*
-   CollectConstructorDependants - traverse the constructor, sym, declaring all constants which define it.
-                                  TRUE is returned if all constants and its type has been declared to GCC.
+   IsConstructorDependants - return TRUE if returned if all
+                             q(dependants) of, sym, return TRUE.
 *)
 
-PROCEDURE CollectConstructorDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsConstructorDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
+
+
+(*
+   WalkConstructorDependants - walk the constructor, sym, calling
+                               p for each dependant.
+*)
+
+PROCEDURE WalkConstructorDependants (sym: CARDINAL; p: WalkAction) ;
 
 
 (*

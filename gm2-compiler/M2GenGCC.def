@@ -28,7 +28,7 @@ DEFINITION MODULE M2GenGCC ;
                  internal quadruples of m2f into a GCC tree structure.
 *)
 
-FROM Lists IMPORT List ;
+FROM M2GCCDeclare IMPORT WalkAction ;
 FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
@@ -56,9 +56,11 @@ PROCEDURE ConvertQuadsToTree (Start, End: CARDINAL) ;
 (*
    ResolveConstantExpressions - resolves constant expressions from the quadruple list.
                                 It returns TRUE if one or more constants were folded.
+                                When a constant symbol value is solved, the call back
+                                p(sym) is invoked.
 *)
 
-PROCEDURE ResolveConstantExpressions (l: List; start, end: CARDINAL) : BOOLEAN ;
+PROCEDURE ResolveConstantExpressions (p: WalkAction; start, end: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -1741,17 +1741,29 @@ END BuildNulParam ;
 PROCEDURE BuildPointerType ;
 VAR
    name     : Name ;
+   NewType,
    Type,
    PtrToType: CARDINAL ;
 BEGIN
    PopT(Type) ;
    PopT(name) ;
    name := CheckAnonymous(name) ;
+(*
+   PtrToType := MakePointer(NulName) ;
+   PutPointer(PtrToType, Type) ;
+   NewType := MakeType(name) ;
+   PutType(NewType, PtrToType) ;
+   CheckForExportedImplementation(NewType) ;   (* May be an exported hidden type *)
+   PushT(name) ;
+   PushT(NewType) ;
+*)
+
    PtrToType := MakePointer(name) ;
    PutPointer(PtrToType, Type) ;
    CheckForExportedImplementation(PtrToType) ;   (* May be an exported hidden type *)
    PushT(name) ;
    PushT(PtrToType)
+
 END BuildPointerType ;
 
 

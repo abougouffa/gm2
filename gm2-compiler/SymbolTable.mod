@@ -4729,6 +4729,10 @@ BEGIN
       END
    END ;
    s := KillString(s) ;
+   IF Sym=2023
+   THEN
+      stop
+   END ;
    RETURN( Sym )
 END MakeTemporary ;
 

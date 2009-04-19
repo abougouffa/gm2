@@ -443,7 +443,7 @@ void setup_decl()
 
     if (modula2) {
       tp_word = makestandardtype(TK_SUBR, makestandardmeaning(MK_TYPE, "WORD"));
-      tp_word->basetype = tp_integer;
+      tp_word->basetype = tp_unsigned;
       tp_word->smin = tp_unsigned->smin;
       tp_word->smax = tp_unsigned->smax;
     } else {

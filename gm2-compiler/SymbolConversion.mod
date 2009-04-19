@@ -61,7 +61,7 @@ VAR
 BEGIN
    IF USEPOISON
    THEN
-      IF sym=711
+      IF sym=1095
       THEN
          mystop2
       END ;
@@ -111,6 +111,11 @@ BEGIN
       THEN
          InternalError('gcc symbol has been poisoned', __FILE__, __LINE__)
       END
+   END ;
+
+   IF sym=1478
+   THEN
+      mystop2
    END ;
 
    old := Mod2Gcc(sym) ;

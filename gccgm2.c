@@ -310,9 +310,6 @@ static int enum_overflow;
 /* Used in build_enumerator() */
 static GTY(()) tree current_enum_type;
 
-/* Used in BuildEnumerator */
-static GTY(()) tree enumvalues=NULL_TREE;
-
 /* Used in BuildStartFunctionType */
 static GTY(()) tree param_type_list;
 static GTY(()) tree param_list = NULL_TREE;   /* ready for the next time we call/define a function */
@@ -499,10 +496,12 @@ void                   trythis                                    (void);
 tree                   gccgm2_DeclareKnownConstant                (tree type, tree value);
 void                   finish_decl                                (tree decl, tree init, tree asmspec_tree);
 tree                   gccgm2_BuildStartEnumeration               (char *name);
-tree                   gccgm2_BuildEndEnumeration                 (tree enumtype);
-tree                   gccgm2_BuildEnumerator                     (char *name, tree value);
+tree                   gccgm2_BuildEndEnumeration                 (tree enumtype, tree enumvalues);
+tree                   gccgm2_BuildEnumerator                     (char *name, tree value, tree *enumvalues);
 tree                   gccgm2_BuildPointerType                    (tree totype);
-tree                   gccgm2_BuildArrayType                      (tree elementtype, tree indextype);
+static tree            gccgm2_BuildArrayType                      (tree elementtype, tree indextype);
+tree                   gccgm2_BuildStartArrayType                 (tree index_type, tree elt_type);
+tree                   gccgm2_BuildEndArrayType                   (tree arraytype, tree elementtype, tree indextype);
 tree                   build_set_type                             (tree domain, tree type, int allow_void);
 tree                   gccgm2_BuildSetTypeFromSubrange            (char *, tree, tree, tree);
 tree                   gccgm2_BuildSetType                        (char *name, tree type, tree lowval, tree highval);
@@ -839,6 +838,10 @@ static tree                   build_m2_complex_type_from                  (tree 
        tree                   gccgm2_BuildCmplx                           (tree type, tree real, tree imag);
        tree                   gccgm2_BuildIm                              (tree op1);
        tree                   gccgm2_BuildRe                              (tree op1);
+       tree                   gccgm2_BuildStartType                       (char *name, tree type);
+       tree                   gccgm2_BuildEndType                         (tree type);
+       void                   gccgm2_PutArrayType                         (tree array, tree type);
+       tree                   gccgm2_GetDeclContext                       (tree t);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -6264,13 +6267,16 @@ skip_const_decl (tree exp)
 }
 
 /*
- *  DeclareKnownType - given a, type, with a, name, return a GCC declaration of this type.
- *                     TYPE
- *                        name = INTEGER ;
+ *  BuildStartType - given a, type, with a, name, return a GCC declaration of this type.
+ *                   TYPE
+ *                      name = foo ;
+ *
+ *                   the type, foo, maybe a partially created type (which has
+ *                   yet to be 'finish_decl'ed.
  */
 
 tree
-gccgm2_DeclareKnownType (char *name, tree type)
+gccgm2_BuildStartType (char *name, tree type)
 {
   tree id = get_identifier (name);
   tree decl, tem;
@@ -6279,13 +6285,35 @@ gccgm2_DeclareKnownType (char *name, tree type)
   type = skip_type_decl (type);
   decl = build_decl (TYPE_DECL, id, type);
 
-  layout_type (type);
-
   tem = pushdecl (decl);
-  finish_decl (decl, NULL_TREE, NULL_TREE);
+  ASSERT(tem == decl, decl);
   ASSERT(is_type(decl), decl);
 
   return tem;
+}
+
+/*
+ *  BuildEndType - finish declaring, type, and return, type.
+ */
+
+tree
+gccgm2_BuildEndType (tree type)
+{
+  layout_type (TREE_TYPE (type));
+  finish_decl (type, NULL_TREE, NULL_TREE);
+  return type;
+}
+
+/*
+ *  DeclareKnownType - given a, type, with a, name, return a GCC declaration of this type.
+ *                     TYPE
+ *                        name = foo ;
+ */
+
+tree
+gccgm2_DeclareKnownType (char *name, tree type)
+{
+  return gccgm2_BuildEndType (gccgm2_BuildStartType (name, type));
 }
 
 /*
@@ -7086,32 +7114,30 @@ gccgm2_BuildStartEnumeration (char *name)
 {
   tree id;
 
-  if ((name == NULL) || (strcmp(name, "") == 0)) {
+  if ((name == NULL) || (strcmp(name, "") == 0))
     id = NULL_TREE;
-  } else {
+  else
     id = get_identifier (name);
-  }
-  enumvalues = NULL_TREE;
-  return( start_enum(id) );
+
+  return start_enum(id);
 }
 
 tree
-gccgm2_BuildEndEnumeration (tree enumtype)
+gccgm2_BuildEndEnumeration (tree enumtype, tree enumvalues)
 {
   tree finished ATTRIBUTE_UNUSED = finish_enum(enumtype, enumvalues, NULL_TREE);
-  enumvalues = NULL_TREE;
   return enumtype;
 }
 
 tree
-gccgm2_BuildEnumerator (char *name, tree value)
+gccgm2_BuildEnumerator (char *name, tree value, tree *enumvalues)
 {
   tree id = get_identifier (name);
   tree copy_of_value = copy_node (value);
   tree gccenum = build_enumerator(id, copy_of_value);
 
   /* choose copy_of_value for enum value */
-  enumvalues = chainon(gccenum, enumvalues);
+  *enumvalues = chainon(gccenum, *enumvalues);
   return copy_of_value;
 }
 
@@ -7138,10 +7164,52 @@ gccgm2_BuildConstPointerType (tree totype)
 }
 
 /*
+ *  BuildStartArrayType - 
+ */
+
+tree
+gccgm2_BuildStartArrayType (tree index_type, tree elt_type)
+{
+  tree t = make_node (ARRAY_TYPE);
+
+  TREE_TYPE (t) = elt_type;
+  TYPE_DOMAIN (t) = index_type;
+
+  return t;
+}
+
+/*
+ *  PutArrayType -
+ */
+
+void
+gccgm2_PutArrayType (tree array, tree type)
+{
+  TREE_TYPE (array) = skip_type_decl (type);
+}
+
+/*
+ *  BuildEndArrayType - returns a type which is an array indexed by IndexType
+ *                      and which has ElementType elements.
+ */
+
+tree
+gccgm2_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype)
+{
+  ASSERT(indextype == TYPE_DOMAIN (arraytype), indextype);
+
+  if (TREE_CODE (elementtype) == FUNCTION_TYPE)
+    return finish_build_array_type (arraytype, ptr_type_node, indextype);
+  else
+    return finish_build_array_type (arraytype, skip_type_decl (elementtype), indextype);
+}
+
+/*
  *  BuildArrayType - returns a type which is an array indexed by IndexType
  *                   and which has ElementType elements.
  */
 
+static
 tree
 gccgm2_BuildArrayType (tree elementtype, tree indextype)
 {
@@ -10936,6 +11004,16 @@ void
 gccgm2_BuildEndMainModule (void)
 {
   /* nothing to do here */
+}
+
+/*
+ *   gccgm2_GetDeclContext - returns the DECL_CONTEXT of tree, t.
+ */
+
+tree
+gccgm2_GetDeclContext (tree t)
+{
+  return DECL_CONTEXT (t);
 }
 
 /*

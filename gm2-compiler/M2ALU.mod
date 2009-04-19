@@ -49,7 +49,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
                         MakeConstLit, GetArraySubscript,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
-                        IsConstString, SkipTypeAndSubrange,
+                        IsConstString, SkipTypeAndSubrange, GetDeclared,
                         GetSubrange, GetSymName, GetNth,
                         ModeOfAddr ;
 
@@ -3001,139 +3001,261 @@ PROCEDURE Eval (tokenno: CARDINAL; v: PtrToValue) ;
 BEGIN
    CheckNotAlreadyOnFreeList(v) ;
    WITH v^ DO
-      IF IsSet(SkipType(constructorType))
+      IF NOT solved
       THEN
-         v := CoerseTo(tokenno, set, v)
-      ELSIF IsRecord(SkipType(constructorType))
-      THEN
-         v := CoerseTo(tokenno, record, v)
-      ELSIF IsArray(SkipType(constructorType))
-      THEN
-         v := CoerseTo(tokenno, array, v)
-      END ;
-      areAllConstants := DefinedByConstants(v) ;
-      CASE type OF
+         IF IsSet(SkipType(constructorType))
+         THEN
+            v := CoerseTo(tokenno, set, v)
+         ELSIF IsRecord(SkipType(constructorType))
+         THEN
+            v := CoerseTo(tokenno, record, v)
+         ELSIF IsArray(SkipType(constructorType))
+         THEN
+            v := CoerseTo(tokenno, array, v)
+         END ;
+         areAllConstants := DefinedByConstants(v) ;
+         CASE type OF
                        
-      set   :   Assert((constructorType=NulSym) OR IsSet(SkipType(constructorType))) ;
-                solved := CompletelyResolved(constructorType) AND EvalSetValues(tokenno, setValue) |
-      array :   Assert((constructorType=NulSym) OR IsArray(SkipType(constructorType))) ;
-                solved := CompletelyResolved(constructorType) AND ArrayElementsSolved(arrayValues) |
-      record:   Assert((constructorType=NulSym) OR IsRecord(SkipType(constructorType))) ;
-                solved := CompletelyResolved(constructorType) AND EvalFieldValues(fieldValues)
+         set   :   Assert((constructorType=NulSym) OR IsSet(SkipType(constructorType))) ;
+                   solved := CompletelyResolved(constructorType) AND EvalSetValues(tokenno, setValue) |
+         array :   Assert((constructorType=NulSym) OR IsArray(SkipType(constructorType))) ;
+                   solved := CompletelyResolved(constructorType) AND ArrayElementsSolved(arrayValues) |
+         record:   Assert((constructorType=NulSym) OR IsRecord(SkipType(constructorType))) ;
+                   solved := CompletelyResolved(constructorType) AND EvalFieldValues(fieldValues)
 
-      ELSE
-         (* do nothing *)
+         ELSE
+            (* do nothing *)
+         END
       END
    END
 END Eval ;
 
 
 (*
-   CollectSetValueDependants - 
+   WalkSetValueDependants - 
 *)
 
-PROCEDURE CollectSetValueDependants (tokenno: CARDINAL; r: listOfRange) : BOOLEAN ;
-VAR
-   resolved: BOOLEAN ;
+PROCEDURE WalkSetValueDependants (r: listOfRange; p: WalkAction) ;
 BEGIN
-   resolved := TRUE ;
    WHILE r#NIL DO
       WITH r^ DO
-         DeclareConstant(tokenno, low) ;
-         DeclareConstant(tokenno, high) ;
-         resolved := resolved AND CompletelyResolved(low) AND CompletelyResolved(high)
+         p(low) ;
+         p(high)
+      END ;
+      r := r^.next
+   END
+END WalkSetValueDependants ;
+
+
+(*
+   IsSetValueDependants - 
+*)
+
+PROCEDURE IsSetValueDependants (r: listOfRange; q: IsAction) : BOOLEAN ;
+VAR
+   result: BOOLEAN ;
+BEGIN
+   result := TRUE ;
+   WHILE r#NIL DO
+      WITH r^ DO
+         IF NOT q(low)
+         THEN
+            result := FALSE
+         END ;
+         IF NOT q(high)
+         THEN
+            result := FALSE
+         END
       END ;
       r := r^.next
    END ;
-   RETURN( resolved )
-END CollectSetValueDependants ;
+   RETURN( result )
+END IsSetValueDependants ;
 
 
 (*
-   CollectFieldValueDependants - 
+   WalkFieldValueDependants - 
 *)
 
-PROCEDURE CollectFieldValueDependants (tokenno: CARDINAL; f: listOfFields) : BOOLEAN ;
-VAR
-   resolved: BOOLEAN ;
+PROCEDURE WalkFieldValueDependants (f: listOfFields; p: WalkAction) ;
 BEGIN
-   resolved := TRUE ;
    WHILE f#NIL DO
       WITH f^ DO
-         DeclareConstant(tokenno, field) ;
-         resolved := resolved AND CompletelyResolved(field)
+         p(field)
+      END ;
+      f := f^.next
+   END
+END WalkFieldValueDependants ;
+
+
+(*
+   IsFieldValueDependants - 
+*)
+
+PROCEDURE IsFieldValueDependants (f: listOfFields; q: IsAction) : BOOLEAN ;
+VAR
+   result: BOOLEAN ;
+BEGIN
+   result := TRUE ;
+   WHILE f#NIL DO
+      WITH f^ DO
+         IF NOT q(field)
+         THEN
+            result := FALSE
+         END
       END ;
       f := f^.next
    END ;
-   RETURN( resolved )
-END CollectFieldValueDependants ;
+   RETURN( result )
+END IsFieldValueDependants ;
 
 
 (*
-   CollectArrayValueDependants - 
+   WalkArrayValueDependants - 
 *)
 
-PROCEDURE CollectArrayValueDependants (tokenno: CARDINAL; a: listOfElements) : BOOLEAN ;
-VAR
-   resolved: BOOLEAN ;
+PROCEDURE WalkArrayValueDependants (a: listOfElements; p: WalkAction) ;
 BEGIN
-   resolved := TRUE ;
    WHILE a#NIL DO
       WITH a^ DO
-         DeclareConstant(tokenno, element) ;
-         DeclareConstant(tokenno, by) ;
-         resolved := resolved AND CompletelyResolved(element) AND CompletelyResolved(by)
+         p(element) ;
+         p(by)
+      END ;
+      a := a^.next
+   END
+END WalkArrayValueDependants ;
+
+
+(*
+   IsArrayValueDependants - 
+*)
+
+PROCEDURE IsArrayValueDependants (a: listOfElements; q: IsAction) : BOOLEAN ;
+VAR
+   result: BOOLEAN ;
+BEGIN
+   result := TRUE ;
+   WHILE a#NIL DO
+      WITH a^ DO
+         IF NOT q(element)
+         THEN
+            result := FALSE
+         END ;
+         IF NOT q(by)
+         THEN
+            result := FALSE
+         END
       END ;
       a := a^.next
    END ;
-   RETURN( resolved )
-END CollectArrayValueDependants ;
+   RETURN( result )
+END IsArrayValueDependants ;
 
 
 (*
-   CollectConstructorDependants - traverse the constructor, sym, declaring all constants
-                                  which define the constructor value.
-                                  TRUE is returned if all constants and the constructor
-                                  type has been declared to GCC.
+   IsConstructorDependants - return TRUE if all q(dependants) of,
+                             sym, return TRUE.
 *)
 
-PROCEDURE CollectConstructorDependants (tokenno: CARDINAL; sym: CARDINAL) : BOOLEAN ;
+PROCEDURE IsConstructorDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ;
 VAR
-   v       : PtrToValue ;
-   r       : listOfRange ;
-   resolved: BOOLEAN ;
+   v         : PtrToValue ;
+   r         : listOfRange ;
+   typeResult,
+   result    : BOOLEAN ;
 BEGIN
    PushValue(sym) ;
    IF IsValueTypeNone()
    THEN
       v := Pop() ;
-      resolved := FALSE
+      result := FALSE
    ELSE
       v := Pop() ;
       WITH v^ DO
-         IF NOT solved
-         THEN
-            resolved := CompletelyResolved(constructorType) ;
-            CASE type OF
+         typeResult := q(constructorType) ;
+         CASE type OF
 
-            none       :  solved := FALSE |
-            set        :  solved := CollectSetValueDependants(tokenno, setValue) |
-            constructor,
-            record     :  solved := CollectFieldValueDependants(tokenno, fieldValues) |
-            array      :  solved := CollectArrayValueDependants(tokenno, arrayValues)
+         none       :  result := FALSE |
+         set        :  result := IsSetValueDependants(setValue, q) |
+         constructor,
+         record     :  result := IsFieldValueDependants(fieldValues, q) |
+         array      :  result := IsArrayValueDependants(arrayValues, q)
 
-            ELSE
-               InternalError('not expecting this type', __FILE__, __LINE__)
-            END ;
-            resolved := resolved AND solved ;
-            solved := resolved
-         END
-      END ;
-      Push(v) ;
-      PopValue(sym)
+         ELSE
+            InternalError('not expecting this type', __FILE__, __LINE__)
+         END ;
+         result := result AND typeResult
+      END
    END ;
-   RETURN( resolved )
-END CollectConstructorDependants ;
+   RETURN( result )
+END IsConstructorDependants ;
+
+
+(*
+   WalkConstructorDependants - walk the constructor, sym, calling
+                               p for each dependant.
+*)
+
+PROCEDURE WalkConstructorDependants (sym: CARDINAL; p: WalkAction) ;
+VAR
+   v: PtrToValue ;
+   r: listOfRange ;
+BEGIN
+   PushValue(sym) ;
+   IF IsValueTypeNone()
+   THEN
+      v := Pop()
+   ELSE
+      v := Pop() ;
+      WITH v^ DO
+         p(constructorType) ;
+         CASE type OF
+
+         none       :  |
+         set        :  WalkSetValueDependants(setValue, p) |
+         constructor,
+         record     :  WalkFieldValueDependants(fieldValues, p) |
+         array      :  WalkArrayValueDependants(arrayValues, p)
+
+         ELSE
+            InternalError('not expecting this type', __FILE__, __LINE__)
+         END
+      END
+   END
+END WalkConstructorDependants ;
+
+
+(*
+   PutConstructorSolved - records that this constructor is solved.
+*)
+
+PROCEDURE PutConstructorSolved (sym: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   PushValue(sym) ;
+   v := Pop() ;
+   v^.solved := TRUE ;
+   Push(v) ;
+   PopValue(sym)
+END PutConstructorSolved ;
+
+
+(*
+   EvaluateValue - attempts to evaluate the symbol, sym, value.
+*)
+
+PROCEDURE EvaluateValue (sym: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   PushValue(sym) ;
+   ChangeToConstructor(GetDeclared(sym), GetType(sym)) ;
+   v := Pop() ;
+   Eval(GetDeclared(sym), v) ;
+   Push(v) ;
+   PopValue(sym)
+END EvaluateValue ;
 
 
 (*

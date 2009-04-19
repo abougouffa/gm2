@@ -99,6 +99,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
 
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
+FROM M2GCCDeclare IMPORT PutToBeSolvedByQuads ;
 
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
@@ -302,6 +303,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE CheckConst (sym: CARDINAL) ; FORWARD ;
 PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ; FORWARD ;
 PROCEDURE doBuildBinaryOp (checkTypes: BOOLEAN) ; FORWARD ;
 PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ; FORWARD ;
@@ -1036,16 +1038,19 @@ BEGIN
    (* variable references *)
 
    InclOp,
-   ExclOp            : CheckAddVariableRead(Oper3, FALSE, QuadNo) ;
+   ExclOp            : CheckConst(Oper1) ;
+                       CheckAddVariableRead(Oper3, FALSE, QuadNo) ;
                        CheckAddVariableWrite(Oper1, TRUE, QuadNo) |
    UnboundedOp,
    HighOp,
    FunctValueOp,
    NegateOp,
    BecomesOp,
-   SizeOp            : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+   SizeOp            : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, FALSE, QuadNo) |
-   AddrOp            : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+   AddrOp            : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        (* CheckAddVariableReadLeftValue(Oper3, QuadNo) *)
                        (* the next line is a kludge and assumes we _will_
                           write to the variable as we have taken its address *)
@@ -1080,18 +1085,22 @@ BEGIN
    ModFloorOp,
    DivFloorOp,
    ModTruncOp,
-   DivTruncOp        : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+   DivTruncOp        : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper2, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, FALSE, QuadNo) |
 
-   XIndrOp           : CheckAddVariableWrite(Oper1, TRUE, QuadNo) ;
+   XIndrOp           : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, TRUE, QuadNo) ;
                        CheckAddVariableRead(Oper3, FALSE, QuadNo) |
 
-   IndrXOp           : CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
+   IndrXOp           : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, TRUE, QuadNo) |
 
    RangeCheckOp      : CheckRangeAddVariableRead(Oper3, QuadNo) |
-   SaveExceptionOp   : CheckAddVariableWrite(Oper1, FALSE, QuadNo) |
+   SaveExceptionOp   : CheckConst(Oper1) ;
+                       CheckAddVariableWrite(Oper1, FALSE, QuadNo) |
    RestoreExceptionOp: CheckAddVariableRead(Oper1, FALSE, QuadNo)
 
    ELSE
@@ -1341,6 +1350,19 @@ BEGIN
       END
    END
 END CheckRemoveVariableWrite ;
+
+
+(*
+   CheckConst - 
+*)
+
+PROCEDURE CheckConst (sym: CARDINAL) ;
+BEGIN
+   IF IsConst(sym)
+   THEN
+      PutToBeSolvedByQuads(sym)
+   END
+END CheckConst ;
 
 
 (*
