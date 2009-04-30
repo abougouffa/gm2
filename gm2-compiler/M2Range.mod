@@ -49,7 +49,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
-FROM M2GCCDeclare IMPORT DeclareConstant, DeclareConstructor ;
+FROM M2GCCDeclare IMPORT TryDeclareConstant, TryDeclareConstructor ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
@@ -757,7 +757,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(des) AND IsConst(des)
       THEN
          PushValue(des) ;
@@ -894,7 +894,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -926,8 +926,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -974,8 +974,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -1055,8 +1055,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       desLowestType := SkipType(GetType(des)) ;
       IF desLowestType#NulSym
       THEN
@@ -1093,8 +1093,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       desLowestType := SkipType(GetType(des)) ;
       IF desLowestType#NulSym
       THEN
@@ -1262,8 +1262,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      (* DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *) *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN
@@ -1294,8 +1294,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN
@@ -1326,7 +1326,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -1358,7 +1358,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -1390,8 +1390,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
@@ -1424,7 +1424,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND IsConst(expr)
@@ -1454,7 +1454,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
@@ -1479,7 +1479,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          IF IsGreaterOrEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
@@ -1504,7 +1504,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
@@ -1529,7 +1529,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF GccKnowsAbout(expr) AND IsConst(expr)
       THEN
          IF IsEqualConversion(MakeConstLit(MakeKey('0')), des, expr)
@@ -1799,9 +1799,9 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, des) ;
-      DeclareConstant(tokenNo, expr) ;
-      DeclareConstructor(0, expr) ;
+      TryDeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, expr) ;
+      TryDeclareConstructor(0, expr) ;
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;
@@ -1857,8 +1857,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, des) ;
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, expr) ;
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
@@ -1895,8 +1895,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, des) ;
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, expr) ;
       IF desLowestType#NulSym
       THEN
          IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
@@ -1933,8 +1933,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, des) ;
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, expr) ;
       desLowestType := SkipType(GetType(des)) ;
       IF desLowestType#NulSym
       THEN
@@ -1970,7 +1970,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, expr) ;
       IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
       THEN
          IF GetMinMax(desLowestType, desMin, desMax)
@@ -2002,7 +2002,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, expr) ;
       Assert(IsVar(des)) ;
       IF GccKnowsAbout(expr) AND GccKnowsAbout(des)
       THEN
@@ -2057,8 +2057,8 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
-      DeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;
@@ -2096,7 +2096,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, des) ;
 (*
       IF GetMode(des)=LeftValue
       THEN
@@ -2126,7 +2126,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, expr) ;
       IF GccKnowsAbout(expr)
       THEN
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;
@@ -2154,7 +2154,7 @@ VAR
 BEGIN
    p := GetIndice(RangeIndex, r) ;
    WITH p^ DO
-      DeclareConstant(tokenNo, expr) ;
+      TryDeclareConstant(tokenNo, expr) ;
       IF GccKnowsAbout(expr)
       THEN
          e := ZConstToTypedConst(LValueToGenericPtr(expr), expr, des) ;

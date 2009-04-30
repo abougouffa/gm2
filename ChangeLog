@@ -1,3 +1,21 @@
+2009-04-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  commented out
+	  ChangeToConstructor.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.def:  corrected
+	  comments and added TryDeclareConstant and
+	  TryDeclareConstructor.
+	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  remove symbol
+	  from tobesolvedbyquad when it is completely resolved.
+	  Implemented TryDeclareConstant and TryDeclareConstructor.
+	* gm2/gm2/gm2-compiler/M2GenGCC.mod:  changed all occurances
+	  of DeclareConstant to TryDeclareConstant.  Changed all
+	  occurances of DeclareConstructor to TryDeclareConstructor.
+	  Fixed bug in DeclareConst.
+	* gm2/gm2/gm2-compiler/M2Range.mod:  changed all occurances
+	  of DeclareConstant to TryDeclareConstant.  Changed all
+	  occurances of DeclareConstructor to TryDeclareConstructor.
+
 2009-04-19       Gaius Mulley <gaius@gnu.org>
 	
 	* gm2/gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug which

@@ -891,7 +891,7 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
-      IF FreeSymbol=2766
+      IF FreeSymbol=645
       THEN
          stop
       END ;

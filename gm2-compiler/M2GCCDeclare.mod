@@ -349,6 +349,10 @@ BEGIN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
                               IncludeItemIntoList(FullyDeclared, sym)
+                              ; IF sym=644
+                              THEN
+                                 mystop
+                              END
                            END |
       partiallydeclared :  IF NOT IsItemInList(PartiallyDeclared, sym)
                            THEN
@@ -727,6 +731,12 @@ BEGIN
    ELSIF IsConst(sym)
    THEN
       RETURN( IsConstDependants(sym, q) )
+   ELSIF IsConstructor(sym) OR IsConstSet(sym)
+   THEN
+      (* sym can be a constructor, but at present we have not resolved whether
+         all dependants are constants.
+       *)
+      RETURN( IsConstructorDependants(sym, q) )
    ELSE
       RETURN( TRUE )
    END
@@ -881,7 +891,8 @@ PROCEDURE DeclareConstFully (sym: CARDINAL) ;
 BEGIN
    WatchIncludeList(sym, fullydeclared) ;
    WatchRemoveList(sym, todolist) ;
-   WatchRemoveList(sym, partiallydeclared)
+   WatchRemoveList(sym, partiallydeclared) ;
+   WatchRemoveList(sym, tobesolvedbyquads)
 END DeclareConstFully ;
 
 
@@ -1348,10 +1359,46 @@ BEGIN
       END ;
       WalkConstructor(sym, TraverseDependants) ;
       DeclareTypesAndConstantsInRange(quad, quad) ;
+      Assert(IsConstructorDependants(sym, IsFullyDeclared)) ;
       PushValue(sym) ;
       DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
    END
 END DeclareConstructor ;
+
+
+(*
+   TryDeclareConstructor - try and declare a constructor.  If, sym, is a
+                           constructor try and declare it, if we cannot
+                           then enter it into the to do list.
+*)
+
+PROCEDURE TryDeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
+VAR
+   tokenno: CARDINAL ;
+BEGIN
+   IF sym=NulSym
+   THEN
+      InternalError('trying to declare the NulSym', __FILE__, __LINE__)
+   END ;
+   IF IsConstructor(sym) AND (NOT GccKnowsAbout(sym))
+   THEN
+      IF quad=0
+      THEN
+         tokenno := GetDeclared(sym)
+      ELSE
+         tokenno := QuadToTokenNo(quad)
+      END ;
+      WalkConstructor(sym, TraverseDependants) ;
+      IF NOT IsItemInList(ToBeSolvedByQuads, sym)
+      THEN
+         IF IsConstructorDependants(sym, IsFullyDeclared)
+         THEN
+            PushValue(sym) ;
+            DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
+         END
+      END
+   END
+END TryDeclareConstructor ;
 
 
 (*
@@ -1402,10 +1449,12 @@ END IsConstDependants ;
 
 
 (*
-   DeclareConstant - checks to see whether, sym, is a constant and declares the constant to gcc.
+   TryDeclareConstant - try and declare a constant.  If, sym, is a
+                        constant try and declare it, if we cannot
+                        then enter it into the to do list.
 *)
 
-PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
+PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
    size: CARDINAL ;
@@ -1431,11 +1480,39 @@ BEGIN
          WatchIncludeList(sym, todolist) ;
          RETURN
       END ;
-      t := DeclareConst(tokenno, sym) ;
+      IF IsItemInList(ToBeSolvedByQuads, sym)
+      THEN
+         t := NIL
+      ELSE
+         t := DeclareConst(tokenno, sym)
+      END ;
       IF t=NIL
       THEN
          WatchIncludeList(sym, todolist)
       END
+   END 
+END TryDeclareConstant ;
+
+
+(*
+   DeclareConstant - checks to see whether, sym, is a constant and
+                     declares the constant to gcc.
+*)
+
+PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
+VAR
+   type: CARDINAL ;
+   t   : Tree ;
+BEGIN
+   IF IsConst(sym)
+   THEN
+      TraverseDependants(sym) ;
+      type := GetType(sym) ;
+      Assert((type=NulSym) OR CompletelyResolved(type)) ;
+      Assert((NOT IsConstructor(sym)) OR IsConstructorConstant(sym)) ;
+      Assert((type#NulSym) OR (NOT (IsConstructor(sym) OR IsConstSet(sym)))) ;
+      t := DeclareConst(tokenno, sym) ;
+      Assert(t#NIL)
    END 
 END DeclareConstant ;
 
@@ -1801,10 +1878,6 @@ VAR
    Son,
    p, i    : CARDINAL ;
 BEGIN
-   IF Sym=639
-   THEN
-      mystop
-   END ;
    IF (NOT GccKnowsAbout(Sym)) AND (NOT IsPseudoProcFunc(Sym)) AND
       (IsEffectivelyImported(GetMainModule(), Sym) OR
        (GetModuleWhereDeclared(Sym)=GetMainModule()) OR
@@ -2002,7 +2075,7 @@ BEGIN
    DebugLists ;
 *)
    (* IncludeItemIntoList(WatchList, 92) ; *)
-   (* AddSymToWatch(6071) ; *)
+   (* AddSymToWatch(644) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -3750,6 +3823,10 @@ BEGIN
       END ;
       t := DeclareConst(GetDeclared(sym), sym) ;
       Assert(t#NIL)
+   ELSIF IsConstructor(sym)
+   THEN
+      (* not yet known as a constant *)
+      RETURN( NIL )
    ELSE
       t := DeclareType(sym)
    END ;

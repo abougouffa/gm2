@@ -31,12 +31,15 @@ DEFINITION MODULE M2GCCDeclare ;
 FROM SYSTEM IMPORT WORD ;
 FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED FoldConstants,
-                 DeclareConstant, DeclareLocalVariables, PromoteToString,
+                 DeclareConstant, TryDeclareConstant,
+                 DeclareConstructor, TryDeclareConstructor,
+                 DeclareLocalVariables, PromoteToString,
                  InitDeclarations, StartDeclareScope, EndDeclareScope,
                  DeclareModuleVariables, IsProcedureGccNested,
                  DeclareProcedure, PoisonSymbols, DeclareParameters,
-                 DeclareConstructor, CompletelyResolved, MarkExported,
-                 ConstantKnownAndUsed, PutToBeSolvedByQuads,
+                 CompletelyResolved, MarkExported,
+                 ConstantKnownAndUsed,
+                 PutToBeSolvedByQuads,
                  GetTypeMin, GetTypeMax,
                  WalkAction, IsAction ;
 
@@ -74,17 +77,37 @@ PROCEDURE DeclareParameters (sym: CARDINAL) ;
 
 
 (*
-   DeclareConstant - declares a constant.
+   DeclareConstant - if, sym, is a constant then declare it.
+                     The constant must be solvable at this point.
 *)
 
 PROCEDURE DeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 
 
 (*
-   DeclareConstructor - declares a constructor.
+   DeclareConstructor - if, sym, is a constructor then declare it.
+                        The constructor must be solvable at this point.
 *)
 
 PROCEDURE DeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
+
+
+(*
+   TryDeclareConstant - try and declare a constant.  If, sym, is a
+                        constant try and declare it, if we cannot
+                        then enter it into the to do list.
+*)
+
+PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
+
+
+(*
+   TryDeclareConstructor - try and declare a constructor.  If, sym, is a
+                           constructor try and declare it, if we cannot
+                           then enter it into the to do list.
+*)
+
+PROCEDURE TryDeclareConstructor (quad: CARDINAL; sym: CARDINAL) ;
 
 
 (*
@@ -158,8 +181,7 @@ PROCEDURE ConstantKnownAndUsed (sym: CARDINAL; t: Tree) ;
 
 
 (*
-   PutToBeSolvedByQuads - places, sym, to this list and returns,
-                          sym.
+   PutToBeSolvedByQuads - places, sym, in this list.
 *)
 
 PROCEDURE PutToBeSolvedByQuads (sym: CARDINAL) ;

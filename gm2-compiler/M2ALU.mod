@@ -181,6 +181,7 @@ VAR
    EnumerationValue: Tree ;
    EnumerationField: CARDINAL ;
    CurrentTokenNo  : CARDINAL ;
+   WatchedValue    : PtrToValue ;
 
 
 (*
@@ -3249,8 +3250,8 @@ PROCEDURE EvaluateValue (sym: CARDINAL) ;
 VAR
    v: PtrToValue ;
 BEGIN
-   PushValue(sym) ;
-   ChangeToConstructor(GetDeclared(sym), GetType(sym)) ;
+   PushValue(sym) ; 
+   (* ChangeToConstructor(GetDeclared(sym), GetType(sym)) ; *)
    v := Pop() ;
    Eval(GetDeclared(sym), v) ;
    Push(v) ;
@@ -4542,15 +4543,15 @@ END GetConstructorElement ;
 
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
 VAR
-   n1, n2      : Name ;
-   gccsym      : Tree ;
+   n1, n2   : Name ;
+   gccsym   : Tree ;
    i, el,
    baseType,
    Subrange,
    Subscript,
    arrayType,
-   high, low   : CARDINAL ;
-   cons        : Constructor ;
+   high, low: CARDINAL ;
+   cons     : Constructor ;
 BEGIN
    WITH v^ DO
       IF constructorType=NulSym

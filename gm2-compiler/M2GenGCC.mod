@@ -123,10 +123,11 @@ FROM M2ALU IMPORT PtrToValue,
                   CheckOverflow, GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT WalkAction,
-                         DeclareConstant,
+                         DeclareConstant, TryDeclareConstant,
+                         DeclareConstructor, TryDeclareConstructor,
                          StartDeclareScope, EndDeclareScope,
                          DeclareLocalVariables, PromoteToString,
-                         CompletelyResolved, DeclareConstructor,
+                         CompletelyResolved,
                          PoisonSymbols, GetTypeMin, GetTypeMax,
                          IsProcedureGccNested, DeclareParameters,
                          ConstantKnownAndUsed ;
@@ -496,8 +497,6 @@ BEGIN
    GetQuad(q, op, op1, op2, op3) ;
    CurrentQuadToken := QuadToTokenNo(q) ;
    CheckReferenced(q, op) ;
-
-   CheckStop(q) ;
 
    CASE op OF
 
@@ -1743,8 +1742,8 @@ PROCEDURE CodeReturnValue (quad: CARDINAL; res, op2, Procedure: CARDINAL) ;
 VAR
    t, op3t: Tree ;
 BEGIN
-   DeclareConstant(CurrentQuadToken, res) ;  (* checks to see whether it is a constant and declares it *)
-   DeclareConstructor(quad, res) ;
+   TryDeclareConstant(CurrentQuadToken, res) ;  (* checks to see whether it is a constant and declares it *)
+   TryDeclareConstructor(quad, res) ;
    IF IsConstString(res) AND (SkipTypeAndSubrange(GetType(Procedure))#Char)
    THEN
       DoCopyString(t, op3t, GetType(Procedure), res) ;
@@ -1965,11 +1964,11 @@ END CheckConvertCoerceParameter ;
 
 PROCEDURE CheckConstant (des, expr: CARDINAL) : Tree ;
 BEGIN
-   IF NOT IsProcedure(expr)
+   IF IsProcedure(expr)
    THEN
-      RETURN( DeclareKnownConstant(Mod2Gcc(GetType(expr)), Mod2Gcc(des)) )
-   ELSE
       RETURN( Mod2Gcc(expr) )
+   ELSE
+      RETURN( DeclareKnownConstant(Mod2Gcc(GetType(des)), Mod2Gcc(expr)) )
    END
 END CheckConstant ;
 
@@ -2075,7 +2074,7 @@ BEGIN
    REPEAT
       IF r>0
       THEN
-         DeclareConstant(QuadToTokenNo(n), op3) ;
+         TryDeclareConstant(QuadToTokenNo(n), op3) ;
          IF NOT GccKnowsAbout(op3)
          THEN
             resolved := FALSE
@@ -2225,7 +2224,7 @@ PROCEDURE stop ; BEGIN END stop ;
 
 PROCEDURE CheckStop (q: CARDINAL) ;
 BEGIN
-   IF q=41
+   IF q=16
    THEN
       stop
    END
@@ -2243,9 +2242,12 @@ VAR
    s: String ;
    t: Tree ;
 BEGIN
-   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   TryDeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   TryDeclareConstructor(quad, op3) ;
    IF IsConst(op1) AND IsConst(op3)
    THEN
+      CheckStop(quad) ;
+
       (* constant folding taking place, but have we resolved op3 yet? *)
       IF GccKnowsAbout(op3)
       THEN
@@ -2472,7 +2474,7 @@ BEGIN
          RETURN( Mod2Gcc(op1) ) (* we might crash if we execute the BuildAssignmentTree with op3 *)
       END
    END ;
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    t := Mod2Gcc(op3) ;
    Assert(t#NIL) ;
    IF IsConst(op3)
@@ -2555,6 +2557,7 @@ VAR
 BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;  (* checks to see whether it is a constant and declares it *)
    DeclareConstructor(quad, op3) ;
+   CheckStop(quad) ;
    IF IsConst(op1) AND (NOT GccKnowsAbout(op1))
    THEN
       ConstantKnownAndUsed(op1, CheckConstant(op1, op3))
@@ -2685,8 +2688,8 @@ VAR
    tl, tr, tv: Tree ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op3) ;
-   DeclareConstant(tokenno, op2) ;
+   TryDeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op2) ;
    IF IsConst(op2) AND IsConst(op3)
    THEN
       IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
@@ -2811,7 +2814,7 @@ BEGIN
       s := InitStringCharStar(KeyToCharStar(GetString(op2))) ;
       s := ConCat(s, Mark(InitStringCharStar(KeyToCharStar(GetString(op3))))) ;
       PutConstString(op1, makekey(string(s))) ;
-      DeclareConstant(tokenno, op1) ;
+      TryDeclareConstant(tokenno, op1) ;
       p(op1) ;
       NoChange := FALSE ;
       SubQuad(quad) ;
@@ -2996,7 +2999,7 @@ VAR
 BEGIN
    IF GetSymName(op2)=MakeKey('Length')
    THEN
-      DeclareConstant(tokenno, op3) ;
+      TryDeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3017,13 +3020,13 @@ BEGIN
             s := Sprintf1(Mark(InitString("%d")), d) ;
             result := MakeConstLit(makekey(string(s))) ;
             s := KillString(s) ;
-            DeclareConstant(tokenno, result) ;
+            TryDeclareConstant(tokenno, result) ;
             PutQuad(quad, BecomesOp, op1, NulSym, result)
          END
       END
    ELSIF GetSymName(op2)=MakeKey('CAP')
    THEN
-      DeclareConstant(tokenno, op3) ;
+      TryDeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3043,7 +3046,7 @@ BEGIN
       END
    ELSIF GetSymName(op2)=MakeKey('ABS')
    THEN
-      DeclareConstant(tokenno, op3) ;
+      TryDeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3057,7 +3060,7 @@ BEGIN
       END
    ELSIF op2=Im
    THEN
-      DeclareConstant(tokenno, op3) ;
+      TryDeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3071,7 +3074,7 @@ BEGIN
       END
    ELSIF op2=Re
    THEN
-      DeclareConstant(tokenno, op3) ;
+      TryDeclareConstant(tokenno, op3) ;
       IF IsConst(op3) AND GccKnowsAbout(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
@@ -3085,8 +3088,8 @@ BEGIN
       END
    ELSIF op2=Cmplx
    THEN
-      DeclareConstant(tokenno, GetNth(op3, 1)) ;
-      DeclareConstant(tokenno, GetNth(op3, 2)) ;
+      TryDeclareConstant(tokenno, GetNth(op3, 1)) ;
+      TryDeclareConstant(tokenno, GetNth(op3, 2)) ;
       IF IsConst(GetNth(op3, 1)) AND GccKnowsAbout(GetNth(op3, 1)) AND
          IsConst(GetNth(op3, 2)) AND GccKnowsAbout(GetNth(op3, 2))
       THEN
@@ -3304,8 +3307,8 @@ PROCEDURE FoldBinarySet (tokenno: CARDINAL; p: WalkAction; op: DoProcedure;
                          quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly try and ensure that constants are declared *)
-   DeclareConstant(tokenno, op2) ;
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op2) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op2) AND IsConstSet(op2) AND
       IsConst(op3) AND IsConstSet(op3) AND
       IsConst(op1)
@@ -3583,7 +3586,7 @@ PROCEDURE FoldIncl (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op1) AND IsConst(op3)
    THEN
       IF GccKnowsAbout(op3) AND IsValueSolved(op1)
@@ -3609,8 +3612,8 @@ PROCEDURE FoldIfLess (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op1) ;
-   DeclareConstant(tokenno, op2) ;
+   TryDeclareConstant(tokenno, op1) ;
+   TryDeclareConstant(tokenno, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       IF IsValueSolved(op1) AND IsValueSolved(op2)
@@ -3638,8 +3641,8 @@ PROCEDURE FoldIfIn (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op1) ;
-   DeclareConstant(tokenno, op2) ;
+   TryDeclareConstant(tokenno, op1) ;
+   TryDeclareConstant(tokenno, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       IF IsValueSolved(op1) AND IsValueSolved(op2)
@@ -3666,8 +3669,8 @@ PROCEDURE FoldIfNotIn (tokenno: CARDINAL; p: WalkAction;
                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op1) ;
-   DeclareConstant(tokenno, op2) ;
+   TryDeclareConstant(tokenno, op1) ;
+   TryDeclareConstant(tokenno, op2) ;
    IF IsConst(op1) AND IsConst(op2)
    THEN
       IF IsValueSolved(op1) AND IsValueSolved(op2)
@@ -3812,7 +3815,7 @@ PROCEDURE FoldExcl (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op1) AND IsConst(op3)
    THEN
       IF GccKnowsAbout(op3) AND IsValueSolved(op1)
@@ -3881,7 +3884,7 @@ VAR
    tv: Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op3)
    THEN
       IF GccKnowsAbout(op3)
@@ -3932,7 +3935,7 @@ PROCEDURE FoldUnarySet (tokenno: CARDINAL; p: WalkAction; doOp: DoUnaryProcedure
                         quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    (* firstly try and ensure that constants are declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op3) AND IsConstSet(op3) AND
       IsConst(op1)
    THEN
@@ -4126,7 +4129,7 @@ VAR
    t    : Tree ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
       IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
@@ -4255,7 +4258,7 @@ VAR
    type    : CARDINAL ;
 BEGIN
    (* firstly ensure that any constant literal is declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    t := ResolveHigh(quad, op3) ;
    IF GccKnowsAbout(op3)
    THEN
@@ -4552,7 +4555,7 @@ VAR
    tl, tr: Tree ;
 BEGIN
    (* firstly ensure that constant literals are declared *)
-   DeclareConstant(tokenno, op3) ;
+   TryDeclareConstant(tokenno, op3) ;
    IF IsConst(op3)
    THEN
       IF GccKnowsAbout(op2) AND IsValueSolved(op3) AND
@@ -4703,7 +4706,7 @@ END CodeCoerce ;
 PROCEDURE FoldCoerce (tokenno: CARDINAL; p: WalkAction;
                       quad, op1, op2, op3: CARDINAL) ;
 BEGIN
-   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   TryDeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
    THEN
       IF IsProcedure(op3)
@@ -4786,7 +4789,7 @@ END CodeCast ;
 PROCEDURE FoldCast (tokenno: CARDINAL; p: WalkAction;
                     quad, op1, op2, op3: CARDINAL) ;
 BEGIN
-   DeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
+   TryDeclareConstant(tokenno, op3) ;  (* checks to see whether it is a constant literal and declares it *)
    IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
    THEN
       IF IsProcedure(op3)
