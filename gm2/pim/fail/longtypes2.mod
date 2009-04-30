@@ -19,7 +19,7 @@ MODULE longtypes2 ;
 
 FROM libc IMPORT exit ;
 
-PROCEDURE foo (l: LONGREAL) ;
+PROCEDURE foo (VAR l: LONGREAL) ;
 BEGIN
    IF l#315.0
    THEN

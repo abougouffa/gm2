@@ -19,7 +19,7 @@ MODULE longtypes3 ;
 
 FROM libc IMPORT exit ;
 
-PROCEDURE foo (l: LONGCARD) ;
+PROCEDURE foo (VAR l: LONGCARD) ;
 BEGIN
    IF l#3*256*256*256+5
    THEN
