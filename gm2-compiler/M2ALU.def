@@ -57,7 +57,7 @@ EXPORT QUALIFIED PtrToValue,
                  ConvertToInt,
                  GetSetValueType,
                  IsSolved, IsValueConst,
-                 PutConstructorSolved, EvaluateValue,
+                 PutConstructorSolved, EvaluateValue, TryEvaluateValue,
 
                  IsNulSet, IsGenericNulSet, PushNulSet, AddBitRange, AddBit, SubBit,
       	       	 SetOr, SetAnd, SetIn,
@@ -305,6 +305,13 @@ PROCEDURE PutConstructorSolved (sym: CARDINAL) ;
 *)
 
 PROCEDURE EvaluateValue (sym: CARDINAL) ;
+
+
+(*
+   TryEvaluateValue - attempts to evaluate the symbol, sym, value.
+*)
+
+PROCEDURE TryEvaluateValue (sym: CARDINAL) ;
 
 
 (*

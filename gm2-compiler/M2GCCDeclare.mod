@@ -127,7 +127,7 @@ FROM M2ALU IMPORT Addn, Sub, Equ, GreEqu, Gre, Less, PushInt, PushCard,
                   PushIntegerTree, PopIntegerTree, PopRealTree, ConvertToInt, PopSetTree,
                   IsConstructorDependants, WalkConstructorDependants,
                   PopConstructorTree, PopComplexTree, PutConstructorSolved,
-                  ChangeToConstructor, EvaluateValue ;
+                  ChangeToConstructor, EvaluateValue, TryEvaluateValue ;
 
 FROM gccgm2 IMPORT Tree, Constructor,
                    SetFileNameAndLineNo,
@@ -238,6 +238,7 @@ PROCEDURE IsNilTypedArrays (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE WalkRecordFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
 PROCEDURE IsVarientFieldDependants (sym: CARDINAL; q: IsAction) : BOOLEAN ; FORWARD ;
 PROCEDURE WalkVarientFieldDependants (sym: CARDINAL; p: WalkAction) ; FORWARD ;
+PROCEDURE TryDeclareConst (tokenno: CARDINAL; sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
@@ -1457,8 +1458,6 @@ END IsConstDependants ;
 PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
-   size: CARDINAL ;
-   t   : Tree ;
 BEGIN
    IF IsConst(sym)
    THEN
@@ -1482,13 +1481,9 @@ BEGIN
       END ;
       IF IsItemInList(ToBeSolvedByQuads, sym)
       THEN
-         t := NIL
-      ELSE
-         t := DeclareConst(tokenno, sym)
-      END ;
-      IF t=NIL
-      THEN
          WatchIncludeList(sym, todolist)
+      ELSE
+         TryDeclareConst(tokenno, sym)
       END
    END 
 END TryDeclareConstant ;
@@ -1515,6 +1510,56 @@ BEGIN
       Assert(t#NIL)
    END 
 END DeclareConstant ;
+
+
+(*
+   TryDeclareConst - try to declare a const to gcc.  If it cannot
+                     declare the symbol it places it into the
+                     todolist.
+*)
+
+PROCEDURE TryDeclareConst (tokenno: CARDINAL; sym: CARDINAL) ;
+VAR
+   size: CARDINAL ;
+BEGIN
+   IF NOT GccKnowsAbout(sym)
+   THEN
+      IF IsConstructor(sym) OR IsConstSet(sym)
+      THEN
+         TryEvaluateValue(sym)
+      END ;
+      IF IsConstString(sym)
+      THEN
+         size := GetStringLength(sym) ;
+         IF size=1
+         THEN
+            DeclareCharConstant(sym)
+         ELSE
+            DeclareStringConstant(sym)
+         END
+      ELSIF IsValueSolved(sym)
+      THEN
+         PushValue(sym) ;
+         IF IsConstSet(sym)
+         THEN
+            DeclareConstantFromTree(sym, PopSetTree(tokenno))
+         ELSIF IsConstructor(sym)
+         THEN
+            DeclareConstantFromTree(sym, PopConstructorTree(tokenno))
+         ELSIF IsRealType(SkipType(GetType(sym)))
+         THEN
+            DeclareConstantFromTree(sym, PopRealTree())
+         ELSIF IsAComplexType(SkipType(GetType(sym)))
+         THEN
+            DeclareConstantFromTree(sym, PopComplexTree())
+         ELSE
+            DeclareConstantFromTree(sym, PopIntegerTree())
+         END
+      ELSE
+         WatchIncludeList(sym, todolist)
+      END
+   END
+END TryDeclareConst ;
 
 
 (*

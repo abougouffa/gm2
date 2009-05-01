@@ -3260,6 +3260,39 @@ END EvaluateValue ;
 
 
 (*
+   TryEvaluateValue - attempts to evaluate the symbol, sym, value.
+*)
+
+PROCEDURE TryEvaluateValue (sym: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   PushValue(sym) ; 
+   v := Pop() ;
+   WITH v^ DO
+      CASE type OF
+
+      set, array, record:  IF v^.constructorType=NulSym
+                           THEN
+                              (* must wait *)
+                              RETURN
+                           ELSE
+                              Eval(GetDeclared(sym), v)
+                           END
+
+      ELSE
+         (* nothing to do *)
+      END ;
+      IF solved
+      THEN
+         Push(v) ;
+         PopValue(sym)
+      END
+   END
+END TryEvaluateValue ;
+
+
+(*
    DefinedByConstants - returns TRUE if the value, v, is defined by constants.
                         It assigns, v^.areAllConstants, with the result.
 *)

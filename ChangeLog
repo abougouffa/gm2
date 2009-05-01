@@ -1,3 +1,11 @@
+2009-05-01       Gaius Mulley <gaius@gnu.org>
+
+	* bug fixes so that ulm-lib-gm2/std/TimeIO.mod builds.
+	* gm2/gm2-compiler/M2ALU.def:  new procedure TryEvaluateValue.
+	* gm2/gm2-compiler/M2ALU.mod:  implemented TryEvaluateValue.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  implemented new
+	  procedure TryDeclareConst.
+
 2009-04-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/gm2-compiler/M2ALU.mod:  commented out
