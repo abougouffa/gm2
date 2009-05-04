@@ -1264,6 +1264,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstructor(q, expr) ;
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN
@@ -1296,6 +1297,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstructor(0, expr) ;
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN

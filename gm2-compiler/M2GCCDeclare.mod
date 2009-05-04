@@ -350,7 +350,7 @@ BEGIN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
                               IncludeItemIntoList(FullyDeclared, sym)
-                              ; IF sym=644
+                              ; IF sym=1847
                               THEN
                                  mystop
                               END
@@ -1392,6 +1392,7 @@ BEGIN
       WalkConstructor(sym, TraverseDependants) ;
       IF NOT IsItemInList(ToBeSolvedByQuads, sym)
       THEN
+         TryEvaluateValue(sym) ;
          IF IsConstructorDependants(sym, IsFullyDeclared)
          THEN
             PushValue(sym) ;
@@ -1526,7 +1527,17 @@ BEGIN
    THEN
       IF IsConstructor(sym) OR IsConstSet(sym)
       THEN
-         TryEvaluateValue(sym)
+         WalkConstructorDependants(sym, TraverseDependants) ;
+         TryEvaluateValue(sym) ;
+         IF NOT IsConstructorDependants(sym, IsFullyDeclared)
+         THEN
+            WatchIncludeList(sym, todolist) ;
+            RETURN
+         END ;
+         IF NOT IsConstructorConstant(sym)
+         THEN
+            RETURN
+         END
       END ;
       IF IsConstString(sym)
       THEN
@@ -2120,7 +2131,7 @@ BEGIN
    DebugLists ;
 *)
    (* IncludeItemIntoList(WatchList, 92) ; *)
-   (* AddSymToWatch(644) ; *)
+   (*   AddSymToWatch(1847) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;

@@ -866,6 +866,8 @@ BEGIN
    WITH v^ DO
       type := set ;
       constructorType := sym ;
+      areAllConstants := FALSE ;
+      solved          := FALSE ;
       setValue := r
    END ;
    Eval(tokenno, v) ;
@@ -1111,9 +1113,10 @@ VAR
 BEGIN
    v := New() ;
    WITH v^ DO
-      type        := integer ;
-      numberValue := BuildIntegerConstant(INTEGER(c)) ;
-      solved      := TRUE
+      type            := integer ;
+      numberValue     := BuildIntegerConstant(INTEGER(c)) ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushCard ;
@@ -1129,9 +1132,10 @@ VAR
 BEGIN
    v := New() ;
    WITH v^ DO
-      type        := integer ;
-      numberValue := BuildIntegerConstant(i) ;
-      solved      := TRUE
+      type            := integer ;
+      numberValue     := BuildIntegerConstant(i) ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushInt ;
@@ -1147,9 +1151,10 @@ VAR
 BEGIN
    v := New() ;
    WITH v^ DO
-      type        := integer ;
-      numberValue := BuildIntegerConstant(ORD(c)) ;
-      solved      := TRUE
+      type            := integer ;
+      numberValue     := BuildIntegerConstant(ORD(c)) ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
    END ;
    Push(v)
 END PushChar ;
@@ -1227,9 +1232,10 @@ BEGIN
    WITH v^ DO
       IF type=real
       THEN
-         numberValue := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
-         type        := integer ;
-         solved      := TRUE
+         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         type            := integer ;
+         areAllConstants := TRUE ;
+         solved          := TRUE
       ELSE
          InternalError('expecting a REAL number', __FILE__, __LINE__)
       END
@@ -1250,9 +1256,10 @@ BEGIN
    WITH v^ DO
       IF type=real
       THEN
-         numberValue := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
-         type        := integer ;
-         solved      := TRUE
+         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         type            := integer ;
+         areAllConstants := TRUE ;
+         solved          := TRUE
       ELSE
          InternalError('expecting a REAL number', __FILE__, __LINE__)
       END
@@ -1273,9 +1280,10 @@ BEGIN
    WITH v^ DO
       IF type=integer
       THEN
-         numberValue := ConvertConstantAndCheck(GetLongRealType(), numberValue) ;
-         type        := real ;
-         solved      := TRUE
+         numberValue     := ConvertConstantAndCheck(GetLongRealType(), numberValue) ;
+         type            := real ;
+         areAllConstants := TRUE ;
+         solved          := TRUE
       ELSE
          InternalError('expecting an INTEGER number', __FILE__, __LINE__)
       END
@@ -1298,8 +1306,9 @@ BEGIN
    WITH v^ DO
       IF type=integer
       THEN
-         numberValue := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
-         solved      := TRUE
+         numberValue     := ConvertConstantAndCheck(GetIntegerType(), numberValue) ;
+         solved          := TRUE ;
+         areAllConstants := TRUE
       ELSE
          InternalError('expecting an INTEGER number', __FILE__, __LINE__)
       END
@@ -1392,7 +1401,7 @@ BEGIN
    ELSE
       Temp := New() ;    (* as it is a temp *)
       WITH Temp^ DO
-         type   := integer ;
+         type         := integer ;
          numberValue  := BuildAdd(Op1^.numberValue, Op2^.numberValue, FALSE) ;
          solved       := TRUE
       END ;

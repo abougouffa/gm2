@@ -1,3 +1,20 @@
+2009-05-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.mod:  ensure that
+	  solved and areAllConstants are initialized for every
+	  type of constant.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  return early from
+	  TryDeclareConstant if the constructors dependants are
+	  not all constant.
+	* gm2/gm2-compiler/M2GenGCC.mod:  add missing double
+	  book keeping entries in FoldConvert for op1 and the
+	  tree.
+	* gm2/gm2-compiler/M2Range.mod:  FoldTypeCheck
+	  add TryDeclareConstructor.
+	* gm2/gm2-compiler/SymbolTable.mod:  (IsConstructorConstant)
+	  allow constant sets to have their elements tested for
+	  being constant.
+
 2009-05-01       Gaius Mulley <gaius@gnu.org>
 
 	* bug fixes so that ulm-lib-gm2/std/TimeIO.mod builds.

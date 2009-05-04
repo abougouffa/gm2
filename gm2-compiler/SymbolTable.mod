@@ -9641,7 +9641,7 @@ END IsValueSolved ;
 
 PROCEDURE IsConstructorConstant (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   IF IsConstructor(Sym)
+   IF IsConstructor(Sym) OR IsConstSet(Sym)
    THEN
       WITH Symbols[Sym] DO
          CASE SymbolType OF

@@ -4574,7 +4574,9 @@ BEGIN
                   WriteFormat0('cannot convert values between sets')
                ELSE
                   PushIntegerTree(FoldAndStrip(BuildConvert(tl, PopSetTree(tokenno), TRUE))) ;
-                  PopValue(op1)
+                  PopValue(op1) ;
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopIntegerTree())
                END
             ELSE
                IF IsSet(SkipType(op2))
@@ -4584,15 +4586,15 @@ BEGIN
                                                         TRUE)), SkipType(op2)) ;
                   PopValue(op1) ;
                   PutConstSet(op1) ;
-(*
                   PushValue(op1) ;
-                  AddModGcc(op1, PopIntegerTree())
-*)
+                  AddModGcc(op1, PopSetTree(tokenno))
                ELSIF IsRealType(SkipType(op2))
                THEN
                   PushRealTree(FoldAndStrip(BuildConvert(tl, PopIntegerTree(),
                                                          TRUE))) ;
-                  PopValue(op1)
+                  PopValue(op1) ;
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopRealTree())
                ELSE
                   (* we let CheckOverflow catch a potential overflow rather than BuildConvert *)
                   PushIntegerTree(FoldAndStrip(BuildConvert(tl,
@@ -4600,7 +4602,9 @@ BEGIN
                                                             FALSE))) ;
                   PopValue(op1) ;
                   PushValue(op1) ;
-                  CheckOverflow(tokenno, PopIntegerTree())
+                  CheckOverflow(tokenno, PopIntegerTree()) ;
+                  PushValue(op1) ;
+                  AddModGcc(op1, PopIntegerTree())
                END
             END ;
             p(op1) ;
