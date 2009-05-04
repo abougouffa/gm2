@@ -17,7 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE testiso ;
 
-FROM SYSTEM IMPORT BITSET, WORD, BYTE, LOC, ADR ;
+FROM SYSTEM IMPORT WORD, BYTE, LOC, ADR ;
 
 VAR
    b: BYTE ;

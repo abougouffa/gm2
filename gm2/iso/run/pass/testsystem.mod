@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE testsystem ;
 
 FROM SYSTEM IMPORT BITSPERLOC, LOCSPERWORD,
-                   LOC, BYTE, WORD, BITSET, ADDRESS,
+                   LOC, BYTE, WORD, ADDRESS,
                    ADDADR, SUBADR, DIFADR, MAKEADR, ADR, ROTATE,
                    SHIFT, CAST, TSIZE ;
 FROM libc IMPORT exit ;
