@@ -49,7 +49,7 @@ FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
-FROM M2GCCDeclare IMPORT TryDeclareConstant, TryDeclareConstructor ;
+FROM M2GCCDeclare IMPORT TryDeclareConstant, DeclareConstructor ;
 FROM M2Quads IMPORT QuadOperator, PutQuad, SubQuad, WriteOperand ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
 FROM Lists IMPORT List ;
@@ -1264,7 +1264,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
-      TryDeclareConstructor(q, expr) ;
+      (* TryDeclareConstructor(q, expr) ; *)
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN
@@ -1297,7 +1297,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
       TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
-      TryDeclareConstructor(0, expr) ;
+      (* TryDeclareConstructor(0, expr) ; *)
       IF (GccKnowsAbout(des) OR (IsParameter(des) AND GccKnowsAbout(GetType(des)))) AND
           GccKnowsAbout(expr)
       THEN
@@ -1803,7 +1803,7 @@ BEGIN
    WITH p^ DO
       TryDeclareConstant(tokenNo, des) ;
       TryDeclareConstant(tokenNo, expr) ;
-      TryDeclareConstructor(0, expr) ;
+      DeclareConstructor(0, expr) ;
       IF desLowestType#NulSym
       THEN
          Assert(GccKnowsAbout(expr)) ;

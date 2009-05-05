@@ -1,3 +1,11 @@
+2009-05-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  TryDeclareConst
+	  now calls TryDeclareConstructor.
+	* gm2/gm2-compiler/M2Range.mod:  modified all calls to
+	  DeclareConstructor to DeclareConstructor.
+	* gm2/gm2-compiler/SymbolTable.mod:  corrected dates.
+
 2009-05-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  ensure that

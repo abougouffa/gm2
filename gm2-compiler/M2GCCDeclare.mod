@@ -1460,6 +1460,7 @@ PROCEDURE TryDeclareConstant (tokenno: CARDINAL; sym: CARDINAL) ;
 VAR
    type: CARDINAL ;
 BEGIN
+   TryDeclareConstructor(0, sym) ;
    IF IsConst(sym)
    THEN
       TraverseDependants(sym) ;
@@ -1963,6 +1964,8 @@ BEGIN
                                                   IsVarParam(Sym, i))
          END ;
          PreAddModGcc(Son, GccParam) ;
+         WatchRemoveList(Son, todolist) ;
+         WatchIncludeList(Son, fullydeclared) ;
          DEC(i)
       END ;
       IF GetType(Sym)=NulSym
@@ -1978,7 +1981,9 @@ BEGIN
                                                        IsEffectivelyImported(GetMainModule(), Sym) AND
                                                        (GetModuleWhereDeclared(Sym)#GetMainModule()),
                                                        IsProcedureGccNested(Sym)))
-      END
+      END ;
+      WatchRemoveList(Sym, todolist) ;
+      WatchIncludeList(Sym, fullydeclared)
    END
 END DeclareProcedureToGcc ;
 
