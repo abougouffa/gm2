@@ -7533,7 +7533,7 @@ BEGIN
          n := GetSymName(Type) ;
          WriteFormat1('undeclared type found in CAST (%a)', n)
       ELSIF IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR IsType(Type) OR
-            IsPointer(Type) OR IsArray(Type)
+            IsPointer(Type) OR IsArray(Type) OR IsProcType(Type)
       THEN
          IF IsConst(Var)
          THEN
@@ -7545,7 +7545,7 @@ BEGIN
             PushT(Var) ;
             PushT(1) ;          (* one parameter *)
             BuildTypeCoercion
-         ELSIF IsVar(Var)
+         ELSIF IsVar(Var) OR IsProcedure(Var)
          THEN
             PopN(NoOfParam+1) ;
             ReturnVar := MakeTemporary(RightValue) ;
@@ -7553,13 +7553,13 @@ BEGIN
             GenQuad(CastOp, ReturnVar, Type, Var) ;
             PushTF(ReturnVar, Type)
          ELSE
-            WriteFormat0('second parameter to CAST must either be a variable or a constant, prototype of cast is CAST (Type, Variable or Constant)')
+            WriteFormat0('second parameter to CAST must either be a variable or procedure or a constant, the formal parameters to cast are CAST(type, variable or constant or procedure)')
          END
       ELSE
-         WriteFormat0('arguments to CAST must be (Type, Variable or Constant)')
+         WriteFormat0('formal paramater declaration of the builtin procedure function CAST is CAST(type, variable or procedure or constant)')
       END
    ELSE
-      WriteFormat0('the pseudo procedure CAST has 2 parameters, a Type and Variable')
+      WriteFormat0('the pseudo procedure CAST has 2 parameters, a type and expression')
    END
 END BuildCastFunction ;
 

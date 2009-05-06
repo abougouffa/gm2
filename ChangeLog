@@ -12,6 +12,8 @@
 	  the operand to cast/convert.  Changed
 	  CheckVariabelOrConstant to
 	  CheckVariabelOrConstantOrProcedure.
+	* gm2/gm2-compiler/M2Quads.mod:  allow procedure types
+	  or procedures to be CAST.
 
 2009-05-04       Gaius Mulley <gaius@gnu.org>
 
