@@ -3,8 +3,15 @@
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  TryDeclareConst
 	  now calls TryDeclareConstructor.
 	* gm2/gm2-compiler/M2Range.mod:  modified all calls to
-	  DeclareConstructor to DeclareConstructor.
+	  DeclareConstructor to TryDeclareConstructor.
 	* gm2/gm2-compiler/SymbolTable.mod:  corrected dates.
+	* gm2/gm2-compiler/M2GenGCC.mod:  detect if op3 is a
+	  procedure in CodeConvert and if so calculate the
+	  address of the procedure.
+	* gm2/gm2-compiler/M2Quads.mod:  allow procedures as
+	  the operand to cast/convert.  Changed
+	  CheckVariabelOrConstant to
+	  CheckVariabelOrConstantOrProcedure.
 
 2009-05-04       Gaius Mulley <gaius@gnu.org>
 

@@ -4632,7 +4632,12 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstructor(quad, op3) ;
    tl := LValueToGenericPtr(op2) ;
-   tr := LValueToGenericPtr(op3) ;
+   IF IsProcedure(op3)
+   THEN
+      tr := BuildAddr(Mod2Gcc(op3), FALSE)
+   ELSE
+      tr := LValueToGenericPtr(op3)
+   END ;
    IF IsConst(op1)
    THEN
       (* fine, we can take advantage of this and fold constant *)

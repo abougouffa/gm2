@@ -7462,7 +7462,8 @@ BEGIN
          n := GetSymName(Type) ;
          WriteFormat1('undeclared type found in VAL (%a)', n)
       ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR
-             IsType(Type) OR IsPointer(Type)) AND (IsVar(Var) OR IsConst(Var))
+             IsType(Type) OR IsPointer(Type) OR IsProcType(Type)) AND
+              (IsVar(Var) OR IsConst(Var) OR IsProcedure(Var))
       THEN
          PopN(NoOfParam+1) ;
          (*
@@ -7474,7 +7475,7 @@ BEGIN
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction
       ELSE
-         WriteFormat0('arguments to VAL must be (Type, Variable or Constant)')
+         WriteFormat0('the builtin type conversion procedure function VAL has the following formal parameter declaration VAL(type, variable or procedure or constant)')
       END
    ELSE
       WriteFormat0('the pseudo procedure VAL has 2 parameters, a Type and Variable')
@@ -7611,7 +7612,7 @@ BEGIN
    ProcSym := OperandT(NoOfParam+1) ;
    IF NoOfParam#2
    THEN
-      WriteFormat0('base procedure CONVERT expects 2 parameters')
+      WriteFormat0('builtin procedure function CONVERT expects 2 parameters')
    ELSE
       Type := OperandT(2) ;
       Var := OperandT(1) ;
@@ -7624,8 +7625,8 @@ BEGIN
          n := GetSymName(Var) ;
          WriteFormat1('undeclared variable found in CONVERT (%a)', n)
       ELSIF (IsSet(Type) OR IsEnumeration(Type) OR IsSubrange(Type) OR
-             IsType(Type) OR IsPointer(Type)) AND
-            (IsVar(Var) OR IsConst(Var))
+             IsType(Type) OR IsPointer(Type) OR IsProcType(Type)) AND
+            (IsVar(Var) OR IsConst(Var) OR IsProcedure(Var))
       THEN
          PopN(NoOfParam+1) ;    (* destroy arguments to this function *)
          (* firstly dereference Var *)
@@ -7640,26 +7641,10 @@ BEGIN
 
          ReturnVar := MakeTemporary(AreConstant(IsConst(Var))) ;
          PutVar(ReturnVar, Type) ;
-(*
-         IF (GetType(Var)#Integer) AND (GetType(Var)#Cardinal) AND
-            (GetType(Var)#Word) AND (GetType(Var)#Address) AND
-            (IsMathType(Type) OR IsMathType(GetType(Var))) AND
-            (NOT (IsMathType(Type) AND IsMathType(GetType(Var))))
-         THEN
-            (* all mathematical type conversions must go through INTEGER *)
-            IntegerVar := MakeTemporary(AreConstant(IsConst(Var))) ;
-            PutVar(IntegerVar, Integer) ;
-            GenQuad(ConvertOp, IntegerVar, Integer, Var) ;
-            GenQuad(ConvertOp, ReturnVar, Type, IntegerVar)
-         ELSE
-            (* if we are converting from LONGINT to LONGREAL then we must not convert via INTEGER *)
-            GenQuad(ConvertOp, ReturnVar, Type, Var)
-         END ;
-*)
          GenQuad(ConvertOp, ReturnVar, Type, Var) ;
          PushTF(ReturnVar, Type)
       ELSE
-         WriteFormat0('base procedure CONVERT expects 2 parameters, a type and a variable')
+         WriteFormat0('builtin procedure function CONVERT is declared with the following formal parameters CONVERT(type, constant or procedure or variable)')
       END
    END
 END BuildConvertFunction ;
@@ -8228,9 +8213,14 @@ BEGIN
       ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
       PushTF(ReturnVar, GetType(ReturnVar))
-   ELSIF NOT IsVar(OperandT(1))
+   ELSIF (NOT IsVar(OperandT(1))) AND (NOT IsProcedure(OperandT(1)))
    THEN
-      WriteFormat0('SYSTEM procedure ADR expects a variable or a constant string as its parameter')
+      WriteFormat0('SYSTEM procedure ADR expects a variable, procedure or a constant string as its parameter')
+   ELSIF IsProcedure(OperandT(1))
+   THEN
+      ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
+      PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
+      PushTF(ReturnVar, GetType(ReturnVar))
    ELSE
       Type := GetType(OperandT(1)) ;
       MarkArrayWritten(OperandT(1)) ;
@@ -10711,10 +10701,10 @@ END BuildRelOpFromBoolean ;
 
 
 (*
-   CheckVariableOrConstant - checks to make sure sym is a variable or constant
+   CheckVariableOrConstantOrProcedure - checks to make sure sym is a variable, constant or procedure.
 *)
 
-PROCEDURE CheckVariableOrConstant (sym: CARDINAL) ;
+PROCEDURE CheckVariableOrConstantOrProcedure (sym: CARDINAL) ;
 VAR
    s   : String ;
    type: CARDINAL ;
@@ -10724,9 +10714,10 @@ BEGIN
    THEN
       MetaError1('{%1Uad} has not been declared', sym)
    ELSIF (NOT IsConst(sym)) AND (NOT IsVar(sym)) AND
+         (NOT IsProcedure(sym)) AND
          (NOT IsTemporary(sym)) AND (NOT MustNotCheckBounds)
    THEN
-      MetaErrors1('{%1Uad} expected a variable, constant or expression',
+      MetaErrors1('{%1Uad} expected a variable, procedure, constant or expression',
                  'and it was declared as a {%1Dd}', sym) ;
    ELSIF (type#NulSym) AND IsArray(type)
    THEN
@@ -10737,7 +10728,7 @@ BEGIN
       MetaError1('{%1U} not expecting a string constant as an operand for either comparison or binary operation',
                  sym)
    END
-END CheckVariableOrConstant ;
+END CheckVariableOrConstantOrProcedure ;
 
 
 (*
@@ -10823,8 +10814,8 @@ BEGIN
       PopT(Op) ;
       PopTF(e2, t2) ;
 
-      CheckVariableOrConstant(e1) ;
-      CheckVariableOrConstant(e2) ;
+      CheckVariableOrConstantOrProcedure(e1) ;
+      CheckVariableOrConstantOrProcedure(e2) ;
 
       IF (Op=EqualTok) OR (Op=HashTok)
       THEN
