@@ -879,7 +879,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
                      cflex.def       CLexBuf.def     M2Bitset.def    M2Size.def      \
                      M2Scope.def     Indexing.def    M2Range.def     M2Swig.def      \
-                     M2MetaError.def
+                     M2MetaError.def Sets.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -897,7 +897,7 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
                      M2Size.mod      M2Scope.mod     Indexing.mod    M2Range.mod     \
-                     M2Swig.mod      M2MetaError.mod
+                     M2Swig.mod      M2MetaError.mod Sets.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Indexing.mod    \
                      Lists.mod       bnflex.mod
@@ -951,7 +951,7 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
                      M2Bitset.def      M2Size.def      M2Scope.def     Indexing.def    \
-                     M2Range.def       M2Swig.def      M2MetaError.def
+                     M2Range.def       M2Swig.def      M2MetaError.def Sets.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -959,7 +959,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Debug.mod       M2Defaults.mod  M2Depth.mod     NameKey.mod     \
                      M2FileName.mod    P1SymBuild.mod  P2SymBuild.mod  P3SymBuild.mod  \
                      SymbolKey.mod     SymbolTable.mod                 gm2lcc.mod      \
-                     gm2lgen.mod       gm2lorder.mod                     M2Error.mod     \
+                     gm2lgen.mod       gm2lorder.mod                   M2Error.mod     \
                      M2Constants.mod   M2Students.mod  M2Entity.mod    M2StackAddress.mod \
                      M2BasicBlock.mod  M2Code.mod      M2GenGCC.mod    M2GCCDeclare.mod\
                      M2ALU.mod         M2System.mod    M2Base.mod      Lists.mod       \
@@ -967,7 +967,7 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     Indexing.mod    \
-                     M2Range.mod       M2Swig.mod      M2MetaError.mod
+                     M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod     \
                      gm2m.mod          ppg.mod

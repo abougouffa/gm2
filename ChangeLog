@@ -1,3 +1,23 @@
+2009-05-11       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added Sets.def and Sets.mod to
+	  the list of compiler modules.
+        * gm2/bnf/m2-h.bnf:  ConstActualParameters added so that
+	  constant functions may be used in constant expressions
+	  within modules declaring opaque types.
+        * gm2/gm2-compiler/M2GCCDeclare.mod:  altered many of the
+	  List data types to Set where appropriate.  Fixed
+	  unbounded types to be walked just like all other types.
+	  In turn refactored unbounded declarations.  Added test
+	  to detect recursive calls to ForeachTryDeclare.
+	* gm2/gm2-libs/ASCII.def:  fixed dates.
+	* gm2/gm2-libs/Storage.mod:  fixed dates.
+	* gm2/gm2-libs/SysStorage.mod:  fixed copyright notice.
+	* gm2/init/gm2-gccinit:  added Sets.
+	* gm2/p2c/p2c-src/src/decl.c:  fixed declaration of
+	  BITSET so that MAX(BITSET) and MIN(BITSET) yield
+	  correct values.
+
 2009-05-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  TryDeclareConst

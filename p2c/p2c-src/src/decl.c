@@ -523,6 +523,8 @@ void setup_decl()
     tp_smallset = maketype(TK_SMALLSET);
     tp_smallset->basetype = tp_integer;
     tp_smallset->indextype = tp_boolean;
+    tp_smallset->smin = makeexpr_long(0);
+    tp_smallset->smax = makeexpr_long(setbits-1);
 
     tp_text = makestandardtype(TK_POINTER, makestandardmeaning(MK_TYPE, "TEXT"));
     tp_text->basetype = makestandardtype(TK_FILE, NULL);       /* "FILE *" */
@@ -2952,6 +2954,8 @@ Type *setof;
 #endif
     tp->basetype = tp_integer;
     tp->indextype = setof;
+    tp->smin = setof->smin;
+    tp->smax = setof->smax;
     return tp;
 }
 

@@ -1,4 +1,4 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -95,6 +95,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildConstructorStart,
                     BuildConstructorEnd,
                     BuildComponentValue,
+                    BuildBooleanVariable,
                     RecordOp,
                     BuildNulParam,
                     BuildDesignatorRecord,
@@ -698,7 +699,7 @@ Constructor := '{'                                                         % Bui
                '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor | ActualParameters          % BuildConstFunctionCall %
+                                 [ Constructor | ConstActualParameters     % BuildConstFunctionCall %
                                                                        ]
                                  |                                         % BuildSetStart %
                                    ConstSimpleSet =:
@@ -993,6 +994,20 @@ SimpleDes := { SubDesignator } =:
 ActualParameters := "("
                         ( ExpList |                                         % (* epsilon *) %
                         ) ")" =:
+
+ConstActualParameters := "("                                                % BuildSizeCheckStart %
+                            ( ConstExpList |                                % BuildNulParam %
+                            ) ")" =:
+
+ConstExpList :=                                                             % VAR n: CARDINAL ; %
+                 ConstExpression                                            % BuildBooleanVariable %
+                                                                            % n := 1 %
+                 { ","
+                   ConstExpression                                          % BuildBooleanVariable %
+                                                                            % INC(n) %
+                 }
+                                                                            % PushT(n) %
+              =:
 
 Statement := 
              [ AssignmentOrProcedureCall | IfStatement | CaseStatement |

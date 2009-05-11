@@ -59,6 +59,10 @@ FROM Lists IMPORT List, InitList, IncludeItemIntoList,
                   RemoveItemFromList, ForeachItemInListDo,
       	       	  IsItemInList, NoOfItemsInList, KillList ;
 
+FROM Sets IMPORT Set, InitSet, KillSet,
+                 IncludeElementIntoSet, ExcludeElementFromSet,
+                 NoOfElementsInSet, IsElementInSet, ForeachElementInSetDo ;
+
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
                         GetMode,
@@ -255,7 +259,7 @@ VAR
                                     (* be finished (but already       *)
                                     (* started: records, function,    *)
                                     (* and array type).               *)
-   ToDoList            : List ;     (* Contains a list of all         *)
+   ToDoList            : Set ;      (* Contains a set of all          *)
                                     (* outstanding types that need to *)
                                     (* be declared to GCC once        *)
                                     (* its dependants have            *)
@@ -263,7 +267,7 @@ VAR
    AnotherType         : CARDINAL ; (* The number of AnotherTypes     *)
                                     (* that have been produced.       *)
    HaveInitDefaultTypes: BOOLEAN ;  (* have we initialized them yet?  *)
-   WatchList           : List ;     (* List of symbols being watched  *)
+   WatchList           : Set ;      (* Set of symbols being watched   *)
    EnumerationIndex    : Index ;
    action              : IsAction ;
    enumDeps            : BOOLEAN ;
@@ -283,29 +287,29 @@ END PrintSym ;
 
 
 (*
-   DebugList - 
+   DebugSet - 
 *)
 
-PROCEDURE DebugList (a: ARRAY OF CHAR; l: List) ;
+PROCEDURE DebugSet (a: ARRAY OF CHAR; l: Set) ;
 BEGIN
    printf0(a) ;
    printf0(' {') ;
-   ForeachItemInListDo(l, PrintSym) ;
+   ForeachElementInSetDo(l, PrintSym) ;
    printf0('}\n')
-END DebugList ;
+END DebugSet ;
 
 
 (*
-   DebugLists - 
+   DebugSets - 
 *)
 
-PROCEDURE DebugLists ;
+PROCEDURE DebugSets ;
 BEGIN
-   DebugList('ToDoList', ToDoList) ;
-   DebugList('PartiallyDeclared', PartiallyDeclared) ;
-   DebugList('FullyDeclared', FullyDeclared) ;
-   DebugList('NilTypedArrays', NilTypedArrays)
-END DebugLists ;
+   DebugSet('ToDoList', ToDoList) ;
+   DebugSet('PartiallyDeclared', PartiallyDeclared) ;
+   DebugSet('FullyDeclared', FullyDeclared) ;
+   DebugSet('NilTypedArrays', NilTypedArrays)
+END DebugSets ;
 
 
 (*
@@ -316,9 +320,9 @@ END DebugLists ;
 
 PROCEDURE AddSymToWatch (sym: WORD) ;
 BEGIN
-   IF NOT IsItemInList(WatchList, sym)
+   IF NOT IsElementInSet(WatchList, sym)
    THEN
-      IncludeItemIntoList(WatchList, sym) ;
+      IncludeElementIntoSet(WatchList, sym) ;
       WalkDependants(sym, AddSymToWatch) ;
       printf1("watching symbol %d\n", sym) ;
       FIO.FlushBuffer(FIO.StdOut)
@@ -327,51 +331,51 @@ END AddSymToWatch ;
 
 
 (*
-   WatchIncludeList - include a symbol onto the list first checking
-                      whether it is already on the list and
-                      displaying a debug message if the list is
-                      changed.
+   WatchIncludeSet - include a symbol onto the set first checking
+                     whether it is already on the set and
+                     displaying a debug message if the set is
+                     changed.
 *)
 
 PROCEDURE WatchIncludeList (sym: CARDINAL; lt: ListType) ;
 BEGIN
-   IF IsItemInList(WatchList, sym)
+   IF IsElementInSet(WatchList, sym)
    THEN
       CASE lt OF
 
-      tobesolvedbyquads :  IF NOT IsItemInList(ToBeSolvedByQuads, sym)
+      tobesolvedbyquads :  IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
                            THEN
                               printf1("symbol %d -> ToBeSolvedByQuads\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeItemIntoList(ToBeSolvedByQuads, sym)
+                              IncludeElementIntoSet(ToBeSolvedByQuads, sym)
                            END |
-      fullydeclared     :  IF NOT IsItemInList(FullyDeclared, sym)
+      fullydeclared     :  IF NOT IsElementInSet(FullyDeclared, sym)
                            THEN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeItemIntoList(FullyDeclared, sym)
+                              IncludeElementIntoSet(FullyDeclared, sym)
                               ; IF sym=1847
                               THEN
                                  mystop
                               END
                            END |
-      partiallydeclared :  IF NOT IsItemInList(PartiallyDeclared, sym)
+      partiallydeclared :  IF NOT IsElementInSet(PartiallyDeclared, sym)
                            THEN
                               printf1("symbol %d -> PartiallyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeItemIntoList(PartiallyDeclared, sym)
+                              IncludeElementIntoSet(PartiallyDeclared, sym)
                            END |
-      todolist          :  IF NOT IsItemInList(ToDoList, sym)
+      todolist          :  IF NOT IsElementInSet(ToDoList, sym)
                            THEN
                               printf1("symbol %d -> ToDoList\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeItemIntoList(ToDoList, sym)
+                              IncludeElementIntoSet(ToDoList, sym)
                            END |
-      niltypedarrays    :  IF NOT IsItemInList(NilTypedArrays, sym)
+      niltypedarrays    :  IF NOT IsElementInSet(NilTypedArrays, sym)
                            THEN
                               printf1("symbol %d -> NilTypedArrays\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              IncludeItemIntoList(NilTypedArrays, sym)
+                              IncludeElementIntoSet(NilTypedArrays, sym)
                            END
 
       ELSE
@@ -380,11 +384,11 @@ BEGIN
    ELSE
       CASE lt OF
 
-      tobesolvedbyquads :  IncludeItemIntoList(ToBeSolvedByQuads, sym) |
-      fullydeclared     :  IncludeItemIntoList(FullyDeclared, sym) |
-      partiallydeclared :  IncludeItemIntoList(PartiallyDeclared, sym) |
-      todolist          :  IncludeItemIntoList(ToDoList, sym) |
-      niltypedarrays    :  IncludeItemIntoList(NilTypedArrays, sym)
+      tobesolvedbyquads :  IncludeElementIntoSet(ToBeSolvedByQuads, sym) |
+      fullydeclared     :  IncludeElementIntoSet(FullyDeclared, sym) |
+      partiallydeclared :  IncludeElementIntoSet(PartiallyDeclared, sym) |
+      todolist          :  IncludeElementIntoSet(ToDoList, sym) |
+      niltypedarrays    :  IncludeElementIntoSet(NilTypedArrays, sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -402,39 +406,39 @@ END WatchIncludeList ;
 
 PROCEDURE WatchRemoveList (sym: CARDINAL; lt: ListType) ;
 BEGIN
-   IF IsItemInList(WatchList, sym)
+   IF IsElementInSet(WatchList, sym)
    THEN
       CASE lt OF
 
-      tobesolvedbyquads :  IF IsItemInList(ToBeSolvedByQuads, sym)
+      tobesolvedbyquads :  IF IsElementInSet(ToBeSolvedByQuads, sym)
                            THEN
                               printf1("symbol %d off ToBeSolvedByQuads\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              RemoveItemFromList(ToBeSolvedByQuads, sym)
+                              ExcludeElementFromSet(ToBeSolvedByQuads, sym)
                            END |
-      fullydeclared     :  IF IsItemInList(FullyDeclared, sym)
+      fullydeclared     :  IF IsElementInSet(FullyDeclared, sym)
                            THEN
                               printf1("symbol %d off FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              RemoveItemFromList(FullyDeclared, sym)
+                              ExcludeElementFromSet(FullyDeclared, sym)
                            END |
-      partiallydeclared :  IF IsItemInList(PartiallyDeclared, sym)
+      partiallydeclared :  IF IsElementInSet(PartiallyDeclared, sym)
                            THEN
                               printf1("symbol %d off PartiallyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              RemoveItemFromList(PartiallyDeclared, sym)
+                              ExcludeElementFromSet(PartiallyDeclared, sym)
                            END |
-      todolist          :  IF IsItemInList(ToDoList, sym)
+      todolist          :  IF IsElementInSet(ToDoList, sym)
                            THEN
                               printf1("symbol %d off ToDoList\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              RemoveItemFromList(ToDoList, sym)
+                              ExcludeElementFromSet(ToDoList, sym)
                            END |
-      niltypedarrays    :  IF IsItemInList(NilTypedArrays, sym)
+      niltypedarrays    :  IF IsElementInSet(NilTypedArrays, sym)
                            THEN
                               printf1("symbol %d off NilTypedArrays\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
-                              RemoveItemFromList(NilTypedArrays, sym)
+                              ExcludeElementFromSet(NilTypedArrays, sym)
                            END
 
       ELSE
@@ -443,11 +447,11 @@ BEGIN
    ELSE
       CASE lt OF
 
-      tobesolvedbyquads :  RemoveItemFromList(ToBeSolvedByQuads, sym) |
-      fullydeclared     :  RemoveItemFromList(FullyDeclared, sym) |
-      partiallydeclared :  RemoveItemFromList(PartiallyDeclared, sym) |
-      todolist          :  RemoveItemFromList(ToDoList, sym) |
-      niltypedarrays    :  RemoveItemFromList(NilTypedArrays, sym)
+      tobesolvedbyquads :  ExcludeElementFromSet(ToBeSolvedByQuads, sym) |
+      fullydeclared     :  ExcludeElementFromSet(FullyDeclared, sym) |
+      partiallydeclared :  ExcludeElementFromSet(PartiallyDeclared, sym) |
+      todolist          :  ExcludeElementFromSet(ToDoList, sym) |
+      niltypedarrays    :  ExcludeElementFromSet(NilTypedArrays, sym)
 
       ELSE
          InternalError('unknown list', __FILE__, __LINE__)
@@ -541,9 +545,21 @@ END ArrayComponentsDeclared ;
 *)
 
 PROCEDURE CanDeclareTypePartially (sym: CARDINAL) : BOOLEAN ;
+VAR
+   type: CARDINAL ;
 BEGIN
-   RETURN( IsProcType(sym) OR IsRecord(sym) OR
-           (IsType(sym) AND IsNilTypedArrays(GetType(sym))) )
+   IF IsProcType(sym) OR IsRecord(sym)
+   THEN
+      RETURN( TRUE )
+   ELSIF IsType(sym)
+   THEN
+      type := GetType(sym) ;
+      IF (type#NulSym) AND IsNilTypedArrays(type)
+      THEN
+         RETURN( TRUE )
+      END
+   END ;
+   RETURN( FALSE )
 END CanDeclareTypePartially ;
 
 
@@ -679,7 +695,7 @@ END PromotePointerFully ;
 
 PROCEDURE CompletelyResolved (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(FullyDeclared, sym) )
+   RETURN( IsElementInSet(FullyDeclared, sym) )
 END CompletelyResolved ;
 
 
@@ -750,7 +766,7 @@ END IsTypeQ ;
 
 PROCEDURE IsNilTypedArrays (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(NilTypedArrays, sym) )
+   RETURN( IsElementInSet(NilTypedArrays, sym) )
 END IsNilTypedArrays ;
 
 
@@ -760,7 +776,7 @@ END IsNilTypedArrays ;
 
 PROCEDURE IsFullyDeclared (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(FullyDeclared, sym) )
+   RETURN( IsElementInSet(FullyDeclared, sym) )
 END IsFullyDeclared ;
 
 
@@ -792,7 +808,7 @@ END NotAllDependantsFullyDeclared ;
 
 PROCEDURE IsPartiallyDeclared (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(PartiallyDeclared, sym) )
+   RETURN( IsElementInSet(PartiallyDeclared, sym) )
 END IsPartiallyDeclared ;
 
 
@@ -824,8 +840,8 @@ END NotAllDependantsPartiallyDeclared ;
 
 PROCEDURE IsPartiallyOrFullyDeclared (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN( IsItemInList(PartiallyDeclared, sym) OR
-           IsItemInList(FullyDeclared, sym) )
+   RETURN( IsElementInSet(PartiallyDeclared, sym) OR
+           IsElementInSet(FullyDeclared, sym) )
 END IsPartiallyOrFullyDeclared ;
 
 
@@ -917,7 +933,7 @@ PROCEDURE DeclareTypeConstFully (sym: CARDINAL) ;
 VAR
    t: Tree ;
 BEGIN
-   IF NOT IsItemInList(ToBeSolvedByQuads, sym)
+   IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
    THEN
       IF IsProcedure(sym) OR IsModule(sym) OR IsDefImp(sym)
       THEN
@@ -956,8 +972,7 @@ BEGIN
    ELSE
       AddModGcc(sym, t) ;
       WatchIncludeList(sym, fullydeclared) ;
-      WatchRemoveList(sym, partiallydeclared) ;
-      DeclareAssociatedUnbounded(sym)
+      WatchRemoveList(sym, partiallydeclared)
    END
 END DeclareTypeFromPartial ;
 
@@ -1004,6 +1019,36 @@ BEGIN
 END EmitCircularDependancyError ;
 
 
+VAR
+   bodyp          : WalkAction ;
+   bodyq          : IsAction ;
+   bodyt          : ListType ;
+   bodyl          : Set ;
+   recursionCaught,
+   oneResolved,
+   noMoreWritten  : BOOLEAN ;
+
+
+(*
+   Body - 
+*)
+
+PROCEDURE Body (sym: CARDINAL) ;
+BEGIN
+   IF bodyq(sym)
+   THEN
+      WatchRemoveList(sym, bodyt) ;
+      bodyp(sym) ;
+      (* bodyp(sym) might have replaced sym into the set *)
+      IF NOT IsElementInSet(bodyl, sym)
+      THEN
+         noMoreWritten := FALSE ;
+         oneResolved := TRUE
+      END
+   END
+END Body ;
+
+
 (*
    ForeachTryDeclare - while q(of one sym in l) is true
                           for each symbol in, l,
@@ -1015,37 +1060,27 @@ END EmitCircularDependancyError ;
 *)
 
 PROCEDURE ForeachTryDeclare (start, end: CARDINAL;
-                             t: ListType; l: List;
-                             q: IsAction ; p: WalkAction) : BOOLEAN ;
+                             t: ListType; l: Set;
+                             q: IsAction; p: WalkAction) : BOOLEAN ;
 VAR
-   oneResolved,
-   noMoreWritten: BOOLEAN ;
-   sym          : CARDINAL ;
-   n, i         : CARDINAL ;
+   sym : CARDINAL ;
+   n, i: CARDINAL ;
 BEGIN
+   IF recursionCaught
+   THEN
+      InternalError('caught recursive cycle in ForeachTryDeclare', __FILE__, __LINE__)
+   END ;
+   bodyt := t ;
+   bodyq := q ;
+   bodyp := p ;
+   bodyl := l ;
+   recursionCaught := TRUE ;
    oneResolved := FALSE ;
    REPEAT
       noMoreWritten := TRUE ;
-      n := NoOfItemsInList(l) ;
-      i := 1 ;
-      WHILE i<=n DO
-      	 sym := GetItemFromList(l, i) ;
-         IF q(sym)
-         THEN
-            WatchRemoveList(sym, t) ;
-            p(sym) ;
-            (* p(sym) might have replaced sym into the list *)
-            IF NOT IsItemInList(l, sym)
-            THEN
-               i := 0 ;
-               noMoreWritten := FALSE ;
-               oneResolved := TRUE ;
-               DEC(n)
-            END
-         END ;
-         INC(i)
-      END
+      ForeachElementInSetDo(l, Body)
    UNTIL noMoreWritten ;
+   recursionCaught := FALSE ;
    RETURN( oneResolved )
 END ForeachTryDeclare ;
 
@@ -1186,7 +1221,7 @@ BEGIN
       THEN
       END
    END ;
-   RETURN( NoOfItemsInList(ToDoList)=0 )
+   RETURN( NoOfElementsInSet(ToDoList)=0 )
 END DeclaredOutstandingTypes ;
 
 
@@ -1390,7 +1425,7 @@ BEGIN
          tokenno := QuadToTokenNo(quad)
       END ;
       WalkConstructor(sym, TraverseDependants) ;
-      IF NOT IsItemInList(ToBeSolvedByQuads, sym)
+      IF NOT IsElementInSet(ToBeSolvedByQuads, sym)
       THEN
          TryEvaluateValue(sym) ;
          IF IsConstructorDependants(sym, IsFullyDeclared)
@@ -1481,7 +1516,7 @@ BEGIN
          WatchIncludeList(sym, todolist) ;
          RETURN
       END ;
-      IF IsItemInList(ToBeSolvedByQuads, sym)
+      IF IsElementInSet(ToBeSolvedByQuads, sym)
       THEN
          WatchIncludeList(sym, todolist)
       ELSE
@@ -1638,12 +1673,29 @@ END DeclareParameters ;
 
 
 (*
+   WalkAssociatedUnbounded - 
+*)
+
+PROCEDURE WalkAssociatedUnbounded (sym: CARDINAL; p: WalkAction) ;
+VAR
+   unbounded: CARDINAL ;
+BEGIN
+   unbounded := GetUnbounded(sym) ;
+   IF unbounded#NulSym
+   THEN
+      p(unbounded)
+   END
+END WalkAssociatedUnbounded ;
+
+
+(*
    WalkDependants - walks through all dependants of, Sym,
                     calling, p, for each dependant.
 *)
 
 PROCEDURE WalkDependants (sym: CARDINAL; p: WalkAction) ;
 BEGIN
+   WalkAssociatedUnbounded(sym, p) ;
    IF IsEnumeration(sym)
    THEN
       WalkEnumerationDependants(sym, p)
@@ -1698,8 +1750,8 @@ END WalkDependants ;
 
 PROCEDURE TraverseDependants (sym: WORD) ;
 BEGIN
-   IF (NOT IsItemInList(FullyDeclared, sym)) AND
-      (NOT IsItemInList(ToDoList, sym))
+   IF (NOT IsElementInSet(FullyDeclared, sym)) AND
+      (NOT IsElementInSet(ToDoList, sym))
    THEN
       WatchIncludeList(sym, todolist) ;
       WalkDependants(sym, TraverseDependants)
@@ -2033,14 +2085,14 @@ BEGIN
       DisplayQuadRange(start, end)
    END ;
    REPEAT
-      n := NoOfItemsInList(ToDoList) ;
+      n := NoOfElementsInSet(ToDoList) ;
       WHILE ResolveConstantExpressions(DeclareConstFully, start, end) DO
       END ;
       (* we need to evaluate some constant expressions to resolve these types *)
       IF DeclaredOutstandingTypes(FALSE, start, end)
       THEN
       END ;
-      m := NoOfItemsInList(ToDoList)
+      m := NoOfElementsInSet(ToDoList)
    UNTIL (NOT ResolveConstantExpressions(DeclareConstFully, start, end)) AND
          (n=m)
 END DeclareTypesAndConstantsInRange ;
@@ -2057,10 +2109,10 @@ VAR
 BEGIN
    sb := InitScopeBlock(scope) ;
    REPEAT
-      s := NoOfItemsInList(ToDoList) ;
+      s := NoOfElementsInSet(ToDoList) ;
       (* ForeachLocalSymDo(scope, DeclareTypeInfo) ; *)
       ForeachScopeBlockDo(sb, DeclareTypesAndConstantsInRange) ;
-      t := NoOfItemsInList(ToDoList) ;
+      t := NoOfElementsInSet(ToDoList) ;
    UNTIL (s=t) ;
    sb := KillScopeBlock(sb)
 END DeclareTypesAndConstants ;
@@ -2075,6 +2127,7 @@ VAR
    sym,
    i, n: CARDINAL ;
 BEGIN
+(*
    i := 1 ;
    n := NoOfItemsInList(ToDoList) ;
    WHILE i<=n DO
@@ -2082,6 +2135,7 @@ BEGIN
       (* Assert(IsVar(sym)) ; *)
       INC(i)
    END
+*)
 END AssertDeclareTypesAndConstantsInRange ;
 
 
@@ -2131,12 +2185,12 @@ VAR
    n: Name ;
 BEGIN
 (*
-   DebugLists ;
+   DebugSets ;
    AddSymToWatch(1165) ;  (* watch goes here *)
-   DebugLists ;
+   DebugSets ;
 *)
-   (* IncludeItemIntoList(WatchList, 92) ; *)
-   (*   AddSymToWatch(1847) ; *)
+   (* IncludeElementIntoSet(WatchList, 92) ; *)
+   (* AddSymToWatch(8) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -2215,30 +2269,8 @@ END EndDeclareScope ;
 
 PROCEDURE PreAddModGcc (sym: CARDINAL; t: Tree) ;
 BEGIN
-   AddModGcc(sym, t) ;
-   DeclareAssociatedUnbounded(sym)
+   AddModGcc(sym, t)
 END PreAddModGcc ;
-
-
-(*
-   DeclareAssociatedUnbounded - if an unbounded symbol exists then
-                                walk its dependants and declare them.
-*)
-
-PROCEDURE DeclareAssociatedUnbounded (sym: CARDINAL) ;
-VAR
-   unbounded: CARDINAL ;
-BEGIN
-   unbounded := GetUnbounded(sym) ;
-   IF unbounded#NulSym
-   THEN
-      WalkTypeInfo(sym) ;
-      WalkTypeInfo(unbounded) ;
-      DeclareTypesAndConstantsInRange(0, 0) ;
-      AddModGcc(unbounded, DeclareUnbounded(unbounded)) ;
-      WatchRemoveList(unbounded, todolist)
-   END
-END DeclareAssociatedUnbounded ;
 
 
 (*
@@ -2255,7 +2287,8 @@ BEGIN
       declared by gccgm2.c *)
    t := GetDefaultType(KeyToCharStar(MakeKey(name)), gcctype) ;
    AddModGcc(sym, t) ;
-   IncludeItemIntoList(FullyDeclared, sym) ;
+   IncludeElementIntoSet(FullyDeclared, sym) ;
+   WalkAssociatedUnbounded(sym, TraverseDependants) ;
    (*
       this is very simplistic and assumes that the caller only uses Subranges, Sets and GCC types.
       We need to declare any constants with the types so that AllDependantsFullyDeclared works.
@@ -2295,12 +2328,13 @@ END DeclareDefaultType ;
 
 PROCEDURE DeclareBoolean ;
 BEGIN
-   PreAddModGcc(Boolean, GetBooleanType()) ;
-   PreAddModGcc(True, GetBooleanTrue()) ;
-   PreAddModGcc(False, GetBooleanFalse()) ;
-   IncludeItemIntoList(FullyDeclared, Boolean) ;
-   IncludeItemIntoList(FullyDeclared, True) ;
-   IncludeItemIntoList(FullyDeclared, False)
+   AddModGcc(Boolean, GetBooleanType()) ;
+   AddModGcc(True, GetBooleanTrue()) ;
+   AddModGcc(False, GetBooleanFalse()) ;
+   IncludeElementIntoSet(FullyDeclared, Boolean) ;
+   IncludeElementIntoSet(FullyDeclared, True) ;
+   IncludeElementIntoSet(FullyDeclared, False) ;
+   WalkAssociatedUnbounded(Boolean, TraverseDependants)
 END DeclareBoolean ;
 
 
@@ -2342,7 +2376,8 @@ BEGIN
          PreAddModGcc(typetype, BuildSubrangeType(KeyToCharStar(GetFullSymName(typetype)),
                                                   Mod2Gcc(GetType(typetype)),
                                                   Mod2Gcc(low), Mod2Gcc(high))) ;
-         IncludeItemIntoList(FullyDeclared, typetype)
+         IncludeElementIntoSet(FullyDeclared, typetype) ;
+         WalkAssociatedUnbounded(typetype, TraverseDependants)
       END ;
       (* gcc back end supports, type *)
       DeclareDefaultType(type, name, t)
@@ -2359,13 +2394,13 @@ BEGIN
    AddModGcc(ZType, GetM2ZType()) ;
    AddModGcc(RType, GetM2RType()) ;
    AddModGcc(CType, GetM2CType()) ;
-   IncludeItemIntoList(FullyDeclared, ZType) ;
-   IncludeItemIntoList(FullyDeclared, RType) ;
-   IncludeItemIntoList(FullyDeclared, CType) ;
+   IncludeElementIntoSet(FullyDeclared, ZType) ;
+   IncludeElementIntoSet(FullyDeclared, RType) ;
+   IncludeElementIntoSet(FullyDeclared, CType) ;
 
+   DeclareDefaultType(Cardinal    , "CARDINAL"    , GetM2CardinalType()) ;
    DeclareDefaultType(Integer     , "INTEGER"     , GetM2IntegerType()) ;
    DeclareDefaultType(Char        , "CHAR"        , GetM2CharType()) ;
-   DeclareDefaultType(Cardinal    , "CARDINAL"    , GetM2CardinalType()) ;
    DeclareDefaultType(Loc         , "LOC"         , GetISOLocType()) ;
 
    IF Iso
@@ -2420,44 +2455,6 @@ END DeclareDefaultSimpleTypes ;
 
 
 (*
-   DeclareDefaultUnboundedTypes - declare the unbounded types associated with
-                                  the default simple types.
-*)
-
-PROCEDURE DeclareDefaultUnboundedTypes ;
-BEGIN
-   DeclareAssociatedUnbounded(Integer) ;
-   DeclareAssociatedUnbounded(Char) ;
-   DeclareAssociatedUnbounded(Cardinal) ;
-
-   IF Iso
-   THEN
-      DeclareAssociatedUnbounded(Loc) ;
-      DeclareAssociatedUnbounded(Byte) ;
-      DeclareAssociatedUnbounded(Word) ;
-   ELSE
-      DeclareAssociatedUnbounded(Byte) ;
-      DeclareAssociatedUnbounded(Word) ;
-   END ;
-   
-   DeclareAssociatedUnbounded(Proc) ;
-   DeclareAssociatedUnbounded(Address) ;
-   DeclareAssociatedUnbounded(LongInt) ;
-   DeclareAssociatedUnbounded(LongCard) ;
-   DeclareAssociatedUnbounded(ShortInt) ;
-   DeclareAssociatedUnbounded(ShortCard) ;
-   DeclareAssociatedUnbounded(ShortReal) ;
-   DeclareAssociatedUnbounded(Real) ;
-   DeclareAssociatedUnbounded(LongReal) ;
-   DeclareAssociatedUnbounded(Bitnum) ;
-   DeclareAssociatedUnbounded(Bitset) ;
-   DeclareAssociatedUnbounded(Boolean)
-   
-END DeclareDefaultUnboundedTypes ;
-
-
-
-(*
    DeclareDefaultTypes - makes default types known to GCC
 *)
 
@@ -2466,9 +2463,7 @@ BEGIN
    IF NOT HaveInitDefaultTypes
    THEN
       HaveInitDefaultTypes := TRUE ;
-
-      DeclareDefaultSimpleTypes ;
-      DeclareDefaultUnboundedTypes
+      DeclareDefaultSimpleTypes
    END
 END DeclareDefaultTypes ;
 
@@ -4564,14 +4559,16 @@ END InitDeclarations ;
 
 
 BEGIN
-   InitList(ToDoList) ;
-   InitList(FullyDeclared) ;
-   InitList(PartiallyDeclared) ;
-   InitList(NilTypedArrays) ;
-   InitList(ToBeSolvedByQuads) ;
-   InitList(WatchList) ;
+   ToDoList := InitSet(1) ;
+   FullyDeclared := InitSet(1) ;
+   PartiallyDeclared := InitSet(1) ;
+   NilTypedArrays := InitSet(1) ;
+   ToBeSolvedByQuads := InitSet(1) ;
+   WatchList := InitSet(1) ;
    EnumerationIndex := InitIndex(1) ;
-   HaveInitDefaultTypes := FALSE
+   IncludeElementIntoSet(WatchList, 8) ;
+   HaveInitDefaultTypes := FALSE ;
+   recursionCaught := FALSE
 END M2GCCDeclare.
 (*
  * Local variables:
