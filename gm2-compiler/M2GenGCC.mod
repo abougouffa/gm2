@@ -1920,31 +1920,6 @@ END SafeConvert ;
 
 
 (*
-   DefaultCStdArgPromotion - we are about to pass, arg, as an argument to a
-                             C function expecting a series of stdargs.  We
-                             perform limited conversions for constants.
-*)
-
-PROCEDURE DefaultCStdArgPromotion (arg: CARDINAL) : Tree ;
-VAR
-   type: CARDINAL ;
-BEGIN
-(*
-   IF IsConst(arg)
-   THEN
-      type := GetType(arg) ;
-      IF type=ZType
-      THEN
-         (* C int type *)
-         RETURN( BuildConvert(GetIntegerType(), Mod2Gcc(arg), FALSE) )
-      END
-   END ;
-*)
-   RETURN( Mod2Gcc(arg) )
-END DefaultCStdArgPromotion ;
-
-
-(*
    CheckConvertCoerceParameter - 
 *)
 
@@ -1957,9 +1932,8 @@ BEGIN
    THEN
       (*
        * We reach here if the argument is being passed to a C vararg function.
-       * We need to test for a default promotion.
        *)
-      RETURN( DefaultCStdArgPromotion(op3) )
+      RETURN( Mod2Gcc(op3) )
    ELSE
       OperandType := SkipType(GetType(op3)) ;
       ParamType := SkipType(GetType(GetNthParam(op2, op1)))

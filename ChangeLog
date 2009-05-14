@@ -5,6 +5,9 @@
 	* gm2/gm2-compiler/M2Quads.mod:  pass the address field
 	  of an unbounded array if it is an argument to a
 	  C stdarg function.
+	* gm2/gm2-compiler/M2GenGCC.mod:  removed function
+          DefaultCStdArgPromotion and fixed test code.
+	* gm2/gm2.texi:  documented behaviour of stdarg parameters.
 
 2009-05-11       Gaius Mulley <gaius@gnu.org>
 

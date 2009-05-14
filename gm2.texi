@@ -1526,6 +1526,26 @@ In reality the @samp{-lc} is redundant as libc is always included in the
 linking process. It is shown here to emphasize that the C library or
 object file containing @code{printf} must be present.
 
+If a procedure function is declared using varargs then some parameter
+values are converted.  The table below summarises the default conversions
+and default types used.
+
+@example
+Actual Parameter       |  Default conversion  |   Type of actual
+                       |                      |   value passed
+===============================================================
+123                    |  none                |   long long int
+"hello world"          |  none                |   const char *
+a: ARRAY OF CHAR       |  ADR(a)              |   char *
+a: ARRAY [0..5] OF CHAR|  ADR(a)              |   char *
+3.14                   |  none                |   long double
+@end example
+
+If you wish to pass @code{int} values then you should explicitly
+convert the constants using one of the conversion mechanisms.
+For example:  @code{INTEGER(10)} or @code{VAL(INTEGER, 10)} or
+@code{CAST(INTEGER, 10)}.
+
 @node Assembly language, Built-ins, Interface to C, Using
 @section Interface to assembly language
 
