@@ -1,3 +1,11 @@
+2009-05-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  convert constants to
+	  integer if they are to be passed to a C stdarg function.
+	* gm2/gm2-compiler/M2Quads.mod:  pass the address field
+	  of an unbounded array if it is an argument to a
+	  C stdarg function.
+
 2009-05-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added Sets.def and Sets.mod to

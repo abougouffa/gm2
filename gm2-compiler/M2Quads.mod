@@ -1119,7 +1119,7 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Op: QuadOperator;
                    Oper1, Oper2, Oper3: CARDINAL) ;
 BEGIN
-   IF QuadNo=5521
+   IF QuadNo=407
    THEN
       stop
    END ;
@@ -4868,12 +4868,20 @@ BEGIN
       THEN
          IF IsForC AND UsesVarArgs(Proc)
          THEN
-            IF (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
+            IF (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
             THEN
                f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
             ELSIF IsConstString(OperandT(pi))
             THEN
                f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
+            ELSIF (GetType(OperandT(pi))#NulSym) AND IsUnbounded(GetType(OperandT(pi)))
+            THEN
+               (* pass the address field of an unbounded variable *)
+               PushTF(Adr, Address) ;
+               PushT(f^.TrueExit) ;
+               PushT(1) ;
+               BuildAdrFunction ;
+               PopT(f^.TrueExit)
             ELSIF GetMode(OperandT(pi))=LeftValue
             THEN
                (* must dereference LeftValue (even if we are passing variable as a vararg) *)
@@ -4888,7 +4896,7 @@ BEGIN
             WriteFormat1('parameter not expected for procedure %a', n)
          END
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
-            (GetType(OperandT(pi))#NulSym) AND IsArray(GetType(OperandT(pi)))
+            (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
       THEN
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
       ELSIF IsForC AND IsConstString(OperandT(pi))

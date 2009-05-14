@@ -1930,8 +1930,8 @@ VAR
 BEGIN
    IF GetNthParam(op2, op1)=NulSym
    THEN
-      (* for example vararg will report NulSym *)
-      RETURN( Mod2Gcc(op3) )
+      (* for example vararg might report NulSym in which case coerse to a C int *)
+      RETURN( BuildConvert(GetIntegerType(), Mod2Gcc(op3), FALSE) )
    ELSE
       OperandType := SkipType(GetType(op3)) ;
       ParamType := SkipType(GetType(GetNthParam(op2, op1)))

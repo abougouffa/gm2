@@ -1,5 +1,7 @@
 Pre 1.0
 
+*  make lang-specs.h create a startup file in the current working
+   directory if -g is present.  Choose a name such as: modulename_m2.c.
 *  fix RealInOut <input 3.14e4 and 3.14E5 - reported by Steve Giess
    <scgiess@hotmail.com>
 *  finish ISO language:
