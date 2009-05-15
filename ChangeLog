@@ -1,3 +1,9 @@
+2009-05-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/lang-specs.h:  create modulename_m2.cpp init file if
+	  -g is present on the command line.
+        * gm2/TODO:  removed completed item on the list.
+
 2009-05-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  convert constants to
