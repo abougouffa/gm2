@@ -23,7 +23,7 @@ FROM ASCII IMPORT nl ;
 
 VAR
    a: ARRAY [0..20] OF CHAR ;
-   c: INTEGER ;
+   c: CARDINAL ;
 BEGIN
    a := "hello world" ;
    c := 11 ;
