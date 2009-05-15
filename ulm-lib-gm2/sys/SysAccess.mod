@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysAccess;
    FROM SYSTEM IMPORT UNIXCALL, ADR;
 
    PROCEDURE Access(filename: ARRAY OF CHAR; mode: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           Buf: Buffer;
    BEGIN
       Copy(Buf, filename);

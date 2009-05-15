@@ -44,7 +44,7 @@ TYPE
 	      END;
 
    PROCEDURE Time(VAR t: TIME) : BOOLEAN;
-      VAR d0, d1: CARDINAL;
+      VAR d0, d1: INTEGER;
 	   tp : TIMEVAL;
 	   tzp : TIMEZONE;
    BEGIN

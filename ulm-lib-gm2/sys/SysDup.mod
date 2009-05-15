@@ -35,7 +35,7 @@ IMPLEMENTATION MODULE SysDup;
    FROM SysFcntl IMPORT Fcntl, dupfd;
 
    PROCEDURE Dup(fd: CARDINAL; VAR newfd: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(dup, r0, r1, fd) THEN
          newfd := r0;

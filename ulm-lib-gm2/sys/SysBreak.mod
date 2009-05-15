@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysBreak;
    IMPORT SysLocations;
 
    PROCEDURE Break(addr: ADDRESS) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(brk, r0, r1, addr) THEN
 	 SysLocations.Break := addr;

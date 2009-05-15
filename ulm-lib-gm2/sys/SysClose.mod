@@ -33,7 +33,7 @@ IMPLEMENTATION MODULE SysClose;
    FROM Errno IMPORT errno;
 
    PROCEDURE Close(fd: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(close, r0, r1, fd) THEN
          RETURN TRUE;

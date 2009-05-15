@@ -42,7 +42,7 @@ IMPLEMENTATION MODULE SysAlarm;
 			itinterval : TIMEVAL;
 			itvalue  : TIMEVAL;
 		     END (* RECORD *);
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
 	  value : ITIMERVAL;
 	  oldvalue: ITIMERVAL;
    BEGIN

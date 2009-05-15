@@ -33,7 +33,7 @@ IMPLEMENTATION MODULE SysPipe;
    FROM Errno IMPORT errno;
 
    PROCEDURE Pipe(VAR ReadFileDesc, WriteFileDesc: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(pipe, r0, r1) THEN
          ReadFileDesc := r0;

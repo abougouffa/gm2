@@ -98,7 +98,7 @@ IMPLEMENTATION MODULE Directories;
 
    PROCEDURE ReadDir(dirp: DIR; VAR direct: Direct) : BOOLEAN;
       VAR
-	 d0, d1: CARDINAL;
+	 d0, d1: INTEGER;
 	 reclen: CARDINAL;
    BEGIN
       WITH dirp^ DO

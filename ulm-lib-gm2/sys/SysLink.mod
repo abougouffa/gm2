@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysLink;
    FROM UnixString IMPORT Buffer, Copy;
 
    PROCEDURE Link(name1, name2: ARRAY OF CHAR) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           Buf1, Buf2: Buffer;
    BEGIN
       Copy(Buf1, name1);

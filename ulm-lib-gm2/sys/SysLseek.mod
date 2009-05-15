@@ -35,7 +35,7 @@ IMPLEMENTATION MODULE SysLseek;
 
    PROCEDURE Lseek(fd: CARDINAL; offset: OFF;
                    whence: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(lseek, r0, r1, fd, offset, whence) THEN
          RETURN TRUE;
@@ -46,7 +46,7 @@ IMPLEMENTATION MODULE SysLseek;
    END Lseek;
 
    PROCEDURE Tell(fd: CARDINAL; VAR offset: OFF) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(lseek, r0, r1, fd, 0, 1) THEN
          offset := r0;

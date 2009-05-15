@@ -40,7 +40,7 @@ IMPLEMENTATION MODULE SysExec;
    END Exec;
 
    PROCEDURE Exece(name: ARRAY OF CHAR; argv, envp: ADDRESS);
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           Buf: Buffer;
    BEGIN
       Copy(Buf, name);

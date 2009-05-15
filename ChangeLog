@@ -3,6 +3,61 @@
 	* gm2/lang-specs.h:  create modulename_m2.cpp init file if
 	  -g is present on the command line.
         * gm2/TODO:  removed completed item on the list.
+	* gm2/gm2-compiler/M2Base.mod:  IsVarParamCompatible (New
+	  function).  Fixed paramater compatibility rules to
+	  test VAR parameters.
+	* gm2/ulm-lib-gm2/std/Directories.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysAccess.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysAlarm.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysBreak.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysClose.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysCreat.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysDup.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysExec.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysExit.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysFcntl.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysGetpid.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysGetuid.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysIoctl.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysKill.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysLink.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysLseek.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysOpen.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysPause.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysPipe.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysRead.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysSetuid.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysStat.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysTime.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysUnlink.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysWait.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
+	* gm2/ulm-lib-gm2/sys/SysWrite.mod:  altered types
+	  of arguments from CARDINAL to INTEGER.
 
 2009-05-14       Gaius Mulley <gaius@gnu.org>
 

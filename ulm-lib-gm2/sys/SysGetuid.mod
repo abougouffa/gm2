@@ -32,28 +32,28 @@ IMPLEMENTATION MODULE SysGetuid;
    FROM Sys IMPORT getuid, getgid;
 
    PROCEDURE Getuid() : CARDINAL;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(getuid, r0, r1) THEN END;
       RETURN r0
    END Getuid;
 
    PROCEDURE Geteuid() : CARDINAL;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(getuid, r0, r1) THEN END;	(*same as geteuid *)
       RETURN r1
    END Geteuid;
 
    PROCEDURE Getgid() : CARDINAL;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(getgid, r0, r1) THEN END;
       RETURN r0
    END Getgid;
 
    PROCEDURE Getegid() : CARDINAL;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(getgid, r0, r1) THEN END;	(*same as getegid *)
       RETURN r1

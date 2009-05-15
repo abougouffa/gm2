@@ -158,7 +158,7 @@ IMPLEMENTATION MODULE SysStat; (* MC68020/Unix V.2 *)
    END Expand;
 
    PROCEDURE Stat(file: ARRAY OF CHAR; VAR buf: StatBuf) : BOOLEAN;
-      VAR sb : StructStat; Buf: Buffer; r0, r1: CARDINAL;
+      VAR sb : StructStat; Buf: Buffer; r0, r1: INTEGER;
    BEGIN
       Copy(Buf, file);
       IF UNIXCALL(stat, r0, r1, ADR(Buf), ADR(sb)) THEN
@@ -171,7 +171,7 @@ IMPLEMENTATION MODULE SysStat; (* MC68020/Unix V.2 *)
    END Stat;
 
    PROCEDURE Fstat(fd: CARDINAL; VAR buf: StatBuf) : BOOLEAN;
-      VAR  sb: StructStat; r0, r1: CARDINAL;
+      VAR  sb: StructStat; r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(fstat, r0, r1, fd, ADR(sb)) THEN
 	 Expand(sb, buf);

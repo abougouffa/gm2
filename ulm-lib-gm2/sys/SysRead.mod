@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysRead;
 
    PROCEDURE Read(fd: CARDINAL; ptr: ADDRESS;
                   VAR bytecount: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(read, r0, r1, fd, ptr, bytecount) THEN
          bytecount := r0;

@@ -33,7 +33,7 @@ IMPLEMENTATION MODULE SysSetuid;
    FROM Errno IMPORT errno;
 
    PROCEDURE Setuid(uid: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(setuid, r0, r1, uid, uid) THEN
 	 RETURN TRUE
@@ -44,7 +44,7 @@ IMPLEMENTATION MODULE SysSetuid;
    END Setuid;
 
    PROCEDURE Setgid(gid: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(setgid, r0, r1, gid, gid) THEN
 	 RETURN TRUE

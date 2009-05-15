@@ -134,7 +134,7 @@ IMPLEMENTATION MODULE SysIoctl;
 		   argpsize: CARDINAL) : BOOLEAN;
       CONST
          rch = 't';
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           requ: BITSET;
    BEGIN
       (* read comments in /usr/include/sys/ioctl.h *)

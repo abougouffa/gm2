@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysKill;
    FROM SYSTEM IMPORT UNIXCALL;
 
    PROCEDURE Kill(pid: ProcessId; sig: Sig) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(kill, r0, r1, pid, sig) THEN
          RETURN TRUE

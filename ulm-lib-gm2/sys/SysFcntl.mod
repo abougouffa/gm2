@@ -33,7 +33,7 @@ IMPLEMENTATION MODULE SysFcntl;
    FROM Sys IMPORT fcntl;
 
    PROCEDURE Fcntl(fd: CARDINAL; cmd: FcntlRequest; VAR arg: WORD) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(fcntl, r0, r1, fd, cmd, arg) THEN
 	 arg := WORD(r0);

@@ -135,6 +135,7 @@ PROCEDURE IsSameType (t1, t2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE IsProcTypeSame (p1, p2: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE IsPointerSame (a, b: CARDINAL; error: BOOLEAN) : BOOLEAN ; FORWARD ;
 PROCEDURE FindMetaType (sym: CARDINAL) : MetaType ; FORWARD ;
+PROCEDURE IsSizeSame (t1, t2: MetaType) : BOOLEAN ; FORWARD ;
    %%%FORWARD%%% *)
 
 TYPE
@@ -1963,6 +1964,34 @@ END IsMathType ;
 
 
 (*
+   IsVarParamCompatible - returns TRUE if types, actual, and, formal
+                          are compatible even if they forma is a VAR
+                          parameter.
+*)
+
+PROCEDURE IsVarParamCompatible (actual, formal: CARDINAL) : BOOLEAN ;
+BEGIN
+   actual := SkipType(actual) ;
+   formal := SkipType(formal) ;
+   IF IsParameter(formal) AND IsParameterUnbounded(formal)
+   THEN
+      formal := SkipType(GetType(GetType(formal))) ;   (* move over unbounded *)
+      IF IsGenericSystemType(formal)
+      THEN
+         RETURN( TRUE )
+      END ;
+      RETURN( (formal=actual) OR (IsArray(actual) AND (formal=SkipType(GetType(actual)))) )
+   ELSE
+      RETURN( (actual=formal) OR
+              (IsPointer(actual) AND (formal=Address)) OR
+              (IsPointer(formal) AND (actual=Address)) OR
+              (IsGenericSystemType(actual) AND IsSizeSame(FindMetaType(actual), FindMetaType(formal))) OR
+              (IsGenericSystemType(formal) AND IsSizeSame(FindMetaType(actual), FindMetaType(formal))) )
+   END
+END IsVarParamCompatible ;
+
+
+(*
    IsValidParameter - returns TRUE if an, actual, parameter can be passed
                       to the, formal, parameter.  This differs from
                       IsParameterCompatible as this procedure includes checks
@@ -1999,7 +2028,12 @@ BEGIN
                   at := SkipType(GetType(actual)) ;
                   IF IsArray(at)
                   THEN
-                     RETURN( IsParameterCompatible(GetType(at), ft) )
+                     IF IsParameterVar(formal)
+                     THEN
+                        RETURN( IsVarParamCompatible(at, formal) )
+                     ELSE
+                        RETURN( IsParameterCompatible(GetType(at), ft) )
+                     END
                   ELSE
                      RETURN( FALSE )
                   END
@@ -2007,7 +2041,7 @@ BEGIN
             END
          END
       ELSE
-         ft := GetType(formal)
+         ft := SkipType(GetType(formal))
       END ;
       IF IsProcType(ft)
       THEN
@@ -2020,6 +2054,9 @@ BEGIN
             at := SkipType(GetType(actual)) ;
             RETURN( doProcTypeCheck(at, ft, TRUE) )
          END
+      ELSIF IsParameterVar(formal)
+      THEN
+         RETURN( IsVarParamCompatible(GetType(actual), ft) )
       ELSE
          RETURN( IsParameterCompatible(GetType(actual), ft) )
       END

@@ -35,7 +35,7 @@ IMPLEMENTATION MODULE SysGetpid;			(* mh 11/1987 *)
    PROCEDURE Getpid(): ProcessId;
       VAR
 	 r0: ProcessId;
-	 r1: CARDINAL;			(* not used *)
+	 r1: INTEGER;			(* not used *)
    BEGIN
       IF ~UNIXCALL(getpid, r0, r1) THEN
 	 RETURN -1

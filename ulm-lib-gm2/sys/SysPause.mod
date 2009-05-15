@@ -32,7 +32,7 @@ IMPLEMENTATION MODULE SysPause;
    FROM SYSTEM IMPORT UNIXCALL;
 
    PROCEDURE Pause;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
    BEGIN
       IF UNIXCALL(pause, r0, r1) THEN
          (* ignore result *)

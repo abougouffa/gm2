@@ -39,7 +39,7 @@ IMPLEMENTATION MODULE SysExit;
       cleanup: BOOLEAN;
 
    PROCEDURE Exit(exitCode: CARDINAL);
-      VAR r0, r1: CARDINAL; i: CARDINAL;
+      VAR r0, r1: INTEGER; i: CARDINAL;
    BEGIN
       IF NOT cleanup AND (index > 0) THEN
          cleanup := TRUE;

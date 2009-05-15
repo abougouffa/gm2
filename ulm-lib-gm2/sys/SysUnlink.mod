@@ -34,7 +34,7 @@ IMPLEMENTATION MODULE SysUnlink;
    FROM UnixString IMPORT Buffer, Copy;
 
    PROCEDURE Unlink(name: ARRAY OF CHAR) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           Buf: Buffer;
    BEGIN
       Copy(Buf, name);

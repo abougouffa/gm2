@@ -43,7 +43,7 @@ IMPLEMENTATION MODULE SysOpen;
 
    PROCEDURE OpenCreat(VAR fd: CARDINAL; filename: ARRAY OF CHAR;
 		       oflag: WORD; mode: CARDINAL) : BOOLEAN;
-      VAR r0, r1: CARDINAL;
+      VAR r0, r1: INTEGER;
           Buf: Buffer;
    BEGIN
       Copy(Buf, filename);
