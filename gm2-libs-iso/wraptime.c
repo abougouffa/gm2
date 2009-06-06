@@ -152,7 +152,7 @@ unsigned int wraptime_GetFractions (void *tv)
 #if defined(HAVE_TIMEVAL)
 struct tm *wraptime_localtime_r (struct timeval *tv, struct tm *m)
 {
-  return localtime_r (tv->tv_sec, m);
+  return localtime_r (&tv->tv_sec, m);
 }
 #else
 struct tm *wraptime_localtime_r (void *tv, struct tm *m)
@@ -233,7 +233,7 @@ unsigned int wraptime_GetSummerTime (struct timezone *tz)
  *  wraptime_GetDST - returns the number of minutes west of GMT.
  */
 
-unsigned int wraptime_GetDST (struct timezone *tz)
+int wraptime_GetDST (struct timezone *tz)
 {
   return tz->tz_minuteswest;
 }
@@ -243,7 +243,7 @@ unsigned int wraptime_GetDST (struct timezone *tz)
  */
 
 void wraptime_SetTimezone (struct timezone *tz,
-			   int zone, unsigned int minuteswest)
+			   int zone, int minuteswest)
 {
   tz->tz_dsttime = zone;
   tz->tz_minuteswest = minuteswest;

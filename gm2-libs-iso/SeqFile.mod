@@ -117,6 +117,23 @@ END flush ;
 
 
 (*
+   checkOpenErrno - assigns, e, and, res, depending upon file result of opening,
+                    file.
+*)
+
+PROCEDURE checkOpenErrno (file: FIO.File; VAR e: INTEGER; VAR res: OpenResults) ;
+BEGIN
+   IF FIO.IsNoError(file)
+   THEN
+      e := 0 ;
+   ELSE
+      e := errno.geterrno()
+   END ;
+   res := ErrnoCategory.GetOpenResults(e)
+END checkOpenErrno ;
+
+
+(*
    newCid - returns a ChanId which represents the opened file, name.
             res is set appropriately on return.
 *)
@@ -138,8 +155,7 @@ BEGIN
    ELSE
       file := FIO.OpenToWrite(fname)
    END ;
-   e := errno.geterrno() ;
-   res := ErrnoCategory.GetOpenResults(e) ;
+   checkOpenErrno(file, e, res) ;
 
    IF FIO.IsNoError(file)
    THEN

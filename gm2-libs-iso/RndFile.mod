@@ -123,6 +123,23 @@ END flush ;
 
 
 (*
+   checkOpenErrno - assigns, e, and, res, depending upon file result of opening,
+                    file.
+*)
+
+PROCEDURE checkOpenErrno (file: FIO.File; VAR e: INTEGER; VAR res: OpenResults) ;
+BEGIN
+   IF FIO.IsNoError(file)
+   THEN
+      e := 0 ;
+   ELSE
+      e := errno.geterrno()
+   END ;
+   res := ErrnoCategory.GetOpenResults(e)
+END checkOpenErrno ;
+
+
+(*
    newCid - returns a ChanId which represents the opened file, name.
             res is set appropriately on return.
 *)
@@ -139,8 +156,7 @@ VAR
    p   : DeviceTablePtr ;
 BEGIN
    file := FIO.OpenForRandom(fname, NOT toRead) ;
-   e := errno.geterrno() ;
-   res := ErrnoCategory.GetOpenResults(e) ;
+   checkOpenErrno(file, e, res) ;
 
    IF FIO.IsNoError(file)
    THEN
@@ -229,7 +245,7 @@ BEGIN
    THEN
       INCL(flags, ChanConsts.rawFlag)
    END ;
-   cid := newCid(name, flags, res, FALSE, resetRandom)
+   cid := newCid(name, flags, res, TRUE, resetRandom)
 END OpenOld ;
 
 
@@ -334,10 +350,11 @@ BEGIN
                                'RndFile.Rewrite: incorrect channel') ;
       old := CurrentPos(cid) ;
       WITH d^ DO
+         old := CurrentPos(cid) ;
          FIO.SetPositionFromEnd(RTio.GetFile(cid), 0) ;
          checkErrno(dev, d) ;
          end := CurrentPos(cid) ;
-         FIO.SetPositionFromBeginning(RTio.GetFile(cid), end) ;
+         FIO.SetPositionFromBeginning(RTio.GetFile(cid), old) ;
          RETURN( end )
       END
    ELSE

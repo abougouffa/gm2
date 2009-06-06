@@ -60,6 +60,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("turns on runtime checking to check whether a division or modulus or remainder is about to occur with an illegal divisor") },
   { "-fcheck-all",
       N_("turns on all runtime checking (an abbreviation for -fcase -fbounds -freturn -fnil)") },
+  { "-fno-exceptions",
+      N_("turns off all exception generating code, this flag should be used with -flibs=min") },
   { "-Wstudents",
       N_("extra compile time semantic checking, typically tries to catch bad style") },
   { "-Wpedantic",

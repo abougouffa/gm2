@@ -140,10 +140,7 @@ PROCEDURE checkPreRead (g: ChanDev;
                         raise: BOOLEAN) ;
 BEGIN
    WITH d^ DO
-      IF isEOLN(g^.genif, d)
-      THEN
-         result := IOConsts.endOfLine
-      ELSIF isEOF(g^.genif, d)
+      IF isEOF(g^.genif, d)
       THEN
          result := IOConsts.endOfInput ;
          IF raise
@@ -151,6 +148,9 @@ BEGIN
             RAISEdevException(cid, did, skipAtEnd,
                               'attempting to read beyond end of file')
          END
+      ELSIF isEOLN(g^.genif, d)
+      THEN
+         result := IOConsts.endOfLine
       ELSE
          result := IOConsts.allRight
       END

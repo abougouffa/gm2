@@ -35,7 +35,7 @@ Boston, MA 02110-1301, USA.  */
            %{fmakelist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                               gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %g.mod} \n\
                        %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} -o %b.lst %i}} \n\
-           %{fmakeinit:gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %b.lst -o _m2_%b.cpp} \n\
+           %{fmakeinit:gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %b.lst -o _m2_%b.cpp} \n\
            %{fmodules:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                          gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                          gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
@@ -54,8 +54,8 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                              gm2l -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
-                                             gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
@@ -63,15 +63,15 @@ Boston, MA 02110-1301, USA.  */
                                                     %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst } \n\
                                       %{!fcpp:gm2l %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %i |\n\
                                              gm2lorder %{fruntime-modules=} %{!pipe:%g.l} -o %g.lst \n\
-                                             gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %g.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                             gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                              rm -f %w%d%g.a \n\
                                              gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                                     %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \
                                                     %{!fshared:-ar -o %w%d%g.a} \
                                                     %{fshared:%w%{o:%{o*}}%:nolink() %:objects() %:linkargs() } %g.lst }} \n\
-                           %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} -cpp %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
-                                      gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                           %{fuselist:gm2lgen %{fshared} %{fshared:-terminate -exit} %{!fno-exceptions:-cpp} %b.lst -o %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
+                                      gm2cc %{v*} %{B*} %{g*} %{O*} %{fPIC} %{fpic} %{fno-exceptions:-x c} -c -o %ustart%d%O %{!g:%g.cpp} %{g:%b_m2.cpp} \n\
                                       rm -f %Ustart%d.a \n\
                                       gm2lcc %{fshared} %{fpic} %{fPIC} %{B*} %{ftarget-ar=*} %{ftarget-ranlib=*} \
                                              %{fobject-path=*} %{v} -exec -startup %Ustart%d%O \

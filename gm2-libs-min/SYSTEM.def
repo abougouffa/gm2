@@ -25,7 +25,20 @@ DEFINITION MODULE SYSTEM ;
                 in the Modula-2 compiler.
 *)
 
-EXPORT QUALIFIED (* the following are built into the compiler: *)
-                 ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, SIZE, THROW ;
+EXPORT QUALIFIED BITSPERBYTE, BYTESPERWORD,
+                 ADDRESS, WORD, BYTE, BITSET, (* @SYSTEM_DATATYPES@ *)
+                 ADR, TSIZE ;
+                 (* SIZE is also exported if -fpim2 is used *)
+
+CONST
+  BITSPERBYTE   = __ATTRIBUTE__ __BUILTIN__ ((BITS_PER_UNIT)) ;
+  BYTESPERWORD  = __ATTRIBUTE__ __BUILTIN__ ((UNITS_PER_WORD)) ;
+
+
+(* all the following types are declared internally to gm2
+TYPE
+   @SYSTEM_TYPES@
+*)
+
 
 END SYSTEM.

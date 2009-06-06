@@ -1,3 +1,42 @@
+2009-06-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Makefile.in:  added rules to build the minimum libraries
+	  by default.
+	* gm2/gm2.texi:  documented -fno-exceptions.
+	* gm2/lang-options.h:  new option -fno-exceptions.
+	* gm2/lang.opt:  reorder flibs options alphabetically.
+	* gm2/version.c:  revised the release number to 0.70 as
+	  the basic ISO IO libraries are implemented.
+	* gm2/gm2-compiler/M2Base.mod:  only import NoException from
+	  RTExceptions if the exceptions flag is set.
+	* gm2/gm2-compiler/M2Options.mod:  implemented new flag
+          -fno-exceptions
+	* gm2/gm2-compiler/M2Quads.mod:  test the Exceptions flag
+	  to ensure that we only generate exception code if the
+	  exceptions flag is on.
+	* gm2/gm2-compiler/gm2lgen.mod:  only generate the cpp
+	  start up file if exceptions are enabled, other produce
+	  the start up file in C.
+	* gm2/gm2-libs/RTExceptions.def:  corrected procedure
+	  function declaration.
+	* gm2/gm2-libs/configure.in:  modified version number.
+	* gm2/gm2-libs-iso/RTfio.mod:   many numerous fixes
+	* gm2/gm2-libs-iso/RTgen.mod:   to fix error/eof/seek
+	* gm2/gm2-libs-iso/RndFile.mod:  problems.
+	* gm2/gm2-libs-iso/SeqFile.mod:
+	* gm2/gm2-libs-iso/StreamFile.mod:  (checkOpenErrno) new function.
+	* gm2/gm2-libs-iso/wraptime.c:   fix bug in call to localtime_r. 
+	* gm2/gm2-libs-iso/wraptime.def:  
+	* gm2/gm2-libs-min/M2RTS.def:  
+	* gm2/gm2-libs-min/M2RTS.mod:  add NoException dummy procedure.
+	* gm2/gm2-libs-min/SYSTEM.def:  add system data types.
+
+2009-05-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  always build gm2-libs-min.
+	* gm2/gm2-libs/RTExceptions.def:  fixed incorrect declaration
+	  of function GetBaseExceptionBlock.
+
 2009-05-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/lang-specs.h:  create modulename_m2.cpp init file if

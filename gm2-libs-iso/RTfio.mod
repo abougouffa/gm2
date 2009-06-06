@@ -22,8 +22,7 @@ FROM RTio IMPORT GetFile ;
 FROM errno IMPORT geterrno ;
 
 FROM FIO IMPORT File, ReadChar, UnReadChar, WriteChar, ReadNBytes, WriteNBytes,
-                WriteLine,
-                EOF, EOLN, IsNoError ;
+                WriteLine, EOF, EOLN, IsNoError ;
 
 
 (*
@@ -83,7 +82,7 @@ BEGIN
    WITH d^ DO
       f := GetFile(cid) ;
       actual := ReadNBytes(f, max, to) ;
-      RETURN( IsNoError(f) AND (NOT EOF(f)) )
+      RETURN( EOF(f) OR IsNoError(f) )
    END
 END dorbytes ;
 

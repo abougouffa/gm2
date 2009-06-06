@@ -174,7 +174,7 @@ PROCEDURE GetSummerTime (tz: timezone) : BOOLEAN ;
    GetDST - returns the number of minutes west of GMT.
 *)
 
-PROCEDURE GetDST (tz: timezone) : CARDINAL ;
+PROCEDURE GetDST (tz: timezone) : INTEGER ;
 
 
 (*
@@ -192,7 +192,7 @@ PROCEDURE SetTimeval (tv: timeval;
 *)
 
 PROCEDURE SetTimezone (tv: timeval;
-                       zone: CARDINAL; minuteswest: CARDINAL) ;
+                       zone: CARDINAL; minuteswest: INTEGER) ;
 
 
 END wraptime.

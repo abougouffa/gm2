@@ -84,10 +84,12 @@ BUILD-ALL-LIBS :=  build-libs-min
 else
 ifeq ($(ULMLIB),no)
 BUILD-ALL-LIBS :=  build-libs build-libs-iso \
-                   build-libs-pim build-libs-coroutines
+                   build-libs-pim build-libs-coroutines \
+                   build-libs-min
 else
 BUILD-ALL-LIBS :=  build-libs build-libs-iso build-libs-ulm \
-                   build-libs-pim build-libs-coroutines
+                   build-libs-pim build-libs-coroutines \
+                   build-libs-min
 endif
 endif
 
@@ -656,7 +658,7 @@ GM2_ISO_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
  -Wpedantic-cast -Wpedantic-param-names
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fextended-opaque \
- -Wpedantic-cast -Wpedantic-param-names
+ -Wpedantic-cast -Wpedantic-param-names -fno-exceptions
 O2=-O2 -g
 SO_O2=-O2 -g -fPIC
 SO=-O0 -g -fPIC
@@ -1108,7 +1110,7 @@ gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.c
 	$(GCC_FOR_TARGET) $(GM2_O) -B./ -c -g -Wall $< -o $@
 
 gm2/gm2-libs-min/%.o: gm2/gm2-libs-min/%.mod
-	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
+	$(XGM2_1) $(GM2_MIN_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-min:$(srcdir)/gm2/gm2-libs-min -c -g $< -o $@
 
 gm2/gm2-libs-boot/%.o: gm2/gm2-libs-boot/%.c
 	$(CC) $(GM2_O) -c -g -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Wall $(INCLUDES) $< -o $@
@@ -1489,6 +1491,13 @@ gm2/gm2config.h:
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
 
+$(objdir)/gm2/gm2-libs-min/SYSTEM.def: 
+	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fpim \
+                 $(srcdir)/gm2/gm2-libs-min/SYSTEM.def \
+                 $(srcdir)/gm2/gm2-libs-min/SYSTEM.mod \
+                 -I$(srcdir)/gm2/gm2-libs-min \
+                 "./xgm2 -B./stage1/gm2" > $@
+
 $(objdir)/gm2/gm2-libs/SYSTEM.def: 
 	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fpim \
                  $(srcdir)/gm2/gm2-libs/SYSTEM.def \
@@ -1503,7 +1512,8 @@ $(objdir)/gm2/gm2-libs-iso/SYSTEM.def:
                  -I$(srcdir)/gm2/gm2-libs-iso \
                  "./xgm2 -B./stage1/gm2" > $@
 
-build-libs-min: $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
+build-libs-min: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
+                $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
                 $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \

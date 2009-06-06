@@ -320,6 +320,10 @@ turns on all runtime checks. This is the same as invoking
 GNU Modula-2 using the command options
 @code{-fbounds} @code{-freturn} @code{-fnil} @code{-fcase}.
 
+@item -fno-exceptions
+turns off all generation of exception handling code and no references
+are made to the runtime exception libraries.
+
 @item -v
 display all calls to subsidiary programs, such as the C preprocessor,
 the GNU Modula-2 linker and compiler.

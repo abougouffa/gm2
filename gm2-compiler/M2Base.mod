@@ -84,7 +84,7 @@ FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
-                      DivModRemChecking,
+                      DivModRemChecking, Exceptions,
                       Iso, Pim, Pim2, Pim3 ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
@@ -651,10 +651,12 @@ BEGIN
       ExceptionZeroDiv := ImportFrom(m2rts, 'WholeZeroDivException') ;
       ExceptionZeroRem := ImportFrom(m2rts, 'WholeZeroRemException')
    END ;
-   ExceptionNo := ImportFrom(m2rts, 'NoException') ;
-
-   (* ensure that this module is included *)
-   rtexceptions := MakeDefinitionSource(MakeKey('RTExceptions')) ;
+   IF Exceptions
+   THEN
+      ExceptionNo := ImportFrom(m2rts, 'NoException') ;
+      (* ensure that this module is included *)
+      rtexceptions := MakeDefinitionSource(MakeKey('RTExceptions'))
+   END
 END InitBaseProcedures ;
 
 

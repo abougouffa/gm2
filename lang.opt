@@ -57,17 +57,21 @@ fpositive-mod-floor-div
 Modula-2
 force positive result from MOD and DIV result floor
 
-flibs=ulm
-Modula-2
-use the University of Ulm libraries and PIM dialect of Modula-2
-
 flibs=logitech
 Modula-2
 use the Logitech compatible (PIM dialect) set of libraries
 
+flibs=min
+Modula-2
+use a minimal SYSTEM, M2RTS and libc and no other system libraries
+
 flibs=pim-coroutine
 Modula-2
 use the PIM dialect libraries which include coroutine support
+
+flibs=ulm
+Modula-2
+use the University of Ulm libraries and PIM dialect of Modula-2
 
 fbounds
 Modula-2
@@ -87,7 +91,11 @@ turns on runtime checking to check whether a CASE statement requires an ELSE cla
 
 fcheck-all
 Modula-2
-turns on all runtime checking (an abbreviation for -Wcase -Wbounds -Wreturn -Wnil)
+turns on all runtime checking (an abbreviation for -fbounds -fcase -fnil -freturn)
+
+fno-exceptions
+Modula-2
+turns off all exception generating code, this flag should be used with -flibs=min
 
 fextended-opaque
 Modula-2

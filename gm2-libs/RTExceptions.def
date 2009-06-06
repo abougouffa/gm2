@@ -172,7 +172,7 @@ PROCEDURE SwitchExceptionState (VAR from: BOOLEAN; to: BOOLEAN) ;
                            created.
 *)
 
-PROCEDURE GetBaseExceptionBlock ;
+PROCEDURE GetBaseExceptionBlock () : EHBlock ;
 
 
 END RTExceptions.

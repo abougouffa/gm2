@@ -417,6 +417,10 @@ BEGIN
    THEN
       GenerateSwig := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fno-exceptions')
+   THEN
+      Exceptions := FALSE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-verbose') OR EqualArray(s, '-v')
    THEN
       Verbose := TRUE ;
@@ -548,5 +552,6 @@ BEGIN
    Xcode                        := FALSE ;
    DumpSystemExports            := FALSE ;
    GenerateSwig                 := FALSE ;
+   Exceptions                   :=  TRUE ;
    ScanForInitialOptions
 END M2Options.

@@ -38,4 +38,14 @@ BEGIN
 END HALT ;
 
 
+(*
+   NoException - does nothing.
+*)
+
+PROCEDURE NoException (filename: ADDRESS;
+                       line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+END NoException ;
+
+
 END M2RTS.

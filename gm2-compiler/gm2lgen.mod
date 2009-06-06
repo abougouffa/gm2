@@ -239,12 +239,11 @@ BEGIN
       END ;
       Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void exit(int);\n\n')))))) ;
    END ;
-   Fin(WriteS(fo, Mark(InitString('extern ')))) ;
    IF CPlusPlus
    THEN
-      Fin(WriteS(fo, Mark(InitString('"C"'))))
+      Fin(WriteS(fo, Mark(InitString('extern "C"')))) ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void RTExceptions_DefaultErrorCatch(void);\n'))))))
    END ;
-   Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void RTExceptions_DefaultErrorCatch(void);\n')))))) ;
    n := HighIndice(FunctionList) ;
    i := 1 ;
    WHILE i<=n DO

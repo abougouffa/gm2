@@ -169,7 +169,7 @@ FROM M2Options IMPORT NilChecking, CaseElseChecking,
                       BoundsChecking, ReturnChecking,
                       Iso, Pim, Pim2, Pim3, Pim4, PositiveModFloorDiv,
                       Pedantic, CompilerDebugging, GenerateDebugging,
-                      GenerateLineDebug,
+                      GenerateLineDebug, Exceptions,
                       Profiling, Coding, Optimizing ;
 
 FROM M2Pass IMPORT IsPassCodeGeneration, IsNoPass ;
@@ -1896,17 +1896,23 @@ VAR
    old,
    ProcSym: CARDINAL ;
 BEGIN
-   (* now inform the Modula-2 runtime we are in the exception state *)
-   ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
-   IF ProcSym=NulSym
+   IF Exceptions
    THEN
-      ErrorString(NewWarning(GetTokenNo()),
-                  InitString('no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling'))
+      (* now inform the Modula-2 runtime we are in the exception state *)
+      ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+      IF ProcSym=NulSym
+      THEN
+         ErrorString(NewWarning(GetTokenNo()),
+                     InitString('no procedure SetExceptionState found in RTExceptions which is needed to implement exception handling'))
+      ELSE
+         old := MakeTemporary(RightValue) ;
+         PutVar(old, Boolean) ;
+         GenQuad(SaveExceptionOp, old, NulSym, ProcSym) ;
+         PushWord(ExceptStack, old)
+      END
    ELSE
-      old := MakeTemporary(RightValue) ;
-      PutVar(old, Boolean) ;
-      GenQuad(SaveExceptionOp, old, NulSym, ProcSym) ;
-      PushWord(ExceptStack, old)
+      ErrorFormat0(NewError(GetTokenNo()),
+                   'cannot use EXCEPT blocks with the -fno-exceptions flag')
    END
 END BuildRTExceptEnter ;
 
@@ -1921,17 +1927,22 @@ VAR
    old,
    ProcSym: CARDINAL ;
 BEGIN
-   (* now inform the Modula-2 runtime we are in the exception state *)
-   ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
-   IF ProcSym#NulSym
+   IF Exceptions
    THEN
-      IF destroy
+      (* now inform the Modula-2 runtime we are in the exception state *)
+      ProcSym := GetQualidentImport(MakeKey('SetExceptionState'), MakeKey('RTExceptions')) ;
+      IF ProcSym#NulSym
       THEN
-         old := PopWord(ExceptStack)
-      ELSE
-         old := PeepWord(ExceptStack, 1)
-      END ;
-      GenQuad(RestoreExceptionOp, old, NulSym, ProcSym)
+         IF destroy
+         THEN
+            old := PopWord(ExceptStack)
+         ELSE
+            old := PeepWord(ExceptStack, 1)
+         END ;
+         GenQuad(RestoreExceptionOp, old, NulSym, ProcSym)
+      END
+   ELSE
+      (* no need for an error message here as it will be generated in the Enter procedure above *)
    END
 END BuildRTExceptLeave ;
 
