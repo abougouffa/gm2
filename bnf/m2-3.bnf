@@ -506,6 +506,7 @@ token   'MODULE'          moduletok
 token   'NOT'             nottok
 token   'OF'              oftok
 token   'OR'              ortok
+token   'PACKEDSET'       packedsettok
 token   'POINTER'         pointertok
 token   'PROCEDURE'       proceduretok
 token   'QUALIFIED'       qualifiedtok
@@ -877,7 +878,7 @@ SilentExpList := SilentConstExpression { "," SilentConstExpression } =:
 
 -- end of the Silent constant rules
 
-SetType := "SET" "OF" SimpleType =:
+SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
 
 PointerType := "POINTER" "TO"
                               Type

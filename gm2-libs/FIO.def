@@ -31,7 +31,7 @@ EXPORT QUALIFIED (* types *)
                  File,
                  (* procedures *)
                  OpenToRead, OpenToWrite, OpenForRandom, Close,
-                 EOF, EOLN, IsNoError, Exists,
+                 EOF, EOLN, IsNoError, Exists, IsActive,
                  exists, openToRead, openToWrite, openForRandom,
                  SetPositionFromBeginning,
                  SetPositionFromEnd,
@@ -61,6 +61,13 @@ VAR
 *)
 
 PROCEDURE IsNoError (f: File) : BOOLEAN ;
+
+
+(*
+   IsActive - returns TRUE if the file, f, is still active.
+*)
+
+PROCEDURE IsActive (f: File) : BOOLEAN ;
 
 
 (*

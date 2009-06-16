@@ -471,6 +471,7 @@ token   'MODULE'          moduletok
 token   'NOT'             nottok
 token   'OF'              oftok
 token   'OR'              ortok
+token   'PACKEDSET'       packedsettok
 token   'POINTER'         pointertok
 token   'PROCEDURE'       proceduretok
 token   'QUALIFIED'       qualifiedtok
@@ -790,7 +791,7 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
-SetType := "SET" "OF"                                                      % BuildNulName ; %
+SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % BuildNulName ; %
            SimpleType                                                      % BuildSetType ; %
          =:
 

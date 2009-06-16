@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2008/10/11 13:42:37 $]
+   Date       : 3/4/86  [$Date: 2009/06/16 09:50:08 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -1733,6 +1733,7 @@ token   'MODULE'          moduletok
 token   'NOT'             nottok
 token   'OF'              oftok
 token   'OR'              ortok
+token   'PACKEDSET'       packedsettok
 token   'POINTER'         pointertok
 token   'PROCEDURE'       proceduretok
 token   'QUALIFIED'       qualifiedtok

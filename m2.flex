@@ -217,6 +217,7 @@ MODULE                     { updatepos(); seenModuleStart=TRUE;
 NOT                        { updatepos(); M2LexBuf_AddTok(M2Reserved_nottok); return; }
 OF                         { updatepos(); M2LexBuf_AddTok(M2Reserved_oftok); return; }
 OR                         { updatepos(); M2LexBuf_AddTok(M2Reserved_ortok); return; }
+PACKEDSET                  { updatepos(); M2LexBuf_AddTok(M2Reserved_packedsettok); return; }
 POINTER                    { updatepos(); M2LexBuf_AddTok(M2Reserved_pointertok); return; }
 PROCEDURE                  { updatepos(); seenFunctionStart=TRUE;
                              M2LexBuf_AddTok(M2Reserved_proceduretok); return; }

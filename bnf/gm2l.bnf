@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2008/10/11 13:42:37 $]
+              : [$Date: 2009/06/16 09:50:07 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.
@@ -863,6 +863,7 @@ token   'MODULE'          moduletok
 token   'NOT'             nottok
 token   'OF'              oftok
 token   'OR'              ortok
+token   'PACKEDSET'       packedsettok
 token   'POINTER'         pointertok
 token   'PROCEDURE'       proceduretok
 token   'QUALIFIED'       qualifiedtok

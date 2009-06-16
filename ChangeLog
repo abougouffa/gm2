@@ -1,3 +1,24 @@
+2009-06-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  SRawIO.mod added to list of ISO modules
+	  to be built and installed.
+	* gm2/gm2-libs-iso/SRawIO.mod:  (new file).
+	* gm2/m2.flex:  detect PACKEDSET keyword.
+	* gm2/gm2m.bnf:  added PACKEDSET keyword.
+	* gm2/gm2l.bnf:  added PACKEDSET keyword.
+	* gm2/m2.bnf:  added PACKEDSET keyword.
+	* gm2/m2-2.bnf:  added PACKEDSET keyword.
+	* gm2/m2-3.bnf:  added PACKEDSET keyword.
+	* gm2/m2-h.bnf:  added PACKEDSET keyword.
+	* gm2/gm2-compiler/M2Reserved.def:  define packedsettok.
+	* gm2/gm2-compiler/M2Reserved.mod:  define PackedSetTok
+	  and ensure that it corresponds to packedsettok.
+	* gm2/gm2-libs/FIO.def:  IsActive (new procedure function).
+	* gm2/gm2-libs/FIO.mod:  IsActive (implement procedure
+	  function).
+	* gm2/gm2-libs-iso/RTfio.mod:  ensure that the file
+	  is still active before testing IsNoError.
+
 2009-06-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Makefile.in:  added rules to build the minimum libraries

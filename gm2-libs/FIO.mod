@@ -184,6 +184,16 @@ END IsNoError ;
 
 
 (*
+   IsActive - returns TRUE if the file, f, is still active.
+*)
+
+PROCEDURE IsActive (f: File) : BOOLEAN ;
+BEGIN
+   RETURN( (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) )
+END IsActive ;
+
+
+(*
    openToRead - attempts to open a file, fname, for reading and
                 it returns this file.
                 The success of this operation can be checked by

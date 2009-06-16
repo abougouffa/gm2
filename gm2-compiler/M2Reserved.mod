@@ -220,6 +220,9 @@ BEGIN
    OrTok := MakeKey('OR') ;
    AddKeyword(OrTok, ortok) ;
 
+   PackedSetTok := MakeKey('PACKEDSET') ;
+   AddKeyword(PackedSetTok, packedsettok) ;
+
    PointerTok := MakeKey('POINTER') ;
    AddKeyword(PointerTok, pointertok) ;
 

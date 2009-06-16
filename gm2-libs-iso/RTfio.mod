@@ -21,7 +21,7 @@ FROM IOLink IMPORT DeviceTablePtr ;
 FROM RTio IMPORT GetFile ;
 FROM errno IMPORT geterrno ;
 
-FROM FIO IMPORT File, ReadChar, UnReadChar, WriteChar, ReadNBytes, WriteNBytes,
+FROM FIO IMPORT File, ReadChar, UnReadChar, WriteChar, ReadNBytes, WriteNBytes, IsActive,
                 WriteLine, EOF, EOLN, IsNoError ;
 
 
@@ -161,7 +161,7 @@ VAR
 BEGIN
    WITH d^ DO
       f := GetFile(cid) ;
-      RETURN( NOT IsNoError(f) )
+      RETURN( IsActive(f) AND (NOT IsNoError(f)) )
    END
 END iserror ;
 

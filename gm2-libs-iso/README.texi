@@ -76,3 +76,13 @@ The following implementation modules are complete:
 @code{WholeIO}
 and
 @code{WholeStr}.
+
+The following modules are incomplete:
+@code{GeneralUser},
+@code{LongComplex}, 
+@code{LowLong}, 
+@code{LowReal}, 
+@code{Processes} and
+@code{Semaphores}.
+
+
