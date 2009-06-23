@@ -26,9 +26,10 @@ DEFINITION MODULE FOR "C" libc ;
     Description: provides a minimal interface to libc.c
 *)
 
-EXPORT UNQUALIFIED abort, exit ;
+EXPORT UNQUALIFIED abort, exit, printf ;
 
 PROCEDURE abort (i: INTEGER) ;
 PROCEDURE exit (i: INTEGER) ;
+PROCEDURE printf (s: ARRAY OF CHAR; ...) : [INTEGER] ;
 
 END libc.
