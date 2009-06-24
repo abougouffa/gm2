@@ -1,3 +1,11 @@
+2009-06-24       Michael Lambert <lambert@psc.edu>
+
+	* gm2/Make-lang.in:  set debugging flags to -g
+	  if on a Darwin i386 system.  Test supports bash/sh.
+	* gm2/patches/gcc/4.1.2/07.michael_i386:  new file,
+	  which tests if building on Darwin and if so it calls
+	  c++filt --strip-underscore.
+
 2009-06-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-min/libc.def:  added definition for printf.
