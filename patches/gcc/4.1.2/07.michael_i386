@@ -1,0 +1,17 @@
+--- gcc-4.1.2/libstdc++-v3/scripts/make_exports.pl.sav  2006-04-26
+15:59:05.000000000 -0400
++++ gcc-4.1.2/libstdc++-v3/scripts/make_exports.pl      2009-06-23
+18:13:00.000000000 -0400
+@@ -92,7 +92,11 @@
+ print STDERR $nm.' -P '.(join ' ',@ARGV).'|';
+ open NM,$nm.' -P '.(join ' ',@ARGV).'|' or die $!;
+ # Talk to c++filt through a pair of file descriptors.
+-open2(*FILTIN, *FILTOUT, "c++filt --strip-underscores") or die $!;
++if ($^O eq "darwin") {
++    open2(*FILTIN, *FILTOUT, "c++filt --strip-underscore") or die $!;
++} else {
++    open2(*FILTIN, *FILTOUT, "c++filt --strip-underscores") or die $!;
++}
+ NAME: while (<NM>) {
+     my $i;
+     chomp;
