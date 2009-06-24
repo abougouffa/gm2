@@ -1,3 +1,9 @@
+2009-06-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-min/libc.def:  added definition for printf.
+	* gm2/examples/min/Makefile:  new file.
+	* gm2/examples/min/minhello.mod:  new file.
+
 2009-06-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  SRawIO.mod added to list of ISO modules
