@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -44,7 +44,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         GetModule, GetMainModule,
                         GetCurrentModule, GetFileModule, GetLocalSym,
                         GetStringLength, GetString,
-                        GetArraySubscript,
+                        GetArraySubscript, GetDimension,
                         GetParam,
                         GetNth, GetNthParam,
                         GetFirstUsed, GetDeclared,
@@ -150,6 +150,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
 FROM M2System IMPORT IsPseudoSystemFunction, IsPseudoSystemProcedure,
                      IsSystemType, GetSystemTypeMinMax,
                      IsPseudoSystemFunctionConstExpression,
+                     IsGenericSystemType,
                      Adr, TSize, AddAdr, SubAdr, DifAdr, Cast, Shift, Rotate,
                      MakeAdr, Address, Byte, Word, Loc, Throw ;
 
@@ -218,6 +219,7 @@ TYPE
                              FalseExit: CARDINAL ;
                              Unbounded: CARDINAL ;
                              BooleanOp: BOOLEAN ;
+                             Dimension: CARDINAL ;
                           END ;
 
 (* QuadFrame = POINTER TO quadFrame ; *)
@@ -284,6 +286,8 @@ VAR
    ForInfo              : ForLoopInfo ;  (* start and end of all FOR loops       *)
    GrowInitialization   : CARDINAL ;  (* upper limit of where the initialized    *)
                                       (* quadruples.                             *)
+   BuildingHigh,
+   BuildingSize,
    QuadrupleGeneration  : BOOLEAN ;      (* should we be generating quadruples?  *)
    FreeLineList         : LineNote ;  (* free list of line notes                 *)
 
@@ -335,7 +339,7 @@ PROCEDURE CheckAssignCompatible (Des, Exp: CARDINAL) ; FORWARD ;
 PROCEDURE CheckForLogicalOperator (Tok: Name; e1, t1, e2, t2: CARDINAL) : Name ; FORWARD ;
 PROCEDURE DisplayType (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE CheckProcedureParameters (IsForC: BOOLEAN) ; FORWARD ;
-PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ; FORWARD ;
+PROCEDURE CheckParameter (Actual, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ; FORWARD ;
 PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          Given        : CARDINAL;
                          Expecting    : CARDINAL;
@@ -416,8 +420,10 @@ PROCEDURE IsBoolean (pos: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandD (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
-PROCEDURE PushTFA (True, False, Array: WORD) ; FORWARD ;
+PROCEDURE PushTFAD (True, False, Array, Dim: WORD) ; FORWARD ;
+PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
 PROCEDURE GetQualidentImport (n, module: Name) : CARDINAL ; FORWARD ;
 PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
@@ -431,6 +437,9 @@ PROCEDURE BuildRTExceptLeave (destroy: BOOLEAN) ; FORWARD ;
 PROCEDURE BuildReFunction ; FORWARD ;
 PROCEDURE BuildImFunction ; FORWARD ;
 PROCEDURE BuildCmplxFunction ; FORWARD ;
+PROCEDURE BuildConstHighFromSym ; FORWARD ;
+PROCEDURE IncOperandD (pos: CARDINAL) ; FORWARD ;
+PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -1042,10 +1051,10 @@ BEGIN
                        CheckAddVariableRead(Oper3, FALSE, QuadNo) ;
                        CheckAddVariableWrite(Oper1, TRUE, QuadNo) |
    UnboundedOp,
-   HighOp,
    FunctValueOp,
    NegateOp,
    BecomesOp,
+   HighOp,
    SizeOp            : CheckConst(Oper1) ;
                        CheckAddVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckAddVariableRead(Oper3, FALSE, QuadNo) |
@@ -1119,7 +1128,7 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Op: QuadOperator;
                    Oper1, Oper2, Oper3: CARDINAL) ;
 BEGIN
-   IF QuadNo=407
+   IF QuadNo=31
    THEN
       stop
    END ;
@@ -1170,10 +1179,10 @@ BEGIN
                        CheckRemoveVariableWrite(Oper1, TRUE, QuadNo) |
 
    UnboundedOp,
-   HighOp,
    FunctValueOp,
    NegateOp,
    BecomesOp,
+   HighOp,
    SizeOp            : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
                        CheckRemoveVariableRead(Oper3, FALSE, QuadNo) |
    AddrOp            : CheckRemoveVariableWrite(Oper1, FALSE, QuadNo) ;
@@ -1194,7 +1203,6 @@ BEGIN
                           (* _may_ also write to a var parameter, although we dont know *)
                           CheckRemoveVariableWrite(Oper3, TRUE, QuadNo)
                        END |
-
    OffsetOp,
    ArrayOp,
    LogicalShiftOp,
@@ -3720,11 +3728,15 @@ END BuildNulParam ;
 
 
 (*
-   BuildSizeCheckStart - switches off all quadruple generation if the function SIZE
-                         is being "called". This should be done as SIZE only requires the
-                         actual type of the expression, not its value. Consider the problem of
-                         SIZE(UninitializedPointer^) quite legal and it must also be safe!
-
+   BuildSizeCheckStart - switches off all quadruple generation if the function SIZE or HIGH
+                         is being "called".  This should be done as SIZE only requires the
+                         actual type of the expression, not its value.  Consider the problem of
+                         SIZE(UninitializedPointer^) which is quite legal and it must
+                         also be safe!
+                         ISO Modula-2 also allows HIGH(a[0]) for a two dimensional array
+                         and there is no need to compute a[0], we just need to follow the
+                         type and count dimensions.  However if SIZE(a) or HIGH(a) occurs
+                         and, a, is an unbounded array then we turn on quadruple generation.
 
                          The Stack is expected to contain:
 
@@ -3745,7 +3757,12 @@ BEGIN
    PopTF(ProcSym, Type) ;
    IF ProcSym=Size
    THEN
-      QuadrupleGeneration := FALSE
+      QuadrupleGeneration := FALSE ;
+      BuildingSize := TRUE ;
+   ELSIF ProcSym=High
+   THEN
+      QuadrupleGeneration := FALSE ;
+      BuildingHigh := TRUE
    END ;
    PushTF(ProcSym, Type)
 END BuildSizeCheckStart ;
@@ -3760,8 +3777,13 @@ PROCEDURE BuildSizeCheckEnd (ProcSym: CARDINAL) ;
 BEGIN
    IF ProcSym=Size
    THEN
-      QuadrupleGeneration := TRUE
-   END
+      QuadrupleGeneration := TRUE ;
+      BuildingSize := FALSE ;
+   ELSIF ProcSym=High
+   THEN
+      QuadrupleGeneration := TRUE ;
+      BuildingHigh := FALSE
+   END ;
 END BuildSizeCheckEnd ;
 
 
@@ -4011,9 +4033,9 @@ VAR
    n1, n2      : Name ;
    e           : Error ;
    Unbounded   : BOOLEAN ;
-   CallParam,
-   ParamI,
-   ParamIType,
+   Actual,
+   FormalI,
+   FormalIType,
    ParamTotal,
    TypeSym,
    pi,
@@ -4052,46 +4074,46 @@ BEGIN
    WHILE i<=ParamTotal DO
       IF i<=NoOfParam(Proc)
       THEN
-         ParamI := GetParam(Proc, i) ;
+         FormalI := GetParam(Proc, i) ;
          IF CompilerDebugging
          THEN
-            n1 := GetSymName(ParamI) ;
-            n2 := GetSymName(GetType(ParamI)) ;
+            n1 := GetSymName(FormalI) ;
+            n2 := GetSymName(GetType(FormalI)) ;
             printf2('%a: %a', n1, n2)
          END ;
-         CallParam := OperandT(pi) ;
-         BuildRange(InitTypesParameterCheck(Proc, i, ParamI, CallParam)) ;
-         IF IsConst(CallParam)
+         Actual := OperandT(pi) ;
+         BuildRange(InitTypesParameterCheck(Proc, i, FormalI, Actual)) ;
+         IF IsConst(Actual)
          THEN
             IF IsVarParam(Proc, i)
             THEN
                FailParameter('trying to pass a constant to a VAR parameter',
-                             CallParam, ParamI, Proc, i)
-            ELSIF IsConstString(CallParam)
+                             Actual, FormalI, Proc, i)
+            ELSIF IsConstString(Actual)
             THEN
-               IF (GetStringLength(CallParam) = 0)   (* if = 0 then it maybe unknown at this time *)
+               IF (GetStringLength(Actual) = 0)   (* if = 0 then it maybe unknown at this time *)
                THEN
                   (* dont check this yet *)
-               ELSIF IsArray(SkipType(GetType(ParamI))) AND (GetType(SkipType(GetType(ParamI)))=Char)
+               ELSIF IsArray(SkipType(GetType(FormalI))) AND (GetType(SkipType(GetType(FormalI)))=Char)
                THEN
                   (* allow string literals to be passed to ARRAY [0..n] OF CHAR *)
-               ELSIF (GetStringLength(CallParam) = 1)   (* if = 1 then it maybe treated as a char *)
+               ELSIF (GetStringLength(Actual) = 1)   (* if = 1 then it maybe treated as a char *)
                THEN
-                  CheckParameter(CallParam, ParamI, Proc, i, NIL)
+                  CheckParameter(Actual, FormalI, Proc, i, NIL)
                ELSIF NOT IsUnboundedParam(Proc, i)
                THEN
-                  IF IsForC AND (GetType(ParamI)=Address)
+                  IF IsForC AND (GetType(FormalI)=Address)
                   THEN
                      FailParameter('a string constant can either be passed to an ADDRESS parameter or an ARRAY OF CHAR',
-                                   CallParam, ParamI, Proc, i)
+                                   Actual, FormalI, Proc, i)
                   ELSE
                      FailParameter('cannot pass a string constant to a non unbounded array parameter',
-                                   CallParam, ParamI, Proc, i)
+                                   Actual, FormalI, Proc, i)
                   END
                END
             END
          ELSE
-            CheckParameter(CallParam, ParamI, Proc, i, NIL)
+            CheckParameter(Actual, FormalI, Proc, i, NIL)
          END
       ELSE
          IF IsForC AND UsesVarArgs(Proc)
@@ -4182,7 +4204,74 @@ END IsReallyPointer ;
 
 
 (*
-   CheckParameter - checks that types CallType and ParamType are compatible for parameter
+   LegalUnboundedParam - returns TRUE if the parameter, Actual, can legally be
+                         passed to ProcSym, i, the, Formal, parameter.
+*)
+
+PROCEDURE LegalUnboundedParam (ProcSym, i, ActualType, Actual, Formal: CARDINAL) : BOOLEAN ;
+VAR
+   FormalType: CARDINAL ;
+   n, m      : CARDINAL ;
+BEGIN
+   ActualType := SkipType(ActualType) ;
+   FormalType := SkipType(GetType(Formal)) ;
+   IF IsArray(ActualType)
+   THEN
+      m := GetDimension(Formal) ;
+      n := 0 ;
+      WHILE IsArray(ActualType) DO
+         INC(n) ;
+         ActualType := SkipType(GetType(ActualType))
+      END ;
+      IF n=m
+      THEN
+         (* now we fall though and test ActualType against FormalType *)
+      ELSE
+         IF IsGenericSystemType(FormalType)
+         THEN
+            RETURN( TRUE )
+         ELSE
+            FailParameter('attempting to pass an array with the incorrect number dimenisons to an unbounded formal parameter of different dimensions',
+                          Actual, Formal, ProcSym, i) ;
+            RETURN( FALSE )
+         END
+      END
+   ELSIF IsUnbounded(ActualType)
+   THEN
+      IF GetDimension(Formal)=GetDimension(Actual)
+      THEN
+         (* now we fall though and test ActualType against FormalType *)
+         ActualType := GetType(ActualType)
+      ELSE
+         IF IsGenericSystemType(FormalType)
+         THEN
+            RETURN( TRUE )
+         ELSE
+            FailParameter('attempting to pass an unbounded array with the incorrect number dimenisons to an unbounded formal parameter of different dimensions',
+                          Actual, Formal, ProcSym, i) ;
+            RETURN( FALSE )
+         END
+      END
+   END ;
+   FormalType := GetType(FormalType) ;   (* type of the unbounded ARRAY *)
+   IF ((FormalType=Word) OR (ActualType=Word)) OR
+      ((FormalType=Byte) OR (ActualType=Byte)) OR
+      ((FormalType=Loc)  OR (ActualType=Loc))  OR
+      IsParameterCompatible(FormalType, ActualType)
+   THEN
+      (* we think it is legal, but we ask post pass 3 to check as
+         not all types are known at this point *)
+      RETURN( TRUE )
+   ELSE
+      FailParameter('identifier with an incompatible type is being passed to this procedure',
+                    Actual, Formal, ProcSym, i) ;
+      RETURN( FALSE )
+   END
+END LegalUnboundedParam ;
+
+
+(*
+   CheckParameter - checks that types ActualType and FormalType are compatible for parameter
                     passing. ProcSym is the procedure and i is the parameter number.
 
                     We obey the following rules:
@@ -4195,21 +4284,21 @@ END IsReallyPointer ;
                     Note that type sizes are checked during the code generation pass.
 *)
 
-PROCEDURE CheckParameter (Call, Param, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
+PROCEDURE CheckParameter (Actual, Formal, ProcSym: CARDINAL; i: CARDINAL; TypeList: List) ;
 VAR
    n                  : Name ;
    NewList            : BOOLEAN ;
-   CallType, ParamType: CARDINAL ;
+   ActualType, FormalType: CARDINAL ;
 BEGIN
-   ParamType := GetType(Param) ;
-   IF IsConstString(Call) AND (GetStringLength(Call) = 1)   (* if = 1 then it maybe treated as a char *)
+   FormalType := GetType(Formal) ;
+   IF IsConstString(Actual) AND (GetStringLength(Actual) = 1)   (* if = 1 then it maybe treated as a char *)
    THEN
-      CallType := Char
-   ELSIF Call=Boolean
+      ActualType := Char
+   ELSIF Actual=Boolean
    THEN
-      CallType := Call
+      ActualType := Actual
    ELSE
-      CallType := GetType(Call)
+      ActualType := GetType(Actual)
    END ;
    IF TypeList=NIL
    THEN
@@ -4218,98 +4307,85 @@ BEGIN
    ELSE
       NewList := FALSE
    END ;
-   IF IsItemInList(TypeList, CallType)
+   IF IsItemInList(TypeList, ActualType)
    THEN
       (* no need to check *)
       RETURN
    END ;
-   IncludeItemIntoList(TypeList, CallType) ;
-   IF IsProcType(ParamType)
+   IncludeItemIntoList(TypeList, ActualType) ;
+   IF IsProcType(FormalType)
    THEN
-      IF (NOT IsProcedure(Call)) AND ((CallType=NulSym) OR (NOT IsProcType(CallType)))
+      IF (NOT IsProcedure(Actual)) AND ((ActualType=NulSym) OR (NOT IsProcType(ActualType)))
       THEN
          FailParameter('expecting a procedure or procedure variable as a parameter',
-                       Call, Param, ProcSym, i) ;
+                       Actual, Formal, ProcSym, i) ;
          RETURN
       END ;
-      IF IsProcedure(Call) AND IsProcedureNested(Call)
+      IF IsProcedure(Actual) AND IsProcedureNested(Actual)
       THEN
-         n := GetSymName(Call) ;
+         n := GetSymName(Actual) ;
          WriteFormat2('cannot pass a nested procedure, %a, as parameter number %d as the outer scope will be unknown at runtime',
                       n, i)
       END ;
       (* we can check the return type of both proc types *)
-      IF (CallType#NulSym) AND IsProcType(CallType)
+      IF (ActualType#NulSym) AND IsProcType(ActualType)
       THEN
-         IF ((GetType(CallType)#NulSym) AND (GetType(ParamType)=NulSym))
+         IF ((GetType(ActualType)#NulSym) AND (GetType(FormalType)=NulSym))
          THEN
             FailParameter('the item being passed is a function whereas the formal procedure parameter is a procedure',
-                          Call, Param, ProcSym, i) ;
+                          Actual, Formal, ProcSym, i) ;
             RETURN
-         ELSIF ((GetType(CallType)=NulSym) AND (GetType(ParamType)#NulSym))
+         ELSIF ((GetType(ActualType)=NulSym) AND (GetType(FormalType)#NulSym))
          THEN
             FailParameter('the item being passed is a procedure whereas the formal procedure parameter is a function',
-                          Call, Param, ProcSym, i) ;
+                          Actual, Formal, ProcSym, i) ;
             RETURN
-         ELSIF AssignmentRequiresWarning(GetType(CallType), GetType(ParamType))
+         ELSIF AssignmentRequiresWarning(GetType(ActualType), GetType(FormalType))
          THEN
             WarnParameter('the return result of the procedure variable parameter may not be compatible on other targets with the return result of the item being passed',
-                          Call, Param, ProcSym, i) ;
+                          Actual, Formal, ProcSym, i) ;
             RETURN
-         ELSIF NOT IsParameterCompatible(GetType(CallType), GetType(ParamType))
+         ELSIF NOT IsParameterCompatible(GetType(ActualType), GetType(FormalType))
          THEN
             FailParameter('the return result of the procedure variable parameter is not compatible with the return result of the item being passed',
-                          Call, Param, ProcSym, i) ;
+                          Actual, Formal, ProcSym, i) ;
             RETURN
          END
       END ;
       (* now to check each parameter of the proc type *)
-      CheckProcTypeAndProcedure(ParamType, Call, TypeList)
-   ELSIF (CallType#ParamType) AND (CallType#NulSym)
+      CheckProcTypeAndProcedure(FormalType, Actual, TypeList)
+   ELSIF (ActualType#FormalType) AND (ActualType#NulSym)
    THEN
-      IF IsUnknown(ParamType)
+      IF IsUnknown(FormalType)
       THEN
          FailParameter('procedure parameter type is undeclared',
-                       Call, Param, ProcSym, i) ;
+                       Actual, Formal, ProcSym, i) ;
          RETURN
       END ;
-      IF IsUnbounded(CallType) AND (NOT IsUnboundedParam(ProcSym, i))
+      IF IsUnbounded(ActualType) AND (NOT IsUnboundedParam(ProcSym, i))
       THEN
-         FailParameter('attempting to pass an unbounded array to an NON unbounded parameter',
-                       Call, Param, ProcSym, i) ;
+         FailParameter('attempting to pass an unbounded array to a NON unbounded parameter',
+                       Actual, Formal, ProcSym, i) ;
          RETURN
       ELSIF IsUnboundedParam(ProcSym, i)
       THEN
-         IF IsUnbounded(CallType) OR IsArray(CallType)
+         IF NOT LegalUnboundedParam(ProcSym, i, ActualType, Actual, Formal)
          THEN
-            CallType := GetType(CallType)
-         END ;
-         ParamType := GetType(ParamType) ;
-         IF ((ParamType=Word) OR (CallType=Word)) OR
-            ((ParamType=Byte) OR (CallType=Byte)) OR
-            ((ParamType=Loc)  OR (CallType=Loc))  OR
-            IsParameterCompatible(ParamType, CallType)
-         THEN
-            (* we think it is legal, but we ask post pass 3 to check as
-               not all types are known at this point *)
-         ELSE
-            FailParameter('identifier with an incompatible type is being passed to this procedure',
-                          Call, Param, ProcSym, i) ;
             RETURN
          END
-      ELSIF CallType#ParamType
+      ELSIF ActualType#FormalType
       THEN
-         IF AssignmentRequiresWarning(ParamType, CallType)
+         IF AssignmentRequiresWarning(FormalType, ActualType)
          THEN
             WarnParameter('identifier being passed to this procedure may contain a possibly incompatible type when compiling for a different target',
-                          Call, Param, ProcSym, i)
-         ELSIF IsParameterCompatible(ParamType, CallType)
+                          Actual, Formal, ProcSym, i)
+         ELSIF IsParameterCompatible(FormalType, ActualType)
          THEN
             (* we think it is legal, but we ask post pass 3 to check as
                not all types are known at this point *)
          ELSE
             FailParameter('identifier with an incompatible type is being passed to this procedure',
-                          Call, Param, ProcSym, i)
+                          Actual, Formal, ProcSym, i)
          END
       END
    END ;
@@ -5048,34 +5124,18 @@ END AssignUnboundedNonVar ;
 
 
 (*
-   UnboundedNonVarLinkToArray - links an array, ArraySym, to an unbounded array,
-                                UnboundedSym. The parameter is a NON VAR
-                                variety.
+   AssignHighField - 
 *)
 
-PROCEDURE UnboundedNonVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE AssignHighField (ArraySym, UnboundedSym, ParamType: CARDINAL; n: CARDINAL) ;
 VAR
+   ReturnVar,
    ArrayType,
-   t, f,
-   AddressField,
-   ArrayAdr,
-   Field       : CARDINAL ;
+   Field    : CARDINAL ;
 BEGIN
-   (* Unbounded.ArrayAddress := ??? runtime *)
+   (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-
-   Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
-   PushTF(Field, GetType(Field)) ;
-   PushT(1) ;
-   BuildDesignatorRecord ;
-   PopT(AddressField) ;
-
-   (* caller saves non var unbounded array contents *)
-   GenQuad(UnboundedOp, AddressField, NulSym, ArraySym) ;
-
-   (* Unbounded.ArrayHigh := HIGH(ArraySym)   *)
-   PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
+   Field := GetUnboundedHighOffset(GetType(UnboundedSym), n) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
@@ -5118,16 +5178,71 @@ BEGIN
          BuildBinaryOp
       END ;
       (* now convert from no of elements into HIGH by subtracting 1 *)
-      PushT(MinusTok) ;         (* -1                           *)
+      PushT(MinusTok) ;            (* -1                           *)
       PushT(MakeConstLit(MakeKey('1'))) ;
       BuildBinaryOp
    ELSE
-      PushTF(High, Cardinal) ;  (* HIGH(ArraySym)               *)
-      PushT(ArraySym) ;
-      PushT(1) ;                (* 1 parameter for HIGH()       *)
-      BuildFunctionCall
+      ReturnVar := MakeTemporary(RightValue) ;
+      PutVar(ReturnVar, Cardinal) ;
+      GenQuad(HighOp, ReturnVar, n, ArraySym) ;
+      PushTF(ReturnVar, GetType(ReturnVar))
    END ;
    BuildAssignmentWithoutBounds(FALSE)
+END AssignHighField ;
+
+
+(*
+   AssignHighFields - 
+*)
+
+PROCEDURE AssignHighFields (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+VAR
+   type   : CARDINAL ;
+   i, m, n: CARDINAL ;
+BEGIN
+   type := SkipType(GetType(ArraySym)) ;
+   m := 1 ;
+   IF (type#NulSym) AND (IsUnbounded(type) OR IsArray(type))
+   THEN
+      m := GetDimension(type)
+   END ;
+   i := 1 ;
+   n := GetDimension(SkipType(GetType(UnboundedSym))) ;
+   WHILE (i<m) AND (i<n) DO
+      AssignHighField(ArraySym, UnboundedSym, NulSym, i) ;
+      INC(i)
+   END ;
+   AssignHighField(ArraySym, UnboundedSym, ParamType, i)
+END AssignHighFields ;
+
+
+(*
+   UnboundedNonVarLinkToArray - links an array, ArraySym, to an unbounded
+                                array, UnboundedSym. The parameter is a
+                                NON VAR variety.
+*)
+
+PROCEDURE UnboundedNonVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+VAR
+   ArrayType,
+   t, f,
+   AddressField,
+   ArrayAdr,
+   Field       : CARDINAL ;
+BEGIN
+   (* Unbounded.ArrayAddress := ??? runtime *)
+   PushTF(UnboundedSym, GetType(UnboundedSym)) ;
+
+   Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
+   PushTF(Field, GetType(Field)) ;
+   PushT(1) ;
+   BuildDesignatorRecord ;
+   PopT(AddressField) ;
+
+   (* caller saves non var unbounded array contents *)
+   GenQuad(UnboundedOp, AddressField, NulSym, ArraySym) ;
+
+   AssignHighFields(ArraySym, UnboundedSym, ParamType)
 END UnboundedNonVarLinkToArray ;
 
 
@@ -5152,61 +5267,8 @@ BEGIN
    PushT(1) ;               (* 1 parameter for ADR()        *)
    BuildFunctionCall ;
    BuildAssignmentWithoutBounds(FALSE) ;
-   (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
-   PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
-   PushTF(Field, GetType(Field)) ;
-   PushT(1) ;
-   BuildDesignatorRecord ;
-   IF (ParamType=Byte) OR (ParamType=Word) OR (ParamType=Loc)
-   THEN
-      ArrayType := GetType(ArraySym) ;
-      IF IsUnbounded(ArrayType)
-      THEN
-         (*
-          *  SIZE(parameter) DIV TSIZE(ParamType)
-          *  however in this case parameter
-          *  is an unbounded symbol and therefore we must use
-          *  (HIGH(parameter)+1)*SIZE(unbounded type) DIV TSIZE(ParamType)
-          *
-          *  we call upon the function SIZE(ArraySym)
-          *  remember SIZE doubles as
-          *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
-          *)
-         PushTF(Size, Cardinal) ;
-         PushT(ArraySym) ;
-         PushT(1) ;                (* 1 parameter for SIZE()       *)
-         BuildFunctionCall ;
-         PushT(DivideTok) ;        (* Divide by                    *)
-         PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
-         PushT(ParamType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         BuildBinaryOp
-      ELSE
-         (* SIZE(parameter) DIV TSIZE(ParamType)                   *)
-         PushTF(TSize, Cardinal) ;  (* TSIZE(ArrayType)            *)
-         PushT(ArrayType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         PushT(DivideTok) ;        (* Divide by                    *)
-         PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
-         PushT(ParamType) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         BuildBinaryOp
-      END ;
-      (* now convert from no of elements into HIGH by subtracting 1 *)
-      PushT(MinusTok) ;         (* -1                           *)
-      PushT(MakeConstLit(MakeKey('1'))) ;
-      BuildBinaryOp
-   ELSE
-      PushTF(High, Cardinal) ;  (* HIGH(ArraySym)               *)
-      PushT(ArraySym) ;
-      PushT(1) ;                (* 1 parameter for HIGH()       *)
-      BuildFunctionCall
-   END ;
-   BuildAssignmentWithoutBounds(FALSE)
+
+   AssignHighFields(ArraySym, UnboundedSym, ParamType)
 END UnboundedVarLinkToArray ;
 
 
@@ -6554,103 +6616,87 @@ END BuildDifAdrFunction ;
 
 PROCEDURE BuildHighFunction ;
 VAR
+   ProcSym,
    Type,
    NoOfParam,
    Param,
    ReturnVar: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   Param := OperandT(1) ;
-   (* Restore stack to origional form *)
-   PushT(NoOfParam) ;
-   Type  := GetType(Param) ;  (* get the type from the symbol, not the stack *)
-(*
-   ; WriteString('Attempting to build HIGH(') ; WriteKey(GetSymName(Param)) ;
-   ; WriteString(')') ; WriteLn ;
-*)
-   IF NoOfParam#1
+   ProcSym := OperandT(NoOfParam+1) ;
+   BuildSizeCheckEnd(ProcSym) ;   (* quadruple generation now on *)
+   IF NoOfParam=1
    THEN
-      WriteFormat0('base procedure HIGH expects 1 parameter')
-   ELSIF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT IsConst(Param))
-   THEN
-      (* we cannot test for IsConst(Param) AND (GetType(Param)=Char)  as the type might not be assigned yet *)
-      WriteFormat0('base procedure HIGH expects a variable or string constant as its parameter')
-   ELSIF IsConst(Param) AND (GetType(Param)=Char)
-   THEN
-      BuildHighFromChar
-   ELSIF IsConstString(Param)
-   THEN
-      BuildHighFromString
-   ELSIF Type=NulSym
-   THEN
-      (* we build the quads here and check for errors in a future pass *)
-      BuildHighFromArray
-   ELSIF IsArray(Type)
-   THEN
-      BuildHighFromArray
-   ELSIF IsUnbounded(Type)
-   THEN
-      BuildHighFromUnbounded
+      Param := OperandT(1) ;
+      Type := SkipType(GetType(Param)) ;
+      (* Restore stack to original form *)
+      PushT(NoOfParam) ;
+      IF (NOT IsVar(Param)) AND (NOT IsConstString(Param)) AND (NOT IsConst(Param))
+      THEN
+         (* we cannot test for IsConst(Param) AND (GetType(Param)=Char)  as the type might not be assigned yet *)
+         WriteFormat0('base procedure HIGH expects a variable or string constant as its parameter')
+      ELSIF IsUnbounded(Type)
+      THEN
+         BuildHighFromUnbounded
+      ELSE
+         BuildConstHighFromSym
+      END
    ELSE
-      (* we build the quads here and check for errors in a future pass *)
-      BuildHighFromArray
+      ErrorFormat0(NewError(GetTokenNo()),
+                   'base procedure function HIGH has one parameter') ;
+      PopN(2) ;
+      PushTF(MakeConstLit(MakeKey('0')), Cardinal)
    END
 END BuildHighFunction ;
 
 
 (*
-   BuildHighFromArray - builds the pseudo function HIGH from an ArraySym.
-                        ArraySyms are not dynamic and therefore it can be
-                        calculated at compile time since the subscripts
-                        are constant.
+   BuildConstHighFromSym - builds the pseudo function HIGH from an Sym.
+                           Sym is a constant or an array which has constant bounds
+                           and therefore it can be calculated at compile time.
 
-                        The Stack:
+                           The Stack:
 
 
-                        Entry                      Exit
+                           Entry                      Exit
 
-                 Ptr ->
-                        +----------------+
-                        | NoOfParam      |  
-                        |----------------|
-                        | Param 1        |  
-                        |----------------|
-                        | Param 2        |  
-                        |----------------|
-                        .                .  
-                        .                .  
-                        .                .  
-                        |----------------|
-                        | Param #        |                        <- Ptr
-                        |----------------|         +------------+
-                        | ProcSym | Type |         | ReturnVar  |
-                        |----------------|         |------------|
-
+                   Ptr ->
+                           +----------------+
+                           | NoOfParam      |  
+                           |----------------|
+                           | Param 1        |  
+                           |----------------|
+                           | Param 2        |  
+                           |----------------|
+                           .                .  
+                           .                .  
+                           .                .  
+                           |----------------|
+                           | Param #        |                        <- Ptr
+                           |----------------|         +------------+
+                           | ProcSym | Type |         | ReturnVar  |
+                           |----------------|         |------------|
 *)
 
-PROCEDURE BuildHighFromArray ;
+PROCEDURE BuildConstHighFromSym ;
 VAR
+   Dim,
    NoOfParam,
    ReturnVar: CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ReturnVar := MakeTemporary(ImmediateValue) ;
-   Assert(NoOfParam=1) ;
-   GenQuad(HighOp, ReturnVar, NulSym, OperandT(1)) ;
+   Dim := OperandD(1) ;
+   INC(Dim) ;
+   GenQuad(HighOp, ReturnVar, Dim, OperandT(1)) ;
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
-END BuildHighFromArray ;
+END BuildConstHighFromSym ;
 
 
 (*
    BuildHighFromUnbounded - builds the pseudo function HIGH from an
                             UnboundedSym.
-                            This is achieved by a hidden record access.
-                            HIGH(a) is performed by a._ArrayHigh and therefore
-                            the compile time stack is manipulated to be
-                            in the form for a record access,
-                            BuildDesignatorRecord is called and the stack
-                            is finally left in the form shown below.
 
                             The Stack:
 
@@ -6661,14 +6707,6 @@ END BuildHighFromArray ;
                             +----------------+
                             | NoOfParam      |  
                             |----------------|
-                            | Param 1        |  
-                            |----------------|
-                            | Param 2        |  
-                            |----------------|
-                            .                .  
-                            .                .  
-                            .                .  
-                            |----------------|
                             | Param #        |                        <- Ptr
                             |----------------|         +------------+
                             | ProcSym | Type |         | ReturnVar  |
@@ -6678,120 +6716,25 @@ END BuildHighFromArray ;
 
 PROCEDURE BuildHighFromUnbounded ;
 VAR
-   UnboundedType,
-   NoOfParam,
-   Param1,
-   ReturnVar    : CARDINAL ;
-BEGIN
-   PopT(NoOfParam) ;
-   Param1 := OperandT(1) ;
-   (*
-      Build record access: Param1._ArrayHigh
-   *)
-   Assert(NoOfParam=1) ;
-   PopN(NoOfParam+1) ;
-   UnboundedType := GetType(Param1) ;
-   PushTF(Param1, GetType(Param1)) ;
-   PushTF(GetUnboundedHighOffset(UnboundedType),
-          GetType(GetUnboundedHighOffset(UnboundedType))) ;
-   PushT(1) ;             (* 1 field for Param1._ArrayHigh *)
-   BuildDesignatorRecord  (* Now the generate quadruples   *)
-END BuildHighFromUnbounded ;
-
-
-(*
-   BuildHighFromString - builds the pseudo function HIGH from an StringSym.
-                         Constant Strings are not dynamic and therefore it can
-                         be calculated at compile time since the subscripts
-                         are constant.
-
-                         The Stack:
-
-
-                         Entry                      Exit
-
-                  Ptr ->
-                         +----------------+
-                         | NoOfParam      |  
-                         |----------------|
-                         | Param 1        |  
-                         |----------------|
-                         | Param 2        |  
-                         |----------------|
-                         .                .  
-                         .                .  
-                         .                .  
-                         |----------------|
-                         | Param #        |                        <- Ptr
-                         |----------------|         +------------+
-                         | ProcSym | Type |         | ReturnVar  |
-                         |----------------|         |------------|
-
-*)
-
-PROCEDURE BuildHighFromString ;
-VAR
-   High,
+   Dim,
    NoOfParam,
    ReturnVar: CARDINAL ;
-   s        : String ;
 BEGIN
    PopT(NoOfParam) ;
    Assert(NoOfParam=1) ;
-   High := GetStringLength(OperandT(1)) ;
-   IF High>0
+   ReturnVar := MakeTemporary(RightValue) ;
+   PutVar(ReturnVar, Cardinal) ;
+   Dim := OperandD(1) ;
+   INC(Dim) ;
+   IF Dim>1
    THEN
-      DEC(High)
+      GenQuad(HighOp, ReturnVar, Dim, OperandA(1))
+   ELSE
+      GenQuad(HighOp, ReturnVar, Dim, OperandT(1))
    END ;
-   s := Sprintf1(Mark(InitString("%d")), High) ;
-   ReturnVar := MakeConstLit(makekey(string(s))) ;
-   s := KillString(s) ;
-   PopN(NoOfParam+1) ;
-   PushT(ReturnVar)
-END BuildHighFromString ;
-
-
-(*
-   BuildHighFromChar - builds the pseudo function HIGH from a character constant.
-                       Character constants can be passed to ARRAY OF CHAR and thus
-                       we need to calculate HIGH when we construct an unbounded sym.
-                       This function simply manipulates the stack and places
-                       constant 0 on the stack. HIGH(any char)=0
-
-                       The Stack:
-
-
-                       Entry                      Exit
-
-                Ptr ->
-                       +----------------+
-                       | NoOfParam      |  
-                       |----------------|
-                       | Param 1        |  
-                       |----------------|
-                       | Param 2        |  
-                       |----------------|
-                       .                .  
-                       .                .  
-                       .                .  
-                       |----------------|
-                       | Param #        |                        <- Ptr
-                       |----------------|         +------------+
-                       | ProcSym | Type |         | ReturnVar  |
-                       |----------------|         |------------|
-*)
-
-PROCEDURE BuildHighFromChar ;
-VAR
-   NoOfParam,
-   ReturnVar: CARDINAL ;
-BEGIN
-   PopT(NoOfParam) ;
-   Assert(NoOfParam=1) ;
-   ReturnVar := MakeConstLit(MakeKey('0')) ;
-   PopN(NoOfParam+1) ;
-   PushT(ReturnVar)
-END BuildHighFromChar ;
+   PopN(2) ;
+   PushTF(ReturnVar, GetType(ReturnVar))
+END BuildHighFromUnbounded ;
 
 
 (*
@@ -8291,11 +8234,12 @@ END BuildAdrFunction ;
 PROCEDURE BuildSizeFunction ;
 VAR
    n           : Name ;
+   dim         : CARDINAL ;
    Type,
    UnboundedSym,
    Field,
    NoOfParam,
-   ProcSym,
+   ProcSym, ti,
    ReturnVar   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -8316,26 +8260,13 @@ BEGIN
       IF IsUnbounded(Type)
       THEN
          (* eg. SIZE(a)  ; where a is unbounded dereference HIGH and multiply by the TYPE *)
-         UnboundedSym := OperandT(1) ;
-         PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-         Field := GetUnboundedHighOffset(GetType(UnboundedSym)) ;
-         PushTF(Field, GetType(Field)) ;
-         PushT(1) ;
-         BuildDesignatorRecord ;
-         (*
-          *  +1 to HIGH(a) as HIGH(a) is the last
-          *  legal element of a[0..n] indicating n+1 total elements
-          *)
-         PushT(PlusTok) ;
-         PushT(MakeConstLit(MakeKey('1'))) ;
-         BuildBinaryOp ;
-         PushT(TimesTok) ;
-         PushTF(TSize, Cardinal) ; (* TSIZE(GetType(Unbounded))    *)
-         PushT(GetType(Type)) ;
-         PushT(1) ;                (* 1 parameter for TSIZE()      *)
-         BuildFunctionCall ;
-         BuildBinaryOp ;
-         PopT(ReturnVar)
+         dim := OperandD(1) ;
+         IF dim=0
+         THEN
+            ReturnVar := calculateMultipicand(OperandT(1), Type, dim)
+         ELSE
+            ReturnVar := calculateMultipicand(OperandA(1), Type, dim)
+         END
       ELSE
          ReturnVar := MakeTemporary(ImmediateValue) ;
          IF Type=NulSym
@@ -9268,7 +9199,7 @@ BEGIN
    THEN
       BuildStaticArray
    ELSE
-      WriteFormat0('can only index Static or Dynamic arrays')
+      WriteFormat0('can only index static or dynamic arrays')
    END
 END BuildDesignatorArray ;
 
@@ -9291,6 +9222,7 @@ END BuildDesignatorArray ;
 
 PROCEDURE BuildStaticArray ;
 VAR
+   Dim,
    Array,
    Index,
    BackEndType,
@@ -9299,11 +9231,13 @@ BEGIN
    Index := OperandT(1) ;
    Array  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
+   Dim := OperandD(2) ;
+   INC(Dim) ;
    IF GetMode(Index)=LeftValue
    THEN
       Index := MakeRightValue(Index, GetType(Index))
    END ;
-   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Index)) ;
+   BuildRange(InitStaticArraySubscriptRangeCheck(GetArraySubscript(Type), Index, Dim)) ;
 
    (* now make Adr point to the address of the indexed element *)
    Adr := MakeTemporary(LeftValue) ;
@@ -9319,8 +9253,38 @@ BEGIN
 
    GenQuad(ArrayOp, Adr, Index, Array) ;
    PopN(2) ;   (* remove all parameters to this procedure *)
-   PushTF(Adr, GetType(Adr))
+   PushTFD(Adr, GetType(Adr), Dim)
 END BuildStaticArray ;
+
+
+(*
+   calculateMultipicand - generates quadruples which calculate the
+                          multiplicand for the array at dimension, dim.
+*)
+
+PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ;
+VAR
+   ti, tj, tk, tl: CARDINAL ;
+BEGIN
+   IF dim=GetDimension(arrayType)
+   THEN
+      (* ti has no type since constant *)
+      ti := MakeTemporary(ImmediateValue) ;
+      GenQuad(ElementSizeOp, ti, arrayType, 1)
+   ELSE
+      tk := MakeTemporary(RightValue) ;
+      PutVar(tk, Cardinal) ;
+      GenQuad(HighOp, tk, dim+1, arraySym) ;
+      tl := MakeTemporary(RightValue) ;
+      PutVar(tl, Cardinal) ;
+      GenQuad(AddOp, tl, tk, MakeConstLit(MakeKey('1'))) ;
+      tj := calculateMultipicand(arraySym, arrayType, dim+1) ;
+      ti := MakeTemporary(RightValue) ;
+      PutVar(ti, Cardinal) ;
+      GenQuad(MultOp, ti, tj, tl)
+   END ;
+   RETURN( ti )
+END calculateMultipicand ;
 
 
 (*
@@ -9328,74 +9292,84 @@ END BuildStaticArray ;
                        The Stack is expected to contain:
 
 
-                       Entry                   Exit
-                       =====                   ====
+                       Entry                          Exit
+                       =====                          ====
 
                Ptr ->
-                       +--------------+
-                       | n            |
-                       |--------------|
-                       | e1           |
-                       |--------------|
-                       .              .
-                       .              .
-                       .              .
-                       |--------------|
-                       | e2           |                       <- Ptr
-                       |--------------|        +------------+
-                       | Sym  | Type  |        | S    | T   |
-                       |--------------|        |------------|
+                       +-----------------------+
+                       | Index                 |                         <- Ptr
+                       |-----------------------|      +----------------+
+                       | ArraySym | Type | Dim |      | S  | T | Dim+1 |
+                       |-----------------------|      |----------------|
+
+
+   if Dim=1
+   then
+      S := base of ArraySym + TSIZE(Type)*Index
+   else
+      S := S + TSIZE(Type)*Index
+   fi
 *)
 
 PROCEDURE BuildDynamicArray ;
 VAR
-   Sym,
-   idx,
+   Sym, idx,
    Type, Adr,
+   ArraySym,
    BackEndType,
    UnboundedType,
    PtrToBase,
    Base,
+   Dim, i,
    ti, tj, tk   : CARDINAL ;
 BEGIN
    DumpStack ;
    Sym  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
-   (*
-      Base has type address because
-      BuildDesignatorRecord references by address.
-
-      Build a record for retrieving the address of dynamic array.
-      BuildDesignatorRecord will generate the required quadruples,
-      therefore build set up the stack for BuildDesignatorRecord
-      to generate the record access.
-   *)
-   (*
-      Build above current current info needed for array.
-      Note that, n, has gone by now.
-   *)
-   UnboundedType := GetUnboundedRecordType(GetType(Sym)) ;
-   PushTF(Sym, UnboundedType) ;
-   PushTF(GetUnboundedAddressOffset(GetType(Sym)),
-          GetType(GetUnboundedAddressOffset(GetType(Sym)))) ;
-   PushT(1) ;  (* One record field to dereference *)
-   BuildDesignatorRecord ;
-   PopT(PtrToBase) ;
-   DumpStack ;
-   (* Now actually copy Unbounded.ArrayAddress into base *)
-   IF GetMode(PtrToBase)=LeftValue
+   Dim := OperandD(2) ;
+   INC(Dim) ;
+   IF Dim=1
    THEN
-      Base := MakeTemporary(RightValue) ;
-      PutVar(Base, Address) ;           (* has type ADDRESS *)
-      CheckPointerThroughNil(PtrToBase) ;
-      GenQuad(IndrXOp, Base, Address, PtrToBase)           (* Base = *PtrToBase *)
+      (*
+         Base has type address because
+         BuildDesignatorRecord references by address.
+
+         Build a record for retrieving the address of dynamic array.
+         BuildDesignatorRecord will generate the required quadruples,
+         therefore build set up the stack for BuildDesignatorRecord
+         to generate the record access.
+
+         Build above current current info needed for array.
+         Note that, n, has gone by now.
+      *)
+      ArraySym := Sym ;
+      UnboundedType := GetUnboundedRecordType(GetType(Sym)) ;
+      PushTF(Sym, UnboundedType) ;
+      PushTF(GetUnboundedAddressOffset(GetType(Sym)),
+             GetType(GetUnboundedAddressOffset(GetType(Sym)))) ;
+      PushT(1) ;  (* One record field to dereference *)
+      BuildDesignatorRecord ;
+      PopT(PtrToBase) ;
+      DumpStack ;
+      (* Now actually copy Unbounded.ArrayAddress into base *)
+      IF GetMode(PtrToBase)=LeftValue
+      THEN
+         Base := MakeTemporary(RightValue) ;
+         PutVar(Base, Address) ;           (* has type ADDRESS *)
+         CheckPointerThroughNil(PtrToBase) ;
+         GenQuad(IndrXOp, Base, Address, PtrToBase)           (* Base = *PtrToBase *)
+      ELSE
+         Assert(GetMode(PtrToBase)#ImmediateValue) ;
+         Base := PtrToBase
+      END
    ELSE
-      Assert(GetMode(PtrToBase)#ImmediateValue) ;
-      Base := PtrToBase
+      (* Base already calculated previously and pushed to stack *)
+      UnboundedType := OperandF(2) ;
+      Base := Sym ;
+      ArraySym := OperandA(2)
    END ;
-   (* ti has no type since constant *)
-   ti := MakeTemporary(ImmediateValue) ;
-   GenQuad(ElementSizeOp, ti, Type, 1) ;
+   Assert(GetType(Sym)=Type) ;
+   ti := calculateMultipicand(Sym, Type, Dim) ;
    idx := OperandT(1) ;
    IF IsConst(idx)
    THEN
@@ -9418,7 +9392,7 @@ BEGIN
       tk := MakeTemporary(RightValue) ;
       PutVar(tk, Cardinal)
    END ;
-   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, idx)) ;
+   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, idx, Dim)) ;
 
    PushT(tj) ;
    PushT(idx) ;
@@ -9432,12 +9406,22 @@ BEGIN
    *)
    BackEndType := MakePointer(NulName) ;
    PutPointer(BackEndType, GetType(Type)) ;
-   PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
 
-   GenQuad(AddOp, Adr, Base, tk) ;
-   PopN(2) ;
-   PushTFA(Adr, GetType(Type), Sym) ;
-   DumpStack ;
+   IF Dim=GetDimension(Type)
+   THEN
+      PutLeftValueFrontBackType(Adr, GetType(Type), BackEndType) ;
+      
+      GenQuad(AddOp, Adr, Base, tk) ;
+      PopN(2) ;
+      PushTFAD(Adr, GetType(Adr), ArraySym, Dim)
+   ELSE
+      (* more to index *)
+      PutLeftValueFrontBackType(Adr, Type, BackEndType) ;
+      
+      GenQuad(AddOp, Adr, Base, tk) ;
+      PopN(2) ;
+      PushTFAD(Adr, GetType(Adr), ArraySym, Dim)
+   END
 END BuildDynamicArray ;
 
 
@@ -11139,6 +11123,9 @@ BEGIN
       printf1('  [%d]    ', NoOfTimesReferenced) ;
       CASE Operator OF
 
+      HighOp           : WriteOperand(Operand1) ;
+                         printf1('  %4d  ', Operand2) ;
+                         WriteOperand(Operand3) |
       SavePriorityOp,
       RestorePriorityOp,
       SubrangeLowOp,
@@ -11147,7 +11134,6 @@ BEGIN
       InclOp,
       ExclOp,
       UnboundedOp,
-      HighOp,
       ReturnValueOp,
       FunctValueOp,
       NegateOp,
@@ -11496,6 +11482,22 @@ END IsBoolean ;
 
 
 (*
+   OperandD - returns possible array dimension associated with the ident
+              operand stored on the boolean stack.
+*)
+
+PROCEDURE OperandD (pos: CARDINAL) : WORD ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   Assert(NOT IsBoolean(pos)) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.Dimension )
+END OperandD ;
+
+
+(*
    OperandA - returns possible array symbol associated with the ident
               operand stored on the boolean stack.
 *)
@@ -11791,8 +11793,23 @@ END IncDynamicQuads ;
 
 
 (*
-   PushTFA - Push True, False and Array numbers onto the True/False stack.
-             True and False are assumed to contain Symbols or Ident etc.
+   IncOperandD - increment the dimension number associated with symbol
+                 at, pos, on the boolean stack.
+*)
+
+PROCEDURE IncOperandD (pos: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PeepAddress(BoolStack, pos) ;
+   INC(f^.Dimension)
+END IncOperandD ;
+
+
+(*
+   PushTFA - Push True, False, Array, numbers onto the
+             True/False stack.  True and False are assumed to
+             contain Symbols or Ident etc.
 *)
 
 PROCEDURE PushTFA (True, False, Array: WORD) ;
@@ -11804,10 +11821,55 @@ BEGIN
       TrueExit := True ;
       FalseExit := False ;
       Unbounded := Array ;
-      BooleanOp := FALSE
+      BooleanOp := FALSE ;
+      Dimension := 0
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
+
+
+(*
+   PushTFAD - Push True, False, Array, Dim, numbers onto the
+              True/False stack.  True and False are assumed to
+              contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFAD (True, False, Array, Dim: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := Array ;
+      BooleanOp := FALSE ;
+      Dimension := Dim
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFAD ;
+
+
+(*
+   PushTFD - Push True, False, Dim, numbers onto the
+             True/False stack.  True and False are assumed to
+             contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFD (True, False, Dim: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := NulSym ;
+      BooleanOp := FALSE ;
+      Dimension := Dim
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFD ;
 
 
 (*
@@ -11824,7 +11886,8 @@ BEGIN
       TrueExit := True ;
       FalseExit := False ;
       Unbounded := NulSym ;
-      BooleanOp := FALSE
+      BooleanOp := FALSE ;
+      Dimension := 0
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -11862,7 +11925,8 @@ BEGIN
       TrueExit := True ;
       FalseExit := 0 ;
       Unbounded := NulSym ;
-      BooleanOp := FALSE
+      BooleanOp := FALSE ;
+      Dimension := 0
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
@@ -12036,6 +12100,8 @@ BEGIN
       InitList(ForLoopIndex)
    END ;
    QuadrupleGeneration := TRUE ;
+   BuildingHigh := FALSE ;
+   BuildingSize := FALSE ;
    AutoStack := InitStackWord() ;
    IsAutoOn := TRUE ;
    FreeLineList := NIL

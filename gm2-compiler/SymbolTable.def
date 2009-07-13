@@ -66,6 +66,7 @@ EXPORT QUALIFIED NulSym,
                  MakePointer,
                  MakeSubscript,
                  MakeUnbounded,
+                 MakeOAFamily,
                  MakeProcType,
                  Make2Tuple,
                  MakeGnuAsm,
@@ -89,6 +90,8 @@ EXPORT QUALIFIED NulSym,
                  GetLowestType,
                  GetSym, GetLocalSym, GetDeclareSym,
                  FromModuleGetSym,
+                 GetOAFamily,
+                 GetDimension,
                  GetNth,
                  GetVarScope,
                  GetSubrange,
@@ -256,6 +259,7 @@ EXPORT QUALIFIED NulSym,
                  TryMoveUndeclaredSymToInnerModule,
                  ForeachImportedDo,
                  ForeachExportedDo,
+                 ForeachOAFamily,
 
                  CheckForExportedImplementation,
                  CheckForUnImplementedExports,
@@ -309,6 +313,7 @@ CONST
 
 TYPE
    ModeOfAddr = (NoValue, ImmediateValue, RightValue, LeftValue) ;
+   FamilyOperation = PROCEDURE (CARDINAL, CARDINAL, CARDINAL) ;
 
 
 (*
@@ -2126,6 +2131,47 @@ PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ;
 
 
 (*
+   IsOAFamily - returns TRUE if, Sym, is an OAFamily symbol.
+*)
+
+PROCEDURE IsOAFamily (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   GetDimension - return the number of dimensions associated with
+                  this unbounded ARRAY parameter.
+*)
+
+PROCEDURE GetDimension (sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   MakeOAFamily - makes an OAFamily symbol based on SimpleType.
+                  It returns the OAFamily symbol.  A new symbol
+                  is created if one does not already exist for
+                  SimpleType.
+*)
+
+PROCEDURE MakeOAFamily (SimpleType: CARDINAL) : CARDINAL ;
+
+
+(*
+   GetOAFamily - returns the oafamily symbol associated with
+                 SimpleType.
+*)
+
+PROCEDURE GetOAFamily (SimpleType: CARDINAL) : CARDINAL ;
+
+
+(*
+   ForeachOAFamily - call, p[oaf, ndim, symbol] for every unbounded symbol,
+                     sym, in the oaf.
+*)
+
+PROCEDURE ForeachOAFamily (sym: CARDINAL; p: FamilyOperation) ;
+
+
+(*
    IsUnbounded - returns true if Sym is an unbounded symbol.
 *)
 
@@ -2137,7 +2183,7 @@ PROCEDURE IsUnbounded (Sym: CARDINAL) : BOOLEAN ;
                   SimpleType.
 *)
 
-PROCEDURE GetUnbounded (SimpleType: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnbounded (oaf: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -2154,7 +2200,7 @@ PROCEDURE GetUnboundedRecordType (Sym: CARDINAL) : CARDINAL ;
                                unbounded type.
 *)
 
-PROCEDURE GetUnboundedAddressOffset (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnboundedAddressOffset (sym: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -2163,7 +2209,7 @@ PROCEDURE GetUnboundedAddressOffset (Sym: CARDINAL) : CARDINAL ;
                             unbounded type.
 *)
 
-PROCEDURE GetUnboundedHighOffset (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnboundedHighOffset (sym: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -2186,7 +2232,7 @@ PROCEDURE PutSubscript (Sym: CARDINAL; SimpleType: CARDINAL) ;
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded (SimpleType: CARDINAL) : CARDINAL ;
+PROCEDURE MakeUnbounded (SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 
 
 (*

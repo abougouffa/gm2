@@ -202,14 +202,20 @@ BEGIN
    ELSE
       quotes := FALSE ;
       o := ConCat(o, ctos(sym[bol], 0, ' ')) ;
-      CASE sym[bol] MOD 10 OF
+      CASE sym[bol] MOD 100 OF
 
-      1:  o := ConCat(o, Mark(InitString('st'))) |
-      2:  o := ConCat(o, Mark(InitString('nd'))) |
-      3:  o := ConCat(o, Mark(InitString('rd'))) |
+      11..13:  o := ConCat(o, Mark(InitString('th')))
 
       ELSE
-         o := ConCat(o, Mark(InitString('th')))
+         CASE sym[bol] MOD 10 OF
+
+         1:  o := ConCat(o, Mark(InitString('st'))) |
+         2:  o := ConCat(o, Mark(InitString('nd'))) |
+         3:  o := ConCat(o, Mark(InitString('rd')))
+
+         ELSE
+            o := ConCat(o, Mark(InitString('th')))
+         END
       END ;
       RETURN( o )
    END

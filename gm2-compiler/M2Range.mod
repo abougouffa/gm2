@@ -45,7 +45,7 @@ FROM M2Error IMPORT Error, InternalError, ErrorFormat0, ErrorFormat1, ErrorForma
 FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3,
                         MetaErrorT1, MetaErrorT2, MetaErrorT3,
                         MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
-                        MetaErrorStringT1, MetaErrorStringT2 ;
+                        MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
 
 FROM M2LexBuf IMPORT GetTokenNo, FindFileNameFromToken, TokenToLineNo, TokenToColumnNo ;
 FROM StrIO IMPORT WriteString, WriteLn ;
@@ -98,6 +98,7 @@ TYPE
                          paramNo       : CARDINAL ;
                          isLeftValue   : BOOLEAN ;  (* is des an LValue,
                                                        only used in pointernil *)
+                         dimension     : CARDINAL ;
                          tokenNo       : CARDINAL ;
                       END ;
 
@@ -388,6 +389,30 @@ END PutRangeParam ;
 
 
 (*
+   PutRangeArraySubscript - initializes contents of, p, to
+                            d, e and their lowest types.  It also
+                            assigns, dim.
+                            It also fills in the current token no
+                            and returns, p.
+*)
+
+PROCEDURE PutRangeArraySubscript (p: Range; t: TypeOfRange;
+                                  d, e: CARDINAL; dim: CARDINAL) : Range ;
+BEGIN
+   WITH p^ DO
+      type           := t ;
+      des            := d ;
+      expr           := e ;
+      desLowestType  := GetLowestType(d) ;
+      exprLowestType := GetLowestType(e) ;
+      dimension      := dim ;
+      tokenNo        := GetTokenNo()
+   END ;
+   RETURN( p )
+END PutRangeArraySubscript ;
+
+
+(*
    InitAssignmentRangeCheck - returns a range check node which
                               remembers the information necessary
                               so that a range check for d := e
@@ -430,13 +455,13 @@ END InitSubrangeRangeCheck ;
                                         can be generated later on.
 *)
 
-PROCEDURE InitStaticArraySubscriptRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitStaticArraySubscriptRangeCheck (d, e, dim: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), staticarraysubscript, d, e) ;
+   p := PutRangeArraySubscript(GetIndice(RangeIndex, r), staticarraysubscript, d, e, dim) ;
    RETURN( r )
 END InitStaticArraySubscriptRangeCheck ;
 
@@ -448,13 +473,13 @@ END InitStaticArraySubscriptRangeCheck ;
                                          can be generated later on.
 *)
 
-PROCEDURE InitDynamicArraySubscriptRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitDynamicArraySubscriptRangeCheck (d, e, dim: CARDINAL) : CARDINAL ;
 VAR
    p: Range ;
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), dynamicarraysubscript, d, e) ;
+   p := PutRangeArraySubscript(GetIndice(RangeIndex, r), dynamicarraysubscript, d, e, dim) ;
    RETURN( r )
 END InitDynamicArraySubscriptRangeCheck ;
 
@@ -1401,9 +1426,9 @@ BEGIN
          THEN
             IF OutOfRange(tokenno, min, expr, max, desLowestType)
             THEN
-               MetaErrorT2(tokenNo,
-                           'index {%2Wa} out of range found while attempting to access an element of a static array {%1a}',
-                           des, expr) ;
+               MetaErrorT3(tokenNo,
+                           'index {%2Wa} out of range found while attempting to access an element of a static array {%1a} in the {%3N} array subscript',
+                           des, expr, dimension) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                (* range check is unnecessary *)
@@ -1433,9 +1458,9 @@ BEGIN
          THEN
             IF IsGreater(GetIntegerZero(), BuildConvert(GetIntegerType(), Mod2Gcc(expr), FALSE))
             THEN
-               MetaErrorT2(tokenNo,
-                           'index {%2Wa} out of range found while attempting to access an element of a dynamic array {%1a}',
-                           des, expr) ;
+               MetaErrorT3(tokenNo,
+                           'index {%2Wa} out of range found while attempting to access an element of a dynamic array {%1a} in the {%3N} array subscript',
+                           des, expr, dimension) ;
                PutQuad(q, ErrorOp, NulSym, NulSym, r)
             ELSE
                (* cannot fold high bounds, so leave that for the runtime *)
@@ -1681,8 +1706,8 @@ BEGIN
       typeassign           : s := InitString('') |
       typeparam            : s := InitString('') |
       typeexpr             : s := InitString('') |
-      staticarraysubscript : s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds') |
-      dynamicarraysubscript: s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds') |
+      staticarraysubscript : s := InitString('if this access to the static array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
+      dynamicarraysubscript: s := InitString('if this access to the dynamic array {%1Wa:{%2a:{%1a}[{%2a}]}} is ever made then the index will be out of bounds in the {%3N} array subscript') |
       forloopbegin         : s := InitString('if the assignment in this FOR loop is ever executed then the designator {%1Wa} will be exceed the type range {%1ts:of {%1ts}}') |
       forloopto            : s := InitString('the final value {%W2a} in this FOR loop will be out of bounds {%1ts:of type {%1ts}} if ever executed') |
       forloopend           : s := InitString('the FOR loop will cause the designator {%W1a} to be out of bounds when the BY value {%2a} is added') |
@@ -1699,7 +1724,7 @@ BEGIN
          InternalError('enumeration value unknown', __FILE__, __LINE__)
       END ;
       s := ConCat(ConCatChar(scopeDesc, ':'), Mark(s)) ;
-      MetaErrorStringT2(tokenNo, s, des, expr) ;
+      MetaErrorStringT3(tokenNo, s, des, expr, dimension) ;
       FlushErrors
    END
 END IssueWarning ;
@@ -2010,7 +2035,7 @@ BEGIN
       THEN
          UnboundedType := GetType(des) ;
          Assert(IsUnbounded(UnboundedType)) ;
-         high := GetHighFromUnbounded(des) ;
+         high := GetHighFromUnbounded(dimension, des) ;
          e := BuildConvert(GetIntegerType(), DeReferenceLValue(expr), FALSE) ;
          IfOutsideLimitsDo(GetIntegerZero(), e, high, r, scopeDesc)
       ELSE

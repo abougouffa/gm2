@@ -88,7 +88,7 @@ FROM SymbolTable IMPORT NulSym,
                         MakeUnbounded, IsUnbounded,
                         NoOfParam,
                         PutParamName,
-                        GetParam,
+                        GetParam, GetDimension,
                         AreParametersDefinedInDefinition,
                         AreParametersDefinedInImplementation,
                         AreProcedureParametersDefined,
@@ -1283,11 +1283,11 @@ VAR
    UnBoundedSym,
    NoOfIds,
    ProcSym,
-   i           : CARDINAL ;
+   i, ndim   : CARDINAL ;
 BEGIN
    PopT(ParamTotal) ;
    PopT(TypeSym) ;
-   PopT(Array) ;
+   PopTF(Array, ndim) ;
    Assert( (Array=ArrayTok) OR (Array=NulTok) ) ;
    PopT(NoOfIds) ;
    ProcSym := OperandT(NoOfIds+2) ;
@@ -1296,7 +1296,7 @@ BEGIN
    Assert( (Var=VarTok) OR (Var=NulTok) ) ;
    IF Array=ArrayTok
    THEN
-      UnBoundedSym := MakeUnbounded(TypeSym) ;
+      UnBoundedSym := MakeUnbounded(TypeSym, ndim) ;
       TypeSym := UnBoundedSym
    END ;
    i := 1 ;
@@ -1382,11 +1382,11 @@ VAR
    TypeSym,
    NoOfIds,
    ProcSym,
-   pi, i     : CARDINAL ;
+   pi, i, ndim: CARDINAL ;
 BEGIN
    PopT(ParamTotal) ;
    PopT(TypeSym) ;
-   PopT(Array) ;
+   PopTF(Array, ndim) ;
    Assert( (Array=ArrayTok) OR (Array=NulTok) ) ;
    PopT(NoOfIds) ;
    ProcSym := OperandT(NoOfIds+2) ;
@@ -1412,6 +1412,14 @@ BEGIN
             FailParameter('the parameter was not declared as an ARRAY OF type',
                           'the parameter was declared as an ARRAY OF type',
                           NulName, ParamTotal+i, ProcSym)
+         END ;
+         IF Unbounded
+         THEN
+            IF GetDimension(GetNthParam(ProcSym, ParamTotal+1))#ndim
+            THEN
+               FailParameter('', 'the dynamic array parameter was declared with different number of dimensions',
+                             NulName, ParamTotal+i, ProcSym)
+            END
          END ;
          IF (Var=VarTok) AND (NOT IsVarParam(ProcSym, ParamTotal+i))
          THEN
@@ -2312,7 +2320,7 @@ BEGIN
 
    IF Array=ArrayTok
    THEN
-      UnboundedSym := MakeUnbounded(TypeSym) ;
+      UnboundedSym := MakeUnbounded(TypeSym, 1) ;
       TypeSym := UnboundedSym
    END ;
    IF Var=VarTok

@@ -91,7 +91,7 @@ PROCEDURE InitSubrangeRangeCheck (d, e: CARDINAL) : CARDINAL ;
                                         can be generated later on.
 *)
 
-PROCEDURE InitStaticArraySubscriptRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitStaticArraySubscriptRangeCheck (d, e, dim: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -101,7 +101,7 @@ PROCEDURE InitStaticArraySubscriptRangeCheck (d, e: CARDINAL) : CARDINAL ;
                                          can be generated later on.
 *)
 
-PROCEDURE InitDynamicArraySubscriptRangeCheck (d, e: CARDINAL) : CARDINAL ;
+PROCEDURE InitDynamicArraySubscriptRangeCheck (d, e, dim: CARDINAL) : CARDINAL ;
 
 
 (*

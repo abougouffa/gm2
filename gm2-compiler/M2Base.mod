@@ -70,7 +70,7 @@ FROM SymbolTable IMPORT ModeOfAddr,
                         IsArray, IsProcedure, IsConstString,
                         IsVarient, IsRecordField, IsFieldVarient,
                         GetArraySubscript, IsRecord, NoOfParam,
-                        GetNthParam, IsVarParam, GetNth ;
+                        GetNthParam, IsVarParam, GetNth, GetDimension ;
 
 FROM M2ALU IMPORT PushIntegerTree, PushRealTree, PushCard, Equ, Gre, Less ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
@@ -1967,7 +1967,7 @@ END IsMathType ;
 
 (*
    IsVarParamCompatible - returns TRUE if types, actual, and, formal
-                          are compatible even if they forma is a VAR
+                          are compatible even if formal is a VAR
                           parameter.
 *)
 
@@ -1994,6 +1994,63 @@ END IsVarParamCompatible ;
 
 
 (*
+   IsValidUnboundedParameter - 
+*)
+
+PROCEDURE IsValidUnboundedParameter (formal, actual: CARDINAL) : BOOLEAN ;
+VAR
+   ft, at: CARDINAL ;
+   n, m  : CARDINAL ;
+BEGIN
+   Assert(IsParameterUnbounded(formal)) ;
+   ft := SkipType(GetType(GetType(formal))) ;    (* ARRAY OF ft *)
+   IF IsGenericSystemType(ft) OR (GetType(formal)=GetType(actual))
+   THEN
+      RETURN( TRUE )
+   ELSE
+      IF IsParameter(actual) AND IsParameterUnbounded(actual)
+      THEN
+         n := GetDimension(actual) ;
+         m := GetDimension(formal) ;
+         IF n#m
+         THEN
+            RETURN( IsGenericSystemType(ft) AND (n<m) )
+         ELSE
+            RETURN( (GetDimension(actual)=GetDimension(formal)) AND
+                    IsParameterCompatible(GetType(GetType(actual)), ft) )
+         END
+      ELSE
+         IF IsConstString(actual)
+         THEN
+            RETURN( IsParameterCompatible(Char, ft) )
+         ELSE
+            at := SkipType(GetType(actual)) ;
+            IF IsArray(at)
+            THEN
+               m := GetDimension(formal) ;
+               n := GetDimension(at) ;
+               WHILE IsArray(at) DO
+                  at := SkipType(GetType(at))
+               END ;
+               IF n#m
+               THEN
+                  RETURN( IsGenericSystemType(ft) AND (n<m) )
+               ELSIF IsParameterVar(formal)
+               THEN
+                  RETURN( IsVarParamCompatible(at, formal) )
+               ELSE
+                  RETURN( IsParameterCompatible(at, ft) )
+               END
+            ELSE
+               RETURN( FALSE )
+            END
+         END
+      END
+   END
+END IsValidUnboundedParameter ;
+
+
+(*
    IsValidParameter - returns TRUE if an, actual, parameter can be passed
                       to the, formal, parameter.  This differs from
                       IsParameterCompatible as this procedure includes checks
@@ -2013,35 +2070,7 @@ BEGIN
    ELSE
       IF IsParameterUnbounded(formal)
       THEN
-         ft := SkipType(GetType(GetType(formal))) ;    (* ARRAY OF ft *)
-         IF IsGenericSystemType(ft) OR (GetType(formal)=GetType(actual))
-         THEN
-            RETURN( TRUE )
-         ELSE
-            IF IsParameter(actual) AND IsParameterUnbounded(actual)
-            THEN
-               (* ARRAY OF ...      GetType(GetType(actual)) *)
-               RETURN( IsParameterCompatible(GetType(GetType(actual)), ft) )
-            ELSE
-               IF IsConstString(actual)
-               THEN
-                  RETURN( IsParameterCompatible(Char, ft) )
-               ELSE
-                  at := SkipType(GetType(actual)) ;
-                  IF IsArray(at)
-                  THEN
-                     IF IsParameterVar(formal)
-                     THEN
-                        RETURN( IsVarParamCompatible(at, formal) )
-                     ELSE
-                        RETURN( IsParameterCompatible(GetType(at), ft) )
-                     END
-                  ELSE
-                     RETURN( FALSE )
-                  END
-               END
-            END
-         END
+         RETURN( IsValidUnboundedParameter(formal, actual) )
       ELSE
          ft := SkipType(GetType(formal))
       END ;

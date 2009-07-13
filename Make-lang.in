@@ -329,6 +329,15 @@ $(GM2_LIB_DIR_PIM)/SO_O2:
 $(GM2_LIB_DIR_ISO):
 	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)
 
+$(GM2_LIB_DIR_ISO)/O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/O2
+
+$(GM2_LIB_DIR_ISO)/SO:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/SO
+
+$(GM2_LIB_DIR_ISO)/SO_O2:
+	$(mkinstalldirs) $(GM2_LIB_DIR_ISO)/SO_O2
+
 $(GM2_LIB_DIR_ULM):
 	$(mkinstalldirs) $(GM2_LIB_DIR_ULM)
 
@@ -344,7 +353,8 @@ $(GM2_LIB_DIR_PCO):
 gm2.install-common: installdirs \
                     $(GM2_LIB_DIR_PIM) $(GM2_LIB_DIR_PIM)/SO \
                     $(GM2_LIB_DIR_PIM)/O2 $(GM2_LIB_DIR_PIM)/SO_O2 \
-                    $(GM2_LIB_DIR_ISO) \
+                    $(GM2_LIB_DIR_ISO) $(GM2_LIB_DIR_ISO)/SO \
+                    $(GM2_LIB_DIR_ISO)/O2 $(GM2_LIB_DIR_ISO)/SO_O2 \
                     $(GM2_LIB_DIR_ULM) $(GM2_LIB_DIR_LOG) $(GM2_LIB_DIR_PCO) \
                     $(GM2_LIB_DIR_MIN)
 	-if [ -f $(GM2)$(exeext) ]; then \
@@ -650,13 +660,16 @@ GM2_O_S3=-O
 GM2_G=-g
 GM2_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
- -Wpedantic-cast -Wpedantic-param-names
+ -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
+ -fdata-sections
 GM2_ISO_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fiso -fextended-opaque \
- -Wpedantic-cast -Wpedantic-param-names
+ -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
+ -fdata-sections
 GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fextended-opaque \
- -Wpedantic-cast -Wpedantic-param-names -fno-exceptions
+ -Wpedantic-cast -Wpedantic-param-names -fno-exceptions \
+ -ffunction-sections -fdata-sections
 O2=-O2 -g
 SO_O2=-O2 -g -fPIC
 SO=-O0 -g -fPIC

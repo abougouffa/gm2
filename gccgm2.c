@@ -842,6 +842,8 @@ static tree                   build_m2_complex_type_from                  (tree 
        tree                   gccgm2_BuildEndType                         (tree type);
        void                   gccgm2_PutArrayType                         (tree array, tree type);
        tree                   gccgm2_GetDeclContext                       (tree t);
+       unsigned int           gccgm2_StringLength                         (tree string);
+
   /* PROTOTYPES: ADD HERE */
   
   
@@ -3603,6 +3605,17 @@ gccgm2_ConvertString (tree type, tree expr)
   const char *str = TREE_STRING_POINTER (expr);
   int len = TREE_STRING_LENGTH (expr);
   return gccgm2_BuildStringConstantType (len, str, type);
+}
+
+/*
+ *  StringLength - returns an unsigned int which is the length
+ *                 of, string.
+ */
+
+unsigned int
+gccgm2_StringLength (tree string)
+{
+  return TREE_STRING_LENGTH (string);
 }
 
 /*

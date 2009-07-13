@@ -100,8 +100,8 @@ FROM SymbolTable IMPORT NulSym,
                         GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
                         GetParameterShadowVar,
-                        GetUnboundedAddressOffset, GetUnboundedHighOffset,
                         GetUnboundedRecordType,
+                        ForeachOAFamily, GetOAFamily,
                         IsModuleWithinProcedure,
                         IsVariableAtAddress, IsConstructorConstant,
                         ForeachLocalSymDo, ForeachFieldEnumerationDo,
@@ -1672,19 +1672,31 @@ BEGIN
 END DeclareParameters ;
 
 
+VAR
+   unboundedp: WalkAction ;
+
+
+(*
+   WalkFamilyOfUnbounded - 
+*)
+
+PROCEDURE WalkFamilyOfUnbounded (oaf: CARDINAL; dim: CARDINAL; unbounded: CARDINAL) ;
+BEGIN
+   unboundedp(unbounded)
+END WalkFamilyOfUnbounded ;
+
+
 (*
    WalkAssociatedUnbounded - 
 *)
 
 PROCEDURE WalkAssociatedUnbounded (sym: CARDINAL; p: WalkAction) ;
 VAR
-   unbounded: CARDINAL ;
+   oaf: CARDINAL ;
 BEGIN
-   unbounded := GetUnbounded(sym) ;
-   IF unbounded#NulSym
-   THEN
-      p(unbounded)
-   END
+   oaf := GetOAFamily(sym) ;
+   unboundedp := p ;
+   ForeachOAFamily(oaf, WalkFamilyOfUnbounded)
 END WalkAssociatedUnbounded ;
 
 
@@ -2184,11 +2196,11 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
-(*
+   (*
+   AddSymToWatch(968) ;  (* watch goes here *)
    DebugSets ;
-   AddSymToWatch(1165) ;  (* watch goes here *)
-   DebugSets ;
-*)
+   *)
+
    (* IncludeElementIntoSet(WatchList, 92) ; *)
    (* AddSymToWatch(8) ; *)
    IF Debugging

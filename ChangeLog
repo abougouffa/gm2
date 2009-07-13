@@ -1,3 +1,65 @@
+2009-07-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  create O2, SO, SO_O2 directories
+	  for ISO libraries.  Use -ffunction-sections
+	  -fdata-sections when building libraries to aid
+	  building smaller binaries.
+	* gm2/gccgm2.c:  New function (StringLength).
+	* gm2/bnf/m2-2.bnf:  formal type altered so that
+	  multidimensional dynamic arrays are legal.
+	* gm2/bnf/m2-3.bnf:  formal type altered so that
+	  multidimensional dynamic arrays are legal.
+	* gm2/bnf/m2-h.bnf:  formal type altered so that
+	  multidimensional dynamic arrays are legal.
+	* gm2/bnf/m2.bnf:  formal type altered so that
+	  multidimensional dynamic arrays are legal.
+	* gm2/examples/hello/Makefile:  modified test
+	  build rules to build smaller binaries.
+	* gm2/gm2-compiler/Indexing.def:  corrected dates.
+	* gm2/gm2-compiler/Indexing.mod:  corrected dates.
+	* gm2/gm2-compiler/M2Base.mod:  corrected spelling
+	  typo.  Modified parameter checking to allow
+	  multidimensional dynamic arrays.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  walk
+	  multidimensional unbounded records.
+	* gm2/gm2-compiler/M2GenGCC.def:  GetHighFromUnbounded
+	  now takes two parameters.
+	* gm2/gm2-compiler/M2GenGCC.mod:  Added dimension parameter
+	  to FoldHigh, ResolveHigh, GetHighFromUnbounded.
+	  New procedures (BuildHighFromChar), (SkipToArray),
+	  (BuildHighFromArray), (BuildHighFromString).
+	* gm2/gm2-compiler/M2MetaError.mod:  fixed number
+	  description to handle 11th, 12th and 13th.
+	* gm2/gm2-compiler/M2Quads.def:  export PushTFA.
+	* gm2/gm2-compiler/M2Quads.mod:  New procedures (PushTFAD),
+	  (LegalUnboundedParam), (calculateMultipicand), (AssignHighField),
+	  (AssignHighFields), (OperandD), (IncOperandD).
+	  Ensure that HIGH, SIZE do not generate quadruples unless
+	  they are accessing unbounded arrays.  Alter parameter
+	  passing rules to allow multidimensional dynamic arrays.
+	  Move BuildHighFromString, BuildHighFromChar into M2GenGCC.mod.
+	* gm2/gm2-compiler/M2Range.def:  add dimension to array
+	  bounds testing.
+	* gm2/gm2-compiler/M2Range.mod:  incorporate the dimension
+	  into the runtime error message.
+	* gm2/gm2-compiler/P2SymBuild.mod:  add dimension to
+	  unbounded parameter declaration.
+	* gm2/gm2-compiler/SymbolTable.def:  New procedures
+	  (IsOAFamily), (GetDimension), (MakeOAFamily), (GetOAFamily),
+	  (ForeachOAFamily).  Add dimension parameter to
+	  GetUnbounded, GetUnboundedHighOffset, MakeUnbounded.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement above.
+	  Introduce OAFamily entity so that only one unbounded type
+	  is created for each subtype.  Too many changes to
+	  fully document here.
+	* gm2/gm2-compiler/gccgm2.def:  define procedure
+	  (StringLength).
+	* gm2/gm2-libs/MathLib0.def:  removed long and short
+	  declarations of intrinic functions.
+	* gm2/gm2-libs/LegacyReal.def:  new file.
+	* gm2/gm2-libs/LMathLib0.def:  new file.
+	* gm2/gm2-libs/SMathLib0.def:  new file.
+	
 2009-06-24       Michael Lambert <lambert@psc.edu>
 
 	* gm2/Make-lang.in:  set debugging flags to -g

@@ -73,7 +73,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildBinaryOp,
                  BuildUnaryOp,
                  RecordOp,
-                 PopTF, PushTF, PushTFA, PopT, PushT, PopNothing, PopN,
+                 PopTF, PushTF, PopT, PushT, PopNothing, PopN, PushTFA,
                  OperandT, OperandF, OperandA,
                  DisplayStack, WriteOperand,
 
@@ -130,9 +130,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
 
 TYPE
    QuadOperator = (BecomesOp, IndrXOp, XIndrOp, ArrayOp, ElementSizeOp,
-                   AddrOp,
-                   SizeOp,
-                   OffsetOp,
+                   AddrOp, SizeOp, OffsetOp,
                    IfEquOp, IfLessEquOp, IfGreEquOp, IfGreOp, IfLessOp,
                    IfNotEquOp, IfInOp, IfNotInOp,
                    CallOp, ParamOp, OptParamOp, ReturnOp, ReturnValueOp, FunctValueOp,
@@ -2002,8 +2000,9 @@ PROCEDURE PopN (n: CARDINAL) ;
 
 
 (*
-   PushTFA - Push True, False and Array numbers onto the True/False stack.
-             True and False are assumed to contain Symbols or Ident etc.
+   PushTFA - Push True, False, Array, numbers onto the
+             True/False stack.  True and False are assumed to
+             contain Symbols or Ident etc.
 *)
 
 PROCEDURE PushTFA (True, False, Array: WORD) ;

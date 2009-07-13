@@ -1291,7 +1291,7 @@ OptArg := "[" Ident ":" FormalType [ "=" ConstExpression                   % Bui
 DefOptArg := "[" Ident ":" FormalType "=" ConstExpression                  % BuildOptArgInitializer %
                                                           "]" =:
 
-FormalType := [ "ARRAY" "OF" ] Qualident =:
+FormalType := { "ARRAY" "OF" } Qualident =:
 
 ModuleDeclaration := "MODULE"                                              % PushAutoOn %
                      Ident                                                 % StartBuildInnerModule %

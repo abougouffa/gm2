@@ -35,11 +35,11 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         GetModuleFinallyFunction, PutModuleFinallyFunction,
                         GetLocalSym, GetVarWritten,
                         GetVarient, GetVarBackEndType,
-                        NoOfParam, GetParent,
+                        NoOfParam, GetParent, GetDimension,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
-                        IsVar, IsVarParam, IsTemporary,
+                        IsVar, IsVarParam, IsTemporary, IsEnumeration,
                         IsUnbounded, IsArray, IsSet,
                         IsProcedureVariable,
                         IsUnboundedParam,
@@ -74,7 +74,7 @@ FROM M2LexBuf IMPORT FindFileNameFromToken, TokenToLineNo ;
 FROM M2Code IMPORT CodeBlock ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Error IMPORT InternalError, WriteFormat0, WriteFormat1, WriteFormat2, ErrorStringAt, WarnStringAt ;
-FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2 ;
+FROM M2MetaError IMPORT MetaErrorT1, MetaErrorT2, MetaError1 ;
 
 FROM M2Options IMPORT DisplayQuadruples, UnboundedByReference, PedanticCast,
                       VerboseUnbounded, Iso, Pim ;
@@ -86,7 +86,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType,
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
                    True,
-                   Im, Re, Cmplx, GetCmplxReturnType,
+                   Im, Re, Cmplx, GetCmplxReturnType, GetBaseTypeMinMax,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
 FROM M2Bitset IMPORT Bitset ;
@@ -156,7 +156,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    BuildLogicalDifference,
                    BuildLogicalShift, BuildLogicalRotate,
                    BuildNegate, BuildAddr, BuildSize, BuildOffset, BuildOffset1,
-                   BuildGoto, DeclareLabel,
+                   BuildGoto, DeclareLabel, StringLength,
                    BuildLessThan, BuildGreaterThan,
                    BuildLessThanOrEqual, BuildGreaterThanOrEqual,
                    BuildEqualTo, BuildNotEqualTo,
@@ -394,7 +394,7 @@ PROCEDURE CodeInline (quad: CARDINAL; op1, op2, GnuAsm: CARDINAL); FORWARD ;
 PROCEDURE CodeOffset (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE FoldOffset (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeHigh (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
-PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
+PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL; op1, dim, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CodeUnbounded (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
 PROCEDURE CodeArray (quad: CARDINAL; res, index, array: CARDINAL) ; FORWARD ;
 PROCEDURE FoldElementSize (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -419,7 +419,7 @@ PROCEDURE FoldExcl (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, o
 PROCEDURE FoldIfIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldIfNotIn (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE FoldBuiltinConst (tokenno: CARDINAL; p: WalkAction; quad: CARDINAL;op1, op2, op3: CARDINAL) ; FORWARD ;
-PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE ResolveHigh (quad: CARDINAL; dim, operand: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE MakeCopyAndUse (proc, param, i: CARDINAL) ; FORWARD ;
 PROCEDURE FoldIfLess (tokenno: CARDINAL; p: WalkAction;
                       quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -1202,7 +1202,7 @@ END GetAddressOfUnbounded ;
                           param.HIGH.
 *)
 
-PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
+PROCEDURE GetHighFromUnbounded (dim, param: CARDINAL) : Tree ;
 VAR
    UnboundedType,
    ArrayType    : CARDINAL ;
@@ -1212,7 +1212,7 @@ BEGIN
    ArrayType := GetType(UnboundedType) ;
 
    RETURN( BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(param), FALSE),
-                                  BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType)), FALSE),
+                                  BuildOffset1(Mod2Gcc(GetUnboundedHighOffset(UnboundedType, dim)), FALSE),
                                   FALSE),
                          GetIntegerType()) )
 END GetHighFromUnbounded ;
@@ -1220,28 +1220,34 @@ END GetHighFromUnbounded ;
 
 (*
    GetSizeOfHighFromUnbounded - returns a Tree containing the value of
-                          param.HIGH * sizeof(unboundedType).
-                          The number of legal bytes this array
-                          occupies.
+                                param.HIGH * sizeof(unboundedType).
+                                The number of legal bytes this array
+                                occupies.
 *)
 
 PROCEDURE GetSizeOfHighFromUnbounded (param: CARDINAL) : Tree ;
 VAR
+   t            : Tree ;
    UnboundedType,
    ArrayType    : CARDINAL ;
+   i, n         : CARDINAL ;
 BEGIN
    UnboundedType := GetType(param) ;
    Assert(IsUnbounded(UnboundedType)) ;
    ArrayType := GetType(UnboundedType) ;
-   (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)
 
-   RETURN( BuildMult(BuildAdd(BuildAdd(GetHighFromUnbounded(param),
-                                       GetIntegerOne(),
-                                       FALSE),
-                              GetIntegerOne(),
-                              FALSE),
-                     FindSize(ArrayType),
-                     FALSE) )
+   i := 1 ;
+   n := GetDimension(UnboundedType) ;
+   t := GetIntegerZero() ;
+   WHILE i<=n DO
+      t := BuildAdd(BuildAdd(GetHighFromUnbounded(i, param),
+                             GetIntegerOne(),
+                             FALSE),
+                    t, FALSE) ;
+      (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)      
+      INC(i)
+   END ;
+   RETURN( BuildMult(t, FindSize(ArrayType), FALSE) )
 END GetSizeOfHighFromUnbounded ;
 
 
@@ -3145,12 +3151,12 @@ BEGIN
             BuildFunctValue(Mod2Gcc(op1))
          ELSIF GetMode(op3)=RightValue
          THEN
-            BuildParam(ResolveHigh(quad, op3)) ;
+            BuildParam(ResolveHigh(quad, 1, op3)) ;
             BuildParam(BuildAddr(Mod2Gcc(op3), FALSE)) ;
             t := BuildProcedureCallTree(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
          ELSE
-            BuildParam(ResolveHigh(quad, op3)) ;
+            BuildParam(ResolveHigh(quad, 1, op3)) ;
             BuildParam(Mod2Gcc(op3)) ;
             t := BuildProcedureCallTree(Mod2Gcc(op2), Mod2Gcc(GetType(op2))) ;
             BuildFunctValue(Mod2Gcc(op1))
@@ -4206,41 +4212,119 @@ END CodeOffset ;
 
 
 (*
-   ResolveHigh - given an Modula-2 operand, it resolves the HIGH(operand)
-                 and returns a GCC constant symbol containing the value of
-                 HIGH(operand).
+   BuildHighFromChar - 
 *)
 
-PROCEDURE ResolveHigh (quad: CARDINAL; operand: CARDINAL) : Tree ;
-VAR
-   Type    : CARDINAL ;
-   High,
-   Low     : CARDINAL ;
-   Subscript,
-   Subrange: CARDINAL ;
+PROCEDURE BuildHighFromChar (operand: CARDINAL) : Tree ;
 BEGIN
-   Type := SkipType(GetType(operand)) ;
-   IF Type=Char
-   THEN
-      RETURN( BuildSize(Mod2Gcc(Type), FALSE) )
+   RETURN( GetIntegerZero() )   
+END BuildHighFromChar ;
+
+
+(*
+   SkipToArray - 
+*)
+
+PROCEDURE SkipToArray (operand, dim: CARDINAL) : CARDINAL ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   WHILE dim>1 DO
+      type := SkipType(GetType(operand)) ;
+      IF IsArray(type)
+      THEN
+         operand := type
+      END ;
+      DEC(dim)
    END ;
-   IF ((NOT IsVar(operand)) AND (NOT IsConstString(operand)) AND
-       ((NOT IsConst(operand)) AND (GetType(operand)=Char))) OR
-      (IsVar(operand) AND (NOT IsArray(Type)))
-   THEN
-      MetaErrorT1(QuadToTokenNo(quad),
-                  'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1tad}',
-                  operand) ;
-      RETURN( GetIntegerZero() )
-   END ;
+   RETURN( operand )
+END SkipToArray ;
+
+
+(*
+   BuildHighFromArray - 
+*)
+
+PROCEDURE BuildHighFromArray (dim, operand: CARDINAL) : Tree ;
+VAR
+   Type,
+   High, Low: CARDINAL ;
+   Subscript,
+   Subrange : CARDINAL ;
+BEGIN
+   Type := SkipType(GetType(SkipToArray(operand, dim))) ;
    Subscript := GetArraySubscript(Type) ;
    Subrange := SkipType(GetType(Subscript)) ;
-   GetSubrange(Subrange, High, Low) ;
+   IF IsEnumeration(Subrange)
+   THEN
+      GetBaseTypeMinMax(Subrange, Low, High) ;
+      IF GccKnowsAbout(High)
+      THEN
+         RETURN( Tree(Mod2Gcc(High)) )
+      END
+   ELSIF IsSubrange(Subrange)
+   THEN
+      GetSubrange(Subrange, High, Low) ;
+      IF GccKnowsAbout(Low) AND GccKnowsAbout(High)
+      THEN
+         RETURN( BuildSub(Mod2Gcc(High), Mod2Gcc(Low), FALSE) )
+      END
+   ELSE
+      MetaError1('array subscript {%1Dad:for} must be a subrange or enumeration type', Type) ;
+      RETURN( Tree(NIL) )
+   END ;
    IF GccKnowsAbout(High)
    THEN
       RETURN( Tree(Mod2Gcc(High)) )
    ELSE
       RETURN( Tree(NIL) )
+   END
+END BuildHighFromArray ;
+
+
+(*
+   BuildHighFromString - 
+*)
+
+PROCEDURE BuildHighFromString (operand: CARDINAL) : Tree ;
+BEGIN
+   IF GccKnowsAbout(operand) AND (StringLength(Mod2Gcc(operand))>0)
+   THEN
+      RETURN( BuildIntegerConstant(StringLength(Mod2Gcc(operand))-1) )
+   ELSE
+      RETURN( GetIntegerZero() )
+   END
+END BuildHighFromString ;
+
+
+(*
+   ResolveHigh - given an Modula-2 operand, it resolves the HIGH(operand)
+                 and returns a GCC constant symbol containing the value of
+                 HIGH(operand).
+*)
+
+PROCEDURE ResolveHigh (quad: CARDINAL; dim, operand: CARDINAL) : Tree ;
+VAR
+   Type: CARDINAL ;
+BEGIN
+   Type := SkipType(GetType(operand)) ;
+   IF (Type=Char) AND (dim=1)
+   THEN
+      RETURN( BuildHighFromChar(operand) )
+   ELSIF IsConstString(operand) AND (dim=1)
+   THEN
+      RETURN( BuildHighFromString(operand) )
+   ELSIF IsArray(Type)
+   THEN
+      RETURN( BuildHighFromArray(dim, operand) )
+   ELSIF IsUnbounded(Type)
+   THEN
+      RETURN( GetHighFromUnbounded(dim, operand) )
+   ELSE
+      MetaErrorT1(QuadToTokenNo(quad),
+                  'base procedure HIGH expects a variable of type array or a constant string or CHAR as its parameter, rather than {%1tad}',
+                  operand) ;
+      RETURN( GetIntegerZero() )
    END
 END ResolveHigh ;
 
@@ -4252,7 +4336,7 @@ END ResolveHigh ;
 *)
 
 PROCEDURE FoldHigh (tokenno: CARDINAL; p: WalkAction;
-                    quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+                    quad: CARDINAL; op1, dim, op3: CARDINAL) ;
 VAR
    t       : Tree ;
    high,
@@ -4261,9 +4345,9 @@ VAR
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    TryDeclareConstant(tokenno, op3) ;
-   t := ResolveHigh(quad, op3) ;
    IF GccKnowsAbout(op3)
    THEN
+      t := ResolveHigh(quad, dim, op3) ;
       (* fine, we can take advantage of this and fold constants *)
       IF IsConst(op1) AND (t#Tree(NIL))
       THEN
@@ -4298,10 +4382,10 @@ BEGIN
       (* still have a constant which was not resolved, pass it to gcc *)
       ConstantKnownAndUsed(op1,
                            DeclareKnownConstant(GetM2ZType(),
-                                                ResolveHigh(quad, op3)))
+                                                ResolveHigh(quad, op2, op3)))
    ELSE
       t := BuildAssignmentTree(Mod2Gcc(op1),
-                               ResolveHigh(quad, op3))
+                               ResolveHigh(quad, op2, op3))
    END
 END CodeHigh ;
 

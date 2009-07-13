@@ -68,7 +68,7 @@ PROCEDURE ResolveConstantExpressions (p: WalkAction; start, end: CARDINAL) : BOO
                           param.HIGH.
 *)
 
-PROCEDURE GetHighFromUnbounded (param: CARDINAL) : Tree ;
+PROCEDURE GetHighFromUnbounded (dim, param: CARDINAL) : Tree ;
 
 
 (*

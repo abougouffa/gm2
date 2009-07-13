@@ -85,7 +85,7 @@ CONST
    *)
 
    UnboundedAddressName = "_m2_contents" ;
-   UnboundedHighName    = "_m2_high" ;
+   UnboundedHighName    = "_m2_high_%d" ;
 
 TYPE
    LRLists = ARRAY [RightValue..LeftValue] OF List ;
@@ -98,13 +98,19 @@ TYPE
                    RecordFieldSym, VarientFieldSym, EnumerationFieldSym,
                    DefImpSym, ModuleSym, SetSym, ProcedureSym, ProcTypeSym,
                    SubscriptSym, UnboundedSym, GnuAsmSym, InterfaceSym,
-                   ObjectSym, PartialUnboundedSym, TupleSym,
+                   ObjectSym, PartialUnboundedSym, TupleSym, OAFamilySym,
                    ErrorSym) ;
 
    Where = RECORD
               Declared,
               FirstUsed: CARDINAL ;
            END ;
+
+   SymOAFamily = RECORD
+                    MaxDimensions: CARDINAL ;
+                    SimpleType   : CARDINAL ;
+                    Dimensions   : Indexing.Index ;
+                 END ;
 
    SymTuple = RECORD
                  At    : Where ;
@@ -125,7 +131,7 @@ TYPE
    SymUndefined = RECORD
                      name      : Name ;       (* Index into name array, name *)
                                               (* of record.                  *)
-                     Unbounded : CARDINAL ;   (* The unbounded sym for this  *)
+                     oafamily  : CARDINAL ;   (* The oafamily for this sym   *)
                      At        : Where ;      (* Where was sym declared/used *)
                   END ;
 
@@ -170,7 +176,7 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
-                  Unbounded    : CARDINAL ;   (* The unbounded sym for this  *)
+                  oafamily     : CARDINAL ;   (* The oafamily for this sym   *)
                   Parent       : CARDINAL ;   (* Points to the parent symbol *)
                   Scope        : CARDINAL ;   (* Scope of declaration.       *)
                   At           : Where ;      (* Where was sym declared/used *)
@@ -184,7 +190,7 @@ TYPE
                     Size       : PtrToValue ; (* Size of subrange type.      *)
                     Type       : CARDINAL ;   (* Index to type symbol for    *)
                                               (* the type of subrange.       *)
-                    Unbounded  : CARDINAL ;   (* The unbounded sym for this  *)
+                    oafamily   : CARDINAL ;   (* The oafamily for this sym   *)
                     Scope      : CARDINAL ;   (* Scope of declaration.       *)
                     At         : Where ;      (* Where was sym declared/used *)
                  END ;
@@ -197,7 +203,7 @@ TYPE
                    LocalSymbols: SymbolTree ; (* Contains all enumeration    *)
                                               (* fields.                     *)
                    Size        : PtrToValue ; (* Size at runtime of symbol.  *)
-                   Unbounded   : CARDINAL ;   (* The unbounded sym for this  *)
+                   oafamily    : CARDINAL ;   (* The oafamily for this sym   *)
                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                 END ;
@@ -210,7 +216,7 @@ TYPE
                  Size        : PtrToValue ;   (* Size at runtime of symbol.  *)
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
-                 Unbounded   : CARDINAL ;     (* The unbounded sym for this  *)
+                 oafamily    : CARDINAL ;     (* The oafamily for this sym   *)
                  Scope       : CARDINAL ;     (* Scope of declaration.       *)
                  At          : Where ;        (* Where was sym declared/used *)
               END ;
@@ -236,12 +242,15 @@ TYPE
                                               (* passed to this type.        *)
                      RecordType : CARDINAL ;  (* Record type used to         *)
                                               (* implement the unbounded.    *)
+                     Dimensions : CARDINAL ;  (* No of dimensions this
+                                                 open array uses.            *)
                      Scope      : CARDINAL ;  (* Scope of declaration.       *)
                      At         : Where ;     (* Where was sym declared/used *)
                   END ;
 
    SymPartialUnbounded = RECORD
                             Type: CARDINAL ;  (* Index to Simple type symbol *)
+                            NDim: CARDINAL ;  (* dimensions associated       *)
                          END ;
 
    SymProcedure
@@ -325,7 +334,7 @@ TYPE
                Scope         : CARDINAL ;   (* Scope of declaration.         *)
                Size          : PtrToValue ; (* Runtime size of symbol.       *)
                TotalParamSize: PtrToValue ; (* size of all parameters.       *)
-               Unbounded     : CARDINAL ;   (* The unbounded sym for this    *)
+               oafamily      : CARDINAL ;   (* The oafamily for this sym     *)
                At            : Where ;      (* Where was sym declared/used   *)
             END ;
 
@@ -410,7 +419,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 IsHidden : BOOLEAN ;          (* Was it declared as hidden?  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
+                oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -421,7 +430,7 @@ TYPE
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
+                oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -480,7 +489,7 @@ TYPE
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
       	       	     	      	       	      (* (subrange or enumeration).  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
-                Unbounded: CARDINAL ;         (* The unbounded sym for this  *)
+                oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -648,6 +657,7 @@ TYPE
                CASE SymbolType : TypeOfSymbol OF
                                             (* Determines the type of symbol *)
 
+               OAFamilySym         : OAFamily         : SymOAFamily |
                ObjectSym           : Object           : SymObject |
                RecordSym           : Record           : SymRecord |
                VarientSym          : Varient          : SymVarient |
@@ -801,11 +811,16 @@ PROCEDURE UndeclaredSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE UnknownSymbolError (Sym: WORD) ; FORWARD ;
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ; FORWARD ;
-PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ; FORWARD ;
-PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL) ; FORWARD ;
+PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ; FORWARD ;
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ; FORWARD ;
 PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ; FORWARD ;
 PROCEDURE GetFromIndex (i: Indexing.Index; n: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE doFillInOAFamily (oaf: CARDINAL; i: CARDINAL; unbounded: CARDINAL) ; FORWARD ;
+PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ; FORWARD ;
+PROCEDURE PutIntoIndex (VAR i: Indexing.Index; n: CARDINAL; v: CARDINAL) ; FORWARD ;
+PROCEDURE Max (a, b: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE Min (a, b: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE PutOAFamily (SimpleType: CARDINAL; oaf: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -891,7 +906,7 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
-      IF FreeSymbol=645
+      IF (FreeSymbol=9832) OR (FreeSymbol=9260)
       THEN
          stop
       END ;
@@ -948,7 +963,7 @@ END IsPartialUnbounded ;
    PutPartialUnbounded -
 *)
 
-PROCEDURE PutPartialUnbounded (sym: CARDINAL; type: CARDINAL) ;
+PROCEDURE PutPartialUnbounded (sym: CARDINAL; type: CARDINAL; ndim: CARDINAL) ;
 BEGIN
    IF IsDummy(sym)
    THEN
@@ -957,7 +972,8 @@ BEGIN
    WITH Symbols[sym] DO
       CASE SymbolType OF
 
-      PartialUnboundedSym:  PartialUnbounded.Type := type
+      PartialUnboundedSym:  PartialUnbounded.Type := type ;
+                            PartialUnbounded.NDim := ndim
 
       ELSE
          InternalError('not expecting this type', __FILE__, __LINE__)
@@ -2959,7 +2975,7 @@ END HasExceptionFinally ;
 *)
 
 PROCEDURE FillInRecordFields (Sym: CARDINAL; RecordName: Name;
-                              scope: CARDINAL; unbounded: CARDINAL) ;
+                              scope: CARDINAL; oaf: CARDINAL) ;
 BEGIN
    IF NOT IsError(Sym)
    THEN
@@ -2970,7 +2986,7 @@ BEGIN
             InitTree(LocalSymbols) ;
             Size := InitValue() ;
             InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
-            Unbounded := unbounded ;
+            oafamily := oaf ;
             Parent := NulSym ;
             Scope := scope ;
             InitWhereDeclared(At)
@@ -2984,7 +3000,7 @@ END FillInRecordFields ;
    HandleHiddenOrDeclare - 
 *)
 
-PROCEDURE HandleHiddenOrDeclare (name: Name; VAR unbounded: CARDINAL) : CARDINAL ;
+PROCEDURE HandleHiddenOrDeclare (name: Name; VAR oaf: CARDINAL) : CARDINAL ;
 VAR
    sym: CARDINAL ;
 BEGIN
@@ -2998,7 +3014,7 @@ BEGIN
          AddSymToScope(sym, name)
       END
    END ;
-   unbounded := GetUnbounded(sym) ;
+   oaf := GetOAFamily(sym) ;
    RETURN( sym )
 END HandleHiddenOrDeclare ;
 
@@ -3009,12 +3025,11 @@ END HandleHiddenOrDeclare ;
 
 PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
 VAR
-   unbounded,
-   sym      : CARDINAL ;
+   oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(RecordName, unbounded) ;
-   FillInRecordFields(sym, RecordName, GetCurrentScope(), unbounded) ;
-   FillInUnboundedFields(unbounded, sym) ;
+   sym := HandleHiddenOrDeclare(RecordName, oaf) ;
+   FillInRecordFields(sym, RecordName, GetCurrentScope(), oaf) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeRecord ;
 
@@ -3090,14 +3105,13 @@ END GetRecord ;
 
 PROCEDURE MakeEnumeration (EnumerationName: Name) : CARDINAL ;
 VAR
-   sym,
-   unbounded: CARDINAL ;
+   sym, oaf: CARDINAL ;
 BEGIN
    sym := CheckForHiddenType(EnumerationName) ;
    IF sym=NulSym
    THEN
       sym := DeclareSym(EnumerationName) ;
-      unbounded := GetUnbounded(sym) ;
+      oaf := GetOAFamily(sym) ;
       IF NOT IsError(sym)
       THEN
          Symbols[sym].SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
@@ -3105,7 +3119,7 @@ BEGIN
          AddSymToScope(sym, EnumerationName)
       END
    ELSE
-      unbounded := GetUnbounded(sym)
+      oaf := GetOAFamily(sym)
    END ;
    IF NOT IsError(sym)
    THEN
@@ -3117,14 +3131,14 @@ BEGIN
                                            (* enumeration type.      *)
             Size := InitValue() ;          (* Size at runtime of sym *)
             InitTree(LocalSymbols) ;       (* Enumeration fields.    *)
-            Unbounded := unbounded ;       (* The unbounded for this *)
+            oafamily := oaf ;              (* The open array family  *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)          (* Declared here          *)
          END
       END ;
       CheckIfEnumerationExported(sym, ScopePtr)
    END ;
-   FillInUnboundedFields(unbounded, sym) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeEnumeration ;
 
@@ -3135,10 +3149,9 @@ END MakeEnumeration ;
 
 PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
 VAR
-   sym,
-   unbounded: CARDINAL ;
+   sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(TypeName, unbounded) ;
+   sym := HandleHiddenOrDeclare(TypeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -3149,13 +3162,13 @@ BEGIN
             Type := NulSym ;          (* Index to a type symbol.     *)
             IsHidden := FALSE ;       (* Was it declared as hidden?  *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
-            Unbounded := unbounded ;  (* The unbounded for this *)
+            oafamily := oaf ;         (* The open array family.      *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)     (* Declared here               *)
          END
       END
    END ;
-   FillInUnboundedFields(unbounded, sym) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeType ;
 
@@ -3192,7 +3205,7 @@ BEGIN
             THEN
                IncludeItemIntoList(AddressTypes, Sym)
             END ;
-            Size   := InitValue() ; (* Runtime size of symbol.     *)
+            Size := InitValue() ;   (* Runtime size of symbol.     *)
             InitWhereDeclared(At)   (* Declared here               *)
          END
       END ;
@@ -3766,10 +3779,9 @@ END PutConstructorFrom ;
 
 PROCEDURE MakeSubrange (SubrangeName: Name) : CARDINAL ;
 VAR
-   sym,
-   unbounded: CARDINAL ;
+   sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(SubrangeName, unbounded) ;
+   sym := HandleHiddenOrDeclare(SubrangeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -3789,13 +3801,13 @@ BEGIN
             Type := NulSym ;            (* Index to a type. Determines   *)
                                         (* the type of subrange.         *)
             Size := InitValue() ;       (* Size determines the type size *)
-            Unbounded := unbounded ;    (* The unbounded sym for this    *)
+            oafamily := oaf ;           (* The unbounded sym for this    *)
             Scope := GetCurrentScope() ;      (* Which scope created it  *)
             InitWhereDeclared(At)       (* Declared here                 *)
          END
       END
    END ;
-   FillInUnboundedFields(unbounded, sym) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeSubrange ;
 
@@ -3806,10 +3818,9 @@ END MakeSubrange ;
 
 PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
 VAR
-   sym,
-   unbounded: CARDINAL ;
+   sym, oaf: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(ArrayName, unbounded) ;
+   sym := HandleHiddenOrDeclare(ArrayName, oaf) ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -3820,13 +3831,13 @@ BEGIN
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
-            Unbounded := unbounded ;(* The unbounded for this array        *)
+            oafamily := oaf ;       (* The unbounded for this array        *)
             Scope := GetCurrentScope() ;        (* Which scope created it  *)
             InitWhereDeclared(At)   (* Declared here                       *)
          END
       END
    END ;
-   FillInUnboundedFields(unbounded, sym) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeArray ;
 
@@ -3916,6 +3927,7 @@ BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
+      OAFamilySym         : type := OAFamily.SimpleType |
       VarSym              : type := Var.Type |
       ConstLitSym         : type := ConstLit.Type |
       ConstVarSym         : type := ConstVar.Type |
@@ -7474,8 +7486,8 @@ BEGIN
    WITH Symbols[sym] DO
       SymbolType := UndefinedSym ;
       WITH Undefined DO
-         name := SymName ;
-         Unbounded := NulSym ;
+         name     := SymName ;
+         oafamily := NulSym ;
          InitWhereFirstUsed(At)
       END
    END
@@ -7488,7 +7500,7 @@ END FillInUnknownFields ;
 *)
 
 PROCEDURE FillInPointerFields (Sym: CARDINAL; PointerName: Name;
-                               scope: CARDINAL; unbounded: CARDINAL) ;
+                               scope: CARDINAL; oaf: CARDINAL) ;
 BEGIN
    IF NOT IsError(Sym)
    THEN
@@ -7498,7 +7510,7 @@ BEGIN
 
          PointerSym: Pointer.Type := NulSym ;
                      Pointer.name := PointerName ;
-                     Pointer.Unbounded := unbounded ;       (* The unbounded for this *)
+                     Pointer.oafamily := oaf ;       (* The unbounded for this *)
                      Pointer.Scope := scope ;               (* Which scope created it *)
                      Pointer.Size := InitValue()
 
@@ -7516,11 +7528,10 @@ END FillInPointerFields ;
 
 PROCEDURE MakePointer (PointerName: Name) : CARDINAL ;
 VAR
-   unbounded,
-   sym      : CARDINAL ;
+   oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(PointerName, unbounded) ;
-   FillInPointerFields(sym, PointerName, GetCurrentScope(), unbounded) ;
+   sym := HandleHiddenOrDeclare(PointerName, oaf) ;
+   FillInPointerFields(sym, PointerName, GetCurrentScope(), oaf) ;
    RETURN( sym )
 END MakePointer ;
 
@@ -7633,8 +7644,10 @@ BEGIN
       CASE SymbolType OF
 
       ErrorSym      : n := 0 |
+(*
       ArraySym      ,
       UnboundedSym  : n := 1 |   (* Standard language limitation *)
+*)
       EnumerationSym: n := Symbols[Sym].Enumeration.NoOfElements |
       InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
 
@@ -7741,10 +7754,9 @@ END PutSubscript ;
 
 PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
 VAR
-   unbounded,
-   sym      : CARDINAL ;
+   oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(SetName, unbounded) ;
+   sym := HandleHiddenOrDeclare(SetName, oaf) ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -7753,7 +7765,7 @@ BEGIN
             name := SetName ;          (* The name of the set.        *)
             Type := NulSym ;           (* Index to a subrange symbol. *)
             Size := InitValue() ;      (* Size of this set            *)
-            Unbounded := unbounded ;   (* The unbounded sym for this  *)
+            oafamily := oaf ;   (* The unbounded sym for this  *)
             Scope := GetCurrentScope() ;    (* Which scope created it *)
             InitWhereDeclared(At)      (* Declared here               *)
          END
@@ -7796,12 +7808,156 @@ END IsSet ;
 
 
 (*
+   IsOAFamily - returns TRUE if, Sym, is an OAFamily symbol.
+*)
+
+PROCEDURE IsOAFamily (Sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   CheckLegal(Sym) ;
+   RETURN( Symbols[Sym].SymbolType=OAFamilySym )
+END IsOAFamily ;
+
+
+(*
+   MakeOAFamily - makes an OAFamily symbol based on SimpleType.
+                  It returns the OAFamily symbol.  A new symbol
+                  is created if one does not already exist for
+                  SimpleType.
+*)
+
+PROCEDURE MakeOAFamily (SimpleType: CARDINAL) : CARDINAL ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   sym := GetOAFamily(SimpleType) ;
+   IF sym=NulSym
+   THEN
+      NewSym(sym) ;
+      WITH Symbols[sym] DO
+         SymbolType := OAFamilySym ;
+         OAFamily.MaxDimensions := 0 ;
+         OAFamily.SimpleType := SimpleType ;
+         OAFamily.Dimensions := Indexing.InitIndex(1)
+      END ;
+      PutOAFamily(SimpleType, sym)
+   END ;
+   RETURN( sym )
+END MakeOAFamily ;
+
+
+(*
+   GetOAFamily - returns the oafamily symbol associated with
+                 SimpleType.
+*)
+
+PROCEDURE GetOAFamily (SimpleType: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[SimpleType] DO
+      CASE SymbolType OF
+
+      ErrorSym      :  RETURN( NulSym ) |
+      RecordSym     :  RETURN( Record.oafamily ) |
+      SubrangeSym   :  RETURN( Subrange.oafamily ) |
+      EnumerationSym:  RETURN( Enumeration.oafamily ) |
+      ArraySym      :  RETURN( Array.oafamily ) |
+      ProcTypeSym   :  RETURN( ProcType.oafamily ) |
+      TypeSym       :  RETURN( Type.oafamily ) |
+      PointerSym    :  RETURN( Pointer.oafamily ) |
+      SetSym        :  RETURN( Set.oafamily ) |
+      UndefinedSym  :  RETURN( Undefined.oafamily )
+
+      ELSE
+         RETURN( NulSym )
+      END
+   END
+END GetOAFamily ;
+
+
+(*
+   PutOAFamily - places the, oaf, into, SimpleType, oafamily field.
+*)
+
+PROCEDURE PutOAFamily (SimpleType: CARDINAL; oaf: CARDINAL) ;
+BEGIN
+   WITH Symbols[SimpleType] DO
+      CASE SymbolType OF
+
+      ErrorSym      :  |
+      RecordSym     :  Record.oafamily := oaf |
+      SubrangeSym   :  Subrange.oafamily := oaf |
+      EnumerationSym:  Enumeration.oafamily := oaf |
+      ArraySym      :  Array.oafamily := oaf |
+      ProcTypeSym   :  ProcType.oafamily := oaf |
+      TypeSym       :  Type.oafamily := oaf |
+      PointerSym    :  Pointer.oafamily := oaf |
+      SetSym        :  Set.oafamily := oaf |
+      UndefinedSym  :  Undefined.oafamily := oaf
+
+      ELSE
+         InternalError('not expecting this SimpleType', __FILE__, __LINE__)
+      END
+   END
+END PutOAFamily ;
+
+
+(*
+   ForeachOAFamily - call, p[oaf, ndim, symbol] for every unbounded symbol,
+                     sym, in the oaf.
+*)
+
+PROCEDURE ForeachOAFamily (sym: CARDINAL; p: FamilyOperation) ;
+VAR
+   h, i: CARDINAL ;
+   pc  : POINTER TO CARDINAL ;
+BEGIN
+   IF sym#NulSym
+   THEN
+      WITH Symbols[sym] DO
+         CASE SymbolType OF
+
+         OAFamilySym:  h := Indexing.HighIndice(OAFamily.Dimensions) ;
+                       i := 1 ;
+                       WHILE i<=h DO
+                          pc := Indexing.GetIndice(OAFamily.Dimensions, i) ;
+                          IF pc#NIL
+                          THEN
+                             p(sym, i, pc^)
+                          END ;
+                          INC(i)
+                       END
+
+         ELSE
+            InternalError('expecting OAFamily symbol', __FILE__, __LINE__)
+         END
+      END
+   END
+END ForeachOAFamily ;
+
+
+(*
+   doFillInOAFamily - 
+*)
+
+PROCEDURE doFillInOAFamily (oaf: CARDINAL; i: CARDINAL; unbounded: CARDINAL) ;
+VAR
+   SimpleType: CARDINAL ;
+BEGIN
+   SimpleType := GetType(oaf) ;
+   IF unbounded#NulSym
+   THEN
+      FillInUnboundedFields(unbounded, SimpleType, i)
+   END
+END doFillInOAFamily ;
+
+
+(*
    FillInUnboundedFields - 
 *)
 
-PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL) ;
+PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
 VAR
    Contents: CARDINAL ;
+   i       : CARDINAL ;
 BEGIN
    IF sym#NulSym
    THEN
@@ -7820,9 +7976,14 @@ BEGIN
             PutFieldRecord(RecordType,
                            MakeKey(UnboundedAddressName),
                            Contents, NulSym) ;
-            PutFieldRecord(RecordType,
-                           MakeKey(UnboundedHighName),
-                           Cardinal, NulSym)
+            i := 1 ;
+            WHILE i<=ndim DO
+               PutFieldRecord(RecordType,
+                              makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)), i)))),
+                              Cardinal, NulSym) ;
+               INC(i)
+            END ;
+            Dimensions := ndim
          END
       END
    END
@@ -7831,24 +7992,34 @@ END FillInUnboundedFields ;
 
 (*
    MakeUnbounded - makes an unbounded array Symbol.
+                   ndim is the number of dimensions required.
                    No name is required.
 *)
 
-PROCEDURE MakeUnbounded (SimpleType: CARDINAL) : CARDINAL ;
+PROCEDURE MakeUnbounded (SimpleType: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 VAR
-   sym: CARDINAL ;
+   sym, oaf: CARDINAL ;
 BEGIN
-   sym := GetUnbounded(SimpleType) ;
+   oaf := MakeOAFamily(SimpleType) ;
+   sym := GetUnbounded(oaf, ndim) ;
+   IF (sym=9837) OR (sym=9266)
+   THEN
+      stop
+   END ;
    IF sym=NulSym
    THEN
       NewSym(sym) ;
+      IF (sym=9837) OR (sym=9266)
+      THEN
+         stop
+      END ;
       IF IsUnknown(SimpleType)
       THEN
-         PutPartialUnbounded(sym, SimpleType)
+         PutPartialUnbounded(sym, SimpleType, ndim)
       ELSE
-         FillInUnboundedFields(sym, SimpleType)
+         FillInUnboundedFields(sym, SimpleType, ndim)
       END ;
-      PutUnbounded(SimpleType, sym)
+      PutUnbounded(oaf, sym, ndim)
    END ;
    RETURN( sym )
 END MakeUnbounded ;
@@ -7856,56 +8027,48 @@ END MakeUnbounded ;
 
 (*
    GetUnbounded - returns the unbounded symbol associated with
-                  SimpleType.
+                  the OAFamily symbol, oaf, and the number of
+                  dimensions, ndim, of the open array.
 *)
 
-PROCEDURE GetUnbounded (SimpleType: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnbounded (oaf: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 BEGIN
-   WITH Symbols[SimpleType] DO
+   WITH Symbols[oaf] DO
       CASE SymbolType OF
 
-      ErrorSym      :  RETURN( NulSym ) |
-      RecordSym     :  RETURN( Record.Unbounded ) |
-      SubrangeSym   :  RETURN( Subrange.Unbounded ) |
-      EnumerationSym:  RETURN( Enumeration.Unbounded ) |
-      ArraySym      :  RETURN( Array.Unbounded ) |
-      ProcTypeSym   :  RETURN( ProcType.Unbounded ) |
-      TypeSym       :  RETURN( Type.Unbounded ) |
-      PointerSym    :  RETURN( Pointer.Unbounded ) |
-      SetSym        :  RETURN( Set.Unbounded ) |
-      UndefinedSym  :  RETURN( Undefined.Unbounded )
-
+      OAFamilySym:  WITH OAFamily DO
+                       IF ndim>MaxDimensions
+                       THEN
+                          RETURN( NulSym )
+                       ELSE
+                          RETURN( GetFromIndex(Dimensions, ndim) )
+                       END
+                    END
+                       
       ELSE
-         RETURN( NulSym )
+         InternalError('expecting OAFamily symbol', __FILE__, __LINE__)
       END
    END
 END GetUnbounded ;
 
 
 (*
-   PutUnbounded - associates the unbounded symbol, Sym, with
+   PutUnbounded - associates the unbounded symbol, open, with
                   SimpleType.
 *)
 
-PROCEDURE PutUnbounded (SimpleType: CARDINAL; Sym: CARDINAL) ;
+PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ;
 BEGIN
-   WITH Symbols[SimpleType] DO
+   WITH Symbols[oaf] DO
       CASE SymbolType OF
 
-      ErrorSym      :  RETURN |
-      RecordSym     :  Record.Unbounded := Sym |
-      SubrangeSym   :  Subrange.Unbounded := Sym |
-      EnumerationSym:  Enumeration.Unbounded := Sym |
-      ArraySym      :  Array.Unbounded := Sym |
-      ProcTypeSym   :  ProcType.Unbounded := Sym |
-      TypeSym       :  Type.Unbounded := Sym |
-      PointerSym    :  Pointer.Unbounded := Sym |
-      SetSym        :  Set.Unbounded := Sym |
-      UndefinedSym  :  Undefined.Unbounded := Sym
+      OAFamilySym:  WITH OAFamily DO
+                       PutIntoIndex(Dimensions, ndim, sym) ;
+                       MaxDimensions := Max(ndim, MaxDimensions)
+                    END
 
       ELSE
-         InternalError('cannot associate an unbounded type with this symbol',
-                       __FILE__, __LINE__)
+         InternalError('expecting OAFamily symbol', __FILE__, __LINE__)
       END
    END
 END PutUnbounded ;
@@ -7936,12 +8099,12 @@ END GetUnboundedRecordType ;
                                unbounded type.
 *)
 
-PROCEDURE GetUnboundedAddressOffset (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnboundedAddressOffset (sym: CARDINAL) : CARDINAL ;
 VAR
    field,
    rec  : CARDINAL ;
 BEGIN
-   rec := GetUnboundedRecordType(Sym) ;
+   rec := GetUnboundedRecordType(sym) ;
    IF rec=NulSym
    THEN
       InternalError('expecting record type to be declared', __FILE__, __LINE__)
@@ -7964,17 +8127,19 @@ END GetUnboundedAddressOffset ;
                             unbounded type.
 *)
 
-PROCEDURE GetUnboundedHighOffset (Sym: CARDINAL) : CARDINAL ;
+PROCEDURE GetUnboundedHighOffset (sym: CARDINAL; ndim: CARDINAL) : CARDINAL ;
 VAR
    field,
    rec  : CARDINAL ;
 BEGIN
-   rec := GetUnboundedRecordType(Sym) ;
+   rec := GetUnboundedRecordType(sym) ;
    IF rec=NulSym
    THEN
       InternalError('expecting record type to be declared', __FILE__, __LINE__)
    ELSE
-      field := GetLocalSym(rec, MakeKey(UnboundedHighName)) ;
+      field := GetLocalSym(rec,
+                           makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)),
+                                                        ndim))))) ;
       IF field=NulSym
       THEN
          InternalError('expecting high field to be present inside unbounded record',
@@ -7984,6 +8149,58 @@ BEGIN
       END
    END
 END GetUnboundedHighOffset ;
+
+
+(*
+   GetArrayDimension - returns the number of dimensions defined.
+*)
+
+PROCEDURE GetArrayDimension (sym: CARDINAL) : CARDINAL ;
+VAR
+   n: CARDINAL ;
+BEGIN
+   n := 0 ;
+   WHILE IsArray(sym) DO
+      sym := SkipType(GetType(sym)) ;
+      INC(n)
+   END ;
+   RETURN( n )
+END GetArrayDimension ;
+
+
+(*
+   GetDimension - return the number of dimensions associated with
+                  this unbounded ARRAY parameter.
+*)
+
+PROCEDURE GetDimension (sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      PartialUnboundedSym:  RETURN( PartialUnbounded.NDim ) |
+      UnboundedSym       :  RETURN( Unbounded.Dimensions ) |
+      OAFamilySym        :  RETURN( OAFamily.MaxDimensions ) |
+      ParamSym           :  IF Param.IsUnbounded
+                            THEN
+                               RETURN( GetDimension(GetType(sym)) )
+                            ELSE
+                               InternalError('expecting unbounded paramater', __FILE__, __LINE__)
+                            END |
+      VarParamSym        :  IF VarParam.IsUnbounded
+                            THEN
+                               RETURN( GetDimension(GetType(sym)) )
+                            ELSE
+                               InternalError('expecting unbounded paramater', __FILE__, __LINE__)
+                            END |
+      ArraySym           :  RETURN( GetArrayDimension(sym) )
+
+      ELSE
+         InternalError('expecting PartialUnbounded, Unbounded or OAFamily symbol',
+                       __FILE__, __LINE__)
+      END
+   END
+END GetDimension ;
 
 
 (*
@@ -8475,10 +8692,9 @@ END IsRecordField ;
 
 PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
 VAR
-   unbounded,
-   sym      : CARDINAL ;
+   oaf, sym: CARDINAL ;
 BEGIN
-   sym := HandleHiddenOrDeclare(ProcTypeName, unbounded) ;
+   sym := HandleHiddenOrDeclare(ProcTypeName, oaf) ;
    IF NOT IsError(sym)
    THEN
       WITH Symbols[sym] DO
@@ -8495,8 +8711,8 @@ BEGIN
                       ProcType.Scope := GetCurrentScope() ;
                                                          (* scope of procedure.           *)
                       ProcType.Size := InitValue() ;
-                      ProcType.TotalParamSize := InitValue() ;  (* size of all parameters.       *)
-                      ProcType.Unbounded := unbounded ;  (* The unbounded for this *)
+                      ProcType.TotalParamSize := InitValue() ;  (* size of all parameters *)
+                      ProcType.oafamily := oaf ;         (* The oa family for this symbol *)
                       InitWhereDeclared(ProcType.At)     (* Declared here *)
 
          ELSE

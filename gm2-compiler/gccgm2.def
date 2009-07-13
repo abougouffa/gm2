@@ -132,7 +132,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  DetermineSign, CompareTrees,
                  GetBooleanType, GetBooleanFalse, GetBooleanTrue,
                  ConvertConstantAndCheck, ConvertString,
-                 DetermineSizeOfConstant,
+                 DetermineSizeOfConstant, StringLength,
                  ToWord,
                  AddStatement, GetTreeType,
                  BuildTryCatch, BuildThrow,
@@ -619,6 +619,14 @@ PROCEDURE ConvertString (type: Tree; expr: Tree) : Tree ;
 
 PROCEDURE DetermineSizeOfConstant (str: ADDRESS; base: INTEGER;
                                    VAR needsLong, needsUnsigned: INTEGER) ;
+
+(*
+   StringLength - returns an unsigned int which is the length
+                  of, string.
+*)
+
+PROCEDURE StringLength (string: Tree) : CARDINAL ;
+
 
 (*
    ToWord - converts an expression (Integer or Ordinal type) into

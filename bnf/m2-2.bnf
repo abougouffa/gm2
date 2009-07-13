@@ -1067,10 +1067,14 @@ NonVarFPSection :=                                                         % VAR
                                                                            % BuildFPSection %
                 =:
 
-FormalType := "ARRAY" "OF"                                                 % PushT(ArrayTok) %
-               Qualident
-              |                                                            % VAR Sym, Type: CARDINAL ; %
-                  Qualident
+FormalType := "ARRAY" "OF"                                                 % VAR n: CARDINAL ; %
+                                                                           % PushTF(ArrayTok, 1) %
+                           { "ARRAY" "OF"                                  % PopTF(ArrayTok, n) %
+                                                                           % INC(n) %
+                                                                           % PushTF(ArrayTok, n) %
+                                          } Qualident
+                                                      |                    % VAR Sym, Type: CARDINAL ; %
+                                                        Qualident
                                                                            % PopTF(Sym, Type) ;
                                                                              PushT(NulTok) ;
                                                                              PushTF(Sym, Type) %

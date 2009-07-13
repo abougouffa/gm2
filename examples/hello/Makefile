@@ -18,9 +18,13 @@
 all: force
 	gm2 -c -g -I. hello.mod
 	gm2 -g -I. hello.mod
+	size a.out
+	gm2 -c -g -I. -ffunction-sections -fdata-sections  hello.mod -fno-exceptions
+	gm2  -g -I. -ffunction-sections -fdata-sections  hello.mod -Wl,--gc-sections -fno-exceptions
+	size a.out
 
 clean:
-	$(RM) *.o a.out a.exe
+	$(RM) *.o a.out a.exe *.cpp
 
 force:
 
