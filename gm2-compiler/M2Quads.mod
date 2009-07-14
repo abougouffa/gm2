@@ -4215,6 +4215,7 @@ VAR
 BEGIN
    ActualType := SkipType(ActualType) ;
    FormalType := SkipType(GetType(Formal)) ;
+   FormalType := GetType(FormalType) ;   (* type of the unbounded ARRAY *)
    IF IsArray(ActualType)
    THEN
       m := GetDimension(Formal) ;
@@ -4253,7 +4254,6 @@ BEGIN
          END
       END
    END ;
-   FormalType := GetType(FormalType) ;   (* type of the unbounded ARRAY *)
    IF ((FormalType=Word) OR (ActualType=Word)) OR
       ((FormalType=Byte) OR (ActualType=Byte)) OR
       ((FormalType=Loc)  OR (ActualType=Loc))  OR
@@ -5056,7 +5056,7 @@ BEGIN
    ELSIF IsVar(Sym)
    THEN
       Type := GetType(Sym) ;
-      IF IsUnbounded(Type)
+      IF IsUnbounded(Type) AND (Type=GetType(UnboundedSym))
       THEN
          (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
          PushT(UnboundedSym) ;
@@ -5154,10 +5154,7 @@ BEGIN
           *  remember SIZE doubles as
           *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
           *)
-         PushTF(Size, Cardinal) ;
-         PushT(ArraySym) ;
-         PushT(1) ;                (* 1 parameter for SIZE()       *)
-         BuildFunctionCall ;
+         PushTF(calculateMultipicand(ArraySym, ArrayType, n-1), Cardinal) ;
          PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;

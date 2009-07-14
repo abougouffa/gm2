@@ -8193,7 +8193,9 @@ BEGIN
                             ELSE
                                InternalError('expecting unbounded paramater', __FILE__, __LINE__)
                             END |
-      ArraySym           :  RETURN( GetArrayDimension(sym) )
+      ArraySym           :  RETURN( GetArrayDimension(sym) ) |
+      TypeSym            :  RETURN( GetDimension(GetType(sym)) ) |
+      VarSym             :  RETURN( GetDimension(GetType(sym)) )
 
       ELSE
          InternalError('expecting PartialUnbounded, Unbounded or OAFamily symbol',
