@@ -355,8 +355,8 @@ PROCEDURE AlterReference (Head, OldQuad, NewQuad: CARDINAL) ; FORWARD ;
 PROCEDURE RemoveReference (q: CARDINAL) ; FORWARD ;
 PROCEDURE ManipulateReference (q: CARDINAL; to: CARDINAL) ; FORWARD ;
 PROCEDURE AreConstant (b: BOOLEAN) : ModeOfAddr ; FORWARD ;
-PROCEDURE AssignUnboundedNonVar (Sym, UnboundedSym, ParamType: CARDINAL) ; FORWARD ;
-PROCEDURE AssignUnboundedVar (Sym, UnboundedSym, ParamType: CARDINAL) ; FORWARD ;
+PROCEDURE AssignUnboundedNonVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
+PROCEDURE AssignUnboundedVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
 PROCEDURE BackPatch (QuadNo, Value: CARDINAL) ; FORWARD ;
 PROCEDURE BuildAccessWithField ; FORWARD ;
 PROCEDURE BuildAdrFunction ; FORWARD ;
@@ -410,8 +410,8 @@ PROCEDURE PopWith ; FORWARD ;
 PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
 PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
 PROCEDURE PushWith (Sym, Type: CARDINAL) ; FORWARD ;
-PROCEDURE UnboundedNonVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ; FORWARD ;
-PROCEDURE UnboundedVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ; FORWARD ;
+PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
+PROCEDURE UnboundedVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
 PROCEDURE WriteMode (Mode: ModeOfAddr) ; FORWARD ;
 PROCEDURE WriteOperand (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE WriteOperator (Operator: QuadOperator) ; FORWARD ;
@@ -4898,6 +4898,7 @@ VAR
    np           : CARDINAL ;
    n            : Name ;
    s            : String ;
+   ArraySym,
    UnboundedType,
    ParamType,
    NoOfParameters,
@@ -4995,13 +4996,19 @@ BEGIN
          UnboundedType := GetType(GetParam(Proc, i)) ;
          PutVar(t, UnboundedType) ;
          ParamType := GetType(UnboundedType) ;
+         IF OperandD(pi)=0
+         THEN
+            ArraySym := OperandT(pi)
+         ELSE
+            ArraySym := OperandA(pi)
+         END ;
          IF IsVarParam(Proc, i)
          THEN
             MarkArrayWritten(OperandT(pi)) ;
             MarkArrayWritten(OperandA(pi)) ;
-            AssignUnboundedVar(OperandT(pi), t, ParamType)
+            AssignUnboundedVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          ELSE
-            AssignUnboundedNonVar(OperandT(pi), t, ParamType)
+            AssignUnboundedNonVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          END ;
          f^.TrueExit := t
       ELSIF IsVarParam(Proc, i)
@@ -5044,34 +5051,38 @@ END ManipulateParameters ;
                         ParamType is the TYPE of the paramater
 *)
 
-PROCEDURE AssignUnboundedVar (Sym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE AssignUnboundedVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
    Type: CARDINAL ;
-   n   : Name ;
 BEGIN
    IF IsConst(Sym)
    THEN
-      n := GetSymName(Sym) ;
-      WriteFormat1('cannot pass constant %a as a VAR parameter', n)
+      MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
    ELSIF IsVar(Sym)
    THEN
       Type := GetType(Sym) ;
-      IF IsUnbounded(Type) AND (Type=GetType(UnboundedSym))
+      IF IsUnbounded(Type)
       THEN
-         (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
-         PushT(UnboundedSym) ;
-         PushT(Sym) ;
-         BuildAssignmentWithoutBounds(FALSE)
-      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
+         IF Type=GetType(UnboundedSym)
+         THEN
+            (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
+            PushT(UnboundedSym) ;
+            PushT(Sym) ;
+            BuildAssignmentWithoutBounds(FALSE)
+         ELSIF IsGenericSystemType(ParamType)
+         THEN
+            UnboundedVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)            
+         ELSE
+            MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
+         END
+      ELSIF IsArray(Type) OR IsGenericSystemType(ParamType)
       THEN
-         UnboundedVarLinkToArray(Sym, UnboundedSym, ParamType)
+         UnboundedVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
       ELSE
-         n := GetSymName(Sym) ;
-         WriteFormat1('illegal type parameter %a: expecting Array or Dynamic Array', n) ;
+         MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
       END
    ELSE
-      n := GetSymName(Sym) ;
-      WriteFormat1('illegal parameter %a which cannot be passed as: VAR ARRAY OF Type', n)
+      MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
    END
 END AssignUnboundedVar ;
 
@@ -5093,7 +5104,7 @@ END AssignUnboundedVar ;
                            ParamType is the TYPE of the paramater
 *)
 
-PROCEDURE AssignUnboundedNonVar (Sym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE AssignUnboundedNonVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
    n           : Name ;
    Field,
@@ -5102,16 +5113,16 @@ VAR
 BEGIN
    IF IsConst(Sym)  (* was IsConstString(Sym) *)
    THEN
-      UnboundedNonVarLinkToArray(Sym, UnboundedSym, ParamType)
+      UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
    ELSIF IsVar(Sym)
    THEN
       Type := GetType(Sym) ;
       IF IsUnbounded(Type)
       THEN
-         UnboundedNonVarLinkToArray(Sym, UnboundedSym, ParamType)
-      ELSIF IsArray(Type) OR (ParamType=Word) OR (ParamType=Byte) OR (ParamType=Loc)
+         UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
+      ELSIF IsArray(Type) OR IsGenericSystemType(ParamType)
       THEN
-         UnboundedNonVarLinkToArray(Sym, UnboundedSym, ParamType)
+         UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
       ELSE
          n := GetSymName(Sym) ;
          WriteFormat1('illegal type parameter %a: expecting Array or Dynamic Array', n)
@@ -5124,10 +5135,36 @@ END AssignUnboundedNonVar ;
 
 
 (*
+   GenHigh - generates a HighOp but it checks if op3 is a
+             L value and if so it dereferences it.  This
+             is inefficient, however it is clean and we let the gcc
+             backend detect these as common subexpressions.
+             It will also detect that a R value -> L value -> R value
+             via indirection and eleminate these.
+*)
+
+PROCEDURE GenHigh (op1, op2, op3: CARDINAL) ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   IF (GetMode(op3)=LeftValue) AND IsUnbounded(GetType(op3))
+   THEN
+      sym := MakeTemporary(RightValue) ;
+      PutVar(sym, GetType(op3)) ;
+      GenQuad(IndrXOp, sym, GetType(sym), op3) ;
+      GenQuad(HighOp, op1, op2, sym)
+   ELSE
+      GenQuad(HighOp, op1, op2, op3)
+   END
+END GenHigh ;
+
+
+(*
    AssignHighField - 
 *)
 
-PROCEDURE AssignHighField (ArraySym, UnboundedSym, ParamType: CARDINAL; n: CARDINAL) ;
+PROCEDURE AssignHighField (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL;
+                           actuali, formali: CARDINAL) ;
 VAR
    ReturnVar,
    ArrayType,
@@ -5135,13 +5172,13 @@ VAR
 BEGIN
    (* Unbounded.ArrayHigh := HIGH(ArraySym) *)
    PushTF(UnboundedSym, GetType(UnboundedSym)) ;
-   Field := GetUnboundedHighOffset(GetType(UnboundedSym), n) ;
+   Field := GetUnboundedHighOffset(GetType(UnboundedSym), formali) ;
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
-   IF (ParamType=Byte) OR (ParamType=Word) OR (ParamType=Loc)
+   IF IsGenericSystemType(ParamType)
    THEN
-      ArrayType := GetType(ArraySym) ;
+      ArrayType := GetType(Sym) ;
       IF IsUnbounded(ArrayType)
       THEN
          (*
@@ -5154,7 +5191,13 @@ BEGIN
           *  remember SIZE doubles as
           *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
           *)
-         PushTF(calculateMultipicand(ArraySym, ArrayType, n-1), Cardinal) ;
+(*
+         PushTF(Size, Cardinal) ;
+         PushTFAD(ArraySym, ArrayType, ArraySym, actuali-1) ;
+         PushT(1) ;
+         BuildFunctionCall ;
+*)
+         PushTF(calculateMultipicand(ArraySym, ArrayType, actuali-1), Cardinal) ;
          PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
          PushT(ParamType) ;
@@ -5181,7 +5224,7 @@ BEGIN
    ELSE
       ReturnVar := MakeTemporary(RightValue) ;
       PutVar(ReturnVar, Cardinal) ;
-      GenQuad(HighOp, ReturnVar, n, ArraySym) ;
+      GenHigh(ReturnVar, formali, Sym) ;
       PushTF(ReturnVar, GetType(ReturnVar))
    END ;
    BuildAssignmentWithoutBounds(FALSE)
@@ -5192,24 +5235,27 @@ END AssignHighField ;
    AssignHighFields - 
 *)
 
-PROCEDURE AssignHighFields (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE AssignHighFields (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
-   type   : CARDINAL ;
-   i, m, n: CARDINAL ;
+   type            : CARDINAL ;
+   actuali, formali,
+   actualn, formaln: CARDINAL ;
 BEGIN
-   type := SkipType(GetType(ArraySym)) ;
-   m := 1 ;
+   type := SkipType(GetType(Sym)) ;
+   actualn := 1 ;
    IF (type#NulSym) AND (IsUnbounded(type) OR IsArray(type))
    THEN
-      m := GetDimension(type)
+      actualn := GetDimension(type)
    END ;
-   i := 1 ;
-   n := GetDimension(SkipType(GetType(UnboundedSym))) ;
-   WHILE (i<m) AND (i<n) DO
-      AssignHighField(ArraySym, UnboundedSym, NulSym, i) ;
-      INC(i)
+   actuali := dim+1 ;
+   formali := 1 ;
+   formaln := GetDimension(SkipType(GetType(UnboundedSym))) ;
+   WHILE (actuali<actualn) AND (formali<formaln) DO
+      AssignHighField(Sym, ArraySym, UnboundedSym, NulSym, actuali, formali) ;
+      INC(actuali) ;
+      INC(formali)
    END ;
-   AssignHighField(ArraySym, UnboundedSym, ParamType, i)
+   AssignHighField(Sym, ArraySym, UnboundedSym, ParamType, actuali, formali)
 END AssignHighFields ;
 
 
@@ -5219,7 +5265,7 @@ END AssignHighFields ;
                                 NON VAR variety.
 *)
 
-PROCEDURE UnboundedNonVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
    ArrayType,
    t, f,
@@ -5237,9 +5283,9 @@ BEGIN
    PopT(AddressField) ;
 
    (* caller saves non var unbounded array contents *)
-   GenQuad(UnboundedOp, AddressField, NulSym, ArraySym) ;
+   GenQuad(UnboundedOp, AddressField, NulSym, Sym) ;
 
-   AssignHighFields(ArraySym, UnboundedSym, ParamType)
+   AssignHighFields(Sym, ArraySym, UnboundedSym, ParamType, dim)
 END UnboundedNonVarLinkToArray ;
 
 
@@ -5248,7 +5294,7 @@ END UnboundedNonVarLinkToArray ;
                              UnboundedSym. The parameter is a VAR variety.
 *)
 
-PROCEDURE UnboundedVarLinkToArray (ArraySym, UnboundedSym, ParamType: CARDINAL) ;
+PROCEDURE UnboundedVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
 VAR
    ArrayType,
    Field    : CARDINAL ;
@@ -5259,13 +5305,13 @@ BEGIN
    PushTF(Field, GetType(Field)) ;
    PushT(1) ;
    BuildDesignatorRecord ;
-   PushTF(Adr, Address) ;   (* ADR(ArraySym)                *)
-   PushT(ArraySym) ;
+   PushTF(Adr, Address) ;   (* ADR(Sym)                     *)
+   PushT(Sym) ;
    PushT(1) ;               (* 1 parameter for ADR()        *)
    BuildFunctionCall ;
    BuildAssignmentWithoutBounds(FALSE) ;
 
-   AssignHighFields(ArraySym, UnboundedSym, ParamType)
+   AssignHighFields(Sym, ArraySym, UnboundedSym, ParamType, dim)
 END UnboundedVarLinkToArray ;
 
 
@@ -6685,7 +6731,7 @@ BEGIN
    ReturnVar := MakeTemporary(ImmediateValue) ;
    Dim := OperandD(1) ;
    INC(Dim) ;
-   GenQuad(HighOp, ReturnVar, Dim, OperandT(1)) ;
+   GenHigh(ReturnVar, Dim, OperandT(1)) ;
    PopN(NoOfParam+1) ;
    PushT(ReturnVar)
 END BuildConstHighFromSym ;
@@ -6725,9 +6771,9 @@ BEGIN
    INC(Dim) ;
    IF Dim>1
    THEN
-      GenQuad(HighOp, ReturnVar, Dim, OperandA(1))
+      GenHigh(ReturnVar, Dim, OperandA(1))
    ELSE
-      GenQuad(HighOp, ReturnVar, Dim, OperandT(1))
+      GenHigh(ReturnVar, Dim, OperandT(1))
    END ;
    PopN(2) ;
    PushTF(ReturnVar, GetType(ReturnVar))
@@ -9269,13 +9315,14 @@ BEGIN
       ti := MakeTemporary(ImmediateValue) ;
       GenQuad(ElementSizeOp, ti, arrayType, 1)
    ELSE
+      INC(dim) ;
       tk := MakeTemporary(RightValue) ;
       PutVar(tk, Cardinal) ;
-      GenQuad(HighOp, tk, dim+1, arraySym) ;
+      GenHigh(tk, dim, arraySym) ;
       tl := MakeTemporary(RightValue) ;
       PutVar(tl, Cardinal) ;
       GenQuad(AddOp, tl, tk, MakeConstLit(MakeKey('1'))) ;
-      tj := calculateMultipicand(arraySym, arrayType, dim+1) ;
+      tj := calculateMultipicand(arraySym, arrayType, dim) ;
       ti := MakeTemporary(RightValue) ;
       PutVar(ti, Cardinal) ;
       GenQuad(MultOp, ti, tj, tl)
@@ -9294,10 +9341,10 @@ END calculateMultipicand ;
 
                Ptr ->
                        +-----------------------+
-                       | Index                 |                         <- Ptr
-                       |-----------------------|      +----------------+
-                       | ArraySym | Type | Dim |      | S  | T | Dim+1 |
-                       |-----------------------|      |----------------|
+                       | Index                 |                                    <- Ptr
+                       |-----------------------|      +---------------------------+
+                       | ArraySym | Type | Dim |      | S  | T | ArraySym | Dim+1 |
+                       |-----------------------|      |---------------------------|
 
 
    if Dim=1

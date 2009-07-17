@@ -1,3 +1,17 @@
+2009-07-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (AssignUnboundedNonVar),
+	  (AssignUnboundedVar), (UnboundedNonVarLinkToArray),
+	  (UnboundedVarLinkToArray) add extra parameter
+	  indicating array symbol being indexed.  Used additional
+	  parameter to resolve high values on unbounded arrays given
+	  a particular dimension.
+	  Can now pass a two dimensional unbounded array to an ARRAY
+	  OF BYTE and also can index the first dimension and pass the
+	  designator as an ARRAY OF BYTE.
+	  See testsuite/gm2/iso/run/pass/unbounded8.mod which now works.
+	  Refactored tests against BYTE, WORD, LOC with IsGenericSystemType.
+
 2009-07-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  AssignHighField
@@ -64,7 +78,7 @@
 	* gm2/gm2-compiler/gccgm2.def:  define procedure
 	  (StringLength).
 	* gm2/gm2-libs/MathLib0.def:  removed long and short
-	  declarations of intrinic functions.
+	  declarations of intrinsic functions.
 	* gm2/gm2-libs/LegacyReal.def:  new file.
 	* gm2/gm2-libs/LMathLib0.def:  new file.
 	* gm2/gm2-libs/SMathLib0.def:  new file.
