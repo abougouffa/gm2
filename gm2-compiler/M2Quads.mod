@@ -183,6 +183,8 @@ FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PushWord, PopWord, PeepWord,
                         IsEmptyWord, NoOfItemsInStackWord ;
 
+FROM Indexing IMPORT Index, InitIndex, GetIndice, PutIndice, InBounds ;
+
 FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitSubrangeRangeCheck,
                     InitStaticArraySubscriptRangeCheck,
@@ -209,8 +211,7 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                  
 
 CONST
-   MaxQuad        = 100000 ;
-   DebugStack     =  FALSE ;
+   DebugStack = FALSE ;
 
 TYPE
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
@@ -222,8 +223,8 @@ TYPE
                              Dimension: CARDINAL ;
                           END ;
 
-(* QuadFrame = POINTER TO quadFrame ; *)
-   QuadFrame =            RECORD
+   QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
+   quadFrame =            RECORD
                              Operator           : QuadOperator ;
                              Operand1           : CARDINAL ;
                              Operand2           : CARDINAL ;
@@ -235,7 +236,7 @@ TYPE
                              NeedWarnings       : BOOLEAN ;      (* should backend disable warning *)
                           END ;
 
-   WithFrame = POINTER TO withFrame ;
+   WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
    withFrame =            RECORD
                              PtrSym   : CARDINAL ;
                              RecordSym: CARDINAL ;
@@ -248,7 +249,7 @@ TYPE
                     ForLoopIndex  : List ;                       (* variables are not abused       *)
                  END ;
 
-   LineNote  = POINTER TO lineFrame ;
+   LineNote  = POINTER TO lineFrame ;  (* again we help p2c *)
    lineFrame =            RECORD
                              Line: CARDINAL ;
                              File: Name ;
@@ -266,8 +267,7 @@ VAR
    ReturnStack          : StackOfWord ;   (* Return quadruple of the procedure.      *)
    PriorityStack        : StackOfWord ;   (* temporary variable holding old priority *)
    SuppressWith         : BOOLEAN ;
-
-   Quads                : ARRAY [1..MaxQuad] OF QuadFrame ;
+   QuadArray            : Index ;
    NextQuad             : CARDINAL ;  (* Next quadruple number to be created.    *)
    FreeList             : CARDINAL ;  (* FreeList of quadruples.                 *)
    CurrentProc          : CARDINAL ;  (* Current procedure being compiled, used  *)
@@ -500,6 +500,16 @@ END SetOptionOptimizing ;
 
 
 (*
+   GetQF - returns the QuadFrame associated with, q.
+*)
+
+PROCEDURE GetQF (q: CARDINAL) : QuadFrame ;
+BEGIN
+   RETURN( GetIndice(QuadArray, q) )
+END GetQF ;
+
+
+(*
    Opposite - returns the opposite comparison operator.
 *)
 
@@ -531,9 +541,10 @@ END Opposite ;
 
 PROCEDURE IsReferenced (QuadNo: CARDINAL) : BOOLEAN ;
 VAR
-   i: CARDINAL ;
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       RETURN( (Operator=ProcedureScopeOp) OR (Operator=NewLocalVarOp) OR
               (NoOfTimesReferenced>0) )
    END
@@ -590,8 +601,11 @@ END IsBackReference ;
 *)
 
 PROCEDURE IsUnConditional (QuadNo: CARDINAL) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       CASE Operator OF
 
       ThrowOp,
@@ -612,8 +626,11 @@ END IsUnConditional ;
 *)
 
 PROCEDURE IsConditional (QuadNo: CARDINAL) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       CASE Operator OF
 
       IfInOp,
@@ -685,8 +702,11 @@ END IsBackReferenceConditional ;
 *)
 
 PROCEDURE IsQuadA (QuadNo: CARDINAL; op: QuadOperator) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       RETURN( Operator=op )
    END
 END IsQuadA ;
@@ -808,6 +828,7 @@ END IsFinallyEnd ;
 
 PROCEDURE IsOptimizeOn (QuadNo: CARDINAL) : BOOLEAN ;
 VAR
+   f : QuadFrame ;
    n,
    q : CARDINAL ;
    On: BOOLEAN ;
@@ -815,7 +836,8 @@ BEGIN
    On := Optimizing ;
    q := Head ;
    WHILE (q#0) AND (q#QuadNo) DO
-      WITH Quads[q] DO
+      f := GetQF(q) ;
+      WITH f^ DO
          IF Operator=OptimizeOnOp
          THEN
             On := TRUE
@@ -837,6 +859,7 @@ END IsOptimizeOn ;
 
 PROCEDURE IsProfileOn (QuadNo: CARDINAL) : BOOLEAN ;
 VAR
+   f : QuadFrame ;
    n,
    q : CARDINAL ;
    On: BOOLEAN ;
@@ -844,7 +867,8 @@ BEGIN
    On := Profiling ;
    q := Head ;
    WHILE (q#0) AND (q#QuadNo) DO
-      WITH Quads[q] DO
+      f := GetQF(q) ;
+      WITH f^ DO
          IF Operator=ProfileOnOp
          THEN
             On := TRUE
@@ -866,6 +890,7 @@ END IsProfileOn ;
 
 PROCEDURE IsCodeOn (QuadNo: CARDINAL) : BOOLEAN ;
 VAR
+   f : QuadFrame ;
    n,
    q : CARDINAL ;
    On: BOOLEAN ;
@@ -873,7 +898,8 @@ BEGIN
    On := Coding ;
    q := Head ;
    WHILE (q#0) AND (q#QuadNo) DO
-      WITH Quads[q] DO
+      f := GetQF(q) ;
+      WITH f^ DO
          IF Operator=CodeOnOp
          THEN
             On := TRUE
@@ -895,8 +921,11 @@ END IsCodeOn ;
 *)
 
 PROCEDURE IsDefOrModFile (QuadNo: CARDINAL) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       RETURN( (Operator=StartDefFileOp) OR (Operator=StartModFileOp) )
    END
 END IsDefOrModFile ;
@@ -909,8 +938,11 @@ END IsDefOrModFile ;
 *)
 
 PROCEDURE IsPseudoQuad (QuadNo: CARDINAL) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       RETURN( (Operator=CodeOnOp) OR (Operator=CodeOffOp) OR
               (Operator=ProfileOnOp) OR (Operator=ProfileOffOp) OR
               (Operator=OptimizeOnOp) OR (Operator=OptimizeOffOp) OR
@@ -928,14 +960,15 @@ END IsPseudoQuad ;
 
 PROCEDURE GetLastFileQuad (QuadNo: CARDINAL) : CARDINAL ;
 VAR
-   Head,
-   i,
+   f       : QuadFrame ;
+   Head, i,
    FileQuad: CARDINAL ;
 BEGIN
    Head := 1 ;  (* Warning Head assummed to start at quadruple 1 *)
    FileQuad := 0 ;
    REPEAT
-      WITH Quads[Head] DO
+      f := GetQF(Head) ;
+      WITH f^ DO
          IF (Operator=StartModFileOp) OR (Operator=StartDefFileOp)
          THEN
             FileQuad := Head
@@ -971,12 +1004,15 @@ END GetLastQuadNo ;
 *)
 
 PROCEDURE QuadToLineNo (QuadNo: CARDINAL) : CARDINAL ;
+VAR
+   f: QuadFrame ;
 BEGIN
    IF (LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())
    THEN
       RETURN( 0 )
    ELSE
-      RETURN( Quads[QuadNo].LineNo )
+      f := GetQF(QuadNo) ;
+      RETURN( f^.LineNo )
    END
 END QuadToLineNo ;
 
@@ -991,12 +1027,15 @@ END QuadToLineNo ;
 *)
 
 PROCEDURE QuadToTokenNo (QuadNo: CARDINAL) : CARDINAL ;
+VAR
+   f: QuadFrame ;
 BEGIN
    IF (LastQuadNo=0) AND (NOT IsNoPass()) AND (NOT IsPassCodeGeneration())
    THEN
       RETURN( 0 )
    ELSE
-      RETURN( Quads[QuadNo].TokenNo )
+      f := GetQF(QuadNo) ;
+      RETURN( f^.TokenNo )
    END
 END QuadToTokenNo ;
 
@@ -1008,9 +1047,12 @@ END QuadToTokenNo ;
 PROCEDURE GetQuad (QuadNo: CARDINAL;
                    VAR Op: QuadOperator;
                    VAR Oper1, Oper2, Oper3: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
+   f := GetQF(QuadNo) ;
    LastQuadNo := QuadNo ;
-   WITH Quads[QuadNo] DO
+   WITH f^ DO
       Op := Operator ;
       Oper1 := Operand1 ;
       Oper2 := Operand2 ;
@@ -1127,6 +1169,8 @@ PROCEDURE stop ; BEGIN END stop ;
 PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Op: QuadOperator;
                    Oper1, Oper2, Oper3: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    IF QuadNo=31
    THEN
@@ -1136,7 +1180,8 @@ BEGIN
    THEN
       EraseQuad(QuadNo) ;
       AddQuadInformation(QuadNo, Op, Oper1, Oper2, Oper3) ;
-      WITH Quads[QuadNo] DO
+      f := GetQF(QuadNo) ;
+      WITH f^ DO
          Operator := Op ;
          Operand1 := Oper1 ;
          Operand2 := Oper2 ;
@@ -1244,8 +1289,11 @@ END UndoReadWriteInfo ;
 *)
 
 PROCEDURE EraseQuad (QuadNo: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
       UndoReadWriteInfo(QuadNo, Operator, Operand1, Operand2, Operand3) ;
       Operator := DummyOp ;   (* finally blank it out *)
       Operand1 := 0 ;
@@ -1378,41 +1426,12 @@ END CheckConst ;
 *)
 
 PROCEDURE GetNextQuad (QuadNo: CARDINAL) : CARDINAL ;
-BEGIN
-(*
-   QuadNo := Quads[QuadNo].Next ;
-   WHILE (QuadNo#0) AND (Quads[QuadNo].Operator=DummyOp) DO
-      QuadNo := Quads[QuadNo].Next
-   END ;
-   RETURN( QuadNo )
-*)
-   RETURN( Quads[QuadNo].Next )
-END GetNextQuad ;
-
-
-(*
-   AddQuad - adds a quadruple in between left and right then
-             returns the new quad number.
-*)
-
-PROCEDURE AddQuad (VAR Left, Right: CARDINAL;
-                   Op: QuadOperator;
-                   Oper1, Oper2, Oper3: CARDINAL) : CARDINAL ;
 VAR
-   q: CARDINAL ;
+   f: QuadFrame ;
 BEGIN
-   NewQuad(q) ;
-   Assert(Quads[Left].Next=Right) ;
-   Quads[Left].Next := q ;
-   WITH Quads[q] DO
-      Operator := Op ;
-      Operand1 := Oper1 ;
-      Operand2 := Oper2 ;
-      Operand3 := Oper3 ;
-      Next := Right
-   END ;
-   RETURN( q )
-END AddQuad ;
+   f := GetQF(QuadNo) ;
+   RETURN( f^.Next )
+END GetNextQuad ;
 
 
 (*
@@ -1421,23 +1440,27 @@ END AddQuad ;
 
 PROCEDURE SubQuad (QuadNo: CARDINAL) ;
 VAR
-   i: CARDINAL ;
+   i   : CARDINAL ;
+   f, g: QuadFrame ;
 BEGIN
-   AlterReference(Head, QuadNo, Quads[QuadNo].Next) ;
-   WITH Quads[QuadNo] DO
+   f := GetQF(QuadNo) ;
+   WITH f^ DO
+      AlterReference(Head, QuadNo, f^.Next) ;
       UndoReadWriteInfo(QuadNo, Operator, Operand1, Operand2, Operand3)
    END ;
    IF Head=QuadNo
    THEN
-      Head := Quads[QuadNo].Next
+      Head := f^.Next
    ELSE
       i := Head ;
-      WHILE Quads[i].Next#QuadNo DO
-         i := Quads[i].Next
+      g := GetQF(i) ;
+      WHILE g^.Next#QuadNo DO
+         i := g^.Next ;
+         g := GetQF(i)
       END ;
-      Quads[i].Next := Quads[QuadNo].Next
+      g^.Next := f^.Next
    END ;
-   Quads[QuadNo].Operator := DummyOp
+   f^.Operator := DummyOp
 END SubQuad ;
 
 
@@ -1447,16 +1470,24 @@ END SubQuad ;
 *)
 
 PROCEDURE GetRealQuad (QuadNo: CARDINAL) : CARDINAL ;
+VAR
+   f: QuadFrame ;
 BEGIN
    WHILE QuadNo#0 DO
-      WITH Quads[QuadNo] DO
-         IF (NOT IsPseudoQuad(QuadNo)) AND
-            (Operator#DummyOp) AND (Operator#LineNumberOp)
-         THEN
-            RETURN( QuadNo )
-         END
-      END ;
-      INC(QuadNo)
+      IF InBounds(QuadArray, QuadNo)
+      THEN
+         f := GetQF(QuadNo) ;
+         WITH f^ DO
+            IF (NOT IsPseudoQuad(QuadNo)) AND
+               (Operator#DummyOp) AND (Operator#LineNumberOp)
+            THEN
+               RETURN( QuadNo )
+            END
+         END ;
+         INC(QuadNo)
+      ELSE
+         RETURN( 0 )
+      END
    END ;
    RETURN( 0 )
 END GetRealQuad ;
@@ -1469,11 +1500,14 @@ END GetRealQuad ;
 
 PROCEDURE AlterReference (Head, OldQuad, NewQuad: CARDINAL) ;
 VAR
+   f, g       : QuadFrame ;
    OldOperand3,
    i          : CARDINAL ;
 BEGIN
-   WHILE (Quads[OldQuad].NoOfTimesReferenced>0) AND (Head#0) DO
-      WITH Quads[Head] DO
+   f := GetQF(OldQuad) ;
+   WHILE (f^.NoOfTimesReferenced>0) AND (Head#0) DO
+      g := GetQF(Head) ;
+      WITH g^ DO
          CASE Operator OF
 
          IfInOp,
@@ -1507,12 +1541,24 @@ END AlterReference ;
 PROCEDURE GrowQuads (to: CARDINAL) ;
 VAR
    i: CARDINAL ;
+   f: QuadFrame ;
 BEGIN
    IF (to#0) AND (to>GrowInitialization)
    THEN
       i := GrowInitialization+1 ;
       WHILE i<=to DO
-         Quads[i].NoOfTimesReferenced := 0 ;
+         IF InBounds(QuadArray, i)
+         THEN
+            Assert(GetIndice(QuadArray, i)#NIL)
+         ELSE
+            NEW(f) ;
+            IF f=NIL
+            THEN
+               InternalError('out of memory error when trying to allocate a quadruple', __FILE__, __LINE__)
+            END ;
+            PutIndice(QuadArray, i, f) ;
+            f^.NoOfTimesReferenced := 0
+         END ;
          INC(i)
       END ;
       GrowInitialization := to
@@ -1525,16 +1571,18 @@ END GrowQuads ;
 *)
 
 PROCEDURE ManipulateReference (q: CARDINAL; to: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    Assert((GrowInitialization>=q) OR (to=0)) ;
    GrowQuads(to) ;
    RemoveReference(q) ;
-   WITH Quads[q] DO
-      Operand3 := to ;
-      IF to#0
-      THEN
-         INC(Quads[to].NoOfTimesReferenced)
-      END
+   f := GetQF(q) ;
+   f^.Operand3 := to ;
+   IF to#0
+   THEN
+      f := GetQF(to) ;
+      INC(f^.NoOfTimesReferenced)
    END
 END ManipulateReference ;
    
@@ -1545,13 +1593,15 @@ END ManipulateReference ;
 *)
 
 PROCEDURE RemoveReference (q: CARDINAL) ;
+VAR
+   f, g: QuadFrame ;
 BEGIN
-   WITH Quads[q] DO
-      IF (Operand3#0) AND (Operand3<NextQuad)
-      THEN
-         Assert(Quads[Operand3].NoOfTimesReferenced#0) ;
-         DEC(Quads[Operand3].NoOfTimesReferenced)
-      END
+   f := GetQF(q) ;
+   IF (f^.Operand3#0) AND (f^.Operand3<NextQuad)
+   THEN
+      g := GetQF(f^.Operand3) ;
+      Assert(g^.NoOfTimesReferenced#0) ;
+      DEC(g^.NoOfTimesReferenced)
    END
 END RemoveReference ;
    
@@ -1562,28 +1612,20 @@ END RemoveReference ;
 
 PROCEDURE CountQuads (Head: CARDINAL) : CARDINAL ;
 VAR
+   f: QuadFrame ;
    n: CARDINAL ;
 BEGIN
    n := 0 ;
    WHILE Head#0 DO
-      IF Quads[Head].Operator#DummyOp
+      f := GetQF(Head) ;
+      IF f^.Operator#DummyOp
       THEN
          INC(n)
       END ;
-      Head := Quads[Head].Next
+      Head := f^.Next
    END ;
    RETURN( n )
 END CountQuads ;
-
-
-(*
-   KillQuad - destroys a quadruple.
-*)
-
-PROCEDURE KillQuad (QuadNo: CARDINAL) ;
-BEGIN
-   DisposeQuad(QuadNo)
-END KillQuad ;
 
 
 (*
@@ -1591,37 +1633,34 @@ END KillQuad ;
 *)
 
 PROCEDURE NewQuad (VAR QuadNo: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
-   IF FreeList=MaxQuad
+   QuadNo := FreeList ;
+   IF InBounds(QuadArray, QuadNo) AND (GetIndice(QuadArray, QuadNo)#NIL)
    THEN
-      InternalError('no more quads available, increase MaxQuad', __FILE__, __LINE__)
+      f := GetIndice(QuadArray, QuadNo)
    ELSE
-      QuadNo := FreeList ;
-      WITH Quads[QuadNo] DO
-         (* must not set NoOfTimesReferenced := 0 ; as we might overwrite it *)
-         Operator := DummyOp ;
-         Operand3 := 0 ;
-         Next := 0
-      END ;
-      INC(FreeList) ;
-      IF GrowInitialization<FreeList
+      NEW(f) ;
+      IF f=NIL
       THEN
-         GrowInitialization := FreeList
+         InternalError('out of memory error trying to allocate a quadruple', __FILE__, __LINE__)
+      ELSE
+         PutIndice(QuadArray, QuadNo, f) ;
+         f^.NoOfTimesReferenced := 0
       END
+   END ;
+   WITH f^ DO
+      Operator := DummyOp ;
+      Operand3 := 0 ;
+      Next := 0
+   END ;
+   INC(FreeList) ;
+   IF GrowInitialization<FreeList
+   THEN
+      GrowInitialization := FreeList
    END
 END NewQuad ;
-
-
-(*
-   DisposeQuad - returns QuadNo to the FreeList of quadruples.
-*)
-
-PROCEDURE DisposeQuad (QuadNo: CARDINAL) ;
-BEGIN
-   InternalError('not expecting DisposeQuad to be called', __FILE__, __LINE__) ;
-   Quads[QuadNo].Next := FreeList ;
-   FreeList := QuadNo
-END DisposeQuad ;
 
 
 (*
@@ -2301,11 +2340,14 @@ END CollectHigh ;
 *)
 
 PROCEDURE BackPatchSubrangesAndOptParam (Head: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    IF Head#0
    THEN
       REPEAT
-         WITH Quads[Head] DO
+         f := GetQF(Head) ;
+         WITH f^ DO
             CASE Operator OF
 
             SubrangeLowOp :  Operand3 := CollectLow(Operand3) ;
@@ -8356,27 +8398,48 @@ END BuildSizeFunction ;
 
 PROCEDURE BuildTSizeFunction ;
 VAR
-   NoOfParam,
+   i, NoOfParam: CARDINAL ;
+   ti, tj, tk,
    ProcSym,
-   ReturnVar: CARDINAL ;
+   Record,
+   ReturnVar   : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
-   IF NoOfParam#1
+   IF NoOfParam=1
    THEN
-      WriteFormat0('SYSTEM procedure TSIZE expects 1 parameter') ;
-      ReturnVar := MakeConstLit(MakeKey('0'))
-   ELSIF IsAModula2Type(OperandT(1))
-   THEN
-      ReturnVar := MakeTemporary(ImmediateValue) ;
-      GenQuad(SizeOp, ReturnVar, NulSym, OperandT(1))
-   ELSIF IsVar(OperandT(1))
-   THEN
-      ReturnVar := MakeTemporary(ImmediateValue) ;
-      GenQuad(SizeOp, ReturnVar, NulSym, GetType(OperandT(1)))
+      IF IsAModula2Type(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(SizeOp, ReturnVar, NulSym, OperandT(1))
+      ELSIF IsVar(OperandT(1))
+      THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(SizeOp, ReturnVar, NulSym, GetType(OperandT(1)))
+      ELSE
+         WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a type or variable') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
    ELSE
-      WriteFormat0('SYSTEM procedure TSIZE expects a type or variable as its parameter') ;
-      ReturnVar := MakeConstLit(MakeKey('0'))
+      Record := OperandT(NoOfParam) ;
+      IF IsRecord(Record)
+      THEN
+         ti := MakeTemporary(ImmediateValue) ;
+         GenQuad(SizeOp, ti, OperandT(2), Record) ;
+         i := 3 ;
+         WHILE i<=NoOfParam DO
+            tj := MakeTemporary(ImmediateValue) ;
+            GenQuad(SizeOp, tj, OperandT(i), Record) ;
+            tk := MakeTemporary(ImmediateValue) ;
+            GenQuad(AddOp, tk, ti, tj) ;
+            ti := tk ;
+            INC(i)
+         END ;
+         ReturnVar := ti
+      ELSE
+         WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
+         ReturnVar := MakeConstLit(MakeKey('0'))
+      END
    END ;
    PopN(NoOfParam+1) ;       (* destroy the arguments and function *)
    PushTF(ReturnVar, GetType(ProcSym))
@@ -8385,7 +8448,7 @@ END BuildTSizeFunction ;
 
 (*
    ExpectingParameterType - 
-                              *)
+*)
 
 PROCEDURE ExpectingParameterType (BlockSym, Type: CARDINAL) ;
 VAR
@@ -10709,6 +10772,7 @@ VAR
    Tok,
    t1, f1,
    t2, f2: CARDINAL ;
+   f     : QuadFrame ;
 BEGIN
    Assert(IsBoolean(1) AND IsBoolean(3)) ;
    IF OperandT(2)=EqualTok
@@ -10721,7 +10785,8 @@ BEGIN
       BackPatch(t2, t1) ;        (* q    if   _     _    q+2 *)
       BackPatch(f2, NextQuad) ;  (* q+1  if   _     _    q+4 *)
       Assert(NextQuad=f1+1) ;
-      WITH Quads[t1] DO
+      f := GetQF(t1) ;
+      WITH f^ DO
          GenQuad(Operator, Operand1, Operand2, 0)
       END ;
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
@@ -10736,7 +10801,8 @@ BEGIN
       BackPatch(t2, t1) ;        (* q    if   _     _    q+2 *)
       BackPatch(f2, NextQuad) ;  (* q+1  if   _     _    q+4 *)
       Assert(NextQuad=f1+1) ;
-      WITH Quads[t1] DO
+      f := GetQF(t1) ;
+      WITH f^ DO
          GenQuad(Operator, Operand1, Operand2, 0)
       END ;
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
@@ -11011,18 +11077,20 @@ END MakeOp ;
 
 PROCEDURE GenQuad (Operation: QuadOperator;
                    Op1, Op2, Op3: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    (* WriteString('Potential Quad: ') ; *)
    IF QuadrupleGeneration
    THEN
       IF NextQuad#Head
       THEN
-         WITH Quads[NextQuad-1] DO
-            Next := NextQuad
-         END
+         f := GetQF(NextQuad-1) ;
+         f^.Next := NextQuad
       END ;
       PutQuad(NextQuad, Operation, Op1, Op2, Op3) ;
-      WITH Quads[NextQuad] DO
+      f := GetQF(NextQuad) ;
+      WITH f^ DO
          Next := 0 ;
          LineNo := GetLineNo() ;
          TokenNo := GetTokenNo()
@@ -11038,15 +11106,20 @@ END GenQuad ;
 
 
 (*
-   DisplayQuadList - Displays all quads in list Head.
+   DisplayQuadList - displays all quads.
 *)
 
-PROCEDURE DisplayQuadList (Head: CARDINAL) ;
+PROCEDURE DisplayQuadList ;
+VAR
+   i: CARDINAL ;
+   f: QuadFrame ;
 BEGIN
    printf0('Quadruples:\n') ;
-   WHILE Head#0 DO
-      DisplayQuad(Head) ;
-      Head := Quads[Head].Next
+   i := Head ;
+   WHILE i#0 DO
+      DisplayQuad(i) ;
+      f := GetQF(i) ;
+      i := f^.Next
    END
 END DisplayQuadList ;
 
@@ -11056,11 +11129,14 @@ END DisplayQuadList ;
 *)
 
 PROCEDURE DisplayQuadRange (start, end: CARDINAL) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    printf0('Quadruples:\n') ;
    WHILE (start<=end) AND (start#0) DO
       DisplayQuad(start) ;
-      start := Quads[start].Next
+      f := GetQF(start) ;
+      start := f^.Next
    END
 END DisplayQuadRange ;
 
@@ -11073,17 +11149,18 @@ END DisplayQuadRange ;
 PROCEDURE BackPatch (QuadNo, Value: CARDINAL) ;
 VAR
    i: CARDINAL ;
+   f: QuadFrame ;
 BEGIN
    IF QuadrupleGeneration
    THEN
       WHILE QuadNo#0 DO
-         WITH Quads[QuadNo] DO
+         f := GetQF(QuadNo) ;
+         WITH f^ DO
             i := Operand3 ;                       (* Next Link along the BackPatch *)
             ManipulateReference(QuadNo, Value)    (* Filling in the BackPatch.     *)
          END ;
          QuadNo := i
       END
-      (* ; DisplayQuadList(1) ;  (* Debugging only *) *)
    END
 END BackPatch ;
 
@@ -11096,6 +11173,7 @@ END BackPatch ;
 PROCEDURE Merge (QuadList1, QuadList2: CARDINAL) : CARDINAL ;
 VAR
    i, j: CARDINAL ;
+   f   : QuadFrame ;
 BEGIN
    IF QuadList1=0
    THEN
@@ -11107,7 +11185,8 @@ BEGIN
       i := QuadList1 ;
       REPEAT
          j := i ;
-         i := Quads[i].Operand3
+         f := GetQF(i) ;
+         i := f^.Operand3
       UNTIL i=0 ;
       ManipulateReference(j, QuadList2) ;
       RETURN( QuadList1 )
@@ -11161,8 +11240,10 @@ END DisplayQuad ;
 PROCEDURE WriteQuad (BufferQuad: CARDINAL) ;
 VAR
    n1, n2: Name ;
+   f     : QuadFrame ;
 BEGIN
-   WITH Quads[BufferQuad] DO
+   f := GetQF(BufferQuad) ;
+   WITH f^ DO
       WriteOperator(Operator) ;
       printf1('  [%d]    ', NoOfTimesReferenced) ;
       CASE Operator OF
@@ -11181,7 +11262,6 @@ BEGIN
       ReturnValueOp,
       FunctValueOp,
       NegateOp,
-      SizeOp,
       AddrOp            : WriteOperand(Operand1) ;
                           printf0('  ') ;
                           WriteOperand(Operand3) |
@@ -11234,6 +11314,7 @@ BEGIN
                           WriteOperand(Operand2) ;
                           printf0('  ') ;
                           WriteOperand(Operand3) |
+      SizeOp,
       OffsetOp,
       IndrXOp,
       XIndrOp,
@@ -11709,14 +11790,15 @@ END BuildInline ;
 PROCEDURE BuildLineNo ;
 VAR
    filename: Name ;
+   f       : QuadFrame ;
 BEGIN
    IF (NextQuad#Head) AND (GenerateLineDebug OR GenerateDebugging)
    THEN
       filename := makekey(string(GetFileName())) ;
-      IF (Quads[NextQuad-1].Operator=LineNumberOp) AND
-         (Quads[NextQuad-1].Operand1=WORD(filename))
+      f := GetQF(NextQuad-1) ;
+      IF (f^.Operator=LineNumberOp) AND (f^.Operand1=WORD(filename))
       THEN
-         (* PutQuad(NextQuad-1, LineNumberOp, WORD(filename), NulSym, GetLineNo()) *)
+         (* do nothing *)
       ELSE
          GenQuad(LineNumberOp, WORD(filename), NulSym, WORD(GetLineNo()))
       END
@@ -11729,17 +11811,14 @@ END BuildLineNo ;
 *)
 
 PROCEDURE UseLineNote (l: LineNote) ;
+VAR
+   f: QuadFrame ;
 BEGIN
    WITH l^ DO
-      IF (Quads[NextQuad-1].Operator=LineNumberOp) AND
-         (Quads[NextQuad-1].Operand1=WORD(File))
+      f := GetQF(NextQuad-1) ;
+      IF (f^.Operator=LineNumberOp) AND (f^.Operand1=WORD(File))
       THEN
-(*
-         IF Line<Quads[NextQuad-1].Operand3
-         THEN
-            PutQuad(NextQuad-1, LineNumberOp, WORD(File), NulSym, Line)
-         END
-*)
+         (* do nothing *)
       ELSE
          GenQuad(LineNumberOp, WORD(File), NulSym, WORD(Line))
       END ;
@@ -12117,6 +12196,7 @@ BEGIN
    LogicalAndTok := MakeKey('_LAND') ;
    LogicalXorTok := MakeKey('_LXOR') ;
    LogicalDifferenceTok := MakeKey('_LDIFF') ;
+   QuadArray := InitIndex(1) ;
    FreeList := 1 ;
    NoOfDynamic := 0 ;
    NewQuad(NextQuad) ;

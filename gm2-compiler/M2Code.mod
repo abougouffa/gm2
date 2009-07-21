@@ -135,7 +135,7 @@ BEGIN
    IF DisplayQuadruples
    THEN
       WriteString('after all front end optimization') ; WriteLn ;
-      DisplayQuadList(Head)
+      DisplayQuadList
    END
 END OptimizationAnalysis ;
 
@@ -158,7 +158,7 @@ BEGIN
    IF DisplayQuadruples
    THEN
       WriteString('before any optimization') ; WriteLn ;
-      DisplayQuadList(Head)
+      DisplayQuadList
    END ;
 
    (* now is a suitable time to check for student errors as *)

@@ -1,3 +1,30 @@
+2009-07-21       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  removed multidimensional unbounded arrays.
+	  Added TSIZE.
+	* gm2/gm2-compiler/M2Code.mod:  removed Head parameter
+	  from DisplayQuadList.
+	* gm2/gm2-compiler/M2GenGCC.mod:  removed Head parameter
+	  from DisplayQuadList.
+	* gm2/gm2-compiler/M2Optimize.mod:  added bounds checks
+	  to ensure that we never look outside the quad range
+	  specified.
+	* gm2/gm2-compiler/M2Quads.def:  removed AddQuad and
+	  also removed the parameter Head from DisplayQuadList.
+	  Removed KillQuad.
+	* gm2/gm2-compiler/M2Quads.mod:  many changes which
+	  remove the static array Quads and use a dynamic
+	  equivalent.  Also make the builtin functio TSIZE
+	  generate appropriate quadruples.
+	* gm2/gm2-libs-iso/SYSTEM.def:  fixed typo.
+
+2009-07-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/gcc/4.1.2/08.gaius_ipa_type_escape.c:
+	  new file.  This patch detects cyclic ARRAY and POINTER
+	  definitions which can now occur in gcc due to
+	  06.gaius_patch_tree.
+
 2009-07-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  (AssignUnboundedNonVar),

@@ -658,7 +658,7 @@ BEGIN
    IF Debugging AND DisplayQuadruples AND FALSE
    THEN
       printf0('after resolving expressions with gcc\n') ;
-      DisplayQuadList(AbsoluteHead) ;
+      DisplayQuadList
    END ;
    RETURN( Changed )
 END ResolveConstantExpressions ;

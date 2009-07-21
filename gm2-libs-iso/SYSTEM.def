@@ -80,7 +80,7 @@ PROCEDURE MAKEADR (high: <some type>; ...): ADDRESS;
 
      then the value of, a, on a 64 bit machine is: 0FEDCBA9876543210H
 
-     The parameters do not have to have the same type, but constants
+     The parameters do not have to be the same type, but constants
      _must_ be typed.
   *)
 

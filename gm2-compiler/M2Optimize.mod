@@ -108,7 +108,7 @@ PROCEDURE DeleteUnReachableProcedures ; FORWARD ;
 PROCEDURE FoldBranches (start, end: CARDINAL) ;
 VAR
    Folded     : BOOLEAN ;
-   i,
+   i, j,
    Right      : CARDINAL ;
    Operator   : QuadOperator ;
    Operand1,
@@ -119,7 +119,16 @@ BEGIN
       i := start ;
       Folded := FALSE ;
       WHILE (i<=end) AND (i#0) DO
-         Right := GetRealQuad(GetNextQuad(i)) ;
+         j := GetNextQuad(i) ;
+         IF (j>end) OR (j=0)
+         THEN
+            RETURN
+         END ;
+         Right := GetRealQuad(j) ;
+         IF Right=0
+         THEN
+            RETURN
+         END ;
          GetQuad(i, Operator, Operand1, Operand2, Operand3) ;
          CASE Operator OF
 

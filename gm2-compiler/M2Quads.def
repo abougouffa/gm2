@@ -116,7 +116,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  WriteOperator, BackPatchSubrangesAndOptParam,
 
                  GetQuad, GetNextQuad, PutQuad,
-                 AddQuad, SubQuad, EraseQuad, GetRealQuad,
+                 SubQuad, EraseQuad, GetRealQuad,
                  CountQuads,
                  GetLastFileQuad,
                  GetLastQuadNo,
@@ -344,10 +344,10 @@ PROCEDURE IsDefOrModFile (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*
-   DisplayQuadList - Displays all quads in list Head.
+   DisplayQuadList - displays all quads.
 *)
 
-PROCEDURE DisplayQuadList (Head: CARDINAL) ;
+PROCEDURE DisplayQuadList ;
 
 
 (*
@@ -443,15 +443,6 @@ PROCEDURE GetRealQuad (QuadNo: CARDINAL) : CARDINAL ;
 
 
 (*
-   AddQuad - adds a quadruple in between left and right then
-             returns the new quad number.
-*)
-
-PROCEDURE AddQuad (VAR Left, Right: CARDINAL;
-                   Op: QuadOperator;
-                   Oper1, Oper2, Oper3: CARDINAL) : CARDINAL ;
-
-(*
    SubQuad - removes quadruple QuadNo.
 *)
 
@@ -464,13 +455,6 @@ PROCEDURE SubQuad (QuadNo: CARDINAL) ;
 *)
 
 PROCEDURE EraseQuad (QuadNo: CARDINAL) ;
-
-
-(*
-   KillQuad - destroys a quadruple.
-*)
-
-PROCEDURE KillQuad (QuadNo: CARDINAL) ;
 
 
 (*
