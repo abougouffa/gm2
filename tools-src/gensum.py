@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# Copyright (C) 2007
+# Copyright (C) 2007, 2008, 2009
 # Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -234,7 +234,7 @@ def printRow (testcase, arch, option):
         elif option == []:
             print '<td></td>',
         else:
-            print '<td bgcolor="blue">', string.join(option, ' '), '</td>',
+            print '<td></td>',
     else:
         print '<td></td>',
 
