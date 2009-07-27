@@ -31,16 +31,18 @@ DEFINITION MODULE M2MetaError ;
 
 FROM DynamicStrings IMPORT String ;
 
-EXPORT QUALIFIED MetaError1, MetaError2, MetaError3,
-                 MetaErrors1, MetaErrors2, MetaErrors3,
-                 MetaErrorT1, MetaErrorT2, MetaErrorT3,
-                 MetaErrorsT1, MetaErrorsT2, MetaErrorsT3,
+EXPORT QUALIFIED MetaError1, MetaError2, MetaError3, MetaError4,
+                 MetaErrors1, MetaErrors2, MetaErrors3, MetaErrors4,
+                 MetaErrorT1, MetaErrorT2, MetaErrorT3, MetaErrorT4,
+                 MetaErrorsT1, MetaErrorsT2, MetaErrorsT3, MetaErrorsT4,
                  MetaErrorString1, MetaErrorString2, MetaErrorString3,
-                 MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3 ;
+                 MetaErrorString4,
+                 MetaErrorStringT1, MetaErrorStringT2, MetaErrorStringT3,
+                 MetaErrorStringT4 ;
 
 
 (*
-    All the procedures below expect the s, s1, s2, s3 to be symbols
+    All the procedures below expect the s, s1, s2, s3, s4 to be symbols
     and m, m1, m2, m3 are error messages and format specifiers.
     The format specifiers are:
 
@@ -81,26 +83,32 @@ EXPORT QUALIFIED MetaError1, MetaError2, MetaError3,
 PROCEDURE MetaError1 (m: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaError2 (m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaError3 (m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaError4 (m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 
 PROCEDURE MetaErrors1 (m1, m2: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaErrors2 (m1, m2: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrors3 (m1, m2: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrors4 (m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 
 PROCEDURE MetaErrorT1 (tok: CARDINAL; m: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaErrorT2 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorT3 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrorT4 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 
 PROCEDURE MetaErrorsT1 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s: CARDINAL) ;
 PROCEDURE MetaErrorsT2 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorsT3 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrorsT4 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
 
 PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
 PROCEDURE MetaErrorString2 (m: String; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrorString4 (m: String; s1, s2, s3, s4: CARDINAL) ;
 
 PROCEDURE MetaErrorStringT1 (tok: CARDINAL; m: String; s: CARDINAL) ;
 PROCEDURE MetaErrorStringT2 (tok: CARDINAL; m: String; s1, s2: CARDINAL) ;
 PROCEDURE MetaErrorStringT3 (tok: CARDINAL; m: String; s1, s2, s3: CARDINAL) ;
+PROCEDURE MetaErrorStringT4 (tok: CARDINAL; m: String; s1, s2, s3, s4: CARDINAL) ;
 
 
 END M2MetaError.

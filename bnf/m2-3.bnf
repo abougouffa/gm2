@@ -1,4 +1,4 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -26,7 +26,7 @@
 -- and parse with actions constant declarations.
 --
 % module P3Build begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -159,6 +159,8 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         RequestSym ;
 
 FROM M2Batch IMPORT IsModuleKnown ;
+
+FROM M2CaseList IMPORT BeginCaseList, EndCaseList ;
 
 
 CONST
@@ -1132,10 +1134,12 @@ Case := [ CaseLabelList                                                    % Bui
                                                                            % BuildLineNo %
                         ":"
                           StatementSequence                                % BuildCaseEndStatementSequence %
+                                                                           % EndCaseList %
         ]
       =:
 
-CaseLabelList := CaseLabels { ","                                          % BuildCaseOr %
+CaseLabelList :=                                                           % BeginCaseList %
+                 CaseLabels { ","                                          % BuildCaseOr %
                                   CaseLabels } =:
 
 CaseLabels := ConstExpression ( ".." ConstExpression                       % BuildCaseRange ;

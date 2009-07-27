@@ -696,7 +696,7 @@ PossiblyExportIdentList := PossiblyExportIdent                             % VAR
                                                                              END %
              =:
 
-SubrangeType := "[" ConstExpression  ".." ConstExpression "]" =:
+SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 
 ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF"                    % BuildNulName %
              Type =:

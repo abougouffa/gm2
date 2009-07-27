@@ -54,6 +54,7 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitPointerRangeCheck,
                  InitNoReturnRangeCheck,
                  InitNoElseRangeCheck,
+                 InitCaseBounds,
                  InitWholeNonPosDivCheck,
                  InitWholeNonPosModCheck,
                  InitWholeZeroDivisionCheck,
@@ -61,7 +62,8 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  CodeRangeCheck, FoldRangeCheck, CodeErrorCheck,
                  CheckRangeAddVariableRead,
                  CheckRangeRemoveVariableRead,
-                 WriteRangeCheck ;
+                 WriteRangeCheck,
+                 OverlapsRange ;
 
 
 (*
@@ -256,6 +258,13 @@ PROCEDURE InitTypesExpressionCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*
+   InitCaseBounds - creates a case bound range check.
+*)
+
+PROCEDURE InitCaseBounds (b: CARDINAL) : CARDINAL ;
+
+
+(*
    CodeRangeCheck - creates a sequence of Trees representing the code for a
                     range test defined by, r.
 *)
@@ -302,6 +311,13 @@ PROCEDURE CheckRangeRemoveVariableRead (r: CARDINAL; quadNo: CARDINAL) ;
 *)
 
 PROCEDURE WriteRangeCheck (r: CARDINAL) ;
+
+
+(*
+   OverlapsRange - returns TRUE if a1..a2 overlaps with b1..b2.
+*)
+
+PROCEDURE OverlapsRange (a1, a2, b1, b2: Tree) : BOOLEAN ;
 
 
 END M2Range.

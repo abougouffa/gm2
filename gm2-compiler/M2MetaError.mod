@@ -76,6 +76,8 @@ PROCEDURE ebnf (VAR e: Error; VAR t: errorType;
                              op
                        | '3'        % doOperand(3) %
                              op
+                       | '4'        % doOperand(4) %
+                             op
                        )
                        } =:
 
@@ -569,7 +571,7 @@ PROCEDURE op (VAR e: Error; VAR t: errorType;
               bol: CARDINAL; positive: BOOLEAN) ;
 VAR
    o     : String ;
-   c     : ARRAY [0..2] OF CARDINAL ;
+   c     : ARRAY [0..3] OF CARDINAL ;
    quotes: BOOLEAN ;
 BEGIN
    copySym(sym, c, HIGH(sym)) ;
@@ -617,6 +619,8 @@ END op ;
                              op
                        | '3'        % doOperand(3) %
                              op
+                       | '4'        % doOperand(4) %
+                             op
                        )
                        } =:
 *)
@@ -636,7 +640,9 @@ BEGIN
       '2':  INC(i) ;
             op(e, t, r, s, sym, count, i, l, 1, positive) |
       '3':  INC(i) ;
-            op(e, t, r, s, sym, count, i, l, 2, positive)
+            op(e, t, r, s, sym, count, i, l, 2, positive) |
+      '4':  INC(i) ;
+            op(e, t, r, s, sym, count, i, l, 3, positive)
 
       ELSE
          InternalFormat(s, i, 'expecting one of [123]')
@@ -829,6 +835,31 @@ BEGIN
 END MetaErrorT3 ;
 
 
+PROCEDURE MetaErrorStringT4 (tok: CARDINAL; m: String; s1, s2, s3, s4: CARDINAL) ;
+VAR
+   str: String ;
+   e  : Error ;
+   sym: ARRAY [0..3] OF CARDINAL ;
+   t  : errorType ;
+BEGIN
+   e := NIL ;
+   sym[0] := s1 ;
+   sym[1] := s2 ;
+   sym[2] := s3 ;
+   sym[3] := s4 ;
+   t := error ;
+   str := doFormat(e, t, m, sym) ;
+   e := doError(e, t, tok) ;
+   ErrorString(e, str)
+END MetaErrorStringT4 ;
+
+
+PROCEDURE MetaErrorT4 (tok: CARDINAL; m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
+BEGIN
+   MetaErrorStringT4(tok, InitString(m), s1, s2, s3, s4) ;
+END MetaErrorT4 ;
+
+
 PROCEDURE MetaError1 (m: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
    MetaErrorT1(GetTokenNo(), m, s)
@@ -845,6 +876,12 @@ PROCEDURE MetaError3 (m: ARRAY OF CHAR; s1, s2, s3: CARDINAL) ;
 BEGIN
    MetaErrorT3(GetTokenNo(), m, s1, s2, s3)
 END MetaError3 ;
+
+
+PROCEDURE MetaError4 (m: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
+BEGIN
+   MetaErrorT4(GetTokenNo(), m, s1, s2, s3, s4)
+END MetaError4 ;
 
 
 (*
@@ -906,6 +943,18 @@ BEGIN
 END MetaErrorsT3 ;
 
 
+PROCEDURE MetaErrorsT4 (tok: CARDINAL; m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
+VAR
+   sym : ARRAY [0..3] OF CARDINAL ;
+BEGIN
+   sym[0] := s1 ;
+   sym[1] := s2 ;
+   sym[2] := s3 ;
+   sym[3] := s4 ;
+   wrapErrors(tok, m1, m2, sym)
+END MetaErrorsT4 ;
+
+
 PROCEDURE MetaErrors1 (m1, m2: ARRAY OF CHAR; s: CARDINAL) ;
 BEGIN
    MetaErrorsT1(GetTokenNo(), m1, m2, s)
@@ -924,6 +973,12 @@ BEGIN
 END MetaErrors3 ;
 
 
+PROCEDURE MetaErrors4 (m1, m2: ARRAY OF CHAR; s1, s2, s3, s4: CARDINAL) ;
+BEGIN
+   MetaErrorsT4(GetTokenNo(), m1, m2, s1, s2, s3, s4)
+END MetaErrors4 ;
+
+
 PROCEDURE MetaErrorString1 (m: String; s: CARDINAL) ;
 BEGIN
    MetaErrorStringT1(GetTokenNo(), m, s)
@@ -940,6 +995,12 @@ PROCEDURE MetaErrorString3 (m: String; s1, s2, s3: CARDINAL) ;
 BEGIN
    MetaErrorStringT3(GetTokenNo(), m, s1, s2, s3)
 END MetaErrorString3 ;
+
+
+PROCEDURE MetaErrorString4 (m: String; s1, s2, s3, s4: CARDINAL) ;
+BEGIN
+   MetaErrorStringT4(GetTokenNo(), m, s1, s2, s3, s4)
+END MetaErrorString4 ;
 
 
 END M2MetaError.

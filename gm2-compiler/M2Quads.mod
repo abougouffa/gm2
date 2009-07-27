@@ -202,12 +202,15 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitPointerRangeCheck,
                     InitNoReturnRangeCheck,
                     InitNoElseRangeCheck,
+                    InitCaseBounds,
                     InitWholeZeroDivisionCheck,
                     InitWholeZeroDivisionCheck,
                     InitWholeZeroRemainderCheck,
                     CheckRangeAddVariableRead,
                     CheckRangeRemoveVariableRead,
                     WriteRangeCheck ;
+
+FROM M2CaseList IMPORT PushCase, PopCase, AddRange ;
                  
 
 CONST
@@ -3464,6 +3467,7 @@ END BuildEndFor ;
 
 PROCEDURE BuildCaseStart ;
 BEGIN
+   BuildRange(InitCaseBounds(PushCase())) ;
    PushBool(0, 0) ;  (* BackPatch list initialized *)
    PushBool(0, 0)    (* Room for a boolean expression *)
 END BuildCaseStart ;
@@ -3570,6 +3574,7 @@ VAR
 BEGIN
    PopT(ce2) ;
    PopT(ce1) ;
+   AddRange(ce1, ce2, GetTokenNo()) ;
    PopBool(t1, f1) ;
    PopBool(t2, f2) ;
    PopT(e1) ;
@@ -3622,6 +3627,7 @@ VAR
    t1, f1 : CARDINAL ;
 BEGIN
    PopT(ce1) ;
+   AddRange(ce1, NulSym, GetTokenNo()) ;
    PopBool(t1, f1) ;
    PopBool(t2, f2) ;
    PopT(e1) ;
@@ -3735,7 +3741,8 @@ BEGIN
    PopBool(t, f) ;
    BackPatch(f, NextQuad) ;
    BackPatch(t, NextQuad) ;
-   PopT(e1)
+   PopT(e1) ;
+   PopCase
 END BuildCaseEnd ;
 
 

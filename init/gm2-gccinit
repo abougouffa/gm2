@@ -80,6 +80,7 @@ M2GenGCC
 M2Range
 M2Swig
 M2MetaError
+M2CaseList
 Sets
 dtoa
 ldtoa

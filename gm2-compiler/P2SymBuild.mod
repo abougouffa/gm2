@@ -2054,7 +2054,6 @@ BEGIN
 END StartBuildVarient ;
 
 
-
 (*
    EndBuildVarient - Removes the varient symbol from the stack.
                      The Stack:

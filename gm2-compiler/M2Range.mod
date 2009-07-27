@@ -76,6 +76,9 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionZeroDiv, ExceptionZeroRem,
                    ExceptionNo ;
 
+FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase ;
+
+
 TYPE
    TypeOfRange = (assignment, subrangeassignment,
                   inc, dec, incl, excl,
@@ -84,6 +87,7 @@ TYPE
                   dynamicarraysubscript,
                   forloopbegin, forloopto, forloopend,
                   pointernil, noreturn, noelse,
+                  casebounds,
                   wholenonposdiv, wholenonposmod,
                   wholezerodiv, wholezerorem, none) ;
 
@@ -99,6 +103,7 @@ TYPE
                          isLeftValue   : BOOLEAN ;  (* is des an LValue,
                                                        only used in pointernil *)
                          dimension     : CARDINAL ;
+                         caseList      : CARDINAL ;
                          tokenNo       : CARDINAL ;
                       END ;
 
@@ -218,6 +223,7 @@ BEGIN
    pointernil           : RETURN( ExceptionPointerNil ) |
    noreturn             : RETURN( ExceptionNoReturn ) |
    noelse               : RETURN( ExceptionCase ) |
+   casebounds           : InternalError('not expecting this case value', __FILE__, __LINE__) |
    wholenonposdiv       : RETURN( ExceptionNonPosDiv ) |
    wholenonposmod       : RETURN( ExceptionNonPosMod ) |
    wholezerodiv         : RETURN( ExceptionZeroDiv ) |
@@ -253,6 +259,8 @@ BEGIN
          desLowestType  := NulSym ;
          exprLowestType := NulSym ;
          isLeftValue    := FALSE ;   (* ignored in all cases other *)
+         dimension      := 0 ;
+         caseList       := 0 ;
          tokenNo        := 0         (* than pointernil            *)
       END ;
       PutIndice(RangeIndex, r, p)
@@ -895,6 +903,7 @@ BEGIN
       pointernil           : RETURN( ExceptionPointerNil#NulSym ) |
       noreturn             : RETURN( ExceptionNoReturn#NulSym ) |
       noelse               : RETURN( ExceptionCase#NulSym ) |
+      casebounds           : RETURN( FALSE ) |
       wholenonposdiv       : RETURN( ExceptionNonPosDiv#NulSym ) |
       wholenonposmod       : RETURN( ExceptionNonPosMod#NulSym ) |
       wholezerodiv         : RETURN( ExceptionZeroDiv#NulSym ) |
@@ -1472,6 +1481,54 @@ END FoldDynamicArraySubscript ;
 
 
 (*
+   FoldCaseBounds - 
+*)
+
+PROCEDURE FoldCaseBounds (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p: Range ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      IF CaseBoundsResolved(tokenno, caseList)
+      THEN
+         IF OverlappingCaseBounds(tokenno, caseList)
+         THEN
+            PutQuad(q, ErrorOp, NulSym, NulSym, r)
+         ELSE
+            SubQuad(q)
+         END
+      END
+   END
+END FoldCaseBounds ;
+
+
+(*
+   CodeCaseBounds - attempts to resolve whether the case bounds are legal.
+                    This should resolve at compile time as all case bounds
+                    must be constants.  We introduce a CodeCaseBounds as it
+                    might be possible that constants have just been declared
+                    during the code generation of this function.
+*)
+
+PROCEDURE CodeCaseBounds (tokenno: CARDINAL; caseList: CARDINAL; scopeDesc: String) ;
+VAR
+   d: CARDINAL ;
+BEGIN
+   IF CaseBoundsResolved(tokenno, caseList)
+   THEN
+      IF OverlappingCaseBounds(tokenno, caseList)
+      THEN
+         (* nothing to do *)
+      END
+   ELSE
+      d := NulSym ;
+      MetaErrorT1(tokenno, 'the CASE statement ranges must be constants', d)
+   END
+END CodeCaseBounds ;
+
+
+(*
    FoldNonPosDiv - attempts to fold the bound checking for a divide expression.
 *)
 
@@ -1606,6 +1663,7 @@ BEGIN
       pointernil           :  FoldNil(tokenno, q, r) |
       noreturn             :  RETURN (* nothing to fold *) |
       noelse               :  RETURN (* nothing to fold *) |
+      casebounds           :  FoldCaseBounds(tokenno, q, r) |
       wholenonposdiv       :  FoldNonPosDiv(tokenno, q, r) |
       wholenonposmod       :  FoldNonPosMod(tokenno, q, r) |
       wholezerodiv         :  FoldZeroDiv(tokenno, q, r) |
@@ -1714,6 +1772,7 @@ BEGIN
       pointernil           : s := InitString('if this pointer value {%1Wa} is ever dereferenced it will cause an exception') |
       noreturn             : s := InitString('{%1W:}this function will exit without executing a RETURN statement') |
       noelse               : s := InitString('{%1W:}this CASE statement does not have an ELSE statement') |
+      casebounds           : s := InitString('{%1W:}this CASE statement has overlapping ranges') |
       wholenonposdiv       : s := InitString('this division expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
       wholenonposmod       : s := InitString('this modulus expression {%W2a} will cause an exception as this divisor is less than or equal to zero') |
       wholezerodiv         : s := InitString('this division expression {%W2a} will cause an exception as the divisor is zero') |
@@ -2196,6 +2255,22 @@ END CodeWholeZero ;
 
 
 (*
+   InitCaseBounds - creates a case bound range check.
+*)
+
+PROCEDURE InitCaseBounds (b: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoEval(GetIndice(RangeIndex, r), casebounds) ;
+   p^.caseList := b ;
+   RETURN( r )
+END InitCaseBounds ;
+
+
+(*
    CodeRangeCheck - returns a Tree representing the code for a
                     range test defined by, r.
 *)
@@ -2225,6 +2300,7 @@ BEGIN
       pointernil           :  CodeNil(tokenNo, r, scopeDesc) |
       noreturn             :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
       noelse               :  AddStatement(CodeErrorCheck(r, scopeDesc)) |
+      casebounds           :  CodeCaseBounds(tokenNo, caseList, scopeDesc) |
       wholenonposdiv       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
       wholenonposmod       :  CodeWholeNonPos(tokenNo, r, scopeDesc) |
       wholezerodiv         :  CodeWholeZero(tokenNo, r, scopeDesc) |
@@ -2336,6 +2412,7 @@ BEGIN
       pointernil           :  WriteString('pointernil(') ; WriteOperand(des) |
       noreturn             :  WriteString('noreturn(') |
       noelse               :  WriteString('noelse(') |
+      casebounds           :  WriteString('casebounds(') ; WriteCase(caseList) |
       wholenonposdiv       :  WriteString('wholenonposdiv(') ; WriteOperand(expr) |
       wholenonposmod       :  WriteString('wholenonposmod(') ; WriteOperand(expr) |
       wholezerodiv         :  WriteString('wholezerodiv(') ; WriteOperand(expr) |
