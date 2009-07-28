@@ -18,13 +18,15 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE M2CaseList ;
 
 
+FROM M2Debug IMPORT Assert ;
 FROM M2GCCDeclare IMPORT TryDeclareConstant ;
-FROM M2MetaError IMPORT MetaErrorT1, MetaError1, MetaErrorT2, MetaErrorT3, MetaErrorT4 ;
+FROM M2MetaError IMPORT MetaError2, MetaErrorT1, MetaError1, MetaErrorT2, MetaErrorT3, MetaErrorT4 ;
 FROM M2Error IMPORT InternalError ;
 FROM M2Range IMPORT OverlapsRange ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, ForeachIndiceInIndexDo, HighIndice ;
-FROM SymbolTable IMPORT NulSym, IsConst ;
+FROM SymbolTable IMPORT NulSym, IsConst, IsFieldVarient, IsRecord ;
 FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
+FROM gccgm2 IMPORT Tree ;
 FROM Storage IMPORT ALLOCATE ;
 
 TYPE
@@ -44,10 +46,13 @@ TYPE
                  maxRangeId  : CARDINAL ;
                  rangeArray  : Index ;
                  currentRange: RangePair ;
+                 varient     : CARDINAL ;
               END ;
 
    CaseDescriptor = POINTER TO caseDescriptor ;
    caseDescriptor = RECORD
+                       elseClause   : BOOLEAN ;
+                       record       : CARDINAL ;
                        maxCaseId    : CARDINAL ;
                        caseListArray: Index ;
                        currentCase  : CaseList ;
@@ -63,10 +68,12 @@ VAR
 
 (*
    PushCase - create a case entity and push it to an internal stack.
+              r, is NulSym is this is a CASE statement and a record
+              if it is to indicate a varient record.
               Return the case id.
 *)
 
-PROCEDURE PushCase () : CARDINAL ;
+PROCEDURE PushCase (r: CARDINAL) : CARDINAL ;
 VAR
    c: CaseDescriptor ;
 BEGIN
@@ -77,6 +84,8 @@ BEGIN
       InternalError('out of memory error', __FILE__, __LINE__)
    ELSE
       WITH c^ DO
+         elseClause := FALSE ;
+         record := r ;
          maxCaseId := 0 ;
          caseListArray := InitIndex(1) ;
          next := caseStack ;
@@ -105,10 +114,20 @@ END PopCase ;
 
 
 (*
+   ElseCase - indicates that this case varient does have an else clause.
+*)
+
+PROCEDURE ElseCase ;
+BEGIN
+   caseStack^.elseClause := TRUE
+END ElseCase ;
+
+
+(*
    BeginCaseList - create a new label list.
 *)
 
-PROCEDURE BeginCaseList ;
+PROCEDURE BeginCaseList (v: CARDINAL) ;
 VAR
    l: CaseList ;
 BEGIN
@@ -120,7 +139,8 @@ BEGIN
    WITH l^ DO
       maxRangeId   := 0 ;
       rangeArray   := InitIndex(1) ;
-      currentRange := NIL
+      currentRange := NIL ;
+      varient      := v
    END ;
    WITH caseStack^ DO
       INC(maxCaseId) ;
@@ -417,6 +437,100 @@ PROCEDURE WriteCase (c: CARDINAL) ;
 BEGIN
    
 END WriteCase ;
+
+
+(*
+   InRangeList - returns TRUE if the value, tag, is defined in the case list.
+*)
+
+PROCEDURE InRangeList (cl: CaseList; tag: CARDINAL) : BOOLEAN ;
+VAR
+   i, h: CARDINAL ;
+   r   : RangePair ;
+   a   : Tree ;
+BEGIN
+   WITH cl^ DO
+      i := 1 ;
+      h := HighIndice(rangeArray) ;
+      WHILE i<=h DO
+         r := GetIndice(rangeArray, i) ;
+         WITH r^ DO
+            IF high=NulSym
+            THEN
+               a := Mod2Gcc(low)
+            ELSE
+               a := Mod2Gcc(high)
+            END ;
+            IF OverlapsRange(Mod2Gcc(low), a, Mod2Gcc(tag), Mod2Gcc(tag))
+            THEN
+               RETURN( TRUE )
+            END
+         END ;
+         INC(i)
+      END
+   END ;
+   RETURN( FALSE )
+END InRangeList ;
+
+
+(*
+   FindVarientField - returns the appropriate varient field associated with, tag,
+                      in, c.
+*)
+
+PROCEDURE FindVarientField (c: CaseDescriptor; tag: CARDINAL) : CARDINAL ;
+VAR
+   i, h: CARDINAL ;
+   cl  : CaseList ;
+   v   : CARDINAL ;
+BEGIN
+   WITH c^ DO
+      i := 1 ;
+      h := HighIndice(caseListArray) ;
+      WHILE i<=h DO
+         cl := GetIndice(caseListArray, i) ;
+         IF InRangeList(cl, tag)
+         THEN
+            RETURN( cl^.varient )
+         END ;
+         INC(i)
+      END ;
+      IF NOT elseClause
+      THEN
+         MetaError2('tag value {%1an} does not correspond with any varient field value in record {%2ad}',
+                    tag, c^.record) ;
+      END
+   END ;
+   RETURN( NulSym )
+END FindVarientField ;
+
+
+(*
+   FindVarient - returns a varient field of, record, given the value, tag.
+*)
+
+PROCEDURE FindVarient (tag, record: CARDINAL) : CARDINAL ;
+VAR
+   c   : CaseDescriptor ;
+   i, h: CARDINAL ;
+BEGIN
+   IF IsRecord(record)
+   THEN
+      i := 1 ;
+      h := HighIndice(caseArray) ;
+      WHILE i<=h DO
+         c := GetIndice(caseArray, i) ;
+         IF c^.record=record
+         THEN
+            RETURN( FindVarientField(c, tag) )
+         END ;
+         INC(i)
+      END
+   ELSE
+      MetaError1('expecting the first parameter of TSIZE to be a record type, rather than {%1d}', record) ;
+      RETURN( NulSym )
+   END
+END FindVarient ;
 
 
 BEGIN

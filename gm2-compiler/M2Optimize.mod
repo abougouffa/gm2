@@ -53,9 +53,9 @@ FROM SymbolTable IMPORT GetSymName,
                         IsModuleWithinProcedure,
                         NulSym ;
 
-FROM M2Quads IMPORT QuadOperator, Head, GetQuad, GetNextQuad, PutQuad, SubQuad,
-                    Opposite, IsReferenced, GetRealQuad, QuadToTokenNo ;
-
+FROM M2Quads IMPORT QuadOperator, GetQuad, GetFirstQuad, GetNextQuad,
+                    PutQuad, SubQuad, Opposite, IsReferenced,
+                    GetRealQuad, QuadToTokenNo ;
 
 
 (* %%%FORWARD%%%
@@ -461,7 +461,7 @@ VAR
    Op3 : CARDINAL ;
 BEGIN
    Last := GetNextQuad(End) ;
-   WHILE (Head#0) AND (Start#0) AND (Last#Start) DO
+   WHILE (GetFirstQuad()#0) AND (Start#0) AND (Last#Start) DO
       GetQuad(Start, Op, Op1, Op2, Op3) ;
       IF Op=DummyOp
       THEN

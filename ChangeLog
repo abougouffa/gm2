@@ -1,3 +1,48 @@
+2009-07-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added Sets.mod and M2CaseList.mod
+	  to the list of modules to be tested under gm2.paranoid.
+	* gm2/bnf/m2-2.bnf:  corrected dates and added ability to
+	  record record and varient fields into a list held in
+	  M2Quads.mod.
+	* gm2/bnf/m2-3.bnf:  now collects varient fields from the
+	  the list held in M2Quads and associates the case labels
+	  with each field to allow checking.  Altered SilentCaseLabel
+	  et al to VarientCaseLabel variety.
+	* gm2/bnf/m2-h.bnf:  match m2-3.bnf.
+	* gm2/gm2-compiler/M2BasicBlock.mod:  removed references to
+	  M2Quads.Head.
+	* gm2/gm2-compiler/M2CaseList.def:  PushCase altered to
+	  take a single parameter.  BeginCaseList also altered to
+	  take a single parameter.  New procedure function (FindVarient)
+	  and procedure (ElseCase).
+	* gm2/gm2-compiler/M2CaseList.mod:  implement above changes
+	  and new procedures.
+	* gm2/gm2-compiler/M2Code.mod:  remove usage of M2Quads.Head.
+	  Removed InitGM2M2.  Alterations reflecting removal of
+	  M2Quads.Head.
+	* gm2/gm2-compiler/M2GenGCC.def:  removed InitGM2M2.
+	* gm2/gm2-compiler/M2GenGCC.mod:  reimplemented SizeOp
+	  to comply with ISO TSIZE.
+	* gm2/gm2-compiler/M2Optimize.mod:  remove usage of
+	  M2Quads.Head.
+	* gm2/gm2-compiler/M2Quads.def:  no longer export Head.
+	  New procedures (GetFirstQuad), (BeginVarient), (EndVarient),
+	  (BeginVarientList), (EndVarientList), (AddRecordToList),
+	  (AddVarientFieldToList), (AddVarientRange), (AddVarientEquality).
+	  Removed NoOfDynamicQuads, IncDynamicQuads.
+	  BackPatchSubrangesAndOptParam no longer uses a parameter.
+	* gm2/gm2-compiler/M2Quads.mod:  implement above changes.
+	  CountQuads returns a variable rather than computes the value.
+	  This modification speeds up the compiler by 30% for large
+	  source files.  M2Quads is altered to support maintaining a count
+	  of quadruples in the variable.  Fixed Assert bugs.
+	* gm2/gm2-compiler/M2Scope.mod:  removed import of M2Quads.Head
+	  and use GetFirstQuad instead.
+	* gm2/gm2-compiler/P2SymBuild.mod:  StartBuildVarientFieldRecord
+	  calls AddVarientFieldToList to record FieldSym necessary for
+	  pass 3.
+	
 2009-07-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2CaseList.def:  new file.
@@ -40,7 +85,7 @@
 	  Removed KillQuad.
 	* gm2/gm2-compiler/M2Quads.mod:  many changes which
 	  remove the static array Quads and use a dynamic
-	  equivalent.  Also make the builtin functio TSIZE
+	  equivalent.  Also make the builtin function TSIZE
 	  generate appropriate quadruples.
 	* gm2/gm2-libs-iso/SYSTEM.def:  fixed typo.
 

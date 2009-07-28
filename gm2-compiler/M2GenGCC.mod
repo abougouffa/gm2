@@ -199,6 +199,9 @@ FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
                     QuadToTokenNo,
                     DisplayQuadList ;
 
+FROM M2CaseList IMPORT FindVarient ;
+
+
 CONST
    Debugging         = FALSE ;
    PriorityDebugging = FALSE ;
@@ -211,7 +214,6 @@ TYPE
 VAR
    UnboundedLabelNo         : CARDINAL ;
    CurrentQuadToken         : CARDINAL ;
-   AbsoluteHead             : CARDINAL ;
    LastLine                 : CARDINAL ;(* The Last Line number emitted with the  *)
                                         (* generated code.                        *)
    LastOperator             : QuadOperator ; (* The last operator processed.      *)
@@ -442,16 +444,6 @@ PROCEDURE CodeFinallyStart (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMa
 PROCEDURE CodeFinallyEnd (quad: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN) ; FORWARD ;
 PROCEDURE CodeThrow (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
-
-
-(*
-   InitGNUM2 - initialize the start of quadruples.
-*)
-
-PROCEDURE InitGNUM2 (Head: CARDINAL) ;
-BEGIN
-   AbsoluteHead := Head ;
-END InitGNUM2 ;
 
 
 (*
@@ -4034,17 +4026,37 @@ PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
+   s: CARDINAL ;
 BEGIN
    IF IsConst(op1) AND CompletelyResolved(op3)
    THEN
-      t := BuildSize(Mod2Gcc(op3), FALSE) ;
-      PushIntegerTree(t) ;
-      PopValue(op1) ;
-      PutConst(op1, Cardinal) ;
-      p(op1) ;
-      NoChange := FALSE ;
-      SubQuad(quad) ;
-      t := RememberConstant(t)
+      IF op2=NulSym
+      THEN
+         t := BuildSize(Mod2Gcc(op3), FALSE) ;
+         PushIntegerTree(t) ;
+         PopValue(op1) ;
+         PutConst(op1, Cardinal) ;
+         p(op1) ;
+         NoChange := FALSE ;
+         SubQuad(quad) ;
+         t := RememberConstant(t)
+      ELSIF GccKnowsAbout(op2)
+      THEN
+         s := FindVarient(op3, op2) ;
+         IF s=NulSym
+         THEN
+            t := GetIntegerZero()
+         ELSE
+            t := BuildSize(Mod2Gcc(s), FALSE) ;
+         END ;
+         PushIntegerTree(t) ;
+         PopValue(op1) ;
+         PutConst(op1, Cardinal) ;
+         p(op1) ;
+         NoChange := FALSE ;
+         SubQuad(quad) ;
+         t := RememberConstant(t)
+      END
    END
 END FoldSize ;
 
@@ -4056,8 +4068,20 @@ END FoldSize ;
 PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
+   s: CARDINAL ;
 BEGIN
-   PushIntegerTree(BuildSize(Mod2Gcc(op3), FALSE)) ;
+   IF op2=NulSym
+   THEN
+      PushIntegerTree(BuildSize(Mod2Gcc(op3), FALSE))
+   ELSE
+      s := FindVarient(op3, op2) ;
+      IF s=NulSym
+      THEN
+         PushIntegerTree(GetIntegerZero())
+      ELSE
+         PushIntegerTree(BuildSize(Mod2Gcc(s), FALSE))
+      END
+   END ;
    IF IsConst(op1)
    THEN
       PopValue(op1) ;

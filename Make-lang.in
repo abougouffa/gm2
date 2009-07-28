@@ -1012,7 +1012,8 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
-                     M2Range.mod       M2Swig.mod      M2MetaError.mod
+                     M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
+                     M2CaseList.mod
 
 GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.mod     \
                      gm2l.mod          gm2m.mod        pg.mod

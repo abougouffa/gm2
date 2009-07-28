@@ -30,7 +30,7 @@
 -- procedure/module calls.
 --
 % module PHBuild begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -101,6 +101,8 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildDesignatorRecord,
                     BuildDesignatorArray,
                     BuildDesignatorPointer,
+                    BeginVarient, EndVarient, BeginVarientList, EndVarientList,
+                    AddVarientRange, AddVarientEquality,
                     CheckWithReference,
                     CheckOuterScopeProcedureVariable,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
@@ -139,6 +141,8 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         RequestSym ;
 
 FROM M2Batch IMPORT IsModuleKnown ;
+
+FROM M2CaseList IMPORT BeginCaseList, EndCaseList, ElseCase ;
 
 FROM M2Reserved IMPORT NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        EqualTok, HashTok, LessGreaterTok, LessTok, LessEqualTok,
@@ -784,22 +788,33 @@ FieldListStatement := [ FieldList ] =:
 FieldList := IdentList ":"
                            Type
              |
-             "CASE" TagIdent [ ":" Qualident
-                                             | "."
-                                                   Qualident
-                                                             ] "OF"
-              Varient
-                      { "|"
-                        Varient
+             "CASE"                                                        % BeginVarient %
+                    TagIdent [ ":" Qualident
+
+                           | "."
+                             Qualident
+                          ] "OF"
+
+                                                                           % BeginVarientList %
+              Varient                                                      % EndVarientList %
+                      { "|"                                                % BeginVarientList %
+                        Varient                                            % EndVarientList %
                       }
-              [ "ELSE"
+              [ "ELSE"                                                     % ElseCase %
                 FieldListSequence
-              ] "END"
+              ] "END"                                                      % EndVarient %
            =:
 
 TagIdent := [ Ident ] =:
 
-Varient := [ SilentCaseLabelList ":" FieldListSequence ] =:
+Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
+
+VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
+
+VarientCaseLabels := ConstExpression ( ".." ConstExpression                % AddVarientRange %
+                                       |                                   % AddVarientEquality ; (* epsilon *) %
+                                     )
+                   =:
 
 SilentCaseLabelList := SilentCaseLabels { "," SilentCaseLabels } =:
 

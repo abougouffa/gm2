@@ -34,7 +34,7 @@ FROM DynamicStrings IMPORT String ;
               Return the case id.
 *)
 
-PROCEDURE PushCase () : CARDINAL ;
+PROCEDURE PushCase (r: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -46,10 +46,17 @@ PROCEDURE PopCase ;
 
 
 (*
+   ElseCase - indicates that this case varient does have an else clause.
+*)
+
+PROCEDURE ElseCase ;
+
+
+(*
    BeginCaseList - create a new label list.
 *)
 
-PROCEDURE BeginCaseList ;
+PROCEDURE BeginCaseList (v: CARDINAL) ;
 
 
 (*
@@ -88,6 +95,13 @@ PROCEDURE OverlappingCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE WriteCase (c: CARDINAL) ;
+
+
+(*
+   FindVarient - returns a varient field of, record, given the value, tag.
+*)
+
+PROCEDURE FindVarient (tag, record: CARDINAL) : CARDINAL ;
 
 
 END M2CaseList.

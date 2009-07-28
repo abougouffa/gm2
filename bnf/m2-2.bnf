@@ -1,4 +1,4 @@
--- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+-- Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
 -- Free Software Foundation, Inc.
 -- This file is part of GNU Modula-2.
 --
@@ -23,7 +23,7 @@
 --  pg takes this file and produces a top down parser for Modula-2.
 --
 % module P2Build begin
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -58,6 +58,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
                     BuildProcedureEnd,
                     BuildAssignment,
                     BuildInline,
+                    AddRecordToList,
                     PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P2SymBuild IMPORT P2StartBuildProgramModule,
@@ -751,7 +752,7 @@ ArrayType := "ARRAY"                                                       % VAR
                                                                              PushT(a) %
            =:
 
-RecordType := "RECORD"                                                     % BuildRecord ; %
+RecordType := "RECORD"                                                     % BuildRecord %
               FieldListSequence "END" =:
 
 
@@ -762,24 +763,25 @@ FieldListStatement := [ FieldList ] =:
 -- sadly the PIM rules are not LL1 as Ident and Qualident have the same first
 -- symbols. We rewrite FieldList to inline qualident
 
-FieldList := IdentList ":"                                                 % BuildNulName ; %
-                           Type                                            % BuildFieldRecord ; %
+FieldList := IdentList ":"                                                 % BuildNulName %
+                           Type                                            % BuildFieldRecord %
              |
-             "CASE" TagIdent
-                                [ ":" Qualident                            % BuildVarientSelector ; %
-                                                                           % BuildNulName ; %
-                                                | "."                      % PushAutoOff ; %
-                                                      Qualident            % PopAuto ; %
-                                                                ] "OF"     % PopNothing ; %
-                                                                           % StartBuildVarient ; %
-                                                                           % StartBuildVarientFieldRecord ; %
-              Varient                                                      % EndBuildVarientFieldRecord ; %
-                      { "|"                                                % StartBuildVarientFieldRecord ; %
-                        Varient                                            % EndBuildVarientFieldRecord ; %
+             "CASE"                                                        % AddRecordToList %
+                    TagIdent
+                                [ ":" Qualident                            % BuildVarientSelector %
+                                                                           % BuildNulName %
+                                                | "."                      % PushAutoOff %
+                                                      Qualident            % PopAuto %
+                                                                ] "OF"     % PopNothing %
+                                                                           % StartBuildVarient %
+                                                                           % StartBuildVarientFieldRecord %
+              Varient                                                      % EndBuildVarientFieldRecord %
+                      { "|"                                                % StartBuildVarientFieldRecord %
+                        Varient                                            % EndBuildVarientFieldRecord %
                       }
-              [ "ELSE"                                                     % StartBuildVarientFieldRecord ; %
-                FieldListSequence                                          % EndBuildVarientFieldRecord ; %
-              ] "END"                                                      % EndBuildVarient ; %
+              [ "ELSE"                                                     % StartBuildVarientFieldRecord %
+                FieldListSequence                                          % EndBuildVarientFieldRecord %
+              ] "END"                                                      % EndBuildVarient %
            =:
 
 TagIdent := Ident |                                                        % BuildNulName %

@@ -38,7 +38,7 @@ FROM SymbolTable IMPORT GetMainModule, IsProcedure,
 FROM M2Printf IMPORT printf2, printf1, printf0 ;
 FROM NameKey IMPORT Name ;
 
-FROM M2Quads IMPORT CountQuads, Head, DisplayQuadList, DisplayQuadRange,
+FROM M2Quads IMPORT CountQuads, GetFirstQuad, DisplayQuadList, DisplayQuadRange,
                     BackPatchSubrangesAndOptParam, VariableAnalysis,
                     LoopAnalysis, ForLoopAnalysis ;
 
@@ -50,7 +50,7 @@ FROM M2BasicBlock IMPORT BasicBlock,
                          ForeachBasicBlockDo ;
 
 FROM M2Optimize IMPORT FoldBranches, RemoveProcedures ;
-FROM M2GenGCC IMPORT InitGNUM2, ConvertQuadsToTree ;
+FROM M2GenGCC IMPORT ConvertQuadsToTree ;
 
 FROM M2GCCDeclare IMPORT FoldConstants, StartDeclareScope,
                          DeclareProcedure, InitDeclarations,
@@ -112,7 +112,7 @@ PROCEDURE OptimizationAnalysis ;
 BEGIN
    IF Statistics
    THEN
-      Count := CountQuads(Head) ;
+      Count := CountQuads() ;
 
       WriteString('Initial Number of Quadruples:') ; WriteCard(Total, 5) ;
       Percent(Total, Total) ; WriteLn ;
@@ -150,8 +150,8 @@ BEGIN
    CheckHiddenTypeAreAddress ;
    ResolveConstructorTypes ;
    SetPassToNoPass ;
-   BackPatchSubrangesAndOptParam(Head) ;
-   Total := CountQuads(Head) ;
+   BackPatchSubrangesAndOptParam ;
+   Total := CountQuads() ;
 
    ForLoopAnalysis ;   (* must be done before any optimization as the index variable increment quad might change *)
 
@@ -170,7 +170,6 @@ BEGIN
    END ;
 
    SetPassToCodeGeneration ;
-   InitGNUM2(Head) ;
    SetFlagUnitAtATime(Optimizing) ;
    InitGlobalContext ;
    InitDeclarations ;
@@ -197,14 +196,14 @@ PROCEDURE InitialDeclareAndOptimize (start, end: CARDINAL) ;
 VAR
    bb: BasicBlock ;
 BEGIN
-   Count := CountQuads(Head) ;
+   Count := CountQuads() ;
    bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
-   BasicB := Count - CountQuads(Head) ;
-   Count := CountQuads(Head) ;
+   BasicB := Count - CountQuads() ;
+   Count := CountQuads() ;
 
    FoldBranches(start, end) ;
-   Jump := Count - CountQuads(Head) ;
-   Count := CountQuads(Head)
+   Jump := Count - CountQuads() ;
+   Count := CountQuads()
 END InitialDeclareAndOptimize ;
 
 
@@ -218,22 +217,22 @@ VAR
 BEGIN
    REPEAT
       FoldConstants(start, end) ;
-      DeltaConst := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
+      DeltaConst := Count - CountQuads() ;
+      Count := CountQuads() ;
 
       bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
 
-      DeltaBasicB := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
+      DeltaBasicB := Count - CountQuads() ;
+      Count := CountQuads() ;
 
       bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
       FoldBranches(start, end) ;
-      DeltaJump := Count - CountQuads(Head) ;
-      Count := CountQuads(Head) ;
+      DeltaJump := Count - CountQuads() ;
+      Count := CountQuads() ;
 
       bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
-      INC(DeltaBasicB, Count - CountQuads(Head)) ;
-      Count := CountQuads(Head) ;
+      INC(DeltaBasicB, Count - CountQuads()) ;
+      Count := CountQuads() ;
 
       IF FALSE AND OptimizeCommonSubExpressions
       THEN
@@ -243,12 +242,12 @@ BEGIN
 
          bb := KillBasicBlocks(InitBasicBlocksFromRange(start, end)) ;
 
-         DeltaCse := Count - CountQuads(Head) ;
-         Count := CountQuads(Head) ;
+         DeltaCse := Count - CountQuads() ;
+         Count := CountQuads() ;
 
          FoldConstants(start, end) ;       (* now attempt to fold more constants *)
-         INC(DeltaConst, Count-CountQuads(Head)) ;
-         Count := CountQuads(Head)
+         INC(DeltaConst, Count-CountQuads()) ;
+         Count := CountQuads()
       END ;
       (* now total the optimization components *)
       INC(Proc, DeltaProc) ;
@@ -272,7 +271,7 @@ END SecondDeclareAndOptimize ;
 
 PROCEDURE InitOptimizeVariables ;
 BEGIN
-   Count       := CountQuads(Head) ;
+   Count       := CountQuads() ;
    OptimTimes  := 0 ;
    DeltaProc   := 0 ;
    DeltaConst  := 0 ;
@@ -334,13 +333,13 @@ VAR
 BEGIN
    InitOptimizeVariables ;
    OptimTimes := 1 ;
-   Current := CountQuads(Head) ;
+   Current := CountQuads() ;
    ForeachScopeBlockDo(sb, InitialDeclareAndOptimize) ;
    ForeachScopeBlockDo(sb, BasicBlockVariableAnalysis) ;
    REPEAT
       ForeachScopeBlockDo(sb, SecondDeclareAndOptimize) ;
       Previous := Current ;
-      Current := CountQuads(Head) ;
+      Current := CountQuads() ;
       INC(OptimTimes)
    UNTIL (OptimTimes=MaxOptimTimes) OR (Current=Previous) ;
    ForeachScopeBlockDo(sb, LoopAnalysis)

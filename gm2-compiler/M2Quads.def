@@ -115,16 +115,16 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
                  WriteOperator, BackPatchSubrangesAndOptParam,
 
-                 GetQuad, GetNextQuad, PutQuad,
+                 GetQuad, GetFirstQuad, GetNextQuad, PutQuad,
                  SubQuad, EraseQuad, GetRealQuad,
                  CountQuads,
                  GetLastFileQuad,
                  GetLastQuadNo,
                  QuadToLineNo, QuadToTokenNo,
                  VariableAnalysis, LoopAnalysis, ForLoopAnalysis,
-                 Head,
-                 NoOfDynamicQuads, IncDynamicQuads,
-
+                 AddVarientFieldToList, AddRecordToList,
+                 AddVarientRange, AddVarientEquality,
+                 BeginVarient, EndVarient, BeginVarientList, EndVarientList,
                  IsAutoPushOn, PushAutoOn, PushAutoOff, PopAuto ;
 
 
@@ -156,10 +156,6 @@ TYPE
                    SavePriorityOp, RestorePriorityOp,
                    SaveExceptionOp, RestoreExceptionOp,
                    RangeCheckOp, ErrorOp) ;
-
-
-VAR
-   Head: CARDINAL ;  (* Head of the list of quadruples *)
 
 
 (*
@@ -428,6 +424,13 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
                    Oper1, Oper2, Oper3: CARDINAL) ;
 
 (*
+   GetFirstQuad - returns the first quadruple.
+*)
+
+PROCEDURE GetFirstQuad () : CARDINAL ;
+
+
+(*
    GetNextQuad - returns the Quadruple number following QuadNo.
 *)
 
@@ -458,10 +461,10 @@ PROCEDURE EraseQuad (QuadNo: CARDINAL) ;
 
 
 (*
-   CountQuads - returns the number of quadruple contained within the list Head.
+   CountQuads - returns the number of quadruples.
 *)
 
-PROCEDURE CountQuads (Head: CARDINAL) : CARDINAL ;
+PROCEDURE CountQuads () : CARDINAL ;
 
 
 (*
@@ -2013,9 +2016,73 @@ PROCEDURE DisplayStack ;
 
 PROCEDURE WriteOperand (Sym: CARDINAL) ;
 
+
+(*
+   BeginVarient - begin a varient record.
+*)
+
+PROCEDURE BeginVarient ;
+
+
+(*
+   EndVarient - end a varient record.
+*)
+
+PROCEDURE EndVarient ;
+
+
+(*
+   BeginVarientList - begin an ident list containing ranges belonging to a
+                      varient list.
+*)
+
+PROCEDURE BeginVarientList ;
+
+
+(*
+   EndVarientList - end a range list for a varient field.
+*)
+
+PROCEDURE EndVarientList ;
+
+
+(*
+   AddRecordToList - adds the record held on the top of stack to the
+                     list of records and varient fields.
+*)
+
+PROCEDURE AddRecordToList ;
+
+
+(*
+   AddVarientFieldToList - adds varient field, f, to the list of all varient
+                           fields created.
+*)
+
+PROCEDURE AddVarientFieldToList (f: CARDINAL) ;
+
+
+(*
+   AddVarientRange - creates a range from the top two contant expressions
+                     on the stack which are recorded with the current
+                     varient field.  The stack is unaltered.
+*)
+
+PROCEDURE AddVarientRange ;
+
+
+(*
+   AddVarientEquality - adds the contant expression on the top of the stack
+                        to the current varient field being recorded.
+                        The stack is unaltered.
+*)
+
+PROCEDURE AddVarientEquality ;
+
+
 (*
    BuildCodeOn - generates a quadruple declaring that code should be
-                 emmitted from henceforth.
+                 emitted from henceforth.
 
                  The Stack is unnaffected.
 *)
@@ -2166,22 +2233,6 @@ PROCEDURE BuildSizeCheckStart ;
 
 
 (*
-   NoOfDynamicQuads - returns the number of quadruples which have been
-                      used by the dynamic code generator.
-*)
-
-PROCEDURE NoOfDynamicQuads () : CARDINAL ;
-
-
-(*
-   IncDynamicQuads - increments the number of dynamic quadruple count
-                     by Start..End quadruples.
-*)
-
-PROCEDURE IncDynamicQuads (Start, End: CARDINAL) ;
-
-
-(*
    BackPatchSubrangesAndOptParam - runs through all the quadruples and finds SubrangeLow or SubrangeHigh
                                    quadruples and replaces it by an assignment to the Low or High component
                                    of the subrange type.
@@ -2205,7 +2256,7 @@ PROCEDURE IncDynamicQuads (Start, End: CARDINAL) ;
                                    Param          op1     op2    GetOptArgInit(op3)
 *)
 
-PROCEDURE BackPatchSubrangesAndOptParam (Head: CARDINAL) ;
+PROCEDURE BackPatchSubrangesAndOptParam ;
 
 
 (*

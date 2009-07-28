@@ -25,8 +25,7 @@ FROM NumberIO IMPORT WriteCard ;
 FROM M2Debug IMPORT Assert ;
 FROM M2Options IMPORT OptimizeBasicBlock ;
 
-FROM M2Quads IMPORT Head,
-                    IsReferenced, IsConditional, IsUnConditional, IsCall,
+FROM M2Quads IMPORT IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
                     IsCatchBegin, IsCatchEnd,
                     IsInitStart, IsInitEnd, IsFinallyStart, IsFinallyEnd,

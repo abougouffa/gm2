@@ -23,7 +23,7 @@ FROM SymbolTable IMPORT IsProcedure, IsDefImp, GetProcedureQuads, GetScope,
                         GetProcedureScope, IsModule, IsModuleWithinProcedure,
                         NulSym ;
 
-FROM M2Quads IMPORT QuadOperator, Head, GetNextQuad, GetQuad ;
+FROM M2Quads IMPORT QuadOperator, GetFirstQuad, GetNextQuad, GetQuad ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, KillStackWord,
                         PopWord, PushWord, PeepWord ;
 
@@ -127,7 +127,7 @@ BEGIN
          GetQuad(end, op, op1, op2, op3)
       END
    ELSE
-      i := Head ;
+      i := GetFirstQuad() ;
       end := 0
    END ;
    nb := sb ;

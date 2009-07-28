@@ -210,7 +210,7 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     CheckRangeRemoveVariableRead,
                     WriteRangeCheck ;
 
-FROM M2CaseList IMPORT PushCase, PopCase, AddRange ;
+FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList ;
                  
 
 CONST
@@ -283,7 +283,6 @@ VAR
    LogicalAndTok,                     (* Internal _LAND token.                   *)
    LogicalXorTok,                     (* Internal _LXOR token.                   *)
    LogicalDifferenceTok : Name ;      (* Internal _LDIFF token.                  *)
-   NoOfDynamic          : CARDINAL ;
    IsAutoOn,                          (* should parser automatically push idents *)
    MustNotCheckBounds   : BOOLEAN ;
    ForInfo              : ForLoopInfo ;  (* start and end of all FOR loops       *)
@@ -293,6 +292,11 @@ VAR
    BuildingSize,
    QuadrupleGeneration  : BOOLEAN ;      (* should we be generating quadruples?  *)
    FreeLineList         : LineNote ;  (* free list of line notes                 *)
+   VarientFields        : List ;      (* the list of all varient fields created  *)
+   VarientFieldNo       : CARDINAL ;  (* used to retrieve the VarientFields      *)
+                                      (* in order.                               *)
+   NoOfQuads            : CARDINAL ;  (* Number of used quadruples.              *)
+   Head                 : CARDINAL ;  (* Head of the list of quadruples *)
 
 
 (*
@@ -964,24 +968,24 @@ END IsPseudoQuad ;
 PROCEDURE GetLastFileQuad (QuadNo: CARDINAL) : CARDINAL ;
 VAR
    f       : QuadFrame ;
-   Head, i,
+   q, i,
    FileQuad: CARDINAL ;
 BEGIN
-   Head := 1 ;  (* Warning Head assummed to start at quadruple 1 *)
+   q := Head ;
    FileQuad := 0 ;
    REPEAT
-      f := GetQF(Head) ;
+      f := GetQF(q) ;
       WITH f^ DO
          IF (Operator=StartModFileOp) OR (Operator=StartDefFileOp)
          THEN
-            FileQuad := Head
+            FileQuad := q
          END ;
          i := Next
       END ;
-      Head := i
+      q := i
    UNTIL (i=QuadNo) OR (i=0) ;
-   Assert(i#0) ;  (* Should never occur - if it does - check warning above *)
-   Assert(FileQuad#0) ;  (* Should never occur *)
+   Assert(i#0) ;
+   Assert(FileQuad#0) ;
    RETURN( FileQuad )
 END GetLastFileQuad ;
 
@@ -1425,6 +1429,16 @@ END CheckConst ;
 
 
 (*
+   GetFirstQuad - returns the first quadruple.
+*)
+
+PROCEDURE GetFirstQuad () : CARDINAL ;
+BEGIN
+   RETURN( Head )
+END GetFirstQuad ;
+
+
+(*
    GetNextQuad - returns the Quadruple number following QuadNo.
 *)
 
@@ -1463,7 +1477,8 @@ BEGIN
       END ;
       g^.Next := f^.Next
    END ;
-   f^.Operator := DummyOp
+   f^.Operator := DummyOp ;
+   DEC(NoOfQuads)
 END SubQuad ;
 
 
@@ -1610,24 +1625,12 @@ END RemoveReference ;
    
    
 (*
-   CountQuads - returns the number of quadruple contained within the list Head.
+   CountQuads - returns the number of quadruples.
 *)
 
-PROCEDURE CountQuads (Head: CARDINAL) : CARDINAL ;
-VAR
-   f: QuadFrame ;
-   n: CARDINAL ;
+PROCEDURE CountQuads () : CARDINAL ;
 BEGIN
-   n := 0 ;
-   WHILE Head#0 DO
-      f := GetQF(Head) ;
-      IF f^.Operator#DummyOp
-      THEN
-         INC(n)
-      END ;
-      Head := f^.Next
-   END ;
-   RETURN( n )
+   RETURN( NoOfQuads )
 END CountQuads ;
 
 
@@ -1649,6 +1652,7 @@ BEGIN
       THEN
          InternalError('out of memory error trying to allocate a quadruple', __FILE__, __LINE__)
       ELSE
+         INC(NoOfQuads) ;
          PutIndice(QuadArray, QuadNo, f) ;
          f^.NoOfTimesReferenced := 0
       END
@@ -2342,14 +2346,16 @@ END CollectHigh ;
                                    Param          op1     op2    GetOptArgInit(op3)
 *)
 
-PROCEDURE BackPatchSubrangesAndOptParam (Head: CARDINAL) ;
+PROCEDURE BackPatchSubrangesAndOptParam ;
 VAR
    f: QuadFrame ;
+   q: CARDINAL ;
 BEGIN
-   IF Head#0
+   q := GetFirstQuad() ;
+   IF q#0
    THEN
       REPEAT
-         f := GetQF(Head) ;
+         f := GetQF(q) ;
          WITH f^ DO
             CASE Operator OF
 
@@ -2362,9 +2368,9 @@ BEGIN
 
             ELSE
             END ;
-            Head := Next
+            q := Next
          END
-      UNTIL Head=0
+      UNTIL q=0
    END
 END BackPatchSubrangesAndOptParam ;
 
@@ -3467,7 +3473,7 @@ END BuildEndFor ;
 
 PROCEDURE BuildCaseStart ;
 BEGIN
-   BuildRange(InitCaseBounds(PushCase())) ;
+   BuildRange(InitCaseBounds(PushCase(NulSym))) ;
    PushBool(0, 0) ;  (* BackPatch list initialized *)
    PushBool(0, 0)    (* Room for a boolean expression *)
 END BuildCaseStart ;
@@ -11897,29 +11903,125 @@ END PushLineNo ;
 
 
 (*
-   NoOfDynamicQuads - returns the number of quadruples which have been
-                      used by the dynamic code generator.
+   AddRecordToList - adds the record held on the top of stack to the
+                     list of records and varient fields.
 *)
 
-PROCEDURE NoOfDynamicQuads () : CARDINAL ;
+PROCEDURE AddRecordToList ;
+VAR
+   r: CARDINAL ;
 BEGIN
-   RETURN( NoOfDynamic )
-END NoOfDynamicQuads ;
+   r := OperandT(1) ;
+   Assert(IsRecord(r) OR IsFieldVarient(r)) ;
+   (*
+      r might be a field varient if the declaration consists of nested
+      varients.  However ISO TSIZE can only utilise record types, we store
+      a varient field anyway to make it easier for the subsequent pass.
+   *)
+   PutItemIntoList(VarientFields, r)
+END AddRecordToList ;
 
 
 (*
-   IncDynamicQuads - increments the number of dynamic quadruple count
-                     by Start..End quadruples.
+   AddVarientFieldToList - adds varient field, f, to the list of all varient
+                           fields created.
 *)
 
-PROCEDURE IncDynamicQuads (Start, End: CARDINAL) ;
+PROCEDURE AddVarientFieldToList (f: CARDINAL) ;
 BEGIN
-   INC(NoOfDynamic) ;
-   WHILE Start#End DO
-      Start := GetNextQuad(Start) ;
-      INC(NoOfDynamic)
-   END
-END IncDynamicQuads ;
+   PutItemIntoList(VarientFields, f)
+END AddVarientFieldToList ;
+
+
+(*
+   GetRecordOrField - 
+*)
+
+PROCEDURE GetRecordOrField () : CARDINAL ;
+BEGIN
+   INC(VarientFieldNo) ;
+   RETURN( GetItemFromList(VarientFields, VarientFieldNo) )
+END GetRecordOrField ;
+
+
+(*
+   BeginVarient - begin a varient record.
+*)
+
+PROCEDURE BeginVarient ;
+VAR
+   r: CARDINAL ;
+BEGIN
+   r := GetRecordOrField() ;
+   Assert(IsRecord(r) OR IsFieldVarient(r)) ;
+   BuildRange(InitCaseBounds(PushCase(r)))
+END BeginVarient ;
+
+
+(*
+   EndVarient - end a varient record.
+*)
+
+PROCEDURE EndVarient ;
+BEGIN
+   PopCase
+END EndVarient ;
+
+
+(*
+   BeginVarientList - begin an ident list containing ranges belonging to a
+                      varient list.
+*)
+
+PROCEDURE BeginVarientList ;
+VAR
+   f: CARDINAL ;
+BEGIN
+   f := GetRecordOrField() ;
+   Assert(IsFieldVarient(f)) ;
+   BeginCaseList(f)
+END BeginVarientList ;
+
+
+(*
+   EndVarientList - end a range list for a varient field.
+*)
+
+PROCEDURE EndVarientList ;
+BEGIN
+   EndCaseList
+END EndVarientList ;
+
+
+(*
+   AddVarientRange - creates a range from the top two contant expressions
+                     on the stack which are recorded with the current
+                     varient field.  The stack is unaltered.
+*)
+
+PROCEDURE AddVarientRange ;
+VAR
+   r1, r2: CARDINAL ;
+BEGIN
+   PopT(r1) ;
+   PopT(r2) ;
+   AddRange(r1, r2, GetTokenNo())
+END AddVarientRange ;
+
+
+(*
+   AddVarientEquality - adds the contant expression on the top of the stack
+                        to the current varient field being recorded.
+                        The stack is unaltered.
+*)
+
+PROCEDURE AddVarientEquality ;
+VAR
+   r1: CARDINAL ;
+BEGIN
+   PopT(r1) ;
+   AddRange(r1, NulSym, GetTokenNo())
+END AddVarientEquality ;
 
 
 (*
@@ -12205,7 +12307,6 @@ BEGIN
    LogicalDifferenceTok := MakeKey('_LDIFF') ;
    QuadArray := InitIndex(1) ;
    FreeList := 1 ;
-   NoOfDynamic := 0 ;
    NewQuad(NextQuad) ;
    Assert(NextQuad=1) ;
    BoolStack := InitStackAddress() ;
@@ -12235,11 +12336,13 @@ BEGIN
    BuildingSize := FALSE ;
    AutoStack := InitStackWord() ;
    IsAutoOn := TRUE ;
-   FreeLineList := NIL
+   FreeLineList := NIL ;
+   InitList(VarientFields) ;
+   VarientFieldNo := 0 ;
+   NoOfQuads := 0
 END Init ;
 
 
 BEGIN
-   (* WriteString('Initialization of M2Quads') ; WriteLn ; *)
    Init
 END M2Quads.

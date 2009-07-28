@@ -33,16 +33,7 @@ FROM gccgm2 IMPORT Tree ;
 EXPORT QUALIFIED ConvertQuadsToTree, ResolveConstantExpressions,
                  GetHighFromUnbounded, StringToChar,
                  LValueToGenericPtr, ZConstToTypedConst,
-                 DoCopyString,
-                 InitGNUM2 ;
-
-
-(*
-   InitGNUM2 - initializes the GCC SymbolTable with Modula-2 base types.
-               Also initialize the start of quadruples.
-*)
-
-PROCEDURE InitGNUM2 (Head: CARDINAL) ;
+                 DoCopyString ;
 
 
 (*

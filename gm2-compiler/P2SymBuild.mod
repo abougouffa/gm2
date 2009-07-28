@@ -115,7 +115,8 @@ FROM M2Batch IMPORT MakeDefinitionSource,
 
 FROM M2Quads IMPORT PushT, PopT,
                     PushTF, PopTF,
-                    OperandT, OperandF, OperandA, PopN, DisplayStack ;
+                    OperandT, OperandF, OperandA, PopN, DisplayStack,
+                    AddVarientFieldToList ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
@@ -1995,7 +1996,8 @@ BEGIN
    PopT(VarientSym) ;
    FieldSym := MakeFieldVarient(CheckAnonymous(NulName), VarientSym) ;
    PushT(VarientSym) ;
-   PushT(FieldSym)
+   PushT(FieldSym) ;
+   AddVarientFieldToList(FieldSym)
 END StartBuildVarientFieldRecord ;
 
 
