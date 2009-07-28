@@ -52,8 +52,8 @@ BEGIN
    CASE i OF
 
    0..31  : RETURN( ADR(b) ) |
-   31..63 : RETURN( ADR(b)+ADDRESS(4) ) |
-   63..95 : RETURN( ADR(b)+ADDRESS(8) ) |
+   32..63 : RETURN( ADR(b)+ADDRESS(4) ) |
+   64..95 : RETURN( ADR(b)+ADDRESS(8) ) |
    96..127: RETURN( ADR(b)+ADDRESS(12) )
 
    ELSE
