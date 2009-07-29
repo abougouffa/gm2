@@ -1,3 +1,17 @@
+2009-07-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-2.bnf:  place the actions in the Varient rule
+	  rather than in the FieldList rule.  Also introduce
+	  VarientCaseLabelList and VarientCaseLabels rules.
+	* gm2/bnf/m2-3.bnf:  place the actions in the Varient rule
+	  rather than in the FieldList rule.
+	* gm2/gm2-compiler/M2Debug.mod:  removed space.
+	* gm2/gm2-compiler/P2SymBuild.mod:  introduced Assert.
+	* gm2/gm2-compiler/ppg.mod:  fixed dates.  Altered so that
+	  code actions immediately inside {} or [] are emitted when
+	  the next token is consumed.  Thus allowing the Varient
+	  rules in m2-2.bnf and m2-3.bnf to compile correctly.
+
 2009-07-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added Sets.mod and M2CaseList.mod

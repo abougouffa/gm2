@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -132,6 +132,7 @@ TYPE
                                   followinfo: FollowDesc ;
                                   next      : FactorDesc ;   (* chain of successive factors *)
                                   line      : CARDINAL ;
+                                  pushed    : FactorDesc ;   (* chain of pushed code factors *)
                                   CASE type: FactorType OF
 
                                   id  : ident : IdentDesc |
@@ -196,9 +197,9 @@ PROCEDURE CodeThenDo (m: m2condition) ; FORWARD ;
 PROCEDURE CodeElseEnd (end: ARRAY OF CHAR; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ; FORWARD ;
 PROCEDURE CodeEnd (m: m2condition; t: TermDesc; consumed: BOOLEAN; f: FactorDesc; inopt: BOOLEAN) ; FORWARD ;
 PROCEDURE EmitNonVarCode (code: CodeDesc; curpos, left: CARDINAL) ; FORWARD ;
-PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN) ; FORWARD ;
-PROCEDURE CodeTerm (t: TermDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN) ; FORWARD ;
-PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN) ; FORWARD ;
+PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
+PROCEDURE CodeTerm (t: TermDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
+PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ; FORWARD ;
 PROCEDURE CodeStatement (s: StatementDesc; m: m2condition) ; FORWARD ;
 PROCEDURE CodeProduction (p: ProductionDesc) ; FORWARD ;
 PROCEDURE RecoverCondition (m: m2condition) ; FORWARD ;
@@ -209,7 +210,7 @@ PROCEDURE WriteElement (e: WORD) ; FORWARD ;
 PROCEDURE EmitIsInSet (to: SetDesc; low, high: Name) ; FORWARD ;
 PROCEDURE EmitIsInSubSet (to: SetDesc; low, high: WORD) ; FORWARD ;
 PROCEDURE EmitIsInFirst (to: SetDesc; m: m2condition) ; FORWARD ;
-PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition) ; FORWARD ;
+PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition; codeStack: FactorDesc) ; FORWARD ;
 PROCEDURE OptExpSeen (f: FactorDesc) : BOOLEAN ; FORWARD ;
 PROCEDURE RecoverTerm (t: TermDesc; new, old: m2condition) ; FORWARD ;
 PROCEDURE RecoverExpression (e: ExpressionDesc; new, old: m2condition) ; FORWARD ;
@@ -2732,10 +2733,56 @@ END EmitNonVarCode ;
 
 
 (*
+   ChainOn - 
+*)
+
+PROCEDURE ChainOn (codeStack, f: FactorDesc) : FactorDesc ;
+VAR
+   s: FactorDesc ;
+BEGIN
+   f^.pushed := NIL ;
+   IF codeStack=NIL
+   THEN
+      RETURN( f )
+   ELSE
+      s := codeStack ;
+      WHILE s^.pushed#NIL DO
+         s := s^.pushed
+      END ;
+      s^.pushed := f ;
+      RETURN( codeStack )
+   END
+END ChainOn ;
+
+
+(*
+   FlushCode - 
+*)
+
+PROCEDURE FlushCode (VAR codeStack: FactorDesc) ;
+BEGIN
+   IF codeStack#NIL
+   THEN
+      NewLine(Indent) ; WriteString('(* begin flushing code *)') ;
+      WHILE codeStack#NIL DO
+         NewLine(Indent) ; EmitNonVarCode(codeStack^.code, 0, Indent) ; NewLine(Indent) ;
+         codeStack := codeStack^.pushed ;
+         IF codeStack#NIL
+         THEN
+            WriteString(' (* again flushing code *)') ; WriteLn
+         END
+      END ;
+      NewLine(Indent) ; 
+      WriteString('(* end flushing code *)')
+   END
+END FlushCode ;
+
+
+(*
    CodeFactor - 
 *)
 
-PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN) ;
+PROCEDURE CodeFactor (f: FactorDesc; t: TermDesc; l, n: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ;
 BEGIN
    IF f=NIL
    THEN
@@ -2749,34 +2796,43 @@ BEGIN
          EmitFileLineTag(line) ;
          CASE type OF
 
-         id  :  CodeCondition(n) ;
+         id  :  FlushCode(codeStack) ;
+                CodeCondition(n) ;
                 WriteKey(ident^.name) ; WriteString('()') ;
                 CodeThenDo(n) ;
                 INC(Indent, 3) ;
-                CodeFactor(f^.next, NIL, n, m2none, inopt, inwhile, TRUE) ;
+                CodeFactor(f^.next, NIL, n, m2none, inopt, inwhile, TRUE, NIL) ;
                 CodeEnd(n, t, consumed, f, inopt) |
-         lit :  CodeCondition(n) ;
+         lit :  FlushCode(codeStack) ;
+                CodeCondition(n) ;
                 WriteKey(SymIsProc) ; Write('(') ;
                 WriteKey(GetSymKey(Aliases, string)) ; Write(')') ;
                 CodeThenDo(n) ;
                 INC(Indent, 3) ;
-                CodeFactor(f^.next, NIL, n, m2none, inopt, inwhile, TRUE) ;
+                CodeFactor(f^.next, NIL, n, m2none, inopt, inwhile, TRUE, NIL) ;
                 CodeEnd(n, t, consumed, f, inopt) |
-         sub:   CodeExpression(expr, m2none, inopt, inwhile, consumed) ;
+         sub:   FlushCode(codeStack) ;
+                CodeExpression(expr, m2none, inopt, inwhile, consumed, NIL) ;
                 IF f^.next#NIL
                 THEN
                    (*
                     *  the test above makes sure that we don't emit a RETURN( TRUE )
                     *  after a subexpression. Remember sub expressions are not conditional
                     *)
-                   CodeFactor(f^.next, t, n, m2none, inopt, inwhile, TRUE)
+                   CodeFactor(f^.next, t, n, m2none, inopt, inwhile, TRUE, NIL)
                 END |
-         opt:   CodeExpression(expr, m2if, TRUE, inwhile, FALSE) ;
-                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed) |
-         mult:  CodeExpression(expr, m2while, FALSE, TRUE, consumed) ;
-                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed) |
-         m2 :   NewLine(Indent) ; EmitNonVarCode(code, 0, Indent) ; NewLine(Indent) ;
-                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed)
+         opt:   FlushCode(codeStack) ;
+                CodeExpression(expr, m2if, TRUE, inwhile, FALSE, NIL) ;
+                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed, NIL) |
+         mult:  FlushCode(codeStack) ;
+                CodeExpression(expr, m2while, FALSE, TRUE, consumed, NIL) ;
+                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed, NIL) |
+         m2 :   codeStack := ChainOn(codeStack, f) ;
+                IF consumed OR (f^.next=NIL)
+                THEN
+                   FlushCode(codeStack)
+                END ;
+                CodeFactor(f^.next, t, n, m2none, inopt, inwhile, consumed, codeStack)
 
          ELSE
          END
@@ -2789,7 +2845,7 @@ END CodeFactor ;
    CodeTerm -
 *)
 
-PROCEDURE CodeTerm (t: TermDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN) ;
+PROCEDURE CodeTerm (t: TermDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ;
 VAR
    l: m2condition ;
 BEGIN
@@ -2801,11 +2857,11 @@ BEGIN
          m := m2if ;
          IndentString('ELSE') ; WriteLn ;
          INC(Indent, 3) ;
-         CodeFactor(t^.factor, t^.next, m2none, m2none, inopt, inwhile, consumed) ;
+         CodeFactor(t^.factor, t^.next, m2none, m2none, inopt, inwhile, consumed, codeStack) ;
          DEC(Indent, 3) ;
          IndentString('END ;') ; WriteLn
       ELSE
-         CodeFactor(t^.factor, t^.next, m2none, m, inopt, inwhile, consumed)
+         CodeFactor(t^.factor, t^.next, m2none, m, inopt, inwhile, consumed, codeStack)
       END ;
       l := m ;
       IF t^.next#NIL
@@ -2821,12 +2877,12 @@ END CodeTerm ;
    CodeExpression - 
 *)
 
-PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN) ;
+PROCEDURE CodeExpression (e: ExpressionDesc; m: m2condition; inopt, inwhile, consumed: BOOLEAN; codeStack: FactorDesc) ;
 BEGIN
    IF e#NIL
    THEN
       EmitFileLineTag(e^.line) ;
-      CodeTerm(e^.term, m, inopt, inwhile, consumed)
+      CodeTerm(e^.term, m, inopt, inwhile, consumed, codeStack)
    END
 END CodeExpression ;
 
@@ -2840,7 +2896,7 @@ BEGIN
    IF s#NIL
    THEN
       EmitFileLineTag(s^.line) ;
-      CodeExpression(s^.expr, m, FALSE, FALSE, FALSE)
+      CodeExpression(s^.expr, m, FALSE, FALSE, FALSE, NIL)
    END
 END CodeStatement ;
 
@@ -3060,10 +3116,26 @@ END EmitIsInFirst ;
 
 
 (*
+   FlushCode - 
+*)
+
+PROCEDURE FlushRecoverCode (VAR codeStack: FactorDesc) ;
+BEGIN
+   IF codeStack#NIL
+   THEN
+      WHILE codeStack#NIL DO
+         EmitNonVarCode(codeStack^.code, 0, Indent) ;
+         codeStack := codeStack^.pushed
+      END
+   END
+END FlushRecoverCode ;
+
+
+(*
    RecoverFactor - 
 *)
 
-PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition) ;
+PROCEDURE RecoverFactor (f: FactorDesc; m: m2condition; codeStack: FactorDesc) ;
 VAR
    to: SetDesc ;
 BEGIN
@@ -3081,22 +3153,24 @@ BEGIN
                    RecoverCondition(m) ;
                    EmitIsInFirst(to, m) ;
                    CodeThenDo(m) ;
-                   INC(Indent, 3) ;
+                   INC(Indent, 3)
                 END ;
+                FlushRecoverCode(codeStack) ;
                 IndentString('') ;
                 WriteKey(ident^.name) ; Write('(') ;
                 EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ; WriteLn ;
-                RecoverFactor(f^.next, m2none) ;
+                RecoverFactor(f^.next, m2none, codeStack) ;
                 IF (to#NIL) AND (m#m2none)
                 THEN
                    DEC(Indent, 3)
                 END |
          lit :  IF m=m2none
                 THEN
+                   FlushRecoverCode(codeStack) ;
                    IndentString('Expect(') ;
                    WriteKey(GetSymKey(Aliases, string)) ; WriteString(', ') ;
                    EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ; WriteLn ;
-                   RecoverFactor(f^.next, m2none)
+                   RecoverFactor(f^.next, m2none, codeStack)
                 ELSE
                    RecoverCondition(m) ;
                    WriteGetTokenType ;
@@ -3108,12 +3182,15 @@ BEGIN
                    WriteKey(GetSymKey(Aliases, string)) ; WriteString(', ') ;
                    EmitStopParametersAndFollow(f, m) ; WriteString(') ;') ;
                    WriteLn ;
-                   RecoverFactor(f^.next, m2none) ;
+                   FlushRecoverCode(codeStack) ;
+                   RecoverFactor(f^.next, m2none, codeStack) ;
                    DEC(Indent, 3)
                 END |
-         sub:   RecoverExpression(expr, m2none, m) ;
-                RecoverFactor(f^.next, m2none) |
-         opt:   IF OptExpSeen(f)
+         sub:   FlushRecoverCode(codeStack) ;
+                RecoverExpression(expr, m2none, m) ;
+                RecoverFactor(f^.next, m2none, codeStack) |
+         opt:   FlushRecoverCode(codeStack) ;
+                IF OptExpSeen(f)
                 THEN
                    to := NIL ;
                    CalcFirstExpression(expr, NIL, to) ;
@@ -3130,8 +3207,9 @@ BEGIN
                 ELSE
                    RecoverExpression(expr, m2if, m)
                 END ;
-                RecoverFactor(f^.next, m2none) |
-         mult:  IF OptExpSeen(f) OR (m=m2if) OR (m=m2elsif)
+                RecoverFactor(f^.next, m2none, codeStack) |
+         mult:  FlushRecoverCode(codeStack) ;
+                IF OptExpSeen(f) OR (m=m2if) OR (m=m2elsif)
                 THEN
                    to := NIL ;
                    CalcFirstExpression(expr, NIL, to) ;
@@ -3157,11 +3235,13 @@ BEGIN
                 ELSE
                    RecoverExpression(expr, m2while, m)
                 END ;
-                RecoverFactor(f^.next, m2none) |
-         m2 :   EmitNonVarCode(code, 0, Indent) ;
-                IF f^.next#NIL
+                RecoverFactor(f^.next, m2none, codeStack) |
+         m2 :   codeStack := ChainOn(codeStack, f) ;
+                IF f^.next=NIL
                 THEN
-                   RecoverFactor(f^.next, m)   (* was m2none *)
+                   FlushRecoverCode(codeStack)
+                ELSE
+                   RecoverFactor(f^.next, m, codeStack)   (* was m2none *)
                 END
 
          ELSE
@@ -3229,10 +3309,10 @@ BEGIN
          new := m2if ;
          IndentString('ELSE') ; WriteLn ;
          INC(Indent, 3) ;
-         RecoverFactor(t^.factor, m2none) ;
+         RecoverFactor(t^.factor, m2none, NIL) ;
          alternative := FALSE
       ELSE
-         RecoverFactor(t^.factor, new)
+         RecoverFactor(t^.factor, new, NIL)
       END ;
       IF t^.next#NIL
       THEN

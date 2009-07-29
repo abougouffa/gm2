@@ -810,12 +810,7 @@ FieldList := IdentList ":"
                            | "."
                              Qualident
                           ] "OF"
-
-                                                                           % BeginVarientList %
-              Varient                                                      % EndVarientList %
-                      { "|"                                                % BeginVarientList %
-                        Varient                                            % EndVarientList %
-                      }
+              Varient { "|" Varient }
               [ "ELSE"                                                     % ElseCase %
                 FieldListSequence
               ] "END"                                                      % EndVarient %
@@ -823,7 +818,9 @@ FieldList := IdentList ":"
 
 TagIdent := [ Ident ] =:
 
-Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
+Varient := [                                                               % BeginVarientList %
+             VarientCaseLabelList ":" FieldListSequence                    % EndVarientList %
+                                                        ] =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 

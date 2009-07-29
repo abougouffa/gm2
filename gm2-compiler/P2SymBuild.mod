@@ -1997,6 +1997,7 @@ BEGIN
    FieldSym := MakeFieldVarient(CheckAnonymous(NulName), VarientSym) ;
    PushT(VarientSym) ;
    PushT(FieldSym) ;
+   Assert(IsFieldVarient(FieldSym)) ;
    AddVarientFieldToList(FieldSym)
 END StartBuildVarientFieldRecord ;
 

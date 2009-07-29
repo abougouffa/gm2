@@ -774,11 +774,7 @@ FieldList := IdentList ":"                                                 % Bui
                                                       Qualident            % PopAuto %
                                                                 ] "OF"     % PopNothing %
                                                                            % StartBuildVarient %
-                                                                           % StartBuildVarientFieldRecord %
-              Varient                                                      % EndBuildVarientFieldRecord %
-                      { "|"                                                % StartBuildVarientFieldRecord %
-                        Varient                                            % EndBuildVarientFieldRecord %
-                      }
+              Varient { "|" Varient }
               [ "ELSE"                                                     % StartBuildVarientFieldRecord %
                 FieldListSequence                                          % EndBuildVarientFieldRecord %
               ] "END"                                                      % EndBuildVarient %
@@ -787,7 +783,14 @@ FieldList := IdentList ":"                                                 % Bui
 TagIdent := Ident |                                                        % BuildNulName %
           =:
 
-Varient := [ CaseLabelList ":" FieldListSequence ] =:
+Varient :=  [                                                              % StartBuildVarientFieldRecord %
+              VarientCaseLabelList ":" FieldListSequence                   % EndBuildVarientFieldRecord %
+                                                         ]
+                                                           =:
+
+VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
+
+VarientCaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
 CaseLabelList := CaseLabels { "," CaseLabels } =:
 
