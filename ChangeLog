@@ -1,5 +1,7 @@
 2009-07-30       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/bnf/m2-3.bnf:  place the actions in the Varient rule
+	  rather than in the FieldList rule.
 	* gm2/gm2/gm2-compiler/M2CaseList.def:  ElseCase now has a
 	  single parameter.
 	* gm2/gm2-compiler/M2CaseList.mod:  add new elseField to

@@ -101,7 +101,8 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildDesignatorRecord,
                     BuildDesignatorArray,
                     BuildDesignatorPointer,
-                    BeginVarient, EndVarient, BeginVarientList, EndVarientList,
+                    BeginVarient, EndVarient, ElseVarient,
+                    BeginVarientList, EndVarientList,
                     AddVarientRange, AddVarientEquality,
                     CheckWithReference,
                     CheckOuterScopeProcedureVariable,
@@ -794,20 +795,17 @@ FieldList := IdentList ":"
                            | "."
                              Qualident
                           ] "OF"
-
-                                                                           % BeginVarientList %
-              Varient                                                      % EndVarientList %
-                      { "|"                                                % BeginVarientList %
-                        Varient                                            % EndVarientList %
-                      }
-              [ "ELSE"                                                     % ElseCase %
+              Varient { "|" Varient }
+              [ "ELSE"                                                     % ElseVarient %
                 FieldListSequence
               ] "END"                                                      % EndVarient %
            =:
 
 TagIdent := [ Ident ] =:
 
-Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
+Varient := [                                                               % BeginVarientList %
+             VarientCaseLabelList ":" FieldListSequence                    % EndVarientList %
+                                                        ] =:
 
 VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
 
