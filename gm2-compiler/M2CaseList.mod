@@ -52,6 +52,7 @@ TYPE
    CaseDescriptor = POINTER TO caseDescriptor ;
    caseDescriptor = RECORD
                        elseClause   : BOOLEAN ;
+                       elseField    : CARDINAL ;
                        record       : CARDINAL ;
                        maxCaseId    : CARDINAL ;
                        caseListArray: Index ;
@@ -85,6 +86,7 @@ BEGIN
    ELSE
       WITH c^ DO
          elseClause := FALSE ;
+         elseField := NulSym ;
          record := r ;
          maxCaseId := 0 ;
          caseListArray := InitIndex(1) ;
@@ -117,9 +119,12 @@ END PopCase ;
    ElseCase - indicates that this case varient does have an else clause.
 *)
 
-PROCEDURE ElseCase ;
+PROCEDURE ElseCase (f: CARDINAL) ;
 BEGIN
-   caseStack^.elseClause := TRUE
+   WITH caseStack^ DO
+      elseClause := TRUE ;
+      elseField := f
+   END
 END ElseCase ;
 
 

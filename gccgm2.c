@@ -8774,6 +8774,9 @@ gccgm2_GetSizeOf (tree type)
   if (code == CONSTRUCTOR)
     return gccgm2_GetSizeOf(TREE_TYPE(type));
 
+  if (code == FIELD_DECL)
+    return gccgm2_GetSizeOf(TREE_TYPE(type));
+
   if (!COMPLETE_TYPE_P (type))
     {
       error ("sizeof applied to an incomplete type");

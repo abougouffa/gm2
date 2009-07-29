@@ -210,11 +210,12 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     CheckRangeRemoveVariableRead,
                     WriteRangeCheck ;
 
-FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList ;
+FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, ElseCase ;
                  
 
 CONST
    DebugStack = FALSE ;
+   DebugVarients = FALSE ;
 
 TYPE
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
@@ -8411,8 +8412,9 @@ END BuildSizeFunction ;
 
 PROCEDURE BuildTSizeFunction ;
 VAR
+   t, f        : CARDINAL ;
    i, NoOfParam: CARDINAL ;
-   ti, tj, tk,
+   ti, tj,
    ProcSym,
    Record,
    ReturnVar   : CARDINAL ;
@@ -8437,18 +8439,30 @@ BEGIN
       Record := OperandT(NoOfParam) ;
       IF IsRecord(Record)
       THEN
-         ti := MakeTemporary(ImmediateValue) ;
-         GenQuad(SizeOp, ti, OperandT(2), Record) ;
-         i := 3 ;
-         WHILE i<=NoOfParam DO
-            tj := MakeTemporary(ImmediateValue) ;
-            GenQuad(SizeOp, tj, OperandT(i), Record) ;
-            tk := MakeTemporary(ImmediateValue) ;
-            GenQuad(AddOp, tk, ti, tj) ;
-            ti := tk ;
-            INC(i)
-         END ;
-         ReturnVar := ti
+         IF NoOfParam=2
+         THEN
+            ReturnVar := MakeTemporary(ImmediateValue) ;
+            GenQuad(SizeOp, ReturnVar, OperandT(1), Record)
+         ELSIF NoOfParam>2
+         THEN
+            i := 2 ;
+            ReturnVar := MakeTemporary(RightValue) ;
+            PutVar(ReturnVar, Cardinal) ;
+            GenQuad(SizeOp, ReturnVar, OperandT(1), Record) ;
+            REPEAT
+               ti := MakeTemporary(ImmediateValue) ;
+               GenQuad(SizeOp, ti, OperandT(i), Record) ;
+               PushTF(ti, Cardinal) ;
+               PushT(GreaterTok) ;
+               PushTF(ReturnVar, Cardinal) ;
+               BuildRelOp ;
+               PopBool(t, f) ;
+               BackPatch(t, NextQuad) ;
+               GenQuad(BecomesOp, ReturnVar, NulSym, ti) ;
+               BackPatch(f, NextQuad) ;
+               INC(i)
+            UNTIL i>=NoOfParam
+         END
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
          ReturnVar := MakeConstLit(MakeKey('0'))
@@ -11910,15 +11924,27 @@ END PushLineNo ;
 PROCEDURE AddRecordToList ;
 VAR
    r: CARDINAL ;
+   n: CARDINAL ;
 BEGIN
    r := OperandT(1) ;
    Assert(IsRecord(r) OR IsFieldVarient(r)) ;
    (*
       r might be a field varient if the declaration consists of nested
       varients.  However ISO TSIZE can only utilise record types, we store
-      a varient field anyway to make it easier for the subsequent pass.
+      a varient field anyway as the next pass would not know whether to
+      ignore a varient field.
    *)
-   PutItemIntoList(VarientFields, r)
+   PutItemIntoList(VarientFields, r) ;
+   IF DebugVarients
+   THEN
+      n := NoOfItemsInList(VarientFields) ;
+      IF IsRecord(r)
+      THEN
+         printf2('in list: record %d is %d\n', n, r)
+      ELSE
+         printf2('in list: varient field %d is %d\n', n, r)
+      END
+   END
 END AddRecordToList ;
 
 
@@ -11928,8 +11954,16 @@ END AddRecordToList ;
 *)
 
 PROCEDURE AddVarientFieldToList (f: CARDINAL) ;
+VAR
+   n: CARDINAL ;
 BEGIN
-   PutItemIntoList(VarientFields, f)
+   Assert(IsFieldVarient(f)) ;
+   PutItemIntoList(VarientFields, f) ;
+   IF DebugVarients
+   THEN
+      n := NoOfItemsInList(VarientFields) ;
+      printf2('in list: varient field %d is %d\n', n, f)
+   END
 END AddVarientFieldToList ;
 
 
@@ -11938,9 +11972,21 @@ END AddVarientFieldToList ;
 *)
 
 PROCEDURE GetRecordOrField () : CARDINAL ;
+VAR
+   f: CARDINAL ;
 BEGIN
    INC(VarientFieldNo) ;
-   RETURN( GetItemFromList(VarientFields, VarientFieldNo) )
+   f := GetItemFromList(VarientFields, VarientFieldNo) ;
+   IF DebugVarients
+   THEN
+      IF IsRecord(f)
+      THEN
+         printf2('out list: record %d is %d\n', VarientFieldNo, f)
+      ELSE
+         printf2('out list: varient field %d is %d\n', VarientFieldNo, f)
+      END
+   END ;
+   RETURN( f )
 END GetRecordOrField ;
 
 
@@ -11966,6 +12012,21 @@ PROCEDURE EndVarient ;
 BEGIN
    PopCase
 END EndVarient ;
+
+
+(*
+   ElseVarient - associate an ELSE clause with a varient record.
+*)
+
+PROCEDURE ElseVarient ;
+VAR
+   f: CARDINAL ;
+BEGIN
+   f := GetRecordOrField() ;
+   Assert(IsFieldVarient(f)) ;
+   ElseCase(f)
+END ElseVarient ;
+
 
 
 (*

@@ -3293,7 +3293,7 @@ VAR
    alternative  : BOOLEAN ;
    to           : SetDesc ;
 BEGIN
-   LastWasM2Only := (t^.factor^.type = m2) AND (t^.next = NIL) ;
+   LastWasM2Only := (t^.factor^.type = m2) AND (t^.factor^.next = NIL) ;
    to := NIL ;
    CalcFirstTerm(t, NIL, to) ;
    alternative := FALSE ;
@@ -3303,7 +3303,7 @@ BEGIN
    END ;
    WHILE t#NIL DO
       EmitFileLineTag(t^.line) ;
-      LastWasM2Only := (t^.factor^.type = m2) AND (t^.next = NIL) ;
+      LastWasM2Only := (t^.factor^.type = m2) AND (t^.factor^.next = NIL) ;
       IF (t^.factor^.type=m2) AND (new=m2elsif)
       THEN
          new := m2if ;
@@ -3336,6 +3336,7 @@ BEGIN
          DEC(Indent, 3)
       ELSIF LastWasM2Only
       THEN
+         IndentString('(* LastWasM2Only *)') ; WriteLn ;
          DEC(Indent, 3)
       END ;
       IndentString('END ;') ; WriteLn

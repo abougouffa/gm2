@@ -1,3 +1,20 @@
+2009-07-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gm2-compiler/M2CaseList.def:  ElseCase now has a
+	  single parameter.
+	* gm2/gm2-compiler/M2CaseList.mod:  add new elseField to
+	  CaseDesc, record ElseCase parameter in elseField.
+	* gm2/gm2-compiler/M2GenGCC.mod:  check that, s, is resolved
+	  and known to the GCC backend before attempting to find
+	  the size of, s.  Fixed bugs in FoldSize, CodeSize.
+	* gm2/gm2-compiler/M2Quads.def:  New procedure function
+	  (ElseVarient).
+	* gm2/gm2-compiler/M2Quads.mod:  fixed BuildTSizeFunction
+	  so that it now works out the maximum size necessary to
+	  contain the object.  Implemented (ElseVarient).
+	* gm2/gm2/gm2-compiler/ppg.mod:  fixed pretty printing of
+	  'END ;' during the production of a recovery based parser.
+
 2009-07-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-2.bnf:  place the actions in the Varient rule

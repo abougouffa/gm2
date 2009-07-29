@@ -49,7 +49,7 @@ PROCEDURE PopCase ;
    ElseCase - indicates that this case varient does have an else clause.
 *)
 
-PROCEDURE ElseCase ;
+PROCEDURE ElseCase (f: CARDINAL) ;
 
 
 (*

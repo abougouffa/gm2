@@ -4042,20 +4042,18 @@ BEGIN
          t := RememberConstant(t)
       ELSIF GccKnowsAbout(op2)
       THEN
-         s := FindVarient(op3, op2) ;
-         IF s=NulSym
+         s := FindVarient(op2, op3) ;
+         IF (s#NulSym) AND CompletelyResolved(s) AND GccKnowsAbout(s)
          THEN
-            t := GetIntegerZero()
-         ELSE
             t := BuildSize(Mod2Gcc(s), FALSE) ;
-         END ;
-         PushIntegerTree(t) ;
-         PopValue(op1) ;
-         PutConst(op1, Cardinal) ;
-         p(op1) ;
-         NoChange := FALSE ;
-         SubQuad(quad) ;
-         t := RememberConstant(t)
+            PushIntegerTree(t) ;
+            PopValue(op1) ;
+            PutConst(op1, Cardinal) ;
+            p(op1) ;
+            NoChange := FALSE ;
+            SubQuad(quad) ;
+            t := RememberConstant(t)
+         END
       END
    END
 END FoldSize ;
@@ -4074,7 +4072,7 @@ BEGIN
    THEN
       PushIntegerTree(BuildSize(Mod2Gcc(op3), FALSE))
    ELSE
-      s := FindVarient(op3, op2) ;
+      s := FindVarient(op2, op3) ;
       IF s=NulSym
       THEN
          PushIntegerTree(GetIntegerZero())

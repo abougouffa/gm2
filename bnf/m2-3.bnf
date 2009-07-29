@@ -107,7 +107,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildConstructorStart,
                     BuildConstructorEnd,
                     BuildComponentValue,
-                    BeginVarient, EndVarient,
+                    BeginVarient, EndVarient, ElseVarient,
                     BeginVarientList, EndVarientList,
                     CollectConstructor,
                     RecordOp,
@@ -164,7 +164,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
 
 FROM M2Batch IMPORT IsModuleKnown ;
 
-FROM M2CaseList IMPORT BeginCaseList, EndCaseList, ElseCase ;
+FROM M2CaseList IMPORT BeginCaseList, EndCaseList ;
 
 
 CONST
@@ -811,7 +811,7 @@ FieldList := IdentList ":"
                              Qualident
                           ] "OF"
               Varient { "|" Varient }
-              [ "ELSE"                                                     % ElseCase %
+              [ "ELSE"                                                     % ElseVarient %
                 FieldListSequence
               ] "END"                                                      % EndVarient %
            =:

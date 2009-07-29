@@ -124,7 +124,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  VariableAnalysis, LoopAnalysis, ForLoopAnalysis,
                  AddVarientFieldToList, AddRecordToList,
                  AddVarientRange, AddVarientEquality,
-                 BeginVarient, EndVarient, BeginVarientList, EndVarientList,
+                 BeginVarient, EndVarient, ElseVarient,
+                 BeginVarientList, EndVarientList,
                  IsAutoPushOn, PushAutoOn, PushAutoOff, PopAuto ;
 
 
@@ -2029,6 +2030,13 @@ PROCEDURE BeginVarient ;
 *)
 
 PROCEDURE EndVarient ;
+
+
+(*
+   ElseVarient - associate an ELSE clause with a varient record.
+*)
+
+PROCEDURE ElseVarient ;
 
 
 (*
