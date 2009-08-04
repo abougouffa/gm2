@@ -27,6 +27,7 @@ DEFINITION MODULE M2CaseList ;
 *)
 
 FROM DynamicStrings IMPORT String ;
+FROM Lists IMPORT List ;
 
 
 (*
@@ -34,7 +35,7 @@ FROM DynamicStrings IMPORT String ;
               Return the case id.
 *)
 
-PROCEDURE PushCase (r: CARDINAL) : CARDINAL ;
+PROCEDURE PushCase (r: CARDINAL; v: CARDINAL) : CARDINAL ;
 
 
 (*
@@ -91,17 +92,20 @@ PROCEDURE OverlappingCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
 
 
 (*
+   MissingCaseBounds - returns TRUE if there were any missing bounds
+                       in the varient record case list, c.  It will
+                       generate an error message for each missing
+                       bounds found.
+*)
+
+PROCEDURE MissingCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
+
+
+(*
    WriteCase - displays the case list.
 *)
 
 PROCEDURE WriteCase (c: CARDINAL) ;
-
-
-(*
-   FindVarient - returns a varient field of, record, given the value, tag.
-*)
-
-PROCEDURE FindVarient (tag, record: CARDINAL) : CARDINAL ;
 
 
 END M2CaseList.

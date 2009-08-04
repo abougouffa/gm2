@@ -123,6 +123,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  QuadToLineNo, QuadToTokenNo,
                  VariableAnalysis, LoopAnalysis, ForLoopAnalysis,
                  AddVarientFieldToList, AddRecordToList,
+                 AddVarientToList,
                  AddVarientRange, AddVarientEquality,
                  BeginVarient, EndVarient, ElseVarient,
                  BeginVarientList, EndVarientList,
@@ -2060,6 +2061,13 @@ PROCEDURE EndVarientList ;
 *)
 
 PROCEDURE AddRecordToList ;
+
+
+(*
+   AddVarientToList - adds varient held on the top of stack to the list.
+*)
+
+PROCEDURE AddVarientToList ;
 
 
 (*

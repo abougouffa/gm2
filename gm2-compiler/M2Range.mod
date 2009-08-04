@@ -76,7 +76,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionZeroDiv, ExceptionZeroRem,
                    ExceptionNo ;
 
-FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase ;
+FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, MissingCaseBounds ;
 
 
 TYPE
@@ -1494,6 +1494,13 @@ BEGIN
       THEN
          IF OverlappingCaseBounds(tokenno, caseList)
          THEN
+            PutQuad(q, ErrorOp, NulSym, NulSym, r) ;
+            IF MissingCaseBounds(tokenno, caseList)
+            THEN
+               (* nothing to do *)
+            END
+         ELSIF MissingCaseBounds(tokenno, caseList)
+         THEN
             PutQuad(q, ErrorOp, NulSym, NulSym, r)
          ELSE
             SubQuad(q)
@@ -1518,6 +1525,10 @@ BEGIN
    IF CaseBoundsResolved(tokenno, caseList)
    THEN
       IF OverlappingCaseBounds(tokenno, caseList)
+      THEN
+         (* nothing to do *)
+      END ;
+      IF MissingCaseBounds(tokenno, caseList)
       THEN
          (* nothing to do *)
       END

@@ -716,14 +716,21 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"                                                 % BuildNulName %
-                           Type |
-             "CASE" TagIdent [ ":" Qualident | "." Qualident ] "OF"
-              Varient { "|" Varient }
-              [ "ELSE" FieldListSequence ] "END" =:
+                           Type
+                                |
+             "CASE" CaseTag "OF" Varient { "|" Varient }
+             [ "ELSE" FieldListSequence ] "END"
+           =:
 
 TagIdent := [ Ident ] =:
 
-Varient := [ CaseLabelList ":" FieldListSequence ] =:
+CaseTag := TagIdent [ ":" Qualident ] =:
+
+Varient := [ VarientCaseLabelList ":" FieldListSequence ] =:
+
+VarientCaseLabelList := VarientCaseLabels { "," VarientCaseLabels } =:
+
+VarientCaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
 CaseLabelList := CaseLabels { "," CaseLabels } =:
 

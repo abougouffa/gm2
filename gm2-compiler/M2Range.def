@@ -63,7 +63,8 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  CheckRangeAddVariableRead,
                  CheckRangeRemoveVariableRead,
                  WriteRangeCheck,
-                 OverlapsRange ;
+                 OverlapsRange,
+                 IsEqual, IsGreaterOrEqual, IsGreater ;
 
 
 (*
@@ -318,6 +319,27 @@ PROCEDURE WriteRangeCheck (r: CARDINAL) ;
 *)
 
 PROCEDURE OverlapsRange (a1, a2, b1, b2: Tree) : BOOLEAN ;
+
+
+(*
+   IsEqual - returns TRUE if a=b.
+*)
+
+PROCEDURE IsEqual (a, b: Tree) : BOOLEAN ;
+
+
+(*
+   IsGreaterOrEqual - returns TRUE if a>=b.
+*)
+
+PROCEDURE IsGreaterOrEqual (a, b: Tree) : BOOLEAN ;
+
+
+(*
+   IsGreater - returns TRUE if a>b.
+*)
+
+PROCEDURE IsGreater (a, b: Tree) : BOOLEAN ;
 
 
 END M2Range.

@@ -162,6 +162,9 @@ TYPE
                    Varient     : CARDINAL ;   (* Index into symbol table to  *)
                                               (* determine the associated    *)
                                               (* varient symbol.             *)
+                   tag         : CARDINAL ;   (* The tag of the varient      *)
+                                              (* this can either be a type   *)
+                                              (* or a varient field.         *)
                    Scope       : CARDINAL ;   (* Scope of declaration.       *)
                    At          : Where ;      (* Where was sym declared/used *)
                END ;
@@ -3055,6 +3058,7 @@ BEGIN
          ELSE
             Varient := RecOrVarFieldSym
          END ;
+         tag := NulSym ;
          Scope := GetCurrentScope() ;
          InitList(ListOfSons) ;
          InitWhereDeclared(At)
@@ -4350,8 +4354,8 @@ BEGIN
                         Assert(Symbols[ParSym].SymbolType=RecordSym) ;
                         PutSymKey(Symbols[ParSym].Record.LocalSymbols, FieldName, SonSym)
 
-(* is the same as below, but -pedantic warns against having nested WITH statements referencing the same type
-   (I've been burnt by this before, so I respect -pedantic warnings..)
+(* is the same as below, but -Wpedantic warns against having nested WITH statements referencing the same type
+   (I've been burnt by this before, so I respect -Wpedantic warnings..)
 
                         WITH Symbols[ParSym] DO
                         (* Ensure that the Field is in the parents Local Symbols *)
@@ -4361,7 +4365,6 @@ BEGIN
                            END
                         END
 *)
-
 
       ELSE
          InternalError('expecting Record symbol', __FILE__, __LINE__)
@@ -4486,6 +4489,42 @@ BEGIN
       PutItemIntoList(FreeFVarientList, Sym)
    END
 END GCFieldVarient ;
+
+
+(*
+   PutVarientTag - places, Tag, into varient, Sym.
+*)
+
+PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      VarientSym:  Varient.tag := Tag
+
+      ELSE
+         InternalError('varient symbol expected', __FILE__, __LINE__)
+      END
+   END
+END PutVarientTag ;
+
+
+(*
+   GetVarientTag - returns the varient tag from, Sym.
+*)
+
+PROCEDURE GetVarientTag (Sym: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[Sym] DO
+      CASE SymbolType OF
+
+      VarientSym:  RETURN( Varient.tag )
+
+      ELSE
+         InternalError('varient symbol expected', __FILE__, __LINE__)
+      END
+   END
+END GetVarientTag ;
 
 
 (*

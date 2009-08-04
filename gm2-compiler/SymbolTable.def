@@ -136,6 +136,8 @@ EXPORT QUALIFIED NulSym,
                  PutFieldVarient,
                  GetVarient,
                  GCFieldVarient,
+                 GetVarientTag,
+                 PutVarientTag,
                  PutFieldEnumeration,
                  PutSubrange,
       	       	 PutSet,
@@ -1179,6 +1181,20 @@ PROCEDURE GetVarient (Field: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE GCFieldVarient (Sym: CARDINAL) ;
+
+
+(*
+   GetVarientTag - returns the varient tag from, Sym.
+*)
+
+PROCEDURE GetVarientTag (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
+   PutVarientTag - places, Tag, into varient, Sym.
+*)
+
+PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
 
 
 (*

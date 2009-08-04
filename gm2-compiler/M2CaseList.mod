@@ -19,15 +19,21 @@ IMPLEMENTATION MODULE M2CaseList ;
 
 
 FROM M2Debug IMPORT Assert ;
-FROM M2GCCDeclare IMPORT TryDeclareConstant ;
-FROM M2MetaError IMPORT MetaError2, MetaErrorT1, MetaError1, MetaErrorT2, MetaErrorT3, MetaErrorT4 ;
+FROM M2GCCDeclare IMPORT TryDeclareConstant, GetTypeMin, GetTypeMax ;
+FROM M2MetaError IMPORT MetaError2, MetaErrorT1, MetaError1, MetaErrorT2, MetaErrorT3, MetaErrorT4, MetaErrorString1 ;
 FROM M2Error IMPORT InternalError ;
-FROM M2Range IMPORT OverlapsRange ;
+FROM M2Range IMPORT OverlapsRange, IsEqual, IsGreater ;
+FROM M2ALU IMPORT PushIntegerTree, PopIntegerTree, Addn, Sub, PushInt ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, ForeachIndiceInIndexDo, HighIndice ;
-FROM SymbolTable IMPORT NulSym, IsConst, IsFieldVarient, IsRecord ;
-FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc ;
-FROM gccgm2 IMPORT Tree ;
+FROM Lists IMPORT InitList, IncludeItemIntoList ;
+FROM NameKey IMPORT KeyToCharStar ;
+FROM SymbolConversion IMPORT GccKnowsAbout, Mod2Gcc, AddModGcc ;
+FROM DynamicStrings IMPORT InitString, InitStringCharStar, ConCat, Mark, KillString ;
+FROM gccgm2 IMPORT Tree, RememberType, GetMinFrom ;
 FROM Storage IMPORT ALLOCATE ;
+
+FROM SymbolTable IMPORT NulSym, IsConst, IsFieldVarient, IsRecord, IsRecordField, GetVarientTag, GetType,
+                        ForeachLocalSymDo, GetSymName, IsEnumeration, SkipType ;
 
 TYPE
    RangePair = POINTER TO rangePair ;
@@ -46,7 +52,7 @@ TYPE
                  maxRangeId  : CARDINAL ;
                  rangeArray  : Index ;
                  currentRange: RangePair ;
-                 varient     : CARDINAL ;
+                 varientField: CARDINAL ;
               END ;
 
    CaseDescriptor = POINTER TO caseDescriptor ;
@@ -54,27 +60,38 @@ TYPE
                        elseClause   : BOOLEAN ;
                        elseField    : CARDINAL ;
                        record       : CARDINAL ;
+                       varient      : CARDINAL ;
                        maxCaseId    : CARDINAL ;
                        caseListArray: Index ;
                        currentCase  : CaseList ;
                        next         : CaseDescriptor ;
                     END ;
 
+   SetRange = POINTER TO setRange ;
+   setRange = RECORD
+                 low, high: Tree ;
+                 next     : SetRange ;
+              END ;
+
 VAR
    caseStack    : CaseDescriptor ;
    caseId       : CARDINAL ;
    caseArray    : Index ;
    conflictArray: Index ;
+   FreeRangeList: SetRange ;
+
 
 
 (*
    PushCase - create a case entity and push it to an internal stack.
-              r, is NulSym is this is a CASE statement and a record
-              if it is to indicate a varient record.
+              r, is NulSym if this is a CASE statement.
+              If, r, is a record then it indicates it includes one
+              or more varients reside in the record.  The particular
+              varient is, v.
               Return the case id.
 *)
 
-PROCEDURE PushCase (r: CARDINAL) : CARDINAL ;
+PROCEDURE PushCase (r: CARDINAL; v: CARDINAL) : CARDINAL ;
 VAR
    c: CaseDescriptor ;
 BEGIN
@@ -88,6 +105,7 @@ BEGIN
          elseClause := FALSE ;
          elseField := NulSym ;
          record := r ;
+         varient := v ;
          maxCaseId := 0 ;
          caseListArray := InitIndex(1) ;
          next := caseStack ;
@@ -145,7 +163,7 @@ BEGIN
       maxRangeId   := 0 ;
       rangeArray   := InitIndex(1) ;
       currentRange := NIL ;
-      varient      := v
+      varientField := v
    END ;
    WITH caseStack^ DO
       INC(maxCaseId) ;
@@ -435,6 +453,283 @@ END OverlappingCaseBounds ;
 
 
 (*
+   NewRanges - 
+*)
+
+PROCEDURE NewRanges () : SetRange ;
+VAR
+   s: SetRange ;
+BEGIN
+   IF FreeRangeList=NIL
+   THEN
+      NEW(s)
+   ELSE
+      s := FreeRangeList ;
+      FreeRangeList := FreeRangeList^.next
+   END ;
+   s^.next := NIL ;
+   RETURN( s )
+END NewRanges ;
+
+
+(*
+   NewSet - 
+*)
+
+PROCEDURE NewSet (type: CARDINAL) : SetRange ;
+VAR
+   s: SetRange ;
+BEGIN
+   s := NewRanges() ;
+   WITH s^ DO
+      low := Mod2Gcc(GetTypeMin(type)) ;
+      high := Mod2Gcc(GetTypeMax(type)) ;
+      next := NIL
+   END ;
+   RETURN( s )
+END NewSet ;
+
+
+(*
+   DisposeRanges - 
+*)
+
+PROCEDURE DisposeRanges (set: SetRange) : SetRange ;
+VAR
+   t: SetRange ;
+BEGIN
+   IF set#NIL
+   THEN
+      IF FreeRangeList=NIL
+      THEN
+         FreeRangeList := set
+      ELSE
+         t := set ;
+         WHILE t^.next#NIL DO
+            t := t^.next
+         END ;
+         t^.next := FreeRangeList ;
+         FreeRangeList := set
+      END
+   END ;
+   RETURN( NIL )
+END DisposeRanges ;
+
+
+(*
+   SubBitRange - subtracts bits, lo..hi, from, set.
+*)
+
+PROCEDURE SubBitRange (set: SetRange; lo, hi: Tree; tokenno: CARDINAL) : SetRange ;
+VAR
+   dummy: CARDINAL ;
+   h, i : SetRange ;
+BEGIN
+   h := set ;
+   WHILE h#NIL DO
+      IF IsEqual(h^.low, lo) AND IsEqual(h^.high, hi)
+      THEN
+         IF h=set
+         THEN
+            set := set^.next ;
+            h^.next := NIL ;
+            h := DisposeRanges(h) ;
+            h := set
+         ELSE
+            i := set ;
+            WHILE i^.next#h DO
+               i := i^.next
+            END ;
+            i^.next := h^.next ;
+            i := h ;
+            h := h^.next ;
+            i^.next := NIL ;
+            i := DisposeRanges(i)
+         END
+      ELSIF OverlapsRange(lo, hi, h^.low, h^.high)
+      THEN
+         IF IsGreater(h^.low, lo) OR IsGreater(hi, h^.high)
+         THEN
+            MetaErrorT1(tokenno, 'variant case range lies outside tag value', dummy)
+         ELSE
+            IF IsEqual(h^.low, lo)
+            THEN
+               PushIntegerTree(hi) ;
+               PushInt(1) ;
+               Addn ;
+               h^.low := PopIntegerTree()
+            ELSIF IsEqual(h^.high, hi)
+            THEN
+               PushIntegerTree(lo) ;
+               PushInt(1) ;
+               Sub ;
+               h^.high := PopIntegerTree()
+            ELSE
+               (* lo..hi  exist inside range h^.low..h^.high *)
+               i := NewRanges() ;
+               i^.next := h^.next ;
+               h^.next := i ;
+               i^.high := h^.high ;
+               PushIntegerTree(lo) ;
+               PushInt(1) ;
+               Sub ;
+               h^.high := PopIntegerTree() ;
+               PushIntegerTree(hi) ;
+               PushInt(1) ;
+               Addn ;
+               i^.low := PopIntegerTree()
+            END
+         END ;
+         h := h^.next
+      ELSE
+         h := h^.next
+      END
+   END ;
+   RETURN( set )
+END SubBitRange ;
+
+
+(*
+   ExcludeCaseRanges - excludes all case ranges found in, p, from, set
+*)
+
+PROCEDURE ExcludeCaseRanges (set: SetRange; p: CaseDescriptor) : SetRange ;
+VAR
+   i, j: CARDINAL ;
+   q   : CaseList ;
+   r   : RangePair ;
+BEGIN
+   WITH p^ DO
+      i := 1 ;
+      WHILE i<=maxCaseId DO
+         q := GetIndice(caseListArray, i) ;
+         j := 1 ;
+         WHILE j<=q^.maxRangeId DO
+            r := GetIndice(q^.rangeArray, j) ;
+            IF r^.high=NulSym
+            THEN
+               set := SubBitRange(set, Mod2Gcc(r^.low), Mod2Gcc(r^.low), r^.tokenno)
+            ELSE
+               set := SubBitRange(set, Mod2Gcc(r^.low), Mod2Gcc(r^.high), r^.tokenno)
+            END ;
+            INC(j)
+         END ;
+         INC(i)
+      END
+   END ;
+   RETURN( set )
+END ExcludeCaseRanges ;
+
+
+VAR
+   High, Low  : Tree ;
+   errorString: String ;
+
+
+(*
+   DoEnumValues - 
+*)
+
+PROCEDURE DoEnumValues (sym: CARDINAL) ;
+BEGIN
+   IF (Low#NIL) AND IsEqual(Mod2Gcc(sym), Low)
+   THEN
+      errorString := ConCat(errorString, InitStringCharStar(KeyToCharStar(GetSymName(sym)))) ;
+      Low := NIL
+   END ;
+   IF (High#NIL) AND IsEqual(Mod2Gcc(sym), High)
+   THEN
+      errorString := ConCat(errorString, Mark(InitString('..'))) ;
+      errorString := ConCat(errorString, Mark(InitStringCharStar(KeyToCharStar(GetSymName(sym))))) ;
+      High := NIL
+   END 
+END DoEnumValues ;
+
+
+(*
+   ErrorRange - 
+*)
+
+PROCEDURE ErrorRange (p: CaseDescriptor; type: CARDINAL; set: SetRange) ;
+BEGIN
+   type := SkipType(type) ;
+   IF IsEnumeration(type)
+   THEN
+      Low := set^.low ;
+      High := set^.high ;
+      IF IsEqual(Low, High)
+      THEN
+         High := NIL ;
+         errorString := InitString('enumeration value ') ;
+         ForeachLocalSymDo(type, DoEnumValues) ;
+         errorString := ConCat(errorString, InitString(' is ignored by the CASE variant record {%1D}'))
+      ELSE
+         errorString := InitString('enumeration values ') ;
+         ForeachLocalSymDo(type, DoEnumValues) ;
+         errorString := ConCat(errorString, InitString(' are ignored by the CASE variant record {%1D}'))
+      END ;
+      MetaErrorString1(errorString, p^.varient)
+   END
+END ErrorRange ;
+
+
+(*
+   ErrorRanges - 
+*)
+
+PROCEDURE ErrorRanges (p: CaseDescriptor; type: CARDINAL; set: SetRange) ;
+BEGIN
+   WHILE set#NIL DO
+      ErrorRange(p, type, set) ;
+      set := set^.next
+   END
+END ErrorRanges ;
+
+
+(*
+   MissingCaseBounds - returns TRUE if there were any missing bounds
+                       in the varient record case list, c.  It will
+                       generate an error message for each missing
+                       bounds found.
+*)
+
+PROCEDURE MissingCaseBounds (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
+VAR
+   p      : CaseDescriptor ;
+   type,
+   tag    : CARDINAL ;
+   missing: BOOLEAN ;
+   set    : SetRange ;
+BEGIN
+   p := GetIndice(caseArray, c) ;
+   missing := FALSE ;
+   WITH p^ DO
+      IF (record#NulSym) AND (varient#NulSym) AND (NOT elseClause)
+      THEN
+         (* not a CASE statement, but a varient record containing without an ELSE clause *)
+         tag := GetVarientTag(varient) ;
+         IF IsFieldVarient(tag) OR IsRecordField(tag)
+         THEN
+            type := GetType(tag)
+         ELSE
+            type := tag
+         END ;
+         set := NewSet(type) ;
+         set := ExcludeCaseRanges(set, p) ;
+         IF set#NIL
+         THEN
+            missing := TRUE ;
+            MetaError2('not all variant record alternatives in the CASE clause are specified, hint you either need to specify each value of {%2ad} or use an ELSE clause {%1U}', varient, tag) ;
+            ErrorRanges(p, type, set)
+         END ;
+         set := DisposeRanges(set)
+      END
+   END ;
+   RETURN( missing )
+END MissingCaseBounds ;
+
+
+(*
    WriteCase - 
 *)
 
@@ -478,69 +773,10 @@ BEGIN
 END InRangeList ;
 
 
-(*
-   FindVarientField - returns the appropriate varient field associated with, tag,
-                      in, c.
-*)
-
-PROCEDURE FindVarientField (c: CaseDescriptor; tag: CARDINAL) : CARDINAL ;
-VAR
-   i, h: CARDINAL ;
-   cl  : CaseList ;
-   v   : CARDINAL ;
-BEGIN
-   WITH c^ DO
-      i := 1 ;
-      h := HighIndice(caseListArray) ;
-      WHILE i<=h DO
-         cl := GetIndice(caseListArray, i) ;
-         IF InRangeList(cl, tag)
-         THEN
-            RETURN( cl^.varient )
-         END ;
-         INC(i)
-      END ;
-      IF NOT elseClause
-      THEN
-         MetaError2('tag value {%1an} does not correspond with any varient field value in record {%2ad}',
-                    tag, c^.record) ;
-      END
-   END ;
-   RETURN( NulSym )
-END FindVarientField ;
-
-
-(*
-   FindVarient - returns a varient field of, record, given the value, tag.
-*)
-
-PROCEDURE FindVarient (tag, record: CARDINAL) : CARDINAL ;
-VAR
-   c   : CaseDescriptor ;
-   i, h: CARDINAL ;
-BEGIN
-   IF IsRecord(record)
-   THEN
-      i := 1 ;
-      h := HighIndice(caseArray) ;
-      WHILE i<=h DO
-         c := GetIndice(caseArray, i) ;
-         IF c^.record=record
-         THEN
-            RETURN( FindVarientField(c, tag) )
-         END ;
-         INC(i)
-      END
-   ELSE
-      MetaError1('expecting the first parameter of TSIZE to be a record type, rather than {%1d}', record) ;
-      RETURN( NulSym )
-   END
-END FindVarient ;
-
-
 BEGIN
    caseStack := NIL ;
    caseId := 0 ;
    caseArray := InitIndex(1) ;
-   conflictArray := InitIndex(1)
+   conflictArray := InitIndex(1) ;
+   FreeRangeList := NIL
 END M2CaseList.

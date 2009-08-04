@@ -805,18 +805,16 @@ FieldList := IdentList ":"
                            Type
              |
              "CASE"                                                        % BeginVarient %
-                    TagIdent [ ":" Qualident
-
-                           | "."
-                             Qualident
-                          ] "OF"
-              Varient { "|" Varient }
+                    CaseTag "OF"
+                                 Varient { "|" Varient }
               [ "ELSE"                                                     % ElseVarient %
                 FieldListSequence
               ] "END"                                                      % EndVarient %
            =:
 
 TagIdent := [ Ident ] =:
+
+CaseTag :=  TagIdent [":" Qualident ] =:
 
 Varient := [                                                               % BeginVarientList %
              VarientCaseLabelList ":" FieldListSequence                    % EndVarientList %

@@ -3336,7 +3336,6 @@ BEGIN
          DEC(Indent, 3)
       ELSIF LastWasM2Only
       THEN
-         IndentString('(* LastWasM2Only *)') ; WriteLn ;
          DEC(Indent, 3)
       END ;
       IndentString('END ;') ; WriteLn

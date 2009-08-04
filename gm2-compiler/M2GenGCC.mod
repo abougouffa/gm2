@@ -199,8 +199,6 @@ FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
                     QuadToTokenNo,
                     DisplayQuadList ;
 
-FROM M2CaseList IMPORT FindVarient ;
-
 
 CONST
    Debugging         = FALSE ;
@@ -4026,7 +4024,7 @@ PROCEDURE FoldSize (tokenno: CARDINAL; p: WalkAction;
                     quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
-   s: CARDINAL ;
+   l: List ;
 BEGIN
    IF IsConst(op1) AND CompletelyResolved(op3)
    THEN
@@ -4042,18 +4040,15 @@ BEGIN
          t := RememberConstant(t)
       ELSIF GccKnowsAbout(op2)
       THEN
-         s := FindVarient(op2, op3) ;
-         IF (s#NulSym) AND CompletelyResolved(s) AND GccKnowsAbout(s)
-         THEN
-            t := BuildSize(Mod2Gcc(s), FALSE) ;
-            PushIntegerTree(t) ;
-            PopValue(op1) ;
-            PutConst(op1, Cardinal) ;
-            p(op1) ;
-            NoChange := FALSE ;
-            SubQuad(quad) ;
-            t := RememberConstant(t)
-         END
+         (* ignore the chosen varients as we implement it as a C union *)
+         t := BuildSize(Mod2Gcc(op3), FALSE) ;
+         PushIntegerTree(t) ;
+         PopValue(op1) ;
+         PutConst(op1, Cardinal) ;
+         p(op1) ;
+         NoChange := FALSE ;
+         SubQuad(quad) ;
+         t := RememberConstant(t)
       END
    END
 END FoldSize ;
@@ -4067,18 +4062,14 @@ PROCEDURE CodeSize (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 VAR
    t: Tree ;
    s: CARDINAL ;
+   l: List ;
 BEGIN
    IF op2=NulSym
    THEN
       PushIntegerTree(BuildSize(Mod2Gcc(op3), FALSE))
    ELSE
-      s := FindVarient(op2, op3) ;
-      IF s=NulSym
-      THEN
-         PushIntegerTree(GetIntegerZero())
-      ELSE
-         PushIntegerTree(BuildSize(Mod2Gcc(s), FALSE))
-      END
+      (* ignore the chosen varients as we implement it as a C union *)
+      t := BuildSize(Mod2Gcc(op3), FALSE)
    END ;
    IF IsConst(op1)
    THEN

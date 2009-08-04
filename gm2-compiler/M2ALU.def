@@ -242,7 +242,7 @@ PROCEDURE PushCard (c: CARDINAL) ;
 
 
 (*
-   PushInt - pushes a cardinal onto the stack.
+   PushInt - pushes an integer onto the stack.
 *)
 
 PROCEDURE PushInt (i: INTEGER) ;

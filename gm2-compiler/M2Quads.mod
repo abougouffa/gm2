@@ -66,7 +66,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutPriority, GetPriority,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
-                        IsVarAParam,
+                        IsVarAParam, IsVarient,
                         UsesVarArgs, UsesOptArg,
                         GetOptArgInit,
                         IsReturnOptional,
@@ -3474,7 +3474,7 @@ END BuildEndFor ;
 
 PROCEDURE BuildCaseStart ;
 BEGIN
-   BuildRange(InitCaseBounds(PushCase(NulSym))) ;
+   BuildRange(InitCaseBounds(PushCase(NulSym, NulSym))) ;
    PushBool(0, 0) ;  (* BackPatch list initialized *)
    PushBool(0, 0)    (* Room for a boolean expression *)
 END BuildCaseStart ;
@@ -5512,7 +5512,7 @@ END BuildReThrow ;
 (*
    BuildNewProcedure - builds the pseudo procedure call NEW.
                        This procedure is traditionally a "macro" for
-                       NEW(x) --> ALLOCATE(x, SIZE(x^))
+                       NEW(x, ...) --> ALLOCATE(x, TSIZE(x^, ...))
                        One method of implementation is to emulate a "macro"
                        processor by pushing the relevant input tokens
                        back onto the input stack.
@@ -5522,7 +5522,7 @@ END BuildReThrow ;
                        (ii) SIZE must be imported from SYSTEM
                        Therefore we chose an alternative method of
                        implementation;
-                       generate quadruples for ALLOCATE(x, SIZE(x^))
+                       generate quadruples for ALLOCATE(x, TSIZE(x^, ...))
                        this, although slightly more efficient,
                        is more complex and circumvents problems (i) and (ii).
 
@@ -5558,12 +5558,12 @@ VAR
    Ptr      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   IF NoOfParam=1
+   IF NoOfParam>=1
    THEN
       ProcSym := RequestSym(MakeKey('ALLOCATE')) ;
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
-         PtrSym := OperandT(1) ;
+         PtrSym := OperandT(NoOfParam) ;
          IF IsReallyPointer(PtrSym)
          THEN
             (*
@@ -5589,7 +5589,7 @@ BEGIN
          WriteFormat0('ALLOCATE procedure not found for NEW substitution')
       END
    ELSE
-      WriteFormat0('the pseudo procedure NEW only has one parameter')
+      WriteFormat0('the pseudo procedure NEW has one or more parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildNewProcedure ;
@@ -5598,17 +5598,17 @@ END BuildNewProcedure ;
 (*
    BuildDisposeProcedure - builds the pseudo procedure call DISPOSE.
                            This procedure is traditionally a "macro" for
-                           DISPOSE(x) --> DEALLOCATE(x, SIZE(x^))
+                           DISPOSE(x) --> DEALLOCATE(x, TSIZE(x^))
                            One method of implementation is to emulate a "macro"
                            processor by pushing the relevant input tokens
                            back onto the input stack.
                            However this causes two problems:
 
                            (i)  Unnecessary code is produced for x^
-                           (ii) SIZE must be imported from SYSTEM
+                           (ii) TSIZE must be imported from SYSTEM
                            Therefore we chose an alternative method of
                            implementation;
-                           generate quadruples for DEALLOCATE(x, SIZE(x^))
+                           generate quadruples for DEALLOCATE(x, TSIZE(x^))
                            this, although slightly more efficient,
                            is more complex and circumvents problems (i)
                            and (ii).
@@ -5645,16 +5645,16 @@ VAR
    Ptr      : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
-   IF NoOfParam=1
+   IF NoOfParam>=1
    THEN
       ProcSym := RequestSym(MakeKey('DEALLOCATE')) ;
       IF (ProcSym#NulSym) AND IsProcedure(ProcSym)
       THEN
-         PtrSym := OperandT(1) ;
+         PtrSym := OperandT(NoOfParam) ;
          IF IsReallyPointer(PtrSym)
          THEN
             (*
-               Build macro: DEALLOCATE( PtrSym, SIZE(PtrSym^) )
+               Build macro: DEALLOCATE( PtrSym, TSIZE(PtrSym^) )
             *)
             PushTF(TSize, Cardinal) ;(* Procedure      *)
                                      (* x^             *)
@@ -5676,7 +5676,7 @@ BEGIN
          WriteFormat0('DEALLOCATE procedure not found for DISPOSE substitution')
       END
    ELSE
-      WriteFormat0('the pseudo procedure DISPOSE only has one parameter')
+      WriteFormat0('the pseudo procedure DISPOSE has one or more parameters')
    END ;
    PopN(NoOfParam+1)
 END BuildDisposeProcedure ;
@@ -8439,6 +8439,9 @@ BEGIN
       Record := OperandT(NoOfParam) ;
       IF IsRecord(Record)
       THEN
+         ReturnVar := MakeTemporary(ImmediateValue) ;
+         GenQuad(SizeOp, ReturnVar, NulSym, Record)
+(*
          IF NoOfParam=2
          THEN
             ReturnVar := MakeTemporary(ImmediateValue) ;
@@ -8463,6 +8466,7 @@ BEGIN
                INC(i)
             UNTIL i>=NoOfParam
          END
+*)
       ELSE
          WriteFormat0('SYSTEM procedure TSIZE expects the first parameter to be a record type') ;
          ReturnVar := MakeConstLit(MakeKey('0'))
@@ -11949,6 +11953,25 @@ END AddRecordToList ;
 
 
 (*
+   AddVarientToList - adds varient held on the top of stack to the list.
+*)
+
+PROCEDURE AddVarientToList ;
+VAR
+   v, n: CARDINAL ;
+BEGIN
+   v := OperandT(1) ;
+   Assert(IsVarient(v)) ;
+   PutItemIntoList(VarientFields, v) ;
+   IF DebugVarients
+   THEN
+      n := NoOfItemsInList(VarientFields) ;
+      printf2('in list: varient %d is %d\n', n, v)
+   END
+END AddVarientToList ;
+
+
+(*
    AddVarientFieldToList - adds varient field, f, to the list of all varient
                            fields created.
 *)
@@ -11996,11 +12019,13 @@ END GetRecordOrField ;
 
 PROCEDURE BeginVarient ;
 VAR
-   r: CARDINAL ;
+   r, v: CARDINAL ;
 BEGIN
    r := GetRecordOrField() ;
    Assert(IsRecord(r) OR IsFieldVarient(r)) ;
-   BuildRange(InitCaseBounds(PushCase(r)))
+   v := GetRecordOrField() ;
+   Assert(IsVarient(v)) ;
+   BuildRange(InitCaseBounds(PushCase(r, v)))
 END BeginVarient ;
 
 

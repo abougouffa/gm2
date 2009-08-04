@@ -62,7 +62,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetExported,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         PutExportUnImplemented,
-                        PutFieldVarient, GCFieldVarient,
+                        PutFieldVarient, GCFieldVarient, PutVarientTag,
                         IsFieldVarient, IsVarient,
                         CheckForEnumerationInCurrentModule,
                         CheckForExportedImplementation,
@@ -107,6 +107,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDefinitionForC,
                         GetSymName,
                         GetDeclared,
+                        RequestSym,
                         DisplayTrees ;
 
 FROM M2Batch IMPORT MakeDefinitionSource,
@@ -1929,9 +1930,9 @@ END BuildFieldRecord ;
 
                    Ptr ->
                           +-------------+
-                          | Qualident   |
+                          | Type        |
                           |-------------|
-                          | Ident       |                           <- Ptr
+                          | Tag         |                           <- Ptr
                           |-------------|           +-------------+
                           | RecordSym   |           | RecordSym   |
                           |-------------|           |-------------|
@@ -1939,22 +1940,28 @@ END BuildFieldRecord ;
 
 PROCEDURE BuildVarientSelector ;
 VAR
-   name,
-   Ident, n  : Name ;
-   Qualident,
+   tag       : Name ;
+   Field,
+   Type,
    Varient,
    Parent,
    NoOfFields,
    Record    : CARDINAL ;
 BEGIN
-   PopT(Qualident) ;
-   Ident := OperandT(1) ;
-   name := GetSymName(Qualident) ;
-   Record := OperandT(2) ;
+   PopT(Type) ;
+   PopT(tag) ;
+   PopT(Record) ;
+   PushT(Record) ;  (* and restore stack ready for exiting *)
    IF IsRecord(Record)
    THEN
       Parent := Record ;
-      Varient := NulSym
+      Varient := NulSym ;
+      InternalError('not expecting a record symbol', __FILE__, __LINE__)   (* is this really true.. *)
+   ELSIF IsVarient(Record)
+   THEN
+      Varient := Record ;
+      Record := GetParent(Varient) ;
+      Assert(IsRecord(Record))
    ELSE
       (* Record maybe FieldVarient *)
       Parent := GetParent(Record) ;
@@ -1963,12 +1970,16 @@ BEGIN
       Assert(IsVarient(Varient)) ;
       PutFieldVarient(Record, Varient)
    END ;
-   IF Ident#NulName
+   IF (Type=NulSym) AND (tag=NulName)
    THEN
-      PutFieldRecord(Record, Ident, Qualident, Varient)
-   END ;
-   PopN(1+1) ;
-   PushT(Record)
+      MetaError1('expecting a tag field in the declaration of a varient record {%1Ua}', Record)
+   ELSIF Type=NulSym
+   THEN
+      PutVarientTag(Varient, RequestSym(tag))
+   ELSE
+      PutFieldRecord(Record, tag, Type, Varient) ;
+      PutVarientTag(Varient, GetLocalSym(Record, tag))
+   END
 END BuildVarientSelector ;
 
 

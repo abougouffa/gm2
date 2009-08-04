@@ -58,7 +58,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
                     BuildProcedureEnd,
                     BuildAssignment,
                     BuildInline,
-                    AddRecordToList,
+                    AddRecordToList, AddVarientToList,
                     PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P2SymBuild IMPORT P2StartBuildProgramModule,
@@ -767,21 +767,21 @@ FieldList := IdentList ":"                                                 % Bui
                            Type                                            % BuildFieldRecord %
              |
              "CASE"                                                        % AddRecordToList %
-                    TagIdent
-                                [ ":" Qualident                            % BuildVarientSelector %
-                                                                           % BuildNulName %
-                                                | "."                      % PushAutoOff %
-                                                      Qualident            % PopAuto %
-                                                                ] "OF"     % PopNothing %
                                                                            % StartBuildVarient %
-              Varient { "|" Varient }
-              [ "ELSE"                                                     % StartBuildVarientFieldRecord %
-                FieldListSequence                                          % EndBuildVarientFieldRecord %
-              ] "END"                                                      % EndBuildVarient %
+                                                                           % AddVarientToList %
+                    CaseTag "OF"
+                                 Varient { "|" Varient }
+             [ "ELSE"                                                      % StartBuildVarientFieldRecord %
+               FieldListSequence                                           % EndBuildVarientFieldRecord %
+             ] "END"                                                       % EndBuildVarient %
            =:
 
 TagIdent := Ident |                                                        % BuildNulName %
           =:
+
+CaseTag :=  TagIdent ( ":" Qualident |                                     % PushT(NulSym) %
+                     )                                                     % BuildVarientSelector % 
+         =:
 
 Varient :=  [                                                              % StartBuildVarientFieldRecord %
               VarientCaseLabelList ":" FieldListSequence                   % EndBuildVarientFieldRecord %

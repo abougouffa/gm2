@@ -1,3 +1,41 @@
+2009-08-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-2.bnf:  modified so that the variant tag is
+	  remembered in the symbol table.
+	* gm2/bnf/m2-3.bnf:  variant record grammar rules
+	  matches m2-2.bnf.
+	* gm2/bnf/m2.bnf:  variant record grammar rules
+	  matches m2-2.bnf.
+	* gm2/bnf/m2-h.bnf:  variant record grammar rules
+	  matches m2-2.bnf.
+	* gm2/gm2-compiler/M2ALU.def:  corrected comment.
+	* gm2/gm2-compiler/M2CaseList.def:  MissingCaseBounds (New
+	  function).
+	* gm2/gm2-compiler/M2CaseList.mod:  introduce SetRange
+	  data structure and implement MissingCaseBounds using
+	  (New functions) NewSet, DisposeRanges, SubBitRange,
+	  ExcludeCaseRanges, DoEnumValues, ErrorRange, ErrorRanges.
+	* gm2/gm2-compiler/M2GenGCC.mod:  reimplemented SizeOp
+	  to effectively ignore the second and subsequent parameters
+	  to TSIZE.  Much safer and considerably simpler.
+	* gm2/gm2-compiler/M2Quads.def:  AddVarientToList (New function).
+	* gm2/gm2-compiler/M2Quads.mod:  implement AddVarientToList
+	  (New function).  Modify BuildNewProcedure and
+	  BuildDisposeProcedure so they can take two or more parameters.
+	  These parameters are effectively ignored as the union type
+	  is TSIZEd via sizeof.
+	* gm2/gm2/gm2-compiler/M2Range.def:  export IsEqual,
+	  IsGreaterOrEqual and IsGreater.
+	* gm2/gm2-compiler/M2Range.mod:  FoldCase and CodeCase now
+	  introduce an additional check using MissingCaseBounds.
+	* gm2/gm2-compiler/P2SymBuild.mod:  BuildVarientSelector
+	  record the varient tag into the symbol table.
+	* gm2/gm2-compiler/SymbolTable.def:  export GetVarientTag
+	  and PutVarientTag.
+	* gm2/gm2-compiler/SymbolTable.mod:  GetVarientTag
+	  and PutVarientTag (New procedures).
+	* gm2/gm2-compiler/ppg.mod:  removed debugging print.
+
 2009-07-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-3.bnf:  place the actions in the Varient rule
