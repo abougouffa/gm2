@@ -32,6 +32,7 @@ TYPE
               red : x: CARDINAL |
               blue: y: CHAR
 
+              ELSE
               END
            END ;
 
@@ -51,6 +52,7 @@ VAR
              red : x: CARDINAL |
              blue: y: CHAR
 
+             ELSE
              END
           END ;
    array: ARRAY [1..10] OF CHAR ;

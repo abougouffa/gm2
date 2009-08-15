@@ -24,6 +24,8 @@ TYPE
 
             1: b: CHAR |
             2: c: REAL
+
+            ELSE
             END
          END ;
 VAR

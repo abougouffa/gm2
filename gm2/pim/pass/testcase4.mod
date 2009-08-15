@@ -22,6 +22,7 @@ TYPE
             CASE :CARDINAL OF
               1 : a : CHAR ;
             | 2 : b : INTEGER ;
+            ELSE
             END;
           END;
 
