@@ -75,7 +75,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         StartScope, EndScope,
                         HasExceptionBlock, PutExceptionBlock,
                         HasExceptionFinally, PutExceptionFinally,
-                        GetParent, IsRecordField, IsFieldVarient, IsRecord,
+                        GetParent, GetRecord, IsRecordField, IsFieldVarient, IsRecord,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
@@ -9265,7 +9265,7 @@ BEGIN
    t1 := MakeTemporary(ImmediateValue) ;
    Sym  := OperandT(n) ;
    Type := OperandF(n) ;
-   PrevType := GetParent(Sym) ;
+   PrevType := GetRecord(GetParent(Sym)) ;
    GenQuad(OffsetOp, t1, PrevType, Sym) ;
    IF n>1
    THEN
@@ -9771,7 +9771,7 @@ BEGIN
          (* WriteString('Checking for a with') ; *)
          f := PeepAddress(WithStack, i) ;
          WITH f^ DO
-            IF IsRecordField(Sym) AND (GetParent(Sym)=RecordSym)
+            IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordSym)
             THEN
                (* Fake a RecordSym.op *)
                PushTF(PtrSym, RecordSym) ;
@@ -9826,7 +9826,7 @@ BEGIN
    PopTF(Adr, Type2) ;
    t1 := MakeTemporary(ImmediateValue) ;
    (* No type since t1 is constant *)
-   GenQuad(OffsetOp, t1, GetParent(Field), Field) ;
+   GenQuad(OffsetOp, t1, GetRecord(GetParent(Field)), Field) ;
    Res := MakeTemporary(LeftValue) ;
    (*
       Ok must reference by address
@@ -9897,7 +9897,7 @@ BEGIN
             WHILE IsProcedure(DeclaredScopeSym) AND (ScopeSym#DeclaredScopeSym) DO
                c := MakeTemporary(ImmediateValue) ;
                (* must continue to chain backwards to find the scope where Sym was declared *)
-               GenQuad(OffsetOp, c, GetParent(ActivationPointer), ActivationPointer) ;
+               GenQuad(OffsetOp, c, GetRecord(GetParent(ActivationPointer)), ActivationPointer) ;
                (* need to look indirectly to find next activation record *)
                t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
                PutVar(t1, Address) ;
@@ -9912,7 +9912,7 @@ BEGIN
             THEN
                (* finished chaining backwards, found sym in scope ScopeSym *)
                c := MakeTemporary(ImmediateValue) ;
-               GenQuad(OffsetOp, c, GetParent(Sym), Sym) ;
+               GenQuad(OffsetOp, c, GetRecord(GetParent(Sym)), Sym) ;
                (* calculate address of sym *)
                t1 := MakeTemporary(RightValue) ;   (* we use a different variable to help the optimizer *)
                PutVar(t1, Address) ;
@@ -10861,8 +10861,8 @@ BEGIN
          (NOT IsProcedure(sym)) AND
          (NOT IsTemporary(sym)) AND (NOT MustNotCheckBounds)
    THEN
-      MetaErrors1('{%1Uad} expected a variable, procedure, constant or expression',
-                 'and it was declared as a {%1Dd}', sym) ;
+      MetaErrors1('{%1ad} expected a variable, procedure, constant or expression',
+                  'and it was declared as a {%1Dd}', sym) ;
    ELSIF (type#NulSym) AND IsArray(type)
    THEN
       MetaErrors1('{%1U} not expecting an array variable as an operand for either comparison or binary operation',

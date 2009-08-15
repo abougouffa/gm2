@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE P2SymBuild ;
 
 
 FROM libc IMPORT strlen ;
-FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName, LengthKey ;
+FROM NameKey IMPORT Name, MakeKey, makekey, KeyToCharStar, NulName, LengthKey, WriteKey ;
 FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
@@ -31,6 +31,7 @@ FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
 FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
+FROM StrIO IMPORT WriteString, WriteLn ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -57,7 +58,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsSubrange, IsEnumeration, IsConstString,
                         IsError, IsAModula2Type,
                         GetSym, GetDeclareSym, IsUnknown, RenameSym,
-                        GetLocalSym, GetParent, IsRecord,
+                        GetLocalSym, GetParent, IsRecord, GetRecord,
                         GetFromOuterModule,
                         GetExported,
                         PutExported, PutExportQualified, PutExportUnQualified,
@@ -1871,6 +1872,7 @@ PROCEDURE BuildFieldRecord ;
 VAR
    name,
    n1, n2    : Name ;
+   Field,
    Varient,
    Parent,
    Type,
@@ -1887,21 +1889,35 @@ BEGIN
       Varient := NulSym
    ELSE
       (* Record maybe FieldVarient *)
-      Parent := GetParent(Record) ;
+      Parent := GetRecord(GetParent(Record)) ;
       Assert(IsFieldVarient(Record)) ;
       Varient := OperandT(NoOfFields+2) ;
       Assert(IsVarient(Varient)) ;
-      PutFieldVarient(Record, Varient)
+      PutFieldVarient(Record, Varient) ;
+      IF Debugging
+      THEN
+         n1 := GetSymName(Record) ;
+         WriteString('Record ') ;
+         WriteKey(n1) ;
+         WriteString(' has varient ') ;
+         n1 := GetSymName(Varient) ;
+         WriteKey(n1) ; WriteLn
+      END
    END ;
    i := 1 ;
    WHILE i<=NoOfFields DO
-(*
-      WriteKey(Operand(NoOfFields+1-i)) ; WriteString(' is a Field with type ') ;
-      WriteKey(GetSymName(Type)) ; WriteLn ;
-*)
+      IF Debugging
+      THEN
+         n1 := GetSymName(Record) ;
+         WriteString('Record ') ;
+         WriteKey(n1) ;
+         WriteString('  ') ;
+         WriteKey(OperandT(NoOfFields+1-i)) ; WriteString(' is a Field with type ') ;
+         WriteKey(GetSymName(Type)) ; WriteLn ;
+      END ;
       IF GetLocalSym(Parent, OperandT(NoOfFields+1-i))=NulSym
       THEN
-         PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
+         Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
       ELSE
          IF GetSymName(Parent)=NulName
          THEN
@@ -1945,6 +1961,7 @@ VAR
    Type,
    Varient,
    Parent,
+   VarField,
    NoOfFields,
    Record    : CARDINAL ;
 BEGIN
@@ -1960,25 +1977,49 @@ BEGIN
    ELSIF IsVarient(Record)
    THEN
       Varient := Record ;
-      Record := GetParent(Varient) ;
-      Assert(IsRecord(Record))
+      VarField := GetParent(Varient) ;
+      IF (Type=NulSym) AND (tag=NulName)
+      THEN
+         MetaError1('expecting a tag field in the declaration of a varient record {%1Ua}', Record)
+      ELSIF Type=NulSym
+      THEN
+         PutVarientTag(Varient, RequestSym(tag))
+      ELSE
+         Field := PutFieldRecord(VarField, tag, Type, Varient) ;
+         PutVarientTag(Varient, Field) ;
+         IF Debugging
+         THEN
+            WriteString('varient field ') ; WriteKey(GetSymName(VarField)) ;
+            WriteString('varient ') ; WriteKey(GetSymName(Varient)) ; WriteLn
+         END
+      END
    ELSE
       (* Record maybe FieldVarient *)
       Parent := GetParent(Record) ;
       Assert(IsFieldVarient(Record)) ;
       Varient := OperandT(1+2) ;
       Assert(IsVarient(Varient)) ;
-      PutFieldVarient(Record, Varient)
-   END ;
-   IF (Type=NulSym) AND (tag=NulName)
-   THEN
-      MetaError1('expecting a tag field in the declaration of a varient record {%1Ua}', Record)
-   ELSIF Type=NulSym
-   THEN
-      PutVarientTag(Varient, RequestSym(tag))
-   ELSE
-      PutFieldRecord(Record, tag, Type, Varient) ;
-      PutVarientTag(Varient, GetLocalSym(Record, tag))
+      PutFieldVarient(Record, Varient) ;
+      IF Debugging
+      THEN
+         WriteString('record ') ; WriteKey(GetSymName(Record)) ;
+         WriteString('varient ') ; WriteKey(GetSymName(Varient)) ; WriteLn
+      END ;
+      IF (Type=NulSym) AND (tag=NulName)
+      THEN
+         MetaError1('expecting a tag field in the declaration of a varient record {%1Ua}', Record)
+      ELSIF Type=NulSym
+      THEN
+         PutVarientTag(Varient, RequestSym(tag))
+      ELSE
+         Field := PutFieldRecord(Record, tag, Type, Varient) ;
+         PutVarientTag(Varient, Field) ;
+         IF Debugging
+         THEN
+            WriteString('record ') ; WriteKey(GetSymName(Record)) ;
+            WriteString('varient ') ; WriteKey(GetSymName(Varient)) ; WriteLn
+         END
+      END
    END
 END BuildVarientSelector ;
 
@@ -2009,6 +2050,7 @@ BEGIN
    PushT(VarientSym) ;
    PushT(FieldSym) ;
    Assert(IsFieldVarient(FieldSym)) ;
+   PutFieldVarient(FieldSym, VarientSym) ;
    AddVarientFieldToList(FieldSym)
 END StartBuildVarientFieldRecord ;
 
@@ -2034,7 +2076,7 @@ VAR
    FieldSym: CARDINAL ;
 BEGIN
    PopT(FieldSym) ;
-   GCFieldVarient(FieldSym)
+   (* GCFieldVarient(FieldSym) *)
 END EndBuildVarientFieldRecord ;
 
 

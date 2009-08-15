@@ -719,7 +719,8 @@ BEGIN
          IF set#NIL
          THEN
             missing := TRUE ;
-            MetaError2('not all variant record alternatives in the CASE clause are specified, hint you either need to specify each value of {%2ad} or use an ELSE clause {%1U}', varient, tag) ;
+            MetaError2('not all variant record alternatives in the CASE clause are specified, hint you either need to specify each value of {%2ad} or use an ELSE clause {%1U}',
+                        varient, type) ;
             ErrorRanges(p, type, set)
          END ;
          set := DisposeRanges(set)

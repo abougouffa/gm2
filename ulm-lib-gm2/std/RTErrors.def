@@ -47,7 +47,9 @@ DEFINITION MODULE RTErrors;
 			   value, min, max: CARDINAL;
 		     | signed:
 			   ivalue, imin, imax: INTEGER;
+                     ELSE
 		     END;
+            ELSE
 	    END;
 	 END;
 

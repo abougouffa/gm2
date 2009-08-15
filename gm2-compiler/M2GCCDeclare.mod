@@ -96,7 +96,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetProcedureScope, GetProcedureQuads,
                         GetVarient, GetUnbounded,
                         IsAModula2Type, UsesVarArgs,
-                        GetSymName,
+                        GetSymName, GetParent,
                         GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
                         GetParameterShadowVar,
@@ -2196,12 +2196,14 @@ PROCEDURE StartDeclareScope (scope: CARDINAL) ;
 VAR
    n: Name ;
 BEGIN
-   (*
-   AddSymToWatch(968) ;  (* watch goes here *)
+   (* 
+   AddSymToWatch(2125) ;  (* watch goes here *)
    DebugSets ;
+    *)
+   (*
+   AddSymToWatch(2125) ;  (* watch goes here *)
    *)
-
-   (* IncludeElementIntoSet(WatchList, 92) ; *)
+   (* IncludeElementIntoSet(WatchList, 2125) ; *)
    (* AddSymToWatch(8) ; *)
    IF Debugging
    THEN
@@ -2927,6 +2929,19 @@ END PrintDeclared ;
 
 
 (*
+   IncludeGetParent - 
+*)
+
+PROCEDURE IncludeGetParent (l: List; sym: CARDINAL) ;
+BEGIN
+   printf0(' Parent [') ;
+   IncludeItemIntoList(l, GetParent(sym)) ;
+   PrintTerse(GetParent(sym)) ;
+   printf0(']')
+END IncludeGetParent ;
+
+
+(*
    PrintVerboseFromList - prints the, i, th element in the list, l.
 *)
 
@@ -3004,12 +3019,14 @@ BEGIN
    THEN
       printf2('sym %d IsVarient (%a)', sym, n) ;
       IncludeGetNth(l, sym) ;
-      IncludeGetVarient(l, sym)
+      IncludeGetVarient(l, sym) ;
+      IncludeGetParent(l, sym)
    ELSIF IsFieldVarient(sym)
    THEN
       printf2('sym %d IsFieldVarient (%a)', sym, n) ;
       IncludeGetNth(l, sym) ;
-      IncludeGetVarient(l, sym)
+      IncludeGetVarient(l, sym) ;
+      IncludeGetParent(l, sym)
    ELSIF IsFieldEnumeration(sym)
    THEN
       printf2('sym %d IsFieldEnumeration (%a)', sym, n)
@@ -3033,7 +3050,8 @@ BEGIN
    THEN
       printf2('sym %d IsRecordField (%a)', sym, n) ;
       IncludeType(l, sym) ;
-      IncludeGetVarient(l, sym)
+      IncludeGetVarient(l, sym) ;
+      IncludeGetParent(l, sym)
    ELSIF IsProcType(sym)
    THEN
       printf2('sym %d IsProcType (%a)', sym, n)

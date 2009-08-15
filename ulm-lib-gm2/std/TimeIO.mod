@@ -511,6 +511,7 @@ IMPLEMENTATION MODULE TimeIO; (* AFB 9/88 *)
 		  CASE sym: Symbol OF
 		  | numberSY: value: CARDINAL;
 		  | identSY:  text: ARRAY [0..2] OF CHAR;
+                  ELSE
 		  END;
 	       END;
 	 VAR

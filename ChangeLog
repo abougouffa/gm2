@@ -1,3 +1,28 @@
+2009-08-15       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2-compiler/M2CaseList.mod:  tidied up formatting of
+	  error message.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  IncludeGetParent (New
+	  function).  Use IncludeGetParent with appropriate symbols.
+	* gm2/gm2-compiler/M2Quads.mod:  use GetParent and GetRecord
+	  together now that the specification for GetParent has changed.
+	* gm2/gm2-compiler/P2SymBuild.mod:  GetParent now returns the
+	  parent of the field or varient.  GetRecord returns the
+	  record of varient.  PutFieldRecord returns the field created
+	  so that it can be recorded as the tag via PutVarientTag if
+	  neccesary.  Modified BuildFieldRecord,
+	  BuildVarientSelector, StartBuildVarientFieldRecord and
+	  EndBuildVarientFieldRecord.
+	* gm2/gm2-compiler/SymbolTable.def:  export GetRecord.
+	* gm2/gm2-compiler/SymbolTable.mod:   GetParent now returns
+	  the parent of the field or varient.  GetRecord returns the
+	  record of varient.  PutFieldRecord returns the field created
+	  so that it can be recorded as the tag via PutVarientTag if
+	  neccesary.  EnsureOrder (New function) used by
+	  PutVarientTag.
+	* gm2/ulm-lib-gm2/std/RTErrors.def:  include two ELSE clauses.
+	* gm2/ulm-lib-gm2/std/TimeIO.mod:  include ELSE clause.
+
 2009-08-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-2.bnf:  modified so that the variant tag is

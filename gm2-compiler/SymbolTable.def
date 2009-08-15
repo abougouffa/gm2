@@ -88,7 +88,7 @@ EXPORT QUALIFIED NulSym,
                  GetType,
                  SkipType, SkipTypeAndSubrange,
                  GetLowestType,
-                 GetSym, GetLocalSym, GetDeclareSym,
+                 GetSym, GetLocalSym, GetDeclareSym, GetRecord,
                  FromModuleGetSym,
                  GetOAFamily,
                  GetDimension,
@@ -902,6 +902,15 @@ PROCEDURE GetLocalSym (Sym: CARDINAL; name: Name) : CARDINAL ;
 
 
 (*
+   GetRecord - fetches the record symbol from the parent of Sym.
+               Sym maybe a varient symbol in which case its parent is searched
+               etc.
+*)
+
+PROCEDURE GetRecord (Sym: CARDINAL) : CARDINAL ;
+
+
+(*
    FromModuleGetSym - attempts to find a symbol of name, n, in the
                       module, mod, scope.
 *)
@@ -1151,12 +1160,13 @@ PROCEDURE PutConstructorFrom (Sym: CARDINAL; from: CARDINAL) ;
 (*
    PutFieldRecord - places a field, FieldName and FieldType into a record, Sym.
                     VarSym is a optional varient symbol which can be returned
-                    by a call to GetVarient(fieldsymbol).
+                    by a call to GetVarient(fieldsymbol).  The created field
+                    is returned.
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
-                          VarSym: CARDINAL) ;
+                          VarSym: CARDINAL) : CARDINAL ;
 
 
 (*

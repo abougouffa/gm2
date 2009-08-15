@@ -742,8 +742,10 @@ VAR
    CurrentError  : Error ;       (* Current error chain.               *)
    AddressTypes  : List ;        (* A list of type symbols which must  *)
                                  (* be declared as ADDRESS or pointer  *)
+(*
    FreeFVarientList,             (* Lists used to maintain GC of field *)
    UsedFVarientList: List ;      (* varients.                          *)
+*)
    UnresolvedConstructorType: List ;  (* all constructors whose type   *)
                                  (* is not yet known.                  *)
    AnonymousName     : CARDINAL ;(* anonymous type name unique id      *)
@@ -909,7 +911,7 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
-      IF (FreeSymbol=9832) OR (FreeSymbol=9260)
+      IF FreeSymbol=2123
       THEN
          stop
       END ;
@@ -1189,8 +1191,10 @@ BEGIN
    MainModule        := NulSym ;
    FileModule        := NulSym ;
    TemporaryNo       := 0 ;
+(*
    InitList(FreeFVarientList) ;             (* Lists used to maintain GC of field *)
    InitList(UsedFVarientList) ;             (* varients.                          *)
+*)
    InitList(UnresolvedConstructorType) ;
 
    InitBase(BaseModule) ;
@@ -3038,8 +3042,8 @@ END MakeRecord ;
 
 
 (*
-   MakeVarient - creates a new symbol, a varient symbol for record symbol,
-                 RecOrVarFieldSym.
+   MakeVarient - creates a new symbol, a varient symbol for record or varient field
+                 symbol, RecOrVarFieldSym.
 *)
 
 PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
@@ -3051,7 +3055,7 @@ BEGIN
       SymbolType := VarientSym ;
       WITH Varient DO
          Size := InitValue() ;
-         Parent := GetRecord(RecOrVarFieldSym) ;
+         Parent := RecOrVarFieldSym ; (* GetRecord(RecOrVarFieldSym) ; *)
          IF IsRecord(RecOrVarFieldSym)
          THEN
             Varient := NulSym
@@ -4325,12 +4329,13 @@ END PutConst ;
 (*
    PutFieldRecord - places a field, FieldName and FieldType into a record, Sym.
                     VarSym is a optional varient symbol which can be returned
-                    by a call to GetVarient(fieldsymbol).
+                    by a call to GetVarient(fieldsymbol).  The created field
+                    is returned.
 *)
 
 PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
-                          VarSym: CARDINAL) ;
+                          VarSym: CARDINAL) : CARDINAL ;
 VAR
    ParSym,
    SonSym: CARDINAL ;
@@ -4349,22 +4354,10 @@ BEGIN
                         END |
       VarientFieldSym : WITH VarientField DO
                            PutItemIntoList(ListOfSons, SonSym) ;
-                           ParSym := Parent
+                           ParSym := GetRecord(Parent)
                         END ;
                         Assert(Symbols[ParSym].SymbolType=RecordSym) ;
                         PutSymKey(Symbols[ParSym].Record.LocalSymbols, FieldName, SonSym)
-
-(* is the same as below, but -Wpedantic warns against having nested WITH statements referencing the same type
-   (I've been burnt by this before, so I respect -Wpedantic warnings..)
-
-                        WITH Symbols[ParSym] DO
-                        (* Ensure that the Field is in the parents Local Symbols *)
-                           CASE SymbolType OF
-
-                           RecordSym: PutSymKey(Record.LocalSymbols, FieldName, SonSym)
-                           END
-                        END
-*)
 
       ELSE
          InternalError('expecting Record symbol', __FILE__, __LINE__)
@@ -4376,12 +4369,13 @@ BEGIN
       WITH RecordField DO
          Type := FieldType ;
          name := FieldName ;
-         Parent := GetRecord(Sym) ;
+         Parent := Sym ;
          Varient := VarSym ;
          Size := InitValue() ;
          Offset := InitValue()
       END
-   END
+   END ;
+   RETURN( SonSym )
 END PutFieldRecord ;
 
 
@@ -4394,6 +4388,8 @@ PROCEDURE MakeFieldVarient (n: Name; Sym: CARDINAL) : CARDINAL ;
 VAR
    SonSym: CARDINAL ;
 BEGIN
+   NewSym(SonSym) ;
+(*
    IF NoOfItemsInList(FreeFVarientList)=0
    THEN
       NewSym(SonSym)
@@ -4401,6 +4397,7 @@ BEGIN
       SonSym := GetItemFromList(FreeFVarientList, 1) ;
       RemoveItemFromList(FreeFVarientList, SonSym)
    END ;
+*)
    (* Fill in Sym *)
    WITH Symbols[SonSym] DO
       SymbolType := VarientFieldSym ;
@@ -4449,7 +4446,7 @@ BEGIN
          InternalError('expecting VarientField symbol', __FILE__, __LINE__)
       END    
    END ;
-   PutItemIntoList(UsedFVarientList, Field)
+   (* PutItemIntoList(UsedFVarientList, Field) *)
 END PutFieldVarient ;
 
 
@@ -4481,6 +4478,7 @@ END GetVarient ;
 
 PROCEDURE GCFieldVarient (Sym: CARDINAL) ;
 BEGIN
+(*
    IF IsItemInList(UsedFVarientList, Sym)
    THEN
       RemoveItemFromList(UsedFVarientList, Sym)
@@ -4488,7 +4486,23 @@ BEGIN
       RemoveItemFromList(UsedFVarientList, Sym) ;
       PutItemIntoList(FreeFVarientList, Sym)
    END
+*)
 END GCFieldVarient ;
+
+
+(*
+   EnsureOrder - providing that both symbols, a, and, b, exist in
+                 list, l.  Ensure that, b, is placed after a.
+*)
+
+PROCEDURE EnsureOrder (l: List; a, b: CARDINAL) ;
+BEGIN
+   IF IsItemInList(l, a) AND IsItemInList(l, b)
+   THEN
+      RemoveItemFromList(l, b) ;
+      IncludeItemIntoList(l, b)
+   END
+END EnsureOrder ;
 
 
 (*
@@ -4496,6 +4510,8 @@ END GCFieldVarient ;
 *)
 
 PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
+VAR
+   parent: CARDINAL ;
 BEGIN
    WITH Symbols[Sym] DO
       CASE SymbolType OF
@@ -4504,6 +4520,27 @@ BEGIN
 
       ELSE
          InternalError('varient symbol expected', __FILE__, __LINE__)
+      END
+   END ;
+   (* now ensure that if Tag is a FieldRecord then it must be
+      placed before the varient symbol in its parent ListOfSons.
+      This allows M2GCCDeclare to declare record fields in order
+      and preserve the order of fields.  Otherwise it will add the
+      tag field after the C union. *)
+   IF IsRecordField(Tag)
+   THEN
+      parent := GetParent(Sym) ;
+      WITH Symbols[parent] DO
+         CASE SymbolType OF
+
+         ErrorSym: |
+         VarientSym     : EnsureOrder(Varient.ListOfSons, Tag, Sym) |
+         VarientFieldSym: EnsureOrder(VarientField.ListOfSons, Tag, Sym) |
+         RecordSym      : EnsureOrder(Record.ListOfSons, Tag, Sym)
+
+         ELSE
+            InternalError('not implemented yet', __FILE__, __LINE__)
+         END
       END
    END
 END PutVarientTag ;
@@ -7995,6 +8032,7 @@ END doFillInOAFamily ;
 
 PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
 VAR
+   field   : CARDINAL ;
    Contents: CARDINAL ;
    i       : CARDINAL ;
 BEGIN
@@ -8012,14 +8050,14 @@ BEGIN
             NewSym(Contents) ;
             FillInPointerFields(Contents, NulName, GetScope(SimpleType), NulSym) ;
             PutPointer(Contents, SimpleType) ;
-            PutFieldRecord(RecordType,
-                           MakeKey(UnboundedAddressName),
-                           Contents, NulSym) ;
+            field := PutFieldRecord(RecordType,
+                                    MakeKey(UnboundedAddressName),
+                                    Contents, NulSym) ;
             i := 1 ;
             WHILE i<=ndim DO
-               PutFieldRecord(RecordType,
-                              makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)), i)))),
-                              Cardinal, NulSym) ;
+               field := PutFieldRecord(RecordType,
+                                       makekey(string(Mark(Sprintf1(Mark(InitString(UnboundedHighName)), i)))),
+                                       Cardinal, NulSym) ;
                INC(i)
             END ;
             Dimensions := ndim
