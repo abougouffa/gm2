@@ -1,5 +1,5 @@
 %{
-/* Copyright (C) 2004, 2005, 2006, 2007, 2008
+/* Copyright (C) 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -169,9 +169,14 @@ extern  void  yylex            (void);
 \)                         { updatepos(); M2LexBuf_AddTok(M2Reserved_rparatok); return; }
 \[                         { updatepos(); M2LexBuf_AddTok(M2Reserved_lsbratok); return; }
 \]                         { updatepos(); M2LexBuf_AddTok(M2Reserved_rsbratok); return; }
+\(\!                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lsbratok); return; }
+\!\)                       { updatepos(); M2LexBuf_AddTok(M2Reserved_rsbratok); return; }
 \^                         { updatepos(); M2LexBuf_AddTok(M2Reserved_uparrowtok); return; }
+\@                         { updatepos(); M2LexBuf_AddTok(M2Reserved_uparrowtok); return; }
 \{                         { updatepos(); M2LexBuf_AddTok(M2Reserved_lcbratok); return; }
 \}                         { updatepos(); M2LexBuf_AddTok(M2Reserved_rcbratok); return; }
+\(\:                       { updatepos(); M2LexBuf_AddTok(M2Reserved_lcbratok); return; }
+\:\)                       { updatepos(); M2LexBuf_AddTok(M2Reserved_rcbratok); return; }
 \'                         { updatepos(); M2LexBuf_AddTok(M2Reserved_singlequotetok); return; }
 \=                         { updatepos(); M2LexBuf_AddTok(M2Reserved_equaltok); return; }
 \#                         { updatepos(); M2LexBuf_AddTok(M2Reserved_hashtok); return; }
@@ -185,6 +190,7 @@ extern  void  yylex            (void);
 \:                         { updatepos(); M2LexBuf_AddTok(M2Reserved_colontok); return; }
 \"                         { updatepos(); M2LexBuf_AddTok(M2Reserved_doublequotestok); return; }
 \|                         { updatepos(); M2LexBuf_AddTok(M2Reserved_bartok); return; }
+\!                         { updatepos(); M2LexBuf_AddTok(M2Reserved_bartok); return; }
 \~                         { updatepos(); M2LexBuf_AddTok(M2Reserved_nottok); return; }
 AND                        { updatepos(); M2LexBuf_AddTok(M2Reserved_andtok); return; }
 ARRAY                      { updatepos(); M2LexBuf_AddTok(M2Reserved_arraytok); return; }
