@@ -560,7 +560,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   int linking = TRUE;
   flag_set seen_flags = {FALSE, FALSE};
   styles s;
-  int seen_source = 0;
+  int seen_source = FALSE;
   const char *libpath;
   const char *gm2ipath;
   const char *gm2opath;
@@ -625,9 +625,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
       seen_flags.o2 = TRUE;
     if ((strcmp((*in_argv)[i], "-") == 0) ||
 	((*in_argv)[i][0] != '-'))
-      seen_source = 1;
+      seen_source = TRUE;
     if (strcmp((*in_argv)[i], "-o") == 0)
-      i += 2;
+      i++;
     else if (is_object((*in_argv)[i]))
       remember_object ((*in_argv)[i]);
     i++;
