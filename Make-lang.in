@@ -124,7 +124,7 @@ gm2spec.o: $(srcdir)/gm2/gm2spec.c $(SYSTEM_H) $(GCC_H) $(CONFIG_H)
 		$(INCLUDES) $(srcdir)/gm2/gm2spec.c $(OUTPUT_OPTION))
 
 gm2/gm2version.c: force
-	cd gm2 ; /bin/bash ../$(srcdir)/gm2/tools-src/makeversion -c ../$(srcdir)
+	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -c ../$(srcdir)
 
 gm2version.o: gm2/gm2version.c
 	(SHLIB_LINK='$(SHLIB_LINK)' \
@@ -236,7 +236,7 @@ $(objdir)/gm2/Builtins.texi: $(BUILD-ALL-LIBS)
 	cd $(srcdir)/gm2 ; ./tools-src/def2texi.py -b./ -fgm2-libs/Builtins.def > $(objdir)/gm2/Builtins.texi
 
 $(objdir)/gm2/version.texi: force
-	cd gm2 ; /bin/bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
+	cd gm2 ; bash ../$(srcdir)/gm2/tools-src/makeversion -t ../$(srcdir)
 
 $(objdir)/gm2/gm2-compiler-boot:
 	mkdir $@
@@ -1252,7 +1252,7 @@ gm2/gm2-compiler-boot/M2Version.o: gm2/gm2-compiler-boot/M2Version.mod
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-libiberty $(INCLUDES) gm2/gm2-compiler-boot/M2Version.c -o $@
 
 gm2/gm2-compiler-boot/M2Version.mod:
-	cd gm2/gm2-compiler-boot ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+	cd gm2/gm2-compiler-boot ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
@@ -1325,7 +1325,7 @@ gm2/gm2-compiler/M2Version.o: gm2/gm2-compiler/M2Version.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/M2Version.mod:
-	cd gm2/gm2-compiler ; /bin/bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
+	cd gm2/gm2-compiler ; bash ../../$(srcdir)/gm2/tools-src/makeversion -m ../../$(srcdir)
 
 gm2/gm2-compiler/h2def.o: $(objdir)/gm2/gm2-auto/h2def.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1473,7 +1473,7 @@ gm2/gm2-libs/SO_O2/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 #  itself.
 #
 
-gm2/gm2-libs/gm2-libs-host.h:
+gm2/gm2-libs/gm2-libs-host.h: $(objdir)/gm2/gm2-libs
 	if echo $(INTERNAL_CFLAGS) | grep \\-DCROSS_COMPILE; then \
             echo "Configuring to build libraries using cross compiler" ; \
             cd gm2/gm2-libs ; \
@@ -1505,26 +1505,26 @@ gm2/gm2config.h:
             $(SHELL) -c '../$(srcdir)/gm2/configure --srcdir=../$(srcdir)/gm2 --target=$(target) --program-suffix=$(exeext)' ; \
         fi
 
-$(objdir)/gm2/gm2-libs-min/SYSTEM.def: 
-	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fpim \
-                 $(srcdir)/gm2/gm2-libs-min/SYSTEM.def \
-                 $(srcdir)/gm2/gm2-libs-min/SYSTEM.mod \
-                 -I$(srcdir)/gm2/gm2-libs-min \
-                 "./xgm2 -B./stage1/gm2" > $@
+$(objdir)/gm2/gm2-libs-min/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
+	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
+             $(srcdir)/gm2/gm2-libs-min/SYSTEM.def \
+             $(srcdir)/gm2/gm2-libs-min/SYSTEM.mod \
+             -I$(srcdir)/gm2/gm2-libs-min \
+             "./xgm2 -B./stage1/gm2" > $@
 
-$(objdir)/gm2/gm2-libs/SYSTEM.def: 
-	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fpim \
-                 $(srcdir)/gm2/gm2-libs/SYSTEM.def \
-                 $(srcdir)/gm2/gm2-libs/SYSTEM.mod \
-                 -I$(srcdir)/gm2/gm2-libs \
-                 "./xgm2 -B./stage1/gm2" > $@
+$(objdir)/gm2/gm2-libs/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
+	bash $(srcdir)/gm2/tools-src/makeSystem -fpim \
+             $(srcdir)/gm2/gm2-libs/SYSTEM.def \
+             $(srcdir)/gm2/gm2-libs/SYSTEM.mod \
+             -I$(srcdir)/gm2/gm2-libs \
+             "./xgm2 -B./stage1/gm2" > $@
 
-$(objdir)/gm2/gm2-libs-iso/SYSTEM.def: 
-	$(SHELL) $(srcdir)/gm2/tools-src/makeSystem -fiso \
-                 $(srcdir)/gm2/gm2-libs-iso/SYSTEM.def \
-                 $(srcdir)/gm2/gm2-libs-iso/SYSTEM.mod \
-                 -I$(srcdir)/gm2/gm2-libs-iso \
-                 "./xgm2 -B./stage1/gm2" > $@
+$(objdir)/gm2/gm2-libs-iso/SYSTEM.def: stage1/gm2/cc1gm2$(exeext)
+	bash $(srcdir)/gm2/tools-src/makeSystem -fiso \
+             $(srcdir)/gm2/gm2-libs-iso/SYSTEM.def \
+             $(srcdir)/gm2/gm2-libs-iso/SYSTEM.mod \
+             -I$(srcdir)/gm2/gm2-libs-iso \
+             "./xgm2 -B./stage1/gm2" > $@
 
 build-libs-min: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
                 $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
@@ -1585,7 +1585,7 @@ gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SYSTEM.c: 
-	$(SHELL) $(srcdir)/gm2/tools-src/createUlmSys gm2/gm2-libs/gm2-libs-host.h > $@
+	bash $(srcdir)/gm2/tools-src/createUlmSys gm2/gm2-libs/gm2-libs-host.h > $@
 
 gm2/ulm-lib-gm2/sys/%.o: gm2/ulm-lib-gm2/sys/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B./stage1/gm2 -B./ -I$(srcdir)/gm2/ulm-lib-gm2/sys -I$(srcdir)/gm2/gm2-libs $< -o $@

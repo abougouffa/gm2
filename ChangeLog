@@ -1,3 +1,11 @@
+2009-08-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added dependency on
+	  $(objdir)/gm2/gm2-libs for gm2/gm2-libs/gm2-libs-host.h.
+	  Added dependencies on cc1gm2$(exeext) when creating
+	  SYSTEM.def.  Explicitly invoke bash to run bash scripts
+	  rather than assume that the developers SHELL is bash.
+
 2009-08-17       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2spec.c:  fixed an off by one bug when scanning
