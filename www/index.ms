@@ -1,5 +1,5 @@
 .\"
-.\" Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+.\" Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
 .\" 
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -15,8 +15,8 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Mon Nov  3 20:02:31 GMT 2008
-.ds CURRENTGM2 0.68
+.ds CURRENTDATE "Fri Aug 21 00:28:51 BST 2009
+.ds CURRENTGM2 0.70
 .ds DEBIANGM2 0.6.8
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
@@ -77,20 +77,28 @@ GNU Modula-2
 The home of the GNU Modula-2 compiler.
 This compiler is still in development.
 .LP
-The compiler has undergone quite a number of changes recently
-and the current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
-It can build all of the University of Ulm libraries, has a good selection
-of Logitech compatibility libraries, all the m2f libraries and some ISO libraries.
+The compiler has undergone quite a number of changes recently and the
+current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
+It can build all of the University of Ulm libraries, has a good
+selection of Logitech compatibility libraries, all the m2f libraries
+and most ISO libraries.
 .sp
 Recent news about GNU Modula-2:
 \m[darkblue]
 .sp
 .ULS
 .LI
+the ISO Modula-2 language is now complete.  Recent additions were
+dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P],
+ISO \f[C]SIZE\f[P] and \f[C]CASE\f[P] range compile time checking.
+.LI
+builds under OSX leopard using \f[I]macports\f[P].
+.LI
 now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).
 .LI
-many more ISO libraries have been completed.
+many more ISO libraries have been completed (although please see the
+section on limitations).
 .LI
 the option
 .OPT -fswig
@@ -130,17 +138,14 @@ much better \fCdwarf-2\fP debugging support and when used with
 \f[C]ARRAY\f[P]s, \f[C]SET\f[P]s, subranges and constant char literals
 in Modula-2 syntax.
 .LI
-it currently complies with Programming in Modula-2 Edition 2, 3 and 4.
+it currently complies with Programming in Modula-2 Edition 2, 3, 4
+and ISO Modula-2.
 Users can switch on specific mutually exclusive features by
 .OPT -fpim
 or
 .OPT -fpim2 .
 .LI
 supports sets of any ordinal size (memory permitting).
-.LI
-most of ISO M2 is implemented.  The missing features are
-dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P]
-and \f[C]SIZE\f[P] cannot yet specify a second parameter.
 .LI
 easy interface to C, and varargs can be passed to C routines.
 .LI
@@ -203,46 +208,19 @@ or the
 .MTO "gm2@nongnu.org" "GNU Modula-2"
 mailing list. You will need to subscribe to send email to
 the mailing list.
-.SH
-Older builds
-.LP
-Prior to the release of GNU Modula-2 0.51 this table
-was constructed.
-.CDS
-Operating       | Architecture   | gcc and gm2   (or)
-System          | Host           | gcc + latest cvs
-================+================+=====================
-Debian Pure 64  | Opteron 64bit  | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Debian Sarge    | 686            | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Apple Darwin    | ppc G5         | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Solaris 10      | Sparc 32 bit   | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Solaris 10      | Sparc 64 bit   | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Slackware 10.2  | AMD-K6         | gcc-3.3.6 + gm2-0.50
-----------------+----------------+---------------------
-Source Mage     | AMD Athlon XP  | gcc-3.3.6 + gm2-0.50
-GNU/Linux       | 2800+          |
-----------------+----------------+---------------------
-MacOSX-10.3.9   | G4 eMac        | gcc-3.3.6 + gm2-0.50
-Panther         |                | 3 regressions fail
-----------------+----------------+---------------------\fP
-.CDE
 .
 .SH
 Limitations
 .LP
 .ULS
 .LI
-ISO Modula-2 is not implemented in full yet.  The missing features are
-dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P]
-and \f[C]SIZE\f[P] cannot yet specify a second parameter.
+The compiler is complete but it is still in an alpha state.  The most
+stable build for GNU Modula-2 is x86_64 Debian (at the time of writing
+this results in 56 regression test failures out of over 8000).
 .LI
-ISO library implementation has started but only a few modules are useable.
-For a full list check the
+ISO library implementation is underway, most of the libraries are
+finished but they are unstable.  Processes, Coroutines, Semaphores
+are missing.  For a full list check the
 .URL gm2.html documentation .
 .LI
 Logitech compatibility library is incomplete (nevertheless a number of
@@ -487,9 +465,10 @@ in C++ and therefore in future releases it will be necessary to build
 .Q
 When will release 1.0 be available?
 .A
-Most of the ISO language is implemented in the compiler and the
-libraries are under construction.  Hopefully the frequency of releases
-will increase as work nears completion.
+All of the ISO language is implemented and most of the libraries are
+complete, but unstable.  Hopefully the frequency of releases will
+increase as work nears completion.  Currently bug fixing, library
+implementation is ongoing.  Porting is being used to hunt down bugs.
 .
 .SH
 Mailing list
