@@ -1677,10 +1677,10 @@ the @code{-fiso} and @code{-fpim2} command line switches.
 
 @section Warning
 
-This code is currently in development and it is not yet complete.
+This code is still in development.
 Nevertheless the compiler is sufficiently stable to support itself on
-Debian GNU/Linux x86 systems. The PIM libraries are complete but the
-ISO libraries and ISO language features are still in development.
+Debian GNU/Linux x86 systems.  The PIM libraries are complete but the
+ISO libraries are still in development.
 Patches and development volunteers highly welcome! 
 @xref{Contributing, Contributing to GNU Modula-2}.
 
@@ -1961,6 +1961,70 @@ in @file{../gcc-@value{version-GCC}/gcc/gm2/examples/hello} by:
 $ cd ../gcc-@value{version-GCC}/gcc/gm2/examples/hello
 $ make
 $ ./a.out
+@end example
+
+@section Building GNU Modula-2 under Mac OSX
+
+The easiest way to build GNU Modula-2 under Mac OSX is to use
+@samp{macports}.  At the time of writing GNU Modula-2 is not an
+official mac port, however you can build it locally and produce your
+own testing release quite easily.
+
+Firstly you must install @samp{macports} @url{http://www.macports.org/install.php}.
+Secondly you need to modify your @samp{macports} configuration file
+@file{/opt//local/etc/macports/sources.conf} so that it allows users to
+maintain private ports.  This requires that you add the line:
+
+@example
+file:///Users/@samp{yourusername}/MacPorts/ports
+@end example
+
+which allows you to keep your own @samp{macports} under
+@samp{$HOME/MacPorts/ports}.  Now download the GNU Modula-2
+Portfile and build the port index.
+
+@example
+$ mkdir -p $HOME/MacPorts/ports/lang/gm2-latest
+$ cd $HOME/MacPorts/ports/lang/gm2-latest
+$ curl http://floppsie.comp.glam.ac.uk/download/c/patches/gcc/4.1.2/Portfile \
+  -o Portfile
+$ cd $HOME/MacPorts/port
+$ portindex
+Creating software index in /Users/@samp{yourusername}/MacPorts/ports
+Adding port lang/gm2-latest
+
+Total number of ports parsed:   1
+Ports successfully parsed:      1
+Ports failed:                   0
+@end example
+
+@example
+$ sudo port build gm2-latest
+Password:
+--->  Fetching gm2-latest
+--->  Verifying checksum(s) for gm2-latest
+--->  Extracting gm2-latest
+--->  Applying patches to gm2-latest
+--->  Configuring gm2-latest
+--->  Building gm2-latest
+@end example
+
+Now you can produce your own release of GNU Modula-2 via:
+
+@example
+$ sudo port dmg gm2-latest
+--->  Staging gm2-latest into destroot
+--->  Creating pkg for gm2-latest-4.1.2
+--->  Creating disk image for gm2-latest-4.1.2
+@end example
+
+You can run the regression testsuite by:
+
+@example
+$ sudo port install dejagnu
+$ cd /opt/local/var/macports/build/_opt_local_var_macports_sources_rsync.macports.org_release_ports_lang_gcc41/work/build/gcc
+$ sudo make check-gm2
+$ sudo make gm2.paranoid
 @end example
 
 @section Building GNU Modula-2 under FreeBSD
@@ -3092,30 +3156,18 @@ What needs to be done:
 @itemize @bullet
 
 @item
-ISO library implementation needs to be completed
-(use FIO.mod as the underlying substructure).
+ISO library implementation needs to be completed and debugged.
 
 @item
 Easy access to other libraries using @code{-flibs=} so that libraries
-can be added into the @file{/usr/.../gcc-lib/gm2/...} structure. ISO
-language complience.
-
-@item
-implement many of the ISO built-in functions and procedures.
-
-@item
-investigate the use of collect2 during link/module initialization.
+can be added into the @file{/usr/.../gcc-lib/gm2/...} structure.
 
 @item
 improve documentation, specifically this document which should
 also include a synopsis of 2nd Edition Modula-2.
 
 @item
-shared library access and generation
-
-@item
-modifying @file{SymbolTable.mod} and @file{M2Quads.mod} to
-make all the data structures dynamic.
+modifying @file{SymbolTable.mod} to make all the data structures dynamic.
 
 @item
 testing and fixing bugs
@@ -3125,12 +3177,11 @@ testing and fixing bugs
 @node EBNF, Libraries, Internals, Top
 @chapter EBNF of GNU Modula-2
 
-This chapter contains the EBNF of GNU Modula-2. This grammer
-currently supports PIM and a number of ISO features. It is intended
-to be altered to become fully complient with ISO in the future.
-The rules here are automatically extracted from the grammer files in
-GNU Modula-2 and serve to document the syntax of the extensions described
-earlier and how they fit in with the base language.
+This chapter contains the EBNF of GNU Modula-2. This grammer currently
+supports both PIM and ISO dialects.  The rules here are automatically
+extracted from the grammer files in GNU Modula-2 and serve to document
+the syntax of the extensions described earlier and how they fit in
+with the base language.
 
 Note that the first six productions are built into the lexical analysis
 phase.
@@ -3141,11 +3192,11 @@ phase.
 @chapter PIM and ISO library definitions
 
 This chapter contains M2F, ULM, PIM and ISO libraries. The ISO
-libraries are currently work in progress, many are incomplete and even
-more have no implementation module. The M2F libraries are very mature
-as the compiler uses them extensively. Permission has been kindly
-granted by the authors of the ULM libraries to include them with GNU
-Modula-2. These libraries (under the GNU GPL) were written at the
+libraries are currently work in progress, many are complete but
+probably contain many bugs.  The M2F libraries are very mature as the
+compiler uses them extensively.  Permission has been kindly granted by
+the authors of the ULM libraries to include them with GNU
+Modula-2.  These libraries (under the GNU GPL) were written at the
 University of Ulm and were originally shipped with the ULM sparc
 Modula-2 compiler.
 
