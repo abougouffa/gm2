@@ -39,7 +39,7 @@ END fly ;
  *   a GNU M2 version of the Modula-2 example given in the ISO standard.
  *   This is a hand translation of the equivalent except.c file in this
  *   directory which is written to prove that the underlying runtime system
- *   will work with the GCC builtin longjmp/set interpretation.
+ *   will work with the GCC exception handling trees.
  *)
 
 PROCEDURE tryFlying ;
