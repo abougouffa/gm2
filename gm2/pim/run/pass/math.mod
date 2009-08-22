@@ -17,7 +17,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE math ;
 
-FROM MathLib0 IMPORT entier, entiers ;
+IMPORT MathLib0, SMathLib0 ;
 FROM libc IMPORT printf, exit ;
 
 
@@ -36,9 +36,9 @@ VAR
    s: SHORTREAL ;
 BEGIN
    r := 2.3 ;
-   printf("value of entier (10.0 + r) = %d (should be 12)\n", entier (10.0 + r)) ;
-   Assert(entier (10.0 + r) = 12, __FILE__, __LINE__) ;
+   printf("value of entier (10.0 + r) = %d (should be 12)\n", MathLib0.entier (10.0 + r)) ;
+   Assert(MathLib0.entier (10.0 + r) = 12, __FILE__, __LINE__) ;
    s := 5.9 ;
-   printf("value of entiers (10.0 + s) = %d (should be 15)\n", entiers (10.0 + s)) ;
-   Assert(entiers (10.0 + s) = 15, __FILE__, __LINE__) ;
+   printf("value of SMathLib0.entier (10.0 + s) = %d (should be 15)\n", SMathLib0.entier (10.0 + s)) ;
+   Assert(SMathLib0.entier (10.0 + s) = 15, __FILE__, __LINE__) ;
 END math.
