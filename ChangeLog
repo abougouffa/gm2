@@ -12,6 +12,7 @@
 	* gm2-libs/SMathLib0.mod:  many fixes to SMathLib0 using the
 	  correct libm function name expf, sqrtf etc.
 	* gm2-libs-iso/Processes.def:  tidied up comment formatting.
+	* gm2/gm2.texi:  improved the building under macports section.
 
 2009-08-21       Gaius Mulley <gaius@gnu.org>
 

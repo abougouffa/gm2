@@ -2050,6 +2050,24 @@ $ sudo make check-gm2
 $ sudo make gm2.paranoid
 @end example
 
+Here is a simple script which enables you to download, build and test
+the latest GNU Modula-2 cvs snapshot:
+
+@example
+#!/bin/bash
+
+cd $HOME/MacPorts/ports/lang/gm2-latest
+curl http://floppsie.comp.glam.ac.uk/download/c/patches/gcc/4.1.2/Portfile -o Portfile
+cd $HOME/MacPorts/ports
+portindex
+cd $HOME
+sudo port clean --all gm2-latest
+sudo port build gm2-latest
+cd /opt/local/var/macports/build/_opt_local_var_macports_sources_rsync.macports.org_release_ports_lang_gcc41/work/build/gcc
+sudo make gm2.paranoid
+sudo make check-gm2
+@end example
+
 @section Building GNU Modula-2 under FreeBSD
 
 [This section is out of date and has not been verified against
