@@ -217,13 +217,51 @@ END AddRange ;
 
 PROCEDURE CaseBoundsResolved (tokenno: CARDINAL; c: CARDINAL) : BOOLEAN ;
 VAR
-   p   : CaseDescriptor ;
-   q   : CaseList ;
-   r   : RangePair ;
-   i, j: CARDINAL ;
+   resolved: BOOLEAN ;
+   p       : CaseDescriptor ;
+   q       : CaseList ;
+   r       : RangePair ;
+   min,
+   max,
+   tag,
+   type,
+   i, j    : CARDINAL ;
 BEGIN
    p := GetIndice(caseArray, c) ;
    WITH p^ DO
+      IF varient#NulSym
+      THEN
+         (* not a CASE statement, but a varient record containing without an ELSE clause *)
+         tag := GetVarientTag(varient) ;
+         IF IsFieldVarient(tag) OR IsRecordField(tag)
+         THEN
+            type := GetType(tag)
+         ELSE
+            type := tag
+         END ;
+         resolved := TRUE ;
+         IF NOT GccKnowsAbout(type)
+         THEN
+            (* do we need to add, type, to the list of types required to be resolved? *)
+            resolved := FALSE
+         END ;
+         min := GetTypeMin(type) ;
+         IF NOT GccKnowsAbout(min)
+         THEN
+            TryDeclareConstant(tokenno, min) ;
+            resolved := FALSE
+         END ;
+         max := GetTypeMin(type) ;
+         IF NOT GccKnowsAbout(max)
+         THEN
+            TryDeclareConstant(tokenno, max) ;
+            resolved := FALSE
+         END ;
+         IF NOT resolved
+         THEN
+            RETURN( FALSE )
+         END
+      END ;
       i := 1 ;
       WHILE i<=maxCaseId DO
          q := GetIndice(caseListArray, i) ;
@@ -527,7 +565,8 @@ VAR
 BEGIN
    h := set ;
    WHILE h#NIL DO
-      IF IsEqual(h^.low, lo) AND IsEqual(h^.high, hi)
+      IF IsEqual(h^.low, lo) OR
+         ((h^.high=NulSym) AND OverlapsRange(lo, hi, h^.low, h^.low))
       THEN
          IF h=set
          THEN
@@ -546,7 +585,7 @@ BEGIN
             i^.next := NIL ;
             i := DisposeRanges(i)
          END
-      ELSIF OverlapsRange(lo, hi, h^.low, h^.high)
+      ELSIF (h^.high#NulSym) AND OverlapsRange(lo, hi, h^.low, h^.high)
       THEN
          IF IsGreater(h^.low, lo) OR IsGreater(hi, h^.high)
          THEN

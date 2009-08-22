@@ -1,3 +1,18 @@
+2009-09-22       Gaius Mulley <gaius@gnu.org>
+
+	* Make-lang.in:  added SMathLib0.def to list of library
+	  modules.
+	* gm2.texi:  added build log for macports description.
+	* gm2-compiler/M2CaseList.mod:  only test case ranges if
+	  the high field is used, otherwise test equality.  Check
+	  that case types are also known and their maximum and
+	  minimum values.
+	* gm2-compiler/SymbolTable.mod:  only place record fields
+	  into the Record.LocalSymbol tree if the name is not NulName.
+	* gm2-libs/SMathLib0.mod:  many fixes to SMathLib0 using the
+	  correct libm function name expf, sqrtf etc.
+	* gm2-libs-iso/Processes.def:  tidied up comment formatting.
+
 2009-08-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  updated to reflect recent changes.

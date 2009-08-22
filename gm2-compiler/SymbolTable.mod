@@ -4357,7 +4357,10 @@ BEGIN
                            ParSym := GetRecord(Parent)
                         END ;
                         Assert(Symbols[ParSym].SymbolType=RecordSym) ;
-                        PutSymKey(Symbols[ParSym].Record.LocalSymbols, FieldName, SonSym)
+                        IF FieldName#NulName
+                        THEN
+                           PutSymKey(Symbols[ParSym].Record.LocalSymbols, FieldName, SonSym)
+                        END
 
       ELSE
          InternalError('expecting Record symbol', __FILE__, __LINE__)
@@ -4539,7 +4542,7 @@ BEGIN
          RecordSym      : EnsureOrder(Record.ListOfSons, Tag, Sym)
 
          ELSE
-            InternalError('not implemented yet', __FILE__, __LINE__)
+            InternalError('not expecting this symbol type', __FILE__, __LINE__)
          END
       END
    END

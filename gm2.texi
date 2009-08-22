@@ -1999,9 +1999,32 @@ Ports failed:                   0
 @end example
 
 @example
+$ sudo port clean --all gm2-latest
+--->  Cleaning gm2-latest
 $ sudo port build gm2-latest
 Password:
 --->  Fetching gm2-latest
+--->  Attempting to fetch gcc-core-4.1.2.tar.bz2 from ftp://ftp.lip6.fr/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gcc-g++-4.1.2.tar.bz2 from ftp://ftp.lip6.fr/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.lip6.fr/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://www.mirrorservice.org/sites/ftp.gnu.org/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.gwdg.de/pub/linux/gcc/releases/gcc-4.1.2/
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.nluug.nl/mirror/languages/gcc/releases/gcc-4.1.2/
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://arn.se.distfiles.macports.org/gm2-latest
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.funet.fi/pub/mirrors/sources.redhat.com/pub/gcc/releases/gcc-4.1.2/
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.funet.fi/pub/gnu/prep//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://mirrors.kernel.org/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.chg.ru/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://mirrors.ibiblio.org/pub/mirrors/gnu/ftp/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://distfiles.macports.org/gm2-latest
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://gcc.gnu.org/pub/gcc/releases/gcc-4.1.2/
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.dti.ad.jp/pub/GNU//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from ftp://ftp.unicamp.br/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://mirror.aarnet.edu.au/pub/GNU//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://aarnet.au.distfiles.macports.org/pub/macports/mpdistfiles/gm2-latest
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://mirror.pacific.net.au/pub1/gnu/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://mirror.internode.on.net/pub/gnu//gcc/gcc-4.1.2
+--->  Attempting to fetch gm2-cvs-latest.tar.bz2 from http://floppsie.comp.glam.ac.uk/download/c
 --->  Verifying checksum(s) for gm2-latest
 --->  Extracting gm2-latest
 --->  Applying patches to gm2-latest

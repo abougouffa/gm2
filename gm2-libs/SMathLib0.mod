@@ -19,14 +19,14 @@ IMPLEMENTATION MODULE SMathLib0 ;
 
 IMPORT cbuiltin, libm ;
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_sqrts)) sqrt (x: SHORTREAL): SHORTREAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_sqrtf)) sqrt (x: SHORTREAL): SHORTREAL;
 BEGIN
-   RETURN cbuiltin.sqrts (x)
+   RETURN cbuiltin.sqrtf (x)
 END sqrt ;
 
 PROCEDURE exp (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN libm.exps (x)
+   RETURN libm.expf (x)
 END exp ;
 
 
@@ -40,32 +40,32 @@ END exp ;
 
 PROCEDURE ln (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN libm.logs (x) / libm.logs (exp1)
+   RETURN libm.logf (x) / libm.logf (exp1)
 END ln ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sins)) sin (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sinf)) sin (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN cbuiltin.sins (x)
+   RETURN cbuiltin.sinf (x)
 END sin ;
 
-PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_coss)) cos (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cosf)) cos (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN cbuiltin.coss (x)
+   RETURN cbuiltin.cosf (x)
 END cos ;
 
 PROCEDURE tan (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN libm.tans (x)
+   RETURN libm.tanf (x)
 END tan ;
 
 PROCEDURE arctan (x: SHORTREAL) : SHORTREAL ;
 BEGIN
-   RETURN libm.atans (x)
+   RETURN libm.atanf (x)
 END arctan ;
 
 PROCEDURE entier (x: SHORTREAL) : INTEGER ;
 BEGIN
-   RETURN TRUNC (libm.floors (x))
+   RETURN TRUNC (libm.floorf (x))
 END entier ;
 
 
