@@ -1,4 +1,4 @@
-2009-09-22       Gaius Mulley <gaius@gnu.org>
+2009-08-22       Gaius Mulley <gaius@gnu.org>
 
 	* Make-lang.in:  added SMathLib0.def to list of library
 	  modules.
