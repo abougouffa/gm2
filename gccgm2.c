@@ -427,7 +427,15 @@ struct struct_constructor GTY(())
 
 static GTY(()) struct struct_constructor *top_constructor = NULL;
 
-  
+typedef struct array_desc {
+  int type;
+  tree index;
+  tree array;
+  struct array_desc *next;
+} array_desc;
+
+static array_desc *list_of_arrays = NULL;
+
 tree                   finish_enum                                (tree, tree, tree);
 void                   gccgm2_EndTemporaryAllocation              (void);
 void                   gccgm2_ResumeTemporaryAllocation           (void);
@@ -500,7 +508,7 @@ tree                   gccgm2_BuildEndEnumeration                 (tree enumtype
 tree                   gccgm2_BuildEnumerator                     (char *name, tree value, tree *enumvalues);
 tree                   gccgm2_BuildPointerType                    (tree totype);
 static tree            gccgm2_BuildArrayType                      (tree elementtype, tree indextype);
-tree                   gccgm2_BuildStartArrayType                 (tree index_type, tree elt_type);
+tree                   gccgm2_BuildStartArrayType                 (tree index_type, tree elt_type, int type);
 tree                   gccgm2_BuildEndArrayType                   (tree arraytype, tree elementtype, tree indextype);
 tree                   build_set_type                             (tree domain, tree type, int allow_void);
 tree                   gccgm2_BuildSetTypeFromSubrange            (char *, tree, tree, tree);
@@ -843,7 +851,7 @@ static tree                   build_m2_complex_type_from                  (tree 
        void                   gccgm2_PutArrayType                         (tree array, tree type);
        tree                   gccgm2_GetDeclContext                       (tree t);
        unsigned int           gccgm2_StringLength                         (tree string);
-
+static tree                   gm2_finish_build_array_type                 (tree t, tree elt_type, tree index_type);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -7177,18 +7185,57 @@ gccgm2_BuildConstPointerType (tree totype)
 }
 
 /*
- *  BuildStartArrayType - 
+ *  gm2_canonicalize_array - returns a unique array node based on, index_type, and, type.
+ */
+
+static tree
+gm2_canonicalize_array (tree index_type, int type)
+{
+  array_desc *l = list_of_arrays;
+
+  while (l != NULL)
+    {
+      if (l->type == type && l->index == index_type)
+	return l->array;
+      else
+	l = l->next;
+    }
+  l = xmalloc (sizeof (array_desc));
+  l->next = list_of_arrays;
+  l->type = type;
+  l->index = index_type;
+  l->array = make_node (ARRAY_TYPE);
+  TREE_TYPE (l->array) = NULL_TREE;
+  TYPE_DOMAIN (l->array) = index_type;
+  list_of_arrays = l;
+  return l->array;
+}
+
+/*
+ *  BuildStartArrayType - creates an array with an indextype and elttype.  The front end
+ *                        symbol, type, is also passed to allow the gccgm2 to return the
+ *                        canonical edition of the array type even if the GCC elttype is
+ *                        NULL_TREE.
  */
 
 tree
-gccgm2_BuildStartArrayType (tree index_type, tree elt_type)
+gccgm2_BuildStartArrayType (tree index_type, tree elt_type, int type)
 {
-  tree t = make_node (ARRAY_TYPE);
+  tree t;
 
-  TREE_TYPE (t) = elt_type;
+  ASSERT_CONDITION (index_type != NULL_TREE);
+  if (elt_type == NULL_TREE)
+    {
+      /*  cannot use GCC canonicalization routines yet, so we use our
+       *  front end version based on the front end type.
+       */
+      return gm2_canonicalize_array (index_type, type);
+    }
+  t = make_node (ARRAY_TYPE);
+
+  TREE_TYPE (t) = skip_type_decl (elt_type);
   TYPE_DOMAIN (t) = index_type;
-
-  return t;
+  return canonicalize_array (t);
 }
 
 /*
@@ -7212,9 +7259,9 @@ gccgm2_BuildEndArrayType (tree arraytype, tree elementtype, tree indextype)
   ASSERT(indextype == TYPE_DOMAIN (arraytype), indextype);
 
   if (TREE_CODE (elementtype) == FUNCTION_TYPE)
-    return finish_build_array_type (arraytype, ptr_type_node, indextype);
+    return gm2_finish_build_array_type (arraytype, ptr_type_node, indextype);
   else
-    return finish_build_array_type (arraytype, skip_type_decl (elementtype), indextype);
+    return gm2_finish_build_array_type (arraytype, skip_type_decl (elementtype), indextype);
 }
 
 /*
@@ -7231,6 +7278,52 @@ gccgm2_BuildArrayType (tree elementtype, tree indextype)
   else
     return build_array_type (skip_type_decl (elementtype), indextype);
 }
+
+static
+tree
+gm2_finish_build_array_type (tree t, tree elt_type, tree index_type)
+{
+  tree old = t;
+
+  if (TREE_CODE (elt_type) == FUNCTION_TYPE)
+    {
+      error ("arrays of functions are not meaningful");
+      elt_type = integer_type_node;
+    }
+
+  TREE_TYPE (t) = elt_type;
+  TYPE_DOMAIN (t) = index_type;
+  
+  t = canonicalize_array (t);
+  ASSERT_CONDITION (index_type != NULL_TREE);
+#if 0
+  if (index_type == 0)
+    {
+      if (old == t)
+	layout_type (t);
+      return t;
+    }
+#endif
+
+  ASSERT_CONDITION (t == old);
+
+  if (!COMPLETE_TYPE_P (t))
+    layout_type (t);
+  return t;
+}
+
+#if 0
+/* Construct, lay out and return the type of arrays of elements with ELT_TYPE
+   and number of elements specified by the range of values of INDEX_TYPE.
+   If such a type has already been constructed, reuse it.  */
+
+tree
+build_array_type (tree elt_type, tree index_type)
+{
+  return gm2_finish_build_array_type (make_node (ARRAY_TYPE),
+				      elt_type, index_type);
+}
+#endif
 
 /*
  *  build_set_type - creates a set type from the, domain, [low..high]. The

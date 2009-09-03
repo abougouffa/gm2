@@ -251,7 +251,7 @@ BEGIN
             TryDeclareConstant(tokenno, min) ;
             resolved := FALSE
          END ;
-         max := GetTypeMin(type) ;
+         max := GetTypeMax(type) ;
          IF NOT GccKnowsAbout(max)
          THEN
             TryDeclareConstant(tokenno, max) ;
@@ -565,63 +565,68 @@ VAR
 BEGIN
    h := set ;
    WHILE h#NIL DO
-      IF IsEqual(h^.low, lo) OR
-         ((h^.high=NulSym) AND OverlapsRange(lo, hi, h^.low, h^.low))
+      IF (h^.high=NIL) OR (h^.high=h^.low)
       THEN
-         IF h=set
+         IF IsEqual(h^.low, lo) OR OverlapsRange(lo, hi, h^.low, h^.low)
          THEN
-            set := set^.next ;
-            h^.next := NIL ;
-            h := DisposeRanges(h) ;
-            h := set
-         ELSE
-            i := set ;
-            WHILE i^.next#h DO
-               i := i^.next
-            END ;
-            i^.next := h^.next ;
-            i := h ;
-            h := h^.next ;
-            i^.next := NIL ;
-            i := DisposeRanges(i)
-         END
-      ELSIF (h^.high#NulSym) AND OverlapsRange(lo, hi, h^.low, h^.high)
-      THEN
-         IF IsGreater(h^.low, lo) OR IsGreater(hi, h^.high)
-         THEN
-            MetaErrorT1(tokenno, 'variant case range lies outside tag value', dummy)
-         ELSE
-            IF IsEqual(h^.low, lo)
+            IF h=set
             THEN
-               PushIntegerTree(hi) ;
-               PushInt(1) ;
-               Addn ;
-               h^.low := PopIntegerTree()
-            ELSIF IsEqual(h^.high, hi)
-            THEN
-               PushIntegerTree(lo) ;
-               PushInt(1) ;
-               Sub ;
-               h^.high := PopIntegerTree()
+               set := set^.next ;
+               h^.next := NIL ;
+               h := DisposeRanges(h) ;
+               h := set
             ELSE
-               (* lo..hi  exist inside range h^.low..h^.high *)
-               i := NewRanges() ;
+               i := set ;
+               WHILE i^.next#h DO
+                  i := i^.next
+               END ;
                i^.next := h^.next ;
-               h^.next := i ;
-               i^.high := h^.high ;
-               PushIntegerTree(lo) ;
-               PushInt(1) ;
-               Sub ;
-               h^.high := PopIntegerTree() ;
-               PushIntegerTree(hi) ;
-               PushInt(1) ;
-               Addn ;
-               i^.low := PopIntegerTree()
+               i := h ;
+               h := h^.next ;
+               i^.next := NIL ;
+               i := DisposeRanges(i)
             END
-         END ;
-         h := h^.next
+         ELSE
+            h := h^.next
+         END
       ELSE
-         h := h^.next
+         IF OverlapsRange(lo, hi, h^.low, h^.high)
+         THEN
+            IF IsGreater(h^.low, lo) OR IsGreater(hi, h^.high)
+            THEN
+               MetaErrorT1(tokenno, 'variant case range lies outside tag value', dummy)
+            ELSE
+               IF IsEqual(h^.low, lo)
+               THEN
+                  PushIntegerTree(hi) ;
+                  PushInt(1) ;
+                  Addn ;
+                  h^.low := PopIntegerTree()
+               ELSIF IsEqual(h^.high, hi)
+               THEN
+                  PushIntegerTree(lo) ;
+                  PushInt(1) ;
+                  Sub ;
+                  h^.high := PopIntegerTree()
+               ELSE
+                  (* lo..hi  exist inside range h^.low..h^.high *)
+                  i := NewRanges() ;
+                  i^.next := h^.next ;
+                  h^.next := i ;
+                  i^.high := h^.high ;
+                  PushIntegerTree(lo) ;
+                  PushInt(1) ;
+                  Sub ;
+                  h^.high := PopIntegerTree() ;
+                  PushIntegerTree(hi) ;
+                  PushInt(1) ;
+                  Addn ;
+                  i^.low := PopIntegerTree()
+               END
+            END
+         ELSE
+            h := h^.next
+         END
       END
    END ;
    RETURN( set )

@@ -2,8 +2,6 @@ Pre 1.0
 
 *  fix RealInOut <input 3.14e4 and 3.14E5 - reported by Steve Giess
    <scgiess@hotmail.com>
-*  finish ISO language:
-   + complete implementation of TSIZE
 *  finish ISO libraries
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,

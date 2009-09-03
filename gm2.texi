@@ -119,18 +119,18 @@ number of architectures and operating systems. GNU Modula-2 utilizes the
 back end of GCC and replaces the C language front end with a Modula-2
 front end. Consequently GNU Modula-2 has been built on i[3456]86 GNU/Linux,
 i[3456]86 BSD, Opteron LP64 GNU/Linux and sparc GNU/Linux systems.
-It has also been built as a cross compiler for MinGW and StrongARM GNU/Linux.
+It has also been built as a cross compiler for MinGW, StrongARM GNU/Linux
+and ATMega8 microprocessor.
 
-The GNU Modula-2 compiler is based on the language as defined in
-'Programming in Modula-2' 2nd Edition, Springer Verlag, 1982, 1983 by
-Niklaus Wirth (PIM2), 'Programming in Modula-2', 3rd Corrected
-Edition, Springer Verlag, 1985 (PIM3) and 'Programming in Modula-2',
-4th Edition, Springer Verlag, 1988 (PIM4)
-@uref{http://freepages.modula2.org/report4/modula-2.html}.  It also
-includes ISO M2 features and GNU Modula-2 extensions. Currently GNU
-Modula-2 (@value{version-GM2}) implements all PIM dialects of the
-language, eventually GNU Modula-2 will be fully compliant with ISO
-Modula-2.
+The GNU Modula-2 compiler is compliant with four dialects of Modula-2.
+The language as defined in 'Programming in Modula-2' 2nd Edition,
+Springer Verlag, 1982, 1983 by Niklaus Wirth (PIM2), 'Programming in
+Modula-2', 3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
+'Programming in Modula-2', 4th Edition, Springer Verlag, 1988 (PIM4)
+@uref{http://freepages.modula2.org/report4/modula-2.html} and the ISO
+Modula-2 language as defined in ISO/IEC Information technology -
+programming languages - part 1: Modula-2 Language, ISO/IEC 10514-1
+(1996) (ISO).
 
 There are currently three sets of libraries. The 'Programming in
 Modula-2' libraries, the 'University of ULM libraries' and the ISO
@@ -152,15 +152,17 @@ ten or fifteen years ago may still be compiled by older commercial
 (possibly unmaintained) compilers. While the 32 bit x86 remains these
 compilers presumably can be run in compatibility mode (some compilers
 only produced 16 bit code). Time is running out as the computing
-industry is switching to 64 microprocessors. While x86 emulation or 16
-bit backwards compatibility is always possible it has some serious
+industry is switching to 64 microprocessors.  While x86 emulation or
+16 bit backwards compatibility is always possible it has some serious
 drawbacks. In order for the older source to run natively the source
 code will either have to be translated into another high level
 language or alternatively a Modula-2 compiler which can target these
 new generation of microprocessors will have to be acquired. GNU
 Modula-2 builds and passes all its regression tests on Debian Pure 64
 (LP64 architecture), 64 bit Solaris, 32 bit x86 GNU/Linux (Suse,
-Debian, stable and unstable) and 32 bit x86 FreeBSD.
+Debian, stable and unstable) and 32 bit x86 FreeBSD.  GNU Modula-2 has
+also been configured as a cross compiler for embedded microprocessors
+such as the ATMega8 and StrongArm.
 
 GNU Modula-2 also has the advantage of being closely tied to GCC.  Not
 only does this produce excellent code and excellent architectural and
@@ -170,6 +172,11 @@ manage conditional compilation; in-lining of @code{SYSTEM} procedures,
 intrinsic functions, memory copying routines are also exploited;
 access to assembly language using GCC syntax is also provided.  GNU
 Modula-2 also support sets of any ordinal type (memory permitting).
+The compiler can also easily generate shared library modules and it
+has an automatic method of producing a swig interface file from a
+definition module.  This means that after a few command line
+invocations the compiler can generate Python, Perl or TCL shared
+library modules providing they use simple data types.
 
 GNU Modula-2 was based on a Modula-2 front end which performed a
 substantial amount of static analysis of the source code (see
@@ -702,27 +709,31 @@ PROCEDURE DISPOSE (VAR p:<any pointer type>) ;
 @example
 
 (*
-   INC - can take one or two parameters. If supplied with one
-         parameter it adds 1 to the variable, v.
-         If two parameters are supplied then the value, a, is
-         added to, v.
+   INC - can either take one or two parameters.  If supplied
+         with one parameter then on the completion of the call to
+         INC, v will have its successor value.  If two
+         parameters are supplied then the value, v, will have its
+         n'th successor.  For these reasons the value of n
+         must be >=0.
 *)
 
 @findex INC
-PROCEDURE INC (VAR v: <any base type>; [a: <any base type> = 1]) ;
+PROCEDURE INC (VAR v: <any base type>; [n: <any base type> = 1]) ;
 @end example
 
 @example
 
 (*
-   DEC - can take one or two parameters. If supplied with one
-         parameter it subtracts 1 from the variable, v.
-         If two parameters are supplied then the value, a, is
-         subtracted from, v.
+   DEC - can either take one or two parameters.  If supplied
+         with one parameter then on the completion of the call to
+         DEC, v will have its predecessor value.  If two
+         parameters are supplied then the value, v, will have its
+         n'th predecessor.  For these reasons the value of n
+         must be >=0.
 *)
 
 @findex DEC
-PROCEDURE DEC (VAR v: <any base type>; [a: <any base type> = 1]) ;
+PROCEDURE DEC (VAR v: <any base type>; [n: <any base type> = 1]) ;
 @end example
 
 @example
@@ -893,14 +904,15 @@ This section describes the dialects understood by GNU Modula-2.
 It also describes the differences between the dialects and
 any command line switches which determine dialect behaviour.
 
-The GNU Modula-2 compiler is based on the language as defined in
-'Programming in Modula-2' 2nd Edition, Springer Verlag, 1982, 1983 by
-Niklaus Wirth (PIM2), 'Programming in Modula-2', 3rd Corrected
-Edition, Springer Verlag, 1985 (PIM3) and 'Programming in Modula-2',
-4th Edition, Springer Verlag, 1988 (PIM4).  It also includes ISO M2
-features and GNU Modula-2 extensions. Currently GNU Modula-2
-(@value{version-GM2}) implements all PIM dialects of the language,
-eventually GNU Modula-2 will be fully compliant with ISO Modula-2.
+The GNU Modula-2 compiler is compliant with four dialects of Modula-2.
+The language as defined in 'Programming in Modula-2' 2nd Edition,
+Springer Verlag, 1982, 1983 by Niklaus Wirth (PIM2), 'Programming in
+Modula-2', 3rd Corrected Edition, Springer Verlag, 1985 (PIM3) and
+'Programming in Modula-2', 4th Edition, Springer Verlag, 1988 (PIM4)
+@uref{http://freepages.modula2.org/report4/modula-2.html} and the ISO
+Modula-2 language as defined in ISO/IEC Information technology -
+programming languages - part 1: Modula-2 Language, ISO/IEC 10514-1
+(1996) (ISO).
 
 The command line switches @samp{-fpim2}, @samp{-fpim3},
 @samp{-fpim4} and @samp{-fiso} can be used to force mutually

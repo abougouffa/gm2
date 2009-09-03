@@ -751,10 +751,13 @@ PROCEDURE BuildConstPointerType (totype: Tree) : Tree ;
 
 
 (*
-   BuildStartArrayType - creates an array with an indextype and elttype.
+   BuildStartArrayType - creates an array with an indextype and elttype.  The front end
+                         symbol, type, is also passed to allow the gccgm2 to return the
+                         canonical edition of the array type even if the GCC elttype is
+                         NULL_TREE.
 *)
 
-PROCEDURE BuildStartArrayType (indextype: Tree; elttype: Tree) : Tree ;
+PROCEDURE BuildStartArrayType (indextype: Tree; elttype: Tree; type: CARDINAL) : Tree ;
 
 
 (*

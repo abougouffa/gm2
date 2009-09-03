@@ -1,3 +1,20 @@
+2009-09-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  removed completed items.
+	* gm2/gccgm2.c:  modified documentation in light of completing
+	  ISO Modula-2 language.  Also rewritten the descriptions of
+	  INC and DEC.
+	* gm2/gm2-compiler/M2CaseList.mod:  bug fixes in the missing
+	  range checking.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixes so that cyclic array
+	  declarations are canonicalised by their front end type and the
+	  GCC index type.
+	* gm2/gm2-compiler/gccgm2.def:  BuildStartArrayType new parameter,
+	  type.
+	* gm2/patches/gcc/4.1.2/06.gaius_patch_tree:  new version of
+	  tree.[ch] patches.
+	* gm2/gm2/tools-src/makeversion:  corrected date.
+
 2009-08-22       Gaius Mulley <gaius@gnu.org>
 
 	* Make-lang.in:  added SMathLib0.def to list of library

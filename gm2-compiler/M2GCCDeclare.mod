@@ -609,7 +609,7 @@ END CanDeclareArrayAsNil ;
 
 PROCEDURE DeclareArrayAsNil (sym: CARDINAL) ;
 BEGIN
-   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL)) ;
+   PreAddModGcc(sym, BuildStartArrayType(BuildIndex(sym), NIL, GetType(sym))) ;
    WatchIncludeList(sym, niltypedarrays)
 END DeclareArrayAsNil ;
 
@@ -1099,7 +1099,7 @@ BEGIN
    array := 628 ;
    IF NOT GccKnowsAbout(array)
    THEN
-      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL))
+      PreAddModGcc(array, BuildStartArrayType(BuildIndex(array), NIL, GetType(array)))
    END ;
    pointer := 626 ;
    IF NOT GccKnowsAbout(pointer)
@@ -2203,7 +2203,9 @@ BEGIN
    (*
    AddSymToWatch(2125) ;  (* watch goes here *)
    *)
-   (* IncludeElementIntoSet(WatchList, 2125) ; *)
+   (*
+   IncludeElementIntoSet(WatchList, 1006) ;
+    *)
    (* AddSymToWatch(8) ; *)
    IF Debugging
    THEN
@@ -3514,7 +3516,8 @@ BEGIN
    THEN
       ArrayType := Mod2Gcc(Sym)
    ELSE
-      ArrayType := BuildStartArrayType(GccIndex, ArrayType)
+      ArrayType := BuildStartArrayType(GccIndex, GccArray, GetType(Sym)) ;
+      PreAddModGcc(Sym, ArrayType)
    END ;
 
    PreAddModGcc(Subscript, GccArray) ;       (* we save the type of this array as the subscript *)
@@ -3522,6 +3525,7 @@ BEGIN
    PopSize(Subscript) ;
 
    GccArray := BuildEndArrayType(ArrayType, GccArray, GccIndex) ;
+   Assert(GccArray=ArrayType) ;
 
    RETURN( GccArray )
 END DeclareArray ;
