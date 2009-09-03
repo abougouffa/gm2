@@ -565,7 +565,7 @@ VAR
 BEGIN
    h := set ;
    WHILE h#NIL DO
-      IF (h^.high=NIL) OR (h^.high=h^.low)
+      IF (h^.high=NIL) OR IsEqual(h^.high, h^.low)
       THEN
          IF IsEqual(h^.low, lo) OR OverlapsRange(lo, hi, h^.low, h^.low)
          THEN

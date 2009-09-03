@@ -14,6 +14,8 @@
 	* gm2/patches/gcc/4.1.2/06.gaius_patch_tree:  new version of
 	  tree.[ch] patches.
 	* gm2/gm2/tools-src/makeversion:  corrected date.
+	* gm2/gm2-compiler/M2CaseList.mod:  use IsEqual to test identity
+	  of constants rather than =.
 
 2009-08-22       Gaius Mulley <gaius@gnu.org>
 
