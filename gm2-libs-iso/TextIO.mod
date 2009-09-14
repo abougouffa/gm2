@@ -111,7 +111,11 @@ BEGIN
       ReadChar(cid, s[i]) ;
       IF CharClass.IsWhiteSpace(s[i])
       THEN
-         EXIT
+         IF i<=h
+         THEN
+            s[i] := ASCII.nul
+         END ;
+         RETURN
       END ;
       INC(i)
    END ;

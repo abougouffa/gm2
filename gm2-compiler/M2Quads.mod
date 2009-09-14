@@ -267,6 +267,9 @@ VAR
    CatchStack,
    ExceptStack,
    AutoStack,
+   RepeatStack,
+   WhileStack,
+   ForStack,
    ExitStack,
    ReturnStack          : StackOfWord ;   (* Return quadruple of the procedure.      *)
    PriorityStack        : StackOfWord ;   (* temporary variable holding old priority *)
@@ -418,6 +421,8 @@ PROCEDURE PopWith ; FORWARD ;
 PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
 PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
 PROCEDURE PushWith (Sym, Type: CARDINAL) ; FORWARD ;
+PROCEDURE PushFor (Exit: CARDINAL) ; FORWARD ;
+PROCEDURE PopFor () : CARDINAL ; FORWARD ;
 PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
 PROCEDURE UnboundedVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
 PROCEDURE WriteMode (Mode: ModeOfAddr) ; FORWARD ;
@@ -2798,8 +2803,7 @@ END CheckBooleanId ;
 
 PROCEDURE BuildRepeat ;
 BEGIN
-   PushT(NextQuad) ;
-   PushExit(0)
+   PushT(NextQuad)
 END BuildRepeat ;
 
 
@@ -2830,7 +2834,6 @@ BEGIN
    PopT(Repeat) ;
    BackPatch(f, Repeat) ;          (* If False then keep on repeating *)
    BackPatch(t, NextQuad) ;        (* If True then exit repeat        *)
-   BackPatch(PopExit(), NextQuad)  (* BackPatch any EXIT statements   *)
 END BuildUntil ;
 
 
@@ -2851,8 +2854,7 @@ END BuildUntil ;
 
 PROCEDURE BuildWhile ;
 BEGIN
-   PushT(NextQuad) ;
-   PushExit(0)           (* EXIT statement link *)
+   PushT(NextQuad)
 END BuildWhile ;
 
 
@@ -2919,8 +2921,7 @@ BEGIN
    Assert(t=0) ;
    PopT(While) ;
    GenQuad(GotoOp, NulSym, NulSym, While) ;
-   BackPatch(f, NextQuad) ;
-   BackPatch(PopExit(), NextQuad)   (* EXIT statements linked outside while *)
+   BackPatch(f, NextQuad)
 END BuildEndWhile ;
 
 
@@ -2954,7 +2955,7 @@ PROCEDURE BuildExit ;
 BEGIN
    IF IsEmptyWord(ExitStack)
    THEN
-      WriteFormat0('EXIT - only allowed in LOOP, WHILE, REPEAT, FOR statements')
+      WriteFormat0('EXIT is only allowed in a LOOP statement')
    ELSE
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
       PushExit(Merge(PopExit(), NextQuad-1))
@@ -3283,7 +3284,7 @@ BEGIN
    l2 := PopLineNo() ;
    l1 := PopLineNo() ;
    UseLineNote(l1) ;
-   PushExit(0) ;    (* Allows EXIT to be used to exit the for loop *)
+   PushFor(0) ;
    PopTF(BySym, ByType) ;
    PopT(e2) ;
    PopT(e1) ;
@@ -3348,7 +3349,7 @@ BEGIN
    BuildRelOp ;
    PopBool(t1, exit1) ;
    BackPatch(t1, NextQuad) ;
-   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
+   PushFor(Merge(PopFor(), exit1)) ;       (* merge exit1 *)
 
    GenQuad(GotoOp, NulSym, NulSym, 0) ;
    ForLoop := NextQuad-1 ;
@@ -3362,7 +3363,7 @@ BEGIN
    BuildRelOp ;
    PopBool(t1, exit1) ;
    BackPatch(t1, NextQuad) ;
-   PushExit(Merge(PopExit(), exit1)) ;    (* merge exit1 *)
+   PushFor(Merge(PopFor(), exit1)) ;       (* merge exit1 *)
 
    BackPatch(ForLoop, NextQuad) ; (* fixes the start of the for loop *)
    ForLoop := NextQuad ;
@@ -3422,7 +3423,7 @@ BEGIN
    
    BackPatch(t, NextQuad) ;
    GenQuad(GotoOp, NulSym, NulSym, 0) ;
-   PushExit(Merge(PopExit(), NextQuad-1)) ;
+   PushFor(Merge(PopFor(), NextQuad-1)) ;
    BackPatch(f, NextQuad) ;
    IF GetMode(IdSym)=LeftValue
    THEN
@@ -3442,7 +3443,7 @@ BEGIN
       GenQuad(AddOp, IdSym, IdSym, BySym)
    END ;
    GenQuad(GotoOp, NulSym, NulSym, ForQuad) ;
-   BackPatch(PopExit(), NextQuad) ;
+   BackPatch(PopFor(), NextQuad) ;
    AddForInfo(ForQuad, NextQuad-1, IncQuad, IdSym)
 END BuildEndFor ;
 
@@ -11552,6 +11553,26 @@ END PopExit ;
 
 
 (*
+   PushFor - pushes the exit value onto the FOR stack.
+*)
+
+PROCEDURE PushFor (Exit: CARDINAL) ;
+BEGIN
+   PushWord(ForStack, Exit)
+END PushFor ;
+
+
+(*
+   PopFor - pops the exit value from the FOR stack.
+*)
+
+PROCEDURE PopFor() : WORD ;
+BEGIN
+   RETURN( PopWord(ForStack) )
+END PopFor ;
+
+
+(*
    DumpStack - display the expression stack.
 *)
 
@@ -12397,6 +12418,9 @@ BEGIN
    Assert(NextQuad=1) ;
    BoolStack := InitStackAddress() ;
    ExitStack := InitStackWord() ;
+   RepeatStack := InitStackWord() ;
+   WhileStack := InitStackWord() ;
+   ForStack := InitStackWord() ;
    WithStack := InitStackAddress() ;
    ReturnStack := InitStackWord() ;
    LineStack := InitStackAddress() ;

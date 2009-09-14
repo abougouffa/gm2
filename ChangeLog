@@ -1,3 +1,16 @@
+2009-09-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  RepeatStack, WhileStack, ForStack
+	  new stacks for respective loops.  PushFor, PopFor (New Procedures).
+	  REPEAT, FOR and WHILE loops no longer allow EXIT to terminate the
+	  loop as EXIT is only allowed to terminate LOOP statements (as per
+	  ISO and PIM Modula-2).
+	* gm2/gm2-libs/FIO.mod:  corrected order of parameters to memcpy.
+	  Ensure that calls to EOF do not alter the file state.
+	* gm2/gm2-libs-iso/SimpleCipher.mod:  use early RETURN and not EXIT
+	  as EXITs are only allowed inside LOOP statements.
+	* gm2/gm2-libs-iso/TextIO.mod:  remove EXIT statement from WHILE loop.
+
 2009-09-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  removed completed items.

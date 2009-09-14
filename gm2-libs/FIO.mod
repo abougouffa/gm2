@@ -494,7 +494,7 @@ BEGIN
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
-                     p := memcpy(ADDRESS(address+position), a, n) ;
+                     p := memcpy(a, ADDRESS(address+position), n) ;
                      DEC(left, n) ;      (* remove consumed bytes               *)
                      INC(position, n) ;  (* move onwards n bytes                *)
                                          (* move onwards ready for direct reads *)
@@ -605,7 +605,7 @@ BEGIN
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
-                        p := memcpy(ADDRESS(address+position), a, CARDINAL(n)) ;
+                        p := memcpy(a, ADDRESS(address+position), n) ;
                         DEC(left, n) ;      (* remove consumed bytes               *)
                         INC(position, n) ;  (* move onwards n bytes                *)
                                             (* move onwards ready for direct reads *)
@@ -954,14 +954,15 @@ BEGIN
    *)
    IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) AND (FileInfo[f]^.state=successful)
    THEN
-      ch := ReadChar(f) ;
       s := FileInfo[f]^.state ;
-      IF s=successful
+      ch := ReadChar(f) ;
+      IF FileInfo[f]^.state=successful
       THEN
          UnReadChar(f, ch) ;
          FileInfo[f]^.state := s ;
          RETURN( FALSE )
       ELSE
+         FileInfo[f]^.state := s ;
          RETURN( TRUE )
       END
    ELSE

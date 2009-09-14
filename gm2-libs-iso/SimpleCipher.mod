@@ -240,7 +240,7 @@ BEGIN
             INC(p, SIZE(ch)) ;
             INC(charsRead, i)
          ELSE
-            EXIT
+            RETURN
          END
       END
    END
@@ -292,7 +292,7 @@ BEGIN
             INC(p) ;
             INC(locsRead, i)
          ELSE
-            EXIT
+            RETURN
          END
       END
    END
