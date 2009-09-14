@@ -29,8 +29,7 @@ BEGIN
    RETURN( a+(n-1)*d )
 END arithp ;
 
-VAR
-   n, c, i: CARDINAL ;
+PROCEDURE foo ;
 BEGIN
    n := 1 ;
    c := 0 ;
@@ -38,10 +37,16 @@ BEGIN
       INC(c, i) ;
       IF n=24
       THEN
-         EXIT
+         RETURN
       END ;
       INC(n)
-   END ;
+   END
+END foo ;
+
+VAR
+   n, c, i: CARDINAL ;
+BEGIN
+   foo ;
    IF c#sumarithp(1, 24, 2)
    THEN
       exit(1)
