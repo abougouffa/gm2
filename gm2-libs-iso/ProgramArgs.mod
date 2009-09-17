@@ -118,7 +118,7 @@ BEGIN
       currentPtr := ArgData ;
       currentPos := 0 ;
       currentArg := 0 ;
-      argLength := 0 ;
+      argLength := strlen(currentPtr)+1 ;
       argc := ArgC
    END
 END reset ;
@@ -365,7 +365,8 @@ BEGIN
       IF currentArg<argc
       THEN
          INC(currentArg) ;
-         WHILE currentPtr^#nul DO
+         WHILE (currentPos<argLength) AND (currentPtr^#nul) DO
+            INC(currentPos) ;
             INC(currentPtr)
          END ;
          argLength := strlen(currentPtr)+1 ;

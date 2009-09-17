@@ -5,6 +5,9 @@
 	  reported by Scott Iverson.
 	* gm2/gm2/gm2-libs-iso/ProgramArgs.mod:  completed module and fixed
 	  bugs to allow the channel to be reset and read.
+	* gm2/gm2-libs-iso/ProgramArgs.def:  tidied up comments.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  fixed bug in NextArg which
+	  skipped every other argument.
 
 2009-09-14       Gaius Mulley <gaius@gnu.org>
 
