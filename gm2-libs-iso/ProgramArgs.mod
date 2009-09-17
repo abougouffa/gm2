@@ -18,15 +18,17 @@ MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE ProgramArgs ;
 
+FROM RTgen IMPORT ChanDev, InitChanDev, DeviceType, doLook, doSkip, doSkipLook,
+                  doReadText, doReadLocs ;
 
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM UnixArgs IMPORT ArgC, ArgV ;
 FROM RTgenif IMPORT GenDevIF, InitGenDevIF ;
-FROM RTgen IMPORT ChanDev, InitChanDev, DeviceType ;
 FROM RTdata IMPORT ModuleId, MakeModuleId, InitData, GetData ;
 FROM IOLink IMPORT DeviceId, DeviceTablePtr, DeviceTablePtrValue, AllocateDeviceId, MakeChan, RAISEdevException ;
 FROM IOChan IMPORT ChanExceptions ;
 FROM IOConsts IMPORT ReadResults ;
+FROM ChanConsts IMPORT read, text ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM ASCII IMPORT nul, lf ;
 
@@ -50,6 +52,76 @@ VAR
    ArgLength: CARDINAL ;
    gen      : GenDevIF ;
    dev      : ChanDev ;
+
+
+PROCEDURE look (d: DeviceTablePtr;
+                VAR ch: CHAR; VAR r: ReadResults) ;
+BEGIN
+   doLook(dev, d, ch, r)
+END look ;
+
+
+PROCEDURE skip (d: DeviceTablePtr) ;
+BEGIN
+   doSkip(dev, d)
+END skip ;
+
+
+PROCEDURE skiplook (d: DeviceTablePtr;
+                    VAR ch: CHAR; VAR r: ReadResults) ;
+BEGIN
+   doSkipLook(dev, d, ch, r)
+END skiplook ;
+
+
+PROCEDURE textread (d: DeviceTablePtr;
+                    to: ADDRESS;
+                    maxChars: CARDINAL;
+                    VAR charsRead: CARDINAL) ;
+BEGIN
+   doReadText(dev, d, to, maxChars, charsRead)
+END textread ;
+
+
+PROCEDURE rawread (d: DeviceTablePtr;
+                   to: ADDRESS;
+                   maxLocs: CARDINAL;
+                   VAR locsRead: CARDINAL) ;
+BEGIN
+   doReadLocs(dev, d, to, maxLocs, locsRead)
+END rawread ;
+
+
+PROCEDURE getname (d: DeviceTablePtr;
+                   VAR a: ARRAY OF CHAR) ;
+BEGIN
+   d^.doGetName(d, a)
+END getname ;
+
+
+PROCEDURE flush (d: DeviceTablePtr) ;
+BEGIN
+END flush ;
+
+
+PROCEDURE handlefree (d: DeviceTablePtr) ;
+BEGIN
+END handlefree ;
+
+
+PROCEDURE reset (d: DeviceTablePtr) ;
+VAR
+   a : ArgInfo ;
+BEGIN
+   a := GetData(d, mid) ;
+   WITH a^ DO
+      currentPtr := ArgData ;
+      currentPos := 0 ;
+      currentArg := 0 ;
+      argLength := 0 ;
+      argc := ArgC
+   END
+END reset ;
 
 
 (*
@@ -294,10 +366,10 @@ BEGIN
       THEN
          INC(currentArg) ;
          WHILE currentPtr^#nul DO
-            INC(currentPtr) ;
-            INC(currentPos)
+            INC(currentPtr)
          END ;
-         argLength := strlen(currentPtr)+1
+         argLength := strlen(currentPtr)+1 ;
+         currentPos := 0
       END
    END
 END NextArg ;
@@ -376,7 +448,7 @@ BEGIN
       currentPtr := ArgData ;
       currentPos := 0 ;
       currentArg := 0 ;
-      argLength := 0 ;
+      argLength := strlen(currentPtr)+1 ;
       argc := ArgC
    END ;
    d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.Init') ;
@@ -386,7 +458,20 @@ BEGIN
                        dogeterrno, dorbytes, dowbytes,
                        dowriteln,
                        iseof, iseoln, iserror) ;
-   dev := InitChanDev(programargs, did, gen)
+   dev := InitChanDev(programargs, did, gen) ;
+   WITH d^ DO
+      flags := read + text ;
+      errNum := 0 ;
+      doLook := look ;
+      doSkip := skip ;
+      doSkipLook := skiplook ;
+      doTextRead := textread ;
+      doRawRead := rawread ;
+      doGetName := getname ;
+      doReset := reset ;
+      doFlush := flush ;
+      doFree := handlefree
+   END
 END Init ;
 
 

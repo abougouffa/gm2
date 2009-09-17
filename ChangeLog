@@ -1,3 +1,11 @@
+2009-09-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/NameKey.mod:  added tests to ensure that out of
+	  bound names do not cause the compiler to crash.  This fixes a bug
+	  reported by Scott Iverson.
+	* gm2/gm2/gm2-libs-iso/ProgramArgs.mod:  completed module and fixed
+	  bugs to allow the channel to be reset and read.
+
 2009-09-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  RepeatStack, WhileStack, ForStack

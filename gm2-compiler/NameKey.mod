@@ -64,7 +64,7 @@ BEGIN
    p := KeyToCharStar(key) ;
    i := 0 ;
    higha := HIGH(a) ;
-   WHILE (i<=higha) AND (p^#nul) DO
+   WHILE (p#NIL) AND (i<=higha) AND (p^#nul) DO
       a[i] := p^ ;
       INC(p) ;
       INC(i)
@@ -370,7 +370,7 @@ END IsSameExcludingCase ;
 
 PROCEDURE KeyToCharStar (key: Name) : ADDRESS ;
 BEGIN
-   IF key=NulName
+   IF (key=NulName) OR (NOT InBounds(KeyIndex, key))
    THEN
       RETURN( NIL )
    ELSE
