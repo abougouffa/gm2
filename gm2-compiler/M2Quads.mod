@@ -4819,7 +4819,6 @@ BEGIN
    THEN
       IF GetType(Sym)=type
       THEN
-         (* AddrOp  t     Sym     (when GetMode(Sym)=LeftValue   results in a redundant copy) *)
          RETURN( Sym )
       ELSE
          (*
@@ -5248,12 +5247,6 @@ BEGIN
           *  remember SIZE doubles as
           *  (HIGH(a)+1) * SIZE(ArrayType) for unbounded symbols
           *)
-(*
-         PushTF(Size, Cardinal) ;
-         PushTFAD(ArraySym, ArrayType, ArraySym, actuali-1) ;
-         PushT(1) ;
-         BuildFunctionCall ;
-*)
          PushTF(calculateMultipicand(ArraySym, ArrayType, actuali-1), Cardinal) ;
          PushT(DivideTok) ;        (* Divide by                    *)
          PushTF(TSize, Cardinal) ; (* TSIZE(ParamType)             *)
@@ -9002,11 +8995,13 @@ BEGIN
             ELSE
                IF WriteStart=0
                THEN
+(*
                   s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
                   s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
                   ErrorStringAt(Sprintf2(Mark(InitString('variable (%s) is being used but is NEVER initialized in (%s)')),
                                          s1, s2),
                                 GetFirstUsed(n)) ;
+*)
                END
             END
          END
