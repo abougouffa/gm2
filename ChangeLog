@@ -1,3 +1,9 @@
+2009-09-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  ensure that record and field
+	  symbols are CompletelyResolved in FoldOffset, FoldSize, FoldHigh.
+	  Fixes a bug reported by James Cox.
+
 2009-09-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/NameKey.mod:  added tests to ensure that out of

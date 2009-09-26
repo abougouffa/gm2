@@ -2204,6 +2204,10 @@ BEGIN
    AddSymToWatch(2125) ;  (* watch goes here *)
    *)
    (*
+   IncludeElementIntoSet(WatchList, 369) ;
+   IncludeElementIntoSet(WatchList, 709) ;
+   *)
+   (*
    IncludeElementIntoSet(WatchList, 1006) ;
     *)
    (* AddSymToWatch(8) ; *)

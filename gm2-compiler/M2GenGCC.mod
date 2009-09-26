@@ -2901,7 +2901,7 @@ END CodeDivTrunc ;
 *)
 
 PROCEDURE FoldModTrunc (tokenno: CARDINAL; p: WalkAction;
-                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    FoldBinary(tokenno, p, BuildModTrunc, quad, op1, op2, op3)
 END FoldModTrunc ;
@@ -2943,7 +2943,7 @@ END CodeDivFloor ;
 *)
 
 PROCEDURE FoldModFloor (tokenno: CARDINAL; p: WalkAction;
-                   quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+                        quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    FoldBinary(tokenno, p, BuildModFloor, quad, op1, op2, op3)
 END FoldModFloor ;
@@ -4153,7 +4153,8 @@ BEGIN
    TryDeclareConstant(tokenno, op3) ;
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3) AND
+         CompletelyResolved(op2) AND CompletelyResolved(op3)
       THEN
          (* fine, we can take advantage of this and fold constants *)
          IF IsConst(op1)
@@ -4196,7 +4197,8 @@ BEGIN
    (* firstly ensure that any constant literal is declared *)
    IF IsRecordField(op3) OR IsFieldVarient(op3)
    THEN
-      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3)
+      IF GccKnowsAbout(op2) AND GccKnowsAbout(op3) AND
+         CompletelyResolved(op2) AND CompletelyResolved(op3)
       THEN
          t := BuildOffset(Mod2Gcc(op2), Mod2Gcc(op3), FALSE) ;
          IF IsConst(op1)
@@ -4358,7 +4360,7 @@ VAR
 BEGIN
    (* firstly ensure that any constant literal is declared *)
    TryDeclareConstant(tokenno, op3) ;
-   IF GccKnowsAbout(op3)
+   IF GccKnowsAbout(op3) AND CompletelyResolved(op3)
    THEN
       t := ResolveHigh(quad, dim, op3) ;
       (* fine, we can take advantage of this and fold constants *)
