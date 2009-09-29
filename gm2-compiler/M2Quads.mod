@@ -225,6 +225,7 @@ TYPE
                              Unbounded: CARDINAL ;
                              BooleanOp: BOOLEAN ;
                              Dimension: CARDINAL ;
+                             ReadWrite: CARDINAL ;
                           END ;
 
    QuadFrame = POINTER TO quadFrame ;  (* again we help p2c *)
@@ -244,6 +245,7 @@ TYPE
    withFrame =            RECORD
                              PtrSym   : CARDINAL ;
                              RecordSym: CARDINAL ;
+                             rw       : CARDINAL ;  (* the record variable *)
                           END ;
 
    ForLoopInfo = RECORD
@@ -318,6 +320,9 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
+PROCEDURE PopTFrw (VAR True, False, rw: WORD) ; FORWARD ;
+PROCEDURE PopTrw (VAR True, rw: WORD) ; FORWARD ;
 PROCEDURE CheckConst (sym: CARDINAL) ; FORWARD ;
 PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ; FORWARD ;
 PROCEDURE doBuildBinaryOp (checkTypes: BOOLEAN) ; FORWARD ;
@@ -420,7 +425,7 @@ PROCEDURE PopInit (VAR q: CARDINAL) ; FORWARD ;
 PROCEDURE PopWith ; FORWARD ;
 PROCEDURE PushBool (True, False: CARDINAL) ; FORWARD ;
 PROCEDURE PushExit (Exit: CARDINAL) ; FORWARD ;
-PROCEDURE PushWith (Sym, Type: CARDINAL) ; FORWARD ;
+PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ; FORWARD ;
 PROCEDURE PushFor (Exit: CARDINAL) ; FORWARD ;
 PROCEDURE PopFor () : CARDINAL ; FORWARD ;
 PROCEDURE UnboundedNonVarLinkToArray (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ; FORWARD ;
@@ -434,9 +439,14 @@ PROCEDURE OperandT (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandF (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandA (pos: CARDINAL) : WORD ; FORWARD ;
 PROCEDURE OperandD (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandRW (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE OperandMergeRW (pos: CARDINAL) : WORD ; FORWARD ;
+PROCEDURE PushTFrw (True, False: WORD; rw: CARDINAL) ; FORWARD ;
 PROCEDURE PopN (n: CARDINAL) ; FORWARD ;
 PROCEDURE PushTFAD (True, False, Array, Dim: WORD) ; FORWARD ;
+PROCEDURE PushTFADrw (True, False, Array, Dim, rw: WORD) ; FORWARD ;
 PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
+PROCEDURE PushTFDrw (True, False, Dim, rw: WORD) ; FORWARD ;
 PROCEDURE GetQualidentImport (n, module: Name) : CARDINAL ; FORWARD ;
 PROCEDURE CheckNeedPriorityBegin (scope, module: CARDINAL) ; FORWARD ;
 PROCEDURE CheckNeedPriorityEnd (scope, module: CARDINAL) ; FORWARD ;
@@ -2429,6 +2439,48 @@ END MarkArrayWritten ;
 
 
 (*
+   MarkAsReadWrite - marks the variable or parameter as being
+                     read/write.
+*)
+
+PROCEDURE MarkAsReadWrite (sym: CARDINAL) ;
+BEGIN
+   IF (sym#NulSym) AND IsVar(sym)
+   THEN
+      PutReadQuad(sym, RightValue, NextQuad) ;
+      PutWriteQuad(sym, RightValue, NextQuad)
+   END
+END MarkAsReadWrite ;
+
+
+(*
+   MarkAsRead - marks the variable or parameter as being read.
+*)
+
+PROCEDURE MarkAsRead (sym: CARDINAL) ;
+BEGIN
+   IF (sym#NulSym) AND IsVar(sym)
+   THEN
+      PutReadQuad(sym, RightValue, NextQuad) ;
+      PutWriteQuad(sym, RightValue, NextQuad)
+   END
+END MarkAsRead ;
+
+
+(*
+   MarkAsWrite - marks the variable or parameter as being written.
+*)
+
+PROCEDURE MarkAsWrite (sym: CARDINAL) ;
+BEGIN
+   IF (sym#NulSym) AND IsVar(sym)
+   THEN
+      PutWriteQuad(sym, RightValue, NextQuad)
+   END
+END MarkAsWrite ;
+
+
+(*
    MoveWithMode - 
 *)
 
@@ -2610,6 +2662,7 @@ END BuildAssignment ;
 
 PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ;
 VAR
+   r, w,
    t, f,
    Array,
    Des, Exp: CARDINAL ;
@@ -2638,14 +2691,16 @@ BEGIN
          GenQuad(XIndrOp, Des, Boolean, False)
       END
    ELSE
-      PopT(Exp) ;
+      PopTrw(Exp, r) ;
+      MarkAsRead(r) ;
       IF Exp=NulSym
       THEN
          WriteFormat0('unknown expression found during assignment') ;
          FlushErrors
       END ;
       Array := OperandA(1) ;
-      PopT(Des) ;
+      PopTrw(Des, w) ;
+      MarkAsWrite(w) ;
       CheckCompatibleWithBecomes(Des) ;
       IF (GetType(Des)#NulSym) AND (NOT IsSet(SkipType(GetType(Des))))
       THEN
@@ -5014,12 +5069,15 @@ BEGIN
          THEN
             IF (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
             THEN
-               f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
+               f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
+               MarkAsReadWrite(OperandRW(pi))
             ELSIF IsConstString(OperandT(pi))
             THEN
-               f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
+               f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
+               MarkAsReadWrite(OperandRW(pi))
             ELSIF (GetType(OperandT(pi))#NulSym) AND IsUnbounded(GetType(OperandT(pi)))
             THEN
+               MarkAsReadWrite(OperandRW(pi)) ;
                (* pass the address field of an unbounded variable *)
                PushTF(Adr, Address) ;
                PushT(f^.TrueExit) ;
@@ -5028,6 +5086,7 @@ BEGIN
                PopT(f^.TrueExit)
             ELSIF GetMode(OperandT(pi))=LeftValue
             THEN
+               MarkAsReadWrite(OperandRW(pi)) ;
                (* must dereference LeftValue (even if we are passing variable as a vararg) *)
                t := MakeTemporary(RightValue) ;
                PutVar(t, GetType(OperandT(pi))) ;
@@ -5042,10 +5101,12 @@ BEGIN
       ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
             (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
       THEN
-         f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
+         f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
+         MarkAsReadWrite(OperandRW(pi))
       ELSIF IsForC AND IsConstString(OperandT(pi))
       THEN
-         f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address)
+         f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
+         MarkAsReadWrite(OperandRW(pi))
       ELSIF IsUnboundedParam(Proc, i)
       THEN
          t := MakeTemporary(RightValue) ;
@@ -5062,8 +5123,10 @@ BEGIN
          THEN
             MarkArrayWritten(OperandT(pi)) ;
             MarkArrayWritten(OperandA(pi)) ;
+            MarkAsReadWrite(OperandRW(pi)) ;
             AssignUnboundedVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          ELSE
+            MarkAsRead(OperandRW(pi)) ;
             AssignUnboundedNonVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          END ;
          f^.TrueExit := t
@@ -5078,6 +5141,7 @@ BEGIN
          *)
          MarkArrayWritten(OperandT(pi)) ;
          MarkArrayWritten(OperandA(pi)) ;
+         MarkAsReadWrite(OperandRW(pi)) ;
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
       ELSIF (NOT IsVarParam(Proc, i)) AND (GetMode(OperandT(pi))=LeftValue)
       THEN
@@ -5086,7 +5150,8 @@ BEGIN
          PutVar(t, GetType(OperandT(pi))) ;
          CheckPointerThroughNil(OperandT(pi)) ;
          GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
-         f^.TrueExit := t
+         f^.TrueExit := t ;
+         MarkAsRead(OperandRW(pi))
       END ;
       INC(i) ;
       DEC(pi)
@@ -8256,7 +8321,7 @@ VAR
    NoOfParam,
    ProcSym,
    ReturnVar,
-   Type        : CARDINAL ;
+   Type, rw    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+1) ;
@@ -8284,17 +8349,19 @@ BEGIN
       THEN
          (* we will reference the address field of the unbounded structure *)
          UnboundedSym := OperandT(1) ;
-         PushTF(UnboundedSym, GetType(UnboundedSym)) ;
+         rw := OperandRW(1) ;
+         PushTFrw(UnboundedSym, GetType(UnboundedSym), rw) ;
          Field := GetUnboundedAddressOffset(GetType(UnboundedSym)) ;
          PushTF(Field, GetType(Field)) ;
          PushT(1) ;
          BuildDesignatorRecord ;
-         PopT(ReturnVar)
+         PopTrw(ReturnVar, rw)
       ELSE
-         ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym))
+         ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
+         rw := OperandMergeRW(1)
       END ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
-      PushTF(ReturnVar, GetType(ReturnVar))
+      PushTFrw(ReturnVar, GetType(ReturnVar), rw)
    END
 END BuildAdrFunction ;
 
@@ -9246,7 +9313,7 @@ END BuildReturn ;
 
 PROCEDURE BuildDesignatorRecord ;
 VAR
-   n, i,
+   n, i, rw,
    PrevType,
    Sym, Type,
    adr, Res,
@@ -9255,6 +9322,7 @@ BEGIN
    PopT(n) ;
    Sym  := OperandT(n+1) ;
    Type := OperandF(n+1) ;
+   rw   := OperandMergeRW(n+1) ;
    (* adr will be Address type *)
    adr := MakeLeftValue(Sym, RightValue, Address) ;
    (* No type for t1 since constant *)
@@ -9276,7 +9344,7 @@ BEGIN
    PutLeftValueFrontBackType(Res, Type, Address) ;
    GenQuad(AddOp, Res, adr, t1) ;
    PopN(n+1) ;
-   PushTF(Res, Type)
+   PushTFrw(Res, Type, rw)
 END BuildDesignatorRecord ;
 
 
@@ -9303,9 +9371,9 @@ END BuildDesignatorRecord ;
 
 PROCEDURE BuildDesignatorArray ;
 VAR
-   s     : String ;
+   s       : String ;
    Sym, n,
-   Type  : CARDINAL ;
+   Type, rw: CARDINAL ;
 BEGIN
    IF (NOT IsVar(OperandT(2))) AND (NOT IsTemporary(OperandT(2)))
    THEN
@@ -9355,6 +9423,7 @@ END BuildDesignatorArray ;
 
 PROCEDURE BuildStaticArray ;
 VAR
+   rw,
    Dim,
    Array,
    Index,
@@ -9364,6 +9433,7 @@ BEGIN
    Index := OperandT(1) ;
    Array  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
+   rw := OperandMergeRW(2) ;
    Dim := OperandD(2) ;
    INC(Dim) ;
    IF GetMode(Index)=LeftValue
@@ -9386,7 +9456,7 @@ BEGIN
 
    GenQuad(ArrayOp, Adr, Index, Array) ;
    PopN(2) ;   (* remove all parameters to this procedure *)
-   PushTFD(Adr, GetType(Adr), Dim)
+   PushTFDrw(Adr, GetType(Adr), Dim, rw)
 END BuildStaticArray ;
 
 
@@ -9454,13 +9524,14 @@ VAR
    UnboundedType,
    PtrToBase,
    Base,
-   Dim, i,
+   Dim, i, rw,
    ti, tj, tk   : CARDINAL ;
 BEGIN
    DumpStack ;
    Sym  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
    Dim := OperandD(2) ;
+   rw := OperandMergeRW(2) ;
    INC(Dim) ;
    IF Dim=1
    THEN
@@ -9478,7 +9549,7 @@ BEGIN
       *)
       ArraySym := Sym ;
       UnboundedType := GetUnboundedRecordType(GetType(Sym)) ;
-      PushTF(Sym, UnboundedType) ;
+      PushTFrw(Sym, UnboundedType, rw) ;
       PushTF(GetUnboundedAddressOffset(GetType(Sym)),
              GetType(GetUnboundedAddressOffset(GetType(Sym)))) ;
       PushT(1) ;  (* One record field to dereference *)
@@ -9547,20 +9618,20 @@ BEGIN
       
       GenQuad(AddOp, Adr, Base, tk) ;
       PopN(2) ;
-      PushTFAD(Adr, GetType(Adr), ArraySym, Dim)
+      PushTFADrw(Adr, GetType(Adr), ArraySym, Dim, rw)
    ELSE
       (* more to index *)
       PutLeftValueFrontBackType(Adr, Type, BackEndType) ;
       
       GenQuad(AddOp, Adr, Base, tk) ;
       PopN(2) ;
-      PushTFAD(Adr, GetType(Adr), ArraySym, Dim)
+      PushTFADrw(Adr, GetType(Adr), ArraySym, Dim, rw)
    END
 END BuildDynamicArray ;
 
 
 (*
-   BuildDesignatorPointer - Builds the record referencing.
+   BuildDesignatorPointer - Builds a pointer reference.
                             The Stack is expected to contain:
 
 
@@ -9576,11 +9647,12 @@ END BuildDynamicArray ;
 PROCEDURE BuildDesignatorPointer ;
 VAR
    n1, n2     : Name ;
+   rw,
    BackEndType,
    Sym1, Type1,
    Sym2, Type2: CARDINAL ;
 BEGIN
-   PopTF(Sym1, Type1) ;
+   PopTFrw(Sym1, Type1, rw) ;
    Type1 := SkipType(Type1) ;
    IF IsUnknown(Sym1)
    THEN
@@ -9596,8 +9668,10 @@ BEGIN
          Ok must reference by address
          - but we contain the type of the referenced entity
       *)
+      MarkAsRead(rw) ;
       IF GetMode(Sym1)=LeftValue
       THEN
+         rw := NulSym ;
          CheckPointerThroughNil(Sym1) ;
          PutLeftValueFrontBackType(Sym2, Type2, Type1) ;
          GenQuad(IndrXOp, Sym2, Type1, Sym1)            (* Sym2 := *Sym1 *)
@@ -9608,7 +9682,7 @@ BEGIN
 
       PutVarPointerCheck(Sym2, TRUE) ;       (* we should check this for *)
                                              (* pointer via NIL          *)
-      PushTF(Sym2, Type2)
+      PushTFrw(Sym2, Type2, rw)
    ELSE
       MetaError2('{%1ad} is not a pointer type but a {%2d}', Sym1, Type1)
    END
@@ -9646,7 +9720,7 @@ BEGIN
       (* calculate the address of Sym *)
       GenQuad(AddrOp, adr, NulSym, Sym)
    END ;
-   PushWith(adr, Type) ;
+   PushWith(adr, Type, Sym) ;
    IF Type=NulSym
    THEN
       IF IsTemporary(Sym)
@@ -9698,16 +9772,11 @@ END EndBuildWith ;
               previous declaration of this record type.
 *)
 
-PROCEDURE PushWith (Sym, Type: CARDINAL) ;
+PROCEDURE PushWith (Sym, Type, RecordVar: CARDINAL) ;
 VAR
    i, n: CARDINAL ;
    f   : WithFrame ;
 BEGIN
-   (*
-      actually there is no reason why nested WITH statements
-      cannot reference the same record.
-      - the outer WITH has presedence.
-   *)
    IF Pedantic
    THEN
       n := NoOfItemsInStackAddress(WithStack) ;
@@ -9725,7 +9794,8 @@ BEGIN
    NEW(f) ;
    WITH f^ DO
       PtrSym    := Sym ;
-      RecordSym := Type
+      RecordSym := Type ;
+      rw        := RecordVar
    END ;
    PushAddress(WithStack, f)
 END PushWith ;
@@ -9754,13 +9824,13 @@ END PopWith ;
 PROCEDURE CheckWithReference ;
 VAR
    f        : WithFrame ;
-   i, n,
+   i, n, rw,
    Sym, Type: CARDINAL ;
 BEGIN
    n := NoOfItemsInStackAddress(WithStack) ;
    IF (n>0) AND (NOT SuppressWith)
    THEN
-      PopTF(Sym, Type) ;
+      PopTFrw(Sym, Type, rw) ;
       (* inner WITH always has precidence *)
       i := 1 ;  (* top of stack *)
       WHILE i<=n DO
@@ -9770,17 +9840,17 @@ BEGIN
             IF IsRecordField(Sym) AND (GetRecord(GetParent(Sym))=RecordSym)
             THEN
                (* Fake a RecordSym.op *)
-               PushTF(PtrSym, RecordSym) ;
+               PushTFrw(PtrSym, RecordSym, rw) ;
                PushTF(Sym, Type) ;
                BuildAccessWithField ;
-               PopTF(Sym, Type) ;
+               PopTFrw(Sym, Type, rw) ;
                i := n+1
             ELSE
                INC(i)
             END
          END
       END ;
-      PushTF(Sym, Type)
+      PushTFrw(Sym, Type, rw)
    END
 END CheckWithReference ;
 
@@ -9808,6 +9878,7 @@ END CheckWithReference ;
 PROCEDURE BuildAccessWithField ;
 VAR
    OldSuppressWith: BOOLEAN ;
+   rw,
    Field, Type1,
    Adr, Type2,
    Res,
@@ -9819,7 +9890,7 @@ BEGIN
       now the WITH cannot look at the stack of outstanding WITH records.
    *)
    PopTF(Field, Type1) ;
-   PopTF(Adr, Type2) ;
+   PopTFrw(Adr, Type2, rw) ;
    t1 := MakeTemporary(ImmediateValue) ;
    (* No type since t1 is constant *)
    GenQuad(OffsetOp, t1, GetRecord(GetParent(Field)), Field) ;
@@ -9830,7 +9901,7 @@ BEGIN
    *)
    PutLeftValueFrontBackType(Res, Type1, NulSym) ;
    GenQuad(AddOp, Res, Adr, t1) ;
-   PushTF(Res, Type1) ;
+   PushTFrw(Res, Type1, rw) ;
    SuppressWith := OldSuppressWith
 END BuildAccessWithField ;
 
@@ -10518,6 +10589,7 @@ VAR
    s     : String ;
    NewTok,
    Tok   : Name ;
+   r1, r2,
    t1, f1,
    t2, f2,
    e1, e2,
@@ -10542,9 +10614,11 @@ BEGIN
       Assert(t2=0) ;
       PushBool(t1, Merge(f1, f2))
    ELSE
-      PopTF(e1, t1) ;
+      PopTFrw(e1, t1, r1) ;
       PopT(Tok) ;
-      PopTF(e2, t2) ;
+      PopTFrw(e2, t2, r2) ;
+      MarkAsRead(r1) ;
+      MarkAsRead(r2) ;
       NewTok := CheckForLogicalOperator(Tok, e1, t1, e2, t2) ;
       IF NewTok=Tok
       THEN
@@ -10627,15 +10701,16 @@ END doBuildBinaryOp ;
 
 PROCEDURE BuildUnaryOp ;
 VAR
-   Tok     : Name ;
+   Tok       : Name ;
    type,
    Sym,
-   SymT,  t: CARDINAL ;
+   SymT, r, t: CARDINAL ;
 BEGIN
-   PopT(Sym) ;
+   PopTrw(Sym, r) ;
    PopT(Tok) ;
    IF Tok=MinusTok
    THEN
+      MarkAsRead(r) ;
       type := NegateType(GetType(Sym), GetTokenNo()) ;
       t := MakeTemporary(AreConstant(IsConst(Sym))) ;
       PutVar(t, type) ;
@@ -10665,7 +10740,7 @@ BEGIN
       PushT(t)
    ELSIF Tok=PlusTok
    THEN
-      PushT(Sym)
+      PushTrw(Sym, r)
    ELSE
       WriteFormat1('not expecting this kind of unary operator (%a)', Tok)
    END
@@ -11716,6 +11791,37 @@ END OperandF ;
 
 
 (*
+   OperandRW - returns the rw operand stored on the boolean stack.
+*)
+
+PROCEDURE OperandRW (pos: CARDINAL) : WORD ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   Assert(pos>0) ;
+   Assert(NOT IsBoolean(pos)) ;
+   f := PeepAddress(BoolStack, pos) ;
+   RETURN( f^.ReadWrite )
+END OperandRW ;
+
+
+(*
+   OperandMergeRW - returns the rw operand if not NulSym else it
+                    returns True.
+*)
+
+PROCEDURE OperandMergeRW (pos: CARDINAL) : WORD ;
+BEGIN
+   IF OperandRW(pos)=NulSym
+   THEN
+      RETURN( OperandT(pos) )
+   ELSE
+      RETURN( OperandRW(pos) )
+   END
+END OperandMergeRW ;
+
+
+(*
    BuildCodeOn - generates a quadruple declaring that code should be
                  emmitted from henceforth.
 
@@ -12156,7 +12262,8 @@ BEGIN
       FalseExit := False ;
       Unbounded := Array ;
       BooleanOp := FALSE ;
-      Dimension := 0
+      Dimension := 0 ;
+      ReadWrite := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFA ;
@@ -12178,10 +12285,34 @@ BEGIN
       FalseExit := False ;
       Unbounded := Array ;
       BooleanOp := FALSE ;
-      Dimension := Dim
+      Dimension := Dim ;
+      ReadWrite := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFAD ;
+
+
+(*
+   PushTFADrw - Push True, False, Array, Dim, rw, numbers onto the
+                True/False stack.  True and False are assumed to
+                contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFADrw (True, False, Array, Dim, rw: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := Array ;
+      BooleanOp := FALSE ;
+      Dimension := Dim ;
+      ReadWrite := rw
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFADrw ;
 
 
 (*
@@ -12200,10 +12331,78 @@ BEGIN
       FalseExit := False ;
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
-      Dimension := Dim
+      Dimension := Dim ;
+      ReadWrite := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
+
+
+(*
+   PushTFDrw - Push True, False, Dim, numbers onto the
+               True/False stack.  True and False are assumed to
+               contain Symbols or Ident etc.
+*)
+
+PROCEDURE PushTFDrw (True, False, Dim, rw: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := NulSym ;
+      BooleanOp := FALSE ;
+      Dimension := Dim ;
+      ReadWrite := rw
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFDrw ;
+
+
+(*
+   PushTFrw - Push a True and False numbers onto the True/False stack.
+              True and False are assumed to contain Symbols or Ident etc.
+              It also pushes the higher level symbol which is associated
+              with the True symbol.  Eg record variable or array variable.
+*)
+
+PROCEDURE PushTFrw (True, False: WORD; rw: CARDINAL) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := False ;
+      Unbounded := NulSym ;
+      BooleanOp := FALSE ;
+      Dimension := 0 ;
+      ReadWrite := rw
+   END ;
+   PushAddress(BoolStack, f)
+END PushTFrw ;
+
+
+(*
+   PopTFrw - Pop a True and False number from the True/False stack.
+           True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PopTFrw (VAR True, False, rw: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      False := FalseExit ;
+      Assert(NOT BooleanOp) ;
+      rw := ReadWrite
+   END ;
+   DISPOSE(f)
+END PopTFrw ;
 
 
 (*
@@ -12221,7 +12420,8 @@ BEGIN
       FalseExit := False ;
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
-      Dimension := 0
+      Dimension := 0 ;
+      ReadWrite := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushTF ;
@@ -12260,7 +12460,8 @@ BEGIN
       FalseExit := 0 ;
       Unbounded := NulSym ;
       BooleanOp := FALSE ;
-      Dimension := 0
+      Dimension := 0 ;
+      ReadWrite := NulSym
    END ;
    PushAddress(BoolStack, f)
 END PushT ;
@@ -12281,6 +12482,45 @@ BEGIN
    END ;
    DISPOSE(f)
 END PopT ;
+
+
+(*
+   PushTrw - Push an item onto the True/False stack. The False value will be zero.
+*)
+
+PROCEDURE PushTrw (True: WORD; rw: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   NEW(f) ;
+   WITH f^ DO
+      TrueExit := True ;
+      FalseExit := 0 ;
+      Unbounded := NulSym ;
+      BooleanOp := FALSE ;
+      Dimension := 0 ;
+      ReadWrite := rw
+   END ;
+   PushAddress(BoolStack, f)
+END PushTrw ;
+
+
+(*
+   PopTrw - Pop a True field and rw symbol from the stack.
+*)
+
+PROCEDURE PopTrw (VAR True, rw: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      Assert(NOT BooleanOp) ;
+      rw := ReadWrite
+   END ;
+   DISPOSE(f)
+END PopTrw ;
 
 
 (*

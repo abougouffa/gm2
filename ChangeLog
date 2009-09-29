@@ -1,3 +1,24 @@
+2009-09-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/swig/exceptions/Makefile:  introduce PYTHON_VERSION
+	  and complete the clean target.
+	* gm2/examples/swig/full-strlib/Makefile:  introduce PYTHON_VERSION
+	  and complete the clean target.
+	* gm2/examples/swig/strio/Makefile:  introduce PYTHON_VERSION
+	  and complete the clean target.
+	* gm2/examples/swig/strlen/Makefile:  introduce PYTHON_VERSION
+	  and complete the clean target.
+	* gm2/examples/swig/tiny/Makefile:  introduce PYTHON_VERSION
+	  and complete the clean target.
+	* gm2/gm2-compiler/M2Quads.mod:  introduce, rw, field into the
+	  BoolFrame so that during pass 3 we can check whether arrays,
+          records, parameters and variables are modified when indexed,
+	  or by using ADR, or indirection.  New functions (MarkAsRead),
+	  (MarkAsWrite), (OperandRW), (OperandMergeRW), (PushTFADrw),
+	  (PushTFDrw), (PushTFrw), (PopTFrw), (PushTrw), (PopTrw).
+	* gm2/gm2-libs/RTExceptions.mod:  removed redundant import of
+	  type ADDRESS.
+	  
 2009-09-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  ensure that record and field
