@@ -8995,7 +8995,6 @@ END LoopAnalysis ;
 
 PROCEDURE CheckUninitializedVariablesAreUsed (BlockSym: CARDINAL) ;
 VAR
-   s1, s2    : String ;
    i, n,
    ParamNo   : CARDINAL ;
    ReadStart,
