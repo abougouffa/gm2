@@ -19,18 +19,18 @@
 ;; file named COPYING.  Among other things, the copyright notice
 ;; and this notice must be preserved on all copies.
 
-;;
+
 ;;   To do:
-;;
+
 ;;   (1)   fix m2-tag to search: current implementation module,
 ;;                               current definition module,
 ;;                               library implementation module and
 ;;                               then definition module
-;;
+
 
 ;; Modula-2 mode editing commands for Emacs
-;;
-;; Author Gaius Mulley (gaius@glam.ac.uk)
+
+;; Author Gaius Mulley <gaius@glam.ac.uk>
 ;;    contains automatic indentation
 ;;    automatic END matching
 ;;    electric THEN, END, ELSE
@@ -39,16 +39,13 @@
 ;;    procedure declaration finding
 ;;    const, type, var declaration finding.
 ;;    word expansion
-;;
+
 ;; with statement expansion and module visiting lisp routines from:
-;;
+
 ;;    Mick Jordan
 ;;    amended by Peter Robinson
 ;;    ported to GNU Michael Schmidt <michael@pbinfo.UUCP>
 ;;    modified by Tom Perrine <Perrin@LOGICON.ARPA> (TEP)
-;;
-;;
-
 
 (defconst m2-indent-level 3
   "*Indentation of M2 statements with respect to containing block.")
@@ -1210,7 +1207,6 @@ FROM StdIO IMPORT Write, Read ;
   (setq g-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\\ "\\" g-mode-syntax-table)
   (modify-syntax-entry ?/ ". 14" g-mode-syntax-table)
-  (modify-syntax-entry ?* ". 23" g-mode-syntax-table)
   (modify-syntax-entry ?+ "." g-mode-syntax-table)
   (modify-syntax-entry ?- "." g-mode-syntax-table)
   (modify-syntax-entry ?= "." g-mode-syntax-table)
@@ -1219,7 +1215,11 @@ FROM StdIO IMPORT Write, Read ;
   (modify-syntax-entry ?> "." g-mode-syntax-table)
   (modify-syntax-entry ?& "." g-mode-syntax-table)
   (modify-syntax-entry ?| "." g-mode-syntax-table)
-  (modify-syntax-entry ?\' "\"" g-mode-syntax-table))
+  (modify-syntax-entry ?\' "\"" g-mode-syntax-table)
+  ;; Modula-2, Pascal, Mathematica style comment: (* ... *)
+  (modify-syntax-entry ?\( ". 1" g-mode-syntax-table)
+  (modify-syntax-entry ?\) ". 4" g-mode-syntax-table)
+  (modify-syntax-entry ?* ". 23" g-mode-syntax-table))
 
 (defun m2-recursive (lim)
   "test my understanding of local bindings!"
@@ -1724,6 +1724,46 @@ FROM StdIO IMPORT Write, Read ;
 	(blink-matching-paren t))
     (blink-matching-open)))
 
+;; define several class of keywords
+(defvar g-mode-keywords
+  '("AND" "ARRAY" "BEGIN" "BY" "CASE" "CONST" "DEFINITION" "DIV"
+    "DO" "ELSE" "ELSIF" "END" "EXCEPT" "EXIT" "EXPORT" "FINALLY"
+    "FOR" "FROM" "IF" "IMPLEMENTATION" "IMPORT" "IN" "LOOP" "MOD"
+    "MODULE" "NOT" "OF" "OR" "PACKEDSET" "POINTER" "PROCEDURE" 
+    "QUALIFIED" "UNQUALIFIED" "RECORD" "REM" "REPEAT" "RETRY"
+    "RETURN" "SET" "THEN" "TO" "TYPE" "UNTIL" "VAR" "WHILE"
+    "WITH" "ASM" "VOLATILE")
+  "Modula-2 keywords.")
+
+(defvar g-mode-types
+  '("REAL" "SHORTREAL" "LONGREAL" "INTEGER" "LONGINT" "SHORTINT"
+    "CARDINAL" "SHORTCARD" "LONGCARD" "CHAR" "BOOLEAN")
+  "Modula-2 types.")
+
+(defvar g-mode-constants
+  '("FALSE" "TRUE" "NIL")
+  "Modula-2 constants.")
+
+(defvar g-mode-functions
+  '("ABS" "ADR" "DISPOSE" "HIGH" "LENGTH" "NEW" "SIZE")
+  "Modula-2 functions.")
+
+;; create the regex string for each class of keywords
+(defvar g-mode-keywords-regexp (regexp-opt g-mode-keywords 'words))
+(defvar g-mode-type-regexp (regexp-opt g-mode-types 'words))
+(defvar g-mode-constant-regexp (regexp-opt g-mode-constants 'words))
+(defvar g-mode-functions-regexp (regexp-opt g-mode-functions 'words))
+
+;; create the list for font-lock.
+;; each class of keyword is given a particular face
+(setq g-mode-font-lock-keywords
+  `(
+    (,g-mode-type-regexp . font-lock-type-face)
+    (,g-mode-constant-regexp . font-lock-constant-face)
+    (,g-mode-functions-regexp . font-lock-function-name-face)
+    (,g-mode-keywords-regexp . font-lock-keyword-face)
+    ;; note: order above matters.
+))
 
 (defun g-mode ()
   "Major mode for editing M2 code. User definable variables:
@@ -1737,6 +1777,17 @@ FROM StdIO IMPORT Write, Read ;
   (setq mode-name "G-M-2")
   (setq local-abbrev-table g-mode-abbrev-table)
   (set-syntax-table g-mode-syntax-table)
+
+  ;; code for syntax highlighting
+  (setq font-lock-defaults '((g-mode-font-lock-keywords)))
+  ;; clear memory
+  (setq g-mode-keywords-regexp nil)
+  (setq g-mode-types-regexp nil)
+  (setq g-mode-constants-regexp nil)
+  (setq g-mode-functions-regexp nil)
+  ;; end of syntax highlighting
+
+  (comment-start "(*") (comment-end "*)")
   (setq case-fold-search nil)
   (setq indent-tabs-mode nil)
   (setq g-mode-hook

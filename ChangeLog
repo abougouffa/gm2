@@ -1,3 +1,10 @@
+2009-09-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/el/g-mode.el:  added colour to GNU Modula-2 lisp mode.
+	* gm2/gm2-compiler/M2Quads.mod:  tidied up some of the error
+	  messages (using MetaError2).  Also enabled -Wpedantic to catch
+	  using a variable which is never initialised.
+
 2009-09-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/swig/exceptions/Makefile:  introduce PYTHON_VERSION

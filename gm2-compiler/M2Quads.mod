@@ -9025,19 +9025,12 @@ BEGIN
             THEN
                IF WriteStart=0
                THEN
-                  s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
-                  s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-                  WarnStringAt(Sprintf2(Mark(InitString('unused parameter (%s) in procedure (%s)')),
-                                        s1, s2),
-                               GetDeclared(n))
+                  MetaError2('unused parameter {%1Wad} in procedure {%2Wad}', n, BlockSym)
                ELSE
                   IF NOT IsVarParam(BlockSym, i)
                   THEN
-                     s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
-                     s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-                     WarnStringAt(Sprintf2(Mark(InitString('writing to a non var parameter (%s) and never reading from it in procedure (%s)')),
-                                           s1, s2),
-                                  GetDeclared(n))
+                     MetaError2('writing to a non var parameter {%1Wad} and never reading from it in procedure {%2Wad}',
+                                n, BlockSym)
                   END
                END
             END
@@ -9047,28 +9040,14 @@ BEGIN
             THEN
                IF WriteStart=0
                THEN
-                  s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
-                  s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-                  WarnStringAt(Sprintf2(Mark(InitString('unused variable (%s) in (%s)')),
-                                        s1, s2),
-                               GetDeclared(n))
+                  MetaError2('unused variable {%1Wad} in {%2Wad}', n, BlockSym)
                ELSE
-                  s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
-                  s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-                  WarnStringAt(Sprintf2(Mark(InitString('writing to a variable (%s) and never reading from it in (%s)')),
-                                        s1, s2),
-                               GetFirstUsed(n))
+                  MetaError2('writing to a variable {%1Wad} and never reading from it in {%2Wad}', n, BlockSym)
                END
             ELSE
                IF WriteStart=0
                THEN
-(*
-                  s1 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(n)))) ;
-                  s2 := Mark(InitStringCharStar(KeyToCharStar(GetSymName(BlockSym)))) ;
-                  ErrorStringAt(Sprintf2(Mark(InitString('variable (%s) is being used but is NEVER initialized in (%s)')),
-                                         s1, s2),
-                                GetFirstUsed(n)) ;
-*)
+                  MetaError2('variable {%1Wad} is being used but it is never initialized in {%2Wad}', n, BlockSym)
                END
             END
          END
@@ -12387,7 +12366,7 @@ END PushTFrw ;
 
 (*
    PopTFrw - Pop a True and False number from the True/False stack.
-           True and False are assumed to contain Symbols or Ident etc.
+             True and False are assumed to contain Symbols or Ident etc.
 *)
 
 PROCEDURE PopTFrw (VAR True, False, rw: WORD) ;
