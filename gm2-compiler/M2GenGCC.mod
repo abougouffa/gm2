@@ -40,7 +40,7 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
                         IsVar, IsVarParam, IsTemporary, IsEnumeration,
-                        IsUnbounded, IsArray, IsSet,
+                        IsUnbounded, IsArray, IsSet, IsConstructor,
                         IsProcedureVariable,
                         IsUnboundedParam,
                         IsRecordField, IsFieldVarient, IsVarient, IsRecord,
@@ -4421,6 +4421,10 @@ BEGIN
       t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
                                BuildAddr(PromoteToString(CurrentQuadToken, op3),
                                          FALSE))
+   ELSIF IsConstructor(op3)
+   THEN
+      t := BuildAssignmentTree(BuildIndirect(Mod2Gcc(op1), GetPointerType()),
+                               BuildAddr(Mod2Gcc(op3), TRUE))
    ELSIF IsUnbounded(GetType(op3))
    THEN
       Addr := BuildIndirect(BuildAdd(BuildAddr(Mod2Gcc(op3), FALSE),

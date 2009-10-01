@@ -1,3 +1,15 @@
+2009-10-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixed bug reported by Martin
+	  Kalbfuﬂ <ma.kalbfuss@web.de>,
+	  (see testsuite/gm2/iso/run/pass/constructor2.mod) which did not
+	  allow a constructor to be passed as an actual parameter to an
+	  unbounded array formal parameter.  Procedure CodeUnbounded
+	  extended to include a case when a constructor appears as op3.
+	* gm2/gm2-compiler/M2Quads.mod:  ManipulateParameters to merge
+	  the rw information and mark a parameter as read if passed by
+	  value and write/read if passed by address.
+
 2009-09-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/el/g-mode.el:  added colour to GNU Modula-2 lisp mode.

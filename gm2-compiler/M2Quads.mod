@@ -5014,7 +5014,7 @@ VAR
    ParamType,
    NoOfParameters,
    i, pi,
-   ProcSym,
+   ProcSym, rw,
    Proc,
    t,
    true, false,
@@ -5063,6 +5063,7 @@ BEGIN
    pi := NoOfParameters ;
    WHILE i<=NoOfParameters DO
       f := PeepAddress(BoolStack, pi) ;
+      rw := OperandMergeRW(pi) ;
       IF i>NoOfParam(Proc)
       THEN
          IF IsForC AND UsesVarArgs(Proc)
@@ -5070,14 +5071,14 @@ BEGIN
             IF (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
             THEN
                f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
-               MarkAsReadWrite(OperandRW(pi))
+               MarkAsReadWrite(rw)
             ELSIF IsConstString(OperandT(pi))
             THEN
                f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
-               MarkAsReadWrite(OperandRW(pi))
+               MarkAsReadWrite(rw)
             ELSIF (GetType(OperandT(pi))#NulSym) AND IsUnbounded(GetType(OperandT(pi)))
             THEN
-               MarkAsReadWrite(OperandRW(pi)) ;
+               MarkAsReadWrite(rw) ;
                (* pass the address field of an unbounded variable *)
                PushTF(Adr, Address) ;
                PushT(f^.TrueExit) ;
@@ -5086,7 +5087,7 @@ BEGIN
                PopT(f^.TrueExit)
             ELSIF GetMode(OperandT(pi))=LeftValue
             THEN
-               MarkAsReadWrite(OperandRW(pi)) ;
+               MarkAsReadWrite(rw) ;
                (* must dereference LeftValue (even if we are passing variable as a vararg) *)
                t := MakeTemporary(RightValue) ;
                PutVar(t, GetType(OperandT(pi))) ;
@@ -5102,11 +5103,11 @@ BEGIN
             (GetType(OperandT(pi))#NulSym) AND IsArray(SkipType(GetType(OperandT(pi))))
       THEN
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
-         MarkAsReadWrite(OperandRW(pi))
+         MarkAsReadWrite(rw)
       ELSIF IsForC AND IsConstString(OperandT(pi))
       THEN
          f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;
-         MarkAsReadWrite(OperandRW(pi))
+         MarkAsReadWrite(rw)
       ELSIF IsUnboundedParam(Proc, i)
       THEN
          t := MakeTemporary(RightValue) ;
@@ -5123,10 +5124,10 @@ BEGIN
          THEN
             MarkArrayWritten(OperandT(pi)) ;
             MarkArrayWritten(OperandA(pi)) ;
-            MarkAsReadWrite(OperandRW(pi)) ;
+            MarkAsReadWrite(rw) ;
             AssignUnboundedVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          ELSE
-            MarkAsRead(OperandRW(pi)) ;
+            MarkAsRead(rw) ;
             AssignUnboundedNonVar(OperandT(pi), ArraySym, t, ParamType, OperandD(pi))
          END ;
          f^.TrueExit := t
@@ -5141,7 +5142,7 @@ BEGIN
          *)
          MarkArrayWritten(OperandT(pi)) ;
          MarkArrayWritten(OperandA(pi)) ;
-         MarkAsReadWrite(OperandRW(pi)) ;
+         MarkAsReadWrite(rw) ;
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address)
       ELSIF (NOT IsVarParam(Proc, i)) AND (GetMode(OperandT(pi))=LeftValue)
       THEN
@@ -5151,7 +5152,9 @@ BEGIN
          CheckPointerThroughNil(OperandT(pi)) ;
          GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
          f^.TrueExit := t ;
-         MarkAsRead(OperandRW(pi))
+         MarkAsRead(rw)
+      ELSE
+         MarkAsRead(rw)
       END ;
       INC(i) ;
       DEC(pi)
@@ -11175,7 +11178,7 @@ BEGIN
          LineNo := GetLineNo() ;
          TokenNo := GetTokenNo()
       END ;
-      IF NextQuad=5706
+      IF NextQuad=108
       THEN
          stop
       END ;
