@@ -23,15 +23,13 @@ FROM SYSTEM IMPORT ADR, WORD ;
 
 
 PROCEDURE fly ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("fly main body\n") ;
+   printf("fly main body\n") ;
    IF 4 DIV ip^ = 4
    THEN
-      r := printf("yes it worked\n")
+      printf("yes it worked\n")
    ELSE
-      r := printf("no it failed\n")
+      printf("no it failed\n")
    END
 END fly ;
 
@@ -43,13 +41,11 @@ END fly ;
  *)
 
 PROCEDURE tryFlying ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("tryFlying main body\n");  
+   printf("tryFlying main body\n");  
    fly ;
 EXCEPT
-   r := printf("inside tryFlying exception routine\n") ;
+   printf("inside tryFlying exception routine\n") ;
    IF ip=NIL
    THEN
       NEW(ip) ;
@@ -64,10 +60,9 @@ EXCEPT
 END tryFlying ;
 
 VAR
-   r : INTEGER ;
    ip: POINTER TO INTEGER ;
 BEGIN
    ip := NIL ;
    tryFlying ;
-   r := printf("all done\n")
+   printf("all done\n")
 END except4.

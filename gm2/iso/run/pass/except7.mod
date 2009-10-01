@@ -23,10 +23,8 @@ FROM SYSTEM IMPORT ADR, WORD, THROW ;
 
 
 PROCEDURE fly ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("fly main body\n") ;
+   printf("fly main body\n") ;
    IF ip=NIL
    THEN
       THROW(1)
@@ -37,9 +35,9 @@ BEGIN
    END ;
    IF 4 DIV ip^ = 4
    THEN
-      r := printf("yes it worked\n")
+      printf("yes it worked\n")
    ELSE
-      r := printf("no it failed\n")
+      printf("no it failed\n")
    END
 END fly ;
 
@@ -51,16 +49,14 @@ END fly ;
  *)
 
 PROCEDURE tryFlying ;
-VAR
-   r: INTEGER ;
 BEGIN
-   r := printf("tryFlying main body\n");  
+   printf("tryFlying main body\n");  
    fly ;
 EXCEPT
-   r := printf("inside tryFlying exception routine\n") ;
+   printf("inside tryFlying exception routine\n") ;
    IF (ip#NIL) AND (ip^=0)
    THEN
-      r := printf("set value\n") ;
+      printf("set value\n") ;
       ip^ := 1 ;
       RETRY
    END
@@ -68,16 +64,14 @@ END tryFlying ;
 
 
 PROCEDURE keepFlying ;
-VAR
-   t: INTEGER ;
 BEGIN
-   r := printf("keepFlying main body\n") ;
+   printf("keepFlying main body\n") ;
    tryFlying ;
 EXCEPT
-   r := printf("inside keepFlying exception routine\n") ;
+   printf("inside keepFlying exception routine\n") ;
    IF ip=NIL
    THEN
-      r := printf("allocate memory\n") ;
+      printf("allocate memory\n") ;
       NEW(ip) ;
       ip^ := 0 ;
       RETRY
@@ -86,10 +80,9 @@ END keepFlying ;
 
 
 VAR
-   r : INTEGER ;
    ip: POINTER TO INTEGER ;
 BEGIN
    ip := NIL ;
    keepFlying ;
-   r := printf("all done\n")
+   printf("all done\n")
 END except7.
