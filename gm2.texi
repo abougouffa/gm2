@@ -323,7 +323,7 @@ turns on runtime checking to check whether a @code{CASE} statement
 requires an @code{ELSE} clause when on was not specified.
 
 @item -fcheck-all
-turns on all runtime checks. This is the same as invoking
+turns on all runtime checks.  This is the same as invoking
 GNU Modula-2 using the command options
 @code{-fbounds} @code{-freturn} @code{-fnil} @code{-fcase}.
 

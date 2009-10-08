@@ -19,6 +19,7 @@ m2flex
 RTExceptions
 M2EXCEPTION
 M2RTS
+SysExceptions
 DynamicStrings
 Assertion
 Debug

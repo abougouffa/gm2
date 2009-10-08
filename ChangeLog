@@ -1,3 +1,35 @@
+2009-10-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added SysExceptions.c and SysExceptions.def
+	  to the list of library modules.  Also included the appropriate
+	  build rules.
+	* gm2/gm2.texi:  added space.
+	* gm2/el/g-mode.el:  added all ISO and PIM built-in Modula-2
+	  procedures and procedure functions.
+	* gm2/gm2-libs/RTExceptions.mod:  new procedure functions
+	  (indexf), (range), (casef), (invalidloc), (function),
+	  (wholevalue), (wholediv), (realvalue), (realdiv),
+	  (complexvalue), (complexdiv), (protection), (systemf),
+	  (coroutine), (exception).  Call
+	  SysException.InitExceptionHandlers to init the signal
+	  call backs.o
+	* gm2/init/gm2-gccinit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/gm2lccinit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/gm2lgeninit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/gm2linit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/gm2lorderinit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/gm2minit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/h2definit:  add SysExceptions to the list of
+	  modules.
+	* gm2/init/ppginit:  add SysExceptions to the list of
+	  modules.
+
 2009-10-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed bug reported by Martin

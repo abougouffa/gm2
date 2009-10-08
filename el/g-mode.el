@@ -1745,7 +1745,9 @@ FROM StdIO IMPORT Write, Read ;
   "Modula-2 constants.")
 
 (defvar g-mode-functions
-  '("ABS" "ADR" "DISPOSE" "HIGH" "LENGTH" "NEW" "SIZE")
+  '("ABS" "ADR" "CAP" "CHR" "CMPLX" "DEC" "DISPOSE" "EXCL" "FLOAT"
+    "HIGH" "IM" "INC" "INCL" "LENGTH" "MAX" "MIN" "NEW" "ODD" "ORD"
+    "RE" "SIZE" "TRUNC" "VAL")
   "Modula-2 functions.")
 
 ;; create the regex string for each class of keywords

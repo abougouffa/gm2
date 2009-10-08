@@ -23,8 +23,10 @@ FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADR, THROW ;
 FROM libc IMPORT write ;
 FROM M2RTS IMPORT HALT, Halt ;
+FROM SysExceptions IMPORT InitExceptionHanders ;
 
 IMPORT M2EXCEPTION ;
+
 
 CONST
    MaxBuffer = 4096 ;
@@ -525,6 +527,186 @@ END GetBaseExceptionBlock ;
 
 
 (*
+   indexf - raise an index out of bounds exception.
+*)
+
+PROCEDURE indexf (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.indexException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("array index out of bounds"))
+END indexf ;
+
+
+(*
+   range - raise an assignment out of range exception.
+*)
+
+PROCEDURE range (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.rangeException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("assignment out of range"))
+END range ;
+
+
+(*
+   casef - raise a case selector out of range exception.
+*)
+
+PROCEDURE casef (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.caseSelectException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("case selector out of range"))
+END casef ;
+
+
+(*
+   invalidloc - raise an invalid location exception.
+*)
+
+PROCEDURE invalidloc (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.invalidLocation),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("invalid address referenced"))
+END invalidloc ;
+
+
+(*
+   function - raise a ... function ... exception.  --fixme-- what does this exception catch?
+*)
+
+PROCEDURE function (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.functionException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("... function ... "))  (* --fixme-- what has happened ? *)
+END function ;
+
+
+(*
+   wholevalue - raise an illegal whole value exception.
+*)
+
+PROCEDURE wholevalue (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.wholeValueException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("illegal whole value exception"))
+END wholevalue ;
+
+
+(*
+   wholediv - raise a division by zero exception.
+*)
+
+PROCEDURE wholediv (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.wholeDivException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("illegal whole value exception"))
+END wholediv ;
+
+
+(*
+   realvalue - raise an illegal real value exception.
+*)
+
+PROCEDURE realvalue (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.realValueException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("illegal real value exception"))
+END realvalue ;
+
+
+(*
+   realdiv - raise a division by zero in a real number exception.
+*)
+
+PROCEDURE realdiv (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.realDivException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("real number division by zero exception"))
+END realdiv ;
+
+
+(*
+   complexvalue - raise an illegal complex value exception.
+*)
+
+PROCEDURE complexvalue (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.complexValueException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("illegal complex value exception"))
+END complexvalue ;
+
+
+(*
+   complexdiv - raise a division by zero in a complex number exception.
+*)
+
+PROCEDURE complexdiv (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.complexDivException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("complex number division by zero exception"))
+END complexdiv ;
+
+
+(*
+   protection - raise a protection exception.
+*)
+
+PROCEDURE protection (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.protException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("protection exception"))
+END protection ;
+
+
+(*
+   systemf - raise a system exception.
+*)
+
+PROCEDURE systemf (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.sysException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("system exception"))
+END systemf ;
+
+
+(*
+   coroutine - raise a coroutine exception.
+*)
+
+PROCEDURE coroutine (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.coException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("coroutine exception"))
+END coroutine ;
+
+
+(*
+   exception - raise a exception exception.
+*)
+
+PROCEDURE exception (a: ADDRESS) ;
+BEGIN
+   Raise(ORD(M2EXCEPTION.exException),
+         ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__),
+         ADR("exception exception"))
+END exception ;
+
+
+(*
    Init - initialises this module.
 *)
 
@@ -534,7 +716,12 @@ BEGIN
    freeHandler := NIL ;
    freeEHB := NIL ;
    currentEHB := InitExceptionBlock() ;
-   BaseExceptionsThrow
+   BaseExceptionsThrow ;
+   InitExceptionHanders(indexf, range, casef, invalidloc,
+                        function, wholevalue, wholediv,
+                        realvalue, realdiv, complexvalue,
+                        complexdiv, protection, systemf,
+                        coroutine, exception)
 END Init ;
 
 

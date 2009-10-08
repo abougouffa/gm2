@@ -24,6 +24,7 @@ StrLib
 RTExceptions
 M2EXCEPTION
 M2RTS
+SysExceptions
 Environment
 SEnvironment
 IO
