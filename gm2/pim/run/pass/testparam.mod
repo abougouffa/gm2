@@ -32,7 +32,7 @@ TYPE
 
 PROCEDURE arrayUb (a: ARRAY OF r) ;
 BEGIN
-   IF HIGH(a)#20
+   IF HIGH(a)#19
    THEN
       HALT
    END

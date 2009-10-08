@@ -53,8 +53,6 @@ END tryFlying ;
 
 
 PROCEDURE keepFlying ;
-VAR
-   t: INTEGER ;
 BEGIN
    printf("keepFlying main body\n") ;
    tryFlying ;
