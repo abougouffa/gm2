@@ -139,7 +139,7 @@ static void sigfpeDespatcher (int signum, siginfo_t *info, void *ucontext)
       if (info->si_code | FPE_FLTDIV)
 	(*realdivProc)(info->si_addr);    /* floating-point divide by zero */
       if (info->si_code | FPE_FLTOVF)
-|	(*realvalueProc)(info->si_addr);  /* floating-point overflow */
+	(*realvalueProc)(info->si_addr);  /* floating-point overflow */
       if (info->si_code | FPE_FLTUND)
 	(*realvalueProc)(info->si_addr);  /* floating-point underflow */
       if (info->si_code | FPE_FLTRES)
