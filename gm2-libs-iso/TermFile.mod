@@ -450,7 +450,7 @@ BEGIN
    checkErrno(dev, d) ;
    KillData(d, mid)
 END handlefree ;
-(***********)
+
 
 (*
    termOpen - attempts to open up the terminal device.  It fills
@@ -462,9 +462,6 @@ PROCEDURE termOpen (t: TermInfo; VAR flagset: FlagSet; VAR e: INTEGER) : OpenRes
 VAR
    i: INTEGER ;
 BEGIN
-   i := libc.open(ADR("/dev/tty"), 0) ;
-   RETURN( opened )
-(*
    WITH t^ DO
       IF NOT (rawFlag IN flagset)
       THEN
@@ -500,10 +497,9 @@ BEGIN
       e := geterrno() ;
       RETURN( GetOpenResults(e) )
    END
-*)
 END termOpen ;
 
-(**********)
+
 (*
    RestoreTerminalSettings - 
 *)
@@ -621,5 +617,4 @@ END Init ;
 
 BEGIN
    Init
-(* ********** *)
 END TermFile.

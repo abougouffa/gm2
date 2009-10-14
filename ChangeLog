@@ -1,3 +1,13 @@
+2009-10-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  allow sized SYSTEM types
+	  (which are really pseudonyms of pervasive type to be
+	   VAR parameter compatible).  Call IsSameSizePervasiveType.
+	* gm2/gm2-compiler/M2System.def:  define and export
+	  IsSameSizePervasiveType.
+	* gm2/gm2-compiler/M2System.mod:  implement
+	  IsSameSizePervasiveType.
+
 2009-10-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added SysExceptions.c and SysExceptions.def

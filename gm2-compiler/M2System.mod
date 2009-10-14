@@ -62,11 +62,16 @@ FROM Lists IMPORT List, InitList, IsItemInList, PutItemIntoList, GetItemFromList
 FROM SymbolKey IMPORT SymbolTree, InitTree, GetSymKey, PutSymKey ;
 FROM StrLib IMPORT StrEqual ;
 FROM M2Printf IMPORT printf1 ;
+FROM SymbolConversion IMPORT Mod2Gcc ;
+
+FROM M2Base IMPORT Real, Cardinal, Integer, Complex,
+                   LongReal, LongCard, LongInt, LongComplex,
+                   ShortReal, ShortCard, ShortInt, ShortComplex ;
 
 FROM gccgm2 IMPORT Tree,
                    GetMaxFrom, GetMinFrom,
                    GetWordType, GetPointerType, GetByteType, GetISOLocType,
-                   GetBitsPerUnit, GetSizeOf, BuildSize,
+                   GetBitsPerUnit, GetSizeOf, BuildSize, AreConstantsEqual,
                    GetM2Integer8, GetM2Integer16, GetM2Integer32, GetM2Integer64,
                    GetM2Cardinal8, GetM2Cardinal16, GetM2Cardinal32, GetM2Cardinal64,
                    GetM2Word16, GetM2Word32, GetM2Word64,
@@ -75,6 +80,9 @@ FROM gccgm2 IMPORT Tree,
                    GetM2Complex32, GetM2Complex64, GetM2Complex96, GetM2Complex128,
                    GetBitsetType, GetISOByteType, GetISOWordType ;
 
+
+TYPE
+   IsP = PROCEDURE (CARDINAL) : BOOLEAN ;
 
 VAR
    MinValues,
@@ -709,6 +717,60 @@ BEGIN
           (IsWordN(sym) OR (sym=Word) OR (sym=Byte) OR (sym=Loc))
          )
 END IsGenericSystemType ;
+
+
+(*
+   IsSameSize - return TRUE if SIZE(a)=SIZE(b)
+*)
+
+PROCEDURE IsSameSize (a, b: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( AreConstantsEqual(BuildSize(Mod2Gcc(a), FALSE),
+                             BuildSize(Mod2Gcc(b), FALSE)) )
+END IsSameSize ;
+
+
+(*
+   IsSameType - returns TRUE if, t, is the same type as a or b
+                and a or b are a type, p.
+*)
+
+PROCEDURE IsSameType (t: CARDINAL; p: IsP; a, b: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF t=a
+   THEN
+      RETURN( p(b) AND IsSameSize(a, b) )
+   ELSIF t=b
+   THEN
+      RETURN( p(a) AND IsSameSize(a, b) )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsSameType ;
+
+
+(*
+   IsSameSizePervasiveType - returns TRUE if a or b are CARDINAL, INTEGER, REAL,
+                             LONGREAL, SHORTREAL and the other type is the same
+                             size and of the same type.
+*)
+
+PROCEDURE IsSameSizePervasiveType (a, b: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( IsSameType(Integer, IsIntegerN, a, b) OR
+           IsSameType(Cardinal, IsCardinalN, a, b) OR
+           IsSameType(Word, IsWordN, a, b) OR
+           IsSameType(Real, IsRealN, a, b) OR
+           IsSameType(Complex, IsComplexN, a, b) OR
+           IsSameType(LongInt, IsIntegerN, a, b) OR
+           IsSameType(LongCard, IsCardinalN, a, b) OR
+           IsSameType(LongComplex, IsComplexN, a, b) OR
+           IsSameType(LongReal, IsRealN, a, b) OR
+           IsSameType(ShortInt, IsIntegerN, a, b) OR
+           IsSameType(ShortCard, IsCardinalN, a, b) OR
+           IsSameType(ShortComplex, IsComplexN, a, b) OR
+           IsSameType(ShortReal, IsRealN, a, b) )
+END IsSameSizePervasiveType ;
 
 
 END M2System.

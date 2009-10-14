@@ -80,7 +80,7 @@ FROM M2Size IMPORT Size, MakeSize ;
 FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem, 
                      IntegerN, CardinalN, WordN, SetN, RealN, ComplexN,
                      IsCardinalN, IsIntegerN, IsRealN,
-                     IsGenericSystemType ;
+                     IsGenericSystemType, IsSameSizePervasiveType ;
 
 FROM M2Options IMPORT BoundsChecking, ReturnChecking,
                       NilChecking, CaseElseChecking,
@@ -1988,7 +1988,8 @@ BEGIN
               (IsPointer(actual) AND (formal=Address)) OR
               (IsPointer(formal) AND (actual=Address)) OR
               (IsGenericSystemType(actual) AND IsSizeSame(FindMetaType(actual), FindMetaType(formal))) OR
-              (IsGenericSystemType(formal) AND IsSizeSame(FindMetaType(actual), FindMetaType(formal))) )
+              (IsGenericSystemType(formal) AND IsSizeSame(FindMetaType(actual), FindMetaType(formal))) OR
+              IsSameSizePervasiveType(formal, actual) )
    END
 END IsVarParamCompatible ;
 

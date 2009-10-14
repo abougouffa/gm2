@@ -9,6 +9,7 @@ Pre 1.0
    LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 *  if at all possible try and make sure that it builds on cygwin
    and make gm2.paranoid also passes on the cygwin.
+*  add data alignment directives to records.
 
 Post 1.0
 

@@ -57,7 +57,7 @@ EXPORT QUALIFIED
                  IsIntegerN, IsCardinalN, IsWordN,
                  IsRealN, IsSetN, IsComplexN,
                  IsGenericSystemType,
-
+                 IsSameSizePervasiveType,
                  InitSystem ;
 
 
@@ -223,6 +223,15 @@ PROCEDURE IsComplexN (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsGenericSystemType (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsSameSizePervasiveType - returns TRUE if a or b are CARDINAL, INTEGER, REAL,
+                             LONGREAL, SHORTREAL and the other type is the same
+                             size and of the same type.
+*)
+
+PROCEDURE IsSameSizePervasiveType (a, b: CARDINAL) : BOOLEAN ;
 
 
 END M2System.
