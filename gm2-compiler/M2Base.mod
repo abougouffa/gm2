@@ -82,9 +82,10 @@ FROM M2System IMPORT Address, Byte, Word, System, Loc, InitSystem,
                      IsCardinalN, IsIntegerN, IsRealN,
                      IsGenericSystemType, IsSameSizePervasiveType ;
 
-FROM M2Options IMPORT BoundsChecking, ReturnChecking,
-                      NilChecking, CaseElseChecking,
-                      DivModRemChecking, Exceptions,
+FROM M2Options IMPORT NilChecking,
+                      WholeDivChecking, WholeValueChecking,
+                      IndexChecking, RangeChecking,
+                      ReturnChecking, CaseElseChecking, Exceptions,
                       Iso, Pim, Pim2, Pim3 ;
 
 FROM gccgm2 IMPORT GetSizeOf, GetIntegerType,
@@ -619,22 +620,32 @@ BEGIN
    ExceptionZeroRem      := NulSym ;
    ExceptionNo           := NulSym ;
 
-   IF BoundsChecking
+   IF NilChecking
+   THEN
+      ExceptionPointerNil := ImportFrom(m2rts, 'PointerNilException')
+   END ;
+   IF RangeChecking
    THEN
       ExceptionAssign := ImportFrom(m2rts, 'AssignmentException') ;
       ExceptionInc := ImportFrom(m2rts, 'IncException') ;
       ExceptionDec := ImportFrom(m2rts, 'DecException') ;
       ExceptionIncl := ImportFrom(m2rts, 'InclException') ;
       ExceptionExcl := ImportFrom(m2rts, 'ExclException') ;
-      ExceptionStaticArray := ImportFrom(m2rts, 'StaticArraySubscriptException') ;
-      ExceptionDynamicArray := ImportFrom(m2rts, 'DynamicArraySubscriptException') ;
       ExceptionForLoopBegin := ImportFrom(m2rts, 'ForLoopBeginException') ;
       ExceptionForLoopTo := ImportFrom(m2rts, 'ForLoopToException') ;
       ExceptionForLoopEnd := ImportFrom(m2rts, 'ForLoopEndException')
    END ;
-   IF NilChecking
+   IF IndexChecking
    THEN
-      ExceptionPointerNil := ImportFrom(m2rts, 'PointerNilException')
+      ExceptionStaticArray := ImportFrom(m2rts, 'StaticArraySubscriptException') ;
+      ExceptionDynamicArray := ImportFrom(m2rts, 'DynamicArraySubscriptException')
+   END ;
+   IF WholeDivChecking
+   THEN
+      ExceptionNonPosDiv := ImportFrom(m2rts, 'WholeNonPosDivException') ;
+      ExceptionNonPosMod := ImportFrom(m2rts, 'WholeNonPosModException') ;
+      ExceptionZeroDiv := ImportFrom(m2rts, 'WholeZeroDivException') ;
+      ExceptionZeroRem := ImportFrom(m2rts, 'WholeZeroRemException')
    END ;
    IF ReturnChecking
    THEN
@@ -643,13 +654,6 @@ BEGIN
    IF CaseElseChecking
    THEN
       ExceptionCase := ImportFrom(m2rts, 'CaseException')
-   END ;
-   IF DivModRemChecking
-   THEN
-      ExceptionNonPosDiv := ImportFrom(m2rts, 'WholeNonPosDivException') ;
-      ExceptionNonPosMod := ImportFrom(m2rts, 'WholeNonPosModException') ;
-      ExceptionZeroDiv := ImportFrom(m2rts, 'WholeZeroDivException') ;
-      ExceptionZeroRem := ImportFrom(m2rts, 'WholeZeroRemException')
    END ;
    IF Exceptions
    THEN

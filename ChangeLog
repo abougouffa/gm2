@@ -7,6 +7,23 @@
 	  IsSameSizePervasiveType.
 	* gm2/gm2-compiler/M2System.mod:  implement
 	  IsSameSizePervasiveType.
+	* gm2/gm2.texi:  removed -fbounds and introduced -fno-nil
+	  -fwholediv, -fno-wholediv, -fwholevalue, -fno-wholevalue,
+	  -findex, -fno-index, -frange and -fno-range.
+	* gm2/lang-options.h:  removed -fbounds and introduced options
+          -fno-nil, -fwholediv, -fno-wholediv, -fwholevalue,
+	  -fno-wholevalue, -findex, -fno-index, -frange and -fno-range.
+	* gm2/gm2-compiler/M2Base.mod:  removed BoundsChecking and
+	  DivModRemChecking.  Use RangeChecking, IndexChecking and
+          WholeDivChecking instead.
+	* gm2/gm2-compiler/M2Options.def:  removed BoundsChecking and
+	  DivModRemChecking.  Use RangeChecking, IndexChecking and
+          WholeDivChecking instead.
+	* gm2/gm2/gm2-compiler/M2Options.mod:  enable the detection of
+	  -fwholevalue, -fno-wholevalue, -fno-nil, -fwholediv, -fno-wholediv,
+	  -findex, -fno-index, -frange, -fno-range.
+	* gm2/gm2-compiler/M2Quads.mod:  replace BoundChecking with
+	  WholeValueChecking.
 
 2009-10-07       Gaius Mulley <gaius@gnu.org>
 

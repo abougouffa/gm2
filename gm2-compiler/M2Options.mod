@@ -194,11 +194,14 @@ END SetCaseCheck ;
 
 PROCEDURE SetCheckAll (value: BOOLEAN) : BOOLEAN ;
 BEGIN
-   BoundsChecking := value ;
+   NilChecking := value ;
+   WholeDivChecking := value ;
+   WholeValueChecking := value ;
+   IndexChecking := value ;
+   RangeChecking := value ;
    ReturnChecking := value ;
    NilChecking := value ;
    CaseElseChecking := value ;
-   DivModRemChecking := value ;
    RETURN( TRUE )
 END SetCheckAll ;
 
@@ -374,29 +377,61 @@ BEGIN
    ELSIF EqualArray(s, '-fcheck-all')
    THEN
       Legal := SetCheckAll(TRUE)
-   ELSIF EqualArray(s, '-fbounds')
-   THEN
-      BoundsChecking := TRUE ;
-      Legal := TRUE
    ELSIF EqualArray(s, '-fnil')
    THEN
       NilChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-nil')
+   THEN
+      NilChecking := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fwholediv')
+   THEN
+      WholeDivChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-wholediv')
+   THEN
+      WholeDivChecking := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fwholevalue')
+   THEN
+      WholeValueChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-wholevalue')
+   THEN
+      WholeValueChecking := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-findex')
+   THEN
+      IndexChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-index')
+   THEN
+      IndexChecking := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-frange')
+   THEN
+      RangeChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-range')
+   THEN
+      RangeChecking := FALSE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-freturn')
+   THEN
+      ReturnChecking := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fno-return')
+   THEN
+      ReturnChecking := FALSE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-fcase')
    THEN
       CaseElseChecking := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-fdiv-mod-rem')
-   THEN
-      DivModRemChecking := TRUE ;
-      Legal := TRUE
    ELSIF EqualArray(s, '-fcpp') OR EqualArray(s, '-fcppbegin')
    THEN
       Legal := SetCpp(TRUE)
-   ELSIF EqualArray(s, '-freturn')
-   THEN
-      ReturnChecking := TRUE ;
-      Legal := TRUE
    ELSIF EqualArray(s, '-fstatistics')
    THEN
       Statistics := TRUE ;
@@ -539,9 +574,13 @@ BEGIN
    OptimizeBasicBlock           := FALSE ;
    OptimizeUncalledProcedures   := FALSE ;
    OptimizeCommonSubExpressions := FALSE ;
-   BoundsChecking               := FALSE ;
+   NilChecking                  := FALSE ;
+   WholeDivChecking             := FALSE ;
+   WholeValueChecking           := FALSE ;
+   IndexChecking                := FALSE ;
+   RangeChecking                := FALSE ;
    ReturnChecking               := FALSE ;
-   DivModRemChecking            := FALSE ;
+   CaseElseChecking             := FALSE ;
    CPreProcessor                := FALSE ;
    LineDirectives               := FALSE ;
    ExtendedOpaque               := FALSE ;

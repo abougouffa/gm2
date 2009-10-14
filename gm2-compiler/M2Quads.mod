@@ -166,8 +166,10 @@ FROM Lists IMPORT List, InitList, GetItemFromList, NoOfItemsInList, PutItemIntoL
 
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
-FROM M2Options IMPORT NilChecking, CaseElseChecking,
-                      BoundsChecking, ReturnChecking,
+FROM M2Options IMPORT NilChecking,
+                      WholeDivChecking, WholeValueChecking,
+                      IndexChecking, RangeChecking,
+                      CaseElseChecking, ReturnChecking,
                       Iso, Pim, Pim2, Pim3, Pim4, PositiveModFloorDiv,
                       Pedantic, CompilerDebugging, GenerateDebugging,
                       GenerateLineDebug, Exceptions,
@@ -5766,7 +5768,7 @@ VAR
 BEGIN
    dtype := SkipType(GetType(des)) ;
    etype := SkipType(GetType(expr)) ;
-   IF BoundsChecking AND (NOT MustNotCheckBounds)
+   IF WholeValueChecking AND (NOT MustNotCheckBounds)
    THEN
       IF tok=PlusTok
       THEN

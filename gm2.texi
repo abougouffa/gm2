@@ -307,25 +307,67 @@ order.  These modules will initialized first before any other modules
 in the application dependancy.  By default the runtime modules list is
 set to @code{Storage,SYSTEM,M2RTS,RTExceptions}.
 
-@item -fbounds
-generate code to check the bounds of subranges and array indexes.
+@item -fnil
+generate code to detect accessing data through a
+@code{NIL} value pointer.
+
+@item -fno-nil
+do not generate code to detect accessing data through a
+@code{NIL} value pointer.
+
+@item -fwholediv
+generate code to detect whole number division by zero or modulus by zero.
+
+@item -fno-wholediv
+do not generate code to detect whole number division by zero or
+modulus by zero.
+
+@item -fwholevalue
+generate code to detect whole number overflow and underflow.
+
+@item -fno-wholevalue
+do not generate code to detect whole number overflow and underflow.
+
+@c @item -frealdiv
+@c generate code to detect real number division by zero.
+
+@c @item -fno-realdiv
+@c do not generate code to detect real number division by zero.
+
+@c @item -frealvalue
+@c generate code to detect @code{NaN}s real number overflow and underflow.
+
+@c @item -fno-realvalue
+@c do not generate code to detect @code{NaN}s real number overflow and underflow.
+
+@item -findex
+generate code to check whether array index values are out of bounds.
+
+@item -fno-index
+do not generate code to check whether array index values are out of
+bounds.
+
+@item -frange
+generate code to check the assignment range, return value range
+set range and constructor range.
+
+@item -fno-range
+do not generate code to check the assignment range, return value range
+set range and constructor range.
 
 @item -freturn
 generate code to check that functions always exit with a @code{RETURN}
 and do not fall out at the end.
 
-@item -fnil
-turns on runtime checking to detect accessing data through a
-@code{NIL} value pointer.
-
 @item -fcase
-turns on runtime checking to check whether a @code{CASE} statement
-requires an @code{ELSE} clause when on was not specified.
+turns on compile time checking to check whether a @code{CASE}
+statement requires an @code{ELSE} clause when on was not specified.
 
 @item -fcheck-all
 turns on all runtime checks.  This is the same as invoking
 GNU Modula-2 using the command options
-@code{-fbounds} @code{-freturn} @code{-fnil} @code{-fcase}.
+@code{-fnil} @code{-frange} @code{-findex} @code{-fwholevalue}
+@code{-fwholediv} @code{-fcase} @code{-freturn} @code{-fcase}.
 
 @item -fno-exceptions
 turns off all generation of exception handling code and no references
@@ -1180,7 +1222,7 @@ also compatible as long as the @code{MAX(}type@code{)} and
 @code{INTEGER} family, @code{CARDINAL} family and the @code{REAL}
 family.  The reason for this is that when the assignment is performed
 the compiler will check to see that the expression (on the right of
-the @code{:=}) lies within the bounds of the designator type (on the
+the @code{:=}) lies within the range of the designator type (on the
 left hand side of the @code{:=}).  Thus these ordinal types can be
 assignment compatible.  However it does mean that @code{WORD32} is not
 compatible with @code{WORD16} as @code{WORD32} does not have a minimum
@@ -1209,7 +1251,7 @@ code if the appropriate command line switches are specified.  This
 allows the compiler to perform limited range checking at compile time.
 In the future it will allow the extensive GCC optimisations to
 propagate constant values through to the range checks which if they
-are found to exceed the type bounds will result in a compile time
+are found to exceed the type range will result in a compile time
 error message.
 
 @subsection Expression compatibility

@@ -21,10 +21,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2009/06/06 01:10:37 $]
+   Date       : 27/5/87  [$Date: 2009/10/14 17:26:47 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.24 $
+   Version    : $Revision: 1.25 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
@@ -46,8 +46,10 @@ EXPORT QUALIFIED IsAnOption, IsAnOptionAndArg, ParseOptions,
                  OptimizeBasicBlock, OptimizeUncalledProcedures,
                  OptimizeCommonSubExpressions,
                  StudentChecking,
-                 BoundsChecking, ReturnChecking, NilChecking, CaseElseChecking,
-                 DivModRemChecking,
+                 NilChecking,
+                 WholeDivChecking, WholeValueChecking,
+                 IndexChecking, RangeChecking,
+                 ReturnChecking, CaseElseChecking,
                  Quiet, LineDirectives, CPreProcessor, Xcode, ExtendedOpaque,
                  PedanticParamNames, PedanticCast,
       	       	 DisplayQuadruples,
@@ -77,17 +79,22 @@ VAR
    OptimizeUncalledProcedures,   (* -Ouncalled removes uncalled procedures   *)
    OptimizeBasicBlock,           (* -Obb create basic blocks and optimize.   *)
    OptimizeCommonSubExpressions, (* -Ocse optimize common subexpressions     *)
-   BoundsChecking,               (* -fbounds makes compiler generate runtime *)
-                                 (* checks. Subranges and array bounds.      *)
-   ReturnChecking,               (* -freturn checks that functions always    *)
-                                 (* exit with a RETURN statement.            *)
    NilChecking,                  (* -fnil makes compiler test for pointer    *)
                                  (* NIL                                      *)
+   WholeDivChecking,             (* -fwholediv produces code to raise an     *)
+                                 (* exception if a whole number divide by    *)
+                                 (* zero occurs.                             *)
+   WholeValueChecking,           (* -fwholevalue produces code to raise an   *)
+                                 (* exception if a whole value variable is   *)
+                                 (* about to exceed the type limits.         *)
+   IndexChecking,                (* -findex array bounds checking.           *)
+   RangeChecking,                (* -frange assignment, set values,          *)
+                                 (* constructor values in range.             *)
+   ReturnChecking,               (* -freturn checks that functions always    *)
+                                 (* exit with a RETURN statement.            *)
    CaseElseChecking,             (* -fcase checks program does not need an   *)
                                  (* else statement within an case statement  *)
                                  (* when the user omits one                  *)
-   DivModRemChecking,            (* -fdiv-mod-rem produces code to raise an  *)
-                                 (* exception if a divide by zero occurs.    *)
    Quiet,                        (* -fquiet option specified.                *)
    Alignment,                    (* should parameters and data be aligned?   *)
    LineDirectives,               (* should compiler understand preprocessor  *)
