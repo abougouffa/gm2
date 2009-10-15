@@ -2510,9 +2510,18 @@ BEGIN
          IF GetMode(Exp)=LeftValue
          THEN
             t := MakeTemporary(RightValue) ;
-            PutVar(t, GetType(Des)) ;
+            PutVar(t, GetType(Exp)) ;
             CheckPointerThroughNil(Exp) ;
             GenQuad(IndrXOp, t, GetType(t), Exp) ;
+            IF SkipType(GetType(Des))#SkipType(GetType(Exp))
+            THEN
+               PushTF(Convert, NulSym) ;
+               PushT(SkipType(GetType(Exp))) ;
+               PushT(t) ;
+               PushT(2) ;          (* Two parameters *)
+               BuildConvertFunction ;
+               PopT(t)
+            END ;
             CheckPointerThroughNil(Des) ;
             GenQuad(XIndrOp, Des, GetType(Des), t)
          ELSE

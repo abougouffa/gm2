@@ -4,6 +4,9 @@
 	  implemented -fwholevalue, -fno-wholevalue.
 	* gm2/lang-options.h:  removed options which are not yet 
 	  implemented -fwholevalue, -fno-wholevalue.
+	* gm2/gm2-compiler/M2Quads.mod:  add Convert to
+	  (MoveWithMode) if the types are different when moving
+	  data indirectly.
 
 2009-10-14       Gaius Mulley <gaius@gnu.org>
 
