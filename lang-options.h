@@ -54,10 +54,6 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("generate code to detect whole number division by zero or modulus by zero") },
   { "-fno-wholediv",
       N_("do not generate code to detect whole number division by zero or modulus by zero") },
-  { "-fwholevalue",
-      N_("generate code to detect whole number overflow and underflow") },
-  { "-fno-wholevalue",
-      N_("do not generate code to detect whole number overflow and underflow") },
   { "-findex",
       N_("generate code to check whether array index values are out of bounds") },
   { "-fno-index",
@@ -71,7 +67,7 @@ DEFINE_LANG_NAME ("Modula-2")
   { "-fcase",
       N_("turns on runtime checking to check whether a CASE statement requires an ELSE clause when on was not specified") },
   { "-fcheck-all",
-      N_("turns on all runtime checking (an abbreviation for -fnil -frange -findex -fwholevalue -fwholediv -fcase -freturn)") },
+      N_("turns on all runtime checking (an abbreviation for -fnil -frange -findex -fwholediv -fcase -freturn)") },
   { "-fno-exceptions",
       N_("turns off all exception generating code, this flag should be used with -flibs=min") },
   { "-Wstudents",
@@ -136,3 +132,14 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("display the GNU Modula-2 version") },
   { "-O",
       N_("optimize code") },
+
+
+  /*
+   *  --fixme-- add these when gm2 can detect integer/cardinal overflow in expressions
+   *  and add "-fwholevalue" to the list of options contained in -fcheck-all 
+   *
+   *  { "-fwholevalue",
+   *   N_("generate code to detect whole number overflow and underflow") },
+   *  { "-fno-wholevalue",
+   *   N_("do not generate code to detect whole number overflow and underflow") },
+   */

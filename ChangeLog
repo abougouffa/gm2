@@ -1,3 +1,10 @@
+2009-10-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  removed options which are not yet 
+	  implemented -fwholevalue, -fno-wholevalue.
+	* gm2/lang-options.h:  removed options which are not yet 
+	  implemented -fwholevalue, -fno-wholevalue.
+
 2009-10-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  allow sized SYSTEM types

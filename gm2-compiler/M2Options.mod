@@ -393,6 +393,7 @@ BEGIN
    THEN
       WholeDivChecking := FALSE ;
       Legal := TRUE
+(* --fixme-- when gm2/gcc can detect integer/cardinal expression overlows
    ELSIF EqualArray(s, '-fwholevalue')
    THEN
       WholeValueChecking := TRUE ;
@@ -401,6 +402,7 @@ BEGIN
    THEN
       WholeValueChecking := FALSE ;
       Legal := TRUE
+*)
    ELSIF EqualArray(s, '-findex')
    THEN
       IndexChecking := TRUE ;

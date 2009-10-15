@@ -183,11 +183,11 @@ substantial amount of static analysis of the source code (see
 @samp{-Wpedantic}, @samp{-Wpedantic-param-names}, @samp{-Wstudents}
 and @samp{-Wpedentic-cast}.
 
-Finally runtime checking has been implemented and can check: bounds of
-subranges and array indexes, functions execute a @code{RETURN}
-statement, a pointer does not dereference a @code{NIL} pointer value
-and that the expression within a @code{CASE} statement is correctly
-matched.
+Finally runtime checking has been implemented and can check to ensure
+that ranges of subranges are not exceeded, array indices are within
+range, functions execute a @code{RETURN} statement, a pointer does not
+dereference a @code{NIL} pointer value and that the expression within
+a @code{CASE} statement is correctly matched.
 
 @node Release map, Compiler options, Why use GNU Modula-2, Using
 @section Release map
@@ -322,11 +322,11 @@ generate code to detect whole number division by zero or modulus by zero.
 do not generate code to detect whole number division by zero or
 modulus by zero.
 
-@item -fwholevalue
-generate code to detect whole number overflow and underflow.
+@c @item -fwholevalue
+@c generate code to detect whole number overflow and underflow.
 
-@item -fno-wholevalue
-do not generate code to detect whole number overflow and underflow.
+@c @item -fno-wholevalue
+@c do not generate code to detect whole number overflow and underflow.
 
 @c @item -frealdiv
 @c generate code to detect real number division by zero.
@@ -366,7 +366,8 @@ statement requires an @code{ELSE} clause when on was not specified.
 @item -fcheck-all
 turns on all runtime checks.  This is the same as invoking
 GNU Modula-2 using the command options
-@code{-fnil} @code{-frange} @code{-findex} @code{-fwholevalue}
+@code{-fnil} @code{-frange} @code{-findex}
+@c @code{-fwholevalue}  --fixme-- add this when working
 @code{-fwholediv} @code{-fcase} @code{-freturn} @code{-fcase}.
 
 @item -fno-exceptions
