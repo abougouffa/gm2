@@ -2004,8 +2004,8 @@ END IsVarParamCompatible ;
 
 PROCEDURE IsValidUnboundedParameter (formal, actual: CARDINAL) : BOOLEAN ;
 VAR
-   ft, at: CARDINAL ;
-   n, m  : CARDINAL ;
+   ft, at : CARDINAL ;
+   n, m, o: CARDINAL ;
 BEGIN
    Assert(IsParameterUnbounded(formal)) ;
    ft := SkipType(GetType(GetType(formal))) ;    (* ARRAY OF ft *)
@@ -2034,8 +2034,14 @@ BEGIN
             THEN
                m := GetDimension(formal) ;
                n := GetDimension(at) ;
+               o := 0 ;
                WHILE IsArray(at) DO
-                  at := SkipType(GetType(at))
+                  INC(o) ;
+                  at := SkipType(GetType(at)) ;
+                  IF (m=o) AND (at=ft)
+                  THEN
+                     RETURN( TRUE )
+                  END
                END ;
                IF n#m
                THEN

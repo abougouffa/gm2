@@ -8,6 +8,12 @@
 	  (MoveWithMode) if the types are different when moving
 	  data indirectly.  New function (doVal) which is used to
 	  change type during indirection if necessary.
+	* gm2/gm2-compiler/M2Base.mod:  fix bug in unbounded array
+	  dimension checking reported by
+	  Scott Iverson (testsuite/gm2/pim/pass/ptrarray3.mod).
+	* gm2/gm2-compiler/M2Quads.mod:  fix bug in unbounded array
+	  dimension checking reported by
+	  Scott Iverson (testsuite/gm2/pim/pass/ptrarray3.mod).
 
 2009-10-14       Gaius Mulley <gaius@gnu.org>
 

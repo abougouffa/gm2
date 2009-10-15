@@ -4364,7 +4364,11 @@ BEGIN
       n := 0 ;
       WHILE IsArray(ActualType) DO
          INC(n) ;
-         ActualType := SkipType(GetType(ActualType))
+         ActualType := SkipType(GetType(ActualType)) ;
+         IF (m=n) AND (ActualType=FormalType)
+         THEN
+            RETURN( TRUE )
+         END
       END ;
       IF n=m
       THEN
