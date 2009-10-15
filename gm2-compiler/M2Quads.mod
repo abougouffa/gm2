@@ -2483,6 +2483,26 @@ END MarkAsWrite ;
 
 
 (*
+   doVal - return an expression which is VAL(type, expr).  If
+           expr is a constant then return expr.
+*)
+
+PROCEDURE doVal (type, expr: CARDINAL) : CARDINAL ;
+BEGIN
+   IF (NOT IsConst(expr)) AND (SkipType(type)#SkipType(GetType(expr)))
+   THEN
+      PushTF(Convert, NulSym) ;
+      PushT(SkipType(type)) ;
+      PushT(expr) ;
+      PushT(2) ;          (* Two parameters *)
+      BuildConvertFunction ;
+      PopT(expr)
+   END ;
+   RETURN( expr )
+END doVal ;
+
+
+(*
    MoveWithMode - 
 *)
 
@@ -2499,8 +2519,16 @@ BEGIN
       THEN
          IF GetMode(Exp)=LeftValue
          THEN
-            CheckPointerThroughNil(Exp) ;
-            GenQuad(IndrXOp, Des, GetType(Des), Exp)
+            CheckPointerThroughNil(Exp) ;  (*    Des = *Exp    *)
+            IF SkipType(GetType(Des))=SkipType(GetType(Exp))
+            THEN
+               GenQuad(IndrXOp, Des, GetType(Des), Exp)
+            ELSE
+               t := MakeTemporary(RightValue) ;
+               PutVar(t, GetType(Exp)) ;
+               GenQuad(IndrXOp, t, GetType(Exp), Exp) ;
+               GenQuad(BecomesOp, Des, NulSym, doVal(GetType(Des), t))
+            END
          ELSE
             GenQuad(BecomesOp, Des, NulSym, Exp)
          END
@@ -2513,20 +2541,11 @@ BEGIN
             PutVar(t, GetType(Exp)) ;
             CheckPointerThroughNil(Exp) ;
             GenQuad(IndrXOp, t, GetType(t), Exp) ;
-            IF SkipType(GetType(Des))#SkipType(GetType(Exp))
-            THEN
-               PushTF(Convert, NulSym) ;
-               PushT(SkipType(GetType(Exp))) ;
-               PushT(t) ;
-               PushT(2) ;          (* Two parameters *)
-               BuildConvertFunction ;
-               PopT(t)
-            END ;
-            CheckPointerThroughNil(Des) ;
-            GenQuad(XIndrOp, Des, GetType(Des), t)
+            CheckPointerThroughNil(Des) ;  (*    *Des = Exp    *)
+            GenQuad(XIndrOp, Des, GetType(Des), doVal(GetType(Des), t))
          ELSE
-            CheckPointerThroughNil(Des) ;
-            GenQuad(XIndrOp, Des, GetType(Des), Exp)
+            CheckPointerThroughNil(Des) ;  (*    *Des = Exp    *)
+            GenQuad(XIndrOp, Des, GetType(Des), doVal(GetType(Des), Exp))
          END
       ELSE
          GenQuad(BecomesOp, Des, NulSym, Exp)

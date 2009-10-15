@@ -6,7 +6,8 @@
 	  implemented -fwholevalue, -fno-wholevalue.
 	* gm2/gm2-compiler/M2Quads.mod:  add Convert to
 	  (MoveWithMode) if the types are different when moving
-	  data indirectly.
+	  data indirectly.  New function (doVal) which is used to
+	  change type during indirection if necessary.
 
 2009-10-14       Gaius Mulley <gaius@gnu.org>
 
