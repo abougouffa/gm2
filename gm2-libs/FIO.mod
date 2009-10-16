@@ -57,6 +57,7 @@ TYPE
 
    Buffer            = POINTER TO buf ;
    buf               =            RECORD
+                                     bufstart: LONGINT ;   (* the position of buffer in file   *)
                                      position: CARDINAL ;  (* where are we through this buffer *)
                                      address : ADDRESS ;   (* dynamic buffer address           *)
                                      filled  : CARDINAL ;  (* length of the buffer filled      *)
@@ -74,8 +75,10 @@ TYPE
                                      output: BOOLEAN ;     (* is this file going to write data *)
                                      buffer: Buffer ;
                                      abspos: LONGINT ;     (* absolute position into file.     *)
-                                  END ;
-
+                                  END ;                    (* reflects low level reads which   *)
+                                                           (* means this value will normally   *)
+                                                           (* be further through the file than *)
+                                                           (* bufstart above.                  *)
    PtrToChar         = POINTER TO CHAR ;
 
 (* we only need forward directives for the p2c bootstrapping tool *)
@@ -324,6 +327,7 @@ BEGIN
             RETURN( MaxNoOfFiles )
          ELSE
             WITH buffer^ DO
+               bufstart := 0 ;
                size     := buflength ;
                position := 0 ;
                filled   := 0 ;
@@ -490,7 +494,6 @@ BEGIN
                      INC(position) ;     (* move onwards n bytes                *)
                      nBytes := 0 ;       (* reduce the amount for future direct *)
                                          (* read                                *)
-                     INC(abspos) ;
                      RETURN( 1 )
                   ELSE
                      n := Min(left, nBytes) ;
@@ -501,8 +504,7 @@ BEGIN
                      a := ADDRESS(a+n) ;
                      DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                          (* read                                *)
-                     INC(total, n) ;
-                     INC(abspos, n)
+                     INC(total, n)
                   END
                END
             END
@@ -514,6 +516,10 @@ BEGIN
             IF result>0
             THEN
                INC(total, result) ;
+               IF buffer#NIL
+               THEN
+                  buffer^.bufstart := abspos
+               END ;
                INC(abspos, result)
             ELSE
                (* eof reached, set the buffer accordingly *)
@@ -601,7 +607,6 @@ BEGIN
                         DEC(left) ;         (* remove consumed byte                *)
                         INC(position) ;     (* move onwards n byte                 *)
                         INC(total) ;
-                        INC(abspos) ;
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
@@ -612,8 +617,7 @@ BEGIN
                         a := ADDRESS(a+n) ;
                         DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                             (* read                                *)
-                        INC(total, n) ;
-                        INC(abspos, n)
+                        INC(total, n)
                      END
                   ELSE
                      (* refill buffer *)
@@ -623,6 +627,7 @@ BEGIN
                         position := 0 ;
                         left     := n ;
                         filled   := n ;
+                        bufstart := abspos ;
                         INC(abspos, n) ;
                         IF n=0
                         THEN
@@ -634,7 +639,6 @@ BEGIN
                         position := 0 ;
                         left     := 0 ;
                         filled   := 0 ;
-                        abspos   := 0 ;
                         state    := failed ;
                         RETURN( total )
                      END
@@ -1075,7 +1079,6 @@ BEGIN
                         DEC(left) ;         (* reduce space                        *)
                         INC(position) ;     (* move onwards n byte                 *)
                         INC(total) ;
-                        INC(abspos) ;
                         RETURN( total )
                      ELSE
                         n := Min(left, nBytes) ;
@@ -1085,8 +1088,7 @@ BEGIN
                                             (* move ready for further writes       *)
                         a := ADDRESS(a+n) ;
                         DEC(nBytes, n) ;    (* reduce the amount for future writes *)
-                        INC(total, n) ;
-                        INC(abspos, n)
+                        INC(total, n)
                      END
                   ELSE
                      FlushBuffer(f) ;
@@ -1122,6 +1124,8 @@ BEGIN
             WITH buffer^ DO
                IF (position=0) OR (write(unixfd, address, position)=position)
                THEN
+                  INC(abspos, position) ;
+                  bufstart := abspos ;
                   position := 0 ;
                   filled   := 0 ;
                   left     := size
@@ -1258,6 +1262,10 @@ BEGIN
             ELSE
                state  := failed ;
                abspos := 0
+            END ;
+            IF buffer#NIL
+            THEN
+               buffer^.bufstart := abspos
             END
          END
       END
@@ -1293,10 +1301,15 @@ BEGIN
          offset := lseek(unixfd, pos, SEEK_END) ;
          IF offset>=0
          THEN
-            abspos := offset
+            abspos := offset ;
          ELSE
             state  := failed ;
-            abspos := 0
+            abspos := 0 ;
+            offset := 0
+         END ;
+         IF buffer#NIL
+         THEN
+            buffer^.bufstart := offset
          END
       END
    END
@@ -1312,7 +1325,14 @@ BEGIN
    IF f<MaxNoOfFiles
    THEN
       WITH FileInfo[f]^ DO
-         RETURN( abspos )
+         IF buffer=NIL
+         THEN
+            RETURN( abspos )
+         ELSE
+            WITH buffer^ DO
+               RETURN( bufstart+VAL(LONGINT, position) )
+            END
+         END
       END
    ELSE
       RETURN( 0 )
