@@ -967,7 +967,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, expr, max, desLowestType)
+            IF OutOfRange(tokenno, GetIntegerZero(), expr, max, desLowestType)
             THEN
                MetaErrorT2(tokenNo,
                            'operand to INC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
@@ -1015,7 +1015,7 @@ BEGIN
          IF GccKnowsAbout(expr) AND IsConst(expr) AND
             GetMinMax(desLowestType, min, max)
          THEN
-            IF OutOfRange(tokenno, min, expr, max, desLowestType)
+            IF OutOfRange(tokenno, GetIntegerZero(), expr, max, desLowestType)
             THEN
                MetaErrorT2(tokenNo,
                            'operand to DEC {%2Wa} exceeds the range of type {%1ts} of the designator {%1a}',
@@ -1963,7 +1963,7 @@ BEGIN
             IF GetMinMax(desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(expr), FALSE) ;
-               IfOutsideLimitsDo(desMin, e, desMax, r, scopeDesc) ;
+               IfOutsideLimitsDo(GetIntegerZero(), e, desMax, r, scopeDesc) ;
                t := BuildSub(desMax,
                              BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
@@ -2001,7 +2001,7 @@ BEGIN
             IF GetMinMax(desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(expr), FALSE) ;
-               IfOutsideLimitsDo(desMin, e, desMax, r, scopeDesc) ;
+               IfOutsideLimitsDo(GetIntegerZero(), e, desMax, r, scopeDesc) ;
                t := BuildSub(BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
                              desMin,
                              FALSE) ;
