@@ -3,6 +3,11 @@
 	* gm2/gm2-compiler/M2Range.mod:  allow second argument
 	  to DEC and INC to be >=0 rather than MIN(des).  Fixes
 	  a bug reported by James Cox <jvcox@sandia.gov>.
+	* gm2/gm2-libs-ch/ldtoa.c:  reordered the headers to
+	  ensure that _ISOC99_SOURCE is set before stdlib.h is
+	  read so that the prototypes for strtold are correct.
+	  Fixes a long real numeric conversion bug reported by
+	  James Cox <jvcox@sandia.gov>.
 
 2009-10-16       Gaius Mulley <gaius@gnu.org>
 

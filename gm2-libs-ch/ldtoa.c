@@ -22,9 +22,14 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 
 #define GM2
 
-#include <p2c/p2c.h>
-
 #include "gm2-libs-host.h"
+
+#if defined(HAVE_STDLIB_H)
+#  if !defined(_ISOC99_SOURCE)
+#     define _ISOC99_SOURCE
+#  endif
+#  include <stdlib.h>
+#endif
 
 #if defined(HAVE_STRINGS)
 #  include <strings.h>
@@ -34,19 +39,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 #  include <string.h>
 #endif
 
+#include <p2c/p2c.h>
 
 #if !defined(TRUE)
 #  define TRUE (1==1)
 #endif
 #if !defined(FALSE)
 #  define FALSE (1==0)
-#endif
-
-#if defined(HAVE_STDLIB_H)
-#  if !defined(_ISOC99_SOURCE)
-#     define _ISOC99_SOURCE
-#  endif
-#  include <stdlib.h>
 #endif
 
 #define MAX_FP_DIGITS 500
