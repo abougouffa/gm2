@@ -30,7 +30,7 @@ FROM libc IMPORT printf ;
 
 
 CONST
-   Debugging = TRUE ;
+   Debugging = FALSE ;
 
 
 (*
