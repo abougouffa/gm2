@@ -110,7 +110,8 @@ int dtoa_calcmaxsig (char *p, int ndigits)
  *  dtoa_calcdecimal - calculates the position of the decimal point
  *                     it also removes the decimal point and exponent
  *                     from string, p.  It truncates the digits in p
- *                     accordingly to ndigits.
+ *                     accordingly to ndigits.  Ie ndigits is the
+ *                     number of digits after the '.'
  */
 
 int dtoa_calcdecimal (char *p, int str_size, int ndigits)
@@ -118,6 +119,7 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
   char *e;
   char *o;
   int x;
+  int l;
 
   e = index (p, 'E');
   if (e == NULL)
@@ -127,13 +129,14 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
     x = atoi(e+1);
   }
 
+  l = strlen (p);
   o = index (p, '.');
   if (o == NULL)
     x += strlen(p);
   else {
-    memcpy(o, o+1, ndigits-(o-p));
-    if (ndigits<str_size)
-      p[ndigits] = '0';
+    memcpy(o, o+1, l-(o-p));
+    if (x+ndigits<str_size)
+      p[x+ndigits] = '0';
     x += o-p;
   }
   if ((x+ndigits >= 0) && (x+ndigits < str_size))
