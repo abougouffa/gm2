@@ -24,14 +24,12 @@ FROM StrLib IMPORT StrEqual ;
 
 
 PROCEDURE Assert (v: BOOLEAN; f: ARRAY OF CHAR; l: CARDINAL; e: ARRAY OF CHAR) ;
-VAR
-   r: INTEGER ;
 BEGIN
    IF v
    THEN
-      r := printf("successfully evaluated assertion (%s)\n", ADR(e))
+      printf("successfully evaluated assertion (%s)\n", ADR(e))
    ELSE
-      r := printf("%s:%d assertion failed when evaluating %s\n", ADR(f), l, ADR(e)) ;
+      printf("%s:%d assertion failed when evaluating %s\n", ADR(f), l, ADR(e)) ;
       res := 1 ;
       exit(res)
    END
@@ -41,43 +39,47 @@ END Assert ;
 VAR
    d  : REAL ;
    l  : LONGREAL ;
-   res,
-   r  : INTEGER ;
+   res: INTEGER ;
    a  : ARRAY [0..100] OF CHAR ;
    ok : BOOLEAN ;
 BEGIN
    res := 0 ;
    RealToString(100.0, 10, 10, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('100.000000', a), __FILE__, __LINE__, 'testing return value of "100.000000"') ;
    RealToString(100.0, -5, 12, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('  1.00000E+2', a), __FILE__, __LINE__, 'testing return value of "  1.00000E+2"') ;
 
    RealToString(123.456789, 10, 10, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('123.456789', a), __FILE__, __LINE__, 'testing return value of "123.456789"') ;
    RealToString(123.456789, -5, 13, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('   1.23456E+2', a), __FILE__, __LINE__, 'testing return value of "   1.23456E+2"') ;
 
    RealToString(123.456789, -2, 15, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('        1.23E+2', a), __FILE__, __LINE__, 'testing return value of "        1.23E+2"') ;
 
    StringToReal('  1234567.89E-4', d, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf('value returned is %f\n', d) ;
+   printf('value returned is %f\n', d) ;
 
    RealToString(3.14159268, -6, 13, a, ok) ;
    Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
-   r := printf("value returned is '%s'\n", ADR(a)) ;
+   printf("value returned is '%s'\n", ADR(a)) ;
    Assert(StrEqual('  3.141592E+0', a), __FILE__, __LINE__, 'testing return value of "  3.141592E+0"') ;
+
+   RealToString(12345.6789, 5, 20, a, ok) ;
+   Assert(ok, __FILE__, __LINE__, 'testing ok return BOOLEAN') ;
+   printf("value returned is '%s'\n", ADR(a)) ;
+   Assert(StrEqual('         12345.67890', a), __FILE__, __LINE__, 'testing return value of "         12345.67890"') ;
 
    exit(res)
 END realconv.
