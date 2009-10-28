@@ -9,6 +9,10 @@
 	  openTerm.
 	* gm2/gm2-libs-iso/TermFile.def:  removed commented
 	  out code.
+	* gm2/gccgm2.c:  gccgm2_DeclareKnownVariable set
+	  DECL_ARTIFICIAL to 0 and DECL_IGNORED_P to
+	  istemporary which fixes the regression test failure:
+	  testsuite/gm2/iso/run/pass/shift3.mod.
 
 2009-10-23       Gaius Mulley <gaius@gnu.org>
 
