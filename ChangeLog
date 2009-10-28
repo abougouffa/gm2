@@ -13,6 +13,8 @@
 	  DECL_ARTIFICIAL to 0 and DECL_IGNORED_P to
 	  istemporary which fixes the regression test failure:
 	  testsuite/gm2/iso/run/pass/shift3.mod.
+	* All 8328 regression tests pass on the Debian Stable
+	  Lenny LP64 x86_64 platform.
 
 2009-10-23       Gaius Mulley <gaius@gnu.org>
 
