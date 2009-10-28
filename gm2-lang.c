@@ -184,6 +184,7 @@ gm2_mark_addressable (tree exp)
 	TREE_ADDRESSABLE (x) = 1;
 	return true;
 
+      case STRING_CST:
       case VAR_DECL:
       case CONST_DECL:
       case PARM_DECL:
@@ -195,4 +196,5 @@ gm2_mark_addressable (tree exp)
       default:
 	return true;
     }
+  /* never reach here */
 }

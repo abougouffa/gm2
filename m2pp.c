@@ -1169,6 +1169,8 @@ m2pp_pointer_type (pretty *s, tree t)
     {
       if (TREE_CODE (TREE_TYPE (t)) == FUNCTION_TYPE)
 	m2pp_procedure_type (s, TREE_TYPE(t));
+      else if (t == ptr_type_node)
+	m2pp_print (s, "ADDRESS");
       else
 	{
 	  m2pp_print (s, "POINTER TO");

@@ -18,7 +18,7 @@ MA  02110-1301  USA *)
 
 IMPLEMENTATION MODULE TermFile ;
 
-(* *)
+
 FROM ASCII IMPORT nul, lf, cr ;
 FROM ChanConsts IMPORT ChanFlags ;
 FROM RTio IMPORT GetDeviceId ;
@@ -33,10 +33,9 @@ FROM IOLink IMPORT DeviceId, DeviceTable, DeviceTablePtr, DeviceTablePtrValue, I
 
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM Strings IMPORT Append ;
-(* *)
+
 
 FROM SYSTEM IMPORT ADDRESS, ADR, LOC ;
-(* *)
 FROM errno IMPORT geterrno ;
 FROM ErrnoCategory IMPORT GetOpenResults ;
 
@@ -44,7 +43,7 @@ FROM RTgen IMPORT ChanDev, DeviceType, InitChanDev,
                   doLook, doSkip, doSkipLook, doWriteLn,
                   doReadText, doWriteText, doReadLocs, doWriteLocs,
                   checkErrno ;
-(* *)
+
 FROM termios IMPORT TERMIOS, InitTermios, KillTermios, tcgetattr,
                     tcsetattr, cfmakeraw, tcsnow ;
 
@@ -64,7 +63,7 @@ TYPE
                               pushBack: BOOLEAN ;
                               old, new: TERMIOS ;
                            END ;
-(*************)
+
 VAR
    mid: ModuleId ;
    did: DeviceId ;
@@ -541,6 +540,7 @@ VAR
 BEGIN
    MakeChan(did, cid) ;              (* create new channel *)
    d := DeviceTablePtrValue(cid, did, wrongDevice, 'TermFile.' + __FUNCTION__ ) ;
+   t := InitTermInfo(-1) ;
    res := termOpen(t, flagset, e) ;
    InitData(d, mid, t, freeData) ;   (* attach memory to device and module *)
    WITH d^ DO

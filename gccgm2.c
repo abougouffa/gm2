@@ -48,6 +48,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tm_p.h"
 #include "flags.h"
 #include "tree-inline.h"
+#include "tree-pass.h"
 
 #include <stdio.h>
 
@@ -1603,6 +1604,61 @@ genericize_catch_block (tree *stmt_p)
   *stmt_p = build2 (CATCH_EXPR, void_type_node, type, body);
 }
 
+/* If a NOP conversion is changing a pointer to array of foo to a pointer
+   to foo, embed that change in the ADDR_EXPR by converting
+      T array[U];
+      (T *)&array
+   ==>
+      &array[L]
+   where L is the lower bound.  For simplicity, only do this for constant
+   lower bound.  */
+
+static void
+canonicalize_addr_expr (tree *expr_p)
+{
+  tree expr = *expr_p;
+  tree ctype = TREE_TYPE (expr);
+  tree addr_expr = TREE_OPERAND (expr, 0);
+  tree atype = TREE_TYPE (addr_expr);
+  tree dctype, datype, ddatype, otype, obj_expr;
+
+  /* Both cast and addr_expr types should be pointers.  */
+  if (!POINTER_TYPE_P (ctype) || !POINTER_TYPE_P (atype))
+    return;
+
+  /* The addr_expr type should be a pointer to an array.  */
+  datype = TREE_TYPE (atype);
+  if (TREE_CODE (datype) != ARRAY_TYPE)
+    return;
+
+  /* Both cast and addr_expr types should address the same object type.  */
+  dctype = TREE_TYPE (ctype);
+  ddatype = TREE_TYPE (datype);
+  if (!lang_hooks.types_compatible_p (ddatype, dctype))
+    return;
+
+  /* The addr_expr and the object type should match.  */
+  obj_expr = TREE_OPERAND (addr_expr, 0);
+  otype = TREE_TYPE (obj_expr);
+  if (!lang_hooks.types_compatible_p (otype, datype))
+    return;
+
+  /* The lower bound and element sizes must be constant.  */
+  if (!TYPE_SIZE_UNIT (dctype)
+      || TREE_CODE (TYPE_SIZE_UNIT (dctype)) != INTEGER_CST
+      || !TYPE_DOMAIN (datype) || !TYPE_MIN_VALUE (TYPE_DOMAIN (datype))
+      || TREE_CODE (TYPE_MIN_VALUE (TYPE_DOMAIN (datype))) != INTEGER_CST)
+    return;
+
+  /* All checks succeeded.  Build a new node to merge the cast.  */
+  *expr_p = build4 (ARRAY_REF, dctype, obj_expr,
+		    TYPE_MIN_VALUE (TYPE_DOMAIN (datype)),
+		    TYPE_MIN_VALUE (TYPE_DOMAIN (datype)),
+		    size_binop (EXACT_DIV_EXPR, TYPE_SIZE_UNIT (dctype),
+				size_int (TYPE_ALIGN_UNIT (dctype))));
+  *expr_p = build1 (ADDR_EXPR, ctype, *expr_p);
+}
+
 enum gimplify_status
 gm2_gimplify_expr (tree *expr_p,
                    tree *pre_p,
@@ -1631,6 +1687,7 @@ gm2_gimplify_expr (tree *expr_p,
       op0 = TREE_OPERAND (expr, 0);
       gimplify_type_sizes (TREE_TYPE (op0), pre_p);
       gimplify_type_sizes (TREE_TYPE (expr), pre_p);
+      canonicalize_addr_expr (expr_p);
       return GS_OK;
       break;
     case THROW_EXPR:
@@ -2422,7 +2479,7 @@ is_a_constant (tree t)
 
 /*
  *  RememberConstant - adds a tree, t, onto the list of constants to be marked
- *                     whenever the ggc re-marks all used storage. Constants
+ *                     whenever the ggc re-marks all used storage.  Constants
  *                     live throughout the whole compilation - and they
  *                     can be used by many different functions if necessary.
  */
@@ -6529,18 +6586,22 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   } 
   else if (imported) {
     TREE_STATIC (decl)  = 0;
-    TREE_PUBLIC (decl)  = 1; /* imported; */  /* was 1 */
+    TREE_PUBLIC (decl)  = 1;
   }
   else {
     TREE_STATIC (decl)  = 0;
     TREE_PUBLIC (decl)  = 0;
   }
 
-  if (istemporary) {
+  if (istemporary && FALSE) {
     /* The variable was declared by the compiler.  */
     DECL_ARTIFICIAL (decl) = 1;
     /* and we don't want debug info for it.  */
     DECL_IGNORED_P (decl) = 1;
+  }
+  else {
+    DECL_ARTIFICIAL (decl) = 0;
+    DECL_IGNORED_P (decl) = 0;
   }
 
   DECL_CONTEXT (decl)    = scope;
@@ -8083,9 +8144,9 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
 
   cur_stmt_list = NULL;
 
-  // dump_function (TDI_original, fndecl);
+  dump_function (TDI_original, fndecl);
   gimplify_function_tree (fndecl);
-  // dump_function (TDI_generic, fndecl);
+  dump_function (TDI_generic, fndecl);
 
   if (nested) {
     (void) cgraph_node (fndecl);

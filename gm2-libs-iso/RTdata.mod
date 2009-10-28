@@ -139,6 +139,7 @@ BEGIN
          END ;
          DelKey(mids, m) ;
          md^.free(md^.data) ;
+         md^.data := NIL ;
          DISPOSE(md)
       ELSE
          last := md ;

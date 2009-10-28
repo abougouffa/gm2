@@ -1,9 +1,23 @@
+2009-10-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  gccgm2_DeclareKnownVariable set
+	  DECL_ARTIFICIAL and DECL_IGNORED_P to 0.
+	* gm2/gm2-libs-iso/RTdata.mod:  assign data to NIL
+	  once freedata has been called.
+	* gm2/gm2-libs-iso/TermFile.mod:  removed commented
+	  out code and completed initialization of t in
+	  openTerm.
+	* gm2/gm2-libs-iso/TermFile.def:  removed commented
+	  out code.
+
 2009-10-23       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/dtoa.c:  fixes to dtoa_calcdecimal
 	  so that the correct number of digits after the decimal 
 	  place is returned.  Fixes a bug reported by James
 	  Cox <jvcox@sandia.gov>.
+	* gm2/gm2-libs-pim/RealConversions.mod:  turn debugging
+	  off.
 	
 2009-10-22       Gaius Mulley <gaius@gnu.org>
 
