@@ -30,6 +30,38 @@ BEGIN
            (IOChan.ReadResult(cid)=IOConsts.allRight) )
 END CanRead ;
 
+PROCEDURE WasGoodChar (cid: IOChan.ChanId) : BOOLEAN ;
+BEGIN
+   RETURN( (IOChan.ReadResult(cid)#IOConsts.endOfLine) AND
+           (IOChan.ReadResult(cid)#IOConsts.endOfInput) )
+END WasGoodChar ;
+
+
+(*
+   SetResult - assigns the result in cid.
+               If s is empty then leave as endOfInput
+                  or endOfLine
+               If s is not empty then assign allRight
+               If range and i exceeds, h, then assign outOfRange
+*)
+
+PROCEDURE SetResult (cid: IOChan.ChanId; i: CARDINAL;
+                     VAR s: ARRAY OF CHAR; range: BOOLEAN) ;
+BEGIN
+   IF i<=HIGH(s)
+   THEN
+      s[i] := ASCII.nul ;
+      IF i>0
+      THEN
+         IOChan.SetReadResult(cid, IOConsts.allRight)
+      END
+   ELSIF range
+   THEN
+      IOChan.SetReadResult(cid, IOConsts.outOfRange)
+   END
+END SetResult ;
+
+
 PROCEDURE ReadChar (cid: IOChan.ChanId; VAR ch: CHAR);
   (* If possible, removes a character from the input stream
      cid and assigns the corresponding value to ch.  The
@@ -52,26 +84,30 @@ END ReadChar ;
 PROCEDURE ReadRestLine (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
   (* Removes any remaining characters from the input stream
      cid before the next line mark,  copying to s as many as
-     can be accommodated as a string value. The read result is
+     can be accommodated as a string value.  The read result is
      set to the value allRight, outOfRange, endOfLine, or
      endOfInput.
   *)
 VAR
-   i, h: CARDINAL ;
+   i, h    : CARDINAL ;
+   finished: BOOLEAN ;
 BEGIN
    h := HIGH(s) ;
    i := 0 ;
-   WHILE (i<=h) AND CanRead(cid) DO
+   finished := FALSE ;
+   WHILE (i<=h) AND CanRead(cid) AND (NOT finished) DO
       ReadChar(cid, s[i]) ;
-      INC(i)
+      IF WasGoodChar(cid)
+      THEN
+         INC(i)
+      ELSE
+         finished := TRUE
+      END
    END ;
    WHILE CanRead(cid) DO
       IOChan.Skip(cid)
    END ;
-   IF i<=h
-   THEN
-      s[i] := ASCII.nul
-   END
+   SetResult(cid, i, s, TRUE)
 END ReadRestLine ;
 
 PROCEDURE ReadString (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
@@ -81,18 +117,22 @@ PROCEDURE ReadString (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
      is set to the value allRight, endOfLine, or endOfInput.
   *)
 VAR
-   i, h: CARDINAL ;
+   i, h    : CARDINAL ;
+   finished: BOOLEAN ;
 BEGIN
    h := HIGH(s) ;
    i := 0 ;
-   WHILE (i<=h) AND CanRead(cid) DO
+   finished := FALSE ;
+   WHILE (i<=h) AND CanRead(cid) AND (NOT finished) DO
       ReadChar(cid, s[i]) ;
-      INC(i)
+      IF WasGoodChar(cid)
+      THEN
+         INC(i)
+      ELSE
+         finished := TRUE
+      END
    END ;
-   IF i<=h
-   THEN
-      s[i] := ASCII.nul
-   END
+   SetResult(cid, i, s, FALSE)
 END ReadString ;
 
 PROCEDURE ReadToken (cid: IOChan.ChanId; VAR s: ARRAY OF CHAR);
@@ -111,18 +151,12 @@ BEGIN
       ReadChar(cid, s[i]) ;
       IF CharClass.IsWhiteSpace(s[i])
       THEN
-         IF i<=h
-         THEN
-            s[i] := ASCII.nul
-         END ;
+         SetResult(cid, i, s, TRUE) ;
          RETURN
       END ;
       INC(i)
    END ;
-   IF i<=h
-   THEN
-      s[i] := ASCII.nul
-   END
+   SetResult(cid, i, s, TRUE)
 END ReadToken ;
 
   (* The following procedure reads past the next line mark *)

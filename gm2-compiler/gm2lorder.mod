@@ -42,7 +42,7 @@ IMPORT DynamicStrings ;
 
 CONST
    Comment = '#' ;               (* Comment identifier.     *)
-   DefaultRuntimeModules = 'Storage,SYSTEM,M2RTS,RTExceptions' ;
+   DefaultRuntimeModules = 'Storage,SYSTEM,M2RTS,RTExceptions,IOLink' ;
 
 VAR
    fi, fo    : File ;

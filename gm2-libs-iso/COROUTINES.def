@@ -4,23 +4,23 @@
 
    Copyright ISO/IEC (International Organization for Standardization
    and International Electrotechnical Commission) 1996, 1997, 1998,
-   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006 *)
+   1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 *)
 
 DEFINITION MODULE COROUTINES;
 
 (* Facilities for coroutines and the handling of interrupts *)
 
 IMPORT SYSTEM ;
-IMPORT pth ;
+
 
 CONST
-   UnassignedPriority = pth.PTH_PRIO_MIN - 1 ;
+  UnassignedPriority = 0 ;
 
 TYPE
-  COROUTINE; (* Values of this type are created dynamically by NEWCOROUTINE 
-                and identify the coroutine in subsequent operations *)
-  INTERRUPTSOURCE;
-  PROTECTION = [UnassignedPriority..pth.PTH_PRIO_MAX]
+  COROUTINE ; (* Values of this type are created dynamically by NEWCOROUTINE 
+                 and identify the coroutine in subsequent operations *)
+  INTERRUPTSOURCE = CARDINAL ;
+  PROTECTION = [UnassignedPriority..7] ;
 
 
 PROCEDURE NEWCOROUTINE (procBody: PROC;

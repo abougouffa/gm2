@@ -305,7 +305,11 @@ link.
 specify, using a comma separated list, the runtime modules and their
 order.  These modules will initialized first before any other modules
 in the application dependancy.  By default the runtime modules list is
-set to @code{Storage,SYSTEM,M2RTS,RTExceptions}.
+set to @code{Storage,SYSTEM,M2RTS,RTExceptions,IOLink}.  Note that
+these modules will only be linked into your executable if they are
+required.  So adding a long list of dependant modules will not effect
+the size of the executable it merely states the initialisation order
+should they be required.
 
 @item -fnil
 generate code to detect accessing data through a

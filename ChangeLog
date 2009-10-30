@@ -1,3 +1,22 @@
+2009-10-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  new default initialization ordering
+	  of modules, documented, and explained in more detail.
+	* gm2/lang-specs.h:  bug fixes to -fuselist, -fmakelist.
+	* gm2/gm2-compiler/gm2lorder.mod:  new value for
+	  DefaultRuntimeModules.
+	* gm2/gm2-libs-coroutines/SysVec.def:  updated dates.
+	* gm2/gm2-libs-iso/COROUTINES.def:  updated dates.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  new implementation
+	  (partially complete).
+	* gm2/gm2-libs-iso/TextIO.def:  updated dates.
+	* gm2/gm2-libs-iso/TextIO.mod:  fixes to bugs reported
+	  by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2009-10/msg00043.html).
+	* testsuite/gm2/isolib/run/pass/testio.mod:   new test.
+	* testsuite/gm2/isolib/run/pass/testio2.mod:   new test.
+	* testsuite/gm2/isolib/run/pass/testinput:   new file.
+	
 2009-10-28       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  gccgm2_DeclareKnownVariable set
