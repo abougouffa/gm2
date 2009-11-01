@@ -72,7 +72,8 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	GetSubrange, PutSubrange, GetArraySubscript,
       	       	     	NoOfParam, GetNthParam,
                         PushValue, PopValue, PopSize,
-                        IsTemporary, IsUnbounded, IsEnumeration, IsVar,
+                        IsTemporary, IsUnbounded, IsPartialUnbounded,
+                        IsEnumeration, IsVar,
       	       	     	IsSubrange, IsPointer, IsRecord, IsArray,
                         IsFieldEnumeration,
                         IsProcedure, IsProcedureNested, IsModule,
@@ -88,7 +89,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsInnerModule, IsUnknown,
                         IsProcedureReachable, IsParameter, IsConstLit,
                         IsDummy, IsVarAParam, IsProcedureVariable,
-                        IsGnuAsmVolatile, IsObject, IsTuple,
+                        IsGnuAsm, IsGnuAsmVolatile, IsObject, IsTuple,
                         IsError, IsHiddenType,
                         IsDefinitionForC, IsHiddenTypeDeclared,
       	       	     	GetMainModule, GetBaseModule, GetModule,
@@ -739,6 +740,10 @@ BEGIN
    ELSIF IsUnbounded(sym)
    THEN
       RETURN( IsUnboundedDependants(sym, q) )
+   ELSIF IsPartialUnbounded(sym)
+   THEN
+      InternalError('should not be declaring a partial unbounded symbol',
+                    __FILE__, __LINE__)
    ELSIF IsSet(sym)
    THEN
       RETURN( IsSetDependants(sym, q) )
@@ -2211,6 +2216,7 @@ BEGIN
    IncludeElementIntoSet(WatchList, 1006) ;
     *)
    (* AddSymToWatch(8) ; *)
+   (* IncludeElementIntoSet(WatchList, 4188) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -2918,6 +2924,19 @@ END IncludeUnbounded ;
 
 
 (*
+   IncludePartialUnbounded - includes the type component of a partial unbounded symbol.
+*)
+
+PROCEDURE IncludePartialUnbounded (l: List; sym: CARDINAL) ;
+BEGIN
+   IF GetType(sym)#NulSym
+   THEN
+      IncludeItemIntoList(l, GetType(sym))
+   END
+END IncludePartialUnbounded ;
+
+
+(*
    PrintDeclared - prints out where, sym, was declared.
 *)
 
@@ -3052,6 +3071,10 @@ BEGIN
    THEN
       printf2('sym %d IsUnbounded (%a)', sym, n) ;
       IncludeUnbounded(l, sym)
+   ELSIF IsPartialUnbounded(sym)
+   THEN
+      printf2('sym %d IsPartialUnbounded (%a)', sym, n) ;
+      IncludePartialUnbounded(l, sym)
    ELSIF IsRecordField(sym)
    THEN
       printf2('sym %d IsRecordField (%a)', sym, n) ;
@@ -3138,9 +3161,14 @@ BEGIN
    ELSIF IsTuple(sym)
    THEN
       printf2('sym %d IsTuple (%a)', sym, n)
-   ELSIF IsGnuAsmVolatile(sym)
+   ELSIF IsGnuAsm(sym)
    THEN
-      printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
+      IF IsGnuAsmVolatile(sym)
+      THEN
+         printf2('sym %d IsGnuAsmVolatile (%a)', sym, n)
+      ELSE
+         printf2('sym %d IsGnuAsm (%a)', sym, n)
+      END
    END ;
 
    IF IsHiddenType(sym)

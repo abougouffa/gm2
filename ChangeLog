@@ -1,3 +1,17 @@
+2009-11-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  IsTypeQ check to
+	  see that we are not trying to declare a PartialUnbounded
+	  symbol.  (IncludePartialUnbounded) New procedure.
+	  PrintVerboseFromList call IncludePartialUnbounded if
+	  necessary and check for GnuAsm symbols.
+	* gm2/gm2-compiler/SymbolTable.mod:  MakePointer, MakeSet,
+	  MakeProcType must also call ForeachOAFamily.  GetScope
+	  to call InternalError if trying to get the scope of
+	  a PartialUnbounded symbol.
+	* fixes a bug reported by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2009-10/msg00048.html).
+
 2009-10-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  new default initialization ordering

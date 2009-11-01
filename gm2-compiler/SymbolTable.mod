@@ -3027,7 +3027,7 @@ END HandleHiddenOrDeclare ;
 
 
 (*
-   MakeRecord - makes the a Record symbol with name RecordName.
+   MakeRecord - makes a Record symbol with name RecordName.
 *)
 
 PROCEDURE MakeRecord (RecordName: Name) : CARDINAL ;
@@ -7610,7 +7610,12 @@ VAR
    oaf, sym: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(PointerName, oaf) ;
+   IF sym=465
+   THEN
+      stop
+   END ;
    FillInPointerFields(sym, PointerName, GetCurrentScope(), oaf) ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakePointer ;
 
@@ -7850,6 +7855,7 @@ BEGIN
          END
       END
    END ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeSet ;
 
@@ -8082,14 +8088,14 @@ VAR
 BEGIN
    oaf := MakeOAFamily(SimpleType) ;
    sym := GetUnbounded(oaf, ndim) ;
-   IF (sym=9837) OR (sym=9266)
+   IF sym=4188
    THEN
       stop
    END ;
    IF sym=NulSym
    THEN
       NewSym(sym) ;
-      IF (sym=9837) OR (sym=9266)
+      IF sym=4188
       THEN
          stop
       END ;
@@ -8676,7 +8682,8 @@ BEGIN
       PointerSym         : RETURN( Pointer.Scope ) |
       RecordSym          : RETURN( Record.Scope ) |
       SetSym             : RETURN( Set.Scope ) |
-      UnboundedSym       : RETURN( Unbounded.Scope )
+      UnboundedSym       : RETURN( Unbounded.Scope ) |
+      PartialUnboundedSym: InternalError('should not be requesting the scope of a PartialUnbounded symbol', __FILE__, __LINE__)
 
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)
@@ -8802,6 +8809,7 @@ BEGIN
          END
       END
    END ;
+   ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
 END MakeProcType ;
 
