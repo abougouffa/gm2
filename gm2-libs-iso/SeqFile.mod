@@ -201,7 +201,7 @@ PROCEDURE OpenWrite (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet;
                      VAR res: OpenResults) ;
 BEGIN
    INCL(flags, ChanConsts.writeFlag) ;
-   IF NOT ChanConsts.rawFlag IN flags
+   IF NOT (ChanConsts.rawFlag IN flags)
    THEN
       INCL(flags, ChanConsts.textFlag)
    END ;

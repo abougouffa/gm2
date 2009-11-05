@@ -237,11 +237,11 @@ PROCEDURE OpenOld (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet;
   *)
 BEGIN
    INCL(flags, ChanConsts.oldFlag) ;
-   IF NOT ChanConsts.writeFlag IN flags
+   IF NOT (ChanConsts.writeFlag IN flags)
    THEN
       INCL(flags, ChanConsts.readFlag)
    END ;
-   IF NOT ChanConsts.textFlag IN flags
+   IF NOT (ChanConsts.textFlag IN flags)
    THEN
       INCL(flags, ChanConsts.rawFlag)
    END ;
@@ -261,7 +261,7 @@ PROCEDURE OpenClean (VAR cid: ChanId; name: ARRAY OF CHAR; flags: FlagSet;
   *)
 BEGIN
    INCL(flags, ChanConsts.writeFlag) ;
-   IF NOT ChanConsts.textFlag IN flags
+   IF NOT (ChanConsts.textFlag IN flags)
    THEN
       INCL(flags, ChanConsts.rawFlag)
    END ;

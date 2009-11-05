@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -273,8 +273,67 @@ END CURRENT ;
 PROCEDURE LISTEN (p: PROTECTION);
   (* Momentarily changes the protection of the calling coroutine to p. *)
 BEGIN
-   
+   localInit ;
+   Listen(FALSE, IOTransferHandler, MIN(PRIORITY))
 END LISTEN ;
+
+
+(*
+   ListenLoop - should be called instead of users writing:
+
+                LOOP
+                   LISTEN
+                END
+
+                It performs the same function but yields
+                control back to the underlying operating system.
+                It also checks for deadlock.
+                This will yield processor to the underlying
+                operating system under GNU pth.
+                This function returns when an interrupt occurs.
+                (File descriptor becomes ready or time event expires).
+*)
+
+PROCEDURE ListenLoop ;
+BEGIN
+   localInit ;
+   Listen(TRUE, IOTransferHandler, MIN(PRIORITY))
+END ListenLoop ;
+
+
+(*
+   IOTransferHandler - handles interrupts related to a pending IOTRANSFER.
+*)
+
+PROCEDURE IOTransferHandler (InterruptNo: CARDINAL;
+                             Priority: CARDINAL ;
+                             l: PtrToIOTransferState) ;
+VAR
+   old: PtrToIOTransferState ;
+BEGIN
+   IF l=NIL
+   THEN
+      Halt(__FILE__, __LINE__, __FUNCTION__,
+           'no processes attached to this interrupt vector which is associated with IOTRANSFER')
+   ELSE
+      WITH l^ DO
+         old := AttachVector(InterruptNo, next) ;
+         IF old#l
+         THEN
+            Halt(__FILE__, __LINE__, __FUNCTION__,
+                 'inconsistancy of return result')
+         END ;
+         IF next=NIL
+         THEN
+            ExcludeVector(InterruptNo)
+         ELSE
+            printf('odd vector has been chained\n')
+         END ;
+         ptrToSecond^.context := currentContext ;
+         TRANSFER(ptrToSecond^, ptrToFirst^)
+      END
+   END
+END IOTransferHandler ;
 
 
 PROCEDURE PROT () : PROTECTION;
@@ -368,73 +427,8 @@ BEGIN
 END IOTRANSFER ;
 
 
-(*
-   IOTransferHandler - handles interrupts related to a pending IOTRANSFER.
-*)
-
-PROCEDURE IOTransferHandler (InterruptNo: CARDINAL;
-                             Priority: CARDINAL ;
-                             l: PtrToIOTransferState) ;
-VAR
-   old: PtrToIOTransferState ;
-BEGIN
-   IF l=NIL
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'no processes attached to this interrupt vector which is associated with IOTRANSFER')
-   ELSE
-      WITH l^ DO
-         old := AttachVector(InterruptNo, next) ;
-         IF old#l
-         THEN
-            Halt(__FILE__, __LINE__, __FUNCTION__,
-                 'inconsistancy of return result')
-         END ;
-         IF next=NIL
-         THEN
-            ExcludeVector(InterruptNo)
-         ELSE
-            printf('odd vector has been chained\n')
-         END ;
-         ptrToSecond^.context := currentContext ;
-         TRANSFER(ptrToSecond^, ptrToFirst^)
-      END
-   END
-END IOTransferHandler ;
 
 
-(*
-   LISTEN - briefly listen for any interrupts.
-*)
-
-PROCEDURE LISTEN ;
-BEGIN
-   localInit ;
-   Listen(FALSE, IOTransferHandler, MIN(PRIORITY))
-END LISTEN ;
-
-
-(*
-   ListenLoop - should be called instead of users writing:
-
-                LOOP
-                   LISTEN
-                END
-
-                It performs the same function but yields
-                control back to the underlying operating system.
-                It also checks for deadlock.
-                This will yield processor to the underlying
-                operating system under GNU pthreads.
-                This function returns when an interrupt occurs.
-                (File descriptor becomes ready or time event expires).
-*)
-
-PROCEDURE ListenLoop ;
-BEGIN
-   localInit ;
-   Listen(TRUE, IOTransferHandler, MIN(PRIORITY))
-END ListenLoop ;
 
 
 

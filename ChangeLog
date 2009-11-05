@@ -1,3 +1,13 @@
+2009-11-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/RndFile.def:  corrected dates.
+	* gm2/gm2-libs-iso/RndFile.mod:  corrected boolean
+	  expression bugs.
+	* gm2/gm2-libs-iso/SeqFile.mod:  corrected boolean
+	  expression bug.
+	* gm2/gm2-libs-iso/StreamFile.mod:  corrected boolean
+	  expression bug.
+
 2009-11-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GCCDeclare.mod:  IsTypeQ check to
