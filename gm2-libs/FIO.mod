@@ -504,9 +504,10 @@ BEGIN
                      a := ADDRESS(a+n) ;
                      DEC(nBytes, n) ;    (* reduce the amount for future direct *)
                                          (* read                                *)
-                     INC(total, n)
-                  END
-               END
+                     INC(total, n) ;
+                     RETURN( total )     (* much cleaner to return now,         *)
+                  END                    (* difficult to record an error if     *)
+               END                       (* the read below returns -1           *)
             END
          END ;
          IF nBytes>0

@@ -2,7 +2,11 @@ Pre 1.0
 
 *  fix RealInOut <input 3.14e4 and 3.14E5 - reported by Steve Giess
    <scgiess@hotmail.com>
-*  finish ISO libraries
+*  finish ISO libraries:
+*    SysVec one copy only between PIM and ISO.
+*    finish COROUTINES and PROCESSES.
+*    ensure that PIM SYSTEM.PRIORITY is replaced by
+     rtint.PROTECTION
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,

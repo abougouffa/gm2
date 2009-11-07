@@ -23,6 +23,7 @@ FROM IOChan IMPORT ChanId, InvalidChan, ChanExceptions ;
 FROM IOLink IMPORT DeviceTablePtr, DeviceTablePtrValue,
                    RAISEdevException ;
 
+IMPORT ChanConsts ;
 IMPORT IOConsts ;
 IMPORT ErrnoCategory ;
 IMPORT RTgen ;
@@ -137,7 +138,7 @@ END checkErrno ;
 
 PROCEDURE checkPreRead (g: ChanDev;
                         d: DeviceTablePtr;
-                        raise: BOOLEAN) ;
+                        raise, raw: BOOLEAN) ;
 BEGIN
    WITH d^ DO
       IF isEOF(g^.genif, d)
@@ -148,7 +149,7 @@ BEGIN
             RAISEdevException(cid, did, skipAtEnd,
                               'attempting to read beyond end of file')
          END
-      ELSIF isEOLN(g^.genif, d)
+      ELSIF (NOT raw) AND isEOLN(g^.genif, d)
       THEN
          result := IOConsts.endOfLine
       ELSE
@@ -268,7 +269,7 @@ BEGIN
    checkValid(g, d) ;
    WITH d^ DO
       checkErrno(g, d) ;
-      checkPreRead(g, d, RaiseEOFinLook(g)) ;
+      checkPreRead(g, d, RaiseEOFinLook(g), ChanConsts.rawFlag IN flags) ;
       IF (result=IOConsts.allRight) OR (result=IOConsts.notKnown) OR
          (result=IOConsts.endOfLine) 
       THEN
@@ -292,7 +293,7 @@ VAR
 BEGIN
    checkValid(g, d) ;
    WITH d^ DO
-      checkPreRead(g, d, RaiseEOFinSkip(g)) ;
+      checkPreRead(g, d, RaiseEOFinSkip(g), ChanConsts.rawFlag IN flags) ;
       ch := doReadChar(g^.genif, d) ;
       checkPostRead(g, d)
    END
@@ -342,7 +343,7 @@ BEGIN
    checkFlags(read+text, d) ;
    WITH d^ DO
       INCL(flags, textFlag) ;
-      checkPreRead(g, d, FALSE) ;
+      checkPreRead(g, d, FALSE, FALSE) ;
       IF NOT doRBytes(g^.genif, d, to, maxChars, charsRead)
       THEN
          checkErrno(g, d) ;
@@ -393,7 +394,7 @@ BEGIN
    checkFlags(read+raw, d) ;
    WITH d^ DO
       INCL(flags, rawFlag) ;
-      checkPreRead(g, d, FALSE) ;
+      checkPreRead(g, d, FALSE, TRUE) ;
       IF NOT doRBytes(g^.genif, d, to, maxLocs, locsRead)
       THEN
          checkErrno(g, d) ;

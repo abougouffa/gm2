@@ -167,11 +167,15 @@ PROCEDURE SkipLine (cid: IOChan.ChanId);
      of input is reached.  The read result is set to the
      value allRight, or endOfInput.
   *)
+VAR
+   ch : CHAR ;
+   res: IOConsts.ReadResults ;
 BEGIN
-   WHILE CanRead(cid) DO
-      IOChan.Skip(cid)
+   IOChan.Look(cid, ch, res) ;
+   WHILE res=IOConsts.allRight DO
+      IOChan.SkipLook(cid, ch, res)
    END ;
-   IF IOChan.ReadResult(cid)=IOConsts.endOfLine
+   IF res=IOConsts.endOfLine
    THEN
       IOChan.Skip(cid)
    END
