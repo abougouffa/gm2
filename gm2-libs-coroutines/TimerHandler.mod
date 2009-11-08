@@ -16,15 +16,15 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 
-IMPLEMENTATION MODULE TimerHandler[MAX(PRIORITY)] ;
+IMPLEMENTATION MODULE TimerHandler[MAX(PROTECTION)] ;
 
 
-FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM SysStorage IMPORT ALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
 FROM Debug IMPORT Halt, DebugString ;
 FROM KeyBoardLEDs IMPORT SwitchScroll ;
-FROM SysVec IMPORT ReArmTimeVector, GetTimeVector, InitTimeVector ;
+FROM RTint IMPORT ReArmTimeVector, GetTimeVector, InitTimeVector ;
 FROM Executive IMPORT DESCRIPTOR, Suspend, Resume, GetCurrentProcess,
                       WaitForIO, InitProcess, RotateRunQueue,
                       ProcessName, Ps ;
@@ -72,10 +72,10 @@ VAR
 
 PROCEDURE GetTicks () : CARDINAL ;
 VAR
-   ToOldState : PRIORITY ;
+   ToOldState : PROTECTION ;
    CopyOfTicks: CARDINAL ;
 BEGIN
-(*   ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *) *)
+(*   ToOldState := TurnInterrupts(MAX(PROTECTION)) ;      (* disable interrupts *) *)
    CopyOfTicks := TotalTicks ;
 (*   ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( CopyOfTicks )
@@ -89,9 +89,9 @@ END GetTicks ;
  
 PROCEDURE Sleep (t: CARDINAL) ;
 VAR
-   ToOldState  : PRIORITY ;
+   ToOldState  : PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;               (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;               (* disable interrupts *) *)
 
    (* your code needs to go here *)
    IF WaitOn(ArmEvent(t))                            (* remove for student *)
@@ -117,10 +117,10 @@ END Sleep ;
 PROCEDURE ArmEvent (t: CARDINAL) : EVENT ;
 VAR
    e         : EVENT ;
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    Ticks     : CARDINAL ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    e := CreateSolo() ;
 
    (* your code needs to go here *)
@@ -147,10 +147,10 @@ END ArmEvent ;
  
 PROCEDURE WaitOn (e: EVENT) : BOOLEAN ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    Cancelled : BOOLEAN ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    IF e=NIL
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -194,11 +194,11 @@ END WaitOn ;
 
 PROCEDURE Cancel (e: EVENT) : BOOLEAN ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    Cancelled : BOOLEAN ;
    Private   : DESCRIPTOR ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    IF IsOnActiveQueue(e)
    THEN
       WITH e^ DO
@@ -240,10 +240,10 @@ END Cancel ;
 
 PROCEDURE ReArmEvent (e: EVENT; t: CARDINAL) : BOOLEAN ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    ReArmed   : BOOLEAN ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    WITH e^ DO
       IF WasCancelled
       THEN
@@ -300,16 +300,16 @@ END LoadClock ;
 PROCEDURE Timer ;
 VAR
    CurrentCount: CARDINAL ;
-   ToOldState  : PRIORITY ;
+   ToOldState  : PROTECTION ;
    ScrollLED   : BOOLEAN ;
    TimerIntNo  : CARDINAL ;
    r           : INTEGER ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ; *)
    ScrollLED := FALSE ;
    TimerIntNo := InitTimeVector((BaseTicks DIV TicksPerSecond) MOD BaseTicks,
                                 (BaseTicks DIV TicksPerSecond) DIV BaseTicks,
-                                MAX(PRIORITY)) ;
+                                MAX(PROTECTION)) ;
    LOOP
       WaitForIO(TimerIntNo) ;
 

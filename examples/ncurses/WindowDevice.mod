@@ -1,4 +1,5 @@
-(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006, 2007, 2008, 2009
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or
@@ -14,6 +15,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+
 IMPLEMENTATION MODULE WindowDevice ;
 
 
@@ -21,7 +23,8 @@ FROM SysStorage IMPORT ALLOCATE, DEALLOCATE ;
 FROM ASCII IMPORT cr, lf, bs ;
 FROM StrLib IMPORT StrLen, StrCopy ;
 FROM NumberIO IMPORT WriteCard, WriteHex ;
-FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
+FROM SYSTEM IMPORT TurnInterrupts ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM M2RTS IMPORT Halt ;
 FROM ncurses IMPORT Black, White, ATTRIBUTE, COLORPAIR, chtype ;
 
@@ -75,10 +78,10 @@ VAR
 
 PROCEDURE InitWindow () : Window ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
    w                : Window ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    NEW(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState) ;
    RETURN( w )
@@ -91,9 +94,9 @@ END InitWindow ;
 
 PROCEDURE KillWindow (w: Window) : Window ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    DISPOSE( w ) ;
    w := NIL ;
    OldInterruptState := TurnInterrupts(OldInterruptState) ;
@@ -113,9 +116,9 @@ PROCEDURE SetWindow (w: Window; bg, fg: CARDINAL;
                      border: BOOLEAN) : Window ;
 VAR
    i, j             : CARDINAL ;
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    WITH w^ DO
       Xoffset := x ;
       Yoffset := y ;
@@ -147,9 +150,9 @@ END SetWindow ;
 
 PROCEDURE AddWindow (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    AddToList( Top, w ) ;
    RefreshWindow( w ) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
@@ -164,9 +167,9 @@ PROCEDURE SubWindow (w: Window) ;
 VAR
    t                : Window ;
    x, y, j, l       : CARDINAL ;
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    t := w^.Down ;
    IF t=Top
    THEN
@@ -210,9 +213,9 @@ END NulWindow ;
 
 PROCEDURE MoveCursor (w: Window; x, y: CARDINAL) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    WITH w^ DO
       Xcursor := x ;
       Ycursor := y
@@ -224,9 +227,9 @@ END MoveCursor ;
 
 PROCEDURE LargeCursor (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    w^.Cur := large ;
    UpdateCursor(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
@@ -235,9 +238,9 @@ END LargeCursor ;
 
 PROCEDURE SmallCursor (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    w^.Cur := small ;
    UpdateCursor(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
@@ -246,9 +249,9 @@ END SmallCursor ;
 
 PROCEDURE NoCursor (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    w^.Cur := none ;
    UpdateCursor(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
@@ -258,9 +261,9 @@ END NoCursor ;
 PROCEDURE ClearWindow (w: Window) ;
 VAR
    i, j             : CARDINAL ;
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    WITH w^ DO
       FOR j := 0 TO Height DO
          FOR i := 0 TO Width DO
@@ -281,9 +284,9 @@ END ClearWindow ;
 
 PROCEDURE MoveWindow (w: Window; x, y: CARDINAL) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    WITH w^ DO
       Xoffset := x ;
       Yoffset := y ;
@@ -298,10 +301,10 @@ END MoveWindow ;
 
 PROCEDURE DefaultWindow () : Window ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
    w                : Window ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    w := Default ;
    OldInterruptState := TurnInterrupts(OldInterruptState) ;
    RETURN( w )
@@ -314,9 +317,9 @@ END DefaultWindow ;
 
 PROCEDURE SetDefaultWindow (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    Default := w ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
 END SetDefaultWindow ;
@@ -328,9 +331,9 @@ END SetDefaultWindow ;
 
 PROCEDURE WriteChar (w: Window; ch: CHAR) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    IF w#NIL
    THEN
       PerformWriteChar (w, ch)
@@ -452,9 +455,9 @@ END ReadChar ;
 
 PROCEDURE ColourWindow (w: Window; bg, fg: CARDINAL) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    WITH w^ DO
       FgCol := fg ;
       BgCol := bg ;
@@ -480,9 +483,9 @@ END SizeWindow ;
 
 PROCEDURE PutOnTop (w: Window) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    Top := w ;
    RefreshWindow(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)
@@ -497,9 +500,9 @@ END PutOnTop ;
 PROCEDURE PutOnBottom (w: Window) ;
 VAR
    j, l, x, y       : CARDINAL ;
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    SubFromList( Top, w ) ;
    AddToList( Top, w ) ;
    l := WindowWidth(w) ;
@@ -521,9 +524,9 @@ END PutOnBottom ;
 PROCEDURE SelectWindow (x, y: CARDINAL) : Window ;
 VAR
    t                : Window ;
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    t := Top ;
    WHILE (t#NIL) AND (NOT InsideWindow( t, x, y )) DO
       t := t^.Down ;
@@ -543,9 +546,9 @@ END SelectWindow ;
 
 PROCEDURE TitleWindow (w: Window; a: ARRAY OF CHAR) ;
 VAR
-   OldInterruptState: PRIORITY ;
+   OldInterruptState: PROTECTION ;
 BEGIN
-   OldInterruptState := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInterruptState := TurnInterrupts(MAX(PROTECTION)) ;
    StrCopy(a, w^.Title) ;
    RefreshTitle(w) ;
    OldInterruptState := TurnInterrupts(OldInterruptState)

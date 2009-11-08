@@ -1,4 +1,4 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -16,13 +16,13 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 
-IMPLEMENTATION MODULE SysVec ;
+IMPLEMENTATION MODULE RTint ;
 
 
 FROM M2RTS IMPORT Halt ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM pth IMPORT pth_select ;
-FROM SYSTEM IMPORT PRIORITY ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM libc IMPORT printf, perror ;
 FROM Assertion IMPORT Assert ;
 
@@ -47,25 +47,12 @@ TYPE
                               rel,
                               abs     : Timeval ;
                               queued  : BOOLEAN ;
-                              
-(*  BUG IN GM2
-                              CASE type OF
-
-                              time  : rel,
-                                      abs   : Timeval ;
-                                      queued: BOOLEAN ;
-                                      Secs  : CARDINAL |
-                              input,
-                              output: File  : INTEGER
-
-                              END
-*)
                            END ;
 
 VAR
    VecNo  : CARDINAL ;
    Exists : Vector ;
-   Pending: ARRAY [MIN(PRIORITY)..MAX(PRIORITY)] OF Vector ;
+   Pending: ARRAY [MIN(PROTECTION)..MAX(PROTECTION)] OF Vector ;
 
 
 (*
@@ -238,7 +225,7 @@ VAR
    i: CARDINAL ;
    v: Vector ;
 BEGIN
-   FOR i := MIN(PRIORITY) TO MAX(PRIORITY) DO
+   FOR i := MIN(PROTECTION) TO MAX(PROTECTION) DO
       v := Pending[i] ;
       WHILE (v#NIL) AND (v^.no#vec) DO
          v := v^.pending
@@ -426,12 +413,12 @@ END AddFd ;
 
 PROCEDURE DumpPendingQueue ;
 VAR
-   p   : PRIORITY ;
+   p   : PROTECTION ;
    v   : Vector ;
    s, m: CARDINAL ;
 BEGIN
    printf("Pending queue\n");
-   FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
+   FOR p := MIN(PROTECTION) TO MAX(PROTECTION) DO
       printf("[%d]  ", p);
       v := Pending[p] ;
       WHILE v#NIL DO
@@ -556,7 +543,7 @@ VAR
    maxFd: INTEGER ;
    p    : CARDINAL ;
 BEGIN
-   IF pri<MAX(PRIORITY)
+   IF pri<MAX(PROTECTION)
    THEN
       IF Debugging
       THEN
@@ -567,7 +554,7 @@ BEGIN
       i := NIL ;
       o := NIL ;
       t := InitTime(MAX(INTEGER), 0) ;
-      p := MAX(PRIORITY) ;
+      p := MAX(PROTECTION) ;
       found := FALSE ;
       WHILE p>pri DO
          v := Pending[p] ;
@@ -648,7 +635,7 @@ BEGIN
             END
          UNTIL r#-1
       END ;
-      p := MAX(PRIORITY) ;
+      p := MAX(PROTECTION) ;
       WHILE p>pri DO
          v := Pending[p] ;
          WHILE v#NIL DO
@@ -738,10 +725,10 @@ END Listen ;
 
 PROCEDURE Init ;
 VAR
-   p: PRIORITY ;
+   p: PROTECTION ;
 BEGIN
    Exists := NIL ;
-   FOR p := MIN(PRIORITY) TO MAX(PRIORITY) DO
+   FOR p := MIN(PROTECTION) TO MAX(PROTECTION) DO
       Pending[p] := NIL
    END
 END Init ;
@@ -749,4 +736,4 @@ END Init ;
 
 BEGIN
    Init
-END SysVec.
+END RTint.

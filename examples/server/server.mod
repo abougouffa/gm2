@@ -17,14 +17,15 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE server ;
 
-FROM SYSTEM IMPORT PRIORITY, ADR, SIZE ;
+FROM SYSTEM IMPORT ADR, SIZE ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM ASCII IMPORT lf, cr, nul ;
 FROM StrLib IMPORT StrLen ;
 
 FROM Executive IMPORT WaitForIO, InitProcess, InitSemaphore, Wait, Signal, Resume,
                       Suspend, DESCRIPTOR, SEMAPHORE, KillProcess ;
 
-FROM SysVec IMPORT InitInputVector ;
+FROM RTint IMPORT InitInputVector ;
 FROM sckt IMPORT tcpServerState, tcpServerEstablish, tcpServerAccept, tcpServerSocketFd ;
 FROM libc IMPORT printf, read, write ;
 
@@ -109,7 +110,7 @@ VAR
 BEGIN
    fd := NextFd ;
    Signal(ToBeTaken) ;
-   v := InitInputVector(fd, MAX(PRIORITY)) ;
+   v := InitInputVector(fd, MAX(PROTECTION)) ;
    printf("inside `theServer' using fd=%d\n", fd);
    LOOP
       WaitForIO(v) ;
@@ -130,7 +131,7 @@ VAR
 BEGIN
    s := tcpServerEstablish() ;
    ToBeTaken := InitSemaphore(1, 'ToBeTaken') ;
-   v := InitInputVector(tcpServerSocketFd(s), MAX(PRIORITY)) ;
+   v := InitInputVector(tcpServerSocketFd(s), MAX(PROTECTION)) ;
    LOOP
       printf("before WaitForIO\n");
       WaitForIO(v) ;

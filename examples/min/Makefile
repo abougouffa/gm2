@@ -6,6 +6,6 @@ all:  force
 	size a.out
 
 clean:  force
-	$(RM) a.out a.exe *.cpp
+	$(RM) a.out a.exe *.cpp *.o *.obj
 
 force:

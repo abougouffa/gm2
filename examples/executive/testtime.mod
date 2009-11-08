@@ -23,7 +23,8 @@ FROM StdIO IMPORT PushOutput ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM TimerHandler IMPORT EVENT, TicksPerSecond, Sleep, ArmEvent,
                          Cancel, WaitOn, ReArmEvent ;
-FROM SYSTEM IMPORT PRIORITY, TurnInterrupts ;
+FROM SYSTEM IMPORT TurnInterrupts ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM Executive IMPORT DESCRIPTOR, InitProcess, Resume, Ps ;
 FROM SYSTEM IMPORT ADR ;
 FROM libc IMPORT write ;
@@ -47,7 +48,7 @@ END LocalWrite ;
 
 PROCEDURE TenSeconds ;
 BEGIN
-   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   OldInts := TurnInterrupts(MIN(PROTECTION)) ;
    WriteString('.') ;
    LOOP
       Sleep(10*TicksPerSecond) ;
@@ -62,7 +63,7 @@ END TenSeconds ;
 
 PROCEDURE FifteenSeconds ;
 BEGIN
-   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   OldInts := TurnInterrupts(MIN(PROTECTION)) ;
    WriteString('.') ;
    LOOP
       Sleep(15*TicksPerSecond) ;
@@ -77,7 +78,7 @@ END FifteenSeconds ;
 
 PROCEDURE SixtySeconds ;
 BEGIN
-   OldInts := TurnInterrupts(MAX(PRIORITY)) ;
+   OldInts := TurnInterrupts(MAX(PROTECTION)) ;
    WriteString('.') ;
    LOOP
       Timeout := ArmEvent(60*TicksPerSecond) ;
@@ -98,11 +99,11 @@ CONST
 VAR
    p10, p15,
    p60     : DESCRIPTOR ;
-   OldInts : PRIORITY ;
+   OldInts : PROTECTION ;
    Timeout : EVENT ;
    ch      : CHAR ;
 BEGIN
-   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   OldInts := TurnInterrupts(MIN(PROTECTION)) ;
    PushOutput(LocalWrite) ;
    WriteString('got to OS\n') ;
 

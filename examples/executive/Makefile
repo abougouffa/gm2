@@ -34,6 +34,6 @@ winexec: force
 	mv a.out $@
 
 clean: force
-	$(RM) *.o a.out testtime testexecutive winexec
+	$(RM) *.o a.out testtime testexecutive winexec *_m2.cpp
 
 force:

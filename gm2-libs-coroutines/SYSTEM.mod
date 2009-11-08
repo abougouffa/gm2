@@ -1,4 +1,4 @@
-(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -14,15 +14,16 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE SYSTEM ;
 
 FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
                 pth_uctx_save, pth_uctx_switch, pth_init ;
 
-FROM SysVec IMPORT Listen, AttachVector,
-                   IncludeVector, ExcludeVector ;
+FROM RTint IMPORT Listen, AttachVector,
+                  IncludeVector, ExcludeVector ;
 
 FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
@@ -176,7 +177,7 @@ END IOTransferHandler ;
 PROCEDURE LISTEN ;
 BEGIN
    localInit ;
-   Listen(FALSE, IOTransferHandler, MIN(PRIORITY))
+   Listen(FALSE, IOTransferHandler, MIN(PROTECTION))
 END LISTEN ;
 
 
@@ -199,23 +200,18 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen(TRUE, IOTransferHandler, MIN(PRIORITY))
+   Listen(TRUE, IOTransferHandler, MIN(PROTECTION))
 END ListenLoop ;
 
 
 (*
-   TurnInterrupts - switches processor interrupts to the priority, to.
-                    It returns the old value.
-
-                    This function is available in this implementation
-                    to allow microkernel Modula-2 code to be
-                    compiled and run both under a Pthread implementation
-                    and a stand alone system.
+   TurnInterrupts - switches processor interrupts to the
+                    protection level, to.  It returns the old value.
 *)
 
-PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
+PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 VAR
-   old: PRIORITY ;
+   old: PROTECTION ;
 BEGIN
    Listen(FALSE, IOTransferHandler, currentIntValue) ;
    old := currentIntValue ;
@@ -289,5 +285,5 @@ BEGIN
    currentContext := NIL ;
    initPthreads := FALSE ;
    initMain := FALSE ;
-   currentIntValue := MIN(PRIORITY)
+   currentIntValue := MIN(PROTECTION)
 END SYSTEM.

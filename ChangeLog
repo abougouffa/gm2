@@ -1,3 +1,37 @@
+2009-11-08       Gaius Mulley <gaius@gnu.org>
+
+	* rename SysVec to RTint and introduce a tiny module
+	  COROUTINES for the pim libraries which just define
+	  PROTECTION.  Thus gm2 is able to share RTint between
+	  iso and pim libraries.
+	* gm2/Make-lang.in:  added RTint.def COROUTINES.def
+	  RTint.def COROUTINES.mod to the list of pim libraries.
+	  Removed SysVec.mod from list of pim coroutine libraries.
+	* gm2/examples/executive/Makefile:  improve clean rule.
+	* gm2/examples/executive/testexecutive.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/examples/executive/testtime.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/examples/executive/winexec.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/examples/hello/Makefile:  improve clean rule.
+	* gm2/examples/min/Makefile:  improve clean rule.
+	* gm2/examples/ncurses/WindowDevice.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/examples/server/server.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/gm2-compiler/M2Quads.mod:  New function
+	  (GetTurnInterrupts).
+	* gm2/gm2-libs-coroutines/Executive.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/gm2-libs-coroutines/SYSTEM.def:  remove PRIORITY,
+	  import PROTECTION, tidied up comments.
+	* gm2/gm2-libs-coroutines/SYSTEM.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/gm2-libs-coroutines/TimerHandler.mod:  replace
+	  PRIORITY with PROTECTION and change imports.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  intemediate checkin.
+	
 2009-11-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FIO.mod:  ReadFromBuffer return total

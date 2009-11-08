@@ -28,6 +28,7 @@ DEFINITION MODULE SYSTEM ;
                 NEWPROCESS through the GNU Pthread library.
 *)
 
+FROM COROUTINES IMPORT PROTECTION ;
 
 EXPORT QUALIFIED (* the following are built into the compiler: *)
                  ADDRESS, WORD, BYTE, BITSET, ADR, TSIZE, THROW,
@@ -36,17 +37,14 @@ EXPORT QUALIFIED (* the following are built into the compiler: *)
                  (* and the rest are implemented in SYSTEM.mod *)
                  PROCESS, TRANSFER, NEWPROCESS, IOTRANSFER,
                  LISTEN,
-
-                 ListenLoop, TurnInterrupts, PRIORITY ;
+                 ListenLoop, TurnInterrupts ;
 
 
 TYPE
    PROCESS  = RECORD
                  context: ADDRESS ;
-                 ints   : PRIORITY ;
+                 ints   : PROTECTION ;
               END ;
-
-   PRIORITY = [0..7] ;
 
 
 (*
@@ -102,23 +100,18 @@ PROCEDURE LISTEN ;
                 It also checks for deadlock.
                 This function returns when an interrupt occurs ie
                 a file descriptor becomes ready or a time event expires.
-                See the module SysVec.
+                See the module RTint.
 *)
 
 PROCEDURE ListenLoop ;
 
 
 (*
-   TurnInterrupts - switches processor interrupts to the priority, to.
-                    It returns the old value.
-
-                    This function is available in this implementation
-                    to allow microkernel Modula-2 code to be
-                    compiled and run both under a Pthread implementation
-                    and a stand alone system.
+   TurnInterrupts - switches processor interrupts to the protection
+                    level, to.  It returns the old value.
 *)
 
-PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
+PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 
 
 END SYSTEM.

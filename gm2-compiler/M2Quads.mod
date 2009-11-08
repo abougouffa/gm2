@@ -1719,6 +1719,21 @@ END CheckVariablesAt ;
 
 
 (*
+   GetTurnInterrupts - returns the TurnInterrupts procedure function.
+*)
+
+PROCEDURE GetTurnInterrupts () : CARDINAL ;
+BEGIN
+   IF Iso
+   THEN
+      RETURN( GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('COROUTINES')) )
+   ELSE
+      RETURN( GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) )
+   END
+END GetTurnInterrupts ;
+
+
+(*
    CheckNeedPriorityBegin - checks to see whether we need to save the old
                             module priority and change to another module
                             priority.
@@ -1734,7 +1749,7 @@ BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      ProcSym := GetTurnInterrupts() ;
       IF ProcSym#NulSym
       THEN
          old := MakeTemporary(RightValue) ;
@@ -1761,7 +1776,7 @@ BEGIN
    IF GetPriority(module)#NulSym
    THEN
       (* module has been given a priority *)
-      ProcSym := GetQualidentImport(MakeKey('TurnInterrupts'), MakeKey('SYSTEM')) ;
+      ProcSym := GetTurnInterrupts() ;
       IF ProcSym#NulSym
       THEN
          old := PopWord(PriorityStack) ;

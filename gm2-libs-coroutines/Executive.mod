@@ -15,13 +15,13 @@ You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
 
-IMPLEMENTATION MODULE Executive[MAX(PRIORITY)] ;
-
+IMPLEMENTATION MODULE Executive[MAX(PROTECTION)] ;
 
 FROM SYSTEM IMPORT ADDRESS, PROCESS, LISTEN, ADR,
                    NEWPROCESS, TRANSFER, IOTRANSFER, ListenLoop,
-                   PRIORITY, TurnInterrupts ;
+                   TurnInterrupts ;
 
+FROM COROUTINES IMPORT PROTECTION ;
 FROM SysStorage IMPORT ALLOCATE, DEALLOCATE ;
 FROM StrLib IMPORT StrCopy ;
 FROM StrLib IMPORT StrLen ;
@@ -114,10 +114,10 @@ PROCEDURE InitProcess (p: PROC;
                        Name: ARRAY OF CHAR) : DESCRIPTOR ;
 VAR
    d         : DESCRIPTOR ;
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    db        : ARRAY [0..80] OF CHAR ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    NEW(d) ;
    WITH d^ DO
       Size        := StackSize ;
@@ -148,9 +148,9 @@ END InitProcess ;
 
 PROCEDURE KillProcess ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;    (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;    (* disable interrupts *) *)
    SubFromReady(CurrentProcess) ;
    SubFromExists(ExistsQueue, CurrentProcess) ;
    GarbageItem := CurrentProcess ;
@@ -166,9 +166,9 @@ END KillProcess ;
 
 PROCEDURE Resume (d: DESCRIPTOR) : DESCRIPTOR ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
 
    (* your code needs to go here *)
    WITH d^ DO                                                                  (* remove for student *)
@@ -199,9 +199,9 @@ END Resume ;
 
 PROCEDURE Suspend ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    WITH CurrentProcess^ DO
       Status := Suspended
    END ;
@@ -219,9 +219,9 @@ END Suspend ;
 PROCEDURE InitSemaphore (v: CARDINAL; Name: ARRAY OF CHAR) : SEMAPHORE ;
 VAR
    s         : SEMAPHORE ;
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    NEW(s) ;
    WITH s^ DO
       Value := v ;                  (* initial value of semaphore           *)
@@ -243,9 +243,9 @@ END InitSemaphore ;
 
 PROCEDURE Wait (s: SEMAPHORE) ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
 
    (* your code needs to go here *)
    WITH s^ DO                                                                  (* remove for student *)
@@ -277,10 +277,10 @@ END Wait ;
 
 PROCEDURE Signal (s: SEMAPHORE) ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    d         : DESCRIPTOR ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    WITH s^ DO
       IF Who=NIL
       THEN
@@ -306,10 +306,10 @@ PROCEDURE WaitForIO (VectorNo: CARDINAL) ;
 VAR
    Calling   : DESCRIPTOR ;
    Next      : PROCESS ;
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    r         : INTEGER ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ; *)
 (*
    DebugString('inside WaitForIO ') ;
    DebugString(CurrentProcess^.RunName) ;
@@ -365,12 +365,12 @@ END WaitForIO ;
 
 PROCEDURE Ps ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    p         : DESCRIPTOR ;
    s         : SEMAPHORE ;
    a         : ARRAY [0..5] OF CHAR ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    p := ExistsQueue ;
    IF p#NIL
    THEN
@@ -449,10 +449,10 @@ END WriteNSpaces ;
 
 PROCEDURE GetCurrentProcess () : DESCRIPTOR ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
    p         : DESCRIPTOR ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;      (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;      (* disable interrupts *) *)
    p := CurrentProcess ;
 (* ToOldState := TurnInterrupts(ToOldState) ;         (* restore interrupts *) *)
    RETURN( p )
@@ -465,9 +465,9 @@ END GetCurrentProcess ;
 
 PROCEDURE RotateRunQueue ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ;                (* disable interrupts *) *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ;                (* disable interrupts *) *)
    (* we only need to rotate the lo priority processes as:
       idle - should only have one process (the idle process)
       hi   - are the device drivers which most of the time are performing
@@ -498,9 +498,9 @@ END ProcessName ;
 
 PROCEDURE DebugProcess (d: DESCRIPTOR) ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-(* ToOldState := TurnInterrupts(MAX(PRIORITY)) ; *)
+(* ToOldState := TurnInterrupts(MAX(PROTECTION)) ; *)
    WITH d^ DO
       IF Status=WaitOnSem
       THEN
@@ -838,9 +838,9 @@ END SubFromSemaphore ;
 
 PROCEDURE Idle ;
 VAR
-   ToOldState: PRIORITY ;
+   ToOldState: PROTECTION ;
 BEGIN
-   ToOldState := TurnInterrupts(MIN(PRIORITY)) ;    (* enable interrupts *)
+   ToOldState := TurnInterrupts(MIN(PROTECTION)) ;    (* enable interrupts *)
    LOOP
       (*
          Listen for interrupts.

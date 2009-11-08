@@ -21,9 +21,7 @@ IMPLEMENTATION MODULE COROUTINES ;
 FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
                 pth_uctx_save, pth_uctx_switch, pth_init ;
 
-FROM SysVec IMPORT Listen, AttachVector,
-                   IncludeVector, ExcludeVector ;
-
+FROM RTint IMPORT Listen, AttachVector, IncludeVector, ExcludeVector ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
 FROM libc IMPORT printf ;
@@ -147,23 +145,6 @@ BEGIN
       END
    END
 END localMain ;
-
-
-(*
-   TurnInterrupts - switches processor interrupts to the priority, to.
-                    It returns the old value.
-*)
-
-PROCEDURE TurnInterrupts (to: PRIORITY) : PRIORITY ;
-VAR
-   old: PRIORITY ;
-BEGIN
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
-   old := currentIntValue ;
-   currentIntValue := to ;
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
-   RETURN( old )
-END TurnInterrupts ;
 
 
 (*
@@ -341,6 +322,23 @@ PROCEDURE PROT () : PROTECTION;
 BEGIN
    RETURN currentCoRoutine^.protection
 END PROT ;
+
+
+(*
+   TurnInterrupts - switches processor interrupts to the protection
+                    level, to.  It returns the old value.
+*)
+
+PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
+VAR
+   old: PRIORITY ;
+BEGIN
+   Listen(FALSE, IOTransferHandler, currentIntValue) ;
+   old := currentIntValue ;
+   currentIntValue := to ;
+   Listen(FALSE, IOTransferHandler, currentIntValue) ;
+   RETURN( old )
+END TurnInterrupts ;
 
 
 (*

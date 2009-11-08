@@ -18,10 +18,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE testexecutive ;
 
 FROM StdIO IMPORT PushOutput ;
-FROM SYSTEM IMPORT ADR, TurnInterrupts, PRIORITY ;
+FROM SYSTEM IMPORT ADR, TurnInterrupts ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM libc IMPORT write, read ;
 FROM ASCII IMPORT nl ;
-FROM SysVec IMPORT InitInputVector, InitOutputVector ;
+FROM RTint IMPORT InitInputVector, InitOutputVector ;
 FROM Debug IMPORT DebugString, Halt ;
 FROM Selective IMPORT SetOfFd, Timeval, InitSet, FdSet, InitTime, Select,
                       FdIsSet ;
@@ -60,7 +61,7 @@ BEGIN
    IF (GetCurrentProcess()=ProcA) OR
       (GetCurrentProcess()=ProcB)
    THEN
-      v := InitOutputVector(1, MAX(PRIORITY)) ;
+      v := InitOutputVector(1, MAX(PROTECTION)) ;
 (*      DebugString('inside LocalWrite: ') ; *)
       WaitForIO(v) ;
       r := write(1, ADR(ch), 1) ;
@@ -81,7 +82,7 @@ VAR
    v: CARDINAL ;
 BEGIN
 (*   DebugString('inside LocalRead (before WaitForIO)\n') ; *)
-   v := InitInputVector(0, MAX(PRIORITY)) ;
+   v := InitInputVector(0, MAX(PROTECTION)) ;
    WaitForIO(v) ;
 (*   DebugString('before read\n') ; *)
    IF GetCurrentProcess()#Init
@@ -101,9 +102,9 @@ END LocalRead ;
 
 PROCEDURE ProcessA ;
 VAR
-   InterruptState: PRIORITY ;
+   InterruptState: PROTECTION ;
 BEGIN
-   InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
+   InterruptState := TurnInterrupts(MIN(PROTECTION)) ;
    LOOP
       Wait(FromB) ;
       DebugString('A: is this going to work? ') ;
@@ -122,9 +123,9 @@ END ProcessA ;
 
 PROCEDURE ProcessB ;
 VAR
-   InterruptState: PRIORITY ;
+   InterruptState: PROTECTION ;
 BEGIN
-   InterruptState := TurnInterrupts(MIN(PRIORITY)) ;
+   InterruptState := TurnInterrupts(MIN(PROTECTION)) ;
    LOOP
       Wait(FromA) ;
       DebugString('B: is this going to work? ') ;

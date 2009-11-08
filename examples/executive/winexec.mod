@@ -14,6 +14,7 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+
 MODULE winexec ;
 
 
@@ -23,8 +24,9 @@ IMPORT WindowDevice ;
 FROM WindowDevice IMPORT Window, InitWindow, SetWindow, TitleWindow,
                          WriteChar, PutOnTop ;
 
-FROM SysVec IMPORT InitInputVector, InitOutputVector ;
-FROM SYSTEM IMPORT TurnInterrupts, PRIORITY, ADR ;
+FROM RTint IMPORT InitInputVector, InitOutputVector ;
+FROM SYSTEM IMPORT TurnInterrupts, ADR ;
+FROM COROUTINES IMPORT PROTECTION ;
 FROM ncurses IMPORT Blue, Red, Magenta, White, Green, Yellow ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM StdIO IMPORT PushOutput, Write ;
@@ -92,7 +94,7 @@ VAR
    v: CARDINAL ;
 BEGIN
    WriteString('inside LocalRead (before WaitForIO)\n') ;
-   v := InitInputVector(0, MAX(PRIORITY)) ;
+   v := InitInputVector(0, MAX(PROTECTION)) ;
    WaitForIO(v) ;
    WriteString('before read\n') ;
    r := read(0, ADR(ch), 1) ;
@@ -106,7 +108,7 @@ END LocalRead ;
 
 PROCEDURE ProcessA ;
 BEGIN
-   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   OldInts := TurnInterrupts(MIN(PROTECTION)) ;
    LOOP
       Wait(FromB) ;
       WriteString('A: is this going to work? ') ;
@@ -121,7 +123,7 @@ END ProcessA ;
 
 PROCEDURE ProcessB ;
 BEGIN
-   OldInts := TurnInterrupts(MIN(PRIORITY)) ;
+   OldInts := TurnInterrupts(MIN(PROTECTION)) ;
    LOOP
       Wait(FromA) ;
       WriteString('B: is this going to work? ') ;
@@ -136,7 +138,7 @@ CONST
 VAR
    ProcA, ProcB: DESCRIPTOR ;
    FromA, FromB: SEMAPHORE ;
-   OldInts     : PRIORITY ;
+   OldInts     : PROTECTION ;
    ch          : CHAR ;
 BEGIN
    WriteString('got to OS\n') ;
