@@ -1754,8 +1754,8 @@ your @file{/etc/apt/sources.list} file.
 #  GNU Modula-2 repo
 #
 
-deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
-deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+deb http://floppsie.comp.glam.ac.uk/debian/ lenny main 
+deb-src http://floppsie.comp.glam.ac.uk/debian/ lenny main
 @end example
 
 Now as root type:
@@ -1777,7 +1777,7 @@ sources using CVS and combine them with the appropriate gcc tarball
 and then finally build it manually.
 
 Combined GNU Modula-2 and patched GCC tarballs exist at
-@uref{http://floppsie.comp.glam.ac.uk/pub/c}.
+@uref{http://floppsie.comp.glam.ac.uk/download/c}.
 Search for files which look like @file{gm2+gcc-@var{version}.tar.gz}.
 For example you should be able to download the latest version of GNU
 Modula-2 and GCC using these commands.

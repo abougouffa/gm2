@@ -1,3 +1,10 @@
+2009-11-09       Gaius Mulley <gaius@gnu.org>
+
+	* GM2 Release 0.70
+	* gm2/gm2.texi:  fixed download url and fixed
+	  debian repository information.
+	* All regression tests pass on LP64 (x86_64) platform.
+
 2009-11-08       Gaius Mulley <gaius@gnu.org>
 
 	* rename SysVec to RTint and introduce a tiny module
