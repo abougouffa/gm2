@@ -1,3 +1,10 @@
+2009-11-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/configure:  rebuilt.
+	* gm2/gm2/configure.in:  updated to 0.71.
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/gm2-libs/configure.in:  rebuilt.
+
 2009-11-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/version.c:  updated to 0.71
