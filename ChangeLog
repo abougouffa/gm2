@@ -1,5 +1,10 @@
 2009-11-26       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2Quads.mod: fixed bug reported by Martin
+	  Kalbfuﬂ <ma.kalbfuss@web.de> an unbounded actual parameter
+	  being passed to unbounded formal parameter in
+	  a DEFINITION MODULE FOR "C" module was not converted into
+	  the address of its data.
 	* gm2/gccgm2.c:  added garbage collector tags to
 	  all tree structure fields.  Use local variable, s, 
           rather than, t1, in global_constant.

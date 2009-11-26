@@ -5153,6 +5153,16 @@ BEGIN
       THEN
          f^.TrueExit := MakeLeftValue(OperandT(pi), RightValue, Address) ;
          MarkAsReadWrite(rw)
+      ELSIF IsForC AND IsUnboundedParam(Proc, i) AND
+            (GetType(OperandT(pi))#NulSym) AND IsUnbounded(SkipType(GetType(OperandT(pi))))
+      THEN
+         MarkAsReadWrite(rw) ;
+         (* pass the address field of an unbounded variable *)
+         PushTF(Adr, Address) ;
+         PushT(f^.TrueExit) ;
+         PushT(1) ;
+         BuildAdrFunction ;
+         PopT(f^.TrueExit)
       ELSIF IsForC AND IsConstString(OperandT(pi))
       THEN
          f^.TrueExit := MakeLeftValue(ConvertStringToC(OperandT(pi)), RightValue, Address) ;

@@ -1534,7 +1534,7 @@ block of a procedure.
 
 The GNU Modula-2 compiler tries to use the C calling convention
 wherever possible however some parameters have no C equivalent and
-thus a language specific method is used. For example unbounded arrays
+thus a language specific method is used.  For example unbounded arrays
 are passed as a @code{struct @{void *address, unsigned int high@}} and
 the contents of these arrays are copied by callee functions when they
 are declared as non @code{VAR} parameters.  The @code{VAR} equivalent
