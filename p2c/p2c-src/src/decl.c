@@ -1794,7 +1794,6 @@ int isheader, isforward;
 }
 
 
-
 void outdeclarator(type, name, flags)
 Type *type;
 char *name;
@@ -4187,6 +4186,7 @@ int *isfunc, istype;
     Expr *defval;
     Token savetok;
     Strlist *l1;
+    int opt_arg = 0;
 
     varargflag = 0;
     if (*isfunc || modula2) {
@@ -4200,8 +4200,13 @@ int *isfunc, istype;
         do {
             gettok();
 	    was_array = 0;
+	    opt_arg = 0;
+	    if (curtok == TOK_LBR) {
+	      opt_arg = 1;
+	      gettok();
+	    }
 	    if (curtok == TOK_RPAR)
-		break;
+	      break;
 	    p_mech_spec(1);
 	    p_attributes();
 	    checkkeyword(TOK_ANYVAR);
@@ -4310,8 +4315,15 @@ int *isfunc, istype;
 		}
 		if (!varfiles && isfiletype(tp, 0))
 		  parkind = MK_PARAM;
-            }
 
+	    if (modula2 && opt_arg) {
+	      if (curtok == TOK_EQ) {
+		gettok();
+		defval = gentle_cast(p_expr(tp), tp);
+	      }
+	      wexpecttok(TOK_RBR);
+	      gettok();
+	    }
 #if 0
 	    if (curtok == TOK_ASSIGN) {    /* check for parameter default */
 		gettok();
@@ -4330,6 +4342,7 @@ int *isfunc, istype;
 		}
 	    }
 #endif
+	}
             while (firstmp) {
 	      if (! firstmp->fakeparam) {
 		if (was_array) {

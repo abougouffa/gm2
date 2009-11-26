@@ -1806,7 +1806,15 @@ Static Stmt *proc_escape(arg)
 Static Stmt *proc_halt(arg)
      Expr *arg ATTRIBUTE_UNUSED;
 {
-    return makestmt_call(makeexpr_bicall_0(name_HALT, tp_int));
+  Expr *ex;
+
+  if (curtok == TOK_RPAR) {
+    skipopenparen();
+    ex = p_expr(tp_integer);
+    skipcloseparen();
+  } else
+    ex = makeexpr_long(-1);
+  return makestmt_call(makeexpr_bicall_1(name_HALT, tp_integer, ex));
 }
 
 Static Stmt *proc_throw(arg)

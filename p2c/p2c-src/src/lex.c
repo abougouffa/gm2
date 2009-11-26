@@ -976,7 +976,7 @@ void progress()
 
 
 
-void getline()
+void pgetline()
 {
     char *cp, *cp2;
 
@@ -1002,7 +1002,7 @@ void getline()
 			infname = stralloc(cp);
 			infname[cp2 - cp] = 0;
 		    }
-		    getline();
+		    pgetline();
 		    return;
 		}
 		if (copysource && *inbuf) {
@@ -1019,7 +1019,7 @@ void getline()
                     fprintf(stderr, "\n");
                 if (inputkind == INP_INCFILE) {
                     pop_input();
-                    getline();
+                    pgetline();
                 } else
                     strcpy(inbuf, "\001");
             }
@@ -1110,7 +1110,7 @@ char *fname;
         infname = fname;
         inf_lnum = 0;
     } else
-        inf_lnum--;     /* adjust for extra getline() */
+        inf_lnum--;     /* adjust for extra pgetline() */
     *inbuf = 0;
     inbufptr = inbuf;
     gettok();
@@ -2222,7 +2222,7 @@ int starparen;    /* 0={ }, 1=(* *), 2=C comments*/
 		else
 		    commentline(CMT_POST);
 		trailing = 0;
-                getline();
+                pgetline();
 		i = 0;
 		for (;;) {
 		    if (*inbufptr == ' ') {
@@ -2274,7 +2274,7 @@ char *getinlinepart()
         if (isspace(*inbufptr)) {
             inbufptr++;
         } else if (!*inbufptr) {
-            getline();
+            pgetline();
         } else if (*inbufptr == '{') {
             inbufptr++;
             comment(0);
@@ -2368,7 +2368,7 @@ void leadingcomments()
         switch (*inbufptr++) {
 
             case 0:
-                getline();
+                pgetline();
                 break;
 
             case ' ':
@@ -2575,7 +2575,7 @@ void gettok()
             case 0:
 	        if (commenting_flag)
 		    saveinputcomment(inbufptr-1);
-                getline();
+		pgetline();
 		cp = curtokbuf;
 		for (;;) {
 		    inbufindent = 0;
@@ -2592,7 +2592,7 @@ void gettok()
 		    }
 		    if (!*inbufptr && !commenting_flag) {   /* blank line */
 			*cp++ = '\001';
-			getline();
+			pgetline();
 		    } else
 			break;
 		}

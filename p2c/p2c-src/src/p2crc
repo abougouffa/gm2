@@ -1352,7 +1352,7 @@ MainName                        # Name of program setup function
 
 EscapeName        _Escape       # Name of error-generation function
 
-HaltName          _M2RTS_HALT    # Name of HALT function
+HaltName          _M2RTS_HALT   # Name of HALT function
 
 EscIOName         _EscIO        # Name of I/O-error-generation function
 
