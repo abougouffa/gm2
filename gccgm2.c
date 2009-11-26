@@ -1,4 +1,4 @@
-/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -404,17 +404,17 @@ struct struct_constructor GTY(())
   /*
    *  constructor_type, the type that we are constructing
    */
-  tree constructor_type;
+  tree GTY ((skip (""))) constructor_type;
   /*
    *  constructor_fields, the list of fields belonging to
    *  constructor_type.  Used by SET and RECORD constructors.
    */
-  tree constructor_fields;
+  tree GTY ((skip (""))) constructor_fields;
   /*
    *  constructor_element_list, the list of constants
    *  used by SET and RECORD constructors.
    */
-  tree constructor_element_list;
+  tree GTY ((skip (""))) constructor_element_list;
   /*
    *  constructor_elements, used by an ARRAY initializer all
    *  elements are held in reverse order.
@@ -1380,14 +1380,6 @@ struct lang_type GTY(())
                           ((CONST_P) ? TYPE_QUAL_CONST : 0) |     \
                           ((VOLATILE_P) ? TYPE_QUAL_VOLATILE : 0))
 
-
-/* The binding level currently in effect.  */
-static struct binding_level *current_binding_level = NULL;
-
-/* The outermost binding level. This binding level is created when the
-   compiler is started and it will exist through the entire compilation.  */
-static struct binding_level *global_binding_level;
-
 /* Return the list of declarations in the current level. Note that this list
    is in reverse order (it has to be so for back-end compatibility).  */
 
@@ -1544,6 +1536,7 @@ pushdecl (tree decl)
 
   return decl;
 }
+
 
 #define NULL_BINDING_LEVEL (struct binding_level *) NULL                        
 
@@ -2500,16 +2493,31 @@ gccgm2_RememberConstant (tree t)
 tree
 global_constant (tree t)
 {
-  tree t1;
+  tree s;
 
-  if (global_binding_level->constants != NULL)
-    for (t1 = global_binding_level->constants; TREE_CHAIN (t1); t1 = TREE_CHAIN (t1))
-      if (t1 == t)
+  if (global_binding_level->constants != NULL_TREE)
+    for (s = global_binding_level->constants; TREE_CHAIN (s); s = TREE_CHAIN (s))
+      if (s == t)
         return t;
   
   global_binding_level->constants = tree_cons (NULL_TREE,
                                                t, global_binding_level->constants);
   return t;
+}
+
+/*
+ *  gccgm2_DumpGlobalConstants - displays all global constants and checks none are
+ *                               poisoned.
+ */
+
+tree
+gccgm2_DumpGlobalConstants (void)
+{
+  tree s;
+
+  if (global_binding_level->constants != NULL_TREE)
+    for (s = global_binding_level->constants; TREE_CHAIN (s); s = TREE_CHAIN (s))
+      debug_tree (s);
 }
 
 /*
@@ -6638,7 +6646,7 @@ gccgm2_DeclareKnownConstant (tree type, tree value)
     tree id = make_node (IDENTIFIER_NODE);  /* ignore the name of the constant */
     tree decl;
 
-    constant_expression_warning(value);
+    constant_expression_warning (value);
     type = skip_type_decl (type);
     layout_type (type);
 
@@ -6646,7 +6654,10 @@ gccgm2_DeclareKnownConstant (tree type, tree value)
 
     DECL_INITIAL (decl) = value;
     TREE_TYPE (decl)    = type;
+#if 0
     pushdecl (decl);
+#endif
+    decl = global_constant (decl);
 
     return decl;
 }

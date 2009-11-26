@@ -29,7 +29,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 
 #ifndef M2RTSH
 #include "GM2RTS.h"
-extern void   M2RTS_HALT PV() ATTRIBUTE_NORETURN;
+extern void   M2RTS_HALT (int) ATTRIBUTE_NORETURN;
 #endif
 
 #define MaxStack        40
@@ -100,7 +100,7 @@ void (*(StdIO_GetCurrentOutput(void)))(void)
   if (StackPtr > 0) {
     return (void *) (Stack[StackPtr]);
   }
-  M2RTS_HALT();
+  M2RTS_HALT(-1);
 }
 
 

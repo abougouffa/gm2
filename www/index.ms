@@ -17,7 +17,7 @@
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
 .ds CURRENTDATE "Fri Aug 21 00:28:51 BST 2009
 .ds CURRENTGM2 0.70
-.ds DEBIANGM2 0.6.8
+.ds DEBIANGM2 0.7.0
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -269,17 +269,17 @@ disadvantage is that it does not produce debugging information for
 .SH
 GNU Modula-2 Debian binaries
 .LP
-GNU Modula-2 (0.61) binaries are now available for PPC, i386 and AMD64
-architecture debian Etch based distributions.  Add these lines to your
+GNU Modula-2 (\*[DEBIANGM2]) binaries are now available for i386 and
+AMD64 architecture debian Lenny based distributions.  Add these lines
+to your
 .PRG /etc/apt/sources.list :
 .sp
 .CDS
 #
 #  GNU Modula-2 repo
 #
-
-deb http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
-deb-src http://floppsie.comp.glam.ac.uk/debian/ etch main non-free contrib
+deb http://floppsie.comp.glam.ac.uk/debian/ lenny main
+deb-src http://floppsie.comp.glam.ac.uk/debian/ lenny main
 .CDE
 .sp
 Then as root type:

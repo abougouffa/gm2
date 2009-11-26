@@ -80,7 +80,8 @@ BEGIN
       IF tr=PoisonedSymbol
       THEN
          n := GetSymName(sym) ;
-         printf1('name of poisoned symbol was (%a)\n', n) ;
+         (* not poisoned by the garbage collector, but by the gm2 front end *)
+         printf1('the gm2 front end poisoned this symbol (%a)\n', n) ;
          InternalError('attempting to use a gcc symbol which is no longer in scope', __FILE__, __LINE__)
       END ;
       RETURN( tr )
@@ -214,7 +215,8 @@ BEGIN
       IF tr=PoisonedSymbol
       THEN
          n := GetSymName(sym) ;
-         printf1('name of poisoned symbol was (%a)\n', n) ;
+         (* not poisoned by the garbage collector, but by the gm2 front end *)
+         printf1('the gm2 front end poisoned this symbol (%a)\n', n) ;
          InternalError('attempting to use a gcc symbol which is no longer in scope',
                        __FILE__, __LINE__)
       END ;
@@ -233,10 +235,13 @@ PROCEDURE Poison (sym: WORD) ;
 VAR
    a: ADDRESS ;
 BEGIN
-   a := Mod2GccWithoutGCCPoison(sym) ;
-   IF a#NIL
+   IF NOT IsConst(sym)
    THEN
-      PutIndice(mod2gcc, sym, PoisonedSymbol)
+      a := Mod2GccWithoutGCCPoison(sym) ;
+      IF a#NIL
+      THEN
+         PutIndice(mod2gcc, sym, PoisonedSymbol)
+      END
    END
 END Poison ;
 

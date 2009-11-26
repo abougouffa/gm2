@@ -14,16 +14,17 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)
+
 DEFINITION MODULE StdIO ;
 
 (*
    Author     : Gaius Mulley
    Title      : StdIO
-   Date       : 12/2/86  [$Date: 2006/01/10 23:52:26 $]
+   Date       : 12/2/86  [$Date: 2009/11/26 17:07:19 $]
    SYSTEM     : UNIX SUN and Logitech M2
    Description: Exports a general Read and Write procedure that ALL character
                 processes should use.
-   Version    : $Revision: 1.4 $
+   Version    : $Revision: 1.5 $
 *)
 
 EXPORT QUALIFIED ProcRead, ProcWrite,

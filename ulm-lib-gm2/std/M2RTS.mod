@@ -59,13 +59,22 @@ END Terminate ;
 
 
 (*
-   HALT - terminate the current program.
-          The procedure Terminate is called before the program is
-          stopped.
+   HALT - terminate the current program.  The procedure Terminate
+          is called before the program is stopped.  The parameter
+          exitcode is optional.  If the parameter is not supplied
+          HALT will call libc 'abort', otherwise it will exit with
+          the code supplied.  Supplying a parameter to HALT has the
+          same effect as calling ExitOnHalt with the same code and
+          then calling HALT with no parameter.
 *)
 
-PROCEDURE HALT ;
+PROCEDURE HALT ([exitcode: INTEGER = -1]) ;
 BEGIN
+   IF exitcode#-1
+   THEN
+      CallExit := TRUE ;
+      ExitValue := exitcode
+   END ;
    Terminate ;
    IF CallExit
    THEN

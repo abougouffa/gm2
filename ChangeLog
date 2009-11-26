@@ -1,5 +1,32 @@
 2009-11-26       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gccgm2.c:  added garbage collector tags to
+	  all tree structure fields.  Use local variable, s, 
+          rather than, t1, in global_constant.
+	  New function (gccgm2_DumpGlobalConstants).
+	  Dont pushdecl constants as they are placed onto
+	  the global_binding_level and never deallocated.
+	* gm2/examples/gravity/twoDsim.mod:  intemediate checkin.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  changed debugging
+	  watch symbol.
+	* gm2/gm2-compiler/SymbolConversion.mod:  corrected
+	  misleading internal error message.  Only poison
+	  non constant symbols as constants remain declared
+	  in the global_binding_level.
+	* gm2/gm2-libs/M2RTS.def:  HALT now has an optional
+	  parameter.
+	* gm2/gm2-libs/M2RTS.mod:  implement optional parameter
+	  (exit code).
+	* gm2/gm2-libs/StdIO.def:  added new line.
+	* gm2/gm2-libs-ch/StdIO.c:  changed HALT extern.
+	* gm2/gm2-libs-iso/M2RTS.def:  HALT now has an optional
+	  parameter.
+	* gm2/gm2-libs-iso/M2RTS.mod:  implement optional parameter
+	  (exit code).
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  implement optional parameter
+	  (exit code).
+	* gm2/www/index.ms:  fixed apt/sources.list information for
+	  the latest binaries of gm2.  Also fixed release numbers.
 	* gm2/p2c/p2c-src/src/lex.c:  change getline to
 	  pgetline to avoid a name clash with
 	  /usr/include/stdio.h.  Call pgetline rather

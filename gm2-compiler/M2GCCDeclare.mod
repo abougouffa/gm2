@@ -355,7 +355,7 @@ BEGIN
                               printf1("symbol %d -> FullyDeclared\n", sym) ;
                               FIO.FlushBuffer(FIO.StdOut) ;
                               IncludeElementIntoSet(FullyDeclared, sym)
-                              ; IF sym=1847
+                              ; IF sym=1420
                               THEN
                                  mystop
                               END
@@ -2217,6 +2217,7 @@ BEGIN
     *)
    (* AddSymToWatch(8) ; *)
    (* IncludeElementIntoSet(WatchList, 4188) ; *)
+   (* AddSymToWatch(1420) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
