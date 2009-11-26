@@ -1,4 +1,4 @@
-MODULE test ;
+MODULE m ;
 
 IMPORT c ;
 FROM SYSTEM IMPORT THROW, ADDRESS ;
@@ -16,4 +16,4 @@ VAR
    s: ADDRESS ;
 BEGIN
    s := foo('test.bmp')
-END test.
+END m.
