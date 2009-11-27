@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE twoDsim ;
 
 FROM Storage IMPORT ALLOCATE ;
-FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice ;
+FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
 FROM deviceGnuPic IMPORT newFrame, renderFrame, circleFrame ;
 
@@ -95,7 +95,11 @@ BEGIN
    WITH optr^ DO
       id     := maxId ;
       fixed  := FALSE ;
-      object := type
+      object := type ;
+      vx     := 0.0 ;
+      vy     := 0.0 ;
+      ax     := 0.0 ;
+      ay     := 0.0
    END ;
    PutIndice(objects, maxId, optr) ;
    RETURN( maxId )
@@ -348,12 +352,41 @@ END fps ;
 
 
 (*
+   simulateFor - render for, t, seconds.
+*)
+
+PROCEDURE simulateFor (t: REAL) ;
+VAR
+   i, n: CARDINAL ;
+   optr: Object ;
+BEGIN
+   newFrame ;
+   n := HighIndice(objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      optr := GetIndice(objects, i) ;
+      WITH optr^ DO
+         CASE object OF
+
+         circleOb :  circleFrame(c.pos.x, c.pos.y, c.r) |
+         polygonOb:  |
+         pivotOb  :
+
+         END
+      END ;
+      INC(i)
+   END ;
+   renderFrame
+END simulateFor ;
+
+
+(*
    Init - 
 *)
 
 PROCEDURE Init ;
 BEGIN
-   maxId := 1 ;
+   maxId := 0 ;
    objects := InitIndex(1) ;
    framesPerSecond := DefaultFramesPerSecond ;
    simulatedGravity := 0.0

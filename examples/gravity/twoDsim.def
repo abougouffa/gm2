@@ -117,4 +117,11 @@ PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
 PROCEDURE fps (f: REAL) ;
 
 
+(*
+   simulateFor - render for, t, seconds.
+*)
+
+PROCEDURE simulateFor (t: REAL) ;
+
+
 END twoDsim.

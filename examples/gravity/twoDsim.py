@@ -48,6 +48,7 @@ except AttributeError:
 del types
 
 
+twoDsim_simulateFor = _twoDsim.twoDsim_simulateFor
 twoDsim_fps = _twoDsim.twoDsim_fps
 twoDsim_accel = _twoDsim.twoDsim_accel
 twoDsim_velocity = _twoDsim.twoDsim_velocity
