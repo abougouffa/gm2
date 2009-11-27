@@ -123,8 +123,7 @@ END InvokeHandler ;
 
 PROCEDURE DefaultErrorCatch ;
 BEGIN
-   ErrorString(currentEHB^.buffer) ;
-   HALT
+   THROW(GetNumber(GetExceptionBlock()))
 END DefaultErrorCatch ;
 
 

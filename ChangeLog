@@ -1,3 +1,8 @@
+2009-11-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/RTExceptions.mod:  fixed DefaultErrorCatch
+	  so that it THROWs an exception rather than calls HALT.
+
 2009-11-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod: fixed bug reported by Martin

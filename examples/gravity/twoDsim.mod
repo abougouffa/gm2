@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE twoDsim ;
 FROM Storage IMPORT ALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice ;
 FROM libc IMPORT printf ;
-FROM deviceGnuPic IMPORT Frame, newFrame, killFrame, renderFrame, circleFrame ;
+FROM deviceGnuPic IMPORT newFrame, renderFrame, circleFrame ;
 
 
 CONST
