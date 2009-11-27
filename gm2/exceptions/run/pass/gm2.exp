@@ -31,7 +31,12 @@ set output [exec rm -f cpp.o mycpp.o]
 set output [exec ${XGPP} -B[file dirname $tmpdir] -g -c $srcdir/gm2/exceptions/run/pass/cpp.cpp]
 set output [exec ${XGPP} -B[file dirname $tmpdir] -g -c $srcdir/gm2/exceptions/run/pass/mycpp.cpp]
 
-gm2_init "-I$srcdir/gm2/exceptions/run/pass:$srcdir/../gm2/gm2-libs:$srcdir/../gm2/pim/pass:$srcdir/../gm2/gm2-compiler:../gm2/gm2-libs:../gm2/gm2-compiler" 
+#
+#  notice this uses PIM libraries with exceptions - this is a useful test.
+#  There are other exception tests which test exceptions with the ISO libraries.
+#
+
+gm2_init "-I$srcdir/gm2/exceptions/run/pass:$srcdir/../gm2/gm2-libs:$srcdir/../gm2/pim/pass:$srcdir/../gm2/gm2-compiler:../gm2/gm2-libs:../gm2/gm2-compiler"
 
 foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     # If we're only testing specific files and this isn't one of them, skip it.
