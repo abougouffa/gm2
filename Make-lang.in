@@ -167,6 +167,8 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs/SO \
                  $(objdir)/gm2/gm2-libs/SO_O2 \
                  $(objdir)/gm2/gm2-libs-iso \
+                 $(objdir)/gm2/gm2-libs-iso/O2 \
+                 $(objdir)/gm2/gm2-libs-iso/SO \
                  $(objdir)/gm2/gm2-compiler-paranoid \
                  $(objdir)/gm2/gm2-libs-paranoid \
                  $(objdir)/gm2/gm2-compiler-verify \
@@ -490,6 +492,38 @@ gm2.install-common: installdirs \
                if [ ! -d $$i ] ; then \
                    $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
                fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/gm2-libs-iso/*.def $(srcdir)/gm2/gm2-libs-iso/*.mod ; do \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_ISO)/SO/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-iso/SO/*.o gm2/gm2-libs-iso/*.def ; do \
+           rm -f $(GM2_LIB_DIR_ISO)/SO/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in $(srcdir)/gm2/gm2-libs-iso/*.def $(srcdir)/gm2/gm2-libs-iso/*.mod ; do \
+           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_ISO)/O2/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-iso/O2/*.o gm2/gm2-libs-iso/*.def ; do \
+           rm -f $(GM2_LIB_DIR_ISO)/O2/`basename $$i` ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/O2 ; \
+              fi ; \
            fi ; \
         done ; \
 	for i in $(srcdir)/gm2/ulm-lib-gm2/sys/*.def \
@@ -1389,6 +1423,12 @@ gm2/gm2-libs/O2/%.o: $(srcdir)/gm2/gm2-libs/%.c
 gm2/gm2-libs/O2/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $(O2) $< -o $@
 
+gm2/gm2-libs-iso/O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
+
+gm2/gm2-libs-iso/O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $(O2) $< -o $@
+
 ##############################################################
 #  end of library rules -O2 -g
 ##############################################################
@@ -1435,6 +1475,12 @@ gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.c
 
 gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $(SO) $< -o $@
+
+gm2/gm2-libs-iso/SO/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(SO) $< -o $@
+
+gm2/gm2-libs-iso/SO/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
+	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $(SO) $< -o $@
 
 ##############################################################
 #  end of shared library rules -O0 -g
@@ -1582,7 +1628,11 @@ gm2/gm2-compiler/gm2.a: build-compiler $(GM2)$(exeext)
 	$(RANLIB) $@
 
 build-libs-iso: $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/%.o) \
-                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/%.o)
+                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/%.o) \
+                $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/SO/%.o) \
+                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/SO/%.o) \
+                $(GM2-LIBS-ISO-MODS:%.mod=gm2/gm2-libs-iso/O2/%.o) \
+                $(GM2-LIBS-ISO-C:%.c=gm2/gm2-libs-iso/O2/%.o)
 
 build-libs-ulm: $(GM2-LIBS-ULM-MODS-STD:%.mod=gm2/ulm-lib-gm2/std/%.o) \
                 $(GM2-LIBS-ULM-MODS-SYS:%.mod=gm2/ulm-lib-gm2/sys/%.o) \

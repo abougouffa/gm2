@@ -45,7 +45,7 @@ FROM M2Configure IMPORT UseUnderscoreForC, UseDotForJumpLabels ;
 (* %%%FORWARD%%%
 PROCEDURE GetModulePrefix (Name: String; Sym, ModSym: CARDINAL) : String ; FORWARD ;
 PROCEDURE WriteModulePrefix (Sym, ModSym: CARDINAL) ; FORWARD ;
-PROCEDURE GetFullScopePrefix (Name: String; Sym: CARDINAL) : String ; FORWARD ;
+PROCEDURE GetFullScopePrefix (Name: String; Scope, Sym: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -98,7 +98,7 @@ BEGIN
    ELSE
       Module := InitString('')
    END ;
-   Module := ConCat(GetFullScopePrefix(Module, Scope),
+   Module := ConCat(GetFullScopePrefix(Module, Scope, Sym),
                     InitStringCharStar(KeyToCharStar(GetSymName(Sym)))) ;
    RETURN( StringToKey(Module) )
 END GetFullScopeAsmName ;
@@ -209,21 +209,24 @@ END GetModulePrefix ;
 
 (*
    GetFullScopePrefix - returns a String containing the full scope prefix
-                        for symbol, Sym.
+                        for symbol, Sym.  It honours IsExportQualified.
                         Name is marked if it is appended onto the new string.
 *)
 
-PROCEDURE GetFullScopePrefix (Name: String; Sym: CARDINAL) : String ;
+PROCEDURE GetFullScopePrefix (Name: String; Scope, Sym: CARDINAL) : String ;
 BEGIN
    IF Sym#NulSym
    THEN
-      IF IsInnerModule(Sym)
+      IF IsInnerModule(Scope)
       THEN
-         RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), '_'),
-                        GetFullScopePrefix(Name, GetScope(Sym))) )
-      ELSIF IsDefImp(Sym) OR IsProcedure(Sym)
+         RETURN( ConCat(ConCatChar(InitStringCharStar(KeyToCharStar(GetSymName(Scope))), '_'),
+                        GetFullScopePrefix(Name, GetScope(Scope), Sym)) )
+      ELSIF IsDefImp(Scope) AND IsExportQualified(Sym)
       THEN
-         RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(Sym))), Mark(Name)), '_') )
+         RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(Scope))), Mark(Name)), '_') )
+      ELSIF IsProcedure(Scope)
+      THEN
+         RETURN( ConCatChar(ConCat(InitStringCharStar(KeyToCharStar(GetSymName(Scope))), Mark(Name)), '_') )
       END
    END ;
    RETURN( Name )

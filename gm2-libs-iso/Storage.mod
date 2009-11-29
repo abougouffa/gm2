@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE Storage ;
 
-FROM libc IMPORT malloc, free ;
+FROM libc IMPORT malloc, free, memcpy ;
 FROM M2RTS IMPORT Halt ;
 FROM SYSTEM IMPORT TSIZE ;
 FROM M2EXCEPTION IMPORT M2Exceptions ;
@@ -47,6 +47,34 @@ BEGIN
       free (addr)
    END
 END DEALLOCATE ;
+
+
+PROCEDURE REALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL);
+  (* Attempts to reallocate, amount of storage.  Effectively it
+     calls ALLOCATE, copies the amount of data pointed to by
+     addr into the new space and DEALLOCATES the addr.
+     This procedure is a GNU extension.
+  *)
+VAR
+   newa: SYSTEM.ADDRESS ;
+   n   : CARDINAL ;
+BEGIN
+   IF NOT IsIn(storageTree, addr)
+   THEN
+      RAISE (storageException, ORD(pointerToUnallocatedStorage),
+             'trying to reallocate memory which has never been allocated') ;
+   END ;
+   n := GetKey (storageTree, addr) ;
+   ALLOCATE(newa, amount) ;
+   IF n<amount
+   THEN
+      newa := memcpy(newa, addr, n)
+   ELSE
+      newa := memcpy(newa, addr, amount)
+   END ;
+   DEALLOCATE(addr, n) ;
+   addr := newa
+END REALLOCATE ;
 
 
 PROCEDURE IsStorageException () : BOOLEAN;

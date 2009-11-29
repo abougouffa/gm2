@@ -1,7 +1,27 @@
+2009-11-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  now builds and installs shared library
+	  and O2 optimized versions of the ISO libraries.
+	* gm2/examples/gravity/testsim.py:  no longer need to specify
+	  the module name in the Python test module due to fixes
+	  to the UNQUALIFIED extension.
+	* gm2/examples/gravity/twoDsim.def:  EXPORT UNQUALIFED
+	  added to all exported entities.
+	* gm2/gm2-compiler/M2AsmUtil.mod:  fixes to
+	  GetFullScopePrefix to honour the IsExportQuafified boolean.
+	* gm2/gm2-compiler/M2Quads.mod:  changes to watch trigger.
+	* gm2/gm2-libs-iso/Storage.def:  tidied up comments and also
+	  added REALLOCATE procedure.
+	* gm2/gm2-libs-iso/Storage.mod:  fixed dates and implemented
+	  the REALLOCATE procedure.
+	* gm2/examples/gravity/twoDsim.py:  removed automatically
+	  generated file.
+
 2009-11-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/RTExceptions.mod:  fixed DefaultErrorCatch
 	  so that it THROWs an exception rather than calls HALT.
+	* gm2/gm2-libs-iso/Storage.def:  added REALLOCATE procedure.
 
 2009-11-26       Gaius Mulley <gaius@gnu.org>
 

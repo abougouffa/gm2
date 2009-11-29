@@ -13,14 +13,22 @@ DEFINITION MODULE Storage;
 IMPORT SYSTEM;
 
 PROCEDURE ALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL);
-  (* Allocates storage for a variable of size amount and assigns the address of this
-     variable to addr. If there is insufficient unallocated storage to do this, the
-     value NIL is assigned to addr.
+  (* Allocates storage for a variable of size amount and assigns
+     the address of this variable to addr. If there is insufficient
+     unallocated storage to do this, the value NIL is assigned to addr.
   *)
 
 PROCEDURE DEALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL);
-  (* Deallocates amount locations allocated by ALLOCATE for the storage of the variable
-     addressed by addr and assigns the value NIL to addr.
+  (* Deallocates amount locations allocated by ALLOCATE for
+     the storage of the variable addressed by addr and assigns
+     the value NIL to addr.
+  *)
+
+PROCEDURE REALLOCATE (VAR addr: SYSTEM.ADDRESS; amount: CARDINAL);
+  (* Attempts to reallocate, amount of storage.  Effectively it
+     calls ALLOCATE, copies the amount of data pointed to by
+     addr into the new space and DEALLOCATES the addr.
+     This procedure is a GNU extension.
   *)
 
 TYPE
@@ -31,14 +39,15 @@ TYPE
   );
 
 PROCEDURE IsStorageException (): BOOLEAN;
-  (* Returns TRUE if the current coroutine is in the exceptional execution state
-     because of the raising of an exception from StorageExceptions;
-     otherwise returns FALSE.
+  (* Returns TRUE if the current coroutine is in the exceptional
+     execution state because of the raising of an exception from
+     StorageExceptions; otherwise returns FALSE.
   *)
 
 PROCEDURE StorageException (): StorageExceptions;
-  (* If the current coroutine is in the exceptional execution state because of the
-     raising of an exception from StorageExceptions, returns the corresponding
+  (* If the current coroutine is in the exceptional execution
+     state because of the raising of an exception from
+     StorageExceptions, returns the corresponding
      enumeration value, and otherwise raises an exception.
   *)
 

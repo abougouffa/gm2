@@ -28,6 +28,9 @@ DEFINITION MODULE twoDsim ;
                  shared library implementation of GNU Modula-2.
 *)
 
+EXPORT UNQUALIFIED gravity, box, poly3, poly5, poly6, mass,
+                   fix, circle, pivot, velocity, accel, fps,
+                   simulateFor ;
 
 (*
    gravity - turn on gravity at: g m^2

@@ -11237,7 +11237,7 @@ BEGIN
          LineNo := GetLineNo() ;
          TokenNo := GetTokenNo()
       END ;
-      IF NextQuad=108
+      IF NextQuad=31
       THEN
          stop
       END ;
