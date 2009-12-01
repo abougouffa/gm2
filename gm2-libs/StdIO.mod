@@ -25,8 +25,10 @@ CONST
    MaxStack = 40 ;
 
 VAR
-   Stack   : ARRAY [0..MaxStack] OF ProcWrite ;
-   StackPtr: CARDINAL ;
+   StackW   : ARRAY [0..MaxStack] OF ProcWrite ;
+   StackWPtr: CARDINAL ;
+   StackR   : ARRAY [0..MaxStack] OF ProcRead ;
+   StackRPtr: CARDINAL ;
 
 
 (*
@@ -36,7 +38,7 @@ VAR
 
 PROCEDURE Read (VAR ch: CHAR) ;
 BEGIN
-   IO.Read(ch)
+   StackR[StackRPtr](ch)
 END Read ;
 
 
@@ -47,7 +49,7 @@ END Read ;
  
 PROCEDURE Write (ch: CHAR) ;
 BEGIN
-   Stack[StackPtr](ch)
+   StackW[StackWPtr](ch)
 END Write ;
 
 
@@ -59,12 +61,12 @@ END Write ;
 
 PROCEDURE PushOutput (p: ProcWrite) ;
 BEGIN
-   IF StackPtr=MaxStack
+   IF StackWPtr=MaxStack
    THEN
       HALT
    ELSE
-      INC(StackPtr) ;
-      Stack[StackPtr] := p
+      INC(StackWPtr) ;
+      StackW[StackWPtr] := p
    END
 END PushOutput ;
 
@@ -75,11 +77,11 @@ END PushOutput ;
 
 PROCEDURE PopOutput ;
 BEGIN
-   IF StackPtr=1
+   IF StackWPtr=1
    THEN
       HALT
    ELSE
-      DEC(StackPtr)
+      DEC(StackWPtr)
    END
 END PopOutput ;
 
@@ -90,16 +92,66 @@ END PopOutput ;
 
 PROCEDURE GetCurrentOutput () : ProcWrite ;
 BEGIN
-   IF StackPtr>0
+   IF StackWPtr>0
    THEN
-      RETURN( Stack[StackPtr] )
+      RETURN( StackW[StackWPtr] )
    ELSE
       HALT
    END
 END GetCurrentOutput ;
 
 
+(*
+   PushInput - pushes the current Read procedure onto a stack,
+               any future references to Read will actually invoke
+               procedure, p.
+*)
+
+PROCEDURE PushInput (p: ProcRead) ;
 BEGIN
-   StackPtr := 0 ;
-   PushOutput(IO.Write)
+   IF StackRPtr=MaxStack
+   THEN
+      HALT
+   ELSE
+      INC(StackRPtr) ;
+      StackR[StackRPtr] := p
+   END
+END PushInput ;
+
+ 
+(*
+   PopInput - restores Write to use the previous output procedure.
+*)
+
+PROCEDURE PopInput ;
+BEGIN
+   IF StackRPtr=1
+   THEN
+      HALT
+   ELSE
+      DEC(StackRPtr)
+   END
+END PopInput ;
+
+
+(*
+   GetCurrentInput - returns the current input procedure.
+*)
+
+PROCEDURE GetCurrentInput () : ProcRead ;
+BEGIN
+   IF StackRPtr>0
+   THEN
+      RETURN( StackR[StackRPtr] )
+   ELSE
+      HALT
+   END
+END GetCurrentInput ;
+
+
+BEGIN
+   StackWPtr := 0 ;
+   StackWPtr := 0 ;
+   PushOutput(IO.Write) ;
+   PushInput(IO.Read)
 END StdIO.

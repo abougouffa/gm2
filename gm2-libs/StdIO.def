@@ -20,15 +20,17 @@ DEFINITION MODULE StdIO ;
 (*
    Author     : Gaius Mulley
    Title      : StdIO
-   Date       : 12/2/86  [$Date: 2009/11/26 17:07:19 $]
+   Date       : 12/2/86  [$Date: 2009/12/01 23:12:53 $]
    SYSTEM     : UNIX SUN and Logitech M2
    Description: Exports a general Read and Write procedure that ALL character
                 processes should use.
-   Version    : $Revision: 1.5 $
+   Version    : $Revision: 1.6 $
 *)
 
 EXPORT QUALIFIED ProcRead, ProcWrite,
-                 Read, Write, PushOutput, PopOutput, GetCurrentOutput ;
+                 Read, Write,
+                 PushOutput, PopOutput, GetCurrentOutput,
+                 PushInput, PopInput, GetCurrentInput ;
 
  
 TYPE
@@ -73,6 +75,29 @@ PROCEDURE PopOutput ;
 *)
 
 PROCEDURE GetCurrentOutput () : ProcWrite ;
+
+
+(*
+   PushInput - pushes the current Read procedure onto a stack,
+               any future references to Read will actually invoke
+               procedure, p.
+*)
+
+PROCEDURE PushInput (p: ProcRead) ;
+
+ 
+(*
+   PopInput - restores Write to use the previous output procedure.
+*)
+
+PROCEDURE PopInput ;
+
+
+(*
+   GetCurrentInput - returns the current input procedure.
+*)
+
+PROCEDURE GetCurrentInput () : ProcRead ;
 
  
 END StdIO.

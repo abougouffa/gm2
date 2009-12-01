@@ -35,8 +35,10 @@ extern void   M2RTS_HALT (int) ATTRIBUTE_NORETURN;
 #define MaxStack        40
 
 
-Static Void (*Stack[MaxStack + 1]) PP((Char));
-Static long StackPtr;
+Static Void (*StackW[MaxStack + 1]) PP((Char));
+Static long StackWPtr;
+Static Void (*StackR[MaxStack + 1]) PP((Char *));
+Static long StackRPtr;
 
 
 /*
@@ -47,7 +49,7 @@ Static long StackPtr;
 Void StdIO_Read(ch)
 Char *ch;
 {
-  IO_Read(ch);
+  (*StackR[StackRPtr])(ch);
 }
 
 
@@ -59,7 +61,7 @@ Char *ch;
 Void StdIO_Write(ch)
 Char ch;
 {
-  (*Stack[StackPtr])(ch);
+  (*StackW[StackWPtr])(ch);
 }
 
 
@@ -72,10 +74,10 @@ Char ch;
 Void StdIO_PushOutput(p)
 Void (*p) PP((Char));
 {
-  if (StackPtr == MaxStack)
+  if (StackWPtr == MaxStack)
     _Escape(0);
-  StackPtr++;
-  Stack[StackPtr] = p;
+  StackWPtr++;
+  StackW[StackWPtr] = p;
 }
 
 
@@ -85,9 +87,9 @@ Void (*p) PP((Char));
 
 Void StdIO_PopOutput()
 {
-  if (StackPtr == 1)
+  if (StackWPtr == 1)
     _Escape(0);
-  StackPtr--;
+  StackWPtr--;
 }
 
 /*
@@ -97,8 +99,49 @@ Void StdIO_PopOutput()
 /* --fixme-- p2c makes a mistake the function returned should be p(Char) not p(void) */
 void (*(StdIO_GetCurrentOutput(void)))(void)
 {
-  if (StackPtr > 0) {
-    return (void *) (Stack[StackPtr]);
+  if (StackWPtr > 0) {
+    return (void *) (StackW[StackWPtr]);
+  }
+  M2RTS_HALT(-1);
+}
+
+
+/*
+   PushInput - pushes the current Read procedure onto a stack,
+               any future references to Read will actually invoke
+               procedure, p.
+*/
+
+Void StdIO_PushInput(p)
+Void (*p) PP((Char *));
+{
+  if (StackWPtr == MaxStack)
+    _Escape(0);
+  StackRPtr++;
+  StackR[StackRPtr] = p;
+}
+
+
+/*
+   PopInput - restores Read to use the previous output procedure.
+*/
+
+Void StdIO_PopInput()
+{
+  if (StackRPtr == 1)
+    _Escape(0);
+  StackRPtr--;
+}
+
+/*
+   GetCurrentInput - returns the current Input procedure.
+*/
+
+/* --fixme-- p2c makes a mistake the function returned should be p(Char) not p(void) */
+void (*(StdIO_GetCurrentInput(void)))(void)
+{
+  if (StackRPtr > 0) {
+    return (void *) (StackR[StackRPtr]);
   }
   M2RTS_HALT(-1);
 }
@@ -106,14 +149,18 @@ void (*(StdIO_GetCurrentOutput(void)))(void)
 
 void _M2_StdIO_init()
 {
-  Void (*TEMP) PP((char ch));
+  Void (*TEMPW) PP((char ch));
+  Void (*TEMPR) PP((char *ch));
 
   static int _was_initialized = 0;
   if (_was_initialized++)
     return;
-  StackPtr = 0;
-  TEMP = IO_Write;
-  StdIO_PushOutput(TEMP);
+  StackWPtr = 0;
+  TEMPW = IO_Write;
+  StdIO_PushOutput(TEMPW);
+  StackRPtr = 0;
+  TEMPR = IO_Read;
+  StdIO_PushInput(TEMPR);
 }
 
 

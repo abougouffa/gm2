@@ -8377,6 +8377,7 @@ END BuildCmplxFunction ;
 
 PROCEDURE BuildAdrFunction ;
 VAR
+   t,
    Array,
    UnboundedSym,
    Field,
@@ -8419,7 +8420,15 @@ BEGIN
          BuildDesignatorRecord ;
          PopTrw(ReturnVar, rw)
       ELSE
-         ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
+         ReturnVar := MakeTemporary(RightValue) ;
+         PutVar(ReturnVar, GetType(ProcSym)) ;
+         IF GetMode(OperandT(1))=LeftValue
+         THEN
+            PutVar(ReturnVar, GetType(ProcSym)) ;
+            GenQuad(ConvertOp, ReturnVar, GetType(ProcSym), OperandT(1))
+         ELSE
+            GenQuad(AddrOp, ReturnVar, NulSym, OperandT(1))
+         END ;
          rw := OperandMergeRW(1)
       END ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
