@@ -15,6 +15,6 @@ static: clean
 	gm2 -fiso -g -fmakeall -I.:../../gm2-compiler test.mod
 	
 clean: force
-	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so
+	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp
 
 force:

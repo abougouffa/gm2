@@ -24,9 +24,9 @@ VAR
 BEGIN
    b := twoDsim.box(0.0, 0.0, 1.0, 1.0) ;
    b := twoDsim.fix(b) ;
-   c := twoDsim.circle(0.4, 0.4, 0.05) ;
+   c := twoDsim.circle(0.7, 0.7, 0.05) ;
    c := twoDsim.mass(c, 0.01) ;
-   twoDsim.gravity(9.6) ;
+   twoDsim.gravity(-9.81) ;
    twoDsim.fps(24.0) ;
-   twoDsim.simulateFor(30.0)
+   twoDsim.simulateFor(0.5)
 END test.

@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE twoDsim ;
 FROM Storage IMPORT ALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
-FROM deviceGnuPic IMPORT newFrame, renderFrame, circleFrame ;
+FROM deviceGnuPic IMPORT Coord, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
 
 
 CONST
@@ -28,10 +28,6 @@ CONST
    DefaultFramesPerSecond = 24.0 ;
 
 TYPE
-   Coord = RECORD
-              x, y: REAL ;
-           END ;
-
    ObjectType = (polygonOb, circleOb, pivotOb) ;
 
    Object = POINTER TO RECORD
@@ -60,16 +56,25 @@ TYPE
             END ;
 
    Polygon = RECORD
+                pos    : Coord ;
                 nPoints: CARDINAL ;
                 points : ARRAY [0..MaxPolygonPoints] OF Coord ;
                 mass   : REAL ;
              END ;
+
+   eventQueue = POINTER TO RECORD
+                              time: REAL ;
+                              p   : PROC ;
+                              next: eventQueue ;
+                           END ;
 
 VAR
    objects         : Index ;
    maxId           : CARDINAL ;
    framesPerSecond : REAL ;
    simulatedGravity: REAL ;
+   eventQ,
+   freeEvents      : eventQueue ;
 
 
 (*
@@ -352,10 +357,10 @@ END fps ;
 
 
 (*
-   simulateFor - render for, t, seconds.
+   drawFrame - 
 *)
 
-PROCEDURE simulateFor (t: REAL) ;
+PROCEDURE drawFrame ;
 VAR
    i, n: CARDINAL ;
    optr: Object ;
@@ -368,8 +373,8 @@ BEGIN
       WITH optr^ DO
          CASE object OF
 
-         circleOb :  circleFrame(c.pos.x, c.pos.y, c.r) |
-         polygonOb:  |
+         circleOb :  circleFrame(c.pos, c.r) |
+         polygonOb:  polygonFrame(p.pos, p.nPoints, p.points) |
          pivotOb  :
 
          END
@@ -377,7 +382,219 @@ BEGIN
       INC(i)
    END ;
    renderFrame
+END drawFrame ;
+
+
+(*
+   drawFrameEvent - 
+*)
+
+PROCEDURE drawFrameEvent ;
+BEGIN
+   drawFrame ;
+   addEvent(1.0/framesPerSecond, drawFrameEvent)
+END drawFrameEvent ;
+
+
+(*
+   updateCircle - 
+*)
+
+PROCEDURE updateCircle (optr: Object; dt: REAL) ;
+VAR
+   vn: REAL ;
+BEGIN
+   WITH optr^ DO
+      (* update vx and pos.x *)
+      vn := vx + ax*dt ;
+      c.pos.x := c.pos.x+dt*(vx+vn)/2.0 ;
+      vx := vn ;
+      (* update vy and pos.y *)
+      vn := vy + (ay+simulatedGravity)*dt ;
+      c.pos.y := c.pos.y+dt*(vy+vn)/2.0 ;
+      vy := vn
+   END
+END updateCircle ;
+
+
+(*
+   updateOb - 
+*)
+
+PROCEDURE updateOb (optr: Object; dt: REAL) ;
+BEGIN
+   WITH optr^ DO
+      IF NOT fixed
+      THEN
+         CASE object OF
+
+         polygonOb:  | (* updatePolygon(p) | *)
+         circleOb :  updateCircle(optr, dt) |
+         pivotOb  :  |
+
+         END
+      END
+   END
+END updateOb ;
+
+
+(*
+   updatePhysics - updates all positions of objects based on the passage of
+                   dt seconds.
+*)
+
+PROCEDURE updatePhysics (dt: REAL) ;
+VAR
+   i, n: CARDINAL ;
+   optr: Object ;
+BEGIN
+   n := HighIndice(objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      optr := GetIndice(objects, i) ;
+      updateOb(optr, dt) ;
+      INC(i)
+   END
+END updatePhysics ;
+
+
+(*
+   doNextEvent - 
+*)
+
+PROCEDURE doNextEvent () : REAL ;
+VAR
+   e : eventQueue ;
+   dt: REAL ;
+   p : PROC ;
+BEGIN
+   IF eventQ=NIL
+   THEN
+      HALT
+   ELSE
+      e := eventQ ;
+      eventQ := eventQ^.next ;
+      dt := e^.time ;
+      p  := e^.p ;
+      e^.next := freeEvents ;
+      freeEvents := e ;
+      updatePhysics(dt) ;
+      p ;
+      RETURN( dt )
+   END
+END doNextEvent ;
+
+
+(*
+   simulateFor - render for, t, seconds.
+*)
+
+PROCEDURE simulateFor (t: REAL) ;
+VAR
+   s, dt: REAL ;
+BEGIN
+   s := 0.0 ;
+   killQueue ;
+   addEvent(0.0, drawFrameEvent) ;
+   (* addCollisionEvent ; *)
+   WHILE s<t DO
+      dt := doNextEvent() ;
+      s := s + dt
+   END ;
+   produceAVI(TRUNC(framesPerSecond))
 END simulateFor ;
+
+
+(*
+   newEvent - 
+*)
+
+PROCEDURE newEvent () : eventQueue ;
+VAR
+   e: eventQueue ;
+BEGIN
+   IF freeEvents=NIL
+   THEN
+      NEW(e)
+   ELSE
+      e := freeEvents ;
+      freeEvents := freeEvents^.next
+   END ;
+   RETURN( e )
+END newEvent ;
+
+
+(*
+   addRelative - adds event, e, into the relative event queue.
+*)
+
+PROCEDURE addRelative (e: eventQueue) ;
+VAR
+   before, after: eventQueue ;
+BEGIN
+   IF eventQ=NIL
+   THEN
+      eventQ := e
+   ELSIF e^.time<eventQ^.time
+   THEN
+      eventQ^.time := eventQ^.time - e^.time ;
+      e^.next := eventQ ;
+      eventQ := e
+   ELSE
+      before := eventQ ;
+      after := eventQ^.next ;
+      WHILE (after#NIL) AND (after^.time<e^.time) DO
+         before := after ;
+         after := after^.next
+      END ;
+      IF after#NIL
+      THEN
+         after^.time := after^.time-e^.time
+      END ;
+      e^.time := e^.time-before^.time ;
+      before^.next := e ;
+      e^.next := after
+   END
+END addRelative ;
+
+
+(*
+   addEvent - 
+*)
+
+PROCEDURE addEvent (t: REAL; dop: PROC) ;
+VAR
+   e: eventQueue ;
+BEGIN
+   e := newEvent() ;
+   WITH e^ DO
+      time := t ;
+      p := dop ;
+      next := NIL
+   END ;
+   addRelative(e)
+END addEvent ;
+
+
+(*
+   killQueue - destroys the event queue and returns events to the free list.
+*)
+
+PROCEDURE killQueue ;
+VAR
+   e: eventQueue ;
+BEGIN
+   IF eventQ#NIL
+   THEN
+      e := eventQ ;
+      WHILE e^.next#NIL DO
+         e := e^.next
+      END ;
+      e^.next := freeEvents ;
+      freeEvents := eventQ ;
+      eventQ := NIL
+   END
+END killQueue ;
 
 
 (*
@@ -389,7 +606,9 @@ BEGIN
    maxId := 0 ;
    objects := InitIndex(1) ;
    framesPerSecond := DefaultFramesPerSecond ;
-   simulatedGravity := 0.0
+   simulatedGravity := 0.0 ;
+   eventQ := NIL ;
+   freeEvents := NIL
 END Init ;
 
 
