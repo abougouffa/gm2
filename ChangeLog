@@ -1,3 +1,10 @@
+2009-12-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  fixed a bug reported by
+	  Martin Kalbfuﬂ (both this bug and the one below required
+	  fixes to BuildAdrFunction, which should return a
+	  RightValue rather than a LeftValue).
+
 2009-12-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  fixed a bug reported by

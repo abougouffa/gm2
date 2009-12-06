@@ -218,6 +218,7 @@ FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, 
 CONST
    DebugStack = FALSE ;
    DebugVarients = FALSE ;
+   BreakAtQuad = 63 ;
 
 TYPE
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
@@ -1197,7 +1198,7 @@ PROCEDURE PutQuad (QuadNo: CARDINAL;
 VAR
    f: QuadFrame ;
 BEGIN
-   IF QuadNo=31
+   IF QuadNo=BreakAtQuad
    THEN
       stop
    END ;
@@ -8418,7 +8419,12 @@ BEGIN
          PushTF(Field, GetType(Field)) ;
          PushT(1) ;
          BuildDesignatorRecord ;
-         PopTrw(ReturnVar, rw)
+         PopTrw(ReturnVar, rw) ;
+         Assert(GetMode(ReturnVar)=LeftValue) ;
+         t := MakeTemporary(RightValue) ;
+         PutVar(t, GetType(ProcSym)) ;
+         GenQuad(IndrXOp, t, GetType(ProcSym), ReturnVar) ;
+         ReturnVar := t
       ELSE
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(ProcSym)) ;
@@ -11246,7 +11252,7 @@ BEGIN
          LineNo := GetLineNo() ;
          TokenNo := GetTokenNo()
       END ;
-      IF NextQuad=31
+      IF NextQuad=BreakAtQuad
       THEN
          stop
       END ;
