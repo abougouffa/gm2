@@ -1,3 +1,8 @@
+2009-12-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FIO.mod:  fixed bug in WriteNBytes.  The
+	  cached seek position was not updated after a write.
+
 2009-12-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  fixed a bug reported by

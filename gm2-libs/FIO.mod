@@ -1037,6 +1037,11 @@ BEGIN
             state := failed ;
             RETURN( 0 )
          ELSE
+            INC(abspos, CARDINAL(total)) ;
+            IF buffer#NIL
+            THEN
+               buffer^.bufstart := abspos
+            END ;
             RETURN( CARDINAL(total) )
          END
       END
