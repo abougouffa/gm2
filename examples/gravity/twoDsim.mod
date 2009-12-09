@@ -17,10 +17,14 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE twoDsim ;
 
+FROM SYSTEM IMPORT ADR ;
 FROM Storage IMPORT ALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
-FROM deviceGnuPic IMPORT Coord, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
+FROM deviceGnuPic IMPORT Coord, Colour, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
+FROM libm IMPORT pow, sqrt ;
+FROM gsl IMPORT gsl_poly_complex_workspace, gsl_poly_complex_solve,
+                gsl_poly_complex_workspace_alloc, gsl_poly_complex_workspace_free ;
 
 
 CONST
@@ -62,9 +66,13 @@ TYPE
                 mass   : REAL ;
              END ;
 
+   eventProc = PROCEDURE (eventQueue) ;
+
    eventQueue = POINTER TO RECORD
                               time: REAL ;
-                              p   : PROC ;
+                              p   : eventProc ;
+                              id1,
+                              id2 : CARDINAL ;
                               next: eventQueue ;
                            END ;
 
@@ -357,10 +365,25 @@ END fps ;
 
 
 (*
+   getColour - 
+*)
+
+PROCEDURE getColour (i: CARDINAL; e: eventQueue) : Colour ;
+BEGIN
+   IF (i=e^.id1) OR (i=e^.id2)
+   THEN
+      RETURN red
+   ELSE
+      RETURN black
+   END
+END getColour ;
+
+
+(*
    drawFrame - 
 *)
 
-PROCEDURE drawFrame ;
+PROCEDURE drawFrame (e: eventQueue) ;
 VAR
    i, n: CARDINAL ;
    optr: Object ;
@@ -373,8 +396,8 @@ BEGIN
       WITH optr^ DO
          CASE object OF
 
-         circleOb :  circleFrame(c.pos, c.r) |
-         polygonOb:  polygonFrame(p.pos, p.nPoints, p.points) |
+         circleOb :  circleFrame(c.pos, c.r, getColour(i, e)) |
+         polygonOb:  polygonFrame(p.pos, p.nPoints, p.points, getColour(i, e)) |
          pivotOb  :
 
          END
@@ -389,11 +412,32 @@ END drawFrame ;
    drawFrameEvent - 
 *)
 
-PROCEDURE drawFrameEvent ;
+PROCEDURE drawFrameEvent (e: eventQueue) ;
 BEGIN
-   drawFrame ;
+   drawFrame(e) ;
    addEvent(1.0/framesPerSecond, drawFrameEvent)
 END drawFrameEvent ;
+
+
+(*
+   updatePolygon - 
+*)
+
+PROCEDURE updatePolygon (optr: Object; dt: REAL) ;
+VAR
+   vn: REAL ;
+BEGIN
+   WITH optr^ DO
+      (* update vx and pos.x *)
+      vn := vx + ax*dt ;
+      p.pos.x := c.pos.x+dt*(vx+vn)/2.0 ;
+      vx := vn ;
+      (* update vy and pos.y *)
+      vn := vy + (ay+simulatedGravity)*dt ;
+      p.pos.y := c.pos.y+dt*(vy+vn)/2.0 ;
+      vy := vn
+   END
+END updatePolygon ;
 
 
 (*
@@ -428,7 +472,7 @@ BEGIN
       THEN
          CASE object OF
 
-         polygonOb:  | (* updatePolygon(p) | *)
+         polygonOb:  updatePolygon(optr, dt) |
          circleOb :  updateCircle(optr, dt) |
          pivotOb  :  |
 
@@ -439,7 +483,7 @@ END updateOb ;
 
 
 (*
-   updatePhysics - updates all positions of objects based on the passage of
+   updatePhysics - updates all positions of objects based on the passing of
                    dt seconds.
 *)
 
@@ -466,7 +510,7 @@ PROCEDURE doNextEvent () : REAL ;
 VAR
    e : eventQueue ;
    dt: REAL ;
-   p : PROC ;
+   p : eventProc ;
 BEGIN
    IF eventQ=NIL
    THEN
@@ -476,13 +520,291 @@ BEGIN
       eventQ := eventQ^.next ;
       dt := e^.time ;
       p  := e^.p ;
+      updatePhysics(dt) ;
+      p(e) ;
       e^.next := freeEvents ;
       freeEvents := e ;
-      updatePhysics(dt) ;
-      p ;
       RETURN( dt )
    END
 END doNextEvent ;
+
+
+(*
+   doCollision - 
+*)
+
+PROCEDURE doCollision (e: eventQueue) ;
+BEGIN
+   drawFrameEvent(e) ;
+   addNextCollisionEvent
+END doCollision ;
+
+
+(*
+   sqr - 
+*)
+
+PROCEDURE sqr (v: REAL) : REAL ;
+BEGIN
+   RETURN v*v
+END sqr ;
+
+
+(*
+   findCollisionCircles - 
+
+
+   xin = xi + vxi * t + aix * t^2 / 2.0
+   yin = yi + vyi * t + aiy * t^2 / 2.0
+
+   xjn = xj + vxj * t + ajx * t^2 / 2.0
+   yjn = yj + vyj * t + ajy * t^2 / 2.0
+
+   ri + rj == sqrt(abs(xin-xjn)^2 + abs(yin-yjn)^2)     for values of t
+
+   ri + rj == sqrt((xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
+                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2)
+
+   ri + rj == sqrt(((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
+                    (yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2)
+
+   (ri + rj)^2 = ((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
+                 ((yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2
+
+   0           =  ((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
+                  ((yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2 -
+                  (ri + rj)^2
+
+   expand and collect terms of t:
+
+   let:
+
+   a = xi
+   b = xj
+   c = vxi
+   d = vxj
+   e = aix
+   f = ajx
+   g = yi
+   h = yj
+   k = vyi
+   l = vyj
+   m = aiy
+   n = ajy
+   o = ri
+   p = rj
+   t = t
+
+   now using wxmaxima
+
+   (((a-b)+(c-d)*t+((e-f)*t^2)/2)^2) +
+   (((g-h)+(k-l)*t+((m-n)*t^2)/2)^2) -
+   (o-p)^2;
+
+   expand ; factor ; ratsimp
+
+   we get:
+
+   ((n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
+   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e) * t^3 +
+   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2) * t^2 +
+   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c) * t -
+   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2)/4  =  0
+
+   solve for t:
+
+   (multiply both sides by 4)
+
+   ((n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
+   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e) * t^3 +
+   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2) * t^2 +
+   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c) * t -
+   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2)  =  0
+
+   solve polynomial:
+
+   A = (n^2-2*m*n+m^2+f^2-2*e*f+e^2)
+   B = ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)
+   C = ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)
+   D = ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)
+   E = 4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2
+
+   using the GNU scientific library.
+*)
+
+PROCEDURE findCollisionCircles (iptr, jptr: Object; VAR ic, jc: CARDINAL; VAR tc: REAL) ;
+TYPE
+   arrayReal5 = ARRAY [0..4] OF REAL ;
+VAR
+   a, b, c, d, e,
+   f, g, h, k, l,
+   m, n, o, p, t,
+   A, B, C, D, E: REAL ;
+   V            : arrayReal5 ;
+   R            : ARRAY [0..7] OF REAL ;
+   W            : gsl_poly_complex_workspace ;
+   i, j         : CARDINAL ;
+BEGIN
+   WITH iptr^ DO
+      a := c.pos.x ;
+   END ;
+   c := iptr^.vx ;
+   WITH iptr^ DO
+      IF fixed
+      THEN
+         e := 0.0 ;
+         m := 0.0
+      ELSE
+         e := ax+simulatedGravity ;
+         m := ay+simulatedGravity
+      END ;
+      g := c.pos.y ;
+      k := vy ;
+      o := c.r
+   END ;
+
+   WITH jptr^ DO
+      IF fixed
+      THEN
+         f := 0.0 ;
+         n := 0.0
+      ELSE
+         f := ax+simulatedGravity ;
+         n := ay+simulatedGravity
+      END ;
+      b := c.pos.x ;
+      d := vx ;
+      h := c.pos.y ;
+      l := vy ;
+   END ;
+   p := jptr^.c.r ;
+
+   A := sqr(n) -2.0*m*n+ sqr(m) + sqr(f) -2.0*e*f + sqr(e) ;
+   B := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
+   C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0 * sqr(l)-8.0*k*l+4.0 * sqr(k) +
+        (4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0 * sqr(d) -8.0*c*d+4.0 * sqr(c) ;
+   D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
+   E := 4.0 * sqr(p) + 8.0*o*p-4.0 * sqr(o) + 4.0 * sqr(h)
+        -8.0*g*h+4.0 * sqr(g) +4.0 * sqr(b) -8.0*a*b+4.0* sqr(a) ;
+
+   (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
+   IF A=0.0
+   THEN
+      IF B=0.0
+      THEN
+         IF C=0.0
+         THEN
+            IF D=0.0
+            THEN
+               IF E=0.0
+               THEN
+                  tc := 0.0 ;
+                  ic := iptr^.id ;
+                  jc := jptr^.id ;
+                  RETURN
+               ELSE
+                  (*
+                  V[0] := E ;
+                  j := 1 ;
+                  *)
+                  tc := 0.0 ;
+                  ic := iptr^.id ;
+                  jc := jptr^.id ;
+                  RETURN
+               END
+            ELSE
+               V[0] := E ;
+               V[1] := D ;
+               j := 2
+            END
+         ELSE
+            V[0] := E ;
+            V[1] := D ;
+            V[2] := C ;
+            j := 3
+         END
+      ELSE
+         V[0] := E ;
+         V[1] := D ;
+         V[2] := C ;
+         V[3] := B ;
+         j := 4
+      END
+   ELSE
+      V[0] := E ;
+      V[1] := D ;
+      V[2] := C ;
+      V[3] := B ;
+      V[4] := A ;
+      j := 5
+   END ;
+
+   W := gsl_poly_complex_workspace_alloc (j);
+   gsl_poly_complex_solve (ADR(V), j, W, ADR(R));
+   gsl_poly_complex_workspace_free (W);
+
+   FOR i := 0 TO j-2 DO
+      IF (R[i*2]>=0.0) AND (R[i*2+1]>=0.0)
+      THEN
+         t := sqrt(sqr(R[i*2]) + sqr(R[i*2+1])) ;
+         (* remember tc is -1.0 initially, to force it to be set once *)
+         IF (tc<0.0) OR (t<tc)
+         THEN
+            tc := t ;
+            ic := iptr^.id ;
+            jc := jptr^.id
+         END
+      END
+   END
+END findCollisionCircles ;
+
+
+(*
+   findCollision - 
+*)
+
+PROCEDURE findCollision (iptr, jptr: Object; VAR ic, jc: CARDINAL; VAR tc: REAL) ;
+BEGIN
+   IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
+   THEN
+      findCollisionCircles(iptr, jptr, ic, jc, tc)
+   END
+END findCollision ;
+
+
+(*
+   addNextCollisionEvent - 
+*)
+
+PROCEDURE addNextCollisionEvent ;
+VAR
+   tc        : REAL ;
+   ic, jc,
+   i, j, n   : CARDINAL ;
+   iptr, jptr: Object ;
+BEGIN
+   n := HighIndice(objects) ;
+   i := 1 ;
+   tc := -1.0 ;
+   ic := n+1 ;
+   jc := n+1 ;
+   WHILE i<=n DO
+      iptr := GetIndice(objects, i) ;
+      j := i+1 ;
+      WHILE j<=n DO
+         jptr := GetIndice(objects, j) ;
+         findCollision(iptr, jptr, ic, jc, tc) ;
+         INC(j)
+      END ;
+      INC(i)
+   END ;
+   IF tc>=0.0
+   THEN
+      addCollisionEvent(tc, doCollision, ic, jc)
+   ELSE
+      printf("no more collisions found\n")
+   END
+END addNextCollisionEvent ;
 
 
 (*
@@ -496,7 +818,7 @@ BEGIN
    s := 0.0 ;
    killQueue ;
    addEvent(0.0, drawFrameEvent) ;
-   (* addCollisionEvent ; *)
+   addNextCollisionEvent ;
    WHILE s<t DO
       dt := doNextEvent() ;
       s := s + dt
@@ -562,7 +884,7 @@ END addRelative ;
    addEvent - 
 *)
 
-PROCEDURE addEvent (t: REAL; dop: PROC) ;
+PROCEDURE addEvent (t: REAL; dop: eventProc) ;
 VAR
    e: eventQueue ;
 BEGIN
@@ -570,10 +892,32 @@ BEGIN
    WITH e^ DO
       time := t ;
       p := dop ;
+      id1 := 0 ;
+      id2 := 0 ;
       next := NIL
    END ;
    addRelative(e)
 END addEvent ;
+
+
+(*
+   addCollisionEvent - 
+*)
+
+PROCEDURE addCollisionEvent (t: REAL; dop: eventProc; a, b: CARDINAL) ;
+VAR
+   e: eventQueue ;
+BEGIN
+   e := newEvent() ;
+   WITH e^ DO
+      time := t ;
+      p := dop ;
+      id1 := a ;
+      id2 := b ;
+      next := NIL
+   END ;
+   addRelative(e)
+END addCollisionEvent ;
 
 
 (*

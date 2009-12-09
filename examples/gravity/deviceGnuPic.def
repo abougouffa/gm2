@@ -31,6 +31,9 @@ TYPE
               x, y: REAL ;
            END ;
 
+   Colour = (black, red, blue, green) ;
+
+
 (*
    newFrame - creates a new frame.
 *)
@@ -49,14 +52,14 @@ PROCEDURE renderFrame ;
    circleFrame - add a circle at x0, y0 with radius, r0.
 *)
 
-PROCEDURE circleFrame (pos: Coord; r0: REAL) ;
+PROCEDURE circleFrame (pos: Coord; r0: REAL; c: Colour) ;
 
 
 (*
    polygonFrame - draw a polygon in the current frame.
 *)
 
-PROCEDURE polygonFrame (pos: Coord; n: CARDINAL; p: ARRAY OF Coord) ;
+PROCEDURE polygonFrame (pos: Coord; n: CARDINAL; p: ARRAY OF Coord; c: Colour) ;
 
 
 (*

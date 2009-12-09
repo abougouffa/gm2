@@ -1,5 +1,21 @@
+2009-12-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/gsl.def:  new file.
+	* gm2/examples/gravity/Makefile:  added -lgsl -lblas
+	  to the linking rule and fixed the clean rule.
+	* gm2/examples/gravity/deviceGnuPic.def:  defines
+	  four colours and allows entities to be drawn in
+	  different colours.
+	* gm2/examples/gravity/deviceGnuPic.mod:  implemented
+	  above and will now invoke mencode to generate movie.avi.
+	* gm2/examples/gravity/test.mod:  extended test example.
+	* gm2/examples/gravity/twoDsim.mod:  completed circle
+	  collision detection code.
+
 2009-12-08       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/FIO.mod:  fixed bug in WriteNBytes.  The
+	  cached seek position was not updated after a write.
 	* gm2/gm2-libs/FIO.mod:  fixed bug in WriteNBytes.  The
 	  cached seek position was not updated after a write.
 

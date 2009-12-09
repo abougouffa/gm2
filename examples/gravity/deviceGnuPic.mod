@@ -49,7 +49,10 @@ BEGIN
    INC(frameNo) ;
    filename := Sprintf1(InitString('f%06d.ms'), frameNo) ;
    CopyOut(name, filename) ;
-   OpenWrite(f, name, text+write, res)
+   OpenWrite(f, name, text+write, res) ;
+   WriteString(f, '.defcolor red rgb 0.65f 0.1f 0.2f') ; WriteLn(f) ;
+   WriteString(f, '.defcolor green rgb 0.1f 0.4f 0.2f') ; WriteLn(f) ;
+   WriteString(f, '.defcolor blue rgb 0.1f 0.2f 0.6f') ; WriteLn(f)
 END newFrame ;
 
 
@@ -88,7 +91,7 @@ BEGIN
                  filename, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
-   s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -q -dBATCH f%06d.ps'),
+   s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -dGraphicsAlphaBits=4 -q -dBATCH f%06d.ps'),
                  frameNo, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
@@ -110,14 +113,33 @@ END renderFrame ;
 
 
 (*
+   WriteColour - 
+*)
+
+PROCEDURE WriteColour (c: Colour) ;
+BEGIN
+   CASE c OF
+
+   black:  WriteString(f, '\M[default]') |
+   red  :  WriteString(f, '\M[red]') |
+   blue :  WriteString(f, '\M[blue]') |
+   green:  WriteString(f, '\M[green]')
+
+   END
+END WriteColour ;
+
+
+(*
    circleFrame - 
 *)
 
-PROCEDURE circleFrame (pos: Coord; r0: REAL) ;
+PROCEDURE circleFrame (pos: Coord; r0: REAL; c: Colour) ;
 BEGIN
    WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
-   WriteString(f, ".nop \h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
-   WriteString(f, "\D'C") ; WriteFixed(f, 2.0*r0*Width, 4, 4) ; WriteString(f, "i'") ; WriteLn(f)
+   WriteString(f, ".nop ") ;
+   WriteColour(c) ;
+   WriteString(f, "\h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
+   WriteString(f, "\D'C") ; WriteFixed(f, 2.0*r0*Width, 4, 4) ; WriteString(f, "i'\M[default]") ; WriteLn(f)
 END circleFrame ;
 
 
@@ -125,13 +147,15 @@ END circleFrame ;
    polygonFrame - draw a polygon in the current frame.
 *)
 
-PROCEDURE polygonFrame (pos: Coord; n: CARDINAL; p: ARRAY OF Coord) ;
+PROCEDURE polygonFrame (pos: Coord; n: CARDINAL; p: ARRAY OF Coord; c: Colour) ;
 VAR
    i: CARDINAL ;
    l: Coord ;
 BEGIN
    WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
-   WriteString(f, ".nop \h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
+   WriteString(f, ".nop ") ;
+   WriteColour(c) ;
+   WriteString(f, "\h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
    WriteString(f, "\D'p") ;
    l := Coord{0.0, 0.0} ;
    FOR i := 0 TO n DO
@@ -139,7 +163,7 @@ BEGIN
       WriteFixed(f, (p[i].y-l.y)*Height, 4, 4) ; WriteString(f, "i ") ;
       l := p[i]
    END ;
-   WriteString(f, "'") ; WriteLn(f)
+   WriteString(f, "'\M[default]") ; WriteLn(f)
 END polygonFrame ;
 
 
@@ -156,9 +180,11 @@ BEGIN
                  fps) ;
    debugSystem(s) ;
    s := KillString(s) ;
+   (*
    s := InitString('rm -f *.pnm *.png f*.ms') ;
    debugSystem(s) ;
    s := KillString(s)
+   *)
 END produceAVI ;
 
 

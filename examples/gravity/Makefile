@@ -12,9 +12,9 @@ all: force
 
 static: clean
 	gm2 -g -c -I.:../../gm2-compiler ../../gm2-compiler/Indexing.mod
-	gm2 -fiso -g -fmakeall -I.:../../gm2-compiler test.mod
+	gm2 -fiso -g -fmakeall -I.:../../gm2-compiler test.mod -lgsl -lblas
 	
 clean: force
-	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp twoDsim.py
+	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp twoDsim.py *.png *.ms movie.avi
 
 force:
