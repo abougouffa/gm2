@@ -23,8 +23,11 @@ FROM DynamicStrings IMPORT InitString, KillString, ConCat, ConCatChar,
                            InitStringChar, Index ;
 FROM StringConvert IMPORT IntegerToString, ToSigFig ;
 FROM dtoa IMPORT dtoa, Mode ;
-FROM libc IMPORT free ;
+FROM libc IMPORT free, printf ;
 FROM SYSTEM IMPORT ADDRESS ;
+
+CONST
+   Debugging = FALSE ;
 
 
 (*
@@ -207,6 +210,10 @@ BEGIN
    s := InitStringCharStar(r) ;
    free(r) ;
    l := Length(s) ;
+   IF Debugging
+   THEN
+      printf("length of string returned is %d decimal point at position %d\n", l, point)
+   END ;
    IF point+place>=0
    THEN
       (* add decimal point at correct position *)

@@ -24,11 +24,12 @@ VAR
 BEGIN
    b := twoDsim.box(0.0, 0.0, 1.0, 1.0) ;
    b := twoDsim.fix(b) ;
-   c := twoDsim.circle(0.7, 0.7, 0.05) ;
+   c := twoDsim.circle(0.9, 0.9, 0.1) ;
    c := twoDsim.mass(c, 0.01) ;
    d := twoDsim.box(0.3, 8.0, 0.35, 8.5) ;
    d := twoDsim.mass(d, 0.02) ;
-   e := twoDsim.circle(0.7, 0.1, 0.05) ;
+   (* e := twoDsim.circle(0.7, 0.1, 0.05) ; *)
+   e := twoDsim.circle(0.9, 0.1, 0.1) ;
    e := twoDsim.fix(e) ;
    twoDsim.gravity(-9.81) ;
    twoDsim.fps(24.0) ;

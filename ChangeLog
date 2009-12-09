@@ -11,6 +11,11 @@
 	* gm2/examples/gravity/test.mod:  extended test example.
 	* gm2/examples/gravity/twoDsim.mod:  completed circle
 	  collision detection code.
+	* gm2/gm2-libs/StringConvert.mod:  fixed bug when
+	  printing fixed width value of 0.0.
+	* gm2/gm2-libs-iso/ConvStringReal.mod:  added a
+	  configurable debugging printf.
+	* gm2/examples/gravity:  many fixes.
 
 2009-12-08       Gaius Mulley <gaius@gnu.org>
 

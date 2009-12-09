@@ -27,7 +27,7 @@ FROM RealIO IMPORT WriteFixed ;
 
 
 CONST
-   Debugging = TRUE ;
+   Debugging = FALSE ;
    Height    = 5.0 ;
    Width     = Height ;
 
@@ -52,7 +52,8 @@ BEGIN
    OpenWrite(f, name, text+write, res) ;
    WriteString(f, '.defcolor red rgb 0.65f 0.1f 0.2f') ; WriteLn(f) ;
    WriteString(f, '.defcolor green rgb 0.1f 0.4f 0.2f') ; WriteLn(f) ;
-   WriteString(f, '.defcolor blue rgb 0.1f 0.2f 0.6f') ; WriteLn(f)
+   WriteString(f, '.defcolor blue rgb 0.1f 0.2f 0.6f') ; WriteLn(f) ;
+   WriteString(f, '.nop \&') ; WriteLn(f)
 END newFrame ;
 
 
@@ -66,14 +67,12 @@ VAR
 BEGIN
    IF Debugging
    THEN
-      printf("%s  -> ", string(s))
+      printf("%s\n", string(s))
    END ;
    r := system(string(s)) ;
-   IF r=0
+   IF r#0
    THEN
-      printf("ok\n")
-   ELSE
-      printf("returned %d\n", r)
+      printf("%s  -> returned %d\n", string(s), r)
    END
 END debugSystem ;
 
@@ -91,16 +90,16 @@ BEGIN
                  filename, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
-   s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -dGraphicsAlphaBits=4 -q -dBATCH f%06d.ps'),
+   s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -dGraphicsAlphaBits=4 -q -dBATCH f%06d.ps > /dev/null 2>&1'),
                  frameNo, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
-   s := Sprintf2(InitString('pnmcrop -quiet < t%06d.pnm | pnmtopng > e%06d.png'),
+   s := Sprintf2(InitString('pnmcrop -quiet < t%06d.pnm | pnmtopng > e%06d.png 2> /dev/null'),
                  frameNo, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
 
-   s := Sprintf2(InitString('convert e%06d.png -type truecolor f%06d.png'),
+   s := Sprintf2(InitString('convert e%06d.png -type truecolor f%06d.png 2> /dev/null'),
                  frameNo, frameNo) ;
    debugSystem(s) ;
    s := KillString(s) ;
@@ -136,10 +135,11 @@ END WriteColour ;
 PROCEDURE circleFrame (pos: Coord; r0: REAL; c: Colour) ;
 BEGIN
    WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
+   WriteString(f, ".sp -1") ; WriteLn(f) ;
    WriteString(f, ".nop ") ;
    WriteColour(c) ;
-   WriteString(f, "\h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
-   WriteString(f, "\D'C") ; WriteFixed(f, 2.0*r0*Width, 4, 4) ; WriteString(f, "i'\M[default]") ; WriteLn(f)
+   WriteString(f, "\h'") ; WriteFixed(f, (pos.x-r0)*Width, 4, 4) ; WriteString(f, "i'") ;
+   WriteString(f, "\D'C ") ; WriteFixed(f, 2.0*r0*Width, 4, 4) ; WriteString(f, "i'\M[default]") ; WriteLn(f)
 END circleFrame ;
 
 
@@ -153,12 +153,13 @@ VAR
    l: Coord ;
 BEGIN
    WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
+   WriteString(f, ".sp -1") ; WriteLn(f) ;
    WriteString(f, ".nop ") ;
    WriteColour(c) ;
    WriteString(f, "\h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
-   WriteString(f, "\D'p") ;
+   WriteString(f, "\D'p ") ;
    l := Coord{0.0, 0.0} ;
-   FOR i := 0 TO n DO
+   FOR i := 0 TO n-1 DO
       WriteFixed(f, (p[i].x-l.x)*Width, 4, 4) ; WriteString(f, "i ") ;
       WriteFixed(f, (p[i].y-l.y)*Height, 4, 4) ; WriteString(f, "i ") ;
       l := p[i]

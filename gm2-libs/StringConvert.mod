@@ -1063,9 +1063,20 @@ BEGIN
    WHILE (i<l) AND (NOT IsDigit(char(s, i))) DO
       INC(i)
    END ;
-   (* skip over leading zeros *)
-   WHILE (i<l) AND (char(s, i)='0') DO
-      INC(i)
+   l := Length(s) ;
+   IF l>0
+   THEN
+      (* skip over leading zeros *)
+      WHILE (i<l) AND (char(s, i)='0') DO
+         INC(i)
+      END ;
+      (* was the string full of zeros? *)
+      IF (i=l) AND (char(s, i-1)='0')
+      THEN
+         (* truncate string *)
+         s := Slice(Mark(s), 0, n) ;
+         i := n
+      END
    END ;
    (* add a leading zero in case we need to overflow the carry *)
    z := i ;  (* remember where we inserted zero *)

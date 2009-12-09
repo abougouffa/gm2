@@ -22,7 +22,7 @@ FROM Storage IMPORT ALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
 FROM deviceGnuPic IMPORT Coord, Colour, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
-FROM libm IMPORT pow, sqrt ;
+FROM libm IMPORT sqrt ;
 FROM gsl IMPORT gsl_poly_complex_workspace, gsl_poly_complex_solve,
                 gsl_poly_complex_workspace_alloc, gsl_poly_complex_workspace_free ;
 
@@ -530,12 +530,50 @@ END doNextEvent ;
 
 
 (*
+   circleCollision - 
+*)
+
+PROCEDURE circleCollision (iptr, jptr: Object) ;
+BEGIN
+   IF NOT iptr^.fixed
+   THEN
+      iptr^.vy := -iptr^.vy ;
+      iptr^.ay := -iptr^.ay 
+   END ;
+   IF NOT jptr^.fixed
+   THEN
+      jptr^.vy := -jptr^.vy ;
+      jptr^.ay := -jptr^.ay 
+   END
+END circleCollision ;
+
+
+(*
+   physicsCollision - handle the physics of a collision between
+                      the two objects defined in, e.
+*)
+
+PROCEDURE physicsCollision (e: eventQueue) ;
+VAR
+   iptr, jptr: Object ;
+BEGIN
+   iptr := GetIndice(objects, e^.id1) ;
+   jptr := GetIndice(objects, e^.id2) ;
+   IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
+   THEN
+      circleCollision(iptr, jptr)
+   END
+END physicsCollision ;
+
+
+(*
    doCollision - 
 *)
 
 PROCEDURE doCollision (e: eventQueue) ;
 BEGIN
    drawFrameEvent(e) ;
+   physicsCollision(e) ;
    addNextCollisionEvent
 END doCollision ;
 
@@ -615,11 +653,11 @@ END sqr ;
 
    (multiply both sides by 4)
 
-   ((n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
+   (n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
    ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e) * t^3 +
    ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2) * t^2 +
    ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c) * t -
-   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2)  =  0
+   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2  =  0
 
    solve polynomial:
 
@@ -908,6 +946,7 @@ PROCEDURE addCollisionEvent (t: REAL; dop: eventProc; a, b: CARDINAL) ;
 VAR
    e: eventQueue ;
 BEGIN
+   printf("collision will occur in %g simulated seconds\n", t) ;
    e := newEvent() ;
    WITH e^ DO
       time := t ;
