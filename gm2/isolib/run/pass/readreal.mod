@@ -17,14 +17,18 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE readreal ;
 
+
 FROM RealIO IMPORT ReadReal, WriteFloat ;
-IMPORT STextIO, SRealIO ;
+IMPORT STextIO, SRealIO, RealIO, SeqFile ;
 
 VAR
-   r: REAL ;
+   r  : REAL ;
+   c  : SeqFile.ChanId ;
+   res: SeqFile.OpenResults ;
 BEGIN
+   SeqFile.OpenRead(c, 'testnumber', SeqFile.read, res) ;
    STextIO.WriteString('enter a real number: ') ;
-   SRealIO.ReadReal(r) ;
+   RealIO.ReadReal(c, r) ;
    STextIO.WriteLn ;
    STextIO.WriteString('The number expressed in floating point format: ') ;
    SRealIO.WriteFloat(r, 10, 15) ; STextIO.WriteLn
