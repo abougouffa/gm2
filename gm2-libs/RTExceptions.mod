@@ -21,7 +21,7 @@ FROM ASCII IMPORT nul, nl ;
 FROM StrLib IMPORT StrLen ;
 FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADR, THROW ;
-FROM libc IMPORT write ;
+FROM libc IMPORT write, strlen ;
 FROM M2RTS IMPORT HALT, Halt ;
 FROM SysExceptions IMPORT InitExceptionHanders ;
 
@@ -108,7 +108,7 @@ BEGIN
    h := findHandler(currentEHB, currentEHB^.number) ;
    IF h=NIL
    THEN
-      DefaultErrorCatch
+      THROW(GetNumber(GetExceptionBlock()))
    ELSE
       h^.p
    END
@@ -122,8 +122,13 @@ END InvokeHandler ;
 *)
 
 PROCEDURE DefaultErrorCatch ;
+VAR
+   e: EHBlock ;
+   n: INTEGER ;
 BEGIN
-   THROW(GetNumber(GetExceptionBlock()))
+   e := GetExceptionBlock() ;
+   n := write(2, GetTextBuffer(e), strlen(GetTextBuffer(e))) ;
+   HALT
 END DefaultErrorCatch ;
 
 
@@ -232,6 +237,7 @@ BEGIN
    addChar(' ', i) ;
    addStr(function, i) ;
    addChar(nl, i) ;
+   addChar(nul, i) ;
    InvokeHandler
 END Raise ;
 
