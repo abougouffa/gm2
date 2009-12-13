@@ -1,3 +1,10 @@
+2009-12-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Students.mod:  fixed bug reported
+	  by Martin Kalbfuﬂ which occurred if -fstudents is used.
+	  The parameters to Sprintf2 must not be Name types but
+	  String types.  Modified accordingly.
+
 2009-12-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/RTExceptions.mod:  fix so that

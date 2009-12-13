@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Students ;
 
 FROM SymbolTable IMPORT FinalSymbol, IsVar, IsProcedure, IsModule,
                         GetMainModule, IsType, NulSym, IsRecord, GetSymName, GetNth, GetNthProcedure, GetDeclared, NoOfParam ;
-FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey ;
+FROM NameKey IMPORT GetKey, WriteKey, MakeKey, IsSameExcludingCase, NulName, makekey, KeyToCharStar ;
 FROM M2Error IMPORT WarnStringAt ;
 FROM Lists IMPORT List, InitList, IsItemInList, IncludeItemIntoList ;
 FROM M2Reserved IMPORT IsReserved, toktype ;
@@ -100,33 +100,42 @@ END CheckForVariableThatLooksLikeKeyword ;
 
 PROCEDURE CheckAsciiName (previous, s1, newblock, s2: CARDINAL) ;
 VAR
-   n1, n2, n3: Name ;
+   n1, n2, n3: String ;
+   a1, a2, a3: Name ;
 BEGIN
-   n1 := GetSymName(s1) ;
-   n2 := GetSymName(s2) ;
-   IF (n1=n2) AND (n1#NulName)
+   a1 := GetSymName(s1) ;
+   a2 := GetSymName(s2) ;
+   n1 := InitStringCharStar(KeyToCharStar(a1)) ;
+   n2 := InitStringCharStar(KeyToCharStar(a2)) ;
+   n3 := NIL ;
+   IF (a1=a2) AND (a1#NulName)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         n3 := GetSymName(previous) ;
+         n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
          WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
                                n3, n1), GetDeclared(s1)) ;
-         n3 := GetSymName(newblock) ;
+         n3 := KillString(n3) ;
+         n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
          WarnStringAt(Sprintf2(Mark(InitString('identical symbol name in two different scopes, scope (%s) has symbol called (%s)')),
-                               n3, n2), GetDeclared(s2))
+                               n3, n2), GetDeclared(s2)) ;
       END
-   ELSIF IsSameExcludingCase(n1, n2)
+   ELSIF IsSameExcludingCase(a1, a2)
    THEN
       IF IsNotADuplicate(s1, s2)
       THEN
-         n3 := GetSymName(previous) ;
+         n3 := InitStringCharStar(KeyToCharStar(GetSymName(previous))) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
                                n3, n1), GetDeclared(s1)) ;
-         n3 := GetSymName(newblock) ;
+         n3 := KillString(n3) ;
+         n3 := InitStringCharStar(KeyToCharStar(GetSymName(newblock))) ;
          WarnStringAt(Sprintf2(Mark(InitString('very similar symbol names (different case) in two different scopes, scope (%s) has symbol called (%s)')),
                                n3, n2), GetDeclared(s2))
       END
-   END
+   END ;
+   n1 := KillString(n1) ;
+   n2 := KillString(n2) ;
+   n3 := KillString(n3)
 END CheckAsciiName ;
 
 
