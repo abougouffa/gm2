@@ -20,6 +20,7 @@ DEFINITION MODULE FOR "C" gsl ;
 FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED gsl_poly_complex_workspace,
                    gsl_poly_complex_solve,
+                   gsl_poly_eval,
                    gsl_poly_complex_workspace_alloc,
                    gsl_poly_complex_workspace_free ;
 
@@ -31,6 +32,7 @@ PROCEDURE gsl_poly_complex_solve (a: ADDRESS; n: CARDINAL;
                                   w: gsl_poly_complex_workspace;
                                   z: ADDRESS) ;
 PROCEDURE gsl_poly_complex_workspace_free (w: gsl_poly_complex_workspace) ;
+PROCEDURE gsl_poly_eval (c: ADDRESS; len: CARDINAL; x: REAL) : REAL ;
 
 
 END gsl.

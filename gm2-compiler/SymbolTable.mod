@@ -911,7 +911,7 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
-      IF FreeSymbol=2123
+      IF FreeSymbol=653
       THEN
          stop
       END ;
@@ -3683,6 +3683,10 @@ END IsProcedureInline ;
 
 PROCEDURE PutConstSet (Sym: CARDINAL) ;
 BEGIN
+   IF Sym=653
+   THEN
+      stop
+   END ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
@@ -4820,10 +4824,6 @@ BEGIN
       END
    END ;
    s := KillString(s) ;
-   IF Sym=2023
-   THEN
-      stop
-   END ;
    RETURN( Sym )
 END MakeTemporary ;
 
@@ -7610,10 +7610,6 @@ VAR
    oaf, sym: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(PointerName, oaf) ;
-   IF sym=465
-   THEN
-      stop
-   END ;
    FillInPointerFields(sym, PointerName, GetCurrentScope(), oaf) ;
    ForeachOAFamily(oaf, doFillInOAFamily) ;
    RETURN( sym )
@@ -8088,17 +8084,9 @@ VAR
 BEGIN
    oaf := MakeOAFamily(SimpleType) ;
    sym := GetUnbounded(oaf, ndim) ;
-   IF sym=4188
-   THEN
-      stop
-   END ;
    IF sym=NulSym
    THEN
       NewSym(sym) ;
-      IF sym=4188
-      THEN
-         stop
-      END ;
       IF IsUnknown(SimpleType)
       THEN
          PutPartialUnbounded(sym, SimpleType, ndim)

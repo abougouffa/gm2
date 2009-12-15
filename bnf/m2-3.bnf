@@ -106,6 +106,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseRange, BuildCaseEquality,
                     BuildConstructorStart,
                     BuildConstructorEnd,
+                    NextConstructorField, BuildTypeForConstructor,
                     BuildComponentValue,
                     BeginVarient, EndVarient, ElseVarient,
                     BeginVarientList, EndVarientList,
@@ -708,19 +709,20 @@ ComponentValue := ComponentElement ( 'BY' ConstExpression                  % Pus
                 =:
 
 ArraySetRecordValue := ComponentValue                                      % BuildComponentValue %
-                                      { ',' ComponentValue                 % BuildComponentValue %
+                                      { ','                                % NextConstructorField %
+                                            ComponentValue                 % BuildComponentValue %
                                                            }
                      =:
 
 Constructor := '{'                                                         % BuildConstructorStart %
-                  [ ArraySetRecordValue ]
+                  [ ArraySetRecordValue ]                                  % BuildConstructorEnd   %
                '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
                                  [ Constructor | ActualParameters          % BuildConstFunctionCall %
-                                                                       ]
-                                 |                                         % BuildSetStart %
-                                   SimpleSet =:                                   
+                                                                  ]
+                                   |                                       % BuildTypeForConstructor %
+                                     Constructor =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
                   Ident                                                    % BuildBuiltinConst ;
@@ -1048,9 +1050,8 @@ SetOrDesignatorOrFunction := Qualident                                     % Che
                                 SimpleDes [ ActualParameters               % BuildFunctionCall %
                                                              ]
                               ]                                |
-                                                                           % BuildSetStart %
-                               SimpleSet
-                           =:
+                                                                           % BuildTypeForConstructor %
+                              Constructor =:
 
 -- SimpleDes := { "." Ident | "[" ExpList "]" | "^" } =:
 SimpleDes := { SubDesignator } =:

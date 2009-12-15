@@ -221,6 +221,12 @@ CONST
    BreakAtQuad = 63 ;
 
 TYPE
+   ConstructorFrame = POINTER TO constructorFrame ;
+   constructorFrame = RECORD
+                         type : CARDINAL ;
+                         index: CARDINAL ;
+                      END ;
+
    BoolFrame = POINTER TO boolFrame ;  (* using intemediate type helps p2c *)
    boolFrame =            RECORD
                              TrueExit : CARDINAL ;
@@ -265,6 +271,7 @@ TYPE
                              Next: LineNote ;
                           END ;
 VAR
+   ConstructorStack,
    LineStack,
    BoolStack,
    WithStack            : StackOfAddress ;
@@ -10073,6 +10080,39 @@ END BuildNulExpression ;
 
 
 (*
+   BuildTypeForConstructor - pushes the type implied by the current constructor.
+                             If no constructor is currently being built then
+                             it Pushes a Bitset type.
+*)
+
+PROCEDURE BuildTypeForConstructor ;
+VAR
+   c: ConstructorFrame ;
+BEGIN
+   IF NoOfItemsInStackAddress(ConstructorStack)=0
+   THEN
+      PushT(Bitset)
+   ELSE
+      c := PeepAddress(ConstructorStack, 1) ;
+      WITH c^ DO
+         IF IsArray(type) OR IsSet(type)
+         THEN
+            PushT(GetType(type))
+         ELSIF IsRecord(type)
+         THEN
+            PushT(GetType(GetNth(type, index)))
+         ELSE
+            MetaError1('{%1ad} is not a set, record or array type which is expected when constructing an aggregate entity',
+                       type)
+         END
+      END ;
+      stop
+   END
+END BuildTypeForConstructor ;
+
+
+
+(*
    BuildSetStart - Pushes a Bitset type on the stack.
 
                       The Stack:
@@ -10287,6 +10327,50 @@ END BuildInclBit ;
 
 
 (*
+   PushConstructor - 
+*)
+
+PROCEDURE PushConstructor (sym: CARDINAL) ;
+VAR
+   c: ConstructorFrame ;
+BEGIN
+   NEW(c) ;
+   WITH c^ DO
+      type := SkipType(sym) ;
+      index := 1
+   END ;
+   PushAddress(ConstructorStack, c)
+END PushConstructor ;
+
+
+(*
+   PopConstructor - removes the top constructor from the top of stack.
+*)
+
+PROCEDURE PopConstructor ;
+VAR
+   c: ConstructorFrame ;
+BEGIN
+   c := PopAddress(ConstructorStack) ;
+   DISPOSE(c)
+END PopConstructor ;
+
+
+(*
+   NextConstructorField - increments the top of constructor stacks index by one.
+*)
+
+PROCEDURE NextConstructorField ;
+VAR
+   c: ConstructorFrame ;
+BEGIN
+   c := PeepAddress(ConstructorStack, 1) ;
+   INC(c^.index)
+END NextConstructorField ;
+
+
+
+(*
    BuildConstructorStart - builds a constructor.
                            Stack
 
@@ -10313,13 +10397,15 @@ BEGIN
    ChangeToConstructor(GetTokenNo(), type) ;
    PutConstructorFrom(constValue, type) ;
    PopValue(constValue) ;
-   PushT(constValue)
+   PushT(constValue) ;
+   PushConstructor(type)
 END BuildConstructorStart ;
 
 
 (*
-   BuildConstructorEnd - builds a constructor.
-                         Stack
+   BuildConstructorEnd - removes the current constructor frame from the
+                         constructor stack (it does not effect the quad
+                         stack)
 
                          Entry                 Exit
 
@@ -10331,6 +10417,7 @@ END BuildConstructorStart ;
 
 PROCEDURE BuildConstructorEnd ;
 BEGIN
+   PopConstructor
 END BuildConstructorEnd ;
 
 
@@ -12718,6 +12805,7 @@ BEGIN
    TryStack := InitStackWord() ;
    CatchStack := InitStackWord() ;
    ExceptStack := InitStackWord() ;
+   ConstructorStack := InitStackAddress() ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;

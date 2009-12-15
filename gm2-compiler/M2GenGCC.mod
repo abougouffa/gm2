@@ -1865,7 +1865,7 @@ END CodeIndirectCall ;
 
 (*
    StringToChar - if type=Char and str is a string (of size <= 1)
-                     then convert the string into a character constant.
+                  then convert the string into a character constant.
 *)
 
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ;

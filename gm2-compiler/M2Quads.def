@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -83,6 +83,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildInline, BuildLineNo, PushLineNo,
                  BuildConstructorStart,
                  BuildConstructorEnd,
+                 NextConstructorField, BuildTypeForConstructor,
                  CollectConstructor,
                  BuildComponentValue,
 
@@ -1763,18 +1764,38 @@ PROCEDURE BuildConstructorStart ;
 
 
 (*
-   BuildConstructorEnd - builds a constructor.
+   BuildConstructorEnd - removes the current constructor frame from the
+                         constructor stack (it does not effect the quad
+                         stack)
+
                          Stack
 
                          Entry                 Exit
 
                   Ptr ->                                      <- Ptr
                          +------------+        +------------+
-                         | Name       |        | Sym        |
+                         | const      |        | const      |
                          |------------+        |------------|
 *)
 
 PROCEDURE BuildConstructorEnd ;
+
+
+(*
+   NextConstructorField - increments the top of constructor stacks
+                          index by one.
+*)
+
+PROCEDURE NextConstructorField ;
+
+
+(*
+   BuildTypeForConstructor - pushes the type implied by the current constructor.
+                             If no constructor is currently being built then
+                             it Pushes a Bitset type.
+*)
+
+PROCEDURE BuildTypeForConstructor ;
 
 
 (*

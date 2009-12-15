@@ -30,7 +30,7 @@ DEFINITION MODULE twoDsim ;
 
 EXPORT UNQUALIFIED gravity, box, poly3, poly5, poly6, mass,
                    fix, circle, pivot, velocity, accel, fps,
-                   simulateFor ;
+                   simulateFor, addDebugging ;
 
 (*
    gravity - turn on gravity at: g m^2
@@ -125,6 +125,14 @@ PROCEDURE fps (f: REAL) ;
 *)
 
 PROCEDURE simulateFor (t: REAL) ;
+
+
+(*
+   addDebugging - add a debugging event at time, t, which colours objects,
+                  a, and, b, blue.
+*)
+
+PROCEDURE addDebugging (t: REAL; a, b: CARDINAL) ;
 
 
 END twoDsim.

@@ -1,3 +1,26 @@
+2009-12-15       Gaius Mulley <gaius@gnu.org>
+
+	* The following changes fix a bug reported by Martin Kalbfuﬂ
+	  (see testsuite/gm2/iso/run/pass/nestediso.mod).
+	* gm2/bnf/m2-3.bnf:  removed SimpleSet and replaced it
+	  by Constructor.
+	* gm2/gm2-compiler/M2ALU.mod:  (GetConstructorElement)
+	  ensure that upon an error NulSym is returned.  Also
+	  allow 0C to be returned if an CHAR ARRAY is being
+	  created and the initial string is shorter than
+	  the actual array size.
+	* gm2/gm2-compiler/M2GenGCC.mod:  tidied up comment.
+	* gm2/gm2-compiler/M2Quads.def:  corrected comment for
+	  BuildConstructorEnd.  New functions (NextConstructorField),
+	  (BuildTypeForConstructor).
+	* gm2/gm2-compiler/M2Quads.mod:  new data structure
+	  ConstructorFrame.  New function (BuildTypeForConstructor),
+	  (PushConstructor), (PopConstructor), (NextConstructorField).
+	  BuildConstructorEnd reimplemented.
+	* gm2/gm2-compiler/SymbolTable.mod:  changed debugging watch
+	  values.
+	* gm2/examples/gravity:  many changes, an intemediate checkin.
+
 2009-12-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Students.mod:  fixed bug reported

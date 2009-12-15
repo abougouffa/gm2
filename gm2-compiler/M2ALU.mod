@@ -37,7 +37,7 @@ FROM M2Debug IMPORT Assert ;
 FROM Storage IMPORT ALLOCATE ;
 FROM StringConvert IMPORT ostoi, bstoi, stoi, hstoi ;
 FROM M2GCCDeclare IMPORT GetTypeMin, GetTypeMax, CompletelyResolved, DeclareConstant ;
-FROM M2GenGCC IMPORT DoCopyString ;
+FROM M2GenGCC IMPORT DoCopyString, StringToChar ;
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
@@ -4523,7 +4523,8 @@ BEGIN
             END ;
             IF f=NIL
             THEN
-               WriteFormat1('element %d does not exist in the constant compound literal', i)
+               WriteFormat1('element %d does not exist in the constant compound literal', i) ;
+               RETURN( NulSym )
             ELSE
                RETURN( f^.field )
             END
@@ -4571,7 +4572,13 @@ BEGIN
             END ;
             IF e=NIL
             THEN
-               WriteFormat1('element %d does not exist in the array declaration used by the compound literal', i)
+               IF IsArray(SkipType(constructorType)) AND (GetType(SkipType(constructorType))=Char)
+               THEN
+                  RETURN( MakeConstLit(MakeKey('0')) )
+               ELSE
+                  WriteFormat1('element %d does not exist in the array declaration used by the compound literal', i) ;
+                  RETURN( NulSym )
+               END
             END
          END
       END
@@ -4622,6 +4629,11 @@ BEGIN
          i := 0 ;
          REPEAT
             el := GetConstructorElement(tokenno, v, i+1) ;
+            IF el=NulSym
+            THEN
+               (* error occurred, so we quit building the constructor *)
+               RETURN( BuildEndArrayConstructor(cons) )
+            END ;
             PushValue(low) ;
             PushCard(i) ;
             Addn ;
@@ -4631,7 +4643,7 @@ BEGIN
             ELSE
                BuildArrayConstructorElement(cons,
                                             ConvertConstantAndCheck(Mod2Gcc(arrayType),
-                                                                    Mod2Gcc(el)),
+                                                                    StringToChar(Mod2Gcc(el), arrayType, el)),
                                             PopIntegerTree())
             END ;
             PushValue(low) ;

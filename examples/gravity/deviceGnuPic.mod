@@ -30,6 +30,7 @@ CONST
    Debugging = FALSE ;
    Height    = 5.0 ;
    Width     = Height ;
+   Header    = 1.0 ;
 
 VAR
    frameNo : CARDINAL ;
@@ -134,8 +135,8 @@ END WriteColour ;
 
 PROCEDURE circleFrame (pos: Coord; r0: REAL; c: Colour) ;
 BEGIN
-   WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
-   WriteString(f, ".sp -1") ; WriteLn(f) ;
+   WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height+Header, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
+(*   WriteString(f, ".sp -1") ; WriteLn(f) ; *)
    WriteString(f, ".nop ") ;
    WriteColour(c) ;
    WriteString(f, "\h'") ; WriteFixed(f, (pos.x-r0)*Width, 4, 4) ; WriteString(f, "i'") ;
@@ -150,19 +151,16 @@ END circleFrame ;
 PROCEDURE polygonFrame (pos: Coord; n: CARDINAL; p: ARRAY OF Coord; c: Colour) ;
 VAR
    i: CARDINAL ;
-   l: Coord ;
 BEGIN
-   WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
-   WriteString(f, ".sp -1") ; WriteLn(f) ;
+   WriteString(f, ".sp |") ; WriteFixed(f, (1.0-pos.y)*Height+Header, 4, 4) ; WriteString(f, 'i') ; WriteLn(f) ;
+(*   WriteString(f, ".sp -1") ; WriteLn(f) ; *)
    WriteString(f, ".nop ") ;
    WriteColour(c) ;
    WriteString(f, "\h'") ; WriteFixed(f, pos.x*Width, 4, 4) ; WriteString(f, "i'") ;
    WriteString(f, "\D'p ") ;
-   l := Coord{0.0, 0.0} ;
    FOR i := 0 TO n-1 DO
-      WriteFixed(f, (p[i].x-l.x)*Width, 4, 4) ; WriteString(f, "i ") ;
-      WriteFixed(f, (p[i].y-l.y)*Height, 4, 4) ; WriteString(f, "i ") ;
-      l := p[i]
+      WriteFixed(f,  p[i].x*Width, 4, 4) ; WriteString(f, "i ") ;
+      WriteFixed(f, -p[i].y*Height, 4, 4) ; WriteString(f, "i ")
    END ;
    WriteString(f, "'\M[default]") ; WriteLn(f)
 END polygonFrame ;
@@ -176,7 +174,6 @@ PROCEDURE produceAVI (fps: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   fps := 1 ;
    s := Sprintf1(InitString('mencoder "mf://f*.png" -mf w=800:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o movie.avi'),
                  fps) ;
    debugSystem(s) ;

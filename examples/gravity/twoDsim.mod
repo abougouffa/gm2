@@ -23,7 +23,7 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
 FROM deviceGnuPic IMPORT Coord, Colour, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
 FROM libm IMPORT sqrt ;
-FROM gsl IMPORT gsl_poly_complex_workspace, gsl_poly_complex_solve,
+FROM gsl IMPORT gsl_poly_complex_workspace, gsl_poly_complex_solve, gsl_poly_eval,
                 gsl_poly_complex_workspace_alloc, gsl_poly_complex_workspace_free ;
 
 
@@ -131,15 +131,17 @@ BEGIN
    id := newObject(polygonOb) ;
    optr := GetIndice(objects, id) ;
    WITH optr^ DO
+      p.pos.x := x0 ;
+      p.pos.y := y0 ;
       p.nPoints := 4 ;
-      p.points[0].x := x0 ;
-      p.points[0].y := y0 ;
-      p.points[1].x := x0+i ;
-      p.points[1].y := y0 ;
-      p.points[2].x := x0+i ;
-      p.points[2].y := y0+j ;
-      p.points[3].x := x0 ;
-      p.points[3].y := y0+j
+      p.points[0].x := i ;
+      p.points[0].y := 0.0 ;
+      p.points[1].x := 0.0 ;
+      p.points[1].y := j ;
+      p.points[2].x := -i ;
+      p.points[2].y := 0.0 ;
+      p.points[3].x := 0.0 ;
+      p.points[3].y := -j ;
    END ;
    RETURN id
 END box ;
@@ -369,10 +371,18 @@ END fps ;
 *)
 
 PROCEDURE getColour (i: CARDINAL; e: eventQueue) : Colour ;
+VAR
+   p: eventProc ;
 BEGIN
+   p := debugFrame ;
    IF (i=e^.id1) OR (i=e^.id2)
    THEN
-      RETURN red
+      IF e^.p=p
+      THEN
+         RETURN blue
+      ELSE
+         RETURN red
+      END
    ELSE
       RETURN black
    END
@@ -591,6 +601,13 @@ END sqr ;
 (*
    findCollisionCircles - 
 
+   using:
+
+   S = UT + AT^2/2
+   compute xin and yin which are the new (x,y) positions of object i at time, t.
+   compute xjn and yjn which are the new (x,y) positions of object j at time, t.
+   now compute difference between objects and if they are ri+rj  (radius of circle, i, and, j)
+   appart then we have a collision at time, t.
 
    xin = xi + vxi * t + aix * t^2 / 2.0
    yin = yi + vyi * t + aiy * t^2 / 2.0
@@ -602,6 +619,38 @@ END sqr ;
 
    ri + rj == sqrt((xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
                    (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2)
+
+===
+2nd attempt
+-----------
+
+   (ri + rj)^2 ==  (xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
+                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2
+
+   0           ==  (xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
+                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2 -
+                   (ri + rj)^2
+
+   0           ==  (a + c * t + e * t^2.0/2.0 - b * d * t + f * t^2.0/2.0)^2.0 +
+                   (g + k * t + m * t^2.0/2.0 - h + l * t + n * t^2.0/2.0)^2.0 -
+                   (o + p)^2.0
+
+
+   0           ==  ((n^2+2*m*n+m^2+f^2+2*e*f+e^2) * t^4 +
+                   ((4*l+4*k)*n+(4*l+4*k)*m+(4*c-4*b*d)*f+(4*c-4*b*d)*e) * t^3 +
+                   ((4*g-4*h)*n+(4*g-4*h)*m+4*l^2+8*k*l+4*k^2+4*a*f+4*a*e+4*b^2*d^2-8*b*c*d+4*c^2) * t^2 +
+                   ((8*g-8*h)*l+(8*g-8*h)*k-8*a*b*d+8*a*c) * t -
+                    4*p^2-8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*a^2)/4
+
+  A = (n^2+2*m*n+m^2+f^2+2*e*f+e^2)
+  B = (4*l+4*k)*n+(4*l+4*k)*m+(4*c-4*b*d)*f+(4*c-4*b*d)*e
+  C = (4*g-4*h)*n+(4*g-4*h)*m+4*l^2+8*k*l+4*k^2+4*a*f+4*a*e+4*b^2*d^2-8*b*c*d+4*c^2
+  D = (8*g-8*h)*l+(8*g-8*h)*k-8*a*b*d+8*a*c
+  E = 4*p^2-8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*a^2
+
+===
+1st attempt
+-----------
 
    ri + rj == sqrt(((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
                     (yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2)
@@ -684,39 +733,40 @@ VAR
    i, j         : CARDINAL ;
 BEGIN
    WITH iptr^ DO
-      a := c.pos.x ;
+      a := c.pos.x    (* xi *)
    END ;
-   c := iptr^.vx ;
+   c := iptr^.vx ;    (* vxi *)
    WITH iptr^ DO
       IF fixed
       THEN
-         e := 0.0 ;
-         m := 0.0
+         e := 0.0 ;   (* aix *)
+         m := 0.0     (* aiy *)
       ELSE
-         e := ax+simulatedGravity ;
-         m := ay+simulatedGravity
+         e := ax ;    (* aix *)
+         m := ay+simulatedGravity    (* aiy *)
       END ;
-      g := c.pos.y ;
-      k := vy ;
-      o := c.r
+      g := c.pos.y ;  (* yi *)
+      k := vy ;       (* vyi *)
+      o := c.r        (* ri *)
    END ;
 
    WITH jptr^ DO
+      b := c.pos.x ;  (* xj *)
       IF fixed
       THEN
-         f := 0.0 ;
-         n := 0.0
+         f := 0.0 ;  (* ajx *)
+         n := 0.0    (* ajy *)
       ELSE
-         f := ax+simulatedGravity ;
-         n := ay+simulatedGravity
+         f := ax ;   (* ajx *)
+         n := ay+simulatedGravity  (* ajy *)
       END ;
-      b := c.pos.x ;
-      d := vx ;
-      h := c.pos.y ;
-      l := vy ;
+      d := vx ;      (* vxj *)
+      h := c.pos.y ; (* yj *)
+      l := vy        (* vyj *)
    END ;
-   p := jptr^.c.r ;
-
+   p := jptr^.c.r ;  (* rj *)
+(* 1st attempt *)
+(*
    A := sqr(n) -2.0*m*n+ sqr(m) + sqr(f) -2.0*e*f + sqr(e) ;
    B := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
    C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0 * sqr(l)-8.0*k*l+4.0 * sqr(k) +
@@ -724,6 +774,14 @@ BEGIN
    D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
    E := 4.0 * sqr(p) + 8.0*o*p-4.0 * sqr(o) + 4.0 * sqr(h)
         -8.0*g*h+4.0 * sqr(g) +4.0 * sqr(b) -8.0*a*b+4.0* sqr(a) ;
+*)
+   (* 2nd attempt *)
+
+   A := sqr(n)+2.0*m*n+sqr(m)+sqr(f)+2.0*e*f+sqr(e) ;
+   B := (4.0*l+4.0*k)*n+(4.0*l+4.0*k)*m+(4.0*c-4.0*b*d)*f+(4.0*c-4.0*b*d)*e ;
+   C := (4.0*g-4.0*h)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)+8.0*k*l+4.0*sqr(k)+4.0*a*f+4.0*a*e+4.0*sqr(b)*sqr(d)-8.0*b*c*d+4.0*sqr(c) ;
+   D := (8.0*g-8.0*h)*l+(8.0*g-8.0*h)*k-8.0*a*b*d+8.0*a*c ;
+   E := 4.0*sqr(p)-8.0*o*p-4.0*sqr(o)+4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(a) ;
 
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
    IF A=0.0
@@ -782,6 +840,19 @@ BEGIN
    gsl_poly_complex_workspace_free (W);
 
    FOR i := 0 TO j-2 DO
+      t := sqrt(sqr(R[i*2]) + sqr(R[i*2+1])) ;
+      printf("A = %g\n", A);
+      printf("B = %g\n", B);
+      printf("C = %g\n", C);
+      printf("D = %g\n", D);
+      printf("E = %g\n", E);
+      printf("t = %g\n", t);
+      printf("yields a value of At^4 + Bt^3 +Ct^2 + Dt + E = %g  == %g  ?\n",
+             gsl_poly_eval(ADR(V), 5, t), t) ;
+      t := 0.34974 ;
+      printf("should yield a value of At^4 + Bt^3 +Ct^2 + Dt + E = %g   == %g ??? \n",
+             gsl_poly_eval(ADR(V), 5, t), t) ;
+
       IF (R[i*2]>=0.0) AND (R[i*2+1]>=0.0)
       THEN
          t := sqrt(sqr(R[i*2]) + sqr(R[i*2+1])) ;
@@ -803,11 +874,45 @@ END findCollisionCircles ;
 
 PROCEDURE findCollision (iptr, jptr: Object; VAR ic, jc: CARDINAL; VAR tc: REAL) ;
 BEGIN
-   IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
+   IF NOT ((iptr^.fixed) AND (jptr^.fixed))
    THEN
-      findCollisionCircles(iptr, jptr, ic, jc, tc)
+      IF (iptr^.object=circleOb) AND (jptr^.object=circleOb)
+      THEN
+         findCollisionCircles(iptr, jptr, ic, jc, tc)
+      END
    END
 END findCollision ;
+
+
+(*
+   debugFrame - debug frame at time, e.
+*)
+
+PROCEDURE debugFrame (e: eventQueue) ;
+BEGIN
+   drawFrame(e) ;
+END debugFrame ;
+
+
+(*
+   addDebugging - add a debugging event at time, t, which colours objects,
+                  a, and, b, blue.
+*)
+
+PROCEDURE addDebugging (t: REAL; a, b: CARDINAL) ;
+VAR
+   e: eventQueue ;
+BEGIN
+   e := newEvent() ;
+   WITH e^ DO
+      time := t ;
+      p := debugFrame ;
+      id1 := a ;
+      id2 := b ;
+      next := NIL
+   END ;
+   addRelative(e)
+END addDebugging ;
 
 
 (*

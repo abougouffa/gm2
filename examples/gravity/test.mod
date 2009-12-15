@@ -18,20 +18,27 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE test ;
 
 IMPORT twoDsim ;
+FROM libc IMPORT printf ;
 
 VAR
    c, b, d, e: CARDINAL ;
 BEGIN
    b := twoDsim.box(0.0, 0.0, 1.0, 1.0) ;
    b := twoDsim.fix(b) ;
+
    c := twoDsim.circle(0.9, 0.9, 0.1) ;
    c := twoDsim.mass(c, 0.01) ;
-   d := twoDsim.box(0.3, 8.0, 0.35, 8.5) ;
+
+   d := twoDsim.box(0.2, 0.8, 0.2, 0.2) ;
    d := twoDsim.mass(d, 0.02) ;
-   (* e := twoDsim.circle(0.7, 0.1, 0.05) ; *)
+   d := twoDsim.fix(d) ;
+
    e := twoDsim.circle(0.9, 0.1, 0.1) ;
    e := twoDsim.fix(e) ;
+
    twoDsim.gravity(-9.81) ;
    twoDsim.fps(24.0) ;
-   twoDsim.simulateFor(0.5)
+   twoDsim.addDebugging(0.34974, c, e) ;
+   printf("first collision should be at 0.34974 seconds\n") ;
+   twoDsim.simulateFor(1.0)
 END test.
