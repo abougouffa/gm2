@@ -869,13 +869,10 @@ SilentComponentValue := SilentComponentElement [ 'BY' SilentConstExpression ] =:
 
 SilentArraySetRecordValue := SilentComponentValue { ',' SilentComponentValue } =:
 
-SilentConstructor := '{'                                                   % CollectConstructor %
-                         [ SilentArraySetRecordValue ] '}' =:
+SilentConstructor := '{' [ SilentArraySetRecordValue ] '}' =:
 
-SilentConstSetOrQualidentOrFunction := SilentSimpleSet | Qualident
+SilentConstSetOrQualidentOrFunction := SilentConstructor | Qualident
                                        [ SilentConstructor | SilentActualParameters ] =:
-
-SilentSimpleSet := "{"  [ SilentElement { "," SilentElement } ] "}" =:
 
 SilentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
 
@@ -1035,14 +1032,6 @@ Factor :=                                                                  % Bui
           "(" Expression ")" | "NOT" ( Factor                              % BuildNot %
           | ConstAttribute
                                 ) =:
-
--- again Set | Designator causes problems as both has a first symbol, ident or Qualident
-
-SimpleSet := "{"                                                           % BuildEmptySet %
-             [ Element
-               { "," Element
-               } ] "}"                                                     % BuildSetEnd %
-          =:
 
 SetOrDesignatorOrFunction := Qualident                                     % CheckWithReference %
                                                                            % CheckOuterScopeProcedureVariable %

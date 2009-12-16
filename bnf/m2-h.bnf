@@ -94,7 +94,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseRange, BuildCaseEquality,
                     BuildConstructorStart,
                     BuildConstructorEnd,
-                    BuildComponentValue,
+                    BuildComponentValue, BuildTypeForConstructor,
                     BuildBooleanVariable,
                     RecordOp,
                     BuildNulParam,
@@ -701,14 +701,14 @@ ArraySetRecordValue := ComponentValue                                      % Bui
                      =:
 
 Constructor := '{'                                                         % BuildConstructorStart %
-                   [ ArraySetRecordValue ]
+                  [ ArraySetRecordValue ]                                  % BuildConstructorEnd   %
                '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor | ConstActualParameters     % BuildConstFunctionCall %
-                                                                       ]
-                                 |                                         % BuildSetStart %
-                                   ConstSimpleSet =:
+                                 [ Constructor | ActualParameters          % BuildConstFunctionCall %
+                                                                  ]
+                                   |                                       % BuildTypeForConstructor %
+                                     Constructor =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
@@ -846,18 +846,18 @@ SilentConstString := string =:
 
 SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
 
-SilentConstSetOrQualidentOrFunction := Qualident [ SilentSimpleSet | SilentActualParameters ] |
-                                       SilentSimpleSet =:
+SilentConstSetOrQualidentOrFunction := Qualident [ SilentConstructor | SilentActualParameters ] |
+                                       SilentConstructor =:
 
 SilentSetOrDesignatorOrFunction := ( Qualident
-                                   [ SilentSimpleSet |
+                                   [ SilentConstructor |
                                      SilentSimpleDes [ SilentActualParameters ]
-                                   ] | SilentSimpleSet )
+                                   ] | SilentConstructor )
                                  =:
 
 SilentSimpleDes := { SilentSubDesignator } =:
 
-SilentSimpleSet := "{"  [ SilentElement { "," SilentElement } ] "}" =:
+SilentConstructor := "{"  [ SilentElement { "," SilentElement } ] "}" =:
 
 SilentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
 
@@ -980,24 +980,10 @@ Factor := Number | string | SetOrDesignatorOrFunction |
 
 -- again Set | Designator causes problems as both has a first symbol, ident or Qualident
 
-SimpleSet := "{"
-             [ Element
-               { "," Element
-               } ] "}"
-          =:
-
-ConstSimpleSet := "{"                                                      % BuildEmptySet %
-                     [ Element
-                       { "," Element
-                                     } ] "}"                               % BuildSetEnd %
-          =:
-
-SetOrDesignatorOrFunction := ( Qualident
-                              [ SimpleSet |
-                                SimpleDes [ ActualParameters
-                                                             ]
-                              ]                                |
-                               SimpleSet )
+SetOrDesignatorOrFunction := ( Qualident [ Constructor |
+                                           SimpleDes [ ActualParameters ]
+                                         ] | Constructor
+                             )
                            =:
 
 -- SimpleDes := { "." Ident | "[" ExpList "]" | "^" } =:

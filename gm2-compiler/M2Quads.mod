@@ -10504,22 +10504,6 @@ END BuildComponentValue ;
 
 
 (*
-   CollectConstructor - collects a constructor from the
-                        fifo queue and ignores it.
-*)
-
-PROCEDURE CollectConstructor ;
-VAR
-   sym: CARDINAL ;
-BEGIN
-(*
-   GetConstructorFromFifoQueue(sym) ;
-   Assert(IsConstructor(sym) OR IsConst(sym))
-*)
-END CollectConstructor ;
-
-
-(*
    RecordOp - Records the operator passed on the stack.
               Checks for AND operator or OR operator
               if either of these operators are found then BackPatching

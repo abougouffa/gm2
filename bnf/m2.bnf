@@ -611,7 +611,7 @@ ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 
 Constructor := '{' [ ArraySetRecordValue ] '}' =:
 
-ConstSetOrQualidentOrFunction := SimpleSet | Qualident
+ConstSetOrQualidentOrFunction := Constructor | Qualident
                                  [ Constructor | ConstActualParameters ] =:
 
 ConstActualParameters := "(" [ ExpList ] ")" =:
@@ -802,10 +802,6 @@ Term := Factor { MulOperator Factor } =:
 
 Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" Factor | ConstAttribute =:
-
--- again Set | Designator causes problems as both have first symbols, ident or Qualident
-
-SimpleSet := "{" [ Element { "," Element } ] "}" =:
 
 SetOrDesignatorOrFunction := ( Qualident [ Constructor |
                                            SimpleDes [ ActualParameters ]

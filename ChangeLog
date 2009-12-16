@@ -2,8 +2,21 @@
 
 	* The following changes fix a bug reported by Martin Kalbfuﬂ
 	  (see testsuite/gm2/iso/run/pass/nestediso.mod).
+	* gm2/bnf/m2-2.bnf:  removed commented out code.  Removed
+	  SimpleSet rule and replaced it by calls to Constructor.
 	* gm2/bnf/m2-3.bnf:  removed SimpleSet and replaced it
-	  by Constructor.
+	  by Constructor.  Removed SilentSimpleSet and replaced it
+	  by SilentConstructor.  Removed CollectConstructor (a noop)
+	  from SilentConstructor.  Removed SilentSimpleSet from
+	  SilentConstSetOrQualidentOrFunction and replaced it
+	  by SilentConstructor.
+	* gm2/bnf/m2-h.bnf:  removed ConstSimpleSet by Constructor
+	  and replace SilentSimpleSet by SilentConstructor.
+	  Removed SilentSimpleSet, ConstSimpleSet.
+	* gm2/bnf/m2.bnf:  ConstSetOrQualidentOrFunction uses
+	  Constructor instead of SimpleSet.  Removed SimpleSet.
+	* gm2/gm2-compiler/M2Quads.def:  removed CollectConstructor.
+	* gm2/gm2-compiler/M2Quads.mod:  removed CollectConstructor.
 	* gm2/gm2-compiler/M2ALU.mod:  (GetConstructorElement)
 	  ensure that upon an error NulSym is returned.  Also
 	  allow 0C to be returned if an CHAR ARRAY is being

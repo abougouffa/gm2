@@ -84,7 +84,6 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildConstructorStart,
                  BuildConstructorEnd,
                  NextConstructorField, BuildTypeForConstructor,
-                 CollectConstructor,
                  BuildComponentValue,
 
                  SetOptionOptimizing, SetOptionCoding, SetOptionProfiling,
@@ -1796,14 +1795,6 @@ PROCEDURE NextConstructorField ;
 *)
 
 PROCEDURE BuildTypeForConstructor ;
-
-
-(*
-   CollectConstructor - collects a constructor from the
-                        fifo queue and ignores it.
-*)
-
-PROCEDURE CollectConstructor ;
 
 
 (*

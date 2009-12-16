@@ -645,32 +645,7 @@ ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
 Constructor := '{'                                                         % SeenConstructor %
                    [ ArraySetRecordValue ] '}' =:
 
--- breaks testsuite/gm2/pim/pass/impf.mod
-
--- ConstSetOrQualidentOrFunction := SimpleSet |
---                                                                            % VAR t: CARDINAL ;
---                                                                                  b: BOOLEAN ; %
---                                                                            % PushAutoOn %
---                                    Qualident
---                                                                            % PopT(t) ;
---                                                                              IF IsAModula2Type(t)
---                                                                              THEN
---                                                                                 b := TRUE
---                                                                              ELSE
---                                                                                 b := FALSE
---                                                                              END %
---                                                                            % PopAuto %
---                                    [ Constructor | ConstActualParameters ]
---                                                                            % IF b
---                                                                              THEN
---                                                                                 SeenCast(t)
---                                                                              END %
---                                =:
--- 
-
--- works
-
-ConstSetOrQualidentOrFunction := SimpleSet | Qualident
+ConstSetOrQualidentOrFunction := Constructor | Qualident
                                  [ Constructor | ConstActualParameters ] =:
 
 
@@ -880,14 +855,9 @@ Term := Factor { MulOperator Factor } =:
 Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" Factor | ConstAttribute =:
 
--- again Set | Designator causes problems as both has a first symbol, ident or Qualident
-
-SimpleSet := "{"                                                          % SeenSet %
-                 [ Element { "," Element } ] "}" =:
-
 SetOrDesignatorOrFunction := ( Qualident [ Constructor |
                                            SimpleDes [ ActualParameters ]
-                                         ] | SimpleSet
+                                         ] | Constructor
                              )
                            =:
 
