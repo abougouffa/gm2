@@ -740,7 +740,7 @@ BEGIN
       END
    ELSIF point<0
    THEN
-      s := ConCat(Mult(InitStringChar('0'), l-point), Mark(s)) ;
+      s := ConCat(Mult(InitStringChar('0'), -point), Mark(s)) ;
       l := Length(s) ;
       s := ConCat(InitString('0.'), Mark(s)) ;
       IF (NOT maxprecision) AND (l<VAL(INTEGER, FractionWidth))

@@ -1,3 +1,9 @@
+2009-12-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/StringConvert.mod:  LongrealToString fix
+	  to correct leading zeros after the '.'.  Fixes a bug
+	  reported by Steve Giess.  <scgiess@hotmail.com>.
+
 2009-12-15       Gaius Mulley <gaius@gnu.org>
 
 	* The following changes fix a bug reported by Martin Kalbfuﬂ
