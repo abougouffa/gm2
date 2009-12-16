@@ -2822,7 +2822,7 @@ BEGIN
       ELSIF (DesT=NulSym) AND IsConst(Des) AND (IsConstructor(Des) OR IsConstSet(Des))
       THEN
          PutConst(Des, ExpT)
-      ELSIF SkipType(DesT)#SkipType(ExpT)
+      ELSIF NOT IsAssignmentCompatible(DesT, ExpT)
       THEN
          WriteFormat0('constructor is not compatible during assignment')
       END

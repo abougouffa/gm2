@@ -2,6 +2,8 @@
 
 	* The following changes fix a bug reported by Martin Kalbfuﬂ
 	  (see testsuite/gm2/iso/run/pass/nestediso.mod).
+	* gm2/gm2-compiler/M2Quads.mod:  use IsAssignmentCompatible
+	  rather than equality of constructor types.
 	* gm2/bnf/m2-2.bnf:  removed commented out code.  Removed
 	  SimpleSet rule and replaced it by calls to Constructor.
 	* gm2/bnf/m2-3.bnf:  removed SimpleSet and replaced it
