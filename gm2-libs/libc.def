@@ -38,7 +38,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    readv, writev,
                    perror, creat,
                    getcwd, chown, strlen, strcpy, strncpy,
-                   unlink,
+                   unlink, setenv,
                    memcpy, memset, printf, realloc,
                    rand, srand,
                    time, localtime, ftime,
@@ -340,6 +340,15 @@ PROCEDURE memset (s: ADDRESS; c: INTEGER; size: CARDINAL) : ADDRESS ;
 *)
 
 PROCEDURE printf (format: ARRAY OF CHAR; ...) : [ INTEGER ] ;
+
+
+(*
+   setenv - sets environment variable, name, to value.
+            It will overwrite an existing value if, overwrite,
+            is true.  It returns 0 on success and -1 for an error.
+*)
+
+PROCEDURE setenv (name: ADDRESS; value: ADDRESS; overwrite: INTEGER) : INTEGER ;
 
 
 (*

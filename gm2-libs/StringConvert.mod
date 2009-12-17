@@ -719,9 +719,9 @@ BEGIN
    IF TotalWidth=0
    THEN
       maxprecision := TRUE ;
-      r := ldtoa(x, decimaldigits, 100, point, sign) ;
+      r := ldtoa(x, decimaldigits, 100, point, sign)
    ELSE
-      r := ldtoa(x, decimaldigits, FractionWidth, point, sign) ;
+      r := ldtoa(x, decimaldigits, 100, point, sign) ;
    END ;
    s := InitStringCharStar(r) ;
    (* free(r) ; *)
@@ -766,7 +766,8 @@ BEGIN
    END ;
    IF Length(s)>TotalWidth
    THEN
-      s := Slice(Mark(s), 0, TotalWidth)
+      (* minus 1 because all results will include a '.' *)
+      s := Slice(ToSigFig(s, TotalWidth-1), 0, TotalWidth)
    END ;
    (* free(r) ; *)
    IF Length(s)<TotalWidth

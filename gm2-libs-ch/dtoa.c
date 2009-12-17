@@ -134,9 +134,10 @@ int dtoa_calcdecimal (char *p, int str_size, int ndigits)
   if (o == NULL)
     x += strlen(p);
   else {
+    int m = strlen(o);
     memcpy(o, o+1, l-(o-p));
-    if (x+ndigits<str_size)
-      p[x+ndigits] = '0';
+    if (m>0)
+      o[m-1] = '0';
     x += o-p;
   }
   if ((x+ndigits >= 0) && (x+ndigits < str_size))

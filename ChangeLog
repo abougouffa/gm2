@@ -1,3 +1,11 @@
+2009-12-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/libc.def:  added setenv.
+	* gm2/gm2-libs/StringConvert.mod:  fixed precision bug
+	  reported by Steve Giess.  <scgiess@hotmail.com>.
+	* gm2/gm2/gm2-libs-ch/dtoa.c:  fixed incorrect placing
+	  of '0'.
+
 2009-12-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  LongrealToString fix
