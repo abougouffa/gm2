@@ -630,8 +630,7 @@ END InitForLoopBeginRangeCheck ;
 (*
    InitForLoopToRangeCheck - returns a range check node which
                              remembers the information necessary
-                             so that a range check for the final value
-                             implied by ... e1 TO e2 BY e3 DO
+                             so that a range check for FOR d := e TO .. DO
                              can be generated later on.
 *)
 

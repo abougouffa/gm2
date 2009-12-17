@@ -7,6 +7,10 @@
 	  of '0'.
 	* gm2/gm2-libs/StringConvert.mod:  added TotalWidth test
 	  in LongrealToString.
+	* gm2/gm2-libs/StringConvert.mod:  corrected slice of
+	  final string.
+	* gm2/gm2-libs/M2RTS.mod:  improved runtime error message.
+	* gm2/gm2-compiler/M2Range.mod:  corrected comment.
 
 2009-12-16       Gaius Mulley <gaius@gnu.org>
 

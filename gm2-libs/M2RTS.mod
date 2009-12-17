@@ -205,7 +205,7 @@ PROCEDURE ForLoopToException (filename: ADDRESS; line, column: CARDINAL; scope: 
 BEGIN
    RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
                       filename, line, column, scope,
-                      ADR("iterator variable exceeds range when calculating final value in FOR loop"))
+                      ADR("iterator variable will exceed range when calculating final value in FOR loop"))
 END ForLoopToException ;
 
 
