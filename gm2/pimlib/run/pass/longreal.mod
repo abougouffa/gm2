@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 MODULE longreal ;
 
 FROM StringConvert IMPORT LongrealToString ;
-FROM DynamicStrings IMPORT String, EqualArray ;
+FROM DynamicStrings IMPORT String, EqualArray, string ;
 FROM libc IMPORT exit, printf ;
 
 
@@ -35,9 +35,20 @@ END Assert ;
 
 VAR
    s: String ;
+   r: REAL ;
+   l: LONGREAL ;
 BEGIN
+   r := 0.0123 ;
+   s := LongrealToString(r, 8, 8) ;
+   Assert(EqualArray(s, '0.012300'), __LINE__) ;
+   printf("printf converting 0.0123 = %g\n", r);
+   printf("result should be 0.012300 = %s\n", string(s)) ;
+   l := 0.0123 ;
+   s := LongrealToString(l, 8, 8) ;
+   printf("result should be 0.012300 = %s\n", string(s)) ;
+   Assert(EqualArray(s, '0.012300'), __LINE__) ;
    s := LongrealToString(0.0123, 8, 8) ;
-   Assert(EqualArray(s, '0.0123') OR
-          EqualArray(s, '0.012299'),
-        __LINE__)
+   Assert(EqualArray(s, '0.012300'), __LINE__) ;
+   printf("result should be 0.012300 = %s\n", string(s)) ;
+   Assert(EqualArray(s, '0.012300'), __LINE__) ;
 END longreal.
