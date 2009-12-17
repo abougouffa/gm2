@@ -766,8 +766,11 @@ BEGIN
    END ;
    IF Length(s)>TotalWidth
    THEN
-      (* minus 1 because all results will include a '.' *)
-      s := Slice(ToSigFig(s, TotalWidth-1), 0, TotalWidth)
+      IF TotalWidth>0
+      THEN
+         (* minus 1 because all results will include a '.' *)
+         s := Slice(ToSigFig(s, TotalWidth-1), 0, TotalWidth)
+      END
    END ;
    (* free(r) ; *)
    IF Length(s)<TotalWidth
