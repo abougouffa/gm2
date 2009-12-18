@@ -1026,7 +1026,8 @@ END CodeStartDefFile ;
 
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   ReduceWord(CompilingMainModule, 1)
+   ReduceWord(CompilingMainModule, 1) ;
+   PopScope
 END CodeEndFile ;
 
 

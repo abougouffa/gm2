@@ -1,3 +1,9 @@
+2009-12-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeEndFile) call
+	  PopScope to ensure that we generate the correct
+	  runtime scope error message.
+
 2009-12-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/libc.def:  added setenv.
