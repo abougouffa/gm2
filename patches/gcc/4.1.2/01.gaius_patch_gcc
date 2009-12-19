@@ -167,31 +167,6 @@
    lower_stmt_body (BIND_EXPR_BODY (stmt), data);
  
    if (new_block)
---- gcc-4.1.2-orig/gcc/Makefile.in	2006-11-01 14:40:44.000000000 +0000
-+++ gcc-4.1.2/gcc/Makefile.in	2007-07-04 15:26:32.000000000 +0100
-@@ -1296,18 +1296,18 @@
- gcc-cross: xgcc$(exeext)
- 	cp xgcc$(exeext) gcc-cross$(exeext)
- 
--cc1-dummy$(exeext): $(C_OBJS) dummy-checksum.o $(BACKEND) $(LIBDEPS)
-+cc1-dummy$(exeext): $(C_OBJS) dummy-checksum.o $(BACKEND) $(LIBDEPS) gm2/m2pp.o
- 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) dummy-checksum.o \
--	  $(BACKEND) $(LIBS)
-+	  $(BACKEND) $(LIBS) gm2/m2pp.o
- 
- cc1-checksum.c : cc1-dummy$(exeext) build/genchecksum$(build_exeext)
- 	build/genchecksum$(build_exeext) cc1-dummy$(exeext) > $@
- 
- cc1-checksum.o : cc1-checksum.c
- 
--cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS)
-+cc1$(exeext): $(C_OBJS) cc1-checksum.o $(BACKEND) $(LIBDEPS) gm2/m2pp.o
- 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ $(C_OBJS) cc1-checksum.o \
--	  $(BACKEND) $(LIBS)
-+	  $(BACKEND) $(LIBS) gm2/m2pp.o
- 
- # Build the version of limits.h that we will install.
- xlimits.h: glimits.h limitx.h limity.h
 --- gcc-4.1.2-orig/gcc/tree-ssa-dom.c	2006-11-17 09:01:31.000000000 +0000
 +++ gcc-4.1.2/gcc/tree-ssa-dom.c	2007-07-09 17:35:04.000000000 +0100
 @@ -1976,6 +1976,9 @@

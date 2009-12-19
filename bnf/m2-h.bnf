@@ -705,8 +705,8 @@ Constructor := '{'                                                         % Bui
                '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor | ActualParameters          % BuildConstFunctionCall %
-                                                                  ]
+                                 [ Constructor | ConstActualParameters     % BuildConstFunctionCall %
+                                                                       ]
                                    |                                       % BuildTypeForConstructor %
                                      Constructor =:
 

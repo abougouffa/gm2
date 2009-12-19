@@ -217,7 +217,7 @@ VAR
    LastOperator             : QuadOperator ; (* The last operator processed.      *)
    ModuleName,
    FileName                 : String ;
-   CompilingMainModule      : StackOfWord ; (* Determines whether the main module     *)
+   CompilingMainModuleStack : StackOfWord ; (* Determines whether the main module     *)
                                             (* quadrules are being processed.         *)
    ScopeStack               : StackOfWord ; (* keeps track of the current scope       *)
                                             (* under translation.                     *)
@@ -982,10 +982,10 @@ PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    LastLine := 1 ;
    PushScope(op3) ;
-   PushWord(CompilingMainModule, GetMainModule()=op3) ;
+   PushWord(CompilingMainModuleStack, GetMainModule()=op3) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3))) ;
-   IF PeepWord(CompilingMainModule, 1)=TRUE
+   IF PeepWord(CompilingMainModuleStack, 1)=TRUE
    THEN
       SetFileNameAndLineNo(KeyToCharStar(Name(op2)), op1) ;
       EmitLineNote(KeyToCharStar(Name(op2)), op1)
@@ -1008,7 +1008,7 @@ PROCEDURE CodeStartDefFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
    PushScope(op3) ;
    LastLine := 1 ;
-   PushWord(CompilingMainModule, FALSE) ;
+   PushWord(CompilingMainModuleStack, FALSE) ;
    ModuleName := KillString(ModuleName) ;
    ModuleName := InitStringCharStar(KeyToCharStar(GetSymName(op3)))
 END CodeStartDefFile ;
@@ -1026,8 +1026,8 @@ END CodeStartDefFile ;
 
 PROCEDURE CodeEndFile (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   ReduceWord(CompilingMainModule, 1) ;
-   PopScope
+   ReduceWord(CompilingMainModuleStack, 1) ;
+(*   PopScope *)
 END CodeEndFile ;
 
 
@@ -5757,7 +5757,7 @@ BEGIN
    ModuleName := NIL ;
    FileName := NIL ;
    UnboundedLabelNo := 0 ;
-   CompilingMainModule := InitStackWord() ;
+   CompilingMainModuleStack := InitStackWord() ;
    ScopeStack := InitStackWord()
 END M2GenGCC.
 (*

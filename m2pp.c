@@ -68,6 +68,18 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 #if defined(GM2)
 #  include "gm2-tree.h"
+extern tree gccgm2_GetM2IntegerType (void);
+extern tree gccgm2_GetM2ZType (void);
+extern tree gccgm2_GetM2LongIntType (void);
+extern tree gccgm2_GetM2ShortIntType (void);
+
+extern tree gccgm2_GetLongIntType (void);
+extern tree gccgm2_GetIntegerType (void);
+extern tree gccgm2_GetShortIntType (void);
+
+extern tree gccgm2_GetM2LongCardType (void);
+extern tree gccgm2_GetM2CardinalType (void);
+extern tree gccgm2_GetM2ShortCardType (void);
 #endif
 #if defined(CPP)
 #  include "cp-tree.h"
@@ -140,6 +152,7 @@ static void m2pp_indirect_ref (pretty *s, tree t);
 static void m2pp_integer_cst (pretty *s, tree t);
 static void m2pp_real_cst (pretty *s, tree t);
 static void m2pp_string_cst (pretty *s, tree t);
+static void m2pp_integer (pretty *s, tree t);
 static void m2pp_addr_expr (pretty *s, tree t);
 static void m2pp_nop (pretty *s, tree t);
 static void m2pp_convert (pretty *s, tree t);
@@ -1013,6 +1026,41 @@ m2pp_print_char (pretty *s, char ch)
 }
 
 /*
+ *  m2pp_integer - display the appropriate integer type.
+ */
+
+void
+m2pp_integer (pretty *s, tree t)
+{
+#if defined(GM2)
+  if (t == gccgm2_GetM2ZType ())
+    m2pp_print (s, "M2ZTYPE");
+  else if (t == gccgm2_GetM2LongIntType ())
+    m2pp_print (s, "LONGINT");
+  else if (t == gccgm2_GetM2IntegerType ())
+    m2pp_print (s, "INTEGER");
+  else if (t == gccgm2_GetM2ShortIntType ())
+    m2pp_print (s, "SHORTINT");
+  else if (t == gccgm2_GetLongIntType ())
+    m2pp_print (s, "long int");
+  else if (t == gccgm2_GetIntegerType ())
+    m2pp_print (s, "int");
+  else if (t == gccgm2_GetShortIntType ())
+    m2pp_print (s, "short");
+  else if (t == gccgm2_GetM2LongCardType ())
+    m2pp_print (s, "LONGCARD");
+  else if (t == gccgm2_GetM2CardinalType ())
+    m2pp_print (s, "CARDINAL");
+  else if (t == gccgm2_GetM2ShortCardType ())
+    m2pp_print (s, "SHORTCARD");
+  else
+    m2pp_print (s, " an INTEGER type --fixme--");
+#else      
+  m2pp_print (s, "INTEGER");
+#endif
+}
+
+/*
  *  m2pp_type - prints a full type.
  */
 
@@ -1030,7 +1078,7 @@ m2pp_type (pretty *s, tree t)
       m2pp_print (s, "CHAR");
       break;
     case INTEGER_TYPE:
-      m2pp_print (s, "INTEGER");
+      m2pp_integer (s, t);
       break;
     case REAL_TYPE:
       m2pp_print (s, "REAL");
@@ -1227,7 +1275,7 @@ m2pp_simple_type (pretty *s, tree t)
   switch (TREE_CODE (t))
     {
     case INTEGER_TYPE:
-      m2pp_print (s, "INTEGER");
+      m2pp_integer (s, t);
       break;
     case REAL_TYPE:
       m2pp_print (s, "REAL");
@@ -1450,7 +1498,7 @@ m2pp_simple_expression (pretty *s, tree t)
       m2pp_binary (s, t, "+");
       break;
     case MINUS_EXPR:
-      m2pp_binary (s, t, "+");
+      m2pp_binary (s, t, "-");
       break;
     case MULT_EXPR:
       m2pp_binary (s, t, "*");

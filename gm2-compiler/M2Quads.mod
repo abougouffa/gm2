@@ -138,7 +138,7 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    IsAssignmentCompatible, IsExpressionCompatible,
                    IsParameterCompatible,
                    AssignmentRequiresWarning,
-                   CannotCheckTypeInPass3, ScalarToComplex,
+                   CannotCheckTypeInPass3, ScalarToComplex, MixTypes,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
@@ -330,6 +330,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE doConvert (type: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
 PROCEDURE PopTFrw (VAR True, False, rw: WORD) ; FORWARD ;
 PROCEDURE PopTrw (VAR True, rw: WORD) ; FORWARD ;
@@ -3293,7 +3294,8 @@ END BuildPseudoBy ;
 
 
 (*
-   BuildForLoopToRangeCheck - builds the 
+   BuildForLoopToRangeCheck - builds the range check to ensure that the id
+                              does not exceed the limits of its type.
 *)
 
 PROCEDURE BuildForLoopToRangeCheck ;
@@ -3387,6 +3389,7 @@ VAR
    ByType,
    ForLoop,
    t, f      : CARDINAL ;
+   etype,
    t1, f1    : CARDINAL ;
 BEGIN
    l2 := PopLineNo() ;
@@ -3421,6 +3424,9 @@ BEGIN
    FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
                                            IsConst(BySym))) ;
    PutVar(FinalValue, GetType(IdSym)) ;
+   etype := MixTypes(GetType(e1), GetType(e2), GetTokenNo()) ;
+   e1 := doConvert(etype, e1) ;
+   e2 := doConvert(etype, e2) ;
 
    PushTF(FinalValue, GetType(FinalValue)) ;
    PushTF(e2, GetType(e2)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
@@ -10647,6 +10653,26 @@ BEGIN
       BuildRange(InitWholeZeroRemainderCheck(d, e))
    END
 END CheckDivModRem ;
+
+
+(*
+   doConvert - convert, sym, to a new symbol with, type.
+               Return the new symbol.
+*)
+
+PROCEDURE doConvert (type: CARDINAL; sym: CARDINAL) : CARDINAL ;
+BEGIN
+   IF GetType(sym)#type
+   THEN
+      PushTF(Convert, NulSym) ;
+      PushT(type) ;
+      PushT(sym) ;
+      PushT(2) ;          (* Two parameters *)
+      BuildConvertFunction ;
+      PopT(sym)
+   END ;
+   RETURN( sym )
+END doConvert ;
 
 
 (*

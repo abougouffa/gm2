@@ -6603,7 +6603,6 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
 
   /* The variable was not declared by GCC, but by the front end  */
   DECL_ARTIFICIAL (decl) = 0;
-  /* however if it is a front end temporary then we don't want debug info for it.  */
   DECL_IGNORED_P (decl) = istemporary;
 
   DECL_CONTEXT (decl)    = scope;

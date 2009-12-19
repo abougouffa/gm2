@@ -1,3 +1,27 @@
+2009-12-19       Gaius Mulley <gaius@gnu.org>
+
+	* gm2.paranoid builds on LP64
+	* gm2/patches/gcc/4.1.2/01.gaius_patch_gcc:  removed
+	  m2pp.o from being linked in with cc1 and cc1dummy.
+	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeEndFile) remove
+	  PopScope again as the quadruple coding ordering needs to
+	  be fixed before this code will work.  The CodeStartDefFile,
+	  CodeStartModFile, CodeEndFile need to be placed at the start
+	  and end of the module and collected in the CodeScope.
+	  Renamed CompilingMainModule to CompilingMainModuleStack.
+	* gm2/gm2-compiler/M2Quads.mod:  (doConvert) New function.
+	  BuildForToByDo call doConvert to convert expressions e1 and
+	  e2 before they are used to calculate the iteration final
+	  value.  Fixes a bug reported by James Cox <jvcox@sandia.gov>.
+	  (testsuite/gm2/switches/check-all/run/pass/forcheck.mod).
+	* gm2/m2pp.c:  new function (m2pp_integer).  m2pp_type and
+	  m2pp_simple_type call m2pp_integer.  (m2pp_simple_expression)
+	  corrected '-' binary operator written.
+	* gm2/bnf/m2-3.bnf:  removed unused procedure
+	  (CollectConstructor).
+	* gm2/bnf/m2-h.bnf:  fixed ConstSetOrQualidentOrFunction
+	  to use ConstActualParameters.
+
 2009-12-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  (CodeEndFile) call
