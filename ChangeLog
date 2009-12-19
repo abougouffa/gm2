@@ -1,5 +1,7 @@
 2009-12-19       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs/SYSTEM.mod:  fixed an off by one bug in
+	  ShiftLeft and ShiftRight.
 	* gm2.paranoid builds on LP64
 	* gm2/patches/gcc/4.1.2/01.gaius_patch_gcc:  removed
 	  m2pp.o from being linked in with cc1 and cc1dummy.

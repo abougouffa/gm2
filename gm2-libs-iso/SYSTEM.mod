@@ -87,7 +87,7 @@ VAR
    lo, hi : BITSET ;
    i, j, h: CARDINAL ;
 BEGIN
-   h := HIGH(s) ;
+   h := HIGH(s)+1 ;
    i := h ;
    WHILE i>0 DO
       DEC(i) ;
@@ -123,7 +123,7 @@ VAR
    j      : INTEGER ;
    i, h   : CARDINAL ;
 BEGIN
-   h := HIGH(s) ;
+   h := HIGH(s)+1 ;
    i := 0 ;
    WHILE i<h DO
       lo := SHIFT(s[i], BitsPerBitset - (ShiftCount MOD BitsPerBitset)) ;
