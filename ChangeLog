@@ -1,3 +1,9 @@
+2009-12-21       Michael Lambert <lambert@psc.edu>
+
+	* gm2/patches/gcc/4.1.2/10.michael_snowleopard1:  (new file).
+	* gm2/patches/gcc/4.1.2/11.michael_snowleopard2:  (new file).
+	* GNU Modula-2 now builds under Snow Leopard.
+
 2009-12-19       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/SYSTEM.mod:  fixed an off by one bug in
