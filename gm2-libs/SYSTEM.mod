@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE SYSTEM ;
 
+FROM libc IMPORT memcpy, memcpy, memset ;
 
 CONST
    BitsPerBitset = MAX(BITSET)+1 ;
@@ -63,13 +64,19 @@ END Min ;
 PROCEDURE ShiftVal (VAR s, d: ARRAY OF BITSET;
                     SetSizeInBits: CARDINAL;
                     ShiftCount: INTEGER) ;
+VAR
+   a: ADDRESS ;
 BEGIN
    IF ShiftCount>0
    THEN
+      ShiftCount := ShiftCount MOD VAL(INTEGER, SetSizeInBits) ;
       ShiftLeft(s, d, SetSizeInBits, ShiftCount)
    ELSIF ShiftCount<0
    THEN
-      ShiftRight(s, d, SetSizeInBits, -ShiftCount)
+      ShiftCount := (-ShiftCount) MOD VAL(INTEGER, SetSizeInBits) ;
+      ShiftRight(s, d, SetSizeInBits, ShiftCount)
+   ELSE
+      a := memcpy(ADR(d), ADR(s), (HIGH(d)+1)*SIZE(BITSET))
    END
 END ShiftVal ;
 
@@ -87,22 +94,31 @@ PROCEDURE ShiftLeft (VAR s, d: ARRAY OF BITSET;
 VAR
    lo, hi : BITSET ;
    i, j, h: CARDINAL ;
+   a      : ADDRESS ;
 BEGIN
-   h := HIGH(s) ;
-   i := h ;
-   WHILE i>0 DO
-      DEC(i) ;
-      lo := SHIFT(s[i], ShiftCount MOD BitsPerBitset) ;
-      hi := SHIFT(s[i], -(BitsPerBitset - (ShiftCount MOD BitsPerBitset))) ;
-      d[i] := BITSET{} ;
-      j := i + ShiftCount DIV BitsPerBitset ;
-      IF j<h
-      THEN
-         d[j] := d[j] + lo ;
-         INC(j) ;
+   h := HIGH(s)+1 ;
+   IF ShiftCount MOD BitsPerBitset=0
+   THEN
+      i := ShiftCount DIV BitsPerBitset ;
+      a := ADR(d[i]) ;
+      a := memcpy(a, ADR(s), (h-i)*SIZE(BITSET)) ;
+      a := memset(ADR(d), 0, i*SIZE(BITSET))
+   ELSE
+      i := h ;
+      WHILE i>0 DO
+         DEC(i) ;
+         lo := SHIFT(s[i], ShiftCount MOD BitsPerBitset) ;
+         hi := SHIFT(s[i], -(BitsPerBitset - (ShiftCount MOD BitsPerBitset))) ;
+         d[i] := BITSET{} ;
+         j := i + ShiftCount DIV BitsPerBitset ;
          IF j<h
          THEN
-            d[j] := d[j] + hi
+            d[j] := d[j] + lo ;
+            INC(j) ;
+            IF j<h
+            THEN
+               d[j] := d[j] + hi
+            END
          END
       END
    END
@@ -121,26 +137,36 @@ PROCEDURE ShiftRight (VAR s, d: ARRAY OF BITSET;
                       ShiftCount: CARDINAL) ;
 VAR
    lo, hi : BITSET ;
-   j      : INTEGER ;
-   i, h   : CARDINAL ;
+   j, i, h: INTEGER ;
+   a      : ADDRESS ;
 BEGIN
-   h := HIGH(s) ;
-   i := 0 ;
-   WHILE i<h DO
-      lo := SHIFT(s[i], BitsPerBitset - (ShiftCount MOD BitsPerBitset)) ;
-      hi := SHIFT(s[i], -(ShiftCount MOD BitsPerBitset)) ;
-      d[i] := BITSET{} ;
-      j := i - ShiftCount DIV BitsPerBitset ;
-      IF j>=0
-      THEN
-         d[j] := d[j] + hi ;
-         DEC(j) ;
+   h := HIGH(s)+1 ;
+   IF ShiftCount MOD BitsPerBitset=0
+   THEN
+      i := ShiftCount DIV BitsPerBitset ;
+      a := ADR(s[i]) ;
+      j := h-i ;
+      a := memcpy(ADR(d), a, j*SIZE(BITSET)) ;
+      a := ADR(d[j]) ;
+      a := memset(a, 0, i*SIZE(BITSET))
+   ELSE
+      i := 0 ;
+      WHILE i<h DO
+         lo := SHIFT(s[i], BitsPerBitset - (ShiftCount MOD BitsPerBitset)) ;
+         hi := SHIFT(s[i], -(ShiftCount MOD BitsPerBitset)) ;
+         d[i] := BITSET{} ;
+         j := i - VAL(INTEGER, ShiftCount DIV BitsPerBitset) ;
          IF j>=0
          THEN
-            d[j] := d[j] + lo
-         END
-      END ;
-      INC(i)
+            d[j] := d[j] + hi ;
+            DEC(j) ;
+            IF j>=0
+            THEN
+               d[j] := d[j] + lo
+            END
+         END ;
+         INC(i)
+      END
    END
 END ShiftRight ;
 
@@ -155,6 +181,8 @@ END ShiftRight ;
 PROCEDURE RotateVal (VAR s, d: ARRAY OF BITSET;
                      SetSizeInBits: CARDINAL;
                      RotateCount: INTEGER) ;
+VAR
+   a: ADDRESS ;
 BEGIN
    IF RotateCount>0
    THEN
@@ -162,6 +190,8 @@ BEGIN
    ELSIF RotateCount<0
    THEN
       RotateRight(s, d, SetSizeInBits, -RotateCount)
+   ELSE
+      a := memcpy(ADR(d), ADR(s), (HIGH(d)+1)*SIZE(BITSET))
    END
 END RotateVal ;
 

@@ -1,3 +1,21 @@
+2009-12-21       Gaius Mulley <gaius@gnu.org>
+
+	* GNU Modula-2 passes all tests on LP64 debian stable.
+	* gm2/iso/run/pass/shift[45].mod:  (New files).
+	* gm2/Make-lang.in:  makeSystem now uses the last argument
+	  for the destination filename.
+	* gm2/gccgm2.c:  removed tabs.
+	* gm2/gm2-libs/SYSTEM.mod:  use memcpy, memset if shifting
+	  a whole number of words.  Also fixed bugs in ShiftLeft and
+	  ShiftRight.
+	* gm2/gm2-libs-iso/SYSTEM.mod:  use memcpy, memset if shifting
+	  a whole number of words.  Also fixed bugs in ShiftLeft and
+	  ShiftRight.
+	* gm2/gm2-libs-min/SYSTEM.mod:  fixed dates.
+	* gm2/tools-src/makeSystem:  modified so that the last argument
+	  now contains the destination filename.  Thus allowing compile
+	  errors to be emitted sensibly.
+
 2009-12-21       Michael Lambert <lambert@psc.edu>
 
 	* gm2/patches/gcc/4.1.2/10.michael_snowleopard1:  (new file).
