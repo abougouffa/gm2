@@ -41,6 +41,6 @@ BEGIN
    person := PersonType{StringType{"" BY 80}, DateType{0, 1, 2}} ;
    person := PersonType{StringType{"" BY 80}, {0, 1, 2}} ;
    person := PersonType{"", {0, 1, 2}} ;
-   person := PersonType{StringType{"a"}, {0, 1, 2}} ;
+   person := PersonType{StringType{""}, {0, 1, 2}} ;
    person := PersonType{"Blaise Pascal", date}
 END nestediso.

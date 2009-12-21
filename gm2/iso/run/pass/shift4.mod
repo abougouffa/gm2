@@ -24,7 +24,7 @@ TYPE
    large = SET OF [0..1023] ;
 VAR
    r   : INTEGER ;
-   i   : CARDINAL ;
+   i   : INTEGER ;
    b, c: large ;
 BEGIN
    r := 0 ;
@@ -57,8 +57,18 @@ BEGIN
       c := large{i} ;
       IF b#c
       THEN
-         printf("failed shift in loop on iteration %d\n", i) ;
+         printf("failed shift left in loop on iteration %d\n", i) ;
          r := 5
+      END
+   END ;
+   FOR i := 0 TO MAX(large) DO
+      b := large{i} ;
+      b := SHIFT(b, -i) ;
+      c := large{0} ;
+      IF b#c
+      THEN
+         printf("failed shift right in loop on iteration %d\n", i) ;
+         r := 6
       END
    END ;
    printf("all done\n") ;
