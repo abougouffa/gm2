@@ -1,5 +1,13 @@
 2009-12-22       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/config-lang.in:  fixed dates.
+	* gm2/configure:  regenerated.
+	* gm2/gm2-libs/configure:  regenerated.
+	* gm2/gm2-libs/configure.in:  fixed dates.
+	* gm2/p2c/p2c-src/configure:  regenerated.
+	* gm2/p2c/p2c-src/configure.in:  fixed dates.
+	* gm2/configure.in:  updated to 0.72
+	* gm2/version.c:  updated to 0.72
 	* GM2 Release 0.71
 
 2009-12-21       Gaius Mulley <gaius@gnu.org>
