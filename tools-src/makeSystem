@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2008
+# Copyright (C) 2008, 2009
 #   Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -23,7 +23,7 @@ function Usage () {
    echo "Usage: makesystem dialectflag SYSTEM.def SYSTEM.mod librarypath compiler"
 }
 
-if [ $# -lt 5 ] ; then
+if [ $# -lt 6 ] ; then
    Usage
    exit 1
 fi

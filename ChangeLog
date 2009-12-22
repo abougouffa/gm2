@@ -1,5 +1,7 @@
 2009-12-22       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/Make-file.in:  added gm2-libs to the path when
+	  invoking makeSystem.
 	* gm2/config-lang.in:  fixed dates.
 	* gm2/configure:  regenerated.
 	* gm2/gm2-libs/configure:  regenerated.
