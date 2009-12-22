@@ -1,5 +1,11 @@
 2009-12-22       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs-pim/CardinalIO.mod:  strip white space
+	  from start of strings.
+	* gm2/gm2-libs-pim/LongIO.mod:  strip white space
+	  from start of strings.
+	* gm2/gm2-libs-pim/RealInOut.mod:  strip white space
+	  from start of strings.
 	* gm2/Make-file.in:  added gm2-libs to the path when
 	  invoking makeSystem.
 	* gm2/config-lang.in:  fixed dates.

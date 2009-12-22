@@ -13,12 +13,13 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE CardinalIO ;
 
 
-FROM DynamicStrings IMPORT String, InitString, KillString ;
+FROM DynamicStrings IMPORT String, InitString, KillString, RemoveWhitePrefix ;
 FROM SYSTEM IMPORT ADR, BYTE ;
 IMPORT InOut ;
 
@@ -37,7 +38,7 @@ PROCEDURE ReadCardinal (VAR c: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToCardinal(s, 10, Done)
@@ -73,7 +74,7 @@ PROCEDURE ReadHex (VAR c: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToCardinal(s, 16, Done)
@@ -108,7 +109,7 @@ PROCEDURE ReadLongCardinal (VAR c: LONGCARD) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToLongCardinal(s, 10, Done)
@@ -144,7 +145,7 @@ PROCEDURE ReadLongHex (VAR c: LONGCARD) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToLongCardinal(s, 16, Done)
@@ -179,7 +180,7 @@ PROCEDURE ReadShortCardinal (VAR c: SHORTCARD) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToShortCardinal(s, 10, Done)
@@ -215,7 +216,7 @@ PROCEDURE ReadShortHex (VAR c: SHORTCARD) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       c := StringToShortCardinal(s, 16, Done)

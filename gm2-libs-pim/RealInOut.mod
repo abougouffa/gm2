@@ -14,11 +14,12 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE RealInOut ;
 
-FROM DynamicStrings IMPORT String, InitString, KillString ;
+FROM DynamicStrings IMPORT String, InitString, KillString, RemoveWhitePrefix ;
 FROM StringConvert IMPORT StringToLongreal, LongrealToString ;
 FROM SYSTEM IMPORT ADR, BYTE ;
 IMPORT InOut ;
@@ -33,7 +34,7 @@ PROCEDURE ReadReal (VAR x: REAL) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       x := VAL(REAL, StringToLongreal(s, Done))
@@ -87,7 +88,7 @@ PROCEDURE ReadLongReal (VAR x: LONGREAL) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       x := StringToLongreal(s, Done)
@@ -141,7 +142,7 @@ PROCEDURE ReadShortReal (VAR x: SHORTREAL) ;
 VAR
    s: String ;
 BEGIN
-   s := InOut.ReadS() ;
+   s := RemoveWhitePrefix(InOut.ReadS()) ;
    IF InOut.Done
    THEN
       x := VAL(SHORTREAL, StringToLongreal(s, Done))
