@@ -15,9 +15,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Fri Aug 21 00:28:51 BST 2009
-.ds CURRENTGM2 0.70
-.ds DEBIANGM2 0.7.0
+.ds CURRENTDATE "Tue Dec 22 14:25:52 GMT 2009
+.ds CURRENTGM2 0.71
+.ds DEBIANGM2 0.7.1
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -88,11 +88,15 @@ Recent news about GNU Modula-2:
 .sp
 .ULS
 .LI
+many bug fixes have been applied to the ISO libraries and also the
+compiler.  All regression tests pass on the LP64 platform.
+.LI
+builds under OSX leopard and snow leopard using \f[I]macports\f[P]
+(although there are regression test failures on these platforms).
+.LI
 the ISO Modula-2 language is now complete.  Recent additions were
 dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P],
 ISO \f[C]SIZE\f[P] and \f[C]CASE\f[P] range compile time checking.
-.LI
-builds under OSX leopard using \f[I]macports\f[P].
 .LI
 now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).
@@ -215,12 +219,14 @@ Limitations
 .ULS
 .LI
 The compiler is complete but it is still in an alpha state.  The most
-stable build for GNU Modula-2 is x86_64 Debian (at the time of writing
-this results in 56 regression test failures out of over 8000).
+stable build for GNU Modula-2 is x86_64 Debian.  At the time of
+writing all regressions tests pass.  There are 1439 individual tests
+and each test is compiled with varying options resulting in a total of
+8634 test cases).
 .LI
-ISO library implementation is underway, most of the libraries are
-finished but they are unstable.  Processes, Coroutines, Semaphores
-are missing.  For a full list check the
+ISO library implementation is near completion, most of the libraries are
+finished but Processes, Coroutines, Semaphores are missing.
+For a full list check the
 .URL gm2.html documentation .
 .LI
 Logitech compatibility library is incomplete (nevertheless a number of
