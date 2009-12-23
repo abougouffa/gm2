@@ -171,7 +171,8 @@ PROCEDURE WriteHex (x, n: CARDINAL) ;
 
 (*
    ReadS - returns a string which has is a sequence of characters.
-           The string is terminated with a character <= ' '
+           Leading white space is ignored and string is terminated
+           with a character <= ' '.
 *)
 
 PROCEDURE ReadS () : String ;

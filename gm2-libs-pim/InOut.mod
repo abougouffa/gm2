@@ -162,7 +162,8 @@ END LocalStatus ;
 
 (*
    ReadS - returns a string which has is a sequence of characters.
-           The string is terminated with a character <= ' '
+           Leading white space is ignored and string is terminated
+           with a character <= ' '.
 *)
 
 PROCEDURE ReadS () : String ;
@@ -171,15 +172,15 @@ VAR
    ch: CHAR ;
 BEGIN
    s := InitString('') ;
-   LOOP
-      Read(ch) ;
-      IF ch<=' '
-      THEN
-         (* successful *)
-         RETURN( s )
-      END ;
-      s := ConCatChar(s, ch)
-   END
+   REPEAT
+      Read(ch)
+   UNTIL ch>' ' ;
+   WHILE ch>' ' DO
+      s := ConCatChar(s, ch) ;
+      Read(ch)
+   END ;
+   (* successful *)
+   RETURN( s )
 END ReadS ;
 
 

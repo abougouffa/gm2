@@ -1,3 +1,14 @@
+2009-12-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/InOut.def:  altered specification of
+	  ReadS to match ReadString.
+	* gm2/gm2-libs-pim/InOut.mod:  reimplemented ReadS
+	  so ignore leading white space.  This fixes a bug
+	  reported by Steve Giess.  <scgiess@hotmail.com>.
+	  Where reading a real number ' 3.14' would yield 0.0.
+	* testsuite/gm2/pimlib/run/pass/realinput.mod:  new
+	  regression test.
+
 2009-12-22       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/CardinalIO.mod:  strip white space
