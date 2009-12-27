@@ -1,3 +1,10 @@
+2009-12-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/configure.in:  updated to 0.73
+	* gm2/tools-src/makeversion:  modified to detect GNU date
+	  or FreeBSD date or fall back to date in ChangeLog format
+	  if neither are present.
+
 2009-12-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/configure.in:  updated to 0.73
