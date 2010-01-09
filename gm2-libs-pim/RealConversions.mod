@@ -94,6 +94,21 @@ END powl10 ;
 
 
 (*
+   doPowerOfTen - 
+*)
+
+PROCEDURE doPowerOfTen (r: LONGREAL) : INTEGER ;
+BEGIN
+   IF r=0.0
+   THEN
+      RETURN( 0 )
+   ELSE
+      RETURN( TRUNC(logl10(r)) )
+   END
+END doPowerOfTen ;
+
+ 
+(*
    RealToString - converts a real, r, into a right justified string, str.
                   The number of digits to the right of the decimal point
                   is given in, digits. The value, width, represents the
@@ -176,11 +191,11 @@ BEGIN
       digits := ABS(digits) ;
       IF r>=0.0
       THEN
-         powerOfTen := TRUNC(logl10(r)) ;
+         powerOfTen := doPowerOfTen(r) ;
          s := InitString('') ;
          j := 0
       ELSE
-         powerOfTen := TRUNC(logl10(r)) ;
+         powerOfTen := doPowerOfTen(r) ;
          s := InitString('-') ;
          j := 1
       END ;

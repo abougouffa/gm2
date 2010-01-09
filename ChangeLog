@@ -7,7 +7,9 @@
 	* gm2/gm2-libs/StringConvert.mod:  corrected dates.
 	  Assert, ToDecimalPlaces, doDecimalPlaces
 	  (new procedures).
-	
+	* gm2/gm2-libs-pim/RealConversions.mod:  doPowerOfTen
+	  (new procedure).  Fixes a bug reported by James Cox
+	  <jvcox@sandia.gov>.
 
 2009-12-27       Gaius Mulley <gaius@gnu.org>
 
