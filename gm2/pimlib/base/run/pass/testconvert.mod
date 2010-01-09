@@ -36,6 +36,9 @@ END Assert ;
 VAR
    s: String ;
 BEGIN
+   s := LongrealToString(-123.0, 8, 3) ;
+   printf("returned value '%s'\n", string(s)) ;
+   Assert(EqualArray(LongrealToString(-123.0, 8, 3), '-123.000'), __FILE__, __LINE__, '-123.000') ;
    s := LongrealToString(1.0, 4, 2) ;
    printf("returned value '%s'\n", string(s)) ;
    Assert(EqualArray(LongrealToString(1.0, 4, 2), '1.00'), __FILE__, __LINE__, '1.00') ;
@@ -48,9 +51,6 @@ BEGIN
    s := LongrealToString(123.0, 8, 3) ;
    printf("returned value '%s'\n", string(s)) ;
    Assert(EqualArray(LongrealToString(123.0, 8, 3), ' 123.000'), __FILE__, __LINE__, ' 123.000') ;
-   s := LongrealToString(-123.0, 8, 3) ;
-   printf("returned value '%s'\n", string(s)) ;
-   Assert(EqualArray(LongrealToString(-123.0, 8, 3), '-123.000'), __FILE__, __LINE__, '-123.000') ;
    s := LongrealToString(-123.0, 6, 3) ;
    printf("returned value '%s'\n", string(s)) ;
    Assert(EqualArray(LongrealToString(-123.0, 6, 3), '-123.0'), __FILE__, __LINE__, '-123.0') ;
