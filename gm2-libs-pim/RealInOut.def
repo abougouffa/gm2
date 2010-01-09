@@ -25,13 +25,24 @@ DEFINITION MODULE RealInOut ;
     Description: provides a compatible RealInOut PIM 234 module.
 *)
 
-EXPORT QUALIFIED ReadReal, WriteReal, WriteRealOct,
+EXPORT QUALIFIED SetNoOfDecimalPlaces,
+                 ReadReal, WriteReal, WriteRealOct,
                  ReadLongReal, WriteLongReal, WriteLongRealOct,
                  ReadShortReal, WriteShortReal, WriteShortRealOct,
                  Done ;
 
 VAR
    Done: BOOLEAN ;
+
+
+(*
+   SetNoOfDecimalPlaces - number of decimal places WriteReal and WriteLongReal
+                          should emit.  If this value is set to -1 then
+                          the number of decimal places is the minimum field
+                          width (the default).
+*)
+
+PROCEDURE SetNoOfDecimalPlaces (places: INTEGER) ;
 
 
 (*

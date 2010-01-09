@@ -24,6 +24,25 @@ FROM StringConvert IMPORT StringToLongreal, LongrealToString ;
 FROM SYSTEM IMPORT ADR, BYTE ;
 IMPORT InOut ;
 
+CONST
+   NoMinfieldWidth = -1 ;
+
+VAR
+   DecimalPlacesLength: INTEGER ;
+
+
+(*
+   SetNoOfDecimalPlaces - number of decimal places WriteReal and WriteLongReal
+                          should emit.  If this value is set to -1 then
+                          the number of decimal places is the minimum field
+                          width (the default).
+*)
+
+PROCEDURE SetNoOfDecimalPlaces (places: INTEGER) ;
+BEGIN
+   DecimalPlacesLength := places
+END SetNoOfDecimalPlaces ;
+
 
 (*
    ReadReal - reads a real number, legal syntaxes include:
@@ -55,7 +74,12 @@ PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n))) ;
+   IF DecimalPlacesLength=NoMinfieldWidth
+   THEN
+      s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n)))
+   ELSE
+      s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, DecimalPlacesLength)))
+   END ;
    Done := TRUE
 END WriteReal ;
 
@@ -109,7 +133,12 @@ PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(x, n, n))) ;
+   IF DecimalPlacesLength=NoMinfieldWidth
+   THEN
+      s := KillString(InOut.WriteS(LongrealToString(x, n, n)))
+   ELSE
+      s := KillString(InOut.WriteS(LongrealToString(x, n, DecimalPlacesLength)))
+   END ;
    Done := TRUE
 END WriteLongReal ;
 
@@ -187,4 +216,6 @@ BEGIN
 END WriteShortRealOct ;
 
 
+BEGIN
+   DecimalPlacesLength := NoMinfieldWidth
 END RealInOut.

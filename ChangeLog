@@ -10,6 +10,8 @@
 	* gm2/gm2-libs-pim/RealConversions.mod:  doPowerOfTen
 	  (new procedure).  Fixes a bug reported by James Cox
 	  <jvcox@sandia.gov>.
+	* gm2/gm2-libs-pim/RealInOut.mod:  SetNoOfDecimalPlaces
+	  (new procedure).
 
 2009-12-27       Gaius Mulley <gaius@gnu.org>
 
