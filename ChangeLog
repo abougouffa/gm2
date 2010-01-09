@@ -1,6 +1,6 @@
 2009-01-09       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/examples/gravity/test.mod:  gravatational constant
+	* gm2/examples/gravity/test.mod:  gravitational constant
 	  with greater accuracy.
 	* gm2/gm2-libs/StringConvert.def:  corrected dates.
 	  ToDecimalPlaces (new procedure).
