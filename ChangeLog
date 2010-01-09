@@ -1,3 +1,14 @@
+2009-01-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/test.mod:  gravatational constant
+	  with greater accuracy.
+	* gm2/gm2-libs/StringConvert.def:  corrected dates.
+	  ToDecimalPlaces (new procedure).
+	* gm2/gm2-libs/StringConvert.mod:  corrected dates.
+	  Assert, ToDecimalPlaces, doDecimalPlaces
+	  (new procedures).
+	
+
 2009-12-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/configure.in:  updated to 0.73

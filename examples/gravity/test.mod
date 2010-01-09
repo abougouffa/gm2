@@ -36,7 +36,7 @@ BEGIN
    e := twoDsim.circle(0.9, 0.1, 0.1) ;
    e := twoDsim.fix(e) ;
 
-   twoDsim.gravity(-9.81) ;
+   twoDsim.gravity(-9.80665) ;
    twoDsim.fps(24.0) ;
    twoDsim.addDebugging(0.34974, c, e) ;
    printf("first collision should be at 0.34974 seconds\n") ;

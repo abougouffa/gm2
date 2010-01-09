@@ -1,4 +1,6 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+   Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +24,7 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2008/12/18 16:03:44 $ 
+    Last edit  : $Date: 2010/01/09 14:02:58 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)
@@ -294,10 +296,45 @@ PROCEDURE stolr (s: String) : LONGREAL ;
 
 (*
    ToSigFig - returns a floating point or base 10 integer
-              string which is accurate to, n, significat figures.
+              string which is accurate to, n, significant
+              figures.  It will return a new String
+              and, s, will be destroyed.
+
+
+              So:  12.345
+
+              rounded to the following significant figures yields
+
+              5      12.345
+              4      12.34
+              3      12.3
+              2      12
+              1      10
 *)
 
 PROCEDURE ToSigFig (s: String; n: CARDINAL) : String ;
+
+
+(*
+   ToDecimalPlaces - returns a floating point or base 10 integer
+                     string which is accurate to, n, decimal
+                     places.  It will return a new String
+                     and, s, will be destroyed.
+                     Decimal places yields, n, digits after
+                     the .
+
+                     So:  12.345
+
+                     rounded to the following decimal places yields
+
+                     5      12.34500
+                     4      12.3450
+                     3      12.345
+                     2      12.34
+                     1      12.3
+*)
+
+PROCEDURE ToDecimalPlaces (s: String; n: CARDINAL) : String ;
 
 
 END StringConvert.

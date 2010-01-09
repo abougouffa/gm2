@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -19,7 +20,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE StringConvert ;
 
 FROM SYSTEM IMPORT ADDRESS ;
-FROM libc IMPORT free ;
+FROM libc IMPORT free, printf ;
 FROM libm IMPORT powl ;
 
 FROM DynamicStrings IMPORT String, InitString,
@@ -35,6 +36,21 @@ IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
 PROCEDURE doSigFig (s: String; n: CARDINAL) : String ; FORWARD ;
 PROCEDURE carryOne (s: String; i: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
+
+
+(*
+   Assert - implement a simple assert.
+*)
+
+PROCEDURE Assert (b: BOOLEAN; file: ARRAY OF CHAR; line: CARDINAL; func: ARRAY OF CHAR) ;
+BEGIN
+   IF NOT b
+   THEN
+      printf("%s:%d:  assert failed in procedure %s\n", file, line, func) ;
+      HALT
+   END
+END Assert ;
+
 
 (*
    Max - 
@@ -760,19 +776,26 @@ BEGIN
          s := ConCat(s, Mark(Mult(InitString('0'), VAL(INTEGER, FractionWidth)-(l-point))))
       END
    END ;
-   IF sign
-   THEN
-      s := ConCat(InitStringChar('-'), Mark(s))
-   END ;
    IF Length(s)>TotalWidth
    THEN
       IF TotalWidth>0
       THEN
-         (* minus 1 because all results will include a '.' *)
-         s := Slice(ToSigFig(s, ABS(point)+VAL(INTEGER, FractionWidth)), 0, TotalWidth)
+         IF sign
+         THEN
+            s := Slice(ToDecimalPlaces(s, FractionWidth), 0, TotalWidth-1) ;
+            s := ConCat(InitStringChar('-'), Mark(s)) ;
+            sign := FALSE
+         ELSE
+            (* minus 1 because all results will include a '.' *)
+            s := Slice(ToDecimalPlaces(s, FractionWidth), 0, TotalWidth) ;
+         END
       END
    END ;
    (* free(r) ; *)
+   IF sign
+   THEN
+      s := ConCat(InitStringChar('-'), Mark(s))
+   END ;
    IF Length(s)<TotalWidth
    THEN
       s := ConCat(Mult(InitStringChar(' '), TotalWidth-Length(s)), Mark(s))
@@ -998,10 +1021,174 @@ END StringToShortCardinal ;
 
 
 (*
+   ToDecimalPlaces - returns a floating point or base 10 integer
+                     string which is accurate to, n, decimal
+                     places.  It will return a new String
+                     and, s, will be destroyed.
+                     Decimal places yields, n, digits after
+                     the .
+
+                     So:  12.345
+
+                     rounded to the following decimal places yields
+
+                     5      12.34500
+                     4      12.3450
+                     3      12.345
+                     2      12.34
+                     1      12.3
+*)
+
+PROCEDURE ToDecimalPlaces (s: String; n: CARDINAL) : String ;
+VAR
+   point: INTEGER ;
+BEGIN
+   Assert(IsDigit(char(s, 0)) OR (char(s, 0)='.'), __FILE__, __LINE__, __FUNCTION__) ;
+   point := Index(s, '.', 0) ;
+   IF point<0
+   THEN
+      IF n>0
+      THEN
+         RETURN( ConCat(ConCat(s, Mark(InitStringChar('.'))), Mult(InitStringChar('0'), n)) )
+      ELSE
+         RETURN( s )
+      END
+   END ;
+   s := doDecimalPlaces(s, n) ;
+   (* if the last character is '.' remove it *)
+   IF (Length(s)>0) AND (char(s, -1)='.')
+   THEN
+      RETURN( Slice(Mark(s), 0, -1) )
+   ELSE
+      RETURN( s )
+   END
+END ToDecimalPlaces ;
+
+
+(*
+   doDecimalPlaces - returns a string which is accurate to
+                     n decimal places.  It returns a new String
+                     and, s, will be destroyed.
+*)
+
+PROCEDURE doDecimalPlaces (s: String; n: CARDINAL) : String ;
+VAR
+   i, l,
+   point    : INTEGER ;
+   t,
+   whole,
+   fraction,
+   tenths,
+   hundreths: String ;
+BEGIN
+   l := Length(s) ;
+   i := 0 ;
+   (* remove '.' *)
+   point := Index(s, '.', 0) ;
+   IF point=0
+   THEN
+      s := Slice(Mark(s), 1, 0)
+   ELSIF point<l
+   THEN
+      s := ConCat(Slice(s, 0, point),
+                  Slice(Mark(s), point+1, 0))
+   ELSE
+      s := Slice(Mark(s), 0, point)
+   END ;
+   l := Length(s) ;
+   i := 0 ;
+   IF l>0
+   THEN
+      (* skip over leading zeros *)
+      WHILE (i<l) AND (char(s, i)='0') DO
+         INC(i)
+      END ;
+      (* was the string full of zeros? *)
+      IF (i=l) AND (char(s, i-1)='0')
+      THEN
+         s := KillString(s) ;
+         s := ConCat(InitString('0.'), Mark(Mult(InitStringChar('0'), n))) ;
+         RETURN( s )
+      END
+   END ;
+   (* add a leading zero in case we need to overflow the carry *)
+   (* insert leading zero *)
+   s := ConCat(InitStringChar('0'), Mark(s)) ;
+   INC(point) ;  (* and move point position to correct place *)
+   l := Length(s) ;   (* update new length *)
+   i := point ;
+   WHILE (n>1) AND (i<l) DO
+      DEC(n) ;
+      INC(i)
+   END ;
+   IF i+3<=l
+   THEN
+      t := Dup(s) ;
+      hundreths := Slice(Mark(s), i+1, i+3) ;
+      s := t ;
+      IF stoc(hundreths)>=50
+      THEN
+         s := carryOne(Mark(s), i)
+      END ;
+      hundreths := KillString(hundreths)
+   ELSIF i+2<=l
+   THEN
+      t := Dup(s) ;
+      tenths := Slice(Mark(s), i+1, i+2) ;
+      s := t ;
+      IF stoc(tenths)>=5
+      THEN
+         s := carryOne(Mark(s), i)
+      END ;
+      tenths := KillString(tenths)
+   END ;
+   (* check whether we need to remove the leading zero *)
+   IF char(s, 0)='0'
+   THEN
+      s := Slice(Mark(s), 1, 0) ;
+      DEC(l) ;
+      DEC(point)
+   END ;
+   IF i<l
+   THEN
+      s := Slice(Mark(s), 0, i) ;
+      l := Length(s) ;
+      IF l<point
+      THEN
+         s := ConCat(s, Mult(Mark(InitStringChar('0')), point-l))
+      END
+   END ;
+   (* re-insert the point *)
+   IF point>=0
+   THEN
+      IF point=0
+      THEN
+         s := ConCat(InitStringChar('.'), Mark(s))
+      ELSE
+         s := ConCat(ConCatChar(Slice(s, 0, point), '.'),
+                     Slice(Mark(s), point, 0))
+      END
+   END ;
+   RETURN( s )
+END doDecimalPlaces ;
+
+
+(*
    ToSigFig - returns a floating point or base 10 integer
               string which is accurate to, n, significant
               figures.  It will return a new String
               and, s, will be destroyed.
+
+
+              So:  12.345
+
+              rounded to the following significant figures yields
+
+              5      12.345
+              4      12.34
+              3      12.3
+              2      12
+              1      10
 *)
 
 PROCEDURE ToSigFig (s: String; n: CARDINAL) : String ;
@@ -1009,6 +1196,7 @@ VAR
    point: INTEGER ;
    poTen: CARDINAL ;
 BEGIN
+   Assert(IsDigit(char(s, 0)) OR (char(s, 0)='.'), __FILE__, __LINE__, __FUNCTION__) ;
    point := Index(s, '.', 0) ;
    IF point<0
    THEN
@@ -1017,6 +1205,7 @@ BEGIN
       poTen := point
    END ;
    s := doSigFig(s, n) ;
+   (* if the last character is '.' remove it *)
    IF (Length(s)>0) AND (char(s, -1)='.')
    THEN
       RETURN( Slice(Mark(s), 0, -1) )
@@ -1063,11 +1252,8 @@ BEGIN
    ELSE
       s := Dup(Mark(s))
    END ;
-   (* skip over any characters to our number *)
-   WHILE (i<l) AND (NOT IsDigit(char(s, i))) DO
-      INC(i)
-   END ;
    l := Length(s) ;
+   i := 0 ;
    IF l>0
    THEN
       (* skip over leading zeros *)
@@ -1152,7 +1338,6 @@ BEGIN
                      Slice(Mark(s), point, 0))
       END
    END ;
-
    RETURN( s )
 END doSigFig ;
 
