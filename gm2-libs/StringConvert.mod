@@ -19,7 +19,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE StringConvert ;
 
-FROM SYSTEM IMPORT ADDRESS ;
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM libc IMPORT free, printf ;
 FROM libm IMPORT powl ;
 
@@ -46,7 +46,7 @@ PROCEDURE Assert (b: BOOLEAN; file: ARRAY OF CHAR; line: CARDINAL; func: ARRAY O
 BEGIN
    IF NOT b
    THEN
-      printf("%s:%d:  assert failed in procedure %s\n", file, line, func) ;
+      printf("%s:%d:  assert failed in procedure %s\n", ADR(file), line, ADR(func)) ;
       HALT
    END
 END Assert ;

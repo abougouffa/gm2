@@ -1,3 +1,8 @@
+2009-01-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/StringConvert.mod:  fixed parameters to
+	  printf.
+
 2009-01-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/test.mod:  gravitational constant
