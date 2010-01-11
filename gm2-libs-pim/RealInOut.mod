@@ -68,6 +68,10 @@ END ReadReal ;
    WriteReal - writes a real to the terminal. The real number
                is right justified and, n, is the minimum field
                width.
+
+               If SetNoOfDecimalPlaces is called before this
+               procedure then, n, will be the number of characters
+               used and if necessary leading spaces will be prefixed.
 *)
 
 PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
@@ -127,6 +131,10 @@ END ReadLongReal ;
    WriteLongReal - writes a real to the terminal. The real number
                    is right justified and, n, is the minimum field
                    width.
+
+                   If SetNoOfDecimalPlaces is called before this
+                   procedure then, n, will be the number of characters
+                   used and if necessary leading spaces will be prefixed.
 *)
 
 PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;

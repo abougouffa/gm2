@@ -31,6 +31,10 @@ FROM libc IMPORT printf ;
 
 CONST
    Debugging = FALSE ;
+   DefaultExponentDigits = 0 ;
+
+VAR
+   ExponentDigits: CARDINAL ;
 
 
 (*
@@ -107,11 +111,26 @@ BEGIN
    END
 END doPowerOfTen ;
 
+
+(*
+   SetNoOfExponentialDigits - sets the number of exponential digits to be
+                              used during future calls of LongRealToString
+                              and RealToString providing that the width
+                              is sufficient.
+                              If this value is set to 0 (the default) then
+                              the number digits used is the minimum necessary.
+*)
+
+PROCEDURE SetNoOfExponentialDigits (places: CARDINAL) ;
+BEGIN
+   ExponentDigits := places
+END SetNoOfExponentialDigits ;
+
  
 (*
    RealToString - converts a real, r, into a right justified string, str.
                   The number of digits to the right of the decimal point
-                  is given in, digits. The value, width, represents the
+                  is given in, digits.  The value, width, represents the
                   maximum number of characters to be used in the string,
                   str.
 
@@ -120,7 +139,7 @@ END doPowerOfTen ;
                   is used.
 
                   If, r, is less than 0.0 then a '-' preceeds the value,
-                  str. However, if, r, is >= 0.0 a '+' is not added.
+                  str.  However, if, r, is >= 0.0 a '+' is not added.
 
                   If the conversion of, r, to a string requires more
                   than, width, characters then the string, str, is set
@@ -146,7 +165,7 @@ END RealToString ;
 (*
    LongRealToString - converts a real, r, into a right justified string, str.
                       The number of digits to the right of the decimal point
-                      is given in, digits. The value, width, represents the
+                      is given in, digits.  The value, width, represents the
                       maximum number of characters to be used in the string,
                       str.
 
@@ -155,7 +174,7 @@ END RealToString ;
                       is used.
 
                       If, r, is less than 0.0 then a '-' preceeds the value,
-                      str. However, if, r, is >= 0.0 a '+' is not added.
+                      str.  However, if, r, is >= 0.0 a '+' is not added.
 
                       If the conversion of, r, to a string requires more
                       than, width, characters then the string, str, is set
@@ -256,7 +275,7 @@ BEGIN
                END
             END ;
             e := ConCat(InitStringChar('E'),
-                        Mark(itos(powerOfTen-point+1, 0, ' ', TRUE))) ;
+                        Mark(itos(powerOfTen-point+1, ExponentDigits, ' ', TRUE))) ;
             IF Debugging
             THEN
                printf("value returned was '%s' and '%s'\n", string(s), string(e))
@@ -321,4 +340,6 @@ BEGIN
 END StringToReal ;
 
 
+BEGIN
+   ExponentDigits := DefaultExponentDigits
 END RealConversions.
