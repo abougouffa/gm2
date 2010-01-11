@@ -29,7 +29,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, Terminate,
                  HasHalted, IsTerminating,
-                 ExitOnHalt, Length,
+                 ExitOnHalt, Length, ErrorMessage,
                  AssignmentException,
                  IncException, DecException,
                  InclException, ExclException,
@@ -69,6 +69,16 @@ PROCEDURE Halt (file: ARRAY OF CHAR; line: CARDINAL;
 
 PROCEDURE ExitOnHalt (e: INTEGER) ;
    
+
+(*
+   ErrorMessage - emits an error message to stderr and then calls exit (1).
+*)
+
+PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
+                        file: ARRAY OF CHAR;
+                        line: CARDINAL;
+                        function: ARRAY OF CHAR) ;
+
 
 (*
    InstallTerminationProcedure - installs a procedure, p, which will

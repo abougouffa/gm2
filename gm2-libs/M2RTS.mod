@@ -94,7 +94,7 @@ END ErrorString ;
 
 
 (*
-   ErrorMessage - emits an error message to stderr
+   ErrorMessage - emits an error message to stderr and then calls exit (1).
 *)
 
 PROCEDURE ErrorMessage (message: ARRAY OF CHAR;

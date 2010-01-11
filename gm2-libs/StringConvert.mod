@@ -22,6 +22,7 @@ IMPLEMENTATION MODULE StringConvert ;
 FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM libc IMPORT free, printf ;
 FROM libm IMPORT powl ;
+FROM M2RTS IMPORT ErrorMessage ;
 
 FROM DynamicStrings IMPORT String, InitString,
                            InitStringChar, InitStringCharStar,
@@ -46,8 +47,7 @@ PROCEDURE Assert (b: BOOLEAN; file: ARRAY OF CHAR; line: CARDINAL; func: ARRAY O
 BEGIN
    IF NOT b
    THEN
-      printf("%s:%d:  assert failed in procedure %s\n", ADR(file), line, ADR(func)) ;
-      HALT
+      ErrorMessage('assert failed', file, line, func)
    END
 END Assert ;
 
