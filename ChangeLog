@@ -7,7 +7,8 @@
         * gm2/gm2-libs-pim/RealInOut.mod:  tidied up comments.
 	* gm2/gm2-libs/M2RTS.def:  export ErrorMessage.
 	* gm2/gm2-libs/StringConvert.mod:  use ErrorMessage
-	  rather than printf.
+	  rather than printf and added a prototype for
+	  doDecimalPlaces.
 	* gm2/gm2-libs-iso/M2RTS.def:  export ErrorMessage.
 	
 2009-01-10       Gaius Mulley <gaius@gnu.org>

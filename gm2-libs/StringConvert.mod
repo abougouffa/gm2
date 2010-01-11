@@ -36,6 +36,7 @@ IMPORT dtoa ;   (* this fixes linking - as the C ldtoa uses dtoa *)
 (* %%%FORWARD%%%
 PROCEDURE doSigFig (s: String; n: CARDINAL) : String ; FORWARD ;
 PROCEDURE carryOne (s: String; i: CARDINAL) : String ; FORWARD ;
+PROCEDURE doDecimalPlaces (s: String; n: CARDINAL) : String ; FORWARD ;
    %%%FORWARD%%% *)
 
 
