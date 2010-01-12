@@ -19,29 +19,43 @@ MA 02110-1301, USA *)
 
 IMPLEMENTATION MODULE RealInOut ;
 
-FROM DynamicStrings IMPORT String, InitString, KillString, RemoveWhitePrefix ;
+FROM DynamicStrings IMPORT String, InitString, KillString, RemoveWhitePrefix,
+                           Length, Mult, InitStringChar, Mark, ConCat ;
+
 FROM StringConvert IMPORT StringToLongreal, LongrealToString ;
 FROM SYSTEM IMPORT ADR, BYTE ;
 IMPORT InOut ;
 
-CONST
-   NoMinfieldWidth = -1 ;
-
 VAR
-   DecimalPlacesLength: INTEGER ;
+   DecimalPlacesLength: CARDINAL ;
 
 
 (*
-   SetNoOfDecimalPlaces - number of decimal places WriteReal and WriteLongReal
-                          should emit.  If this value is set to -1 then
-                          the number of decimal places is the minimum field
-                          width (the default).
+   SetNoOfDecimalPlaces - number of decimal places WriteReal and
+                          WriteLongReal should emit.  This procedure
+                          can be used to override the default
+                          DefaultDecimalPlaces constant.
 *)
 
-PROCEDURE SetNoOfDecimalPlaces (places: INTEGER) ;
+PROCEDURE SetNoOfDecimalPlaces (places: CARDINAL) ;
 BEGIN
    DecimalPlacesLength := places
 END SetNoOfDecimalPlaces ;
+
+
+(*
+   Pad - return a padded string with prefixed white space to ensure
+         that at least, n, characters are used.
+*)
+
+PROCEDURE Pad (s: String; n: CARDINAL) : String ;
+BEGIN
+   IF Length(s)<n
+   THEN
+      s := ConCat(Mult(InitStringChar(' '), n-Length(s)), Mark(s))
+   END ;
+   RETURN( s )
+END Pad ;
 
 
 (*
@@ -68,22 +82,15 @@ END ReadReal ;
    WriteReal - writes a real to the terminal. The real number
                is right justified and, n, is the minimum field
                width.
-
-               If SetNoOfDecimalPlaces is called before this
-               procedure then, n, will be the number of characters
-               used and if necessary leading spaces will be prefixed.
 *)
 
 PROCEDURE WriteReal (x: REAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   IF DecimalPlacesLength=NoMinfieldWidth
-   THEN
-      s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n)))
-   ELSE
-      s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, DecimalPlacesLength)))
-   END ;
+   s := LongrealToString(VAL(LONGREAL, x), 0, DecimalPlacesLength) ;
+   s := Pad(s, n) ;
+   s := KillString(InOut.WriteS(s)) ;
    Done := TRUE
 END WriteReal ;
 
@@ -131,22 +138,15 @@ END ReadLongReal ;
    WriteLongReal - writes a real to the terminal. The real number
                    is right justified and, n, is the minimum field
                    width.
-
-                   If SetNoOfDecimalPlaces is called before this
-                   procedure then, n, will be the number of characters
-                   used and if necessary leading spaces will be prefixed.
 *)
 
 PROCEDURE WriteLongReal (x: LONGREAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   IF DecimalPlacesLength=NoMinfieldWidth
-   THEN
-      s := KillString(InOut.WriteS(LongrealToString(x, n, n)))
-   ELSE
-      s := KillString(InOut.WriteS(LongrealToString(x, n, DecimalPlacesLength)))
-   END ;
+   s := LongrealToString(VAL(LONGREAL, x), 0, DecimalPlacesLength) ;
+   s := Pad(s, n) ;
+   s := KillString(InOut.WriteS(s)) ;
    Done := TRUE
 END WriteLongReal ;
 
@@ -200,7 +200,9 @@ PROCEDURE WriteShortReal (x: SHORTREAL; n: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := KillString(InOut.WriteS(LongrealToString(VAL(LONGREAL, x), n, n))) ;
+   s := LongrealToString(VAL(LONGREAL, x), 0, DecimalPlacesLength) ;
+   s := Pad(s, n) ;
+   s := KillString(InOut.WriteS(s)) ;
    Done := TRUE
 END WriteShortReal ;
 
@@ -225,5 +227,5 @@ END WriteShortRealOct ;
 
 
 BEGIN
-   DecimalPlacesLength := NoMinfieldWidth
+   DecimalPlacesLength := DefaultDecimalPlaces
 END RealInOut.

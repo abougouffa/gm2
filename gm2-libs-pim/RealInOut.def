@@ -31,18 +31,21 @@ EXPORT QUALIFIED SetNoOfDecimalPlaces,
                  ReadShortReal, WriteShortReal, WriteShortRealOct,
                  Done ;
 
+CONST
+   DefaultDecimalPlaces = 6 ;
+
 VAR
    Done: BOOLEAN ;
 
 
 (*
-   SetNoOfDecimalPlaces - number of decimal places WriteReal and WriteLongReal
-                          should emit.  If this value is set to -1 then
-                          the number of decimal places is the minimum field
-                          width (the default).
+   SetNoOfDecimalPlaces - number of decimal places WriteReal and
+                          WriteLongReal should emit.  This procedure
+                          can be used to override the default
+                          DefaultDecimalPlaces constant.
 *)
 
-PROCEDURE SetNoOfDecimalPlaces (places: INTEGER) ;
+PROCEDURE SetNoOfDecimalPlaces (places: CARDINAL) ;
 
 
 (*

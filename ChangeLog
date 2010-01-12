@@ -1,3 +1,10 @@
+2009-01-12       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/RealInOut.def:  defined DefaultDecimalPlaces
+	  to 6.
+	* gm2/gm2-libs-pim/RealInOut.mod:  implemented DefaultDecimalPlaces
+	  and integrated it into the WriteReal, WriteLongReal, WriteShortReal.
+	
 2009-01-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealConversions.def:  SetNoOfExponentialDigits

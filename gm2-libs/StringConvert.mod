@@ -790,13 +790,19 @@ BEGIN
             (* minus 1 because all results will include a '.' *)
             s := Slice(ToDecimalPlaces(s, FractionWidth), 0, TotalWidth) ;
          END
+      ELSE
+         IF sign
+         THEN
+            s := ToDecimalPlaces(s, FractionWidth) ;
+            s := ConCat(InitStringChar('-'), Mark(s)) ;
+            sign := FALSE
+         ELSE
+            (* minus 1 because all results will include a '.' *)
+            s := ToDecimalPlaces(s, FractionWidth)
+         END
       END
    END ;
    (* free(r) ; *)
-   IF sign
-   THEN
-      s := ConCat(InitStringChar('-'), Mark(s))
-   END ;
    IF Length(s)<TotalWidth
    THEN
       s := ConCat(Mult(InitStringChar(' '), TotalWidth-Length(s)), Mark(s))
