@@ -1,19 +1,22 @@
 Pre 1.0
 
-*  fix RealInOut <input 3.14e4 and 3.14E5 - reported by Steve Giess
-   <scgiess@hotmail.com>
+*  bug CASE multiple anonymous field name (reported by Scott)
+*  bug NIL not passed correctly (reported by Scott)
+*  add range checking to SHIFT values (Iztok)
 *  finish ISO libraries:
 *    SysVec one copy only between PIM and ISO.
 *    finish COROUTINES and PROCESSES.
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
+*  add data alignment directives to records (Scott)
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
    LogiFile, NumberConversion, Options, Processes, SimpleTerm.
+*  if at all possible try and make sure that it builds on OSX.
+   (Michael)
 *  if at all possible try and make sure that it builds on cygwin
-   and make gm2.paranoid also passes on the cygwin.
-*  add data alignment directives to records.
+   and make gm2.paranoid also passes on the cygwin.  (Christoph)
 
 Post 1.0
 
