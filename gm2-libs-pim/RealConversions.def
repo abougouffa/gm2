@@ -26,21 +26,21 @@ DEFINITION MODULE RealConversions ;
     Description: provides a Logitech-3.0 compatible module.
 *)
 
-EXPORT QUALIFIED SetNoOfExponentialDigits,
+EXPORT QUALIFIED SetNoOfExponentDigits,
                  RealToString, StringToReal,
                  LongRealToString, StringToLongReal ;
 
 
 (*
-   SetNoOfExponentialDigits - sets the number of exponential digits to be
-                              used during future calls of LongRealToString
-                              and RealToString providing that the width
-                              is sufficient.
-                              If this value is set to 0 (the default) then
-                              the number digits used is the minimum necessary.
+   SetNoOfExponentDigits - sets the number of exponent digits to be
+                           used during future calls of LongRealToString
+                           and RealToString providing that the width
+                           is sufficient.
+                           If this value is set to 0 (the default) then
+                           the number digits used is the minimum necessary.
 *)
 
-PROCEDURE SetNoOfExponentialDigits (places: CARDINAL) ;
+PROCEDURE SetNoOfExponentDigits (places: CARDINAL) ;
 
 
 (*

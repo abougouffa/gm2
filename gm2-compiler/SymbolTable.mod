@@ -4354,7 +4354,14 @@ BEGIN
       RecordSym       : WITH Record DO
                            PutItemIntoList(ListOfSons, SonSym) ;
                            (* Ensure that the Field is in the Parents Local Symbols *)
-                           PutSymKey(LocalSymbols, FieldName, SonSym)
+                           IF GetSymKey(LocalSymbols, FieldName)#NulKey
+                           THEN
+                              WriteFormat1('field record %a already declared', FieldName) ;
+                              FlushErrors ;
+                              HALT
+                           ELSE
+                              PutSymKey(LocalSymbols, FieldName, SonSym)
+                           END
                         END |
       VarientFieldSym : WITH VarientField DO
                            PutItemIntoList(ListOfSons, SonSym) ;
