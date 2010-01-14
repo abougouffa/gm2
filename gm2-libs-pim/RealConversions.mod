@@ -113,18 +113,18 @@ END doPowerOfTen ;
 
 
 (*
-   SetNoOfExponentialDigits - sets the number of exponential digits to be
-                              used during future calls of LongRealToString
-                              and RealToString providing that the width
-                              is sufficient.
-                              If this value is set to 0 (the default) then
-                              the number digits used is the minimum necessary.
+   SetNoOfExponentDigits - sets the number of exponent digits to be
+                           used during future calls of LongRealToString
+                           and RealToString providing that the width
+                           is sufficient.
+                           If this value is set to 0 (the default) then
+                           the number digits used is the minimum necessary.
 *)
 
-PROCEDURE SetNoOfExponentialDigits (places: CARDINAL) ;
+PROCEDURE SetNoOfExponentDigits (places: CARDINAL) ;
 BEGIN
    ExponentDigits := places
-END SetNoOfExponentialDigits ;
+END SetNoOfExponentDigits ;
 
  
 (*
@@ -274,8 +274,14 @@ BEGIN
                   printf("value returned was '%s'\n", string(s))
                END
             END ;
-            e := ConCat(InitStringChar('E'),
-                        Mark(itos(powerOfTen-point+1, ExponentDigits, ' ', TRUE))) ;
+            IF powerOfTen-point+1>=0
+            THEN
+               e := ConCat(InitString('E+'),
+                           Mark(itos(powerOfTen-point+1, ExponentDigits, '0', FALSE)))
+            ELSE
+               e := ConCat(InitString('E-'),
+                           Mark(itos(ABS(powerOfTen-point+1), ExponentDigits, '0', FALSE)))
+            END ;
             IF Debugging
             THEN
                printf("value returned was '%s' and '%s'\n", string(s), string(e))

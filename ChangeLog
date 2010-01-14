@@ -1,3 +1,8 @@
+2009-01-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/RealConversions.mod:  fixed bug in exponent
+	  length and ensure that no white space is created.
+
 2009-01-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  updated
