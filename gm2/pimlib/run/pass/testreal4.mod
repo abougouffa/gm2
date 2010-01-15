@@ -41,7 +41,7 @@ BEGIN
    r := 0 ;
    SetNoOfExponentDigits(3) ;
    LongRealToString(0.0123456789, -8, 15, s, ok) ;
-   Assert(StrEqual(s, '0.12345678E-001') AND ok) ;
+   Assert(StrEqual(s, '1.23456789E-002') AND ok) ;
    IF ok
    THEN
       WriteString(s) ; WriteLn
