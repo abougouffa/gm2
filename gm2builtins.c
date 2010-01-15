@@ -80,6 +80,9 @@ typedef enum {
   BT_FN_PTR_UNSIGNED,
   BT_FN_VOID_PTR_INT,
   BT_FN_INT_PTR,
+  BT_FN_INT_FLOAT,
+  BT_FN_INT_DOUBLE,
+  BT_FN_INT_LONG_DOUBLE,
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -121,6 +124,9 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_log10f",  BT_FN_FLOAT_FLOAT, BUILT_IN_LOG10F, BUILT_IN_NORMAL, "log10f", NULL, NULL},
 { "__builtin_log10",   BT_FN_DOUBLE_DOUBLE, BUILT_IN_LOG10, BUILT_IN_NORMAL, "log10", NULL, NULL},
 { "__builtin_log10l",  BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_LOG10L, BUILT_IN_NORMAL, "log10l", NULL, NULL},
+{ "__builtin_ilogbf",  BT_FN_INT_FLOAT, BUILT_IN_ILOGBF, BUILT_IN_NORMAL, "ilogbf", NULL, NULL},
+{ "__builtin_ilogb",   BT_FN_INT_DOUBLE, BUILT_IN_ILOGB, BUILT_IN_NORMAL, "ilogb", NULL, NULL},
+{ "__builtin_ilogbl",  BT_FN_INT_LONG_DOUBLE, BUILT_IN_ILOGBL, BUILT_IN_NORMAL, "ilogbl", NULL, NULL},
 
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
 { "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
@@ -535,6 +541,24 @@ create_function_prototype (struct builtin_function_entry *fe)
     break;
   case BT_FN_INT_PTR:
     ftype = build_function_type (integer_type_node, ptr_endlink);
+    fe->return_node = integer_type_node;
+    break;
+  case BT_FN_INT_FLOAT:
+    ftype = build_function_type (integer_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    endlink));
+    fe->return_node = integer_type_node;
+    break;
+  case BT_FN_INT_DOUBLE:
+    ftype = build_function_type (integer_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    endlink));
+    fe->return_node = integer_type_node;
+    break;
+  case BT_FN_INT_LONG_DOUBLE:
+    ftype = build_function_type (integer_type_node,
+				 tree_cons (NULL_TREE, long_double_type_node,
+					    endlink));
     fe->return_node = integer_type_node;
     break;
   default:

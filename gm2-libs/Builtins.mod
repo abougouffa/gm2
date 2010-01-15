@@ -156,6 +156,21 @@ BEGIN
    RETURN cbuiltin.exp10l (x)
 END exp10l ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_ilogb)) ilogb (x: REAL) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.ilogb (x)
+END ilogb ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_ilogbf)) ilogbf (x: SHORTREAL) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.ilogbf (x)
+END ilogbf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_ilogbl)) ilogbl (x: LONGREAL) : INTEGER ;
+BEGIN
+   RETURN cbuiltin.ilogbl (x)
+END ilogbl ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.index (s, c)

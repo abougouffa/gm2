@@ -25,7 +25,8 @@ FROM StringConvert IMPORT LongrealToString, StringToLongreal,
                           StringToLongreal, StringToInteger, itos ;
 
 FROM ASCII IMPORT nul ;
-FROM Builtins IMPORT logl ;
+FROM Builtins IMPORT logl, log10l, ilogbl ;
+FROM libm IMPORT powl ;
 FROM libc IMPORT printf ;
 
 
@@ -98,7 +99,7 @@ END powl10 ;
 
 
 (*
-   doPowerOfTen - 
+   doPowerOfTen - safely returns the exponent of a LONGREAL as an INTEGER.
 *)
 
 PROCEDURE doPowerOfTen (r: LONGREAL) : INTEGER ;
@@ -107,7 +108,7 @@ BEGIN
    THEN
       RETURN( 0 )
    ELSE
-      RETURN( TRUNC(logl10(r)) )
+      RETURN( VAL(INTEGER, log10l(r)) )
    END
 END doPowerOfTen ;
 
@@ -150,6 +151,9 @@ END SetNoOfExponentDigits ;
 
                   For exponent notation the minimum width required is
                   ABS(digits)+2+log10(magnitude).
+
+                  if r is a NaN then the string 'nan' is returned formatted and
+                  ok will be FALSE.
 *)
 
 PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
@@ -163,58 +167,25 @@ END RealToString ;
 
 
 (*
-   LongRealToString - converts a real, r, into a right justified string, str.
-                      The number of digits to the right of the decimal point
-                      is given in, digits.  The value, width, represents the
-                      maximum number of characters to be used in the string,
-                      str.
-
-                      If digits is negative then exponent notation is used
-                      whereas if digits is positive then fixed point notation
-                      is used.
-
-                      If, r, is less than 0.0 then a '-' preceeds the value,
-                      str.  However, if, r, is >= 0.0 a '+' is not added.
-
-                      If the conversion of, r, to a string requires more
-                      than, width, characters then the string, str, is set
-                      to a nul string and, ok is assigned FALSE.
-
-                      For fixed point notation the minimum width required is
-                      ABS(width)+8
-
-                      For exponent notation the minimum width required is
-                      ABS(digits)+2+log10(magnitude).
-
-                      Examples:
-                      RealToString(100.0, 10, 10, a, ok)       ->  '100.000000'
-                      RealToString(100.0, -5, 12, a, ok)       ->  '  1.00000E+2'
-
-                      RealToString(123.456789, 10, 10, a, ok)  ->  '123.456789'
-                      RealToString(123.456789, -5, 13, a, ok)  ->  '    1.23456E+2'
-
-                      RealToString(123.456789, -2, 15, a, ok)  ->  '          1.23E+2'
+   doLongRealToString - 
 *)
 
-PROCEDURE LongRealToString (r: LONGREAL; digits, width: INTEGER;
-                            VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
+PROCEDURE doLongRealToString (r: LONGREAL; digits, width, powerOfTen: INTEGER; VAR ok: BOOLEAN) : String ;
 VAR
    s, e         : String ;
-   point, len, j,
-   powerOfTen   : INTEGER ;
+   j, point, len: INTEGER ;
 BEGIN
    IF digits>0
    THEN
-      s := Slice(Mark(LongrealToString(r, width, digits)), 0, width)
+      ok := TRUE ;
+      RETURN( Slice(Mark(LongrealToString(r, width, digits)), 0, width) )
    ELSE
       digits := ABS(digits) ;
       IF r>=0.0
       THEN
-         powerOfTen := doPowerOfTen(r) ;
          s := InitString('') ;
          j := 0
       ELSE
-         powerOfTen := doPowerOfTen(r) ;
          s := InitString('-') ;
          j := 1
       END ;
@@ -285,17 +256,71 @@ BEGIN
             IF Debugging
             THEN
                printf("value returned was '%s' and '%s'\n", string(s), string(e))
-            END ;
-            s := ConCat(s, Mark(e))
-         ELSE
-            s := ConCat(s, Mark(e))
-         END
+            END
+         END ;
+         s := ConCat(s, Mark(e)) ;
+         ok := TRUE
       ELSE
-         s := KillString(s) ;
-         ok := FALSE ;
-         str[0] := nul ;
-         RETURN
-      END ;
+         s := InitString('') ;
+         ok := FALSE
+      END
+   END ;
+   RETURN( s )
+END doLongRealToString ;
+
+
+(*
+   LongRealToString - converts a real, r, into a right justified string, str.
+                      The number of digits to the right of the decimal point
+                      is given in, digits.  The value, width, represents the
+                      maximum number of characters to be used in the string,
+                      str.
+
+                      If digits is negative then exponent notation is used
+                      whereas if digits is positive then fixed point notation
+                      is used.
+
+                      If, r, is less than 0.0 then a '-' preceeds the value,
+                      str.  However, if, r, is >= 0.0 a '+' is not added.
+
+                      If the conversion of, r, to a string requires more
+                      than, width, characters then the string, str, is set
+                      to a nul string and, ok is assigned FALSE.
+
+                      For fixed point notation the minimum width required is
+                      ABS(width)+8
+
+                      For exponent notation the minimum width required is
+                      ABS(digits)+2+log10(magnitude).
+
+                      Examples:
+                      RealToString(100.0, 10, 10, a, ok)       ->  '100.000000'
+                      RealToString(100.0, -5, 12, a, ok)       ->  '  1.00000E+2'
+
+                      RealToString(123.456789, 10, 10, a, ok)  ->  '123.456789'
+                      RealToString(123.456789, -5, 13, a, ok)  ->  '    1.23456E+2'
+
+                      RealToString(123.456789, -2, 15, a, ok)  ->  '          1.23E+2'
+
+                      if r is a NaN then the string 'nan' is returned formatted and
+                      ok will be FALSE.
+*)
+
+PROCEDURE LongRealToString (r: LONGREAL; digits, width: INTEGER;
+                            VAR str: ARRAY OF CHAR; VAR ok: BOOLEAN) ;
+VAR
+   s         : String ;
+   powerOfTen: INTEGER ;
+BEGIN
+   powerOfTen := doPowerOfTen(r) ;
+   IF (powerOfTen=MAX(INTEGER)) OR (powerOfTen=MIN(INTEGER))
+   THEN
+      (* nan *)
+      s := InitString('nan') ;
+      ok := FALSE
+   ELSE
+      s := doLongRealToString(r, digits, width, powerOfTen, ok) ;
+      ok := TRUE
    END ;
    IF VAL(INTEGER, Length(s))<=width
    THEN
@@ -304,8 +329,7 @@ BEGIN
       THEN
          printf('value returned was %s\n', string(s))
       END ;
-      CopyOut(str, s) ;
-      ok := TRUE
+      CopyOut(str, s)
    ELSE
       str[0] := nul ;
       ok := FALSE

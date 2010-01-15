@@ -1,8 +1,26 @@
+2009-01-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2builtins.c:  introduced __builtin_ilogbf,
+	  __builtin_ilogbl and __builtin_ilogbl.
+	* gm2/gm2-libs/Builtins.def:  introduced definitions
+	  for ilogb, ilobl and ilobf.
+	* gm2/gm2-libs/Builtins.mod:  implemented references
+	  for builtins.
+	* gm2/gm2-libs/cbuiltin.def:  introduced non builtin
+	  definitions for ilogb, ilobl and ilobf.
+	* gm2/gm2-libs-pim/RealConversions.mod:  doPowerOfTen
+	  reimplemented and added comment.  LongRealToString
+	  broken up into two procedures and it now tests for
+	  NaN.
+	* gm2/gm2-libs-pim/RealConversions.def:  updated
+          comment for LongRealToString.
+	  
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/gm2-libs-pim/RealConversions.mod:  fixed bug in exponent
-	  length and ensure that no white space is created.  Corrected
-	  name of procedure SetNoOfExponentDigits.
+	* gm2/gm2-libs-pim/RealConversions.mod:  fixed bug in
+	  exponent length and ensure that no white space is
+	  created.  Corrected name of procedure
+	  SetNoOfExponentDigits.
 
 2009-01-13       Gaius Mulley <gaius@gnu.org>
 
@@ -10,15 +28,17 @@
 
 2009-01-12       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/gm2-libs-pim/RealInOut.def:  defined DefaultDecimalPlaces
-	  to 6.
-	* gm2/gm2-libs-pim/RealInOut.mod:  implemented DefaultDecimalPlaces
-	  and integrated it into the WriteReal, WriteLongReal, WriteShortReal.
+	* gm2/gm2-libs-pim/RealInOut.def:  defined
+	  DefaultDecimalPlaces to 6.
+	* gm2/gm2-libs-pim/RealInOut.mod:  implemented
+	  DefaultDecimalPlaces and integrated it into the
+	  WriteReal, WriteLongReal, WriteShortReal.
 	
 2009-01-11       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/gm2-libs-pim/RealConversions.def:  SetNoOfExponentialDigits
-	  (new procedure) to set the number of exponential digits.
+	* gm2/gm2-libs-pim/RealConversions.def:
+	  SetNoOfExponentialDigits (new procedure) to set the
+	  number of exponential digits.
 	* gm2/gm2-libs-pim/RealConversions.mod:  implement
 	  SetNoOfExponentialDigits (new procedure).
         * gm2/gm2-libs-pim/RealInOut.mod:  tidied up comments.
