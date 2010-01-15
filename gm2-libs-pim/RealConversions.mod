@@ -25,7 +25,7 @@ FROM StringConvert IMPORT LongrealToString, StringToLongreal,
                           StringToLongreal, StringToInteger, itos ;
 
 FROM ASCII IMPORT nul ;
-FROM Builtins IMPORT logl, log10l, ilogbl ;
+FROM Builtins IMPORT logl, log10l ;
 FROM libm IMPORT powl ;
 FROM libc IMPORT printf ;
 
@@ -103,12 +103,35 @@ END powl10 ;
 *)
 
 PROCEDURE doPowerOfTen (r: LONGREAL) : INTEGER ;
+VAR
+   i   : INTEGER ;
+   c, d: LONGREAL ;
 BEGIN
    IF r=0.0
    THEN
       RETURN( 0 )
    ELSE
-      RETURN( VAL(INTEGER, log10l(r)) )
+      IF r<0.0
+      THEN
+         c := -r
+      ELSE
+         c := r
+      END ;
+      IF r>=1.0
+      THEN
+         RETURN( VAL(INTEGER, log10l(r)) )         
+      ELSE
+         i := 0 ;
+         LOOP
+            d := c*powl(10.0, VAL(LONGREAL, i)) ;
+            IF d>1.0
+            THEN
+               RETURN( -i )
+            ELSE
+               INC(i)
+            END
+         END
+      END
    END
 END doPowerOfTen ;
 
@@ -172,8 +195,8 @@ END RealToString ;
 
 PROCEDURE doLongRealToString (r: LONGREAL; digits, width, powerOfTen: INTEGER; VAR ok: BOOLEAN) : String ;
 VAR
-   s, e         : String ;
-   j, point, len: INTEGER ;
+   sign, s , e  : String ;
+   point, len: INTEGER ;
 BEGIN
    IF digits>0
    THEN
@@ -183,12 +206,12 @@ BEGIN
       digits := ABS(digits) ;
       IF r>=0.0
       THEN
-         s := InitString('') ;
-         j := 0
+         sign := InitString('')
       ELSE
-         s := InitString('-') ;
-         j := 1
+         sign := InitString('-') ;
+         r := -r
       END ;
+      s := InitString('') ;
       r := r*powl10(-powerOfTen) ;
       IF width>=VAL(INTEGER, Length(s))+2
       THEN
@@ -258,7 +281,7 @@ BEGIN
                printf("value returned was '%s' and '%s'\n", string(s), string(e))
             END
          END ;
-         s := ConCat(s, Mark(e)) ;
+         s := ConCat(sign, Mark(ConCat(s, Mark(e)))) ;
          ok := TRUE
       ELSE
          s := InitString('') ;

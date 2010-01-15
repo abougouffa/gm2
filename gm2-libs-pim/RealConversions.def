@@ -66,6 +66,9 @@ PROCEDURE SetNoOfExponentDigits (places: CARDINAL) ;
 
                   For exponent notation the minimum width required is
                   ABS(digits)+2+log10(magnitude).
+
+                  if r is a NaN then the string 'nan' is returned formatted and
+                  ok will be FALSE.
 *)
 
 PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
@@ -104,6 +107,9 @@ PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
                       RealToString(123.456789, -5, 13, a, ok)  ->  '    1.23456E+2'
 
                       RealToString(123.456789, -2, 15, a, ok)  ->  '          1.23E+2'
+
+                      if r is a NaN then the string 'nan' is returned formatted and
+                      ok will be FALSE.
 *)
 
 PROCEDURE LongRealToString (r: LONGREAL; digits, width: INTEGER;

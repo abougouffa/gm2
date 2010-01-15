@@ -14,6 +14,8 @@
 	  NaN.
 	* gm2/gm2-libs-pim/RealConversions.def:  updated
           comment for LongRealToString.
+	* gm2/gm2-libs-pim/RealConversions.mod:  doPowerOfTen
+	  reimplemented.
 	  
 2009-01-14       Gaius Mulley <gaius@gnu.org>
 
