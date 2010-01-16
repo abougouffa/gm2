@@ -34,7 +34,7 @@ FROM M2Error IMPORT Error, NewError, ChainError, InternalError,
                     WriteFormat0, WriteFormat1, WriteFormat2, ErrorString,
                     ErrorAbort0, FlushErrors ;
 
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3 ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaError3, MetaErrors1 ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM FormatStrings IMPORT Sprintf1 ;
 FROM M2Printf IMPORT printf0, printf1, printf2, printf3, printf4 ;
@@ -4343,6 +4343,7 @@ PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
                           VarSym: CARDINAL) : CARDINAL ;
 VAR
+   esym,
    ParSym,
    SonSym: CARDINAL ;
 BEGIN
@@ -4358,11 +4359,13 @@ BEGIN
                            (* Ensure that the Field is in the Parents Local Symbols *)
                            IF FieldName#NulName
                            THEN
-                              IF GetSymKey(LocalSymbols, FieldName)#NulKey
+                              IF GetSymKey(LocalSymbols, FieldName)=NulKey
                               THEN
-                                 WriteFormat1('field record %a already declared', FieldName)
-                              ELSE
                                  PutSymKey(LocalSymbols, FieldName, SonSym)
+                              ELSE
+                                 esym := GetSymKey(LocalSymbols, FieldName) ;
+                                 MetaErrors1('field record {%1Dad} has already been declared',
+                                             'field record duplicate', esym)
                               END
                            END
                         END |

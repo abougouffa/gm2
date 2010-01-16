@@ -16,6 +16,8 @@
 	* gm2/gm2-compiler/SymbolTable.mod:  implement
 	  new procedures (IsRecordFieldAVarientTag) and
 	  (IsEmptyFieldVarient).
+	* gm2/gm2-compiler/P2SymBuild.mod:  improved error
+	  messages if duplication record fields are declared.
 
 2009-01-15       Gaius Mulley <gaius@gnu.org>
 

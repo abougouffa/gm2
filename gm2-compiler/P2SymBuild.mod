@@ -25,7 +25,7 @@ FROM StrLib IMPORT StrEqual ;
 FROM M2Debug IMPORT Assert, WriteDebug ;
 FROM M2LexBuf IMPORT GetTokenNo ;
 FROM M2Error IMPORT InternalError, WriteFormat1, WriteFormat2, WriteFormat0, ErrorStringAt2, WarnStringAt, ErrorStringAt ;
-FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2 ;
+FROM M2MetaError IMPORT MetaError1, MetaError2, MetaErrorsT2, MetaErrors1, MetaErrors2 ;
 FROM DynamicStrings IMPORT String, InitString, InitStringCharStar, Mark, Slice, ConCat, KillString, string ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf4 ;
 FROM M2Printf IMPORT printf0, printf1, printf2 ;
@@ -1872,6 +1872,7 @@ PROCEDURE BuildFieldRecord ;
 VAR
    name,
    n1, n2    : Name ;
+   fsym,
    Field,
    Varient,
    Parent,
@@ -1915,19 +1916,13 @@ BEGIN
          WriteKey(OperandT(NoOfFields+1-i)) ; WriteString(' is a Field with type ') ;
          WriteKey(GetSymName(Type)) ; WriteLn ;
       END ;
-      IF GetLocalSym(Parent, OperandT(NoOfFields+1-i))=NulSym
+      fsym := GetLocalSym(Parent, OperandT(NoOfFields+1-i)) ;
+      IF fsym=NulSym
       THEN
          Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
       ELSE
-         IF GetSymName(Parent)=NulName
-         THEN
-            n1 := OperandT(NoOfFields+1-i) ;
-            WriteFormat1('field %a is already present inside record', n1)
-         ELSE
-            n1 := OperandT(NoOfFields+1-i) ;
-            n2 := GetSymName(Parent) ;
-            WriteFormat2('field %a is already present inside record %a', n1, n2)
-         END
+         MetaErrors2('record field {%1ad} has already been declared inside a {%2Dd} {%2a}',
+                     'duplicate record field', fsym, Parent)
       END ;
       INC(i)
    END ;
