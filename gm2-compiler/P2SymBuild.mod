@@ -1922,7 +1922,7 @@ BEGIN
          Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
       ELSE
          MetaErrors2('record field {%1ad} has already been declared inside a {%2Dd} {%2a}',
-                     'duplicate record field', fsym, Parent)
+                     'attempting to declare a duplicate record field', fsym, Parent)
       END ;
       INC(i)
    END ;
