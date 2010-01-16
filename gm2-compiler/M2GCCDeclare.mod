@@ -95,6 +95,7 @@ FROM SymbolTable IMPORT NulSym,
       	       	     	GetMainModule, GetBaseModule, GetModule,
                         PutModuleFinallyFunction,
                         GetProcedureScope, GetProcedureQuads,
+                        IsRecordFieldAVarientTag, IsEmptyFieldVarient,
                         GetVarient, GetUnbounded,
                         IsAModula2Type, UsesVarArgs,
                         GetSymName, GetParent,
@@ -3079,6 +3080,10 @@ BEGIN
    ELSIF IsRecordField(sym)
    THEN
       printf2('sym %d IsRecordField (%a)', sym, n) ;
+      IF IsRecordFieldAVarientTag(sym)
+      THEN
+         printf0(' variant tag')
+      END ;
       IncludeType(l, sym) ;
       IncludeGetVarient(l, sym) ;
       IncludeGetParent(l, sym)
@@ -3413,7 +3418,12 @@ BEGIN
       IF Field#NulSym
       THEN
       	 Assert(IsFieldVarient(Field)) ;
-         VarientList := ChainOn(VarientList, Mod2Gcc(Field))
+         IF IsEmptyFieldVarient(Field)
+         THEN
+            (* do not include empty varient fields (created via 'else end' in variant records *)
+         ELSE
+            VarientList := ChainOn(VarientList, Mod2Gcc(Field))
+         END
       END ;
       INC(i)
    UNTIL Field=NulSym ;
@@ -3441,7 +3451,12 @@ BEGIN
       Field := GetNth(Sym, i) ;
       IF Field#NulSym
       THEN
-         FieldList := ChainOn(FieldList, Mod2Gcc(Field))
+         IF IsRecordField(Field) AND IsRecordFieldAVarientTag(Field) AND (GetSymName(Field)=NulName)
+         THEN
+            (* do not include a nameless tag into the C struct *)
+         ELSE
+            FieldList := ChainOn(FieldList, Mod2Gcc(Field))
+         END
       END ;
       INC(i)
    UNTIL Field=NulSym ;
@@ -4155,10 +4170,13 @@ BEGIN
       THEN
          IF IsRecordField(field)
          THEN
-            IF NOT q(field)
+            IF (NOT IsRecordFieldAVarientTag(field)) OR (GetSymName(field)#NulName)
             THEN
-               result := FALSE
-      	    END
+               IF NOT q(field)
+               THEN
+                  result := FALSE
+               END
+            END
          ELSIF IsVarient(field)
          THEN
             IF NOT q(field)
@@ -4196,7 +4214,10 @@ BEGIN
          type := GetType(Field) ;
          IF IsRecordField(Field)
          THEN
-            p(Field)
+            IF (NOT IsRecordFieldAVarientTag(Field)) OR (GetSymName(Field)#NulName)
+            THEN
+               p(Field)
+            END
          ELSIF IsVarient(Field)
          THEN
             p(Field)

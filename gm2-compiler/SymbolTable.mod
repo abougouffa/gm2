@@ -443,6 +443,8 @@ TYPE
                 name     : Name ;             (* Index into name array, name *)
                                               (* of record field.            *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
+                Tag      : BOOLEAN ;          (* is the record field really  *)
+                                              (* a varient tag?              *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 Offset   : PtrToValue ;       (* Offset at runtime of symbol *)
                 Parent   : CARDINAL ;         (* Index into symbol table to  *)
@@ -4354,13 +4356,14 @@ BEGIN
       RecordSym       : WITH Record DO
                            PutItemIntoList(ListOfSons, SonSym) ;
                            (* Ensure that the Field is in the Parents Local Symbols *)
-                           IF GetSymKey(LocalSymbols, FieldName)#NulKey
+                           IF FieldName#NulName
                            THEN
-                              WriteFormat1('field record %a already declared', FieldName) ;
-                              FlushErrors ;
-                              HALT
-                           ELSE
-                              PutSymKey(LocalSymbols, FieldName, SonSym)
+                              IF GetSymKey(LocalSymbols, FieldName)#NulKey
+                              THEN
+                                 WriteFormat1('field record %a already declared', FieldName)
+                              ELSE
+                                 PutSymKey(LocalSymbols, FieldName, SonSym)
+                              END
                            END
                         END |
       VarientFieldSym : WITH VarientField DO
@@ -4383,6 +4386,7 @@ BEGIN
       WITH RecordField DO
          Type := FieldType ;
          name := FieldName ;
+         Tag := FALSE ;
          Parent := Sym ;
          Varient := VarSym ;
          Size := InitValue() ;
@@ -4520,6 +4524,42 @@ END EnsureOrder ;
 
 
 (*
+   IsEmptyFieldVarient - returns TRUE if the field variant has
+                         no fields.  This will occur then the
+                         compiler constructs 'else end' variants.
+*)
+
+PROCEDURE IsEmptyFieldVarient (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   WITH Symbols[sym] DO
+      CASE SymbolType OF
+
+      VarientFieldSym:  RETURN( NoOfItemsInList(VarientField.ListOfSons)=0 )
+      
+      ELSE
+         InternalError('varient field symbol expected', __FILE__, __LINE__)
+      END
+   END
+END IsEmptyFieldVarient ;
+
+
+(*
+   IsRecordFieldAVarientTag - returns TRUE if record field, sym, is
+                              a varient tag.
+*)
+
+PROCEDURE IsRecordFieldAVarientTag (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsRecordField(sym)
+   THEN
+      RETURN( Symbols[sym].RecordField.Tag )
+   ELSE
+      InternalError('record field symbol expected', __FILE__, __LINE__)
+   END
+END IsRecordFieldAVarientTag ;
+
+
+(*
    PutVarientTag - places, Tag, into varient, Sym.
 *)
 
@@ -4536,13 +4576,14 @@ BEGIN
          InternalError('varient symbol expected', __FILE__, __LINE__)
       END
    END ;
-   (* now ensure that if Tag is a FieldRecord then it must be
+   (* now ensure that if Tag is a RecordField then it must be
       placed before the varient symbol in its parent ListOfSons.
       This allows M2GCCDeclare to declare record fields in order
       and preserve the order of fields.  Otherwise it will add the
       tag field after the C union. *)
    IF IsRecordField(Tag)
    THEN
+      Symbols[Tag].RecordField.Tag := TRUE ;
       parent := GetParent(Sym) ;
       WITH Symbols[parent] DO
          CASE SymbolType OF

@@ -150,6 +150,40 @@ BEGIN
    ExponentDigits := places
 END SetNoOfExponentDigits ;
 
+
+(*
+   Pad - prefixes spaces in front of, s, so that width characters are used.
+*)
+
+PROCEDURE Pad (s: String; width: CARDINAL) : String ;
+BEGIN
+   IF Length(s)<width
+   THEN
+      RETURN( ConCat(Mult(InitStringChar(' '), width-Length(s)), Mark(s)) )
+   ELSE
+      RETURN( s )
+   END
+END Pad ;
+
+
+(*
+   MakeNanString -
+*)
+
+PROCEDURE MakeNanString (VAR str: ARRAY OF CHAR; width: CARDINAL) ;
+VAR
+   s: String ;
+BEGIN
+   s := Pad(InitString('nan'), width) ;
+   IF Length(s)<=width
+   THEN
+      CopyOut(str, s)
+   ELSE
+      str[0] := nul
+   END ;
+   s := KillString(s)
+END MakeNanString ;
+
  
 (*
    RealToString - converts a real, r, into a right justified string, str.
@@ -175,8 +209,8 @@ END SetNoOfExponentDigits ;
                   For exponent notation the minimum width required is
                   ABS(digits)+2+log10(magnitude).
 
-                  if r is a NaN then the string 'nan' is returned formatted and
-                  ok will be FALSE.
+                  if r is a NaN then the string 'nan' is returned formatted
+                  and ok will be FALSE.
 *)
 
 PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
@@ -184,6 +218,15 @@ PROCEDURE RealToString (r: REAL; digits, width: INTEGER;
 VAR
    l: LONGREAL ;
 BEGIN
+   (* --fixme-- *)
+   (* IF IsNan(r)
+      THEN
+         ok := FALSE ;
+         MakeNanString(str, width) ;
+      ELSE
+         ...
+      END
+   *)
    l := VAL(LONGREAL, r) ;
    LongRealToString(l, digits, width, str, ok)
 END RealToString ;
@@ -335,16 +378,23 @@ VAR
    s         : String ;
    powerOfTen: INTEGER ;
 BEGIN
+   (* --fixme-- *)
+   (* IF IsNan(r)
+      THEN
+         ok := FALSE ;
+         MakeNanString(str, width) ;
+         RETURN
+      END
+   *)
    powerOfTen := doPowerOfTen(r) ;
    IF (powerOfTen=MAX(INTEGER)) OR (powerOfTen=MIN(INTEGER))
    THEN
-      (* nan *)
-      s := InitString('nan') ;
-      ok := FALSE
-   ELSE
-      s := doLongRealToString(r, digits, width, powerOfTen, ok) ;
-      ok := TRUE
+      ok := FALSE ;
+      MakeNanString(str, width) ;
+      RETURN
    END ;
+   s := doLongRealToString(r, digits, width, powerOfTen, ok) ;
+   ok := TRUE ;
    IF VAL(INTEGER, Length(s))<=width
    THEN
       s := ConCat(Mult(InitStringChar(' '), width-VAL(INTEGER, Length(s))), Mark(s)) ;

@@ -1,3 +1,22 @@
+2009-01-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-pim/RealConversions.mod:  intemediate
+	  checkin of catching nans and other non fpnormals.
+	* The following changes fix a bug reported by
+	  Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2010-01/msg00022.html)
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  improved
+	  debugging for variant tags.  Only walk variant tags
+	  which are necessary in the final production of the
+	  equivalent C struct passed to the GCC backend.
+	  Ignore dummy ELSE END inside variant records during
+	  the construction of the equivalent C struct.
+	* gm2/gm2-compiler/SymbolTable.def:  new procedures
+	  (IsRecordFieldAVarientTag) and (IsEmptyFieldVarient).
+	* gm2/gm2-compiler/SymbolTable.mod:  implement
+	  new procedures (IsRecordFieldAVarientTag) and
+	  (IsEmptyFieldVarient).
+
 2009-01-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2builtins.c:  introduced __builtin_ilogbf,

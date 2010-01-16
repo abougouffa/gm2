@@ -138,6 +138,8 @@ EXPORT QUALIFIED NulSym,
                  GCFieldVarient,
                  GetVarientTag,
                  PutVarientTag,
+                 IsRecordFieldAVarientTag,
+                 IsEmptyFieldVarient,
                  PutFieldEnumeration,
                  PutSubrange,
       	       	 PutSet,
@@ -1191,6 +1193,23 @@ PROCEDURE GetVarient (Field: CARDINAL) : CARDINAL ;
 *)
 
 PROCEDURE GCFieldVarient (Sym: CARDINAL) ;
+
+
+(*
+   IsRecordFieldAVarientTag - returns TRUE if record field, sym, is
+                              a varient tag.
+*)
+
+PROCEDURE IsRecordFieldAVarientTag (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsEmptyFieldVarient - returns TRUE if the field variant has
+                         no fields.  This will occur then the
+                         compiler constructs 'else end' variants.
+*)
+
+PROCEDURE IsEmptyFieldVarient (sym: CARDINAL) : BOOLEAN ;
 
 
 (*
