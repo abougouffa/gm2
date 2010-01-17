@@ -1,4 +1,4 @@
-2009-01-16       Gaius Mulley <gaius@gnu.org>
+2010-01-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealConversions.mod:  intemediate
 	  checkin of catching nans and other non fpnormals.
@@ -19,7 +19,7 @@
 	* gm2/gm2-compiler/P2SymBuild.mod:  improved error
 	  messages if duplication record fields are declared.
 
-2009-01-15       Gaius Mulley <gaius@gnu.org>
+2010-01-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2builtins.c:  introduced __builtin_ilogbf,
 	  __builtin_ilogbl and __builtin_ilogbl.
@@ -38,18 +38,18 @@
 	* gm2/gm2-libs-pim/RealConversions.mod:  doPowerOfTen
 	  reimplemented.
 	  
-2009-01-14       Gaius Mulley <gaius@gnu.org>
+2010-01-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealConversions.mod:  fixed bug in
 	  exponent length and ensure that no white space is
 	  created.  Corrected name of procedure
 	  SetNoOfExponentDigits.
 
-2009-01-13       Gaius Mulley <gaius@gnu.org>
+2010-01-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  updated
 
-2009-01-12       Gaius Mulley <gaius@gnu.org>
+2010-01-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealInOut.def:  defined
 	  DefaultDecimalPlaces to 6.
@@ -57,7 +57,7 @@
 	  DefaultDecimalPlaces and integrated it into the
 	  WriteReal, WriteLongReal, WriteShortReal.
 	
-2009-01-11       Gaius Mulley <gaius@gnu.org>
+2010-01-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealConversions.def:
 	  SetNoOfExponentialDigits (new procedure) to set the
@@ -71,12 +71,12 @@
 	  doDecimalPlaces.
 	* gm2/gm2-libs-iso/M2RTS.def:  export ErrorMessage.
 	
-2009-01-10       Gaius Mulley <gaius@gnu.org>
+2010-01-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  fixed parameters to
 	  printf.
 
-2009-01-09       Gaius Mulley <gaius@gnu.org>
+2010-01-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/test.mod:  gravitational constant
 	  with greater accuracy.
