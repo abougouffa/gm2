@@ -237,9 +237,7 @@ END IsNeededAtRunTime ;
 PROCEDURE InitBaseConstants ;
 BEGIN
    Nil := MakeConstVar(MakeKey('NIL')) ;
-   PutConst(Nil, Address) ;
-   PushCard(0) ;
-   PopValue(Nil)
+   PutConst(Nil, Address)
 END InitBaseConstants ;
 
 

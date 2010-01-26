@@ -155,21 +155,21 @@ static void sigfpeDespatcher (int signum, siginfo_t *info, void *ucontext)
   }
 }
 
-void SysExceptions_InitExceptionHanders (void (*indexf)(void *),
-					 void (*range)(void *),
-					 void (*casef)(void *),
-					 void (*invalidloc)(void *),
-					 void (*function)(void *),
-					 void (*wholevalue)(void *),
-					 void (*wholediv)(void *),
-					 void (*realvalue)(void *),
-					 void (*realdiv)(void *),
-					 void (*complexvalue)(void *),
-					 void (*complexdiv)(void *),
-					 void (*protection)(void *),
-					 void (*systemf)(void *),
-					 void (*coroutine)(void *),
-					 void (*exception)(void *))
+void SysExceptions_InitExceptionHandlers (void (*indexf)(void *),
+					  void (*range)(void *),
+					  void (*casef)(void *),
+					  void (*invalidloc)(void *),
+					  void (*function)(void *),
+					  void (*wholevalue)(void *),
+					  void (*wholediv)(void *),
+					  void (*realvalue)(void *),
+					  void (*realdiv)(void *),
+					  void (*complexvalue)(void *),
+					  void (*complexdiv)(void *),
+					  void (*protection)(void *),
+					  void (*systemf)(void *),
+					  void (*coroutine)(void *),
+					  void (*exception)(void *))
 {
   struct sigaction old;
 
@@ -212,21 +212,21 @@ void SysExceptions_InitExceptionHanders (void (*indexf)(void *),
 }
 
 #else
-void SysExceptions_InitExceptionHanders (void *indexf,
-					 void *range,
-					 void *casef,
-					 void *invalidloc,
-					 void *function,
-					 void *wholevalue,
-					 void *wholediv,
-					 void *realvalue,
-					 void *realdiv,
-					 void *complexvalue,
-					 void *complexdiv,
-					 void *protection,
-					 void *systemf,
-					 void *coroutine,
-					 void *exception)
+void SysExceptions_InitExceptionHandlers (void *indexf,
+					  void *range,
+					  void *casef,
+					  void *invalidloc,
+					  void *function,
+					  void *wholevalue,
+					  void *wholediv,
+					  void *realvalue,
+					  void *realdiv,
+					  void *complexvalue,
+					  void *complexdiv,
+					  void *protection,
+					  void *systemf,
+					  void *coroutine,
+					  void *exception)
 {
 }
 #endif

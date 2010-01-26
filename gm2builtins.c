@@ -83,6 +83,13 @@ typedef enum {
   BT_FN_INT_FLOAT,
   BT_FN_INT_DOUBLE,
   BT_FN_INT_LONG_DOUBLE,
+  BT_FN_FLOAT_FCOMPLEX,
+  BT_FN_DOUBLE_DCOMPLEX,
+  BT_FN_LONG_DOUBLE_LDCOMPLEX,
+
+  BT_FN_FCOMPLEX_FCOMPLEX,
+  BT_FN_DCOMPLEX_DCOMPLEX,
+  BT_FN_LDCOMPLEX_LDCOMPLEX,
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -127,6 +134,11 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_ilogbf",  BT_FN_INT_FLOAT, BUILT_IN_ILOGBF, BUILT_IN_NORMAL, "ilogbf", NULL, NULL},
 { "__builtin_ilogb",   BT_FN_INT_DOUBLE, BUILT_IN_ILOGB, BUILT_IN_NORMAL, "ilogb", NULL, NULL},
 { "__builtin_ilogbl",  BT_FN_INT_LONG_DOUBLE, BUILT_IN_ILOGBL, BUILT_IN_NORMAL, "ilogbl", NULL, NULL},
+
+/* complex intrinsic functions */
+{ "__builtin_cabs", BT_FN_DOUBLE_DCOMPLEX, BUILT_IN_CABS, BUILT_IN_NORMAL, "cabs", NULL, NULL},
+{ "__builtin_cabsf", BT_FN_FLOAT_FCOMPLEX, BUILT_IN_CABSF, BUILT_IN_NORMAL, "cabsf", NULL, NULL},
+{ "__builtin_cabsl", BT_FN_LONG_DOUBLE_LDCOMPLEX, BUILT_IN_CABSL, BUILT_IN_NORMAL, "cabsl", NULL, NULL},
 
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
 { "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
@@ -560,6 +572,42 @@ create_function_prototype (struct builtin_function_entry *fe)
 				 tree_cons (NULL_TREE, long_double_type_node,
 					    endlink));
     fe->return_node = integer_type_node;
+    break;
+  case BT_FN_FLOAT_FCOMPLEX:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, complex_float_type_node,
+					    endlink));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DCOMPLEX:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, complex_double_type_node,
+					    endlink));
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE_LDCOMPLEX:
+    ftype = build_function_type (long_double_type_node,
+				 tree_cons (NULL_TREE, complex_long_double_type_node,
+					    endlink));
+    fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_FCOMPLEX_FCOMPLEX:
+    ftype = build_function_type (complex_float_type_node,
+				 tree_cons (NULL_TREE, complex_float_type_node,
+					    endlink));
+    fe->return_node = complex_float_type_node;
+    break;
+  case BT_FN_DCOMPLEX_DCOMPLEX:
+    ftype = build_function_type (complex_double_type_node,
+				 tree_cons (NULL_TREE, complex_double_type_node,
+					    endlink));
+    fe->return_node = complex_double_type_node;
+    break;
+  case BT_FN_LDCOMPLEX_LDCOMPLEX:
+    ftype = build_function_type (complex_long_double_type_node,
+				 tree_cons (NULL_TREE, complex_long_double_type_node,
+					    endlink));
+    fe->return_node = complex_long_double_type_node;
     break;
   default:
     ERROR("enum has no case");

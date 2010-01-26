@@ -117,7 +117,7 @@ FROM M2Base IMPORT IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    LongInt, LongCard, ShortCard, ShortInt,
                    Real, LongReal, ShortReal, ZType, RType,
                    CType, Complex, LongComplex, ShortComplex,
-                   Boolean, True, False,
+                   Boolean, True, False, Nil,
                    IsRealType, IsNeededAtRunTime, IsAComplexType ;
 
 FROM M2System IMPORT IsPseudoSystemFunction, IsSystemType,
@@ -146,7 +146,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    GetM2RealType, GetM2ShortRealType, GetM2LongRealType,
                    GetProcType, GetCardinalType, GetWordType, GetByteType,
                    GetBitsetType, GetBitnumType, GetMinFrom, GetMaxFrom, GetBitsPerInt, GetBitsPerBitset,
-                   GetM2IntegerType, GetM2CardinalType,
+                   GetM2IntegerType, GetM2CardinalType, GetPointerZero,
                    GetISOLocType, GetISOByteType, GetISOWordType,
                    BuildStartEnumeration, BuildEndEnumeration, BuildEnumerator,
                    BuildIntegerConstant, BuildStringConstant, BuildCharConstant,
@@ -155,7 +155,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
                    DebugTree, GetDeclContext,
                    ChainOn,
-                   BuildPointerType, BuildConstPointerType,
+                   BuildPointerType, BuildConstPointerType, BuildConvert,
                    BuildStartFunctionType, BuildEndFunctionType,
                    InitFunctionTypeParameters,
                    BuildParameterDeclaration,
@@ -1621,6 +1621,7 @@ END TryDeclareConst ;
 
 PROCEDURE DeclareConst (tokenno: CARDINAL; sym: CARDINAL) : Tree ;
 VAR
+   type: CARDINAL ;
    size: CARDINAL ;
 BEGIN
    IF GccKnowsAbout(sym)
@@ -1656,7 +1657,14 @@ BEGIN
       THEN
          DeclareConstantFromTree(sym, PopComplexTree())
       ELSE
-         DeclareConstantFromTree(sym, PopIntegerTree())
+         type := GetType(sym) ;
+         IF type=NulSym
+         THEN
+            DeclareConstantFromTree(sym, PopIntegerTree())
+         ELSE
+            DeclareConstantFromTree(sym,
+                                    BuildConvert(Mod2Gcc(type), PopIntegerTree(), FALSE))
+         END
       END
    END ;
    IF GccKnowsAbout(sym)
@@ -2494,6 +2502,17 @@ BEGIN
       DeclareDefaultSimpleTypes
    END
 END DeclareDefaultTypes ;
+
+
+(*
+   DeclareDefaultConstants - make default constants known to GCC
+*)
+
+PROCEDURE DeclareDefaultConstants ;
+BEGIN
+   AddModGcc(Nil, GetPointerZero()) ;
+   IncludeElementIntoSet(FullyDeclared, Nil)
+END DeclareDefaultConstants ;
 
 
 (*
@@ -4642,7 +4661,8 @@ END ConstantKnownAndUsed ;
 PROCEDURE InitDeclarations ;
 BEGIN
    DeclareFileName ;
-   DeclareDefaultTypes
+   DeclareDefaultTypes ;
+   DeclareDefaultConstants
 END InitDeclarations ;
 
 

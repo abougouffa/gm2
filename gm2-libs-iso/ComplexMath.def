@@ -15,43 +15,43 @@ CONST
   one =  CMPLX (1.0, 0.0);
   zero = CMPLX (0.0, 0.0);
 
-PROCEDURE abs (z: COMPLEX): REAL;
+PROCEDURE __BUILTIN__ abs (z: COMPLEX): REAL;
   (* Returns the length of z *)
 
-PROCEDURE arg (z: COMPLEX): REAL;
+PROCEDURE __BUILTIN__ arg (z: COMPLEX): REAL;
   (* Returns the angle that z subtends to the positive real axis *)
 
-PROCEDURE conj (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ conj (z: COMPLEX): COMPLEX;
   (* Returns the complex conjugate of z *)
 
-PROCEDURE power (base: COMPLEX; exponent: REAL): COMPLEX;
+PROCEDURE __BUILTIN__ power (base: COMPLEX; exponent: REAL): COMPLEX;
   (* Returns the value of the number base raised to the power exponent *)
 
-PROCEDURE sqrt (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ sqrt (z: COMPLEX): COMPLEX;
   (* Returns the principal square root of z *)
 
-PROCEDURE exp (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ exp (z: COMPLEX): COMPLEX;
   (* Returns the complex exponential of z *)
 
-PROCEDURE ln (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ ln (z: COMPLEX): COMPLEX;
   (* Returns the principal value of the natural logarithm of z *)
 
-PROCEDURE sin (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ sin (z: COMPLEX): COMPLEX;
   (* Returns the sine of z *)
 
-PROCEDURE cos (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ cos (z: COMPLEX): COMPLEX;
   (* Returns the cosine of z *)
 
-PROCEDURE tan (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ tan (z: COMPLEX): COMPLEX;
   (* Returns the tangent of z *)
 
-PROCEDURE arcsin (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ arcsin (z: COMPLEX): COMPLEX;
   (* Returns the arcsine of z *)
 
-PROCEDURE arccos (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ arccos (z: COMPLEX): COMPLEX;
   (* Returns the arccosine of z *)
 
-PROCEDURE arctan (z: COMPLEX): COMPLEX;
+PROCEDURE __BUILTIN__ arctan (z: COMPLEX): COMPLEX;
   (* Returns the arctangent of z *)
 
 PROCEDURE polarToComplex (abs, arg: REAL): COMPLEX;

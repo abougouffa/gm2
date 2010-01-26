@@ -1,3 +1,32 @@
+2010-01-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/gccgm2.c:  modified debugging
+	  handles.
+	* gm2/gm2builtins.c:  declared new COMPLEX prototypes
+	  for the complex builtins.  Introduced cabs, cabsf, cabsl.
+	* gm2/gm2-compiler/M2Base.mod:  removed the assignment of
+	  zero to pointer NIL via M2ALU, prefering to declare it
+	  explicitly in M2GCCDeclare.mod.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  import GetPointerZero.
+	  Type cast constants at declaration time.
+	  DeclareDefaultConstants (New function).
+	* gm2/gm2-libs/Builtins.def:  new procedure function
+	  declarations, cabsf, cabs, cabsl.
+	* gm2/gm2-libs/Builtins.mod:  new procedure function
+	  implemented, cabsf, cabs, cabsl.
+	* gm2/gm2-libs/RTExceptions.mod:  corrected spelling for
+	  InitExceptionHandlers.
+	* gm2/gm2-libs/SysExceptions.def:  corrected spelling for
+	  InitExceptionHandlers.
+	* gm2/gm2-libs/cbuiltin.def:  new procedure functions:
+          cabsf, cabs, cabsl.
+	* gm2/gm2-libs-ch/SysExceptions.c:  corrected spelling for
+	  SysExceptions_InitExceptionHandlers.
+	* gm2/gm2-libs-iso/ComplexMath.def:  new procedure function
+	  definitions for abs, arg, conj, power, sqrt, exp, ln,
+	  sin, cos, tan, arcsin, arccos, arctan.
+	* gm2/gm2-libs-iso/ComplexMath.mod:  initial implementation.
+
 2010-01-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-pim/RealConversions.mod:  intemediate

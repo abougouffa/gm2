@@ -171,6 +171,21 @@ BEGIN
    RETURN cbuiltin.ilogbl (x)
 END ilogbl ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cabsf)) cabsf (z: SHORTCOMPLEX) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.cabsf(z)
+END cabsf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cabs)) cabs (z: COMPLEX) : REAL ;
+BEGIN
+   RETURN cbuiltin.cabs(z)
+END cabs ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cabsl)) cabsl (z: LONGCOMPLEX) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.cabsl(z)
+END cabsl ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.index (s, c)

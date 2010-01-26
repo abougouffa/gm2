@@ -6578,8 +6578,10 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
   ASSERT (is_type(type), type);
   ASSERT_BOOL (isglobal);
 
-  if (strcmp (name, "TimePattern_TimeIO_head") == 0)
+#if 0
+  if (name && (strcmp (name, "z3") == 0))
     stop();
+#endif
 
   id   = get_identifier (name);
   type = skip_type_decl (type);
@@ -6625,6 +6627,14 @@ gccgm2_DeclareKnownVariable (char *name, tree type, int exported,
 
   if (! isglobal)
     add_stmt (build_stmt (DECL_EXPR, decl));
+
+#if 0
+  if (name && ((strcmp (name, "z3") == 0) ||
+	       (strcmp (name, "z4") == 0))) {
+    printf("decl size for %s is", name);
+    debug_tree (DECL_SIZE(decl));
+  }
+#endif
 
   return decl;
 }

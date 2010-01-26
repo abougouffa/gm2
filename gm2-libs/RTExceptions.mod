@@ -23,7 +23,7 @@ FROM Storage IMPORT ALLOCATE ;
 FROM SYSTEM IMPORT ADR, THROW ;
 FROM libc IMPORT write, strlen ;
 FROM M2RTS IMPORT HALT, Halt ;
-FROM SysExceptions IMPORT InitExceptionHanders ;
+FROM SysExceptions IMPORT InitExceptionHandlers ;
 
 IMPORT M2EXCEPTION ;
 
@@ -722,11 +722,11 @@ BEGIN
    freeEHB := NIL ;
    currentEHB := InitExceptionBlock() ;
    BaseExceptionsThrow ;
-   InitExceptionHanders(indexf, range, casef, invalidloc,
-                        function, wholevalue, wholediv,
-                        realvalue, realdiv, complexvalue,
-                        complexdiv, protection, systemf,
-                        coroutine, exception)
+   InitExceptionHandlers(indexf, range, casef, invalidloc,
+                         function, wholevalue, wholediv,
+                         realvalue, realdiv, complexvalue,
+                         complexdiv, protection, systemf,
+                         coroutine, exception)
 END Init ;
 
 

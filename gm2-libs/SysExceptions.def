@@ -35,11 +35,11 @@ FROM SYSTEM IMPORT ADDRESS ;
 TYPE
    PROCEXCEPTION = PROCEDURE (ADDRESS) ;
 
-PROCEDURE InitExceptionHanders (indexf, range, casef, invalidloc,
-                                function, wholevalue, wholediv,
-                                realvalue, realdiv, complexvalue,
-                                complexdiv, protection, systemf,
-                                coroutine, exception: PROCEXCEPTION) ;
+PROCEDURE InitExceptionHandlers (indexf, range, casef, invalidloc,
+                                 function, wholevalue, wholediv,
+                                 realvalue, realdiv, complexvalue,
+                                 complexdiv, protection, systemf,
+                                 coroutine, exception: PROCEXCEPTION) ;
 
 
 END SysExceptions.
