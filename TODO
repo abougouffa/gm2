@@ -1,7 +1,6 @@
 Pre 1.0
 
-*  bug CASE multiple anonymous field name (reported by Scott)
-*  bug NIL not passed correctly (reported by Scott)
+*  ComplexMath.mod, LongComplexMath, ShortComplexMath to be implemented.
 *  add range checking to SHIFT values (Iztok)
 *  finish ISO libraries:
 *    SysVec one copy only between PIM and ISO.
