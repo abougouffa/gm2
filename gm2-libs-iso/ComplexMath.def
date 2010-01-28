@@ -61,9 +61,9 @@ PROCEDURE scalarMult (scalar: REAL; z: COMPLEX): COMPLEX;
   (* Returns the scalar product of scalar with z *)
 
 PROCEDURE IsCMathException (): BOOLEAN;
-  (* Returns TRUE if the current coroutine is in the exceptional execution state
-     because of the raising of an exception in a routine from this module; otherwise
-     returns FALSE.
+  (* Returns TRUE if the current coroutine is in the exceptional
+     execution state because of the raising of an exception in a
+     routine from this module; otherwise returns FALSE.
   *)
 
 END ComplexMath.

@@ -16,126 +16,126 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 02110-1301 USA *)
 
-IMPLEMENTATION MODULE ComplexMath ;
+IMPLEMENTATION MODULE LongComplexMath ;
 
 IMPORT cbuiltin ;
 
 
 (* Returns the length of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cabs)) abs (z: COMPLEX): REAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cabsl)) abs (z: LONGCOMPLEX): LONGREAL;
 BEGIN
-   RETURN cbuiltin.cabs (z)
+   RETURN cbuiltin.cabsl (z)
 END abs ;
 
 
 (* Returns the angle that z subtends to the positive real axis *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carg)) arg (z: COMPLEX): REAL;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cargl)) arg (z: LONGCOMPLEX): LONGREAL;
 BEGIN
-   RETURN cbuiltin.carg (z)
+   RETURN cbuiltin.cargl (z)
 END arg ;
 
 
 (* Returns the complex conjugate of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_conj)) conj (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_conjl)) conj (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.conj (z)
+   RETURN cbuiltin.conjl (z)
 END conj ;
 
 
 (* Returns the value of the number base raised to the power exponent *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpower)) power (base: COMPLEX; exponent: REAL): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpowerl)) power (base: LONGCOMPLEX; exponent: LONGREAL): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.cpower (base, exponent)
+   RETURN cbuiltin.cpowerl (base, exponent)
 END power ;
 
 
 (* Returns the principal square root of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrt)) sqrt (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrtl)) sqrt (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.csqrt (z)
+   RETURN cbuiltin.csqrtl (z)
 END sqrt ;
 
 
 (* Returns the complex exponential of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cexp)) exp (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cexpl)) exp (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.cexp (z)
+   RETURN cbuiltin.cexpl (z)
 END exp ;
 
 
 (* Returns the principal value of the natural logarithm of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cln)) ln (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_clnl)) ln (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.cln (z)
+   RETURN cbuiltin.clnl (z)
 END ln ;
 
 
 (* Returns the sine of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csin)) sin (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csinl)) sin (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.csin (z)
+   RETURN cbuiltin.csinl (z)
 END sin ;
 
 
 (* Returns the cosine of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccos)) cos (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccosl)) cos (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.ccos (z)
+   RETURN cbuiltin.ccosl (z)
 END cos ;
 
 
 (* Returns the tangent of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctan)) tan (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctanl)) tan (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.ctan (z)
+   RETURN cbuiltin.ctanl (z)
 END tan ;
 
 
 (* Returns the arcsine of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsin)) arcsin (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsinl)) arcsin (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carcsin (z)
+   RETURN cbuiltin.carcsinl (z)
 END arcsin ;
 
 
 (* Returns the arccosine of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccos)) arccos (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccosl)) arccos (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carccos (z)
+   RETURN cbuiltin.carccosl (z)
 END arccos ;
 
 
 (* Returns the arctangent of z *)
 
-PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctan)) arctan (z: COMPLEX): COMPLEX;
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctanl)) arctan (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carctan (z)
+   RETURN cbuiltin.carctanl (z)
 END arctan ;
 
 
 (* Returns the complex number with the specified polar coordinates *)
 
-PROCEDURE polarToComplex (abs, arg: REAL): COMPLEX;
+PROCEDURE polarToComplex (abs, arg: LONGREAL): LONGCOMPLEX;
 BEGIN
-   RETURN CMPLX (abs*cbuiltin.cos(arg), abs*cbuiltin.sin(arg))
+   RETURN CMPLX (abs*cbuiltin.cosl(arg), abs*cbuiltin.sinl(arg))
 END polarToComplex ;
 
 
 (* Returns the scalar product of scalar with z *)
 
-PROCEDURE scalarMult (scalar: REAL; z: COMPLEX): COMPLEX;
+PROCEDURE scalarMult (scalar: LONGREAL; z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
    RETURN CMPLX (RE(z)*scalar, IM(z)*scalar)
 END scalarMult ;
@@ -153,4 +153,4 @@ BEGIN
 END IsCMathException ;
 
 
-END ComplexMath.
+END LongComplexMath.

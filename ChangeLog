@@ -1,3 +1,23 @@
+2010-01-28       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added ComplexMath.mod
+	  LongComplexMath.mod and ShortComplexMath.mod to the
+	  iso library list.
+	* gm2/gm2-libs/Builtins.def:  new function procedures
+	  cargf, carg, cargl, conjf, conf, confl,
+	  cpowerf, cpower, cpowerl, csqrtf, csqrt, csqrtl,
+	  cexpf, cexp, cexpl, clnf, cln, clnl,
+	  csinf, csin, csinl, ccosf, ccos, ccosl,
+	  ctanf, ctan, ctanl, carcsinf, carcsin, carcsinl,
+	  carctanf, carctan, carctanl.
+	* gm2/gm2-libs-iso/ComplexMath.def:  tidied up comments.
+	* gm2/gm2-libs-iso/ComplexMath.mod:  fixed call to
+	  carg, corrected ccos and corrected the implementation
+	  of polarToComplex.
+	* gm2/gm2-libs-iso/LongComplex.def:  removed.
+	* gm2/gm2-libs-iso/LongComplexMath.def:  new file.
+	* gm2/gm2-libs-iso/LongComplexMath.mod:  new file.
+
 2010-01-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gccgm2.c:  modified debugging
