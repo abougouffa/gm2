@@ -15,6 +15,8 @@
 	* gm2/TODO:  removed implementation of ComplexMath,
 	  LongComplexMath and ShortComplexMath from the list
 	  of modules to complete.
+	* gm2/gm2-libs-iso/ShortComplexMath.def: new file.
+	* gm2/gm2-libs-iso/ShortComplexMath.mod: new file.
 
 2010-01-28       Gaius Mulley <gaius@gnu.org>
 
