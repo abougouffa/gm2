@@ -1079,6 +1079,7 @@ static
 void
 m2pp_complex (pretty *s, tree t)
 {
+#if defined(GM2)
   if (t == gccgm2_GetM2ComplexType ())
     m2pp_print (s, "COMPLEX");
   else if (t == gccgm2_GetM2LongComplexType ())
@@ -1097,6 +1098,9 @@ m2pp_complex (pretty *s, tree t)
     m2pp_print (s, "COMPLEX128");
   else
     m2pp_print (s, "unknown COMPLEX type");
+#else
+    m2pp_print (s, "a COMPLEX type");
+#endif
 }
 
 /*

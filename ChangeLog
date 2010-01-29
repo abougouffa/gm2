@@ -4,6 +4,8 @@
 	* gm2/m2pp.c:  new functions (m2pp_complex),
 	  (m2pp_complex_expr), (m2pp_imagpart_expr),
 	  (m2pp_realpart_expr).
+	* gm2/m2pp.c:  added conditional compilation around
+	  gm2 COMPLEX data types referenced in gccgm2.
 
 2010-01-28       Gaius Mulley <gaius@gnu.org>
 
