@@ -12,6 +12,9 @@
 	  for all new procedure functions.
 	* gm2/el/g-mode.el:  added COMPLEX, LONGCOMPLEX and
 	  SHORTCOMPLEX to the list of base Modula-2 data types.
+	* gm2/TODO:  removed implementation of ComplexMath,
+	  LongComplexMath and ShortComplexMath from the list
+	  of modules to complete.
 
 2010-01-28       Gaius Mulley <gaius@gnu.org>
 

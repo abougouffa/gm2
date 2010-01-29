@@ -1,6 +1,5 @@
 Pre 1.0
 
-*  ComplexMath.mod, LongComplexMath, ShortComplexMath to be implemented.
 *  add range checking to SHIFT values (Iztok)
 *  finish ISO libraries:
 *    SysVec one copy only between PIM and ISO.
