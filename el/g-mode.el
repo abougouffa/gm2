@@ -1737,7 +1737,8 @@ FROM StdIO IMPORT Write, Read ;
 
 (defvar g-mode-types
   '("REAL" "SHORTREAL" "LONGREAL" "INTEGER" "LONGINT" "SHORTINT"
-    "CARDINAL" "SHORTCARD" "LONGCARD" "CHAR" "BOOLEAN")
+    "CARDINAL" "SHORTCARD" "LONGCARD" "CHAR" "BOOLEAN"
+    "COMPLEX" "SHORTCOMPLEX" "LONGCOMPLEX")
   "Modula-2 types.")
 
 (defvar g-mode-constants

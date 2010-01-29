@@ -186,6 +186,186 @@ BEGIN
    RETURN cbuiltin.cabsl(z)
 END cabsl ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cargf)) cargf (z: SHORTCOMPLEX) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.cargf(z)
+END cargf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_carg)) carg (z: COMPLEX) : REAL ;
+BEGIN
+   RETURN cbuiltin.carg(z)
+END carg ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_cargl)) cargl (z: LONGCOMPLEX) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.cargl(z)
+END cargl ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_conjf)) conjf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.conjf(z)
+END conjf ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_conj)) conj (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.conj(z)
+END conj ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_conjl)) conjl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.conjl(z)
+END conjl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpowerf)) cpowerf (base: SHORTCOMPLEX; exp: SHORTREAL) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.cpowerf(base, exp)
+END cpowerf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpower)) cpower (base: COMPLEX; exp: REAL) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.cpower(base, exp)
+END cpower ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpowerl)) cpowerl (base: LONGCOMPLEX; exp: LONGREAL) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.cpowerl(base, exp)
+END cpowerl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrtf)) csqrtf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.csqrtf(z)   
+END csqrtf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrt)) csqrt (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.csqrt(z)
+END csqrt ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csqrtl)) csqrtl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.csqrtl(z)
+END csqrtl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cexpf)) cexpf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.cexpf(z)   
+END cexpf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cexp)) cexp (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.cexp(z)
+END cexp ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cexpl)) cexpl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.cexpl(z)
+END cexpl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_clnf)) clnf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.clnf(z)   
+END clnf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cln)) cln (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.cln(z)
+END cln ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_clnl)) clnl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.clnl(z)
+END clnl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csinf)) csinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.csinf(z)   
+END csinf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csin)) csin (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.csin(z)
+END csin ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_csinl)) csinl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.csinl(z)
+END csinl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccosf)) ccosf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.ccosf(z)   
+END ccosf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccos)) ccos (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.ccos(z)
+END ccos ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ccosl)) ccosl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.ccosl(z)
+END ccosl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctanf)) ctanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.ctanf(z)   
+END ctanf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctan)) ctan (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.ctan(z)
+END ctan ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_ctanl)) ctanl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.ctanl(z)
+END ctanl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsinf)) carcsinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carcsinf(z)   
+END carcsinf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsin)) carcsin (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.carcsin(z)
+END carcsin ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsinl)) carcsinl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carcsinl(z)
+END carcsinl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccosf)) carccosf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carccosf(z)   
+END carccosf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccos)) carccos (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.carccos(z)
+END carccos ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccosl)) carccosl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carccosl(z)
+END carccosl ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctanf)) carctanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carctanf(z)   
+END carctanf ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctan)) carctan (z: COMPLEX) : COMPLEX ;
+BEGIN
+   RETURN cbuiltin.carctan(z)
+END carctan ;
+
+PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctanl)) carctanl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+BEGIN
+   RETURN cbuiltin.carctanl(z)
+END carctanl ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_index)) index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 BEGIN
    RETURN cbuiltin.index (s, c)

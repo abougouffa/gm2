@@ -6,6 +6,12 @@
 	  (m2pp_realpart_expr).
 	* gm2/m2pp.c:  added conditional compilation around
 	  gm2 COMPLEX data types referenced in gccgm2.
+	* gm2/gm2-libs/Builtins.def:  fixed parameters to
+	  cpower, cpowerf and cpowerl.
+	* gm2/gm2-libs/Builtins.mod:  added implementations
+	  for all new procedure functions.
+	* gm2/el/g-mode.el:  added COMPLEX, LONGCOMPLEX and
+	  SHORTCOMPLEX to the list of base Modula-2 data types.
 
 2010-01-28       Gaius Mulley <gaius@gnu.org>
 
