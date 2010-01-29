@@ -11300,9 +11300,9 @@ gccgm2_BuildRe (tree op1)
 {
   op1 = gccgm2_FoldAndStrip (op1);
   if (TREE_CODE (op1) == COMPLEX_CST)
-    return fold_build1 (REALPART_EXPR, TREE_TYPE (op1), op1);
+    return fold_build1 (REALPART_EXPR, TREE_TYPE (TREE_TYPE (op1)), op1);
   else
-    return build1 (REALPART_EXPR, TREE_TYPE (op1), op1);
+    return build1 (REALPART_EXPR, TREE_TYPE (TREE_TYPE (op1)), op1);
 }
 
 /*
@@ -11314,9 +11314,9 @@ gccgm2_BuildIm (tree op1)
 {
   op1 = gccgm2_FoldAndStrip (op1);
   if (TREE_CODE (op1) == COMPLEX_CST)
-    return fold_build1 (IMAGPART_EXPR, TREE_TYPE (op1), op1);
+    return fold_build1 (IMAGPART_EXPR, TREE_TYPE (TREE_TYPE (op1)), op1);
   else
-    return build1 (IMAGPART_EXPR, TREE_TYPE (op1), op1);
+    return build1 (IMAGPART_EXPR, TREE_TYPE (TREE_TYPE (op1)), op1);
 }
 
 /*

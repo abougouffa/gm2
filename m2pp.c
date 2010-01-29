@@ -80,6 +80,16 @@ extern tree gccgm2_GetShortIntType (void);
 extern tree gccgm2_GetM2LongCardType (void);
 extern tree gccgm2_GetM2CardinalType (void);
 extern tree gccgm2_GetM2ShortCardType (void);
+
+extern tree gccgm2_GetM2LongComplexType (void);
+extern tree gccgm2_GetM2ComplexType (void);
+extern tree gccgm2_GetM2ShortComplexType (void);
+
+extern tree gccgm2_GetM2CType (void);
+extern tree gccgm2_GetM2Complex32 (void);
+extern tree gccgm2_GetM2Complex64 (void);
+extern tree gccgm2_GetM2Complex96 (void);
+extern tree gccgm2_GetM2Complex128 (void);
 #endif
 #if defined(CPP)
 #  include "cp-tree.h"
@@ -188,6 +198,7 @@ static void m2pp_throw (pretty *s, tree t);
 static void m2pp_catch_expr (pretty *s, tree t);
 static void m2pp_try_finally_expr (pretty *s, tree t);
 static void m2pp_if_stmt (pretty *s, tree t);
+static void m2pp_complex (pretty *s, tree t);
 static void killPretty (pretty *s);
 static void m2pp_compound_expression (pretty *s, tree t);
 static void m2pp_target_expression (pretty *s, tree t);
@@ -1061,6 +1072,34 @@ m2pp_integer (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_complex - display the actual complex type.
+ */
+
+static
+void
+m2pp_complex (pretty *s, tree t)
+{
+  if (t == gccgm2_GetM2ComplexType ())
+    m2pp_print (s, "COMPLEX");
+  else if (t == gccgm2_GetM2LongComplexType ())
+    m2pp_print (s, "LONGCOMPLEX");
+  else if (t == gccgm2_GetM2ShortComplexType ())
+    m2pp_print (s, "SHORTCOMPLEX");
+  else if (t == gccgm2_GetM2CType ())
+    m2pp_print (s, "C'omplex' type");
+  else if (t == gccgm2_GetM2Complex32 ())
+    m2pp_print (s, "COMPLEX32");
+  else if (t == gccgm2_GetM2Complex64 ())
+    m2pp_print (s, "COMPLEX64");
+  else if (t == gccgm2_GetM2Complex96 ())
+    m2pp_print (s, "COMPLEX96");
+  else if (t == gccgm2_GetM2Complex128 ())
+    m2pp_print (s, "COMPLEX128");
+  else
+    m2pp_print (s, "unknown COMPLEX type");
+}
+
+/*
  *  m2pp_type - prints a full type.
  */
 
@@ -1113,6 +1152,9 @@ m2pp_type (pretty *s, tree t)
 #endif
     case VOID_TYPE:
       m2pp_print (s, "ADDRESS");
+      break;
+    case COMPLEX_TYPE:
+      m2pp_complex (s, t);
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
@@ -1301,6 +1343,9 @@ m2pp_simple_type (pretty *s, tree t)
     case ENUMERAL_TYPE:
       m2pp_enum (s, t);
       break;
+    case COMPLEX_TYPE:
+      m2pp_complex (s, t);
+      break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
     }
@@ -1433,6 +1478,68 @@ m2pp_constructor (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_complex_expr - handle GCC complex_expr tree.
+ */
+
+static void
+m2pp_complex_expr (pretty *s, tree t)
+{
+  if (TREE_CODE (t) == COMPLEX_CST) {
+    m2pp_print (s, "CMPLX(");
+    m2pp_needspace (s);
+    m2pp_expression (s, TREE_REALPART (t));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+    m2pp_expression (s, TREE_IMAGPART (t));
+    m2pp_print (s, ")");
+  } else {
+    m2pp_print (s, "CMPLX(");
+    m2pp_needspace (s);
+    m2pp_expression (s, TREE_OPERAND (t, 0));
+    m2pp_print (s, ",");
+    m2pp_needspace (s);
+    m2pp_expression (s, TREE_OPERAND (t, 1));
+    m2pp_print (s, ")");
+  }
+}
+
+/*
+ *  m2pp_imagpart_expr - handle imagpart_expr tree.
+ */
+
+static
+void
+m2pp_imagpart_expr (pretty *s, tree t)
+{
+  m2pp_print (s, "IM(");
+  m2pp_needspace (s);
+  if (TREE_CODE (t) == IMAGPART_EXPR)
+    m2pp_expression (s, TREE_OPERAND (t, 0));
+  else if (TREE_CODE (t) == COMPLEX_CST)
+    m2pp_expression (s, TREE_IMAGPART (t));
+  m2pp_needspace (s);
+  m2pp_print (s, ")");
+}
+
+/*
+ *  m2pp_realpart_expr - handle imagpart_expr tree.
+ */
+
+static
+void
+m2pp_realpart_expr (pretty *s, tree t)
+{
+  m2pp_print (s, "RE(");
+  m2pp_needspace (s);
+  if (TREE_CODE (t) == REALPART_EXPR)
+    m2pp_expression (s, TREE_OPERAND (t, 0));
+  else if (TREE_CODE (t) == COMPLEX_CST)
+    m2pp_expression (s, TREE_REALPART (t));
+  m2pp_needspace (s);
+  m2pp_print (s, ")");
+}
+
+/*
  *  m2pp_simple_expression - handle GCC expression tree.
  */
 
@@ -1557,6 +1664,15 @@ m2pp_simple_expression (pretty *s, tree t)
       break;
     case FUNCTION_DECL:
       m2pp_identifier (s, t);
+      break;
+    case COMPLEX_EXPR:
+      m2pp_complex_expr (s, t);
+      break;
+    case REALPART_EXPR:
+      m2pp_realpart_expr (s, t);
+      break;
+    case IMAGPART_EXPR:
+      m2pp_imagpart_expr (s, t);
       break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);

@@ -3185,7 +3185,10 @@ BEGIN
       printf2('sym %d IsObject (%a)', sym, n)
    ELSIF IsTuple(sym)
    THEN
-      printf2('sym %d IsTuple (%a)', sym, n)
+      printf2('sym %d IsTuple (%a)', sym, n) ;
+      low := GetNth(sym, 1) ;
+      high := GetNth(sym, 2) ;
+      printf2('%d, %d\n', low, high)      
    ELSIF IsGnuAsm(sym)
    THEN
       IF IsGnuAsmVolatile(sym)
