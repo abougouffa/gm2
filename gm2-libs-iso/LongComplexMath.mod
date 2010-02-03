@@ -49,7 +49,7 @@ END conj ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpowerl)) power (base: LONGCOMPLEX; exponent: LONGREAL): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.cpowerl (base, exponent)
+   RETURN cbuiltin.cpowl (base, exponent)
 END power ;
 
 
@@ -73,7 +73,7 @@ END exp ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_clnl)) ln (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.clnl (z)
+   RETURN cbuiltin.clogl (z)
 END ln ;
 
 
@@ -105,7 +105,7 @@ END tan ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsinl)) arcsin (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carcsinl (z)
+   RETURN cbuiltin.casinl (z)
 END arcsin ;
 
 
@@ -113,7 +113,7 @@ END arcsin ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccosl)) arccos (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carccosl (z)
+   RETURN cbuiltin.cacosl (z)
 END arccos ;
 
 
@@ -121,7 +121,7 @@ END arccos ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctanl)) arctan (z: LONGCOMPLEX): LONGCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carctanl (z)
+   RETURN cbuiltin.catanl (z)
 END arctan ;
 
 

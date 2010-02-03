@@ -18,6 +18,12 @@
 	  cexpl, cln, clnf, clnl, csin, csinf, csinl, ccos, ccosf,
 	  ccosl, ctan, ctanf, ctanl, casin, casinf, casinl, cacos,
 	  cacosf, cacosl, catan, catanf, catanl.
+	* gm2/gm2-libs-iso/ComplexMath.mod:  fixed calls to
+	  cpow, clog, casin, cacos, catan.
+	* gm2/gm2-libs-iso/ShortComplexMath.mod:  fixed calls to
+	  cpowf, clogf, casinf, cacosf, catanf.
+	* gm2/gm2-libs-iso/LongComplexMath.mod:  fixed calls to
+	  cpowl, clogl, casinl, cacosl, catanl.
 
 2010-01-29       Gaius Mulley <gaius@gnu.org>
 

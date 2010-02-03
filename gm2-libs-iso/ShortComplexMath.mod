@@ -49,7 +49,7 @@ END conj ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpowerf)) power (base: SHORTCOMPLEX; exponent: SHORTREAL): SHORTCOMPLEX;
 BEGIN
-   RETURN cbuiltin.cpowerf (base, exponent)
+   RETURN cbuiltin.cpowf (base, exponent)
 END power ;
 
 
@@ -73,7 +73,7 @@ END exp ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_clnf)) ln (z: SHORTCOMPLEX): SHORTCOMPLEX;
 BEGIN
-   RETURN cbuiltin.clnf (z)
+   RETURN cbuiltin.clogf (z)
 END ln ;
 
 
@@ -105,7 +105,7 @@ END tan ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsinf)) arcsin (z: SHORTCOMPLEX): SHORTCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carcsinf (z)
+   RETURN cbuiltin.casinf (z)
 END arcsin ;
 
 
@@ -113,7 +113,7 @@ END arcsin ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccosf)) arccos (z: SHORTCOMPLEX): SHORTCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carccosf (z)
+   RETURN cbuiltin.cacosf (z)
 END arccos ;
 
 
@@ -121,7 +121,7 @@ END arccos ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctanf)) arctan (z: SHORTCOMPLEX): SHORTCOMPLEX;
 BEGIN
-   RETURN cbuiltin.carctanf (z)
+   RETURN cbuiltin.catanf (z)
 END arctan ;
 
 

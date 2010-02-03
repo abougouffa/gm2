@@ -49,7 +49,7 @@ END conj ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cpower)) power (base: COMPLEX; exponent: REAL): COMPLEX;
 BEGIN
-   RETURN cbuiltin.cpower (base, exponent)
+   RETURN cbuiltin.cpow (base, exponent)
 END power ;
 
 
@@ -73,7 +73,7 @@ END exp ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_cln)) ln (z: COMPLEX): COMPLEX;
 BEGIN
-   RETURN cbuiltin.cln (z)
+   RETURN cbuiltin.clog (z)
 END ln ;
 
 
@@ -105,7 +105,7 @@ END tan ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carcsin)) arcsin (z: COMPLEX): COMPLEX;
 BEGIN
-   RETURN cbuiltin.carcsin (z)
+   RETURN cbuiltin.casin (z)
 END arcsin ;
 
 
@@ -113,7 +113,7 @@ END arcsin ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carccos)) arccos (z: COMPLEX): COMPLEX;
 BEGIN
-   RETURN cbuiltin.carccos (z)
+   RETURN cbuiltin.cacos (z)
 END arccos ;
 
 
@@ -121,7 +121,7 @@ END arccos ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_carctan)) arctan (z: COMPLEX): COMPLEX;
 BEGIN
-   RETURN cbuiltin.carctan (z)
+   RETURN cbuiltin.catan (z)
 END arctan ;
 
 
