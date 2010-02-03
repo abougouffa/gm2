@@ -1,3 +1,24 @@
+2010-01-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  updated.
+	* gm2/gm2builtins.c:  added many missing builtins necessary
+	  to complete ComplexMath, LongComplexMath and ShortComplexMath.
+	  carg, cargf, cargl, conj, conjf, conjl, cpow, cpowf, cpowl,
+	  csqrt, csqrtf, csqrtl, cexp, cexpf, cexpl, cln, clnf, clnl,
+	  csin, csinf, csinl, ccos, ccosf, ccosl, ctan, ctanf, ctanl,
+	  casin, casinf, casinl, cacos, cacosf, cacosl,
+	  catan, catanf, catanl.
+	* gm2/gm2-libs/Builtins.mod:   fixed cpow, cpowl, cpowf, clog
+	  clogf, clogl, casin, casinf, casinl, cacos, cacosf, cacosl,
+	  catan, catanf, catanl.
+	* gm2/gm2-libs/cbuiltin.def:  include procedure functions in
+	  the export list and also declare them in the definition
+	  module:  carg, cargf, cargl, conj, conjf, conjl,
+	  cpow, cpowf, cpowl, csqrt, csqrtf, csqrtl, cexp, cexpf,
+	  cexpl, cln, clnf, clnl, csin, csinf, csinl, ccos, ccosf,
+	  ccosl, ctan, ctanf, ctanl, casin, casinf, casinl, cacos,
+	  cacosf, cacosl, catan, catanf, catanl.
+
 2010-01-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  bug fix applied to BuildRe and BuildIm.
@@ -17,6 +38,8 @@
 	  of modules to complete.
 	* gm2/gm2-libs-iso/ShortComplexMath.def: new file.
 	* gm2/gm2-libs-iso/ShortComplexMath.mod: new file.
+	* gm2/gm2-libs-iso/SysClock.mod:  fixed Posix month to
+	  ISO Modula-2 conversion 1..12 rather than 0..11.
 
 2010-01-28       Gaius Mulley <gaius@gnu.org>
 

@@ -6,7 +6,9 @@ Pre 1.0
 *    finish COROUTINES and PROCESSES.
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
+*    finish SEMAPHORES, GeneralUser
 *  add data alignment directives to records (Scott)
+*  fix linking as reported by Martin Kalbfuß
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,

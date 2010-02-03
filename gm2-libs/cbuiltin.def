@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -42,6 +42,19 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    exp10f, exp10l, exp10,
                    ilogbf, ilogbl, ilogb,
                    cabsf, cabsl, cabs,
+                   cargf, carg, cargl,
+                   conjf, conj, conjl,
+                   cpowf, cpow, cpowl,
+                   csqrtf, csqrt, csqrtl,
+                   cexpf, cexp, cexpl,
+                   clogf, clog, clogl,
+                   csinf, csin, csinl,
+                   ccosf, ccos, ccosl,
+                   ctanf, ctan, ctanl,
+                   casinf, casin, casinl,
+                   cacosf, cacos, cacosl,
+                   catanf, catan, catanl,
+
                    index, rindex,
                    memcmp, memset, memmove,
                    strcat, strncat, strcpy, strncpy, strcmp, strncmp,
@@ -89,9 +102,9 @@ PROCEDURE conjf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 PROCEDURE conj (z: COMPLEX) : COMPLEX ;
 PROCEDURE conjl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
-PROCEDURE cpowerf (base: SHORTCOMPLEX; exp: SHORTREAL) : SHORTCOMPLEX ;
-PROCEDURE cpower (base: COMPLEX; exp: REAL) : COMPLEX ;
-PROCEDURE cpowerl (base: LONGCOMPLEX; exp: LONGREAL) : LONGCOMPLEX ;
+PROCEDURE cpowf (base: SHORTCOMPLEX; exp: SHORTREAL) : SHORTCOMPLEX ;
+PROCEDURE cpow (base: COMPLEX; exp: REAL) : COMPLEX ;
+PROCEDURE cpowl (base: LONGCOMPLEX; exp: LONGREAL) : LONGCOMPLEX ;
 
 PROCEDURE csqrtf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 PROCEDURE csqrt (z: COMPLEX) : COMPLEX ;
@@ -101,9 +114,9 @@ PROCEDURE cexpf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 PROCEDURE cexp (z: COMPLEX) : COMPLEX ;
 PROCEDURE cexpl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
-PROCEDURE clnf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
-PROCEDURE cln (z: COMPLEX) : COMPLEX ;
-PROCEDURE clnl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+PROCEDURE clogf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+PROCEDURE clog (z: COMPLEX) : COMPLEX ;
+PROCEDURE clogl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
 PROCEDURE csinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 PROCEDURE csin (z: COMPLEX) : COMPLEX ;
@@ -117,17 +130,17 @@ PROCEDURE ctanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
 PROCEDURE ctan (z: COMPLEX) : COMPLEX ;
 PROCEDURE ctanl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
-PROCEDURE carcsinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
-PROCEDURE carcsin (z: COMPLEX) : COMPLEX ;
-PROCEDURE carcsinl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+PROCEDURE casinf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+PROCEDURE casin (z: COMPLEX) : COMPLEX ;
+PROCEDURE casinl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
-PROCEDURE carccosf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
-PROCEDURE carccos (z: COMPLEX) : COMPLEX ;
-PROCEDURE carccosl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+PROCEDURE cacosf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+PROCEDURE cacos (z: COMPLEX) : COMPLEX ;
+PROCEDURE cacosl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
-PROCEDURE carctanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
-PROCEDURE carctan (z: COMPLEX) : COMPLEX ;
-PROCEDURE carctanl (z: LONGCOMPLEX) : LONGCOMPLEX ;
+PROCEDURE catanf (z: SHORTCOMPLEX) : SHORTCOMPLEX ;
+PROCEDURE catan (z: COMPLEX) : COMPLEX ;
+PROCEDURE catanl (z: LONGCOMPLEX) : LONGCOMPLEX ;
 
 PROCEDURE index (s: ADDRESS; c: INTEGER) : ADDRESS ;
 PROCEDURE rindex (s: ADDRESS; c: INTEGER) : ADDRESS ;

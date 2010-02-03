@@ -90,6 +90,10 @@ typedef enum {
   BT_FN_FCOMPLEX_FCOMPLEX,
   BT_FN_DCOMPLEX_DCOMPLEX,
   BT_FN_LDCOMPLEX_LDCOMPLEX,
+
+  BT_FN_DCOMPLEX_DOUBLE_DCOMPLEX,
+  BT_FN_FCOMPLEX_FLOAT_FCOMPLEX,
+  BT_FN_LDCOMPLEX_LONG_DOUBLE_LDCOMPLEX,
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -139,6 +143,54 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_cabs", BT_FN_DOUBLE_DCOMPLEX, BUILT_IN_CABS, BUILT_IN_NORMAL, "cabs", NULL, NULL},
 { "__builtin_cabsf", BT_FN_FLOAT_FCOMPLEX, BUILT_IN_CABSF, BUILT_IN_NORMAL, "cabsf", NULL, NULL},
 { "__builtin_cabsl", BT_FN_LONG_DOUBLE_LDCOMPLEX, BUILT_IN_CABSL, BUILT_IN_NORMAL, "cabsl", NULL, NULL},
+
+{ "__builtin_carg", BT_FN_DOUBLE_DCOMPLEX, BUILT_IN_CABS, BUILT_IN_NORMAL, "carg", NULL, NULL},
+{ "__builtin_cargf", BT_FN_FLOAT_FCOMPLEX, BUILT_IN_CABSF, BUILT_IN_NORMAL, "cargf", NULL, NULL},
+{ "__builtin_cargl", BT_FN_LONG_DOUBLE_LDCOMPLEX, BUILT_IN_CABSL, BUILT_IN_NORMAL, "cargl", NULL, NULL},
+
+{ "__builtin_conj", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CONJ, BUILT_IN_NORMAL, "carg", NULL, NULL},
+{ "__builtin_conjf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CONJF, BUILT_IN_NORMAL, "conjf", NULL, NULL},
+{ "__builtin_conjl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CONJL, BUILT_IN_NORMAL, "conjl", NULL, NULL},
+
+{ "__builtin_cpow", BT_FN_DCOMPLEX_DOUBLE_DCOMPLEX, BUILT_IN_CPOW, BUILT_IN_NORMAL, "cpow", NULL, NULL},
+{ "__builtin_cpowf", BT_FN_FCOMPLEX_FLOAT_FCOMPLEX, BUILT_IN_CPOWF, BUILT_IN_NORMAL, "cpowf", NULL, NULL},
+{ "__builtin_cpowl", BT_FN_LDCOMPLEX_LONG_DOUBLE_LDCOMPLEX, BUILT_IN_CPOWL, BUILT_IN_NORMAL, "cpowl", NULL, NULL},
+
+{ "__builtin_csqrt", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CSQRT, BUILT_IN_NORMAL, "csqrt", NULL, NULL},
+{ "__builtin_csqrtf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CSQRTF, BUILT_IN_NORMAL, "csqrtf", NULL, NULL},
+{ "__builtin_csqrtl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CSQRTL, BUILT_IN_NORMAL, "csqrtl", NULL, NULL},
+
+{ "__builtin_cexp", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CEXP, BUILT_IN_NORMAL, "cexp", NULL, NULL},
+{ "__builtin_cexpf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CEXPF, BUILT_IN_NORMAL, "cexpf", NULL, NULL},
+{ "__builtin_cexpl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CEXPL, BUILT_IN_NORMAL, "cexpl", NULL, NULL},
+
+{ "__builtin_cln", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CLOG, BUILT_IN_NORMAL, "cln", NULL, NULL},
+{ "__builtin_clnf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CLOGF, BUILT_IN_NORMAL, "clnf", NULL, NULL},
+{ "__builtin_clnl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CLOGL, BUILT_IN_NORMAL, "clnl", NULL, NULL},
+
+{ "__builtin_csin", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CSIN, BUILT_IN_NORMAL, "csin", NULL, NULL},
+{ "__builtin_csinf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CSINF, BUILT_IN_NORMAL, "csinf", NULL, NULL},
+{ "__builtin_csinl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CSINL, BUILT_IN_NORMAL, "csinl", NULL, NULL},
+
+{ "__builtin_ccos", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CCOS, BUILT_IN_NORMAL, "ccos", NULL, NULL},
+{ "__builtin_ccosf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CCOSF, BUILT_IN_NORMAL, "ccosf", NULL, NULL},
+{ "__builtin_ccosl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CCOSL, BUILT_IN_NORMAL, "ccosl", NULL, NULL},
+
+{ "__builtin_ctan", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CTAN, BUILT_IN_NORMAL, "ctan", NULL, NULL},
+{ "__builtin_ctanf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CTANF, BUILT_IN_NORMAL, "ctanf", NULL, NULL},
+{ "__builtin_ctanl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CTANL, BUILT_IN_NORMAL, "ctanl", NULL, NULL},
+
+{ "__builtin_casin", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CASIN, BUILT_IN_NORMAL, "casin", NULL, NULL},
+{ "__builtin_casinf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CASINF, BUILT_IN_NORMAL, "casinf", NULL, NULL},
+{ "__builtin_casinl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CASINL, BUILT_IN_NORMAL, "casinl", NULL, NULL},
+
+{ "__builtin_cacos", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CACOS, BUILT_IN_NORMAL, "cacos", NULL, NULL},
+{ "__builtin_cacosf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CACOSF, BUILT_IN_NORMAL, "cacosf", NULL, NULL},
+{ "__builtin_cacosl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CACOSL, BUILT_IN_NORMAL, "cacosl", NULL, NULL},
+
+{ "__builtin_catan", BT_FN_DCOMPLEX_DCOMPLEX, BUILT_IN_CATAN, BUILT_IN_NORMAL, "catan", NULL, NULL},
+{ "__builtin_catanf", BT_FN_FCOMPLEX_FCOMPLEX, BUILT_IN_CATANF, BUILT_IN_NORMAL, "catanf", NULL, NULL},
+{ "__builtin_catanl", BT_FN_LDCOMPLEX_LDCOMPLEX, BUILT_IN_CATANL, BUILT_IN_NORMAL, "catanl", NULL, NULL},
 
 { "__builtin_huge_val",   BT_FN_DOUBLE, BUILT_IN_HUGE_VAL, BUILT_IN_NORMAL, "hughe_val", NULL, NULL},
 { "__builtin_huge_valf",  BT_FN_FLOAT , BUILT_IN_HUGE_VALF, BUILT_IN_NORMAL, "hughe_valf", NULL, NULL},
@@ -607,6 +659,27 @@ create_function_prototype (struct builtin_function_entry *fe)
     ftype = build_function_type (complex_long_double_type_node,
 				 tree_cons (NULL_TREE, complex_long_double_type_node,
 					    endlink));
+    fe->return_node = complex_long_double_type_node;
+    break;
+  case BT_FN_DCOMPLEX_DOUBLE_DCOMPLEX:
+    ftype = build_function_type (complex_double_type_node,
+				 tree_cons (NULL_TREE, complex_double_type_node,
+					    tree_cons (NULL_TREE, double_type_node,
+						       endlink)));
+    fe->return_node = complex_double_type_node;
+    break;
+  case BT_FN_FCOMPLEX_FLOAT_FCOMPLEX:
+    ftype = build_function_type (complex_float_type_node,
+				 tree_cons (NULL_TREE, complex_float_type_node,
+					    tree_cons (NULL_TREE, float_type_node,
+						       endlink)));
+    fe->return_node = complex_float_type_node;
+    break;
+  case BT_FN_LDCOMPLEX_LONG_DOUBLE_LDCOMPLEX:
+    ftype = build_function_type (complex_long_double_type_node,
+				 tree_cons (NULL_TREE, complex_long_double_type_node,
+					    tree_cons (NULL_TREE, long_double_type_node,
+						       endlink)));
     fe->return_node = complex_long_double_type_node;
     break;
   default:
