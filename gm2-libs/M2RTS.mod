@@ -177,6 +177,22 @@ BEGIN
 END ExclException ;
 
 
+PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
+                      filename, line, column, scope,
+                      ADR("bit exceeds set range during SHIFT statement"))
+END ShiftException ;
+
+
+PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   RTExceptions.Raise(ORD(M2EXCEPTION.rangeException),
+                      filename, line, column, scope,
+                      ADR("bit exceeds set range during ROTATE statement"))
+END RotateException ;
+
+
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    RTExceptions.Raise(ORD(M2EXCEPTION.indexException),

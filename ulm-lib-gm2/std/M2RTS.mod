@@ -227,6 +227,22 @@ BEGIN
 END ExclException ;
 
 
+PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("bit exceeds set range during SHIFT statement"),
+                      line, column)
+END ShiftException ;
+
+
+PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+BEGIN
+   ErrorMessageColumn(filename, scope,
+                      ADR("bit exceeds set range during ROTATE statement"),
+                      line, column)
+END RotateException ;
+
+
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 BEGIN
    ErrorMessageColumn(filename, scope,

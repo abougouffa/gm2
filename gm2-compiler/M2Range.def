@@ -45,6 +45,8 @@ EXPORT QUALIFIED InitAssignmentRangeCheck,
                  InitDecRangeCheck,
                  InitInclCheck,
                  InitExclCheck,
+                 InitRotateCheck,
+                 InitShiftCheck,
                  InitTypesExpressionCheck,
                  InitTypesAssignmentCheck,
                  InitTypesParameterCheck,
@@ -219,7 +221,7 @@ PROCEDURE InitWholeZeroRemainderCheck (d, e: CARDINAL) : CARDINAL ;
 
 (*
    InitInclCheck - checks to see that bit, e, is type compatible with
-                   e and also in range.
+                   d and also in range.
 *)
 
 PROCEDURE InitInclCheck (d, e: CARDINAL) : CARDINAL ;
@@ -227,10 +229,26 @@ PROCEDURE InitInclCheck (d, e: CARDINAL) : CARDINAL ;
 
 (*
    InitExclCheck - checks to see that bit, e, is type compatible with
-                   e and also in range.
+                   d and also in range.
 *)
 
 PROCEDURE InitExclCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitShiftCheck - checks to see that bit, e, is type compatible with
+                    d and also in range.
+*)
+
+PROCEDURE InitShiftCheck (d, e: CARDINAL) : CARDINAL ;
+
+
+(*
+   InitRotateCheck - checks to see that bit, e, is type compatible with
+                     d and also in range.
+*)
+
+PROCEDURE InitRotateCheck (d, e: CARDINAL) : CARDINAL ;
 
 
 (*

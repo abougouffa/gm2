@@ -31,6 +31,7 @@ EXPORT QUALIFIED HALT, Halt,
                  ExitOnHalt, Length, ErrorMessage,
                  AssignmentException,
                  IncException, DecException, InclException, ExclException,
+                 ShiftException, RotateException,
                  StaticArraySubscriptException, DynamicArraySubscriptException,
                  ForLoopBeginException, ForLoopToException, ForLoopEndException,
                  PointerNilException, NoReturnException,
@@ -112,6 +113,8 @@ PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRES
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;

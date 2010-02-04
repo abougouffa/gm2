@@ -604,6 +604,8 @@ BEGIN
    ExceptionDec          := NulSym ;
    ExceptionIncl         := NulSym ;
    ExceptionExcl         := NulSym ;
+   ExceptionShift        := NulSym ;
+   ExceptionRotate       := NulSym ;
    ExceptionStaticArray  := NulSym ;
    ExceptionDynamicArray := NulSym ;
    ExceptionForLoopBegin := NulSym ;
@@ -629,6 +631,8 @@ BEGIN
       ExceptionDec := ImportFrom(m2rts, 'DecException') ;
       ExceptionIncl := ImportFrom(m2rts, 'InclException') ;
       ExceptionExcl := ImportFrom(m2rts, 'ExclException') ;
+      ExceptionShift := ImportFrom(m2rts, 'ShiftException') ;
+      ExceptionRotate := ImportFrom(m2rts, 'RotateException') ;
       ExceptionForLoopBegin := ImportFrom(m2rts, 'ForLoopBeginException') ;
       ExceptionForLoopTo := ImportFrom(m2rts, 'ForLoopToException') ;
       ExceptionForLoopEnd := ImportFrom(m2rts, 'ForLoopEndException')

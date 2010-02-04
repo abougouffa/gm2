@@ -61,7 +61,7 @@ FROM M2System IMPORT Address, Word, Loc, Byte, IsWordN, IsRealN, IsComplexN ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2 ;
 
 FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
-                   Cardinal, IsAComplexType,
+                   Cardinal, Integer, IsAComplexType,
                    IsAssignmentCompatible,
                    IsParameterCompatible,
                    IsExpressionCompatible,
@@ -69,6 +69,7 @@ FROM M2Base IMPORT Nil, IsRealType, GetBaseTypeMinMax,
                    ExceptionAssign,
                    ExceptionInc, ExceptionDec,
                    ExceptionIncl, ExceptionExcl,
+                   ExceptionShift, ExceptionRotate,
                    ExceptionStaticArray, ExceptionDynamicArray,
                    ExceptionForLoopBegin, ExceptionForLoopTo, ExceptionForLoopEnd,
                    ExceptionPointerNil, ExceptionNoReturn, ExceptionCase,
@@ -81,7 +82,7 @@ FROM M2CaseList IMPORT CaseBoundsResolved, OverlappingCaseBounds, WriteCase, Mis
 
 TYPE
    TypeOfRange = (assignment, subrangeassignment,
-                  inc, dec, incl, excl,
+                  inc, dec, incl, excl, shift, rotate,
                   typeexpr, typeassign, typeparam,
                   staticarraysubscript,
                   dynamicarraysubscript,
@@ -212,6 +213,8 @@ BEGIN
    dec                  : RETURN( ExceptionDec ) |
    incl                 : RETURN( ExceptionIncl ) |
    excl                 : RETURN( ExceptionExcl ) |
+   shift                : RETURN( ExceptionShift ) |
+   rotate               : RETURN( ExceptionRotate ) |
    typeassign           : InternalError('not expecting this case value', __FILE__, __LINE__) |
    typeparam            : InternalError('not expecting this case value', __FILE__, __LINE__) |
    typeexpr             : InternalError('not expecting this case value', __FILE__, __LINE__) |
@@ -561,6 +564,38 @@ END InitExclCheck ;
 
 
 (*
+   InitShiftCheck - checks to see that bit, e, is type compatible with
+                    d and also in range.
+*)
+
+PROCEDURE InitShiftCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), shift, d, e) ;
+   RETURN( r )
+END InitShiftCheck ;
+
+
+(*
+   InitRotateCheck - checks to see that bit, e, is type compatible with
+                     d and also in range.
+*)
+
+PROCEDURE InitRotateCheck (d, e: CARDINAL) : CARDINAL ;
+VAR
+   p: Range ;
+   r: CARDINAL ;
+BEGIN
+   r := InitRange() ;
+   p := PutRangeNoLow(GetIndice(RangeIndex, r), rotate, d, e) ;
+   RETURN( r )
+END InitRotateCheck ;
+
+
+(*
    InitTypesAssignmentCheck - checks to see that the types of, d, and, e,
                               are assignment compatible.
 *)
@@ -891,6 +926,8 @@ BEGIN
       dec                  : RETURN( ExceptionDec#NulSym ) |
       incl                 : RETURN( ExceptionIncl#NulSym ) |
       excl                 : RETURN( ExceptionExcl#NulSym ) |
+      shift                : RETURN( ExceptionShift#NulSym ) |
+      rotate               : RETURN( ExceptionRotate#NulSym ) |
       typeassign           : RETURN( FALSE ) |
       typeparam            : RETURN( FALSE ) |
       typeexpr             : RETURN( FALSE ) |
@@ -1078,6 +1115,39 @@ END CheckSetAndBit ;
 
 
 (*
+   CheckSet - returns TRUE if des is a set type and expr is compatible with INTEGER.
+*)
+
+PROCEDURE CheckSet (tokenno: CARDINAL;
+                    des, expr: CARDINAL;
+                    name: ARRAY OF CHAR) : BOOLEAN ;
+VAR
+   s: String ;
+BEGIN
+   IF IsSet(des)
+   THEN
+      IF IsParameterCompatible(Integer, GetType(expr))
+      THEN
+         RETURN( TRUE )
+      ELSE
+         s := ConCat(ConCat(InitString('operands to '),
+                            Mark(InitString(name))),
+                     Mark(InitString(' {%1tsd:{%2tsd:{%1tsd} and {%2tsd}}} are incompatible'))) ;
+         MetaErrorStringT2(tokenno, s, des, expr) ;
+         FlushErrors
+      END
+   ELSE
+      s := ConCat(ConCat(InitString('first operand to '),
+                         Mark(InitString(name))),
+                  Mark(InitString(' is not a set {%1tasd}'))) ;
+      MetaErrorStringT1(tokenno, s, des) ;
+      FlushErrors
+   END ;
+   RETURN( FALSE )
+END CheckSet ;
+
+
+(*
    FoldIncl - folds an INCL statement if the operands are constant.
 *)
 
@@ -1151,6 +1221,98 @@ BEGIN
       END
    END
 END FoldExcl ;
+
+
+(*
+   FoldShift - folds an SHIFT test statement if the operands are constant.
+*)
+
+PROCEDURE FoldShift (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p       : Range ;
+   shiftMin,
+   shiftMax,
+   min, max: Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF CheckSet(tokenno, desLowestType, expr, "SHIFT")
+         THEN
+            IF GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(desLowestType, min, max)
+            THEN
+               min := BuildConvert(GetIntegerType(), min, FALSE) ;
+               max := BuildConvert(GetIntegerType(), max, FALSE) ;
+               shiftMax := BuildAdd(BuildSub(max, min, FALSE),
+                                    GetIntegerOne(),
+                                    FALSE) ;
+               shiftMin := BuildNegate(shiftMax, FALSE) ;
+               IF OutOfRange(tokenno, shiftMin, expr, shiftMax, desLowestType)
+               THEN
+                  MetaErrorT2(tokenNo,
+                              'operand to SHIFT {%2a} exceeds the range of type {%1tasa}',
+                              des, expr) ;
+                  PutQuad(q, ErrorOp, NulSym, NulSym, r)
+               ELSE
+                  (* range check is unnecessary *)
+                  SubQuad(q)
+               END
+            END
+         END
+      END
+   END
+END FoldShift ;
+
+
+(*
+   FoldRotate - folds a ROTATE test statement if the operands are constant.
+*)
+
+PROCEDURE FoldRotate (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
+VAR
+   p        : Range ;
+   rotateMin,
+   rotateMax,
+   min, max : Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      TryDeclareConstant(tokenno, des) ;   (* use quad tokenno, rather than the range tokenNo *)
+      TryDeclareConstant(tokenno, expr) ;  (* use quad tokenno, rather than the range tokenNo *)
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF CheckSet(tokenno, desLowestType, expr, "ROTATE")
+         THEN
+            IF GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(desLowestType, min, max)
+            THEN
+               min := BuildConvert(GetIntegerType(), min, FALSE) ;
+               max := BuildConvert(GetIntegerType(), max, FALSE) ;
+               rotateMax := BuildAdd(BuildSub(max, min, FALSE),
+                                     GetIntegerOne(),
+                                     FALSE) ;
+               rotateMin := BuildNegate(rotateMax, FALSE) ;
+               IF OutOfRange(tokenno, rotateMin, expr, rotateMax, desLowestType)
+               THEN
+                  MetaErrorT2(tokenNo,
+                              'operand to ROTATE {%2a} exceeds the range of type {%1tasa}',
+                              des, expr) ;
+                  PutQuad(q, ErrorOp, NulSym, NulSym, r)
+               ELSE
+                  (* range check is unnecessary *)
+                  SubQuad(q)
+               END
+            END
+         END
+      END
+   END
+END FoldRotate ;
 
 
 (*
@@ -1662,6 +1824,8 @@ BEGIN
       dec                  :  FoldDec(tokenno, q, r) |
       incl                 :  FoldIncl(tokenno, q, r) |
       excl                 :  FoldExcl(tokenno, q, r) |
+      shift                :  FoldShift(tokenno, q, r) |
+      rotate               :  FoldRotate(tokenno, q, r) |
       typeassign           :  FoldTypeCheck(tokenno, q, r) |
       typeparam            :  FoldTypeCheck(tokenno, q, r) |
       typeexpr             :  FoldTypeCheck(tokenno, q, r) |
@@ -1771,6 +1935,8 @@ BEGIN
       dec                  : s := InitString('if the DEC is ever executed the expression {%2Wa} will cause an underflow error for the designator {%1a} as it exceeds the type range {%1ts:of {%1ts}}') |
       incl                 : s := InitString('the expression {%2Wa} given in the INCL exceeds the type range {%1ts} of the designator {%1a}') |
       excl                 : s := InitString('the expression {%2Wa} given in the EXCL exceeds the type range {%1ts} of the designator {%1a}') |
+      shift                : s := InitString('the expression {%2Wa} given in the second parameter to SHIFT exceeds the type range {%1ts} of the first parameter {%1a}') |
+      rotate               : s := InitString('the expression {%2Wa} given in the second parameter to ROTATE exceeds the type range {%1ts} of the first parameter {%1a}') |
       typeassign           : s := InitString('') |
       typeparam            : s := InitString('') |
       typeexpr             : s := InitString('') |
@@ -2039,12 +2205,14 @@ BEGIN
             IF GetMinMax(desLowestType, desMin, desMax)
             THEN
                e := BuildConvert(GetTreeType(desMin), DeReferenceLValue(expr), FALSE) ;
-               IfOutsideLimitsDo(desMin, e, desMax, r, scopeDesc) ;
+               IfOutsideLimitsDo(desMin, e, desMax, r, scopeDesc)
+(*  this should not be used for incl/excl as des is a set type
                t := BuildSub(desMax,
                              BuildConvert(Mod2Gcc(desLowestType), e, FALSE),
                              FALSE) ;
                condition := BuildGreaterThan(Mod2Gcc(des), t) ;
                AddStatement(BuildIfThenDoEnd(condition, CodeErrorCheck(r, scopeDesc)))
+*)
             END
          ELSE
             InternalError('should have resolved these types', __FILE__, __LINE__)
@@ -2052,6 +2220,47 @@ BEGIN
       END
    END
 END CodeInclExcl ;
+
+
+(*
+   CodeShiftRotate - ensure that the bit shift is within the range
+                     -(MAX(set)-MIN(set)+1)..(MAX(set)-MIN(set)+1)
+*)
+
+PROCEDURE CodeShiftRotate (tokenno: CARDINAL;
+                           r: CARDINAL; scopeDesc: String) ;
+VAR
+   p                 : Range ;
+   e,
+   shiftMin, shiftMax,
+   desMin, desMax    : Tree ;
+BEGIN
+   p := GetIndice(RangeIndex, r) ;
+   WITH p^ DO
+      TryDeclareConstant(tokenNo, des) ;
+      TryDeclareConstant(tokenNo, expr) ;
+      desLowestType := SkipType(GetType(des)) ;
+      IF desLowestType#NulSym
+      THEN
+         IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
+         THEN
+            IF GetMinMax(desLowestType, desMin, desMax)
+            THEN
+               desMin := BuildConvert(GetIntegerType(), desMin, FALSE) ;
+               desMax := BuildConvert(GetIntegerType(), desMax, FALSE) ;
+               shiftMax := BuildAdd(BuildSub(desMax, desMin, FALSE),
+                                     GetIntegerOne(),
+                                     FALSE) ;
+               shiftMin := BuildNegate(shiftMax, FALSE) ;
+               e := BuildConvert(GetIntegerType(), DeReferenceLValue(expr), FALSE) ;
+               IfOutsideLimitsDo(shiftMin, e, shiftMax, r, scopeDesc)
+            END
+         ELSE
+            InternalError('should have resolved these types', __FILE__, __LINE__)
+         END
+      END
+   END
+END CodeShiftRotate ;
 
 
 (*
@@ -2297,8 +2506,10 @@ BEGIN
       subrangeassignment   :  InternalError('unexpected case', __FILE__, __LINE__) |
       inc                  :  CodeInc(tokenNo, r, scopeDesc) |
       dec                  :  CodeDec(tokenNo, r, scopeDesc) |
-      incl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
+      incl,
       excl                 :  CodeInclExcl(tokenNo, r, scopeDesc) |
+      shift,
+      rotate               :  CodeShiftRotate(tokenNo, r, scopeDesc) |
       typeassign           :  CodeTypeCheck(tokenNo, r) |
       typeparam            :  CodeTypeCheck(tokenNo, r) |
       typeexpr             :  CodeTypeCheck(tokenNo, r) |
@@ -2411,6 +2622,8 @@ BEGIN
       dec                  :  WriteString('dec(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       incl                 :  WriteString('incl(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       excl                 :  WriteString('excl(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      shift                :  WriteString('shift(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
+      rotate               :  WriteString('rotate(') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeexpr             :  WriteString('expr compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeassign           :  WriteString('assignment compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |
       typeparam            :  WriteString('parameter compatible (') ; WriteOperand(des) ; WriteString(', ') ; WriteOperand(expr) |

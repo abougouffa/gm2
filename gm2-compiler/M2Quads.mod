@@ -195,6 +195,8 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     InitDecRangeCheck,
                     InitInclCheck,
                     InitExclCheck,
+                    InitRotateCheck,
+                    InitShiftCheck,
                     InitTypesAssignmentCheck,
                     InitTypesExpressionCheck,
                     InitTypesParameterCheck,
@@ -7522,6 +7524,7 @@ VAR
    ReturnVar,
    NoOfParam,
    OperandSym,
+   TempSym,
    VarSym    : CARDINAL ;
 BEGIN
    PopT(NoOfParam) ;
@@ -7532,10 +7535,11 @@ BEGIN
       PopN(NoOfParam+1) ;
       IF (GetType(VarSym)#NulSym) AND IsSet(SkipType(GetType(VarSym)))
       THEN
+         TempSym := DereferenceLValue(OperandSym) ;
+         BuildRange(InitShiftCheck(VarSym, TempSym)) ;
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(VarSym)) ;
-         GenQuad(LogicalShiftOp, ReturnVar, VarSym,
-                 DereferenceLValue(OperandSym)) ;
+         GenQuad(LogicalShiftOp, ReturnVar, VarSym, TempSym) ;
          PushTF(ReturnVar, GetType(VarSym))
       ELSE
          WriteFormat0('SYSTEM procedure SHIFT expects a constant or variable which has a type of SET as its first parameter') ;
@@ -7581,6 +7585,7 @@ PROCEDURE BuildRotateFunction ;
 VAR
    ReturnVar,
    NoOfParam,
+   TempSym,
    OperandSym,
    VarSym    : CARDINAL ;
 BEGIN
@@ -7592,10 +7597,11 @@ BEGIN
       PopN(NoOfParam+1) ;
       IF (GetType(VarSym)#NulSym) AND IsSet(SkipType(GetType(VarSym)))
       THEN
+         TempSym := DereferenceLValue(OperandSym) ;
+         BuildRange(InitRotateCheck(VarSym, TempSym)) ;
          ReturnVar := MakeTemporary(RightValue) ;
          PutVar(ReturnVar, GetType(VarSym)) ;
-         GenQuad(LogicalRotateOp, ReturnVar, VarSym,
-                 DereferenceLValue(OperandSym)) ;
+         GenQuad(LogicalRotateOp, ReturnVar, VarSym, TempSym) ;
          PushTF(ReturnVar, GetType(VarSym))
       ELSE
          WriteFormat0('SYSTEM procedure ROTATE expects a constant or variable which has a type of SET as its first parameter') ;

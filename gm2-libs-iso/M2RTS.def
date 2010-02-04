@@ -26,19 +26,6 @@ DEFINITION MODULE M2RTS ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED HALT, Halt,
-                 InstallTerminationProcedure, Terminate,
-                 HasHalted, IsTerminating,
-                 ExitOnHalt, Length, ErrorMessage,
-                 AssignmentException,
-                 IncException, DecException,
-                 InclException, ExclException,
-                 StaticArraySubscriptException, DynamicArraySubscriptException,
-                 ForLoopBeginException, ForLoopToException, ForLoopEndException,
-                 PointerNilException, NoReturnException,
-                 WholeNonPosDivException, WholeNonPosModException,
-                 WholeZeroDivException, WholeZeroRemException,
-                 CaseException, NoException ;
 
 
 (*
@@ -130,6 +117,8 @@ PROCEDURE IncException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRES
 PROCEDURE DecException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE InclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE ExclException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE ShiftException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
+PROCEDURE RotateException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE StaticArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE DynamicArraySubscriptException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
 PROCEDURE ForLoopBeginException (filename: ADDRESS; line, column: CARDINAL; scope: ADDRESS) ;
