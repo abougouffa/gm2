@@ -21,6 +21,11 @@
 	  and RotateException.
 	* gm2/ulm-lib-gm2/std/M2RTS.mod:  implement ShiftException
 	  and RotateException.
+	* gm2/gm2-compiler/M2Range.mod:  fixed bugs in FoldShift
+	  FoldRotate, CodeShiftRotate so that the subrange of the
+	  set rather than the set type is range tested.
+	* gm2/TODO:  removed the SHIFT and ROTATE range checking
+	  entry.
 
 2010-01-03       Gaius Mulley <gaius@gnu.org>
 

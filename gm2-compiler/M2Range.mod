@@ -1229,6 +1229,7 @@ END FoldExcl ;
 
 PROCEDURE FoldShift (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
+   ofType  : CARDINAL ;
    p       : Range ;
    shiftMin,
    shiftMax,
@@ -1243,8 +1244,10 @@ BEGIN
       THEN
          IF CheckSet(tokenno, desLowestType, expr, "SHIFT")
          THEN
-            IF GccKnowsAbout(expr) AND IsConst(expr) AND
-               GetMinMax(desLowestType, min, max)
+            ofType := SkipType(GetType(desLowestType)) ;
+            IF GccKnowsAbout(ofType) AND
+               GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(ofType, min, max)
             THEN
                min := BuildConvert(GetIntegerType(), min, FALSE) ;
                max := BuildConvert(GetIntegerType(), max, FALSE) ;
@@ -1275,6 +1278,7 @@ END FoldShift ;
 
 PROCEDURE FoldRotate (tokenno: CARDINAL; q: CARDINAL; r: CARDINAL) ;
 VAR
+   ofType   : CARDINAL ;
    p        : Range ;
    rotateMin,
    rotateMax,
@@ -1289,8 +1293,10 @@ BEGIN
       THEN
          IF CheckSet(tokenno, desLowestType, expr, "ROTATE")
          THEN
-            IF GccKnowsAbout(expr) AND IsConst(expr) AND
-               GetMinMax(desLowestType, min, max)
+            ofType := SkipType(GetType(desLowestType)) ;
+            IF GccKnowsAbout(ofType) AND
+               GccKnowsAbout(expr) AND IsConst(expr) AND
+               GetMinMax(ofType, min, max)
             THEN
                min := BuildConvert(GetIntegerType(), min, FALSE) ;
                max := BuildConvert(GetIntegerType(), max, FALSE) ;
@@ -2230,6 +2236,7 @@ END CodeInclExcl ;
 PROCEDURE CodeShiftRotate (tokenno: CARDINAL;
                            r: CARDINAL; scopeDesc: String) ;
 VAR
+   ofType            : CARDINAL ;
    p                 : Range ;
    e,
    shiftMin, shiftMax,
@@ -2242,9 +2249,10 @@ BEGIN
       desLowestType := SkipType(GetType(des)) ;
       IF desLowestType#NulSym
       THEN
-         IF GccKnowsAbout(expr) AND GccKnowsAbout(desLowestType)
+         ofType := SkipType(GetType(desLowestType)) ;
+         IF GccKnowsAbout(expr) AND GccKnowsAbout(ofType)
          THEN
-            IF GetMinMax(desLowestType, desMin, desMax)
+            IF GetMinMax(ofType, desMin, desMax)
             THEN
                desMin := BuildConvert(GetIntegerType(), desMin, FALSE) ;
                desMax := BuildConvert(GetIntegerType(), desMax, FALSE) ;
