@@ -26,6 +26,13 @@
 	  set rather than the set type is range tested.
 	* gm2/TODO:  removed the SHIFT and ROTATE range checking
 	  entry.
+	* gm2/TODO:  removed the linking restriction entry.
+	* gm2/gm2-compiler/gm2lcc.mod:  allow object files not
+	  to be present when generating the link command.  This
+	  allows users to supply private libraries or objects
+	  which satisfy all gm2 module references.  A feature
+	  request by a number of users, Martin Kalbfuﬂ and
+          John O Goyo.
 
 2010-01-03       Gaius Mulley <gaius@gnu.org>
 

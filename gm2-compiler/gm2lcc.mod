@@ -227,10 +227,6 @@ BEGIN
             THEN
                Archives := ConCatChar(ConCat(Archives, u), ' ') ;
                u := KillString(u)
-            ELSE
-               fprintf2(StdErr, 'cannot find %s.o or %s.a\n', s, s) ;
-               Close(StdErr) ;
-               exit(1)
             END
          END ;
          t := KillString(t)
@@ -316,7 +312,7 @@ BEGIN
                END ;
                u := KillString(u)
             ELSE
-               IF KillString(WriteS(fo, Mark(Sprintf1(InitString('%-20s : Not found\n'), t))))=NIL
+               IF KillString(WriteS(fo, Mark(Sprintf1(InitString('%-20s : distinct object or archive not found\n'), t))))=NIL
                THEN
                END ;
                Error := 1
