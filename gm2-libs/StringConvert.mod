@@ -247,13 +247,13 @@ BEGIN
          c := VAL(CARDINAL, ABS(i+1))+1 ;
          IF width>0
          THEN
-            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV 10),
+            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV base),
                                            width-1, padding, sign, base, lower),
-                           IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
+                           IntegerToString(c MOD base, 0, ' ', FALSE, base, lower)) )
          ELSE
-            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV 10),
+            RETURN( ConCat(IntegerToString(-VAL(INTEGER, c DIV base),
                                            0, padding, sign, base, lower),
-                           IntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
+                           IntegerToString(c MOD base, 0, ' ', FALSE, base, lower)) )
          END
       ELSE
          s := InitString('-')
@@ -269,8 +269,8 @@ BEGIN
    END ;
    IF i>VAL(INTEGER, base)-1
    THEN
-      s := ConCat(ConCat(s, IntegerToString(i DIV 10, 0, ' ', FALSE, base, lower)),
-                  IntegerToString(i MOD 10, 0, ' ', FALSE, base, lower))
+      s := ConCat(ConCat(s, IntegerToString(VAL(CARDINAL, i) DIV base, 0, ' ', FALSE, base, lower)),
+                  IntegerToString(VAL(CARDINAL, i) MOD base, 0, ' ', FALSE, base, lower))
    ELSE
       IF i<=9
       THEN
@@ -309,8 +309,8 @@ BEGIN
    s := InitString('') ;
    IF c>base-1
    THEN
-      s := ConCat(ConCat(s, CardinalToString(c DIV 10, 0, ' ', base, lower)),
-                  CardinalToString(c MOD 10, 0, ' ', base, lower))
+      s := ConCat(ConCat(s, CardinalToString(c DIV base, 0, ' ', base, lower)),
+                  CardinalToString(c MOD base, 0, ' ', base, lower))
    ELSE
       IF c<=9
       THEN
@@ -360,13 +360,13 @@ BEGIN
          c := VAL(LONGCARD, ABS(i+1))+1 ;
          IF width>0
          THEN
-            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV 10),
+            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV VAL(LONGCARD, base)),
                                                width-1, padding, sign, base, lower),
-                           LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
+                           LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower)) )
          ELSE
-            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV 10),
+            RETURN( ConCat(LongIntegerToString(-VAL(LONGINT, c DIV VAL(LONGCARD, base)),
                                                0, padding, sign, base, lower),
-                           LongIntegerToString(c MOD 10, 0, ' ', FALSE, base, lower)) )
+                           LongIntegerToString(c MOD VAL(LONGCARD, base), 0, ' ', FALSE, base, lower)) )
          END
       ELSE
          s := InitString('-')
@@ -382,8 +382,8 @@ BEGIN
    END ;
    IF i>VAL(LONGINT, base-1)
    THEN
-      s := ConCat(ConCat(s, LongIntegerToString(i DIV 10, 0, ' ', FALSE, base, lower)),
-                  LongIntegerToString(i MOD 10, 0, ' ', FALSE, base, lower))
+      s := ConCat(ConCat(s, LongIntegerToString(i DIV VAL(LONGINT, base), 0, ' ', FALSE, base, lower)),
+                  LongIntegerToString(i MOD VAL(LONGINT, base), 0, ' ', FALSE, base, lower))
    ELSE
       IF i<=9
       THEN
@@ -893,8 +893,8 @@ BEGIN
    s := InitString('') ;
    IF c>VAL(LONGCARD, base-1)
    THEN
-      s := ConCat(ConCat(s, LongCardinalToString(c DIV 10, 0, ' ', base, lower)),
-                  LongCardinalToString(c MOD 10, 0, ' ', base, lower))
+      s := ConCat(ConCat(s, LongCardinalToString(c DIV VAL(LONGCARD, base), 0, ' ', base, lower)),
+                  LongCardinalToString(c MOD VAL(LONGCARD, base), 0, ' ', base, lower))
    ELSE
       IF c<=9
       THEN
@@ -969,8 +969,8 @@ BEGIN
    s := InitString('') ;
    IF VAL(CARDINAL, c)>base-1
    THEN
-      s := ConCat(ConCat(s, ShortCardinalToString(c DIV 10, 0, ' ', base, lower)),
-                  ShortCardinalToString(c MOD 10, 0, ' ', base, lower))
+      s := ConCat(ConCat(s, ShortCardinalToString(c DIV VAL(SHORTCARD, base), 0, ' ', base, lower)),
+                  ShortCardinalToString(c MOD VAL(SHORTCARD, base), 0, ' ', base, lower))
    ELSE
       IF c<=9
       THEN

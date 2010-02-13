@@ -1,3 +1,9 @@
+2010-01-13       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/StringConvert.mod:  fixed bug reported by
+	  Carl Glassberg, number to string routines ignored, base,
+	  parameter and always used a constant, 10.
+
 2010-01-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  tidied up spacing.
