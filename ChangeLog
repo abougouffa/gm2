@@ -1,3 +1,11 @@
+2010-02-18       Michael Lambert <lambert@psc.edu>
+
+	* gm2/patches/gcc/4.1.2/11.michael_snowleopard2
+	  removed patch to mklink.c
+	* gm2/tools-src/mklink.c:  applied patch to file.
+	  (CC environment variable will override gcc for the
+	   link command)
+
 2010-02-18       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  added many new rules to build
