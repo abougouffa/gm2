@@ -713,16 +713,16 @@ BEGIN
    THEN
       Trunc := MakeProcedure(MakeKey('TRUNC')) ;
       PutFunction(Trunc, Cardinal) ;
-      TruncS := MakeProcedure(MakeKey('TRUNCS')) ;
+      TruncS := MakeProcedure(MakeKey('STRUNC')) ;
       PutFunction(TruncS, ShortCard) ;
-      TruncL := MakeProcedure(MakeKey('TRUNCL')) ;
+      TruncL := MakeProcedure(MakeKey('LTRUNC')) ;
       PutFunction(TruncL, LongCard)
    ELSE
       Trunc := MakeProcedure(MakeKey('TRUNC')) ;
       PutFunction(Trunc, Integer) ;
-      TruncS := MakeProcedure(MakeKey('TRUNCS')) ;
+      TruncS := MakeProcedure(MakeKey('STRUNC')) ;
       PutFunction(TruncS, ShortInt) ;
-      TruncL := MakeProcedure(MakeKey('TRUNCL')) ;
+      TruncL := MakeProcedure(MakeKey('LTRUNC')) ;
       PutFunction(TruncL, LongInt)
    END
 END BuildTruncFunctions ;
@@ -747,9 +747,9 @@ PROCEDURE BuildFloatFunctions ;
 BEGIN
    Float := MakeProcedure(MakeKey('FLOAT')) ;
    PutFunction(Float, Real) ;
-   FloatS := MakeProcedure(MakeKey('FLOATS')) ;
+   FloatS := MakeProcedure(MakeKey('SFLOAT')) ;
    PutFunction(FloatS, ShortReal) ;
-   FloatL := MakeProcedure(MakeKey('FLOATL')) ;
+   FloatL := MakeProcedure(MakeKey('LFLOAT')) ;
    PutFunction(FloatL, LongReal)
 END BuildFloatFunctions ;
 

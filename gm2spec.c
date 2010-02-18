@@ -82,6 +82,9 @@ typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
 					     "pim-coroutine", "pim-coroutine" };
 
+static const char *archiveName[maxlib+1] = { "libiso", "libgm2", "libgm2ulm", "libgm2min", "libgm2pim",
+					     "libgm2pco", "libgm2min" };
+
 typedef enum { LIB, LIB_SO, LIB_O2, LIB_SO_O2, LIB_MAX } styles;
 
 typedef struct {
@@ -180,7 +183,8 @@ add_arg (int incl, char ***in_argv, const char *str)
   if ((*in_argv)[incl] == NULL)
       (*in_argv)[incl] = xstrdup(str);
   else
-     fprintf(stderr, "internal error not adding to a non empty space\n");
+    fprintf(stderr, "%s:%d:internal error not adding to a non empty space\n",
+	    __FILE__, __LINE__);
 }
 
 static void
@@ -378,6 +382,97 @@ add_lib (int *in_argc, const char *const **in_argv, const char *lib)
     return;
   insert_arg (end, in_argc, (char ***)in_argv);
   add_arg (end, (char ***)in_argv, lib);
+}
+
+/*
+ *  build_archive - returns a string containing the a path to the
+ *                  archive defined by, libpath, s, and, dialectLib.
+ */
+
+static const char *
+build_archive (const char *libpath,
+	       libs dialectLib,
+	       styles style)
+{
+  if (dialectLib == maxlib)
+    return NULL;
+  else {
+    const char *style_name = libraryStyle[style].directory;
+    const char *libdir = (const char *)libraryName[dialectLib];
+    const char *archive = (const char *)archiveName[dialectLib];
+    int l = strlen (libpath) + 1 +
+      strlen("lib") + 1 + strlen("gcc") + 1 +
+      strlen (DEFAULT_TARGET_MACHINE) + 1 +
+      strlen (DEFAULT_TARGET_VERSION) + 1 +
+      strlen (style_name) + 1 +
+      strlen (libdir) + 1 +
+      strlen (archive) + 1 +
+      strlen ("lib.a") + 1;
+    char *s = (char *) xmalloc (l);
+    char dir_sep[2];
+
+    dir_sep[0] = DIR_SEPARATOR;
+    dir_sep[1] = (char)0;
+    
+    strcpy (s, libpath);
+    strcat (s, dir_sep);
+    strcat (s, "gm2");
+    strcat (s, dir_sep);
+    strcat (s, libdir);
+    strcat (s, dir_sep);
+    if (strlen(style_name) != 0) {
+      strcat (s, style_name);
+      strcat (s, dir_sep);
+    }
+    strcat (s, archive);
+    strcat (s, ".a");
+    return s;
+  }
+}
+
+/*
+ *  add_default_archives - adds the default archives to the end of the current
+ *                         command line.
+ */
+
+static void
+add_default_archives (int *in_argc,
+		      const char *const **in_argv,
+		      const char *libpath,
+		      styles s,
+		      libs libraries)
+{
+  switch (libraries) {
+
+  case iso:
+    add_lib (in_argc, in_argv, build_archive (libpath, iso, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    break;
+  case pim:
+    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    break;
+  case ulm:
+    add_lib (in_argc, in_argv, build_archive (libpath, ulm, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    break;
+  case min:
+    add_lib (in_argc, in_argv, build_archive (libpath, min, s));
+    break;
+  case logitech:
+    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    break;
+  case pimcoroutine:
+    add_lib (in_argc, in_argv, build_archive (libpath, pimcoroutine, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    break;
+  default:
+    fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",
+	    __FILE__, __LINE__);
+  }
 }
 
 static void
@@ -672,6 +767,7 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     add_arg(1, (char ***)in_argv, "-x");
   }
   if (linking) {
+    add_default_archives (in_argc, in_argv, libpath, s, libraries);
     add_lib (in_argc, in_argv, MATH_LIBRARY);
     add_lib (in_argc, in_argv, "-lstdc++");
 #if defined(ENABLE_SHARED_LIBGCC)

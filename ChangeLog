@@ -1,10 +1,29 @@
-2010-01-13       Gaius Mulley <gaius@gnu.org>
+2010-02-18       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added many new rules to build
+	  optimization versions of the logitech, ulm and
+	  iso libraries.  Also modified so that the libraries
+	  are archived and the archive installed rather than
+	  all the objects.
+	* gm2/TODO:  updated TODO, removed the linking request
+	  by Martin Kalbfuﬂ.  Added a missed intrinsic function.
+	* gm2/gm2/gm2.texi:  updated documentation to include
+	  FLOAT, LFLOAT, SFLOAT, TRUNC, STRUNC, LTRUNC, RE, IM,
+	  ODD.  Ordered all functions alphabetically.
+	* gm2/gm2spec.c:  modified so that the linker includes
+	  archives of the gm2 libraries at the end of the link
+	  command.
+	* gm2/gm2-compiler/M2Base.mod:  changed TRUNCS to STRUNC,
+          TRUNCL to LTRUNC, FLOATL to LFLOAT, FLOATS to SFLOAT
+	  to match the ISO naming scheme.
+	  
+2010-02-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/StringConvert.mod:  fixed bug reported by
 	  Carl Glassberg, number to string routines ignored, base,
 	  parameter and always used a constant, 10.
 
-2010-01-05       Gaius Mulley <gaius@gnu.org>
+2010-02-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/README:  tidied up spacing.
 	* gm2/gm2-compiler/M2Base.def:  declare and export
@@ -40,7 +59,7 @@
 	  request by a number of users, Martin Kalbfuﬂ and
           John O Goyo.
 
-2010-01-03       Gaius Mulley <gaius@gnu.org>
+2010-02-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  updated.
 	* gm2/gm2builtins.c:  added many missing builtins necessary

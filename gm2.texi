@@ -710,27 +710,47 @@ always visible.
 The following procedures are implemented and conform with Programming
 in Modula-2 and ISO Modula-2: @code{NEW}, @code{DISPOSE}, @code{INC},
 @code{DEC}, @code{INCL}, @code{EXCL} and @code{HALT}.  The standard
-functions are: @code{HIGH}, @code{CAP}, @code{ABS}, @code{ODD},
-@code{VAL}, @code{CHR}, @code{MIN}, @code{MAX}. All these functions
-and procedures (except @code{HALT}, @code{NEW}, @code{DISPOSE} and,
-under non constant conditions, @code{LENGTH}) generate in-line code
-for efficiency.
+functions are: @code{ABS}, @code{CAP}, @code{CHR}, @code{FLOAT},
+@code{HIGH}, @code{LFLOAT}, @code{LTRUNC}, @code{MIN}, @code{MAX},
+@code{ODD}, @code{SFLOAT}, @code{STRUNC} @code{TRUNC} and
+@code{VAL}. All these functions and procedures (except @code{HALT},
+@code{NEW}, @code{DISPOSE} and, under non constant conditions,
+@code{LENGTH}) generate in-line code for efficiency.
 
 @example
 
 (*
-   NEW - the procedure NEW is replaced by:
-         ALLOCATE(p, TSIZE(p^)) ;
-         The user is expected to import the procedure ALLOCATE
-         (normally found in the module, Storage.)
-
-         In:  a variable p: of any pointer type.
-         Out: variable, p, is set to some allocated memory
-              which is large enough to hold all the contents of p^.
+   ABS - returns the positive value of, i.
 *)
 
-@findex NEW
-PROCEDURE NEW (VAR p:<any pointer type>) ;
+@findex ABS
+PROCEDURE ABS (i: <any signed type>) : <any signed type> ;
+
+@end example
+
+@example
+
+(*
+   CAP - returns the capital of character, ch, providing
+         ch lies within the range 'a'..'z'. Otherwise, ch,
+         is returned unaltered.
+*)
+
+@findex CAP
+PROCEDURE CAP (ch: CHAR) : CHAR ;
+
+@end example
+
+@example
+
+(*
+   CHR - converts a value of a <whole number type> into a CHAR.
+         CHR(x) is shorthand for VAL(CHAR, x).
+*)
+
+@findex CHR
+PROCEDURE CHR (x: <whole number type>) : CHAR ;
+
 @end example
 
 @example
@@ -756,21 +776,6 @@ PROCEDURE DISPOSE (VAR p:<any pointer type>) ;
 @example
 
 (*
-   INC - can either take one or two parameters.  If supplied
-         with one parameter then on the completion of the call to
-         INC, v will have its successor value.  If two
-         parameters are supplied then the value, v, will have its
-         n'th successor.  For these reasons the value of n
-         must be >=0.
-*)
-
-@findex INC
-PROCEDURE INC (VAR v: <any base type>; [n: <any base type> = 1]) ;
-@end example
-
-@example
-
-(*
    DEC - can either take one or two parameters.  If supplied
          with one parameter then on the completion of the call to
          DEC, v will have its predecessor value.  If two
@@ -786,21 +791,21 @@ PROCEDURE DEC (VAR v: <any base type>; [n: <any base type> = 1]) ;
 @example
 
 (*
-   INCL - includes bit element, e, to a set type, s.
-*)
-
-@findex INCL
-PROCEDURE INCL (VAR s: <any set type>; e: <element of set type s>) ;
-@end example
-
-@example
-
-(*
    EXCL - excludes bit element, e, from a set type, s.
 *)
 
 @findex EXCL
 PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
+@end example
+
+@example
+
+(*
+   FLOAT - will return a REAL number whose value is the same as, o.
+*)
+
+@findex FLOAT
+PROCEDURE FLOAT (o: <any whole number type>) : REAL ;
 @end example
 
 @example
@@ -812,11 +817,7 @@ PROCEDURE EXCL (VAR s: <any set type>; e: <element of set type s>) ;
 
 @findex HALT
 PROCEDURE HALT ;
-
 @end example
-
-The following define the standard set of functions which conform with
-Programming in Modula-2 and ISO Modula-2.
 
 @example
 
@@ -845,25 +846,132 @@ PROCEDURE HIGH (a: ARRAY OF CHAR) : CARDINAL ;
 @example
 
 (*
-   CAP - returns the capital of character, ch, providing
-         ch lies within the range 'a'..'z'. Otherwise, ch,
-         is returned unaltered.
+   INC - can either take one or two parameters.  If supplied
+         with one parameter then on the completion of the call to
+         INC, v will have its successor value.  If two
+         parameters are supplied then the value, v, will have its
+         n'th successor.  For these reasons the value of n
+         must be >=0.
 *)
 
-@findex CAP
-PROCEDURE CAP (ch: CHAR) : CHAR ;
+@findex INC
+PROCEDURE INC (VAR v: <any base type>; [n: <any base type> = 1]) ;
+@end example
+
+@example
+
+(*
+   INCL - includes bit element, e, to a set type, s.
+*)
+
+@findex INCL
+PROCEDURE INCL (VAR s: <any set type>; e: <element of set type s>) ;
+@end example
+
+@example
+
+(*
+   LFLOAT - will return a LONGREAL number whose value is the same as, o.
+*)
+
+@findex LFLOAT
+PROCEDURE LFLOAT (o: <any whole number type>) : LONGREAL ;
+@end example
+
+@example
+
+(*
+   LTRUNC - will return a LONG<type> number whose value is the same as, o.
+            PIM2, PIM3 and ISO Modula-2 will return a LONGCARD
+            whereas PIM4 returns LONGINT.
+*)
+
+@findex LTRUNC
+PROCEDURE LTRUNC (o: <any floating point type>) : LONG<type> ;
+@end example
+
+@example
+
+(*
+   MIN - returns the lowest legal value of an ordinal type.
+*)
+
+@findex MIN
+PROCEDURE MIN (t: <ordinal type>) : <ordinal type> ;
 
 @end example
 
 @example
 
 (*
-   ABS - returns the positive value of, i.
+   MAX - returns the largest legal value of an ordinal type.
 *)
 
-@findex ABS
-PROCEDURE ABS (i: <any signed type>) : <any signed type> ;
+@findex MAX
+PROCEDURE MAX (t: <ordinal type>) : <ordinal type> ;
 
+@end example
+
+@example
+
+(*
+   NEW - the procedure NEW is replaced by:
+         ALLOCATE(p, TSIZE(p^)) ;
+         The user is expected to import the procedure ALLOCATE
+         (normally found in the module, Storage.)
+
+         In:  a variable p: of any pointer type.
+         Out: variable, p, is set to some allocated memory
+              which is large enough to hold all the contents of p^.
+*)
+
+@findex NEW
+PROCEDURE NEW (VAR p:<any pointer type>) ;
+@end example
+
+@example
+
+(*
+   ODD - returns TRUE if the value is not divisible by 2.
+*)
+
+@findex ODD
+PROCEDURE ODD (x: <whole number type>) : BOOLEAN ;
+
+@end example
+
+@example
+
+(*
+   SFLOAT - will return a SHORTREAL number whose value is the same as, o.
+*)
+
+@findex SFLOAT
+PROCEDURE SFLOAT (o: <any whole number type>) : SHORTREAL ;
+@end example
+
+@example
+
+(*
+   STRUNC - will return a SHORT<type> number whose value is the same as, o.
+            PIM2, PIM3 and ISO Modula-2 will return a SHORTCARD
+            whereas PIM4 returns SHORTINT.
+*)
+
+@findex STRUNC
+PROCEDURE STRUNC (o: <any floating point type>) : SHORT<type> ;
+@end example
+
+@example
+
+(*
+   TRUNC - will return a <type> number whose value is the same as, o.
+           PIM2, PIM3 and ISO Modula-2 will return a CARDINAL
+           whereas PIM4 returns INTEGER.
+*)
+
+@findex TRUNC
+PROCEDURE TRUNC (o: <any floating point type>) : <type> ;
 @end example
 
 @example
@@ -880,52 +988,33 @@ PROCEDURE VAL (<any simple data type 1>,
 
 @end example
 
-@example
-(*
-   CHR - converts a value of a <whole number type> into a CHAR.
-         CHR(x) is shorthand for VAL(CHAR, x).
-*)
-
-@findex CHR
-PROCEDURE CHR (x: <whole number type>) : CHAR ;
-
-@end example
-
-@example
-(*
-   ODD - returns TRUE if the value is not divisible by 2.
-*)
-
-@findex ODD
-PROCEDURE ODD (x: <whole number type>) : BOOLEAN ;
-
-@end example
-
-@example
-(*
-   MIN - returns the lowest legal value of an ordinal type.
-*)
-
-@findex MIN
-PROCEDURE MIN (t: <ordinal type>) : <ordinal type> ;
-
-@end example
-
-@example
-(*
-   MAX - returns the largest legal value of an ordinal type.
-*)
-
-@findex MAX
-PROCEDURE MAX (t: <ordinal type>) : <ordinal type> ;
-
-@end example
-
-
 @subsection ISO specific standard procedures and functions
 
 The standard function @code{LENGTH} is specific to ISO Modula-2 and
 is defined as:
+
+@example
+
+(*
+   IM - returns the imaginary component of a complex type.
+        The return value will the same type as the imaginary field
+        within the complex type.
+*)
+
+@findex IM
+PROCEDURE IM (c: <any complex type>) : <floating point type> ;
+@end example
+
+@example
+
+(*
+   INT - returns an INTEGER value which has the same value as, v.
+         This function is equivalent to: VAL(INTEGER, v).
+*)
+
+@findex INT
+PROCEDURE INT (v: <any ordinal type>) : INTEGER ;
+@end example
 
 @example
 
@@ -935,14 +1024,34 @@ is defined as:
 
 @findex LENGTH
 PROCEDURE LENGTH (a: ARRAY OF CHAR) : CARDINAL ;
-
 @end example
 
 This function is evaluated at compile time, providing that string
 @code{a} is a constant. If @code{a} cannot be evaluated then a call is
 made to @code{M2RTS.Length}.
 
-@c complete other ISO functions
+@example
+
+(*
+   ODD - returns a BOOLEAN indicating whether the whole number
+         value, v, is odd.
+*)
+
+@findex ODD
+PROCEDURE ODD (v: <any whole number type>) : BOOLEAN ;
+@end example
+
+@example
+
+(*
+   RE - returns the real component of a complex type.
+        The return value will the same type as the real field
+        within the complex type.
+*)
+
+@findex RE
+PROCEDURE RE (c: <any complex type>) : <floating point type> ;
+@end example
 
 @node Dialect, Extensions, Standard procedures, Using
 @section GNU Modula-2 supported dialects
