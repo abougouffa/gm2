@@ -832,7 +832,7 @@ GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
 # turned off -O2 while hunting down a critical bug
 #
 
-O2=-O0-g
+O2=-O0 -g
 SO_O2=-O0 -g -fPIC
 SO=-O0 -g -fPIC
 

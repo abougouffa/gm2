@@ -26,9 +26,12 @@
  * Start date : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.5 2006/09/19 20:08:34 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.6 2010/02/18 16:44:13 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.6  2010/02/18 16:44:13  gaius
+ * fixed options
+ *
  * Revision 1.5  2006/09/19 20:08:34  gaius
  * *** empty log message ***
  *
@@ -236,24 +239,29 @@ static void ParseFile (char *Name)
 
 static void ParseFileLinkCommand (void)
 {
-    char name[MAX_FILE_NAME];
+  char name[MAX_FILE_NAME];
+  char *s;
 
+  s = getenv("CC");
+  if (s == NULL)
     printf("gcc -g");
-    if (ProfilePGCommand) {
-	printf(" -pg");
-    } else if (ProfilePCommand) {
-        printf(" -p");
-    }
-    while (PutChar(GetChar()) != (char)EOF) {
-	CopyUntilEolInto(name);
+  else
+    printf("%s -g", s);
+
+  if (ProfilePGCommand)
+    printf(" -pg");
+  else if (ProfilePCommand)
+    printf(" -p");
+
+  while (PutChar(GetChar()) != (char)EOF) {
+    CopyUntilEolInto(name);
 #if defined(XENIX)
-	name[10] = (char)0;  /* truncate object file name */
+    name[10] = (char)0;  /* truncate object file name */
 #endif
-	if ((strlen(name) > 0) && (name[0] != '#')) {
-	    FindObject(name);
-	}
-    }
-    printf(" %s\n", P2CLibrary);
+    if ((strlen(name) > 0) && (name[0] != '#'))
+      FindObject(name);
+  }
+  printf(" %s\n", P2CLibrary);
 }
 
 
