@@ -82,7 +82,7 @@ typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
 					     "pim-coroutine", "pim-coroutine" };
 
-static const char *archiveName[maxlib+1] = { "libiso", "libgm2", "libgm2ulm", "libgm2min", "libgm2pim",
+static const char *archiveName[maxlib+1] = { "libgm2iso", "libgm2", "libgm2ulm", "libgm2min", "libgm2pim",
 					     "libgm2pco", "libgm2min" };
 
 typedef enum { LIB, LIB_SO, LIB_O2, LIB_SO_O2, LIB_MAX } styles;
