@@ -29,6 +29,6 @@ foreach testcase [lsort [glob -nocomplain $srcdir/$subdir/*.mod]] {
     if ![runtest_file_p $runtests $testcase] then {
 	continue
     }
-
+    gm2_target_compile $srcdir/$subdir/mystrlib.mod mystrlib.o object "-g -O3 -I$srcdir/$subdir/"
     gm2-torture $testcase
 }

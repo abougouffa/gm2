@@ -39,7 +39,7 @@ VAR
    i               : CARDINAL ;
 BEGIN
    i := 99999 ;
-   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= FLOATL(i) DO
+   WHILE x/ToThePower10(1.0, NonTruncedDigits) >= LFLOAT(i) DO
       INC(NonTruncedDigits)
    END
 END testfloat4.
