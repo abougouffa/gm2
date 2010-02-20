@@ -1064,8 +1064,23 @@ m2pp_integer (pretty *s, tree t)
     m2pp_print (s, "CARDINAL");
   else if (t == gccgm2_GetM2ShortCardType ())
     m2pp_print (s, "SHORTCARD");
-  else
-    m2pp_print (s, " an INTEGER type --fixme--");
+  else if (t == gccgm2_GetCardinalType ())
+    m2pp_print (s, "CARDINAL");
+  else if (t == gccgm2_GetPointerType ())
+    m2pp_print (s, "ADDRESS");
+  else if (t == gccgm2_GetByteType ())
+    m2pp_print (s, "BYTE");
+  else if (t == gccgm2_GetCharType ())
+    m2pp_print (s, "CHAR");
+  else if (t == gccgm2_GetBitsetType ())
+    m2pp_print (s, "BITSET");
+  else if (t == gccgm2_GetBitnumType ())
+    m2pp_print (s, "BITNUM");
+  else {
+    stop ();
+    m2pp_print (s, " INTEGER");
+    m2pp_integer_cst (s, TYPE_SIZE (t));
+  }
 #else      
   m2pp_print (s, "INTEGER");
 #endif

@@ -1238,7 +1238,9 @@ BEGIN
       (* remember we must add one as HIGH(a) means we can legally reference a[HIGH(a)] *)      
       INC(i)
    END ;
-   RETURN( BuildMult(t, FindSize(ArrayType), FALSE) )
+   RETURN( BuildConvert(GetIntegerType (),
+                        BuildMult(t, FindSize(ArrayType), FALSE),
+                        FALSE) )
 END GetSizeOfHighFromUnbounded ;
 
 

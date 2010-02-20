@@ -824,16 +824,8 @@ GM2_MIN_FLAGS=$(GM2_G) $(GM2_O) \
  -Wpedantic-cast -Wpedantic-param-names -fno-exceptions \
  -ffunction-sections -fdata-sections
 
-# O2=-O2 -g
-# SO_O2=-O2 -g -fPIC
-# SO=-O0 -g -fPIC
-
-#
-# turned off -O2 while hunting down a critical bug
-#
-
-O2=-O0 -g
-SO_O2=-O0 -g -fPIC
+O2=-O2 -g
+SO_O2=-O2 -g -fPIC
 SO=-O0 -g -fPIC
 
 # Language-specific object files for the gm2 compiler.
