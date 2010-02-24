@@ -1,3 +1,21 @@
+2010-02-24       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  corrected dates and removed unnecessary
+	  duplication of source code installation of libraries in
+	  O2, SO and SO_O2 directories.
+	* gm2/gm2/gm2spec.c:  add a default include path determining
+	  where the one copy of the library source files exists.
+	* gm2/gm2-compiler/M2Base.def:  define INT, INTS and INTL
+	  ISO functions.  Also provide FLOATL, FLOATS, TRUNCS, TRUNCL
+	  pervasive procedure functions.
+	* gm2/gm2-compiler/M2Base.mod:  implement INT, INTS and INTL
+	  ISO functions.
+	* gm2/gm2-compiler/M2Quads.mod:  BuildIntFunction new procedure.
+	  Fix error recovery bug reported by Scott Iverson which was
+	  exposed by foo(ADR(undefinedvar)).
+	* gm2/gm2-compiler/M2Range.mod:  convert High value to Integer
+	  type before index out of range comparison is performed.
+
 2010-02-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  turn on optimization for the O2

@@ -49,6 +49,7 @@ EXPORT QUALIFIED Nil,                   (* Base constants          *)
                  Cap, Abs, Odd,
                  Chr, Val,
                  IsTrunc, IsFloat,
+                 IsInt,
                  Min, Max,
                  New, Dispose,          (* Base procedures         *)
                  Inc, Dec,
@@ -227,6 +228,14 @@ PROCEDURE IsTrunc (sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsFloat (sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsInt - returns TRUE if, sym, is INT or its typed counterparts
+           INTL, INTS.
+*)
+
+PROCEDURE IsInt (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

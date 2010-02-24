@@ -1,6 +1,6 @@
 # Top level -*- makefile -*- fragment for GNU GM2.
 #   Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-#                 2009
+#                 2009, 2010
 #   Free Software Foundation, Inc.
 
 #This file is part of GNU CC.
@@ -508,15 +508,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
-              if [ ! -d $$i ] ; then \
-                 rm -f $(GM2_LIB_DIR_PIM)/SO/$$i ; \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO ; \
-              fi ; \
-           fi ; \
-        done ; \
-	for i in x gm2/gm2-libs/SO/*.a gm2/gm2-libs/*.def ; do \
+	for i in x gm2/gm2-libs/SO/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/SO/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -524,15 +516,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
-              if [ ! -d $$i ] ; then \
-                 rm -f $(GM2_LIB_DIR_PIM)/O2/$$i ; \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/O2 ; \
-              fi ; \
-           fi ; \
-        done ; \
-	for i in x gm2/gm2-libs/O2/*.a gm2/gm2-libs/*.def ; do \
+	for i in x gm2/gm2-libs/O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -540,15 +524,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs/*.def $(srcdir)/gm2/gm2-libs/*.mod ; do \
-           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
-              if [ ! -d $$i ] ; then \
-                 rm -f $(GM2_LIB_DIR_PIM)/SO_O2/$$i ; \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PIM)/SO_O2 ; \
-              fi ; \
-           fi ; \
-        done ; \
-	for i in x gm2/gm2-libs/SO_O2/*.a gm2/gm2-libs/*.def ; do \
+	for i in x gm2/gm2-libs/SO_O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/SO_O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -612,15 +588,7 @@ gm2.install-common: installdirs \
                fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs-iso/*.def $(srcdir)/gm2/gm2-libs-iso/*.mod ; do \
-           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
-              if [ ! -d $$i ] ; then \
-                 rm -f $(GM2_LIB_DIR_ISO)/SO/$$i ; \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/SO ; \
-              fi ; \
-           fi ; \
-        done ; \
-	for i in x gm2/gm2-libs-iso/SO/*.a gm2/gm2-libs-iso/*.def ; do \
+	for i in x gm2/gm2-libs-iso/SO/*.a ; do \
            rm -f $(GM2_LIB_DIR_ISO)/SO/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -628,15 +596,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in $(srcdir)/gm2/gm2-libs-iso/*.def $(srcdir)/gm2/gm2-libs-iso/*.mod ; do \
-           if [ "`basename $$i`" != "SYSTEM.def" ] ; then \
-              if [ ! -d $$i ] ; then \
-                 rm -f $(GM2_LIB_DIR_ISO)/O2/$$i ; \
-                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO)/O2 ; \
-              fi ; \
-           fi ; \
-        done ; \
-	for i in x gm2/gm2-libs-iso/O2/*.a gm2/gm2-libs-iso/*.def ; do \
+	for i in x gm2/gm2-libs-iso/O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_ISO)/O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \

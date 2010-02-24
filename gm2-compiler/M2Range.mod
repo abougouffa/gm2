@@ -2321,7 +2321,7 @@ BEGIN
       THEN
          UnboundedType := GetType(des) ;
          Assert(IsUnbounded(UnboundedType)) ;
-         high := GetHighFromUnbounded(dimension, des) ;
+         high := BuildConvert(GetIntegerType(), GetHighFromUnbounded(dimension, des), FALSE) ;
          e := BuildConvert(GetIntegerType(), DeReferenceLValue(expr), FALSE) ;
          IfOutsideLimitsDo(GetIntegerZero(), e, high, r, scopeDesc)
       ELSE

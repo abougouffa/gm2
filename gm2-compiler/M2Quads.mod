@@ -142,7 +142,8 @@ FROM M2Base IMPORT True, False, Boolean, Cardinal, Integer, Char,
                    CheckAssignmentCompatible, CheckExpressionCompatible,
                    High, LengthS, New, Dispose, Inc, Dec, Incl, Excl,
                    Cap, Abs, Odd,
-                   IsOrd, Chr, Convert, Val, IsFloat, IsTrunc, Min, Max,
+                   IsOrd, Chr, Convert, Val, IsFloat, IsTrunc,
+                   IsInt, Min, Max,
                    IsPseudoBaseProcedure, IsPseudoBaseFunction,
                    IsMathType, IsOrdinalType, IsRealType,
                    IsBaseType, GetBaseTypeMinMax, ActivationPointer ;
@@ -476,6 +477,7 @@ PROCEDURE BuildCmplxFunction ; FORWARD ;
 PROCEDURE BuildConstHighFromSym ; FORWARD ;
 PROCEDURE IncOperandD (pos: CARDINAL) ; FORWARD ;
 PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE BuildIntFunction (Sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -6562,6 +6564,9 @@ BEGIN
    ELSIF IsOrd(ProcSym)
    THEN
       BuildOrdFunction(ProcSym)
+   ELSIF IsInt(ProcSym)
+   THEN
+      BuildIntFunction(ProcSym)
    ELSIF IsTrunc(ProcSym)
    THEN
       BuildTruncFunction(ProcSym)
@@ -7406,6 +7411,72 @@ BEGIN
       WriteFormat1('the pseudo procedure %a only has one parameter', n)
    END
 END BuildOrdFunction ;
+
+
+(*
+   BuildIntFunction - builds the pseudo procedure call INT.
+                      This procedure is actually a "macro" for
+                      INT(x) --> CONVERT(INTEGER, x)
+                      However we cannot push tokens back onto the input stack
+                      because the compiler is currently building a function
+                      call and expecting a ReturnVar on the stack.
+                      Hence we manipulate the stack and call
+                      BuildConvertFunction.
+
+                      The Stack:
+
+
+                      Entry                      Exit
+
+               Ptr ->
+                      +----------------+
+                      | NoOfParam      |
+                      |----------------|
+                      | Param 1        |
+                      |----------------|
+                      | Param 2        |
+                      |----------------|
+                      .                .
+                      .                .
+                      .                .
+                      |----------------|
+                      | Param #        |
+                      |----------------|
+                      | ProcSym | Type |         Empty
+                      |----------------|
+*)
+
+PROCEDURE BuildIntFunction (Sym: CARDINAL) ;
+VAR
+   n        : Name ;
+   NoOfParam,
+   Type, Var: CARDINAL ;
+BEGIN
+   PopT(NoOfParam) ;
+   IF NoOfParam=1
+   THEN
+      Var := OperandT(1) ;
+      IF IsVar(Var) OR IsConst(Var)
+      THEN
+         Type := GetType(Sym) ;  (* return type of function *)
+         PopN(NoOfParam+1) ;
+         (*
+            Build macro: CONVERT( CARDINAL, Var )
+         *)
+         PushTF(Convert, NulSym) ;
+         PushT(Type) ;
+         PushT(Var) ;
+         PushT(2) ;          (* Two parameters *)
+         BuildConvertFunction
+      ELSE
+         n := GetSymName(Sym) ;
+         WriteFormat1('argument to %a must be a variable or constant', n)
+      END
+   ELSE
+      n := GetSymName(Sym) ;
+      WriteFormat1('the pseudo procedure %a only has one parameter', n)
+   END
+END BuildIntFunction ;
 
 
 (*
@@ -8410,7 +8481,9 @@ BEGIN
    ProcSym := OperandT(NoOfParam+1) ;
    IF NoOfParam#1
    THEN
-      WriteFormat0('SYSTEM procedure ADR expects 1 parameter')
+      WriteFormat0('SYSTEM procedure ADR expects 1 parameter') ;
+      PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
+      PushTF(Nil, Address)
    ELSIF IsConstString(OperandT(1))
    THEN
       ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;
@@ -8418,7 +8491,9 @@ BEGIN
       PushTF(ReturnVar, GetType(ReturnVar))
    ELSIF (NOT IsVar(OperandT(1))) AND (NOT IsProcedure(OperandT(1)))
    THEN
-      WriteFormat0('SYSTEM procedure ADR expects a variable, procedure or a constant string as its parameter')
+      WriteFormat0('SYSTEM procedure ADR expects a variable, procedure or a constant string as its parameter') ;
+      PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
+      PushTF(Nil, Address)
    ELSIF IsProcedure(OperandT(1))
    THEN
       ReturnVar := MakeLeftValue(OperandT(1), RightValue, GetType(ProcSym)) ;

@@ -148,10 +148,13 @@ VAR
    Ass        : CompatibilityArray ;
    Ord,
    OrdS, OrdL,
-   Float, FloatS,
-   FloatL,
-   Trunc, TruncS,
-   TruncL,
+   Float,
+   FloatS, SFloat,
+   FloatL, LFloat,
+   Trunc,
+   TruncS, STrunc,
+   TruncL, LTrunc,
+   Int, IntS, IntL,
    m2rts,
    MinReal,
    MaxReal,
@@ -735,7 +738,10 @@ END BuildTruncFunctions ;
 
 PROCEDURE IsFloat (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN (sym=Float) OR (sym=FloatS) OR (sym=FloatL)
+   RETURN(
+          (sym=Float) OR (sym=FloatS) OR (sym=FloatL) OR
+          (sym=SFloat) OR (sym=LFloat)
+         )
 END IsFloat ;
 
 
@@ -747,11 +753,41 @@ PROCEDURE BuildFloatFunctions ;
 BEGIN
    Float := MakeProcedure(MakeKey('FLOAT')) ;
    PutFunction(Float, Real) ;
-   FloatS := MakeProcedure(MakeKey('SFLOAT')) ;
-   PutFunction(FloatS, ShortReal) ;
-   FloatL := MakeProcedure(MakeKey('LFLOAT')) ;
+   SFloat := MakeProcedure(MakeKey('SFLOAT')) ;
+   PutFunction(SFloat, ShortReal) ;
+   LFloat := MakeProcedure(MakeKey('LFLOAT')) ;
+   PutFunction(LFloat, LongReal) ;
+   SFloat := MakeProcedure(MakeKey('FLOATS')) ;
+   PutFunction(SFloat, ShortReal) ;
+   FloatL := MakeProcedure(MakeKey('FLOATL')) ;
    PutFunction(FloatL, LongReal)
 END BuildFloatFunctions ;
+
+
+(*
+   IsInt - returns TRUE if, sym, is INT or its typed counterparts
+           INTL, INTS.
+*)
+
+PROCEDURE IsInt (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN (sym=Int) OR (sym=IntS) OR (sym=IntL)
+END IsInt ;
+
+
+(*
+   BuildIntFunctions - creates INT, INTS, INTL.
+*)
+
+PROCEDURE BuildIntFunctions ;
+BEGIN
+   Int := MakeProcedure(MakeKey('INT')) ;
+   PutFunction(Int, Integer) ;
+   IntS := MakeProcedure(MakeKey('INTS')) ;
+   PutFunction(IntS, ShortInt) ;
+   IntL := MakeProcedure(MakeKey('INTL')) ;
+   PutFunction(IntL, LongInt)
+END BuildIntFunctions ;
 
 
 (*
@@ -796,7 +832,8 @@ BEGIN
    Cmplx := MakeProcedure(MakeKey('CMPLX')) ;    (* Pseudo Base function CMPLX   *)
    BuildFloatFunctions ;
    BuildTruncFunctions ;
-   BuildOrdFunctions
+   BuildOrdFunctions ;
+   BuildIntFunctions
 END InitBaseFunctions ;
 
 

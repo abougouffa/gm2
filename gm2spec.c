@@ -751,6 +751,9 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
   s = get_style (seen_flags);
   add_default_directories (inclPos, (char ***)in_argv, libpath,
 			   "-I", libraries, s, gm2ipath);
+  if (s != LIB)
+    add_default_directories (inclPos, (char ***)in_argv, libpath,
+			     "-I", libraries, LIB, gm2ipath);
   add_exec_prefix (1, in_argc, (char ***)in_argv);
 
   if (linkPos == -1) {
