@@ -15,6 +15,8 @@
 	  exposed by foo(ADR(undefinedvar)).
 	* gm2/gm2-compiler/M2Range.mod:  convert High value to Integer
 	  type before index out of range comparison is performed.
+	* gm2/gm2.texi:  update documentation to include FLOATL, FLOATS,
+	  TRUNCS and TRUNCL pervasive procedure functions.
 
 2010-02-20       Gaius Mulley <gaius@gnu.org>
 

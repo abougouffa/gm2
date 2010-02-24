@@ -811,6 +811,26 @@ PROCEDURE FLOAT (o: <any whole number type>) : REAL ;
 @example
 
 (*
+   FLOATS - will return a SHORTREAL number whose value is the same as, o.
+*)
+
+@findex FLOATS
+PROCEDURE FLOATS (o: <any whole number type>) : REAL ;
+@end example
+
+@example
+
+(*
+   FLOATL - will return a LONGREAL number whose value is the same as, o.
+*)
+
+@findex FLOATL
+PROCEDURE FLOATL (o: <any whole number type>) : REAL ;
+@end example
+
+@example
+
+(*
    HALT - will call the HALT procedure inside the module M2RTS.
           Users can replace M2RTS.
 *)
@@ -972,6 +992,30 @@ PROCEDURE STRUNC (o: <any floating point type>) : SHORT<type> ;
 
 @findex TRUNC
 PROCEDURE TRUNC (o: <any floating point type>) : <type> ;
+@end example
+
+@example
+
+(*
+   TRUNCS - will return a <type> number whose value is the same as, o.
+            PIM2, PIM3 and ISO Modula-2 will return a SHORTCARD
+            whereas PIM4 returns SHORTINT.
+*)
+
+@findex TRUNCS
+PROCEDURE TRUNCS (o: <any floating point type>) : <type> ;
+@end example
+
+@example
+
+(*
+   TRUNCL - will return a <type> number whose value is the same as, o.
+            PIM2, PIM3 and ISO Modula-2 will return a LONGCARD
+            whereas PIM4 returns LONGINT.
+*)
+
+@findex TRUNCL
+PROCEDURE TRUNCL (o: <any floating point type>) : <type> ;
 @end example
 
 @example
