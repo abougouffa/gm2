@@ -1,3 +1,31 @@
+2010-02-25       Gaius Mulley <gaius@gnu.org>
+
+	* calling-c/datatypes/unbounded/run/pass/gm2.exp:
+	* complex/run/pass/gm2.exp:
+	* examples/callingC/run/pass/gm2.exp:
+	* exceptions/run/pass/gm2.exp:
+	* extensions/run/fail/gm2.exp:
+	* extensions/run/pass/gm2.exp:
+	* iso/run/pass/gm2.exp:
+	* isolib/run/pass/gm2.exp:
+	* linking/libarchive/pass/gm2.exp:
+	* pim/options/optimize/run/pass/gm2.exp:
+	* pim/run/fail/gm2.exp:
+	* pim/run/pass/gm2.exp:
+	* pimlib/base/run/pass/gm2.exp:
+	* pimlib/logitech/run/pass/gm2.exp:
+	* pimlib/run/pass/gm2.exp:
+	* pimlib/ulm/run/pass/gm2.exp:
+	* quads/run/pass/gm2.exp:
+	* switches/check-all/run/pass/gm2.exp:
+	* switches/iso/run/pass/gm2.exp:
+	* switches/pim2/run/pass/gm2.exp:
+	* switches/pim3/run/pass/gm2.exp:
+	* switches/pim4/run/pass/gm2.exp:
+	* types/run/pass/gm2.exp:  all have their link paths
+	  corrected.  Tests should now run on machines without
+	  a preinstalled gm2.
+	
 2010-02-24       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  corrected dates and removed unnecessary
