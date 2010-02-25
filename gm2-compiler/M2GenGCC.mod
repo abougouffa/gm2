@@ -2564,7 +2564,7 @@ BEGIN
       ConstantKnownAndUsed(op1, CheckConstant(op1, op3))
    ELSIF IsConstString(op3) AND (SkipTypeAndSubrange(GetType(op1))#Char)
    THEN
-      DoCopyString(t, op3t, GetType(op1), op3) ;
+      DoCopyString(t, op3t, SkipType(GetType(op1)), op3) ;
       AddStatement(BuiltInMemCopy(BuildAddr(Mod2Gcc(op1), FALSE),
                                   BuildAddr(op3t, FALSE),
                                   t))

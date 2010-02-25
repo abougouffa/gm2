@@ -5261,7 +5261,7 @@ BEGIN
       MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
    ELSIF IsVar(Sym)
    THEN
-      Type := GetType(Sym) ;
+      Type := SkipType(GetType(Sym)) ;
       IF IsUnbounded(Type)
       THEN
          IF Type=GetType(UnboundedSym)
@@ -5317,7 +5317,7 @@ BEGIN
       UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
    ELSIF IsVar(Sym)
    THEN
-      Type := GetType(Sym) ;
+      Type := SkipType(GetType(Sym)) ;
       IF IsUnbounded(Type)
       THEN
          UnboundedNonVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
