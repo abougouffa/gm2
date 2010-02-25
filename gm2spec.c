@@ -82,8 +82,8 @@ typedef enum { iso, pim, ulm, min, logitech, pimcoroutine, maxlib } libs;
 static const char *libraryName[maxlib+1] = { "iso", "pim", "ulm", "min", "logitech",
 					     "pim-coroutine", "pim-coroutine" };
 
-static const char *archiveName[maxlib+1] = { "libgm2iso", "libgm2", "libgm2ulm", "libgm2min", "libgm2pim",
-					     "libgm2pco", "libgm2min" };
+static const char *archiveName[maxlib+1] = { "gm2iso", "gm2", "gm2ulm", "gm2min", "gm2pim",
+					     "gm2pco", "gm2min" };
 
 typedef enum { LIB, LIB_SO, LIB_O2, LIB_SO_O2, LIB_MAX } styles;
 
@@ -385,49 +385,90 @@ add_lib (int *in_argc, const char *const **in_argv, const char *lib)
 }
 
 /*
- *  build_archive - returns a string containing the a path to the
- *                  archive defined by, libpath, s, and, dialectLib.
+ *  build_archive_path - returns a string containing the a path to the
+ *                       archive defined by, libpath, s, and, dialectLib.
  */
 
 static const char *
-build_archive (const char *libpath,
-	       libs dialectLib,
-	       styles style)
+build_archive_path (const char *libpath,
+		    libs dialectLib,
+		    styles style)
 {
   if (dialectLib == maxlib)
     return NULL;
   else {
     const char *style_name = libraryStyle[style].directory;
     const char *libdir = (const char *)libraryName[dialectLib];
-    const char *archive = (const char *)archiveName[dialectLib];
-    int l = strlen (libpath) + 1 +
+    int l = strlen("-L") + strlen (libpath) + 1 +
       strlen("lib") + 1 + strlen("gcc") + 1 +
       strlen (DEFAULT_TARGET_MACHINE) + 1 +
       strlen (DEFAULT_TARGET_VERSION) + 1 +
       strlen (style_name) + 1 +
-      strlen (libdir) + 1 +
-      strlen (archive) + 1 +
-      strlen ("lib.a") + 1;
+      strlen (libdir) + 1;
     char *s = (char *) xmalloc (l);
     char dir_sep[2];
 
     dir_sep[0] = DIR_SEPARATOR;
     dir_sep[1] = (char)0;
     
-    strcpy (s, libpath);
+    strcpy (s, "-L");
+    strcat (s, libpath);
     strcat (s, dir_sep);
     strcat (s, "gm2");
     strcat (s, dir_sep);
     strcat (s, libdir);
-    strcat (s, dir_sep);
     if (strlen(style_name) != 0) {
-      strcat (s, style_name);
       strcat (s, dir_sep);
+      strcat (s, style_name);
     }
-    strcat (s, archive);
-    strcat (s, ".a");
     return s;
   }
+}
+
+/*
+ *  build_archive - returns a string containing the a path to the
+ *                  archive defined by, libpath, s, and, dialectLib.
+ */
+
+static char *
+build_archive (libs dialectLib)
+{
+  if (dialectLib == maxlib)
+    return NULL;
+  else {
+    const char *a = archiveName[dialectLib];
+    char *s = (char *) xmalloc (strlen ("-l") + strlen (a) + 1);
+    strcpy (s, "-l");
+    strcat (s, a);
+    return s; 
+  }
+}
+
+/*
+ *  add_default_combinations - adds the correct link path and then the library name.
+ */
+
+static void
+add_default_combinations (int *in_argc,
+			  const char *const **in_argv,
+			  const char *libpath,
+			  libs first,
+			  libs second,
+			  libs third,
+			  styles style)
+{
+  if (first != maxlib)
+    add_lib (in_argc, in_argv, build_archive_path (libpath, first, style));
+  if (second != maxlib)
+    add_lib (in_argc, in_argv, build_archive_path (libpath, second, style));
+  if (third != maxlib)
+    add_lib (in_argc, in_argv, build_archive_path (libpath, third, style));
+  if (first != maxlib)
+    add_lib (in_argc, in_argv, build_archive (first));
+  if (second != maxlib)
+    add_lib (in_argc, in_argv, build_archive (second));
+  if (third != maxlib)
+    add_lib (in_argc, in_argv, build_archive (third));
 }
 
 /*
@@ -445,29 +486,22 @@ add_default_archives (int *in_argc,
   switch (libraries) {
 
   case iso:
-    add_lib (in_argc, in_argv, build_archive (libpath, iso, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    add_default_combinations (in_argc, in_argv, libpath, iso, pim, maxlib, s);
     break;
   case pim:
-    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    add_default_combinations (in_argc, in_argv, libpath, pim, logitech, maxlib, s);
     break;
   case ulm:
-    add_lib (in_argc, in_argv, build_archive (libpath, ulm, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    add_default_combinations (in_argc, in_argv, libpath, ulm, pim, logitech, s);
     break;
   case min:
-    add_lib (in_argc, in_argv, build_archive (libpath, min, s));
+    add_default_combinations (in_argc, in_argv, libpath, min, maxlib, maxlib, s);
     break;
   case logitech:
-    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
+    add_default_combinations (in_argc, in_argv, libpath, logitech, pim, maxlib, s);
     break;
   case pimcoroutine:
-    add_lib (in_argc, in_argv, build_archive (libpath, pimcoroutine, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, pim, s));
-    add_lib (in_argc, in_argv, build_archive (libpath, logitech, s));
+    add_default_combinations (in_argc, in_argv, libpath, pimcoroutine, pim, logitech, s);
     break;
   default:
     fprintf(stderr, "%s:%d:internal error unrecognized case clause\n",

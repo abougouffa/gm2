@@ -25,6 +25,9 @@
 	* types/run/pass/gm2.exp:  all have their link paths
 	  corrected.  Tests should now run on machines without
 	  a preinstalled gm2.
+	* gm2/gm2spec.c:  construct -Lpaths for the various libraries
+	  needed and use -llibname, rather than explicitly referencing
+	  the absolute library though a path.
 	
 2010-02-24       Gaius Mulley <gaius@gnu.org>
 
