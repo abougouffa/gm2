@@ -389,19 +389,28 @@ PROCEDURE doReadLocs (g: ChanDev;
                       to: ADDRESS;
                       maxLocs: CARDINAL;
                       VAR locsRead: CARDINAL) ;
+VAR
+   i: CARDINAL ;
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+raw, d) ;
    WITH d^ DO
       INCL(flags, rawFlag) ;
       checkPreRead(g, d, FALSE, TRUE) ;
-      IF NOT doRBytes(g^.genif, d, to, maxLocs, locsRead)
-      THEN
-         checkErrno(g, d) ;
-         (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, notAvailable,
-                           'rawread unrecoverable errno')
-      END ;
+      locsRead := 0 ;
+      REPEAT
+         IF doRBytes(g^.genif, d, to, maxLocs, i)
+         THEN
+            INC(locsRead, i) ;
+            INC(to, i) ;
+            DEC(maxLocs, i)
+         ELSE
+            checkErrno(g, d) ;
+            (* if our target system does not support errno then we *)
+            RAISEdevException(cid, did, notAvailable,
+                              'rawread unrecoverable errno')
+         END
+      UNTIL (maxLocs=0) OR isEOF(g^.genif, d) ;
       checkPostRead(g, d)
    END
 END doReadLocs ;
