@@ -5241,6 +5241,19 @@ END ManipulateParameters ;
 
 
 (*
+   IsSameUnbounded - returns TRUE if unbounded types, t1, and, t2,
+                     are compatible.
+*)
+
+PROCEDURE IsSameUnbounded (t1, t2: CARDINAL) : BOOLEAN ;
+BEGIN
+   Assert(IsUnbounded(t1)) ;
+   Assert(IsUnbounded(t2)) ;
+   RETURN( SkipType(GetType(t1))=SkipType(GetType(t2)) )
+END IsSameUnbounded ;
+
+
+(*
    AssignUnboundedVar - assigns an Unbounded symbol fields,
                         ArrayAddress and ArrayHigh, from an array symbol.
                         UnboundedSym is not a VAR parameter and therefore
@@ -5249,7 +5262,7 @@ END ManipulateParameters ;
                         Sym can be a Variable with type Array.
                         Sym can be a String Constant.
 
-                        ParamType is the TYPE of the paramater
+                        ParamType is the TYPE of the parameter
 *)
 
 PROCEDURE AssignUnboundedVar (Sym, ArraySym, UnboundedSym, ParamType: CARDINAL; dim: CARDINAL) ;
@@ -5270,9 +5283,10 @@ BEGIN
             PushT(UnboundedSym) ;
             PushT(Sym) ;
             BuildAssignmentWithoutBounds(FALSE)
-         ELSIF IsGenericSystemType(ParamType)
+         ELSIF IsSameUnbounded(Type, GetType(UnboundedSym)) OR
+               IsGenericSystemType(ParamType)
          THEN
-            UnboundedVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)            
+            UnboundedVarLinkToArray(Sym, ArraySym, UnboundedSym, ParamType, dim)
          ELSE
             MetaError1('{%1ad} cannot be passed to a VAR formal parameter', Sym)
          END

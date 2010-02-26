@@ -1,3 +1,15 @@
+2010-02-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Base.mod:  IsArrayUnboundedCompatible
+	  (New procedure).  Use IsArrayUnboundedCompatible to
+	  check type equivalence during parameter passing.
+	* gm2/gm2-compiler/M2Quads.mod:  IsSameUnbounded
+	  (New procedure).  Use IsSameUnbounded to check
+	  type equivalence during parameter passing.
+	  These two procedures differ in their assumptions.
+	* gm2/gm2-libs-iso/RTgen.mod:  allow doReadText to
+	  be implemented with multiple calls to doRBytes.
+
 2010-02-25       Gaius Mulley <gaius@gnu.org>
 
 	* calling-c/datatypes/unbounded/run/pass/gm2.exp:

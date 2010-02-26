@@ -2038,6 +2038,26 @@ END IsVarParamCompatible ;
 
 
 (*
+   IsArrayUnboundedCompatible - returns TRUE if unbounded or array types, t1, and, t2,
+                                are compatible.
+*)
+
+PROCEDURE IsArrayUnboundedCompatible (t1, t2: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF (t1=NulSym) OR (t2=NulSym)
+   THEN
+      RETURN( FALSE)
+   ELSIF (IsUnbounded(t1) OR IsArray(t1)) AND
+         (IsUnbounded(t2) OR IsArray(t2))
+   THEN
+      RETURN( SkipType(GetType(t1))=SkipType(GetType(t2)) )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsArrayUnboundedCompatible ;
+
+
+(*
    IsValidUnboundedParameter - 
 *)
 
@@ -2048,7 +2068,7 @@ VAR
 BEGIN
    Assert(IsParameterUnbounded(formal)) ;
    ft := SkipType(GetType(GetType(formal))) ;    (* ARRAY OF ft *)
-   IF IsGenericSystemType(ft) OR (GetType(formal)=GetType(actual))
+   IF IsGenericSystemType(ft) OR IsArrayUnboundedCompatible(GetType(formal), GetType(actual))
    THEN
       RETURN( TRUE )
    ELSE

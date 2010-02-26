@@ -338,19 +338,28 @@ PROCEDURE doReadText (g: ChanDev;
                       to: ADDRESS;
                       maxChars: CARDINAL;
                       VAR charsRead: CARDINAL) ;
+VAR
+   i: CARDINAL ;
 BEGIN
    checkValid(g, d) ;
    checkFlags(read+text, d) ;
    WITH d^ DO
       INCL(flags, textFlag) ;
       checkPreRead(g, d, FALSE, FALSE) ;
-      IF NOT doRBytes(g^.genif, d, to, maxChars, charsRead)
-      THEN
-         checkErrno(g, d) ;
-         (* if our target system does not support errno then we *)
-         RAISEdevException(cid, did, notAvailable,
-                           'textread unrecoverable errno')
-      END ;
+      charsRead := 0 ;
+      REPEAT
+         IF doRBytes(g^.genif, d, to, maxChars, i)
+         THEN
+            INC(charsRead, i) ;
+            INC(to, i) ;
+            DEC(maxChars, i)
+         ELSE
+            checkErrno(g, d) ;
+            (* if our target system does not support errno then we *)
+            RAISEdevException(cid, did, notAvailable,
+                              'textread unrecoverable errno')
+         END
+      UNTIL (maxChars=0) OR isEOF(g^.genif, d) ;
       checkPostRead(g, d)
    END
 END doReadText ;
