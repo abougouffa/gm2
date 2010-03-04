@@ -22,7 +22,7 @@ DEFINITION MODULE Strings ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Dec 20 13:31:13 2005
-    Last edit  : $Date: 2006/01/10 23:56:19 $ 
+    Last edit  : $Date: 2010/03/04 10:24:50 $ 
     Revision   : $Version$ 
     Description: provides a Logitech-3.0 compatible library
 *)
@@ -31,10 +31,10 @@ EXPORT QUALIFIED Assign, Insert, Delete, Pos, Copy, ConCat, Length,
                  CompareStr ;
 
 (*
-   Assign - source := dest.
+   Assign - dest := source.
 *)
 
-PROCEDURE Assign (VAR source: ARRAY OF CHAR; dest: ARRAY OF CHAR) ;
+PROCEDURE Assign (VAR dest: ARRAY OF CHAR; source: ARRAY OF CHAR) ;
 
 
 (*

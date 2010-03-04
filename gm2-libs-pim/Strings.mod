@@ -26,9 +26,9 @@ IMPORT DynamicStrings ;
    Assign - source := dest.
 *)
 
-PROCEDURE Assign (VAR source: ARRAY OF CHAR; dest: ARRAY OF CHAR) ;
+PROCEDURE Assign (VAR dest: ARRAY OF CHAR; source: ARRAY OF CHAR) ;
 BEGIN
-   StrLib.StrCopy(dest, source)
+   StrLib.StrCopy(source, dest)
 END Assign ;
 
 

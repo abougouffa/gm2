@@ -1,3 +1,15 @@
+2010-03-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  now build and install O2, SO, SO_O2
+	  versions of the coroutines libraries.
+	* gm2/TODO:  removed INT and added allocation of dynamic arrays
+	  using alloca.
+	* gm2/examples/swig/strlib/Makefile:  use PYTHON_VERSION.
+	* gm2/gm2-libs-pim/Strings.def:  corrected parameter names
+	  source and dest in Assign.
+	* gm2/gm2-libs-pim/Strings.mod:  corrected parameter names
+	  source and dest in Assign.
+
 2010-02-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  IsArrayUnboundedCompatible

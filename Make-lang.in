@@ -188,6 +188,9 @@ GM2_DIRS       = $(objdir)/gm2/gm2-compiler-boot \
                  $(objdir)/gm2/gm2-libs-pim/SO \
                  $(objdir)/gm2/gm2-libs-pim/SO_O2 \
                  $(objdir)/gm2/gm2-libs-coroutines \
+                 $(objdir)/gm2/gm2-libs-coroutines/O2 \
+                 $(objdir)/gm2/gm2-libs-coroutines/SO \
+                 $(objdir)/gm2/gm2-libs-coroutines/SO_O2 \
                  $(objdir)/gm2/gm2-libs-min \
                  stage1/gm2 stage2/gm2 stage3/gm2 stage4/gm2
 
@@ -571,6 +574,33 @@ gm2.install-common: installdirs \
               if [ ! -d $$i ] ; then \
                  rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
                  $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-coroutines/O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/O2 ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-coroutines/SO/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/SO ; \
+              fi ; \
+           fi ; \
+        done ; \
+	for i in x gm2/gm2-libs-coroutines/SO_O2/*.a ; do \
+           rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+           if [ -f $$i ] ; then \
+              if [ ! -d $$i ] ; then \
+                 rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
+                 $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO)/SO_O2 ; \
               fi ; \
            fi ; \
         done ; \
@@ -1757,8 +1787,8 @@ build-libs-min: $(objdir)/gm2/gm2-libs-min/SYSTEM.def \
 
 archive-libs-min: build-libs-min
 	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a \
-                $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
-                $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
+        $(GM2-LIBS-MIN-MODS:%.mod=gm2/gm2-libs-min/%.o) \
+        $(GM2-LIBS-MIN-C:%.c=gm2/gm2-libs-min/%.o)
 	$(RANLIB_FOR_TARGET) gm2/gm2-libs-min/libgm2min.a
 
 build-libs: gm2/gm2-libs/gm2-libs-host.h \
@@ -1871,19 +1901,46 @@ archive-libs-pim: build-libs-pim
 	$(RANLIB_FOR_TARGET) gm2/gm2-libs-pim/SO_O2/libgm2pim.a
 
 build-libs-coroutines: $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
-                       gm2/gm2-libs-coroutines/KeyBoardLEDs.o
+                       gm2/gm2-libs-coroutines/KeyBoardLEDs.o \
+                       $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/O2/%.o) \
+                       gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o \
+                       $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/SO/%.o) \
+                       gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o \
+                       $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/SO_O2/%.o) \
+                       gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o
 
 archive-libs-coroutines: build-libs-coroutines
 	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-coroutines/libgm2pco.a \
                 $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/%.o) \
                 gm2/gm2-libs-coroutines/KeyBoardLEDs.o
 	$(RANLIB_FOR_TARGET) gm2/gm2-libs-coroutines/libgm2pco.a
+	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-coroutines/O2/libgm2pco.a \
+                $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/O2/%.o) \
+                gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o
+	$(RANLIB_FOR_TARGET) gm2/gm2-libs-coroutines/O2/libgm2pco.a
+	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-coroutines/SO/libgm2pco.a \
+                $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/SO/%.o) \
+                gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o
+	$(RANLIB_FOR_TARGET) gm2/gm2-libs-coroutines/SO/libgm2pco.a
+	$(AR_CREATE_FOR_TARGET) gm2/gm2-libs-coroutines/SO_O2/libgm2pco.a \
+                $(GM2-LIBS-PIM-COR-MODS:%.mod=gm2/gm2-libs-coroutines/SO_O2/%.o) \
+                gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o
+	$(RANLIB_FOR_TARGET) gm2/gm2-libs-coroutines/SO_O2/libgm2pco.a
 
 gm2/gm2-libs-pim/Break.o: gm2/gm2-libs-pim/Break.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
 gm2/gm2-libs-coroutines/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
+
+gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+	$(CC) $(O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
+
+gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+	$(CC) $(SO) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
+
+gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
+	$(CC) $(SO_O2) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@
@@ -1902,6 +1959,15 @@ gm2/gm2-libs-pim/%.o: gm2/gm2-libs-pim/%.mod
 
 gm2/gm2-libs-coroutines/%.o: gm2/gm2-libs-coroutines/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+
+gm2/gm2-libs-coroutines/O2/%.o: gm2/gm2-libs-coroutines/%.mod
+	$(XGM2_1) $(O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+
+gm2/gm2-libs-coroutines/SO/%.o: gm2/gm2-libs-coroutines/%.mod
+	$(XGM2_1) $(SO) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
+
+gm2/gm2-libs-coroutines/SO_O2/%.o: gm2/gm2-libs-coroutines/%.mod
+	$(XGM2_1) $(SO_O2) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-libs-coroutines:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-pim $< -o $@
 
 gm2/gm2-libs-boot/libgm2.a: gm2/boot-bin/p2c$(exeext) $(BUILD-LIBS-BOOT)
 	$(AR) cr $@ $(GM2-LIBS-BOOT-MODS:%.mod=gm2/gm2-libs-boot/%.o) \
