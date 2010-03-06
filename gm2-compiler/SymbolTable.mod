@@ -913,10 +913,6 @@ BEGIN
    THEN
       InternalError('increase MaxSymbols', __FILE__, __LINE__)
    ELSE
-      IF FreeSymbol=653
-      THEN
-         stop
-      END ;
       Sym := FreeSymbol ;
       WITH Symbols[Sym] DO
          SymbolType := DummySym
@@ -3685,10 +3681,6 @@ END IsProcedureInline ;
 
 PROCEDURE PutConstSet (Sym: CARDINAL) ;
 BEGIN
-   IF Sym=653
-   THEN
-      stop
-   END ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 
@@ -10264,6 +10256,10 @@ END PushVarSize ;
 PROCEDURE PopValue (Sym: CARDINAL) ;
 BEGIN
    CheckLegal(Sym) ;
+   IF Sym=4213
+   THEN
+      stop
+   END ;
    WITH Symbols[Sym] DO
       CASE SymbolType OF
 

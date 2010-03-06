@@ -26,7 +26,7 @@ FROM SymbolTable IMPORT IsConst, PopValue, IsValueSolved, GetSymName,
                         GetType, SkipType ;
 
 FROM M2Error IMPORT InternalError ;
-FROM M2ALU IMPORT PushIntegerTree, PushComplexTree ;
+FROM M2ALU IMPORT PushTypeOfTree ;
 FROM gccgm2 IMPORT GetErrorNode, RememberConstant, GarbageCollect ;
 FROM M2Base IMPORT IsAComplexType ;
 FROM M2Printf IMPORT printf1 ;
@@ -141,12 +141,7 @@ BEGIN
 
    IF IsConst(sym) AND (NOT IsValueSolved(sym))
    THEN
-      IF IsAComplexType(SkipType(GetType(sym)))
-      THEN
-         PushComplexTree(gcc)
-      ELSE
-         PushIntegerTree(gcc)
-      END ;
+      PushTypeOfTree(sym, gcc) ;
       PopValue(sym)
    END
 END AddModGcc ;

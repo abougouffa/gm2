@@ -4,6 +4,13 @@
 	  the size of a undeclared variables so long as its type is known.
 	* gm2/gm2-compiler/M2Quads.mod:  use MetaError2 instead of
 	  FailParameter when incorrect number of parameters are given.
+	* gm2/gm2-compiler/M2ALU.def:  PushTypeOfTree (New procedure).
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  PushTypeOfTree,
+	  PushGCCArrayType, PushGCCSetTree, PushGCCRecordTree new
+	  procedures implemented which take a GCC tree and push it to
+	  the ALU stack and assign the front end type ALU tag.
+	* gm2/gm2-compiler/SymbolConversion.mod:  use PushTypeOfTree.
+	* gm2/gm2-compiler/SymbolTable.mod:  modified debugging hooks.
 
 2010-03-04       Gaius Mulley <gaius@gnu.org>
 

@@ -52,6 +52,7 @@ EXPORT QUALIFIED PtrToValue,
                  PushInt,
                  PushChar,
                  PushString,
+                 PushTypeOfTree,
                  CoerseLongRealToCard,
                  ConvertRealToInt,
                  ConvertToInt,
@@ -964,6 +965,14 @@ PROCEDURE ChangeToConstructor (tokenno: CARDINAL; constype: CARDINAL) ;
 *)
  
 PROCEDURE IsValueConst (v: PtrToValue) : BOOLEAN ;
+
+
+(*
+   PushTypeOfTree - pushes tree, gcc, to the stack and records the
+                    front end type.
+*)
+
+PROCEDURE PushTypeOfTree (sym: CARDINAL; gcc: Tree) ;
 
 
 END M2ALU.

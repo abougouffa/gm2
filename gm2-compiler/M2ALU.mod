@@ -41,7 +41,7 @@ FROM M2GenGCC IMPORT DoCopyString, StringToChar ;
 FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
-FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char ;
+FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 
@@ -144,12 +144,13 @@ TYPE
                    solved         : BOOLEAN ;
                    constructorType: CARDINAL ;
                    next           : PtrToValue ;
+                   numberValue    : Tree ;
 
                    CASE type: cellType OF
 
                    none,
                    integer, real,
-                   complex      : numberValue: Tree |
+                   complex      : |
                    set          : setValue   : listOfRange |
                    constructor,
                    record       : fieldValues: listOfFields |
@@ -198,6 +199,9 @@ BEGIN
    ELSE
       v := FreeList ;
       FreeList := FreeList^.next
+   END ;
+   WITH v^ DO
+      numberValue := NIL
    END ;
    RETURN( v )
 END New ;
@@ -4789,6 +4793,100 @@ BEGIN
       FlushErrors
    END
 END CheckOverflow ;
+
+
+(*
+   PushGCCArrayTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushGCCArrayTree (gcc: Tree; t: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := New() ;
+   WITH v^ DO
+      constructorType := t ;
+      type            := array ;
+      numberValue     := gcc ;
+      arrayValues     := NIL ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
+   END ;
+   Push(v)
+END PushGCCArrayTree ;
+
+
+(*
+   PushGCCSetTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushGCCSetTree (gcc: Tree; t: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := New() ;
+   WITH v^ DO
+      constructorType := t ;
+      type            := set ;
+      numberValue     := gcc ;
+      setValue        := NIL ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
+   END ;
+   Push(v)
+END PushGCCSetTree ;
+
+
+(*
+   PushGCCRecordTree - pushes a gcc tree value onto the ALU stack.
+*)
+
+PROCEDURE PushGCCRecordTree (gcc: Tree; t: CARDINAL) ;
+VAR
+   v: PtrToValue ;
+BEGIN
+   v := New() ;
+   WITH v^ DO
+      constructorType := t ;
+      type            := record ;
+      numberValue     := gcc ;
+      fieldValues     := NIL ;
+      areAllConstants := TRUE ;
+      solved          := TRUE
+   END ;
+   Push(v)
+END PushGCCRecordTree ;
+
+
+(*
+   PushTypeOfTree - pushes tree, gcc, to the stack and records the
+                    front end type.
+*)
+
+PROCEDURE PushTypeOfTree (sym: CARDINAL; gcc: Tree) ;
+VAR
+   t: CARDINAL ;
+BEGIN
+   t := SkipType(GetType(sym)) ;
+   IF IsAComplexType(t)
+   THEN
+      PushComplexTree(gcc)
+   ELSIF IsArray(t)
+   THEN
+      PushGCCArrayTree(gcc, t)
+   ELSIF IsSet(t)
+   THEN
+      PushGCCSetTree(gcc, t)
+   ELSIF IsRecord(t)
+   THEN
+      PushGCCRecordTree(gcc, t)
+   ELSIF IsRealType(t)
+   THEN
+      PushRealTree(gcc)
+   ELSE
+      PushIntegerTree(gcc)
+   END
+END PushTypeOfTree ;
 
 
 (*
