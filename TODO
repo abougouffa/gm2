@@ -7,7 +7,6 @@ Pre 1.0
      rtint.PROTECTION
 *    finish SEMAPHORES, GeneralUser
 *  add data alignment directives to records (Scott)
-*  allocation of dynamic arrays (extension using alloca).
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,
    DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
@@ -24,6 +23,7 @@ Post 1.0
 *  fix bugs in h2def
 *  finish documentation (p2, p3, p4 description) and scope behaviour
 *  back port gm2 to previous releases of gcc (maybe)
+*  allocation of dynamic arrays (extension using alloca).
 
 --
 

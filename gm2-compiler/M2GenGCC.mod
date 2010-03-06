@@ -676,6 +676,10 @@ BEGIN
          PopSize(sym) ;
          PushSize(sym) ;
          RETURN( PopIntegerTree() )
+      ELSIF IsVar(sym) AND GccKnowsAbout(GetType(sym))
+      THEN
+         PushIntegerTree(BuildSize(Mod2Gcc(GetType(sym)), FALSE)) ;
+         RETURN( PopIntegerTree() )
       ELSE
          InternalError('expecting gcc to already know about this symbol', __FILE__, __LINE__)
       END

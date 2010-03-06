@@ -4296,7 +4296,7 @@ BEGIN
             (* these are varargs, therefore we don't check them *)
             i := ParamTotal
          ELSE
-            FailParameter('too many parameters', OperandT(pi), NulSym, Proc, i)
+            MetaError2('too many parameters {%2n} passed to {%1a} ', Proc, i)
          END
       END ;
       INC(i) ;
