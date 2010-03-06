@@ -11,6 +11,8 @@
 	  the ALU stack and assign the front end type ALU tag.
 	* gm2/gm2-compiler/SymbolConversion.mod:  use PushTypeOfTree.
 	* gm2/gm2-compiler/SymbolTable.mod:  modified debugging hooks.
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  PushTypeOfTree test whether
+	  symbols type is NulSym and if so call PushIntegerTree.
 
 2010-03-04       Gaius Mulley <gaius@gnu.org>
 

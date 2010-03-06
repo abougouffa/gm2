@@ -4868,7 +4868,10 @@ VAR
    t: CARDINAL ;
 BEGIN
    t := SkipType(GetType(sym)) ;
-   IF IsAComplexType(t)
+   IF t=NulSym
+   THEN
+      PushIntegerTree(gcc)
+   ELSIF IsAComplexType(t)
    THEN
       PushComplexTree(gcc)
    ELSIF IsArray(t)
