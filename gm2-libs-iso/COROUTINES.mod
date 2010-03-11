@@ -355,7 +355,7 @@ BEGIN
    Init
 END COROUTINES.
 
-
+(*
 
 
 
@@ -435,3 +435,5 @@ BEGIN
    initPthreads := FALSE ;
    initMain := FALSE ;
    currentIntValue := MIN(PRIORITY)
+
+*)

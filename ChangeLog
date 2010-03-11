@@ -8,6 +8,9 @@
 	* gm2/gm2-libs/libc.def:  added atexit.
 	* gm2/gm2-libs-ch/libc.c:  provided wrapper for atexit.
 	* gm2/gm2-libs-ch/sckt.c:  improved debugging for accept.
+	* gm2/gm2-libs-iso/WholeIO.mod:  fixed bug reported by
+	  Martin Kalbfuﬂ.
+	  <http://lists.gnu.org/archive/html/gm2/2010-03/msg00004.html>
 
 2010-03-06       Gaius Mulley <gaius@gnu.org>
 

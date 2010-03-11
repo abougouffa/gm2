@@ -1,7 +1,6 @@
 Pre 1.0
 
 *  finish ISO libraries:
-*    SysVec one copy only between PIM and ISO.
 *    finish COROUTINES and PROCESSES.
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
@@ -14,7 +13,7 @@ Pre 1.0
 *  if at all possible try and make sure that it builds on OSX.
    (Michael)
 *  if at all possible try and make sure that it builds on cygwin
-   and make gm2.paranoid also passes on the cygwin.  (Christoph)
+   and make gm2.paranoid also passes on cygwin.  (Christoph)
 
 Post 1.0
 
@@ -24,6 +23,7 @@ Post 1.0
 *  finish documentation (p2, p3, p4 description) and scope behaviour
 *  back port gm2 to previous releases of gcc (maybe)
 *  allocation of dynamic arrays (extension using alloca).
+*  extend records to allow vla as the final field.
 
 --
 

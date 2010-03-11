@@ -131,7 +131,7 @@ BEGIN
          THEN
             (* ignore *)
          ELSE
-            c := c*10+ORD(ch)
+            c := c*10+(ORD(ch)-ORD('0'))
          END ;
          ReadChar(cid, ch)
       ELSIF chClass=padding
