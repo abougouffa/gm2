@@ -1,3 +1,14 @@
+2010-03-11       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  removed duplicate rules to build
+	  KeyBoardLEDs.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  fixed bug as reported
+	  by Scott Iverson
+	  <http://lists.gnu.org/archive/html/gm2/2010-03/msg00007.html>
+	* gm2/gm2-libs/libc.def:  added atexit.
+	* gm2/gm2-libs-ch/libc.c:  provided wrapper for atexit.
+	* gm2/gm2-libs-ch/sckt.c:  improved debugging for accept.
+
 2010-03-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  FindSize extended to find

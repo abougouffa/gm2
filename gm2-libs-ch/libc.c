@@ -424,6 +424,15 @@ int libc_rename (const char *oldpath, const char *newpath)
   return rename (oldpath, newpath);
 }
 
+/*
+ *  atexit - execute a function when exit is called.
+ */
+
+int libc_atexit (void (*function)(void))
+{
+  atexit(function);
+}
+
 void _M2_libc_init (void)
 {
 }

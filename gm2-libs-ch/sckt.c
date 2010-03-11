@@ -178,7 +178,7 @@ int tcpServerAccept (tcpServerState *s)
   int t;
 
 #if defined(DEBUGGING)
-  printf("before accept\n");
+  printf("before accept %d\n", s->sockFd);
 #endif
   t = accept(s->sockFd, (struct sockaddr *)&s->isa, &i);
   if (t < 0)

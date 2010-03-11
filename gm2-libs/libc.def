@@ -42,7 +42,7 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    memcpy, memset, printf, realloc,
                    rand, srand,
                    time, localtime, ftime,
-                   shutdown, rename, setjmp, longjmp ;
+                   shutdown, rename, setjmp, longjmp, atexit ;
 
 TYPE
    time_t = LONGINT ;
@@ -425,6 +425,13 @@ PROCEDURE setjmp (env: ADDRESS) : INTEGER ;
 *)
 
 PROCEDURE longjmp (env: ADDRESS; val: INTEGER) ;
+
+
+(*
+   atexit - execute, proc, when the function exit is called.
+*)
+
+PROCEDURE atexit (proc: PROC) ;
 
 
 END libc.

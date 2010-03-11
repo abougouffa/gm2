@@ -310,7 +310,8 @@ BEGIN
    DebugSet('ToDoList', ToDoList) ;
    DebugSet('PartiallyDeclared', PartiallyDeclared) ;
    DebugSet('FullyDeclared', FullyDeclared) ;
-   DebugSet('NilTypedArrays', NilTypedArrays)
+   DebugSet('NilTypedArrays', NilTypedArrays) ;
+   DebugSet('ToBeSolvedByQuads', ToBeSolvedByQuads)
 END DebugSets ;
 
 
@@ -1524,6 +1525,16 @@ BEGIN
       END ;
       IF IsElementInSet(ToBeSolvedByQuads, sym)
       THEN
+         (* we allow the above rules to be executed even if it is fully declared
+            so to ensure that types of compiler builtin constants (BitsetSize
+            etc) are fully declared.
+
+            However at this point if, sym, is fully declared we return
+         *)
+         IF IsFullyDeclared(sym)
+         THEN
+            RETURN
+         END ;
          WatchIncludeList(sym, todolist)
       ELSE
          TryDeclareConst(tokenno, sym)

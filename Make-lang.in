@@ -1544,9 +1544,6 @@ gm2/gm2-libs-iso/O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 gm2/gm2-libs-pim/O2/Break.o: gm2/gm2-libs-pim/Break.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
-gm2/gm2-libs-coroutines/O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
 gm2/ulm-lib-gm2/sys/O2/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -1621,9 +1618,6 @@ gm2/gm2-libs-iso/SO/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 gm2/gm2-libs-pim/SO/Break.o: gm2/gm2-libs-pim/Break.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
 
-gm2/gm2-libs-coroutines/SO/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
-	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $< -o $@
-
 gm2/ulm-lib-gm2/sys/SO/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
 	$(CC) -c $(CFLAGS) $< -o $@
 
@@ -1696,9 +1690,6 @@ gm2/gm2-libs-iso/SO_O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 	$(XGM2_1) $(GM2_ISO_FLAGS) -c -B$(XGM2BUILD1) -B./ -Igm2/gm2-libs-iso:$(srcdir)/gm2/gm2-libs-iso -I$(srcdir)/gm2/gm2-libs $(SO_O2) $< -o $@
 
 gm2/gm2-libs-pim/SO_O2/Break.o: gm2/gm2-libs-pim/Break.c
-	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $(C_SO_OS) $< -o $@
-
-gm2/gm2-libs-coroutines/SO_O2/KeyBoardLEDs.o: gm2/gm2-libs-coroutines/KeyBoardLEDs.c
 	$(CC) -Igm2/gm2-libs -c $(CFLAGS) $(C_SO_OS) $< -o $@
 
 gm2/ulm-lib-gm2/sys/SO_O2/SYSTEM.o: gm2/ulm-lib-gm2/sys/SYSTEM.c
