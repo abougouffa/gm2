@@ -32,7 +32,7 @@ FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
 CONST
    Microseconds = 1000000 ;
    DebugTime    = 0 ;
-   Debugging    = FALSE ;
+   Debugging    = TRUE ;
 
 TYPE
    VectorType = (input, output, time) ;
@@ -347,10 +347,11 @@ BEGIN
          END
       END 
    ELSE
-(*
-      printf('odd vector %d (fd %d) is already attached to the pending queue\n',
-             vec, v^.File) ;
-*)
+      IF Debugging
+      THEN
+         printf('odd vector %d (fd %d) is already attached to the pending queue\n',
+                vec, v^.File)
+      END ;
       stop
    END
 END IncludeVector ;

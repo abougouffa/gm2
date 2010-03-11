@@ -11,6 +11,8 @@
 	* gm2/gm2-libs-iso/WholeIO.mod:  fixed bug reported by
 	  Martin Kalbfuﬂ.
 	  <http://lists.gnu.org/archive/html/gm2/2010-03/msg00004.html>
+	* gm2/gm2-libs-iso/WholeIO.mod:  and also fixed same bug in
+	  ReadInt.
 
 2010-03-06       Gaius Mulley <gaius@gnu.org>
 

@@ -69,7 +69,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #define NOOFTRIES      100
 #define MAXHOSTNAME    256
 
-#undef  DEBUGGING
+#define  DEBUGGING
 
 #if !defined(TRUE)
 #  define TRUE  (1==1)

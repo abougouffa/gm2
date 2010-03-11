@@ -503,7 +503,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs/*.a gm2/gm2-libs/*.def ; do \
+	for i in gm2/gm2-libs/*.a gm2/gm2-libs/*.def ; do \
            rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -511,7 +511,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs/SO/*.a ; do \
+	for i in gm2/gm2-libs/SO/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/SO/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -519,7 +519,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs/O2/*.a ; do \
+	for i in gm2/gm2-libs/O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -527,7 +527,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs/SO_O2/*.a ; do \
+	for i in gm2/gm2-libs/SO_O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/SO_O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -541,7 +541,7 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG) ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-pim/*.a ; do \
+	for i in gm2/gm2-libs-pim/*.a ; do \
            rm -f $(GM2_LIB_DIR_PIM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -549,13 +549,13 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-pim/O2/*.a ; do \
+	for i in gm2/gm2-libs-pim/O2/*.a ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(GM2_LIB_DIR_LOG)/O2/$$i ; \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/O2 ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-pim/SO_O2/*.a ; do \
+	for i in gm2/gm2-libs-pim/SO_O2/*.a ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(GM2_LIB_DIR_LOG)/SO_O2/$$i ; \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/SO_O2 ; \
@@ -568,7 +568,7 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_PCO) ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-coroutines/*.a ; do \
+	for i in gm2/gm2-libs-coroutines/*.a ; do \
            rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -577,7 +577,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-coroutines/O2/*.a ; do \
+	for i in gm2/gm2-libs-coroutines/O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -586,7 +586,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-coroutines/SO/*.a ; do \
+	for i in gm2/gm2-libs-coroutines/SO/*.a ; do \
            rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -595,7 +595,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-coroutines/SO_O2/*.a ; do \
+	for i in gm2/gm2-libs-coroutines/SO_O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_PCO)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -610,7 +610,7 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ISO) ; \
            fi ; \
         done
-	for i in x gm2/gm2-libs-iso/*.a gm2/gm2-libs-iso/*.def ; do \
+	for i in gm2/gm2-libs-iso/*.a gm2/gm2-libs-iso/*.def ; do \
            rm -f $(GM2_LIB_DIR_ISO)/$$i ; \
            if [ -f $$i ] ; then \
                if [ ! -d $$i ] ; then \
@@ -618,7 +618,7 @@ gm2.install-common: installdirs \
                fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-iso/SO/*.a ; do \
+	for i in gm2/gm2-libs-iso/SO/*.a ; do \
            rm -f $(GM2_LIB_DIR_ISO)/SO/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -626,7 +626,7 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
-	for i in x gm2/gm2-libs-iso/O2/*.a ; do \
+	for i in gm2/gm2-libs-iso/O2/*.a ; do \
            rm -f $(GM2_LIB_DIR_ISO)/O2/`basename $$i` ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -643,7 +643,7 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_ULM) ; \
            fi ; \
         done
-	for i in x gm2/ulm-lib-gm2/*.a ; do \
+	for i in gm2/ulm-lib-gm2/*.a ; do \
            rm -f $(GM2_LIB_DIR_ULM)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
@@ -657,7 +657,7 @@ gm2.install-common: installdirs \
               $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_MIN) ; \
            fi ; \
         done
-	for i in x gm2/gm2-libs-min/*.a ; do \
+	for i in gm2/gm2-libs-min/*.a ; do \
            rm -f $(GM2_LIB_DIR_MIN)/$$i ; \
            if [ -f $$i ] ; then \
               if [ ! -d $$i ] ; then \
