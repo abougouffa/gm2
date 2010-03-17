@@ -14,6 +14,9 @@
 	  PutQuadO, GenQuadO (New procedures).
 	* gm2/gm2/gm2-libs/RTint.mod:  turn off debugging.
 	* gm2/gm2-libs-ch/sckt.c:  turn off debugging.
+	* above changes fix bug reported by Scott Iverson
+	  <http://lists.gnu.org/archive/html/gm2/2010-03/msg00016.html>
+	* gm2/gm2-compiler/M2ALU.mod:  corrected import (RemoveOverflow).
 
 2010-03-11       Gaius Mulley <gaius@gnu.org>
 

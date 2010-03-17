@@ -76,7 +76,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildEndRecordConstructor,
                    BuildStartArrayConstructor, BuildArrayConstructorElement,
                    BuildEndArrayConstructor,
-                   FoldAndStrip, TreeOverflow, RemoveOveflow,
+                   FoldAndStrip, TreeOverflow, RemoveOverflow,
                    DebugTree ;
 
 TYPE
