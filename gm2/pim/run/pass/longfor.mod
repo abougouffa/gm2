@@ -17,9 +17,22 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE longfor ;
 
+
+PROCEDURE foo ;
 VAR
    i: LONGINT ;
+   c: CARDINAL ;
 BEGIN
-  FOR i := MIN(LONGINT) TO MAX(LONGINT) DO
-  END
+   c := 0 ;
+   FOR i := MIN(LONGINT) TO MAX(LONGINT) DO
+      INC(c) ;
+      IF c=20
+      THEN
+         RETURN
+      END
+   END
+END foo ;
+
+BEGIN
+   foo
 END longfor.

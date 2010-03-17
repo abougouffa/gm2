@@ -19,9 +19,21 @@ MODULE int32 ;
 
 FROM SYSTEM IMPORT INTEGER32 ;
 
+PROCEDURE foo ;
 VAR
    i: INTEGER32 ;
+   c: CARDINAL ;
 BEGIN
-  FOR i := MIN(INTEGER32) TO MAX(INTEGER32) DO
-  END
+   c := 0 ;
+   FOR i := MIN(INTEGER32) TO MAX(INTEGER32) DO
+      INC(c) ;
+      IF c=20
+      THEN
+         RETURN
+      END
+   END
+END foo ;
+
+BEGIN
+   foo
 END int32.
