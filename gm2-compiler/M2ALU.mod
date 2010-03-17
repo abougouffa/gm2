@@ -76,7 +76,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildEndRecordConstructor,
                    BuildStartArrayConstructor, BuildArrayConstructorElement,
                    BuildEndArrayConstructor,
-                   FoldAndStrip, TreeOverflow,
+                   FoldAndStrip, TreeOverflow, RemoveOveflow,
                    DebugTree ;
 
 TYPE
@@ -171,6 +171,7 @@ PROCEDURE DefinedByConstants (v: PtrToValue) : BOOLEAN ; FORWARD ;
 PROCEDURE arrayConstant (e: listOfElements) : BOOLEAN ; FORWARD ;
 PROCEDURE fieldsConstant (f: listOfFields) : BOOLEAN ; FORWARD ;
 PROCEDURE rangeConstant (r: listOfRange) : BOOLEAN ; FORWARD ;
+PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
@@ -4793,6 +4794,23 @@ BEGIN
       FlushErrors
    END
 END CheckOverflow ;
+
+
+(*
+   CheckOrResetOverflow - tests to see whether the tree, t, has caused
+                          an overflow error and if so it generates an
+                          error message.
+*)
+
+PROCEDURE CheckOrResetOverflow (tokenno: CARDINAL; t: Tree; check: BOOLEAN) ;
+BEGIN
+   IF check
+   THEN
+      CheckOverflow(tokenno, t)
+   ELSE
+      t := RemoveOverflow(t)
+   END
+END CheckOrResetOverflow ;
 
 
 (*

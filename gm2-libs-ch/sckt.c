@@ -69,7 +69,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 #define NOOFTRIES      100
 #define MAXHOSTNAME    256
 
-#define  DEBUGGING
+#undef  DEBUGGING
 
 #if !defined(TRUE)
 #  define TRUE  (1==1)
@@ -181,11 +181,6 @@ int tcpServerAccept (tcpServerState *s)
   printf("before accept %d\n", s->sockFd);
 #endif
   t = accept(s->sockFd, (struct sockaddr *)&s->isa, &i);
-  if (t < 0)
-    ERROR("accept");
-#if defined(DEBUGGING)
-  printf("sockFd = %d and accept returns %d\n", s->sockFd, t);
-#endif
   return t;
 }
 

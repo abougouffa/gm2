@@ -250,7 +250,7 @@ TYPE
                              LineNo             : CARDINAL ;     (* Line No of source text         *)
                              TokenNo            : CARDINAL ;     (* Token No of source text        *)
                              NoOfTimesReferenced: CARDINAL ;     (* No of times quad is referenced *)
-                             NeedWarnings       : BOOLEAN ;      (* should backend disable warning *)
+                             CheckOverflow      : BOOLEAN ;      (* should backend check overflow  *)
                           END ;
 
    WithFrame = POINTER TO withFrame ;  (* again we help p2c *)
@@ -338,8 +338,8 @@ PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
 PROCEDURE PopTFrw (VAR True, False, rw: WORD) ; FORWARD ;
 PROCEDURE PopTrw (VAR True, rw: WORD) ; FORWARD ;
 PROCEDURE CheckConst (sym: CARDINAL) ; FORWARD ;
-PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ; FORWARD ;
-PROCEDURE doBuildBinaryOp (checkTypes: BOOLEAN) ; FORWARD ;
+PROCEDURE doBuildAssignment (checkTypes, checkOverflow: BOOLEAN) ; FORWARD ;
+PROCEDURE doBuildBinaryOp (checkTypes, checkOverflow: BOOLEAN) ; FORWARD ;
 PROCEDURE DereferenceLValue (operand: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE BuildError (r: CARDINAL) ; FORWARD ;
 PROCEDURE PushLineNote (l: LineNote) ; FORWARD ;
@@ -424,6 +424,8 @@ PROCEDURE DisplayQuad (QuadNo: CARDINAL) ; FORWARD ;
 PROCEDURE DisposeQuad (QuadNo: CARDINAL) ; FORWARD ;
 PROCEDURE GenQuad (Operation: QuadOperator;
                    Op1, Op2, Op3: CARDINAL) ; FORWARD ;
+PROCEDURE GenQuadO (Operation: QuadOperator;
+                    Op1, Op2, Op3: CARDINAL; overflow: BOOLEAN) ; FORWARD ;
 PROCEDURE GetItemPointedTo (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE Init ; FORWARD ;
 PROCEDURE InitQuads ; FORWARD ;
@@ -1201,12 +1203,14 @@ PROCEDURE stop ; BEGIN END stop ;
 
 
 (*
-   PutQuad - overwrites a quadruple QuadNo with Op, Oper1, Oper2, Oper3
+   PutQuadO - alters a quadruple QuadNo with Op, Oper1, Oper2, Oper3, and
+              sets a boolean to determinine whether overflow should be checked.
 *)
 
-PROCEDURE PutQuad (QuadNo: CARDINAL;
-                   Op: QuadOperator;
-                   Oper1, Oper2, Oper3: CARDINAL) ;
+PROCEDURE PutQuadO (QuadNo: CARDINAL;
+                    Op: QuadOperator;
+                    Oper1, Oper2, Oper3: CARDINAL;
+                    overflow: BOOLEAN) ;
 VAR
    f: QuadFrame ;
 BEGIN
@@ -1220,12 +1224,25 @@ BEGIN
       AddQuadInformation(QuadNo, Op, Oper1, Oper2, Oper3) ;
       f := GetQF(QuadNo) ;
       WITH f^ DO
-         Operator := Op ;
-         Operand1 := Oper1 ;
-         Operand2 := Oper2 ;
-         Operand3 := Oper3 ;
+         Operator      := Op ;
+         Operand1      := Oper1 ;
+         Operand2      := Oper2 ;
+         Operand3      := Oper3 ;
+         CheckOverflow := overflow
       END
    END
+END PutQuadO ;
+
+
+(*
+   PutQuad - overwrites a quadruple QuadNo with Op, Oper1, Oper2, Oper3
+*)
+
+PROCEDURE PutQuad (QuadNo: CARDINAL;
+                   Op: QuadOperator;
+                   Oper1, Oper2, Oper3: CARDINAL) ;
+BEGIN
+   PutQuadO(QuadNo, Op, Oper1, Oper2, Oper3, TRUE)
 END PutQuad ;
 
 
@@ -2444,13 +2461,13 @@ END CheckCompatibleWithBecomes ;
                                   check bounds.
 *)
 
-PROCEDURE BuildAssignmentWithoutBounds (checkTypes: BOOLEAN) ;
+PROCEDURE BuildAssignmentWithoutBounds (checkTypes, checkOverflow: BOOLEAN) ;
 VAR
    old: BOOLEAN ;
 BEGIN
    old := MustNotCheckBounds ;
    MustNotCheckBounds := TRUE ;
-   doBuildAssignment(checkTypes) ;
+   doBuildAssignment(checkTypes, checkOverflow) ;
    MustNotCheckBounds := old
 END BuildAssignmentWithoutBounds ;
 
@@ -2708,7 +2725,7 @@ END CheckNotConstAndVar ;
 
 PROCEDURE BuildAssignment ;
 BEGIN
-   doBuildAssignment(TRUE)
+   doBuildAssignment(TRUE, TRUE)
 END BuildAssignment ;
 
 
@@ -2718,7 +2735,7 @@ END BuildAssignment ;
                        checks the types are compatible.
 *)
 
-PROCEDURE doBuildAssignment (checkTypes: BOOLEAN) ;
+PROCEDURE doBuildAssignment (checkTypes, checkOverflow: BOOLEAN) ;
 VAR
    r, w,
    t, f,
@@ -2734,7 +2751,7 @@ BEGIN
       BackPatch(t, NextQuad) ;
       IF GetMode(Des)=RightValue
       THEN
-         GenQuad(BecomesOp, Des, NulSym, True)
+         GenQuadO(BecomesOp, Des, NulSym, True, checkOverflow)
       ELSE
          CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, True)
@@ -2743,7 +2760,7 @@ BEGIN
       BackPatch(f, NextQuad) ;
       IF GetMode(Des)=RightValue
       THEN
-         GenQuad(BecomesOp, Des, NulSym, False)
+         GenQuadO(BecomesOp, Des, NulSym, False, checkOverflow)
       ELSE
          CheckPointerThroughNil(Des) ;
          GenQuad(XIndrOp, Des, Boolean, False)
@@ -3422,7 +3439,7 @@ BEGIN
    BuildRange(InitForLoopBeginRangeCheck(IdSym, e1)) ;
    PushT(IdSym) ;
    PushT(e1) ;
-   BuildAssignmentWithoutBounds(TRUE) ;
+   BuildAssignmentWithoutBounds(TRUE, TRUE) ;
 
    UseLineNote(l2) ;
    FinalValue := MakeTemporary(AreConstant(IsConst(e1) AND IsConst(e2) AND
@@ -3436,18 +3453,18 @@ BEGIN
    PushTF(e2, GetType(e2)) ;  (* FinalValue := ((e1-e2) DIV By) * By + e1 *)
    PushT(MinusTok) ;
    PushTF(e1, GetType(e1)) ;
-   BuildBinaryOp ;
+   doBuildBinaryOp(TRUE, FALSE) ;
    PushT(DivideTok) ;
    PushTF(BySym, ByType) ;
-   doBuildBinaryOp(FALSE) ;
+   doBuildBinaryOp(FALSE, FALSE) ;
    PushT(TimesTok) ;
    PushTF(BySym, ByType) ;
-   doBuildBinaryOp(FALSE) ;
+   doBuildBinaryOp(FALSE, FALSE) ;
    PushT(PlusTok) ;
    PushTF(e1, GetType(e1)) ;
-   doBuildBinaryOp(FALSE) ;
+   doBuildBinaryOp(FALSE, FALSE) ;
    BuildForLoopToRangeCheck ;
-   BuildAssignmentWithoutBounds(FALSE) ;
+   BuildAssignmentWithoutBounds(FALSE, FALSE) ;
 
    (* q+1 if >=      by        0  q+..2 *)
    (* q+2 GotoOp                  q+3   *)
@@ -5282,7 +5299,7 @@ BEGIN
             (* Copy Unbounded Symbol ie. UnboundedSym := Sym *)
             PushT(UnboundedSym) ;
             PushT(Sym) ;
-            BuildAssignmentWithoutBounds(FALSE)
+            BuildAssignmentWithoutBounds(FALSE, TRUE)
          ELSIF IsSameUnbounded(Type, GetType(UnboundedSym)) OR
                IsGenericSystemType(ParamType)
          THEN
@@ -5436,7 +5453,7 @@ BEGIN
       GenHigh(ReturnVar, formali, Sym) ;
       PushTF(ReturnVar, GetType(ReturnVar))
    END ;
-   BuildAssignmentWithoutBounds(FALSE)
+   BuildAssignmentWithoutBounds(FALSE, TRUE)
 END AssignHighField ;
 
 
@@ -5518,7 +5535,7 @@ BEGIN
    PushT(Sym) ;
    PushT(1) ;               (* 1 parameter for ADR()        *)
    BuildFunctionCall ;
-   BuildAssignmentWithoutBounds(FALSE) ;
+   BuildAssignmentWithoutBounds(FALSE, TRUE) ;
 
    AssignHighFields(Sym, ArraySym, UnboundedSym, ParamType, dim)
 END UnboundedVarLinkToArray ;
@@ -5873,7 +5890,7 @@ BEGIN
       PushTF(des, dtype) ;
       PushT(tok) ;
       PushTF(expr, etype) ;
-      doBuildBinaryOp(FALSE)
+      doBuildBinaryOp(FALSE, TRUE)
    ELSE
       IF (IsOrdinalType(dtype) OR (dtype=Address) OR IsPointer(dtype)) AND
          (IsOrdinalType(etype) OR (etype=Address) OR IsPointer(etype))
@@ -5885,7 +5902,7 @@ BEGIN
          PushT(expr) ;
          PushT(2) ;          (* Two parameters *)
          BuildConvertFunction ;
-         doBuildBinaryOp(FALSE)
+         doBuildBinaryOp(FALSE, TRUE)
       ELSE
          IF tok=PlusTok
          THEN
@@ -5953,7 +5970,7 @@ BEGIN
          PushT(VarSym) ;
          TempSym := DereferenceLValue(VarSym) ;
          CheckRangeIncDec(TempSym, OperandSym, PlusTok) ;  (* TempSym + OperandSym *)
-         BuildAssignmentWithoutBounds(FALSE)   (* VarSym := TempSym + OperandSym *)
+         BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym + OperandSym *)
       ELSE
          ExpectVariable('base procedure INC expects a variable as a parameter',
                         VarSym)
@@ -6019,7 +6036,7 @@ BEGIN
          PushT(VarSym) ;
          TempSym := DereferenceLValue(VarSym) ;
          CheckRangeIncDec(TempSym, OperandSym, MinusTok) ;  (* TempSym - OperandSym *)
-         BuildAssignmentWithoutBounds(FALSE)   (* VarSym := TempSym - OperandSym *)
+         BuildAssignmentWithoutBounds(FALSE, TRUE)   (* VarSym := TempSym - OperandSym *)
       ELSE
          ExpectVariable('base procedure DEC expects a variable as a parameter',
                         VarSym)
@@ -6048,7 +6065,7 @@ BEGIN
 
       PushT(sym) ;
       PushT(operand) ;
-      BuildAssignmentWithoutBounds(FALSE) ;
+      BuildAssignmentWithoutBounds(FALSE, TRUE) ;
       RETURN( sym )
    ELSE
       RETURN( operand )
@@ -9425,7 +9442,7 @@ BEGIN
       PutVar(Des, Boolean) ;
       PushTF(Des, Boolean) ;
       PushBool(t, f) ;
-      BuildAssignmentWithoutBounds(FALSE) ;
+      BuildAssignmentWithoutBounds(FALSE, TRUE) ;
       PushTF(Des, Boolean)
    END ;
    PopTF(e1, t1) ;
@@ -9764,7 +9781,7 @@ BEGIN
 
    PushT(tj) ;
    PushT(idx) ;
-   BuildAssignmentWithoutBounds(FALSE) ;
+   BuildAssignmentWithoutBounds(FALSE, TRUE) ;
 
    GenQuad(MultOp, tk, ti, tj) ;
    Adr := MakeTemporary(LeftValue) ;
@@ -10822,7 +10839,7 @@ END doConvert ;
 
 PROCEDURE BuildBinaryOp ;
 BEGIN
-   doBuildBinaryOp(TRUE)
+   doBuildBinaryOp(TRUE, TRUE)
 END BuildBinaryOp ;
 
 
@@ -10831,7 +10848,7 @@ END BuildBinaryOp ;
                      checking.
 *)
 
-PROCEDURE doBuildBinaryOp (checkTypes: BOOLEAN) ;
+PROCEDURE doBuildBinaryOp (checkTypes, checkOverflow: BOOLEAN) ;
 VAR
    s     : String ;
    NewTok,
@@ -10917,7 +10934,7 @@ BEGIN
          t := MakeTemporaryFromExpressions(e1, e2, GetTokenNo(),
                                            AreConstant(IsConst(e1) AND IsConst(e2))) ;
          CheckDivModRem(NewTok, t, e1) ;
-         GenQuad(MakeOp(NewTok), t, e2, e1)
+         GenQuadO(MakeOp(NewTok), t, e2, e1, checkOverflow)
       END ;
       PushTF(t, GetType(t))
    END
@@ -11034,7 +11051,7 @@ BEGIN
    PushT(Des) ;   (* we have just increased the stack so we must use i+1 *)
    f := PeepAddress(BoolStack, i+1) ;
    PushBool(f^.TrueExit, f^.FalseExit) ;
-   BuildAssignmentWithoutBounds(FALSE) ;  (* restored stack *)
+   BuildAssignmentWithoutBounds(FALSE, TRUE) ;  (* restored stack *)
    f := PeepAddress(BoolStack, i) ;
    WITH f^ DO
       TrueExit := Des ;  (* alter Stack(i) to contain the variable *)
@@ -11421,11 +11438,11 @@ END MakeOp ;
 
 
 (*
-   GenQuad - Generate a quadruple with Operation, Op1, Op2, Op3.
+   GenQuadO - generate a quadruple with Operation, Op1, Op2, Op3, overflow.
 *)
 
-PROCEDURE GenQuad (Operation: QuadOperator;
-                   Op1, Op2, Op3: CARDINAL) ;
+PROCEDURE GenQuadO (Operation: QuadOperator;
+                    Op1, Op2, Op3: CARDINAL; overflow: BOOLEAN) ;
 VAR
    f: QuadFrame ;
 BEGIN
@@ -11437,7 +11454,7 @@ BEGIN
          f := GetQF(NextQuad-1) ;
          f^.Next := NextQuad
       END ;
-      PutQuad(NextQuad, Operation, Op1, Op2, Op3) ;
+      PutQuadO(NextQuad, Operation, Op1, Op2, Op3, overflow) ;
       f := GetQF(NextQuad) ;
       WITH f^ DO
          Next := 0 ;
@@ -11451,6 +11468,17 @@ BEGIN
       (* DisplayQuad(NextQuad) ; *)
       NewQuad(NextQuad)
    END
+END GenQuadO ;
+
+
+(*
+   GenQuad - Generate a quadruple with Operation, Op1, Op2, Op3.
+*)
+
+PROCEDURE GenQuad (Operation: QuadOperator;
+                   Op1, Op2, Op3: CARDINAL) ;
+BEGIN
+   GenQuadO(Operation, Op1, Op2, Op3, TRUE)
 END GenQuad ;
 
 
@@ -12837,6 +12865,19 @@ PROCEDURE PopAuto ;
 BEGIN
    IsAutoOn := PopWord(AutoStack)
 END PopAuto ;
+
+
+(*
+   MustCheckOverflow - returns TRUE if the quadruple should test for overflow.
+*)
+
+PROCEDURE MustCheckOverflow (q: CARDINAL) : BOOLEAN ;
+VAR
+   f: QuadFrame ;
+BEGIN
+   f := GetQF(q) ;
+   RETURN( f^.CheckOverflow )
+END MustCheckOverflow ;
 
 
 (*

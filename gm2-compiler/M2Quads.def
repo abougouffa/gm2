@@ -127,7 +127,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  AddVarientRange, AddVarientEquality,
                  BeginVarient, EndVarient, ElseVarient,
                  BeginVarientList, EndVarientList,
-                 IsAutoPushOn, PushAutoOn, PushAutoOff, PopAuto ;
+                 IsAutoPushOn, PushAutoOn, PushAutoOff, PopAuto,
+                 MustCheckOverflow ;
 
 
 TYPE
@@ -2321,6 +2322,13 @@ PROCEDURE IsAutoPushOn () : BOOLEAN ;
 *)
 
 PROCEDURE PopAuto ;
+
+
+(*
+   MustCheckOverflow - returns TRUE if the quadruple should test for overflow.
+*)
+
+PROCEDURE MustCheckOverflow (q: CARDINAL) : BOOLEAN ;
 
 
 END M2Quads.

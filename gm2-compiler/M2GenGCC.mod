@@ -120,7 +120,7 @@ FROM M2ALU IMPORT PtrToValue,
                   SetSymmetricDifference, SetDifference,
                   SetShift, SetRotate,
                   AddBit, SubBit, Less, Addn, GreEqu, SetIn,
-                  CheckOverflow, GetRange, GetValue ;
+                  CheckOrResetOverflow, GetRange, GetValue ;
 
 FROM M2GCCDeclare IMPORT WalkAction,
                          DeclareConstant, TryDeclareConstant,
@@ -195,7 +195,7 @@ FROM gm2except IMPORT BuildThrow, BuildTryBegin, BuildTryEnd,
                       BuildCatchBegin, BuildCatchEnd ;
 
 FROM M2Quads IMPORT QuadOperator, GetQuad, IsReferenced, GetNextQuad,
-                    SubQuad, PutQuad,
+                    SubQuad, PutQuad, MustCheckOverflow,
                     QuadToTokenNo,
                     DisplayQuadList ;
 
@@ -2271,7 +2271,7 @@ BEGIN
             END ;
             IF GetType(op3)=NulSym
             THEN
-               CheckOverflow(tokenno, Mod2Gcc(op3)) ;
+               CheckOrResetOverflow(tokenno, Mod2Gcc(op3), MustCheckOverflow(quad)) ;
                AddModGcc(op1, Mod2Gcc(op3))
             ELSE
                IF IsValueSolved(op3)
@@ -2279,7 +2279,7 @@ BEGIN
                   PushValue(op3) ;
                   IF IsValueTypeReal()
                   THEN
-                     CheckOverflow(tokenno, PopRealTree()) ;
+                     CheckOrResetOverflow(tokenno, PopRealTree(), MustCheckOverflow(quad)) ;
                      PushValue(op3) ;
                      AddModGcc(op1, PopRealTree())
                   ELSIF IsValueTypeSet()
@@ -2292,16 +2292,16 @@ BEGIN
                      PutConstructor(op1)
                   ELSIF IsValueTypeComplex()
                   THEN
-                     CheckOverflow(tokenno, PopComplexTree()) ;
+                     CheckOrResetOverflow(tokenno, PopComplexTree(), MustCheckOverflow(quad)) ;
                      PushValue(op3) ;
                      PopValue(op1)
                   ELSE
-                     CheckOverflow(tokenno, PopIntegerTree()) ;
+                     CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
                      PushValue(op3) ;
                      AddModGcc(op1, PopIntegerTree())
                   END
                ELSE
-                  CheckOverflow(tokenno, Mod2Gcc(op3)) ;
+                  CheckOrResetOverflow(tokenno, Mod2Gcc(op3), MustCheckOverflow(quad)) ;
                   AddModGcc(op1,
                             DeclareKnownConstant(Mod2Gcc(GetType(op3)),
                                                  Mod2Gcc(op3)))
@@ -2707,7 +2707,7 @@ BEGIN
             tl := LValueToGenericPtr(op2) ;
             tr := LValueToGenericPtr(op3) ;
             tv := binop(tl, tr, TRUE) ;
-            CheckOverflow(tokenno, tv) ;
+            CheckOrResetOverflow(tokenno, tv, MustCheckOverflow(quad)) ;
 
             IF (GetType(op1)=NulSym) OR IsOrdinalType(GetType(op1))
             THEN
@@ -2746,7 +2746,7 @@ BEGIN
    tr := ZConstToTypedConst(LValueToGenericPtr(op3), op2, op3) ;
    
    tv := binop(tl, tr, TRUE) ;
-   CheckOverflow(CurrentQuadToken, tv) ;
+   CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(q)) ;
    IF IsConst(op1)
    THEN
       (* still have a constant which was not resolved, pass it to gcc *)
@@ -3916,7 +3916,7 @@ BEGIN
                PutConst(op1, NegateType(GetType(op3), tokenno))
             END ;
             tv := unop(LValueToGenericPtrOrConvert(op3, ZConstToTypedConst), FALSE) ;
-            CheckOverflow(tokenno, tv) ;
+            CheckOrResetOverflow(tokenno, tv, MustCheckOverflow(quad)) ;
 
             AddModGcc(op1, DeclareKnownConstant(ZConstToTypedConst, tv)) ;
             p(op1) ;
@@ -3976,7 +3976,7 @@ BEGIN
    DeclareConstant(CurrentQuadToken, op3) ;
    DeclareConstructor(quad, op3) ;
    tv := unop(LValueToGenericPtr(op3), FALSE) ;
-   CheckOverflow(CurrentQuadToken, tv) ;
+   CheckOrResetOverflow(CurrentQuadToken, tv, MustCheckOverflow(quad)) ;
    IF IsConst(op1)
    THEN
       IF ZConstToTypedConst=Tree(NIL)
@@ -4714,7 +4714,7 @@ BEGIN
                                                             FALSE))) ;
                   PopValue(op1) ;
                   PushValue(op1) ;
-                  CheckOverflow(tokenno, PopIntegerTree()) ;
+                  CheckOrResetOverflow(tokenno, PopIntegerTree(), MustCheckOverflow(quad)) ;
                   PushValue(op1) ;
                   AddModGcc(op1, PopIntegerTree())
                END

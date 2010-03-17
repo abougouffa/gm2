@@ -32,7 +32,7 @@ FROM Selective IMPORT InitSet, FdSet, Timeval, InitTime, KillTime, KillSet,
 CONST
    Microseconds = 1000000 ;
    DebugTime    = 0 ;
-   Debugging    = TRUE ;
+   Debugging    = FALSE ;
 
 TYPE
    VectorType = (input, output, time) ;

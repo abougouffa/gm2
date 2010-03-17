@@ -1,3 +1,20 @@
+2010-03-17       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.def:  CheckOrResetOverflow
+          (New procedure) replaces CheckOverflow.
+	* gm2/gm2-compiler/M2ALU.mod:  implement
+	  CheckOrResetOverflow.
+	* gm2/gm2-compiler/M2GenGCC.mod:  replace CheckOverflow
+	  with CheckOrResetOverflow.
+	* gm2/gm2-compiler/M2Quads.def:  export and declare
+	  MustCheckOverflow (New procedure).
+	* gm2/gm2-compiler/M2Quads.mod:  implement
+	  MustCheckOverflow.  Modify doBuildAssignment,
+	  doBuildBinaryOp to take an extra parameter, overflow.
+	  PutQuadO, GenQuadO (New procedures).
+	* gm2/gm2/gm2-libs/RTint.mod:  turn off debugging.
+	* gm2/gm2-libs-ch/sckt.c:  turn off debugging.
+
 2010-03-11       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  removed duplicate rules to build

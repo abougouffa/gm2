@@ -75,7 +75,7 @@ EXPORT QUALIFIED PtrToValue,
                  PushEmptyConstructor, PushEmptyArray, PushEmptyRecord,
                  ChangeToConstructor,
 
-                 IsValueAndTreeKnown, CheckOverflow ;
+                 IsValueAndTreeKnown, CheckOrResetOverflow ;
 
 TYPE
    PtrToValue ;
@@ -858,12 +858,12 @@ PROCEDURE IsValueAndTreeKnown () : BOOLEAN ;
 
 
 (*
-   CheckOverflow - tests to see whether the tree, t, has caused
-                   an overflow error and if so it generates an
-                   error message.
+   CheckOrResetOverflow - tests to see whether the tree, t, has caused
+                          an overflow error and if so it generates an
+                          error message.
 *)
 
-PROCEDURE CheckOverflow (tokenno: CARDINAL; t: Tree) ;
+PROCEDURE CheckOrResetOverflow (tokenno: CARDINAL; t: Tree; check: BOOLEAN) ;
 
 
 (*
