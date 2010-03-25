@@ -17,6 +17,12 @@
 	  Scott Iverson.
 	* gm2/gm2-libs-iso/COROUTINES.mod:  removed unused code.
 	  (Temporary checkin).
+	* gm2/gm2/config-lang.in:  added examples/map/Makefile
+	  examples/gravity/Makefile examples/hello/Makefile
+	  to the list of files to be built by configure.
+	* gm2/examples/hello/Makefile.in:  (New file).
+	* gm2/examples/gravity/Makefile.in:  (New file).
+	* gm2/examples/map/Makefile.in:  (New file).
 
 2010-03-17       Gaius Mulley <gaius@gnu.org>
 

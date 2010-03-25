@@ -1,0 +1,44 @@
+GM2FLAGS=-g -fPIC
+PYTHON_VERSION=2.5
+
+srcdir = @srcdir@
+gm2dir = $(srcdir)/../..
+
+SRC_PATH_PIM=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
+SRC_PATH=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs-iso:$(gm2dir)/gm2-libs-iso:$(gm2dir)/gm2-libs
+OBJ_PATH=.:../../gm2-libs-iso:../../gm2/gm2-libs
+
+SRC_PATH_PIM_SO=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs/SO:$(gm2dir)/gm2-libs:$(gm2dir)/gm2-libs-iso
+SRC_PATH_SO=$(srcdir):$(gm2dir)/gm2-compiler:../../gm2-libs-iso/SO:$(gm2dir)/gm2-libs-iso:$(gm2dir)/gm2-libs
+OBJ_PATH_SO=.:../../gm2-libs-iso/SO:../../gm2/gm2-libs/SO
+
+XGM2=../../../xgm2 -B../../.. -B../../../stage1/gm2
+
+all: force
+	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
+	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
+
+final: clean
+	gm2 $(GM2FLAGS) -c -I$(SRC_PATH_PIM_SO) $(gm2dir)/gm2-compiler/Indexing.mod
+	gm2 $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/deviceGnuPic.mod
+	gm2 $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_SO) $(srcdir)/twoDsim.mod
+	swig -c++ -python twoDsim.i
+	gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
+	gm2 -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
+	python testsim.py
+
+pre-install: clean
+	$(XGM2) $(GM2FLAGS) -c -I$(SRC_PATH_PIM) $(gm2dir)/gm2-compiler/Indexing.mod
+	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -c $(srcdir)/deviceGnuPic.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH) $(srcdir)/twoDsim.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH) $(srcdir)/test.mod
+	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -fobject-path=$(OBJ_PATH) $(srcdir)/test.mod -lgsl -lblas
+
+post-install: clean
+	gm2 $(GM2FLAGS) -c -I$(SRC_PATH_PIM) $(gm2dir)/gm2-compiler/Indexing.mod
+	gm2 -fiso -g -fmakeall -I$(SRC_PATH) $(srcdir)/test.mod -lgsl -lblas
+	
+clean: force
+	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp twoDsim.py *.png *.ms movie.avi
+
+force:
