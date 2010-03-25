@@ -77,6 +77,12 @@ static HOST_WIDE_INT gm2_get_alias_set PARAMS ((tree));
 #define LANG_HOOKS_INIT_OPTIONS              gm2_init_options
 #undef LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION
 #define LANG_HOOKS_CALLGRAPH_EXPAND_FUNCTION gm2_expand_function
+
+#if 0
+#undef LANG_HOOKS_TREE_INLINING_WALK_SUBTREES
+#define LANG_HOOKS_TREE_INLINING_WALK_SUBTREES gm2_tree_inlining_walk_subtrees
+#endif
+
 #if 0
 #undef LANG_HOOKS_WRITE_GLOBALS
 #define LANG_HOOKS_WRITE_GLOBALS             gm2_write_global_declarations

@@ -1947,7 +1947,7 @@ BEGIN
       (* SHORTREAL, LONGREAL and REAL conversion during parameter passing *)
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            Mod2Gcc(op3), FALSE) )
-   ELSIF (OperandType#NulSym) AND IsSet(OperandType)
+   ELSIF (OperandType#NulSym) AND IsSet(OperandType) AND IsConst(op3)
    THEN
       RETURN( DeclareKnownConstant(Mod2Gcc(ParamType),
                                    Mod2Gcc(op3)) )
@@ -1957,6 +1957,9 @@ BEGIN
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            StringToChar(Mod2Gcc(op3), ParamType, op3),
                            FALSE) )
+   ELSIF (OperandType#NulSym) AND IsSet(OperandType) AND (OperandType#ParamType)
+   THEN
+      RETURN( BuildConvert(Mod2Gcc(ParamType), Mod2Gcc(op3), FALSE) )
    ELSE
       RETURN( Mod2Gcc(op3) )
    END

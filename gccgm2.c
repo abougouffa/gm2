@@ -853,6 +853,11 @@ static tree                   build_m2_complex_type_from                  (tree 
        tree                   gccgm2_GetDeclContext                       (tree t);
        unsigned int           gccgm2_StringLength                         (tree string);
 static tree                   gm2_finish_build_array_type                 (tree t, tree elt_type, tree index_type);
+       tree                   gm2_tree_inlining_walk_subtrees             (tree *tp ATTRIBUTE_UNUSED,
+									   int *subtrees ATTRIBUTE_UNUSED,
+									   walk_tree_fn func ATTRIBUTE_UNUSED,
+									   void *data ATTRIBUTE_UNUSED,
+									   struct pointer_set_t *pset ATTRIBUTE_UNUSED);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -1701,6 +1706,9 @@ gm2_gimplify_expr (tree *expr_p,
       genericize_catch_block (expr_p);
       return GS_OK;
       break;
+    case PARM_DECL:
+      stop();
+      break;
     default:
       break;
     }
@@ -1807,6 +1815,39 @@ gm2_expand_function (tree fndecl)
 {
   /* We have nothing special to do while expanding functions for GNU Modula-2.  */
   tree_rest_of_compilation (fndecl);
+}
+
+/* gm2 tree inlining walk subtree langhook.  */
+
+tree
+gm2_tree_inlining_walk_subtrees (tree *tp ATTRIBUTE_UNUSED,
+				 int *subtrees ATTRIBUTE_UNUSED,
+				 walk_tree_fn func ATTRIBUTE_UNUSED,
+				 void *data ATTRIBUTE_UNUSED,
+				 struct pointer_set_t *pset ATTRIBUTE_UNUSED)
+{
+  return NULL_TREE;
+#if 0
+  enum tree_code code;
+  tree result;
+  tree t = *tp;
+
+  if (!t)
+    return NULL_TREE;
+
+  code = TREE_CODE (t);
+  switch (code)
+    {
+    case POINTER_TYPE:
+      result = walk_tree (& TREE_TYPE (t), func, data, pset);
+      if (result)
+	return result;
+      return NULL_TREE;
+
+    default:
+      return NULL_TREE;
+    }
+#endif
 }
 
 /* init_m2_builtins - build tree nodes and builtin functions for GNU Modula-2
@@ -3179,6 +3220,9 @@ tree
 add_stmt (tree t)
 {
   enum tree_code code = TREE_CODE (t);
+
+  if (TREE_CODE (t) == ERROR_MARK)
+    internal_error ("should not be adding ERROR_MARK to the list of statements");
 
   if (EXPR_P (t) && code != LABEL_EXPR)
     {
@@ -8057,9 +8101,6 @@ void
 gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 {
   tree param_decl;
-#if 0
-  tree param_decl, next_param;
-#endif
 
   ASSERT_BOOL (isexported);
   ASSERT_BOOL (isinline);
@@ -8068,31 +8109,18 @@ gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 
   /* Set up to compile the function and enter it.  */
 
+#if 0
   /* Make the init_value nonzero so pushdecl knows this is not tentative.
      error_mark_node is replaced below (in poplevel) with the BLOCK.  */
   DECL_INITIAL (fndecl) = error_mark_node;
+#else
+  DECL_INITIAL (fndecl) = NULL_TREE;
+#endif
 
   current_function_decl = fndecl;
   pushlevel (0);
 
   make_decl_rtl (current_function_decl);
-
-#if 0
-  /* Push all the PARM_DECL nodes onto the current scope (i.e. the scope of the
-     subprogram body) so that they can be recognized as local variables in the
-     subprogram.   */
-
-  for (param_decl = nreverse (DECL_ARGUMENTS (fndecl));
-       param_decl; param_decl = next_param)
-    {
-      next_param = TREE_CHAIN (param_decl);
-      TREE_CHAIN (param_decl) = NULL;
-      pushdecl (param_decl);
-    }
-
-  /* Store back the PARM_DECL nodes. They appear in the right order. */
-  DECL_ARGUMENTS (fndecl) = getdecls ();
-#endif
 
   /* set the context of these parameters to this function */
   for (param_decl = DECL_ARGUMENTS (fndecl);
@@ -8108,10 +8136,6 @@ gccgm2_BuildStartFunctionCode (tree fndecl, int isexported, int isinline)
 
   init_function_start (fndecl);
 
-#if 0
-  /* open a new nesting level */
-  pushlevel (0);   /* outer nesting level contains parameters and inner contains local variables */
-#endif
   cur_stmt_list = chainon_stmt_list ();
 
   // printf("starting scope %s\n", IDENTIFIER_POINTER(DECL_NAME (fndecl)));
@@ -8133,6 +8157,58 @@ gccgm2_RememberVariables (tree l)
 }
 #endif
 
+static void
+gm2_gimplify_function_parameters (tree fndecl)
+{
+  tree parm;
+
+  for (parm = DECL_ARGUMENTS (fndecl); parm ; parm = TREE_CHAIN (parm))
+    {
+      gimplify_type_sizes (TREE_TYPE (parm), &DECL_SAVED_TREE (fndecl));      
+    }
+
+#if 0
+  ret = DECL_RESULT (fndecl);
+  if (TREE_CODE (TREE_TYPE (ret)) == COMPLEX_TYPE
+      && !needs_to_live_in_memory (ret))
+    DECL_COMPLEX_GIMPLE_REG_P (ret) = 1;
+#endif
+
+#if 0
+  /* from objc front end */
+  /* The parser passed in a PARM_DECL, but what we really want is a VAR_DECL.  */
+  decl = build_decl (VAR_DECL, DECL_NAME (decl), TREE_TYPE (decl));
+  lang_hooks.decls.pushdecl (decl);
+
+  /* Since a decl is required here by syntax, don't warn if its unused.  */
+  /* ??? As opposed to __attribute__((unused))?  Anyway, this appears to
+     be what the previous objc implementation did.  */
+  TREE_USED (decl) = 1;
+
+  /* Verify that the type of the catch is valid.  It must be a pointer
+     to an Objective-C class, or "id" (which is catch-all).  */
+  type = TREE_TYPE (decl);
+#endif
+}
+
+static void
+gm2_gimplify_function_node (tree fndecl)
+{
+  /* Convert all nested functions to GIMPLE now.  We do things in this order
+     so that items like VLA sizes are expanded properly in the context of the
+     correct function.  */
+  struct cgraph_node *cgn;
+
+   dump_function (TDI_original, fndecl);
+   gm2_gimplify_function_parameters (fndecl);
+   gimplify_function_tree (fndecl);
+   dump_function (TDI_generic, fndecl);
+
+   cgn = cgraph_node (fndecl);
+   for (cgn = cgn->nested; cgn; cgn = cgn->next_nested)
+     gm2_gimplify_function_node (cgn->decl);
+}
+
 /*
  *  BuildEndFunctionCode - generates the function epilogue.
  */
@@ -8151,22 +8227,27 @@ gccgm2_BuildEndFunctionCode (tree fndecl, int nested)
   DECL_INITIAL (fndecl) = block;
 
   DECL_SAVED_TREE (fndecl) = build3 (BIND_EXPR, void_type_node,
-                                     BLOCK_VARS (block),   /* was BLOCK_VARS(local) */
+                                     BLOCK_VARS (block),
                                      cur_stmt_list, block);
   if (cfun != NULL)
     cfun->function_end_locus = input_location;
 
   cur_stmt_list = NULL;
 
+#if 0
+  // was
   dump_function (TDI_original, fndecl);
   gimplify_function_tree (fndecl);
   dump_function (TDI_generic, fndecl);
+#endif
 
   if (nested) {
     (void) cgraph_node (fndecl);
     current_function_decl = DECL_CONTEXT (fndecl);
   }
   else {
+    gm2_gimplify_function_node (fndecl);
+
     current_function_decl = fndecl;
     cgraph_finalize_function (fndecl, nested);
     current_function_decl = NULL;

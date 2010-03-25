@@ -1,3 +1,23 @@
+2010-03-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added new rule to test specific
+	  dejagnu tests.
+	* gm2/gccgm2.c:  gm2_tree_inlining_walk_subtrees
+	  (New function).  gm2_gimplify_function_parameters
+	  (New function).  gm2_gimplify_function_node
+	  (New function) which correctly gimplifies
+	  nested functions.
+	* gm2/gm2-common.h:  gm2_tree_inlining_walk_subtrees
+	  new prototype.
+	* gm2/gm2-lang.c:  comment out gm2_tree_inlining_walk_subtrees.
+	* gm2/m2pp.c:  corrected GetVoidType.
+	* gm2/gm2-compiler/M2GenGCC.mod:  corrected
+	  CheckConvertCoerceParameter so that set parameters are not
+	  cast to constants.  Fixes a bug reported by
+	  Scott Iverson.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  removed unused code.
+	  (Temporary checkin).
+
 2010-03-17       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.def:  CheckOrResetOverflow

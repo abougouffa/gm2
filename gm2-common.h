@@ -55,5 +55,10 @@ EXTERN void gm2_expand_function           (tree fndecl);
 EXTERN void gm2_enter_nested              (struct function *f);
 EXTERN void gm2_leave_nested              (struct function *f);
 EXTERN void gm2_write_global_declarations (void);
+EXTERN tree gm2_tree_inlining_walk_subtrees (tree *tp ATTRIBUTE_UNUSED,
+					     int *subtrees ATTRIBUTE_UNUSED,
+					     walk_tree_fn func ATTRIBUTE_UNUSED,
+					     void *data ATTRIBUTE_UNUSED,
+					     struct pointer_set_t *pset ATTRIBUTE_UNUSED);
 
 #endif

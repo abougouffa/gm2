@@ -1,4 +1,4 @@
-(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009
+(* Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -234,24 +234,29 @@ BEGIN
 END IsATTACHED ;
 
 
-PROCEDURE HANDLER (source: INTERRUPTSOURCE): COROUTINE;
+PROCEDURE HANDLER (source: INTERRUPTSOURCE) : COROUTINE;
   (* Returns the coroutine, if any, that is associated with the source
      of interrupts. The result is undefined if IsATTACHED(source) =
      FALSE.
   *)
 BEGIN
-   
+   IF IsATTACHED(source)
+   THEN
+
+   ELSE
+      RETURN( NIL )
+   END
 END HANDLER ;
 
 
-PROCEDURE CURRENT (): COROUTINE;
+PROCEDURE CURRENT () : COROUTINE ;
   (* Returns the identity of the calling coroutine. *)
 BEGIN
    RETURN currentCoRoutine
 END CURRENT ;
 
 
-PROCEDURE LISTEN (p: PROTECTION);
+PROCEDURE LISTEN (p: PROTECTION) ;
   (* Momentarily changes the protection of the calling coroutine to p. *)
 BEGIN
    localInit ;
@@ -347,93 +352,13 @@ END TurnInterrupts ;
 
 PROCEDURE Init ;
 BEGIN
-   currentCoRoutine := NIL
+   initPthreads := FALSE ;
+   initMain := FALSE ;
+   currentCoRoutine := NIL ;
+   currentIntValue := MIN(PRIORITY)
 END Init ;
 
 
 BEGIN
    Init
 END COROUTINES.
-
-(*
-
-
-
-(*
-   TRANSFER - save the current volatile environment into, p1.
-              Restore the volatile environment from, p2.
-*)
-
-PROCEDURE TRANSFER (VAR p1: PROCESS; p2: PROCESS) ;
-VAR
-   r: INTEGER ;
-BEGIN
-   localMain(p1) ;
-   p1.ints := currentIntValue ;
-   currentIntValue := p2.ints ;
-   IF p1.context=p2.context
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'error when attempting to context switch to the same process')
-   END ;
-   (* r := printf('ctx\n') ; *)
-   currentContext := p2.context ;
-   IF pth_uctx_switch(p1.context, p2.context)=0
-   THEN
-      Halt(__FILE__, __LINE__, __FUNCTION__,
-           'an error as it was unable to change the user context')
-   END
-END TRANSFER ;
-
-
-(*
-   NEWPROCESS - p is a parameterless procedure, a, is the origin of
-                the workspace used for the process stack and containing
-                the volatile environment of the process. n, is the amount
-                in bytes of this workspace. new, is the new process.
-*)
-
-PROCEDURE NEWPROCESS (p: PROC; a: ADDRESS; n: CARDINAL; VAR new: PROCESS) ;
-END NEWPROCESS ;
-
-
-(*
-   IOTRANSFER - saves the current volatile environment into, First,
-                and restores volatile environment, Second.
-                When an interrupt, InterruptNo, is encountered then
-                the reverse takes place. (The then current volatile
-                environment is shelved onto Second and First is resumed).
-
-                NOTE: that upon interrupt the Second might not be the
-                      same process as that before the original call to
-                      IOTRANSFER.
-*)
-
-PROCEDURE IOTRANSFER (VAR First, Second: PROCESS; InterruptNo: CARDINAL) ;
-VAR
-   p: IOTransferState ;
-   l: POINTER TO IOTransferState ;
-BEGIN
-   localMain(First) ;
-   WITH p DO
-      ptrToFirst  := ADR(First) ;
-      ptrToSecond := ADR(Second) ;
-      next        := AttachVector(InterruptNo, ADR(p))
-   END ;
-   IncludeVector(InterruptNo) ;
-   TRANSFER(First, Second)
-END IOTRANSFER ;
-
-
-
-
-
-
-
-BEGIN
-   currentContext := NIL ;
-   initPthreads := FALSE ;
-   initMain := FALSE ;
-   currentIntValue := MIN(PRIORITY)
-
-*)

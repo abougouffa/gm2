@@ -66,8 +66,9 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tree-gimple.h"
 #include "cgraph.h"
 
+#include "gm2-tree.h"
+
 #if defined(GM2)
-#  include "gm2-tree.h"
 extern tree gccgm2_GetM2IntegerType (void);
 extern tree gccgm2_GetM2ZType (void);
 extern tree gccgm2_GetM2LongIntType (void);
@@ -90,6 +91,7 @@ extern tree gccgm2_GetM2Complex32 (void);
 extern tree gccgm2_GetM2Complex64 (void);
 extern tree gccgm2_GetM2Complex96 (void);
 extern tree gccgm2_GetM2Complex128 (void);
+extern tree gccgm2_GetVoidType (void);
 #endif
 #if defined(CPP)
 #  include "cp-tree.h"
@@ -729,7 +731,7 @@ m2pp_identifier (pretty *s, tree t)
 {
   if (t)
     {
-      if (DECL_NAME (t))
+      if (DECL_NAME (t) && IDENTIFIER_POINTER (DECL_NAME (t)))
 	m2pp_ident_pointer (s, DECL_NAME (t));
       else
 	{
@@ -885,12 +887,12 @@ m2pp_function_header (pretty *s, tree t)
 	m2pp_needspace (s);
 	setindent (s, o);
       }
-      else if (returnType != NULL_TREE)
+      else if (returnType != void_type_node)
 	{
 	  m2pp_print (s, "()");
 	  m2pp_needspace (s);
 	}
-      if (returnType != NULL_TREE)
+      if (returnType != void_type_node)
 	{
 	  m2pp_print (s, ": ");
 	  m2pp_simple_type (s, returnType);
@@ -1077,8 +1079,7 @@ m2pp_integer (pretty *s, tree t)
   else if (t == gccgm2_GetBitnumType ())
     m2pp_print (s, "BITNUM");
   else {
-    stop ();
-    m2pp_print (s, " INTEGER");
+    m2pp_print (s, "INTEGER");
     m2pp_integer_cst (s, TYPE_SIZE (t));
   }
 #else      
@@ -1693,6 +1694,9 @@ m2pp_simple_expression (pretty *s, tree t)
     case IMAGPART_EXPR:
       m2pp_imagpart_expr (s, t);
       break;
+    case CONST_DECL:
+      m2pp_identifier (s, t);
+      break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[code]);
     }
@@ -1996,6 +2000,9 @@ m2pp_statement (pretty *s, tree t)
       m2pp_if_stmt (s, t);
       break;
 #endif
+    case ERROR_MARK:
+      m2pp_print (s, "<ERROR CODE>\n");
+      break;
     default:
       m2pp_unknown (s, __FUNCTION__, tree_code_name[TREE_CODE (t)]);
     }
