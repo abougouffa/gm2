@@ -1,7 +1,7 @@
 Pre 1.0
 
 *  finish ISO libraries:
-*    finish COROUTINES and PROCESSES.
+*    finish PROCESSES.
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
 *    finish SEMAPHORES, GeneralUser

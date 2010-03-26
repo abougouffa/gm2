@@ -1,8 +1,17 @@
-2010-03-25       Gaius Mulley <gaius@gnu.org>
+2010-03-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/c:  removed broken example.
 	* cplusplus/m2catchcpp/Makefile.in:  new file.
 	* cplusplus/m2catchcpp/Makefile:  removed file.
+	* gm2/Make-lang.in:  added first completed version of
+	  COROUTINES.mod.
+	* gm2/TODO:  removed COROUTINES from the list.
+	* gm2/config-lang.in:  tidied up the list of Makefiles
+	  and added more examples to be built in the build
+	  directories.
+	* gm2/examples/cplusplus/m2catchcpp/Makefile.in:  (New file).
+	* gm2/gm2-libs-iso/COROUTINES.mod:  completed first
+	  implementation.
 
 2010-03-25       Gaius Mulley <gaius@gnu.org>
 

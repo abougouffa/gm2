@@ -18,6 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE COROUTINES ;
 
+FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
                 pth_uctx_save, pth_uctx_switch, pth_init ;
 
@@ -31,13 +32,6 @@ CONST
    MinStack = 8 * 16 * 1024 ;
 
 TYPE
-   PtrToIOTransferState = POINTER TO IOTransferState ;
-   IOTransferState      = RECORD
-                             ptrToTo,
-                             ptrToFrom: POINTER TO COROUTINE ;
-                             next     : PtrToIOTransferState ;
-                          END ;
-
    Status = (suspended, ready, new, running) ;
 
    COROUTINE = POINTER TO RECORD
@@ -47,15 +41,23 @@ TYPE
                              status    : Status ;
                              protection: PROTECTION ;
                              attached  : SourceList ;
+                             next      : COROUTINE ;
                           END ;
 
    SourceList = POINTER TO RECORD
-                              next: SourceList ;
-                              vec : INTERRUPTSOURCE ;
+                              next     : SourceList ;    (* next in the list of vectors which are      *)
+                                                         (* attached to this coroutine.                *)
+                              vec      : INTERRUPTSOURCE ;  (* the interrupt vector (source)           *)
+                              curco    : COROUTINE ;     (* the coroutine which is waiting on this vec *)
+                              chain    : SourceList ;    (* the next coroutine waiting on this vec     *)
+                              ptrToTo,
+                              ptrToFrom: POINTER TO COROUTINE ;
                            END ;
 
 
 VAR
+   freeList         : SourceList ;
+   head             : COROUTINE ;
    currentCoRoutine : COROUTINE ;
    illegalFinish    : ADDRESS ;
    initMain,
@@ -102,9 +104,12 @@ BEGIN
       context    := ctx ;
       wspace     := workspace ;
       nLocs      := size ;
+      status     := new ;
       protection := initProtection ;
-      status     := new
-   END
+      attached   := NIL ;
+      next       := head ;
+   END ;
+   head := cr
 END NEWCOROUTINE ;
 
 
@@ -113,14 +118,15 @@ PROCEDURE TRANSFER (VAR from: COROUTINE; to: COROUTINE);
      transfers control to the coroutine specified by to.
   *)
 BEGIN
-   localMain(to) ;
-   IF to.context=from.context
+   localInit ;
+   from := currentCoRoutine ;
+   IF to^.context=from^.context
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'error when attempting to context switch to the same process')
    END ;
    currentCoRoutine := to ;
-   IF pth_uctx_switch(to.context, from.context)=0
+   IF pth_uctx_switch(to^.context, from^.context)=0
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'an error as it was unable to change the user context')
@@ -132,13 +138,13 @@ END TRANSFER ;
    localMain - creates the holder for the main process.
 *)
 
-PROCEDURE localMain (VAR mainProcess: COROUTINE) ;
+PROCEDURE localMain ;
 BEGIN
    IF NOT initMain
    THEN
       initMain := TRUE ;
-      NEW(mainProcess) ;
-      WITH mainProcess^ DO
+      NEW(currentCoRoutine) ;
+      WITH currentCoRoutine^ DO
          IF pth_uctx_create(ADR(context))=0
          THEN
             Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -147,15 +153,18 @@ BEGIN
          wspace     := NIL ;
          nLocs      := 0 ;
          status     := running ;
-         protection := UnassignedPriority
-      END
+         protection := UnassignedPriority ;
+         attached   := NIL ;
+         next       := head
+      END ;
+      head := currentCoRoutine
    END
 END localMain ;
 
 
 (*
-   Finished - generates an error message. Modula-2 processes should never 
-              terminate.
+   Finished - generates an error message. Modula-2 processes
+              should never terminate.
 *)
 
 PROCEDURE Finished (p: ADDRESS) ;
@@ -187,9 +196,9 @@ BEGIN
       THEN
          Halt(__FILE__, __LINE__, __FUNCTION__, 'unable to make user context')
       END
-   END
+   END ;
+   localMain
 END localInit ;
-
 
 
 PROCEDURE IOTRANSFER (VAR from: COROUTINE; to: COROUTINE);
@@ -201,34 +210,137 @@ PROCEDURE IOTRANSFER (VAR from: COROUTINE; to: COROUTINE);
      must be associated with a source of interrupts.
   *)
 VAR
-   p: IOTransferState ;
-   l: POINTER TO IOTransferState ;
+   l: SourceList ;
 BEGIN
-   localMain(First) ;
-   WITH p DO
-      ptrToFrom := ADR(from) ;
-      ptrToTo   := ADR(to) ;
-      next      := AttachVector(InterruptNo, ADR(p))   (* --fixme-- *)
+   localInit ;
+   l := currentCoRoutine^.attached ;
+   IF l=NIL
+   THEN
+      printf("no source of interrupts associated with coroutine\n")
    END ;
-   IncludeVector(InterruptNo) ;   (* --fixme-- *)
+   WHILE l#NIL DO
+      WITH l^ DO
+         ptrToFrom := ADR(from) ;
+         ptrToTo   := ADR(to) ;
+         curco := currentCoRoutine ;
+         chain := AttachVector(vec, l) ;
+         IF chain#NIL
+         THEN
+            printf("not expecting multiple COROUTINES to be waiting on a single interrupt source\n")
+         END ;
+         IncludeVector(vec)
+      END ;
+      l := l^.next
+   END ;
    TRANSFER(from, to)
 END IOTRANSFER ;
-    
+
+
+(*
+   New - assigns, l, to a new SourceList.
+*)
+
+PROCEDURE New (VAR l: SourceList) ;
+BEGIN
+   IF freeList=NIL
+   THEN
+      NEW(l)
+   ELSE
+      l := freeList ;
+      freeList := freeList^.next
+   END
+END New ;
+
+
+(*
+   Dispose - returns, l, to the freeList.
+*)
+
+PROCEDURE Dispose (l: SourceList) ;
+BEGIN
+   l^.next := freeList ;
+   freeList := l
+END Dispose ;
+
 
 PROCEDURE ATTACH (source: INTERRUPTSOURCE);
   (* Associates the specified source of interrupts with the calling
      coroutine. *)
+VAR
+   l: SourceList ;
 BEGIN
-   
+   localInit ;
+   l := currentCoRoutine^.attached ;
+   WHILE l#NIL DO
+      IF l^.vec=source
+      THEN
+         RETURN
+      ELSE
+         l := l^.next
+      END
+   END ;
+   New(l) ;
+   WITH l^ DO
+      vec := source ;
+      next := currentCoRoutine^.attached
+   END ;
+   currentCoRoutine^.attached := l
 END ATTACH ;
 
 
 PROCEDURE DETACH (source: INTERRUPTSOURCE);
   (* Dissociates the specified source of interrupts from the calling
      coroutine. *)
+VAR
+   l, m: SourceList ;
 BEGIN
-   
+   localInit ;
+   l := currentCoRoutine^.attached ;
+   m := l ;
+   WHILE l#NIL DO
+      IF l^.vec=source
+      THEN
+         IF m=currentCoRoutine^.attached
+         THEN
+            currentCoRoutine^.attached := currentCoRoutine^.attached^.next
+         ELSE
+            m^.next := l^.next
+         END ;
+         Dispose(l) ;
+         RETURN
+      ELSE
+         m := l ;
+         l := l^.next
+      END
+   END
 END DETACH ;
+
+
+(*
+   getAttached - returns the first COROUTINE associated with, source.
+                 It returns NIL is no COROUTINE is associated with, source.
+*)
+
+PROCEDURE getAttached (source: INTERRUPTSOURCE) : COROUTINE ;
+VAR
+   l: SourceList ;
+   c: COROUTINE ;
+BEGIN
+   c := head ;
+   WHILE c#NIL DO
+      l := c^.attached ;
+      WHILE l#NIL DO
+         IF l^.vec=source
+         THEN
+            RETURN( c )
+         ELSE
+            l := l^.next
+         END
+      END ;
+      c := c^.next
+   END ;
+   RETURN( NIL )
+END getAttached ;
 
 
 PROCEDURE IsATTACHED (source: INTERRUPTSOURCE): BOOLEAN;
@@ -236,7 +348,8 @@ PROCEDURE IsATTACHED (source: INTERRUPTSOURCE): BOOLEAN;
      currently associated with a coroutine; otherwise returns FALSE.
   *)
 BEGIN
-   
+   localInit ;
+   RETURN getAttached(source)#NIL
 END IsATTACHED ;
 
 
@@ -246,18 +359,15 @@ PROCEDURE HANDLER (source: INTERRUPTSOURCE) : COROUTINE;
      FALSE.
   *)
 BEGIN
-   IF IsATTACHED(source)
-   THEN
-
-   ELSE
-      RETURN( NIL )
-   END
+   localInit ;
+   RETURN getAttached(source)
 END HANDLER ;
 
 
 PROCEDURE CURRENT () : COROUTINE ;
   (* Returns the identity of the calling coroutine. *)
 BEGIN
+   localInit ;
    RETURN currentCoRoutine
 END CURRENT ;
 
@@ -266,7 +376,7 @@ PROCEDURE LISTEN (p: PROTECTION) ;
   (* Momentarily changes the protection of the calling coroutine to p. *)
 BEGIN
    localInit ;
-   Listen(FALSE, IOTransferHandler, MIN(PRIORITY))
+   Listen(FALSE, IOTransferHandler, MIN(PROTECTION))
 END LISTEN ;
 
 
@@ -289,8 +399,24 @@ END LISTEN ;
 PROCEDURE ListenLoop ;
 BEGIN
    localInit ;
-   Listen(TRUE, IOTransferHandler, MIN(PRIORITY))
+   Listen(TRUE, IOTransferHandler, MIN(PROTECTION))
 END ListenLoop ;
+
+
+(*
+   removeAttached - removes all sources of interrupt from COROUTINE, c.
+*)
+
+PROCEDURE removeAttached (c: COROUTINE) ;
+VAR
+   l: SourceList ;
+BEGIN
+   l := c^.attached ;
+   WHILE l#NIL DO
+      ExcludeVector(l^.vec) ;
+      l := l^.next
+   END
+END removeAttached ;
 
 
 (*
@@ -299,30 +425,31 @@ END ListenLoop ;
 
 PROCEDURE IOTransferHandler (InterruptNo: CARDINAL;
                              Priority: CARDINAL ;
-                             l: PtrToIOTransferState) ;
+                             l: SourceList) ;
 VAR
-   old: PtrToIOTransferState ;
+   ourself: SourceList ;
 BEGIN
+   localInit ;
    IF l=NIL
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
-           'no processes attached to this interrupt vector which is associated with IOTRANSFER')
+           'no coroutine attached to this interrupt vector which was initiated by IOTRANSFER')
    ELSE
       WITH l^ DO
-         old := AttachVector(InterruptNo, next) ;
-         IF old#l
+         ourself := AttachVector(InterruptNo, chain) ;
+         IF ourself#l
          THEN
             Halt(__FILE__, __LINE__, __FUNCTION__,
                  'inconsistancy of return result')
          END ;
-         IF next=NIL
+         IF chain=NIL
          THEN
-            ExcludeVector(InterruptNo)
+            removeAttached(curco)
          ELSE
             printf('odd vector has been chained\n')
          END ;
-         ptrToSecond^.context := currentContext ;
-         TRANSFER(ptrToSecond^, ptrToFirst^)
+         ptrToTo^^.context := currentCoRoutine^.context ;
+         TRANSFER(ptrToTo^, ptrToFrom^)
       END
    END
 END IOTransferHandler ;
@@ -331,6 +458,7 @@ END IOTransferHandler ;
 PROCEDURE PROT () : PROTECTION;
   (* Returns the protection of the calling coroutine. *)
 BEGIN
+   localInit ;
    RETURN currentCoRoutine^.protection
 END PROT ;
 
@@ -342,13 +470,14 @@ END PROT ;
 
 PROCEDURE TurnInterrupts (to: PROTECTION) : PROTECTION ;
 VAR
-   old: PRIORITY ;
+   old: PROTECTION ;
 BEGIN
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
-   old := currentIntValue ;
-   currentIntValue := to ;
-   Listen(FALSE, IOTransferHandler, currentIntValue) ;
-   RETURN( old )
+   localInit ;
+   old := currentCoRoutine^.protection ;
+   Listen(FALSE, IOTransferHandler, old) ;
+   currentCoRoutine^.protection := to ;
+   Listen(FALSE, IOTransferHandler, to) ;
+   RETURN old
 END TurnInterrupts ;
 
 
@@ -358,10 +487,10 @@ END TurnInterrupts ;
 
 PROCEDURE Init ;
 BEGIN
+   freeList := NIL ;
    initPthreads := FALSE ;
    initMain := FALSE ;
-   currentCoRoutine := NIL ;
-   currentIntValue := MIN(PRIORITY)
+   currentCoRoutine := NIL
 END Init ;
 
 

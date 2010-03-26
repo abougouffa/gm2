@@ -87,11 +87,19 @@ gtfiles="\$(srcdir)/gm2/gccgm2.c \$(srcdir)/gm2/gm2-lang.c \
          \$(srcdir)/gm2/gm2-lang.h \$(srcdir)/c-common.h \
          \$(srcdir)/gm2/gm2except.c \$(srcdir)/gm2/gm2builtins.c"
 
-outputs="gm2/Makefile gm2/p2c/Makefile \
+outputs=" \
+         gm2/Makefile \
+         gm2/config-make \
+         gm2/examples/cplusplus/cppcatchm2/Makefile \
+         gm2/examples/cplusplus/m2catchcpp/Makefile \
+         gm2/examples/cpp/Makefile \
+         gm2/examples/gravity/Makefile \
+         gm2/examples/hello/Makefile \
+         gm2/examples/map/Makefile \
+         gm2/man/Makefile \
+         gm2/p2c/Makefile \
          gm2/p2c/p2c-src/Makefile \
          gm2/p2c/p2c-src/src/Makefile \
-         gm2/man/Makefile gm2/www/Makefile \
-         gm2/config-make \
-         gm2/examples/gravity/Makefile \
-         gm2/examples/map/Makefile \
-         gm2/examples/hello/Makefile"
+         gm2/www/Makefile \
+        "
+

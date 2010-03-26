@@ -29,15 +29,15 @@ all: force
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
 pre-install: clean
-	$(XGM2) -g -c m2.mod
 	$(XGPP) -g -c cpp.cpp
-	$(XGM2) -g m2.mod cpp.o
+	$(XGM2) -I$(SRC_PATH_ISO) -g -c $(srcdir)/m2.mod
+	$(XGM2) -I$(SRC_PATH_ISO) -fobject-path=$(OBJ_PATH_ISO) -g $(srcdir)/m2.mod cpp.o
 	./a.out
 
 post-install: force
-	gm2 -g -c m2.mod
-	g++ -g -c cpp.cpp
-	gm2 -g m2.mod cpp.o
+	gm2 -g -c $(srcdir)/m2.mod
+	g++ -g -c $(srcdir)/cpp.cpp
+	gm2 -g $(srcdir)/m2.mod cpp.o
 	./a.out
 
 clean: force
