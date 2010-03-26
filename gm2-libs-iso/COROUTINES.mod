@@ -46,7 +46,13 @@ TYPE
                              nLocs     : CARDINAL ;
                              status    : Status ;
                              protection: PROTECTION ;
+                             attached  : SourceList ;
                           END ;
+
+   SourceList = POINTER TO RECORD
+                              next: SourceList ;
+                              vec : INTERRUPTSOURCE ;
+                           END ;
 
 
 VAR

@@ -1,5 +1,11 @@
 2010-03-25       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/examples/c:  removed broken example.
+	* cplusplus/m2catchcpp/Makefile.in:  new file.
+	* cplusplus/m2catchcpp/Makefile:  removed file.
+
+2010-03-25       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/Make-lang.in:  added new rule to test specific
 	  dejagnu tests.
 	* gm2/gccgm2.c:  gm2_tree_inlining_walk_subtrees
@@ -23,6 +29,7 @@
 	* gm2/examples/hello/Makefile.in:  (New file).
 	* gm2/examples/gravity/Makefile.in:  (New file).
 	* gm2/examples/map/Makefile.in:  (New file).
+	* gm2/examples/callingC/Makefile.in:  (New file).
 
 2010-03-17       Gaius Mulley <gaius@gnu.org>
 
