@@ -4,6 +4,8 @@
 	* gm2/examples/swig/tiny/Makefile.in:  (New file).
 	* gm2/examples/swig/exceptions/Makefile:  (Removed file).
 	* gm2/examples/swig/exceptions/Makefile.in:  (New file).
+	* gm2/examples/swig/strlib/Makefile:  (Removed file).
+	* gm2/examples/swig/strlib/Makefile.in:  (New file).
 	
 2010-03-26       Gaius Mulley <gaius@gnu.org>
 
