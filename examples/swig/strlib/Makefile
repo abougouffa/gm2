@@ -9,6 +9,6 @@ all: force
 	python testlen.py
 
 clean: force
-	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* MyStrLib.py *.i *.lst
+	$(RM) -f *.o *.so a.out *.pyc *~ *_wrap* MyStrLib.py *.i *.lst MyStrLib_m2.cpp
 
 force:

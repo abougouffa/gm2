@@ -1,3 +1,10 @@
+2010-03-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/swig/tiny/Makefile:  (Removed file).
+	* gm2/examples/swig/tiny/Makefile.in:  (New file).
+	* gm2/examples/swig/exceptions/Makefile:  (Removed file).
+	* gm2/examples/swig/exceptions/Makefile.in:  (New file).
+	
 2010-03-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/c:  removed broken example.

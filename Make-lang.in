@@ -549,6 +549,12 @@ gm2.install-common: installdirs \
               fi ; \
            fi ; \
         done ; \
+	for i in gm2/gm2-libs-pim/SO/*.a ; do \
+           if [ ! -d $$i ] ; then \
+              rm -f $(GM2_LIB_DIR_LOG)/SO/$$i ; \
+              $(INSTALL_PROGRAM) $$i $(GM2_LIB_DIR_LOG)/SO ; \
+           fi ; \
+        done ; \
 	for i in gm2/gm2-libs-pim/O2/*.a ; do \
            if [ ! -d $$i ] ; then \
               rm -f $(GM2_LIB_DIR_LOG)/O2/$$i ; \
