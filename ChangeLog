@@ -10,6 +10,8 @@
 	* gm2/www/index.ms:  updated homepage in light of the
 	  completed ISO dialect.
 	* gm2/gm2-libs-iso/pth.def:  (New file).
+	* gm2/gm2-libs-iso/Processes.mod:  (New file).
+	  (Intermediate checkin).
 
 2010-03-27       Gaius Mulley <gaius@gnu.org>
 
