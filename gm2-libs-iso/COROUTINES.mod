@@ -126,7 +126,7 @@ BEGIN
            'error when attempting to context switch to the same process')
    END ;
    currentCoRoutine := to ;
-   IF pth_uctx_switch(to^.context, from^.context)=0
+   IF pth_uctx_switch(from^.context, to^.context)=0
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'an error as it was unable to change the user context')

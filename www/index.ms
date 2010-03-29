@@ -1,5 +1,6 @@
 .\"
-.\" Copyright (C) 2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+.\" Copyright (C) 2006, 2007, 2008, 2009, 2010
+.\" Free Software Foundation, Inc.
 .\" 
 .\" Permission is granted to copy, distribute and/or modify this document
 .\" under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -15,9 +16,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Tue Dec 22 14:25:52 GMT 2009
-.ds CURRENTGM2 0.71
-.ds DEBIANGM2 0.7.1
+.ds CURRENTDATE "Mon Mar 29 12:45:34 BST 2010
+.ds CURRENTGM2 0.79
+.ds DEBIANGM2 0.7.8
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -79,42 +80,43 @@ This compiler is still in development.
 .LP
 The compiler has undergone quite a number of changes recently and the
 current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
-It can build all of the University of Ulm libraries, has a good
-selection of Logitech compatibility libraries, all the m2f libraries
-and most ISO libraries.
+The native x86_64 version is the most stable.
+.PP
+The GNU Modula-2 compiler is one of a number of
+.URL http://gcc.gnu.org/frontends.html "front end languages"
+to GCC (\c
+.URL http://gcc.gnu.org "GNU Compiler Collection" ).
+As such it has been designed to coexist with other GCC languages for
+example it can be used in mixed language projects and it can catch C++
+exceptions and throw exceptions which can be caught by C++.  Users can
+also exploit conditional compilation and full gcc backend optimization
+and architecture coverage.
+.PP
+GNU Modula-2 can produce position independant code and can easily
+produce shared libraries from modules.  The compiler provides a swig
+interface file generator option which allows scripting languages such
+as Python to import modules written in Modula-2 and also catch
+exceptions thrown by Modula-2.
 .sp
-Recent news about GNU Modula-2:
+Recent news:
 \m[darkblue]
 .sp
 .ULS
 .LI
+all regression tests pass on the LP64 platform.
+.LI
+the ISO Modula-2 language is now complete.
+.LI
+most of the ISO libraries have been completed.
+.LI
 many bug fixes have been applied to the ISO libraries and also the
-compiler.  All regression tests pass on the LP64 platform.
+compiler.
 .LI
 builds under OSX leopard and snow leopard using \f[I]macports\f[P]
 (although there are regression test failures on these platforms).
 .LI
-the ISO Modula-2 language is now complete.  Recent additions were
-dynamic multidimensional arrays, the type \f[C]COMPLEX\f[P],
-ISO \f[C]SIZE\f[P] and \f[C]CASE\f[P] range compile time checking.
-.LI
 now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).
-.LI
-many more ISO libraries have been completed (although please see the
-section on limitations).
-.LI
-the option
-.OPT -fswig
-will automatically create a swig interface file which corresponds to
-the definition module of the file being compiled.
-.LI
-fixed sized types are now available from \f[C]SYSTEM\f[P].
-.LI
-exception handling is now implemented and is compatible with C++
-and swig (and therefore also Python etc).
-.LI
-the keyword \f[C]FINALLY\f[P] has been implemented.
 .ULE
 .
 .SH
@@ -127,27 +129,33 @@ the option
 will automatically create a swig interface file which corresponds to
 the definition module of the file being compiled.
 .LI
-fixed sized types are now available from \f[C]SYSTEM\f[P].
-.LI
 exception handling is compatible with C++ and swig.
+Modula-2 code can be used with C or C++ code.
 .LI
 Python can call GNU Modula-2 modules via swig.
+.LI
+shared libraries can be built.
+.LI
+fixed sized types are now available from \f[C]SYSTEM\f[P].
 .LI
 support for dynamic \f[C]ARRAY\f[P]s has been added into \f[C]gdb\f[P].
 .LI
 variables can be declared at addresses.
 .LI
 much better \fCdwarf-2\fP debugging support and when used with
-\fCgdb-6.5\fP the programmer can display \f[C]RECORD\f[P]s,
+\fCgdb\fP the programmer can display \f[C]RECORD\f[P]s,
 \f[C]ARRAY\f[P]s, \f[C]SET\f[P]s, subranges and constant char literals
 in Modula-2 syntax.
 .LI
 it currently complies with Programming in Modula-2 Edition 2, 3, 4
 and ISO Modula-2.
-Users can switch on specific mutually exclusive features by
-.OPT -fpim
+Users can switch on specific mutually exclusive features by using:
+.OPT -fpim ,
+.OPT -fpim2 ,
+.OPT -fpim3 ,
+.OPT -fpim4
 or
-.OPT -fpim2 .
+.OPT -fiso .
 .LI
 supports sets of any ordinal size (memory permitting).
 .LI
@@ -157,8 +165,8 @@ University of Ulm libraries are installed together with the compiler
 and can be accessed via:
 .OPT -flibs=ulm
 .LI
-some Logitech libraries have been implemented and can be accessed via:
-.OPT -flibs=logitech
+many Logitech libraries have been implemented and can be accessed via:
+.OPT -flibs=logitech .
 .LI
 coroutines have been implemented in the PIM style and these are
 accessible from SYSTEM. A number of supporting libraries (executive
@@ -166,6 +174,12 @@ and file descriptor mapping to interrupt vector libraries are
 available through the
 .OPT -flibs=pim-coroutines
 switch).
+.LI
+can be built as a cross compiler (for embedded microprocessors
+such as the
+.URL http://www.atmel.com/products/AVR AVR
+and the
+.URL http://www.arm.com ARM ).
 .ULE
 \mP
 .LP
@@ -224,17 +238,12 @@ writing all regressions tests pass.  There are 1439 individual tests
 and each test is compiled with varying options resulting in a total of
 8634 test cases).
 .LI
-ISO library implementation is near completion, most of the libraries are
-finished but Processes, Coroutines, Semaphores are missing.
-For a full list check the
-.URL gm2.html documentation .
+ISO library implementation is now very near completion, all but four
+libraries are finished.  Only Processes, Semaphores, LowReal, LowLong
+are missing.
 .LI
-Logitech compatibility library is incomplete (nevertheless a number of
-common libraries have been implemented: Terminal, Display, InOut,
-RealInOut, FileSystem, BlockOps, BitWordOps, BitByteOps, BitBlockOps
-and others.
-Again for a comprehensive list of completed modules
-please check the
+Logitech compatibility library is incomplete.  For a comprehensive
+list of completed modules please check the
 .URL gm2.html documentation .
 .ULE
 .sp

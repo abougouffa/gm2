@@ -1,3 +1,15 @@
+2010-03-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2.texi:  corrected dates and revised release map
+	  in light of ISO language completion.
+	* gm2/version.c:  updated version number to 0.78.
+	* gm2/el/g-mode.el:  fixed copyright date.
+	* gm2/gm2-libs/configure.in:  updated version number to 0.78.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  corrected bug.
+	* gm2/gm2-libs-iso/M2EXCEPTION.mod:  updated dates.
+	* gm2/www/index.ms:  updated homepage in light of the
+	  completed ISO dialect.
+
 2010-03-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/swig/tiny/Makefile:  (Removed file).

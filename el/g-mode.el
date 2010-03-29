@@ -1,5 +1,5 @@
 ;; Copyright (C) 1985, 1986, 1987, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007, 2008, 2009
+;;               2005, 2006, 2007, 2008, 2009, 2010
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -440,7 +440,7 @@ Control-C followed by the first character of the construct.
 (defun m2-fsf-copyright ()
   "emit the a copyright notice providing m2-assign-future is set."
   (if m2-assign-future
-      (insert "(* Copyright (C) 2009 Free Software Foundation, Inc. *)\n")))
+      (insert "(* Copyright (C) 2010 Free Software Foundation, Inc. *)\n")))
 
 (defun m2-fsf-gpl-notice ()
   "emit the fsf gpl notice at the relevant position."
@@ -458,7 +458,8 @@ for more details.
 
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
-Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)\n\n"))
+Foundation, 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA. *)\n\n"))
 
 (defun m2-fsf-lgpl-notice ()
   "emit the fsf notice at the relevant position."
@@ -476,7 +477,8 @@ Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public
 License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *)\n\n"))
+Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA  02110-1301  USA *)\n\n"))
 
 (defun m2-fsf-notice ()
   "if the m2-assign-future is set then prompt the user for 'g'pl or 'l'gpl."
