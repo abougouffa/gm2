@@ -12,6 +12,8 @@
 	* gm2/gm2-libs-iso/pth.def:  (New file).
 	* gm2/gm2-libs-iso/Processes.mod:  (New file).
 	  (Intermediate checkin).
+	* gm2/examples/cplusplus/cppcatchm2/Makefile:  (Removed file).
+	* gm2/examples/cplusplus/cppcatchm2/Makefile.in:  (New file).
 
 2010-03-27       Gaius Mulley <gaius@gnu.org>
 
