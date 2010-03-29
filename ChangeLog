@@ -9,6 +9,7 @@
 	* gm2/gm2-libs-iso/M2EXCEPTION.mod:  updated dates.
 	* gm2/www/index.ms:  updated homepage in light of the
 	  completed ISO dialect.
+	* gm2/gm2-libs-iso/pth.def:  (New file).
 
 2010-03-27       Gaius Mulley <gaius@gnu.org>
 
