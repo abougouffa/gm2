@@ -18,10 +18,16 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE COROUTINES ;
 
-FROM SYSTEM IMPORT ADDRESS, ADR ;
 FROM pth IMPORT pth_uctx_create, pth_uctx_make, pth_uctx_t,
                 pth_uctx_save, pth_uctx_switch, pth_init ;
 
+FROM RTExceptions IMPORT EHBlock, InitExceptionBlock,
+                         SetExceptionBlock, GetExceptionBlock,
+                         SetExceptionState, IsInExceptionState,
+                         SetExceptionSource, GetExceptionSource ;
+
+FROM SYSTEM IMPORT ADDRESS, ADR ;
+FROM EXCEPTIONS IMPORT ExceptionSource ;
 FROM RTint IMPORT Listen, AttachVector, IncludeVector, ExcludeVector ;
 FROM Storage IMPORT ALLOCATE ;
 FROM M2RTS IMPORT Halt ;
@@ -36,6 +42,9 @@ TYPE
 
    COROUTINE = POINTER TO RECORD
                              context   : SYSTEM.ADDRESS ;
+                             ehblock   : EHBlock ;
+                             inexcept  : BOOLEAN ;
+                             source    : ExceptionSource ;
                              wspace    : SYSTEM.ADDRESS ;
                              nLocs     : CARDINAL ;
                              status    : Status ;
@@ -102,6 +111,9 @@ BEGIN
    END ;
    WITH cr^ DO
       context    := ctx ;
+      ehblock    := InitExceptionBlock() ;
+      inexcept   := FALSE ;
+      source     := NIL ;
       wspace     := workspace ;
       nLocs      := size ;
       status     := new ;
@@ -125,7 +137,11 @@ BEGIN
       Halt(__FILE__, __LINE__, __FUNCTION__,
            'error when attempting to context switch to the same process')
    END ;
+   from^.inexcept := SetExceptionState(to^.inexcept) ;
+   from^.source := GetExceptionSource() ;
    currentCoRoutine := to ;
+   SetExceptionBlock(currentCoRoutine^.ehblock) ;
+   SetExceptionSource(currentCoRoutine^.source) ;
    IF pth_uctx_switch(from^.context, to^.context)=0
    THEN
       Halt(__FILE__, __LINE__, __FUNCTION__,
@@ -150,6 +166,9 @@ BEGIN
             Halt(__FILE__, __LINE__, __FUNCTION__,
                  'unable to create context for main')
          END ;
+         ehblock    := GetExceptionBlock() ;
+         inexcept   := IsInExceptionState() ;
+         source     := GetExceptionSource() ;
          wspace     := NIL ;
          nLocs      := 0 ;
          status     := running ;

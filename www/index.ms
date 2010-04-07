@@ -176,10 +176,7 @@ available through the
 switch).
 .LI
 can be built as a cross compiler (for embedded microprocessors
-such as the
-.URL http://www.atmel.com/products/AVR AVR
-and the
-.URL http://www.arm.com ARM ).
+such as the AVR and the ARM).
 .ULE
 \mP
 .LP

@@ -28,7 +28,7 @@ CONST
    Max - returns the maximum of a and b.
 *)
 
-PROCEDURE (* __INLINE__ *) Max (a, b: CARDINAL) : CARDINAL ;
+PROCEDURE Max (a, b: CARDINAL) : CARDINAL ;
 BEGIN
    IF a>b
    THEN
@@ -43,7 +43,7 @@ END Max ;
    Min - returns the minimum of a and b.
 *)
 
-PROCEDURE (* __INLINE__ *) Min (a, b: CARDINAL) : CARDINAL ;
+PROCEDURE Min (a, b: CARDINAL) : CARDINAL ;
 BEGIN
    IF a<b
    THEN

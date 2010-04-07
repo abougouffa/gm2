@@ -55,10 +55,31 @@ PROCEDURE KillHandlers (h: Handler) : Handler ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
-   inException: BOOLEAN ;
-   freeHandler: Handler ;
+   inException  : BOOLEAN ;
+   freeHandler  : Handler ;
    freeEHB,
-   currentEHB : EHBlock ;
+   currentEHB   : EHBlock ;
+   currentSource: ADDRESS ;
+
+
+(*
+   SetExceptionSource - sets the current exception source to, source.
+*)
+
+PROCEDURE SetExceptionSource (source: ADDRESS) ;
+BEGIN
+   currentSource := source
+END SetExceptionSource ;
+
+
+(*
+   GetExceptionSource - returns the current exception source.
+*)
+
+PROCEDURE GetExceptionSource () : ADDRESS ;
+BEGIN
+   RETURN currentSource
+END GetExceptionSource ;
 
 
 (*

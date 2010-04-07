@@ -294,8 +294,9 @@ generate a swig interface file.
 generate a shared library from the module.
 
 @item -fmakeinit
-generate the start up C code for the module, a file @file{_m2_modulename.c} is created.
-This is an internal command line option.
+generate the start up C++ code for the module, a file
+@file{_m2_modulename.cpp} is created.  This is an internal command
+line option.
 
 @item -fmakeall
 generate a temporary makefile and build all dependent modules and

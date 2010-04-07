@@ -1,3 +1,30 @@
+2010-04-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  added GeneralUserExceptions.mod and
+	  Processes.mod.
+	* gm2/gm2.texi:  corrected startup filename.
+	* gm2/gm2-compiler/M2Quads.mod:  call SkipType when checking
+	  procedure parameters (CheckProcTypeAndProcedure).
+	* gm2/gm2-libs/Assertion.def:  added space.
+	* gm2/gm2-libs/Assertion.mod:  corrected copyright notice
+	  and altered halt message.
+	* gm2/gm2-libs/RTExceptions.def:  SetExceptionSource,
+	  GetExceptionSource (New Procedures).
+	* gm2/gm2-libs/RTExceptions.mod:  implement SetExceptionSource
+	  and GetExceptionSource.
+	* gm2/gm2-libs/SYSTEM.mod:  removed commented out redundant
+	  comment __INLINE__.
+	* gm2/gm2-libs-iso/COROUTINES.mod:  TRANSFER and initMain
+	  must save and restore the ExceptionBlock, ExceptionState
+	  and ExceptionSource.
+	* gm2/gm2-libs-iso/EXCEPTIONS.mod:  use RTExceptions to retrieve
+	  the ExceptionSource associated with the current COROUTINE to
+	  ensure that the exception mechanism is COROUTINE safe.
+	* gm2/gm2-libs-iso/Processes.mod:  first full implementation.
+	* gm2/ulm-lib-gm2/std/RTExceptions.mod:  SetExceptionSource
+	  GetExceptionSource (New procedures).
+	* gm2/www/index.ms:  removed URLs.
+	
 2010-03-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  corrected dates and revised release map

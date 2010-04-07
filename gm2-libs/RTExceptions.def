@@ -37,7 +37,8 @@ EXPORT QUALIFIED EHBlock,
                  PushHandler, PopHandler,
                  BaseExceptionsThrow, DefaultErrorCatch,
                  IsInExceptionState, SetExceptionState,
-                 SwitchExceptionState, GetBaseExceptionBlock ;
+                 SwitchExceptionState, GetBaseExceptionBlock,
+                 SetExceptionSource, GetExceptionSource ;
 
 TYPE
    EHBlock ;
@@ -173,6 +174,20 @@ PROCEDURE SwitchExceptionState (VAR from: BOOLEAN; to: BOOLEAN) ;
 *)
 
 PROCEDURE GetBaseExceptionBlock () : EHBlock ;
+
+
+(*
+   SetExceptionSource - sets the current exception source to, source.
+*)
+
+PROCEDURE SetExceptionSource (source: ADDRESS) ;
+
+
+(*
+   GetExceptionSource - returns the current exception source.
+*)
+
+PROCEDURE GetExceptionSource () : ADDRESS ;
 
 
 END RTExceptions.

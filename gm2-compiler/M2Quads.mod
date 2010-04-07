@@ -4346,7 +4346,7 @@ BEGIN
    n := NoOfParam(ProcType) ;
    IF IsVar(call) OR IsTemporary(call) OR IsParameter(call)
    THEN
-      CheckedProcedure := GetType(call)
+      CheckedProcedure := SkipType(GetType(call))
    ELSE
       CheckedProcedure := call
    END ;
@@ -4511,7 +4511,7 @@ BEGIN
    IncludeItemIntoList(TypeList, ActualType) ;
    IF IsProcType(FormalType)
    THEN
-      IF (NOT IsProcedure(Actual)) AND ((ActualType=NulSym) OR (NOT IsProcType(ActualType)))
+      IF (NOT IsProcedure(Actual)) AND ((ActualType=NulSym) OR (NOT IsProcType(SkipType(ActualType))))
       THEN
          FailParameter('expecting a procedure or procedure variable as a parameter',
                        Actual, Formal, ProcSym, i) ;

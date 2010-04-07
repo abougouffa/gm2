@@ -28,14 +28,11 @@ FROM Storage IMPORT ALLOCATE ;
 
 
 TYPE
-  ExceptionSource = POINTER TO RECORD
-                                  eh: RTExceptions.EHBlock ;
-                               END ;
-                           (* values of this type are used within library modules to
-                              identify the source of raised exceptions *)
-
-VAR
-   lastSource: ExceptionSource ;
+   ExceptionSource = POINTER TO RECORD
+                                   eh: RTExceptions.EHBlock ;
+                                END ;
+   (* values of this type are used within library modules to
+      identify the source of raised exceptions *)
 
 
 PROCEDURE AllocateSource (VAR newSource: ExceptionSource) ;
@@ -55,7 +52,7 @@ PROCEDURE RAISE (source: ExceptionSource;
      the current context and raises an exception.
   *)
 BEGIN
-   lastSource := source ;
+   RTExceptions.SetExceptionSource(source) ;
    RTExceptions.SetExceptionBlock(source^.eh) ;
    RTExceptions.Raise(number, ADR(__FILE__), __LINE__, __COLUMN__, ADR(__FUNCTION__), ADR(message)) ;
    (* we should never reach here as Raise should jump to the exception handler *)
@@ -116,7 +113,7 @@ PROCEDURE IsCurrentSource (source: ExceptionSource) : BOOLEAN ;
      and otherwise returns FALSE.
   *)
 BEGIN
-   RETURN( RTExceptions.IsInExceptionState() AND (source=lastSource) )
+   RETURN( RTExceptions.IsInExceptionState() AND (source=RTExceptions.GetExceptionSource()) )
 END IsCurrentSource ;
 
 
@@ -130,6 +127,4 @@ BEGIN
 END IsExceptionalExecution ;
 
 
-BEGIN
-   lastSource := NIL
 END EXCEPTIONS.
