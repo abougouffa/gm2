@@ -24,6 +24,9 @@
 	* gm2/ulm-lib-gm2/std/RTExceptions.mod:  SetExceptionSource
 	  GetExceptionSource (New procedures).
 	* gm2/www/index.ms:  removed URLs.
+	* gm2/examples/callingC/Makefile:  removed file.
+	* gm2/TODO:  removed Processes.mod and GeneralUserExceptions.mod
+	  from the to do list.
 	
 2010-03-29       Gaius Mulley <gaius@gnu.org>
 
