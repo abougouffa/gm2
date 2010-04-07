@@ -1,9 +1,9 @@
 Pre 1.0
 
 *  finish ISO libraries:
+     LowReal, LowLong, LowShort
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
-*    finish SEMAPHORES
 *  add data alignment directives to records (Scott)
 *  complete implementation of the following Logitech-3.0 libraries:
    Calandar, Chronometer,

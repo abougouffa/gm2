@@ -26,7 +26,10 @@
 	* gm2/www/index.ms:  removed URLs.
 	* gm2/examples/callingC/Makefile:  removed file.
 	* gm2/TODO:  removed Processes.mod and GeneralUserExceptions.mod
-	  from the to do list.
+	  from the list.
+	* gm2/TODO:  removed Semaphores.mod from the list.
+	* gm2/TODO:  added LowReal.mod, LowLong.mod, LowShort.mod to the list.
+	* gm2/gm2-libs-iso/Semaphores.mod:  (New file).
 	
 2010-03-29       Gaius Mulley <gaius@gnu.org>
 

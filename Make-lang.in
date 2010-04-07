@@ -1196,6 +1196,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      RTdata.mod        RTentity.mod \
                      RTgen.mod         RTgenif.mod     RTio.mod \
                      RTfio.mod         \
+                     Semaphores.mod    \
                      SeqFile.mod       ShortComplexMath.mod \
                      SimpleCipher.mod \
                      StdChans.mod      SIOResult.mod   \
