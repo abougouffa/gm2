@@ -333,6 +333,7 @@ VAR
 *)
 
 (* %%%FORWARD%%%
+PROCEDURE doIndrX (des, exp: CARDINAL) ; FORWARD ;
 PROCEDURE doConvert (type: CARDINAL; sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE PushTrw (True: WORD; rw: WORD) ; FORWARD ;
 PROCEDURE PopTFrw (VAR True, False, rw: WORD) ; FORWARD ;
@@ -2565,15 +2566,7 @@ BEGIN
          IF GetMode(Exp)=LeftValue
          THEN
             CheckPointerThroughNil(Exp) ;  (*    Des = *Exp    *)
-            IF SkipType(GetType(Des))=SkipType(GetType(Exp))
-            THEN
-               GenQuad(IndrXOp, Des, GetType(Des), Exp)
-            ELSE
-               t := MakeTemporary(RightValue) ;
-               PutVar(t, GetType(Exp)) ;
-               GenQuad(IndrXOp, t, GetType(Exp), Exp) ;
-               GenQuad(BecomesOp, Des, NulSym, doVal(GetType(Des), t))
-            END
+            doIndrX(Des, Exp)
          ELSE
             GenQuad(BecomesOp, Des, NulSym, Exp)
          END
@@ -2585,7 +2578,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Exp)) ;
             CheckPointerThroughNil(Exp) ;
-            GenQuad(IndrXOp, t, GetType(t), Exp) ;
+            doIndrX(t, Exp) ;
             CheckPointerThroughNil(Des) ;  (*    *Des = Exp    *)
             GenQuad(XIndrOp, Des, GetType(Des), doVal(GetType(Des), t))
          ELSE
@@ -3566,7 +3559,7 @@ BEGIN
       tsym := MakeTemporary(RightValue) ;
       PutVar(tsym, GetType(IdSym)) ;
       CheckPointerThroughNil(IdSym) ;
-      GenQuad(IndrXOp, tsym, GetType(tsym), IdSym) ;
+      doIndrX(tsym, IdSym) ;
       BuildRange(InitForLoopEndRangeCheck(tsym, BySym)) ;
       IncQuad := NextQuad ;
       GenQuad(AddOp, tsym, tsym, BySym) ;
@@ -4905,6 +4898,26 @@ END ExpectVariable ;
 
 
 (*
+   doIndrX - perform des = *exp with a conversion if necessary.
+*)
+
+PROCEDURE doIndrX (des, exp: CARDINAL) ;
+VAR
+   t: CARDINAL ;
+BEGIN
+   IF SkipType(GetType(des))=SkipType(GetType(exp))
+   THEN
+      GenQuad(IndrXOp, des, GetType(des), exp)
+   ELSE
+      t := MakeTemporary(RightValue) ;
+      PutVar(t, GetType(exp)) ;
+      GenQuad(IndrXOp, t, GetType(exp), exp) ;
+      GenQuad(BecomesOp, des, NulSym, doVal(GetType(des), t))
+   END
+END doIndrX ;
+
+
+(*
    MakeRightValue - returns a temporary which will have the RightValue of symbol, Sym.
                     If Sym is a right value and has type, type, then no quadruples are
                     generated and Sym is returned. Otherwise a new temporary is created
@@ -4931,14 +4944,14 @@ BEGIN
          *)
          t := MakeTemporary(RightValue) ;
          PutVar(t, type) ;
-         GenQuad(BecomesOp, t, NulSym, Sym) ;
+         GenQuad(BecomesOp, t, NulSym, doVal(type, Sym)) ;
          RETURN( t )
       END
    ELSE
       t := MakeTemporary(RightValue) ;
       PutVar(t, type) ;
       CheckPointerThroughNil(Sym) ;
-      GenQuad(IndrXOp, t, type, Sym) ;
+      doIndrX(t, Sym) ;
       RETURN( t )
    END
 END MakeRightValue ;
@@ -5176,7 +5189,7 @@ BEGIN
                t := MakeTemporary(RightValue) ;
                PutVar(t, GetType(OperandT(pi))) ;
                CheckPointerThroughNil(OperandT(pi)) ;
-               GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
+               doIndrX(t, OperandT(pi)) ;
                f^.TrueExit := t
             END
          ELSE
@@ -5244,7 +5257,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(OperandT(pi))) ;
          CheckPointerThroughNil(OperandT(pi)) ;
-         GenQuad(IndrXOp, t, GetType(t), OperandT(pi)) ;
+         doIndrX(t, OperandT(pi)) ;
          f^.TrueExit := t ;
          MarkAsRead(rw)
       ELSE
@@ -5383,7 +5396,7 @@ BEGIN
    THEN
       sym := MakeTemporary(RightValue) ;
       PutVar(sym, GetType(op3)) ;
-      GenQuad(IndrXOp, sym, GetType(sym), op3) ;
+      doIndrX(sym, op3) ;
       GenQuad(HighOp, op1, op2, sym)
    ELSE
       GenQuad(HighOp, op1, op2, op3)
@@ -7939,7 +7952,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, GetType(Var)) ;
             CheckPointerThroughNil(Var) ;
-            GenQuad(IndrXOp, t, GetType(t), Var) ;
+            doIndrX(t, Var) ;
             Var := t
          END ;
 
@@ -8548,7 +8561,7 @@ BEGIN
          Assert(GetMode(ReturnVar)=LeftValue) ;
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(ProcSym)) ;
-         GenQuad(IndrXOp, t, GetType(ProcSym), ReturnVar) ;
+         doIndrX(t, ReturnVar) ;  (* was       GenQuad(IndrXOp, t, GetType(ProcSym), ReturnVar) ; *)
          ReturnVar := t
       ELSE
          ReturnVar := MakeTemporary(RightValue) ;
@@ -9456,7 +9469,7 @@ BEGIN
          e2 := MakeTemporary(RightValue) ;
          PutVar(e2, t2) ;
          CheckPointerThroughNil(e1) ;
-         GenQuad(IndrXOp, e2, t2, e1) ;
+         doIndrX(e2, e1) ;
          GenQuad(ReturnValueOp, e2, NulSym, CurrentProc)
       ELSE
          GenQuad(ReturnValueOp, e1, NulSym, CurrentProc)
@@ -10427,7 +10440,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(el)) ;
          CheckPointerThroughNil(el) ;
-         GenQuad(IndrXOp, t, GetType(t), el) ;
+         doIndrX(t, el) ;
          el := t
       END ;
       IF IsConst(value)
@@ -10901,7 +10914,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, t1) ;
             CheckPointerThroughNil(e1) ;
-            GenQuad(IndrXOp, t, t1, e1) ;
+            doIndrX(t, e1) ;
             e1 := t
          END ;
          IF GetMode(e2)=LeftValue
@@ -10909,7 +10922,7 @@ BEGIN
             t := MakeTemporary(RightValue) ;
             PutVar(t, t2) ;
             CheckPointerThroughNil(e2) ;
-            GenQuad(IndrXOp, t, t2, e2) ;
+            doIndrX(t, e2) ;
             e2 := t
          END
       ELSE
@@ -10996,7 +11009,7 @@ BEGIN
             SymT := MakeTemporary(RightValue) ;
             PutVar(SymT, GetType(Sym)) ;
             CheckPointerThroughNil(Sym) ;
-            GenQuad(IndrXOp, SymT, GetType(SymT), Sym) ;
+            doIndrX(SymT, Sym) ;
             Sym := SymT
          END
       END ;
@@ -11315,7 +11328,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e1)) ;
          CheckPointerThroughNil(e1) ;
-         GenQuad(IndrXOp, t, GetType(t), e1) ;
+         doIndrX(t, e1) ;
          e1 := t
       END ;
       IF GetMode(e2)=LeftValue
@@ -11323,7 +11336,7 @@ BEGIN
          t := MakeTemporary(RightValue) ;
          PutVar(t, GetType(e2)) ;
          CheckPointerThroughNil(e2) ;
-         GenQuad(IndrXOp, t, GetType(t), e2) ;
+         doIndrX(t, e2) ;
          e2 := t
       END ;
       GenQuad(MakeOp(Op), e2, e1, 0) ;      (* True  Exit *)
