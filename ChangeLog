@@ -2,6 +2,10 @@
 
 	* gm2/gm2-libs/configure.in:  corrected dates and added
 	  test to detect presence of libpth.
+	* gm2/gm2-libs/configure.in:  corrected test.
+	* gm2/gm2-libs/configure:  rebuilt configure.
+	* gm2/configure.in:  corrected release number.
+	* gm2/configure:  rebuilt configure.
 
 2010-04-08       Gaius Mulley <gaius@gnu.org>
 

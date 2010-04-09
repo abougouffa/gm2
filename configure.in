@@ -19,7 +19,8 @@
 # Boston, MA 02110-1301, USA.  */
 
 # Process this file with autoconf to produce a configure script.
-AC_INIT(gccgm2.c, 0.73, gm2@nongnu.org)
+
+AC_INIT(gccgm2.c, 0.78, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2config.h:gm2config.h.in)
 AC_PATH_PROGS(AR_PATH, ${AR}, ar)
 
