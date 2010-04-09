@@ -1,3 +1,8 @@
+2010-04-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/configure.in:  corrected dates and added
+	  test to detect presence of libpth.
+
 2010-04-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  doIndrX (New Procedure).

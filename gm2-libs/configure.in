@@ -1,4 +1,4 @@
-# Copyright (C) 2005, 2006, 2007, 2008, 2009
+# Copyright (C) 2005, 2006, 2007, 2008, 2009, 2010
 # Free Software Foundation, Inc.
 # This file is part of GNU Modula-2.
 #
@@ -92,7 +92,6 @@ AC_CHECK_FUNCS(wait)
 AC_CHECK_FUNCS(write)
 
 
-
 dnl
 dnl  now check for specific types
 dnl
@@ -108,5 +107,13 @@ if test x"$HAVE_TIMEVAL" = x"yes"; then
     AC_DEFINE(HAVE_TIMEVAL, 1, [have found timeval in sys/time.h])
 fi
 # AC_CHECK_TYPES(time_t)
+
+
+dnl
+dnl  now check for libpth-dev
+dnl
+
+AC_CHECK_LIB(libpth, pth_uctx_create, [echo "good found libpth-dev"],
+             [echo "** warning **: you will need to install libpth-dev if you wish to build coroutine based applications"])
 
 AC_OUTPUT
