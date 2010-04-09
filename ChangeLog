@@ -6,6 +6,14 @@
 	* gm2/gm2-libs/configure:  rebuilt configure.
 	* gm2/configure.in:  corrected release number.
 	* gm2/configure:  rebuilt configure.
+	* gm2/Make-lang.in:  added target.c to list of C files
+	  to be built into the libgm2.a.  Added rules for all
+	  combinations of supported flags.
+	* gm2/configure:  rebuilt configure.
+	* gm2/gm2-libs/configure.in:  added tests for math.h,
+	  exp10, exp10f and exp10l.
+	* gm2/gm2-libs/gm2-libs-host.h.in:  added entries for
+	  HAVE_EXP10, HAVE_EXP10F and HAVE_EXP10L.
 
 2010-04-08       Gaius Mulley <gaius@gnu.org>
 

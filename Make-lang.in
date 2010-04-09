@@ -1101,7 +1101,7 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
                      sckt.c            errno.c         dtoa.c          ldtoa.c         \
-                     termios.c         SysExceptions.c
+                     termios.c         SysExceptions.c target.c
 
 GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Defaults.def  \
                      M2Options.def     P3SymBuild.def  M2ALU.def       M2Depth.def     \
@@ -1421,6 +1421,9 @@ gm2/gm2-compiler-boot/M2Version.mod:
 #
 #  now for the rules which build objects in the gm2-compiler gm2-libs directories
 #
+gm2/gm2-libs/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
+
 gm2/gm2-libs/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
@@ -1507,6 +1510,9 @@ gm2/gm2-libs-iso/%.o: $(srcdir)/gm2/gm2-libs-iso/%.mod
 #  rules to build libraries -g -O2 (not shared libraries)
 #############################################################################
 
+gm2/gm2-libs/O2/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
+
 gm2/gm2-libs/O2/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
 
@@ -1581,6 +1587,9 @@ gm2/gm2-libs-coroutines/O2/%.o: gm2/gm2-libs-coroutines/%.mod
 #  rules to build shared libraries -g -O0 -fPIC
 #############################################################################
 
+gm2/gm2-libs/SO/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(SO) $< -o $@
+
 gm2/gm2-libs/SO/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(SO) $< -o $@
 
@@ -1654,6 +1663,9 @@ gm2/gm2-libs-coroutines/SO/%.o: gm2/gm2-libs-coroutines/%.mod
 #############################################################################
 #  rules to build shared libraries using -O2 -g -fPIC
 #############################################################################
+
+gm2/gm2-libs/SO_O2/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
+	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(SO_O2) $< -o $@
 
 gm2/gm2-libs/SO_O2/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs -Igm2 -Igm2/gm2-libs-boot $(INCLUDES) $(SO_O2) $< -o $@
@@ -2142,6 +2154,9 @@ gm2/gm2-compiler-paranoid/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 
 gm2/gm2-compiler-paranoid/%.o: gm2/gm2-auto/%.mod
 	./xgm2 $(GM2_O_S3) $(GM2_FLAGS) -g -c -B./stage2/gm2 -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-libs/paranoid/target.o: $(srcdir)/gm2/gm2-libs-ch/target.c
+	$(CC) -c $(GM2_O_S3) $(CFLAGS) -I$(srcdir)/gm2 -Igm2/gm2-libs-boot $(INCLUDES) $< -o $@
 
 gm2/gm2-libs-paranoid/wrapc.o: $(srcdir)/gm2/gm2-libs-ch/wrapc.c \
                                gm2/gm2-libs-boot/$(SRC_PREFIX)wrapc.h
