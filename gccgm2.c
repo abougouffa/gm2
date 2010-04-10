@@ -5417,7 +5417,11 @@ build_unary_op (enum tree_code code, tree xarg, int flag)
                                          size) == 0,
                     TREE_TYPE (TREE_TYPE (array)));
           if (low != NULL_TREE)
-            index = gccgm2_BuildSub (index, low, TRUE);
+	    {
+	      index = convertToPtr (index);
+	      low   = convertToPtr (low);
+	      index = gccgm2_BuildSub (index, low, FALSE);
+	    }
           if (TREE_CODE (TREE_TYPE (array)) == ARRAY_TYPE)
             array = array_to_pointer_conversion (array);
           return build_binary_op (PLUS_EXPR, array,
