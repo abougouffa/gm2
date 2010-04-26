@@ -217,7 +217,7 @@ unsigned int wraptime_GetSecond (struct tm *m)
   if (m->tm_sec == 60)
     return 59;
   else
-    return m->tm_min;
+    return m->tm_sec;
 }
 
 /*
