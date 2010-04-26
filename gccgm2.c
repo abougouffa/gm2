@@ -12563,6 +12563,7 @@ build_enumerator (name, value)
   return tree_cons (decl, value, NULL_TREE);
 }
 
+
 /*
  *  AddStatement - maps onto add_stmt.
  */

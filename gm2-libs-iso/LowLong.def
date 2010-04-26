@@ -12,19 +12,21 @@ DEFINITION MODULE LowLong;
   (* Access to underlying properties of the type LONGREAL *)
 
 CONST
-  radix =      <implementation-defined whole number value>;
-  places =     <implementation-defined whole number value>;
-  expoMin =    <implementation-defined whole number value>;
-  expoMax =    <implementation-defined whole number value>;
-  large =      <implementation-defined real number value>;
-  small =      <implementation-defined real number value>;
-  IEEE =       <implementation-defined BOOLEAN value>;
-  ISO =        <implementation-defined BOOLEAN value>;
-  rounds =     <implementation-defined BOOLEAN value>;
-  gUnderflow = <implementation-defined BOOLEAN value>;
-  exception =  <implementation-defined BOOLEAN value>;
-  extend =     <implementation-defined BOOLEAN value>;
-  nModes =     <implementation-defined whole number value>;
+  radix      = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, radix> )) ;      (* ZType *)
+  places     = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, places> )) ;     (* ZType *)
+  expoMin    = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, expoMin> )) ;    (* ZType *)
+  expoMax    = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, expoMax> )) ;    (* ZType *)
+  large      = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, large> )) ;      (* RType *)
+  small      = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, small> )) ;      (* RType *)
+  IEC559     = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, IEC559> )) ;     (* BOOLEAN *)
+  LIA1       = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, LIA1> )) ;       (* BOOLEAN *)
+  ISO        = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, ISO> )) ;        (* BOOLEAN *)
+  IEEE       = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, IEEE> )) ;       (* BOOLEAN *)
+  rounds     = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, rounds> )) ;     (* BOOLEAN *)
+  gUnderflow = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, gUnderflow> )) ; (* BOOLEAN *)
+  exception  = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, exception> )) ;  (* BOOLEAN *)
+  extend     = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, extend> )) ;     (* BOOLEAN *)
+  nModes     = __ATTRIBUTE__ __BUILTIN__ (( <LONGREAL, nModes> )) ;     (* ZType *)
 
 TYPE
   Modes = PACKEDSET OF [0 .. nModes-1];

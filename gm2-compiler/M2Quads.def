@@ -35,7 +35,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildExceptProcedure,
                  BuildRetry,
                  BuildReThrow,
-                 BuildBuiltinConst,
+                 BuildBuiltinConst, BuildBuiltinTypeInfo,
                  BuildAssignment,
                  BuildRepeat, BuildUntil,
                  BuildWhile, BuildDoWhile, BuildEndWhile,
@@ -155,7 +155,7 @@ TYPE
                    OptimizeOnOp, OptimizeOffOp,
                    InlineOp, LineNumberOp,
                    SubrangeLowOp, SubrangeHighOp,
-                   BuiltinConstOp, StandardFunctionOp,
+                   BuiltinConstOp, BuiltinTypeInfoOp, StandardFunctionOp,
                    SavePriorityOp, RestorePriorityOp,
                    SaveExceptionOp, RestoreExceptionOp,
                    RangeCheckOp, ErrorOp) ;
@@ -641,6 +641,27 @@ PROCEDURE EndBuildInnerInit ;
 *)
 
 PROCEDURE BuildBuiltinConst ;
+
+
+(*
+   BuildBuiltinTypeInfo - make reference to a builtin typeinfo function
+                          within gm2.
+
+                                 Entry                 Exit
+
+                          Ptr ->
+                                 +-------------+
+                                 | IdentType   |
+                                 |-------------|       +------------+
+                                 | ConstString |       | Sym        |
+                                 |-------------|       |------------|
+
+                          Quadruple produced:
+
+                          q    Sym  BuiltinTypeInfoOp  Ident ConstString
+*)
+
+PROCEDURE BuildBuiltinTypeInfo ;
 
 
 (*

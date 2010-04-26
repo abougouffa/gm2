@@ -1,10 +1,68 @@
 2010-04-26       Gaius Mulley <gaius@gnu.org>
 
+	* ISO libraries are now completely implemented.
+	* gm2/Make-lang.in:  new entries to build ISO modules
+	  LowLong, LowShort and LowReal.
+	* gm2/gm2builtins.c:  many changes to implement obtaining
+	  float point type attributes.  New exported procedures
+	  GetBuiltinTypeInfoType and GetBuiltinTypeInfo.
+	  New functions:  doradix, doplaces, doexponentmin, doexponentmax,
+	  computeLarge, dolarge, computeSmall, dosmall, doiec559, dolia1,
+	  doiso, doieee, dorounds, dogUnderflow, doexception, doextend,
+	  donModes.
+	* gm2/bnf/m2-2.bnf:  modified ConstAttribute to allow
+	  __ATTRIBUTE__ __BUILTIN__ ((<QUALIDENT, Ident>))
+	* gm2/bnf/m2.bnf:  modified ConstAttribute to allow
+	  __ATTRIBUTE__ __BUILTIN__ ((<QUALIDENT, Ident>))
+	* gm2/bnf/m2-3.bnf:  modified ConstAttribute to allow
+	  __ATTRIBUTE__ __BUILTIN__ ((<QUALIDENT, Ident>))
+	* gm2/bnf/m2-h.bnf:  modified ConstAttribute to allow
+	  __ATTRIBUTE__ __BUILTIN__ ((<QUALIDENT, Ident>))
+	* gm2/bnf/gm2l.bnf:  modified ConstAttribute to allow
+	  __ATTRIBUTE__ __BUILTIN__ ((<QUALIDENT, Ident>))
+	* gm2/gm2-compiler/M2GenGCC.mod:  FoldBuiltinTypeInfo
+	  (New Procedure).
+	* gm2/gm2-compiler/M2Quads.def:  export BuildBuiltinTypeInfo
+	  and add new quadruple operator BuiltinTypeInfoOp.
+	* gm2/gm2-compiler/M2Quads.def:  implement BuildBuiltinTypeInfo.
+	* gm2/gm2-compiler/gm2builtins.def:  export and declare
+	  GetBuiltinTypeInfoType and GetBuiltinTypeInfo.
+	* gm2/gm2-libs/Builtins.def:  added more intrinsic procedure
+	  functions (significand, significandf, significandl, modf,
+	  modff, modfl, signbit, signbitf, signbitl, nextafter,
+	  nextafterf, nextafterl, nexttoward, nexttowardf,
+	  nexttowardl, scalb, scalbf, scalbl, scalbln, scalblnf,
+	  scalblnl, scalbn, scalbnf, scalbnl).
+	* gm2/gm2-libs/Builtins.mod:  implemented intrinsic procedure
+	  functions (significand, significandf, significandl, modf,
+	  modff, modfl, signbit, signbitf, signbitl, nextafter,
+	  nextafterf, nextafterl, nexttoward, nexttowardf,
+	  nexttowardl, scalb, scalbf, scalbl, scalbln, scalblnf,
+	  scalblnl, scalbn, scalbnf, scalbnl).
+	* gm2/gm2-libs/cbuiltin.def:  provided the libm alternatives
+	  to builtins just in case the target does not have the
+	  builtin.  Additional definitions for:
+	  significand, significandf, significandl, modf,
+	  modff, modfl, signbit, signbitf, signbitl, nextafter,
+	  nextafterf, nextafterl, nexttoward, nexttowardf,
+	  nexttowardl, scalb, scalbf, scalbl, scalbln, scalblnf,
+	  scalblnl, scalbn, scalbnf, scalbnl.
+	* gm2/gm2-libs-iso/LowLong.def:  to use __ATTRIBUTE__ __BUILTIN__
+	  method of obtaining properties of LONGREAL.
+	* gm2/gm2-libs-iso/LowReal.def:  to use __ATTRIBUTE__ __BUILTIN__
+	  method of obtaining properties of LONGREAL.
+	* gm2/gm2-libs-iso/LowShort.def:  new file.
+	* gm2/gm2-libs-iso/LowShort.mod:  new file.
+	* gm2/gm2-libs-iso/LowLong.mod:  new file.
+	* gm2/gm2-libs-iso/LowReal.mod:  new file.
+
+2010-04-26       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-libs-iso/wraptime.c:  bug fix reported by Scott
 	  Iverson, return m->tm_sec.
 	* gm2/gm2-libs-iso/Strings.mod:  bug fix reported by Scott
 	  Iverson, i := startIndex.
-
+	
 2010-04-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  fixed a bug reported by Scott Iverson

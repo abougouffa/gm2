@@ -1187,6 +1187,7 @@ GM2-LIBS-ISO-MODS  = ChanConsts.mod    CharClass.mod   ClientSocket.mod \
                      LongComplexMath.mod \
                      LongConv.mod      LongIO.mod      \
                      LongMath.mod      LongStr.mod \
+                     LowLong.mod       LowReal.mod     LowShort.mod \
                      M2EXCEPTION.mod   M2RTS.mod \
                      Processes.mod     ProgramArgs.mod \
                      RawIO.mod         \

@@ -616,7 +616,9 @@ ConstSetOrQualidentOrFunction := Constructor | Qualident
 
 ConstActualParameters := "(" [ ExpList ] ")" =:
 
-ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" ConstAttributeExpression ")" ")" =:
+
+ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 

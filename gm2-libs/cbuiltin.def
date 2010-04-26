@@ -41,6 +41,15 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    log10f, log10l, log10,
                    exp10f, exp10l, exp10,
                    ilogbf, ilogbl, ilogb,
+                   significand, significandf, significandl,
+                   modf, modff, modfl,
+                   signbit, signbitf, signbitl,
+                   nextafter, nextafterf, nextafterl,
+                   nexttoward, nexttowardf, nexttowardl,
+                   scalb, scalbf, scalbl,
+                   scalbn, scalbnf, scalbnl,
+                   scalbln, scalblnf, scalblnl,
+
                    cabsf, cabsl, cabs,
                    cargf, carg, cargl,
                    conjf, conj, conjl,
@@ -89,6 +98,38 @@ PROCEDURE exp10l (x: LONGREAL) : LONGREAL ;
 PROCEDURE ilogbf (x: SHORTREAL) : INTEGER ;
 PROCEDURE ilogb (x: REAL) : INTEGER ;
 PROCEDURE ilogbl (x: LONGREAL) : INTEGER ;
+
+PROCEDURE significand (r: REAL) : REAL ;
+PROCEDURE significandf (s: SHORTREAL) : SHORTREAL ;
+PROCEDURE significandl (l: LONGREAL) : LONGREAL ;
+
+PROCEDURE modf (x: REAL; VAR y: REAL) : REAL ;
+PROCEDURE modff (x: SHORTREAL; VAR y: SHORTREAL) : SHORTREAL ;
+PROCEDURE modfl (x: LONGREAL; VAR y: LONGREAL) : LONGREAL ;
+
+PROCEDURE signbit (r: REAL) : INTEGER ;
+PROCEDURE signbitf (s: SHORTREAL) : INTEGER ;
+PROCEDURE signbitl (l: LONGREAL) : INTEGER ;
+
+PROCEDURE nextafter (x, y: REAL) : REAL ;
+PROCEDURE nextafterf (x, y: SHORTREAL) : SHORTREAL ;
+PROCEDURE nextafterl (x, y: LONGREAL) : LONGREAL ;
+
+PROCEDURE nexttoward (x, y: REAL) : REAL ;
+PROCEDURE nexttowardf (x, y: SHORTREAL) : SHORTREAL ;
+PROCEDURE nexttowardl (x, y: LONGREAL) : LONGREAL ;
+
+PROCEDURE scalb (x, n: REAL) : REAL ;
+PROCEDURE scalbf (x, n: SHORTREAL) : SHORTREAL ;
+PROCEDURE scalbl (x, n: LONGREAL) : LONGREAL ;
+
+PROCEDURE scalbn (x: REAL; n: INTEGER) : REAL ;
+PROCEDURE scalbnf (x: SHORTREAL; n: INTEGER) : SHORTREAL ;
+PROCEDURE scalbnl (x: LONGREAL; n: INTEGER) : LONGREAL ;
+
+PROCEDURE scalbln (x: REAL; n: LONGINT) : REAL ;
+PROCEDURE scalblnf (x: SHORTREAL; n: LONGINT) : SHORTREAL ;
+PROCEDURE scalblnl (x: LONGREAL; n: LONGINT) : LONGREAL ;
 
 PROCEDURE cabsf (z: SHORTCOMPLEX) : SHORTREAL ;
 PROCEDURE cabs (z: COMPLEX) : REAL ;

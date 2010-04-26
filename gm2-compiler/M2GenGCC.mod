@@ -135,7 +135,7 @@ FROM M2GCCDeclare IMPORT WalkAction,
 FROM M2Range IMPORT CodeRangeCheck, FoldRangeCheck, CodeErrorCheck ;
 
 FROM gm2builtins IMPORT BuiltInMemCopy, BuiltInAlloca,
-                        GetBuiltinConst,
+                        GetBuiltinConst, GetBuiltinTypeInfo,
                         BuiltinExists, BuildBuiltinTree ;
 
 FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
@@ -316,6 +316,8 @@ VAR
 (* To keep p2c happy we declare forward procedures *)
 
 (* %%%FORWARD%%%
+PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
+                               quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE CheckStop (q: CARDINAL) ; FORWARD ;
 PROCEDURE stop ; FORWARD ;
 PROCEDURE CodeSaveException (quad: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
@@ -606,6 +608,7 @@ BEGIN
 
          StandardFunctionOp : FoldStandardFunction(tokenno, p, quad, op1, op2, op3) |
          BuiltinConstOp     : FoldBuiltinConst(tokenno, p, quad, op1, op2, op3) |
+         BuiltinTypeInfoOp  : FoldBuiltinTypeInfo(tokenno, p, quad, op1, op2, op3) |
          LogicalOrOp        : FoldSetOr(tokenno, p, quad, op1, op2, op3) |
          LogicalAndOp       : FoldSetAnd(tokenno, p, quad, op1, op2, op3) |
          LogicalXorOp       : FoldSymmetricDifference(tokenno, p, quad, op1, op2, op3) |
@@ -2990,6 +2993,32 @@ BEGIN
       SubQuad(quad)
    END
 END FoldBuiltinConst ;
+
+
+(*
+   FoldBuiltinTypeInfo - attempts to fold a builtin attribute value on type op2.
+*)
+
+PROCEDURE FoldBuiltinTypeInfo (tokenno: CARDINAL; p: WalkAction;
+                               quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   t: Tree ;
+   s: String ;
+BEGIN
+   IF GccKnowsAbout(op2) AND CompletelyResolved(op2)
+   THEN
+      t := GetBuiltinTypeInfo(Mod2Gcc(op2), KeyToCharStar(Name(op3))) ;
+      IF t=NIL
+      THEN
+         MetaErrorT2(tokenno, 'unknown built in constant {%1ad} attribute for type {%2ad}', op3, op2)
+      ELSE
+         AddModGcc(op1, t) ;
+         p(op1) ;
+         NoChange := FALSE ;
+         SubQuad(quad)
+      END
+   END
+END FoldBuiltinTypeInfo ;
 
 
 (*

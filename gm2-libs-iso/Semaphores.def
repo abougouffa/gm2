@@ -38,7 +38,7 @@ PROCEDURE Release (s: SEMAPHORE);
   *)
 
 PROCEDURE CondClaim (s: SEMAPHORE): BOOLEAN;
-  (* Returns TRUE if the call Claim(s) would cause the calling
+  (* Returns FALSE if the call Claim(s) would cause the calling
      process to be suspended; in this case the count associated
      with s is not changed. Otherwise returns TRUE and the
      associated count is decremented.

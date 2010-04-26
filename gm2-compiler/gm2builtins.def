@@ -30,6 +30,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 FROM gccgm2 IMPORT Tree ;
 
 EXPORT QUALIFIED GetBuiltinConst, GetBuiltinConstType,
+                 GetBuiltinTypeInfoType, GetBuiltinTypeInfo,
                  BuiltinExists, BuildBuiltinTree,
                  BuiltInMemCopy, BuiltInAlloca ;
 
@@ -51,6 +52,34 @@ PROCEDURE GetBuiltinConst (name: ADDRESS) : Tree ;
 *)
 
 PROCEDURE GetBuiltinConstType (name: ADDRESS) : CARDINAL ;
+
+
+
+(*
+   GetBuiltinTypeInfoType - returns value:
+                            0    is ident is unknown.
+                            1    if ident is IEC559, LIA1, ISO, IEEE, rounds, underflow,
+                                             exception, extend.
+                            2    if ident is radix, places, exponentmin, exponentmax,
+                                             noofmodes.
+                            3    if ident is large, small.
+*)
+
+PROCEDURE GetBuiltinTypeInfoType (ident: ADDRESS) : CARDINAL ;
+
+
+(*
+   GetBuiltinTypeInfo - returns a Tree value:
+
+                        NULL_TREE        if ident is unknown.
+                        boolean Tree     if ident is IEC559, LIA1, ISO, IEEE, rounds, underflow,
+                                         exception, extend.
+                        ZType Tree       if ident is radix, places, exponentmin, exponentmax,
+                                         noofmodes.
+                        RType Tree       if ident is large, small.
+*)
+
+PROCEDURE GetBuiltinTypeInfo (type: Tree; ident: ADDRESS) : Tree ;
 
 
 (*

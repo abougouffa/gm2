@@ -26,6 +26,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. */
 #include "tm_p.h"
 #include "flags.h"
 #include "tree-inline.h"
+#include "real.h"
+#include "float.h"
 
 #include <stdio.h>
 
@@ -223,6 +225,12 @@ static struct builtin_function_entry list_of_builtins[] = {
 { NULL, 0, 0, 0, "", NULL, NULL} };
 
 
+struct builtin_type_info {
+  const char *name;
+  unsigned int returnType;
+  tree (*functionHandler)(tree);
+};
+
 static GTY(()) tree sizetype_endlink;
 static GTY(()) tree unsigned_endlink;
 static GTY(()) tree endlink;
@@ -251,6 +259,19 @@ extern void                   gccgm2_SetLastFunction                      (tree 
 extern tree                   gccgm2_GetLastFunction                      (void);
 extern void                   gccgm2_SetParamList                         (tree t);
 extern tree                   gccgm2_GetParamList                         (void);
+extern tree                   gccgm2_GetM2ShortRealType                   (void);
+extern tree                   gccgm2_GetM2RealType                        (void);
+extern tree                   gccgm2_GetM2LongRealType                    (void);
+extern tree                   gccgm2_GetM2RType                           (void);
+extern tree                   gccgm2_GetM2ZType                           (void);
+extern tree                   gccgm2_GetBooleanTrue                       (void);
+extern tree                   gccgm2_GetBooleanFalse                      (void);
+extern tree                   gccgm2_IsTrue                               (tree t);
+extern tree                   gccgm2_IsFalse                              (tree t);
+extern tree                   gccgm2_BuildEqualTo                         (tree des, tree exp);
+extern tree                   gccgm2_GetSizeOfInBits                      (tree t);
+extern tree                   gccgm2_BuildLessThan                        (tree op1, tree op2);
+extern tree                   skip_type_decl                              (tree type);
 
 /* locally defined functions */
 static tree                   DoBuiltinAlloca                             (tree params);
@@ -267,8 +288,44 @@ static void                   create_function_prototype                   (struc
        void                   gm2builtins_init                            (void);
        tree                   gm2builtins_BuiltInHugeValShort             (void);
        tree                   gm2builtins_BuiltInHugeValLong              (void);
-
+static tree                   doradix                                     (tree type);
+static tree                   doplaces                                    (tree type);
+static tree                   doexponentmin                               (tree type);
+static tree                   doexponentmax                               (tree type);
+static tree                   dolarge                                     (tree type);
+static tree                   dosmall                                     (tree type);
+static tree                   doiec559                                    (tree type);
+static tree                   dolia1                                      (tree type);
+static tree                   doiso                                       (tree type);
+static tree                   doieee                                      (tree type);
+static tree                   dorounds                                    (tree type);
+static tree                   dogUnderflow                                (tree type);
+static tree                   doexception                                 (tree type);
+static tree                   doextend                                    (tree type);
+static tree                   donModes                                    (tree type);
+       unsigned int           gm2builtins_GetBuiltinTypeInfoType          (const char *ident);
+       tree                   gm2builtins_GetBuiltinTypeInfo              (tree type, const char *ident);
 /* prototypes finish here */
+
+static struct builtin_type_info m2_type_info[] = {
+  { "radix", 2, doradix },
+  { "places", 2, doplaces },
+  { "expoMin", 2, doexponentmin },
+  { "expoMax", 2, doexponentmax },
+  { "large", 3, dolarge },
+  { "small", 3, dosmall },
+  { "IEC559", 1, doiec559 },
+  { "LIA1", 1, dolia1 },
+  { "ISO", 1, doiso },
+  { "IEEE", 1, doieee },
+  { "rounds", 1, dorounds },
+  { "gUnderflow", 1, dogUnderflow },
+  { "exception", 1, doexception },
+  { "extend", 1, doextend },
+  { "nModes", 2, donModes },
+  { NULL, 0, NULL },
+};
+
 
 
 /* Given a chain CHAIN of tree nodes,
@@ -369,6 +426,318 @@ gm2builtins_GetBuiltinConstType (char *name)
   
   return 0;
 }
+
+/*
+ *  GetBuiltinTypeInfoType - returns value:
+ *                           0    is ident is unknown.
+ *                           1    if ident is IEC559, LIA1, ISO, IEEE, rounds, underflow,
+ *                                            exception, extend.
+ *                           2    if ident is radix, places, exponentmin, exponentmax,
+ *                                            noofmodes.
+ *                           3    if ident is large, small.
+ */
+
+unsigned int gm2builtins_GetBuiltinTypeInfoType (const char *ident)
+{
+  int i=0;
+
+  while (m2_type_info[i].name != NULL)
+    if (strcmp (m2_type_info[i].name, ident) == 0)
+      return m2_type_info[i].returnType;
+    else
+      i++;
+  return 0;
+}
+
+/*
+ *  GetBuiltinTypeInfo - returns value:
+ *
+ *                       NULL_TREE        if ident is unknown.
+ *                       boolean Tree     if ident is IEC559, LIA1, ISO, IEEE, rounds, underflow,
+ *                                        exception, extend.
+ *                       ZType Tree       if ident is radix, places, exponentmin, exponentmax,
+ *                                        noofmodes.
+ *                       RType Tree       if ident is large, small.
+ */
+
+tree gm2builtins_GetBuiltinTypeInfo (tree type, const char *ident)
+{
+  int i=0;
+
+  type = skip_type_decl (type);
+  while (m2_type_info[i].name != NULL)
+    if (strcmp (m2_type_info[i].name, ident) == 0)
+      return (*m2_type_info[i].functionHandler)(type);
+    else
+      i++;
+  return NULL_TREE;
+}
+
+/*
+ *  doradix - returns the radix of the floating point, type.
+ */
+
+static tree doradix (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    {
+      enum machine_mode mode = TYPE_MODE (type);
+      int radix = REAL_MODE_FORMAT (mode)->b;
+      return gccgm2_BuildIntegerConstant (radix);
+    }
+  else
+    return NULL_TREE;
+}
+
+/*
+ *  doplaces - returns the whole number value of the number of radix
+ *             places used to store values of the corresponding real
+ *             number type.
+ */
+
+static tree doplaces (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    {
+      /*  taken from c-cppbuiltin.c */
+      /*  The number of decimal digits, q, such that any floating-point number
+       *  with q decimal digits can be rounded into a floating-point number with
+       *  p radix b digits and back again without change to the q decimal digits,
+       *
+       *  p log10 b			if b is a power of 10
+       *  floor((p - 1) log10 b)		otherwise
+      */
+      enum machine_mode mode = TYPE_MODE (type);
+      const double log10_2 = .30102999566398119521;
+      double log10_b = log10_2 * REAL_MODE_FORMAT (mode)->log2_b;
+      int digits = (REAL_MODE_FORMAT (mode)->p -1) * log10_b;
+      return gccgm2_BuildIntegerConstant (digits);
+    }
+  else
+    return NULL_TREE;
+}
+
+/*
+ *  doexponentmin - returns the whole number of the exponent minimum.
+ */
+
+static tree doexponentmin (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    {
+      enum machine_mode mode = TYPE_MODE (type);
+      int emin = REAL_MODE_FORMAT (mode)->emin;
+      return gccgm2_BuildIntegerConstant (emin);
+    }
+  else
+    return NULL_TREE;
+}
+
+/*
+ *  doexponentmax - returns the whole number of the exponent maximum.
+ */
+
+static tree doexponentmax (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    {
+      enum machine_mode mode = TYPE_MODE (type);
+      int emax = REAL_MODE_FORMAT (mode)->emax;
+      return gccgm2_BuildIntegerConstant (emax);
+    }
+  else
+    return NULL_TREE;
+}
+
+static tree computeLarge (tree type)
+{
+  enum machine_mode mode = TYPE_MODE (type);
+  const struct real_format *fmt = REAL_MODE_FORMAT (mode);
+  REAL_VALUE_TYPE real;
+  char buf[128];
+
+  /* shamelessly taken from c-cppbuiltin.c:builtin_define_float_constants */
+
+  /* Since, for the supported formats, B is always a power of 2, we
+     construct the following numbers directly as a hexadecimal
+     constants.  */
+
+  /* The maximum representable finite floating-point number,
+     (1 - b**-p) * b**emax  */
+  {
+    int i, n;
+    char *p;
+
+    strcpy (buf, "0x0.");
+    n = fmt->p * fmt->log2_b;
+    for (i = 0, p = buf + 4; i + 3 < n; i += 4)
+      *p++ = 'f';
+    if (i < n)
+      *p++ = "08ce"[n - i];
+    sprintf (p, "p%d", fmt->emax * fmt->log2_b);
+    if (fmt->pnan < fmt->p)
+      {
+	/* This is an IBM extended double format made up of two IEEE
+	   doubles.  The value of the long double is the sum of the
+	   values of the two parts.  The most significant part is
+	   required to be the value of the long double rounded to the
+	   nearest double.  Rounding means we need a slightly smaller
+	   value for LDBL_MAX.  */
+	buf[4 + fmt->pnan / 4] = "7bde"[fmt->pnan % 4];
+      }
+  }
+  real_from_string (&real, buf);
+  return build_real (type, real);
+}
+
+/*
+ *  dolarge - return the largest value of the corresponding real type.
+ */
+
+static tree dolarge (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    return computeLarge (type);
+  return NULL_TREE;
+}
+
+static tree computeSmall (tree type)
+{
+  enum machine_mode mode = TYPE_MODE (type);
+  const struct real_format *fmt = REAL_MODE_FORMAT (mode);
+  REAL_VALUE_TYPE real;
+  char buf[128];
+
+  /* The minimum normalized positive floating-point number,
+     b**(emin-1).  */
+
+  sprintf (buf, "0x1p%d", (fmt->emin - 1) * fmt->log2_b);
+  real_from_string (&real, buf);
+  return build_real (type, real);
+}
+
+/*
+ *  dosmall - return the smallest positive value of the
+ *            corresponding real type.
+ */
+
+static tree dosmall (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    return computeSmall (type);
+  return NULL_TREE;
+}
+
+/*
+ *  doiec559 - a boolean value that is true if and only if the
+ *             implementation of the corresponding real number
+ *             type conforms to IEC 559:1989 (also known as
+ *             IEEE 754:1987) in all regards.
+ */
+
+static tree doiec559 (tree type)
+{
+  if (gccgm2_IsTrue (gccgm2_BuildEqualTo (gccgm2_BuildIntegerConstant (32),
+					  gccgm2_GetSizeOfInBits (type))))
+    return gccgm2_GetBooleanTrue ();
+  if (gccgm2_IsTrue (gccgm2_BuildEqualTo (gccgm2_BuildIntegerConstant (64),
+					  gccgm2_GetSizeOfInBits (type))))
+    return gccgm2_GetBooleanTrue ();
+  return gccgm2_GetBooleanFalse ();
+}
+
+/*
+ *  dolia1 - returns TRUE if 
+ */
+
+static tree dolia1 (tree type)
+{
+  return doieee (type);
+}
+
+/*
+ *
+ */
+
+static tree doiso (tree type)
+{
+  return doieee (type);
+}
+
+/*
+ *
+ */
+
+static tree doieee (tree type ATTRIBUTE_UNUSED)
+{
+  if (IEEE_FLOAT_FORMAT)
+    return gccgm2_GetBooleanTrue ();
+  else
+    return gccgm2_GetBooleanFalse ();
+}
+
+/*
+ *  dorounds - returns TRUE if and only if each operation produces
+ *             a result that is one of the values of the
+ *             corresponding real number type nearest to the
+ *             mathematical result.
+ */
+
+static tree dorounds (tree type ATTRIBUTE_UNUSED)
+{
+  if (FLT_ROUNDS)
+    return gccgm2_GetBooleanTrue ();
+  else
+    return gccgm2_GetBooleanFalse ();
+}
+
+/*
+ *  dogUnderflow - returns TRUE if and only if there are
+ *                 values of the corresponding real number
+ *                 type between 0.0 and small.
+ */
+
+static tree dogUnderflow (tree type)
+{
+  if (TREE_CODE (type) == REAL_TYPE)
+    {
+      enum machine_mode mode = TYPE_MODE (type);
+      const struct real_format *fmt = REAL_MODE_FORMAT (mode);
+      if (fmt->has_denorm)
+	return gccgm2_GetBooleanTrue ();
+      else
+	return gccgm2_GetBooleanFalse ();
+    }
+  return NULL_TREE;
+}
+
+/*
+ *  doexception -
+ */
+
+static tree doexception (tree type ATTRIBUTE_UNUSED)
+{
+  return gccgm2_GetBooleanTrue ();
+}
+
+/*
+ *  doextend -
+ */
+
+static tree doextend (tree type ATTRIBUTE_UNUSED)
+{
+  return gccgm2_GetBooleanTrue ();
+}
+
+/*
+ *  donModes - 
+ */
+
+static tree donModes (tree type ATTRIBUTE_UNUSED)
+{
+  return gccgm2_BuildIntegerConstant (1);
+}
+
 
 /*
  *  BuiltInMemCopy - copy n bytes of memory efficiently from address

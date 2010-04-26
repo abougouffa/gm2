@@ -710,7 +710,9 @@ ConstSetOrQualidentOrFunction := Qualident
                                    |                                       % BuildTypeForConstructor %
                                      Constructor =:
 
-ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" ConstAttributeExpression ")" ")" =:
+
+ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -844,7 +846,9 @@ SilentConstFactor := Number | SilentConstString | SilentConstSetOrQualidentOrFun
 
 SilentConstString := string =:
 
-SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" SilentConstAttributeExpression ")" ")" =:
+
+SilentConstAttributeExpression := Ident | "<" Ident ',' SilentConstString ">" =:
 
 SilentConstSetOrQualidentOrFunction := Qualident [ SilentConstructor | SilentActualParameters ] |
                                        SilentConstructor =:

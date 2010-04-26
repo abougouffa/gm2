@@ -12,22 +12,24 @@ DEFINITION MODULE LowReal;
   (* Access to underlying properties of the type REAL *)
 
 CONST
-  radix =      <implementation-defined whole number value>;
-  places =     <implementation-defined whole number value>;
-  expoMin =    <implementation-defined whole number value>;
-  expoMax =    <implementation-defined whole number value>;
-  large =      <implementation-defined real number value>;
-  small =      <implementation-defined real number value>;
-  IEEE =       <implementation-defined BOOLEAN value>;
-  ISO =        <implementation-defined BOOLEAN value>;
-  rounds =     <implementation-defined BOOLEAN value>;
-  gUnderflow = <implementation-defined BOOLEAN value>;
-  exception =  <implementation-defined BOOLEAN value>;
-  extend =     <implementation-defined BOOLEAN value>;
-  nModes =     <implementation-defined whole number value>;
+  radix      = __ATTRIBUTE__ __BUILTIN__ (( <REAL, radix> )) ;      (* ZType *)
+  places     = __ATTRIBUTE__ __BUILTIN__ (( <REAL, places> )) ;     (* ZType *)
+  expoMin    = __ATTRIBUTE__ __BUILTIN__ (( <REAL, expoMin> )) ;    (* ZType *)
+  expoMax    = __ATTRIBUTE__ __BUILTIN__ (( <REAL, expoMax> )) ;    (* ZType *)
+  large      = __ATTRIBUTE__ __BUILTIN__ (( <REAL, large> )) ;      (* RType *)
+  small      = __ATTRIBUTE__ __BUILTIN__ (( <REAL, small> )) ;      (* RType *)
+  IEC559     = __ATTRIBUTE__ __BUILTIN__ (( <REAL, IEC559> )) ;     (* BOOLEAN *)
+  LIA1       = __ATTRIBUTE__ __BUILTIN__ (( <REAL, LIA1> )) ;       (* BOOLEAN *)
+  ISO        = __ATTRIBUTE__ __BUILTIN__ (( <REAL, ISO> )) ;        (* BOOLEAN *)
+  IEEE       = __ATTRIBUTE__ __BUILTIN__ (( <REAL, IEEE> )) ;       (* BOOLEAN *)
+  rounds     = __ATTRIBUTE__ __BUILTIN__ (( <REAL, rounds> )) ;     (* BOOLEAN *)
+  gUnderflow = __ATTRIBUTE__ __BUILTIN__ (( <REAL, gUnderflow> )) ; (* BOOLEAN *)
+  exception  = __ATTRIBUTE__ __BUILTIN__ (( <REAL, exception> )) ;  (* BOOLEAN *)
+  extend     = __ATTRIBUTE__ __BUILTIN__ (( <REAL, extend> )) ;     (* BOOLEAN *)
+  nModes     = __ATTRIBUTE__ __BUILTIN__ (( <REAL, nModes> )) ;     (* ZType *)
 
 TYPE
-  Modes = SET OF [0..nModes-1];
+  Modes = PACKEDSET OF [0..nModes-1];
 
 PROCEDURE exponent (x: REAL): INTEGER;
   (* Returns the exponent value of x *)

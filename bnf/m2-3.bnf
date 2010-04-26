@@ -83,7 +83,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
       	       	    BuildEmptySet, BuildInclRange, BuildInclBit,
                     BuildSetStart, BuildSetEnd,
                     BuildLineNo, PushLineNo, BuildSizeCheckStart,
-                    BuildBuiltinConst,
+                    BuildBuiltinConst, BuildBuiltinTypeInfo,
                     BuildAssignment,
                     BuildRepeat, BuildUntil,
                     BuildWhile, BuildDoWhile, BuildEndWhile,
@@ -724,9 +724,14 @@ ConstSetOrQualidentOrFunction := Qualident
                                      Constructor =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
-                  Ident                                                    % BuildBuiltinConst ;
-                                                                             PopAuto %
+                  ConstAttributeExpression                                 % PopAuto %
                   ")" ")" =:
+
+ConstAttributeExpression :=
+                            Ident                                          % BuildBuiltinConst %
+                                  | "<" Qualident ',' Ident                % BuildBuiltinTypeInfo %
+                                                              ">"
+                          =:
 
 -- Set := [ Qualident ] "{" [ Element { "," Element } ] "}" =:
 
@@ -859,8 +864,9 @@ SilentConstFactor := Number | SilentConstString | SilentConstSetOrQualidentOrFun
 
 SilentConstString := string =:
 
-SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" Ident ")" ")" =:
+SilentConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "(" SilentConstAttributeExpression ")" ")" =:
 
+SilentConstAttributeExpression := Ident | "<" Ident ',' SilentConstString ">" =:
 
 SilentComponentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
 

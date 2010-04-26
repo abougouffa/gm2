@@ -216,7 +216,9 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     WriteRangeCheck ;
 
 FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, ElseCase ;
-                 
+
+FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
+
 
 CONST
    DebugStack = FALSE ;
@@ -2633,6 +2635,49 @@ END BuildBuiltinConst ;
 
 
 (*
+   BuildBuiltinTypeInfo - make reference to a builtin typeinfo function
+                          within gm2.
+
+                                 Entry                 Exit
+
+                          Ptr ->
+                                 +-------------+
+                                 | Type        |
+                                 |-------------|       +------------+
+                                 | Ident       |       | Sym        |
+                                 |-------------|       |------------|
+
+                          Quadruple produced:
+
+                          q    Sym  BuiltinTypeInfoOp  Type Ident
+*)
+
+PROCEDURE BuildBuiltinTypeInfo ;
+VAR
+   Ident,
+   Type,
+   Sym  : CARDINAL ;
+BEGIN
+   PopT(Ident) ;
+   PopT(Type) ;
+   Sym := MakeTemporary(ImmediateValue) ;
+   CASE GetBuiltinTypeInfoType(KeyToCharStar(Name(Ident))) OF
+
+   0:  ErrorFormat1(NewError(GetTokenNo()),
+                    '%a unrecognised builtin constant', Ident) |
+   1:  PutVar(Sym, Boolean) |
+   2:  PutVar(Sym, ZType) |
+   3:  PutVar(Sym, RType)
+
+   ELSE
+      InternalError('unrecognised value', __FILE__, __LINE__)
+   END ;
+   GenQuad(BuiltinTypeInfoOp, Sym, Type, Ident) ;
+   PushT(Sym)
+END BuildBuiltinTypeInfo ;
+
+
+(*
    CheckNotConstAndVar - checks to make sure that we are not
                          assigning a variable to a constant.
 *)
@@ -4352,8 +4397,14 @@ BEGIN
                    n1, n2) ;
       e := ChainError(GetDeclared(call), e) ;
       t := NoOfParam(CheckedProcedure) ;
-      ErrorFormat3(e, 'procedure (%a) is being called incorrectly with (%d) parameters, declared with (%d)',
-                   n1, n, t)
+      IF n<2
+      THEN
+         ErrorFormat3(e, 'procedure (%a) is being called incorrectly with (%d) parameter, declared with (%d)',
+                      n1, n, t)
+      ELSE
+         ErrorFormat3(e, 'procedure (%a) is being called incorrectly with (%d) parameters, declared with (%d)',
+                      n1, n, t)
+      END
    ELSE
       i := 1 ;
       WHILE i<=n DO
@@ -11738,6 +11789,9 @@ BEGIN
       OptimizeOffOp     : |
       BuiltinConstOp    : WriteOperand(Operand1) ;
                           printf1('   %a', Operand3) |
+      BuiltinTypeInfoOp : WriteOperand(Operand1) ;
+                          printf1('   %a', Operand2) ;
+                          printf1('   %a', Operand3) |
       StandardFunctionOp: WriteOperand(Operand1) ;
                           printf0('  ') ;
                           WriteOperand(Operand2) ;
@@ -11838,6 +11892,7 @@ BEGIN
    InlineOp                 : printf0('Inline            ') |
    LineNumberOp             : printf0('LineNumber        ') |
    BuiltinConstOp           : printf0('BuiltinConst      ') |
+   BuiltinTypeInfoOp        : printf0('BuiltinTypeInfo   ') |
    StandardFunctionOp       : printf0('StandardFunction  ') |
    SavePriorityOp           : printf0('SavePriority      ') |
    RestorePriorityOp        : printf0('RestorePriority   ') |
