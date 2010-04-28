@@ -16,6 +16,7 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA */
 
 #include <p2c/p2c.h>
+#include <math.h>
 
 /*
    strtime - returns the address of a string which describes the
@@ -112,6 +113,21 @@ void wrapc_getnameuidgid (char *name, int *uid, int *gid)
 }
 #endif
 
+
+int wrapc_signbit (double r)
+{
+  return signbit (r);
+}
+
+int wrapc_signbitl (long double r)
+{
+  return signbitl (r);
+}
+
+int wrapc_signbitf (float r)
+{
+  return signbitf (r);
+}
 
 /*
    init - init/finish functions for the module

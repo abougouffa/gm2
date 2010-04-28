@@ -43,7 +43,6 @@ EXPORT UNQUALIFIED alloca, memcpy,
                    ilogbf, ilogbl, ilogb,
                    significand, significandf, significandl,
                    modf, modff, modfl,
-                   signbit, signbitf, signbitl,
                    nextafter, nextafterf, nextafterl,
                    nexttoward, nexttowardf, nexttowardl,
                    scalb, scalbf, scalbl,
@@ -106,10 +105,6 @@ PROCEDURE significandl (l: LONGREAL) : LONGREAL ;
 PROCEDURE modf (x: REAL; VAR y: REAL) : REAL ;
 PROCEDURE modff (x: SHORTREAL; VAR y: SHORTREAL) : SHORTREAL ;
 PROCEDURE modfl (x: LONGREAL; VAR y: LONGREAL) : LONGREAL ;
-
-PROCEDURE signbit (r: REAL) : INTEGER ;
-PROCEDURE signbitf (s: SHORTREAL) : INTEGER ;
-PROCEDURE signbitl (l: LONGREAL) : INTEGER ;
 
 PROCEDURE nextafter (x, y: REAL) : REAL ;
 PROCEDURE nextafterf (x, y: SHORTREAL) : SHORTREAL ;

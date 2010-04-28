@@ -28,7 +28,7 @@ DEFINITION MODULE wrapc ;
 FROM SYSTEM IMPORT ADDRESS ;
 
 EXPORT QUALIFIED strtime, filesize, getrand, getusername, filemtime,
-                 getnameuidgid ;
+                 getnameuidgid, signbit, signbitf, signbitl ;
 
 
 (*
@@ -74,6 +74,17 @@ PROCEDURE getusername () : ADDRESS ;
 *)
 
 PROCEDURE getnameuidgid (name: ADDRESS; VAR uid, gid: INTEGER) ;
+
+
+(*
+   in C these procedure functions are really macros, so we provide
+   real C functions and let gm2 call these if the builtins
+   are unavailable.
+*)
+
+PROCEDURE signbit (r: REAL) : INTEGER ;
+PROCEDURE signbitf (s: SHORTREAL) : INTEGER ;
+PROCEDURE signbitl (l: LONGREAL) : INTEGER ;
 
 
 END wrapc.

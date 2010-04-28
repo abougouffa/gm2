@@ -96,6 +96,25 @@ typedef enum {
   BT_FN_DCOMPLEX_DOUBLE_DCOMPLEX,
   BT_FN_FCOMPLEX_FLOAT_FCOMPLEX,
   BT_FN_LDCOMPLEX_LONG_DOUBLE_LDCOMPLEX,
+
+  BT_FN_FLOAT_FLOAT_FLOATPTR,
+  BT_FN_DOUBLE_DOUBLE_DOUBLEPTR,
+  BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLEPTR,
+
+  BT_FN_FLOAT_FLOAT_LONG_DOUBLE,
+  BT_FN_DOUBLE_DOUBLE_LONG_DOUBLE,
+  BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE,
+
+  BT_FN_FLOAT_FLOAT_LONG,
+  BT_FN_DOUBLE_DOUBLE_LONG,
+  BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG,
+
+  BT_FN_FLOAT_FLOAT_INT,
+  BT_FN_DOUBLE_DOUBLE_INT,
+  BT_FN_LONG_DOUBLE_LONG_DOUBLE_INT,
+
+  BT_FN_FLOAT_FLOAT_FLOAT,
+  BT_FN_DOUBLE_DOUBLE_DOUBLE,
 } builtin_prototype;
 
 struct builtin_function_entry {
@@ -140,6 +159,31 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_ilogbf",  BT_FN_INT_FLOAT, BUILT_IN_ILOGBF, BUILT_IN_NORMAL, "ilogbf", NULL, NULL},
 { "__builtin_ilogb",   BT_FN_INT_DOUBLE, BUILT_IN_ILOGB, BUILT_IN_NORMAL, "ilogb", NULL, NULL},
 { "__builtin_ilogbl",  BT_FN_INT_LONG_DOUBLE, BUILT_IN_ILOGBL, BUILT_IN_NORMAL, "ilogbl", NULL, NULL},
+
+{ "__builtin_signbit", BT_FN_INT_DOUBLE, BUILT_IN_SIGNBIT, BUILT_IN_NORMAL, "signbit", NULL, NULL},
+{ "__builtin_signbitf", BT_FN_INT_FLOAT, BUILT_IN_SIGNBITF, BUILT_IN_NORMAL, "signbitf", NULL, NULL},
+{ "__builtin_signbitl", BT_FN_INT_LONG_DOUBLE, BUILT_IN_SIGNBITL, BUILT_IN_NORMAL, "signbitl", NULL, NULL},
+{ "__builtin_significand", BT_FN_DOUBLE_DOUBLE, BUILT_IN_SIGNIFICAND, BUILT_IN_NORMAL, "significand", NULL, NULL},
+{ "__builtin_significandf", BT_FN_FLOAT_FLOAT, BUILT_IN_SIGNIFICANDF, BUILT_IN_NORMAL, "significandf", NULL, NULL},
+{ "__builtin_significandl", BT_FN_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SIGNIFICANDL, BUILT_IN_NORMAL, "significandl", NULL, NULL},
+{ "__builtin_modf", BT_FN_DOUBLE_DOUBLE_DOUBLEPTR, BUILT_IN_MODF, BUILT_IN_NORMAL, "modf", NULL, NULL},
+{ "__builtin_modff", BT_FN_FLOAT_FLOAT_FLOATPTR, BUILT_IN_MODFF, BUILT_IN_NORMAL, "modff", NULL, NULL},
+{ "__builtin_modfl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLEPTR, BUILT_IN_MODFL, BUILT_IN_NORMAL, "modfl", NULL, NULL},
+{ "__builtin_nextafter", BT_FN_DOUBLE_DOUBLE_DOUBLE, BUILT_IN_NEXTAFTER, BUILT_IN_NORMAL, "nextafter", NULL, NULL},
+{ "__builtin_nextafterf", BT_FN_FLOAT_FLOAT_FLOAT, BUILT_IN_NEXTAFTERF, BUILT_IN_NORMAL, "nextafterf", NULL, NULL},
+{ "__builtin_nextafterl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_NEXTAFTERL, BUILT_IN_NORMAL, "nextafterl", NULL, NULL},
+{ "__builtin_nexttoward", BT_FN_DOUBLE_DOUBLE_LONG_DOUBLE, BUILT_IN_NEXTTOWARD, BUILT_IN_NORMAL, "nexttoward", NULL, NULL},
+{ "__builtin_nexttowardf", BT_FN_FLOAT_FLOAT_LONG_DOUBLE, BUILT_IN_NEXTTOWARDF, BUILT_IN_NORMAL, "nexttowardf", NULL, NULL},
+{ "__builtin_nexttowardl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_NEXTTOWARDL, BUILT_IN_NORMAL, "nexttowardl", NULL, NULL},
+{ "__builtin_scalb", BT_FN_DOUBLE_DOUBLE_DOUBLE, BUILT_IN_SCALB, BUILT_IN_NORMAL, "scalb", NULL, NULL},
+{ "__builtin_scalbf", BT_FN_FLOAT_FLOAT_FLOAT, BUILT_IN_SCALBF, BUILT_IN_NORMAL, "scalbf", NULL, NULL},
+{ "__builtin_scalbl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_SCALBL, BUILT_IN_NORMAL, "scalbl", NULL, NULL},
+{ "__builtin_scalbln", BT_FN_DOUBLE_DOUBLE_LONG, BUILT_IN_SCALBLN, BUILT_IN_NORMAL, "scalbln", NULL, NULL},
+{ "__builtin_scalblnf", BT_FN_FLOAT_FLOAT_LONG, BUILT_IN_SCALBLNF, BUILT_IN_NORMAL, "scalblnf", NULL, NULL},
+{ "__builtin_scalblnl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG, BUILT_IN_SCALBLNL, BUILT_IN_NORMAL, "scalblnl", NULL, NULL},
+{ "__builtin_scalbn", BT_FN_DOUBLE_DOUBLE_INT, BUILT_IN_SCALBN, BUILT_IN_NORMAL, "scalbln", NULL, NULL},
+{ "__builtin_scalbnf", BT_FN_FLOAT_FLOAT_INT, BUILT_IN_SCALBNF, BUILT_IN_NORMAL, "scalblnf", NULL, NULL},
+{ "__builtin_scalbnl", BT_FN_LONG_DOUBLE_LONG_DOUBLE_INT, BUILT_IN_SCALBNL, BUILT_IN_NORMAL, "scalblnl", NULL, NULL},
 
 /* complex intrinsic functions */
 { "__builtin_cabs", BT_FN_DOUBLE_DCOMPLEX, BUILT_IN_CABS, BUILT_IN_NORMAL, "cabs", NULL, NULL},
@@ -249,6 +293,9 @@ static GTY(()) tree gm2_memcpy_node;
 static GTY(()) tree gm2_huge_valf_node;
 static GTY(()) tree gm2_huge_val_node;
 static GTY(()) tree gm2_huge_vall_node;
+static GTY(()) tree long_doubleptr_type_node;
+static GTY(()) tree doubleptr_type_node;
+static GTY(()) tree floatptr_type_node;
 
 
 /* prototypes go here */
@@ -1051,6 +1098,104 @@ create_function_prototype (struct builtin_function_entry *fe)
 						       endlink)));
     fe->return_node = complex_long_double_type_node;
     break;
+  case BT_FN_FLOAT_FLOAT_FLOATPTR:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    tree_cons (NULL_TREE, floatptr_type_node,
+						       endlink)));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE_DOUBLEPTR:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    tree_cons (NULL_TREE, doubleptr_type_node,
+						       endlink)));
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLEPTR:
+    ftype = build_function_type (long_double_type_node,
+				 tree_cons (NULL_TREE, long_double_type_node,
+					    tree_cons (NULL_TREE, long_doubleptr_type_node,
+						       endlink)));
+    fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_FLOAT_FLOAT_LONG_DOUBLE:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    tree_cons (NULL_TREE, long_double_type_node,
+						       endlink)));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE_LONG_DOUBLE:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    tree_cons (NULL_TREE, long_double_type_node,
+						       endlink)));
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE:
+    ftype = build_function_type (long_double_type_node,
+				 tree_cons (NULL_TREE, long_double_type_node,
+					    tree_cons (NULL_TREE, long_double_type_node,
+						       endlink)));
+    fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_FLOAT_FLOAT_LONG:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    tree_cons (NULL_TREE, long_integer_type_node,
+						       endlink)));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE_LONG:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    tree_cons (NULL_TREE, long_integer_type_node,
+						       endlink)));
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG:
+    ftype = build_function_type (long_double_type_node,
+				 tree_cons (NULL_TREE, long_double_type_node,
+					    tree_cons (NULL_TREE, long_integer_type_node,
+						       endlink)));
+    fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_FLOAT_FLOAT_INT:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    tree_cons (NULL_TREE, integer_type_node,
+						       endlink)));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE_INT:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    tree_cons (NULL_TREE, integer_type_node,
+						       endlink)));
+    fe->return_node = double_type_node;
+    break;
+  case BT_FN_LONG_DOUBLE_LONG_DOUBLE_INT:
+    ftype = build_function_type (long_double_type_node,
+				 tree_cons (NULL_TREE, long_double_type_node,
+					    tree_cons (NULL_TREE, integer_type_node,
+						       endlink)));
+    fe->return_node = long_double_type_node;
+    break;
+  case BT_FN_FLOAT_FLOAT_FLOAT:
+    ftype = build_function_type (float_type_node,
+				 tree_cons (NULL_TREE, float_type_node,
+					    tree_cons (NULL_TREE, float_type_node,
+						       endlink)));
+    fe->return_node = float_type_node;
+    break;
+  case BT_FN_DOUBLE_DOUBLE_DOUBLE:
+    ftype = build_function_type (double_type_node,
+				 tree_cons (NULL_TREE, double_type_node,
+					    tree_cons (NULL_TREE, double_type_node,
+						       endlink)));
+    fe->return_node = double_type_node;
+    break;
   default:
     ERROR("enum has no case");
   }
@@ -1087,6 +1232,10 @@ gm2builtins_init (void)
   double_ftype_void = build_function_type (double_type_node, math_endlink);
   ldouble_ftype_void = build_function_type (long_double_type_node,
 					    math_endlink);
+
+  long_doubleptr_type_node = build_pointer_type (long_double_type_node);
+  doubleptr_type_node = build_pointer_type (double_type_node);
+  floatptr_type_node = build_pointer_type (float_type_node);
 
   float_ftype_float
     = build_function_type (float_type_node,

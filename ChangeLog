@@ -1,3 +1,16 @@
+2010-04-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2builtins.c:  added definitions for signbit, signbitf,
+	  signbitl, significand, significandf, significandl, mod, modff,
+	  modfl, nextafter, nextafterf, nextafterl, nexttoward, nexttowardf,
+	  nexttowardl, scalb, scalbf, scalbl, scalbln, scalblnf, scalblnl,
+	  scalbln, scalblnf, scalblnl.
+	* gm2/gm2-libs/cbuiltin.def:  removed signbit, signbitl, signbitf
+	  as in C these are implemented as macros.  We use builtins if they
+	  are available and if not then use our wrapped versions in:
+	* gm2/gm2-libs/wrapc.def:  added signbit, signbitl, signbitf.
+	* gm2/gm2-libs-ch/wrapc.c:  wrapped signbit, signbitl, signbitf.
+	  
 2010-04-26       Gaius Mulley <gaius@gnu.org>
 
 	* ISO libraries are now completely implemented.

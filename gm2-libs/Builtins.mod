@@ -18,7 +18,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 IMPLEMENTATION MODULE Builtins ;
 
-IMPORT cbuiltin ;
+IMPORT cbuiltin, wrapc ;
 
 PROCEDURE __ATTRIBUTE__ __BUILTIN__ ((__builtin_alloca)) alloca (i: CARDINAL) : ADDRESS ;
 BEGIN
@@ -203,17 +203,17 @@ END modfl ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_signbit)) signbit (r: REAL) : INTEGER ;
 BEGIN
-   RETURN cbuiltin.signbit (r)
+   RETURN wrapc.signbit (r)
 END signbit ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_signbitf)) signbitf (s: SHORTREAL) : INTEGER ;
 BEGIN
-   RETURN cbuiltin.signbitf (s)
+   RETURN wrapc.signbitf (s)
 END signbitf ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_signbitl)) signbitl (l: LONGREAL) : INTEGER ;
 BEGIN
-   RETURN cbuiltin.signbitl (l)
+   RETURN wrapc.signbitl (l)
 END signbitl ;
 
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_nextafter)) nextafter (x, y: REAL) : REAL ;
