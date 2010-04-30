@@ -123,6 +123,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     DumpStack,
                     AddVarientRange, AddVarientEquality,
                     BeginVarient, EndVarient, BeginVarientList, EndVarientList,
+                    PushInConstExpression, PopInConstExpression, IsInConstExpression,
                     IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
 
 FROM P3SymBuild IMPORT P3StartBuildProgModule,
@@ -718,10 +719,14 @@ Constructor := '{'                                                         % Bui
                '}' =:
 
 ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor | ActualParameters          % BuildConstFunctionCall %
-                                                                  ]
+                                 [ Constructor | ConstActualParameters     % BuildConstFunctionCall %
+                                                                       ]
                                    |                                       % BuildTypeForConstructor %
                                      Constructor =:
+
+ConstActualParameters :=                                                   % PushInConstExpression %
+                         ActualParameters                                  % PopInConstExpression %
+                       =:
 
 ConstAttribute := "__ATTRIBUTE__" "__BUILTIN__" "(" "("                    % PushAutoOn %
                   ConstAttributeExpression                                 % PopAuto %
@@ -1041,7 +1046,12 @@ Factor :=                                                                  % Bui
 SetOrDesignatorOrFunction := Qualident                                     % CheckWithReference %
                                                                            % CheckOuterScopeProcedureVariable %
                               [ Constructor |
-                                SimpleDes [ ActualParameters               % BuildFunctionCall %
+                                SimpleDes [ ActualParameters               % IF IsInConstExpression()
+                                                                             THEN
+                                                                                BuildConstFunctionCall
+                                                                             ELSE
+                                                                                BuildFunctionCall
+                                                                             END %
                                                              ]
                               ]                                |
                                                                            % BuildTypeForConstructor %

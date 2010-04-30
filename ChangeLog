@@ -1,3 +1,18 @@
+2010-04-30       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/Indexing.def:  moved to
+	* gm2/gm2-libs/Indexing.def:  new file.
+	* gm2/gm2-compiler/Indexing.mod:  moved to
+	* gm2/gm2-libs/Indexing.mod:  new file.
+	* gm2/gm2-compiler/M2Quads.def:  PushInConstExpression,
+	  PopInConstExpression, IsInConstExpression (New procedures).
+	* gm2/gm2-compiler/M2Quads.mod:  PushInConstExpression,
+	  PopInConstExpression, IsInConstExpression (implemented new
+	  procedures).
+	* gm2/bnf/m2-3.bnf:  test for calling procedure functions
+	  during a constant declaration and check the procedure is
+	  allowed.
+
 2010-04-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2builtins.c:  added definitions for signbit, signbitf,

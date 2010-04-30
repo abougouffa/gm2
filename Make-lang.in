@@ -1013,16 +1013,19 @@ GM2-LIBS-BOOT-DEFS = ASCII.def       IO.def          Args.def        M2RTS.def  
                      FormatStrings.def PushBackInput.def Storage.def SEnvironment.def \
                      StringConvert.def               M2EXCEPTION.def RTExceptions.def \
                      dtoa.def        ldtoa.def       termios.def     errno.def       \
-                     SysExceptions.def
+                     SysExceptions.def               Indexing.def
 
 GM2-LIBS-BOOT-MODS = ASCII.mod       IO.mod          Args.mod        Assertion.mod   \
                      NumberIO.mod    Break.mod       CmdArgs.mod     Scan.mod        \
                                      StrCase.mod     FIO.mod         StrIO.mod       \
                      TimeString.mod  StrLib.mod                      Environment.mod \
-                     FpuIO.mod       Debug.mod       SysStorage.mod  DynamicStrings.mod     \
+                     FpuIO.mod       Debug.mod       SysStorage.mod  \
+                     DynamicStrings.mod \
                      SFIO.mod        M2RTS.mod       SArgs.mod                       \
-                     FormatStrings.mod PushBackInput.mod SEnvironment.mod            \
-                     StringConvert.mod               M2EXCEPTION.mod RTExceptions.mod
+                     FormatStrings.mod               PushBackInput.mod \
+                     SEnvironment.mod                StringConvert.mod \
+                     M2EXCEPTION.mod RTExceptions.mod \
+                     Indexing.mod
 
 GM2-LIBS-BOOT-C    = wrapc.c         UnixArgs.c      StdIO.c         Storage.c       \
                      choosetemp.c    dtoa.c          ldtoa.c         termios.c       \
@@ -1042,7 +1045,7 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      P1SyntaxCheck.def P2Build.def   P3Build.def     PHBuild.def     \
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
                      cflex.def       CLexBuf.def     M2Bitset.def    M2Size.def      \
-                     M2Scope.def     Indexing.def    M2Range.def     M2Swig.def      \
+                     M2Scope.def     M2Range.def     M2Swig.def      \
                      M2MetaError.def Sets.def        M2CaseList.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
@@ -1060,11 +1063,10 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2ALU.mod       M2System.mod    Lists.mod       \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
-                     M2Size.mod      M2Scope.mod     Indexing.mod    M2Range.mod     \
+                     M2Size.mod      M2Scope.mod     M2Range.mod     \
                      M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod
 
-GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Indexing.mod    \
-                     Lists.mod       bnflex.mod
+GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
 
 #
@@ -1085,7 +1087,7 @@ GM2-LIBS-DEFS      = ASCII.def         IO.def          Args.def        M2RTS.def
                      PushBackInput.def StringConvert.def               FormatStrings.def \
                      Builtins.def      cbuiltin.def    MathLib0.def    M2EXCEPTION.def \
                      RTExceptions.def  SMathLib0.def   dtoa.def        ldtoa.def       \
-                     termios.def       RTint.def       COROUTINES.def
+                     termios.def       RTint.def       COROUTINES.def  Indexing.def
 
 GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod       \
                      Assertion.mod     NumberIO.mod    Break.mod       SYSTEM.mod      \
@@ -1097,7 +1099,8 @@ GM2-LIBS-MODS      = ASCII.mod         IO.mod          Args.mod        M2RTS.mod
                      DynamicStrings.mod                SFIO.mod        SArgs.mod \
                      PushBackInput.mod StringConvert.mod               FormatStrings.mod \
                      Builtins.mod                      MathLib0.mod    M2EXCEPTION.mod \
-                     RTExceptions.mod  SMathLib0.mod   RTint.mod       COROUTINES.mod
+                     RTExceptions.mod  SMathLib0.mod   RTint.mod       COROUTINES.mod  \
+                     Indexing.mod
 
 GM2-LIBS-C         = wrapc.c           UnixArgs.c      Selective.c     choosetemp.c    \
                      sckt.c            errno.c         dtoa.c          ldtoa.c         \
@@ -1115,9 +1118,8 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      P1SyntaxCheck.def bnflex.def      P2Build.def     P3Build.def     \
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
-                     M2Bitset.def      M2Size.def      M2Scope.def     Indexing.def    \
-                     M2Range.def       M2Swig.def      M2MetaError.def Sets.def        \
-                     M2CaseList.def
+                     M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
+                     M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -1132,9 +1134,8 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Search.mod      bnflex.mod      ppg.mod         M2SubExp.mod    \
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
-                     M2Bitset.mod      M2Size.mod      M2Scope.mod     Indexing.mod    \
-                     M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
-                     M2CaseList.mod
+                     M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
+                     M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod
 
 GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod     \
                      gm2m.mod          ppg.mod

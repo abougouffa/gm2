@@ -128,6 +128,8 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BeginVarient, EndVarient, ElseVarient,
                  BeginVarientList, EndVarientList,
                  IsAutoPushOn, PushAutoOn, PushAutoOff, PopAuto,
+                 PushInConstExpression, PopInConstExpression,
+                 IsInConstExpression,
                  MustCheckOverflow ;
 
 
@@ -2350,6 +2352,27 @@ PROCEDURE PopAuto ;
 *)
 
 PROCEDURE MustCheckOverflow (q: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PushInConstExpression - push the InConstExpression flag and then set it to TRUE.
+*)
+
+PROCEDURE PushInConstExpression ;
+
+
+(*
+   PopInConstExpression - restores the previous value of the InConstExpression.
+*)
+
+PROCEDURE PopInConstExpression ;
+
+
+(*
+   IsInConstExpression - returns the value of the InConstExpression.
+*)
+
+PROCEDURE IsInConstExpression () : BOOLEAN ;
 
 
 END M2Quads.

@@ -79,7 +79,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         IsVar, IsProcType, IsType, IsSubrange, IsExported,
                         IsConst, IsConstString, IsModule, IsDefImp,
                         IsArray, IsUnbounded, IsProcedureNested,
-                        IsPartialUnbounded,
+                        IsPartialUnbounded, IsProcedureBuiltin,
                         IsSet, IsConstSet, IsConstructor, PutConst,
                         PutConstructor, PutConstructorFrom,
                         IsSubscript,
@@ -283,6 +283,7 @@ VAR
    TryStack,
    CatchStack,
    ExceptStack,
+   ConstStack,
    AutoStack,
    RepeatStack,
    WhileStack,
@@ -304,6 +305,7 @@ VAR
    LogicalAndTok,                     (* Internal _LAND token.                   *)
    LogicalXorTok,                     (* Internal _LXOR token.                   *)
    LogicalDifferenceTok : Name ;      (* Internal _LDIFF token.                  *)
+   InConstExpression,
    IsAutoOn,                          (* should parser automatically push idents *)
    MustNotCheckBounds   : BOOLEAN ;
    ForInfo              : ForLoopInfo ;  (* start and end of all FOR loops       *)
@@ -4151,6 +4153,7 @@ PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
 VAR
    e             : Error ;
    n             : Name ;
+   ParamConstant : BOOLEAN ;
    NoOfParameters,
    i, pi,
    ReturnVar,
@@ -4164,9 +4167,11 @@ BEGIN
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(NoOfParameters+2)
+      Proc := OperandF(NoOfParameters+2) ;
+      ParamConstant := FALSE
    ELSE
-      Proc := ProcSym
+      Proc := ProcSym ;
+      ParamConstant := IsProcedureBuiltin(Proc)
    END ;
    IF IsFunc
    THEN
@@ -4201,6 +4206,10 @@ BEGIN
       pi := 1 ;     (* stack index referencing stacked parameter, i *)
       WHILE i>0 DO
          GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
+         IF NOT IsConst(OperandT(pi))
+         THEN
+            ParamConstant := FALSE
+         END ;
          DEC(i) ;
          INC(pi)
       END
@@ -4209,6 +4218,10 @@ BEGIN
       pi := NoOfParameters ;   (* stack index referencing stacked parameter, i *)
       WHILE i<=NoOfParameters DO
          GenQuad(ParamOp, i, Proc, OperandT(pi)) ;
+         IF NOT IsConst(OperandT(pi))
+         THEN
+            ParamConstant := FALSE
+         END ;
          INC(i) ;
          DEC(pi)
       END ;
@@ -4222,6 +4235,12 @@ BEGIN
    IF IsFunc
    THEN
       (* ReturnVar - will have the type of the procedure *)
+      (* ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ; *)
+      (* it would be neat to allow constant parameters
+         to builtins to always be evaluated at compile
+         time --fixme--
+      *)
+      (* ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ; *)
       ReturnVar := MakeTemporary(RightValue) ;
       PutVar(ReturnVar, GetType(Proc)) ;
       GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
@@ -12936,6 +12955,37 @@ END PopAuto ;
 
 
 (*
+   PushInConstExpression - push the InConstExpression flag and then set it to TRUE.
+*)
+
+PROCEDURE PushInConstExpression ;
+BEGIN
+   PushWord(ConstStack, InConstExpression) ;
+   InConstExpression := TRUE
+END PushInConstExpression ;
+
+
+(*
+   PopInConstExpression - restores the previous value of the InConstExpression.
+*)
+
+PROCEDURE PopInConstExpression ;
+BEGIN
+   InConstExpression := PopWord(ConstStack)
+END PopInConstExpression ;
+
+
+(*
+   IsInConstExpression - returns the value of the InConstExpression.
+*)
+
+PROCEDURE IsInConstExpression () : BOOLEAN ;
+BEGIN
+   RETURN( InConstExpression )
+END IsInConstExpression ;
+
+
+(*
    MustCheckOverflow - returns TRUE if the quadruple should test for overflow.
 *)
 
@@ -13020,6 +13070,7 @@ BEGIN
    CatchStack := InitStackWord() ;
    ExceptStack := InitStackWord() ;
    ConstructorStack := InitStackAddress() ;
+   ConstStack := InitStackWord() ;
    (* StressStack ; *)
    SuppressWith := FALSE ;
    Head := 1 ;
@@ -13038,6 +13089,7 @@ BEGIN
    BuildingSize := FALSE ;
    AutoStack := InitStackWord() ;
    IsAutoOn := TRUE ;
+   InConstExpression := FALSE ;
    FreeLineList := NIL ;
    InitList(VarientFields) ;
    VarientFieldNo := 0 ;

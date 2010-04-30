@@ -1,7 +1,5 @@
 Pre 1.0
 
-*  finish ISO libraries:
-     LowReal, LowLong, LowShort
 *    ensure that PIM SYSTEM.PRIORITY is replaced by
      rtint.PROTECTION
 *  add data alignment directives to records (Scott)
