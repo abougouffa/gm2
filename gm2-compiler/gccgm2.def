@@ -138,6 +138,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  BuildTryCatch, BuildThrow,
                  InitGlobalContext, FinishBackend, GarbageCollect,
                  TreeOverflow, RemoveOverflow,
+                 SetLastFunction,
                  SetFlagUnitAtATime, MarkFunctionReferenced ;
 
 
@@ -1530,6 +1531,13 @@ PROCEDURE SetFlagUnitAtATime (b: BOOLEAN) ;
 *)
 
 PROCEDURE MarkFunctionReferenced (t: Tree) ;
+
+
+(*
+   SetLastFunction - assigns last_function to, t.
+*)
+
+PROCEDURE SetLastFunction (t: Tree) ;
 
 
 END gccgm2.

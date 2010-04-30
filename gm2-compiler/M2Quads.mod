@@ -4235,13 +4235,12 @@ BEGIN
    IF IsFunc
    THEN
       (* ReturnVar - will have the type of the procedure *)
-      (* ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ; *)
       (* it would be neat to allow constant parameters
          to builtins to always be evaluated at compile
          time --fixme--
       *)
-      (* ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ; *)
-      ReturnVar := MakeTemporary(RightValue) ;
+      ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ;
+      (* ReturnVar := MakeTemporary(RightValue) ; *)
       PutVar(ReturnVar, GetType(Proc)) ;
       GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
       PushTF(ReturnVar, GetType(Proc))
@@ -6444,7 +6443,8 @@ BEGIN
    PushT(NoOfParam) ;
    IF (ProcSym#Convert) AND
       (IsPseudoBaseFunction(ProcSym) OR
-       IsPseudoSystemFunctionConstExpression(ProcSym))
+       IsPseudoSystemFunctionConstExpression(ProcSym) OR
+       IsProcedureBuiltin(ProcSym))
    THEN
       BuildFunctionCall
    ELSE
@@ -6470,9 +6470,9 @@ BEGIN
          (* error issue message and fake return stack *)
          IF Iso
          THEN
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, CMPLX, FLOAT, HIGH, IM, LENGTH, MAX, MIN, ODD, ORD, RE, SIZE, TSIZE, TRUNC and VAL')
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, CMPLX, FLOAT, HIGH, IM, LENGTH, MAX, MIN, ODD, ORD, RE, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
          ELSE
-            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC and VAL')
+            WriteFormat0('the only functions permissible in a constant expression are: CAP, CHR, FLOAT, HIGH, MAX, MIN, ODD, ORD, SIZE, TSIZE, TRUNC, VAL and gcc builtins')
          END ;
          PopN(NoOfParam+2) ;
          PushT(MakeConstLit(MakeKey('0')))   (* fake return value to continue compiling *)

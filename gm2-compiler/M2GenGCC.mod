@@ -147,7 +147,7 @@ FROM gccgm2 IMPORT Tree, GetIntegerZero, GetIntegerOne, GetIntegerType,
                    SetFileNameAndLineNo, EmitLineNote, BuildStart, BuildEnd,
                    BuildCallInner,
                    BuildStartFunctionCode, BuildEndFunctionCode,
-                   BuildReturnValueCode,
+                   BuildReturnValueCode, SetLastFunction,
                    BuildAssignmentTree, DeclareKnownConstant,
                    BuildAdd, BuildSub, BuildMult, BuildLSL,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
@@ -2138,6 +2138,82 @@ END FoldMakeAdr ;
 
 
 (*
+   doParam - builds the parameter, op3, which is to be passed to
+             procedure, op2.  The number of the parameter is op1.
+*)
+
+PROCEDURE doParam (quad: CARDINAL; op1, op2, op3: CARDINAL) ;
+BEGIN
+   DeclareConstant(CurrentQuadToken, op3) ;
+   DeclareConstructor(quad, op3) ;
+   BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
+END doParam ;
+
+
+(*
+   FoldBuiltin - attempts to fold the gcc builtin function.
+*)
+
+PROCEDURE FoldBuiltin (tokenno: CARDINAL; p: WalkAction;
+                       q: CARDINAL; op1, op2, op3: CARDINAL) ;
+VAR
+   resolved  : BOOLEAN ;
+   procedure,
+   r         : CARDINAL ;
+   n         : CARDINAL ;
+   op        : QuadOperator ;
+   val       : Tree ;
+BEGIN
+   resolved := TRUE ;
+   n := q ;
+   r := op1 ;
+   REPEAT
+      IF r>0
+      THEN
+         TryDeclareConstant(QuadToTokenNo(n), op3) ;
+         IF NOT GccKnowsAbout(op3)
+         THEN
+            resolved := FALSE
+         END
+      END ;
+      n := GetNextQuad(n) ;
+      GetQuad(n, op, r, op2, op3)
+   UNTIL op=FunctValueOp ;
+
+   IF resolved AND IsConst(r)
+   THEN
+      n := q ;
+      GetQuad(n, op, op1, op2, op3) ;
+      REPEAT
+         IF (op=ParamOp) AND (op1>0)
+         THEN
+            doParam(n, op1, op2, op3)
+         ELSIF op=CallOp
+         THEN
+            procedure := op3
+         END ;
+         SubQuad(n) ;
+         n := GetNextQuad(n) ;
+         GetQuad(n, op, op1, op2, op3)
+      UNTIL op=FunctValueOp ;
+
+      IF IsProcedureBuiltin(procedure) AND CanUseBuiltin(procedure)
+      THEN
+         val := FoldAndStrip(UseBuiltin(procedure)) ;
+         PutConst(r, GetType(procedure)) ;
+         AddModGcc(r, DeclareKnownConstant(Mod2Gcc(GetType(procedure)), val)) ;
+         p(r) ;
+         SetLastFunction(NIL)
+      ELSE
+         MetaErrorT1(QuadToTokenNo(n), 'gcc builtin procedure {%1ad} cannot be used in a constant expression', procedure) ;
+      END ;
+      NoChange := FALSE ;
+      SubQuad(n)
+   END
+END FoldBuiltin ;
+
+
+(*
    FoldBuiltinFunction - attempts to inline a function. Currently it only
                          inlines the SYSTEM function MAKEADR.
 *)
@@ -2145,9 +2221,16 @@ END FoldMakeAdr ;
 PROCEDURE FoldBuiltinFunction (tokenno: CARDINAL; p: WalkAction;
                                q: CARDINAL; op1, op2, op3: CARDINAL) ;
 BEGIN
-   IF (op1=0) AND (op3=MakeAdr)
+   IF op1=0
    THEN
-      FoldMakeAdr(tokenno, p, q, op1, op2, op3)
+      (* must be a function as op1 is the return parameter *)
+      IF op3=MakeAdr
+      THEN
+         FoldMakeAdr(tokenno, p, q, op1, op2, op3)
+      ELSIF IsProcedure(op3) AND IsProcedureBuiltin(op3) AND CanUseBuiltin(op3)
+      THEN
+         FoldBuiltin(tokenno, p, q, op1, op2, op3)
+      END
    END
 END FoldBuiltinFunction ;
 
@@ -2180,9 +2263,7 @@ BEGIN
       THEN
          MetaErrorT1(CurrentQuadToken, 'cannot pass a constant {%1ad} as a VAR parameter', op3)
       ELSE
-         DeclareConstant(CurrentQuadToken, op3) ;
-         DeclareConstructor(quad, op3) ;
-         BuildParam(CheckConvertCoerceParameter(op1, op2, op3))
+         doParam(quad, op1, op2, op3)
       END
    END
 END CodeParam ;

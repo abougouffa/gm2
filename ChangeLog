@@ -1,5 +1,15 @@
 2010-04-30       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2GenGCC.mod:  doParam (New procedure).
+	  FoldBuiltin (New procedure).  Changes allow gcc builtins
+	  to be called from constant expressions.
+	* gm2/gm2-compiler/M2Quads.mod:  modified
+	  BuildConstFunctionCall to allow gcc builtins to be called.
+	* gm2/gm2-compiler/gccgm2.def:  export SetLastFunction.
+	* This fixes a bug reported by Steve Giess.
+
+2010-04-30       Gaius Mulley <gaius@gnu.org>
+
 	* gm2/gm2-compiler/Indexing.def:  moved to
 	* gm2/gm2-libs/Indexing.def:  new file.
 	* gm2/gm2-compiler/Indexing.mod:  moved to
