@@ -6444,7 +6444,7 @@ BEGIN
    IF (ProcSym#Convert) AND
       (IsPseudoBaseFunction(ProcSym) OR
        IsPseudoSystemFunctionConstExpression(ProcSym) OR
-       IsProcedureBuiltin(ProcSym))
+       (IsProcedure(ProcSym) AND IsProcedureBuiltin(ProcSym)))
    THEN
       BuildFunctionCall
    ELSE

@@ -1,5 +1,10 @@
 2010-04-30       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2GenGCC.mod:  ensure that we do attempt
+	  to fold an indirect procedure function call.
+	* gm2/gm2-compiler/M2Quads.mod:  ensure that the symbol is
+	  a procedure sym before checking if it has a builtin
+	  alternative.
 	* gm2/gm2-compiler/M2GenGCC.mod:  doParam (New procedure).
 	  FoldBuiltin (New procedure).  Changes allow gcc builtins
 	  to be called from constant expressions.

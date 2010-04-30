@@ -2176,6 +2176,11 @@ BEGIN
             resolved := FALSE
          END
       END ;
+      IF (op=CallOp) AND (NOT IsProcedure(op3))
+      THEN
+         (* cannot fold an indirect procedure function call *)
+         resolved := FALSE
+      END ;
       n := GetNextQuad(n) ;
       GetQuad(n, op, r, op2, op3)
    UNTIL op=FunctValueOp ;
