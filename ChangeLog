@@ -1,3 +1,10 @@
+2010-05-01       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FIO.mod:  huge number of changes so that it
+	  uses a dynamic array to allow an operating system specific
+	  number of files to be opened simultaneously.  Fixes a
+	  limitation reported by Scott Iverson.
+
 2010-04-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  ensure that we do attempt

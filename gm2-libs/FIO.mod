@@ -35,6 +35,7 @@ FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM NumberIO IMPORT CardToStr ;
 FROM libc IMPORT exit, open, creat, read, write, close, lseek, strncpy, memcpy ;
 FROM DynamicStrings IMPORT Length, string ;
+FROM Indexing IMPORT Index, InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
 FROM M2RTS IMPORT InstallTerminationProcedure ;
 
 CONST
@@ -66,7 +67,7 @@ TYPE
                                      contents: POINTER TO ARRAY [0..MaxBufferLength] OF CHAR ;
                                   END ;
 
-   FileDescriptors   = POINTER TO fds ;
+   FileDescriptor   = POINTER TO fds ;
    fds               =            RECORD
                                      unixfd: INTEGER ;
                                      name  : NameInfo ;
@@ -94,7 +95,10 @@ PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
-   FileInfo: ARRAY [0..MaxNoOfFiles] OF FileDescriptors ;
+   FileInfo: Index ;
+   Error   : File ;   (* not stderr, this is an unused file handle
+                         which only serves to hold status values
+                         when we cannot create a new file handle *)
 
 
 (*
@@ -102,14 +106,19 @@ VAR
 *)
 
 PROCEDURE GetUnixFileDescriptor (f: File) : INTEGER ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      RETURN( FileInfo[f]^.unixfd )
-   ELSE
-      FormatError1('file %d has not been opened or is out of range\n', f) ;
-      RETURN( -1 )
-   END
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         RETURN( fd^.unixfd )
+      END
+   END ;
+   FormatError1('file %d has not been opened or is out of range\n', f) ;
+   RETURN( -1 )
 END GetUnixFileDescriptor ;
 
 
@@ -160,19 +169,32 @@ END Min ;
 
 (*
    GetNextFreeDescriptor - returns the index to the FileInfo array indicating
-                           the next free slot. If we run out of slots then we
-                           return MaxNoOfFiles.
+                           the next free slot.
 *)
 
 PROCEDURE GetNextFreeDescriptor () : File ;
 VAR
-   f: File ;
+   f, h: File ;
+   fd  : FileDescriptor ;
 BEGIN
-   f := 0 ;
-   WHILE (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) DO
-      INC(f)
-   END ;
-   RETURN( f )
+   f := Error+1 ;
+   h := HighIndice(FileInfo) ;
+   LOOP
+      IF f<=h
+      THEN
+         fd := GetIndice(FileInfo, f) ;
+         IF fd=NIL
+         THEN
+            RETURN( f )
+         END
+      END ;
+      INC(f) ;
+      IF f>h
+      THEN
+         PutIndice(FileInfo, f, NIL) ;  (* create new slow *)
+         RETURN( f )
+      END
+   END
 END GetNextFreeDescriptor ;
 
 
@@ -181,8 +203,16 @@ END GetNextFreeDescriptor ;
 *)
 
 PROCEDURE IsNoError (f: File) : BOOLEAN ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   RETURN( (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) AND (FileInfo[f]^.state=successful) )
+   IF f=Error
+   THEN
+      RETURN( FALSE )
+   ELSE
+      fd := GetIndice(FileInfo, f) ;
+      RETURN( (fd#NIL) AND (fd^.state=successful) )
+   END
 END IsNoError ;
 
 
@@ -192,7 +222,12 @@ END IsNoError ;
 
 PROCEDURE IsActive (f: File) : BOOLEAN ;
 BEGIN
-   RETURN( (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) )
+   IF f=Error
+   THEN
+      RETURN( FALSE )
+   ELSE
+      RETURN( GetIndice(FileInfo, f)#NIL )
+   END
 END IsActive ;
 
 
@@ -208,12 +243,12 @@ VAR
    f: File ;
 BEGIN
    f := GetNextFreeDescriptor() ;
-   IF f<MaxNoOfFiles
+   IF f=Error
    THEN
+      SetState(f, toomanyfilesopen)
+   ELSE
       f := InitializeFile(f, fname, flength, successful, openedforread, FALSE, MaxBufferLength) ;
       ConnectToUnix(f, FALSE)
-   ELSE
-      FileInfo[f]^.state := toomanyfilesopen
    END ;
    RETURN( f )
 END openToRead ;
@@ -231,12 +266,12 @@ VAR
    f: File ;
 BEGIN
    f := GetNextFreeDescriptor() ;
-   IF f<MaxNoOfFiles
+   IF f=Error
    THEN
+      SetState(f, toomanyfilesopen)
+   ELSE
       f := InitializeFile(f, fname, flength, successful, openedforwrite, TRUE, MaxBufferLength) ;
       ConnectToUnix(f, TRUE)
-   ELSE
-      FileInfo[f]^.state := toomanyfilesopen
    END ;
    RETURN( f )
 END openToWrite ;
@@ -256,12 +291,12 @@ VAR
    f: File ;
 BEGIN
    f := GetNextFreeDescriptor() ;
-   IF f<MaxNoOfFiles
+   IF f=Error
    THEN
+      SetState(f, toomanyfilesopen)
+   ELSE
       f := InitializeFile(f, fname, flength, successful, openedforrandom, towrite, MaxBufferLength) ;
       ConnectToUnix(f, towrite)
-   ELSE
-      FileInfo[f]^.state := toomanyfilesopen
    END ;
    RETURN( f )
 END openForRandom ;
@@ -288,6 +323,19 @@ END exists ;
 
 
 (*
+   SetState - sets the field, state, of file, f, to, s.
+*)
+
+PROCEDURE SetState (f: File; s: FileStatus) ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   fd := GetIndice(FileInfo, f) ;
+   fd^.state := s
+END SetState ;
+
+
+(*
    InitializeFile - initialize a file descriptor
 *)
 
@@ -296,15 +344,17 @@ PROCEDURE InitializeFile (f: File; fname: ADDRESS;
                           use: FileUsage;
                           towrite: BOOLEAN; buflength: CARDINAL) : File ;
 VAR
-   p: PtrToChar ;
+   p : PtrToChar ;
+   fd: FileDescriptor ;
 BEGIN
-   NEW(FileInfo[f]) ;
-   IF FileInfo[f]=NIL
+   NEW(fd) ;
+   IF fd=NIL
    THEN
-      FileInfo[MaxNoOfFiles]^.state := outofmemory ;
-      RETURN( MaxNoOfFiles )
+      SetState(Error, outofmemory) ;
+      RETURN( Error )
    ELSE
-      WITH FileInfo[f]^ DO
+      PutIndice(FileInfo, f, fd) ;
+      WITH fd^ DO
          name.size := flength+1 ;  (* need to guarantee the nul for C *)
          usage     := use ;
          output    := towrite ;
@@ -323,8 +373,8 @@ BEGIN
          NEW(buffer) ;
          IF buffer=NIL
          THEN
-            FileInfo[MaxNoOfFiles]^.state := outofmemory ;
-            RETURN( MaxNoOfFiles )
+            SetState(Error, outofmemory) ;
+            RETURN( Error )
          ELSE
             WITH buffer^ DO
                bufstart := 0 ;
@@ -363,19 +413,25 @@ END InitializeFile ;
 *)
 
 PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         IF towrite
-         THEN
-            unixfd := creat(name.address, CreatePermissions)
-         ELSE
-            unixfd := open(name.address, UNIXREADONLY, 0)
-         END ;
-         IF unixfd<0
-         THEN
-            state  := connectionfailure
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            IF towrite
+            THEN
+               unixfd := creat(name.address, CreatePermissions)
+            ELSE
+               unixfd := open(name.address, UNIXREADONLY, 0)
+            END ;
+            IF unixfd<0
+            THEN
+               state := connectionfailure
+            END
          END
       END
    END
@@ -417,17 +473,20 @@ END OpenForRandom ;
 *)
 
 PROCEDURE Close (f: File) ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
+      fd := GetIndice(FileInfo, f) ;
       (*
          although we allow users to close files which have an error status
          it is sensible to leave the MaxNoOfFiles file descriptor alone.
       *)
-      IF FileInfo[f]#NIL
+      IF fd#NIL
       THEN
          FlushBuffer(f) ;
-         WITH FileInfo[f]^ DO
+         WITH fd^ DO
             IF unixfd>=0
             THEN
                IF close(unixfd)#0
@@ -451,8 +510,8 @@ BEGIN
                DISPOSE(buffer)
             END
          END ;
-         DISPOSE(FileInfo[f]) ;
-         FileInfo[f] := NIL
+         DISPOSE(fd) ;
+         PutIndice(FileInfo, f, NIL)
       END
    END
 END Close ;
@@ -474,11 +533,13 @@ VAR
    total,
    n     : CARDINAL ;
    p     : POINTER TO BYTE ;
+   fd    : FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
       total := 0 ;   (* how many bytes have we read *)
-      WITH FileInfo[f]^ DO
+      fd := GetIndice(FileInfo, f) ;
+      WITH fd^ DO
          (* extract from the buffer first *)
          IF buffer#NIL
          THEN
@@ -558,7 +619,7 @@ PROCEDURE ReadNBytes (f: File; nBytes: CARDINAL; a: ADDRESS) : CARDINAL ;
 VAR
    n: INTEGER ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
       CheckAccess(f, openedforread, FALSE) ;
       n := ReadFromBuffer(f, a, nBytes) ;
@@ -588,11 +649,13 @@ VAR
    total,
    n     : INTEGER ;
    p     : POINTER TO BYTE ;
+   fd    : FileDescriptor ;
 BEGIN
    IF f<MaxNoOfFiles
    THEN
+      fd := GetIndice(FileInfo, f) ;
       total := 0 ;   (* how many bytes have we read *)
-      WITH FileInfo[f]^ DO
+      WITH fd^ DO
          (* extract from the buffer first *)
          IF buffer#NIL
          THEN
@@ -828,10 +891,13 @@ END FormatError2 ;
 *)
 
 PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      IF FileInfo[f]=NIL
+      fd := GetIndice(FileInfo, f) ;
+      IF fd=NIL
       THEN
          IF f#StdErr
          THEN
@@ -839,7 +905,7 @@ BEGIN
          END ;
          HALT
       ELSE
-         WITH FileInfo[f]^ DO
+         WITH fd^ DO
             IF (use=openedforwrite) AND (usage=openedforread)
             THEN
                FormatError1('this file (%s) has been opened for reading but is now being written\n',
@@ -904,11 +970,14 @@ END ReadChar ;
 *)
 
 PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
+      fd := GetIndice(FileInfo, f) ;
+      WITH fd^ DO
          IF buffer#NIL
          THEN
             WITH buffer^ DO
@@ -951,28 +1020,32 @@ PROCEDURE EOF (f: File) : BOOLEAN ;
 VAR
    ch: CHAR ;
    s : FileStatus ;
+   fd: FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    (*
       we will read a character and then push it back onto the input stream,
       having noted the file status, we also reset the status.
    *)
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL) AND (FileInfo[f]^.state=successful)
+   IF f#Error
    THEN
-      s := FileInfo[f]^.state ;
-      ch := ReadChar(f) ;
-      IF FileInfo[f]^.state=successful
+      fd := GetIndice(FileInfo, f) ;
+      IF (fd#NIL) AND (fd^.state=successful)
       THEN
-         UnReadChar(f, ch) ;
-         FileInfo[f]^.state := s ;
-         RETURN( FALSE )
-      ELSE
-         FileInfo[f]^.state := s ;
-         RETURN( TRUE )
+         s := fd^.state ;
+         ch := ReadChar(f) ;
+         IF fd^.state=successful
+         THEN
+            UnReadChar(f, ch) ;
+            fd^.state := s ;
+            RETURN( FALSE )
+         ELSE
+            fd^.state := s ;
+            RETURN( TRUE )
+         END
       END
-   ELSE
-      RETURN( TRUE )
-   END
+   END ;
+   RETURN( TRUE )
 END EOF ;
 
 
@@ -985,22 +1058,26 @@ PROCEDURE EOLN (f: File) : BOOLEAN ;
 VAR
    ch: CHAR ;
    s : FileStatus ;
+   fd: FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
    (*
       we will read a character and then push it back onto the input stream,
       having noted the file status, we also reset the status.
    *)
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      ch := ReadChar(f) ;
-      s := FileInfo[f]^.state ;
-      UnReadChar(f, ch) ;
-      FileInfo[f]^.state := s ;
-      RETURN( (s=successful) AND (ch=nl) )
-   ELSE
-      RETURN( FALSE )
-   END
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         ch := ReadChar(f) ;
+         s := fd^.state ;
+         UnReadChar(f, ch) ;
+         fd^.state := s ;
+         RETURN( (s=successful) AND (ch=nl) )
+      END
+   END ;
+   RETURN( FALSE )
 END EOLN ;
 
 
@@ -1025,29 +1102,33 @@ END WriteLine ;
 PROCEDURE WriteNBytes (f: File; nBytes: CARDINAL; a: ADDRESS) : CARDINAL ;
 VAR
    total: INTEGER ;
+   fd   : FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforwrite, TRUE) ;
    FlushBuffer(f) ;
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         total := write(unixfd, a, INTEGER(nBytes)) ;
-         IF total<0
-         THEN
-            state := failed ;
-            RETURN( 0 )
-         ELSE
-            INC(abspos, CARDINAL(total)) ;
-            IF buffer#NIL
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            total := write(unixfd, a, INTEGER(nBytes)) ;
+            IF total<0
             THEN
-               buffer^.bufstart := abspos
-            END ;
-            RETURN( CARDINAL(total) )
+               state := failed ;
+               RETURN( 0 )
+            ELSE
+               INC(abspos, CARDINAL(total)) ;
+               IF buffer#NIL
+               THEN
+                  buffer^.bufstart := abspos
+               END ;
+               RETURN( CARDINAL(total) )
+            END
          END
       END
-   ELSE
-      RETURN( 0 )
-   END
+   END ;
+   RETURN( 0 )
 END WriteNBytes ;
 
 
@@ -1065,54 +1146,56 @@ VAR
    total,
    n     : INTEGER ;
    p     : POINTER TO BYTE ;
+   fd    : FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      total := 0 ;   (* how many bytes have we read *)
-      WITH FileInfo[f]^ DO
-         IF buffer#NIL
-         THEN
-            WITH buffer^ DO
-               WHILE nBytes>0 DO
-                  (* place into the buffer first *)
-                  IF left>0
-                  THEN
-                     IF nBytes=1
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         total := 0 ;   (* how many bytes have we read *)
+         WITH fd^ DO
+            IF buffer#NIL
+            THEN
+               WITH buffer^ DO
+                  WHILE nBytes>0 DO
+                     (* place into the buffer first *)
+                     IF left>0
                      THEN
-                        (* too expensive to call memcpy for 1 character *)
-                        p := a ;
-                        contents^[position] := p^ ;
-                        DEC(left) ;         (* reduce space                        *)
-                        INC(position) ;     (* move onwards n byte                 *)
-                        INC(total) ;
-                        RETURN( total )
+                        IF nBytes=1
+                        THEN
+                           (* too expensive to call memcpy for 1 character *)
+                           p := a ;
+                           contents^[position] := p^ ;
+                           DEC(left) ;         (* reduce space                        *)
+                           INC(position) ;     (* move onwards n byte                 *)
+                           INC(total) ;
+                           RETURN( total )
+                        ELSE
+                           n := Min(left, nBytes) ;
+                           p := memcpy(a, ADDRESS(address+position), CARDINAL(n)) ;
+                           DEC(left, n) ;      (* remove consumed bytes               *)
+                           INC(position, n) ;  (* move onwards n bytes                *)
+                                               (* move ready for further writes       *)
+                           a := ADDRESS(a+n) ;
+                           DEC(nBytes, n) ;    (* reduce the amount for future writes *)
+                           INC(total, n)
+                        END
                      ELSE
-                        n := Min(left, nBytes) ;
-                        p := memcpy(a, ADDRESS(address+position), CARDINAL(n)) ;
-                        DEC(left, n) ;      (* remove consumed bytes               *)
-                        INC(position, n) ;  (* move onwards n bytes                *)
-                                            (* move ready for further writes       *)
-                        a := ADDRESS(a+n) ;
-                        DEC(nBytes, n) ;    (* reduce the amount for future writes *)
-                        INC(total, n)
-                     END
-                  ELSE
-                     FlushBuffer(f) ;
-                     IF state#successful
-                     THEN
-                        nBytes := 0
+                        FlushBuffer(f) ;
+                        IF state#successful
+                        THEN
+                           nBytes := 0
+                        END
                      END
                   END
-               END
-            END ;
-            RETURN( total )
-         ELSE
-            RETURN( -1 )
+               END ;
+               RETURN( total )
+            END
          END
       END
-   ELSE
-      RETURN( -1 )
-   END
+   END ;
+   RETURN( -1 )
 END BufferedWrite ;
 
 
@@ -1121,22 +1204,28 @@ END BufferedWrite ;
 *)
 
 PROCEDURE FlushBuffer (f: File) ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF (f<MaxNoOfFiles) AND (FileInfo[f]#NIL)
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         IF output AND (buffer#NIL)
-         THEN
-            WITH buffer^ DO
-               IF (position=0) OR (write(unixfd, address, position)=position)
-               THEN
-                  INC(abspos, position) ;
-                  bufstart := abspos ;
-                  position := 0 ;
-                  filled   := 0 ;
-                  left     := size
-               ELSE
-                  state := failed
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            IF output AND (buffer#NIL)
+            THEN
+               WITH buffer^ DO
+                  IF (position=0) OR (write(unixfd, address, position)=position)
+                  THEN
+                     INC(abspos, position) ;
+                     bufstart := abspos ;
+                     position := 0 ;
+                     filled   := 0 ;
+                     left     := size
+                  ELSE
+                     state := failed
+                  END
                END
             END
          END
@@ -1239,39 +1328,44 @@ END ReadString ;
 PROCEDURE SetPositionFromBeginning (f: File; pos: LONGINT) ;
 VAR
    offset: LONGINT ;
+   fd    : FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         (* always force the lseek, until we are confident that abspos is always correct,
-            basically it needs some hard testing before we should remove the OR TRUE. *)
-         IF (abspos#pos) OR TRUE
-         THEN
-            FlushBuffer(f) ;
-            IF buffer#NIL
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            (* always force the lseek, until we are confident that abspos is always correct,
+               basically it needs some hard testing before we should remove the OR TRUE. *)
+            IF (abspos#pos) OR TRUE
             THEN
-               WITH buffer^ DO
-                  IF output
-                  THEN
-                     left := size
-                  ELSE
-                     left := 0
-                  END ;
-                  position := 0 ;
-                  filled   := 0
+               FlushBuffer(f) ;
+               IF buffer#NIL
+               THEN
+                  WITH buffer^ DO
+                     IF output
+                     THEN
+                        left := size
+                     ELSE
+                        left := 0
+                     END ;
+                     position := 0 ;
+                     filled   := 0
+                  END
+               END ;
+               offset := lseek(unixfd, pos, SEEK_SET) ;
+               IF (offset>=0) AND (pos=offset)
+               THEN
+                  abspos := pos
+               ELSE
+                  state  := failed ;
+                  abspos := 0
+               END ;
+               IF buffer#NIL
+               THEN
+                  buffer^.bufstart := abspos
                END
-            END ;
-            offset := lseek(unixfd, pos, SEEK_SET) ;
-            IF (offset>=0) AND (pos=offset)
-            THEN
-               abspos := pos
-            ELSE
-               state  := failed ;
-               abspos := 0
-            END ;
-            IF buffer#NIL
-            THEN
-               buffer^.bufstart := abspos
             END
          END
       END
@@ -1286,36 +1380,41 @@ END SetPositionFromBeginning ;
 PROCEDURE SetPositionFromEnd (f: File; pos: LONGINT) ;
 VAR
    offset: LONGINT ;
+   fd    : FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         FlushBuffer(f) ;
-         IF buffer#NIL
-         THEN
-            WITH buffer^ DO
-               IF output
-               THEN
-                  left := size
-               ELSE
-                  left := 0
-               END ;
-               position := 0 ;
-               filled   := 0
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            FlushBuffer(f) ;
+            IF buffer#NIL
+            THEN
+               WITH buffer^ DO
+                  IF output
+                  THEN
+                     left := size
+                  ELSE
+                     left := 0
+                  END ;
+                  position := 0 ;
+                  filled   := 0
+               END
+            END ;
+            offset := lseek(unixfd, pos, SEEK_END) ;
+            IF offset>=0
+            THEN
+               abspos := offset ;
+            ELSE
+               state  := failed ;
+               abspos := 0 ;
+               offset := 0
+            END ;
+            IF buffer#NIL
+            THEN
+               buffer^.bufstart := offset
             END
-         END ;
-         offset := lseek(unixfd, pos, SEEK_END) ;
-         IF offset>=0
-         THEN
-            abspos := offset ;
-         ELSE
-            state  := failed ;
-            abspos := 0 ;
-            offset := 0
-         END ;
-         IF buffer#NIL
-         THEN
-            buffer^.bufstart := offset
          END
       END
    END
@@ -1327,22 +1426,27 @@ END SetPositionFromEnd ;
 *)
 
 PROCEDURE FindPosition (f: File) : LONGINT ;
+VAR
+   fd: FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      WITH FileInfo[f]^ DO
-         IF buffer=NIL
-         THEN
-            RETURN( abspos )
-         ELSE
-            WITH buffer^ DO
-               RETURN( bufstart+VAL(LONGINT, position) )
+      fd := GetIndice(FileInfo, f) ;
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            IF buffer=NIL
+            THEN
+               RETURN( abspos )
+            ELSE
+               WITH buffer^ DO
+                  RETURN( bufstart+VAL(LONGINT, position) )
+               END
             END
          END
       END
-   ELSE
-      RETURN( 0 )
-   END
+   END ;
+   RETURN( 0 )
 END FindPosition ;
 
 
@@ -1352,17 +1456,19 @@ END FindPosition ;
 
 PROCEDURE GetFileName (f: File; VAR a: ARRAY OF CHAR) ;
 VAR
-   i: CARDINAL ;
-   p: POINTER TO CHAR ;
+   i : CARDINAL ;
+   p : POINTER TO CHAR ;
+   fd: FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
-      IF FileInfo[f]=NIL
+      fd := GetIndice(FileInfo, f) ;
+      IF fd=NIL
       THEN
          FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n') ;
          HALT
       ELSE
-         WITH FileInfo[f]^.name DO
+         WITH fd^.name DO
             IF address=NIL
             THEN
                StrCopy('', a)
@@ -1388,14 +1494,23 @@ END GetFileName ;
 PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
                          state: FileStatus; use: FileUsage;
                          towrite: BOOLEAN; bufsize: CARDINAL) ;
+VAR
+   fd, fe: FileDescriptor ;
 BEGIN
    IF InitializeFile(f, ADR(fname), StrLen(fname), state, use, towrite, bufsize)=f
    THEN
-      IF f<MaxNoOfFiles
+      fd := GetIndice(FileInfo, f) ;
+      IF f=Error
       THEN
-         FileInfo[f]^.unixfd := INTEGER(f)
+         fe := GetIndice(FileInfo, StdErr) ;
+         IF fe=NIL
+         THEN
+            HALT
+         ELSE
+            fd^.unixfd := fe^.unixfd    (* the error channel *)
+         END
       ELSE
-         FileInfo[f]^.unixfd := FileInfo[StdErr]^.unixfd    (* the error channel *)
+         fd^.unixfd := INTEGER(f)
       END
    ELSE
       HALT
@@ -1426,20 +1541,16 @@ END CloseOutErr ;
 *)
 
 PROCEDURE Init ;
-VAR
-   f: File ;
 BEGIN
-   FOR f := 0 TO MaxNoOfFiles DO
-      FileInfo[f] := NIL
-   END ;
-   StdIn := 0 ;
+   FileInfo := InitIndex(0) ;
+   Error := 0 ;
+   PreInitialize(Error       , 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
+   StdIn := 1 ;
    PreInitialize(StdIn       , '<stdin>' , successful      , openedforread , FALSE, MaxBufferLength) ;
-   StdOut := 1 ;
+   StdOut := 2 ;
    PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
-   StdErr := 2 ;
+   StdErr := 3 ;
    PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
-   (* and now for the error file descriptor *)
-   PreInitialize(MaxNoOfFiles, 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
    InstallTerminationProcedure(CloseOutErr)
 END Init ;
 
