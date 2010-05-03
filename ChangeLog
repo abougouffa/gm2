@@ -3,6 +3,8 @@
 	* gm2/gm2-libs/FIO.mod:  forgot to copy osfd into unixfd.
 	  Which meant that the default files: stdin, stdout, stderr
 	  were assigned to 1, 2, 3, rather than 0, 1, 2.
+	* gm2/gm2-libs/FIO.mod:  reimplemented EOF using a new state
+	  which is detected upon a failed read.
 
 2010-05-01       Gaius Mulley <gaius@gnu.org>
 

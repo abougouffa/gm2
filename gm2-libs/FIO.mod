@@ -49,7 +49,7 @@ CONST
 
 TYPE
    FileUsage         = (unused, openedforread, openedforwrite, openedforrandom) ;
-   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure) ;
+   FileStatus        = (successful, outofmemory, toomanyfilesopen, failed, connectionfailure, endoffile) ;
 
    NameInfo          = RECORD
                           address: ADDRESS ;
@@ -589,7 +589,7 @@ BEGIN
                INC(abspos, result)
             ELSE
                (* eof reached, set the buffer accordingly *)
-               state := failed ;
+               state := endoffile ;
                IF buffer#NIL
                THEN
                   WITH buffer^ DO
@@ -1022,31 +1022,15 @@ END ReadAny ;
 
 PROCEDURE EOF (f: File) : BOOLEAN ;
 VAR
-   ch: CHAR ;
-   s : FileStatus ;
    fd: FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
-   (*
-      we will read a character and then push it back onto the input stream,
-      having noted the file status, we also reset the status.
-   *)
    IF f#Error
    THEN
       fd := GetIndice(FileInfo, f) ;
-      IF (fd#NIL) AND (fd^.state=successful)
+      IF fd#NIL
       THEN
-         s := fd^.state ;
-         ch := ReadChar(f) ;
-         IF fd^.state=successful
-         THEN
-            UnReadChar(f, ch) ;
-            fd^.state := s ;
-            RETURN( FALSE )
-         ELSE
-            fd^.state := s ;
-            RETURN( TRUE )
-         END
+         RETURN( fd^.state=endoffile )
       END
    END ;
    RETURN( TRUE )
