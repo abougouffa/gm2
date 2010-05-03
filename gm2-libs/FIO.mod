@@ -92,6 +92,10 @@ PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ; FORWA
 PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
                           fstate: FileStatus; use: FileUsage; towrite: BOOLEAN; buflength: CARDINAL) : File ; FORWARD ;
 PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ; FORWARD ;
+PROCEDURE SetState (f: File; s: FileStatus) ; FORWARD ;
+PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
+                         state: FileStatus; use: FileUsage;
+                         towrite: BOOLEAN; osfd: INTEGER; bufsize: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 VAR
@@ -1493,7 +1497,7 @@ END GetFileName ;
 
 PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
                          state: FileStatus; use: FileUsage;
-                         towrite: BOOLEAN; bufsize: CARDINAL) ;
+                         towrite: BOOLEAN; osfd: INTEGER; bufsize: CARDINAL) ;
 VAR
    fd, fe: FileDescriptor ;
 BEGIN
@@ -1510,7 +1514,7 @@ BEGIN
             fd^.unixfd := fe^.unixfd    (* the error channel *)
          END
       ELSE
-         fd^.unixfd := INTEGER(f)
+         fd^.unixfd := osfd
       END
    ELSE
       HALT
@@ -1544,13 +1548,13 @@ PROCEDURE Init ;
 BEGIN
    FileInfo := InitIndex(0) ;
    Error := 0 ;
-   PreInitialize(Error       , 'error'   , toomanyfilesopen, unused        , FALSE, 0) ;
+   PreInitialize(Error       , 'error'   , toomanyfilesopen, unused        , FALSE, -1, 0) ;
    StdIn := 1 ;
-   PreInitialize(StdIn       , '<stdin>' , successful      , openedforread , FALSE, MaxBufferLength) ;
+   PreInitialize(StdIn       , '<stdin>' , successful      , openedforread , FALSE, 0, MaxBufferLength) ;
    StdOut := 2 ;
-   PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
+   PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, 1, MaxBufferLength) ;
    StdErr := 3 ;
-   PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, MaxBufferLength) ;
+   PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, 2, MaxBufferLength) ;
    InstallTerminationProcedure(CloseOutErr)
 END Init ;
 
