@@ -43,7 +43,6 @@ CONST
    SEEK_END            =       2 ;   (* relative to the end of the file     *)
    UNIXREADONLY        =       0 ;
    CreatePermissions   =     666B;
-   MaxNoOfFiles        =     100 ;
    MaxBufferLength     = 1024*16 ;
    MaxErrorString      = 1024* 8 ;
 
@@ -484,8 +483,7 @@ BEGIN
    THEN
       fd := GetIndice(FileInfo, f) ;
       (*
-         although we allow users to close files which have an error status
-         it is sensible to leave the MaxNoOfFiles file descriptor alone.
+         we allow users to close files which have an error status
       *)
       IF fd#NIL
       THEN
@@ -588,8 +586,14 @@ BEGIN
                END ;
                INC(abspos, result)
             ELSE
-               (* eof reached, set the buffer accordingly *)
-               state := endoffile ;
+               IF result=0
+               THEN
+                  (* eof reached *)
+                  state := endoffile
+               ELSE
+                  state := failed
+               END ;
+               (* indicate buffer is empty *)
                IF buffer#NIL
                THEN
                   WITH buffer^ DO
@@ -655,67 +659,70 @@ VAR
    p     : POINTER TO BYTE ;
    fd    : FileDescriptor ;
 BEGIN
-   IF f<MaxNoOfFiles
+   IF f#Error
    THEN
       fd := GetIndice(FileInfo, f) ;
       total := 0 ;   (* how many bytes have we read *)
-      WITH fd^ DO
-         (* extract from the buffer first *)
-         IF buffer#NIL
-         THEN
-            WITH buffer^ DO
-               WHILE nBytes>0 DO
-                  IF left>0
-                  THEN
-                     IF nBytes=1
+      IF fd#NIL
+      THEN
+         WITH fd^ DO
+            (* extract from the buffer first *)
+            IF buffer#NIL
+            THEN
+               WITH buffer^ DO
+                  WHILE nBytes>0 DO
+                     IF left>0
                      THEN
-                        (* too expensive to call memcpy for 1 character *)
-                        p := a ;
-                        p^ := contents^[position] ;
-                        DEC(left) ;         (* remove consumed byte                *)
-                        INC(position) ;     (* move onwards n byte                 *)
-                        INC(total) ;
-                        RETURN( total )
-                     ELSE
-                        n := Min(left, nBytes) ;
-                        p := memcpy(a, ADDRESS(address+position), n) ;
-                        DEC(left, n) ;      (* remove consumed bytes               *)
-                        INC(position, n) ;  (* move onwards n bytes                *)
-                                            (* move onwards ready for direct reads *)
-                        a := ADDRESS(a+n) ;
-                        DEC(nBytes, n) ;    (* reduce the amount for future direct *)
-                                            (* read                                *)
-                        INC(total, n)
-                     END
-                  ELSE
-                     (* refill buffer *)
-                     n := read(unixfd, address, size) ;
-                     IF n>=0
-                     THEN
-                        position := 0 ;
-                        left     := n ;
-                        filled   := n ;
-                        bufstart := abspos ;
-                        INC(abspos, n) ;
-                        IF n=0
+                        IF nBytes=1
                         THEN
-                           (* eof reached *)
-                           state := failed ;
-                           RETURN( -1 )
+                           (* too expensive to call memcpy for 1 character *)
+                           p := a ;
+                           p^ := contents^[position] ;
+                           DEC(left) ;         (* remove consumed byte                *)
+                           INC(position) ;     (* move onwards n byte                 *)
+                           INC(total) ;
+                           RETURN( total )
+                        ELSE
+                           n := Min(left, nBytes) ;
+                           p := memcpy(a, ADDRESS(address+position), n) ;
+                           DEC(left, n) ;      (* remove consumed bytes               *)
+                           INC(position, n) ;  (* move onwards n bytes                *)
+                                               (* move onwards ready for direct reads *)
+                           a := ADDRESS(a+n) ;
+                           DEC(nBytes, n) ;    (* reduce the amount for future direct *)
+                                               (* read                                *)
+                           INC(total, n)
                         END
                      ELSE
-                        position := 0 ;
-                        left     := 0 ;
-                        filled   := 0 ;
-                        state    := failed ;
-                        RETURN( total )
+                        (* refill buffer *)
+                        n := read(unixfd, address, size) ;
+                        IF n>=0
+                        THEN
+                           position := 0 ;
+                           left     := n ;
+                           filled   := n ;
+                           bufstart := abspos ;
+                           INC(abspos, n) ;
+                           IF n=0
+                           THEN
+                              (* eof reached *)
+                              state := endoffile ;
+                              RETURN( -1 )
+                           END
+                        ELSE
+                           position := 0 ;
+                           left     := 0 ;
+                           filled   := 0 ;
+                           state    := failed ;
+                           RETURN( total )
+                        END
                      END
                   END
-               END
-            END ;
-            RETURN( total )
-         ELSE
-            RETURN( -1 )
+               END ;
+               RETURN( total )
+            ELSE
+               RETURN( -1 )
+            END
          END
       END
    ELSE
@@ -970,7 +977,9 @@ END ReadChar ;
 (*
    UnReadChar - replaces a character, ch, back into file, f.
                 This character must have been read by ReadChar
-                and it does not allow successive calls.
+                and it does not allow successive calls.  It may
+                only be called if the previous read was successful
+                or end of file was seen.
 *)
 
 PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
@@ -982,19 +991,31 @@ BEGIN
    THEN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
-         IF buffer#NIL
+         IF (state=successful) OR (state=endoffile)
          THEN
-            WITH buffer^ DO
-               (* we assume that a ReadChar has occurred, we will check just in case. *)
-               IF (position>0) AND (filled>0)
-               THEN
-                  DEC(position) ;
-                  INC(left) ;
-                  contents^[position] := ch
-               ELSE
-                  FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+            IF buffer#NIL
+            THEN
+               WITH buffer^ DO
+                  (* we assume that a ReadChar has occurred, we will check just in case. *)
+                  IF state=endoffile
+                  THEN
+                     position := MaxBufferLength ;
+                     left := 0 ;
+                     filled := 0 ;
+                     state := successful
+                  END ;
+                  IF position>0
+                  THEN
+                     DEC(position) ;
+                     INC(left) ;
+                     contents^[position] := ch
+                  ELSE
+                     FormatError1('performing too many UnReadChar calls on file (%d)\n', f)
+                  END
                END
             END
+         ELSE
+            FormatError1('UnReadChar can only be called if the previous read was successful or end of file, error on file (%d)\n', f)
          END
       END
    END
@@ -1045,7 +1066,6 @@ END EOF ;
 PROCEDURE EOLN (f: File) : BOOLEAN ;
 VAR
    ch: CHAR ;
-   s : FileStatus ;
    fd: FileDescriptor ;
 BEGIN
    CheckAccess(f, openedforread, FALSE) ;
@@ -1058,11 +1078,15 @@ BEGIN
       fd := GetIndice(FileInfo, f) ;
       IF fd#NIL
       THEN
-         ch := ReadChar(f) ;
-         s := fd^.state ;
-         UnReadChar(f, ch) ;
-         fd^.state := s ;
-         RETURN( (s=successful) AND (ch=nl) )
+         IF fd^.state=successful
+         THEN
+            ch := ReadChar(f) ;
+            IF fd^.state=successful
+            THEN
+               UnReadChar(f, ch)
+            END ;
+            RETURN( ch=nl )
+         END
       END
    END ;
    RETURN( FALSE )

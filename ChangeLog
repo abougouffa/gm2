@@ -1,3 +1,10 @@
+2010-05-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/FIO.mod:  more bugs fixes.  Removed
+	  used MaxNoOfFiles.  Set endoffile if read returns 0.
+	  Replaced f<MaxNoOfFiles by f#Error and only UnReadChar
+	  in EOLN if the previous read is successful.
+
 2010-05-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FIO.mod:  forgot to copy osfd into unixfd.

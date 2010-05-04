@@ -208,7 +208,9 @@ PROCEDURE ReadChar (f: File) : CHAR ;
 (*
    UnReadChar - replaces a character, ch, back into file, f.
                 This character must have been read by ReadChar
-                and it does not allow successive calls.
+                and it does not allow successive calls.  It may
+                only be called if the previous read was successful
+                or end of file was seen.
 *)
 
 PROCEDURE UnReadChar (f: File ; ch: CHAR) ;
