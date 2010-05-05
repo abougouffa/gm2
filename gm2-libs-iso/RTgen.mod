@@ -274,8 +274,13 @@ BEGIN
          (result=IOConsts.endOfLine) 
       THEN
          ch := doReadChar(g^.genif, d) ;
-         ch := doUnReadChar(g^.genif, d, ch) ;
-         checkPostRead(g, d)
+         IF isEOF(g^.genif, d)
+         THEN
+            result := IOConsts.endOfInput
+         ELSE
+            ch := doUnReadChar(g^.genif, d, ch) ;
+            checkPostRead(g, d)
+         END
       END ;
       r := result
    END

@@ -991,6 +991,13 @@ BEGIN
    THEN
       fd := GetIndice(FileInfo, f) ;
       WITH fd^ DO
+(*
+         IF state=endoffile
+         THEN
+            FormatError1('UnReadChar being called when EOF has been seen (%d)\n', f) ;
+            RETURN (* testing *)
+         END ;
+*)
          IF (state=successful) OR (state=endoffile)
          THEN
             IF buffer#NIL

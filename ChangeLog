@@ -7,6 +7,10 @@
 	  -fno-case, -fexceptions options.
 	* gm2/lang-options.h:  added -fno-nil, -fno-return,
 	  -fno-case, -fno-check-all, -fexceptions.
+	* gm2/gm2-libs/FIO.mod:  allow a character to be pushed
+	  back even if eof has been seen.
+	* gm2/gm2-libs-iso/RTgen.mod:  check for eof in doLook
+	  and set result accordingly.
 
 2010-05-04       Gaius Mulley <gaius@gnu.org>
 
