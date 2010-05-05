@@ -377,6 +377,9 @@ BEGIN
    ELSIF EqualArray(s, '-fcheck-all')
    THEN
       Legal := SetCheckAll(TRUE)
+   ELSIF EqualArray(s, '-fno-check-all')
+   THEN
+      Legal := SetCheckAll(FALSE)
    ELSIF EqualArray(s, '-fnil')
    THEN
       NilChecking := TRUE ;
@@ -431,6 +434,10 @@ BEGIN
    THEN
       CaseElseChecking := TRUE ;
       Legal := TRUE
+   ELSIF EqualArray(s, '-fno-case')
+   THEN
+      CaseElseChecking := FALSE ;
+      Legal := TRUE
    ELSIF EqualArray(s, '-fcpp') OR EqualArray(s, '-fcppbegin')
    THEN
       Legal := SetCpp(TRUE)
@@ -453,6 +460,10 @@ BEGIN
    ELSIF EqualArray(s, '-fswig')
    THEN
       GenerateSwig := TRUE ;
+      Legal := TRUE
+   ELSIF EqualArray(s, '-fexceptions')
+   THEN
+      Exceptions := TRUE ;
       Legal := TRUE
    ELSIF EqualArray(s, '-fno-exceptions')
    THEN

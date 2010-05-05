@@ -3,6 +3,10 @@
 	* gm2/gm2-libs-ch/wrapc.c:  changed signbitl, signbitf
 	  to signbit as signbit is a macro which tests its
 	  parameter type and calls the correct underlying function.
+	* gm2/gm2-compiler/M2Options.mod:  added -fno-check-all
+	  -fno-case, -fexceptions options.
+	* gm2/lang-options.h:  added -fno-nil, -fno-return,
+	  -fno-case, -fno-check-all, -fexceptions.
 
 2010-05-04       Gaius Mulley <gaius@gnu.org>
 
