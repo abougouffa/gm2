@@ -1,3 +1,9 @@
+2010-05-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-ch/wrapc.c:  changed signbitl, signbitf
+	  to signbit as signbit is a macro which tests its
+	  parameter type and calls the correct underlying function.
+
 2010-05-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/FIO.mod:  more bugs fixes.  Removed
