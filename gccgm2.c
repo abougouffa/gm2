@@ -9885,7 +9885,7 @@ gccgm2_BuildFunctValue (tree value)
   tree assign = build_modify_expr (value, NOP_EXPR, last_function);
 
   ASSERT_CONDITION (last_function != NULL_TREE);  /* no value available, possible used before */
-    
+  
   TREE_SIDE_EFFECTS (assign) = TRUE;
   TREE_USED (assign) = TRUE;
   add_stmt (assign);

@@ -214,7 +214,7 @@ BEGIN
       RETURN( FALSE )
    ELSE
       fd := GetIndice(FileInfo, f) ;
-      RETURN( (fd#NIL) AND (fd^.state=successful) )
+      RETURN( (fd#NIL) AND ((fd^.state=successful) OR (fd^.state=endoffile)) )
    END
 END IsNoError ;
 
@@ -1327,7 +1327,7 @@ BEGIN
       ch := ReadChar(f) ;
       IF i<=high
       THEN
-         IF (ch=nl) OR (NOT IsNoError(f))
+         IF (ch=nl) OR (NOT IsNoError(f)) OR EOF(f)
          THEN
             a[i] := nul ;
             INC(i)
@@ -1336,7 +1336,7 @@ BEGIN
             INC(i)
          END
       END
-   UNTIL (ch=nl) OR (i>high) OR (NOT IsNoError(f))
+   UNTIL (ch=nl) OR (i>high) OR (NOT IsNoError(f)) OR EOF(f)
 END ReadString ;
 
 

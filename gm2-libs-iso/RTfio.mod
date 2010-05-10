@@ -82,7 +82,7 @@ BEGIN
    WITH d^ DO
       f := GetFile(cid) ;
       actual := ReadNBytes(f, max, to) ;
-      RETURN( EOF(f) OR IsNoError(f) )
+      RETURN( IsNoError(f) )
    END
 END dorbytes ;
 

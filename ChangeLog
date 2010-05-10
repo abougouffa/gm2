@@ -1,3 +1,13 @@
+2010-05-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2/gm2-libs-pim/FIO.mod:  IsNoError returns
+	  TRUE if the file state is successful or endoffile.
+	  ReadString checks IsNoError.
+	* gm2/gm2/gm2-libs-pim/InOut.mod:  set done to
+	  True if IsNoError and not end of file.
+	* gm2/gm2-libs-iso/RTfio.mod:  dorbytes returns
+	  IsNoError.
+
 2010-05-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-ch/wrapc.c:  changed signbitl, signbitf

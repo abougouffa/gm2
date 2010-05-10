@@ -624,9 +624,12 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
+Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+           =:
+
 TypeDeclaration :=
                                                                            % PushAutoOn %
-                   ( IdentScope "=" Type )                                 % PopAuto    %
+                   ( IdentScope "=" Type Alignment )                       % PopAuto    %
                 =:
 
 Type :=                                                                    % VAR Name: CARDINAL ; %
@@ -701,7 +704,7 @@ PossiblyExportIdentList := PossiblyExportIdent                             % VAR
 SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 
 ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF"                    % BuildNulName %
-             Type =:
+             Type Alignment =:
 
 RecordType := "RECORD" FieldListSequence "END" =:
 
@@ -718,7 +721,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"                                                 % BuildNulName %
-                           Type
+                           Type Alignment
                                 |
              "CASE" CaseTag "OF" Varient { "|" Varient }
              [ "ELSE" FieldListSequence ] "END"
@@ -746,7 +749,7 @@ SetType :=                                                                 % VAR
          =:
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %
-                              Type =:
+                              Type Alignment =:
 
 ProcedureType := "PROCEDURE" [ FormalTypeList ] =:
 
@@ -767,7 +770,7 @@ VarIdent := PossiblyExportIdent [ "[" ConstExpression "]" ]
 
 VariableDeclaration :=
                        ( VarIdentList ":"                                  % BuildNulName %
-                         Type )
+                         Type Alignment )
                     =:
 
 VarIdentList := VarIdent                                                   % VAR
@@ -980,7 +983,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"                                                       % PushAutoOn %
                     { PossiblyExportIdent
                             ( ";"                                          % BuildHiddenType %
-                                  | "=" Type ";" ) }                       % PopAuto %
+                                  | "=" Type  Alignment ";" ) }            % PopAuto %
               |
               "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:

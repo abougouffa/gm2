@@ -141,7 +141,7 @@ END CloseOutput ;
 PROCEDURE LocalRead (VAR ch: CHAR) ;
 BEGIN
    ch := FIO.ReadChar(in) ;
-   Done := FIO.IsNoError(in)
+   Done := FIO.IsNoError(in) AND (NOT FIO.EOF(in))
 END LocalRead ;
 
 
