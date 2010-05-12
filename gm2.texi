@@ -1555,7 +1555,80 @@ and @code{f} are type compatible and will produce runtime checking
 code to test whether the address range of their respective contents
 intersect.
 
-@node Interface for Python, Interface to C, Unbounded by reference, Using
+@node Building a shared library, Interface for Python, Unbounded by reference, Using
+
+@section Building a shared library
+
+This section describes building a tiny shared library implemented
+entirely in Modula-2.  Suppose a project consists of two definition
+modules and two implementation modules and a program module
+@file{a.def}, @file{a.mod}, @file{b.def}, @file{b.mod} and @file{c.mod}.
+The first step is to compile the modules using position independent code.
+This can be achieved by the following three commands:
+
+@example
+gm2 -fiso -g -c -fPIC a.mod
+gm2 -fiso -g -c -fPIC b.mod
+gm2 -fiso -g -c -fPIC c.mod
+@end example
+
+The second step is to perform the link.  In a simple project such as this
+you can use the single command:
+
+@example
+gm2 -fiso -shared -fshared -fPIC -g c.mod -o c.so
+@end example
+
+At this point the shared library @file{c.so} will have been created.
+All procedures which are exported from the definition modules are
+also visible to the user of the shared library.
+
+The @code{BEGIN} @code{END} code at module scope in @file{a.mod},
+@file{b.mod}, @file{c.mod} and all dependent library modules will be
+initialized when the shared library is loaded.  Likewise the
+@code{FINISH} @code{END} code at all module scopes is executed when
+the library is unloaded.  Both the initialization and termination is
+implemented transparently using the GNU/Linux mechanism:
+
+@example
+void __attribute__ ((constructor)) initcode (void);
+void __attribute__ ((destructor)) fincode (void);
+@end example
+
+The linking command above utilizes a number of subcomponents which
+determine the runtime initialization order, create the C++ initialization
+and finalization function and links all required modules together.
+You can inspect and modify the initialization and finalization order
+by using the following commands:
+
+@example
+gm2 -c -fmakelist -fiso -fPIC -g c.mod
+@end example
+
+The command above will create a file @file{c.lst} which is a plain ascii
+file which contains the modules in initialization order.  The @code{#}
+is a comment which continues to the next newline.  It is worth noting that
+the first five or so modules which are listed before the commented lines
+are the critical runtime modules which have a default order.  You can
+override these using the command line option @code{-fruntime-modules=}.
+However you should only do this if you are building an application for an
+embedded system or your own set of Modula-2 low level libraries.
+
+You can modify the order of the modules in this file, although it is wise
+to leave the initial five modules alone.  It is much more useful to order
+your own modules which will be near the end of the file.  Once you are happy
+with the order you can conclude the link with the command:
+
+@example
+gm2 -fuselist -fiso -fPIC -g c.mod -o c.so
+@end example
+
+which creates @file{c.so} and @file{c_m2.cpp}.  The initialization and
+finalization code is contained within @file{c_m2.cpp} which is
+compiled and linked with all the modules required to satisfy all the
+program module @file{c.mod} dependencies.
+
+@node Interface for Python, Interface to C, Building a shared library, Using
 @section How to produce swig interface files
 
 This section describes how your Modula-2 implementation modules can be
