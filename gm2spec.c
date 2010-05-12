@@ -878,9 +878,9 @@ get_link_args (int argc ATTRIBUTE_UNUSED,
   *result = (char)0;
 
   for (o = head_link_args; o != NULL; o = o->next) {
+    len = strlen(result);
     alen = strlen(o->name);
-    result = (char *)xrealloc (result, len+alen+1);
-    len += alen;
+    result = (char *)xrealloc (result, len+alen+1+1);
     strcat(result, o->name);
     strcat(result, " ");
   }

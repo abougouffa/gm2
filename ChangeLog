@@ -1,3 +1,8 @@
+2010-05-12       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2spec.c:  fixed a xrealloc size bug in
+	  gm2_link_args.
+
 2010-05-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2/gm2-libs-pim/FIO.mod:  IsNoError returns
