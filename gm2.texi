@@ -1435,7 +1435,7 @@ The types @code{BYTE}, @code{LOC} and @code{WORD} and sized
 their derivitives are assignment and parameter compatible with any
 data type of the same size.
 
-@node Unbounded by reference, Interface for Python, Type compatibility, Using
+@node Unbounded by reference, Building a shared library, Type compatibility, Using
 @section Unbounded by reference
 
 This section documents a GNU Modula-2 compiler switch which implements
