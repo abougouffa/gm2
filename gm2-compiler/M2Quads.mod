@@ -223,7 +223,7 @@ FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
 CONST
    DebugStack = FALSE ;
    DebugVarients = FALSE ;
-   BreakAtQuad = 63 ;
+   BreakAtQuad = 37 ;
 
 TYPE
    ConstructorFrame = POINTER TO constructorFrame ;

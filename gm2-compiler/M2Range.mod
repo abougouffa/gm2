@@ -526,7 +526,7 @@ VAR
    r: CARDINAL ;
 BEGIN
    r := InitRange() ;
-   p := PutRange(GetIndice(RangeIndex, r), inc, d, e) ;
+   p := PutRange(GetIndice(RangeIndex, r), dec, d, e) ;
    RETURN( r )
 END InitDecRangeCheck ;
 

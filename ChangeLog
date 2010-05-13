@@ -3,6 +3,11 @@
 	* gm2/gm2.texi:  fixed bad next node and
 	  added a menu entry for the new section,
 	  how to build a Modula-2 shared library.
+	* gm2/gm2-compiler/M2Range.mod:  (InitDecRangeCheck)
+	  fixed typo inc should have been dec.  Fixes a bug
+	  reported by James Cox.
+	* gm2/gm2-compiler/M2Quads.mod:  new value of BreakAtQuad
+	  used for internal debugging.
 
 2010-05-12       Gaius Mulley <gaius@gnu.org>
 
