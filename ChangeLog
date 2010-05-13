@@ -1,6 +1,8 @@
 2010-05-13       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/gm2.texi:  fixed bad next node.
+	* gm2/gm2.texi:  fixed bad next node and
+	  added a menu entry for the new section,
+	  how to build a Modula-2 shared library.
 
 2010-05-12       Gaius Mulley <gaius@gnu.org>
 

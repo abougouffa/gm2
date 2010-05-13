@@ -96,6 +96,7 @@ Software Foundation raise funds for GNU development.''
 * Extensions::            GNU Modula-2 language extensions.
 * Type compatibility::    Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
+* Building a shared library:: How to build a shared library.
 * Interface for Python::  How to produce swig interface files.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * Assembly language::     Interface to assembly language.
