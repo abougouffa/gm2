@@ -26,7 +26,7 @@ BEGIN
    b := twoDsim.box(0.0, 0.0, 1.0, 1.0) ;
    b := twoDsim.fix(b) ;
 
-   c := twoDsim.circle(0.9, 0.9, 0.1) ;
+   c := twoDsim.circle(0.74, 0.9, 0.1) ;
    c := twoDsim.mass(c, 0.01) ;
 
    d := twoDsim.box(0.2, 0.8, 0.2, 0.2) ;

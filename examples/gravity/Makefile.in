@@ -1,5 +1,6 @@
 GM2FLAGS=-g -fPIC
 PYTHON_VERSION=2.5
+GM2FLAGSSTATIC=-g
 
 srcdir = @srcdir@
 gm2dir = $(srcdir)/../..
@@ -18,25 +19,36 @@ all: force
 	@echo "you need to use 'make pre-install' to build the examples using the locally built compiler"
 	@echo "or you can use 'make post-install' to build the examples after installing the compiler"
 
+test: force
+	$(XGM2) $(GM2FLAGSSTATIC) -fiso -I$(SRC_PATH) -c $(srcdir)/deviceGnuPic.mod
+	$(XGM2) $(GM2FLAGSSTATIC) -fiso -c -fswig -I$(SRC_PATH) $(srcdir)/twoDsim.mod
+	$(XGM2) $(GM2FLAGSSTATIC) -fiso -c -I$(SRC_PATH) $(srcdir)/roots.mod
+	$(XGM2) $(GM2FLAGSSTATIC) -fiso -c -I$(SRC_PATH) $(srcdir)/test.mod
+	$(XGM2) $(GM2FLAGSSTATIC) -fiso -I$(SRC_PATH) -fobject-path=$(OBJ_PATH) $(srcdir)/test.mod
+
 final: clean
-	gm2 $(GM2FLAGS) -c -I$(SRC_PATH_PIM_SO) $(gm2dir)/gm2-compiler/Indexing.mod
 	gm2 $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/deviceGnuPic.mod
 	gm2 $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_SO) $(srcdir)/twoDsim.mod
 	swig -c++ -python twoDsim.i
 	gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	gm2 -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
-	python testsim.py
+	gm2 -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared \
+            $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
+	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
 
 pre-install: clean
-	$(XGM2) $(GM2FLAGS) -c -I$(SRC_PATH_PIM) $(gm2dir)/gm2-compiler/Indexing.mod
 	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -c $(srcdir)/deviceGnuPic.mod
 	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH) $(srcdir)/twoDsim.mod
-	$(XGM2) $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH) $(srcdir)/test.mod
-	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -fobject-path=$(OBJ_PATH) $(srcdir)/test.mod -lgsl -lblas
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) $(srcdir)/roots.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) $(srcdir)/test.mod
+	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -fobject-path=$(OBJ_PATH) $(srcdir)/test.mod
 
 post-install: clean
-	gm2 $(GM2FLAGS) -c -I$(SRC_PATH_PIM) $(gm2dir)/gm2-compiler/Indexing.mod
-	gm2 -fiso -g -fmakeall -I$(SRC_PATH) $(srcdir)/test.mod -lgsl -lblas
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) $(srcdir)/deviceGnuPic.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) -fswig $(srcdir)/twoDsim.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) $(srcdir)/roots.mod
+	$(XGM2) $(GM2FLAGS) -fiso -c -I$(SRC_PATH) $(srcdir)/test.mod
+	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -fobject-path=$(OBJ_PATH) $(srcdir)/test.mod
+	gm2 -fiso -g -fmakeall -I$(SRC_PATH) $(srcdir)/test.mod
 	
 clean: force
 	$(RM) *.o a.out *.i *.pyc *_wrap.cxx *.so *_m2.cpp twoDsim.py *.png *.ms movie.avi

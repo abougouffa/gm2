@@ -37,6 +37,7 @@ EXPORT UNQUALIFIED sin, sinl, sinf,
                    asin, asinl, asinf,
                    acos, acosl, acosf,
                    atan, atanl, atanf,
+                   atan2, atan2l, atan2f,
                    exp, expl, expf,
                    log, logl, logf,
                    exp10, exp10l, exp10f,
@@ -65,6 +66,9 @@ PROCEDURE acosf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE atan (x: REAL) : REAL ;
 PROCEDURE atanl (x: LONGREAL) : LONGREAL ;
 PROCEDURE atanf (x: SHORTREAL) : SHORTREAL ;
+PROCEDURE atan2 (x, y: REAL) : REAL ;
+PROCEDURE atan2l (x, y: LONGREAL) : LONGREAL ;
+PROCEDURE atan2f (x, y: SHORTREAL) : SHORTREAL ;
 PROCEDURE exp (x: REAL) : REAL ;
 PROCEDURE expl (x: LONGREAL) : LONGREAL ;
 PROCEDURE expf (x: SHORTREAL) : SHORTREAL ;

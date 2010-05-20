@@ -34,6 +34,7 @@ FROM SYSTEM IMPORT ADDRESS ;
 EXPORT UNQUALIFIED alloca, memcpy,
                    sinf, sinl, sin,
                    cosf, cosl, cos,
+                   atan2f, atan2l, atan2,
                    sqrtf, sqrtl, sqrt,
                    fabsf, fabsl, fabs,
                    logf, logl, log,
@@ -76,6 +77,9 @@ PROCEDURE sinl (x: LONGREAL) : LONGREAL ;
 PROCEDURE cosf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE cos (x: REAL) : REAL ;
 PROCEDURE cosl (x: LONGREAL) : LONGREAL ;
+PROCEDURE atan2f (x, y: SHORTREAL) : SHORTREAL ;
+PROCEDURE atan2 (x, y: REAL) : REAL ;
+PROCEDURE atan2l (x, y: LONGREAL) : LONGREAL ;
 PROCEDURE sqrtf (x: SHORTREAL) : SHORTREAL ;
 PROCEDURE sqrt (x: REAL) : REAL ;
 PROCEDURE sqrtl (x: LONGREAL) : LONGREAL ;

@@ -663,7 +663,10 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-TypeDeclaration := Ident "=" Type                                          % BuildTypeEnd ; %
+Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+           =:
+
+TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeEnd ; %
                 =:							   
 									   
 Type :=                                                                    
@@ -727,6 +730,7 @@ ArrayType := "ARRAY"                                                       % VAR
              Type                                                          % EndBuildArray ;
                                                                              PopNothing ;
                                                                              PushT(a) %
+             Alignment
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord %
@@ -742,6 +746,7 @@ FieldListStatement := [ FieldList ] =:
 
 FieldList := IdentList ":"                                                 % BuildNulName %
                            Type                                            % BuildFieldRecord %
+                           Alignment
              |
              "CASE"                                                        % AddRecordToList %
                                                                            % StartBuildVarient %
@@ -779,6 +784,7 @@ SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % Bui
 
 PointerType := "POINTER" "TO"                                              % BuildNulName ; %
                               Type                                         % BuildPointerType ; %
+                                   Alignment
              =:
 
 ProcedureType := "PROCEDURE"                                               % BuildProcedureType ; %
@@ -836,6 +842,7 @@ VarIdentList := VarIdent                                                   % VAR
 
 VariableDeclaration := VarIdentList ":"                                    % BuildNulName %
                        Type                                                % BuildVariable %
+                       Alignment
                     =:
 
 Designator := Qualident { SubDesignator } =:
@@ -1096,7 +1103,7 @@ DefinitionModule := "DEFINITION" "MODULE"
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
                     { Ident ( ";"                 
-                                  | "=" Type ";" )                         % BuildTypeEnd %
+                                  | "=" Type Alignment ";" )               % BuildTypeEnd %
                     }
               |
               "VAR" { VariableDeclaration ";" } |

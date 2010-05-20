@@ -66,6 +66,21 @@ BEGIN
    RETURN cbuiltin.cosl (x)
 END cosl ;
 
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_atan2)) atan2 (x, y: REAL) : REAL ;
+BEGIN
+   RETURN cbuiltin.atan2 (x, y)
+END atan2 ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_atan2f)) atan2f (x, y: SHORTREAL) : SHORTREAL ;
+BEGIN
+   RETURN cbuiltin.atan2f (x, y)
+END atan2f ;
+
+PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_atan2l)) atan2l (x, y: LONGREAL) : LONGREAL ;
+BEGIN
+   RETURN cbuiltin.atan2l (x, y)
+END atan2l ;
+
 PROCEDURE __ATTRIBUTE__  __BUILTIN__ ((__builtin_sqrt)) sqrt (x: REAL) : REAL ;
 BEGIN
    RETURN cbuiltin.sqrt (x)

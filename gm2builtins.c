@@ -160,6 +160,10 @@ static struct builtin_function_entry list_of_builtins[] = {
 { "__builtin_ilogb",   BT_FN_INT_DOUBLE, BUILT_IN_ILOGB, BUILT_IN_NORMAL, "ilogb", NULL, NULL},
 { "__builtin_ilogbl",  BT_FN_INT_LONG_DOUBLE, BUILT_IN_ILOGBL, BUILT_IN_NORMAL, "ilogbl", NULL, NULL},
 
+{ "__builtin_atan2f",  BT_FN_FLOAT_FLOAT_FLOAT, BUILT_IN_ATAN2F, BUILT_IN_NORMAL, "atan2f", NULL, NULL},
+{ "__builtin_atan2",   BT_FN_DOUBLE_DOUBLE_DOUBLE, BUILT_IN_ATAN2, BUILT_IN_NORMAL, "atan2", NULL, NULL},
+{ "__builtin_atan2l",  BT_FN_LONG_DOUBLE_LONG_DOUBLE_LONG_DOUBLE, BUILT_IN_ATAN2L, BUILT_IN_NORMAL, "atan2l", NULL, NULL},
+
 { "__builtin_signbit", BT_FN_INT_DOUBLE, BUILT_IN_SIGNBIT, BUILT_IN_NORMAL, "signbit", NULL, NULL},
 { "__builtin_signbitf", BT_FN_INT_FLOAT, BUILT_IN_SIGNBITF, BUILT_IN_NORMAL, "signbitf", NULL, NULL},
 { "__builtin_signbitl", BT_FN_INT_LONG_DOUBLE, BUILT_IN_SIGNBITL, BUILT_IN_NORMAL, "signbitl", NULL, NULL},

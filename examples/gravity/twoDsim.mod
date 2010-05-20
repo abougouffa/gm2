@@ -23,8 +23,7 @@ FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
 FROM libc IMPORT printf ;
 FROM deviceGnuPic IMPORT Coord, Colour, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
 FROM libm IMPORT sqrt ;
-FROM gsl IMPORT gsl_poly_complex_workspace, gsl_poly_complex_solve, gsl_poly_eval,
-                gsl_poly_complex_workspace_alloc, gsl_poly_complex_workspace_free ;
+FROM roots IMPORT findQuartic, nearZero ;
 
 
 CONST
@@ -79,10 +78,55 @@ TYPE
 VAR
    objects         : Index ;
    maxId           : CARDINAL ;
+   collisionTime,
+   currentTime,
    framesPerSecond : REAL ;
    simulatedGravity: REAL ;
    eventQ,
    freeEvents      : eventQueue ;
+
+
+(*
+   AssertR - 
+*)
+
+PROCEDURE AssertR (a, b: REAL) ;
+BEGIN
+   IF a#b
+   THEN
+      printf("error assert failed: %g should equal %g\n", a, b)
+   END
+END AssertR ;
+
+
+(*
+   DumpObject - 
+*)
+
+PROCEDURE DumpObject (o: Object) ;
+BEGIN
+   WITH o^ DO
+      printf("object %d ", id) ;
+      IF fixed
+      THEN
+         printf("is fixed ")
+      ELSE
+         printf("is movable ")
+      END ;
+      CASE object OF
+
+      circleOb :  printf("circle at (%g, %g) radius %g mass %g\n", c.pos.x, c.pos.y, c.r, c.mass) |
+      polygonOb:  printf("polygon\n") |
+      pivotOb  :  printf("pivot\n")
+
+      ELSE
+      END ;
+      IF NOT fixed
+      THEN
+         printf("    velocity (%g, %g) acceleration (%g, %g)\n", vx, vy, ax, ay)
+      END
+   END
+END DumpObject ;
 
 
 (*
@@ -502,6 +546,7 @@ VAR
    i, n: CARDINAL ;
    optr: Object ;
 BEGIN
+   currentTime := currentTime + dt ;
    n := HighIndice(objects) ;
    i := 1 ;
    WHILE i<=n DO
@@ -545,16 +590,26 @@ END doNextEvent ;
 
 PROCEDURE circleCollision (iptr, jptr: Object) ;
 BEGIN
+   IF nearZero(currentTime-collisionTime)
+   THEN
+      RETURN
+   END ;
    IF NOT iptr^.fixed
    THEN
+      DumpObject(iptr) ;
+      printf("collision changing direction\n");
       iptr^.vy := -iptr^.vy ;
-      iptr^.ay := -iptr^.ay 
+      iptr^.ay := -iptr^.ay ;
+      DumpObject(iptr)
    END ;
    IF NOT jptr^.fixed
    THEN
+      DumpObject(jptr) ;
       jptr^.vy := -jptr^.vy ;
-      jptr^.ay := -jptr^.ay 
-   END
+      jptr^.ay := -jptr^.ay ;
+      DumpObject(iptr)
+   END ;
+   collisionTime := currentTime
 END circleCollision ;
 
 
@@ -603,66 +658,22 @@ END sqr ;
 
    using:
 
-   S = UT + AT^2/2
+   S = UT + (AT^2)/2
    compute xin and yin which are the new (x,y) positions of object i at time, t.
    compute xjn and yjn which are the new (x,y) positions of object j at time, t.
    now compute difference between objects and if they are ri+rj  (radius of circle, i, and, j)
-   appart then we have a collision at time, t.
+   apart then we have a collision at time, t.
 
-   xin = xi + vxi * t + aix * t^2 / 2.0
-   yin = yi + vyi * t + aiy * t^2 / 2.0
+   xin = xi + vxi * t + (aix * t^2) / 2.0
+   yin = yi + vyi * t + (aiy * t^2) / 2.0
 
-   xjn = xj + vxj * t + ajx * t^2 / 2.0
-   yjn = yj + vyj * t + ajy * t^2 / 2.0
+   xjn = xj + vxj * t + (ajx * t^2) / 2.0
+   yjn = yj + vyj * t + (ajy * t^2) / 2.0
 
    ri + rj == sqrt(abs(xin-xjn)^2 + abs(yin-yjn)^2)     for values of t
 
-   ri + rj == sqrt((xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
-                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2)
-
-===
-2nd attempt
------------
-
-   (ri + rj)^2 ==  (xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
-                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2
-
-   0           ==  (xi + vxi * t + aix * t^2 / 2.0 - xj + vxj * t + ajx * t^2 / 2.0)^2 +
-                   (yi + vyi * t + aiy * t^2 / 2.0 - yj + vyj * t + ajy * t^2 / 2.0)^2 -
-                   (ri + rj)^2
-
-   0           ==  (a + c * t + e * t^2.0/2.0 - b * d * t + f * t^2.0/2.0)^2.0 +
-                   (g + k * t + m * t^2.0/2.0 - h + l * t + n * t^2.0/2.0)^2.0 -
-                   (o + p)^2.0
-
-
-   0           ==  ((n^2+2*m*n+m^2+f^2+2*e*f+e^2) * t^4 +
-                   ((4*l+4*k)*n+(4*l+4*k)*m+(4*c-4*b*d)*f+(4*c-4*b*d)*e) * t^3 +
-                   ((4*g-4*h)*n+(4*g-4*h)*m+4*l^2+8*k*l+4*k^2+4*a*f+4*a*e+4*b^2*d^2-8*b*c*d+4*c^2) * t^2 +
-                   ((8*g-8*h)*l+(8*g-8*h)*k-8*a*b*d+8*a*c) * t -
-                    4*p^2-8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*a^2)/4
-
-  A = (n^2+2*m*n+m^2+f^2+2*e*f+e^2)
-  B = (4*l+4*k)*n+(4*l+4*k)*m+(4*c-4*b*d)*f+(4*c-4*b*d)*e
-  C = (4*g-4*h)*n+(4*g-4*h)*m+4*l^2+8*k*l+4*k^2+4*a*f+4*a*e+4*b^2*d^2-8*b*c*d+4*c^2
-  D = (8*g-8*h)*l+(8*g-8*h)*k-8*a*b*d+8*a*c
-  E = 4*p^2-8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*a^2
-
-===
-1st attempt
------------
-
-   ri + rj == sqrt(((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
-                    (yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2)
-
-   (ri + rj)^2 = ((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
-                 ((yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2
-
-   0           =  ((xi - xj) + (vxi - vxj) * t + (aix - ajx) * t^2 / 2.0)^2 +
-                  ((yi - yj) + (vyi - vyj) * t + (aiy - ajy) * t^2 / 2.0)^2 -
-                  (ri + rj)^2
-
-   expand and collect terms of t:
+   ri + rj == sqrt(((xi + vxi * t + aix * t^2 / 2.0) - (xj + vxj * t + ajx * t^2 / 2.0))^2 +
+                   ((yi + vyi * t + aiy * t^2 / 2.0) - (yj + vyj * t + ajy * t^2 / 2.0))^2)
 
    let:
 
@@ -682,60 +693,66 @@ END sqr ;
    p = rj
    t = t
 
+   o  + p  == sqrt(((a  + c   * t + e   * t^2 / 2.0) - (b  + d   * t +   f * t^2 / 2.0))^2 +
+                   ((g  + k   * t + m   * t^2 / 2.0) - (h  + l   * t +   n * t^2 / 2.0))^2)
+
+   o  + p  == sqrt(((a  + c   * t + e   * t^2 / 2.0) - (b  + d   * t +   f * t^2 / 2.0))^2 +
+                   ((g  + k   * t + m   * t^2 / 2.0) - (h  + l   * t +   n * t^2 / 2.0))^2)
+
+   0       == ((a  + c   * t + e   * t^2 / 2.0) - (b  + d   * t +   f * t^2 / 2.0))^2 +
+              ((g  + k   * t + m   * t^2 / 2.0) - (h  + l   * t +   n * t^2 / 2.0))^2 -
+              (o  + p)^2
+
    now using wxmaxima
-
-   (((a-b)+(c-d)*t+((e-f)*t^2)/2)^2) +
-   (((g-h)+(k-l)*t+((m-n)*t^2)/2)^2) -
-   (o-p)^2;
-
    expand ; factor ; ratsimp
 
-   we get:
+   p+o    ==  (sqrt((n^2-2*m*n+m^2+f^2-2*e*f+e^2)*t^4+
+                   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)*t^3+
+                   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)*t^2+
+                   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)*t+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2))/2
 
-   ((n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
-   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e) * t^3 +
-   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2) * t^2 +
-   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c) * t -
-   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2)/4  =  0
+   2*(p+o) ==  (sqrt((n^2-2*m*n+m^2+f^2-2*e*f+e^2)*t^4+
+                    ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)*t^3+
+                    ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)*t^2+
+                    ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)*t+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2))
 
-   solve for t:
+   (2*(p+o))^2 == ((n^2-2*m*n+m^2+f^2-2*e*f+e^2)*t^4+
+                   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)*t^3+
+                   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)*t^2+
+                   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)*t+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2))
 
-   (multiply both sides by 4)
-
-   (n^2-2*m*n+m^2+f^2-2*e*f+e^2) * t^4 +
-   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e) * t^3 +
-   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2) * t^2 +
-   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c) * t -
-   4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2  =  0
+   0           ==  (n^2-2*m*n+m^2+f^2-2*e*f+e^2)*t^4+
+                   ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)*t^3+
+                   ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)*t^2+
+                   ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)*t+
+                   4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2)-
+                   ((2*(p+o))^2)
 
    solve polynomial:
 
-   A = (n^2-2*m*n+m^2+f^2-2*e*f+e^2)
-   B = ((4*l-4*k)*n+(4*k-4*l)*m+(4*d-4*c)*f+(4*c-4*d)*e)
-   C = ((4*h-4*g)*n+(4*g-4*h)*m+4*l^2-8*k*l+4*k^2+(4*b-4*a)*f+(4*a-4*b)*e+4*d^2-8*c*d+4*c^2)
-   D = ((8*h-8*g)*l+(8*g-8*h)*k+(8*b-8*a)*d+(8*a-8*b)*c)
-   E = 4*p^2+8*o*p-4*o^2+4*h^2-8*g*h+4*g^2+4*b^2-8*a*b+4*a^2
-
-   using the GNU scientific library.
+   A := sqr(n)-2.0*m*n+sqr(m)+sqr(f)-2.0*e*f+sqr(e) ;
+   B := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
+   C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)-8.0*k*l+4.0*sqr(k)+(4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0*sqr(d)-8.0*c*d+4.0*sqr(c) ;
+   D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
+   E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
 *)
 
 PROCEDURE findCollisionCircles (iptr, jptr: Object; VAR ic, jc: CARDINAL; VAR tc: REAL) ;
-TYPE
-   arrayReal5 = ARRAY [0..4] OF REAL ;
 VAR
    a, b, c, d, e,
    f, g, h, k, l,
    m, n, o, p, t,
    A, B, C, D, E: REAL ;
-   V            : arrayReal5 ;
-   R            : ARRAY [0..7] OF REAL ;
-   W            : gsl_poly_complex_workspace ;
    i, j         : CARDINAL ;
+   T            : REAL ;
 BEGIN
+   DumpObject(iptr) ;
+   DumpObject(jptr) ;
    WITH iptr^ DO
       a := c.pos.x    (* xi *)
    END ;
    c := iptr^.vx ;    (* vxi *)
+   AssertR(c, 0.0) ;
    WITH iptr^ DO
       IF fixed
       THEN
@@ -745,6 +762,7 @@ BEGIN
          e := ax ;    (* aix *)
          m := ay+simulatedGravity    (* aiy *)
       END ;
+      AssertR(e, 0.0) ;
       g := c.pos.y ;  (* yi *)
       k := vy ;       (* vyi *)
       o := c.r        (* ri *)
@@ -760,109 +778,34 @@ BEGIN
          f := ax ;   (* ajx *)
          n := ay+simulatedGravity  (* ajy *)
       END ;
+      AssertR(f, 0.0) ;
       d := vx ;      (* vxj *)
+      AssertR(d, 0.0) ;
       h := c.pos.y ; (* yj *)
       l := vy        (* vyj *)
    END ;
    p := jptr^.c.r ;  (* rj *)
-(* 1st attempt *)
-(*
-   A := sqr(n) -2.0*m*n+ sqr(m) + sqr(f) -2.0*e*f + sqr(e) ;
-   B := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
-   C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0 * sqr(l)-8.0*k*l+4.0 * sqr(k) +
-        (4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0 * sqr(d) -8.0*c*d+4.0 * sqr(c) ;
-   D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
-   E := 4.0 * sqr(p) + 8.0*o*p-4.0 * sqr(o) + 4.0 * sqr(h)
-        -8.0*g*h+4.0 * sqr(g) +4.0 * sqr(b) -8.0*a*b+4.0* sqr(a) ;
-*)
-   (* 2nd attempt *)
 
-   A := sqr(n)+2.0*m*n+sqr(m)+sqr(f)+2.0*e*f+sqr(e) ;
-   B := (4.0*l+4.0*k)*n+(4.0*l+4.0*k)*m+(4.0*c-4.0*b*d)*f+(4.0*c-4.0*b*d)*e ;
-   C := (4.0*g-4.0*h)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)+8.0*k*l+4.0*sqr(k)+4.0*a*f+4.0*a*e+4.0*sqr(b)*sqr(d)-8.0*b*c*d+4.0*sqr(c) ;
-   D := (8.0*g-8.0*h)*l+(8.0*g-8.0*h)*k-8.0*a*b*d+8.0*a*c ;
-   E := 4.0*sqr(p)-8.0*o*p-4.0*sqr(o)+4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(a) ;
+   (* thanks to wxmaxima  (expand ; factor ; ratsimp) *)
+
+   A := sqr(n)-2.0*m*n+sqr(m)+sqr(f)-2.0*e*f+sqr(e) ;
+   B := (4.0*l-4.0*k)*n+(4.0*k-4.0*l)*m+(4.0*d-4.0*c)*f+(4.0*c-4.0*d)*e ;
+   C := (4.0*h-4.0*g)*n+(4.0*g-4.0*h)*m+4.0*sqr(l)-8.0*k*l+4.0*sqr(k)+(4.0*b-4.0*a)*f+(4.0*a-4.0*b)*e+4.0*sqr(d)-8.0*c*d+4.0*sqr(c) ;
+   D := (8.0*h-8.0*g)*l+(8.0*g-8.0*h)*k+(8.0*b-8.0*a)*d+(8.0*a-8.0*b)*c ;
+   E := 4.0*sqr(h)-8.0*g*h+4.0*sqr(g)+4.0*sqr(b)-8.0*a*b+4.0*sqr(a)-sqr(2.0*(p+o)) ;
 
    (* now solve for values of t which satisfy   At^4 + Bt^3 + Ct^2 + Dt^1 + Et^0 = 0 *)
-   IF A=0.0
+   IF findQuartic(A, B, C, D, E, t)
    THEN
-      IF B=0.0
+      T := A*(sqr(t)*sqr(t))+B*(sqr(t)*t)+C*sqr(t)+D*t+E ;
+      printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
+             A, B, C, D, E, T, t);
+      (* remember tc is -1.0 initially, to force it to be set once *)
+      IF (tc<0.0) OR (t<tc)
       THEN
-         IF C=0.0
-         THEN
-            IF D=0.0
-            THEN
-               IF E=0.0
-               THEN
-                  tc := 0.0 ;
-                  ic := iptr^.id ;
-                  jc := jptr^.id ;
-                  RETURN
-               ELSE
-                  (*
-                  V[0] := E ;
-                  j := 1 ;
-                  *)
-                  tc := 0.0 ;
-                  ic := iptr^.id ;
-                  jc := jptr^.id ;
-                  RETURN
-               END
-            ELSE
-               V[0] := E ;
-               V[1] := D ;
-               j := 2
-            END
-         ELSE
-            V[0] := E ;
-            V[1] := D ;
-            V[2] := C ;
-            j := 3
-         END
-      ELSE
-         V[0] := E ;
-         V[1] := D ;
-         V[2] := C ;
-         V[3] := B ;
-         j := 4
-      END
-   ELSE
-      V[0] := E ;
-      V[1] := D ;
-      V[2] := C ;
-      V[3] := B ;
-      V[4] := A ;
-      j := 5
-   END ;
-
-   W := gsl_poly_complex_workspace_alloc (j);
-   gsl_poly_complex_solve (ADR(V), j, W, ADR(R));
-   gsl_poly_complex_workspace_free (W);
-
-   FOR i := 0 TO j-2 DO
-      t := sqrt(sqr(R[i*2]) + sqr(R[i*2+1])) ;
-      printf("A = %g\n", A);
-      printf("B = %g\n", B);
-      printf("C = %g\n", C);
-      printf("D = %g\n", D);
-      printf("E = %g\n", E);
-      printf("t = %g\n", t);
-      printf("yields a value of At^4 + Bt^3 +Ct^2 + Dt + E = %g  == %g  ?\n",
-             gsl_poly_eval(ADR(V), 5, t), t) ;
-      t := 0.34974 ;
-      printf("should yield a value of At^4 + Bt^3 +Ct^2 + Dt + E = %g   == %g ??? \n",
-             gsl_poly_eval(ADR(V), 5, t), t) ;
-
-      IF (R[i*2]>=0.0) AND (R[i*2+1]>=0.0)
-      THEN
-         t := sqrt(sqr(R[i*2]) + sqr(R[i*2+1])) ;
-         (* remember tc is -1.0 initially, to force it to be set once *)
-         IF (tc<0.0) OR (t<tc)
-         THEN
-            tc := t ;
-            ic := iptr^.id ;
-            jc := jptr^.id
-         END
+         tc := t ;
+         ic := iptr^.id ;
+         jc := jptr^.id
       END
    END
 END findCollisionCircles ;
@@ -1096,7 +1039,9 @@ BEGIN
    framesPerSecond := DefaultFramesPerSecond ;
    simulatedGravity := 0.0 ;
    eventQ := NIL ;
-   freeEvents := NIL
+   freeEvents := NIL ;
+   currentTime := 0.0 ;
+   collisionTime := 0.0
 END Init ;
 
 

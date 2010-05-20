@@ -1,3 +1,28 @@
+2010-05-20       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/Builtins.def:  atan2, atan2f, atan2l (New
+	  procedures).
+	* gm2/gm2-libs/Builtins.mod:  atan2, atan2f, atan2l
+	  implemented new procedure functions.
+	* gm2/gm2-libs/cbuiltin.def:  declare atan2f, atan2l,
+	  atan2 procedure functions.
+	* gm2/gm2-libs/libm.def:  declare atan2f, atan2l,
+	  atan2 procedure functions.
+	* gm2/gm2builtins.c:  exposed new builtins
+	  atan2, atan2f, atan2l.
+	* gm2/bnf/m2-2.bnf:  changed grammar to include
+	  alignment of data types.
+	* gm2/examples/gravity/Makefile.in:  added test rule and fixed
+	  final rule to allow testing of python code.
+	* gm2/examples/gravity/test.mod:  changed x value of circle.
+	* gm2/examples/gravity/testsim.py:  added another circle.
+	* gm2/examples/gravity/twoDsim.mod:  added debugging and fixed 
+	  collision prediction equations.  Now using roots.def rather than
+	  libgsl as a stress test for GNU Modula-2 complex numbers.
+	  Also added a hack to ignore multiple collisions over a tiny time.
+	* gm2/examples/gravity/roots.def:  New file.
+	* gm2/examples/gravity/roots.mod:  New file.
+
 2010-05-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2.texi:  fixed bad next node and
