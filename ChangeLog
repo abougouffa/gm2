@@ -7,6 +7,8 @@
 	  shutting down file descriptors, 1, 2.  This is now
           left to the underlying operating system.  Fixes a bug
 	  reported by Scott Iverson.
+	* gm2/gm2-libs/FIO.mod:  reintroduced the
+	  InstallTerminationProcedure to flush the stdout, stderr.
 	
 2010-05-20       Gaius Mulley <gaius@gnu.org>
 
