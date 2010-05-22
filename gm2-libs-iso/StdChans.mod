@@ -215,7 +215,7 @@ BEGIN
       f := RTio.GetFile(RTio.ChanId(cid)) ;
       IF FIO.IsNoError(f)
       THEN
-         FIO.Close(f) ;
+         FIO.FlushBuffer(f) ;
       END ;
       checkErrno(dev, d)
    END
@@ -237,7 +237,7 @@ END SafeClose ;
 
 
 (*
-   MapStdin - 
+   MapFile - 
 *)
 
 PROCEDURE MapFile (f: FIO.File; fl: ChanConsts.FlagSet) : IOChan.ChanId ;

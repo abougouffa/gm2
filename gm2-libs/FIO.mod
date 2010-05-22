@@ -1538,21 +1538,21 @@ END PreInitialize ;
 
 
 (*
-   CloseOutErr - called when the application calls M2RTS.Terminate (automatically placed in
-                 program modules by GM2.
+   FlushOutErr - called when the application calls M2RTS.Terminate (automatically
+                 placed in program modules by GM2.
 *)
 
-PROCEDURE CloseOutErr ;
+PROCEDURE FlushOutErr ;
 BEGIN
    IF IsNoError(StdOut)
    THEN
-      Close(StdOut)
+      FlushBuffer(StdOut)
    END ;
    IF IsNoError(StdErr)
    THEN
-      Close(StdErr)
+      FlushBuffer(StdErr)
    END
-END CloseOutErr ;
+END FlushOutErr ;
 
 
 (*
@@ -1569,13 +1569,12 @@ BEGIN
    StdOut := 2 ;
    PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, 1, MaxBufferLength) ;
    StdErr := 3 ;
-   PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, 2, MaxBufferLength) ;
-   InstallTerminationProcedure(CloseOutErr)
+   PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, 2, MaxBufferLength)
 END Init ;
 
 
 BEGIN
    Init
 FINALLY
-   CloseOutErr
+   FlushOutErr
 END FIO.

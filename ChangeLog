@@ -1,3 +1,13 @@
+2010-05-22       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-iso/StdChans.mod:  flush stdout, stderr
+	  buffers rather than close them.
+	* gm2/gm2-libs/FIO.mod:  flush stdout, stderr rather than
+	  close them.  This fixes the problem of a shared library
+	  shutting down file descriptors, 1, 2.  This is now
+          left to the underlying operating system.  Fixes a bug
+	  reported by Scott Iverson.
+	
 2010-05-20       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/Builtins.def:  atan2, atan2f, atan2l (New
