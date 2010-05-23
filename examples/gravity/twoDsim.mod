@@ -660,6 +660,8 @@ BEGIN
       printf("collision changing direction\n");
       iptr^.vy := -iptr^.vy ;
       iptr^.ay := -iptr^.ay ;
+      iptr^.vx := -iptr^.vx ;
+      iptr^.ax := -iptr^.ax ;
       DumpObject(iptr)
    END ;
    IF NOT jptr^.fixed
@@ -667,6 +669,8 @@ BEGIN
       DumpObject(jptr) ;
       jptr^.vy := -jptr^.vy ;
       jptr^.ay := -jptr^.ay ;
+      jptr^.vx := -jptr^.vx ;
+      jptr^.ax := -jptr^.ax ;
       DumpObject(iptr)
    END ;
    collisionTime := currentTime
