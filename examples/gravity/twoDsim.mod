@@ -87,6 +87,20 @@ VAR
 
 
 (*
+   Assert - 
+*)
+
+PROCEDURE Assert (b: BOOLEAN) ;
+BEGIN
+   IF NOT b
+   THEN
+      printf("error assert failed\n") ;
+      HALT
+   END
+END Assert ;
+
+
+(*
    AssertR - 
 *)
 
@@ -558,6 +572,46 @@ END updatePhysics ;
 
 
 (*
+   displayEvent - 
+*)
+
+PROCEDURE displayEvent (e: eventQueue) ;
+BEGIN
+   WITH e^ DO
+      printf("%g %p ", time, p);
+      IF p=VAL(eventProc, drawFrameEvent)
+      THEN
+         printf("drawFrameEvent")
+      ELSIF p=VAL(eventProc, doCollision)
+      THEN
+         printf("doCollision")
+      ELSE
+         printf("unknown event")
+      END ;
+      printf("%d %d\n", id1, id2)
+   END
+END displayEvent ;
+
+
+(*
+   printEvent - prints out the first event on the event queue.
+*)
+
+PROCEDURE printEvent ;
+VAR
+   e: eventQueue ;
+BEGIN
+   printf("The event queue\n");
+   printf("===============\n");
+   e := eventQ ;
+   WHILE e#NIL DO
+      displayEvent(e) ;
+      e := e^.next
+   END
+END printEvent ;
+
+
+(*
    doNextEvent - 
 *)
 
@@ -569,13 +623,19 @@ VAR
 BEGIN
    IF eventQ=NIL
    THEN
+      printf("no more events on the event queue\n") ;
       HALT
    ELSE
+      printEvent ;
       e := eventQ ;
       eventQ := eventQ^.next ;
       dt := e^.time ;
       p  := e^.p ;
+      Assert((p=VAL(eventProc, drawFrameEvent)) OR
+             (p=VAL(eventProc, doCollision))) ;
       updatePhysics(dt) ;
+      Assert((p=VAL(eventProc, drawFrameEvent)) OR
+             (p=VAL(eventProc, doCollision))) ;
       p(e) ;
       e^.next := freeEvents ;
       freeEvents := e ;
@@ -637,7 +697,7 @@ END physicsCollision ;
 
 PROCEDURE doCollision (e: eventQueue) ;
 BEGIN
-   drawFrameEvent(e) ;
+   drawFrame(e) ;
    physicsCollision(e) ;
    addNextCollisionEvent
 END doCollision ;
@@ -752,7 +812,6 @@ BEGIN
       a := c.pos.x    (* xi *)
    END ;
    c := iptr^.vx ;    (* vxi *)
-   AssertR(c, 0.0) ;
    WITH iptr^ DO
       IF fixed
       THEN
@@ -762,7 +821,6 @@ BEGIN
          e := ax ;    (* aix *)
          m := ay+simulatedGravity    (* aiy *)
       END ;
-      AssertR(e, 0.0) ;
       g := c.pos.y ;  (* yi *)
       k := vy ;       (* vyi *)
       o := c.r        (* ri *)
@@ -778,9 +836,7 @@ BEGIN
          f := ax ;   (* ajx *)
          n := ay+simulatedGravity  (* ajy *)
       END ;
-      AssertR(f, 0.0) ;
       d := vx ;      (* vxj *)
-      AssertR(d, 0.0) ;
       h := c.pos.y ; (* yj *)
       l := vy        (* vyj *)
    END ;
@@ -949,9 +1005,11 @@ BEGIN
       e^.next := eventQ ;
       eventQ := e
    ELSE
+      printEvent ;
       before := eventQ ;
       after := eventQ^.next ;
       WHILE (after#NIL) AND (after^.time<e^.time) DO
+         e^.time := e^.time - before^.time ;
          before := after ;
          after := after^.next
       END ;
@@ -961,7 +1019,8 @@ BEGIN
       END ;
       e^.time := e^.time-before^.time ;
       before^.next := e ;
-      e^.next := after
+      e^.next := after ;
+      printEvent
    END
 END addRelative ;
 

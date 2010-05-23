@@ -21,7 +21,7 @@ IMPORT twoDsim ;
 FROM libc IMPORT printf ;
 
 VAR
-   c, b, d, e: CARDINAL ;
+   c, b, d, e, f: CARDINAL ;
 BEGIN
    b := twoDsim.box(0.0, 0.0, 1.0, 1.0) ;
    b := twoDsim.fix(b) ;
@@ -36,9 +36,11 @@ BEGIN
    e := twoDsim.circle(0.9, 0.1, 0.1) ;
    e := twoDsim.fix(e) ;
 
+   f := twoDsim.circle(0.74, 0.5, 0.1) ;
+   f := twoDsim.mass(f, 0.01) ;
+
    twoDsim.gravity(-9.80665) ;
    twoDsim.fps(24.0) ;
-   twoDsim.addDebugging(0.34974, c, e) ;
    printf("first collision should be at 0.34974 seconds\n") ;
    twoDsim.simulateFor(1.0)
 END test.
