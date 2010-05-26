@@ -20,7 +20,7 @@ IMPLEMENTATION MODULE twoDsim ;
 FROM SYSTEM IMPORT ADR ;
 FROM Storage IMPORT ALLOCATE ;
 FROM Indexing IMPORT Index, InitIndex, PutIndice, GetIndice, HighIndice ;
-FROM libc IMPORT printf ;
+FROM libc IMPORT printf, exit ;
 FROM deviceGnuPic IMPORT Coord, Colour, newFrame, renderFrame, circleFrame, polygonFrame, produceAVI ;
 FROM libm IMPORT sqrt ;
 FROM roots IMPORT findQuartic, nearZero ;
@@ -80,6 +80,7 @@ VAR
    maxId           : CARDINAL ;
    collisionTime,
    currentTime,
+   replayPerSecond,
    framesPerSecond : REAL ;
    simulatedGravity: REAL ;
    eventQ,
@@ -425,6 +426,16 @@ END fps ;
 
 
 (*
+   replayRate - set frames per second during replay.
+*)
+
+PROCEDURE replayRate (f: REAL) ;
+BEGIN
+   replayPerSecond := f
+END replayRate ;
+
+
+(*
    getColour - 
 *)
 
@@ -645,6 +656,101 @@ END doNextEvent ;
 
 
 (*
+   checkObjects - 
+*)
+
+PROCEDURE checkObjects ;
+VAR
+   i, n : CARDINAL ;
+   optr : Object ;
+   error: BOOLEAN ;
+BEGIN
+   error := FALSE ;
+   n := HighIndice(objects) ;
+   i := 1 ;
+   WHILE i<=n DO
+      optr := GetIndice(objects, i) ;
+      WITH optr^ DO
+         IF (NOT (optr^.fixed)) AND (optr^.c.mass=0.0)
+         THEN
+            printf("object %d is not fixed and does not have a mass\n",
+                   optr^.id)
+         END
+      END ;
+      INC(i)
+   END ;
+   IF error
+   THEN
+      exit(1)
+   END
+END checkObjects ;
+
+
+(*
+   collideFixedCircles - 
+*)
+
+PROCEDURE collideFixedCircles (movable, fixed: Object) ;
+VAR
+   r, j              : REAL ;
+   c, normalCollision,
+   relativeVelocity  : Coord ;
+BEGIN
+   (* calculate normal collision value *)
+   c.x := movable^.c.pos.x - fixed^.c.pos.x ;
+   c.y := movable^.c.pos.y - fixed^.c.pos.y ;
+   r := sqrt(c.x*c.x+c.y*c.y) ;
+   normalCollision.x := c.x/r ;
+   normalCollision.y := c.y/r ;
+   relativeVelocity.x := movable^.vx ;
+   relativeVelocity.y := movable^.vy ;
+
+   j := (-(1.0+1.0) *
+         ((relativeVelocity.x * normalCollision.x) +
+          (relativeVelocity.y * normalCollision.y)))/
+        (((normalCollision.x*normalCollision.x) +
+          (normalCollision.y*normalCollision.y)) *
+         (1.0/movable^.c.mass)) ;
+
+   movable^.vx := movable^.vx + (j * normalCollision.x) / movable^.c.mass ;
+   movable^.vy := movable^.vy + (j * normalCollision.y) / movable^.c.mass
+END collideFixedCircles ;
+
+
+(*
+   collideMovableCircles - 
+*)
+
+PROCEDURE collideMovableCircles (iptr, jptr: Object) ;
+VAR
+   r, j              : REAL ;
+   c, normalCollision,
+   relativeVelocity  : Coord ;
+BEGIN
+   (* calculate normal collision value *)
+   c.x := iptr^.c.pos.x - jptr^.c.pos.x ;
+   c.y := iptr^.c.pos.y - jptr^.c.pos.y ;
+   r := sqrt(c.x*c.x+c.y*c.y) ;
+   normalCollision.x := c.x/r ;
+   normalCollision.y := c.y/r ;
+   relativeVelocity.x := iptr^.vx - jptr^.vx ;
+   relativeVelocity.y := iptr^.vy - jptr^.vy ;
+   j := (-(1.0+1.0) *
+         ((relativeVelocity.x * normalCollision.x) +
+          (relativeVelocity.y * normalCollision.y)))/
+        (((normalCollision.x*normalCollision.x) +
+          (normalCollision.y*normalCollision.y)) *
+         (1.0/iptr^.c.mass + 1.0/jptr^.c.mass)) ;
+
+   iptr^.vx := iptr^.vx + (j * normalCollision.x) / iptr^.c.mass ;
+   iptr^.vy := iptr^.vy + (j * normalCollision.y) / iptr^.c.mass ;
+
+   jptr^.vx := jptr^.vx - (j * normalCollision.x) / jptr^.c.mass ;
+   jptr^.vy := jptr^.vy - (j * normalCollision.y) / jptr^.c.mass
+END collideMovableCircles ;
+
+
+(*
    circleCollision - 
 *)
 
@@ -654,26 +760,28 @@ BEGIN
    THEN
       RETURN
    END ;
-   IF NOT iptr^.fixed
+   collisionTime := currentTime ;
+
+   IF iptr^.fixed
    THEN
-      DumpObject(iptr) ;
-      printf("collision changing direction\n");
-      iptr^.vy := -iptr^.vy ;
-      iptr^.ay := -iptr^.ay ;
-      iptr^.vx := -iptr^.vx ;
-      iptr^.ax := -iptr^.ax ;
-      DumpObject(iptr)
-   END ;
-   IF NOT jptr^.fixed
-   THEN
+      printf("collision with fixed\n");
       DumpObject(jptr) ;
-      jptr^.vy := -jptr^.vy ;
-      jptr^.ay := -jptr^.ay ;
-      jptr^.vx := -jptr^.vx ;
-      jptr^.ax := -jptr^.ax ;
-      DumpObject(iptr)
-   END ;
-   collisionTime := currentTime
+      collideFixedCircles(jptr, iptr) ;
+      DumpObject(jptr) ;
+   ELSIF jptr^.fixed
+   THEN
+      printf("collision with fixed\n");
+      DumpObject(iptr) ;
+      collideFixedCircles(iptr, jptr) ;
+      DumpObject(iptr) ;
+   ELSE
+      printf("collision with movable\n");
+      DumpObject(iptr) ;
+      DumpObject(jptr) ;
+      collideMovableCircles(iptr, jptr) ;
+      DumpObject(iptr) ;
+      DumpObject(jptr)
+   END
 END circleCollision ;
 
 
@@ -861,7 +969,7 @@ BEGIN
       printf("%gt^4 + %gt^3 +%gt^2 + %gt + %g = %g    (t=%g)\n",
              A, B, C, D, E, T, t);
       (* remember tc is -1.0 initially, to force it to be set once *)
-      IF (tc<0.0) OR (t<tc)
+      IF ((tc<0.0) OR (t<tc)) AND (NOT nearZero(t))
       THEN
          tc := t ;
          ic := iptr^.id ;
@@ -963,13 +1071,19 @@ VAR
 BEGIN
    s := 0.0 ;
    killQueue ;
+   checkObjects ;
    addEvent(0.0, drawFrameEvent) ;
    addNextCollisionEvent ;
    WHILE s<t DO
       dt := doNextEvent() ;
       s := s + dt
    END ;
-   produceAVI(TRUNC(framesPerSecond))
+   IF replayPerSecond=0.0
+   THEN
+      produceAVI(TRUNC(framesPerSecond))
+   ELSE
+      produceAVI(TRUNC(replayPerSecond))
+   END
 END simulateFor ;
 
 
@@ -1100,6 +1214,7 @@ BEGIN
    maxId := 0 ;
    objects := InitIndex(1) ;
    framesPerSecond := DefaultFramesPerSecond ;
+   replayPerSecond := 0.0 ;
    simulatedGravity := 0.0 ;
    eventQ := NIL ;
    freeEvents := NIL ;

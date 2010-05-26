@@ -30,7 +30,7 @@ DEFINITION MODULE twoDsim ;
 
 EXPORT UNQUALIFIED gravity, box, poly3, poly5, poly6, mass,
                    fix, circle, pivot, velocity, accel, fps,
-                   simulateFor, addDebugging ;
+                   replayRate, simulateFor, addDebugging ;
 
 (*
    gravity - turn on gravity at: g m^2
@@ -118,6 +118,13 @@ PROCEDURE accel (id: CARDINAL; ax, ay: REAL) : CARDINAL ;
 *)
 
 PROCEDURE fps (f: REAL) ;
+
+
+(*
+   replayRate - set frames per second during replay.
+*)
+
+PROCEDURE replayRate (f: REAL) ;
 
 
 (*
