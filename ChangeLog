@@ -1,5 +1,6 @@
 2010-06-03       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/examples/gravity/README:  New file.
 	* These changes fix a critical shared library bug which was exposed
 	  if an indirect procedure call was ever made.  It also changes
 	  (fixes) the method whereby procedures are declared to gcc.
