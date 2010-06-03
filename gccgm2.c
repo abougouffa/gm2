@@ -525,7 +525,7 @@ tree                   gccgm2_BuildParameterDeclaration           (char *name, t
 tree                   completeParameterDeclaration               (char *name, tree actual_type, tree parm_type);
 tree                   gccgm2_BuildParameterDeclaration           (char *name, tree type, int isreference);
 void                   gccgm2_BuildStartFunctionDeclaration       (int uses_varargs);
-tree                   gccgm2_BuildEndFunctionDeclaration         (char *name, tree returntype, int isexternal, int isnested);
+tree                   gccgm2_BuildEndFunctionDeclaration         (char *name, tree returntype, int isexternal, int isnested, int ispublic);
 void                   gccgm2_BuildStartFunctionCode              (tree fndecl, int isexported, int isinline);
 void                   gccgm2_BuildEndFunctionCode                (tree fndecl, int nested);
 void                   iterative_factorial                        (void);
@@ -6608,6 +6608,12 @@ is_type (tree type)
   }
 }
 
+tree undo_static (tree t)
+{
+  TREE_PUBLIC (t) = 0;
+  // TREE_STATIC (t) = 0;
+}
+
 /*
  *  DeclareKnownVariable - declares a variable in scope,
  *                         funcscope. Note that the global variable,
@@ -8051,15 +8057,23 @@ tree gm2_debugging_func;
  *                                The arguments have been created by BuildParameterDeclaration.
  */
 
+/*
+   mystaticfunc - static
+   mypublicfunc - public, static
+   myexternfunc - public, extern
+   mynestedfunc - static
+*/
+
 tree
 gccgm2_BuildEndFunctionDeclaration (char *name, tree returntype,
-                                    int isexternal, int isnested)
+                                    int isexternal, int isnested, int ispublic)
 {
   tree fntype;
   tree fndecl;
 
   ASSERT_BOOL (isexternal);
   ASSERT_BOOL (isnested);
+  ASSERT_BOOL (ispublic);
   returntype = skip_type_decl (returntype);
   /*
    *  the function type depends on the return type and type of args,
@@ -8075,9 +8089,12 @@ gccgm2_BuildEndFunctionDeclaration (char *name, tree returntype,
 
   gm2_debugging_func = global_binding_level->names;
 
+  if (isexternal)
+    ASSERT_CONDITION (ispublic);
+
   DECL_EXTERNAL (fndecl)    = isexternal;
-  TREE_PUBLIC (fndecl)      = (! isnested);
-  TREE_STATIC (fndecl)      = 1;
+  TREE_PUBLIC (fndecl)      = ispublic;
+  TREE_STATIC (fndecl)      = (! isexternal);
   DECL_ARGUMENTS (fndecl)   = param_list;
   DECL_RESULT (fndecl)      = build_decl (RESULT_DECL, NULL_TREE, returntype);
   DECL_CONTEXT (DECL_RESULT (fndecl)) = fndecl;
@@ -8371,6 +8388,23 @@ gm2_leave_nested (struct function *f)
   f->language = NULL;
 }
 
+/* from c-typeck.c:  Convert the function expression EXP to a pointer.  */
+
+static tree
+function_to_pointer_conversion (tree exp)
+{
+  tree orig_exp = exp;
+
+  gcc_assert (TREE_CODE (TREE_TYPE (exp)) == FUNCTION_TYPE);
+
+  STRIP_TYPE_NOPS (exp);
+
+  if (TREE_NO_WARNING (orig_exp))
+    TREE_NO_WARNING (exp) = 1;
+
+  return build_unary_op (ADDR_EXPR, exp, 0);
+}
+
 /*
  *  BuildAssignmentTree - builds the assignment of, des, and, expr.
  *                        It returns, des.
@@ -8381,14 +8415,24 @@ gccgm2_BuildAssignmentTree (tree des, tree expr)
 {
   tree result;
 
-  if (TREE_CODE (expr) == FUNCTION_DECL)
-    expr = build_unary_op (ADDR_EXPR, expr, 0);
+  STRIP_TYPE_NOPS (expr);
 
-  if (TREE_TYPE (expr) == TREE_TYPE (des))
-    result = build2 (MODIFY_EXPR, TREE_TYPE (des), des, expr);
-  else
+  if (TREE_CODE (expr) == FUNCTION_DECL)
+#if 0
     result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
-                     gccgm2_BuildConvert (TREE_TYPE (des), expr, FALSE));
+		     function_to_pointer_conversion (expr));
+#else
+    result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
+		     build_unary_op (ADDR_EXPR, expr, 0));
+#endif
+  else
+    {
+      if (TREE_TYPE (expr) == TREE_TYPE (des))
+	result = build2 (MODIFY_EXPR, TREE_TYPE (des), des, expr);
+      else
+	result = build2 (MODIFY_EXPR, TREE_TYPE (des), des,
+			 gccgm2_BuildConvert (TREE_TYPE (des), expr, FALSE));
+    }
 
   TREE_SIDE_EFFECTS (result) = 1;
   add_stmt (result);

@@ -66,7 +66,7 @@ Free Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 /* external functions */
 
 void gccgm2_BuildStartFunctionDeclaration (int uses_varargs);
-tree gccgm2_BuildEndFunctionDeclaration (const char *name, tree returntype, int isexternal, int isnested);
+tree gccgm2_BuildEndFunctionDeclaration (const char *name, tree returntype, int isexternal, int isnested, int ispublic);
 tree gccgm2_BuildParameterDeclaration (char *name, tree type, int isreference);
 tree push_stmt_list (void);
 tree pop_stmt_list (tree t);
@@ -138,18 +138,18 @@ gm2except_InitExceptions (void)
   gccgm2_BuildStartFunctionDeclaration (FALSE);
   fn_rethrow_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_rethrow",
 							void_type_node,
-							TRUE, FALSE);
+							TRUE, FALSE, TRUE);
   TREE_NOTHROW (fn_rethrow_tree) = 0;
 
   gccgm2_BuildStartFunctionDeclaration (FALSE);
   gccgm2_BuildParameterDeclaration (NULL, ptr_type_node, FALSE);
   fn_begin_catch_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_begin_catch",
 							    ptr_type_node,
-							    TRUE, FALSE);
+							    TRUE, FALSE, TRUE);
   gccgm2_BuildStartFunctionDeclaration (FALSE);
   fn_end_catch_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_end_catch",
 							  void_type_node,
-							  TRUE, FALSE);
+							  TRUE, FALSE, TRUE);
   /* This can throw if the destructor for the exception throws.  */
   TREE_NOTHROW (fn_end_catch_tree) = 0;
 
@@ -166,14 +166,14 @@ gm2except_InitExceptions (void)
   gccgm2_BuildParameterDeclaration (NULL, ptr_type_node, FALSE);
   fn_throw_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_throw",
 						      void_type_node,
-						      TRUE, FALSE);
+						      TRUE, FALSE, TRUE);
 
   /* Declare void *__cxa_allocate_exception(size_t).  */
   gccgm2_BuildStartFunctionDeclaration (FALSE);
   gccgm2_BuildParameterDeclaration (NULL, size_type_node, FALSE);
   fn_allocate_exception_tree = gccgm2_BuildEndFunctionDeclaration ("__cxa_allocate_exception",
 								   ptr_type_node, 
-								   TRUE, FALSE);
+								   TRUE, FALSE, TRUE);
  /*
   *  define integer type exception type which will match
   *  C++ int type in the C++ runtime library.

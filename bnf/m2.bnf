@@ -983,7 +983,7 @@ Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"                                                       % PushAutoOn %
                     { PossiblyExportIdent
                             ( ";"                                          % BuildHiddenType %
-                                  | "=" Type  Alignment ";" ) }            % PopAuto %
+                                  | "=" Type Alignment ";" ) }             % PopAuto %
               |
               "VAR" { VariableDeclaration ";" } |
               DefProcedureHeading ";" =:

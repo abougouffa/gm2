@@ -550,6 +550,7 @@ static void pushLine (void)
       l->toklen     = currentLine->toklen;
       l->nextpos    = currentLine->nextpos;
       l->actualline = currentLine->actualline;
+      l->column     = currentLine->column;
       l->next       = currentLine;
       currentLine   = l;
   }

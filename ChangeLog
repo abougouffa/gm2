@@ -1,3 +1,45 @@
+2010-06-03       Gaius Mulley <gaius@gnu.org>
+
+	* These changes fix a critical shared library bug which was exposed
+	  if an indirect procedure call was ever made.  It also changes
+	  (fixes) the method whereby procedures are declared to gcc.
+	* gm2/gm2/gccgm2.c:  function gccgm2_BuildEndFunctionDeclaration
+	  has an additional parameter, ispublic.  Changes to	
+          gccgm2_BuildEndFunctionDeclaration to check consistency of
+	  the three boolean parameters.  New procedure
+	  (function_to_pointer_conversion)
+	* gm2/gm2/gm2except.c:  changed to reflect new 
+          gccgm2_BuildEndFunctionDeclaration prototype.
+	* gm2/gm2/m2.flex:  fixed bug found using valgrind
+	  (uninitialised field in structure).
+	* gm2/m2pp.c:  m2pp_comment_header prints out the a header
+	  comment which contains the public, static, external tree
+	  booleans.
+	* gm2/bnf/m2-3.bnf:  completed the Alignment ebnf changes.
+	* gm2/bnf/m2-h.bnf:  completed the Alignment ebnf changes.
+	* gm2/bnf/m2.bnf:  completed the Alignment ebnf changes.
+	* gm2/el/g-mode.el:  close parenthesis detected.
+	* gm2/examples/gravity/Makefile.in:  fixed rules and allow
+	  example to be built using post-install or pre-installed gm2.
+	* gm2/examples/gravity/testsim.py:  fixed circle position.
+	* gm2/examples/gravity/twoDsim.mod:  tidied up comments.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  changes to reflect new
+	  gccgm2_BuildEndFunctionDeclaration prototype.  Also fixed a
+	  bug in IsEffectivelyImported which would attempt to declare
+	  a procedure if it were declared in another imported module.
+	* gm2/gm2-compiler/SymbolTable.def:  tidied up declaration.
+	* gm2/gm2-compiler/gccgm2.def:  new BuildEndFunctionDeclaration
+	  declaration.
+	
+2010-05-26       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity:  more changes and fixes to the demo.
+
+2010-05-25       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/m2.flex:  fixed bug picked up by valgrind, uninitialized
+	  field (column) in currentLine.
+
 2010-05-22       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/StdChans.mod:  flush stdout, stderr

@@ -308,7 +308,7 @@ EXPORT QUALIFIED NulSym,
 *)
 
 CONST
-   NulSym     =     0 ;
+   NulSym = 0 ;
 
 
 (*

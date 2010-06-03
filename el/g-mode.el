@@ -101,6 +101,7 @@
 (defun setup-g-mode-keys ()
   "sets up the keymap for g-mode."
   (setq g-mode-map (make-sparse-keymap))
+  (define-key g-mode-map ")" 'm2-close-paren)
   (define-key g-mode-map "\t" 'm2-tab)
   (define-key g-mode-map "D" 'm2-test-end)
   (define-key g-mode-map "N" 'm2-test-then)
@@ -139,6 +140,21 @@
   (define-key g-mode-map "\C-c\C-d" 'm2-debug)
   (define-key g-mode-map "\C-c\C-a" 'm2-assembler)
   (define-key g-mode-map "\C-c\C-c" 'm2-compile))
+
+(defun m2-close-paren ()
+  "Insert a close parenthesis and call m2-match-parenthesis."
+  (interactive)
+  (insert ")")
+  (m2-match-parenthesis))
+
+(defun m2-match-parenthesis ()
+  "Match the current character according to the syntax table."
+  (interactive)
+  (save-excursion
+    (backward-sexp 1)
+    (if (looking-at "[\\(]")
+	(sit-for 1)
+      (message "No matching ("))))
 
 (defun m2-tag ()
   "m2-tag finds the declaration of the modula-2 symbol the cursor is on."

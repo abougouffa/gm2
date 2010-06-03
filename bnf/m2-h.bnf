@@ -720,7 +720,10 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-TypeDeclaration := Ident "=" Type
+Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+           =:
+
+TypeDeclaration := Ident "=" Type Alignment
                 =:							   
 									   
 Type := 
@@ -767,7 +770,7 @@ ArrayType := "ARRAY"
               { "," 
                 SimpleType
               } "OF"
-             Type
+             Type Alignment
            =:
 
 RecordType := "RECORD"
@@ -789,7 +792,7 @@ FieldListStatement := [ FieldList ] =:
 --                    [ "ELSE" FieldListSequence ] "END" =:
 
 FieldList := IdentList ":"
-                           Type
+                           Type Alignment
              |
              "CASE"                                                        % BeginVarient %
                     CaseTag "OF"
@@ -899,7 +902,7 @@ SilentFactor := Number | string | SilentSetOrDesignatorOrFunction |
 SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
 
 PointerType := "POINTER" "TO"
-                              Type
+                              Type Alignment
              =:
 
 ProcedureType := "PROCEDURE"
@@ -941,7 +944,7 @@ VarIdentList := VarIdent                                                   % VAR
              =:
 
 VariableDeclaration := VarIdentList ":"
-                       Type
+                       Type Alignment
                     =:
 
 Designator := Qualident
@@ -1212,7 +1215,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
                     { Ident ( ";"                 
-                                  | "=" Type ";" )
+                                  | "=" Type Alignment ";" )
                     }
               |
               "VAR" { VariableDeclaration ";" } |

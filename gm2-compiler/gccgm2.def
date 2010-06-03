@@ -900,7 +900,7 @@ PROCEDURE BuildStartFunctionDeclaration (usesVarArgs: BOOLEAN) ;
 
 PROCEDURE BuildEndFunctionDeclaration (name: ADDRESS;
                                        returntype: Tree;
-                                       isexternal, isnested: BOOLEAN) : Tree ;
+                                       isexternal, isnested, ispublic: BOOLEAN) : Tree ;
 
 
 (*

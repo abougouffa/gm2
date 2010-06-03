@@ -2063,13 +2063,15 @@ BEGIN
                                                        NIL,
                                                        IsEffectivelyImported(GetMainModule(), Sym) AND
                                                        (GetModuleWhereDeclared(Sym)#GetMainModule()),
-                                                       IsProcedureGccNested(Sym)))
+                                                       IsProcedureGccNested(Sym),
+                                                       IsExported(GetModuleWhereDeclared(Sym), Sym)))
       ELSE
          PreAddModGcc(Sym, BuildEndFunctionDeclaration(KeyToCharStar(GetFullSymName(Sym)),
                                                        Mod2Gcc(GetType(Sym)),
                                                        IsEffectivelyImported(GetMainModule(), Sym) AND
                                                        (GetModuleWhereDeclared(Sym)#GetMainModule()),
-                                                       IsProcedureGccNested(Sym)))
+                                                       IsProcedureGccNested(Sym),
+                                                       IsExported(GetModuleWhereDeclared(Sym), Sym)))
       END ;
       WatchRemoveList(Sym, todolist) ;
       WatchIncludeList(Sym, fullydeclared)
@@ -2203,11 +2205,11 @@ BEGIN
    THEN
       BuildStartFunctionDeclaration(FALSE) ;
       t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleInitName(sym)),
-                                       NIL, FALSE, TRUE) ;
+                                       NIL, FALSE, TRUE, FALSE) ;
       PreAddModGcc(sym, t) ;
       BuildStartFunctionDeclaration(FALSE) ;
       t := BuildEndFunctionDeclaration(KeyToCharStar(GetModuleFinallyName(sym)),
-                                       NIL, FALSE, TRUE) ;
+                                       NIL, FALSE, TRUE, FALSE) ;
       PutModuleFinallyFunction(sym, t)
    END
 END DeclareModuleInit ;
@@ -2573,7 +2575,8 @@ PROCEDURE IsEffectivelyImported (ModSym, sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           IsImported(ModSym, sym) OR
-          IsImported(ModSym, GetModuleWhereDeclared(sym))
+          (IsImported(ModSym, GetModuleWhereDeclared(sym)) AND
+           IsExported(GetModuleWhereDeclared(sym), sym))
          )
 END IsEffectivelyImported ;
 

@@ -855,6 +855,38 @@ m2pp_procedure_type (pretty *s, tree t)
 }
 
 /*
+ *  m2pp_comment_header - displays a simple header with some critical tree info.
+ */
+
+static void
+m2pp_comment_header (pretty *s, tree t)
+{
+  int o = getindent (s);
+
+  m2pp_print(s, "(*\n");
+  setindent (s, o+3);
+  m2pp_identifier (s, t);
+  m2pp_needspace (s);
+  m2pp_print(s, "-");
+  m2pp_needspace (s);
+  if (TREE_PUBLIC (t)) {
+    m2pp_needspace (s);
+    m2pp_print(s, "public,");
+  }
+  if (TREE_STATIC (t)) {
+    m2pp_needspace (s);
+    m2pp_print(s, "static,");
+  }
+  if (DECL_EXTERNAL (t)) {
+    m2pp_needspace (s);
+    m2pp_print(s, "extern");
+  }
+  m2pp_print(s, "\n");
+  setindent (s, o);
+  m2pp_print(s, "*)\n\n");
+}
+
+/*
  *  m2pp_function_header - displays the function header.
  */
 
@@ -867,6 +899,7 @@ m2pp_function_header (pretty *s, tree t)
       tree i = DECL_ARGUMENTS (t);
       tree returnType = TREE_TYPE (TREE_TYPE (t));
 
+      m2pp_comment_header (s, t);
       m2pp_print(s, "PROCEDURE ");
       m2pp_identifier (s, t);
       m2pp_needspace (s);
