@@ -17,7 +17,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA *)
 (* automatically generated for GNU Modula-2 by:
    h2def -I../../m2/comp/autotest/gm2 modified_pth.h 
 *)
-DEFINITION MODULE FOR "C" pth ;
+DEFINITION MODULE FOR "C" fullpth ;
 
 FROM SYSTEM IMPORT ADDRESS, BITSET ;
 
@@ -340,4 +340,4 @@ TYPE
  PROCEDURE pth_pread (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: off_t) : ssize_t ;
  PROCEDURE pth_pwrite (p1: INTEGER; p2: ADDRESS; p3: size_t; p4: off_t) : ssize_t ;
 
-END pth.
+END fullpth.

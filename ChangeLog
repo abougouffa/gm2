@@ -1,3 +1,17 @@
+2010-06-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs-coroutines/testtransfer.mod:  moved
+	  file into testsuite/gm2/coroutines/pim/run/pass.
+	* gm2/gm2-libs-coroutines/testiotransfer.mod:  moved
+	  file into testsuite/gm2/coroutines/pim/run/pass.
+	* gm2/gm2-libs-coroutines/Makefile:  removed file.
+	* gm2/gm2-libs/pth.def:  removed file.
+	* gm2/gm2-libs-coroutines/pth.def:  removed file.
+	* gm2/examples/pthread/pth.def:  removed file.
+	* gm2/examples/pthread/fullpth.def:  renamed pth.def to
+	  fullpth.def so as to avoid confusion with
+	  gm2/gm2-libs-iso/pth.def.
+	
 2010-06-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/README:  New file.

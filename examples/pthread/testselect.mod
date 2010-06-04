@@ -17,11 +17,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE testselect ;
 
-FROM pth IMPORT pth_sleep, pth_event_t, pth_t, pth_attr_t, pth_init,
-                pth_attr_new, pth_attr_set, PTH_ATTR_NAME, pth_spawn,
-                pth_attr_destroy, pth_yield, pth_event, PTH_EVENT_TIME,
-                PTH_MODE_REUSE, pth_timeout, pth_select_ev,
-                pth_read, pth_time_t ;
+FROM fullpth IMPORT pth_sleep, pth_event_t, pth_t, pth_attr_t, pth_init,
+                    pth_attr_new, pth_attr_set, PTH_ATTR_NAME, pth_spawn,
+                    pth_attr_destroy, pth_yield, pth_event, PTH_EVENT_TIME,
+                    PTH_MODE_REUSE, pth_timeout, pth_select_ev,
+                    pth_read, pth_time_t ;
 FROM SYSTEM IMPORT ADR, ADDRESS ;
 FROM DynamicStrings IMPORT InitString, string ;
 FROM FormatStrings IMPORT Sprintf0 ;
