@@ -1463,7 +1463,7 @@ gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $< -o $@
 
 gm2/gm2-libs/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $< -o $@
 
 gm2/gm2-compiler/%.o: $(srcdir)/gm2/gm2-compiler/%.mod
 	$(XGM2_1) $(GM2_FLAGS) -g -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -1552,7 +1552,7 @@ gm2/gm2-libs/O2/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $(O2) $< -o $@
 
 gm2/gm2-libs/O2/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $(O2) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs::$(srcdir)/gm2/gm2-libs-iso $(O2) $< -o $@
 
 gm2/gm2-libs-iso/O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(O2) $< -o $@
@@ -1629,7 +1629,7 @@ gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $(SO) $< -o $@
 
 gm2/gm2-libs/SO/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $(SO) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs::$(srcdir)/gm2/gm2-libs-iso $(SO) $< -o $@
 
 gm2/gm2-libs-iso/SO/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(SO) $< -o $@
@@ -1706,7 +1706,7 @@ gm2/gm2-libs/SO_O2/%.o: $(srcdir)/gm2/gm2-libs/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c -g -I$(srcdir)/gm2 -Igm2 -I$(srcdir)/gm2/gm2-libs -Wall $(INCLUDES) $(SO_O2) $< -o $@
 
 gm2/gm2-libs/SO_O2/%.o: $(srcdir)/gm2/gm2-libs/%.mod
-	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs $(SO_O2) $< -o $@
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -B./ -I$(srcdir)/gm2/gm2-compiler -Igm2/gm2-libs:$(srcdir)/gm2/gm2-libs:$(srcdir)/gm2/gm2-libs-iso $(SO_O2) $< -o $@
 
 gm2/gm2-libs-iso/SO_O2/%.o: $(srcdir)/gm2/gm2-libs-iso/%.c
 	$(GCC_FOR_TARGET) -DBUILD_GM2_LIBS -c $(CFLAGS) -Igm2/gm2-libs -I$(srcdir)/gm2 -I$(srcdir)/gm2/p2c/p2c-src/include -Igm2/gm2-libs-boot $(INCLUDES) $(C_SO_O2) $< -o $@
