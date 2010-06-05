@@ -1,5 +1,9 @@
 2010-06-05       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-libs-iso/IOLink.def:  corrected comment for
+	  DeviceTablePtrValue.
+	* gm2/gm2-libs-iso/IOLink.mod:  corrected comment for
+	  DeviceTablePtrValue.
 	* gm2/Make-lang.in:  added gm2-libs-iso to the end of the
 	  search path for gm2-libs so that gm2/gm2-libs-iso/pth.def
 	  can be found.

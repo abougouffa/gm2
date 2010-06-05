@@ -262,9 +262,7 @@ END UnMakeChan ;
    following procedure:
 
    If the device module identified by did is not the module that made
-   the channel identified by cid, the exception wrongDevice is raised;
-   otherwise the given exception is raised, and the string value in
-   s is included in the exception message.
+   the channel identified by cid, the exception wrongDevice is raised.
 *)
 
 PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId;
