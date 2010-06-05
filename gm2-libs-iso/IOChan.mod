@@ -76,8 +76,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -110,8 +109,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -152,8 +150,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -185,8 +182,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -225,8 +221,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -262,8 +257,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -305,8 +299,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -340,8 +333,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -375,8 +367,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -395,8 +386,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -415,8 +405,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -437,8 +426,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -459,8 +447,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -481,8 +468,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),
@@ -538,8 +524,7 @@ VAR
 BEGIN
    CheckValid(cid) ;
    did := RTio.GetDeviceId(cid) ;
-   dtp := IOLink.DeviceTablePtrValue(cid, did, wrongDevice,
-                                     'IOChan:' + __FUNCTION__ + ': attempting to retrieve DeviceTablePtrValue') ;
+   dtp := IOLink.DeviceTablePtrValue(cid, did) ;
    IF dtp=NIL
    THEN
       RAISE(iochan, ORD(hardDeviceError),

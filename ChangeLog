@@ -1,5 +1,34 @@
+2010-06-05       Gaius Mulley <gaius@gnu.org>
+
+	* fixed definition of DeviceTablePtrValue to comply with
+	  the ISO standard, bug reported by Martin Kalbfuﬂ.
+	* gm2/gm2-libs-iso/ClientSocket.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/IOChan.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/IOLink.def:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/IOLink.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/ProgramArgs.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/RTgen.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/RndFile.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/SeqFile.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/SimpleCipher.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/StreamFile.mod:  changed to comply with
+	  the correct ISO definition.
+	* gm2/gm2-libs-iso/TermFile.mod:  changed to comply with
+	  the correct ISO definition.
+
 2010-06-04       Gaius Mulley <gaius@gnu.org>
 
+	* removed multiple copies of pth.def, bug reported by
+	  John O Goyo.
 	* gm2/gm2-libs-coroutines/testtransfer.mod:  moved
 	  file into testsuite/gm2/coroutines/pim/run/pass.
 	* gm2/gm2-libs-coroutines/testiotransfer.mod:  moved

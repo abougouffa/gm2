@@ -390,7 +390,7 @@ VAR
    c  : CipherInfo ;
 BEGIN
    did := GetDeviceId(cid) ;
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'SimpleCipher.' + __FUNCTION__ ) ;
+   d := DeviceTablePtrValue(cid, did) ;
    IF GetData(d, mid)=NIL
    THEN
       NEW(c) ;
@@ -428,7 +428,7 @@ VAR
    d  : DeviceTablePtr ;
 BEGIN
    did := GetDeviceId(cid) ;
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'SimpleCipher' + __FUNCTION__ ) ;
+   d := DeviceTablePtrValue(cid, did) ;
    IF GetData(d, mid)=NIL
    THEN
       RAISEdevException(cid, did, notAvailable,

@@ -98,7 +98,7 @@ BEGIN
          RAISEdevException(cid, did, wrongDevice,
                            'operation attempted on an invalid channel')
       END ;
-      IF d#DeviceTablePtrValue(cid, did, wrongDevice, 'channel and device mismatch')
+      IF d#DeviceTablePtrValue(cid, did)
       THEN
          RAISEdevException(cid, did, wrongDevice,
                            'operation attempted on an invalid channel')

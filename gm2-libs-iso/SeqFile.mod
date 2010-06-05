@@ -161,8 +161,7 @@ BEGIN
    THEN
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
-      p := DeviceTablePtrValue(c, did, IOChan.wrongDevice,
-                               'SeqFile: cannot obtain device table pointer') ;
+      p := DeviceTablePtrValue(c, did) ;
       WITH p^ DO
          flags := f ;
          errNum := e ;
@@ -329,8 +328,7 @@ VAR
 BEGIN
    IF IsSeqFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'SeqFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       WITH d^ DO
          EXCL(flags, writeFlag) ;
          IF readFlag IN flags
@@ -365,8 +363,7 @@ VAR
 BEGIN
    IF IsSeqFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'SeqFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       WITH d^ DO
          EXCL(flags, readFlag) ;
          IF writeFlag IN flags

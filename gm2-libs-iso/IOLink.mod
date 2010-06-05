@@ -268,9 +268,7 @@ END UnMakeChan ;
 *)
 
 PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId;
-                               did: DeviceId;
-                               x  : DevExceptionRange;
-                               s  : ARRAY OF CHAR) : DeviceTablePtr ;
+                               did: DeviceId) : DeviceTablePtr ;
 BEGIN
    checkValidDevice(did) ;
    WITH did^ DO

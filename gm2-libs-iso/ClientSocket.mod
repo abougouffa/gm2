@@ -374,7 +374,7 @@ VAR
 BEGIN
    MakeChan(did, cid) ;              (* create new channel *)
    ALLOCATE(c, ClientInfoSize) ;     (* allocate client socket memory *)
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ClientSocket.' + __FUNCTION__ ) ;
+   d := DeviceTablePtrValue(cid, did) ;
    InitData(d, mid, c, freeData) ;   (* attach memory to device and module *)
    res := clientOpen(c, ADR(host), LENGTH(host), port) ;
    IF res=opened

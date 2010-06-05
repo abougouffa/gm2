@@ -133,7 +133,7 @@ VAR
    a : ArgInfo ;
    ch: CHAR ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.doreadchar') ;
+   d := DeviceTablePtrValue(cid, did) ;
    a := GetData(d, mid) ;
    WITH a^ DO
       IF currentPos<argLength
@@ -159,7 +159,7 @@ PROCEDURE dounreadchar (g: GenDevIF; d: DeviceTablePtr; ch: CHAR) : CHAR ;
 VAR
    a: ArgInfo ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.dounreadchar') ;
+   d := DeviceTablePtrValue(cid, did) ;
    a := GetData(d, mid) ;
    WITH a^ DO
       IF currentPos>0
@@ -254,7 +254,7 @@ PROCEDURE iseof (g: GenDevIF; d: DeviceTablePtr) : BOOLEAN ;
 VAR
    a: ArgInfo ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.iseof') ;
+   d := DeviceTablePtrValue(cid, did) ;
    a := GetData(d, mid) ;
    WITH a^ DO
       RETURN( currentPos=ArgLength )
@@ -337,7 +337,7 @@ VAR
    d: DeviceTablePtr ;
    a: ArgInfo ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.IsArgPresent') ;
+   d := DeviceTablePtrValue(cid, did) ;
    a := GetData(d, mid) ;
    WITH a^ DO
       RETURN( currentArg<argc )
@@ -359,7 +359,7 @@ VAR
    a: ArgInfo ;
    p: PtrToChar ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.NextArg') ;
+   d := DeviceTablePtrValue(cid, did) ;
    a := GetData(d, mid) ;
    WITH a^ DO
       IF currentArg<argc
@@ -452,7 +452,7 @@ BEGIN
       argLength := strlen(currentPtr)+1 ;
       argc := ArgC
    END ;
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'ProgramArgs.Init') ;
+   d := DeviceTablePtrValue(cid, did) ;
    InitData(d, mid, a, freeData) ;
    gen := InitGenDevIF(did,
                        doreadchar, dounreadchar,

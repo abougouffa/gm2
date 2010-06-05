@@ -509,7 +509,7 @@ VAR
    t: TermInfo ;
    e: INTEGER ;
 BEGIN
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'TermFile.' + __FUNCTION__ ) ;
+   d := DeviceTablePtrValue(cid, did) ;
    t := GetData(d, mid) ;
    WITH t^ DO
       IF tcsetattr(fd, tcsnow(), old)=0
@@ -539,7 +539,7 @@ VAR
    e: INTEGER ;
 BEGIN
    MakeChan(did, cid) ;              (* create new channel *)
-   d := DeviceTablePtrValue(cid, did, wrongDevice, 'TermFile.' + __FUNCTION__ ) ;
+   d := DeviceTablePtrValue(cid, did) ;
    t := InitTermInfo(-1) ;
    res := termOpen(t, flagset, e) ;
    InitData(d, mid, t, freeData) ;   (* attach memory to device and module *)

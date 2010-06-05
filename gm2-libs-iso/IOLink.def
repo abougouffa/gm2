@@ -95,8 +95,7 @@ TYPE
    is included in the exception message.
 *)
 
-PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId; did: DeviceId;
-                               x: DevExceptionRange; s: ARRAY OF CHAR): DeviceTablePtr;
+PROCEDURE DeviceTablePtrValue (cid: IOChan.ChanId; did: DeviceId): DeviceTablePtr;
 
 
 (*

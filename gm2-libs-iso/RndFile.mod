@@ -162,8 +162,7 @@ BEGIN
    THEN
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
-      p := DeviceTablePtrValue(c, did, IOChan.wrongDevice,
-                               'RndFile: cannot obtain device table pointer') ;
+      p := DeviceTablePtrValue(c, did) ;
       WITH p^ DO
          flags := f ;
          errNum := e ;
@@ -300,8 +299,7 @@ VAR
 BEGIN
    IF IsRndFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'RndFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       RETURN( 0 )
    ELSE
       RAISEdevException(cid, did, IOChan.wrongDevice,
@@ -321,8 +319,7 @@ VAR
 BEGIN
    IF IsRndFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'RndFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       WITH d^ DO
          RETURN( FIO.FindPosition(RTio.GetFile(cid)) )
       END
@@ -346,8 +343,7 @@ VAR
 BEGIN
    IF IsRndFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'RndFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       old := CurrentPos(cid) ;
       WITH d^ DO
          old := CurrentPos(cid) ;
@@ -378,8 +374,7 @@ VAR
 BEGIN
    IF IsRndFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'RndFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       WITH d^ DO
          RETURN( from+VAL(FilePos, chunks*VAL(INTEGER, chunkSize))-
                  CurrentPos(cid) )
@@ -402,8 +397,7 @@ VAR
 BEGIN
    IF IsRndFile(cid)
    THEN
-      d := DeviceTablePtrValue(cid, did, IOChan.wrongDevice,
-                               'RndFile.Rewrite: incorrect channel') ;
+      d := DeviceTablePtrValue(cid, did) ;
       WITH d^ DO
          FIO.SetPositionFromBeginning(RTio.GetFile(cid), pos) ;
          checkErrno(dev, d)

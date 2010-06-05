@@ -157,9 +157,7 @@ BEGIN
    THEN
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
-      p := DeviceTablePtrValue(c, did,
-                               IOChan.wrongDevice,
-                               'StreamFile: cannot obtain device table pointer') ;
+      p := DeviceTablePtrValue(c, did) ;
       WITH p^ DO
          flags := f ;
          errNum := e ;
