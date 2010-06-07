@@ -1,5 +1,7 @@
 2010-06-07       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/texi:  commented out gm2-internals.texi
+	* gm2/gm2-internals.texi:  new file.
 	* gm2/TODO:  updated to do list.
 	* gm2/version.c:  updated version to 0.90
 	* gm2/gm2-libs/FIO.def:  getFileName, getFileNameLength
