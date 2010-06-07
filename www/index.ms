@@ -16,9 +16,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Mon Mar 29 12:45:34 BST 2010
-.ds CURRENTGM2 0.79
-.ds DEBIANGM2 0.7.8
+.ds CURRENTDATE "Mon Jun  7 16:58:33 BST 2010
+.ds CURRENTGM2 0.91
+.ds DEBIANGM2 0.9.0
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -107,7 +107,7 @@ all regression tests pass on the LP64 platform.
 .LI
 the ISO Modula-2 language is now complete.
 .LI
-most of the ISO libraries have been completed.
+all of the ISO libraries have been completed.
 .LI
 many bug fixes have been applied to the ISO libraries and also the
 compiler.

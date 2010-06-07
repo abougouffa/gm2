@@ -1,6 +1,15 @@
 2010-06-07       Gaius Mulley <gaius@gnu.org>
 
-	* gm2/texi:  commented out gm2-internals.texi
+	* gm2/version.c:  updated to 0.91 now that the debian
+	  0.90 has been produced.
+	* gm2/gm2-libs/configure.in:  updated to 0.91.
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/www/index.ms:  updated to reflect new release number
+	  and latest changes.
+	* gm2/gm2.texi:  fixed a few bugs (cross references and
+	  section links).
+	* gm2/texi:  commented out gm2-internals.texi and
+	  introduced a new section "Producing a Python module".
 	* gm2/gm2-internals.texi:  new file.
 	* gm2/TODO:  updated to do list.
 	* gm2/version.c:  updated version to 0.90

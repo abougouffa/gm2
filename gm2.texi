@@ -1177,8 +1177,8 @@ not just restricted to a pointer type providing the
 @xref{Compiler options, , ,gm2}.
 
 Declarations can be made in any order, whether they are
-types, constants, procedures, nested modules or variables
-(see @xref{Passes, , ,}.)
+types, constants, procedures, nested modules or variables.
+@c (see @xref{Passes, , ,}.)
 
 GNU Modula-2 also allows programmers to interface to @code{C} and
 assembly language.
@@ -1760,7 +1760,7 @@ reading or writing to the @code{VAR} parameter in the first basic
 block of a procedure.
 
 
-@section Producing a Python module
+@section How to produce a Python module
 @node Producing a Python module, Interface to C, Interface for Python, Using
 
 This section descibes how it is possible to produce a Python module
@@ -1899,8 +1899,8 @@ PROCEDURE addDebugging (t: REAL; a, b: CARDINAL) ;
 END twoDsim.
 @end example
 
-By using the keyword @code{UNQUALIFIED} we ensure that the GNU
-Modula-2 compiler will provide externally accessible functions
+By using the keyword @code{UNQUALIFIED} we ensure that the
+compiler will provide externally accessible functions
 @code{gravity}, @code{box}, @code{poly3}, @code{poly5}, @code{poly6},
 @code{mass}, @code{fix}, @code{circle}, @code{pivot}, @code{velocity},
 @code{accel}, @code{fps}, @code{replayRate}, @code{simulateFor},
