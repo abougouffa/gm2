@@ -30,8 +30,10 @@ FROM IOLink IMPORT DeviceId, DeviceTablePtr, IsDevice, MakeChan, UnMakeChan,
                    DeviceTablePtrValue, RAISEdevException, AllocateDeviceId,
                    ResetProc ;
 
+FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM RTgenif IMPORT GenDevIF, InitGenDevIF ;
 FROM FIO IMPORT File ;
+FROM libc IMPORT memcpy ;
 FROM errno IMPORT geterrno ;
 FROM IOConsts IMPORT ReadResults ;
 FROM ChanConsts IMPORT readFlag, writeFlag ;
@@ -52,6 +54,7 @@ VAR
 PROCEDURE look (d: DeviceTablePtr;
                 VAR ch: CHAR; VAR r: ReadResults) ;
 BEGIN
+   checkRW(FALSE, d) ;
    doLook(dev, d, ch, r)
 END look ;
 
@@ -65,12 +68,14 @@ END skip ;
 PROCEDURE skiplook (d: DeviceTablePtr;
                     VAR ch: CHAR; VAR r: ReadResults) ;
 BEGIN
+   checkRW(FALSE, d) ;
    doSkipLook(dev, d, ch, r)
 END skiplook ;
 
 
 PROCEDURE lnwrite (d: DeviceTablePtr) ;
 BEGIN
+   checkRW(TRUE, d) ;
    doWriteLn(dev, d)
 END lnwrite ;
 
@@ -80,6 +85,7 @@ PROCEDURE textread (d: DeviceTablePtr;
                     maxChars: CARDINAL;
                     VAR charsRead: CARDINAL) ;
 BEGIN
+   checkRW(FALSE, d) ;
    doReadText(dev, d, to, maxChars, charsRead)
 END textread ;
 
@@ -88,6 +94,7 @@ PROCEDURE textwrite (d: DeviceTablePtr;
                      from: SYSTEM.ADDRESS;
                      charsToWrite: CARDINAL);
 BEGIN
+   checkRW(TRUE, d) ;
    doWriteText(dev, d, from, charsToWrite)
 END textwrite ;
 
@@ -97,6 +104,7 @@ PROCEDURE rawread (d: DeviceTablePtr;
                    maxLocs: CARDINAL;
                    VAR locsRead: CARDINAL) ;
 BEGIN
+   checkRW(FALSE, d) ;
    doReadLocs(dev, d, to, maxLocs, locsRead)
 END rawread ;
 
@@ -105,6 +113,7 @@ PROCEDURE rawwrite (d: DeviceTablePtr;
                     from: SYSTEM.ADDRESS;
                     locsToWrite: CARDINAL) ;
 BEGIN
+   checkRW(TRUE, d) ;
    doWriteLocs(dev, d, from, locsToWrite)
 END rawwrite ;
 
@@ -140,6 +149,40 @@ END checkOpenErrno ;
 
 
 (*
+   checkRW - ensures that the file attached to, p, has been opened, towrite.
+*)
+
+PROCEDURE checkRW (towrite: BOOLEAN; p: DeviceTablePtr) ;
+VAR
+   pb      : POINTER TO BOOLEAN ;
+   fp      : FilePos ;
+   file    : File ;
+   name    : SYSTEM.ADDRESS ;
+   size    : CARDINAL ;
+   contents: SYSTEM.ADDRESS ;
+BEGIN
+   pb := p^.cd ;
+   IF pb^#towrite
+   THEN
+      WITH p^ DO
+         pb^ := towrite ;
+         fp := CurrentPos(cid) ;
+         file := RTio.GetFile(RTio.ChanId(cid)) ;
+         name := FIO.getFileName(file) ;
+         size := FIO.getFileNameLength(file) ;
+         ALLOCATE(contents, size+1) ;
+         contents := memcpy(contents, name, size) ;
+         FIO.Close(file) ;
+         file := FIO.openForRandom(contents, size, towrite) ;
+         RTio.SetFile(cid, file) ;
+         fp := NewPos(cid, 0, 0, fp) ;
+         DEALLOCATE(contents, size+1)
+      END
+   END
+END checkRW ;
+
+
+(*
    newCid - returns a ChanId which represents the opened file, name.
             res is set appropriately on return.
 *)
@@ -154,16 +197,20 @@ VAR
    file: FIO.File ;
    e   : INTEGER ;
    p   : DeviceTablePtr ;
+   pb  : POINTER TO BOOLEAN ;
 BEGIN
    file := FIO.OpenForRandom(fname, NOT toRead) ;
    checkOpenErrno(file, e, res) ;
 
    IF FIO.IsNoError(file)
    THEN
+      NEW(pb) ;
+      pb^ := NOT toRead ;
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
       p := DeviceTablePtrValue(c, did) ;
       WITH p^ DO
+         cd := pb ;
          flags := f ;
          errNum := e ;
          doLook := look ;
@@ -192,7 +239,8 @@ END newCid ;
 
 PROCEDURE handlefree (d: DeviceTablePtr) ;
 VAR
-   f: File ;
+   f : File ;
+   pb: POINTER TO BOOLEAN ;
 BEGIN
    WITH d^ DO
       doFlush(d) ;
@@ -202,7 +250,10 @@ BEGIN
       THEN
          FIO.Close(f) ;
       END ;
-      checkErrno(dev, d)
+      checkErrno(dev, d) ;
+      pb := cd ;
+      DISPOSE(pb) ;
+      cd := NIL
    END
 END handlefree ;
 

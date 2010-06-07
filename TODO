@@ -1,12 +1,8 @@
 Pre 1.0
 
-*    ensure that PIM SYSTEM.PRIORITY is replaced by
-     rtint.PROTECTION
+*  write section in gm2.texi explaining about how to produce
+   a production python module.
 *  add data alignment directives to records (Scott)
-*  complete implementation of the following Logitech-3.0 libraries:
-   Calandar, Chronometer,
-   DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
-   LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 *  if at all possible try and make sure that it builds on OSX.
    (Michael)
 *  if at all possible try and make sure that it builds on cygwin
@@ -14,6 +10,10 @@ Pre 1.0
 
 Post 1.0
 
+*  complete implementation of the following Logitech-3.0 libraries:
+   Calandar, Chronometer,
+   DateFormat, Decimals, Directories, DiskDirectory, FileMessage,
+   LogiFile, NumberConversion, Options, Processes, SimpleTerm.
 *  port GM2 to the latest version of GCC
    + create branch at gcc.gnu.org and start grafting gm2.
 *  fix bugs in h2def

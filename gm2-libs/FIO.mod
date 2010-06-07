@@ -1507,6 +1507,50 @@ END GetFileName ;
 
 
 (*
+   getFileName - returns the address of the filename associated with, f.
+*)
+
+PROCEDURE getFileName (f: File) : ADDRESS ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   IF f#Error
+   THEN
+      fd := GetIndice(FileInfo, f) ;
+      IF fd=NIL
+      THEN
+         FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n') ;
+         HALT
+      ELSE
+         RETURN fd^.name.address
+      END
+   END
+END getFileName ;
+
+
+(*
+   getFileNameLength - returns the number of characters associated with filename, f.
+*)
+
+PROCEDURE getFileNameLength (f: File) : CARDINAL ;
+VAR
+   fd: FileDescriptor ;
+BEGIN
+   IF f#Error
+   THEN
+      fd := GetIndice(FileInfo, f) ;
+      IF fd=NIL
+      THEN
+         FormatError('this file has probably been closed and not reopened successfully or alternatively never opened\n') ;
+         HALT
+      ELSE
+         RETURN fd^.name.size
+      END
+   END
+END getFileNameLength ;
+
+
+(*
    PreInitialize - preinitialize the file descriptor.
 *)
 

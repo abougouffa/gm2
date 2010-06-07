@@ -1,3 +1,16 @@
+2010-06-07       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  updated to do list.
+	* gm2/version.c:  updated version to 0.90
+	* gm2/gm2-libs/FIO.def:  getFileName, getFileNameLength
+	  (New Procedures).
+	* gm2/gm2-libs/FIO.mod:  getFileName, getFileNameLength
+	  (New Procedures).
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/gm2-libs/configure.in:  updated to 0.90
+	* gm2/gm2-libs-iso/RndFile.mod:  fixed bug to allow a
+	  file to be written and read.  Reported by Scott Iverson.
+	
 2010-06-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs-iso/IOLink.def:  corrected comment for

@@ -43,7 +43,7 @@ EXPORT QUALIFIED (* types *)
                  WriteNBytes, ReadNBytes,
                  FlushBuffer,
                  GetUnixFileDescriptor,
-                 GetFileName,
+                 GetFileName, getFileName, getFileNameLength,
                  (* variables *)
                  StdIn, StdOut, StdErr ;
 
@@ -293,6 +293,20 @@ PROCEDURE FindPosition (f: File) : LONGINT ;
 *)
 
 PROCEDURE GetFileName (f: File; VAR a: ARRAY OF CHAR) ;
+
+
+(*
+   getFileName - returns the address of the filename associated with, f.
+*)
+
+PROCEDURE getFileName (f: File) : ADDRESS ;
+
+
+(*
+   getFileNameLength - returns the number of characters associated with filename, f.
+*)
+
+PROCEDURE getFileNameLength (f: File) : CARDINAL ;
 
 
 END FIO.
