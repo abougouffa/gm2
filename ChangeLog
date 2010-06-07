@@ -1,5 +1,7 @@
 2010-06-07       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/examples/gravity/Makefile.in:  post-install fixed
+	  paths.
 	* gm2/version.c:  updated to 0.91 now that the debian
 	  0.90 has been produced.
 	* gm2/gm2-libs/configure.in:  updated to 0.91.

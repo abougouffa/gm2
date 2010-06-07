@@ -31,12 +31,12 @@ pre-install: clean
 	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
 
 post-install: clean
-	gm2 $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/deviceGnuPic.mod
-	gm2 $(GM2FLAGS) -fiso -I$(SRC_PATH_SO) -c $(srcdir)/roots.mod
-	gm2 $(GM2FLAGS) -fiso -c -fswig -I$(SRC_PATH_SO) $(srcdir)/twoDsim.mod
+	gm2 $(GM2FLAGS) -fiso -I$(srcdir) -c $(srcdir)/deviceGnuPic.mod
+	gm2 $(GM2FLAGS) -fiso -I$(srcdir) -c $(srcdir)/roots.mod
+	gm2 $(GM2FLAGS) -fiso -c -fswig -I$(srcdir) $(srcdir)/twoDsim.mod
 	swig -c++ -python twoDsim.i
 	gcc -c -fPIC twoDsim_wrap.cxx -I/usr/include/python$(PYTHON_VERSION)
-	gm2 -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared \
+	gm2 -fiso -I$(srcdir) -fPIC -fshared -shared \
             $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
 	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
 

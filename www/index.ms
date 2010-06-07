@@ -477,10 +477,10 @@ in C++ and therefore in future releases it will be necessary to build
 .Q
 When will release 1.0 be available?
 .A
-All of the ISO language is implemented and most of the libraries are
-complete, but unstable.  Hopefully the frequency of releases will
-increase as work nears completion.  Currently bug fixing, library
-implementation is ongoing.  Porting is being used to hunt down bugs.
+Very soon :-) all of the ISO language is implemented and all of the
+libraries are complete.  Many bugs have been fixed and all the
+regression tests pass on the LP64.  Porting to the i386 platform and
+MacOS platform is being used to hunt down bugs.
 .
 .SH
 Mailing list
