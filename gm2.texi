@@ -1671,7 +1671,7 @@ finalization code is contained within @file{c_m2.cpp} which is
 compiled and linked with all the modules required to satisfy all the
 program module @file{c.mod} dependencies.
 
-@node Interface for Python, Interface to C, Building a shared library, Using
+@node Interface for Python, Producing a Python module, Building a shared library, Using
 @section How to produce swig interface files
 
 This section describes how your Modula-2 implementation modules can be
