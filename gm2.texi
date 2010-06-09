@@ -102,6 +102,7 @@ Software Foundation raise funds for GNU development.''
 * Producing a Python module::  How to produce a Python module.
 * Interface to C::        Interfacing GNU Modula-2 to C.
 * Assembly language::     Interface to assembly language.
+* Alignment::             Data type alignment.
 * Built-ins::             Accessing GNU Modula-2 Built-ins.
 * The PIM system module:: SYSTEM data types and procedures.
 * The ISO system module:: SYSTEM data types, procedures and run time.
@@ -1307,53 +1308,13 @@ Local procedures can be declared to have an optional final parameter
 in which case the initializer is mandatory in the implementation or
 program module.
 
-You can also specify alignment to types and variables.  The syntax
-is similar to GCC and uses the @code{__ATTRIBUTE__} mechanism.  The
-ebnf of the alignment production is:
-
-@example
-Alignment := [ "__ATTRIBUTE__" "(" "(" ALIGNED "(" ConstExpression ")" ")" ")" ]
-           =:
-@end example
-
-The @code{Alignment} ebnf statement may be used during contruction of
-types, records, record fields, arrays, pointers and variables.  Below
-is an example of aligning a type.
-
-@example
-MODULE align ;
-
-TYPE
-   foo = INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
-
-VAR
-   z  : INTEGER ;
-   bar: foo ;
-BEGIN
-END align.
-@end example
-
-The next example aligns a variable on a 1024 byte boundary.
-
-@example
-MODULE align2 ;
-
-VAR
-   x  : CHAR ;
-   z  : ARRAY [0..255] OF INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
-BEGIN
-END align2.
-@end example
-
-
-
 GNU Modula-2 also provides additional fixed sized data types which
 are all exported from the @code{SYSTEM} module.
 @xref{The PIM system module, , ,gm2}.
 @xref{The ISO system module, , ,gm2}.
 
 @node Type compatibility, Unbounded by reference, Extensions, Using
-@section GNU Modula-2 language extensions
+@section Type compatibility
 
 This section discuss the issues surrounding assignment, expression
 and parameter compatibility, their effect of the additional
@@ -1799,7 +1760,6 @@ force the automatic mechanism to generate correct interface files by
 reading or writing to the @code{VAR} parameter in the first basic
 block of a procedure.
 
-
 @section How to produce a Python module
 @node Producing a Python module, Interface to C, Interface for Python, Using
 
@@ -2105,6 +2065,47 @@ END Example ;
 For a full description of this interface we refer the reader to the GNU C manual.
 
 @xref{Extended Asm, ,Extensions to the C Language Family,gcc}.
+
+@node Alignment, Built-ins, Assembly language, Using
+@section Data type alignment
+
+GNU Modula-2 allows you to specify alignment for types and variables.
+The syntax is similar to GCC and uses the @code{__ATTRIBUTE__}
+mechanism.  The ebnf of the alignment production is:
+
+@example
+Alignment := [ "__ATTRIBUTE__" "(" "(" ALIGNED "(" ConstExpression ")" ")" ")" ]
+           =:
+@end example
+
+The @code{Alignment} ebnf statement may be used during contruction of
+types, records, record fields, arrays, pointers and variables.  Below
+is an example of aligning a type.
+
+@example
+MODULE align ;
+
+TYPE
+   foo = INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+
+VAR
+   z  : INTEGER ;
+   bar: foo ;
+BEGIN
+END align.
+@end example
+
+The next example aligns a variable on a 1024 byte boundary.
+
+@example
+MODULE align2 ;
+
+VAR
+   x  : CHAR ;
+   z  : ARRAY [0..255] OF INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+BEGIN
+END align2.
+@end example
 
 @node Built-ins, The PIM system module, Assembly language, Using
 @section Accessing GNU Modula-2 Built-ins
