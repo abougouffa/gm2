@@ -95,7 +95,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildConstructorStart,
                     BuildConstructorEnd,
                     BuildComponentValue, BuildTypeForConstructor,
-                    BuildBooleanVariable,
+                    BuildBooleanVariable, BuildAlignment,
                     RecordOp,
                     BuildNulParam,
                     BuildDesignatorRecord,
@@ -720,7 +720,10 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOn %
+                                       Ident "(" ConstExpression ")"       % BuildAlignment %
+                                                                           % PopAuto %
+               ")" ")" ]
            =:
 
 TypeDeclaration := Ident "=" Type Alignment

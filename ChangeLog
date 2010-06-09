@@ -1,5 +1,7 @@
 2010-06-08       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/bnf/m2-h.bnf:  Alignment rule is the same as pass 3.
+	* gm2/gm2.texi:  fix bad next field.
 	* gm2/gccgm2.c:  BuildAlignment (New procedure).
 	* gm2/gm2.texi:  new section describing the how to use the
 	  alignment extension.
