@@ -2037,7 +2037,7 @@ convert the constants using one of the conversion mechanisms.
 For example:  @code{INTEGER(10)} or @code{VAL(INTEGER, 10)} or
 @code{CAST(INTEGER, 10)}.
 
-@node Assembly language, Built-ins, Interface to C, Using
+@node Assembly language, Alignment, Interface to C, Using
 @section Interface to assembly language
 
 The interface for GNU Modula-2 to assembly language is almost

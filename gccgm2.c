@@ -12608,11 +12608,11 @@ build_enumerator (name, value)
 }
 
 /*
- *  SetAlignment - sets the alignment of a, type, to, align.
+ *  BuildAlignment - sets the alignment of a, type, to, align.
  */
 
 void
-gccgm2_SetAlignment (tree type, tree align)
+gccgm2_BuildAlignment (tree type, tree align)
 {
   tree decl = type;
   int is_type;
