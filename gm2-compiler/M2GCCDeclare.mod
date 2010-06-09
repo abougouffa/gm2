@@ -156,7 +156,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
                    DebugTree, GetDeclContext,
                    ChainOn,
-                   BuildPointerType, BuildConstPointerType, BuildConvert, BuildAlignment,
+                   BuildPointerType, BuildConstPointerType, BuildConvert, SetAlignment,
                    BuildStartFunctionType, BuildEndFunctionType,
                    InitFunctionTypeParameters,
                    BuildParameterDeclaration,
@@ -3394,7 +3394,7 @@ PROCEDURE CheckAlignment (type: Tree; sym: CARDINAL) : Tree ;
 BEGIN
    IF GetAlignment(sym)#NulSym
    THEN
-      BuildAlignment(type, Mod2Gcc(GetAlignment(sym)))
+      SetAlignment(type, Mod2Gcc(GetAlignment(sym)))
    END ;
    RETURN( type )
 END CheckAlignment ;

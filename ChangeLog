@@ -1,5 +1,10 @@
 2010-06-08       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/gccgm2.def:  renamed BuildAlignment to
+	  SetAlignment.
+	* gm2/gccgm2.c:  renamed BuildAlignment to SetAlignment.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  renamed BuildAlignment
+	  to SetAlignment.
 	* gm2/gm2.texi:  corrected prev field.
 	* gm2/gm2.texi:  corrected next field.
 	* gm2/gm2.texi:  data alignment content now has its own section.
