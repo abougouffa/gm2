@@ -12607,6 +12607,60 @@ build_enumerator (name, value)
   return tree_cons (decl, value, NULL_TREE);
 }
 
+/*
+ *  SetAlignment - sets the alignment of a, type, to, align.
+ */
+
+void
+gccgm2_SetAlignment (tree type, tree align)
+{
+  tree decl = type;
+  int is_type;
+  int i;
+
+  if (DECL_P (type))
+    {
+      is_type = TREE_CODE (type) == TYPE_DECL;
+      type = TREE_TYPE (decl);
+    }
+  else if (TYPE_P (type))
+    is_type = 1;
+
+  if (TREE_CODE (align) != INTEGER_CST)
+    error ("requested alignment is not a constant");
+  else if ((i = tree_log2 (align)) == -1)
+    error ("requested alignment is not a power of 2");
+  else if (i > HOST_BITS_PER_INT - 2)
+    error ("requested alignment is too large");
+  else if (is_type)
+    {
+#if 0
+      /* If we have a TYPE_DECL, then copy the type, so that we
+	 don't accidentally modify a builtin type.  See pushdecl.  */
+      if (decl && TREE_TYPE (decl) != error_mark_node
+	  && DECL_ORIGINAL_TYPE (decl) == NULL_TREE)
+	{
+	  tree tt = TREE_TYPE (decl);
+	  type = build_variant_type_copy (type);
+	  DECL_ORIGINAL_TYPE (decl) = tt;
+	  TYPE_NAME (type) = decl;
+	  TREE_USED (type) = TREE_USED (decl);
+	  TREE_TYPE (decl) = type;
+	}
+#endif
+
+      TYPE_ALIGN (type) = (1 << i) * BITS_PER_UNIT;
+      TYPE_USER_ALIGN (type) = 1;
+    }
+  else if (TREE_CODE (decl) != VAR_DECL
+	   && TREE_CODE (decl) != FIELD_DECL)
+    error ("alignment may not be specified for %q+D", decl);
+  else
+    {
+      DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
+      DECL_USER_ALIGN (decl) = 1;
+    }
+}
 
 /*
  *  AddStatement - maps onto add_stmt.

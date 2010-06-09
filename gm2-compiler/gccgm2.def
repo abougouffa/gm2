@@ -139,7 +139,8 @@ EXPORT QUALIFIED Tree, Constructor,
                  InitGlobalContext, FinishBackend, GarbageCollect,
                  TreeOverflow, RemoveOverflow,
                  SetLastFunction,
-                 SetFlagUnitAtATime, MarkFunctionReferenced ;
+                 SetFlagUnitAtATime, MarkFunctionReferenced,
+                 BuildAlignment ;
 
 
 TYPE
@@ -1538,6 +1539,13 @@ PROCEDURE MarkFunctionReferenced (t: Tree) ;
 *)
 
 PROCEDURE SetLastFunction (t: Tree) ;
+
+
+(*
+   BuildAlignment - sets the alignment of a, type, to, align.
+*)
+
+PROCEDURE BuildAlignment (type: Tree; align: Tree) ;
 
 
 END gccgm2.

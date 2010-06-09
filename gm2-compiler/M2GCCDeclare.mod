@@ -101,6 +101,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetSymName, GetParent,
                         GetDeclared, GetVarBackEndType,
                         GetString, GetStringLength, IsConstString,
+                        GetAlignment,
                         GetParameterShadowVar,
                         GetUnboundedRecordType,
                         ForeachOAFamily, GetOAFamily,
@@ -155,7 +156,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildArrayIndexType, BuildStartArrayType, BuildEndArrayType, BuildSetType,
                    DebugTree, GetDeclContext,
                    ChainOn,
-                   BuildPointerType, BuildConstPointerType, BuildConvert,
+                   BuildPointerType, BuildConstPointerType, BuildConvert, BuildAlignment,
                    BuildStartFunctionType, BuildEndFunctionType,
                    InitFunctionTypeParameters,
                    BuildParameterDeclaration,
@@ -3386,6 +3387,20 @@ PROCEDURE stop ; BEGIN END stop ;
 
 
 (*
+   CheckAlignment - 
+*)
+
+PROCEDURE CheckAlignment (type: Tree; sym: CARDINAL) : Tree ;
+BEGIN
+   IF GetAlignment(sym)#NulSym
+   THEN
+      BuildAlignment(type, Mod2Gcc(GetAlignment(sym)))
+   END ;
+   RETURN( type )
+END CheckAlignment ;
+
+
+(*
    DeclareVarient - 
 *)
 
@@ -3953,10 +3968,10 @@ BEGIN
       t := DeclareSubrange(sym)
    ELSIF IsRecord(sym)
    THEN
-      t := DeclareRecord(sym)
+      t := CheckAlignment(DeclareRecord(sym), sym)
    ELSIF IsRecordField(sym)
    THEN
-      t := DeclareRecordField(sym)
+      t := CheckAlignment(DeclareRecordField(sym), sym)
    ELSIF IsFieldVarient(sym)
    THEN
       t := DeclareFieldVarient(sym)
@@ -3965,13 +3980,13 @@ BEGIN
       t := DeclareVarient(sym)
    ELSIF IsPointer(sym)
    THEN
-      t := DeclarePointer(sym)
+      t := CheckAlignment(DeclarePointer(sym), sym)
    ELSIF IsUnbounded(sym)
    THEN
       t := DeclareUnbounded(sym)
    ELSIF IsArray(sym)
    THEN
-      t := DeclareArray(sym)
+      t := CheckAlignment(DeclareArray(sym), sym)
    ELSIF IsProcType(sym)
    THEN
       t := DeclareProcType(sym)
@@ -4002,7 +4017,11 @@ BEGIN
       (* not yet known as a constant *)
       RETURN( NIL )
    ELSE
-      t := DeclareType(sym)
+      t := DeclareType(sym) ;
+      IF IsType(sym)
+      THEN
+         t := CheckAlignment(t, sym)
+      END
    END ;
    IF GetSymName(sym)#NulName
    THEN
@@ -4011,7 +4030,7 @@ BEGIN
          n := GetSymName(sym) ;
          printf1('declaring type %a\n', n)
       END ;
-      t := RememberType(t) ;
+      t := RememberType(t)
    END ;
    RETURN( t )
 END TypeConstFullyDeclared ;

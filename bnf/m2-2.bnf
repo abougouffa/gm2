@@ -104,7 +104,7 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        StartBuildArray,
                        EndBuildArray,
                        BuildFieldArray, BuildArrayComma,
-                       BuildSubrange,
+                       BuildSubrange, BuildAligned, BuildTypeAlignment,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
                        DetermineType, PushType, PopType,
@@ -663,11 +663,16 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+doAlignment :=  "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")"    % BuildAligned %
+                ")" ")"
+             =:
+
+Alignment :=  doAlignment |                                                % PushT(NulSym) %
            =:
 
-TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeEnd ; %
-                =:							   
+TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeAlignment ;
+                                                                             BuildTypeEnd %
+                 =:							   
 									   
 Type :=                                                                    
                                                                            % PushAutoOn ; %
@@ -730,7 +735,7 @@ ArrayType := "ARRAY"                                                       % VAR
              Type                                                          % EndBuildArray ;
                                                                              PopNothing ;
                                                                              PushT(a) %
-             Alignment
+             Alignment                                                     % BuildTypeAlignment %
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord %
@@ -746,7 +751,7 @@ FieldListStatement := [ FieldList ] =:
 
 FieldList := IdentList ":"                                                 % BuildNulName %
                            Type                                            % BuildFieldRecord %
-                           Alignment
+                           Alignment                                       % BuildTypeAlignment %
              |
              "CASE"                                                        % AddRecordToList %
                                                                            % StartBuildVarient %
@@ -778,13 +783,13 @@ CaseLabelList := CaseLabels { "," CaseLabels } =:
 
 CaseLabels := ConstExpression [ ".." ConstExpression ] =:
 
-SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % BuildNulName ; %
-           SimpleType                                                      % BuildSetType ; %
+SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % BuildNulName %
+           SimpleType                                                      % BuildSetType %
          =:
 
-PointerType := "POINTER" "TO"                                              % BuildNulName ; %
-                              Type                                         % BuildPointerType ; %
-                                   Alignment
+PointerType := "POINTER" "TO"                                              % BuildNulName %
+                              Type                                         % BuildPointerType %
+                                   Alignment                               % BuildTypeAlignment %
              =:
 
 ProcedureType := "PROCEDURE"                                               % BuildProcedureType ; %
@@ -841,8 +846,9 @@ VarIdentList := VarIdent                                                   % VAR
              =:
 
 VariableDeclaration := VarIdentList ":"                                    % BuildNulName %
-                       Type                                                % BuildVariable %
-                       Alignment
+                       Type
+                       Alignment                                           % BuildTypeAlignment %
+                                                                           % BuildVariable %
                     =:
 
 Designator := Qualident { SubDesignator } =:
@@ -1103,7 +1109,8 @@ DefinitionModule := "DEFINITION" "MODULE"
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
                     { Ident ( ";"                 
-                                  | "=" Type Alignment ";" )               % BuildTypeEnd %
+                                  | "=" Type Alignment                     % BuildTypeAlignment %
+                                                       ";" )               % BuildTypeEnd %
                     }
               |
               "VAR" { VariableDeclaration ";" } |

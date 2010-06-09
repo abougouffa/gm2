@@ -26,6 +26,7 @@ TYPE
           END ;
 
 VAR
+   const,
    subrange,
    enumeration,
    constructor: Fifo ;
@@ -123,6 +124,28 @@ END GetConstructorFromFifoQueue ;
 
 
 (*
+   PutConstIntoFifoQueue - places a constant symbol
+                           into a fifo queue.
+*)
+
+PROCEDURE PutConstIntoFifoQueue (c: CARDINAL) ;
+BEGIN
+   PutInto(const, c)
+END PutConstIntoFifoQueue ;
+
+
+(*
+   GetConstFromFifoQueue - retrieves a const symbol
+                           from a fifo queue.
+*)
+
+PROCEDURE GetConstFromFifoQueue (VAR c: CARDINAL) ;
+BEGIN
+   GetFrom(const, c)
+END GetConstFromFifoQueue ;
+
+
+(*
    Init - initialize the fifo queue.
 *)
 
@@ -136,6 +159,7 @@ END Init ;
 
 
 BEGIN
+   Init(const) ;
    Init(enumeration) ;
    Init(subrange) ;
    Init(constructor)

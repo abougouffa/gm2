@@ -624,7 +624,9 @@ ConstAttributeExpression := Ident | "<" Qualident ',' Ident ">" =:
 
 Element := ConstExpression [ ".." ConstExpression ] =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOff %
+                                       Ident "(" ConstExpression ")"       % PopAuto %
+                                                                     ")" ")" ]
            =:
 
 TypeDeclaration :=

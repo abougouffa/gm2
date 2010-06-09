@@ -1307,6 +1307,46 @@ Local procedures can be declared to have an optional final parameter
 in which case the initializer is mandatory in the implementation or
 program module.
 
+You can also specify alignment to types and variables.  The syntax
+is similar to GCC and uses the @code{__ATTRIBUTE__} mechanism.  The
+ebnf of the alignment production is:
+
+@example
+Alignment := [ "__ATTRIBUTE__" "(" "(" ALIGNED "(" ConstExpression ")" ")" ")" ]
+           =:
+@end example
+
+The @code{Alignment} ebnf statement may be used during contruction of
+types, records, record fields, arrays, pointers and variables.  Below
+is an example of aligning a type.
+
+@example
+MODULE align ;
+
+TYPE
+   foo = INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+
+VAR
+   z  : INTEGER ;
+   bar: foo ;
+BEGIN
+END align.
+@end example
+
+The next example aligns a variable on a 1024 byte boundary.
+
+@example
+MODULE align2 ;
+
+VAR
+   x  : CHAR ;
+   z  : ARRAY [0..255] OF INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+BEGIN
+END align2.
+@end example
+
+
+
 GNU Modula-2 also provides additional fixed sized data types which
 are all exported from the @code{SYSTEM} module.
 @xref{The PIM system module, , ,gm2}.

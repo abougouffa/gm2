@@ -100,6 +100,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2GCCDeclare IMPORT PutToBeSolvedByQuads ;
+FROM FifoQueue IMPORT GetConstFromFifoQueue ;
 
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
@@ -2952,6 +2953,42 @@ BEGIN
       BuildRelOp
    END
 END CheckBooleanId ;
+
+
+(*
+   BuildAlignment - builds an assignment to an alignment constant.
+
+                    The Stack is expected to contain:
+
+
+                            Entry                   Exit
+                            =====                   ====
+
+                    Ptr ->
+                            +------------+
+                            | Expression |
+                            |------------|
+                            | ALIGNED    |
+                            |------------|          empty
+*)
+
+PROCEDURE BuildAlignment ;
+VAR
+   name : Name ;
+   expr,
+   align: CARDINAL ;
+BEGIN
+   PopT(expr) ;
+   PopT(name) ;
+   IF name#MakeKey('ALIGNED')
+   THEN
+      WriteFormat1('expecting ALIGNED identifier, rather than %a', name)
+   END ;
+   GetConstFromFifoQueue(align) ;
+   PushT(align) ;
+   PushT(expr) ;
+   BuildAssignment
+END BuildAlignment ;
 
 
 (*

@@ -29,6 +29,7 @@ DEFINITION MODULE FifoQueue ;
 
 EXPORT QUALIFIED PutEnumerationIntoFifoQueue, GetEnumerationFromFifoQueue,
                  PutSubrangeIntoFifoQueue, GetSubrangeFromFifoQueue,
+                 PutConstIntoFifoQueue, GetConstFromFifoQueue,
                  PutConstructorIntoFifoQueue, GetConstructorFromFifoQueue ;
 
 
@@ -62,6 +63,22 @@ PROCEDURE PutSubrangeIntoFifoQueue (c: CARDINAL) ;
 *)
 
 PROCEDURE GetSubrangeFromFifoQueue (VAR c: CARDINAL) ;
+
+
+(*
+   PutConstIntoFifoQueue - places a constant symbol
+                           into a fifo queue.
+*)
+
+PROCEDURE PutConstIntoFifoQueue (c: CARDINAL) ;
+
+
+(*
+   GetConstFromFifoQueue - retrieves a const symbol
+                           from a fifo queue.
+*)
+
+PROCEDURE GetConstFromFifoQueue (VAR c: CARDINAL) ;
 
 
 (*

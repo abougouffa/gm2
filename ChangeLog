@@ -1,3 +1,42 @@
+2010-06-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  BuildAlignment (New procedure).
+	* gm2/gm2.texi:  new section describing the how to use the
+	  alignment extension.
+	* gm2/bnf/m2-2.bnf:  add rules to build the alignment
+	  values into the data structures.  This is done by
+	  creating a temporary constant and associating it with
+	  the required data structure.
+	* gm2/bnf/m2-3.bnf:  during pass 3 the same constant is
+	  initialised with the constant expression.
+	* gm2/bnf/m2.bnf:  ensure that the constant expression
+	  inside the alignment statement does not effect the
+	  compile time stack.
+	* gm2/gm2-compiler/FifoQueue.def:  define and export
+	  two new procedures PutConstIntoFifoQueue,
+	  GetConstFromFifoQueue.
+	* gm2/gm2-compiler/FifoQueue.mod:  (New procedures)
+	  PutConstIntoFifoQueue, GetConstFromFifoQueue.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (New procedure)
+	  CheckAlignment which is called when creating a record,
+	  pointer, array, type or variable.
+	* gm2/gm2-compiler/M2Quads.def:  (New procedure)
+	  BuildAlignment.
+	* gm2/gm2-compiler/M2Quads.mod:  (New procedure)
+	  BuildAlignment implemented.
+	* gm2/gm2-compiler/P2SymBuild.def:  (New procedures)
+	  BuildAligned and BuildTypeAlignment.
+	* gm2/gm2-compiler/P2SymBuild.mod:  implemented the
+	  two procedures BuildAligned and BuildTypeAlignment.
+	* gm2/gm2-compiler/SymbolTable.def:  (New procedures)
+	  PutAlignment, GetAlignment.
+	* gm2/gm2-compiler/SymbolTable.mod:  (New procedures)
+	  PutAlignment, GetAlignment implemented.  These
+	  only work with type, record, array, recordfield
+	  and pointer data types.
+	* gm2/gm2-compiler/gccgm2.def:  (New procedure)
+	  BuildAlignment.
+
 2010-06-07       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/examples/gravity/Makefile.in:  post-install fixed

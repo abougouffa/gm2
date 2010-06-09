@@ -119,6 +119,7 @@ EXPORT QUALIFIED NulSym,
                  GetGnuAsmInput, GetGnuAsmOutput, GetGnuAsmTrash, GetGnuAsm,
                  GetRegInterface,
                  GetVariableAtAddress,
+                 GetAlignment,
 
                  PutVar,
                  PutLeftValueFrontBackType,
@@ -165,6 +166,7 @@ EXPORT QUALIFIED NulSym,
                  PutGnuAsm, PutGnuAsmOutput, PutGnuAsmInput, PutGnuAsmTrash, PutGnuAsmVolatile,
                  PutRegInterface,
                  PutVariableAtAddress,
+                 PutAlignment,
 
                  IsDefImp,
                  IsModule,
@@ -2570,6 +2572,22 @@ PROCEDURE IsComposite (sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsSumOfParamSizeSolved (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutAlignment - assigns the alignment constant associated with,
+                  type, with, align.
+*)
+
+PROCEDURE PutAlignment (type: CARDINAL; align: CARDINAL) ;
+
+
+(*
+   GetAlignment - returns the alignment constant associated with,
+                  type.
+*)
+
+PROCEDURE GetAlignment (type: CARDINAL) : CARDINAL ;
 
 
 (*

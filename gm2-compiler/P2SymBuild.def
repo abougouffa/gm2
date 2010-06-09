@@ -44,7 +44,7 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildNumber,
                  BuildString,
                  BuildConst,
-                 BuildSubrange,
+                 BuildSubrange, BuildAligned, BuildTypeAlignment,
                  BuildVariable,
                  StartBuildEnumeration,
                  BuildType,
@@ -472,6 +472,49 @@ PROCEDURE StartBuildEnumeration ;
 *)
 
 PROCEDURE BuildSubrange (Base: CARDINAL) ;
+
+
+(*
+   BuildAligned - builds an alignment constant symbol which is placed onto
+                  the stack.  It expects the ident ALIGNED to be on the
+                  stack.
+
+                          Stack
+
+                           Entry                 Exit
+
+
+                  Ptr ->                                            <- Ptr
+                           +------------+        +-----------------+
+                           | ALIGNED    |        | AlignmentConst  |
+                           |------------|        |-----------------|
+*)
+
+PROCEDURE BuildAligned ;
+
+
+(*
+   BuildTypeAlignment - the AlignmentConst is either a temporary or NulSym.
+                        In the case of NulSym it is popped from the stack
+                        and the procedure returns.  Otherwise the temporary
+                        is popped and recorded as the alignment value for this
+                        type.  A type may only have one alignment value and
+                        error checking is performed.
+
+                        Stack
+
+                            Entry                 Exit
+
+
+                    Ptr ->
+                           +-----------------+
+                           | AlignmentConst  |                            <- Ptr
+                           |-----------------|        +-----------------+
+                           | Type            |        | Type            |
+                           |-----------------|        |-----------------|
+*)
+
+PROCEDURE BuildTypeAlignment ;
 
 
 (*

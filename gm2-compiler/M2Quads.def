@@ -36,7 +36,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildRetry,
                  BuildReThrow,
                  BuildBuiltinConst, BuildBuiltinTypeInfo,
-                 BuildAssignment,
+                 BuildAssignment, BuildAlignment,
                  BuildRepeat, BuildUntil,
                  BuildWhile, BuildDoWhile, BuildEndWhile,
                  BuildLoop, BuildExit, BuildEndLoop,
@@ -717,6 +717,26 @@ PROCEDURE BuildBuiltinTypeInfo ;
 *)
 
 PROCEDURE BuildAssignment ;
+
+
+(*
+   BuildAlignment - builds an assignment to an alignment constant.
+
+                    The Stack is expected to contain:
+
+
+                            Entry                   Exit
+                            =====                   ====
+
+                    Ptr ->
+                            +------------+
+                            | Expression |
+                            |------------|
+                            | ALIGNED    |
+                            |------------|          empty
+*)
+
+PROCEDURE BuildAlignment ;
 
 
 (*

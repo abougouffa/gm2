@@ -32,12 +32,13 @@ FROM M2Printf IMPORT printf0, printf1, printf2 ;
 FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
 FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
 FROM StrIO IMPORT WriteString, WriteLn ;
+FROM M2Base IMPORT ZType ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
 
 FROM FifoQueue IMPORT GetEnumerationFromFifoQueue, PutSubrangeIntoFifoQueue,
-                      PutConstructorIntoFifoQueue ;
+                      PutConstructorIntoFifoQueue, PutConstIntoFifoQueue ;
 
 FROM SymbolTable IMPORT NulSym,
                         ModeOfAddr,
@@ -54,7 +55,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutMode,
                         PutFieldEnumeration, PutSubrange, PutVar, PutConst,
                         PutConstSet, PutConstructor,
-                        IsDefImp, IsType,
+                        IsDefImp, IsType, IsRecord, IsRecordField, IsPointer,
                         IsSubrange, IsEnumeration, IsConstString,
                         IsError, IsAModula2Type,
                         GetSym, GetDeclareSym, IsUnknown, RenameSym,
@@ -86,6 +87,7 @@ FROM SymbolTable IMPORT NulSym,
                         PutProcTypeVarParam, PutProcTypeParam,
                         MakeConstVar,
                         PutVariableAtAddress, IsVariableAtAddress,
+                        GetAlignment, PutAlignment,
                         MakeUnbounded, IsUnbounded,
                         NoOfParam,
                         PutParamName,
@@ -756,6 +758,85 @@ BEGIN
    PushT(name) ;
    PushT(Type)
 END BuildSubrange ;
+
+
+(*
+   BuildAligned - builds an alignment constant symbol which is placed onto
+                  the stack.  It expects the ident ALIGNED to be on the
+                  stack.
+
+                         Stack
+
+                           Entry                 Exit
+
+
+                  Ptr ->                                            <- Ptr
+                         +------------+        +-----------------+
+                         | ALIGNED    |        | AlignmentConst  |
+                         +------------+        |-----------------|
+*)
+
+PROCEDURE BuildAligned ;
+VAR
+   name : Name ;
+   align: CARDINAL ;
+BEGIN
+   PopT(name) ;
+   IF name#MakeKey('ALIGNED')
+   THEN
+      WriteFormat1('expecting ALIGNED identifier, rather than %a', name)
+   END ;
+   align := MakeTemporary(ImmediateValue) ;
+   PutConst(align, ZType) ;
+   PutConstIntoFifoQueue(align) ;     (* Store align away so that we can fill in its  *)
+   PushT(align)                       (* value during pass 3.                         *)
+END BuildAligned ;
+
+
+(*
+   BuildTypeAlignment - the AlignmentConst is either a temporary or NulSym.
+                        In the case of NulSym it is popped from the stack
+                        and the procedure returns.  Otherwise the temporary
+                        is popped and recorded as the alignment value for this
+                        type.  A type may only have one alignment value and
+                        error checking is performed.
+
+                        Stack
+
+                            Entry                 Exit
+
+
+                    Ptr ->
+                           +-----------------+
+                           | AlignmentConst  |                            <- Ptr
+                           |-----------------|        +-----------------+
+                           | Type            |        | Type            |
+                           |-----------------|        |-----------------|
+*)
+
+PROCEDURE BuildTypeAlignment ;
+VAR
+   type,
+   align: CARDINAL ;
+BEGIN
+   PopT(align) ;
+   IF align#NulSym
+   THEN
+      PopT(type) ;
+      IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
+      THEN
+         IF GetAlignment(type)=NulSym
+         THEN
+            PutAlignment(type, align)
+         ELSE
+            MetaErrors2('type {%1Dad} may only have one alignment value',
+                        'duplicate alignment value seen in type {%1ad}',
+                        type, type)
+         END ;
+         PushT(type)
+      END
+   END
+END BuildTypeAlignment ;
 
 
 (*

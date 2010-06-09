@@ -179,6 +179,7 @@ TYPE
                                               (* SymVarients                 *)
                                               (* declared by the source      *)
                                               (* file.                       *)
+                  Align        : CARDINAL ;   (* The alignment of this type  *)
                   oafamily     : CARDINAL ;   (* The oafamily for this sym   *)
                   Parent       : CARDINAL ;   (* Points to the parent symbol *)
                   Scope        : CARDINAL ;   (* Scope of declaration.       *)
@@ -219,6 +220,7 @@ TYPE
                  Size        : PtrToValue ;   (* Size at runtime of symbol.  *)
                  Offset      : PtrToValue ;   (* Offset at runtime of symbol *)
                  Type        : CARDINAL ;     (* Type of the Array.          *)
+                 Align       : CARDINAL ;     (* Alignment for this type.    *)
                  oafamily    : CARDINAL ;     (* The oafamily for this sym   *)
                  Scope       : CARDINAL ;     (* Scope of declaration.       *)
                  At          : Where ;        (* Where was sym declared/used *)
@@ -423,6 +425,7 @@ TYPE
                 IsHidden : BOOLEAN ;          (* Was it declared as hidden?  *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
                 oafamily : CARDINAL ;         (* The oafamily for this sym   *)
+                Align    : CARDINAL ;         (* The alignment of this type  *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -433,6 +436,7 @@ TYPE
                                               (* of pointer.                 *)
                 Type     : CARDINAL ;         (* Index to a type symbol.     *)
                 Size     : PtrToValue ;       (* Runtime size of symbol.     *)
+                Align    : CARDINAL ;         (* The alignment of this type  *)
                 oafamily : CARDINAL ;         (* The oafamily for this sym   *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
@@ -454,6 +458,7 @@ TYPE
                 Varient  : CARDINAL ;         (* Index into symbol table to  *)
                                               (* determine the associated    *)
                                               (* varient symbol.             *)
+                Align    : CARDINAL ;         (* The alignment of this type  *)
                 Scope    : CARDINAL ;         (* Scope of declaration.       *)
                 At       : Where ;            (* Where was sym declared/used *)
              END ;
@@ -2993,6 +2998,7 @@ BEGIN
             InitList(ListOfSons) ;   (* List of RecordFieldSym and VarientSym *)
             oafamily := oaf ;
             Parent := NulSym ;
+            Align := NulSym ;
             Scope := scope ;
             InitWhereDeclared(At)
          END
@@ -3168,6 +3174,7 @@ BEGIN
             Type := NulSym ;          (* Index to a type symbol.     *)
             IsHidden := FALSE ;       (* Was it declared as hidden?  *)
             Size := InitValue() ;     (* Runtime size of symbol.     *)
+            Align := NulSym ;         (* Alignment of this type.     *)
             oafamily := oaf ;         (* The open array family.      *)
             Scope := GetCurrentScope() ;   (* Which scope created it *)
             InitWhereDeclared(At)     (* Declared here               *)
@@ -4384,6 +4391,7 @@ BEGIN
          Tag := FALSE ;
          Parent := Sym ;
          Varient := VarSym ;
+         Align := NulSym ;
          Size := InitValue() ;
          Offset := InitValue()
       END
@@ -7633,8 +7641,9 @@ BEGIN
          PointerSym: Pointer.Type := NulSym ;
                      Pointer.name := PointerName ;
                      Pointer.oafamily := oaf ;       (* The unbounded for this *)
-                     Pointer.Scope := scope ;               (* Which scope created it *)
-                     Pointer.Size := InitValue()
+                     Pointer.Scope := scope ;        (* Which scope created it *)
+                     Pointer.Size := InitValue() ;
+                     Pointer.Align := NulSym ;       (* Alignment of this type *)
 
          ELSE
             InternalError('expecting a Pointer symbol', __FILE__, __LINE__)
@@ -10351,6 +10360,52 @@ BEGIN
       END
    END
 END PopSumOfParamSize ;
+
+
+(*
+   PutAlignment - assigns the alignment constant associated with,
+                  type, with, align.
+*)
+
+PROCEDURE PutAlignment (type: CARDINAL; align: CARDINAL) ;
+BEGIN
+   WITH Symbols[type] DO
+      CASE SymbolType OF
+
+      RecordSym     :  Record.Align := align |
+      RecordFieldSym:  RecordField.Align := align |
+      TypeSym       :  Type.Align := align |
+      ArraySym      :  Array.Align := align |
+      PointerSym    :  Pointer.Align := align
+
+      ELSE
+         InternalError('expecting record, field, pointer, type or an array symbol', __FILE__, __LINE__)
+      END
+   END
+END PutAlignment ;
+
+
+(*
+   GetAlignment - returns the alignment constant associated with,
+                  type.
+*)
+
+PROCEDURE GetAlignment (type: CARDINAL) : CARDINAL ;
+BEGIN
+   WITH Symbols[type] DO
+      CASE SymbolType OF
+
+      RecordSym     :  RETURN( Record.Align ) |
+      RecordFieldSym:  RETURN( RecordField.Align ) |
+      TypeSym       :  RETURN( Type.Align ) |
+      ArraySym      :  RETURN( Array.Align ) |
+      PointerSym    :  RETURN( Pointer.Align )
+
+      ELSE
+         InternalError('expecting record, field, pointer, type or an array symbol', __FILE__, __LINE__)
+      END
+   END
+END GetAlignment ;
 
 
 BEGIN

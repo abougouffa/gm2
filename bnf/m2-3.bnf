@@ -84,7 +84,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildSetStart, BuildSetEnd,
                     BuildLineNo, PushLineNo, BuildSizeCheckStart,
                     BuildBuiltinConst, BuildBuiltinTypeInfo,
-                    BuildAssignment,
+                    BuildAssignment, BuildAlignment,
                     BuildRepeat, BuildUntil,
                     BuildWhile, BuildDoWhile, BuildEndWhile,
                     BuildLoop, BuildExit, BuildEndLoop,
@@ -744,7 +744,10 @@ Element := ConstExpression ( ".." ConstExpression                          % Bui
                              |                                             % BuildInclBit (* epsilon *) %
                            ) =:
 
-Alignment := [ "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")" ")" ")" ]
+Alignment := [ "__ATTRIBUTE__" "(" "("                                     % PushAutoOn %
+                                       Ident "(" ConstExpression ")"       % BuildAlignment %
+                                                                           % PopAuto %
+               ")" ")" ]
            =:
 
 TypeDeclaration := Ident "=" Type Alignment
