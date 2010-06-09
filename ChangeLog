@@ -1,5 +1,6 @@
 2010-06-08       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2.texi:  corrected prev field.
 	* gm2/gm2.texi:  corrected next field.
 	* gm2/gm2.texi:  data alignment content now has its own section.
 	* gm2/bnf/m2-h.bnf:  Alignment rule is the same as pass 3.

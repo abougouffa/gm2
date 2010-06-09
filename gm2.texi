@@ -2107,7 +2107,7 @@ BEGIN
 END align2.
 @end example
 
-@node Built-ins, The PIM system module, Assembly language, Using
+@node Built-ins, The PIM system module, Alignment, Using
 @section Accessing GNU Modula-2 Built-ins
 
 This section describes the built-in constants and functions defined in
