@@ -11181,7 +11181,10 @@ BEGIN
    WITH f^ DO
       TrueExit := Des ;  (* alter Stack(i) to contain the variable *)
       FalseExit := Boolean ;
-      BooleanOp := FALSE (* no longer a Boolean True|False pair    *)
+      BooleanOp := FALSE ; (* no longer a Boolean True|False pair    *)
+      Unbounded := NulSym ;
+      Dimension := 0 ;
+      ReadWrite := NulSym
    END
 END ConvertBooleanToVariable ;
 
