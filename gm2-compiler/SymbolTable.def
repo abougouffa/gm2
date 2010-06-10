@@ -210,6 +210,7 @@ EXPORT QUALIFIED NulSym,
                  IsComposite,
 
                  IsReallyPointer,
+                 IsLegal,
 
                  IsProcedureReachable,
                  IsProcedureVariable,
@@ -2713,6 +2714,13 @@ PROCEDURE MakeError (name: Name) : CARDINAL ;
 *)
 
 PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsLegal - returns TRUE if, sym, is a legal symbol.
+*)
+
+PROCEDURE IsLegal (sym: CARDINAL) : BOOLEAN ;
 
 
 (*

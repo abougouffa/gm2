@@ -10408,6 +10408,16 @@ BEGIN
 END GetAlignment ;
 
 
+(*
+   IsLegal - returns TRUE if, sym, is a legal symbol.
+*)
+
+PROCEDURE IsLegal (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN( (sym>=0) AND (sym<FreeSymbol) )
+END IsLegal ;
+
+
 BEGIN
    Init
 END SymbolTable.

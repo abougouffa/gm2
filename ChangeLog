@@ -1,4 +1,16 @@
-2010-06-08       Gaius Mulley <gaius@gnu.org>
+2010-06-10       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-2.bnf:  test bug fix for field alignment.
+	* gm2/gm2-compiler/M2Quads.mod:  import IsLegal and
+	  create asserts when OperandMergeRW is used.  An attempt
+	  at laying a trap to catch the bug exposed on the MacOS X
+	  platform.
+	* gm2/gm2-compiler/P2SymBuild.def:  add alignment to the
+	  BuildFieldRecord.
+	* gm2/gm2-compiler/SymbolTable.def:  define and export IsLegal.
+	* gm2/gm2-compiler/SymbolTable.mod:  implement IsLegal.
+
+2010-06-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gccgm2.def:  renamed BuildAlignment to
 	  SetAlignment.

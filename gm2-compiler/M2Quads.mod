@@ -66,7 +66,7 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
                         PutPriority, GetPriority,
                         IsVarParam, IsProcedure, IsPointer, IsParameter,
                         IsUnboundedParam, IsEnumeration, IsDefinitionForC,
-                        IsVarAParam, IsVarient,
+                        IsVarAParam, IsVarient, IsLegal,
                         UsesVarArgs, UsesOptArg,
                         GetOptArgInit,
                         IsReturnOptional,
@@ -5267,6 +5267,7 @@ BEGIN
    WHILE i<=NoOfParameters DO
       f := PeepAddress(BoolStack, pi) ;
       rw := OperandMergeRW(pi) ;
+      Assert(IsLegal(rw)) ;
       IF i>NoOfParam(Proc)
       THEN
          IF IsForC AND UsesVarArgs(Proc)
@@ -8680,7 +8681,8 @@ BEGIN
          ELSE
             GenQuad(AddrOp, ReturnVar, NulSym, OperandT(1))
          END ;
-         rw := OperandMergeRW(1)
+         rw := OperandMergeRW(1) ;
+         Assert(IsLegal(rw))
       END ;
       PopN(NoOfParam+1) ;    (* destroy the arguments and function *)
       PushTFrw(ReturnVar, GetType(ReturnVar), rw)
@@ -9623,6 +9625,7 @@ BEGIN
    Sym  := OperandT(n+1) ;
    Type := OperandF(n+1) ;
    rw   := OperandMergeRW(n+1) ;
+   Assert(IsLegal(rw)) ;
    (* adr will be Address type *)
    adr := MakeLeftValue(Sym, RightValue, Address) ;
    (* No type for t1 since constant *)
@@ -9734,6 +9737,7 @@ BEGIN
    Array  := OperandT(2) ;
    Type := SkipType(OperandF(2)) ;
    rw := OperandMergeRW(2) ;
+   Assert(IsLegal(rw)) ;
    Dim := OperandD(2) ;
    INC(Dim) ;
    IF GetMode(Index)=LeftValue
@@ -9832,6 +9836,7 @@ BEGIN
    Type := SkipType(OperandF(2)) ;
    Dim := OperandD(2) ;
    rw := OperandMergeRW(2) ;
+   Assert(IsLegal(rw)) ;
    INC(Dim) ;
    IF Dim=1
    THEN

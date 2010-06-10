@@ -848,6 +848,8 @@ PROCEDURE BuildRecord ;
 
                Ptr ->
                       +-------------+
+                      | Alignment   |
+                      |-------------|
                       | Type | Name |
                       |-------------|
                       | n           |

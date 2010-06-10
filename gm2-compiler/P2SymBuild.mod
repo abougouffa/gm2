@@ -1931,6 +1931,8 @@ END BuildRecord ;
 
                Ptr ->
                       +-------------+
+                      | Alignment   |
+                      |-------------|
                       | Type | Name |
                       |-------------|
                       | n           |
@@ -1953,6 +1955,7 @@ PROCEDURE BuildFieldRecord ;
 VAR
    name,
    n1, n2    : Name ;
+   align,
    fsym,
    Field,
    Varient,
@@ -1962,6 +1965,7 @@ VAR
    Record,
    Ptr, i    : CARDINAL ;
 BEGIN
+   PopT(align) ;
    PopTF(Type, name) ;
    PopT(NoOfFields) ;
    Record := OperandT(NoOfFields+1) ;
@@ -2000,7 +2004,11 @@ BEGIN
       fsym := GetLocalSym(Parent, OperandT(NoOfFields+1-i)) ;
       IF fsym=NulSym
       THEN
-         Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient)
+         Field := PutFieldRecord(Record, OperandT(NoOfFields+1-i), Type, Varient) ;
+         IF align#NulSym
+         THEN
+            PutAlignment(Field, align)
+         END
       ELSE
          MetaErrors2('record field {%1ad} has already been declared inside a {%2Dd} {%2a}',
                      'attempting to declare a duplicate record field', fsym, Parent)

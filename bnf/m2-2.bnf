@@ -750,8 +750,7 @@ FieldListStatement := [ FieldList ] =:
 -- symbols. We rewrite FieldList to inline qualident
 
 FieldList := IdentList ":"                                                 % BuildNulName %
-                           Type                                            % BuildFieldRecord %
-                           Alignment                                       % BuildTypeAlignment %
+                           Type Alignment                                  % BuildFieldRecord %
              |
              "CASE"                                                        % AddRecordToList %
                                                                            % StartBuildVarient %
