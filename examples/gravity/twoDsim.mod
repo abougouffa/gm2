@@ -442,7 +442,8 @@ END replayRate ;
 
 PROCEDURE getColour (i: CARDINAL; e: eventQueue) : Colour ;
 VAR
-   p: eventProc ;
+   p   : eventProc ;
+   optr: Object ;
 BEGIN
    p := debugFrame ;
    IF (i=e^.id1) OR (i=e^.id2)
@@ -454,7 +455,26 @@ BEGIN
          RETURN red
       END
    ELSE
-      RETURN black
+      optr := GetIndice(objects, i) ;
+      WITH optr^ DO
+         CASE object OF
+
+         polygonOb:  IF optr^.fixed
+                     THEN
+                        RETURN black
+                     ELSE
+                        RETURN yellow
+                     END |
+         circleOb:   IF optr^.fixed
+                     THEN
+                        RETURN green
+                     ELSE
+                        RETURN brown
+                     END
+         ELSE
+            RETURN black
+         END
+      END
    END
 END getColour ;
 

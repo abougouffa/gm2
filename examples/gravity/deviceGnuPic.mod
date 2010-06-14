@@ -28,6 +28,7 @@ FROM RealIO IMPORT WriteFixed ;
 
 CONST
    Debugging = FALSE ;
+   Exec      = FALSE ;
    Height    = 5.0 ;
    Width     = Height ;
    Header    = 1.0 ;
@@ -54,6 +55,8 @@ BEGIN
    WriteString(f, '.defcolor red rgb 0.65f 0.1f 0.2f') ; WriteLn(f) ;
    WriteString(f, '.defcolor green rgb 0.1f 0.4f 0.2f') ; WriteLn(f) ;
    WriteString(f, '.defcolor blue rgb 0.1f 0.2f 0.6f') ; WriteLn(f) ;
+   WriteString(f, '.defcolor brown rgb 0.6f 0.33f 0.2f') ; WriteLn(f) ;
+   WriteString(f, '.defcolor yellow rgb 1.0f 0.88f 0.0f') ; WriteLn(f) ;
    WriteString(f, '.nop \&') ; WriteLn(f)
 END newFrame ;
 
@@ -87,28 +90,31 @@ VAR
    s: String ;
 BEGIN
    Close(f) ;
-   s := Sprintf2(InitString('groff -ms %s > f%06d.ps'),
-                 filename, frameNo) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
-   s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -dGraphicsAlphaBits=4 -q -dBATCH f%06d.ps > /dev/null 2>&1'),
-                 frameNo, frameNo) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
-   s := Sprintf2(InitString('pnmcrop -quiet < t%06d.pnm | pnmtopng > e%06d.png 2> /dev/null'),
-                 frameNo, frameNo) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
+   IF Exec
+   THEN
+      s := Sprintf2(InitString('groff -ms %s > f%06d.ps'),
+                    filename, frameNo) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
+      s := Sprintf2(InitString('gs -dNOPAUSE -sDEVICE=pnmraw -sOutputFile=t%06d.pnm -dGraphicsAlphaBits=4 -q -dBATCH f%06d.ps > /dev/null 2>&1'),
+                    frameNo, frameNo) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
+      s := Sprintf2(InitString('pnmcrop -quiet < t%06d.pnm | pnmtopng > e%06d.png 2> /dev/null'),
+                    frameNo, frameNo) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
 
-   s := Sprintf2(InitString('convert e%06d.png -type truecolor f%06d.png 2> /dev/null'),
-                 frameNo, frameNo) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
-   s := Sprintf3(InitString('rm t%06d.pnm f%06d.ps e%06d.png'),
-                 frameNo, frameNo, frameNo) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
-   filename := KillString(filename)
+      s := Sprintf2(InitString('convert e%06d.png -type truecolor f%06d.png 2> /dev/null'),
+                    frameNo, frameNo) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
+      s := Sprintf3(InitString('rm t%06d.pnm f%06d.ps e%06d.png'),
+                    frameNo, frameNo, frameNo) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
+      filename := KillString(filename)
+   END
 END renderFrame ;
 
 
@@ -123,7 +129,9 @@ BEGIN
    black:  WriteString(f, '\M[default]') |
    red  :  WriteString(f, '\M[red]') |
    blue :  WriteString(f, '\M[blue]') |
-   green:  WriteString(f, '\M[green]')
+   green:  WriteString(f, '\M[green]') |
+   brown:  WriteString(f, '\M[brown]') |
+   yellow: WriteString(f, '\M[yellow]')
 
    END
 END WriteColour ;
@@ -174,15 +182,18 @@ PROCEDURE produceAVI (fps: CARDINAL) ;
 VAR
    s: String ;
 BEGIN
-   s := Sprintf1(InitString('mencoder "mf://f*.png" -mf w=800:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o movie.avi'),
-                 fps) ;
-   debugSystem(s) ;
-   s := KillString(s) ;
-   (*
-   s := InitString('rm -f *.pnm *.png f*.ms') ;
-   debugSystem(s) ;
-   s := KillString(s)
-   *)
+   IF Exec
+   THEN
+      s := Sprintf1(InitString('mencoder "mf://f*.png" -mf w=800:h=600:fps=%d:type=png -ovc lavc -lavcopts vcodec=mpeg4 -oac copy -o movie.avi'),
+                    fps) ;
+      debugSystem(s) ;
+      s := KillString(s) ;
+      (*
+       s := InitString('rm -f *.pnm *.png f*.ms') ;
+       debugSystem(s) ;
+       s := KillString(s)
+      *)
+   END
 END produceAVI ;
 
 

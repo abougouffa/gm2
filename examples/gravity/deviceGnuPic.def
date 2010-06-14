@@ -31,7 +31,7 @@ TYPE
               x, y: REAL ;
            END ;
 
-   Colour = (black, red, blue, green) ;
+   Colour = (black, red, blue, green, brown, yellow) ;
 
 
 (*
