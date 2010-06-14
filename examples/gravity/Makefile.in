@@ -29,6 +29,7 @@ pre-install: clean
 	$(XGM2) -fiso -I$(SRC_PATH_SO) -fobject-path=$(OBJ_PATH_SO) -fPIC -fshared -shared \
             $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
 	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
+	$(SHELL) $(srcdir)/produce-avi
 
 post-install: clean
 	gm2 $(GM2FLAGS) -fiso -I$(srcdir) -c $(srcdir)/deviceGnuPic.mod
@@ -39,6 +40,7 @@ post-install: clean
 	gm2 -fiso -I$(srcdir) -fPIC -fshared -shared \
             $(srcdir)/twoDsim.mod twoDsim_wrap.o -o _twoDsim.so
 	PYTHONPATH=`pwd` python $(srcdir)/testsim.py
+	$(SHELL) $(srcdir)/produce-avi
 
 pre-install-static: clean
 	$(XGM2) $(GM2FLAGS) -fiso -I$(SRC_PATH) -c $(srcdir)/deviceGnuPic.mod
