@@ -12634,7 +12634,7 @@ gccgm2_SetAlignment (tree type, tree align)
     error ("requested alignment is too large");
   else if (is_type)
     {
-#if 0
+#if 1
       /* If we have a TYPE_DECL, then copy the type, so that we
 	 don't accidentally modify a builtin type.  See pushdecl.  */
       if (decl && TREE_TYPE (decl) != error_mark_node
@@ -12648,7 +12648,6 @@ gccgm2_SetAlignment (tree type, tree align)
 	  TREE_TYPE (decl) = type;
 	}
 #endif
-
       TYPE_ALIGN (type) = (1 << i) * BITS_PER_UNIT;
       TYPE_USER_ALIGN (type) = 1;
     }

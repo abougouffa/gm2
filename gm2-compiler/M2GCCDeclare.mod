@@ -2990,6 +2990,25 @@ END PrintDeclared ;
 
 
 (*
+   PrintAlignment - 
+*)
+
+PROCEDURE PrintAlignment (sym: CARDINAL) ;
+VAR
+   align: CARDINAL ;
+BEGIN
+   IF IsRecord(sym) OR IsType(sym) OR IsRecordField(sym) OR IsPointer(sym) OR IsArray(sym)
+   THEN
+      align := GetAlignment(sym) ;
+      IF align#NulSym
+      THEN
+         printf1(" aligned [%d]", align)
+      END
+   END
+END PrintAlignment ;
+
+
+(*
    IncludeGetParent - 
 *)
 
@@ -3046,7 +3065,8 @@ BEGIN
    ELSIF IsType(sym)
    THEN
       printf2('sym %d IsType (%a)', sym, n) ;
-      IncludeType(l, sym)
+      IncludeType(l, sym) ;
+      PrintAlignment(sym)
    ELSIF IsProcedure(sym)
    THEN
       printf2('sym %d IsProcedure (%a)', sym, n);
@@ -3070,12 +3090,14 @@ BEGIN
    ELSIF IsPointer(sym)
    THEN
       printf2('sym %d IsPointer (%a)', sym, n) ;
-      IncludeType(l, sym)
+      IncludeType(l, sym) ;
+      PrintAlignment(sym)
    ELSIF IsRecord(sym)
    THEN
       printf2('sym %d IsRecord (%a)', sym, n) ;
       PrintLocalSymbols(sym) ;
-      IncludeGetNth(l, sym)
+      IncludeGetNth(l, sym) ;
+      PrintAlignment(sym)
    ELSIF IsVarient(sym)
    THEN
       printf2('sym %d IsVarient (%a)', sym, n) ;
@@ -3095,7 +3117,8 @@ BEGIN
    THEN
       printf2('sym %d IsArray (%a)', sym, n) ;
       IncludeSubscript(l, sym) ;
-      IncludeType(l, sym)
+      IncludeType(l, sym) ;
+      PrintAlignment(sym)
    ELSIF IsEnumeration(sym)
    THEN
       printf2('sym %d IsEnumeration (%a)', sym, n)
@@ -3120,7 +3143,8 @@ BEGIN
       END ;
       IncludeType(l, sym) ;
       IncludeGetVarient(l, sym) ;
-      IncludeGetParent(l, sym)
+      IncludeGetParent(l, sym) ;
+      PrintAlignment(sym)
    ELSIF IsProcType(sym)
    THEN
       printf2('sym %d IsProcType (%a)', sym, n)

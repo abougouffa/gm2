@@ -816,6 +816,7 @@ END BuildAligned ;
 
 PROCEDURE BuildTypeAlignment ;
 VAR
+   new,
    type,
    align: CARDINAL ;
 BEGIN
@@ -825,14 +826,13 @@ BEGIN
       PopT(type) ;
       IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
       THEN
-         IF GetAlignment(type)=NulSym
-         THEN
-            PutAlignment(type, align)
-         ELSE
-            MetaErrors2('type {%1Dad} may only have one alignment value',
-                        'duplicate alignment value seen in type {%1ad}',
-                        type, type)
-         END ;
+         (* create a pseudonym *)
+         new := MakeType(CheckAnonymous(NulName)) ;
+         PutType(new, type) ;
+         PutAlignment(new, align) ;
+         PushT(new)
+      ELSE
+         MetaError1('not allowed to add an alignment attribute to type {%1ad}', type) ;
          PushT(type)
       END
    END

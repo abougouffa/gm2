@@ -1,3 +1,15 @@
+2010-06-14       Gaius Mulley <gaius@gnu.org>
+
+	* testsuite/gm2/extensions/run/pass/align6.mod:  fixes
+	  below allow this test to pass.
+	* gm2/bnf/m2-2.bnf:  fixed comments and dates.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  (New function)
+	  PrintAlignment.
+	* gm2/gm2-compiler/P2SymBuild.mod:  create pseudonym
+	  for a type so that other instances of the type are
+	  not also aligned.
+	* gm2/gccgm2.c:  enable type copying code.
+
 2010-06-10       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  bug fix so that it builds
