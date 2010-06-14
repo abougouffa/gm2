@@ -29,7 +29,7 @@ TYPE
 VAR
    r: rec ;
 BEGIN
-   IF ADR(r.x)-ADR(r.y)=1024
+   IF ADR(r.y) MOD 1024=0
    THEN
       exit(0)
    ELSE

@@ -25,7 +25,7 @@ VAR
    x: CHAR ;
    y: CHAR  __ATTRIBUTE__ ((ALIGNED(1024))) ;
 BEGIN
-   IF ADR(x)-ADR(y)=1024
+   IF ADR(y) MOD 1024=0
    THEN
       exit(0)
    ELSE
