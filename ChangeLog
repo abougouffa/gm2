@@ -1,5 +1,11 @@
 2010-06-15       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/bnf/m2.bnf:  removed the Alignment non-terminal from
+	  ArrayType and PointerType.
+	* gm2/bnf/m2-3.bnf:  removed the Alignment non-terminal from
+	  ArrayType and PointerType.
+	* gm2/bnf/m2-h.bnf:  removed the Alignment non-terminal from
+	  ArrayType and PointerType.
 	* gm2/gccgm2.c:  new implementation of gccgm2_SetAlignment.
 	* gm2/gm2/gm2.texi:  more alignment examples.
 	* gm2/bnf/m2-2.bnf:  removed redundant grammar sentances around

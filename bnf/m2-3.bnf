@@ -797,7 +797,7 @@ ArrayType := "ARRAY"
               { "," 
                 SimpleType
               } "OF"
-             Type Alignment
+             Type
            =:
 
 RecordType := "RECORD"
@@ -901,7 +901,7 @@ SilentExpList := SilentConstExpression { "," SilentConstExpression } =:
 SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
 
 PointerType := "POINTER" "TO"
-                              Type Alignment
+                              Type
              =:
 
 ProcedureType := "PROCEDURE"

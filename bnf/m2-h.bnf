@@ -773,7 +773,7 @@ ArrayType := "ARRAY"
               { "," 
                 SimpleType
               } "OF"
-             Type Alignment
+             Type
            =:
 
 RecordType := "RECORD"
@@ -904,8 +904,7 @@ SilentFactor := Number | string | SilentSetOrDesignatorOrFunction |
 
 SetType := ( "SET" | "PACKEDSET" ) "OF" SimpleType =:
 
-PointerType := "POINTER" "TO"
-                              Type Alignment
+PointerType := "POINTER" "TO" Type
              =:
 
 ProcedureType := "PROCEDURE"
@@ -946,8 +945,7 @@ VarIdentList := VarIdent                                                   % VAR
                                                                              END %
              =:
 
-VariableDeclaration := VarIdentList ":"
-                       Type Alignment
+VariableDeclaration := VarIdentList ":" Type Alignment
                     =:
 
 Designator := Qualident

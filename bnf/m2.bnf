@@ -706,7 +706,7 @@ PossiblyExportIdentList := PossiblyExportIdent                             % VAR
 SubrangeType := "[" ConstExpression ".." ConstExpression "]" =:
 
 ArrayType := "ARRAY" SimpleType { "," SimpleType } "OF"                    % BuildNulName %
-             Type Alignment =:
+             Type =:
 
 RecordType := "RECORD" FieldListSequence "END" =:
 
@@ -751,7 +751,7 @@ SetType :=                                                                 % VAR
          =:
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %
-                              Type Alignment =:
+                              Type =:
 
 ProcedureType := "PROCEDURE" [ FormalTypeList ] =:
 
