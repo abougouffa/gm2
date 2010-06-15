@@ -1131,6 +1131,10 @@ VAR
    s  : String ;
    Sym: CARDINAL ;
 BEGIN
+   IF name=MakeKey('foo')
+   THEN
+      stop
+   END ;
    IF name=NulName
    THEN
       NewSym(Sym)

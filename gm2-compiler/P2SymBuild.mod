@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -47,7 +48,7 @@ FROM SymbolTable IMPORT NulSym,
                         IsDeclaredIn,
                         SetCurrentModule, SetFileModule,
                         GetCurrentModule, GetMainModule,
-                        MakeTemporary, CheckAnonymous,
+                        MakeTemporary, CheckAnonymous, IsNameAnonymous,
                         MakeConstLit,
                         MakeConstLitString,
                         MakeEnumeration, MakeSubrange,
@@ -146,6 +147,7 @@ TYPE
    constType = (unknown, set, str, constructor, array, cast) ;
 
 VAR
+   alignTypeNo       : CARDINAL ;
    castType          : CARDINAL ;
    type              : constType ;
    RememberedConstant: CARDINAL ;
@@ -808,17 +810,57 @@ END BuildAligned ;
 
                     Ptr ->
                            +-----------------+
-                           | AlignmentConst  |                            <- Ptr
-                           |-----------------|        +-----------------+
-                           | Type            |        | Type            |
-                           |-----------------|        |-----------------|
+                           | AlignmentConst  |
+                           |-----------------|
+                           | Type            |    Empty
+                           |-----------------|
 *)
 
 PROCEDURE BuildTypeAlignment ;
 VAR
-   new,
    type,
    align: CARDINAL ;
+BEGIN
+   PopT(align) ;
+   PopT(type) ;
+   IF align#NulSym
+   THEN
+      IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
+      THEN
+         PutAlignment(type, align)
+      ELSE
+         MetaError1('not allowed to add an alignment attribute to type {%1ad}', type)
+      END
+   END
+END BuildTypeAlignment ;
+
+
+(*
+   BuildVarAlignment - the AlignmentConst is either a temporary or NulSym.
+                       A type may only have one alignment value and
+                       error checking is performed.
+
+                       Stack
+
+                           Entry                 Exit
+
+
+                   Ptr ->
+                          +-----------------+
+                          | AlignmentConst  |                             <- Ptr
+                          |-----------------|        +------------------+
+                          | Type            |        | Type  | TypeName |
+                          |-----------------|        |------------------|
+*)
+
+PROCEDURE BuildVarAlignment ;
+VAR
+   name,
+   newname: Name ;
+   new,
+   type,
+   align  : CARDINAL ;
+   s      : String ;
 BEGIN
    PopT(align) ;
    IF align#NulSym
@@ -826,17 +868,33 @@ BEGIN
       PopT(type) ;
       IF IsRecord(type) OR IsRecordField(type) OR IsType(type) OR IsArray(type) OR IsPointer(type)
       THEN
-         (* create a pseudonym *)
-         new := MakeType(CheckAnonymous(NulName)) ;
-         PutType(new, type) ;
-         PutAlignment(new, align) ;
-         PushT(new)
+         stop ;
+         IF IsNameAnonymous(type)
+         THEN
+            PutAlignment(type, align) ;
+            PushTF(type, GetSymName(type))
+         ELSE
+            (* create a pseudonym *)
+            s := Sprintf1(Mark(InitString('_$A%d')), alignTypeNo) ;
+            INC(alignTypeNo) ;
+            newname := makekey(string(s)) ;
+            IF IsPointer(type)
+            THEN
+               new := MakePointer(newname)
+            ELSE
+               new := MakeType(newname)
+            END ;
+            s := KillString(s) ;
+            PutType(new, type) ;
+            PutAlignment(new, align) ;
+            PushTF(new, GetSymName(new))
+         END
       ELSE
          MetaError1('not allowed to add an alignment attribute to type {%1ad}', type) ;
-         PushT(type)
+         PushTF(type, GetSymName(type))
       END
    END
-END BuildTypeAlignment ;
+END BuildVarAlignment ;
 
 
 (*
@@ -952,6 +1010,7 @@ BEGIN
              ^
              |
              +---- type has no name.
+
       *)
       (* WriteString('Blank name type') ; WriteLn ; *)
       PushTF(Type, name)
@@ -1020,10 +1079,6 @@ BEGIN
    PopT(name) ;
    PushT(name) ;  (* name saved for the EndBuildProcedure name check *)
    ProcSym := GetDeclareSym(name) ;
-   IF MakeKey('ORDL')=name
-   THEN
-      stop
-   END ;
    IF IsUnknown(ProcSym)
    THEN
       (*
@@ -2684,5 +2739,6 @@ END RememberConstant ;
 BEGIN
    TypeStack := InitStackWord() ;
    RememberStack := InitStackWord() ;
-   castType := NulSym
+   castType := NulSym ;
+   alignTypeNo := 0
 END P2SymBuild.

@@ -1543,9 +1543,11 @@ PROCEDURE SetLastFunction (t: Tree) ;
 
 (*
    SetAlignment - sets the alignment of a, type, to, align.
+                  It duplicates the, type, and sets the alignment
+                  to prevent alignment effecting behaviour elsewhere.
 *)
 
-PROCEDURE SetAlignment (type: Tree; align: Tree) ;
+PROCEDURE SetAlignment (type: Tree; align: Tree) : Tree ;
 
 
 END gccgm2.

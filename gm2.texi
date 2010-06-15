@@ -2080,7 +2080,8 @@ Alignment := [ "__ATTRIBUTE__" "(" "(" ALIGNED "(" ConstExpression ")" ")" ")" ]
 
 The @code{Alignment} ebnf statement may be used during contruction of
 types, records, record fields, arrays, pointers and variables.  Below
-is an example of aligning a type.
+is an example of aligning a type so that the variable @code{bar} is
+aligned on a 1024 address.
 
 @example
 MODULE align ;
@@ -2102,9 +2103,82 @@ MODULE align2 ;
 
 VAR
    x  : CHAR ;
-   z  : ARRAY [0..255] OF INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : ARRAY [0..255] OF INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
 BEGIN
 END align2.
+@end example
+
+Here the example aligns a pointer on a 1024 byte boundary.
+
+@example
+MODULE align4 ;
+
+FROM SYSTEM IMPORT ADR ;
+FROM libc IMPORT exit ;
+
+VAR
+   x  : CHAR ;
+   z  : POINTER TO INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+BEGIN
+   IF ADR(z) MOD 1024=0
+   THEN
+      exit(0)
+   ELSE
+      exit(1)
+   END
+END align4.
+@end example
+
+In example @code{align5} record field @code{y} is aligned on a 1024
+byte boundary.
+
+@example
+MODULE align5 ;
+
+FROM SYSTEM IMPORT ADR ;
+FROM libc IMPORT exit ;
+
+TYPE
+   rec = RECORD
+            x: CHAR ;
+            y: CHAR  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+         END ;
+VAR
+   r: rec ;
+BEGIN
+   IF ADR(r.y) MOD 1024=0
+   THEN
+      exit(0)
+   ELSE
+      exit(1)
+   END
+END align5.
+@end example
+
+In the example below module @code{align6} declares @code{foo} as an
+array of 256 @code{INTEGER}s.  The array @code{foo} is aligned on a
+1024 byte boundary.
+
+@example
+MODULE align6 ;
+
+FROM SYSTEM IMPORT ADR ;
+FROM libc IMPORT exit ;
+
+TYPE
+   foo = ARRAY [0..255] OF INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
+
+VAR
+   x  : CHAR ;
+   z  : foo ;
+BEGIN
+   IF ADR(z) MOD 1024=0
+   THEN
+      exit(0)
+   ELSE
+      exit(1)
+   END
+END align6.
 @end example
 
 @node Built-ins, The PIM system module, Alignment, Using

@@ -106,7 +106,8 @@ FROM P2SymBuild IMPORT P2StartBuildProgramModule,
                        StartBuildArray,
                        EndBuildArray,
                        BuildFieldArray, BuildArrayComma,
-                       BuildSubrange, BuildAligned, BuildTypeAlignment,
+                       BuildSubrange, BuildAligned,
+                       BuildTypeAlignment, BuildVarAlignment,
                        BuildSetType,
                        BuildFormalType, BuildFunction, BuildProcedureType,
                        DetermineType, PushType, PopType,
@@ -672,10 +673,9 @@ doAlignment :=  "__ATTRIBUTE__" "(" "(" Ident "(" ConstExpression ")"      % Bui
 Alignment :=  doAlignment |                                                % PushT(NulSym) %
            =:
 
-TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeAlignment ;
-                                                                             BuildTypeEnd %
+TypeDeclaration := Ident "=" Type Alignment                                % BuildTypeAlignment %
                  =:							   
-									   
+
 Type :=                                                                    
                                                                            % PushAutoOn ; %
         ( SimpleType | ArrayType                                           % BuildType ; %
@@ -737,7 +737,6 @@ ArrayType := "ARRAY"                                                       % VAR
              Type                                                          % EndBuildArray ;
                                                                              PopNothing ;
                                                                              PushT(a) %
-             Alignment                                                     % BuildTypeAlignment %
            =:
 
 RecordType := "RECORD"                                                     % BuildRecord %
@@ -790,7 +789,6 @@ SetType := ( "SET" | "PACKEDSET" ) "OF"                                    % Bui
 
 PointerType := "POINTER" "TO"                                              % BuildNulName %
                               Type                                         % BuildPointerType %
-                                   Alignment                               % BuildTypeAlignment %
              =:
 
 ProcedureType := "PROCEDURE"                                               % BuildProcedureType ; %
@@ -848,7 +846,7 @@ VarIdentList := VarIdent                                                   % VAR
 
 VariableDeclaration := VarIdentList ":"                                    % BuildNulName %
                        Type
-                       Alignment                                           % BuildTypeAlignment %
+                       Alignment                                           % BuildVarAlignment %
                                                                            % BuildVariable %
                     =:
 
@@ -1110,7 +1108,7 @@ DefinitionModule := "DEFINITION" "MODULE"
 Definition := "CONST" { ConstantDeclaration ";" } |
               "TYPE"
                     { Ident ( ";"                 
-                                  | "=" Type Alignment                     % BuildTypeAlignment %
+                                  | "=" Type Alignment                     % BuildVarAlignment %
                                                        ";" )               % BuildTypeEnd %
                     }
               |

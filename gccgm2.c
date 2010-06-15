@@ -858,6 +858,8 @@ static tree                   gm2_finish_build_array_type                 (tree 
 									   walk_tree_fn func ATTRIBUTE_UNUSED,
 									   void *data ATTRIBUTE_UNUSED,
 									   struct pointer_set_t *pset ATTRIBUTE_UNUSED);
+       tree                   gccgm2_SetAlignment                         (tree type, tree align);
+
   /* PROTOTYPES: ADD HERE */
   
   
@@ -12608,23 +12610,29 @@ build_enumerator (name, value)
 }
 
 /*
- *  SetAlignment - sets the alignment of a, type, to, align.
+ *  SetAlignment - sets the alignment of a, node, to, align.
+ *                 It duplicates the, node, and sets the alignment
+ *                 to prevent alignment effecting behaviour elsewhere.
  */
 
-void
-gccgm2_SetAlignment (tree type, tree align)
+tree
+gccgm2_SetAlignment (tree node, tree align)
 {
-  tree decl = type;
+  tree type = NULL_TREE;
+  tree decl = NULL_TREE;
   int is_type;
   int i;
 
-  if (DECL_P (type))
+  if (DECL_P (node))
     {
-      is_type = TREE_CODE (type) == TYPE_DECL;
+      decl = node;
+      is_type = (TREE_CODE (node) == TYPE_DECL);
       type = TREE_TYPE (decl);
     }
-  else if (TYPE_P (type))
+  else if (TYPE_P (node)) {
     is_type = 1;
+    type = node;
+  }
 
   if (TREE_CODE (align) != INTEGER_CST)
     error ("requested alignment is not a constant");
@@ -12634,7 +12642,6 @@ gccgm2_SetAlignment (tree type, tree align)
     error ("requested alignment is too large");
   else if (is_type)
     {
-#if 1
       /* If we have a TYPE_DECL, then copy the type, so that we
 	 don't accidentally modify a builtin type.  See pushdecl.  */
       if (decl && TREE_TYPE (decl) != error_mark_node
@@ -12647,9 +12654,19 @@ gccgm2_SetAlignment (tree type, tree align)
 	  TREE_USED (type) = TREE_USED (decl);
 	  TREE_TYPE (decl) = type;
 	}
+#if 0
+      else
+	type = build_variant_type_copy (type);
 #endif
+
       TYPE_ALIGN (type) = (1 << i) * BITS_PER_UNIT;
       TYPE_USER_ALIGN (type) = 1;
+
+      if (decl)
+	{
+	  DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
+	  DECL_USER_ALIGN (decl) = 1;
+	}
     }
   else if (TREE_CODE (decl) != VAR_DECL
 	   && TREE_CODE (decl) != FIELD_DECL)
@@ -12659,6 +12676,7 @@ gccgm2_SetAlignment (tree type, tree align)
       DECL_ALIGN (decl) = (1 << i) * BITS_PER_UNIT;
       DECL_USER_ALIGN (decl) = 1;
     }
+  return node;
 }
 
 /*

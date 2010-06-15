@@ -3418,7 +3418,7 @@ PROCEDURE CheckAlignment (type: Tree; sym: CARDINAL) : Tree ;
 BEGIN
    IF GetAlignment(sym)#NulSym
    THEN
-      SetAlignment(type, Mod2Gcc(GetAlignment(sym)))
+      RETURN( SetAlignment(type, Mod2Gcc(GetAlignment(sym))) )
    END ;
    RETURN( type )
 END CheckAlignment ;

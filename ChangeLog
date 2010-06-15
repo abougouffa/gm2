@@ -1,3 +1,18 @@
+2010-06-15       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  new implementation of gccgm2_SetAlignment.
+	* gm2/gm2/gm2.texi:  more alignment examples.
+	* gm2/bnf/m2-2.bnf:  removed redundant grammar sentances around
+	  Alignment and fix production rules.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  SetAlignment now returns
+	  a Tree.
+	* gm2/gm2-compiler/P2SymBuild.def:  (New procedure)
+	  BuildVarAlignment.  Fixed comments for BuildTypeAlignment.
+	* gm2/gm2-compiler/P2SymBuild.def:  (New procedure)
+	  BuildVarAlignment.  Fixed BuildTypeAlignment.
+	* gm2/gm2-compiler/gccgm2.def:  SetAlignment now returns
+	  a Tree.
+
 2010-06-14       Gaius Mulley <gaius@gnu.org>
 
 	* testsuite/gm2/extensions/run/pass/align6.mod:  fixes

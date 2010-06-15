@@ -44,7 +44,8 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  BuildNumber,
                  BuildString,
                  BuildConst,
-                 BuildSubrange, BuildAligned, BuildTypeAlignment,
+                 BuildSubrange, BuildAligned,
+                 BuildTypeAlignment, BuildVarAlignment,
                  BuildVariable,
                  StartBuildEnumeration,
                  BuildType,
@@ -494,11 +495,29 @@ PROCEDURE BuildAligned ;
 
 
 (*
+   BuildVarAlignment - the AlignmentConst is either a temporary or NulSym.
+                       A type may only have one alignment value and
+                       error checking is performed.
+
+                       Stack
+
+                           Entry                 Exit
+
+
+                   Ptr ->
+                          +-----------------+
+                          | AlignmentConst  |                             <- Ptr
+                          |-----------------|        +------------------+
+                          | Type            |        | Type  | TypeName |
+                          |-----------------|        |------------------|
+*)
+
+PROCEDURE BuildVarAlignment ;
+
+
+(*
    BuildTypeAlignment - the AlignmentConst is either a temporary or NulSym.
-                        In the case of NulSym it is popped from the stack
-                        and the procedure returns.  Otherwise the temporary
-                        is popped and recorded as the alignment value for this
-                        type.  A type may only have one alignment value and
+                        A type may only have one alignment value and
                         error checking is performed.
 
                         Stack
@@ -508,10 +527,10 @@ PROCEDURE BuildAligned ;
 
                     Ptr ->
                            +-----------------+
-                           | AlignmentConst  |                            <- Ptr
-                           |-----------------|        +-----------------+
-                           | Type            |        | Type            |
-                           |-----------------|        |-----------------|
+                           | AlignmentConst  |
+                           |-----------------|
+                           | Type            |    Empty
+                           |-----------------|
 *)
 
 PROCEDURE BuildTypeAlignment ;
