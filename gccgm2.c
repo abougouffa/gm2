@@ -1672,13 +1672,16 @@ gm2_gimplify_expr (tree *expr_p,
     {
     case INDIRECT_REF:
       op0 = TREE_OPERAND (expr, 0);
+#if 0
       if (! SSA_VAR_P (op0)) {
+
         tree var = create_tmp_var (TREE_TYPE (op0), "indirect");
         tree mod = build (MODIFY_EXPR, TREE_TYPE (op0), var, op0);
         gimplify_and_add (mod, pre_p);
         TREE_OPERAND (expr, 0) = var;
         op0 = var;
       }
+#endif
       gimplify_type_sizes (TREE_TYPE (expr), pre_p);
       gimplify_type_sizes (TREE_TYPE (op0), pre_p);
       return GS_OK;

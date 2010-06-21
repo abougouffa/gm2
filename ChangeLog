@@ -1,3 +1,12 @@
+2010-06-21       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/patches/gcc/4.1.2/12.gaius_patch_tree_flow_inline_h:
+	  (New file).  Fixes an optimization bug reported by
+	  Scott Iverson.
+	* gm2/gccgm2.c:  commented out INDIRECT_REF
+	  gimplification code which is unnecessary given the
+	  correct patch above.
+	
 2010-06-15       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2.bnf:  removed the Alignment non-terminal from
