@@ -1,1 +1,1 @@
-#define version_string  "0.91"
+#define version_string  "0.92"

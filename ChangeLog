@@ -1,5 +1,9 @@
 2010-06-23       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/version.c:  updated to 0.92 now that the debian
+	  0.91 has been produced.
+	* gm2/gm2-libs/configure.in:  updated to 0.92.	
+	* gm2/gm2-libs/configure:  rebuilt.
 	* gm2/gm2-compiler/M2Quads.mod:  (New procedure)
 	  PopTFD.  BuildDesignatorArray corrected to handle
 	  accessing elements of a constant array constructor.
