@@ -2438,6 +2438,7 @@ PROCEDURE IsConstString (Sym: CARDINAL) : BOOLEAN ;
 
 PROCEDURE IsConstLit (Sym: CARDINAL) : BOOLEAN ;
 
+
 (*
    IsConstructor - returns TRUE if the constant is declared as a
                    constant set, array or record.

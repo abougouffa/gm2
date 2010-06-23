@@ -1,3 +1,10 @@
+2010-06-23       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Quads.mod:  (New procedure)
+	  PopTFD.  BuildDesignatorArray corrected to handle
+	  accessing elements of a constant array constructor.
+	  Fixed bug reported by Scott Iverson.
+
 2010-06-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/patches/gcc/4.1.2/12.gaius_patch_tree_flow_inline_h:
@@ -5,7 +12,8 @@
 	  Scott Iverson.
 	* gm2/gccgm2.c:  commented out INDIRECT_REF
 	  gimplification code which is unnecessary given the
-	  correct patch above.
+	  correct patch above.  Also fixes another optimization
+	  bug reported by Scott Iverson.
 	
 2010-06-15       Gaius Mulley <gaius@gnu.org>
 

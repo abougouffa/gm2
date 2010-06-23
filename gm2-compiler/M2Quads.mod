@@ -486,6 +486,8 @@ PROCEDURE BuildConstHighFromSym ; FORWARD ;
 PROCEDURE IncOperandD (pos: CARDINAL) ; FORWARD ;
 PROCEDURE calculateMultipicand (arraySym, arrayType: CARDINAL; dim: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE BuildIntFunction (Sym: CARDINAL) ; FORWARD ;
+PROCEDURE PushTFD (True, False, Dim: WORD) ; FORWARD ;
+PROCEDURE PopTFD (VAR True, False, Dim: WORD) ; FORWARD ;
    %%%FORWARD%%% *)
 
 
@@ -9675,9 +9677,23 @@ END BuildDesignatorRecord ;
 PROCEDURE BuildDesignatorArray ;
 VAR
    s       : String ;
+   e, t, d,
    Sym, n,
    Type, rw: CARDINAL ;
 BEGIN
+   IF IsConst(OperandT(2)) AND IsConstructor(OperandT(2)) AND
+      IsArray(SkipType(GetType(OperandT(2))))
+   THEN
+      PopT(e) ;
+      PopTFD(Sym, Type, d) ;
+      t := MakeTemporary(RightValue) ;
+      PutVar(t, Type) ;
+      PushTF(t, GetType(t)) ;
+      PushT(Sym) ;
+      BuildAssignment ;
+      PushTFD(t, SkipType(GetType(t)), d) ;
+      PushT(e)
+   END ;
    IF (NOT IsVar(OperandT(2))) AND (NOT IsTemporary(OperandT(2)))
    THEN
       ErrorStringAt2(Mark(InitString('can only access arrays using variables or formal parameters')),
@@ -12743,6 +12759,26 @@ BEGIN
    END ;
    PushAddress(BoolStack, f)
 END PushTFD ;
+
+
+(*
+   PopTFD - Pop a True, False, Dim number from the True/False stack.
+            True and False are assumed to contain Symbols or Ident etc.
+*)
+
+PROCEDURE PopTFD (VAR True, False, Dim: WORD) ;
+VAR
+   f: BoolFrame ;
+BEGIN
+   f := PopAddress(BoolStack) ;
+   WITH f^ DO
+      True := TrueExit ;
+      False := FalseExit ;
+      Dim := Dimension ;
+      Assert(NOT BooleanOp)
+   END ;
+   DISPOSE(f)
+END PopTFD ;
 
 
 (*
