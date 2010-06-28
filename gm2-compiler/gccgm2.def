@@ -140,7 +140,7 @@ EXPORT QUALIFIED Tree, Constructor,
                  TreeOverflow, RemoveOverflow,
                  SetLastFunction,
                  SetFlagUnitAtATime, MarkFunctionReferenced,
-                 SetAlignment ;
+                 SetAlignment, BuildNumberOfArrayElements ;
 
 
 TYPE
@@ -1548,6 +1548,14 @@ PROCEDURE SetLastFunction (t: Tree) ;
 *)
 
 PROCEDURE SetAlignment (type: Tree; align: Tree) : Tree ;
+
+
+(*
+   BuildNumberOfArrayElements - returns the number of elements in an
+                                arrayType.
+*)
+
+PROCEDURE BuildNumberOfArrayElements (arrayType: Tree) : Tree ;
 
 
 END gccgm2.

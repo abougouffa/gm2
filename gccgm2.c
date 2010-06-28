@@ -1,4 +1,4 @@
-/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+/* Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
  * Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
@@ -466,7 +466,7 @@ tree                   common_type                                (tree t1, tree
 tree                   base_type                                  (tree type);
 int                    comptypes                                  (tree type1, tree type2);
 void                   readonly_warning                                   (tree arg, const char *string);
-int                    is_string_type                             (tree string, int warn);
+static int             is_string_type                             (tree string, int warn);
 static int             lvalue_p                                   (tree ref);
 static int             lvalue_or_else                             (tree, enum lvalue_use);
 tree                   default_conversion                         (tree exp);
@@ -641,7 +641,7 @@ tree                   start_enum                                 (tree name);
 unsigned int           min_precision                              (tree value, int unsignedp);
 tree                   build_enumerator                           (tree name, tree value);
 void                   gccgm2_ExpandExpressionStatement           (tree t);
-int                    is_of_string_type                          (tree type, int warn);
+static int             is_of_string_type                          (tree type, int warn);
 tree                   gccgm2_BuildSize                           (tree op1, int  needconvert);
 tree                   gccgm2_BuildOffset                         (tree record, tree field, int needconvert);
 tree                   gccgm2_BuildOffset1                        (tree field, int needconvert);
@@ -859,7 +859,7 @@ static tree                   gm2_finish_build_array_type                 (tree 
 									   void *data ATTRIBUTE_UNUSED,
 									   struct pointer_set_t *pset ATTRIBUTE_UNUSED);
        tree                   gccgm2_SetAlignment                         (tree type, tree align);
-
+       tree                   gccgm2_BuildNumberOfArrayElements           (tree arrayType);
   /* PROTOTYPES: ADD HERE */
   
   
@@ -3358,12 +3358,13 @@ readonly_warning (tree arg, const char *string)
     }
 }
 
-int
+static int
 is_of_string_type (tree type, int warn ATTRIBUTE_UNUSED)
 {
   return(
          (TREE_CODE (type) == ARRAY_TYPE) &&
-         (TYPE_MAIN_VARIANT (TREE_TYPE (type)) == char_type_node)
+         ((TYPE_MAIN_VARIANT (TREE_TYPE (type)) == char_type_node) ||
+	  (TYPE_MAIN_VARIANT (TREE_TYPE (type)) == m2_char_type_node))
         );
 }
 
@@ -3375,13 +3376,13 @@ is_of_string_type (tree type, int warn ATTRIBUTE_UNUSED)
  *
  * Return 0 if we know it's not a valid string.
  */
-int
+static int
 is_string_type (tree string, int warn)
 {
   if (TREE_CODE (string) == STRING_CST)
     return TRUE;
 
-  return is_of_string_type (TREE_TYPE (string), warn);
+  return is_of_string_type (string, warn);
 }
 
 
@@ -3741,6 +3742,39 @@ gccgm2_StringLength (tree string)
 }
 
 /*
+ *  convert_to_string - returns an array of type built from a string, expr.
+ */
+
+static tree convert_to_string (tree type, tree expr)
+{
+  tree length = gccgm2_BuildIntegerConstant (gccgm2_StringLength (expr));
+  tree elements = gccgm2_BuildNumberOfArrayElements (type);
+
+  switch (gccgm2_CompareTrees (length, elements)) {
+
+  case -1:
+  case 0:
+    return build1 (NOP_EXPR, type, expr);
+  case 1:
+    {
+      /* remove the trailing nul character */
+      char *p = TREE_STRING_POINTER (expr);
+      int length = TREE_STRING_LENGTH (expr);
+
+      if (p[length] == (char)0) {
+	p = ggc_strdup (p);
+	tree elem = build_type_variant (char_type_node, 1, 0);
+	tree index = build_index_type (build_int_cst (NULL_TREE, length-1));
+	tree array = build_array_type (elem, index);
+	return convert_to_string (type, gccgm2_BuildStringConstantType (length-1, p, array));
+      }
+      error("string literal is too large to be converted into this array type");
+      return convert_to_string (type, gccgm2_BuildStringConstant ("", 0));
+    }
+  }
+}
+
+/*
  *  convert_set - returns NULL if no set was found,
  *                otherwise convert set to type.
  */
@@ -3867,6 +3901,9 @@ convert (tree type, tree expr)
       return error_mark_node;
     }
 
+  if (code == ARRAY_TYPE && is_string_type (type, FALSE) &&
+      (is_string_type (expr, FALSE)))
+    return fold (convert_to_string (type, expr));
   if (code == SET_TYPE)
     return expr;
 #endif
@@ -12680,6 +12717,22 @@ gccgm2_SetAlignment (tree node, tree align)
       DECL_USER_ALIGN (decl) = 1;
     }
   return node;
+}
+
+/*
+ *  BuildNumberOfArrayElements - returns the number of elements in an
+ *                               arrayType.
+ */
+
+tree
+gccgm2_BuildNumberOfArrayElements (tree arrayType)
+{
+  tree index = TYPE_DOMAIN (arrayType);
+  tree high = TYPE_MAX_VALUE (index);
+  tree low = TYPE_MIN_VALUE (index);
+  tree elements = gccgm2_BuildAdd (gccgm2_BuildSub (high, low, FALSE),
+				   gccgm2_GetIntegerOne (), FALSE);
+  return elements;
 }
 
 /*

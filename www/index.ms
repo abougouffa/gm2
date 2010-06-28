@@ -103,6 +103,8 @@ Recent news:
 .sp
 .ULS
 .LI
+gm2 0.91 was released on June 23 2010.
+.LI
 all regression tests pass on the LP64 platform.
 .LI
 the ISO Modula-2 language is now complete.
@@ -265,18 +267,6 @@ The latest sources of GNU Modula-2 can be obtained via cvs using the commands:
 .sp
 The source code in the CVS can be
 .URL http://cvs.savannah.nongnu.org/viewcvs/?root=gm2 "browsed here" .
-.sp
-If you require a GNU Modula-2 which is compatible with gcc-3.3.6 then you
-can checkout the older sources using:
-.sp
-.nf
-\fCcvs -z3 -d:pserver:anoncvs@cvs.sv.gnu.org:/sources/gm2 -D20050523 co gm2 testsuite\fP
-.fi
-.sp
-However the current gm2 based on 4.1.2 is just as stable - the only
-disadvantage is that it does not produce debugging information for
-\f[C]SET TYPE\fPs.
-.sp
 .
 .SH
 GNU Modula-2 Debian binaries

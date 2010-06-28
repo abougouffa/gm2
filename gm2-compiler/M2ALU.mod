@@ -44,10 +44,12 @@ FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType ;
 FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
+FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
+FROM M2MetaError IMPORT MetaError2 ;
 
 FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushValue,
                         ForeachFieldEnumerationDo, MakeTemporary, PutVar, PopValue, GetType,
-                        MakeConstLit, GetArraySubscript,
+                        MakeConstLit, GetArraySubscript, GetStringLength,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
                         IsConstString, SkipTypeAndSubrange, GetDeclared,
                         GetSubrange, GetSymName, GetNth,
@@ -56,6 +58,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
 IMPORT DynamicStrings ;
 
 FROM gccgm2 IMPORT Tree, Constructor,
+                   SetFileNameAndLineNo,
                    BuildIntegerConstant,
                    CompareTrees, ConvertConstantAndCheck, GetIntegerType,
                    GetLongRealType,
@@ -67,7 +70,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildDivTrunc, BuildModTrunc, BuildDivFloor, BuildModFloor,
                    BuildLSL, BuildLSR,
                    BuildLogicalOr, BuildLogicalAnd, BuildSymmetricDifference,
-                   BuildIfIn,
+                   BuildIfIn, BuildStringConstant,
                    BuildStartRecord, BuildFieldRecord, ChainOn, BuildEndRecord,
                    RealToTree, RememberConstant, BuildConstLiteralNumber,
                    BuildStartSetConstructor, BuildSetConstructorElement,
@@ -75,7 +78,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildStartRecordConstructor, BuildRecordConstructorElement,
                    BuildEndRecordConstructor,
                    BuildStartArrayConstructor, BuildArrayConstructorElement,
-                   BuildEndArrayConstructor,
+                   BuildEndArrayConstructor, BuildNumberOfArrayElements,
                    FoldAndStrip, TreeOverflow, RemoveOverflow,
                    DebugTree ;
 
@@ -4592,12 +4595,36 @@ END GetConstructorElement ;
 
 
 (*
+   IsString - returns TRUE if sym is an ARRAY [..] OF CHAR
+*)
+
+PROCEDURE IsString (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN IsArray(sym) AND (SkipType(GetType(sym))=Char)
+END IsString ;
+
+
+(*
+   StringFitsArray - 
+*)
+
+PROCEDURE StringFitsArray (arrayType, el: CARDINAL; tokenno: CARDINAL) : BOOLEAN ;
+BEGIN
+   PushIntegerTree(BuildNumberOfArrayElements(Mod2Gcc(arrayType))) ;
+   PushCard(GetStringLength(el)) ;
+   RETURN GreEqu(tokenno)
+END StringFitsArray ;
+
+
+(*
    ConstructArrayConstant - builds a struct initializer, as defined by, v.
 *)
 
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
 VAR
    n1, n2   : Name ;
+   value,
+   indice,
    gccsym   : Tree ;
    i, el,
    baseType,
@@ -4606,6 +4633,9 @@ VAR
    arrayType,
    high, low: CARDINAL ;
    cons     : Constructor ;
+   nulstr,
+   file     : String ;
+   line     : CARDINAL ;
 BEGIN
    WITH v^ DO
       IF constructorType=NulSym
@@ -4642,15 +4672,25 @@ BEGIN
             PushValue(low) ;
             PushCard(i) ;
             Addn ;
+            indice := PopIntegerTree() ;
             IF IsConst(el) AND IsConstructor(el)
             THEN
-               BuildArrayConstructorElement(cons, Mod2Gcc(el), PopIntegerTree())
+               value := Mod2Gcc(el)
             ELSE
-               BuildArrayConstructorElement(cons,
-                                            ConvertConstantAndCheck(Mod2Gcc(arrayType),
-                                                                    StringToChar(Mod2Gcc(el), arrayType, el)),
-                                            PopIntegerTree())
+               IF IsString(arrayType) AND (NOT StringFitsArray(arrayType, el, tokenno))
+               THEN
+                  MetaError2('string {%1a} is too large to fit into array {%2ad}', el, arrayType) ;
+                  line := TokenToLineNo(tokenno, 0) ;
+                  file := FindFileNameFromToken(tokenno, 0) ;
+                  nulstr := DynamicStrings.InitStringChar(nul) ;
+                  SetFileNameAndLineNo(DynamicStrings.string(file), line) ;
+                  value := BuildStringConstant(DynamicStrings.string(nulstr), 0)
+               ELSE
+                  value := StringToChar(Mod2Gcc(el), arrayType, el)
+               END ;
+               value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value)
             END ;
+            BuildArrayConstructorElement(cons, value, indice) ;
             PushValue(low) ;
             PushCard(i) ;
             Addn ;

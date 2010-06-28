@@ -1,3 +1,16 @@
+2010-06-28       Gaius Mulley <gaius@gnu.org>
+
+        * gm2/gm2/gccgm2.c:  corrected dates.  is_string_type
+	  and is_of_string_type are now static.  (New procedures)
+	  convert_to_string, gccgm2_BuildNumberOfArrayElements.
+	* gm2/gm2-compiler/M2ALU.mod:  (New procedures)
+	  IsString, StringFitsArray.  ConstructArrayConstant
+	  checks to see whether a string can fit into an array of
+	  char.
+	* gm2/gm2-compiler/gccgm2.def:  BuildNumberOfArrayElements
+	  declare new procedure for export.
+	* gm2/www/index.ms:  updated news of 0.91 release.
+	
 2010-06-23       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/version.c:  updated to 0.92 now that the debian
