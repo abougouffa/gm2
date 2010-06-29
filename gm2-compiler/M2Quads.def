@@ -111,6 +111,7 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  IsOptimizeOn,
                  IsPseudoQuad,
                  IsDefOrModFile,
+                 IsInitialisingConst,
 
                  DisplayQuadList, DisplayQuadRange, DisplayQuad, DumpStack,
                  WriteOperator, BackPatchSubrangesAndOptParam,
@@ -305,6 +306,14 @@ PROCEDURE IsFinallyStart (QuadNo: CARDINAL) : BOOLEAN ;
 *) 
  
 PROCEDURE IsFinallyEnd (QuadNo: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsInitialisingConst - returns TRUE if the quadruple is setting
+                         a const (op1) with a value.
+*)
+
+PROCEDURE IsInitialisingConst (QuadNo: CARDINAL) : BOOLEAN ;
 
 
 (*

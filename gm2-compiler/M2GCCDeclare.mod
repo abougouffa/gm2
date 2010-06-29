@@ -2241,6 +2241,7 @@ BEGIN
    (* AddSymToWatch(8) ; *)
    (* IncludeElementIntoSet(WatchList, 4188) ; *)
    (* AddSymToWatch(1420) ; *)
+   (* AddSymToWatch(5889) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;

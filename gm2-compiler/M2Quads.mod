@@ -871,6 +871,56 @@ END IsFinallyEnd ;
 
 
 (*
+   IsInitialisingConst - returns TRUE if the quadruple is setting
+                         a const (op1) with a value.
+*)
+
+PROCEDURE IsInitialisingConst (QuadNo: CARDINAL) : BOOLEAN ;
+VAR
+   op           : QuadOperator ;
+   op1, op2, op3: CARDINAL ;
+BEGIN
+   GetQuad(QuadNo, op, op1, op2, op3) ;
+   CASE op OF
+
+   InclOp,
+   ExclOp,
+   UnboundedOp,
+   FunctValueOp,
+   NegateOp,
+   BecomesOp,
+   HighOp,
+   SizeOp,
+   AddrOp,
+   OffsetOp,
+   ArrayOp,
+   LogicalShiftOp,
+   LogicalRotateOp,
+   LogicalOrOp,
+   LogicalAndOp,
+   LogicalXorOp,
+   CoerceOp,
+   ConvertOp,
+   CastOp,
+   AddOp,
+   SubOp,
+   MultOp,
+   ModFloorOp,
+   DivFloorOp,
+   ModTruncOp,
+   DivTruncOp,
+   XIndrOp,
+   IndrXOp,
+   SaveExceptionOp,
+   RestoreExceptionOp:  RETURN( IsConst(op1) )
+
+   ELSE
+      RETURN( FALSE )
+   END
+END IsInitialisingConst ;
+
+
+(*
    IsOptimizeOn - returns true if the Optimize flag was true at QuadNo.
 *)
 

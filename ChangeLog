@@ -1,3 +1,17 @@
+2010-06-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2BasicBlock.mod:  do not throw away
+	  quadruples which are initialising a constant.
+	* gm2/gm2-compiler/M2GCCDeclare.mod:  added debug symbol
+	  comment.
+	* gm2/gm2-compiler/M2Quads.def:  export and declare
+	  IsInitialisingConst.
+	* gm2/gm2-compiler/M2Quads.mod:  (New procedure)
+	  IsInitialisingConst.
+	* Fixed bug reported by Scott Iverson.  An early
+	  return statement could prevent constants from being
+	  initialised.
+	
 2010-06-28       Gaius Mulley <gaius@gnu.org>
 
         * gm2/gm2/gccgm2.c:  corrected dates.  is_string_type

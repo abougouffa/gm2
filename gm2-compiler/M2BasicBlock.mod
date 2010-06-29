@@ -29,6 +29,7 @@ FROM M2Quads IMPORT IsReferenced, IsConditional, IsUnConditional, IsCall,
                     IsReturn, IsNewLocalVar, IsKillLocalVar,
                     IsCatchBegin, IsCatchEnd,
                     IsInitStart, IsInitEnd, IsFinallyStart, IsFinallyEnd,
+                    IsInitialisingConst,
                     IsPseudoQuad, IsDefOrModFile,
                     GetNextQuad, GetQuad, QuadOperator,
                     SubQuad ;
@@ -204,6 +205,10 @@ BEGIN
             IsCatchEnd(Quad) OR IsCatchBegin(Quad) OR
             IsInitStart(Quad) OR IsInitEnd(Quad) OR
             IsFinallyStart(Quad) OR IsFinallyEnd(Quad)
+      THEN
+         (* we must leave these quads alone *)
+         EndBB(LastBB, Quad)
+      ELSIF IsInitialisingConst(Quad)
       THEN
          (* we must leave these quads alone *)
          EndBB(LastBB, Quad)
