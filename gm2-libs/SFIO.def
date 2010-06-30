@@ -22,7 +22,7 @@ DEFINITION MODULE SFIO ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Aug  3 16:55:18 2001
-    Last edit  : $Date: 2006/01/10 23:52:26 $ 
+    Last edit  : $Date: 2010/06/30 15:00:52 $ 
     Revision   : $Version$ 
     Description: provides a String interface to the opening routines of FIO
 *)
@@ -67,9 +67,12 @@ PROCEDURE OpenToWrite (fname: String) : File ;
                    calling IsNoError.
                    towrite, determines whether the file should be
                    opened for writing or reading.
+                   if towrite is TRUE or whether the previous file should
+                   be left alone, allowing this descriptor to seek
+                   and modify an existing file.
 *)
 
-PROCEDURE OpenForRandom (fname: String; towrite: BOOLEAN) : File ;
+PROCEDURE OpenForRandom (fname: String; towrite, newfile: BOOLEAN) : File ;
 
 
 (*

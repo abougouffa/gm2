@@ -9,6 +9,10 @@
 	* gm2/gm2-libs-iso/RndFile.mod:  seek to previous location
 	  using SetPos.  Use toWrite rather than toRead.  Modify
 	  newCid accordingly and all callees.
+	* gm2/gm2-libs/SFIO.def:  added newfile parameter to
+	  OpenForRandom.
+	* gm2/gm2-libs/SFIO.mod:  added newfile parameter to
+	  OpenForRandom.
 
 2010-06-29       Gaius Mulley <gaius@gnu.org>
 

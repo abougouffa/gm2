@@ -66,11 +66,14 @@ END OpenToWrite ;
                    calling IsNoError.
                    towrite, determines whether the file should be
                    opened for writing or reading.
+                   if towrite is TRUE or whether the previous file should
+                   be left alone, allowing this descriptor to seek
+                   and modify an existing file.
 *)
 
-PROCEDURE OpenForRandom (fname: String; towrite: BOOLEAN) : File ;
+PROCEDURE OpenForRandom (fname: String; towrite, newfile: BOOLEAN) : File ;
 BEGIN
-   RETURN( openForRandom(string(fname), Length(fname), towrite) )
+   RETURN( openForRandom(string(fname), Length(fname), towrite, newfile) )
 END OpenForRandom ;
 
 
