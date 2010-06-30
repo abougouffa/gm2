@@ -104,9 +104,13 @@ PROCEDURE OpenToWrite (fname: ARRAY OF CHAR) : File ;
                    calling IsNoError.
                    towrite, determines whether the file should be
                    opened for writing or reading.
+                   newfile, determines whether a file should be created
+                   if towrite is TRUE or whether the previous file should
+                   be left alone, allowing this descriptor to seek
+                   and modify an existing file.
 *)
 
-PROCEDURE OpenForRandom (fname: ARRAY OF CHAR; towrite: BOOLEAN) : File ;
+PROCEDURE OpenForRandom (fname: ARRAY OF CHAR; towrite, newfile: BOOLEAN) : File ;
 
 
 (*
@@ -125,7 +129,7 @@ PROCEDURE Close (f: File) ;
 PROCEDURE exists        (fname: ADDRESS; flength: CARDINAL) : BOOLEAN ;
 PROCEDURE openToRead    (fname: ADDRESS; flength: CARDINAL) : File ;
 PROCEDURE openToWrite   (fname: ADDRESS; flength: CARDINAL) : File ;
-PROCEDURE openForRandom (fname: ADDRESS; flength: CARDINAL; towrite: BOOLEAN) : File ;
+PROCEDURE openForRandom (fname: ADDRESS; flength: CARDINAL; towrite, newfile: BOOLEAN) : File ;
 
 
 (*

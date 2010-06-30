@@ -173,9 +173,9 @@ BEGIN
          ALLOCATE(contents, size+1) ;
          contents := memcpy(contents, name, size) ;
          FIO.Close(file) ;
-         file := FIO.openForRandom(contents, size, towrite) ;
+         file := FIO.openForRandom(contents, size, towrite, FALSE) ;
          RTio.SetFile(cid, file) ;
-         fp := NewPos(cid, 0, 0, fp) ;
+         SetPos(cid, fp) ;
          DEALLOCATE(contents, size+1)
       END
    END
@@ -190,7 +190,7 @@ END checkRW ;
 PROCEDURE newCid (fname: ARRAY OF CHAR;
                   f: FlagSet;
                   VAR res: OpenResults;
-                  toRead: BOOLEAN;
+                  toWrite, newfile: BOOLEAN;
                   whichreset: ResetProc) : ChanId ;
 VAR
    c   : RTio.ChanId ;
@@ -199,13 +199,13 @@ VAR
    p   : DeviceTablePtr ;
    pb  : POINTER TO BOOLEAN ;
 BEGIN
-   file := FIO.OpenForRandom(fname, NOT toRead) ;
+   file := FIO.OpenForRandom(fname, toWrite, newfile) ;
    checkOpenErrno(file, e, res) ;
 
    IF FIO.IsNoError(file)
    THEN
       NEW(pb) ;
-      pb^ := NOT toRead ;
+      pb^ := toWrite ;
       MakeChan(did, c) ;
       RTio.SetFile(c, file) ;
       p := DeviceTablePtrValue(c, did) ;
@@ -295,7 +295,7 @@ BEGIN
    THEN
       INCL(flags, ChanConsts.rawFlag)
    END ;
-   cid := newCid(name, flags, res, TRUE, resetRandom)
+   cid := newCid(name, flags, res, FALSE, FALSE, resetRandom)
 END OpenOld ;
 
 
@@ -315,7 +315,7 @@ BEGIN
    THEN
       INCL(flags, ChanConsts.rawFlag)
    END ;
-   cid := newCid(name, flags, res, FALSE, resetRandom)
+   cid := newCid(name, flags, res, TRUE, TRUE, resetRandom)
 END OpenClean ;
 
 

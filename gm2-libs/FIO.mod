@@ -42,6 +42,7 @@ CONST
    SEEK_SET            =       0 ;   (* relative from beginning of the file *)
    SEEK_END            =       2 ;   (* relative to the end of the file     *)
    UNIXREADONLY        =       0 ;
+   UNIXWRITEONLY       =       1 ;
    CreatePermissions   =     666B;
    MaxBufferLength     = 1024*16 ;
    MaxErrorString      = 1024* 8 ;
@@ -90,7 +91,7 @@ PROCEDURE CheckAccess (f: File; use: FileUsage; towrite: BOOLEAN) ; FORWARD ;
 PROCEDURE BufferedRead (f: File; nBytes: CARDINAL; a: ADDRESS) : INTEGER ; FORWARD ;
 PROCEDURE InitializeFile (f: File; fname: ADDRESS; flength: CARDINAL;
                           fstate: FileStatus; use: FileUsage; towrite: BOOLEAN; buflength: CARDINAL) : File ; FORWARD ;
-PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ; FORWARD ;
+PROCEDURE ConnectToUnix (f: File; towrite, newfile: BOOLEAN) ; FORWARD ;
 PROCEDURE SetState (f: File; s: FileStatus) ; FORWARD ;
 PROCEDURE PreInitialize (f: File; fname: ARRAY OF CHAR;
                          state: FileStatus; use: FileUsage;
@@ -251,7 +252,7 @@ BEGIN
       SetState(f, toomanyfilesopen)
    ELSE
       f := InitializeFile(f, fname, flength, successful, openedforread, FALSE, MaxBufferLength) ;
-      ConnectToUnix(f, FALSE)
+      ConnectToUnix(f, FALSE, FALSE)
    END ;
    RETURN( f )
 END openToRead ;
@@ -274,7 +275,7 @@ BEGIN
       SetState(f, toomanyfilesopen)
    ELSE
       f := InitializeFile(f, fname, flength, successful, openedforwrite, TRUE, MaxBufferLength) ;
-      ConnectToUnix(f, TRUE)
+      ConnectToUnix(f, TRUE, TRUE)
    END ;
    RETURN( f )
 END openToWrite ;
@@ -289,7 +290,8 @@ END openToWrite ;
                    opened for writing or reading.
 *)
 
-PROCEDURE openForRandom (fname: ADDRESS; flength: CARDINAL; towrite: BOOLEAN) : File ;
+PROCEDURE openForRandom (fname: ADDRESS; flength: CARDINAL;
+                         towrite, newfile: BOOLEAN) : File ;
 VAR
    f: File ;
 BEGIN
@@ -299,7 +301,7 @@ BEGIN
       SetState(f, toomanyfilesopen)
    ELSE
       f := InitializeFile(f, fname, flength, successful, openedforrandom, towrite, MaxBufferLength) ;
-      ConnectToUnix(f, towrite)
+      ConnectToUnix(f, towrite, newfile)
    END ;
    RETURN( f )
 END openForRandom ;
@@ -415,7 +417,7 @@ END InitializeFile ;
    ConnectToUnix - connects a FIO file to a UNIX file descriptor.
 *)
 
-PROCEDURE ConnectToUnix (f: File; towrite: BOOLEAN) ;
+PROCEDURE ConnectToUnix (f: File; towrite, newfile: BOOLEAN) ;
 VAR
    fd: FileDescriptor ;
 BEGIN
@@ -427,7 +429,12 @@ BEGIN
          WITH fd^ DO
             IF towrite
             THEN
-               unixfd := creat(name.address, CreatePermissions)
+               IF newfile
+               THEN
+                  unixfd := creat(name.address, CreatePermissions)
+               ELSE
+                  unixfd := open(name.address, UNIXWRITEONLY, 0)
+               END
             ELSE
                unixfd := open(name.address, UNIXREADONLY, 0)
             END ;
@@ -463,9 +470,10 @@ BEGIN
 END OpenToWrite ;
 
 
-PROCEDURE OpenForRandom (fname: ARRAY OF CHAR; towrite: BOOLEAN) : File ;
+PROCEDURE OpenForRandom (fname: ARRAY OF CHAR;
+                         towrite: BOOLEAN; newfile: BOOLEAN) : File ;
 BEGIN
-   RETURN( openForRandom(ADR(fname), StrLen(fname), towrite) )
+   RETURN( openForRandom(ADR(fname), StrLen(fname), towrite, newfile) )
 END OpenForRandom ;
 
 
