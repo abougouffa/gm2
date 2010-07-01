@@ -1961,7 +1961,15 @@ BEGIN
       OperandType := SkipType(GetType(op3)) ;
       ParamType := SkipType(GetType(GetNthParam(op2, op1)))
    END ;
-   IF IsRealType(OperandType) AND IsRealType(ParamType) AND
+   IF IsProcType(ParamType)
+   THEN
+      IF IsProcedure(op3)
+      THEN
+         RETURN( Mod2Gcc(op3) )
+      ELSE
+         RETURN( BuildConvert(Mod2Gcc(ParamType), Mod2Gcc(op3), FALSE) )
+      END
+   ELSIF IsRealType(OperandType) AND IsRealType(ParamType) AND
       (ParamType#OperandType)
    THEN
       (* SHORTREAL, LONGREAL and REAL conversion during parameter passing *)

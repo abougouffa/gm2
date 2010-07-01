@@ -28,6 +28,7 @@ DEFINITION MODULE RTdata ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
+FROM IOLink IMPORT DeviceTablePtr ;
 
 TYPE
    ModuleId ;

@@ -1,5 +1,7 @@
 2010-07-01       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/gm2-compiler/M2GenGCC.mod:  added test for procedure type
+	  parameter which is coerced if it is not a procedure.
 	* Fixed bug reported by Scott Iverson
 	  (http://lists.gnu.org/archive/html/gm2/2010-06/msg00047.html)
 	* gm2/gm2-compiler/M2GenGCC.mod:  (New procedure)
