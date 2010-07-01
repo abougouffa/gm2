@@ -39,7 +39,8 @@ FROM SymbolTable IMPORT PushSize, PopSize, PushValue, PopValue,
                         IsModule, IsDefImp, IsType, IsModuleWithinProcedure,
                         IsConstString, GetString, GetStringLength,
                         IsConst, IsConstSet, IsProcedure, IsProcType,
-                        IsVar, IsVarParam, IsTemporary, IsEnumeration,
+                        IsVar, IsVarParam, IsTemporary,
+                        IsEnumeration,
                         IsUnbounded, IsArray, IsSet, IsConstructor,
                         IsProcedureVariable,
                         IsUnboundedParam,
@@ -85,7 +86,7 @@ FROM M2Base IMPORT MixTypes, NegateType, ActivationPointer, IsMathType,
                    IsRealType, IsAComplexType,
                    IsOrdinalType,
                    Cardinal, Char, Integer, IsTrunc,
-                   True,
+                   Boolean, True,
                    Im, Re, Cmplx, GetCmplxReturnType, GetBaseTypeMinMax,
                    CheckAssignmentCompatible, IsAssignmentCompatible ;
 
@@ -93,7 +94,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM NameKey IMPORT Name, MakeKey, KeyToCharStar, makekey, NulName ;
 FROM DynamicStrings IMPORT string, InitString, KillString, String, InitStringCharStar, Mark, Slice, ConCat ;
 FROM FormatStrings IMPORT Sprintf0, Sprintf1, Sprintf2, Sprintf3, Sprintf4 ;
-FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN ;
+FROM M2System IMPORT Address, Word, System, MakeAdr, IsSystemType, IsGenericSystemType, IsRealN, IsComplexN, IsSetN ;
 FROM M2FileName IMPORT CalculateFileName ;
 FROM M2AsmUtil IMPORT GetModuleInitName, GetModuleFinallyName ;
 FROM SymbolConversion IMPORT AddModGcc, Mod2Gcc, GccKnowsAbout ;
@@ -1926,6 +1927,22 @@ END SafeConvert ;
 
 
 (*
+   IsCoerceableParameter - returns TRUE if symbol, sym, is a
+                           coerceable parameter.
+*)
+
+PROCEDURE IsCoerceableParameter (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   RETURN(
+          IsSet(sym) OR
+          (IsOrdinalType(sym) AND (sym#Boolean) AND (NOT IsEnumeration(sym))) OR
+          IsAComplexType(sym) OR IsRealType(sym) OR
+          IsComplexN(sym) OR IsRealN(sym) OR IsSetN(sym)
+         )
+END IsCoerceableParameter ;
+
+
+(*
    CheckConvertCoerceParameter - 
 *)
 
@@ -1960,7 +1977,7 @@ BEGIN
       RETURN( BuildConvert(Mod2Gcc(ParamType),
                            StringToChar(Mod2Gcc(op3), ParamType, op3),
                            FALSE) )
-   ELSIF (OperandType#NulSym) AND IsSet(OperandType) AND (OperandType#ParamType)
+   ELSIF (OperandType#NulSym) AND IsCoerceableParameter(OperandType) AND (OperandType#ParamType)
    THEN
       RETURN( BuildConvert(Mod2Gcc(ParamType), Mod2Gcc(op3), FALSE) )
    ELSE

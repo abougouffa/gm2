@@ -1,3 +1,13 @@
+2010-07-01       Gaius Mulley <gaius@gnu.org>
+
+	* Fixed bug reported by Scott Iverson
+	  (http://lists.gnu.org/archive/html/gm2/2010-06/msg00047.html)
+	* gm2/gm2-compiler/M2GenGCC.mod:  (New procedure)
+	  IsCoerceableParameter is now used to decide whether the
+	  parameter type can be coersed.
+	* gm2/gm2-compiler/M2System.mod:  removed SetN(64) from the
+	  list of possible fixed sized data types.
+
 2010-06-30       Gaius Mulley <gaius@gnu.org>
 
 	* Fixed bug reported by Scott Iverson

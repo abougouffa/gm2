@@ -668,8 +668,7 @@ PROCEDURE IsSetN (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN(
           (Sym#NulSym) AND
-          ((Sym=SetN(8)) OR (Sym=SetN(16)) OR
-           (Sym=SetN(32)) OR (Sym=SetN(64)))
+          ((Sym=SetN(8)) OR (Sym=SetN(16)) OR (Sym=SetN(32)))
          )
 END IsSetN ;
 
