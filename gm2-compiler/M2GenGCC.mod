@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -2020,7 +2020,7 @@ VAR
    type: CARDINAL ;
    op  : QuadOperator ;
    bits,
-   max     : CARDINAL ;
+   max,
    tmp,
    res,
    val : Tree ;
@@ -2039,7 +2039,7 @@ BEGIN
    GetQuad(n, op, op1, op2, op3) ;
    res := Mod2Gcc(r) ;
    max := GetSizeOfInBits(Mod2Gcc(Address)) ;
-   bits := 0 ;
+   bits := GetIntegerZero() ;
    val := GetPointerZero() ;
    REPEAT
       IF (op=ParamOp) AND (op1>0)
@@ -2050,11 +2050,11 @@ BEGIN
          ELSE
             type := GetType(op3) ;
             tmp := BuildConvert(GetPointerType(), Mod2Gcc(op3), FALSE) ;
-            IF bits>0
+            IF CompareTrees(bits, GetIntegerZero())>0
             THEN
-               tmp := BuildLSL(tmp, BuildIntegerConstant(bits), FALSE)
+               tmp := BuildLSL(tmp, bits, FALSE)
             END ;
-            INC(bits, GetSizeOfInBits(Mod2Gcc(type))) ;
+            bits := BuildAdd(bits, GetSizeOfInBits(Mod2Gcc(type)), FALSE) ;
             val := BuildLogicalOrAddress(val, tmp, FALSE)
          END
       END ;
@@ -2062,7 +2062,7 @@ BEGIN
       n := GetNextQuad(n) ;
       GetQuad(n, op, op1, op2, op3)
    UNTIL op=FunctValueOp ;
-   IF bits>max
+   IF CompareTrees(bits, max)>0
    THEN
       ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
                     QuadToTokenNo(q))
@@ -2099,7 +2099,7 @@ VAR
    op      : QuadOperator ;
    type    : CARDINAL ;
    bits,
-   max     : CARDINAL ;
+   max,
    tmp,
    val,
    res     : Tree ;
@@ -2125,7 +2125,7 @@ BEGIN
       n := q ;
       GetQuad(n, op, op1, op2, op3) ;
       max := GetSizeOfInBits(Mod2Gcc(Address)) ;
-      bits := 0 ;
+      bits := GetIntegerZero() ;
       val := GetPointerZero() ;
       REPEAT
          IF (op=ParamOp) AND (op1>0)
@@ -2136,11 +2136,11 @@ BEGIN
             ELSE
                type := GetType(op3) ;
                tmp := BuildConvert(GetPointerType(), Mod2Gcc(op3), FALSE) ;
-               IF bits>0
+               IF CompareTrees(bits, GetIntegerZero())>0
                THEN
-                  tmp := BuildLSL(tmp, BuildIntegerConstant(bits), FALSE)
+                  tmp := BuildLSL(tmp, bits, FALSE)
                END ;
-               INC(bits, GetSizeOfInBits(Mod2Gcc(type))) ;
+	       bits := BuildAdd(bits, GetSizeOfInBits(Mod2Gcc(type)), FALSE) ;
                val := BuildLogicalOrAddress(val, tmp, FALSE)
             END
          END ;
@@ -2148,7 +2148,7 @@ BEGIN
          n := GetNextQuad(n) ;
          GetQuad(n, op, op1, op2, op3)
       UNTIL op=FunctValueOp ;
-      IF bits>max
+      IF CompareTrees(bits, max)>0
       THEN
          ErrorStringAt(InitString('total number of bit specified as parameters to MAKEADR exceeds address width'),
                        QuadToTokenNo(q))

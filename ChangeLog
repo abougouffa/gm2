@@ -1,3 +1,11 @@
+2010-07-02       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2GenGCC.mod:  fixes for MakeAddr and CodeAddr.
+	  Incorrect definition of GetSizeOfInBits and incorrect type of
+	  max, bits now fixed.
+	* gm2/gm2-compiler/gccgm2.def:  corrected return type of
+	  GetSizeOfInBits.
+
 2010-07-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  added test for procedure type
