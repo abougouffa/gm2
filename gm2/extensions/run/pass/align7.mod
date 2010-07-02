@@ -28,7 +28,7 @@ VAR
    x  : CHAR ;
    z  : foo ;
 BEGIN
-   IF ADR(z)-ADR(x)=1024
+   IF ADR(z) MOD 1024=0
    THEN
       exit(0)
    ELSE

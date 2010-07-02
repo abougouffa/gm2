@@ -108,7 +108,7 @@ BEGIN
       Close(StdOut) ;
       exit(2)
    END ;
-   a1 := MAKEADR(0) ;
+   a1 := MAKEADR(ADDRESS(0)) ;
    IF a1#NIL
    THEN
       Close(StdOut) ;

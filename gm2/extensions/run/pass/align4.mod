@@ -23,9 +23,9 @@ FROM libc IMPORT exit ;
 
 VAR
    x  : CHAR ;
-   z  : POINTER TO INTEGER  __ATTRIBUTE__ ((ALIGNED(1024))) ;
+   z  : POINTER TO INTEGER __ATTRIBUTE__ ((ALIGNED(1024))) ;
 BEGIN
-   IF ADR(z)-ADR(x)=1024
+   IF ADR(z) MOD 1024=0
    THEN
       exit(0)
    ELSE
