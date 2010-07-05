@@ -8886,11 +8886,12 @@ gccgm2_BuildBinarySetDo (tree settype, tree op1, tree op2, tree op3,
      */
 
     /* parameter 4 amount */
-    gccgm2_BuildParam (get_rvalue (op3, skip_type_decl (TREE_TYPE (op3)),
-                                   is_op3lvalue));
+    gccgm2_BuildParam (gccgm2_BuildConvert (gccgm2_GetM2IntegerType(),
+					    get_rvalue (op3, skip_type_decl (TREE_TYPE (op3)),
+							is_op3lvalue), FALSE));
 
     /* parameter 3 nBits */
-    gccgm2_BuildParam (nBits);
+    gccgm2_BuildParam (gccgm2_BuildConvert (gccgm2_GetM2CardinalType(), gccgm2_FoldAndStrip(nBits), FALSE));
 
     /* parameter 2 destination set */
     gccgm2_BuildParam (buildUnboundedArrayOf (unbounded,
@@ -9090,7 +9091,7 @@ gccgm2_GetSizeOf (tree type)
   enum tree_code code = TREE_CODE (type);
 
   if (code == FUNCTION_TYPE)
-    return gccgm2_GetSizeOf(ptr_type_node);
+    return gccgm2_GetSizeOf (ptr_type_node);
 
   if (code == VOID_TYPE) {
     if (pedantic || warn_pointer_arith)
@@ -9099,22 +9100,22 @@ gccgm2_GetSizeOf (tree type)
   }
 
   if (code == VAR_DECL)
-    return gccgm2_GetSizeOf(TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE(type));
 
   if (code == PARM_DECL)
-    return gccgm2_GetSizeOf(TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE(type));
 
   if (code == TYPE_DECL)
-    return gccgm2_GetSizeOf(TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE(type));
 
   if (code == ERROR_MARK)
     return size_one_node;
 
   if (code == CONSTRUCTOR)
-    return gccgm2_GetSizeOf(TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE(type));
 
   if (code == FIELD_DECL)
-    return gccgm2_GetSizeOf(TREE_TYPE(type));
+    return gccgm2_GetSizeOf (TREE_TYPE(type));
 
   if (!COMPLETE_TYPE_P (type))
     {
@@ -9135,7 +9136,7 @@ gccgm2_GetSizeOf (tree type)
 tree
 gccgm2_BuildSize (tree op1, int needconvert ATTRIBUTE_UNUSED)
 {
-  return gccgm2_GetSizeOf(op1);
+  return gccgm2_GetSizeOf (op1);
 }
 
 /*
