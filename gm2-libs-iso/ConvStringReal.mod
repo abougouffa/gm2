@@ -134,6 +134,7 @@ BEGIN
           *)
          powerOfTen := point-VAL(INTEGER, l) ;
          point := point-powerOfTen ;
+         offset := 0 ;
          IF point>3
          THEN
             offset := (point DIV 3) * 3 ;
