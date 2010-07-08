@@ -16,9 +16,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Wed Jun 23 19:05:19 BST 2010
-.ds CURRENTGM2 0.92
-.ds DEBIANGM2 0.9.1
+.ds CURRENTDATE "Thu Jul  8 14:06:20 BST 2010
+.ds CURRENTGM2 0.93
+.ds DEBIANGM2 0.9.2
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -103,7 +103,7 @@ Recent news:
 .sp
 .ULS
 .LI
-gm2 0.91 was released on June 23 2010.
+gm2 0.92 was released on July 8 2010.
 .LI
 all regression tests pass on the LP64 platform.
 .LI

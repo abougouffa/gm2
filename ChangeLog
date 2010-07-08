@@ -1,5 +1,10 @@
 2010-07-08       Gaius Mulley <gaius@gnu.org>
 
+	* gm2/www/index.ms:  updated news of 0.92 release.
+	* gm2/version.c:  updated to 0.93 now that the debian
+	  0.92 has been produced.
+	* gm2/gm2-libs/configure.in:  updated to 0.93.
+	* gm2/gm2-libs/configure:  rebuilt.
 	* gm2/gm2-compiler/M2Quads.mod:  pass ArraySym rather than
 	  Sym to InitDynamicArraySubscriptRangeCheck.  Fixes a bug
 	  while checking multidimensional unbounded array bounds
