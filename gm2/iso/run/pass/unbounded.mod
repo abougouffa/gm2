@@ -31,7 +31,12 @@ END Assert ;
 
 
 PROCEDURE test (VAR a: ARRAY OF ARRAY OF CHAR) ;
+VAR
+   m, n: CARDINAL ;
 BEGIN
+   m := HIGH(a) ;
+   n := HIGH(a[0]) ;
+   printf("m = %d, n = %d\n", m, n);
    a[1, 2] := 'a' ;
    a[2, 1] := 'c'
 END test ;
