@@ -9968,7 +9968,7 @@ BEGIN
       tk := MakeTemporary(RightValue) ;
       PutVar(tk, Cardinal)
    END ;
-   BuildRange(InitDynamicArraySubscriptRangeCheck(Sym, idx, Dim)) ;
+   BuildRange(InitDynamicArraySubscriptRangeCheck(ArraySym, idx, Dim)) ;
 
    PushT(tj) ;
    PushT(idx) ;
