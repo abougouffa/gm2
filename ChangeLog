@@ -1,3 +1,14 @@
+2010-07-12       Gaius Mulley <gaius@gnu.org>
+
+	* All major arrays are now dynamic within gm2.
+	* gm2/gm2-libs/FIO.mod:  corrected spelling mistake.
+	* gm2/gm2-compiler/SymbolTable.mod:  large number of changes
+	  replacing static arrays, Symbol, and ScopeCallFrame
+	  with Indexing.Index dynamic arrays.  Also fixed a number
+	  of uninitialized fields in the symbol table.
+	* gm2/tools-src/array2index.py:  tool used to replace the
+	  static arrays with their dynamic equivalent.
+
 2010-07-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/www/index.ms:  updated news of 0.92 release.

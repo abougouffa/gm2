@@ -19,9 +19,13 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 IMPLEMENTATION MODULE SymbolTable ;
 
 
+
 FROM SYSTEM IMPORT ADDRESS ;
 FROM Storage IMPORT ALLOCATE, DEALLOCATE ;
 FROM M2Debug IMPORT Assert ;
+
+IMPORT Indexing ;
+FROM Indexing IMPORT InitIndex, InBounds, HighIndice, PutIndice, GetIndice ;
 
 FROM M2Options IMPORT Pedantic, ExtendedOpaque ;
 
@@ -68,9 +72,6 @@ IMPORT Indexing ;
 
 
 CONST
-   MaxScopes             =     50 ; (* Maximum number of scopes at any one   *)
-                                    (* time.                                 *)
-   MaxSymbols           = 100000 ;  (* Maximum number of symbols.            *)
    DebugUnknowns        =  FALSE ;
 
    (*
@@ -710,11 +711,13 @@ TYPE
                                       (* was called.                      *)
                END ;
 
+   PtrToSymbol = POINTER TO Symbol ;
+   PtrToCallFrame = POINTER TO CallFrame ;
 
 VAR
-   Symbols       : ARRAY [1..MaxSymbols] OF Symbol ;
-   ScopeCallFrame: ARRAY [1..MaxScopes] OF CallFrame ;
-   FreeSymbol    : CARDINAL ;    (* The Head of the free symbol list   *)
+   Symbols       : Indexing.Index ;       (* ARRAY [1..MaxSymbols] OF Symbol.   *)
+   ScopeCallFrame: Indexing.Index ;       (* ARRAY [1..MaxScopes] OF CallFrame. *)
+   FreeSymbol    : CARDINAL ;    (* The next free symbol indice.       *)
    DefModuleTree : SymbolTree ;
    ModuleTree    : SymbolTree ;  (* Tree of all modules ever used.     *)
    ConstLitStringTree
@@ -802,7 +805,7 @@ PROCEDURE InitSymTable ; FORWARD ;
 PROCEDURE GetVisibleSym (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ; FORWARD ;
 PROCEDURE IsNthParamVar (Head: List; n: CARDINAL) : BOOLEAN ; FORWARD ;
-PROCEDURE NewSym (VAR Sym: CARDINAL) ; FORWARD ;
+PROCEDURE NewSym (VAR sym: CARDINAL) ; FORWARD ;
 PROCEDURE PlaceEnumerationListOntoScope (l: List) ; FORWARD ;
 PROCEDURE PlaceMajorScopesEnumerationListOntoStack (Sym: CARDINAL) ; FORWARD ;
 PROCEDURE PushParamSize (Sym: CARDINAL; ParamNo: CARDINAL) ; FORWARD ;
@@ -912,36 +915,54 @@ END FinalSymbol ;
    NewSym - Sets Sym to a new symbol index.
 *)
 
-PROCEDURE NewSym (VAR Sym: CARDINAL) ;
+PROCEDURE NewSym (VAR sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   IF FreeSymbol=MaxSymbols
-   THEN
-      InternalError('increase MaxSymbols', __FILE__, __LINE__)
-   ELSE
-      Sym := FreeSymbol ;
-      WITH Symbols[Sym] DO
-         SymbolType := DummySym
-      END ;
-      INC(FreeSymbol)
-   END
+   sym := FreeSymbol ;
+   NEW(pSym) ;
+   WITH pSym^ DO
+      SymbolType := DummySym
+   END ;
+   PutIndice(Symbols, sym, pSym) ;
+   INC(FreeSymbol)
 END NewSym ;
 
 
 (*
-   DisposeSym - Places Sym onto the FreeSymbol list.
+   GetPsym - returns the pointer to, sym.
 *)
 
-PROCEDURE DisposeSym (Sym: CARDINAL) ;
+PROCEDURE GetPsym (sym: CARDINAL) : PtrToSymbol ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   InternalError('DisposeSym - not really working yet??? check with Evaluate',
-                __FILE__, __LINE__) ;
-   HALT ;
-   WITH Symbols[Sym] DO
-      SymbolType := DummySym ;
-      Dummy.NextFree := FreeSymbol
-   END ;
-   FreeSymbol := Sym
-END DisposeSym ;
+   IF InBounds(Symbols, sym)
+   THEN
+      pSym := GetIndice(Symbols, sym) ;
+      RETURN( pSym )
+   ELSE
+      InternalError('symbol out of bounds', __FILE__, __LINE__)
+   END
+END GetPsym ;
+
+
+(*
+   GetPcall - returns the pointer to the CallFrame.
+*)
+
+PROCEDURE GetPcall (call: CARDINAL) : PtrToCallFrame ;
+VAR
+   pCall: PtrToCallFrame ;
+BEGIN
+   IF InBounds(ScopeCallFrame, call)
+   THEN
+      pCall := GetIndice(ScopeCallFrame, call) ;
+      RETURN( pCall )
+   ELSE
+      InternalError('symbol out of bounds', __FILE__, __LINE__)
+   END
+END GetPcall ;
 
 
 (*
@@ -949,10 +970,13 @@ END DisposeSym ;
 *)
 
 PROCEDURE IsPartialUnbounded (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF sym>0
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
          
          PartialUnboundedSym:  RETURN( TRUE )
@@ -972,12 +996,15 @@ END IsPartialUnbounded ;
 *)
 
 PROCEDURE PutPartialUnbounded (sym: CARDINAL; type: CARDINAL; ndim: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
+   pSym := GetPsym(sym) ;
    IF IsDummy(sym)
    THEN
-      Symbols[sym].SymbolType := PartialUnboundedSym
+      pSym^.SymbolType := PartialUnboundedSym
    END ;
-   WITH Symbols[sym] DO
+   WITH pSym^ DO
       CASE SymbolType OF
 
       PartialUnboundedSym:  PartialUnbounded.Type := type ;
@@ -1043,7 +1070,8 @@ END AlreadyImportedError ;
 
 PROCEDURE MakeError (name: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    (* if Sym is present on the unknown tree then remove it *)
    Sym := FetchUnknownSym(name) ;
@@ -1057,7 +1085,8 @@ BEGIN
       *)
       RemoveExportUndeclared(GetCurrentModuleScope(), Sym)
    END ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := ErrorSym ;
       Error.name := name ;
       InitWhereDeclared(Error.At) ;
@@ -1072,9 +1101,12 @@ END MakeError ;
 *)
 
 PROCEDURE IsError (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=ErrorSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ErrorSym )
 END IsError ;
 
 
@@ -1084,10 +1116,12 @@ END IsError ;
 
 PROCEDURE MakeObject (name: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := ObjectSym ;
       Object.name := name ;
       InitWhereDeclared(Object.At) ;
@@ -1102,9 +1136,12 @@ END MakeObject ;
 *)
 
 PROCEDURE IsTuple (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=TupleSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=TupleSym )
 END IsTuple ;
 
 
@@ -1113,9 +1150,12 @@ END IsTuple ;
 *)
 
 PROCEDURE IsObject (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=ObjectSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ObjectSym )
 END IsObject ;
 
 
@@ -1131,10 +1171,6 @@ VAR
    s  : String ;
    Sym: CARDINAL ;
 BEGIN
-   IF name=MakeKey('foo')
-   THEN
-      stop
-   END ;
    IF name=NulName
    THEN
       NewSym(Sym)
@@ -1154,10 +1190,22 @@ BEGIN
       END ;
       Sym := MakeError(name)
    ELSE
+      IF name=513
+      THEN
+         stop
+      END ;
       Sym := FetchUnknownSym(name) ;
+      IF Sym=717
+      THEN
+         stop
+      END ;
       IF Sym=NulSym
       THEN
          NewSym(Sym)
+      END ;
+      IF Sym=717
+      THEN
+         stop
       END ;
       CheckForExportedDeclaration(Sym)
    END ;
@@ -1166,34 +1214,30 @@ END DeclareSym ;
 
 
 (*
-   InitSymTable - initializes the symbol table.
-*)
-
-PROCEDURE InitSymTable ;
-BEGIN
-   FreeSymbol := 1
-END InitSymTable ;
-
-
-(*
    Init - Initializes the data structures and variables in this module.
           Initialize the trees.
 *)
 
 PROCEDURE Init ;
+VAR
+   pCall: PtrToCallFrame ;
 BEGIN
    AnonymousName := 0 ;
    CurrentError := NIL ;
-   InitSymTable ;
    InitTree(ConstLitTree) ;
    InitTree(ConstLitStringTree) ;
    InitTree(DefModuleTree) ;
    InitTree(ModuleTree) ;
+   Symbols := InitIndex(1) ;
+   FreeSymbol := 1 ;
    ScopePtr := 1 ;
-   WITH ScopeCallFrame[ScopePtr] DO
+   ScopeCallFrame := InitIndex(1) ;
+   NEW(pCall) ;
+   WITH pCall^ DO
       Main := NulSym ;
       Search := NulSym
    END ;
+   PutIndice(ScopeCallFrame, ScopePtr, pCall) ;
    CurrentModule     := NulSym ;
    MainModule        := NulSym ;
    FileModule        := NulSym ;
@@ -1243,7 +1287,8 @@ END FromModuleGetSym ;
 
 PROCEDURE AddSymToUnknown (scope: CARDINAL; name: Name; Sym: CARDINAL) ;
 VAR
-   n: Name ;
+   pSym: PtrToSymbol ;
+   n   : Name ;
 BEGIN
    IF DebugUnknowns
    THEN
@@ -1252,7 +1297,8 @@ BEGIN
    END ;
 
    (* Add symbol to unknown tree *)
-   WITH Symbols[scope] DO
+   pSym := GetPsym(scope) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : PutSymKey(DefImp.Unresolved, name, Sym) |
@@ -1273,6 +1319,7 @@ END AddSymToUnknown ;
 
 PROCEDURE AddSymToUnknownTree (ScopeId: INTEGER; name: Name; Sym: CARDINAL) ;
 VAR
+   pCall   : PtrToCallFrame ;
    ScopeSym: CARDINAL ;
 BEGIN
    IF ScopeId>0
@@ -1280,7 +1327,8 @@ BEGIN
       (* choose to place the unknown symbol in the first module scope scope
          outside the current scope *)
       REPEAT
-         ScopeSym := ScopeCallFrame[ScopeId].Main ;
+         pCall := GetPcall(ScopeId) ;
+         ScopeSym := pCall^.Main ;
          IF (ScopeSym>0) AND (IsDefImp(ScopeSym) OR IsModule(ScopeSym))
          THEN
             AddSymToUnknown(ScopeSym, name, Sym) ;
@@ -1300,6 +1348,7 @@ END AddSymToUnknownTree ;
 
 PROCEDURE SubSymFromUnknownTree (name: Name) ;
 VAR
+   pCall   : PtrToCallFrame ;
    ScopeSym,
    ScopeId : CARDINAL ;
 BEGIN
@@ -1307,7 +1356,8 @@ BEGIN
    THEN
       ScopeId := ScopePtr ;
       REPEAT
-         ScopeSym := ScopeCallFrame[ScopeId].Search ;
+         pCall := GetPcall(ScopeId) ;
+         ScopeSym := pCall^.Search ;
          IF IsModule(ScopeSym) OR IsDefImp(ScopeSym) OR IsProcedure(ScopeSym)
          THEN
             IF RemoveFromUnresolvedTree(ScopeSym, name)
@@ -1333,6 +1383,7 @@ END SubSymFromUnknownTree ;
 
 PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ;
 VAR
+   pCall   : PtrToCallFrame ;
    ScopeSym,
    ScopeId ,
    Sym     : CARDINAL ;
@@ -1341,7 +1392,8 @@ BEGIN
    THEN
       ScopeId := ScopePtr ;
       REPEAT
-         ScopeSym := ScopeCallFrame[ScopeId].Search ;
+         pCall := GetPcall(ScopeId) ;
+         ScopeSym := pCall^.Search ;
          IF IsModule(ScopeSym) OR IsDefImp(ScopeSym) OR IsProcedure(ScopeSym)
          THEN
             Sym := ExamineUnresolvedTree(ScopeSym, name) ;
@@ -1367,10 +1419,12 @@ END GetSymFromUnknownTree ;
 
 PROCEDURE ExamineUnresolvedTree (ScopeSym: CARDINAL; name: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    (* Get symbol from unknown tree *)
-   WITH Symbols[ScopeSym] DO
+   pSym := GetPsym(ScopeSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : Sym := GetSymKey(DefImp.Unresolved, name) |
@@ -1399,7 +1453,8 @@ PROCEDURE TryMoveUndeclaredSymToInnerModule (OuterScope,
                                              InnerScope: CARDINAL;
                                              name: Name) : CARDINAL ;
 VAR
-   sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   sym : CARDINAL ;
 BEGIN
    (* assume this should not be called if OuterScope was a procedure
       as this case is handled by the caller (P1SymBuild)
@@ -1412,7 +1467,8 @@ BEGIN
       RemoveExportUndeclared(OuterScope, sym) ;
       AddSymToModuleScope(OuterScope, sym) ;
       AddVarToScopeList(OuterScope, sym) ;
-      WITH Symbols[OuterScope] DO
+      pSym := GetPsym(OuterScope) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          DefImpSym: IF GetSymKey(DefImp.Unresolved, name)=sym
@@ -1441,9 +1497,12 @@ END TryMoveUndeclaredSymToInnerModule ;
 *)
 
 PROCEDURE RemoveFromUnresolvedTree (ScopeSym: CARDINAL; name: Name) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    (* Get symbol from unknown tree *)
-   WITH Symbols[ScopeSym] DO
+   pSym := GetPsym(ScopeSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : IF GetSymKey(DefImp.Unresolved, name)#NulKey
@@ -1496,8 +1555,11 @@ END FetchUnknownSym ;
 *)
 
 PROCEDURE TransparentScope (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( (SymbolType#DefImpSym) AND (SymbolType#ModuleSym) )
    END
 END TransparentScope ;
@@ -1510,9 +1572,11 @@ END TransparentScope ;
 
 PROCEDURE AddSymToModuleScope (ModSym: CARDINAL; Sym: CARDINAL) ;
 VAR
-   n: Name ;
+   pSym: PtrToSymbol ;
+   n   : Name ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : IF GetSymKey(DefImp.LocalSymbols, GetSymName(Sym))=NulKey
@@ -1552,15 +1616,18 @@ END AddSymToModuleScope ;
 
 PROCEDURE GetCurrentModuleScope () : CARDINAL ;
 VAR
-   i  : CARDINAL ;
+   pCall: PtrToCallFrame ;
+   i    : CARDINAL ;
 BEGIN
    i := ScopePtr ;
-   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[i].Search)) DO
+   pCall := GetPcall(i) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) DO
       Assert(i>0) ;
-      DEC(i)
+      DEC(i) ;
+      pCall := GetPcall(i)
    END ;
-   RETURN( ScopeCallFrame[i].Search )
+   RETURN( pCall^.Search )
 END GetCurrentModuleScope ;
 
 
@@ -1571,23 +1638,28 @@ END GetCurrentModuleScope ;
 
 PROCEDURE GetLastModuleScope () : CARDINAL ;
 VAR
-   i  : CARDINAL ;
+   pCall: PtrToCallFrame ;
+   i    : CARDINAL ;
 BEGIN
    i := ScopePtr ;
-   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[i].Search)) DO
+   pCall := GetPcall(i) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) DO
       Assert(i>0) ;
-      DEC(i)
+      DEC(i) ;
+      pCall := GetPcall(i)
    END ;
    (* Found module at position, i. *)
    DEC(i) ;  (* Move to an outer level module scope *)
-   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[i].Search)) DO
+   pCall := GetPcall(i) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) DO
       Assert(i>0) ;
-      DEC(i)
+      DEC(i) ;
+      pCall := GetPcall(i)
    END ;
    (* Found module at position, i. *)
-   RETURN( ScopeCallFrame[i].Search )
+   RETURN( pCall^.Search )
 END GetLastModuleScope ;
 
 
@@ -1598,25 +1670,30 @@ END GetLastModuleScope ;
 
 PROCEDURE GetLastModuleOrProcedureScope () : CARDINAL ;
 VAR
-   i  : CARDINAL ;
+   pCall: PtrToCallFrame ;
+   i    : CARDINAL ;
 BEGIN
    (* find current inner module *)
    i := ScopePtr ;
-   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[i].Search)) DO
+   pCall := GetPcall(i) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) DO
       Assert(i>0) ;
-      DEC(i)
+      DEC(i) ;
+      pCall := GetPcall(i)
    END ;
    (* found module at position, i. *)
    DEC(i) ;  (* Move to an outer level module or procedure scope *)
-   WHILE (NOT IsModule(ScopeCallFrame[i].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[i].Search)) AND
-         (NOT IsProcedure(ScopeCallFrame[i].Search)) DO
+   pCall := GetPcall(i) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) AND
+         (NOT IsProcedure(pCall^.Search)) DO
       Assert(i>0) ;
-      DEC(i)
+      DEC(i) ;
+      pCall := GetPcall(i)
    END ;
    (* Found module at position, i. *)
-   RETURN( ScopeCallFrame[i].Search )
+   RETURN( pCall^.Search )
 END GetLastModuleOrProcedureScope ;
 
 
@@ -1627,14 +1704,18 @@ END GetLastModuleOrProcedureScope ;
 
 PROCEDURE AddSymToScope (Sym: CARDINAL; name: Name) ;
 VAR
+   pSym   : PtrToSymbol ;
+   pCall  : PtrToCallFrame ;
    ScopeId: CARDINAL ;
 BEGIN
-   ScopeId := ScopeCallFrame[ScopePtr].Main ;
+   pCall := GetPcall(ScopePtr) ;
+   ScopeId := pCall^.Main ;
    (*
       WriteString('Adding ') ; WriteKey(name) ; WriteString(' :') ; WriteCard(Sym, 4) ; WriteString(' to scope: ') ;
       WriteKey(GetSymName(ScopeId)) ; WriteLn ;
    *)
-   WITH Symbols[ScopeId] DO
+   pSym := GetPsym(ScopeId) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : IF name#NulName
@@ -1675,8 +1756,11 @@ END AddSymToScope ;
 *)
 
 PROCEDURE GetCurrentScope () : CARDINAL ;
+VAR
+   pCall: PtrToCallFrame ;
 BEGIN
-   RETURN( ScopeCallFrame[ScopePtr].Main )
+   pCall := GetPcall(ScopePtr) ;
+   RETURN( pCall^.Main )
 END GetCurrentScope ;
 
 
@@ -1694,29 +1778,35 @@ END GetCurrentScope ;
 *)
 
 PROCEDURE StartScope (Sym: CARDINAL) ;
+VAR
+   oCall,
+   pCall: PtrToCallFrame ;
 BEGIN
    Sym := SkipType(Sym) ;
-   IF ScopePtr=MaxScopes
-   THEN
-      InternalError('too many scopes - increase MaxScopes', __FILE__, __LINE__)
-   ELSE
 (*
-      WriteString('New scope is: ') ; WriteKey(GetSymName(Sym)) ; WriteLn ;
+   WriteString('New scope is: ') ; WriteKey(GetSymName(Sym)) ; WriteLn ;
 *)
-      INC(ScopePtr) ;
-      WITH ScopeCallFrame[ScopePtr] DO
-         Start := ScopePtr-1 ;  (* Previous ScopePtr value before StartScope *)
-         Search := Sym ;
+   INC(ScopePtr) ;
+   IF InBounds(ScopeCallFrame, ScopePtr)
+   THEN
+      pCall := GetPcall(ScopePtr)
+   ELSE
+      NEW(pCall) ;
+      PutIndice(ScopeCallFrame, ScopePtr, pCall)
+   END ;
+   WITH pCall^ DO
+      Start := ScopePtr-1 ;  (* Previous ScopePtr value before StartScope *)
+      Search := Sym ;
 
-         (* If Sym is a record then maintain the old Main scope for adding   *)
-         (* new symbols to ie temporary variables.                           *)
-         IF IsRecord(Sym)
-         THEN
-            Main := ScopeCallFrame[ScopePtr-1].Main
-         ELSE
-            Main := Sym ;
-            PlaceMajorScopesEnumerationListOntoStack(Sym)
-         END
+      (* If Sym is a record then maintain the old Main scope for adding   *)
+      (* new symbols to ie temporary variables.                           *)
+      IF IsRecord(Sym)
+      THEN
+         oCall := GetPcall(ScopePtr-1) ;
+         Main := oCall^.Main
+      ELSE
+         Main := Sym ;
+         PlaceMajorScopesEnumerationListOntoStack(Sym)
       END
    END
    (* ; DisplayScopes *)
@@ -1730,8 +1820,11 @@ END StartScope ;
 *)
 
 PROCEDURE PlaceMajorScopesEnumerationListOntoStack (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : PlaceEnumerationListOntoScope(DefImp.EnumerationScopeList) |
@@ -1774,12 +1867,16 @@ END PlaceEnumerationListOntoScope ;
 *)
 
 PROCEDURE EndScope ;
+VAR
+   pCall: PtrToCallFrame ;
 BEGIN
 (*
    ; WriteString('EndScope - ending scope: ') ;
-   ; WriteKey(GetSymName(ScopeCallFrame[ScopePtr].Search)) ; WriteLn ;
+   pCall := GetPcall(ScopePtr) ;
+   ; WriteKey(GetSymName(pCall^.Search)) ; WriteLn ;
 *)
-   ScopePtr := ScopeCallFrame[ScopePtr].Start
+   pCall := GetPcall(ScopePtr) ;
+   ScopePtr := pCall^.Start
    (* ; DisplayScopes *)
 END EndScope ;
 
@@ -1801,19 +1898,25 @@ END EndScope ;
 *)
 
 PROCEDURE PseudoScope (Sym: CARDINAL) ;
+VAR
+   oCall,
+   pCall: PtrToCallFrame ;
 BEGIN
    IF IsEnumeration(Sym)
    THEN
-      IF ScopePtr<MaxScopes
+      INC(ScopePtr) ;
+      IF InBounds(ScopeCallFrame, ScopePtr)
       THEN
-         INC(ScopePtr) ;
-         WITH ScopeCallFrame[ScopePtr] DO
-            Main := ScopeCallFrame[ScopePtr-1].Main ;
-            Start := ScopeCallFrame[ScopePtr-1].Start ;
-            Search := Sym
-         END
+         pCall := GetPcall(ScopePtr)
       ELSE
-         InternalError('increase MaxScopes', __FILE__, __LINE__)
+         NEW(pCall) ;
+         PutIndice(ScopeCallFrame, ScopePtr, pCall)
+      END ;
+      WITH pCall^ DO
+         oCall := GetPcall(ScopePtr-1) ;
+         Main := oCall^.Main ;
+         Start := oCall^.Start ;
+         Search := Sym
       END
    ELSE
       InternalError('expecting EnumerationSym', __FILE__, __LINE__)
@@ -1848,10 +1951,12 @@ END IsDeclaredIn ;
 
 PROCEDURE MakeGnuAsm () : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := GnuAsmSym ;
       WITH GnuAsm DO
          String   := NulSym ;
@@ -1871,9 +1976,12 @@ END MakeGnuAsm ;
 *)
 
 PROCEDURE PutGnuAsm (sym: CARDINAL; string: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(IsConstString(string)) ;
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: GnuAsm.String := string
@@ -1891,8 +1999,11 @@ END PutGnuAsm ;
 *)
 
 PROCEDURE GetGnuAsm (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: RETURN( GnuAsm.String )
@@ -1909,8 +2020,11 @@ END GetGnuAsm ;
 *)
 
 PROCEDURE PutGnuAsmOutput (sym: CARDINAL; out: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: GnuAsm.Outputs := out
@@ -1927,8 +2041,11 @@ END PutGnuAsmOutput ;
 *)
 
 PROCEDURE PutGnuAsmInput (sym: CARDINAL; in: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: GnuAsm.Inputs := in
@@ -1945,8 +2062,11 @@ END PutGnuAsmInput ;
 *)
 
 PROCEDURE PutGnuAsmTrash (sym: CARDINAL; trash: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: GnuAsm.Trashed := trash
@@ -1963,8 +2083,11 @@ END PutGnuAsmTrash ;
 *)
 
 PROCEDURE GetGnuAsmInput (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: RETURN( GnuAsm.Inputs )
@@ -1981,8 +2104,11 @@ END GetGnuAsmInput ;
 *)
 
 PROCEDURE GetGnuAsmOutput (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: RETURN( GnuAsm.Outputs )
@@ -1999,8 +2125,11 @@ END GetGnuAsmOutput ;
 *)
 
 PROCEDURE GetGnuAsmTrash (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: RETURN( GnuAsm.Trashed )
@@ -2017,8 +2146,11 @@ END GetGnuAsmTrash ;
 *)
 
 PROCEDURE PutGnuAsmVolatile (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: GnuAsm.Volatile := TRUE
@@ -2036,10 +2168,12 @@ END PutGnuAsmVolatile ;
 
 PROCEDURE MakeRegInterface () : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := InterfaceSym ;
       WITH Interface DO
          InitList(StringList) ;
@@ -2058,8 +2192,11 @@ END MakeRegInterface ;
 *)
 
 PROCEDURE PutRegInterface (sym: CARDINAL; string, object: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       InterfaceSym: PutItemIntoList(Interface.StringList, string) ;
@@ -2077,8 +2214,11 @@ END PutRegInterface ;
 *)
 
 PROCEDURE GetRegInterface (sym: CARDINAL; n: CARDINAL; VAR string, object: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       InterfaceSym: string := GetItemFromList(Interface.StringList, n) ;
@@ -2097,8 +2237,11 @@ END GetRegInterface ;
 *)
 
 PROCEDURE GetSubrange (Sym: CARDINAL; VAR HighSym, LowSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       SubrangeSym: HighSym := Subrange.High ;
@@ -2118,8 +2261,11 @@ END GetSubrange ;
 
 PROCEDURE PutSubrange (Sym: CARDINAL; LowSym, HighSym: CARDINAL;
                        TypeSymbol: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       SubrangeSym:  Subrange.Low := LowSym ;      (* Index to symbol for lower   *)
@@ -2243,18 +2389,21 @@ END GetSym ;
 
 PROCEDURE GetScopeSym (name: Name) : CARDINAL ;
 VAR
+   pCall   : PtrToCallFrame ;
    ScopeSym,
    ScopeId ,
    Sym     : CARDINAL ;
 BEGIN
    (* DisplayScopes ; *)
    ScopeId := ScopePtr ;
-   ScopeSym := ScopeCallFrame[ScopeId].Search ;
+   pCall := GetPcall(ScopeId) ;
+   ScopeSym := pCall^.Search ;
    (* WriteString(' scope: ') ; WriteKey(GetSymName(ScopeSym)) ; *)
    Sym := CheckScopeForSym(ScopeSym, name) ;
    WHILE (ScopeId>0) AND (Sym=NulSym) AND TransparentScope(ScopeSym) DO
       DEC(ScopeId) ;
-      ScopeSym := ScopeCallFrame[ScopeId].Search ;
+      pCall := GetPcall(ScopeId) ;
+      ScopeSym := pCall^.Search ;
       Sym := CheckScopeForSym(ScopeSym, name) ;
       (* WriteString(' scope: ') ; WriteKey(GetSymName(ScopeSym)) *)
    END ;
@@ -2291,14 +2440,16 @@ END CheckScopeForSym ;
 
 PROCEDURE DisplayScopes ;
 VAR
-   n  : Name ;
-   i  : CARDINAL ;
-   Sym: CARDINAL ;
+   pCall: PtrToCallFrame ;
+   n    : Name ;
+   i    : CARDINAL ;
+   Sym  : CARDINAL ;
 BEGIN
    i := ScopePtr ;
    printf0('Displaying scopes\n') ;
    WHILE i>=1 DO
-      Sym := ScopeCallFrame[i].Search ;
+      pCall := GetPcall(i) ;
+      Sym := pCall^.Search ;
       printf1('Symbol %4d', Sym) ;
       IF Sym#NulSym
       THEN
@@ -2325,14 +2476,17 @@ END DisplayScopes ;
 
 PROCEDURE GetModuleScopeId (Id: CARDINAL) : CARDINAL ;
 VAR
-   s: CARDINAL ;  (* Substitute s for ScopeCallFrame[Id], when we have better compiler! *)
+   pCall: PtrToCallFrame ;
+   s    : CARDINAL ;
 BEGIN
-   s := ScopeCallFrame[Id].Search ;
+   pCall := GetPcall(Id) ;
+   s := pCall^.Search ;
    WHILE (Id>0) AND (s#NulSym) AND
          ((NOT IsModule(s)) AND
           (NOT IsDefImp(s))) DO
       DEC(Id) ;
-      s := ScopeCallFrame[Id].Search ;
+      pCall := GetPcall(Id) ;
+      s := pCall^.Search ;
    END ;
    RETURN( Id )
 END GetModuleScopeId ;
@@ -2344,12 +2498,14 @@ END GetModuleScopeId ;
 
 PROCEDURE GetVisibleSym (name: Name) : CARDINAL ;
 VAR
+   pCall: PtrToCallFrame ;
    Sym,
-   i  : CARDINAL ;
+   i    : CARDINAL ;
 BEGIN
    i := ScopePtr ;
    WHILE i>=1 DO
-      WITH ScopeCallFrame[i] DO
+      pCall := GetPcall(i) ;
+      WITH pCall^ DO
          IF Search=Main
          THEN
             RETURN( GetLocalSym(Main, name) )
@@ -2377,11 +2533,13 @@ END GetVisibleSym ;
 
 PROCEDURE IsAlreadyDeclaredSym (name: Name) : BOOLEAN ;
 VAR
-   i: CARDINAL ;
+   pCall: PtrToCallFrame ;
+   i    : CARDINAL ;
 BEGIN
    i := ScopePtr ;
    WHILE i>=1 DO
-      WITH ScopeCallFrame[i] DO
+      pCall := GetPcall(i) ;
+      WITH pCall^ DO
          IF Search=Main
          THEN
             RETURN( GetLocalSym(Main, name)#NulSym )
@@ -2405,7 +2563,9 @@ END IsAlreadyDeclaredSym ;
 
 PROCEDURE MakeModule (ModuleName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym : PtrToSymbol ;
+   pCall: PtrToCallFrame ;
+   Sym  : CARDINAL ;
 BEGIN
    (*
       Make a new symbol since we are at the outer scope level.
@@ -2415,7 +2575,8 @@ BEGIN
       directly.
    *)
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := ModuleSym ;
       WITH Module DO
          name := ModuleName ;               (* Index into name array, name   *)
@@ -2478,11 +2639,12 @@ BEGIN
          InitList(ListOfModules) ;          (* List of all inner modules.    *)
          InitWhereDeclared(At) ;            (* Where symbol declared.        *)
          InitWhereFirstUsed(At) ;           (* Where symbol first used.      *)
-         IF ScopeCallFrame[ScopePtr].Main=GetBaseModule()
+         pCall := GetPcall(ScopePtr) ;
+         IF pCall^.Main=GetBaseModule()
          THEN
             Scope := NulSym
          ELSE
-            Scope := ScopeCallFrame[ScopePtr].Main
+            Scope := pCall^.Main
          END
       END
    END ;
@@ -2496,8 +2658,11 @@ END MakeModule ;
 *)
 
 PROCEDURE AddModuleToParent (Sym: CARDINAL; Parent: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Parent] DO
+   pSym := GetPsym(Parent) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   :  PutItemIntoList(DefImp.ListOfModules, Sym) |
@@ -2518,12 +2683,14 @@ END AddModuleToParent ;
 
 PROCEDURE MakeInnerModule (ModuleName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := DeclareSym(ModuleName) ;
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := ModuleSym ;
          WITH Module DO
             name := ModuleName ;            (* Index into name array, name   *)
@@ -2607,7 +2774,8 @@ END MakeInnerModule ;
 
 PROCEDURE MakeDefImp (DefImpName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    (*
       Make a new symbol since we are at the outer scope level.
@@ -2617,7 +2785,8 @@ BEGIN
       directly.
    *)
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := DefImpSym ;
       WITH DefImp DO
          name := DefImpName ;         (* Index into name array, name   *)
@@ -2720,12 +2889,14 @@ END MakeDefImp ;
 
 PROCEDURE MakeProcedure (ProcedureName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := DeclareSym(ProcedureName) ;
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := ProcedureSym ;
          WITH Procedure DO
             name := ProcedureName ;
@@ -2800,8 +2971,11 @@ END MakeProcedure ;
 *)
 
 PROCEDURE AddProcedureToList (Mod, Proc: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Mod] DO
+   pSym := GetPsym(Mod) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : PutItemIntoList(DefImp.ListOfProcs, Proc) |
@@ -2820,8 +2994,11 @@ END AddProcedureToList ;
 *)
 
 PROCEDURE AddVarToScopeList (scope, sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[scope] DO
+   pSym := GetPsym(scope) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: PutItemIntoList(Procedure.ListOfVars, sym) |
@@ -2841,8 +3018,11 @@ END AddVarToScopeList ;
 *)
 
 PROCEDURE AddVarToList (Sym: CARDINAL) ;
+VAR
+   pCall: PtrToCallFrame ;
 BEGIN
-   AddVarToScopeList(ScopeCallFrame[ScopePtr].Main, Sym)
+   pCall := GetPcall(ScopePtr) ;
+   AddVarToScopeList(pCall^.Main, Sym)
 END AddVarToList ;
 
 
@@ -2853,12 +3033,14 @@ END AddVarToList ;
 
 PROCEDURE MakeVar (VarName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := DeclareSym(VarName) ;
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := VarSym ;
          WITH Var DO
             name := VarName ;
@@ -2898,8 +3080,11 @@ END MakeVar ;
 *)
 
 PROCEDURE PutExceptionBlock (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.ExceptionBlock := TRUE |
@@ -2921,8 +3106,11 @@ END PutExceptionBlock ;
 *)
 
 PROCEDURE HasExceptionBlock (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( Procedure.ExceptionBlock ) |
@@ -2944,8 +3132,11 @@ END HasExceptionBlock ;
 *)
 
 PROCEDURE PutExceptionFinally (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.ExceptionFinally := TRUE |
@@ -2967,8 +3158,11 @@ END PutExceptionFinally ;
 *)
 
 PROCEDURE HasExceptionFinally (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( Procedure.ExceptionFinally ) |
@@ -2990,10 +3184,13 @@ END HasExceptionFinally ;
 
 PROCEDURE FillInRecordFields (Sym: CARDINAL; RecordName: Name;
                               scope: CARDINAL; oaf: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := RecordSym ;
          WITH Record DO
             name := RecordName ;
@@ -3056,10 +3253,12 @@ END MakeRecord ;
 
 PROCEDURE MakeVarient (RecOrVarFieldSym: CARDINAL) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := VarientSym ;
       WITH Varient DO
          Size := InitValue() ;
@@ -3077,7 +3276,8 @@ BEGIN
       END
    END ;
    (* Now add Sym to the record RecSym field list *)
-   WITH Symbols[RecOrVarFieldSym] DO
+   pSym := GetPsym(RecOrVarFieldSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym      : PutItemIntoList(Record.ListOfSons, Sym) |
@@ -3099,8 +3299,11 @@ END MakeVarient ;
 *)
 
 PROCEDURE GetRecord (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym      : RETURN( Sym ) |
@@ -3121,6 +3324,7 @@ END GetRecord ;
 
 PROCEDURE MakeEnumeration (EnumerationName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
    sym := CheckForHiddenType(EnumerationName) ;
@@ -3130,7 +3334,8 @@ BEGIN
       oaf := GetOAFamily(sym) ;
       IF NOT IsError(sym)
       THEN
-         Symbols[sym].SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
+         pSym := GetPsym(sym) ;
+         pSym^.SymbolType := EnumerationSym ; (* To satisfy AddSymToScope *)
          (* Now add this type to the symbol table of the current scope *)
          AddSymToScope(sym, EnumerationName)
       END
@@ -3139,7 +3344,8 @@ BEGIN
    END ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := EnumerationSym ;
          WITH Enumeration DO
             name := EnumerationName ;      (* Name of enumeration.   *)
@@ -3165,12 +3371,18 @@ END MakeEnumeration ;
 
 PROCEDURE MakeType (TypeName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(TypeName, oaf) ;
+   IF sym=717
+   THEN
+      stop
+   END ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := TypeSym ;
          WITH Type DO
             name := TypeName ;        (* Index into name array, name *)
@@ -3201,12 +3413,14 @@ END MakeType ;
 
 PROCEDURE MakeHiddenType (TypeName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := DeclareSym(TypeName) ;
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := TypeSym ;
          WITH Type DO
             name   := TypeName ;    (* Index into name array, name *)
@@ -3218,6 +3432,7 @@ BEGIN
             ELSE
                Type := Address
             END ;
+            oafamily := NulSym ;
             IF NOT ExtendedOpaque
             THEN
                IncludeItemIntoList(AddressTypes, Sym)
@@ -3250,14 +3465,16 @@ END MakeHiddenType ;
 
 PROCEDURE MakeConstLit (ConstName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := GetSymKey(ConstLitTree, ConstName) ;
    IF Sym=NulSym
    THEN
       NewSym(Sym) ;
       PutSymKey(ConstLitTree, ConstName, Sym) ;
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := ConstLitSym ;
          CASE SymbolType OF
 
@@ -3288,12 +3505,14 @@ END MakeConstLit ;
 
 PROCEDURE MakeConstVar (ConstVarName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := DeclareSym(ConstVarName) ;
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := ConstVarSym ;
          WITH ConstVar DO
             name  := ConstVarName ;
@@ -3330,14 +3549,16 @@ END MakeConstVar ;
 
 PROCEDURE MakeConstLitString (ConstName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := GetSymKey(ConstLitStringTree, ConstName) ;
    IF Sym=NulSym
    THEN
       NewSym(Sym) ;
       PutSymKey(ConstLitStringTree, ConstName, Sym) ;
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := ConstStringSym ;
          CASE SymbolType OF
 
@@ -3362,11 +3583,13 @@ END MakeConstLitString ;
    
 PROCEDURE MakeConstString (ConstName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
    PutSymKey(ConstLitStringTree, ConstName, Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := ConstStringSym ;
       CASE SymbolType OF
 
@@ -3391,9 +3614,11 @@ END MakeConstString ;
 
 PROCEDURE PutConstString (Sym: CARDINAL; String: Name) ;
 VAR
-   n: Name ;
+   pSym: PtrToSymbol ;
+   n   : Name ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstStringSym: ConstString.Length := LengthKey(String) ;
@@ -3422,8 +3647,11 @@ END PutConstString ;
 *)
 
 PROCEDURE GetString (Sym: CARDINAL) : Name ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstStringSym: RETURN( ConstString.String )
@@ -3440,8 +3668,11 @@ END GetString ;
 *)
 
 PROCEDURE GetStringLength (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstStringSym: RETURN( ConstString.Length )
@@ -3459,9 +3690,12 @@ END GetStringLength ;
 *)
 
 PROCEDURE PutVariableAtAddress (sym: CARDINAL; address: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(sym#NulSym) ;
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym:  Var.AtAddress := TRUE ;
@@ -3479,9 +3713,12 @@ END PutVariableAtAddress ;
 *)
 
 PROCEDURE GetVariableAtAddress (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(sym#NulSym) ;
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym:  RETURN( Var.Address )
@@ -3499,9 +3736,12 @@ END GetVariableAtAddress ;
 *)
 
 PROCEDURE IsVariableAtAddress (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(sym#NulSym) ;
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym:  RETURN( Var.AtAddress )
@@ -3518,9 +3758,12 @@ END IsVariableAtAddress ;
 *)
 
 PROCEDURE PutPriority (module: CARDINAL; priority: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(module#NulSym) ;
-   WITH Symbols[module] DO
+   pSym := GetPsym(module) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym:  DefImp.Priority := priority |
@@ -3539,9 +3782,12 @@ END PutPriority ;
 *)
 
 PROCEDURE GetPriority (module: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(module#NulSym) ;
-   WITH Symbols[module] DO
+   pSym := GetPsym(module) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym:  RETURN( DefImp.Priority ) |
@@ -3560,8 +3806,11 @@ END GetPriority ;
 *)
 
 PROCEDURE PutNeedSavePriority (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.SavePriority := TRUE
@@ -3579,8 +3828,11 @@ END PutNeedSavePriority ;
 *)
 
 PROCEDURE GetNeedSavePriority (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( Procedure.SavePriority )
@@ -3597,11 +3849,14 @@ END GetNeedSavePriority ;
 *)
 
 PROCEDURE GetProcedureBuiltin (Sym: CARDINAL) : Name ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
-      ProcedureSym   : RETURN( Procedure.BuiltinName )
+      ProcedureSym: RETURN( Procedure.BuiltinName )
 
       ELSE
          InternalError('expecting procedure symbol', __FILE__, __LINE__)
@@ -3615,8 +3870,11 @@ END GetProcedureBuiltin ;
 *)
 
 PROCEDURE PutProcedureBuiltin (Sym: CARDINAL; name: Name) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym   : Procedure.BuiltinName := name ;
@@ -3636,8 +3894,11 @@ END PutProcedureBuiltin ;
 *)
 
 PROCEDURE IsProcedureBuiltin (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym   : RETURN( Procedure.IsBuiltin )
@@ -3654,8 +3915,11 @@ END IsProcedureBuiltin ;
 *)
 
 PROCEDURE PutProcedureInline (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym   : Procedure.IsInline := TRUE ;
@@ -3672,8 +3936,11 @@ END PutProcedureInline ;
 *)
 
 PROCEDURE IsProcedureInline (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym   : RETURN( Procedure.IsInline )
@@ -3691,8 +3958,11 @@ END IsProcedureInline ;
 *)
 
 PROCEDURE PutConstSet (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  ConstVar.IsSet := TRUE |
@@ -3710,8 +3980,11 @@ END PutConstSet ;
 *)
 
 PROCEDURE IsConstSet (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  RETURN( ConstVar.IsSet ) |
@@ -3731,8 +4004,11 @@ END IsConstSet ;
 *)
 
 PROCEDURE PutConstructor (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  ConstVar.IsConstructor := TRUE |
@@ -3752,8 +4028,11 @@ END PutConstructor ;
 *)
 
 PROCEDURE IsConstructor (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  RETURN( ConstVar.IsConstructor ) |
@@ -3772,8 +4051,11 @@ END IsConstructor ;
 *)
 
 PROCEDURE PutConstructorFrom (Sym: CARDINAL; from: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  ConstVar.FromType := from ;
@@ -3796,12 +4078,14 @@ END PutConstructorFrom ;
 
 PROCEDURE MakeSubrange (SubrangeName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(SubrangeName, oaf) ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := SubrangeSym ;
          WITH Subrange DO
             name := SubrangeName ;
@@ -3835,12 +4119,14 @@ END MakeSubrange ;
 
 PROCEDURE MakeArray (ArrayName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    sym, oaf: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(ArrayName, oaf) ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := ArraySym ;
          WITH Array DO
             name := ArrayName ;
@@ -3848,6 +4134,7 @@ BEGIN
             Size := InitValue() ;   (* Size of array.                      *)
             Offset := InitValue() ; (* Offset of array.                    *)
             Type := NulSym ;        (* The Array Type. ARRAY OF Type.      *)
+            Align := NulSym ;       (* The alignment of this type.         *)
             oafamily := oaf ;       (* The unbounded for this array        *)
             Scope := GetCurrentScope() ;        (* Which scope created it  *)
             InitWhereDeclared(At)   (* Declared here                       *)
@@ -3877,10 +4164,12 @@ END GetModule ;
 
 PROCEDURE GetLowestType (Sym: CARDINAL) : CARDINAL ;
 VAR
+   pSym: PtrToSymbol ;
    type: CARDINAL ;
 BEGIN
    Assert(Sym#NulSym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym              : type := Var.Type |
@@ -3909,7 +4198,8 @@ BEGIN
          InternalError('not implemented yet', __FILE__, __LINE__)
       END
    END ;
-   IF (Symbols[Sym].SymbolType=TypeSym) AND (type=NulSym)
+   pSym := GetPsym(Sym) ;
+   IF (pSym^.SymbolType=TypeSym) AND (type=NulSym)
    THEN
       type := Sym             (* Base Type *)
    ELSIF type#NulSym
@@ -3917,15 +4207,12 @@ BEGIN
       IF (IsType(type) OR IsSet(type))
       THEN
          (* ProcType is an inbuilt base type *)
-         IF Symbols[type].SymbolType#ProcTypeSym
+         pSym := GetPsym(type) ;
+         IF pSym^.SymbolType#ProcTypeSym
          THEN
             type := GetLowestType(type)   (* Type def *)
          END
       END
-   END ;
-   IF type>MaxSymbols
-   THEN
-      InternalError('type not declared', __FILE__, __LINE__)
    END ;
    RETURN( type )
 END GetLowestType ;
@@ -3938,10 +4225,12 @@ END GetLowestType ;
 
 PROCEDURE GetType (Sym: CARDINAL) : CARDINAL ;
 VAR
+   pSym: PtrToSymbol ;
    type: CARDINAL ;
 BEGIN
    Assert(Sym#NulSym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       OAFamilySym         : type := OAFamily.SimpleType |
@@ -3977,10 +4266,6 @@ BEGIN
       ELSE
          InternalError('not implemented yet', __FILE__, __LINE__)
       END
-   END ;
-   IF type>MaxSymbols
-   THEN
-      InternalError('type not declared', __FILE__, __LINE__)
    END ;
    RETURN( type )
 END GetType ;
@@ -4032,8 +4317,11 @@ END SkipTypeAndSubrange ;
 *)
 
 PROCEDURE IsHiddenType (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       TypeSym:  RETURN( Type.IsHidden )
@@ -4104,13 +4392,15 @@ END GetConstLitType ;
 
 PROCEDURE GetLocalSym (Sym: CARDINAL; name: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    LocalSym: CARDINAL ;
 BEGIN
    (*
    WriteString('Attempting to retrieve symbol from ') ; WriteKey(GetSymName(Sym)) ;
    WriteString(' local symbol table') ; WriteLn ;
    *)
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       EnumerationSym : LocalSym := GetSymKey(Enumeration.LocalSymbols, name) |
@@ -4134,9 +4424,11 @@ END GetLocalSym ;
 
 PROCEDURE GetNth (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
 VAR
-   i: CARDINAL ;
+   pSym: PtrToSymbol ;
+   i   : CARDINAL ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym       : i := GetItemFromList(Record.ListOfSons, n) |
@@ -4161,14 +4453,16 @@ END GetNth ;
 
 PROCEDURE GetNthParam (Sym: CARDINAL; ParamNo: CARDINAL) : CARDINAL ;
 VAR
-   i: CARDINAL ;
+   pSym: PtrToSymbol ;
+   i   : CARDINAL ;
 BEGIN
    IF ParamNo=0
    THEN
       (* Demands the return type of the function *)
       i := GetType(Sym)
    ELSE
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ProcedureSym: i := GetItemFromList(Procedure.ListOfParam, ParamNo) |
@@ -4193,8 +4487,11 @@ END GetNthParam ;
 *)
 
 PROCEDURE PutVar (Sym: CARDINAL; VarType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym     : Var.Type := VarType |
@@ -4213,9 +4510,12 @@ END PutVar ;
 *)
 
 PROCEDURE PutLeftValueFrontBackType (Sym: CARDINAL; FrontType, BackType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(GetMode(Sym)=LeftValue) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym : Var.Type := FrontType ;
@@ -4235,9 +4535,12 @@ END PutLeftValueFrontBackType ;
 *)
 
 PROCEDURE GetVarBackEndType (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    Assert(Sym#NulSym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: RETURN( Var.BackType )
@@ -4256,10 +4559,13 @@ END GetVarBackEndType ;
 *)
 
 PROCEDURE PutVarPointerCheck (sym: CARDINAL; value: BOOLEAN) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsVar(sym)
    THEN
-      WITH Symbols[sym].Var DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^.Var DO
          IsPointerCheck := value
       END
    END
@@ -4272,10 +4578,13 @@ END PutVarPointerCheck ;
 *)
 
 PROCEDURE GetVarPointerCheck (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsVar(sym)
    THEN
-      WITH Symbols[sym].Var DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^.Var DO
          RETURN( IsPointerCheck )
       END
    END
@@ -4288,10 +4597,13 @@ END GetVarPointerCheck ;
 *)
 
 PROCEDURE PutVarWritten (sym: CARDINAL; value: BOOLEAN) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsVar(sym)
    THEN
-      WITH Symbols[sym].Var DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^.Var DO
          IsWritten := value
       END
    END
@@ -4304,8 +4616,11 @@ END PutVarWritten ;
 *)
 
 PROCEDURE GetVarWritten (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: RETURN( Var.IsWritten )
@@ -4322,9 +4637,12 @@ END GetVarWritten ;
 *)
 
 PROCEDURE PutConst (Sym: CARDINAL; ConstType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
-      CASE Symbols[Sym].SymbolType OF
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
 
       ConstVarSym: ConstVar.Type := ConstType
 
@@ -4346,6 +4664,8 @@ PROCEDURE PutFieldRecord (Sym: CARDINAL;
                           FieldName: Name; FieldType: CARDINAL;
                           VarSym: CARDINAL) : CARDINAL ;
 VAR
+   oSym,
+   pSym  : PtrToSymbol ;
    esym,
    ParSym,
    SonSym: CARDINAL ;
@@ -4354,7 +4674,8 @@ BEGIN
                     (* in pass 3 and it will be declared in pass 2.    *)
    (* Fill in the SonSym and connect it to its brothers (if any) and   *)
    (* ensure that it is connected its parent.                          *)
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym       : WITH Record DO
@@ -4376,10 +4697,12 @@ BEGIN
                            PutItemIntoList(ListOfSons, SonSym) ;
                            ParSym := GetRecord(Parent)
                         END ;
-                        Assert(Symbols[ParSym].SymbolType=RecordSym) ;
+                        oSym := GetPsym(ParSym) ;
+                        Assert(oSym^.SymbolType=RecordSym) ;
                         IF FieldName#NulName
                         THEN
-                           PutSymKey(Symbols[ParSym].Record.LocalSymbols, FieldName, SonSym)
+                           oSym := GetPsym(ParSym) ;
+                           PutSymKey(oSym^.Record.LocalSymbols, FieldName, SonSym)
                         END
 
       ELSE
@@ -4387,7 +4710,8 @@ BEGIN
       END    
    END ;
    (* Fill in SonSym *)
-   WITH Symbols[SonSym] DO
+   oSym := GetPsym(SonSym) ;
+   WITH oSym^ DO
       SymbolType := RecordFieldSym ;
       WITH RecordField DO
          Type := FieldType ;
@@ -4396,6 +4720,7 @@ BEGIN
          Parent := Sym ;
          Varient := VarSym ;
          Align := NulSym ;
+         Scope := GetScope(Sym) ;
          Size := InitValue() ;
          Offset := InitValue()
       END
@@ -4411,6 +4736,7 @@ END PutFieldRecord ;
 
 PROCEDURE MakeFieldVarient (n: Name; Sym: CARDINAL) : CARDINAL ;
 VAR
+   pSym  : PtrToSymbol ;
    SonSym: CARDINAL ;
 BEGIN
    NewSym(SonSym) ;
@@ -4424,7 +4750,8 @@ BEGIN
    END ;
 *)
    (* Fill in Sym *)
-   WITH Symbols[SonSym] DO
+   pSym := GetPsym(SonSym) ;
+   WITH pSym^ DO
       SymbolType := VarientFieldSym ;
       WITH VarientField DO
          name := n ;
@@ -4449,11 +4776,13 @@ END MakeFieldVarient ;
 
 PROCEDURE PutFieldVarient (Field, Sym: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    SonSym: CARDINAL ;
 BEGIN
    Assert(IsVarient(Sym)) ;
    Assert(IsFieldVarient(Field)) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientSym : IncludeItemIntoList(Varient.ListOfSons, Field)
@@ -4462,7 +4791,8 @@ BEGIN
          InternalError('expecting Varient symbol', __FILE__, __LINE__)
       END    
    END ;
-   WITH Symbols[Field] DO
+   pSym := GetPsym(Field) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientFieldSym : VarientField.Varient := Sym
@@ -4481,8 +4811,11 @@ END PutFieldVarient ;
 *)
 
 PROCEDURE GetVarient (Field: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Field] DO
+   pSym := GetPsym(Field) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientFieldSym : RETURN( VarientField.Varient ) |
@@ -4537,8 +4870,11 @@ END EnsureOrder ;
 *)
 
 PROCEDURE IsEmptyFieldVarient (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientFieldSym:  RETURN( NoOfItemsInList(VarientField.ListOfSons)=0 )
@@ -4556,10 +4892,13 @@ END IsEmptyFieldVarient ;
 *)
 
 PROCEDURE IsRecordFieldAVarientTag (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsRecordField(sym)
    THEN
-      RETURN( Symbols[sym].RecordField.Tag )
+      pSym := GetPsym(sym) ;
+      RETURN( pSym^.RecordField.Tag )
    ELSE
       InternalError('record field symbol expected', __FILE__, __LINE__)
    END
@@ -4572,9 +4911,11 @@ END IsRecordFieldAVarientTag ;
 
 PROCEDURE PutVarientTag (Sym, Tag: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    parent: CARDINAL ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientSym:  Varient.tag := Tag
@@ -4590,9 +4931,11 @@ BEGIN
       tag field after the C union. *)
    IF IsRecordField(Tag)
    THEN
-      Symbols[Tag].RecordField.Tag := TRUE ;
+      pSym := GetPsym(Tag) ;
+      pSym^.RecordField.Tag := TRUE ;
       parent := GetParent(Sym) ;
-      WITH Symbols[parent] DO
+      pSym := GetPsym(parent) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ErrorSym: |
@@ -4613,8 +4956,11 @@ END PutVarientTag ;
 *)
 
 PROCEDURE GetVarientTag (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarientSym:  RETURN( Varient.tag )
@@ -4632,8 +4978,11 @@ END GetVarientTag ;
 *)
 
 PROCEDURE IsFieldVarient (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=VarientFieldSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=VarientFieldSym )
 END IsFieldVarient ;
 
 
@@ -4643,8 +4992,11 @@ END IsFieldVarient ;
 *)
 
 PROCEDURE IsFieldEnumeration (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=EnumerationFieldSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=EnumerationFieldSym )
 END IsFieldEnumeration ;
 
 
@@ -4654,8 +5006,11 @@ END IsFieldEnumeration ;
 *)
 
 PROCEDURE IsVarient (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=VarientSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=VarientSym )
 END IsVarient ;
 
 
@@ -4667,6 +5022,8 @@ END IsVarient ;
 
 PROCEDURE PutFieldEnumeration (Sym: CARDINAL; FieldName: Name) ;
 VAR
+   oSym,
+   pSym : PtrToSymbol ;
    s    : String ;
    Field: CARDINAL ;
 BEGIN
@@ -4677,12 +5034,14 @@ BEGIN
    END ;
    IF NOT IsError(Field)
    THEN
-      WITH Symbols[Field] DO
+      pSym := GetPsym(Field) ;
+      WITH pSym^ DO
          SymbolType := EnumerationFieldSym ;
          WITH EnumerationField DO
             name := FieldName ;  (* Index into name array, name *)
                                  (* of type.                    *)
-            PushCard(Symbols[Sym].Enumeration.NoOfElements) ;
+            oSym := GetPsym(Sym) ;
+            PushCard(oSym^.Enumeration.NoOfElements) ;
             Value := InitValue() ;
             PopInto(Value) ;
             Type := Sym ;
@@ -4690,7 +5049,8 @@ BEGIN
             InitWhereDeclared(At)  (* Declared here *)
          END
       END ;
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          EnumerationSym: WITH Enumeration DO
@@ -4719,13 +5079,16 @@ END PutFieldEnumeration ;
 *)
 
 PROCEDURE PutType (Sym: CARDINAL; TypeSymbol: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF TypeSymbol=Sym
    THEN
       InternalError('not expecting a type to be declared as itself',
                     __FILE__, __LINE__)
    END ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -4744,8 +5107,11 @@ END PutType ;
 *)
 
 PROCEDURE IsDefImp (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=DefImpSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=DefImpSym )
 END IsDefImp ;
 
 
@@ -4755,8 +5121,11 @@ END IsDefImp ;
 *)
 
 PROCEDURE IsModule (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=ModuleSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ModuleSym )
 END IsModule ;
 
 
@@ -4781,13 +5150,15 @@ END IsInnerModule ;
 
 PROCEDURE GetSymName (Sym: CARDINAL) : Name ;
 VAR
-   n: Name ;
+   pSym: PtrToSymbol ;
+   n   : Name ;
 BEGIN
    IF Sym=NulSym
    THEN
       n := NulKey
    ELSE
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ErrorSym            : n := Error.name |
@@ -4834,8 +5205,11 @@ END GetSymName ;
 *)
 
 PROCEDURE PutConstVarTemporary (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  ConstVar.IsTemp := TRUE
@@ -4854,8 +5228,9 @@ END PutConstVarTemporary ;
 
 PROCEDURE MakeTemporary (Mode: ModeOfAddr) : CARDINAL ;
 VAR
-   s  : String ;
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   s   : String ;
+   Sym : CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
    (* Make the name *)
@@ -4866,7 +5241,8 @@ BEGIN
       PutConstVarTemporary(Sym)
    ELSE
       Sym := MakeVar(makekey(string(s))) ;
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := Mode ;
@@ -4895,9 +5271,10 @@ PROCEDURE MakeTemporaryFromExpressions (e1, e2: CARDINAL;
                                         tok: CARDINAL;
                                         mode: ModeOfAddr) : CARDINAL ;
 VAR
-   s  : String ;
+   pSym: PtrToSymbol ;
+   s   : String ;
    t,
-   Sym: CARDINAL ;
+   Sym : CARDINAL ;
 BEGIN
    INC(TemporaryNo) ;
    (* Make the name *)
@@ -4919,7 +5296,8 @@ BEGIN
       PutConstVarTemporary(Sym)
    ELSE
       Sym := MakeVar(makekey(string(s))) ;
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          VarSym : Var.AddrMode := mode ;
@@ -4964,8 +5342,11 @@ END MakeTemporaryFromExpression ;
 *)
 
 PROCEDURE PutMode (Sym: CARDINAL; SymMode: ModeOfAddr) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -4983,8 +5364,11 @@ END PutMode ;
 *)
 
 PROCEDURE GetMode (Sym: CARDINAL) : ModeOfAddr ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym           : ErrorAbort0('') |
@@ -5022,10 +5406,13 @@ END GetMode ;
 *)
 
 PROCEDURE RenameSym (Sym: CARDINAL; SymName: Name) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF GetSymName(Sym)=NulName
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ErrorSym            : ErrorAbort0('') |
@@ -5053,9 +5440,12 @@ END RenameSym ;
 *)
 
 PROCEDURE IsUnknown (Sym: WORD) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=UndefinedSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=UndefinedSym )
 END IsUnknown ;
 
 
@@ -5085,7 +5475,8 @@ END CheckLegal ;
 
 PROCEDURE CheckForHiddenType (TypeName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    Sym := NulSym ;
    IF CompilingImplementationModule() AND
@@ -5094,7 +5485,8 @@ BEGIN
       (TypeName#NulName)
    THEN
       (* Check to see whether we are declaring a HiddenType. *)
-      WITH Symbols[CurrentModule] DO
+      pSym := GetPsym(CurrentModule) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          DefImpSym: Sym := GetSymKey(DefImp.NeedToBeImplemented, TypeName)
@@ -5195,14 +5587,17 @@ END CheckHiddenTypeAreAddress ;
 
 PROCEDURE GetLastMainScopeId (id: CARDINAL) : CARDINAL ;
 VAR
-   sym: CARDINAL ;
+   pCall: PtrToCallFrame ;
+   sym  : CARDINAL ;
 BEGIN
    IF id>0
    THEN
-      sym := ScopeCallFrame[id].Main ;
+      pCall := GetPcall(id) ;
+      sym := pCall^.Main ;
       WHILE id>1 DO
          DEC(id) ;
-         IF sym#ScopeCallFrame[id].Main
+         pCall := GetPcall(id) ;
+         IF sym#pCall^.Main
          THEN
             RETURN( id )
          END
@@ -5292,6 +5687,7 @@ END RequestSym ;
 
 PROCEDURE PutImported (Sym: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    ModSym: CARDINAL ;
    n     : Name ;
 BEGIN
@@ -5300,7 +5696,8 @@ BEGIN
    *)
    ModSym := GetCurrentModuleScope() ;
    Assert(IsDefImp(ModSym) OR IsModule(ModSym)) ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: IF GetSymKey(Module.ImportTree, GetSymName(Sym))=Sym
@@ -5362,6 +5759,7 @@ END PutImported ;
 
 PROCEDURE PutIncluded (Sym: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    ModSym: CARDINAL ;
    n1, n2: Name ;
 BEGIN
@@ -5377,7 +5775,8 @@ BEGIN
       n2 := GetSymName(ModSym) ;
       printf2('including %a into scope %a\n', n1, n2)
    END ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: IncludeItemIntoList(Module.IncludeList, Sym) |
@@ -5397,12 +5796,15 @@ END PutIncluded ;
 *)
 
 PROCEDURE PutExported (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
 (*
    WriteString('PutExported') ; WriteLn ;
 *)
    AddSymToModuleScope(GetLastModuleOrProcedureScope(), Sym) ;
-   WITH Symbols[GetCurrentModuleScope()] DO
+   pSym := GetPsym(GetCurrentModuleScope()) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: PutSymKey(Module.ExportTree, GetSymName(Sym), Sym) ;
@@ -5434,6 +5836,7 @@ END PutExported ;
 
 PROCEDURE PutExportQualified (SymName: Name) ;
 VAR
+   pSym  : PtrToSymbol ;
    n     : Name ;
    Sym,
    ModSym: CARDINAL ;
@@ -5446,7 +5849,8 @@ BEGIN
    WriteString('1st MODULE ') ; WriteKey(GetSymName(ModSym)) ;
    WriteString(' identifier ') ; WriteKey(SymName) ; WriteLn ;
 *)
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5488,6 +5892,7 @@ END PutExportQualified ;
 
 PROCEDURE PutExportUnQualified (SymName: Name) ;
 VAR
+   pSym  : PtrToSymbol ;
    n     : Name ;
    Sym,
    ModSym: CARDINAL ;
@@ -5495,7 +5900,8 @@ BEGIN
    ModSym := GetCurrentModule() ;
    Assert(IsDefImp(ModSym)) ;
    Assert(CompilingDefinitionModule() OR (GetSymName(ModSym)=MakeKey('SYSTEM'))) ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5534,9 +5940,11 @@ END PutExportUnQualified ;
 PROCEDURE GetExported (ModSym: CARDINAL;
                        SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: Sym := RequestFromDefinition(ModSym, SymName)
@@ -5555,9 +5963,11 @@ END GetExported ;
 
 PROCEDURE RequestFromModule (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5591,10 +6001,12 @@ END RequestFromModule ;
 
 PROCEDURE RequestFromDefinition (ModSym: CARDINAL; SymName: Name) : CARDINAL ;
 VAR
+   pSym       : PtrToSymbol ;
    Type, Sym  : CARDINAL ;
    OldScopePtr: CARDINAL ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5645,8 +6057,11 @@ END RequestFromDefinition ;
 *)
 
 PROCEDURE GetWhereImported (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[GetCurrentModuleScope()] DO
+   pSym := GetPsym(GetCurrentModuleScope()) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym:  RETURN( GetSymKey(DefImp.WhereImported, Sym) ) |
@@ -5688,11 +6103,13 @@ END DisplaySymbol ;
 
 PROCEDURE DisplayTrees (ModSym: CARDINAL) ;
 VAR
-   n: Name ;
+   pSym: PtrToSymbol ;
+   n   : Name ;
 BEGIN
    n := GetSymName(ModSym) ;
    printf1('Symbol trees for module/procedure: %a\n', n) ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5755,9 +6172,11 @@ END DisplayTrees ;
 PROCEDURE FetchUnknownFromModule (ModSym: CARDINAL;
                                   SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
          ModuleSym: WITH Module DO
                        Sym := GetSymKey(Unresolved, SymName) ;
@@ -5783,9 +6202,11 @@ END FetchUnknownFromModule ;
 PROCEDURE FetchUnknownFromDefImp (ModSym: CARDINAL;
                                   SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
          DefImpSym: WITH DefImp DO
                        Sym := GetSymKey(Unresolved , SymName) ;
@@ -5807,9 +6228,11 @@ END FetchUnknownFromDefImp ;
 PROCEDURE FetchUnknownFrom (scope: CARDINAL;
                             SymName: Name) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
-   WITH Symbols[scope] DO
+   pSym := GetPsym(scope) ;
+   WITH pSym^ DO
       CASE SymbolType OF
          DefImpSym: WITH DefImp DO
                        Sym := GetSymKey(Unresolved, SymName) ;
@@ -5854,21 +6277,24 @@ END FetchUnknownFrom ;
 
 PROCEDURE GetFromOuterModule (SymName: Name) : CARDINAL ;
 VAR
+   pCall   : PtrToCallFrame ;
    ScopeId : CARDINAL ;
    Sym,
    ScopeSym: CARDINAL ;
 BEGIN
-   (* -- fixme -- gaius *)
    ScopeId := ScopePtr ;
-   WHILE (NOT IsModule(ScopeCallFrame[ScopeId].Search)) AND
-         (NOT IsDefImp(ScopeCallFrame[ScopeId].Search)) DO
+   pCall := GetPcall(ScopeId) ;
+   WHILE (NOT IsModule(pCall^.Search)) AND
+         (NOT IsDefImp(pCall^.Search)) DO
       Assert(ScopeId>0) ;
-      DEC(ScopeId)
+      DEC(ScopeId) ;
+      pCall := GetPcall(ScopeId)
    END ;
    DEC(ScopeId) ;
    (* we are now below the current module *)
    WHILE ScopeId>0 DO
-      ScopeSym := ScopeCallFrame[ScopeId].Search ;
+      pCall := GetPcall(ScopeId) ;
+      ScopeSym := pCall^.Search ;
       IF ScopeSym#NulSym
       THEN
          Sym := GetLocalSym(ScopeSym, SymName) ;
@@ -5889,7 +6315,8 @@ BEGIN
             RETURN( Sym )
          END
       END ;
-      DEC(ScopeId)
+      DEC(ScopeId) ;
+      pCall := GetPcall(ScopeId)
    END ;
    (* at this point we force an unknown from the last module scope *)
    RETURN( RequestFromModule(GetLastModuleScope(), SymName) )
@@ -5905,6 +6332,7 @@ END GetFromOuterModule ;
 
 PROCEDURE IsExportUnQualified (Sym: CARDINAL) : BOOLEAN ;
 VAR
+   pSym       : PtrToSymbol ;
    OuterModule: CARDINAL ;
 BEGIN
    Assert(IsVar(Sym) OR IsProcedure(Sym)) ;
@@ -5912,7 +6340,8 @@ BEGIN
    REPEAT
       OuterModule := GetScope(OuterModule)
    UNTIL GetScope(OuterModule)=NulSym ;
-   WITH Symbols[OuterModule] DO
+   pSym := GetPsym(OuterModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: RETURN( FALSE ) |
@@ -5938,13 +6367,15 @@ END IsExportUnQualified ;
 
 PROCEDURE IsExportQualified (Sym: CARDINAL) : BOOLEAN ;
 VAR
+   pSym       : PtrToSymbol ;
    OuterModule: CARDINAL ;
 BEGIN
    OuterModule := Sym ;
    REPEAT
       OuterModule := GetScope(OuterModule)
    UNTIL GetScope(OuterModule)=NulSym ;
-   WITH Symbols[OuterModule] DO
+   pSym := GetPsym(OuterModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: RETURN( FALSE ) |
@@ -5963,8 +6394,11 @@ END IsExportQualified ;
 *)
 
 PROCEDURE ForeachImportedDo (ModSym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -5989,8 +6423,11 @@ END ForeachImportedDo ;
 *)
 
 PROCEDURE ForeachExportedDo (ModSym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -6014,8 +6451,11 @@ END ForeachExportedDo ;
 *)
 
 PROCEDURE ForeachLocalSymDo (Sym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym:      WITH DefImp DO
@@ -6049,8 +6489,11 @@ END ForeachLocalSymDo ;
 *)
 
 PROCEDURE CheckForUnknownInModule ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[GetCurrentModuleScope()] DO
+   pSym := GetPsym(GetCurrentModuleScope()) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -6160,10 +6603,13 @@ END CheckForSymbols ;
 *)
 
 PROCEDURE PutExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsUnknown(Sym)
    THEN
-      WITH Symbols[ModSym] DO
+      pSym := GetPsym(ModSym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ModuleSym: PutSymKey(Module.ExportUndeclared, GetSymName(Sym), Sym) |
@@ -6183,8 +6629,11 @@ END PutExportUndeclared ;
 *)
 
 PROCEDURE GetExportUndeclared (ModSym: CARDINAL; name: Name) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: RETURN( GetSymKey(Module.ExportUndeclared, name) ) |
@@ -6203,8 +6652,11 @@ END GetExportUndeclared ;
 *)
 
 PROCEDURE RemoveExportUndeclared (ModSym: CARDINAL; Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: IF GetSymKey(Module.ExportUndeclared, GetSymName(Sym))=Sym
@@ -6249,9 +6701,12 @@ END CheckForExportedDeclaration ;
 *)
 
 PROCEDURE CheckForUndeclaredExports (ModSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    (* WriteString('Inside CheckForUndeclaredExports') ; WriteLn ; *)
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: IF NOT IsEmptyTree(Module.ExportUndeclared)
@@ -6303,9 +6758,11 @@ END UndeclaredSymbolError ;
 
 PROCEDURE PutExportUnImplemented (Sym: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    n1, n2: Name ;
 BEGIN
-   WITH Symbols[CurrentModule] DO
+   pSym := GetPsym(CurrentModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: IF GetSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym))=Sym
@@ -6331,8 +6788,11 @@ END PutExportUnImplemented ;
 *)
 
 PROCEDURE RemoveExportUnImplemented (ModSym: CARDINAL; Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: IF GetSymKey(DefImp.NeedToBeImplemented, GetSymName(Sym))=Sym
@@ -6356,8 +6816,11 @@ VAR
 *)
 
 PROCEDURE RemoveFromExportRequest (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[ExportRequestModule] DO
+   pSym := GetPsym(ExportRequestModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: IF GetSymKey(DefImp.ExportRequest, GetSymName(Sym))=Sym
@@ -6429,9 +6892,12 @@ END CheckForExportedImplementation ;
 *)
 
 PROCEDURE CheckForUnImplementedExports ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    (* WriteString('Inside CheckForImplementedExports') ; WriteLn ; *)
-   WITH Symbols[CurrentModule] DO
+   pSym := GetPsym(CurrentModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: IF NOT IsEmptyTree(DefImp.NeedToBeImplemented)
@@ -6480,8 +6946,11 @@ END UnImplementedSymbolError ;
 *)
 
 PROCEDURE PutHiddenTypeDeclared ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[CurrentModule] DO
+   pSym := GetPsym(CurrentModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: DefImp.ContainsHiddenType := TRUE
@@ -6499,8 +6968,11 @@ END PutHiddenTypeDeclared ;
 *)
 
 PROCEDURE IsHiddenTypeDeclared (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: RETURN( DefImp.ContainsHiddenType )
@@ -6520,8 +6992,11 @@ END IsHiddenTypeDeclared ;
 *)
 
 PROCEDURE PutDefinitionForC (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: DefImp.ForC := TRUE
@@ -6539,8 +7014,11 @@ END PutDefinitionForC ;
 *)
 
 PROCEDURE IsDefinitionForC (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: RETURN( DefImp.ForC )
@@ -6559,8 +7037,11 @@ END IsDefinitionForC ;
 *)
 
 PROCEDURE PutDoesNeedExportList (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: DefImp.NeedExportList := TRUE
@@ -6579,8 +7060,11 @@ END PutDoesNeedExportList ;
 *)
 
 PROCEDURE PutDoesNotNeedExportList (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: DefImp.NeedExportList := FALSE
@@ -6598,8 +7082,11 @@ END PutDoesNotNeedExportList ;
 *)
 
 PROCEDURE DoesNotNeedExportList (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: RETURN( NOT DefImp.NeedExportList )
@@ -6619,6 +7106,7 @@ END DoesNotNeedExportList ;
 
 PROCEDURE CheckForEnumerationInCurrentModule (Sym: CARDINAL) ;
 VAR
+   pSym  : PtrToSymbol ;
    ModSym: CARDINAL ;
 BEGIN
    IF (SkipType(Sym)#NulSym) AND IsEnumeration(SkipType(Sym))
@@ -6629,7 +7117,8 @@ BEGIN
    IF IsEnumeration(Sym)
    THEN
       ModSym := GetCurrentModuleScope() ;
-      WITH Symbols[ModSym] DO
+      pSym := GetPsym(ModSym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          DefImpSym: CheckEnumerationInList(DefImp.EnumerationScopeList, Sym) |
@@ -6675,6 +7164,7 @@ END CheckEnumerationInList ;
 
 PROCEDURE CheckIfEnumerationExported (Sym: CARDINAL; ScopeId: CARDINAL) ;
 VAR
+   pCall      : PtrToCallFrame ;
    InnerModId,
    OuterModId : CARDINAL ;
    InnerModSym,
@@ -6686,8 +7176,10 @@ BEGIN
       OuterModId := GetModuleScopeId(InnerModId-1) ;
       IF OuterModId>0
       THEN
-         InnerModSym := ScopeCallFrame[InnerModId].Search ;
-         OuterModSym := ScopeCallFrame[OuterModId].Search ;
+         pCall := GetPcall(InnerModId) ;
+         InnerModSym := pCall^.Search ;
+         pCall := GetPcall(OuterModId) ;
+         OuterModSym := pCall^.Search ;
          IF (InnerModSym#NulSym) AND (OuterModSym#NulSym)
          THEN
             IF IsExported(InnerModSym, Sym)
@@ -6711,8 +7203,11 @@ END CheckIfEnumerationExported ;
 
 PROCEDURE CheckForEnumerationInOuterModule (Sym: CARDINAL;
                                             OuterModule: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[OuterModule] DO
+   pSym := GetPsym(OuterModule) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: IncludeItemIntoList(DefImp.EnumerationScopeList, Sym) |
@@ -6734,10 +7229,12 @@ END CheckForEnumerationInOuterModule ;
 
 PROCEDURE IsExported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
 VAR
+   pSym   : PtrToSymbol ;
    SymName: Name ;
 BEGIN
    SymName := GetSymName(Sym) ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -6764,10 +7261,12 @@ END IsExported ;
 
 PROCEDURE IsImported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
 VAR
+   pSym   : PtrToSymbol ;
    SymName: Name ;
 BEGIN
    SymName := GetSymName(Sym) ;
-   WITH Symbols[ModSym] DO
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: WITH DefImp DO
@@ -6795,8 +7294,11 @@ END IsImported ;
 *)
 
 PROCEDURE IsType (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=TypeSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=TypeSym )
 END IsType ;
 
 
@@ -6806,8 +7308,11 @@ END IsType ;
 *)
 
 PROCEDURE IsReturnOptional (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( Procedure.ReturnOptional ) |
@@ -6827,8 +7332,11 @@ END IsReturnOptional ;
 *)
 
 PROCEDURE SetReturnOptional (sym: CARDINAL; isopt: BOOLEAN) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.ReturnOptional := isopt |
@@ -6880,8 +7388,11 @@ END CheckOptFunction ;
 *)
 
 PROCEDURE PutFunction (Sym: CARDINAL; TypeSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -6900,8 +7411,11 @@ END PutFunction ;
 *)
 
 PROCEDURE PutOptFunction (Sym: CARDINAL; TypeSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -6923,10 +7437,12 @@ PROCEDURE MakeVariableForParam (ParamName: Name;
                                 ProcSym  : CARDINAL ;
                                 no       : CARDINAL) : CARDINAL ;
 VAR
+   pSym       : PtrToSymbol ;
    VariableSym: CARDINAL ;
 BEGIN
    VariableSym := MakeVar(ParamName) ;
-   WITH Symbols[VariableSym] DO
+   pSym := GetPsym(VariableSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: RETURN( NulSym ) |
@@ -6965,6 +7481,7 @@ PROCEDURE PutParam (Sym: CARDINAL; ParamNo: CARDINAL;
                     ParamName: Name; ParamType: CARDINAL;
                     isUnbounded: BOOLEAN) : BOOLEAN ;
 VAR
+   pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
    VariableSym: CARDINAL ;
 BEGIN
@@ -6974,7 +7491,8 @@ BEGIN
    ELSE
       (* Add a new parameter *)
       NewSym(ParSym) ;
-      WITH Symbols[ParSym] DO
+      pSym := GetPsym(ParSym) ;
+      WITH pSym^ DO
          SymbolType := ParamSym ;
          WITH Param DO
             name := ParamName ;
@@ -6992,7 +7510,8 @@ BEGIN
          THEN
             RETURN( FALSE )
          ELSE
-            Symbols[ParSym].Param.ShadowVar := VariableSym
+            pSym := GetPsym(ParSym) ;
+            pSym^.Param.ShadowVar := VariableSym
          END
       END
    END ;
@@ -7013,6 +7532,7 @@ PROCEDURE PutVarParam (Sym: CARDINAL; ParamNo: CARDINAL;
                        ParamName: Name; ParamType: CARDINAL;
                        isUnbounded: BOOLEAN) : BOOLEAN ;
 VAR
+   pSym       : PtrToSymbol ;
    ParSym     : CARDINAL ;
    VariableSym: CARDINAL ;
 BEGIN
@@ -7023,7 +7543,8 @@ BEGIN
    ELSE
       (* Add a new parameter *)
       NewSym(ParSym) ;
-      WITH Symbols[ParSym] DO
+      pSym := GetPsym(ParSym) ;
+      WITH pSym^ DO
          SymbolType := VarParamSym ;
          WITH VarParam DO
             name := ParamName ;
@@ -7041,7 +7562,8 @@ BEGIN
          THEN
             RETURN( FALSE )
          ELSE
-            Symbols[ParSym].VarParam.ShadowVar := VariableSym
+            pSym := GetPsym(ParSym) ;
+            pSym^.VarParam.ShadowVar := VariableSym
          END
       END ;
       RETURN( TRUE )
@@ -7056,9 +7578,11 @@ END PutVarParam ;
 
 PROCEDURE PutParamName (ProcSym: CARDINAL; no: CARDINAL; name: Name) ;
 VAR
+   pSym  : PtrToSymbol ;
    ParSym: CARDINAL ;
 BEGIN
-   WITH Symbols[ProcSym] DO
+   pSym := GetPsym(ProcSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN |
@@ -7069,7 +7593,8 @@ BEGIN
          InternalError('expecting a Procedure symbol', __FILE__, __LINE__)
       END
    END ;
-   WITH Symbols[ParSym] DO
+   pSym := GetPsym(ParSym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ParamSym:    IF Param.name=NulName
@@ -7101,8 +7626,11 @@ END PutParamName ;
 *)
 
 PROCEDURE AddParameter (Sym: CARDINAL; ParSym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7123,10 +7651,12 @@ END AddParameter ;
 
 PROCEDURE IsVarParam (Sym: CARDINAL; ParamNo: CARDINAL) : BOOLEAN ;
 VAR
+   pSym : PtrToSymbol ;
    IsVar: BOOLEAN ;
 BEGIN
    IsVar := FALSE ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : |
@@ -7148,14 +7678,16 @@ END IsVarParam ;
 
 PROCEDURE IsNthParamVar (Head: List; n: CARDINAL) : BOOLEAN ;
 VAR
-   p: CARDINAL ;
+   pSym: PtrToSymbol ;
+   p   : CARDINAL ;
 BEGIN
    p := GetItemFromList(Head, n) ;
    IF p=NulSym
    THEN
       InternalError('parameter does not exist', __FILE__, __LINE__)
    ELSE
-      WITH Symbols[p] DO
+      pSym := GetPsym(p) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ErrorSym   : RETURN( FALSE ) |
@@ -7176,10 +7708,12 @@ END IsNthParamVar ;
 
 PROCEDURE NoOfParam (Sym: CARDINAL) : CARDINAL ;
 VAR
-   n: CARDINAL ;
+   pSym: PtrToSymbol ;
+   n   : CARDINAL ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : n := 0 |
@@ -7203,9 +7737,12 @@ END NoOfParam ;
 *)
 
 PROCEDURE PutUseVarArgs (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7226,9 +7763,12 @@ END PutUseVarArgs ;
 *)
 
 PROCEDURE UsesVarArgs (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN( FALSE ) |
@@ -7248,9 +7788,12 @@ END UsesVarArgs ;
 *)
 
 PROCEDURE PutUseOptArg (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7269,9 +7812,12 @@ END PutUseOptArg ;
 *)
 
 PROCEDURE UsesOptArg (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN( FALSE ) |
@@ -7291,13 +7837,16 @@ END UsesOptArg ;
 *)
 
 PROCEDURE PutOptArgInit (ProcSym, Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
    IF NOT IsError(ProcSym)
    THEN
       IF UsesOptArg(ProcSym)
       THEN
-         WITH Symbols[ProcSym] DO
+         pSym := GetPsym(ProcSym) ;
+         WITH pSym^ DO
             CASE SymbolType OF
 
             ErrorSym    : |
@@ -7319,12 +7868,15 @@ END PutOptArgInit ;
 *)
 
 PROCEDURE GetOptArgInit (ProcSym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF NOT IsError(ProcSym)
    THEN
       IF UsesOptArg(ProcSym)
       THEN
-         WITH Symbols[ProcSym] DO
+         pSym := GetPsym(ProcSym) ;
+         WITH pSym^ DO
             CASE SymbolType OF
 
             ErrorSym    : |
@@ -7349,9 +7901,11 @@ END GetOptArgInit ;
 
 PROCEDURE NoOfLocalVar (Sym: CARDINAL) : CARDINAL ;
 VAR
-   n: CARDINAL ;
+   pSym: PtrToSymbol ;
+   n   : CARDINAL ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : n := 0 |
@@ -7376,8 +7930,11 @@ END NoOfLocalVar ;
 *)
 
 PROCEDURE IsParameterVar (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ParamSym   :  RETURN( FALSE ) |
@@ -7397,8 +7954,11 @@ END IsParameterVar ;
 *)
 
 PROCEDURE IsParameterUnbounded (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ParamSym   :  RETURN( Param.IsUnbounded ) |
@@ -7432,8 +7992,11 @@ END IsUnboundedParam ;
 *)
 
 PROCEDURE IsParameter (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ParamSym,
@@ -7452,8 +8015,11 @@ END IsParameter ;
 *)
 
 PROCEDURE GetParameterShadowVar (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ParamSym   :  RETURN( Param.ShadowVar ) |
@@ -7472,9 +8038,12 @@ END GetParameterShadowVar ;
 *)
 
 PROCEDURE IsProcedure (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=ProcedureSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ProcedureSym )
 END IsProcedure ;
 
 
@@ -7484,9 +8053,12 @@ END IsProcedure ;
 *)
 
 PROCEDURE ProcedureParametersDefined (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : |
@@ -7506,9 +8078,12 @@ END ProcedureParametersDefined ;
 *)
 
 PROCEDURE AreProcedureParametersDefined (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN( FALSE ) |
@@ -7528,9 +8103,12 @@ END AreProcedureParametersDefined ;
 *)
 
 PROCEDURE ParametersDefinedInDefinition (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : |
@@ -7551,9 +8129,12 @@ END ParametersDefinedInDefinition ;
 *)
 
 PROCEDURE AreParametersDefinedInDefinition (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN( FALSE ) |
@@ -7573,9 +8154,12 @@ END AreParametersDefinedInDefinition ;
 *)
 
 PROCEDURE ParametersDefinedInImplementation (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : |
@@ -7596,9 +8180,12 @@ END ParametersDefinedInImplementation ;
 *)
 
 PROCEDURE AreParametersDefinedInImplementation (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym    : RETURN( FALSE ) |
@@ -7616,8 +8203,11 @@ END AreParametersDefinedInImplementation ;
 *)
 
 PROCEDURE FillInUnknownFields (sym: CARDINAL; SymName: Name) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       SymbolType := UndefinedSym ;
       WITH Undefined DO
          name     := SymName ;
@@ -7635,10 +8225,13 @@ END FillInUnknownFields ;
 
 PROCEDURE FillInPointerFields (Sym: CARDINAL; PointerName: Name;
                                scope: CARDINAL; oaf: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF NOT IsError(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          SymbolType := PointerSym ;
          CASE SymbolType OF
 
@@ -7677,8 +8270,11 @@ END MakePointer ;
 *)
 
 PROCEDURE PutPointer (Sym: CARDINAL; PointerType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym  : |
@@ -7696,9 +8292,12 @@ END PutPointer ;
 *)
 
 PROCEDURE IsPointer (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=PointerSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=PointerSym )
 END IsPointer ;
 
 
@@ -7707,9 +8306,12 @@ END IsPointer ;
 *)
 
 PROCEDURE IsRecord (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=RecordSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=RecordSym )
 END IsRecord ;
 
 
@@ -7718,9 +8320,12 @@ END IsRecord ;
 *)
 
 PROCEDURE IsArray (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=ArraySym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ArraySym )
 END IsArray ;
 
 
@@ -7729,9 +8334,12 @@ END IsArray ;
 *)
 
 PROCEDURE IsEnumeration (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=EnumerationSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=EnumerationSym )
 END IsEnumeration ;
 
 
@@ -7740,9 +8348,12 @@ END IsEnumeration ;
 *)
 
 PROCEDURE IsUnbounded (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=UnboundedSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=UnboundedSym )
 END IsUnbounded ;
 
 
@@ -7752,8 +8363,11 @@ END IsUnbounded ;
 *)
 
 PROCEDURE GetVarScope (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: RETURN( NulSym ) |
@@ -7774,9 +8388,11 @@ END GetVarScope ;
 
 PROCEDURE NoOfElements (Sym: CARDINAL) : CARDINAL ;
 VAR
-   n: CARDINAL ;                 
+   pSym: PtrToSymbol ;
+   n   : CARDINAL ;                 
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym      : n := 0 |
@@ -7784,7 +8400,7 @@ BEGIN
       ArraySym      ,
       UnboundedSym  : n := 1 |   (* Standard language limitation *)
 *)
-      EnumerationSym: n := Symbols[Sym].Enumeration.NoOfElements |
+      EnumerationSym: n := pSym^.Enumeration.NoOfElements |
       InterfaceSym  : n := NoOfItemsInList(Interface.ObjectList)
 
       ELSE
@@ -7801,8 +8417,11 @@ END NoOfElements ;
 *)
 
 PROCEDURE PutArraySubscript (Sym: CARDINAL; SubscriptSymbol: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7820,8 +8439,11 @@ END PutArraySubscript ;
 *)
 
 PROCEDURE GetArraySubscript (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: RETURN( NulSym ) |
@@ -7841,10 +8463,12 @@ END GetArraySubscript ;
 
 PROCEDURE MakeSubscript () : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := SubscriptSym ;
       WITH Subscript DO
          Type := NulSym ;        (* Index to a subrange symbol. *)
@@ -7870,8 +8494,11 @@ END MakeSubscript ;
 *)
 
 PROCEDURE PutSubscript (Sym: CARDINAL; SimpleType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7890,12 +8517,14 @@ END PutSubscript ;
 
 PROCEDURE MakeSet (SetName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    oaf, sym: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(SetName, oaf) ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := SetSym ;
          WITH Set DO
             name := SetName ;          (* The name of the set.        *)
@@ -7917,8 +8546,11 @@ END MakeSet ;
 *)
 
 PROCEDURE PutSet (Sym: CARDINAL; SimpleType: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -7938,9 +8570,12 @@ END PutSet ;
 *)
 
 PROCEDURE IsSet (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=SetSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=SetSym )
 END IsSet ;
 
 
@@ -7949,9 +8584,12 @@ END IsSet ;
 *)
 
 PROCEDURE IsOAFamily (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   RETURN( Symbols[Sym].SymbolType=OAFamilySym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=OAFamilySym )
 END IsOAFamily ;
 
 
@@ -7964,13 +8602,15 @@ END IsOAFamily ;
 
 PROCEDURE MakeOAFamily (SimpleType: CARDINAL) : CARDINAL ;
 VAR
-   sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   sym : CARDINAL ;
 BEGIN
    sym := GetOAFamily(SimpleType) ;
    IF sym=NulSym
    THEN
       NewSym(sym) ;
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := OAFamilySym ;
          OAFamily.MaxDimensions := 0 ;
          OAFamily.SimpleType := SimpleType ;
@@ -7988,8 +8628,11 @@ END MakeOAFamily ;
 *)
 
 PROCEDURE GetOAFamily (SimpleType: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[SimpleType] DO
+   pSym := GetPsym(SimpleType) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym      :  RETURN( NulSym ) |
@@ -8015,8 +8658,11 @@ END GetOAFamily ;
 *)
 
 PROCEDURE PutOAFamily (SimpleType: CARDINAL; oaf: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[SimpleType] DO
+   pSym := GetPsym(SimpleType) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym      :  |
@@ -8044,12 +8690,14 @@ END PutOAFamily ;
 
 PROCEDURE ForeachOAFamily (sym: CARDINAL; p: FamilyOperation) ;
 VAR
+   pSym: PtrToSymbol ;
    h, i: CARDINAL ;
    pc  : POINTER TO CARDINAL ;
 BEGIN
    IF sym#NulSym
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          OAFamilySym:  h := Indexing.HighIndice(OAFamily.Dimensions) ;
@@ -8093,13 +8741,15 @@ END doFillInOAFamily ;
 
 PROCEDURE FillInUnboundedFields (sym: CARDINAL; SimpleType: CARDINAL; ndim: CARDINAL) ;
 VAR
+   pSym    : PtrToSymbol ;
    field   : CARDINAL ;
    Contents: CARDINAL ;
    i       : CARDINAL ;
 BEGIN
    IF sym#NulSym
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := UnboundedSym ;
          WITH Unbounded DO
             Type := SimpleType ;            (* Index to a simple type.     *)
@@ -8162,8 +8812,11 @@ END MakeUnbounded ;
 *)
 
 PROCEDURE GetUnbounded (oaf: CARDINAL; ndim: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[oaf] DO
+   pSym := GetPsym(oaf) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       OAFamilySym:  WITH OAFamily DO
@@ -8188,8 +8841,11 @@ END GetUnbounded ;
 *)
 
 PROCEDURE PutUnbounded (oaf: CARDINAL; sym: CARDINAL; ndim: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[oaf] DO
+   pSym := GetPsym(oaf) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       OAFamilySym:  WITH OAFamily DO
@@ -8210,8 +8866,11 @@ END PutUnbounded ;
 *)
 
 PROCEDURE GetUnboundedRecordType (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       UnboundedSym: RETURN( Unbounded.RecordType )
@@ -8304,8 +8963,11 @@ END GetArrayDimension ;
 *)
 
 PROCEDURE GetDimension (sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       PartialUnboundedSym:  RETURN( PartialUnbounded.NDim ) |
@@ -8340,8 +9002,11 @@ END GetDimension ;
 *)
 
 PROCEDURE PutArray (Sym, TypeSymbol: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -8399,8 +9064,11 @@ END ResolveConstructorType ;
 *)
 
 PROCEDURE IsConstructorResolved (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[sym] DO
+   pSym := GetPsym(sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstVarSym:  RETURN( NOT ConstVar.UnresFromType ) |
@@ -8420,10 +9088,13 @@ END IsConstructorResolved ;
 *)
 
 PROCEDURE CanResolveConstructor (sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF NOT IsConstructorResolved(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ConstVarSym:  WITH ConstVar DO
@@ -8519,10 +9190,12 @@ END AddNameTo ;
 
 PROCEDURE AddNameToScope (n: Name) ;
 VAR
+   pSym : PtrToSymbol ;
    scope: CARDINAL ;
 BEGIN
    scope := GetCurrentScope() ;
-   WITH Symbols[scope] DO
+   pSym := GetPsym(scope) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym:  AddNameTo(Procedure.NamedObjects, MakeObject(n)) |
@@ -8544,10 +9217,12 @@ END AddNameToScope ;
 
 PROCEDURE AddNameToImportList (n: Name) ;
 VAR
+   pSym : PtrToSymbol ;
    scope: CARDINAL ;
 BEGIN
    scope := GetCurrentScope() ;
-   WITH Symbols[scope] DO
+   pSym := GetPsym(scope) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym:  AddNameTo(Module.NamedImports, MakeObject(n)) |
@@ -8598,7 +9273,8 @@ END CollectSymbolFrom ;
 
 PROCEDURE CollectUnknown (sym: CARDINAL; n: Name) : CARDINAL ;
 VAR
-   s: CARDINAL ;
+   pSym: PtrToSymbol ;
+   s   : CARDINAL ;
 BEGIN
    IF IsModule(sym) OR IsDefImp(sym)
    THEN
@@ -8608,7 +9284,8 @@ BEGIN
       s := CheckScopeForSym(sym, n) ;
       IF s=NulSym
       THEN
-         WITH Symbols[sym] DO
+         pSym := GetPsym(sym) ;
+         WITH pSym^ DO
             CASE SymbolType OF
 
             ProcedureSym:  IF GetSymKey(Procedure.NamedObjects, n)#NulKey
@@ -8661,11 +9338,14 @@ END ResolveImport ;
 *)
 
 PROCEDURE ResolveRelativeImport (sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsModule(sym)
    THEN
       ResolveModule := sym ;
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ModuleSym:  ForeachNodeDo(Module.NamedImports,
@@ -8705,8 +9385,11 @@ END ResolveImports ;
 *)
 
 PROCEDURE GetScope (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym           : ErrorAbort0('') |
@@ -8792,8 +9475,11 @@ END IsModuleWithinProcedure ;
 *)
 
 PROCEDURE GetParent (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym           : ErrorAbort0('') |
@@ -8814,8 +9500,11 @@ END GetParent ;
 *)
 
 PROCEDURE IsRecordField (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=RecordFieldSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=RecordFieldSym )
 END IsRecordField ;
 
 
@@ -8825,12 +9514,14 @@ END IsRecordField ;
 
 PROCEDURE MakeProcType (ProcTypeName: Name) : CARDINAL ;
 VAR
+   pSym    : PtrToSymbol ;
    oaf, sym: CARDINAL ;
 BEGIN
    sym := HandleHiddenOrDeclare(ProcTypeName, oaf) ;
    IF NOT IsError(sym)
    THEN
-      WITH Symbols[sym] DO
+      pSym := GetPsym(sym) ;
+      WITH pSym^ DO
          SymbolType := ProcTypeSym ;
          CASE SymbolType OF
 
@@ -8866,10 +9557,12 @@ END MakeProcType ;
 PROCEDURE PutProcTypeParam (Sym: CARDINAL;
                             ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 VAR
+   pSym  : PtrToSymbol ;
    ParSym: CARDINAL ;
 BEGIN
    NewSym(ParSym) ;
-   WITH Symbols[ParSym] DO
+   pSym := GetPsym(ParSym) ;
+   WITH pSym^ DO
       SymbolType := ParamSym ;
       WITH Param DO
          name := NulName ;
@@ -8891,10 +9584,12 @@ END PutProcTypeParam ;
 PROCEDURE PutProcTypeVarParam (Sym: CARDINAL;
                                ParamType: CARDINAL; isUnbounded: BOOLEAN) ;
 VAR
+   pSym  : PtrToSymbol ;
    ParSym: CARDINAL ;
 BEGIN
    NewSym(ParSym) ;
-   WITH Symbols[ParSym] DO
+   pSym := GetPsym(ParSym) ;
+   WITH pSym^ DO
       SymbolType := VarParamSym ;
       WITH Param DO
          name := NulName ;
@@ -8914,8 +9609,11 @@ END PutProcTypeVarParam ;
 *)
 
 PROCEDURE PutProcedureReachable (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym: |
@@ -8935,8 +9633,11 @@ END PutProcedureReachable ;
 *)
 
 PROCEDURE PutModuleStartQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: Module.StartQuad := QuadNumber |
@@ -8957,8 +9658,11 @@ END PutModuleStartQuad ;
 *)
 
 PROCEDURE PutModuleEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: Module.EndQuad := QuadNumber |
@@ -8979,8 +9683,11 @@ END PutModuleEndQuad ;
 *)
 
 PROCEDURE PutModuleFinallyStartQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: Module.StartFinishQuad := QuadNumber |
@@ -9001,8 +9708,11 @@ END PutModuleFinallyStartQuad ;
 *)
 
 PROCEDURE PutModuleFinallyEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: Module.EndFinishQuad := QuadNumber |
@@ -9026,8 +9736,11 @@ END PutModuleFinallyEndQuad ;
 PROCEDURE GetModuleQuads (Sym: CARDINAL;
                           VAR StartInit, EndInit,
                           StartFinish, EndFinish: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: WITH Module DO
@@ -9056,8 +9769,11 @@ END GetModuleQuads ;
 *)
 
 PROCEDURE PutModuleFinallyFunction (Sym: CARDINAL; finally: Tree) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: Module.FinallyFunction := finally |
@@ -9076,8 +9792,11 @@ END PutModuleFinallyFunction ;
 *)
 
 PROCEDURE GetModuleFinallyFunction (Sym: CARDINAL) : Tree ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym: RETURN( Module.FinallyFunction) |
@@ -9098,8 +9817,11 @@ END GetModuleFinallyFunction ;
 *)
 
 PROCEDURE PutProcedureScopeQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.ScopeQuad := QuadNumber
@@ -9118,8 +9840,11 @@ END PutProcedureScopeQuad ;
 *)
 
 PROCEDURE PutProcedureStartQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.StartQuad := QuadNumber
@@ -9138,8 +9863,11 @@ END PutProcedureStartQuad ;
 *)
 
 PROCEDURE PutProcedureEndQuad (Sym: CARDINAL; QuadNumber: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: Procedure.EndQuad := QuadNumber
@@ -9156,8 +9884,11 @@ END PutProcedureEndQuad ;
 *)
 
 PROCEDURE GetProcedureQuads (Sym: CARDINAL; VAR scope, start, end: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: WITH Procedure DO
@@ -9265,8 +9996,11 @@ END GetQuads ;
 *)
 
 PROCEDURE PutReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: IncludeItemIntoList(Var.ReadUsageList[m], Quad)
@@ -9283,8 +10017,11 @@ END PutReadQuad ;
 *)
 
 PROCEDURE RemoveReadQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: RemoveItemFromList(Var.ReadUsageList[m], Quad)
@@ -9301,8 +10038,11 @@ END RemoveReadQuad ;
 *)
 
 PROCEDURE PutWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: IncludeItemIntoList(Var.WriteUsageList[m], Quad)
@@ -9319,8 +10059,11 @@ END PutWriteQuad ;
 *)
 
 PROCEDURE RemoveWriteQuad (Sym: CARDINAL; m: ModeOfAddr; Quad: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: RemoveItemFromList(Var.WriteUsageList[m], Quad)
@@ -9374,8 +10117,11 @@ END DoFindLimits ;
 PROCEDURE GetReadLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
                              StartLimit, EndLimit: CARDINAL;
                              VAR Start, End: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: DoFindLimits(StartLimit, EndLimit, Start, End,
@@ -9397,8 +10143,11 @@ END GetReadLimitQuads ;
 PROCEDURE GetWriteLimitQuads (Sym: CARDINAL; m: ModeOfAddr;
                               StartLimit, EndLimit: CARDINAL;
                               VAR Start, End: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym     : DoFindLimits(StartLimit, EndLimit, Start, End,
@@ -9416,8 +10165,11 @@ END GetWriteLimitQuads ;
 *)
 
 PROCEDURE GetNthProcedure (Sym: CARDINAL; n: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym: RETURN( GetItemFromList(DefImp.ListOfProcs, n) ) |
@@ -9435,8 +10187,11 @@ END GetNthProcedure ;
 *)
 
 PROCEDURE GetDeclared (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym           : RETURN( Error.At.Declared ) |
@@ -9479,8 +10234,11 @@ END GetDeclared ;
 *)
 
 PROCEDURE GetFirstUsed (Sym: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ErrorSym           : RETURN( Error.At.FirstUsed ) |
@@ -9522,8 +10280,11 @@ END GetFirstUsed ;
 *)
 
 PROCEDURE ForeachProcedureDo (Sym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : ForeachItemInListDo( DefImp.ListOfProcs, P) |
@@ -9543,8 +10304,11 @@ END ForeachProcedureDo ;
 *)
 
 PROCEDURE ForeachInnerModuleDo (Sym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       DefImpSym   : ForeachItemInListDo( DefImp.ListOfModules, P) |
@@ -9574,8 +10338,11 @@ END ForeachModuleDo ;
 *)
 
 PROCEDURE ForeachFieldEnumerationDo (Sym: CARDINAL; P: PerformOperation) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       EnumerationSym: ForeachNodeDo( Enumeration.LocalSymbols, P)
@@ -9593,8 +10360,11 @@ END ForeachFieldEnumerationDo ;
 *)
 
 PROCEDURE IsProcedureReachable (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( Procedure.Reachable )
@@ -9611,8 +10381,11 @@ END IsProcedureReachable ;
 *)
 
 PROCEDURE IsProcType (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=ProcTypeSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=ProcTypeSym )
 END IsProcType ;
 
 
@@ -9621,8 +10394,11 @@ END IsProcType ;
 *)
 
 PROCEDURE IsVar (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=VarSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=VarSym )
 END IsVar ;
 
 
@@ -9632,8 +10408,11 @@ END IsVar ;
 *)
 
 PROCEDURE DoIsConst (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( (SymbolType=ConstVarSym) OR
               (SymbolType=ConstLitSym) OR
               (SymbolType=ConstStringSym) OR
@@ -9664,8 +10443,11 @@ END IsConst ;
 *)
 
 PROCEDURE IsConstString (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( SymbolType=ConstStringSym )
    END
 END IsConstString ;
@@ -9676,8 +10458,11 @@ END IsConstString ;
 *)
 
 PROCEDURE IsConstLit (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( SymbolType=ConstLitSym )
    END
 END IsConstLit ;
@@ -9688,8 +10473,11 @@ END IsConstLit ;
 *)
 
 PROCEDURE IsDummy (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=DummySym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=DummySym )
 END IsDummy ;
 
 
@@ -9698,8 +10486,11 @@ END IsDummy ;
 *)
 
 PROCEDURE IsTemporary (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym     :  RETURN( Var.IsTemp ) |
@@ -9717,8 +10508,11 @@ END IsTemporary ;
 *)
 
 PROCEDURE IsVarAParam (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       VarSym: RETURN( Var.IsParam )
@@ -9735,8 +10529,11 @@ END IsVarAParam ;
 *)
 
 PROCEDURE IsSubscript (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=SubscriptSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=SubscriptSym )
 END IsSubscript ;
 
 
@@ -9745,8 +10542,11 @@ END IsSubscript ;
 *)
 
 PROCEDURE IsSubrange (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   RETURN( Symbols[Sym].SymbolType=SubrangeSym )
+   pSym := GetPsym(Sym) ;
+   RETURN( pSym^.SymbolType=SubrangeSym )
 END IsSubrange ;
 
 
@@ -9799,8 +10599,11 @@ END IsAModula2Type ;
 *)
 
 PROCEDURE IsGnuAsmVolatile (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       GnuAsmSym: RETURN( GnuAsm.Volatile )
@@ -9817,8 +10620,11 @@ END IsGnuAsmVolatile ;
 *)
 
 PROCEDURE IsGnuAsm (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( SymbolType=GnuAsmSym )
    END
 END IsGnuAsm ;
@@ -9829,8 +10635,11 @@ END IsGnuAsm ;
 *)
 
 PROCEDURE IsRegInterface (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       RETURN( SymbolType=InterfaceSym )
    END
 END IsRegInterface ;
@@ -9886,10 +10695,12 @@ END PutIntoIndex ;
 
 PROCEDURE Make2Tuple (a, b: CARDINAL) : CARDINAL ;
 VAR
-   Sym: CARDINAL ;
+   pSym: PtrToSymbol ;
+   Sym : CARDINAL ;
 BEGIN
    NewSym(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       SymbolType := TupleSym ;
       WITH Tuple DO
          nTuple := 2 ;
@@ -9909,9 +10720,12 @@ END Make2Tuple ;
 *)
 
 PROCEDURE IsSizeSolved (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym    : RETURN( IsSolved(Procedure.Size) ) |
@@ -9944,9 +10758,12 @@ END IsSizeSolved ;
 *)
 
 PROCEDURE IsOffsetSolved (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym       : RETURN( IsSolved(Module.Offset) ) |
@@ -9967,9 +10784,12 @@ END IsOffsetSolved ;
 *)
 
 PROCEDURE IsValueSolved (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstLitSym         : RETURN( IsSolved(ConstLit.Value) ) |
@@ -9990,10 +10810,13 @@ END IsValueSolved ;
 *)
 
 PROCEDURE IsConstructorConstant (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    IF IsConstructor(Sym) OR IsConstSet(Sym)
    THEN
-      WITH Symbols[Sym] DO
+      pSym := GetPsym(Sym) ;
+      WITH pSym^ DO
          CASE SymbolType OF
 
          ConstVarSym:  RETURN( IsValueConst(ConstVar.Value) ) |
@@ -10031,9 +10854,12 @@ END IsComposite ;
 *)
 
 PROCEDURE IsSumOfParamSizeSolved (Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: RETURN( IsSolved(Procedure.TotalParamSize) ) |
@@ -10051,9 +10877,12 @@ END IsSumOfParamSizeSolved ;
 *)
 
 PROCEDURE PushSize (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym    : PushFrom(Procedure.Size) |
@@ -10086,9 +10915,12 @@ END PushSize ;
 *)
 
 PROCEDURE PushOffset (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym       : PushFrom(Module.Offset) |
@@ -10109,9 +10941,12 @@ END PushOffset ;
 *)
 
 PROCEDURE PushValue (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstLitSym         : PushFrom(ConstLit.Value) |
@@ -10134,10 +10969,12 @@ END PushValue ;
 
 PROCEDURE PushConstString (Sym: CARDINAL) ;
 VAR
-   a: ARRAY [0..10] OF CHAR ;
+   pSym: PtrToSymbol ;
+   a   : ARRAY [0..10] OF CHAR ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstStringSym: WITH ConstString DO
@@ -10203,9 +11040,12 @@ END PushParamSize ;
 *)
  
 PROCEDURE PushSumOfLocalVarSize (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym,
@@ -10225,9 +11065,12 @@ END PushSumOfLocalVarSize ;
 *)
 
 PROCEDURE PushSumOfParamSize (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: PushFrom(Procedure.TotalParamSize) |
@@ -10267,13 +11110,12 @@ END PushVarSize ;
 *)
 
 PROCEDURE PopValue (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   IF Sym=4213
-   THEN
-      stop
-   END ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ConstLitSym         : PopInto(ConstLit.Value) |
@@ -10292,9 +11134,12 @@ END PopValue ;
 *)
 
 PROCEDURE PopSize (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym    : PopInto(Procedure.Size) |
@@ -10327,9 +11172,12 @@ END PopSize ;
 *)
 
 PROCEDURE PopOffset (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ModuleSym       : PopInto(Module.Offset) |
@@ -10351,9 +11199,12 @@ END PopOffset ;
 *)
 
 PROCEDURE PopSumOfParamSize (Sym: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
    CheckLegal(Sym) ;
-   WITH Symbols[Sym] DO
+   pSym := GetPsym(Sym) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       ProcedureSym: PopInto(Procedure.TotalParamSize) |
@@ -10372,8 +11223,11 @@ END PopSumOfParamSize ;
 *)
 
 PROCEDURE PutAlignment (type: CARDINAL; align: CARDINAL) ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[type] DO
+   pSym := GetPsym(type) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym     :  Record.Align := align |
@@ -10395,8 +11249,11 @@ END PutAlignment ;
 *)
 
 PROCEDURE GetAlignment (type: CARDINAL) : CARDINAL ;
+VAR
+   pSym: PtrToSymbol ;
 BEGIN
-   WITH Symbols[type] DO
+   pSym := GetPsym(type) ;
+   WITH pSym^ DO
       CASE SymbolType OF
 
       RecordSym     :  RETURN( Record.Align ) |

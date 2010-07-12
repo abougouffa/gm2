@@ -195,7 +195,7 @@ BEGIN
       INC(f) ;
       IF f>h
       THEN
-         PutIndice(FileInfo, f, NIL) ;  (* create new slow *)
+         PutIndice(FileInfo, f, NIL) ;  (* create new slot *)
          RETURN( f )
       END
    END
