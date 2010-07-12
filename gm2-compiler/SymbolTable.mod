@@ -3432,6 +3432,8 @@ BEGIN
             ELSE
                Type := Address
             END ;
+            Align := NulSym ;       (* Alignment of this type.     *)
+            Scope := GetCurrentScope() ; (* Which scope created it *)
             oafamily := NulSym ;
             IF NOT ExtendedOpaque
             THEN

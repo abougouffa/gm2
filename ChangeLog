@@ -8,6 +8,8 @@
 	  of uninitialized fields in the symbol table.
 	* gm2/tools-src/array2index.py:  tool used to replace the
 	  static arrays with their dynamic equivalent.
+	* gm2/gm2-compiler/SymbolTable.mod:  fixed another
+	  uninitialised Scope field in MakeHiddenType.
 
 2010-07-08       Gaius Mulley <gaius@gnu.org>
 
