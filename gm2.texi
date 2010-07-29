@@ -94,6 +94,7 @@ Software Foundation raise funds for GNU development.''
 * Elementary data types:: Data types supported by GNU Modula-2.
 * Standard procedures::   Permanently accessible base procedures.
 * Dialect::               GNU Modula-2 supported dialects.
+* Exceptions::            Exception implementation
 * Extensions::            GNU Modula-2 language extensions.
 * Type compatibility::    Data type compatibility.
 * Unbounded by reference::Explanation of a language optimization.
@@ -252,9 +253,8 @@ exception handling, complex types or @samp{FINALLY} is implemented).
 @node Compiler options, Example usage, Release map, Using
 @section Compiler options
 
-This section describes the compiler options specific to GNU Modula-2 for
-generic flags details see
-@xref{Invoking GCC, , ,gcc}.
+This section describes the compiler options specific to GNU Modula-2
+for generic flags details see @xref{Invoking GCC, , ,gcc}.
 
 @table @code
 
@@ -372,7 +372,7 @@ and do not fall out at the end.
 turns on compile time checking to check whether a @code{CASE}
 statement requires an @code{ELSE} clause when on was not specified.
 
-@item -fcheck-all
+@item -fsoft-check-all
 turns on all runtime checks.  This is the same as invoking
 GNU Modula-2 using the command options
 @code{-fnil} @code{-frange} @code{-findex}
@@ -1102,7 +1102,7 @@ PROCEDURE ODD (v: <any whole number type>) : BOOLEAN ;
 PROCEDURE RE (c: <any complex type>) : <floating point type> ;
 @end example
 
-@node Dialect, Extensions, Standard procedures, Using
+@node Dialect, Exceptions, Standard procedures, Using
 @section GNU Modula-2 supported dialects
 
 This section describes the dialects understood by GNU Modula-2.
@@ -1162,13 +1162,33 @@ lval    rval   DIV     MOD    DIV     MOD    DIV    MOD    /    REM
 -31     -10      3      -1      4       9     Exception     3    -1
 @end example
 
-See also P24 of PIM2, P27 of PIM3, P29 of PIM4 and P201 of the ISO Standard.
-At present all dialect division, remainder and modulus are implemented as
-above, apart from the exception calling in the ISO dialect. Instead of
-exception handling the results are the same as the PIM4 dialect. This
-is a temporary implementation situation.
+See also P24 of PIM2, P27 of PIM3, P29 of PIM4 and P201 of the ISO
+Standard.  At present all dialect division, remainder and modulus are
+implemented as above, apart from the exception calling in the ISO
+dialect. Instead of exception handling the results are the same as the
+PIM4 dialect. This is a temporary implementation situation.
 
-@node Extensions, Type compatibility, Dialect, Using
+@node Exceptions, Extensions, Dialect, Using
+@section Exception implementation
+
+This section describes how exceptions are implemented in GNU Modula-2
+and how command line switches affect their behaviour.  The option
+@samp{-fsoft-check-all} enables all software checking of nil
+dereferences, division by zero etc.  Additional code is produced to
+check these conditions and exception handlers are invoked if the
+conditions prevail.
+
+Without @samp{-fsoft-check-all} these exceptions will be caught by
+hardware (assuming the hardware support) and a signal handler is
+invoked.  The signal handler will in turn @code{THROW} an exception
+which will be caught by the appropriate Modula-2 handler.  However the
+action of throwing an exception from within a signal handler is
+implementation defined (according to the C++ documentation).  For
+example on the x86_64 architecture this works whereas on the i686
+architecture it does not.  Therefore to ensure portability it is
+recommended to use @samp{-fsoft-check-all}.
+
+@node Extensions, Type compatibility, Exceptions, Using
 @section GNU Modula-2 language extensions
 
 This section introduces the GNU Modula-2 language extensions.

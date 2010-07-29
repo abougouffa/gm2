@@ -1,3 +1,17 @@
+2010-07-29       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  tidied up newfile.
+	* gm2/gm2/gm2.texi:  (New section) Exception implementation.
+	* gm2/gm2-libs/Builtins.def:  added space.
+	* gm2/Make-lang.in:  replaced -fcheck-all with -fsoft-check-all.
+	* gm2/gm2.texi:  replaced -fcheck-all with -fsoft-check-all.
+	* gm2/lang-options.h:  replaced -fcheck-all with -fsoft-check-all.
+	* gm2/lang.opt:  replaced -fcheck-all with -fsoft-check-all.
+	* gm2/gm2-compiler/M2Options.mod:  replaced -fcheck-all with
+	  -fsoft-check-all.
+	* gm2/gm2-libs/Builtins.def:  replaced -fcheck-all with -fsoft-check-all.
+	* gm2/man/gm2.man:  replaced -fcheck-all with -fsoft-check-all.
+
 2010-07-12       Gaius Mulley <gaius@gnu.org>
 
 	* All major arrays are now dynamic within gm2.

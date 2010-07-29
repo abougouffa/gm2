@@ -458,11 +458,11 @@ statements which do not define one.
 It simply prints an error message, and exits with an error code.
 
 .TP
-.I -fcheck-all
+.I -fsoft-check-all
 Turns on all runtime checks. This is the same as invoking
 .I GNU Modula-2
 using the command options
-.IR -fbounds ", " -freturn ", " -fnil ", " -fcase .
+.IR -fbounds ", " -freturn ", " -fnil ", " -fcase ", " -frange ", ", -findex ", " -fwholediv
 
 .SS "Style Checking Options"
 

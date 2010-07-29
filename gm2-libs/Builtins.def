@@ -196,9 +196,11 @@ PROCEDURE __BUILTIN__ strrchr (s: ADDRESS; c: INTEGER) : ADDRESS ;
    anticipates that the Ada front end should use them
    and it only uses them in its runtime exception handling.
    We leave them here in the hope that someday they will
-   behave more like their libc counterparts. *)
+   behave more like their libc counterparts.  *)
+
 PROCEDURE __BUILTIN__ longjmp (env: ADDRESS; val: INTEGER) ;
 PROCEDURE __BUILTIN__ setjmp (env: ADDRESS) : INTEGER ;
+
 
 (*
    frame_address - returns the address of the frame.

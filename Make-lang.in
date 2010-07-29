@@ -716,7 +716,8 @@ gm2.install-with-gcc: $(INSTALL_HEADERS) gm2.install $(INSTALL_LIBGCC)
         for file in $(GCC_PASSES); do \
           if [ x"$$file" != x"xgcc$(exeext)" ]; then \
             rm -f $(DESTDIR)$(libsubdir)/$$file; \
-            $(INSTALL_PROGRAM) $$file $(DESTDIR)$(libsubdir)/$$file || exit 1; \          fi; \
+            $(INSTALL_PROGRAM) $$file $(DESTDIR)$(libsubdir)/$$file || exit 1; \
+          fi; \
         done; exit 0
 
 gm2.uninstall:
@@ -807,11 +808,11 @@ GM2_O_S3=-O
 # GM2_G=-g -gdwarf-2
 # GM2_G=-gstabs+
 GM2_G=-g
-GM2_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
+GM2_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fpim -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
  -fdata-sections
-GM2_ISO_FLAGS=-fcheck-all $(GM2_G) $(GM2_O) \
+GM2_ISO_FLAGS=-fsoft-check-all $(GM2_G) $(GM2_O) \
  -funbounded-by-reference -fiso -fextended-opaque \
  -Wpedantic-cast -Wpedantic-param-names -ffunction-sections \
  -fdata-sections

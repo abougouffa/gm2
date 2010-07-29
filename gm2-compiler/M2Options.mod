@@ -374,10 +374,10 @@ BEGIN
    THEN
       PedanticCast := TRUE ;
       Legal := TRUE
-   ELSIF EqualArray(s, '-fcheck-all')
+   ELSIF EqualArray(s, '-fsoft-check-all')
    THEN
       Legal := SetCheckAll(TRUE)
-   ELSIF EqualArray(s, '-fno-check-all')
+   ELSIF EqualArray(s, '-fno-soft-check-all')
    THEN
       Legal := SetCheckAll(FALSE)
    ELSIF EqualArray(s, '-fnil')
