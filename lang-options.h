@@ -102,6 +102,8 @@ DEFINE_LANG_NAME ("Modula-2")
       N_("display list of modules and location") },
   { "-fruntime-modules=",
       N_("specify the list of runtime modules and their initialization order") },
+  { "-fclean",
+      N_("cleans all the project objects in the current directory using make") },
   { "-fmakeall",
       N_("build a project using make") },
   { "-fmakeall0",

@@ -502,6 +502,10 @@ BEGIN
    THEN
       (* gcc passes this to us, we ignore it *)
       Legal := TRUE
+   ELSIF EqualArray(s, '-fclean')
+   THEN
+      (* we ignore it, as it is handled by the makefile generator and lang-specs.h *)
+      Legal := TRUE
    ELSIF EqualArray(s, '-fmakeall') OR EqualArray(s, '-fmakeall0') OR
          EqualArray(Mark(Slice(s, 0, 9)), '-fmake-I=')
    THEN

@@ -113,6 +113,10 @@ fmodules
 Modula-2
 display list of modules and location
 
+fclean
+Modula-2
+cleans all the project objects in the current directory using make
+
 fmakeall
 Modula-2
 build a project using make

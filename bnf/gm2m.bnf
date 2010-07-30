@@ -20,7 +20,7 @@
 --
 % module gm2m begin
 MODULE gm2m ;
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc.
    This file is part of GNU Modula-2.
 
@@ -41,7 +41,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2009/12/23 17:28:56 $]
+   Date       : 3/4/86  [$Date: 2010/07/30 13:16:51 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)
@@ -99,7 +99,7 @@ TYPE
    node      = RECORD
                   Source: PtrToSource ;
                   Sons  : Index ;       (* sons of this node (PtrToNode) *)
-                  Father: PtrToNode ;  (* Father of this node *)
+                  Father: PtrToNode ;   (* Father of this node *)
                END ;
 
 VAR
@@ -134,6 +134,8 @@ VAR
 
 
 (* %%%FORWARD%%%
+PROCEDURE DisplayObjects (n: PtrToNode) ; FORWARD ;
+PROCEDURE DisplayClean (n: PtrToNode) ; FORWARD ;
 PROCEDURE AlreadyParsed (modname, ext: Name; VAR s: PtrToSource) : BOOLEAN ; FORWARD ;
 PROCEDURE SubNode (father, son: PtrToNode) : BOOLEAN ; FORWARD ;
 PROCEDURE DeleteFromFather (son: PtrToNode) ; FORWARD ;
@@ -1308,6 +1310,7 @@ BEGIN
    j := HighIndice(n^.Sons) ;
    IF j>0
    THEN
+      FormatLn ;
       DisplayDependants(n) ;
       DisplayBuild(n) ;
       i := 1 ;
@@ -1324,13 +1327,63 @@ END DisplayDependency ;
 
 
 (*
-   DisplayObjects - displays a target, OBJS, with all objects as dependants.
+   DisplayClean - 
+*)
+
+PROCEDURE DisplayClean (n: PtrToNode) ;
+BEGIN
+   FormatLn ;
+   FormatString('clean: force') ; FormatLn ;
+   FormatChar(tab) ; FormatString('$(RM) ') ;
+   DisplayObjects(n) ;
+   FormatLn ;
+   FormatString('force:') ; FormatLn
+END DisplayClean ;
+
+
+(*
+   DisplayObjects - displays all the objects which are created.
 *)
 
 PROCEDURE DisplayObjects (n: PtrToNode) ;
+VAR
+   i, j: CARDINAL ;
+   t   : PtrToNode ;
+   name,
+   ext,
+   s, p: String ;
 BEGIN
-   FormatString('OBJS:') ;
-   DisplayDeps(n)
+   i := 1 ;
+   j := HighIndice(n^.Sons) ;
+   WHILE i<=j DO
+      t := GetIndice(n^.Sons, i) ;
+      IF t#NIL
+      THEN
+         WITH t^.Source^ DO
+            name := InitStringCharStar(KeyToCharStar(ModName)) ;
+            ext  := InitStringCharStar(KeyToCharStar(Ext)) ;
+            s := NIL ;
+            IF Ext=ObjExtn
+            THEN
+               s := CalculateFileName(name, Mark(InitStringCharStar(KeyToCharStar(ModExtn)))) ;
+               p := NIL ;
+               IF FindSourceModFile(name, p)
+               THEN
+                  p := KillString(p) ;
+                  (* good we can build the object from known source *)
+                  FormatString(' ') ;
+                  s := Add(DestDirectory, CalculateFileName(name, ext)) ;
+                  FormatS(s)
+               END
+            END ;
+            s    := KillString(s) ;
+            name := KillString(name) ;
+            ext  := KillString(ext)
+         END
+      END ;
+      INC(i)
+   END ;
+   FormatLn
 END DisplayObjects ;
 
 
@@ -1374,8 +1427,8 @@ BEGIN
    THEN
       GM2Make
    END ;
-   DisplayDependency(main)
-   (* DisplayObjects(main)     currently broken --fixme-- *)
+   DisplayDependency(main) ;
+   DisplayClean(main)
 END UnixMake ;
 
 

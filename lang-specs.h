@@ -50,9 +50,11 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
       %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
       %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
-                                     make -r -f %g.m } \n\
+                                     %{fclean:make -r -f %g.m clean %b } \n\
+                                     %{!fclean:make -r -f %g.m }} \n\
                                    %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
-                                   make -r -f %g.m }}}} \n\
+                                     %{fclean:make -r -f %g.m clean %b } \n\
+                                     %{!fclean:make -r -f %g.m }}}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\
                                              gm2l -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend %{I*} %{fdef=*} %{fmod=*} %{!pipe:-o %g.l} %g.mod |\n\
                                              gm2lorder %{fruntime-modules=*} %{!pipe:%g.l} -o %g.lst \n\
