@@ -7,7 +7,8 @@
 	* gm2/bnf/gm2m.bnf:  added new target clean which removes all
 	  objects.
 	* gm2/gm2-compiler/M2Options.mod:  added -fclean as a legal option.
-
+	* gm2/gm2.texi:  added documentation describing -fclean.
+	
 2010-07-29       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  tidied up newfile.

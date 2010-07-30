@@ -306,6 +306,10 @@ line option.
 generate a temporary makefile and build all dependent modules and
 link.
 
+@item -fclean
+removes all objects before building the application.  This option
+should be used with @code{-fmakeall}.
+
 @item -fruntime-modules=
 specify, using a comma separated list, the runtime modules and their
 order.  These modules will initialized first before any other modules
