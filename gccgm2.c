@@ -2636,7 +2636,7 @@ gm2_handle_option (size_t scode, const char *arg, int value)
     return M2Options_SetNilCheck(value);
   case OPT_fcase:
     return M2Options_SetCaseCheck(value);
-  case OPT_fcheck_all:
+  case OPT_fsoft_check_all:
     return M2Options_SetCheckAll(value);
   case OPT_Wverbose_unbounded:
     return M2Options_SetVerboseUnbounded(value);

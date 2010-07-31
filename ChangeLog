@@ -1,3 +1,8 @@
+2010-07-31       Gaius Mulley <gaius@gnu.org>
+
+ 	* gm2/gccgm2.c:  replaced OPT_fcheck_all with
+	  OPT_fsoft_check_all.
+
 2010-07-30       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/lang-options.h:  added -fclean as a legal option.
