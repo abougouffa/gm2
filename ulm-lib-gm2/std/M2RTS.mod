@@ -31,41 +31,99 @@ IMPORT RTExceptions ;
 
 
 CONST
-   MaxProcedures =   20 ;
+   MaxProcedures = 1024 ;
    MaxLength     = 4096 ;
 
 
 VAR
-   Ptr      : CARDINAL ;
-   List     : ARRAY [0..MaxProcedures] OF PROC ;
-   ExitValue: INTEGER ;
-   CallExit : BOOLEAN ;
+   iPtr, tPtr   : CARDINAL ;
+   InitialProc,
+   TerminateProc: ARRAY [0..MaxProcedures] OF PROC ;
+   ExitValue    : INTEGER ;
+   CallExit     : BOOLEAN ;
 
 
 (*
-   Terminate - calls each installed termination procedure in reverse order.
+   ExecuteTerminationProcedures - calls each installed termination procedure
+                                  in reverse order.
 *)
 
-PROCEDURE Terminate ;
+PROCEDURE ExecuteTerminationProcedures ;
 VAR
    i: CARDINAL ;
 BEGIN
-   i := Ptr ;
+   i := tPtr ;
    WHILE i>0 DO
       DEC(i) ;
-      List[i]
+      TerminateProc[i]
    END
-END Terminate ;
+END ExecuteTerminationProcedures ;
 
 
 (*
-   HALT - terminate the current program.  The procedure Terminate
-          is called before the program is stopped.  The parameter
-          exitcode is optional.  If the parameter is not supplied
-          HALT will call libc 'abort', otherwise it will exit with
-          the code supplied.  Supplying a parameter to HALT has the
-          same effect as calling ExitOnHalt with the same code and
-          then calling HALT with no parameter.
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure
+                                 ExecuteTerminationProcedures
+                                 is invoked.  It returns TRUE is the
+                                 procedure is installed.
+*)
+
+PROCEDURE InstallTerminationProcedure (p: PROC) : BOOLEAN ;
+BEGIN
+   IF tPtr>MaxProcedures
+   THEN
+      RETURN( FALSE )
+   ELSE
+      TerminateProc[tPtr] := p ;
+      INC(tPtr) ;
+      RETURN( TRUE )
+   END
+END InstallTerminationProcedure ;
+
+
+(*
+   ExecuteInitialProcedures - executes the initial procedures installed by
+                              InstallInitialProcedure.
+*)
+
+PROCEDURE ExecuteInitialProcedures ;
+VAR
+   i: CARDINAL ;
+BEGIN
+   i := iPtr ;
+   WHILE i>0 DO
+      DEC(i) ;
+      InitialProc[i]
+   END
+END ExecuteInitialProcedures ;
+
+
+(*
+   InstallInitialProcedure - installs a procedure to be executed just before the
+                             BEGIN code section of the main program module.
+*)
+
+PROCEDURE InstallInitialProcedure (p: PROC) : BOOLEAN ;
+BEGIN
+   IF iPtr>MaxProcedures
+   THEN
+      RETURN( FALSE )
+   ELSE
+      InitialProc[iPtr] := p ;
+      INC(iPtr) ;
+      RETURN( TRUE )
+   END
+END InstallInitialProcedure ;
+
+
+(*
+   HALT - terminate the current program.  The procedure
+          ExecuteTerminationProcedures is called before the
+          program is stopped.  The parameter exitcode is optional.
+          If the parameter is not supplied HALT will call libc 'abort',
+          otherwise it will exit with the code supplied.  Supplying a
+          parameter to HALT has the same effect as calling ExitOnHalt
+          with the same code and then calling HALT with no parameter.
 *)
 
 PROCEDURE HALT ([exitcode: INTEGER = -1]) ;
@@ -75,7 +133,7 @@ BEGIN
       CallExit := TRUE ;
       ExitValue := exitcode
    END ;
-   Terminate ;
+   ExecuteTerminationProcedures ;
    IF CallExit
    THEN
       exit(ExitValue)
@@ -359,24 +417,6 @@ END ExitOnHalt ;
 
 
 (*
-   InstallTerminationProcedure - installs a procedure, p, which will
-                                 be called when the procedure Terminate
-                                 is invoked.
-*)
-
-PROCEDURE InstallTerminationProcedure (p: PROC) ;
-BEGIN
-   IF Ptr=MaxProcedures
-   THEN
-      ErrorMessage('maximum number of termination procedures have been set', __FILE__, __LINE__, __FUNCTION__)
-   ELSE
-      List[Ptr] := p ;
-      INC(Ptr)
-   END
-END InstallTerminationProcedure ;
-
-
-(*
    Length - returns the length of a string, a. This is called whenever
             the user calls LENGTH and the parameter cannot be calculated
             at compile time.
@@ -396,7 +436,8 @@ END Length ;
 
 
 BEGIN
-   Ptr := 0 ;
+   iPtr := 0 ;
+   tPtr := 0 ;
    ExitValue := 0 ;
    CallExit := FALSE   (* default by calling abort *)
 END M2RTS.

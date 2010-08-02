@@ -1622,7 +1622,10 @@ BEGIN
    PreInitialize(StdOut      , '<stdout>', successful      , openedforwrite,  TRUE, 1, MaxBufferLength) ;
    StdErr := 3 ;
    PreInitialize(StdErr      , '<stderr>', successful      , openedforwrite,  TRUE, 2, MaxBufferLength) ;
-   InstallTerminationProcedure(FlushOutErr)
+   IF NOT InstallTerminationProcedure(FlushOutErr)
+   THEN
+      HALT
+   END
 END Init ;
 
 

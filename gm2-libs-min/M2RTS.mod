@@ -21,26 +21,23 @@ IMPORT libc, SYSTEM ;
 
 
 (*
-   Terminate - does nothing.
+   all these procedures do nothing except satisfy the linker.
 *)
 
-PROCEDURE Terminate ;
+PROCEDURE ExecuteTerminationProcedures ;
 BEGIN
-END Terminate ;
+END ExecuteTerminationProcedures ;
 
 
-(*
-   HALT - does nothing.
-*)
+PROCEDURE ExecuteInitialProcedures ;
+BEGIN
+END ExecuteInitialProcedures ;
+
 
 PROCEDURE HALT ;
 BEGIN
 END HALT ;
 
-
-(*
-   NoException - does nothing.
-*)
 
 PROCEDURE NoException (filename: ADDRESS;
                        line, column: CARDINAL; scope: ADDRESS) ;

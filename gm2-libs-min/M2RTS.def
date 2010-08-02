@@ -26,27 +26,15 @@ DEFINITION MODULE M2RTS ;
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;
-EXPORT QUALIFIED HALT, Terminate, NoException ;
 
 
 (*
-   HALT - does nothing.
+   all these procedures do nothing except satisfy the linker.
 *)
 
+PROCEDURE ExecuteTerminationProcedures ;
+PROCEDURE ExecuteInitialProcedures ;
 PROCEDURE HALT ;
-
-
-(*
-   Terminate - does nothing.
-*)
-
-PROCEDURE Terminate ;
-
-
-(*
-   NoException - does nothing.
-*)
-
 PROCEDURE NoException (filename: ADDRESS;
                        line, column: CARDINAL; scope: ADDRESS) ;
 

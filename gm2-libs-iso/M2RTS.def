@@ -29,7 +29,44 @@ FROM SYSTEM IMPORT ADDRESS ;
 
 
 (*
-   HALT - terminate the current program.  The procedure Terminate
+   ExecuteTerminationProcedures - calls each installed termination
+                                  procedure in reverse order.
+*)
+
+PROCEDURE ExecuteTerminationProcedures ;
+
+
+(*
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure
+                                 ExecuteTerminationProcedures
+                                 is invoked.  It returns TRUE is the
+                                 procedure is installed.
+*)
+
+PROCEDURE InstallTerminationProcedure (p: PROC) : BOOLEAN ;
+
+
+(*
+   ExecuteInitialProcedures - executes the initial procedures installed
+                              by InstallInitialProcedure.
+*)
+
+PROCEDURE ExecuteInitialProcedures ;
+
+
+(*
+   InstallInitialProcedure - installs a procedure to be executed just
+                             before the BEGIN code section of the main
+                             program module.
+*)
+
+PROCEDURE InstallInitialProcedure (p: PROC) : BOOLEAN ;
+
+
+(*
+   HALT - terminate the current program.  The procedure
+          ExecuteTerminationProcedures
           is called before the program is stopped.  The parameter
           exitcode is optional.  If the parameter is not supplied
           HALT will call libc 'abort', otherwise it will exit with
@@ -65,22 +102,6 @@ PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
                         file: ARRAY OF CHAR;
                         line: CARDINAL;
                         function: ARRAY OF CHAR) ;
-
-
-(*
-   InstallTerminationProcedure - installs a procedure, p, which will
-                                 be called when the procedure Terminate
-                                 is ionvoked.
-*)
-
-PROCEDURE InstallTerminationProcedure (p: PROC) ;
-
-
-(*
-   Terminate - calls each installed termination procedure in turn.
-*)
-
-PROCEDURE Terminate ;
 
 
 (*

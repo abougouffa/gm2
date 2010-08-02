@@ -27,7 +27,8 @@ DEFINITION MODULE M2RTS ;
 
 FROM SYSTEM IMPORT BITSET, ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
-                 InstallTerminationProcedure, Terminate,
+                 InstallTerminationProcedure, ExecuteTerminationProcedures,
+                 InstallInitialProcedure, ExecuteInitialProcedures,
                  ExitOnHalt, Length, ErrorMessage,
                  AssignmentException,
                  IncException, DecException, InclException, ExclException,
@@ -38,6 +39,42 @@ EXPORT QUALIFIED HALT, Halt,
                  WholeNonPosDivException, WholeNonPosModException,
                  WholeZeroDivException, WholeZeroRemException,
                  CaseException, NoException ;
+
+
+(*
+   ExecuteTerminationProcedures - calls each installed termination
+                                  procedure in reverse order.
+*)
+
+PROCEDURE ExecuteTerminationProcedures ;
+
+
+(*
+   InstallTerminationProcedure - installs a procedure, p, which will
+                                 be called when the procedure
+                                 ExecuteTerminationProcedures
+                                 is invoked.  It returns TRUE is the
+                                 procedure is installed.
+*)
+
+PROCEDURE InstallTerminationProcedure (p: PROC) : BOOLEAN ;
+
+
+(*
+   ExecuteInitialProcedures - executes the initial procedures installed
+                              by InstallInitialProcedure.
+*)
+
+PROCEDURE ExecuteInitialProcedures ;
+
+
+(*
+   InstallInitialProcedure - installs a procedure to be executed just
+                             before the BEGIN code section of the main
+                             program module.
+*)
+
+PROCEDURE InstallInitialProcedure (p: PROC) : BOOLEAN ;
 
 
 (*
@@ -77,22 +114,6 @@ PROCEDURE ErrorMessage (message: ARRAY OF CHAR;
                         file: ARRAY OF CHAR;
                         line: CARDINAL;
                         function: ARRAY OF CHAR) ;
-
-
-(*
-   InstallTerminationProcedure - installs a procedure, p, which will
-                                 be called when the procedure Terminate
-                                 is invoked.
-*)
-
-PROCEDURE InstallTerminationProcedure (p: PROC) ;
-
-
-(*
-   Terminate - calls each installed termination procedure in turn.
-*)
-
-PROCEDURE Terminate ;
 
 
 (*

@@ -57,6 +57,7 @@ CONST
 VAR
    CPlusPlus,
    SharedLibrary,
+   NeedInitial,
    NeedTerminate,
    ExitNeeded   : BOOLEAN ;
    MainName     : String ;
@@ -106,6 +107,7 @@ BEGIN
    i             := 1 ;
    CPlusPlus     := FALSE ;
    NeedTerminate := TRUE ;
+   NeedInitial   := TRUE ;
    ExitNeeded    := TRUE ;
    SharedLibrary := FALSE ;
    MainName      := InitString('main') ;
@@ -118,6 +120,9 @@ BEGIN
       ELSIF EqualArray(s, '-terminate')
       THEN
          NeedTerminate := FALSE
+      ELSIF EqualArray(s, '-initial')
+      THEN
+         NeedInitial := FALSE
       ELSIF EqualArray(s, '-h')
       THEN
          fprintf0(StdErr, 'gm2lgen [-fshared] [-main function] [-o outputfile] [ inputfile ] [-exit] [-terminate] [-cpp]\n') ;
@@ -269,7 +274,16 @@ BEGIN
       THEN
          Fin(WriteS(fo, Mark(InitString('"C"'))))
       END ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void M2RTS_Terminate(void);\n'))))))
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void M2RTS_ExecuteTerminationProcedures(void);\n'))))))
+   END ;
+   IF NeedInitial
+   THEN
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('\nextern ')))))) ;
+      IF CPlusPlus
+      THEN
+         Fin(WriteS(fo, Mark(InitString('"C"'))))
+      END ;
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString(' void M2RTS_ExecuteInitialProcedures(void);\n'))))))
    END
 END GenExternals ;
 
@@ -293,6 +307,14 @@ BEGIN
    END ;
    WHILE i<=n DO
       funcname := GetIndice(FunctionList, i) ;
+      IF NeedInitial
+      THEN
+         IF CPlusPlus
+         THEN
+            Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
+         END ;
+         Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_ExecuteInitialProcedures ();\n'))))))
+      END ;
       IF CPlusPlus
       THEN
          Fin(WriteS(fo, Mark(InitString('   '))))
@@ -338,7 +360,7 @@ BEGIN
       THEN
          Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   '))))))
       END ;
-      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_Terminate ();\n'))))))
+      Fin(WriteS(fo, Mark(Sprintf0(Mark(InitString('   M2RTS_ExecuteTerminationProcedures ();\n'))))))
    END ;
    n := HighIndice(FunctionList) ;
    i := LowIndice(FunctionList) ;

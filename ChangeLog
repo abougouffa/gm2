@@ -1,3 +1,31 @@
+2010-08-02       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  included note to add variadics post gm2 1.0.
+	* gm2/lang-specs.h:  updated dates.
+	* gm2/gm2-compiler/gm2lgen.mod:  added -initial switch which
+	  generates code to invoke M2RTS_ExecuteInitialProcedures.
+	  Renamed Terminate to ExecuteTerminationProcedures.
+	* gm2/gm2-libs/FIO.mod:  call ExecuteTerminationProcedures
+	  instead of Termination.
+	* gm2/gm2-libs/M2RTS.def:  (New procedures)
+	  ExecuteTerminationProcedures, InstallTerminationProcedure,
+	  ExecuteInitialProcedures, InstallInitialProcedure.
+	  Removed Terminate.
+	* gm2/gm2-libs/M2RTS.mod:  implement above.
+	* gm2/gm2-libs-iso/M2RTS.def:  (New procedures)
+	  ExecuteTerminationProcedures, InstallTerminationProcedure,
+	  ExecuteInitialProcedures, InstallInitialProcedure.
+	  Removed Terminate.
+	* gm2/gm2-libs-iso/M2RTS.mod:  implement above.
+	* gm2/gm2-libs-min/M2RTS.def:  (New dummy procedures)
+	  ExecuteTerminationProcedures, ExecuteInitialProcedures.
+	  Removed Terminate.
+	* gm2/gm2-libs-min/M2RTS.mod:  implement above.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  implemented
+	  ExecuteTerminationProcedures, InstallTerminationProcedure,
+	  ExecuteInitialProcedures, InstallInitialProcedure.
+	  Removed Terminate.
+	
 2010-07-31       Gaius Mulley <gaius@gnu.org>
 
  	* gm2/gccgm2.c:  replaced OPT_fcheck_all with

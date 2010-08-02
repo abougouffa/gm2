@@ -21,6 +21,7 @@ Post 1.0
 *  back port gm2 to previous releases of gcc (maybe)
 *  allocation of dynamic arrays (extension using alloca).
 *  extend records to allow vla as the final field.
+*  implement variadics as in M2R10.
 
 --
 

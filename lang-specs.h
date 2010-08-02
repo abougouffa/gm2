@@ -1,6 +1,6 @@
 /* Definitions for specs for GNU Modula-2.
    Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
-                 2009
+                 2009, 2010
    Free Software Foundation, Inc.
    Contributed by Gaius Mulley.
 
