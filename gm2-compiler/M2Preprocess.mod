@@ -27,7 +27,7 @@ FROM choosetemp IMPORT make_temp_file ;
 FROM pexecute IMPORT pexecute ;
 FROM libc IMPORT system, exit, unlink ;
 FROM Lists IMPORT List, InitList, KillList, IncludeItemIntoList, ForeachItemInListDo ;
-FROM M2RTS IMPORT InstallTerminationProcedure, Terminate ;
+FROM M2RTS IMPORT InstallTerminationProcedure ;
 FROM FIO IMPORT StdErr, StdOut ;
 FROM M2Printf IMPORT fprintf1 ;
 FROM M2Options IMPORT CppCommandLine, Verbose ;
@@ -127,5 +127,8 @@ END PreprocessModule ;
 
 BEGIN
    InitList(ListOfFiles) ;
-   InstallTerminationProcedure(RemoveFiles)
+   IF NOT InstallTerminationProcedure(RemoveFiles)
+   THEN
+      HALT
+   END
 END M2Preprocess.

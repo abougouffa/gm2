@@ -637,7 +637,10 @@ PROCEDURE Init ;
 BEGIN
    tempNo := 0 ;
    HeadOfTemp := NIL ;
-   InstallTerminationProcedure(CleanUp)
+   IF NOT InstallTerminationProcedure(CleanUp)
+   THEN
+      HALT
+   END
 END Init ;
 
 

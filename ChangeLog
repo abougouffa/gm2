@@ -4,6 +4,11 @@
 	  Terminate from M2RTS.
 	* gm2/p2c/p2c-src/src/parse.c:  replaced call to M2RTS_Terminate
 	  with M2RTS_ExecuteTerminationProcedures.
+	* gm2/gm2-compiler/M2Preprocess.mod:  removed import of Terminate.
+	  Check the return value of the new procedure function
+	  InstallTerminationProcedure.
+	* gm2/gm2-libs-pim/FileSystem.mod:  check the return value of
+	  the new procedure function InstallTerminationProcedure.
 
 2010-08-02       Gaius Mulley <gaius@gnu.org>
 
