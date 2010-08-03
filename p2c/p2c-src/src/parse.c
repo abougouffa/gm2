@@ -1721,7 +1721,7 @@ int opts, serial;
 	flushcomments(NULL, -1, -1);
 	curcomments = cmt;
 	if (modula2 && (opts & BR_PROGRAM))
-	  output("M2RTS_Terminate();\n");
+	  output("M2RTS_ExecuteTerminationProcedures();\n");
     }
     outindent = saveindent;
     if (braces) {

@@ -2,6 +2,8 @@
 
 	* gm2/gm2-compiler/gm2.mod:  removed unnecessary import of
 	  Terminate from M2RTS.
+	* gm2/p2c/p2c-src/src/parse.c:  replaced call to M2RTS_Terminate
+	  with M2RTS_ExecuteTerminationProcedures.
 
 2010-08-02       Gaius Mulley <gaius@gnu.org>
 
