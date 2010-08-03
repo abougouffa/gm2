@@ -14,16 +14,17 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
+
 MODULE gm2 ;
 
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2007/10/05 19:08:22 $]
+   Date       : 1987  [$Date: 2010/08/03 08:57:55 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.11 $
+   Version    : $Revision: 1.12 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;
@@ -32,7 +33,6 @@ FROM SArgs IMPORT GetArg, Narg ;
 FROM DynamicStrings IMPORT String, InitString, string, KillString, EqualArray ;
 FROM M2Printf IMPORT fprintf0 ;
 FROM FIO IMPORT StdErr ;
-FROM M2RTS IMPORT Terminate ;
 FROM libc IMPORT exit ;
 
 

@@ -1,3 +1,8 @@
+2010-08-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/gm2.mod:  removed unnecessary import of
+	  Terminate from M2RTS.
+
 2010-08-02       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/TODO:  included note to add variadics post gm2 1.0.
