@@ -1,3 +1,15 @@
+2010-08-04       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/M2RTS.def:  (New procedure) Terminate.
+	* gm2/gm2-libs/M2RTS.mod:  (New procedure) Terminate.
+	* gm2/gm2-libs/StrLib.mod:  new faster implementation of
+	  StrEqual.
+	* gm2/gm2/gm2-libs-iso/Strings.mod:  fixed bug in Delete
+	  as reported by Scott Iverson.
+	* gm2/gm2-libs-min/M2RTS.mod:  added comment.
+	* gm2/gm2-libs-min/SYSTEM.mod:  tidied up GPL comment.
+	* gm2/ulm-lib-gm2/std/M2RTS.mod:  (New procedure) Terminate.
+	
 2010-08-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/gm2.mod:  removed unnecessary import of

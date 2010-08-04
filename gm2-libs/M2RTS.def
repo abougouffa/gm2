@@ -29,7 +29,7 @@ FROM SYSTEM IMPORT BITSET, ADDRESS ;
 EXPORT QUALIFIED HALT, Halt,
                  InstallTerminationProcedure, ExecuteTerminationProcedures,
                  InstallInitialProcedure, ExecuteInitialProcedures,
-                 ExitOnHalt, Length, ErrorMessage,
+                 ExitOnHalt, Terminate, Length, ErrorMessage,
                  AssignmentException,
                  IncException, DecException, InclException, ExclException,
                  ShiftException, RotateException,
@@ -75,6 +75,16 @@ PROCEDURE ExecuteInitialProcedures ;
 *)
 
 PROCEDURE InstallInitialProcedure (p: PROC) : BOOLEAN ;
+
+
+(*
+   Terminate - provides compatibility for pim.  It call exit with
+               the exitcode provided in a prior call to ExitOnHalt
+               (or zero if ExitOnHalt was never called).  It does
+               not call ExecuteTerminationProcedures.
+*)
+
+PROCEDURE Terminate ;
 
 
 (*

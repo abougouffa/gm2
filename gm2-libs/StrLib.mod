@@ -88,24 +88,21 @@ END StrLess ;
 PROCEDURE StrEqual (a, b: ARRAY OF CHAR) : BOOLEAN ;
 VAR
    i,
-   Higha,
-   Highb: CARDINAL ;
-   Equal: BOOLEAN ;
+   higha,
+   highb: CARDINAL ;
 BEGIN
-   Higha := StrLen(a) ;
-   Highb := StrLen(b) ;
-   IF Higha=Highb
-   THEN
-      Equal := TRUE ;
-      i := 0 ;
-      WHILE Equal AND (i<Higha) DO
-         Equal := (a[i]=b[i]) ;
-         INC(i)
+   higha := HIGH(a) ;
+   highb := HIGH(b) ;
+   i := 0 ;
+   WHILE (i<=higha) AND (i<=highb) AND (a[i]#nul) AND (b[i]#nul) DO
+      IF a[i]#b[i]
+      THEN
+         RETURN( FALSE )
       END ;
-      RETURN( Equal )
-   ELSE
-      RETURN( FALSE )
-   END
+      INC(i)
+   END ;
+   RETURN NOT (((i<=higha) AND (a[i]#nul)) OR
+               ((i<=highb) AND (b[i]#nul)))
 END StrEqual ;
 
 

@@ -144,6 +144,19 @@ END HALT ;
 
 
 (*
+   Terminate - provides compatibility for pim.  It call exit with
+               the exitcode provided in a prior call to ExitOnHalt
+               (or zero if ExitOnHalt was never called).  It does
+               not call ExecuteTerminationProcedures.
+*)
+
+PROCEDURE Terminate ;
+BEGIN
+   exit(ExitValue)
+END Terminate ;
+
+
+(*
    ErrorString - writes a string to stderr.
 *)
 

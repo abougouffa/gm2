@@ -104,15 +104,18 @@ PROCEDURE Delete (VAR stringVar: ARRAY OF CHAR;
 VAR
    h: CARDINAL ;
 BEGIN
-   h := Length(stringVar) ;
-   WHILE (startIndex<h) AND (numberToDelete>0) DO
-      stringVar[startIndex] := stringVar[startIndex+1] ;
-      INC(startIndex) ;
-      DEC(numberToDelete)
-   END ;
-   IF startIndex<HIGH(stringVar)
+   IF numberToDelete>0
    THEN
-      stringVar[startIndex] := ASCII.nul
+      (* numberToDelete can be consider as the number of characters to skip over *)
+      h := Length(stringVar) ;
+      WHILE (startIndex+numberToDelete<h) DO
+         stringVar[startIndex] := stringVar[startIndex+numberToDelete] ;
+         INC(startIndex)
+      END ;
+      IF startIndex<HIGH(stringVar)
+      THEN
+         stringVar[startIndex] := ASCII.nul
+      END
    END
 END Delete ;
 

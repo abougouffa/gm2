@@ -18,6 +18,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA *
 IMPLEMENTATION MODULE M2RTS ;
 
 IMPORT libc, SYSTEM ;
+(* we reference these to ensure they are dragged in to the link *)
 
 
 (*
