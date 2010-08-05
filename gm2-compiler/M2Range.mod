@@ -1399,8 +1399,16 @@ END FoldTypeExpr ;
 *)
 
 PROCEDURE CodeTypeAssign (tokenNo: CARDINAL; des, expr: CARDINAL) ;
+VAR
+   exprType: CARDINAL ;
 BEGIN
-   IF NOT IsAssignmentCompatible(GetType(des), GetType(expr))
+   IF IsProcedure(expr)
+   THEN
+      exprType := expr
+   ELSE
+      exprType := GetType(expr)
+   END ;
+   IF NOT IsAssignmentCompatible(GetType(des), exprType)
    THEN
       IF IsProcedure(des)
       THEN
