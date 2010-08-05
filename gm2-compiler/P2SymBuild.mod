@@ -1078,7 +1078,15 @@ VAR
 BEGIN
    PopT(name) ;
    PushT(name) ;  (* name saved for the EndBuildProcedure name check *)
+   IF name=323
+   THEN
+      stop
+   END ;
    ProcSym := GetDeclareSym(name) ;
+   IF ProcSym=411
+   THEN
+      stop
+   END ;
    IF IsUnknown(ProcSym)
    THEN
       (*

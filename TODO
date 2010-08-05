@@ -22,6 +22,7 @@ Post 1.0
 *  allocation of dynamic arrays (extension using alloca).
 *  extend records to allow vla as the final field.
 *  implement variadics as in M2R10.
+*  implement LENGTH inline and remove it from M2RTS.
 
 --
 

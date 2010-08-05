@@ -1,3 +1,13 @@
+2010-08-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/TODO:  included note to implement LENGTH inline post
+ 	  gm2 1.0.
+	* gm2/gm2-compiler/SymbolTable.mod:  GetScopeSym has a second
+	  parameter, throughProcedure.  (New procedure) CanLookThroughScope.
+          Added second actual parameter to calls of GetScopeSym.
+          This fixes a bug reported by Dragi≈°a Duriƒá
+          <http://lists.gnu.org/archive/html/gm2/2010-07/msg00030.html>
+
 2010-08-04       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/M2RTS.def:  (New procedure) Terminate.
@@ -9,6 +19,8 @@
 	* gm2/gm2-libs-min/M2RTS.mod:  added comment.
 	* gm2/gm2-libs-min/SYSTEM.mod:  tidied up GPL comment.
 	* gm2/ulm-lib-gm2/std/M2RTS.mod:  (New procedure) Terminate.
+	* gm2/TODO:  included note to implement LENGTH inline post
+	  gm2 1.0.
 	
 2010-08-03       Gaius Mulley <gaius@gnu.org>
 
@@ -334,7 +346,7 @@
 	  search path for gm2-libs so that gm2/gm2-libs-iso/pth.def
 	  can be found.
 	* fixed definition of DeviceTablePtrValue to comply with
-	  the ISO standard, bug reported by Martin Kalbfuﬂ.
+	  the ISO standard, bug reported by Martin Kalbfu√ü.
 	* gm2/gm2-libs-iso/ClientSocket.mod:  changed to comply with
 	  the correct ISO definition.
 	* gm2/gm2-libs-iso/IOChan.mod:  changed to comply with
@@ -791,7 +803,7 @@
 	* gm2/gm2-libs-ch/libc.c:  provided wrapper for atexit.
 	* gm2/gm2-libs-ch/sckt.c:  improved debugging for accept.
 	* gm2/gm2-libs-iso/WholeIO.mod:  fixed bug reported by
-	  Martin Kalbfuﬂ.
+	  Martin Kalbfu√ü.
 	  <http://lists.gnu.org/archive/html/gm2/2010-03/msg00004.html>
 	* gm2/gm2-libs-iso/WholeIO.mod:  and also fixed same bug in
 	  ReadInt.
@@ -924,7 +936,7 @@
 	  are archived and the archive installed rather than
 	  all the objects.
 	* gm2/TODO:  updated TODO, removed the linking request
-	  by Martin Kalbfuﬂ.  Added a missed intrinsic function.
+	  by Martin Kalbfu√ü.  Added a missed intrinsic function.
 	* gm2/gm2/gm2.texi:  updated documentation to include
 	  FLOAT, LFLOAT, SFLOAT, TRUNC, STRUNC, LTRUNC, RE, IM,
 	  ODD.  Ordered all functions alphabetically.
@@ -974,7 +986,7 @@
 	  to be present when generating the link command.  This
 	  allows users to supply private libraries or objects
 	  which satisfy all gm2 module references.  A feature
-	  request by a number of users, Martin Kalbfuﬂ and
+	  request by a number of users, Martin Kalbfu√ü and
           John O Goyo.
 
 2010-02-03       Gaius Mulley <gaius@gnu.org>
@@ -1290,7 +1302,7 @@
 
 2009-12-15       Gaius Mulley <gaius@gnu.org>
 
-	* The following changes fix a bug reported by Martin Kalbfuﬂ
+	* The following changes fix a bug reported by Martin Kalbfu√ü
 	  (see testsuite/gm2/iso/run/pass/nestediso.mod).
 	* gm2/gm2-compiler/M2Quads.mod:  use IsAssignmentCompatible
 	  rather than equality of constructor types.
@@ -1329,7 +1341,7 @@
 2009-12-13       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Students.mod:  fixed bug reported
-	  by Martin Kalbfuﬂ which occurred if -fstudents is used.
+	  by Martin Kalbfu√ü which occurred if -fstudents is used.
 	  The parameters to Sprintf2 must not be Name types but
 	  String types.  Modified accordingly.
 
@@ -1369,7 +1381,7 @@
 2009-12-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod:  fixed a bug reported by
-	  Martin Kalbfuﬂ (both this bug and the one below required
+	  Martin Kalbfu√ü (both this bug and the one below required
 	  fixes to BuildAdrFunction, which should return a
 	  RightValue rather than a LeftValue).
 
@@ -1407,7 +1419,7 @@
 2009-11-26       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Quads.mod: fixed bug reported by Martin
-	  Kalbfuﬂ <ma.kalbfuss@web.de> an unbounded actual parameter
+	  Kalbfu√ü <ma.kalbfuss@web.de> an unbounded actual parameter
 	  being passed to unbounded formal parameter in
 	  a DEFINITION MODULE FOR "C" module was not converted into
 	  the address of its data.
@@ -1689,7 +1701,7 @@
 2009-10-01       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2GenGCC.mod:  fixed bug reported by Martin
-	  Kalbfuﬂ <ma.kalbfuss@web.de>,
+	  Kalbfu√ü <ma.kalbfuss@web.de>,
 	  (see testsuite/gm2/iso/run/pass/constructor2.mod) which did not
 	  allow a constructor to be passed as an actual parameter to an
 	  unbounded array formal parameter.  Procedure CodeUnbounded
@@ -6338,7 +6350,7 @@
 	* added new switch -Wpim2 to stipulate the Modula-2 PIM-2
 	  dialect.
 	* Made SIZE pervasive for ISO Modula-2 and PIM-[34] Modula-2
-	  As reported by Diego RodrÌguez RodrÌguez <dieymir@yahoo.es>.
+	  As reported by Diego Rodr√≠guez Rodr√≠guez <dieymir@yahoo.es>.
 	  SIZE can be imported from SYSTEM when -Wpim2 is present.
 	* removed the association with ".def" and "@modula-2"
 	  inside gm2/lang-specs.h as this conflicts with shared library

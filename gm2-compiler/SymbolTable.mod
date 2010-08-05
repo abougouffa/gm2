@@ -798,7 +798,7 @@ PROCEDURE GetConstLitType (Sym: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE GetCurrentModule () : CARDINAL ; FORWARD ;
 PROCEDURE GetModuleScopeId (Id: CARDINAL) : CARDINAL ; FORWARD ;
 PROCEDURE GetRecord (Sym: CARDINAL) : CARDINAL ; FORWARD ;
-PROCEDURE GetScopeSym (name: Name) : CARDINAL ; FORWARD ;
+PROCEDURE GetScopeSym (name: Name; throughProcedure: BOOLEAN) : CARDINAL ; FORWARD ;
 PROCEDURE GetSymFromUnknownTree (name: Name) : CARDINAL ; FORWARD ;
 PROCEDURE Init ; FORWARD ;
 PROCEDURE InitSymTable ; FORWARD ;
@@ -2369,13 +2369,13 @@ VAR
    Sym        : CARDINAL ;
    OldScopePtr: CARDINAL ;
 BEGIN
-   Sym := GetScopeSym(name) ;
+   Sym := GetScopeSym(name, TRUE) ;
    IF Sym=NulSym
    THEN
       (* Check default base types for symbol *)
       OldScopePtr := ScopePtr ;  (* Save ScopePtr *)
       ScopePtr := BaseScopePtr ; (* Alter ScopePtr to point to top of BaseModule *)
-      Sym := GetScopeSym(name) ; (* Search BaseModule for name *)
+      Sym := GetScopeSym(name, FALSE) ; (* Search BaseModule for name *)
       ScopePtr := OldScopePtr    (* Restored ScopePtr *)
    END ;
    RETURN( Sym )
@@ -2383,11 +2383,30 @@ END GetSym ;
 
 
 (*
-   GetScopeSym - searches the current scope and below, providing that the
-                 scopes are transparent, for a symbol with name, name.
+   CanLookThroughScope - by default this procedure returns TRUE.  It only returns
+                         FALSE if, throughProcedure, is FALSE and the ScopeSym is
+                         a procedure.
 *)
 
-PROCEDURE GetScopeSym (name: Name) : CARDINAL ;
+PROCEDURE CanLookThroughScope (ScopeSym: CARDINAL; throughProcedure: BOOLEAN) : BOOLEAN ;
+BEGIN
+   IF IsProcedure(ScopeSym)
+   THEN
+      RETURN( throughProcedure )
+   ELSE
+      RETURN( TRUE )
+   END
+END CanLookThroughScope ;
+
+
+(*
+   GetScopeSym - searches the current scope and below, providing that the
+                 scopes are transparent, for a symbol with name, name.
+                 It only passes over procedure scopes if, throughProcedure,
+                 is TRUE.
+*)
+
+PROCEDURE GetScopeSym (name: Name; throughProcedure: BOOLEAN) : CARDINAL ;
 VAR
    pCall   : PtrToCallFrame ;
    ScopeSym,
@@ -2400,7 +2419,8 @@ BEGIN
    ScopeSym := pCall^.Search ;
    (* WriteString(' scope: ') ; WriteKey(GetSymName(ScopeSym)) ; *)
    Sym := CheckScopeForSym(ScopeSym, name) ;
-   WHILE (ScopeId>0) AND (Sym=NulSym) AND TransparentScope(ScopeSym) DO
+   WHILE (ScopeId>0) AND (Sym=NulSym) AND TransparentScope(ScopeSym) AND
+         CanLookThroughScope(ScopeSym, throughProcedure) DO
       DEC(ScopeId) ;
       pCall := GetPcall(ScopeId) ;
       ScopeSym := pCall^.Search ;
@@ -5627,7 +5647,7 @@ BEGIN
    (*
       WriteString('RequestSym for: ') ; WriteKey(SymName) ; WriteLn ;
    *)
-   Sym := GetScopeSym(SymName) ;
+   Sym := GetScopeSym(SymName, FALSE) ;  (* must not be allowed to fetch a symbol through a procedure scope *)
    IF Sym=NulSym
    THEN
       Sym := GetSymFromUnknownTree(SymName) ;
@@ -6023,7 +6043,7 @@ BEGIN
                           THEN
                              OldScopePtr := ScopePtr ;
                              StartScope(ModSym) ;
-                             Sym := GetScopeSym(SymName) ;
+                             Sym := GetScopeSym(SymName, TRUE) ;
                              EndScope ;
                              Assert(OldScopePtr=ScopePtr) ;
                              IF Sym=NulSym
