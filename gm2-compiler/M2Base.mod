@@ -845,7 +845,7 @@ PROCEDURE IsISOPseudoBaseFunction (Sym: CARDINAL) : BOOLEAN ;
 BEGIN
    RETURN( Iso AND (Sym#NulSym) AND
            ((Sym=LengthS) OR (Sym=Size) OR
-            (Sym=Cmplx) OR (Sym=Re) OR (Sym=Im)) )
+            (Sym=Cmplx) OR (Sym=Re) OR (Sym=Im) OR IsInt(Sym)) )
 END IsISOPseudoBaseFunction ;
 
 
