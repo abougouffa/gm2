@@ -16,41 +16,31 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-DEFINITION MODULE P3SymBuild ;
+DEFINITION MODULE PCSymBuild ;
 
 (*
-   Title      : P3SymBuild
+   Title      : PCSymBuild
    Author     : Gaius Mulley
-   Date       : 24/6/87
-   LastEdit   : 1/9/89
    System     : UNIX (GNU Modula-2)
-   Description: Builds symbol entities, types, constants, variables,
-                procedures, modules and scopes.
+   Description: provides scope mainstance for Pass C it also resolves
+                the import/export symbols and assigns types to constructors.
 *)
 
-(* StartBuildDefinitionModule, *)
-(* EndBuildDefinitionModule, *)  
-(* StartBuildImplementationModule, *)  
-(* EndBuildImplementationModule, *)  
-(* StartBuildProgramModule, *)  
-(* EndBuildProgramModule, *)  
-
-EXPORT QUALIFIED P3StartBuildDefModule,
-                 P3EndBuildDefModule,
-                 P3StartBuildImpModule,
-                 P3EndBuildImpModule,
-                 P3StartBuildProgModule,
-                 P3EndBuildProgModule,
+EXPORT QUALIFIED PCStartBuildDefModule,
+                 PCEndBuildDefModule,
+                 PCStartBuildImpModule,
+                 PCEndBuildImpModule,
+                 PCStartBuildProgModule,
+                 PCEndBuildProgModule,
                  StartBuildInnerModule,
                  EndBuildInnerModule,
                  BuildProcedureHeading,
                  StartBuildProcedure,
                  EndBuildProcedure,
-                 BuildSubrange,
                  BuildNulName,
                  BuildConst,
-                 BuildVarAtAddress,
-                 BuildOptArgInitializer ;
+                 BuildImportOuterModule,
+                 BuildImportInnerModule ;
 
 
 (*
@@ -68,7 +58,7 @@ EXPORT QUALIFIED P3StartBuildDefModule,
 
 *)
 
-PROCEDURE P3StartBuildDefModule ;
+PROCEDURE PCStartBuildDefModule ;
 
 
 (*
@@ -87,7 +77,7 @@ PROCEDURE P3StartBuildDefModule ;
                               |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildDefModule ;
+PROCEDURE PCEndBuildDefModule ;
 
 
 (*
@@ -105,7 +95,7 @@ PROCEDURE P3EndBuildDefModule ;
 
 *)
 
-PROCEDURE P3StartBuildImpModule ;
+PROCEDURE PCStartBuildImpModule ;
 
 
 (*
@@ -124,7 +114,7 @@ PROCEDURE P3StartBuildImpModule ;
                                   |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildImpModule ;
+PROCEDURE PCEndBuildImpModule ;
 
 
 (*
@@ -142,7 +132,7 @@ PROCEDURE P3EndBuildImpModule ;
 
 *)
 
-PROCEDURE P3StartBuildProgModule ;
+PROCEDURE PCStartBuildProgModule ;
 
 
 (*
@@ -161,7 +151,7 @@ PROCEDURE P3StartBuildProgModule ;
                            |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildProgModule ;
+PROCEDURE PCEndBuildProgModule ;
 
 
 (*
@@ -265,21 +255,72 @@ PROCEDURE EndBuildProcedure ;
 
 
 (*
-   BuildSubrange - Builds a Subrange type Symbol.
+   BuildImportOuterModule - Builds imported identifiers into an outer module
+                            from a definition module.
 
-                      Stack
+                            The Stack is expected:
 
-                      Entry                 Exit
+                            Entry           OR    Entry
 
-               Ptr ->
-                      +------------+
-                      | High       |
-                      |------------|
-                      | Low        |                       <- Ptr
-                      |------------|
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                            Exit
+
+                            All above stack discarded
 *)
 
-PROCEDURE BuildSubrange ;
+PROCEDURE BuildImportOuterModule ;
+
+
+(*
+   BuildImportInnerModule - Builds imported identifiers into an inner module
+                            from the last level of module.
+
+                            The Stack is expected:
+
+                            Entry           OR    Entry
+
+                     Ptr ->                Ptr ->
+                            +------------+        +-----------+
+                            | #          |        | #         |
+                            |------------|        |-----------|
+                            | Id1        |        | Id1       |
+                            |------------|        |-----------|
+                            .            .        .           .
+                            .            .        .           .
+                            .            .        .           .
+                            |------------|        |-----------|
+                            | Id#        |        | Id#       |
+                            |------------|        |-----------|
+                            | ImportTok  |        | Ident     |
+                            |------------|        |-----------|
+
+                            IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                                                  Error Condition
+                            Exit
+
+                            All above stack discarded
+*)
+
+PROCEDURE BuildImportInnerModule ;
 
 
 (*
@@ -313,37 +354,4 @@ PROCEDURE BuildNulName ;
 PROCEDURE BuildConst ;
 
 
-(*
-   BuildVarAtAddress - updates the symbol table entry of, variable sym, to be declared
-                       at address, address.
-
-                       Stack
-
-                       Entry                 Exit
-
-                Ptr ->
-                       +--------------+
-                       | Expr | EType |                         <- Ptr
-                       |--------------+        +--------------+
-                       | name | SType |        | name | SType |
-                       |--------------+        |--------------|
-*)
-
-PROCEDURE BuildVarAtAddress ;
-
-
-(*
-   BuildOptArgInitializer - assigns the constant value symbol, const, to be the
-                            initial value of the optional parameter should it be
-                            absent.
-
-                            Ptr ->
-                                   +------------+
-                                   | const      |
-                                   |------------|                      <- Ptr
-*)
-
-PROCEDURE BuildOptArgInitializer ;
-
-
-END P3SymBuild.
+END PCSymBuild.

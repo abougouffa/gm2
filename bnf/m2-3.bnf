@@ -145,8 +145,6 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        BuildConst,
                        BuildSubrange,
                        BuildNulName,
-                       BuildImportOuterModule,
-                       BuildImportInnerModule,
                        BuildOptArgInitializer ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
@@ -576,8 +574,7 @@ ProgramModule := "MODULE"                                                  % Pus
                   [ Priority
                   ]                                             
                   ";"							   
-                  { Import                                                 % BuildImportOuterModule %
-                  }
+                  { Import }
                   Block                                                    % PushAutoOn %
                   Ident                                                    % EndBuildFile %
                                                                            % P3EndBuildProgModule %
@@ -591,8 +588,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                                                                            % PushAutoOff %
                          [ Priority
                          ] ";"                                  
-                         { Import                                          % BuildImportOuterModule %
-                           }                                               
+                         { Import }                                               
                          Block                                             % PushAutoOn %
                                  					   
                          Ident                                             % EndBuildFile %
@@ -1316,9 +1312,7 @@ ModuleDeclaration := "MODULE"                                              % Pus
                                                                            % BuildModuleStart ;
                                                                              PushAutoOff %
                      [ Priority ] ";"
-                     { Import                                              % BuildImportInnerModule %
-                        } [ Export
-                            ]
+                     { Import } [ Export ]
                        Block                                               % PushAutoOn %
                        Ident                                               % EndBuildInnerModule %
                                                                            % PopAuto ; PopAuto ; PopAuto %
@@ -1335,11 +1329,10 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-Import :=                                                                  % PushAutoOn %
+Import :=                                                                  % PushAutoOff %
           ( "FROM" Ident "IMPORT" IdentList ";" |
-           "IMPORT"                                                        % PushT(ImportTok)
-                                                                             (* determines whether Ident or Module *) %
-            IdentList ";" )                                                % PopAuto %
+           "IMPORT" IdentList ";" )
+                                                                           % PopAuto %
         =:
 
 DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
@@ -1348,8 +1341,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
                                                                              P3StartBuildDefModule ;
                                                                              PushAutoOff %
                     ";"
-                    { Import                                               % BuildImportOuterModule %
-                             } [ Export
+                    { Import } [ Export
                                         ]
                     { Definition }
                                    "END"                                   % PushAutoOn %

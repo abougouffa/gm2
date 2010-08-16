@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-IMPLEMENTATION MODULE P3SymBuild ;
+IMPLEMENTATION MODULE PCSymBuild ;
 
 
 FROM NameKey IMPORT Name, WriteKey, NulName ;
@@ -55,7 +55,7 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM FifoQueue IMPORT GetSubrangeFromFifoQueue, GetConstructorFromFifoQueue ;
+FROM FifoQueue IMPORT GetConstructorFromFifoQueue ;
 FROM M2Reserved IMPORT NulTok, ImportTok ;
 FROM M2ALU IMPORT AddElements, AddField, AddBitRange, ChangeToConstructor ;
 
@@ -75,7 +75,7 @@ FROM M2ALU IMPORT AddElements, AddField, AddBitRange, ChangeToConstructor ;
 
 *)
 
-PROCEDURE P3StartBuildDefModule ;
+PROCEDURE PCStartBuildDefModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
@@ -88,7 +88,7 @@ BEGIN
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingDefinitionModule()) ;
    PushT(name)
-END P3StartBuildDefModule ;
+END PCStartBuildDefModule ;
 
 
 (*
@@ -107,7 +107,7 @@ END P3StartBuildDefModule ;
                               |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildDefModule ;
+PROCEDURE PCEndBuildDefModule ;
 VAR
    NameStart,
    NameEnd  : CARDINAL ;
@@ -122,7 +122,7 @@ BEGIN
       WriteFormat2('inconsistant definition module was named (%a) and concluded as (%a)',
                    NameStart, NameEnd)
    END
-END P3EndBuildDefModule ;
+END PCEndBuildDefModule ;
 
 
 (*
@@ -140,7 +140,7 @@ END P3EndBuildDefModule ;
 
 *)
 
-PROCEDURE P3StartBuildImpModule ;
+PROCEDURE PCStartBuildImpModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
@@ -153,7 +153,7 @@ BEGIN
    Assert(IsDefImp(ModuleSym)) ;
    Assert(CompilingImplementationModule()) ;
    PushT(name)
-END P3StartBuildImpModule ;
+END PCStartBuildImpModule ;
 
 
 (*
@@ -172,7 +172,7 @@ END P3StartBuildImpModule ;
                                   |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildImpModule ;
+PROCEDURE PCEndBuildImpModule ;
 VAR
    NameStart,
    NameEnd  : Name ;
@@ -185,12 +185,12 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       (* we dont issue an error based around incorrect module names as this is done in P1 and P2.
-         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+         If we get here then something has gone wrong with our error recovery in PC, so we bail out.
       *)
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
    END
-END P3EndBuildImpModule ;
+END PCEndBuildImpModule ;
 
 
 (*
@@ -208,7 +208,7 @@ END P3EndBuildImpModule ;
 
 *)
 
-PROCEDURE P3StartBuildProgModule ;
+PROCEDURE PCStartBuildProgModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
@@ -223,7 +223,7 @@ BEGIN
    Assert(CompilingProgramModule()) ;
    Assert(NOT IsDefImp(ModuleSym)) ;
    PushT(name)
-END P3StartBuildProgModule ;
+END PCStartBuildProgModule ;
 
 
 (*
@@ -242,7 +242,7 @@ END P3StartBuildProgModule ;
                            |------------|        |-----------|
 *)
 
-PROCEDURE P3EndBuildProgModule ;
+PROCEDURE PCEndBuildProgModule ;
 VAR
    NameStart,
    NameEnd  : Name ;
@@ -255,12 +255,12 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
-         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+         If we get here then something has gone wrong with our error recovery in PC, so we bail out.
       *)
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
    END
-END P3EndBuildProgModule ;
+END PCEndBuildProgModule ;
 
 
 (*
@@ -321,7 +321,7 @@ BEGIN
    IF NameStart#NameEnd
    THEN
       (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
-         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+         If we get here then something has gone wrong with our error recovery in PC, so we bail out.
       *)
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
@@ -330,7 +330,6 @@ BEGIN
 END EndBuildInnerModule ;
 
 
-(* ***
 (*
    BuildImportOuterModule - Builds imported identifiers into an outer module
                             from a definition module.
@@ -440,7 +439,7 @@ BEGIN
    END ;
    PopN(n+1)   (* Clear Stack *)
 END BuildImportInnerModule ;
-******** *)
+
 
 (*
    StartBuildProcedure - Builds a Procedure.
@@ -505,7 +504,7 @@ BEGIN
    IF NameEnd#NameStart
    THEN
       (* we dont issue an error based around incorrect module names this would be done in P1 and P2.
-         If we get here then something has gone wrong with our error recovery in P3, so we bail out.
+         If we get here then something has gone wrong with our error recovery in PC, so we bail out.
       *)
       WriteFormat0('too many errors in pass 3') ;
       FlushErrors
@@ -547,44 +546,6 @@ BEGIN
       EndScope
    END
 END BuildProcedureHeading ;
-
-
-(*
-   BuildSubrange - Builds a Subrange type Symbol.
-
-
-                      Stack
-
-                      Entry                 Exit
-
-               Ptr ->
-                      +------------+
-                      | High       |
-                      |------------|
-                      | Low        |                       <- Ptr
-                      |------------|
-*)
-
-PROCEDURE BuildSubrange ;
-VAR
-   Base,
-   Type,
-   Low,
-   High: CARDINAL ;
-BEGIN
-   PopT(High) ;
-   PopT(Low) ;
-   GetSubrangeFromFifoQueue(Type) ;  (* Collect subrange type from pass 2 and fill in *)
-                                     (* bounds.                                       *)
-   GetSubrangeFromFifoQueue(Base) ;  (* Get base of subrange (maybe NulSym)           *)
-(*
-   WriteString('Subrange type name is: ') ; WriteKey(GetSymName(Type)) ; WriteLn ;
-   WriteString('Subrange High is: ') ; WriteKey(GetSymName(High)) ;
-   WriteString(' Low is: ') ; WriteKey(GetSymName(Low)) ; WriteLn ;
-*)
-   PutSubrange(Type, Low, High, Base)   (* if Base is NulSym then it is       *)
-                                        (* worked out later in M2GCCDeclare   *)
-END BuildSubrange ;
 
 
 (*
@@ -685,4 +646,4 @@ BEGIN
 END BuildOptArgInitializer ;
 
 
-END P3SymBuild.
+END PCSymBuild.

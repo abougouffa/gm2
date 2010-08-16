@@ -1,4 +1,5 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008,
+                 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -29,6 +30,7 @@ DEFINITION MODULE M2Pass ;
 EXPORT QUALIFIED SetPassToNoPass,
                  SetPassToPass1,
                  SetPassToPass2,
+                 SetPassToPassC,
                  SetPassToPass3,
                  SetPassToPassHidden,
                  SetPassToCodeGeneration,
@@ -61,6 +63,13 @@ PROCEDURE SetPassToPass1 ;
 *)
 
 PROCEDURE SetPassToPass2 ;
+
+
+(*
+   SetPassToPassC - sets the pass state to Pass C.
+*)
+
+PROCEDURE SetPassToPassC ;
 
 
 (*
@@ -110,6 +119,13 @@ PROCEDURE IsPass1 () : BOOLEAN ;
 *)
 
 PROCEDURE IsPass2 () : BOOLEAN ;
+
+
+(*
+   IsPassC - returns true if currently in Pass C.
+*)
+
+PROCEDURE IsPassC () : BOOLEAN ;
 
 
 (*

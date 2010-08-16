@@ -14,9 +14,19 @@ Getting GNU Modula-2
 Two options, either get download a copy of gcc+gm2 in a large tarball
 or checkout the development sources.  Please be aware that gm2 is in
 development and might fail to compile with the current version of gcc.
+Obtaining a tarball is advisable if you just want a ready made gm2 and
+gcc combination.
 
-Development sources
-===================
+Tarballs
+========
+
+The latest cvs snapshot and combined gcc can be obtained from:
+http://floppsie.comp.glam.ac.uk/download/c/gcc-4.1.2+gm2-cvs-latest.tar.gz.
+There are also older snapshots available from
+http://floppsie.comp.glam.ac.uk/download/c.
+
+Development sources via CVS
+===========================
 
 To get the latest sources to GM2 type the following:
 
@@ -29,14 +39,6 @@ the position gcc-version/gcc before GNU Modula-2 can be built.
 Assuming that both GCC and gm2 are at the same directory level, type:
    
    mv gm2 gcc-version/gcc
-
-Tarballs
-========
-
-The latest cvs snapshot and combined gcc can be obtained from:
-http://floppsie.comp.glam.ac.uk/download/c/gcc-4.1.2+gm2-cvs-latest.tar.gz.
-There are also older snapshots available from
-http://floppsie.comp.glam.ac.uk/download/c.
 
 Building GNU Modula-2
 =====================
@@ -60,12 +62,12 @@ Installing GNU Modula-2
 A simple test
 =============
 
-you should be able to perform:
+Now you should be able to perform:
 
    PATH=$HOME/opt/bin:$PATH
    export PATH
-   cd gcc-version/gcc/gm2/examples/hello
-   make
+   cd host-build/gcc/gm2/examples/hello
+   make post-install
 
 this should result in creating an a.out for the infamous hello world
 example.  The directory $HOME/opt may be moved to a more public place

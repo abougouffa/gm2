@@ -82,6 +82,8 @@ M2Range
 M2Swig
 M2MetaError
 M2CaseList
+PCSymBuild
+PCBuild
 Sets
 dtoa
 ldtoa

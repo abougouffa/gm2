@@ -14,13 +14,13 @@ for more details.
 You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
-IMPLEMENTATION MODULE M2Pass ;
 
+IMPLEMENTATION MODULE M2Pass ;
 
 FROM M2Error IMPORT InternalError ;
 
 TYPE
-   Pass = (NoPass, Pass1, Pass2, Pass3, CodeGeneration, ErrorPass, HiddenPass) ;
+   Pass = (NoPass, Pass1, Pass2, PassC, Pass3, CodeGeneration, ErrorPass, HiddenPass) ;
 
 VAR
    CurrentPass: Pass ;
@@ -66,6 +66,20 @@ BEGIN
    END
 END SetPassToPass2 ;
 
+
+(*
+   SetPassToPassC - sets the pass state to Pass C.
+*)
+
+PROCEDURE SetPassToPassC ;
+BEGIN
+   IF CurrentPass=NoPass
+   THEN
+      CurrentPass := PassC
+   ELSE
+      InternalError('attempting to set CurrentPass to PassC', __FILE__, __LINE__)
+   END
+END SetPassToPassC ;
 
 
 (*
@@ -146,6 +160,16 @@ PROCEDURE IsPass2 () : BOOLEAN ;
 BEGIN
    RETURN( CurrentPass=Pass2 )
 END IsPass2 ;
+
+
+(*
+   IsPassC - returns true if currently in Pass C.
+*)
+
+PROCEDURE IsPassC () : BOOLEAN ;
+BEGIN
+   RETURN( CurrentPass=PassC )
+END IsPassC ;
 
 
 (*

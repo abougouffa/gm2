@@ -21,7 +21,7 @@ IMPLEMENTATION MODULE M2Comp ;
 FROM SYSTEM IMPORT ADDRESS ;
 FROM M2Options IMPORT Statistics, Quiet ;
 
-FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPass3,
+FROM M2Pass IMPORT SetPassToPass1, SetPassToPass2, SetPassToPassC, SetPassToPass3,
                    SetPassToNoPass, SetPassToPassHidden ;
 
 FROM M2Reserved IMPORT toktype ;
@@ -38,6 +38,7 @@ FROM FormatStrings IMPORT Sprintf1 ;
 IMPORT m2flex ;
 IMPORT P1SyntaxCheck ;
 IMPORT P2Build ;
+IMPORT PCBuild ;
 IMPORT P3Build ;
 IMPORT PHBuild ;
 
@@ -65,6 +66,7 @@ VAR
 PROCEDURE DoPass1 (s: String) ; FORWARD ;
 PROCEDURE DoPass2 ; FORWARD ;
 PROCEDURE DoPass3 ; FORWARD ;
+PROCEDURE DoPassC ; FORWARD ;
    %%%FORWARD%%% *)
 
 (*
@@ -101,7 +103,7 @@ END CompilingProgramModule ;
 
 
 (*
-   Compile - compile file, s, using a 3 pass technique.
+   Compile - compile file, s, using a 4 pass technique.
 *)
 
 PROCEDURE Compile (s: String) ;
@@ -111,6 +113,10 @@ BEGIN
    qprintf0('Pass 2\n') ;
    ResetForNewPass ;
    DoPass2 ;
+   FlushWarnings ; FlushErrors ; 
+   qprintf0('Pass C\n') ;
+   ResetForNewPass ;
+   DoPassC ;
    FlushWarnings ; FlushErrors ; 
    qprintf0('Pass 3\n') ;
    ResetForNewPass ;
@@ -329,6 +335,78 @@ BEGIN
    END ;
    SetPassToNoPass
 END DoPass2 ;
+
+
+(*
+   DoPassC - parses the sources of all modules necessary to compile
+             the required module, Main.
+*)
+
+PROCEDURE DoPassC ;
+VAR
+   name    : Name ;
+   Sym     : CARDINAL ;
+   i,
+   n       : CARDINAL ;
+   FileName: String ;
+BEGIN
+   SetPassToPassC ;
+   i := 1 ;
+   Sym := GetModuleNo(i) ;
+   WHILE Sym#NulSym DO
+      FileName := GetDefinitionModuleFile(Sym) ;
+      IF FileName#NIL
+      THEN
+         IF Debugging
+         THEN
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
+         END ;
+         IF OpenSource(FileName)
+         THEN
+            ModuleType := Definition ;
+            IF NOT PCBuild.CompilationUnit()
+            THEN
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
+            END ;
+            CloseSource
+         ELSE
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END ;
+         ModuleType := Implementation
+      ELSE
+         ModuleType := Program
+      END ;
+      FileName := GetModuleFile(Sym) ;
+      IF FileName#NIL
+      THEN
+         IF Debugging
+         THEN
+            name := GetSymName(Sym) ;
+            qprintf1('   Module %a\n', name)
+         END ;
+         IF OpenSource(FileName)
+         THEN
+            IF NOT PCBuild.CompilationUnit()
+            THEN
+               WriteFormat0('compilation failed') ;
+               CloseSource ;
+               RETURN
+            END ;
+            CloseSource
+         ELSE
+            fprintf1(StdErr, 'failed to open %s\n', FileName) ;
+            exit(1)
+         END
+      END ;
+      INC(i) ;
+      Sym := GetModuleNo(i)
+   END ;
+   SetPassToNoPass
+END DoPassC ;
 
 
 (*

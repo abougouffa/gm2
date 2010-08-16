@@ -1,3 +1,23 @@
+2010-08-16       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/Make-lang.in:  modified to include PCBuild.mod, PCBuild.def
+	  PCSymBuild.def and PCSymBuild.mod.
+	* gm2/README:  corrected and simplified the build, install and
+	  test instructions.
+        * gm2/bnf/m2-3.bnf:  removed BuildImportOuterModule
+	  BuildImportInnerModule from grammar file.  Also changed
+	  Import to silently parse the tokens.
+	* gm2/gm2-compiler/M2Comp.mod:  (New procedure) DoPassC,
+	  invoke the constructor, import/export pass.
+	* gm2/gm2-compiler/M2Pass.def:  (New procedures) SetPassToPassC,
+	  IsPassC.
+	* gm2/gm2-compiler/P3SymBuild.def:  removed BuildImportOuterModule
+	  and BuildImportInnerModule.
+	* gm2/gm2-compiler/P3SymBuild.mod:  removed BuildImportOuterModule
+	  and BuildImportInnerModule.
+	* gm2/init/gm2-gccinit:  added PCSymBuild and PCBuild to the list
+	  of modules.
+
 2010-08-12       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Base.mod:  added INT procedure functions

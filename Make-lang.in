@@ -758,7 +758,7 @@ gm2.clean:
 	-rm -f gm2/gm2.cp gm2/gm2.fn gm2/gm2.pg gm2/gm2.toc gm2/gm2.tp gm2/gm2.vr gm2/gm2.ky
 	-rm -f gm2/gm2-compiler/M2Version.mod
 	-rm -f gm2/gm2-auto/gm2l.mod gm2/gm2-auto/P1SyntaxCheck.mod
-	-rm -f gm2/gm2-auto/P2Build.mod gm2/gm2-auto/P3Build.mod gm2/gm2-auto/PHBuild.mod
+	-rm -f gm2/gm2-auto/P2Build.mod gm2/gm2-auto/P3Build.mod gm2/gm2-auto/PHBuild.mod gm2/gm2-auto/PCBuild.mod
 
 gm2.distclean:
 	-rm -f gm2/m2/comp/autotest/run/fail/Makefile gm2/m2/comp/autotest/dynamic/Makefile
@@ -1047,7 +1047,8 @@ GM2-COMP-BOOT-DEFS = FifoQueue.def   M2Debug.def     M2Optimize.def  M2Defaults.
                      M2Printf.def    bnflex.def      M2Quiet.def     M2Preprocess.def \
                      cflex.def       CLexBuf.def     M2Bitset.def    M2Size.def      \
                      M2Scope.def     M2Range.def     M2Swig.def      \
-                     M2MetaError.def Sets.def        M2CaseList.def
+                     M2MetaError.def Sets.def        M2CaseList.def  PCSymBuild.def  \
+                     PCBuild.def
 
 GM2-COMP-BOOT-MODS = ppg.mod         \
                      FifoQueue.mod   M2LexBuf.mod                             \
@@ -1065,7 +1066,8 @@ GM2-COMP-BOOT-MODS = ppg.mod         \
                      M2Printf.mod    bnflex.mod      M2Quiet.mod     M2Search.mod    \
                      M2Preprocess.mod                CLexBuf.mod     M2Bitset.mod    \
                      M2Size.mod      M2Scope.mod     M2Range.mod     \
-                     M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod
+                     M2Swig.mod      M2MetaError.mod Sets.mod        M2CaseList.mod  \
+                     PCSymBuild.mod  PCBuild.mod
 
 GM2-PPG-MODS      =  SymbolKey.mod   NameKey.mod     Lists.mod       bnflex.mod
 
@@ -1120,7 +1122,8 @@ GM2-COMP-DEFS      = FifoQueue.def     M2Debug.def     M2Optimize.def  M2Default
                      PHBuild.def       M2SubExp.def    SymbolConversion.def \
                      M2Preprocess.def  M2Printf.def    M2LexBuf.def    M2Quiet.def     \
                      M2Bitset.def      M2Size.def      M2Scope.def     M2Range.def     \
-                     M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def
+                     M2Swig.def        M2MetaError.def Sets.def        M2CaseList.def  \
+                     PCSymBuild.def    PCBuild.def
 
 GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimize.mod  \
                      M2StackWord.mod   M2Options.mod   M2Pass.mod      M2Batch.mod     \
@@ -1136,13 +1139,14 @@ GM2-COMP-MODS      = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      SymbolConversion.mod \
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      M2Scope.mod     M2Range.mod     \
-                     M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod
+                     M2Swig.mod        M2MetaError.mod Sets.mod        M2CaseList.mod  \
+                     PCSymBuild.mod    PCBuild.mod
 
-GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod     \
+GM2-TOOLS-MOD      = gm2l.mod          gm2lcc.mod      gm2lgen.mod     gm2lorder.mod   \
                      gm2m.mod          ppg.mod
 
-GM2-AUTO-MODS      = P2Build.mod       P3Build.mod     PHBuild.mod     P1SyntaxCheck.mod \
-                     gm2l.mod          gm2m.mod
+GM2-AUTO-MODS      = P2Build.mod       P3Build.mod     PHBuild.mod     PCBuild.mod     \
+                     P1SyntaxCheck.mod gm2l.mod        gm2m.mod
 
 GM2-LIBIBERTY-DEFS = choosetemp.def    pexecute.def
 
@@ -1167,10 +1171,10 @@ GM2-VERIFY-MODS    = FifoQueue.mod     M2AsmUtil.mod   gm2.mod         M2Optimiz
                      M2Preprocess.mod  M2Printf.mod    M2LexBuf.mod    M2Quiet.mod     \
                      M2Bitset.mod      M2Size.mod      CLexBuf.mod     M2Scope.mod     \
                      M2Range.mod       M2Swig.mod      M2MetaError.mod Sets.mod        \
-                     M2CaseList.mod
+                     M2CaseList.mod    PCSymBuild.mod  PCBuild.mod
 
-GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     P3Build.mod     PHBuild.mod     \
-                     gm2l.mod          gm2m.mod        pg.mod
+GM2-VERIFY-AUTO    = P1SyntaxCheck.mod P2Build.mod     PCBuild.mod     P3Build.mod     \
+                     PHBuild.mod       gm2l.mod        gm2m.mod        pg.mod
 
 
 #
@@ -1364,6 +1368,10 @@ gm2/gm2-compiler-boot/P2Build.o: $(objdir)/gm2/gm2-auto/P2Build.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P2Build.def gm2/gm2-auto/P2Build.mod -o gm2/gm2-auto/P2Build.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P2Build.c -o $@
 
+gm2/gm2-compiler-boot/PCBuild.o: $(objdir)/gm2/gm2-auto/PCBuild.mod
+	$(P2C) -s $(srcdir)/gm2/gm2-compiler/PCBuild.def gm2/gm2-auto/PCBuild.mod -o gm2/gm2-auto/PCBuild.c
+	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/PCBuild.c -o $@
+
 gm2/gm2-compiler-boot/P3Build.o: $(objdir)/gm2/gm2-auto/P3Build.mod
 	$(P2C) -s $(srcdir)/gm2/gm2-compiler/P3Build.def gm2/gm2-auto/P3Build.mod -o gm2/gm2-auto/P3Build.c
 	$(CC) -c $(CFLAGS) -I$(srcdir)/gm2 -Igm2 -I. -Igm2/gm2-libs-boot -Igm2/gm2-compiler-boot -Igm2/gm2-auto -I$(srcdir)/gm2/gm2-libiberty $(INCLUDES) gm2/gm2-auto/P3Build.c -o $@
@@ -1487,6 +1495,9 @@ gm2/gm2-compiler/P1SyntaxCheck.o: $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod
 
 gm2/gm2-compiler/P2Build.o: $(objdir)/gm2/gm2-auto/P2Build.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1) -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
+
+gm2/gm2-compiler/PCBuild.o: $(objdir)/gm2/gm2-auto/PCBuild.mod
+	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
 
 gm2/gm2-compiler/P3Build.o: $(objdir)/gm2/gm2-auto/P3Build.mod
 	$(XGM2_1) $(GM2_FLAGS) -c -B$(XGM2BUILD1)  -I$(srcdir)/gm2/gm2-compiler -I$(srcdir)/gm2/gm2-libs -I$(srcdir)/gm2/gm2-libiberty $< -o $@
@@ -2499,6 +2510,10 @@ $(objdir)/gm2/gm2-auto/P1SyntaxCheck.mod: $(srcdir)/gm2/bnf/m2.bnf
 	./gm2/pge$(exeext) $< > $@
 
 $(objdir)/gm2/gm2-auto/P2Build.mod: $(srcdir)/gm2/bnf/m2-2.bnf
+	$(MAKE) gm2/pge$(exeext)
+	./gm2/pge$(exeext) $< > $@
+
+$(objdir)/gm2/gm2-auto/PCBuild.mod: $(srcdir)/gm2/bnf/m2-c.bnf
 	$(MAKE) gm2/pge$(exeext)
 	./gm2/pge$(exeext) $< > $@
 
