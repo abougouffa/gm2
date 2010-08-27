@@ -329,7 +329,7 @@ PROCEDURE FoldRange (tokenno: CARDINAL; p: WalkAction;
                      q: CARDINAL; op1, op2, op3: CARDINAL) ; FORWARD ;
 PROCEDURE StringToChar (t: Tree; type, str: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE LValueToGenericPtrOrConvert (sym: CARDINAL; type: Tree) : Tree ; FORWARD ;
-PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ; FORWARD ;
+PROCEDURE ConvertForComparison (sym, with: CARDINAL) : Tree ; FORWARD ;
 PROCEDURE CodeInitStart (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeInitEnd (q: CARDINAL; op1, op2, op3: CARDINAL; CompilingMainModule: BOOLEAN); FORWARD ;
 PROCEDURE CodeStartModFile (quad: CARDINAL; op1, op2, op3: CARDINAL); FORWARD ;
@@ -1909,13 +1909,20 @@ END StringToChar ;
 
 
 (*
-   SafeConvert - converts, sym, into a tree which is type compatible with, with.
+   ConvertForComparison - converts, sym, into a tree which is type compatible with, with.
 *)
 
-PROCEDURE SafeConvert (sym, with: CARDINAL) : Tree ;
+PROCEDURE ConvertForComparison (sym, with: CARDINAL) : Tree ;
 VAR
    t: Tree ;
 BEGIN
+   IF IsProcedure(sym)
+   THEN
+      RETURN( BuildAddr(Mod2Gcc(sym), FALSE) )
+   ELSIF (SkipType(GetType(sym))#NulSym) AND IsProcType(SkipType(GetType(sym)))
+   THEN
+      RETURN( BuildConvert(GetPointerType (), Mod2Gcc(sym), FALSE) )
+   END ;
    t := StringToChar(NIL, GetType(with), sym) ;
    IF t=NIL
    THEN
@@ -1923,7 +1930,7 @@ BEGIN
    ELSE
       RETURN( t )
    END
-END SafeConvert ;
+END ConvertForComparison ;
 
 
 (*
@@ -5224,8 +5231,8 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildLessThan(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -5308,8 +5315,8 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildGreaterThan(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -5392,8 +5399,8 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildLessThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -5476,8 +5483,8 @@ BEGIN
                      'comparison tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildGreaterThanOrEqual(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -5603,8 +5610,8 @@ BEGIN
                      'equality tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END
@@ -5645,8 +5652,8 @@ BEGIN
                      'inequality tests between are composite types not allowed {%1atd} and {%2atd}',
                      op1, op2)
       ELSE
-         tl := SafeConvert(op1, op2) ;
-         tr := SafeConvert(op2, op1) ;
+         tl := ConvertForComparison(op1, op2) ;
+         tr := ConvertForComparison(op2, op1) ;
          DoJump(BuildNotEqualTo(tl, tr), NIL, string(CreateLabelName(op3)))
       END
    END

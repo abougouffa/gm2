@@ -55,9 +55,8 @@ FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM FifoQueue IMPORT GetSubrangeFromFifoQueue, GetConstructorFromFifoQueue ;
+FROM FifoQueue IMPORT GetSubrangeFromFifoQueue ;
 FROM M2Reserved IMPORT NulTok, ImportTok ;
-FROM M2ALU IMPORT AddElements, AddField, AddBitRange, ChangeToConstructor ;
 
 
 (*

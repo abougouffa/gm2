@@ -94,6 +94,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseRange, BuildCaseEquality,
                     BuildConstructorStart,
                     BuildConstructorEnd,
+                    SilentBuildConstructorStart,
                     BuildComponentValue, BuildTypeForConstructor,
                     BuildBooleanVariable, BuildAlignment,
                     RecordOp,
@@ -867,7 +868,8 @@ SilentSetOrDesignatorOrFunction := ( Qualident
 
 SilentSimpleDes := { SilentSubDesignator } =:
 
-SilentConstructor := "{"  [ SilentElement { "," SilentElement } ] "}" =:
+SilentConstructor := "{"                                                   % SilentBuildConstructorStart %
+                         [ SilentElement { "," SilentElement } ] "}" =:
 
 SilentElement := SilentConstExpression [ ".." SilentConstExpression ] =:
 

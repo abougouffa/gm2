@@ -76,7 +76,6 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildProcedureStart,
                     BuildProcedureBegin,
                     BuildProcedureEnd,
-                    BuildAssignment,
       	       	    BuildLineNo,
                     BuildFunctionCall, BuildConstFunctionCall,
                     BuildBinaryOp, BuildUnaryOp, BuildRelOp, BuildNot,
@@ -106,6 +105,7 @@ FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing,
                     BuildCaseRange, BuildCaseEquality,
                     BuildConstructorStart,
                     BuildConstructorEnd,
+                    SilentBuildConstructorStart,
                     NextConstructorField, BuildTypeForConstructor,
                     BuildComponentValue,
                     BeginVarient, EndVarient, ElseVarient,
@@ -881,7 +881,8 @@ SilentComponentValue := SilentComponentElement [ 'BY' SilentConstExpression ] =:
 
 SilentArraySetRecordValue := SilentComponentValue { ',' SilentComponentValue } =:
 
-SilentConstructor := '{' [ SilentArraySetRecordValue ] '}' =:
+SilentConstructor := '{'                                                   % SilentBuildConstructorStart %
+                         [ SilentArraySetRecordValue ] '}' =:
 
 SilentConstSetOrQualidentOrFunction := SilentConstructor | Qualident
                                        [ SilentConstructor | SilentActualParameters ] =:

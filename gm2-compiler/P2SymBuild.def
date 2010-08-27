@@ -86,7 +86,11 @@ EXPORT QUALIFIED P2StartBuildDefModule,
                  DetermineType, PushType, PopType,
                  PushRememberConstant,
                  PopRememberConstant,
-                 RememberConstant ;
+                 RememberConstant,
+                 FixupConstAsString,
+                 FixupConstType,
+                 FixupConstExpr,
+                 ResolveConstTypes ;
 
 
 (*
@@ -1218,6 +1222,34 @@ PROCEDURE PopRememberConstant ;
 *)
 
 PROCEDURE RememberConstant (sym: CARDINAL) ;
+
+
+(*
+   FixupConstAsString - fixes up a constant, sym, which will have the string type.
+*)
+
+PROCEDURE FixupConstAsString (sym: CARDINAL) ;
+
+
+(*
+   FixupConstType - fixes up a constant, sym, which will have the type, consttype.
+*)
+
+PROCEDURE FixupConstType (sym: CARDINAL; consttype: CARDINAL) ;
+
+
+(*
+   FixupConstExpr - fixes up a constant, sym, which will be equivalent to e.
+*)
+
+PROCEDURE FixupConstExpr (sym: CARDINAL; e: CARDINAL) ;
+
+
+(*
+   ResolveConstTypes - resolves the types of all aggegrate constants.
+*)
+
+PROCEDURE ResolveConstTypes ;
 
 
 END P2SymBuild.

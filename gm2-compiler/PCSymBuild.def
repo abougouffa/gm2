@@ -32,15 +32,20 @@ EXPORT QUALIFIED PCStartBuildDefModule,
                  PCEndBuildImpModule,
                  PCStartBuildProgModule,
                  PCEndBuildProgModule,
-                 StartBuildInnerModule,
-                 EndBuildInnerModule,
-                 BuildProcedureHeading,
-                 StartBuildProcedure,
-                 EndBuildProcedure,
+                 PCStartBuildInnerModule,
+                 PCEndBuildInnerModule,
+                 PCBuildProcedureHeading,
+                 PCStartBuildProcedure,
+                 PCEndBuildProcedure,
                  BuildNulName,
                  BuildConst,
-                 BuildImportOuterModule,
-                 BuildImportInnerModule ;
+                 PCBuildImportOuterModule,
+                 PCBuildImportInnerModule,
+                 StartCurrentConst,
+                 EndCurrentConst,
+                 SetCurrentConstToString,
+                 SetCurrentConstType,
+                 SetConstTypeOrExpr ;
 
 
 (*
@@ -169,7 +174,7 @@ PROCEDURE PCEndBuildProgModule ;
 
 *)
 
-PROCEDURE StartBuildInnerModule ;
+PROCEDURE PCStartBuildInnerModule ;
 
 
 (*
@@ -188,7 +193,7 @@ PROCEDURE StartBuildInnerModule ;
                           |------------|        |-----------|
 *)
 
-PROCEDURE EndBuildInnerModule ;
+PROCEDURE PCEndBuildInnerModule ;
 
 
 (*
@@ -209,7 +214,7 @@ PROCEDURE EndBuildInnerModule ;
 
 *)
 
-PROCEDURE BuildProcedureHeading ;
+PROCEDURE PCBuildProcedureHeading ;
 
 
 (*
@@ -227,7 +232,7 @@ PROCEDURE BuildProcedureHeading ;
                          |------------|        |------------|
 *)
 
-PROCEDURE StartBuildProcedure ;
+PROCEDURE PCStartBuildProcedure ;
 
 
 (*
@@ -251,7 +256,7 @@ PROCEDURE StartBuildProcedure ;
                                              Empty
 *)
 
-PROCEDURE EndBuildProcedure ;
+PROCEDURE PCEndBuildProcedure ;
 
 
 (*
@@ -285,7 +290,7 @@ PROCEDURE EndBuildProcedure ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportOuterModule ;
+PROCEDURE PCBuildImportOuterModule ;
 
 
 (*
@@ -320,7 +325,7 @@ PROCEDURE BuildImportOuterModule ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportInnerModule ;
+PROCEDURE PCBuildImportInnerModule ;
 
 
 (*
@@ -352,6 +357,43 @@ PROCEDURE BuildNulName ;
 *)
 
 PROCEDURE BuildConst ;
+
+
+(*
+   StartCurrentConst - if the auto push is one then set the current const
+                       to the top of stack.
+*)
+
+PROCEDURE StartCurrentConst ;
+
+
+(*
+   EndCurrentConst - set the current const to NulSym.
+*)
+
+PROCEDURE EndCurrentConst ;
+
+
+(*
+   SetCurrentConstToString - set the type of current const to string.
+*)
+
+PROCEDURE SetCurrentConstToString ;
+
+
+(*
+   SetCurrentConstType - set the type of the current const to the top of stack.
+*)
+
+PROCEDURE SetCurrentConstType ;
+
+
+(*
+   SetConstTypeOrExpr - ensures that the current constant is either equivalent to
+                        sym, or has the type, sym.
+*)
+
+PROCEDURE SetConstTypeOrExpr ;
 
 
 END PCSymBuild.

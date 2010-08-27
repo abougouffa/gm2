@@ -52,7 +52,7 @@ FROM NameKey IMPORT NulName, Name, makekey ;
 FROM DynamicStrings IMPORT String, InitString, KillString, Mark, ConCat, ConCatChar ;
 FROM M2Printf IMPORT printf0 ;
 FROM M2Debug IMPORT Assert ;
-FROM P2SymBuild IMPORT BuildString, BuildNumber ;
+FROM P2SymBuild IMPORT BuildString, BuildNumber, FixupConstAsString, FixupConstType ;
 
 FROM M2Reserved IMPORT tokToTok, toktype,
                        NulTok, ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
@@ -62,7 +62,9 @@ FROM M2Reserved IMPORT tokToTok, toktype,
                        AndTok, AmbersandTok, PeriodPeriodTok, ByTok ;
 
 FROM M2Quads IMPORT PushT, PopT, PushTF, PopTF, PopNothing, OperandT, PushTFA,
-                    PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto ;
+                    PushT, PushTF, IsAutoPushOn, PushAutoOff, PushAutoOn, PopAuto,
+                    BuildTypeForConstructor, BuildConstructor, BuildConstructorEnd,
+                    NextConstructorField, SilentBuildConstructor ;
 
 FROM PCSymBuild IMPORT PCStartBuildProgModule,
                        PCEndBuildProgModule,
@@ -73,14 +75,19 @@ FROM PCSymBuild IMPORT PCStartBuildProgModule,
                        PCStartBuildImpModule,
                        PCEndBuildImpModule,
 
-                       StartBuildInnerModule,
-                       EndBuildInnerModule,
+                       PCStartBuildInnerModule,
+                       PCEndBuildInnerModule,
 
-                       StartBuildProcedure,
-                       BuildProcedureHeading,
-                       EndBuildProcedure,
-                       BuildImportOuterModule,
-                       BuildImportInnerModule ;
+                       PCStartBuildProcedure,
+                       PCBuildProcedureHeading,
+                       PCEndBuildProcedure,
+                       PCBuildImportOuterModule,
+                       PCBuildImportInnerModule,
+                       StartCurrentConst,
+                       EndCurrentConst,
+                       SetCurrentConstToString,
+                       SetCurrentConstType,
+                       SetConstTypeOrExpr ;
 
 FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput,
                         PutGnuAsmOutput, PutGnuAsmTrash, PutGnuAsmVolatile,
@@ -104,7 +111,7 @@ CONST
    Pass1     = FALSE ;
 
 VAR
-   WasNoError: BOOLEAN ;
+   WasNoError  : BOOLEAN ;
 
 
 PROCEDURE ErrorString (s: String) ;
@@ -503,7 +510,7 @@ ProgramModule := "MODULE"                                                  % Pus
                   [ Priority
                   ]                                             
                   ";"							   
-                  { Import                                                 % BuildImportOuterModule %
+                  { Import                                                 % PCBuildImportOuterModule %
                   }
                   Block                                                    % PushAutoOn %
                   Ident                                                    % PCEndBuildProgModule %
@@ -515,7 +522,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                                                                            % PushAutoOff %
                          [ Priority
                          ] ";"                                  
-                         { Import                                          % BuildImportOuterModule %
+                         { Import                                          % PCBuildImportOuterModule %
                            }                                               
                          Block                                             % PushAutoOn %
                                  					   
@@ -553,10 +560,13 @@ Qualident :=                                                               % VAR
              { "." Ident }                                                 % END %
            =:
 
-ConstantDeclaration :=                                                     % PushAutoOff %
-                       ( Ident "="
-                         ConstExpression )
-                                                                           % PopAuto %
+ConstantDeclaration :=                                                     % PushAutoOn %
+                       ( Ident "="                                         % StartCurrentConst %
+                                                                           % PushAutoOff %
+                                   ConstExpression                         % PopAuto %
+                                                    )
+                                                                           % EndCurrentConst ;
+                                                                             PopAuto %
                      =:
 
 ConstExpression :=                                                         % PushAutoOff %
@@ -590,24 +600,38 @@ ConstFactor := Number | ConstString | ConstSetOrQualidentOrFunction |
 
 -- to help satisfy LL1
 
-ConstString := string =:
+ConstString := string                                                      % SetCurrentConstToString %
+             =:
 
 ComponentElement := ConstExpression [ ".." ConstExpression ] =:
 
 ComponentValue := ComponentElement [ 'BY' ConstExpression ] =:
 
-ArraySetRecordValue := ComponentValue { ',' ComponentValue } =:
+ArraySetRecordValue := ComponentValue { ','                                % NextConstructorField %
+                                            ComponentValue } =:
 
-Constructor := '{'                                                         % (* BuildConstructorStart *) %
-                  [ ArraySetRecordValue ]                                  % (* BuildConstructorEnd *)  %
+Constructor := '{'                                                         % SetCurrentConstType ;
+                                                                             BuildConstructor %
+                  [ ArraySetRecordValue ]                                  % BuildConstructorEnd %
                '}' =:
+
+ConstructorOrConstActualParameters := Constructor |                        % SetCurrentConstType ;
+                                                                             PopNothing %
+                                                    ConstActualParameters
+                                    =:
 
 -- the entry to Constructor
 
-ConstSetOrQualidentOrFunction := Qualident
-                                 [ Constructor | ConstActualParameters ]
-                                   |                                       % (* BuildTypeForConstructor *) %
-                                     Constructor =:
+ConstSetOrQualidentOrFunction :=                                           % PushAutoOff %
+                                 (
+                                   PushQualident
+                                   ( ConstructorOrConstActualParameters |  % SetConstTypeOrExpr ;
+                                                                             PopNothing %
+                                                                          )
+                                   |                                       % BuildTypeForConstructor %
+                                     Constructor
+                                                 )                         % PopAuto %
+                               =:
 
 ConstActualParameters := ActualParameters =:
 
@@ -744,7 +768,8 @@ SilentComponentValue := SilentComponentElement [ 'BY' SilentConstExpression ] =:
 
 SilentArraySetRecordValue := SilentComponentValue { ',' SilentComponentValue } =:
 
-SilentConstructor := '{' [ SilentArraySetRecordValue ] '}' =:
+SilentConstructor := '{'                                                   % SilentBuildConstructor %
+                         [ SilentArraySetRecordValue ] '}' =:
 
 SilentConstSetOrQualidentOrFunction := SilentConstructor | Qualident
                                        [ SilentConstructor | SilentActualParameters ] =:
@@ -809,20 +834,44 @@ Term := Factor { MulOperator Factor } =:
 Factor := Number | string | SetOrDesignatorOrFunction |
           "(" Expression ")" | "NOT" ( Factor | ConstAttribute ) =:
 
-SetOrDesignatorOrFunction := ( Qualident [ Constructor |
-                                           SimpleDes [ ActualParameters ]
-                                         ] | Constructor
-                             )
-                           =:
+PushQualident :=                                                           % VAR name: Name;
+                                                                                 Sym : CARDINAL ; %
+                                                                           % PushAutoOn %
+                        Ident
+                                                                           % PopT(name) ;
+                                                                             Sym := GetSym(name) ;
+                                                                             IF Sym=NulSym
+                                                                             THEN
+                                                                                PushTF(NulSym, NulSym)
+                                                                             ELSIF IsDefImp(Sym) OR IsModule(Sym)
+                                                                             THEN
+                                                                                Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
+                                                                                StartScope(Sym) ;
+                                                                                PushQualident(stopset0, stopset1, stopset2) ;
+                                                                                EndScope
+                                                                             ELSE
+                                                                                PushTF(Sym, GetType(Sym))
+                                                                             END ;
+                                                                             PopAuto %
+                                                                           % WHILE FALSE DO %
+             { "." Ident }                                                 % END %
+                    =:
 
--- SetOrDesignatorOrFunction :=                                              % PushAutoOn %
---                              Qualident
---                              [ Constructor |                              % PushAutoOff ; PopNothing %
---                                SimpleDes [ ActualParameters ]             % PopAuto %
---                              ]                                |
---                                                                           % BuildTypeForConstructor %
---                              Constructor                                  % PopAuto %
---                           =:
+
+ConstructorOrSimpleDes := Constructor |                                   % PopNothing %
+                                          SimpleDes [ ActualParameters ]
+                        =:
+
+SetOrDesignatorOrFunction :=                                              % PushAutoOff %
+                             (
+                             PushQualident
+                             ( ConstructorOrSimpleDes |                   % PopNothing %
+                                                        )
+                                |
+                                                                          % BuildTypeForConstructor %
+                             Constructor
+                             )                                            % PopAuto %
+                          =:
 
 -- SimpleDes := { "." Ident | "[" ExpList "]" | "^" } =:
 SimpleDes := { SubDesignator } =:
@@ -895,8 +944,9 @@ WithStatement := "WITH" Designator "DO"
                  "END"
                =:
 
-ProcedureDeclaration := ProcedureHeading ";" ProcedureBlock                % PushAutoOn %
-                        Ident                                              % EndBuildProcedure ;
+ProcedureDeclaration := ProcedureHeading ";"                               % PushAutoOff %
+                                             ProcedureBlock                % PopAuto ; PushAutoOn %
+                        Ident                                              % PCEndBuildProcedure ;
                                                                              PopAuto %
                       =:
 
@@ -909,10 +959,10 @@ DefineBuiltinProcedure := [ "__ATTRIBUTE__" "__BUILTIN__"
 ProcedureHeading := "PROCEDURE"                                            % PushAutoOn %
                      DefineBuiltinProcedure
                      ( Ident
-                                                                           % StartBuildProcedure ;
+                                                                           % PCStartBuildProcedure ;
                                                                              PushAutoOff %
                        [ FormalParameters ]
-                                                                           % BuildProcedureHeading ;
+                                                                           % PCBuildProcedureHeading ;
                                                                              PopAuto %
                      )                                                     % PopAuto %
                      =:
@@ -922,10 +972,10 @@ Builtin := [ "__BUILTIN__" | "__INLINE__" ] =:
 DefProcedureHeading := "PROCEDURE"                                         % PushAutoOn %
                         Builtin
                         ( Ident
-                                                                           % StartBuildProcedure ;
+                                                                           % PCStartBuildProcedure ;
                                                                              PushAutoOff %
                           [ DefFormalParameters ]
-                                                                           % BuildProcedureHeading ;
+                                                                           % PCBuildProcedureHeading ;
                                                                              PopAuto %
                         )                                                  % PopAuto %
                      =:
@@ -984,14 +1034,14 @@ DefOptArg := "[" Ident ":" FormalType "=" ConstExpression "]" =:
 FormalType := { "ARRAY" "OF" } Qualident =:
 
 ModuleDeclaration := "MODULE"                                              % PushAutoOn %
-                     Ident                                                 % StartBuildInnerModule %
+                     Ident                                                 % PCStartBuildInnerModule %
                                                                            % PushAutoOff %
                      [ Priority ] ";"
-                     { Import                                              % BuildImportInnerModule %
+                     { Import                                              % PCBuildImportInnerModule %
                         } [ Export
                             ]
                        Block                                               % PushAutoOn %
-                       Ident                                               % EndBuildInnerModule %
+                       Ident                                               % PCEndBuildInnerModule %
                                                                            % PopAuto ; PopAuto ; PopAuto %
                      =:
 
@@ -1015,7 +1065,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
                     Ident                                                  % PCStartBuildDefModule ;
                                                                              PushAutoOff %
                     ";"
-                    { Import                                               % BuildImportOuterModule %
+                    { Import                                               % PCBuildImportOuterModule %
                              } [ Export
                                         ]
                     { Definition }

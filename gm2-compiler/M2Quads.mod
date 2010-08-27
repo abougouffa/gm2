@@ -100,7 +100,9 @@ FROM SymbolTable IMPORT ModeOfAddr, GetMode, PutMode, GetSymName, IsUnknown,
 FROM M2Configure IMPORT PushParametersLeftToRight, UsingGCCBackend ;
 FROM M2Batch IMPORT MakeDefinitionSource ;
 FROM M2GCCDeclare IMPORT PutToBeSolvedByQuads ;
-FROM FifoQueue IMPORT GetConstFromFifoQueue ;
+
+FROM FifoQueue IMPORT GetConstFromFifoQueue,
+                      PutConstructorIntoFifoQueue, GetConstructorFromFifoQueue ;
 
 FROM M2Comp IMPORT CompilingImplementationModule,
                    CompilingProgramModule ;
@@ -9731,18 +9733,24 @@ VAR
    Sym, n,
    Type, rw: CARDINAL ;
 BEGIN
-   IF IsConst(OperandT(2)) AND IsConstructor(OperandT(2)) AND
-      IsArray(SkipType(GetType(OperandT(2))))
+   IF IsConst(OperandT(2)) AND IsConstructor(OperandT(2))
    THEN
-      PopT(e) ;
-      PopTFD(Sym, Type, d) ;
-      t := MakeTemporary(RightValue) ;
-      PutVar(t, Type) ;
-      PushTF(t, GetType(t)) ;
-      PushT(Sym) ;
-      BuildAssignment ;
-      PushTFD(t, SkipType(GetType(t)), d) ;
-      PushT(e)
+      t := SkipType(GetType(OperandT(2))) ;
+      IF t=NulSym
+      THEN
+         InternalError('constructor type should have been resolved', __FILE__, __LINE__)
+      ELSIF IsArray(t)
+      THEN
+         PopT(e) ;
+         PopTFD(Sym, Type, d) ;
+         t := MakeTemporary(RightValue) ;
+         PutVar(t, Type) ;
+         PushTF(t, GetType(t)) ;
+         PushT(Sym) ;
+         BuildAssignment ;
+         PushTFD(t, SkipType(GetType(t)), d) ;
+         PushT(e)
+      END
    END ;
    IF (NOT IsVar(OperandT(2))) AND (NOT IsTemporary(OperandT(2)))
    THEN
@@ -10420,7 +10428,6 @@ BEGIN
 END BuildTypeForConstructor ;
 
 
-
 (*
    BuildSetStart - Pushes a Bitset type on the stack.
 
@@ -10678,6 +10685,59 @@ BEGIN
 END NextConstructorField ;
 
 
+(*
+   SilentBuildConstructor - places NulSym into the constructor fifo queue.
+*)
+
+PROCEDURE SilentBuildConstructor ;
+BEGIN
+   PutConstructorIntoFifoQueue(NulSym)
+END SilentBuildConstructor ;
+
+
+(*
+   BuildConstructor - builds a constructor.
+                      Stack
+
+                      Entry                 Exit
+
+               Ptr ->
+                      +------------+
+                      | Type       |                <- Ptr
+                      |------------+
+*)
+
+PROCEDURE BuildConstructor ;
+VAR
+   name      : Name ;
+   constValue,
+   type,
+   const     : CARDINAL ;
+BEGIN
+   PopT(type) ;
+   constValue := MakeTemporary(ImmediateValue) ;
+   PutVar(constValue, type) ;
+   PutConstructor(constValue) ;
+   PushValue(constValue) ;
+   ChangeToConstructor(GetTokenNo(), type) ;
+   PutConstructorFrom(constValue, type) ;
+   PopValue(constValue) ;
+   PutConstructorIntoFifoQueue(constValue) ;
+   PushConstructor(type)
+END BuildConstructor ;
+
+
+(*
+   SilentBuildConstructorStart - removes an entry from the constructor fifo queue.
+*)
+
+PROCEDURE SilentBuildConstructorStart ;
+VAR
+   constValue: CARDINAL ;
+BEGIN
+   GetConstructorFromFifoQueue(constValue)
+END SilentBuildConstructorStart ;
+
 
 (*
    BuildConstructorStart - builds a constructor.
@@ -10693,19 +10753,12 @@ END NextConstructorField ;
 
 PROCEDURE BuildConstructorStart ;
 VAR
-   name      : Name ;
    constValue,
-   type,
-   const     : CARDINAL ;
+   type      : CARDINAL ;
 BEGIN
-   PopT(type) ;
-   constValue := MakeTemporary(ImmediateValue) ;
-   PutVar(constValue, type) ;
-   PutConstructor(constValue) ;
-   PushValue(constValue) ;
-   ChangeToConstructor(GetTokenNo(), type) ;
-   PutConstructorFrom(constValue, type) ;
-   PopValue(constValue) ;
+   PopT(type) ;   (* we ignore the type as we already have the constructor symbol from pass C *)
+   GetConstructorFromFifoQueue(constValue) ;
+   Assert(type=GetType(constValue)) ;
    PushT(constValue) ;
    PushConstructor(type)
 END BuildConstructorStart ;

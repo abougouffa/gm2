@@ -42,7 +42,7 @@ FROM M2Bitset IMPORT Bitset ;
 FROM SymbolConversion IMPORT Mod2Gcc, GccKnowsAbout ;
 FROM M2Printf IMPORT printf0, printf2 ;
 FROM M2Base IMPORT MixTypes, GetBaseTypeMinMax, Char, IsRealType, IsAComplexType ;
-FROM DynamicStrings IMPORT String, InitString, Mark, ConCat ;
+FROM DynamicStrings IMPORT String, InitString, Mark, ConCat, Slice, InitStringCharStar, KillString, InitStringChar, string ;
 FROM M2Constants IMPORT MakeNewConstFromValue ;
 FROM M2LexBuf IMPORT TokenToLineNo, FindFileNameFromToken ;
 FROM M2MetaError IMPORT MetaError2 ;
@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT NulSym, IsEnumeration, IsSubrange, IsValueSolved, PushVa
                         MakeConstLit, GetArraySubscript, GetStringLength,
                         IsSet, SkipType, IsRecord, IsArray, IsConst, IsConstructor,
                         IsConstString, SkipTypeAndSubrange, GetDeclared,
-                        GetSubrange, GetSymName, GetNth,
+                        GetSubrange, GetSymName, GetNth, GetString, GetStringLength,
                         ModeOfAddr ;
 
 IMPORT DynamicStrings ;
@@ -79,7 +79,7 @@ FROM gccgm2 IMPORT Tree, Constructor,
                    BuildEndRecordConstructor,
                    BuildStartArrayConstructor, BuildArrayConstructorElement,
                    BuildEndArrayConstructor, BuildNumberOfArrayElements,
-                   FoldAndStrip, TreeOverflow, RemoveOverflow,
+                   FoldAndStrip, TreeOverflow, RemoveOverflow, BuildCharConstant,
                    DebugTree ;
 
 TYPE
@@ -3384,7 +3384,7 @@ BEGIN
       END ;
       e := e^.next
    END ;
-   RETURN( FALSE )
+   RETURN( TRUE )
 END arrayConstant ;
 
 
@@ -4600,7 +4600,9 @@ END GetConstructorElement ;
 
 PROCEDURE IsString (sym: CARDINAL) : BOOLEAN ;
 BEGIN
-   RETURN IsArray(sym) AND (SkipType(GetType(sym))=Char)
+   RETURN (IsArray(sym) AND (SkipType(GetType(sym))=Char)) OR
+           IsConstString(sym) OR
+           (IsConst(sym) AND (SkipType(GetType(sym))=Char))
 END IsString ;
 
 
@@ -4617,25 +4619,157 @@ END StringFitsArray ;
 
 
 (*
+   GetArrayLimits - 
+*)
+
+PROCEDURE GetArrayLimits (array: CARDINAL; VAR low, high: CARDINAL) ;
+VAR
+   Subscript,
+   Subrange : CARDINAL ;
+BEGIN
+   Subscript := GetArraySubscript(array) ;
+   Subrange := SkipType(GetType(Subscript)) ;
+   IF IsEnumeration(Subrange)
+   THEN
+      GetBaseTypeMinMax(Subrange, low, high)
+   ELSE
+      GetSubrange(Subrange, high, low)
+   END
+END GetArrayLimits ;
+
+
+(*
+   InitialiseArrayOfCharWithString - 
+*)
+
+PROCEDURE InitialiseArrayOfCharWithString (tokenno: CARDINAL; cons: Tree;
+                                           v: PtrToValue; el, baseType, arrayType: CARDINAL) : Tree ;
+VAR
+   s, letter: String ;
+   i, l     : CARDINAL ;
+   high, low: CARDINAL ;
+   value,
+   indice   : Tree ;
+BEGIN
+   GetArrayLimits(baseType, low, high) ;
+   s := InitStringCharStar(KeyToCharStar(GetString(el))) ;
+   l := GetStringLength(el) ;
+   i := 0 ;
+   REPEAT
+      PushValue(low) ;
+      PushCard(i) ;
+      Addn ;
+      indice := PopIntegerTree() ;
+      IF i<l
+      THEN
+         IF i+1<l
+         THEN
+            letter := Slice(s, i, i+1)
+         ELSE
+            letter := Slice(s, i, 0)
+         END ;
+         value := BuildCharConstant(string(letter)) ;
+      ELSE
+         letter := InitStringChar(nul) ;
+         value := BuildCharConstant(string(letter))
+      END ;
+      value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value) ;
+      letter := KillString(letter) ;
+      BuildArrayConstructorElement(cons, value, indice) ;
+      PushValue(low) ;
+      PushCard(i) ;
+      Addn ;
+      PushValue(high) ;
+      INC(i)
+   UNTIL GreEqu(tokenno) ;
+   s := KillString(s) ;
+   IF NOT StringFitsArray(baseType, el, tokenno)
+   THEN
+      MetaError2('string {%1a} is too large to fit into array {%2ad}', el, baseType)
+   END ;
+(*
+   IF v#NIL
+   THEN
+      el := GetConstructorElement(tokenno, v, 2) ;
+      IF el#NulSym
+      THEN
+         MetaError1('not allowed to have multiple strings to initialise an array of characters {%1Ua}', el)
+      END
+   END ;
+*)
+   RETURN( BuildEndArrayConstructor(cons) )   
+END InitialiseArrayOfCharWithString ;
+
+
+(*
+   CheckElementString - 
+*)
+
+PROCEDURE CheckElementString (el, arrayType, baseType: CARDINAL;
+                              tokenno: CARDINAL) : Tree ;
+VAR
+   cons: Tree ;
+BEGIN
+   IF IsString(arrayType) AND IsString(el)
+   THEN
+      cons := BuildStartArrayConstructor(Mod2Gcc(arrayType)) ;
+      RETURN( InitialiseArrayOfCharWithString(tokenno, cons, NIL, el, arrayType, SkipType(GetType(arrayType))) )
+   ELSE
+      RETURN( Mod2Gcc(el) )
+   END
+END CheckElementString ;
+
+
+(*
+   InitialiseArrayWith - 
+*)
+
+PROCEDURE InitialiseArrayWith (tokenno: CARDINAL; cons: Tree;
+                               v: PtrToValue; el, high, low, baseType, arrayType: CARDINAL) : Tree ;
+VAR
+   i     : CARDINAL ;
+   indice,
+   value : Tree ;
+BEGIN
+   i := 0 ;
+   WHILE el#NulSym DO
+      PushValue(low) ;
+      PushCard(i) ;
+      Addn ;
+      indice := PopIntegerTree() ;
+      value := CheckElementString(el, arrayType, baseType, tokenno) ;
+      value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value) ;
+      BuildArrayConstructorElement(cons, value, indice) ;
+      PushValue(low) ;
+      PushCard(i) ;
+      Addn ;
+      PushValue(high) ;
+      IF GreEqu(tokenno)
+      THEN
+         RETURN( BuildEndArrayConstructor(cons) )
+      END ;
+      INC(i) ;
+      el := GetConstructorElement(tokenno, v, i+1)
+   END ;
+   RETURN( BuildEndArrayConstructor(cons) )
+END InitialiseArrayWith ;
+
+
+(*
    ConstructArrayConstant - builds a struct initializer, as defined by, v.
 *)
 
 PROCEDURE ConstructArrayConstant (tokenno: CARDINAL; v: PtrToValue) : Tree ;
 VAR
-   n1, n2   : Name ;
-   value,
-   indice,
-   gccsym   : Tree ;
-   i, el,
+   n1, n2    : Name ;
+   el,
    baseType,
    Subrange,
    Subscript,
    arrayType,
-   high, low: CARDINAL ;
-   cons     : Constructor ;
-   nulstr,
-   file     : String ;
-   line     : CARDINAL ;
+   high, low : CARDINAL ;
+   seenString: BOOLEAN ;
+   cons      : Constructor ;
 BEGIN
    WITH v^ DO
       IF constructorType=NulSym
@@ -4651,54 +4785,17 @@ BEGIN
          END ;
          cons := BuildStartArrayConstructor(Mod2Gcc(baseType)) ;
 
-         Subscript := GetArraySubscript(baseType) ;
-         Subrange := SkipType(GetType(Subscript)) ;
-         IF IsEnumeration(Subrange)
-         THEN
-            GetBaseTypeMinMax(Subrange, low, high)
-         ELSE
-            GetSubrange(Subrange, high, low)
-         END ;
+         GetArrayLimits(baseType, low, high) ;
          arrayType := GetType(baseType) ;
 
-         i := 0 ;
-         REPEAT
-            el := GetConstructorElement(tokenno, v, i+1) ;
-            IF el=NulSym
-            THEN
-               (* error occurred, so we quit building the constructor *)
-               RETURN( BuildEndArrayConstructor(cons) )
-            END ;
-            PushValue(low) ;
-            PushCard(i) ;
-            Addn ;
-            indice := PopIntegerTree() ;
-            IF IsConst(el) AND IsConstructor(el)
-            THEN
-               value := Mod2Gcc(el)
-            ELSE
-               IF IsString(arrayType) AND (NOT StringFitsArray(arrayType, el, tokenno))
-               THEN
-                  MetaError2('string {%1a} is too large to fit into array {%2ad}', el, arrayType) ;
-                  line := TokenToLineNo(tokenno, 0) ;
-                  file := FindFileNameFromToken(tokenno, 0) ;
-                  nulstr := DynamicStrings.InitStringChar(nul) ;
-                  SetFileNameAndLineNo(DynamicStrings.string(file), line) ;
-                  value := BuildStringConstant(DynamicStrings.string(nulstr), 0)
-               ELSE
-                  value := StringToChar(Mod2Gcc(el), arrayType, el)
-               END ;
-               value := ConvertConstantAndCheck(Mod2Gcc(arrayType), value)
-            END ;
-            BuildArrayConstructorElement(cons, value, indice) ;
-            PushValue(low) ;
-            PushCard(i) ;
-            Addn ;
-            PushValue(high) ;
-            INC(i)
-         UNTIL GreEqu(tokenno) ;
-
-         RETURN( BuildEndArrayConstructor(cons) )
+         el := GetConstructorElement(tokenno, v, 1) ;
+         IF IsString(baseType) AND IsString(el)
+         THEN
+            (* constructorType is ARRAY [low..high] OF CHAR and using a string to initialise it *)
+            RETURN( InitialiseArrayOfCharWithString(tokenno, cons, v, el, baseType, arrayType) )
+         ELSE
+            RETURN( InitialiseArrayWith(tokenno, cons, v, el, high, low, baseType, arrayType) )
+         END
       END
    END
 END ConstructArrayConstant ;

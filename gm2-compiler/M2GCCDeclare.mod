@@ -2242,6 +2242,7 @@ BEGIN
    (* IncludeElementIntoSet(WatchList, 4188) ; *)
    (* AddSymToWatch(1420) ; *)
    (* AddSymToWatch(5889) ; *)
+   (* IncludeElementIntoSet(WatchList, 717) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
@@ -3175,7 +3176,8 @@ BEGIN
       IncludeType(l, sym)
    ELSIF IsConstructor(sym)
    THEN
-      printf0(' constructor ')
+      printf2('sym %d IsConstructor (non constant) (%a)', sym, n) ;
+      IncludeType(l, sym)
    ELSIF IsConstString(sym)
    THEN
       printf2('sym %d IsConstString (%a)', sym, n)

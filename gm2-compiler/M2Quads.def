@@ -81,10 +81,12 @@ EXPORT QUALIFIED StartBuildDefFile, StartBuildModFile, EndBuildFile,
                  BuildProfileOn, BuildProfileOff,
                  BuildOptimizeOn, BuildOptimizeOff,
                  BuildInline, BuildLineNo, PushLineNo,
+                 BuildConstructor,
                  BuildConstructorStart,
                  BuildConstructorEnd,
                  NextConstructorField, BuildTypeForConstructor,
                  BuildComponentValue,
+                 SilentBuildConstructor, SilentBuildConstructorStart,
 
                  SetOptionOptimizing, SetOptionCoding, SetOptionProfiling,
 
@@ -1798,6 +1800,35 @@ PROCEDURE BuildInclRange ;
 *)
 
 PROCEDURE BuildInclBit ;
+
+
+(*
+   SilentBuildConstructor - places NulSym into the constructor fifo queue.
+*)
+
+PROCEDURE SilentBuildConstructor ;
+
+
+(*
+   SilentBuildConstructorStart - removes an entry from the constructor fifo queue.
+*)
+
+PROCEDURE SilentBuildConstructorStart ;
+
+
+(*
+   BuildConstructor - builds a constructor.
+                      Stack
+
+                      Entry                 Exit
+
+               Ptr ->
+                      +------------+
+                      | Type       |                <- Ptr
+                      |------------+
+*)
+
+PROCEDURE BuildConstructor ;
 
 
 (*

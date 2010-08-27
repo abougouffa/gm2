@@ -34,6 +34,7 @@ FROM M2StackWord IMPORT StackOfWord, InitStackWord, PushWord, PopWord ;
 FROM M2Options IMPORT PedanticParamNames, ExtendedOpaque ;
 FROM StrIO IMPORT WriteString, WriteLn ;
 FROM M2Base IMPORT ZType ;
+FROM Storage IMPORT ALLOCATE ;
 
 FROM M2Reserved IMPORT ImportTok, ExportTok, QualifiedTok, UnQualifiedTok,
                        NulTok, VarTok, ArrayTok ;
@@ -138,13 +139,28 @@ PROCEDURE FailParameter (CurrentState : ARRAY OF CHAR;
                          Given        : Name ;
                          ParameterNo  : CARDINAL;
                          ProcedureSym : CARDINAL) ; FORWARD ;
+PROCEDURE findConstMeta (sym: CARDINAL) : constType ; FORWARD ;
+PROCEDURE findConstType (sym: CARDINAL) : CARDINAL ; FORWARD ;
+PROCEDURE fixupConstCast (sym: CARDINAL; castType: CARDINAL) ; FORWARD ;
+PROCEDURE fixupConstMeta (sym: CARDINAL; meta: constType) ; FORWARD ;
+PROCEDURE addToConstList (sym: CARDINAL) ; FORWARD ;
    %%%FORWARD%%% *)
 
 CONST
-   Debugging = FALSE ;
+   Debugging   = FALSE ;
+   DebugConsts = FALSE ;
 
 TYPE
    constType = (unknown, set, str, constructor, array, cast) ;
+
+   constList = POINTER TO cList ;
+   cList     = RECORD
+                  constsym : CARDINAL ;
+                  constmeta: constType ;
+                  expr     : CARDINAL ;
+                  type     : CARDINAL ;
+                  next     : constList ;
+               END ;
 
 VAR
    alignTypeNo       : CARDINAL ;
@@ -153,6 +169,7 @@ VAR
    RememberedConstant: CARDINAL ;
    RememberStack,
    TypeStack         : StackOfWord ;
+   headOfConsts      : constList ;
 
 
 PROCEDURE stop ; BEGIN END stop ;
@@ -684,7 +701,8 @@ BEGIN
    PopT(name) ;
    sym := MakeConstVar(name) ;
    PushT(sym) ;
-   RememberConstant(sym)
+   RememberConstant(sym) ;
+   addToConstList(sym)
 END BuildConst ;
 
 
@@ -2679,13 +2697,14 @@ VAR
    Sym: CARDINAL ;
 BEGIN
    Sym := OperandT(1) ;
+   fixupConstMeta(Sym, type) ;
    CASE type OF
 
    set        :  PutConstSet(Sym) |
    str        :  PutConstString(Sym, MakeKey('')) |
    array,
    constructor:  PutConstructor(Sym) |
-   cast       :  PutConst(Sym, castType) |
+   cast       :  PutConst(Sym, castType) ; fixupConstCast(Sym, castType) |
    unknown    :  
 
    ELSE
@@ -2744,9 +2763,280 @@ BEGIN
 END RememberConstant ;
 
 
+(*
+   addToConstList - add a constant, sym, to the head of the constants list.
+*)
+
+PROCEDURE addToConstList (sym: CARDINAL) ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      IF h^.constsym=sym
+      THEN
+         InternalError('should never see the same symbol id declared twice', __FILE__, __LINE__)
+      END ;
+      h := h^.next
+   END ;
+   NEW(h) ;
+   WITH h^ DO
+      constsym  := sym ;
+      constmeta := unknown ;
+      expr      := NulSym ;
+      type      := NulSym ;
+      next      := headOfConsts
+   END ;
+   headOfConsts := h
+END addToConstList ;
+
+
+(*
+   FixupConstAsString - fixes up a constant, sym, which will have the string type.
+*)
+
+PROCEDURE FixupConstAsString (sym: CARDINAL) ;
+BEGIN
+   fixupConstMeta(sym, str)
+END FixupConstAsString ;
+
+
+(*
+   FixupConstType - fixes up a constant, sym, which will have the type, consttype.
+*)
+
+PROCEDURE FixupConstType (sym: CARDINAL; consttype: CARDINAL) ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            IF constmeta=str
+            THEN
+               InternalError('cannot fix up a constant to have a type if it is already known as a string', __FILE__, __LINE__)
+            END ;
+            type := consttype ;
+            PutConst(sym, consttype) ;
+            RETURN
+         END
+      END ;
+      h := h^.next
+   END
+END FixupConstType ;
+
+
+(*
+   FixupConstExpr - fixes up a constant, sym, which will be equivalent to e.
+*)
+
+PROCEDURE FixupConstExpr (sym: CARDINAL; e: CARDINAL) ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            expr := e ;
+            RETURN
+         END
+      END ;
+      h := h^.next
+   END
+END FixupConstExpr ;
+
+
+(*
+   fixupConstMeta - 
+*)
+
+PROCEDURE fixupConstMeta (sym: CARDINAL; meta: constType) ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            constmeta := meta ;
+            RETURN
+         END
+      END ;
+      h := h^.next
+   END
+END fixupConstMeta ;
+
+
+(*
+   fixupConstCast - 
+*)
+
+PROCEDURE fixupConstCast (sym: CARDINAL; castType: CARDINAL) ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            type := castType ;
+            RETURN
+         END
+      END ;
+      h := h^.next
+   END
+END fixupConstCast ;
+
+
+(*
+   findConstType - 
+*)
+
+PROCEDURE findConstType (sym: CARDINAL) : CARDINAL ;
+VAR
+   h: constList ;
+   t: CARDINAL ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            t := GetType(sym) ;
+            IF t=NulSym
+            THEN
+               RETURN( type )
+            ELSE
+               RETURN( t )
+            END
+         END
+      END ;
+      h := h^.next
+   END ;
+   RETURN( NulSym )
+END findConstType ;
+
+
+(*
+   findConstMeta - 
+*)
+
+PROCEDURE findConstMeta (sym: CARDINAL) : constType ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF constsym=sym
+         THEN
+            RETURN( constmeta )
+         END
+      END ;
+      h := h^.next
+   END ;
+   RETURN( unknown )
+END findConstMeta ;
+
+
+(*
+   ReportUnresolvedConstTypes - emits an error message for any unresolved constant type.
+*)
+
+PROCEDURE ReportUnresolvedConstTypes ;
+VAR
+   h: constList ;
+BEGIN
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      WITH h^ DO
+         IF (constmeta#unknown) AND (constmeta#str) AND (type=NulSym)
+         THEN
+            MetaError1('unable to resolve the type of the constant {%1Dad}', h^.constsym)
+         END
+      END ;
+      h := h^.next
+   END
+END ReportUnresolvedConstTypes ;
+
+
+(*
+   ResolveConstTypes - resolves the types of all aggegrate constants.
+*)
+
+PROCEDURE ResolveConstTypes ;
+VAR
+   h      : constList ;
+   changed: BOOLEAN ;
+   n      : Name ;
+BEGIN
+   REPEAT
+      changed := FALSE ;
+      h := headOfConsts ;
+      WHILE h#NIL DO
+         WITH h^ DO
+            IF (constmeta=unknown) OR (constmeta=str)
+            THEN
+               (* do nothing *)
+            ELSE
+               IF DebugConsts
+               THEN
+                  n := GetSymName(constsym) ;
+                  printf1('constant %a ', n) ;
+                  IF type=NulSym
+                  THEN
+                     printf0('type is unknown\n') ;
+                  ELSE
+                     printf0('type is known\n') ;
+                  END
+               END ;
+               IF type=NulSym
+               THEN
+                  IF expr#NulSym
+                  THEN
+                     IF findConstMeta(expr)=str
+                     THEN
+                        changed := TRUE ;
+                        PutConstString(constsym, MakeKey('')) ;
+                        IF DebugConsts
+                        THEN
+                           n := GetSymName(constsym) ;
+                           printf1('resolved constant %a as a string\n', n)
+                        END
+                     ELSE
+                        type := findConstType(expr) ;
+                        IF type#NulSym
+                        THEN
+                           changed := TRUE ;
+                           PutConst(constsym, type) ;
+                           IF DebugConsts
+                           THEN
+                              n := GetSymName(constsym) ;
+                              printf1('resolved type of constant %a\n', n)
+                           END
+                        END
+                     END
+                  END
+               END
+            END
+         END ;
+         h := h^.next
+      END
+   UNTIL NOT changed ;
+   ReportUnresolvedConstTypes
+END ResolveConstTypes ;
+
+
 BEGIN
    TypeStack := InitStackWord() ;
    RememberStack := InitStackWord() ;
    castType := NulSym ;
-   alignTypeNo := 0
+   alignTypeNo := 0 ;
+   headOfConsts := NIL
 END P2SymBuild.

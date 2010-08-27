@@ -1,3 +1,40 @@
+2010-08-27       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/testsuite/gm2/pim/pass/subrange7.mod:  corrected testcase
+	  in light of new changes.
+	* gm2/testsuite/gm2/pim/pass/wordconst.mod:  corrected testcase
+	  in light of new changes which make gm2 stricter.
+	* gm2/testsuite/gm2/pim/run/pass/str6.mod:  use HALT rather than
+	  Terminate, exit.
+	* The following changes are bug fixes to a series of bugs reported
+	  by DragiÅ¡a DuriÄ, many of which relate to constants, their
+	  types, agregates and qualidents in constants.
+        * gm2/gm2/bnf/m2-3.bnf:  introduce a production for
+	  SilentConstructor which removes a constructor from the fifo queue.
+	* gm2/gm2/bnf/m2-c.bnf:  create constant symbols and fill in aggregates
+	  with their associated types before pass 3.
+	* gm2/gm2/bnf/m2-h.bnf:  introduce a production for
+	  SilentConstructor which removes a constructor from the fifo queue.
+	* gm2/gm2/gm2-compiler/M2ALU.mod:  initialise aggregates and test for
+	  the special case of string.
+	* gm2/gm2/gm2-compiler/M2Code.mod:  make a call to ResolveConstTypes
+	  and ResolveConstructorTypes at the end of DoPassC.
+	* gm2/gm2/gm2-compiler/M2GenGCC.mod:  improve debugging of PrintVerbose.
+	* gm2/gm2/gm2-compiler/M2Quads.def:  (New procedures) SilentBuildConstructor,
+          SilentBuildConstructorStart, BuildConstructor.
+	* gm2/gm2/gm2-compiler/M2Quads.mod:  (implement new procedures)
+	  SilentBuildConstructor, SilentBuildConstructorStart, BuildConstructor.
+	  Change to BuildDesignator array now that the aggregate type will be known.
+	* gm2/gm2/gm2-compiler/P2SymBuild.def:  (New procedures) FixupConstAsString,
+          FixupConstType, FixupConstExpr.
+	* gm2/gm2/gm2-compiler/P2SymBuild.mod:  (New procedures) findConstMeta,
+	  findConstType, fixupConstCast, fixupConstMeta, addToConstList.
+	* gm2/gm2/gm2-compiler/P3SymBuild.mod:  remove import of
+	  GetConstructorFromFifoQueue.
+	* gm2/gm2/gm2-compiler/PCSymBuild.mod:  many changes.  New procedures
+	  StartCurrentConst, EndCurrentConst, SetCurrentConstToString,
+	  SetCurrentConstType, SetConstTypeOrExpr.
+
 2010-08-16       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  modified to include PCBuild.mod, PCBuild.def

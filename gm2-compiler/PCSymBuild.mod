@@ -49,15 +49,18 @@ FROM M2Batch IMPORT MakeDefinitionSource,
                     MakeImplementationSource,
                     MakeProgramSource ;
 
-FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF ;
+FROM M2Quads IMPORT PushT, PopT, OperandT, PopN, PopTF, PushTF, IsAutoPushOn, PopNothing ;
 
 FROM M2Comp IMPORT CompilingDefinitionModule,
                    CompilingImplementationModule,
                    CompilingProgramModule ;
 
-FROM FifoQueue IMPORT GetConstructorFromFifoQueue ;
 FROM M2Reserved IMPORT NulTok, ImportTok ;
-FROM M2ALU IMPORT AddElements, AddField, AddBitRange, ChangeToConstructor ;
+FROM P2SymBuild IMPORT FixupConstAsString, FixupConstType, FixupConstExpr, FixupConstType ;
+
+
+VAR
+   CurrentConst: CARDINAL ;
 
 
 (*
@@ -278,7 +281,7 @@ END PCEndBuildProgModule ;
 
 *)
 
-PROCEDURE StartBuildInnerModule ;
+PROCEDURE PCStartBuildInnerModule ;
 VAR
    name     : Name ;
    ModuleSym: CARDINAL ;
@@ -290,7 +293,7 @@ BEGIN
    Assert(NOT IsDefImp(ModuleSym)) ;
    SetCurrentModule(ModuleSym) ;
    PushT(name)
-END StartBuildInnerModule ;
+END PCStartBuildInnerModule ;
 
 
 (*
@@ -309,7 +312,7 @@ END StartBuildInnerModule ;
                          |------------|        |-----------|
 *)
 
-PROCEDURE EndBuildInnerModule ;
+PROCEDURE PCEndBuildInnerModule ;
 VAR
    NameStart,
    NameEnd  : Name ;
@@ -327,7 +330,7 @@ BEGIN
       FlushErrors
    END ;
    SetCurrentModule(GetModuleScope(GetCurrentModule()))
-END EndBuildInnerModule ;
+END PCEndBuildInnerModule ;
 
 
 (*
@@ -361,7 +364,7 @@ END EndBuildInnerModule ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportOuterModule ;
+PROCEDURE PCBuildImportOuterModule ;
 VAR
    Sym, ModSym,
    i, n       : CARDINAL ;
@@ -379,7 +382,7 @@ BEGIN
       END
    END ;
    PopN(n+1)   (* clear stack *)
-END BuildImportOuterModule ;
+END PCBuildImportOuterModule ;
 
 
 (*
@@ -412,7 +415,7 @@ END BuildImportOuterModule ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportInnerModule ;
+PROCEDURE PCBuildImportInnerModule ;
 VAR
    Sym, ModSym,
    n, i       : CARDINAL ;
@@ -438,8 +441,10 @@ BEGIN
       END
    END ;
    PopN(n+1)   (* Clear Stack *)
-END BuildImportInnerModule ;
+END PCBuildImportInnerModule ;
 
+
+PROCEDURE stop ; BEGIN END stop ;
 
 (*
    StartBuildProcedure - Builds a Procedure.
@@ -456,18 +461,22 @@ END BuildImportInnerModule ;
                          |------------|        |------------|
 *)
 
-PROCEDURE StartBuildProcedure ;
+PROCEDURE PCStartBuildProcedure ;
 VAR 
    name    : Name ;
    ProcSym : CARDINAL ;
 BEGIN
    PopT(name) ;
    PushT(name) ;  (* Name saved for the EndBuildProcedure name check *)
+   IF name=1181
+   THEN
+      stop
+   END ;
    ProcSym := RequestSym(name) ;
    Assert(IsProcedure(ProcSym)) ;
    PushT(ProcSym) ;
    StartScope(ProcSym)
-END StartBuildProcedure ;
+END PCStartBuildProcedure ;
 
 
 (*
@@ -492,7 +501,7 @@ END StartBuildProcedure ;
                                              Empty
 *)
 
-PROCEDURE EndBuildProcedure ;
+PROCEDURE PCEndBuildProcedure ;
 VAR
    ProcSym  : CARDINAL ;
    NameEnd,
@@ -510,7 +519,7 @@ BEGIN
       FlushErrors
    END ;
    EndScope
-END EndBuildProcedure ;
+END PCEndBuildProcedure ;
 
 
 (*
@@ -534,7 +543,7 @@ END EndBuildProcedure ;
 
 *)
 
-PROCEDURE BuildProcedureHeading ;
+PROCEDURE PCBuildProcedureHeading ;
 VAR
    ProcSym  : CARDINAL ;
    NameStart: Name ;
@@ -545,7 +554,7 @@ BEGIN
       PopT(NameStart) ;
       EndScope
    END
-END BuildProcedureHeading ;
+END PCBuildProcedureHeading ;
 
 
 (*
@@ -644,6 +653,93 @@ BEGIN
    PopT(const) ;
    PutOptArgInit(GetCurrentScope(), const)
 END BuildOptArgInitializer ;
+
+
+(*
+   StartCurrentConst - if the auto push is one then set the current const
+                       to the top of stack.
+*)
+
+PROCEDURE StartCurrentConst ;
+VAR
+   name: Name ;
+BEGIN
+   PopT(name) ;
+   CurrentConst := RequestSym(name)
+END StartCurrentConst ;
+
+
+(*
+   EndCurrentConst - set the current const to NulSym.
+*)
+
+PROCEDURE EndCurrentConst ;
+BEGIN
+   CurrentConst := NulSym
+END EndCurrentConst ;
+
+
+(*
+   SetCurrentConstToString - set the type of current const to string.
+*)
+
+PROCEDURE SetCurrentConstToString ;
+BEGIN
+   IF IsAutoPushOn()
+   THEN
+      PopNothing
+   END ;
+   IF CurrentConst#NulSym
+   THEN
+      FixupConstAsString(CurrentConst) ;
+      CurrentConst := NulSym
+   END
+END SetCurrentConstToString ;
+
+
+(*
+   SetCurrentConstType - set the type of the current const to the top of stack.
+*)
+
+PROCEDURE SetCurrentConstType ;
+VAR
+   type: CARDINAL ;
+BEGIN
+   PopT(type) ;
+   PushT(type) ;
+   IF CurrentConst#NulSym
+   THEN
+      IF NOT IsProcedure(type)
+      THEN
+         FixupConstType(CurrentConst, type)
+      END ;
+      CurrentConst := NulSym
+   END
+END SetCurrentConstType ;
+
+
+(*
+   SetConstTypeOrExpr - ensures that the current constant is either equivalent to
+                        sym, or has the type, sym.
+*)
+
+PROCEDURE SetConstTypeOrExpr ;
+VAR
+   sym: CARDINAL ;
+BEGIN
+   PopT(sym) ;
+   PushT(sym) ;
+   IF NOT IsProcedure(sym)
+   THEN
+      IF IsConst(sym)
+      THEN
+         FixupConstExpr(CurrentConst, sym)
+      ELSE
+         FixupConstType(CurrentConst, sym)
+      END
+   END ;
+   CurrentConst := NulSym
+END SetConstTypeOrExpr ;
 
 
 END PCSymBuild.

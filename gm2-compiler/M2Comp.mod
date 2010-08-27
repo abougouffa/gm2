@@ -41,13 +41,15 @@ IMPORT P2Build ;
 IMPORT PCBuild ;
 IMPORT P3Build ;
 IMPORT PHBuild ;
+IMPORT P2SymBuild ;
 
 FROM M2Batch IMPORT GetSource, GetModuleNo, GetDefinitionModuleFile, GetModuleFile,
                     AssociateModule, AssociateDefinition, MakeImplementationSource,
                     MakeProgramSource ;
 
 FROM SymbolTable IMPORT GetSymName, IsDefImp, NulSym,
-                        IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule ;
+                        IsHiddenTypeDeclared, GetFirstUsed, GetMainModule, SetMainModule,
+                        ResolveConstructorTypes ;
 
 FROM FIO IMPORT StdErr ;
 FROM NameKey IMPORT Name, GetKey, KeyToCharStar, makekey ;
@@ -405,6 +407,8 @@ BEGIN
       INC(i) ;
       Sym := GetModuleNo(i)
    END ;
+   P2SymBuild.ResolveConstTypes ;
+   ResolveConstructorTypes ;
    SetPassToNoPass
 END DoPassC ;
 
