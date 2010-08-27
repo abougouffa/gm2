@@ -17,13 +17,13 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
 MODULE wordconst ;
 
-FROM SYSTEM IMPORT WORD ;
+FROM SYSTEM IMPORT WORD, BYTE ;
 
 CONST
    word = WORD(012H) ;
 
 VAR
-   w: WORD ;
+   b: BYTE ;
 BEGIN
-   w := word
+   b := word
 END wordconst.

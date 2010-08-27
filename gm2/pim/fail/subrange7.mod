@@ -1,4 +1,4 @@
-(* Copyright (C) 2008 Free Software Foundation, Inc. *)
+(* Copyright (C) 2005, 2006 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -15,15 +15,18 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE wordconst ;
-
-FROM SYSTEM IMPORT WORD ;
+MODULE subrange7 ;
 
 CONST
-   word = WORD(012H) ;
+   low = ind0(50);
+   high = ind0(100);
+TYPE
+   ind = [low..high];
+   ind0 = [60..100];
 
 VAR
-   w: WORD ;
+   a : ARRAY [10..100] OF INTEGER;
+   b : ARRAY ind OF INTEGER;
+
 BEGIN
-   w := word
-END wordconst.
+END subrange7.

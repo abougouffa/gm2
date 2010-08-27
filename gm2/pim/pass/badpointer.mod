@@ -15,15 +15,16 @@ You should have received a copy of the GNU General Public License along
 with gm2; see the file COPYING.  If not, write to the Free Software
 Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 
-MODULE wordconst ;
+MODULE badpointer ;
 
-FROM SYSTEM IMPORT WORD ;
+TYPE
+   foo = POINTER TO CARDINAL ;
 
 CONST
-   word = WORD(012H) ;
+   bar = foo(NIL) ;
 
 VAR
-   w: WORD ;
+   c  : CARDINAL ;
 BEGIN
-   w := word
-END wordconst.
+   bar^ := c
+END badpointer.

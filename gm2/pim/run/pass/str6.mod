@@ -19,7 +19,6 @@ MODULE str6 ;
  
 FROM StrIO IMPORT WriteString, WriteLn;
 FROM StrLib IMPORT StrEqual ;
-FROM M2RTS IMPORT Terminate ;
 FROM libc IMPORT exit ;
  
 TYPE
@@ -36,7 +35,6 @@ BEGIN
    WriteLn ;
    IF NOT StrEqual(Str, '1234')
    THEN
-      Terminate ;
-      exit(1)
+      HALT(1)
    END
 END str6.
