@@ -42,7 +42,8 @@ EXPORT UNQUALIFIED time_t, timeb, tm, ptrToTM,
                    memcpy, memset, printf, realloc,
                    rand, srand,
                    time, localtime, ftime,
-                   shutdown, rename, setjmp, longjmp, atexit ;
+                   shutdown, rename, setjmp, longjmp, atexit,
+                   ttyname ;
 
 TYPE
    time_t = LONGINT ;
@@ -432,6 +433,13 @@ PROCEDURE longjmp (env: ADDRESS; val: INTEGER) ;
 *)
 
 PROCEDURE atexit (proc: PROC) ;
+
+
+(*
+   ttyname - returns a pointer to a string determining the ttyname.
+*)
+
+PROCEDURE ttyname (filedes: INTEGER) : ADDRESS ;
 
 
 END libc.

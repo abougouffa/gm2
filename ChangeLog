@@ -1,3 +1,9 @@
+2010-09-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-libs/libc.def:  added definition for ttyname.
+	* gm2/gm2-libs-iso/TermFile.mod:  reimplement getname to use
+	  ttyname instead of assigning /dev/tty.
+
 2010-08-27       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/testsuite/gm2/pim/pass/subrange7.mod:  corrected testcase

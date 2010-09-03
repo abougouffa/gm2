@@ -44,6 +44,9 @@ FROM RTgen IMPORT ChanDev, DeviceType, InitChanDev,
                   doReadText, doWriteText, doReadLocs, doWriteLocs,
                   checkErrno ;
 
+FROM DynamicStrings IMPORT String, InitStringCharStar, CopyOut,
+                           KillString ;
+
 FROM termios IMPORT TERMIOS, InitTermios, KillTermios, tcgetattr,
                     tcsetattr, cfmakeraw, tcsnow ;
 
@@ -416,10 +419,18 @@ BEGIN
 END iserror ;
 
 
+(*
+   getname - assigns, a, to the device name of the terminal.
+*)
+
 PROCEDURE getname (d: DeviceTablePtr;
                    VAR a: ARRAY OF CHAR) ;
+VAR
+   s: String ;
 BEGIN
-   Assign('/dev/tty', a)
+   s := InitStringCharStar(libc.ttyname(0)) ;
+   CopyOut(a, s) ;
+   s := KillString(s)
 END getname ;
 
 
