@@ -1229,6 +1229,28 @@ END PushString ;
 
 
 (*
+   IsSolvedGCC - returns TRUE if the value, sym, is solved.
+                 If TRUE then it also ensures this symbol is
+                 entered into the double book keeping table
+                 for GM2 <-> GCC.
+*)
+
+PROCEDURE IsSolvedGCC (sym: CARDINAL) : BOOLEAN ;
+BEGIN
+   IF IsValueSolved(sym)
+   THEN
+      IF NOT GccKnowsAbout(sym)
+      THEN
+         DeclareConstant(GetDeclared(sym), sym)
+      END ;
+      RETURN( TRUE )
+   ELSE
+      RETURN( FALSE )
+   END
+END IsSolvedGCC ;
+
+
+(*
    CoerseLongRealToCard - performs a coersion between a REAL to a CARDINAL
 *)
 
@@ -2409,7 +2431,7 @@ BEGIN
       END ;
       AddElementToEnd(v, e) ;
       WITH v^ DO
-         solved := solved AND IsValueSolved(el) AND IsValueSolved(n)
+         solved := solved AND IsSolvedGCC(el) AND IsSolvedGCC(n)
       END
    ELSE
       InternalError('expecting array type', __FILE__, __LINE__)
@@ -2709,7 +2731,7 @@ BEGIN
    THEN
       WITH v^ DO
          setValue        := AddRange(setValue, op1, op2) ;
-         solved          := solved AND IsValueSolved(op1) AND IsValueSolved(op2) ;
+         solved          := solved AND IsSolvedGCC(op1) AND IsSolvedGCC(op2) ;
          areAllConstants := areAllConstants AND IsConst(op1) AND IsConst(op2)
       END
    END ;
@@ -2799,7 +2821,7 @@ BEGIN
                 AddBit(tokenno, op1) ;
                 RETURN |
    array      : WITH v^ DO
-                   solved := solved AND IsValueSolved(op1) ;
+                   solved := solved AND IsSolvedGCC(op1) ;
                    areAllConstants := areAllConstants AND IsConst(op1)
                 END ;
                 NewElement(e) ;
@@ -2811,7 +2833,7 @@ BEGIN
                 AddElementToEnd(v, e) |
    constructor,
    record     : WITH v^ DO
-                   solved := solved AND IsValueSolved(op1) ;
+                   solved := solved AND IsSolvedGCC(op1) ;
                    areAllConstants := areAllConstants AND IsConst(op1)
                 END ;
                 NewField(f) ;
@@ -2836,7 +2858,7 @@ PROCEDURE ElementsSolved (r: listOfRange) : BOOLEAN ;
 BEGIN
    WHILE r#NIL DO
       WITH r^ DO
-         IF NOT (IsValueSolved(low) AND IsValueSolved(high))
+         IF NOT (IsSolvedGCC(low) AND IsSolvedGCC(high))
          THEN
             RETURN( FALSE )
          END
@@ -2855,7 +2877,7 @@ PROCEDURE ArrayElementsSolved (e: listOfElements) : BOOLEAN ;
 BEGIN
    WHILE e#NIL DO
       WITH e^ DO
-         IF NOT (IsValueSolved(element) AND IsValueSolved(by))
+         IF NOT (IsSolvedGCC(element) AND IsSolvedGCC(by))
          THEN
             RETURN( FALSE )
          END
@@ -2876,7 +2898,7 @@ BEGIN
       WITH e^ DO
          IF IsConst(field)
          THEN
-            IF NOT IsValueSolved(field)
+            IF NOT IsSolvedGCC(field)
             THEN
                RETURN( FALSE )
             END
@@ -3611,7 +3633,7 @@ BEGIN
       WITH v^ DO
          IF solved
          THEN
-            IF IsValueSolved(op1)
+            IF IsSolvedGCC(op1)
             THEN
                PerformSubBit(tokenno, setValue, op1) ;
                solved := FALSE
@@ -3689,7 +3711,7 @@ BEGIN
       InternalError('expecting ALU operand to be a set', __FILE__, __LINE__)
    END ;
    Eval(tokenno, Set) ;
-   IF IsValueSolved(Op1) AND Set^.solved
+   IF IsSolvedGCC(Op1) AND Set^.solved
    THEN
       result := PerformSetIn(tokenno, Op1, Set^.setValue)
    ELSE

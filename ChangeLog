@@ -1,3 +1,9 @@
+2010-09-06       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2ALU.mod:  (New procedure) IsSolvedGCC.
+	  Used instead of IsValueSolved.  This fixes a bug reported by
+	  DragiÅ¡a DuriÄ (dragisa-duric/testcase12/pass/testcase12b.mod).
+
 2010-09-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-libs/libc.def:  added definition for ttyname.
