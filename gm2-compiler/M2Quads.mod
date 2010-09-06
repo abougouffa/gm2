@@ -2961,10 +2961,10 @@ BEGIN
    ELSE
       IF (DesT#NulSym) AND IsProcType(DesT) AND IsProcedure(Exp)
       THEN
-         DesT := GetType(DesT)  (* we can at least check RETURN values of procedure variables *)
-      END ;
-      (* remember that thorough assignment checking is done post pass 3 *)
-      CheckAssignmentCompatible(ExpT, DesT)
+         DesT := GetType(DesT) ; (* we can at least check RETURN values of procedure variables *)
+         (* remember that thorough assignment checking is done post pass 3 *)
+         CheckAssignmentCompatible(ExpT, DesT)
+      END
    END
 END CheckAssignCompatible ;
 
@@ -4204,7 +4204,7 @@ BEGIN
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      ProcSym := OperandF(NoOfParam+2)
+      ProcSym := SkipType(OperandF(NoOfParam+2))
    END ;
    IF IsDefImp(GetScope(ProcSym)) AND IsDefinitionForC(GetScope(ProcSym))
    THEN
@@ -4258,7 +4258,7 @@ BEGIN
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(NoOfParameters+2) ;
+      Proc := SkipType(OperandF(NoOfParameters+2)) ;
       ParamConstant := FALSE
    ELSE
       Proc := ProcSym ;
@@ -4385,10 +4385,10 @@ BEGIN
    PopT(ParamTotal) ;
    PushT(ParamTotal) ;  (* Restore stack to origional state *)
    ProcSym := OperandT(ParamTotal+1+1) ;
-   IF IsVar(ProcSym) AND IsProcType(GetType(ProcSym))
+   IF IsVar(ProcSym) AND IsProcType(SkipType(GetType(ProcSym)))
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(ParamTotal+1+1)
+      Proc := SkipType(OperandF(ParamTotal+1+1))
    ELSE
       Proc := ProcSym
    END ;
@@ -5283,7 +5283,7 @@ BEGIN
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      Proc := OperandF(NoOfParameters+1)
+      Proc := SkipType(OperandF(NoOfParameters+1))
    ELSE
       Proc := ProcSym
    END ;
@@ -6688,7 +6688,7 @@ BEGIN
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
-      ProcSym := OperandF(NoOfParam+2)
+      ProcSym := SkipType(OperandF(NoOfParam+2))
    END ;
    IF IsDefImp(GetScope(ProcSym)) AND IsDefinitionForC(GetScope(ProcSym))
    THEN
@@ -9677,7 +9677,7 @@ VAR
 BEGIN
    PopT(n) ;
    Sym  := OperandT(n+1) ;
-   Type := OperandF(n+1) ;
+   Type := SkipType(OperandF(n+1)) ;
    rw   := OperandMergeRW(n+1) ;
    Assert(IsLegal(rw)) ;
    (* adr will be Address type *)
@@ -9685,7 +9685,7 @@ BEGIN
    (* No type for t1 since constant *)
    t1 := MakeTemporary(ImmediateValue) ;
    Sym  := OperandT(n) ;
-   Type := OperandF(n) ;
+   Type := SkipType(OperandF(n)) ;
    PrevType := GetRecord(GetParent(Sym)) ;
    GenQuad(OffsetOp, t1, PrevType, Sym) ;
    IF n>1
@@ -9948,7 +9948,7 @@ BEGIN
       END
    ELSE
       (* Base already calculated previously and pushed to stack *)
-      UnboundedType := OperandF(2) ;
+      UnboundedType := SkipType(OperandF(2)) ;
       Base := Sym ;
       ArraySym := OperandA(2)
    END ;

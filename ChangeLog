@@ -3,6 +3,14 @@
 	* gm2/gm2-compiler/M2ALU.mod:  (New procedure) IsSolvedGCC.
 	  Used instead of IsValueSolved.  This fixes a bug reported by
 	  DragiÅ¡a DuriÄ (dragisa-duric/testcase12/pass/testcase12b.mod).
+	* gm2/gm2-compiler/M2GenGCC.mod:  skip the type of a
+	  procedure variable.
+	* gm2/gm2-compiler/M2Quads.mod:  skip the type of a
+	  procedure variable held in OperandF.  Ensure that
+	  assignment compatibility is only checked for procedure
+	  variables in pass 3.  Leaving fuller assignment checking
+	  to be done during tree conversion.  This fixes a bug reported by
+	  DragiÅ¡a DuriÄ (dragisa-duric/testcase05/pass/testcase5.mod).
 
 2010-09-03       Gaius Mulley <gaius@gnu.org>
 

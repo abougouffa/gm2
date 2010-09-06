@@ -1777,9 +1777,9 @@ BEGIN
    THEN
       DeclareParameters(op3) ;
       CodeDirectCall(op3)
-   ELSIF IsProcType(GetType(op3))
+   ELSIF IsProcType(SkipType(GetType(op3)))
    THEN
-      DeclareParameters(GetType(op3)) ;
+      DeclareParameters(SkipType(GetType(op3))) ;
       CodeIndirectCall(op3)
    ELSE
       InternalError('Expecting Procedure or ProcType', __FILE__, __LINE__)
