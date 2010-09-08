@@ -262,6 +262,7 @@ EXPORT QUALIFIED NulSym,
                  IsExportQualified,
                  IsExportUnQualified,
                  IsExported,
+                 IsImplicityExported,
                  IsImported,
                  TryMoveUndeclaredSymToInnerModule,
                  ForeachImportedDo,
@@ -1810,6 +1811,14 @@ PROCEDURE IsExportUnQualified (Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsExported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   IsImplicityExported - returns TRUE if, Sym, is implicitly exported from module, ModSym.
+                         ModSym must be a defimp symbol.
+*)
+
+PROCEDURE IsImplicityExported (ModSym, Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

@@ -43,6 +43,8 @@ EXPORT QUALIFIED P3StartBuildDefModule,
                  P3EndBuildProgModule,
                  StartBuildInnerModule,
                  EndBuildInnerModule,
+                 CheckImportListOuterModule,
+                 CheckCanBeImported,
                  BuildProcedureHeading,
                  StartBuildProcedure,
                  EndBuildProcedure,
@@ -165,6 +167,13 @@ PROCEDURE P3EndBuildProgModule ;
 
 
 (*
+   CheckCanBeImported - checks to see that it is legal to import, Sym, from, ModSym.
+*)
+
+PROCEDURE CheckCanBeImported (ModSym, Sym: CARDINAL) ;
+
+
+(*
    StartBuildInnerModule - Creates an Inner module and starts
                            a new scope.
 
@@ -183,22 +192,57 @@ PROCEDURE StartBuildInnerModule ;
 
 
 (*
-   EndBuildInnermModule - Destroys the Inner module scope and
-                          checks for correct name.
+   EndBuildInnerModule - Destroys the Inner module scope and
+                         checks for correct name.
 
-                          The Stack is expected:
+                         The Stack is expected:
 
-                          Entry                 Exit
+                         Entry                 Exit
 
-                   Ptr ->
-                          +------------+        +-----------+
-                          | NameEnd    |        |           |
-                          |------------|        |-----------|
-                          | NameStart  |        |           | <- Ptr
-                          |------------|        |-----------|
+                  Ptr ->
+                         +------------+        +-----------+
+                         | NameEnd    |        |           |
+                         |------------|        |-----------|
+                         | NameStart  |        |           | <- Ptr
+                         |------------|        |-----------|
 *)
 
 PROCEDURE EndBuildInnerModule ;
+
+
+(*
+   CheckImportListOuterModule - checks to see that all identifiers are
+                                exported from the definition module.
+
+                                The Stack is expected:
+
+                                Entry           OR    Entry
+
+                         Ptr ->                Ptr ->
+                                +------------+        +-----------+
+                                | #          |        | #         |
+                                |------------|        |-----------|
+                                | Id1        |        | Id1       |
+                                |------------|        |-----------|
+                                .            .        .           .
+                                .            .        .           .
+                                .            .        .           .
+                                |------------|        |-----------|
+                                | Id#        |        | Id#       |
+                                |------------|        |-----------|
+                                | ImportTok  |        | Ident     |
+                                |------------|        |-----------|
+
+                                IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                                                      Error Condition
+                                Exit
+
+                                All above stack discarded
+*)
+
+PROCEDURE CheckImportListOuterModule ;
 
 
 (*

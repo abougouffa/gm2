@@ -2577,6 +2577,26 @@ END IsAlreadyDeclaredSym ;
 
 
 (*
+   IsImplicityExported - returns TRUE if, Sym, is implicitly exported from module, ModSym.
+                         ModSym must be a defimp symbol.
+*)
+
+PROCEDURE IsImplicityExported (ModSym, Sym: CARDINAL) : BOOLEAN ;
+VAR
+   type: CARDINAL ;
+   pSym: PtrToSymbol ;
+BEGIN
+   IF IsDefImp(ModSym) AND IsFieldEnumeration(Sym)
+   THEN
+      pSym := GetPsym(ModSym) ;
+      type := SkipType(GetType(Sym)) ;
+      RETURN( IsItemInList(pSym^.DefImp.EnumerationScopeList, type) )
+   END ;
+   RETURN( FALSE )
+END IsImplicityExported ;
+
+
+(*
    MakeModule - creates a module sym with ModuleName. It returns the
                 symbol index.
 *)

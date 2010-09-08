@@ -138,6 +138,8 @@ FROM P3SymBuild IMPORT P3StartBuildProgModule,
                        StartBuildInnerModule,
                        EndBuildInnerModule,
 
+                       CheckImportListOuterModule,
+                       CheckCanBeImported,
                        StartBuildProcedure,
                        BuildProcedureHeading,
                        EndBuildProcedure,
@@ -157,7 +159,7 @@ FROM SymbolTable IMPORT MakeGnuAsm, PutGnuAsmVolatile, PutGnuAsm, PutGnuAsmInput
                         PutIncluded,
                         IsVarParam, IsProcedure, IsDefImp, IsModule,
                         IsRecord,
-                        RequestSym,
+                        RequestSym, IsExported,
                         GetSym, GetLocalSym,
                         RequestSym ;
 
@@ -602,8 +604,8 @@ ImplementationOrProgramModule :=                                           % Pus
 
 Number := Integer | Real =:
 
-Qualident :=                                                               % VAR name: Name;
-                                                                                 Type, Sym: CARDINAL ; %
+Qualident :=                                                               % VAR name             : Name ;
+                                                                                 Type, Sym, ModSym: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
@@ -611,12 +613,14 @@ Qualident :=                                                               % VAR
                                                                                 Sym := RequestSym(name) ;
                                                                                 IF IsDefImp(Sym) OR IsModule(Sym)
                                                                                 THEN
+                                                                                   ModSym := Sym ;
                                                                                    Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
                                                                                    StartScope(Sym) ;
                                                                                    Qualident(stopset0, stopset1, stopset2) ;
-                                                                                   (* should we test for lack of ident? *)
+
                                                                                    PopTF(Sym, Type) ;
                                                                                    PushTF(Sym, Type) ;
+                                                                                   CheckCanBeImported(ModSym, Sym) ;
                                                                                    PutIncluded(Sym) ;
                                                                                    EndScope
                                                                                 ELSE
@@ -1330,11 +1334,17 @@ Export := "EXPORT" ( "QUALIFIED"
                                  IdentList |
                      IdentList ) ";" =:
 
-Import :=                                                                  % PushAutoOff %
-          ( "FROM" Ident "IMPORT" IdentList ";" |
-           "IMPORT" IdentList ";" )
+FromImport :=                                                              % PushAutoOn %
+               "FROM" Ident "IMPORT" IdentList ";"                         % CheckImportListOuterModule %
                                                                            % PopAuto %
-        =:
+            =:
+
+WithoutFromImport :=                                                       % PushAutoOff %
+                      "IMPORT" IdentList ";"
+                                                                           % PopAuto %
+                   =:
+
+Import :=  FromImport | WithoutFromImport =:
 
 DefinitionModule := "DEFINITION" "MODULE"                                  % PushAutoOn %
                     [ "FOR" string ]

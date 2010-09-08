@@ -30,13 +30,13 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         StartScope, EndScope, GetScope, GetCurrentScope,
                         GetModuleScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
-                        GetExported,
+                        GetExported, IsExported, IsImplicityExported,
                         IsDefImp, IsModule,
                         RequestSym,
                         IsProcedure, PutOptArgInit,
+                        IsFieldEnumeration, GetType,
                         CheckForUnknownInModule,
                         GetFromOuterModule,
-                        CheckForEnumerationInCurrentModule,
                         GetMode, PutVariableAtAddress, ModeOfAddr, SkipType,
                         IsSet, PutConstSet,
                         IsConst, IsConstructor, PutConst, PutConstructor,
@@ -327,6 +327,92 @@ BEGIN
    END ;
    SetCurrentModule(GetModuleScope(GetCurrentModule()))
 END EndBuildInnerModule ;
+
+
+(*
+   CheckImportListOuterModule - checks to see that all identifiers are
+                                exported from the definition module.
+
+                                The Stack is expected:
+
+                                Entry           OR    Entry
+
+                         Ptr ->                Ptr ->
+                                +------------+        +-----------+
+                                | #          |        | #         |
+                                |------------|        |-----------|
+                                | Id1        |        | Id1       |
+                                |------------|        |-----------|
+                                .            .        .           .
+                                .            .        .           .
+                                .            .        .           .
+                                |------------|        |-----------|
+                                | Id#        |        | Id#       |
+                                |------------|        |-----------|
+                                | ImportTok  |        | Ident     |
+                                |------------|        |-----------|
+
+                                IMPORT Id1, .. Id# ;  FROM Ident IMPORT Id1 .. Id# ;
+
+
+                                                      Error Condition
+                                Exit
+
+                                All above stack discarded
+*)
+
+PROCEDURE CheckImportListOuterModule ;
+VAR
+   n1, n2     : Name ;
+   Sym, ModSym,
+   i, n       : CARDINAL ;
+BEGIN
+   PopT(n) ;       (* n   = # of the Ident List *)
+   IF OperandT(n+1)#ImportTok
+   THEN
+      (* Ident List contains list of objects *)
+      ModSym := MakeDefinitionSource(OperandT(n+1)) ;
+      i := 1 ;
+      WHILE i<=n DO
+         IF NOT IsExported(ModSym, RequestSym(OperandT(i)))
+         THEN
+            n1 := OperandT(n+1) ;
+            n2 := OperandT(i) ;
+            WriteFormat2('symbol %a is not exported from definition module %a', n2, n1)
+         END ;
+         INC(i)
+      END
+   END ;
+   PopN(n+1)   (* clear stack *)
+END CheckImportListOuterModule ;
+
+
+(*
+   CheckCanBeImported - checks to see that it is legal to import, Sym, from, ModSym.
+*)
+
+PROCEDURE CheckCanBeImported (ModSym, Sym: CARDINAL) ;
+VAR
+   n1, n2: Name ;
+BEGIN
+   IF IsDefImp(ModSym)
+   THEN
+      IF IsExported(ModSym, Sym)
+      THEN
+         (* great all done *)
+         RETURN
+      ELSE
+         IF IsImplicityExported(ModSym, Sym)
+         THEN
+            (* this is also legal *)
+            RETURN
+         END ;
+         n1 := GetSymName(ModSym) ;
+         n2 := GetSymName(Sym) ;
+         WriteFormat2('symbol %a is not exported from definition module %a', n2, n1)
+      END
+   END
+END CheckCanBeImported ;
 
 
 (*

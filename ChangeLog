@@ -1,3 +1,18 @@
+2010-09-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-3.bnf:  strict checking has been inforced on
+	  imported symbols both on FROM x IMPORT y and also on
+	  Qualidents.  Separated Import into FromImport and
+	  WithoutFromImport and use appropriate productions.
+	* gm2/gm2-compiler/P3SymBuild.def:  (New procedures)
+          CheckCanBeImported, CheckImportListOuterModule.
+	* gm2/gm2-compiler/P3SymBuild.def:  (New procedures)
+	  implemented CheckCanBeImported, CheckImportListOuterModule.
+	* gm2/gm2-compiler/SymbolTable.def:  (New procedure)
+          IsImplicityExported.
+	* gm2/gm2-compiler/SymbolTable.mod:  (New procedure)
+          implemented IsImplicityExported.
+	
 2010-09-06       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2ALU.mod:  (New procedure) IsSolvedGCC.
