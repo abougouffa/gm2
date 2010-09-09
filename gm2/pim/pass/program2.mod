@@ -256,7 +256,7 @@ PROCEDURE ProgramModule (stopset0: SetOfStop0; stopset1: SetOfStop1; stopset2: S
 BEGIN
    WHILE ((currenttoken>=bytok) AND (currenttoken<totok) AND (currenttoken IN SetOfStop1 {fromtok, importtok})) DO
       Import(stopset0 + SetOfStop0{begintok}, stopset1 + SetOfStop1{endtok, fromtok, importtok, consttok, moduletok, proceduretok}, stopset2 + SetOfStop2{vartok, typetok}) ;
-      BuildImportOuterModule  ;
+      BuildImportOuterModule(FALSE)  ;
    END
 END ProgramModule ;
 
