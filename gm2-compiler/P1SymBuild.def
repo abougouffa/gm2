@@ -233,7 +233,7 @@ PROCEDURE EndBuildInnerModule ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportOuterModule ;
+PROCEDURE BuildImportOuterModule (definition: BOOLEAN) ;
 
 
 (*

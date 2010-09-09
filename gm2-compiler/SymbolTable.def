@@ -264,6 +264,7 @@ EXPORT QUALIFIED NulSym,
                  IsExported,
                  IsImplicityExported,
                  IsImported,
+                 PutIncludedByDefinition, IsIncludedByDefinition,
                  TryMoveUndeclaredSymToInnerModule,
                  ForeachImportedDo,
                  ForeachExportedDo,
@@ -1827,6 +1828,22 @@ PROCEDURE IsImplicityExported (ModSym, Sym: CARDINAL) : BOOLEAN ;
 *)
 
 PROCEDURE IsImported (ModSym: CARDINAL; Sym: CARDINAL) : BOOLEAN ;
+
+
+(*
+   PutIncludedByDefinition - places a module symbol, Sym, into the
+                             included list of the current definition module.
+*)
+
+PROCEDURE PutIncludedByDefinition (Sym: CARDINAL) ;
+
+
+(*
+   IsIncludedByDefinition - returns TRUE if definition module symbol, Sym, was included
+                            by ModSym's definition module.
+*)
+
+PROCEDURE IsIncludedByDefinition (ModSym, Sym: CARDINAL) : BOOLEAN ;
 
 
 (*

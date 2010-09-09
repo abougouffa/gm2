@@ -52,7 +52,7 @@ FROM SymbolTable IMPORT NulSym,
                         GetFromOuterModule,
                         GetExported, IsExported,
                         GetLocalSym,
-                        PutImported,
+                        PutImported, PutIncludedByDefinition,
                         PutExported, PutExportQualified, PutExportUnQualified,
                         TryMoveUndeclaredSymToInnerModule,
                         PutDefinitionForC,
@@ -444,7 +444,7 @@ END EndBuildInnerModule ;
                             All above stack discarded
 *)
 
-PROCEDURE BuildImportOuterModule ;
+PROCEDURE BuildImportOuterModule (definition: BOOLEAN) ;
 VAR
    Sym, ModSym,
    i, n       : CARDINAL ;
@@ -457,6 +457,10 @@ BEGIN
       WHILE i<=n DO
          ModSym := MakeDefinitionSource(OperandT(n+1-i)) ;
          PutImported(ModSym) ;
+         IF definition
+         THEN
+            PutIncludedByDefinition(ModSym)
+         END ;
          INC(i)
       END
    ELSE

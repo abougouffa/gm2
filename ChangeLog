@@ -1,3 +1,21 @@
+2010-09-09       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/bnf/m2-3.bnf:  improved Qualident to include much stricter
+	  checking of imported idents.
+	* gm2/bnf/m2.bnf:  place imported modules into a separate list
+	  in definition modules.
+	* gm2/gm2-compiler/P1SymBuild.def:  introduce parameter to
+	  BuildImportOuterModule to indicate whether a definition
+	  module is being compiled.
+	* gm2/gm2-compiler/P1SymBuild.mod:  implement above.
+	* gm2/gm2-compiler/P3SymBuild.mod:  modified
+	  CheckImportListOuterModule to include a check for
+	  ImplicitlyExported symbols.
+	* gm2/gm2-compiler/SymbolTable.def:  (New procedures)
+	  PutIncludedByDefinition and IsIncludedByDefinition.
+	* gm2/gm2-compiler/SymbolTable.mod:  (New procedures
+	  implemented) PutIncludedByDefinition and IsIncludedByDefinition.
+
 2010-09-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-3.bnf:  strict checking has been inforced on

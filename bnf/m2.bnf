@@ -550,7 +550,7 @@ ProgramModule := "MODULE"                                                  % Pus
                   [ Priority ]
                   ";"
                                                                            % PushAutoOn ; %
-                  { Import                                                 % BuildImportOuterModule %
+                  { Import                                                 % BuildImportOuterModule(FALSE) %
                   }                                                        % PopAuto %
                   Block
                                                                            % PushAutoOn %
@@ -562,7 +562,7 @@ ImplementationModule := "IMPLEMENTATION" "MODULE"                          % Pus
                          Ident                                             % P1StartBuildImplementationModule ; %
                                                                            % PushAutoOff ; %
                          [ Priority ] ";"                                  % PushAutoOn ; %
-                         { Import                                          % BuildImportOuterModule %
+                         { Import                                          % BuildImportOuterModule(FALSE) %
                            }                                               % PopAuto ; %
                          Block                                             % PushAutoOn ; %
                                  
@@ -973,7 +973,7 @@ DefinitionModule := "DEFINITION" "MODULE"                                  % Pus
                     )
                     Ident                                                  % P1StartBuildDefinitionModule %
                     ";"
-                    { Import                                               % BuildImportOuterModule %
+                    { Import                                               % BuildImportOuterModule(TRUE) %
                              } [ Export                                    % BuildExportOuterModule %
                                         ]                                  % PushAutoOff %
                     { Definition }                                         % PopAuto %

@@ -604,29 +604,33 @@ ImplementationOrProgramModule :=                                           % Pus
 
 Number := Integer | Real =:
 
-Qualident :=                                                               % VAR name             : Name ;
-                                                                                 Type, Sym, ModSym: CARDINAL ; %
+--
+--  In pass 3 Qualident needs some care as we must only parse module.module.ident
+--  and not ident.recordfield.  We leave the ident.recordfield to be parsed by
+--  SubDesignator.  Note that Qualident is called by SubDesignator so if
+--  IsAutoPushOff then we just consume tokens.
+--
+
+Qualident :=                                                               % VAR name     : Name ;
+                                                                                 init, ip1: CARDINAL ; %
              Ident
                                                                            % IF IsAutoPushOn()
                                                                              THEN
                                                                                 PopT(name) ;
-                                                                                Sym := RequestSym(name) ;
-                                                                                IF IsDefImp(Sym) OR IsModule(Sym)
-                                                                                THEN
-                                                                                   ModSym := Sym ;
+                                                                                init := RequestSym(name) ;
+                                                                                WHILE IsDefImp(init) OR IsModule(init) DO
                                                                                    Expect(periodtok, stopset0, stopset1, stopset2 + SetOfStop2{identtok}) ;
-                                                                                   StartScope(Sym) ;
-                                                                                   Qualident(stopset0, stopset1, stopset2) ;
-
-                                                                                   PopTF(Sym, Type) ;
-                                                                                   PushTF(Sym, Type) ;
-                                                                                   CheckCanBeImported(ModSym, Sym) ;
-                                                                                   PutIncluded(Sym) ;
-                                                                                   EndScope
-                                                                                ELSE
-                                                                                   PushTF(Sym, GetType(Sym))
-                                                                                END
-                                                                             ELSE (* just parse qualident *) %
+                                                                                   StartScope(init) ;
+                                                                                   Ident(stopset0, stopset1, stopset2) ;
+                                                                                   PopT(name) ;
+                                                                                   ip1 := RequestSym(name) ;
+                                                                                   PutIncluded(ip1) ;
+                                                                                   EndScope ;
+                                                                                   CheckCanBeImported(init, ip1) ;
+                                                                                   init := ip1
+                                                                                END ;
+                                                                                PushTF(init, GetType(init))
+                                                                             ELSE %
              { "." Ident }                                                 % END %
            =:
 

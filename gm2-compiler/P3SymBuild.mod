@@ -31,7 +31,7 @@ FROM SymbolTable IMPORT NulSym, ModeOfAddr,
                         GetModuleScope,
                         SetCurrentModule, GetCurrentModule, SetFileModule,
                         GetExported, IsExported, IsImplicityExported,
-                        IsDefImp, IsModule,
+                        IsDefImp, IsModule, IsImported, IsIncludedByDefinition,
                         RequestSym,
                         IsProcedure, PutOptArgInit,
                         IsFieldEnumeration, GetType,
@@ -374,7 +374,8 @@ BEGIN
       ModSym := MakeDefinitionSource(OperandT(n+1)) ;
       i := 1 ;
       WHILE i<=n DO
-         IF NOT IsExported(ModSym, RequestSym(OperandT(i)))
+         IF (NOT IsExported(ModSym, RequestSym(OperandT(i)))) AND
+            (NOT IsImplicityExported(ModSym, RequestSym(OperandT(i))))
          THEN
             n1 := OperandT(n+1) ;
             n2 := OperandT(i) ;
@@ -405,6 +406,10 @@ BEGIN
          IF IsImplicityExported(ModSym, Sym)
          THEN
             (* this is also legal *)
+            RETURN
+         ELSIF IsDefImp(Sym) AND IsIncludedByDefinition(ModSym, Sym)
+         THEN
+            (* this is also legal (for a definition module) *)
             RETURN
          END ;
          n1 := GetSymName(ModSym) ;

@@ -535,6 +535,10 @@ TYPE
                                             (* which are included by         *)
                                             (* IMPORT modulename ;           *)
                                             (* modulename.Symbol             *)
+               DefIncludeList: List ;       (* Contains all included symbols *)
+                                            (* which are included by         *)
+                                            (* IMPORT modulename ;           *)
+                                            (* in the definition module only *)
                ImportTree    : SymbolTree ; (* Contains all IMPORTed         *)
                                             (* identifiers.                  *)
                ExportUndeclared: SymbolTree ;
@@ -2859,6 +2863,10 @@ BEGIN
                                       (* which are included by         *)
                                       (* IMPORT modulename ;           *)
                                       (* modulename.Symbol             *)
+         InitList(DefIncludeList) ;   (* Contains all included symbols *)
+                                      (* which are included by         *)
+                                      (* IMPORT modulename ;           *)
+                                      (* in the definition module only *)
          InitTree(ExportUndeclared) ; (* ExportUndeclared contains all *)
                                       (* the identifiers which were    *)
                                       (* exported but have not yet     *)
@@ -6091,6 +6099,56 @@ BEGIN
    END ;
    RETURN( Sym )
 END RequestFromDefinition ;
+
+
+(*
+   PutIncludedByDefinition - places a module symbol, Sym, into the
+                             included list of the current definition module.
+*)
+
+PROCEDURE PutIncludedByDefinition (Sym: CARDINAL) ;
+VAR
+   pSym  : PtrToSymbol ;
+   ModSym: CARDINAL ;
+BEGIN
+   ModSym := GetCurrentModuleScope() ;
+   Assert(IsDefImp(ModSym)) ;
+   Assert(IsDefImp(Sym)) ;
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      DefImpSym: IncludeItemIntoList(DefImp.DefIncludeList, Sym)
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END PutIncludedByDefinition ;
+
+
+(*
+   IsIncludedByDefinition - returns TRUE if definition module symbol, Sym, was included
+                            by ModSym's definition module.
+*)
+
+PROCEDURE IsIncludedByDefinition (ModSym, Sym: CARDINAL) : BOOLEAN ;
+VAR
+   pSym: PtrToSymbol ;
+BEGIN
+   Assert(IsDefImp(ModSym)) ;
+   Assert(IsDefImp(Sym)) ;
+   pSym := GetPsym(ModSym) ;
+   WITH pSym^ DO
+      CASE SymbolType OF
+
+      DefImpSym: RETURN( IsItemInList(DefImp.DefIncludeList, Sym) )
+
+      ELSE
+         InternalError('expecting a DefImp symbol', __FILE__, __LINE__)
+      END
+   END
+END IsIncludedByDefinition ;
 
 
 (*
