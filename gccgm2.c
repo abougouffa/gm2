@@ -7464,8 +7464,10 @@ gm2_finish_build_array_type (tree t, tree elt_type, tree index_type)
 
   TREE_TYPE (t) = elt_type;
   TYPE_DOMAIN (t) = index_type;
-  
+
+#if 0
   t = canonicalize_array (t);
+#endif
   ASSERT_CONDITION (index_type != NULL_TREE);
 #if 0
   if (index_type == 0)
@@ -7476,7 +7478,11 @@ gm2_finish_build_array_type (tree t, tree elt_type, tree index_type)
     }
 #endif
 
+#if 0
+  if (t != old)
+    t = old;
   ASSERT_CONDITION (t == old);
+#endif
 
   if (!COMPLETE_TYPE_P (t))
     layout_type (t);

@@ -11404,7 +11404,7 @@ BEGIN
       END ;
       GenQuad(GotoOp, NulSym, NulSym, 0) ;
       PushBool(Merge(NextQuad-1, t1), Merge(NextQuad-2, f1))
-   ELSIF OperandT(2)=HashTok
+   ELSIF (OperandT(2)=HashTok) OR (OperandT(2)=LessGreaterTok)
    THEN
       (* are the two boolean expressions the different? *)
       PopBool(t1, f1) ;
@@ -11543,7 +11543,7 @@ BEGIN
       CheckVariableOrConstantOrProcedure(e1) ;
       CheckVariableOrConstantOrProcedure(e2) ;
 
-      IF (Op=EqualTok) OR (Op=HashTok)
+      IF (Op=EqualTok) OR (Op=HashTok) OR (Op=LessGreaterTok)
       THEN
          CheckAssignmentCompatible(t1, t2)
       ELSE

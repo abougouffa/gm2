@@ -1,3 +1,13 @@
+2010-09-14       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gccgm2.c:  turn off canonicalize_array in
+	  gm2_finish_build_array_type.  This fixes a bug reported by
+	  James Cox (exposed by Truss2.mod).
+	* gm2/gm2-compiler/M2Quads.mod:  test for LessGreaterTok
+	  which fixes a bug reported by 
+          DragiÅ¡a DuriÄ (dragisa-duric/testcase08/pass/testcase8.mod).
+	  Inequality as expressed by <> was not handled.
+
 2010-09-09       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/bnf/m2-3.bnf:  improved Qualident to include much stricter

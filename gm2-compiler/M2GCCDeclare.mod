@@ -2243,6 +2243,7 @@ BEGIN
    (* AddSymToWatch(1420) ; *)
    (* AddSymToWatch(5889) ; *)
    (* IncludeElementIntoSet(WatchList, 717) ; *)
+   (* IncludeElementIntoSet(WatchList, 829) ; *)
    IF Debugging
    THEN
       n := GetSymName(scope) ;
