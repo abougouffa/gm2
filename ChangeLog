@@ -1,3 +1,17 @@
+2010-09-16       Gaius Mulley <gaius@gnu.org>
+
+	* Built and released debian package 0.98.
+	* gm2/version.c:  updated to 0.99 now that the debian
+	  package 0.98 has been produced.
+	* gm2/www/index.ms:  updated news of 0.98 release and
+	  updated information around latest bug fixes.
+	* gm2/gm2-libs/configure.in:  updated to 0.99.
+	* gm2/gm2-libs/configure:  rebuilt.
+	* gm2/examples/ncurses/Makefile:  removed.
+	* gm2/examples/ncurses/Makefile.in:  added.
+	* gm2/gm2.texi:  fixed documentation on building hello
+	  world after building gm2.
+
 2010-09-14       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gccgm2.c:  turn off canonicalize_array in

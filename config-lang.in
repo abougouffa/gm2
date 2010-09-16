@@ -96,6 +96,7 @@ outputs=" \
          gm2/examples/gravity/Makefile \
          gm2/examples/hello/Makefile \
          gm2/examples/map/Makefile \
+         gm2/examples/ncurses/Makefile \
          gm2/examples/swig/exceptions/Makefile \
          gm2/examples/swig/strlib/Makefile \
          gm2/examples/swig/tiny/Makefile \

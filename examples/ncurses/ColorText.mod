@@ -46,7 +46,10 @@ BEGIN
    r := noecho();
    r := nonl() ;
    pair := 1 ;
-   InstallTerminationProcedure(ResetScreen)
+   IF NOT InstallTerminationProcedure(ResetScreen)
+   THEN
+      HALT
+   END
 END Init ;
 
 

@@ -16,9 +16,9 @@
 .\" 
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
-.ds CURRENTDATE "Thu Jul  8 14:06:20 BST 2010
-.ds CURRENTGM2 0.93
-.ds DEBIANGM2 0.9.2
+.ds CURRENTDATE "Thu Sep 16 12:34:07 BST 2010
+.ds CURRENTGM2 0.99
+.ds DEBIANGM2 0.9.8
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
@@ -103,19 +103,21 @@ Recent news:
 .sp
 .ULS
 .LI
-gm2 0.92 was released on July 8 2010.
+gm2 0.98 was released on September 16 2010.
 .LI
-all regression tests pass on the LP64 platform.
+all regression tests pass on the x86_64 and x86_32 debian platforms.
 .LI
 the ISO Modula-2 language is now complete.
 .LI
-all of the ISO libraries have been completed.
+the ISO libraries are also complete.
 .LI
-many bug fixes have been applied to the ISO libraries and also the
-compiler.
+all outstanding bugs reported on the above platforms have been applied.
 .LI
 builds under OSX leopard and snow leopard using \f[I]macports\f[P]
 (although there are regression test failures on these platforms).
+.LI
+builds under Sparc Solaris LP64 and passes most of the regression tests
+(45 failures out of 9200).
 .LI
 now builds under Cygwin (however at present -O3 does not work on this platform
 and also swig and Modula-2 have not been seen to work together yet).

@@ -2380,8 +2380,8 @@ Now you should be able to perform:
 
 @example
 $ export PATH=$HOME/opt/bin:$PATH
-$ cd gcc-@value{version-GCC}/gcc/gm2/examples/hello
-$ make
+$ cd build-@value{version-GCC}/gcc/gm2/examples/hello
+$ make post-install
 @end example
 
 which will create an @file{a.out} for the infamous hello world
