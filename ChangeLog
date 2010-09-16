@@ -10,7 +10,12 @@
 	* gm2/examples/ncurses/Makefile:  removed.
 	* gm2/examples/ncurses/Makefile.in:  added.
 	* gm2/gm2.texi:  fixed documentation on building hello
-	  world after building gm2.
+	  world after building gm2 (bug reported by Christoph
+	  Schlegel <modula2@gmx.net>)
+	* gm2/examples/ncurses/ColorText.mod:  changed call to
+	  InstallTerminationProcedure given it is now a procedure
+	  function.  (Example build failure reported by Christoph
+	  Schlegel <modula2@gmx.net>)
 
 2010-09-14       Gaius Mulley <gaius@gnu.org>
 
