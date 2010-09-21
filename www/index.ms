@@ -80,7 +80,7 @@ This compiler is still in development.
 .LP
 The compiler has undergone quite a number of changes recently and the
 current version in the CVS being worked upon is gm2-\*[CURRENTGM2].
-The native x86_64 version is the most stable.
+The native x86_64 and 32 bit x86 versions are the most stable.
 .PP
 The GNU Modula-2 compiler is one of a number of
 .URL http://gcc.gnu.org/frontends.html "front end languages"
@@ -106,12 +106,14 @@ Recent news:
 gm2 0.98 was released on September 16 2010.
 .LI
 all regression tests pass on the x86_64 and x86_32 debian platforms.
+There are 1673 individual tests and each test is compiled with varying
+options resulting in a total of 10040 test cases).
 .LI
 the ISO Modula-2 language is now complete.
 .LI
 the ISO libraries are also complete.
 .LI
-all outstanding bugs reported on the above platforms have been applied.
+all outstanding bugs reported on the above platforms have been fixed.
 .LI
 builds under OSX leopard and snow leopard using \f[I]macports\f[P]
 (although there are regression test failures on these platforms).
@@ -127,6 +129,16 @@ and also swig and Modula-2 have not been seen to work together yet).
 GNU Modula-2 Features
 .LP
 .ULS
+.LI
+the compiler currently complies with Programming in Modula-2 Edition 2, 3, 4
+and ISO Modula-2.
+Users can switch on specific mutually exclusive features by using:
+.OPT -fpim ,
+.OPT -fpim2 ,
+.OPT -fpim3 ,
+.OPT -fpim4
+or
+.OPT -fiso .
 .LI
 the option
 .OPT -fswig
@@ -150,16 +162,6 @@ much better \fCdwarf-2\fP debugging support and when used with
 \fCgdb\fP the programmer can display \f[C]RECORD\f[P]s,
 \f[C]ARRAY\f[P]s, \f[C]SET\f[P]s, subranges and constant char literals
 in Modula-2 syntax.
-.LI
-it currently complies with Programming in Modula-2 Edition 2, 3, 4
-and ISO Modula-2.
-Users can switch on specific mutually exclusive features by using:
-.OPT -fpim ,
-.OPT -fpim2 ,
-.OPT -fpim3 ,
-.OPT -fpim4
-or
-.OPT -fiso .
 .LI
 supports sets of any ordinal size (memory permitting).
 .LI
@@ -233,18 +235,9 @@ Limitations
 .LP
 .ULS
 .LI
-The compiler is complete but it is still in an alpha state.  The most
-stable build for GNU Modula-2 is x86_64 Debian.  At the time of
-writing all regressions tests pass.  There are 1439 individual tests
-and each test is compiled with varying options resulting in a total of
-8634 test cases).
-.LI
-ISO library implementation is now very near completion, all but four
-libraries are finished.  Only Processes, Semaphores, LowReal, LowLong
-are missing.
-.LI
-Logitech compatibility library is incomplete.  For a comprehensive
-list of completed modules please check the
+Logitech compatibility library is incomplete.  The principle modules
+for this platform exist however for a comprehensive list of completed
+modules please check the
 .URL gm2.html documentation .
 .ULE
 .sp
@@ -274,7 +267,7 @@ The source code in the CVS can be
 GNU Modula-2 Debian binaries
 .LP
 GNU Modula-2 (\*[DEBIANGM2]) binaries are now available for i386 and
-AMD64 architecture debian Lenny based distributions.  Add these lines
+x86_64 architecture debian Lenny based distributions.  Add these lines
 to your
 .PRG /etc/apt/sources.list :
 .sp

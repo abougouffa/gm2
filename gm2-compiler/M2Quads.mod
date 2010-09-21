@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -219,6 +219,7 @@ FROM M2Range IMPORT InitAssignmentRangeCheck,
                     WriteRangeCheck ;
 
 FROM M2CaseList IMPORT PushCase, PopCase, AddRange, BeginCaseList, EndCaseList, ElseCase ;
+FROM P2SymBuild IMPORT SkipConst ;
 
 FROM gm2builtins IMPORT GetBuiltinTypeInfoType ;
 
@@ -4201,6 +4202,7 @@ BEGIN
    PopT(NoOfParam) ;
    PushT(NoOfParam) ;
    ProcSym := OperandT(NoOfParam+2) ;
+   ProcSym := SkipConst(ProcSym) ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
@@ -4244,6 +4246,7 @@ PROCEDURE BuildRealFuncProcCall (IsFunc, IsForC: BOOLEAN) ;
 VAR
    e             : Error ;
    n             : Name ;
+   ForcedFunc,
    ParamConstant : BOOLEAN ;
    NoOfParameters,
    i, pi,
@@ -4255,6 +4258,8 @@ BEGIN
    PopT(NoOfParameters) ;
    PushT(NoOfParameters) ;  (* Restore stack to original state *)
    ProcSym := OperandT(NoOfParameters+2) ;
+   ProcSym := SkipConst(ProcSym) ;
+   ForcedFunc := FALSE ;
    IF IsVar(ProcSym)
    THEN
       (* Procedure Variable ? *)
@@ -4276,9 +4281,15 @@ BEGIN
       (* is being called as a procedure *)
       IF GetType(Proc)#NulSym
       THEN
-         MetaErrors1('function {%1a} is being called but its return value is ignored',
-                     'function {%1Da} return a type {%1ta:of {%1ta}}',
-                     Proc)
+         (* however it was declared as a procedure function *)
+         IF NOT IsReturnOptional(Proc)
+         THEN
+            MetaErrors1('function {%1a} is being called but its return value is ignored',
+                        'function {%1Da} return a type {%1ta:of {%1ta}}',
+                        Proc)
+         END ;
+         IsFunc := TRUE ;
+         ForcedFunc := TRUE
       END
    END ;
    ManipulateParameters(IsForC) ;
@@ -4331,10 +4342,17 @@ BEGIN
          time --fixme--
       *)
       ReturnVar := MakeTemporary(AreConstant(ParamConstant)) ;
+      IF ReturnVar=2873
+      THEN
+         stop
+      END ;
       (* ReturnVar := MakeTemporary(RightValue) ; *)
       PutVar(ReturnVar, GetType(Proc)) ;
       GenQuad(FunctValueOp, ReturnVar, NulSym, Proc) ;
-      PushTF(ReturnVar, GetType(Proc))
+      IF NOT ForcedFunc
+      THEN
+         PushTF(ReturnVar, GetType(Proc))
+      END
    END
 END BuildRealFuncProcCall ;
 
@@ -4390,7 +4408,7 @@ BEGIN
       (* Procedure Variable ? *)
       Proc := SkipType(OperandF(ParamTotal+1+1))
    ELSE
-      Proc := ProcSym
+      Proc := SkipConst(ProcSym)
    END ;
    IF NOT (IsProcedure(Proc) OR IsProcType(Proc))
    THEN
@@ -5285,7 +5303,7 @@ BEGIN
       (* Procedure Variable ? *)
       Proc := SkipType(OperandF(NoOfParameters+1))
    ELSE
-      Proc := ProcSym
+      Proc := SkipConst(ProcSym)
    END ;
 
    IF IsForC AND UsesVarArgs(Proc)

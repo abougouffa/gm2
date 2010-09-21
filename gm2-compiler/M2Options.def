@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
    Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
@@ -21,10 +21,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2009/10/14 17:26:47 $]
+   Date       : 27/5/87  [$Date: 2010/09/21 10:02:14 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.25 $
+   Version    : $Revision: 1.26 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;

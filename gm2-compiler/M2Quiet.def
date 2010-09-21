@@ -1,4 +1,4 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +22,7 @@ DEFINITION MODULE M2Quiet ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Oct 12 15:27:27 2001
-    Last edit  : $Date: 2006/01/10 23:51:19 $ 
+    Last edit  : $Date: 2010/09/21 10:02:15 $ 
     Revision   : $Version$ 
     Description: provides a wrapper to M2Printf, each call is only passed
                  to its corresponding M2Printf routine providing the -quiet

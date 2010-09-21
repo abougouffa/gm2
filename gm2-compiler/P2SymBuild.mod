@@ -3033,6 +3033,35 @@ BEGIN
 END ResolveConstTypes ;
 
 
+(*
+   SkipConst - returns the symbol which is a pseudonum of, sym.
+*)
+
+PROCEDURE SkipConst (sym: CARDINAL) : CARDINAL ;
+VAR
+   init: CARDINAL ;
+   h   : constList ;
+BEGIN
+   init := sym ;
+   h := headOfConsts ;
+   WHILE h#NIL DO
+      IF (h^.constsym=sym) AND (h^.expr#NulSym)
+      THEN
+         sym := h^.expr ;
+         IF sym=init
+         THEN
+            (* circular definition found *)
+            RETURN( sym )
+         END ;
+         h := headOfConsts
+      ELSE
+         h := h^.next
+      END
+   END ;
+   RETURN( sym )
+END SkipConst ;
+
+
 BEGIN
    TypeStack := InitStackWord() ;
    RememberStack := InitStackWord() ;
