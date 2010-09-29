@@ -3,7 +3,7 @@
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -22,7 +22,7 @@ DEFINITION MODULE M2Preprocess ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Thu Dec  6 17:59:57 2001
-    Last edit  : $Date: 2010/09/21 10:02:15 $ 
+    Last edit  : $Date: 2010/09/29 05:32:05 $ 
     Revision   : $Version$ 
     Description: provides a mechanism to invoke the C preprocessor.
 *)

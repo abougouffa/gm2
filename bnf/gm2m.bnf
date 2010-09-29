@@ -4,7 +4,7 @@
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
--- Software Foundation; either version 2, or (at your option) any later
+-- Software Foundation; either version 3, or (at your option) any later
 -- version.
 -- 
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -26,7 +26,7 @@ MODULE gm2m ;
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
  
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -41,7 +41,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
 (*
    Author     : Gaius Mulley
    Title      : gm2m
-   Date       : 3/4/86  [$Date: 2010/09/21 10:01:56 $]
+   Date       : 3/4/86  [$Date: 2010/09/29 05:32:02 $]
    SYSTEM     : GNU Modula-2
    Description: Generates a makefile by examining the imports within Modula-2 source.
 *)

@@ -3,7 +3,7 @@
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -19,10 +19,10 @@ DEFINITION MODULE M2FileName ;
 (*
    Author     : Gaius Mulley
    Title      : M2FileName
-   Date       : 3/4/86  [$Date: 2010/09/21 10:02:14 $]
+   Date       : 3/4/86  [$Date: 2010/09/29 05:32:04 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Provides a procedure to calculate a system file name.
-   Version    : $Revision: 1.8 $
+   Version    : $Revision: 1.9 $
 *)
 
 FROM DynamicStrings IMPORT String ;

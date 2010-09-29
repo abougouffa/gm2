@@ -4,7 +4,7 @@
  *
  * GNU Modula-2 is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2, or (at your option)
+ * the Free Software Foundation; either version 3, or (at your option)
  * any later version.
  * 
  * GNU Modula-2 is distributed in the hope that it will be useful,
@@ -26,9 +26,13 @@
  * Start date : 9/6/93
  *
  *
- * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.7 2010/09/21 10:02:37 gaius Exp $
+ * $Header: /sources/gm2/gm2/tools-src/mklink.c,v 1.8 2010/09/29 05:32:08 gaius Exp $
  *
  * $Log: mklink.c,v $
+ * Revision 1.8  2010/09/29 05:32:08  gaius
+ * * gm2/Make-lang.in:  changed license to v3 of GPL and LGPL for
+ *   all the following files.
+ *
  * Revision 1.7  2010/09/21 10:02:37  gaius
  * * gm2/www/index.ms:  updated information for the 0.98 release.
  * * gm2/gm2-compiler/M2Quads.mod:  fixed bug reported by

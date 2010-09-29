@@ -3,7 +3,7 @@
 --
 -- GNU Modula-2 is free software; you can redistribute it and/or modify it under
 -- the terms of the GNU General Public License as published by the Free
--- Software Foundation; either version 2, or (at your option) any later
+-- Software Foundation; either version 3, or (at your option) any later
 -- version.
 -- 
 -- GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -24,7 +24,7 @@ MODULE gm2l ;
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
  
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -40,7 +40,7 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA. *)
    Author     : Gaius Mulley
    Title      : gm2l
    Date       : Date: Sat 16-09-1989 Time: 17:49:34.18
-              : [$Date: 2010/09/21 10:01:55 $]
+              : [$Date: 2010/09/29 05:32:02 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: generates the list of initialization order for the modules.
                 The initialization module list is used for two purposes.

@@ -4,7 +4,7 @@
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -21,10 +21,10 @@ DEFINITION MODULE M2Options ;
 (*
    Author     : Gaius Mulley
    Title      : M2Options
-   Date       : 27/5/87  [$Date: 2010/09/21 10:02:14 $]
+   Date       : 27/5/87  [$Date: 2010/09/29 05:32:05 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Initializes the user options in the Modula-2 compiler.
-   Version    : $Revision: 1.26 $
+   Version    : $Revision: 1.27 $
 *)
 
 FROM SYSTEM IMPORT ADDRESS ;

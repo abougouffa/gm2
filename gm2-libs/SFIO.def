@@ -3,7 +3,7 @@
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free
-Software Foundation; either version 2, or (at your option) any later
+Software Foundation; either version 3, or (at your option) any later
 version.
 
 GNU Modula-2 is distributed in the hope that it will be useful, but WITHOUT ANY
@@ -22,7 +22,7 @@ DEFINITION MODULE SFIO ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Fri Aug  3 16:55:18 2001
-    Last edit  : $Date: 2010/09/21 10:02:22 $ 
+    Last edit  : $Date: 2010/09/29 05:32:07 $ 
     Revision   : $Version$ 
     Description: provides a String interface to the opening routines of FIO
 *)
