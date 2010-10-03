@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 #   Copyright (C) 2010
-#   Free Software Foundation, Inc.
+#                 Free Software Foundation, Inc.
 
 # This file is part of GNU Modula-2.
 

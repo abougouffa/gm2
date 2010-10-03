@@ -1,6 +1,6 @@
 /* Specific flags and argument handling of the GNU Modula-2 front-end.
    Copyright (C) 2008, 2009, 2010
-   Free Software Foundation, Inc.
+ *               Free Software Foundation, Inc.
 
 This file is part of GNU Modula-2.
 

@@ -1,5 +1,5 @@
 (* Copyright (C) 2009, 2010
-   Free Software Foundation, Inc. *)
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 This library is free software; you can redistribute it and/or

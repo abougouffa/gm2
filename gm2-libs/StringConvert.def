@@ -1,6 +1,6 @@
 (* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
                  2010
-   Free Software Foundation, Inc. *)
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -24,7 +24,7 @@ DEFINITION MODULE StringConvert ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Mon Nov 26 09:12:45 2001
-    Last edit  : $Date: 2010/09/29 05:32:07 $ 
+    Last edit  : $Date: 2010/10/03 19:01:11 $ 
     Revision   : $Version$ 
     Description: provides functions to convert numbers to and from strings.
 *)

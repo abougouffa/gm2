@@ -1,5 +1,5 @@
 /* Copyright (C) 2007, 2008, 2009, 2010
- * Free Software Foundation, Inc.
+ *               Free Software Foundation, Inc.
  *
  *  Gaius Mulley <gaius@glam.ac.uk> constructed this file.
  *  It was built by borrowing code from the gcc-.../gcc/c-*.c files

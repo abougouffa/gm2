@@ -1,7 +1,7 @@
 /*
 **  GNU Pth - The GNU Portable Threads
 **  Copyright (C) 1999, 2000, 2001, 2002
-**  Ralf S. Engelschall <rse@engelschall.com>
+ *                Ralf S. Engelschall <rse@engelschall.com>
 **
 **  This file is part of GNU Pth, a non-preemptive thread scheduling
 **  library which can be found at http://www.gnu.org/software/pth/.

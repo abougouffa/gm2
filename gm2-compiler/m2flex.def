@@ -1,4 +1,6 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +24,7 @@ DEFINITION MODULE m2flex ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Jul 31 17:46:41 2001
-    Last edit  : $Date: 2010/09/29 05:32:06 $ 
+    Last edit  : $Date: 2010/10/03 19:01:09 $ 
     Revision   : $Version$ 
     Description: provides a Modula-2 definition module for the C lexical
                  analysis flex file m2.flex

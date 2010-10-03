@@ -1,4 +1,6 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -20,11 +22,11 @@ MODULE gm2 ;
 (*
    Author     : Gaius Mulley
    Title      : gm2
-   Date       : 1987  [$Date: 2010/09/29 05:32:06 $]
+   Date       : 1987  [$Date: 2010/10/03 19:01:09 $]
    SYSTEM     : UNIX (GNU Modula-2)
    Description: Main module of the compiler, collects arguments and
                 starts the compilation.
-   Version    : $Revision: 1.14 $
+   Version    : $Revision: 1.15 $
 *)
 
 FROM M2Options IMPORT IsAnOption, IsAnOptionAndArg, ParseOptions ;

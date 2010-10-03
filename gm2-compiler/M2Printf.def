@@ -1,4 +1,6 @@
-(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free Software Foundation, Inc. *)
+(* Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009,
+                 2010
+                 Free Software Foundation, Inc. *)
 (* This file is part of GNU Modula-2.
 
 GNU Modula-2 is free software; you can redistribute it and/or modify it under
@@ -22,7 +24,7 @@ DEFINITION MODULE M2Printf ;
     Author     : Gaius Mulley
     System     : UNIX (GNU Modula-2)
     Date       : Tue Aug  7 15:32:02 2001
-    Last edit  : $Date: 2010/09/29 05:32:05 $ 
+    Last edit  : $Date: 2010/10/03 19:01:07 $ 
     Revision   : $Version$ 
     Description: provides a poor mans printf capability. It requires NameKey
                  as it will translate %a into a namekey.
