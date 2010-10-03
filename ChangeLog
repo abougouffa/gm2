@@ -1,3 +1,60 @@
+2010-10-03       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/examples/gravity/Makefile.in:  added missing GPL v3 notices
+	  and corrected dates for all the following files.
+	* gm2/examples/gravity/testsim.py:  
+	* gm2/examples/pthread/modified_pth.h:  
+	* gm2/examples/swig/full-strlib/testequ.py:  
+	* gm2/gm2-harness/Makefile.in:  
+	* gm2/gm2-libs/M2EXCEPTION.def:  
+	* gm2/gm2-libs-ch/termios.c:  
+	* gm2/gm2-libs-iso/COROUTINES.def:  
+	* gm2/gm2-libs-iso/ChanConsts.def:  
+	* gm2/gm2-libs-iso/CharClass.def:  
+	* gm2/gm2-libs-iso/ComplexMath.def:  
+	* gm2/gm2-libs-iso/ConvTypes.def:  
+	* gm2/gm2-libs-iso/EXCEPTIONS.def:  
+	* gm2/gm2-libs-iso/IOChan.def:  
+	* gm2/gm2-libs-iso/IOConsts.def:  
+	* gm2/gm2-libs-iso/IOLink.def:  
+	* gm2/gm2-libs-iso/IOResult.def:  
+	* gm2/gm2-libs-iso/LongComplexMath.def:  
+	* gm2/gm2-libs-iso/LongConv.def:  
+	* gm2/gm2-libs-iso/LongIO.def:  
+	* gm2/gm2-libs-iso/LongIO.mod:  
+	* gm2/gm2-libs-iso/LongMath.def:  
+	* gm2/gm2-libs-iso/LongStr.def:  
+	* gm2/gm2-libs-iso/M2EXCEPTION.def:  
+	* gm2/gm2-libs-iso/Processes.def:  
+	* gm2/gm2-libs-iso/ProgramArgs.def:  
+	* gm2/gm2-libs-iso/RawIO.def:  
+	* gm2/gm2-libs-iso/RealConv.def:  
+	* gm2/gm2-libs-iso/RealIO.def:  
+	* gm2/gm2-libs-iso/RealIO.mod:  
+	* gm2/gm2-libs-iso/RealMath.def:  
+	* gm2/gm2-libs-iso/RealStr.def:  
+	* gm2/gm2-libs-iso/RndFile.def:  
+	* gm2/gm2-libs-iso/SIOResult.def:  
+	* gm2/gm2-libs-iso/SLongIO.def:  
+	* gm2/gm2-libs-iso/SRawIO.def:  
+	* gm2/gm2-libs-iso/SRealIO.def:  
+	* gm2/gm2-libs-iso/STextIO.def:  
+	* gm2/gm2-libs-iso/SWholeIO.def:  
+	* gm2/gm2-libs-iso/SYSTEM.def:  
+	* gm2/gm2-libs-iso/Semaphores.def:  
+	* gm2/gm2-libs-iso/SeqFile.def:  
+	* gm2/gm2-libs-iso/StdChans.def:  
+	* gm2/gm2-libs-iso/Storage.def:  
+	* gm2/gm2-libs-iso/StreamFile.def:  
+	* gm2/gm2-libs-iso/Strings.def:  
+	* gm2/gm2-libs-iso/SysClock.def:  
+	* gm2/gm2-libs-iso/TermFile.def:  
+	* gm2/gm2-libs-iso/TextIO.def:  
+	* gm2/gm2-libs-iso/WholeConv.def:  
+	* gm2/gm2-libs-iso/WholeIO.def:  
+	* gm2/gm2-libs-iso/WholeStr.def:  
+	* gm2/p2c/p2c-src/include/ansidecl.h:  
+
 2010-09-21       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  changed license to v3 of GPL and LGPL for
