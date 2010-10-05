@@ -1,3 +1,9 @@
+2010-10-05       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/gm2-compiler/M2Range.mod:  corrected the range test for
+	  the lower bounds at the end of a FOR loop.  Fixes a bug
+	  reported by James Cox.
+
 2010-10-03       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/Make-lang.in:  tidied up Copyright dates on

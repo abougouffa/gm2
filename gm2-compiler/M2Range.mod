@@ -2395,7 +2395,7 @@ BEGIN
             trueStatement := BuildIfCallHandler(c, r, scopeDesc, IsTrue(condition)) ;
 
             (* check des has room to subtract, expr, without underflowing *)
-            c := BuildLessThan(BuildSub(e, min, FALSE),
+            c := BuildLessThan(BuildSub(Mod2Gcc(des), min, FALSE),
                                BuildNegate(e, FALSE)) ;
             falseStatement := BuildIfCallHandler(c, r, scopeDesc, IsFalse(condition)) ;
 
