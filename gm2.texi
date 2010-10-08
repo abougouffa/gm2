@@ -2752,7 +2752,7 @@ section's full configure line:
 @node Licence, GNU Project, Obtaining, Top
 @section Licence of GNU Modula-2
 
-@include gpl.texi
+@include gpl-3.0.texi
 
 @node GNU Project, Contributing, Licence, Top
 

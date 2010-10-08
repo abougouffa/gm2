@@ -1,8 +1,16 @@
+2010-10-08       Gaius Mulley <gaius@gnu.org>
+
+	* gm2/COPYING:  updated license to GPL 3.0
+	* gm2/gm2-harness/COPYING:  updated license to GPL 3.0
+	* gm2/tools-src/tidydates.py:  new file.
+
 2010-10-05       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/gm2-compiler/M2Range.mod:  corrected the range test for
 	  the lower bounds at the end of a FOR loop.  Fixes a bug
 	  reported by James Cox.
+	* gm2/tools-src/tidydates.py:  new file.
+	* gm2/gpl-3.0.texi:  new file.
 
 2010-10-03       Gaius Mulley <gaius@gnu.org>
 
