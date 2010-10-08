@@ -49,10 +49,10 @@ Boston, MA 02110-1301, USA.  */
       %{!c:%{fmakelist:%eGNU Modula-2 does not support -fmakelist without -c}} \n\
       %{!c:%{fmodules:%eGNU Modula-2 does not support -fmodules without -c}} \n\
       %{!c:%{fmakeinit:%eGNU Modula-2 does not support -fmakeinit without -c}} \n\
-      %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
+      %{!c:%{fmakeall:%{!fmakeall0:%{fcpp:gm2m -fcppbegin %:exec_prefix(cc1%s) -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -fcppend -nolink -fgm2begin -fmakeall0 %{B*} %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                      %{fclean:make -r -f %g.m clean %b } \n\
                                      %{!fclean:make -r -f %g.m }} \n\
-                                   %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
+                                   %{!fcpp:gm2m -nolink -fgm2begin -fmakeall0 %{B*} %{g*} %{v*} %{O*} %{W*} %{D*} %{f*} %{I*} -fgm2end -o %g.m %i \n\
                                      %{fclean:make -r -f %g.m clean %b } \n\
                                      %{!fclean:make -r -f %g.m }}}}} \n\
       %{!c:%{!S:%{!gm2gcc:%{!fuselist:%{fcpp:cc1%s -E -lang-asm -traditional-cpp -quiet %(cpp_unique_options) -o %g.mod \n\

@@ -114,6 +114,7 @@ static void add_arg (int incl, char ***in_argv, const char *str);
 static void insert_arg (int incl, int *in_argc, char ***in_argv);
 int lang_specific_pre_link (void);
 static void add_exec_prefix(int, int *in_argc, char ***in_argv);
+static void add_B_prefix (int pos, int *in_argc, char ***in_argv);
 static const char *get_objects (int argc, const char *argv[]);
 static const char *get_link_args (int argc, const char *argv[]);
 static const char *add_exec_dir (int argc, const char *argv[]);
@@ -140,6 +141,8 @@ static object_list *head_link_args = NULL;
 static int inclPos=-1;
 static int linkPos=-1;
 static int seen_fmakeall0 = FALSE;
+static int seen_fmakeall = FALSE;
+static int seen_B = FALSE;
 
 /* By default, the suffix for target object files is ".o".  */
 #ifdef TARGET_OBJECT_SUFFIX
@@ -148,6 +151,30 @@ static int seen_fmakeall0 = FALSE;
 #define TARGET_OBJECT_SUFFIX ".o"
 #endif
 
+
+/*
+ *  add_B_prefix - adds the -Bprefix option so that we can tell
+ *                 subcomponents of gm2 where to pick up its executables.
+ */
+
+static
+void add_B_prefix (int pos, int *in_argc, char ***in_argv)
+{
+  char *prefix;
+  char *arg0 = find_executable ((*in_argv)[0]);
+  char *n = strrchr (arg0, DIR_SEPARATOR);
+
+  /* strip of the program name from arg0, but leave the DIR_SEPARATOR */
+  if (n != NULL)
+    n[1] = (char)0;
+
+  /* insert -B */
+  insert_arg(pos, in_argc, in_argv);
+  prefix = (char *) alloca(strlen("-B") + strlen (arg0) + 1);
+  strcpy(prefix, "-B");
+  strcat(prefix, arg0);
+  (*in_argv)[pos] = xstrdup(prefix);
+}
 
 /*
  *  add_exec_prefix - adds the -ftarget-ar= option so that we can tell
@@ -697,8 +724,12 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
 
   i=1;
   while (i<*in_argc) {
+    if (strcmp((*in_argv)[i], "-fmakeall") == 0)
+      seen_fmakeall = TRUE;
     if (strcmp((*in_argv)[i], "-fmakeall0") == 0)
       seen_fmakeall0 = TRUE;
+    if (strlen((*in_argv)[i]) >= 1 && strncmp((*in_argv)[i], "-B", 2) == 0)
+      seen_B = TRUE;
     i++;
   }
 
@@ -790,6 +821,10 @@ lang_specific_driver (int *in_argc, const char *const **in_argv,
     add_default_directories (inclPos, (char ***)in_argv, libpath,
 			     "-I", libraries, LIB, gm2ipath);
   add_exec_prefix (1, in_argc, (char ***)in_argv);
+
+  if ((! seen_B) && seen_fmakeall) {
+    add_B_prefix (1, in_argc, (char ***)in_argv);
+  }
 
   if (linkPos == -1) {
     insert_arg (1, in_argc, (char ***)in_argv);
