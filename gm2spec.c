@@ -153,27 +153,50 @@ static int seen_B = FALSE;
 
 
 /*
+ *  find_executable_path - if argv0 references an executable filename then use
+ *                         this path.
+ */
+
+static
+char *find_executable_path (char *argv0)
+{
+  if (access (argv0, X_OK) == 0)
+    {
+      char *n = strrchr (argv0, DIR_SEPARATOR);
+
+      /* strip of the program name from argv0, but leave the DIR_SEPARATOR */
+      if (n != NULL) {
+	argv0 = xstrdup (argv0);
+	n = strrchr (argv0, DIR_SEPARATOR);
+	n[1] = (char)0;
+	return argv0;
+      }
+    }
+  return NULL;
+}
+
+/*
  *  add_B_prefix - adds the -Bprefix option so that we can tell
  *                 subcomponents of gm2 where to pick up its executables.
+ *                 But we can only do this if the user explicitly gives
+ *                 the path to argv[0].
  */
 
 static
 void add_B_prefix (int pos, int *in_argc, char ***in_argv)
 {
-  char *prefix;
-  char *arg0 = find_executable ((*in_argv)[0]);
-  char *n = strrchr (arg0, DIR_SEPARATOR);
-
-  /* strip of the program name from arg0, but leave the DIR_SEPARATOR */
-  if (n != NULL)
-    n[1] = (char)0;
-
-  /* insert -B */
-  insert_arg(pos, in_argc, in_argv);
-  prefix = (char *) alloca(strlen("-B") + strlen (arg0) + 1);
-  strcpy(prefix, "-B");
-  strcat(prefix, arg0);
-  (*in_argv)[pos] = xstrdup(prefix);
+  char *path = find_executable_path ((*in_argv)[0]);
+  
+  if (path != NULL)
+    {
+      char *prefix;
+      /* insert -B */
+      insert_arg(pos, in_argc, in_argv);
+      prefix = (char *) alloca(strlen("-B") + strlen (path) + 1);
+      strcpy(prefix, "-B");
+      strcat(prefix, path);
+      (*in_argv)[pos] = xstrdup(prefix);
+    }
 }
 
 /*
