@@ -1,3 +1,11 @@
+2010-10-11       Gaius Mulley <gaius@gnu.org>
+
+	* released version 0.99 of gm2.
+	* gm2/version.c:  updated to version 1.0.
+	* gm2/www/index.ms:  updated news of 0.99 release.
+	* gm2/gm2-libs/configure.in:  updated to 1.0.
+	* gm2/gm2-libs/configure:  rebuilt.
+
 2010-10-08       Gaius Mulley <gaius@gnu.org>
 
 	* gm2/COPYING:  updated license to GPL 3.0

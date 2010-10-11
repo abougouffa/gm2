@@ -18,7 +18,7 @@
 
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(ASCII.def, 0.99, gm2@nongnu.org)
+AC_INIT(ASCII.def, 1.0, gm2@nongnu.org)
 AC_CONFIG_HEADER(gm2-libs-host.h:gm2-libs-host.h.in)
 
 # Checks for programs.

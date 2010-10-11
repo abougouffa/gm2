@@ -17,8 +17,8 @@
 .ds GCCVERSION 4.1.2
 .ds LATESTCVSGM2 gcc-\*[GCCVERSION]+gm2-cvs-latest.tar.gz
 .ds CURRENTDATE "Thu Sep 16 12:34:07 BST 2010
-.ds CURRENTGM2 0.99
-.ds DEBIANGM2 0.9.8
+.ds CURRENTGM2 1.0
+.ds DEBIANGM2 0.9.9
 .HEAD "<link rel=""stylesheet"" type=""text/css"" href=""gm2.css"" />"
 .HEAD "<link rel=""icon"" type=""image/png"" href=""gm2-logo.png"" />"
 .de OPT
